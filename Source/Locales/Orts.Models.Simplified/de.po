@@ -1,71 +1,82 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: ORTS.Menu\n"
-"POT-Creation-Date: 2020-04-19 00:19:42+0200\n"
-"PO-Revision-Date: 2020-04-19 00:46+0200\n"
+"POT-Creation-Date: 2020-09-17 08:26:10+0200\n"
+"PO-Revision-Date: 2020-09-17 14:34+0200\n"
 "Last-Translator: Markus Gelbmann <gelbmann.markus@gmail.com>\n"
 "Language-Team: Open Rails Dev Team\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 2.3\n"
+"X-Generator: Poedit 2.4.1\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: ../../ORTS.Menu/Activities.cs:47
-msgid "- Explore Route -"
-msgstr "- Route erkunden -"
+#: ..\..\Orts.Models.Simplified\Paths.cs:180
+#, csharp-format
+msgid "Heading to: {0}"
+msgstr "Richtung: {0}"
 
-#: ../../ORTS.Menu/Activities.cs:51
+#: ..\..\Orts.Models.Simplified\Activities.cs:59
 msgid "+ Explore in Activity Mode +"
 msgstr "+ Route erkunden im Aufgabenmodus +"
 
-#: ../../ORTS.Menu/Activities.cs:81
-#, fuzzy
-msgid "Not same route:"
-msgstr "Falsche Route:"
+#: ..\..\Orts.Models.Simplified\SavePoints.cs:56
+#, csharp-format
+msgid ""
+"Warning: Save {0} found from a route with an unexpected name:\n"
+"{1}.\n"
+"\n"
+msgstr ""
 
-#: ../../ORTS.Menu/Activities.cs:85 ../../ORTS.Menu/Consists.cs:47
-#: ../../ORTS.Menu/Consists.cs:71 ../../ORTS.Menu/Consists.cs:199
-#: ../../ORTS.Menu/ORTimetables.cs:56 ../../ORTS.Menu/ORTimetables.cs:78
-#: ../../ORTS.Menu/Paths.cs:63 ../../ORTS.Menu/Routes.cs:49
-msgid "load error:"
-msgstr "Ladefehler:"
-
-#: ../../ORTS.Menu/Activities.cs:88 ../../ORTS.Menu/Consists.cs:50
-#: ../../ORTS.Menu/Consists.cs:74 ../../ORTS.Menu/Consists.cs:202
-#: ../../ORTS.Menu/Paths.cs:65 ../../ORTS.Menu/Paths.cs:66
-#: ../../ORTS.Menu/Paths.cs:67 ../../ORTS.Menu/Routes.cs:51
-msgid "unnamed:"
-msgstr "unbenannt:"
-
-#: ../../ORTS.Menu/Activities.cs:94 ../../ORTS.Menu/Consists.cs:54
-#: ../../ORTS.Menu/Consists.cs:78 ../../ORTS.Menu/Consists.cs:207
-#: ../../ORTS.Menu/ORTimetables.cs:61 ../../ORTS.Menu/ORTimetables.cs:83
-#: ../../ORTS.Menu/Paths.cs:71 ../../ORTS.Menu/Routes.cs:56
+#: ..\..\Orts.Models.Simplified\Consists.cs:33
+#: ..\..\Orts.Models.Simplified\Consists.cs:64
+#: ..\..\Orts.Models.Simplified\Locomotives.cs:38
+#: ..\..\Orts.Models.Simplified\Paths.cs:95
 msgid "missing:"
 msgstr "fehlt:"
 
-#: ../../ORTS.Menu/Activities.cs:87
-#, csharp-format
-msgid "Activity '{0}' is excluded."
-msgstr "Aufgabe '{0}' wurde ausgeschlossen."
-
-#: ../../ORTS.Menu/Consists.cs:185
-msgid "- Any Locomotive -"
-msgstr "- Beliebige Lokomotive -"
-
-#: ../../ORTS.Menu/Consists.cs:201
-#, csharp-format
-msgid "Locomotive '{0}' is excluded."
-msgstr "Lokomotive '{0}' wurde ausgeschlossen."
-
-#: ../../ORTS.Menu/Paths.cs:168
+#: ..\..\Orts.Models.Simplified\Paths.cs:180
 #, csharp-format
 msgid "Start at: {0}"
 msgstr "Startpunkt: {0}"
 
-#: ../../ORTS.Menu/Paths.cs:169
+#: ..\..\Orts.Models.Simplified\Locomotives.cs:11
+msgid "- Any Locomotive -"
+msgstr "- Beliebige Lokomotive -"
+
+#: ..\..\Orts.Models.Simplified\Activities.cs:55
+msgid "- Explore Route -"
+msgstr "- Route erkunden -"
+
+#: ..\..\Orts.Models.Simplified\Activities.cs:117
+#: ..\..\Orts.Models.Simplified\Consists.cs:83
+#: ..\..\Orts.Models.Simplified\Locomotives.cs:33
+#: ..\..\Orts.Models.Simplified\Paths.cs:84
+#: ..\..\Orts.Models.Simplified\Routes.cs:54
+#: ..\..\Orts.Models.Simplified\Timetables.cs:72
+msgid "load error:"
+msgstr "Ladefehler:"
+
+#: ..\..\Orts.Models.Simplified\Activities.cs:82
+#: ..\..\Orts.Models.Simplified\Consists.cs:48
+#: ..\..\Orts.Models.Simplified\Locomotives.cs:48
+#: ..\..\Orts.Models.Simplified\Paths.cs:87
+#: ..\..\Orts.Models.Simplified\Paths.cs:89
+#: ..\..\Orts.Models.Simplified\Paths.cs:91
+#: ..\..\Orts.Models.Simplified\Routes.cs:57
+msgid "unnamed:"
+msgstr "unbenannt:"
+
+#: ..\..\Orts.Models.Simplified\Activities.cs:108
+#, fuzzy
+msgid "Not same route:"
+msgstr "Falsche Route:"
+
 #, csharp-format
-msgid "Heading to: {0}"
-msgstr "Richtung: {0}"
+#~ msgid "Activity '{0}' is excluded."
+#~ msgstr "Aufgabe '{0}' wurde ausgeschlossen."
+
+#, csharp-format
+#~ msgid "Locomotive '{0}' is excluded."
+#~ msgstr "Lokomotive '{0}' wurde ausgeschlossen."

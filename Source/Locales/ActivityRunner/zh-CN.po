@@ -1,2000 +1,2649 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: ActivityRunner\n"
-"POT-Creation-Date: 2015-04-11 13:13:02-0400\n"
-"PO-Revision-Date: 2015-04-25 22:28-0500\n"
+"POT-Creation-Date: 2020-09-17 08:25:56+0200\n"
+"PO-Revision-Date: 2020-09-17 14:18+0200\n"
 "Last-Translator: Jijun Tang\n"
 "Language-Team: Open Rails Dev Team\n"
 "Language: zh_CN\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 1.7.5\n"
+"X-Generator: Poedit 2.4.1\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: ../../ActivityRunner/Common/Scripting/BrakeController.cs:217
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3635
-#: ../../ActivityRunner/RollingStock/SubSystems/Brakes/MSTS/AirSinglePipe.cs:55
-msgid "Release"
-msgstr "缓解"
-
-#: ../../ActivityRunner/Common/Scripting/BrakeController.cs:218
-msgid "Quick Release"
-msgstr "过充"
-
-#: ../../ActivityRunner/Common/Scripting/BrakeController.cs:220
-msgid "Neutral"
-msgstr "中位"
-
-#: ../../ActivityRunner/Common/Scripting/BrakeController.cs:221
-#: ../../ActivityRunner/RollingStock/SubSystems/Brakes/MSTS/AirSinglePipe.cs:54
-msgid "Apply"
-msgstr "制动"
-
-#: ../../ActivityRunner/Common/Scripting/BrakeController.cs:222
-msgid "EPApply"
-msgstr "电空制动"
-
-#: ../../ActivityRunner/Common/Scripting/BrakeController.cs:223
-#: ../../ActivityRunner/RollingStock/SubSystems/Brakes/MSTS/AirSinglePipe.cs:56
-msgid "Emergency"
-msgstr "紧急制动"
-
-#: ../../ActivityRunner/Common/Scripting/BrakeController.cs:224
-#: ../../ActivityRunner/Common/Scripting/BrakeController.cs:227
-#: ../../ActivityRunner/RollingStock/SubSystems/Brakes/MSTS/AirSinglePipe.cs:53
-msgid "Lap"
-msgstr "保压"
-
-#: ../../ActivityRunner/Common/Scripting/BrakeController.cs:225
-#: ../../ActivityRunner/Common/Scripting/BrakeController.cs:226
-msgid "Service"
-msgstr "行车制动"
-
-#: ../../ActivityRunner/Common/Scripting/BrakeController.cs:228
-msgid "Suppression"
-msgstr "抑制"
-
-#: ../../ActivityRunner/Common/Scripting/BrakeController.cs:229
-msgid "Cont. Service"
-msgstr "持续制动"
-
-#: ../../ActivityRunner/Common/Scripting/BrakeController.cs:230
-msgid "Full Service"
-msgstr "全制动"
-
-#: ../../ActivityRunner/Common/Scripting/BrakeController.cs:231
-msgid "Overcharge"
-msgstr "过载"
-
-#: ../../ActivityRunner/Common/Scripting/BrakeController.cs:232
-msgid "Emergency Braking Push Button"
-msgstr "紧急制动按钮(backspace键)"
-
-#: ../../ActivityRunner/Common/Scripting/BrakeController.cs:233
-msgid "TCS Emergency Braking"
-msgstr "运监紧急制动"
-
-#: ../../ActivityRunner/Common/Scripting/BrakeController.cs:234
-msgid "TCS Full Service Braking"
-msgstr "运监全制动"
-
-#. Context: Brake Controller
-#: ../../ActivityRunner/Common/Scripting/BrakeController.cs:219
-msgctxt "Brake Controller"
-msgid "Running"
-msgstr "运行"
-
-#. Context: PowerSupply
-#: ../../ActivityRunner/Common/Scripting/PowerSupply/AbstractPowerSupply.cs:79
-msgctxt "PowerSupply"
-msgid "Off"
-msgstr "关闭"
-
-#. Context: PowerSupply
-#: ../../ActivityRunner/Common/Scripting/PowerSupply/AbstractPowerSupply.cs:80
-msgctxt "PowerSupply"
-msgid "On ongoing"
-msgstr "正在进行"
-
-#. Context: PowerSupply
-#: ../../ActivityRunner/Common/Scripting/PowerSupply/AbstractPowerSupply.cs:81
-msgctxt "PowerSupply"
-msgid "On"
-msgstr "打开"
-
-#. Context: Pantograph
-#: ../../ActivityRunner/Common/Scripting/PowerSupply/AbstractPowerSupply.cs:86
-msgctxt "Pantograph"
-msgid "Down"
-msgstr "收"
-
-#. Context: Pantograph
-#: ../../ActivityRunner/Common/Scripting/PowerSupply/AbstractPowerSupply.cs:87
-msgctxt "Pantograph"
-msgid "Lowering"
-msgstr "降低"
-
-#. Context: Pantograph
-#: ../../ActivityRunner/Common/Scripting/PowerSupply/AbstractPowerSupply.cs:88
-msgctxt "Pantograph"
-msgid "Raising"
-msgstr "升起"
-
-#. Context: Pantograph
-#: ../../ActivityRunner/Common/Scripting/PowerSupply/AbstractPowerSupply.cs:89
-msgctxt "Pantograph"
-msgid "Up"
-msgstr "升"
-
-#. Context: CircuitBraker
-#: ../../ActivityRunner/Common/Scripting/PowerSupply/CircuitBreaker.cs:79
-msgctxt "CircuitBraker"
-msgid "Open"
-msgstr "开"
-
-#. Context: CircuitBraker
-#: ../../ActivityRunner/Common/Scripting/PowerSupply/CircuitBreaker.cs:80
-msgctxt "CircuitBraker"
-msgid "Closing"
-msgstr "关闭"
-
-#. Context: CircuitBraker
-#: ../../ActivityRunner/Common/Scripting/PowerSupply/CircuitBreaker.cs:81
-msgctxt "CircuitBraker"
-msgid "Closed"
-msgstr "关"
-
-#: ../../ActivityRunner/Debugging/DebugViewerForm.cs:2041
-msgid "Switching Request Sent to the Server"
-msgstr "向联控请求道岔"
-
-#: ../../ActivityRunner/Debugging/DebugViewerForm.cs:177
-msgid "View Self"
-msgstr "看自己"
-
-#: ../../ActivityRunner/Debugging/DebugViewerForm.cs:549
-msgid "MSG to Server"
-msgstr "给联控发短信"
-
-#: ../../ActivityRunner/Debugging/DebugViewerForm.cs:553
-#: ../../ActivityRunner/Debugging/DebugViewerForm.Designer.cs:227
-msgid "MSG to All"
-msgstr "给大家发短信"
-
-#: ../../ActivityRunner/Debugging/DebugViewerForm.Designer.cs:93
-msgid "View Train"
-msgstr "查看该列车"
-
-#: ../../ActivityRunner/Debugging/DebugViewerForm.Designer.cs:138
-msgid "m"
-msgstr "米"
-
-#: ../../ActivityRunner/Debugging/DebugViewerForm.Designer.cs:159
-msgid "Remove"
-msgstr "踢出"
-
-#: ../../ActivityRunner/Debugging/DebugViewerForm.Designer.cs:174
-msgid "Auto Switch"
-msgstr "自动道岔"
-
-#: ../../ActivityRunner/Debugging/DebugViewerForm.Designer.cs:189
-msgid "Show Avatars"
-msgstr "显示头像"
-
-#: ../../ActivityRunner/Debugging/DebugViewerForm.Designer.cs:215
-msgid "MSG to Selected"
-msgstr "给所选发短信"
-
-#: ../../ActivityRunner/Debugging/DebugViewerForm.Designer.cs:238
-#: ../../ActivityRunner/Debugging/MessageViewer.Designer.cs:88
-msgid "Compose MSG"
-msgstr "写短信"
-
-#: ../../ActivityRunner/Debugging/DebugViewerForm.Designer.cs:251
-msgid "Res"
-msgstr "精度"
-
-#: ../../ActivityRunner/Debugging/DebugViewerForm.Designer.cs:261
-msgid "Reply to Selected"
-msgstr "回复所选"
-
-#: ../../ActivityRunner/Debugging/DebugViewerForm.Designer.cs:276
-msgid "Draw Path"
-msgstr "画路线"
-
-#: ../../ActivityRunner/Debugging/DebugViewerForm.Designer.cs:326
-msgid "Pick Signals"
-msgstr "信号可选"
-
-#: ../../ActivityRunner/Debugging/DebugViewerForm.Designer.cs:340
-msgid "Pick Switches"
-msgstr "道岔可选"
-
-#: ../../ActivityRunner/Debugging/DebugViewerForm.Designer.cs:354
-msgid "Can Join"
-msgstr "可以加入"
-
-#: ../../ActivityRunner/Debugging/DebugViewerForm.Designer.cs:378
-msgid "Assist"
-msgstr "助手"
-
-#: ../../ActivityRunner/Debugging/DebugViewerForm.Designer.cs:390
-msgid "Normal"
-msgstr "玩家"
-
-#: ../../ActivityRunner/Debugging/DebugViewerForm.Designer.cs:403
-msgid "Follow"
-msgstr "追踪"
-
-#: ../../ActivityRunner/Debugging/DebugViewerForm.Designer.cs:418
-msgid "Penalty"
-msgstr "惩罚"
-
-#: ../../ActivityRunner/Debugging/DebugViewerForm.Designer.cs:433
-msgid "Prefer Green"
-msgstr "偏好绿灯"
-
-#: ../../ActivityRunner/Debugging/DebugViewerForm.Designer.cs:447
-msgid "See in Game"
-msgstr "游戏中查看"
-
-#: ../../ActivityRunner/Debugging/DebugViewerForm.Designer.cs:486
-msgid "DispatchViewer"
-msgstr "联控窗口"
-
-#: ../../ActivityRunner/Debugging/MessageViewer.Designer.cs:46
-msgid "Clear All"
-msgstr "清除全部"
-
-#: ../../ActivityRunner/Debugging/MessageViewer.Designer.cs:57
-msgid "Reply Selected"
-msgstr "回复全部"
-
-#: ../../ActivityRunner/Debugging/MessageViewer.Designer.cs:102
-msgid "MessageViewer"
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:108
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:90
+msgid "BDYN"
 msgstr ""
 
-#: ../../ActivityRunner/Debugging/SoundDebugForm.cs:176
-#: ../../ActivityRunner/Debugging/SoundDebugForm.cs:206
-#: ../../ActivityRunner/Debugging/SoundDebugForm.cs:207
-#: ../../ActivityRunner/Debugging/SoundDebugForm.cs:208
-msgid "-"
+#: ..\..\ActivityRunner\Viewer3D\RollingStock\MSTSLocomotiveViewer.cs:589
+#, csharp-format
+msgid "Unload: {0} fuel or freight now unloaded."
 msgstr ""
 
-#: ../../ActivityRunner/Debugging/SoundDebugForm.cs:205
-#: ../../ActivityRunner/Debugging/SoundDebugForm.Designer.cs:189
-msgid "0"
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:337
+#, fuzzy
+#| msgid "Status: Activity paused"
+msgid "This Activity has ended."
+msgstr "状态：任务暂停"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:123
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:105
+msgid "SAND"
 msgstr ""
 
-#: ../../ActivityRunner/Debugging/SoundDebugForm.Designer.cs:136
-msgid "Active sounds"
-msgstr "当前声音"
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrackMonitorDisplay.cs:301
+#, fuzzy
+#| msgid "Projected:"
+msgid "Projected"
+msgstr "预测："
 
-#: ../../ActivityRunner/Debugging/SoundDebugForm.Designer.cs:147
-msgid "Inactive sounds"
-msgstr "未用声音"
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:102
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:84
+#, fuzzy
+#| msgid "Boiler water level"
+msgid "Boiler water glass"
+msgstr "锅炉水量"
 
-#: ../../ActivityRunner/Debugging/SoundDebugForm.Designer.cs:179
-msgid "Sound cache"
-msgstr "声音缓存"
-
-#: ../../ActivityRunner/Debugging/SoundDebugForm.Designer.cs:202
-msgid "Selected sound"
-msgstr "已选声音"
-
-#: ../../ActivityRunner/Debugging/SoundDebugForm.Designer.cs:214
-msgid "3D"
-msgstr "三维"
-
-#: ../../ActivityRunner/Debugging/SoundDebugForm.Designer.cs:282
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:391
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:664
-msgid "Speed"
-msgstr "速度"
-
-#: ../../ActivityRunner/Debugging/SoundDebugForm.Designer.cs:310
-msgid "Variable 2"
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1688
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1691
+#, csharp-format
+msgid "{0:F0}"
 msgstr ""
 
-#: ../../ActivityRunner/Debugging/SoundDebugForm.Designer.cs:329
-msgid "Variable 3"
+#: ..\..\ActivityRunner\Viewer3D\RollingStock\MSTSLocomotiveViewer.cs:638
+#: ..\..\ActivityRunner\Viewer3D\RollingStock\MSTSLocomotiveViewer.cs:656
+#, fuzzy
+#| msgctxt "Engine"
+#| msgid "Starting"
+msgid "Starting refill"
+msgstr "开机"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:107
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:89
+msgid "DOOR"
 msgstr ""
 
-#: ../../ActivityRunner/Debugging/SoundDebugForm.Designer.cs:339
-msgid "Variable 1"
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:126
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:108
+msgid "THRO"
 msgstr ""
 
-#: ../../ActivityRunner/Debugging/SoundDebugForm.Designer.cs:349
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:670
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:672
-#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:71
-msgid "Distance"
-msgstr "距离"
-
-#: ../../ActivityRunner/Debugging/SoundDebugForm.Designer.cs:359
-msgid "Volume"
-msgstr "音量"
-
-#: ../../ActivityRunner/Debugging/SoundDebugForm.Designer.cs:370
-msgid "Sound Debug"
-msgstr "声音调试"
-
-#: ../../ActivityRunner/MultiPlayer/ClientComm.cs:116
-#: ../../ActivityRunner/MultiPlayer/ClientComm.cs:128
-msgid "Connection to the server is lost, will play as single mode"
-msgstr "无法与联控联系，将运行单机游戏"
-
-#: ../../ActivityRunner/MultiPlayer/ClientComm.cs:145
-msgid "Alt-E to gain control of your train"
-msgstr "按Alt-E键获取本列车控制权"
-
-#: ../../ActivityRunner/MultiPlayer/Message.cs:647
-msgid "Dispatcher does not allow hand throw at this time"
-msgstr "联控不允许扳动道岔"
-
-#: ../../ActivityRunner/MultiPlayer/Message.cs:691
-msgid "main route"
-msgstr "主路"
-
-#: ../../ActivityRunner/MultiPlayer/Message.cs:691
-msgid "side route"
-msgstr "旁路"
-
-#: ../../ActivityRunner/MultiPlayer/Message.cs:1465
-msgid "You are the new dispatcher. Enjoy!"
-msgstr "你现在是新联控"
-
-#: ../../ActivityRunner/MultiPlayer/Message.cs:1595
-msgid "Name conflicted with people in the game, will play in single mode"
-msgstr "用户名重复，无法联机"
-
-#: ../../ActivityRunner/MultiPlayer/Message.cs:1670
-#: ../../ActivityRunner/MultiPlayer/MPManager.cs:130
-msgid "You gained back the control of your train"
-msgstr "你获取了列车的控制权"
-
-#: ../../ActivityRunner/MultiPlayer/Message.cs:1885
-msgid "Server quits, will play as single mode"
-msgstr "联控退出，单机运行"
-
-#: ../../ActivityRunner/MultiPlayer/Message.cs:2166
-#: ../../ActivityRunner/MultiPlayer/Message.cs:2412
-msgid "Trains uncoupled, gain back control by Alt-E"
-msgstr "列车解挂，按Alt-E键获取列车控制权"
-
-#: ../../ActivityRunner/MultiPlayer/Message.cs:2550
-#: ../../ActivityRunner/MultiPlayer/Message.cs:2658
-msgid "Trains coupled, hit \\ then Shift-? to release brakes"
-msgstr "列车挂车，按\\然后Shift-?键缓解制动"
-
-#: ../../ActivityRunner/MultiPlayer/Message.cs:3102
-msgid "You are an assistant now, will be able to handle switches and signals."
-msgstr "你现在是助手，可以控制信号和道岔"
-
-#: ../../ActivityRunner/MultiPlayer/Message.cs:3108
-msgid "You are no longer an assistant."
-msgstr "你的助手权被取消"
-
-#: ../../ActivityRunner/MultiPlayer/Message.cs:690
-#, csharp-format
-msgid "Switched, current route is {0}"
-msgstr "道岔扳动，现在的路线是：{0}"
-
-#: ../../ActivityRunner/MultiPlayer/Message.cs:1472
-#, csharp-format
-msgid "New dispatcher is {0}"
-msgstr "新联控是 {0}"
-
-#: ../../ActivityRunner/MultiPlayer/Message.cs:1896
-#: ../../ActivityRunner/MultiPlayer/OnlinePlayer.cs:148
-#, csharp-format
-msgid "{0} quit."
-msgstr "{0} 退出"
-
-#: ../../ActivityRunner/MultiPlayer/Message.cs:1968
-#, csharp-format
-msgid "{0} lost."
-msgstr "{0} 掉线"
-
-#: ../../ActivityRunner/MultiPlayer/Message.cs:2988
-#, csharp-format
-msgid " From {0}: {1}"
-msgstr "信息-{0}: {1}"
-
-#: ../../ActivityRunner/MultiPlayer/MPManager.cs:749
-msgid "Missing car, have substituted with other one."
-msgstr "找不到车，用差不多的代替"
-
-#: ../../ActivityRunner/MultiPlayer/MPManager.cs:388
-#, csharp-format
-msgid "Cannot decouple: train has {0} player, need to completely stop."
-msgid_plural "Cannot decouple: train has {0} players, need to completely stop."
-msgstr[0] "列车有{0}玩家，无法解挂，必须停车"
-
-#: ../../ActivityRunner/Physics/Train.cs:1458
-msgid "Coupler broken!"
-msgstr "断钩了！"
-
-#: ../../ActivityRunner/Physics/Train.cs:1461
-msgid "Coupler overloaded!"
-msgstr "车钩受力过大！"
-
-#: ../../ActivityRunner/Physics/Train.cs:4587
-#: ../../ActivityRunner/Physics/Train.cs:4592
-msgid "Other train is blocking path"
-msgstr "前方有其他车"
-
-#: ../../ActivityRunner/Physics/Train.cs:5469
-msgid "Stopped due to errors in route setting"
-msgstr "路错，无法前进"
-
-#: ../../ActivityRunner/Physics/Train.cs:6131
-#: ../../ActivityRunner/Physics/Train.cs:7209
-msgid "No signal in train's path"
-msgstr "列车前方无信号"
-
-#: ../../ActivityRunner/Physics/Train.cs:6139
-msgid "Next signal already allocated to other train"
-msgstr "信号给了其他列车"
-
-#: ../../ActivityRunner/Physics/Train.cs:6200
-msgid "Request to clear signal cannot be processed"
-msgstr "无法设置信号"
-
-#: ../../ActivityRunner/Physics/Train.cs:6306
-#: ../../ActivityRunner/Physics/Train.cs:7329
-msgid "No switch found"
-msgstr "找不到道岔"
-
-#: ../../ActivityRunner/Physics/Train.cs:7563
-msgid "You cannot enter manual mode when autopiloted"
-msgstr "现在是自动模式，无法进入人工模式"
-
-#: ../../ActivityRunner/Physics/Train.cs:7575
-msgid "Train is not back on original route"
-msgstr "列车没回到原定路线"
-
-#: ../../ActivityRunner/Physics/Train.cs:7584
-msgid ""
-"Original route is reverse from present direction, stop train before switching"
-msgstr "原始线路与现有方向相反，请停车后再扳道岔"
-
-#: ../../ActivityRunner/Physics/Train.cs:7597
-msgid "Cannot change to Manual Mode while in Explorer Mode"
-msgstr "探索模式下无法切换模式"
-
-#: ../../ActivityRunner/Physics/Train.cs:7692
-msgid "Reversal required and rear of train not on required route"
-msgstr "倒车，但车尾不在设定路线上"
-
-#: ../../ActivityRunner/Physics/Train.cs:7898
-msgid "Cannot clear signal behind train while in AUTO mode"
-msgstr "自动模式下无法设置车尾信号"
-
-#: ../../ActivityRunner/Physics/Train.cs:8147
+#: ..\..\ActivityRunner\Viewer3D\Viewer.cs:306
 #, csharp-format
 msgid "Allowed speed raised to {0}"
 msgstr "限速变成 {0}"
 
-#: ../../ActivityRunner/Physics/Train.cs:8189
-#, csharp-format
-msgid "Train stopped due to problems with other train: train {0} , reason: {1}"
-msgstr "其它列车挡路: 列车 {0} , 原因: {1}"
-
-#: ../../ActivityRunner/Processes/GameStateRunActivity.cs:1080
-#, csharp-format
-msgid "Activity Save file '*.save' not found in folder {0}"
-msgstr "无法找到任务保存文件 {0}"
-
-#: ../../ActivityRunner/RollingStock/MSTSDieselLocomotive.cs:817
-msgid "Engine"
-msgstr "柴油机"
-
-#: ../../ActivityRunner/RollingStock/MSTSDieselLocomotive.cs:821
-#: ../../ActivityRunner/RollingStock/MSTSDieselLocomotive.cs:833
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3459
-msgid "Gear"
-msgstr "挂档"
-
-#: ../../ActivityRunner/RollingStock/MSTSDieselLocomotive.cs:834
-msgid "Fuel"
-msgstr "油量"
-
-#. Context: Gear
-#: ../../ActivityRunner/RollingStock/MSTSDieselLocomotive.cs:822
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3460
-msgctxt "Gear"
-msgid "N"
-msgstr "中立"
-
-#: ../../ActivityRunner/RollingStock/MSTSElectricLocomotive.cs:221
-msgid "No power line!"
-msgstr "没有接触网"
-
-#: ../../ActivityRunner/RollingStock/MSTSElectricLocomotive.cs:223
-msgid "Power line condition overridden."
-msgstr "没有接触网也可以开"
-
-#: ../../ActivityRunner/RollingStock/MSTSElectricLocomotive.cs:317
-msgid "Pantographs"
-msgstr "受电弓"
-
-#: ../../ActivityRunner/RollingStock/MSTSElectricLocomotive.cs:331
-msgid "Circuit breaker"
-msgstr "继电器"
-
-#: ../../ActivityRunner/RollingStock/MSTSElectricLocomotive.cs:332
-msgid "TCS"
-msgstr "列控"
-
-#: ../../ActivityRunner/RollingStock/MSTSElectricLocomotive.cs:332
-#: ../../ActivityRunner/RollingStock/MSTSElectricLocomotive.cs:333
-msgid "OK"
-msgstr "允许"
-
-#: ../../ActivityRunner/RollingStock/MSTSElectricLocomotive.cs:332
-#: ../../ActivityRunner/RollingStock/MSTSElectricLocomotive.cs:333
-msgid "NOT OK"
-msgstr "不允许"
-
-#: ../../ActivityRunner/RollingStock/MSTSElectricLocomotive.cs:333
-msgid "Driver"
-msgstr "司机"
-
-#: ../../ActivityRunner/RollingStock/MSTSElectricLocomotive.cs:334
-msgid "Auxiliary power"
-msgstr "辅助动力"
-
-#. Context: PowerSupply
-#: ../../ActivityRunner/RollingStock/MSTSElectricLocomotive.cs:322
-msgctxt "PowerSupply"
-msgid "Power"
-msgstr "电力"
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:1411
-msgid "Tender coal supply is empty. Your loco will fail."
-msgstr "煤水车没有煤了"
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:1425
-msgid "Tender water supply is empty. Your loco will fail."
-msgstr "煤水车没水了"
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:1482
-msgid "Fire has dropped too far. Your loco will fail."
-msgstr "火快灭了"
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:1539
-msgid ""
-"FireMass is getting low. Your fireman will shovel faster, but don't wear him "
-"out."
-msgstr "火量太小，司炉需要加快速度"
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:1552
-msgid "FireMass is back within limits. Your fireman will shovel as per normal."
-msgstr "火量正常，司炉速度正常"
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3094
-msgid "Water level dropped too far. Plug has fused and loco has failed."
-msgstr "水量太低，机车爆炸"
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3101
-msgid "Boiler overfull and priming."
-msgstr "锅炉汽水共腾"
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3107
-msgid "Boiler no longer priming."
-msgstr "锅炉正常"
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3457
-msgid "Fixed gear"
-msgstr "固定档位"
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3462
-msgid "Steam usage"
-msgstr "蒸汽用量"
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3463
-msgid "Boiler pressure"
-msgstr "锅炉汽压"
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3464
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3468
-msgid "Boiler water level"
-msgstr "锅炉水量"
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3464
-msgid "(safe range)"
-msgstr "(安全区间)"
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3468
-msgid "(absolute)"
-msgstr "(绝对值)"
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3470
-msgid "Fire mass"
-msgstr "火量"
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3472
-msgid "Fire ratio"
-msgstr "火率"
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3475
-msgid "Fuel levels"
-msgstr "燃料量"
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3475
-#: ../../ActivityRunner/Viewer3D/RollingStock/MSTSLocomotiveViewer.cs:330
-msgid "coal"
-msgstr "煤"
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3475
-#: ../../ActivityRunner/Viewer3D/RollingStock/MSTSLocomotiveViewer.cs:329
-msgid "water"
-msgstr "水"
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3484
-msgid "Key Inputs"
-msgstr "关键数据"
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3486
-msgid "Locomotive Type:"
-msgstr "机车类型"
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3490
-msgid "Input:"
-msgstr "输入："
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3491
-msgid "Evap"
+#: ..\..\ActivityRunner\Viewer3D\Popups\MultiPlayerWindow.cs:137
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:200
+msgid "NwLn"
 msgstr ""
 
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3492
-msgid "Grate"
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:463
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:128
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:636
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:670
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:693
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:110
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:364
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:409
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:443
+msgid "Train brake"
+msgstr "列车制动"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TTDetachWindow.cs:69
+msgid "Perform Detach"
 msgstr ""
 
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3493
-msgid "Boiler"
-msgstr "锅炉"
+#: ..\..\ActivityRunner\Viewer3D\Debugging\DebugViewerForm.Designer.cs:155
+msgid "Remove"
+msgstr "踢出"
 
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3494
-msgid "SuperHr"
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1265
+#, fuzzy
+#| msgid "Direction"
+msgid "Wind Direction:"
+msgstr "方向"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:120
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:102
+msgid "RPLY"
 msgstr ""
 
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3495
-msgid "FuelCal"
-msgstr "油量计算"
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:359
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:360
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:570
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:573
+#, fuzzy
+#| msgid "(missed)"
+msgid "HH:mm:ss(missed)"
+msgstr "（过站）"
 
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3503
-msgid "Adj:"
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:161
+msgid "Num of substeps"
 msgstr ""
 
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3504
-msgid "CylEff"
-msgstr ""
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3505
-msgid "CylExh"
-msgstr ""
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3506
-msgid "PortOpen"
-msgstr ""
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3512
-msgid "Steam Production"
-msgstr "蒸汽发生量"
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3517
-msgid "Boiler:"
-msgstr "锅炉："
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3519
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:633
-msgid "Mass"
-msgstr "质量"
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3520
-msgid "MaxOutp"
-msgstr ""
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3521
-msgid "BoilerEff"
-msgstr ""
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3529
-msgid "Heat:"
-msgstr "热量"
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3530
-msgid "In"
-msgstr "在"
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3531
-msgid "Out"
-msgstr ""
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3532
-msgid "Stored"
-msgstr ""
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3533
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3685
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:665
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1427
 msgid "Max"
 msgstr "最大"
 
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3540
-msgid "Temp:"
-msgstr "温度："
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3541
-msgid "Flue"
-msgstr "烟"
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3542
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3702
-msgid "Water"
-msgstr "水"
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3543
-msgid "MaxSupH"
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:606
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:321
+msgid "Blocked"
 msgstr ""
 
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3544
-msgid "CurSupH"
+#: ..\..\ActivityRunner\Viewer3D\Popups\ActivityWindow.cs:317
+msgid "End Activity"
+msgstr "结束任务"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:129
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:867
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:869
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:871
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:873
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:111
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:668
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:676
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:684
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:692
+#, fuzzy
+#| msgid "Wheels"
+msgid "Wheel"
+msgstr "轮对数目"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:720
+#, fuzzy
+#| msgid "Force:"
+msgid "Force"
+msgstr "力："
+
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrackMonitorDisplay.cs:364
+msgid "Milepost"
 msgstr ""
 
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3545
-msgid "SupFact"
-msgstr ""
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:141
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:123
+#, fuzzy
+#| msgid "(safe range)"
+msgid "safe range"
+msgstr "(安全区间)"
 
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3553
-msgid "Steam Usage"
-msgstr "蒸汽用量"
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3558
-msgid "Usage:"
-msgstr "蒸汽用量"
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3559
-msgid "Cyl"
-msgstr ""
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3560
-#: ../../ActivityRunner/Simulator/Confirmation.cs:158
-msgid "Blower"
-msgstr "鼓风机"
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3561
-msgid "Radiation"
-msgstr "辐射"
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3562
-msgid "Comprsr"
-msgstr ""
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3563
-msgid "SafetyV"
-msgstr ""
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3564
-msgid "CylCock"
-msgstr ""
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3565
-msgid "Genertr"
-msgstr ""
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3566
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3713
-msgid "Stoker"
-msgstr ""
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3567
-msgid "MaxSafe"
-msgstr ""
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3586
-msgid "PressHP:"
-msgstr ""
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3587
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3609
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3632
-msgid "Chest"
-msgstr ""
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3589
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3611
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3633
-msgid "Initial"
-msgstr "初始"
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3591
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3613
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3634
-msgid "Cutoff"
-msgstr ""
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3593
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3615
-msgid "Rel"
-msgstr ""
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3595
-msgid "RelR"
-msgstr ""
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3597
-#: ../../ActivityRunner/RollingStock/SubSystems/Brakes/BrakeSystem.cs:82
-#: ../../ActivityRunner/Simulator/Confirmation.cs:176
-msgid "Exhaust"
-msgstr "烟"
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3599
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3617
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3636
-msgid "Back"
-msgstr ""
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3601
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3619
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3637
-msgid "PreComp"
-msgstr ""
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3603
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3623
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3639
-msgid "MEP"
-msgstr ""
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3608
-msgid "PressLP:"
-msgstr ""
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3621
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3638
-msgid "PreAdm"
-msgstr ""
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3631
-msgid "Press:"
-msgstr "压力"
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3651
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3709
-msgid "Status:"
-msgstr "状态："
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3652
-msgid "Safety"
-msgstr ""
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3653
-#: ../../ActivityRunner/RollingStock/SubSystems/Brakes/MSTS/AirSinglePipe.cs:129
-msgid "Open"
-msgstr "开"
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3653
-msgid "Closed"
-msgstr "关"
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3654
-msgid "Plug"
-msgstr ""
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3655
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3657
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3659
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3716
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3717
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3718
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3719
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3720
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3721
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3778
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:480
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:501
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:781
-msgid "Yes"
-msgstr ""
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3655
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3657
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3659
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3716
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3717
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3718
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3719
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3720
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3721
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3778
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:480
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:501
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:781
-msgid "No"
-msgstr "不"
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3656
-msgid "Prime"
-msgstr ""
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3658
-msgid "BoilHeat"
-msgstr ""
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3660
-msgid "Comp"
-msgstr ""
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3661
-msgid "Off"
-msgstr "关"
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3661
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:612
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:838
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:321
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:631
 msgid "On"
 msgstr "开"
 
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3665
-msgid "Fireman"
-msgstr "司炉"
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:431
+#, fuzzy
+#| msgid "Work Orders"
+msgid "Work orders:"
+msgstr "任务书"
 
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3667
-msgid "Fire:"
-msgstr "火："
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:511
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:882
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:704
+#, fuzzy
+#| msgid "Right"
+msgid "RightLeft"
+msgstr "右"
 
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3668
-msgid "Ideal"
-msgstr "目标"
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3669
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:85
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:87
-#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:73
-#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:75
-msgid "Actual"
-msgstr "  实际"
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3670
-msgid "MaxFireR"
-msgstr "最大火量"
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3671
-msgid "FeedRate"
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:101
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:83
+msgid "PRES"
 msgstr ""
 
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3672
-msgid "BurnRate"
-msgstr ""
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3673
-msgid "Combust"
-msgstr "燃烧"
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3684
-msgid "Injector:"
-msgstr "注水器："
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3686
-msgid "Inj1"
-msgstr "注水1"
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3687
-msgid "Temp1"
-msgstr ""
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3688
-msgid "Inj2"
-msgstr "注水2"
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3689
-msgid "Temp2"
-msgstr ""
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3700
-msgid "Tender:"
-msgstr "煤水车："
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3701
-msgid "Coal"
-msgstr "煤"
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3710
-msgid "CoalOut"
-msgstr ""
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3711
-msgid "WaterOut"
-msgstr "无水"
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3712
-msgid "FireOut"
-msgstr "火灭"
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3714
-msgid "Boost"
-msgstr ""
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3715
-msgid "BstReset"
-msgstr ""
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3723
-msgid "Performance"
-msgstr ""
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3725
-msgid "Power:"
-msgstr "动力："
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3726
-msgid "MaxInd"
-msgstr ""
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3727
-msgid "Ind"
-msgstr ""
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3728
-msgid "Drawbar"
-msgstr ""
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3734
-msgid "Force:"
-msgstr "力："
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3735
-msgid "TheorTE"
-msgstr ""
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3736
-msgid "StartTE"
-msgstr ""
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3737
-msgid "TE"
-msgstr ""
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3738
-msgid "Draw"
-msgstr "画"
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3739
-msgid "CritSpTE"
-msgstr ""
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3740
-msgid "CritSpeed"
-msgstr ""
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3749
-msgid "Move:"
-msgstr "运动："
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3750
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3765
-msgid "Piston"
-msgstr "活塞"
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3751
-msgid "SpdFact"
-msgstr ""
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3752
-msgid "DrvWhl"
-msgstr ""
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3753
-msgid "MF-Gear"
-msgstr ""
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3762
-msgid "Experimental"
-msgstr "实验"
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3762
-msgid "Slip Monitor"
-msgstr "轮滑监控"
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3764
-msgid "Slip:"
-msgstr "轮滑："
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3766
-msgid "Tang(c)"
-msgstr ""
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3767
-msgid "Tang(t)"
-msgstr ""
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3768
-msgid "Static"
-msgstr ""
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3769
-msgid "Coeff"
-msgstr ""
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3770
-msgid "Slip"
-msgstr "轮滑"
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3771
-msgid "WheelM"
-msgstr ""
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3772
-msgid "FoA"
-msgstr ""
-
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3835
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3882
-msgid "Gears can't be changed unless throttle is at zero."
-msgstr "档位中立才能换档"
-
-#. Context: HUD
-#: ../../ActivityRunner/RollingStock/MSTSSteamLocomotive.cs:3518
-#: ../../ActivityRunner/RollingStock/SubSystems/PowerSupply/DieselEngine.cs:298
-msgctxt "HUD"
-msgid "Power"
-msgstr "功率"
-
-#: ../../ActivityRunner/RollingStock/TrainCar.cs:583
-msgid ""
-"You are traveling too fast for this curve. Slow down, your freight may be "
-"damaged and your train may derail."
-msgstr "弯道速度过快，可能翻车或导致货物受损"
-
-#: ../../ActivityRunner/RollingStock/TrainCar.cs:587
-msgid ""
-"You are travelling too fast for this curve. Slow down, your passengers are "
-"feeling uncomfortable and your train may derail."
-msgstr "弯道速度过快，可能翻车或导致乘客不适"
-
-#: ../../ActivityRunner/RollingStock/TrainCar.cs:620
-msgid "Your train has overturned."
-msgstr "翻车了"
-
-#: ../../ActivityRunner/RollingStock/TrainCar.cs:799
-msgid "(flipped)"
-msgstr "(II端向前)"
-
-#: ../../ActivityRunner/RollingStock/TrainCar.cs:801
-msgid "MU'd"
-msgstr "多机"
-
-#: ../../ActivityRunner/RollingStock/TrainCar.cs:801
-msgid "Single"
-msgstr "单机"
-
-#: ../../ActivityRunner/RollingStock/SubSystems/Brakes/BrakeSystem.cs:83
-#: ../../ActivityRunner/Simulator/Confirmation.cs:176
-msgid "High Pressure"
-msgstr "高压"
-
-#: ../../ActivityRunner/RollingStock/SubSystems/Brakes/BrakeSystem.cs:84
-#: ../../ActivityRunner/Simulator/Confirmation.cs:176
-msgid "Low Pressure"
-msgstr "低压"
-
-#: ../../ActivityRunner/RollingStock/SubSystems/Brakes/BrakeSystem.cs:85
-#: ../../ActivityRunner/Simulator/Confirmation.cs:176
-msgid "Slow Direct"
-msgstr "低速直通"
-
-#: ../../ActivityRunner/RollingStock/SubSystems/PowerSupply/DieselEngine.cs:294
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:119
-msgid "Status"
-msgstr "状态"
-
-#: ../../ActivityRunner/RollingStock/SubSystems/PowerSupply/DieselEngine.cs:302
-msgid "Load"
-msgstr "加载"
-
-#: ../../ActivityRunner/RollingStock/SubSystems/PowerSupply/DieselEngine.cs:309
-msgid "Flow"
-msgstr "流动"
-
-#: ../../ActivityRunner/RollingStock/SubSystems/PowerSupply/DieselEngine.cs:317
-msgid "Oil"
-msgstr "油"
-
-#. Context: Engine
-#: ../../ActivityRunner/RollingStock/SubSystems/PowerSupply/DieselEngine.cs:392
-msgctxt "Engine"
-msgid "Stopped"
-msgstr "停机"
-
-#. Context: Engine
-#: ../../ActivityRunner/RollingStock/SubSystems/PowerSupply/DieselEngine.cs:393
-msgctxt "Engine"
-msgid "Starting"
-msgstr "开机"
-
-#. Context: Engine
-#: ../../ActivityRunner/RollingStock/SubSystems/PowerSupply/DieselEngine.cs:394
-msgctxt "Engine"
-msgid "Running"
-msgstr "运行"
-
-#. Context: Engine
-#: ../../ActivityRunner/RollingStock/SubSystems/PowerSupply/DieselEngine.cs:395
-msgctxt "Engine"
-msgid "Stopping"
-msgstr "停机中"
-
-#: ../../ActivityRunner/Simulator/Activity.cs:877
-#: ../../ActivityRunner/Timetable/TTTrain.cs:5791
-msgid "Passenger boarding completed. Waiting for signal ahead to clear."
-msgstr "旅客上车结束，等待出站信号"
-
-#: ../../ActivityRunner/Simulator/Activity.cs:882
-#: ../../ActivityRunner/Timetable/TTTrain.cs:5796
-msgid "Passenger boarding completed. You may depart now."
-msgstr "乘客上车完毕，可以开车"
-
-#: ../../ActivityRunner/Simulator/Activity.cs:866
-#: ../../ActivityRunner/Timetable/TTTrain.cs:5803
-#, csharp-format
-msgid "Passenger boarding completes in {0:D2}:{1:D2}"
-msgstr "乘客登车还需 {0:D2}:{1:D2}"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:26
-msgid "None"
-msgstr "无"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:27
-msgid "Information"
-msgstr "信息"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:28
-msgid "Warning"
-msgstr "警告"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:29
-msgid "Error"
-msgstr "错误"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:30
-msgid "MSG"
-msgstr "短信"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:140
-msgid "<none>"
-msgstr "<无>"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:142
-#: ../../ActivityRunner/Simulator/Confirmation.cs:154
-msgid "reverse"
-msgstr "倒车"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:142
-#: ../../ActivityRunner/Simulator/Confirmation.cs:154
-msgid "neutral"
-msgstr "中位"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:142
-#: ../../ActivityRunner/Simulator/Confirmation.cs:154
-msgid "forward"
-msgstr "前进"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:142
-#: ../../ActivityRunner/Simulator/Confirmation.cs:154
-msgid "locked. Close throttle, stop train then re-try."
-msgstr "锁死，关闭节流阀，停车后再试"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:143
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:125
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:394
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:543
-msgid "Throttle"
-msgstr "功率"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:143
-#: ../../ActivityRunner/Simulator/Confirmation.cs:155
-#: ../../ActivityRunner/Simulator/Confirmation.cs:156
-#: ../../ActivityRunner/Simulator/Confirmation.cs:157
-#: ../../ActivityRunner/Simulator/Confirmation.cs:159
-#: ../../ActivityRunner/Simulator/Confirmation.cs:160
-#: ../../ActivityRunner/Simulator/Confirmation.cs:164
-#: ../../ActivityRunner/Simulator/Confirmation.cs:165
-#: ../../ActivityRunner/Simulator/Confirmation.cs:190
-#: ../../ActivityRunner/Simulator/Confirmation.cs:191
-msgid "close"
-msgstr "关"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:143
-#: ../../ActivityRunner/Simulator/Confirmation.cs:155
-#: ../../ActivityRunner/Simulator/Confirmation.cs:156
-#: ../../ActivityRunner/Simulator/Confirmation.cs:157
-#: ../../ActivityRunner/Simulator/Confirmation.cs:159
-#: ../../ActivityRunner/Simulator/Confirmation.cs:160
-#: ../../ActivityRunner/Simulator/Confirmation.cs:164
-#: ../../ActivityRunner/Simulator/Confirmation.cs:165
-#: ../../ActivityRunner/Simulator/Confirmation.cs:190
-#: ../../ActivityRunner/Simulator/Confirmation.cs:191
-msgid "open"
-msgstr "开"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:143
-msgid "locked. Release dynamic brake then re-try."
-msgstr "锁死，解除电阻制动后再试"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:144
-msgid "Wheel-slip"
-msgstr "轮滑"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:144
-msgid "over"
-msgstr "结束"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:144
-msgid "occurring. Tractive power greatly reduced."
-msgstr "中，牵引力下降"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:144
-msgid "warning"
-msgstr "警告"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:146
-msgid "Power"
-msgstr "动力"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:146
-#: ../../ActivityRunner/Simulator/Confirmation.cs:150
-#: ../../ActivityRunner/Simulator/Confirmation.cs:151
-#: ../../ActivityRunner/Simulator/Confirmation.cs:156
-#: ../../ActivityRunner/Simulator/Confirmation.cs:157
-#: ../../ActivityRunner/Simulator/Confirmation.cs:162
-#: ../../ActivityRunner/Simulator/Confirmation.cs:171
-#: ../../ActivityRunner/Simulator/Confirmation.cs:176
-#: ../../ActivityRunner/Simulator/Confirmation.cs:179
-#: ../../ActivityRunner/Simulator/Confirmation.cs:181
-#: ../../ActivityRunner/Simulator/Confirmation.cs:182
-#: ../../ActivityRunner/Simulator/Confirmation.cs:183
-#: ../../ActivityRunner/Simulator/Confirmation.cs:184
-#: ../../ActivityRunner/Simulator/Confirmation.cs:185
-#: ../../ActivityRunner/Simulator/Confirmation.cs:186
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:548
-msgid "off"
-msgstr "关"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:146
-#: ../../ActivityRunner/Simulator/Confirmation.cs:150
-#: ../../ActivityRunner/Simulator/Confirmation.cs:151
-#: ../../ActivityRunner/Simulator/Confirmation.cs:156
-#: ../../ActivityRunner/Simulator/Confirmation.cs:157
-#: ../../ActivityRunner/Simulator/Confirmation.cs:162
-#: ../../ActivityRunner/Simulator/Confirmation.cs:176
-#: ../../ActivityRunner/Simulator/Confirmation.cs:179
-#: ../../ActivityRunner/Simulator/Confirmation.cs:185
-#: ../../ActivityRunner/Simulator/Confirmation.cs:186
-msgid "on"
-msgstr "开"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:147
-msgid "Pantograph 1"
-msgstr "后弓"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:147
-#: ../../ActivityRunner/Simulator/Confirmation.cs:148
-msgid "lower"
-msgstr "降"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:147
-#: ../../ActivityRunner/Simulator/Confirmation.cs:148
-msgid "raise"
-msgstr "升"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:148
-msgid "Pantograph 2"
-msgstr "前弓"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:150
-msgid "Player Diesel Power"
-msgstr "本务机柴油机功率"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:150
-msgid "locked. Close throttle then re-try."
-msgstr "锁死，关闭节流阀后再试"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:151
-msgid "Helper Diesel Power"
-msgstr "补机柴油机功率"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:152
-msgid "Diesel Tank"
-msgstr "油箱"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:152
-msgid "re-fueled"
-msgstr "加油"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:152
-msgid "level"
-msgstr "水平"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:155
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:394
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:543
-msgid "Regulator"
-msgstr "调节器"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:156
-msgid "Injector 1"
-msgstr "注水器1"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:157
-msgid "Injector 2"
-msgstr "注水器2"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:158
-#: ../../ActivityRunner/Simulator/Confirmation.cs:161
-#: ../../ActivityRunner/Simulator/Confirmation.cs:171
-#: ../../ActivityRunner/Simulator/Confirmation.cs:197
-msgid "decrease"
-msgstr "减少"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:158
-#: ../../ActivityRunner/Simulator/Confirmation.cs:161
-#: ../../ActivityRunner/Simulator/Confirmation.cs:171
-#: ../../ActivityRunner/Simulator/Confirmation.cs:197
-msgid "increase"
-msgstr "增加"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:159
-msgid "Damper"
-msgstr "减震器"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:160
-msgid "Firebox Door"
-msgstr "火室门"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:161
-msgid "Firing Rate"
-msgstr "火量"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:162
-msgid "Manual Firing"
-msgstr "手动烧火"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:163
-msgid "Fire"
-msgstr "烧火"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:163
-msgid "add shovel-full"
-msgstr "加满一锹煤"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:164
-msgid "Cylinder Cocks"
-msgstr "汽缸通汽旋塞"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:165
-msgid "Cylinder Compound"
-msgstr "汽缸通汽复合"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:166
-#: ../../ActivityRunner/Simulator/Confirmation.cs:167
-msgid "Tender"
-msgstr "煤水车"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:166
-msgid "Coal re-filled"
-msgstr "已加煤"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:166
-msgid "Coal level"
-msgstr "煤量"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:167
-msgid "Water re-filled"
-msgstr "已加水"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:167
-msgid "Water level"
-msgstr "水量"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:169
-msgid "Train Brake"
-msgstr "列车制动"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:169
-#: ../../ActivityRunner/Simulator/Confirmation.cs:170
-#: ../../ActivityRunner/Simulator/Confirmation.cs:172
-msgid "release"
-msgstr "缓解"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:169
-#: ../../ActivityRunner/Simulator/Confirmation.cs:170
-#: ../../ActivityRunner/Simulator/Confirmation.cs:172
-msgid "apply"
-msgstr "启用"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:170
-msgid "Engine Brake"
-msgstr "机车制动"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:171
-msgid "Dynamic Brake"
-msgstr "电阻制动"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:171
-msgid "setup"
-msgstr "设置"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:172
-msgid "Emergency Brake"
-msgstr "紧急制动"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:173
-msgid "Bail Off"
-msgstr "缓解"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:173
-msgid "disengage"
-msgstr "切断"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:173
-msgid "engage"
-msgstr "连接"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:174
-msgid "Brakes"
-msgstr "制动"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:174
-msgid "initialize"
-msgstr "缓解"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:174
-msgid "cannot initialize. Stop train then re-try."
-msgstr "无法缓解，停车后再试"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:175
-msgid "Handbrake"
-msgstr "手制动"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:175
-msgid "none"
-msgstr "无"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:175
-msgid "full"
-msgstr "全力"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:176
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:397
-msgid "Retainers"
-msgstr "保持阀"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:177
-msgid "Brake Hose"
-msgstr "制动管"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:177
-msgid "disconnect"
-msgstr "切断"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:177
-msgid "connect"
-msgstr "连接"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:179
-msgid "Sander"
-msgstr "加沙"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:180
-msgid "Alerter"
-msgstr "告警"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:180
-msgid "acknowledge"
-msgstr "确认"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:181
-msgid "Horn"
-msgstr "汽笛"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:182
-msgid "Whistle"
-msgstr "汽笛"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:182
-msgid "blow"
-msgstr "拉响"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:183
-msgid "Bell"
-msgstr "车钟"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:183
-msgid "ring"
-msgstr "敲响"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:184
-msgid "Headlight"
-msgstr "车灯"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:184
-msgid "dim"
-msgstr "低亮度"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:184
-msgid "bright"
-msgstr "亮"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:185
-msgid "Cab Light"
-msgstr "驾驶室灯"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:186
-msgid "Wipers"
-msgstr "雨刷"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:187
-#: ../../ActivityRunner/Viewer3D/Cameras.cs:1505
-msgid "Cab"
-msgstr "驾驶室"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:187
-msgid "changing is not available"
-msgstr "无法改变"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:187
-msgid ""
-"changing disabled. Close throttle, set reverser to neutral, stop train then "
-"re-try."
-msgstr "无法改变，停车后打到中位"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:188
-msgid "Odometer"
-msgstr "里程表"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:190
-msgid "Doors Left"
-msgstr "左边车门"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:191
-msgid "Doors Right"
-msgstr "右边车门"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:192
-msgid "Mirror"
-msgstr "倒车镜"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:192
-msgid "retract"
-msgstr "收"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:192
-msgid "extend"
-msgstr "放"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:194
-msgid "Switch Ahead"
-msgstr "扳前道岔"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:194
-#: ../../ActivityRunner/Simulator/Confirmation.cs:195
-msgid "locked. Use Control+M to change signals to manual mode then re-try."
-msgstr "锁死，按Ctl-M后再试"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:195
-msgid "Switch Behind"
-msgstr "扳后道岔"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:197
-msgid "Simulation Speed"
-msgstr "游戏速度"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:197
-msgid "reset"
-msgstr "重置"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:198
-msgid "Uncouple After"
-msgstr "车后解挂"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:199
-msgid "Activity"
-msgstr "任务"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:199
-msgid "quit"
-msgstr "退出"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:199
-msgid "resume"
-msgstr "继续"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:200
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:389
-msgid "Replay"
-msgstr "重玩"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:200
-msgid "Overriding camera replay. Press Escape to resume camera replay."
-msgstr "按ESC键恢复视角重放"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:201
-msgid "Gearbox"
-msgstr "离合器"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:201
-msgid "down"
-msgstr "下"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:201
-msgid "up"
-msgstr "上"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:201
-msgid "locked. Use shaft before changing gear."
-msgstr "锁死"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:202
-msgid "Signal mode"
-msgstr "信号模式"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:202
-msgid "manual"
-msgstr "手动"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:202
-msgid "auto"
-msgstr "自动"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:202
-msgid "locked. Stop train, then re-try."
-msgstr "锁死，停车后再试"
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:211
-#: ../../ActivityRunner/Simulator/Confirmation.cs:220
-#: ../../ActivityRunner/Simulator/Confirmation.cs:258
-#, csharp-format
-msgid "{0} {1}"
-msgstr ""
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:215
-#, csharp-format
-msgid "{0}"
-msgstr ""
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:225
-#, csharp-format
-msgid "{0} to {1:0}%"
-msgstr ""
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:230
-#, csharp-format
-msgid "{0} {1:0}% {2}"
-msgstr ""
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:235
-#, csharp-format
-msgid "{0:0}% {1}"
-msgstr ""
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:240
-#, csharp-format
-msgid "{0:0}%"
-msgstr ""
-
-#: ../../ActivityRunner/Simulator/Confirmation.cs:248
-#: ../../ActivityRunner/Simulator/Confirmation.cs:253
-#, csharp-format
-msgid "{0} {1:0}%"
-msgstr ""
-
-#. Context: NonSteam
-#: ../../ActivityRunner/Simulator/Confirmation.cs:142
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:542
-msgctxt "NonSteam"
-msgid "Reverser"
-msgstr "换向器"
-
-#. Context: Steam
-#: ../../ActivityRunner/Simulator/Confirmation.cs:154
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:542
-msgctxt "Steam"
-msgid "Reverser"
-msgstr "换向器"
-
-#. Context: Alerter
-#: ../../ActivityRunner/Simulator/Confirmation.cs:180
-msgctxt "Alerter"
-msgid "sound"
-msgstr "响"
-
-#. Context: Horn
-#: ../../ActivityRunner/Simulator/Confirmation.cs:181
-msgctxt "Horn"
-msgid "sound"
-msgstr "响"
-
-#. Context: Cab
-#: ../../ActivityRunner/Simulator/Confirmation.cs:187
-msgctxt "Cab"
-msgid "change"
-msgstr "换"
-
-#. Context: Odometer
-#: ../../ActivityRunner/Simulator/Confirmation.cs:188
-msgctxt "Odometer"
-msgid "reset"
-msgstr "重置"
-
-#. Context: Odometer
-#: ../../ActivityRunner/Simulator/Confirmation.cs:188
-msgctxt "Odometer"
-msgid "counting down"
-msgstr "减少"
-
-#. Context: Odometer
-#: ../../ActivityRunner/Simulator/Confirmation.cs:188
-msgctxt "Odometer"
-msgid "counting up"
-msgstr "增加"
-
-#. Context: Switch
-#: ../../ActivityRunner/Simulator/Confirmation.cs:194
-#: ../../ActivityRunner/Simulator/Confirmation.cs:195
-msgctxt "Switch"
-msgid "change"
-msgstr "扳动"
-
-#: ../../ActivityRunner/Timetable/TTTrain.cs:5733
-msgid "Held for connecting train : "
-msgstr "长按"
-
-#: ../../ActivityRunner/Viewer3D/Cameras.cs:589
-msgid "Free"
-msgstr "自由"
-
-#: ../../ActivityRunner/Viewer3D/Cameras.cs:980
-msgid "Outside Front"
-msgstr "外前视角"
-
-#: ../../ActivityRunner/Viewer3D/Cameras.cs:980
-msgid "Outside Rear"
-msgstr "外后视角"
-
-#: ../../ActivityRunner/Viewer3D/Cameras.cs:1236
-msgid "Brakeman"
-msgstr "挂车员视角"
-
-#: ../../ActivityRunner/Viewer3D/Cameras.cs:1391
-msgid "Passenger"
-msgstr "乘客视角"
-
-#: ../../ActivityRunner/Viewer3D/Cameras.cs:1461
+#: ..\..\ActivityRunner\Viewer3D\Cameras.cs:1905
 msgid "Head out"
 msgstr "伸头"
 
-#: ../../ActivityRunner/Viewer3D/Cameras.cs:1685
-msgid "Trackside"
-msgstr "路边视角"
+#: ..\..\ActivityRunner\Viewer3D\Popups\CarOperationsWindow.cs:145
+msgid "No MU command for this type of car!"
+msgstr "无重联命令"
 
-#: ../../ActivityRunner/Viewer3D/Cameras.cs:1837
-msgid "3D Cab"
-msgstr "三维驾驶室"
+#: ..\..\ActivityRunner\Viewer3D\RollingStock\MSTSLocomotiveViewer.cs:524
+#, csharp-format
+msgid "{0} meter"
+msgid_plural "{0} meters"
+msgstr[0] "{0}米"
 
-#: ../../ActivityRunner/Viewer3D/Viewer.cs:590
-#: ../../ActivityRunner/Viewer3D/Viewer.cs:708
-msgid "Cab view not available"
-msgstr "无驾驶室"
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:135
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:117
+#, fuzzy
+#| msgid "Apply"
+msgid "ApplQ"
+msgstr "制动"
 
-#: ../../ActivityRunner/Viewer3D/Viewer.cs:652
-msgid "In MP, use Alt-F4 to quit directly"
-msgstr "按Alt-F4退出"
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:518
+#, fuzzy
+#| msgid "Task"
+msgid "- Tasks: "
+msgstr "任务"
 
-#: ../../ActivityRunner/Viewer3D/Viewer.cs:719
-msgid "3D Cab view not available"
-msgstr "无三维驾驶室"
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:125
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:127
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:80
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:82
+msgid "Actual"
+msgstr "  实际"
 
-#: ../../ActivityRunner/Viewer3D/Viewer.cs:746
-msgid "Will not ratate cab and land"
-msgstr "不随地形旋转视角"
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainListWindow.cs:166
+msgid "Train in turntable not aligned to a track can't be selected"
+msgstr ""
 
-#: ../../ActivityRunner/Viewer3D/Viewer.cs:854
-msgid "Switched to player control"
-msgstr "转换到玩家控制"
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:965
+#, fuzzy
+#| msgid "Brake"
+msgid "Brake Cyl"
+msgstr "制动"
 
-#: ../../ActivityRunner/Viewer3D/Viewer.cs:859
-msgid "You can't switch from manual to autopilot mode"
-msgstr "不能从手动模式转到自动模式"
+#: ..\..\ActivityRunner\Viewer3D\Popups\MultiPlayerWindow.cs:387
+msgid "Status:"
+msgstr "状态："
 
-#: ../../ActivityRunner/Viewer3D/Viewer.cs:863
+#: ..\..\ActivityRunner\Viewer3D\Popups\MultiPlayerWindow.cs:379
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrackMonitorDisplay.cs:283
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:168
+msgid "Sprtr"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:125
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:778
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:107
+msgid "Steam usage"
+msgstr "蒸汽用量"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:119
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:101
+msgid "REGL"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:495
+#, fuzzy
+#| msgid "Wheel slip"
+msgid "Wheel skid"
+msgstr "轮滑"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\CarOperationsWindow.cs:182
+msgid "Bleed off valve opened"
+msgstr "泄压阀开"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:170
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1695
+msgid "Sound process"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:723
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:114
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:799
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:96
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:549
+msgid "Gear"
+msgstr "挂档"
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\DebugViewerForm.cs:1997
+msgid "Switching Request Sent to the Server"
+msgstr "向联控请求道岔"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:583
+#, csharp-format
+msgid "Task accomplished"
+msgid_plural "Tasks accomplished"
+msgstr[0] ""
+
+#: ..\..\ActivityRunner\Viewer3D\Viewer.cs:1201
 msgid "Switched to autopilot"
 msgstr "转到自动模式"
 
-#: ../../ActivityRunner/Viewer3D/Viewer.cs:1204
-msgid "Game saved"
-msgstr "保存"
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:144
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:867
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:126
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:669
+msgid "slip"
+msgstr ""
 
-#: ../../ActivityRunner/Viewer3D/Viewer.cs:737
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:457
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:853
+#, fuzzy
+#| msgid "Assemble Train"
+msgid "Assemble Train At Location"
+msgstr "调车"
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\DebugViewerForm.Designer.cs:249
+msgid "Res"
+msgstr "精度"
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\DebugViewerForm.Designer.cs:261
+msgid "Reply to Selected"
+msgstr "回复所选"
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\DebugViewerForm.Designer.cs:348
+msgid "Can Join"
+msgstr "可以加入"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:137
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:119
+msgid "coal"
+msgstr "煤"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1019
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1044
+msgid "BrkPipe"
+msgstr "制动管"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1664
+msgid "DEBUG INFORMATION"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrackMonitorDisplay.cs:610
+msgid "SprtrDarkGray"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:165
+msgid "GCs"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDScrollWindow.cs:157
+msgid "Screen: Full"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\DebugViewerForm.cs:592
+#: ..\..\ActivityRunner\Viewer3D\Debugging\DebugViewerForm.Designer.cs:224
+msgid "MSG to All"
+msgstr "给大家发短信"
+
+#: ..\..\ActivityRunner\Viewer3D\Viewer.cs:925
+msgid "Platform labels visible."
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:141
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:123
+msgid "safe"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\SoundDebugForm.Designer.cs:361
+msgid "Volume"
+msgstr "音量"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1415
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1436
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1720
+msgid "Path"
+msgstr "路径"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:503
+msgid "Sander on"
+msgstr "加沙"
+
+#: ..\..\ActivityRunner\Viewer3D\Processes\GameStateRunActivity.cs:1180
+msgid "Activity Save file '*.save' not found in folder {0}"
+msgstr "无法找到任务保存文件 {0}"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:134
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:116
+#, fuzzy
+#| msgid "Full Service"
+msgid "apply Service"
+msgstr "全制动"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:596
+#, fuzzy, csharp-format
+#| msgid "{0} meter"
+#| msgid_plural "{0} meters"
+msgid "{0} minute"
+msgid_plural "{0} minutes"
+msgstr[0] "{0}米"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:766
+msgid "Steam."
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1679
 #, csharp-format
-msgid "Vibrating at level {0}"
-msgstr "机车震动程度 {0}"
+msgid "{0:F0}% ({1})"
+msgstr ""
 
-#: ../../ActivityRunner/Viewer3D/Viewer.cs:745
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:493
+msgid "inHg"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1050
+msgid "MRPipe"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1681
+msgid "Adapter"
+msgstr "显卡"
+
+#: ..\..\ActivityRunner\Viewer3D\RollingStock\MSTSLocomotiveViewer.cs:495
+#, fuzzy
+#| msgid ""
+#| "Refill: No suitable pick-up point anywhere, so refilling immediately."
+msgid "Refill: Immediate refill process selected, refilling immediately."
+msgstr "加油：立即加油"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TTDetachWindow.cs:102
+#: ..\..\ActivityRunner\Viewer3D\Popups\TTDetachWindow.cs:107
+msgid "Rear"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrackMonitorDisplay.cs:343
+msgid "Backward"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:566
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:608
+msgctxt "Cab"
+msgid "F"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrackMonitorWindow.cs:79
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrackMonitorDisplay.cs:236
+msgid "Node"
+msgstr "节点"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:187
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:461
+msgid "Drop Off"
+msgstr "甩挂"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\CarOperationsWindow.cs:106
+msgid "Handbrake set"
+msgstr "手刹车制动"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:142
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:871
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:124
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:685
+msgid "skid"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\CarOperationsWindow.cs:55
+msgid "Toggle Handbrake"
+msgstr "切换手刹车"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1307
+msgid "Tunnel"
+msgstr "隧道"
+
+#: ..\..\ActivityRunner\Viewer3D\Viewer.cs:1033
+msgid "Confirmations visible"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:642
+msgid "LOCOMOTIVE INFORMATION"
+msgstr "机车信息"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\ActivityWindow.cs:333
 #, csharp-format
-msgid "Rotating cab {0}/4, rotating land {1}/4"
-msgstr "视角转{0}/4, 外界转{1}/4"
+msgid "Event: {0}"
+msgstr "事件：{0}"
 
-#: ../../ActivityRunner/Viewer3D/Viewer.cs:872
+#: ..\..\ActivityRunner\Viewer3D\Viewer.cs:1219
 #, csharp-format
 msgid "Keyboard map list saved to '{0}'."
 msgstr "按键列表保存到'{0}'"
 
-#: ../../ActivityRunner/Viewer3D/Viewer.cs:876
-#, csharp-format
-msgid "Keyboard map image saved to '{0}'."
-msgstr "按键示意图保存到'{0}'"
+#: ..\..\ActivityRunner\Viewer3D\Popups\CarOperationsWindow.cs:121
+msgid "Power OFF command sent"
+msgstr "关机命令送出"
 
-#: ../../ActivityRunner/Viewer3D/Viewer.cs:774
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:522
+msgid "MultiPlayerStatus: "
+msgstr "联控状态"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:389
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:395
+msgid "Train is to attach to : "
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:159
+msgid "Motive force"
+msgstr "推动力"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:1125
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:1152
+#, csharp-format
+msgid " = "
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:112
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:94
+msgid "Fixed gear"
+msgstr "固定档位"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1686
+msgid "Shadow maps"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:140
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:122
+msgid "MRedc"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\CarOperationsWindow.cs:154
+msgid "Front brake hose disconnected"
+msgstr "前制动管断开"
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\DebugViewerForm.Designer.cs:474
+msgid "DispatchViewer"
+msgstr "联控窗口"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\NoticeWindow.cs:96
+#, csharp-format
+msgid "Odometer {0}"
+msgstr "里程表: {0}"
+
+#: ..\..\ActivityRunner\Viewer3D\Cameras.cs:2200
+msgid "Trackside"
+msgstr "路边视角"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:167
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1692
+msgid "Render process"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:191
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:465
+msgid "Pick Up"
+msgstr "挂车"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:558
+msgid "Out of Control"
+msgstr "失控"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:113
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:95
+msgid "FUEL"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:357
+msgid "Transfer units with train "
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Viewer.cs:948
+msgid "Car labels visible."
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1414
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1435
+msgid "Consist"
+msgstr "编组:"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\QuitWindow.cs:53
+#, csharp-format
+msgid "Save your game ({0})"
+msgstr "保存游戏 ({0})"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1289
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1316
+msgid "Brk Slide"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:164
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1678
+msgid "Memory"
+msgstr "内存"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1245
+#, fuzzy
+#| msgid "(Advanced adhesion model disabled)"
+msgid "(Simple adhesion model)"
+msgstr "（禁用先进粘着模型）"
+
+#: ..\..\ActivityRunner\Viewer3D\RollingStock\MSTSLocomotiveViewer.cs:562
+#: ..\..\ActivityRunner\Viewer3D\RollingStock\MSTSLocomotiveViewer.cs:583
+#, csharp-format
+msgid "Refill: {0} supply now replenished."
+msgstr "加油：{0}加满了"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:118
+msgid "Timetable"
+msgstr "时刻表"
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\SoundDebugForm.Designer.cs:284
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:459
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:716
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1426
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:124
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:520
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrackMonitorDisplay.cs:294
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:106
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:212
+msgid "Speed"
+msgstr "速度"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1017
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1042
+msgid "BrkCyl"
+msgstr "制动缸"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:168
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1693
+msgid "Updater process"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1431
+msgid "Auth"
+msgstr "权限"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1696
+msgid "Total process"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:411
+msgid "Pick up train ahead"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainOperationsWindow.cs:39
+msgid "Train Operations"
+msgstr "列控"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1684
+#, csharp-format
+msgid "{0}/{1}"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\ActivityWindow.cs:296
+#: ..\..\ActivityRunner\Viewer3D\Popups\ActivityWindow.cs:308
+#: ..\..\ActivityRunner\Viewer3D\Popups\ActivityWindow.cs:326
+msgid "Quit activity"
+msgstr "退出任务"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:732
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:742
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:496
+#, fuzzy
+#| msgid "setup"
+msgid "Setup"
+msgstr "设置"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:231
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:454
+msgid "Train not active."
+msgstr "列车闲置"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1677
+msgid "Build"
+msgstr "加"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:105
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:87
+msgid "CCOK"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1692
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1693
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1694
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1695
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1696
+msgid "wait"
+msgstr "等待"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:123
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:606
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:612
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:619
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:105
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:320
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:330
+msgid "Sander"
+msgstr "加沙"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:143
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:869
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:125
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:677
+#, fuzzy
+#| msgid "Wheel slip warning"
+msgid "slip warning"
+msgstr "轮滑警告"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:237
+msgid " Activated by other train."
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:856
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:642
+msgid "Exceeded"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\DebugViewerForm.cs:182
+msgid "View Self"
+msgstr "看自己"
+
+#: ..\..\ActivityRunner\Viewer3D\RollingStock\MSTSLocomotiveViewer.cs:531
+#, csharp-format
+msgid "Refill: Loco must be stationary to refill {0}."
+msgstr "加油：必须停车 {0}."
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\ActivityWindow.cs:297
+#: ..\..\ActivityRunner\Viewer3D\Popups\ActivityWindow.cs:309
+msgid "Status: Activity resumed"
+msgstr "状态：任务继续"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:105
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:596
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:87
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:306
+#, fuzzy
+#| msgid "Cylinder Cocks"
+msgid "Cylinder cocks"
+msgstr "汽缸通汽旋塞"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:421
+msgid "Transfer units with train ahead"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDScrollWindow.cs:122
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDScrollWindow.cs:134
+msgid "▲ Page Up"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:667
+msgid "A report file was created:"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDScrollWindow.cs:152
+msgid "▲ Prev. Loco"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:257
+#, fuzzy
+#| msgid "Direction"
+msgid "ReverserDirection"
+msgstr "方向"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:540
+msgid "  The Debrief evaluation report is disabled."
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1692
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1693
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1694
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1695
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1696
+#, csharp-format
+msgid "{0:F0}% ({1:F0}% {2})"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:568
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:605
+msgid "Pass"
+msgstr "通过"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1679
+msgid "CPU"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\CarOperationsWindow.cs:42
+msgid "Car Operation Menu"
+msgstr "列车控制菜单"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\QuitWindow.cs:48
+#, csharp-format
+msgid "Quit {1} ({0})"
+msgstr "退出 {1} ({0})"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:194
+msgid "Waiting for train to attach : "
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\DebugViewerForm.Designer.cs:91
+msgid "View Train"
+msgstr "查看该列车"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\ActivityWindow.cs:178
+msgid "without success"
+msgstr "失败"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:600
+msgid "HH:mm:ss"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrackMonitorDisplay.cs:343
+#, fuzzy
+#| msgid "forward"
+msgid "Forward"
+msgstr "前进"
+
+#: ..\..\ActivityRunner\Viewer3D\RollingStock\MSTSLocomotiveViewer.cs:544
+#, csharp-format
+msgid "Refill: Loco speed must not exceed {0}."
+msgstr "加油：速度要低于{0}"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:145
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:127
+msgid "w"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:139
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:121
+msgid "Lap Self"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:179
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:454
+msgid "Assemble Train"
+msgstr "调车"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:746
+msgid "Flow"
+msgstr "流动"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:557
+msgid "Control Mode"
+msgstr "控制模式"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:568
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:605
+msgid "Freight"
+msgstr "货车"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\CarOperationsWindow.cs:140
+msgid "MU signal connected"
+msgstr "重联信号连上"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1284
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1311
+msgid "Slack"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Viewer.cs:996
+msgid "This car doesn't have a 2D cab"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1658
+#, csharp-format
+msgid "{0:F1},{1:F1} m/s"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\CarOperationsWindow.cs:163
+msgid "Front angle cock closed"
+msgstr "前角塞门关"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1240
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1248
+msgid "Wagon Adhesion"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Viewer.cs:922
+msgid "Platform and siding labels visible."
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:496
+msgid "psi"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:100
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:82
+msgid "AUTO"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:523
+#: ..\..\ActivityRunner\Viewer3D\Popups\MultiPlayerWindow.cs:381
+#: ..\..\ActivityRunner\Viewer3D\Popups\MultiPlayerWindow.cs:388
+msgid "Dispatcher"
+msgstr "联控调度"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\CompassWindow.cs:49
+msgid "Lon:"
+msgstr "经度"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\ActivityWindow.cs:297
+#, fuzzy
+#| msgid "Status: Activity resumed"
+msgid "Status: Activity pausedStatus: Activity resumed"
+msgstr "状态：任务继续"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:347
+msgid "Transfer units at next station with train "
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:109
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:91
+msgid "BLOC"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1679
+#, csharp-format
+msgid "{0} logical processor"
+msgid_plural "{0} logical processors"
+msgstr[0] ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:116
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:98
+msgid "GRAT"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:918
+#, fuzzy
+#| msgid "Exhaust"
+msgid "Exhauster"
+msgstr "烟"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1646
+#, fuzzy
+#| msgid "DISPATCHER INFORMATION"
+msgid "WEATHER INFORMATION"
+msgstr "联控信息"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\ActivityWindow.cs:295
+#, fuzzy
+#| msgid "Resume and close box"
+msgid "Resume and close boxClose box"
+msgstr "继续并关闭对话框"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:121
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:103
+msgid "RETN"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1655
+msgid "Cloud cover"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\CarOperationsWindow.cs:67
+msgid "Open/Close Bleed Off Valve"
+msgstr "开/关泄压阀"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:726
+msgid "Fuel"
+msgstr "油量"
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\DebugViewerForm.Designer.cs:183
+msgid "Show Avatars"
+msgstr "显示头像"
+
+#: ..\..\ActivityRunner\Viewer3D\Shapes\SharedShapeManager.cs:69
+#, csharp-format
+msgid "{0:F0} shape"
+msgid_plural "{0:F0} shapes"
+msgstr[0] ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:933
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:944
+msgid "Vacuum Pump"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainListWindow.cs:171
+msgid "Player train can't be switched when in turntable not aligned to a track"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:117
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:99
+msgid "PANT"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\CarOperationsWindow.cs:108
+msgid "Handbrake off"
+msgstr "手刹车缓解"
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\SoundDebugForm.Designer.cs:484
+msgid "AL Sources"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Viewer.cs:1799
+msgid "Game saved"
+msgstr "保存"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDScrollWindow.cs:139
+msgid "◄ Page Left"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:916
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:975
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:990
+msgid "Main reservoir"
+msgstr "总风缸"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:567
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:604
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1348
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1676
+msgid "No"
+msgstr "不"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:155
+msgid "Power In/Out"
+msgstr "动力进/出"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:137
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:119
+msgid "c"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1308
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1658
+msgid "Wind"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Viewer.cs:1075
 #, csharp-format
 msgid "{0} viewpoint stored. Use Shift+8 to restore viewpoints."
 msgid_plural "{0} viewpoints stored. Use Shift+8 to restore viewpoints."
 msgstr[0] "{0} 视角点保存。按shift+8恢复"
 
-#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:41
-msgid "Activity Events"
-msgstr "任务事件"
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:110
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:811
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:92
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:595
+msgid "Engine"
+msgstr "柴油机"
 
-#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:154
-msgid "without success"
-msgstr "失败"
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:407
+msgid "- Missed station stops: "
+msgstr ""
 
-#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:219
-msgid "Resume"
-msgstr "继续"
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:140
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:122
+msgid "Minimum Reduction"
+msgstr ""
 
-#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:219
-#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:249
-msgid "Pause"
-msgstr "暂停"
+#: ..\..\ActivityRunner\Viewer3D\Popups\TTDetachWindow.cs:63
+msgid "Use 'cab switch' command to select cab in required portion."
+msgstr ""
 
-#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:220
-#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:241
-msgid "Resume and close box"
-msgstr "继续并关闭对话框"
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:115
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:97
+msgid "GRAD"
+msgstr ""
 
-#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:220
-#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:232
-#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:250
-msgid "Close box"
-msgstr "关闭对话框"
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:122
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:104
+msgid "REVR"
+msgstr ""
 
-#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:221
-#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:233
-#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:251
-msgid "Quit activity"
-msgstr "退出任务"
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:742
+msgid "Rpm"
+msgstr ""
 
-#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:222
-#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:243
-msgid "Status: Activity paused"
-msgstr "状态：任务暂停"
+#: ..\..\ActivityRunner\Viewer3D\Popups\TTDetachWindow.cs:44
+#, fuzzy
+#| msgid "Timetable"
+msgid "Timetable Detach Menu"
+msgstr "时刻表"
 
-#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:222
-#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:234
-msgid "Status: Activity resumed"
-msgstr "状态：任务继续"
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:462
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:681
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:119
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:589
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:101
+msgid "Regulator"
+msgstr "调节器"
 
-#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:242
-msgid "End Activity"
-msgstr "结束任务"
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrackMonitorWindow.cs:117
+msgid " Milepost   Limit     Dist"
+msgstr ""
 
-#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:252
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:465
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:121
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:706
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:103
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:460
+msgid "Retainers"
+msgstr "保持阀"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TTDetachWindow.cs:103
+#: ..\..\ActivityRunner\Viewer3D\Popups\TTDetachWindow.cs:106
+msgid "Front"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:104
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:86
+msgid "CIRC"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:554
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:585
+msgid "Length"
+msgstr "长度"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1026
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1060
+msgid "Conn"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\CarOperationsWindow.cs:126
+msgid "No power command for this type of car!"
+msgstr "无功率控制命令"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\ActivityWindow.cs:327
 msgid "Status: Activity running"
 msgstr "状态：任务运行"
 
-#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:153
+#: ..\..\ActivityRunner\Viewer3D\Debugging\MessageViewer.Designer.cs:46
+msgid "Clear All"
+msgstr "清除全部"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1303
+msgid "Brake"
+msgstr "制动"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:139
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:121
+msgid "LapS"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:534
+msgid "CONSIST INFORMATION"
+msgstr "编组信息"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:596
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:890
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:301
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:719
+msgid "Closed"
+msgstr "关"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrackMonitorWindow.cs:82
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrackMonitorDisplay.cs:239
+msgid "OutOfControl : "
+msgstr "脱控："
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\DebugViewerForm.Designer.cs:423
+msgid "Prefer Green"
+msgstr "偏好绿灯"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:490
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1228
+msgid "Wheel slip"
+msgstr "轮滑"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1232
+msgid "Number of substeps"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1064
+msgid "BleedOff"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:495
+msgid "kPa"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:882
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:884
+msgid "Right"
+msgstr "右"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:138
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:120
+msgid "Emergency Braking Push Button"
+msgstr "紧急制动按钮(backspace键)"
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\DebugViewerForm.Designer.cs:371
+msgid "Assist"
+msgstr "助手"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1304
+msgid "Friction"
+msgstr "摩擦"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:735
+msgid "Driver"
+msgstr "司机"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDScrollWindow.cs:157
+#, fuzzy
+#| msgid "Normal"
+msgid "Screen: Normal"
+msgstr "玩家"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1413
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1424
+msgid "Train"
+msgstr "列车:"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:124
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:79
+msgid "Arrive"
+msgstr "  到达"
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\SoundDebugForm.Designer.cs:149
+msgid "Active sounds"
+msgstr "当前声音"
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\DebugViewerForm.Designer.cs:383
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:859
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:873
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:650
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:693
+msgid "Normal"
+msgstr "玩家"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainListWindow.cs:45
+msgid "Number"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Viewer.cs:934
+msgid "Platform and siding labels hidden."
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1233
+#, csharp-format
+msgid "filtered by {0:F0}"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1231
+msgid "Axle brake force"
+msgstr "制动力"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:169
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1694
+msgid "Loader process"
+msgstr "加载"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:78
+msgid "Help"
+msgstr "帮助"
+
+#: ..\..\ActivityRunner\Viewer3D\Viewer.cs:945
+msgid "Train labels visible."
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1264
+#, fuzzy
+#| msgid "Speed:"
+msgid "Wind Speed:"
+msgstr "速度："
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\SoundDebugForm.Designer.cs:429
+msgid "WavCache"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\ActivityWindow.cs:295
+#: ..\..\ActivityRunner\Viewer3D\Popups\ActivityWindow.cs:307
+#: ..\..\ActivityRunner\Viewer3D\Popups\ActivityWindow.cs:325
+msgid "Close box"
+msgstr "关闭对话框"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1656
+#, csharp-format
+msgid "{0:F4} p/s/m^2"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:128
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:110
+msgid "BTRN"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:762
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:843
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:846
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:331
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:504
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:631
+msgid "Off"
+msgstr "关"
+
+#: ..\..\ActivityRunner\Viewer3D\Materials.cs:461
+#, fuzzy, csharp-format
+#| msgid "{0} meter"
+#| msgid_plural "{0} meters"
+msgid "{0:F0} material"
+msgid_plural "{0:F0} materials"
+msgstr[0] "{0}米"
+
+#: ..\..\ActivityRunner\Viewer3D\Weather.cs:1581
+msgid ""
+"Restoring wrong weather type : trying to restore user controlled weather but "
+"save contains dynamic weather"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\MultiPlayerWindow.cs:380
+#, fuzzy
+#| msgid "MultiPlayerStatus: "
+msgid "MultiPlayerStatus:"
+msgstr "联控状态"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:718
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:734
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:118
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:100
+msgid "Power"
+msgstr "动力"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1222
+#, fuzzy
+#| msgid "Station"
+msgid "Static Force"
+msgstr "   车站"
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\DebugViewerForm.Designer.cs:169
+msgid "Auto Switch"
+msgstr "自动道岔"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\ActivityWindow.cs:294
+#, fuzzy
+#| msgid "Resume"
+msgid "ResumePause"
+msgstr "继续"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1283
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1309
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1310
+msgid "Coupler"
+msgstr "车钩"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:188
+msgid "Waiting for train to attach"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Viewer.cs:1022
+#, csharp-format
+msgid "Vibrating at level {0}"
+msgstr "机车震动程度 {0}"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:116
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:856
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:859
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:862
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:98
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:641
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:649
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:658
+msgid "Grate limit"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrackMonitorWindow.cs:85
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrackMonitorDisplay.cs:242
+msgid "Unknown"
+msgstr "未知"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:452
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:454
+#: ..\..\ActivityRunner\Viewer3D\Popups\MultiPlayerWindow.cs:194
+#: ..\..\ActivityRunner\Viewer3D\Popups\MultiPlayerWindow.cs:200
+#: ..\..\ActivityRunner\Viewer3D\Popups\MultiPlayerWindow.cs:365
+#: ..\..\ActivityRunner\Viewer3D\Popups\MultiPlayerWindow.cs:368
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:127
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:509
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:512
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:109
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:189
+msgid "Time"
+msgstr "时间"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:492
+msgid "Wheel slip warning"
+msgstr "轮滑警告"
+
+#: ..\..\ActivityRunner\Viewer3D\Cameras.cs:972
+msgid "Outside Front"
+msgstr "外前视角"
+
+#: ..\..\ActivityRunner\Viewer3D\Viewer.cs:1188
+msgid "Switched to player control"
+msgstr "转换到玩家控制"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:530
+msgid "- Accomplished: "
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrackMonitorDisplay.cs:308
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrackMonitorDisplay.cs:365
+#, fuzzy
+#| msgid "Limit:"
+msgid "Limit"
+msgstr "限速："
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:679
+msgctxt "Steam"
+msgid "Reverser"
+msgstr "换向器"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:633
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:635
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:638
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:346
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:361
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:370
+msgid "EQ"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1680
+msgid "GPU"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\CarOperationsWindow.cs:61
+msgid "Toggle Brake Hose Connection"
+msgstr "切换制动管连接"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:1052
+msgid "Procedures"
+msgstr "次序"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\CarOperationsWindow.cs:59
+msgid "Toggle MU Connection"
+msgstr "切换重联"
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\DebugViewerForm.Designer.cs:210
+msgid "MSG to Selected"
+msgstr "给所选发短信"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1433
+msgid "Signal"
+msgstr "信号"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1655
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1657
+#, csharp-format
+msgid "{0:F0} %"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1405
+#, fuzzy
+#| msgid "DISPATCHER INFORMATION"
+msgid "DISPATCHER INFORMATION : active trains : "
+msgstr "联控信息"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:807
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:579
+#, fuzzy
+#| msgctxt "Pantograph"
+#| msgid "Up"
+msgid "Up"
+msgstr "升"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDScrollWindow.cs:134
+msgid "▲ Page Up ("
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\RollingStock\MSTSLocomotiveViewer.cs:516
+msgid "Refill: Electric loco and no pickup. Command rejected"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1052
+msgid "RetValve"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Cameras.cs:603
+msgid "Free"
+msgstr "自由"
+
+#: ..\..\ActivityRunner\Viewer3D\RollingStock\MSTSLocomotiveViewer.cs:537
+#, csharp-format
+msgid "Refill: Loco speed must exceed {0}."
+msgstr "加油：速度要超过{0}"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:144
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:126
+msgid "Slip"
+msgstr "轮滑"
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\DebugViewerForm.Designer.cs:395
+msgid "Follow"
+msgstr "追踪"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:145
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:127
+msgid "water"
+msgstr "水"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:596
+#, csharp-format
+msgid "= TimeActivity{0} minute{0} minutesDistance"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1048
+msgid "ErgRes"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:919
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:928
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:930
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:934
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:943
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:945
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:953
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:955
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:978
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:993
+msgid "on"
+msgstr "开"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:135
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:117
+#, fuzzy
+#| msgid "Apply"
+msgid "Apply Quick"
+msgstr "制动"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainOperationsWindow.cs:119
+msgid "In Timetable Mode uncoupling using this window is not allowed"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:417
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1122
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:797
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:546
+#, csharp-format
+msgid " "
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:406
+msgid "Train is to pickup train at end of path"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:582
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1013
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1038
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1282
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1300
+msgid "Car"
+msgstr "车辆"
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\DebugViewerForm.Designer.cs:275
+msgid "Draw Path"
+msgstr "画路线"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:552
+msgid "Tilted"
+msgstr "摆式列车"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:126
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:81
+msgid "Depart"
+msgstr " 开车"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1287
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1306
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1314
+msgid "Curve"
+msgstr "曲线"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:497
+msgid "lib./pal."
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:395
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:130
+#, csharp-format
+msgid "Current Delay: {0} minute"
+msgid_plural "Current Delay: {0} minutes"
+msgstr[0] "现在晚点: {0} 分钟"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1676
+msgid "Logging enabled"
+msgstr "记录数据"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:766
+#, fuzzy
+#| msgid "Diesel Tank"
+msgid "Diesel."
+msgstr "油箱"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:112
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:114
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:94
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:96
+msgid "GEAR"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1236
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1246
+msgid "Axle out force"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1425
+msgid "Travelled"
+msgstr "运行里程"
+
+#: ..\..\ActivityRunner\Viewer3D\Weather.cs:149
+msgid ""
+"Restoring wrong weather type : trying to restore dynamic weather but save "
+"contains user controlled weather"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1021
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1087
+msgid "VacRes"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:143
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:125
+msgid "Warning"
+msgstr "警告"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrackMonitorWindow.cs:80
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrackMonitorDisplay.cs:237
+msgid "Manual"
+msgstr "手动"
+
+#: ..\..\ActivityRunner\Viewer3D\Viewer.cs:1223
+#, csharp-format
+msgid "Keyboard map image saved to '{0}'."
+msgstr "按键示意图保存到'{0}'"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:102
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:84
+msgid "WATR"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:738
+msgid "Load"
+msgstr "加载"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1258
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1267
+msgid "ResWind:"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:60
+msgid "Next Station"
+msgstr "下站信息"
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\DebugViewerForm.Designer.cs:335
+msgid "Pick Switches"
+msgstr "道岔可选"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\ActivityWindow.cs:297
+#: ..\..\ActivityRunner\Viewer3D\Popups\ActivityWindow.cs:318
+msgid "Status: Activity paused"
+msgstr "状态：任务暂停"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1230
+msgid "Axle drive force"
+msgstr "牵引力"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDScrollWindow.cs:143
+msgid "► Page Right"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Viewer.cs:928
+msgid "Siding labels visible."
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:142
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:144
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:402
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:415
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:277
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:494
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:570
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:573
+msgid "(missed)"
+msgstr "（过站）"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1301
+msgid "Total"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:498
+msgid "pal.rtuti"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\DebugViewerForm.Designer.cs:237
+#: ..\..\ActivityRunner\Viewer3D\Debugging\MessageViewer.Designer.cs:88
+msgid "Compose MSG"
+msgstr "写短信"
+
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrackMonitorDisplay.cs:366
+#, fuzzy
+#| msgid "Distance"
+msgid "Dist"
+msgstr "距离"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1659
+#, fuzzy
+#| msgid "Temp:"
+msgid "Amb Temp"
+msgstr "温度："
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:967
+msgid "Air Vol"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\SoundDebugForm.Designer.cs:204
+msgid "Selected sound"
+msgstr "已选声音"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:666
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:668
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:669
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:673
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:403
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:405
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:406
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:413
+msgid "Lead"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:134
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:116
+msgid "Apply"
+msgstr "制动"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:151
+msgid "Work Orders"
+msgstr "任务书"
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\SoundDebugForm.Designer.cs:341
+msgid "Variable 1"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\CarOperationsWindow.cs:52
+msgid "Car ID"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:118
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:100
+msgid "POWR"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:551
+msgid "Player"
+msgstr "玩家"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:183
+msgid "At Location"
+msgstr "位置"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1234
+msgid "Solver"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDScrollWindow.cs:37
+msgid "HUD Scroll"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:283
+#, fuzzy
+#| msgid "Regulator"
+msgid "RegulatorThrottle"
+msgstr "调节器"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:731
+msgid "TCS"
+msgstr "列控"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\ActivityWindow.cs:341
+#, fuzzy, csharp-format
+#| msgid "Train"
+msgid "Train: {0}"
+msgstr "列车:"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:448
+msgid "Version"
+msgstr "版本"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:207
+msgid "Waiting for transfer"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrackMonitorWindow.cs:78
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrackMonitorDisplay.cs:235
+msgid "Auto Signal"
+msgstr "自动信号"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\CompassWindow.cs:46
+msgid "Lat:"
+msgstr "纬度"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:80
+msgid "Key Commands"
+msgstr "键盘分布"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrackMonitorWindow.cs:83
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrackMonitorDisplay.cs:240
+msgid "Inactive"
+msgstr "无用"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1218
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1227
+#, fuzzy
+#| msgid "(Advanced adhesion model disabled)"
+msgid "(Advanced adhesion model)"
+msgstr "（禁用先进粘着模型）"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:122
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:569
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrackMonitorDisplay.cs:335
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:104
+#, fuzzy
+#| msgctxt "NonSteam"
+#| msgid "Reverser"
+msgid "Reverser"
+msgstr "换向器"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:461
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:677
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:708
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:106
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:569
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrackMonitorDisplay.cs:335
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:88
+msgid "Direction"
+msgstr "方向"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1654
+msgid "Visibility"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1678
+#, csharp-format
+msgid ""
+"{0:F0} MB ({5}, {6}, {7}, {8}, {1:F0} MB managed, {9:F0} kB/frame allocated, "
+"{2:F0}/{3:F0}/{4:F0} GCs)"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:103
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:85
+msgid "LEVL"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Viewer.cs:796
+#: ..\..\ActivityRunner\Viewer3D\Viewer.cs:989
+msgid "Cab view not available"
+msgstr "无驾驶室"
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\DebugViewerForm.cs:588
+msgid "MSG to Server"
+msgstr "给联控发短信"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:156
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:582
+#, fuzzy, csharp-format
+#| msgid "Task"
+msgid "Task"
+msgid_plural "Tasks"
+msgstr[0] "任务"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:555
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:586
+msgid "Weight"
+msgstr "重量"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:516
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:107
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:887
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:890
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:89
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:710
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:718
+msgid "Doors open"
+msgstr "车门开"
+
+#: ..\..\ActivityRunner\Viewer3D\RollingStock\MSTSLocomotiveViewer.cs:632
+#: ..\..\ActivityRunner\Viewer3D\RollingStock\MSTSLocomotiveViewer.cs:651
+msgid "Incompatible pickup type"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Cameras.cs:1486
+msgid "Brakeman"
+msgstr "挂车员视角"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\CarOperationsWindow.cs:63
+msgid "Open/Close Front Angle Cock"
+msgstr "开/关前角塞门"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\CarOperationsWindow.cs:170
+msgid "Rear angle cock opened"
+msgstr "后角塞门开"
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\SoundDebugForm.Designer.cs:513
+msgid "Sound Debug"
+msgstr "声音调试"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:766
+msgid "Electric."
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:693
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:915
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:926
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:941
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:951
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:974
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1930
+#, fuzzy
+#| msgid "Player"
+msgid "PlayerLoco"
+msgstr "玩家"
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\DebugViewerForm.Designer.cs:134
+msgid "m"
+msgstr "米"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1028
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1062
+msgid "AnglCock"
+msgstr "角门"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1302
+msgid "Motive"
+msgstr "动力"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:963
+#, fuzzy
+#| msgid "Train Brake"
+msgid "Train Pipe"
+msgstr "列车制动"
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\SoundDebugForm.Designer.cs:160
+msgid "Inactive sounds"
+msgstr "未用声音"
+
+#: ..\..\ActivityRunner\Viewer3D\Cameras.cs:972
+msgid "Outside Rear"
+msgstr "外后视角"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\CarOperationsWindow.cs:172
+msgid "Rear angle cock closed"
+msgstr "后角塞门关"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1429
+msgid "AI data"
+msgstr "AI 数据"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainListWindow.cs:33
+#, fuzzy
+#| msgid "Train"
+msgid "Train List"
+msgstr "列车:"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1290
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1317
+msgid "Bear Temp"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:706
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:988
+msgid "Loco"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\SoundDebugForm.Designer.cs:312
+msgid "Variable 2"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:501
+msgid "Sander blocked"
+msgstr "沙箱阻塞"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:532
+msgid "- Coupling speed limits: "
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1680
+#, csharp-format
+msgid "{0:F0} FPS (50th/95th/99th percentiles {1:F1} / {2:F1} / {3:F1} ms)"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:103
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:85
+msgid "Boiler water level"
+msgstr "锅炉水量"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:117
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:805
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:99
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:573
+msgid "Pantographs"
+msgstr "受电弓"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:158
+msgid "Location"
+msgstr "位置"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:567
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:604
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1348
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1380
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1676
+msgid "Yes"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:381
+msgid "- Station stops: "
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:298
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:515
+msgid "No more stations."
+msgstr "没有更多停站"
+
+#: ..\..\ActivityRunner\Viewer3D\Cameras.cs:1807
+msgid "3D Cab"
+msgstr "三维驾驶室"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:107
+msgid "Briefing"
+msgstr "简要说明"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:127
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:109
+msgid "TIME"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TTDetachWindow.cs:113
+#: ..\..\ActivityRunner\Viewer3D\Popups\TTDetachWindow.cs:118
+#, csharp-format
+msgid "{0} portion will form train : {1}"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDScrollWindow.cs:130
+msgid "▼ Page Down ("
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainListWindow.cs:47
+#, fuzzy
+#| msgid "View Self"
+msgid "Viewed"
+msgstr "看自己"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:739
+#, fuzzy
+#| msgid "Auxiliary power"
+msgid "Auxiliar power"
+msgstr "辅助动力"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:284
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:492
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:525
+msgid "Done"
+msgstr "完成"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:129
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:111
+msgid "WHEL"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:346
+#, fuzzy
+#| msgid "Timetable"
+msgid "Timetable:"
+msgstr "时刻表"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:460
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1286
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1313
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:115
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:542
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrackMonitorDisplay.cs:325
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:97
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:230
+msgid "Gradient"
+msgstr "坡度"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1288
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1315
+msgid "Brk Frict."
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:650
+msgid "Activity completed."
+msgstr "任务完成"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1229
+msgid "Conditions"
+msgstr "状态"
+
+#: ..\..\ActivityRunner\Viewer3D\Viewer.cs:1031
+#, fuzzy
+#| msgid "Simulation Speed"
+msgid "Confirmations suppressed"
+msgstr "游戏速度"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:639
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:646
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:659
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:690
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:692
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:696
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:712
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:716
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:371
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:380
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:395
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:438
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:440
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:447
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:465
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:472
+msgid "BC"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\MessageViewer.Designer.cs:102
+msgid "MessageViewer"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:467
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:109
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:714
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:721
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:91
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:469
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:484
+msgid "Engine brake"
+msgstr "机车制动"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:931
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:956
+#, fuzzy
+#| msgid "Low Pressure"
+msgid "Pressure"
+msgstr "低压"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDScrollWindow.cs:148
+msgid "▼ Next Loco ("
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:679
+msgctxt "NonSteam"
+msgid "Reverser"
+msgstr "换向器"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\ActivityWindow.cs:45
+msgid "Activity Events"
+msgstr "任务事件"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\ActivityWindow.cs:295
+#: ..\..\ActivityRunner\Viewer3D\Popups\ActivityWindow.cs:316
+msgid "Resume and close box"
+msgstr "继续并关闭对话框"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:392
+msgid "- Remaining station stops: "
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:524
+#: ..\..\ActivityRunner\Viewer3D\Popups\MultiPlayerWindow.cs:382
+#: ..\..\ActivityRunner\Viewer3D\Popups\MultiPlayerWindow.cs:389
+msgid "Helper"
+msgstr "补机"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:113
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:794
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:95
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:541
+msgid "Fuel levels"
+msgstr "燃料量"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrackMonitorWindow.cs:84
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrackMonitorDisplay.cs:241
+#, fuzzy
+#| msgid "Timetable"
+msgid "Turntable"
+msgstr "时刻表"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:483
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:830
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:620
+msgid "FPS"
+msgstr "帧数"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1681
+#, csharp-format
+msgid "{0} ({1:F0} MB) ({2:F0} pixels x {3:F0} pixels)"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:929
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:954
+msgid "Small Ejector"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1285
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1312
+msgid "Mass"
+msgstr "质量"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:157
+msgid "Car(s)"
+msgstr "车底"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\NoticeWindow.cs:111
+#, csharp-format
+msgid "FOV: {0:F0}°"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:159
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:730
+#: ..\..\ActivityRunner\Viewer3D\Popups\MultiPlayerWindow.cs:194
+msgid "Status"
+msgstr "状态"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1656
+msgid "Intensity"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:111
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:93
+msgid "Fire mass"
+msgstr "火量"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1428
+msgid "AI mode"
+msgstr "AI 模式"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:596
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:296
+msgid "Open"
+msgstr "开"
+
+#: ..\..\ActivityRunner\Viewer3D\Cameras.cs:1949
+msgid "Cab"
+msgstr "驾驶室"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:138
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:120
+msgid "EmerBPB"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:525
+#: ..\..\ActivityRunner\Viewer3D\Popups\MultiPlayerWindow.cs:383
+#: ..\..\ActivityRunner\Viewer3D\Popups\MultiPlayerWindow.cs:390
+msgid "Client"
+msgstr "客户端"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\CarOperationsWindow.cs:184
+msgid "Bleed off valve closed"
+msgstr "泄压阀关"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TTDetachWindow.cs:93
+#: ..\..\ActivityRunner\Viewer3D\Popups\TTDetachWindow.cs:98
+#, fuzzy
+#| msgid "stations"
+msgid "static consist"
+msgstr "车站"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1305
+msgid "Gravity"
+msgstr "重力"
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\MessageViewer.Designer.cs:57
+msgid "Reply Selected"
+msgstr "回复全部"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:110
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:92
+msgid "ENGN"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:595
+msgid "- "
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDScrollWindow.cs:121
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDScrollWindow.cs:130
+msgid "▼ Page Down"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1259
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1268
+#, fuzzy
+#| msgid "Speed:"
+msgid "ResSpeed:"
+msgstr "速度："
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:223
+#, fuzzy
+#| msgid "Train not active."
+msgid "Train inactive."
+msgstr "列车闲置"
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\SoundDebugForm.Designer.cs:192
+msgid "Sound cache"
+msgstr "声音缓存"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:559
+msgid "Cab Aspect"
+msgstr "驾驶室信号"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\WindowText.cs:153
+msgid ""
+"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890 \",.-+|!$%&/"
+"()=?;:'_[]"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\CompassWindow.cs:35
+msgid "Compass"
+msgstr "指南针"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:136
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:118
+#, fuzzy
+#| msgid "Apply"
+msgid "ApplS"
+msgstr "制动"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrackMonitorWindow.cs:99
+msgid "Projected:"
+msgstr "预测："
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDScrollWindow.cs:148
+#, fuzzy, csharp-format
+#| msgid "Locomotive Type:"
+msgid "= One Locomotive."
+msgid_plural "= All Locomotives."
+msgstr[0] "机车类型"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:882
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:884
+msgid "Left"
+msgstr "左"
+
+#: ..\..\ActivityRunner\Viewer3D\Cameras.cs:1730
+msgid "Passenger"
+msgstr "乘客视角"
+
+#: ..\..\ActivityRunner\Viewer3D\Materials.cs:196
+#, csharp-format
+msgid "{0:F0} texture"
+msgid_plural "{0:F0} textures"
+msgstr[0] ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\QuitWindow.cs:61
+#, csharp-format
+msgid "Continue playing ({0})"
+msgstr "继续 ({0})"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:727
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:104
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:86
+msgid "Circuit breaker"
+msgstr "继电器"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\ComposeMessage.cs:33
+msgid "Compose Message (e.g.   receiver1, receiver2: message body)"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\CarOperationsWindow.cs:65
+msgid "Open/Close Rear Angle Cock"
+msgstr "开/关后角塞门"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\ActivityWindow.cs:294
+#: ..\..\ActivityRunner\Viewer3D\Popups\ActivityWindow.cs:324
+msgid "Pause"
+msgstr "暂停"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\CarOperationsWindow.cs:142
+msgid "MU signal disconnected"
+msgstr "重联信号断开"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:469
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:683
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:108
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:732
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:737
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:742
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:758
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:762
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:90
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:495
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:503
+msgid "Dynamic brake"
+msgstr "电阻制动"
+
+#: ..\..\ActivityRunner\Viewer3D\Viewer.cs:919
+msgid "Automatic platform and siding labels visible."
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1220
+msgid "Wag Adhesion"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Viewer.cs:881
+msgid "In MP, use Alt-F4 to quit directly"
+msgstr "按Alt-F4退出"
+
+#: ..\..\ActivityRunner\Viewer3D\Terrain.cs:130
+#, csharp-format
+msgid "{0:F0} tile"
+msgid_plural "{0:F0} tiles"
+msgstr[0] ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:900
+msgid "BRAKE INFORMATION"
+msgstr "制动信息"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:298
+#, fuzzy
+#| msgid "Radiation"
+msgid "Evaluation"
+msgstr "辐射"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\ComposeMessage.cs:42
+msgid ":"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:457
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:120
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:516
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:102
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:196
+msgid "Replay"
+msgstr "重玩"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TTDetachWindow.cs:112
+#: ..\..\ActivityRunner\Viewer3D\Popups\TTDetachWindow.cs:117
+#, csharp-format
+msgid "This portion will continue as train : {0}"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:588
+msgid "Wheels"
+msgstr "轮对数目"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:962
+#, fuzzy
+#| msgid "Brakes"
+msgid "Brake Sys Vol"
+msgstr "制动"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:246
+#, fuzzy
+#| msgid "Your train has overturned."
+msgid "Train has terminated."
+msgstr "翻车了"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:608
+#, fuzzy
+#| msgid "3D"
+msgctxt "Cab"
+msgid "D"
+msgstr "三维"
+
+#: ..\..\ActivityRunner\Viewer3D\Viewer.cs:1195
+msgid "You can't switch from manual to autopilot mode"
+msgstr "不能从手动模式转到自动模式"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:691
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:919
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:928
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:930
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:934
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:943
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:945
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:953
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:955
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:978
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:993
+msgid "off"
+msgstr "关"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrackMonitorWindow.cs:81
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrackMonitorDisplay.cs:238
+msgid "Explorer"
+msgstr "探索"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:241
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:463
+msgid " Activation time : "
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:101
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:781
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:792
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:83
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:518
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:536
+msgid "Boiler pressure"
+msgstr "锅炉汽压"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1219
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1239
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1247
+msgid "Loco Adhesion"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:712
+msgid "MU'd"
+msgstr "多机"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:494
+msgid "kgf/cm²"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:754
+msgid "Oil"
+msgstr "油"
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\SoundDebugForm.Designer.cs:351
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1432
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1434
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:78
+msgid "Distance"
+msgstr "距离"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\MultiPlayerWindow.cs:87
+#, fuzzy
+#| msgid "MultiPlayerStatus: "
+msgid "MultiPlayer Info"
+msgstr "联控状态"
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\SoundDebugForm.Designer.cs:331
+msgid "Variable 3"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:513
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:884
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:706
+#, fuzzy
+#| msgid "Right"
+msgid "LeftRight"
+msgstr "右"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:492
+#, fuzzy
+#| msgid "Car"
+msgid "bar"
+msgstr "车辆"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TTDetachWindow.cs:54
+msgid "This train is about to split."
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1235
+msgid "Stability correction"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:166
+msgid "Frame time"
+msgstr "渲染一帧时间"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:566
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:608
+msgctxt "Cab"
+msgid "R"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:583
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:710
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1351
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1383
+msgid "Flipped"
+msgstr "转向"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrackMonitorWindow.cs:94
+msgid "Speed:"
+msgstr "速度："
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1697
+msgid "Camera"
+msgstr "视角"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:136
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:118
+#, fuzzy
+#| msgid "Apply"
+msgid "Apply Slow"
+msgstr "制动"
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\DebugViewerForm.Designer.cs:436
+msgid "See in Game"
+msgstr "游戏中查看"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:111
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:93
+msgid "FIRE"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\SoundDebugForm.cs:159
+#: ..\..\ActivityRunner\Viewer3D\Debugging\SoundDebugForm.cs:191
+#: ..\..\ActivityRunner\Viewer3D\Debugging\SoundDebugForm.cs:192
+#: ..\..\ActivityRunner\Viewer3D\Debugging\SoundDebugForm.cs:193
+#: ..\..\ActivityRunner\Viewer3D\Debugging\SoundDebugForm.cs:194
+#: ..\..\ActivityRunner\Viewer3D\Debugging\SoundDebugForm.cs:203
+#: ..\..\ActivityRunner\Viewer3D\Debugging\SoundDebugForm.cs:204
+#: ..\..\ActivityRunner\Viewer3D\Debugging\SoundDebugForm.cs:205
+#: ..\..\ActivityRunner\Viewer3D\Debugging\SoundDebugForm.cs:206
+#: ..\..\ActivityRunner\Viewer3D\Debugging\SoundDebugForm.cs:207
+#: ..\..\ActivityRunner\Viewer3D\Debugging\SoundDebugForm.cs:208
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:862
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:659
+msgid "-"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\ActivityWindow.cs:294
+msgid "Resume"
+msgstr "继续"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:125
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:107
+msgid "STEM"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainListWindow.cs:46
+#, fuzzy
+#| msgid "Service"
+msgid "Service Name"
+msgstr "行车制动"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:643
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:645
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:647
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:651
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:674
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:676
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:680
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:377
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:379
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:381
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:386
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:414
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:416
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:422
+msgid "EOT"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Viewer.cs:1000
+msgid "This car doesn't have a 3D cab"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:487
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:100
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:838
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:843
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:846
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:82
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:630
+msgid "Autopilot"
+msgstr "自动驾驶"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\ActivityWindow.cs:177
 #, csharp-format
 msgid ""
 "This activity has ended {0}.\n"
@@ -2003,794 +2652,933 @@ msgstr ""
 "任务结束（{0}）.\n"
 "请按F1查看详情"
 
-#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:258
-#, csharp-format
-msgid "Event: {0}"
-msgstr "事件：{0}"
-
-#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:37
-msgid "Car Operation Menu"
-msgstr "列车控制菜单"
-
-#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:47
-msgid "Toggle Handbrake"
-msgstr "切换手刹车"
-
-#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:49
-msgid "Toggle Power"
-msgstr "切换动力"
-
-#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:51
-msgid "Toggle MU Connection"
-msgstr "切换重联"
-
-#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:53
-msgid "Toggle Brake Hose Connection"
-msgstr "切换制动管连接"
-
-#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:55
-msgid "Open/Close Front Angle Cock"
-msgstr "开/关前角塞门"
-
-#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:57
-msgid "Open/Close Rear Angle Cock"
-msgstr "开/关后角塞门"
-
-#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:59
-msgid "Open/Close Bleed Off Valve"
-msgstr "开/关泄压阀"
-
-#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:61
+#: ..\..\ActivityRunner\Viewer3D\Popups\CarOperationsWindow.cs:69
 msgid "Close window"
 msgstr "关闭"
 
-#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:89
-msgid "Handbrake set"
-msgstr "手刹车制动"
-
-#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:91
-msgid "Handbrake off"
-msgstr "手刹车缓解"
-
-#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:105
-msgid "Power OFF command sent"
-msgstr "关机命令送出"
-
-#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:107
-msgid "Power ON command sent"
-msgstr "开机命令送出"
-
-#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:110
-msgid "No power command for this type of car!"
-msgstr "无功率控制命令"
-
-#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:126
-msgid "MU signal connected"
-msgstr "重联信号连上"
-
-#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:128
-msgid "MU signal disconnected"
-msgstr "重联信号断开"
-
-#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:131
-msgid "No MU command for this type of car!"
-msgstr "无重联命令"
-
-#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:140
-msgid "Front brake hose connected"
-msgstr "前制动管连接"
-
-#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:142
-msgid "Front brake hose disconnected"
-msgstr "前制动管断开"
-
-#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:149
-msgid "Front angle cock opened"
-msgstr "前角塞门开"
-
-#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:151
-msgid "Front angle cock closed"
-msgstr "前角塞门关"
-
-#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:158
-msgid "Rear angle cock opened"
-msgstr "后角塞门开"
-
-#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:160
-msgid "Rear angle cock closed"
-msgstr "后角塞门关"
-
-#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:170
-msgid "Bleed off valve opened"
-msgstr "泄压阀开"
-
-#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:172
-msgid "Bleed off valve closed"
-msgstr "泄压阀关"
-
-#: ../../ActivityRunner/Viewer3D/Popups/CompassWindow.cs:34
-msgid "Compass"
-msgstr "指南针"
-
-#: ../../ActivityRunner/Viewer3D/Popups/CompassWindow.cs:45
-msgid "Lat:"
-msgstr "纬度"
-
-#: ../../ActivityRunner/Viewer3D/Popups/CompassWindow.cs:48
-msgid "Lon:"
-msgstr "经度"
-
-#: ../../ActivityRunner/Viewer3D/Popups/ComposeMessage.cs:31
-msgid "Compose Message (e.g.   receiver1, receiver2: message body)"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:39
-msgid "Help"
-msgstr "帮助"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:41
-msgid "Key Commands"
-msgstr "键盘分布"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:67
-msgid "Briefing"
-msgstr "简要说明"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:78
-msgid "Timetable"
-msgstr "时刻表"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:83
-#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:70
-msgid "Station"
-msgstr "   车站"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:84
-#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:72
-msgid "Arrive"
-msgstr "  到达"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:86
-#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:74
-msgid "Depart"
-msgstr " 开车"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:102
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:104
-#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:203
-#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:279
-#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:282
-msgid "(missed)"
-msgstr "（过站）"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:111
-msgid "Work Orders"
-msgstr "任务书"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:116
-msgid "Task"
-msgstr "任务"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:117
-msgid "Car(s)"
-msgstr "车底"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:118
-msgid "Location"
-msgstr "位置"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:139
-msgid "Assemble Train"
-msgstr "调车"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:143
-msgid "At Location"
-msgstr "位置"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:147
-msgid "Drop Off"
-msgstr "甩挂"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:151
-msgid "Pick Up"
-msgstr "挂车"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:240
-msgid "Done"
-msgstr "完成"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:253
-msgid "Procedures"
-msgstr "次序"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:126
-msgid "Power In/Out"
-msgstr "动力进/出"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:130
-msgid "Motive force"
-msgstr "推动力"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:132
-msgid "Num of substeps"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:135
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:783
-msgid "Memory"
-msgstr "内存"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:136
-msgid "GCs"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:137
-msgid "Frame time"
-msgstr "渲染一帧时间"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:138
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:797
-msgid "Render process"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:139
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:798
-msgid "Updater process"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:140
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:799
-msgid "Loader process"
-msgstr "加载"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:141
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:800
-msgid "Sound process"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:380
-msgid "Version"
-msgstr "版本"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:384
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:386
-msgid "Time"
-msgstr "时间"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:392
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:634
-msgid "Gradient"
-msgstr "坡度"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:393
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:541
-msgid "Direction"
-msgstr "方向"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:395
-msgid "Train brake"
-msgstr "列车制动"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:399
-msgid "Engine brake"
-msgstr "机车制动"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:401
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:544
-msgid "Dynamic brake"
-msgstr "电阻制动"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:415
-msgid "FPS"
-msgstr "帧数"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:419
-msgid "Autopilot"
-msgstr "自动驾驶"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:422
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:601
-msgid "Wheel slip"
-msgstr "轮滑"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:424
-msgid "Wheel slip warning"
-msgstr "轮滑警告"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:430
-msgid "Sander blocked"
-msgstr "沙箱阻塞"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:432
-msgid "Sander on"
-msgstr "加沙"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:440
-msgid "Left"
-msgstr "左"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:442
-msgid "Right"
-msgstr "右"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:445
-msgid "Doors open"
-msgstr "车门开"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:451
-msgid "MultiPlayerStatus: "
-msgstr "联控状态"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:452
-msgid "Dispatcher"
-msgstr "联控调度"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:453
-msgid "Helper"
-msgstr "补机"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:454
-msgid "Client"
-msgstr "客户端"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:463
-msgid "CONSIST INFORMATION"
-msgstr "编组信息"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:470
-msgid "Player"
-msgstr "玩家"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:471
-msgid "Tilted"
-msgstr "摆式列车"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:472
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:492
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:564
-msgid "Type"
-msgstr "机车类型"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:473
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:493
-msgid "Length"
-msgstr "长度"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:474
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:494
-msgid "Weight"
-msgstr "重量"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:475
-msgid "Control Mode"
-msgstr "控制模式"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:476
-msgid "Out of Control"
-msgstr "失控"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:477
-msgid "Cab Aspect"
-msgstr "驾驶室信号"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:479
-msgid "R"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:479
-msgid "F"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:481
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:502
-msgid "Freight"
-msgstr "货车"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:481
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:502
-msgid "Pass"
-msgstr "通过"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:490
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:563
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:624
-msgid "Car"
-msgstr "车辆"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:491
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:653
-msgid "Flipped"
-msgstr "转向"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:495
-msgid "Drv/Cabs"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:496
-msgid "Wheels"
-msgstr "轮对数目"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:535
-msgid "LOCOMOTIVE INFORMATION"
-msgstr "机车信息"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:557
-msgid "BRAKE INFORMATION"
-msgstr "制动信息"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:560
-msgid "Main reservoir"
-msgstr "总风缸"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:565
-msgid "BrkCyl"
-msgstr "制动缸"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:566
-msgid "BrkPipe"
-msgstr "制动管"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:567
-msgid "AuxRes"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:568
-msgid "ErgRes"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:569
-msgid "MRPipe"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:570
-msgid "RetValve"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:571
-msgid "TripleValve"
-msgstr "三通阀"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:573
-msgid "Handbrk"
-msgstr "手刹车"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:574
-msgid "Conn"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:575
-msgid "AnglCock"
-msgstr "角门"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:576
-msgid "BleedOff"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:592
-msgid "FORCE INFORMATION"
-msgstr "物理信息"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:602
-msgid "Conditions"
-msgstr "状态"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:603
-msgid "Axle drive force"
-msgstr "牵引力"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:604
-msgid "Axle brake force"
-msgstr "制动力"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:605
-msgid "Number of substeps"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:607
-msgid "Solver"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:608
-msgid "Stability correction"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:609
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:616
-msgid "Axle out force"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:615
-msgid "(Advanced adhesion model disabled)"
-msgstr "（禁用先进粘着模型）"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:625
-msgid "Total"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:626
-msgid "Motive"
-msgstr "动力"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:627
-msgid "Brake"
-msgstr "制动"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:628
-msgid "Friction"
-msgstr "摩擦"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:629
-msgid "Gravity"
-msgstr "重力"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:630
-msgid "Curve"
-msgstr "曲线"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:631
-msgid "Tunnel"
-msgstr "隧道"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:632
-msgid "Coupler"
-msgstr "车钩"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:660
-msgid "DISPATCHER INFORMATION"
-msgstr "联控信息"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:662
-msgid "Train"
-msgstr "列车:"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:663
-msgid "Travelled"
-msgstr "运行里程"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:666
-msgid "AI mode"
-msgstr "AI 模式"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:667
-msgid "AI data"
-msgstr "AI 数据"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:668
-msgid "Mode"
-msgstr "模式"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:669
-msgid "Auth"
-msgstr "权限"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:671
-msgid "Signal"
-msgstr "信号"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:673
-msgid "Consist"
-msgstr "编组:"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:674
-msgid "Path"
-msgstr "路径"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:775
-msgid "DEBUG INFORMATION"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:781
-msgid "Logging enabled"
-msgstr "记录数据"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:782
-msgid "Build"
-msgstr "加"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:786
-msgid "Adapter"
-msgstr "显卡"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:791
-msgid "Shadow maps"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:793
-msgid "Shadow primitives"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:796
-msgid "Render primitives"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:797
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:798
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:799
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:800
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:801
-msgid "wait"
-msgstr "等待"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:801
-msgid "Total process"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:802
-msgid "Camera"
-msgstr "视角"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:606
-#, csharp-format
-msgid "filtered by {0:F0}"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:784
-#, csharp-format
-msgid "{0} logical processor"
-msgid_plural "{0} logical processors"
-msgstr[0] ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:53
-msgid "Next Station"
-msgstr "下站信息"
-
-#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:224
-msgid "No more stations."
-msgstr "没有更多停站"
-
-#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:359
-msgid "Activity completed."
-msgstr "任务完成"
-
-#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:123
-#, csharp-format
-msgid "Current Delay: {0} minute"
-msgid_plural "Current Delay: {0} minutes"
-msgstr[0] "现在晚点: {0} 分钟"
-
-#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:163
-msgid "Train not active."
-msgstr "列车闲置"
-
-#: ../../ActivityRunner/Viewer3D/Popups/NoticeWindow.cs:101
-#, csharp-format
-msgid "Odometer {0}"
-msgstr "里程表: {0}"
-
-#: ../../ActivityRunner/Viewer3D/Popups/NoticeWindow.cs:111
-#, csharp-format
-msgid "Camera: {0}"
-msgstr "视角：{0}"
-
-#: ../../ActivityRunner/Viewer3D/Popups/NoticeWindow.cs:116
-#, csharp-format
-msgid "FOV: {0:F0}°"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/QuitWindow.cs:32
+#: ..\..\ActivityRunner\Viewer3D\Popups\QuitWindow.cs:34
 msgid "Pause Menu"
 msgstr "暂停"
 
-#: ../../ActivityRunner/Viewer3D/Popups/QuitWindow.cs:46
-#, csharp-format
-msgid "Quit {1} ({0})"
-msgstr "退出 {1} ({0})"
-
-#: ../../ActivityRunner/Viewer3D/Popups/QuitWindow.cs:51
-#, csharp-format
-msgid "Save your game ({0})"
-msgstr "保存游戏 ({0})"
-
-#: ../../ActivityRunner/Viewer3D/Popups/QuitWindow.cs:59
-#, csharp-format
-msgid "Continue playing ({0})"
-msgstr "继续 ({0})"
-
-#: ../../ActivityRunner/Viewer3D/Popups/SwitchWindow.cs:47
-msgid "Switch"
-msgstr "道岔"
-
-#: ../../ActivityRunner/Viewer3D/Popups/TrackMonitorWindow.cs:70
-msgid "Track Monitor"
-msgstr "监控"
-
-#: ../../ActivityRunner/Viewer3D/Popups/TrackMonitorWindow.cs:74
-msgid "Auto Signal"
-msgstr "自动信号"
-
-#: ../../ActivityRunner/Viewer3D/Popups/TrackMonitorWindow.cs:75
-msgid "Node"
-msgstr "节点"
-
-#: ../../ActivityRunner/Viewer3D/Popups/TrackMonitorWindow.cs:76
-msgid "Manual"
-msgstr "手动"
-
-#: ../../ActivityRunner/Viewer3D/Popups/TrackMonitorWindow.cs:77
-msgid "Explorer"
-msgstr "探索"
-
-#: ../../ActivityRunner/Viewer3D/Popups/TrackMonitorWindow.cs:78
-msgid "OutOfControl : "
-msgstr "脱控："
-
-#: ../../ActivityRunner/Viewer3D/Popups/TrackMonitorWindow.cs:79
-msgid "Inactive"
-msgstr "无用"
-
-#: ../../ActivityRunner/Viewer3D/Popups/TrackMonitorWindow.cs:80
-msgid "Unknown"
-msgstr "未知"
-
-#: ../../ActivityRunner/Viewer3D/Popups/TrackMonitorWindow.cs:89
-msgid "Speed:"
-msgstr "速度："
-
-#: ../../ActivityRunner/Viewer3D/Popups/TrackMonitorWindow.cs:94
-msgid "Projected:"
-msgstr "预测："
-
-#: ../../ActivityRunner/Viewer3D/Popups/TrackMonitorWindow.cs:99
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrackMonitorWindow.cs:104
 msgid "Limit:"
 msgstr "限速："
 
-#: ../../ActivityRunner/Viewer3D/Popups/TrackMonitorWindow.cs:110
-msgid " Dist      Speed   Aspect"
-msgstr "距离          速度        信号"
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1200
+msgid "FORCE INFORMATION"
+msgstr "物理信息"
 
-#: ../../ActivityRunner/Viewer3D/Popups/TrainOperationsWindow.cs:36
-msgid "Train Operations"
-msgstr "列控"
-
-#: ../../ActivityRunner/Viewer3D/Popups/WindowText.cs:153
-msgid ""
-"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890 \",.-+|!$%&/"
-"()=?;:'_[]"
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:397
+msgid " ; other train not yet ready"
 msgstr ""
 
-#: ../../ActivityRunner/Viewer3D/RollingStock/MSTSLocomotiveViewer.cs:331
-msgid "diesel oil"
-msgstr "柴油"
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1430
+msgid "Mode"
+msgstr "模式"
 
-#: ../../ActivityRunner/Viewer3D/RollingStock/MSTSLocomotiveViewer.cs:332
-msgid "wood"
-msgstr "木"
-
-#: ../../ActivityRunner/Viewer3D/RollingStock/MSTSLocomotiveViewer.cs:448
-msgid "Refill: No suitable pick-up point anywhere, so refilling immediately."
-msgstr "加油：立即加油"
-
-#: ../../ActivityRunner/Viewer3D/RollingStock/MSTSLocomotiveViewer.cs:456
+#: ..\..\ActivityRunner\Viewer3D\RollingStock\MSTSLocomotiveViewer.cs:523
 #, csharp-format
 msgid "Refill: Distance to {0} supply is {1}."
 msgstr "加油：到{0}距离{1}"
 
-#: ../../ActivityRunner/Viewer3D/RollingStock/MSTSLocomotiveViewer.cs:464
-#, csharp-format
-msgid "Refill: Loco must be stationary to refill {0}."
-msgstr "加油：必须停车 {0}."
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:977
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:992
+#, fuzzy
+#| msgid "Compass"
+msgid "Compressor"
+msgstr "指南针"
 
-#: ../../ActivityRunner/Viewer3D/RollingStock/MSTSLocomotiveViewer.cs:470
-#, csharp-format
-msgid "Refill: Loco speed must exceed {0}."
-msgstr "加油：速度要超过{0}"
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:227
+#, fuzzy
+#| msgid "Train not active."
+msgid "Train static."
+msgstr "列车闲置"
 
-#: ../../ActivityRunner/Viewer3D/RollingStock/MSTSLocomotiveViewer.cs:477
-#, csharp-format
-msgid "Refill: Loco speed must not exceed {0}."
-msgstr "加油：速度要低于{0}"
+#: ..\..\ActivityRunner\Viewer3D\Popups\SwitchWindow.cs:48
+msgid "Switch"
+msgstr "道岔"
 
-#: ../../ActivityRunner/Viewer3D/RollingStock/MSTSLocomotiveViewer.cs:484
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1654
 #, csharp-format
-msgid "Refill: {0} supply now replenished."
-msgstr "加油：{0}加满了"
+msgid "{0:N0} m"
+msgstr ""
 
-#: ../../ActivityRunner/Viewer3D/RollingStock/MSTSLocomotiveViewer.cs:457
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:124
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:106
+msgid "SPED"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1024
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1058
+msgid "Handbrk"
+msgstr "手刹车"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:154
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:462
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:681
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:714
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:126
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:589
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:108
+msgid "Throttle"
+msgstr "功率"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1685
 #, csharp-format
-msgid "{0} meter"
-msgid_plural "{0} meters"
-msgstr[0] "{0}米"
-msgstr[1] "{0}米"
+msgid "({0}x{0})"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\DebugViewerForm.Designer.cs:409
+msgid "Penalty"
+msgstr "惩罚"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:927
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:942
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:952
+msgid "Large Ejector"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrackMonitorWindow.cs:74
+msgid "Track Monitor"
+msgstr "监控"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1266
+#, fuzzy
+#| msgid "Direction"
+msgid "Train Direction:"
+msgstr "方向"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:750
+msgid "Temperature"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:553
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:584
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1015
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1040
+msgid "Type"
+msgstr "机车类型"
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\DebugViewerForm.Designer.cs:322
+msgid "Pick Signals"
+msgstr "信号可选"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1054
+msgid "TripleValve"
+msgstr "三通阀"
+
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrackMonitorDisplay.cs:571
+msgid "SprtrRedSprtrDarkGray"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1046
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1093
+msgid "AuxRes"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:556
+msgid "Tonnage"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Viewer.cs:954
+msgid "Train and car labels hidden."
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\CarOperationsWindow.cs:161
+msgid "Front angle cock opened"
+msgstr "前角塞门开"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1691
+msgid "Render primitives"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\CarOperationsWindow.cs:152
+msgid "Front brake hose connected"
+msgstr "前制动管连接"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1688
+msgid "Shadow primitives"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:142
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:124
+msgid "Skid"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1657
+msgid "Liquidity"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrackMonitorDisplay.cs:342
+msgid "Cab ORIEN"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\CarOperationsWindow.cs:57
+msgid "Toggle Power"
+msgstr "切换动力"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1221
+msgid "Tang. Force"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\CarOperationsWindow.cs:123
+msgid "Power ON command sent"
+msgstr "开机命令送出"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:587
+msgid "Drv/Cabs"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:106
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:88
+msgid "DIRC"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:149
+msgid "Train Driving Info"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\SoundDebugForm.Designer.cs:216
+msgid "3D"
+msgstr "三维"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:123
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:409
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:77
+msgid "Station"
+msgstr "   车站"
+
+#~ msgid "Release"
+#~ msgstr "缓解"
+
+#~ msgid "Quick Release"
+#~ msgstr "过充"
+
+#~ msgid "Neutral"
+#~ msgstr "中位"
+
+#~ msgid "EPApply"
+#~ msgstr "电空制动"
+
+#~ msgid "Emergency"
+#~ msgstr "紧急制动"
+
+#~ msgid "Lap"
+#~ msgstr "保压"
+
+#~ msgid "Suppression"
+#~ msgstr "抑制"
+
+#~ msgid "Cont. Service"
+#~ msgstr "持续制动"
+
+#~ msgid "Overcharge"
+#~ msgstr "过载"
+
+#~ msgid "TCS Emergency Braking"
+#~ msgstr "运监紧急制动"
+
+#~ msgid "TCS Full Service Braking"
+#~ msgstr "运监全制动"
+
+#~ msgctxt "Brake Controller"
+#~ msgid "Running"
+#~ msgstr "运行"
+
+#~ msgctxt "PowerSupply"
+#~ msgid "Off"
+#~ msgstr "关闭"
+
+#~ msgctxt "PowerSupply"
+#~ msgid "On ongoing"
+#~ msgstr "正在进行"
+
+#~ msgctxt "PowerSupply"
+#~ msgid "On"
+#~ msgstr "打开"
+
+#~ msgctxt "Pantograph"
+#~ msgid "Down"
+#~ msgstr "收"
+
+#~ msgctxt "Pantograph"
+#~ msgid "Lowering"
+#~ msgstr "降低"
+
+#~ msgctxt "Pantograph"
+#~ msgid "Raising"
+#~ msgstr "升起"
+
+#~ msgctxt "CircuitBraker"
+#~ msgid "Open"
+#~ msgstr "开"
+
+#~ msgctxt "CircuitBraker"
+#~ msgid "Closing"
+#~ msgstr "关闭"
+
+#~ msgctxt "CircuitBraker"
+#~ msgid "Closed"
+#~ msgstr "关"
+
+#~ msgid "Connection to the server is lost, will play as single mode"
+#~ msgstr "无法与联控联系，将运行单机游戏"
+
+#~ msgid "Alt-E to gain control of your train"
+#~ msgstr "按Alt-E键获取本列车控制权"
+
+#~ msgid "Dispatcher does not allow hand throw at this time"
+#~ msgstr "联控不允许扳动道岔"
+
+#~ msgid "main route"
+#~ msgstr "主路"
+
+#~ msgid "side route"
+#~ msgstr "旁路"
+
+#~ msgid "You are the new dispatcher. Enjoy!"
+#~ msgstr "你现在是新联控"
+
+#~ msgid "Name conflicted with people in the game, will play in single mode"
+#~ msgstr "用户名重复，无法联机"
+
+#~ msgid "You gained back the control of your train"
+#~ msgstr "你获取了列车的控制权"
+
+#~ msgid "Server quits, will play as single mode"
+#~ msgstr "联控退出，单机运行"
+
+#~ msgid "Trains uncoupled, gain back control by Alt-E"
+#~ msgstr "列车解挂，按Alt-E键获取列车控制权"
+
+#~ msgid "Trains coupled, hit \\ then Shift-? to release brakes"
+#~ msgstr "列车挂车，按\\然后Shift-?键缓解制动"
+
+#~ msgid ""
+#~ "You are an assistant now, will be able to handle switches and signals."
+#~ msgstr "你现在是助手，可以控制信号和道岔"
+
+#~ msgid "You are no longer an assistant."
+#~ msgstr "你的助手权被取消"
+
+#, csharp-format
+#~ msgid "Switched, current route is {0}"
+#~ msgstr "道岔扳动，现在的路线是：{0}"
+
+#, csharp-format
+#~ msgid "New dispatcher is {0}"
+#~ msgstr "新联控是 {0}"
+
+#, csharp-format
+#~ msgid "{0} quit."
+#~ msgstr "{0} 退出"
+
+#, csharp-format
+#~ msgid "{0} lost."
+#~ msgstr "{0} 掉线"
+
+#, csharp-format
+#~ msgid " From {0}: {1}"
+#~ msgstr "信息-{0}: {1}"
+
+#~ msgid "Missing car, have substituted with other one."
+#~ msgstr "找不到车，用差不多的代替"
+
+#, csharp-format
+#~ msgid "Cannot decouple: train has {0} player, need to completely stop."
+#~ msgid_plural ""
+#~ "Cannot decouple: train has {0} players, need to completely stop."
+#~ msgstr[0] "列车有{0}玩家，无法解挂，必须停车"
+
+#~ msgid "Coupler broken!"
+#~ msgstr "断钩了！"
+
+#~ msgid "Coupler overloaded!"
+#~ msgstr "车钩受力过大！"
+
+#~ msgid "Other train is blocking path"
+#~ msgstr "前方有其他车"
+
+#~ msgid "Stopped due to errors in route setting"
+#~ msgstr "路错，无法前进"
+
+#~ msgid "No signal in train's path"
+#~ msgstr "列车前方无信号"
+
+#~ msgid "Next signal already allocated to other train"
+#~ msgstr "信号给了其他列车"
+
+#~ msgid "Request to clear signal cannot be processed"
+#~ msgstr "无法设置信号"
+
+#~ msgid "No switch found"
+#~ msgstr "找不到道岔"
+
+#~ msgid "You cannot enter manual mode when autopiloted"
+#~ msgstr "现在是自动模式，无法进入人工模式"
+
+#~ msgid "Train is not back on original route"
+#~ msgstr "列车没回到原定路线"
+
+#~ msgid ""
+#~ "Original route is reverse from present direction, stop train before "
+#~ "switching"
+#~ msgstr "原始线路与现有方向相反，请停车后再扳道岔"
+
+#~ msgid "Cannot change to Manual Mode while in Explorer Mode"
+#~ msgstr "探索模式下无法切换模式"
+
+#~ msgid "Reversal required and rear of train not on required route"
+#~ msgstr "倒车，但车尾不在设定路线上"
+
+#~ msgid "Cannot clear signal behind train while in AUTO mode"
+#~ msgstr "自动模式下无法设置车尾信号"
+
+#, csharp-format
+#~ msgid ""
+#~ "Train stopped due to problems with other train: train {0} , reason: {1}"
+#~ msgstr "其它列车挡路: 列车 {0} , 原因: {1}"
+
+#~ msgctxt "Gear"
+#~ msgid "N"
+#~ msgstr "中立"
+
+#~ msgid "No power line!"
+#~ msgstr "没有接触网"
+
+#~ msgid "Power line condition overridden."
+#~ msgstr "没有接触网也可以开"
+
+#~ msgid "OK"
+#~ msgstr "允许"
+
+#~ msgid "NOT OK"
+#~ msgstr "不允许"
+
+#~ msgctxt "PowerSupply"
+#~ msgid "Power"
+#~ msgstr "电力"
+
+#~ msgid "Tender coal supply is empty. Your loco will fail."
+#~ msgstr "煤水车没有煤了"
+
+#~ msgid "Tender water supply is empty. Your loco will fail."
+#~ msgstr "煤水车没水了"
+
+#~ msgid "Fire has dropped too far. Your loco will fail."
+#~ msgstr "火快灭了"
+
+#~ msgid ""
+#~ "FireMass is getting low. Your fireman will shovel faster, but don't wear "
+#~ "him out."
+#~ msgstr "火量太小，司炉需要加快速度"
+
+#~ msgid ""
+#~ "FireMass is back within limits. Your fireman will shovel as per normal."
+#~ msgstr "火量正常，司炉速度正常"
+
+#~ msgid "Water level dropped too far. Plug has fused and loco has failed."
+#~ msgstr "水量太低，机车爆炸"
+
+#~ msgid "Boiler overfull and priming."
+#~ msgstr "锅炉汽水共腾"
+
+#~ msgid "Boiler no longer priming."
+#~ msgstr "锅炉正常"
+
+#~ msgid "(absolute)"
+#~ msgstr "(绝对值)"
+
+#~ msgid "Fire ratio"
+#~ msgstr "火率"
+
+#~ msgid "Key Inputs"
+#~ msgstr "关键数据"
+
+#~ msgid "Input:"
+#~ msgstr "输入："
+
+#~ msgid "Boiler"
+#~ msgstr "锅炉"
+
+#~ msgid "FuelCal"
+#~ msgstr "油量计算"
+
+#~ msgid "Steam Production"
+#~ msgstr "蒸汽发生量"
+
+#~ msgid "Boiler:"
+#~ msgstr "锅炉："
+
+#~ msgid "Heat:"
+#~ msgstr "热量"
+
+#~ msgid "In"
+#~ msgstr "在"
+
+#~ msgid "Flue"
+#~ msgstr "烟"
+
+#~ msgid "Water"
+#~ msgstr "水"
+
+#~ msgid "Steam Usage"
+#~ msgstr "蒸汽用量"
+
+#~ msgid "Usage:"
+#~ msgstr "蒸汽用量"
+
+#~ msgid "Blower"
+#~ msgstr "鼓风机"
+
+#~ msgid "Initial"
+#~ msgstr "初始"
+
+#~ msgid "Press:"
+#~ msgstr "压力"
+
+#~ msgid "Fireman"
+#~ msgstr "司炉"
+
+#~ msgid "Fire:"
+#~ msgstr "火："
+
+#~ msgid "Ideal"
+#~ msgstr "目标"
+
+#~ msgid "MaxFireR"
+#~ msgstr "最大火量"
+
+#~ msgid "Combust"
+#~ msgstr "燃烧"
+
+#~ msgid "Injector:"
+#~ msgstr "注水器："
+
+#~ msgid "Inj1"
+#~ msgstr "注水1"
+
+#~ msgid "Inj2"
+#~ msgstr "注水2"
+
+#~ msgid "Tender:"
+#~ msgstr "煤水车："
+
+#~ msgid "Coal"
+#~ msgstr "煤"
+
+#~ msgid "WaterOut"
+#~ msgstr "无水"
+
+#~ msgid "FireOut"
+#~ msgstr "火灭"
+
+#~ msgid "Power:"
+#~ msgstr "动力："
+
+#~ msgid "Draw"
+#~ msgstr "画"
+
+#~ msgid "Move:"
+#~ msgstr "运动："
+
+#~ msgid "Piston"
+#~ msgstr "活塞"
+
+#~ msgid "Experimental"
+#~ msgstr "实验"
+
+#~ msgid "Slip Monitor"
+#~ msgstr "轮滑监控"
+
+#~ msgid "Slip:"
+#~ msgstr "轮滑："
+
+#~ msgid "Gears can't be changed unless throttle is at zero."
+#~ msgstr "档位中立才能换档"
+
+#~ msgctxt "HUD"
+#~ msgid "Power"
+#~ msgstr "功率"
+
+#~ msgid ""
+#~ "You are traveling too fast for this curve. Slow down, your freight may be "
+#~ "damaged and your train may derail."
+#~ msgstr "弯道速度过快，可能翻车或导致货物受损"
+
+#~ msgid ""
+#~ "You are travelling too fast for this curve. Slow down, your passengers "
+#~ "are feeling uncomfortable and your train may derail."
+#~ msgstr "弯道速度过快，可能翻车或导致乘客不适"
+
+#~ msgid "(flipped)"
+#~ msgstr "(II端向前)"
+
+#~ msgid "Single"
+#~ msgstr "单机"
+
+#~ msgid "High Pressure"
+#~ msgstr "高压"
+
+#~ msgid "Slow Direct"
+#~ msgstr "低速直通"
+
+#~ msgctxt "Engine"
+#~ msgid "Stopped"
+#~ msgstr "停机"
+
+#~ msgctxt "Engine"
+#~ msgid "Running"
+#~ msgstr "运行"
+
+#~ msgctxt "Engine"
+#~ msgid "Stopping"
+#~ msgstr "停机中"
+
+#~ msgid "Passenger boarding completed. Waiting for signal ahead to clear."
+#~ msgstr "旅客上车结束，等待出站信号"
+
+#~ msgid "Passenger boarding completed. You may depart now."
+#~ msgstr "乘客上车完毕，可以开车"
+
+#, csharp-format
+#~ msgid "Passenger boarding completes in {0:D2}:{1:D2}"
+#~ msgstr "乘客登车还需 {0:D2}:{1:D2}"
+
+#~ msgid "None"
+#~ msgstr "无"
+
+#~ msgid "Information"
+#~ msgstr "信息"
+
+#~ msgid "Error"
+#~ msgstr "错误"
+
+#~ msgid "MSG"
+#~ msgstr "短信"
+
+#~ msgid "<none>"
+#~ msgstr "<无>"
+
+#~ msgid "reverse"
+#~ msgstr "倒车"
+
+#~ msgid "neutral"
+#~ msgstr "中位"
+
+#~ msgid "locked. Close throttle, stop train then re-try."
+#~ msgstr "锁死，关闭节流阀，停车后再试"
+
+#~ msgid "close"
+#~ msgstr "关"
+
+#~ msgid "open"
+#~ msgstr "开"
+
+#~ msgid "locked. Release dynamic brake then re-try."
+#~ msgstr "锁死，解除电阻制动后再试"
+
+#~ msgid "Wheel-slip"
+#~ msgstr "轮滑"
+
+#~ msgid "over"
+#~ msgstr "结束"
+
+#~ msgid "occurring. Tractive power greatly reduced."
+#~ msgstr "中，牵引力下降"
+
+#~ msgid "warning"
+#~ msgstr "警告"
+
+#~ msgid "Pantograph 1"
+#~ msgstr "后弓"
+
+#~ msgid "lower"
+#~ msgstr "降"
+
+#~ msgid "raise"
+#~ msgstr "升"
+
+#~ msgid "Pantograph 2"
+#~ msgstr "前弓"
+
+#~ msgid "Player Diesel Power"
+#~ msgstr "本务机柴油机功率"
+
+#~ msgid "locked. Close throttle then re-try."
+#~ msgstr "锁死，关闭节流阀后再试"
+
+#~ msgid "Helper Diesel Power"
+#~ msgstr "补机柴油机功率"
+
+#~ msgid "re-fueled"
+#~ msgstr "加油"
+
+#~ msgid "level"
+#~ msgstr "水平"
+
+#~ msgid "Injector 1"
+#~ msgstr "注水器1"
+
+#~ msgid "Injector 2"
+#~ msgstr "注水器2"
+
+#~ msgid "decrease"
+#~ msgstr "减少"
+
+#~ msgid "increase"
+#~ msgstr "增加"
+
+#~ msgid "Damper"
+#~ msgstr "减震器"
+
+#~ msgid "Firebox Door"
+#~ msgstr "火室门"
+
+#~ msgid "Firing Rate"
+#~ msgstr "火量"
+
+#~ msgid "Manual Firing"
+#~ msgstr "手动烧火"
+
+#~ msgid "Fire"
+#~ msgstr "烧火"
+
+#~ msgid "add shovel-full"
+#~ msgstr "加满一锹煤"
+
+#~ msgid "Cylinder Compound"
+#~ msgstr "汽缸通汽复合"
+
+#~ msgid "Tender"
+#~ msgstr "煤水车"
+
+#~ msgid "Coal re-filled"
+#~ msgstr "已加煤"
+
+#~ msgid "Coal level"
+#~ msgstr "煤量"
+
+#~ msgid "Water re-filled"
+#~ msgstr "已加水"
+
+#~ msgid "Water level"
+#~ msgstr "水量"
+
+#~ msgid "release"
+#~ msgstr "缓解"
+
+#~ msgid "apply"
+#~ msgstr "启用"
+
+#~ msgid "Engine Brake"
+#~ msgstr "机车制动"
+
+#~ msgid "Dynamic Brake"
+#~ msgstr "电阻制动"
+
+#~ msgid "Emergency Brake"
+#~ msgstr "紧急制动"
+
+#~ msgid "Bail Off"
+#~ msgstr "缓解"
+
+#~ msgid "disengage"
+#~ msgstr "切断"
+
+#~ msgid "engage"
+#~ msgstr "连接"
+
+#~ msgid "initialize"
+#~ msgstr "缓解"
+
+#~ msgid "cannot initialize. Stop train then re-try."
+#~ msgstr "无法缓解，停车后再试"
+
+#~ msgid "Handbrake"
+#~ msgstr "手制动"
+
+#~ msgid "none"
+#~ msgstr "无"
+
+#~ msgid "full"
+#~ msgstr "全力"
+
+#~ msgid "Brake Hose"
+#~ msgstr "制动管"
+
+#~ msgid "disconnect"
+#~ msgstr "切断"
+
+#~ msgid "connect"
+#~ msgstr "连接"
+
+#~ msgid "Alerter"
+#~ msgstr "告警"
+
+#~ msgid "acknowledge"
+#~ msgstr "确认"
+
+#~ msgid "Horn"
+#~ msgstr "汽笛"
+
+#~ msgid "Whistle"
+#~ msgstr "汽笛"
+
+#~ msgid "blow"
+#~ msgstr "拉响"
+
+#~ msgid "Bell"
+#~ msgstr "车钟"
+
+#~ msgid "ring"
+#~ msgstr "敲响"
+
+#~ msgid "Headlight"
+#~ msgstr "车灯"
+
+#~ msgid "dim"
+#~ msgstr "低亮度"
+
+#~ msgid "bright"
+#~ msgstr "亮"
+
+#~ msgid "Cab Light"
+#~ msgstr "驾驶室灯"
+
+#~ msgid "Wipers"
+#~ msgstr "雨刷"
+
+#~ msgid "changing is not available"
+#~ msgstr "无法改变"
+
+#~ msgid ""
+#~ "changing disabled. Close throttle, set reverser to neutral, stop train "
+#~ "then re-try."
+#~ msgstr "无法改变，停车后打到中位"
+
+#~ msgid "Odometer"
+#~ msgstr "里程表"
+
+#~ msgid "Doors Left"
+#~ msgstr "左边车门"
+
+#~ msgid "Doors Right"
+#~ msgstr "右边车门"
+
+#~ msgid "Mirror"
+#~ msgstr "倒车镜"
+
+#~ msgid "retract"
+#~ msgstr "收"
+
+#~ msgid "extend"
+#~ msgstr "放"
+
+#~ msgid "Switch Ahead"
+#~ msgstr "扳前道岔"
+
+#~ msgid "locked. Use Control+M to change signals to manual mode then re-try."
+#~ msgstr "锁死，按Ctl-M后再试"
+
+#~ msgid "Switch Behind"
+#~ msgstr "扳后道岔"
+
+#~ msgid "reset"
+#~ msgstr "重置"
+
+#~ msgid "Uncouple After"
+#~ msgstr "车后解挂"
+
+#~ msgid "Activity"
+#~ msgstr "任务"
+
+#~ msgid "quit"
+#~ msgstr "退出"
+
+#~ msgid "resume"
+#~ msgstr "继续"
+
+#~ msgid "Overriding camera replay. Press Escape to resume camera replay."
+#~ msgstr "按ESC键恢复视角重放"
+
+#~ msgid "Gearbox"
+#~ msgstr "离合器"
+
+#~ msgid "down"
+#~ msgstr "下"
+
+#~ msgid "up"
+#~ msgstr "上"
+
+#~ msgid "locked. Use shaft before changing gear."
+#~ msgstr "锁死"
+
+#~ msgid "Signal mode"
+#~ msgstr "信号模式"
+
+#~ msgid "manual"
+#~ msgstr "手动"
+
+#~ msgid "auto"
+#~ msgstr "自动"
+
+#~ msgid "locked. Stop train, then re-try."
+#~ msgstr "锁死，停车后再试"
+
+#~ msgctxt "Alerter"
+#~ msgid "sound"
+#~ msgstr "响"
+
+#~ msgctxt "Horn"
+#~ msgid "sound"
+#~ msgstr "响"
+
+#~ msgctxt "Cab"
+#~ msgid "change"
+#~ msgstr "换"
+
+#~ msgctxt "Odometer"
+#~ msgid "reset"
+#~ msgstr "重置"
+
+#~ msgctxt "Odometer"
+#~ msgid "counting down"
+#~ msgstr "减少"
+
+#~ msgctxt "Odometer"
+#~ msgid "counting up"
+#~ msgstr "增加"
+
+#~ msgctxt "Switch"
+#~ msgid "change"
+#~ msgstr "扳动"
+
+#~ msgid "Held for connecting train : "
+#~ msgstr "长按"
+
+#~ msgid "3D Cab view not available"
+#~ msgstr "无三维驾驶室"
+
+#~ msgid "Will not ratate cab and land"
+#~ msgstr "不随地形旋转视角"
+
+#, csharp-format
+#~ msgid "Rotating cab {0}/4, rotating land {1}/4"
+#~ msgstr "视角转{0}/4, 外界转{1}/4"
+
+#, csharp-format
+#~ msgid "Camera: {0}"
+#~ msgstr "视角：{0}"
+
+#~ msgid " Dist      Speed   Aspect"
+#~ msgstr "距离          速度        信号"
+
+#~ msgid "diesel oil"
+#~ msgstr "柴油"
+
+#~ msgid "wood"
+#~ msgstr "木"
 
 #~ msgid "Current SMS"
 #~ msgstr "现有短信"
@@ -2813,9 +3601,6 @@ msgstr[1] "{0}米"
 
 #~ msgid "sidings"
 #~ msgstr "侧线"
-
-#~ msgid "stations"
-#~ msgstr "车站"
 
 #~ msgid "stations and sidings"
 #~ msgstr "车站和侧线"

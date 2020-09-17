@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: ActivityRunner\n"
-"POT-Creation-Date: 2018-10-06 15:03:28+0200\n"
-"PO-Revision-Date: 2018-10-06 15:42+0200\n"
+"POT-Creation-Date: 2020-09-17 08:25:56+0200\n"
+"PO-Revision-Date: 2020-09-17 14:17+0200\n"
 "Last-Translator: Roberto Ceccarelli (The Strawberry Field) <strawberry."
 "field@libero.it>\n"
 "Language-Team: Open Rails Dev Team\n"
@@ -10,155 +10,1006 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 2.1.1\n"
+"X-Generator: Poedit 2.4.1\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: ../../ActivityRunner/Viewer3D/Cameras.cs:598
-msgid "Free"
-msgstr "Libera"
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:108
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:90
+msgid "BDYN"
+msgstr ""
 
-#: ../../ActivityRunner/Viewer3D/Cameras.cs:985
-msgid "Outside Front"
-msgstr "Esterna anteriore"
+#: ..\..\ActivityRunner\Viewer3D\RollingStock\MSTSLocomotiveViewer.cs:589
+#, csharp-format
+msgid "Unload: {0} fuel or freight now unloaded."
+msgstr "Scarico: {0} carburante o merce scaricati."
 
-#: ../../ActivityRunner/Viewer3D/Cameras.cs:985
-msgid "Outside Rear"
-msgstr "Esterna posteriore"
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:337
+msgid "This Activity has ended."
+msgstr "Questa Activity è terminata"
 
-#: ../../ActivityRunner/Viewer3D/Cameras.cs:1241
-msgid "Brakeman"
-msgstr "Frenatore"
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:123
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:105
+msgid "SAND"
+msgstr ""
 
-#: ../../ActivityRunner/Viewer3D/Cameras.cs:1432
-msgid "Passenger"
-msgstr "Passeggero"
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrackMonitorDisplay.cs:301
+#, fuzzy
+#| msgid "Projected:"
+msgid "Projected"
+msgstr "Prevista:"
 
-#: ../../ActivityRunner/Viewer3D/Cameras.cs:1501
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:102
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:84
+#, fuzzy
+#| msgid "Boiler water level"
+msgid "Boiler water glass"
+msgstr "Livello acqua caldaia"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1688
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1691
+#, csharp-format
+msgid "{0:F0}"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\RollingStock\MSTSLocomotiveViewer.cs:638
+#: ..\..\ActivityRunner\Viewer3D\RollingStock\MSTSLocomotiveViewer.cs:656
+msgid "Starting refill"
+msgstr "Inizio rifornimento"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:107
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:89
+msgid "DOOR"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:126
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:108
+msgid "THRO"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Viewer.cs:306
+#, csharp-format
+msgid "Allowed speed raised to {0}"
+msgstr "Velocità permessa raggiunta a {0}"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\MultiPlayerWindow.cs:137
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:200
+msgid "NwLn"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:463
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:128
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:636
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:670
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:693
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:110
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:364
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:409
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:443
+msgid "Train brake"
+msgstr "Freno Treno"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TTDetachWindow.cs:69
+msgid "Perform Detach"
+msgstr "Esegui distacco"
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\DebugViewerForm.Designer.cs:155
+msgid "Remove"
+msgstr "Rimuovi"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1265
+#, fuzzy
+#| msgid "Direction"
+msgid "Wind Direction:"
+msgstr "Direzione"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:120
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:102
+msgid "RPLY"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:359
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:360
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:570
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:573
+#, fuzzy
+#| msgid "(missed)"
+msgid "HH:mm:ss(missed)"
+msgstr "(saltata)"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:161
+msgid "Num of substeps"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1427
+msgid "Max"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:606
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:321
+msgid "Blocked"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\ActivityWindow.cs:317
+msgid "End Activity"
+msgstr "Fine Activity"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:129
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:867
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:869
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:871
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:873
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:111
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:668
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:676
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:684
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:692
+#, fuzzy
+#| msgid "Wheels"
+msgid "Wheel"
+msgstr "Ruote"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:720
+msgid "Force"
+msgstr "Forza"
+
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrackMonitorDisplay.cs:364
+msgid "Milepost"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:141
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:123
+#, fuzzy
+#| msgid "(safe range)"
+msgid "safe range"
+msgstr "(int. sicuro)"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:612
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:838
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:321
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:631
+msgid "On"
+msgstr "Accesa"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:431
+msgid "Work orders:"
+msgstr "Ordini di servizio:"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:511
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:882
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:704
+#, fuzzy
+#| msgid "Right"
+msgid "RightLeft"
+msgstr "Destra"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:101
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:83
+msgid "PRES"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Cameras.cs:1905
 msgid "Head out"
 msgstr "Testa fuori"
 
-#: ../../ActivityRunner/Viewer3D/Cameras.cs:1545
-msgid "Cab"
-msgstr "Cabina"
+#: ..\..\ActivityRunner\Viewer3D\Popups\CarOperationsWindow.cs:145
+msgid "No MU command for this type of car!"
+msgstr "Questo rotabile non supporta MU"
 
-#: ../../ActivityRunner/Viewer3D/Cameras.cs:1784
+#: ..\..\ActivityRunner\Viewer3D\RollingStock\MSTSLocomotiveViewer.cs:524
+#, csharp-format
+msgid "{0} meter"
+msgid_plural "{0} meters"
+msgstr[0] "{0} metro"
+msgstr[1] "{0} metri"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:135
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:117
+#, fuzzy
+#| msgid "Apply"
+msgid "ApplQ"
+msgstr "Attivo"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:518
+msgid "- Tasks: "
+msgstr "- Compiti: "
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:125
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:127
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:80
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:82
+msgid "Actual"
+msgstr "Attuale"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainListWindow.cs:166
+msgid "Train in turntable not aligned to a track can't be selected"
+msgstr ""
+"Il treno sulla piattaforma non è allineato con un binario, non può essere "
+"selezionato."
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:965
+msgid "Brake Cyl"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\MultiPlayerWindow.cs:387
+msgid "Status:"
+msgstr "Stato:"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\MultiPlayerWindow.cs:379
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrackMonitorDisplay.cs:283
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:168
+msgid "Sprtr"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:125
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:778
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:107
+msgid "Steam usage"
+msgstr "Utilizzo vapore"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:119
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:101
+msgid "REGL"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:495
+msgid "Wheel skid"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\CarOperationsWindow.cs:182
+msgid "Bleed off valve opened"
+msgstr "Valvola spurgo aperta"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:170
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1695
+msgid "Sound process"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:723
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:114
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:799
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:96
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:549
+msgid "Gear"
+msgstr "Cambio"
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\DebugViewerForm.cs:1997
+msgid "Switching Request Sent to the Server"
+msgstr "Richiesta di scambio inviata al Server"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:583
+#, csharp-format
+msgid "Task accomplished"
+msgid_plural "Tasks accomplished"
+msgstr[0] ""
+msgstr[1] ""
+
+#: ..\..\ActivityRunner\Viewer3D\Viewer.cs:1201
+msgid "Switched to autopilot"
+msgstr "Attivato modo pilota automatico"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:144
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:867
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:126
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:669
+msgid "slip"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:457
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:853
+#, fuzzy
+#| msgid "Assemble Train"
+msgid "Assemble Train At Location"
+msgstr "Componi il treno"
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\DebugViewerForm.Designer.cs:249
+msgid "Res"
+msgstr "Scala"
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\DebugViewerForm.Designer.cs:261
+msgid "Reply to Selected"
+msgstr "Risp. a lista"
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\DebugViewerForm.Designer.cs:348
+msgid "Can Join"
+msgstr "Aggancia rotabile"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:137
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:119
+msgid "coal"
+msgstr "carbone"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1019
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1044
+msgid "BrkPipe"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1664
+msgid "DEBUG INFORMATION"
+msgstr "INFORMAZIONI DEBUG"
+
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrackMonitorDisplay.cs:610
+msgid "SprtrDarkGray"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:165
+msgid "GCs"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDScrollWindow.cs:157
+msgid "Screen: Full"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\DebugViewerForm.cs:592
+#: ..\..\ActivityRunner\Viewer3D\Debugging\DebugViewerForm.Designer.cs:224
+msgid "MSG to All"
+msgstr "MSG a tutti"
+
+#: ..\..\ActivityRunner\Viewer3D\Viewer.cs:925
+msgid "Platform labels visible."
+msgstr "Nomi marciapiedi visibili."
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:141
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:123
+msgid "safe"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\SoundDebugForm.Designer.cs:361
+msgid "Volume"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1415
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1436
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1720
+msgid "Path"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:503
+msgid "Sander on"
+msgstr "Sabbiera attiva"
+
+#: ..\..\ActivityRunner\Viewer3D\Processes\GameStateRunActivity.cs:1180
+msgid "Activity Save file '*.save' not found in folder {0}"
+msgstr ""
+"File di salvataggio dell'activity '*.save' non trovato nella cartella {0}"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:134
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:116
+#, fuzzy
+#| msgid "Full Service"
+msgid "apply Service"
+msgstr "Pieno servizio"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:596
+#, csharp-format
+msgid "{0} minute"
+msgid_plural "{0} minutes"
+msgstr[0] "{0} minuto"
+msgstr[1] "{0} minuti"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:766
+msgid "Steam."
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1679
+#, csharp-format
+msgid "{0:F0}% ({1})"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:493
+msgid "inHg"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1050
+msgid "MRPipe"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1681
+msgid "Adapter"
+msgstr "Scheda video"
+
+#: ..\..\ActivityRunner\Viewer3D\RollingStock\MSTSLocomotiveViewer.cs:495
+msgid "Refill: Immediate refill process selected, refilling immediately."
+msgstr "Rifornimento: selezionato rifornimento immediato."
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TTDetachWindow.cs:102
+#: ..\..\ActivityRunner\Viewer3D\Popups\TTDetachWindow.cs:107
+msgid "Rear"
+msgstr "Dietro"
+
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrackMonitorDisplay.cs:343
+msgid "Backward"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:566
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:608
+msgctxt "Cab"
+msgid "F"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrackMonitorWindow.cs:79
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrackMonitorDisplay.cs:236
+msgid "Node"
+msgstr "Nodo"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:187
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:461
+msgid "Drop Off"
+msgstr "Scarica"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\CarOperationsWindow.cs:106
+msgid "Handbrake set"
+msgstr "Freno a mano inserito"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:142
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:871
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:124
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:685
+msgid "skid"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\CarOperationsWindow.cs:55
+msgid "Toggle Handbrake"
+msgstr "Inverti freno a mano"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1307
+msgid "Tunnel"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Viewer.cs:1033
+#, fuzzy
+#| msgid "Train labels visible."
+msgid "Confirmations visible"
+msgstr "Nomi treni visibili."
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:642
+msgid "LOCOMOTIVE INFORMATION"
+msgstr "INFORMAZIONI LOCOMOTORE"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\ActivityWindow.cs:333
+#, csharp-format
+msgid "Event: {0}"
+msgstr "Evento: {0}"
+
+#: ..\..\ActivityRunner\Viewer3D\Viewer.cs:1219
+#, csharp-format
+msgid "Keyboard map list saved to '{0}'."
+msgstr "Lista comandi tastiera salvati in '{0}'"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\CarOperationsWindow.cs:121
+msgid "Power OFF command sent"
+msgstr "Coamndo di spegnimento inviato"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:522
+msgid "MultiPlayerStatus: "
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:389
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:395
+msgid "Train is to attach to : "
+msgstr "Il treno si sta attaccando a: "
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:159
+msgid "Motive force"
+msgstr "Forza motrice"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:1125
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:1152
+#, csharp-format
+msgid " = "
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:112
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:94
+msgid "Fixed gear"
+msgstr "Marcia fissa"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1686
+msgid "Shadow maps"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:140
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:122
+msgid "MRedc"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\CarOperationsWindow.cs:154
+msgid "Front brake hose disconnected"
+msgstr "Condotta freni anteriore disconnessa"
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\DebugViewerForm.Designer.cs:474
+msgid "DispatchViewer"
+msgstr "Finestra DCO"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\NoticeWindow.cs:96
+#, csharp-format
+msgid "Odometer {0}"
+msgstr "Contachilometri {0}"
+
+#: ..\..\ActivityRunner\Viewer3D\Cameras.cs:2200
 msgid "Trackside"
 msgstr "Lungolinea"
 
-#: ../../ActivityRunner/Viewer3D/Cameras.cs:1962
-msgid "3D Cab"
-msgstr "Cabina 3D"
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:167
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1692
+msgid "Render process"
+msgstr ""
 
-#: ../../ActivityRunner/Viewer3D/Materials.cs:184
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:191
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:465
+msgid "Pick Up"
+msgstr "Carica"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:558
+msgid "Out of Control"
+msgstr "Fuori Controllo"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:113
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:95
+msgid "FUEL"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:357
+msgid "Transfer units with train "
+msgstr "Trasferimento unità con il treno "
+
+#: ..\..\ActivityRunner\Viewer3D\Viewer.cs:948
+msgid "Car labels visible."
+msgstr "Nomi carri visibili."
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1414
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1435
+msgid "Consist"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\QuitWindow.cs:53
 #, csharp-format
-msgid "{0:F0} texture"
-msgid_plural "{0:F0} textures"
+msgid "Save your game ({0})"
+msgstr "Salva il gioco ({0})"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1289
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1316
+msgid "Brk Slide"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:164
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1678
+msgid "Memory"
+msgstr "Memoria"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1245
+msgid "(Simple adhesion model)"
+msgstr "(Modello aderenza semplice)"
+
+#: ..\..\ActivityRunner\Viewer3D\RollingStock\MSTSLocomotiveViewer.cs:562
+#: ..\..\ActivityRunner\Viewer3D\RollingStock\MSTSLocomotiveViewer.cs:583
+#, csharp-format
+msgid "Refill: {0} supply now replenished."
+msgstr "Rifornimento: hai fatto il pieno di {0}"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:118
+msgid "Timetable"
+msgstr "Orario"
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\SoundDebugForm.Designer.cs:284
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:459
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:716
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1426
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:124
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:520
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrackMonitorDisplay.cs:294
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:106
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:212
+msgid "Speed"
+msgstr "Velocità"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1017
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1042
+msgid "BrkCyl"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:168
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1693
+msgid "Updater process"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1431
+msgid "Auth"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1696
+msgid "Total process"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:411
+msgid "Pick up train ahead"
+msgstr "Prelevato il treno davanti"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainOperationsWindow.cs:39
+msgid "Train Operations"
+msgstr "Operazioni Treno"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1684
+#, csharp-format
+msgid "{0}/{1}"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\ActivityWindow.cs:296
+#: ..\..\ActivityRunner\Viewer3D\Popups\ActivityWindow.cs:308
+#: ..\..\ActivityRunner\Viewer3D\Popups\ActivityWindow.cs:326
+msgid "Quit activity"
+msgstr "Esci dall'activity"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:732
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:742
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:496
+#, fuzzy
+#| msgid "setup"
+msgid "Setup"
+msgstr "inserito"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:231
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:454
+msgid "Train not active."
+msgstr "Treno non attivo."
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1677
+msgid "Build"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:105
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:87
+msgid "CCOK"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1692
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1693
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1694
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1695
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1696
+msgid "wait"
+msgstr "attesa"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:123
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:606
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:612
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:619
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:105
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:320
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:330
+msgid "Sander"
+msgstr "Sabbiera"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:143
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:869
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:125
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:677
+#, fuzzy
+#| msgid "Wheel slip warning"
+msgid "slip warning"
+msgstr "Avviso slittamento ruote"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:237
+msgid " Activated by other train."
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:856
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:642
+msgid "Exceeded"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\DebugViewerForm.cs:182
+msgid "View Self"
+msgstr "Vedi il tuo treno"
+
+#: ..\..\ActivityRunner\Viewer3D\RollingStock\MSTSLocomotiveViewer.cs:531
+#, csharp-format
+msgid "Refill: Loco must be stationary to refill {0}."
+msgstr "Rifornimento: La locomotiva deve essere ferma per rifornire {0}."
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\ActivityWindow.cs:297
+#: ..\..\ActivityRunner\Viewer3D\Popups\ActivityWindow.cs:309
+msgid "Status: Activity resumed"
+msgstr "Stato: Activity ripresa"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:105
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:596
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:87
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:306
+#, fuzzy
+#| msgid "Cylinder Cocks"
+msgid "Cylinder cocks"
+msgstr "Sfogo Cilindri"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:421
+msgid "Transfer units with train ahead"
+msgstr "Trasferimento unità con il treno davanti"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDScrollWindow.cs:122
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDScrollWindow.cs:134
+msgid "▲ Page Up"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:667
+msgid "A report file was created:"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDScrollWindow.cs:152
+msgid "▲ Prev. Loco"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:257
+#, fuzzy
+#| msgid "Direction"
+msgid "ReverserDirection"
+msgstr "Direzione"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:540
+msgid "  The Debrief evaluation report is disabled."
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1692
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1693
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1694
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1695
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1696
+#, csharp-format
+msgid "{0:F0}% ({1:F0}% {2})"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:568
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:605
+msgid "Pass"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1679
+msgid "CPU"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\CarOperationsWindow.cs:42
+msgid "Car Operation Menu"
+msgstr "Menu operazioni rotabile"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\QuitWindow.cs:48
+#, csharp-format
+msgid "Quit {1} ({0})"
+msgstr "Esci da {1} ({0})"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:194
+msgid "Waiting for train to attach : "
+msgstr "In attesa del treno da attaccare: "
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\DebugViewerForm.Designer.cs:91
+msgid "View Train"
+msgstr "Vedi treno"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\ActivityWindow.cs:178
+msgid "without success"
+msgstr "con errori"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:600
+msgid "HH:mm:ss"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrackMonitorDisplay.cs:343
+#, fuzzy
+#| msgid "forward"
+msgid "Forward"
+msgstr "marcia avanti"
+
+#: ..\..\ActivityRunner\Viewer3D\RollingStock\MSTSLocomotiveViewer.cs:544
+#, csharp-format
+msgid "Refill: Loco speed must not exceed {0}."
+msgstr "Rifornimento: La velocità della locomotiva non deve superare {0}"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:145
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:127
+msgid "w"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:139
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:121
+msgid "Lap Self"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:179
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:454
+msgid "Assemble Train"
+msgstr "Componi il treno"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:746
+msgid "Flow"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:557
+msgid "Control Mode"
+msgstr "Modalità"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:568
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:605
+msgid "Freight"
+msgstr "Carico"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\CarOperationsWindow.cs:140
+msgid "MU signal connected"
+msgstr "Segnale MU connesso"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1284
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1311
+msgid "Slack"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Viewer.cs:996
+msgid "This car doesn't have a 2D cab"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1658
+#, csharp-format
+msgid "{0:F1},{1:F1} m/s"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\CarOperationsWindow.cs:163
+msgid "Front angle cock closed"
+msgstr "Rubinetto freni anteriore chiuso"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1240
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1248
+msgid "Wagon Adhesion"
+msgstr "Aderenza carro"
+
+#: ..\..\ActivityRunner\Viewer3D\Viewer.cs:922
+msgid "Platform and siding labels visible."
+msgstr "Nomi marciapiedi e banchine visibili."
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:496
+msgid "psi"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:100
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:82
+msgid "AUTO"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:523
+#: ..\..\ActivityRunner\Viewer3D\Popups\MultiPlayerWindow.cs:381
+#: ..\..\ActivityRunner\Viewer3D\Popups\MultiPlayerWindow.cs:388
+msgid "Dispatcher"
+msgstr "DCO"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\CompassWindow.cs:49
+msgid "Lon:"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\ActivityWindow.cs:297
+#, fuzzy
+#| msgid "Status: Activity resumed"
+msgid "Status: Activity pausedStatus: Activity resumed"
+msgstr "Stato: Activity ripresa"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:347
+msgid "Transfer units at next station with train "
+msgstr "Trasferimento unità alla prossima stazione con il treno "
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:109
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:91
+msgid "BLOC"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1679
+#, csharp-format
+msgid "{0} logical processor"
+msgid_plural "{0} logical processors"
 msgstr[0] ""
 msgstr[1] ""
 
-#: ../../ActivityRunner/Viewer3D/Materials.cs:434
-#, csharp-format
-msgid "{0:F0} material"
-msgid_plural "{0:F0} materials"
-msgstr[0] ""
-msgstr[1] ""
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:116
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:98
+msgid "GRAT"
+msgstr ""
 
-#: ../../ActivityRunner/Viewer3D/Shapes.cs:110
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:918
+msgid "Exhauster"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1646
+#, fuzzy
+#| msgid "WEATHER INFORMATIOPN"
+msgid "WEATHER INFORMATION"
+msgstr "INFORMAZIONI METEO"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\ActivityWindow.cs:295
+#, fuzzy
+#| msgid "Resume and close box"
+msgid "Resume and close boxClose box"
+msgstr "Riprendi e chiudi il menu"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:121
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:103
+msgid "RETN"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1655
+msgid "Cloud cover"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\CarOperationsWindow.cs:67
+msgid "Open/Close Bleed Off Valve"
+msgstr "Apri / Chiudi valvola spurgo"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:726
+msgid "Fuel"
+msgstr "Carburante"
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\DebugViewerForm.Designer.cs:183
+msgid "Show Avatars"
+msgstr "Mostra Avatar"
+
+#: ..\..\ActivityRunner\Viewer3D\Shapes\SharedShapeManager.cs:69
 #, csharp-format
 msgid "{0:F0} shape"
 msgid_plural "{0:F0} shapes"
 msgstr[0] ""
 msgstr[1] ""
 
-#: ../../ActivityRunner/Viewer3D/Terrain.cs:127
-#, csharp-format
-msgid "{0:F0} tile"
-msgid_plural "{0:F0} tiles"
-msgstr[0] ""
-msgstr[1] ""
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:933
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:944
+msgid "Vacuum Pump"
+msgstr "Pompa a Vuoto"
 
-#: ../../ActivityRunner/Viewer3D/Viewer.cs:770
-#: ../../ActivityRunner/Viewer3D/Viewer.cs:961
-msgid "Cab view not available"
-msgstr "Vista cabina non disponibile"
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainListWindow.cs:171
+msgid "Player train can't be switched when in turntable not aligned to a track"
+msgstr ""
+"Il treno player non può essere sostituito se su una piattaforma non "
+"allineata ad un binario."
 
-#: ../../ActivityRunner/Viewer3D/Viewer.cs:856
-msgid "In MP, use Alt-F4 to quit directly"
-msgstr "In MP, usa Alt-F4 per uscire direttamente"
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:117
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:99
+msgid "PANT"
+msgstr ""
 
-#: ../../ActivityRunner/Viewer3D/Viewer.cs:887
-msgid "Automatic platform and siding labels visible."
-msgstr "Nomi marciapiedi e banchine visibili in automatico."
+#: ..\..\ActivityRunner\Viewer3D\Popups\CarOperationsWindow.cs:108
+msgid "Handbrake off"
+msgstr "Freno a mano rilasciato"
 
-#: ../../ActivityRunner/Viewer3D/Viewer.cs:890
-msgid "Platform and siding labels visible."
-msgstr "Nomi marciapiedi e banchine visibili."
+#: ..\..\ActivityRunner\Viewer3D\Debugging\SoundDebugForm.Designer.cs:484
+msgid "AL Sources"
+msgstr ""
 
-#: ../../ActivityRunner/Viewer3D/Viewer.cs:893
-msgid "Platform labels visible."
-msgstr "Nomi marciapiedi visibili."
-
-#: ../../ActivityRunner/Viewer3D/Viewer.cs:896
-msgid "Siding labels visible."
-msgstr "Nomi banchine visibili."
-
-#: ../../ActivityRunner/Viewer3D/Viewer.cs:902
-msgid "Platform and siding labels hidden."
-msgstr "Nomi marciapiedi e banchine nascosti."
-
-#: ../../ActivityRunner/Viewer3D/Viewer.cs:913
-msgid "Train labels visible."
-msgstr "Nomi treni visibili."
-
-#: ../../ActivityRunner/Viewer3D/Viewer.cs:916
-msgid "Car labels visible."
-msgstr "Nomi carri visibili."
-
-#: ../../ActivityRunner/Viewer3D/Viewer.cs:922
-msgid "Train and car labels hidden."
-msgstr "Nomi treni e carri nascosti."
-
-#: ../../ActivityRunner/Viewer3D/Viewer.cs:972
-msgid "3D Cab view not available"
-msgstr "Vista cabina 3D non disponibile"
-
-#: ../../ActivityRunner/Viewer3D/Viewer.cs:1139
-msgid "Switched to player control"
-msgstr "Attivato controllo player"
-
-#: ../../ActivityRunner/Viewer3D/Viewer.cs:1146
-msgid "You can't switch from manual to autopilot mode"
-msgstr "Non puoi passare dal modo manuale al pilota automatico"
-
-#: ../../ActivityRunner/Viewer3D/Viewer.cs:1152
-msgid "Switched to autopilot"
-msgstr "Attivato modo pilota automatico"
-
-#: ../../ActivityRunner/Viewer3D/Viewer.cs:1755
+#: ..\..\ActivityRunner\Viewer3D\Viewer.cs:1799
 msgid "Game saved"
 msgstr "Gioco salvato"
 
-#: ../../ActivityRunner/Viewer3D/Viewer.cs:289
-#, csharp-format
-msgid "Allowed speed raised to {0}"
-msgstr "Velocità permessa raggiunta a {0}"
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDScrollWindow.cs:139
+msgid "◄ Page Left"
+msgstr ""
 
-#: ../../ActivityRunner/Viewer3D/Viewer.cs:990
-#, csharp-format
-msgid "Vibrating at level {0}"
-msgstr "Vibrazione al livello {0}"
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:916
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:975
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:990
+msgid "Main reservoir"
+msgstr ""
 
-#: ../../ActivityRunner/Viewer3D/Viewer.cs:1170
-#, csharp-format
-msgid "Keyboard map list saved to '{0}'."
-msgstr "Lista comandi tastiera salvati in '{0}'"
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:567
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:604
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1348
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1676
+msgid "No"
+msgstr ""
 
-#: ../../ActivityRunner/Viewer3D/Viewer.cs:1174
-#, csharp-format
-msgid "Keyboard map image saved to '{0}'."
-msgstr "Immagine comandi tastiera salvata in '{0}'"
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:155
+msgid "Power In/Out"
+msgstr ""
 
-#: ../../ActivityRunner/Viewer3D/Viewer.cs:1021
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:137
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:119
+msgid "c"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1308
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1658
+msgid "Wind"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Viewer.cs:1075
 #, csharp-format
 msgid "{0} viewpoint stored. Use Shift+8 to restore viewpoints."
 msgid_plural "{0} viewpoints stored. Use Shift+8 to restore viewpoints."
@@ -167,15 +1018,267 @@ msgstr[0] ""
 msgstr[1] ""
 "{0} punti di osservazione memorizzati. Usa Shift+8 per ripristinare i punti."
 
-#: ../../ActivityRunner/Viewer3D/Weather.cs:141
-msgid ""
-"Restoring wrong weather type : trying to restore dynamic weather but save "
-"contains user controlled weather"
-msgstr ""
-"Ripristino meteo errato: tentativo di ripristinare un meteo dinamico, ma il "
-"salvataggio contiene un meteo utente."
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:110
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:811
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:92
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:595
+msgid "Engine"
+msgstr "Motore"
 
-#: ../../ActivityRunner/Viewer3D/Weather.cs:1480
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:407
+msgid "- Missed station stops: "
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:140
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:122
+msgid "Minimum Reduction"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TTDetachWindow.cs:63
+msgid "Use 'cab switch' command to select cab in required portion."
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:115
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:97
+msgid "GRAD"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:122
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:104
+msgid "REVR"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:742
+msgid "Rpm"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TTDetachWindow.cs:44
+msgid "Timetable Detach Menu"
+msgstr "Menu distacchi per Timetable"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:462
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:681
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:119
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:589
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:101
+msgid "Regulator"
+msgstr "Regolatore"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrackMonitorWindow.cs:117
+msgid " Milepost   Limit     Dist"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:465
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:121
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:706
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:103
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:460
+msgid "Retainers"
+msgstr "Fermi"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TTDetachWindow.cs:103
+#: ..\..\ActivityRunner\Viewer3D\Popups\TTDetachWindow.cs:106
+msgid "Front"
+msgstr "Davanti"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:104
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:86
+msgid "CIRC"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:554
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:585
+msgid "Length"
+msgstr "Lungh."
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1026
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1060
+msgid "Conn"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\CarOperationsWindow.cs:126
+msgid "No power command for this type of car!"
+msgstr "Non c'è comando di accensione per questo rotabile"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\ActivityWindow.cs:327
+msgid "Status: Activity running"
+msgstr "Stato: Activity in esecuzione"
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\MessageViewer.Designer.cs:46
+msgid "Clear All"
+msgstr "Cancella tutto"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1303
+msgid "Brake"
+msgstr "Freni"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:139
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:121
+msgid "LapS"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:534
+msgid "CONSIST INFORMATION"
+msgstr "INFORMAZIONI CONSIST"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:596
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:890
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:301
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:719
+msgid "Closed"
+msgstr "Chiuso"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrackMonitorWindow.cs:82
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrackMonitorDisplay.cs:239
+msgid "OutOfControl : "
+msgstr "Fuori Controllo:"
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\DebugViewerForm.Designer.cs:423
+msgid "Prefer Green"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:490
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1228
+msgid "Wheel slip"
+msgstr "Slittamento ruote"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1232
+msgid "Number of substeps"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1064
+msgid "BleedOff"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:495
+msgid "kPa"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:882
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:884
+msgid "Right"
+msgstr "Destra"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:138
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:120
+msgid "Emergency Braking Push Button"
+msgstr "Pulsante Freno di Emergenza"
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\DebugViewerForm.Designer.cs:371
+msgid "Assist"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1304
+msgid "Friction"
+msgstr "Attrito"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:735
+#, fuzzy
+#| msgid "Arrive"
+msgid "Driver"
+msgstr "Arrivo"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDScrollWindow.cs:157
+#, fuzzy
+#| msgid "Normal"
+msgid "Screen: Normal"
+msgstr "Normale"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1413
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1424
+msgid "Train"
+msgstr "Treno"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:124
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:79
+msgid "Arrive"
+msgstr "Arrivo"
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\SoundDebugForm.Designer.cs:149
+msgid "Active sounds"
+msgstr "Suoni attivi"
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\DebugViewerForm.Designer.cs:383
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:859
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:873
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:650
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:693
+msgid "Normal"
+msgstr "Normale"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainListWindow.cs:45
+msgid "Number"
+msgstr "Numero"
+
+#: ..\..\ActivityRunner\Viewer3D\Viewer.cs:934
+msgid "Platform and siding labels hidden."
+msgstr "Nomi marciapiedi e banchine nascosti."
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1233
+#, csharp-format
+msgid "filtered by {0:F0}"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1231
+msgid "Axle brake force"
+msgstr "Forza frenante"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:169
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1694
+msgid "Loader process"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:78
+msgid "Help"
+msgstr "Aiuto"
+
+#: ..\..\ActivityRunner\Viewer3D\Viewer.cs:945
+msgid "Train labels visible."
+msgstr "Nomi treni visibili."
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1264
+#, fuzzy
+#| msgid "Speed:"
+msgid "Wind Speed:"
+msgstr "Velocità:"
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\SoundDebugForm.Designer.cs:429
+msgid "WavCache"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\ActivityWindow.cs:295
+#: ..\..\ActivityRunner\Viewer3D\Popups\ActivityWindow.cs:307
+#: ..\..\ActivityRunner\Viewer3D\Popups\ActivityWindow.cs:325
+msgid "Close box"
+msgstr "Chiudi menu"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1656
+#, csharp-format
+msgid "{0:F4} p/s/m^2"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:128
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:110
+msgid "BTRN"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:762
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:843
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:846
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:331
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:504
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:631
+msgid "Off"
+msgstr "Spenta"
+
+#: ..\..\ActivityRunner\Viewer3D\Materials.cs:461
+#, csharp-format
+msgid "{0:F0} material"
+msgid_plural "{0:F0} materials"
+msgstr[0] ""
+msgstr[1] ""
+
+#: ..\..\ActivityRunner\Viewer3D\Weather.cs:1581
 msgid ""
 "Restoring wrong weather type : trying to restore user controlled weather but "
 "save contains dynamic weather"
@@ -183,242 +1286,1332 @@ msgstr ""
 "Ripristino meteo errato: tentativo di ripristinare un meteo utente, ma il "
 "salvataggio contiene un meteo dinamico."
 
-#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.cs:1967
-msgid "Switching Request Sent to the Server"
-msgstr "Richiesta di scambio inviata al Server"
-
-#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.cs:176
-msgid "View Self"
-msgstr "Vedi il tuo treno"
-
-#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.cs:563
-msgid "MSG to Server"
-msgstr "MSG al Server"
-
-#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.cs:567
-#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:227
-msgid "MSG to All"
-msgstr "MSG a tutti"
-
-#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:93
-msgid "View Train"
-msgstr "Vedi treno"
-
-#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:138
-msgid "m"
+#: ..\..\ActivityRunner\Viewer3D\Popups\MultiPlayerWindow.cs:380
+msgid "MultiPlayerStatus:"
 msgstr ""
 
-#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:159
-msgid "Remove"
-msgstr "Rimuovi"
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:718
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:734
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:118
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:100
+msgid "Power"
+msgstr "Alimentazione"
 
-#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:174
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1222
+msgid "Static Force"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\DebugViewerForm.Designer.cs:169
 msgid "Auto Switch"
 msgstr "Scambio automatico"
 
-#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:189
-msgid "Show Avatars"
-msgstr "Mostra Avatar"
+#: ..\..\ActivityRunner\Viewer3D\Popups\ActivityWindow.cs:294
+#, fuzzy
+#| msgid "Resume"
+msgid "ResumePause"
+msgstr "Riprendi"
 
-#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:215
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1283
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1309
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1310
+msgid "Coupler"
+msgstr "Gancio"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:188
+msgid "Waiting for train to attach"
+msgstr "In attesa del treno da attaccare"
+
+#: ..\..\ActivityRunner\Viewer3D\Viewer.cs:1022
+#, csharp-format
+msgid "Vibrating at level {0}"
+msgstr "Vibrazione al livello {0}"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:116
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:856
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:859
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:862
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:98
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:641
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:649
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:658
+msgid "Grate limit"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrackMonitorWindow.cs:85
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrackMonitorDisplay.cs:242
+msgid "Unknown"
+msgstr "Sconosciuto"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:452
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:454
+#: ..\..\ActivityRunner\Viewer3D\Popups\MultiPlayerWindow.cs:194
+#: ..\..\ActivityRunner\Viewer3D\Popups\MultiPlayerWindow.cs:200
+#: ..\..\ActivityRunner\Viewer3D\Popups\MultiPlayerWindow.cs:365
+#: ..\..\ActivityRunner\Viewer3D\Popups\MultiPlayerWindow.cs:368
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:127
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:509
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:512
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:109
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:189
+msgid "Time"
+msgstr "Orario"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:492
+msgid "Wheel slip warning"
+msgstr "Avviso slittamento ruote"
+
+#: ..\..\ActivityRunner\Viewer3D\Cameras.cs:972
+msgid "Outside Front"
+msgstr "Esterna anteriore"
+
+#: ..\..\ActivityRunner\Viewer3D\Viewer.cs:1188
+msgid "Switched to player control"
+msgstr "Attivato controllo player"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:530
+msgid "- Accomplished: "
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrackMonitorDisplay.cs:308
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrackMonitorDisplay.cs:365
+#, fuzzy
+#| msgid "Limit:"
+msgid "Limit"
+msgstr "Limite:"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:679
+msgctxt "Steam"
+msgid "Reverser"
+msgstr "Invertitore"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:633
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:635
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:638
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:346
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:361
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:370
+msgid "EQ"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1680
+msgid "GPU"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\CarOperationsWindow.cs:61
+msgid "Toggle Brake Hose Connection"
+msgstr "Attiva / Disattiva connessione condotta freni"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:1052
+msgid "Procedures"
+msgstr "Procedure"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\CarOperationsWindow.cs:59
+msgid "Toggle MU Connection"
+msgstr "Inverti connessione MU"
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\DebugViewerForm.Designer.cs:210
 msgid "MSG to Selected"
 msgstr "MSG a lista"
 
-#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:238
-#: ../../ActivityRunner/Viewer3D/Debugging/MessageViewer.Designer.cs:88
-msgid "Compose MSG"
-msgstr "Componi MSG"
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1433
+msgid "Signal"
+msgstr "Segnale"
 
-#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:251
-msgid "Res"
-msgstr "Scala"
-
-#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:261
-msgid "Reply to Selected"
-msgstr "Risp. a lista"
-
-#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:276
-msgid "Draw Path"
-msgstr "Percorsi"
-
-#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:326
-msgid "Pick Signals"
-msgstr "Segnali"
-
-#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:340
-msgid "Pick Switches"
-msgstr "Scambi"
-
-#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:354
-msgid "Can Join"
-msgstr "Aggancia rotabile"
-
-#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:378
-msgid "Assist"
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1655
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1657
+#, csharp-format
+msgid "{0:F0} %"
 msgstr ""
 
-#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:390
-msgid "Normal"
-msgstr "Normale"
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1405
+#, fuzzy
+#| msgid "DISPATCHER INFORMATION"
+msgid "DISPATCHER INFORMATION : active trains : "
+msgstr "INFORMAZIONI DCO"
 
-#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:403
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:807
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:579
+#, fuzzy
+#| msgctxt "Pantograph"
+#| msgid "Up"
+msgid "Up"
+msgstr "Alzato"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDScrollWindow.cs:134
+msgid "▲ Page Up ("
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\RollingStock\MSTSLocomotiveViewer.cs:516
+msgid "Refill: Electric loco and no pickup. Command rejected"
+msgstr ""
+"Rifornimento: Loco elettrica senza predisposizione al carico. Comando non "
+"eseguito."
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1052
+msgid "RetValve"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Cameras.cs:603
+msgid "Free"
+msgstr "Libera"
+
+#: ..\..\ActivityRunner\Viewer3D\RollingStock\MSTSLocomotiveViewer.cs:537
+#, csharp-format
+msgid "Refill: Loco speed must exceed {0}."
+msgstr "Rifornimento: La velocità della locomotiva deve superare {0}"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:144
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:126
+msgid "Slip"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\DebugViewerForm.Designer.cs:395
 msgid "Follow"
 msgstr "Segui"
 
-#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:418
-msgid "Penalty"
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:145
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:127
+msgid "water"
+msgstr "acqua"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:596
+#, csharp-format
+msgid "= TimeActivity{0} minute{0} minutesDistance"
 msgstr ""
 
-#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:433
-msgid "Prefer Green"
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1048
+msgid "ErgRes"
 msgstr ""
 
-#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:447
-msgid "See in Game"
-msgstr "Vedi in Gioco"
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:919
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:928
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:930
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:934
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:943
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:945
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:953
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:955
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:978
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:993
+msgid "on"
+msgstr "accesa"
 
-#: ../../ActivityRunner/Viewer3D/Debugging/DebugViewerForm.Designer.cs:486
-msgid "DispatchViewer"
-msgstr "Finestra DCO"
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:135
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:117
+#, fuzzy
+#| msgid "Apply"
+msgid "Apply Quick"
+msgstr "Attivo"
 
-#: ../../ActivityRunner/Viewer3D/Debugging/MessageViewer.Designer.cs:46
-msgid "Clear All"
-msgstr "Cancella tutto"
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainOperationsWindow.cs:119
+msgid "In Timetable Mode uncoupling using this window is not allowed"
+msgstr "In Timetable Mode non è ammesso il distacco con questa finestra."
 
-#: ../../ActivityRunner/Viewer3D/Debugging/MessageViewer.Designer.cs:57
-msgid "Reply Selected"
-msgstr "Rispondi a lista"
-
-#: ../../ActivityRunner/Viewer3D/Debugging/MessageViewer.Designer.cs:102
-msgid "MessageViewer"
-msgstr "Visualizzatore Messaggi"
-
-#: ../../ActivityRunner/Viewer3D/Debugging/SoundDebugForm.cs:180
-#: ../../ActivityRunner/Viewer3D/Debugging/SoundDebugForm.cs:213
-#: ../../ActivityRunner/Viewer3D/Debugging/SoundDebugForm.cs:214
-#: ../../ActivityRunner/Viewer3D/Debugging/SoundDebugForm.cs:215
-msgid "-"
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:417
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1122
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:797
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:546
+#, csharp-format
+msgid " "
 msgstr ""
 
-#: ../../ActivityRunner/Viewer3D/Debugging/SoundDebugForm.cs:212
-msgid "0"
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:406
+msgid "Train is to pickup train at end of path"
+msgstr "Il treno sta per prelevarne un altro alla fine del percorso"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:582
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1013
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1038
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1282
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1300
+msgid "Car"
+msgstr "Carro"
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\DebugViewerForm.Designer.cs:275
+msgid "Draw Path"
+msgstr "Percorsi"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:552
+msgid "Tilted"
+msgstr "Invertito"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:126
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:81
+msgid "Depart"
+msgstr "Partenza"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1287
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1306
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1314
+msgid "Curve"
+msgstr "Curva"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:497
+msgid "lib./pal."
 msgstr ""
 
-#: ../../ActivityRunner/Viewer3D/Debugging/SoundDebugForm.Designer.cs:149
-msgid "Active sounds"
-msgstr "Suoni attivi"
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:395
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:130
+#, csharp-format
+msgid "Current Delay: {0} minute"
+msgid_plural "Current Delay: {0} minutes"
+msgstr[0] "Ritardo attuale: {0} minuto"
+msgstr[1] "Ritardo attuale: {0} minuti"
 
-#: ../../ActivityRunner/Viewer3D/Debugging/SoundDebugForm.Designer.cs:160
-msgid "Inactive sounds"
-msgstr "Suoni inattivi"
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1676
+msgid "Logging enabled"
+msgstr "Log attivato"
 
-#: ../../ActivityRunner/Viewer3D/Debugging/SoundDebugForm.Designer.cs:192
-msgid "Sound cache"
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:766
+#, fuzzy
+#| msgid "Diesel Tank"
+msgid "Diesel."
+msgstr "Serbatoio nafta"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:112
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:114
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:94
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:96
+msgid "GEAR"
 msgstr ""
 
-#: ../../ActivityRunner/Viewer3D/Debugging/SoundDebugForm.Designer.cs:204
-msgid "Selected sound"
-msgstr "Suono selezionato"
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1236
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1246
+msgid "Axle out force"
+msgstr "Forza utile"
 
-#: ../../ActivityRunner/Viewer3D/Debugging/SoundDebugForm.Designer.cs:216
-msgid "3D"
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1425
+msgid "Travelled"
+msgstr "Percorso"
+
+#: ..\..\ActivityRunner\Viewer3D\Weather.cs:149
+msgid ""
+"Restoring wrong weather type : trying to restore dynamic weather but save "
+"contains user controlled weather"
+msgstr ""
+"Ripristino meteo errato: tentativo di ripristinare un meteo dinamico, ma il "
+"salvataggio contiene un meteo utente."
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1021
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1087
+msgid "VacRes"
 msgstr ""
 
-#: ../../ActivityRunner/Viewer3D/Debugging/SoundDebugForm.Designer.cs:284
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:395
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:571
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:872
-msgid "Speed"
-msgstr "Velocità"
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:143
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:125
+msgid "Warning"
+msgstr "Avviso"
 
-#: ../../ActivityRunner/Viewer3D/Debugging/SoundDebugForm.Designer.cs:312
-msgid "Variable 2"
-msgstr "Variabile 2"
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrackMonitorWindow.cs:80
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrackMonitorDisplay.cs:237
+msgid "Manual"
+msgstr "Manuale"
 
-#: ../../ActivityRunner/Viewer3D/Debugging/SoundDebugForm.Designer.cs:331
-msgid "Variable 3"
-msgstr "Variabile 3"
+#: ..\..\ActivityRunner\Viewer3D\Viewer.cs:1223
+#, csharp-format
+msgid "Keyboard map image saved to '{0}'."
+msgstr "Immagine comandi tastiera salvata in '{0}'"
 
-#: ../../ActivityRunner/Viewer3D/Debugging/SoundDebugForm.Designer.cs:341
-msgid "Variable 1"
-msgstr "Variabile 1"
-
-#: ../../ActivityRunner/Viewer3D/Debugging/SoundDebugForm.Designer.cs:351
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:878
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:880
-#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:78
-msgid "Distance"
-msgstr "Distanza"
-
-#: ../../ActivityRunner/Viewer3D/Debugging/SoundDebugForm.Designer.cs:361
-msgid "Volume"
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:102
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:84
+msgid "WATR"
 msgstr ""
 
-#: ../../ActivityRunner/Viewer3D/Debugging/SoundDebugForm.Designer.cs:429
-msgid "WavCache"
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:738
+msgid "Load"
 msgstr ""
 
-#: ../../ActivityRunner/Viewer3D/Debugging/SoundDebugForm.Designer.cs:484
-msgid "AL Sources"
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1258
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1267
+msgid "ResWind:"
 msgstr ""
 
-#: ../../ActivityRunner/Viewer3D/Debugging/SoundDebugForm.Designer.cs:513
-msgid "Sound Debug"
-msgstr ""
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:60
+msgid "Next Station"
+msgstr "Prossima stazione"
 
-#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:45
-msgid "Activity Events"
-msgstr "Eventi dell'Activity"
+#: ..\..\ActivityRunner\Viewer3D\Debugging\DebugViewerForm.Designer.cs:335
+msgid "Pick Switches"
+msgstr "Scambi"
 
-#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:178
-msgid "without success"
-msgstr "con errori"
-
-#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:293
-msgid "Resume"
-msgstr "Riprendi"
-
-#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:293
-#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:323
-msgid "Pause"
-msgstr "Pausa"
-
-#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:294
-#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:315
-msgid "Resume and close box"
-msgstr "Riprendi e chiudi il menu"
-
-#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:294
-#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:306
-#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:324
-msgid "Close box"
-msgstr "Chiudi menu"
-
-#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:295
-#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:307
-#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:325
-msgid "Quit activity"
-msgstr "Esci dall'activity"
-
-#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:296
-#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:317
+#: ..\..\ActivityRunner\Viewer3D\Popups\ActivityWindow.cs:297
+#: ..\..\ActivityRunner\Viewer3D\Popups\ActivityWindow.cs:318
 msgid "Status: Activity paused"
 msgstr "Stato: Activity in pausa"
 
-#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:296
-#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:308
-msgid "Status: Activity resumed"
-msgstr "Stato: Activity ripresa"
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1230
+msgid "Axle drive force"
+msgstr "Forza sviluppata"
 
-#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:316
-msgid "End Activity"
-msgstr "Fine Activity"
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDScrollWindow.cs:143
+msgid "► Page Right"
+msgstr ""
 
-#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:326
-msgid "Status: Activity running"
-msgstr "Stato: Activity in esecuzione"
+#: ..\..\ActivityRunner\Viewer3D\Viewer.cs:928
+msgid "Siding labels visible."
+msgstr "Nomi banchine visibili."
 
-#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:177
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:142
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:144
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:402
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:415
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:277
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:494
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:570
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:573
+msgid "(missed)"
+msgstr "(saltata)"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1301
+msgid "Total"
+msgstr "Totale"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:498
+msgid "pal.rtuti"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\DebugViewerForm.Designer.cs:237
+#: ..\..\ActivityRunner\Viewer3D\Debugging\MessageViewer.Designer.cs:88
+msgid "Compose MSG"
+msgstr "Componi MSG"
+
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrackMonitorDisplay.cs:366
+#, fuzzy
+#| msgid "Distance"
+msgid "Dist"
+msgstr "Distanza"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1659
+msgid "Amb Temp"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:967
+msgid "Air Vol"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\SoundDebugForm.Designer.cs:204
+msgid "Selected sound"
+msgstr "Suono selezionato"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:666
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:668
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:669
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:673
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:403
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:405
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:406
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:413
+msgid "Lead"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:134
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:116
+msgid "Apply"
+msgstr "Attivo"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:151
+msgid "Work Orders"
+msgstr "Ordini di servizio"
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\SoundDebugForm.Designer.cs:341
+msgid "Variable 1"
+msgstr "Variabile 1"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\CarOperationsWindow.cs:52
+msgid "Car ID"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:118
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:100
+msgid "POWR"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:551
+msgid "Player"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:183
+msgid "At Location"
+msgstr "Presso"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1234
+msgid "Solver"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDScrollWindow.cs:37
+msgid "HUD Scroll"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:283
+#, fuzzy
+#| msgid "Regulator"
+msgid "RegulatorThrottle"
+msgstr "Regolatore"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:731
+msgid "TCS"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\ActivityWindow.cs:341
+#, csharp-format
+msgid "Train: {0}"
+msgstr "Treno: {0}"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:448
+msgid "Version"
+msgstr "Versione"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:207
+msgid "Waiting for transfer"
+msgstr "In attesa di trasferimento"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrackMonitorWindow.cs:78
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrackMonitorDisplay.cs:235
+msgid "Auto Signal"
+msgstr "Segnali Automatici"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\CompassWindow.cs:46
+msgid "Lat:"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:80
+msgid "Key Commands"
+msgstr "Comandi tastiera"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrackMonitorWindow.cs:83
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrackMonitorDisplay.cs:240
+msgid "Inactive"
+msgstr "Inattivo"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1218
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1227
+msgid "(Advanced adhesion model)"
+msgstr "(Modello aderenza avanzato)"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:122
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:569
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrackMonitorDisplay.cs:335
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:104
+#, fuzzy
+#| msgctxt "Steam"
+#| msgid "Reverser"
+msgid "Reverser"
+msgstr "Invertitore"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:461
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:677
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:708
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:106
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:569
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrackMonitorDisplay.cs:335
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:88
+msgid "Direction"
+msgstr "Direzione"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1654
+msgid "Visibility"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1678
+#, csharp-format
+msgid ""
+"{0:F0} MB ({5}, {6}, {7}, {8}, {1:F0} MB managed, {9:F0} kB/frame allocated, "
+"{2:F0}/{3:F0}/{4:F0} GCs)"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:103
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:85
+msgid "LEVL"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Viewer.cs:796
+#: ..\..\ActivityRunner\Viewer3D\Viewer.cs:989
+msgid "Cab view not available"
+msgstr "Vista cabina non disponibile"
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\DebugViewerForm.cs:588
+msgid "MSG to Server"
+msgstr "MSG al Server"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:156
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:582
+#, csharp-format
+msgid "Task"
+msgid_plural "Tasks"
+msgstr[0] "Compito"
+msgstr[1] "Compiti"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:555
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:586
+msgid "Weight"
+msgstr "Peso"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:516
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:107
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:887
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:890
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:89
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:710
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:718
+msgid "Doors open"
+msgstr "Porte aperte"
+
+#: ..\..\ActivityRunner\Viewer3D\RollingStock\MSTSLocomotiveViewer.cs:632
+#: ..\..\ActivityRunner\Viewer3D\RollingStock\MSTSLocomotiveViewer.cs:651
+msgid "Incompatible pickup type"
+msgstr "Tipo di carico incompatibile"
+
+#: ..\..\ActivityRunner\Viewer3D\Cameras.cs:1486
+msgid "Brakeman"
+msgstr "Frenatore"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\CarOperationsWindow.cs:63
+msgid "Open/Close Front Angle Cock"
+msgstr "Apri / Chiudi rubinetto anteriore"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\CarOperationsWindow.cs:170
+msgid "Rear angle cock opened"
+msgstr "Rubinetto freni posteriore aperto"
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\SoundDebugForm.Designer.cs:513
+msgid "Sound Debug"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:766
+msgid "Electric."
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:693
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:915
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:926
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:941
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:951
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:974
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1930
+msgid "PlayerLoco"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\DebugViewerForm.Designer.cs:134
+msgid "m"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1028
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1062
+msgid "AnglCock"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1302
+msgid "Motive"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:963
+msgid "Train Pipe"
+msgstr "Condotta Treno"
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\SoundDebugForm.Designer.cs:160
+msgid "Inactive sounds"
+msgstr "Suoni inattivi"
+
+#: ..\..\ActivityRunner\Viewer3D\Cameras.cs:972
+msgid "Outside Rear"
+msgstr "Esterna posteriore"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\CarOperationsWindow.cs:172
+msgid "Rear angle cock closed"
+msgstr "Rubinetto freni posteriore chiuso"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1429
+msgid "AI data"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainListWindow.cs:33
+msgid "Train List"
+msgstr "Lista treni"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1290
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1317
+msgid "Bear Temp"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:706
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:988
+msgid "Loco"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\SoundDebugForm.Designer.cs:312
+msgid "Variable 2"
+msgstr "Variabile 2"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:501
+msgid "Sander blocked"
+msgstr "Sabbiera bloccata"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:532
+msgid "- Coupling speed limits: "
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1680
+#, csharp-format
+msgid "{0:F0} FPS (50th/95th/99th percentiles {1:F1} / {2:F1} / {3:F1} ms)"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:103
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:85
+msgid "Boiler water level"
+msgstr "Livello acqua caldaia"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:117
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:805
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:99
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:573
+msgid "Pantographs"
+msgstr "Pantografi"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:158
+msgid "Location"
+msgstr "Località"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:567
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:604
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1348
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1380
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1676
+msgid "Yes"
+msgstr "Si"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:381
+msgid "- Station stops: "
+msgstr "- Fermate in stazione: "
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:298
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:515
+msgid "No more stations."
+msgstr "Non ci sono altre stazioni."
+
+#: ..\..\ActivityRunner\Viewer3D\Cameras.cs:1807
+msgid "3D Cab"
+msgstr "Cabina 3D"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:107
+msgid "Briefing"
+msgstr "Presentazione"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:127
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:109
+msgid "TIME"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TTDetachWindow.cs:113
+#: ..\..\ActivityRunner\Viewer3D\Popups\TTDetachWindow.cs:118
+#, fuzzy, csharp-format
+#| msgid " portion will form train : "
+msgid "{0} portion will form train : {1}"
+msgstr " diventerà il treno: "
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDScrollWindow.cs:130
+msgid "▼ Page Down ("
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainListWindow.cs:47
+msgid "Viewed"
+msgstr "Visto"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:739
+#, fuzzy
+#| msgid "Auxiliary power"
+msgid "Auxiliar power"
+msgstr "Alim. ausiliaria"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:284
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:492
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:525
+msgid "Done"
+msgstr "Fatto"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:129
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:111
+msgid "WHEL"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:346
+msgid "Timetable:"
+msgstr "Tabella Orario;"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:460
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1286
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1313
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:115
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:542
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrackMonitorDisplay.cs:325
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:97
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:230
+msgid "Gradient"
+msgstr "Pendenza"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1288
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1315
+msgid "Brk Frict."
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:650
+msgid "Activity completed."
+msgstr "Activity completata."
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1229
+msgid "Conditions"
+msgstr "Condizioni"
+
+#: ..\..\ActivityRunner\Viewer3D\Viewer.cs:1031
+#, fuzzy
+#| msgid "Simulation Speed"
+msgid "Confirmations suppressed"
+msgstr "Velocità di Simulazione"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:639
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:646
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:659
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:690
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:692
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:696
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:712
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:716
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:371
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:380
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:395
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:438
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:440
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:447
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:465
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:472
+msgid "BC"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\MessageViewer.Designer.cs:102
+msgid "MessageViewer"
+msgstr "Visualizzatore Messaggi"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:467
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:109
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:714
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:721
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:91
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:469
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:484
+msgid "Engine brake"
+msgstr "Freno Locomotore"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:931
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:956
+msgid "Pressure"
+msgstr "Pressione"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDScrollWindow.cs:148
+msgid "▼ Next Loco ("
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:679
+msgctxt "NonSteam"
+msgid "Reverser"
+msgstr "Invertitore"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\ActivityWindow.cs:45
+msgid "Activity Events"
+msgstr "Eventi dell'Activity"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\ActivityWindow.cs:295
+#: ..\..\ActivityRunner\Viewer3D\Popups\ActivityWindow.cs:316
+msgid "Resume and close box"
+msgstr "Riprendi e chiudi il menu"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:392
+msgid "- Remaining station stops: "
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:524
+#: ..\..\ActivityRunner\Viewer3D\Popups\MultiPlayerWindow.cs:382
+#: ..\..\ActivityRunner\Viewer3D\Popups\MultiPlayerWindow.cs:389
+msgid "Helper"
+msgstr "Assistente"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:113
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:794
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:95
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:541
+msgid "Fuel levels"
+msgstr "Livelli carburante"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrackMonitorWindow.cs:84
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrackMonitorDisplay.cs:241
+msgid "Turntable"
+msgstr "Piattaforma girevole"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:483
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:830
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:620
+msgid "FPS"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1681
+#, csharp-format
+msgid "{0} ({1:F0} MB) ({2:F0} pixels x {3:F0} pixels)"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:929
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:954
+msgid "Small Ejector"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1285
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1312
+msgid "Mass"
+msgstr "Massa"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:157
+msgid "Car(s)"
+msgstr "Carro(i)"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\NoticeWindow.cs:111
+#, csharp-format
+msgid "FOV: {0:F0}°"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:159
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:730
+#: ..\..\ActivityRunner\Viewer3D\Popups\MultiPlayerWindow.cs:194
+msgid "Status"
+msgstr "Stato"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1656
+msgid "Intensity"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:111
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:93
+msgid "Fire mass"
+msgstr "Intensità del fuoco"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1428
+msgid "AI mode"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:596
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:296
+#, fuzzy
+#| msgctxt "CircuitBraker"
+#| msgid "Open"
+msgid "Open"
+msgstr "Aperto"
+
+#: ..\..\ActivityRunner\Viewer3D\Cameras.cs:1949
+msgid "Cab"
+msgstr "Cabina"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:138
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:120
+msgid "EmerBPB"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:525
+#: ..\..\ActivityRunner\Viewer3D\Popups\MultiPlayerWindow.cs:383
+#: ..\..\ActivityRunner\Viewer3D\Popups\MultiPlayerWindow.cs:390
+msgid "Client"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\CarOperationsWindow.cs:184
+msgid "Bleed off valve closed"
+msgstr "Valvola spurgo chiusa"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TTDetachWindow.cs:93
+#: ..\..\ActivityRunner\Viewer3D\Popups\TTDetachWindow.cs:98
+msgid "static consist"
+msgstr "consist statico"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1305
+msgid "Gravity"
+msgstr "Gravità"
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\MessageViewer.Designer.cs:57
+msgid "Reply Selected"
+msgstr "Rispondi a lista"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:110
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:92
+msgid "ENGN"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:595
+msgid "- "
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDScrollWindow.cs:121
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDScrollWindow.cs:130
+msgid "▼ Page Down"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1259
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1268
+#, fuzzy
+#| msgid "Speed:"
+msgid "ResSpeed:"
+msgstr "Velocità:"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:223
+msgid "Train inactive."
+msgstr "Treno inattivo."
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\SoundDebugForm.Designer.cs:192
+msgid "Sound cache"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:559
+msgid "Cab Aspect"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\WindowText.cs:153
+msgid ""
+"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890 \",.-+|!$%&/"
+"()=?;:'_[]"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\CompassWindow.cs:35
+msgid "Compass"
+msgstr "Bussola"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:136
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:118
+#, fuzzy
+#| msgid "Apply"
+msgid "ApplS"
+msgstr "Attivo"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrackMonitorWindow.cs:99
+msgid "Projected:"
+msgstr "Prevista:"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDScrollWindow.cs:148
+#, fuzzy, csharp-format
+#| msgid "Simple locomotive"
+msgid "= One Locomotive."
+msgid_plural "= All Locomotives."
+msgstr[0] "Locomotiva semplice"
+msgstr[1] "Locomotiva semplice"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:882
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:884
+msgid "Left"
+msgstr "Sinistra"
+
+#: ..\..\ActivityRunner\Viewer3D\Cameras.cs:1730
+msgid "Passenger"
+msgstr "Passeggero"
+
+#: ..\..\ActivityRunner\Viewer3D\Materials.cs:196
+#, csharp-format
+msgid "{0:F0} texture"
+msgid_plural "{0:F0} textures"
+msgstr[0] ""
+msgstr[1] ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\QuitWindow.cs:61
+#, csharp-format
+msgid "Continue playing ({0})"
+msgstr "Continua il gioco ({0})"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:727
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:104
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:86
+msgid "Circuit breaker"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\ComposeMessage.cs:33
+msgid "Compose Message (e.g.   receiver1, receiver2: message body)"
+msgstr ""
+"Componi Messaggio (es. destinatario1, destinatario2: testo del messaggio)"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\CarOperationsWindow.cs:65
+msgid "Open/Close Rear Angle Cock"
+msgstr "Apri / Chiudi rubinetto posteriore"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\ActivityWindow.cs:294
+#: ..\..\ActivityRunner\Viewer3D\Popups\ActivityWindow.cs:324
+msgid "Pause"
+msgstr "Pausa"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\CarOperationsWindow.cs:142
+msgid "MU signal disconnected"
+msgstr "Segnale MU disconnesso"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:469
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:683
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:108
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:732
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:737
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:742
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:758
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:762
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:90
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:495
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:503
+msgid "Dynamic brake"
+msgstr "Freno Dinamico"
+
+#: ..\..\ActivityRunner\Viewer3D\Viewer.cs:919
+msgid "Automatic platform and siding labels visible."
+msgstr "Nomi marciapiedi e banchine visibili in automatico."
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1220
+msgid "Wag Adhesion"
+msgstr "Aderenza carro"
+
+#: ..\..\ActivityRunner\Viewer3D\Viewer.cs:881
+msgid "In MP, use Alt-F4 to quit directly"
+msgstr "In MP, usa Alt-F4 per uscire direttamente"
+
+#: ..\..\ActivityRunner\Viewer3D\Terrain.cs:130
+#, csharp-format
+msgid "{0:F0} tile"
+msgid_plural "{0:F0} tiles"
+msgstr[0] ""
+msgstr[1] ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:900
+msgid "BRAKE INFORMATION"
+msgstr "INFORMAZIONI FRENI"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:298
+msgid "Evaluation"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\ComposeMessage.cs:42
+msgid ":"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:457
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:120
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:516
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:102
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:196
+msgid "Replay"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TTDetachWindow.cs:112
+#: ..\..\ActivityRunner\Viewer3D\Popups\TTDetachWindow.cs:117
+#, fuzzy, csharp-format
+#| msgid "This portion will continue as train : "
+msgid "This portion will continue as train : {0}"
+msgstr "Questa parte continuerà come treno: "
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:588
+msgid "Wheels"
+msgstr "Ruote"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:962
+msgid "Brake Sys Vol"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:246
+msgid "Train has terminated."
+msgstr "Treno terminato."
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:608
+msgctxt "Cab"
+msgid "D"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Viewer.cs:1195
+msgid "You can't switch from manual to autopilot mode"
+msgstr "Non puoi passare dal modo manuale al pilota automatico"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:691
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:919
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:928
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:930
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:934
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:943
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:945
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:953
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:955
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:978
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:993
+msgid "off"
+msgstr "spenta"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrackMonitorWindow.cs:81
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrackMonitorDisplay.cs:238
+msgid "Explorer"
+msgstr "Esplorazione"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:241
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:463
+msgid " Activation time : "
+msgstr "Orario di attivazione: "
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:101
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:781
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:792
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:83
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:518
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:536
+msgid "Boiler pressure"
+msgstr "Pressione caldaia"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1219
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1239
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1247
+msgid "Loco Adhesion"
+msgstr "Aderenza Loco"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:712
+msgid "MU'd"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:494
+msgid "kgf/cm²"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:754
+msgid "Oil"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\SoundDebugForm.Designer.cs:351
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1432
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1434
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:78
+msgid "Distance"
+msgstr "Distanza"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\MultiPlayerWindow.cs:87
+msgid "MultiPlayer Info"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\SoundDebugForm.Designer.cs:331
+msgid "Variable 3"
+msgstr "Variabile 3"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:513
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:884
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:706
+#, fuzzy
+#| msgid "Right"
+msgid "LeftRight"
+msgstr "Destra"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:492
+#, fuzzy
+#| msgid "Car"
+msgid "bar"
+msgstr "Carro"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TTDetachWindow.cs:54
+msgid "This train is about to split."
+msgstr "Il treno sta per essere diviso."
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1235
+msgid "Stability correction"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:166
+msgid "Frame time"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:566
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:608
+msgctxt "Cab"
+msgid "R"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:583
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:710
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1351
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1383
+msgid "Flipped"
+msgstr "Invertito"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrackMonitorWindow.cs:94
+msgid "Speed:"
+msgstr "Velocità:"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1697
+msgid "Camera"
+msgstr "Telecamera"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:136
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:118
+#, fuzzy
+#| msgid "Apply"
+msgid "Apply Slow"
+msgstr "Attivo"
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\DebugViewerForm.Designer.cs:436
+msgid "See in Game"
+msgstr "Vedi in Gioco"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:111
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:93
+msgid "FIRE"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\SoundDebugForm.cs:159
+#: ..\..\ActivityRunner\Viewer3D\Debugging\SoundDebugForm.cs:191
+#: ..\..\ActivityRunner\Viewer3D\Debugging\SoundDebugForm.cs:192
+#: ..\..\ActivityRunner\Viewer3D\Debugging\SoundDebugForm.cs:193
+#: ..\..\ActivityRunner\Viewer3D\Debugging\SoundDebugForm.cs:194
+#: ..\..\ActivityRunner\Viewer3D\Debugging\SoundDebugForm.cs:203
+#: ..\..\ActivityRunner\Viewer3D\Debugging\SoundDebugForm.cs:204
+#: ..\..\ActivityRunner\Viewer3D\Debugging\SoundDebugForm.cs:205
+#: ..\..\ActivityRunner\Viewer3D\Debugging\SoundDebugForm.cs:206
+#: ..\..\ActivityRunner\Viewer3D\Debugging\SoundDebugForm.cs:207
+#: ..\..\ActivityRunner\Viewer3D\Debugging\SoundDebugForm.cs:208
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:862
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:659
+msgid "-"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\ActivityWindow.cs:294
+msgid "Resume"
+msgstr "Riprendi"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:125
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:107
+msgid "STEM"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainListWindow.cs:46
+msgid "Service Name"
+msgstr "Nome servizio"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:643
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:645
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:647
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:651
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:674
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:676
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:680
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:377
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:379
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:381
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:386
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:414
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:416
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:422
+msgid "EOT"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Viewer.cs:1000
+msgid "This car doesn't have a 3D cab"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:487
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:100
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:838
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:843
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:846
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:82
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:630
+msgid "Autopilot"
+msgstr "Pilota automatico"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\ActivityWindow.cs:177
 #, csharp-format
 msgid ""
 "This activity has ended {0}.\n"
@@ -427,1443 +2620,252 @@ msgstr ""
 "Activity terminata {0}.\n"
 "Per una analisi dettagliata vedi la finestra di Help (F1)."
 
-#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:332
-#, csharp-format
-msgid "Event: {0}"
-msgstr "Evento: {0}"
-
-#: ../../ActivityRunner/Viewer3D/Popups/ActivityWindow.cs:340
-#, csharp-format
-msgid "Train: {0}"
-msgstr "Treno: {0}"
-
-#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:41
-msgid "Car Operation Menu"
-msgstr "Menu operazioni rotabile"
-
-#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:51
-msgid "Car ID"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:54
-msgid "Toggle Handbrake"
-msgstr "Inverti freno a mano"
-
-#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:56
-msgid "Toggle Power"
-msgstr "Inverti alimentazione"
-
-#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:58
-msgid "Toggle MU Connection"
-msgstr "Inverti connessione MU"
-
-#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:60
-msgid "Toggle Brake Hose Connection"
-msgstr "Attiva / Disattiva connessione condotta freni"
-
-#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:62
-msgid "Open/Close Front Angle Cock"
-msgstr "Apri / Chiudi rubinetto anteriore"
-
-#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:64
-msgid "Open/Close Rear Angle Cock"
-msgstr "Apri / Chiudi rubinetto posteriore"
-
-#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:66
-msgid "Open/Close Bleed Off Valve"
-msgstr "Apri / Chiudi valvola spurgo"
-
-#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:68
+#: ..\..\ActivityRunner\Viewer3D\Popups\CarOperationsWindow.cs:69
 msgid "Close window"
 msgstr "Chiudi finestra"
 
-#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:100
-msgid "Handbrake set"
-msgstr "Freno a mano inserito"
-
-#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:102
-msgid "Handbrake off"
-msgstr "Freno a mano rilasciato"
-
-#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:115
-msgid "Power OFF command sent"
-msgstr "Coamndo di spegnimento inviato"
-
-#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:117
-msgid "Power ON command sent"
-msgstr "Comando di accensione inviato"
-
-#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:120
-msgid "No power command for this type of car!"
-msgstr "Non c'è comando di accensione per questo rotabile"
-
-#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:134
-msgid "MU signal connected"
-msgstr "Segnale MU connesso"
-
-#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:136
-msgid "MU signal disconnected"
-msgstr "Segnale MU disconnesso"
-
-#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:139
-msgid "No MU command for this type of car!"
-msgstr "Questo rotabile non supporta MU"
-
-#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:146
-msgid "Front brake hose connected"
-msgstr "Condotta freni anteriore connessa"
-
-#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:148
-msgid "Front brake hose disconnected"
-msgstr "Condotta freni anteriore disconnessa"
-
-#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:155
-msgid "Front angle cock opened"
-msgstr "Rubinetto freni anteriore aperto"
-
-#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:157
-msgid "Front angle cock closed"
-msgstr "Rubinetto freni anteriore chiuso"
-
-#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:164
-msgid "Rear angle cock opened"
-msgstr "Rubinetto freni posteriore aperto"
-
-#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:166
-msgid "Rear angle cock closed"
-msgstr "Rubinetto freni posteriore chiuso"
-
-#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:176
-msgid "Bleed off valve opened"
-msgstr "Valvola spurgo aperta"
-
-#: ../../ActivityRunner/Viewer3D/Popups/CarOperationsWindow.cs:178
-msgid "Bleed off valve closed"
-msgstr "Valvola spurgo chiusa"
-
-#: ../../ActivityRunner/Viewer3D/Popups/CompassWindow.cs:35
-msgid "Compass"
-msgstr "Bussola"
-
-#: ../../ActivityRunner/Viewer3D/Popups/CompassWindow.cs:46
-msgid "Lat:"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/CompassWindow.cs:49
-msgid "Lon:"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/ComposeMessage.cs:31
-msgid "Compose Message (e.g.   receiver1, receiver2: message body)"
-msgstr ""
-"Componi Messaggio (es. destinatario1, destinatario2: testo del messaggio)"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:74
-msgid "Help"
-msgstr "Aiuto"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:76
-msgid "Key Commands"
-msgstr "Comandi tastiera"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:102
-msgid "Briefing"
-msgstr "Presentazione"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:113
-msgid "Timetable"
-msgstr "Orario"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:118
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:404
-#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:77
-msgid "Station"
-msgstr "Stazione"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:119
-#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:79
-msgid "Arrive"
-msgstr "Arrivo"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:120
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:122
-#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:80
-#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:82
-msgid "Actual"
-msgstr "Attuale"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:121
-#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:81
-msgid "Depart"
-msgstr "Partenza"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:137
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:139
-#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:268
-#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:461
-#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:537
-#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:540
-msgid "(missed)"
-msgstr "(saltata)"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:146
-msgid "Work Orders"
-msgstr "Ordini di servizio"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:151
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:577
-msgid "Task"
-msgid_plural "Tasks"
-msgstr[0] "Compito"
-msgstr[1] "Compiti"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:152
-msgid "Car(s)"
-msgstr "Carro(i)"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:153
-msgid "Location"
-msgstr "Località"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:154
-msgid "Status"
-msgstr "Stato"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:174
-msgid "Assemble Train"
-msgstr "Componi il treno"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:178
-msgid "At Location"
-msgstr "Presso"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:182
-msgid "Drop Off"
-msgstr "Scarica"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:186
-msgid "Pick Up"
-msgstr "Carica"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:279
-msgid "Done"
-msgstr "Fatto"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:293
-msgid "Evaluation"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:332
-msgid "This Activity has ended."
-msgstr "Questa Activity è terminata"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:341
-msgid "Timetable:"
-msgstr "Tabella Orario;"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:376
-msgid "- Station stops: "
-msgstr "- Fermate in stazione: "
-
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:387
-msgid "- Remaining station stops: "
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:402
-msgid "- Missed station stops: "
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:412
-msgid " "
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:426
-msgid "Work orders:"
-msgstr "Ordini di servizio:"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:513
-msgid "- Tasks: "
-msgstr "- Compiti: "
-
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:525
-msgid "- Accomplished: "
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:527
-msgid "- Coupling speed limits: "
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:535
-msgid "  The Debrief evaluation checkbox is unchecked."
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:590
-msgid "- "
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:591
-msgid "= "
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:663
-msgid "A report file was created:"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:1048
-msgid "Procedures"
-msgstr "Procedure"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:1111
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:1138
-msgid " = "
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:390
-#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:130
-#, csharp-format
-msgid "Current Delay: {0} minute"
-msgid_plural "Current Delay: {0} minutes"
-msgstr[0] "Ritardo attuale: {0} minuto"
-msgstr[1] "Ritardo attuale: {0} minuti"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:578
-msgid "Task accomplished"
-msgid_plural "Tasks accomplished"
-msgstr[0] ""
-msgstr[1] ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HelpWindow.cs:591
-#, csharp-format
-msgid "{0} minute"
-msgid_plural "{0} minutes"
-msgstr[0] "{0} minuto"
-msgstr[1] "{0} minuti"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:129
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:398
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:557
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:570
-msgid "Throttle"
-msgstr "Acceleratore"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:130
-msgid "Power In/Out"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:134
-msgid "Motive force"
-msgstr "Forza motrice"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:136
-msgid "Num of substeps"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:139
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:1005
-msgid "Memory"
-msgstr "Memoria"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:140
-msgid "GCs"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:141
-msgid "Frame time"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:142
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:1019
-msgid "Render process"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:143
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:1020
-msgid "Updater process"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:144
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:1021
-msgid "Loader process"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:145
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:1022
-msgid "Sound process"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:384
-msgid "Version"
-msgstr "Versione"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:388
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:390
-msgid "Time"
-msgstr "Orario"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:393
-msgid "Replay"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:396
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:812
-msgid "Gradient"
-msgstr "Pendenza"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:397
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:555
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:567
-msgid "Direction"
-msgstr "Direzione"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:398
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:557
-msgid "Regulator"
-msgstr "Regolatore"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:399
-msgid "Train brake"
-msgstr "Freno Treno"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:401
-msgid "Retainers"
-msgstr "Fermi"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:403
-msgid "Engine brake"
-msgstr "Freno Locomotore"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:405
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:558
-msgid "Dynamic brake"
-msgstr "Freno Dinamico"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:419
-msgid "FPS"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:423
-msgid "Autopilot"
-msgstr "Pilota automatico"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:426
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:764
-msgid "Wheel slip"
-msgstr "Slittamento ruote"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:428
-msgid "Wheel slip warning"
-msgstr "Avviso slittamento ruote"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:431
-msgid "Wheel skid"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:437
-msgid "Sander blocked"
-msgstr "Sabbiera bloccata"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:439
-msgid "Sander on"
-msgstr "Sabbiera attiva"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:452
-msgid "Doors open"
-msgstr "Porte aperte"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:458
-msgid "MultiPlayerStatus: "
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:459
-msgid "Dispatcher"
-msgstr "DCO"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:460
-msgid "Helper"
-msgstr "Assistente"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:461
-msgid "Client"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:470
-msgid "CONSIST INFORMATION"
-msgstr "INFORMAZIONI CONSIST"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:482
-msgid "Player"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:483
-msgid "Tilted"
-msgstr "Invertito"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:484
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:506
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:686
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:711
-msgid "Type"
-msgstr "Tipo"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:485
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:507
-msgid "Length"
-msgstr "Lungh."
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:486
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:508
-msgid "Weight"
-msgstr "Peso"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:487
-msgid "Tonnage"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:488
-msgid "Control Mode"
-msgstr "Modalità"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:489
-msgid "Out of Control"
-msgstr "Fuori Controllo"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:490
-msgid "Cab Aspect"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:492
-msgid "R"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:492
-msgid "F"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:493
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:515
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:847
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:1003
-msgid "Yes"
-msgstr "Si"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:493
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:515
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:1003
-msgid "No"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:494
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:516
-msgid "Freight"
-msgstr "Carico"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:494
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:516
-msgid "Pass"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:504
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:685
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:710
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:799
-msgid "Car"
-msgstr "Carro"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:505
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:568
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:857
-msgid "Flipped"
-msgstr "Invertito"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:509
-msgid "Drv/Cabs"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:510
-msgid "Wheels"
-msgstr "Ruote"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:549
-msgid "LOCOMOTIVE INFORMATION"
-msgstr "INFORMAZIONI LOCOMOTORE"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:562
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:602
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:611
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:613
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:617
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:626
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:628
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:636
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:638
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:662
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:677
-msgid "off"
-msgstr "spenta"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:563
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:598
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:609
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:624
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:634
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:658
-msgid "PlayerLoco"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:566
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:672
-msgid "Loco"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:569
-msgid "MU'd"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:573
-msgid "Power"
-msgstr "Alimentazione"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:574
-msgid "Force"
-msgstr "Forza"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:584
-msgid "BRAKE INFORMATION"
-msgstr "INFORMAZIONI FRENI"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:599
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:659
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:674
-msgid "Main reservoir"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:601
-msgid "Exhauster"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:602
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:611
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:613
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:617
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:626
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:628
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:636
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:638
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:662
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:677
-msgid "on"
-msgstr "accesa"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:610
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:625
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:635
-msgid "Large Ejector"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:612
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:637
-msgid "Small Ejector"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:614
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:639
-msgid "Pressure"
-msgstr "Pressione"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:616
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:627
-msgid "Vacuum Pump"
-msgstr "Pompa a Vuoto"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:645
-msgid "Brake Sys Vol"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:646
-msgid "Train Pipe"
-msgstr "Condotta Treno"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:648
-msgid "Brake Cyl"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:650
-msgid "Air Vol"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:661
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:676
-msgid "Compressor"
-msgstr "Compressore"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:687
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:712
-msgid "BrkCyl"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:688
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:713
-msgid "BrkPipe"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:689
-msgid "VacRes"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:691
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:720
-msgid "Handbrk"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:692
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:721
-msgid "Conn"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:693
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:722
-msgid "AnglCock"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:714
-msgid "AuxRes"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:715
-msgid "ErgRes"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:716
-msgid "MRPipe"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:717
-msgid "RetValve"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:718
-msgid "TripleValve"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:723
-msgid "BleedOff"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:740
-msgid "FORCE INFORMATION"
-msgstr "INFORMAZIONI FORZE"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:754
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:763
-msgid "(Advanced adhesion model)"
-msgstr "(Modello aderenza avanzato)"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:755
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:775
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:783
-msgid "Loco Adhesion"
-msgstr "Aderenza Loco"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:756
-msgid "Wag Adhesion"
-msgstr "Aderenza carro"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:757
-msgid "Tang. Force"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:758
-msgid "Static Force"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:765
-msgid "Conditions"
-msgstr "Condizioni"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:766
-msgid "Axle drive force"
-msgstr "Forza sviluppata"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:767
-msgid "Axle brake force"
-msgstr "Forza frenante"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:768
-msgid "Number of substeps"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:770
-msgid "Solver"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:771
-msgid "Stability correction"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:772
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:782
-msgid "Axle out force"
-msgstr "Forza utile"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:776
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:784
-msgid "Wagon Adhesion"
-msgstr "Aderenza carro"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:781
-msgid "(Simple adhesion model)"
-msgstr "(Modello aderenza semplice)"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:800
-msgid "Total"
-msgstr "Totale"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:801
-msgid "Motive"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:802
-msgid "Brake"
-msgstr "Freni"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:803
-msgid "Friction"
-msgstr "Attrito"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:804
-msgid "Gravity"
-msgstr "Gravità"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:805
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:813
-msgid "Curve"
-msgstr "Curva"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:806
-msgid "Tunnel"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:807
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:992
-msgid "Wind"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:808
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:809
-msgid "Coupler"
-msgstr "Gancio"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:810
-msgid "Slack"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:811
-msgid "Mass"
-msgstr "Massa"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:814
-msgid "Brk Frict."
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:815
-msgid "Brk Slide"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:868
-msgid "DISPATCHER INFORMATION"
-msgstr "INFORMAZIONI DCO"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:870
-msgid "Train"
-msgstr "Treno"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:871
-msgid "Travelled"
-msgstr "Percorso"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:873
-msgid "Max"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:874
-msgid "AI mode"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:875
-msgid "AI data"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:876
-msgid "Mode"
-msgstr "Modo"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:877
-msgid "Auth"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:879
-msgid "Signal"
-msgstr "Segnale"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:881
-msgid "Consist"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:882
-msgid "Path"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:986
-msgid "WEATHER INFORMATIOPN"
-msgstr "INFORMAZIONI METEO"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:988
-msgid "Visibility"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:989
-msgid "Cloud cover"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:990
-msgid "Intensity"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:991
-msgid "Liquidity"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:997
-msgid "DEBUG INFORMATION"
-msgstr "INFORMAZIONI DEBUG"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:1003
-msgid "Logging enabled"
-msgstr "Log attivato"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:1004
-msgid "Build"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:1006
-msgid "CPU"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:1007
-msgid "GPU"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:1008
-msgid "Adapter"
-msgstr "Scheda video"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:1013
-msgid "Shadow maps"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:1015
-msgid "Shadow primitives"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:1018
-msgid "Render primitives"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:1019
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:1020
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:1021
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:1022
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:1023
-msgid "wait"
-msgstr "attesa"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:1023
-msgid "Total process"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:1024
-msgid "Camera"
-msgstr "Telecamera"
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:769
-#, csharp-format
-msgid "filtered by {0:F0}"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:988
-#, csharp-format
-msgid "{0:N0} m"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:989
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:991
-#, csharp-format
-msgid "{0:F0} %"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:990
-#, csharp-format
-msgid "{0:F4} p/s/m^2"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:992
-#, csharp-format
-msgid "{0:F1},{1:F1} m/s"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:1005
-#, csharp-format
-msgid ""
-"{0:F0} MB ({5}, {6}, {7}, {8}, {1:F0} MB managed, {9:F0} kB/frame allocated, "
-"{2:F0}/{3:F0}/{4:F0} GCs)"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:1006
-#, csharp-format
-msgid "{0:F0}% ({1})"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:1007
-#, csharp-format
-msgid ""
-"{0:F0} FPS (50th/95th/99th percentiles {1:F1} / {2:F1} / {3:F1} ms, shader "
-"model {4})"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:1008
-#, csharp-format
-msgid "{0} ({1:F0} MB)"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:1011
-#, csharp-format
-msgid "{0}/{1}"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:1012
-#, csharp-format
-msgid "({0}x{0})"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:1015
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:1018
-#, csharp-format
-msgid "{0:F0}"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:1019
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:1020
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:1021
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:1022
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:1023
-#, csharp-format
-msgid "{0:F0}% ({1:F0}% {2})"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:1006
-#, csharp-format
-msgid "{0} logical processor"
-msgid_plural "{0} logical processors"
-msgstr[0] ""
-msgstr[1] ""
-
-#. Context: Steam
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:556
-msgctxt "Steam"
-msgid "Reverser"
-msgstr "Invertitore"
-
-#. Context: NonSteam
-#: ../../ActivityRunner/Viewer3D/Popups/HUDWindow.cs:556
-msgctxt "NonSteam"
-msgid "Reverser"
-msgstr "Invertitore"
-
-#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:60
-msgid "Next Station"
-msgstr "Prossima stazione"
-
-#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:188
-msgid "Waiting for train to attach"
-msgstr "In attesa del treno da attaccare"
-
-#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:194
-msgid "Waiting for train to attach : "
-msgstr "In attesa del treno da attaccare: "
-
-#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:207
-msgid "Waiting for transfer"
-msgstr "In attesa di trasferimento"
-
-#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:223
-msgid "Train inactive."
-msgstr "Treno inattivo."
-
-#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:227
-msgid "Train static."
-msgstr "Treno statico."
-
-#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:231
-#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:421
-msgid "Train not active."
-msgstr "Treno non attivo."
-
-#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:233
-#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:430
-msgid " Activation time : "
-msgstr "Orario di attivazione: "
-
-#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:237
-msgid "Train has terminated."
-msgstr "Treno terminato."
-
-#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:299
-msgid "Transfer units at next station with train "
-msgstr "Trasferimento unità alla prossima stazione con il treno "
-
-#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:309
-msgid "Transfer units with train "
-msgstr "Trasferimento unità con il treno "
-
-#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:319
-#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:325
-msgid "Train is to attach to : "
-msgstr "Il treno si sta attaccando a: "
-
-#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:327
-msgid " ; other train not yet ready"
-msgstr "; altro treno non ancora pronto"
-
-#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:332
-msgid "Train is to pickup train at end of path"
-msgstr "Il treno sta per prelevarne un altro alla fine del percorso"
-
-#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:337
-msgid "Pick up train ahead"
-msgstr "Prelevato il treno davanti"
-
-#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:347
-msgid "Transfer units with train ahead"
-msgstr "Trasferimento unità con il treno davanti"
-
-#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:352
-#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:482
-msgid "No more stations."
-msgstr "Non ci sono altre stazioni."
-
-#: ../../ActivityRunner/Viewer3D/Popups/NextStationWindow.cs:617
-msgid "Activity completed."
-msgstr "Activity completata."
-
-#: ../../ActivityRunner/Viewer3D/Popups/NoticeWindow.cs:96
-#, csharp-format
-msgid "Odometer {0}"
-msgstr "Contachilometri {0}"
-
-#: ../../ActivityRunner/Viewer3D/Popups/NoticeWindow.cs:106
-#, csharp-format
-msgid "Camera: {0}"
-msgstr "Telecamera: {0}"
-
-#: ../../ActivityRunner/Viewer3D/Popups/NoticeWindow.cs:111
-#, csharp-format
-msgid "FOV: {0:F0}°"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Popups/QuitWindow.cs:32
+#: ..\..\ActivityRunner\Viewer3D\Popups\QuitWindow.cs:34
 msgid "Pause Menu"
 msgstr "Menu Pausa"
 
-#: ../../ActivityRunner/Viewer3D/Popups/QuitWindow.cs:46
-#, csharp-format
-msgid "Quit {1} ({0})"
-msgstr "Esci da {1} ({0})"
-
-#: ../../ActivityRunner/Viewer3D/Popups/QuitWindow.cs:51
-#, csharp-format
-msgid "Save your game ({0})"
-msgstr "Salva il gioco ({0})"
-
-#: ../../ActivityRunner/Viewer3D/Popups/QuitWindow.cs:59
-#, csharp-format
-msgid "Continue playing ({0})"
-msgstr "Continua il gioco ({0})"
-
-#: ../../ActivityRunner/Viewer3D/Popups/SwitchWindow.cs:46
-msgid "Switch"
-msgstr "Scambi"
-
-#: ../../ActivityRunner/Viewer3D/Popups/TrackMonitorWindow.cs:73
-msgid "Track Monitor"
-msgstr "Monitor Linea"
-
-#: ../../ActivityRunner/Viewer3D/Popups/TrackMonitorWindow.cs:77
-msgid "Auto Signal"
-msgstr "Segnali Automatici"
-
-#: ../../ActivityRunner/Viewer3D/Popups/TrackMonitorWindow.cs:78
-msgid "Node"
-msgstr "Nodo"
-
-#: ../../ActivityRunner/Viewer3D/Popups/TrackMonitorWindow.cs:79
-msgid "Manual"
-msgstr "Manuale"
-
-#: ../../ActivityRunner/Viewer3D/Popups/TrackMonitorWindow.cs:80
-msgid "Explorer"
-msgstr "Esplorazione"
-
-#: ../../ActivityRunner/Viewer3D/Popups/TrackMonitorWindow.cs:81
-msgid "OutOfControl : "
-msgstr "Fuori Controllo:"
-
-#: ../../ActivityRunner/Viewer3D/Popups/TrackMonitorWindow.cs:82
-msgid "Inactive"
-msgstr "Inattivo"
-
-#: ../../ActivityRunner/Viewer3D/Popups/TrackMonitorWindow.cs:83
-msgid "Turntable"
-msgstr "Piattaforma girevole"
-
-#: ../../ActivityRunner/Viewer3D/Popups/TrackMonitorWindow.cs:84
-msgid "Unknown"
-msgstr "Sconosciuto"
-
-#: ../../ActivityRunner/Viewer3D/Popups/TrackMonitorWindow.cs:93
-msgid "Speed:"
-msgstr "Velocità:"
-
-#: ../../ActivityRunner/Viewer3D/Popups/TrackMonitorWindow.cs:98
-msgid "Projected:"
-msgstr "Prevista:"
-
-#: ../../ActivityRunner/Viewer3D/Popups/TrackMonitorWindow.cs:103
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrackMonitorWindow.cs:104
 msgid "Limit:"
 msgstr "Limite:"
 
-#: ../../ActivityRunner/Viewer3D/Popups/TrackMonitorWindow.cs:116
-msgid " Milepost   Limit     Dist"
-msgstr ""
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1200
+msgid "FORCE INFORMATION"
+msgstr "INFORMAZIONI FORZE"
 
-#: ../../ActivityRunner/Viewer3D/Popups/TrainListWindow.cs:33
-msgid "Train List"
-msgstr "Lista treni"
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:397
+msgid " ; other train not yet ready"
+msgstr "; altro treno non ancora pronto"
 
-#: ../../ActivityRunner/Viewer3D/Popups/TrainListWindow.cs:45
-msgid "Number"
-msgstr "Numero"
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1430
+msgid "Mode"
+msgstr "Modo"
 
-#: ../../ActivityRunner/Viewer3D/Popups/TrainListWindow.cs:46
-msgid "Service Name"
-msgstr "Nome servizio"
-
-#: ../../ActivityRunner/Viewer3D/Popups/TrainListWindow.cs:47
-msgid "Viewed"
-msgstr "Visto"
-
-#: ../../ActivityRunner/Viewer3D/Popups/TrainListWindow.cs:166
-msgid "Train in turntable not aligned to a track can't be selected"
-msgstr ""
-"Il treno sulla piattaforma non è allineato con un binario, non può essere "
-"selezionato."
-
-#: ../../ActivityRunner/Viewer3D/Popups/TrainListWindow.cs:171
-msgid "Player train can't be switched when in turntable not aligned to a track"
-msgstr ""
-"Il treno player non può essere sostituito se su una piattaforma non "
-"allineata ad un binario."
-
-#: ../../ActivityRunner/Viewer3D/Popups/TrainOperationsWindow.cs:39
-msgid "Train Operations"
-msgstr "Operazioni Treno"
-
-#: ../../ActivityRunner/Viewer3D/Popups/TrainOperationsWindow.cs:119
-msgid "In Timetable Mode uncoupling using this window is not allowed"
-msgstr "In Timetable Mode non è ammesso il distacco con questa finestra."
-
-#: ../../ActivityRunner/Viewer3D/Popups/TTDetachWindow.cs:44
-msgid "Timetable Detach Menu"
-msgstr "Menu distacchi per Timetable"
-
-#: ../../ActivityRunner/Viewer3D/Popups/TTDetachWindow.cs:54
-msgid "This train is about to split."
-msgstr "Il treno sta per essere diviso."
-
-#: ../../ActivityRunner/Viewer3D/Popups/TTDetachWindow.cs:66
-msgid "Perform Detach"
-msgstr "Esegui distacco"
-
-#: ../../ActivityRunner/Viewer3D/Popups/TTDetachWindow.cs:90
-#: ../../ActivityRunner/Viewer3D/Popups/TTDetachWindow.cs:95
-msgid "static consist"
-msgstr "consist statico"
-
-#: ../../ActivityRunner/Viewer3D/Popups/TTDetachWindow.cs:99
-#: ../../ActivityRunner/Viewer3D/Popups/TTDetachWindow.cs:104
-msgid "Rear"
-msgstr "Dietro"
-
-#: ../../ActivityRunner/Viewer3D/Popups/TTDetachWindow.cs:100
-#: ../../ActivityRunner/Viewer3D/Popups/TTDetachWindow.cs:103
-msgid "Front"
-msgstr "Davanti"
-
-#: ../../ActivityRunner/Viewer3D/Popups/TTDetachWindow.cs:109
-msgid "This portion will continue as train : "
-msgstr "Questa parte continuerà come treno: "
-
-#: ../../ActivityRunner/Viewer3D/Popups/TTDetachWindow.cs:110
-msgid " portion will form train : "
-msgstr " diventerà il treno: "
-
-#: ../../ActivityRunner/Viewer3D/Popups/TTDetachWindow.cs:114
-msgid "This portion will form into train : "
-msgstr "Questa parte formerà il treno: "
-
-#: ../../ActivityRunner/Viewer3D/Popups/TTDetachWindow.cs:115
-msgid " portion will continue as train : "
-msgstr " continuerà come treno: "
-
-#: ../../ActivityRunner/Viewer3D/Popups/WindowText.cs:152
-msgid ""
-"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890 \",.-+|!$%&/"
-"()=?;:'_[]"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/Processes/GameStateRunActivity.cs:1180
-#, csharp-format
-msgid "Activity Save file '*.save' not found in folder {0}"
-msgstr ""
-"File di salvataggio dell'activity '*.save' non trovato nella cartella {0}"
-
-#: ../../ActivityRunner/Viewer3D/RollingStock/MSTSLocomotiveViewer.cs:341
-msgid "freight-grain"
-msgstr "carico di grano"
-
-#: ../../ActivityRunner/Viewer3D/RollingStock/MSTSLocomotiveViewer.cs:342
-msgid "freight-coal"
-msgstr "carico di carbone"
-
-#: ../../ActivityRunner/Viewer3D/RollingStock/MSTSLocomotiveViewer.cs:343
-msgid "freight-gravel"
-msgstr "carico di ghiaia"
-
-#: ../../ActivityRunner/Viewer3D/RollingStock/MSTSLocomotiveViewer.cs:344
-msgid "freight-sand"
-msgstr "carico di sabbia"
-
-#: ../../ActivityRunner/Viewer3D/RollingStock/MSTSLocomotiveViewer.cs:345
-msgid "water"
-msgstr "acqua"
-
-#: ../../ActivityRunner/Viewer3D/RollingStock/MSTSLocomotiveViewer.cs:346
-msgid "coal"
-msgstr "carbone"
-
-#: ../../ActivityRunner/Viewer3D/RollingStock/MSTSLocomotiveViewer.cs:347
-msgid "diesel oil"
-msgstr "gasolio"
-
-#: ../../ActivityRunner/Viewer3D/RollingStock/MSTSLocomotiveViewer.cs:348
-msgid "wood"
-msgstr "legna"
-
-#: ../../ActivityRunner/Viewer3D/RollingStock/MSTSLocomotiveViewer.cs:349
-msgid "sand"
-msgstr "sabbia"
-
-#: ../../ActivityRunner/Viewer3D/RollingStock/MSTSLocomotiveViewer.cs:350
-msgid "freight-general"
-msgstr "carico generico"
-
-#: ../../ActivityRunner/Viewer3D/RollingStock/MSTSLocomotiveViewer.cs:351
-msgid "freight-livestock"
-msgstr "carico di bestiame"
-
-#: ../../ActivityRunner/Viewer3D/RollingStock/MSTSLocomotiveViewer.cs:352
-msgid "freight-fuel"
-msgstr "carico di carburante"
-
-#: ../../ActivityRunner/Viewer3D/RollingStock/MSTSLocomotiveViewer.cs:353
-msgid "freight-milk"
-msgstr "carico di latte"
-
-#: ../../ActivityRunner/Viewer3D/RollingStock/MSTSLocomotiveViewer.cs:354
-msgid "mail"
-msgstr ""
-
-#: ../../ActivityRunner/Viewer3D/RollingStock/MSTSLocomotiveViewer.cs:482
-msgid "Refill: Immediate refill process selected, refilling immediately."
-msgstr "Rifornimento: selezionato rifornimento immediato."
-
-#: ../../ActivityRunner/Viewer3D/RollingStock/MSTSLocomotiveViewer.cs:503
-msgid "Refill: Electric loco and no pickup. Command rejected"
-msgstr ""
-"Rifornimento: Loco elettrica senza predisposizione al carico. Comando non "
-"eseguito."
-
-#: ../../ActivityRunner/Viewer3D/RollingStock/MSTSLocomotiveViewer.cs:619
-#: ../../ActivityRunner/Viewer3D/RollingStock/MSTSLocomotiveViewer.cs:638
-msgid "Incompatible pickup type"
-msgstr "Tipo di carico incompatibile"
-
-#: ../../ActivityRunner/Viewer3D/RollingStock/MSTSLocomotiveViewer.cs:625
-#: ../../ActivityRunner/Viewer3D/RollingStock/MSTSLocomotiveViewer.cs:643
-msgid "Starting refill"
-msgstr "Inizio rifornimento"
-
-#: ../../ActivityRunner/Viewer3D/RollingStock/MSTSLocomotiveViewer.cs:510
+#: ..\..\ActivityRunner\Viewer3D\RollingStock\MSTSLocomotiveViewer.cs:523
 #, csharp-format
 msgid "Refill: Distance to {0} supply is {1}."
 msgstr "Rifornimento: La distanza dal rifornimento {0} è {1}."
 
-#: ../../ActivityRunner/Viewer3D/RollingStock/MSTSLocomotiveViewer.cs:518
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:977
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:992
+msgid "Compressor"
+msgstr "Compressore"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:227
+msgid "Train static."
+msgstr "Treno statico."
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\SwitchWindow.cs:48
+msgid "Switch"
+msgstr "Scambi"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1654
 #, csharp-format
-msgid "Refill: Loco must be stationary to refill {0}."
-msgstr "Rifornimento: La locomotiva deve essere ferma per rifornire {0}."
+msgid "{0:N0} m"
+msgstr ""
 
-#: ../../ActivityRunner/Viewer3D/RollingStock/MSTSLocomotiveViewer.cs:524
-#: ../../ActivityRunner/Viewer3D/RollingStock/MSTSSteamLocomotiveViewer.cs:242
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:124
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:106
+msgid "SPED"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1024
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1058
+msgid "Handbrk"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:154
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:462
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:681
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:714
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:126
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:589
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:108
+msgid "Throttle"
+msgstr "Acceleratore"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1685
 #, csharp-format
-msgid "Refill: Loco speed must exceed {0}."
-msgstr "Rifornimento: La velocità della locomotiva deve superare {0}"
+msgid "({0}x{0})"
+msgstr ""
 
-#: ../../ActivityRunner/Viewer3D/RollingStock/MSTSLocomotiveViewer.cs:531
-#: ../../ActivityRunner/Viewer3D/RollingStock/MSTSSteamLocomotiveViewer.cs:248
+#: ..\..\ActivityRunner\Viewer3D\Debugging\DebugViewerForm.Designer.cs:409
+msgid "Penalty"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:927
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:942
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:952
+msgid "Large Ejector"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrackMonitorWindow.cs:74
+msgid "Track Monitor"
+msgstr "Monitor Linea"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1266
+#, fuzzy
+#| msgid "Direction"
+msgid "Train Direction:"
+msgstr "Direzione"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:750
+msgid "Temperature"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:553
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:584
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1015
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1040
+msgid "Type"
+msgstr "Tipo"
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\DebugViewerForm.Designer.cs:322
+msgid "Pick Signals"
+msgstr "Segnali"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1054
+msgid "TripleValve"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrackMonitorDisplay.cs:571
+msgid "SprtrRedSprtrDarkGray"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1046
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1093
+msgid "AuxRes"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:556
+msgid "Tonnage"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Viewer.cs:954
+msgid "Train and car labels hidden."
+msgstr "Nomi treni e carri nascosti."
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\CarOperationsWindow.cs:161
+msgid "Front angle cock opened"
+msgstr "Rubinetto freni anteriore aperto"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1691
+msgid "Render primitives"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\CarOperationsWindow.cs:152
+msgid "Front brake hose connected"
+msgstr "Condotta freni anteriore connessa"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1688
+msgid "Shadow primitives"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:142
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:124
+msgid "Skid"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1657
+msgid "Liquidity"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrackMonitorDisplay.cs:342
+msgid "Cab ORIEN"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\CarOperationsWindow.cs:57
+msgid "Toggle Power"
+msgstr "Inverti alimentazione"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1221
+msgid "Tang. Force"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\CarOperationsWindow.cs:123
+msgid "Power ON command sent"
+msgstr "Comando di accensione inviato"
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:587
+msgid "Drv/Cabs"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:106
+#: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:88
+msgid "DIRC"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:149
+msgid "Train Driving Info"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Debugging\SoundDebugForm.Designer.cs:216
+msgid "3D"
+msgstr ""
+
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:123
+#: ..\..\ActivityRunner\Viewer3D\Popups\HelpWindow.cs:409
+#: ..\..\ActivityRunner\Viewer3D\Popups\NextStationWindow.cs:77
+msgid "Station"
+msgstr "Stazione"
+
+#~ msgid "3D Cab view not available"
+#~ msgstr "Vista cabina 3D non disponibile"
+
 #, csharp-format
-msgid "Refill: Loco speed must not exceed {0}."
-msgstr "Rifornimento: La velocità della locomotiva non deve superare {0}"
+#~ msgid "Camera: {0}"
+#~ msgstr "Telecamera: {0}"
 
-#: ../../ActivityRunner/Viewer3D/RollingStock/MSTSLocomotiveViewer.cs:549
-#: ../../ActivityRunner/Viewer3D/RollingStock/MSTSLocomotiveViewer.cs:570
-#: ../../ActivityRunner/Viewer3D/RollingStock/MSTSSteamLocomotiveViewer.cs:255
-#, csharp-format
-msgid "Refill: {0} supply now replenished."
-msgstr "Rifornimento: hai fatto il pieno di {0}"
+#~ msgid "This portion will form into train : "
+#~ msgstr "Questa parte formerà il treno: "
 
-#: ../../ActivityRunner/Viewer3D/RollingStock/MSTSLocomotiveViewer.cs:576
-#, csharp-format
-msgid "Unload: {0} fuel or freight now unloaded."
-msgstr "Scarico: {0} carburante o merce scaricati."
+#~ msgid " portion will continue as train : "
+#~ msgstr " continuerà come treno: "
 
-#: ../../ActivityRunner/Viewer3D/RollingStock/MSTSLocomotiveViewer.cs:511
-#, csharp-format
-msgid "{0} meter"
-msgid_plural "{0} meters"
-msgstr[0] "{0} metro"
-msgstr[1] "{0} metri"
+#~ msgid "freight-grain"
+#~ msgstr "carico di grano"
 
-#: ../../ActivityRunner/Viewer3D/RollingStock/MSTSSteamLocomotiveViewer.cs:226
-msgid "No scoop in this loco"
-msgstr "Nessun bocchettone di rifornimento in questa locomotiva."
+#~ msgid "freight-coal"
+#~ msgstr "carico di carbone"
 
-#: ../../ActivityRunner/Viewer3D/RollingStock/MSTSSteamLocomotiveViewer.cs:231
-msgid "Scoop is broken, can't refill"
-msgstr "Bocchettone rotto: impossibile rifornire."
+#~ msgid "freight-gravel"
+#~ msgstr "carico di ghiaia"
 
-#: ../../ActivityRunner/Viewer3D/RollingStock/MSTSSteamLocomotiveViewer.cs:237
-msgid "Scoop broken because activated outside through"
-msgstr "Bocchettone rotto perché attivato fuori posto."
+#~ msgid "freight-sand"
+#~ msgstr "carico di sabbia"
+
+#~ msgid "diesel oil"
+#~ msgstr "gasolio"
+
+#~ msgid "wood"
+#~ msgstr "legna"
+
+#~ msgid "sand"
+#~ msgstr "sabbia"
+
+#~ msgid "freight-general"
+#~ msgstr "carico generico"
+
+#~ msgid "freight-livestock"
+#~ msgstr "carico di bestiame"
+
+#~ msgid "freight-fuel"
+#~ msgstr "carico di carburante"
+
+#~ msgid "freight-milk"
+#~ msgstr "carico di latte"
+
+#~ msgid "No scoop in this loco"
+#~ msgstr "Nessun bocchettone di rifornimento in questa locomotiva."
+
+#~ msgid "Scoop is broken, can't refill"
+#~ msgstr "Bocchettone rotto: impossibile rifornire."
+
+#~ msgid "Scoop broken because activated outside through"
+#~ msgstr "Bocchettone rotto perché attivato fuori posto."
 
 #~ msgid "Refill: {0} fuel or freight now unloaded."
 #~ msgstr "Rifornimento: {0} carburante o merce scaricato"
@@ -1901,9 +2903,6 @@ msgstr "Bocchettone rotto perché attivato fuori posto."
 #~ msgid "Neutral"
 #~ msgstr "Pronto"
 
-#~ msgid "Apply"
-#~ msgstr "Attivo"
-
 #~ msgid "Emergency"
 #~ msgstr "Emergenza"
 
@@ -1919,14 +2918,8 @@ msgstr "Bocchettone rotto perché attivato fuori posto."
 #~ msgid "Cont. Service"
 #~ msgstr "Servizio continuo"
 
-#~ msgid "Full Service"
-#~ msgstr "Pieno servizio"
-
 #~ msgid "Overcharge"
 #~ msgstr "Sovraccarico"
-
-#~ msgid "Emergency Braking Push Button"
-#~ msgstr "Pulsante Freno di Emergenza"
 
 #~ msgid "TCS Emergency Braking"
 #~ msgstr "Freno di Emergenza TCS"
@@ -1961,14 +2954,6 @@ msgstr "Bocchettone rotto perché attivato fuori posto."
 #~ msgctxt "Pantograph"
 #~ msgid "Raising"
 #~ msgstr "In sollevamento"
-
-#~ msgctxt "Pantograph"
-#~ msgid "Up"
-#~ msgstr "Alzato"
-
-#~ msgctxt "CircuitBraker"
-#~ msgid "Open"
-#~ msgstr "Aperto"
 
 #~ msgctxt "CircuitBraker"
 #~ msgid "Closing"
@@ -2099,15 +3084,6 @@ msgstr "Bocchettone rotto perché attivato fuori posto."
 #~ "Train stopped due to problems with other train: train {0} , reason: {1}"
 #~ msgstr "Il treno è stato fermato per problemi con: treno {0}, motivo: {1}"
 
-#~ msgid "Engine"
-#~ msgstr "Motore"
-
-#~ msgid "Gear"
-#~ msgstr "Cambio"
-
-#~ msgid "Fuel"
-#~ msgstr "Carburante"
-
 #~ msgctxt "Gear"
 #~ msgid "N"
 #~ msgstr "Folle"
@@ -2118,14 +3094,8 @@ msgstr "Bocchettone rotto perché attivato fuori posto."
 #~ msgid "Power line condition overridden."
 #~ msgstr "Ignorata la presenza della linea elettrica."
 
-#~ msgid "Pantographs"
-#~ msgstr "Pantografi"
-
 #~ msgid "NOT OK"
 #~ msgstr "NON OK"
-
-#~ msgid "Auxiliary power"
-#~ msgstr "Alim. ausiliaria"
 
 #~ msgctxt "PowerSupply"
 #~ msgid "Power"
@@ -2167,29 +3137,8 @@ msgstr "Bocchettone rotto perché attivato fuori posto."
 #~ msgid "Boiler no longer priming."
 #~ msgstr "Sovraccarico caldaia terminato"
 
-#~ msgid "Fixed gear"
-#~ msgstr "Marcia fissa"
-
-#~ msgid "Steam usage"
-#~ msgstr "Utilizzo vapore"
-
-#~ msgid "Boiler pressure"
-#~ msgstr "Pressione caldaia"
-
-#~ msgid "Boiler water level"
-#~ msgstr "Livello acqua caldaia"
-
-#~ msgid "(safe range)"
-#~ msgstr "(int. sicuro)"
-
 #~ msgid "(absolute)"
 #~ msgstr "(assoluto)"
-
-#~ msgid "Fire mass"
-#~ msgstr "Intensità del fuoco"
-
-#~ msgid "Fuel levels"
-#~ msgstr "Livelli carburante"
 
 #~ msgid "Locomotive Type:"
 #~ msgstr "Tipo Locomotore:"
@@ -2225,24 +3174,12 @@ msgstr "Bocchettone rotto perché attivato fuori posto."
 #~ msgid "Exhaust"
 #~ msgstr "Esaurito"
 
-#~ msgid "Status:"
-#~ msgstr "Stato:"
-
 #~ msgid "Safety"
 #~ msgstr "Sicurezza"
-
-#~ msgid "Closed"
-#~ msgstr "Chiuso"
 
 #, fuzzy
 #~ msgid "Comp"
 #~ msgstr "Bussola"
-
-#~ msgid "Off"
-#~ msgstr "Spenta"
-
-#~ msgid "On"
-#~ msgstr "Accesa"
 
 #~ msgid "Fireman"
 #~ msgstr "Fuochista"
@@ -2330,9 +3267,6 @@ msgstr "Bocchettone rotto perché attivato fuori posto."
 #~ msgid "Information"
 #~ msgstr "Informazione"
 
-#~ msgid "Warning"
-#~ msgstr "Avviso"
-
 #~ msgid "Error"
 #~ msgstr "Errore"
 
@@ -2344,9 +3278,6 @@ msgstr "Bocchettone rotto perché attivato fuori posto."
 
 #~ msgid "neutral"
 #~ msgstr "folle"
-
-#~ msgid "forward"
-#~ msgstr "marcia avanti"
 
 #~ msgid "locked. Close throttle, stop train then re-try."
 #~ msgstr "bloccato. Azzera la potenza, ferma il treno e riprova."
@@ -2393,9 +3324,6 @@ msgstr "Bocchettone rotto perché attivato fuori posto."
 #~ msgid "Helper Diesel Power"
 #~ msgstr "Accensione loco diesel aggiuntiva"
 
-#~ msgid "Diesel Tank"
-#~ msgstr "Serbatoio nafta"
-
 #~ msgid "re-fueled"
 #~ msgstr "rifornito"
 
@@ -2429,9 +3357,6 @@ msgstr "Bocchettone rotto perché attivato fuori posto."
 #~ msgid "add shovel-full"
 #~ msgstr "aggiunta carbone"
 
-#~ msgid "Cylinder Cocks"
-#~ msgstr "Sfogo Cilindri"
-
 #~ msgid "Cylinder Compound"
 #~ msgstr "Cilindro composto"
 
@@ -2461,9 +3386,6 @@ msgstr "Bocchettone rotto perché attivato fuori posto."
 
 #~ msgid "Dynamic Brake"
 #~ msgstr "Freno Dinamico"
-
-#~ msgid "setup"
-#~ msgstr "inserito"
 
 #~ msgid "Emergency Brake"
 #~ msgstr "Freno di Emergenza"
@@ -2503,9 +3425,6 @@ msgstr "Bocchettone rotto perché attivato fuori posto."
 
 #~ msgid "connect"
 #~ msgstr "connetti"
-
-#~ msgid "Sander"
-#~ msgstr "Sabbiera"
 
 #~ msgid "Alerter"
 #~ msgstr "Allertatore"
@@ -2579,9 +3498,6 @@ msgstr "Bocchettone rotto perché attivato fuori posto."
 
 #~ msgid "Switch Behind"
 #~ msgstr "Scambio Dietro"
-
-#~ msgid "Simulation Speed"
-#~ msgstr "Velocità di Simulazione"
 
 #~ msgid "Uncouple After"
 #~ msgstr "Distacca Dopo"
@@ -2662,12 +3578,6 @@ msgstr "Bocchettone rotto perché attivato fuori posto."
 #~ msgid "Rotating cab {0}/4, rotating land {1}/4"
 #~ msgstr "Rotazione cabina {0}/4, rotazione orizzonte {1}/4"
 
-#~ msgid "Left"
-#~ msgstr "Sinistra"
-
-#~ msgid "Right"
-#~ msgstr "Destra"
-
 #~ msgid "(Advanced adhesion model disabled)"
 #~ msgstr "(Modello avanzato aderenza disabilitato)"
 
@@ -2688,9 +3598,6 @@ msgstr "Bocchettone rotto perché attivato fuori posto."
 
 #~ msgid "Selectable Geared locomotive"
 #~ msgstr "Locomotore con marce"
-
-#~ msgid "Simple locomotive"
-#~ msgstr "Locomotiva semplice"
 
 #~ msgid "Not defined (assumed simple)"
 #~ msgstr "Non definito (come \"semplice\")"

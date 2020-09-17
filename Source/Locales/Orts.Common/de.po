@@ -1,965 +1,1387 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: ORTS.Common\n"
-"POT-Creation-Date: 2020-05-26 20:01:12+0200\n"
-"PO-Revision-Date: 2020-05-26 23:36+0200\n"
+"POT-Creation-Date: 2020-09-17 08:26:06+0200\n"
+"PO-Revision-Date: 2020-09-17 14:26+0200\n"
 "Last-Translator: Markus Gelbmann <gelbmann.markus@gmail.com>\n"
 "Language-Team: Open Rails Dev Team\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 2.3\n"
+"X-Generator: Poedit 2.4.1\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: ../../ORTS.Common/Conversions.cs:524
-msgid "m"
-msgstr "m"
-
-#: ../../ORTS.Common/Conversions.cs:525
-msgid "km"
-msgstr "km"
-
-#: ../../ORTS.Common/Conversions.cs:526
-msgid "mm"
-msgstr "mm"
-
-#: ../../ORTS.Common/Conversions.cs:527
-msgid "mi"
-msgstr "mi"
-
-#: ../../ORTS.Common/Conversions.cs:528
-msgid "ft"
-msgstr "ft"
-
-#: ../../ORTS.Common/Conversions.cs:529
-msgid "yd"
-msgstr "yd"
-
-#: ../../ORTS.Common/Conversions.cs:530
-msgid "m²"
-msgstr "m²"
-
-#: ../../ORTS.Common/Conversions.cs:531
-msgid "ft²"
-msgstr "ft²"
-
-#: ../../ORTS.Common/Conversions.cs:532
-msgid "m³"
-msgstr "m³"
-
-#: ../../ORTS.Common/Conversions.cs:533
-msgid "ft³"
-msgstr "ft³"
-
-#: ../../ORTS.Common/Conversions.cs:534
-msgid "km/h"
-msgstr "km/h"
-
-#: ../../ORTS.Common/Conversions.cs:535
-msgid "mph"
-msgstr "mph"
-
-#: ../../ORTS.Common/Conversions.cs:536
-msgid "kPa"
-msgstr "kPa"
-
-#: ../../ORTS.Common/Conversions.cs:537
-msgid "bar"
-msgstr "bar"
-
-#: ../../ORTS.Common/Conversions.cs:538
-msgid "psi"
-msgstr "psi"
-
-#: ../../ORTS.Common/Conversions.cs:539
-msgid "inHg"
-msgstr "inHg"
-
-#: ../../ORTS.Common/Conversions.cs:540
-msgid "kgf/cm²"
-msgstr "kp/cm²"
-
-#: ../../ORTS.Common/Conversions.cs:541
-msgid "kg"
-msgstr "kg"
-
-#: ../../ORTS.Common/Conversions.cs:542
-msgid "t"
-msgstr "t"
-
-#: ../../ORTS.Common/Conversions.cs:543
-msgid "t-uk"
-msgstr "t-uk"
-
-#: ../../ORTS.Common/Conversions.cs:544
-msgid "t-us"
-msgstr "t-us"
-
-#: ../../ORTS.Common/Conversions.cs:545
-msgid "lb"
-msgstr "lb"
-
-#: ../../ORTS.Common/Conversions.cs:546
-msgid "s"
-msgstr "s"
-
-#: ../../ORTS.Common/Conversions.cs:547
-msgid "min"
-msgstr "min"
-
-#: ../../ORTS.Common/Conversions.cs:548
-msgid "h"
-msgstr "h"
-
-#: ../../ORTS.Common/Conversions.cs:549
-msgid "L"
-msgstr "L"
-
-#: ../../ORTS.Common/Conversions.cs:550
-msgid "g-uk"
-msgstr "gal-uk"
-
-#: ../../ORTS.Common/Conversions.cs:551
-msgid "g-us"
-msgstr "gal-us"
-
-#: ../../ORTS.Common/Conversions.cs:552
-msgid "rpm"
-msgstr "U/min"
-
-#: ../../ORTS.Common/Conversions.cs:553
-msgid "kW"
-msgstr "kW"
-
-#: ../../ORTS.Common/Conversions.cs:554
-msgid "hp"
-msgstr "hp"
-
-#: ../../ORTS.Common/Conversions.cs:555
-msgid "bhp"
-msgstr "bhp"
-
-#: ../../ORTS.Common/Conversions.cs:556
-msgid "kJ"
-msgstr "kJ"
-
-#: ../../ORTS.Common/Conversions.cs:557
-msgid "MJ"
-msgstr "MJ"
-
-#: ../../ORTS.Common/Conversions.cs:558
-msgid "BTU"
-msgstr "BTU"
-
-#: ../../ORTS.Common/Conversions.cs:559
-msgid "°C"
-msgstr "°C"
-
-#: ../../ORTS.Common/Conversions.cs:560
-msgid "°F"
-msgstr "°F"
-
-#: ../../ORTS.Common/Conversions.cs:561
-msgid "N"
-msgstr "N"
-
-#: ../../ORTS.Common/Conversions.cs:562
-msgid "kN"
-msgstr "kN"
-
-#: ../../ORTS.Common/Conversions.cs:563
-msgid "lbf"
-msgstr "lbf"
-
-#: ../../ORTS.Common/Conversions.cs:564
-msgid "klbf"
-msgstr "klbf"
-
-#. Context: Reverser
-#: ../../ORTS.Common/enums.cs:27
-msgctxt "Reverser"
-msgid "Forward"
-msgstr "Vorwärts"
-
-#. Context: Reverser
-#: ../../ORTS.Common/enums.cs:28
-msgctxt "Reverser"
-msgid "Reverse"
-msgstr "Rückwärts"
-
-#. Context: Reverser
-#: ../../ORTS.Common/enums.cs:29
-msgctxt "Reverser"
-msgid "N"
-msgstr "Neutral"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:11
-msgid "Game Pause Menu"
-msgstr "Spiel: Pause (Menü)"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:12
-msgid "Game Save"
-msgstr "Spiel: Speichern"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:13
-msgid "Game Quit"
-msgstr "Spiel: Beenden"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:14
-msgid "Game Pause"
-msgstr "Spiel: Pause"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:15
-msgid "Game Screenshot"
-msgstr "Spiel: Screenshot"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:16
-msgid "Game Fullscreen"
-msgstr "Spiel: Vollbild"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:17
-msgid "Game Switch Ahead"
-msgstr "Spiel: Weiche vorne"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:18
-msgid "Game Switch Behind"
-msgstr "Spiel: Weiche hinten"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:19
-msgid "Game Switch Picked"
-msgstr "Spiel: Weichen vor-auswählen"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:20
-msgid "Game Signal Picked"
-msgstr "Spiel: Signale vor-auswählen"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:21
-msgid "Game Switch With Mouse"
-msgstr "Spiel: Weiche mit Maus stellen"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:22
-msgid "Game Uncouple With Mouse"
-msgstr "Spiel: Abkuppeln mit Maus"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:23
-msgid "Game Change Cab"
-msgstr "Spiel: Führerstand wechseln"
-
-# vorher "Kontrolle erbitten"
-#: ../../ORTS.Common/Input/UserCommand.cs:24
-#, fuzzy
-msgid "Game Request Control"
-msgstr "Spiel: Kontrolle übernehmen"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:25
-msgid "Game Multi Player Dispatcher"
-msgstr "Spiel: Mehrspieler Disponent"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:26
-msgid "Game Multi Player Texting"
-msgstr "Spiel: Mehrspieler Nachrichten"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:27
-msgid "Game Switch Manual Mode"
-msgstr "Spiel: Signalmodus umschalten"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:28
-msgid "Game Clear Signal Forward"
-msgstr "Spiel: Signalfreigabe vorne"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:29
-msgid "Game Clear Signal Backward"
-msgstr "Spiel: Signalfreigabe hinten"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:30
-msgid "Game Reset Signal Forward"
-msgstr "Spiel: Signal vorne zurücksetzen"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:31
-msgid "Game Reset Signal Backward"
-msgstr "Spiel: Signal hinten zurücksetzen"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:32
-msgid "Game Autopilot Mode"
-msgstr "Spiel: Autopilot aktivieren"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:33
-msgid "Game Suspend Old Player"
-msgstr "Spiel: Alten Spieler-Zug abstellen"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:35
-msgid "Display Next Window Tab"
-msgstr "Anzeigen: Nächste Registerkarte im Fenster"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:36
-msgid "Display Help Window"
-msgstr "Anzeigen: Hilfefenster"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:37
-msgid "Display Track Monitor Window"
-msgstr "Anzeigen: Streckenmonitor"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:38
-msgid "Display HUD"
-msgstr "Anzeigen: HUD"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:39
-msgid "Display Car Labels"
-msgstr "Anzeigen: Waggonlabels"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:40
-msgid "Display Station Labels"
-msgstr "Anzeigen: Stationslabels"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:41
-msgid "Display Switch Window"
-msgstr "Anzeigen: Fenster 'Weichen stellen'"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:42
-msgid "Display Train Operations Window"
-msgstr "Anzeigen: Fenster 'Zugbedienung'"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:43
-msgid "Display Next Station Window"
-msgstr "Anzeigen: Fenster 'Nächster Halt'"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:44
-msgid "Display Compass Window"
-msgstr "Anzeigen: Kompass"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:45
-msgid "Display Basic HUD Toggle"
-msgstr "Anzeigen: Einfaches HUD an/aus"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:46
-msgid "Display Train List Window"
-msgstr "Anzeigen: Zugliste"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:48
-msgid "Debug Speed Up"
-msgstr "Debug: Zeitablauf schneller"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:49
-msgid "Debug Speed Down"
-msgstr "Debug: Zeitablauf langsamer"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:50
-msgid "Debug Speed Reset"
-msgstr "Debug: Zeitablauf zurücksetzen"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:51
-msgid "Debug Overcast Increase"
-msgstr "Debug: Bewölkung +"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:52
-msgid "Debug Overcast Decrease"
-msgstr "Debug: Bewölkung -"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:53
-msgid "Debug Fog Increase"
-msgstr "Debug: Nebel dichter"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:54
-msgid "Debug Fog Decrease"
-msgstr "Debug: Nebel dünner"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:55
-msgid "Debug Precipitation Increase"
-msgstr "Debug: Niederschlag +"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:56
-msgid "Debug Precipitation Decrease"
-msgstr "Debug: Niederschlag -"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:57
-msgid "Debug Precipitation Liquidity Increase"
-msgstr "Debug: Niederschlag - mehr Regen"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:58
-msgid "Debug Precipitation Liquidity Decrease"
-msgstr "Debug: Niederschlag - mehr Schnee"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:59
-msgid "Debug Weather Change"
-msgstr "Debug: Wetter ändern"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:60
-msgid "Debug Clock Forwards"
-msgstr "Debug: Uhr vordrehen"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:61
-msgid "Debug Clock Backwards"
-msgstr "Debug: Uhr zurückdrehen"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:62
-msgid "Debug Logger"
-msgstr "Debug: Logger"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:63
-msgid "Debug Lock Shadows"
-msgstr "Debug: Schatten festsetzen"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:64
-msgid "Debug Dump Keyboard Map"
-msgstr "Debug: Tastenbelegung speichern (>Desktop)"
-
-# Kann was?
-#: ../../ORTS.Common/Input/UserCommand.cs:65
-#, fuzzy
-msgid "Debug Log Render Frame"
-msgstr "Debug: Frame-Render Details loggen"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:66
-msgid "Debug Tracks"
-msgstr "Debug: Gleise"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:67
-msgid "Debug Signalling"
-msgstr "Debug: Signalsystem"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:68
-msgid "Debug Reset Wheel Slip"
-msgstr "Debug: Radschlupf zurücksetzen"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:69
-msgid "Debug Toggle Advanced Adhesion"
-msgstr "Debug: Detaillierteres Reibungsmodel an/aus"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:70
-msgid "Debug Sound Form"
-msgstr "Debug: Sound-Formular"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:71
-msgid "Debug Physics Form"
-msgstr "Debug: Physik-Formular"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:72
-msgid "Debug Toggle Confirmations"
-msgstr "Debug: Bestätigungen an/aus"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:74
-msgid "Camera Cab"
-msgstr "Kamera: Führerstand"
-
-# durchschalten?
-#: ../../ORTS.Common/Input/UserCommand.cs:75
-#, fuzzy
-msgid "Camera Change Passenger Viewpoint"
-msgstr "Kamera: Passagieransicht ändern"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:76
-msgid "Camera 3D Cab"
-msgstr "Kamera: 3D-Führerstand"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:77
-msgid "Camera Toggle Show Cab"
-msgstr "Kamera: Führerstandsgrafik an/aus"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:78
-#, fuzzy
-msgid "Camera Toggle Letterbox Cab"
-msgstr "Kamera: Führerstand nicht verzerren"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:79
-msgid "Camera Head Out Forward"
-msgstr "Kamera: Hinauslehnen vorwärts"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:80
-msgid "Camera Head Out Backward"
-msgstr "Kamera: Hinauslehnen rückwärts"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:81
-msgid "Camera Outside Front"
-msgstr "Kamera: Außen 1 (Zugspitze)"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:82
-msgid "Camera Outside Rear"
-msgstr "Kamera: Außen 2 (Zugende)"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:83
-msgid "Camera Trackside"
-msgstr "Kamera: Beobachter"
-
-# Kann was?
-#: ../../ORTS.Common/Input/UserCommand.cs:84
-#, fuzzy
-msgid "Camera SpecialTracksidePoint"
-msgstr "Kamera: Erweiterte Beobachteransicht"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:85
-msgid "Camera Passenger"
-msgstr "Kamera: Passagier"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:86
-msgid "Camera Brakeman"
-msgstr "Kamera: Bremser"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:87
-msgid "Camera Free"
-msgstr "Kamera: Frei beweglich"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:88
-msgid "Camera Previous Free"
-msgstr "Kamera: Vorherige frei Bewegliche"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:89
-msgid "Camera Reset"
-msgstr "Kamera: Zurücksetzen"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:90
-msgid "Camera Move Fast"
-msgstr "Kamera: Schnelle Bewegungen"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:91
-msgid "Camera Move Slow"
-msgstr "Kamera: Langsame Bewegungen"
-
-# Um Fokussiertes Objekt
-#: ../../ORTS.Common/Input/UserCommand.cs:92
-msgid "Camera Pan (Rotate) Left"
-msgstr "Kamera: Nach links schwenken"
-
-# Um Fokussiertes Objekt
-#: ../../ORTS.Common/Input/UserCommand.cs:93
-msgid "Camera Pan (Rotate) Right"
-msgstr "Kamera: Nach rechts schwenken"
-
-# Um Fokussiertes Objekt
-#: ../../ORTS.Common/Input/UserCommand.cs:94
-msgid "Camera Pan (Rotate) Up"
-msgstr "Kamera: Nach oben schwenken"
-
-# Um Fokussiertes Objekt
-#: ../../ORTS.Common/Input/UserCommand.cs:95
-msgid "Camera Pan (Rotate) Down"
-msgstr "Kamera: Nach unten schwenken"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:96
-msgid "Camera Zoom In (Move Z)"
-msgstr "Kamera: Hineinzoomen"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:97
-msgid "Camera Zoom Out (Move Z)"
-msgstr "Kamera: Herauszoomen"
-
-# Um Achse der Kamera
-#: ../../ORTS.Common/Input/UserCommand.cs:98
-msgid "Camera Rotate (Pan) Left"
-msgstr "Kamera: Nach links drehen"
-
-# Um Achse der Kamera
-#: ../../ORTS.Common/Input/UserCommand.cs:99
-msgid "Camera Rotate (Pan) Right"
-msgstr "Kamera: Nach rechts drehen"
-
-# Um Achse der Kamera
-#: ../../ORTS.Common/Input/UserCommand.cs:100
-msgid "Camera Rotate (Pan) Up"
-msgstr "Kamera: Nach oben drehen"
-
-# Um Achse der Kamera
-#: ../../ORTS.Common/Input/UserCommand.cs:101
-msgid "Camera Rotate (Pan) Down"
-msgstr "Kamera: Nach unten drehen"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:102
-msgid "Camera Car Next"
-msgstr "Kamera: Nächster Waggon"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:103
-msgid "Camera Car Previous"
-msgstr "Kamera: Vorheriger Waggon"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:104
-msgid "Camera Car First"
-msgstr "Kamera: Erster Waggon"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:105
-msgid "Camera Car Last"
-msgstr "Kamera: Letzter Waggon"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:106
-msgid "Camera Jumping Trains"
-msgstr "Kamera: zu anderem Zug springen"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:107
-msgid "Camera Jump Back Player"
-msgstr "Kamera: zum Spielerzug springen"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:108
-msgid "Camera Jump See Switch"
-msgstr "Kamera: Weiche ansehen"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:109
-msgid "Camera Vibrate"
-msgstr "Kamera: Zug-Schaukeln darstellen"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:110
-#, fuzzy
-msgid "Camera Scroll Right"
-msgstr "Kamera: Rechts hinauslehnen"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:111
-#, fuzzy
-msgid "Camera Scroll Left"
-msgstr "Kamera: Links hinauslehnen"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:112
-#, fuzzy
-msgid "Camera Browse Backwards"
-msgstr "Kamera: Zug rückwärts entlanglaufen"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:113
-#, fuzzy
-msgid "Camera Browse Forwards"
-msgstr "Kamera: Zug vorwärts entlanglaufen"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:115
-msgid "Control Forwards"
-msgstr "Steuerung: Vorwärts"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:116
-msgid "Control Backwards"
-msgstr "Steuerung: Rückwärts"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:117
+#: ..\..\Orts.Common\Input\UserCommand.cs:122
 msgid "Control Throttle Increase"
 msgstr "Steuerung: Regler höher"
 
-#: ../../ORTS.Common/Input/UserCommand.cs:118
-msgid "Control Throttle Decrease"
-msgstr "Steuerung: Regler niedriger"
+#: ..\..\Orts.Common\FormatStrings.cs:50
+msgid "kPa"
+msgstr "kPa"
 
-#: ../../ORTS.Common/Input/UserCommand.cs:119
-msgid "Control Throttle Zero"
-msgstr "Steuerung: Regler 0"
+#: ..\..\Orts.Common\FormatStrings.cs:76
+msgid "kN"
+msgstr "kN"
 
-#: ../../ORTS.Common/Input/UserCommand.cs:120
-msgid "Control Gear Up"
-msgstr "Steuerung: Gang hinaufschalten"
+#: ..\..\Orts.Common\Input\UserCommand.cs:42
+msgid "Display HUD"
+msgstr "Anzeigen: HUD"
 
-#: ../../ORTS.Common/Input/UserCommand.cs:121
-msgid "Control Gear Down"
-msgstr "Steuerung: Gang zurückschalten"
+#: ..\..\Orts.Common\Enums.cs:529
+msgctxt "Brake Controller"
+msgid "Overcharge"
+msgstr ""
 
-#: ../../ORTS.Common/Input/UserCommand.cs:122
-msgid "Control Train Brake Increase"
-msgstr "Steuerung: Zugbremse +"
+#: ..\..\Orts.Common\Input\UserCommand.cs:108
+msgid "Camera Car Previous"
+msgstr "Kamera: Vorheriger Waggon"
 
-#: ../../ORTS.Common/Input/UserCommand.cs:123
-msgid "Control Train Brake Decrease"
-msgstr "Steuerung: Zugbremse -"
+# Kann was?
+#: ..\..\Orts.Common\Enums.cs:515
+#, fuzzy
+msgctxt "Brake Controller"
+msgid "Cont. Service"
+msgstr "Steuerung: Benutzerdefinierte Funktion 1"
 
-#: ../../ORTS.Common/Input/UserCommand.cs:124
-msgid "Control Train Brake Zero"
-msgstr "Steuerung: Zugbremse 0"
+#: ..\..\Orts.Common\Enums.cs:447
+msgctxt "CircuitBreaker"
+msgid "Closed"
+msgstr ""
 
-#: ../../ORTS.Common/Input/UserCommand.cs:125
-msgid "Control Engine Brake Increase"
-msgstr "Steuerung: Lokbremse +"
+#: ..\..\Orts.Common\Enums.cs:541
+msgctxt "Brake Controller"
+msgid "Notch"
+msgstr ""
 
-#: ../../ORTS.Common/Input/UserCommand.cs:126
-msgid "Control Engine Brake Decrease"
-msgstr "Steuerung: Lokbremse -"
+#: ..\..\Orts.Common\Enums.cs:44
+msgctxt "Separator"
+msgid "Tab"
+msgstr ""
 
-#: ../../ORTS.Common/Input/UserCommand.cs:127
-msgid "Control Dynamic Brake Increase"
-msgstr "Steuerung: E-Bremse +"
+#: ..\..\Orts.Common\Enums.cs:89
+msgid "SignalAspect"
+msgstr ""
 
-#: ../../ORTS.Common/Input/UserCommand.cs:128
-msgid "Control Dynamic Brake Decrease"
-msgstr "Steuerung: E-Bremse -"
+#: ..\..\Orts.Common\Input\UserCommand.cs:195
+msgid "Control Water Scoop"
+msgstr "Steuerung: Wasserschöpfrohr"
 
-#: ../../ORTS.Common/Input/UserCommand.cs:129
-msgid "Control Bail Off"
-msgstr "Steuerung: Lokbremse getrennt lösen"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:130
-msgid "Control Initialize Brakes"
-msgstr "Steuerung: Bremsen zurücksetzen"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:131
-msgid "Control Handbrake Full"
-msgstr "Steuerung: Handbremsen voll"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:132
-msgid "Control Handbrake None"
-msgstr "Steuerung: Handbremsen gelöst"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:133
-msgid "Control Odometer Show/Hide"
-msgstr "Steuerung: Wegmesser anzeigen/ausblenden"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:134
-msgid "Control Odometer Reset"
-msgstr "Steuerung: Wegmesser zurücksetzen"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:135
-msgid "Control Odometer Direction"
-msgstr "Steuerung: Wegmesser: Zählrichtg. wechseln"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:136
-msgid "Control Retainers On"
-msgstr "Steuerung: Bremsdruckhalteventil schließen"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:137
-msgid "Control Retainers Off"
-msgstr "Steuerung: Bremsdruckhalteventil öffnen"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:138
-msgid "Control Brake Hose Connect"
-msgstr "Steuerung: Bremsschläuche verbinden"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:139
-msgid "Control Brake Hose Disconnect"
-msgstr "Steuerung: Bremsschläuche trennen"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:140
-msgid "Control Alerter"
-msgstr "Steuerung: SIFA"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:141
-msgid "Control Emergency Push Button"
-msgstr "Steuerung: Druckknopf für Notbremse"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:142
-msgid "Control Sander"
-msgstr "Steuerung: Sander"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:143
-msgid "Control Sander Toggle"
-msgstr "Steuerung: Sander an/aus"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:144
+#: ..\..\Orts.Common\Input\UserCommand.cs:149
 msgid "Control Wiper"
 msgstr "Steuerung: Scheibenwischer"
 
-#: ../../ORTS.Common/Input/UserCommand.cs:145
-msgid "Control Horn"
-msgstr "Steuerung: Horn"
+#: ..\..\Orts.Common\Enums.cs:683
+msgctxt "Season"
+msgid "Summer"
+msgstr ""
 
-#: ../../ORTS.Common/Input/UserCommand.cs:146
-msgid "Control Bell"
-msgstr "Steuerung: Glocke"
+#: ..\..\Orts.Common\Enums.cs:445
+msgctxt "CircuitBreaker"
+msgid "Open"
+msgstr ""
 
-#: ../../ORTS.Common/Input/UserCommand.cs:147
-msgid "Control Bell Toggle"
-msgstr "Steuerung: Glocke an/aus"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:148
-msgid "Control Door Left"
-msgstr "Steuerung: Türen links"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:149
-msgid "Control Door Right"
-msgstr "Steuerung: Türen rechts"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:150
-msgid "Control Mirror"
-msgstr "Steuerung: Spiegel"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:151
-msgid "Control Light"
-msgstr "Steuerung: Führerstandbeleuchtung"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:152
-msgid "Control Pantograph 1"
-msgstr "Steuerung: Pantograph 1"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:153
-msgid "Control Pantograph 2"
-msgstr "Steuerung: Pantograph 2"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:154
+#: ..\..\Orts.Common\Input\UserCommand.cs:159
 msgid "Control Pantograph 3"
 msgstr "Steuerung: Pantograph 3"
 
-#: ../../ORTS.Common/Input/UserCommand.cs:155
-msgid "Control Pantograph 4"
-msgstr "Steuerung: Pantograph 4"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:156
-msgid "Control Circuit Breaker Closing Order"
-msgstr "Steuerung: Hauptschalter schließen"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:157
-msgid "Control Circuit Breaker Opening Order"
-msgstr "Steuerung: Hauptschalter öffnen"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:158
-msgid "Control Circuit Breaker Closing Authorization"
-msgstr "Steuerung: Hauptschalter: Schließ-Erlaubnis"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:159
-msgid "Control Diesel Player"
-msgstr "Steuerung: Motor Spielerlok"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:160
-msgid "Control Diesel Helper"
-msgstr "Steuerung: Motor Hilfloks"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:161
-msgid "Control Headlight Increase"
-msgstr "Steuerung: Spitzenlicht aufblenden"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:162
-msgid "Control Headlight Decrease"
-msgstr "Steuerung: Spitzenlicht abblenden"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:163
-msgid "Control Injector 1 Increase"
-msgstr "Steuerung: Speisepumpe 1 +"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:164
-msgid "Control Injector 1 Decrease"
-msgstr "Steuerung: Speisepumpe 1 -"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:165
-msgid "Control Injector 1"
-msgstr "Steuerung: Speisepumpe 1"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:166
-msgid "Control Injector 2 Increase"
-msgstr "Steuerung: Speisepumpe 2 +"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:167
+#: ..\..\Orts.Common\Input\UserCommand.cs:172
 msgid "Control Injector 2 Decrease"
 msgstr "Steuerung: Speisepumpe 2 -"
 
-#: ../../ORTS.Common/Input/UserCommand.cs:168
-msgid "Control Injector 2"
-msgstr "Steuerung: Speisepumpe 2"
+#: ..\..\Orts.Common\Enums.cs:501
+msgctxt "Brake Controller"
+msgid "Self Lap"
+msgstr ""
 
-#: ../../ORTS.Common/Input/UserCommand.cs:169
+#: ..\..\Orts.Common\Enums.cs:86
+msgid "Time"
+msgstr ""
+
+# Um Fokussiertes Objekt
+#: ..\..\Orts.Common\Input\UserCommand.cs:98
+msgid "Camera Pan (Rotate) Right"
+msgstr "Kamera: Nach rechts schwenken"
+
+#: ..\..\Orts.Common\Enums.cs:499
+msgctxt "Brake Controller"
+msgid "Neutral"
+msgstr ""
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:145
+msgid "Control Alerter"
+msgstr "Steuerung: SIFA"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:174
 #, fuzzy
 msgid "Control Blowdown Valve"
 msgstr "Steuerung: Abschlammventil"
 
-#: ../../ORTS.Common/Input/UserCommand.cs:170
-msgid "Control Blower Increase"
-msgstr "Steuerung: Bläser +"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:171
-msgid "Control Blower Decrease"
-msgstr "Steuerung: Bläser -"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:172
-msgid "Control Steam Heat Increase"
-msgstr "Steuerung: Dampfheizung +"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:173
-msgid "Control Steam Heat Decrease"
-msgstr "Steuerung: Dampfheizung -"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:174
-msgid "Control Damper Increase"
-msgstr "Steuerung: Dämpfer +"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:175
-msgid "Control Damper Decrease"
-msgstr "Steuerung: Dämpfer -"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:176
-msgid "Control Firebox Open"
-msgstr "Steuerung: Feuerbüchse öffnen"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:177
-msgid "Control Firebox Close"
-msgstr "Steuerung: Feuerbüchse schließen"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:178
-msgid "Control Firing Rate Increase"
-msgstr "Steuerung: Schaufelrate erhöhen"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:179
-msgid "Control Firing Rate Decrease"
-msgstr "Steuerung: Schaufelrate verringern"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:180
-msgid "Control Fire Shovel Full"
-msgstr "Steuerung: Schaufelrate maximal"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:181
-msgid "Control Cylinder Cocks"
-msgstr "Steuerung: Zylinderhähne"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:182
-msgid "Control Large Ejector Increase"
-msgstr "Steuerung: Gr. Dampfstrahl-Vakuumpumpe +"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:183
+#: ..\..\Orts.Common\Input\UserCommand.cs:188
 msgid "Control Large Ejector Decrease"
 msgstr "Steuerung: Gr. Dampfstrahl-Vakuumpumpe -"
 
-#: ../../ORTS.Common/Input/UserCommand.cs:184
-msgid "Control Small Ejector Increase"
-msgstr "Steuerung: Kl. Dampfstrahl-Vakuumpumpe +"
+#: ..\..\Orts.Common\Input\UserCommand.cs:165
+msgid "Control Diesel Helper"
+msgstr "Steuerung: Motor Hilfloks"
 
-#: ../../ORTS.Common/Input/UserCommand.cs:185
+#: ..\..\Orts.Common\Enums.cs:26
+msgctxt "Reverser"
+msgid "Reverse"
+msgstr "Rückwärts"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:64
+msgid "Debug Weather Change"
+msgstr "Debug: Wetter ändern"
+
+#: ..\..\Orts.Common\FormatStrings.cs:40
+msgid "mm"
+msgstr "mm"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:128
+msgid "Control Train Brake Decrease"
+msgstr "Steuerung: Zugbremse -"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:86
+msgid "Camera Outside Front"
+msgstr "Kamera: Außen 1 (Zugspitze)"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:26
+msgid "Game Uncouple With Mouse"
+msgstr "Spiel: Abkuppeln mit Maus"
+
+#: ..\..\Orts.Common\FormatStrings.cs:60
+msgid "s"
+msgstr "s"
+
+#: ..\..\Orts.Common\Enums.cs:140
+msgid "Information"
+msgstr ""
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:133
+msgid "Control Dynamic Brake Decrease"
+msgstr "Steuerung: E-Bremse -"
+
+#: ..\..\Orts.Common\FormatStrings.cs:65
+msgid "g-us"
+msgstr "gal-us"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:154
+msgid "Control Door Right"
+msgstr "Steuerung: Türen rechts"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:118
+#, fuzzy
+msgid "Camera Browse Forwards"
+msgstr "Kamera: Zug vorwärts entlanglaufen"
+
+#: ..\..\Orts.Common\Enums.cs:668
+msgid "Check for updates every other week"
+msgstr ""
+
+# Um Fokussiertes Objekt
+#: ..\..\Orts.Common\Input\UserCommand.cs:99
+msgid "Camera Pan (Rotate) Up"
+msgstr "Kamera: Nach oben schwenken"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:32
+msgid "Game Clear Signal Forward"
+msgstr "Spiel: Signalfreigabe vorne"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:136
+msgid "Control Handbrake Full"
+msgstr "Steuerung: Handbremsen voll"
+
+#: ..\..\Orts.Common\FormatStrings.cs:43
+msgid "yd"
+msgstr "yd"
+
+#: ..\..\Orts.Common\FormatStrings.cs:61
+msgid "min"
+msgstr "min"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:132
+msgid "Control Dynamic Brake Increase"
+msgstr "Steuerung: E-Bremse +"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:138
+msgid "Control Odometer Show/Hide"
+msgstr "Steuerung: Wegmesser anzeigen/ausblenden"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:111
+msgid "Camera Jumping Trains"
+msgstr "Kamera: zu anderem Zug springen"
+
+#: ..\..\Orts.Common\Enums.cs:539
+msgctxt "Brake Controller"
+msgid "Vac. Apply Cont.Service"
+msgstr ""
+
+#: ..\..\Orts.Common\Enums.cs:503
+msgctxt "Brake Controller"
+msgid "Lap"
+msgstr ""
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:49
+msgid "Display Compass Window"
+msgstr "Anzeigen: Kompass"
+
+#: ..\..\Orts.Common\FormatStrings.cs:41
+msgid "mi"
+msgstr "mi"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:130
+msgid "Control Engine Brake Increase"
+msgstr "Steuerung: Lokbremse +"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:196
+msgid "Control ImmediateRefill"
+msgstr "Steuerung: Sofort auffüllen"
+
+# vorher "Kontrolle erbitten"
+#: ..\..\Orts.Common\Input\UserCommand.cs:28
+#, fuzzy
+msgid "Game Request Control"
+msgstr "Spiel: Kontrolle übernehmen"
+
+#: ..\..\Orts.Common\Enums.cs:495
+msgctxt "Brake Controller"
+msgid "Quick Release"
+msgstr ""
+
+# Um Fokussiertes Objekt
+#: ..\..\Orts.Common\Input\UserCommand.cs:97
+msgid "Camera Pan (Rotate) Left"
+msgstr "Kamera: Nach links schwenken"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:29
+msgid "Game Multi Player Dispatcher"
+msgstr "Spiel: Mehrspieler Disponent"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:45
+msgid "Display Station Labels"
+msgstr "Anzeigen: Stationslabels"
+
+#: ..\..\Orts.Common\Enums.cs:90
+msgid "Track Elevation"
+msgstr ""
+
+#: ..\..\Orts.Common\Enums.cs:96
+msgid "Dyn Brake %"
+msgstr ""
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:77
+msgid "Debug Toggle Confirmations"
+msgstr "Debug: Bestätigungen an/aus"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:79
+msgid "Camera Cab"
+msgstr "Kamera: Führerstand"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:115
+#, fuzzy
+msgid "Camera Scroll Right"
+msgstr "Kamera: Rechts hinauslehnen"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:121
+msgid "Control Backwards"
+msgstr "Steuerung: Rückwärts"
+
+#: ..\..\Orts.Common\Enums.cs:700
+msgctxt "Difficulty"
+msgid "Medium"
+msgstr ""
+
+#: ..\..\Orts.Common\Enums.cs:51
+msgctxt "Measurement units Preference"
+msgid "Route"
+msgstr ""
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:163
+msgid "Control Circuit Breaker Closing Authorization"
+msgstr "Steuerung: Hauptschalter: Schließ-Erlaubnis"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:85
+msgid "Camera Head Out Backward"
+msgstr "Kamera: Hinauslehnen rückwärts"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:157
+msgid "Control Pantograph 1"
+msgstr "Steuerung: Pantograph 1"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:54
+msgid "Debug Speed Down"
+msgstr "Debug: Zeitablauf langsamer"
+
+#: ..\..\Orts.Common\Enums.cs:436
+msgctxt "Pantograph"
+msgid "Down"
+msgstr ""
+
+#: ..\..\Orts.Common\Enums.cs:446
+msgctxt "CircuitBreaker"
+msgid "Closing"
+msgstr ""
+
+#: ..\..\Orts.Common\FormatStrings.cs:51
+msgid "bar"
+msgstr "bar"
+
+#: ..\..\Orts.Common\Enums.cs:692
+msgctxt "Weather"
+msgid "Snow"
+msgstr ""
+
+#: ..\..\Orts.Common\Enums.cs:513
+msgctxt "Brake Controller"
+msgid "Suppression"
+msgstr ""
+
+#: ..\..\Orts.Common\Enums.cs:93
+#, fuzzy
+#| msgid "Control Mirror"
+msgid "Control Mode"
+msgstr "Steuerung: Spiegel"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:22
+msgid "Game Switch Behind"
+msgstr "Spiel: Weiche hinten"
+
+#: ..\..\Orts.Common\Enums.cs:438
+msgctxt "Pantograph"
+msgid "Raising"
+msgstr ""
+
+#: ..\..\Orts.Common\Enums.cs:91
+msgid "Direction"
+msgstr ""
+
+#: ..\..\Orts.Common\Enums.cs:75
+msgctxt "Speed Unit Preference"
+msgid "Route"
+msgstr ""
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:190
 msgid "Control Small Ejector Decrease"
 msgstr "Steuerung: Kl. Dampfstrahl-Vakuumpumpe -"
 
-#: ../../ORTS.Common/Input/UserCommand.cs:186
+#: ..\..\Orts.Common\Input\UserCommand.cs:81
+#, fuzzy
+#| msgid "Camera Toggle Show Cab"
+msgid "Camera Toggle 3D Cab"
+msgstr "Kamera: Führerstandsgrafik an/aus"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:57
+msgid "Debug Overcast Decrease"
+msgstr "Debug: Bewölkung -"
+
+#: ..\..\Orts.Common\FormatStrings.cs:64
+msgid "g-uk"
+msgstr "gal-uk"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:44
+msgid "Display Car Labels"
+msgstr "Anzeigen: Waggonlabels"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:112
+msgid "Camera Jump Back Player"
+msgstr "Kamera: zum Spielerzug springen"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:143
+msgid "Control Brake Hose Connect"
+msgstr "Steuerung: Bremsschläuche verbinden"
+
+#: ..\..\Orts.Common\Enums.cs:523
+msgctxt "Brake Controller"
+msgid "Minimum Reduction"
+msgstr ""
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:180
+msgid "Control Damper Decrease"
+msgstr "Steuerung: Dämpfer -"
+
+#: ..\..\Orts.Common\FormatStrings.cs:73
+msgid "°C"
+msgstr "°C"
+
+#: ..\..\Orts.Common\Enums.cs:43
+msgctxt "Separator"
+msgid "Semicolon"
+msgstr ""
+
+#: ..\..\Orts.Common\FormatStrings.cs:72
+msgid "BTU"
+msgstr "BTU"
+
+#: ..\..\Orts.Common\FormatStrings.cs:47
+msgid "ft³"
+msgstr "ft³"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:152
+msgid "Control Bell Toggle"
+msgstr "Steuerung: Glocke an/aus"
+
+#: ..\..\Orts.Common\Enums.cs:65
+#, fuzzy
+#| msgid "psi"
+msgctxt "Pressure units Preference"
+msgid "psi"
+msgstr "psi"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:114
+msgid "Camera Vibrate"
+msgstr "Kamera: Zug-Schaukeln darstellen"
+
+#: ..\..\Orts.Common\Enums.cs:537
+msgctxt "Brake Controller"
+msgid "Vac. Cont. Service"
+msgstr ""
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:137
+msgid "Control Handbrake None"
+msgstr "Steuerung: Handbremsen gelöst"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:73
+msgid "Debug Reset Wheel Slip"
+msgstr "Debug: Radschlupf zurücksetzen"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:193
+msgid "Control Firing"
+msgstr "Steuerung: Befeuern"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:60
+msgid "Debug Precipitation Increase"
+msgstr "Debug: Niederschlag +"
+
+# durchschalten?
+#: ..\..\Orts.Common\Input\UserCommand.cs:80
+#, fuzzy
+msgid "Camera Change Passenger Viewpoint"
+msgstr "Kamera: Passagieransicht ändern"
+
+#: ..\..\Orts.Common\FormatStrings.cs:75
+msgid "N"
+msgstr "N"
+
+#: ..\..\Orts.Common\FormatStrings.cs:52
+msgid "psi"
+msgstr "psi"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:96
+msgid "Camera Move Slow"
+msgstr "Kamera: Langsame Bewegungen"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:75
+msgid "Debug Sound Form"
+msgstr "Debug: Sound-Formular"
+
+#: ..\..\Orts.Common\FormatStrings.cs:67
+msgid "kW"
+msgstr "kW"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:167
+msgid "Control Headlight Decrease"
+msgstr "Steuerung: Spitzenlicht abblenden"
+
+#: ..\..\Orts.Common\FormatStrings.cs:63
+msgid "L"
+msgstr "L"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:30
+msgid "Game Multi Player Texting"
+msgstr "Spiel: Mehrspieler Nachrichten"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:198
+msgid "Control Turntable Counterclockwise"
+msgstr "Steuerung: Drehscheibe gegen UZS drehen"
+
+#: ..\..\Orts.Common\Enums.cs:85 ..\..\Orts.Common\Enums.cs:139
+msgid "None"
+msgstr ""
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:92
+msgid "Camera Free"
+msgstr "Kamera: Frei beweglich"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:183
+msgid "Control Firing Rate Increase"
+msgstr "Steuerung: Schaufelrate erhöhen"
+
+#: ..\..\Orts.Common\Enums.cs:693
+msgctxt "Weather"
+msgid "Rain"
+msgstr ""
+
+# Um Achse der Kamera
+#: ..\..\Orts.Common\Input\UserCommand.cs:105
+msgid "Camera Rotate (Pan) Up"
+msgstr "Kamera: Nach oben drehen"
+
+#: ..\..\Orts.Common\FormatStrings.cs:62
+msgid "h"
+msgstr "h"
+
+#: ..\..\Orts.Common\FormatStrings.cs:42
+msgid "ft"
+msgstr "ft"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:39
+msgid "Display Next Window Tab"
+msgstr "Anzeigen: Nächste Registerkarte im Fenster"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:153
+msgid "Control Door Left"
+msgstr "Steuerung: Türen links"
+
+#: ..\..\Orts.Common\FormatStrings.cs:57
+msgid "t-uk"
+msgstr "t-uk"
+
+#: ..\..\Orts.Common\Enums.cs:665
+msgid "Check for updates on each start"
+msgstr ""
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:93
+msgid "Camera Previous Free"
+msgstr "Kamera: Vorherige frei Bewegliche"
+
+#: ..\..\Orts.Common\Enums.cs:45
+msgctxt "Separator"
+msgid "Space"
+msgstr ""
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:102
+msgid "Camera Zoom Out (Move Z)"
+msgstr "Kamera: Herauszoomen"
+
+#: ..\..\Orts.Common\FormatStrings.cs:66
+msgid "rpm"
+msgstr "U/min"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:101
+msgid "Camera Zoom In (Move Z)"
+msgstr "Kamera: Hineinzoomen"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:53
+msgid "Debug Speed Up"
+msgstr "Debug: Zeitablauf schneller"
+
+#: ..\..\Orts.Common\FormatStrings.cs:78
+msgid "klbf"
+msgstr "klbf"
+
+#: ..\..\Orts.Common\Enums.cs:67
+#, fuzzy
+#| msgid "inHg"
+msgctxt "Pressure units Preference"
+msgid "inHg"
+msgstr "inHg"
+
+#: ..\..\Orts.Common\FormatStrings.cs:59
+msgid "lb"
+msgstr "lb"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:59
+msgid "Debug Fog Decrease"
+msgstr "Debug: Nebel dünner"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:126
+msgid "Control Gear Down"
+msgstr "Steuerung: Gang zurückschalten"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:40
+msgid "Display Help Window"
+msgstr "Anzeigen: Hilfefenster"
+
+#: ..\..\Orts.Common\FormatStrings.cs:70
+msgid "kJ"
+msgstr "kJ"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:204
+msgid "Control AI Fire Reset"
+msgstr "Steuerung: KI Heizer auf Automatik stellen"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:31
+msgid "Game Switch Manual Mode"
+msgstr "Spiel: Signalmodus umschalten"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:203
+msgid "Control AI Fire Off"
+msgstr "Steuerung: KI Heizer: Heizen beenden"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:17
+msgid "Game Pause"
+msgstr "Spiel: Pause"
+
+#: ..\..\Orts.Common\Enums.cs:507
+msgctxt "Brake Controller"
+msgid "EPApply"
+msgstr ""
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:127
+msgid "Control Train Brake Increase"
+msgstr "Steuerung: Zugbremse +"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:117
+#, fuzzy
+msgid "Camera Browse Backwards"
+msgstr "Kamera: Zug rückwärts entlanglaufen"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:109
+msgid "Camera Car First"
+msgstr "Kamera: Erster Waggon"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:33
+msgid "Game Clear Signal Backward"
+msgstr "Spiel: Signalfreigabe hinten"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:90
+msgid "Camera Passenger"
+msgstr "Kamera: Passagier"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:82
+msgid "Camera Toggle Show Cab"
+msgstr "Kamera: Führerstandsgrafik an/aus"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:185
+msgid "Control Fire Shovel Full"
+msgstr "Steuerung: Schaufelrate maximal"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:74
+msgid "Debug Toggle Advanced Adhesion"
+msgstr "Debug: Detaillierteres Reibungsmodel an/aus"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:189
+msgid "Control Small Ejector Increase"
+msgstr "Steuerung: Kl. Dampfstrahl-Vakuumpumpe +"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:134
+msgid "Control Bail Off"
+msgstr "Steuerung: Lokbremse getrennt lösen"
+
+#: ..\..\Orts.Common\FormatStrings.cs:74
+msgid "°F"
+msgstr "°F"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:76
+msgid "Debug Physics Form"
+msgstr "Debug: Physik-Formular"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:25
+msgid "Game Switch With Mouse"
+msgstr "Spiel: Weiche mit Maus stellen"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:161
+msgid "Control Circuit Breaker Closing Order"
+msgstr "Steuerung: Hauptschalter schließen"
+
+#: ..\..\Orts.Common\FormatStrings.cs:56
+msgid "t"
+msgstr "t"
+
+#: ..\..\Orts.Common\Enums.cs:509 ..\..\Orts.Common\Enums.cs:511
+msgctxt "Brake Controller"
+msgid "Service"
+msgstr ""
+
+#: ..\..\Orts.Common\Enums.cs:535
+msgctxt "Brake Controller"
+msgid "TCS Full Service Braking"
+msgstr ""
+
+#: ..\..\Orts.Common\Enums.cs:92
+msgid "Distance Travelled"
+msgstr ""
+
+#: ..\..\Orts.Common\Enums.cs:54
+msgctxt "Measurement units Preference"
+msgid "Imperial US"
+msgstr ""
+
+#: ..\..\Orts.Common\FormatStrings.cs:53
+msgid "inHg"
+msgstr "inHg"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:68
+msgid "Debug Lock Shadows"
+msgstr "Debug: Schatten festsetzen"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:87
+msgid "Camera Outside Rear"
+msgstr "Kamera: Außen 2 (Zugende)"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:178
+msgid "Control Steam Heat Decrease"
+msgstr "Steuerung: Dampfheizung -"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:201
+msgid "Control Cab Radio"
+msgstr "Steuerung: Führerstand: Funk an / aus"
+
+#: ..\..\Orts.Common\Enums.cs:95
+msgid "Brake Cyl Press"
+msgstr ""
+
+# Kann was?
+#: ..\..\Orts.Common\Input\UserCommand.cs:89
+#, fuzzy
+msgid "Camera SpecialTracksidePoint"
+msgstr "Kamera: Erweiterte Beobachteransicht"
+
+#: ..\..\Orts.Common\FormatStrings.cs:54
+msgid "kgf/cm²"
+msgstr "kp/cm²"
+
+# Um Fokussiertes Objekt
+#: ..\..\Orts.Common\Input\UserCommand.cs:100
+msgid "Camera Pan (Rotate) Down"
+msgstr "Kamera: Nach unten schwenken"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:67
+msgid "Debug Logger"
+msgstr "Debug: Logger"
+
+#: ..\..\Orts.Common\FormatStrings.cs:55
+msgid "kg"
+msgstr "kg"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:124
+msgid "Control Throttle Zero"
+msgstr "Steuerung: Regler 0"
+
+#: ..\..\Orts.Common\Enums.cs:493
+msgctxt "Brake Controller"
+msgid "Release"
+msgstr ""
+
+#: ..\..\Orts.Common\Enums.cs:684
+msgctxt "Season"
+msgid "Autumn"
+msgstr ""
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:18
+msgid "Game Screenshot"
+msgstr "Spiel: Screenshot"
+
+#: ..\..\Orts.Common\FormatStrings.cs:39
+msgid "km"
+msgstr "km"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:170
+msgid "Control Injector 1"
+msgstr "Steuerung: Speisepumpe 1"
+
+#: ..\..\Orts.Common\FormatStrings.cs:46
+msgid "m³"
+msgstr "m³"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:139
+msgid "Control Odometer Reset"
+msgstr "Steuerung: Wegmesser zurücksetzen"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:116
+#, fuzzy
+msgid "Camera Scroll Left"
+msgstr "Kamera: Links hinauslehnen"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:135
+msgid "Control Initialize Brakes"
+msgstr "Steuerung: Bremsen zurücksetzen"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:110
+msgid "Camera Car Last"
+msgstr "Kamera: Letzter Waggon"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:187
+msgid "Control Large Ejector Increase"
+msgstr "Steuerung: Gr. Dampfstrahl-Vakuumpumpe +"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:168
+msgid "Control Injector 1 Increase"
+msgstr "Steuerung: Speisepumpe 1 +"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:65
+msgid "Debug Clock Forwards"
+msgstr "Debug: Uhr vordrehen"
+
+#: ..\..\Orts.Common\FormatStrings.cs:71
+msgid "MJ"
+msgstr "MJ"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:171
+msgid "Control Injector 2 Increase"
+msgstr "Steuerung: Speisepumpe 2 +"
+
+#: ..\..\Orts.Common\FormatStrings.cs:38
+msgid "m"
+msgstr "m"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:20
+msgid "Game External Controller (RailDriver)"
+msgstr ""
+
+#: ..\..\Orts.Common\Enums.cs:517
+msgctxt "Brake Controller"
+msgid "Full Service"
+msgstr ""
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:113
+msgid "Camera Jump See Switch"
+msgstr "Kamera: Weiche ansehen"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:95
+msgid "Camera Move Fast"
+msgstr "Kamera: Schnelle Bewegungen"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:179
+msgid "Control Damper Increase"
+msgstr "Steuerung: Dämpfer +"
+
+#: ..\..\Orts.Common\Enums.cs:533
+msgctxt "Brake Controller"
+msgid "TCS Emergency Braking"
+msgstr ""
+
+#: ..\..\Orts.Common\FormatStrings.cs:58
+msgid "t-us"
+msgstr "t-us"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:125
+msgid "Control Gear Up"
+msgstr "Steuerung: Gang hinaufschalten"
+
+#: ..\..\Orts.Common\Enums.cs:497
+msgctxt "Brake Controller"
+msgid "Running"
+msgstr ""
+
+#: ..\..\Orts.Common\Enums.cs:505
+msgctxt "Brake Controller"
+msgid "Apply"
+msgstr ""
+
+# Um Achse der Kamera
+#: ..\..\Orts.Common\Input\UserCommand.cs:106
+msgid "Camera Rotate (Pan) Down"
+msgstr "Kamera: Nach unten drehen"
+
+#: ..\..\Orts.Common\Enums.cs:669
+msgid "Check for updates every month"
+msgstr ""
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:47
+msgid "Display Train Operations Window"
+msgstr "Anzeigen: Fenster 'Zugbedienung'"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:164
+msgid "Control Diesel Player"
+msgstr "Steuerung: Motor Spielerlok"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:186
+msgid "Control Cylinder Cocks"
+msgstr "Steuerung: Zylinderhähne"
+
+# Kann was?
+#: ..\..\Orts.Common\Input\UserCommand.cs:70
+#, fuzzy
+msgid "Debug Log Render Frame"
+msgstr "Debug: Frame-Render Details loggen"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:191
 #, fuzzy
 msgid "Control Vacuum Exhauster"
 msgstr "Steuerung: Vakuum-Sauglüfter an/aus"
 
-#: ../../ORTS.Common/Input/UserCommand.cs:187
-msgid "Control Cylinder Compound"
-msgstr "Steuerung: Verbundlokomotive"
+#: ..\..\Orts.Common\Input\UserCommand.cs:175
+msgid "Control Blower Increase"
+msgstr "Steuerung: Bläser +"
 
-#: ../../ORTS.Common/Input/UserCommand.cs:188
-msgid "Control Firing"
-msgstr "Steuerung: Befeuern"
+#: ..\..\Orts.Common\Enums.cs:519
+msgctxt "Brake Controller"
+msgid "Emergency"
+msgstr ""
 
-#: ../../ORTS.Common/Input/UserCommand.cs:189
-msgid "Control Refill"
-msgstr "Steuerung: Auffüllen"
+#: ..\..\Orts.Common\Input\UserCommand.cs:51
+msgid "Display Train List Window"
+msgstr "Anzeigen: Zugliste"
 
-#: ../../ORTS.Common/Input/UserCommand.cs:190
-msgid "Control Water Scoop"
-msgstr "Steuerung: Wasserschöpfrohr"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:191
-msgid "Control ImmediateRefill"
-msgstr "Steuerung: Sofort auffüllen"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:192
-msgid "Control Turntable Clockwise"
-msgstr "Steuerung: Drehscheibe im UZS drehen"
-
-#: ../../ORTS.Common/Input/UserCommand.cs:193
-msgid "Control Turntable Counterclockwise"
-msgstr "Steuerung: Drehscheibe gegen UZS drehen"
+#: ..\..\Orts.Common\Enums.cs:685
+msgctxt "Season"
+msgid "Winter"
+msgstr ""
 
 # Kann was?
-#: ../../ORTS.Common/Input/UserCommand.cs:194
-#, fuzzy
-msgid "Control Generic 1"
-msgstr "Steuerung: Benutzerdefinierte Funktion 1"
-
-# Kann was?
-#: ../../ORTS.Common/Input/UserCommand.cs:195
+#: ..\..\Orts.Common\Input\UserCommand.cs:200
 #, fuzzy
 msgid "Control Generic 2"
 msgstr "Steuerung: Benutzerdefinierte Funktion 2"
 
-#: ../../ORTS.Common/Input/UserCommand.cs:196
-msgid "Control Cab Radio"
-msgstr "Steuerung: Führerstand: Funk an / aus"
+#: ..\..\Orts.Common\Input\UserCommand.cs:181
+msgid "Control Firebox Open"
+msgstr "Steuerung: Feuerbüchse öffnen"
 
-#: ../../ORTS.Common/Input/UserCommand.cs:197
+#: ..\..\Orts.Common\Enums.cs:141
+msgid "Warning"
+msgstr ""
+
+#: ..\..\Orts.Common\Enums.cs:94
+msgid "Throttle %"
+msgstr ""
+
+#: ..\..\Orts.Common\Enums.cs:87
+msgid "Train Speed"
+msgstr ""
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:21
+msgid "Game Switch Ahead"
+msgstr "Spiel: Weiche vorne"
+
+#: ..\..\Orts.Common\Enums.cs:61
+msgctxt "Pressure units Preference"
+msgid "Automatic"
+msgstr ""
+
+# Um Achse der Kamera
+#: ..\..\Orts.Common\Input\UserCommand.cs:103
+msgid "Camera Rotate (Pan) Left"
+msgstr "Kamera: Nach links drehen"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:72
+msgid "Debug Signalling"
+msgstr "Debug: Signalsystem"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:192
+msgid "Control Cylinder Compound"
+msgstr "Steuerung: Verbundlokomotive"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:50
+msgid "Display Basic HUD Toggle"
+msgstr "Anzeigen: Einfaches HUD an/aus"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:37
+msgid "Game Suspend Old Player"
+msgstr "Spiel: Alten Spieler-Zug abstellen"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:146
+msgid "Control Emergency Push Button"
+msgstr "Steuerung: Druckknopf für Notbremse"
+
+#: ..\..\Orts.Common\Enums.cs:430
+msgctxt "PowerSupply"
+msgid "On"
+msgstr ""
+
+#: ..\..\Orts.Common\FormatStrings.cs:48
+msgid "km/h"
+msgstr "km/h"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:94
+msgid "Camera Reset"
+msgstr "Kamera: Zurücksetzen"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:156
+msgid "Control Light"
+msgstr "Steuerung: Führerstandbeleuchtung"
+
+#: ..\..\Orts.Common\Enums.cs:666
+msgid "Check for updates once a day"
+msgstr ""
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:61
+msgid "Debug Precipitation Decrease"
+msgstr "Debug: Niederschlag -"
+
+#: ..\..\Orts.Common\Enums.cs:63
+#, fuzzy
+#| msgid "bar"
+msgctxt "Pressure units Preference"
+msgid "bar"
+msgstr "bar"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:150
+msgid "Control Horn"
+msgstr "Steuerung: Horn"
+
+#: ..\..\Orts.Common\Enums.cs:142
+msgid "Error"
+msgstr ""
+
+#: ..\..\Orts.Common\Enums.cs:525
+msgctxt "Brake Controller"
+msgid "Hold"
+msgstr ""
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:197
+msgid "Control Turntable Clockwise"
+msgstr "Steuerung: Drehscheibe im UZS drehen"
+
+#: ..\..\Orts.Common\Enums.cs:439
+msgctxt "Pantograph"
+msgid "Up"
+msgstr ""
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:84
+msgid "Camera Head Out Forward"
+msgstr "Kamera: Hinauslehnen vorwärts"
+
+#: ..\..\Orts.Common\Enums.cs:42
+msgctxt "Separator"
+msgid "Comma"
+msgstr ""
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:176
+msgid "Control Blower Decrease"
+msgstr "Steuerung: Bläser -"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:14
+msgid "Game Pause Menu"
+msgstr "Spiel: Pause (Menü)"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:88
+msgid "Camera Trackside"
+msgstr "Kamera: Beobachter"
+
+#: ..\..\Orts.Common\Enums.cs:428
+msgctxt "PowerSupply"
+msgid "Off"
+msgstr ""
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:162
+msgid "Control Circuit Breaker Opening Order"
+msgstr "Steuerung: Hauptschalter öffnen"
+
+#: ..\..\Orts.Common\FormatStrings.cs:45
+msgid "ft²"
+msgstr "ft²"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:202
 msgid "Control AI Fire On"
 msgstr "Steuerung: KI Heizer: Heizen beginnen"
 
-#: ../../ORTS.Common/Input/UserCommand.cs:198
-msgid "Control AI Fire Off"
-msgstr "Steuerung: KI Heizer: Heizen beenden"
+#: ..\..\Orts.Common\Enums.cs:437
+msgctxt "Pantograph"
+msgid "Lowering"
+msgstr ""
 
-#: ../../ORTS.Common/Input/UserCommand.cs:199
-msgid "Control AI Fire Reset"
-msgstr "Steuerung: KI Heizer auf Automatik stellen"
+#: ..\..\Orts.Common\Input\UserCommand.cs:91
+msgid "Camera Brakeman"
+msgstr "Kamera: Bremser"
+
+#: ..\..\Orts.Common\Enums.cs:69
+#, fuzzy
+#| msgid "kgf/cm²"
+msgctxt "Pressure units Preference"
+msgid "kgf/cm²"
+msgstr "kp/cm²"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:41
+msgid "Display Track Monitor Window"
+msgstr "Anzeigen: Streckenmonitor"
+
+#: ..\..\Orts.Common\Enums.cs:531
+#, fuzzy
+#| msgid "Control Emergency Push Button"
+msgctxt "Brake Controller"
+msgid "Emergency Braking Push Button"
+msgstr "Steuerung: Druckknopf für Notbremse"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:194
+msgid "Control Refill"
+msgstr "Steuerung: Auffüllen"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:55
+msgid "Debug Speed Reset"
+msgstr "Debug: Zeitablauf zurücksetzen"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:48
+msgid "Display Next Station Window"
+msgstr "Anzeigen: Fenster 'Nächster Halt'"
+
+#: ..\..\Orts.Common\Enums.cs:664
+msgid "Manually check for updates"
+msgstr ""
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:66
+msgid "Debug Clock Backwards"
+msgstr "Debug: Uhr zurückdrehen"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:169
+msgid "Control Injector 1 Decrease"
+msgstr "Steuerung: Speisepumpe 1 -"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:158
+msgid "Control Pantograph 2"
+msgstr "Steuerung: Pantograph 2"
+
+#: ..\..\Orts.Common\Enums.cs:143
+msgid "Message"
+msgstr ""
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:129
+msgid "Control Train Brake Zero"
+msgstr "Steuerung: Zugbremse 0"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:177
+msgid "Control Steam Heat Increase"
+msgstr "Steuerung: Dampfheizung +"
+
+#: ..\..\Orts.Common\Enums.cs:76
+msgctxt "Speed Unit Preference"
+msgid "m/s"
+msgstr ""
+
+#: ..\..\Orts.Common\Enums.cs:682
+msgctxt "Season"
+msgid "Spring"
+msgstr ""
+
+#: ..\..\Orts.Common\FormatStrings.cs:49
+msgid "mph"
+msgstr "mph"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:27
+msgid "Game Change Cab"
+msgstr "Spiel: Führerstand wechseln"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:147
+msgid "Control Sander"
+msgstr "Steuerung: Sander"
+
+#: ..\..\Orts.Common\Enums.cs:429
+msgctxt "PowerSupply"
+msgid "On ongoing"
+msgstr ""
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:62
+msgid "Debug Precipitation Liquidity Increase"
+msgstr "Debug: Niederschlag - mehr Regen"
+
+#: ..\..\Orts.Common\Enums.cs:691
+msgctxt "Weather"
+msgid "Clear"
+msgstr ""
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:107
+msgid "Camera Car Next"
+msgstr "Kamera: Nächster Waggon"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:173
+msgid "Control Injector 2"
+msgstr "Steuerung: Speisepumpe 2"
+
+# Um Achse der Kamera
+#: ..\..\Orts.Common\Input\UserCommand.cs:104
+msgid "Camera Rotate (Pan) Right"
+msgstr "Kamera: Nach rechts drehen"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:24
+msgid "Game Signal Picked"
+msgstr "Spiel: Signale vor-auswählen"
+
+#: ..\..\Orts.Common\FormatStrings.cs:77
+msgid "lbf"
+msgstr "lbf"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:160
+msgid "Control Pantograph 4"
+msgstr "Steuerung: Pantograph 4"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:144
+msgid "Control Brake Hose Disconnect"
+msgstr "Steuerung: Bremsschläuche trennen"
+
+#: ..\..\Orts.Common\Enums.cs:55
+msgctxt "Measurement units Preference"
+msgid "Imperial UK"
+msgstr ""
+
+#: ..\..\Orts.Common\Enums.cs:27
+msgctxt "Reverser"
+msgid "N"
+msgstr "Neutral"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:58
+msgid "Debug Fog Increase"
+msgstr "Debug: Nebel dichter"
+
+#: ..\..\Orts.Common\Enums.cs:78
+#, fuzzy
+#| msgid "mph"
+msgctxt "Speed Unit Preference"
+msgid "mph"
+msgstr "mph"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:46
+msgid "Display Switch Window"
+msgstr "Anzeigen: Fenster 'Weichen stellen'"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:43
+#, fuzzy
+#| msgid "Display Train List Window"
+msgid "Display Train Driving Window"
+msgstr "Anzeigen: Zugliste"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:15
+msgid "Game Save"
+msgstr "Spiel: Speichern"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:142
+msgid "Control Retainers Off"
+msgstr "Steuerung: Bremsdruckhalteventil öffnen"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:148
+msgid "Control Sander Toggle"
+msgstr "Steuerung: Sander an/aus"
+
+# Kann was?
+#: ..\..\Orts.Common\Input\UserCommand.cs:199
+#, fuzzy
+msgid "Control Generic 1"
+msgstr "Steuerung: Benutzerdefinierte Funktion 1"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:184
+msgid "Control Firing Rate Decrease"
+msgstr "Steuerung: Schaufelrate verringern"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:19
+msgid "Game Fullscreen"
+msgstr "Spiel: Vollbild"
+
+#: ..\..\Orts.Common\Enums.cs:52
+msgctxt "Measurement units Preference"
+msgid "Player's location"
+msgstr ""
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:63
+msgid "Debug Precipitation Liquidity Decrease"
+msgstr "Debug: Niederschlag - mehr Schnee"
+
+#: ..\..\Orts.Common\Enums.cs:667
+msgid "Check for updates once a week"
+msgstr ""
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:69
+msgid "Debug Dump Keyboard Map"
+msgstr "Debug: Tastenbelegung speichern (>Desktop)"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:182
+msgid "Control Firebox Close"
+msgstr "Steuerung: Feuerbüchse schließen"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:56
+msgid "Debug Overcast Increase"
+msgstr "Debug: Bewölkung +"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:34
+msgid "Game Reset Signal Forward"
+msgstr "Spiel: Signal vorne zurücksetzen"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:16
+msgid "Game Quit"
+msgstr "Spiel: Beenden"
+
+#: ..\..\Orts.Common\FormatStrings.cs:68
+msgid "hp"
+msgstr "hp"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:151
+msgid "Control Bell"
+msgstr "Steuerung: Glocke"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:35
+msgid "Game Reset Signal Backward"
+msgstr "Spiel: Signal hinten zurücksetzen"
+
+#: ..\..\Orts.Common\Enums.cs:701
+msgctxt "Difficulty"
+msgid "Hard"
+msgstr ""
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:83
+#, fuzzy
+msgid "Camera Toggle Letterbox Cab"
+msgstr "Kamera: Führerstand nicht verzerren"
+
+#: ..\..\Orts.Common\Enums.cs:699
+msgctxt "Difficulty"
+msgid "Easy"
+msgstr ""
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:71
+msgid "Debug Tracks"
+msgstr "Debug: Gleise"
+
+#: ..\..\Orts.Common\Enums.cs:53
+msgctxt "Measurement units Preference"
+msgid "Metric"
+msgstr ""
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:131
+msgid "Control Engine Brake Decrease"
+msgstr "Steuerung: Lokbremse -"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:123
+msgid "Control Throttle Decrease"
+msgstr "Steuerung: Regler niedriger"
+
+#: ..\..\Orts.Common\FormatStrings.cs:44
+msgid "m²"
+msgstr "m²"
+
+#: ..\..\Orts.Common\Enums.cs:97
+msgid "Gear Setting"
+msgstr ""
+
+#: ..\..\Orts.Common\Enums.cs:88
+msgid "Max. Speed"
+msgstr ""
+
+#: ..\..\Orts.Common\FormatStrings.cs:69
+msgid "bhp"
+msgstr "bhp"
+
+#: ..\..\Orts.Common\Enums.cs:28
+msgctxt "Reverser"
+msgid "Forward"
+msgstr "Vorwärts"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:166
+msgid "Control Headlight Increase"
+msgstr "Steuerung: Spitzenlicht aufblenden"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:140
+msgid "Control Odometer Direction"
+msgstr "Steuerung: Wegmesser: Zählrichtg. wechseln"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:36
+msgid "Game Autopilot Mode"
+msgstr "Spiel: Autopilot aktivieren"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:120
+msgid "Control Forwards"
+msgstr "Steuerung: Vorwärts"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:23
+msgid "Game Switch Picked"
+msgstr "Spiel: Weichen vor-auswählen"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:155
+msgid "Control Mirror"
+msgstr "Steuerung: Spiegel"
+
+#: ..\..\Orts.Common\Enums.cs:77
+#, fuzzy
+#| msgid "km/h"
+msgctxt "Speed Unit Preference"
+msgid "km/h"
+msgstr "km/h"
+
+#: ..\..\Orts.Common\Input\UserCommand.cs:141
+msgid "Control Retainers On"
+msgstr "Steuerung: Bremsdruckhalteventil schließen"
+
+#~ msgid "Camera 3D Cab"
+#~ msgstr "Kamera: 3D-Führerstand"
 
 #~ msgid "Control TroughRefill"
 #~ msgstr "Steuerung: Auffüllen bei Wassertrog"
