@@ -7,6 +7,8 @@ using System.Linq;
 
 using Microsoft.Win32;
 
+using Orts.Common;
+
 namespace Orts.Settings.Store
 {
     /// <summary>
@@ -72,7 +74,7 @@ namespace Orts.Settings.Store
                     return intValues.Split(',').Select(s => int.Parse(s, CultureInfo.InvariantCulture)).ToArray();
 
                 if (expectedType.IsEnum && userValue is string enumValue)
-                    return Enum.Parse(expectedType, enumValue);
+                    return Enum.Parse(expectedType, enumValue, true);
 
                 // Convert whatever we're left with into the expected type.
                 return Convert.ChangeType(userValue, expectedType, CultureInfo.InvariantCulture);

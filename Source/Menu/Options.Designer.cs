@@ -1997,7 +1997,7 @@
             this.buttonUpdatesRefresh.Name = "buttonUpdatesRefresh";
             this.buttonUpdatesRefresh.Size = new System.Drawing.Size(23, 23);
             this.buttonUpdatesRefresh.TabIndex = 30;
-            this.buttonUpdatesRefresh.Font = new System.Drawing.Font("Wingdings 3", 14F); 
+            this.buttonUpdatesRefresh.Font = new System.Drawing.Font("Wingdings 3", 12); 
             this.buttonUpdatesRefresh.Text = char.ConvertFromUtf32(81);
             this.buttonUpdatesRefresh.UseVisualStyleBackColor = true;
             this.buttonUpdatesRefresh.Click += new System.EventHandler(this.ButtonUpdatesRefresh_Click);

@@ -191,7 +191,7 @@ namespace Orts.Menu
             if (!initialized)
             {
                 initTasks.Add(CheckForUpdateAsync());
-                initTasks.Add(Task.Run(LoadToolsAndDocuments));
+                LoadToolsAndDocuments();
 
                 comboBoxStartSeason.DataSourceFromEnumIndex<SeasonType>(commonCatalog);
                 comboBoxStartWeather.DataSourceFromEnumIndex<WeatherType>(commonCatalog);

@@ -107,7 +107,7 @@ namespace Orts.Settings.Store
 
                 if (expectedType.IsEnum)
                 {
-                    return Enum.Parse(expectedType, userValue);
+                    return Enum.Parse(expectedType, userValue, true);
                 }
                 else
                     // Convert whatever we're left with into the expected type.
