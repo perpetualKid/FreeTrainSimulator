@@ -1,0 +1,72 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2020-09-17 08:26:08+0200\n"
+"PO-Revision-Date: 2020-09-17 08:26:08+0200\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: GetText.NET Extractor\n"
+
+#: ..\..\Orts.Formats.Msts\Enums.cs:518
+msgid "diesel oil"
+msgstr ""
+
+#: ..\..\Orts.Formats.Msts\Enums.cs:516
+msgid "water"
+msgstr ""
+
+#: ..\..\Orts.Formats.Msts\Enums.cs:517
+msgid "coal"
+msgstr ""
+
+#: ..\..\Orts.Formats.Msts\Enums.cs:522
+msgid "freight-livestock"
+msgstr ""
+
+#: ..\..\Orts.Formats.Msts\Enums.cs:515
+msgid "freight-sand"
+msgstr ""
+
+#: ..\..\Orts.Formats.Msts\Enums.cs:521
+msgid "freight-general"
+msgstr ""
+
+#: ..\..\Orts.Formats.Msts\Enums.cs:512
+msgid "freight-grain"
+msgstr ""
+
+#: ..\..\Orts.Formats.Msts\Enums.cs:513
+msgid "freight-coal"
+msgstr ""
+
+#: ..\..\Orts.Formats.Msts\Enums.cs:523
+msgid "freight-fuel"
+msgstr ""
+
+#: ..\..\Orts.Formats.Msts\Enums.cs:525
+msgid "mail"
+msgstr ""
+
+#: ..\..\Orts.Formats.Msts\Enums.cs:520
+msgid "sand"
+msgstr ""
+
+#: ..\..\Orts.Formats.Msts\Enums.cs:511
+msgid "none"
+msgstr ""
+
+#: ..\..\Orts.Formats.Msts\Enums.cs:519
+msgid "wood"
+msgstr ""
+
+#: ..\..\Orts.Formats.Msts\Enums.cs:514
+msgid "freight-gravel"
+msgstr ""
+
+#: ..\..\Orts.Formats.Msts\Enums.cs:524
+msgid "freight-milk"
+msgstr ""
+
