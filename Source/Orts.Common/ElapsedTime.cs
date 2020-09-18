@@ -18,14 +18,22 @@
 
 namespace Orts.Common
 {
+#pragma warning disable CA1815 // Override equals and operator equals on value types
     public readonly struct ElapsedTime
+#pragma warning restore CA1815 // Override equals and operator equals on value types
     {
+#pragma warning disable CA1051 // Do not declare visible instance fields
         public readonly double ClockSeconds;
         public readonly double RealSeconds;
+#pragma warning restore CA1051 // Do not declare visible instance fields
 
-        public static ElapsedTime Zero = new ElapsedTime();
+#pragma warning disable CA2211 // Non-constant fields should not be visible
+        public static ElapsedTime Zero;
+#pragma warning restore CA2211 // Non-constant fields should not be visible
 
+#pragma warning disable CA2225 // Operator overloads have named alternates
         public static ElapsedTime operator +(in ElapsedTime a, in ElapsedTime b)
+#pragma warning restore CA2225 // Operator overloads have named alternates
         {
             return new ElapsedTime(a.ClockSeconds + b.ClockSeconds, a.RealSeconds + b.RealSeconds);
         }

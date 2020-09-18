@@ -221,7 +221,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                                 VersionInfo.Version),
                                 $"{Application.ProductName} {VersionInfo.Version}", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         }
-                        else if (error is InvalidCommandLine)
+                        else if (error is InvalidCommandLineException)
                             MessageBox.Show(String.Format(
                                 "{0} was started with an invalid command-line. {1} Arguments given:\n\n{2}",
                                 Application.ProductName,
@@ -951,14 +951,14 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             switch (acttype)
             {
                 case "activity":
-                    if (args.Length < 1) throw new InvalidCommandLine("Mode 'activity' needs 1 argument: activity file.");
+                    if (args.Length < 1) throw new InvalidCommandLineException("Mode 'activity' needs 1 argument: activity file.");
                     Console.WriteLine("Route      = {0}", GetRouteName(args[0]));
                     Console.WriteLine("Activity   = {0} ({1})", GetActivityName(args[0]), args[0]);
                     break;
 
                 case "explorer":
                 case "exploreactivity":
-                    if (args.Length < 5) throw new InvalidCommandLine("Mode 'explorer' needs 5 arguments: path file, consist file, time (hh[:mm[:ss]]), season (0-3), weather (0-2).");
+                    if (args.Length < 5) throw new InvalidCommandLineException("Mode 'explorer' needs 5 arguments: path file, consist file, time (hh[:mm[:ss]]), season (0-3), weather (0-2).");
                     Console.WriteLine("Route      = {0}", GetRouteName(args[0]));
                     Console.WriteLine("Path       = {0} ({1})", GetPathName(args[0]), args[0]);
                     Console.WriteLine("Consist    = {0} ({1})", GetConsistName(args[1]), args[1]);
@@ -968,7 +968,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                     break;
 
                 case "timetable":
-                    if (args.Length < 5) throw new InvalidCommandLine("Mode 'timetable' needs 5 arguments: timetable file, train name, day (???), season (0-3), weather (0-2).");
+                    if (args.Length < 5) throw new InvalidCommandLineException("Mode 'timetable' needs 5 arguments: timetable file, train name, day (???), season (0-3), weather (0-2).");
                     Console.WriteLine("File       = {0}", args[0]);
                     Console.WriteLine("Train      = {0}", args[1]);
                     Console.WriteLine("Day        = {0}", args[2]);
@@ -977,7 +977,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                     break;
 
                 default:
-                    throw new InvalidCommandLine("Unexpected mode '" + acttype + "' with argument count " + args.Length);
+                    throw new InvalidCommandLineException("Unexpected mode '" + acttype + "' with argument count " + args.Length);
             }
 
             LogSeparator();

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Runtime.Serialization;
 
 namespace Orts.Common
 {
@@ -10,6 +11,24 @@ namespace Orts.Common
             : base("A fatal error has occurred", innerException)
         {
             Debug.Assert(innerException != null, "The inner exception of a FatalException must not be null.");
+        }
+
+        public FatalException()
+            : base("A fatal error has occurred")
+        {
+        }
+
+        public FatalException(string message) : base(message)
+        {
+        }
+
+        public FatalException(string message, Exception innerException) : base(message, innerException)
+        {
+        }
+
+        private FatalException(SerializationInfo serializationInfo, StreamingContext streamingContext) 
+            : base(serializationInfo, streamingContext)
+        {
         }
     }
 
@@ -30,13 +49,43 @@ namespace Orts.Common
             : this(saveFile, version, null)
         {
         }
+
+        public IncompatibleSaveException()
+        {
+        }
+
+        public IncompatibleSaveException(string message) : base(message)
+        {
+        }
+
+        public IncompatibleSaveException(string message, Exception innerException) : base(message, innerException)
+        {
+        }
+
+        private IncompatibleSaveException(SerializationInfo info, StreamingContext context) 
+            : base(info, context)
+        {
+        }
     }
 
     [Serializable]
-    public sealed class InvalidCommandLine : Exception
+    public sealed class InvalidCommandLineException : Exception
     {
-        public InvalidCommandLine(string message)
+        public InvalidCommandLineException(string message)
             : base(message)
+        {
+        }
+
+        public InvalidCommandLineException()
+        {
+        }
+
+        public InvalidCommandLineException(string message, Exception innerException) : base(message, innerException)
+        {
+        }
+
+        private InvalidCommandLineException(SerializationInfo serializationInfo, StreamingContext streamingContext)
+            : base(serializationInfo, streamingContext)
         {
         }
     }
