@@ -81,12 +81,15 @@
             this.bBackgroundColor = new System.Windows.Forms.Button();
             this.cbShowSwitches = new System.Windows.Forms.CheckBox();
             this.lblInstruction = new System.Windows.Forms.Label();
-            this.bSwitchWindow = new System.Windows.Forms.Button();
             this.cbShowTrainLabels = new System.Windows.Forms.CheckBox();
+            this.tWindow = new System.Windows.Forms.TabControl();
+            this.tDispatch = new System.Windows.Forms.TabPage();
+            this.tTimetable = new System.Windows.Forms.TabPage();
             ((System.ComponentModel.ISupportInitialize)(this.pbCanvas)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.windowSizeUpDown)).BeginInit();
             this.gbTrains.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.nudDaylightOffsetHrs)).BeginInit();
+            this.tWindow.SuspendLayout();
             this.SuspendLayout();
             // 
             // pbCanvas
@@ -105,8 +108,7 @@
             // 
             this.refreshButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.refreshButton.Font = new System.Drawing.Font("Segoe UI Semibold", 10.2F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.refreshButton.Location = new System.Drawing.Point(1091, 129);
-            this.refreshButton.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.refreshButton.Location = new System.Drawing.Point(820, 137);
             this.refreshButton.Name = "refreshButton";
             this.refreshButton.Size = new System.Drawing.Size(124, 28);
             this.refreshButton.TabIndex = 1;
@@ -123,8 +125,7 @@
             0,
             0,
             0});
-            this.windowSizeUpDown.Location = new System.Drawing.Point(1076, 6);
-            this.windowSizeUpDown.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.windowSizeUpDown.Location = new System.Drawing.Point(802, 31);
             this.windowSizeUpDown.Maximum = new decimal(new int[] {
             200000,
             0,
@@ -150,8 +151,7 @@
             this.resLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.resLabel.AutoSize = true;
             this.resLabel.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.resLabel.Location = new System.Drawing.Point(1189, 11);
-            this.resLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.resLabel.Location = new System.Drawing.Point(887, 35);
             this.resLabel.Name = "resLabel";
             this.resLabel.Size = new System.Drawing.Size(23, 20);
             this.resLabel.TabIndex = 8;
@@ -161,10 +161,9 @@
             // 
             this.AvatarView.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.AvatarView.HideSelection = false;
-            this.AvatarView.Location = new System.Drawing.Point(1039, 197);
-            this.AvatarView.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.AvatarView.Location = new System.Drawing.Point(779, 200);
             this.AvatarView.Name = "AvatarView";
-            this.AvatarView.Size = new System.Drawing.Size(160, 734);
+            this.AvatarView.Size = new System.Drawing.Size(121, 556);
             this.AvatarView.TabIndex = 14;
             this.AvatarView.UseCompatibleStateImageBehavior = false;
             this.AvatarView.SelectedIndexChanged += new System.EventHandler(this.AvatarView_SelectedIndexChanged);
@@ -172,7 +171,7 @@
             // rmvButton
             // 
             this.rmvButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.rmvButton.Location = new System.Drawing.Point(1021, 162);
+            this.rmvButton.Location = new System.Drawing.Point(773, 164);
             this.rmvButton.Margin = new System.Windows.Forms.Padding(2);
             this.rmvButton.Name = "rmvButton";
             this.rmvButton.Size = new System.Drawing.Size(96, 30);
@@ -187,8 +186,7 @@
             this.chkAllowUserSwitch.AutoSize = true;
             this.chkAllowUserSwitch.Checked = true;
             this.chkAllowUserSwitch.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkAllowUserSwitch.Location = new System.Drawing.Point(937, 60);
-            this.chkAllowUserSwitch.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.chkAllowUserSwitch.Location = new System.Drawing.Point(681, 71);
             this.chkAllowUserSwitch.Name = "chkAllowUserSwitch";
             this.chkAllowUserSwitch.Size = new System.Drawing.Size(110, 24);
             this.chkAllowUserSwitch.TabIndex = 16;
@@ -202,8 +200,7 @@
             this.chkShowAvatars.AutoSize = true;
             this.chkShowAvatars.Checked = true;
             this.chkShowAvatars.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkShowAvatars.Location = new System.Drawing.Point(940, 38);
-            this.chkShowAvatars.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.chkShowAvatars.Location = new System.Drawing.Point(681, 53);
             this.chkShowAvatars.Name = "chkShowAvatars";
             this.chkShowAvatars.Size = new System.Drawing.Size(120, 24);
             this.chkShowAvatars.TabIndex = 17;
@@ -215,10 +212,9 @@
             // 
             this.MSG.Enabled = false;
             this.MSG.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.MSG.Location = new System.Drawing.Point(1, 4);
-            this.MSG.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.MSG.Location = new System.Drawing.Point(1, 38);
             this.MSG.Name = "MSG";
-            this.MSG.Size = new System.Drawing.Size(776, 30);
+            this.MSG.Size = new System.Drawing.Size(560, 26);
             this.MSG.TabIndex = 18;
             this.MSG.WordWrap = false;
             this.MSG.Enter += new System.EventHandler(this.MSGEnter);
@@ -227,8 +223,9 @@
             // 
             // msgSelected
             // 
+            this.msgSelected.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.msgSelected.Enabled = false;
-            this.msgSelected.Location = new System.Drawing.Point(787, 75);
+            this.msgSelected.Location = new System.Drawing.Point(569, 78);
             this.msgSelected.Margin = new System.Windows.Forms.Padding(2);
             this.msgSelected.MaximumSize = new System.Drawing.Size(267, 30);
             this.msgSelected.MinimumSize = new System.Drawing.Size(139, 30);
@@ -241,8 +238,9 @@
             // 
             // msgAll
             // 
+            this.msgAll.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.msgAll.Enabled = false;
-            this.msgAll.Location = new System.Drawing.Point(787, 39);
+            this.msgAll.Location = new System.Drawing.Point(569, 53);
             this.msgAll.Margin = new System.Windows.Forms.Padding(2);
             this.msgAll.MaximumSize = new System.Drawing.Size(267, 30);
             this.msgAll.MinimumSize = new System.Drawing.Size(139, 30);
@@ -255,7 +253,8 @@
             // 
             // composeMSG
             // 
-            this.composeMSG.Location = new System.Drawing.Point(787, 4);
+            this.composeMSG.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.composeMSG.Location = new System.Drawing.Point(569, 28);
             this.composeMSG.Margin = new System.Windows.Forms.Padding(2);
             this.composeMSG.MaximumSize = new System.Drawing.Size(267, 30);
             this.composeMSG.MinimumSize = new System.Drawing.Size(139, 30);
@@ -270,8 +269,7 @@
             // 
             this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(1033, 11);
-            this.label1.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label1.Location = new System.Drawing.Point(770, 35);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(32, 20);
             this.label1.TabIndex = 7;
@@ -279,8 +277,9 @@
             // 
             // reply2Selected
             // 
+            this.reply2Selected.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.reply2Selected.Enabled = false;
-            this.reply2Selected.Location = new System.Drawing.Point(787, 111);
+            this.reply2Selected.Location = new System.Drawing.Point(569, 103);
             this.reply2Selected.Margin = new System.Windows.Forms.Padding(2);
             this.reply2Selected.MaximumSize = new System.Drawing.Size(267, 30);
             this.reply2Selected.MinimumSize = new System.Drawing.Size(139, 30);
@@ -297,8 +296,7 @@
             this.chkDrawPath.AutoSize = true;
             this.chkDrawPath.Checked = true;
             this.chkDrawPath.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkDrawPath.Location = new System.Drawing.Point(1072, 39);
-            this.chkDrawPath.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.chkDrawPath.Location = new System.Drawing.Point(803, 58);
             this.chkDrawPath.Name = "chkDrawPath";
             this.chkDrawPath.Size = new System.Drawing.Size(98, 24);
             this.chkDrawPath.TabIndex = 24;
@@ -312,10 +310,9 @@
             this.boxSetSignal.Enabled = false;
             this.boxSetSignal.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.boxSetSignal.FormattingEnabled = true;
-            this.boxSetSignal.ItemHeight = 25;
-            this.boxSetSignal.Location = new System.Drawing.Point(279, 252);
-            this.boxSetSignal.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
-            this.boxSetSignal.MinimumSize = new System.Drawing.Size(213, 123);
+            this.boxSetSignal.ItemHeight = 20;
+            this.boxSetSignal.Location = new System.Drawing.Point(209, 205);
+            this.boxSetSignal.MinimumSize = new System.Drawing.Size(160, 100);
             this.boxSetSignal.Name = "boxSetSignal";
             this.boxSetSignal.Size = new System.Drawing.Size(219, 100);
             this.boxSetSignal.TabIndex = 25;
@@ -347,8 +344,7 @@
             this.chkPickSignals.AutoSize = true;
             this.chkPickSignals.Checked = true;
             this.chkPickSignals.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkPickSignals.Location = new System.Drawing.Point(1075, 60);
-            this.chkPickSignals.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.chkPickSignals.Location = new System.Drawing.Point(803, 75);
             this.chkPickSignals.Name = "chkPickSignals";
             this.chkPickSignals.Size = new System.Drawing.Size(108, 24);
             this.chkPickSignals.TabIndex = 27;
@@ -361,8 +357,7 @@
             this.chkPickSwitches.AutoSize = true;
             this.chkPickSwitches.Checked = true;
             this.chkPickSwitches.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkPickSwitches.Location = new System.Drawing.Point(1073, 81);
-            this.chkPickSwitches.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.chkPickSwitches.Location = new System.Drawing.Point(803, 92);
             this.chkPickSwitches.Name = "chkPickSwitches";
             this.chkPickSwitches.Size = new System.Drawing.Size(118, 24);
             this.chkPickSwitches.TabIndex = 28;
@@ -375,8 +370,7 @@
             this.chkAllowNew.AutoSize = true;
             this.chkAllowNew.Checked = true;
             this.chkAllowNew.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkAllowNew.Location = new System.Drawing.Point(943, 15);
-            this.chkAllowNew.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.chkAllowNew.Location = new System.Drawing.Point(681, 34);
             this.chkAllowNew.Name = "chkAllowNew";
             this.chkAllowNew.Size = new System.Drawing.Size(86, 24);
             this.chkAllowNew.TabIndex = 29;
@@ -389,17 +383,16 @@
             this.messages.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.messages.FormattingEnabled = true;
             this.messages.ItemHeight = 24;
-            this.messages.Location = new System.Drawing.Point(1, 47);
-            this.messages.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.messages.Location = new System.Drawing.Point(1, 68);
             this.messages.Name = "messages";
-            this.messages.Size = new System.Drawing.Size(776, 52);
+            this.messages.Size = new System.Drawing.Size(560, 58);
             this.messages.TabIndex = 22;
             this.messages.SelectedIndexChanged += new System.EventHandler(this.msgSelectedChanged);
             // 
             // btnAssist
             // 
             this.btnAssist.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnAssist.Location = new System.Drawing.Point(929, 128);
+            this.btnAssist.Location = new System.Drawing.Point(762, 111);
             this.btnAssist.Margin = new System.Windows.Forms.Padding(2);
             this.btnAssist.Name = "btnAssist";
             this.btnAssist.Size = new System.Drawing.Size(64, 30);
@@ -411,7 +404,7 @@
             // btnNormal
             // 
             this.btnNormal.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnNormal.Location = new System.Drawing.Point(1007, 128);
+            this.btnNormal.Location = new System.Drawing.Point(762, 136);
             this.btnNormal.Margin = new System.Windows.Forms.Padding(2);
             this.btnNormal.Name = "btnNormal";
             this.btnNormal.Size = new System.Drawing.Size(77, 30);
@@ -424,8 +417,7 @@
             // 
             this.btnFollow.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.btnFollow.Font = new System.Drawing.Font("Segoe UI Semibold", 10.2F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnFollow.Location = new System.Drawing.Point(1127, 164);
-            this.btnFollow.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.btnFollow.Location = new System.Drawing.Point(847, 165);
             this.btnFollow.Name = "btnFollow";
             this.btnFollow.Size = new System.Drawing.Size(80, 28);
             this.btnFollow.TabIndex = 32;
@@ -439,7 +431,7 @@
             this.chkBoxPenalty.AutoSize = true;
             this.chkBoxPenalty.Checked = true;
             this.chkBoxPenalty.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkBoxPenalty.Location = new System.Drawing.Point(943, 81);
+            this.chkBoxPenalty.Location = new System.Drawing.Point(681, 107);
             this.chkBoxPenalty.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.chkBoxPenalty.Name = "chkBoxPenalty";
             this.chkBoxPenalty.Size = new System.Drawing.Size(78, 24);
@@ -454,8 +446,7 @@
             this.chkPreferGreen.AutoSize = true;
             this.chkPreferGreen.Checked = true;
             this.chkPreferGreen.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkPreferGreen.Location = new System.Drawing.Point(945, 102);
-            this.chkPreferGreen.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.chkPreferGreen.Location = new System.Drawing.Point(681, 89);
             this.chkPreferGreen.Name = "chkPreferGreen";
             this.chkPreferGreen.Size = new System.Drawing.Size(113, 24);
             this.chkPreferGreen.TabIndex = 34;
@@ -468,8 +459,7 @@
             // 
             this.btnSeeInGame.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.btnSeeInGame.Font = new System.Drawing.Font("Segoe UI", 9F);
-            this.btnSeeInGame.Location = new System.Drawing.Point(1091, 100);
-            this.btnSeeInGame.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.btnSeeInGame.Location = new System.Drawing.Point(820, 113);
             this.btnSeeInGame.Name = "btnSeeInGame";
             this.btnSeeInGame.Size = new System.Drawing.Size(124, 28);
             this.btnSeeInGame.TabIndex = 35;
@@ -481,7 +471,7 @@
             // 
             this.lblSimulationTimeText.AutoSize = true;
             this.lblSimulationTimeText.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblSimulationTimeText.Location = new System.Drawing.Point(5, 8);
+            this.lblSimulationTimeText.Location = new System.Drawing.Point(5, 34);
             this.lblSimulationTimeText.Name = "lblSimulationTimeText";
             this.lblSimulationTimeText.Size = new System.Drawing.Size(104, 16);
             this.lblSimulationTimeText.TabIndex = 36;
@@ -492,7 +482,7 @@
             // 
             this.lblSimulationTime.AutoSize = true;
             this.lblSimulationTime.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblSimulationTime.Location = new System.Drawing.Point(115, 8);
+            this.lblSimulationTime.Location = new System.Drawing.Point(115, 34);
             this.lblSimulationTime.Name = "lblSimulationTime";
             this.lblSimulationTime.Size = new System.Drawing.Size(101, 16);
             this.lblSimulationTime.TabIndex = 37;
@@ -669,24 +659,14 @@
             // lblInstruction
             // 
             this.lblInstruction.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.lblInstruction.Location = new System.Drawing.Point(6, 724);
+            this.lblInstruction.Location = new System.Drawing.Point(8, 722);
             this.lblInstruction.Name = "lblInstruction";
-            this.lblInstruction.Size = new System.Drawing.Size(210, 32);
+            this.lblInstruction.Padding = new System.Windows.Forms.Padding(3);
+            this.lblInstruction.Size = new System.Drawing.Size(208, 32);
             this.lblInstruction.TabIndex = 48;
             this.lblInstruction.Text = "To pan, drag with left mouse.                      To zoom, drag with left and ri" +
     "ght mouse.";
             this.lblInstruction.Visible = false;
-            // 
-            // bSwitchWindow
-            // 
-            this.bSwitchWindow.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.bSwitchWindow.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.bSwitchWindow.Location = new System.Drawing.Point(803, 5);
-            this.bSwitchWindow.Name = "bSwitchWindow";
-            this.bSwitchWindow.Size = new System.Drawing.Size(112, 42);
-            this.bSwitchWindow.TabIndex = 49;
-            this.bSwitchWindow.Text = "Switch to Dispatch Window";
-            this.bSwitchWindow.UseVisualStyleBackColor = true;
             // 
             // cbShowTrainLabels
             // 
@@ -701,6 +681,39 @@
             this.cbShowTrainLabels.UseVisualStyleBackColor = true;
             this.cbShowTrainLabels.Visible = false;
             // 
+            // tWindow
+            // 
+            this.tWindow.Controls.Add(this.tDispatch);
+            this.tWindow.Controls.Add(this.tTimetable);
+            this.tWindow.Location = new System.Drawing.Point(0, 0);
+            this.tWindow.Name = "tWindow";
+            this.tWindow.SelectedIndex = 0;
+            this.tWindow.Size = new System.Drawing.Size(923, 32);
+            this.tWindow.TabIndex = 51;
+            this.tWindow.SelectedIndexChanged += new System.EventHandler(this.tWindow_SelectedIndexChanged);
+            // 
+            // tDispatch
+            // 
+            this.tDispatch.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.tDispatch.Location = new System.Drawing.Point(4, 22);
+            this.tDispatch.Name = "tDispatch";
+            this.tDispatch.Padding = new System.Windows.Forms.Padding(3);
+            this.tDispatch.Size = new System.Drawing.Size(915, 6);
+            this.tDispatch.TabIndex = 0;
+            this.tDispatch.Text = "Dispatch Window";
+            this.tDispatch.UseVisualStyleBackColor = true;
+            // 
+            // tTimetable
+            // 
+            this.tTimetable.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.tTimetable.Location = new System.Drawing.Point(4, 22);
+            this.tTimetable.Name = "tTimetable";
+            this.tTimetable.Padding = new System.Windows.Forms.Padding(3);
+            this.tTimetable.Size = new System.Drawing.Size(915, 6);
+            this.tTimetable.TabIndex = 1;
+            this.tTimetable.Text = "Timetable Window";
+            this.tTimetable.UseVisualStyleBackColor = true;
+            // 
             // DispatchViewer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
@@ -708,7 +721,6 @@
             this.AutoScroll = true;
             this.ClientSize = new System.Drawing.Size(1231, 945);
             this.Controls.Add(this.cbShowTrainLabels);
-            this.Controls.Add(this.bSwitchWindow);
             this.Controls.Add(this.lblInstruction);
             this.Controls.Add(this.cbShowSwitches);
             this.Controls.Add(this.bBackgroundColor);
@@ -749,8 +761,7 @@
             this.Controls.Add(this.windowSizeUpDown);
             this.Controls.Add(this.refreshButton);
             this.Controls.Add(this.pbCanvas);
-            this.Font = new System.Drawing.Font("Segoe UI", 9F);
-            this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.Controls.Add(this.tWindow);
             this.Name = "DispatchViewer";
             this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Show;
             this.Text = "DispatchViewer";
@@ -760,6 +771,7 @@
             this.gbTrains.ResumeLayout(false);
             this.gbTrains.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.nudDaylightOffsetHrs)).EndInit();
+            this.tWindow.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -810,7 +822,9 @@
         private System.Windows.Forms.Button bBackgroundColor;
         private System.Windows.Forms.CheckBox cbShowSwitches;
         private System.Windows.Forms.Label lblInstruction;
-        private System.Windows.Forms.Button bSwitchWindow;
         private System.Windows.Forms.CheckBox cbShowTrainLabels;
+        private System.Windows.Forms.TabControl tWindow;
+        private System.Windows.Forms.TabPage tDispatch;
+        private System.Windows.Forms.TabPage tTimetable;
     }
 }
