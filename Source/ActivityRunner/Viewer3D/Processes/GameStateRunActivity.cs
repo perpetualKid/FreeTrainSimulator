@@ -68,7 +68,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         LoadingPrimitive Loading;
         LoadingScreenPrimitive LoadingScreen;
         LoadingBarPrimitive LoadingBar;
-        Matrix LoadingMatrix = Matrix.Identity;
+        private Matrix loadingMatrix = Matrix.Identity;
 
         public GameStateRunActivity(string[] args)
         {
@@ -81,18 +81,18 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
 
             if (Loading != null)
             {
-                frame.AddPrimitive(Loading.Material, Loading, RenderPrimitiveGroup.Overlay, ref LoadingMatrix);
+                frame.AddPrimitive(Loading.Material, Loading, RenderPrimitiveGroup.Overlay, ref loadingMatrix);
             }
 
             if (LoadingScreen != null)
             {
-                frame.AddPrimitive(LoadingScreen.Material, LoadingScreen, RenderPrimitiveGroup.Overlay, ref LoadingMatrix);
+                frame.AddPrimitive(LoadingScreen.Material, LoadingScreen, RenderPrimitiveGroup.Overlay, ref loadingMatrix);
             }
 
             if (LoadingBar != null)
             {
                 LoadingBar.Material.shader.LoadingPercent = LoadedPercent;
-                frame.AddPrimitive(LoadingBar.Material, LoadingBar, RenderPrimitiveGroup.Overlay, ref LoadingMatrix);
+                frame.AddPrimitive(LoadingBar.Material, LoadingBar, RenderPrimitiveGroup.Overlay, ref loadingMatrix);
             }
 
             base.Update(frame, totalRealSeconds);
