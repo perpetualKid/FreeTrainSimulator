@@ -32,6 +32,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using Orts.ActivityRunner.Viewer3D.Debugging;
+using Orts.ActivityRunner.Viewer3D.Shaders;
 using Orts.Common;
 using Orts.Common.Info;
 using Orts.Common.Logging;
@@ -1443,27 +1444,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             {
                 base.SetState(previousMaterial);
                 shader.CurrentTechnique = shader.Techniques[1]; //["LoadingBar"];
-            }
-        }
-
-        class LoadingShader : Shader
-        {
-            readonly EffectParameter worldViewProjection;
-            readonly EffectParameter loadingPercent;
-            readonly EffectParameter loadingTexture;
-
-            public Matrix WorldViewProjection { set { worldViewProjection.SetValue(value); } }
-
-            public float LoadingPercent { set { loadingPercent.SetValue(value); } }
-
-            public Texture2D LoadingTexture { set { loadingTexture.SetValue(value); } }
-
-            public LoadingShader(GraphicsDevice graphicsDevice)
-                : base(graphicsDevice, "Loading")
-            {
-                worldViewProjection = Parameters["WorldViewProjection"];
-                loadingPercent = Parameters["LoadingPercent"];
-                loadingTexture = Parameters["LoadingTexture"];
             }
         }
     }

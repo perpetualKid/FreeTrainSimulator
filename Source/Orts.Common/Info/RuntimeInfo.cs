@@ -21,6 +21,8 @@ namespace Orts.Common.Info
         /// </summary>
         public static string ConfigFolder { get; } = Path.Combine(ApplicationFolder, ".config");
 
+        public static string ContentFolder { get; } = Path.Combine(ApplicationFolder, "content");
+
         public static string UserDataFolder { get; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ProductName);
 
         /// <summary>
