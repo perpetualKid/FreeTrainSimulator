@@ -19,6 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 using Orts.Common.Info;
 using Orts.Formats.Msts.Files;
@@ -27,10 +28,10 @@ namespace Orts.DataCollector
 {
     class Program
     {
-        static void Main(string[] args)
+        private static async Task Main(string[] args)
         {
             if (args.Contains("/system", StringComparer.OrdinalIgnoreCase))
-                SystemInfo.WriteSystemDetails(Console.Out);
+                await SystemInfo.WriteSystemDetails(Console.Out).ConfigureAwait(false);
             else if (args.Contains("/tile-terrtex", StringComparer.OrdinalIgnoreCase))
                 CollectTileTerrtex(args);
             else

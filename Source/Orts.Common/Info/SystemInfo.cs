@@ -16,10 +16,12 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Management;
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 using Orts.Common.Native;
@@ -28,17 +30,17 @@ namespace Orts.Common.Info
 {
     public static class SystemInfo
     {
-        public static void WriteSystemDetails(TextWriter output)
+        public static async Task WriteSystemDetails(TextWriter output)
         {
             if (null == output)
                 throw new ArgumentNullException(nameof(output));
 
-            output.WriteLine($"Date/Time  = {DateTime.Now} ({DateTime.UtcNow:u})");
-            WriteEnvironment(output);
-            output.WriteLine($"Runtime    = {System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription} ({(Environment.Is64BitProcess ? "64" : "32")}bit)");
+            await output.WriteLineAsync($"{"Date/Time", -12}= {DateTime.Now} ({DateTime.UtcNow:u})").ConfigureAwait(false);
+            await WriteEnvironment(output).ConfigureAwait(false);
+            await output.WriteLineAsync($"{"Runtime", -12}= {System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription} ({(Environment.Is64BitProcess ? "64" : "32")}bit)").ConfigureAwait(false);
         }
 
-        private static void WriteEnvironment(TextWriter output)
+        private static async Task WriteEnvironment(TextWriter output)
         {
             NativeStructs.MemoryStatusExtended buffer = new NativeStructs.MemoryStatusExtended { Size = 64 };
             NativeMethods.GlobalMemoryStatusEx(buffer);
@@ -48,7 +50,7 @@ namespace Orts.Common.Info
                 {
                     foreach (ManagementObject bios in managementClass.GetInstances())
                     {
-                        output.WriteLine($"BIOS       = {bios["Description"]} ({bios["Manufacturer"]})");
+                        await output.WriteLineAsync($"{"BIOS", -12}= {bios["Description"]} ({bios["Manufacturer"]})").ConfigureAwait(false);
                     }
                 }
             }
@@ -62,12 +64,12 @@ namespace Orts.Common.Info
                 {
                     foreach (ManagementObject processor in managementClass.GetInstances())
                     {
-                        output.Write($"Processor  = {processor["Name"]} ({(uint)processor["NumberOfLogicalProcessors"]} threads, {processor["NumberOfCores"]} cores, {(uint)processor["MaxClockSpeed"] / 1000f:F1} GHz)");
+                        await output.WriteAsync($"{"Processor", -12}= {processor["Name"]} ({(uint)processor["NumberOfLogicalProcessors"]} threads, {processor["NumberOfCores"]} cores, {(uint)processor["MaxClockSpeed"] / 1000f:F1} GHz)").ConfigureAwait(false);
                         foreach (ManagementObject cpuCache in processor.GetRelated("Win32_CacheMemory"))
                         {
-                            output.Write($" ({cpuCache["Purpose"]} {cpuCache["InstalledSize"]:F0} KB)");
+                            await output.WriteAsync($" ({cpuCache["Purpose"]} {cpuCache["InstalledSize"]:F0} KB)").ConfigureAwait(false);
                         }
-                        output.WriteLine();
+                        await output.WriteLineAsync().ConfigureAwait(false);
                     }
                 }
             }
@@ -75,14 +77,14 @@ namespace Orts.Common.Info
             {
                 Trace.WriteLine(error);
             }
-            output.WriteLine($"Memory     = {buffer.TotalPhysical / 1024f / 1024 / 1024:F1} GB");
+            await output.WriteLineAsync($"{"Memory", -12}= {buffer.TotalPhysical / 1024f / 1024 / 1024:F1} GB").ConfigureAwait(false);
             try
             {
                 using (ManagementClass managementClass = new ManagementClass("Win32_VideoController"))
                 {
                     foreach (ManagementObject display in managementClass.GetInstances())
                     {
-                        output.WriteLine($"Video      = {display["Description"]} ({(uint)display["AdapterRAM"] / 1024f / 1024 / 1024:F1} GB RAM){GetPnPDeviceDrivers(display)}");
+                        await output.WriteLineAsync($"{"Video", -12}= {display["Description"]} ({(uint)display["AdapterRAM"] / 1024f / 1024 / 1024:F1} GB RAM){GetPnPDeviceDrivers(display)}").ConfigureAwait(false);
                     }
                 }
             }
@@ -93,7 +95,7 @@ namespace Orts.Common.Info
 
             foreach (Screen screen in Screen.AllScreens)
             {
-                output.WriteLine($"Display    = {screen.DeviceName} (resolution {screen.Bounds.Width} x {screen.Bounds.Height}, {screen.BitsPerPixel}-bit{(screen.Primary ? ", primary" : "")}, location {screen.Bounds.X} x {screen.Bounds.Y})");
+                await output.WriteLineAsync($"{"Display", -12}= {screen.DeviceName} (resolution {screen.Bounds.Width} x {screen.Bounds.Height}, {screen.BitsPerPixel}-bit{(screen.Primary ? ", primary" : "")}, location {screen.Bounds.X} x {screen.Bounds.Y})").ConfigureAwait(false);
             }
 
             try
@@ -102,7 +104,7 @@ namespace Orts.Common.Info
                 {
                     foreach (ManagementObject sound in managementClass.GetInstances())
                     {
-                        Console.WriteLine($"Sound      = {sound["Description"]}{GetPnPDeviceDrivers(sound)}");
+                        await output.WriteLineAsync($"{"Sound", -12}= {sound["Description"]}{GetPnPDeviceDrivers(sound)}").ConfigureAwait(false);
                     }
                 }
             }
@@ -116,11 +118,11 @@ namespace Orts.Common.Info
                 {
                     foreach (ManagementObject disk in managementClass.GetInstances())
                     {
-                        output.Write($"Disk       = {disk["Name"]} ({disk["Description"]}, {disk["FileSystem"]}");
+                        await output.WriteAsync($"{"Disk", -12}= {disk["Name"]} ({disk["Description"]}, {disk["FileSystem"]}").ConfigureAwait(false);
                         if (disk["Size"] != null && disk["FreeSpace"] != null)
-                            output.WriteLine($", {(ulong)disk["Size"] / 1024f / 1024 / 1024:F1} GB, {(ulong)disk["FreeSpace"] / 1024f / 1024 / 1024:F1} GB free)");
+                            await output.WriteLineAsync($", {(ulong)disk["Size"] / 1024f / 1024 / 1024:F1} GB, {(ulong)disk["FreeSpace"] / 1024f / 1024 / 1024:F1} GB free)").ConfigureAwait(false);
                         else
-                            output.WriteLine(")");
+                            await output.WriteLineAsync(")").ConfigureAwait(false);
                     }
                 }
             }
@@ -134,7 +136,7 @@ namespace Orts.Common.Info
                 {
                     foreach (ManagementObject os in managementClass.GetInstances())
                     {
-                        output.WriteLine($"OS         = {os["Caption"]} {os["OSArchitecture"]} ({os["Version"]})");
+                        await output.WriteLineAsync($"{"OS", -12}= {os["Caption"]} {os["OSArchitecture"]} ({os["Version"]})").ConfigureAwait(false);
                     }
                 }
             }

@@ -749,7 +749,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             LogSeparator();
             if (settings.Logging)
             {
-                SystemInfo.WriteSystemDetails(Console.Out);
+                SystemInfo.WriteSystemDetails(Console.Out).Wait(); //TODO 20200920 convert to async
                 LogSeparator();
                 Console.WriteLine("Version    = {0}", VersionInfo.Version.Length > 0 ? VersionInfo.Version : "<none>");
                 Console.WriteLine("Build      = {0}", VersionInfo.Build);
