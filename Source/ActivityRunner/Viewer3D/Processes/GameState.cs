@@ -17,15 +17,17 @@
 
 // This file is the responsibility of the 3D & Environment Team. 
 
-using Orts.Common;
+using System;
 
 namespace Orts.ActivityRunner.Viewer3D.Processes
 {
     /// <summary>
     /// Represents a single state for the game to be in (e.g. loading, running, in menu).
     /// </summary>
-    public abstract class GameState
+    public abstract class GameState : IDisposable
     {
+        private bool disposedValue;
+
         internal Game Game { get; set; }
 
         /// <summary>
@@ -67,12 +69,25 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         {
         }
 
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                }
+                disposedValue = true;
+            }
+        }
+
         /// <summary>
         /// Releases all resources used by the current instance of the <see cref="GameState"/> class.
         /// </summary>
-        //[CallOnThread("Loader")]
-        internal virtual void Dispose()
+        public void Dispose()
         {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 }

@@ -17,18 +17,24 @@
 
 // This file is the responsibility of the 3D & Environment Team. 
 
-using Orts.MultiPlayer;
-using Orts.ActivityRunner.Viewer3D.Debugging;
 using System;
+
+using Orts.ActivityRunner.Viewer3D.Debugging;
+using Orts.MultiPlayer;
 
 namespace Orts.ActivityRunner.Viewer3D.Processes
 {
     public class GameStateViewer3D : GameState
     {
         internal readonly Viewer Viewer;
+        private bool firstFrame = true;
+        private int profileFrames;
 
-        bool FirstFrame = true;
-        int ProfileFrames = 0;
+        private double lastLoadRealTime;
+        private double lastTotalRealSeconds = -1;
+        private readonly double[] averageElapsedRealTime = new double[10];
+        private int averageElapsedRealTimeIndex;
+
 
         public GameStateViewer3D(Viewer viewer)
         {
@@ -41,10 +47,10 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         {
             // Do this here (instead of RenderProcess) because we only want to measure/time the running game.
             if (Game.Settings.Profiling)
-                if ((Game.Settings.ProfilingFrameCount > 0 && ++ProfileFrames > Game.Settings.ProfilingFrameCount) || (Game.Settings.ProfilingTime > 0 && Viewer != null && Viewer.RealTime >= Game.Settings.ProfilingTime))
+                if ((Game.Settings.ProfilingFrameCount > 0 && ++profileFrames > Game.Settings.ProfilingFrameCount) || (Game.Settings.ProfilingTime > 0 && Viewer?.RealTime >= Game.Settings.ProfilingTime))
                     Game.PopState();
 
-            if (FirstFrame)
+            if (firstFrame)
             {
                 // Turn off the 10FPS fixed-time-step and return to running as fast as we can.
                 Game.IsFixedTimeStep = false;
@@ -63,7 +69,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 Program.SoundDebugForm.Hide();
                 Viewer.SoundDebugFormEnabled = false;
 
-                FirstFrame = false;
+                firstFrame = false;
             }
             Viewer.BeginRender(frame);
         }
@@ -73,17 +79,12 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             Viewer.EndRender(frame);
         }
 
-        double LastLoadRealTime;
-        double LastTotalRealSeconds = -1;
-        double[] AverageElapsedRealTime = new double[10];
-        int AverageElapsedRealTimeIndex;
-
         internal override void Update(RenderFrame frame, double totalRealSeconds)
         {
             // Every 250ms, check for new things to load and kick off the loader.
-            if (LastLoadRealTime + 0.25 < totalRealSeconds && Game.LoaderProcess.Finished)
+            if (lastLoadRealTime + 0.25 < totalRealSeconds && Game.LoaderProcess.Finished)
             {
-                LastLoadRealTime = totalRealSeconds;
+                lastLoadRealTime = totalRealSeconds;
                 Viewer.World.LoadPrep();
                 Game.LoaderProcess.StartLoad();
             }
@@ -92,29 +93,29 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             // taken to load everything. We'd rather not skip that far through
             // the simulation so the first time we deliberately have an
             // elapsed real and clock time of 0.0s.
-            if (LastTotalRealSeconds == -1)
-                LastTotalRealSeconds = totalRealSeconds;
+            if (lastTotalRealSeconds == -1)
+                lastTotalRealSeconds = totalRealSeconds;
             // We would like to avoid any large jumps in the simulation, so
             // this is a 4FPS minimum, 250ms maximum update time.
-            else if (totalRealSeconds - LastTotalRealSeconds > 0.25f)
-                LastTotalRealSeconds = totalRealSeconds;
+            else if (totalRealSeconds - lastTotalRealSeconds > 0.25f)
+                lastTotalRealSeconds = totalRealSeconds;
 
-            var elapsedRealTime = totalRealSeconds - LastTotalRealSeconds;
-            LastTotalRealSeconds = totalRealSeconds;
+            double elapsedRealTime = totalRealSeconds - lastTotalRealSeconds;
+            lastTotalRealSeconds = totalRealSeconds;
 
             if (elapsedRealTime > 0)
             {
                 // Store the elapsed real time, but also loop through overwriting any blank entries.
                 do
                 {
-                    AverageElapsedRealTime[AverageElapsedRealTimeIndex] = elapsedRealTime;
-                    AverageElapsedRealTimeIndex = (AverageElapsedRealTimeIndex + 1) % AverageElapsedRealTime.Length;
-                } while (AverageElapsedRealTime[AverageElapsedRealTimeIndex] == 0);
+                    averageElapsedRealTime[averageElapsedRealTimeIndex] = elapsedRealTime;
+                    averageElapsedRealTimeIndex = (averageElapsedRealTimeIndex + 1) % averageElapsedRealTime.Length;
+                } while (averageElapsedRealTime[averageElapsedRealTimeIndex] == 0);
 
                 // Elapsed real time is now the average.
                 elapsedRealTime = 0;
-                for (var i = 0; i < AverageElapsedRealTime.Length; i++)
-                    elapsedRealTime += AverageElapsedRealTime[i] / AverageElapsedRealTime.Length;
+                for (int i = 0; i < averageElapsedRealTime.Length; i++)
+                    elapsedRealTime += averageElapsedRealTime[i] / averageElapsedRealTime.Length;
             }
 
             // TODO: ComputeFPS should be called in UpdaterProcess.Update() but needs delta time.
@@ -127,20 +128,18 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             Viewer.Load();
         }
 
-        internal override void Dispose()
+        protected override void Dispose(bool disposing)
         {
-            Viewer.Terminate();
-           if (MPManager.Server != null)
-                MPManager.Server.Stop();
-            if (MPManager.Client != null)
-                MPManager.Client.Stop();
-            if (Program.Simulator != null)
-                Program.Simulator.Stop();
-            if (Program.DebugViewer != null)
-                Program.DebugViewer.Dispose();
-            if (Program.SoundDebugForm != null)
-                Program.SoundDebugForm.Dispose();
-            base.Dispose();
+            if (disposing)
+            {
+                Viewer.Terminate();
+                MPManager.Server?.Stop();
+                MPManager.Client?.Stop();
+                Program.Simulator?.Stop();
+                Program.DebugViewer?.Dispose();
+                Program.SoundDebugForm?.Dispose();
+            }
+            base.Dispose(disposing);
         }
 
     }

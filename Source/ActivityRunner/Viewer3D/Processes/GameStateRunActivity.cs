@@ -26,6 +26,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 using Microsoft.Xna.Framework;
@@ -49,7 +50,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
 {
     public class GameStateRunActivity : GameState
     {
-        static string[] Arguments;
+        private static string[] arguments;
         static string Acttype;
         static Simulator Simulator { get { return Program.Simulator; } set { Program.Simulator = value; } }
 
@@ -73,7 +74,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
 
         public GameStateRunActivity(string[] args)
         {
-            Arguments = args;
+            arguments = args;
         }
 
         internal override void Update(RenderFrame frame, double totalRealSeconds)
@@ -107,11 +108,11 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             if (LoadingBar == null)
                 LoadingBar = new LoadingBarPrimitive(Game);
 
-            var args = Arguments;
+            var args = arguments;
 
             // Look for an action to perform.
             var action = "";
-            var actions = new[] { "start", "resume", "replay", "replay_from_save", "test"};
+            var actions = new[] { "start", "resume", "replay", "replay_from_save", "test" };
             foreach (var possibleAction in actions)
                 if (args.Contains("-" + possibleAction) || args.Contains("/" + possibleAction, StringComparer.OrdinalIgnoreCase))
                 {
@@ -152,33 +153,33 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 {
                     case "start":
                     case "start-profile":
-                        InitLogging(settings, args);
+                        InitLogging();
                         InitLoading(args);
                         Start(settings, acttype, data);
                         break;
                     case "resume":
-                        InitLogging(settings, args);
+                        InitLogging();
                         InitLoading(args);
                         Resume(settings, data);
                         break;
                     case "replay":
-                        InitLogging(settings, args);
+                        InitLogging();
                         InitLoading(args);
                         Replay(settings, data);
                         break;
                     case "replay_from_save":
-                        InitLogging(settings, args);
+                        InitLogging();
                         InitLoading(args);
                         ReplayFromSave(settings, data);
                         break;
                     case "test":
-                        InitLogging(settings, args, true);
+                        InitLogging(true);
                         InitLoading(args);
                         Test(settings, data);
                         break;
 
                     default:
-                        MessageBox.Show("To start " + Application.ProductName + ", please run 'OpenRails.exe'.\n\n"
+                        MessageBox.Show($"To start {RuntimeInfo.ProductName}, please run 'OpenRails.exe'.\n\n"
                                 + "If you are attempting to debug this component, please run 'OpenRails.exe' and execute the scenario you are interested in. "
                                 + "In the log file, the command-line arguments used will be listed at the top. "
                                 + "You should then configure your debug environment to execute this component with those command-line arguments.",
@@ -197,7 +198,9 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 {
                     doAction();
                 }
+#pragma warning disable CA1031 // Do not catch general exception types
                 catch (Exception error)
+#pragma warning restore CA1031 // Do not catch general exception types
                 {
                     // Turn off the watchdog since we're going down.
                     Game.WatchdogProcess.Stop();
@@ -205,65 +208,50 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                     if (settings.ShowErrorDialogs)
                     {
                         // If we had a load error but the inner error is one we handle here specially, unwrap it and discard the extra file information.
-                        var loadError = error as FileLoadException;
-                        if (loadError != null && (error.InnerException is FileNotFoundException || error.InnerException is DirectoryNotFoundException))
-                            error = error.InnerException;
+                        if (error is FileLoadException fileLoadException && (fileLoadException.InnerException is FileNotFoundException || fileLoadException.InnerException is DirectoryNotFoundException))
+                            error = fileLoadException.InnerException;
 
                         if (error is IncompatibleSaveException incompatibleSaveException)
                         {
-                            MessageBox.Show(String.Format(
-                                "Save file is incompatible with this version of {0}.\n\n" +
-                                "    {1}\n\n" +
-                                "Saved version: {2}\n" +
-                                "Current version: {3}",
-                                Application.ProductName,
-                                incompatibleSaveException.SaveFile,
-                                incompatibleSaveException.Version,
-                                VersionInfo.Version),
-                                $"{Application.ProductName} {VersionInfo.Version}", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            MessageBox.Show($"Save file is incompatible with this version of {RuntimeInfo.ProductName}.\n\n" +
+                                $"    {incompatibleSaveException.SaveFile}\n\n" +
+                                $"Saved version: {incompatibleSaveException.Version}\n" +
+                                $"Current version: {VersionInfo.Version}",
+                                $"{RuntimeInfo.ProductName} {VersionInfo.Version}", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         }
                         else if (error is InvalidCommandLineException)
-                            MessageBox.Show(String.Format(
-                                "{0} was started with an invalid command-line. {1} Arguments given:\n\n{2}",
-                                Application.ProductName,
-                                error.Message,
-                                String.Join("\n", data.Select(d => "\u2022 " + d).ToArray())),
-                                $"{Application.ProductName} {VersionInfo.Version}", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            MessageBox.Show($"{RuntimeInfo.ProductName} was started with an invalid command-line. {error.Message} Arguments given:\n\n{string.Join("\n", data.Select(d => "\u2022 " + d).ToArray())}",
+                                $"{RuntimeInfo.ProductName} {VersionInfo.Version}", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         else if (error is Traveller.MissingTrackNodeException)
-                            MessageBox.Show(String.Format("Open Rails detected a track section which is not present in tsection.dat and cannot continue.\n\n" +
-                                "Most likely you don't have the XTracks or Ytracks version needed for this route."));
-                        else if (error is FileNotFoundException)
+                            MessageBox.Show($"{RuntimeInfo.ProductName} detected a track section which is not present in tsection.dat and cannot continue.\n\n" +
+                                "Most likely you don't have the XTracks or Ytracks version needed for this route.",
+                                $"{RuntimeInfo.ProductName} {VersionInfo.Version}", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        else if (error is FileNotFoundException fileNotFoundException)
                         {
-                            MessageBox.Show(String.Format(
-                                    "An essential file is missing and {0} cannot continue.\n\n" +
-                                    "    {1}",
-                                    Application.ProductName, (error as FileNotFoundException).FileName),
-                                    $"{Application.ProductName} {VersionInfo.Version}", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            MessageBox.Show($"An essential file is missing and {RuntimeInfo.ProductName} cannot continue.\n\n" +
+                                    $"    {fileNotFoundException.FileName}",
+                                    $"{RuntimeInfo.ProductName} {VersionInfo.Version}", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         }
-                        else if (error is DirectoryNotFoundException)
+                        else if (error is DirectoryNotFoundException directoryNotFoundException)
                         {
                             // This is a hack to try and extract the actual file name from the exception message. It isn't available anywhere else.
-                            var re = new Regex("'([^']+)'").Match(error.Message);
-                            var fileName = re.Groups[1].Success ? re.Groups[1].Value : error.Message;
-                            MessageBox.Show(String.Format(
-                                    "An essential folder is missing and {0} cannot continue.\n\n" +
-                                    "    {1}",
-                                    Application.ProductName, fileName),
-                                    $"{Application.ProductName} {VersionInfo.Version}", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            Match match = new Regex("'([^']+)'").Match(directoryNotFoundException.Message);
+                            string fileName = match.Groups[1].Success ? match.Groups[1].Value : directoryNotFoundException.Message;
+                            MessageBox.Show($"An essential folder is missing and {RuntimeInfo.ProductName} cannot continue.\n\n" +
+                                    $"    {fileName}",
+                                    $"{RuntimeInfo.ProductName} {VersionInfo.Version}", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         }
                         else
                         {
-                            var errorSummary = error.GetType().FullName + ": " + error.Message;
-                            var logFile = Path.Combine(settings.LoggingPath, settings.LoggingFilename);
-                            var openTracker = MessageBox.Show(String.Format(
-                                    "A fatal error has occured and {0} cannot continue.\n\n" +
-                                    "    {1}\n\n" +
-                                    "This error may be due to bad data or a bug. You can help improve {0} by reporting this error in our bug tracker at https://github.com/perpetualKid/ORTS-MG/issues and attaching the log file {2}.\n\n" +
+                            string errorSummary = error.GetType().FullName + ": " + error.Message;
+                            string logFile = Path.Combine(settings.LoggingPath, settings.LoggingFilename);
+                            DialogResult openTracker = MessageBox.Show($"A fatal error has occured and {RuntimeInfo.ProductName} cannot continue.\n\n" +
+                                    $"    {errorSummary}\n\n" +
+                                    $"This error may be due to bad data or a bug. You can help improve {RuntimeInfo.ProductName} by reporting this error in our bug tracker at https://github.com/perpetualKid/ORTS-MG/issues and attaching the log file {logFile}.\n\n" +
                                     ">>> Click OK to report this error on the {0} bug tracker <<<",
-                                    Application.ProductName, errorSummary, logFile),
-                                    $"{Application.ProductName} {VersionInfo.Version}", MessageBoxButtons.OKCancel, MessageBoxIcon.Error);
+                                    $"{RuntimeInfo.ProductName} {VersionInfo.Version}", MessageBoxButtons.OKCancel, MessageBoxIcon.Error);
                             if (openTracker == DialogResult.OK)
-                                Process.Start("https://github.com/perpetualKid/ORTS-MG/issues");
+                                Process.Start(new ProcessStartInfo("https://github.com/perpetualKid/ORTS-MG/issues") { UseShellExecute = true });
                         }
                     }
                     // Make sure we quit after handling an error.
@@ -345,8 +333,8 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 outf.Write(Simulator.InitialTileZ);
 
                 // Now save the data used by ActivityRunner.exe
-                outf.Write(Arguments.Length);
-                foreach (var argument in Arguments)
+                outf.Write(arguments.Length);
+                foreach (var argument in arguments)
                     outf.Write(argument);
                 outf.Write(Acttype);
 
@@ -372,7 +360,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             {
                 var dbfEvalFiles = Directory.GetFiles(UserSettings.UserDataFolder, Simulator.ActivityFileName + "*.dbfeval");
                 foreach (var files in dbfEvalFiles)
-                   File.Delete(files);//Delete all debrief eval files previously saved, for the same activity.//fileDbfEval
+                    File.Delete(files);//Delete all debrief eval files previously saved, for the same activity.//fileDbfEval
 
                 using (BinaryWriter outf = new BinaryWriter(new FileStream(UserSettings.UserDataFolder + "\\" + fileStem + ".dbfeval", FileMode.Create, FileAccess.Write)))
                 {
@@ -380,7 +368,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                     outf.Write(ActivityTaskPassengerStopAt.DbfEvalDepartBeforeBoarding.Count);
                     for (int i = 0; i < ActivityTaskPassengerStopAt.DbfEvalDepartBeforeBoarding.Count; i++)
                     {
-                        outf.Write((string) ActivityTaskPassengerStopAt.DbfEvalDepartBeforeBoarding[i]);
+                        outf.Write((string)ActivityTaskPassengerStopAt.DbfEvalDepartBeforeBoarding[i]);
                     }
                     outf.Write(Popups.TrackMonitor.DbfEvalOverSpeed);
                     outf.Write(Popups.TrackMonitor.DbfEvalOverSpeedTimeS);
@@ -637,17 +625,21 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         /// <summary>
         /// Tests that ActivityRunner.exe can launch a specific activity or explore.
         /// </summary>
-        void Test(UserSettings settings, string[] args)
+        private void Test(UserSettings settings, string[] args)
         {
-            var startTime = DateTime.Now;
-            var exitGameState = new GameStateViewer3DTest(args);
+            DateTime startTime = DateTime.Now;
+#pragma warning disable CA2000 // Dispose objects before losing scope
+            GameStateViewer3DTest exitGameState = new GameStateViewer3DTest(Simulator, Viewer);
+#pragma warning restore CA2000 // Dispose objects before losing scope
             try
             {
                 InitSimulator(settings, args, "Test");
                 Simulator.Start(Game.LoaderProcess.CancellationToken);
                 Viewer = new Viewer(Simulator, Game);
                 Game.ReplaceState(exitGameState);
+#pragma warning disable CA2000 // Dispose objects before losing scope
                 Game.PushState(new GameStateViewer3D(Viewer));
+#pragma warning restore CA2000 // Dispose objects before losing scope
                 exitGameState.LoadTime = (DateTime.Now - startTime).TotalSeconds - Viewer.RealTime;
                 exitGameState.Passed = true;
             }
@@ -657,64 +649,9 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             }
         }
 
-        class GameStateViewer3DTest : GameState
+        private void InitLogging(bool appendLog = false)
         {
-            public bool Passed;
-            public double LoadTime;
-
-            readonly string[] Args;
-
-            public GameStateViewer3DTest(string[] args)
-            {
-                Args = args;
-            }
-
-            internal override void Load()
-            {
-                Game.PopState();
-            }
-
-            internal override void Dispose()
-            {
-                ExportTestSummary(Game.Settings, Args, Passed, LoadTime);
-                Environment.ExitCode = Passed ? 0 : 1;
-
-                base.Dispose();
-            }
-
-            static void ExportTestSummary(UserSettings settings, string[] args, bool passed, double loadTime)
-            {
-                // Append to CSV file in format suitable for Excel
-                var summaryFileName = Path.Combine(UserSettings.UserDataFolder, "TestingSummary.csv");
-                ORTraceListener traceListener = Trace.Listeners.OfType<ORTraceListener>().FirstOrDefault();
-                // Could fail if already opened by Excel
-                try
-                {
-                    using (var writer = File.AppendText(summaryFileName))
-                    {
-                        // Route, Activity, Passed, Errors, Warnings, Infos, Load Time, Frame Rate
-                        writer.WriteLine("{0},{1},{2},{3},{4},{5},{6:F1},{7:F1}",
-                            Simulator != null && Simulator.TRK != null && Simulator.TRK.Route != null ? Simulator.TRK.Route.Name.Replace(",", ";") : "",
-                            Simulator != null && Simulator.Activity != null && Simulator.Activity.Activity != null && Simulator.Activity.Activity.Header != null ? Simulator.Activity.Activity.Header.Name.Replace(",", ";") : "",
-                            passed ? "Yes" : "No",
-                            traceListener?.EventCount(TraceEventType.Critical) ?? 0 + traceListener?.EventCount(TraceEventType.Error) ?? 0,
-                            traceListener?.EventCount(TraceEventType.Warning) ?? 0,
-                            traceListener?.EventCount(TraceEventType.Information) ?? 0,
-                            loadTime,
-                            Viewer != null && Viewer.RenderProcess != null ? Viewer.RenderProcess.FrameRate.SmoothedValue : 0);
-                    }
-                }
-                catch { } // Ignore any errors
-            }
-        }
-
-        void InitLogging(UserSettings settings, string[] args)
-        {
-            InitLogging(settings, args, false);
-        }
-
-        void InitLogging(UserSettings settings, string[] args, bool appendLog)
-        {
+            UserSettings settings = Game.Settings;
             if (settings.Logging && (settings.LoggingPath.Length > 0) && Directory.Exists(settings.LoggingPath))
             {
                 //TODO Implement proper filename customization
@@ -732,8 +669,10 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 if (!appendLog)
                     File.Delete(logFileName);
                 // Make Console.Out go to the log file AND the output stream.
+#pragma warning disable CA2000 // Dispose objects before losing scope
                 Console.SetOut(new FileTeeLogger(logFileName, Console.Out));
-                // Make Console.Error go to the new Console.Out.
+#pragma warning restore CA2000 // Dispose objects before losing scope
+                              // Make Console.Error go to the new Console.Out.
                 Console.SetError(Console.Out);
             }
 
@@ -745,19 +684,19 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             // Trace.Listeners and Debug.Listeners are the same list.
             Trace.Listeners.Add(traceListener);
 
-            Console.WriteLine("This is a log file for {0}. Please include this file in bug reports.", Application.ProductName);
+            Console.WriteLine($"This is a log file for {RuntimeInfo.ProductName}. Please include this file in bug reports.");
             LogSeparator();
             if (settings.Logging)
             {
-                SystemInfo.WriteSystemDetails(Console.Out).Wait(); //TODO 20200920 convert to async
+                SystemInfo.WriteSystemDetails(Console.Out).Wait();//.ConfigureAwait(false).GetAwaiter().GetResult();
                 LogSeparator();
-                Console.WriteLine("Version    = {0}", VersionInfo.Version.Length > 0 ? VersionInfo.Version : "<none>");
-                Console.WriteLine("Build      = {0}", VersionInfo.Build);
+                Console.WriteLine($"{"Version", -12}= {VersionInfo.Version}");
+                Console.WriteLine($"{"Code Version",-12}= {VersionInfo.CodeVersion}");
                 if (logFileName.Length > 0)
-                    Console.WriteLine("Logfile    = {0}", logFileName);
-                Console.WriteLine("Executable = {0}", Path.GetFileName(Application.ExecutablePath));
-                foreach (var arg in args)
-                    Console.WriteLine("Argument   = {0}", arg);
+                    Console.WriteLine($"{"Logfile", -12}= {logFileName}");
+                Console.WriteLine($"{"Executable", -12}= {Path.GetFileName(Application.ExecutablePath)}");
+                foreach (string arg in arguments)
+                    Console.WriteLine($"{"Argument", -12}= {arg}");
                 LogSeparator();
                 settings.Log();
                 LogSeparator();
@@ -777,7 +716,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         string LoadingDataFilePath;
         long LoadingBytesInitial;
         int LoadingTime;
-        DateTime LoadingStart;
+        private DateTime loadingStart;
         long[] LoadingBytesExpected;
         List<long> LoadingBytesActual;
         TimeSpan LoadingBytesSampleRate;
@@ -822,12 +761,12 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             catch { }
 
             LoadingTime = loadingTime;
-            LoadingStart = DateTime.UtcNow;
+            loadingStart = DateTime.UtcNow;
             LoadingBytesExpected = bytesExpected;
             LoadingBytesActual = bytesActual;
             // Using the cached loading time, pick a sample rate that will get us ~100 samples. Clamp to 100ms < x < 10,000ms.
             LoadingBytesSampleRate = new TimeSpan(0, 0, 0, 0, (int)MathHelper.Clamp(loadingTime / LoadingSampleCount, 100, 10000));
-            LoadingNextSample = LoadingStart + LoadingBytesSampleRate;
+            LoadingNextSample = loadingStart + LoadingBytesSampleRate;
 
 #if DEBUG_LOADING
             Console.WriteLine("Loader: Cache key  = {0}", LoadingDataKey);
@@ -846,7 +785,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             var bytes = GetProcessBytesLoaded() - LoadingBytesInitial;
 
             // Negative indicates no progress data; this happens if the loaded bytes exceeds the cached maximum expected bytes.
-            LoadedPercent = -(float)(DateTime.UtcNow - LoadingStart).TotalSeconds / 15;
+            LoadedPercent = -(float)(DateTime.UtcNow - loadingStart).TotalSeconds / 15;
             for (var i = 0; i < LoadingSampleCount; i++)
             {
                 // Find the first expected sample with more bytes. This means we're currently in the (i - 1) to (i) range.
@@ -869,13 +808,13 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             }
         }
 
-        void UninitLoading()
+        private void UninitLoading()
         {
             if (LoadingDataKey == null)
                 return;
 
-            var loadingTime = DateTime.UtcNow - LoadingStart;
-            var bytes = GetProcessBytesLoaded() - LoadingBytesInitial;
+            TimeSpan loadingTime = DateTime.UtcNow - loadingStart;
+            long bytes = GetProcessBytesLoaded() - LoadingBytesInitial;
             LoadingBytesActual.Add(bytes);
 
             // Convert from N samples to 100 samples.
@@ -995,7 +934,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 LogSeparator();
             }
 
-            Arguments = args;
+            arguments = args;
 
             switch (acttype)
             {
@@ -1155,9 +1094,9 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             return null;
         }
 
-        void LogSeparator()
+        private static void LogSeparator()
         {
-            Console.WriteLine(new String('-', 80));
+            Console.WriteLine(new string('-', 80));
         }
 
         string GetSaveFile(string[] args)
@@ -1211,10 +1150,9 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             return result;
         }
 
-        long GetProcessBytesLoaded()
+        private static long GetProcessBytesLoaded()
         {
-            NativeStructs.IO_COUNTERS counters;
-            if (NativeMethods.GetProcessIoCounters(Process.GetCurrentProcess().Handle, out counters))
+            if (NativeMethods.GetProcessIoCounters(Process.GetCurrentProcess().Handle, out NativeStructs.IO_COUNTERS counters))
                 return (long)counters.ReadTransferCount;
 
             return 0;
@@ -1249,7 +1187,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                     new VertexPositionTexture(new Vector3(+dd - 0.5f, -dd + 0.5f, -3), new Vector2(1, 1)),
                 };
             }
-            
+
             public override void Draw()
             {
                 graphicsDevice.SetVertexBuffer(VertexBuffer);
@@ -1445,6 +1383,15 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 base.SetState(previousMaterial);
                 shader.CurrentTechnique = shader.Techniques[1]; //["LoadingBar"];
             }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                traceListener?.Dispose();
+            }
+            base.Dispose(disposing);
         }
     }
 }

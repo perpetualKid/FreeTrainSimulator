@@ -51,8 +51,11 @@ namespace Orts.ActivityRunner
 
             using (Game game = new Game(settings))
             {
-                game.PushState(new GameStateRunActivity(args));
-                game.Run();
+                using (GameStateRunActivity gameState = new GameStateRunActivity(args))
+                {
+                    game.PushState(gameState);
+                    game.Run();
+                }
             }
         }
     }
