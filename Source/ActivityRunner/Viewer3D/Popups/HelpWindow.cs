@@ -52,7 +52,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
         Dictionary<string, double> DbfEvalValues = new Dictionary<string, double>();//Debrief eval
         
-        public static string logFileName { get { return Program.logFileName; } set { Program.logFileName = value; } }
         ControlLayout scrollbox;
         ControlLayoutHorizontal line;
 
@@ -640,7 +639,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             //.DbfEval.txt
                             filename = String.Format("{0}{1:yyyyMMdd.HHmm}.DbfEval.txt", filename, DateTime.Now);
 
-                            logFileName = Path.Combine(dbfevalDataFolder, filename);
+                            string logFileName = Path.Combine(dbfevalDataFolder, filename);
                             //Ensure we start with an empty file.
                             if (File.Exists(logFileName) && !lDebriefEvalFile) File.Delete(logFileName);
                             //Create file.

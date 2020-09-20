@@ -61,7 +61,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
 
         private static Viewer Viewer { get { return Program.Viewer; } set { Program.Viewer = value; } }
         private ORTraceListener traceListener;
-        static string logFileName { get { return Program.logFileName; } set { Program.logFileName = value; } }
+        private static string logFileName;
 
         static DispatchViewer DebugViewer { get { return Program.DebugViewer; } set { Program.DebugViewer = value; } }
         static SoundDebugForm SoundDebugForm { get { return Program.SoundDebugForm; } set { Program.SoundDebugForm = value; } }

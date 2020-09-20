@@ -36,7 +36,6 @@ namespace Orts.ActivityRunner
         public static Viewer Viewer;
         public static DispatchViewer DebugViewer;
         public static SoundDebugForm SoundDebugForm;
-        public static string logFileName = "";
 
         /// <summary>
         /// The main entry point for the application.
