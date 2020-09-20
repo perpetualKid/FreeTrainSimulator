@@ -231,6 +231,9 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 			chkAllowNew.Visible = multiPlayer;
 			chkBoxPenalty.Visible = multiPlayer; 
 			chkPreferGreen.Visible = multiPlayer;
+			btnAssist.Visible = multiPlayer;
+			btnNormal.Visible = multiPlayer;
+			rmvButton.Visible = multiPlayer;
 
 			if (multiPlayer)
 			{
@@ -243,19 +246,15 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 			chkPickSignals.Visible = dispatchView;
 			chkPickSwitches.Visible = dispatchView;
 			btnSeeInGame.Visible = dispatchView;
-			btnAssist.Visible = dispatchView;
-			btnNormal.Visible = dispatchView;
-			refreshButton.Visible = dispatchView;
-			rmvButton.Visible = dispatchView;
 			btnFollow.Visible = dispatchView;
-			AvatarView.Visible = dispatchView;
 			windowSizeUpDown.Visible = dispatchView;
 			label1.Visible = dispatchView;
 			resLabel.Visible = dispatchView;
+			refreshButton.Visible = dispatchView;
 		}
 		private void SetDispatchMedia()
 		{
-			this.Name = "Dispatch Window";
+			this.Name = "Map Window";
 			trainFont = new Font("Arial", 14, FontStyle.Bold);
 			sidingFont = new Font("Arial", 12, FontStyle.Bold);
 			trainBrush = new SolidBrush(Color.Red);
@@ -384,25 +383,6 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                 return;
             foreach (var item in simulator.TDB.TrackDB.TrackItems)
                 AddToTimetableItemList(item);
-        }
-
-        private void BuildListsOfItems(TrackItem item)
-        {
-            switch (item)
-            {
-                case SignalItem signalItem:
-                    if (signalItem.SignalObject >= 0 && signalItem.SignalObject < simulator.SignalEnvironment.Signals.Count)
-                    {
-                        Signal s = simulator.SignalEnvironment.Signals[signalItem.SignalObject];
-                        if (s != null && s.IsSignal && s.SignalNormal())
-                            signals.Add(new SignalWidget(signalItem, s));
-                    }
-                    break;
-                case SidingItem sidingItem:
-                case PlatformItem platformItem:
-                        sidings.Add(new SidingWidget(item));
-                    break;
-            }
         }
 
       bool Inited;
