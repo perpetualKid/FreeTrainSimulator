@@ -1288,7 +1288,7 @@ namespace Orts.Simulation
                     {
                         consistTrain = null;
                         consistTrain = matchesConsistNoOrder(ChangeWagonIdList);
-                        triggered = (consistTrain != null ? true : false);
+                        triggered = consistTrain != null;
                     }
                     break;
                 case EventType.PickUpPassengers:
