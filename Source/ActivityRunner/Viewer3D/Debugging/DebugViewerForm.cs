@@ -155,7 +155,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 		public float maxX = float.MinValue;
 		public float maxY = float.MinValue;
 
-	  Viewer Viewer;
+	  public Viewer Viewer;
         /// <summary>
         /// Creates a new DebugViewerForm.
         /// </summary>
@@ -1447,10 +1447,13 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 		  LastCursorPosition.Y = e.Y;
 		  //MSG.Enabled = false;
 		  MultiPlayer.MPManager.Instance().ComposingText = false;
-			lblInstruction.Visible = true;
-	  }
+			lblInstruction1.Visible = true;
+			lblInstruction2.Visible = true;
+			lblInstruction3.Visible = true;
+			lblInstruction4.Visible = true;
+		}
 
-	  private void pictureBoxMouseUp(object sender, MouseEventArgs e)
+		private void pictureBoxMouseUp(object sender, MouseEventArgs e)
 	  {
 		  if (e.Button == MouseButtons.Left) LeftClick = false;
 		  if (e.Button == MouseButtons.Right) RightClick = false; 
@@ -1498,7 +1501,10 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
               }
 
           }
-			lblInstruction.Visible = false;
+			lblInstruction1.Visible = false;
+			lblInstruction2.Visible = false;
+			lblInstruction3.Visible = false;
+			lblInstruction4.Visible = false;
 
 		}
 #if false
@@ -1535,7 +1541,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 	  }
 #endif
 
-	  private void UnHandleItemPick()
+		private void UnHandleItemPick()
 	  {
 		  boxSetSignal.Visible = false;
 		  //boxSetSignal.Enabled = false;
