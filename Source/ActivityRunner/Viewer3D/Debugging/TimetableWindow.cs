@@ -134,7 +134,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 			F.PlatformFont = new Font("Segoe UI Semibold", 10, FontStyle.Regular);
 			F.SignalFont = new Font("Segoe UI Semibold", 10, FontStyle.Regular);
 			F.trainBrush = new SolidBrush(Color.Red);
-			F.InactiveTrainBrush = new SolidBrush(Color.Gray);
+			F.InactiveTrainBrush = new SolidBrush(Color.DarkGray);
 			F.sidingBrush = new SolidBrush(Color.Blue);
 			F.PlatformBrush = new SolidBrush(Color.DarkBlue);
 			F.SignalBrush = new SolidBrush(Color.DarkRed);
@@ -515,13 +515,21 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
 			F.selectedTrainList.Clear();
 
-			// Add the player's train
-			if (F.simulator.PlayerLocomotive.Train is Orts.Simulation.AIs.AITrain)
-				BuildSelectedTrainList(F.simulator.PlayerLocomotive.Train as Orts.Simulation.AIs.AITrain);
+			if (F.simulator.TimetableMode)
+            {
+				// Add the player's train
+				if (F.simulator.PlayerLocomotive.Train is Orts.Simulation.AIs.AITrain)
+					BuildSelectedTrainList(F.simulator.PlayerLocomotive.Train as Orts.Simulation.AIs.AITrain);
 
-			// and all the other trains
-			foreach (var t in F.simulator.AI.AITrains)
-				BuildSelectedTrainList(t);
+				// and all the other trains
+				foreach (var t in F.simulator.AI.AITrains)
+					BuildSelectedTrainList(t);
+			}
+			else
+            {
+				foreach (var t in F.simulator.Trains)
+					BuildSelectedTrainList(t);
+			}
 
 			foreach (var t in F.selectedTrainList)
 			{
@@ -530,13 +538,11 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 				TrainCar firstCar = null;
 				if (t.LeadLocomotive != null)
 				{
-					//worldPos = t.LeadLocomotive.WorldPosition;
 					trainName = Train.GetTrainName(t.LeadLocomotive.CarID);
 					firstCar = t.LeadLocomotive;
 				}
 				else if (t.Cars != null && t.Cars.Count > 0)
 				{
-					//worldPos = t.Cars[0].WorldPosition;
 					trainName = Train.GetTrainName(t.Cars[0].CarID);
 					if (t.TrainType == TrainType.Ai)
 						trainName = t.Number.ToString() + ":" + t.Name;
@@ -640,17 +646,27 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 			}
 		}
 
-		private void BuildSelectedTrainList(Simulation.AIs.AITrain t)
-		{
-			if (F.rbShowAllTrains.Checked)
-				F.selectedTrainList.Add(t);
+        //private void BuildSelectedTrainList(Simulation.AIs.AITrain t)
+        //{
+        //	if (F.rbShowAllTrains.Checked)
+        //		F.selectedTrainList.Add(t);
 
-			if (F.rbShowActiveTrains.Checked)
-				if (IsActiveTrain(t))
-					F.selectedTrainList.Add(t);
-		}
+        //	if (F.rbShowActiveTrains.Checked)
+        //		if (IsActiveTrain(t))
+        //			F.selectedTrainList.Add(t);
+        //}
 
-		private bool IsActiveTrain(Simulation.AIs.AITrain t)
+        private void BuildSelectedTrainList(Train t)
+        {
+            if (F.rbShowAllTrains.Checked)
+                F.selectedTrainList.Add(t);
+
+            if (F.rbShowActiveTrains.Checked)
+                if (t is Simulation.AIs.AITrain && IsActiveTrain(t as Simulation.AIs.AITrain))
+                    F.selectedTrainList.Add(t);
+        }
+
+        private bool IsActiveTrain(Simulation.AIs.AITrain t)
 		{
 			if (t == null)
 				return false;
@@ -659,37 +675,42 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
 		private void ShowTrainNameAndState(Graphics g, PointF scaledItem, Train t, string trainName)
 		{
-			var tTTrain = t as Orts.Simulation.Timetables.TTTrain;
-			if (tTTrain != null)
+			if (F.simulator.TimetableMode)
 			{
-				// Remove name of timetable, e.g.: ":SCE"
-				var lastPos = t.Name.LastIndexOf(":");
-				var shortName = (lastPos > 0) ? trainName.Substring(0, lastPos) : trainName;
-
-				if (IsActiveTrain(tTTrain))
+				var tTTrain = t as Orts.Simulation.Timetables.TTTrain;
+				if (tTTrain != null)
 				{
-					if (F.cbShowTrainState.Checked)
+					// Remove name of timetable, e.g.: ":SCE"
+					var lastPos = t.Name.LastIndexOf(":");
+					var shortName = (lastPos > 0) ? trainName.Substring(0, lastPos) : trainName;
+
+					if (IsActiveTrain(tTTrain))
 					{
-						// 4:AI mode, 6:Mode, 7:Auth, 9:Signal, 12:Path
-						var status = tTTrain.GetStatus(F.Viewer.MilepostUnitsMetric);
+						if (F.cbShowTrainState.Checked)
+						{
+							// 4:AI mode, 6:Mode, 7:Auth, 9:Signal, 12:Path
+							var status = tTTrain.GetStatus(F.Viewer.MilepostUnitsMetric);
 
-						// Add in fields 4 and 7
-						status = tTTrain.AddMovementState(status, F.Viewer.MilepostUnitsMetric);
+							// Add in fields 4 and 7
+							status = tTTrain.AddMovementState(status, F.Viewer.MilepostUnitsMetric);
 
-						var statuses = $"{status[4]} {status[6]} {status[7]} {status[9]}";
-						
-						// Add path if it contains any deadlock information
-						if (ContainsDeadlockIndicators(status[12]))
-							statuses += status[12];
-						
-						g.DrawString($"{shortName} {statuses}", F.trainFont, F.trainBrush, scaledItem);
+							var statuses = $"{status[4]} {status[6]} {status[7]} {status[9]}";
+
+							// Add path if it contains any deadlock information
+							if (ContainsDeadlockIndicators(status[12]))
+								statuses += status[12];
+
+							g.DrawString($"{shortName} {statuses}", F.trainFont, F.trainBrush, scaledItem);
+						}
+						else
+							g.DrawString($"{shortName}", F.trainFont, F.trainBrush, scaledItem);
 					}
 					else
-						g.DrawString($"{shortName}", F.trainFont, F.trainBrush, scaledItem);
+						g.DrawString($"{shortName}", F.trainFont, F.InactiveTrainBrush, scaledItem);
 				}
-				else
-					g.DrawString($"{shortName}", F.trainFont, F.InactiveTrainBrush, scaledItem);
 			}
+			else
+				g.DrawString($"{trainName}", F.trainFont, F.trainBrush, scaledItem);
 		}
 
 		/*
