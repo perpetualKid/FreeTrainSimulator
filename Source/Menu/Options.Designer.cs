@@ -24,7 +24,7 @@
             this.buttonCancel = new System.Windows.Forms.Button();
             this.checkAlerter = new System.Windows.Forms.CheckBox();
             this.checkConfirmations = new System.Windows.Forms.CheckBox();
-            this.checkViewDispatcher = new System.Windows.Forms.CheckBox();
+            this.checkViewMapWindow = new System.Windows.Forms.CheckBox();
             this.tabOptions = new System.Windows.Forms.TabControl();
             this.tabPageGeneral = new System.Windows.Forms.TabPage();
             this.label29 = new System.Windows.Forms.Label();
@@ -310,7 +310,7 @@
             // checkGraduatedRelease
             // 
             this.checkGraduatedRelease.AutoSize = true;
-            this.checkGraduatedRelease.Location = new System.Drawing.Point(8, 177);
+            this.checkGraduatedRelease.Location = new System.Drawing.Point(8, 178);
             this.checkGraduatedRelease.Margin = new System.Windows.Forms.Padding(4);
             this.checkGraduatedRelease.Name = "checkGraduatedRelease";
             this.checkGraduatedRelease.Size = new System.Drawing.Size(220, 24);
@@ -345,7 +345,7 @@
             // checkConfirmations
             // 
             this.checkConfirmations.AutoSize = true;
-            this.checkConfirmations.Location = new System.Drawing.Point(8, 64);
+            this.checkConfirmations.Location = new System.Drawing.Point(8, 65);
             this.checkConfirmations.Margin = new System.Windows.Forms.Padding(4);
             this.checkConfirmations.Name = "checkConfirmations";
             this.checkConfirmations.Size = new System.Drawing.Size(175, 24);
@@ -353,16 +353,15 @@
             this.checkConfirmations.Text = "Control confirmations";
             this.checkConfirmations.UseVisualStyleBackColor = true;
             // 
-            // checkViewDispatcher
+            // checkViewMapWindow
             // 
-            this.checkViewDispatcher.AutoSize = true;
-            this.checkViewDispatcher.Location = new System.Drawing.Point(8, 92);
-            this.checkViewDispatcher.Margin = new System.Windows.Forms.Padding(4);
-            this.checkViewDispatcher.Name = "checkViewDispatcher";
-            this.checkViewDispatcher.Size = new System.Drawing.Size(158, 24);
-            this.checkViewDispatcher.TabIndex = 2;
-            this.checkViewDispatcher.Text = "Dispatcher window";
-            this.checkViewDispatcher.UseVisualStyleBackColor = true;
+            this.checkViewMapWindow.AutoSize = true;
+            this.checkViewMapWindow.Location = new System.Drawing.Point(8, 94);
+            this.checkViewMapWindow.Name = "checkViewMapWindow";
+            this.checkViewMapWindow.Size = new System.Drawing.Size(117, 24);
+            this.checkViewMapWindow.TabIndex = 2;
+            this.checkViewMapWindow.Text = "Map window";
+            this.checkViewMapWindow.UseVisualStyleBackColor = true;
             // 
             // tabOptions
             // 
@@ -400,7 +399,7 @@
             this.tabPageGeneral.Controls.Add(this.comboPressureUnit);
             this.tabPageGeneral.Controls.Add(this.labelLanguage);
             this.tabPageGeneral.Controls.Add(this.comboLanguage);
-            this.tabPageGeneral.Controls.Add(this.checkViewDispatcher);
+            this.tabPageGeneral.Controls.Add(this.checkViewMapWindow);
             this.tabPageGeneral.Controls.Add(this.checkConfirmations);
             this.tabPageGeneral.Controls.Add(this.checkAlerterExternal);
             this.tabPageGeneral.Controls.Add(this.checkAlerter);
@@ -1170,8 +1169,7 @@
             // 
             this.checkUseLocationPassingPaths.AutoSize = true;
             this.checkUseLocationPassingPaths.Font = new System.Drawing.Font("Segoe UI", 9F);
-            this.checkUseLocationPassingPaths.Location = new System.Drawing.Point(8, 87);
-            this.checkUseLocationPassingPaths.Margin = new System.Windows.Forms.Padding(4);
+            this.checkUseLocationPassingPaths.Location = new System.Drawing.Point(8, 86);
             this.checkUseLocationPassingPaths.Name = "checkUseLocationPassingPaths";
             this.checkUseLocationPassingPaths.Size = new System.Drawing.Size(297, 24);
             this.checkUseLocationPassingPaths.TabIndex = 46;
@@ -2924,7 +2922,7 @@
         private System.Windows.Forms.Button buttonCancel;
         private System.Windows.Forms.CheckBox checkAlerter;
         private System.Windows.Forms.CheckBox checkConfirmations;
-		private System.Windows.Forms.CheckBox checkViewDispatcher;
+		private System.Windows.Forms.CheckBox checkViewMapWindow;
         private System.Windows.Forms.TabControl tabOptions;
         private System.Windows.Forms.TabPage tabPageGeneral;
         private System.Windows.Forms.TabPage tabPageKeyboard;
