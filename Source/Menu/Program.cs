@@ -73,7 +73,7 @@ namespace Orts.Menu
                             parameters.Add("-replay");
                             break;
                         case MainForm.UserAction.SingleplayerReplaySaveFromSave:
-                            parameters.Add("-replay_from_save");
+                            parameters.Add("-replayfromsave");
                             break;
                         case MainForm.UserAction.MultiplayerClient:
                             parameters.Add("-multiplayerclient");
