@@ -115,8 +115,8 @@ namespace Orts.Menu
         internal Path SelectedTimetablePath { get; private set; }
 
         // Shared items
-        internal int SelectedStartSeason => initialized ? (radioButtonModeActivity.Checked ? (comboBoxStartSeason.SelectedItem as ComboBoxItem<int>).Key : (comboBoxTimetableSeason.SelectedItem as ComboBoxItem<int>).Key) : 0;
-        internal int SelectedStartWeather => initialized ? (radioButtonModeActivity.Checked ? (comboBoxStartWeather.SelectedItem as ComboBoxItem<int>).Key : (comboBoxTimetableWeather.SelectedItem as ComboBoxItem<int>).Key) : 0;
+        internal SeasonType SelectedStartSeason => initialized ? (radioButtonModeActivity.Checked ? (comboBoxStartSeason.SelectedItem as ComboBoxItem<SeasonType>).Key : (comboBoxTimetableSeason.SelectedItem as ComboBoxItem<SeasonType>).Key) : SeasonType.Spring;
+        internal WeatherType SelectedStartWeather => initialized ? (radioButtonModeActivity.Checked ? (comboBoxStartWeather.SelectedItem as ComboBoxItem<WeatherType>).Key : (comboBoxTimetableWeather.SelectedItem as ComboBoxItem<WeatherType>).Key) : WeatherType.Clear;
 
         internal string SelectedSaveFile { get; private set; }
         internal UserAction SelectedAction { get; private set; }
@@ -193,11 +193,11 @@ namespace Orts.Menu
                 initTasks.Add(CheckForUpdateAsync());
                 LoadToolsAndDocuments();
 
-                comboBoxStartSeason.DataSourceFromEnumIndex<SeasonType>(commonCatalog);
-                comboBoxStartWeather.DataSourceFromEnumIndex<WeatherType>(commonCatalog);
-                comboBoxDifficulty.DataSourceFromEnumIndex<Difficulty>(commonCatalog);
-                comboBoxTimetableSeason.DataSourceFromEnumIndex<SeasonType>(commonCatalog);
-                comboBoxTimetableWeather.DataSourceFromEnumIndex<WeatherType>(commonCatalog);
+                comboBoxStartSeason.DataSourceFromEnum<SeasonType>(commonCatalog);
+                comboBoxStartWeather.DataSourceFromEnum<WeatherType>(commonCatalog);
+                comboBoxDifficulty.DataSourceFromEnum<Difficulty>(commonCatalog);
+                comboBoxTimetableSeason.DataSourceFromEnum<SeasonType>(commonCatalog);
+                comboBoxTimetableWeather.DataSourceFromEnum<WeatherType>(commonCatalog);
                 comboBoxTimetableDay.DataSourceFromList<int>(Enumerable.Range(0, 7), (day) => CultureInfo.CurrentUICulture.DateTimeFormat.DayNames[day]);
 
                 initialized = true;
@@ -760,9 +760,9 @@ namespace Orts.Menu
                     SelectedActivity is ExploreActivity ? SelectedStartTime : string.Empty : string.Empty,
                 // Shared items
                 radioButtonModeActivity.Checked ?
-                    SelectedActivity is ExploreActivity ? SelectedStartSeason.ToString(CultureInfo.InvariantCulture) : string.Empty : SelectedStartSeason.ToString(CultureInfo.InvariantCulture),
+                    SelectedActivity is ExploreActivity ? SelectedStartSeason.ToString() : string.Empty : SelectedStartSeason.ToString(),
                 radioButtonModeActivity.Checked ?
-                    SelectedActivity is ExploreActivity ? SelectedStartWeather.ToString(CultureInfo.InvariantCulture) : string.Empty : SelectedStartWeather.ToString(CultureInfo.InvariantCulture),
+                    SelectedActivity is ExploreActivity ? SelectedStartWeather.ToString() : string.Empty : SelectedStartWeather.ToString(),
             };
             settings.Save();
         }
@@ -1151,8 +1151,8 @@ namespace Orts.Menu
                 }
 
                 UpdateFromMenuSelection(comboBoxStartTime, MenuSelectionIndex.Time, "12:00");
-                UpdateFromMenuSelectionComboBoxItem(comboBoxStartSeason, MenuSelectionIndex.Season, 1);
-                UpdateFromMenuSelectionComboBoxItem(comboBoxStartWeather, MenuSelectionIndex.Weather, 0);
+                UpdateFromMenuSelectionComboBoxItem(comboBoxStartSeason, MenuSelectionIndex.Season, SeasonType.Summer);
+                UpdateFromMenuSelectionComboBoxItem(comboBoxStartWeather, MenuSelectionIndex.Weather, WeatherType.Clear);
                 comboBoxDifficulty.SelectedIndex = -1;
                 comboBoxDuration.SelectedIndex = 0;
             }
@@ -1164,7 +1164,7 @@ namespace Orts.Menu
                     comboBoxDuration.BeginUpdate();
 
                     comboBoxStartTime.Items.Clear();
-                    comboBoxStartTime.Items.Add(SelectedActivity.StartTime.FormattedStartTime());
+                    comboBoxStartTime.Items.Add(SelectedActivity.StartTime.ToString());
                     comboBoxDuration.Items.Clear();
                     comboBoxDuration.Items.Add(SelectedActivity.Duration.FormattedDurationTime());
                 }
@@ -1174,9 +1174,9 @@ namespace Orts.Menu
                     comboBoxDuration.EndUpdate();
                 }
                 comboBoxStartTime.SelectedIndex = 0;
-                comboBoxStartSeason.SelectedIndex = (int)SelectedActivity.Season;
-                comboBoxStartWeather.SelectedIndex = (int)SelectedActivity.Weather;
-                comboBoxDifficulty.SelectedIndex = (int)SelectedActivity.Difficulty;
+                comboBoxStartSeason.SelectedValue = SelectedActivity.Season;
+                comboBoxStartWeather.SelectedValue = SelectedActivity.Weather;
+                comboBoxDifficulty.SelectedValue = SelectedActivity.Difficulty;
                 comboBoxDuration.SelectedIndex = 0;
             }
         }

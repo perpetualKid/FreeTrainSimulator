@@ -105,9 +105,9 @@ namespace Orts.Menu
                                 parameters.Add("-explorer");
                                 parameters.Add($"\"{exploreActivity.Path.FilePath}\"");
                                 parameters.Add($"\"{exploreActivity.Consist.FilePath}\"");
-                                parameters.Add(exploreActivity.StartTime.FormattedStartTime());
-                                parameters.Add($"{(int)exploreActivity.Season}");
-                                parameters.Add($"{(int)exploreActivity.Weather}");
+                                parameters.Add($"{exploreActivity.StartTime}");
+                                parameters.Add($"{exploreActivity.Season}");
+                                parameters.Add($"{exploreActivity.Weather}");
                             }
                             else if (MainForm.SelectedActivity is ExploreThroughActivity)
                             {
@@ -115,9 +115,9 @@ namespace Orts.Menu
                                 parameters.Add("-exploreactivity");
                                 parameters.Add($"\"{exploreActivity.Path.FilePath}\"");
                                 parameters.Add($"\"{exploreActivity.Consist.FilePath}\"");
-                                parameters.Add(exploreActivity.StartTime.FormattedStartTime());
-                                parameters.Add($"{(int)exploreActivity.Season}");
-                                parameters.Add($"{(int)exploreActivity.Weather}");
+                                parameters.Add($"{exploreActivity.StartTime}");
+                                parameters.Add($"{exploreActivity.Season}");
+                                parameters.Add($"{exploreActivity.Weather}");
                             }
                             else
                             {

@@ -138,6 +138,7 @@ namespace Orts.Simulation
 
         // Used in save and restore form
         public string PathName = "<unknown>";
+        private string timeTableFile;
         public float InitialTileX;
         public float InitialTileZ;
         public HazzardManager HazzardManager;
@@ -393,36 +394,42 @@ namespace Orts.Simulation
             }
             IsAutopilotMode = true;
         }
-        public void SetExplore(string path, string consist, string start, string season, string weather)
+        public void SetExplore(string path, string consist, TimeSpan startTime, SeasonType season, WeatherType weather)
         {
             ExplorePathFile = path;
             ExploreConFile = consist;
             patFileName = Path.ChangeExtension(path, "PAT");
             conFileName = Path.ChangeExtension(consist, "CON");
-            var time = start.Split(':');
-            TimeSpan StartTime = new TimeSpan(int.Parse(time[0]), time.Length > 1 ? int.Parse(time[1]) : 0, time.Length > 2 ? int.Parse(time[2]) : 0);
-            ClockTime = StartTime.TotalSeconds;
-            Season = (SeasonType)int.Parse(season);
-            WeatherType = (WeatherType)int.Parse(weather);
+            ClockTime = startTime.TotalSeconds;
+            Season = season;
+            WeatherType = weather;
         }
 
-        public void SetExploreThroughActivity(string path, string consist, string start, string season, string weather)
+        public void SetExploreThroughActivity(string path, string consist, TimeSpan startTime, SeasonType season, WeatherType weather)
         {
             ActivityFileName = "ea$" + RoutePathName + "$" + DateTime.Today.Year.ToString() + DateTime.Today.Month.ToString() + DateTime.Today.Day.ToString() +
                 DateTime.Today.Hour.ToString() + DateTime.Today.Minute.ToString() + DateTime.Today.Second.ToString();
-            var time = start.Split(':');
-            TimeSpan StartTime = new TimeSpan(int.Parse(time[0]), time.Length > 1 ? int.Parse(time[1]) : 0, time.Length > 2 ? int.Parse(time[2]) : 0);
-            int startTime = StartTime.Hours + StartTime.Minutes * 60 + StartTime.Seconds * 3600;
-            Activity = new ActivityFile(startTime, Path.GetFileNameWithoutExtension(consist));
+            Activity = new ActivityFile((int)startTime.TotalSeconds, Path.GetFileNameWithoutExtension(consist));
             ActivityRun = new Activity(Activity, this);
             ExplorePathFile = path;
             ExploreConFile = consist;
             patFileName = Path.ChangeExtension(path, "PAT");
             conFileName = Path.ChangeExtension(consist, "CON");
-            ClockTime = StartTime.TotalSeconds;
-            Season = (SeasonType)int.Parse(season);
-            WeatherType = (WeatherType)int.Parse(weather);
+            ClockTime = startTime.TotalSeconds;
+            Season = season;
+            WeatherType = weather;
             IsAutopilotMode = true;
+        }
+
+        public void SetTimetableOptions(string timeTableFile, string train, SeasonType season, WeatherType weather, string weatherFile)
+        {
+            this.timeTableFile = timeTableFile;
+            PathName = train;
+
+            Season = season;
+            WeatherType = weather;
+            // check for user defined weather file
+            UserWeatherFile = weatherFile;
         }
 
         public void Start(CancellationToken cancellation)
@@ -434,7 +441,7 @@ namespace Orts.Simulation
             Trains = new TrainList(this);
             PoolHolder = new Poolholder();
 
-            Physics.Train playerTrain;
+            Train playerTrain;
 
             // define style of passing path and process player passing paths as required
             Signals.UseLocationPassingPaths = Settings.UseLocationPassingPaths;
@@ -461,7 +468,7 @@ namespace Orts.Simulation
             }
         }
 
-        public void StartTimetable(string[] arguments, CancellationToken cancellation)
+        public void StartTimetable(CancellationToken cancellation)
         {
             TimetableMode = true;
             Signals = new Signals(this, SIGCFG, cancellation);
@@ -469,25 +476,15 @@ namespace Orts.Simulation
             LevelCrossings = new LevelCrossings(this);
             FuelManager = new FuelManager(this);
             Trains = new TrainList(this);
-            PoolHolder = new Poolholder(this, arguments, cancellation);
-            PathName = String.Copy(arguments[1]);
+            PoolHolder = new Poolholder(this, timeTableFile, cancellation);
 
             TimetableInfo TTinfo = new TimetableInfo(this);
 
             TTTrain playerTTTrain = null;
-            List<TTTrain> allTrains = TTinfo.ProcessTimetable(arguments, cancellation);
+            List<TTTrain> allTrains = TTinfo.ProcessTimetable(timeTableFile, PathName, cancellation);
             playerTTTrain = allTrains[0];
 
             AI = new AI(this, allTrains, ref ClockTime, playerTTTrain.FormedOf, playerTTTrain.FormedOfType, playerTTTrain, cancellation);
-
-            Season = (SeasonType)int.Parse(arguments[3]);
-            WeatherType = (WeatherType)int.Parse(arguments[4]);
-
-            // check for user defined weather file
-            if (arguments.Length == 6)
-            {
-                UserWeatherFile = String.Copy(arguments[5]);
-            }
 
             if (playerTTTrain != null)
             {

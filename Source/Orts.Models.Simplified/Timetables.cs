@@ -23,6 +23,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 
+using Orts.Common;
 using Orts.Formats.OR.Files;
 
 namespace Orts.Models.Simplified
@@ -37,8 +38,8 @@ namespace Orts.Models.Simplified
 
         // items set for use as parameters, taken from main menu
         public int Day { get; set; }
-        public int Season { get; set; }
-        public int Weather { get; set; }
+        public SeasonType Season { get; set; } = SeasonType.Summer;
+        public WeatherType Weather { get; set; } = WeatherType.Clear;
         public string WeatherFile { get; set; }
 
         // note : file is read preliminary only, extracting description and train information

@@ -253,7 +253,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                             DialogResult openTracker = MessageBox.Show($"A fatal error has occured and {RuntimeInfo.ProductName} cannot continue.\n\n" +
                                     $"    {errorSummary}\n\n" +
                                     $"This error may be due to bad data or a bug. You can help improve {RuntimeInfo.ProductName} by reporting this error in our bug tracker at https://github.com/perpetualKid/ORTS-MG/issues and attaching the log file {logFile}.\n\n" +
-                                    ">>> Click OK to report this error on the {0} bug tracker <<<",
+                                    ">>> Click OK to report this error on the GitHub bug tracker <<<",
                                     $"{RuntimeInfo.ProductName} {VersionInfo.Version}", MessageBoxButtons.OKCancel, MessageBoxIcon.Error);
                             if (openTracker == DialogResult.OK)
                                 Process.Start(new ProcessStartInfo("https://github.com/perpetualKid/ORTS-MG/issues") { UseShellExecute = true });
@@ -277,7 +277,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             switch (activityType)
             {
                 case ActivityType.TimeTable:
-                    Simulator.StartTimetable(data, Game.LoaderProcess.CancellationToken);
+                    Simulator.StartTimetable(Game.LoaderProcess.CancellationToken);
                     break;
 
                 default:
@@ -870,6 +870,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
 
         private void InitSimulator(UserSettings settings)
         {
+            Debugger.Launch();
             if (activityType == ActivityType.None)
             {
                 // old style processing without explicit action definition - to be removed later
@@ -880,6 +881,9 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             }
 
             Console.WriteLine($"{"Mode", -12}= {actionType} {activityType}");
+            TimeSpan startTime = TimeSpan.Zero;
+            SeasonType season = SeasonType.Summer;
+            WeatherType weather = WeatherType.Clear;
 
             switch (activityType)
             {
@@ -893,23 +897,23 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 case ActivityType.Explorer:
                 case ActivityType.ExploreActivity:
                     if (data.Length < 5) 
-                        throw new InvalidCommandLineException("Mode 'explorer' needs 5 arguments: path file, consist file, time (hh[:mm[:ss]]), season (0-3), weather (0-2).");
+                        throw new InvalidCommandLineException("Mode 'explorer' needs 5 arguments: path file, consist file, time (hh[:mm[:ss]]), season (Spring, Summer, Autumn, Winter), weather (Clear, Rain, Snow).");
                     Console.WriteLine($"{"Route", -12}= {GetRouteName(data[0])}");
                     Console.WriteLine($"{"Path", -12}= {GetPathName(data[0])} ({data[0]})");
                     Console.WriteLine($"{"Consist",-12}= {GetConsistName(data[1])} ({data[1]})");
-                    Console.WriteLine($"{"Time",-12}= {GetTime(data[2])} ({data[2]})");
-                    Console.WriteLine($"{"Season",-12}= {GetSeason(data[3])} ({data[3]})");
-                    Console.WriteLine($"{"Weather",-12}= {GetWeather(data[4])} ({data[4]})");
+                    Console.WriteLine($"{"Time",-12}= {(TimeSpan.TryParse(data[2], out startTime) ? startTime.ToString() : "Unknown")} ({data[2]})");
+                    Console.WriteLine($"{"Season",-12}= {(EnumExtension.GetValue(data[3], out season) ? season.ToString() : "Unknown")} ({data[3]})");
+                    Console.WriteLine($"{"Weather",-12}= {(EnumExtension.GetValue(data[4], out weather) ? weather.ToString() : "Unknown")} ({data[4]})");
                     break;
 
                 case ActivityType.TimeTable:
                     if (data.Length < 5) 
-                        throw new InvalidCommandLineException("Mode 'timetable' needs 5 arguments: timetable file, train name, day (???), season (0-3), weather (0-2).");
+                        throw new InvalidCommandLineException("Mode 'timetable' needs 5 arguments: timetable file, train name, day (Monday - Sunday), season (Spring, Summer, Autumn, Winter), weather (Clear, Rain, Snow), [optional] WeatherFile.");
                     Console.WriteLine($"{"File",-12}= {data[0]}");
                     Console.WriteLine($"{"Train",-12}= {data[1]}");
                     Console.WriteLine($"{"Day",-12}= {data[2]}");
-                    Console.WriteLine($"{"Season",-12}= {GetSeason(data[3])} ({data[3]})");
-                    Console.WriteLine($"{"Weather",-12}= {GetWeather(data[4])} ({data[4]})");
+                    Console.WriteLine($"{"Season",-12}= {(EnumExtension.GetValue(data[3], out season) ? season.ToString() : "Unknown")} ({data[3]})");
+                    Console.WriteLine($"{"Weather",-12}= {(EnumExtension.GetValue(data[4], out weather) ? weather.ToString() : "Unknown")} ({data[4]})");
                     break;
 
                 default:
@@ -944,14 +948,14 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                     Simulator = new Simulator(settings, data[0], false);
                     if (LoadingScreen == null)
                         LoadingScreen = new LoadingScreenPrimitive(Game);
-                    Simulator.SetExplore(data[0], data[1], data[2], data[3], data[4]);
+                    Simulator.SetExplore(data[0], data[1], startTime, season, weather);
                     break;
 
                 case ActivityType.ExploreActivity:
                     Simulator = new Simulator(settings, data[0], false);
                     if (LoadingScreen == null)
                         LoadingScreen = new LoadingScreenPrimitive(Game);
-                    Simulator.SetExploreThroughActivity(data[0], data[1], data[2], data[3], data[4]);
+                    Simulator.SetExploreThroughActivity(data[0], data[1], startTime, season, weather);
                     break;
 
                 case ActivityType.TimeTable:
@@ -964,6 +968,8 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                         Simulator.TimetableFileName = Path.GetFileNameWithoutExtension(data[0]);
                         Simulator.PathName = data[1];
                     }
+                    Simulator.SetTimetableOptions(data[0], data[1], season, weather, data.Length > 5 ? data[5] : string.Empty);
+
                     break;
             }
 
@@ -1006,86 +1012,52 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             }
         }
 
-        private string GetRouteName(string path)
+        private static string GetRouteName(string path)
         {
             try
             {
                 return new RouteFile(FolderStructure.RouteFromActivity(path).TrackFileName).Route.Name;
             }
-            catch { }
+            catch (Formats.Msts.Parsers.STFException) { }
             return null;
         }
 
-        string GetActivityName(string path)
+        private static string GetActivityName(string path)
         {
             try
             {
                 if (Path.GetExtension(path).Equals(".act", StringComparison.OrdinalIgnoreCase))
                 {
-                    var act = new ActivityFile(path);
-                    return act.Activity.Header.Name;
+                    return new ActivityFile(path).Activity.Header.Name;
                 }
             }
-            catch { }
+            catch (Formats.Msts.Parsers.STFException) { }
             return null;
         }
 
-        string GetPathName(string path)
+        private static string GetPathName(string path)
         {
             try
             {
                 if (Path.GetExtension(path).Equals(".pat", StringComparison.OrdinalIgnoreCase))
                 {
-                    var pat = new PathFile(path);
-                    return pat.Name;
+                    return new PathFile(path).Name;
                 }
             }
-            catch { }
+            catch (Formats.Msts.Parsers.STFException) { }
             return null;
         }
 
-        string GetConsistName(string path)
+        private static string GetConsistName(string path)
         {
             try
             {
                 if (Path.GetExtension(path).Equals(".con", StringComparison.OrdinalIgnoreCase))
                 {
-                    var con = new ConsistFile(path);
-                    return con.Name;
+                    return new ConsistFile(path).Name;
                 }
             }
-            catch { }
-            return null;
-        }
-
-        string GetTime(string timeString)
-        {
-            try
-            {
-                var time = timeString.Split(':');
-                return new TimeSpan(int.Parse(time[0]), time.Length > 1 ? int.Parse(time[1]) : 0, time.Length > 2 ? int.Parse(time[2]) : 0).ToString();
-            }
-            catch { }
-            return null;
-        }
-
-        string GetSeason(string season)
-        {
-            try
-            {
-                return Enum.Parse(typeof(SeasonType), season).ToString();
-            }
-            catch { }
-            return null;
-        }
-
-        string GetWeather(string weather)
-        {
-            try
-            {
-                return Enum.Parse(typeof(WeatherType), weather).ToString();
-            }
-            catch { }
+            catch (Formats.Msts.Parsers.STFException) { }
             return null;
         }
 
@@ -1093,23 +1065,20 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         {
             if (args.Length == 0)
             {
-                return GetMostRecentSave();
+                DirectoryInfo directory = new DirectoryInfo(UserSettings.UserDataFolder);
+                FileInfo file = directory.EnumerateFiles("*.save")
+                    .OrderByDescending(f => f.LastWriteTime)
+                    .FirstOrDefault();
+                if (file == null)
+                    throw new FileNotFoundException($"Activity Save file '*.save' not found in folder {directory}");
+                return file.FullName;
             }
             string saveFile = args[0];
-            if (!saveFile.EndsWith(".save")) 
-            { saveFile += ".save"; }
+            if (!saveFile.EndsWith(".save", StringComparison.OrdinalIgnoreCase)) 
+            { 
+                saveFile += ".save"; 
+            }
             return Path.Combine(UserSettings.UserDataFolder, saveFile);
-        }
-
-        private static string GetMostRecentSave()
-        {
-            DirectoryInfo directory = new DirectoryInfo(UserSettings.UserDataFolder);
-            FileInfo file = directory.EnumerateFiles("*.save")
-             .OrderByDescending(f => f.LastWriteTime)
-             .FirstOrDefault();
-            if (file == null) 
-                throw new FileNotFoundException(Viewer.Catalog.GetString($"Activity Save file '*.save' not found in folder {directory}"));
-            return file.FullName;
         }
 
         private static (string PathName, float InitialTileX, float InitialTileZ, string[] Args, ActivityType ActivityType) GetSavedValues(BinaryReader inf)

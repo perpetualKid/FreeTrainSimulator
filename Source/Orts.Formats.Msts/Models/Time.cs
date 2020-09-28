@@ -1,68 +1,69 @@
-﻿using Orts.Formats.Msts.Parsers;
+﻿using System;
+
+using Orts.Formats.Msts.Parsers;
 
 namespace Orts.Formats.Msts.Models
 {
     public class StartTime
     {
-        public int Hour { get; private set; }
-        public int Minute { get; private set; }
-        public int Second { get; private set; }
+        public int Hour => time.Days * 24 + time.Hours;
+        public int Minute => time.Minutes;
+        public int Second => time.Seconds;
 
-        public StartTime(int h, int m, int s)
+        private TimeSpan time;
+
+        public StartTime(int hours, int mminutes, int seconds)
         {
-            Hour = h;
-            Minute = m;
-            Second = s;
+            time = new TimeSpan(hours, mminutes, seconds);
+        }
+
+        public StartTime(TimeSpan startTime)
+        {
+            time = startTime;
         }
 
         public StartTime(STFReader stf)
         {
             stf.MustMatchBlockStart();
-            Hour = stf.ReadInt(null);
-            Minute = stf.ReadInt(null);
-            Second = stf.ReadInt(null);
+            time = new TimeSpan(stf.ReadInt(null), stf.ReadInt(null), stf.ReadInt(null));
             stf.MustMatchBlockEnd();
         }
 
-        public string FormattedStartTime()
+        public override string ToString()
         {
-            return Hour.ToString("00") + ":" + Minute.ToString("00") + ":" + Second.ToString("00");
+            return time.ToString();
         }
     }
 
     public class Duration
     {
-        private int hour, minute, second;
+        private TimeSpan time;
 
-        public Duration(int hour, int minute, int second=0)
+        public Duration(int hours, int minutes, int seconds=0)
         {
-            this.hour = hour;
-            this.minute = minute;
-            this.second = second;
+            time = new TimeSpan(hours, minutes, seconds);
         }
 
         public Duration(STFReader stf)
         {
             stf.MustMatchBlockStart();
-            hour = stf.ReadInt(null);
-            minute = stf.ReadInt(null);
+            time = new TimeSpan(stf.ReadInt(null), stf.ReadInt(null), 0);
             stf.MustMatchBlockEnd();
         }
 
         public int ActivityDuration()
         {
-
-            return hour * 3600 + minute * 60 + second; // Convert time to seconds
+            return (int)time.TotalSeconds;
         }
 
         public string FormattedDurationTime()
         {
-            return hour.ToString("00") + ":" + minute.ToString("00");
+            return time.ToString(@"hh\:mm", System.Globalization.CultureInfo.InvariantCulture);
         }
 
         public string FormattedDurationTimeHMS()
         {
-            return hour.ToString("00") + ":" + minute.ToString("00") + ":" + second.ToString("00");
+            return time.ToString();
         }
 
     }

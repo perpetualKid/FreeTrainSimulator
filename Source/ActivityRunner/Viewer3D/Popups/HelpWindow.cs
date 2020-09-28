@@ -319,7 +319,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             txtinfo = "Activity: " + owner.Viewer.Simulator.Activity.Activity.Header.Name.ToString();
                             line.Add(new Label(colWidth, line.RemainingHeight, txtinfo));
                             line = scrollbox.AddLayoutHorizontalLineOfText();
-                            labeltext = "Startime: " + owner.Viewer.Simulator.Activity.Activity.Header.StartTime.FormattedStartTime();
+                            labeltext = "Startime: " + owner.Viewer.Simulator.Activity.Activity.Header.StartTime.ToString();
                             line.Add(new Label(colWidth * 2, line.RemainingHeight, labeltext));
                             labeltext = "Estimated time to complete: " + owner.Viewer.Simulator.Activity.Activity.Header.Duration.FormattedDurationTimeHMS();
                             line.Add(new Label(colWidth * 2, line.RemainingHeight, labeltext));
@@ -690,7 +690,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             outmesssage(labeltext, colWidth * 3, true, 0);
                             labeltext = "  Difficulty=" + owner.Viewer.Simulator.Activity.Activity.Header.Difficulty.ToString();
                             outmesssage(labeltext, colWidth * 3, true, 0);
-                            labeltext = "  Startime=" + owner.Viewer.Simulator.Activity.Activity.Header.StartTime.FormattedStartTime().ToString();
+                            labeltext = "  Startime=" + owner.Viewer.Simulator.Activity.Activity.Header.StartTime.ToString();
                             outmesssage(labeltext, colWidth * 3, true, 0);
                             string sEstimatedTime = owner.Viewer.Simulator.Activity.Activity.Header.Duration.FormattedDurationTimeHMS().ToString();
                             double estimatedTime = TimeSpan.Parse(sEstimatedTime).TotalSeconds;
