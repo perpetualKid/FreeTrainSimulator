@@ -27,14 +27,12 @@ using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 
-using Orts.ActivityRunner.Viewer3D.Shaders;
+using Orts.ActivityRunner.Viewer3D.Primitives;
 using Orts.Common;
 using Orts.Common.Info;
 using Orts.Common.Logging;
 using Orts.Common.Native;
-using Orts.Common.Xna;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.MultiPlayer;
@@ -73,18 +71,19 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         static Simulator Simulator { get { return Program.Simulator; } set { Program.Simulator = value; } }
 
         //for Multiplayer
-        static Server Server { get { return MPManager.Server; } set { MPManager.Server = value; } }
-        static ClientComm Client { get { return MPManager.Client; } set { MPManager.Client = value; } }
-        string UserName;
-        string Code;
+        private static Server server { get { return MPManager.Server; } set { MPManager.Server = value; } }
 
-        private static Viewer Viewer { get { return Program.Viewer; } set { Program.Viewer = value; } }
+        private static ClientComm client { get { return MPManager.Client; } set { MPManager.Client = value; } }
+
+        private string userName;
+        private string code;
+
+        private static Viewer viewer { get { return Program.Viewer; } set { Program.Viewer = value; } }
         private ORTraceListener traceListener;
         private static string logFileName;
-
-        LoadingPrimitive Loading;
-        LoadingScreenPrimitive LoadingScreen;
-        LoadingBarPrimitive LoadingBar;
+        private LoadingPrimitive loading;
+        private LoadingScreenPrimitive loadingScreen;
+        private LoadingBarPrimitive loadingBar;
         private Matrix loadingMatrix = Matrix.Identity;
 
         private static readonly string separatorLine = new string('-', 80);
@@ -112,20 +111,20 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         {
             UpdateLoading();
 
-            if (Loading != null)
+            if (loading != null)
             {
-                frame.AddPrimitive(Loading.Material, Loading, RenderPrimitiveGroup.Overlay, ref loadingMatrix);
+                frame.AddPrimitive(loading.Material, loading, RenderPrimitiveGroup.Overlay, ref loadingMatrix);
             }
 
-            if (LoadingScreen != null)
+            if (loadingScreen != null)
             {
-                frame.AddPrimitive(LoadingScreen.Material, LoadingScreen, RenderPrimitiveGroup.Overlay, ref loadingMatrix);
+                frame.AddPrimitive(loadingScreen.Material, loadingScreen, RenderPrimitiveGroup.Overlay, ref loadingMatrix);
             }
 
-            if (LoadingBar != null)
+            if (loadingBar != null)
             {
-                LoadingBar.Material.shader.LoadingPercent = loadedPercent;
-                frame.AddPrimitive(LoadingBar.Material, LoadingBar, RenderPrimitiveGroup.Overlay, ref loadingMatrix);
+                loadingBar.Material.shader.LoadingPercent = loadedPercent;
+                frame.AddPrimitive(loadingBar.Material, loadingBar, RenderPrimitiveGroup.Overlay, ref loadingMatrix);
             }
 
             base.Update(frame, totalRealSeconds);
@@ -134,10 +133,10 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         internal override void Load()
         {
             // Load loading image first!
-            if (Loading == null)
-                Loading = new LoadingPrimitive(Game);
-            if (LoadingBar == null)
-                LoadingBar = new LoadingBarPrimitive(Game);
+            if (loading == null)
+                loading = new LoadingPrimitive(Game);
+            if (loadingBar == null)
+                loadingBar = new LoadingBarPrimitive(Game);
 
             // No action, check for data; for now assume any data is good data.
             if (actionType == ActionType.None && data.Any())
@@ -285,9 +284,9 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                     break;
             }
 
-            if (Client != null)
+            if (client != null)
             {
-                Client.Send((new MSGPlayer(UserName, Code, Simulator.conFileName, Simulator.patFileName, Simulator.Trains[0], 0, Simulator.Settings.AvatarURL)).ToString());
+                client.Send((new MSGPlayer(userName, code, Simulator.conFileName, Simulator.patFileName, Simulator.Trains[0], 0, Simulator.Settings.AvatarURL)).ToString());
                 // wait 5 seconds to see if you get a reply from server with updated position/consist data, else go on
 
                 System.Threading.Thread.Sleep(5000);
@@ -299,10 +298,10 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                     return;
             }
 
-            Viewer = new Viewer(Simulator, Game);
+            viewer = new Viewer(Simulator, Game);
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
-            Game.ReplaceState(new GameStateViewer3D(Viewer));
+            Game.ReplaceState(new GameStateViewer3D(viewer));
 #pragma warning restore CA2000 // Dispose objects before losing scope
         }
 
@@ -358,7 +357,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 }
 
                 Simulator.Save(outf);
-                Viewer.Save(outf, fileStem);
+                viewer.Save(outf, fileStem);
                 // Save multiplayer parameters
                 if (MPManager.IsMultiPlayer() && MPManager.IsServer())
                     MPManager.OnlineTrains.Save(outf);
@@ -368,7 +367,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             }
 
             //Debrief Eval
-            if (Viewer.Settings.DebriefActivityEval)
+            if (viewer.Settings.DebriefActivityEval)
             {
                 foreach (string file in Directory.EnumerateFiles(UserSettings.UserDataFolder, Simulator.ActivityFileName + "*.dbfeval"))
                     File.Delete(file);//Delete all debrief eval files previously saved, for the same activity.//fileDbfEval
@@ -424,14 +423,14 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                     data = Args;
                     InitSimulator(settings);
                     Simulator.Restore(inf, PathName, InitialTileX, InitialTileZ, Game.LoaderProcess.CancellationToken);
-                    Viewer = new Viewer(Simulator, Game);
-                    if (Client != null || Server != null && ActivityType == ActivityType.Activity)
+                    viewer = new Viewer(Simulator, Game);
+                    if (client != null || server != null && ActivityType == ActivityType.Activity)
                         Simulator.GetPathAndConsist();
-                    if (Client != null)
+                    if (client != null)
                     {
-                        Client.Send((new MSGPlayer(UserName, Code, Simulator.conFileName, Simulator.patFileName, Simulator.Trains[0], 0, Simulator.Settings.AvatarURL)).ToString());
+                        client.Send((new MSGPlayer(userName, code, Simulator.conFileName, Simulator.patFileName, Simulator.Trains[0], 0, Simulator.Settings.AvatarURL)).ToString());
                     }
-                    Viewer.Restore(inf);
+                    viewer.Restore(inf);
 
                     if (MPManager.IsMultiPlayer() && MPManager.IsServer())
                         MPManager.OnlineTrains.Restore(inf);
@@ -494,7 +493,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 Simulator.Log.LoadLog(Path.ChangeExtension(saveFile, "replay"));
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
-                Game.ReplaceState(new GameStateViewer3D(Viewer));
+                Game.ReplaceState(new GameStateViewer3D(viewer));
 #pragma warning restore CA2000 // Dispose objects before losing scope
             }
         }
@@ -518,7 +517,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 (string PathName, float InitialTileX, float InitialTileZ, string[] _, ActivityType ActivityType) = GetSavedValues(inf);
                 InitSimulator(settings);
                 Simulator.Start(Game.LoaderProcess.CancellationToken);
-                Viewer = new Viewer(Simulator, Game);
+                viewer = new Viewer(Simulator, Game);
             }
 
             // Load command log to replay
@@ -533,7 +532,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             CommandLog.ReportReplayCommands(Simulator.ReplayCommandList);
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
-            Game.ReplaceState(new GameStateViewer3D(Viewer));
+            Game.ReplaceState(new GameStateViewer3D(viewer));
 #pragma warning restore CA2000 // Dispose objects before losing scope
         }
 
@@ -591,7 +590,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                     InitSimulator(settings);
                 }
                 Simulator.Start(Game.LoaderProcess.CancellationToken);
-                Viewer = new Viewer(Simulator, Game);
+                viewer = new Viewer(Simulator, Game);
             }
             else
             {
@@ -605,8 +604,8 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                     actionType = ActionType.Resume;
                     InitSimulator(settings);
                     Simulator.Restore(inf, PathName, InitialTileX, InitialTileZ, Game.LoaderProcess.CancellationToken);
-                    Viewer = new Viewer(Simulator, Game);
-                    Viewer.Restore(inf);
+                    viewer = new Viewer(Simulator, Game);
+                    viewer.Restore(inf);
                 }
             }
 
@@ -617,7 +616,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             CommandLog.ReportReplayCommands(Simulator.ReplayCommandList);
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
-            Game.ReplaceState(new GameStateViewer3D(Viewer));
+            Game.ReplaceState(new GameStateViewer3D(viewer));
 #pragma warning restore CA2000 // Dispose objects before losing scope
         }
 
@@ -651,12 +650,12 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 actionType = ActionType.Test;
                 InitSimulator(settings);
                 Simulator.Start(Game.LoaderProcess.CancellationToken);
-                Viewer = new Viewer(Simulator, Game);
+                viewer = new Viewer(Simulator, Game);
                 Game.ReplaceState(exitGameState);
 #pragma warning disable CA2000 // Dispose objects before losing scope
-                Game.PushState(new GameStateViewer3D(Viewer));
+                Game.PushState(new GameStateViewer3D(viewer));
 #pragma warning restore CA2000 // Dispose objects before losing scope
-                exitGameState.LoadTime = (DateTime.Now - startTime).TotalSeconds - Viewer.RealTime;
+                exitGameState.LoadTime = (DateTime.Now - startTime).TotalSeconds - viewer.RealTime;
                 exitGameState.Passed = true;
             }
 #pragma warning disable CA1031 // Do not catch general exception types
@@ -946,29 +945,29 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             {
                 case ActivityType.Activity:
                     Simulator = new Simulator(settings, data[0], false);
-                    if (LoadingScreen == null)
-                        LoadingScreen = new LoadingScreenPrimitive(Game);
+                    if (loadingScreen == null)
+                        loadingScreen = new LoadingScreenPrimitive(Game);
                     Simulator.SetActivity(data[0]);
                     break;
 
                 case ActivityType.Explorer:
                     Simulator = new Simulator(settings, data[0], false);
-                    if (LoadingScreen == null)
-                        LoadingScreen = new LoadingScreenPrimitive(Game);
+                    if (loadingScreen == null)
+                        loadingScreen = new LoadingScreenPrimitive(Game);
                     Simulator.SetExplore(data[0], data[1], startTime, season, weather);
                     break;
 
                 case ActivityType.ExploreActivity:
                     Simulator = new Simulator(settings, data[0], false);
-                    if (LoadingScreen == null)
-                        LoadingScreen = new LoadingScreenPrimitive(Game);
+                    if (loadingScreen == null)
+                        loadingScreen = new LoadingScreenPrimitive(Game);
                     Simulator.SetExploreThroughActivity(data[0], data[1], startTime, season, weather);
                     break;
 
                 case ActivityType.TimeTable:
                     Simulator = new Simulator(settings, data[0], true);
-                    if (LoadingScreen == null)
-                        LoadingScreen = new LoadingScreenPrimitive(Game);
+                    if (loadingScreen == null)
+                        loadingScreen = new LoadingScreenPrimitive(Game);
                     if (actionType != ActionType.Start) // no specific action for start, handled in start_timetable
                     {
                         // for resume and replay : set timetable file and selected train info
@@ -984,18 +983,18 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             {
                 try
                 {
-                    Server = new Server(settings.Multiplayer_User + " 1234", settings.Multiplayer_Port);
-                    UserName = Server.UserName;
-                    Debug.Assert(UserName.Length >= 4 && UserName.Length <= 10 && !UserName.Contains('\"') && !UserName.Contains('\'') && !char.IsDigit(UserName[0]),
+                    server = new Server(settings.Multiplayer_User + " 1234", settings.Multiplayer_Port);
+                    userName = server.UserName;
+                    Debug.Assert(userName.Length >= 4 && userName.Length <= 10 && !userName.Contains('\"') && !userName.Contains('\'') && !char.IsDigit(userName[0]),
                         "Error in the user name: should not start with digits, be 4-10 characters long and no special characters");
-                    Code = Server.Code;
+                    code = server.Code;
                     MPManager.Instance().MPUpdateInterval = settings.Multiplayer_UpdateInterval;
                 }
                 catch (Exception error)
                 {
                     Trace.WriteLine(error);
                     Console.WriteLine("Connection error - will play in single mode.");
-                    Server = null;
+                    server = null;
                 }
             }
 
@@ -1004,17 +1003,17 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 try
                 {
                     MPManager.Instance().MPUpdateInterval = settings.Multiplayer_UpdateInterval;
-                    Client = new ClientComm(settings.Multiplayer_Host, settings.Multiplayer_Port, settings.Multiplayer_User + " 1234");
-                    UserName = Client.UserName;
-                    Debug.Assert(UserName.Length >= 4 && UserName.Length <= 10 && !UserName.Contains('\"') && !UserName.Contains('\'') && !char.IsDigit(UserName[0]),
+                    client = new ClientComm(settings.Multiplayer_Host, settings.Multiplayer_Port, settings.Multiplayer_User + " 1234");
+                    userName = client.UserName;
+                    Debug.Assert(userName.Length >= 4 && userName.Length <= 10 && !userName.Contains('\"') && !userName.Contains('\'') && !char.IsDigit(userName[0]),
                         "Error in the user name: should not start with digits, be 4-10 characters long and no special characters");
-                    Code = Client.Code;
+                    code = client.Code;
                 }
                 catch (Exception error)
                 {
                     Trace.WriteLine(error);
                     Console.WriteLine("Connection error - will play in single mode.");
-                    Client = null;
+                    client = null;
                 }
             }
         }
@@ -1123,233 +1122,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 return (long)counters.ReadTransferCount;
 
             return 0;
-        }
-
-        class LoadingPrimitive : RenderPrimitive
-        {
-            public readonly LoadingMaterial Material;
-            readonly VertexBuffer VertexBuffer;
-
-            [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-            public LoadingPrimitive(Game game)
-            {
-                Material = GetMaterial(game);
-                var verticies = GetVerticies(game);
-                VertexBuffer = new VertexBuffer(game.GraphicsDevice, typeof(VertexPositionTexture), verticies.Length, BufferUsage.WriteOnly);
-                VertexBuffer.SetData(verticies);
-            }
-
-            virtual protected LoadingMaterial GetMaterial(Game game)
-            {
-                return new LoadingMaterial(game);
-            }
-
-            virtual protected VertexPositionTexture[] GetVerticies(Game game)
-            {
-                var dd = (float)Material.TextureWidth / 2;
-                return new[] {
-                    new VertexPositionTexture(new Vector3(-dd - 0.5f, +dd + 0.5f, -3), new Vector2(0, 0)),
-                    new VertexPositionTexture(new Vector3(+dd - 0.5f, +dd + 0.5f, -3), new Vector2(1, 0)),
-                    new VertexPositionTexture(new Vector3(-dd - 0.5f, -dd + 0.5f, -3), new Vector2(0, 1)),
-                    new VertexPositionTexture(new Vector3(+dd - 0.5f, -dd + 0.5f, -3), new Vector2(1, 1)),
-                };
-            }
-
-            public override void Draw()
-            {
-                graphicsDevice.SetVertexBuffer(VertexBuffer);
-                graphicsDevice.DrawPrimitives(PrimitiveType.TriangleStrip, 0, 2);
-            }
-        }
-
-        class LoadingScreenPrimitive : LoadingPrimitive
-        {
-            public LoadingScreenPrimitive(Game game)
-                : base(game)
-            {
-            }
-
-            protected override LoadingMaterial GetMaterial(Game game)
-            {
-                return new LoadingScreenMaterial(game);
-            }
-
-            protected override VertexPositionTexture[] GetVerticies(Game game)
-            {
-                float w, h;
-
-                w = Material.TextureWidth;
-                h = Material.TextureHeight;
-                if (w != 0 && h != 0)
-                {
-                    var scaleX = (float)game.RenderProcess.DisplaySize.X / w;
-                    var scaleY = (float)game.RenderProcess.DisplaySize.Y / h;
-                    var scale = scaleX < scaleY ? scaleX : scaleY;
-                    w = w * scale / 2;
-                    h = h * scale / 2;
-                }
-                return new[] {
-                    new VertexPositionTexture(new Vector3(-w - 0.5f, +h + 0.5f, -2), new Vector2(0, 0)),
-                    new VertexPositionTexture(new Vector3(+w - 0.5f, +h + 0.5f, -2), new Vector2(1, 0)),
-                    new VertexPositionTexture(new Vector3(-w - 0.5f, -h + 0.5f, -2), new Vector2(0, 1)),
-                    new VertexPositionTexture(new Vector3(+w - 0.5f, -h + 0.5f, -2), new Vector2(1, 1)),
-                };
-            }
-        }
-
-        class LoadingBarPrimitive : LoadingPrimitive
-        {
-            public LoadingBarPrimitive(Game game)
-                : base(game)
-            {
-            }
-
-            protected override LoadingMaterial GetMaterial(Game game)
-            {
-                return new LoadingBarMaterial(game);
-            }
-
-            protected override VertexPositionTexture[] GetVerticies(Game game)
-            {
-                var w = game.RenderProcess.DisplaySize.X;
-                var h = 10;
-                var x = -w / 2 - 0.5f;
-                var y = game.RenderProcess.DisplaySize.Y / 2 - h - 0.5f;
-                return new[] {
-                    new VertexPositionTexture(new Vector3(x + 0, -y - 0, -1), new Vector2(0, 0)),
-                    new VertexPositionTexture(new Vector3(x + w, -y - 0, -1), new Vector2(1, 0)),
-                    new VertexPositionTexture(new Vector3(x + 0, -y - h, -1), new Vector2(0, 1)),
-                    new VertexPositionTexture(new Vector3(x + w, -y - h, -1), new Vector2(1, 1)),
-                };
-            }
-        }
-
-        class LoadingMaterial : Material
-        {
-            internal readonly LoadingShader shader;
-            public readonly Texture2D texture;
-
-            public LoadingMaterial(Game game)
-                : base(game.GraphicsDevice)
-            {
-                shader = new LoadingShader(game.RenderProcess.GraphicsDevice);
-                texture = GetTexture(game);
-            }
-
-            public int TextureWidth { get { return texture?.Width ?? 0; } }
-            public int TextureHeight { get { return texture?.Height ?? 0; } }
-
-            virtual protected Texture2D GetTexture(Game game)
-            {
-                return SharedTextureManager.Get(game.RenderProcess.GraphicsDevice, Path.Combine(game.ContentPath, "Loading.png"));
-            }
-
-            public override void SetState(Material previousMaterial)
-            {
-                shader.CurrentTechnique = shader.Techniques[0]; //["Loading"];
-                shader.LoadingTexture = texture;
-
-                graphicsDevice.BlendState = BlendState.NonPremultiplied;
-            }
-
-            public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)
-            {
-                for (int i = 0; i < renderItems.Count; i++)
-                {
-                    RenderItem item = renderItems[i];
-                    MatrixExtension.Multiply(in item.XNAMatrix, in viewProjection, out Matrix wvp);
-                    shader.WorldViewProjection = wvp;
-                    //                    shader.WorldViewProjection = item.XNAMatrix * matrices[0] * matrices[1];
-                    shader.CurrentTechnique.Passes[0].Apply();
-                    item.RenderPrimitive.Draw();
-                }
-            }
-
-            public override void ResetState()
-            {
-                graphicsDevice.BlendState = BlendState.Opaque;
-            }
-        }
-
-        class LoadingScreenMaterial : LoadingMaterial
-        {
-            public LoadingScreenMaterial(Game game)
-                : base(game)
-            {
-            }
-
-            private bool IsWideScreen(Game game)
-            {
-                float x = game.RenderProcess.DisplaySize.X;
-                float y = game.RenderProcess.DisplaySize.Y;
-
-                return (x / y > 1.5);
-            }
-
-            protected override Texture2D GetTexture(Game game)
-            {
-                Texture2D texture;
-                GraphicsDevice gd = game.RenderProcess.GraphicsDevice;
-                string defaultScreen = "load.ace";
-
-                string loadingScreen = Simulator.TRK.Route.LoadingScreen;
-                if (IsWideScreen(game))
-                {
-                    string loadingScreenWide = Simulator.TRK.Route.LoadingScreenWide;
-                    loadingScreen = loadingScreenWide ?? loadingScreen;
-                }
-                loadingScreen = loadingScreen ?? defaultScreen;
-                var path = Path.Combine(Simulator.RoutePath, loadingScreen);
-                if (Path.GetExtension(path) == ".dds" && File.Exists(path))
-                {
-                    DDSLib.DDSFromFile(path, gd, true, out texture);
-                }
-                else if (Path.GetExtension(path) == ".ace")
-                {
-                    var alternativeTexture = Path.ChangeExtension(path, ".dds");
-
-                    if (File.Exists(alternativeTexture) && game.Settings.PreferDDSTexture)
-                    {
-                        DDSLib.DDSFromFile(alternativeTexture, gd, true, out texture);
-                    }
-                    else if (File.Exists(path))
-                    {
-                        texture = AceFile.Texture2DFromFile(gd, path);
-                    }
-                    else
-                    {
-                        path = Path.Combine(Simulator.RoutePath, defaultScreen);
-                        if (File.Exists(path))
-                        {
-                            texture = AceFile.Texture2DFromFile(gd, path);
-                        }
-                        else
-                        {
-                            texture = null;
-                        }
-                    }
-
-                }
-                else
-                {
-                    texture = null;
-                }
-                return texture;
-            }
-        }
-
-        class LoadingBarMaterial : LoadingMaterial
-        {
-            public LoadingBarMaterial(Game game)
-                : base(game)
-            {
-            }
-
-            public override void SetState(Material previousMaterial)
-            {
-                base.SetState(previousMaterial);
-                shader.CurrentTechnique = shader.Techniques[1]; //["LoadingBar"];
-            }
         }
 
         protected override void Dispose(bool disposing)
