@@ -18,6 +18,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -28,7 +29,6 @@ using System.Windows.Forms;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Orts.ActivityRunner.Viewer3D.Debugging;
 using Orts.ActivityRunner.Viewer3D.Shaders;
 using Orts.Common;
 using Orts.Common.Info;
@@ -124,7 +124,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
 
             if (LoadingBar != null)
             {
-                LoadingBar.Material.shader.LoadingPercent = LoadedPercent;
+                LoadingBar.Material.shader.LoadingPercent = loadedPercent;
                 frame.AddPrimitive(LoadingBar.Material, LoadingBar, RenderPrimitiveGroup.Overlay, ref loadingMatrix);
             }
 
@@ -143,9 +143,9 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             if (actionType == ActionType.None && data.Any())
             {
                 // in multiplayer start/resume there is no "-start" or "-resume" string, so you have to discriminate
-                if (activityType != ActivityType.None || !options.Any()) 
+                if (activityType != ActivityType.None || !options.Any())
                     actionType = ActionType.Start;
-                else 
+                else
                     actionType = ActionType.Resume;
             }
 
@@ -295,13 +295,15 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 {
                     Simulator.Trains[0].UpdateRemoteTrainPos(0);
                 }
-                var cancellation = Game.LoaderProcess.CancellationToken;
-                if (cancellation.IsCancellationRequested) return;
+                if (Game.LoaderProcess.CancellationToken.IsCancellationRequested)
+                    return;
             }
 
             Viewer = new Viewer(Simulator, Game);
 
+#pragma warning disable CA2000 // Dispose objects before losing scope
             Game.ReplaceState(new GameStateViewer3D(Viewer));
+#pragma warning restore CA2000 // Dispose objects before losing scope
         }
 
         /// <summary>
@@ -309,7 +311,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         /// </summary>
         public static void Save()
         {
-            if (MPManager.IsMultiPlayer() && !MPManager.IsServer()) 
+            if (MPManager.IsMultiPlayer() && !MPManager.IsServer())
                 return; //no save for multiplayer sessions yet
 
             // Prefix with the activity filename so that, when resuming from the Menu.exe, we can quickly find those Saves 
@@ -343,11 +345,17 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 outf.Write((int)activityType);
 
                 // The Save command is the only command that doesn't take any action. It just serves as a marker.
-                new SaveCommand(Simulator.Log, fileStem);
+                _ = new SaveCommand(Simulator.Log, fileStem);
                 Simulator.Log.SaveLog(Path.Combine(UserSettings.UserDataFolder, fileStem + ".replay"));
 
                 // Copy the logfile to the save folder
-                CopyLog(Path.Combine(UserSettings.UserDataFolder, fileStem + ".txt"));
+                string logName = Path.Combine(UserSettings.UserDataFolder, fileStem + ".txt");
+
+                if (File.Exists(logFileName))
+                {
+                    File.Delete(logName);
+                    File.Move(logFileName, logName);
+                }
 
                 Simulator.Save(outf);
                 Viewer.Save(outf, fileStem);
@@ -362,17 +370,16 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             //Debrief Eval
             if (Viewer.Settings.DebriefActivityEval)
             {
-                var dbfEvalFiles = Directory.GetFiles(UserSettings.UserDataFolder, Simulator.ActivityFileName + "*.dbfeval");
-                foreach (var files in dbfEvalFiles)
-                    File.Delete(files);//Delete all debrief eval files previously saved, for the same activity.//fileDbfEval
+                foreach (string file in Directory.EnumerateFiles(UserSettings.UserDataFolder, Simulator.ActivityFileName + "*.dbfeval"))
+                    File.Delete(file);//Delete all debrief eval files previously saved, for the same activity.//fileDbfEval
 
-                using (BinaryWriter outf = new BinaryWriter(new FileStream(UserSettings.UserDataFolder + "\\" + fileStem + ".dbfeval", FileMode.Create, FileAccess.Write)))
+                using (BinaryWriter outf = new BinaryWriter(new FileStream(UserSettings.UserDataFolder + $"\\{fileStem}.dbfeval", FileMode.Create, FileAccess.Write)))
                 {
                     // Save debrief eval values.
                     outf.Write(ActivityTaskPassengerStopAt.DbfEvalDepartBeforeBoarding.Count);
                     for (int i = 0; i < ActivityTaskPassengerStopAt.DbfEvalDepartBeforeBoarding.Count; i++)
                     {
-                        outf.Write((string)ActivityTaskPassengerStopAt.DbfEvalDepartBeforeBoarding[i]);
+                        outf.Write(ActivityTaskPassengerStopAt.DbfEvalDepartBeforeBoarding[i]);
                     }
                     outf.Write(Popups.TrackMonitor.DbfEvalOverSpeed);
                     outf.Write(Popups.TrackMonitor.DbfEvalOverSpeedTimeS);
@@ -404,22 +411,22 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             // E.g. ActivityRunner.exe -resume
 
             // First use the .save file to check the validity and extract the route and activity.
-            var saveFile = GetSaveFile(data);
-            var versionOrBuild = "";
+            string saveFile = GetSaveFile(data);
+            string versionOrBuild = string.Empty;
             using (BinaryReader inf = new BinaryReader(new FileStream(saveFile, FileMode.Open, FileAccess.Read)))
             {
                 try // Because Restore() methods may try to read beyond the end of an out of date file.
                 {
                     versionOrBuild = GetValidSaveVersionOrBuild(saveFile, inf);
 
-                    var (PathName, InitialTileX, InitialTileZ, Args, ActivityType) = GetSavedValues(inf);
+                    (string PathName, float InitialTileX, float InitialTileZ, string[] Args, ActivityType ActivityType) = GetSavedValues(inf);
                     activityType = ActivityType;
                     data = Args;
                     InitSimulator(settings);
                     Simulator.Restore(inf, PathName, InitialTileX, InitialTileZ, Game.LoaderProcess.CancellationToken);
                     Viewer = new Viewer(Simulator, Game);
-                    if (Client != null || Server != null)
-                        if (ActivityType == ActivityType.Activity) Simulator.GetPathAndConsist();
+                    if (Client != null || Server != null && ActivityType == ActivityType.Activity)
+                        Simulator.GetPathAndConsist();
                     if (Client != null)
                     {
                         Client.Send((new MSGPlayer(UserName, Code, Simulator.conFileName, Simulator.patFileName, Simulator.Trains[0], 0, Simulator.Settings.AvatarURL)).ToString());
@@ -429,13 +436,13 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                     if (MPManager.IsMultiPlayer() && MPManager.IsServer())
                         MPManager.OnlineTrains.Restore(inf);
 
-                    var restorePosition = inf.BaseStream.Position;
-                    var savePosition = inf.ReadInt64();
+                    long restorePosition = inf.BaseStream.Position;
+                    long savePosition = inf.ReadInt64();
                     if (restorePosition != savePosition)
                         throw new InvalidDataException("Saved game stream position is incorrect.");
 
                     //Restore Debrief eval data
-                    var dbfevalfile = saveFile.Replace(".save", ".dbfeval");
+                    string dbfevalfile = saveFile.Replace(".save", ".dbfeval");
                     if (settings.DebriefActivityEval && File.Exists(dbfevalfile))
                     {
                         using (BinaryReader infDbfEval = new BinaryReader(new FileStream(dbfevalfile, FileMode.Open, FileAccess.Read)))
@@ -476,12 +483,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                     }
                     else
                     {
-                        //if (saveRevision > settings.HighestFailedRestoreVersion)
-                        //{
-                        //    settings.HighestFailedRestoreVersion = saveRevision;
-                        //    settings.Save(nameof(settings.HighestFailedRestoreVersion));
-                        //    Trace.TraceInformation($"{nameof(settings.HighestFailedRestoreVersion)} set to Save's revision: {saveRevision}");
-                        //}
                         // Rethrow the existing error if it is already an IncompatibleSaveException.
                         if (error is IncompatibleSaveException)
                             throw;
@@ -492,7 +493,9 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 // Reload the command log
                 Simulator.Log.LoadLog(Path.ChangeExtension(saveFile, "replay"));
 
+#pragma warning disable CA2000 // Dispose objects before losing scope
                 Game.ReplaceState(new GameStateViewer3D(Viewer));
+#pragma warning restore CA2000 // Dispose objects before losing scope
             }
         }
 
@@ -512,7 +515,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             {
                 inf.ReadString();    // Revision
                 inf.ReadString();    // Build
-                var (PathName, InitialTileX, InitialTileZ, _, ActivityType) = GetSavedValues(inf);
+                (string PathName, float InitialTileX, float InitialTileZ, string[] _, ActivityType ActivityType) = GetSavedValues(inf);
                 InitSimulator(settings);
                 Simulator.Start(Game.LoaderProcess.CancellationToken);
                 Viewer = new Viewer(Simulator, Game);
@@ -522,47 +525,49 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             Simulator.ReplayCommandList = new List<ICommand>();
             string replayFile = Path.ChangeExtension(saveFile, "replay");
             Simulator.Log.LoadLog(replayFile);
-            foreach (var c in Simulator.Log.CommandList)
+            foreach (ICommand command in Simulator.Log.CommandList)
             {
-                Simulator.ReplayCommandList.Add(c);
+                Simulator.ReplayCommandList.Add(command);
             }
             Simulator.Log.CommandList.Clear();
             CommandLog.ReportReplayCommands(Simulator.ReplayCommandList);
 
+#pragma warning disable CA2000 // Dispose objects before losing scope
             Game.ReplaceState(new GameStateViewer3D(Viewer));
+#pragma warning restore CA2000 // Dispose objects before losing scope
         }
 
         /// <summary>
         /// Replay the last segment of a saved game.
         /// </summary>
-        void ReplayFromSave(UserSettings settings)
+        private void ReplayFromSave(UserSettings settings)
         {
             // E.g. RunActivity.exe -replay_from_save "yard_two 2012-03-20 22.07.36"
-            var saveFile = GetSaveFile(data);
+            string saveFile = GetSaveFile(data);
 
             // Find previous save file and then move commands to be replayed into replay list.
-            var log = new CommandLog(null);
-            var logFile = saveFile.Replace(".save", ".replay");
+            CommandLog log = new CommandLog(null);
+            string logFile = saveFile.Replace(".save", ".replay");
             log.LoadLog(logFile);
-            var replayCommandList = new List<ICommand>();
+            List<ICommand> replayCommandList = new List<ICommand>();
 
             // Scan backwards to find previous saveFile (ignore any that user has deleted).
-            var count = log.CommandList.Count;
-            var previousSaveFile = "";
+            int count = log.CommandList.Count;
+            string previousSaveFile = string.Empty;
             for (int i = count - 2; // -2 so we skip over the final save command
                     i >= 0; i--)
             {
-                var c = log.CommandList[i] as SaveCommand;
-                if (c != null)
+                SaveCommand saveCommand = log.CommandList[i] as SaveCommand;
+                if (saveCommand != null)
                 {
-                    var f = Path.Combine(UserSettings.UserDataFolder, c.FileStem);
-                    if (!f.EndsWith(".save"))
-                        f += ".save";
-                    if (File.Exists(f))
+                    string file = Path.Combine(UserSettings.UserDataFolder, saveCommand.FileStem);
+                    if (!file.EndsWith(".save", StringComparison.OrdinalIgnoreCase))
+                        file += ".save";
+                    if (File.Exists(file))
                     {
-                        previousSaveFile = f;
+                        previousSaveFile = file;
                         // Move commands after this to the replay command list.
-                        for (var j = i + 1; j < count; j++)
+                        for (int j = i + 1; j < count; j++)
                         {
                             replayCommandList.Add(log.CommandList[i + 1]);
                             log.CommandList.RemoveAt(i + 1);
@@ -571,16 +576,16 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                     }
                 }
             }
-            if (previousSaveFile == "")
+            if (string.IsNullOrEmpty(previousSaveFile))
             {
                 // No save file found so just replay from start
                 replayCommandList.AddRange(log.CommandList);    // copy the commands before deleting them.
                 log.CommandList.Clear();
                 // But we have no args, so have to get these from the Save
-                using (var inf = new BinaryReader(new FileStream(saveFile, FileMode.Open, FileAccess.Read)))
+                using (BinaryReader inf = new BinaryReader(new FileStream(saveFile, FileMode.Open, FileAccess.Read)))
                 {
                     inf.ReadString();    // Revision
-                    var (_, _, _, Args, _) = GetSavedValues(inf);
+                    (string _, float _, float _, string[] Args, ActivityType _) = GetSavedValues(inf);
                     actionType = ActionType.Replay;
                     data = Args;
                     InitSimulator(settings);
@@ -591,11 +596,11 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             else
             {
                 // Resume from previous SaveFile and then replay
-                using (var inf = new BinaryReader(new FileStream(previousSaveFile, FileMode.Open, FileAccess.Read)))
+                using (BinaryReader inf = new BinaryReader(new FileStream(previousSaveFile, FileMode.Open, FileAccess.Read)))
                 {
                     GetValidSaveVersionOrBuild(saveFile, inf);
 
-                    var (PathName, InitialTileX, InitialTileZ, Args, ActivityType) = GetSavedValues(inf);
+                    (string PathName, float InitialTileX, float InitialTileZ, string[] Args, ActivityType ActivityType) = GetSavedValues(inf);
                     data = Args;
                     actionType = ActionType.Resume;
                     InitSimulator(settings);
@@ -611,7 +616,9 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             Simulator.ReplayCommandList = replayCommandList;
             CommandLog.ReportReplayCommands(Simulator.ReplayCommandList);
 
+#pragma warning disable CA2000 // Dispose objects before losing scope
             Game.ReplaceState(new GameStateViewer3D(Viewer));
+#pragma warning restore CA2000 // Dispose objects before losing scope
         }
 
         private static string GetValidSaveVersionOrBuild(string saveFile, BinaryReader inf)
@@ -652,7 +659,9 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 exitGameState.LoadTime = (DateTime.Now - startTime).TotalSeconds - Viewer.RealTime;
                 exitGameState.Passed = true;
             }
+#pragma warning disable CA1031 // Do not catch general exception types
             catch
+#pragma warning restore CA1031 // Do not catch general exception types
             {
                 Game.ReplaceState(exitGameState);
             }
@@ -720,18 +729,17 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         #region Loading progress indication calculations
 
         private const int loadingSampleCount = 100;
-
-        string LoadingDataKey;
-        string LoadingDataFilePath;
-        long loadingBytesInitial;
+        private string loadingDataKey;
+        private string loadingDataFilePath;
+        private long loadingBytesInitial;
         private DateTime loadingStart;
         private long[] loadingBytesExpected;
-        List<long> LoadingBytesActual;
-        TimeSpan LoadingBytesSampleRate;
-        DateTime LoadingNextSample = DateTime.MinValue;
-        float LoadedPercent = -1;
+        private List<long> loadingBytesActual;
+        private TimeSpan loadingBytesSampleRate;
+        private DateTime loadingNextSample = DateTime.MinValue;
+        private float loadedPercent = -1f;
 
-        void InitLoading()
+        private void InitLoading()
         {
             // Get the initial bytes; this is subtracted from all further uses of GetProcessBytesLoaded().
             loadingBytesInitial = GetProcessBytesLoaded();
@@ -739,90 +747,95 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             // We hash together all the appropriate arguments to the program as the key for the loading cache file.
             // Arguments without a '.' in them and those starting '/' are ignored, since they are explore activity
             // configuration (time, season, etc.) or flags like /test which we don't want to change on.
-            LoadingDataKey = String.Join(" ", arguments.Where(a => a.Contains('.') && !a.StartsWith("-") && !a.StartsWith("/")).ToArray()).ToLowerInvariant();
-            var hash = new MD5CryptoServiceProvider();
-            hash.ComputeHash(Encoding.Default.GetBytes(LoadingDataKey));
-            var loadingHash = String.Join("", hash.Hash.Select(h => h.ToString("x2")).ToArray());
-            var dataPath = Path.Combine(UserSettings.UserDataFolder, "Load Cache");
-            LoadingDataFilePath = Path.Combine(dataPath, loadingHash + ".dat");
+            loadingDataKey = string.Join(" ", data.Where(a => a.Contains('.')).ToArray()).ToUpperInvariant();
+            using (HashAlgorithm hash = new SHA256CryptoServiceProvider())
+            {
+                hash.ComputeHash(Encoding.Default.GetBytes(loadingDataKey));
+                string loadingHash = string.Join("", hash.Hash.Select(h => h.ToString("x2", CultureInfo.InvariantCulture)).ToArray());
+                string dataPath = Path.Combine(UserSettings.UserDataFolder, "Load Cache");
+                loadingDataFilePath = Path.Combine(dataPath, loadingHash + ".dat");
+                if (!Directory.Exists(dataPath))
+                    Directory.CreateDirectory(dataPath);
+            }
 
-            if (!Directory.Exists(dataPath))
-                Directory.CreateDirectory(dataPath);
-
-            var loadingTime = 0;
-            var bytesExpected = new long[loadingSampleCount];
-            var bytesActual = new List<long>(loadingSampleCount);
+            int loadingTime = 0;
+            long[] bytesExpected = new long[loadingSampleCount];
+            List<long> bytesActual = new List<long>(loadingSampleCount);
             // The loading of the cached data doesn't matter if anything goes wrong; we'll simply have no progress bar.
             try
             {
-                using (var data = File.OpenRead(LoadingDataFilePath))
+                if (File.Exists(loadingDataFilePath))
                 {
-                    using (var reader = new BinaryReader(data))
+                    using (FileStream data = File.OpenRead(loadingDataFilePath))
                     {
-                        reader.ReadString();
-                        loadingTime = reader.ReadInt32();
-                        for (var i = 0; i < loadingSampleCount; i++)
-                            bytesExpected[i] = reader.ReadInt64();
+                        using (BinaryReader reader = new BinaryReader(data))
+                        {
+                            reader.ReadString();
+                            loadingTime = reader.ReadInt32();
+                            for (int i = 0; i < loadingSampleCount; i++)
+                                bytesExpected[i] = reader.ReadInt64();
+                        }
                     }
                 }
             }
-            catch { }
+            catch (Exception exception) when (exception is IOException || exception is UnauthorizedAccessException || exception is ArgumentException)
+            { }
 
             loadingStart = DateTime.UtcNow;
             loadingBytesExpected = bytesExpected;
-            LoadingBytesActual = bytesActual;
+            loadingBytesActual = bytesActual;
             // Using the cached loading time, pick a sample rate that will get us ~100 samples. Clamp to 100ms < x < 10,000ms.
-            LoadingBytesSampleRate = new TimeSpan(0, 0, 0, 0, (int)MathHelper.Clamp(loadingTime / loadingSampleCount, 100, 10000));
-            LoadingNextSample = loadingStart + LoadingBytesSampleRate;
+            loadingBytesSampleRate = new TimeSpan(0, 0, 0, 0, MathHelper.Clamp(loadingTime / loadingSampleCount, 100, 10000));
+            loadingNextSample = loadingStart + loadingBytesSampleRate;
         }
 
-        void UpdateLoading()
+        private void UpdateLoading()
         {
-            if (LoadingBytesActual == null)
+            if (loadingBytesActual == null)
                 return;
 
-            var bytes = GetProcessBytesLoaded() - loadingBytesInitial;
+            long bytes = GetProcessBytesLoaded() - loadingBytesInitial;
 
             // Negative indicates no progress data; this happens if the loaded bytes exceeds the cached maximum expected bytes.
-            LoadedPercent = -(float)(DateTime.UtcNow - loadingStart).TotalSeconds / 15;
-            for (var i = 0; i < loadingSampleCount; i++)
+            loadedPercent = -(float)(DateTime.UtcNow - loadingStart).TotalSeconds / 15;
+            for (int i = 0; i < loadingSampleCount; i++)
             {
                 // Find the first expected sample with more bytes. This means we're currently in the (i - 1) to (i) range.
                 if (bytes <= loadingBytesExpected[i])
                 {
                     // Calculate the position within the (i - 1) to (i) range using straight interpolation.
-                    var expectedP = i == 0 ? 0 : loadingBytesExpected[i - 1];
-                    var expectedC = loadingBytesExpected[i];
-                    var index = i + (float)(bytes - expectedP) / (expectedC - expectedP);
-                    LoadedPercent = index / loadingSampleCount;
+                    long expectedP = i == 0 ? 0 : loadingBytesExpected[i - 1];
+                    long expectedC = loadingBytesExpected[i];
+                    float index = i + (float)(bytes - expectedP) / (expectedC - expectedP);
+                    loadedPercent = index / loadingSampleCount;
                     break;
                 }
             }
 
-            if (DateTime.UtcNow > LoadingNextSample)
+            if (DateTime.UtcNow > loadingNextSample)
             {
                 // Record a sample every time we should.
-                LoadingBytesActual.Add(bytes);
-                LoadingNextSample += LoadingBytesSampleRate;
+                loadingBytesActual.Add(bytes);
+                loadingNextSample += loadingBytesSampleRate;
             }
         }
 
         private void UninitLoading()
         {
-            if (LoadingDataKey == null)
+            if (loadingDataKey == null)
                 return;
 
             TimeSpan loadingTime = DateTime.UtcNow - loadingStart;
             long bytes = GetProcessBytesLoaded() - loadingBytesInitial;
-            LoadingBytesActual.Add(bytes);
+            loadingBytesActual.Add(bytes);
 
             // Convert from N samples to 100 samples.
             long[] bytesActual = new long[loadingSampleCount];
             for (int i = 0; i < loadingSampleCount; i++)
             {
-                float index = (float)(i + 1) / loadingSampleCount * (LoadingBytesActual.Count - 1);
+                float index = (float)(i + 1) / loadingSampleCount * (loadingBytesActual.Count - 1);
                 double indexR = index - Math.Floor(index);
-                bytesActual[i] = (int)(LoadingBytesActual[(int)Math.Floor(index)] * indexR + LoadingBytesActual[(int)Math.Ceiling(index)] * (1 - indexR));
+                bytesActual[i] = (int)(loadingBytesActual[(int)Math.Floor(index)] * indexR + loadingBytesActual[(int)Math.Ceiling(index)] * (1 - indexR));
             }
 
             long expected = loadingBytesExpected[loadingSampleCount - 1];
@@ -841,32 +854,27 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             // Like loading, saving the loading cache data doesn't matter if it fails. We'll just have no data to show progress with.
             try
             {
-                using (FileStream data = File.OpenWrite(LoadingDataFilePath))
+                using (FileStream data = File.OpenWrite(loadingDataFilePath))
                 {
                     data.SetLength(0);
                     using (BinaryWriter writer = new BinaryWriter(data))
                     {
-                        writer.Write(LoadingDataKey);
+                        writer.Write(loadingDataKey);
                         writer.Write((int)loadingTime.TotalMilliseconds);
                         for (int i = 0; i < loadingSampleCount; i++)
                             writer.Write(loadingBytesExpected[i]);
                     }
                 }
             }
-            catch { }
+            catch (Exception exception) when (exception is UnauthorizedAccessException || exception is IOException || exception is DirectoryNotFoundException || exception is NotSupportedException || exception is ObjectDisposedException)
+            { }
 
             //releasing resources only needed during load
             //separatorLine = null;
             loadingBytesExpected = null;
+            loadingBytesActual = null;
         }
-
         #endregion
-
-        static void CopyLog(string toFile)
-        {
-            if (logFileName.Length == 0) return;
-            File.Copy(logFileName, toFile, true);
-        }
 
         private void InitSimulator(UserSettings settings)
         {
@@ -879,7 +887,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                     activityType = ActivityType.Explorer;
             }
 
-            Console.WriteLine($"{"Mode", -12}= {actionType} {activityType}");
+            Console.WriteLine($"{"Mode",-12}= {actionType} {activityType}");
             TimeSpan startTime = TimeSpan.Zero;
             SeasonType season = SeasonType.Summer;
             WeatherType weather = WeatherType.Clear;
@@ -887,18 +895,18 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             switch (activityType)
             {
                 case ActivityType.Activity:
-                    if (!data.Any()) 
+                    if (!data.Any())
                         throw new InvalidCommandLineException("Mode 'activity' needs 1 argument: activity file.");
-                    Console.WriteLine($"{"Route", -12}= {GetRouteName(data[0])}");
-                    Console.WriteLine($"{"Activity", -12}= {GetActivityName(data[0])} ({data[0]})");
+                    Console.WriteLine($"{"Route",-12}= {GetRouteName(data[0])}");
+                    Console.WriteLine($"{"Activity",-12}= {GetActivityName(data[0])} ({data[0]})");
                     break;
 
                 case ActivityType.Explorer:
                 case ActivityType.ExploreActivity:
-                    if (data.Length < 5) 
+                    if (data.Length < 5)
                         throw new InvalidCommandLineException("Mode 'explorer' needs 5 arguments: path file, consist file, time (hh[:mm[:ss]]), season (Spring, Summer, Autumn, Winter), weather (Clear, Rain, Snow).");
-                    Console.WriteLine($"{"Route", -12}= {GetRouteName(data[0])}");
-                    Console.WriteLine($"{"Path", -12}= {GetPathName(data[0])} ({data[0]})");
+                    Console.WriteLine($"{"Route",-12}= {GetRouteName(data[0])}");
+                    Console.WriteLine($"{"Path",-12}= {GetPathName(data[0])} ({data[0]})");
                     Console.WriteLine($"{"Consist",-12}= {GetConsistName(data[1])} ({data[1]})");
                     Console.WriteLine($"{"Time",-12}= {(TimeSpan.TryParse(data[2], out startTime) ? startTime.ToString() : "Unknown")} ({data[2]})");
                     Console.WriteLine($"{"Season",-12}= {(EnumExtension.GetValue(data[3], out season) ? season.ToString() : "Unknown")} ({data[3]})");
@@ -906,7 +914,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                     break;
 
                 case ActivityType.TimeTable:
-                    if (data.Length < 5) 
+                    if (data.Length < 5)
                         throw new InvalidCommandLineException("Mode 'timetable' needs 5 arguments: timetable file, train name, day (Monday - Sunday), season (Spring, Summer, Autumn, Winter), weather (Clear, Rain, Snow), [optional] WeatherFile.");
                     Console.WriteLine($"{"File",-12}= {data[0]}");
                     Console.WriteLine($"{"Train",-12}= {data[1]}");
@@ -927,10 +935,10 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 else
                     Console.WriteLine("Multiplayer Client");
 
-                Console.WriteLine($"{"User", -12}= {settings.Multiplayer_User}");
+                Console.WriteLine($"{"User",-12}= {settings.Multiplayer_User}");
                 if (settings.MultiplayerClient)
-                    Console.WriteLine($"{"Host", -12}= {settings.Multiplayer_Host}");
-                Console.WriteLine($"{"Port", -12}= {settings.Multiplayer_Port}");
+                    Console.WriteLine($"{"Host",-12}= {settings.Multiplayer_Host}");
+                Console.WriteLine($"{"Port",-12}= {settings.Multiplayer_Port}");
                 Console.WriteLine(separatorLine);
             }
 
@@ -1073,9 +1081,9 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 return file.FullName;
             }
             string saveFile = args[0];
-            if (!saveFile.EndsWith(".save", StringComparison.OrdinalIgnoreCase)) 
-            { 
-                saveFile += ".save"; 
+            if (!saveFile.EndsWith(".save", StringComparison.OrdinalIgnoreCase))
+            {
+                saveFile += ".save";
             }
             return Path.Combine(UserSettings.UserDataFolder, saveFile);
         }
