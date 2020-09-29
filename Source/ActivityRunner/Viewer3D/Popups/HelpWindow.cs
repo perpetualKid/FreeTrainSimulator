@@ -696,15 +696,11 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             double estimatedTime = TimeSpan.Parse(sEstimatedTime).TotalSeconds;
                             labeltext = "  Estimated Time=" + sEstimatedTime;
                             outmesssage(labeltext, colWidth * 3, true, 0);
-                            //TODO: find an existing function to do it.
-                            double iniTime = owner.Viewer.Simulator.Activity.Activity.Header.StartTime.Hour * 3600;
-                            iniTime = iniTime + owner.Viewer.Simulator.Activity.Activity.Header.StartTime.Minute * 60;
-                            iniTime = iniTime + owner.Viewer.Simulator.Activity.Activity.Header.StartTime.Second;
-                            double elapsedTime = Owner.Viewer.Simulator.ClockTime - iniTime;
+                            double elapsedTime = Owner.Viewer.Simulator.ClockTime - owner.Viewer.Simulator.Activity.Activity.Header.StartTime.TotalSeconds;
                             labeltext = "  Elapsed Time=" + FormatStrings.FormatTime(elapsedTime);
                             outmesssage(labeltext, colWidth * 3, true, 0);
                             //estimatedTime
-                            bool bEstimatedTime = elapsedTime > iniTime ? true : false;
+                            bool bEstimatedTime = elapsedTime > owner.Viewer.Simulator.Activity.Activity.Header.StartTime.TotalSeconds;
 
                             //Auto pilot time.
                             double autoPilotTime = Viewer.DbfEvalAutoPilotTimeS;

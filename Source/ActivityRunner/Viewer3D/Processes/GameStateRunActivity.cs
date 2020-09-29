@@ -870,10 +870,9 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
 
         private void InitSimulator(UserSettings settings)
         {
-            Debugger.Launch();
             if (activityType == ActivityType.None)
             {
-                // old style processing without explicit action definition - to be removed later
+                // implicit processing without explicit action definition
                 if (data.Length == 1)
                     activityType = ActivityType.Activity;
                 else if (data.Length == 5)

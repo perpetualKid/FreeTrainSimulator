@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 using Orts.Common;
 using Orts.Common.Position;
@@ -30,7 +31,7 @@ namespace Orts.Formats.Msts.Models
             public bool CompleteActivity { get; internal protected set; }
             public int Type { get; internal protected set; }
             public ActivityMode Mode { get; internal protected set; } = ActivityMode.Player;
-            public StartTime StartTime { get; internal protected set; } = new StartTime(10, 0, 0);
+            public TimeSpan StartTime { get; internal protected set; } = new TimeSpan(10, 0, 0);
             public SeasonType Season { get; internal protected set; } = SeasonType.Summer;
             public WeatherType Weather { get; internal protected set; } = WeatherType.Clear;
             public string PathID { get; internal protected set; }
@@ -67,7 +68,11 @@ namespace Orts.Formats.Msts.Models
                 new STFReader.TokenProcessor("completeactivity", ()=>{ Header.CompleteActivity = (stf.ReadIntBlock(1) == 1); }),
                 new STFReader.TokenProcessor("type", ()=>{ Header.Type = stf.ReadIntBlock(0); }),
                 new STFReader.TokenProcessor("mode", ()=>{ Header.Mode = (ActivityMode)stf.ReadIntBlock((int)Header.Mode); }),
-                new STFReader.TokenProcessor("starttime", ()=>{ Header.StartTime = new StartTime(stf); }),
+                new STFReader.TokenProcessor("starttime", ()=> {
+                    stf.MustMatchBlockStart();
+                    Header.StartTime = new TimeSpan(stf.ReadInt(null), stf.ReadInt(null), stf.ReadInt(null));
+                    stf.MustMatchBlockEnd();
+                }),
                 new STFReader.TokenProcessor("season", ()=>{ Header.Season = (SeasonType)stf.ReadIntBlock(null); }),
                 new STFReader.TokenProcessor("weather", ()=>{ Header.Weather = (WeatherType)stf.ReadIntBlock(null); }),
                 new STFReader.TokenProcessor("pathid", ()=>{ Header.PathID = stf.ReadStringBlock(null); }),

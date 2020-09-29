@@ -383,9 +383,7 @@ namespace Orts.Simulation
             //            if (ActivityRun.Current == null && ActivityRun.EventList.Count == 0)
             //                ActivityRun = null;
 
-            StartTime st = Activity.Activity.Header.StartTime;
-            TimeSpan StartTime = new TimeSpan(st.Hour, st.Minute, st.Second);
-            ClockTime = StartTime.TotalSeconds;
+            ClockTime = Activity.Activity.Header.StartTime.TotalSeconds;
             Season = Activity.Activity.Header.Season;
             WeatherType = Activity.Activity.Header.Weather;
             if (Activity.Activity.ActivityRestrictedSpeedZones != null)
