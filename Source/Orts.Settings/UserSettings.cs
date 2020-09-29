@@ -491,7 +491,7 @@ namespace Orts.Settings
                         (value.Equals(GetDefaultValue(property.Name)) ? "" : "(user set)"));
                 }
 
-                Console.WriteLine("{0,-30} = {2,-14} {1}", property.Name, value, source);
+                Console.WriteLine($"{property.Name.Substring(0, Math.Min(30, property.Name.Length)),-30} = {source,-14} {value.ToString().Replace(Environment.UserName, "********")}");
             }
 
             properties = null;

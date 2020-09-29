@@ -710,7 +710,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 Console.WriteLine($"{"Version",-12}= {VersionInfo.Version}");
                 Console.WriteLine($"{"Code Version",-12}= {VersionInfo.CodeVersion}");
                 if (logFileName.Length > 0)
-                    Console.WriteLine($"{"Logfile",-12}= {logFileName}");
+                    Console.WriteLine($"{"Logfile",-12}= {logFileName.Replace(Environment.UserName, "********")}");
                 Console.WriteLine($"{"Executable",-12}= {Path.GetFileName(Application.ExecutablePath)}");
                 foreach (string arg in arguments)
                     Console.WriteLine($"{"Argument",-12}= {arg}");
