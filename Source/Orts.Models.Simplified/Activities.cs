@@ -43,7 +43,7 @@ namespace Orts.Models.Simplified
         public SeasonType Season { get; protected set; } = SeasonType.Summer;
         public WeatherType Weather { get; protected set; } = WeatherType.Clear;
         public Difficulty Difficulty { get; protected set; } = Difficulty.Easy;
-        public Duration Duration { get; protected set; } = new Duration(1, 0);
+        public TimeSpan Duration { get; protected set; } = new TimeSpan(1, 0, 0);
         public Consist Consist { get; protected set; } = Consist.Missing;
         public Path Path { get; protected set; } = new Path("unknown");
         public string FilePath { get; private set; }

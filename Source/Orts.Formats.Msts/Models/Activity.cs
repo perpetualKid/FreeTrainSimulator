@@ -36,7 +36,7 @@ namespace Orts.Formats.Msts.Models
             public WeatherType Weather { get; internal protected set; } = WeatherType.Clear;
             public string PathID { get; internal protected set; }
             public float StartingSpeed { get; internal protected set; }
-            public Duration Duration { get; internal protected set; } = new Duration(1, 0);
+            public TimeSpan Duration { get; internal protected set; } = new TimeSpan(1, 0, 0);
             public Difficulty Difficulty { get; internal protected set; } = Difficulty.Easy;
             public int Animals { get; internal protected set; } = 100;       // percent
             public int Workers { get; internal protected set; }             // percent
@@ -77,7 +77,11 @@ namespace Orts.Formats.Msts.Models
                 new STFReader.TokenProcessor("weather", ()=>{ Header.Weather = (WeatherType)stf.ReadIntBlock(null); }),
                 new STFReader.TokenProcessor("pathid", ()=>{ Header.PathID = stf.ReadStringBlock(null); }),
                 new STFReader.TokenProcessor("startingspeed", ()=>{ Header.StartingSpeed = stf.ReadFloatBlock(STFReader.Units.Speed, Header.StartingSpeed); }),
-                new STFReader.TokenProcessor("duration", ()=>{ Header.Duration = new Duration(stf); }),
+                new STFReader.TokenProcessor("duration", ()=>{
+                    stf.MustMatchBlockStart();
+                    Header.Duration = new TimeSpan(stf.ReadInt(null), stf.ReadInt(null), 0);
+                    stf.MustMatchBlockEnd();
+                }),
                 new STFReader.TokenProcessor("difficulty", ()=>{ Header.Difficulty = (Difficulty)stf.ReadIntBlock(null); }),
                 new STFReader.TokenProcessor("animals", ()=>{ Header.Animals = stf.ReadIntBlock(Header.Animals); }),
                 new STFReader.TokenProcessor("workers", ()=>{ Header.Workers = stf.ReadIntBlock(Header.Workers); }),

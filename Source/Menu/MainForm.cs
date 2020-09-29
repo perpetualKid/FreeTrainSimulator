@@ -1166,7 +1166,8 @@ namespace Orts.Menu
                     comboBoxStartTime.Items.Clear();
                     comboBoxStartTime.Items.Add(SelectedActivity.StartTime.ToString());
                     comboBoxDuration.Items.Clear();
-                    comboBoxDuration.Items.Add(SelectedActivity.Duration.FormattedDurationTime());
+                    comboBoxDuration.Items.Add(SelectedActivity.Duration.ToString(@"hh\:mm", CultureInfo.InvariantCulture));
+
                 }
                 finally
                 {
