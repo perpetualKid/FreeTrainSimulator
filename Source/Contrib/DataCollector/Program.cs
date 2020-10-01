@@ -22,6 +22,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using Orts.Common.Info;
+using Orts.Common.Native;
 using Orts.Formats.Msts.Files;
 
 namespace Orts.DataCollector
@@ -30,6 +31,7 @@ namespace Orts.DataCollector
     {
         private static async Task Main(string[] args)
         {
+            NativeMethods.SetProcessDpiAwareness(NativeMethods.PROCESS_DPI_AWARENESS.Process_Per_Monitor_DPI_Aware);
             if (args.Contains("/system", StringComparer.OrdinalIgnoreCase))
                 await SystemInfo.WriteSystemDetails(Console.Out).ConfigureAwait(false);
             else if (args.Contains("/tile-terrtex", StringComparer.OrdinalIgnoreCase))
