@@ -2,51 +2,53 @@
 
 namespace Orts.Common.Input
 {
+#pragma warning disable CA1028 // Enum Storage should be Int32
     public enum RailDriverDisplaySign : byte
+#pragma warning restore CA1028 // Enum Storage should be Int32
     {
         Blank = 0x0,
-        Digit_0 = 0x3f,
-        Digit_1 = 0x06,
-        Digit_2 = 0x5b,
-        Digit_3 = 0x4f,
-        Digit_4 = 0x66,
-        Digit_5 = 0x6d,
-        Digit_6 = 0x7d,
-        Digit_7 = 0x07,
-        Digit_8 = 0x7f,
-        Digit_9 = 0x6f,
-        Decimal = 0x80,
+        Digit0 = 0x3f,
+        Digit1 = 0x06,
+        Digit2 = 0x5b,
+        Digit3 = 0x4f,
+        Digit4 = 0x66,
+        Digit5 = 0x6d,
+        Digit6 = 0x7d,
+        Digit7 = 0x07,
+        Digit8 = 0x7f,
+        Digit9 = 0x6f,
+        Dot = 0x80,
         Hyphen = 0x40,
-        Char_A = 0x77, 
-        Char_b = 0x7c,
-        Char_C = 0x39,
-        Char_c = 0x58,
-        Char_d = 0x58,
-        Char_E = 0x79,
-        Char_F = 0x71,
-        Char_H = 0x76, 
-        Char_h = 0x74,
-        Char_L = 0x38,
-        Char_l = 0x30, 
-        Char_n = 0x54,
-        Char_o = 0x5c, 
-        Char_P = 0x73,
-        Char_r = 0x50,
-        Char_t = 0x78,
-        Char_U = 0x3E,
-        Char_u = 0x1c,
+        A = 0x77,
+        b = 0x7c,
+        C = 0x39,
+        c = 0x58,
+        d = 0x58,
+        E = 0x79,
+        F = 0x71,
+        H = 0x76,
+        h = 0x74,
+        L = 0x38,
+        l = 0x30,
+        n = 0x54,
+        o = 0x5c,
+        P = 0x73,
+        r = 0x50,
+        t = 0x78,
+        U = 0x3E,
+        u = 0x1c,
     }
 
     public abstract class RailDriverBase
     {
-        public static readonly byte[] LedDigits = { (byte)RailDriverDisplaySign.Digit_0, (byte)RailDriverDisplaySign.Digit_1, (byte)RailDriverDisplaySign.Digit_2,
-            (byte)RailDriverDisplaySign.Digit_3, (byte)RailDriverDisplaySign.Digit_4, (byte)RailDriverDisplaySign.Digit_5, (byte)RailDriverDisplaySign.Digit_6,
-            (byte)RailDriverDisplaySign.Digit_7, (byte)RailDriverDisplaySign.Digit_8, (byte)RailDriverDisplaySign.Digit_9};
-        public static readonly byte[] LedDecimalDigits = { (byte)RailDriverDisplaySign.Digit_0 | (byte)RailDriverDisplaySign.Decimal, (byte)RailDriverDisplaySign.Digit_1 | (byte)RailDriverDisplaySign.Decimal,
-            (byte)RailDriverDisplaySign.Digit_2 | (byte)RailDriverDisplaySign.Decimal, (byte)RailDriverDisplaySign.Digit_3 | (byte)RailDriverDisplaySign.Decimal,
-            (byte)RailDriverDisplaySign.Digit_4 | (byte)RailDriverDisplaySign.Decimal, (byte)RailDriverDisplaySign.Digit_5 | (byte)RailDriverDisplaySign.Decimal,
-            (byte)RailDriverDisplaySign.Digit_6 | (byte)RailDriverDisplaySign.Decimal, (byte)RailDriverDisplaySign.Digit_7 | (byte)RailDriverDisplaySign.Decimal,
-            (byte)RailDriverDisplaySign.Digit_8 | (byte)RailDriverDisplaySign.Decimal, (byte)RailDriverDisplaySign.Digit_9 | (byte)RailDriverDisplaySign.Decimal};
+        public static readonly byte[] LedDigits = { (byte)RailDriverDisplaySign.Digit0, (byte)RailDriverDisplaySign.Digit1, (byte)RailDriverDisplaySign.Digit2,
+            (byte)RailDriverDisplaySign.Digit3, (byte)RailDriverDisplaySign.Digit4, (byte)RailDriverDisplaySign.Digit5, (byte)RailDriverDisplaySign.Digit6,
+            (byte)RailDriverDisplaySign.Digit7, (byte)RailDriverDisplaySign.Digit8, (byte)RailDriverDisplaySign.Digit9};
+        public static readonly byte[] LedDecimalDigits = { (byte)RailDriverDisplaySign.Digit0 | (byte)RailDriverDisplaySign.Dot, (byte)RailDriverDisplaySign.Digit1 | (byte)RailDriverDisplaySign.Dot,
+            (byte)RailDriverDisplaySign.Digit2 | (byte)RailDriverDisplaySign.Dot, (byte)RailDriverDisplaySign.Digit3 | (byte)RailDriverDisplaySign.Dot,
+            (byte)RailDriverDisplaySign.Digit4 | (byte)RailDriverDisplaySign.Dot, (byte)RailDriverDisplaySign.Digit5 | (byte)RailDriverDisplaySign.Dot,
+            (byte)RailDriverDisplaySign.Digit6 | (byte)RailDriverDisplaySign.Dot, (byte)RailDriverDisplaySign.Digit7 | (byte)RailDriverDisplaySign.Dot,
+            (byte)RailDriverDisplaySign.Digit8 | (byte)RailDriverDisplaySign.Dot, (byte)RailDriverDisplaySign.Digit9 | (byte)RailDriverDisplaySign.Dot};
 
         public abstract int WriteBufferSize { get; }
 
@@ -54,9 +56,15 @@ namespace Orts.Common.Input
 
         public abstract int WriteData(byte[] writeBuffer);
 
-        public byte[] NewReadBuffer => new byte[ReadBufferSize]; 
+        public byte[] GetReadBuffer()
+        {
+            return new byte[ReadBufferSize];
+        }
 
-        public byte[] NewWriteBuffer => new byte[WriteBufferSize];
+        public byte[] GetWriteBuffer()
+        {
+            return new byte[WriteBufferSize];
+        }
 
         public abstract int ReadCurrentData(ref byte[] data);
 
@@ -67,7 +75,7 @@ namespace Orts.Common.Input
         public abstract bool Enabled { get; }
 
         private static RailDriverBase instance;
-        private static byte[] writeBuffer;
+        private byte[] writeBuffer;
 
         public static RailDriverBase GetInstance()
         {
@@ -79,9 +87,9 @@ namespace Orts.Common.Input
                 }
                 else
                 {
-                    instance= new RailDriver32();
+                    instance = new RailDriver32();
                 }
-                writeBuffer = instance.NewWriteBuffer;
+                instance.writeBuffer = instance.GetWriteBuffer();
             }
             return instance;
         }

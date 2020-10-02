@@ -37,8 +37,8 @@ namespace Orts.Common.Calc
     /// </summary>
     public class Integrator
     {
-        private double[] previousValues = new double[100];
-        private double[] previousStep = new double[100];
+        private readonly double[] previousValues = new double[100];
+        private readonly double[] previousStep = new double[100];
 
         private double derivation;
         private double prevDerivation;
@@ -69,7 +69,7 @@ namespace Orts.Common.Calc
                 max = value;
 
             }
-            get { return max; }
+            get => max;
         }
         /// <summary>
         /// Lower limit of the Value. Cannot be greater than Max. Min is considered only if IsLimited is true
@@ -82,7 +82,7 @@ namespace Orts.Common.Calc
                     throw new InvalidOperationException("Minimum must be smaller than maximum");
                 min = value;
             }
-            get { return min; }
+            get => min;
         }
         /// <summary>
         /// Determines limitting according to Max and Min values
@@ -105,7 +105,7 @@ namespace Orts.Common.Calc
 
         public double Error { set; get; }
 
-        public Integrator() : this(0f)
+        public Integrator() : this(0.0)
         {
         }
 
@@ -113,7 +113,7 @@ namespace Orts.Common.Calc
         /// Constructor
         /// </summary>
         /// <param name="initCondition">Initial condition of integration</param>
-        public Integrator(double initCondition): this(initCondition, IntegratorMethod.EulerBackward)
+        public Integrator(double initCondition) : this(initCondition, IntegratorMethod.EulerBackward)
         {
         }
 
@@ -140,6 +140,9 @@ namespace Orts.Common.Calc
 
         public Integrator(Integrator source)
         {
+            if (null == source)
+                throw new ArgumentNullException(nameof(source));
+
             Method = source.Method;
             MinStep = source.MinStep;
             max = source.max;
@@ -170,11 +173,8 @@ namespace Orts.Common.Calc
         /// <returns>Value of integration in the next step (t + timeSpan)</returns>
         public double Integrate(double timeSpan, double value)
         {
-            double step = 0.0;
             double end = timeSpan;
-            int count = 0;
-
-            double k1, k2, k3, k4 = 0;
+            double k1, k2, k3;
 
             //Skip when timeSpan is less then zero
             if (timeSpan <= 0.0f)
@@ -182,6 +182,7 @@ namespace Orts.Common.Calc
                 return Value;
             }
 
+            int count;
             //if (timeSpan > MinStep)
             if (Math.Abs(prevDerivation) > Error)
             {
@@ -210,11 +211,12 @@ namespace Orts.Common.Calc
                 //IsStepDividing = false;
             }
 
-            timeSpan = timeSpan / count;
+            timeSpan /= count;
             NumOfSubstepsPS = count;
 
             IsStepDividing = count > 1;
 
+            double step;
             #region SOLVERS
             //while ((step += timeSpan) <= end)
             for (step = timeSpan; step <= end; step += timeSpan)
@@ -240,7 +242,7 @@ namespace Orts.Common.Calc
                         k1 = timeSpan * value;
                         k2 = k1 + timeSpan / 2.0 * value;
                         k3 = k1 + timeSpan / 2.0 * k2;
-                        k4 = timeSpan * k3;
+                        double k4 = timeSpan * k3;
                         Value += (derivation = (k1 + 2.0 * k2 + 2.0 * k3 + k4) / 6.0);
                         break;
                     case IntegratorMethod.NewtonRhapson:
@@ -250,7 +252,7 @@ namespace Orts.Common.Calc
                         //prediction
                         double predicted = Value + timeSpan / 24.0 * (55.0 * previousValues[0] - 59.0 * previousValues[1] + 37.0 * previousValues[2] - 9.0 * previousValues[3]);
                         //correction
-                        Value = Value + timeSpan / 24.0 * (9.0 * predicted + 19.0 * previousValues[0] - 5.0 * previousValues[1] + previousValues[2]);
+                        Value += timeSpan / 24.0 * (9.0 * predicted + 19.0 * previousValues[0] - 5.0 * previousValues[1] + previousValues[2]);
                         for (int i = previousStep.Length - 1; i > 0; i--)
                         {
                             previousStep[i] = previousStep[i - 1];
@@ -302,11 +304,15 @@ namespace Orts.Common.Calc
 
         public void Save(BinaryWriter outf)
         {
+            if (null == outf)
+                throw new ArgumentNullException(nameof(outf));
             outf.Write(Value);
         }
 
         public void Restore(BinaryReader inf)
         {
+            if (null == inf)
+                throw new ArgumentNullException(nameof(inf));
             Value = inf.ReadDouble();
 
             for (int i = 0; i < 4; i++)

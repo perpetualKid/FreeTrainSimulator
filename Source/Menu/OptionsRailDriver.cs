@@ -191,8 +191,8 @@ namespace Orts.Menu
 
         private void RunCalibration()
         {
-            byte[] readData = instance.NewReadBuffer;
-            instance.SetLeds(RailDriverDisplaySign.Char_C, RailDriverDisplaySign.Char_A, RailDriverDisplaySign.Char_L);
+            byte[] readData = instance.GetReadBuffer();
+            instance.SetLeds(RailDriverDisplaySign.C, RailDriverDisplaySign.A, RailDriverDisplaySign.L);
             RailDriverCalibrationSetting nextStep = RailDriverCalibrationSetting.ReverserNeutral;
             DialogResult result = DialogResult.OK;
             while (result == DialogResult.OK && nextStep < RailDriverCalibrationSetting.ReverseReverser)

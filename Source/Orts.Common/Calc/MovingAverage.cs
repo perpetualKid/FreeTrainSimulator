@@ -9,7 +9,7 @@ namespace Orts.Common.Calc
         private readonly Queue<double> buffer;
         private readonly int size;
 
-        public MovingAverage():
+        public MovingAverage() :
             this(10)
         {
         }
@@ -21,10 +21,7 @@ namespace Orts.Common.Calc
             Initialize();
         }
 
-        public int Size
-        {
-            get { return buffer.Count;}
-        }
+        public int Size => buffer.Count;
 
         public void Initialize(double value)
         {
