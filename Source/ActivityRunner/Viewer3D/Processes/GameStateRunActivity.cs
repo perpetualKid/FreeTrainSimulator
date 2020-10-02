@@ -79,7 +79,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         private string code;
 
         private static Viewer viewer { get { return Program.Viewer; } set { Program.Viewer = value; } }
-        private ORTraceListener traceListener;
         private static string logFileName;
         private LoadingPrimitive loading;
         private LoadingScreenPrimitive loadingScreen;
@@ -694,12 +693,13 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             }
 
             // Captures Trace.Trace* calls and others and formats.
-            traceListener = new ORTraceListener(Console.Out, !settings.Logging)
+            ORTraceListener traceListener = new ORTraceListener(Console.Out, !settings.Logging)
             {
                 TraceOutputOptions = TraceOptions.Callstack
             };
             // Trace.Listeners and Debug.Listeners are the same list.
             Trace.Listeners.Add(traceListener);
+            Trace.AutoFlush = true;
 
             Console.WriteLine($"This is a log file for {RuntimeInfo.ProductName}. Please include this file in bug reports.");
             Console.WriteLine(separatorLine);
@@ -1122,15 +1122,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 return (long)counters.ReadTransferCount;
 
             return 0;
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                traceListener?.Dispose();
-            }
-            base.Dispose(disposing);
         }
     }
 #pragma warning restore CA1303 // Do not pass literals as localized parameters

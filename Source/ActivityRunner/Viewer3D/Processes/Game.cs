@@ -27,6 +27,7 @@ using System.Windows.Forms;
 
 using Orts.Common;
 using Orts.Common.Info;
+using Orts.Common.Logging;
 using Orts.Settings;
 
 namespace Orts.ActivityRunner.Viewer3D.Processes
@@ -161,10 +162,14 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             WebServerProcess.Stop();
         }
 
-        void Game_Exiting(object sender, EventArgs e)
+        private void Game_Exiting(object sender, EventArgs e)
         {
             while (State != null)
                 PopState();
+            if (Console.IsOutputRedirected)
+            {
+                Console.Out.Close();
+            }
         }
 
         internal void PushState(GameState state)

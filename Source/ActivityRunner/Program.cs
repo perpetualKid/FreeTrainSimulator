@@ -54,11 +54,10 @@ namespace Orts.ActivityRunner
 
             using (Game game = new Game(settings))
             {
-                using (GameStateRunActivity gameState = new GameStateRunActivity(args))
-                {
-                    game.PushState(gameState);
-                    game.Run();
-                }
+#pragma warning disable CA2000 // Dispose objects before losing scope
+                game.PushState(new GameStateRunActivity(args));
+#pragma warning restore CA2000 // Dispose objects before losing scope
+                game.Run();
             }
         }
     }

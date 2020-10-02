@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Orts.Common.Logging
 {
@@ -10,7 +12,7 @@ namespace Orts.Common.Logging
         private readonly TextWriter writer;
         private readonly bool errorsOnly;
         private bool lastWrittenFormatted;
-        private int[] eventCounts = new int[5];
+        private readonly int[] eventCounts = new int[5];
 
         public int EventCount(TraceEventType eventType)
         {
@@ -32,13 +34,13 @@ namespace Orts.Common.Logging
         public override void TraceEvent(TraceEventCache eventCache, string source, TraceEventType eventType, int id)
         {
             if ((Filter == null) || Filter.ShouldTrace(eventCache, source, eventType, id, null, null, null, null))
-                TraceEventInternal(eventCache, source, eventType, id, "", new object[0]);
+                TraceEventInternal(eventCache, source, eventType, id, "", Array.Empty<object>());
         }
 
         public override void TraceEvent(TraceEventCache eventCache, string source, TraceEventType eventType, int id, string message)
         {
             if ((Filter == null) || Filter.ShouldTrace(eventCache, source, eventType, id, message, null, null, null))
-                TraceEventInternal(eventCache, source, eventType, id, message, new object[0]);
+                TraceEventInternal(eventCache, source, eventType, id, message, Array.Empty<object>());
         }
 
         public override void TraceEvent(TraceEventCache eventCache, string source, TraceEventType eventType, int id, string format, params object[] args)
@@ -47,8 +49,11 @@ namespace Orts.Common.Logging
                 TraceEventInternal(eventCache, source, eventType, id, format, args);
         }
 
-        void TraceEventInternal(TraceEventCache eventCache, string source, TraceEventType eventType, int id, string format, object[] args)
+        private void TraceEventInternal(TraceEventCache eventCache, string source, TraceEventType eventType, int id, string format, object[] args)
         {
+            if (null == eventCache)
+                return;
+
             // Convert eventType (an enum) back to an index so we can count the different types of error separately.
             int errorLevel = (int)(Math.Log((int)eventType) / Math.Log(2));
             if (errorLevel < eventCounts.Length)
@@ -58,7 +63,7 @@ namespace Orts.Common.Logging
             if (eventType > TraceEventType.Error && errorsOnly)
                 return;
 
-            var output = new StringBuilder();
+            StringBuilder output = new StringBuilder();
             if (!lastWrittenFormatted)
             {
                 output.AppendLine();
@@ -69,7 +74,7 @@ namespace Orts.Common.Logging
             if (args.Length == 0)
                 output.Append(format);
             else
-                output.AppendFormat(format, args);
+                output.AppendFormat(CultureInfo.InvariantCulture, format, args);
 
             // Log exception details if it is an exception.
             if (eventCache.LogicalOperationStack.Contains(LogicalOperationWriteException))
@@ -77,11 +82,11 @@ namespace Orts.Common.Logging
                 // Attempt to clean up the stacks; the problem is that the exception stack only goes as far back as the call made inside the try block. We also have access to the
                 // full stack to this trace call, which goes via the catch block at the same level as the try block. We'd prefer to have the whole stack, so we need to find the
                 // join and stitch the stacks together.
-                var error = args[0] as Exception;
-                var errorStack = new StackTrace(args[0] as Exception);
-                var errorStackLast = errorStack.GetFrame(errorStack.FrameCount - 1);
-                var catchStack = new StackTrace();
-                var catchStackIndex = 0;
+                Exception error = args[0] as Exception;
+                StackTrace errorStack = new StackTrace(args[0] as Exception);
+                StackFrame errorStackLast = errorStack.GetFrame(errorStack.FrameCount - 1);
+                StackTrace catchStack = new StackTrace();
+                int catchStackIndex = 0;
                 while (catchStackIndex < catchStack.FrameCount && errorStackLast != null && catchStack.GetFrame(catchStackIndex).GetMethod().Name != errorStackLast.GetMethod().Name)
                     catchStackIndex++;
                 catchStack = new StackTrace(catchStackIndex < catchStack.FrameCount ? catchStackIndex + 1 : 0, true);
@@ -99,7 +104,7 @@ namespace Orts.Common.Logging
             }
 
             output.AppendLine();
-            writer.Write(output);
+            writer.WriteAsync(output.ToString()).ConfigureAwait(false);
             lastWrittenFormatted = true;
         }
 
