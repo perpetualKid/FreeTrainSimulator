@@ -2,9 +2,7 @@
 
 namespace Orts.Common.Input
 {
-#pragma warning disable CA1028 // Enum Storage should be Int32
-    public enum RailDriverDisplaySign : byte
-#pragma warning restore CA1028 // Enum Storage should be Int32
+    public enum RailDriverDisplaySign
     {
         Blank = 0x0,
         Digit0 = 0x3f,
@@ -23,7 +21,7 @@ namespace Orts.Common.Input
         b = 0x7c,
         C = 0x39,
         c = 0x58,
-        d = 0x58,
+        d = 0x5e,
         E = 0x79,
         F = 0x71,
         H = 0x76,

@@ -352,7 +352,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 if (File.Exists(logFileName))
                 {
                     File.Delete(logName);
-                    File.Move(logFileName, logName);
+                    File.Copy(logFileName, logName);
                 }
 
                 Simulator.Save(outf);
