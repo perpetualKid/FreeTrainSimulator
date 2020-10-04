@@ -168,7 +168,7 @@ namespace Orts.Launcher
         {
 
             using (RegistryKey key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion\"))
-                if (int.TryParse((string)key.GetValue("ReleaseId", 0), out int release) && release >= 1803)
+                if (int.TryParse((string)key.GetValue("ReleaseId", "0"), out int releaseId) && releaseId >= 1803)
                     return;
             if (File.Exists(Path.Combine(Environment.SystemDirectory, "D3Dcompiler_43.dll")))       //there is a dependency in Monogame requiring the specific version of D3D compiler
                 return;
