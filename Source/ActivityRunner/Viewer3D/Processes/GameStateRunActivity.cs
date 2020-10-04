@@ -68,12 +68,12 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         private static ActionType actionType;
         private static ActivityType activityType;
 
-        static Simulator Simulator { get { return Program.Simulator; } set { Program.Simulator = value; } }
+        private static Simulator Simulator { get { return Program.Simulator; } set { Program.Simulator = value; } }
 
         //for Multiplayer
-        private static Server server { get { return MPManager.Server; } set { MPManager.Server = value; } }
+        private static Server Server { get { return MPManager.Server; } set { MPManager.Server = value; } }
 
-        private static ClientComm client { get { return MPManager.Client; } set { MPManager.Client = value; } }
+        private static ClientComm Client { get { return MPManager.Client; } set { MPManager.Client = value; } }
 
         private string userName;
         private string code;
@@ -283,9 +283,9 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                     break;
             }
 
-            if (client != null)
+            if (Client != null)
             {
-                client.Send((new MSGPlayer(userName, code, Simulator.conFileName, Simulator.patFileName, Simulator.Trains[0], 0, Simulator.Settings.AvatarURL)).ToString());
+                Client.Send((new MSGPlayer(userName, code, Simulator.conFileName, Simulator.patFileName, Simulator.Trains[0], 0, Simulator.Settings.AvatarURL)).ToString());
                 // wait 5 seconds to see if you get a reply from server with updated position/consist data, else go on
 
                 System.Threading.Thread.Sleep(5000);
@@ -351,6 +351,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
 
                 if (File.Exists(logFileName))
                 {
+                    Console.Out.Flush();
                     File.Delete(logName);
                     File.Copy(logFileName, logName);
                 }
@@ -423,11 +424,11 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                     InitSimulator(settings);
                     Simulator.Restore(inf, PathName, InitialTileX, InitialTileZ, Game.LoaderProcess.CancellationToken);
                     viewer = new Viewer(Simulator, Game);
-                    if (client != null || server != null && ActivityType == ActivityType.Activity)
+                    if (Client != null || Server != null && ActivityType == ActivityType.Activity)
                         Simulator.GetPathAndConsist();
-                    if (client != null)
+                    if (Client != null)
                     {
-                        client.Send((new MSGPlayer(userName, code, Simulator.conFileName, Simulator.patFileName, Simulator.Trains[0], 0, Simulator.Settings.AvatarURL)).ToString());
+                        Client.Send((new MSGPlayer(userName, code, Simulator.conFileName, Simulator.patFileName, Simulator.Trains[0], 0, Simulator.Settings.AvatarURL)).ToString());
                     }
                     viewer.Restore(inf);
 
@@ -983,18 +984,18 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             {
                 try
                 {
-                    server = new Server(settings.Multiplayer_User + " 1234", settings.Multiplayer_Port);
-                    userName = server.UserName;
+                    Server = new Server(settings.Multiplayer_User + " 1234", settings.Multiplayer_Port);
+                    userName = Server.UserName;
                     Debug.Assert(userName.Length >= 4 && userName.Length <= 10 && !userName.Contains('\"') && !userName.Contains('\'') && !char.IsDigit(userName[0]),
                         "Error in the user name: should not start with digits, be 4-10 characters long and no special characters");
-                    code = server.Code;
+                    code = Server.Code;
                     MPManager.Instance().MPUpdateInterval = settings.Multiplayer_UpdateInterval;
                 }
                 catch (Exception error)
                 {
                     Trace.WriteLine(error);
                     Console.WriteLine("Connection error - will play in single mode.");
-                    server = null;
+                    Server = null;
                 }
             }
 
@@ -1003,17 +1004,17 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 try
                 {
                     MPManager.Instance().MPUpdateInterval = settings.Multiplayer_UpdateInterval;
-                    client = new ClientComm(settings.Multiplayer_Host, settings.Multiplayer_Port, settings.Multiplayer_User + " 1234");
-                    userName = client.UserName;
+                    Client = new ClientComm(settings.Multiplayer_Host, settings.Multiplayer_Port, settings.Multiplayer_User + " 1234");
+                    userName = Client.UserName;
                     Debug.Assert(userName.Length >= 4 && userName.Length <= 10 && !userName.Contains('\"') && !userName.Contains('\'') && !char.IsDigit(userName[0]),
                         "Error in the user name: should not start with digits, be 4-10 characters long and no special characters");
-                    code = client.Code;
+                    code = Client.Code;
                 }
                 catch (Exception error)
                 {
                     Trace.WriteLine(error);
                     Console.WriteLine("Connection error - will play in single mode.");
-                    client = null;
+                    Client = null;
                 }
             }
         }

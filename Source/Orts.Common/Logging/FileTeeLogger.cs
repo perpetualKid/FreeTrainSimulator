@@ -30,7 +30,8 @@ namespace Orts.Common.Logging
         public FileTeeLogger(string fileName, TextWriter console)
         {
             this.console = console;
-            writer = new StreamWriter(fileName, true, Encoding);
+            writer = new StreamWriter(fileName, true, Encoding, 512);
+            writer.AutoFlush = true;
         }
 
         protected override void Dispose(bool disposing)
@@ -45,6 +46,15 @@ namespace Orts.Common.Logging
         }
 
         public override Encoding Encoding => Encoding.UTF8;
+
+        public override void Flush()
+        {
+            writer.Flush();
+#if DEBUG
+            console.Flush();
+#endif
+            base.Flush();
+        }
 
         public override void Write(char value)
         {
