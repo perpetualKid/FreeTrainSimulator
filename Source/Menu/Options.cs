@@ -59,8 +59,15 @@ namespace Orts.Menu
             if (Directory.Exists(RuntimeInfo.LocalesFolder))
                 foreach (string path in Directory.EnumerateDirectories(RuntimeInfo.LocalesFolder))
                     if (Directory.EnumerateFiles(path, "*.mo").Any())
-                        languageCodes.Add(Path.GetFileName(path));
-
+                    {
+                        try
+                        {
+                            string languageCode = Path.GetFileName(path);
+                            CultureInfo.GetCultureInfo(languageCode);
+                            languageCodes.Add(languageCode);
+                        }
+                        catch (CultureNotFoundException) { }
+                    }
             // Turn the list of codes in to a list of code + name pairs for
             // displaying in the dropdown list.
             languageCodes.Add(string.Empty);
