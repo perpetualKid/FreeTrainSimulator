@@ -118,8 +118,8 @@ namespace Orts.ActivityRunner.Viewer3D
                 bailoffDisengaged = UpdateCutOff(bailoffDisengaged, cutOff);
                 bailoffEngaged = UpdateCutOff(bailoffEngaged, cutOff);
 
-                readBuffer = railDriverInstance.NewReadBuffer;
-                readBufferHistory = railDriverInstance.NewReadBuffer;
+                readBuffer = railDriverInstance.GetReadBuffer();
+                readBufferHistory = railDriverInstance.GetReadBuffer();
 
                 railDriverInstance.SetLeds(RailDriverDisplaySign.Hyphen, RailDriverDisplaySign.Hyphen, RailDriverDisplaySign.Hyphen);
             }

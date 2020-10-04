@@ -24,36 +24,14 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using Orts.ActivityRunner.Viewer3D.Processes;
+using Orts.ActivityRunner.Viewer3D.Shaders;
 using Orts.Common.Xna;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
-    public abstract class Shader : Effect
-    {
-        public Shader(GraphicsDevice graphicsDevice, string filename)
-            : base(graphicsDevice, GetEffectCode(filename))
-        {
-        }
-
-        static byte[] GetEffectCode(string filename)
-        {
-            var basePath = Path.Combine(Path.GetDirectoryName(System.Windows.Forms.Application.ExecutablePath), "Content");
-            return File.ReadAllBytes(Path.Combine(basePath, filename + ".mgfx"));
-            //var effectFileName = System.IO.Path.Combine(basePath, filename + ".fx");
-
-            //EffectContent effectSource = new EffectContent
-            //{
-            //    Identity = new ContentIdentity(effectFileName),
-            //    EffectCode = File.ReadAllText(effectFileName),                
-            //};
-            //EffectProcessor processor = new EffectProcessor();
-            //CompiledEffectContent compiledEffect = processor.Process(effectSource, new ProcessorContext());
-            //return compiledEffect.GetEffectCode();
-        }
-    }
 
     //[CallOnThread("Render")]
-    public class SceneryShader : Shader
+    public class SceneryShader : BaseShader
     {
         readonly EffectParameter world;
         readonly EffectParameter worldViewProjection;
@@ -246,7 +224,7 @@ namespace Orts.ActivityRunner.Viewer3D
     }
 
     //[CallOnThread("Render")]
-    public class ShadowMapShader : Shader
+    public class ShadowMapShader : BaseShader
     {
         readonly EffectParameter worldViewProjection;
         readonly EffectParameter sideVector;
@@ -288,7 +266,7 @@ namespace Orts.ActivityRunner.Viewer3D
     }
 
     //[CallOnThread("Render")]
-    public class SkyShader : Shader
+    public class SkyShader : BaseShader
     {
         readonly EffectParameter worldViewProjection;
         readonly EffectParameter lightVector;
@@ -454,7 +432,7 @@ namespace Orts.ActivityRunner.Viewer3D
     }
 
     //[CallOnThread("Render")]
-    public class ParticleEmitterShader : Shader
+    public class ParticleEmitterShader : BaseShader
     {
         EffectParameter emitSize;
         EffectParameter tileXY;
@@ -516,7 +494,7 @@ namespace Orts.ActivityRunner.Viewer3D
     }
 
     //[CallOnThread("Render")]
-    public class LightGlowShader : Shader
+    public class LightGlowShader : BaseShader
     {
         readonly EffectParameter worldViewProjection;
         readonly EffectParameter fade;
@@ -544,7 +522,7 @@ namespace Orts.ActivityRunner.Viewer3D
     }
 
     //[CallOnThread("Render")]
-    public class LightConeShader : Shader
+    public class LightConeShader : BaseShader
     {
         EffectParameter worldViewProjection;
         EffectParameter fade;
@@ -568,7 +546,7 @@ namespace Orts.ActivityRunner.Viewer3D
     }
 
     //[CallOnThread("Render")]
-    public class PopupWindowShader : Shader
+    public class PopupWindowShader : BaseShader
     {
         readonly EffectParameter world;
         readonly EffectParameter worldViewProjection;
@@ -610,7 +588,7 @@ namespace Orts.ActivityRunner.Viewer3D
     }
 
     //[CallOnThread("Render")]
-    public class CabShader : Shader
+    public class CabShader : BaseShader
     {
         readonly EffectParameter nightColorModifier;
         readonly EffectParameter lightOn;
@@ -661,7 +639,7 @@ namespace Orts.ActivityRunner.Viewer3D
     }
 
     //[CallOnThread("Render")]
-    public class DriverMachineInterfaceShader : Shader
+    public class DriverMachineInterfaceShader : BaseShader
     {
         readonly EffectParameter limitAngle;
         readonly EffectParameter normalColor;
@@ -690,7 +668,7 @@ namespace Orts.ActivityRunner.Viewer3D
     }
 
     //[CallOnThread("Render")]
-    public class DebugShader : Shader
+    public class DebugShader : BaseShader
     {
         readonly EffectParameter worldViewProjection;
         readonly EffectParameter screenSize;

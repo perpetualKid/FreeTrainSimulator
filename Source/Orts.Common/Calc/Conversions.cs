@@ -18,6 +18,7 @@ namespace Orts.Common.Calc
     // Also because of performance reasons, derived quantities still are hard-coded, instead of calling basic conversions and do multiplication
     //
 
+#pragma warning disable CA1034 // Nested types should not be visible
     /// <summary>
     /// Frequency conversions
     /// </summary>
@@ -191,7 +192,7 @@ namespace Orts.Common.Calc
             {
                 return isMetric ? ToKM(distance) : ToMi(distance);
             }
-             
+
             /// <summary>
             /// Convert to metres from kilometres or miles, depending on the flag isMetric
             /// </summary>
@@ -528,7 +529,7 @@ namespace Orts.Common.Calc
         /// </summary>
         public static class Vacuum
         {
-            readonly static double OneAtmospherePSI = Atmospheric.ToPSI(1);
+            private static readonly double OneAtmospherePSI = Atmospheric.ToPSI(1);
             /// <summary>vacuum in inhg to pressure in psia</summary>
             public static double ToPressure(double vacuum) { return OneAtmospherePSI - Atmospheric.ToPSI(Atmospheric.FromInHg(vacuum)); }
             /// <summary>convert pressure in psia to vacuum in inhg</summary>
@@ -600,7 +601,7 @@ namespace Orts.Common.Calc
                     case Unit.PSI:
                         return ToPSI(pressure);
                     default:
-                        throw new ArgumentOutOfRangeException("Pressure unit not recognized");
+                        throw new ArgumentOutOfRangeException(nameof(outputUnit), $"Pressure unit '{outputUnit}' not recognized");
                 }
             }
 
@@ -624,9 +625,11 @@ namespace Orts.Common.Calc
                     case Unit.PSI:
                         return FromPSI(pressure);
                     default:
-                        throw new ArgumentOutOfRangeException("Pressure unit not recognized");
+                        throw new ArgumentOutOfRangeException(nameof(inputUnit), $"Pressure unit '{inputUnit}' not recognized");
                 }
             }
         }
     }
+#pragma warning restore CA1034 // Nested types should not be visible
+
 }

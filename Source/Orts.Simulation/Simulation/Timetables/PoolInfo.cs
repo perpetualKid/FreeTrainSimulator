@@ -52,13 +52,13 @@ namespace Orts.Simulation.Timetables
         /// <param name="arguments"></param>
         /// <param name="cancellation"></param>
         /// <returns></returns>
-        public Dictionary<string, TimetablePool> ProcessPools(string[] arguments, CancellationToken cancellation)
+        public Dictionary<string, TimetablePool> ProcessPools(string fileName, CancellationToken cancellation)
         {
             Dictionary<string, TimetablePool> pools = new Dictionary<string, TimetablePool>();
             List<string> filenames;
 
             // get filenames to process
-            filenames = GetFilenames(arguments[0]);
+            filenames = GetFilenames(fileName);
 
             // get file contents as strings
             Trace.Write("\n");

@@ -42,13 +42,13 @@ namespace Orts.Launcher
         public string Text;
     }
 
-    static class Program
+    internal static class Program
     {
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
         [STAThread]
-        static void Main()
+        private static void Main()
         {
             bool preferCoreFx = File.Exists(Path.Combine(Path.GetDirectoryName(Application.ExecutablePath), "prefercorefx"));
 
@@ -63,7 +63,7 @@ namespace Orts.Launcher
             if (missingDependencies.Count > 0)
             {
                 StringBuilder builder = new StringBuilder();
-                foreach (var item in missingDependencies)
+                foreach (DependencyHint item in missingDependencies)
                     builder.AppendLine(item.Name);
 
                 if (MessageBox.Show($"{Application.ProductName} requires the following:\n\n{builder}" +
@@ -78,7 +78,7 @@ namespace Orts.Launcher
             }
 
             // Check for any missing components.
-            var path = Path.GetDirectoryName(Application.ExecutablePath);
+            string path = Path.GetDirectoryName(Application.ExecutablePath);
             List<string> missingORFiles = new List<string>();
             if (preferCoreFx)
             {
@@ -120,9 +120,9 @@ namespace Orts.Launcher
             Process.Start(dependency.Url);
         }
 
-        static bool CheckNetFx(List<DependencyHint> missingDependencies)
+        private static bool CheckNetFx(List<DependencyHint> missingDependencies)
         {
-            using (var RK = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full\"))
+            using (RegistryKey RK = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full\"))
                 if ((SafeReadKey(RK, "Install", 0) == 1) && (SafeReadKey(RK, "Release", 0) >= 528040))  //https://docs.microsoft.com/en-us/dotnet/framework/migration-guide/how-to-determine-which-versions-are-installed#find-net-framework-versions-45-and-later-with-code
                     return true;
 
@@ -136,7 +136,7 @@ namespace Orts.Launcher
             return false;
         }
 
-        static bool CheckCoreFx(List<DependencyHint> missingDependencies, bool preferred)
+        private static bool CheckCoreFx(List<DependencyHint> missingDependencies, bool preferred)
         {
             string coreFxPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), @"dotnet\shared\Microsoft.NETCore.App");
             if (Directory.Exists(coreFxPath))
@@ -144,7 +144,7 @@ namespace Orts.Launcher
                 string[] versionFolders = Directory.GetDirectories(coreFxPath);
                 foreach(string fxVersion in versionFolders)
                 {
-                    var fragments = Path.GetFileName(fxVersion).Split('.');
+                    string[] fragments = Path.GetFileName(fxVersion).Split('.');
                     if (fragments.Length > 1)
                         if (double.TryParse($"{fragments[0]}{System.Globalization.NumberFormatInfo.CurrentInfo.NumberDecimalSeparator}{fragments[1]}", out double version))
                             if (version >= 3.1)
@@ -164,8 +164,12 @@ namespace Orts.Launcher
             return false;
         }
 
-        static void CheckDXRuntime(List<DependencyHint> missingDependencies)
+        private static void CheckDXRuntime(List<DependencyHint> missingDependencies)
         {
+
+            using (RegistryKey key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion\"))
+                if (int.TryParse((string)key.GetValue("ReleaseId", 0), out int release) && release >= 1803)
+                    return;
             if (File.Exists(Path.Combine(Environment.SystemDirectory, "D3Dcompiler_43.dll")))       //there is a dependency in Monogame requiring the specific version of D3D compiler
                 return;
 
@@ -178,10 +182,10 @@ namespace Orts.Launcher
             });
         }
 
-        static bool CheckORFolder(List<string> missingFiles, string path)
+        private static bool CheckORFolder(List<string> missingFiles, string path)
         {
             missingFiles.Clear();
-            foreach (var file in new[] {
+            foreach (string file in new[] {
                 // Required libraries:
                 @"Native/X86/OpenAL32.dll",
                 @"Native/X64/OpenAL32.dll",
@@ -196,7 +200,7 @@ namespace Orts.Launcher
             return missingFiles.Count == 0;
         }
 
-        static int SafeReadKey(RegistryKey key, string name, int defaultValue)
+        private static int SafeReadKey(RegistryKey key, string name, int defaultValue)
         {
             try
             {

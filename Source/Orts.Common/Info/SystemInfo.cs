@@ -18,9 +18,13 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Management;
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows.Forms;
+
+using Microsoft.Xna.Framework.Graphics;
 
 using Orts.Common.Native;
 
@@ -28,27 +32,29 @@ namespace Orts.Common.Info
 {
     public static class SystemInfo
     {
-        public static void WriteSystemDetails(TextWriter output)
+        public static async Task WriteSystemDetails(TextWriter output)
         {
             if (null == output)
                 throw new ArgumentNullException(nameof(output));
 
-            output.WriteLine($"Date/Time  = {DateTime.Now} ({DateTime.UtcNow:u})");
-            WriteEnvironment(output);
-            output.WriteLine($"Runtime    = {System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription} ({(Environment.Is64BitProcess ? "64" : "32")}bit)");
+            StringBuilder builder = new StringBuilder();
+            builder.AppendLine($"{"Date/Time",-12}= {DateTime.Now} ({DateTime.UtcNow:u})");
+            WriteEnvironment(builder);
+            builder.AppendLine($"{"Runtime",-12}= {System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription} ({(Environment.Is64BitProcess ? "64" : "32")}bit)");
+            await output.WriteAsync(builder.ToString()).ConfigureAwait(false);
         }
 
-        private static void WriteEnvironment(TextWriter output)
+        private static void WriteEnvironment(StringBuilder output)
         {
             NativeStructs.MemoryStatusExtended buffer = new NativeStructs.MemoryStatusExtended { Size = 64 };
             NativeMethods.GlobalMemoryStatusEx(buffer);
             try
             {
-                using (ManagementClass managementClass = new ManagementClass("Win32_BIOS"))
+                using (ManagementObjectSearcher objectSearcher = new ManagementObjectSearcher("Select Description, Manufacturer from Win32_BIOS"))
                 {
-                    foreach (ManagementObject bios in managementClass.GetInstances())
+                    foreach (ManagementBaseObject bios in objectSearcher.Get())
                     {
-                        output.WriteLine($"BIOS       = {bios["Description"]} ({bios["Manufacturer"]})");
+                        output.AppendLine($"{"BIOS",-12}= {bios["Description"]} ({bios["Manufacturer"]})");
                     }
                 }
             }
@@ -58,16 +64,11 @@ namespace Orts.Common.Info
             }
             try
             {
-                using (ManagementClass managementClass = new ManagementClass("Win32_Processor"))
+                using (ManagementObjectSearcher objectSearcher = new ManagementObjectSearcher("Select DeviceID, Name, NumberOfLogicalProcessors, NumberOfCores, MaxClockSpeed, L2CacheSize, L3CacheSize from Win32_Processor"))
                 {
-                    foreach (ManagementObject processor in managementClass.GetInstances())
+                    foreach (ManagementBaseObject processor in objectSearcher.Get())
                     {
-                        output.Write($"Processor  = {processor["Name"]} ({(uint)processor["NumberOfLogicalProcessors"]} threads, {processor["NumberOfCores"]} cores, {(uint)processor["MaxClockSpeed"] / 1000f:F1} GHz)");
-                        foreach (ManagementObject cpuCache in processor.GetRelated("Win32_CacheMemory"))
-                        {
-                            output.Write($" ({cpuCache["Purpose"]} {cpuCache["InstalledSize"]:F0} KB)");
-                        }
-                        output.WriteLine();
+                        output.AppendLine($"{"Processor",-12}= {processor["Name"]} ({(uint)processor["NumberOfLogicalProcessors"]} threads, {processor["NumberOfCores"]} cores, {(uint)processor["MaxClockSpeed"] / 1000f:F1} GHz, L2 Cache {processor["L2CacheSize"]:F0} KB, L3 Cache {processor["L3CacheSize"]:F0} KB)");
                     }
                 }
             }
@@ -75,14 +76,14 @@ namespace Orts.Common.Info
             {
                 Trace.WriteLine(error);
             }
-            output.WriteLine($"Memory     = {buffer.TotalPhysical / 1024f / 1024 / 1024:F1} GB");
+            output.AppendLine($"{"Memory",-12}= {buffer.TotalPhysical / 1024f / 1024 / 1024:F1} GB");
             try
             {
-                using (ManagementClass managementClass = new ManagementClass("Win32_VideoController"))
+                using (ManagementObjectSearcher objectSearcher = new ManagementObjectSearcher("Select DeviceID, Description, AdapterRAM, AdapterDACType from Win32_VideoController"))
                 {
-                    foreach (ManagementObject display in managementClass.GetInstances())
+                    foreach (ManagementBaseObject display in objectSearcher.Get())
                     {
-                        output.WriteLine($"Video      = {display["Description"]} ({(uint)display["AdapterRAM"] / 1024f / 1024 / 1024:F1} GB RAM){GetPnPDeviceDrivers(display)}");
+                        output.AppendLine($"{"Video",-12}= {display["Description"]} ({(uint)display["AdapterRAM"] / 1024f / 1024 / 1024:F1} GB {display["AdapterDACType"]} RAM){GetPnPDeviceDrivers(display as ManagementObject)}");
                     }
                 }
             }
@@ -93,16 +94,16 @@ namespace Orts.Common.Info
 
             foreach (Screen screen in Screen.AllScreens)
             {
-                output.WriteLine($"Display    = {screen.DeviceName} (resolution {screen.Bounds.Width} x {screen.Bounds.Height}, {screen.BitsPerPixel}-bit{(screen.Primary ? ", primary" : "")}, location {screen.Bounds.X} x {screen.Bounds.Y})");
+                output.AppendLine($"{"Display",-12}= {screen.DeviceName} (resolution {screen.Bounds.Width} x {screen.Bounds.Height}, {screen.BitsPerPixel}-bit{(screen.Primary ? ", primary" : "")}, location {screen.Bounds.X}::{screen.Bounds.Y}, using {GraphicsAdapter.Adapters.Where(adapter => adapter.DeviceName == screen.DeviceName).Single().Description})");
             }
 
             try
             {
-                using (ManagementClass managementClass = new ManagementClass("Win32_SoundDevice"))
+                using (ManagementObjectSearcher objectSearcher = new ManagementObjectSearcher("Select DeviceID, Description from Win32_SoundDevice"))
                 {
-                    foreach (ManagementObject sound in managementClass.GetInstances())
+                    foreach (ManagementBaseObject sound in objectSearcher.Get())
                     {
-                        Console.WriteLine($"Sound      = {sound["Description"]}{GetPnPDeviceDrivers(sound)}");
+                        output.AppendLine($"{"Sound",-12}= {sound["Description"]}{GetPnPDeviceDrivers(sound as ManagementObject)}");
                     }
                 }
             }
@@ -112,15 +113,14 @@ namespace Orts.Common.Info
             }
             try
             {
-                using (ManagementClass managementClass = new ManagementClass("Win32_LogicalDisk"))
+                using (ManagementObjectSearcher objectSearcher = new ManagementObjectSearcher("Select Name, Description, FileSystem, Size, FreeSpace from Win32_LogicalDisk"))
                 {
-                    foreach (ManagementObject disk in managementClass.GetInstances())
+                    foreach (ManagementBaseObject disk in objectSearcher.Get())
                     {
-                        output.Write($"Disk       = {disk["Name"]} ({disk["Description"]}, {disk["FileSystem"]}");
-                        if (disk["Size"] != null && disk["FreeSpace"] != null)
-                            output.WriteLine($", {(ulong)disk["Size"] / 1024f / 1024 / 1024:F1} GB, {(ulong)disk["FreeSpace"] / 1024f / 1024 / 1024:F1} GB free)");
+                        if (disk["Size"] != null)
+                            output.AppendLine($"{"Disk",-12}= {disk["Name"]} ({disk["Description"]}, {disk["FileSystem"]}, {(ulong)(disk["Size"] ?? 0ul) / 1024f / 1024 / 1024:F1} GB, {(ulong)(disk["FreeSpace"] ?? 0ul) / 1024f / 1024 / 1024:F1} GB free)");
                         else
-                            output.WriteLine(")");
+                            output.AppendLine($"{"Disk",-12}= {disk["Name"]} ({disk["Description"]})");
                     }
                 }
             }
@@ -130,11 +130,11 @@ namespace Orts.Common.Info
             }
             try
             {
-                using (ManagementClass managementClass = new ManagementClass("Win32_OperatingSystem"))
+                using (ManagementObjectSearcher objectSearcher = new ManagementObjectSearcher("Select Caption, OSArchitecture, Version from Win32_OperatingSystem"))
                 {
-                    foreach (ManagementObject os in managementClass.GetInstances())
+                    foreach (ManagementBaseObject os in objectSearcher.Get())
                     {
-                        output.WriteLine($"OS         = {os["Caption"]} {os["OSArchitecture"]} ({os["Version"]})");
+                        output.AppendLine($"{"OS",-12}= {os["Caption"]} {os["OSArchitecture"]} ({os["Version"]})");
                     }
                 }
             }

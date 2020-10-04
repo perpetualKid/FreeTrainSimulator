@@ -49,13 +49,13 @@ namespace Orts.Simulation.Timetables
         /// <param name="arguments"></param>
         /// <param name="cancellation"></param>
         /// <returns></returns>
-        public Dictionary<string, TimetableTurntablePool> ProcessTurntables(string[] arguments, Common.Threading.CancellationToken cancellation)
+        public Dictionary<string, TimetableTurntablePool> ProcessTurntables(string fileName, Common.Threading.CancellationToken cancellation)
         {
             Dictionary<string, TimetableTurntablePool> turntables = new Dictionary<string, TimetableTurntablePool>();
             List<string> filenames;
 
             // get filenames to process
-            filenames = GetTurntableFilenames(arguments[0]);
+            filenames = GetTurntableFilenames(fileName);
 
             // get file contents as strings
             Trace.Write("\n");

@@ -26,6 +26,7 @@ using System.Runtime.InteropServices;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
+using Orts.ActivityRunner.Viewer3D.Shaders;
 using Orts.Common;
 using Orts.Common.Position;
 using Orts.Simulation;
@@ -574,7 +575,7 @@ namespace Orts.ActivityRunner.Viewer3D
     }
 
     //[CallOnThread("Render")]
-    public class PrecipitationShader : Shader
+    public class PrecipitationShader : BaseShader
     {
         internal readonly EffectParameter worldViewProjection;
         internal readonly EffectParameter invView;

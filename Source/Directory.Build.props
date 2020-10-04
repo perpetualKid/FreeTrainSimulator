@@ -16,7 +16,7 @@
     <DebugSymbols>false</DebugSymbols>
   </PropertyGroup>
   <PropertyGroup>
-    <VersionPrefix>1.3.3</VersionPrefix>
+    <VersionPrefix>1.3.4</VersionPrefix>
     <VersionSuffix>alpha.1+LocalBuild</VersionSuffix>
     <Product>Open Rails Ultimate</Product>
     <Company>Open Rails Ultimate Team</Company>

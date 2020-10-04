@@ -39,11 +39,11 @@ namespace Orts.Models.Simplified
         public string ActivityID { get; private set; }
         public string Description { get; private set; }
         public string Briefing { get; private set; }
-        public StartTime StartTime { get; protected set; } = new StartTime(10, 0, 0);
+        public TimeSpan StartTime { get; protected set; } = new TimeSpan(10, 0, 0);
         public SeasonType Season { get; protected set; } = SeasonType.Summer;
         public WeatherType Weather { get; protected set; } = WeatherType.Clear;
         public Difficulty Difficulty { get; protected set; } = Difficulty.Easy;
-        public Duration Duration { get; protected set; } = new Duration(1, 0);
+        public TimeSpan Duration { get; protected set; } = new TimeSpan(1, 0, 0);
         public Consist Consist { get; protected set; } = Consist.Missing;
         public Path Path { get; protected set; } = new Path("unknown");
         public string FilePath { get; private set; }
@@ -191,17 +191,9 @@ namespace Orts.Models.Simplified
 
         public void UpdateActivity(string startTime, SeasonType season, WeatherType weather, Consist consist, Path path)
         {
-            if (string.IsNullOrEmpty(startTime))
-                startTime = "12:00";
-
-            string[] time = startTime.Split(':');
-            if (!int.TryParse(time[0], out int hour))
-                hour = 12;
-            if (time.Length < 2 || !int.TryParse(time[1], out int minute))
-                minute = 0;
-            if (time.Length < 3 || !int.TryParse(time[2], out int second))
-                second = 0;
-            StartTime = new StartTime(hour, minute, second);
+            if (!TimeSpan.TryParse(startTime, out TimeSpan result))
+                result = new TimeSpan(12, 0, 0);
+            StartTime = result;
             Season = season;
             Weather = weather;
             Consist = consist;

@@ -47,7 +47,7 @@ namespace Orts.Menu
             if (RDButtonInputControl.railDriver == null)
                 RDButtonInputControl.railDriver = railDriver;
             if (null == readBuffer)
-                readBuffer = railDriver.NewReadBuffer;
+                readBuffer = railDriver.GetReadBuffer();
             UserButton = userButton;
             DefaultButton = defaultButton;
 

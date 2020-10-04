@@ -52,7 +52,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
         Dictionary<string, double> DbfEvalValues = new Dictionary<string, double>();//Debrief eval
         
-        public static string logFileName { get { return Program.logFileName; } set { Program.logFileName = value; } }
         ControlLayout scrollbox;
         ControlLayoutHorizontal line;
 
@@ -320,9 +319,9 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             txtinfo = "Activity: " + owner.Viewer.Simulator.Activity.Activity.Header.Name.ToString();
                             line.Add(new Label(colWidth, line.RemainingHeight, txtinfo));
                             line = scrollbox.AddLayoutHorizontalLineOfText();
-                            labeltext = "Startime: " + owner.Viewer.Simulator.Activity.Activity.Header.StartTime.FormattedStartTime();
+                            labeltext = "Startime: " + owner.Viewer.Simulator.Activity.Activity.Header.StartTime.ToString();
                             line.Add(new Label(colWidth * 2, line.RemainingHeight, labeltext));
-                            labeltext = "Estimated time to complete: " + owner.Viewer.Simulator.Activity.Activity.Header.Duration.FormattedDurationTimeHMS();
+                            labeltext = "Estimated time to complete: " + owner.Viewer.Simulator.Activity.Activity.Header.Duration.ToString();
                             line.Add(new Label(colWidth * 2, line.RemainingHeight, labeltext));
                             line = scrollbox.AddLayoutHorizontalLineOfText();
                         }
@@ -640,7 +639,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             //.DbfEval.txt
                             filename = String.Format("{0}{1:yyyyMMdd.HHmm}.DbfEval.txt", filename, DateTime.Now);
 
-                            logFileName = Path.Combine(dbfevalDataFolder, filename);
+                            string logFileName = Path.Combine(dbfevalDataFolder, filename);
                             //Ensure we start with an empty file.
                             if (File.Exists(logFileName) && !lDebriefEvalFile) File.Delete(logFileName);
                             //Create file.
@@ -691,21 +690,17 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             outmesssage(labeltext, colWidth * 3, true, 0);
                             labeltext = "  Difficulty=" + owner.Viewer.Simulator.Activity.Activity.Header.Difficulty.ToString();
                             outmesssage(labeltext, colWidth * 3, true, 0);
-                            labeltext = "  Startime=" + owner.Viewer.Simulator.Activity.Activity.Header.StartTime.FormattedStartTime().ToString();
+                            labeltext = "  Startime=" + owner.Viewer.Simulator.Activity.Activity.Header.StartTime.ToString();
                             outmesssage(labeltext, colWidth * 3, true, 0);
-                            string sEstimatedTime = owner.Viewer.Simulator.Activity.Activity.Header.Duration.FormattedDurationTimeHMS().ToString();
+                            string sEstimatedTime = owner.Viewer.Simulator.Activity.Activity.Header.Duration.ToString();
                             double estimatedTime = TimeSpan.Parse(sEstimatedTime).TotalSeconds;
                             labeltext = "  Estimated Time=" + sEstimatedTime;
                             outmesssage(labeltext, colWidth * 3, true, 0);
-                            //TODO: find an existing function to do it.
-                            double iniTime = owner.Viewer.Simulator.Activity.Activity.Header.StartTime.Hour * 3600;
-                            iniTime = iniTime + owner.Viewer.Simulator.Activity.Activity.Header.StartTime.Minute * 60;
-                            iniTime = iniTime + owner.Viewer.Simulator.Activity.Activity.Header.StartTime.Second;
-                            double elapsedTime = Owner.Viewer.Simulator.ClockTime - iniTime;
+                            double elapsedTime = Owner.Viewer.Simulator.ClockTime - owner.Viewer.Simulator.Activity.Activity.Header.StartTime.TotalSeconds;
                             labeltext = "  Elapsed Time=" + FormatStrings.FormatTime(elapsedTime);
                             outmesssage(labeltext, colWidth * 3, true, 0);
                             //estimatedTime
-                            bool bEstimatedTime = elapsedTime > iniTime ? true : false;
+                            bool bEstimatedTime = elapsedTime > owner.Viewer.Simulator.Activity.Activity.Header.StartTime.TotalSeconds;
 
                             //Auto pilot time.
                             double autoPilotTime = Viewer.DbfEvalAutoPilotTimeS;

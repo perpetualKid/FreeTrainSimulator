@@ -23,7 +23,9 @@ namespace Orts.Common.Native
         private static extern bool DeleteDCNative(IntPtr hdc);
 
         [Flags]
+#pragma warning disable CA1028 // Enum Storage should be Int32
         public enum GgiFlags : uint
+#pragma warning restore CA1028 // Enum Storage should be Int32
         {
             None = 0,
             MarkNonexistingGlyphs = 1,
@@ -41,7 +43,9 @@ namespace Orts.Common.Native
 
     }
 
-
+#pragma warning disable CA1051 // Do not declare visible instance fields
+#pragma warning disable CA1815 // Override equals and operator equals on value types
+#pragma warning disable CA1034 // Nested types should not be visible
     public static partial class NativeStructs
     {
         [DebuggerDisplay("{First} + {Second} = {Amount}")]
@@ -62,5 +66,8 @@ namespace Orts.Common.Native
             public float C;
         }
     }
+#pragma warning restore CA1034 // Nested types should not be visible
+#pragma warning restore CA1051 // Do not declare visible instance fields
+#pragma warning restore CA1815 // Override equals and operator equals on value types
 
 }

@@ -96,7 +96,7 @@ namespace Orts.Simulation.Timetables
         /// </summary>
         /// <param name="arguments"></param>
         /// <returns>List of extracted Trains</returns>
-        public List<TTTrain> ProcessTimetable(string[] arguments, CancellationToken cancellation)
+        public List<TTTrain> ProcessTimetable(string fileName, string train, CancellationToken cancellation)
         {
             TTTrain reqPlayerTrain;
 
@@ -108,7 +108,7 @@ namespace Orts.Simulation.Timetables
             int indexcount = 0;
 
             // get filenames to process
-            filenames = GetFilenames(arguments[0]);
+            filenames = GetFilenames(fileName);
 
             // get file contents as strings
             Trace.Write("\n");
@@ -135,7 +135,7 @@ namespace Orts.Simulation.Timetables
             Trace.Write(" TTTRAINS:" + trainInfoList.Count.ToString() + " ");
 
             // get startinfo for player train
-            playerTrain = GetPlayerTrain(ref trainInfoList, arguments);
+            playerTrain = GetPlayerTrain(ref trainInfoList, train);
 
             // pre-init player train to abstract alternative paths if set
             if (playerTrain != null)
@@ -145,7 +145,7 @@ namespace Orts.Simulation.Timetables
 
             // reduce trainlist using player train info and parameters
             bool addPathNoLoadFailure;
-            trainList = BuildAITrains(trainInfoList, playerTrain, arguments, out addPathNoLoadFailure);
+            trainList = BuildAITrains(trainInfoList, playerTrain, out addPathNoLoadFailure);
             if (!addPathNoLoadFailure) loadPathNoFailure = false;
 
             // set references (required to process commands)
@@ -240,7 +240,7 @@ namespace Orts.Simulation.Timetables
             FinalizeActivationCommands(ref trainList, ref reqPlayerTrain);
 
             // set timetable identification for simulator for saves etc.
-            simulator.TimetableFileName = Path.GetFileNameWithoutExtension(arguments[0]);
+            simulator.TimetableFileName = Path.GetFileNameWithoutExtension(fileName);
 
             if (!loadPathNoFailure)
             {
@@ -704,11 +704,11 @@ namespace Orts.Simulation.Timetables
         /// <param name="allTrains"></param>
         /// <param name="arguments"></param>
         /// <returns></returns>
-        private TTTrainInfo GetPlayerTrain(ref List<TTTrainInfo> allTrains, string[] arguments)
+        private TTTrainInfo GetPlayerTrain(ref List<TTTrainInfo> allTrains, string train)
         {
             TTTrainInfo reqTrain = null;
 
-            string[] playerTrainDetails = arguments[1].Split(':');
+            string[] playerTrainDetails = train.Split(':');
 
             // loop through all trains to find player train
             int playerIndex = -1;
@@ -729,7 +729,7 @@ namespace Orts.Simulation.Timetables
             }
             else
             {
-                throw new InvalidDataException("Player train : " + arguments[1] + " not found in timetables");
+                throw new InvalidDataException($"Player train : {train} not found in timetables");
             }
 
             return (reqTrain);
@@ -742,7 +742,7 @@ namespace Orts.Simulation.Timetables
         /// <param name="allTrains"></param>
         /// <param name="playerTrain"></param>
         /// <param name="arguments"></param>
-        private List<TTTrain> BuildAITrains(List<TTTrainInfo> allTrains, TTTrainInfo playerTrain, string[] arguments, out bool allPathsLoaded)
+        private List<TTTrain> BuildAITrains(List<TTTrainInfo> allTrains, TTTrainInfo playerTrain, out bool allPathsLoaded)
         {
             allPathsLoaded = true;
             List<TTTrain> trainList = new List<TTTrain>();

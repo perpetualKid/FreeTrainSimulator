@@ -21,10 +21,6 @@ namespace Orts.Common.Calc
 {
     public class SmoothedData
     {
-        public readonly double SmoothPeriodS = 3;
-        protected double currentValue = double.NaN;
-        protected double smoothedValue = double.NaN;
-
         public SmoothedData()
         {
         }
@@ -37,16 +33,16 @@ namespace Orts.Common.Calc
 
         public virtual void Update(double periodS, double value)
         {
-            currentValue = value;
+            Value = value;
 
             if (periodS < double.Epsilon)
             {
-                if (double.IsNaN(smoothedValue) || double.IsInfinity(smoothedValue))
-                    smoothedValue = currentValue;
+                if (double.IsNaN(SmoothedValue) || double.IsInfinity(SmoothedValue))
+                    SmoothedValue = Value;
                 return;
             }
 
-            smoothedValue = SmoothValue(smoothedValue, periodS, currentValue);
+            SmoothedValue = SmoothValue(SmoothedValue, periodS, Value);
         }
 
         protected double SmoothValue(double smoothedValue, double periodS, double value)
@@ -60,11 +56,13 @@ namespace Orts.Common.Calc
 
         public void Preset(double smoothedValue)
         {
-            this.smoothedValue = smoothedValue;
+            SmoothedValue = smoothedValue;
         }
 
-        public double Value { get { return currentValue; } }
-        public double SmoothedValue { get { return smoothedValue; } }
+        public double Value { get; private set; } = double.NaN;
+        public double SmoothedValue { get; private set; } = double.NaN;
+
+        public double SmoothPeriodS { get; } = 3;
     }
 
     public class SmoothedDataWithPercentiles : SmoothedData
@@ -72,10 +70,10 @@ namespace Orts.Common.Calc
         private const int historyStepCount = 40; // 40 units (i.e. 10 seconds)
         private const double historyStepSize = 0.25; // each unit = 1/4 second
 
-        private Queue<double> longHistory = new Queue<double>();
-        private Queue<int> historyCount = new Queue<int>(historyStepCount);
+        private readonly Queue<double> longHistory = new Queue<double>();
+        private readonly Queue<int> historyCount = new Queue<int>(historyStepCount);
 
-        private int count = 0;
+        private int count;
 
         private double position;
 
@@ -90,7 +88,7 @@ namespace Orts.Common.Calc
         public SmoothedDataWithPercentiles()
             : base()
         {
-            for (var i = 0; i < historyStepCount; i++)
+            for (int i = 0; i < historyStepCount; i++)
                 historyCount.Enqueue(0);
         }
 
@@ -104,7 +102,7 @@ namespace Orts.Common.Calc
 
             if (position >= historyStepSize)
             {
-                var samples = new List<double>(longHistory);
+                List<double> samples = new List<double>(longHistory);
                 samples.Sort();
 
                 P50 = samples[(int)(samples.Count * 0.50f)];

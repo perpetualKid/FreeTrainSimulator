@@ -19,6 +19,14 @@ using System;
 
 namespace Orts.Common.Calc
 {
+    public enum IIRFilterType
+    {
+        Exponential = 0,
+        Chebychev = 1,
+        Butterworth = 2,
+        Bessel = 3
+    }
+
     /// <summary>
     /// by Matej Pacha
     /// IIRFilter class provides discreet Infinite impulse response (IIR) filter
@@ -44,14 +52,6 @@ namespace Orts.Common.Calc
     /// </summary>
     public class IIRFilter
     {
-        public enum FilterTypes
-        {
-            Exponential = 0,
-            Chebychev = 1,
-            Butterworth = 2,
-            Bessel = 3
-        }
-
         /// <summary>
         /// 2018-08 Code refactoring, replacing ArrayLists and Convert.ToFloat with [] instead
         /// also replacing float by double internally to improve precision, however external interfaces still offering float (truncating double)
@@ -61,7 +61,7 @@ namespace Orts.Common.Calc
         private readonly double[] aCoef;
         private readonly double[] bCoef;
 
-        private double samplingPeriod_s;
+        private double samplingPeriod;
         private double cuttoffFreqRadpS;
 
         private readonly double[] y;
@@ -101,7 +101,7 @@ namespace Orts.Common.Calc
             x = new double[numberCoefficients];
             y = new double[numberCoefficients];
 
-            FilterType = FilterTypes.Bessel;
+            FilterType = IIRFilterType.Bessel;
         }
 
         /// <summary>
@@ -110,8 +110,10 @@ namespace Orts.Common.Calc
         /// <param name="a">A coefficients of the filter</param>
         /// <param name="b">B coefficients of the filter</param>
         /// <param name="type">Filter type</param>
-        public IIRFilter(double[] aCoefficients, double[] bCoefficients, FilterTypes type)
+        public IIRFilter(double[] aCoefficients, double[] bCoefficients, IIRFilterType type)
         {
+            if (null == aCoefficients)
+                throw new ArgumentNullException(nameof(aCoefficients));
             FilterType = type;
             numberCoefficients = aCoefficients.Length;
 
@@ -129,7 +131,7 @@ namespace Orts.Common.Calc
         /// <param name="order">Filter order</param>
         /// <param name="cutoffFrequency">Filter cutoff frequency in radians per second</param>
         /// <param name="samplingPeriod">Filter sampling period</param>
-        public IIRFilter(FilterTypes type, int order, double cutoffFrequency, double samplingPeriod)
+        public IIRFilter(IIRFilterType type, int order, double cutoffFrequency, double samplingPeriod)
         {
             aCoef = new double[2];
             bCoef = new double[2];
@@ -138,12 +140,9 @@ namespace Orts.Common.Calc
 
             switch (type)
             {
-                case FilterTypes.Butterworth:
+                case IIRFilterType.Butterworth:
 
-                    ComputeButterworth(
-                        Order = order,
-                        CutoffFrequencyRadpS = cutoffFrequency,
-                        SamplingPeriod_s = samplingPeriod);
+                    ComputeButterworth(order, cutoffFrequency, samplingPeriod);
                     break;
                 default:
                     throw new NotImplementedException("Other filter types are not implemented yet.");
@@ -167,33 +166,27 @@ namespace Orts.Common.Calc
                 else
                     throw new NotSupportedException("Filter cutoff frequency must be positive number");
             }
-            get
-            {
-                return cuttoffFreqRadpS;
-            }
+            get => cuttoffFreqRadpS;
         }
 
         /// <summary>
         /// Filter sampling period in seconds
         /// </summary>
-        public double SamplingPeriod_s
+        public double SamplingPeriod
         {
             set
             {
                 if (value >= 0.0)
-                    samplingPeriod_s = value;
+                    samplingPeriod = value;
                 else
                     throw new NotSupportedException("Sampling period must be positive number");
             }
-            get
-            {
-                return samplingPeriod_s;
-            }
+            get => samplingPeriod;
         }
 
         public int Order { set; get; }
 
-        public FilterTypes FilterType { set; get; }
+        public IIRFilterType FilterType { set; get; }
 
         /// <summary>
         /// IIR Digital filter function
@@ -232,15 +225,15 @@ namespace Orts.Common.Calc
 
             switch (FilterType)
             {
-                case FilterTypes.Butterworth:
-                    if (samplingPeriod != samplingPeriod_s)
+                case IIRFilterType.Butterworth:
+                    if (samplingPeriod != this.samplingPeriod)
                     {
                         if ((1 / (samplingPeriod) < Frequency.Angular.RadToHz(cuttoffFreqRadpS)))
                         {
                             //Reset();
                             return sample;
                         }
-                        ComputeButterworth(Order, cuttoffFreqRadpS, samplingPeriod_s = samplingPeriod);
+                        ComputeButterworth(Order, cuttoffFreqRadpS, this.samplingPeriod = samplingPeriod);
                     }
                     break;
                 default:
@@ -340,7 +333,9 @@ namespace Orts.Common.Calc
         /// <param name="order">Filter order</param>
         /// <param name="cutoffFrequency">Cuttof frequency in rad/s</param>
         /// <param name="samplingPeriod">Sampling period</param>
+#pragma warning disable CA1801 // Review unused parameters
         private void ComputeButterworth(int order, double cutoffFrequency, double samplingPeriod)
+#pragma warning restore CA1801 // Review unused parameters
         {
             double Ts_p = 0.5;
             double w_cd_p = 2 / Ts_p * Math.Tan(cutoffFrequency * samplingPeriod / 2.0);

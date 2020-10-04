@@ -16,7 +16,6 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 
 namespace Orts.Common.Calc
@@ -27,8 +26,8 @@ namespace Orts.Common.Calc
     /// </summary>
     public class Interpolator
     {
-        private double[] xArray;  // must be in increasing order
-        private double[] yArray;
+        private readonly double[] xArray;  // must be in increasing order
+        private readonly double[] yArray;
         private double[] y2Array;
         private int size;       // number of values populated
         private int prevIndex;  // used to speed up repeated evaluations with similar x values
@@ -48,13 +47,17 @@ namespace Orts.Common.Calc
 
         public Interpolator(Interpolator other)
         {
+            if (null == other)
+                throw new ArgumentNullException(nameof(other));
             xArray = other.xArray;
             yArray = other.yArray;
-            y2Array= other.y2Array;
+            y2Array = other.y2Array;
             size = other.size;
         }
 
+#pragma warning disable CA1043 // Use Integral Or String Argument For Indexers
         public double this[double x]
+#pragma warning restore CA1043 // Use Integral Or String Argument For Indexers
         {
             get
             {
@@ -97,13 +100,13 @@ namespace Orts.Common.Calc
 
         public double MinX() { return xArray[0]; }
 
-        public double MaxX() { return xArray[size-1]; }
+        public double MaxX() { return xArray[size - 1]; }
 
-        public double MaxY() { return MaxY(out double x); }
+        public double MaxY() { return MaxY(out _); }
 
         public double MaxY(out double x)
         {
-            int maxi= 0;
+            int maxi = 0;
             for (int i = 1; i < size; i++)
                 if (yArray[maxi] < yArray[i])
                     maxi = i;
@@ -134,55 +137,58 @@ namespace Orts.Common.Calc
             if (y2Array != null)
             {
                 for (int i = 0; i < size; i++)
-                    y2Array[i]*= factor;
+                    y2Array[i] *= factor;
             }
         }
 
         public void ComputeSpline()
         {
-            ComputeSpline(null,null);
+            ComputeSpline(null, null);
         }
 
         public void ComputeSpline(double? yp1, double? yp2)
         {
             y2Array = new double[size];
-            double[] u= new double[size];
+            double[] u = new double[size];
             if (yp1 == null)
             {
-                y2Array[0]= 0;
-                u[0]= 0;
+                y2Array[0] = 0;
+                u[0] = 0;
             }
             else
             {
-                y2Array[0]= -.5;
+                y2Array[0] = -.5;
                 double d = xArray[1] - xArray[0];
                 u[0] = 3 / d * ((yArray[1] - yArray[0]) / d - yp1.Value);
             }
-            for (int i=1; i<size-1; i++)
+            for (int i = 1; i < size - 1; i++)
             {
                 double sig = (xArray[i] - xArray[i - 1]) / (xArray[i + 1] - xArray[i - 1]);
-                double p = sig*y2Array[i-1] + 2;
-                y2Array[i]= (sig-1)/p;
+                double p = sig * y2Array[i - 1] + 2;
+                y2Array[i] = (sig - 1) / p;
                 u[i] = (6 * ((yArray[i + 1] - yArray[i]) / (xArray[i + 1] - xArray[i]) -
                     (yArray[i] - yArray[i - 1]) / (xArray[i] - xArray[i - 1])) / (xArray[i + 1] - xArray[i - 1]) -
                     sig * u[i - 1]) / p;
             }
             if (yp2 == null)
             {
-                y2Array[size-1]= 0;
+                y2Array[size - 1] = 0;
             }
             else
             {
-                double d = xArray[size-1]-xArray[size-2];
+                double d = xArray[size - 1] - xArray[size - 2];
                 y2Array[size - 1] = (3 / d * (yp2.Value - (yArray[size - 1] - yArray[size - 2]) / d) - .5 * u[size - 2]) / (.5 * y2Array[size - 2] + 1);
             }
-            for (int i=size-2; i>=0; i--)
-                y2Array[i]= y2Array[i]*y2Array[i+1] + u[i];
+            for (int i = size - 2; i >= 0; i--)
+                y2Array[i] = y2Array[i] * y2Array[i + 1] + u[i];
         }
-        
+
         // restore game state
         public Interpolator(BinaryReader inf)
         {
+            if (null == inf)
+                throw new ArgumentNullException(nameof(inf));
+
             size = inf.ReadInt32();
             xArray = new double[size];
             yArray = new double[size];
@@ -202,6 +208,9 @@ namespace Orts.Common.Calc
         // save game state
         public void Save(BinaryWriter outf)
         {
+            if (null == outf)
+                throw new ArgumentNullException(nameof(outf));
+
             outf.Write(size);
             for (int i = 0; i < size; i++)
             {
@@ -216,12 +225,12 @@ namespace Orts.Common.Calc
 
         public void Test(string label, int n)
         {
-            double dx = (MaxX() - MinX()) / (n-1);
+            double dx = (MaxX() - MinX()) / (n - 1);
             for (int i = 0; i < n; i++)
             {
                 double x = MinX() + i * dx;
                 double y = this[x];
-                Console.WriteLine("{0} {1} {2}", label, x, y);
+                Console.WriteLine($"{label} {x} {y}");
             }
         }
 
@@ -256,8 +265,8 @@ namespace Orts.Common.Calc
     /// </summary>
     public class Interpolator2D
     {
-        private double[] xArray;  // must be in increasing order
-        private Interpolator[] yArray;
+        private readonly double[] xArray;  // must be in increasing order
+        private readonly Interpolator[] yArray;
         private int size;       // number of values populated
         private int prevIndex;  // used to speed up repeated evaluations with similar x values
 
@@ -276,6 +285,9 @@ namespace Orts.Common.Calc
 
         public Interpolator2D(Interpolator2D other)
         {
+            if (null == other)
+                throw new ArgumentNullException(nameof(other));
+
             xArray = other.xArray;
             size = other.size;
             yArray = new Interpolator[size];
@@ -317,7 +329,11 @@ namespace Orts.Common.Calc
             return z;
         }
 
+#pragma warning disable CA1043 // Use Integral Or String Argument For Indexers
+#pragma warning disable CA1044 // Properties should not be write only
         public Interpolator this[double x]
+#pragma warning restore CA1044 // Properties should not be write only
+#pragma warning restore CA1043 // Use Integral Or String Argument For Indexers
         {
             set
             {

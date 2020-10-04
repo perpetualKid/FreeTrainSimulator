@@ -1,17 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Orts.Common.Xna
 {
+#pragma warning disable CA1815 // Override equals and operator equals on value types
+#pragma warning disable CA1051 // Do not declare visible instance fields
+#pragma warning disable CA2225 // Operator overloads have named alternates
     public readonly struct Vector2D
+#pragma warning restore CA1815 // Override equals and operator equals on value types
     {
         public readonly double X;
 
         public readonly double Y;
-
 
         private static readonly Vector2D zeroVector = new Vector2D(0, 0);
 
@@ -63,10 +62,12 @@ namespace Orts.Common.Xna
         /// <returns>The result of dividing a vector by a scalar.</returns>
         public static Vector2D operator /(Vector2D value1, double divider)
         {
-            return new Vector2D(value1.X / divider, value1.Y / divider) ;
+            return new Vector2D(value1.X / divider, value1.Y / divider);
         }
 
-
         #endregion
+#pragma warning restore CA1051 // Do not declare visible instance fields
+#pragma warning restore CA2225 // Operator overloads have named alternates
+
     }
 }

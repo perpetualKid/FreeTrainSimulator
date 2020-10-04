@@ -157,14 +157,6 @@ namespace Orts.Simulation.Physics
         public bool IsBrakeSkid;
 
         public bool HotBoxSetOnTrain = false;
-        public int ActivityDurationS
-        {
-            get
-            {
-                return Simulator.Activity.Activity.Header.Duration.ActivityDuration();
-            }
-        }
-
 
         // Carriage Steam Heating
         public bool HeatedCarAttached = false;
