@@ -176,10 +176,15 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 			F.windowSizeUpDown.Maximum = (decimal)maxSize;
 		}
 
-		public void AddToTimetableItemList(TrackItem item)
+		public void PopulateItemLists()
 		{
-			switch (item)
-			{
+			var previousSidingName = "";
+			var previousPlatformName = "";
+
+			foreach (var item in F.simulator.TDB.TrackDB.TrackItems)
+            {
+				switch (item)
+				{
                 case SignalItem signalItem:
                     if (signalItem.SignalObject >= 0 && signalItem.SignalObject < Simulator.Instance.SignalEnvironment.Signals.Count)
                     {
@@ -189,50 +194,72 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                     }
                     break;
                 case SidingItem sidingItem:
-                    // Sidings have 2 ends. When 2nd one is found, then average the location for a single label.
-                    var sidingFound = F.sidings.Find(r => r.Name == item.ItemName);
-                    if (sidingFound.Name == null)
-                    {
-                        Console.WriteLine($"added {item.ItemName}");
-                        F.sidings.Add(new SidingWidget(item));
-                    }
-                    else
-                    {
-                        var newLocation = new PointF(item.Location.TileX * 2048 + item.Location.Location.X, item.Location.TileZ * 2048 + item.Location.Location.Z);
-                        sidingFound.Location = GetMidPoint(sidingFound.Location, newLocation);
-                    }
-                    break;
+						// Sidings have 2 ends. When 2nd one is found, then average the location for a single label.
+						// There is no link between these track items, so this technique attempts to pair up the names,
+						// remebering also that names need not be unique (e.g. Bernina Bahn).
+						if (item.ItemName == previousSidingName)
+						{
+							var oldLocation = F.sidings.Last().Location;
+							var newLocation = new PointF(item.Location.TileX * 2048 + item.Location.Location.X, item.Location.TileZ * 2048 + item.Location.Location.Z);
+
+							// Because these are structs, not classes, compiler won't let you overwrite them.
+							// Instead create a single item which replaces the 2 platform items.
+							var replacementSiding = new SidingWidget(item);
+
+							// Give it the right-hand location
+							replacementSiding.Location = GetMidPoint(oldLocation, newLocation);
+
+							// Replace the first platform item with the replacement
+							F.sidings.RemoveAt(F.sidings.Count() - 1);
+							F.sidings.Add(replacementSiding);
+							previousSidingName = "";
+						}
+						else
+						{
+							previousSidingName = item.ItemName;
+							F.sidings.Add(new SidingWidget(item));
+						}
+						break;
                 case PlatformItem platformItem:
-                    // Platforms have 2 ends. When 2nd one is found, then find the right-hand one as the location for a single label.
-                    var index = F.platforms.FindIndex(r => r.Name == item.ItemName);
-                    if (index < 0)
-                        F.platforms.Add(new PlatformWidget(item));
-                    else
-                    {
-                        var oldLocation = F.platforms[index].Location;
-                        var newLocation = new PointF(item.Location.TileX * 2048 + item.Location.Location.X, item.Location.TileZ * 2048 + item.Location.Location.Z);
+						// Platforms have 2 ends. When 2nd one is found, then find the right-hand one as the location for a single label.
+						// There is no link between these track items, so this technique attempts to pair up the names,
+						// remebering also that names need not be unique (e.g. Bernina Bahn).
+						if (item.ItemName == previousPlatformName)
+						{
+                            var oldLocation = F.platforms.Last().Location;
+                            var newLocation = new PointF(item.Location.TileX * 2048 + item.Location.Location.X, item.Location.TileZ * 2048 + item.Location.Location.Z);
 
-                        // Because these are structs, not classes, compiler won't let you overwrite them.
-                        // Instead create a single item which replaces the 2 platform items.
-                        var replacementPlatform = new PlatformWidget(item);
+                            // Because these are structs, not classes, compiler won't let you overwrite them.
+                            // Instead create a single item which replaces the 2 platform items.
+                            var replacementPlatform = new PlatformWidget(item);
 
-                        // Give it the right-hand location
-                        replacementPlatform.Location = GetRightHandPoint(oldLocation, newLocation);
+                            // Give it the right-hand location
+                            replacementPlatform.Location = GetRightHandPoint(oldLocation, newLocation);
 
-                        // Save the original 2 locations of the platform
-                        replacementPlatform.Extent1 = oldLocation;
-                        replacementPlatform.Extent2 = newLocation;
+                            // Save the original 2 locations of the platform
+                            replacementPlatform.Extent1 = oldLocation;
+                            replacementPlatform.Extent2 = newLocation;
 
-                        // Replace the first platform item with the replacement
-                        F.platforms.RemoveAt(index);
-                        F.platforms.Add(replacementPlatform);
-                    }
-                    break;
+                            // Replace the first platform item with the replacement
+                            F.platforms.RemoveAt(F.platforms.Count() - 1);
+                            F.platforms.Add(replacementPlatform);
+                            previousPlatformName = "";
+						}
+						else
+						{
+							previousPlatformName = item.ItemName;
+							var newPlatform = new PlatformWidget(item);
+							newPlatform.Extent1 = new PointF(item.Location.TileX * 2048 + item.Location.Location.X, item.Location.TileZ * 2048 + item.Location.Location.Z);
+							F.platforms.Add(newPlatform);
+						}
+						break;
 
-                default:
-                    break;
+					default:
+						break;
+				}
 			}
 		}
+
 
 		/// <summary>
 		/// Returns the mid-point between two locations

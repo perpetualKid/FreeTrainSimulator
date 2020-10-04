@@ -335,9 +335,9 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
             if (simulator.TDB == null || simulator.TDB.TrackDB == null || simulator.TDB.TrackDB.TrackItems == null)
                 return;
-            foreach (var item in simulator.TDB.TrackDB.TrackItems)
-                TimetableWindow.AddToTimetableItemList(item);
-        }
+
+            TimetableWindow.PopulateItemLists();
+		}
 
       bool Inited;
 		public List<LineSegment> segments = new List<LineSegment>();
@@ -2528,7 +2528,8 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
    /// </summary>
    public struct SidingWidget
    {
-	   public PointF Location;
+		public uint Id;
+		public PointF Location;
 	   public string Name;
 
 		/// <summary>
@@ -2543,6 +2544,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 		/// <param name="signal"></param>
 	   public SidingWidget(TrackItem item)
 		{
+			Id = item.TrackItemId;
 			Item = item;
 			Name = item.ItemName;
 		   Location = new PointF(item.Location.TileX * 2048 + item.Location.Location.X, item.Location.TileZ * 2048 + item.Location.Location.Z);
@@ -2554,6 +2556,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 	/// </summary>
 	public struct PlatformWidget
 	{
+		public uint Id;
 		public PointF Location;
 		public string Name;
 		public PointF Extent1;
@@ -2571,6 +2574,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         /// <param name="signal"></param>
         public PlatformWidget(TrackItem item)
 		{
+			Id = item.TrackItemId;
             Item = item;
             Name = item.ItemName;
             Location = new PointF(item.Location.TileX * 2048 + item.Location.Location.X, item.Location.TileZ * 2048 + item.Location.Location.Z);
