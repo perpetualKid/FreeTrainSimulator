@@ -23,7 +23,7 @@ using System.Threading.Tasks;
 
 namespace Orts.Common.Logging
 {
-    public class DataLogger: IDisposable
+    public class DataLogger : IDisposable
     {
         private const int cacheSize = 2048 * 1024;  // 2 Megs
         private readonly string filePath;
@@ -39,7 +39,7 @@ namespace Orts.Common.Logging
         public DataLogger(string filePath, SeparatorChar separator)
         {
             this.filePath = filePath;
-            this.Separator = separator;
+            Separator = separator;
         }
 
         public void Data(string data)
@@ -58,8 +58,8 @@ namespace Orts.Common.Logging
         {
             cache.Length--;
             cache.AppendLine();
-			if (cache.Length >= cacheSize)
-				Flush();
+            if (cache.Length >= cacheSize)
+                Flush();
         }
 
         public void Flush()
@@ -80,7 +80,7 @@ namespace Orts.Common.Logging
         }
 
         #region IDisposable Support
-        private bool disposedValue = false; // To detect redundant calls
+        private bool disposedValue; // To detect redundant calls
 
         protected virtual void Dispose(bool disposing)
         {
@@ -98,6 +98,7 @@ namespace Orts.Common.Logging
         public void Dispose()
         {
             Dispose(true);
+            GC.SuppressFinalize(this);
         }
         #endregion
     }
