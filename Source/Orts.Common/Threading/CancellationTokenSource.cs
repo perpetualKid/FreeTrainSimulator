@@ -23,12 +23,12 @@ namespace Orts.Common.Threading
     {
         public CancellationToken Token { get; private set; }
 
-        readonly Action Ping;
-        bool Cancelled;
+        private readonly Action ping;
+        private bool cancelled;
 
         public CancellationTokenSource(Action ping)
         {
-            Ping = ping;
+            this.ping = ping;
             Token = new CancellationToken(this);
         }
 
@@ -37,20 +37,18 @@ namespace Orts.Common.Threading
             get
             {
                 DoPing();
-                return Cancelled;
+                return cancelled;
             }
         }
 
         public void Cancel()
         {
-            Cancelled = true;
+            cancelled = true;
         }
 
         internal void DoPing()
         {
-            var ping = Ping;
-            if (ping != null)
-                ping();
+            ping?.Invoke();
         }
     }
 }

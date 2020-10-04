@@ -85,11 +85,11 @@ namespace Orts.Common.Position
         /// Entry point to this series of methods
         /// Gets Longitude, Latitude from Goode X, Y
         /// </summary>        
-        public static int ConvertWTC(int wt_ew_dat, int wt_ns_dat, in Vector3 tileLocation, out double latitude, out double longitude)
+        public static int ConvertWTC(int worldTileLongitude, int worldTileLatitude, in Vector3 tileLocation, out double latitude, out double longitude)
         {
            // Decimal degrees is assumed
-            int gsamp = (wt_ew_dat - wt_ew_offset);  // Gsamp is Goode world tile x
-            int gline = (wt_ns_offset - wt_ns_dat);  // Gline is Goode world tile Y
+            int gsamp = (worldTileLongitude - wt_ew_offset);  // Gsamp is Goode world tile x
+            int gline = (wt_ns_offset - worldTileLatitude);  // Gline is Goode world tile Y
             int y = (ul_y - ((gline - 1) * (int)WorldPosition.TileSize) + (int)tileLocation.Z);   // Actual Goode X
             int x = (ul_x + ((gsamp - 1) * (int)WorldPosition.TileSize) + (int)tileLocation.X);   // Actual Goode Y
 
@@ -150,7 +150,7 @@ namespace Orts.Common.Position
                     region = 11;                                 // Between 80 and 180
             }
 
-            gx = gx - falseEast[region];
+            gx -= falseEast[region];
 
             switch (region)
             {
@@ -263,7 +263,7 @@ namespace Orts.Common.Position
         /// <summary>
         /// Checks for Pi overshoot
         /// </summary>        
-        static double Adjust_Lon(double value)
+        private static double Adjust_Lon(double value)
         {
             if (Math.Abs(value) > MathHelper.Pi)
                 return value - (Math.Sign(value) * MathHelper.TwoPi);
@@ -283,7 +283,7 @@ namespace Orts.Common.Position
             z -= pZ;
 
             // rotate the coordinates relative to a track section that is pointing due north ( +z in MSTS coordinate system )
-            var result = (Rotate2D(rad, x, z));
+            (double x, double z) result = (Rotate2D(rad, x, z));
             return ((float)result.x, (float)result.z);
         }
 

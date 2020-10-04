@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Globalization;
+using System.Text;
 
 namespace Orts.Common.Position
 {
@@ -39,13 +40,13 @@ namespace Orts.Common.Position
 
             for (int z = 0; z < (int)zoom; z++)
             {
-                var east = tileX >= rectX + rectW;
-                var north = tileZ >= rectZ + rectH;
+                bool east = tileX >= rectX + rectW;
+                bool north = tileZ >= rectZ + rectH;
                 partial <<= 2;
                 partial += (north ? 0 : 2) + (east ^ north ? 0 : 1);
                 if (z % 2 == 1)
                 {
-                    name.Append(partial.ToString("X"));
+                    name.Append(partial.ToString("X", CultureInfo.InvariantCulture));
                     partial = 0;
                 }
                 if (east) rectX += rectW;
@@ -54,13 +55,13 @@ namespace Orts.Common.Position
                 rectH /= 2;
             }
             if ((int)zoom % 2 == 1)
-                name.Append((partial << 2).ToString("X"));
+                name.Append((partial << 2).ToString("X", CultureInfo.InvariantCulture));
             return name.ToString();
         }
 
         public static void Snap(ref int tileX, ref int tileZ, Zoom zoom)
         {
-            var step = 15 - (int)zoom;
+            int step = 15 - (int)zoom;
             tileX >>= step;
             tileX <<= step;
             tileZ >>= step;

@@ -222,7 +222,7 @@ namespace Orts.Common.Input
 
         public override IEnumerable<string> GetUniqueInputs()
         {
-            return new[] { $"{uniqueInputsPrefix[(int)modifiers]}{(modifiers == KeyModifiers.None ? string.Empty : "+")}{(VirtualKey == Keys.None ? "0x{ScanCode:X2}" : VirtualKey.ToString())}" };
+            return new[] { $"{uniqueInputsPrefix[(int)modifiers]}{(modifiers == KeyModifiers.None ? string.Empty : "+")}{(VirtualKey == Keys.None ? $"0x{ScanCode:X2}" : VirtualKey.ToString())}" };
         }
 
         public override string ToString()

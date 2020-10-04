@@ -56,16 +56,18 @@ namespace Orts.Common.Position
     /// <summary>
     /// Represents the position and orientation of an object within a tile in XNA coordinates.
     /// </summary>
-    public readonly struct WorldPosition
+    public readonly struct WorldPosition : IEquatable<WorldPosition>
     {
         public const double TileSize = 2048.0;
 
+#pragma warning disable CA1051 // Do not declare visible instance fields
         /// <summary>The x-value of the tile</summary>
         public readonly int TileX;
         /// <summary>The z-value of the tile</summary>
         public readonly int TileZ;
         /// <summary>The position within a tile (relative to the center of tile)</summary>
         public readonly Matrix XNAMatrix;
+#pragma warning restore CA1051 // Do not declare visible instance fields
 
         public WorldPosition(int tileX, int tileZ, Matrix xnaMatrix)
         {
@@ -110,20 +112,12 @@ namespace Orts.Common.Position
         /// <summary>
         /// The world-location in MSTS coordinates of the current position
         /// </summary>
-        public WorldLocation WorldLocation
-        {
-            // "inlined" XnaMatrix.Translation() Decomposition
-            get { return new WorldLocation(TileX, TileZ, XNAMatrix.M41, XNAMatrix.M42, -XNAMatrix.M43); }
-        }
+        public WorldLocation WorldLocation => new WorldLocation(TileX, TileZ, XNAMatrix.M41, XNAMatrix.M42, -XNAMatrix.M43);
 
         /// <summary>
         /// Describes the location as 3D vector in MSTS coordinates within the tile
         /// </summary>
-        public Vector3 Location
-        {
-            // "inlined" XnaMatrix.Translation() Decomposition
-            get { return new Vector3(XNAMatrix.M41, XNAMatrix.M42, -XNAMatrix.M43); }
-        }
+        public Vector3 Location => new Vector3(XNAMatrix.M41, XNAMatrix.M42, -XNAMatrix.M43); // "inlined" XnaMatrix.Translation() Decomposition
 
         /// <summary>
         /// Ensure tile coordinates are within tile boundaries
@@ -160,27 +154,59 @@ namespace Orts.Common.Position
         {
             return WorldLocation.ToString();
         }
+
+        public override bool Equals(object obj)
+        {
+            return (obj is WorldPosition other && Equals(in other));
+        }
+
+        public bool Equals(in WorldPosition other)
+        {
+            return this == other;
+        }
+
+        public override int GetHashCode()
+        {
+            return TileX.GetHashCode() ^ TileZ.GetHashCode() ^ Location.GetHashCode();
+        }
+
+        public static bool operator ==(WorldPosition left, WorldPosition right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(WorldPosition left, WorldPosition right)
+        {
+            return !(left == right);
+        }
+
+        public bool Equals(WorldPosition other)
+        {
+            return Equals(in other);
+        }
     }
 
     /// <summary>
     /// Represents the position of an object within a tile in MSTS coordinates.
     /// </summary>
-    public readonly struct WorldLocation
+    public readonly struct WorldLocation : IEquatable<WorldLocation>
     {
         public const double TileSize = 2048.0;
-		private static readonly WorldLocation none = new WorldLocation();
+		private static readonly WorldLocation none;
 
         /// <summary>
         /// Returns a WorldLocation representing no location at all.
         /// </summary>
         public static ref readonly WorldLocation None => ref none;
 
+#pragma warning disable CA1051 // Do not declare visible instance fields
         /// <summary>The x-value of the tile</summary>
         public readonly int TileX;
         /// <summary>The z-value of the tile</summary>
         public readonly int TileZ;
         /// <summary>The vector to the location within a tile, relative to center of tile in MSTS coordinates</summary>
         public readonly Vector3 Location;
+#pragma warning restore CA1051 // Do not declare visible instance fields
 
         /// <summary>
         /// Constructor using values for tileX, tileZ, x, y, and z.
@@ -318,6 +344,9 @@ namespace Orts.Common.Position
         /// <param name="outf">output file</param>
         public static void Save(in WorldLocation instance, BinaryWriter outf)
         {
+            if (null == outf)
+                throw new ArgumentNullException(nameof(outf));
+
             outf.Write(instance.TileX);
             outf.Write(instance.TileZ);
             outf.Write(instance.Location.X);
@@ -331,6 +360,9 @@ namespace Orts.Common.Position
         /// <param name="inf">input file</param>
         public static WorldLocation Restore(BinaryReader inf)
         {
+            if (null == inf)
+                throw new ArgumentNullException(nameof(inf));
+
             int tileX = inf.ReadInt32();
             int tileZ = inf.ReadInt32();
             float x = inf.ReadSingle();
@@ -351,12 +383,21 @@ namespace Orts.Common.Position
 
         public override bool Equals(object obj)
         {
-            return (obj is WorldLocation other && this == other);
+            return (obj is WorldLocation other && Equals(in other));
         }
 
+        public bool Equals(in WorldLocation other)
+        {
+            return this == other;
+        }
         public override int GetHashCode()
         {
             return TileX.GetHashCode() ^ TileZ.GetHashCode() ^ Location.GetHashCode();
         }
-	}
+
+        public bool Equals(WorldLocation other)
+        {
+            return Equals(in other);
+        }
+    }
 }

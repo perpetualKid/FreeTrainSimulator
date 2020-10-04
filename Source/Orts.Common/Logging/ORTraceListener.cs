@@ -53,7 +53,8 @@ namespace Orts.Common.Logging
         {
             if (null == eventCache)
                 return;
-
+            _ = source;
+            _ = id;
             // Convert eventType (an enum) back to an index so we can count the different types of error separately.
             int errorLevel = (int)(Math.Log((int)eventType) / Math.Log(2));
             if (errorLevel < eventCounts.Length)

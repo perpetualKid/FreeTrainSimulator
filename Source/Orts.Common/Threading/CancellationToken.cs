@@ -20,19 +20,19 @@ namespace Orts.Common.Threading
 {
     public struct CancellationToken
     {
-        readonly CancellationTokenSource Source;
+        private readonly CancellationTokenSource source;
 
         public CancellationToken(CancellationTokenSource source)
         {
-            Source = source;
+            this.source = source;
         }
 
         public bool IsCancellationRequested
         {
             get
             {
-                Source.DoPing();
-                return Source.IsCancellationRequested;
+                source.DoPing();
+                return source.IsCancellationRequested;
             }
         }
     }
