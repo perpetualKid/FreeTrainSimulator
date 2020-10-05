@@ -215,7 +215,7 @@ namespace Orts.Menu
             if (!clearedLogs)
             {
                 using (StreamWriter writer = File.CreateText(summaryFilePath))
-                    writer.WriteLine("Route, Activity, Passed, Errors, Warnings, Infos, Loading, FPS");
+                    writer.WriteLine("Route, Activity, Passed, Errors, Warnings, Infos, Load Time, FPS");
                 using (StreamWriter writer = File.CreateText(logFilePath))
                     writer.Flush();
                 clearedLogs = true;

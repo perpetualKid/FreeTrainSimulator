@@ -159,6 +159,9 @@ namespace Orts.Settings
                     case int[] iA:
                         optValue = optValueString.Split(',').Select(content => int.Parse(content.Trim())).ToArray();
                         break;
+                    default:
+                        optValue = optValueString;
+                        break;
                 }
             }
 
