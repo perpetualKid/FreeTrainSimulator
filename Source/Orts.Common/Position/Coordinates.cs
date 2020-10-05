@@ -157,12 +157,7 @@ namespace Orts.Common.Position
 
         public override bool Equals(object obj)
         {
-            return (obj is WorldPosition other && Equals(in other));
-        }
-
-        public bool Equals(in WorldPosition other)
-        {
-            return this == other;
+            return (obj is WorldPosition other && Equals(other));
         }
 
         public override int GetHashCode()
@@ -172,7 +167,7 @@ namespace Orts.Common.Position
 
         public static bool operator ==(WorldPosition left, WorldPosition right)
         {
-            return left.Equals(right);
+            return left.TileX == right.TileX && left.TileZ == right.TileZ && left.XNAMatrix == right.XNAMatrix;
         }
 
         public static bool operator !=(WorldPosition left, WorldPosition right)
@@ -182,7 +177,7 @@ namespace Orts.Common.Position
 
         public bool Equals(WorldPosition other)
         {
-            return Equals(in other);
+            return this == other;
         }
     }
 
@@ -383,13 +378,9 @@ namespace Orts.Common.Position
 
         public override bool Equals(object obj)
         {
-            return (obj is WorldLocation other && Equals(in other));
+            return (obj is WorldLocation other && Equals(other));
         }
 
-        public bool Equals(in WorldLocation other)
-        {
-            return this == other;
-        }
         public override int GetHashCode()
         {
             return TileX.GetHashCode() ^ TileZ.GetHashCode() ^ Location.GetHashCode();
@@ -397,7 +388,7 @@ namespace Orts.Common.Position
 
         public bool Equals(WorldLocation other)
         {
-            return Equals(in other);
+            return this == other;
         }
     }
 }

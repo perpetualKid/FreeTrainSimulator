@@ -1102,7 +1102,7 @@ namespace Tests.Orts.Formats.Msts.Parsers
             }
 
             [TestMethod]
-            public static void ReturnValueTest()
+            public void ReturnValueTest()
             {
                 StfTokenReaderCommon.ReturnValue<float>(SOMEDEFAULTS, reader => reader.ReadFloat(STFReader.Units.None, null));
             }
@@ -1438,7 +1438,7 @@ namespace Tests.Orts.Formats.Msts.Parsers
         public class ReadStringTests
         {
             [TestMethod]
-            public static void ReturnValueTest()
+            public void ReturnValueTest()
             {
                 AssertWarnings.NotExpected();
                 string[] testValues = new string[] { "token", "somestring", "lights" };
