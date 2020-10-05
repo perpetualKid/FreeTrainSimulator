@@ -257,11 +257,11 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
         Dictionary<TrackMonitorSignalAspect, Rectangle> SignalMarkers = new Dictionary<TrackMonitorSignalAspect, Rectangle>
         {
-            { TrackMonitorSignalAspect.Clear_2, new Rectangle(0, 0, 16, 16) },
-            { TrackMonitorSignalAspect.Clear_1, new Rectangle(16, 0, 16, 16) },
-            { TrackMonitorSignalAspect.Approach_3, new Rectangle(0, 16, 16, 16) },
-            { TrackMonitorSignalAspect.Approach_2, new Rectangle(16, 16, 16, 16) },
-            { TrackMonitorSignalAspect.Approach_1, new Rectangle(0, 32, 16, 16) },
+            { TrackMonitorSignalAspect.Clear2, new Rectangle(0, 0, 16, 16) },
+            { TrackMonitorSignalAspect.Clear1, new Rectangle(16, 0, 16, 16) },
+            { TrackMonitorSignalAspect.Approach3, new Rectangle(0, 16, 16, 16) },
+            { TrackMonitorSignalAspect.Approach2, new Rectangle(16, 16, 16, 16) },
+            { TrackMonitorSignalAspect.Approach1, new Rectangle(0, 32, 16, 16) },
             { TrackMonitorSignalAspect.Restricted, new Rectangle(16, 32, 16, 16) },
             { TrackMonitorSignalAspect.StopAndProceed, new Rectangle(0, 48, 16, 16) },
             { TrackMonitorSignalAspect.Stop, new Rectangle(16, 48, 16, 16) },

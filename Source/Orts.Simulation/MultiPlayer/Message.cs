@@ -1366,7 +1366,7 @@ namespace Orts.MultiPlayer
             if (train.Cars[0].CarID.StartsWith("AI"))
             {
                 // It's an AI train for the server, raise pantos and light lights
-                if (train.LeadLocomotive != null) train.LeadLocomotive.SignalEvent(TrainEvent._HeadlightOn);
+                if (train.LeadLocomotive != null) train.LeadLocomotive.SignalEvent(TrainEvent.HeadlightOn);
                 foreach (TrainCar car in train.Cars)
                 {
                     if (car is MSTSElectricLocomotive)
@@ -2146,9 +2146,9 @@ namespace Orts.MultiPlayer
             }
             else if (EventName == "HEADLIGHT")
             {
-                if (t.LeadLocomotive != null && EventState == 0) t.LeadLocomotive.SignalEvent(TrainEvent._HeadlightOff);
-                if (t.LeadLocomotive != null && EventState == 1) t.LeadLocomotive.SignalEvent(TrainEvent._HeadlightDim);
-                if (t.LeadLocomotive != null && EventState == 2) t.LeadLocomotive.SignalEvent(TrainEvent._HeadlightOn);
+                if (t.LeadLocomotive != null && EventState == 0) t.LeadLocomotive.SignalEvent(TrainEvent.HeadlightOff);
+                if (t.LeadLocomotive != null && EventState == 1) t.LeadLocomotive.SignalEvent(TrainEvent.HeadlightDim);
+                if (t.LeadLocomotive != null && EventState == 2) t.LeadLocomotive.SignalEvent(TrainEvent.HeadlightOn);
                 MPManager.BroadCast(this.ToString()); //if the server, will broadcast
             }
             else return;

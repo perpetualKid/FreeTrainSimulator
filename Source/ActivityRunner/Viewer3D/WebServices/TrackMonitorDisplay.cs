@@ -136,11 +136,11 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             };
             public static readonly Dictionary<TrackMonitorSignalAspect, string> SignalMarkersWebApi = new Dictionary<TrackMonitorSignalAspect, string>
             {
-                { TrackMonitorSignalAspect.Clear_2, $"\u25D5{ColorCode[Color.PaleGreen]}" },
-                { TrackMonitorSignalAspect.Clear_1, $"\u25D5{ColorCode[Color.PaleGreen]}" },
-                { TrackMonitorSignalAspect.Approach_3, $"\u25D5{ColorCode[Color.Yellow]}" },
-                { TrackMonitorSignalAspect.Approach_2, $"\u25D5{ColorCode[Color.Yellow]}" },
-                { TrackMonitorSignalAspect.Approach_1, $"\u25D5{ColorCode[Color.Yellow]}" },
+                { TrackMonitorSignalAspect.Clear2, $"\u25D5{ColorCode[Color.PaleGreen]}" },
+                { TrackMonitorSignalAspect.Clear1, $"\u25D5{ColorCode[Color.PaleGreen]}" },
+                { TrackMonitorSignalAspect.Approach3, $"\u25D5{ColorCode[Color.Yellow]}" },
+                { TrackMonitorSignalAspect.Approach2, $"\u25D5{ColorCode[Color.Yellow]}" },
+                { TrackMonitorSignalAspect.Approach1, $"\u25D5{ColorCode[Color.Yellow]}" },
                 { TrackMonitorSignalAspect.Restricted, $"\u25D5{ColorCode[Color.OrangeRed]}" },
                 { TrackMonitorSignalAspect.StopAndProceed, $"\u25D5{ColorCode[Color.OrangeRed]}" },
                 { TrackMonitorSignalAspect.Stop, $"\u25D5{ColorCode[Color.OrangeRed]}"},
@@ -173,11 +173,11 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             /// </remarks>
             public static readonly Dictionary<TrackMonitorSignalAspect, Rectangle> SignalMarkers = new Dictionary<TrackMonitorSignalAspect, Rectangle>
             {
-                { TrackMonitorSignalAspect.Clear_2, new Rectangle(0, 0, 16, 16) },
-                { TrackMonitorSignalAspect.Clear_1, new Rectangle(16, 0, 16, 16) },
-                { TrackMonitorSignalAspect.Approach_3, new Rectangle(0, 16, 16, 16) },
-                { TrackMonitorSignalAspect.Approach_2, new Rectangle(16, 16, 16, 16) },
-                { TrackMonitorSignalAspect.Approach_1, new Rectangle(0, 32, 16, 16) },
+                { TrackMonitorSignalAspect.Clear2, new Rectangle(0, 0, 16, 16) },
+                { TrackMonitorSignalAspect.Clear1, new Rectangle(16, 0, 16, 16) },
+                { TrackMonitorSignalAspect.Approach3, new Rectangle(0, 16, 16, 16) },
+                { TrackMonitorSignalAspect.Approach2, new Rectangle(16, 16, 16, 16) },
+                { TrackMonitorSignalAspect.Approach1, new Rectangle(0, 32, 16, 16) },
                 { TrackMonitorSignalAspect.Restricted, new Rectangle(16, 32, 16, 16) },
                 { TrackMonitorSignalAspect.StopAndProceed, new Rectangle(0, 48, 16, 16) },
                 { TrackMonitorSignalAspect.Stop, new Rectangle(16, 48, 16, 16) },

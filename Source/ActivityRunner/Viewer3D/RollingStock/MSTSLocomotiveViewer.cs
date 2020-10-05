@@ -209,8 +209,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 Locomotive.ShowCab = !Locomotive.ShowCab;
 
             // By Matej Pacha
-            if (UserInput.IsPressed(UserCommand.DebugResetWheelSlip)) { Locomotive.Train.SignalEvent(TrainEvent._ResetWheelSlip); }
-            if (UserInput.IsPressed(UserCommand.DebugToggleAdvancedAdhesion)) { Locomotive.Train.SignalEvent(TrainEvent._ResetWheelSlip); Locomotive.Simulator.UseAdvancedAdhesion = !Locomotive.Simulator.UseAdvancedAdhesion; }
+            if (UserInput.IsPressed(UserCommand.DebugResetWheelSlip)) { Locomotive.Train.SignalEvent(TrainEvent.ResetWheelSlip); }
+            if (UserInput.IsPressed(UserCommand.DebugToggleAdvancedAdhesion)) { Locomotive.Train.SignalEvent(TrainEvent.ResetWheelSlip); Locomotive.Simulator.UseAdvancedAdhesion = !Locomotive.Simulator.UseAdvancedAdhesion; }
 
             if (UserInput.Raildriver.Active)
             {

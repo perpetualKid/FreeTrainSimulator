@@ -1651,7 +1651,7 @@ namespace Orts.Simulation.Physics
                 else if (FrontTDBTraveller.IsEnd) RearTDBTraveller.Move(-1);//if front is out, move back
                 else if (RearTDBTraveller.IsEnd) RearTDBTraveller.Move(1);//if rear is out, move forward
                 foreach (var car in Cars) { car.SpeedMpS = 0; } //can set crash here by setting XNA matrix
-                SignalEvent(TrainEvent._ResetWheelSlip);//reset everything to 0 power
+                SignalEvent(TrainEvent.ResetWheelSlip);//reset everything to 0 power
             }
 
             if (this.TrainType == TRAINTYPE.REMOTE || updateMSGReceived == true) //server tolds me this train (may include mine) needs to update position
@@ -20648,7 +20648,7 @@ namespace Orts.Simulation.Physics
             {
                 ItemType = TRAINOBJECTTYPE.SPEEDPOST;
                 AuthorityType = END_AUTHORITY.NO_PATH_RESERVED;
-                SignalState = TrackMonitorSignalAspect.Clear_2;
+                SignalState = TrackMonitorSignalAspect.Clear2;
                 AllowedSpeedMpS = thisSpeedMpS;
                 DistanceToTrainM = thisDistanceM;
                 SpeedObjectType = speedObjectType;
@@ -20659,7 +20659,7 @@ namespace Orts.Simulation.Physics
             {
                 ItemType = TRAINOBJECTTYPE.STATION;
                 AuthorityType = END_AUTHORITY.NO_PATH_RESERVED;
-                SignalState = TrackMonitorSignalAspect.Clear_2;
+                SignalState = TrackMonitorSignalAspect.Clear2;
                 AllowedSpeedMpS = -1;
                 DistanceToTrainM = thisDistanceM;
                 StationPlatformLength = thisPlatformLength;
@@ -20670,7 +20670,7 @@ namespace Orts.Simulation.Physics
             {
                 ItemType = TRAINOBJECTTYPE.REVERSAL;
                 AuthorityType = END_AUTHORITY.NO_PATH_RESERVED;
-                SignalState = TrackMonitorSignalAspect.Clear_2;
+                SignalState = TrackMonitorSignalAspect.Clear2;
                 AllowedSpeedMpS = -1;
                 DistanceToTrainM = thisDistanceM;
                 Enabled = enabled;
@@ -20682,7 +20682,7 @@ namespace Orts.Simulation.Physics
             {
                 ItemType = TRAINOBJECTTYPE.AUTHORITY;
                 AuthorityType = thisAuthority;
-                SignalState = TrackMonitorSignalAspect.Clear_2;
+                SignalState = TrackMonitorSignalAspect.Clear2;
                 AllowedSpeedMpS = -1;
                 DistanceToTrainM = thisDistanceM;
             }
@@ -20699,7 +20699,7 @@ namespace Orts.Simulation.Physics
             {
                 ItemType = TRAINOBJECTTYPE.WAITING_POINT;
                 AuthorityType = END_AUTHORITY.NO_PATH_RESERVED;
-                SignalState = TrackMonitorSignalAspect.Clear_2;
+                SignalState = TrackMonitorSignalAspect.Clear2;
                 AllowedSpeedMpS = -1;
                 DistanceToTrainM = thisDistanceM;
                 Enabled = enabled;
@@ -20710,7 +20710,7 @@ namespace Orts.Simulation.Physics
             {
                 ItemType = TRAINOBJECTTYPE.MILEPOST;
                 AuthorityType = END_AUTHORITY.NO_PATH_RESERVED;
-                SignalState = TrackMonitorSignalAspect.Clear_2;
+                SignalState = TrackMonitorSignalAspect.Clear2;
                 AllowedSpeedMpS = -1;
                 DistanceToTrainM = thisDistanceM;
                 ThisMile = thisMile;

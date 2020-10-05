@@ -1639,15 +1639,15 @@ namespace Orts.Simulation.Signalling
                 case SignalAspectState.Restricting:
                     return TrackMonitorSignalAspect.Restricted;
                 case SignalAspectState.Approach_1:
-                    return TrackMonitorSignalAspect.Approach_1;
+                    return TrackMonitorSignalAspect.Approach1;
                 case SignalAspectState.Approach_2:
-                    return TrackMonitorSignalAspect.Approach_2;
+                    return TrackMonitorSignalAspect.Approach2;
                 case SignalAspectState.Approach_3:
-                    return TrackMonitorSignalAspect.Approach_3;
+                    return TrackMonitorSignalAspect.Approach3;
                 case SignalAspectState.Clear_1:
-                    return TrackMonitorSignalAspect.Clear_1;
+                    return TrackMonitorSignalAspect.Clear1;
                 case SignalAspectState.Clear_2:
-                    return TrackMonitorSignalAspect.Clear_2;
+                    return TrackMonitorSignalAspect.Clear2;
                 default:
                     return TrackMonitorSignalAspect.None;
             }
@@ -10148,15 +10148,15 @@ namespace Orts.Simulation.Signalling
                 case SignalAspectState.Restricting:
                     return TrackMonitorSignalAspect.Restricted;
                 case SignalAspectState.Approach_1:
-                    return TrackMonitorSignalAspect.Approach_1;
+                    return TrackMonitorSignalAspect.Approach1;
                 case SignalAspectState.Approach_2:
-                    return TrackMonitorSignalAspect.Approach_2;
+                    return TrackMonitorSignalAspect.Approach2;
                 case SignalAspectState.Approach_3:
-                    return TrackMonitorSignalAspect.Approach_3;
+                    return TrackMonitorSignalAspect.Approach3;
                 case SignalAspectState.Clear_1:
-                    return TrackMonitorSignalAspect.Clear_1;
+                    return TrackMonitorSignalAspect.Clear1;
                 case SignalAspectState.Clear_2:
-                    return TrackMonitorSignalAspect.Clear_2;
+                    return TrackMonitorSignalAspect.Clear2;
                 default:
                     return TrackMonitorSignalAspect.None;
             }

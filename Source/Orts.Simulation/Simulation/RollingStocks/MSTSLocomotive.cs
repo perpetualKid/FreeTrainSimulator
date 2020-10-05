@@ -3837,9 +3837,9 @@ namespace Orts.Simulation.RollingStocks
                 case TrainEvent.WiperOff: { Wiper = false; if (this == Simulator.PlayerLocomotive) Simulator.Confirmer.Confirm(CabControl.Wipers, CabSetting.Off); break; }
 
                 // <CJComment> The "H" key doesn't call these SignalEvents yet. </CJComment>
-                case TrainEvent._HeadlightOff: { Headlight = 0; break; }
-                case TrainEvent._HeadlightDim: { Headlight = 1; break; }
-                case TrainEvent._HeadlightOn: { Headlight = 2; break; }
+                case TrainEvent.HeadlightOff: { Headlight = 0; break; }
+                case TrainEvent.HeadlightDim: { Headlight = 1; break; }
+                case TrainEvent.HeadlightOn: { Headlight = 2; break; }
 
                 case TrainEvent.CompressorOn: { CompressorIsOn = true; break; }
                 case TrainEvent.CompressorOff: { CompressorIsOn = false; break; }
@@ -3848,7 +3848,7 @@ namespace Orts.Simulation.RollingStocks
                 case TrainEvent.VacuumExhausterOn: { if(FastVacuumExhausterFitted) VacuumExhausterPressed = true; if (this.IsLeadLocomotive() && this == Simulator.PlayerLocomotive && Simulator.Confirmer != null) Simulator.Confirmer.Confirm(CabControl.VacuumExhauster, CabSetting.On); break; }
                 case TrainEvent.VacuumExhausterOff: { if (FastVacuumExhausterFitted) VacuumExhausterPressed = false; if (this.IsLeadLocomotive() && this == Simulator.PlayerLocomotive && Simulator.Confirmer != null) Simulator.Confirmer.Confirm(CabControl.VacuumExhauster, CabSetting.Off); break; }
 
-                case TrainEvent._ResetWheelSlip: { LocomotiveAxle.Reset(Simulator.GameTime, SpeedMpS); ThrottleController.SetValue(0.0f); break; }
+                case TrainEvent.ResetWheelSlip: { LocomotiveAxle.Reset(Simulator.GameTime, SpeedMpS); ThrottleController.SetValue(0.0f); break; }
                 case TrainEvent.TrainBrakePressureDecrease:
                 case TrainEvent.TrainBrakePressureIncrease:
                     {
@@ -4400,27 +4400,27 @@ namespace Orts.Simulation.RollingStocks
                                     data = 2;
                                     break;
                                 }
-                            case TrackMonitorSignalAspect.Approach_1:
+                            case TrackMonitorSignalAspect.Approach1:
                                 {
                                     data = 3;
                                     break;
                                 }
-                            case TrackMonitorSignalAspect.Approach_2:
+                            case TrackMonitorSignalAspect.Approach2:
                                 {
                                     data = 4;
                                     break;
                                 }
-                            case TrackMonitorSignalAspect.Approach_3:
+                            case TrackMonitorSignalAspect.Approach3:
                                 {
                                     data = 5;
                                     break;
                                 }
-                            case TrackMonitorSignalAspect.Clear_1:
+                            case TrackMonitorSignalAspect.Clear1:
                                 {
                                     data = 6;
                                     break;
                                 }
-                            case TrackMonitorSignalAspect.Clear_2:
+                            case TrackMonitorSignalAspect.Clear2:
                                 {
                                     data = 7;
                                     break;
