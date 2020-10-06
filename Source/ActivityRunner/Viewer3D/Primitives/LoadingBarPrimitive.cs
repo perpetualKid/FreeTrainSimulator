@@ -22,10 +22,10 @@ namespace Orts.ActivityRunner.Viewer3D.Primitives
 
         protected override VertexPositionTexture[] GetVerticies(Game game)
         {
-            var w = game.RenderProcess.DisplaySize.X;
-            var h = 10;
-            var x = -w / 2 - 0.5f;
-            var y = game.RenderProcess.DisplaySize.Y / 2 - h - 0.5f;
+            int w = game.RenderProcess.DisplaySize.X;
+            int h = game.RenderProcess.DisplaySize.Y / 80;
+            float x = -w / 2 - 0.5f;
+            float y = game.RenderProcess.DisplaySize.Y / 2 - h - 0.5f;
             return new[] {
                     new VertexPositionTexture(new Vector3(x + 0, -y - 0, -1), new Vector2(0, 0)),
                     new VertexPositionTexture(new Vector3(x + w, -y - 0, -1), new Vector2(1, 0)),
