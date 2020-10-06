@@ -22,7 +22,6 @@ using System.Diagnostics;
 
 namespace Orts.Simulation
 {
-      , BrakemanBrake
     public class DisplayMessageEventArgs : EventArgs
     {
         public readonly string Key;

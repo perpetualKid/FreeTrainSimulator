@@ -190,6 +190,7 @@ namespace Orts.Common
         // Braking
         TrainBrake,
         EngineBrake,
+        BrakemanBrake,
         DynamicBrake,
         EmergencyBrake,
         BailOff,

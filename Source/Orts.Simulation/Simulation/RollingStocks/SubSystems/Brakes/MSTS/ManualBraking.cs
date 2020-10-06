@@ -15,15 +15,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using Orts.Common;
-using Orts.Parsers.Msts;
-using Orts.Simulation.Physics;
-using ORTS.Common;
-using ORTS.Scripting.Api;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Diagnostics;
+
+using Orts.Common;
+using Orts.Common.Calc;
+using Orts.Formats.Msts.Parsers;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 {
@@ -55,8 +53,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
         {
             switch (lowercasetoken)
             {
-                case "wagon(maxreleaserate": ManualReleaseRateValuepS = stf.ReadFloatBlock(STFReader.UNITS.PressureRateDefaultPSIpS, null); break;
-                case "wagon(maxapplicationrate": ManualMaxApplicationRateValuepS = stf.ReadFloatBlock(STFReader.UNITS.PressureRateDefaultPSIpS, null); break;
+                case "wagon(maxreleaserate": ManualReleaseRateValuepS = stf.ReadFloatBlock(STFReader.Units.PressureRateDefaultPSIpS, null); break;
+                case "wagon(maxapplicationrate": ManualMaxApplicationRateValuepS = stf.ReadFloatBlock(STFReader.Units.PressureRateDefaultPSIpS, null); break;
             }
         }
 
@@ -86,7 +84,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                 DebugType = "-";
         }
 
-        public override void Update(float elapsedClockSeconds)
+        public override void Update(double elapsedClockSeconds)
         {
             MSTSLocomotive lead = (MSTSLocomotive)Car.Train.LeadLocomotive;
             float BrakemanBrakeSettingValue = lead.BrakemanBrakeController.CurrentValue;
@@ -134,16 +132,15 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 
         }
 
-
         // Get the brake BC & BP for EOT conditions
-        public override string GetStatus(Dictionary<BrakeSystemComponent, PressureUnit> units)
+        public override string GetStatus(Dictionary<BrakeSystemComponent, Pressure.Unit> units)
         {
             string s = "Manual Brake";
             return s;
         }
 
         // Get Brake information for train
-        public override string GetFullStatus(BrakeSystem lastCarBrakeSystem, Dictionary<BrakeSystemComponent, PressureUnit> units)
+        public override string GetFullStatus(BrakeSystem lastCarBrakeSystem, Dictionary<BrakeSystemComponent, Pressure.Unit> units)
         {
             string s = "Manual Brake";
             return s;
@@ -151,7 +148,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 
 
         // This overides the information for each individual wagon in the extended HUD  
-        public override string[] GetDebugStatus(Dictionary<BrakeSystemComponent, PressureUnit> units)
+        public override string[] GetDebugStatus(Dictionary<BrakeSystemComponent, Pressure.Unit> units)
         {
             // display differently depending upon whether manual brake is present or not
 
@@ -261,10 +258,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 
         public override float InternalPressure(float realPressure)
         {
-            return Vac.ToPress(realPressure);
+            return (float)Pressure.Vacuum.ToPressure(realPressure);
         }
 
-        public override void PropagateBrakePressure(float elapsedClockSeconds)
+        public override void PropagateBrakePressure(double elapsedClockSeconds)
         {
 
         }
