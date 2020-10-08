@@ -686,7 +686,7 @@ namespace Orts.Simulation.Signalling
                         dumpfile = String.Concat(dpr_fileLoc,"printproc.txt");
                     }
 #endif
-                    return_value = (int)thisHead.NextNthSignalLR(parameter1_value, parameter2_value, dumpfile);
+                    return_value = (int)thisHead.NextNthSignalLR(parameter1_value, parameter2_value);
                     break;
 
                 // dist_multi_sig_mr
