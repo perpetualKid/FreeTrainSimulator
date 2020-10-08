@@ -30,6 +30,7 @@ using Orts.Simulation;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.Signalling;
+using System.Collections.Generic;
 using System.Diagnostics;
 
 using Color = System.Drawing.Color;
@@ -180,7 +181,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 		public void PopulateItemLists()
 		{
 			var previousSidingName = "";
-			var previousPlatformName = "";
+			//var previousPlatformName = "";
 
 			foreach (var item in F.simulator.TDB.TrackDB.TrackItems)
             {
@@ -195,63 +196,66 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                     }
                     break;
                 case SidingItem sidingItem:
-						// Sidings have 2 ends. When 2nd one is found, then average the location for a single label.
-						// There is no link between these track items, so this technique attempts to pair up the names,
-						// remebering also that names need not be unique (e.g. Bernina Bahn).
-						if (item.ItemName == previousSidingName)
+						// Sidings have 2 ends but are not always listed in pairs in the *.tdb file
+						// Neither are their names unique (e.g. Bernina Bahn).
+						// Find whether this siding is a new one or the other end of an old one.
+						// If other end, then find the right-hand one as the location for a single label.
+						var oldSidingIndex = F.sidings.FindIndex(r => r.LinkId == item.TrackItemId);
+						if (oldSidingIndex < 0)
 						{
-							var oldLocation = F.sidings.Last().Location;
-							var newLocation = new PointF(item.Location.TileX * 2048 + item.Location.Location.X, item.Location.TileZ * 2048 + item.Location.Location.Z);
-
-							// Because these are structs, not classes, compiler won't let you overwrite them.
-							// Instead create a single item which replaces the 2 platform items.
-							var replacementSiding = new SidingWidget(item);
-
-							// Give it the right-hand location
-							replacementSiding.Location = GetMidPoint(oldLocation, newLocation);
-
-							// Replace the first platform item with the replacement
-							F.sidings.RemoveAt(F.sidings.Count() - 1);
-							F.sidings.Add(replacementSiding);
-							previousSidingName = "";
+							var newSiding = new SidingWidget(item as SidingItem);
+							F.sidings.Add(newSiding);
 						}
 						else
 						{
-							previousSidingName = item.ItemName;
-							F.sidings.Add(new SidingWidget(item));
-						}
-						break;
-                case PlatformItem platformItem:
-						// Platforms have 2 ends. When 2nd one is found, then find the right-hand one as the location for a single label.
-						// There is no link between these track items, so this technique attempts to pair up the names,
-						// remebering also that names need not be unique (e.g. Bernina Bahn).
-						if (item.ItemName == previousPlatformName)
-						{
-                            var oldLocation = F.platforms.Last().Location;
+							var oldSiding = F.sidings[oldSidingIndex];
+							var oldLocation = oldSiding.Location;
                             var newLocation = new PointF(item.Location.TileX * 2048 + item.Location.Location.X, item.Location.TileZ * 2048 + item.Location.Location.Z);
 
                             // Because these are structs, not classes, compiler won't let you overwrite them.
                             // Instead create a single item which replaces the 2 platform items.
-                            var replacementPlatform = new PlatformWidget(item);
+                            var replacement = new SidingWidget(item as SidingItem)
+								{
+									Location = GetMidPoint(oldLocation, newLocation)
+								};
 
-                            // Give it the right-hand location
-                            replacementPlatform.Location = GetRightHandPoint(oldLocation, newLocation);
-
-                            // Save the original 2 locations of the platform
-                            replacementPlatform.Extent1 = oldLocation;
-                            replacementPlatform.Extent2 = newLocation;
-
-                            // Replace the first platform item with the replacement
-                            F.platforms.RemoveAt(F.platforms.Count() - 1);
-                            F.platforms.Add(replacementPlatform);
-                            previousPlatformName = "";
+							// Replace the old siding item with the replacement
+							F.sidings.RemoveAt(oldSidingIndex);
+							F.sidings.Add(replacement);
 						}
-						else
-						{
-							previousPlatformName = item.ItemName;
-							var newPlatform = new PlatformWidget(item);
-							newPlatform.Extent1 = new PointF(item.Location.TileX * 2048 + item.Location.Location.X, item.Location.TileZ * 2048 + item.Location.Location.Z);
+						break;
+                case PlatformItem platformItem:
+						// Platforms have 2 ends but are not always listed in pairs in the *.tdb file
+						// Neither are their names unique (e.g. Bernina Bahn).
+						// Find whether this platform is a new one or the other end of an old one.
+						// If other end, then find the right-hand one as the location for a single label.
+						var oldPlatformIndex = F.platforms.FindIndex(r => r.LinkId == item.TrackItemId);
+						if (oldPlatformIndex < 0)
+                        {
+							var newPlatform = new PlatformWidget(item as PlatformItem)
+								{
+									Extent1 = new PointF(item.Location.TileX * 2048 + item.Location.Location.X, item.Location.TileZ * 2048 + item.Location.Location.Z)
+								};
 							F.platforms.Add(newPlatform);
+						}
+                        else
+                        {
+							var oldPlatform = F.platforms[oldPlatformIndex];
+							var oldLocation = oldPlatform.Location;
+							var newLocation = new PointF(item.Location.TileX * 2048 + item.Location.Location.X, item.Location.TileZ * 2048 + item.Location.Location.Z);
+
+							// Because these are structs, not classes, compiler won't let you overwrite them.
+							// Instead create a single item which replaces the 2 platform items.
+							var replacement = new PlatformWidget(item as PlatformItem)
+								{ Extent1 = oldLocation
+								, Extent2 = newLocation
+								// Give it the right-hand location
+								, Location = GetRightHandPoint(oldLocation, newLocation)
+								};
+
+							// Replace the old platform item with the replacement
+							F.platforms.RemoveAt(oldPlatformIndex);
+							F.platforms.Add(replacement);
 						}
 						break;
 
@@ -703,7 +707,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 						scaledA.X = x; scaledA.Y = y;
 
 						// Draw static trains as a ghost
-						if (((Simulation.AIs.AITrain)t).MovementState == Simulation.AIs.AITrain.AI_MOVEMENT_STATE.AI_STATIC)
+						if (((Simulation.AIs.AITrain)t).MovementState == AiMovementState.Static)
 							F.trainPen.Color = Color.LightGray;
 						else
 							// Saturation = 100/100
