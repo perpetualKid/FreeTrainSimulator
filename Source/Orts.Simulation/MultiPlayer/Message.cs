@@ -3034,7 +3034,7 @@ namespace Orts.MultiPlayer
                             foreach (var h in s.SignalHeads)
                             {
                                 //System.Console.WriteLine(h.TDBIndex);
-                                signals.Add(h.TDBIndex * 100000 + h.trItemIndex, h);
+                                signals.Add(h.TDBIndex * 100000 + h.TrackItemIndex, h);
                             }
                     }
                 }
@@ -3049,8 +3049,8 @@ namespace Orts.MultiPlayer
             i = 0;
             foreach (var t in signals)
             {
-                signalsStates[2 * i] = (byte)(t.Value.state + 1);
-                signalsStates[2 * i + 1] = (byte)(t.Value.draw_state + 1);
+                signalsStates[2 * i] = (byte)(t.Value.SignalIndicationState + 1);
+                signalsStates[2 * i + 1] = (byte)(t.Value.DrawState + 1);
                 i++;
                 //msgx += (char)(((int)t.Value.state + 1) * 100 + (t.Value.draw_state + 1));
                 //msgx += "" + (char)(t.Value.state + 1) + "" + (char)(t.Value.draw_state + 1);//avoid \0
@@ -3084,7 +3084,7 @@ namespace Orts.MultiPlayer
                                 foreach (var h in s.SignalHeads)
                                 {
                                     //System.Console.WriteLine(h.TDBIndex);
-                                    signals.Add(h.TDBIndex * 100000 + h.trItemIndex, h);
+                                    signals.Add(h.TDBIndex * 100000 + h.TrackItemIndex, h);
                                 }
                         }
                     }
@@ -3115,8 +3115,8 @@ namespace Orts.MultiPlayer
             int i = 0;
             foreach (var t in signals)
             {
-                t.Value.state = (SignalAspectState)(signalsStates[2 * i] - 1); //we added 1 when build the message, need to subtract it out
-                t.Value.draw_state = (int)(signalsStates[2 * i + 1] - 1);
+                t.Value.SignalIndicationState = (SignalAspectState)(signalsStates[2 * i] - 1); //we added 1 when build the message, need to subtract it out
+                t.Value.DrawState = (int)(signalsStates[2 * i + 1] - 1);
                 //t.Value.draw_state = t.Value.def_draw_state(t.Value.state);
                 //System.Console.Write(msgx[i]-48);
                 i++;
@@ -3517,13 +3517,13 @@ namespace Orts.MultiPlayer
                     signal.holdState = Signal.HoldState.ManualApproach;
                     foreach (var sigHead in signal.SignalHeads)
                     {
-                        var drawstate1 = sigHead.def_draw_state(SignalAspectState.Approach_1);
-                        var drawstate2 = sigHead.def_draw_state(SignalAspectState.Approach_2);
-                        var drawstate3 = sigHead.def_draw_state(SignalAspectState.Approach_3);
-                        if (drawstate1 > 0) { sigHead.state = SignalAspectState.Approach_1; }
-                        else if (drawstate2 > 0) { sigHead.state = SignalAspectState.Approach_2; }
-                        else { sigHead.state = SignalAspectState.Approach_3; }
-                        sigHead.draw_state = sigHead.def_draw_state(sigHead.state);
+                        var drawstate1 = sigHead.DefaultDrawState(SignalAspectState.Approach_1);
+                        var drawstate2 = sigHead.DefaultDrawState(SignalAspectState.Approach_2);
+                        var drawstate3 = sigHead.DefaultDrawState(SignalAspectState.Approach_3);
+                        if (drawstate1 > 0) { sigHead.SignalIndicationState = SignalAspectState.Approach_1; }
+                        else if (drawstate2 > 0) { sigHead.SignalIndicationState = SignalAspectState.Approach_2; }
+                        else { sigHead.SignalIndicationState = SignalAspectState.Approach_3; }
+                        sigHead.DrawState = sigHead.DefaultDrawState(sigHead.SignalIndicationState);
                     }
                     break;
                 case 3:
@@ -3531,7 +3531,7 @@ namespace Orts.MultiPlayer
                     foreach (var sigHead in signal.SignalHeads)
                     {
                         sigHead.SetLeastRestrictiveAspect();
-                        sigHead.draw_state = sigHead.def_draw_state(sigHead.state);
+                        sigHead.DrawState = sigHead.DefaultDrawState(sigHead.SignalIndicationState);
                     }
                     break;
             }

@@ -1947,13 +1947,13 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                   signal.holdState = Signal.HoldState.ManualApproach;
                   foreach (var sigHead in signal.SignalHeads)
                   {
-                      var drawstate1 = sigHead.def_draw_state(SignalAspectState.Approach_1);
-                      var drawstate2 = sigHead.def_draw_state(SignalAspectState.Approach_2);
-                      var drawstate3 = sigHead.def_draw_state(SignalAspectState.Approach_3);
-                      if (drawstate1 > 0) { sigHead.state = SignalAspectState.Approach_1; }
-                      else if (drawstate2 > 0) { sigHead.state = SignalAspectState.Approach_2; }
-                      else { sigHead.state = SignalAspectState.Approach_3; }
-                      sigHead.draw_state = sigHead.def_draw_state(sigHead.state);
+                      var drawstate1 = sigHead.DefaultDrawState(SignalAspectState.Approach_1);
+                      var drawstate2 = sigHead.DefaultDrawState(SignalAspectState.Approach_2);
+                      var drawstate3 = sigHead.DefaultDrawState(SignalAspectState.Approach_3);
+                      if (drawstate1 > 0) { sigHead.SignalIndicationState = SignalAspectState.Approach_1; }
+                      else if (drawstate2 > 0) { sigHead.SignalIndicationState = SignalAspectState.Approach_2; }
+                      else { sigHead.SignalIndicationState = SignalAspectState.Approach_3; }
+                      sigHead.DrawState = sigHead.DefaultDrawState(sigHead.SignalIndicationState);
                   }
 				  break;
 			  case 3:
@@ -1961,7 +1961,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                   foreach (var sigHead in signal.SignalHeads)
                   {
                       sigHead.SetLeastRestrictiveAspect();
-                      sigHead.draw_state = sigHead.def_draw_state(sigHead.state);
+                      sigHead.DrawState = sigHead.DefaultDrawState(sigHead.SignalIndicationState);
                   }
 				  break;
 		  }
@@ -2120,13 +2120,13 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
                 foreach (var head in Signal.SignalHeads)
                 {
-                    if (head.state == SignalAspectState.Clear_1 ||
-                        head.state == SignalAspectState.Clear_2)
+                    if (head.SignalIndicationState == SignalAspectState.Clear_1 ||
+                        head.SignalIndicationState == SignalAspectState.Clear_2)
                     {
                         returnValue = 0;
                     }
-                    if (head.state == SignalAspectState.Approach_1 ||
-                        head.state == SignalAspectState.Approach_2 || head.state == SignalAspectState.Approach_3)
+                    if (head.SignalIndicationState == SignalAspectState.Approach_1 ||
+                        head.SignalIndicationState == SignalAspectState.Approach_2 || head.SignalIndicationState == SignalAspectState.Approach_3)
                     {
                         returnValue = 1;
                     }

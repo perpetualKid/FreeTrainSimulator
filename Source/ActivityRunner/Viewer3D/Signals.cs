@@ -318,14 +318,14 @@ namespace Orts.ActivityRunner.Viewer3D
             public void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime, Matrix xnaTileTranslation)
             {
                 var initialise = DisplayState == -1;
-                if (DisplayState != SignalHead.draw_state)
+                if (DisplayState != SignalHead.DrawState)
                 {
 #if DEBUG_SIGNAL_SHAPES
                     Console.WriteLine("{5} {0} signal {1} unit {2} state: {3} --> {4}",
                         SignalShape.Location, SignalShape.UID, Index, DisplayState,
                         SignalHead.draw_state, InfoDisplay.FormattedTime(Viewer.Simulator.ClockTime));
 #endif
-                    DisplayState = SignalHead.draw_state;
+                    DisplayState = SignalHead.DrawState;
                     if (SignalTypeData.DrawAspects.ContainsKey(DisplayState))
                     {
                         SemaphoreTarget = SignalTypeData.DrawAspects[DisplayState].SemaphorePos;

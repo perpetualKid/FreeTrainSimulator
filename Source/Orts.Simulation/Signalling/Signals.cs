@@ -691,7 +691,7 @@ namespace Orts.Simulation.Signalling
 
                         foreach (var thisHead in thisObject.SignalHeads)
                         {
-                            thisHead.mainSignal = thisObject;
+                            thisHead.ResetMain(thisObject);
                             var trackItem = TrItems[thisHead.TDBIndex];
                             var sigItem = trackItem as SignalItem;
                             var speedItem = trackItem as SpeedPostItem;
@@ -785,7 +785,7 @@ namespace Orts.Simulation.Signalling
                                     {
                                         removeHead.Add(ihIndex);
 
-                                        thisHead.mainSignal = newSignal;
+                                        thisHead.ResetMain(newSignal);
                                         newSignal.SignalHeads.Add(thisHead);
                                     }
                                 }
@@ -1257,7 +1257,7 @@ namespace Orts.Simulation.Signalling
             foreach (var signal in signalObjects)
                 if (signal != null)
                     foreach (var head in signal.SignalHeads)
-                        if ((Signal.trackNodes[signal.trackNode] as TrackVectorNode).TrackItemIndices[head.trItemIndex] == (int)trItem)
+                        if ((Signal.trackNodes[signal.trackNode] as TrackVectorNode).TrackItemIndices[head.TrackItemIndex] == (int)trItem)
                             return new KeyValuePair<Signal, SignalHead>(signal, head);
             return null;
         }//FindByTrItem
@@ -1275,7 +1275,7 @@ namespace Orts.Simulation.Signalling
                 {
                     foreach (SignalHead thisHead in thisSignal.SignalHeads)
                     {
-                        if (thisHead.sigFunction == SignalFunction.Normal)
+                        if (thisHead.SignalFunction == SignalFunction.Normal)
                         {
                             thisSignal.SignalNumNormalHeads++;
                         }
@@ -8746,7 +8746,7 @@ namespace Orts.Simulation.Signalling
         {
             foreach (SignalHead sigHead in SignalHeads)
             {
-                if (sigHead.sigFunction == SignalFunction.Normal)
+                if (sigHead.SignalFunction == SignalFunction.Normal)
                     return true;
             }
             return false;
@@ -8761,7 +8761,7 @@ namespace Orts.Simulation.Signalling
         {
             foreach (SignalHead sigHead in SignalHeads)
             {
-                if (reqSIGFN == sigHead.ORTSsigFunctionIndex)
+                if (reqSIGFN == sigHead.OrtsSignalFunctionIndex)
                     return true;
             }
             return false;
@@ -8819,7 +8819,7 @@ namespace Orts.Simulation.Signalling
         /// next_nsig_lr : returns least restrictive state of next signal of required type of the nth signal ahead
         /// </summary>
 
-        public SignalAspectState next_nsig_lr(int fn_type, int nsignal, string dumpfile)
+        public SignalAspectState next_nsig_lr(int fn_type, int nsignal)
         {
             int foundsignal = 0;
             SignalAspectState foundAspect = SignalAspectState.Clear_2;
@@ -8845,18 +8845,9 @@ namespace Orts.Simulation.Signalling
                     nextSignalObject = signalObjects[nextSignal];
                     foundAspect = nextSignalObject.this_sig_lr(fn_type);
 
-                    if (!String.IsNullOrEmpty(dumpfile))
-                    {
-                        File.AppendAllText(dumpfile, "\nNEXT_NSIG_LR : Found signal " + foundsignal + " : " + nextSignalObject.thisRef + " ; state = " + foundAspect + "\n");
-                    }
-
                     // reached required signal or state is stop : return
                     if (foundsignal >= nsignal || foundAspect == SignalAspectState.Stop)
                     {
-                        if (!String.IsNullOrEmpty(dumpfile))
-                        {
-                            File.AppendAllText(dumpfile, "NEXT_NSIG_LR : returned : " + foundAspect + "\n");
-                        }
                         return (foundAspect);
                     }
                 }
@@ -8864,17 +8855,8 @@ namespace Orts.Simulation.Signalling
                 // signal not found : return stop
                 else
                 {
-                    if (!String.IsNullOrEmpty(dumpfile))
-                    {
-                        File.AppendAllText(dumpfile, "NEXT_NSIG_LR : returned : " + foundAspect + " ; last found index : " + foundsignal + "\n");
-                    }
                     return SignalAspectState.Stop;
                 }
-            }
-
-            if (!String.IsNullOrEmpty(dumpfile))
-            {
-                File.AppendAllText(dumpfile, "NEXT_NSIG_LR : while loop exited ; last found index : " + foundsignal + "\n");
             }
             return (SignalAspectState.Stop); // emergency exit - loop should normally have exited on return
         }
@@ -8950,9 +8932,9 @@ namespace Orts.Simulation.Signalling
             SignalAspectState sigAsp = SignalAspectState.Unknown;
             foreach (SignalHead sigHead in SignalHeads)
             {
-                if (sigHead.ORTSsigFunctionIndex == fn_type && sigHead.state < sigAsp)
+                if (sigHead.OrtsSignalFunctionIndex == fn_type && sigHead.SignalIndicationState < sigAsp)
                 {
-                    sigAsp = sigHead.state;
+                    sigAsp = sigHead.SignalIndicationState;
                 }
             }
             if (sigAsp == SignalAspectState.Unknown)
@@ -8970,53 +8952,20 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// additional version using valid route heads only
         /// </summary>
-        public SignalAspectState this_sig_mr_routed(int fn_type, string dumpfile)
+        internal SignalAspectState MRSignalOnRoute(int signalType)
         {
             SignalAspectState sigAsp = SignalAspectState.Unknown;
-            var sob = new StringBuilder();
-            sob.AppendFormat("  signal type 1 : {0} \n", thisRef);
 
             foreach (SignalHead sigHead in SignalHeads)
             {
-                if (sigHead.ORTSsigFunctionIndex == fn_type)
+                if (sigHead.OrtsSignalFunctionIndex == signalType && sigHead.VerifyRouteSet() == 1 && sigHead.SignalIndicationState < sigAsp)
                 {
-                    if (sigHead.route_set() == 1)
-                    {
-                        if (sigHead.state < sigAsp)
-                        {
-                            sigAsp = sigHead.state;
-                            if (dumpfile.Length > 1)
-                            {
-                                sob.AppendFormat("   {0} : routed correct : {1} \n", sigHead.TDBIndex, sigHead.state);
-                            }
-                        }
-                    }
-                    else if (dumpfile.Length > 1)
-                    {
-                        sob.AppendFormat("   {0} : routed incorrect \n", sigHead.TDBIndex);
-                    }
+                    sigAsp = sigHead.SignalIndicationState;
                 }
             }
 
-            if (sigAsp == SignalAspectState.Unknown)
-            {
-                if (dumpfile.Length > 1)
-                {
-                    sob.AppendFormat("    No valid routed head found, returned STOP \n\n");
-                    File.AppendAllText(dumpfile, sob.ToString());
-                }
-                return SignalAspectState.Stop;
-            }
-            else
-            {
-                if (dumpfile.Length > 1)
-                {
-                    sob.AppendFormat("    Returned state : {0} \n\n", sigAsp.ToString());
-                    File.AppendAllText(dumpfile, sob.ToString());
-                }
-                return sigAsp;
-            }
-        }//this_sig_mr
+            return sigAsp == SignalAspectState.Unknown ? SignalAspectState.Stop : sigAsp;
+        }
 
         //================================================================================================//
         /// <summary>
@@ -9050,9 +8999,9 @@ namespace Orts.Simulation.Signalling
             bool sigAspSet = false;
             foreach (SignalHead sigHead in SignalHeads)
             {
-                if (sigHead.ORTSsigFunctionIndex == fn_type && sigHead.state >= sigAsp)
+                if (sigHead.OrtsSignalFunctionIndex == fn_type && sigHead.SignalIndicationState >= sigAsp)
                 {
-                    sigAsp = sigHead.state;
+                    sigAsp = sigHead.SignalIndicationState;
                     sigAspSet = true;
                 }
             }
@@ -9085,10 +9034,10 @@ namespace Orts.Simulation.Signalling
 
             foreach (SignalHead sigHead in SignalHeads)
             {
-                if (sigHead.sigFunction == fn_type && sigHead.state >= sigAsp)
+                if (sigHead.SignalFunction == fn_type && sigHead.SignalIndicationState >= sigAsp)
                 {
-                    sigAsp = sigHead.state;
-                    set_speed = sigHead.speed_info[(int)sigAsp];
+                    sigAsp = sigHead.SignalIndicationState;
+                    set_speed = sigHead.SpeedInfo[(int)sigAsp];
                 }
             }
             return set_speed;
@@ -9195,12 +9144,12 @@ namespace Orts.Simulation.Signalling
 
             foreach (SignalHead sigHead in SignalHeads)
             {
-                if (sigHead.sigFunction == fn_type && sigHead.state >= sigAsp)
+                if (sigHead.SignalFunction == fn_type && sigHead.SignalIndicationState >= sigAsp)
                 {
-                    sigAsp = sigHead.state;
-                    if (sigAsp <= SignalAspectState.Restricting && sigHead.speed_info != null && sigHead.speed_info[(int)sigAsp] != null)
+                    sigAsp = sigHead.SignalIndicationState;
+                    if (sigAsp <= SignalAspectState.Restricting && sigHead.SpeedInfo != null && sigHead.SpeedInfo[(int)sigAsp] != null)
                     {
-                        setNoReduction = sigHead.speed_info[(int)sigAsp].speed_noSpeedReductionOrIsTempSpeedReduction == 1;
+                        setNoReduction = sigHead.SpeedInfo[(int)sigAsp].speed_noSpeedReductionOrIsTempSpeedReduction == 1;
                     }
                     else
                     {
@@ -9223,9 +9172,9 @@ namespace Orts.Simulation.Signalling
 
             SignalHead sigHead = SignalHeads.First();
 
-            if (sigHead.speed_info != null && sigHead.speed_info[(int)sigAsp] != null)
+            if (sigHead.SpeedInfo != null && sigHead.SpeedInfo[(int)sigAsp] != null)
             {
-                speedPostType = sigHead.speed_info[(int)sigAsp].speed_noSpeedReductionOrIsTempSpeedReduction;
+                speedPostType = sigHead.SpeedInfo[(int)sigAsp].speed_noSpeedReductionOrIsTempSpeedReduction;
 
             }
             return speedPostType;
@@ -9243,9 +9192,9 @@ namespace Orts.Simulation.Signalling
 
             foreach (SignalHead sigHead in SignalHeads)
             {
-                if (sigHead.sigFunction == fn_type)
+                if (sigHead.SignalFunction == fn_type)
                 {
-                    ObjectSpeedInfo this_speed = sigHead.speed_info[(int)sigHead.state];
+                    ObjectSpeedInfo this_speed = sigHead.SpeedInfo[(int)sigHead.SignalIndicationState];
                     if (this_speed != null)
                     {
                         if (this_speed.speed_pass > 0 && this_speed.speed_pass < set_speed.speed_pass)
@@ -9360,7 +9309,7 @@ namespace Orts.Simulation.Signalling
         {
             foreach (SignalHead thisHead in SignalHeads)
             {
-                if (thisHead.sigFunction == SignalFunction.Normal && thisHead.ORTSNormalSubtypeIndex == reqSubtype)
+                if (thisHead.SignalFunction == SignalFunction.Normal && thisHead.OrtsNormalSubtypeIndex == reqSubtype)
                 {
                     return (1);
                 }
@@ -10016,7 +9965,7 @@ namespace Orts.Simulation.Signalling
 
             foreach (SignalHead sigHead in SignalHeads)
             {
-                if (sigHead.sigFunction == SignalFunction.Normal)
+                if (sigHead.SignalFunction == SignalFunction.Normal)
                     sigHead.Update();
             }
 
@@ -10024,7 +9973,7 @@ namespace Orts.Simulation.Signalling
 
             foreach (SignalHead sigHead in SignalHeads)
             {
-                if (sigHead.sigFunction != SignalFunction.Normal)
+                if (sigHead.SignalFunction != SignalFunction.Normal)
                     sigHead.Update();
             }
 
@@ -12187,7 +12136,7 @@ namespace Orts.Simulation.Signalling
 
                             foreach (SignalHead thisHead in endSignal.SignalHeads)
                             {
-                                if (thisHead.ORTSNormalSubtypeIndex == req_value)
+                                if (thisHead.OrtsNormalSubtypeIndex == req_value)
                                 {
                                     found_value = true;
                                     if (!String.IsNullOrEmpty(dumpfile))
@@ -12542,649 +12491,6 @@ namespace Orts.Simulation.Signalling
         }
 
     }  // SignalObject
-
-
-    //================================================================================================//
-    ///
-    /// class SignalHead
-    ///
-    //================================================================================================//
-
-    public class SignalHead
-    {
-        public SignalType signalType;           // from sigcfg file
-        public SignalScripts.SCRScripts usedSigScript = null;   // used sigscript
-        public SignalAspectState state = SignalAspectState.Stop;
-        public int draw_state;
-        public int trItemIndex;                 // Index to trItem   
-        public uint TrackJunctionNode;          // Track Junction Node (= 0 if not set)
-        public uint JunctionPath;               // Required Junction Path
-        public int JunctionMainNode;            // Main node following junction
-        public int TDBIndex;                    // Index to TDB Signal Item
-        public ObjectSpeedInfo[] speed_info;      // speed limit info (per aspect)
-
-        public Signal mainSignal;        //  This is the signal which this head forms a part.
-
-        public float? ApproachControlLimitPositionM;
-        public float? ApproachControlLimitSpeedMpS;
-
-        public SignalFunction sigFunction
-        {
-            get
-            {
-                if (signalType != null)
-                    return (SignalFunction)signalType.FunctionType;
-                else
-                    return SignalFunction.Unknown;
-            }
-        }
-
-        public int ORTSsigFunctionIndex
-        {
-            get
-            {
-                if (signalType != null)
-                    return signalType.OrtsFunctionTypeIndex;
-                else
-                    return -1;
-            }
-        }
-
-        public int ORTSNormalSubtypeIndex;     // subtype index form sigcfg file
-
-        public String SignalTypeName
-        {
-            get
-            {
-                if (signalType != null)
-                    return signalType.Name;
-                else
-                    return "";
-            }
-        }
-
-        //================================================================================================//
-        /// <summary>
-        /// Constructor for signals
-        /// </summary>
-
-        public SignalHead(Signal sigOoject, int trItem, int TDBRef, SignalItem sigItem)
-        {
-            mainSignal = sigOoject;
-            trItemIndex = trItem;
-            TDBIndex = TDBRef;
-
-            if (sigItem.SignalDirections?.Length > 0)
-            {
-                TrackJunctionNode = sigItem.SignalDirections[0].TrackNode;
-                JunctionPath = sigItem.SignalDirections[0].LinkLRPath;
-            }
-
-            var sigasp_values = Enum.GetValues(typeof(SignalAspectState));
-            speed_info = new ObjectSpeedInfo[sigasp_values.Length];
-        }
-
-        //================================================================================================//
-        /// <summary>
-        /// Constructor for speedposts
-        /// </summary>
-
-        public SignalHead(Signal sigOoject, int trItem, int TDBRef, SpeedPostItem speedItem)
-        {
-            mainSignal = sigOoject;
-            trItemIndex = trItem;
-            TDBIndex = TDBRef;
-            draw_state = 1;
-            state = SignalAspectState.Clear_2;
-            signalType = new SignalType(SignalFunction.Speed, SignalAspectState.Clear_2);
-
-            var sigasp_values = Enum.GetValues(typeof(SignalAspectState));
-            speed_info = new ObjectSpeedInfo[sigasp_values.Length];
-
-            double speedMpS = Speed.MeterPerSecond.ToMpS(speedItem.Distance, !speedItem.IsMPH);
-            if (speedItem.IsResume)
-                speedMpS = 999.0;
-
-            float passSpeed = speedItem.IsPassenger ? (float)speedMpS : -1;
-            float freightSpeed = speedItem.IsFreight ? (float)speedMpS : -1;
-            ObjectSpeedInfo speedinfo = new ObjectSpeedInfo(passSpeed, freightSpeed, false, false, speedItem is TempSpeedPostItem? (speedMpS == 999f? 2 : 1) : 0);
-            speed_info[(int)state] = speedinfo;
-        }
-
-        //================================================================================================//
-        /// <summary>
-        /// Set the signal type object from the CIGCFG file
-        /// </summary>
-
-        public void SetSignalType(TrackItem[] TrItems, SignalConfigurationFile sigCFG)
-        {
-            SignalItem sigItem = (SignalItem)TrItems[TDBIndex];
-
-            // set signal type
-            if (sigCFG.SignalTypes.ContainsKey(sigItem.SignalType))
-            {
-                // set signal type
-                signalType = sigCFG.SignalTypes[sigItem.SignalType];
-
-                // get related signalscript
-                Signals.scrfile.SignalScripts.Scripts.TryGetValue(signalType, out usedSigScript);
-
-                // set signal speeds
-                foreach (SignalAspect thisAspect in signalType.Aspects)
-                {
-                    int arrindex = (int)thisAspect.Aspect;
-                    speed_info[arrindex] = new ObjectSpeedInfo(thisAspect.SpeedLimit, thisAspect.SpeedLimit, thisAspect.Asap, thisAspect.Reset, thisAspect.NoSpeedReduction? 1 : 0);
-                }
-
-                // set normal subtype
-                ORTSNormalSubtypeIndex = signalType.OrtsNormalSubTypeIndex;
-
-                // update overall SignalNumClearAhead
-
-                if (sigFunction == SignalFunction.Normal)
-                {
-                    mainSignal.SignalNumClearAhead_MSTS = Math.Max(mainSignal.SignalNumClearAhead_MSTS, signalType.NumClearAhead_MSTS);
-                    mainSignal.SignalNumClearAhead_ORTS = Math.Max(mainSignal.SignalNumClearAhead_ORTS, signalType.NumClearAhead_ORTS);
-                    mainSignal.SignalNumClearAheadActive = mainSignal.SignalNumClearAhead_ORTS;
-                }
-
-                // set approach control limits
-
-                if (signalType.ApproachControlDetails != null)
-                {
-                    ApproachControlLimitPositionM = signalType.ApproachControlDetails.ApproachControlPositionM;
-                    ApproachControlLimitSpeedMpS = signalType.ApproachControlDetails.ApproachControlSpeedMpS;
-                }
-                else
-                {
-                    ApproachControlLimitPositionM = null;
-                    ApproachControlLimitSpeedMpS = null;
-                }
-
-                if (sigFunction == SignalFunction.Speed)
-                {
-                    mainSignal.isSignal = false;
-                    mainSignal.isSpeedSignal = true;
-                }
-            }
-            else
-            {
-                Trace.TraceWarning("SignalObject trItem={0}, trackNode={1} has SignalHead with undefined SignalType {2}.",
-                                  mainSignal.trItem, mainSignal.trackNode, sigItem.SignalType);
-            }
-
-
-        }//SetSignalType
-
-        //================================================================================================//
-        /// <summary>
-        ///  Set of methods called per signal head from signal script processing
-	///  All methods link through to the main method set for signal objec
-        /// </summary>
-
-        public SignalAspectState next_sig_mr(int sigFN)
-        {
-            return mainSignal.next_sig_mr(sigFN);
-        }
-
-        public SignalAspectState next_sig_lr(int sigFN)
-        {
-            return mainSignal.next_sig_lr(sigFN);
-        }
-
-        public SignalAspectState this_sig_lr(int sigFN)
-        {
-            return mainSignal.this_sig_lr(sigFN);
-        }
-
-        public SignalAspectState this_sig_lr(int sigFN, ref bool sigfound)
-        {
-            return mainSignal.this_sig_lr(sigFN, ref sigfound);
-        }
-
-        public SignalAspectState this_sig_mr(int sigFN)
-        {
-            return mainSignal.this_sig_mr(sigFN);
-        }
-
-        public SignalAspectState this_sig_mr(int sigFN, ref bool sigfound)
-        {
-            return mainSignal.this_sig_mr(sigFN, ref sigfound);
-        }
-
-        public SignalAspectState opp_sig_mr(int sigFN)
-        {
-            return mainSignal.opp_sig_mr(sigFN);
-        }
-
-        public SignalAspectState opp_sig_mr(int sigFN, ref Signal signalFound) // for debug purposes
-        {
-            return mainSignal.opp_sig_mr(sigFN, ref signalFound);
-        }
-
-        public SignalAspectState opp_sig_lr(int sigFN)
-        {
-            return mainSignal.opp_sig_lr(sigFN);
-        }
-
-        public SignalAspectState opp_sig_lr(int sigFN, ref Signal signalFound) // for debug purposes
-        {
-            return mainSignal.opp_sig_lr(sigFN, ref signalFound);
-        }
-
-        public SignalAspectState next_nsig_lr(int sigFN, int nsignals, string dumpfile)
-        {
-            return mainSignal.next_nsig_lr(sigFN, nsignals, dumpfile);
-        }
-
-        public int next_sig_id(int sigFN)
-        {
-            return mainSignal.next_sig_id(sigFN);
-        }
-
-        public int next_nsig_id(int sigFN, int nsignal)
-        {
-            return mainSignal.next_nsig_id(sigFN, nsignal);
-        }
-
-        public int opp_sig_id(int sigFN)
-        {
-            return mainSignal.opp_sig_id(sigFN);
-        }
-
-        public SignalAspectState id_sig_lr(int sigId, int sigFN)
-        {
-            if (sigId >= 0 && sigId < mainSignal.signalRef.SignalObjects.Length)
-            {
-                Signal reqSignal = mainSignal.signalRef.SignalObjects[sigId];
-                return (reqSignal.this_sig_lr(sigFN));
-            }
-            return (SignalAspectState.Stop);
-        }
-
-        public int id_sig_enabled(int sigId)
-        {
-            bool sigEnabled = false;
-            if (sigId >= 0 && sigId < mainSignal.signalRef.SignalObjects.Length)
-            {
-                Signal reqSignal = mainSignal.signalRef.SignalObjects[sigId];
-                sigEnabled = reqSignal.enabled;
-            }
-            return (sigEnabled ? 1 : 0);
-        }
-
-        public void store_lvar(int index, int value)
-        {
-            mainSignal.store_lvar(index, value);
-        }
-
-        public int this_sig_lvar(int index)
-        {
-            return mainSignal.this_sig_lvar(index);
-        }
-
-        public int next_sig_lvar(int sigFN, int index)
-        {
-            return mainSignal.next_sig_lvar(sigFN, index);
-        }
-
-        public int id_sig_lvar(int sigId, int index)
-        {
-            if (sigId >= 0 && sigId < mainSignal.signalRef.SignalObjects.Length)
-            {
-                Signal reqSignal = mainSignal.signalRef.SignalObjects[sigId];
-                return (reqSignal.this_sig_lvar(index));
-            }
-            return (0);
-        }
-
-        public int next_sig_hasnormalsubtype(int reqSubtype)
-        {
-            return mainSignal.next_sig_hasnormalsubtype(reqSubtype);
-        }
-
-        public int this_sig_hasnormalsubtype(int reqSubtype)
-        {
-            return mainSignal.this_sig_hasnormalsubtype(reqSubtype);
-        }
-
-        public int id_sig_hasnormalsubtype(int sigId, int reqSubtype)
-        {
-            if (sigId >= 0 && sigId < mainSignal.signalRef.SignalObjects.Length)
-            {
-                Signal reqSignal = mainSignal.signalRef.SignalObjects[sigId];
-                return (reqSignal.this_sig_hasnormalsubtype(reqSubtype));
-            }
-            return (0);
-        }
-
-        public int switchstand(int aspect1, int aspect2)
-        {
-            return mainSignal.switchstand(aspect1, aspect2);
-        }
-
-        //================================================================================================//
-        /// <summary>
-        ///  Returns most restrictive state of signal type A, for all type A upto type B
-        ///  Uses Most Restricted state per signal, but checks for valid routing
-        /// </summary>
-
-        public SignalAspectState dist_multi_sig_mr(int sigFN1, int sigFN2, string dumpfile)
-        {
-            SignalAspectState foundState = SignalAspectState.Clear_2;
-            bool foundValid = false;
-
-            // get signal of type 2 (end signal)
-
-            if (dumpfile.Length > 1)
-            {
-                File.AppendAllText(dumpfile,
-                    String.Format("DIST_MULTI_SIG_MR for {0} + upto {1}\n",
-                    sigFN1, sigFN2));
-            }
-
-            int sig2Index = mainSignal.sigfound[sigFN2];
-            if (sig2Index < 0)           // try renewed search with full route
-            {
-                sig2Index = mainSignal.SONextSignal(sigFN2);
-                mainSignal.sigfound[sigFN2] = sig2Index;
-            }
-
-            if (dumpfile.Length > 1)
-            {
-                if (sig2Index < 0)
-                    File.AppendAllText(dumpfile, "  no signal type 2 found\n");
-            }
-
-            if (dumpfile.Length > 1)
-            {
-                var sob = new StringBuilder();
-                sob.AppendFormat("  signal type 2 : {0}", mainSignal.sigfound[sigFN2]);
-
-                if (mainSignal.sigfound[(int)sigFN2] > 0)
-                {
-                    Signal otherSignal = mainSignal.signalRef.SignalObjects[mainSignal.sigfound[sigFN2]];
-                    sob.AppendFormat(" (");
-
-                    foreach (SignalHead otherHead in otherSignal.SignalHeads)
-                    {
-                        sob.AppendFormat(" {0} ", otherHead.TDBIndex);
-                    }
-
-                    sob.AppendFormat(") ");
-                }
-                sob.AppendFormat("\n");
-
-                File.AppendAllText(dumpfile, sob.ToString());
-            }
-
-            Signal thisSignal = mainSignal;
-
-            // ensure next signal of type 1 is located correctly (cannot be done for normal signals searching next normal signal)
-
-            if (!thisSignal.isSignalNormal() || sigFN1 != (int)SignalFunction.Normal)
-            {
-                thisSignal.sigfound[sigFN1] = thisSignal.SONextSignal(sigFN1);
-            }
-
-            // loop through all available signals of type 1
-
-            while (thisSignal.sigfound[sigFN1] >= 0)
-            {
-                thisSignal = thisSignal.signalRef.SignalObjects[thisSignal.sigfound[sigFN1]];
-
-                SignalAspectState thisState = thisSignal.this_sig_mr_routed(sigFN1, dumpfile);
-
-                // ensure correct next signals are located
-                if (sigFN1 != (int)SignalFunction.Normal || !thisSignal.isSignalNormal())
-                {
-                    var sigFound = thisSignal.SONextSignal(sigFN1);
-                    if (sigFound >= 0) thisSignal.sigfound[(int)sigFN1] = thisSignal.SONextSignal(sigFN1);
-                }
-                if (sigFN2 != (int)SignalFunction.Normal || !thisSignal.isSignalNormal())
-                {
-                    var sigFound = thisSignal.SONextSignal(sigFN2);
-                    if (sigFound >= 0) thisSignal.sigfound[(int)sigFN2] = thisSignal.SONextSignal(sigFN2);
-                }
-
-                if (sig2Index == thisSignal.thisRef) // this signal also contains type 2 signal and is therefor valid
-                {
-                    foundValid = true;
-                    foundState = foundState < thisState ? foundState : thisState;
-                    return (foundState);
-                }
-                else if (sig2Index >= 0 && thisSignal.sigfound[sigFN2] != sig2Index)  // we are beyond type 2 signal
-                {
-                    return (foundValid ? foundState : SignalAspectState.Stop);
-                }
-                foundValid = true;
-                foundState = foundState < thisState ? foundState : thisState;
-            }
-
-            return (foundValid ? foundState : SignalAspectState.Stop);   // no type 2 or running out of signals before finding type 2
-        }
-
-        //================================================================================================//
-        /// <summary>
-        ///  Returns most restrictive state of signal type A, for all type A upto type B
-        ///  Uses Least Restrictive state per signal
-        /// </summary>
-
-        public SignalAspectState dist_multi_sig_mr_of_lr(int sigFN1, int sigFN2, string dumpfile)
-        {
-            SignalAspectState foundState = SignalAspectState.Clear_2;
-            bool foundValid = false;
-
-            // get signal of type 2 (end signal)
-
-            if (dumpfile.Length > 1)
-            {
-                File.AppendAllText(dumpfile,
-                    String.Format("DIST_MULTI_SIG_MR_OF_LR for {0} + upto {1}\n",
-                    sigFN1, sigFN2));
-            }
-
-            int sig2Index = mainSignal.sigfound[sigFN2];
-            if (sig2Index < 0)           // try renewed search with full route
-            {
-                sig2Index = mainSignal.SONextSignal(sigFN2);
-                mainSignal.sigfound[sigFN2] = sig2Index;
-            }
-
-            if (dumpfile.Length > 1)
-            {
-                if (sig2Index < 0)
-                    File.AppendAllText(dumpfile, "  no signal type 2 found\n");
-            }
-
-            if (dumpfile.Length > 1)
-            {
-                var sob = new StringBuilder();
-                sob.AppendFormat("  signal type 2 : {0}", mainSignal.sigfound[sigFN2]);
-
-                if (mainSignal.sigfound[(int)sigFN2] > 0)
-                {
-                    Signal otherSignal = mainSignal.signalRef.SignalObjects[mainSignal.sigfound[sigFN2]];
-                    sob.AppendFormat(" (");
-
-                    foreach (SignalHead otherHead in otherSignal.SignalHeads)
-                    {
-                        sob.AppendFormat(" {0} ", otherHead.TDBIndex);
-                    }
-
-                    sob.AppendFormat(") ");
-                }
-                sob.AppendFormat("\n");
-
-                File.AppendAllText(dumpfile, sob.ToString());
-            }
-
-            Signal thisSignal = mainSignal;
-
-            // ensure next signal of type 1 is located correctly (cannot be done for normal signals searching next normal signal)
-
-            if (!thisSignal.isSignalNormal() || sigFN1 != (int)SignalFunction.Normal)
-            {
-                thisSignal.sigfound[sigFN1] = thisSignal.SONextSignal(sigFN1);
-            }
-
-            // loop through all available signals of type 1
-
-            while (thisSignal.sigfound[sigFN1] >= 0)
-            {
-                thisSignal = thisSignal.signalRef.SignalObjects[thisSignal.sigfound[sigFN1]];
-
-                SignalAspectState thisState = thisSignal.this_sig_lr(sigFN1);
-                if (dumpfile.Length > 1)
-                {
-                    File.AppendAllText(dumpfile, "Found lr state : " + thisState.ToString() + "\n");
-                }
-
-                // ensure correct next signals are located
-                if (sigFN1 != (int)SignalFunction.Normal || !thisSignal.isSignalNormal())
-                {
-                    var sigFound = thisSignal.SONextSignal(sigFN1);
-                    if (sigFound >= 0) thisSignal.sigfound[(int)sigFN1] = thisSignal.SONextSignal(sigFN1);
-                }
-                if (sigFN2 != (int)SignalFunction.Normal || !thisSignal.isSignalNormal())
-                {
-                    var sigFound = thisSignal.SONextSignal(sigFN2);
-                    if (sigFound >= 0) thisSignal.sigfound[(int)sigFN2] = thisSignal.SONextSignal(sigFN2);
-                }
-
-                if (sig2Index == thisSignal.thisRef) // this signal also contains type 2 signal and is therefor valid
-                {
-                    foundValid = true;
-                    foundState = foundState < thisState ? foundState : thisState;
-                    return (foundState);
-                }
-                else if (sig2Index >= 0 && thisSignal.sigfound[sigFN2] != sig2Index)  // we are beyond type 2 signal
-                {
-                    return (foundValid ? foundState : SignalAspectState.Stop);
-                }
-                foundValid = true;
-                foundState = foundState < thisState ? foundState : thisState;
-            }
-
-            return (foundValid ? foundState : SignalAspectState.Stop);   // no type 2 or running out of signals before finding type 2
-        }
-
-        //================================================================================================//
-        /// </summary>
-        ///  Return state of requested feature through signal head flags
-        /// </summary>
-
-        public bool sig_feature(int feature)
-        {
-            bool flag_value = true;
-
-            if (mainSignal.WorldObject != null)
-            {
-                if (feature < mainSignal.WorldObject.FlagsSet.Length)
-                {
-                    flag_value = mainSignal.WorldObject.FlagsSet[feature];
-                }
-            }
-
-            return flag_value;
-        }
-
-        //================================================================================================//
-        /// <summary>
-        ///  Returns the default draw state for this signal head from the SIGCFG file
-        ///  Retruns -1 id no draw state.
-        /// </summary>
-
-        public int def_draw_state(SignalAspectState state)
-        {
-            if (signalType != null)
-                return signalType.GetDefaultDrawState(state);
-            else
-                return -1;
-        }//def_draw_state
-
-        //================================================================================================//
-        /// <summary>
-        ///  Sets the state to the most restrictive aspect for this head.
-        /// </summary>
-
-        public void SetMostRestrictiveAspect()
-        {
-            if (signalType != null)
-                state = signalType.GetMostRestrictiveAspect();
-            else
-                state = SignalAspectState.Stop;
-
-            draw_state = def_draw_state(state);
-        }//SetMostRestrictiveAspect
-
-        //================================================================================================//
-        /// <summary>
-        ///  Sets the state to the least restrictive aspect for this head.
-        /// </summary>
-
-        public void SetLeastRestrictiveAspect()
-        {
-            if (signalType != null)
-                state = signalType.GetLeastRestrictiveAspect();
-            else
-                state = SignalAspectState.Clear_2;
-            def_draw_state(state);
-        }//SetLeastRestrictiveAspect
-
-        //================================================================================================//
-        /// <summary>
-        ///  check if linked route is set
-        /// </summary>
-
-        public int route_set()
-        {
-            bool juncfound = true;
-
-            // call route_set routine from main signal
-
-            if (TrackJunctionNode > 0)
-            {
-                juncfound = mainSignal.route_set(JunctionMainNode, TrackJunctionNode);
-            }
-            //added by JTang
-            else if (MPManager.IsMultiPlayer())
-            {
-                TrackNode node = mainSignal.signalRef.trackDB.TrackNodes[mainSignal.trackNode];
-                if (!(node is TrackJunctionNode) && node.TrackPins != null && mainSignal.TCDirection < node.TrackPins.Length)
-                {
-                    node = mainSignal.signalRef.trackDB.TrackNodes[node.TrackPins[mainSignal.TCDirection].Link];
-                    if (!(node is TrackJunctionNode junctionNode)) return 0;
-                    for (var pin = junctionNode.InPins; pin < junctionNode.InPins + junctionNode.OutPins; pin++)
-                    {
-                        if (junctionNode.TrackPins[pin].Link == mainSignal.trackNode && pin - junctionNode.InPins != junctionNode.SelectedRoute)
-                        {
-                            juncfound = false;
-                            break;
-                        }
-                    }
-                }
-            }
-            if (juncfound)
-            {
-                return 1;
-            }
-            else
-            {
-                return 0;
-            }
-        }//route_set
-
-        //================================================================================================//
-        /// <summary>
-        ///  Default update process
-        /// </summary>
-
-        public void Update()
-        {
-            SIGSCRfile.SH_update(this, Signals.scrfile);
-        }
-    } //Update
 
 
     //================================================================================================//

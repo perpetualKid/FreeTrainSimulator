@@ -503,7 +503,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             {
                 foreach (var signalHead in signal.SignalHeads)
                 {
-                    if (signalHead.signalType.FunctionType == SignalFunction.Distance)
+                    if (signalHead.SignalType.FunctionType == SignalFunction.Distance)
                     {
                         return Locomotive.Train.signalRef.TranslateToTCSAspect(signal.this_sig_lr(SignalFunction.Distance));
                     }
@@ -518,17 +518,17 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             var signal = Locomotive.Train.NextSignalObject[Locomotive.Train.MUDirection == Direction.Reverse ? 1 : 0];
             if (signal != null)
             {
-                if (signal.SignalHeads[0].signalType.Aspects.Count > 2) return false;
+                if (signal.SignalHeads[0].SignalType.Aspects.Count > 2) return false;
                 else
                 {
                     foreach (var signalHead in signal.SignalHeads)
                     {
-                        if (signalHead.signalType.FunctionType != SignalFunction.Distance &&
-                            signalHead.signalType.Aspects.Count == 2 &&
-                            (int)(signalHead.signalType.Aspects[0].Aspect) == 0 &&
-                                ((int)(signalHead.signalType.Aspects[1].Aspect) == 7 ||
-                                (int)(signalHead.signalType.Aspects[1].Aspect) == 6 ||
-                                (int)(signalHead.signalType.Aspects[1].Aspect) == 2)) continue;
+                        if (signalHead.SignalType.FunctionType != SignalFunction.Distance &&
+                            signalHead.SignalType.Aspects.Count == 2 &&
+                            (int)(signalHead.SignalType.Aspects[0].Aspect) == 0 &&
+                                ((int)(signalHead.SignalType.Aspects[1].Aspect) == 7 ||
+                                (int)(signalHead.SignalType.Aspects[1].Aspect) == 6 ||
+                                (int)(signalHead.SignalType.Aspects[1].Aspect) == 2)) continue;
                         else return false;
                     }
                     return true;
@@ -572,7 +572,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                     {
                         SignalAspect = Locomotive.Train.signalRef.TranslateToTCSAspect(thisSignal.SignalRef.this_sig_lr(fn_type));
                         SignalDistance = thisSignal.SignalLocation - lengthOffset + totalLength;
-                        MainHeadSignalTypeName = thisSignal.SignalRef.SignalHeads[0].SignalTypeName;
+                        MainHeadSignalTypeName = thisSignal.SignalRef.SignalHeads[0].SignalType?.Name ?? string.Empty;
                         return retval;
                     }
                 }
@@ -595,7 +595,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             {
                 foreach (var signalHead in signal.SignalHeads)
                 {
-                    if (signalHead.signalType.FunctionType == SignalFunction.Repeater) return true;
+                    if (signalHead.SignalType.FunctionType == SignalFunction.Repeater) return true;
                 }
                 return false;
             }

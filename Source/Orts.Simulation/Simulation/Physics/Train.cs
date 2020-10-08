@@ -3370,7 +3370,7 @@ namespace Orts.Simulation.Physics
                 }
                 else if (firstObject.ObjectDetails.SignalHeads != null)  // check if object is SPEED info signal
                 {
-                    if (firstObject.ObjectDetails.SignalHeads[0].sigFunction == SignalFunction.Speed)
+                    if (firstObject.ObjectDetails.SignalHeads[0].SignalFunction == SignalFunction.Speed)
                     {
                         ObjectSpeedInfo thisSpeed = firstObject.ObjectDetails.this_sig_speed(SignalFunction.Speed);
                         firstObject.speed_passenger = thisSpeed == null ? -1 : thisSpeed.speed_pass;
@@ -3408,7 +3408,7 @@ namespace Orts.Simulation.Physics
                     }
                     else if (nextObject.ObjectDetails.SignalHeads != null)  // check if object is SPEED info signal
                     {
-                        if (nextObject.ObjectDetails.SignalHeads[0].sigFunction == SignalFunction.Speed)
+                        if (nextObject.ObjectDetails.SignalHeads[0].SignalFunction == SignalFunction.Speed)
                         {
                             ObjectSpeedInfo thisSpeed = nextObject.ObjectDetails.this_sig_speed(SignalFunction.Speed);
                             nextObject.speed_passenger = thisSpeed == null ? -1 : thisSpeed.speed_pass;
@@ -3499,7 +3499,7 @@ namespace Orts.Simulation.Physics
                         }
                         else if (nextObject.ObjectDetails.SignalHeads != null)  // check if object is SPEED info signal
                         {
-                            if (nextObject.ObjectDetails.SignalHeads[0].sigFunction == SignalFunction.Speed)
+                            if (nextObject.ObjectDetails.SignalHeads[0].SignalFunction == SignalFunction.Speed)
                             {
                                 ObjectSpeedInfo thisSpeed = nextObject.ObjectDetails.this_sig_speed(SignalFunction.Speed);
                                 nextObject.speed_passenger = thisSpeed == null ? -1 : thisSpeed.speed_pass;
@@ -8711,7 +8711,7 @@ namespace Orts.Simulation.Physics
                         AllowedMaxSpeedMpS = Math.Min(allowedMaxSpeedSignalMpS, AllowedMaxSpeedMpS);
                     }
                 }
-                else if (thisSignal.SignalHeads[0].sigFunction == SignalFunction.Speed)
+                else if (thisSignal.SignalHeads[0].SignalFunction == SignalFunction.Speed)
                 {
                     ObjectSpeedInfo thisSpeedInfo = thisSignal.this_sig_speed(SignalFunction.Speed);
                     if (thisSpeedInfo != null && thisSpeedInfo.speed_reset == 1)
