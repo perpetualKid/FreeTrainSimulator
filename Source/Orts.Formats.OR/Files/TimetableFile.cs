@@ -48,6 +48,7 @@ namespace Orts.Formats.OR.Files
     {
         public List<TrainInformation> Trains { get; } = new List<TrainInformation>();
         public string Description { get; private set; }
+        public string Briefing { get; private set; }
 
         /// <summary>
         /// Constructor
@@ -115,10 +116,11 @@ namespace Orts.Formats.OR.Files
             bool pathFound = false;
             bool consistFound = false;
             bool startFound = false;
+            bool briefingFound = false;
 
             readLine = scrStream.ReadLine();
 
-            while (readLine != null && (!descFound || !pathFound || !consistFound || !startFound))
+            while (readLine != null && (!descFound || !pathFound || !consistFound || !startFound || !briefingFound))
             {
                 parts = readLine.Split(separators, StringSplitOptions.None);
 
@@ -130,19 +132,15 @@ namespace Orts.Formats.OR.Files
                         descFound = true;
                     }
                 }
-
                 if (!pathFound)
                 {
-                    if (parts[0].Trim().Substring(0,5).Equals("#path", StringComparison.OrdinalIgnoreCase))
+                    if (parts[0].Trim().Substring(0, 5).Equals("#path", StringComparison.OrdinalIgnoreCase))
                     {
                         foreach (TrainInformation train in Trains)
-                        {
                             train.Path = parts[train.Column];
-                        }
-                        pathFound = true;
                     }
+                    pathFound = true;
                 }
-
                 if (!consistFound)
                 {
                     if (parts[0].Equals("#consist", StringComparison.OrdinalIgnoreCase))
@@ -156,16 +154,23 @@ namespace Orts.Formats.OR.Files
                         consistFound = true;
                     }
                 }
-
                 if (!startFound)
                 {
                     if (parts[0].Equals("#start", StringComparison.OrdinalIgnoreCase))
                     {
                         foreach (TrainInformation train in Trains)
-                        {
                             train.StartTime = parts[train.Column];
-                        }
-                        startFound = true;
+                    }
+                    startFound = true;
+                }
+                if (!briefingFound)
+                {
+                    if (parts[0].Equals("#briefing", StringComparison.OrdinalIgnoreCase))
+                    {
+                        briefingFound = true;
+                        Briefing = parts[1];
+                        foreach (TrainInformation train in Trains)
+                            train.Briefing = parts[train.Column].Replace("<br>", "\n");
                     }
                 }
                 readLine = scrStream.ReadLine();

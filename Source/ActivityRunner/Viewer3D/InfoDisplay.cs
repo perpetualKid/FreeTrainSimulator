@@ -251,6 +251,11 @@ namespace Orts.ActivityRunner.Viewer3D
                         else
                             dataLog.Data("null");
 
+                        if ((viewer.PlayerLocomotive as MSTSLocomotive).BrakemanBrakeController != null)
+                            dataLog.Data((viewer.PlayerLocomotive as MSTSLocomotive).BrakemanBrakeController.CurrentValue.ToString("F2"));
+                        else
+                            dataLog.Data("null");
+                        
                         dataLog.Data(viewer.PlayerLocomotive.BrakeSystem.GetCylPressurePSI().ToString("F0"));
                         dataLog.Data((viewer.PlayerLocomotive as MSTSLocomotive).MainResPressurePSI.ToString("F0"));
                         dataLog.Data((viewer.PlayerLocomotive as MSTSLocomotive).CompressorIsOn.ToString());

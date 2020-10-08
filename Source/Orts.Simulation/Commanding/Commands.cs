@@ -453,6 +453,23 @@ namespace Orts.Simulation.Commanding
         }
     }
 
+     [Serializable()]
+    public sealed class BrakemanBrakeCommand : ContinuousCommand
+    {
+        public static MSTSLocomotive Receiver { get; set; }
+        public BrakemanBrakeCommand(CommandLog log, bool targetState, float? target, double startTime)
+            : base(log, targetState, target, startTime)
+        {
+            Redo();
+        }
+
+        public override void Redo()
+        {
+            Receiver.BrakemanBrakeChangeTo(targetState, target);
+            // Report();
+        }
+    }
+
     [Serializable()]
     public sealed class DynamicBrakeCommand : ContinuousCommand
     {

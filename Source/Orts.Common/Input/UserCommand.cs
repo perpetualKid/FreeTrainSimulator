@@ -129,6 +129,8 @@ namespace Orts.Common.Input
         [Description("Control Train Brake Zero")] ControlTrainBrakeZero,
         [Description("Control Engine Brake Increase")] ControlEngineBrakeIncrease,
         [Description("Control Engine Brake Decrease")] ControlEngineBrakeDecrease,
+        [Description("Control Brakeman Brake Increase")] ControlBrakemanBrakeIncrease,
+        [Description("Control Brakeman Brake Decrease")] ControlBrakemanBrakeDecrease,
         [Description("Control Dynamic Brake Increase")] ControlDynamicBrakeIncrease,
         [Description("Control Dynamic Brake Decrease")] ControlDynamicBrakeDecrease,
         [Description("Control Bail Off")] ControlBailOff,

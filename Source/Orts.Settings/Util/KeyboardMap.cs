@@ -75,6 +75,7 @@ namespace Orts.Settings.Util
                 new KeyValuePair<string, Color>("ControlThrottle", Color.DarkGreen),
                 new KeyValuePair<string, Color>("ControlTrainBrake", Color.DarkRed),
                 new KeyValuePair<string, Color>("ControlEngineBrake", Color.DarkRed),
+                new KeyValuePair<string, Color>("ControlBrakemanBrake", Color.DarkRed),
                 new KeyValuePair<string, Color>("ControlDynamicBrake", Color.DarkRed),
                 new KeyValuePair<string, Color>("ControlBrakeHose", Color.DarkRed),
                 new KeyValuePair<string, Color>("ControlEmergency", Color.DarkRed),

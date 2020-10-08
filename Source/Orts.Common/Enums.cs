@@ -190,6 +190,7 @@ namespace Orts.Common
         // Braking
         TrainBrake,
         EngineBrake,
+        BrakemanBrake,
         DynamicBrake,
         EmergencyBrake,
         BailOff,
@@ -538,6 +539,8 @@ namespace Orts.Common
         VacContServ,         // VacuumContinuousServiceStart
         [Description("Vac. Apply Cont.Service")]
         VacApplyContServ,    // TrainBrakesControllerVacuumApplyContinuousServiceStart
+        [Description("Manual Braking")]
+        ManualBraking,        // BrakemanBrakesControllerManualBraking
         [Description("Notch")]
         BrakeNotch           // EngineBrakesControllerBrakeNotchStart
     }
@@ -589,6 +592,10 @@ namespace Orts.Common
         /// Internal reset request by the engine brake controller.
         /// </summary>
         EngineBrakeChanged,
+        /// <summary>
+        /// Internal reset request by the brakeman brake controller.
+        /// </summary>
+        BrakemanBrakeChanged,
         /// <summary>
         /// Internal reset request by the dynamic brake controller.
         /// </summary>

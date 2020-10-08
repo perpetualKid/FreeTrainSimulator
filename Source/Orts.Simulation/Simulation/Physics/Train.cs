@@ -3921,7 +3921,7 @@ namespace Orts.Simulation.Physics
 
         //================================================================================================//
         /// <summary>
-        /// Connect brakes
+        /// Connect brake hoses when train is initialised
         /// <\summary>
 
         public void ConnectBrakeHoses()
@@ -3931,6 +3931,15 @@ namespace Orts.Simulation.Physics
                 Cars[i].BrakeSystem.FrontBrakeHoseConnected = i > 0;
                 Cars[i].BrakeSystem.AngleCockAOpen = i > 0;
                 Cars[i].BrakeSystem.AngleCockBOpen = i < Cars.Count - 1;
+                // If end of train is not reached yet, then test the attached following car. If it is a manual braked car then set the brake cock on this car to closed.
+                // Hence automatic brakes will operate to this point in the train.
+                if (i < Cars.Count - 1)
+                {
+                    if (Cars[i + 1].CarBrakeSystemType == "manual_braking")
+                    {
+                        Cars[i].BrakeSystem.AngleCockBOpen = false;
+                    }
+                }
                 Cars[i].BrakeSystem.BleedOffValveOpen = false;
             }
         }
@@ -5273,8 +5282,9 @@ namespace Orts.Simulation.Physics
                     car.SpeedMpS += car.TotalForceN / car.MassKG * (float)elapsedTime;
                     if (car.SpeedMpS < 0)
                         car.SpeedMpS = 0;
-                    // If is air_piped car or vacuum_piped, and preceeding car is at stop, then set speed to zero.  These type of cars do not have any brake force to hold them still
-                    if ((car.CarBrakeSystemType == "air_piped" || car.CarBrakeSystemType == "vacuum_piped") && (locoBehind ? n != Cars.Count - 1 && NextCarSpeedMps == 0 : n != 0 && PrevCarSpeedMps == 0))
+                    // If car is manual braked, air_piped car or vacuum_piped, and preceeding car is at stop, then set speed to zero.  
+                    // These type of cars do not have any brake force to hold them still
+                    if ((car.CarBrakeSystemType == "air_piped" || car.CarBrakeSystemType == "vacuum_piped" || car.CarBrakeSystemType == "manual_braking") && (locoBehind ? n != Cars.Count - 1 && NextCarSpeedMps == 0 : n != 0 && PrevCarSpeedMps == 0))
                     {
                         car.SpeedMpS = 0;
                     }
@@ -5285,8 +5295,9 @@ namespace Orts.Simulation.Physics
                     car.SpeedMpS += car.TotalForceN / car.MassKG * (float)elapsedTime;
                     if (car.SpeedMpS > 0)
                         car.SpeedMpS = 0;
-                    // If is air_piped car or vacuum_piped, and preceeding car is at stop, then set speed to zero.  These type of cars do not have any brake force to hold them still
-                    if ((car.CarBrakeSystemType == "air_piped" || car.CarBrakeSystemType == "vacuum_piped") && (locoBehind ? n != Cars.Count - 1 && NextCarSpeedMps == 0 : n != 0 && PrevCarSpeedMps == 0))
+                    // If car is manual braked, air_piped car or vacuum_piped, and preceeding car is at stop, then set speed to zero.  
+                    // These type of cars do not have any brake force to hold them still
+                    if ((car.CarBrakeSystemType == "air_piped" || car.CarBrakeSystemType == "vacuum_piped" || car.CarBrakeSystemType == "manual_braking") && (locoBehind ? n != Cars.Count - 1 && NextCarSpeedMps == 0 : n != 0 && PrevCarSpeedMps == 0))
                     {
                         car.SpeedMpS = 0;
                     }
@@ -5345,9 +5356,9 @@ namespace Orts.Simulation.Physics
                     {
 
                         
-                        if ((Cars[k].CarBrakeSystemType == "air_piped" || Cars[k].CarBrakeSystemType == "vacuum_piped") && FirstCar.SpeedMpS > 0 && Cars[k-1].SpeedMpS == 0.0)
+                        if ((Cars[k].CarBrakeSystemType == "air_piped" || Cars[k].CarBrakeSystemType == "vacuum_piped" || car.CarBrakeSystemType == "manual_braking") && FirstCar.SpeedMpS > 0 && Cars[k-1].SpeedMpS == 0.0)
                         {
-                            // If is air_piped car or vacuum_piped, and preceeding car is at stop, then set speed to zero.  These type of cars do not have any brake force to hold them still
+                            // If is manual braked, air_piped car or vacuum_piped, and preceeding car is at stop, then set speed to zero.  These type of cars do not have any brake force to hold them still
                             Cars[k].SpeedMpS = 0.0f;
                         }
                         else
@@ -5400,9 +5411,9 @@ namespace Orts.Simulation.Physics
                     for (int k = j; k <= i; k++)
                     {
                         
-                        if ((Cars[k].CarBrakeSystemType == "air_piped" || Cars[k].CarBrakeSystemType == "vacuum_piped") && FirstCar.SpeedMpS > 0 && Cars[k - 1].SpeedMpS == 0.0)
+                        if ((Cars[k].CarBrakeSystemType == "air_piped" || Cars[k].CarBrakeSystemType == "vacuum_piped" || car.CarBrakeSystemType == "manual_braking") && FirstCar.SpeedMpS > 0 && Cars[k - 1].SpeedMpS == 0.0)
                         {
-                            // If is air_piped car or vacuum_piped, and preceeding car is at stop, then set speed to zero.  These type of cars do not have any brake force to hold them still
+                            // If is manual braked, air_piped car or vacuum_piped, and preceeding car is at stop, then set speed to zero.  These type of cars do not have any brake force to hold them still
                             Cars[k].SpeedMpS = 0.0f;
                         }
                         else
@@ -9048,7 +9059,7 @@ namespace Orts.Simulation.Physics
                 List<int> tempSections = new List<int>();
 
                 tempSections = signalRef.ScanRoute(this, requiredPosition.TCSectionIndex, requiredPosition.TCOffset,
-                        requiredPosition.TCDirection, forward, minCheckDistanceM, true, false,
+                        requiredPosition.TCDirection, forward, -1, true, false,
                         false, false, true, false, false, false, false, IsFreight);
 
                 if (tempSections.Count > 0)
@@ -9083,7 +9094,6 @@ namespace Orts.Simulation.Physics
             thisSection = signalRef.TrackCircuitList[requiredPosition.TCSectionIndex];
             offsetM = direction == 0 ? requiredPosition.TCOffset : thisSection.Length - requiredPosition.TCOffset;
             bool endWithSignal = false;    // ends with signal at STOP
-            bool hasEndSignal = false;     // ends with cleared signal
             int sectionWithSignalIndex = 0;
 
             for (int iindex = 0; iindex < newRoute.Count && !endWithSignal; iindex++)
@@ -9102,7 +9112,6 @@ namespace Orts.Simulation.Physics
                 {
                     var endSignal = thisSection.EndSignals[reqDirection];
                     var thisAspect = thisSection.EndSignals[reqDirection].this_sig_lr(SignalFunction.Normal);
-                    hasEndSignal = true;
 
                     if (thisAspect == SignalAspectState.Stop && endSignal.hasPermission != Signal.Permission.Granted)
                     {
@@ -9111,7 +9120,7 @@ namespace Orts.Simulation.Physics
                     }
                     else if (!endSignal.enabled)   // signal cleared by default only - request for proper clearing
                     {
-                        endSignal.requestClearSignalExplorer(newRoute, 0.0f, thisRouted, true, 0);  // do NOT propagate
+                        endSignal.requestClearSignalExplorer(newRoute, thisRouted, true, 0);  // do NOT propagate
                     }
 
                 }
@@ -9127,88 +9136,6 @@ namespace Orts.Simulation.Physics
                     thisSection = signalRef.TrackCircuitList[newRoute[iindex].TCSectionIndex];
                     thisSection.RemoveTrain(this, true);
                     newRoute.RemoveAt(iindex);
-                }
-            }
-
-            // if route does not end with signal and is too short, extend
-
-            if (!endWithSignal && totalLengthM < minCheckDistanceM)
-            {
-
-                float extendedDistanceM = minCheckDistanceM - totalLengthM;
-                TCRouteElement lastElement = newRoute[newRoute.Count - 1];
-
-                int lastSectionIndex = lastElement.TCSectionIndex;
-                TrackCircuitSection lastSection = signalRef.TrackCircuitList[lastSectionIndex];
-
-                int nextSectionIndex = lastSection.Pins[lastElement.OutPin[0], lastElement.OutPin[1]].Link;
-                int nextSectionDirection = lastSection.Pins[lastElement.OutPin[0], lastElement.OutPin[1]].Direction;
-
-                // check if last item is non-aligned switch
-
-                MisalignedSwitch[direction, 0] = -1;
-                MisalignedSwitch[direction, 1] = -1;
-
-                TrackCircuitSection nextSection = nextSectionIndex >= 0 ? signalRef.TrackCircuitList[nextSectionIndex] : null;
-                if (nextSection != null && nextSection.CircuitType == TrackCircuitSection.TrackCircuitType.Junction)
-                {
-                    if (nextSection.Pins[0, 0].Link != lastSectionIndex &&
-                        nextSection.Pins[0, 1].Link != lastSectionIndex &&
-                        nextSection.Pins[1, nextSection.JunctionLastRoute].Link != lastSectionIndex)
-                    {
-                        MisalignedSwitch[direction, 0] = nextSection.Index;
-                        MisalignedSwitch[direction, 1] = lastSectionIndex;
-                    }
-                }
-
-                List<int> tempSections = new List<int>();
-
-                if (nextSectionIndex >= 0 && MisalignedSwitch[direction, 0] < 0)
-                {
-                    bool reqAutoAlign = hasEndSignal; // auto-align switches if route is extended from signal
-
-                    tempSections = signalRef.ScanRoute(this, nextSectionIndex, 0,
-                            nextSectionDirection, forward, extendedDistanceM, true, reqAutoAlign,
-                            true, false, true, false, false, false, false, IsFreight);
-                }
-
-                if (tempSections.Count > 0)
-                {
-                    // add new sections
-
-                    int prevSection = lastElement.TCSectionIndex;
-
-                    foreach (int sectionIndex in tempSections)
-                    {
-                        thisElement = new Train.TCRouteElement(signalRef.TrackCircuitList[Math.Abs(sectionIndex)],
-                                sectionIndex > 0 ? 0 : 1, signalRef, prevSection);
-                        newRoute.Add(thisElement);
-                        prevSection = Math.Abs(sectionIndex);
-                    }
-                }
-            }
-
-            // if route is too long, remove sections at end
-
-            else if (totalLengthM > minCheckDistanceM)
-            {
-                float remainingLengthM = totalLengthM - signalRef.TrackCircuitList[newRoute[0].TCSectionIndex].Length; // do not count first section
-                bool lengthExceeded = remainingLengthM > minCheckDistanceM;
-
-                for (int iindex = newRoute.Count - 1; iindex > 1 && lengthExceeded; iindex--)
-                {
-                    thisElement = newRoute[iindex];
-                    thisSection = signalRef.TrackCircuitList[thisElement.TCSectionIndex];
-
-                    if ((remainingLengthM - thisSection.Length) > minCheckDistanceM)
-                    {
-                        remainingLengthM -= thisSection.Length;
-                        newRoute.RemoveAt(iindex);
-                    }
-                    else
-                    {
-                        lengthExceeded = false;
-                    }
                 }
             }
 
@@ -9381,9 +9308,8 @@ namespace Orts.Simulation.Physics
                     int lastDirection = newRoute[newRoute.Count - 1].Direction;
                     if (lastSection.EndSignals[lastDirection] != null && lastSection.EndSignals[lastDirection].thisRef == nextUnclearSignalIndex)
                     {
-                        float remainingDistance = minCheckDistanceM - endAuthorityDistanceM;
                         Signal reqSignal = signalRef.SignalObjects[nextUnclearSignalIndex];
-                        newRoute = reqSignal.requestClearSignalExplorer(newRoute, remainingDistance, forward ? routedForward : routedBackward, false, 0);
+                        newRoute = reqSignal.requestClearSignalExplorer(newRoute, forward ? routedForward : routedBackward, false, 0);
                     }
                 }
             }
@@ -9690,9 +9616,7 @@ namespace Orts.Simulation.Physics
                     signalRef.setSwitch(switchSection.OriginalIndex, switchSection.JunctionSetManual, switchSection);
 
                     // build new route - use signal request
-                    float remLength = minCheckDistanceM - coveredLength;
-                    TCSubpathRoute newRoute = firstSignal.requestClearSignalExplorer(selectedRoute, remLength, thisRouted, false, 0);
-                    selectedRoute = newRoute;
+                    firstSignal.requestClearSignalExplorer(selectedRoute, thisRouted, false, 0);
                 }
                 else
                 {

@@ -280,6 +280,7 @@ namespace Orts.Formats.Msts
         Train_Brake,
         Friction_Brake,
         Engine_Brake,
+        Brakeman_Brake,
         Dynamic_Brake,
         Dynamic_Brake_Display,
         Sanders,
