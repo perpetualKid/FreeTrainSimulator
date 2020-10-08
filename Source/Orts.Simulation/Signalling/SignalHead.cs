@@ -1,33 +1,6 @@
-﻿// COPYRIGHT 2013 by the Open Rails project.
-// 
-// This file is part of Open Rails.
-// 
-// Open Rails is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-// 
-// Open Rails is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
-
-// This module covers all classes and code for signal, speed post, track occupation and track reservation control
-
-// Debug flags :
-// #define DEBUG_REPORTS
-// print details of train behaviour
-// #define DEBUG_DEADLOCK
-// print details of deadlock processing
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.Text;
 
 using Orts.Common;
 using Orts.Common.Calc;
@@ -426,13 +399,13 @@ namespace Orts.Simulation.Signalling
                 if (signalType != (int)SignalFunction.Normal || !thisSignal.isSignalNormal())
                 {
                     int sigFound = thisSignal.SONextSignal(signalType);
-                    if (sigFound >= 0) 
+                    if (sigFound >= 0)
                         thisSignal.sigfound[signalType] = thisSignal.SONextSignal(signalType);
                 }
                 if (signalTypeOther != (int)SignalFunction.Normal || !thisSignal.isSignalNormal())
                 {
                     int sigFound = thisSignal.SONextSignal(signalTypeOther);
-                    if (sigFound >= 0) 
+                    if (sigFound >= 0)
                         thisSignal.sigfound[signalTypeOther] = thisSignal.SONextSignal(signalTypeOther);
                 }
 

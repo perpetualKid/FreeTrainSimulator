@@ -1177,7 +1177,7 @@ namespace Orts.Simulation.Signalling
         private int AddMilepost(int trackNode, int nodeIndx, SpeedPostItem speedItem, int TDBRef, TrackSectionsFile tsectiondat, TrackDatabaseFile tdbfile)
         {
             Milepost milepost = new Milepost();
-            milepost.TrItemId = (uint)TDBRef;
+            milepost.TrackItemId = (uint)TDBRef;
             milepost.MilepostValue = speedItem.Distance;
             MilepostList.Add(milepost);
  
@@ -2182,7 +2182,7 @@ namespace Orts.Simulation.Signalling
                     else if (speedItem.IsMilePost)
                     {
                         Milepost thisMilepost = MilepostList[speedItem.SignalObject];
-                        TrackItem milepostTrItem = Simulator.TDB.TrackDB.TrackItems[thisMilepost.TrItemId];
+                        TrackItem milepostTrItem = Simulator.TDB.TrackDB.TrackItems[thisMilepost.TrackItemId];
                         float milepostDistance = TDBTrav.DistanceTo(milepostTrItem.Location);
 
                         TrackCircuitMilepost thisTCItem =
@@ -2998,10 +2998,10 @@ namespace Orts.Simulation.Signalling
             {
                 Milepost thisMilepost = thisItem.MilepostRef;
 
-                if (thisMilepost.TCReference <= 0)
+                if (thisMilepost.TrackCircuitReference <= 0)
                 {
-                    thisMilepost.TCReference = thisNode;
-                    thisMilepost.TCOffset = thisItem.MilepostLocation[0];
+                    thisMilepost.TrackCircuitReference = thisNode;
+                    thisMilepost.TrackCircuitOffset = thisItem.MilepostLocation[0];
                 }
             }
             
@@ -14352,36 +14352,6 @@ namespace Orts.Simulation.Signalling
             {
                 outf.Write(thisIndex);
             }
-        }
-    }
-
-    //================================================================================================//
-    /// <summary>
-    ///
-    /// Milepost Object
-    ///
-    /// </summary>
-    //================================================================================================//
-
-    public class Milepost
-    {
-        public uint TrItemId; // TrItemId of milepost 
-        public int TCReference = -1;            // Reference to TrackCircuit (index)
-        public float TCOffset;                  // Position within TrackCircuit
-        public float MilepostValue;             // milepost value
-
-        public Milepost(uint trItemId)
-        {
-            TrItemId = trItemId;
-        }
-
-        //================================================================================================//
-        /// <summary>
-        /// Dummy constructor
-        /// </summary>
-
-        public Milepost()
-        {
         }
     }
 
