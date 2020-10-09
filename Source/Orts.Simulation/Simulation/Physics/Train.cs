@@ -17442,9 +17442,7 @@ namespace Orts.Simulation.Physics
                 }
 
                 // find related deadlock definition - note that path may be extended to match other deadlock paths
-
-                DeadlockInfo thisDeadlock = new DeadlockInfo(orgSignals);
-                thisDeadlock = thisDeadlock.FindDeadlockInfo(ref passPath, mainPath, startSectionIndex, endSectionIndex);
+                DeadlockInfo thisDeadlock = Orts.Simulation.Signalling.DeadlockInfo.FindDeadlockInfo(orgSignals, passPath, mainPath, startSectionIndex, endSectionIndex);
 
                 if (thisDeadlock == null) // path is not valid in relation to other deadlocks
                 {
@@ -17462,18 +17460,18 @@ namespace Orts.Simulation.Physics
                 TCSubpathRoute mainPathPart = new TCSubpathRoute(mainPath, usedStartSectionRouteIndex, usedEndSectionRouteIndex);
                 if (mainPathPart != null)
                 {
-                    int[] mainIndex = thisDeadlock.AddPath(mainPathPart, usedStartSectionIndex);  // [0] is Index, [1] > 0 is existing
+                    (int PathIndex, bool Exists) mainIndex = thisDeadlock.AddPath(mainPathPart, usedStartSectionIndex);  // [0] is Index, [1] > 0 is existing
 
-                    if (mainIndex[1] < 0)
+                    if (!mainIndex.Exists)
                     {
                         // calculate usefull lenght and usefull end section for main path
                         Dictionary<int, float> mainPathUsefullInfo = mainPathPart.GetUsefullLength(0.0f, orgSignals, -1, -1);
                         KeyValuePair<int, float> mainPathUsefullValues = mainPathUsefullInfo.ElementAt(0);
 
-                        DeadlockPathInfo thisDeadlockPathInfo = thisDeadlock.AvailablePathList[mainIndex[0]];
+                        DeadlockPathInfo thisDeadlockPathInfo = thisDeadlock.AvailablePathList[mainIndex.PathIndex];
                         thisDeadlockPathInfo.EndSectionIndex = usedEndSectionIndex;
-                        thisDeadlockPathInfo.LastUsefullSectionIndex = mainPathUsefullValues.Key;
-                        thisDeadlockPathInfo.UsefullLength = mainPathUsefullValues.Value;
+                        thisDeadlockPathInfo.LastUsefulSectionIndex = mainPathUsefullValues.Key;
+                        thisDeadlockPathInfo.UsefulLength = mainPathUsefullValues.Value;
 
                         // only allow as public path if not in timetable mode
                         if (orgSignals.Simulator.TimetableMode)
@@ -17490,22 +17488,22 @@ namespace Orts.Simulation.Physics
                         if (String.Compare(thisDeadlockPathInfo.Name, "MAIN") == 0 && !orgSignals.Simulator.TimetableMode)
                         {
                             TCSubpathRoute inverseMainPath = mainPathPart.ReversePath(orgSignals);
-                            int[] inverseIndex = thisDeadlock.AddPath(inverseMainPath, endSectionIndex, "MAIN", String.Empty);
-                            DeadlockPathInfo thisDeadlockInverseInfo = thisDeadlock.AvailablePathList[inverseIndex[0]];
+                            (int PathIndex, bool Exists) inverseIndex = thisDeadlock.AddPath(inverseMainPath, endSectionIndex, "MAIN", string.Empty);
+                            DeadlockPathInfo thisDeadlockInverseInfo = thisDeadlock.AvailablePathList[inverseIndex.PathIndex];
 
                             Dictionary<int, float> mainInversePathUsefullInfo = inverseMainPath.GetUsefullLength(0.0f, orgSignals, -1, -1);
                             KeyValuePair<int, float> mainInversePathUsefullValues = mainInversePathUsefullInfo.ElementAt(0);
 
                             thisDeadlockInverseInfo.EndSectionIndex = startSectionIndex;
-                            thisDeadlockInverseInfo.LastUsefullSectionIndex = mainInversePathUsefullValues.Key;
-                            thisDeadlockInverseInfo.UsefullLength = mainInversePathUsefullValues.Value;
+                            thisDeadlockInverseInfo.LastUsefulSectionIndex = mainInversePathUsefullValues.Key;
+                            thisDeadlockInverseInfo.UsefulLength = mainInversePathUsefullValues.Value;
                             thisDeadlockInverseInfo.AllowedTrains.Add(-1);
                         }
                     }
                     // if existing path, add trainnumber if set and path is not public
                     else if (trainNumber >= 0)
                     {
-                        DeadlockPathInfo thisDeadlockPathInfo = thisDeadlock.AvailablePathList[mainIndex[0]];
+                        DeadlockPathInfo thisDeadlockPathInfo = thisDeadlock.AvailablePathList[mainIndex.PathIndex];
                         if (!thisDeadlockPathInfo.AllowedTrains.Contains(-1))
                         {
                             thisDeadlockPathInfo.AllowedTrains.Add(thisDeadlock.GetTrainAndSubpathIndex(trainNumber, sublistRef));
@@ -17515,18 +17513,18 @@ namespace Orts.Simulation.Physics
 
                 // add passing path
 
-                int[] passIndex = thisDeadlock.AddPath(passPath, startSectionIndex);
+                (int PathIndex, bool Exists) passIndex = thisDeadlock.AddPath(passPath, startSectionIndex);
 
-                if (passIndex[1] < 0)
+                if (!passIndex.Exists)
                 {
                     // calculate usefull lenght and usefull end section for passing path
                     Dictionary<int, float> altPathUsefullInfo = passPath.GetUsefullLength(0.0f, orgSignals, -1, -1);
                     KeyValuePair<int, float> altPathUsefullValues = altPathUsefullInfo.ElementAt(0);
 
-                    DeadlockPathInfo thisDeadlockPathInfo = thisDeadlock.AvailablePathList[passIndex[0]];
+                    DeadlockPathInfo thisDeadlockPathInfo = thisDeadlock.AvailablePathList[passIndex.PathIndex];
                     thisDeadlockPathInfo.EndSectionIndex = endSectionIndex;
-                    thisDeadlockPathInfo.LastUsefullSectionIndex = altPathUsefullValues.Key;
-                    thisDeadlockPathInfo.UsefullLength = altPathUsefullValues.Value;
+                    thisDeadlockPathInfo.LastUsefulSectionIndex = altPathUsefullValues.Key;
+                    thisDeadlockPathInfo.UsefulLength = altPathUsefullValues.Value;
 
                     if (trainNumber > 0)
                     {
@@ -17542,23 +17540,22 @@ namespace Orts.Simulation.Physics
                     if (trainNumber < 0)
                     {
                         TCSubpathRoute inversePassPath = passPath.ReversePath(orgSignals);
-                        int[] inverseIndex =
-                            thisDeadlock.AddPath(inversePassPath, endSectionIndex, String.Copy(thisDeadlockPathInfo.Name), String.Empty);
-                        DeadlockPathInfo thisDeadlockInverseInfo = thisDeadlock.AvailablePathList[inverseIndex[0]];
+                        (int PathIndex, bool Exists) inverseIndex = thisDeadlock.AddPath(inversePassPath, endSectionIndex, String.Copy(thisDeadlockPathInfo.Name), String.Empty);
+                        DeadlockPathInfo thisDeadlockInverseInfo = thisDeadlock.AvailablePathList[inverseIndex.PathIndex];
 
                         Dictionary<int, float> altInversePathUsefullInfo = inversePassPath.GetUsefullLength(0.0f, orgSignals, -1, -1);
                         KeyValuePair<int, float> altInversePathUsefullValues = altInversePathUsefullInfo.ElementAt(0);
 
                         thisDeadlockInverseInfo.EndSectionIndex = startSectionIndex;
-                        thisDeadlockInverseInfo.LastUsefullSectionIndex = altInversePathUsefullValues.Key;
-                        thisDeadlockInverseInfo.UsefullLength = altInversePathUsefullValues.Value;
+                        thisDeadlockInverseInfo.LastUsefulSectionIndex = altInversePathUsefullValues.Key;
+                        thisDeadlockInverseInfo.UsefulLength = altInversePathUsefullValues.Value;
                         thisDeadlockInverseInfo.AllowedTrains.Add(-1);
                     }
                 }
                 // if existing path, add trainnumber if set and path is not public
                 else if (trainNumber >= 0)
                 {
-                    DeadlockPathInfo thisDeadlockPathInfo = thisDeadlock.AvailablePathList[passIndex[0]];
+                    DeadlockPathInfo thisDeadlockPathInfo = thisDeadlock.AvailablePathList[passIndex.PathIndex];
                     if (!thisDeadlockPathInfo.AllowedTrains.Contains(-1))
                     {
                         thisDeadlockPathInfo.AllowedTrains.Add(thisDeadlock.GetTrainAndSubpathIndex(trainNumber, sublistRef));
