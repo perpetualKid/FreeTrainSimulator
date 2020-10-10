@@ -28,7 +28,7 @@ namespace Orts.Simulation.Signalling
     /// </summary>
     //================================================================================================//
 
-    public class CrossOverItem
+    public class CrossOverInfo
     {
 #pragma warning disable CA1034 // Nested types should not be visible
         public class Content
@@ -43,7 +43,7 @@ namespace Orts.Simulation.Signalling
         public Content Item0 { get; } = new Content();
         public Content Item1 { get; } = new Content();
 
-        public CrossOverItem(float position0, float position1, int sectionIndex0, int sectionIndex1, int itemIndex0, int itemIndex1, uint trackShape)
+        public CrossOverInfo(float position0, float position1, int sectionIndex0, int sectionIndex1, int itemIndex0, int itemIndex1, uint trackShape)
         {
             Item0.Position = position0;
             Item1.Position = position1;

@@ -26,28 +26,27 @@ namespace Orts.Simulation.Signalling
     ///
     /// </summary>
     //================================================================================================//
-
-    public class ObjectSpeedInfo
+    public class SpeedInfo
     {
 
-        public float SpeedPass;
-        public float SpeedFreight;
-        public bool Flag { get; set; }
-        public bool Reset { get; set; }
-        public int SpeedNoSpeedReductionOrIsTempSpeedReduction;
+        public float PassengerSpeed { get; internal set; }
+        public float FreightSpeed { get; internal set; }
+        public bool Flag { get; internal set; }
+        public bool Reset { get; internal set; }
+        public int LimitedSpeedReduction { get; internal set; } // No Speed Reduction or is Temporary Speed Reduction
 
         //================================================================================================//
         /// <summary>
         /// Constructor
         /// </summary>
 
-        public ObjectSpeedInfo(float pass, float freight, bool asap, bool reset, int nospeedreductionOristempspeedreduction)
+        public SpeedInfo(float pass, float freight, bool asap, bool reset, int nospeedreductionOristempspeedreduction)
         {
-            SpeedPass = pass;
-            SpeedFreight = freight;
+            PassengerSpeed = pass;
+            FreightSpeed = freight;
             Flag = asap;
             Reset = reset;
-            SpeedNoSpeedReductionOrIsTempSpeedReduction = nospeedreductionOristempspeedreduction;
+            LimitedSpeedReduction = nospeedreductionOristempspeedreduction;
         }
     }
 

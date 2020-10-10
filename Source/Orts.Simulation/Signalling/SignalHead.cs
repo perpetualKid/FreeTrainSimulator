@@ -28,7 +28,7 @@ namespace Orts.Simulation.Signalling
         public SignalType SignalType { get; private set; }
         public int OrtsNormalSubtypeIndex { get; set; }
         public int TDBIndex { get; private set; }
-        public IList<ObjectSpeedInfo> SpeedInfo { get; private set; }
+        public IList<SpeedInfo> SpeedInfo { get; private set; }
         public Signal MainSignal { get; private set; }
         public SignalScripts.SCRScripts SignalScript => signalScript;
 
@@ -58,7 +58,7 @@ namespace Orts.Simulation.Signalling
                 JunctionPath = signalItem.SignalDirections[0].LinkLRPath;
             }
 
-            SpeedInfo = new ObjectSpeedInfo[EnumExtension.GetLength<SignalAspectState>()];
+            SpeedInfo = new SpeedInfo[EnumExtension.GetLength<SignalAspectState>()];
         }
 
         //================================================================================================//
@@ -78,7 +78,7 @@ namespace Orts.Simulation.Signalling
             SignalIndicationState = SignalAspectState.Clear_2;
             SignalType = new SignalType(SignalFunction.Speed, SignalAspectState.Clear_2);
 
-            SpeedInfo = new ObjectSpeedInfo[EnumExtension.GetLength<SignalAspectState>()];
+            SpeedInfo = new SpeedInfo[EnumExtension.GetLength<SignalAspectState>()];
 
             double speedMpS = Speed.MeterPerSecond.ToMpS(speedItem.Distance, !speedItem.IsMPH);
             if (speedItem.IsResume)
@@ -86,7 +86,7 @@ namespace Orts.Simulation.Signalling
 
             float passSpeed = speedItem.IsPassenger ? (float)speedMpS : -1;
             float freightSpeed = speedItem.IsFreight ? (float)speedMpS : -1;
-            ObjectSpeedInfo speedinfo = new ObjectSpeedInfo(passSpeed, freightSpeed, false, false, speedItem is TempSpeedPostItem ? (speedMpS == 999f ? 2 : 1) : 0);
+            SpeedInfo speedinfo = new SpeedInfo(passSpeed, freightSpeed, false, false, speedItem is TempSpeedPostItem ? (speedMpS == 999f ? 2 : 1) : 0);
             SpeedInfo[(int)SignalIndicationState] = speedinfo;
         }
 
@@ -116,7 +116,7 @@ namespace Orts.Simulation.Signalling
                 foreach (SignalAspect thisAspect in SignalType.Aspects)
                 {
                     int arrindex = (int)thisAspect.Aspect;
-                    SpeedInfo[arrindex] = new ObjectSpeedInfo(thisAspect.SpeedLimit, thisAspect.SpeedLimit, thisAspect.Asap, thisAspect.Reset, thisAspect.NoSpeedReduction ? 1 : 0);
+                    SpeedInfo[arrindex] = new SpeedInfo(thisAspect.SpeedLimit, thisAspect.SpeedLimit, thisAspect.Asap, thisAspect.Reset, thisAspect.NoSpeedReduction ? 1 : 0);
                 }
 
                 // set normal subtype

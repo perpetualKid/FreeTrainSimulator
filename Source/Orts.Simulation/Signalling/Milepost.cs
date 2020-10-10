@@ -9,23 +9,21 @@
     //================================================================================================//
     public class Milepost
     {
-        public uint TrackItemId { get; set; }
-        public int TrackCircuitReference { get; set; } = -1;
-        public float TrackCircuitOffset { get; set; }
-        public float MilepostValue { get; set; }
+        public uint TrackItemId { get; }
+        public int TrackCircuitReference { get; private set; } = -1;
+        public float TrackCircuitOffset { get; private set; }
+        public float MilepostValue { get; }
 
-        public Milepost(uint trItemId)
+        public Milepost(uint trItemId, float value)
         {
             TrackItemId = trItemId;
+            MilepostValue = value;
         }
 
-        //================================================================================================//
-        /// <summary>
-        /// Dummy constructor
-        /// </summary>
-
-        public Milepost()
+        internal void SetCircuit(int trackCircuitReference, float trackCircuitOffset)
         {
+            TrackCircuitReference = trackCircuitReference;
+            TrackCircuitOffset = trackCircuitOffset;
         }
     }
 
