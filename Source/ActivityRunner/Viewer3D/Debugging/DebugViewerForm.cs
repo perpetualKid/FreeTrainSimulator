@@ -2579,6 +2579,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 			LinkId = item.LinkedPlatformItemId;
             Item = item;
             Name = item.ItemName;
+            Station = item.Station;
             Location = new PointF(item.Location.TileX * 2048 + item.Location.Location.X, item.Location.TileZ * 2048 + item.Location.Location.Z);
 			Extent1 = default(PointF);
 			Extent2 = default(PointF);
