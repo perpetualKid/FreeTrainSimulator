@@ -2901,8 +2901,8 @@ namespace Orts.Simulation.Physics
                     var thisSpeedpost = signalRef.SignalObjects[speedpostList[0]];
                     var speed_info = thisSpeedpost.this_lim_speed(SignalFunction.Speed);
 
-                    AllowedMaxSpeedMpS = Math.Min(AllowedMaxSpeedMpS, IsFreight ? speed_info.speed_freight : speed_info.speed_pass);
-                    allowedAbsoluteMaxSpeedLimitMpS = Math.Min(allowedAbsoluteMaxSpeedLimitMpS, IsFreight ? speed_info.speed_freight : speed_info.speed_pass);
+                    AllowedMaxSpeedMpS = Math.Min(AllowedMaxSpeedMpS, IsFreight ? speed_info.SpeedFreight : speed_info.SpeedPass);
+                    allowedAbsoluteMaxSpeedLimitMpS = Math.Min(allowedAbsoluteMaxSpeedLimitMpS, IsFreight ? speed_info.SpeedFreight : speed_info.SpeedPass);
                 }
 
                 float validSpeedMpS = AllowedMaxSpeedMpS;
@@ -2927,7 +2927,7 @@ namespace Orts.Simulation.Physics
                         float distanceFromFront = Length - thisSpeedpost.DistanceTo(RearTDBTraveller);
                         if (distanceFromFront >= 0)
                         {
-                            float newSpeedMpS = IsFreight ? speed_info.speed_freight : speed_info.speed_pass;
+                            float newSpeedMpS = IsFreight ? speed_info.SpeedFreight : speed_info.SpeedPass;
                             if (newSpeedMpS <= validSpeedMpS)
                             {
                                 validSpeedMpS = newSpeedMpS;
@@ -2942,8 +2942,8 @@ namespace Orts.Simulation.Physics
                                 validSpeedMpS = newSpeedMpS;
                                 float reqDistance = DistanceTravelledM + Length - distanceFromFront;
                                 ActivateSpeedLimit speedLimit = new ActivateSpeedLimit(reqDistance,
-                                    speed_info.speed_noSpeedReductionOrIsTempSpeedReduction == 0 ? newSpeedMpS : -1, -1f,
-                                    speed_info.speed_noSpeedReductionOrIsTempSpeedReduction == 0 ? -1 : newSpeedMpS);
+                                    speed_info.SpeedNoSpeedReductionOrIsTempSpeedReduction == 0 ? newSpeedMpS : -1, -1f,
+                                    speed_info.SpeedNoSpeedReductionOrIsTempSpeedReduction == 0 ? -1 : newSpeedMpS);
                                 requiredActions.InsertAction(speedLimit);
                                 requiredActions.UpdatePendingSpeedlimits(newSpeedMpS);  // update any older pending speed limits
                             }
@@ -3152,16 +3152,12 @@ namespace Orts.Simulation.Physics
 
                 while (firstObject.distance_to_train < 0.0f && SignalObjectItems.Count > 0)
                 {
-#if DEBUG_REPORTS
-                    File.AppendAllText(@"C:\temp\printproc.txt", "Passed Signal : " + firstObject.ObjectDetails.thisRef.ToString() +
-                        " with speed : " + firstObject.actual_speed.ToString() + "\n");
-#endif
                     var temp1MaxSpeedMpS = IsFreight ? firstObject.speed_freight : firstObject.speed_passenger;
                     if (firstObject.ObjectDetails.isSignal)
                     {
                         allowedAbsoluteMaxSpeedSignalMpS = temp1MaxSpeedMpS == -1 ? (float)Simulator.TRK.Route.SpeedLimit : temp1MaxSpeedMpS;
                     }
-                    else if (firstObject.speed_reset == 0)
+                    else if (!firstObject.SpeedReset)
                     {
                         if (firstObject.speed_noSpeedReductionOrIsTempSpeedReduction == 0) allowedAbsoluteMaxSpeedLimitMpS = temp1MaxSpeedMpS == -1 ? allowedAbsoluteMaxSpeedLimitMpS : temp1MaxSpeedMpS;
                         else allowedAbsoluteMaxTempSpeedLimitMpS = temp1MaxSpeedMpS == -1 ? allowedAbsoluteMaxTempSpeedLimitMpS : temp1MaxSpeedMpS;
@@ -3173,15 +3169,6 @@ namespace Orts.Simulation.Physics
 
                     if (firstObject.actual_speed > 0)
                     {
-#if DEBUG_REPORTS
-                        File.AppendAllText(@"C:\temp\printproc.txt", "Passed speedpost : " + firstObject.ObjectDetails.thisRef.ToString() +
-                            " = " + firstObject.actual_speed.ToString() + "\n");
-
-                        File.AppendAllText(@"C:\temp\printproc.txt", "Present Limits : " +
-                            "Limit : " + allowedMaxSpeedLimitMpS.ToString() + " ; " +
-                            "Signal : " + allowedMaxSpeedSignalMpS.ToString() + " ; " +
-                            "Overall : " + AllowedMaxSpeedMpS.ToString() + "\n");
-#endif
                         if (firstObject.actual_speed <= AllowedMaxSpeedMpS)
                         {
                             AllowedMaxSpeedMpS = firstObject.actual_speed;
@@ -3216,7 +3203,7 @@ namespace Orts.Simulation.Physics
                             {
                                 speedLimit = new ActivateSpeedLimit(reqDistance, -1f, firstObject.actual_speed);
                             }
-                            else if (Simulator.TimetableMode || firstObject.speed_reset == 0)
+                            else if (Simulator.TimetableMode || !firstObject.SpeedReset)
                             {
                                 speedLimit = new ActivateSpeedLimit(reqDistance,
                                     firstObject.speed_noSpeedReductionOrIsTempSpeedReduction == 0 ? firstObject.actual_speed : -1, -1f,
@@ -3363,21 +3350,21 @@ namespace Orts.Simulation.Physics
                 {
                     firstObject.signal_state = firstObject.ObjectDetails.this_sig_lr(SignalFunction.Normal);
                     ObjectSpeedInfo thisSpeed = firstObject.ObjectDetails.this_sig_speed(SignalFunction.Normal);
-                    firstObject.speed_passenger = thisSpeed == null ? -1 : thisSpeed.speed_pass;
-                    firstObject.speed_freight = thisSpeed == null ? -1 : thisSpeed.speed_freight;
-                    firstObject.speed_flag = thisSpeed == null ? 0 : thisSpeed.speed_flag;
-                    firstObject.speed_reset = thisSpeed == null ? 0 : thisSpeed.speed_reset;
+                    firstObject.speed_passenger = thisSpeed == null ? -1 : thisSpeed.SpeedPass;
+                    firstObject.speed_freight = thisSpeed == null ? -1 : thisSpeed.SpeedFreight;
+                    firstObject.SpeedFlag = thisSpeed != null && thisSpeed.Flag;
+                    firstObject.SpeedReset = thisSpeed != null && thisSpeed.Reset;
                 }
                 else if (firstObject.ObjectDetails.SignalHeads != null)  // check if object is SPEED info signal
                 {
                     if (firstObject.ObjectDetails.SignalHeads[0].SignalFunction == SignalFunction.Speed)
                     {
                         ObjectSpeedInfo thisSpeed = firstObject.ObjectDetails.this_sig_speed(SignalFunction.Speed);
-                        firstObject.speed_passenger = thisSpeed == null ? -1 : thisSpeed.speed_pass;
-                        firstObject.speed_freight = thisSpeed == null ? -1 : thisSpeed.speed_freight;
-                        firstObject.speed_flag = thisSpeed == null ? 0 : thisSpeed.speed_flag;
-                        firstObject.speed_reset = thisSpeed == null ? 0 : thisSpeed.speed_reset;
-                        firstObject.speed_noSpeedReductionOrIsTempSpeedReduction = thisSpeed == null ? 0 : thisSpeed.speed_noSpeedReductionOrIsTempSpeedReduction;
+                        firstObject.speed_passenger = thisSpeed == null ? -1 : thisSpeed.SpeedPass;
+                        firstObject.speed_freight = thisSpeed == null ? -1 : thisSpeed.SpeedFreight;
+                        firstObject.SpeedFlag = thisSpeed != null && thisSpeed.Flag;
+                        firstObject.SpeedReset = thisSpeed != null && thisSpeed.Reset;
+                        firstObject.speed_noSpeedReductionOrIsTempSpeedReduction = thisSpeed == null ? 0 : thisSpeed.SpeedNoSpeedReductionOrIsTempSpeedReduction;
                     }
                 }
 
@@ -3401,21 +3388,21 @@ namespace Orts.Simulation.Physics
                         if (nextObject.ObjectDetails.enabledTrain != null && nextObject.ObjectDetails.enabledTrain.Train != this)
                             nextObject.signal_state = SignalAspectState.Stop; // state not valid if not enabled for this train
                         ObjectSpeedInfo thisSpeed = nextObject.ObjectDetails.this_sig_speed(SignalFunction.Normal);
-                        nextObject.speed_passenger = thisSpeed == null || nextObject.signal_state == SignalAspectState.Stop ? -1 : thisSpeed.speed_pass;
-                        nextObject.speed_freight = thisSpeed == null || nextObject.signal_state == SignalAspectState.Stop ? -1 : thisSpeed.speed_freight;
-                        nextObject.speed_flag = thisSpeed == null || nextObject.signal_state == SignalAspectState.Stop ? 0 : thisSpeed.speed_flag;
-                        nextObject.speed_reset = thisSpeed == null || nextObject.signal_state == SignalAspectState.Stop ? 0 : thisSpeed.speed_reset;
+                        nextObject.speed_passenger = thisSpeed == null || nextObject.signal_state == SignalAspectState.Stop ? -1 : thisSpeed.SpeedPass;
+                        nextObject.speed_freight = thisSpeed == null || nextObject.signal_state == SignalAspectState.Stop ? -1 : thisSpeed.SpeedFreight;
+                        nextObject.SpeedFlag = thisSpeed != null && nextObject.signal_state != SignalAspectState.Stop && thisSpeed.Flag;
+                        nextObject.SpeedReset = thisSpeed != null && nextObject.signal_state != SignalAspectState.Stop && thisSpeed.Reset;
                     }
                     else if (nextObject.ObjectDetails.SignalHeads != null)  // check if object is SPEED info signal
                     {
                         if (nextObject.ObjectDetails.SignalHeads[0].SignalFunction == SignalFunction.Speed)
                         {
                             ObjectSpeedInfo thisSpeed = nextObject.ObjectDetails.this_sig_speed(SignalFunction.Speed);
-                            nextObject.speed_passenger = thisSpeed == null ? -1 : thisSpeed.speed_pass;
-                            nextObject.speed_freight = thisSpeed == null ? -1 : thisSpeed.speed_freight;
-                            nextObject.speed_flag = thisSpeed == null ? 0 : thisSpeed.speed_flag;
-                            nextObject.speed_reset = thisSpeed == null ? 0 : thisSpeed.speed_reset;
-                            nextObject.speed_noSpeedReductionOrIsTempSpeedReduction = thisSpeed == null ? 0 : thisSpeed.speed_noSpeedReductionOrIsTempSpeedReduction;
+                            nextObject.speed_passenger = thisSpeed == null ? -1 : thisSpeed.SpeedPass;
+                            nextObject.speed_freight = thisSpeed == null ? -1 : thisSpeed.SpeedFreight;
+                            nextObject.SpeedFlag = thisSpeed != null && thisSpeed.Flag;
+                            nextObject.SpeedReset = thisSpeed != null && thisSpeed.Reset;
+                            nextObject.speed_noSpeedReductionOrIsTempSpeedReduction = thisSpeed == null ? 0 : thisSpeed.SpeedNoSpeedReductionOrIsTempSpeedReduction;
                         }
                     }
 
@@ -3492,21 +3479,21 @@ namespace Orts.Simulation.Physics
                             nextObject.signal_state = nextObject.ObjectDetails.this_sig_lr(SignalFunction.Normal);
                             nextAspect = nextObject.signal_state;
                             ObjectSpeedInfo thisSpeed = nextObject.ObjectDetails.this_sig_speed(SignalFunction.Normal);
-                            nextObject.speed_passenger = thisSpeed == null ? -1 : thisSpeed.speed_pass;
-                            nextObject.speed_freight = thisSpeed == null ? -1 : thisSpeed.speed_freight;
-                            nextObject.speed_flag = thisSpeed == null ? 0 : thisSpeed.speed_flag;
-                            nextObject.speed_reset = thisSpeed == null ? 0 : thisSpeed.speed_reset;
+                            nextObject.speed_passenger = thisSpeed == null ? -1 : thisSpeed.SpeedPass;
+                            nextObject.speed_freight = thisSpeed == null ? -1 : thisSpeed.SpeedFreight;
+                            nextObject.SpeedFlag = thisSpeed != null && thisSpeed.Flag;
+                            nextObject.SpeedReset = thisSpeed != null && thisSpeed.Reset;
                         }
                         else if (nextObject.ObjectDetails.SignalHeads != null)  // check if object is SPEED info signal
                         {
                             if (nextObject.ObjectDetails.SignalHeads[0].SignalFunction == SignalFunction.Speed)
                             {
                                 ObjectSpeedInfo thisSpeed = nextObject.ObjectDetails.this_sig_speed(SignalFunction.Speed);
-                                nextObject.speed_passenger = thisSpeed == null ? -1 : thisSpeed.speed_pass;
-                                nextObject.speed_freight = thisSpeed == null ? -1 : thisSpeed.speed_freight;
-                                nextObject.speed_flag = thisSpeed == null ? 0 : thisSpeed.speed_flag;
-                                nextObject.speed_reset = thisSpeed == null ? 0 : thisSpeed.speed_reset;
-                                nextObject.speed_noSpeedReductionOrIsTempSpeedReduction = thisSpeed == null ? 0 : thisSpeed.speed_noSpeedReductionOrIsTempSpeedReduction;
+                                nextObject.speed_passenger = thisSpeed == null ? -1 : thisSpeed.SpeedPass;
+                                nextObject.speed_freight = thisSpeed == null ? -1 : thisSpeed.SpeedFreight;
+                                nextObject.SpeedFlag = thisSpeed != null && thisSpeed.Flag;
+                                nextObject.SpeedReset = thisSpeed != null && thisSpeed.Reset;
+                                nextObject.speed_noSpeedReductionOrIsTempSpeedReduction = thisSpeed == null ? 0 : thisSpeed.SpeedNoSpeedReductionOrIsTempSpeedReduction;
                             }
                         }
 
@@ -3668,7 +3655,7 @@ namespace Orts.Simulation.Physics
 
                 if (thisObject.ObjectDetails.isSignal)
                 {
-                    if (actualSpeedMpS > 0 && (thisObject.speed_flag == 0 || !Simulator.TimetableMode))
+                    if (actualSpeedMpS > 0 && (thisObject.SpeedFlag || !Simulator.TimetableMode))
                     {
                         validSpeedSignalMpS = actualSpeedMpS;
                         if (validSpeedSignalMpS > Math.Min(validSpeedLimitMpS, validTempSpeedLimitMpS))
@@ -3720,7 +3707,7 @@ namespace Orts.Simulation.Physics
                             validSpeedMpS = actualSpeedMpS;
                             validSpeedLimitMpS = actualSpeedMpS;
                         }
-                        else if (actualSpeedMpS < 0 && thisObject.speed_reset == 1)
+                        else if (actualSpeedMpS < 0 && thisObject.SpeedReset)
                         {
                             validSpeedMpS = validSpeedLimitMpS;
                             actualSpeedMpS = validSpeedLimitMpS;
@@ -3771,7 +3758,7 @@ namespace Orts.Simulation.Physics
                             }
                         }
                     }
-                    else if (actualSpeedMpS < 0 && thisObject.speed_reset == 0)
+                    else if (actualSpeedMpS < 0 && !thisObject.SpeedReset)
                     {
                         float newSpeedMpS1 = Math.Min(validSpeedSignalMpS, Math.Min(validSpeedLimitMpS, validTempSpeedLimitMpS));
 
@@ -3784,7 +3771,7 @@ namespace Orts.Simulation.Physics
                             actualSpeedMpS = -1;
                         }
                     }
-                    else if (thisObject.speed_reset == 1)
+                    else if (thisObject.SpeedReset)
                     {
                         actualSpeedMpS = validSpeedLimitMpS;
                     }
@@ -8663,11 +8650,11 @@ namespace Orts.Simulation.Physics
             {
                 var speedLimit = signalRef.SignalObjects[Math.Abs(foundSpeedLimit[0])];
                 var thisSpeedInfo = speedLimit.this_lim_speed(SignalFunction.Speed);
-                float thisSpeedMpS = IsFreight ? thisSpeedInfo.speed_freight : thisSpeedInfo.speed_pass;
+                float thisSpeedMpS = IsFreight ? thisSpeedInfo.SpeedFreight : thisSpeedInfo.SpeedPass;
 
                 if (thisSpeedMpS > 0)
                 {
-                    if (thisSpeedInfo.speed_noSpeedReductionOrIsTempSpeedReduction == 0) allowedMaxSpeedLimitMpS = thisSpeedMpS;
+                    if (thisSpeedInfo.SpeedNoSpeedReductionOrIsTempSpeedReduction == 0) allowedMaxSpeedLimitMpS = thisSpeedMpS;
                     else allowedMaxTempSpeedLimitMpS = thisSpeedMpS;
                     if (Simulator.TimetableMode) AllowedMaxSpeedMpS = thisSpeedMpS;
                     else AllowedMaxSpeedMpS = Math.Min(allowedMaxSpeedLimitMpS, Math.Min(allowedMaxTempSpeedLimitMpS,
@@ -8714,7 +8701,7 @@ namespace Orts.Simulation.Physics
                 else if (thisSignal.SignalHeads[0].SignalFunction == SignalFunction.Speed)
                 {
                     ObjectSpeedInfo thisSpeedInfo = thisSignal.this_sig_speed(SignalFunction.Speed);
-                    if (thisSpeedInfo != null && thisSpeedInfo.speed_reset == 1)
+                    if (thisSpeedInfo != null && thisSpeedInfo.Reset)
                     {
                         allowedMaxSpeedSignalMpS = TrainMaxSpeedMpS;
                         if (Simulator.TimetableMode)
@@ -8774,10 +8761,10 @@ namespace Orts.Simulation.Physics
                     else
                     {
                         ObjectSpeedInfo thisSpeedInfo = thisObject.this_lim_speed(SignalFunction.Speed);
-                        float thisSpeedMpS = IsFreight ? thisSpeedInfo.speed_freight : thisSpeedInfo.speed_pass;
+                        float thisSpeedMpS = IsFreight ? thisSpeedInfo.SpeedFreight : thisSpeedInfo.SpeedPass;
                         if (thisSpeedMpS > 0)
                         {
-                            if (thisSpeedInfo.speed_noSpeedReductionOrIsTempSpeedReduction == 0) // standard speedpost
+                            if (thisSpeedInfo.SpeedNoSpeedReductionOrIsTempSpeedReduction == 0) // standard speedpost
                             {
                                 if (Simulator.TimetableMode)
                                 {
@@ -8824,7 +8811,7 @@ namespace Orts.Simulation.Physics
 
                 if (thisSpeedInfo != null)
                 {
-                    float thisSpeedMpS = IsFreight ? thisSpeedInfo.speed_freight : thisSpeedInfo.speed_pass;
+                    float thisSpeedMpS = IsFreight ? thisSpeedInfo.SpeedFreight : thisSpeedInfo.SpeedPass;
                     if (thisSpeedMpS > 0 && !PassedSignalSpeeds.ContainsKey(passedSignal.thisRef))
                     {
                         allowedMaxSpeedSignalMpS = allowedMaxSpeedSignalMpS > 0 ? Math.Min(allowedMaxSpeedSignalMpS, thisSpeedMpS) : thisSpeedMpS;
@@ -14127,7 +14114,7 @@ namespace Orts.Simulation.Physics
                 TrackMonitorSignalAspect signalAspect =
                     NextSignalObject[0].TranslateTMAspect(NextSignalObject[0].this_sig_lr(SignalFunction.Normal));
                 ObjectSpeedInfo thisSpeedInfo = NextSignalObject[0].this_sig_speed(SignalFunction.Normal);
-                float validSpeed = thisSpeedInfo == null ? -1 : (IsFreight ? thisSpeedInfo.speed_freight : thisSpeedInfo.speed_pass);
+                float validSpeed = thisSpeedInfo == null ? -1 : (IsFreight ? thisSpeedInfo.SpeedFreight : thisSpeedInfo.SpeedPass);
 
                 TrainObjectItem nextItem = new TrainObjectItem(signalAspect, validSpeed, DistanceToSignal);
                 thisInfo.ObjectInfoForward.Add(nextItem);
@@ -14382,7 +14369,7 @@ namespace Orts.Simulation.Physics
                         distanceToTrainM = sectionStart + thisSection.Length;
                         var thisSignal = thisSection.EndSignals[sectionDirection];
                         var thisSpeedInfo = thisSignal.this_sig_speed(SignalFunction.Normal);
-                        float validSpeed = thisSpeedInfo == null ? -1 : (IsFreight ? thisSpeedInfo.speed_freight : thisSpeedInfo.speed_pass);
+                        float validSpeed = thisSpeedInfo == null ? -1 : (IsFreight ? thisSpeedInfo.SpeedFreight : thisSpeedInfo.SpeedPass);
 
                         TrackMonitorSignalAspect signalAspect = thisSignal.TranslateTMAspect(thisSignal.this_sig_lr(SignalFunction.Normal));
                         thisItem = new TrainObjectItem(signalAspect, validSpeed, distanceToTrainM);
@@ -14395,13 +14382,13 @@ namespace Orts.Simulation.Physics
                         {
                             var thisSpeedpost = thisSpeeditem.SignalRef;
                             var thisSpeedInfo = thisSpeedpost.this_sig_speed(SignalFunction.Speed);
-                            float validSpeed = thisSpeedInfo == null ? -1 : (IsFreight ? thisSpeedInfo.speed_freight : thisSpeedInfo.speed_pass);
+                            float validSpeed = thisSpeedInfo == null ? -1 : (IsFreight ? thisSpeedInfo.SpeedFreight : thisSpeedInfo.SpeedPass);
 
                             distanceToTrainM = sectionStart + thisSpeeditem.SignalLocation;
 
-                            if (distanceToTrainM > 0 && (validSpeed > 0 || (thisSpeedInfo != null && thisSpeedInfo.speed_reset == 1)))
+                            if (distanceToTrainM > 0 && (validSpeed > 0 || (thisSpeedInfo != null && thisSpeedInfo.Reset)))
                             {
-                                if (thisSpeedInfo != null && thisSpeedInfo.speed_reset == 1)
+                                if (thisSpeedInfo != null && thisSpeedInfo.Reset)
                                     validSpeed = progressiveMaxSpeedLimitMpS;
                                 else progressiveMaxSpeedLimitMpS = validSpeed;
                                 thisItem = new TrainObjectItem(validSpeed, distanceToTrainM, (TrainObjectItem.SpeedItemType)thisSpeedpost.SpeedPostType());
@@ -14445,7 +14432,7 @@ namespace Orts.Simulation.Physics
                         distanceToTrainM = sectionStart + thisSection.Length;
                         Signal thisSignal = thisSection.EndSignals[sectionDirection];
                         ObjectSpeedInfo thisSpeedInfo = thisSignal.this_sig_speed(SignalFunction.Normal);
-                        float validSpeed = thisSpeedInfo == null ? -1 : (IsFreight ? thisSpeedInfo.speed_freight : thisSpeedInfo.speed_pass);
+                        float validSpeed = thisSpeedInfo == null ? -1 : (IsFreight ? thisSpeedInfo.SpeedFreight : thisSpeedInfo.SpeedPass);
 
                         TrackMonitorSignalAspect signalAspect = thisSignal.TranslateTMAspect(thisSignal.this_sig_lr(SignalFunction.Normal));
                         thisItem = new TrainObjectItem(signalAspect, validSpeed, distanceToTrainM);
@@ -14458,12 +14445,12 @@ namespace Orts.Simulation.Physics
                         {
                             Signal thisSpeedpost = thisSpeeditem.SignalRef;
                             ObjectSpeedInfo thisSpeedInfo = thisSpeedpost.this_sig_speed(SignalFunction.Speed);
-                            float validSpeed = thisSpeedInfo == null ? -1 : (IsFreight ? thisSpeedInfo.speed_freight : thisSpeedInfo.speed_pass);
+                            float validSpeed = thisSpeedInfo == null ? -1 : (IsFreight ? thisSpeedInfo.SpeedFreight : thisSpeedInfo.SpeedPass);
                             distanceToTrainM = sectionStart + thisSpeeditem.SignalLocation;
 
-                            if (distanceToTrainM > 0 && (validSpeed > 0 || (thisSpeedInfo != null && thisSpeedInfo.speed_reset == 1)))
+                            if (distanceToTrainM > 0 && (validSpeed > 0 || (thisSpeedInfo != null && thisSpeedInfo.Reset)))
                             {
-                                if (thisSpeedInfo != null && thisSpeedInfo.speed_reset == 1)
+                                if (thisSpeedInfo != null && thisSpeedInfo.Reset)
                                     validSpeed = progressiveMaxSpeedLimitMpS;
                                 else progressiveMaxSpeedLimitMpS = validSpeed;
                                 thisItem = new TrainObjectItem(validSpeed, distanceToTrainM, (TrainObjectItem.SpeedItemType)thisSpeedpost.SpeedPostType());

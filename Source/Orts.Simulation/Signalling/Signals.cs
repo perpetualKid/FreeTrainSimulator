@@ -1361,10 +1361,8 @@ namespace Orts.Simulation.Signalling
                             ObjectSpeedInfo thisSpeed = thisSpeedpost.SignalRef.this_sig_speed(SignalFunction.Speed);
 
                             // set signal in list if there is no train or if signal has active speed
-                            if (thisTrain == null ||
-                                (thisSpeed != null &&
-                                (thisSpeed.speed_flag == 1 || thisSpeed.speed_reset == 1 ||
-                                (thisTrain.Train.IsFreight && thisSpeed.speed_freight != -1) || (!thisTrain.Train.IsFreight && thisSpeed.speed_pass != -1))))
+                            if (thisTrain == null || (thisSpeed != null && (thisSpeed.Flag || thisSpeed.Reset ||
+                                (thisTrain.Train.IsFreight && thisSpeed.SpeedFreight != -1) || (!thisTrain.Train.IsFreight && thisSpeed.SpeedPass != -1))))
                             {
                                 locstate = ObjectItemInfo.ObjectItemFindState.Object;
                                 foundObject = thisSpeedpost.SignalRef;
@@ -2211,21 +2209,11 @@ namespace Orts.Simulation.Signalling
 
                 if (CrossoverList.ContainsKey(crossId))
                 {
-                    exItem = CrossoverList[crossId];
-                    exItem.Position[1] = cdist;
-                    exItem.SectionIndex[1] = thisCircuit.Index;
+                    CrossoverList[crossId].Update(cdist, thisCircuit.Index);
                 }
                 else
                 {
-                    exItem = new CrossOverItem();
-                    exItem.SectionIndex[0] = thisCircuit.Index;
-                    exItem.SectionIndex[1] = -1;
-
-                    exItem.Position[0] = cdist;
-                    exItem.ItemIndex[0] = thisId;
-                    exItem.ItemIndex[1] = crossId;
-
-                    exItem.TrackShape = crossOver.ShapeId;
+                    exItem = new CrossOverItem(cdist, 0f, thisCircuit.Index, -1, thisId, crossId, crossOver.ShapeId);
 
                     CrossoverList.Add(thisId, exItem);
                 }
@@ -2268,7 +2256,7 @@ namespace Orts.Simulation.Signalling
                     newIndex = nextNode;
                     nextNode++;
 
-                    splitSection(thisIndex, newIndex, thisSection.Length - thisSignal.SignalLocation);
+                    SplitSection(thisIndex, newIndex, thisSection.Length - thisSignal.SignalLocation);
                     TrackCircuitSection newSection = TrackCircuitList[newIndex];
                     newSection.EndSignals[0] = thisSignal.SignalRef;
                     thisSection = TrackCircuitList[thisIndex];
@@ -2306,7 +2294,7 @@ namespace Orts.Simulation.Signalling
                             newIndex = nextNode;
                             nextNode++;
 
-                            splitSection(thisIndex, newIndex, thisSignal.SignalLocation);
+                            SplitSection(thisIndex, newIndex, thisSignal.SignalLocation);
                             TrackCircuitSection newSection = TrackCircuitList[newIndex];
                             newSection.EndSignals[0] = null;
                             thisSection = TrackCircuitList[thisIndex];
@@ -2327,7 +2315,6 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// Split CrossOvers
         /// </summary>
-
         private int SplitNodesCrossover(CrossOverItem CrossOver,
                 TrackSectionsFile tsectiondat, int nextNode)
         {
@@ -2335,24 +2322,21 @@ namespace Orts.Simulation.Signalling
             int sectionIndex0 = 0;
             int sectionIndex1 = 0;
 
-            if (CrossOver.SectionIndex[0] < 0 || CrossOver.SectionIndex[1] < 0)
+            if (CrossOver.Item0.SectionIndex < 0 || CrossOver.Item1.SectionIndex < 0)
             {
-                Trace.TraceWarning("Incomplete crossover : indices {0} and {1}",
-                            CrossOver.ItemIndex[0], CrossOver.ItemIndex[1]);
+                Trace.TraceWarning($"Incomplete crossover : indices {CrossOver.Item0.ItemIndex} and {CrossOver.Item1.ItemIndex}");
                 processCrossOver = false;
             }
-            if (CrossOver.SectionIndex[0] == CrossOver.SectionIndex[1])
+            if (CrossOver.Item0.SectionIndex == CrossOver.Item1.SectionIndex)
             {
-                Trace.TraceWarning("Invalid crossover : indices {0} and {1} : equal section : {2}",
-                            CrossOver.ItemIndex[0], CrossOver.ItemIndex[1],
-                CrossOver.SectionIndex[0]);
+                Trace.TraceWarning($"Invalid crossover : indices {CrossOver.Item0.ItemIndex} and {CrossOver.Item1.ItemIndex} : equal section : {CrossOver.Item0.SectionIndex}");
                 processCrossOver = false;
             }
 
             if (processCrossOver)
             {
-                sectionIndex0 = getCrossOverSectionIndex(CrossOver, 0);
-                sectionIndex1 = getCrossOverSectionIndex(CrossOver, 1);
+                sectionIndex0 = GetCrossOverSectionIndex(CrossOver.Item0);
+                sectionIndex1 = GetCrossOverSectionIndex(CrossOver.Item1);
 
                 if (sectionIndex0 < 0 || sectionIndex1 < 0)
                 {
@@ -2369,8 +2353,8 @@ namespace Orts.Simulation.Signalling
                 int jnSection = nextNode;
                 nextNode++;
 
-                splitSection(sectionIndex0, newSection0, CrossOver.Position[0]);
-                splitSection(sectionIndex1, newSection1, CrossOver.Position[1]);
+                SplitSection(sectionIndex0, newSection0, CrossOver.Item0.Position);
+                SplitSection(sectionIndex1, newSection1, CrossOver.Item1.Position);
 
                 addCrossoverJunction(sectionIndex0, newSection0, sectionIndex1, newSection1,
                                 jnSection, CrossOver, tsectiondat);
@@ -2384,18 +2368,18 @@ namespace Orts.Simulation.Signalling
         /// Get cross-over section index
         /// </summary>
 
-        private int getCrossOverSectionIndex(CrossOverItem CrossOver, int Index)
+        private int GetCrossOverSectionIndex(CrossOverItem.Content crossOver)
         {
-            int sectionIndex = CrossOver.SectionIndex[Index];
-            float position = CrossOver.Position[Index];
+            int sectionIndex = crossOver.SectionIndex;
+            float position = crossOver.Position;
             TrackCircuitSection section = TrackCircuitList[sectionIndex];
 
             while (position > 0 && position > section.Length)
             // while (position > 0 && position > section.Length && section.OriginalIndex == firstSectionOriginalIndex)
             {
                 int prevSection = sectionIndex;
-                position = position - section.Length;
-                CrossOver.Position[Index] = position;
+                position -= section.Length;
+                crossOver.Position = position;
                 sectionIndex = section.Pins[1, 0].Link;
 
                 if (sectionIndex > 0)
@@ -2422,8 +2406,7 @@ namespace Orts.Simulation.Signalling
 
             if (position < 0)
             {
-                Trace.TraceWarning("Cannot locate CrossOver {0} in Section {1}",
-                                CrossOver.ItemIndex[0], CrossOver.SectionIndex[0]);
+                Trace.TraceWarning($"Cannot locate CrossOver {crossOver.ItemIndex} in Section {crossOver.SectionIndex}");
                 sectionIndex = -1;
             }
 
@@ -2434,8 +2417,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// Split section
         /// </summary>
-
-        private void splitSection(int orgSectionIndex, int newSectionIndex, float position)
+        private void SplitSection(int orgSectionIndex, int newSectionIndex, float position)
         {
             TrackCircuitSection orgSection = TrackCircuitList[orgSectionIndex];
             TrackCircuitSection newSection = orgSection.CopyBasic(newSectionIndex);
@@ -2446,25 +2428,6 @@ namespace Orts.Simulation.Signalling
 
             replSection.Length = position;
             newSection.Length = orgSection.Length - position;
-
-#if DEBUG_REPORTS
-            // check for invalid lengths - report and correct
-
-            if (newSection.Length < 0)
-            {
-                Trace.TraceWarning("Invalid Length for new section {0}: length {1}, split on {2}",
-                        newSection.Index, orgSection.Length, position);
-                newSection.Length = 0.1f;
-                replSection.Length -= 0.01f;  // take length off other part
-            }
-            if (replSection.Length < 0)
-            {
-                Trace.TraceWarning("Invalid Length for replacement section {0}: length {1}, split on {2}",
-                        newSection.Index, orgSection.Length, position);
-                replSection.Length = 0.1f;
-                newSection.Length -= 0.01f;  // take length off other part
-            }
-#endif
 
             // take care of rounding errors
 
@@ -3887,7 +3850,7 @@ namespace Orts.Simulation.Signalling
                             Signal thisSpeedpost = thisItem.SignalRef;
                             ObjectSpeedInfo speed_info = thisSpeedpost.this_lim_speed(SignalFunction.Speed);
 
-                            if ((isFreight && speed_info.speed_freight > 0) || (!isFreight && speed_info.speed_pass > 0))
+                            if ((isFreight && speed_info.SpeedFreight > 0) || (!isFreight && speed_info.SpeedPass > 0))
                             {
                                 if (thisItem.SignalLocation > offset)
                                 {
@@ -3906,7 +3869,7 @@ namespace Orts.Simulation.Signalling
                             Signal thisSpeedpost = thisItem.SignalRef;
                             ObjectSpeedInfo speed_info = thisSpeedpost.this_lim_speed(SignalFunction.Speed);
 
-                            if ((isFreight && speed_info.speed_freight > 0) || (!isFreight && speed_info.speed_pass > 0))
+                            if ((isFreight && speed_info.SpeedFreight > 0) || (!isFreight && speed_info.SpeedPass > 0))
                             {
                                 if (offset == 0 || thisItem.SignalLocation < offset)
                                 {
@@ -3941,9 +3904,9 @@ namespace Orts.Simulation.Signalling
                             if (considerSpeedReset)
                             {
                                 var speed_infoR = thisSpeedpost.this_sig_speed(SignalFunction.Speed);
-                                speed_info.speed_reset = speed_infoR.speed_reset;
+                                speed_info.Reset = speed_infoR.Reset;
                             }
-                            if ((isFreight && speed_info.speed_freight > 0) || (!isFreight && speed_info.speed_pass > 0) || speed_info.speed_reset == 1)
+                            if ((isFreight && speed_info.SpeedFreight > 0) || (!isFreight && speed_info.SpeedPass > 0) || speed_info.Reset)
                             {
                                 if (thisItem.SignalLocation < thisSection.Length - offset)
                                 {
@@ -3962,7 +3925,7 @@ namespace Orts.Simulation.Signalling
                             Signal thisSpeedpost = thisItem.SignalRef;
                             ObjectSpeedInfo speed_info = thisSpeedpost.this_lim_speed(SignalFunction.Speed);
 
-                            if ((isFreight && speed_info.speed_freight > 0) || (!isFreight && speed_info.speed_pass > 0))
+                            if ((isFreight && speed_info.SpeedFreight > 0) || (!isFreight && speed_info.SpeedPass > 0))
                             {
                                 if (offset == 0 || thisItem.SignalLocation > thisSection.Length - offset)
                                 {
@@ -8170,23 +8133,6 @@ namespace Orts.Simulation.Signalling
     //================================================================================================//
     /// <summary>
     ///
-    /// class CrossOverItem
-    /// Class for cross over items
-    ///
-    /// </summary>
-    //================================================================================================//
-
-    public class CrossOverItem
-    {
-        public float[] Position = new float[2];        // position within track sections //
-        public int[] SectionIndex = new int[2];        // indices of original sections   //
-        public int[] ItemIndex = new int[2];           // TDB item indices               //
-        public uint TrackShape;
-    }
-
-    //================================================================================================//
-    /// <summary>
-    ///
     ///  class SignalObject
     ///
     /// </summary>
@@ -9149,7 +9095,7 @@ namespace Orts.Simulation.Signalling
                     sigAsp = sigHead.SignalIndicationState;
                     if (sigAsp <= SignalAspectState.Restricting && sigHead.SpeedInfo != null && sigHead.SpeedInfo[(int)sigAsp] != null)
                     {
-                        setNoReduction = sigHead.SpeedInfo[(int)sigAsp].speed_noSpeedReductionOrIsTempSpeedReduction == 1;
+                        setNoReduction = sigHead.SpeedInfo[(int)sigAsp].SpeedNoSpeedReductionOrIsTempSpeedReduction == 1;
                     }
                     else
                     {
@@ -9174,7 +9120,7 @@ namespace Orts.Simulation.Signalling
 
             if (sigHead.SpeedInfo != null && sigHead.SpeedInfo[(int)sigAsp] != null)
             {
-                speedPostType = sigHead.SpeedInfo[(int)sigAsp].speed_noSpeedReductionOrIsTempSpeedReduction;
+                speedPostType = sigHead.SpeedInfo[(int)sigAsp].SpeedNoSpeedReductionOrIsTempSpeedReduction;
 
             }
             return speedPostType;
@@ -9197,30 +9143,30 @@ namespace Orts.Simulation.Signalling
                     ObjectSpeedInfo this_speed = sigHead.SpeedInfo[(int)sigHead.SignalIndicationState];
                     if (this_speed != null)
                     {
-                        if (this_speed.speed_pass > 0 && this_speed.speed_pass < set_speed.speed_pass)
+                        if (this_speed.SpeedPass > 0 && this_speed.SpeedPass < set_speed.SpeedPass)
                         {
-                            set_speed.speed_pass = this_speed.speed_pass;
-                            set_speed.speed_flag = 0;
-                            set_speed.speed_reset = 0;
-                            if (!isSignal) set_speed.speed_noSpeedReductionOrIsTempSpeedReduction = this_speed.speed_noSpeedReductionOrIsTempSpeedReduction;
+                            set_speed.SpeedPass = this_speed.SpeedPass;
+                            set_speed.Flag = false;
+                            set_speed.Reset = false;
+                            if (!isSignal) set_speed.SpeedNoSpeedReductionOrIsTempSpeedReduction = this_speed.SpeedNoSpeedReductionOrIsTempSpeedReduction;
                         }
 
-                        if (this_speed.speed_freight > 0 && this_speed.speed_freight < set_speed.speed_freight)
+                        if (this_speed.SpeedFreight > 0 && this_speed.SpeedFreight < set_speed.SpeedFreight)
                         {
-                            set_speed.speed_freight = this_speed.speed_freight;
-                            set_speed.speed_flag = 0;
-                            set_speed.speed_reset = 0;
-                            if (!isSignal) set_speed.speed_noSpeedReductionOrIsTempSpeedReduction = this_speed.speed_noSpeedReductionOrIsTempSpeedReduction;
+                            set_speed.SpeedFreight = this_speed.SpeedFreight;
+                            set_speed.Flag = false;
+                            set_speed.Reset = false;
+                            if (!isSignal) set_speed.SpeedNoSpeedReductionOrIsTempSpeedReduction = this_speed.SpeedNoSpeedReductionOrIsTempSpeedReduction;
                         }
                     }
 
                 }
             }
 
-            if (set_speed.speed_pass > 1E9f)
-                set_speed.speed_pass = -1;
-            if (set_speed.speed_freight > 1E9f)
-                set_speed.speed_freight = -1;
+            if (set_speed.SpeedPass > 1E9f)
+                set_speed.SpeedPass = -1;
+            if (set_speed.SpeedFreight > 1E9f)
+                set_speed.SpeedFreight = -1;
 
             return set_speed;
         }//this_lim_speed
@@ -12685,8 +12631,8 @@ namespace Orts.Simulation.Signalling
         // set active by TRAIN
         public float speed_passenger;                // -1 if not set
         public float speed_freight;                  // -1 if not set
-        public int speed_flag;
-        public int speed_reset;
+        public bool SpeedFlag;
+        public bool SpeedReset;
         // for signals: if = 1 no speed reduction; for speedposts: if = 0 standard; = 1 start of temp speedreduction post; = 2 end of temp speed reduction post
         public int speed_noSpeedReductionOrIsTempSpeedReduction; 
         public float actual_speed;                   // set active by TRAIN
@@ -12713,8 +12659,8 @@ namespace Orts.Simulation.Signalling
                 signal_state = SignalAspectState.Unknown;  // set active by TRAIN
                 speed_passenger = -1;                      // set active by TRAIN
                 speed_freight = -1;                      // set active by TRAIN
-                speed_flag = 0;                       // set active by TRAIN
-                speed_reset = 0;                      // set active by TRAIN
+                SpeedFlag = false;                       // set active by TRAIN
+                SpeedReset = false;                      // set active by TRAIN
                 speed_noSpeedReductionOrIsTempSpeedReduction = 0;
             }
             else
@@ -12722,49 +12668,17 @@ namespace Orts.Simulation.Signalling
                 ObjectType = ObjectItemType.Speedlimit;
                 signal_state = SignalAspectState.Unknown;
                 speed_info = thisObject.this_lim_speed(SignalFunction.Speed);
-                speed_passenger = speed_info.speed_pass;
-                speed_freight = speed_info.speed_freight;
-                speed_flag = speed_info.speed_flag;
-                speed_reset = speed_info.speed_reset;
-                speed_noSpeedReductionOrIsTempSpeedReduction = speed_info.speed_noSpeedReductionOrIsTempSpeedReduction;
+                speed_passenger = speed_info.SpeedPass;
+                speed_freight = speed_info.SpeedFreight;
+                SpeedFlag = speed_info.Flag;
+                SpeedReset = speed_info.Reset;
+                speed_noSpeedReductionOrIsTempSpeedReduction = speed_info.SpeedNoSpeedReductionOrIsTempSpeedReduction;
             }
         }
 
         public ObjectItemInfo(ObjectItemFindState thisState)
         {
             ObjectState = thisState;
-        }
-    }
-
-    //================================================================================================//
-    /// <summary>
-    ///
-    /// class ObjectSpeedInfo
-    ///
-    /// </summary>
-    //================================================================================================//
-
-    public class ObjectSpeedInfo
-    {
-
-        public float speed_pass;
-        public float speed_freight;
-        public int speed_flag;
-        public int speed_reset;
-        public int speed_noSpeedReductionOrIsTempSpeedReduction;
-
-        //================================================================================================//
-        /// <summary>
-        /// Constructor
-        /// </summary>
-
-        public ObjectSpeedInfo(float pass, float freight, bool asap, bool reset, int nospeedreductionOristempspeedreduction)
-        {
-            speed_pass = pass;
-            speed_freight = freight;
-            speed_flag = asap ? 1 : 0;
-            speed_reset = reset ? 1 : 0;
-            speed_noSpeedReductionOrIsTempSpeedReduction = nospeedreductionOristempspeedreduction;
         }
     }
 
