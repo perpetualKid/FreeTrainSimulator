@@ -939,11 +939,11 @@ namespace Orts.Simulation.AIs
                     if (nextActionInfo.NextAction == AIActionItem.AI_ACTION_TYPE.SIGNAL_ASPECT_STOP)
                     {
                         File.AppendAllText(@"C:\temp\checktrain.txt",
-                           "NextSig: " + nextActionInfo.ActiveItem.ObjectDetails.thisRef.ToString() + "\n");
+                           "NextSig: " + nextActionInfo.ActiveItem.SignalDetails.thisRef.ToString() + "\n");
                         File.AppendAllText(@"C:\temp\checktrain.txt",
-                           "Section: " + nextActionInfo.ActiveItem.ObjectDetails.TCReference.ToString() + "\n");
+                           "Section: " + nextActionInfo.ActiveItem.SignalDetails.TCReference.ToString() + "\n");
                         File.AppendAllText(@"C:\temp\checktrain.txt",
-                           "DistTr : " + nextActionInfo.ActiveItem.distance_to_train.ToString() + "\n");
+                           "DistTr : " + nextActionInfo.ActiveItem.DistanceToTrain.ToString() + "\n");
                     }
                 }
                 else
@@ -1151,39 +1151,39 @@ namespace Orts.Simulation.AIs
             }
 
             float validSpeed = AllowedMaxSpeedMpS;
-            List<ObjectItemInfo> processedList = new List<ObjectItemInfo>();
+            List<SignalItemInfo> processedList = new List<SignalItemInfo>();
 
-            foreach (ObjectItemInfo thisInfo in SignalObjectItems)
+            foreach (SignalItemInfo thisInfo in SignalObjectItems)
             {
 
                 // check speedlimit
                 if (CheckTrain)
                 {
                     File.AppendAllText(@"C:\temp\checktrain.txt",
-                            "Item : " + thisInfo.ObjectType.ToString() + " at " +
-                                        thisInfo.distance_to_train.ToString() +
-                        " - processed : " + thisInfo.processed.ToString() + "\n");
+                            "Item : " + thisInfo.SignalItemType.ToString() + " at " +
+                                        thisInfo.DistanceToTrain.ToString() +
+                        " - processed : " + thisInfo.Processed.ToString() + "\n");
 
-                    if (thisInfo.ObjectType == ObjectItemInfo.ObjectItemType.Signal)
+                    if (thisInfo.SignalItemType == SignalItemInfo.ItemType.Signal)
                     {
                         File.AppendAllText(@"C:\temp\checktrain.txt",
-                                "  Signal : " + thisInfo.ObjectDetails.thisRef + " - State : " + thisInfo.signal_state.ToString() + "\n");
+                                "  Signal : " + thisInfo.SignalDetails.thisRef + " - State : " + thisInfo.SignalState.ToString() + "\n");
                     }
                 }
 
-                float setSpeed = IsFreight ? thisInfo.speed_freight : thisInfo.speed_passenger;
+                float setSpeed = IsFreight ? thisInfo.SpeedInfo.FreightSpeed : thisInfo.SpeedInfo.PassengerSpeed;
                 if (setSpeed < validSpeed && setSpeed < AllowedMaxSpeedMpS && setSpeed > 0)
                 {
-                    if (!thisInfo.processed)
+                    if (!thisInfo.Processed)
                     {
                         bool process_req = true;
 
                         if (ControlMode == TRAIN_CONTROL.AUTO_NODE &&
-                                        thisInfo.distance_to_train > DistanceToEndNodeAuthorityM[0])
+                                        thisInfo.DistanceToTrain > DistanceToEndNodeAuthorityM[0])
                         {
                             process_req = false;
                         }
-                        else if (thisInfo.distance_to_train > signalApproachDistanceM ||
+                        else if (thisInfo.DistanceToTrain > signalApproachDistanceM ||
                                  (MovementState == AI_MOVEMENT_STATE.RUNNING && SpeedMpS > setSpeed) ||
                                   MovementState == AI_MOVEMENT_STATE.ACCELERATING)
                         {
@@ -1196,15 +1196,15 @@ namespace Orts.Simulation.AIs
 
                         if (process_req)
                         {
-                            if (thisInfo.ObjectType == ObjectItemInfo.ObjectItemType.Speedlimit)
+                            if (thisInfo.SignalItemType == SignalItemInfo.ItemType.Speedlimit)
                             {
                                 CreateTrainAction(validSpeed, setSpeed,
-                                        thisInfo.distance_to_train, thisInfo, AIActionItem.AI_ACTION_TYPE.SPEED_LIMIT);
+                                        thisInfo.DistanceToTrain, thisInfo, AIActionItem.AI_ACTION_TYPE.SPEED_LIMIT);
                             }
                             else
                             {
                                 CreateTrainAction(validSpeed, setSpeed,
-                                        thisInfo.distance_to_train, thisInfo, AIActionItem.AI_ACTION_TYPE.SPEED_SIGNAL);
+                                        thisInfo.DistanceToTrain, thisInfo, AIActionItem.AI_ACTION_TYPE.SPEED_SIGNAL);
                             }
                             processedList.Add(thisInfo);
                         }
@@ -1218,9 +1218,9 @@ namespace Orts.Simulation.AIs
 
                 // check signal state
 
-                if (thisInfo.ObjectType == ObjectItemInfo.ObjectItemType.Signal &&
-                        thisInfo.signal_state < SignalAspectState.Approach_1 &&
-                        !thisInfo.processed && thisInfo.ObjectDetails.hasPermission != Signal.Permission.Granted)
+                if (thisInfo.SignalItemType == SignalItemInfo.ItemType.Signal &&
+                        thisInfo.SignalState < SignalAspectState.Approach_1 &&
+                        !thisInfo.Processed && thisInfo.SignalDetails.hasPermission != Signal.Permission.Granted)
                 {
                     if (CheckTrain)
                     {
@@ -1228,17 +1228,17 @@ namespace Orts.Simulation.AIs
                                 "Signal restricted\n");
                     }
                     if (!(ControlMode == TRAIN_CONTROL.AUTO_NODE &&
-                                    thisInfo.distance_to_train > (DistanceToEndNodeAuthorityM[0] - clearingDistanceM)))
+                                    thisInfo.DistanceToTrain > (DistanceToEndNodeAuthorityM[0] - clearingDistanceM)))
                     {
-                        if (thisInfo.signal_state == SignalAspectState.Stop ||
-                            thisInfo.ObjectDetails.enabledTrain != routedForward)
+                        if (thisInfo.SignalState == SignalAspectState.Stop ||
+                            thisInfo.SignalDetails.enabledTrain != routedForward)
                         {
                             CreateTrainAction(validSpeed, 0.0f,
-                                    thisInfo.distance_to_train, thisInfo,
+                                    thisInfo.DistanceToTrain, thisInfo,
                                     AIActionItem.AI_ACTION_TYPE.SIGNAL_ASPECT_STOP);
                             processedList.Add(thisInfo);
                             var validClearingDistanceM = Simulator.TimetableMode ? clearingDistanceM : activityClearingDistanceM;
-                            if (((thisInfo.distance_to_train - validClearingDistanceM) < validClearingDistanceM) &&
+                            if (((thisInfo.DistanceToTrain - validClearingDistanceM) < validClearingDistanceM) &&
                                          (SpeedMpS > 0.0f || MovementState == AI_MOVEMENT_STATE.ACCELERATING))
                             {
                                 AITrainBrakePercent = 100;
@@ -1247,12 +1247,12 @@ namespace Orts.Simulation.AIs
                                 if (PreUpdate && !Simulator.TimetableMode) ObtainRequiredActions(movedBackward); // fast track to stop train; else a precious update is lost
                             }
                         }
-                        else if (thisInfo.distance_to_train > 2.0f * signalApproachDistanceM) // set restricted only if not close
+                        else if (thisInfo.DistanceToTrain > 2.0f * signalApproachDistanceM) // set restricted only if not close
                         {
-                            if (!thisInfo.ObjectDetails.this_sig_noSpeedReduction(SignalFunction.Normal))
+                            if (!thisInfo.SignalDetails.this_sig_noSpeedReduction(SignalFunction.Normal))
                             {
                                 CreateTrainAction(validSpeed, 0.0f,
-                                        thisInfo.distance_to_train, thisInfo,
+                                        thisInfo.DistanceToTrain, thisInfo,
                                         AIActionItem.AI_ACTION_TYPE.SIGNAL_ASPECT_RESTRICTED);
                             }
                             processedList.Add(thisInfo);
@@ -1268,9 +1268,9 @@ namespace Orts.Simulation.AIs
 
             // set processed items - must be collected as item can be processed twice (speed and signal)
 
-            foreach (ObjectItemInfo thisInfo in processedList)
+            foreach (SignalItemInfo thisInfo in processedList)
             {
-                thisInfo.processed = true;
+                thisInfo.Processed = true;
             }
         }
 
@@ -1675,9 +1675,9 @@ namespace Orts.Simulation.AIs
                 Signal nextSignal = null;
                 // there is a next item and it is the next signal
                 if (nextActionInfo != null && nextActionInfo.ActiveItem != null &&
-                    nextActionInfo.ActiveItem.ObjectDetails == NextSignalObject[0])
+                    nextActionInfo.ActiveItem.SignalDetails == NextSignalObject[0])
                 {
-                    nextSignal = nextActionInfo.ActiveItem.ObjectDetails;
+                    nextSignal = nextActionInfo.ActiveItem.SignalDetails;
                     nextAspect = nextSignal.this_sig_lr(SignalFunction.Normal);
                 }
                 else
@@ -1702,16 +1702,16 @@ namespace Orts.Simulation.AIs
 
                     for (int iitem = 0; iitem <= SignalObjectItems.Count - 1 && withinDistance && signalCleared; iitem++)
                     {
-                        ObjectItemInfo nextObject = SignalObjectItems[iitem];
-                        if (nextObject.ObjectType == ObjectItemInfo.ObjectItemType.Signal)
+                        SignalItemInfo nextObject = SignalObjectItems[iitem];
+                        if (nextObject.SignalItemType == SignalItemInfo.ItemType.Signal)
                         {
-                            if (nextObject.ObjectDetails != NextSignalObject[0]) // not signal we are waiting for
+                            if (nextObject.SignalDetails != NextSignalObject[0]) // not signal we are waiting for
                             {
-                                if (nextObject.distance_to_train > 2.0 * clearingDistanceM)
+                                if (nextObject.DistanceToTrain > 2.0 * clearingDistanceM)
                                 {
                                     withinDistance = false;  // signal is far enough ahead
                                 }
-                                else if (nextObject.signal_state == SignalAspectState.Stop)
+                                else if (nextObject.SignalState == SignalAspectState.Stop)
                                 {
                                     signalCleared = false;   // signal is not clear
                                     NextSignalObject[0].ForcePropagation = true;
@@ -1735,16 +1735,16 @@ namespace Orts.Simulation.AIs
 
                     for (int iitem = 0; iitem <= SignalObjectItems.Count - 1 && withinDistance && signalCleared; iitem++)
                     {
-                        ObjectItemInfo nextObject = SignalObjectItems[iitem];
-                        if (nextObject.ObjectType == ObjectItemInfo.ObjectItemType.Signal)
+                        SignalItemInfo nextObject = SignalObjectItems[iitem];
+                        if (nextObject.SignalItemType == SignalItemInfo.ItemType.Signal)
                         {
-                            if (nextObject.ObjectDetails != NextSignalObject[0]) // not signal we are waiting for
+                            if (nextObject.SignalDetails != NextSignalObject[0]) // not signal we are waiting for
                             {
-                                if (nextObject.distance_to_train > 2.0 * clearingDistanceM)
+                                if (nextObject.DistanceToTrain > 2.0 * clearingDistanceM)
                                 {
                                     withinDistance = false;  // signal is far enough ahead
                                 }
-                                else if (nextObject.signal_state == SignalAspectState.Stop)
+                                else if (nextObject.SignalState == SignalAspectState.Stop)
                                 {
                                     signalCleared = false;   // signal is not clear
                                     NextSignalObject[0].ForcePropagation = true;
@@ -2268,7 +2268,7 @@ namespace Orts.Simulation.AIs
 
             else if (nextActionInfo.NextAction == AIActionItem.AI_ACTION_TYPE.SPEED_SIGNAL)
             {
-                if (nextActionInfo.ActiveItem.actual_speed >= AllowedMaxSpeedMpS)
+                if (nextActionInfo.ActiveItem.ActualSpeed >= AllowedMaxSpeedMpS)
                 {
                     clearAction = true;
 
@@ -2286,15 +2286,15 @@ namespace Orts.Simulation.AIs
                     {
                         File.AppendAllText(@"C:\temp\checktrain.txt", "Train " +
                               Number.ToString() + " : signal " +
-                              nextActionInfo.ActiveItem.ObjectDetails.thisRef.ToString() + " : speed : " +
-                              FormatStrings.FormatSpeed(nextActionInfo.ActiveItem.actual_speed, true) + " >= limit : " +
+                              nextActionInfo.ActiveItem.SignalDetails.thisRef.ToString() + " : speed : " +
+                              FormatStrings.FormatSpeed(nextActionInfo.ActiveItem.ActualSpeed, true) + " >= limit : " +
                               FormatStrings.FormatSpeed(AllowedMaxSpeedMpS, true) + " at " +
                               nextActionInfo.ActivateDistanceM.ToString() + " (now at " +
                               PresentPosition[0].DistanceTravelledM.ToString() + " - " +
                               FormatStrings.FormatSpeed(SpeedMpS, true) + ")\n");
                     }
                 }
-                else if (nextActionInfo.ActiveItem.actual_speed < 0)
+                else if (nextActionInfo.ActiveItem.ActualSpeed < 0)
                 {
                     clearAction = true;
 
@@ -2311,8 +2311,8 @@ namespace Orts.Simulation.AIs
                     {
                         File.AppendAllText(@"C:\temp\checktrain.txt", "Train " +
                               Number.ToString() + " : signal " +
-                              nextActionInfo.ActiveItem.ObjectDetails.thisRef.ToString() + " : speed : " +
-                              FormatStrings.FormatSpeed(nextActionInfo.ActiveItem.actual_speed, true) + " cleared at " +
+                              nextActionInfo.ActiveItem.SignalDetails.thisRef.ToString() + " : speed : " +
+                              FormatStrings.FormatSpeed(nextActionInfo.ActiveItem.ActualSpeed, true) + " cleared at " +
                               nextActionInfo.ActivateDistanceM.ToString() + " (now at " +
                               PresentPosition[0].DistanceTravelledM.ToString() + " - " +
                               FormatStrings.FormatSpeed(SpeedMpS, true) + ")\n");
@@ -2324,9 +2324,9 @@ namespace Orts.Simulation.AIs
 
             else if (nextActionInfo.NextAction == AIActionItem.AI_ACTION_TYPE.SIGNAL_ASPECT_STOP)
             {
-                var nextSignal = nextActionInfo.ActiveItem.ObjectDetails;
+                var nextSignal = nextActionInfo.ActiveItem.SignalDetails;
                 var nextPermission = nextSignal.hasPermission == Signal.Permission.Granted;
-                if (nextActionInfo.ActiveItem.signal_state >= SignalAspectState.Approach_1 || nextPermission)
+                if (nextActionInfo.ActiveItem.SignalState >= SignalAspectState.Approach_1 || nextPermission)
                 {
                     clearAction = true;
 
@@ -2342,17 +2342,17 @@ namespace Orts.Simulation.AIs
                     {
                         File.AppendAllText(@"C:\temp\checktrain.txt", "Train " +
                               Number.ToString() + " : signal " +
-                              nextActionInfo.ActiveItem.ObjectDetails.thisRef.ToString() + " at " +
+                              nextActionInfo.ActiveItem.SignalDetails.thisRef.ToString() + " at " +
                               nextActionInfo.ActivateDistanceM.ToString() + " cleared (now at " +
                               PresentPosition[0].DistanceTravelledM.ToString() + " - " +
                               FormatStrings.FormatSpeed(SpeedMpS, true) + ")\n");
                     }
                 }
-                else if (nextActionInfo.ActiveItem.signal_state != SignalAspectState.Stop)
+                else if (nextActionInfo.ActiveItem.SignalState != SignalAspectState.Stop)
                 {
                     nextActionInfo.NextAction = AIActionItem.AI_ACTION_TYPE.SIGNAL_ASPECT_RESTRICTED;
                     if (((nextActionInfo.ActivateDistanceM - PresentPosition[0].DistanceTravelledM) < signalApproachDistanceM) ||
-                         nextActionInfo.ActiveItem.ObjectDetails.this_sig_noSpeedReduction(SignalFunction.Normal))
+                         nextActionInfo.ActiveItem.SignalDetails.this_sig_noSpeedReduction(SignalFunction.Normal))
                     {
                         clearAction = true;
 #if DEBUG_REPORTS
@@ -2367,7 +2367,7 @@ namespace Orts.Simulation.AIs
                         {
                             File.AppendAllText(@"C:\temp\checktrain.txt",
                               Number.ToString() + " : signal " +
-                              nextActionInfo.ActiveItem.ObjectDetails.thisRef.ToString() + " at " +
+                              nextActionInfo.ActiveItem.SignalDetails.thisRef.ToString() + " at " +
                               nextActionInfo.ActivateDistanceM.ToString() + " cleared (now at " +
                               PresentPosition[0].DistanceTravelledM.ToString() + " - " +
                               FormatStrings.FormatSpeed(SpeedMpS, true) + ")\n");
@@ -2380,9 +2380,9 @@ namespace Orts.Simulation.AIs
 
             else if (nextActionInfo.NextAction == AIActionItem.AI_ACTION_TYPE.SIGNAL_ASPECT_RESTRICTED)
             {
-                if ((nextActionInfo.ActiveItem.signal_state >= SignalAspectState.Approach_1) ||
+                if ((nextActionInfo.ActiveItem.SignalState >= SignalAspectState.Approach_1) ||
                    ((nextActionInfo.ActivateDistanceM - PresentPosition[0].DistanceTravelledM) < signalApproachDistanceM) ||
-                   (nextActionInfo.ActiveItem.ObjectDetails.this_sig_noSpeedReduction(SignalFunction.Normal)))
+                   (nextActionInfo.ActiveItem.SignalDetails.this_sig_noSpeedReduction(SignalFunction.Normal)))
                 {
                     clearAction = true;
 #if DEBUG_REPORTS
@@ -2397,7 +2397,7 @@ namespace Orts.Simulation.AIs
                     {
                         File.AppendAllText(@"C:\temp\checktrain.txt",
                           Number.ToString() + " : signal " +
-                          nextActionInfo.ActiveItem.ObjectDetails.thisRef.ToString() + " at " +
+                          nextActionInfo.ActiveItem.SignalDetails.thisRef.ToString() + " at " +
                           nextActionInfo.ActivateDistanceM.ToString() + " cleared (now at " +
                           PresentPosition[0].DistanceTravelledM.ToString() + " - " +
                           FormatStrings.FormatSpeed(SpeedMpS, true) + ")\n");
@@ -2447,7 +2447,7 @@ namespace Orts.Simulation.AIs
                     }
 
                 }
-                else if (nextActionInfo.ActiveItem.actual_speed != nextActionInfo.RequiredSpeedMpS)
+                else if (nextActionInfo.ActiveItem.ActualSpeed != nextActionInfo.RequiredSpeedMpS)
                 {
                     clearAction = true;
 
@@ -2465,7 +2465,7 @@ namespace Orts.Simulation.AIs
                         File.AppendAllText(@"C:\temp\checktrain.txt", "Train " +
                               Number.ToString() + " : speed : " +
                               FormatStrings.FormatSpeed(nextActionInfo.RequiredSpeedMpS, true) + " changed to : " +
-                              FormatStrings.FormatSpeed(nextActionInfo.ActiveItem.actual_speed, true) + " at " +
+                              FormatStrings.FormatSpeed(nextActionInfo.ActiveItem.ActualSpeed, true) + " at " +
                               nextActionInfo.ActivateDistanceM.ToString() + " (now at " +
                               PresentPosition[0].DistanceTravelledM.ToString() + " - " +
                               FormatStrings.FormatSpeed(SpeedMpS, true) + ")\n");
@@ -2502,7 +2502,7 @@ namespace Orts.Simulation.AIs
                 {
                     if (Cars != null && Cars.Count < 10)
                     {
-                        distanceToGoM = nextActionInfo.ActiveItem.distance_to_train - signalApproachDistanceM / 4;
+                        distanceToGoM = nextActionInfo.ActiveItem.DistanceToTrain - signalApproachDistanceM / 4;
                         if (PreUpdate) distanceToGoM -= signalApproachDistanceM * 0.25f;
                         // Be more conservative if braking downhill
                         /* else if (FirstCar != null)
@@ -2512,7 +2512,7 @@ namespace Orts.Simulation.AIs
                             if (FirstCar.CurrentElevationPercent < -2.0) distanceToGoM -= signalApproachDistanceM;
                         }*/
                     }
-                    else distanceToGoM = nextActionInfo.ActiveItem.distance_to_train - signalApproachDistanceM;
+                    else distanceToGoM = nextActionInfo.ActiveItem.DistanceToTrain - signalApproachDistanceM;
                     //                    distanceToGoM = nextActionInfo.ActiveItem.distance_to_train - signalApproachDistanceM;
                 }
 
@@ -4990,7 +4990,7 @@ namespace Orts.Simulation.AIs
         /// </summary>
 
         public void CreateTrainAction(float presentSpeedMpS, float reqSpeedMpS, float distanceToTrainM,
-                ObjectItemInfo thisItem, AIActionItem.AI_ACTION_TYPE thisAction)
+                SignalItemInfo thisItem, AIActionItem.AI_ACTION_TYPE thisAction)
         {
             // if signal or speed limit take off clearing distance
 
@@ -5084,12 +5084,12 @@ namespace Orts.Simulation.AIs
 #endif
             if (CheckTrain)
             {
-                if (thisItem != null && thisItem.ObjectType == ObjectItemInfo.ObjectItemType.Signal)
+                if (thisItem != null && thisItem.SignalItemType == SignalItemInfo.ItemType.Signal)
                 {
                     File.AppendAllText(@"C:\temp\checktrain.txt", "Insert for train " +
                              Number.ToString() + ", type " +
                              thisAction.ToString() + " for signal " +
-                             thisItem.ObjectDetails.thisRef.ToString() + ", at " +
+                             thisItem.SignalDetails.thisRef.ToString() + ", at " +
                              activateDistanceTravelledM.ToString() + ", trigger at " +
                              triggerDistanceM.ToString() + " (now at " +
                              PresentPosition[0].DistanceTravelledM.ToString() + ")\n");
@@ -5197,9 +5197,9 @@ namespace Orts.Simulation.AIs
 
             // reset signal items processed state
             nextActionInfo = null;
-            foreach (ObjectItemInfo thisInfo in SignalObjectItems)
+            foreach (SignalItemInfo thisInfo in SignalObjectItems)
             {
-                thisInfo.processed = false;
+                thisInfo.Processed = false;
             }
 
             // clear any outstanding actions
@@ -5364,12 +5364,12 @@ namespace Orts.Simulation.AIs
 #endif
             if (CheckTrain)
             {
-                if (thisItem.ActiveItem != null && thisItem.ActiveItem.ObjectType == ObjectItemInfo.ObjectItemType.Signal)
+                if (thisItem.ActiveItem != null && thisItem.ActiveItem.SignalItemType == SignalItemInfo.ItemType.Signal)
                 {
                     File.AppendAllText(@"C:\temp\checktrain.txt", "Activated for train " +
                              Number.ToString() + ", type " +
                              thisItem.NextAction.ToString() + " for signal " +
-                             thisItem.ActiveItem.ObjectDetails.thisRef.ToString() + ", at " +
+                             thisItem.ActiveItem.SignalDetails.thisRef.ToString() + ", at " +
                              thisItem.ActivateDistanceM.ToString() + ", trigger at " +
                              thisItem.RequiredDistance.ToString() + " (now at " +
                              PresentPosition[0].DistanceTravelledM.ToString() + " - " +
@@ -5391,11 +5391,11 @@ namespace Orts.Simulation.AIs
 
             if (thisItem.NextAction == AIActionItem.AI_ACTION_TYPE.SPEED_SIGNAL)
             {
-                if (thisItem.ActiveItem.actual_speed == AllowedMaxSpeedMpS)  // no longer valid
+                if (thisItem.ActiveItem.ActualSpeed == AllowedMaxSpeedMpS)  // no longer valid
                 {
                     actionValid = false;
                 }
-                else if (thisItem.ActiveItem.actual_speed != thisItem.RequiredSpeedMpS)
+                else if (thisItem.ActiveItem.ActualSpeed != thisItem.RequiredSpeedMpS)
                 {
                     actionValid = false;
                 }
@@ -5405,8 +5405,8 @@ namespace Orts.Simulation.AIs
 
             else if (thisItem.NextAction == AIActionItem.AI_ACTION_TYPE.SIGNAL_ASPECT_STOP)
             {
-                if (thisItem.ActiveItem.signal_state == SignalAspectState.Stop &&
-                    thisItem.ActiveItem.ObjectDetails.holdState == Signal.HoldState.StationStop)
+                if (thisItem.ActiveItem.SignalState == SignalAspectState.Stop &&
+                    thisItem.ActiveItem.SignalDetails.holdState == Signal.HoldState.StationStop)
                 {
                     actionValid = false;
 
@@ -5420,7 +5420,7 @@ namespace Orts.Simulation.AIs
                     {
                         File.AppendAllText(@"C:\temp\checktrain.txt", "Train " +
                                 Number.ToString() + " : signal " +
-                                thisItem.ActiveItem.ObjectDetails.thisRef.ToString() + " at " +
+                                thisItem.ActiveItem.SignalDetails.thisRef.ToString() + " at " +
                                 thisItem.ActivateDistanceM.ToString() + " is held for station stop\n");
                     }
 
@@ -5428,7 +5428,7 @@ namespace Orts.Simulation.AIs
 
                 // check if cleared
 
-                else if (thisItem.ActiveItem.signal_state >= SignalAspectState.Approach_1)
+                else if (thisItem.ActiveItem.SignalState >= SignalAspectState.Approach_1)
                 {
                     actionValid = false;
                     actionCleared = true;
@@ -5443,18 +5443,18 @@ namespace Orts.Simulation.AIs
                     {
                         File.AppendAllText(@"C:\temp\checktrain.txt", "Train " +
                                 Number.ToString() + " : signal " +
-                                thisItem.ActiveItem.ObjectDetails.thisRef.ToString() + " at " +
+                                thisItem.ActiveItem.SignalDetails.thisRef.ToString() + " at " +
                                 thisItem.ActivateDistanceM.ToString() + " cleared\n");
                     }
                 }
 
                 // check if restricted
 
-                else if (thisItem.ActiveItem.signal_state != SignalAspectState.Stop)
+                else if (thisItem.ActiveItem.SignalState != SignalAspectState.Stop)
                 {
                     thisItem.NextAction = AIActionItem.AI_ACTION_TYPE.SIGNAL_ASPECT_RESTRICTED;
                     if (((thisItem.ActivateDistanceM - PresentPosition[0].DistanceTravelledM) < signalApproachDistanceM) ||
-                         thisItem.ActiveItem.ObjectDetails.this_sig_noSpeedReduction(SignalFunction.Normal))
+                         thisItem.ActiveItem.SignalDetails.this_sig_noSpeedReduction(SignalFunction.Normal))
                     {
                         actionValid = false;
                         actionCleared = true;
@@ -5469,7 +5469,7 @@ namespace Orts.Simulation.AIs
                         {
                             File.AppendAllText(@"C:\temp\checktrain.txt", "Train " +
                                 Number.ToString() + " : signal " +
-                                thisItem.ActiveItem.ObjectDetails.thisRef.ToString() + " at " +
+                                thisItem.ActiveItem.SignalDetails.thisRef.ToString() + " at " +
                                 thisItem.ActivateDistanceM.ToString() + " set to RESTRICTED\n");
                         }
                     }
@@ -5517,7 +5517,7 @@ namespace Orts.Simulation.AIs
                             File.AppendAllText(@"C:\temp\checktrain.txt", "Rescheduled for train " +
                                  Number.ToString() + ", type " +
                                  thisItem.NextAction.ToString() + " for signal " +
-                                 thisItem.ActiveItem.ObjectDetails.thisRef.ToString() + ", at " +
+                                 thisItem.ActiveItem.SignalDetails.thisRef.ToString() + ", at " +
                                  thisItem.ActivateDistanceM.ToString() + ", trigger at " +
                                  thisItem.RequiredDistance.ToString() + " (now at " +
                                  PresentPosition[0].DistanceTravelledM.ToString() + " - " +
@@ -5532,7 +5532,7 @@ namespace Orts.Simulation.AIs
 
             else if (thisItem.NextAction == AIActionItem.AI_ACTION_TYPE.SIGNAL_ASPECT_RESTRICTED)
             {
-                if (thisItem.ActiveItem.signal_state >= SignalAspectState.Approach_1 ||
+                if (thisItem.ActiveItem.SignalState >= SignalAspectState.Approach_1 ||
                 (thisItem.ActivateDistanceM - PresentPosition[0].DistanceTravelledM) < signalApproachDistanceM)
                 {
                     actionValid = false;
@@ -5547,7 +5547,7 @@ namespace Orts.Simulation.AIs
                     {
                         File.AppendAllText(@"C:\temp\checktrain.txt", "Train " +
                                 Number.ToString() + " : signal " +
-                                thisItem.ActiveItem.ObjectDetails.thisRef.ToString() + " at " +
+                                thisItem.ActiveItem.SignalDetails.thisRef.ToString() + " at " +
                                 thisItem.ActivateDistanceM.ToString() + " cleared\n");
                     }
                 }
@@ -5605,7 +5605,7 @@ namespace Orts.Simulation.AIs
                 nextActionInfo.NextAction == AIActionItem.AI_ACTION_TYPE.STATION_STOP &&
                 thisItem.NextAction == AIActionItem.AI_ACTION_TYPE.SIGNAL_ASPECT_STOP)
             {
-                int signalIdent = thisItem.ActiveItem.ObjectDetails.thisRef;
+                int signalIdent = thisItem.ActiveItem.SignalDetails.thisRef;
                 if (signalIdent == StationStops[0].ExitSignal)
                 {
                     actionValid = false;
@@ -5674,7 +5674,7 @@ namespace Orts.Simulation.AIs
             if (actionValid && nextActionInfo != null && nextActionInfo is AuxActionWPItem &&
                 thisItem.NextAction == AIActionItem.AI_ACTION_TYPE.SIGNAL_ASPECT_STOP)
             {
-                if ((thisItem.ActiveItem.ObjectDetails.HasLockForTrain(Number, TCRoute.activeSubpath) && nextActionInfo.ActivateDistanceM - thisItem.ActivateDistanceM < 40) ||
+                if ((thisItem.ActiveItem.SignalDetails.HasLockForTrain(Number, TCRoute.activeSubpath) && nextActionInfo.ActivateDistanceM - thisItem.ActivateDistanceM < 40) ||
                     nextActionInfo.ActivateDistanceM - thisItem.ActivateDistanceM < activityClearingDistanceM)
                 {
                     actionValid = false;
@@ -5735,15 +5735,15 @@ namespace Orts.Simulation.AIs
                         }
 
                         // if still earlier : check if signal really beyond start of platform
-                        if (earlier && (StationStops[0].DistanceToTrainM - thisItem.ActiveItem.distance_to_train) < StationStops[0].StopOffset)
+                        if (earlier && (StationStops[0].DistanceToTrainM - thisItem.ActiveItem.DistanceToTrain) < StationStops[0].StopOffset)
                         {
                             earlier = false;
                             if (CheckTrain)
                             {
                                 File.AppendAllText(@"C:\temp\checktrain.txt", "station stop position corrected due to signal location ; was : "
-                                    + StationStops[0].DistanceToTrainM.ToString() + " ; now is " + (thisItem.ActiveItem.distance_to_train - 1).ToString() + "\n");
+                                    + StationStops[0].DistanceToTrainM.ToString() + " ; now is " + (thisItem.ActiveItem.DistanceToTrain - 1).ToString() + "\n");
                             }
-                            StationStops[0].DistanceToTrainM = thisItem.ActiveItem.distance_to_train - 1;
+                            StationStops[0].DistanceToTrainM = thisItem.ActiveItem.DistanceToTrain - 1;
                             nextActionInfo.ActivateDistanceM = thisItem.ActivateDistanceM - 1;
                         } 
                     }
@@ -5752,7 +5752,7 @@ namespace Orts.Simulation.AIs
 
                     if (thisItem.NextAction == AIActionItem.AI_ACTION_TYPE.STATION_STOP && nextActionInfo.NextAction == AIActionItem.AI_ACTION_TYPE.SIGNAL_ASPECT_STOP)
                     {
-                        if (StationStops[0].DistanceToTrainM < nextActionInfo.ActiveItem.distance_to_train)
+                        if (StationStops[0].DistanceToTrainM < nextActionInfo.ActiveItem.DistanceToTrain)
                         {
                             earlier = true;
                         }
@@ -5764,7 +5764,7 @@ namespace Orts.Simulation.AIs
                     if (!earlier && thisItem.NextAction == AIActionItem.AI_ACTION_TYPE.STATION_STOP &&
                                nextActionInfo.NextAction == AIActionItem.AI_ACTION_TYPE.SIGNAL_ASPECT_STOP)
                     {
-                        if (HoldingSignals.Contains(nextActionInfo.ActiveItem.ObjectDetails.thisRef))
+                        if (HoldingSignals.Contains(nextActionInfo.ActiveItem.SignalDetails.thisRef))
                         {
                             earlier = true;
                             thisItem.ActivateDistanceM = Math.Min(nextActionInfo.ActivateDistanceM, thisItem.ActivateDistanceM);
@@ -5787,7 +5787,7 @@ namespace Orts.Simulation.AIs
                                nextActionInfo.NextAction == AIActionItem.AI_ACTION_TYPE.SIGNAL_ASPECT_STOP)
                     {
                         // check if it is the the AI action is related to the signal linked to the WP
-                        if ((nextActionInfo.ActiveItem.ObjectDetails.HasLockForTrain(Number, TCRoute.activeSubpath) && thisItem.ActivateDistanceM - nextActionInfo.ActivateDistanceM < 40) ||
+                        if ((nextActionInfo.ActiveItem.SignalDetails.HasLockForTrain(Number, TCRoute.activeSubpath) && thisItem.ActivateDistanceM - nextActionInfo.ActivateDistanceM < 40) ||
                             thisItem.ActivateDistanceM - nextActionInfo.ActivateDistanceM < activityClearingDistanceM)
                         {
                             earlier = true;
@@ -6681,7 +6681,7 @@ namespace Orts.Simulation.AIs
         public float RequiredSpeedMpS;
         public float ActivateDistanceM;
         public float InsertedDistanceM;
-        public ObjectItemInfo ActiveItem;
+        public SignalItemInfo ActiveItem;
         public int ReqTablePath;
 
         public enum AI_ACTION_TYPE
@@ -6707,7 +6707,7 @@ namespace Orts.Simulation.AIs
         /// constructor for AIActionItem
         /// </summary>
 
-        public AIActionItem(ObjectItemInfo thisItem, AI_ACTION_TYPE thisAction)
+        public AIActionItem(SignalItemInfo thisItem, AI_ACTION_TYPE thisAction)
         {
             ActiveItem = thisItem;
             NextAction = thisAction;
@@ -6735,45 +6735,12 @@ namespace Orts.Simulation.AIs
             InsertedDistanceM = inf.ReadSingle();
             ReqTablePath = inf.ReadInt32();
 
-            bool validActiveItem = inf.ReadBoolean();
-
-            if (validActiveItem)
+            if (inf.ReadBoolean())
             {
-                ActiveItem = RestoreActiveItem(inf, signalRef);
+                ActiveItem = SignalItemInfo.Restore(inf, signalRef);
             }
 
             NextAction = (AI_ACTION_TYPE)inf.ReadInt32();
-        }
-
-        public static ObjectItemInfo RestoreActiveItem(BinaryReader inf, Signals signalRef)
-        {
-
-            ObjectItemInfo thisInfo = new ObjectItemInfo(ObjectItemInfo.ObjectItemFindState.None);
-
-            thisInfo.ObjectType = (ObjectItemInfo.ObjectItemType)inf.ReadInt32();
-            thisInfo.ObjectState = (ObjectItemInfo.ObjectItemFindState)inf.ReadInt32();
-
-            int signalIndex = inf.ReadInt32();
-            thisInfo.ObjectDetails = signalRef.SignalObjects[signalIndex];
-
-            thisInfo.distance_found = inf.ReadSingle();
-            thisInfo.distance_to_train = inf.ReadSingle();
-            thisInfo.distance_to_object = inf.ReadSingle();
-
-            thisInfo.speed_passenger = inf.ReadSingle();
-            thisInfo.speed_freight = inf.ReadSingle();
-            thisInfo.SpeedFlag = inf.ReadBoolean();
-            thisInfo.actual_speed = inf.ReadSingle();
-
-            thisInfo.processed = inf.ReadBoolean();
-
-            thisInfo.signal_state = SignalAspectState.Unknown;
-            if (thisInfo.ObjectDetails.isSignal)
-            {
-                thisInfo.signal_state = thisInfo.ObjectDetails.this_sig_lr(SignalFunction.Normal);
-            }
-
-            return (thisInfo);
         }
 
         //================================================================================================//
@@ -6795,29 +6762,10 @@ namespace Orts.Simulation.AIs
             else
             {
                 outf.Write(true);
-                SaveActiveItem(outf, ActiveItem);
+                SignalItemInfo.Save(outf, ActiveItem);
             }
 
             outf.Write((int)NextAction);
-        }
-
-        public static void SaveActiveItem(BinaryWriter outf, ObjectItemInfo ActiveItem)
-        {
-            outf.Write((int)ActiveItem.ObjectType);
-            outf.Write((int)ActiveItem.ObjectState);
-
-            outf.Write(ActiveItem.ObjectDetails.thisRef);
-
-            outf.Write(ActiveItem.distance_found);
-            outf.Write(ActiveItem.distance_to_train);
-            outf.Write(ActiveItem.distance_to_object);
-
-            outf.Write(ActiveItem.speed_passenger);
-            outf.Write(ActiveItem.speed_freight);
-            outf.Write(ActiveItem.SpeedFlag);
-            outf.Write(ActiveItem.actual_speed);
-
-            outf.Write(ActiveItem.processed);
         }
 
         //================================================================================================//

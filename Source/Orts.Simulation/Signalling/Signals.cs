@@ -1302,7 +1302,7 @@ namespace Orts.Simulation.Signalling
                 int routeIndex, float routePosition, float maxDistance, SignalFunction fn_type, Train.TrainRouted thisTrain)
         {
 
-            ObjectItemInfo.ObjectItemFindState locstate = ObjectItemInfo.ObjectItemFindState.None;
+            SignalItemInfo.FindState locstate = SignalItemInfo.FindState.None;
             // local processing state     //
 
             int actRouteIndex = routeIndex;      // present node               //
@@ -1324,7 +1324,7 @@ namespace Orts.Simulation.Signalling
             //  - max distance is covered
             //
 
-            while (locstate == ObjectItemInfo.ObjectItemFindState.None)
+            while (locstate == SignalItemInfo.FindState.None)
             {
 
                 // normal signal
@@ -1334,7 +1334,7 @@ namespace Orts.Simulation.Signalling
                     {
                         foundObject = thisSection.EndSignals[actDirection];
                         totalLength += (thisSection.Length - lengthOffset);
-                        locstate = ObjectItemInfo.ObjectItemFindState.Object;
+                        locstate = SignalItemInfo.FindState.Item;
                     }
                 }
 
@@ -1343,11 +1343,11 @@ namespace Orts.Simulation.Signalling
                 {
                     TrackCircuitSignalList thisSpeedpostList =
                                thisSection.CircuitItems.TrackCircuitSpeedPosts[actDirection];
-                    locstate = ObjectItemInfo.ObjectItemFindState.None;
+                    locstate = SignalItemInfo.FindState.None;
 
                     for (int iPost = 0;
                              iPost < thisSpeedpostList.TrackCircuitItem.Count &&
-                                     locstate == ObjectItemInfo.ObjectItemFindState.None;
+                                     locstate == SignalItemInfo.FindState.None;
                              iPost++)
                     {
                         TrackCircuitSignalItem thisSpeedpost = thisSpeedpostList.TrackCircuitItem[iPost];
@@ -1359,7 +1359,7 @@ namespace Orts.Simulation.Signalling
                             if (thisTrain == null || (thisSpeed != null && (thisSpeed.Flag || thisSpeed.Reset ||
                                 (thisTrain.Train.IsFreight && thisSpeed.FreightSpeed != -1) || (!thisTrain.Train.IsFreight && thisSpeed.PassengerSpeed != -1))))
                             {
-                                locstate = ObjectItemInfo.ObjectItemFindState.Object;
+                                locstate = SignalItemInfo.FindState.Item;
                                 foundObject = thisSpeedpost.SignalRef;
                                 totalLength += (thisSpeedpost.SignalLocation - lengthOffset);
                             }
@@ -1367,7 +1367,7 @@ namespace Orts.Simulation.Signalling
                             // also set signal in list if it is a speed signal as state of speed signal may change
                             else if (thisSpeedpost.SignalRef.isSpeedSignal)
                             {
-                                locstate = ObjectItemInfo.ObjectItemFindState.Object;
+                                locstate = SignalItemInfo.FindState.Item;
                                 foundObject = thisSpeedpost.SignalRef;
                                 totalLength += (thisSpeedpost.SignalLocation - lengthOffset);
                             }
@@ -1379,13 +1379,13 @@ namespace Orts.Simulation.Signalling
                 {
                     TrackCircuitSignalList thisSignalList =
                         thisSection.CircuitItems.TrackCircuitSignals[actDirection][(int)fn_type];
-                    locstate = ObjectItemInfo.ObjectItemFindState.None;
+                    locstate = SignalItemInfo.FindState.None;
 
                     foreach (TrackCircuitSignalItem thisSignal in thisSignalList.TrackCircuitItem)
                     {
                         if (thisSignal.SignalLocation > lengthOffset)
                         {
-                            locstate = ObjectItemInfo.ObjectItemFindState.Object;
+                            locstate = SignalItemInfo.FindState.Item;
                             foundObject = thisSignal.SignalRef;
                             totalLength += (thisSignal.SignalLocation - lengthOffset);
                             break;
@@ -1395,7 +1395,7 @@ namespace Orts.Simulation.Signalling
 
                     // next section accessed via next route element
 
-                    if (locstate == ObjectItemInfo.ObjectItemFindState.None)
+                    if (locstate == SignalItemInfo.FindState.None)
                 {
                     totalLength += (thisSection.Length - lengthOffset);
                     lengthOffset = 0;
@@ -1405,15 +1405,15 @@ namespace Orts.Simulation.Signalling
 
                     if (setSection < 0)
                     {
-                        locstate = ObjectItemInfo.ObjectItemFindState.EndOfAuthority;
+                        locstate = SignalItemInfo.FindState.EndOfAuthority;
                     }
                     else if (actRouteIndex >= routePath.Count)
                     {
-                        locstate = ObjectItemInfo.ObjectItemFindState.EndOfPath;
+                        locstate = SignalItemInfo.FindState.EndOfPath;
                     }
                     else if (maxDistance > 0 && totalLength > maxDistance)
                     {
-                        locstate = ObjectItemInfo.ObjectItemFindState.PassedMaximumDistance;
+                        locstate = SignalItemInfo.FindState.PassedMaximumDistance;
                     }
                     else
                     {
@@ -1458,8 +1458,8 @@ namespace Orts.Simulation.Signalling
 
 
         // call without position
-        public ObjectItemInfo GetNextObject_InRoute(Train.TrainRouted thisTrain, Train.TCSubpathRoute routePath,
-                    int routeIndex, float routePosition, float maxDistance, ObjectItemInfo.ObjectItemType req_type)
+        public SignalItemInfo GetNextObject_InRoute(Train.TrainRouted thisTrain, Train.TCSubpathRoute routePath,
+                    int routeIndex, float routePosition, float maxDistance, SignalItemInfo.ItemType req_type)
         {
 
             Train.TCPosition thisPosition = thisTrain.Train.PresentPosition[thisTrain.TrainRouteDirectionIndex];
@@ -1468,8 +1468,8 @@ namespace Orts.Simulation.Signalling
         }
 
         // call with position
-        public ObjectItemInfo GetNextObject_InRoute(Train.TrainRouted thisTrain, Train.TCSubpathRoute routePath,
-                    int routeIndex, float routePosition, float maxDistance, ObjectItemInfo.ObjectItemType req_type,
+        public SignalItemInfo GetNextObject_InRoute(Train.TrainRouted thisTrain, Train.TCSubpathRoute routePath,
+                    int routeIndex, float routePosition, float maxDistance, SignalItemInfo.ItemType req_type,
                     Train.TCPosition thisPosition)
         {
 
@@ -1481,14 +1481,14 @@ namespace Orts.Simulation.Signalling
             float signalDistance = -1f;
             float speedpostDistance = -1f;
 
-            if (req_type == ObjectItemInfo.ObjectItemType.Any ||
-                req_type == ObjectItemInfo.ObjectItemType.Signal)
+            if (req_type == SignalItemInfo.ItemType.Any ||
+                req_type == SignalItemInfo.ItemType.Signal)
             {
                 findSignal = true;
             }
 
-            if (req_type == ObjectItemInfo.ObjectItemType.Any ||
-                req_type == ObjectItemInfo.ObjectItemType.Speedlimit)
+            if (req_type == SignalItemInfo.ItemType.Any ||
+                req_type == SignalItemInfo.ItemType.Speedlimit)
             {
                 findSpeedpost = true;
             }
@@ -1523,24 +1523,24 @@ namespace Orts.Simulation.Signalling
 
             // always find signal to check for signal at danger
 
-            ObjectItemInfo.ObjectItemFindState signalState = ObjectItemInfo.ObjectItemFindState.None;
+            SignalItemInfo.FindState signalState = SignalItemInfo.FindState.None;
 
             TrackCircuitSignalItem nextSignal =
                 Find_Next_Object_InRoute(usedRoute, routeIndex, routePosition,
                         maxDistance, SignalFunction.Normal, thisTrain);
 
             signalState = nextSignal.SignalState;
-            if (nextSignal.SignalState == ObjectItemInfo.ObjectItemFindState.Object)
+            if (nextSignal.SignalState == SignalItemInfo.FindState.Item)
             {
                 signalDistance = nextSignal.SignalLocation;
                 Signal foundSignal = nextSignal.SignalRef;
                 if (foundSignal.this_sig_lr(SignalFunction.Normal) == SignalAspectState.Stop)
                 {
-                    signalState = ObjectItemInfo.ObjectItemFindState.PassedDanger;
+                    signalState = SignalItemInfo.FindState.PassedDanger;
                 }
                 else if (thisTrain != null && foundSignal.enabledTrain != thisTrain)
                 {
-                    signalState = ObjectItemInfo.ObjectItemFindState.PassedDanger;
+                    signalState = SignalItemInfo.FindState.PassedDanger;
                     nextSignal.SignalState = signalState;  // do not return OBJECT_FOUND - signal is not valid
                 }
 
@@ -1554,7 +1554,7 @@ namespace Orts.Simulation.Signalling
                     Find_Next_Object_InRoute(usedRoute, routeIndex, routePosition,
                         maxDistance, SignalFunction.Speed, thisTrain);
 
-                if (nextSpeedpost.SignalState == ObjectItemInfo.ObjectItemFindState.Object)
+                if (nextSpeedpost.SignalState == SignalItemInfo.FindState.Item)
                 {
                     speedpostDistance = nextSpeedpost.SignalLocation;
                     Signal foundSignal = nextSpeedpost.SignalRef;
@@ -1572,7 +1572,7 @@ namespace Orts.Simulation.Signalling
                         else
                         {
                             foundItem = nextSpeedpost;
-                            if (signalState == ObjectItemInfo.ObjectItemFindState.PassedDanger)
+                            if (signalState == SignalItemInfo.FindState.PassedDanger)
                             {
                                 foundItem.SignalState = signalState;
                             }
@@ -1598,19 +1598,18 @@ namespace Orts.Simulation.Signalling
             }
 
 
-            ObjectItemInfo returnItem = null;
-
+            SignalItemInfo returnItem;
             if (foundItem == null)
             {
-                returnItem = new ObjectItemInfo(ObjectItemInfo.ObjectItemFindState.None);
+                returnItem = new SignalItemInfo(SignalItemInfo.FindState.None);
             }
-            else if (foundItem.SignalState != ObjectItemInfo.ObjectItemFindState.Object)
+            else if (foundItem.SignalState != SignalItemInfo.FindState.Item)
             {
-                returnItem = new ObjectItemInfo(foundItem.SignalState);
+                returnItem = new SignalItemInfo(foundItem.SignalState);
             }
             else
             {
-                returnItem = new ObjectItemInfo(foundItem.SignalRef, foundItem.SignalLocation);
+                returnItem = new SignalItemInfo(foundItem.SignalRef, foundItem.SignalLocation);
             }
 
             return (returnItem);
@@ -1873,7 +1872,7 @@ namespace Orts.Simulation.Signalling
 							var thisSpeedpost = thisItem.SignalRef;
 							var speedpostDistance = thisItem.SignalLocation;
 
-							var speedInfo = new ObjectItemInfo(thisSpeedpost, speedpostDistance);
+							var speedInfo = new SignalItemInfo(thisSpeedpost, speedpostDistance);
 							tcbb.AppendFormat("{0} = pass : {1} ; freight : {2} - at distance {3}\n", thisSpeedpost.thisRef, speedInfo.speed_passenger, speedInfo.speed_freight, speedpostDistance);
                         }
 
@@ -7566,7 +7565,7 @@ namespace Orts.Simulation.Signalling
 
     public class TrackCircuitSignalItem
     {
-        public ObjectItemInfo.ObjectItemFindState SignalState;  // returned state // 
+        public SignalItemInfo.FindState SignalState;  // returned state // 
         public Signal SignalRef;            // related SignalObject     //
         public float SignalLocation;              // relative signal position //
 
@@ -7578,7 +7577,7 @@ namespace Orts.Simulation.Signalling
 
         public TrackCircuitSignalItem(Signal thisRef, float thisLocation)
         {
-            SignalState = ObjectItemInfo.ObjectItemFindState.Object;
+            SignalState = SignalItemInfo.FindState.Item;
             SignalRef = thisRef;
             SignalLocation = thisLocation;
         }
@@ -7589,7 +7588,7 @@ namespace Orts.Simulation.Signalling
         /// Constructor setting state
         /// </summary>
 
-        public TrackCircuitSignalItem(ObjectItemInfo.ObjectItemFindState thisState)
+        public TrackCircuitSignalItem(SignalItemInfo.FindState thisState)
         {
             SignalState = thisState;
         }
@@ -8968,7 +8967,7 @@ namespace Orts.Simulation.Signalling
         public SpeedInfo this_sig_speed(SignalFunction fn_type)
         {
             var sigAsp = SignalAspectState.Stop;
-            var set_speed = new SpeedInfo(-1, -1, false, false, 0);
+            var set_speed = new SpeedInfo(null);
 
             foreach (SignalHead sigHead in SignalHeads)
             {
@@ -9601,7 +9600,7 @@ namespace Orts.Simulation.Signalling
 
             // find next speed object
             TrackCircuitSignalItem foundItem = signalRef.Find_Next_Object_InRoute(enabledTrain.Train.ValidRoute[0], routeListIndex, TCOffset, -1, SignalFunction.Speed, enabledTrain);
-            if (foundItem.SignalState == ObjectItemInfo.ObjectItemFindState.Object)
+            if (foundItem.SignalState == SignalItemInfo.FindState.Item)
             {
                 return (foundItem.SignalRef.thisRef);
             }
@@ -12429,99 +12428,6 @@ namespace Orts.Simulation.Signalling
         }
 
     }  // SignalObject
-
-    //================================================================================================//
-    /// <summary>
-    ///
-    /// class ObjectItemInfo
-    ///
-    /// </summary>
-    //================================================================================================//
-
-    public class ObjectItemInfo
-    {
-        public enum ObjectItemType
-        {
-            Any,
-            Signal,
-            Speedlimit,
-        }
-
-        public enum ObjectItemFindState
-        {
-            None = 0,
-            Object = 1,
-            EndOfTrack = -1,
-            PassedDanger = -2,
-            PassedMaximumDistance = -3,
-            TdbError = -4,
-            EndOfAuthority = -5,
-            EndOfPath = -6,
-        }
-
-        public ObjectItemType ObjectType;                     // type information
-        public ObjectItemFindState ObjectState;               // state information
-
-        public Signal ObjectDetails;                    // actual object 
-
-        public float distance_found;
-        public float distance_to_train;
-        public float distance_to_object;
-
-        public SignalAspectState signal_state;                   // UNKNOWN if type = speedlimit
-        // set active by TRAIN
-        public float speed_passenger;                // -1 if not set
-        public float speed_freight;                  // -1 if not set
-        public bool SpeedFlag;
-        public bool SpeedReset;
-        // for signals: if = 1 no speed reduction; for speedposts: if = 0 standard; = 1 start of temp speedreduction post; = 2 end of temp speed reduction post
-        public int speed_noSpeedReductionOrIsTempSpeedReduction; 
-        public float actual_speed;                   // set active by TRAIN
-
-        public bool processed;                       // for AI trains, set active by TRAIN
-
-        //================================================================================================//
-        /// <summary>
-        /// Constructor
-        /// </summary>
-
-        public ObjectItemInfo(Signal thisObject, float distance)
-        {
-            SpeedInfo speed_info;
-            ObjectState = ObjectItemFindState.Object;
-
-            distance_found = distance;
-
-            ObjectDetails = thisObject;
-
-            if (thisObject.isSignal)
-            {
-                ObjectType = ObjectItemType.Signal;
-                signal_state = SignalAspectState.Unknown;  // set active by TRAIN
-                speed_passenger = -1;                      // set active by TRAIN
-                speed_freight = -1;                      // set active by TRAIN
-                SpeedFlag = false;                       // set active by TRAIN
-                SpeedReset = false;                      // set active by TRAIN
-                speed_noSpeedReductionOrIsTempSpeedReduction = 0;
-            }
-            else
-            {
-                ObjectType = ObjectItemType.Speedlimit;
-                signal_state = SignalAspectState.Unknown;
-                speed_info = thisObject.this_lim_speed(SignalFunction.Speed);
-                speed_passenger = speed_info.PassengerSpeed;
-                speed_freight = speed_info.FreightSpeed;
-                SpeedFlag = speed_info.Flag;
-                SpeedReset = speed_info.Reset;
-                speed_noSpeedReductionOrIsTempSpeedReduction = speed_info.LimitedSpeedReduction;
-            }
-        }
-
-        public ObjectItemInfo(ObjectItemFindState thisState)
-        {
-            ObjectState = thisState;
-        }
-    }
 
     //================================================================================================//
     /// <summary>

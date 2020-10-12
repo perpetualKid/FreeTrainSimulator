@@ -3378,9 +3378,9 @@ namespace Orts.Simulation.Timetables
                 SignalAspectState nextAspect = SignalAspectState.Unknown;
                 // there is a next item and it is the next signal
                 if (nextActionInfo != null && nextActionInfo.ActiveItem != null &&
-                    nextActionInfo.ActiveItem.ObjectDetails == NextSignalObject[0])
+                    nextActionInfo.ActiveItem.SignalDetails == NextSignalObject[0])
                 {
-                    nextAspect = nextActionInfo.ActiveItem.ObjectDetails.this_sig_lr(SignalFunction.Normal);
+                    nextAspect = nextActionInfo.ActiveItem.SignalDetails.this_sig_lr(SignalFunction.Normal);
                 }
                 else
                 {
@@ -3402,16 +3402,16 @@ namespace Orts.Simulation.Timetables
 
                     for (int iitem = 0; iitem <= SignalObjectItems.Count - 1 && withinDistance && signalCleared; iitem++)
                     {
-                        ObjectItemInfo nextObject = SignalObjectItems[iitem];
-                        if (nextObject.ObjectType == ObjectItemInfo.ObjectItemType.Signal)
+                        SignalItemInfo nextObject = SignalObjectItems[iitem];
+                        if (nextObject.SignalItemType == SignalItemInfo.ItemType.Signal)
                         {
-                            if (nextObject.ObjectDetails != NextSignalObject[0]) // not signal we are waiting for
+                            if (nextObject.SignalDetails != NextSignalObject[0]) // not signal we are waiting for
                             {
-                                if (nextObject.distance_to_train > 2.0 * clearingDistanceM)
+                                if (nextObject.DistanceToTrain > 2.0 * clearingDistanceM)
                                 {
                                     withinDistance = false;  // signal is far enough ahead
                                 }
-                                else if (nextObject.signal_state == SignalAspectState.Stop)
+                                else if (nextObject.SignalState == SignalAspectState.Stop)
                                 {
                                     signalCleared = false;   // signal is not clear
                                     NextSignalObject[0].ForcePropagation = true;
@@ -3435,16 +3435,16 @@ namespace Orts.Simulation.Timetables
 
                     for (int iitem = 0; iitem <= SignalObjectItems.Count - 1 && withinDistance && signalCleared; iitem++)
                     {
-                        ObjectItemInfo nextObject = SignalObjectItems[iitem];
-                        if (nextObject.ObjectType == ObjectItemInfo.ObjectItemType.Signal)
+                        SignalItemInfo nextObject = SignalObjectItems[iitem];
+                        if (nextObject.SignalItemType == SignalItemInfo.ItemType.Signal)
                         {
-                            if (nextObject.ObjectDetails != NextSignalObject[0]) // not signal we are waiting for
+                            if (nextObject.SignalDetails != NextSignalObject[0]) // not signal we are waiting for
                             {
-                                if (nextObject.distance_to_train > 2.0 * clearingDistanceM)
+                                if (nextObject.DistanceToTrain > 2.0 * clearingDistanceM)
                                 {
                                     withinDistance = false;  // signal is far enough ahead
                                 }
-                                else if (nextObject.signal_state == SignalAspectState.Stop)
+                                else if (nextObject.SignalState == SignalAspectState.Stop)
                                 {
                                     // set this signal as passed, and next signal as waiting
                                     signalCleared = false;   // signal is not clear
@@ -4169,7 +4169,7 @@ namespace Orts.Simulation.Timetables
 
             else if (nextActionInfo.NextAction == AIActionItem.AI_ACTION_TYPE.SPEED_SIGNAL)
             {
-                if (nextActionInfo.ActiveItem.actual_speed >= AllowedMaxSpeedMpS)
+                if (nextActionInfo.ActiveItem.ActualSpeed >= AllowedMaxSpeedMpS)
                 {
                     clearAction = true;
 
@@ -4187,8 +4187,8 @@ namespace Orts.Simulation.Timetables
                     {
                         File.AppendAllText(@"C:\temp\checktrain.txt", "Train " +
                               Number.ToString() + " : signal " +
-                              nextActionInfo.ActiveItem.ObjectDetails.thisRef.ToString() + " : speed : " +
-                              FormatStrings.FormatSpeed(nextActionInfo.ActiveItem.actual_speed, true) + " >= limit : " +
+                              nextActionInfo.ActiveItem.SignalDetails.thisRef.ToString() + " : speed : " +
+                              FormatStrings.FormatSpeed(nextActionInfo.ActiveItem.ActualSpeed, true) + " >= limit : " +
                               FormatStrings.FormatSpeed(AllowedMaxSpeedMpS, true) + " at " +
                             //FormatStrings.FormatDistance(nextActionInfo.ActivateDistanceM, true) + " (now at " +
                             //FormatStrings.FormatDistance(PresentPosition[0].DistanceTravelledM, true) + " - " +
@@ -4197,7 +4197,7 @@ namespace Orts.Simulation.Timetables
                               FormatStrings.FormatSpeed(SpeedMpS, true) + ")\n");
                     }
                 }
-                else if (nextActionInfo.ActiveItem.actual_speed < 0)
+                else if (nextActionInfo.ActiveItem.ActualSpeed < 0)
                 {
                     clearAction = true;
 
@@ -4214,8 +4214,8 @@ namespace Orts.Simulation.Timetables
                     {
                         File.AppendAllText(@"C:\temp\checktrain.txt", "Train " +
                               Number.ToString() + " : signal " +
-                              nextActionInfo.ActiveItem.ObjectDetails.thisRef.ToString() + " : speed : " +
-                              FormatStrings.FormatSpeed(nextActionInfo.ActiveItem.actual_speed, true) + " cleared at " +
+                              nextActionInfo.ActiveItem.SignalDetails.thisRef.ToString() + " : speed : " +
+                              FormatStrings.FormatSpeed(nextActionInfo.ActiveItem.ActualSpeed, true) + " cleared at " +
                               nextActionInfo.ActivateDistanceM.ToString() + " (now at " +
                               PresentPosition[0].DistanceTravelledM.ToString() + " - " +
                               FormatStrings.FormatSpeed(SpeedMpS, true) + ")\n");
@@ -4228,7 +4228,7 @@ namespace Orts.Simulation.Timetables
             else if (nextActionInfo.NextAction == AIActionItem.AI_ACTION_TYPE.SIGNAL_ASPECT_STOP)
             {
 
-                if (nextActionInfo.ActiveItem.signal_state >= SignalAspectState.Approach_1)
+                if (nextActionInfo.ActiveItem.SignalState >= SignalAspectState.Approach_1)
                 {
                     clearAction = true;
 
@@ -4244,7 +4244,7 @@ namespace Orts.Simulation.Timetables
                     {
                         File.AppendAllText(@"C:\temp\checktrain.txt", "Train " +
                               Number.ToString() + " : signal " +
-                              nextActionInfo.ActiveItem.ObjectDetails.thisRef.ToString() + " at " +
+                              nextActionInfo.ActiveItem.SignalDetails.thisRef.ToString() + " at " +
                             //FormatStrings.FormatDistance(nextActionInfo.ActivateDistanceM, true) + " cleared (now at " +
                             //FormatStrings.FormatDistance(PresentPosition[0].DistanceTravelledM, true) + " - " +
                               nextActionInfo.ActivateDistanceM.ToString() + " cleared (now at " +
@@ -4252,11 +4252,11 @@ namespace Orts.Simulation.Timetables
                               FormatStrings.FormatSpeed(SpeedMpS, true) + ")\n");
                     }
                 }
-                else if (nextActionInfo.ActiveItem.signal_state != SignalAspectState.Stop)
+                else if (nextActionInfo.ActiveItem.SignalState != SignalAspectState.Stop)
                 {
                     nextActionInfo.NextAction = AIActionItem.AI_ACTION_TYPE.SIGNAL_ASPECT_RESTRICTED;
                     if (((nextActionInfo.ActivateDistanceM - PresentPosition[0].DistanceTravelledM) < signalApproachDistanceM) ||
-                         nextActionInfo.ActiveItem.ObjectDetails.this_sig_noSpeedReduction(SignalFunction.Normal))
+                         nextActionInfo.ActiveItem.SignalDetails.this_sig_noSpeedReduction(SignalFunction.Normal))
                     {
                         clearAction = true;
 #if DEBUG_REPORTS
@@ -4271,7 +4271,7 @@ namespace Orts.Simulation.Timetables
                         {
                             File.AppendAllText(@"C:\temp\checktrain.txt",
                               Number.ToString() + " : signal " +
-                              nextActionInfo.ActiveItem.ObjectDetails.thisRef.ToString() + " at " +
+                              nextActionInfo.ActiveItem.SignalDetails.thisRef.ToString() + " at " +
                                 //FormatStrings.FormatDistance(nextActionInfo.ActivateDistanceM, true) + " cleared (now at " +
                                 //FormatStrings.FormatDistance(PresentPosition[0].DistanceTravelledM, true) + " - " +
                               nextActionInfo.ActivateDistanceM.ToString() + " cleared (now at " +
@@ -4286,9 +4286,9 @@ namespace Orts.Simulation.Timetables
 
             else if (nextActionInfo.NextAction == AIActionItem.AI_ACTION_TYPE.SIGNAL_ASPECT_RESTRICTED)
             {
-                if ((nextActionInfo.ActiveItem.signal_state >= SignalAspectState.Approach_1) ||
+                if ((nextActionInfo.ActiveItem.SignalState >= SignalAspectState.Approach_1) ||
                    ((nextActionInfo.ActivateDistanceM - PresentPosition[0].DistanceTravelledM) < signalApproachDistanceM) ||
-                   (nextActionInfo.ActiveItem.ObjectDetails.this_sig_noSpeedReduction(SignalFunction.Normal)))
+                   (nextActionInfo.ActiveItem.SignalDetails.this_sig_noSpeedReduction(SignalFunction.Normal)))
                 {
                     clearAction = true;
 #if DEBUG_REPORTS
@@ -4303,7 +4303,7 @@ namespace Orts.Simulation.Timetables
                     {
                         File.AppendAllText(@"C:\temp\checktrain.txt",
                           Number.ToString() + " : signal " +
-                          nextActionInfo.ActiveItem.ObjectDetails.thisRef.ToString() + " at " +
+                          nextActionInfo.ActiveItem.SignalDetails.thisRef.ToString() + " at " +
                             //FormatStrings.FormatDistance(nextActionInfo.ActivateDistanceM, true) + " cleared (now at " +
                             //FormatStrings.FormatDistance(PresentPosition[0].DistanceTravelledM, true) + " - " +
                           nextActionInfo.ActivateDistanceM.ToString() + " cleared (now at " +
@@ -4351,7 +4351,7 @@ namespace Orts.Simulation.Timetables
                     }
 
                 }
-                else if (nextActionInfo.ActiveItem.actual_speed != nextActionInfo.RequiredSpeedMpS)
+                else if (nextActionInfo.ActiveItem.ActualSpeed != nextActionInfo.RequiredSpeedMpS)
                 {
                     clearAction = true;
 
@@ -4369,7 +4369,7 @@ namespace Orts.Simulation.Timetables
                         File.AppendAllText(@"C:\temp\checktrain.txt", "Train " +
                               Number.ToString() + " : speed : " +
                               FormatStrings.FormatSpeed(nextActionInfo.RequiredSpeedMpS, true) + " changed to : " +
-                              FormatStrings.FormatSpeed(nextActionInfo.ActiveItem.actual_speed, true) + " at " +
+                              FormatStrings.FormatSpeed(nextActionInfo.ActiveItem.ActualSpeed, true) + " at " +
                               nextActionInfo.ActivateDistanceM.ToString() + " (now at " +
                               PresentPosition[0].DistanceTravelledM.ToString() + " - " +
                               FormatStrings.FormatSpeed(SpeedMpS, true) + ")\n");
@@ -4422,7 +4422,7 @@ namespace Orts.Simulation.Timetables
 
                 if (nextActionInfo.ActiveItem != null)
                 {
-                    distanceToGoM = nextActionInfo.ActiveItem.distance_to_train;
+                    distanceToGoM = nextActionInfo.ActiveItem.DistanceToTrain;
                 }
 
                 // check if stopped at station
