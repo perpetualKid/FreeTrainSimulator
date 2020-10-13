@@ -4222,7 +4222,7 @@ namespace Orts.Simulation.Signalling
 
                 if (refIndex == 0)
                 {
-                    thisDetails.Name = String.Copy(thisPlatform.Station);
+                    thisDetails.Name = thisPlatform.Station;
                     thisDetails.MinWaitingTime = thisPlatform.PlatformMinWaitingTime;
                     thisDetails.NumPassengersWaiting = (int)thisPlatform.PlatformNumPassengersWaiting;
                  }
@@ -4233,8 +4233,10 @@ namespace Orts.Simulation.Signalling
 
                 if (platformSidesList.TryGetValue(thisIndex, out thisPlatformData))
                 {
-                    if (((uint)PlatformDataFlag.PlatformLeft & thisPlatformData) != 0) thisDetails.PlatformSide[0] = true;
-                    if (((uint)PlatformDataFlag.PlatformRight & thisPlatformData) != 0) thisDetails.PlatformSide[1] = true;
+                    if (((uint)PlatformDataFlag.PlatformLeft & thisPlatformData) != 0) 
+                        thisDetails.PlatformSide |= PlatformDetails.PlatformSides.Left;
+                    if (((uint)PlatformDataFlag.PlatformRight & thisPlatformData) != 0) 
+                        thisDetails.PlatformSide |= PlatformDetails.PlatformSides.Right;
                 }
 
                 // check if direction correct, else swap 0 - 1 entries for offsets etc.
@@ -5897,11 +5899,7 @@ namespace Orts.Simulation.Signalling
                 }
 
                 // remove from claim or deadlock claim
-
-                if (CircuitState.TrainClaimed.ContainsTrain(thisTrain))
-                {
-                    CircuitState.TrainClaimed = removeFromQueue(CircuitState.TrainClaimed, thisTrain);
-                }
+                CircuitState.TrainClaimed.Remove(thisTrain);
 
                 // get element in routepath to find required alignment
 
@@ -6061,32 +6059,10 @@ namespace Orts.Simulation.Signalling
         {
             if (!CircuitState.TrainClaimed.ContainsTrain(thisTrain))
             {
-
-#if DEBUG_REPORTS
-			File.AppendAllText(@"C:\temp\printproc.txt",
-				String.Format("Claim section {0} for train {1}\n",
-				this.Index,
-				thisTrain.Train.Number));
-#endif
-#if DEBUG_DEADLOCK
-                File.AppendAllText(@"C:\temp\deadlock.txt",
-                    String.Format("Claim section {0} for train {1}\n",
-                    this.Index,
-                    thisTrain.Train.Number));
-#endif
-                if (thisTrain.Train.CheckTrain)
-                {
-                    File.AppendAllText(@"C:\temp\checktrain.txt",
-                        String.Format("Claim section {0} for train {1}\n",
-                        this.Index,
-                        thisTrain.Train.Number));
-                }
-
                 CircuitState.TrainClaimed.Enqueue(thisTrain);
             }
 
             // set deadlock trap if required
-
             if (thisTrain.Train.DeadlockInfo.ContainsKey(Index))
             {
                 SetDeadlockTrap(thisTrain.Train, thisTrain.Train.DeadlockInfo[Index]);
@@ -6149,15 +6125,8 @@ namespace Orts.Simulation.Signalling
             CircuitState.TrainReserved = null;
             CircuitState.SignalReserved = -1;
 
-            if (CircuitState.TrainClaimed.ContainsTrain(thisTrain))
-            {
-                CircuitState.TrainClaimed = removeFromQueue(CircuitState.TrainClaimed, thisTrain);
-            }
-
-            if (CircuitState.TrainPreReserved.ContainsTrain(thisTrain))
-            {
-                CircuitState.TrainPreReserved = removeFromQueue(CircuitState.TrainPreReserved, thisTrain);
-            }
+            CircuitState.TrainClaimed.Remove(thisTrain);
+            CircuitState.TrainPreReserved.Remove(thisTrain);
 
             float distanceToClear = reqDistanceTravelledM + Length + thisTrain.Train.standardOverlapM;
 
@@ -6448,15 +6417,8 @@ namespace Orts.Simulation.Signalling
                 ClearOccupied(thisTrain, resetEndSignal);    // call clear occupy to reset signals and switches //
             }
 
-            if (CircuitState.TrainClaimed.ContainsTrain(thisTrain))
-            {
-                CircuitState.TrainClaimed = removeFromQueue(CircuitState.TrainClaimed, thisTrain);
-            }
-
-            if (CircuitState.TrainPreReserved.ContainsTrain(thisTrain))
-            {
-                CircuitState.TrainPreReserved = removeFromQueue(CircuitState.TrainPreReserved, thisTrain);
-            }
+            CircuitState.TrainClaimed.Remove(thisTrain);
+            CircuitState.TrainPreReserved.Remove(thisTrain);
         }
 
 
@@ -6482,15 +6444,8 @@ namespace Orts.Simulation.Signalling
                 ClearOccupied(thisTrain, resetEndSignal);    // call clear occupy to reset signals and switches //
             }
 
-            if (CircuitState.TrainClaimed.ContainsTrain(thisTrain))
-            {
-                CircuitState.TrainClaimed = removeFromQueue(CircuitState.TrainClaimed, thisTrain);
-            }
-
-            if (CircuitState.TrainPreReserved.ContainsTrain(thisTrain))
-            {
-                CircuitState.TrainPreReserved = removeFromQueue(CircuitState.TrainPreReserved, thisTrain);
-            }
+            CircuitState.TrainClaimed.Remove(thisTrain);
+            CircuitState.TrainPreReserved.Remove(thisTrain);
         }
 
         //================================================================================================//
@@ -6500,10 +6455,7 @@ namespace Orts.Simulation.Signalling
 
         public void UnclaimTrain(Train.TrainRouted thisTrain)
         {
-            if (CircuitState.TrainClaimed.ContainsTrain(thisTrain))
-            {
-                CircuitState.TrainClaimed = removeFromQueue(CircuitState.TrainClaimed, thisTrain);
-            }
+            CircuitState.TrainClaimed.Remove(thisTrain);
         }
 
         //================================================================================================//
@@ -6534,16 +6486,11 @@ namespace Orts.Simulation.Signalling
         public void ClearReversalClaims(Train.TrainRouted thisTrain)
         {
             // check if any trains have claimed this section
-            List<Train.TrainRouted> claimedTrains = new List<Train.TrainRouted>();
+            List<Train.TrainRouted> claimedTrains = new List<Train.TrainRouted>(CircuitState.TrainClaimed);
 
-            // get list of trains with claims on this section
-            foreach (Train.TrainRouted claimingTrain in CircuitState.TrainClaimed)
-            {
-                claimedTrains.Add(claimingTrain);
-            }
+            CircuitState.TrainClaimed.Clear();
             foreach (Train.TrainRouted claimingTrain in claimedTrains)
             {
-                UnclaimTrain(claimingTrain);
                 claimingTrain.Train.ClaimState = false; // reset train claim state
             }
 
@@ -6560,11 +6507,7 @@ namespace Orts.Simulation.Signalling
                 {
                     Train.TrainRouted claimingTrain = claimedTrains[iTrain];
 
-                    if (nextSection.CircuitState.TrainClaimed.ContainsTrain(claimingTrain))
-                    {
-                        nextSection.UnclaimTrain(claimingTrain);
-                    }
-                    else
+                    if (!nextSection.CircuitState.TrainClaimed.Remove(thisTrain))
                     {
                         claimedTrains.Remove(claimingTrain);
                     }
@@ -6572,40 +6515,6 @@ namespace Orts.Simulation.Signalling
 
                 nextSection.Claim(thisTrain);
             }
-        }
-
-        //================================================================================================//
-        /// <summary>
-        /// Remove specified train from queue
-        /// </summary>
-
-        static TrainQueue removeFromQueue(TrainQueue thisQueue, Train.TrainRouted thisTrain)
-        {
-            List<Train.TrainRouted> tempList = new List<Train.TrainRouted>();
-            TrainQueue newQueue = new TrainQueue();
-
-            // extract trains from queue and store in list - this will revert the order!
-            // do not store train which is to be removed
-
-            int queueCount = thisQueue.Count;
-            while (queueCount > 0)
-            {
-                Train.TrainRouted queueTrain = thisQueue.Dequeue();
-                if (thisTrain == null || queueTrain.Train != thisTrain.Train)
-                {
-                    tempList.Add(queueTrain);
-                }
-                queueCount = thisQueue.Count;
-            }
-
-            // restore the order by requeing
-
-            foreach (Train.TrainRouted queueTrain in tempList)
-            {
-                newQueue.Enqueue(queueTrain);
-            }
-
-            return (newQueue);
         }
 
         //================================================================================================//
@@ -7693,41 +7602,6 @@ namespace Orts.Simulation.Signalling
                 if (ContainsTrain(thisTrain.Train.routedForward)) Remove(thisTrain.Train.routedForward);
                 if (ContainsTrain(thisTrain.Train.routedBackward)) Remove(thisTrain.Train.routedBackward);
             }
-        }
-    }
-
-    //================================================================================================//
-    /// <summary>
-    ///
-    /// Class for track circuit state train occupied
-    /// Class is child of Queue class
-    ///
-    /// </summary>
-    //================================================================================================//
-
-    public class TrainQueue : Queue<Train.TrainRouted>
-    {
-        //================================================================================================//
-        /// <summary>
-	/// Peek top train from queue
-        /// </summary>
-
-        public Train PeekTrain()
-        {
-            if (Count <= 0) return (null);
-            Train.TrainRouted thisTrain = Peek();
-            return (thisTrain.Train);
-        }
-
-        //================================================================================================//
-        /// <summary>
-	/// Check if queue contains routed train
-        /// </summary>
-
-        public bool ContainsTrain(Train.TrainRouted thisTrain)
-        {
-            if (thisTrain == null) return (false);
-            return (Contains(thisTrain.Train.routedForward) || Contains(thisTrain.Train.routedBackward));
         }
     }
 
@@ -12428,68 +12302,5 @@ namespace Orts.Simulation.Signalling
         }
 
     }  // SignalObject
-
-    //================================================================================================//
-    /// <summary>
-    ///
-    /// Class Platform Details
-    ///
-    /// </summary>
-    //================================================================================================//
-
-    public class PlatformDetails
-    {
-        public List<int> TCSectionIndex = new List<int>();
-        public int[] PlatformReference = new int[2];
-        public float[,] TCOffset = new float[2, 2];
-        public float[] nodeOffset = new float[2];
-        public float Length;
-        public int[] EndSignals = new int[2] { -1, -1 };
-        public float[] DistanceToSignals = new float[2];
-        public string Name;
-        public uint MinWaitingTime;
-        public int NumPassengersWaiting;
-        public bool[] PlatformSide = new bool[2] { false, false };
-        public int PlatformFrontUiD = -1;
-
-
-        //================================================================================================//
-        /// <summary>
-        /// Constructor
-        /// </summary>
-
-        public PlatformDetails(int platformReference)
-        {
-            PlatformReference[0] = platformReference;
-        }
-
-        //================================================================================================//
-        /// <summary>
-        // Constructor for copy
-        /// </summary>
-
-        public PlatformDetails(PlatformDetails orgDetails)
-        {
-            foreach (int sectionIndex in orgDetails.TCSectionIndex)
-            {
-                TCSectionIndex.Add(sectionIndex);
-            }
-
-            orgDetails.PlatformReference.CopyTo(PlatformReference, 0);
-            TCOffset[0, 0] = orgDetails.TCOffset[0, 0];
-            TCOffset[0, 1] = orgDetails.TCOffset[0, 1];
-            TCOffset[1, 0] = orgDetails.TCOffset[1, 0];
-            TCOffset[1, 1] = orgDetails.TCOffset[1, 1];
-            orgDetails.nodeOffset.CopyTo(nodeOffset, 0);
-            Length = orgDetails.Length;
-            orgDetails.EndSignals.CopyTo(EndSignals, 0);
-            orgDetails.DistanceToSignals.CopyTo(DistanceToSignals, 0);
-            Name = String.Copy(orgDetails.Name);
-            MinWaitingTime = orgDetails.MinWaitingTime;
-            NumPassengersWaiting = orgDetails.NumPassengersWaiting;
-            PlatformSide [0] = orgDetails.PlatformSide[0];
-            PlatformSide[1] = orgDetails.PlatformSide[1];
-        }
-    }
 
 }

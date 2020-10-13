@@ -250,23 +250,20 @@ namespace Orts.Simulation.AIs
             UncondAttach = inf.ReadBoolean();
             doorCloseAdvance = inf.ReadSingle();
             doorOpenDelay = inf.ReadSingle();
-            if ( !Simulator.TimetableMode && doorOpenDelay <= 0 && doorCloseAdvance > 0 && Simulator.OpenDoorsInAITrains &&
+            if (!Simulator.TimetableMode && doorOpenDelay <= 0 && doorCloseAdvance > 0 && Simulator.OpenDoorsInAITrains &&
                 MovementState == AI_MOVEMENT_STATE.STATION_STOP && StationStops.Count > 0)
             {
                 StationStop thisStation = StationStops[0];
                 var frontIsFront = thisStation.PlatformReference == thisStation.PlatformItem.PlatformFrontUiD;
-                foreach (MSTSWagon car in Cars)
+                if ((thisStation.PlatformItem.PlatformSide & PlatformDetails.PlatformSides.Left) == PlatformDetails.PlatformSides.Left)
                 {
-                    if (thisStation.PlatformItem.PlatformSide[0])
-                    {
-                        //open left doors
-                        ToggleDoors(frontIsFront, true);
-                    }
-                    if (thisStation.PlatformItem.PlatformSide[1])
-                    {
-                        //open right doors
-                        ToggleDoors(!frontIsFront, true);
-                    }
+                    //open left doors
+                    ToggleDoors(frontIsFront, true);
+                }
+                if ((thisStation.PlatformItem.PlatformSide & PlatformDetails.PlatformSides.Right) == PlatformDetails.PlatformSides.Right)
+                {
+                    //open right doors
+                    ToggleDoors(!frontIsFront, true);
                 }
             }
             int serviceListCount = inf.ReadInt32();
@@ -1943,12 +1940,12 @@ namespace Orts.Simulation.AIs
                             doorOpenDelay -= (float)elapsedClockSeconds;
                             if (doorOpenDelay < 0)
                             {
-                                if (thisStation.PlatformItem.PlatformSide[0])
+                                if ((thisStation.PlatformItem.PlatformSide & PlatformDetails.PlatformSides.Left) == PlatformDetails.PlatformSides.Left)
                                 {
                                     //open left doors
                                     ToggleDoors(frontIsFront, true);
                                 }
-                                if (thisStation.PlatformItem.PlatformSide[1])
+                                if ((thisStation.PlatformItem.PlatformSide & PlatformDetails.PlatformSides.Right) == PlatformDetails.PlatformSides.Right)
                                 {
                                     //open right doors
                                     ToggleDoors(!frontIsFront, true);
@@ -1960,12 +1957,12 @@ namespace Orts.Simulation.AIs
                             doorCloseAdvance -= (float)elapsedClockSeconds;
                             if (doorCloseAdvance < 0)
                             {
-                                if (thisStation.PlatformItem.PlatformSide[0])
+                                if ((thisStation.PlatformItem.PlatformSide & PlatformDetails.PlatformSides.Left) == PlatformDetails.PlatformSides.Left)
                                 {
                                     //close left doors
                                     ToggleDoors(frontIsFront, false);
                                 }
-                                if (thisStation.PlatformItem.PlatformSide[1])
+                                if ((thisStation.PlatformItem.PlatformSide & PlatformDetails.PlatformSides.Right) == PlatformDetails.PlatformSides.Right)
                                 {
                                     //close right doors
                                     ToggleDoors(!frontIsFront, false);

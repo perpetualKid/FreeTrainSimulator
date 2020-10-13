@@ -408,7 +408,7 @@ namespace Orts.Simulation.Physics
             new Dictionary<int, List<Dictionary<int, int>>>();
 
         // Logging and debugging info
-        public bool CheckTrain;                          // debug print required
+        public readonly bool CheckTrain;                          // debug print required
 
         private static double lastLogTime;          
         private protected bool evaluateTrainSpeed;                  // logging of train speed required
@@ -7388,10 +7388,7 @@ namespace Orts.Simulation.Physics
                     {
                         int sectionIndex = ValidRoute[0][iIndex].TCSectionIndex;
                         TrackCircuitSection claimSection = signalRef.TrackCircuitList[sectionIndex];
-                        if (claimSection.CircuitState.TrainClaimed.ContainsTrain(routedForward))
-                        {
-                            claimSection.UnclaimTrain(routedForward);
-                        }
+                        claimSection.CircuitState.TrainClaimed.Remove(routedForward);
                     }
                 }
             }
@@ -9748,10 +9745,7 @@ namespace Orts.Simulation.Physics
                 foreach (TCRouteElement thisElement in NextSignalObject[0].signalRoute)
                 {
                     TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TCSectionIndex];
-                    if (thisSection.CircuitState.TrainClaimed.ContainsTrain(routedForward))
-                    {
-                        thisSection.UnclaimTrain(routedForward);
-                    }
+                    thisSection.CircuitState.TrainClaimed.Remove(routedForward);
                 }
 
                 // reset signal

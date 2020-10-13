@@ -2556,9 +2556,9 @@ namespace Orts.ActivityRunner.Viewer3D
                                     shortTrav.Move(distanceToViewingPoint1);
                                     // moving location to platform at side of track
                                     float deltaX = (PlatformOffsetM + Viewer.Simulator.SuperElevationGauge / 2) * (float)Math.Cos(shortTrav.RotY) *
-                                        (thisPlatform.PlatformSide[1] ? 1 : -1);
+                                        (((thisPlatform.PlatformSide & PlatformDetails.PlatformSides.Right) == PlatformDetails.PlatformSides.Right) ? 1 : -1);
                                     float deltaZ = -(PlatformOffsetM + Viewer.Simulator.SuperElevationGauge / 2) * (float)Math.Sin(shortTrav.RotY) *
-                                        (thisPlatform.PlatformSide[1] ? 1 : -1);
+                                        (((thisPlatform.PlatformSide & PlatformDetails.PlatformSides.Right) == PlatformDetails.PlatformSides.Right) ? 1 : -1);
                                     TrackCameraLocation = new WorldLocation(tdb.WorldLocation.TileX, tdb.WorldLocation.TileZ, 
                                         tdb.WorldLocation.Location.X + deltaX, tdb.WorldLocation.Location.Y, tdb.WorldLocation.Location.Z + deltaZ);
                                     break;
