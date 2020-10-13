@@ -3403,7 +3403,7 @@ namespace Orts.Simulation.Timetables
                     for (int iitem = 0; iitem <= SignalObjectItems.Count - 1 && withinDistance && signalCleared; iitem++)
                     {
                         SignalItemInfo nextObject = SignalObjectItems[iitem];
-                        if (nextObject.SignalItemType == SignalItemInfo.ItemType.Signal)
+                        if (nextObject.ItemType == SignalItemType.Signal)
                         {
                             if (nextObject.SignalDetails != NextSignalObject[0]) // not signal we are waiting for
                             {
@@ -3436,7 +3436,7 @@ namespace Orts.Simulation.Timetables
                     for (int iitem = 0; iitem <= SignalObjectItems.Count - 1 && withinDistance && signalCleared; iitem++)
                     {
                         SignalItemInfo nextObject = SignalObjectItems[iitem];
-                        if (nextObject.SignalItemType == SignalItemInfo.ItemType.Signal)
+                        if (nextObject.ItemType == SignalItemType.Signal)
                         {
                             if (nextObject.SignalDetails != NextSignalObject[0]) // not signal we are waiting for
                             {

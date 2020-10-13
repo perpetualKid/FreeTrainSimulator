@@ -566,13 +566,13 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 var thisElement = routePath[index];
                 TrackCircuitSection thisSection = Locomotive.Train.signalRef.TrackCircuitList[thisElement.TCSectionIndex];
                 TrackCircuitSignalList thisSignalList = thisSection.CircuitItems.TrackCircuitSignals[thisElement.Direction][fn_type];
-                foreach (TrackCircuitSignalItem thisSignal in thisSignalList.TrackCircuitItem)
+                foreach (TrackCircuitSignalItem thisSignal in thisSignalList)
                 {
                     if (thisSignal.SignalLocation > lengthOffset)
                     {
-                        SignalAspect = Locomotive.Train.signalRef.TranslateToTCSAspect(thisSignal.SignalRef.this_sig_lr(fn_type));
+                        SignalAspect = Locomotive.Train.signalRef.TranslateToTCSAspect(thisSignal.Signal.this_sig_lr(fn_type));
                         SignalDistance = thisSignal.SignalLocation - lengthOffset + totalLength;
-                        MainHeadSignalTypeName = thisSignal.SignalRef.SignalHeads[0].SignalType?.Name ?? string.Empty;
+                        MainHeadSignalTypeName = thisSignal.Signal.SignalHeads[0].SignalType?.Name ?? string.Empty;
                         return retval;
                     }
                 }

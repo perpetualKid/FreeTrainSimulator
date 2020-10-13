@@ -26,27 +26,8 @@ namespace Orts.Simulation.Signalling
 {
     public class SignalItemInfo
     {
-        public enum ItemType
-        {
-            Any,
-            Signal,
-            Speedlimit,
-        }
-
-        public enum FindState
-        {
-            None = 0,
-            Item = 1,
-            EndOfTrack = -1,
-            PassedDanger = -2,
-            PassedMaximumDistance = -3,
-            TdbError = -4,
-            EndOfAuthority = -5,
-            EndOfPath = -6,
-        }
-
-        public ItemType SignalItemType { get; private set; }                     // type information
-        public FindState State { get; private set; }               // state information
+        public SignalItemType ItemType { get; private set; }                     // type information
+        public SignalItemFindState State { get; private set; }               // state information
 
         public Signal SignalDetails { get; private set; }                    // actual object 
 
@@ -68,7 +49,7 @@ namespace Orts.Simulation.Signalling
 
         public SignalItemInfo(Signal signal, float distance)
         {
-            State = FindState.Item;
+            State = SignalItemFindState.Item;
 
             DistanceFound = distance;
 
@@ -76,19 +57,19 @@ namespace Orts.Simulation.Signalling
 
             if (signal.isSignal)
             {
-                SignalItemType = ItemType.Signal;
+                ItemType = SignalItemType.Signal;
                 SignalState = SignalAspectState.Unknown;  // set active by TRAIN
                 SpeedInfo = new SpeedInfo(null); // set active by TRAIN
             }
             else
             {
-                SignalItemType = ItemType.Speedlimit;
+                ItemType = SignalItemType.SpeedLimit;
                 SignalState = SignalAspectState.Unknown;
                 SpeedInfo = signal.this_lim_speed(SignalFunction.Speed);
             }
         }
 
-        public SignalItemInfo(FindState state)
+        public SignalItemInfo(SignalItemFindState state)
         {
             State = state;
         }
@@ -100,10 +81,10 @@ namespace Orts.Simulation.Signalling
             if (null == signals)
                 throw new ArgumentNullException(nameof(signals));
 
-            SignalItemInfo result = new SignalItemInfo(FindState.None)
+            SignalItemInfo result = new SignalItemInfo(SignalItemFindState.None)
             {
-                SignalItemType = (ItemType)inf.ReadInt32(),
-                State = (FindState)inf.ReadInt32(),
+                ItemType = (SignalItemType)inf.ReadInt32(),
+                State = (SignalItemFindState)inf.ReadInt32(),
                 SignalDetails = signals.SignalObjects[inf.ReadInt32()],
                 DistanceFound = inf.ReadSingle(),
                 DistanceToTrain = inf.ReadSingle(),
@@ -125,7 +106,7 @@ namespace Orts.Simulation.Signalling
             if (null == outf)
                 throw new ArgumentNullException(nameof(outf));
 
-            outf.Write((int)item.SignalItemType);
+            outf.Write((int)item.ItemType);
             outf.Write((int)item.State);
 
             outf.Write(item.SignalDetails.thisRef);

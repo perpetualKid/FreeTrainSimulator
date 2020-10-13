@@ -1157,11 +1157,11 @@ namespace Orts.Simulation.AIs
                 if (CheckTrain)
                 {
                     File.AppendAllText(@"C:\temp\checktrain.txt",
-                            "Item : " + thisInfo.SignalItemType.ToString() + " at " +
+                            "Item : " + thisInfo.ItemType.ToString() + " at " +
                                         thisInfo.DistanceToTrain.ToString() +
                         " - processed : " + thisInfo.Processed.ToString() + "\n");
 
-                    if (thisInfo.SignalItemType == SignalItemInfo.ItemType.Signal)
+                    if (thisInfo.ItemType == SignalItemType.Signal)
                     {
                         File.AppendAllText(@"C:\temp\checktrain.txt",
                                 "  Signal : " + thisInfo.SignalDetails.thisRef + " - State : " + thisInfo.SignalState.ToString() + "\n");
@@ -1193,7 +1193,7 @@ namespace Orts.Simulation.AIs
 
                         if (process_req)
                         {
-                            if (thisInfo.SignalItemType == SignalItemInfo.ItemType.Speedlimit)
+                            if (thisInfo.ItemType == SignalItemType.SpeedLimit)
                             {
                                 CreateTrainAction(validSpeed, setSpeed,
                                         thisInfo.DistanceToTrain, thisInfo, AIActionItem.AI_ACTION_TYPE.SPEED_LIMIT);
@@ -1215,7 +1215,7 @@ namespace Orts.Simulation.AIs
 
                 // check signal state
 
-                if (thisInfo.SignalItemType == SignalItemInfo.ItemType.Signal &&
+                if (thisInfo.ItemType == SignalItemType.Signal &&
                         thisInfo.SignalState < SignalAspectState.Approach_1 &&
                         !thisInfo.Processed && thisInfo.SignalDetails.hasPermission != Signal.Permission.Granted)
                 {
@@ -1700,7 +1700,7 @@ namespace Orts.Simulation.AIs
                     for (int iitem = 0; iitem <= SignalObjectItems.Count - 1 && withinDistance && signalCleared; iitem++)
                     {
                         SignalItemInfo nextObject = SignalObjectItems[iitem];
-                        if (nextObject.SignalItemType == SignalItemInfo.ItemType.Signal)
+                        if (nextObject.ItemType == SignalItemType.Signal)
                         {
                             if (nextObject.SignalDetails != NextSignalObject[0]) // not signal we are waiting for
                             {
@@ -1733,7 +1733,7 @@ namespace Orts.Simulation.AIs
                     for (int iitem = 0; iitem <= SignalObjectItems.Count - 1 && withinDistance && signalCleared; iitem++)
                     {
                         SignalItemInfo nextObject = SignalObjectItems[iitem];
-                        if (nextObject.SignalItemType == SignalItemInfo.ItemType.Signal)
+                        if (nextObject.ItemType == SignalItemType.Signal)
                         {
                             if (nextObject.SignalDetails != NextSignalObject[0]) // not signal we are waiting for
                             {
@@ -5081,7 +5081,7 @@ namespace Orts.Simulation.AIs
 #endif
             if (CheckTrain)
             {
-                if (thisItem != null && thisItem.SignalItemType == SignalItemInfo.ItemType.Signal)
+                if (thisItem != null && thisItem.ItemType == SignalItemType.Signal)
                 {
                     File.AppendAllText(@"C:\temp\checktrain.txt", "Insert for train " +
                              Number.ToString() + ", type " +
@@ -5361,7 +5361,7 @@ namespace Orts.Simulation.AIs
 #endif
             if (CheckTrain)
             {
-                if (thisItem.ActiveItem != null && thisItem.ActiveItem.SignalItemType == SignalItemInfo.ItemType.Signal)
+                if (thisItem.ActiveItem != null && thisItem.ActiveItem.ItemType == SignalItemType.Signal)
                 {
                     File.AppendAllText(@"C:\temp\checktrain.txt", "Activated for train " +
                              Number.ToString() + ", type " +

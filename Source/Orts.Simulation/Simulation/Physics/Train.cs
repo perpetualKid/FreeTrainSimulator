@@ -2970,16 +2970,16 @@ namespace Orts.Simulation.Physics
 
             //  get first item from train (irrespective of distance)
 
-            SignalItemInfo.FindState returnState = SignalItemInfo.FindState.None;
+            SignalItemFindState returnState = SignalItemFindState.None;
             float distanceToLastObject = 9E29f;  // set to overlarge value
             SignalAspectState nextAspect = SignalAspectState.Unknown;
 
             SignalItemInfo firstObject = signalRef.GetNextObject_InRoute(routedForward, ValidRoute[0],
                 PresentPosition[0].RouteListIndex, PresentPosition[0].TCOffset, -1,
-                SignalItemInfo.ItemType.Any);
+                SignalItemType.Any);
 
             returnState = firstObject.State;
-            if (returnState == SignalItemInfo.FindState.Item)
+            if (returnState == SignalItemFindState.Item)
             {
                 firstObject.DistanceToTrain = firstObject.DistanceFound;
                 SignalObjectItems.Add(firstObject);
@@ -3004,7 +3004,7 @@ namespace Orts.Simulation.Physics
             float offset = PresentPosition[0].TCOffset;
             int nextIndex = routeListIndex;
 
-            while (returnState == SignalItemInfo.FindState.Item &&
+            while (returnState == SignalItemFindState.Item &&
                 distanceToLastObject < maxDistance &&
                 nextAspect != SignalAspectState.Stop)
             {
@@ -3035,11 +3035,11 @@ namespace Orts.Simulation.Physics
                 }
 
                 nextObject = signalRef.GetNextObject_InRoute(routedForward, ValidRoute[0],
-                nextIndex, offset, -1, SignalItemInfo.ItemType.Any);
+                nextIndex, offset, -1, SignalItemType.Any);
 
                 returnState = nextObject.State;
 
-                if (returnState == SignalItemInfo.FindState.Item)
+                if (returnState == SignalItemFindState.Item)
                 {
                     if (nextObject.SignalDetails.isSignal)
                     {
@@ -3069,7 +3069,7 @@ namespace Orts.Simulation.Physics
                 if (!signalFound)
                 {
                     SignalItemInfo thisObject = SignalObjectItems[isig];
-                    if (thisObject.SignalItemType == SignalItemInfo.ItemType.Signal)
+                    if (thisObject.ItemType == SignalItemType.Signal)
                     {
                         signalFound = true;
                         IndexNextSignal = isig;
@@ -3079,7 +3079,7 @@ namespace Orts.Simulation.Physics
                 if (!speedlimFound)
                 {
                     SignalItemInfo thisObject = SignalObjectItems[isig];
-                    if (thisObject.SignalItemType == SignalItemInfo.ItemType.Speedlimit)
+                    if (thisObject.ItemType == SignalItemType.SpeedLimit)
                     {
                         speedlimFound = true;
                         IndexNextSpeedlimit = isig;
@@ -3102,9 +3102,9 @@ namespace Orts.Simulation.Physics
             {
                 SignalItemInfo firstSignalObject = signalRef.GetNextObject_InRoute(routedForward, ValidRoute[0],
                     PresentPosition[0].RouteListIndex, PresentPosition[0].TCOffset, -1,
-                    SignalItemInfo.ItemType.Signal);
+                    SignalItemType.Signal);
 
-                if (firstSignalObject.State == SignalItemInfo.FindState.Item)
+                if (firstSignalObject.State == SignalItemFindState.Item)
                 {
                     NextSignalObject[0] = firstSignalObject.SignalDetails;
                     firstSignalObject.DistanceToTrain = firstSignalObject.DistanceFound;
@@ -3127,7 +3127,7 @@ namespace Orts.Simulation.Physics
         public void UpdateSignalState(int backward)
         {
             // for AUTO mode, use direction 0 only
-            SignalItemInfo.FindState returnState = SignalItemInfo.FindState.Item;
+            SignalItemFindState returnState = SignalItemFindState.Item;
 
             bool listChanged = false;
             bool signalFound = false;
@@ -3270,10 +3270,10 @@ namespace Orts.Simulation.Physics
                     while (!noMoreNewSignals)
                     {
                         SignalItemInfo newObjectItem = signalRef.GetNextObject_InRoute(routedForward, ValidRoute[0],
-                           thisIndex, offset, -1, SignalItemInfo.ItemType.Signal);
+                           thisIndex, offset, -1, SignalItemType.Signal);
 
                         returnState = newObjectItem.State;
-                        if (returnState == SignalItemInfo.FindState.Item)
+                        if (returnState == SignalItemFindState.Item)
                         {
                             newSignalIndex = newObjectItem.SignalDetails.thisRef;
 
@@ -3316,10 +3316,10 @@ namespace Orts.Simulation.Physics
             {
                 firstObject = signalRef.GetNextObject_InRoute(routedForward, ValidRoute[0],
                       PresentPosition[0].RouteListIndex, PresentPosition[0].TCOffset, -1,
-                      SignalItemInfo.ItemType.Any);
+                      SignalItemType.Any);
 
                 returnState = firstObject.State;
-                if (returnState == SignalItemInfo.FindState.Item)
+                if (returnState == SignalItemFindState.Item)
                 {
                     firstObject.DistanceToTrain = firstObject.DistanceFound;
                     SignalObjectItems.Add(firstObject);
@@ -3328,7 +3328,7 @@ namespace Orts.Simulation.Physics
 
             // reset next signal object if none found
 
-            if (SignalObjectItems.Count <= 0 || (SignalObjectItems.Count == 1 && SignalObjectItems[0].SignalItemType == SignalItemInfo.ItemType.Speedlimit))
+            if (SignalObjectItems.Count <= 0 || (SignalObjectItems.Count == 1 && SignalObjectItems[0].ItemType == SignalItemType.SpeedLimit))
             {
                 NextSignalObject[0] = null;
                 DistanceToSignal = null;
@@ -3402,7 +3402,7 @@ namespace Orts.Simulation.Physics
                 for (int isig = SignalObjectItems.Count - 1; isig >= 0 && !signalFound; isig--)
                 {
                     SignalItemInfo nextObject = SignalObjectItems[isig];
-                    if (nextObject.SignalItemType == SignalItemInfo.ItemType.Signal)
+                    if (nextObject.ItemType == SignalItemType.Signal)
                     {
                         signalFound = true;
                         nextAspect = nextObject.SignalState;
@@ -3422,7 +3422,7 @@ namespace Orts.Simulation.Physics
                 prevObject = SignalObjectItems[SignalObjectItems.Count - 1];  // last object
 
                 while (lastDistance < maxDistance &&
-                          returnState == SignalItemInfo.FindState.Item &&
+                          returnState == SignalItemFindState.Item &&
                           nextAspect != SignalAspectState.Stop)
                 {
 
@@ -3444,11 +3444,11 @@ namespace Orts.Simulation.Physics
                     }
 
                     SignalItemInfo nextObject = signalRef.GetNextObject_InRoute(routedForward, ValidRoute[0],
-                         lastIndex, offset, -1, SignalItemInfo.ItemType.Any);
+                         lastIndex, offset, -1, SignalItemType.Any);
 
                     returnState = nextObject.State;
 
-                    if (returnState == SignalItemInfo.FindState.Item)
+                    if (returnState == SignalItemFindState.Item)
                     {
                         nextObject.DistanceToObject = nextObject.DistanceFound;
                         nextObject.DistanceToTrain = prevObject.DistanceToTrain + nextObject.DistanceToObject;
@@ -3505,12 +3505,12 @@ namespace Orts.Simulation.Physics
                 for (int isig = 0; isig < SignalObjectItems.Count && (!signalFound || !speedlimFound); isig++)
                 {
                     SignalItemInfo nextObject = SignalObjectItems[isig];
-                    if (!signalFound && nextObject.SignalItemType == SignalItemInfo.ItemType.Signal)
+                    if (!signalFound && nextObject.ItemType == SignalItemType.Signal)
                     {
                         signalFound = true;
                         IndexNextSignal = isig;
                     }
-                    else if (!speedlimFound && nextObject.SignalItemType == SignalItemInfo.ItemType.Speedlimit)
+                    else if (!speedlimFound && nextObject.ItemType == SignalItemType.SpeedLimit)
                     {
                         speedlimFound = true;
                         IndexNextSpeedlimit = isig;
@@ -3527,9 +3527,9 @@ namespace Orts.Simulation.Physics
             {
                 SignalItemInfo firstSignalObject = signalRef.GetNextObject_InRoute(routedForward, ValidRoute[0],
                         PresentPosition[0].RouteListIndex, PresentPosition[0].TCOffset, -1,
-                        SignalItemInfo.ItemType.Signal);
+                        SignalItemType.Signal);
 
-                if (firstSignalObject.State == SignalItemInfo.FindState.Item)
+                if (firstSignalObject.State == SignalItemFindState.Item)
                 {
                     NextSignalObject[0] = firstSignalObject.SignalDetails;
                     firstSignalObject.DistanceToTrain = firstSignalObject.DistanceFound;
@@ -9702,11 +9702,11 @@ namespace Orts.Simulation.Physics
             for (int isigtype = 0; isigtype < signalRef.ORTSSignalTypeCount; isigtype++)
             {
                 TrackCircuitSignalList thisList = thisSection.CircuitItems.TrackCircuitSignals[thisDirection][isigtype];
-                foreach (TrackCircuitSignalItem thisItem in thisList.TrackCircuitItem)
+                foreach (TrackCircuitSignalItem thisItem in thisList)
                 {
-                    if (thisItem.SignalLocation > PresentPosition[0].TCOffset && !thisItem.SignalRef.isSignalNormal())
+                    if (thisItem.SignalLocation > PresentPosition[0].TCOffset && !thisItem.Signal.isSignalNormal())
                     {
-                        thisItem.SignalRef.enabledTrain = this.routedForward;
+                        thisItem.Signal.enabledTrain = this.routedForward;
                     }
                 }
             }
@@ -9720,11 +9720,11 @@ namespace Orts.Simulation.Physics
                 for (int isigtype = 0; isigtype < signalRef.ORTSSignalTypeCount; isigtype++)
                 {
                     TrackCircuitSignalList thisList = thisSection.CircuitItems.TrackCircuitSignals[thisDirection][isigtype];
-                    foreach (TrackCircuitSignalItem thisItem in thisList.TrackCircuitItem)
+                    foreach (TrackCircuitSignalItem thisItem in thisList)
                     {
-                        if (!thisItem.SignalRef.isSignalNormal())
+                        if (!thisItem.Signal.isSignalNormal())
                         {
-                            thisItem.SignalRef.enabledTrain = this.routedForward;
+                            thisItem.Signal.enabledTrain = this.routedForward;
                         }
                     }
                 }
@@ -14050,7 +14050,7 @@ namespace Orts.Simulation.Physics
             bool signalProcessed = false;
             foreach (SignalItemInfo thisItem in SignalObjectItems)
             {
-                if (thisItem.SignalItemType == SignalItemInfo.ItemType.Signal)
+                if (thisItem.ItemType == SignalItemType.Signal)
                 {
                     TrackMonitorSignalAspect signalAspect =
                         thisItem.SignalDetails.TranslateTMAspect(thisItem.SignalDetails.this_sig_lr(SignalFunction.Normal));
@@ -14068,7 +14068,7 @@ namespace Orts.Simulation.Physics
                     thisInfo.ObjectInfoForward.Add(nextItem);
                     signalProcessed = true;
                 }
-                else if (thisItem.SignalItemType == SignalItemInfo.ItemType.Speedlimit && thisItem.ActualSpeed > 0)
+                else if (thisItem.ItemType == SignalItemType.SpeedLimit && thisItem.ActualSpeed > 0)
                 {
                     TrainObjectItem nextItem = new TrainObjectItem(thisItem.ActualSpeed, thisItem.DistanceToTrain,
                         (TrainObjectItem.SpeedItemType)(thisItem.SpeedInfo.LimitedSpeedReduction));
@@ -14345,9 +14345,9 @@ namespace Orts.Simulation.Physics
 
                     if (thisSection.CircuitItems.TrackCircuitSpeedPosts[sectionDirection] != null)
                     {
-                        foreach (TrackCircuitSignalItem thisSpeeditem in thisSection.CircuitItems.TrackCircuitSpeedPosts[sectionDirection].TrackCircuitItem)
+                        foreach (TrackCircuitSignalItem thisSpeeditem in thisSection.CircuitItems.TrackCircuitSpeedPosts[sectionDirection])
                         {
-                            var thisSpeedpost = thisSpeeditem.SignalRef;
+                            var thisSpeedpost = thisSpeeditem.Signal;
                             var thisSpeedInfo = thisSpeedpost.this_sig_speed(SignalFunction.Speed);
                             float validSpeed = thisSpeedInfo == null ? -1 : (IsFreight ? thisSpeedInfo.FreightSpeed : thisSpeedInfo.PassengerSpeed);
 
@@ -14408,9 +14408,9 @@ namespace Orts.Simulation.Physics
 
                     if (thisSection.CircuitItems.TrackCircuitSpeedPosts[sectionDirection] != null)
                     {
-                        foreach (TrackCircuitSignalItem thisSpeeditem in thisSection.CircuitItems.TrackCircuitSpeedPosts[sectionDirection].TrackCircuitItem)
+                        foreach (TrackCircuitSignalItem thisSpeeditem in thisSection.CircuitItems.TrackCircuitSpeedPosts[sectionDirection])
                         {
-                            Signal thisSpeedpost = thisSpeeditem.SignalRef;
+                            Signal thisSpeedpost = thisSpeeditem.Signal;
                             SpeedInfo thisSpeedInfo = thisSpeedpost.this_sig_speed(SignalFunction.Speed);
                             float validSpeed = thisSpeedInfo == null ? -1 : (IsFreight ? thisSpeedInfo.FreightSpeed : thisSpeedInfo.PassengerSpeed);
                             distanceToTrainM = sectionStart + thisSpeeditem.SignalLocation;
@@ -14801,7 +14801,7 @@ namespace Orts.Simulation.Physics
                 NextSignalObject[0] = null;
                 for (int iObject = 0; iObject <= SignalObjectItems.Count - 1 && NextSignalObject[0] == null; iObject++)
                 {
-                    if (SignalObjectItems[iObject].SignalItemType == SignalItemInfo.ItemType.Signal)
+                    if (SignalObjectItems[iObject].ItemType == SignalItemType.Signal)
                     {
                         NextSignalObject[0] = SignalObjectItems[iObject].SignalDetails;
                     }
@@ -14977,7 +14977,7 @@ namespace Orts.Simulation.Physics
                     NextSignalObject[0] = null;
                     for (int iObject = 0; iObject <= SignalObjectItems.Count - 1 && NextSignalObject[0] == null; iObject++)
                     {
-                        if (SignalObjectItems[iObject].SignalItemType == SignalItemInfo.ItemType.Signal)
+                        if (SignalObjectItems[iObject].ItemType == SignalItemType.Signal)
                         {
                             NextSignalObject[0] = SignalObjectItems[iObject].SignalDetails;
                             DistanceToSignal = SignalObjectItems[iObject].DistanceToTrain;
