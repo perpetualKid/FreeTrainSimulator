@@ -114,5 +114,22 @@ namespace Orts.Common
         {
             return EnumCache<T>.Values[(EnumCache<T>.Values.IndexOf(item) - 1 + EnumCache<T>.Values.Count) % EnumCache<T>.Values.Count];
         }
+
+        /// <summary>
+        /// returns the Minimum enum value
+        /// </summary>
+        public static T Min<T>() where T : Enum
+        {
+            return EnumCache<T>.Values[0];
+        }
+
+        /// <summary>
+        /// returns the Maximum enum value
+        /// </summary>
+        public static T Max<T>() where T : Enum
+        {
+            return EnumCache<T>.Values[EnumCache<T>.Values.Count - 1];
+        }
+
     }
 }
