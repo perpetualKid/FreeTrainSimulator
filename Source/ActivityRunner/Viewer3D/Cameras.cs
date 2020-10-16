@@ -2527,12 +2527,12 @@ namespace Orts.ActivityRunner.Viewer3D
                             foreach (int platformIndex in TCSection.PlatformIndex)
                             {
                                 PlatformDetails thisPlatform = train.signalRef.PlatformDetailsList[platformIndex];
-                                if (thisPlatform.TCOffset[0, thisRoute[routeIndex].Direction] + incrDistance < MaximumSpecialPointDistance * 0.7f
-                                    && (thisPlatform.TCOffset[0, thisRoute[routeIndex].Direction] + incrDistance > 0 || FirstUpdateLoop))
+                                if (thisPlatform.TrackCircuitOffset[Simulation.Signalling.Location.NearEnd, (Heading)thisRoute[routeIndex].Direction] + incrDistance < MaximumSpecialPointDistance * 0.7f
+                                    && (thisPlatform.TrackCircuitOffset[Simulation.Signalling.Location.NearEnd, (Heading)thisRoute[routeIndex].Direction] + incrDistance > 0 || FirstUpdateLoop))
                                 {
                                     // platform found, compute distance to viewing point
                                     distanceToViewingPoint = Math.Min(MaximumSpecialPointDistance * 0.7f,
-                                        incrDistance + thisPlatform.TCOffset[0, thisRoute[routeIndex].Direction] + thisPlatform.Length * 0.7f);
+                                        incrDistance + thisPlatform.TrackCircuitOffset[Simulation.Signalling.Location.NearEnd, (Heading)thisRoute[routeIndex].Direction] + thisPlatform.Length * 0.7f);
                                     if (FirstUpdateLoop && Math.Abs(train.SpeedMpS) <= 0.2f) distanceToViewingPoint =
                                             Math.Min(distanceToViewingPoint, train.Length * 0.95f);
                                     tdb.Move(distanceToViewingPoint);

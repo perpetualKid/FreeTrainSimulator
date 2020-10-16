@@ -34,13 +34,13 @@ namespace Orts.Simulation.Signalling
         /// Constructor
         /// </summary>
 
-        public SpeedInfo(float pass, float freight, bool asap, bool reset, int nospeedreductionOristempspeedreduction)
+        public SpeedInfo(float pass, float freight, bool asap, bool reset, int limitedSpeedReduction)
         {
             PassengerSpeed = pass;
             FreightSpeed = freight;
             Flag = asap;
             Reset = reset;
-            LimitedSpeedReduction = nospeedreductionOristempspeedreduction;
+            LimitedSpeedReduction = limitedSpeedReduction;
         }
 
         public SpeedInfo(SpeedInfo source)

@@ -17,6 +17,8 @@
 
 // This module covers all classes and code for signal, speed post, track occupation and track reservation control
 
+using Orts.Common;
+
 namespace Orts.Simulation.Signalling
 {
     //================================================================================================//
@@ -31,7 +33,7 @@ namespace Orts.Simulation.Signalling
     public class CrossOverInfo
     {
 #pragma warning disable CA1034 // Nested types should not be visible
-        public class Content
+        public class Detail
 #pragma warning restore CA1034 // Nested types should not be visible
         {
             public float Position { get; internal set; } // position within track sections //
@@ -40,24 +42,30 @@ namespace Orts.Simulation.Signalling
         }
 
         public uint TrackShape { get; }
-        public Content Item0 { get; } = new Content();
-        public Content Item1 { get; } = new Content();
+
+        public EnumArray<Detail, Location> Details { get; } = new EnumArray<Detail, Location>();
 
         public CrossOverInfo(float position0, float position1, int sectionIndex0, int sectionIndex1, int itemIndex0, int itemIndex1, uint trackShape)
         {
-            Item0.Position = position0;
-            Item1.Position = position1;
+            Details[Location.NearEnd] = new Detail()
+            {
+                Position = position0,
+                SectionIndex = sectionIndex0,
+                ItemIndex = itemIndex0,
+            };
+            Details[Location.FarEnd] = new Detail()
+            {
+                Position = position1,
+                SectionIndex = sectionIndex1,
+                ItemIndex = itemIndex1,
+            };
             TrackShape = trackShape;
-            Item0.SectionIndex = sectionIndex0;
-            Item1.SectionIndex = sectionIndex1;
-            Item0.ItemIndex = itemIndex0;
-            Item1.ItemIndex = itemIndex1;
         }
 
         public void Update(float position1, int sectionIndex1)
         {
-            Item1.Position = position1;
-            Item1.SectionIndex = sectionIndex1;
+            Details[Location.FarEnd].Position = position1;
+            Details[Location.FarEnd].SectionIndex = sectionIndex1;
         }
     }
 

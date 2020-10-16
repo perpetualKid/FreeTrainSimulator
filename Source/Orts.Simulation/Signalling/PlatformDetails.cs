@@ -28,6 +28,8 @@
 using System;
 using System.Collections.Generic;
 
+using Orts.Common;
+
 namespace Orts.Simulation.Signalling
 {
     //================================================================================================//
@@ -48,13 +50,13 @@ namespace Orts.Simulation.Signalling
             Right = 0x2,
         }
 
-        public List<int> TCSectionIndex = new List<int>();
-        public int[] PlatformReference = new int[2];
-        public float[,] TCOffset = new float[2, 2];
-        public float[] nodeOffset = new float[2];
+        public List<int> TCSectionIndex { get; } = new List<int>();
+        public EnumArray<int, Location> PlatformReference { get; } = new EnumArray<int, Location>();
+        public EnumArray2D<float, Location, Heading> TrackCircuitOffset { get; } = new EnumArray2D<float, Location, Heading>();
+        public EnumArray<float, Location> NodeOffset { get; } = new EnumArray<float, Location>();
         public float Length { get; set; }
-        public int[] EndSignals = new int[2] { -1, -1 };
-        public float[] DistanceToSignals = new float[2];
+        public EnumArray<int, Heading> EndSignals { get; } = new EnumArray<int, Heading>(-1);
+        public EnumArray<float, Heading> DistanceToSignals { get; } = new EnumArray<float, Heading>();
         public string Name { get; internal set; }
         public uint MinWaitingTime { get; internal set; }
         public int NumPassengersWaiting { get; internal set; }
@@ -69,7 +71,7 @@ namespace Orts.Simulation.Signalling
 
         public PlatformDetails(int platformReference)
         {
-            PlatformReference[0] = platformReference;
+            PlatformReference[Location.NearEnd] = platformReference;
         }
     }
 

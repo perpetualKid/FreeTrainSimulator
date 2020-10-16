@@ -38,7 +38,7 @@ namespace Orts.Simulation.Signalling
         public SignalAspectState SignalState { get; internal set; }                   // UNKNOWN if type = speedlimit
 
         public SpeedInfo SpeedInfo { get; internal set; } // set active by TRAIN, speed values are -1 if not set
-        public float ActualSpeed { get; internal set; }                  
+        public float ActualSpeed { get; internal set; }
 
         public bool Processed { get; internal set; }                       // for AI trains, set active by TRAIN
 

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 
 using Orts.Common;
@@ -28,7 +27,7 @@ namespace Orts.Simulation.Signalling
         public SignalType SignalType { get; private set; }
         public int OrtsNormalSubtypeIndex { get; set; }
         public int TDBIndex { get; private set; }
-        public IList<SpeedInfo> SpeedInfo { get; private set; }
+        public EnumArray<SpeedInfo, SignalAspectState> SpeedInfoSet { get; } = new EnumArray<SpeedInfo, SignalAspectState>();
         public Signal MainSignal { get; private set; }
         public SignalScripts.SCRScripts SignalScript => signalScript;
 
@@ -57,8 +56,6 @@ namespace Orts.Simulation.Signalling
                 TrackJunctionNode = signalItem.SignalDirections[0].TrackNode;
                 JunctionPath = signalItem.SignalDirections[0].LinkLRPath;
             }
-
-            SpeedInfo = new SpeedInfo[EnumExtension.GetLength<SignalAspectState>()];
         }
 
         //================================================================================================//
@@ -78,16 +75,13 @@ namespace Orts.Simulation.Signalling
             SignalIndicationState = SignalAspectState.Clear_2;
             SignalType = new SignalType(SignalFunction.Speed, SignalAspectState.Clear_2);
 
-            SpeedInfo = new SpeedInfo[EnumExtension.GetLength<SignalAspectState>()];
-
             double speedMpS = Speed.MeterPerSecond.ToMpS(speedItem.Distance, !speedItem.IsMPH);
             if (speedItem.IsResume)
                 speedMpS = 999.0;
 
             float passSpeed = speedItem.IsPassenger ? (float)speedMpS : -1;
             float freightSpeed = speedItem.IsFreight ? (float)speedMpS : -1;
-            SpeedInfo speedinfo = new SpeedInfo(passSpeed, freightSpeed, false, false, speedItem is TempSpeedPostItem ? (speedMpS == 999f ? 2 : 1) : 0);
-            SpeedInfo[(int)SignalIndicationState] = speedinfo;
+            SpeedInfoSet[SignalIndicationState] = new SpeedInfo(passSpeed, freightSpeed, false, false, speedItem is TempSpeedPostItem ? (speedMpS == 999f ? 2 : 1) : 0); ;
         }
 
         internal void ResetMain(Signal signal)
@@ -113,10 +107,9 @@ namespace Orts.Simulation.Signalling
                 Signals.scrfile.SignalScripts.Scripts.TryGetValue(SignalType, out signalScript);
 
                 // set signal speeds
-                foreach (SignalAspect thisAspect in SignalType.Aspects)
+                foreach (SignalAspect aspect in SignalType.Aspects)
                 {
-                    int arrindex = (int)thisAspect.Aspect;
-                    SpeedInfo[arrindex] = new SpeedInfo(thisAspect.SpeedLimit, thisAspect.SpeedLimit, thisAspect.Asap, thisAspect.Reset, thisAspect.NoSpeedReduction ? 1 : 0);
+                    SpeedInfoSet[aspect.Aspect] = new SpeedInfo(aspect.SpeedLimit, aspect.SpeedLimit, aspect.Asap, aspect.Reset, aspect.NoSpeedReduction ? 1 : 0);
                 }
 
                 // set normal subtype

@@ -531,7 +531,7 @@ namespace Orts.Simulation.Signalling
                             }
                         }
 
-                        if (!groupfound) 
+                        if (!groupfound)
                             existPathInfo.Groups.Add(groupName);
                     }
 
@@ -564,7 +564,7 @@ namespace Orts.Simulation.Signalling
             {
                 Name = name
             };
-            if (!string.IsNullOrEmpty(groupName)) 
+            if (!string.IsNullOrEmpty(groupName))
                 newPathInfo.Groups.Add(groupName);
 
             AvailablePathList.Add(newPathInfo);
@@ -785,7 +785,7 @@ namespace Orts.Simulation.Signalling
                 }
 
                 // no single path conflicts - so all free paths are available
-               return (freePaths);
+                return (freePaths);
             }
         }
 
@@ -1267,11 +1267,11 @@ namespace Orts.Simulation.Signalling
                     int matchingEndIndex = fullPath.GetRouteIndex(AvailablePathList[0].Path[0].TCSectionIndex, startSectionRouteIndex);
                     if (matchingEndIndex > 0)
                     {
-                        return(2, matchingEndIndex);
+                        return (2, matchingEndIndex);
                     }
                     else
                     {
-                        return(3, startSectionRouteIndex + 1);
+                        return (3, startSectionRouteIndex + 1);
                     }
                 }
             }

@@ -12,12 +12,12 @@
         public uint TrackItemId { get; }
         public int TrackCircuitReference { get; private set; } = -1;
         public float TrackCircuitOffset { get; private set; }
-        public float MilepostValue { get; }
+        public float Value { get; }
 
         public Milepost(uint trItemId, float value)
         {
             TrackItemId = trItemId;
-            MilepostValue = value;
+            Value = value;
         }
 
         internal void SetCircuit(int trackCircuitReference, float trackCircuitOffset)

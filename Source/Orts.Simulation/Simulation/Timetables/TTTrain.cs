@@ -985,7 +985,7 @@ namespace Orts.Simulation.Timetables
                 // section found in new route - set new station details using old details
                 if (altPlatformIndex > 0)
                 {
-                    StationStop newStop = CalculateStationStop(signalRef.PlatformDetailsList[altPlatformIndex].PlatformReference[0],
+                    StationStop newStop = CalculateStationStop(signalRef.PlatformDetailsList[altPlatformIndex].PlatformReference[Location.NearEnd],
                         orgStop.ArrivalTime, orgStop.DepartTime, orgStop.arrivalDT, orgStop.departureDT, clearingDistanceM, minStopDistanceM,
                         orgStop.Terminal, orgStop.ActualMinStopTime, orgStop.KeepClearFront, orgStop.KeepClearRear, orgStop.ForcePosition, 
                         orgStop.CloseupSignal, orgStop.Closeup, orgStop.RestrictPlatformToSignal, orgStop.ExtendPlatformToSignal, orgStop.EndStop);
@@ -1492,11 +1492,11 @@ namespace Orts.Simulation.Timetables
                 thisPlatform.TCSectionIndex[0] :
                 thisPlatform.TCSectionIndex[thisPlatform.TCSectionIndex.Count - 1];
 
-            bool platformHasEndSignal = thisElement.Direction == 0 ? (thisPlatform.EndSignals[0] >= 0) : (thisPlatform.EndSignals[1] >= 0);
-            float distanceToEndSignal = platformHasEndSignal ? (thisElement.Direction == 0 ? thisPlatform.DistanceToSignals[0] : thisPlatform.DistanceToSignals[1]) : -1;
+            bool platformHasEndSignal = thisElement.Direction == 0 ? (thisPlatform.EndSignals[Heading.Ahead] >= 0) : (thisPlatform.EndSignals[Heading.Reverse] >= 0);
+            float distanceToEndSignal = platformHasEndSignal ? (thisElement.Direction == 0 ? thisPlatform.DistanceToSignals[Heading.Ahead] : thisPlatform.DistanceToSignals[Heading.Reverse]) : -1;
 
-            float endOffset = thisPlatform.TCOffset[1, thisElement.Direction];
-            float beginOffset = thisPlatform.TCOffset[0, thisElement.Direction];
+            float endOffset = thisPlatform.TrackCircuitOffset[Location.FarEnd, (Heading)thisElement.Direction];
+            float beginOffset = thisPlatform.TrackCircuitOffset[Location.NearEnd, (Heading)thisElement.Direction];
 
             float deltaLength = thisPlatform.Length - Length; // platform length - train length
 
@@ -1751,16 +1751,16 @@ namespace Orts.Simulation.Timetables
                                         otherPlatform.TCSectionIndex[thisPlatform.TCSectionIndex.Count - 1];
                                     if (otherSectionIndex == beginSectionIndex)
                                     {
-                                        if (otherPlatform.TCOffset[0, thisElement.Direction] < actualBegin)
+                                        if (otherPlatform.TrackCircuitOffset[Location.NearEnd, (Heading)thisElement.Direction] < actualBegin)
                                         {
-                                            actualBegin = otherPlatform.TCOffset[0, thisElement.Direction];
+                                            actualBegin = otherPlatform.TrackCircuitOffset[Location.NearEnd, (Heading)thisElement.Direction];
                                             fullLength = endOffset - actualBegin;
                                         }
                                     }
                                     else
                                     {
                                         int addRouteIndex = thisRoute.GetRouteIndex(otherSectionIndex, 0);
-                                        float addOffset = otherPlatform.TCOffset[1, thisElement.Direction == 0 ? 1 : 0];
+                                        float addOffset = otherPlatform.TrackCircuitOffset[Location.FarEnd, (Heading)(thisElement.Direction == 0 ? 1 : 0)];
                                         // offset of begin in other direction is length of available track
 
                                         if (lastRouteIndex > 0)
@@ -1896,7 +1896,7 @@ namespace Orts.Simulation.Timetables
             // check if train is to reverse in platform
             // if so, set signal at other end as hold signal
 
-            int useDirection = thisElement.Direction;
+            Heading useDirection = (Heading)thisElement.Direction;
             bool inDirection = true;
 
             if (TCRoute.ReversalInfo[activeSubroute].Valid)
@@ -1905,7 +1905,7 @@ namespace Orts.Simulation.Timetables
                 int reversalIndex = thisReversal.SignalUsed ? thisReversal.LastSignalIndex : thisReversal.LastDivergeIndex;
                 if (reversalIndex >= 0 && reversalIndex <= lastRouteIndex) // reversal point is this section or earlier
                 {
-                    useDirection = useDirection == 0 ? 1 : 0;
+                    useDirection = useDirection.Next();
                     inDirection = false;
                 }
             }
@@ -2017,15 +2017,15 @@ namespace Orts.Simulation.Timetables
                         stopOffset = beginOffset - thisPlatform.DistanceToSignals[useDirection] + Length + clearingDistanceM + 1.0f;
 
                         // check if stop is clear of end signal (if any)
-                        if (thisPlatform.EndSignals[thisElement.Direction] != -1)
+                        if (thisPlatform.EndSignals[(Heading)thisElement.Direction] != -1)
                         {
-                            if (stopOffset < (endOffset + thisPlatform.DistanceToSignals[thisElement.Direction]))
+                            if (stopOffset < (endOffset + thisPlatform.DistanceToSignals[(Heading)thisElement.Direction]))
                             {
                                 HoldSignal = true; // if train fits between signals
                             }
                             else
                             {
-                                stopOffset = endOffset + thisPlatform.DistanceToSignals[thisElement.Direction] - 1.0f; // stop at end signal
+                                stopOffset = endOffset + thisPlatform.DistanceToSignals[(Heading)thisElement.Direction] - 1.0f; // stop at end signal
                             }
                         }
                     }
@@ -2216,8 +2216,8 @@ namespace Orts.Simulation.Timetables
             bool atStation = false;
             //            PlatformDetails thisPlatform = thisStation.PlatformItem;
 
-            float platformBeginOffset = thisPlatform.TCOffset[0, stationDirection];
-            float platformEndOffset = thisPlatform.TCOffset[1, stationDirection];
+            float platformBeginOffset = thisPlatform.TrackCircuitOffset[Location.NearEnd, (Heading)stationDirection];
+            float platformEndOffset = thisPlatform.TrackCircuitOffset[Location.FarEnd, (Heading)stationDirection];
             int endSectionIndex = stationDirection == 0 ?
                     thisPlatform.TCSectionIndex[thisPlatform.TCSectionIndex.Count - 1] :
                     thisPlatform.TCSectionIndex[0];
@@ -7904,7 +7904,7 @@ namespace Orts.Simulation.Timetables
                             int signalFound = -1;
 
                             TCRouteElement routeElement = usedRoute[thisStationStop.RouteIndex];
-                            float distanceToStationSignal = thisStationStop.PlatformItem.DistanceToSignals[routeElement.Direction];
+                            float distanceToStationSignal = thisStationStop.PlatformItem.DistanceToSignals[(Heading)routeElement.Direction];
 
                             for (int iRouteIndex = thisStationStop.RouteIndex; iRouteIndex <= usedRoute.Count - 1 && signalFound < 0; iRouteIndex++)
                             {
@@ -7943,7 +7943,7 @@ namespace Orts.Simulation.Timetables
                             int signalFound = -1;
 
                             TCRouteElement routeElement = usedRoute[thisStationStop.RouteIndex];
-                            float distanceToStationSignal = thisStationStop.PlatformItem.DistanceToSignals[routeElement.Direction];
+                            float distanceToStationSignal = thisStationStop.PlatformItem.DistanceToSignals[(Heading)routeElement.Direction];
 
                             for (int iRouteIndex = thisStationStop.RouteIndex; iRouteIndex <= usedRoute.Count - 1 && signalFound < 0; iRouteIndex++)
                             {
