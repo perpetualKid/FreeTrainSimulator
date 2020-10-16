@@ -573,7 +573,7 @@ namespace Orts.Simulation.RollingStocks
         float absStartTractiveEffortN = 0.0f;      // Record starting tractive effort
         float TractiveEffortLbsF;           // Current sim calculated tractive effort
         const float TractiveEffortFactor = 0.85f;  // factor for calculating Theoretical Tractive Effort for non-geared locomotives
-        const float GearedTractiveEffortFactor = 0.7f;  // factor for calculating Theoretical Tractive Effort for geared locomotives
+        float GearedTractiveEffortFactor = 0.7f;  // factor for calculating Theoretical Tractive Effort for geared locomotives
         float NeutralGearedDavisAN; // Davis A value adjusted for neutral gearing
         const float DavisMechanicalResistanceFactor = 20.0f;
         float GearedRetainedDavisAN; // Remembers the Davis A value
@@ -829,6 +829,7 @@ namespace Orts.Simulation.RollingStocks
                     stf.SkipRestOfBlock();
                     break;
                 case "engine(ortssteammaxgearpistonrate": MaxSteamGearPistonRateFtpM = stf.ReadFloatBlock(STFReader.Units.None, null); break;
+                case "engine(ortsgearedtractiveeffortfactor": GearedTractiveEffortFactor = stf.ReadFloatBlock(STFReader.Units.None, null); break;
                 case "engine(ortssteamlocomotivetype":
                     stf.MustMatch("(");
                     var steamengineType = stf.ReadString();
@@ -886,6 +887,7 @@ namespace Orts.Simulation.RollingStocks
             EjectorSmallSteamConsumptionLbpS = locoCopy.EjectorSmallSteamConsumptionLbpS;
             EjectorLargeSteamConsumptionLbpS = locoCopy.EjectorLargeSteamConsumptionLbpS;
             ShovelMassKG = locoCopy.ShovelMassKG;
+            GearedTractiveEffortFactor = locoCopy.GearedTractiveEffortFactor;
             MaxTenderCoalMassKG = locoCopy.MaxTenderCoalMassKG;
             MaxLocoTenderWaterMassKG = locoCopy.MaxLocoTenderWaterMassKG;
             MaxFiringRateKGpS = locoCopy.MaxFiringRateKGpS;
@@ -1280,8 +1282,7 @@ namespace Orts.Simulation.RollingStocks
                     SteamGearPosition = 1.0f; // set starting gear position 
                     // Calculate maximum locomotive speed - based upon the number of revs for the drive shaft, geared to wheel shaft, and then circumference of drive wheel
                     // Max Geared speed = ((MaxPistonSpeedFt/m / Gear Ratio) x DrvWheelCircumference) / Feet in mile - miles per min
-                    LowMaxGearedSpeedMpS = (float)(Frequency.Periodic.FromMinutes(MaxSteamGearPistonRateFtpM / SteamGearRatio * Math.PI * DriverWheelRadiusM * 2.0f));
-                    MaxTractiveEffortLbf = (float)((NumCylinders / 2.0f) * (Size.Length.ToIn(CylinderDiameterM) * Size.Length.ToIn(CylinderDiameterM) * Size.Length.ToIn(CylinderStrokeM) / (2.0f * Size.Length.ToIn(DriverWheelRadiusM))) * MaxBoilerPressurePSI * GearedTractiveEffortFactor * MotiveForceGearRatio * CylinderEfficiencyRate);
+                    LowMaxGearedSpeedMpS = (float)(Size.Length.FromFt(Frequency.Periodic.FromMinutes(MaxSteamGearPistonRateFtpM / SteamGearRatioLow))) * 2.0f * MathHelper.Pi * DriverWheelRadiusM / (2.0f * CylinderStrokeM);
                     MaxLocoSpeedMpH = (float)Speed.MeterPerSecond.ToMpH(LowMaxGearedSpeedMpS);
                     DisplayMaxLocoSpeedMpH = (float)Speed.MeterPerSecond.ToMpH(LowMaxGearedSpeedMpS);
                     DisplayMaxTractiveEffortLbf = MaxTractiveEffortLbf;
