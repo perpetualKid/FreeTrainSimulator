@@ -2147,6 +2147,22 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 case CabViewControlType.Orts_TCS30:
                 case CabViewControlType.Orts_TCS31:
                 case CabViewControlType.Orts_TCS32:
+                case CabViewControlType.Orts_TCS33:
+                case CabViewControlType.Orts_TCS34:
+                case CabViewControlType.Orts_TCS35:
+                case CabViewControlType.Orts_TCS36:
+                case CabViewControlType.Orts_TCS37:
+                case CabViewControlType.Orts_TCS38:
+                case CabViewControlType.Orts_TCS39:
+                case CabViewControlType.Orts_TCS40:
+                case CabViewControlType.Orts_TCS41:
+                case CabViewControlType.Orts_TCS42:
+                case CabViewControlType.Orts_TCS43:
+                case CabViewControlType.Orts_TCS44:
+                case CabViewControlType.Orts_TCS45:
+                case CabViewControlType.Orts_TCS46:
+                case CabViewControlType.Orts_TCS47:
+                case CabViewControlType.Orts_TCS48:
                     int commandIndex = (int)Control.ControlType - (int)CabViewControlType.Orts_TCS1;
                     if (ChangedValue(1) > 0 ^ Locomotive.TrainControlSystem.TCSCommandButtonDown[commandIndex])
                         new TCSButtonCommand(Viewer.Log, !Locomotive.TrainControlSystem.TCSCommandButtonDown[commandIndex], commandIndex);
