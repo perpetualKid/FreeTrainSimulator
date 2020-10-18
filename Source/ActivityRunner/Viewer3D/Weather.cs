@@ -179,7 +179,7 @@ namespace Orts.ActivityRunner.Viewer3D
                             this.viewer.SoundProcess.AddSoundSources(this, SnowSound);
                         }
                     }
-                    weather.PricipitationIntensityPPSPM2 = MathHelper.Clamp(weather.PricipitationIntensityPPSPM2 * 1.05f, PrecipitationViewer.MinIntensityPPSPM2 + 0.0000001f,
+                    weather.PrecipitationIntensityPPSPM2 = MathHelper.Clamp(weather.PrecipitationIntensityPPSPM2 * 1.05f, PrecipitationViewer.MinIntensityPPSPM2 + 0.0000001f,
                             this.viewer.RenderProcess.GraphicsDevice.GraphicsProfile == GraphicsProfile.HiDef ? PrecipitationViewer.MaxIntensityPPSPM2 : PrecipitationViewer.MaxIntensityPPSPM2_16);
                     weatherChangeOn = false;
                     if (dynamicWeather != null)
@@ -188,11 +188,11 @@ namespace Orts.ActivityRunner.Viewer3D
                 });
                 viewer.UserCommandController.AddEvent(UserCommand.DebugPrecipitationDecrease, KeyEventType.KeyDown, () =>
                 {
-                    weather.PricipitationIntensityPPSPM2 = MathHelper.Clamp(weather.PricipitationIntensityPPSPM2 / 1.05f, PrecipitationViewer.MinIntensityPPSPM2,
+                    weather.PrecipitationIntensityPPSPM2 = MathHelper.Clamp(weather.PrecipitationIntensityPPSPM2 / 1.05f, PrecipitationViewer.MinIntensityPPSPM2,
                         this.viewer.RenderProcess.GraphicsDevice.GraphicsProfile == GraphicsProfile.HiDef ? PrecipitationViewer.MaxIntensityPPSPM2 : PrecipitationViewer.MaxIntensityPPSPM2_16);
-                    if (weather.PricipitationIntensityPPSPM2 < PrecipitationViewer.MinIntensityPPSPM2 + 0.00001f)
+                    if (weather.PrecipitationIntensityPPSPM2 < PrecipitationViewer.MinIntensityPPSPM2 + 0.00001f)
                     {
-                        weather.PricipitationIntensityPPSPM2 = 0;
+                        weather.PrecipitationIntensityPPSPM2 = 0;
                         if (this.viewer.Simulator.WeatherType != WeatherType.Clear)
                         {
                             this.viewer.SoundProcess.RemoveSoundSources(this);
@@ -212,7 +212,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     weatherChangeOn = false;
                     if (dynamicWeather != null)
                         dynamicWeather.ORTSPrecipitationLiquidity = -1;
-                    if (weather.PrecipitationLiquidity > DynamicWeather.RainSnowLiquidityThreshold && this.viewer.Simulator.WeatherType != WeatherType.Rain && weather.PricipitationIntensityPPSPM2 > 0)
+                    if (weather.PrecipitationLiquidity > DynamicWeather.RainSnowLiquidityThreshold && this.viewer.Simulator.WeatherType != WeatherType.Rain && weather.PrecipitationIntensityPPSPM2 > 0)
                     {
                         this.viewer.Simulator.WeatherType = WeatherType.Rain;
                         this.viewer.SoundProcess.RemoveSoundSources(this);
@@ -227,7 +227,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     weatherChangeOn = false;
                     if (dynamicWeather != null) dynamicWeather.ORTSPrecipitationLiquidity = -1;
                     if (weather.PrecipitationLiquidity <= DynamicWeather.RainSnowLiquidityThreshold && this.viewer.Simulator.WeatherType != WeatherType.Snow
-                        && weather.PricipitationIntensityPPSPM2 > 0)
+                        && weather.PrecipitationIntensityPPSPM2 > 0)
                     {
                         this.viewer.Simulator.WeatherType = WeatherType.Snow;
                         this.viewer.SoundProcess.RemoveSoundSources(this);
@@ -276,7 +276,7 @@ namespace Orts.ActivityRunner.Viewer3D
         private void SendMultiPlayerWeatherChangeNotification()
         {
             MPManager.Instance().SetEnvInfo(weather.OvercastFactor, weather.FogDistance);
-            MPManager.Notify((new MSGWeather(-1, weather.OvercastFactor, weather.PricipitationIntensityPPSPM2, weather.FogDistance)).ToString());
+            MPManager.Notify((new MSGWeather(-1, weather.OvercastFactor, weather.PrecipitationIntensityPPSPM2, weather.FogDistance)).ToString());
         }
 
         public virtual void SaveWeatherParameters(BinaryWriter outf)
@@ -284,7 +284,7 @@ namespace Orts.ActivityRunner.Viewer3D
             outf.Write(0); // set fixed weather
             outf.Write(weather.FogDistance);
             outf.Write(weather.OvercastFactor);
-            outf.Write(weather.PricipitationIntensityPPSPM2);
+            outf.Write(weather.PrecipitationIntensityPPSPM2);
             outf.Write(weather.PrecipitationLiquidity);
             outf.Write(RandomizedWeather);
             outf.Write(weatherChangeOn);
@@ -306,7 +306,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             weather.FogDistance = inf.ReadSingle();
             weather.OvercastFactor = inf.ReadSingle();
-            weather.PricipitationIntensityPPSPM2 = inf.ReadSingle();
+            weather.PrecipitationIntensityPPSPM2 = inf.ReadSingle();
             weather.PrecipitationLiquidity = inf.ReadSingle();
             RandomizedWeather = inf.ReadBoolean();
             weatherChangeOn = inf.ReadBoolean();
@@ -334,9 +334,9 @@ namespace Orts.ActivityRunner.Viewer3D
             viewer.SoundProcess.RemoveSoundSources(this);
             switch (viewer.Simulator.WeatherType)
             {
-                case WeatherType.Clear: weather.PrecipitationLiquidity = 1; weather.PricipitationIntensityPPSPM2 = 0; viewer.SoundProcess.AddSoundSources(this, ClearSound); break;
-                case WeatherType.Rain: weather.PrecipitationLiquidity = 1; weather.PricipitationIntensityPPSPM2 = 0.010f; viewer.SoundProcess.AddSoundSources(this, RainSound); break;
-                case WeatherType.Snow: weather.PrecipitationLiquidity = 0; weather.PricipitationIntensityPPSPM2 = 0.0050f; viewer.SoundProcess.AddSoundSources(this, SnowSound); break;
+                case WeatherType.Clear: weather.PrecipitationLiquidity = 1; weather.PrecipitationIntensityPPSPM2 = 0; viewer.SoundProcess.AddSoundSources(this, ClearSound); break;
+                case WeatherType.Rain: weather.PrecipitationLiquidity = 1; weather.PrecipitationIntensityPPSPM2 = 0.010f; viewer.SoundProcess.AddSoundSources(this, RainSound); break;
+                case WeatherType.Snow: weather.PrecipitationLiquidity = 0; weather.PrecipitationIntensityPPSPM2 = 0.0050f; viewer.SoundProcess.AddSoundSources(this, SnowSound); break;
             }
 
         }
@@ -356,13 +356,13 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             if (viewer.RenderProcess.GraphicsDevice.GraphicsProfile == GraphicsProfile.HiDef)
             {
-                foreach (var soundSource in RainSound) soundSource.Volume = weather.PricipitationIntensityPPSPM2 / PrecipitationViewer.MaxIntensityPPSPM2;
-                foreach (var soundSource in SnowSound) soundSource.Volume = weather.PricipitationIntensityPPSPM2 / PrecipitationViewer.MaxIntensityPPSPM2;
+                foreach (var soundSource in RainSound) soundSource.Volume = weather.PrecipitationIntensityPPSPM2 / PrecipitationViewer.MaxIntensityPPSPM2;
+                foreach (var soundSource in SnowSound) soundSource.Volume = weather.PrecipitationIntensityPPSPM2 / PrecipitationViewer.MaxIntensityPPSPM2;
             }
             else
             {
-                foreach (var soundSource in RainSound) soundSource.Volume = weather.PricipitationIntensityPPSPM2 / PrecipitationViewer.MaxIntensityPPSPM2_16;
-                foreach (var soundSource in SnowSound) soundSource.Volume = weather.PricipitationIntensityPPSPM2 / PrecipitationViewer.MaxIntensityPPSPM2_16;
+                foreach (var soundSource in RainSound) soundSource.Volume = weather.PrecipitationIntensityPPSPM2 / PrecipitationViewer.MaxIntensityPPSPM2_16;
+                foreach (var soundSource in SnowSound) soundSource.Volume = weather.PrecipitationIntensityPPSPM2 / PrecipitationViewer.MaxIntensityPPSPM2_16;
             }
         }
 
@@ -431,9 +431,9 @@ namespace Orts.ActivityRunner.Viewer3D
                 randValue = Simulator.Random.Next(75);
                 if (randValue > 40)
                 {
-                    weather.PricipitationIntensityPPSPM2 = (float)(randValue - 40f) / 1000f;
+                    weather.PrecipitationIntensityPPSPM2 = (float)(randValue - 40f) / 1000f;
                     if (viewer.RenderProcess.GraphicsDevice.GraphicsProfile != GraphicsProfile.HiDef)
-                        weather.PricipitationIntensityPPSPM2 = Math.Min(weather.PricipitationIntensityPPSPM2, 0.010f);
+                        weather.PrecipitationIntensityPPSPM2 = Math.Min(weather.PrecipitationIntensityPPSPM2, 0.010f);
                     if (viewer.Simulator.Season == SeasonType.Winter)
                     {
                         viewer.Simulator.WeatherType = WeatherType.Snow;
@@ -445,12 +445,12 @@ namespace Orts.ActivityRunner.Viewer3D
                         weather.PrecipitationLiquidity = 1;
                     }
                 }
-                else weather.PricipitationIntensityPPSPM2 = 0;
+                else weather.PrecipitationIntensityPPSPM2 = 0;
             }
-            else weather.PricipitationIntensityPPSPM2 = 0;
+            else weather.PrecipitationIntensityPPSPM2 = 0;
             // and now define visibility
             randValue = Simulator.Random.Next(2000);
-            if (weather.PricipitationIntensityPPSPM2 > 0 || weather.OvercastFactor > 0.7f)
+            if (weather.PrecipitationIntensityPPSPM2 > 0 || weather.OvercastFactor > 0.7f)
                 // use first digit to define power of ten and the other three to define the multiplying number
                 weather.FogDistance = Math.Max(100, (float)Math.Pow(10, ((int)(randValue / 1000) + 2)) * (float)((randValue % 1000 + 1) / 100f));
             else
@@ -503,7 +503,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     weather.OvercastFactor = manager.overcastFactor;
                 if (manager.pricipitationIntensity >= 0)
                 {
-                    weather.PricipitationIntensityPPSPM2 = manager.pricipitationIntensity;
+                    weather.PrecipitationIntensityPPSPM2 = manager.pricipitationIntensity;
                     UpdateVolume();
                 }
                 if (manager.fogDistance >= 0)
@@ -545,12 +545,12 @@ namespace Orts.ActivityRunner.Viewer3D
             }
             if (RandomizedWeather && !weatherChangeOn) // time to prepare a new weather change
                 dynamicWeather.WeatherChange_NextRandomization(elapsedTime, this);
-            if (weather.PricipitationIntensityPPSPM2 == 0 && viewer.Simulator.WeatherType != WeatherType.Clear)
+            if (weather.PrecipitationIntensityPPSPM2 == 0 && viewer.Simulator.WeatherType != WeatherType.Clear)
             {
                 viewer.Simulator.WeatherType = WeatherType.Clear;
                 UpdateWeatherParameters();
             }
-            else if (weather.PricipitationIntensityPPSPM2 > 0 && viewer.Simulator.WeatherType == WeatherType.Clear)
+            else if (weather.PrecipitationIntensityPPSPM2 > 0 && viewer.Simulator.WeatherType == WeatherType.Clear)
             {
                 viewer.Simulator.WeatherType = weather.PrecipitationLiquidity > DynamicWeather.RainSnowLiquidityThreshold ? WeatherType.Rain : WeatherType.Snow;
                 UpdateWeatherParameters();
@@ -669,10 +669,10 @@ namespace Orts.ActivityRunner.Viewer3D
                     // 16bit uses PrecipitationViewer.MaxIntensityPPSPM2_16
                     if (weatherControl.viewer.RenderProcess.GraphicsDevice.GraphicsProfile == GraphicsProfile.HiDef)
                         precipitationIntensityChangeRate = precipitationIntensityTimer > 0 ? (MathHelper.Clamp(ORTSPrecipitationIntensity, 0, PrecipitationViewer.MaxIntensityPPSPM2)
-                            - weatherControl.weather.PricipitationIntensityPPSPM2) / ORTSPrecipitationIntensityTransitionTimeS : 0;
+                            - weatherControl.weather.PrecipitationIntensityPPSPM2) / ORTSPrecipitationIntensityTransitionTimeS : 0;
                     else
                         precipitationIntensityChangeRate = precipitationIntensityTimer > 0 ? (MathHelper.Clamp(ORTSPrecipitationIntensity, 0, PrecipitationViewer.MaxIntensityPPSPM2_16)
-                            - weatherControl.weather.PricipitationIntensityPPSPM2) / ORTSPrecipitationIntensityTransitionTimeS : 0;
+                            - weatherControl.weather.PrecipitationIntensityPPSPM2) / ORTSPrecipitationIntensityTransitionTimeS : 0;
                     wChangeOn = true;
                 }
                 if (eventWeatherChange.PrecipitationLiquidity >= 0 && eventWeatherChange.PrecipitationLiquidityTransitionTime >= 0)
@@ -717,11 +717,11 @@ namespace Orts.ActivityRunner.Viewer3D
                     precipitationIntensityTimer -= (float)elapsedTime.ClockSeconds;
                     if (precipitationIntensityTimer <= 0) precipitationIntensityTimer = 0;
                     else if (weatherControl.RandomizedWeather == false) wChangeOn = true;
-                    var oldPricipitationIntensityPPSPM2 = weatherControl.weather.PricipitationIntensityPPSPM2;
-                    weatherControl.weather.PricipitationIntensityPPSPM2 = ORTSPrecipitationIntensity - precipitationIntensityTimer * precipitationIntensityChangeRate;
-                    if (weatherControl.weather.PricipitationIntensityPPSPM2 > 0)
+                    var oldPrecipitationIntensityPPSPM2 = weatherControl.weather.PrecipitationIntensityPPSPM2;
+                    weatherControl.weather.PrecipitationIntensityPPSPM2 = ORTSPrecipitationIntensity - precipitationIntensityTimer * precipitationIntensityChangeRate;
+                    if (weatherControl.weather.PrecipitationIntensityPPSPM2 > 0)
                     {
-                        if (oldPricipitationIntensityPPSPM2 == 0)
+                        if (oldPrecipitationIntensityPPSPM2 == 0)
                         {
                             if (weatherControl.weather.PrecipitationLiquidity > RainSnowLiquidityThreshold) weatherControl.viewer.Simulator.WeatherType = WeatherType.Rain;
                             else weatherControl.viewer.Simulator.WeatherType = WeatherType.Snow;
@@ -729,9 +729,9 @@ namespace Orts.ActivityRunner.Viewer3D
                         }
                         weatherControl.UpdateVolume();
                     }
-                    if (weatherControl.weather.PricipitationIntensityPPSPM2 == 0)
+                    if (weatherControl.weather.PrecipitationIntensityPPSPM2 == 0)
                     {
-                        if (oldPricipitationIntensityPPSPM2 > 0)
+                        if (oldPrecipitationIntensityPPSPM2 > 0)
                         {
                             weatherControl.viewer.Simulator.WeatherType = WeatherType.Clear;
                             weatherControl.UpdateSoundSources();
@@ -816,13 +816,13 @@ namespace Orts.ActivityRunner.Viewer3D
                         }
                     }
                 }
-                if (weatherControl.weather.PricipitationIntensityPPSPM2 > 0 && ORTSPrecipitationIntensity == -1)
+                if (weatherControl.weather.PrecipitationIntensityPPSPM2 > 0 && ORTSPrecipitationIntensity == -1)
                 {
                     ORTSPrecipitationIntensity = 0;
                     // must return to zero before overcast < 0.5
                     ORTSPrecipitationIntensityTransitionTimeS = (int)((0.5 - weatherControl.weather.OvercastFactor) / overcastChangeRate);
                 }
-                if (weatherControl.weather.PricipitationIntensityPPSPM2 == 0 && ORTSPrecipitationIntensity > 0 && weatherControl.weather.OvercastFactor < 0.5)
+                if (weatherControl.weather.PrecipitationIntensityPPSPM2 == 0 && ORTSPrecipitationIntensity > 0 && weatherControl.weather.OvercastFactor < 0.5)
                 {
                     // we will have precipitation now, but it must start after overcast is over 0.5
                     precipitationIntensityDelayTimer = (0.5f - weatherControl.weather.OvercastFactor) / overcastChangeRate;
@@ -839,10 +839,10 @@ namespace Orts.ActivityRunner.Viewer3D
                     // 16bit uses PrecipitationViewer.MaxIntensityPPSPM2_16
                     if (weatherControl.viewer.RenderProcess.GraphicsDevice.GraphicsProfile == GraphicsProfile.HiDef)
                         precipitationIntensityChangeRate = precipitationIntensityTimer > 0 ? (MathHelper.Clamp(ORTSPrecipitationIntensity, 0, PrecipitationViewer.MaxIntensityPPSPM2)
-                            - weatherControl.weather.PricipitationIntensityPPSPM2) / ORTSPrecipitationIntensityTransitionTimeS : 0;
+                            - weatherControl.weather.PrecipitationIntensityPPSPM2) / ORTSPrecipitationIntensityTransitionTimeS : 0;
                     else
                         precipitationIntensityChangeRate = precipitationIntensityTimer > 0 ? (MathHelper.Clamp(ORTSPrecipitationIntensity, 0, PrecipitationViewer.MaxIntensityPPSPM2_16)
-                            - weatherControl.weather.PricipitationIntensityPPSPM2) / ORTSPrecipitationIntensityTransitionTimeS : 0;
+                            - weatherControl.weather.PrecipitationIntensityPPSPM2) / ORTSPrecipitationIntensityTransitionTimeS : 0;
                 }
 
                 // and now define visibility
@@ -1060,29 +1060,29 @@ namespace Orts.ActivityRunner.Viewer3D
             switch (AWPrecipitationActiveType)
             {
                 case WeatherType.Rain:
-                    weather.PricipitationIntensityPPSPM2 = AWPrecipitationActualPPSPM2;
+                    weather.PrecipitationIntensityPPSPM2 = AWPrecipitationActualPPSPM2;
                     weather.OvercastFactor = AWOvercastCloudcover;
                     weather.FogDistance = AWActualVisibility;
                     viewer.SoundProcess.AddSoundSources(this, RainSound);
-                    foreach (var soundSource in RainSound) soundSource.Volume = weather.PricipitationIntensityPPSPM2 / PrecipitationViewer.MaxIntensityPPSPM2;
+                    foreach (var soundSource in RainSound) soundSource.Volume = weather.PrecipitationIntensityPPSPM2 / PrecipitationViewer.MaxIntensityPPSPM2;
 #if DEBUG_AUTOWEATHER
                     Trace.TraceInformation("Weather type RAIN");
 #endif
                     break;
 
                 case WeatherType.Snow:
-                    weather.PricipitationIntensityPPSPM2 = AWPrecipitationActualPPSPM2;
+                    weather.PrecipitationIntensityPPSPM2 = AWPrecipitationActualPPSPM2;
                     weather.OvercastFactor = AWOvercastCloudcover;
                     weather.FogDistance = AWActualVisibility;
                     viewer.SoundProcess.AddSoundSources(this, SnowSound);
-                    foreach (var soundSource in SnowSound) soundSource.Volume = weather.PricipitationIntensityPPSPM2 / PrecipitationViewer.MaxIntensityPPSPM2;
+                    foreach (var soundSource in SnowSound) soundSource.Volume = weather.PrecipitationIntensityPPSPM2 / PrecipitationViewer.MaxIntensityPPSPM2;
 #if DEBUG_AUTOWEATHER
                     Trace.TraceInformation("Weather type SNOW");
 #endif
                     break;
 
                 default:
-                    weather.PricipitationIntensityPPSPM2 = 0;
+                    weather.PrecipitationIntensityPPSPM2 = 0;
                     viewer.SoundProcess.AddSoundSources(this, ClearSound);
                     weather.OvercastFactor = AWOvercastCloudcover;
                     weather.FogDistance = AWActualVisibility;
@@ -1204,23 +1204,23 @@ namespace Orts.ActivityRunner.Viewer3D
             switch (AWPrecipitationActiveType)
             {
                 case WeatherType.Rain:
-                    weather.PricipitationIntensityPPSPM2 = AWPrecipitationActualPPSPM2;
+                    weather.PrecipitationIntensityPPSPM2 = AWPrecipitationActualPPSPM2;
                     weather.OvercastFactor = AWOvercastCloudcover;
                     weather.FogDistance = AWActualVisibility;
                     viewer.SoundProcess.AddSoundSources(this, RainSound);
-                    foreach (var soundSource in RainSound) soundSource.Volume = weather.PricipitationIntensityPPSPM2 / PrecipitationViewer.MaxIntensityPPSPM2;
+                    foreach (var soundSource in RainSound) soundSource.Volume = weather.PrecipitationIntensityPPSPM2 / PrecipitationViewer.MaxIntensityPPSPM2;
                     break;
 
                 case WeatherType.Snow:
-                    weather.PricipitationIntensityPPSPM2 = AWPrecipitationActualPPSPM2;
+                    weather.PrecipitationIntensityPPSPM2 = AWPrecipitationActualPPSPM2;
                     weather.OvercastFactor = AWOvercastCloudcover;
                     weather.FogDistance = AWActualVisibility;
                     viewer.SoundProcess.AddSoundSources(this, SnowSound);
-                    foreach (var soundSource in SnowSound) soundSource.Volume = weather.PricipitationIntensityPPSPM2 / PrecipitationViewer.MaxIntensityPPSPM2;
+                    foreach (var soundSource in SnowSound) soundSource.Volume = weather.PrecipitationIntensityPPSPM2 / PrecipitationViewer.MaxIntensityPPSPM2;
                     break;
 
                 default:
-                    weather.PricipitationIntensityPPSPM2 = 0;
+                    weather.PrecipitationIntensityPPSPM2 = 0;
                     viewer.SoundProcess.AddSoundSources(this, ClearSound);
                     weather.OvercastFactor = AWOvercastCloudcover;
                     weather.FogDistance = AWActualVisibility;
@@ -1578,7 +1578,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             outf.Write(weather.OvercastFactor);
             outf.Write(weather.FogDistance);
-            outf.Write(weather.PricipitationIntensityPPSPM2);
+            outf.Write(weather.PrecipitationIntensityPPSPM2);
         }
 
         public override void RestoreWeatherParameters(BinaryReader inf)
@@ -1640,7 +1640,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             weather.OvercastFactor = inf.ReadSingle();
             weather.FogDistance = inf.ReadSingle();
-            weather.PricipitationIntensityPPSPM2 = inf.ReadSingle();
+            weather.PrecipitationIntensityPPSPM2 = inf.ReadSingle();
 
             Time = (float)viewer.Simulator.ClockTime;
         }

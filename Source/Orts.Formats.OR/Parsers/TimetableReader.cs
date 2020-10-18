@@ -50,7 +50,14 @@ namespace Orts.Formats.OR.Parsers
                 // extract and store all strings
                 do
                 {
-                    Strings.Add(readLine.Split(separator));
+                    var lineElements = readLine.Split(separator);
+                    
+                    // Remove leading and trailing whitespace which is difficult to see in a spreadsheet.
+                    for (var i = 0; i < lineElements.Length; i++)
+                        lineElements[i] = lineElements[i].Trim();
+                    
+                    Strings.Add(lineElements);
+                    
                     readLine = filestream.ReadLine();
                 } while (readLine != null);
             }

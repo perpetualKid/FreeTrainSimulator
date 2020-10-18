@@ -1697,7 +1697,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
             TableAddLabelValue(table, Viewer.Catalog.GetString("Visibility"), Viewer.Catalog.GetString("{0:N0} m", Viewer.Simulator.Weather.FogDistance));
             TableAddLabelValue(table, Viewer.Catalog.GetString("Cloud cover"), Viewer.Catalog.GetString("{0:F0} %", Viewer.Simulator.Weather.OvercastFactor * 100));
-            TableAddLabelValue(table, Viewer.Catalog.GetString("Intensity"), Viewer.Catalog.GetString("{0:F4} p/s/m^2", Viewer.Simulator.Weather.PricipitationIntensityPPSPM2));
+            TableAddLabelValue(table, Viewer.Catalog.GetString("Intensity"), Viewer.Catalog.GetString("{0:F4} p/s/m^2", Viewer.Simulator.Weather.PrecipitationIntensityPPSPM2));
             TableAddLabelValue(table, Viewer.Catalog.GetString("Liquidity"), Viewer.Catalog.GetString("{0:F0} %", Viewer.Simulator.Weather.PrecipitationLiquidity * 100));
             TableAddLabelValue(table, Viewer.Catalog.GetString("Wind"), Viewer.Catalog.GetString("{0:F1},{1:F1} m/s", Viewer.Simulator.Weather.WindSpeedMpS.X, Viewer.Simulator.Weather.WindSpeedMpS.Y));
             TableAddLabelValue(table, Viewer.Catalog.GetString("Amb Temp"), FormatStrings.FormatTemperature(Viewer.PlayerLocomotive.Train.TrainOutsideTempC, Viewer.PlayerLocomotive.IsMetric));

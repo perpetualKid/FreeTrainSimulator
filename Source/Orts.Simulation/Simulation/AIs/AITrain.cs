@@ -577,11 +577,11 @@ namespace Orts.Simulation.AIs
                 // set wipers on or off
                 if (Cars[0] is MSTSLocomotive leadingloco)
                 {
-                    if (simulator.Weather.PricipitationIntensityPPSPM2 > 0 && !leadingloco.Wiper)
+                    if (simulator.Weather.PrecipitationIntensityPPSPM2 > 0 && !leadingloco.Wiper)
                     {
                         leadingloco.SignalEvent(TrainEvent.WiperOn);
                     }
-                    else if (simulator.Weather.PricipitationIntensityPPSPM2 == 0 && leadingloco.Wiper)
+                    else if (simulator.Weather.PrecipitationIntensityPPSPM2 == 0 && leadingloco.Wiper)
                     {
                         leadingloco.SignalEvent(TrainEvent.WiperOff);
                     }
