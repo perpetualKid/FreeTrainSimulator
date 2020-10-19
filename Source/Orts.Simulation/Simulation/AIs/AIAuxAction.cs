@@ -1768,7 +1768,7 @@ namespace Orts.Simulation.AIs
             if (!reschedule && ((AIActSigDelegateRef)ActionRef).IsAbsolute)
             {
                 TrackCircuitSection thisSection = thisTrain.signalRef.TrackCircuitList[((AIActSigDelegateRef)ActionRef).TCSectionIndex];
-                if (((thisSection.CircuitState.TrainReserved != null && thisSection.CircuitState.TrainReserved.Train == thisTrain) || thisSection.CircuitState.ThisTrainOccupying(thisTrain) ) && 
+                if (((thisSection.CircuitState.TrainReserved != null && thisSection.CircuitState.TrainReserved.Train == thisTrain) || thisSection.CircuitState.OccupiedByThisTrain(thisTrain) ) && 
                     ((AIActSigDelegateRef)ActionRef).EndSignalIndex != -1)
                     return true;
             }

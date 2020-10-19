@@ -3171,7 +3171,7 @@ namespace Orts.Simulation.Signalling
                     }
                 }
 
-                if (thisSection.CircuitState.ThisTrainOccupying(thisTrain.Train) ||
+                if (thisSection.CircuitState.OccupiedByThisTrain(thisTrain.Train) ||
                     (thisSection.CircuitState.TrainReserved != null && thisSection.CircuitState.TrainReserved.Train == thisTrain.Train))
                 {
                     furthestRouteCleared = true;
@@ -3315,7 +3315,7 @@ namespace Orts.Simulation.Signalling
                                 "Section clear \n");
                         }
 
-                        if (thisSection.CircuitState.HasOtherTrainsOccupying(thisTrain))
+                        if (thisSection.CircuitState.OccupiedByOtherTrains(thisTrain))
                         {
                             bool trainIsAhead = false;
 
@@ -3354,7 +3354,7 @@ namespace Orts.Simulation.Signalling
                             routeIndex++;
                             offset = 0.0f;
 
-                            if (!thisSection.CircuitState.ThisTrainOccupying(thisTrain) &&
+                            if (!thisSection.CircuitState.OccupiedByThisTrain(thisTrain) &&
                                 thisSection.CircuitState.TrainReserved == null)
                             {
                                 thisSection.Reserve(thisTrain, routePart);
@@ -3512,9 +3512,9 @@ namespace Orts.Simulation.Signalling
                 thisSection = TrackCircuitList[sectionIndex];
 
                 if (thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.Normal &&
-                           thisSection.CircuitState.HasOtherTrainsOccupying(thisTrain))
+                           thisSection.CircuitState.OccupiedByOtherTrains(thisTrain))
                 {
-                    if (thisSection.CircuitState.HasOtherTrainsOccupying(revDirection, false, thisTrain))
+                    if (thisSection.CircuitState.OccupiedByOtherTrains(revDirection, false, thisTrain))
                     {
                         endAuthority = Train.END_AUTHORITY.TRAIN_AHEAD;
                         furthestRouteCleared = true;
@@ -3589,7 +3589,7 @@ namespace Orts.Simulation.Signalling
 
             // if occupied by train - skip actions and proceed to next section
 
-            if (!firstSection.CircuitState.ThisTrainOccupying(reqTrain))
+            if (!firstSection.CircuitState.OccupiedByThisTrain(reqTrain))
             {
 
                 // if not reserved - no further route ahead
@@ -3686,7 +3686,7 @@ namespace Orts.Simulation.Signalling
             for (int iindex = reqRoute.Count - 1; iindex >= 0 && iindex >= firstRouteIndex; iindex--)
             {
                 TrackCircuitSection thisSection = TrackCircuitList[reqRoute[iindex].TCSectionIndex];
-                if (!thisSection.CircuitState.ThisTrainOccupying(reqTrain.Train))
+                if (!thisSection.CircuitState.OccupiedByThisTrain(reqTrain.Train))
                 {
                     thisSection.RemoveTrain(reqTrain.Train, true);
                 }
@@ -4044,7 +4044,7 @@ namespace Orts.Simulation.Signalling
                     {
                         TrackCircuitState thisState = thisSection.CircuitState;
 
-                        if (!thisState.TrainOccupy.ContainsTrain(thisTrain) &&
+                        if (!thisState.OccupationState.ContainsTrain(thisTrain) &&
                             (thisState.TrainReserved != null && thisState.TrainReserved.Train != thisTrain))
                         {
                             endOfRoute = true;
@@ -5126,7 +5126,7 @@ namespace Orts.Simulation.Signalling
                 switchSet = false;
             }
 
-            else if (!switchSection.CircuitState.HasTrainsOccupying() && thisTrain == null)
+            else if (!switchSection.CircuitState.Occupied() && thisTrain == null)
             {
                 switchSection.JunctionSetManual = switchSection.JunctionLastRoute == 0 ? 1 : 0;
                 setSwitch(switchSection.OriginalIndex, switchSection.JunctionSetManual, switchSection);
@@ -5161,7 +5161,7 @@ namespace Orts.Simulation.Signalling
                 if (switchReserved) return (false);
             //this should not be enforced in MP, as a train may need to be allowed to go out of the station from the side line
 
-            if (!switchSection.CircuitState.HasTrainsOccupying())
+            if (!switchSection.CircuitState.Occupied())
             {
                 switchSection.JunctionSetManual = desiredState;
                 (trackDB.TrackNodes[switchSection.OriginalIndex] as TrackJunctionNode).SelectedRoute = switchSection.JunctionSetManual;
@@ -5661,7 +5661,7 @@ namespace Orts.Simulation.Signalling
 
             // if train in this section, return true; if other train in this section, return false
 
-            if (CircuitState.ThisTrainOccupying(thisTrain))
+            if (CircuitState.OccupiedByThisTrain(thisTrain))
             {
                 return (true);
             }
@@ -5708,12 +5708,12 @@ namespace Orts.Simulation.Signalling
             // if train in this section, return true; if other train in this section, return false
             // check if train is in section in expected direction - otherwise return false
 
-            if (CircuitState.ThisTrainOccupying(thisTrain))
+            if (CircuitState.OccupiedByThisTrain(thisTrain))
             {
                 return (true);
             }
 
-            if (CircuitState.HasOtherTrainsOccupying(thisTrain))
+            if (CircuitState.OccupiedByOtherTrains(thisTrain))
             {
                 return (false);
             }
@@ -5868,7 +5868,7 @@ namespace Orts.Simulation.Signalling
 
             Train.TCRouteElement thisElement;
 
-            if (!CircuitState.ThisTrainOccupying(thisTrain.Train))
+            if (!CircuitState.OccupiedByThisTrain(thisTrain.Train))
             {
                 // check if not beyond trains route
 
@@ -6112,7 +6112,7 @@ namespace Orts.Simulation.Signalling
 
             int routeIndex = thisTrain.Train.ValidRoute[thisTrain.TrainRouteDirectionIndex].GetRouteIndex(Index, thisTrain.Train.PresentPosition[thisTrain.TrainRouteDirectionIndex == 0 ? 1 : 0].RouteListIndex);
             int direction = routeIndex < 0 ? 0 : thisTrain.Train.ValidRoute[thisTrain.TrainRouteDirectionIndex][routeIndex].Direction;
-            CircuitState.TrainOccupy.Add(thisTrain, direction);
+            CircuitState.OccupationState.Add(thisTrain, direction);
             CircuitState.Forced = false;
             thisTrain.Train.OccupiedTrack.Add(this);
 	    
@@ -6253,9 +6253,9 @@ namespace Orts.Simulation.Signalling
                     thisTrain.Train.Number));
             }
 
-            if (CircuitState.TrainOccupy.ContainsTrain(thisTrain))
+            if (CircuitState.OccupationState.ContainsTrain(thisTrain))
             {
-                CircuitState.TrainOccupy.RemoveTrain(thisTrain);
+                CircuitState.OccupationState.RemoveTrain(thisTrain);
                 thisTrain.Train.OccupiedTrack.Remove(this);
             }
 
@@ -6304,7 +6304,7 @@ namespace Orts.Simulation.Signalling
 
             // if section is Junction or Crossover, reset active pins but only if section is not occupied by other train
 
-            if ((CircuitType == TrackCircuitType.Junction || CircuitType == TrackCircuitType.Crossover) && CircuitState.TrainOccupy.Count == 0)
+            if ((CircuitType == TrackCircuitType.Junction || CircuitType == TrackCircuitType.Crossover) && CircuitState.OccupationState.Count == 0)
             {
                 deAlignSwitchPins();
 
@@ -6327,7 +6327,7 @@ namespace Orts.Simulation.Signalling
 
             // if no longer occupied and pre-reserved not empty, promote first entry of prereserved
 
-            if (CircuitState.TrainOccupy.Count <= 0 && CircuitState.TrainPreReserved.Count > 0)
+            if (CircuitState.OccupationState.Count <= 0 && CircuitState.TrainPreReserved.Count > 0)
             {
                 Train.TrainRouted nextTrain = CircuitState.TrainPreReserved.Dequeue();
                 Train.TCSubpathRoute RoutePart = nextTrain.Train.ValidRoute[nextTrain.TrainRouteDirectionIndex];
@@ -6353,9 +6353,9 @@ namespace Orts.Simulation.Signalling
         public void ResetOccupied(Train.TrainRouted thisTrain)
         {
 
-            if (CircuitState.TrainOccupy.ContainsTrain(thisTrain))
+            if (CircuitState.OccupationState.ContainsTrain(thisTrain))
             {
-                CircuitState.TrainOccupy.RemoveTrain(thisTrain);
+                CircuitState.OccupationState.RemoveTrain(thisTrain);
                 thisTrain.Train.OccupiedTrack.Remove(this);
 
                 if (thisTrain.Train.CheckTrain)
@@ -6400,7 +6400,7 @@ namespace Orts.Simulation.Signalling
                     thisTrain.Train.Number));
             }
 
-            if (CircuitState.ThisTrainOccupying(thisTrain))
+            if (CircuitState.OccupiedByThisTrain(thisTrain))
             {
                 ClearOccupied(thisTrain, resetEndSignal);
             }
@@ -6628,12 +6628,12 @@ namespace Orts.Simulation.Signalling
 
             // track occupied - check speed and direction - only for normal sections
 
-            if (thisTrain != null && thisState.TrainOccupy.ContainsTrain(thisTrain))
+            if (thisTrain != null && thisState.OccupationState.ContainsTrain(thisTrain))
             {
                 localBlockstate = Signal.InternalBlockstate.Reserved;  // occupied by own train counts as reserved
                 stateSet = true;
             }
-            else if (thisState.HasTrainsOccupying(direction, true))
+            else if (thisState.Occupied(direction, true))
             {
                 {
                     localBlockstate = Signal.InternalBlockstate.OccupiedSameDirection;
@@ -6643,7 +6643,7 @@ namespace Orts.Simulation.Signalling
             else
             {
                 int reqDirection = direction == 0 ? 1 : 0;
-                if (thisState.HasTrainsOccupying(reqDirection, false))
+                if (thisState.Occupied(reqDirection, false))
                 {
                     localBlockstate = Signal.InternalBlockstate.OccupiedOppositeDirection;
                     stateSet = true;
@@ -6654,7 +6654,7 @@ namespace Orts.Simulation.Signalling
 
             if (CircuitType == TrackCircuitType.Junction || CircuitType == TrackCircuitType.Crossover)
             {
-                if (thisState.HasTrainsOccupying())    // there is a train on the switch
+                if (thisState.Occupied())    // there is a train on the switch
                 {
                     if (thisRoute == null)  // no route from signal - always report switch blocked
                     {
@@ -7464,396 +7464,6 @@ namespace Orts.Simulation.Signalling
                 if (ContainsTrain(thisTrain.Train.routedBackward)) Remove(thisTrain.Train.routedBackward);
             }
         }
-    }
-
-    //================================================================================================//
-    /// <summary>
-    ///
-    /// class TrackCircuitState
-    /// Class for track circuit state
-    ///
-    /// </summary>
-    //================================================================================================//
-
-    public class TrackCircuitState
-    {
-        public TrainOccupyState TrainOccupy;                       // trains occupying section      //
-        public Train.TrainRouted TrainReserved;                    // train reserving section       //
-        public int SignalReserved;                                 // signal reserving section      //
-        public TrainQueue TrainPreReserved;                        // trains with pre-reservation   //
-        public TrainQueue TrainClaimed;                            // trains with normal claims     //
-        public bool RemoteAvailable;                               // remote info available         //
-        public bool RemoteOccupied;                                // remote occupied state         //
-        public bool RemoteSignalReserved;                          // remote signal reserved        //
-        public int RemoteReserved;                                 // remote reserved (number only) //
-        public bool Forced;                                        // forced by human dispatcher    //
-
-        //================================================================================================//
-        /// <summary>
-        /// Constructor
-        /// </summary>
-
-        public TrackCircuitState()
-        {
-            TrainOccupy = new TrainOccupyState();
-            TrainReserved = null;
-            SignalReserved = -1;
-            TrainPreReserved = new TrainQueue();
-            TrainClaimed = new TrainQueue();
-            Forced = false;
-        }
-
-
-        //================================================================================================//
-        /// <summary>
-        /// Restore
-        /// IMPORTANT : trains are restored to dummy value, will be restored to full contents later
-        /// </summary>
-
-        public void Restore(Simulator simulator, BinaryReader inf)
-        {
-            int noOccupy = inf.ReadInt32();
-            for (int trainNo = 0; trainNo < noOccupy; trainNo++)
-            {
-                int trainNumber = inf.ReadInt32();
-                int trainRouteIndex = inf.ReadInt32();
-                int trainDirection = inf.ReadInt32();
-                Train thisTrain = new Train(simulator, trainNumber);
-                Train.TrainRouted thisRouted = new Train.TrainRouted(thisTrain, trainRouteIndex);
-                TrainOccupy.Add(thisRouted, trainDirection);
-            }
-
-            int trainReserved = inf.ReadInt32();
-            if (trainReserved >= 0)
-            {
-                int trainRouteIndexR = inf.ReadInt32();
-                Train thisTrain = new Train(simulator, trainReserved);
-                Train.TrainRouted thisRouted = new Train.TrainRouted(thisTrain, trainRouteIndexR);
-                TrainReserved = thisRouted;
-            }
-
-            SignalReserved = inf.ReadInt32();
-
-            int noPreReserve = inf.ReadInt32();
-            for (int trainNo = 0; trainNo < noPreReserve; trainNo++)
-            {
-                int trainNumber = inf.ReadInt32();
-                int trainRouteIndex = inf.ReadInt32();
-                Train thisTrain = new Train(simulator, trainNumber);
-                Train.TrainRouted thisRouted = new Train.TrainRouted(thisTrain, trainRouteIndex);
-                TrainPreReserved.Enqueue(thisRouted);
-            }
-
-            int noClaimed = inf.ReadInt32();
-            for (int trainNo = 0; trainNo < noClaimed; trainNo++)
-            {
-                int trainNumber = inf.ReadInt32();
-                int trainRouteIndex = inf.ReadInt32();
-                Train thisTrain = new Train(simulator, trainNumber);
-                Train.TrainRouted thisRouted = new Train.TrainRouted(thisTrain, trainRouteIndex);
-                TrainClaimed.Enqueue(thisRouted);
-            }
-            Forced = inf.ReadBoolean();
-
-        }
-
-        //================================================================================================//
-        /// <summary>
-        /// Reset train references after restore
-        /// </summary>
-
-        public void RestoreTrains(List<Train> trains, int sectionIndex)
-        {
-
-            // Occupy
-
-            Dictionary<int[], int> tempTrains = new Dictionary<int[], int>();
-
-            foreach (KeyValuePair<Train.TrainRouted, int> thisOccupy in TrainOccupy)
-            {
-                int[] trainKey = new int[2];
-                trainKey[0] = thisOccupy.Key.Train.Number;
-                trainKey[1] = thisOccupy.Key.TrainRouteDirectionIndex;
-                int direction = thisOccupy.Value;
-                tempTrains.Add(trainKey, direction);
-            }
-
-            TrainOccupy.Clear();
-
-            foreach (KeyValuePair<int[], int> thisTemp in tempTrains)
-            {
-                int[] trainKey = thisTemp.Key;
-                int number = trainKey[0];
-                int routeIndex = trainKey[1];
-                int direction = thisTemp.Value;
-                Train thisTrain = Signals.FindTrain(number, trains);
-                if (thisTrain != null)
-                {
-                    Train.TrainRouted thisTrainRouted = routeIndex == 0 ? thisTrain.routedForward : thisTrain.routedBackward;
-                    TrainOccupy.Add(thisTrainRouted, direction);
-                }
-            }
-
-            // Reserved
-
-            if (TrainReserved != null)
-            {
-                int number = TrainReserved.Train.Number;
-                Train reservedTrain = Signals.FindTrain(number, trains);
-                if (reservedTrain != null)
-                {
-                    int reservedDirection = TrainReserved.TrainRouteDirectionIndex;
-                    bool validreserve = true;
-
-                    // check if reserved section is on train's route except when train is in explorer or manual mode
-                    if (reservedTrain.ValidRoute[reservedDirection].Count > 0 && reservedTrain.ControlMode != Train.TRAIN_CONTROL.EXPLORER && reservedTrain.ControlMode != Train.TRAIN_CONTROL.MANUAL)
-                    {
-                        int dummy = reservedTrain.ValidRoute[reservedDirection].GetRouteIndex(sectionIndex, reservedTrain.PresentPosition[0].RouteListIndex);
-                        validreserve = reservedTrain.ValidRoute[reservedDirection].GetRouteIndex(sectionIndex, reservedTrain.PresentPosition[0].RouteListIndex) >= 0;
-                    }
-
-                    if (validreserve || reservedTrain.ControlMode == Train.TRAIN_CONTROL.EXPLORER)
-                    {
-                        TrainReserved = reservedDirection == 0 ? reservedTrain.routedForward : reservedTrain.routedBackward;
-                    }
-                    else
-                    {
-                        Trace.TraceInformation("Invalid reservation for train : {0} [{1}], section : {2} not restored", reservedTrain.Name, reservedDirection, sectionIndex);
-                    }
-                }
-                else
-                {
-                    TrainReserved = null;
-                }
-            }
-
-            // PreReserved
-
-            Queue<Train.TrainRouted> tempQueue = new Queue<Train.TrainRouted>();
-
-            foreach (Train.TrainRouted thisTrainRouted in TrainPreReserved)
-            {
-                tempQueue.Enqueue(thisTrainRouted);
-            }
-            TrainPreReserved.Clear();
-            foreach (Train.TrainRouted thisTrainRouted in tempQueue)
-            {
-                Train thisTrain = Signals.FindTrain(thisTrainRouted.Train.Number, trains);
-                int routeIndex = thisTrainRouted.TrainRouteDirectionIndex;
-                if (thisTrain != null)
-                {
-                    Train.TrainRouted foundTrainRouted = routeIndex == 0 ? thisTrain.routedForward : thisTrain.routedBackward;
-                    TrainPreReserved.Enqueue(foundTrainRouted);
-                }
-            }
-
-            // Claimed
-
-            tempQueue.Clear();
-
-            foreach (Train.TrainRouted thisTrainRouted in TrainClaimed)
-            {
-                tempQueue.Enqueue(thisTrainRouted);
-            }
-            TrainClaimed.Clear();
-            foreach (Train.TrainRouted thisTrainRouted in tempQueue)
-            {
-                Train thisTrain = Signals.FindTrain(thisTrainRouted.Train.Number, trains);
-                int routeIndex = thisTrainRouted.TrainRouteDirectionIndex;
-                if (thisTrain != null)
-                {
-                    Train.TrainRouted foundTrainRouted = routeIndex == 0 ? thisTrain.routedForward : thisTrain.routedBackward;
-                    TrainClaimed.Enqueue(foundTrainRouted);
-                }
-            }
-
-        }
-
-        //================================================================================================//
-        /// <summary>
-        /// Save
-        /// </summary>
-
-        public void Save(BinaryWriter outf)
-        {
-            outf.Write(TrainOccupy.Count);
-            foreach (KeyValuePair<Train.TrainRouted, int> thisOccupy in TrainOccupy)
-            {
-                Train.TrainRouted thisTrain = thisOccupy.Key;
-                outf.Write(thisTrain.Train.Number);
-                outf.Write(thisTrain.TrainRouteDirectionIndex);
-                outf.Write(thisOccupy.Value);
-            }
-
-            if (TrainReserved == null)
-            {
-                outf.Write(-1);
-            }
-            else
-            {
-                outf.Write(TrainReserved.Train.Number);
-                outf.Write(TrainReserved.TrainRouteDirectionIndex);
-            }
-
-            outf.Write(SignalReserved);
-
-            outf.Write(TrainPreReserved.Count);
-            foreach (Train.TrainRouted thisTrain in TrainPreReserved)
-            {
-                outf.Write(thisTrain.Train.Number);
-                outf.Write(thisTrain.TrainRouteDirectionIndex);
-            }
-
-            outf.Write(TrainClaimed.Count);
-            foreach (Train.TrainRouted thisTrain in TrainClaimed)
-            {
-                outf.Write(thisTrain.Train.Number);
-                outf.Write(thisTrain.TrainRouteDirectionIndex);
-            }
-
-            outf.Write(Forced);
-
-        }
-
-        //================================================================================================//
-        /// <summary>
-        /// Get list of trains occupying track
-        /// Check without direction
-        /// </summary>
-
-        public List<Train.TrainRouted> TrainsOccupying()
-        {
-            List<Train.TrainRouted> reqList = new List<Train.TrainRouted>();
-            foreach (KeyValuePair<Train.TrainRouted, int> thisTCT in TrainOccupy)
-            {
-                reqList.Add(thisTCT.Key);
-            }
-            return (reqList);
-        }
-
-        //================================================================================================//
-        /// <summary>
-        /// Get list of trains occupying track
-	/// Check based on direction
-        /// </summary>
-
-        public List<Train.TrainRouted> TrainsOccupying(int reqDirection)
-        {
-            List<Train.TrainRouted> reqList = new List<Train.TrainRouted>();
-            foreach (KeyValuePair<Train.TrainRouted, int> thisTCT in TrainOccupy)
-            {
-                if (thisTCT.Value == reqDirection)
-                {
-                    reqList.Add(thisTCT.Key);
-                }
-            }
-            return (reqList);
-        }
-
-        //================================================================================================//
-        /// <summary>
-        /// check if any trains occupy track
-        /// Check without direction
-        /// </summary>
-
-        public bool HasTrainsOccupying()
-        {
-            return (TrainOccupy.Count > 0);
-        }
-
-        //================================================================================================//
-        /// <summary>
-        /// check if any trains occupy track
-        /// Check based on direction
-        /// </summary>
-
-        public bool HasTrainsOccupying(int reqDirection, bool stationary)
-        {
-            foreach (KeyValuePair<Train.TrainRouted, int> thisTCT in TrainOccupy)
-            {
-                if (thisTCT.Value == reqDirection)
-                {
-                    if (Math.Abs(thisTCT.Key.Train.SpeedMpS) > 0.5f)
-                        return (true);   // exclude (almost) stationary trains
-                }
-
-                if ((Math.Abs(thisTCT.Key.Train.SpeedMpS) <= 0.5f) && stationary)
-                    return (true);   // (almost) stationay trains
-            }
-
-            return (false);
-        }
-
-        //================================================================================================//
-        /// <summary>
-        /// check if any trains occupy track
-        /// Check for other train without direction
-        /// </summary>
-
-        public bool HasOtherTrainsOccupying(Train.TrainRouted thisTrain)
-        {
-            if (TrainOccupy.Count == 0)  // no trains
-            {
-                return (false);
-            }
-
-            if (TrainOccupy.Count == 1 && TrainOccupy.ContainsTrain(thisTrain))  // only one train and that one is us
-            {
-                return (false);
-            }
-
-            return (true);
-        }
-
-        //================================================================================================//
-        /// <summary>
-        /// check if any trains occupy track
-        /// Check for other train based on direction
-        /// </summary>
-
-        public bool HasOtherTrainsOccupying(int reqDirection, bool stationary, Train.TrainRouted thisTrain)
-        {
-            foreach (KeyValuePair<Train.TrainRouted, int> thisTCT in TrainOccupy)
-            {
-                Train.TrainRouted otherTrain = thisTCT.Key;
-                if (otherTrain != thisTrain)
-                {
-                    if (thisTCT.Value == reqDirection)
-                    {
-                        if (Math.Abs(thisTCT.Key.Train.SpeedMpS) > 0.5f)
-                            return (true);   // exclude (almost) stationary trains
-                    }
-
-                    if ((Math.Abs(thisTCT.Key.Train.SpeedMpS) <= 0.5f) && stationary)
-                        return (true);   // (almost) stationay trains
-                }
-            }
-
-            return (false);
-        }
-
-        //================================================================================================//
-        /// <summary>
-        /// check if this train occupies track
-        /// routed train
-        /// </summary>
-
-        public bool ThisTrainOccupying(Train.TrainRouted thisTrain)
-        {
-            return (TrainOccupy.ContainsTrain(thisTrain));
-        }
-
-        //================================================================================================//
-        /// <summary>
-        /// check if this train occupies track
-        /// unrouted train
-        /// </summary>
-
-        public bool ThisTrainOccupying(Train thisTrain)
-        {
-            return (TrainOccupy.ContainsTrain(thisTrain));
-        }
-
     }
 
     //================================================================================================//
@@ -10044,7 +9654,7 @@ namespace Orts.Simulation.Signalling
                 foreach (Train.TCRouteElement routeElement in signalRoute)
                 {
                     TrackCircuitSection routeSection = signalRef.TrackCircuitList[routeElement.TCSectionIndex];
-                    if (routeSection.CircuitState.ThisTrainOccupying(thisTrain))
+                    if (routeSection.CircuitState.OccupiedByThisTrain(thisTrain))
                     {
                         return false;  // train has passed signal - clear request is invalid
                     }
@@ -10149,7 +9759,7 @@ namespace Orts.Simulation.Signalling
                 foreach (Train.TCRouteElement routeElement in signalRoute)
                 {
                     TrackCircuitSection routeSection = signalRef.TrackCircuitList[routeElement.TCSectionIndex];
-                    if (routeSection.CircuitState.ThisTrainOccupying(thisTrain))
+                    if (routeSection.CircuitState.OccupiedByThisTrain(thisTrain))
                     {
                         return;  // train has passed signal - clear request is invalid
                     }
@@ -10269,7 +9879,7 @@ namespace Orts.Simulation.Signalling
                     foreach (Train.TCRouteElement thisElement in thisRoute)
                     {
                         TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TCSectionIndex];
-                        if (thisSection.CircuitState.TrainReserved != null || thisSection.CircuitState.TrainOccupy.Count > 0)
+                        if (thisSection.CircuitState.TrainReserved != null || thisSection.CircuitState.OccupationState.Count > 0)
                         {
                             if (thisSection.CircuitState.TrainReserved != thisTrain)
                             {
@@ -10328,7 +9938,7 @@ namespace Orts.Simulation.Signalling
                         {
                             thisSection.Reserve(enabledTrain, thisRoute);
                         }
-                        else if (thisSection.CircuitState.HasOtherTrainsOccupying(enabledTrain))
+                        else if (thisSection.CircuitState.OccupiedByOtherTrains(enabledTrain))
                         {
                             thisSection.PreReserve(enabledTrain);
                         }
@@ -10538,7 +10148,7 @@ namespace Orts.Simulation.Signalling
                 foreach (Train.TCRouteElement thisElement in fixedRoute)
                 {
                     TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TCSectionIndex];
-                    if (thisSection.CircuitState.HasTrainsOccupying())
+                    if (thisSection.CircuitState.Occupied())
                     {
                         localBlockState = InternalBlockstate.OccupiedSameDirection;
                     }
@@ -10575,7 +10185,7 @@ namespace Orts.Simulation.Signalling
 
                     // set blockstate
 
-                    if (thisSection.CircuitState.HasTrainsOccupying())
+                    if (thisSection.CircuitState.Occupied())
                     {
                         if (thisSection.Index == TCReference)  // for section where signal is placed, check if train is ahead
                         {

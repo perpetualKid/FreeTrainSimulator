@@ -6385,10 +6385,10 @@ namespace Orts.Simulation.Physics
             {
                 int sectionIndex = ValidRoute[0][routeListIndex[0]].TCSectionIndex;
                 TrackCircuitSection thisSection = signalRef.TrackCircuitList[sectionIndex];
-                if (!thisSection.CircuitState.ThisTrainOccupying(routedForward))
+                if (!thisSection.CircuitState.OccupiedByThisTrain(routedForward))
                 {
                     thisSection.SetOccupied(routedForward, routeListIndex[1]);
-                    if (!Simulator.TimetableMode && thisSection.CircuitState.HasOtherTrainsOccupying(routedForward))
+                    if (!Simulator.TimetableMode && thisSection.CircuitState.OccupiedByOtherTrains(routedForward))
                     {
                         SwitchToNodeControl(sectionIndex);
                         EndAuthorityType[0] = END_AUTHORITY.TRAIN_AHEAD;
@@ -6409,7 +6409,7 @@ namespace Orts.Simulation.Physics
         {
             int otherdirection = -1;
             int owndirection = PresentPosition[0].TCDirection;
-            foreach (KeyValuePair<TrainRouted, int> trainToCheckInfo in thisSection.CircuitState.TrainOccupy)
+            foreach (KeyValuePair<TrainRouted, int> trainToCheckInfo in thisSection.CircuitState.OccupationState)
             {
                 Train OtherTrain = trainToCheckInfo.Key.Train;
                 if (OtherTrain.ControlMode == TRAIN_CONTROL.AUTO_SIGNAL) // train is still in signal mode, might need adjusting
@@ -6933,12 +6933,12 @@ namespace Orts.Simulation.Physics
                                 if (thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.Junction)
                                 {
                                     junctionFound = true;
-                                    if (thisSection.CircuitState.ThisTrainOccupying(this))
+                                    if (thisSection.CircuitState.OccupiedByThisTrain(this))
                                     {
                                         // Before deciding that route is not yet ready check if the new train head is off path because at end of new route
                                         var thisElement = nextRoute[nextRoute.Count - 1];
                                         thisSection = signalRef.TrackCircuitList[thisElement.TCSectionIndex];
-                                        if (thisSection.CircuitState.ThisTrainOccupying(this)) break;
+                                        if (thisSection.CircuitState.OccupiedByThisTrain(this)) break;
                                         junctionOccupied = true;
                                     }
                                 }
@@ -7409,7 +7409,7 @@ namespace Orts.Simulation.Physics
             foreach (TCRouteElement thisElement in thisRoute)
             {
                 TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TCSectionIndex];
-                foreach (KeyValuePair<TrainRouted, int> thisTrain in thisSection.CircuitState.TrainOccupy)
+                foreach (KeyValuePair<TrainRouted, int> thisTrain in thisSection.CircuitState.OccupationState)
                 {
                     if (thisTrain.Key.Train.SpeedMpS == 0.0f)
                     {
@@ -7521,7 +7521,7 @@ namespace Orts.Simulation.Physics
                     int nextSectionIndex = ValidRoute[0][iIndex].TCSectionIndex;
                     TrackCircuitSection nextSection = signalRef.TrackCircuitList[nextSectionIndex];
 
-                    if (nextSection.CircuitState.HasTrainsOccupying())  // train is ahead - it's not our signal //
+                    if (nextSection.CircuitState.Occupied())  // train is ahead - it's not our signal //
                     {
                         return (false);
                     }
@@ -8079,7 +8079,7 @@ namespace Orts.Simulation.Physics
                     {
                         endAuthority = END_AUTHORITY.TRAIN_AHEAD;
                         endAuthorityDistanceM = thisTrainAhead.Value;
-                        if (!thisSection.CircuitState.ThisTrainOccupying(this))
+                        if (!thisSection.CircuitState.OccupiedByThisTrain(this))
                             thisSection.PreReserve(thisRouted);
                     }
                     RemoveSignalEnablings(0, newRoute);
@@ -8172,7 +8172,7 @@ namespace Orts.Simulation.Physics
                                 int oppositeDirection = forward ? (nextElement.Direction == 0 ? 1 : 0) : (nextElement.Direction == 0 ? 0 : 1);
                                 reqDirection = forward ? nextElement.Direction : (nextElement.Direction == 0 ? 1 : 0);
 
-                                bool oppositeTrain = nextSection.CircuitState.HasTrainsOccupying(oppositeDirection, false);
+                                bool oppositeTrain = nextSection.CircuitState.Occupied(oppositeDirection, false);
 
                                 if (!oppositeTrain)
                                 {
@@ -8427,7 +8427,7 @@ namespace Orts.Simulation.Physics
             if (reqSwitch != null)
             {
                 // check if switch is clear
-                if (!reqSwitch.CircuitState.HasTrainsOccupying() && reqSwitch.CircuitState.TrainReserved == null && reqSwitch.CircuitState.SignalReserved < 0)
+                if (!reqSwitch.CircuitState.Occupied() && reqSwitch.CircuitState.TrainReserved == null && reqSwitch.CircuitState.SignalReserved < 0)
                 {
                     reqSwitch.JunctionSetManual = reqSwitch.JunctionLastRoute == 0 ? 1 : 0;
                     signalRef.setSwitch(reqSwitch.OriginalIndex, reqSwitch.JunctionSetManual, reqSwitch);
@@ -8879,7 +8879,7 @@ namespace Orts.Simulation.Physics
                     foreach (var tcRouteElement in ValidRoute[0])
                     {
                         var tcSection = signalRef.TrackCircuitList[tcRouteElement.TCSectionIndex];
-                        if (tcSection.CheckReserved(routedForward) && !tcSection.CircuitState.TrainOccupy.ContainsTrain(this))
+                        if (tcSection.CheckReserved(routedForward) && !tcSection.CircuitState.OccupationState.ContainsTrain(this))
                         {
                             tcSection.Unreserve();
                             tcSection.UnreserveTrain();
@@ -8891,7 +8891,7 @@ namespace Orts.Simulation.Physics
                     foreach (var tcRouteElement in ValidRoute[1])
                     {
                         var tcSection = signalRef.TrackCircuitList[tcRouteElement.TCSectionIndex];
-                        if (tcSection.CheckReserved(routedBackward) && !tcSection.CircuitState.TrainOccupy.ContainsTrain(this))
+                        if (tcSection.CheckReserved(routedBackward) && !tcSection.CircuitState.OccupationState.ContainsTrain(this))
                         {
                             tcSection.Unreserve();
                             tcSection.UnreserveTrain();
@@ -9135,7 +9135,7 @@ namespace Orts.Simulation.Physics
                     {
                         endAuthority = END_AUTHORITY.TRAIN_AHEAD;
                         endAuthorityDistanceM = thisTrainAhead.Value;
-                        if (!thisSection.CircuitState.ThisTrainOccupying(this)) thisSection.PreReserve(thisRouted);
+                        if (!thisSection.CircuitState.OccupiedByThisTrain(this)) thisSection.PreReserve(thisRouted);
                     }
                 }
 
@@ -9226,7 +9226,7 @@ namespace Orts.Simulation.Physics
                                 int oppositeDirection = forward ? (nextElement.Direction == 0 ? 1 : 0) : (nextElement.Direction == 0 ? 0 : 1);
                                 reqDirection = forward ? nextElement.Direction : (nextElement.Direction == 0 ? 1 : 0);
 
-                                bool oppositeTrain = nextSection.CircuitState.HasTrainsOccupying(oppositeDirection, false);
+                                bool oppositeTrain = nextSection.CircuitState.Occupied(oppositeDirection, false);
 
                                 if (!oppositeTrain)
                                 {
@@ -9440,7 +9440,7 @@ namespace Orts.Simulation.Physics
             if (reqSwitch != null)
             {
                 // check if switch is clear
-                if (!reqSwitch.CircuitState.HasTrainsOccupying() && reqSwitch.CircuitState.TrainReserved == null && reqSwitch.CircuitState.SignalReserved < 0)
+                if (!reqSwitch.CircuitState.Occupied() && reqSwitch.CircuitState.TrainReserved == null && reqSwitch.CircuitState.SignalReserved < 0)
                 {
                     reqSwitch.JunctionSetManual = reqSwitch.JunctionLastRoute == 0 ? 1 : 0;
                     signalRef.setSwitch(reqSwitch.OriginalIndex, reqSwitch.JunctionSetManual, reqSwitch);
@@ -10172,7 +10172,7 @@ namespace Orts.Simulation.Physics
 
             foreach (TrackCircuitSection thisSection in OccupiedTrack)
             {
-                if (!thisSection.CircuitState.ThisTrainOccupying(this))
+                if (!thisSection.CircuitState.OccupiedByThisTrain(this))
                 {
                     thisSection.Reserve(routedForward, ValidRoute[0]);
                     thisSection.SetOccupied(routedForward);
@@ -11096,7 +11096,7 @@ namespace Orts.Simulation.Physics
             {
                 TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TCSectionIndex];
                 thisSection.Reserve(routedForward, TrainRoute);
-                if (!thisSection.CircuitState.ThisTrainOccupying(this))
+                if (!thisSection.CircuitState.OccupiedByThisTrain(this))
                     thisSection.SetOccupied(routedForward);
             }
         }
@@ -13828,7 +13828,7 @@ namespace Orts.Simulation.Physics
                 returnString = String.Concat(returnString, "*");
             }
 
-            if (thisSection.CircuitState.TrainOccupy.Count > 0)
+            if (thisSection.CircuitState.OccupationState.Count > 0)
             {
                 List<TrainRouted> allTrains = thisSection.CircuitState.TrainsOccupying();
                 int trainno = allTrains[0].Train.Number;

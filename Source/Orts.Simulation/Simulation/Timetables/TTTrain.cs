@@ -6561,7 +6561,7 @@ namespace Orts.Simulation.Timetables
                 for (int iRouteSection = PresentPosition[0].RouteListIndex; iRouteSection < ValidRoute[0].Count; iRouteSection++)
                 {
                     TrackCircuitSection thisSection = signalRef.TrackCircuitList[ValidRoute[0][iRouteSection].TCSectionIndex];
-                    if (thisSection.CircuitState.HasTrainsOccupying())
+                    if (thisSection.CircuitState.Occupied())
                     {
                         List<TrainRouted> allTrains = thisSection.CircuitState.TrainsOccupying();
                         foreach (TrainRouted routedTrain in allTrains)
@@ -6589,7 +6589,7 @@ namespace Orts.Simulation.Timetables
             int thisSectionIndex = PresentPosition[0].TCSectionIndex;
             TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisSectionIndex];
 
-            if (thisSection.CircuitState.HasOtherTrainsOccupying(routedForward))
+            if (thisSection.CircuitState.OccupiedByOtherTrains(routedForward))
             {
                 List<TrainRouted> otherTrains = thisSection.CircuitState.TrainsOccupying();
 
@@ -6641,7 +6641,7 @@ namespace Orts.Simulation.Timetables
             TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisSectionIndex];
 
             // check train ahead
-            if (thisSection.CircuitState.HasOtherTrainsOccupying(routedForward))
+            if (thisSection.CircuitState.OccupiedByOtherTrains(routedForward))
             {
                 Dictionary<Train, float> trainInfo = thisSection.TestTrainAhead(this, PresentPosition[0].TCOffset, PresentPosition[0].TCDirection);
 
@@ -6828,7 +6828,7 @@ namespace Orts.Simulation.Timetables
 
                 // if train is to attach to train in section, allow callon if train is stopped
 
-                if (routeSection.CircuitState.HasOtherTrainsOccupying(routedForward))
+                if (routeSection.CircuitState.OccupiedByOtherTrains(routedForward))
                 {
                     firstTrainFound = true;
                     Dictionary<Train, float> trainInfo = routeSection.TestTrainAhead(this, 0, routeElement.Direction);
@@ -6935,7 +6935,7 @@ namespace Orts.Simulation.Timetables
                             if (intoPlatform && StationStops[0].CallOnAllowed) // stop is next station stop and callon is set
                             {
                                 // only allow if train ahead is stopped
-                                foreach (KeyValuePair<Train.TrainRouted, int> occTrainInfo in routeSection.CircuitState.TrainOccupy)
+                                foreach (KeyValuePair<Train.TrainRouted, int> occTrainInfo in routeSection.CircuitState.OccupationState)
                                 {
                                     Train.TrainRouted occTrain = occTrainInfo.Key;
                                     TTTrain occTTTrain = occTrain.Train as TTTrain;
@@ -7051,7 +7051,7 @@ namespace Orts.Simulation.Timetables
                 for (int iRoute = PresentPosition[0].RouteListIndex; iRoute < ValidRoute[0].Count && !AttachDetails.ReadyToAttach; iRoute++)
                 {
                     TrackCircuitSection thisSection = signalRef.TrackCircuitList[ValidRoute[0][iRoute].TCSectionIndex];
-                    if (thisSection.CircuitState.HasTrainsOccupying())
+                    if (thisSection.CircuitState.Occupied())
                     {
                         List<TrainRouted> allTrains = thisSection.CircuitState.TrainsOccupying();
                         foreach (TrainRouted routedTrain in allTrains)
@@ -7330,7 +7330,7 @@ namespace Orts.Simulation.Timetables
                 for (int iRouteIndex = PresentPosition[0].RouteListIndex; iRouteIndex < ValidRoute[0].Count && !firstTrainFound; iRouteIndex++)
                 {
                     TrackCircuitSection thisSection = signalRef.TrackCircuitList[ValidRoute[0][iRouteIndex].TCSectionIndex];
-                    if (thisSection.CircuitState.HasOtherTrainsOccupying(routedForward))
+                    if (thisSection.CircuitState.OccupiedByOtherTrains(routedForward))
                     {
                         firstTrainFound = true;
                         Dictionary<Train, float> trainInfo = thisSection.TestTrainAhead(this, 0, ValidRoute[0][iRouteIndex].Direction);
@@ -10755,7 +10755,7 @@ namespace Orts.Simulation.Timetables
                 for (int iIndex = PresentPosition[0].RouteListIndex; iIndex < ValidRoute[0].Count; iIndex++)
                 {
                     TrackCircuitSection thisSection = signalRef.TrackCircuitList[ValidRoute[0][iIndex].TCSectionIndex];
-                    if (thisSection.CircuitState.HasTrainsOccupying())
+                    if (thisSection.CircuitState.Occupied())
                     {
                         List<TrainRouted> allTrains = thisSection.CircuitState.TrainsOccupying();
                         foreach (TrainRouted routedTrain in allTrains)
@@ -12687,9 +12687,9 @@ namespace Orts.Simulation.Timetables
             for (int isection = PresentPosition[0].RouteListIndex + 1; isection <= ValidRoute[0].Count - 1 && !trainfound; isection++)
             {
                 TrackCircuitSection thisSection = signalRef.TrackCircuitList[ValidRoute[0][isection].TCSectionIndex];
-                if (thisSection.CircuitState.TrainOccupy.Count > 0)
+                if (thisSection.CircuitState.OccupationState.Count > 0)
                 {
-                    foreach (KeyValuePair<TrainRouted, int> traininfo in thisSection.CircuitState.TrainOccupy)
+                    foreach (KeyValuePair<TrainRouted, int> traininfo in thisSection.CircuitState.OccupationState)
                     {
                         TrainRouted trainahead = traininfo.Key;
                         waitforstring.AppendFormat("Train occupying : {0}", trainahead.Train.Name);
@@ -12746,9 +12746,9 @@ namespace Orts.Simulation.Timetables
                 for (int isection = PresentPosition[0].RouteListIndex + 1; isection <= ValidRoute[0].Count - 1 && !trainfound; isection++)
                 {
                     TrackCircuitSection thisSection = signalRef.TrackCircuitList[ValidRoute[0][isection].TCSectionIndex];
-                    if (thisSection.CircuitState.TrainOccupy.Count > 0)
+                    if (thisSection.CircuitState.OccupationState.Count > 0)
                     {
-                        foreach (KeyValuePair<TrainRouted, int> traininfo in thisSection.CircuitState.TrainOccupy)
+                        foreach (KeyValuePair<TrainRouted, int> traininfo in thisSection.CircuitState.OccupationState)
                         {
                             TrainRouted trainahead = traininfo.Key;
                             waitforstring.AppendFormat("Train occupying : {0}", trainahead.Train.Name);
@@ -12807,9 +12807,9 @@ namespace Orts.Simulation.Timetables
                 for (int isection = PresentPosition[0].RouteListIndex + 1; isection <= ValidRoute[0].Count - 1 && !trainfound; isection++)
                 {
                     TrackCircuitSection thisSection = signalRef.TrackCircuitList[ValidRoute[0][isection].TCSectionIndex];
-                    if (thisSection.CircuitState.TrainOccupy.Count > 0)
+                    if (thisSection.CircuitState.OccupationState.Count > 0)
                     {
-                        foreach (KeyValuePair<TrainRouted, int> traininfo in thisSection.CircuitState.TrainOccupy)
+                        foreach (KeyValuePair<TrainRouted, int> traininfo in thisSection.CircuitState.OccupationState)
                         {
                             TrainRouted trainahead = traininfo.Key;
                             waitforstring.AppendFormat("Train occupying : {0}", trainahead.Train.Name);

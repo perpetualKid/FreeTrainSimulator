@@ -3566,7 +3566,7 @@ namespace Orts.Simulation.AIs
                     int owndirection = -1;
                     int otherdirection = -1;
 
-                    foreach (KeyValuePair<TrainRouted, int> trainToCheckInfo in thisSection.CircuitState.TrainOccupy)
+                    foreach (KeyValuePair<TrainRouted, int> trainToCheckInfo in thisSection.CircuitState.OccupationState)
                     {
                         TrainRouted trainToCheck = trainToCheckInfo.Key;
 
