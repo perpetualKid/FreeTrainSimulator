@@ -133,6 +133,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         TrackMonitorSignalAspect SignalAspect;
         float SignalDistance;
         string MainHeadSignalTypeName;
+        SignalFeatures SignalFeatures;
 
         MonitoringDevice VigilanceMonitor;
         MonitoringDevice OverspeedMonitor;
@@ -279,6 +280,12 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 Script.NextSignalDistanceM = (value) => NextSignalItem<float>(value, ref SignalDistances, TrainPathItemType.Signal);
                 Script.NextNormalSignalDistanceHeadsAspect = () => NextNormalSignalDistanceHeadsAspect();
                 Script.DoesNextNormalSignalHaveTwoAspects = () => DoesNextNormalSignalHaveTwoAspects();
+                Script.NextNormalSignalMainHeadSignalType = (value) =>
+                {
+                    if (value > Locomotive.Train.SignalObjectItems.Count - 1) return "";
+                    SignalItemInfo nextObject = Locomotive.Train.SignalObjectItems[value];
+                    return nextObject != null && nextObject.SignalDetails.IsSignal ? nextObject.SignalDetails.SignalHeads[0].SignalType.Name: "";
+                };
                 Script.NextDistanceSignalAspect = () =>
                 NextGenericSignalItem<TrackMonitorSignalAspect>(ref SignalAspect, TrainPathItemType.Signal, "DISTANCE");
                 Script.NextDistanceSignalDistanceM = () =>
@@ -289,6 +296,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 NextGenericSignalItem<TrackMonitorSignalAspect>(ref SignalAspect, TrainPathItemType.Signal, type);
                 Script.NextGenericSignalDistanceM = (string type) =>
                     NextGenericSignalItem<float>(ref SignalDistance, TrainPathItemType.Signal, type);
+                Script.NextGenericSignalFeatures = (arg1, arg2, arg3) => NextGenericSignalFeatures(arg1, arg2, arg3);
                 Script.DoesNextNormalSignalHaveRepeaterHead = () => DoesNextNormalSignalHaveRepeaterHead();
                 Script.CurrentPostSpeedLimitMpS = () => Locomotive.Train.allowedMaxSpeedLimitMpS;
                 Script.NextPostSpeedLimitMpS = (value) => NextSignalItem<float>(value, ref PostSpeedLimits, TrainPathItemType.Speedpost);
@@ -299,6 +307,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 Script.IsDirectionForward = () => Locomotive.Direction == MidpointDirection.Forward;
                 Script.IsDirectionNeutral = () => Locomotive.Direction == MidpointDirection.N;
                 Script.IsDirectionReverse = () => Locomotive.Direction == MidpointDirection.Reverse;
+                Script.CurrentTrainMUDirection = () => Locomotive.Train.MUDirection;
                 Script.IsFlipped = () => Locomotive.Flipped;
                 Script.IsRearCab = () => Locomotive.UsingRearCab;
                 Script.IsBrakeEmergency = () => Locomotive.TrainBrakeController.EmergencyBraking;
@@ -420,6 +429,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             Script.TriggerSoundWarning2 = () => this.SignalEvent(TrainEvent.TrainControlSystemWarning2, Script);
             Script.TriggerSoundSystemActivate = () => this.SignalEvent(TrainEvent.TrainControlSystemActivate, Script);
             Script.TriggerSoundSystemDeactivate = () => this.SignalEvent(TrainEvent.TrainControlSystemDeactivate, Script);
+                Script.TriggerGenericSound = (value) => this.SignalEvent(value, Script);
                 Script.SetVigilanceAlarmDisplay = (value) => this.VigilanceAlarm = value;
                 Script.SetVigilanceEmergencyDisplay = (value) => this.VigilanceEmergency = value;
                 Script.SetOverspeedWarningDisplay = (value) => this.OverspeedWarning = value;
@@ -582,10 +592,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems
 
         T NextGenericSignalItem<T>(ref T retval, TrainPathItemType type, string signalTypeName)
         {
+            MainHeadSignalTypeName = "";
             SignalAspect = TrackMonitorSignalAspect.None;
             SignalDistance = float.MaxValue;
-            MainHeadSignalTypeName = "";
-
             int fn_type = OrSignalTypes.Instance.FunctionTypes.IndexOf(signalTypeName);
             if (fn_type <= 0) // Invalid value or NORMAL signal
                 return retval;
@@ -629,6 +638,62 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             }
 
             return retval;
+        }
+
+        private SignalFeatures NextGenericSignalFeatures(string signalTypeName, int signalSequenceIndex, float maxDistance)
+        {
+            SignalFeatures.MainHeadSignalTypeName = "";
+            SignalFeatures.Aspect = TrackMonitorSignalAspect.None;
+            SignalFeatures.DistanceM = float.MaxValue;
+            int fn_type = OrSignalTypes.Instance.FunctionTypes.IndexOf(signalTypeName);
+            if (fn_type <= 0) // Invalid value or NORMAL signal
+                return SignalFeatures;
+
+            Direction dir = Locomotive.Train.MUDirection == MidpointDirection.Reverse ? Direction.Backward : Direction.Forward;
+
+            if (Locomotive.Train.ValidRoute[(int)dir] == null || dir == Direction.Backward && Locomotive.Train.PresentPosition[dir].TrackCircuitSectionIndex < 0)
+                return SignalFeatures;
+
+            int index = dir == 0 ? Locomotive.Train.PresentPosition[dir].RouteListIndex :
+                Locomotive.Train.ValidRoute[(int)dir].GetRouteIndex(Locomotive.Train.PresentPosition[dir].TrackCircuitSectionIndex, 0);
+            if (index < 0)
+                return SignalFeatures;
+
+            float lengthOffset = (dir == Direction.Backward) ? (-Locomotive.Train.PresentPosition[Direction.Backward].Offset +
+                     TrackCircuitSection.TrackCircuitList[Locomotive.Train.PresentPosition[Direction.Backward].TrackCircuitSectionIndex].Length) : Locomotive.Train.PresentPosition[0].Offset;
+            float totalLength = 0;
+            var routePath = Locomotive.Train.ValidRoute[(int)dir];
+            int runningSequenceIndex = 0;
+            while (index < routePath.Count && totalLength - lengthOffset < maxDistance) 
+            {
+                TrackCircuitRouteElement thisElement = routePath[index];
+                TrackCircuitSection thisSection = thisElement.TrackCircuitSection;
+                TrackCircuitSignalList thisSignalList = thisSection.CircuitItems.TrackCircuitSignals[thisElement.Direction][fn_type];
+                foreach (TrackCircuitSignalItem thisSignal in thisSignalList)
+                {
+                    if (runningSequenceIndex < signalSequenceIndex)
+                    {
+                        runningSequenceIndex++;
+                        continue;
+                    }
+                    if (thisSignal.SignalLocation > lengthOffset)
+                    {
+                        SignalFeatures.Aspect = SignalEnvironment.TranslateToTCSAspect(thisSignal.Signal.SignalLR(fn_type));
+                        SignalFeatures.DistanceM = thisSignal.SignalLocation - lengthOffset + totalLength;
+                        SignalFeatures.MainHeadSignalTypeName = thisSignal.Signal.SignalHeads[0].SignalType.Name;
+                        return SignalFeatures;
+                    }
+                }
+                totalLength += (thisSection.Length - lengthOffset);
+                lengthOffset = 0;
+
+                int setSection = thisSection.ActivePins[thisElement.OutPin[Location.NearEnd], (Location)thisElement.OutPin[Location.FarEnd]].Link;
+                index++;
+                if (setSection < 0)
+                    return SignalFeatures;
+            }
+
+            return SignalFeatures;
         }
 
         private bool DoesNextNormalSignalHaveRepeaterHead()
