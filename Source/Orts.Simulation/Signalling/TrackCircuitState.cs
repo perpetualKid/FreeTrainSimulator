@@ -37,7 +37,7 @@ namespace Orts.Simulation.Signalling
     //================================================================================================//
     public class TrackCircuitState
     {
-        public TrainOccupyState OccupationState { get; internal set; }  // trains occupying section      //
+        public TrackOccupationState OccupationState { get; internal set; }  // trains occupying section      //
         public Train.TrainRouted TrainReserved { get; internal set; }   // train reserving section       //
         public int SignalReserved { get; internal set; }        // signal reserving section      //
         public TrainQueue TrainPreReserved { get; }             // trains with pre-reservation   //
@@ -51,7 +51,7 @@ namespace Orts.Simulation.Signalling
 
         public TrackCircuitState()
         {
-            OccupationState = new TrainOccupyState();
+            OccupationState = new TrackOccupationState();
             SignalReserved = -1;
             TrainPreReserved = new TrainQueue();
             TrainClaimed = new TrainQueue();
