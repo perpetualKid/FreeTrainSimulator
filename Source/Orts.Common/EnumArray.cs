@@ -36,10 +36,21 @@ namespace Orts.Common
             }
         }
 
+        public EnumArray(T[] source) : this()
+        {
+            if (source == null)
+                throw new ArgumentNullException(nameof(source));
+            if (source.Length != array.Length)
+                throw new IndexOutOfRangeException($"Source array needs to be same size as number of enum values of {typeof(TEnum)}");
+            Array.Copy(source, array, source.Length);
+        }
+
         public EnumArray(T source) : this()
         {
             if (source == null)
                 throw new ArgumentNullException(nameof(source));
+            if (!(source is ValueType))
+                throw new InvalidOperationException($"Cannot use reference type input to initialize multipe instances.");
 
             for (int i = 0; i < array.Length; i++) 
             { 
@@ -53,20 +64,21 @@ namespace Orts.Common
             set => array[(int)(object)(key) - lowBound] = value;
         }
 
-        public IEnumerator GetEnumerator()
+        IEnumerator IEnumerable.GetEnumerator()
         {
-            return EnumExtension.GetValues<TEnum>().Select(i => this[i]).GetEnumerator();
+            return array.GetEnumerator();
         }
 
-        IEnumerator<T> IEnumerable<T>.GetEnumerator()
+        public IEnumerator<T> GetEnumerator()
         {
-            return EnumExtension.GetValues<TEnum>().Select(i => this[i]).GetEnumerator();
+            return (array as IEnumerable<T>).GetEnumerator();
         }
     }
 
-    /// <summary>An array indexed by an Enum</summary>
+    /// <summary>An two-dimensional array indexed by Enums</summary>
     /// <typeparam name="T">Type stored in array</typeparam>
-    /// <typeparam name="TEnum">Indexer Enum type</typeparam>
+    /// <typeparam name="TDimension1">Indexer dimension 1 Enum type</typeparam>
+    /// <typeparam name="TDimension2">Indexer dimension 2 Enum type</typeparam>
 #pragma warning disable CA1710 // Identifiers should have correct suffix
     public class EnumArray2D<T, TDimension1, TDimension2> where TDimension1: Enum where TDimension2: Enum
 #pragma warning restore CA1715 // Identifiers should have correct prefix
