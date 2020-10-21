@@ -11,4 +11,20 @@
         NearEnd,
         FarEnd,
     }
+
+    public enum PinEnd
+    { 
+        ThisEnd,
+        OtherEnd,
+    }
+
+    public enum TrackCircuitType
+    {
+        Normal,
+        Junction,
+        Crossover,
+        EndOfTrack,
+        Empty,
+    }
+
 }
