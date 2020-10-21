@@ -449,7 +449,7 @@ namespace Orts.ActivityRunner.Viewer3D
                         {
                             try
                             {
-                                if (thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.Junction || thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.Crossover)
+                                if (thisSection.CircuitType == TrackCircuitType.Junction || thisSection.CircuitType == TrackCircuitType.Crossover)
                                 {
                                     // train is on a switch; let's see if car is on a switch too
                                     WorldLocation switchLocation = Viewer.Simulator.TDB.TrackDB.TrackNodes[thisSection.OriginalIndex].UiD.Location;

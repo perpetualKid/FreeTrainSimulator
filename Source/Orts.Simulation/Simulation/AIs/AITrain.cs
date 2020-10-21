@@ -3889,7 +3889,7 @@ namespace Orts.Simulation.AIs
 
                 // check if next section is junction
 
-                else if (nextSection == null || nextSection.CircuitType != TrackCircuitSection.TrackCircuitType.Normal)
+                else if (nextSection == null || nextSection.CircuitType != TrackCircuitType.Normal)
                 {
                     endSectionFound = true;
                 }
@@ -3909,7 +3909,7 @@ namespace Orts.Simulation.AIs
                         if (lastIndex < thisRoute.Count - 1)
                         endSignalIndex = nextSection.EndSignals[direction].thisRef;
                     }
-                    else if (nextSection.CircuitType != TrackCircuitSection.TrackCircuitType.Normal)
+                    else if (nextSection.CircuitType != TrackCircuitType.Normal)
                     {
                         endSectionFound = true;
                         lastIndex = nextIndex - 1;

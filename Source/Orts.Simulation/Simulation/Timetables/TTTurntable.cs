@@ -191,7 +191,7 @@ namespace Orts.Simulation.Timetables
                                 Train.TCSubpathRoute usedRoute = fullRoute.TCRouteSubpaths[0];
                                 int lastIndex = usedRoute.Count - 1;
                                 int lastSectionIndex = usedRoute[lastIndex].TCSectionIndex;
-                                if (Simulatorref.Signals.TrackCircuitList[lastSectionIndex].CircuitType == TrackCircuitSection.TrackCircuitType.EndOfTrack)
+                                if (Simulatorref.Signals.TrackCircuitList[lastSectionIndex].CircuitType == TrackCircuitType.EndOfTrack)
                                 {
                                     lastIndex = usedRoute.Count - 2;
                                 }

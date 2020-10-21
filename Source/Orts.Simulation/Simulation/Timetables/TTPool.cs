@@ -532,7 +532,7 @@ namespace Orts.Simulation.Timetables
 
                 // if last element is end of track, remove it from path
                 int lastSectionIndex = newPool.StoragePath[newPool.StoragePath.Count - 1].TCSectionIndex;
-                if (simulatorref.Signals.TrackCircuitList[lastSectionIndex].CircuitType == TrackCircuitSection.TrackCircuitType.EndOfTrack)
+                if (simulatorref.Signals.TrackCircuitList[lastSectionIndex].CircuitType == TrackCircuitType.EndOfTrack)
                 {
                     newPool.StoragePath.RemoveAt(newPool.StoragePath.Count - 1);
                 }
@@ -563,7 +563,7 @@ namespace Orts.Simulation.Timetables
                     Train.TCSubpathRoute usedRoute = fullRoute.TCRouteSubpaths[0];
                     int lastIndex = usedRoute.Count - 1;
                     int lastSectionIndex = usedRoute[lastIndex].TCSectionIndex;
-                    if (simulatorref.Signals.TrackCircuitList[lastSectionIndex].CircuitType == TrackCircuitSection.TrackCircuitType.EndOfTrack)
+                    if (simulatorref.Signals.TrackCircuitList[lastSectionIndex].CircuitType == TrackCircuitType.EndOfTrack)
                     {
                         lastIndex = usedRoute.Count - 2;
                     }
@@ -652,7 +652,7 @@ namespace Orts.Simulation.Timetables
             foreach (Train.TCRouteElement thisElement in newPool.StoragePath)
             {
                 TrackCircuitSection thisSection = simulatorref.Signals.TrackCircuitList[thisElement.TCSectionIndex];
-                if (thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.Junction)
+                if (thisSection.CircuitType == TrackCircuitType.Junction)
                 {
                     addedLength -= (float)thisSection.Overlap;
                     break;

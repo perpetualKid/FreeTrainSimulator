@@ -1700,13 +1700,13 @@ namespace Orts.Simulation.Timetables
                 // check if any junctions in path before start
                 for (int iIndex = 0; iIndex < startRouteIndex && !routeNodeBeforeStart; iIndex++)
                 {
-                    routeNodeBeforeStart = (signalRef.TrackCircuitList[thisRoute[iIndex].TCSectionIndex].CircuitType == TrackCircuitSection.TrackCircuitType.Junction);
+                    routeNodeBeforeStart = (signalRef.TrackCircuitList[thisRoute[iIndex].TCSectionIndex].CircuitType == TrackCircuitType.Junction);
                 }
 
                 // check if any junctions in path after end
                 for (int iIndex = lastRouteIndex + 1; iIndex < (thisRoute.Count - 1) && !routeNodeAfterEnd; iIndex++)
                 {
-                    routeNodeAfterEnd = (signalRef.TrackCircuitList[thisRoute[iIndex].TCSectionIndex].CircuitType == TrackCircuitSection.TrackCircuitType.Junction);
+                    routeNodeAfterEnd = (signalRef.TrackCircuitList[thisRoute[iIndex].TCSectionIndex].CircuitType == TrackCircuitType.Junction);
                 }
 
                 // check if terminal is at start of route
@@ -1821,7 +1821,7 @@ namespace Orts.Simulation.Timetables
                 {
                     followingSection = signalRef.TrackCircuitList[thisRoute[iSection].TCSectionIndex];
                     remLength += followingSection.Length;
-                    if (followingSection.CircuitType == TrackCircuitSection.TrackCircuitType.EndOfTrack)
+                    if (followingSection.CircuitType == TrackCircuitType.EndOfTrack)
                     {
                         remLength -= keepDistanceCloseupM; // stay clear from end of track
                     }
@@ -7412,7 +7412,7 @@ namespace Orts.Simulation.Timetables
                     bool reqcloseup = Closeup && String.IsNullOrEmpty(ExitPool);
                     if (nextIndex >= 0 && !lastIsStation && !reqcloseup)
                     {
-                        if (signalRef.TrackCircuitList[nextIndex].CircuitType == TrackCircuitSection.TrackCircuitType.Junction)
+                        if (signalRef.TrackCircuitList[nextIndex].CircuitType == TrackCircuitType.Junction)
                         {
                             float lengthCorrection = Math.Max(Convert.ToSingle(signalRef.TrackCircuitList[nextIndex].Overlap), standardOverlapM);
                             if (lastSection.Length - 2 * lengthCorrection < Length) // make sure train fits
@@ -9615,7 +9615,7 @@ namespace Orts.Simulation.Timetables
 
             // if last entry in route is END_OF_TRACK, check against previous entry as this can never be the trains position nor a signal reference section
             int lastValidRouteIndex = ValidRoute[0].Count - 1;
-            if (signalRef.TrackCircuitList[ValidRoute[0][lastValidRouteIndex].TCSectionIndex].CircuitType == TrackCircuitSection.TrackCircuitType.EndOfTrack)
+            if (signalRef.TrackCircuitList[ValidRoute[0][lastValidRouteIndex].TCSectionIndex].CircuitType == TrackCircuitType.EndOfTrack)
                 lastValidRouteIndex--;
 
             // train authority is end of path
@@ -9637,7 +9637,7 @@ namespace Orts.Simulation.Timetables
                     for (int iIndex = PresentPosition[0].RouteListIndex + 1; iIndex <= lastValidRouteIndex && !junctionFound; iIndex++)
                     {
                         thisSection = signalRef.TrackCircuitList[ValidRoute[0][iIndex].TCSectionIndex];
-                        junctionFound = thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.Junction;
+                        junctionFound = thisSection.CircuitType == TrackCircuitType.Junction;
                         lengthToGo += thisSection.Length;
                     }
 
@@ -9770,7 +9770,7 @@ namespace Orts.Simulation.Timetables
 
                 for (int Index = PresentPosition[1].RouteListIndex + 1; Index <= lastValidRouteIndex && !junctionFound; Index++)
                 {
-                    junctionFound = signalRef.TrackCircuitList[ValidRoute[0][Index].TCSectionIndex].CircuitType == TrackCircuitSection.TrackCircuitType.Junction;
+                    junctionFound = signalRef.TrackCircuitList[ValidRoute[0][Index].TCSectionIndex].CircuitType == TrackCircuitType.Junction;
                 }
 
                 if (nextActionInfo != null && nextActionInfo.NextAction == AIActionItem.AI_ACTION_TYPE.END_OF_ROUTE && !junctionFound)
@@ -9822,7 +9822,7 @@ namespace Orts.Simulation.Timetables
                         distanceToNextSignal = length; // distance is total length
                     }
 
-                    if (thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.Junction || thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.Crossover)
+                    if (thisSection.CircuitType == TrackCircuitType.Junction || thisSection.CircuitType == TrackCircuitType.Crossover)
                     {
                         intermediateJunction = true;
                         distanceToNextJunction = 0f;
@@ -9833,8 +9833,8 @@ namespace Orts.Simulation.Timetables
                         thisSection = signalRef.TrackCircuitList[ValidRoute[0][iIndex].TCSectionIndex];
                         length += thisSection.Length;
 
-                        if (thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.Junction ||
-                            thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.Crossover)
+                        if (thisSection.CircuitType == TrackCircuitType.Junction ||
+                            thisSection.CircuitType == TrackCircuitType.Crossover)
                         {
                             intermediateJunction = true;
                             distanceToNextJunction = distanceToNextJunction < 0 ? length : distanceToNextJunction;
@@ -9871,8 +9871,8 @@ namespace Orts.Simulation.Timetables
                         TrackCircuitSection thisSection = signalRef.TrackCircuitList[ValidRoute[0][iIndex].TCSectionIndex];
                         int direction = ValidRoute[0][iIndex].Direction;
 
-                        if (thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.Junction ||
-                            thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.Crossover)
+                        if (thisSection.CircuitType == TrackCircuitType.Junction ||
+                            thisSection.CircuitType == TrackCircuitType.Crossover)
                         {
                             intermediateJunction = true;
                         }
@@ -12521,7 +12521,7 @@ namespace Orts.Simulation.Timetables
             formedTrain.TrainType = TRAINTYPE.AI_AUTOGENERATE;
 
             TrackCircuitSection DetachSection = signalRef.TrackCircuitList[sectionInfo];
-            if (DetachSection.CircuitType == TrackCircuitSection.TrackCircuitType.EndOfTrack)
+            if (DetachSection.CircuitType == TrackCircuitType.EndOfTrack)
             {
                 DetachSection = signalRef.TrackCircuitList[DetachSection.Pins[0, 0].Link];
             }

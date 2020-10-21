@@ -1826,7 +1826,7 @@ namespace Orts.Simulation.Signalling
 				tcbb.AppendFormat("     OffsetLength 0 : {0}\n", thisSection.OffsetLength[0]);
 				tcbb.AppendFormat("     OffsetLength 1 : {0}\n", thisSection.OffsetLength[1]);
 
-                if (thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.Normal && thisSection.CircuitItems != null)
+                if (thisSection.CircuitType == TrackCircuitType.Normal && thisSection.CircuitItems != null)
                 {
 					tcbb.Append("\nSignals : \n");
 					for (var iDirection = 0; iDirection <= 1; iDirection++)
@@ -1877,7 +1877,7 @@ namespace Orts.Simulation.Signalling
 						tcbb.Append("\n");
                     }
                 }
-                else if (thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.Junction)
+                else if (thisSection.CircuitType == TrackCircuitType.Junction)
                 {
 					tcbb.AppendFormat("    Overlap : {0}\n", thisSection.Overlap);
                 }
@@ -2231,7 +2231,7 @@ namespace Orts.Simulation.Signalling
             TrackCircuitSection thisSection = TrackCircuitList[thisIndex];
 
             newIndex = -1;
-            if (thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.Normal)
+            if (thisSection.CircuitType == TrackCircuitType.Normal)
             {
                 addIndex.Add(thisNode);
 
@@ -2270,7 +2270,7 @@ namespace Orts.Simulation.Signalling
                     thisSection = TrackCircuitList[thisIndex];
 
                     newIndex = -1;
-                    if (thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.Normal)
+                    if (thisSection.CircuitType == TrackCircuitType.Normal)
                     {
 
                         List<TrackCircuitSignalItem> sectionSignals = thisSection.CircuitItems.TrackCircuitSignals[Heading.Reverse] [(int)SignalFunction.Normal];
@@ -2374,7 +2374,7 @@ namespace Orts.Simulation.Signalling
                 if (sectionIndex > 0)
                 {
                     section = TrackCircuitList[sectionIndex];
-                    if (section.CircuitType == TrackCircuitSection.TrackCircuitType.Crossover)
+                    if (section.CircuitType == TrackCircuitType.Crossover)
                     {
                         if (section.Pins[0, 0].Link == prevSection)
                         {
@@ -2413,7 +2413,7 @@ namespace Orts.Simulation.Signalling
             TrackCircuitSection replSection = orgSection.CopyBasic(orgSectionIndex);
 
             replSection.OriginalIndex = newSection.OriginalIndex = orgSection.OriginalIndex;
-            replSection.CircuitType = newSection.CircuitType = TrackCircuitSection.TrackCircuitType.Normal;
+            replSection.CircuitType = newSection.CircuitType = TrackCircuitType.Normal;
 
             replSection.Length = position;
             newSection.Length = orgSection.Length - position;
@@ -2586,7 +2586,7 @@ namespace Orts.Simulation.Signalling
             TrackCircuitSection JnSection = new TrackCircuitSection(JnIndex, this);
 
             JnSection.OriginalIndex = leadSection0.OriginalIndex;
-            JnSection.CircuitType = TrackCircuitSection.TrackCircuitType.Crossover;
+            JnSection.CircuitType = TrackCircuitType.Crossover;
             JnSection.Length = 0;
 
             leadSection0.Pins[1, 0].Link = JnIndex;
@@ -2699,7 +2699,7 @@ namespace Orts.Simulation.Signalling
             TrackCircuitSection thisSection = TrackCircuitList[thisNode];
             TrackCircuitSection endSection = new TrackCircuitSection(endNode, this);
 
-            endSection.CircuitType = TrackCircuitSection.TrackCircuitType.EndOfTrack;
+            endSection.CircuitType = TrackCircuitType.EndOfTrack;
             int endDirection = direction == 0 ? 1 : 0;
             int iDirection = thisSection.Pins[direction, pin].Direction == 0 ? 1 : 0;
             endSection.Pins[iDirection, 0].Direction = endDirection;
@@ -2727,7 +2727,7 @@ namespace Orts.Simulation.Signalling
                     {
                         TrackCircuitSection nextSection = null;
 
-                        if (thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.Junction)
+                        if (thisSection.CircuitType == TrackCircuitType.Junction)
                         {
                             int nextIndex = thisSection.Pins[iDirection, iPin].Link;
                             nextSection = TrackCircuitList[nextIndex];
@@ -2746,7 +2746,7 @@ namespace Orts.Simulation.Signalling
                                     thisSection.Pins[iDirection, iPin].Link;
                             }
                         }
-                        else if (thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.Crossover)
+                        else if (thisSection.CircuitType == TrackCircuitType.Crossover)
                         {
                             int nextIndex = thisSection.Pins[iDirection, iPin].Link;
                             nextSection = TrackCircuitList[nextIndex];
@@ -2767,22 +2767,22 @@ namespace Orts.Simulation.Signalling
                         }
 
 
-                        if (nextSection != null && nextSection.CircuitType == TrackCircuitSection.TrackCircuitType.Crossover)
+                        if (nextSection != null && nextSection.CircuitType == TrackCircuitType.Crossover)
                         {
                             thisSection.ActivePins[iDirection, iPin].Link = -1;
-                            if (thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.Normal)
+                            if (thisSection.CircuitType == TrackCircuitType.Normal)
                             {
                                 thisSection.EndIsTrailingJunction[iDirection] = true;
                             }
                         }
-                        else if (nextSection != null && nextSection.CircuitType == TrackCircuitSection.TrackCircuitType.Junction)
+                        else if (nextSection != null && nextSection.CircuitType == TrackCircuitType.Junction)
                         {
                             int nextDirection = thisSection.Pins[iDirection, iPin].Direction == 0 ? 1 : 0;
                             //                          int nextDirection = thisSection.Pins[iDirection, iPin].Direction;
                             if (nextSection.Pins[nextDirection, 1].Link > 0)
                             {
                                 thisSection.ActivePins[iDirection, iPin].Link = -1;
-                                if (thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.Normal)
+                                if (thisSection.CircuitType == TrackCircuitType.Normal)
                                 {
                                     thisSection.EndIsTrailingJunction[iDirection] = true;
                                 }
@@ -2801,7 +2801,7 @@ namespace Orts.Simulation.Signalling
         private void setCrossReference(int thisNode, TrackNode[] trackNodes)
         {
             TrackCircuitSection thisSection = TrackCircuitList[thisNode];
-            if (thisSection.OriginalIndex > 0 && thisSection.CircuitType != TrackCircuitSection.TrackCircuitType.Crossover)
+            if (thisSection.OriginalIndex > 0 && thisSection.CircuitType != TrackCircuitType.Crossover)
             {
                 TrackNode thisTrack = trackNodes[thisSection.OriginalIndex];
                 float offset0 = thisSection.OffsetLength[0];
@@ -2842,7 +2842,7 @@ namespace Orts.Simulation.Signalling
         private void setCrossReferenceCrossOver(int thisNode, TrackNode[] trackNodes)
         {
             TrackCircuitSection thisSection = TrackCircuitList[thisNode];
-            if (thisSection.OriginalIndex > 0 && thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.Crossover)
+            if (thisSection.OriginalIndex > 0 && thisSection.CircuitType == TrackCircuitType.Crossover)
             {
                 for (int iPin = 0; iPin <= 1; iPin++)
                 {
@@ -3238,7 +3238,7 @@ namespace Orts.Simulation.Signalling
                     routeAvailable = false;
 
                     // if section is junction or crossover, use next section as last, otherwise use this section as last
-                    if (thisSection.CircuitType != TrackCircuitSection.TrackCircuitType.Junction && thisSection.CircuitType != TrackCircuitSection.TrackCircuitType.Crossover)
+                    if (thisSection.CircuitType != TrackCircuitType.Junction && thisSection.CircuitType != TrackCircuitType.Crossover)
                     {
                         lastRouteIndex = routeIndex - 1;
                     }
@@ -3328,7 +3328,7 @@ namespace Orts.Simulation.Signalling
                             else
                             {
                                 trainAhead = thisSection.TestTrainAhead(thisTrain.Train, thisPosition.TCOffset, thisPosition.TCDirection);
-                                if (trainAhead.Count > 0 && thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.Normal) // do not end path on junction
+                                if (trainAhead.Count > 0 && thisSection.CircuitType == TrackCircuitType.Normal) // do not end path on junction
                                 {
                                     trainIsAhead = true;
                                 }
@@ -3421,7 +3421,7 @@ namespace Orts.Simulation.Signalling
                 }
                 // end of track reached
 
-                if (thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.EndOfTrack)
+                if (thisSection.CircuitType == TrackCircuitType.EndOfTrack)
                 {
                     endAuthority = Train.END_AUTHORITY.END_OF_TRACK;
                     furthestRouteCleared = true;
@@ -3456,8 +3456,8 @@ namespace Orts.Simulation.Signalling
                 Train.TCRouteElement nextElement = routePart[lastRouteIndex + 1];
                 sectionIndex = nextElement.TCSectionIndex;
                 thisSection = TrackCircuitList[sectionIndex];
-                if (thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.Junction ||
-                    thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.Crossover)
+                if (thisSection.CircuitType == TrackCircuitType.Junction ||
+                    thisSection.CircuitType == TrackCircuitType.Crossover)
                 {
                     if (!thisSection.IsAvailable(thisTrain))
                     {
@@ -3511,7 +3511,7 @@ namespace Orts.Simulation.Signalling
                 sectionIndex = nextElement.TCSectionIndex;
                 thisSection = TrackCircuitList[sectionIndex];
 
-                if (thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.Normal &&
+                if (thisSection.CircuitType == TrackCircuitType.Normal &&
                            thisSection.CircuitState.OccupiedByOtherTrains(thisTrain))
                 {
                     if (thisSection.CircuitState.OccupiedByOtherTrains(revDirection, false, thisTrain))
@@ -3548,7 +3548,7 @@ namespace Orts.Simulation.Signalling
                     endAuthority = Train.END_AUTHORITY.END_OF_AUTHORITY;
                     furthestRouteCleared = true;
                 }
-                else if (thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.Crossover || thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.Junction)
+                else if (thisSection.CircuitType == TrackCircuitType.Crossover || thisSection.CircuitType == TrackCircuitType.Junction)
                 {
                     // first not-available section is crossover or junction - treat as reserved switch
                     endAuthority = Train.END_AUTHORITY.RESERVED_SWITCH;
@@ -3734,7 +3734,7 @@ namespace Orts.Simulation.Signalling
                 Train.TCRouteElement thisElement = tempRoute[iElement];
                 TrackCircuitSection thisSection = TrackCircuitList[thisElement.TCSectionIndex];
 
-                if (thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.Junction)
+                if (thisSection.CircuitType == TrackCircuitType.Junction)
                 {
                     if (thisElement.OutPin[0] == 1) // facing switch
                     {
@@ -3929,7 +3929,7 @@ namespace Orts.Simulation.Signalling
                 int nextIndex = -1;
                 switch (thisSection.CircuitType)
                 {
-                    case TrackCircuitSection.TrackCircuitType.Crossover:
+                    case TrackCircuitType.Crossover:
                         if (thisSection.Pins[inPinIndex, 0].Link == lastIndex)
                         {
                             nextIndex = thisSection.Pins[outPinIndex, 0].Link;
@@ -3942,7 +3942,7 @@ namespace Orts.Simulation.Signalling
                         }
                         break;
 
-                    case TrackCircuitSection.TrackCircuitType.Junction:
+                    case TrackCircuitType.Junction:
 //                        if (checkReenterOriginalRoute && foundItems.Count > 2)
                         if (checkReenterOriginalRoute)
                         {
@@ -3984,7 +3984,7 @@ namespace Orts.Simulation.Signalling
                         }
                         break;
 
-                    case TrackCircuitSection.TrackCircuitType.EndOfTrack:
+                    case TrackCircuitType.EndOfTrack:
                         break;
 
                     default:
@@ -3995,7 +3995,7 @@ namespace Orts.Simulation.Signalling
 
                         // if next section is junction : check if locked against AI and if auto-alignment allowed
                         // switchable end of switch is always pin direction 1
-                        if (nextSection.CircuitType == TrackCircuitSection.TrackCircuitType.Junction)
+                        if (nextSection.CircuitType == TrackCircuitType.Junction)
                         {
                             int nextPinDirection = nextDirection == 0 ? 1 : 0;
                             int nextPinIndex = nextSection.Pins[(nextDirection == 0 ? 1 : 0), 0].Link == thisIndex ? 0 : 1;
@@ -5217,15 +5217,6 @@ namespace Orts.Simulation.Signalling
 
     public class TrackCircuitSection
     {
-        public enum TrackCircuitType
-        {
-            Normal,
-            Junction,
-            Crossover,
-            EndOfTrack,
-            Empty,
-        }
-
         // Properties Index, Length and OffsetLength come from TrackCircuitSectionXref
 
         public int Index;                                         // Index of TCS                           //
@@ -6127,7 +6118,7 @@ namespace Orts.Simulation.Signalling
 
             // add to clear list of train
 
-            if (CircuitType == TrackCircuitSection.TrackCircuitType.Junction)
+            if (CircuitType == TrackCircuitType.Junction)
             {
                 if (Pins[direction, 1].Link >= 0)  // facing point
                 {
@@ -6146,7 +6137,7 @@ namespace Orts.Simulation.Signalling
                 }
             }
 
-            else if (CircuitType == TrackCircuitSection.TrackCircuitType.Crossover)
+            else if (CircuitType == TrackCircuitType.Crossover)
             {
                 if (Overlap > 0)
                 {
@@ -7003,7 +6994,7 @@ namespace Orts.Simulation.Signalling
 
             // Crossover
 
-            if (CircuitType == TrackCircuitSection.TrackCircuitType.Crossover)
+            if (CircuitType == TrackCircuitType.Crossover)
             {
                 int inPinIndex = direction == 0 ? 1 : 0;
                 if (Pins[inPinIndex, 0].Link == lastIndex)
@@ -7947,7 +7938,7 @@ namespace Orts.Simulation.Signalling
 
             // loop through valid sections
 
-            while (thisSection != null && thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.Normal)
+            while (thisSection != null && thisSection.CircuitType == TrackCircuitType.Normal)
             {
 
                 if (!completedFixedRoute)
@@ -8000,7 +7991,7 @@ namespace Orts.Simulation.Signalling
 
             // Allow use of fixed route if ended on END_OF_TRACK
 
-            if (thisSection != null && thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.EndOfTrack)
+            if (thisSection != null && thisSection.CircuitType == TrackCircuitType.EndOfTrack)
             {
                 completedFixedRoute = true;
             }
@@ -8617,7 +8608,7 @@ namespace Orts.Simulation.Signalling
                 {
                     int pinIndex = sectionDirection;
 
-                    if (thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.Junction)
+                    if (thisSection.CircuitType == TrackCircuitType.Junction)
                     {
                         if (thisSection.Pins[pinIndex, 1].Link >= 0) // facing point
                         {
@@ -8638,7 +8629,7 @@ namespace Orts.Simulation.Signalling
 
                     sectionDirection = thisSection.Pins[pinIndex, 0].Direction;
 
-                    if (thisSection.CircuitType != TrackCircuitSection.TrackCircuitType.EndOfTrack && thisSection.Pins[pinIndex, 0].Link >= 0)
+                    if (thisSection.CircuitType != TrackCircuitType.EndOfTrack && thisSection.Pins[pinIndex, 0].Link >= 0)
                     {
                         thisSection = signalRef.TrackCircuitList[thisSection.Pins[pinIndex, 0].Link];
                     }
@@ -8688,7 +8679,7 @@ namespace Orts.Simulation.Signalling
 
                         for (int iElement = 0; iElement < RoutePart.Count && !routeset; iElement++)
                         {
-                            routeset = (sectionIndex == RoutePart[iElement].TCSectionIndex && signalRef.TrackCircuitList[sectionIndex].CircuitType == TrackCircuitSection.TrackCircuitType.Normal);
+                            routeset = (sectionIndex == RoutePart[iElement].TCSectionIndex && signalRef.TrackCircuitList[sectionIndex].CircuitType == TrackCircuitType.Normal);
                         }
                     }
                 }
@@ -8700,7 +8691,7 @@ namespace Orts.Simulation.Signalling
                     for (int iElement = 0; iElement <= signalRoute.Count - 1 && !routeset; iElement++)
                     {
                         TrackCircuitSection thisSection = signalRef.TrackCircuitList[signalRoute[iElement].TCSectionIndex];
-                        routeset = (thisSection.OriginalIndex == req_mainnode && thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.Normal);
+                        routeset = (thisSection.OriginalIndex == req_mainnode && thisSection.CircuitType == TrackCircuitType.Normal);
                     }
                 }
                 retry = !routeset;
@@ -8736,7 +8727,7 @@ namespace Orts.Simulation.Signalling
                     }
 
                     // if Junction, if active pins not set use selected route
-                    if (sectionIndex < 0 && thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.Junction)
+                    if (sectionIndex < 0 && thisSection.CircuitType == TrackCircuitType.Junction)
                     {
                         // check if this is required junction
                         if (Convert.ToUInt32(thisSection.Index) == req_jnnode)
@@ -8758,7 +8749,7 @@ namespace Orts.Simulation.Signalling
                     }
 
                     // if NORMAL, if active pins not set use default pins
-                    if (sectionIndex < 0 && thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.Normal)
+                    if (sectionIndex < 0 && thisSection.CircuitType == TrackCircuitType.Normal)
                     {
                         newDirection = thisSection.Pins[curDirection, 0].Direction;
                         sectionIndex = thisSection.Pins[curDirection, 0].Link;
@@ -8776,7 +8767,7 @@ namespace Orts.Simulation.Signalling
                         passedSections.Add(sectionIndex);
                         thisSection = signalRef.TrackCircuitList[sectionIndex];
                         curDirection = newDirection;
-                        routeset = (req_mainnode == thisSection.OriginalIndex && thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.Normal);
+                        routeset = (req_mainnode == thisSection.OriginalIndex && thisSection.CircuitType == TrackCircuitType.Normal);
                     }
 
                     // no next section
@@ -8849,8 +8840,8 @@ namespace Orts.Simulation.Signalling
             {
                 thisSection = signalRef.TrackCircuitList[thisTC];
 
-                if (thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.Junction ||
-                    thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.Crossover)
+                if (thisSection.CircuitType == TrackCircuitType.Junction ||
+                    thisSection.CircuitType == TrackCircuitType.Crossover)
                 {
                     if (!JunctionsPassed.Contains(thisTC))
                         JunctionsPassed.Add(thisTC);  // set reference to junction section
@@ -8982,8 +8973,8 @@ namespace Orts.Simulation.Signalling
             {
                 thisSection = signalRef.TrackCircuitList[thisTC];
 
-                if (thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.Junction ||
-                    thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.Crossover)
+                if (thisSection.CircuitType == TrackCircuitType.Junction ||
+                    thisSection.CircuitType == TrackCircuitType.Crossover)
                 {
                     if (!JunctionsPassed.Contains(thisTC))
                         JunctionsPassed.Add(thisTC);  // set reference to junction section
@@ -9048,8 +9039,8 @@ namespace Orts.Simulation.Signalling
             {
                 thisSection = signalRef.TrackCircuitList[thisTC];
 
-                if (thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.Junction ||
-                    thisSection.CircuitType == TrackCircuitSection.TrackCircuitType.Crossover)
+                if (thisSection.CircuitType == TrackCircuitType.Junction ||
+                    thisSection.CircuitType == TrackCircuitType.Crossover)
                 {
                     if (!JunctionsPassed.Contains(thisTC))
                         JunctionsPassed.Add(thisTC);  // set reference to junction section
@@ -9670,7 +9661,7 @@ namespace Orts.Simulation.Signalling
 
             // if end of signal route is not a signal or end-of-track it is not a full route
 
-            if (nextSignal == null && lastSignalSection.CircuitType != TrackCircuitSection.TrackCircuitType.EndOfTrack)
+            if (nextSignal == null && lastSignalSection.CircuitType != TrackCircuitType.EndOfTrack)
             {
                 fullRoute = false;
             }
@@ -10600,16 +10591,16 @@ namespace Orts.Simulation.Signalling
             {
                 TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisSectionIndex];
 
-                TrackCircuitSection.TrackCircuitType thisType = thisSection.CircuitType;
+                TrackCircuitType thisType = thisSection.CircuitType;
 
                 switch (thisType)
                 {
-                    case (TrackCircuitSection.TrackCircuitType.EndOfTrack):
+                    case (TrackCircuitType.EndOfTrack):
                         end_of_info = true;
                         break;
 
-                    case (TrackCircuitSection.TrackCircuitType.Junction):
-                    case (TrackCircuitSection.TrackCircuitType.Crossover):
+                    case (TrackCircuitType.Junction):
+                    case (TrackCircuitType.Crossover):
                         end_of_info = true;
                         break;
 
