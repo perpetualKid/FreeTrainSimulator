@@ -1463,6 +1463,10 @@ namespace Orts.Simulation.Physics
             // check position of train wrt tunnels
             ProcessTunnels();
 
+            // prepare train data for Train Control System
+            if (IsActualPlayerTrain)
+                UpdateTrainData();
+
             // log train details
 
             if (evaluateTrainSpeed)
@@ -10501,6 +10505,102 @@ namespace Orts.Simulation.Physics
             }
             stateString[4] = movString;
             stateString[5] = abString;
+        }
+
+        //TODO 20210121 refactor
+        public List<TrainSignal>[,] TrainSignalLists { get; private set; } // first index 0 forward, 1 backward; second index signal type (NORMAL etc.)
+
+        //================================================================================================//
+        /// <summary>
+        /// Updates the train data for TCS and TrackMonitor
+        /// </summary>
+        /// 
+        public void UpdateTrainData()
+        {
+            UpdateSignalData(10000.0f);
+            //TODO add generation of other train data
+        }
+
+        //================================================================================================//
+        /// <summary>
+        /// Updates the signal data;
+        /// </summary>
+
+        public void UpdateSignalData(float maxDistanceM)
+        {
+            if (!((MSTSLocomotive)simulator.PlayerLocomotive).TrainControlSystem.CustomTCSScript)
+                return;
+
+            if (TrainSignalLists == null)
+            {
+                TrainSignalLists = new List<TrainSignal>[2, OrSignalTypes.Instance.FunctionTypes.Count];
+                for (int dir = 0; dir < 2; dir++)
+                    for (int fn_type = 0; fn_type < OrSignalTypes.Instance.FunctionTypes.Count; fn_type++)
+                        TrainSignalLists[dir, fn_type] = new List<TrainSignal>();
+            }
+            else
+                foreach (var trainSignalList in TrainSignalLists)
+                    trainSignalList?.Clear();
+            // fill up the lists
+            foreach (Direction dir in EnumExtension.GetValues<Direction>())
+            {
+                if (ValidRoute[(int)dir] == null || dir == Direction.Backward && PresentPosition[dir].TrackCircuitSectionIndex < 0)
+                    continue;
+                int index = dir == 0 ? PresentPosition[dir].RouteListIndex : ValidRoute[(int)dir].GetRouteIndex(PresentPosition[dir].TrackCircuitSectionIndex, 0);
+                if (index < 0)
+                    continue;
+                for (int fn_type = 0; fn_type < OrSignalTypes.Instance.FunctionTypes.Count; fn_type++)
+                {
+                    // TODO: NORMAL signals management to be completed
+                    // NORMAL signals get data from a different place
+                    if (OrSignalTypes.Instance.FunctionTypes[fn_type] == "NORMAL")
+                    {
+                        if (dir == 0)
+                        {
+                            // we put them all without checking with max distance
+                            foreach (SignalItemInfo signalObjectItem in SignalObjectItems)
+                            {
+                                if (signalObjectItem.ItemType == SignalItemType.Signal)
+                                {
+                                    TrainSignal trainSignal = new TrainSignal(signalObjectItem.DistanceToTrain, signalObjectItem.SignalDetails);
+                                }
+                            }
+                        }
+                        else
+                        {
+
+                        }
+                    }
+                    else
+                    {
+                        float lengthOffset = (dir == Direction.Backward) ? (-PresentPosition[dir].Offset + TrackCircuitSection.TrackCircuitList[PresentPosition[dir].TrackCircuitSectionIndex].Length) : PresentPosition[dir].Offset;
+                        float totalLength = 0;
+                        TrackCircuitPartialPathRoute routePath = ValidRoute[(int)dir];
+                        while (index < routePath.Count && totalLength - lengthOffset < maxDistanceM)
+                        {
+                            TrackCircuitRouteElement routeElement = routePath[index];
+                            TrackCircuitSection section = TrackCircuitSection.TrackCircuitList[routeElement.TrackCircuitSection.Index];
+                            TrackCircuitSignalList signalList = section.CircuitItems.TrackCircuitSignals[routeElement.Direction][fn_type];
+                            foreach (TrackCircuitSignalItem signal in signalList)
+                            {
+                                if (signal.SignalLocation > lengthOffset)
+                                {
+                                    TrainSignal trainSignal = new TrainSignal(signal.SignalLocation - lengthOffset + totalLength, signal.Signal);
+                                    TrainSignalLists[(int)dir, fn_type].Add(trainSignal);
+                                }
+                            }
+                            totalLength += (section.Length - lengthOffset);
+                            lengthOffset = 0;
+
+                            // terminate where route not set
+                            int setSection = section.ActivePins[routeElement.OutPin[Location.NearEnd], (Location)routeElement.OutPin[Location.FarEnd]].Link;
+                            index++;
+                            if (setSection < 0)
+                                continue;
+                        }
+                    }
+                }
+            }
         }
 
 
