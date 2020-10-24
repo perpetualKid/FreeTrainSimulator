@@ -594,11 +594,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems
 
         T NextGenericSignalItem<T>(ref T retval, TrainPathItemType type, string signalTypeName)
         {
-            MainHeadSignalTypeName = "";
-            SignalAspect = TrackMonitorSignalAspect.None;
-            SignalDistance = float.MaxValue;
             NextGenericSignalFeatures(signalTypeName, 0, 400);
-            MainHeadSignalTypeName = SignalFeatures.MainHeadSignalTypeName = "";
+            MainHeadSignalTypeName = SignalFeatures.MainHeadSignalTypeName;
             SignalAspect = SignalFeatures.Aspect;
             SignalDistance = SignalFeatures.DistanceM;
             return retval;

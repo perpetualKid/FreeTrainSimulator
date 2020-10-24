@@ -10546,11 +10546,12 @@ namespace Orts.Simulation.Physics
             {
                 if (ValidRoute[(int)dir] == null || dir == Direction.Backward && PresentPosition[dir].TrackCircuitSectionIndex < 0)
                     continue;
-                int index = dir == 0 ? PresentPosition[dir].RouteListIndex : ValidRoute[(int)dir].GetRouteIndex(PresentPosition[dir].TrackCircuitSectionIndex, 0);
-                if (index < 0)
+                int startIndex = dir == 0 ? PresentPosition[dir].RouteListIndex : ValidRoute[(int)dir].GetRouteIndex(PresentPosition[dir].TrackCircuitSectionIndex, 0);
+                if (startIndex < 0)
                     continue;
                 for (int fn_type = 0; fn_type < OrSignalTypes.Instance.FunctionTypes.Count; fn_type++)
                 {
+                    int index = startIndex;
                     // TODO: NORMAL signals management to be completed
                     // NORMAL signals get data from a different place
                     if (OrSignalTypes.Instance.FunctionTypes[fn_type] == "NORMAL")
