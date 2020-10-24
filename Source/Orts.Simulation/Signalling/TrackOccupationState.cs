@@ -43,11 +43,11 @@ namespace Orts.Simulation.Signalling
         /// Check if it contains specified train
 	    /// Routed
         /// </summary>
-        public bool ContainsTrain(Train.TrainRouted thisTrain)
+        public bool ContainsTrain(Train.TrainRouted train)
         {
-            if (thisTrain == null) 
+            if (train == null) 
                 return (false);
-            return (ContainsKey(thisTrain.Train.routedForward) || ContainsKey(thisTrain.Train.routedBackward));
+            return (ContainsKey(train.Train.routedForward) || ContainsKey(train.Train.routedBackward));
         }
 
         //================================================================================================//
@@ -55,11 +55,11 @@ namespace Orts.Simulation.Signalling
         /// Check if it contains specified train
 	    /// Unrouted
         /// </summary>
-        public bool ContainsTrain(Train thisTrain)
+        public bool ContainsTrain(Train train)
         {
-            if (thisTrain == null) 
+            if (train == null) 
                 return (false);
-            return (ContainsKey(thisTrain.routedForward) || ContainsKey(thisTrain.routedBackward));
+            return (ContainsKey(train.routedForward) || ContainsKey(train.routedBackward));
         }
 
         //================================================================================================//
@@ -67,12 +67,12 @@ namespace Orts.Simulation.Signalling
         /// Remove train from list
 	    /// Routed
         /// </summary>
-        public void RemoveTrain(Train.TrainRouted thisTrain)
+        public void RemoveTrain(Train.TrainRouted train)
         {
-            if (thisTrain != null)
+            if (train != null)
             {
-                Remove(thisTrain.Train.routedForward);
-                Remove(thisTrain.Train.routedBackward);
+                Remove(train.Train.routedForward);
+                Remove(train.Train.routedBackward);
             }
         }
 
