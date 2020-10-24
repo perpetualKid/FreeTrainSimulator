@@ -915,13 +915,10 @@ namespace Orts.MultiPlayer
             switchSection.JunctionLastRoute = switchSection.JunctionSetManual;
 
             // update linked signals
-            if (switchSection.LinkedSignals != null)
+            foreach (int thisSignalIndex in switchSection.LinkedSignals ?? Enumerable.Empty<int>())
             {
-                foreach (int thisSignalIndex in switchSection.LinkedSignals)
-                {
-                    Signal thisSignal = MPManager.Simulator.Signals.SignalObjects[thisSignalIndex];
-                    thisSignal.Update();
-                }
+                Signal thisSignal = MPManager.Simulator.Signals.SignalObjects[thisSignalIndex];
+                thisSignal.Update();
             }
         }
     }
@@ -1034,13 +1031,10 @@ namespace Orts.MultiPlayer
             switchSection.JunctionLastRoute = switchSection.JunctionSetManual;
 
             // update linked signals
-            if (switchSection.LinkedSignals != null)
+            foreach (int thisSignalIndex in switchSection.LinkedSignals ?? Enumerable.Empty<int>())
             {
-                foreach (int thisSignalIndex in switchSection.LinkedSignals)
-                {
-                    Signal thisSignal = MPManager.Simulator.Signals.SignalObjects[thisSignalIndex];
-                    thisSignal.Update();
-                }
+                Signal thisSignal = MPManager.Simulator.Signals.SignalObjects[thisSignalIndex];
+                thisSignal.Update();
             }
         }
 
@@ -1165,13 +1159,10 @@ namespace Orts.MultiPlayer
             switchSection.JunctionLastRoute = switchSection.JunctionSetManual;
 
             // update linked signals
-            if (switchSection.LinkedSignals != null)
+            foreach (int thisSignalIndex in switchSection.LinkedSignals ?? Enumerable.Empty<int>())
             {
-                foreach (int thisSignalIndex in switchSection.LinkedSignals)
-                {
-                    Signal thisSignal = MPManager.Simulator.Signals.SignalObjects[thisSignalIndex];
-                    thisSignal.Update();
-                }
+                Signal thisSignal = MPManager.Simulator.Signals.SignalObjects[thisSignalIndex];
+                thisSignal.Update();
             }
         }
 
