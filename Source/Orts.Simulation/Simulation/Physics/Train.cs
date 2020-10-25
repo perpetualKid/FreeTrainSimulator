@@ -2370,7 +2370,7 @@ namespace Orts.Simulation.Physics
             // start at front of train
             int thisSectionIndex = PresentPosition[0].TCSectionIndex;
             float thisSectionOffset = PresentPosition[0].TCOffset;
-            int thisSectionDirection = PresentPosition[0].TCDirection;
+            Heading thisSectionDirection = (Heading)PresentPosition[0].TCDirection;
 
             for (int icar = 0; icar <= Cars.Count - 1; icar++)
             {
@@ -2397,53 +2397,50 @@ namespace Orts.Simulation.Physics
                     }
 
                     // section has tunnels
-                    if (thisSection.TunnelInfo != null)
+                    foreach (TunnelInfoData tunnel in thisSection.TunnelInfo ?? Enumerable.Empty<TunnelInfoData>())
                     {
-                        foreach (TrackCircuitSection.tunnelInfoData[] thisTunnel in thisSection.TunnelInfo)
+                        float tunnelStartOffset = tunnel.Start[thisSectionDirection];
+                        float tunnelEndOffset = tunnel.End[thisSectionDirection];
+
+                        if (tunnelStartOffset > 0 && tunnelStartOffset > thisSectionOffset)      // start of tunnel is in section beyond present position - cannot be in this tunnel nor any following
                         {
-                            float tunnelStartOffset = thisTunnel[thisSectionDirection].TunnelStart;
-                            float tunnelEndOffset = thisTunnel[thisSectionDirection].TunnelEnd;
+                            break;
+                        }
 
-                            if (tunnelStartOffset > 0 && tunnelStartOffset > thisSectionOffset)      // start of tunnel is in section beyond present position - cannot be in this tunnel nor any following
+                        if (tunnelEndOffset > 0 && tunnelEndOffset < (thisSectionOffset - usedCarLength)) // beyond end of tunnel, test next
+                        {
+                            continue;
+                        }
+
+                        if (tunnelStartOffset <= 0 || tunnelStartOffset < (thisSectionOffset - usedCarLength)) // start of tunnel is behind
+                        {
+                            if (tunnelEndOffset < 0) // end of tunnel is out of this section
                             {
-                                break;
+                                if (processedCarLength != 0)
+                                {
+                                    Trace.TraceInformation("Train : " + Name + " ; found tunnel in section " + thisSectionIndex + " with End < 0 while processed length : " + processedCarLength + "\n");
+                                }
                             }
 
-                            if (tunnelEndOffset > 0 && tunnelEndOffset < (thisSectionOffset - usedCarLength)) // beyond end of tunnel, test next
+                            inTunnel = true;
+
+                            numTunnelPaths = tunnel.NumberPaths;
+
+                            // get position in tunnel
+                            if (tunnelStartOffset < 0)
                             {
-                                continue;
+                                FrontCarPositionInTunnel = thisSectionOffset + tunnel.SectionStartOffset[thisSectionDirection];
+                                FrontCarLengthOfTunnelAhead = tunnel.LengthTotal - FrontCarPositionInTunnel;
+                                RearCarLengthOfTunnelBehind = tunnel.LengthTotal - (FrontCarLengthOfTunnelAhead + car.CarLengthM);
+                            }
+                            else
+                            {
+                                FrontCarPositionInTunnel = thisSectionOffset - tunnelStartOffset;
+                                FrontCarLengthOfTunnelAhead = tunnel.LengthTotal - FrontCarPositionInTunnel - processedCarLength;
+                                RearCarLengthOfTunnelBehind = tunnel.LengthTotal - (FrontCarLengthOfTunnelAhead + car.CarLengthM);
                             }
 
-                            if (tunnelStartOffset <= 0 || tunnelStartOffset < (thisSectionOffset - usedCarLength)) // start of tunnel is behind
-                            {
-                                if (tunnelEndOffset < 0) // end of tunnel is out of this section
-                                {
-                                    if (processedCarLength != 0)
-                                    {
-                                        Trace.TraceInformation("Train : " + Name + " ; found tunnel in section " + thisSectionIndex + " with End < 0 while processed length : " + processedCarLength + "\n");
-                                    }
-                                }
-
-                                inTunnel = true;
-
-                                numTunnelPaths = thisTunnel[thisSectionDirection].numTunnelPaths;
-
-                                // get position in tunnel
-                                if (tunnelStartOffset < 0)
-                                {
-                                    FrontCarPositionInTunnel = thisSectionOffset + thisTunnel[thisSectionDirection].TCSStartOffset;
-                                    FrontCarLengthOfTunnelAhead = thisTunnel[thisSectionDirection].TotalLength - FrontCarPositionInTunnel;
-                                    RearCarLengthOfTunnelBehind = thisTunnel[thisSectionDirection].TotalLength - (FrontCarLengthOfTunnelAhead + car.CarLengthM);
-                                }
-                                else
-                                {
-                                    FrontCarPositionInTunnel = thisSectionOffset - tunnelStartOffset;
-                                    FrontCarLengthOfTunnelAhead = thisTunnel[thisSectionDirection].TotalLength - FrontCarPositionInTunnel - processedCarLength;
-                                    RearCarLengthOfTunnelBehind = thisTunnel[thisSectionDirection].TotalLength - (FrontCarLengthOfTunnelAhead + car.CarLengthM);
-                                }
-
-                                break;  // only test one tunnel
-                            }
+                            break;  // only test one tunnel
                         }
                     }
                     // tested this section, any need to go beyond?
@@ -2468,7 +2465,7 @@ namespace Orts.Simulation.Physics
                             thisSectionIndex = thisSectionRouteIndex;
                             thisSection = signalRef.TrackCircuitList[thisSectionIndex];
                             thisSectionOffset = thisSection.Length;  // always at end of next section
-                            thisSectionDirection = ValidRoute[0][thisSectionRouteIndex].Direction;
+                            thisSectionDirection = (Heading)ValidRoute[0][thisSectionRouteIndex].Direction;
                         }
                         else // ran out of train
                         {

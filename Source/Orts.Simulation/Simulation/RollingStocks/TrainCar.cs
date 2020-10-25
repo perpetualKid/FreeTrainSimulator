@@ -2428,7 +2428,7 @@ namespace Orts.Simulation.RollingStocks
             int thisSectionIndex = Train.PresentPosition[0].TCSectionIndex;
             if (thisSectionIndex < 0) return isOverTrough;
             float thisSectionOffset = Train.PresentPosition[0].TCOffset;
-            int thisSectionDirection = Train.PresentPosition[0].TCDirection;
+            Heading thisSectionDirection = (Heading)Train.PresentPosition[0].TCDirection;
 
 
             float usedCarLength = CarLengthM;
@@ -2447,28 +2447,25 @@ namespace Orts.Simulation.RollingStocks
                 }
 
                 // section has troughs
-                if (thisSection.TroughInfo != null)
+                foreach (TroughInfoData trough in thisSection.TroughInfo ?? Enumerable.Empty<TroughInfoData>())
                 {
-                    foreach (TrackCircuitSection.troughInfoData[] thisTrough in thisSection.TroughInfo)
+                    float troughStartOffset = trough.Start[thisSectionDirection];
+                    float troughEndOffset = trough.End[thisSectionDirection];
+
+                    if (troughStartOffset > 0 && troughStartOffset > thisSectionOffset)      // start of trough is in section beyond present position - cannot be over this trough nor any following
                     {
-                        float troughStartOffset = thisTrough[thisSectionDirection].TroughStart;
-                        float troughEndOffset = thisTrough[thisSectionDirection].TroughEnd;
+                        return isOverTrough;
+                    }
 
-                        if (troughStartOffset > 0 && troughStartOffset > thisSectionOffset)      // start of trough is in section beyond present position - cannot be over this trough nor any following
-                        {
-                            return isOverTrough;
-                        }
+                    if (troughEndOffset > 0 && troughEndOffset < (thisSectionOffset - usedCarLength)) // beyond end of trough, test next
+                    {
+                        continue;
+                    }
 
-                        if (troughEndOffset > 0 && troughEndOffset < (thisSectionOffset - usedCarLength)) // beyond end of trough, test next
-                        {
-                            continue;
-                        }
-
-                        if (troughStartOffset <= 0 || troughStartOffset < (thisSectionOffset - usedCarLength)) // start of trough is behind
-                        {
-                            isOverTrough = true;
-                            return isOverTrough;
-                        }
+                    if (troughStartOffset <= 0 || troughStartOffset < (thisSectionOffset - usedCarLength)) // start of trough is behind
+                    {
+                        isOverTrough = true;
+                        return isOverTrough;
                     }
                 }
                 // tested this section, any need to go beyond?
@@ -2482,7 +2479,7 @@ namespace Orts.Simulation.RollingStocks
                         thisSectionIndex = thisSectionRouteIndex;
                         thisSection = Train.signalRef.TrackCircuitList[thisSectionIndex];
                         thisSectionOffset = thisSection.Length;  // always at end of next section
-                        thisSectionDirection = Train.ValidRoute[0][thisSectionRouteIndex].Direction;
+                        thisSectionDirection = (Heading)Train.ValidRoute[0][thisSectionRouteIndex].Direction;
                     }
                     else // ran out of train
                     {
