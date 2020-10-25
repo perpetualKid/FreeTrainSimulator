@@ -305,7 +305,7 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         public bool OccupiedByOtherTrains(Train.TrainRouted train)
         {
-            return OccupationState.Count > 1 || !OccupationState.ContainsTrain(train);
+            return OccupationState.Count > 1 || (OccupationState.Count == 1 && !OccupationState.ContainsTrain(train));
         }
 
         //================================================================================================//
