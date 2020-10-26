@@ -218,15 +218,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
-  <Target Name="PostBuildMacros">
-    <GetAssemblyIdentity AssemblyFiles="$(TargetPath)">
-      <Output TaskParameter="Assemblies" ItemName="Targets" />
-    </GetAssemblyIdentity>
-    <ItemGroup>
-      <VersionNumber Include="@(Targets->'%(Version)')" />
-    </ItemGroup>
-  </Target>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="cd %25temp%25&#xD;&#xA;dotnet new tool-manifest --force&#xD;&#xA;dotnet tool install dotnet-mgfxc&#xD;&#xA;FOR %25%25i IN ($(ProjectDir)Content\Shaders\*.fx) DO ( dotnet tool run mgfxc $(ProjectDir)Content\Shaders\%25%25~nxi $(TargetDir)Content\%25%25~ni.mgfx /Profile:DirectX_11)" />
+    <Exec Command="if not exist $(TargetDir)Content\*.mgfx (&#xD;&#xA;cd %25temp%25&#xD;&#xA;dotnet new tool-manifest --force&#xD;&#xA;dotnet tool install dotnet-mgfxc&#xD;&#xA;FOR %25%25i IN ($(ProjectDir)Content\Shaders\*.fx) DO ( dotnet tool run mgfxc $(ProjectDir)Content\Shaders\%25%25~nxi $(TargetDir)Content\%25%25~ni.mgfx /Profile:DirectX_11))" />
   </Target>
 </Project>
