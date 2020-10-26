@@ -1330,9 +1330,9 @@ namespace Orts.Simulation.Signalling
                 // normal signal
                 if (fn_type == SignalFunction.Normal)
                 {
-                    if (thisSection.EndSignals[(int)actDirection] != null)
+                    if (thisSection.EndSignals[actDirection] != null)
                     {
-                        foundObject = thisSection.EndSignals[(int)actDirection];
+                        foundObject = thisSection.EndSignals[actDirection];
                         totalLength += (thisSection.Length - lengthOffset);
                         locstate = SignalItemFindState.Item;
                     }
@@ -1773,232 +1773,6 @@ namespace Orts.Simulation.Signalling
 
         //================================================================================================//
         /// <summary>
-        /// Print TC Information
-        /// </summary>
-
-        void PrintTCBase(TrackNode[] trackNodes)
-        {
-
-            //
-            // Test : print TrackCircuitList
-            //
-
-#if DEBUG_PRINT
-            if (File.Exists(@"C:\temp\TCBase.txt"))
-            {
-                File.Delete(@"C:\temp\TCBase.txt");
-            }
-
-			var tcbb = new StringBuilder();
-            for (var iNode = 0; iNode < TrackCircuitList.Count; iNode++)
-            {
-				var thisSection = TrackCircuitList[iNode];
-				tcbb.AppendFormat("\nIndex : {0}\n", iNode);
-				tcbb.Append("{\n");
-				tcbb.AppendFormat("     Section    : {0}\n", thisSection.Index);
-				tcbb.AppendFormat("     OrgSection : {0}\n", thisSection.OriginalIndex);
-				tcbb.AppendFormat("     Type       : {0}\n", thisSection.CircuitType);
-
-				tcbb.AppendFormat("     Pins (0,0) : {0} {1}\n", thisSection.Pins[0, 0].Direction, thisSection.Pins[0, 0].Link);
-				tcbb.AppendFormat("     Pins (0,1) : {0} {1}\n", thisSection.Pins[0, 1].Direction, thisSection.Pins[0, 1].Link);
-				tcbb.AppendFormat("     Pins (1,0) : {0} {1}\n", thisSection.Pins[1, 0].Direction, thisSection.Pins[1, 0].Link);
-				tcbb.AppendFormat("     Pins (1,1) : {0} {1}\n", thisSection.Pins[1, 1].Direction, thisSection.Pins[1, 1].Link);
-
-				tcbb.AppendFormat("     Active Pins (0,0) : {0} {1}\n", thisSection.ActivePins[0, 0].Direction, thisSection.ActivePins[0, 0].Link);
-				tcbb.AppendFormat("     Active Pins (0,1) : {0} {1}\n", thisSection.ActivePins[0, 1].Direction, thisSection.ActivePins[0, 1].Link);
-				tcbb.AppendFormat("     Active Pins (1,0) : {0} {1}\n", thisSection.ActivePins[1, 0].Direction, thisSection.ActivePins[1, 0].Link);
-				tcbb.AppendFormat("     Active Pins (1,1) : {0} {1}\n", thisSection.ActivePins[1, 1].Direction, thisSection.ActivePins[1, 1].Link);
-
-                if (thisSection.EndIsTrailingJunction[0])
-                {
-					tcbb.Append("     Trailing Junction : direction 0\n");
-                }
-
-                if (thisSection.EndIsTrailingJunction[1])
-                {
-					tcbb.Append("     Trailing Junction : direction 1\n");
-                }
-
-				tcbb.AppendFormat("     Length         : {0}\n", thisSection.Length);
-				tcbb.AppendFormat("     OffsetLength 0 : {0}\n", thisSection.OffsetLength[0]);
-				tcbb.AppendFormat("     OffsetLength 1 : {0}\n", thisSection.OffsetLength[1]);
-
-                if (thisSection.CircuitType == TrackCircuitType.Normal && thisSection.CircuitItems != null)
-                {
-					tcbb.Append("\nSignals : \n");
-					for (var iDirection = 0; iDirection <= 1; iDirection++)
-                    {
-                        if (thisSection.EndSignals[iDirection] != null)
-                        {
-							tcbb.AppendFormat("    End Signal {0} : {1}\n", iDirection, thisSection.EndSignals[iDirection].thisRef);
-                        }
-
-                        for (var fntype = 0; fntype < ORTSSignalTypeCount; fntype++)
-                        {
-                            var thisFN = (MstsSignalFunction)fntype;
-                            tcbb.AppendFormat("    Direction {0} - Function : {1} : \n", iDirection, thisFN);
-                            var thisSignalList = thisSection.CircuitItems.TrackCircuitSignals[iDirection][fntype];
-							foreach (var thisItem in thisSignalList.TrackCircuitItem)
-                            {
-								var thisSignal = thisItem.SignalRef;
-								var signalDistance = thisItem.SignalLocation;
-
-                                if (thisSignal.WorldObject == null)
-                                {
-									tcbb.AppendFormat("         {0} = **UNKNOWN** at {1}\n", thisSignal.thisRef, signalDistance);
-                                }
-                                else
-                                {
-									tcbb.AppendFormat("         {0} = {1} at {2}\n", thisSignal.thisRef, thisSignal.WorldObject.SFileName, signalDistance);
-                                }
-                            }
-							tcbb.Append("\n");
-                        }
-                    }
-
-					tcbb.Append("\nSpeedposts : \n");
-					for (var iDirection = 0; iDirection <= 1; iDirection++)
-                    {
-						tcbb.AppendFormat("    Direction {0}\n", iDirection);
-
-						var thisSpeedpostList = thisSection.CircuitItems.TrackCircuitSpeedPosts[iDirection];
-						foreach (var thisItem in thisSpeedpostList.TrackCircuitItem)
-                        {
-							var thisSpeedpost = thisItem.SignalRef;
-							var speedpostDistance = thisItem.SignalLocation;
-
-							var speedInfo = new SignalItemInfo(thisSpeedpost, speedpostDistance);
-							tcbb.AppendFormat("{0} = pass : {1} ; freight : {2} - at distance {3}\n", thisSpeedpost.thisRef, speedInfo.speed_passenger, speedInfo.speed_freight, speedpostDistance);
-                        }
-
-						tcbb.Append("\n");
-                    }
-                }
-                else if (thisSection.CircuitType == TrackCircuitType.Junction)
-                {
-					tcbb.AppendFormat("    Overlap : {0}\n", thisSection.Overlap);
-                }
-
-                if (thisSection.TunnelInfo != null && thisSection.TunnelInfo.Count > 0)
-                {
-                    tcbb.Append("\nTunnel Info : \n");
-                    foreach (TrackCircuitSection.tunnelInfoData[] thisTunnelInfo in thisSection.TunnelInfo)
-                    {
-                        tcbb.AppendFormat("\nDirection 0 : Start : {0} ; End : {1} ; Length in TCS : {2} ; Overall length : {3} ; Tunnel offset : {4} \n",
-                            thisTunnelInfo[0].TunnelStart, thisTunnelInfo[0].TunnelEnd, thisTunnelInfo[0].LengthInTCS, thisTunnelInfo[0].TotalLength, thisTunnelInfo[0].TCSStartOffset);
-                        tcbb.AppendFormat("\nDirection 1 : Start : {0} ; End : {1} ; Length in TCS : {2} ; Overall length : {3} ; Tunnel offset : {4} \n",
-                            thisTunnelInfo[1].TunnelStart, thisTunnelInfo[1].TunnelEnd, thisTunnelInfo[1].LengthInTCS, thisTunnelInfo[1].TotalLength, thisTunnelInfo[1].TCSStartOffset);
-                    }
-                }
-
-				tcbb.Append("}\n");
-            }
-
-			tcbb.Append("\n\nCROSSOVERS\n\n");
-			foreach (var CrossItem in CrossoverList)
-            {
-				var thisCross = CrossItem.Value;
-				tcbb.AppendFormat("   Indices : {0} - {1}\n", thisCross.ItemIndex[0], thisCross.ItemIndex[1]);
-				tcbb.AppendFormat("   Sections: {0} - {1}\n", thisCross.SectionIndex[0], thisCross.SectionIndex[1]);
-				tcbb.Append("\n");
-            }
-
-			tcbb.Append("\n\nTRACK SECTIONS\n\n");
-			foreach (var thisTrack in trackNodes)
-            {
-                if (thisTrack == null)
-                {
-                }
-                else if (thisTrack.TCCrossReference == null)
-                {
-					tcbb.Append("   ERROR : no track circuit cross-reference \n");
-                    Trace.TraceWarning("ERROR : Track Node without Track Circuit cross-reference");
-                }
-                else
-                {
-					var thisXRef = thisTrack.TCCrossReference;
-					var thisSection = TrackCircuitList[thisXRef[0].Index];
-					tcbb.AppendFormat("     Original node : {0}\n", thisSection.OriginalIndex);
-
-					foreach (var thisReference in thisXRef)
-                    {
-						tcbb.AppendFormat("        Ref Index : {0} : " + "Length : {1} at : {2} - {3}\n", thisReference.Index, thisReference.Length, thisReference.OffsetLength[0], thisReference.OffsetLength[1]);
-                    }
-					tcbb.Append("\n");
-
-                    if (thisXRef[thisXRef.Count - 1].OffsetLength[1] != 0)
-                    {
-						tcbb.Append(" >>> INVALID XREF\n");
-                    }
-                }
-            }
-
-			tcbb.Append("\n\n PLATFORMS \n --------- \n\n");
-
-			foreach (var platformXRef in PlatformXRefList)
-            {
-				var thisPlatform = PlatformDetailsList[platformXRef.Value];
-
-				tcbb.AppendFormat("Index {0} : Platform {1} [{2} ,{3}]\n", platformXRef.Key, platformXRef.Value, thisPlatform.PlatformReference[0], thisPlatform.PlatformReference[1]);
-            }
-
-			tcbb.Append("\n\n");
-
-			for (var iPlatform = 0; iPlatform < PlatformDetailsList.Count; iPlatform++)
-            {
-				var thisPlatform = PlatformDetailsList[iPlatform];
-
-				tcbb.AppendFormat("Platform : {0}\n", iPlatform);
-
-				tcbb.AppendFormat("Name     : {0}\n", thisPlatform.Name);
-				tcbb.AppendFormat("Time     : {0}\n", thisPlatform.MinWaitingTime);
-
-				tcbb.AppendFormat("Sections : ");
-				for (var iSection = 0; iSection < thisPlatform.TCSectionIndex.Count; iSection++)
-                {
-					tcbb.AppendFormat(" " + thisPlatform.TCSectionIndex[iSection]);
-                }
-				tcbb.AppendFormat("\n");
-
-				tcbb.AppendFormat("Platform References    : {0} + {1}\n", thisPlatform.PlatformReference[0], thisPlatform.PlatformReference[1]);
-
-				tcbb.AppendFormat("Section Offset : [0,0] : {0}\n", thisPlatform.TCOffset[0, 0]);
-				tcbb.AppendFormat("                 [0,1] : {0}\n", thisPlatform.TCOffset[0, 1]);
-				tcbb.AppendFormat("                 [1,0] : {0}\n", thisPlatform.TCOffset[1, 0]);
-				tcbb.AppendFormat("                 [1,1] : {0}\n", thisPlatform.TCOffset[1, 1]);
-
-				tcbb.AppendFormat("Length                 : {0}\n", thisPlatform.Length);
-
-				tcbb.AppendFormat("Node Offset    : [0]   : {0}\n", thisPlatform.nodeOffset[0]);
-				tcbb.AppendFormat("Node Offset    : [1]   : {0}\n", thisPlatform.nodeOffset[1]);
-
-                if (thisPlatform.EndSignals[0] == -1)
-                {
-					tcbb.AppendFormat("End Signal     : [0]   : -None-\n");
-                }
-                else
-                {
-					tcbb.AppendFormat("End Signal     : [0]   : {0}\n", thisPlatform.EndSignals[0]);
-					tcbb.AppendFormat("Distance               : {0}\n", thisPlatform.DistanceToSignals[0]);
-                }
-                if (thisPlatform.EndSignals[1] == -1)
-                {
-					tcbb.AppendFormat("End Signal     : [1]   : -None-\n");
-                }
-                else
-                {
-					tcbb.AppendFormat("End Signal     : [1]   : {0}\n", thisPlatform.EndSignals[1]);
-					tcbb.AppendFormat("Distance               : {0}\n", thisPlatform.DistanceToSignals[1]);
-                }
-
-				tcbb.Append("\n");
-            }
-			File.AppendAllText(@"C:\temp\TCBase.txt", tcbb.ToString());
-#endif
-        }
-
-        //================================================================================================//
-        /// <summary>
         /// ProcessNodes
         /// </summary>
 
@@ -2245,7 +2019,7 @@ namespace Orts.Simulation.Signalling
 
                     TrackCircuitSection.SplitSection(thisIndex, newIndex, thisSection.Length - thisSignal.SignalLocation);
                     TrackCircuitSection newSection = TrackCircuitList[newIndex];
-                    newSection.EndSignals[0] = thisSignal.Signal;
+                    newSection.EndSignals[Heading.Ahead] = thisSignal.Signal;
                     thisSection = TrackCircuitList[thisIndex];
                     addIndex.Add(newIndex);
 
@@ -2282,9 +2056,9 @@ namespace Orts.Simulation.Signalling
 
                             TrackCircuitSection.SplitSection(thisIndex, newIndex, thisSignal.SignalLocation);
                             TrackCircuitSection newSection = TrackCircuitList[newIndex];
-                            newSection.EndSignals[0] = null;
+                            newSection.EndSignals[Heading.Ahead] = null;
                             thisSection = TrackCircuitList[thisIndex];
-                            thisSection.EndSignals[1] = thisSignal.Signal;
+                            thisSection.EndSignals[Heading.Reverse] = thisSignal.Signal;
 
                             // restore list (link is lost as item is replaced)
                             sectionSignals = thisSection.CircuitItems.TrackCircuitSignals[Heading.Reverse] [(int)SignalFunction.Normal];
@@ -2647,17 +2421,17 @@ namespace Orts.Simulation.Signalling
 
             // process end signals
 
-            for (int iDirection = 0; iDirection <= 1; iDirection++)
+            foreach (Heading heading in EnumExtension.GetValues<Heading>())
             {
-                Signal thisSignal = thisSection.EndSignals[iDirection];
+                Signal thisSignal = thisSection.EndSignals[heading];
                 if (thisSignal != null)
                 {
                     thisSignal.TCReference = thisNode;
                     thisSignal.TCOffset = thisSection.Length;
-                    thisSignal.TCDirection = iDirection;
+                    thisSignal.TCDirection = (int)heading;
 
                     //                  int pinIndex = iDirection == 0 ? 1 : 0;
-                    int pinIndex = iDirection;
+                    int pinIndex = (int)heading;
                     thisSignal.TCNextTC = thisSection.Pins[pinIndex, 0].Link;
                     thisSignal.TCNextDirection = thisSection.Pins[pinIndex, 0].Direction;
                 }
@@ -3120,24 +2894,18 @@ namespace Orts.Simulation.Signalling
                                 thisSection.Reserve(thisTrain, routePart);
                             }
 
-                            if (!furthestRouteCleared && thisSection.EndSignals[thisElement.Direction] != null)
+                            if (!furthestRouteCleared && thisSection.EndSignals[(Heading)thisElement.Direction] != null)
                             {
-                                Signal endSignal = thisSection.EndSignals[thisElement.Direction];
+                                Signal endSignal = thisSection.EndSignals[(Heading)thisElement.Direction];
                                 // check if signal enabled for other train - if so, keep in node control
                                 if (endSignal.enabledTrain == null || endSignal.enabledTrain == thisTrain)
                                 {
                                     if (routeIndex < routePart.Count)
                                     {
-                                        thisTrain.Train.SwitchToSignalControl(thisSection.EndSignals[thisElement.Direction]);
+                                        thisTrain.Train.SwitchToSignalControl(thisSection.EndSignals[(Heading)thisElement.Direction]);
                                     }
                                 }
                                 furthestRouteCleared = true;
-                                if (thisTrain.Train.CheckTrain)
-                                {
-                                    File.AppendAllText(@"C:\temp\checktrain.txt",
-                                        String.Format("Has end signal : {0}\n",
-                                        thisSection.EndSignals[thisElement.Direction].thisRef));
-                                }
                             }
 
                             if (clearedDistanceM > thisTrain.Train.minCheckDistanceM &&
@@ -3152,11 +2920,6 @@ namespace Orts.Simulation.Signalling
                     // section is not available
                     else
                     {
-                        if (thisTrain.Train.CheckTrain)
-                        {
-                            File.AppendAllText(@"C:\temp\checktrain.txt",
-                                "Section blocked \n");
-                        }
                         lastRouteIndex = routeIndex - 1;
                         lastReserved = lastRouteIndex >= 0 ? routePart[lastRouteIndex].TCSectionIndex : -1;
                         routeAvailable = false;
@@ -3452,7 +3215,7 @@ namespace Orts.Simulation.Signalling
                 }
                 else
                 {
-                    Signal thisSignal = thisSection.EndSignals[reqRoute[iindex].Direction];
+                    Signal thisSignal = thisSection.EndSignals[(Heading)reqRoute[iindex].Direction];
                     if (thisSignal != null)
                     {
                         thisSignal.ResetSignal(false);
@@ -3577,7 +3340,7 @@ namespace Orts.Simulation.Signalling
 
                 // check all conditions and objects as required
 
-                if (stopAtFacingSignal && thisSection.EndSignals[(int)curDirection] != null)           // stop at facing signal
+                if (stopAtFacingSignal && thisSection.EndSignals[curDirection] != null)           // stop at facing signal
                 {
                     endOfRoute = true;
                 }
@@ -3627,9 +3390,9 @@ namespace Orts.Simulation.Signalling
                     }
                 }
 
-                if (searchFacingSignal && thisSection.EndSignals[(int)curDirection] != null)           // search facing signal
+                if (searchFacingSignal && thisSection.EndSignals[curDirection] != null)           // search facing signal
                 {
-                    foundObject.Add(thisSection.EndSignals[(int)curDirection].thisRef);
+                    foundObject.Add(thisSection.EndSignals[curDirection].thisRef);
                     endOfRoute = true;
                 }
 
@@ -3789,10 +3552,10 @@ namespace Orts.Simulation.Signalling
                     curDirection = forward ? (Heading)nextDirection : nextDirection == 0 ? Heading.Reverse : Heading.Ahead;
                     oppDirection = curDirection.Next();
 
-                    if (searchBackwardSignal && thisSection.EndSignals[(int)oppDirection] != null)
+                    if (searchBackwardSignal && thisSection.EndSignals[oppDirection] != null)
                     {
                         endOfRoute = true;
-                        foundObject.Add(-(thisSection.EndSignals[(int)oppDirection].thisRef));
+                        foundObject.Add(-(thisSection.EndSignals[oppDirection].thisRef));
                     }
                 }
 
@@ -4039,12 +3802,12 @@ namespace Orts.Simulation.Signalling
                         distToSignal += thisSection.Length - offset;
                         offset = 0.0f;
 
-                        if (thisSection.EndSignals[0] != null)
+                        if (thisSection.EndSignals[Heading.Ahead] != null)
                         {
                             // end signal is always valid in timetable mode
                             if (Simulator.TimetableMode || distToSignal <= 150)
                             {
-                                thisDetails.EndSignals[Heading.Ahead] = thisSection.EndSignals[0].thisRef;
+                                thisDetails.EndSignals[Heading.Ahead] = thisSection.EndSignals[Heading.Ahead].thisRef;
                                 thisDetails.DistanceToSignals[Heading.Ahead] = distToSignal;
                             }
                             // end signal is only valid if it has no fixed route in activity mode
@@ -4053,14 +3816,14 @@ namespace Orts.Simulation.Signalling
                                 float? approachControlLimitPositionM = null;
                                 if (distToSignal > 150)
                                 {
-                                    foreach (SignalHead signalHead in thisSection.EndSignals[0].SignalHeads)
+                                    foreach (SignalHead signalHead in thisSection.EndSignals[Heading.Ahead].SignalHeads)
                                     {
                                         if (signalHead.ApproachControlLimitPositionM != null) approachControlLimitPositionM = signalHead.ApproachControlLimitPositionM;
                                     }
                                 }
-                                if (!thisSection.EndSignals[0].hasFixedRoute && !(approachControlLimitPositionM != null && (float)approachControlLimitPositionM < distToSignal + 100))
+                                if (!thisSection.EndSignals[Heading.Ahead].hasFixedRoute && !(approachControlLimitPositionM != null && (float)approachControlLimitPositionM < distToSignal + 100))
                                 {
-                                    thisDetails.EndSignals[Heading.Ahead] = thisSection.EndSignals[0].thisRef;
+                                    thisDetails.EndSignals[Heading.Ahead] = thisSection.EndSignals[Heading.Ahead].thisRef;
                                     thisDetails.DistanceToSignals[Heading.Ahead] = distToSignal;
                                 }
                             }
@@ -4093,11 +3856,11 @@ namespace Orts.Simulation.Signalling
                         distToSignal += thisSection.Length - offset;
                         offset = 0.0f;
 
-                        if (thisSection.EndSignals[1] != null)
+                        if (thisSection.EndSignals[Heading.Reverse] != null)
                         {
                             if (Simulator.TimetableMode || distToSignal <= 150)
                             {
-                                thisDetails.EndSignals[Heading.Reverse] = thisSection.EndSignals[1].thisRef;
+                                thisDetails.EndSignals[Heading.Reverse] = thisSection.EndSignals[Heading.Reverse].thisRef;
                                 thisDetails.DistanceToSignals[Heading.Reverse] = distToSignal;
                             }
                             else
@@ -4105,14 +3868,14 @@ namespace Orts.Simulation.Signalling
                                 float? approachControlLimitPositionM = null;
                                 if (distToSignal > 150)
                                 {
-                                    foreach (SignalHead signalHead in thisSection.EndSignals[1].SignalHeads)
+                                    foreach (SignalHead signalHead in thisSection.EndSignals[Heading.Reverse].SignalHeads)
                                     {
                                         if (signalHead.ApproachControlLimitPositionM != null) approachControlLimitPositionM = signalHead.ApproachControlLimitPositionM;
                                     }
                                 }
-                                if (!thisSection.EndSignals[1].hasFixedRoute && !(approachControlLimitPositionM != null && (float)approachControlLimitPositionM < distToSignal + 100))
+                                if (!thisSection.EndSignals[Heading.Reverse].hasFixedRoute && !(approachControlLimitPositionM != null && (float)approachControlLimitPositionM < distToSignal + 100))
                                 {
-                                    thisDetails.EndSignals[Heading.Reverse] = thisSection.EndSignals[1].thisRef;
+                                    thisDetails.EndSignals[Heading.Reverse] = thisSection.EndSignals[Heading.Reverse].thisRef;
                                     thisDetails.DistanceToSignals[Heading.Reverse] = distToSignal;
                                 }
                             }
@@ -5390,9 +5153,9 @@ namespace Orts.Simulation.Signalling
 
                 if (defaultNextSignal[(int)SignalFunction.Normal] < 0)
                 {
-                    if (thisSection.EndSignals[(int)direction] != null)
+                    if (thisSection.EndSignals[direction] != null)
                     {
-                        defaultNextSignal[(int)SignalFunction.Normal] = thisSection.EndSignals[(int)direction].thisRef;
+                        defaultNextSignal[(int)SignalFunction.Normal] = thisSection.EndSignals[direction].thisRef;
                         completedFixedRoute = true;
                     }
                 }
@@ -6392,19 +6155,19 @@ namespace Orts.Simulation.Signalling
 
         private int SONextSignalNormal(int thisTC)
         {
-            int direction = TCDirection;
+            Heading direction = (Heading)TCDirection;
             int signalFound = -1;
             TrackCircuitSection thisSection = null;
 
-            int pinIndex = direction;
+            int pinIndex = (int)direction;
 
             if (thisTC < 0)
             {
                 thisTC = TCReference;
                 thisSection = signalRef.TrackCircuitList[thisTC];
-                pinIndex = direction;
+                pinIndex = (int)direction;
                 thisTC = thisSection.ActivePins[pinIndex, 0].Link;
-                direction = thisSection.ActivePins[pinIndex, 0].Direction;
+                direction = (Heading)thisSection.ActivePins[pinIndex, 0].Direction;
             }
 
             // loop through valid sections
@@ -6433,13 +6196,13 @@ namespace Orts.Simulation.Signalling
 
                 if (signalFound < 0)
                 {
-                    pinIndex = direction;
+                    pinIndex = (int)direction;
                     thisTC = thisSection.ActivePins[pinIndex, 0].Link;
-                    direction = thisSection.ActivePins[pinIndex, 0].Direction;
+                    direction = (Heading)thisSection.ActivePins[pinIndex, 0].Direction;
                     if (thisTC == -1)
                     {
                         thisTC = thisSection.ActivePins[pinIndex, 1].Link;
-                        direction = thisSection.ActivePins[pinIndex, 1].Direction;
+                        direction = (Heading)thisSection.ActivePins[pinIndex, 1].Direction;
                     }
 
                     // if no active link but signal has route allocated, use train route to find next section
@@ -6450,7 +6213,7 @@ namespace Orts.Simulation.Signalling
                         if (thisIndex >= 0 && thisIndex <= signalRoute.Count - 2)
                         {
                             thisTC = signalRoute[thisIndex + 1].TCSectionIndex;
-                            direction = signalRoute[thisIndex + 1].Direction;
+                            direction = (Heading)signalRoute[thisIndex + 1].Direction;
                         }
                     }
                 }
@@ -6492,7 +6255,7 @@ namespace Orts.Simulation.Signalling
 
                 if (fntype == (int) SignalFunction.Normal)
                 {
-                    signalFound = thisSection.EndSignals[(int)direction] != null ? thisSection.EndSignals[(int)direction].thisRef : -1;
+                    signalFound = thisSection.EndSignals[direction] != null ? thisSection.EndSignals[direction].thisRef : -1;
                 }
                 else
                 {
@@ -6857,7 +6620,7 @@ namespace Orts.Simulation.Signalling
 
             // set full route if route ends with signal
             TrackCircuitSection lastSection = signalRef.TrackCircuitList[signalRoute[signalRoute.Count - 1].TCSectionIndex];
-            int lastDirection = signalRoute[signalRoute.Count - 1].Direction;
+            Heading lastDirection = (Heading)signalRoute[signalRoute.Count - 1].Direction;
 
             if (lastSection.EndSignals[lastDirection] != null)
             {
@@ -7070,10 +6833,10 @@ namespace Orts.Simulation.Signalling
                     }
 
                     // check if section has end signal - if so is last section
-                    if (thisSection.EndSignals[thisElement.Direction] != null)
+                    if (thisSection.EndSignals[(Heading)thisElement.Direction] != null)
                     {
                         foundLastSection = iNode;
-                        nextSignal = thisSection.EndSignals[thisElement.Direction];
+                        nextSignal = thisSection.EndSignals[(Heading)thisElement.Direction];
                     }
                 }
             }
@@ -7590,7 +7353,7 @@ namespace Orts.Simulation.Signalling
             else
             {
                 int thisTC = TCReference;
-                int direction = TCDirection;
+                Heading direction = (Heading)TCDirection;
                 int nextTC = -1;
 
                 // for normal signals : start at next TC
@@ -7598,7 +7361,7 @@ namespace Orts.Simulation.Signalling
                 if (TCNextTC > 0)
                 {
                     thisTC = TCNextTC;
-                    direction = TCNextDirection;
+                    direction = (Heading)TCNextDirection;
                 }
 
                 // get trackcircuit
@@ -7643,13 +7406,13 @@ namespace Orts.Simulation.Signalling
                     else
                     {
                         //                     int pinIndex = direction == 0 ? 1 : 0;
-                        int pinIndex = direction;
+                        int pinIndex = (int)direction;
                         nextTC = thisSection.ActivePins[pinIndex, 0].Link;
-                        direction = thisSection.ActivePins[pinIndex, 0].Direction;
+                        direction = (Heading)thisSection.ActivePins[pinIndex, 0].Direction;
                         if (nextTC == -1)
                         {
                             nextTC = thisSection.ActivePins[pinIndex, 1].Link;
-                            direction = thisSection.ActivePins[pinIndex, 1].Direction;
+                            direction = (Heading)thisSection.ActivePins[pinIndex, 1].Direction;
                         }
 
                         // set state to blocked if ending at unset or unaligned switch
@@ -8021,7 +7784,7 @@ namespace Orts.Simulation.Signalling
 
             Train.TCRouteElement lastElement = thisRoute[listIndex];
             int thisSectionIndex = lastElement.TCSectionIndex;
-            int direction = lastElement.Direction;
+            Heading direction = (Heading)lastElement.Direction;
 
             Train.TCSubpathRoute additionalElements = new Train.TCSubpathRoute();
 
@@ -8045,7 +7808,7 @@ namespace Orts.Simulation.Signalling
                         break;
 
                     default:
-                        Train.TCRouteElement newElement = new Train.TCRouteElement(thisSectionIndex, direction);
+                        Train.TCRouteElement newElement = new Train.TCRouteElement(thisSectionIndex, (int)direction);
                         additionalElements.Add(newElement);
 
                         if (thisSection.EndSignals[direction] != null)
@@ -8057,8 +7820,8 @@ namespace Orts.Simulation.Signalling
 
                 if (!end_of_info)
                 {
-                    thisSectionIndex = thisSection.Pins[direction, 0].Link;
-                    direction = thisSection.Pins[direction, 0].Direction;
+                    thisSectionIndex = thisSection.Pins[(int)direction, 0].Link;
+                    direction = (Heading)thisSection.Pins[(int)direction, 0].Direction;
                 }
             }
 
@@ -8069,8 +7832,8 @@ namespace Orts.Simulation.Signalling
             foreach (Train.TCRouteElement thisElement in thisRoute)
             {
                 TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TCSectionIndex];
-                direction = thisElement.Direction;
-                blockstate = thisSection.getSectionState(enabledTrain, direction, blockstate, thisRoute, thisRef);
+                direction = (Heading)thisElement.Direction;
+                blockstate = thisSection.getSectionState(enabledTrain, (int)direction, blockstate, thisRoute, thisRef);
                 if (blockstate > InternalBlockstate.Reservable)
                     break;           // break on first non-reservable section //
             }
@@ -8082,8 +7845,8 @@ namespace Orts.Simulation.Signalling
                 foreach (Train.TCRouteElement thisElement in additionalElements)
                 {
                     TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TCSectionIndex];
-                    direction = thisElement.Direction;
-                    blockstate = thisSection.getSectionState(enabledTrain, direction, blockstate, additionalElements, thisRef);
+                    direction = (Heading)thisElement.Direction;
+                    blockstate = thisSection.getSectionState(enabledTrain, (int)direction, blockstate, additionalElements, thisRef);
                     if (blockstate > InternalBlockstate.Reservable)
                         break;           // break on first non-reservable section //
                 }
@@ -8299,7 +8062,7 @@ namespace Orts.Simulation.Signalling
                     Train.TCRouteElement thisElement = routePath[actRouteIndex];
                     TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TCSectionIndex];
                     distance += thisSection.Length - offset;
-                    if (thisSection.EndSignals[thisElement.Direction] == this)
+                    if (thisSection.EndSignals[(Heading)thisElement.Direction] == this)
                     {
                         found = true;
                     }
@@ -8839,9 +8602,9 @@ namespace Orts.Simulation.Signalling
                     {
                         Train.TCRouteElement thisElement = enabledTrain.Train.ValidRoute[enabledTrain.TrainRouteDirectionIndex][iRouteIndex];
                         TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TCSectionIndex];
-                        if (thisSection.EndSignals[thisElement.Direction] != null)
+                        if (thisSection.EndSignals[(Heading)thisElement.Direction] != null)
                         {
-                            Signal endSignal = thisSection.EndSignals[thisElement.Direction];
+                            Signal endSignal = thisSection.EndSignals[(Heading)thisElement.Direction];
 
                             // found signal, check required value
                             bool found_value = false;

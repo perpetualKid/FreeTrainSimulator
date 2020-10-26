@@ -3879,7 +3879,7 @@ namespace Orts.Simulation.AIs
                 TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisRoute[routeIndex].TCSectionIndex];
                 TrackCircuitSection nextSection =
                     routeIndex < thisRoute.Count - 2 ? signalRef.TrackCircuitList[thisRoute[routeIndex + 1].TCSectionIndex] : null;
-                int direction = thisRoute[routeIndex].Direction;
+                Heading direction = (Heading)thisRoute[routeIndex].Direction;
                 if (thisSection.EndSignals[direction] != null)
                 {
                     endSectionFound = true;
@@ -3900,7 +3900,7 @@ namespace Orts.Simulation.AIs
                 while (nextIndex < thisRoute.Count - 1 && !endSectionFound)
                 {
                     nextSection = signalRef.TrackCircuitList[thisRoute[nextIndex].TCSectionIndex];
-                    direction = thisRoute[nextIndex].Direction;
+                    direction = (Heading)thisRoute[nextIndex].Direction;
 
                     if (nextSection.EndSignals[direction] != null)
                     {
@@ -4909,10 +4909,10 @@ namespace Orts.Simulation.AIs
 
             // no signal in required direction
 
-            if (thisSection.EndSignals[thisElement.Direction] == null)
+            if (thisSection.EndSignals[(Heading)thisElement.Direction] == null)
                 return;
 
-            var requestedSignal = thisSection.EndSignals[thisElement.Direction];
+            var requestedSignal = thisSection.EndSignals[(Heading)thisElement.Direction];
             if (requestedSignal.enabledTrain != null && requestedSignal.enabledTrain.Train != this)
                 return;
 

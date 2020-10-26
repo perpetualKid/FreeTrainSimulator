@@ -68,7 +68,7 @@ namespace Orts.Simulation.Signalling
         public bool AILock;                                       // jn is locked agains AI trains           //
         public List<int> SignalsPassingRoutes;                    // list of signals reading passed junction //
 
-        public Signal[] EndSignals = new Signal[2];   // signals at either end      //
+        public EnumArray<Signal, Heading> EndSignals { get; private set; } = new EnumArray<Signal, Heading>();   // signals at either end      //
 
         public double Overlap;                                    // overlap for junction nodes //
         public List<int> PlatformIndex = new List<int>();         // platforms along section    //
@@ -165,7 +165,6 @@ namespace Orts.Simulation.Signalling
 
             for (int direction = 0; direction < 2; direction++)
             {
-                EndSignals[direction] = null;
                 EndIsTrailingJunction[direction] = false;
             }
 
@@ -280,7 +279,6 @@ namespace Orts.Simulation.Signalling
             for (int iDir = 0; iDir < 2; iDir++)
             {
                 EndIsTrailingJunction[iDir] = false;
-                EndSignals[iDir] = null;
             }
 
             for (int iDir = 0; iDir < 2; iDir++)
@@ -453,8 +451,8 @@ namespace Orts.Simulation.Signalling
             newSection.OriginalIndex = OriginalIndex;
             newSection.CircuitType = TrackCircuitType.Normal;// CircuitType;
 
-            newSection.EndSignals[0] = EndSignals[0];
-            newSection.EndSignals[1] = EndSignals[1];
+            newSection.EndSignals[Heading.Ahead] = EndSignals[Heading.Ahead];
+            newSection.EndSignals[Heading.Reverse] = EndSignals[Heading.Reverse];
 
             newSection.Length = Length;
 
@@ -1076,15 +1074,11 @@ namespace Orts.Simulation.Signalling
             ClearDeadlockTrap(thisTrain.Train.Number); // clear deadlock traps
 
             // if signal at either end is still enabled for this train, reset the signal
-
             foreach (Heading heading in EnumExtension.GetValues<Heading>())
             {
-                if (EndSignals[(int)heading] is Signal endSignal)
+                if (EndSignals[heading]?.enabledTrain == thisTrain && resetEndSignal)
                 {
-                    if (endSignal.enabledTrain == thisTrain && resetEndSignal)
-                    {
-                        endSignal.resetSignalEnabled();
-                    }
+                    EndSignals[heading].resetSignalEnabled();
                 }
 
                 // disable all signals along section if enabled for this train
@@ -2159,11 +2153,12 @@ namespace Orts.Simulation.Signalling
                 thisSection.UnreserveTrain(trainRouted, true);
             }
             // signalRef.BreakDownRouteList(trainRouted.Train.ValidRoute[trainRouted.TrainRouteDirectionIndex], startindex-1, trainRouted);
+
             // Reset signal behind new train
             for (int iindex = startindex - 2; iindex >= trainRouted.Train.PresentPosition[0].RouteListIndex; iindex--)
             {
                 TrackCircuitSection thisSection = TrackCircuitList[trainRouted.Train.ValidRoute[trainRouted.TrainRouteDirectionIndex][iindex].TCSectionIndex];
-                Signal thisSignal = thisSection.EndSignals[trainRouted.Train.ValidRoute[trainRouted.TrainRouteDirectionIndex][iindex].Direction];
+                Signal thisSignal = thisSection.EndSignals[(Heading)trainRouted.Train.ValidRoute[trainRouted.TrainRouteDirectionIndex][iindex].Direction];
                 if (thisSignal != null)
                 {
                     thisSignal.ResetSignal(false);

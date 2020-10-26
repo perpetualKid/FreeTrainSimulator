@@ -6672,7 +6672,7 @@ namespace Orts.Simulation.Physics
                 {
                     TrackCircuitSection thisSection = signalRef.TrackCircuitList[PresentPosition[1].TCSectionIndex];
                     float clearPath = thisSection.Length - PresentPosition[1].TCOffset;   // looking other direction //
-                    int direction = PresentPosition[1].TCDirection == 0 ? 1 : 0;
+                    Heading direction = ((Heading)PresentPosition[1].TCDirection).Next();
 
                     while (clearPath < rearPositionOverlap && !outOfControl && RearSignalObject == null)
                     {
@@ -7790,7 +7790,7 @@ namespace Orts.Simulation.Physics
             {
                 TCRouteElement thisElement = ValidRoute[0][iindex];
                 TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TCSectionIndex];
-                NextSignalObject[0] = thisSection.EndSignals[thisElement.Direction];
+                NextSignalObject[0] = thisSection.EndSignals[(Heading)thisElement.Direction];
             }
 
             // backward
@@ -7799,7 +7799,7 @@ namespace Orts.Simulation.Physics
             {
                 TCRouteElement thisElement = ValidRoute[1][iindex];
                 TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TCSectionIndex];
-                NextSignalObject[1] = thisSection.EndSignals[thisElement.Direction];
+                NextSignalObject[1] = thisSection.EndSignals[(Heading)thisElement.Direction];
             }
 
             // clear all build up distance actions
@@ -7823,7 +7823,7 @@ namespace Orts.Simulation.Physics
 
             TCRouteElement thisElement = null;
             TrackCircuitSection thisSection = null;
-            int reqDirection = 0;
+            Heading reqDirection = Heading.Ahead;
             float offsetM = 0.0f;
             float totalLengthM = 0.0f;
 
@@ -7943,7 +7943,7 @@ namespace Orts.Simulation.Physics
                 totalLengthM += (thisSection.Length - offsetM);
                 offsetM = 0.0f; // reset offset for further sections
 
-                reqDirection = thisElement.Direction;
+                reqDirection = (Heading)thisElement.Direction;
                 if (thisSection.EndSignals[reqDirection] != null)
                 {
                     var endSignal = thisSection.EndSignals[reqDirection];
@@ -8066,10 +8066,10 @@ namespace Orts.Simulation.Physics
             {
                 thisElement = newRoute[0];
                 thisSection = signalRef.TrackCircuitList[thisElement.TCSectionIndex];
-                reqDirection = forward ? thisElement.Direction : (thisElement.Direction == 0 ? 1 : 0);
+                reqDirection = forward ? (Heading)thisElement.Direction : ((Heading)thisElement.Direction).Next();
                 offsetM = direction == 0 ? requiredPosition.TCOffset : thisSection.Length - requiredPosition.TCOffset;
 
-                Dictionary<Train, float> firstTrainInfo = thisSection.TestTrainAhead(this, offsetM, reqDirection);
+                Dictionary<Train, float> firstTrainInfo = thisSection.TestTrainAhead(this, offsetM, (int)reqDirection);
                 if (firstTrainInfo.Count > 0)
                 {
                     foreach (KeyValuePair<Train, float> thisTrainAhead in firstTrainInfo)  // there is only one value
@@ -8118,7 +8118,7 @@ namespace Orts.Simulation.Physics
                     // if last section ends with signal, set authority to signal
                     thisElement = newRoute[lastValidSectionIndex];
                     thisSection = signalRef.TrackCircuitList[thisElement.TCSectionIndex];
-                    reqDirection = forward ? thisElement.Direction : (thisElement.Direction == 0 ? 1 : 0);
+                    reqDirection = forward ? (Heading)thisElement.Direction : ((Heading)thisElement.Direction).Next();
                     // last section ends with signal
                     if (thisSection.EndSignals[reqDirection] != null)
                     {
@@ -8167,13 +8167,13 @@ namespace Orts.Simulation.Physics
                             if (nextSection != null)
                             {
                                 int oppositeDirection = forward ? (nextElement.Direction == 0 ? 1 : 0) : (nextElement.Direction == 0 ? 0 : 1);
-                                reqDirection = forward ? nextElement.Direction : (nextElement.Direction == 0 ? 1 : 0);
+                                reqDirection = forward ? (Heading)nextElement.Direction : ((Heading)nextElement.Direction).Next();
 
                                 bool oppositeTrain = nextSection.CircuitState.Occupied(oppositeDirection, false);
 
                                 if (!oppositeTrain)
                                 {
-                                    Dictionary<Train, float> nextTrainInfo = nextSection.TestTrainAhead(this, 0.0f, reqDirection);
+                                    Dictionary<Train, float> nextTrainInfo = nextSection.TestTrainAhead(this, 0.0f, (int)reqDirection);
                                     if (nextTrainInfo.Count > 0)
                                     {
                                         foreach (KeyValuePair<Train, float> thisTrainAhead in nextTrainInfo)  // there is only one value
@@ -8223,7 +8223,7 @@ namespace Orts.Simulation.Physics
             {
                 var thisRouteElement = newRoute[iSection];
                 var thisRouteSection = signalRef.TrackCircuitList[thisRouteElement.TCSectionIndex];
-                var thisReqDirection = thisRouteElement.Direction;
+                Heading thisReqDirection = (Heading)thisRouteElement.Direction;
                 if (thisRouteSection.EndSignals[thisReqDirection] != null)
                 {
                     var endSignal = thisRouteSection.EndSignals[thisReqDirection];
@@ -8247,7 +8247,7 @@ namespace Orts.Simulation.Physics
             {
                 TCRouteElement thisElement = ValidRoute[0][iindex];
                 TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TCSectionIndex];
-                NextSignalObject[0] = thisSection.EndSignals[thisElement.Direction];
+                NextSignalObject[0] = thisSection.EndSignals[(Heading)thisElement.Direction];
             }
 
             // backward
@@ -8256,7 +8256,7 @@ namespace Orts.Simulation.Physics
             {
                 TCRouteElement thisElement = ValidRoute[1][iindex];
                 TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TCSectionIndex];
-                NextSignalObject[1] = thisSection.EndSignals[thisElement.Direction];
+                NextSignalObject[1] = thisSection.EndSignals[(Heading)thisElement.Direction];
             }
         }
 
@@ -8276,14 +8276,14 @@ namespace Orts.Simulation.Physics
 
             // no signal in required direction at end of path
 
-            if (lastSection.EndSignals[lastElement.Direction] == null)
+            if (lastSection.EndSignals[(Heading)lastElement.Direction] == null)
             {
                 if (Simulator.Confirmer != null) // As Confirmer may not be created until after a restore.
                     Simulator.Confirmer.Message(ConfirmLevel.Information, Simulator.Catalog.GetString("No signal in train's path"));
                 return;
             }
 
-            var requestedSignal = lastSection.EndSignals[lastElement.Direction];
+            var requestedSignal = lastSection.EndSignals[(Heading)lastElement.Direction];
             if (requestedSignal.enabledTrain != null && requestedSignal.enabledTrain.Train != this)
             {
                 if (Simulator.Confirmer != null) // As Confirmer may not be created until after a restore.
@@ -8523,7 +8523,7 @@ namespace Orts.Simulation.Physics
             {
                 TCRouteElement thisElement = selectedRoute[iindex];
                 TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TCSectionIndex];
-                int signalDirection = thisElement.Direction == 0 ? 0 : 1;
+                Heading signalDirection = (Heading)thisElement.Direction;
 
                 if (thisSection.EndSignals[signalDirection] != null)
                 {
@@ -8579,7 +8579,7 @@ namespace Orts.Simulation.Physics
 
             TCRouteElement lastElement = selectedRoute[selectedRoute.Count - 1];
             TrackCircuitSection lastSection = signalRef.TrackCircuitList[lastElement.TCSectionIndex];
-            int lastDirection = lastElement.Direction == 0 ? 0 : 1;
+            Heading lastDirection = (Heading)lastElement.Direction;
 
             var lastSignal = lastSection.EndSignals[lastDirection];
 
@@ -8589,7 +8589,7 @@ namespace Orts.Simulation.Physics
 
                 lastElement = selectedRoute[selectedRoute.Count - 1];
                 lastSection = signalRef.TrackCircuitList[lastElement.TCSectionIndex];
-                lastDirection = lastElement.Direction == 0 ? 0 : 1;
+                lastDirection = (Heading)lastElement.Direction;
 
                 lastSignal = lastSection.EndSignals[lastDirection];
             }
@@ -8952,7 +8952,7 @@ namespace Orts.Simulation.Physics
             {
                 TCRouteElement thisElement = ValidRoute[0][iindex];
                 TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TCSectionIndex];
-                NextSignalObject[0] = thisSection.EndSignals[thisElement.Direction];
+                NextSignalObject[0] = thisSection.EndSignals[(Heading)thisElement.Direction];
             }
 
             // backward
@@ -8961,7 +8961,7 @@ namespace Orts.Simulation.Physics
             {
                 TCRouteElement thisElement = ValidRoute[1][iindex];
                 TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TCSectionIndex];
-                NextSignalObject[1] = thisSection.EndSignals[thisElement.Direction];
+                NextSignalObject[1] = thisSection.EndSignals[(Heading)thisElement.Direction];
             }
 
             // clear all build up distance actions
@@ -8984,7 +8984,7 @@ namespace Orts.Simulation.Physics
 
             TCRouteElement thisElement = null;
             TrackCircuitSection thisSection = null;
-            int reqDirection = 0;
+            Heading reqDirection = Heading.Ahead;
             float offsetM = 0.0f;
             float totalLengthM = 0.0f;
 
@@ -9061,7 +9061,7 @@ namespace Orts.Simulation.Physics
                 // check on state of signals
                 // also check if signal properly enabled
 
-                reqDirection = thisElement.Direction;
+                reqDirection = (Heading)thisElement.Direction;
                 if (thisSection.EndSignals[reqDirection] != null)
                 {
                     var endSignal = thisSection.EndSignals[reqDirection];
@@ -9104,7 +9104,7 @@ namespace Orts.Simulation.Physics
                 thisElement = newRoute[iindex];
                 thisSection = signalRef.TrackCircuitList[thisElement.TCSectionIndex];
 
-                var nextSignal = thisSection.EndSignals[thisElement.Direction];
+                var nextSignal = thisSection.EndSignals[(Heading)thisElement.Direction];
                 if (nextSignal != null &&
                     nextSignal.this_sig_lr(SignalFunction.Normal) == SignalAspectState.Stop &&
                     nextSignal.hasPermission != Signal.Permission.Granted)
@@ -9122,10 +9122,10 @@ namespace Orts.Simulation.Physics
             {
                 thisElement = newRoute[0];
                 thisSection = signalRef.TrackCircuitList[thisElement.TCSectionIndex];
-                reqDirection = forward ? thisElement.Direction : (thisElement.Direction == 0 ? 1 : 0);
+                reqDirection = forward ? (Heading)thisElement.Direction : ((Heading)thisElement.Direction).Next();
                 offsetM = direction == 0 ? requiredPosition.TCOffset : thisSection.Length - requiredPosition.TCOffset;
 
-                Dictionary<Train, float> firstTrainInfo = thisSection.TestTrainAhead(this, offsetM, reqDirection);
+                Dictionary<Train, float> firstTrainInfo = thisSection.TestTrainAhead(this, offsetM, (int)reqDirection);
                 if (firstTrainInfo.Count > 0)
                 {
                     foreach (KeyValuePair<Train, float> thisTrainAhead in firstTrainInfo)  // there is only one value
@@ -9172,7 +9172,7 @@ namespace Orts.Simulation.Physics
                     // if last section ends with signal, set authority to signal
                     thisElement = newRoute[lastValidSectionIndex];
                     thisSection = signalRef.TrackCircuitList[thisElement.TCSectionIndex];
-                    reqDirection = forward ? thisElement.Direction : (thisElement.Direction == 0 ? 1 : 0);
+                    reqDirection = forward ? (Heading)thisElement.Direction : ((Heading)thisElement.Direction).Next();
                     // last section ends with signal
                     if (thisSection.EndSignals[reqDirection] != null)
                     {
@@ -9221,13 +9221,13 @@ namespace Orts.Simulation.Physics
                             if (nextSection != null)
                             {
                                 int oppositeDirection = forward ? (nextElement.Direction == 0 ? 1 : 0) : (nextElement.Direction == 0 ? 0 : 1);
-                                reqDirection = forward ? nextElement.Direction : (nextElement.Direction == 0 ? 1 : 0);
+                                reqDirection = forward ? (Heading)nextElement.Direction : ((Heading)nextElement.Direction).Next();
 
                                 bool oppositeTrain = nextSection.CircuitState.Occupied(oppositeDirection, false);
 
                                 if (!oppositeTrain)
                                 {
-                                    Dictionary<Train, float> nextTrainInfo = nextSection.TestTrainAhead(this, 0.0f, reqDirection);
+                                    Dictionary<Train, float> nextTrainInfo = nextSection.TestTrainAhead(this, 0.0f, (int)reqDirection);
                                     if (nextTrainInfo.Count > 0)
                                     {
                                         foreach (KeyValuePair<Train, float> thisTrainAhead in nextTrainInfo)  // there is only one value
@@ -9259,7 +9259,7 @@ namespace Orts.Simulation.Physics
                 if (endAuthority == END_AUTHORITY.SIGNAL)
                 {
                     TrackCircuitSection lastSection = signalRef.TrackCircuitList[newRoute[newRoute.Count - 1].TCSectionIndex];
-                    int lastDirection = newRoute[newRoute.Count - 1].Direction;
+                    Heading lastDirection = (Heading)newRoute[newRoute.Count - 1].Direction;
                     if (lastSection.EndSignals[lastDirection] != null && lastSection.EndSignals[lastDirection].thisRef == nextUnclearSignalIndex)
                     {
                         Signal reqSignal = signalRef.SignalObjects[nextUnclearSignalIndex];
@@ -9293,7 +9293,7 @@ namespace Orts.Simulation.Physics
             {
                 TCRouteElement thisElement = ValidRoute[0][iindex];
                 TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TCSectionIndex];
-                NextSignalObject[0] = thisSection.EndSignals[thisElement.Direction];
+                NextSignalObject[0] = thisSection.EndSignals[(Heading)thisElement.Direction];
             }
 
             // backward
@@ -9302,7 +9302,7 @@ namespace Orts.Simulation.Physics
             {
                 TCRouteElement thisElement = ValidRoute[1][iindex];
                 TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TCSectionIndex];
-                NextSignalObject[1] = thisSection.EndSignals[thisElement.Direction];
+                NextSignalObject[1] = thisSection.EndSignals[(Heading)thisElement.Direction];
             }
         }
 
@@ -9324,7 +9324,7 @@ namespace Orts.Simulation.Physics
                 for (int iIndex = PresentPosition[routeIndex].RouteListIndex; iIndex <= ValidRoute[routeIndex].Count - 1 && !signalFound; iIndex++)
                 {
                     TrackCircuitSection thisSection = signalRef.TrackCircuitList[ValidRoute[routeIndex][iIndex].TCSectionIndex];
-                    int direction = ValidRoute[routeIndex][iIndex].Direction;
+                    Heading direction = (Heading)ValidRoute[routeIndex][iIndex].Direction;
 
                     if (thisSection.EndSignals[direction] != null)
                     {
@@ -9533,7 +9533,7 @@ namespace Orts.Simulation.Physics
                 TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TCSectionIndex];
                 if (iindex > 0) coveredLength += thisSection.Length; // do not use first section
 
-                int signalDirection = thisElement.Direction == 0 ? 0 : 1;
+                Heading signalDirection = (Heading)thisElement.Direction;
 
                 if (thisSection.EndSignals[signalDirection] != null &&
                     thisSection.EndSignals[signalDirection].enabledTrain != null &&
@@ -12154,7 +12154,7 @@ namespace Orts.Simulation.Physics
                     {
                         validLoop = false;
                     }
-                    else if (thisRouteSection.EndSignals[0] != null || thisRouteSection.EndSignals[1] != null)
+                    else if (thisRouteSection.EndSignals[Heading.Ahead] != null || thisRouteSection.EndSignals[Heading.Reverse] != null)
                     {
                         isValidDeadlock = true;
                         validLoop = false;
@@ -12185,7 +12185,7 @@ namespace Orts.Simulation.Physics
                         TrackCircuitSection thisRouteSection = signalRef.TrackCircuitList[thisElement.TCSectionIndex];
                         totalDistance += thisRouteSection.Length;
 
-                        if (thisRouteSection.EndSignals[thisElement.Direction] != null)
+                        if (thisRouteSection.EndSignals[(Heading)thisElement.Direction] != null)
                         {
                             validLoop = false;
                             thisSignalFound = true;
@@ -12213,7 +12213,7 @@ namespace Orts.Simulation.Physics
                         TrackCircuitSection thisRouteSection = signalRef.TrackCircuitList[thisElement.TCSectionIndex];
                         totalDistance += thisRouteSection.Length;
 
-                        if (thisRouteSection.EndSignals[thisElement.Direction] != null)
+                        if (thisRouteSection.EndSignals[(Heading)thisElement.Direction] != null)
                         {
                             validLoop = false;
                             otherSignalFound = true;
@@ -14325,10 +14325,10 @@ namespace Orts.Simulation.Physics
                     TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TCSectionIndex];
                     Heading sectionDirection = (Heading)thisElement.Direction;
 
-                    if (thisSection.EndSignals[(int)sectionDirection] != null)
+                    if (thisSection.EndSignals[sectionDirection] != null)
                     {
                         distanceToTrainM = sectionStart + thisSection.Length;
-                        var thisSignal = thisSection.EndSignals[(int)sectionDirection];
+                        var thisSignal = thisSection.EndSignals[sectionDirection];
                         var thisSpeedInfo = thisSignal.this_sig_speed(SignalFunction.Normal);
                         float validSpeed = thisSpeedInfo == null ? -1 : (IsFreight ? thisSpeedInfo.FreightSpeed : thisSpeedInfo.PassengerSpeed);
 
@@ -14388,10 +14388,10 @@ namespace Orts.Simulation.Physics
                     TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TCSectionIndex];
                     Heading sectionDirection = (Heading)thisElement.Direction;
 
-                    if (thisSection.EndSignals[(int)sectionDirection] != null)
+                    if (thisSection.EndSignals[sectionDirection] != null)
                     {
                         distanceToTrainM = sectionStart + thisSection.Length;
-                        Signal thisSignal = thisSection.EndSignals[(int)sectionDirection];
+                        Signal thisSignal = thisSection.EndSignals[sectionDirection];
                         SpeedInfo thisSpeedInfo = thisSignal.this_sig_speed(SignalFunction.Normal);
                         float validSpeed = thisSpeedInfo == null ? -1 : (IsFreight ? thisSpeedInfo.FreightSpeed : thisSpeedInfo.PassengerSpeed);
 
@@ -14639,7 +14639,7 @@ namespace Orts.Simulation.Physics
             {
                 returnRoute.Add(thisElement);
                 TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TCSectionIndex];
-                if (thisSection.EndSignals[thisElement.Direction] != null)
+                if (thisSection.EndSignals[(Heading)thisElement.Direction] != null)
                 {
                     break;
                 }
@@ -14663,7 +14663,7 @@ namespace Orts.Simulation.Physics
             {
                 returnRoute.Add(thisElement);
                 TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TCSectionIndex];
-                if (thisSection.EndSignals[thisElement.Direction] != null)
+                if (thisSection.EndSignals[(Heading)thisElement.Direction] != null)
                 {
                     break;
                 }
@@ -16414,21 +16414,21 @@ namespace Orts.Simulation.Physics
 
                 TCRouteElement lastElement = thisSubpath[thisSubpath.Count - 1];
                 TrackCircuitSection lastEndSection = orgSignals.TrackCircuitList[lastElement.TCSectionIndex];
-                int lastDirection = lastElement.Direction;
+                Heading lastDirection = (Heading)lastElement.Direction;
 
                 List<TCRouteElement> addedElements = new List<TCRouteElement>();
                 if (lastEndSection.CircuitType != TrackCircuitType.EndOfTrack && lastEndSection.EndSignals[lastDirection] == null)
                 {
-                    int thisDirection = lastDirection;
-                    lastDirection = lastEndSection.Pins[thisDirection, 0].Direction;
-                    lastEndSection = orgSignals.TrackCircuitList[lastEndSection.Pins[thisDirection, 0].Link];
+                    Heading thisDirection = lastDirection;
+                    lastDirection = (Heading)lastEndSection.Pins[(int)thisDirection, 0].Direction;
+                    lastEndSection = orgSignals.TrackCircuitList[lastEndSection.Pins[(int)thisDirection, 0].Link];
 
                     while (lastEndSection.CircuitType == TrackCircuitType.Normal && lastEndSection.EndSignals[lastDirection] == null)
                     {
-                        addedElements.Add(new TCRouteElement(lastEndSection.Index, lastDirection));
+                        addedElements.Add(new TCRouteElement(lastEndSection.Index, (int)lastDirection));
                         thisDirection = lastDirection;
-                        lastDirection = lastEndSection.Pins[thisDirection, 0].Direction;
-                        lastEndSection = orgSignals.TrackCircuitList[lastEndSection.Pins[thisDirection, 0].Link];
+                        lastDirection = (Heading)lastEndSection.Pins[(int)thisDirection, 0].Direction;
+                        lastEndSection = orgSignals.TrackCircuitList[lastEndSection.Pins[(int)thisDirection, 0].Link];
                     }
 
                     if (lastEndSection.CircuitType == TrackCircuitType.EndOfTrack)
@@ -16438,7 +16438,7 @@ namespace Orts.Simulation.Physics
                             thisSubpath.Add(addedElement);
                             SetStationReference(TCRouteSubpaths, addedElement.TCSectionIndex, orgSignals);
                         }
-                        thisSubpath.Add(new TCRouteElement(lastEndSection.Index, lastDirection));
+                        thisSubpath.Add(new TCRouteElement(lastEndSection.Index, (int)lastDirection));
                     }
                 }
 
@@ -16518,7 +16518,7 @@ namespace Orts.Simulation.Physics
                     {
                         TrackCircuitSection thisSection = orgSignals.TrackCircuitList[revSubPath[iSection].TCSectionIndex];
                         removeSections.Remove(iSection);
-                        if (thisSection.EndSignals[direction] != null)
+                        if (thisSection.EndSignals[(Heading)direction] != null)
                         {
                             signalFound = true;
                         }
@@ -16659,7 +16659,7 @@ namespace Orts.Simulation.Physics
                             thisElement = endSubPath[iSection];
                             TrackCircuitSection thisSection = orgSignals.TrackCircuitList[thisElement.TCSectionIndex];
 
-                            if (thisSection.EndSignals[thisElement.Direction] != null)
+                            if (thisSection.EndSignals[(Heading)thisElement.Direction] != null)
                             {
                                 sigIndex = iSection;
                             }
@@ -18727,7 +18727,7 @@ namespace Orts.Simulation.Physics
                     actLength += thisSection.Length;
 
                     // if section has end signal, set usefull length upto this point
-                    if (thisSection.EndSignals[thisElement.Direction] != null)
+                    if (thisSection.EndSignals[(Heading)thisElement.Direction] != null)
                     {
                         useLength = actLength - (2 * defaultSignalClearingDistance);
                         endSignal = true;
@@ -19209,7 +19209,7 @@ namespace Orts.Simulation.Physics
                         for (int iSection = startSection; iSection <= FirstDivergeIndex && !signalFound; iSection++)
                         {
                             TrackCircuitSection thisSection = orgSignals.TrackCircuitList[firstRoute[iSection].TCSectionIndex];
-                            if (thisSection.EndSignals[firstRoute[iSection].Direction] != null)   // signal in required direction
+                            if (thisSection.EndSignals[(Heading)firstRoute[iSection].Direction] != null)   // signal in required direction
                             {
                                 signalFound = true;
                                 FirstSignalIndex = iSection;
@@ -19223,7 +19223,7 @@ namespace Orts.Simulation.Physics
                         for (int iSection = FirstDivergeIndex; iSection >= startSection && !signalFound; iSection--)
                         {
                             TrackCircuitSection thisSection = orgSignals.TrackCircuitList[firstRoute[iSection].TCSectionIndex];
-                            if (thisSection.EndSignals[firstRoute[iSection].Direction] != null)   // signal in required direction
+                            if (thisSection.EndSignals[(Heading)firstRoute[iSection].Direction] != null)   // signal in required direction
                             {
                                 signalFound = true;
                                 FirstSignalIndex = iSection;

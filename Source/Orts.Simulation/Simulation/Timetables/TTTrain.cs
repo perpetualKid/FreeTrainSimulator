@@ -928,9 +928,9 @@ namespace Orts.Simulation.Timetables
             for (int iIndex = lastSubpath.Count - 1; iIndex >= 0 && lastSectionIndex < 0; iIndex--)
             {
                 TrackCircuitSection thisSection = signalRef.TrackCircuitList[lastSubpath[iIndex].TCSectionIndex];
-                int reqEndSignal = ReqLastSignalStop == LastSignalStop.Last ? lastSubpath[iIndex].Direction : lastSubpath[iIndex].Direction == 0 ? 1 : 0;
+                Heading reqEndSignal = ReqLastSignalStop == LastSignalStop.Last ? (Heading)lastSubpath[iIndex].Direction : ((Heading)lastSubpath[iIndex].Direction).Next();
 
-                if (thisSection.EndSignals[reqEndSignal] != null)
+                if (thisSection.EndSignals[(Heading)reqEndSignal] != null)
                 {
                     lastSectionIndex = iIndex;
                 }
@@ -1525,7 +1525,7 @@ namespace Orts.Simulation.Timetables
                 endSectionIndex = lastRouteIndex;
                 endSection = signalRef.TrackCircuitList[thisRoute[lastRouteIndex].TCSectionIndex];
                 endOffset = endSection.Length - 1.0f;
-                platformHasEndSignal = (endSection.EndSignals[thisRoute[lastRouteIndex].Direction] != null);
+                platformHasEndSignal = (endSection.EndSignals[(Heading)thisRoute[lastRouteIndex].Direction] != null);
                 distanceToEndSignal = 1.0f;
 
                 float newLength = -beginOffset;  // correct new length for begin offset
@@ -1551,7 +1551,7 @@ namespace Orts.Simulation.Timetables
                 for (int sectionRouteIndex = lastRouteIndex - 1; sectionRouteIndex >= firstRouteIndex; sectionRouteIndex--)
                 {
                     TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisRoute[sectionRouteIndex].TCSectionIndex];
-                    if (thisSection.EndSignals[thisRoute[sectionRouteIndex].Direction] != null)
+                    if (thisSection.EndSignals[(Heading)thisRoute[sectionRouteIndex].Direction] != null)
                     {
                         intermediateSignal = true;
                         signalSectionIndex = thisSection.Index;
@@ -1599,7 +1599,7 @@ namespace Orts.Simulation.Timetables
                 for (int sectionRouteIndex = lastRouteIndex + 1; sectionRouteIndex < thisRoute.Count; sectionRouteIndex++)
                 {
                     TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisRoute[sectionRouteIndex].TCSectionIndex];
-                    if (thisSection.EndSignals[thisRoute[sectionRouteIndex].Direction] != null)
+                    if (thisSection.EndSignals[(Heading)thisRoute[sectionRouteIndex].Direction] != null)
                     {
                         nextSignal = true;
                         signalSectionIndex = thisSection.Index;
@@ -7394,7 +7394,7 @@ namespace Orts.Simulation.Timetables
                 // only do so if last section is not a station and closeup is not set for dispose
 
                 TrackCircuitSection lastSection = signalRef.TrackCircuitList[lastElement.TCSectionIndex];
-                if (lastSection.EndSignals[lastElement.Direction] == null && TCRoute.activeSubpath == (TCRoute.TCRouteSubpaths.Count - 1))
+                if (lastSection.EndSignals[(Heading)lastElement.Direction] == null && TCRoute.activeSubpath == (TCRoute.TCRouteSubpaths.Count - 1))
                 {
                     int nextIndex = lastSection.Pins[lastElement.Direction, 0].Link;
                     bool lastIsStation = false;
@@ -7911,9 +7911,9 @@ namespace Orts.Simulation.Timetables
                                 routeElement = usedRoute[iRouteIndex];
                                 TrackCircuitSection routeSection = signalRef.TrackCircuitList[routeElement.TCSectionIndex];
 
-                                if (routeSection.EndSignals[routeElement.Direction] != null)
+                                if (routeSection.EndSignals[(Heading)routeElement.Direction] != null)
                                 {
-                                    signalFound = routeSection.EndSignals[routeElement.Direction].thisRef;
+                                    signalFound = routeSection.EndSignals[(Heading)routeElement.Direction].thisRef;
                                 }
                                 else
                                 {
@@ -7950,9 +7950,9 @@ namespace Orts.Simulation.Timetables
                                 routeElement = usedRoute[iRouteIndex];
                                 TrackCircuitSection routeSection = signalRef.TrackCircuitList[routeElement.TCSectionIndex];
 
-                                if (routeSection.EndSignals[routeElement.Direction] != null)
+                                if (routeSection.EndSignals[(Heading)routeElement.Direction] != null)
                                 {
-                                    signalFound = routeSection.EndSignals[routeElement.Direction].thisRef;
+                                    signalFound = routeSection.EndSignals[(Heading)routeElement.Direction].thisRef;
                                 }
                                 else
                                 {
@@ -9814,7 +9814,7 @@ namespace Orts.Simulation.Timetables
                 if (PresentPosition[1].RouteListIndex >= 0) // end of train is on route
                 {
                     TrackCircuitSection thisSection = signalRef.TrackCircuitList[ValidRoute[0][PresentPosition[1].RouteListIndex].TCSectionIndex];
-                    int direction = ValidRoute[0][PresentPosition[1].RouteListIndex].Direction;
+                    Heading direction = (Heading)ValidRoute[0][PresentPosition[1].RouteListIndex].Direction;
                     length = (thisSection.Length - PresentPosition[1].TCOffset);
                     if (thisSection.EndSignals[direction] != null)                         // check for signal only in direction of train (other signal is behind train)
                     {
@@ -9845,7 +9845,7 @@ namespace Orts.Simulation.Timetables
                             intermediateSignal = true;
                             distanceToNextSignal = distanceToNextSignal < 0 ? length : distanceToNextSignal;
                         }
-                        if (thisSection.EndSignals[direction == 1 ? 0 : 1] != null) // check in other direction
+                        if (thisSection.EndSignals[direction.Next()] != null) // check in other direction
                         {
                             intermediateSignal = true;
                             distanceToNextSignal = distanceToNextSignal < 0 ? length - thisSection.Length : distanceToNextSignal; // signal is at start of section
@@ -9869,7 +9869,7 @@ namespace Orts.Simulation.Timetables
                     for (int iIndex = PresentPosition[0].RouteListIndex; iIndex >= 0 && iIndex <= lastValidRouteIndex; iIndex++)
                     {
                         TrackCircuitSection thisSection = signalRef.TrackCircuitList[ValidRoute[0][iIndex].TCSectionIndex];
-                        int direction = ValidRoute[0][iIndex].Direction;
+                        Heading direction = (Heading)ValidRoute[0][iIndex].Direction;
 
                         if (thisSection.CircuitType == TrackCircuitType.Junction ||
                             thisSection.CircuitType == TrackCircuitType.Crossover)
