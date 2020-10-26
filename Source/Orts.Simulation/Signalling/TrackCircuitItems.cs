@@ -48,15 +48,12 @@ namespace Orts.Simulation.Signalling
 
         public TrackCircuitItems(int orSignalTypes)
         {
-            TrackCircuitSignalList list;
-
             foreach (Heading heading in EnumExtension.GetValues<Heading>())
             {
                 List<TrackCircuitSignalList> trackSignalLists = new List<TrackCircuitSignalList>();
                 for (int fntype = 0; fntype < orSignalTypes; fntype++)
                 {
-                    list = new TrackCircuitSignalList();
-                    trackSignalLists.Add(list);
+                    trackSignalLists.Add(new TrackCircuitSignalList());
                 }
                 TrackCircuitSignals[heading] = trackSignalLists;
 

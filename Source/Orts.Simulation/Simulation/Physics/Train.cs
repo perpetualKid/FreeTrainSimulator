@@ -16473,7 +16473,7 @@ namespace Orts.Simulation.Physics
                                 removeSections.Add(iSection);        // always remove crossover if last section was removed
                                 lastSectionIndex = iSection - 1;
                             }
-                            else if (thisSection.OffsetLength[1] + thisSection.Length < offset) // always use offsetLength[1] as offset is wrt begin of original section
+                            else if (thisSection.OffsetLength[Location.FarEnd] + thisSection.Length < offset) // always use offsetLength[1] as offset is wrt begin of original section
                             {
                                 removeSections.Add(iSection);
                                 lastSectionIndex = iSection - 1;
@@ -16498,7 +16498,7 @@ namespace Orts.Simulation.Physics
                                 removeSections.Add(iSection);        // always remove crossover if last section was removed
                                 lastSectionIndex = iSection - 1;
                             }
-                            else if (thisSection.OffsetLength[1] > offset)
+                            else if (thisSection.OffsetLength[Location.FarEnd] > offset)
                             {
                                 removeSections.Add(iSection);
                                 lastSectionIndex = iSection - 1;
