@@ -7443,7 +7443,7 @@ namespace Orts.Simulation.Physics
 
                 // check if route leads into platform
 
-                if (routeSection.PlatformIndex.Count > 0)
+                if (routeSection.PlatformIndices.Count > 0)
                 {
                     intoPlatform = true;
                 }
@@ -8440,7 +8440,7 @@ namespace Orts.Simulation.Physics
                         ValidRoute[reqRouteIndex].RemoveRange(routeIndex, ValidRoute[reqRouteIndex].Count - routeIndex);
                     else Trace.TraceWarning("Switch index {0} could not be found in ValidRoute[{1}]; routeDirectionIndex = {2}",
                             reqSwitch.Index, reqRouteIndex, routeDirectionIndex);
-                    reqSwitch.deAlignSwitchPins();
+                    reqSwitch.DeAlignSwitchPins();
                     reqSwitch.JunctionSetManual = reqSwitch.JunctionLastRoute == 0 ? 1 : 0;
                     signalRef.setSwitch(reqSwitch.OriginalIndex, reqSwitch.JunctionSetManual, reqSwitch);
                     switchSet = true;
@@ -8547,7 +8547,7 @@ namespace Orts.Simulation.Physics
             switchSection.JunctionSetManual = reqSwitchPosition;
 
             // set switch
-            switchSection.deAlignSwitchPins();
+            switchSection.DeAlignSwitchPins();
             signalRef.setSwitch(switchSection.OriginalIndex, switchSection.JunctionSetManual, switchSection);
 
             // reset indication for misaligned switch
@@ -8697,7 +8697,7 @@ namespace Orts.Simulation.Physics
 
                 // check if not beyond end of train
                 TrackCircuitSection reqSection = signalRef.TrackCircuitList[thisObject.TCReference];
-                float speedLimitDistance = reqSection.GetDistanceBetweenObjects(thisElement.TCSectionIndex, reverseOffset, thisElement.Direction,
+                float speedLimitDistance = TrackCircuitSection.GetDistanceBetweenObjects(thisElement.TCSectionIndex, reverseOffset, thisElement.Direction,
                     thisObject.TCReference, thisObject.TCOffset);
                 if (speedLimitDistance > Length)
                 {
@@ -8822,7 +8822,7 @@ namespace Orts.Simulation.Physics
                 if (thisSection.Index == MisalignedSwitch[reqDirection, 0])
                 {
                     // align switch
-                    if (!MPManager.NoAutoSwitch()) thisSection.alignSwitchPins(MisalignedSwitch[reqDirection, 1]);
+                    if (!MPManager.NoAutoSwitch()) thisSection.AlignSwitchPins(MisalignedSwitch[reqDirection, 1]);
                     MisalignedSwitch[reqDirection, 0] = -1;
                     MisalignedSwitch[reqDirection, 1] = -1;
 
@@ -9446,7 +9446,7 @@ namespace Orts.Simulation.Physics
                 // check if switch reserved by this train - if so, dealign
                 else if (reqSwitch.CircuitState.TrainReserved != null && reqSwitch.CircuitState.TrainReserved.Train == this)
                 {
-                    reqSwitch.deAlignSwitchPins();
+                    reqSwitch.DeAlignSwitchPins();
                     reqSwitch.JunctionSetManual = reqSwitch.JunctionLastRoute == 0 ? 1 : 0;
                     signalRef.setSwitch(reqSwitch.OriginalIndex, reqSwitch.JunctionSetManual, reqSwitch);
                     switchSet = true;
@@ -9566,7 +9566,7 @@ namespace Orts.Simulation.Physics
                     switchSection.JunctionSetManual = reqSwitchPosition;
 
                     // set switch
-                    switchSection.deAlignSwitchPins();
+                    switchSection.DeAlignSwitchPins();
                     signalRef.setSwitch(switchSection.OriginalIndex, switchSection.JunctionSetManual, switchSection);
 
                     // build new route - use signal request
@@ -9582,7 +9582,7 @@ namespace Orts.Simulation.Physics
                     switchSection.JunctionSetManual = reqSwitchPosition;
 
                     // set switch
-                    switchSection.deAlignSwitchPins();
+                    switchSection.DeAlignSwitchPins();
                     signalRef.setSwitch(switchSection.OriginalIndex, switchSection.JunctionSetManual, switchSection);
                 }
             }
@@ -10315,7 +10315,7 @@ namespace Orts.Simulation.Physics
             float startOffset = PresentPosition[0].TCOffset;
             TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisSectionIndex];
 
-            return (thisSection.GetDistanceBetweenObjects(thisSectionIndex, startOffset, direction, sectionIndex, endOffset));
+            return (TrackCircuitSection.GetDistanceBetweenObjects(thisSectionIndex, startOffset, direction, sectionIndex, endOffset));
         }
 
         //================================================================================================//
@@ -12552,9 +12552,9 @@ namespace Orts.Simulation.Physics
 
                     // Other platforms in same section
 
-                    if (thisSection.PlatformIndex.Count > 1)
+                    if (thisSection.PlatformIndices.Count > 1)
                     {
-                        foreach (int nextIndex in thisSection.PlatformIndex)
+                        foreach (int nextIndex in thisSection.PlatformIndices)
                         {
                             if (nextIndex != platformIndex)
                             {
@@ -12609,7 +12609,7 @@ namespace Orts.Simulation.Physics
                         int nextSectionIndex = thisRoute[iIndex].TCSectionIndex;
                         TrackCircuitSection nextSection = signalRef.TrackCircuitList[nextSectionIndex];
 
-                        foreach (int otherPlatformIndex in nextSection.PlatformIndex)
+                        foreach (int otherPlatformIndex in nextSection.PlatformIndices)
                         {
                             PlatformDetails otherPlatform = signalRef.PlatformDetailsList[otherPlatformIndex];
                             if (String.Compare(otherPlatform.Name, thisPlatform.Name) == 0)
@@ -14218,12 +14218,12 @@ namespace Orts.Simulation.Physics
             }
 
             TrackCircuitSection rearSection = signalRef.TrackCircuitList[PresentPosition[1].TCSectionIndex];
-            float reversalDistanceM = rearSection.GetDistanceBetweenObjects(PresentPosition[1].TCSectionIndex, PresentPosition[1].TCOffset, PresentPosition[1].TCDirection,
+            float reversalDistanceM = TrackCircuitSection.GetDistanceBetweenObjects(PresentPosition[1].TCSectionIndex, PresentPosition[1].TCOffset, PresentPosition[1].TCDirection,
             reversalSection, 0.0f);
 
             bool reversalEnabled = true;
             TrackCircuitSection frontSection = signalRef.TrackCircuitList[PresentPosition[0].TCSectionIndex];
-            reversalDistanceM = Math.Max(reversalDistanceM, frontSection.GetDistanceBetweenObjects
+            reversalDistanceM = Math.Max(reversalDistanceM, TrackCircuitSection.GetDistanceBetweenObjects
                 (PresentPosition[0].TCSectionIndex, PresentPosition[0].TCOffset, PresentPosition[0].TCDirection,
                 thisReversal.ReversalSectionIndex, thisReversal.ReverseReversalOffset));
             int reversalIndex = thisReversal.SignalUsed ? thisReversal.LastSignalIndex : thisReversal.LastDivergeIndex;
@@ -14562,11 +14562,11 @@ namespace Orts.Simulation.Physics
                 {
                     if (thisSection.Pins[0, 0].Link == nextSectionIndex && !MPManager.NoAutoSwitch())
                     {
-                        thisSection.alignSwitchPins(prevSectionIndex);   // trailing switch
+                        thisSection.AlignSwitchPins(prevSectionIndex);   // trailing switch
                     }
                     else
                     {
-                        thisSection.alignSwitchPins(nextSectionIndex);   // facing switch
+                        thisSection.AlignSwitchPins(nextSectionIndex);   // facing switch
                     }
                 }
             }
@@ -15238,9 +15238,9 @@ namespace Orts.Simulation.Physics
 
                     // Other platforms in same section
 
-                    if (thisSection.PlatformIndex.Count > 1)
+                    if (thisSection.PlatformIndices.Count > 1)
                     {
-                        foreach (int nextIndex in thisSection.PlatformIndex)
+                        foreach (int nextIndex in thisSection.PlatformIndices)
                         {
                             if (nextIndex != platformIndex)
                             {
@@ -15295,7 +15295,7 @@ namespace Orts.Simulation.Physics
                         int nextSectionIndex = thisRoute[iIndex].TCSectionIndex;
                         TrackCircuitSection nextSection = signalRef.TrackCircuitList[nextSectionIndex];
 
-                        foreach (int otherPlatformIndex in nextSection.PlatformIndex)
+                        foreach (int otherPlatformIndex in nextSection.PlatformIndices)
                         {
                             PlatformDetails otherPlatform = signalRef.PlatformDetailsList[otherPlatformIndex];
                             if (String.Compare(otherPlatform.Name, thisPlatform.Name) == 0)
@@ -17906,7 +17906,7 @@ namespace Orts.Simulation.Physics
             public void SetStationReference(List<TCSubpathRoute> subpaths, int sectionIndex, Signals orgSignals)
             {
                 TrackCircuitSection actSection = orgSignals.TrackCircuitList[sectionIndex];
-                foreach (int platformRef in actSection.PlatformIndex)
+                foreach (int platformRef in actSection.PlatformIndices)
                 {
                     PlatformDetails actPlatform = orgSignals.PlatformDetailsList[platformRef];
 
@@ -18586,7 +18586,7 @@ namespace Orts.Simulation.Physics
             // without offset
             public static bool IsAheadOfTrain(TrackCircuitSection thisSection, TCPosition trainPosition)
             {
-                float distanceAhead = thisSection.GetDistanceBetweenObjects(
+                float distanceAhead = TrackCircuitSection.GetDistanceBetweenObjects(
                     trainPosition.TCSectionIndex, trainPosition.TCOffset, trainPosition.TCDirection,
                         thisSection.Index, 0.0f);
                 return (distanceAhead > 0.0f);
@@ -18595,7 +18595,7 @@ namespace Orts.Simulation.Physics
             // with offset
             public static bool IsAheadOfTrain(TrackCircuitSection thisSection, float offset, TCPosition trainPosition)
             {
-                float distanceAhead = thisSection.GetDistanceBetweenObjects(
+                float distanceAhead = TrackCircuitSection.GetDistanceBetweenObjects(
                     trainPosition.TCSectionIndex, trainPosition.TCOffset, trainPosition.TCDirection,
                         thisSection.Index, offset);
                 return (distanceAhead > 0.0f);

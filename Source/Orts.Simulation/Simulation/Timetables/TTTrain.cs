@@ -1737,9 +1737,9 @@ namespace Orts.Simulation.Timetables
 
                     // Other platforms in same section
 
-                    if (thisSection.PlatformIndex.Count > 1)
+                    if (thisSection.PlatformIndices.Count > 1)
                     {
-                        foreach (int nextIndex in thisSection.PlatformIndex)
+                        foreach (int nextIndex in thisSection.PlatformIndices)
                         {
                             if (nextIndex != platformIndex)
                             {
@@ -1794,7 +1794,7 @@ namespace Orts.Simulation.Timetables
                         int nextSectionIndex = thisRoute[iIndex].TCSectionIndex;
                         TrackCircuitSection nextSection = signalRef.TrackCircuitList[nextSectionIndex];
 
-                        foreach (int otherPlatformIndex in nextSection.PlatformIndex)
+                        foreach (int otherPlatformIndex in nextSection.PlatformIndices)
                         {
                             PlatformDetails otherPlatform = signalRef.PlatformDetailsList[otherPlatformIndex];
                             if (String.Compare(otherPlatform.Name, thisPlatform.Name) == 0)
@@ -6922,9 +6922,9 @@ namespace Orts.Simulation.Timetables
 
                     // check if route leads into platform
 
-                    if (routeSection.PlatformIndex.Count > 0)
+                    if (routeSection.PlatformIndices.Count > 0)
                     {
-                        PlatformDetails thisPlatform = signalRef.PlatformDetailsList[routeSection.PlatformIndex[0]];
+                        PlatformDetails thisPlatform = signalRef.PlatformDetailsList[routeSection.PlatformIndices[0]];
                         if (StationStops.Count > 0) // train has stops
                         {
                             if (String.Compare(StationStops[0].PlatformItem.Name, thisPlatform.Name) == 0)
@@ -7004,9 +7004,9 @@ namespace Orts.Simulation.Timetables
                         for (int iSection = thisSectionRouteIndex + 1; iSection < thisRoute.Count && !intoPlatform; iSection++)
                         {
                             routeSection = signalRef.TrackCircuitList[thisRoute[iSection].TCSectionIndex];
-                            if (routeSection.PlatformIndex.Count > 0)
+                            if (routeSection.PlatformIndices.Count > 0)
                             {
-                                PlatformDetails thisPlatform = signalRef.PlatformDetailsList[routeSection.PlatformIndex[0]];
+                                PlatformDetails thisPlatform = signalRef.PlatformDetailsList[routeSection.PlatformIndices[0]];
                                 if (StationStops.Count > 0) // train has stops
                                 {
                                     if (String.Compare(StationStops[0].PlatformItem.Name, thisPlatform.Name) == 0)
@@ -7111,7 +7111,7 @@ namespace Orts.Simulation.Timetables
                 {
                     foreach (TrackCircuitSection thisSection in otherTrain.OccupiedTrack)
                     {
-                        foreach (int thisPlatform in thisSection.PlatformIndex)
+                        foreach (int thisPlatform in thisSection.PlatformIndices)
                         {
                             foreach (int platformReference in signalRef.PlatformDetailsList[thisPlatform].PlatformReference)
                             {
@@ -8849,7 +8849,7 @@ namespace Orts.Simulation.Timetables
 
         public override bool TrainGetSectionStateClearNode(int elementDirection, Train.TCSubpathRoute routePart, TrackCircuitSection thisSection)
         {
-            return (thisSection.getSectionState(routedForward, elementDirection, Signal.InternalBlockstate.Reserved, routePart, -1) <= Signal.InternalBlockstate.OccupiedSameDirection);
+            return (thisSection.GetSectionState(routedForward, elementDirection, Signal.InternalBlockstate.Reserved, routePart, -1) <= Signal.InternalBlockstate.OccupiedSameDirection);
         }
 
         //================================================================================================//
@@ -9037,7 +9037,7 @@ namespace Orts.Simulation.Timetables
                 TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TCSectionIndex];
                 int direction = sameDirection ? thisElement.Direction : thisElement.Direction == 0 ? 1 : 0;
 
-                blockstate = thisSection.getSectionState(routedForward, direction, blockstate, thisRoute, -1);
+                blockstate = thisSection.GetSectionState(routedForward, direction, blockstate, thisRoute, -1);
                 if (blockstate > Signal.InternalBlockstate.Reservable)
                     break;     // exit on first none-available section
             }
@@ -9490,7 +9490,7 @@ namespace Orts.Simulation.Timetables
                 {
                     // check platform
                     TrackCircuitSection thisSection = signalRef.TrackCircuitList[ValidRoute[0][iRouteIndex].TCSectionIndex];
-                    foreach (int thisPlatform in thisSection.PlatformIndex)
+                    foreach (int thisPlatform in thisSection.PlatformIndices)
                     {
                         foreach (int platformReference in signalRef.PlatformDetailsList[thisPlatform].PlatformReference)
                         {
@@ -10132,7 +10132,7 @@ namespace Orts.Simulation.Timetables
             }
 
             TrackCircuitSection rearSection = signalRef.TrackCircuitList[PresentPosition[1].TCSectionIndex];
-            float reversalDistanceM = rearSection.GetDistanceBetweenObjects(PresentPosition[1].TCSectionIndex, PresentPosition[1].TCOffset, PresentPosition[1].TCDirection,
+            float reversalDistanceM = TrackCircuitSection.GetDistanceBetweenObjects(PresentPosition[1].TCSectionIndex, PresentPosition[1].TCOffset, PresentPosition[1].TCDirection,
             reversalSection, 0.0f);
 
             bool reversalEnabled = true;

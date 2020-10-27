@@ -325,7 +325,7 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         public bool OccupiedByThisTrain(Train.TrainRouted train)
         {
-            return (OccupationState.ContainsTrain(train));
+            return OccupationState.ContainsTrain(train);
         }
 
         //================================================================================================//
@@ -335,7 +335,7 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         public bool OccupiedByThisTrain(Train train)
         {
-            return (OccupationState.ContainsTrain(train));
+            return OccupationState.ContainsTrain(train);
         }
 
     }

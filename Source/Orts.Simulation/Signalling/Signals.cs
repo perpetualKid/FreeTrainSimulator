@@ -2220,7 +2220,7 @@ namespace Orts.Simulation.Signalling
                             Trace.TraceWarning("Ignored invalid track node {0} pin [{1},{2}] link to track node {3}", thisNode, iDirection, iPin, linkedNode);
                             int endNode = nextNode;
                             nextNode++;
-                            TrackCircuitSection.insertEndNode(thisNode, iDirection, iPin, endNode);
+                            TrackCircuitSection.InsertEndNode(thisNode, iDirection, iPin, endNode);
                         }
 
                         if (doublelink)
@@ -2228,7 +2228,7 @@ namespace Orts.Simulation.Signalling
                             Trace.TraceWarning("Ignored invalid track node {0} pin [{1},{2}] link to track node {3}; already linked to track node {4}", thisNode, iDirection, iPin, linkedNode, doublenode);
                             int endNode = nextNode;
                             nextNode++;
-                            TrackCircuitSection.insertEndNode(thisNode, iDirection, iPin, endNode);
+                            TrackCircuitSection.InsertEndNode(thisNode, iDirection, iPin, endNode);
                         }
                     }
                     else if (linkedNode == 0)
@@ -2236,7 +2236,7 @@ namespace Orts.Simulation.Signalling
                         Trace.TraceWarning("Ignored invalid track node {0} pin [{1},{2}] link to track node {3}", thisNode, iDirection, iPin, linkedNode);
                         int endNode = nextNode;
                         nextNode++;
-                        TrackCircuitSection.insertEndNode(thisNode, iDirection, iPin, endNode);
+                        TrackCircuitSection.InsertEndNode(thisNode, iDirection, iPin, endNode);
                     }
                 }
             }
@@ -2503,13 +2503,10 @@ namespace Orts.Simulation.Signalling
             thisSection.JunctionLastRoute = switchPos;
 
             // update any linked signals
-            if (thisSection.LinkedSignals != null)
+            foreach (int thisSignalIndex in thisSection.LinkedSignals ?? Enumerable.Empty<int>())
             {
-                foreach (int thisSignalIndex in thisSection.LinkedSignals)
-                {
-                    Signal thisSignal = SignalObjects[thisSignalIndex];
-                    thisSignal.Update();
-                }
+                Signal thisSignal = SignalObjects[thisSignalIndex];
+                thisSignal.Update();
             }
         }
 
@@ -3524,11 +3521,12 @@ namespace Orts.Simulation.Signalling
                             int nextPinIndex = nextSection.Pins[(nextDirection == 0 ? 1 : 0), 0].Link == thisIndex ? 0 : 1;
                             if (nextPinDirection == 1 && nextSection.JunctionLastRoute != nextPinIndex)
                             {
-                                if (nextSection.AILock && thisTrain != null && (thisTrain.TrainType == Train.TRAINTYPE.AI
-                                    || thisTrain.TrainType == Train.TRAINTYPE.AI_PLAYERHOSTING))
-                                {
-                                    endOfRoute = true;
-                                }
+                                //TODO 20201027 to be verified, nextSection.AILock had never been set, thus removed
+                                //if (nextSection.AILock && thisTrain != null && (thisTrain.TrainType == Train.TRAINTYPE.AI
+                                //    || thisTrain.TrainType == Train.TRAINTYPE.AI_PLAYERHOSTING))
+                                //{
+                                //    endOfRoute = true;
+                                //}
 
                                 if (!autoAlign)
                                 {
@@ -3893,7 +3891,7 @@ namespace Orts.Simulation.Signalling
                     foreach (int sectionIndex in thisDetails.TCSectionIndex)
                     {
                         TrackCircuitSection thisSection = TrackCircuitList[sectionIndex];
-                        thisSection.PlatformIndex.Add(thisPlatformDetailsIndex);
+                        thisSection.PlatformIndices.Add(thisPlatformDetailsIndex);
                     }
                 }
             }
@@ -4624,13 +4622,10 @@ namespace Orts.Simulation.Signalling
 
                 if (!Simulator.TimetableMode) switchSection.CircuitState.Forced = true;
 
-                if (switchSection.LinkedSignals != null)
+                foreach (int thisSignalIndex in switchSection.LinkedSignals ?? Enumerable.Empty<int>())
                 {
-                    foreach (int thisSignalIndex in switchSection.LinkedSignals)
-                    {
-                        Signal thisSignal = SignalObjects[thisSignalIndex];
-                        thisSignal.Update();
-                    }
+                    Signal thisSignal = SignalObjects[thisSignalIndex];
+                    thisSignal.Update();
                 }
 
                 var temptrains = Simulator.Trains.ToArray();
@@ -7475,7 +7470,7 @@ namespace Orts.Simulation.Signalling
                 lastElement = thisElement;
                 TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TCSectionIndex];
                 int direction = thisElement.Direction;
-                blockstate = thisSection.getSectionState(enabledTrain, direction, blockstate, thisRoute, thisRef);
+                blockstate = thisSection.GetSectionState(enabledTrain, direction, blockstate, thisRoute, thisRef);
                 if (blockstate > InternalBlockstate.Reservable)
                     break;           // break on first non-reservable section //
 
@@ -7543,7 +7538,7 @@ namespace Orts.Simulation.Signalling
                     {
                         TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TCSectionIndex];
                         int direction = thisElement.Direction;
-                        newblockstate = thisSection.getSectionState(enabledTrain, direction, newblockstate, thisRoute, thisRef);
+                        newblockstate = thisSection.GetSectionState(enabledTrain, direction, newblockstate, thisRoute, thisRef);
                         if (newblockstate > InternalBlockstate.Reservable)
                             break;           // break on first non-reservable section //
                     }
@@ -7603,7 +7598,7 @@ namespace Orts.Simulation.Signalling
                     {
                         TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TCSectionIndex];
                         int direction = thisElement.Direction;
-                        newblockstate = thisSection.getSectionState(enabledTrain, direction, newblockstate, thisRoute, thisRef);
+                        newblockstate = thisSection.GetSectionState(enabledTrain, direction, newblockstate, thisRoute, thisRef);
                         if (newblockstate > InternalBlockstate.Reservable)
                             break;           // break on first non-reservable section //
                     }
@@ -7655,7 +7650,7 @@ namespace Orts.Simulation.Signalling
                 TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TCSectionIndex];
                 int direction = thisElement.Direction;
 
-                blockstate = thisSection.getSectionState(enabledTrain, direction, blockstate, thisRoute, thisRef);
+                blockstate = thisSection.GetSectionState(enabledTrain, direction, blockstate, thisRoute, thisRef);
                 if (blockstate > InternalBlockstate.OccupiedSameDirection)
                     break;     // exit on first none-available section
 
@@ -7833,7 +7828,7 @@ namespace Orts.Simulation.Signalling
             {
                 TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TCSectionIndex];
                 direction = (Heading)thisElement.Direction;
-                blockstate = thisSection.getSectionState(enabledTrain, (int)direction, blockstate, thisRoute, thisRef);
+                blockstate = thisSection.GetSectionState(enabledTrain, (int)direction, blockstate, thisRoute, thisRef);
                 if (blockstate > InternalBlockstate.Reservable)
                     break;           // break on first non-reservable section //
             }
@@ -7846,7 +7841,7 @@ namespace Orts.Simulation.Signalling
                 {
                     TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TCSectionIndex];
                     direction = (Heading)thisElement.Direction;
-                    blockstate = thisSection.getSectionState(enabledTrain, (int)direction, blockstate, additionalElements, thisRef);
+                    blockstate = thisSection.GetSectionState(enabledTrain, (int)direction, blockstate, additionalElements, thisRef);
                     if (blockstate > InternalBlockstate.Reservable)
                         break;           // break on first non-reservable section //
                 }

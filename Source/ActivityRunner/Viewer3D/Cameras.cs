@@ -2524,7 +2524,7 @@ namespace Orts.ActivityRunner.Viewer3D
                         // scanning route in direction of train, searching for a platform
                         while (incrDistance < MaximumSpecialPointDistance * 0.7f)
                         {
-                            foreach (int platformIndex in TCSection.PlatformIndex)
+                            foreach (int platformIndex in TCSection.PlatformIndices)
                             {
                                 PlatformDetails thisPlatform = train.signalRef.PlatformDetailsList[platformIndex];
                                 if (thisPlatform.TrackCircuitOffset[Simulation.Signalling.Location.NearEnd, (Heading)thisRoute[routeIndex].Direction] + incrDistance < MaximumSpecialPointDistance * 0.7f
