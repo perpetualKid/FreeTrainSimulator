@@ -2205,7 +2205,7 @@ namespace Orts.Simulation.Signalling
                                 linkfound = true;
                                 if (linkedSection.ActivePins[linkedDirection, linkedPin].Link == -1)
                                 {
-                                    linkedSection.ActivePins[linkedDirection, linkedPin] = new TrackPin(thisNode, linkedSection.ActivePins[linkedDirection, linkedPin].Direction);
+                                    linkedSection.ActivePins[linkedDirection, linkedPin] = linkedSection.ActivePins[linkedDirection, linkedPin].FromLink(thisNode);
                                 }
                                 else
                                 {
@@ -2268,11 +2268,11 @@ namespace Orts.Simulation.Signalling
 
                             if (thisSection.Pins[iDirection, 1].Link > 0)    // Junction end
                             {
-                                thisSection.ActivePins[iDirection, iPin] = new TrackPin(-1, thisSection.Pins[iDirection, iPin].Direction);
+                                thisSection.ActivePins[iDirection, iPin] = thisSection.Pins[iDirection, iPin].FromLink(-1);
                             }
                             else
                             {
-                                thisSection.ActivePins[iDirection, iPin] = new TrackPin(thisSection.Pins[iDirection, iPin].Link, thisSection.Pins[iDirection, iPin].Direction);
+                                thisSection.ActivePins[iDirection, iPin] = thisSection.Pins[iDirection, iPin];
                             }
                         }
                         else if (thisSection.CircuitType == TrackCircuitType.Crossover)
@@ -2280,24 +2280,20 @@ namespace Orts.Simulation.Signalling
                             int nextIndex = thisSection.Pins[iDirection, iPin].Link;
                             nextSection = TrackCircuitList[nextIndex];
 
-                            thisSection.ActivePins[iDirection, iPin] = new TrackPin(-1, thisSection.Pins[iDirection, iPin].Direction);
+                            thisSection.ActivePins[iDirection, iPin] = thisSection.Pins[iDirection, iPin].FromLink(-1);
                         }
                         else
                         {
                             int nextIndex = thisSection.Pins[iDirection, iPin].Link;
                             nextSection = TrackCircuitList[nextIndex];
 
-                            thisSection.ActivePins[iDirection, iPin] = new TrackPin(thisSection.Pins[iDirection, iPin].Link, thisSection.Pins[iDirection, iPin].Direction);
+                            thisSection.ActivePins[iDirection, iPin] = thisSection.Pins[iDirection, iPin];
                         }
 
 
                         if (nextSection != null && nextSection.CircuitType == TrackCircuitType.Crossover)
                         {
-                            thisSection.ActivePins[iDirection, iPin] = new TrackPin(-1, thisSection.ActivePins[iDirection, iPin].Direction);
-                            if (thisSection.CircuitType == TrackCircuitType.Normal)
-                            {
-                                thisSection.EndIsTrailingJunction[iDirection] = true;
-                            }
+                            thisSection.ActivePins[iDirection, iPin] = thisSection.ActivePins[iDirection, iPin].FromLink(-1);
                         }
                         else if (nextSection != null && nextSection.CircuitType == TrackCircuitType.Junction)
                         {
@@ -2305,11 +2301,7 @@ namespace Orts.Simulation.Signalling
                             //                          int nextDirection = thisSection.Pins[iDirection, iPin].Direction;
                             if (nextSection.Pins[nextDirection, 1].Link > 0)
                             {
-                                thisSection.ActivePins[iDirection, iPin] = new TrackPin(-1, thisSection.ActivePins[iDirection, iPin].Direction);
-                                if (thisSection.CircuitType == TrackCircuitType.Normal)
-                                {
-                                    thisSection.EndIsTrailingJunction[iDirection] = true;
-                                }
+                                thisSection.ActivePins[iDirection, iPin] = thisSection.ActivePins[iDirection, iPin].FromLink(-1);
                             }
                         }
                     }

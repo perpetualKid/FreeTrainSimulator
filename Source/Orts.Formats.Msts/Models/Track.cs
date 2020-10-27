@@ -832,6 +832,11 @@ namespace Orts.Formats.Msts.Models
             Direction = direction;
         }
 
+        public TrackPin FromLink(int link)
+        {
+            return new TrackPin(link, Direction);
+        }
+
         public static readonly TrackPin Empty = new TrackPin(-1, -1);
     }
     #endregion
