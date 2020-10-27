@@ -810,9 +810,9 @@ namespace Orts.Formats.Msts.Models
     public class TrackPin
     {
         /// <summary>Index of the tracknode connected to the parent of this pin</summary>
-        public int Link { get; set; }
+        public int Link { get; }
         /// <summary>In case a connection is made to a vector node this determines the side of the vector node that is connected to</summary>
-        public int Direction { get; set; }
+        public int Direction { get; }
 
         /// <summary>
         /// Default constructor used during file parsing.
@@ -831,6 +831,8 @@ namespace Orts.Formats.Msts.Models
             Link = link;
             Direction = direction;
         }
+
+        public static readonly TrackPin Empty = new TrackPin(-1, -1);
     }
     #endregion
 
