@@ -2728,8 +2728,8 @@ namespace Orts.Simulation.Physics
 
                 //the following is added by CSantucci, applying also to manual mode what Jtang implemented for activity mode: after passing a manually forced signal,
                 // system will take back control of the signal
-                if (signalObject.holdState == Signal.HoldState.ManualPass ||
-                    signalObject.holdState == Signal.HoldState.ManualApproach) signalObject.holdState = Signal.HoldState.None;
+                if (signalObject.holdState == SignalHoldState.ManualPass ||
+                    signalObject.holdState == SignalHoldState.ManualApproach) signalObject.holdState = SignalHoldState.None;
             }
             UpdateSectionStateManual();                                                           // update track occupation          //
             UpdateManualMode(SignalObjIndex);                                                     // update route clearance           //
@@ -2755,8 +2755,8 @@ namespace Orts.Simulation.Physics
 
                 //the following is added by CSantucci, applying also to explorer mode what Jtang implemented for activity mode: after passing a manually forced signal,
                 // system will take back control of the signal
-                if (signalObject.holdState == Signal.HoldState.ManualPass ||
-                    signalObject.holdState == Signal.HoldState.ManualApproach) signalObject.holdState = Signal.HoldState.None;
+                if (signalObject.holdState == SignalHoldState.ManualPass ||
+                    signalObject.holdState == SignalHoldState.ManualApproach) signalObject.holdState = SignalHoldState.None;
             }
             UpdateSectionStateExplorer();                                                         // update track occupation          //
             UpdateExplorerMode(SignalObjIndex);                                                   // update route clearance           //
@@ -6485,7 +6485,7 @@ namespace Orts.Simulation.Physics
                             File.AppendAllText(@"C:\temp\checktrain.txt", reportCT + "\n");
                         }
 
-                        if (signalState == SignalAspectState.Stop && NextSignalObject[direction].hasPermission == Signal.Permission.Denied)
+                        if (signalState == SignalAspectState.Stop && NextSignalObject[direction].hasPermission == SignalPermission.Denied)
                         {
                             Trace.TraceWarning("Train {1} ({0}) passing signal {2} at {3} at danger at {4}",
                                Number.ToString(), Name, NextSignalObject[direction].thisRef.ToString(),
@@ -7281,10 +7281,10 @@ namespace Orts.Simulation.Physics
                 var signalObject = signalRef.SignalObjects[signalObjectIndex];
 
                 //the following is added by JTang, passing a hold signal, will take back control by the system
-                if (signalObject.holdState == Signal.HoldState.ManualPass ||
-                    signalObject.holdState == Signal.HoldState.ManualApproach)
+                if (signalObject.holdState == SignalHoldState.ManualPass ||
+                    signalObject.holdState == SignalHoldState.ManualApproach)
                 {
-                    signalObject.holdState = Signal.HoldState.None;
+                    signalObject.holdState = SignalHoldState.None;
                 }
 
                 signalObject.resetSignalEnabled();
@@ -7577,16 +7577,16 @@ namespace Orts.Simulation.Physics
 
             // signal is in holding list - so not really waiting - but remove from list if held for station stop
 
-            if (thisSignal.holdState == Signal.HoldState.ManualLock)
+            if (thisSignal.holdState == SignalHoldState.ManualLock)
             {
                 return (false);
             }
-            else if (thisSignal.holdState == Signal.HoldState.StationStop && HoldingSignals.Contains(thisSignal.thisRef))
+            else if (thisSignal.holdState == SignalHoldState.StationStop && HoldingSignals.Contains(thisSignal.thisRef))
             {
                 if (StationStops != null && StationStops.Count > 0 && StationStops[0].ExitSignal != thisSignal.thisRef) // not present station stop
                 {
                     HoldingSignals.Remove(thisSignal.thisRef);
-                    thisSignal.holdState = Signal.HoldState.None;
+                    thisSignal.holdState = SignalHoldState.None;
                     return (false);
                 }
             }
@@ -7774,10 +7774,10 @@ namespace Orts.Simulation.Physics
             if (signalObjectIndex >= 0)
             {
                 var thisSignal = signalRef.SignalObjects[signalObjectIndex];
-                thisSignal.hasPermission = Signal.Permission.Denied;
+                thisSignal.hasPermission = SignalPermission.Denied;
                 //the following is added by JTang, passing a hold signal, will take back control by the system
-                if (thisSignal.holdState == Signal.HoldState.ManualPass ||
-                    thisSignal.holdState == Signal.HoldState.ManualApproach) thisSignal.holdState = Signal.HoldState.None;
+                if (thisSignal.holdState == SignalHoldState.ManualPass ||
+                    thisSignal.holdState == SignalHoldState.ManualApproach) thisSignal.holdState = SignalHoldState.None;
 
                 thisSignal.resetSignalEnabled();
             }
@@ -7952,7 +7952,7 @@ namespace Orts.Simulation.Physics
                     if (previousSignal.signalRef != null) previousSignal.sigfound[(int)SignalFunction.Normal] = endSignal.thisRef;
                     previousSignal = thisSection.EndSignals[reqDirection];
 
-                    if (thisAspect == SignalAspectState.Stop && endSignal.hasPermission != Signal.Permission.Granted)
+                    if (thisAspect == SignalAspectState.Stop && endSignal.hasPermission != SignalPermission.Granted)
                     {
                         endWithSignal = true;
                         sectionWithSignalIndex = iindex;
@@ -8294,8 +8294,8 @@ namespace Orts.Simulation.Physics
 
             requestedSignal.enabledTrain = routeIndex == 0 ? routedForward : routedBackward;
             requestedSignal.signalRoute.Clear();
-            requestedSignal.holdState = Signal.HoldState.None;
-            requestedSignal.hasPermission = Signal.Permission.Requested;
+            requestedSignal.holdState = SignalHoldState.None;
+            requestedSignal.hasPermission = SignalPermission.Requested;
 
             // get route from next signal - extend to next signal or maximum length
 
@@ -8939,7 +8939,7 @@ namespace Orts.Simulation.Physics
             if (signalObjectIndex >= 0)
             {
                 var thisSignal = signalRef.SignalObjects[signalObjectIndex];
-                thisSignal.hasPermission = Signal.Permission.Denied;
+                thisSignal.hasPermission = SignalPermission.Denied;
 
                 thisSignal.resetSignalEnabled();
             }
@@ -9067,7 +9067,7 @@ namespace Orts.Simulation.Physics
                     var endSignal = thisSection.EndSignals[reqDirection];
                     var thisAspect = thisSection.EndSignals[reqDirection].this_sig_lr(SignalFunction.Normal);
 
-                    if (thisAspect == SignalAspectState.Stop && endSignal.hasPermission != Signal.Permission.Granted)
+                    if (thisAspect == SignalAspectState.Stop && endSignal.hasPermission != SignalPermission.Granted)
                     {
                         endWithSignal = true;
                         sectionWithSignalIndex = iindex;
@@ -9107,7 +9107,7 @@ namespace Orts.Simulation.Physics
                 var nextSignal = thisSection.EndSignals[(TrackDirection)thisElement.Direction];
                 if (nextSignal != null &&
                     nextSignal.this_sig_lr(SignalFunction.Normal) == SignalAspectState.Stop &&
-                    nextSignal.hasPermission != Signal.Permission.Granted)
+                    nextSignal.hasPermission != SignalPermission.Granted)
                 {
                     unclearedSignal = true;
                     signalIndex = iindex;
@@ -9344,7 +9344,7 @@ namespace Orts.Simulation.Physics
 
             // signal at danger is found - set PERMISSION REQUESTED, and request clear signal
             // if signal has a route, set PERMISSION REQUESTED, and perform signal update
-            reqSignal.hasPermission = Signal.Permission.Requested;
+            reqSignal.hasPermission = SignalPermission.Requested;
 
             TCPosition tempPos = new TCPosition();
 
@@ -9361,7 +9361,7 @@ namespace Orts.Simulation.Physics
             TCSubpathRoute newRouteR = CheckExplorerPath(routeIndex, tempPos, ValidRoute[routeIndex], true, ref EndAuthorityType[routeIndex],
                 ref DistanceToEndNodeAuthorityM[routeIndex]);
             ValidRoute[routeIndex] = newRouteR;
-            Simulator.SoundNotify = reqSignal.hasPermission == Signal.Permission.Granted ?
+            Simulator.SoundNotify = reqSignal.hasPermission == SignalPermission.Granted ?
                 TrainEvent.PermissionGranted :
                 TrainEvent.PermissionDenied;
         }
@@ -10224,7 +10224,7 @@ namespace Orts.Simulation.Physics
 
                 else if (NextSignalObject[0] != null)
                 {
-                    NextSignalObject[0].hasPermission = Signal.Permission.Requested;
+                    NextSignalObject[0].hasPermission = SignalPermission.Requested;
                 }
             }
         }
@@ -13503,7 +13503,7 @@ namespace Orts.Simulation.Physics
                     switch (nextAspect)
                     {
                         case SignalAspectState.Stop:
-                            if (NextSignalObject[1].hasPermission == Signal.Permission.Granted)
+                            if (NextSignalObject[1].hasPermission == SignalPermission.Granted)
                             {
                                 firstchar = "G";
                             }
@@ -13547,7 +13547,7 @@ namespace Orts.Simulation.Physics
                     switch (nextAspect)
                     {
                         case SignalAspectState.Stop:
-                            if (NextSignalObject[0].hasPermission == Signal.Permission.Granted)
+                            if (NextSignalObject[0].hasPermission == SignalPermission.Granted)
                             {
                                 lastchar = "G";
                             }

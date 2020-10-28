@@ -3530,7 +3530,7 @@ namespace Orts.Simulation.Signalling
                     lastIndex = thisIndex;
                     thisIndex = nextIndex;
                     thisSection = TrackCircuitList[thisIndex];
-                    curDirection = forward ? (TrackDirection)nextDirection : nextDirection == 0 ? TrackDirection.Reverse : TrackDirection.Ahead;
+                    curDirection = forward ? nextDirection : nextDirection.Next();
                     oppDirection = curDirection.Next();
 
                     if (searchBackwardSignal && thisSection.EndSignals[oppDirection] != null)
@@ -4649,35 +4649,6 @@ namespace Orts.Simulation.Signalling
     public class Signal
     {
 
-        public enum InternalBlockstate
-        {
-            Reserved,                   // all sections reserved for requiring train       //
-            Reservable,                 // all secetions clear and reservable for train    //
-            OccupiedSameDirection,      // occupied by train moving in same direction      //
-            ReservedOther,              // reserved for other train                        //
-            ForcedWait,                 // train is forced to wait for other train         //
-            OccupiedOppositeDirection,  // occupied by train moving in opposite direction  //
-            Open,                       // sections are claimed and not accesible          //
-            Blocked,                    // switch locked against train                     //
-        }
-
-        public enum Permission
-        {
-            Granted,
-            Requested,
-            Denied,
-        }
-
-        public enum HoldState                // signal is locked in hold
-        {
-            None,                            // signal is clear
-            StationStop,                     // because of station stop
-            ManualLock,                      // because of manual lock. 
-            ManualPass,                      // Sometime you want to set a light green, especially in MP
-            ManualApproach,                  // Sometime to set approach, in MP again
-            //PLEASE DO NOT CHANGE THE ORDER OF THESE ENUMS
-        }
-
         public Signals signalRef;               // reference to overlaying Signal class
         public static Signal[] signalObjects;
         public static TrackNode[] trackNodes;
@@ -4716,8 +4687,8 @@ namespace Orts.Simulation.Signalling
         public Train.TrainRouted enabledTrain;  // full train structure for which signal is enabled
 
         private InternalBlockstate internalBlockState = InternalBlockstate.Open;    // internal blockstate
-        public Permission hasPermission = Permission.Denied;  // Permission to pass red signal
-        public HoldState holdState = HoldState.None;
+        public SignalPermission hasPermission = SignalPermission.Denied;  // Permission to pass red signal
+        public SignalHoldState holdState = SignalHoldState.None;
 
         public List<int> sigfound = new List<int>();  // active next signal - used for signals with NORMAL heads only
         public int reqNormalSignal = -1;              // ref of normal signal requesting route clearing (only used for signals without NORMAL heads)
@@ -4877,7 +4848,7 @@ namespace Orts.Simulation.Signalling
             }
 
             thisTrainRouteIndex = inf.ReadInt32();
-            holdState = (HoldState)inf.ReadInt32();
+            holdState = (SignalHoldState)inf.ReadInt32();
 
             int totalJnPassed = inf.ReadInt32();
 
@@ -4900,7 +4871,7 @@ namespace Orts.Simulation.Signalling
             ApproachControlSet = inf.ReadBoolean();
             ClaimLocked = inf.ReadBoolean();
             ForcePropOnApproachControl = inf.ReadBoolean();
-            hasPermission = (Permission)inf.ReadInt32();
+            hasPermission = (SignalPermission)inf.ReadInt32();
 
             // set dummy train, route direction index will be set later on restore of train
 
@@ -6010,7 +5981,7 @@ namespace Orts.Simulation.Signalling
                 if (sectionSet)
                 {
                     thisTC = thisSection.ActivePins[direction, Location.NearEnd].Link;
-                    direction = (TrackDirection)thisSection.ActivePins[direction, Location.NearEnd].Direction;
+                    direction = thisSection.ActivePins[direction, Location.NearEnd].Direction;
                 }
             }
 
@@ -6144,7 +6115,7 @@ namespace Orts.Simulation.Signalling
                 thisSection = signalRef.TrackCircuitList[thisTC];
                 pinIndex = direction;
                 thisTC = thisSection.ActivePins[pinIndex, Location.NearEnd].Link;
-                direction = (TrackDirection)thisSection.ActivePins[pinIndex, Location.NearEnd].Direction;
+                direction = thisSection.ActivePins[pinIndex, Location.NearEnd].Direction;
             }
 
             // loop through valid sections
@@ -6252,11 +6223,11 @@ namespace Orts.Simulation.Signalling
                     if (sectionSet)
                     {
                         thisTC = thisSection.ActivePins[pinIndex, Location.NearEnd].Link;
-                        direction = (TrackDirection)thisSection.ActivePins[pinIndex, Location.NearEnd].Direction;
+                        direction = thisSection.ActivePins[pinIndex, Location.NearEnd].Direction;
                         if (thisTC == -1)
                         {
                             thisTC = thisSection.ActivePins[pinIndex, Location.FarEnd].Link;
-                            direction = (TrackDirection)thisSection.ActivePins[pinIndex, Location.FarEnd].Direction;
+                            direction = thisSection.ActivePins[pinIndex, Location.FarEnd].Direction;
                         }
                     }
                 }
@@ -6278,11 +6249,11 @@ namespace Orts.Simulation.Signalling
             {
                 // if in hold, set to most restrictive for each head
 
-                if (holdState != HoldState.None)
+                if (holdState != SignalHoldState.None)
                 {
                     foreach (SignalHead sigHead in SignalHeads)
                     {
-                        if (holdState == HoldState.ManualLock || holdState == HoldState.StationStop) sigHead.SetMostRestrictiveAspect();
+                        if (holdState == SignalHoldState.ManualLock || holdState == SignalHoldState.StationStop) sigHead.SetMostRestrictiveAspect();
                     }
                     return;
                 }
@@ -6390,7 +6361,7 @@ namespace Orts.Simulation.Signalling
 
             // reset permission //
 
-            hasPermission = Permission.Denied;
+            hasPermission = SignalPermission.Denied;
 
             StateUpdate();
         }
@@ -6412,7 +6383,7 @@ namespace Orts.Simulation.Signalling
                 if (MPManager.IsClient()) return; //client won't handle signal update
 
                 //if there were hold manually, will not update
-                if (holdState == HoldState.ManualApproach || holdState == HoldState.ManualLock || holdState == HoldState.ManualPass) return;
+                if (holdState == SignalHoldState.ManualApproach || holdState == SignalHoldState.ManualLock || holdState == SignalHoldState.ManualPass) return;
             }
 
             foreach (SignalHead sigHead in SignalHeads)
@@ -6540,7 +6511,7 @@ namespace Orts.Simulation.Signalling
             switch (SigState)
             {
                 case SignalAspectState.Stop:
-                    if (hasPermission == Permission.Granted)
+                    if (hasPermission == SignalPermission.Granted)
                         return TrackMonitorSignalAspect.Permission;
                     else
                         return TrackMonitorSignalAspect.Stop;
@@ -6617,7 +6588,7 @@ namespace Orts.Simulation.Signalling
 
             // if signal is cleared or permission is granted, extend route with signal route
 
-            if (extendRoute || hasPermission == Permission.Granted)
+            if (extendRoute || hasPermission == SignalPermission.Granted)
             {
                 foreach (Train.TCRouteElement thisElement in signalRoute)
                 {
@@ -6765,9 +6736,9 @@ namespace Orts.Simulation.Signalling
                 enabledTrain = null;
 
                 // if signal on holding list, set hold state
-                if (thisTrain.Train.HoldingSignals.Contains(thisRef) && holdState == HoldState.None)
+                if (thisTrain.Train.HoldingSignals.Contains(thisRef) && holdState == SignalHoldState.None)
                 {
-                    holdState = HoldState.StationStop;
+                    holdState = SignalHoldState.StationStop;
                 }
                 return false;
             }
@@ -6907,17 +6878,17 @@ namespace Orts.Simulation.Signalling
         public void checkRouteState(bool isPropagated, Train.TCSubpathRoute thisRoute, Train.TrainRouted thisTrain, bool sound = true)
         {
             // check if signal must be hold
-            bool signalHold = (holdState != HoldState.None);
-            if (enabledTrain != null && enabledTrain.Train.HoldingSignals.Contains(thisRef) && holdState < HoldState.ManualLock)
+            bool signalHold = (holdState != SignalHoldState.None);
+            if (enabledTrain != null && enabledTrain.Train.HoldingSignals.Contains(thisRef) && holdState < SignalHoldState.ManualLock)
             {
-                holdState = HoldState.StationStop;
+                holdState = SignalHoldState.StationStop;
                 signalHold = true;
             }
-            else if (holdState == HoldState.StationStop)
+            else if (holdState == SignalHoldState.StationStop)
             {
                 if (enabledTrain == null || !enabledTrain.Train.HoldingSignals.Contains(thisRef))
                 {
-                    holdState = HoldState.None;
+                    holdState = SignalHoldState.None;
                     signalHold = false;
                 }
             }
@@ -7011,31 +6982,31 @@ namespace Orts.Simulation.Signalling
 
             // check for permission
 
-            if (internalBlockState == InternalBlockstate.OccupiedSameDirection && hasPermission == Permission.Requested && !isPropagated)
+            if (internalBlockState == InternalBlockstate.OccupiedSameDirection && hasPermission == SignalPermission.Requested && !isPropagated)
             {
-                hasPermission = Permission.Granted;
+                hasPermission = SignalPermission.Granted;
                 if (sound) signalRef.Simulator.SoundNotify = TrainEvent.PermissionGranted;
             }
             else
             {
                 if (enabledTrain != null && enabledTrain.Train.ControlMode == Train.TRAIN_CONTROL.MANUAL &&
-                    internalBlockState <= InternalBlockstate.OccupiedSameDirection && hasPermission == Permission.Requested)
+                    internalBlockState <= InternalBlockstate.OccupiedSameDirection && hasPermission == SignalPermission.Requested)
                 {
                     signalRef.Simulator.SoundNotify = TrainEvent.PermissionGranted;
                 }
-                else if (hasPermission == Permission.Requested)
+                else if (hasPermission == SignalPermission.Requested)
                 {
                     if (sound) signalRef.Simulator.SoundNotify = TrainEvent.PermissionDenied;
                 }
 
                 if (enabledTrain != null && enabledTrain.Train.ControlMode == Train.TRAIN_CONTROL.MANUAL && signalState == SignalAspectState.Stop &&
-                internalBlockState <= InternalBlockstate.OccupiedSameDirection && hasPermission == Permission.Requested)
+                internalBlockState <= InternalBlockstate.OccupiedSameDirection && hasPermission == SignalPermission.Requested)
                 {
-                    hasPermission = Permission.Granted;
+                    hasPermission = SignalPermission.Granted;
                 }
-                else if (hasPermission == Permission.Requested)
+                else if (hasPermission == SignalPermission.Requested)
                 {
-                    hasPermission = Permission.Denied;
+                    hasPermission = SignalPermission.Denied;
                 }
             }
 
@@ -7068,7 +7039,7 @@ namespace Orts.Simulation.Signalling
 
             // reserve partial sections if signal clears on occupied track or permission is granted
 
-                else if ((signalState > SignalAspectState.Stop || hasPermission == Permission.Granted) &&
+                else if ((signalState > SignalAspectState.Stop || hasPermission == SignalPermission.Granted) &&
                          (internalBlockState != InternalBlockstate.Reserved && internalBlockState < InternalBlockstate.ReservedOther))
                 {
 
@@ -7668,7 +7639,7 @@ namespace Orts.Simulation.Signalling
                         }
                     }
                 }
-                if (thisTrain != null && blockstate == InternalBlockstate.OccupiedSameDirection && (AIPermissionRequest || hasPermission == Permission.Requested)) break;
+                if (thisTrain != null && blockstate == InternalBlockstate.OccupiedSameDirection && (AIPermissionRequest || hasPermission == SignalPermission.Requested)) break;
             }
 
             // if deadlock area : check alternative path if not yet selected - but only if opening junction is reservable
@@ -7798,7 +7769,7 @@ namespace Orts.Simulation.Signalling
                 if (!end_of_info)
                 {
                     thisSectionIndex = thisSection.Pins[direction, Location.NearEnd].Link;
-                    direction = (TrackDirection)thisSection.Pins[direction, Location.NearEnd].Direction;
+                    direction = thisSection.Pins[direction, Location.NearEnd].Direction;
                 }
             }
 
@@ -8881,7 +8852,7 @@ namespace Orts.Simulation.Signalling
 
             if (enabledTrain == null || enabledTrain.Train == null)
             {
-                holdState = HoldState.ManualLock;
+                holdState = SignalHoldState.ManualLock;
                 if (thisAspect > SignalAspectState.Stop) ResetSignal(true);
                 returnValue[0] = true;
             }
@@ -8890,7 +8861,7 @@ namespace Orts.Simulation.Signalling
 
             else if (!requestResetSignal && thisAspect > SignalAspectState.Stop)
             {
-                holdState = HoldState.ManualLock; //just in case this one later will be set to green by the system
+                holdState = SignalHoldState.ManualLock; //just in case this one later will be set to green by the system
                 returnValue[0] = true;
             }
 
@@ -8898,7 +8869,7 @@ namespace Orts.Simulation.Signalling
 
             else if (thisAspect == SignalAspectState.Stop)
             {
-                holdState = HoldState.ManualLock;
+                holdState = SignalHoldState.ManualLock;
                 returnValue[0] = true;
             }
 
@@ -8918,13 +8889,13 @@ namespace Orts.Simulation.Signalling
                 {
                     signalRef.BreakDownRouteList(enabledTrain.Train.ValidRoute[enabledTrain.TrainRouteDirectionIndex], signalRouteIndex, enabledTrain);
                     ResetSignal(true);
-                    holdState = HoldState.ManualLock;
+                    holdState = SignalHoldState.ManualLock;
                     returnValue[0] = true;
                     returnValue[1] = true;
                 }
                 else //hopefully this does not happen
                 {
-                    holdState = HoldState.ManualLock;
+                    holdState = SignalHoldState.ManualLock;
                     returnValue[0] = true;
                 }
             }
@@ -8939,7 +8910,7 @@ namespace Orts.Simulation.Signalling
 
         public void clearHoldSignalDispatcher()
         {
-            holdState = HoldState.None;
+            holdState = SignalHoldState.None;
         }
 
     }  // SignalObject

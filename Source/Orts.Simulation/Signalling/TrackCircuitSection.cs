@@ -1226,9 +1226,9 @@ namespace Orts.Simulation.Signalling
         /// Get state of single section
         /// Check for train
         /// </summary>
-        public Signal.InternalBlockstate GetSectionState(Train.TrainRouted train, int direction, Signal.InternalBlockstate passedBlockstate, Train.TCSubpathRoute route, int signalIndex)
+        public InternalBlockstate GetSectionState(Train.TrainRouted train, int direction, InternalBlockstate passedBlockstate, Train.TCSubpathRoute route, int signalIndex)
         {
-            Signal.InternalBlockstate localBlockstate = Signal.InternalBlockstate.Reservable;  // default value
+            InternalBlockstate localBlockstate = InternalBlockstate.Reservable;  // default value
             bool stateSet = false;
 
             TrackCircuitState circuitState = CircuitState;
@@ -1236,13 +1236,13 @@ namespace Orts.Simulation.Signalling
             // track occupied - check speed and direction - only for normal sections
             if (train != null && circuitState.OccupationState.ContainsTrain(train))
             {
-                localBlockstate = Signal.InternalBlockstate.Reserved;  // occupied by own train counts as reserved
+                localBlockstate = InternalBlockstate.Reserved;  // occupied by own train counts as reserved
                 stateSet = true;
             }
             else if (circuitState.Occupied(direction, true))
             {
                 {
-                    localBlockstate = Signal.InternalBlockstate.OccupiedSameDirection;
+                    localBlockstate = InternalBlockstate.OccupiedSameDirection;
                     stateSet = true;
                 }
             }
@@ -1251,7 +1251,7 @@ namespace Orts.Simulation.Signalling
                 int reqDirection = direction == 0 ? 1 : 0;
                 if (circuitState.Occupied(reqDirection, false))
                 {
-                    localBlockstate = Signal.InternalBlockstate.OccupiedOppositeDirection;
+                    localBlockstate = InternalBlockstate.OccupiedOppositeDirection;
                     stateSet = true;
                 }
             }
@@ -1264,7 +1264,7 @@ namespace Orts.Simulation.Signalling
                 {
                     if (route == null)  // no route from signal - always report switch blocked
                     {
-                        localBlockstate = Signal.InternalBlockstate.Blocked;
+                        localBlockstate = InternalBlockstate.Blocked;
                         stateSet = true;
                     }
                     else
@@ -1290,7 +1290,7 @@ namespace Orts.Simulation.Signalling
                         // allow if switch not active (both links dealligned)
                         if (switchEnd < 0 || (ActivePins[reqPinIndex, switchEnd].Link < 0 && ActivePins[reqPinIndex, switchEnd.Next()].Link >= 0)) // no free exit available or switch misaligned
                         {
-                            localBlockstate = Signal.InternalBlockstate.Blocked;
+                            localBlockstate = InternalBlockstate.Blocked;
                             stateSet = true;
                         }
                     }
@@ -1304,7 +1304,7 @@ namespace Orts.Simulation.Signalling
                 Train.TrainRouted reservedTrain = circuitState.TrainReserved;
                 if (reservedTrain.Train == train.Train)
                 {
-                    localBlockstate = Signal.InternalBlockstate.Reserved;
+                    localBlockstate = InternalBlockstate.Reserved;
                     stateSet = true;
                 }
                 else
@@ -1319,17 +1319,17 @@ namespace Orts.Simulation.Signalling
 
                         if (reservedTrainStillThere && reservedTrain.Train.ValidRoute[0] != null && reservedTrain.Train.PresentPosition[0] != null &&
                             reservedTrain.Train.GetDistanceToTrain(Index, 0.0f) > 0)
-                            localBlockstate = Signal.InternalBlockstate.ReservedOther;
+                            localBlockstate = InternalBlockstate.ReservedOther;
                         else
                         {
                             //if (reservedTrain.Train.RearTDBTraveller.DistanceTo(this.
                             circuitState.TrainReserved = train;
-                            localBlockstate = Signal.InternalBlockstate.Reserved;
+                            localBlockstate = InternalBlockstate.Reserved;
                         }
                     }
                     else
                     {
-                        localBlockstate = Signal.InternalBlockstate.ReservedOther;
+                        localBlockstate = InternalBlockstate.ReservedOther;
                     }
                 }
             }
@@ -1337,14 +1337,14 @@ namespace Orts.Simulation.Signalling
             // signal reserved - reserved for other
             if (circuitState.SignalReserved >= 0 && circuitState.SignalReserved != signalIndex)
             {
-                localBlockstate = Signal.InternalBlockstate.ReservedOther;
+                localBlockstate = InternalBlockstate.ReservedOther;
                 stateSet = true;
             }
 
             // track claimed
             if (!stateSet && train != null && circuitState.TrainClaimed.Count > 0 && circuitState.TrainClaimed.PeekTrain() != train.Train)
             {
-                localBlockstate = Signal.InternalBlockstate.Open;
+                localBlockstate = InternalBlockstate.Open;
                 stateSet = true;
             }
 
@@ -1353,18 +1353,18 @@ namespace Orts.Simulation.Signalling
             {
                 bool waitRequired = train.Train.CheckWaitCondition(Index);
 
-                if ((!stateSet || localBlockstate < Signal.InternalBlockstate.ForcedWait) && waitRequired)
+                if ((!stateSet || localBlockstate < InternalBlockstate.ForcedWait) && waitRequired)
                 {
-                    localBlockstate = Signal.InternalBlockstate.ForcedWait;
+                    localBlockstate = InternalBlockstate.ForcedWait;
                     train.Train.ClaimState = false; // claim not allowed for forced wait
                 }
 
                 // deadlock trap - may not set deadlock if wait is active 
-                if (localBlockstate != Signal.InternalBlockstate.ForcedWait && DeadlockTraps.ContainsKey(train.Train.Number))
+                if (localBlockstate != InternalBlockstate.ForcedWait && DeadlockTraps.ContainsKey(train.Train.Number))
                 {
                     if (train.Train.VerifyDeadlock(DeadlockTraps[train.Train.Number]))
                     {
-                        localBlockstate = Signal.InternalBlockstate.Blocked;
+                        localBlockstate = InternalBlockstate.Blocked;
                         if (!DeadlockAwaited.Contains(train.Train.Number))
                             DeadlockAwaited.Add(train.Train.Number);
                     }

@@ -1217,7 +1217,7 @@ namespace Orts.Simulation.AIs
 
                 if (thisInfo.ItemType == SignalItemType.Signal &&
                         thisInfo.SignalState < SignalAspectState.Approach_1 &&
-                        !thisInfo.Processed && thisInfo.SignalDetails.hasPermission != Signal.Permission.Granted)
+                        !thisInfo.Processed && thisInfo.SignalDetails.hasPermission != SignalPermission.Granted)
                 {
                     if (CheckTrain)
                     {
@@ -1682,7 +1682,7 @@ namespace Orts.Simulation.AIs
                     nextAspect = GetNextSignalAspect(0);
                     if (NextSignalObject[0] != null) nextSignal = NextSignalObject[0];
                 }
-                nextPermission = nextSignal != null && nextSignal.hasPermission == Signal.Permission.Granted;
+                nextPermission = nextSignal != null && nextSignal.hasPermission == SignalPermission.Granted;
 
                 if (NextSignalObject[0] == null) // no signal ahead so switch Node control
                 {
@@ -2067,7 +2067,7 @@ namespace Orts.Simulation.AIs
 
             // first, check state of signal
 
-            if (thisStation.ExitSignal >= 0 && (thisStation.HoldSignal || signalRef.SignalObjects[thisStation.ExitSignal].holdState == Signal.HoldState.StationStop))
+            if (thisStation.ExitSignal >= 0 && (thisStation.HoldSignal || signalRef.SignalObjects[thisStation.ExitSignal].holdState == SignalHoldState.StationStop))
             {
                 if (HoldingSignals.Contains(thisStation.ExitSignal)) HoldingSignals.Remove(thisStation.ExitSignal);
                 var nextSignal = signalRef.SignalObjects[thisStation.ExitSignal];
@@ -2322,7 +2322,7 @@ namespace Orts.Simulation.AIs
             else if (nextActionInfo.NextAction == AIActionItem.AI_ACTION_TYPE.SIGNAL_ASPECT_STOP)
             {
                 var nextSignal = nextActionInfo.ActiveItem.SignalDetails;
-                var nextPermission = nextSignal.hasPermission == Signal.Permission.Granted;
+                var nextPermission = nextSignal.hasPermission == SignalPermission.Granted;
                 if (nextActionInfo.ActiveItem.SignalState >= SignalAspectState.Approach_1 || nextPermission)
                 {
                     clearAction = true;
@@ -4917,8 +4917,8 @@ namespace Orts.Simulation.AIs
                 return;
 
             requestedSignal.enabledTrain = routeIndex == 0 ? routedForward : routedBackward;
-            requestedSignal.holdState = Signal.HoldState.None;
-            requestedSignal.hasPermission = Signal.Permission.Requested;
+            requestedSignal.holdState = SignalHoldState.None;
+            requestedSignal.hasPermission = SignalPermission.Requested;
 
             requestedSignal.checkRouteState(false, requestedSignal.signalRoute, routedForward, false);
         }
@@ -5403,7 +5403,7 @@ namespace Orts.Simulation.AIs
             else if (thisItem.NextAction == AIActionItem.AI_ACTION_TYPE.SIGNAL_ASPECT_STOP)
             {
                 if (thisItem.ActiveItem.SignalState == SignalAspectState.Stop &&
-                    thisItem.ActiveItem.SignalDetails.holdState == Signal.HoldState.StationStop)
+                    thisItem.ActiveItem.SignalDetails.holdState == SignalHoldState.StationStop)
                 {
                     actionValid = false;
 
@@ -6533,7 +6533,7 @@ namespace Orts.Simulation.AIs
                                                                         // check if signal ahead is cleared - if not, do not allow depart
                                 if (NextSignalObject[0] != null && distanceToNextSignal >= 0 && distanceToNextSignal < 300 &&
                                         NextSignalObject[0].this_sig_lr(SignalFunction.Normal) == SignalAspectState.Stop
-                                    && NextSignalObject[0].hasPermission != Signal.Permission.Granted)
+                                    && NextSignalObject[0].hasPermission != SignalPermission.Granted)
                                 {
                                     DisplayMessage = Simulator.Catalog.GetString("Passenger boarding completed. Waiting for signal ahead to clear.");
                                 }

@@ -3499,13 +3499,13 @@ namespace Orts.MultiPlayer
             switch (pick)
             {
                 case 0:
-                    signal.holdState = Signal.HoldState.None;
+                    signal.holdState = SignalHoldState.None;
                     break;
                 case 1:
-                    signal.holdState = Signal.HoldState.ManualLock;
+                    signal.holdState = SignalHoldState.ManualLock;
                     break;
                 case 2:
-                    signal.holdState = Signal.HoldState.ManualApproach;
+                    signal.holdState = SignalHoldState.ManualApproach;
                     foreach (var sigHead in signal.SignalHeads)
                     {
                         var drawstate1 = sigHead.DefaultDrawState(SignalAspectState.Approach_1);
@@ -3518,7 +3518,7 @@ namespace Orts.MultiPlayer
                     }
                     break;
                 case 3:
-                    signal.holdState = Signal.HoldState.ManualPass;
+                    signal.holdState = SignalHoldState.ManualPass;
                     foreach (var sigHead in signal.SignalHeads)
                     {
                         sigHead.SetLeastRestrictiveAspect();

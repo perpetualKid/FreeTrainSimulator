@@ -8849,7 +8849,7 @@ namespace Orts.Simulation.Timetables
 
         public override bool TrainGetSectionStateClearNode(int elementDirection, Train.TCSubpathRoute routePart, TrackCircuitSection thisSection)
         {
-            return (thisSection.GetSectionState(routedForward, elementDirection, Signal.InternalBlockstate.Reserved, routePart, -1) <= Signal.InternalBlockstate.OccupiedSameDirection);
+            return (thisSection.GetSectionState(routedForward, elementDirection, InternalBlockstate.Reserved, routePart, -1) <= InternalBlockstate.OccupiedSameDirection);
         }
 
         //================================================================================================//
@@ -9025,7 +9025,7 @@ namespace Orts.Simulation.Timetables
         /// <returns></returns>
         private bool CheckRouteWait(TCSubpathRoute thisRoute, bool sameDirection)
         {
-            Signal.InternalBlockstate blockstate = Signal.InternalBlockstate.Reserved;  // preset to lowest possible state //
+            InternalBlockstate blockstate = InternalBlockstate.Reserved;  // preset to lowest possible state //
 
             // loop through all sections in route list
 
@@ -9038,11 +9038,11 @@ namespace Orts.Simulation.Timetables
                 int direction = sameDirection ? thisElement.Direction : thisElement.Direction == 0 ? 1 : 0;
 
                 blockstate = thisSection.GetSectionState(routedForward, direction, blockstate, thisRoute, -1);
-                if (blockstate > Signal.InternalBlockstate.Reservable)
+                if (blockstate > InternalBlockstate.Reservable)
                     break;     // exit on first none-available section
             }
 
-            return (blockstate < Signal.InternalBlockstate.OccupiedSameDirection);
+            return (blockstate < InternalBlockstate.OccupiedSameDirection);
         }
 
         //================================================================================================//
@@ -10599,7 +10599,7 @@ namespace Orts.Simulation.Timetables
                             {
                                 // check if signal ahead is cleared - if not, and signal is station exit signal, do not allow depart
                                 if (NextSignalObject[0] != null && NextSignalObject[0].this_sig_lr(SignalFunction.Normal) == SignalAspectState.Stop
-                                    && NextSignalObject[0].hasPermission != Signal.Permission.Granted && !StationStops[0].NoWaitSignal
+                                    && NextSignalObject[0].hasPermission != SignalPermission.Granted && !StationStops[0].NoWaitSignal
                                     && NextSignalObject[0].thisRef == StationStops[0].ExitSignal)
                                 {
                                     DisplayMessage = Simulator.Catalog.GetString("Passenger boarding completed. Waiting for signal ahead to clear.");

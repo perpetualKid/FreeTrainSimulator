@@ -1944,7 +1944,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                   signal.requestHoldSignalDispatcher(true);
 				  break;
 			  case 2:
-                  signal.holdState = Signal.HoldState.ManualApproach;
+                  signal.holdState = SignalHoldState.ManualApproach;
                   foreach (var sigHead in signal.SignalHeads)
                   {
                       var drawstate1 = sigHead.DefaultDrawState(SignalAspectState.Approach_1);
@@ -1957,7 +1957,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                   }
 				  break;
 			  case 3:
-                  signal.holdState = Signal.HoldState.ManualPass;
+                  signal.holdState = SignalHoldState.ManualPass;
                   foreach (var sigHead in signal.SignalHeads)
                   {
                       sigHead.SetLeastRestrictiveAspect();
