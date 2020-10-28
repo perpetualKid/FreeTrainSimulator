@@ -7396,7 +7396,7 @@ namespace Orts.Simulation.Timetables
                 TrackCircuitSection lastSection = signalRef.TrackCircuitList[lastElement.TCSectionIndex];
                 if (lastSection.EndSignals[(TrackDirection)lastElement.Direction] == null && TCRoute.activeSubpath == (TCRoute.TCRouteSubpaths.Count - 1))
                 {
-                    int nextIndex = lastSection.Pins[lastElement.Direction, 0].Link;
+                    int nextIndex = lastSection.Pins[(TrackDirection)lastElement.Direction, Location.NearEnd].Link;
                     bool lastIsStation = false;
 
                     if (StationStops != null && StationStops.Count > 0)
@@ -12523,7 +12523,7 @@ namespace Orts.Simulation.Timetables
             TrackCircuitSection DetachSection = signalRef.TrackCircuitList[sectionInfo];
             if (DetachSection.CircuitType == TrackCircuitType.EndOfTrack)
             {
-                DetachSection = signalRef.TrackCircuitList[DetachSection.Pins[0, 0].Link];
+                DetachSection = signalRef.TrackCircuitList[DetachSection.Pins[TrackDirection.Ahead, Location.NearEnd].Link];
             }
             TrackVectorNode detachNode = train.Simulator.TDB.TrackDB.TrackNodes[DetachSection.OriginalIndex] as TrackVectorNode;
 

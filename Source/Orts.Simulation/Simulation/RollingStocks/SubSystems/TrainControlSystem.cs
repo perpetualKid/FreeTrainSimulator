@@ -579,7 +579,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 totalLength += (thisSection.Length - lengthOffset);
                 lengthOffset = 0;
 
-                int setSection = thisSection.ActivePins[thisElement.OutPin[0], thisElement.OutPin[1]].Link;
+                int setSection = thisSection.ActivePins[(TrackDirection)thisElement.OutPin[0], (Location)thisElement.OutPin[1]].Link;
                 index++;
                 if (setSection < 0)
                     return retval;

@@ -1398,7 +1398,7 @@ namespace Orts.Simulation.Signalling
                     totalLength += (thisSection.Length - lengthOffset);
                     lengthOffset = 0;
 
-                    int setSection = thisSection.ActivePins[thisElement.OutPin[0], thisElement.OutPin[1]].Link;
+                    int setSection = thisSection.ActivePins[(TrackDirection)thisElement.OutPin[0], (Location)thisElement.OutPin[1]].Link;
                     actRouteIndex++;
 
                     if (setSection < 0)
@@ -2140,20 +2140,20 @@ namespace Orts.Simulation.Signalling
                 int prevSection = sectionIndex;
                 position -= section.Length;
                 crossOver.Position = position;
-                sectionIndex = section.Pins[1, 0].Link;
+                sectionIndex = section.Pins[TrackDirection.Reverse, Location.NearEnd].Link;
 
                 if (sectionIndex > 0)
                 {
                     section = TrackCircuitList[sectionIndex];
                     if (section.CircuitType == TrackCircuitType.Crossover)
                     {
-                        if (section.Pins[0, 0].Link == prevSection)
+                        if (section.Pins[TrackDirection.Ahead, Location.NearEnd].Link == prevSection)
                         {
-                            sectionIndex = section.Pins[1, 0].Link;
+                            sectionIndex = section.Pins[TrackDirection.Reverse, Location.NearEnd].Link;
                         }
                         else
                         {
-                            sectionIndex = section.Pins[1, 1].Link;
+                            sectionIndex = section.Pins[TrackDirection.Reverse, Location.FarEnd].Link;
                         }
                         section = TrackCircuitList[sectionIndex];
                     }
@@ -2183,12 +2183,12 @@ namespace Orts.Simulation.Signalling
 
             TrackCircuitSection thisSection = TrackCircuitList[thisNode];
 
-            for (int iDirection = 0; iDirection <= 1; iDirection++)
+            foreach (TrackDirection direction in EnumExtension.GetValues<TrackDirection>())
             {
-                for (int iPin = 0; iPin <= 1; iPin++)
+                foreach (Location pinLocation in EnumExtension.GetValues<Location>())
                 {
-                    int linkedNode = thisSection.Pins[iDirection, iPin].Link;
-                    int linkedDirection = thisSection.Pins[iDirection, iPin].Direction == 0 ? 1 : 0;
+                    int linkedNode = thisSection.Pins[direction, pinLocation].Link;
+                    TrackDirection linkedDirection = thisSection.Pins[direction, pinLocation].Direction.Next();
 
                     if (linkedNode > 0)
                     {
@@ -2198,7 +2198,7 @@ namespace Orts.Simulation.Signalling
                         bool doublelink = false;
                         int doublenode = -1;
 
-                        for (int linkedPin = 0; linkedPin <= 1; linkedPin++)
+                        foreach (Location linkedPin in EnumExtension.GetValues<Location>())
                         {
                             if (linkedSection.Pins[linkedDirection, linkedPin].Link == thisNode)
                             {
@@ -2217,26 +2217,26 @@ namespace Orts.Simulation.Signalling
 
                         if (!linkfound)
                         {
-                            Trace.TraceWarning("Ignored invalid track node {0} pin [{1},{2}] link to track node {3}", thisNode, (TrackDirection)iDirection, iPin, linkedNode);
+                            Trace.TraceWarning("Ignored invalid track node {0} pin [{1},{2}] link to track node {3}", thisNode, direction, pinLocation, linkedNode);
                             int endNode = nextNode;
                             nextNode++;
-                            TrackCircuitSection.InsertEndNode(thisNode, (TrackDirection)iDirection, iPin, endNode);
+                            TrackCircuitSection.InsertEndNode(thisNode, direction, pinLocation, endNode);
                         }
 
                         if (doublelink)
                         {
-                            Trace.TraceWarning("Ignored invalid track node {0} pin [{1},{2}] link to track node {3}; already linked to track node {4}", thisNode, iDirection, iPin, linkedNode, doublenode);
+                            Trace.TraceWarning("Ignored invalid track node {0} pin [{1},{2}] link to track node {3}; already linked to track node {4}", thisNode, direction, pinLocation, linkedNode, doublenode);
                             int endNode = nextNode;
                             nextNode++;
-                            TrackCircuitSection.InsertEndNode(thisNode, (TrackDirection)iDirection, iPin, endNode);
+                            TrackCircuitSection.InsertEndNode(thisNode, direction, pinLocation, endNode);
                         }
                     }
                     else if (linkedNode == 0)
                     {
-                        Trace.TraceWarning("Ignored invalid track node {0} pin [{1},{2}] link to track node {3}", thisNode, iDirection, iPin, linkedNode);
+                        Trace.TraceWarning("Ignored invalid track node {0} pin [{1},{2}] link to track node {3}", thisNode, direction, pinLocation, linkedNode);
                         int endNode = nextNode;
                         nextNode++;
-                        TrackCircuitSection.InsertEndNode(thisNode, (TrackDirection)iDirection, iPin, endNode);
+                        TrackCircuitSection.InsertEndNode(thisNode, direction, pinLocation, endNode);
                     }
                 }
             }
@@ -2253,55 +2253,55 @@ namespace Orts.Simulation.Signalling
         {
             TrackCircuitSection thisSection = TrackCircuitList[thisNode];
 
-            for (int iDirection = 0; iDirection <= 1; iDirection++)
+            foreach (TrackDirection direction in EnumExtension.GetValues<TrackDirection>())
             {
-                for (int iPin = 0; iPin <= 1; iPin++)
+                foreach (Location pinLocation in EnumExtension.GetValues<Location>())
                 {
-                    if (thisSection.Pins[iDirection, iPin].Link > 0)
+                    if (thisSection.Pins[direction, pinLocation].Link > 0)
                     {
                         TrackCircuitSection nextSection = null;
 
                         if (thisSection.CircuitType == TrackCircuitType.Junction)
                         {
-                            int nextIndex = thisSection.Pins[iDirection, iPin].Link;
+                            int nextIndex = thisSection.Pins[direction, pinLocation].Link;
                             nextSection = TrackCircuitList[nextIndex];
 
-                            if (thisSection.Pins[iDirection, 1].Link > 0)    // Junction end
+                            if (thisSection.Pins[direction, Location.FarEnd].Link > 0)    // Junction end
                             {
-                                thisSection.ActivePins[iDirection, iPin] = thisSection.Pins[iDirection, iPin].FromLink(-1);
+                                thisSection.ActivePins[direction, pinLocation] = thisSection.Pins[direction, pinLocation].FromLink(-1);
                             }
                             else
                             {
-                                thisSection.ActivePins[iDirection, iPin] = thisSection.Pins[iDirection, iPin];
+                                thisSection.ActivePins[direction, pinLocation] = thisSection.Pins[direction, pinLocation];
                             }
                         }
                         else if (thisSection.CircuitType == TrackCircuitType.Crossover)
                         {
-                            int nextIndex = thisSection.Pins[iDirection, iPin].Link;
+                            int nextIndex = thisSection.Pins[direction, pinLocation].Link;
                             nextSection = TrackCircuitList[nextIndex];
 
-                            thisSection.ActivePins[iDirection, iPin] = thisSection.Pins[iDirection, iPin].FromLink(-1);
+                            thisSection.ActivePins[direction, pinLocation] = thisSection.Pins[direction, pinLocation].FromLink(-1);
                         }
                         else
                         {
-                            int nextIndex = thisSection.Pins[iDirection, iPin].Link;
+                            int nextIndex = thisSection.Pins[direction, pinLocation].Link;
                             nextSection = TrackCircuitList[nextIndex];
 
-                            thisSection.ActivePins[iDirection, iPin] = thisSection.Pins[iDirection, iPin];
+                            thisSection.ActivePins[direction, pinLocation] = thisSection.Pins[direction, pinLocation];
                         }
 
 
                         if (nextSection != null && nextSection.CircuitType == TrackCircuitType.Crossover)
                         {
-                            thisSection.ActivePins[iDirection, iPin] = thisSection.ActivePins[iDirection, iPin].FromLink(-1);
+                            thisSection.ActivePins[direction, pinLocation] = thisSection.ActivePins[direction, pinLocation].FromLink(-1);
                         }
                         else if (nextSection != null && nextSection.CircuitType == TrackCircuitType.Junction)
                         {
-                            int nextDirection = thisSection.Pins[iDirection, iPin].Direction == 0 ? 1 : 0;
+                            TrackDirection nextDirection = thisSection.Pins[direction, pinLocation].Direction.Next();
                             //                          int nextDirection = thisSection.Pins[iDirection, iPin].Direction;
-                            if (nextSection.Pins[nextDirection, 1].Link > 0)
+                            if (nextSection.Pins[nextDirection, Location.FarEnd].Link > 0)
                             {
-                                thisSection.ActivePins[iDirection, iPin] = thisSection.ActivePins[iDirection, iPin].FromLink(-1);
+                                thisSection.ActivePins[direction, pinLocation] = thisSection.ActivePins[direction, pinLocation].FromLink(-1);
                             }
                         }
                     }
@@ -2360,9 +2360,9 @@ namespace Orts.Simulation.Signalling
             TrackCircuitSection thisSection = TrackCircuitList[thisNode];
             if (thisSection.OriginalIndex > 0 && thisSection.CircuitType == TrackCircuitType.Crossover)
             {
-                for (int iPin = 0; iPin <= 1; iPin++)
+                foreach (Location pinLocation in EnumExtension.GetValues<Location>())
                 {
-                    int prevIndex = thisSection.Pins[0, iPin].Link;
+                    int prevIndex = thisSection.Pins[TrackDirection.Ahead, pinLocation].Link;
                     TrackCircuitSection prevSection = TrackCircuitList[prevIndex];
 
                     TrackCircuitSectionCrossReference newReference = new TrackCircuitSectionCrossReference(thisSection.Index, thisSection.Length, thisSection.OffsetLength.ToArray());
@@ -2403,19 +2403,17 @@ namespace Orts.Simulation.Signalling
 
             // process end signals
 
-            foreach (TrackDirection heading in EnumExtension.GetValues<TrackDirection>())
+            foreach (TrackDirection direction in EnumExtension.GetValues<TrackDirection>())
             {
-                Signal thisSignal = thisSection.EndSignals[heading];
+                Signal thisSignal = thisSection.EndSignals[direction];
                 if (thisSignal != null)
                 {
                     thisSignal.TCReference = thisNode;
                     thisSignal.TCOffset = thisSection.Length;
-                    thisSignal.TCDirection = (int)heading;
+                    thisSignal.TCDirection = (int)direction;
 
-                    //                  int pinIndex = iDirection == 0 ? 1 : 0;
-                    int pinIndex = (int)heading;
-                    thisSignal.TCNextTC = thisSection.Pins[pinIndex, 0].Link;
-                    thisSignal.TCNextDirection = (int)thisSection.Pins[pinIndex, 0].Direction;
+                    thisSignal.TCNextTC = thisSection.Pins[direction, Location.NearEnd].Link;
+                    thisSignal.TCNextDirection = (int)thisSection.Pins[direction, Location.NearEnd].Direction;
                 }
             }
 
@@ -2969,16 +2967,20 @@ namespace Orts.Simulation.Signalling
                         bool jnAligned = false;
                         if (jnIndex < routePart.Count - 1)
                         {
-                            if (routePart[jnIndex + 1].TCSectionIndex == thisSection.ActivePins[0, 0].Link || routePart[jnIndex + 1].TCSectionIndex == thisSection.ActivePins[0, 1].Link)
+                            if (routePart[jnIndex + 1].TCSectionIndex == thisSection.ActivePins[TrackDirection.Ahead, Location.NearEnd].Link || 
+                                routePart[jnIndex + 1].TCSectionIndex == thisSection.ActivePins[TrackDirection.Ahead, Location.FarEnd].Link)
                             {
-                                if (routePart[jnIndex - 1].TCSectionIndex == thisSection.ActivePins[1, 0].Link || routePart[jnIndex - 1].TCSectionIndex == thisSection.ActivePins[1, 1].Link)
+                                if (routePart[jnIndex - 1].TCSectionIndex == thisSection.ActivePins[TrackDirection.Reverse, Location.NearEnd].Link || 
+                                    routePart[jnIndex - 1].TCSectionIndex == thisSection.ActivePins[TrackDirection.Reverse, Location.FarEnd].Link)
                                 {
                                     jnAligned = true;
                                 }
                             }
-                            else if (routePart[jnIndex + 1].TCSectionIndex == thisSection.ActivePins[1, 0].Link || routePart[jnIndex + 1].TCSectionIndex == thisSection.ActivePins[1, 1].Link)
+                            else if (routePart[jnIndex + 1].TCSectionIndex == thisSection.ActivePins[TrackDirection.Reverse, Location.NearEnd].Link || 
+                                routePart[jnIndex + 1].TCSectionIndex == thisSection.ActivePins[TrackDirection.Reverse, Location.FarEnd].Link)
                             {
-                                if (routePart[jnIndex - 1].TCSectionIndex == thisSection.ActivePins[0, 0].Link || routePart[jnIndex - 1].TCSectionIndex == thisSection.ActivePins[0, 1].Link)
+                                if (routePart[jnIndex - 1].TCSectionIndex == thisSection.ActivePins[TrackDirection.Ahead, Location.NearEnd].Link || 
+                                    routePart[jnIndex - 1].TCSectionIndex == thisSection.ActivePins[TrackDirection.Ahead, Location.FarEnd].Link)
                                 {
                                     jnAligned = true;
                                 }
@@ -3114,20 +3116,20 @@ namespace Orts.Simulation.Signalling
             // check which direction to go
 
             TrackCircuitSection nextSection = null;
-            TrackDirection nextDirection = 0;
+            TrackDirection nextDirection = TrackDirection.Ahead;
 
-            for (int iPinLink = 0; iPinLink <= 1; iPinLink++)
+            foreach (TrackDirection direction in EnumExtension.GetValues<TrackDirection>())
             {
-                for (int iPinIndex = 0; iPinIndex <= 1; iPinIndex++)
+                foreach (Location pinLocation in EnumExtension.GetValues<Location>())
                 {
-                    int trySectionIndex = firstSection.Pins[iPinLink, iPinIndex].Link;
+                    int trySectionIndex = firstSection.Pins[direction, pinLocation].Link;
                     if (trySectionIndex > 0)
                     {
                         TrackCircuitSection trySection = TrackCircuitList[trySectionIndex];
                         if (trySection.CircuitState.TrainReserved != null && reqTrain != null && trySection.CircuitState.TrainReserved.Train == reqTrain.Train)
                         {
                             nextSection = trySection;
-                            nextDirection = firstSection.Pins[iPinLink, iPinIndex].Direction;
+                            nextDirection = firstSection.Pins[direction, pinLocation].Direction;
                         }
                     }
                 }
@@ -3145,33 +3147,32 @@ namespace Orts.Simulation.Signalling
 
                 TrackCircuitSection trySection = null;
 
-                TrackDirection iPinLink = nextDirection;
-                for (int iPinIndex = 0; iPinIndex <= 1; iPinIndex++)
+                TrackDirection currentDirection = nextDirection;
+                foreach (Location pinLocation in EnumExtension.GetValues<Location>())
                 {
-                    int trySectionIndex = thisSection.ActivePins[(int)iPinLink, iPinIndex].Link;
+                    int trySectionIndex = thisSection.ActivePins[currentDirection, pinLocation].Link;
                     if (trySectionIndex > 0)
                     {
                         trySection = TrackCircuitList[trySectionIndex];
                         if (trySection.CircuitState.TrainReserved != null && reqTrain != null && trySection.CircuitState.TrainReserved.Train == reqTrain.Train)
                         {
                             nextSection = trySection;
-                            nextDirection = thisSection.ActivePins[(int)iPinLink, iPinIndex].Direction;
+                            nextDirection = thisSection.ActivePins[currentDirection, pinLocation].Direction;
                         }
                     }
                 }
 
                 // not found, then try possible links
-
-                for (int iPinIndex = 0; iPinIndex <= 1; iPinIndex++)
+                foreach (Location pinLocation in EnumExtension.GetValues<Location>())
                 {
-                    int trySectionIndex = thisSection.Pins[(int)iPinLink, iPinIndex].Link;
+                    int trySectionIndex = thisSection.Pins[currentDirection, pinLocation].Link;
                     if (trySectionIndex > 0)
                     {
                         trySection = TrackCircuitList[trySectionIndex];
                         if (trySection.CircuitState.TrainReserved != null && reqTrain != null && trySection.CircuitState.TrainReserved.Train == reqTrain.Train)
                         {
                             nextSection = trySection;
-                            nextDirection = thisSection.Pins[(int)iPinLink, iPinIndex].Direction;
+                            nextDirection = thisSection.Pins[currentDirection, pinLocation].Direction;
                         }
                     }
                 }
@@ -3240,7 +3241,7 @@ namespace Orts.Simulation.Signalling
                 {
                     if (thisElement.OutPin[0] == 1) // facing switch
                     {
-                        thisElement.OutPin[1] = thisSection.Pins[1, 0].Link == tempRoute[iElement + 1].TCSectionIndex ? 0 : 1;
+                        thisElement.OutPin[1] = thisSection.Pins[TrackDirection.Reverse, Location.NearEnd].Link == tempRoute[iElement + 1].TCSectionIndex ? 0 : 1;
                     }
                 }
             }
@@ -3314,8 +3315,8 @@ namespace Orts.Simulation.Signalling
 
                 TrackDirection oppDirection = curDirection.Next();
 
-                int outPinIndex = forward ? (int)curDirection : (int)oppDirection;
-                int inPinIndex = outPinIndex == 0 ? 1 : 0;
+                TrackDirection outPinDirection = forward ? curDirection : oppDirection;
+                TrackDirection inPinDirection = outPinDirection.Next();
 
                 // check all conditions and objects as required
 
@@ -3432,15 +3433,15 @@ namespace Orts.Simulation.Signalling
                 switch (thisSection.CircuitType)
                 {
                     case TrackCircuitType.Crossover:
-                        if (thisSection.Pins[inPinIndex, 0].Link == lastIndex)
+                        if (thisSection.Pins[inPinDirection, Location.NearEnd].Link == lastIndex)
                         {
-                            nextIndex = thisSection.Pins[outPinIndex, 0].Link;
-                            nextDirection = thisSection.Pins[outPinIndex, 0].Direction;
+                            nextIndex = thisSection.Pins[outPinDirection, Location.NearEnd].Link;
+                            nextDirection = thisSection.Pins[outPinDirection, Location.NearEnd].Direction;
                         }
-                        else if (thisSection.Pins[inPinIndex, 1].Link == lastIndex)
+                        else if (thisSection.Pins[inPinDirection, Location.FarEnd].Link == lastIndex)
                         {
-                            nextIndex = thisSection.Pins[outPinIndex, 1].Link;
-                            nextDirection = thisSection.Pins[outPinIndex, 1].Direction;
+                            nextIndex = thisSection.Pins[outPinDirection, Location.FarEnd].Link;
+                            nextDirection = thisSection.Pins[outPinDirection, Location.FarEnd].Direction;
                         }
                         break;
 
@@ -3449,7 +3450,7 @@ namespace Orts.Simulation.Signalling
                         if (checkReenterOriginalRoute)
                         {
                             Train.TCSubpathRoute originalSubpath = thisTrain.TCRoute.TCRouteSubpaths[thisTrain.TCRoute.OriginalSubpath];
-                            if (outPinIndex == 0)
+                            if (outPinDirection == 0)
                             {
                                 // loop on original route to check if we are re-entering it
                                 for (int routeIndex = 0; routeIndex < originalSubpath.Count; routeIndex++)
@@ -3464,25 +3465,25 @@ namespace Orts.Simulation.Signalling
                             }
                         }
 
-                        if (thisSection.ActivePins[outPinIndex, 0].Link > 0)
+                        if (thisSection.ActivePins[outPinDirection, Location.NearEnd].Link > 0)
                         {
-                            nextIndex = thisSection.ActivePins[outPinIndex, 0].Link;
-                            nextDirection = thisSection.ActivePins[outPinIndex, 0].Direction;
+                            nextIndex = thisSection.ActivePins[outPinDirection, Location.NearEnd].Link;
+                            nextDirection = thisSection.ActivePins[outPinDirection, Location.NearEnd].Direction;
                         }
-                        else if (thisSection.ActivePins[outPinIndex, 1].Link > 0)
+                        else if (thisSection.ActivePins[outPinDirection, Location.FarEnd].Link > 0)
                         {
-                            nextIndex = thisSection.ActivePins[outPinIndex, 1].Link;
-                            nextDirection = thisSection.ActivePins[outPinIndex, 1].Direction;
+                            nextIndex = thisSection.ActivePins[outPinDirection, Location.FarEnd].Link;
+                            nextDirection = thisSection.ActivePins[outPinDirection, Location.FarEnd].Direction;
                         }
                         else if (honourManualSwitch && thisSection.JunctionSetManual >= 0)
                         {
-                            nextIndex = thisSection.Pins[outPinIndex, thisSection.JunctionSetManual].Link;
-                            nextDirection = thisSection.Pins[outPinIndex, thisSection.JunctionSetManual].Direction;
+                            nextIndex = thisSection.Pins[outPinDirection, (Location)thisSection.JunctionSetManual].Link;
+                            nextDirection = thisSection.Pins[outPinDirection, (Location)thisSection.JunctionSetManual].Direction;
                         }
                         else if (!reservedOnly)
                         {
-                            nextIndex = thisSection.Pins[outPinIndex, thisSection.JunctionLastRoute].Link;
-                            nextDirection = thisSection.Pins[outPinIndex, thisSection.JunctionLastRoute].Direction;
+                            nextIndex = thisSection.Pins[outPinDirection, (Location)thisSection.JunctionLastRoute].Link;
+                            nextDirection = thisSection.Pins[outPinDirection, (Location)thisSection.JunctionLastRoute].Direction;
                         }
                         break;
 
@@ -3490,8 +3491,8 @@ namespace Orts.Simulation.Signalling
                         break;
 
                     default:
-                        nextIndex = thisSection.Pins[outPinIndex, 0].Link;
-                        nextDirection = thisSection.Pins[outPinIndex, 0].Direction;
+                        nextIndex = thisSection.Pins[outPinDirection, Location.NearEnd].Link;
+                        nextDirection = thisSection.Pins[outPinDirection, Location.NearEnd].Direction;
 
                         TrackCircuitSection nextSection = TrackCircuitList[nextIndex];
 
@@ -3499,9 +3500,9 @@ namespace Orts.Simulation.Signalling
                         // switchable end of switch is always pin direction 1
                         if (nextSection.CircuitType == TrackCircuitType.Junction)
                         {
-                            int nextPinDirection = nextDirection == 0 ? 1 : 0;
-                            int nextPinIndex = nextSection.Pins[(nextDirection == 0 ? 1 : 0), 0].Link == thisIndex ? 0 : 1;
-                            if (nextPinDirection == 1 && nextSection.JunctionLastRoute != nextPinIndex)
+                            TrackDirection nextPinDirection = nextDirection.Next();
+                            int nextPinIndex = nextSection.Pins[nextPinDirection, Location.NearEnd].Link == thisIndex ? 0 : 1;
+                            if (nextPinDirection == TrackDirection.Reverse  && nextSection.JunctionLastRoute != nextPinIndex)
                             {
                                 //TODO 20201027 to be verified, nextSection.AILock had never been set, thus removed
                                 //if (nextSection.AILock && thisTrain != null && (thisTrain.TrainType == Train.TRAINTYPE.AI
@@ -5117,10 +5118,8 @@ namespace Orts.Simulation.Signalling
             }
 
             // loop through valid sections
-
             while (thisSection != null && thisSection.CircuitType == TrackCircuitType.Normal)
             {
-
                 if (!completedFixedRoute)
                 {
                     fixedRoute.Add(new Train.TCRouteElement(thisSection.Index, (int)direction));
@@ -5157,9 +5156,9 @@ namespace Orts.Simulation.Signalling
                     }
                 }
 
-                int pinIndex = (int)direction;
-                direction = (TrackDirection)thisSection.Pins[pinIndex, 0].Direction;
-                thisSection = signalRef.TrackCircuitList[thisSection.Pins[pinIndex, 0].Link];
+                TrackDirection currentDirection = direction;
+                direction = thisSection.Pins[direction, Location.NearEnd].Direction;
+                thisSection = signalRef.TrackCircuitList[thisSection.Pins[currentDirection, Location.NearEnd].Link];
             }
 
             // copy default as valid items
@@ -5790,14 +5789,16 @@ namespace Orts.Simulation.Signalling
 
                     if (thisSection.CircuitType == TrackCircuitType.Junction)
                     {
-                        if (thisSection.Pins[(int)pinIndex, 1].Link >= 0) // facing point
+                        if (thisSection.Pins[pinIndex, Location.FarEnd].Link >= 0) // facing point
                         {
                             switchFound = true;
                             nextSwitchIndex = thisSection.Index;
                             if (thisSection.LinkedSignals == null)
                             {
-                                thisSection.LinkedSignals = new List<int>();
-                                thisSection.LinkedSignals.Add(thisRef);
+                                thisSection.LinkedSignals = new List<int>
+                                {
+                                    thisRef
+                                };
                             }
                             else if (!thisSection.LinkedSignals.Contains(thisRef))
                             {
@@ -5807,11 +5808,11 @@ namespace Orts.Simulation.Signalling
 
                     }
 
-                    sectionDirection = thisSection.Pins[(int)pinIndex, 0].Direction;
+                    sectionDirection = thisSection.Pins[pinIndex, Location.NearEnd].Direction;
 
-                    if (thisSection.CircuitType != TrackCircuitType.EndOfTrack && thisSection.Pins[(int)pinIndex, 0].Link >= 0)
+                    if (thisSection.CircuitType != TrackCircuitType.EndOfTrack && thisSection.Pins[pinIndex, Location.NearEnd].Link >= 0)
                     {
-                        thisSection = signalRef.TrackCircuitList[thisSection.Pins[(int)pinIndex, 0].Link];
+                        thisSection = signalRef.TrackCircuitList[thisSection.Pins[pinIndex, Location.NearEnd].Link];
                     }
                     else
                     {
@@ -5895,15 +5896,15 @@ namespace Orts.Simulation.Signalling
                 routeset = (req_mainnode == thisSection.OriginalIndex);
                 while (!routeset && thisSection != null)
                 {
-                    if (thisSection.ActivePins[(int)curDirection, 0].Link >= 0)
+                    if (thisSection.ActivePins[curDirection, Location.NearEnd].Link >= 0)
                     {
-                        newDirection = thisSection.ActivePins[(int)curDirection, 0].Direction;
-                        sectionIndex = thisSection.ActivePins[(int)curDirection, 0].Link;
+                        newDirection = thisSection.ActivePins[curDirection, Location.NearEnd].Direction;
+                        sectionIndex = thisSection.ActivePins[curDirection, Location.NearEnd].Link;
                     }
                     else
                     {
-                        newDirection = thisSection.ActivePins[(int)curDirection, 1].Direction;
-                        sectionIndex = thisSection.ActivePins[(int)curDirection, 1].Link;
+                        newDirection = thisSection.ActivePins[curDirection, Location.FarEnd].Direction;
+                        sectionIndex = thisSection.ActivePins[curDirection, Location.FarEnd].Link;
                     }
 
                     // if Junction, if active pins not set use selected route
@@ -5920,19 +5921,19 @@ namespace Orts.Simulation.Signalling
                             break;
                         }
 
-                        if (thisSection.ActivePins[1, 0].Link == -1 && thisSection.ActivePins[1, 1].Link == -1)
+                        if (thisSection.ActivePins[TrackDirection.Reverse, Location.NearEnd].Link == -1 && thisSection.ActivePins[TrackDirection.Reverse, Location.FarEnd].Link == -1)
                         {
-                            int selectedDirection = (signalRef.trackDB.TrackNodes[thisSection.OriginalIndex] as TrackJunctionNode).SelectedRoute;
-                            newDirection = thisSection.Pins[1, selectedDirection].Direction;
-                            sectionIndex = thisSection.Pins[1, selectedDirection].Link;
+                            Location selectedLocation = (Location)(signalRef.trackDB.TrackNodes[thisSection.OriginalIndex] as TrackJunctionNode).SelectedRoute;
+                            newDirection = thisSection.Pins[TrackDirection.Reverse, selectedLocation].Direction;
+                            sectionIndex = thisSection.Pins[TrackDirection.Reverse, selectedLocation].Link;
                         }
                     }
 
                     // if NORMAL, if active pins not set use default pins
                     if (sectionIndex < 0 && thisSection.CircuitType == TrackCircuitType.Normal)
                     {
-                        newDirection = thisSection.Pins[(int)curDirection, 0].Direction;
-                        sectionIndex = thisSection.Pins[(int)curDirection, 0].Link;
+                        newDirection = thisSection.Pins[curDirection, Location.NearEnd].Direction;
+                        sectionIndex = thisSection.Pins[curDirection, Location.NearEnd].Link;
                     }
 
                     // check for loop
@@ -6008,9 +6009,8 @@ namespace Orts.Simulation.Signalling
 
                 if (sectionSet)
                 {
-                    int pinIndex = (int)direction;
-                    thisTC = thisSection.ActivePins[pinIndex, 0].Link;
-                    direction = (TrackDirection)thisSection.ActivePins[pinIndex, 0].Direction;
+                    thisTC = thisSection.ActivePins[direction, Location.NearEnd].Link;
+                    direction = (TrackDirection)thisSection.ActivePins[direction, Location.NearEnd].Direction;
                 }
             }
 
@@ -6041,16 +6041,16 @@ namespace Orts.Simulation.Signalling
 
                 if (signalFound < 0)
                 {
-                    int pinIndex = (int)direction;
+                    TrackDirection pinIndex = direction;
                     sectionSet = thisSection.IsSet(enabledTrain, false);
                     if (sectionSet)
                     {
-                        thisTC = thisSection.ActivePins[pinIndex, 0].Link;
-                        direction = (TrackDirection)thisSection.ActivePins[pinIndex, 0].Direction;
+                        thisTC = thisSection.ActivePins[pinIndex, Location.NearEnd].Link;
+                        direction = thisSection.ActivePins[pinIndex, Location.NearEnd].Direction;
                         if (thisTC == -1)
                         {
-                            thisTC = thisSection.ActivePins[pinIndex, 1].Link;
-                            direction = (TrackDirection)thisSection.ActivePins[pinIndex, 1].Direction;
+                            thisTC = thisSection.ActivePins[pinIndex, Location.FarEnd].Link;
+                            direction = thisSection.ActivePins[pinIndex, Location.FarEnd].Direction;
                         }
                     }
                 }
@@ -6136,15 +6136,15 @@ namespace Orts.Simulation.Signalling
             int signalFound = -1;
             TrackCircuitSection thisSection = null;
 
-            int pinIndex = (int)direction;
+            TrackDirection pinIndex;
 
             if (thisTC < 0)
             {
                 thisTC = TCReference;
                 thisSection = signalRef.TrackCircuitList[thisTC];
-                pinIndex = (int)direction;
-                thisTC = thisSection.ActivePins[pinIndex, 0].Link;
-                direction = (TrackDirection)thisSection.ActivePins[pinIndex, 0].Direction;
+                pinIndex = direction;
+                thisTC = thisSection.ActivePins[pinIndex, Location.NearEnd].Link;
+                direction = (TrackDirection)thisSection.ActivePins[pinIndex, Location.NearEnd].Direction;
             }
 
             // loop through valid sections
@@ -6173,13 +6173,13 @@ namespace Orts.Simulation.Signalling
 
                 if (signalFound < 0)
                 {
-                    pinIndex = (int)direction;
-                    thisTC = thisSection.ActivePins[pinIndex, 0].Link;
-                    direction = (TrackDirection)thisSection.ActivePins[pinIndex, 0].Direction;
+                    pinIndex = direction;
+                    thisTC = thisSection.ActivePins[pinIndex, Location.NearEnd].Link;
+                    direction = thisSection.ActivePins[pinIndex, Location.NearEnd].Direction;
                     if (thisTC == -1)
                     {
-                        thisTC = thisSection.ActivePins[pinIndex, 1].Link;
-                        direction = (TrackDirection)thisSection.ActivePins[pinIndex, 1].Direction;
+                        thisTC = thisSection.ActivePins[pinIndex, Location.FarEnd].Link;
+                        direction = thisSection.ActivePins[pinIndex, Location.FarEnd].Direction;
                     }
 
                     // if no active link but signal has route allocated, use train route to find next section
@@ -6247,16 +6247,16 @@ namespace Orts.Simulation.Signalling
 
                 if (signalFound < 0)
                 {
-                    int pinIndex = (int)direction;
+                    TrackDirection pinIndex = direction;
                     sectionSet = thisSection.IsSet(enabledTrain, false);
                     if (sectionSet)
                     {
-                        thisTC = thisSection.ActivePins[pinIndex, 0].Link;
-                        direction = (TrackDirection)thisSection.ActivePins[pinIndex, 0].Direction;
+                        thisTC = thisSection.ActivePins[pinIndex, Location.NearEnd].Link;
+                        direction = (TrackDirection)thisSection.ActivePins[pinIndex, Location.NearEnd].Direction;
                         if (thisTC == -1)
                         {
-                            thisTC = thisSection.ActivePins[pinIndex, 1].Link;
-                            direction = (TrackDirection)thisSection.ActivePins[pinIndex, 1].Direction;
+                            thisTC = thisSection.ActivePins[pinIndex, Location.FarEnd].Link;
+                            direction = (TrackDirection)thisSection.ActivePins[pinIndex, Location.FarEnd].Direction;
                         }
                     }
                 }
@@ -7383,13 +7383,13 @@ namespace Orts.Simulation.Signalling
                     else
                     {
                         //                     int pinIndex = direction == 0 ? 1 : 0;
-                        int pinIndex = (int)direction;
-                        nextTC = thisSection.ActivePins[pinIndex, 0].Link;
-                        direction = (TrackDirection)thisSection.ActivePins[pinIndex, 0].Direction;
+                        TrackDirection pinIndex = direction;
+                        nextTC = thisSection.ActivePins[pinIndex, Location.NearEnd].Link;
+                        direction = thisSection.ActivePins[pinIndex, Location.NearEnd].Direction;
                         if (nextTC == -1)
                         {
-                            nextTC = thisSection.ActivePins[pinIndex, 1].Link;
-                            direction = (TrackDirection)thisSection.ActivePins[pinIndex, 1].Direction;
+                            nextTC = thisSection.ActivePins[pinIndex, Location.FarEnd].Link;
+                            direction = thisSection.ActivePins[pinIndex, Location.FarEnd].Direction;
                         }
 
                         // set state to blocked if ending at unset or unaligned switch
@@ -7797,8 +7797,8 @@ namespace Orts.Simulation.Signalling
 
                 if (!end_of_info)
                 {
-                    thisSectionIndex = thisSection.Pins[(int)direction, 0].Link;
-                    direction = (TrackDirection)thisSection.Pins[(int)direction, 0].Direction;
+                    thisSectionIndex = thisSection.Pins[direction, Location.NearEnd].Link;
+                    direction = (TrackDirection)thisSection.Pins[direction, Location.NearEnd].Direction;
                 }
             }
 
@@ -8046,7 +8046,7 @@ namespace Orts.Simulation.Signalling
                     else
                     {
                         offset = 0;
-                        int setSection = thisSection.ActivePins[thisElement.OutPin[0], thisElement.OutPin[1]].Link;
+                        int setSection = thisSection.ActivePins[(TrackDirection)thisElement.OutPin[0], (Location)thisElement.OutPin[1]].Link;
                         actRouteIndex++;
                         if (actRouteIndex >= routePath.Count || setSection < 0)
                             break;
