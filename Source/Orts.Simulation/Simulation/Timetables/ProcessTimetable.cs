@@ -318,7 +318,7 @@ namespace Orts.Simulation.Timetables
         /// <param name="signalRef"></param>
         /// <param name="TDB"></param>
         /// <param name="trainInfoList"></param>
-        private int ConvertFileContents(TimetableReader fileContents, Signals signalRef, ref List<TTTrainInfo> trainInfoList, int indexcount, string filePath)
+        private int ConvertFileContents(TimetableReader fileContents, SignalEnvironment signalRef, ref List<TTTrainInfo> trainInfoList, int indexcount, string filePath)
         {
             int consistRow = -1;
             int pathRow = -1;
@@ -3255,7 +3255,7 @@ namespace Orts.Simulation.Timetables
             /// <param name="TDB"></param>
             /// <param name="signalRef"></param>
             /// <returns>bool (indicating stop is found on route)</returns>
-            public bool BuildStopInfo(TTTrain actTrain, int actPlatformID, Signals signalRef)
+            public bool BuildStopInfo(TTTrain actTrain, int actPlatformID, SignalEnvironment signalRef)
             {
                 bool validStop = false;
 

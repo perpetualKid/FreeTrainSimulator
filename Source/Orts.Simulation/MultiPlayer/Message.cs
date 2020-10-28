@@ -911,7 +911,7 @@ namespace Orts.MultiPlayer
         public static void SetSwitch(TrackNode switchNode, int desiredState)
         {
             TrackCircuitSection switchSection = MPManager.Simulator.Signals.TrackCircuitList[switchNode.TrackCircuitCrossReferences[0].Index];
-            (MPManager.Simulator.Signals.trackDB.TrackNodes[switchSection.OriginalIndex] as TrackJunctionNode).SelectedRoute = switchSection.JunctionSetManual = desiredState;
+            (MPManager.Simulator.TDB.TrackDB.TrackNodes[switchSection.OriginalIndex] as TrackJunctionNode).SelectedRoute = switchSection.JunctionSetManual = desiredState;
             switchSection.JunctionLastRoute = switchSection.JunctionSetManual;
 
             // update linked signals
@@ -1027,7 +1027,7 @@ namespace Orts.MultiPlayer
         public static void SetSwitch(TrackNode switchNode, int desiredState)
         {
             TrackCircuitSection switchSection = MPManager.Simulator.Signals.TrackCircuitList[switchNode.TrackCircuitCrossReferences[0].Index];
-            (MPManager.Simulator.Signals.trackDB.TrackNodes[switchSection.OriginalIndex] as TrackJunctionNode).SelectedRoute = switchSection.JunctionSetManual = desiredState;
+            (MPManager.Simulator.TDB.TrackDB.TrackNodes[switchSection.OriginalIndex] as TrackJunctionNode).SelectedRoute = switchSection.JunctionSetManual = desiredState;
             switchSection.JunctionLastRoute = switchSection.JunctionSetManual;
 
             // update linked signals
@@ -1155,7 +1155,7 @@ namespace Orts.MultiPlayer
         public static void SetSwitch(TrackNode switchNode, int desiredState)
         {
             TrackCircuitSection switchSection = MPManager.Simulator.Signals.TrackCircuitList[switchNode.TrackCircuitCrossReferences[0].Index];
-            (MPManager.Simulator.Signals.trackDB.TrackNodes[switchSection.OriginalIndex] as TrackJunctionNode).SelectedRoute = switchSection.JunctionSetManual = desiredState;
+            (MPManager.Simulator.TDB.TrackDB.TrackNodes[switchSection.OriginalIndex] as TrackJunctionNode).SelectedRoute = switchSection.JunctionSetManual = desiredState;
             switchSection.JunctionLastRoute = switchSection.JunctionSetManual;
 
             // update linked signals

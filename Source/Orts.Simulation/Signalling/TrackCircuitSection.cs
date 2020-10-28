@@ -50,7 +50,7 @@ namespace Orts.Simulation.Signalling
 
         public static List<TrackCircuitSection> TrackCircuitList { get; } = new List<TrackCircuitSection>();
 
-        private static Signals signals;                                                 // reference to Signals class             //
+        private static SignalEnvironment signals;                                                 // reference to Signals class             //
 
         public int Index { get; private set; }                                          // Index of TCS                           //
         public float Length { get; private set; }                                       // Length of Section                      //
@@ -168,7 +168,7 @@ namespace Orts.Simulation.Signalling
             //
             // Create circuit items
             //
-            CircuitItems = new TrackCircuitItems(signals.ORTSSignalTypeCount);
+            CircuitItems = new TrackCircuitItems(signals.OrtsSignalTypeCount);
             CircuitState = new TrackCircuitState();
 
             DeadlockTraps = new Dictionary<int, List<int>>();
@@ -183,14 +183,14 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// Constructor for empty entries
         /// </summary>
-        internal TrackCircuitSection(Signals signals) :
+        internal TrackCircuitSection(SignalEnvironment signals) :
             this(0)
         {
             if (null != TrackCircuitSection.signals)
                 throw new InvalidOperationException(nameof(TrackCircuitSection.signals));
             TrackCircuitSection.signals = signals;
 
-            CircuitItems = new TrackCircuitItems(signals.ORTSSignalTypeCount);
+            CircuitItems = new TrackCircuitItems(signals.OrtsSignalTypeCount);
         }
 
         public TrackCircuitSection(int nodeIndex)
@@ -201,7 +201,7 @@ namespace Orts.Simulation.Signalling
             CircuitType = TrackCircuitType.Empty;
 
             if (null != signals) //signals is still null for ctor call from default/dummy element
-                CircuitItems = new TrackCircuitItems(signals.ORTSSignalTypeCount);
+                CircuitItems = new TrackCircuitItems(signals.OrtsSignalTypeCount);
             CircuitState = new TrackCircuitState();
 
             DeadlockTraps = new Dictionary<int, List<int>>();
@@ -619,7 +619,7 @@ namespace Orts.Simulation.Signalling
                 routeElement = route[currentIndex];
                 TrackDirection direction = (TrackDirection)routeElement.Direction;
 
-                for (int fntype = 0; fntype < signals.ORTSSignalTypeCount; fntype++)
+                for (int fntype = 0; fntype < signals.OrtsSignalTypeCount; fntype++)
                 {
                     foreach (TrackCircuitSignalItem item in CircuitItems.TrackCircuitSignals[direction][fntype])
                     {
@@ -896,7 +896,7 @@ namespace Orts.Simulation.Signalling
 
                 // disable all signals along section if enabled for this train
 
-                for (int fntype = 0; fntype < signals.ORTSSignalTypeCount; fntype++)
+                for (int fntype = 0; fntype < signals.OrtsSignalTypeCount; fntype++)
                 {
                     TrackCircuitSignalList thisSignalList = CircuitItems.TrackCircuitSignals[heading][fntype];
                     foreach (TrackCircuitSignalItem thisItem in thisSignalList)

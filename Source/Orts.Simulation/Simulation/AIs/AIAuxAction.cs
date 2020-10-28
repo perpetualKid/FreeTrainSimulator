@@ -1219,7 +1219,7 @@ namespace Orts.Simulation.AIs
         // Restore
         //
 
-        public AuxActionItem(BinaryReader inf, Signals signalRef)
+        public AuxActionItem(BinaryReader inf, SignalEnvironment signalRef)
             : base(inf, signalRef)
         {
         }
@@ -1832,7 +1832,7 @@ namespace Orts.Simulation.AIs
                 {
 //                    locked = true;
                     Trace.TraceWarning("SignalObject trItem={0}, trackNode={1}, wasn't locked for train {2}.",
-                        SignalReferenced.trItem, SignalReferenced.trackNode, thisTrain.Number);
+                        SignalReferenced.trItem, SignalReferenced.TrackNode, thisTrain.Number);
                 }
             }
             if (ClearSignal(thisTrain) || (thisTrain.NextSignalObject[0] != null && (thisTrain.NextSignalObject[0].this_sig_lr(SignalFunction.Normal) > SignalAspectState.Stop)) ||

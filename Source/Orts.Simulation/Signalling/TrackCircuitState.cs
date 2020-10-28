@@ -140,7 +140,7 @@ namespace Orts.Simulation.Signalling
                 int number = trainKey[0];
                 int routeIndex = trainKey[1];
                 int direction = thisTemp.Value;
-                Train thisTrain = Signals.FindTrain(number, trains);
+                Train thisTrain = SignalEnvironment.FindTrain(number, trains);
                 if (thisTrain != null)
                 {
                     Train.TrainRouted thisTrainRouted = routeIndex == 0 ? thisTrain.routedForward : thisTrain.routedBackward;
@@ -153,7 +153,7 @@ namespace Orts.Simulation.Signalling
             if (TrainReserved != null)
             {
                 int number = TrainReserved.Train.Number;
-                Train reservedTrain = Signals.FindTrain(number, trains);
+                Train reservedTrain = SignalEnvironment.FindTrain(number, trains);
                 if (reservedTrain != null)
                 {
                     int reservedDirection = TrainReserved.TrainRouteDirectionIndex;
@@ -187,7 +187,7 @@ namespace Orts.Simulation.Signalling
 
             foreach (Train.TrainRouted trainRouted in queue)
             {
-                Train train = Signals.FindTrain(trainRouted.Train.Number, trains);
+                Train train = SignalEnvironment.FindTrain(trainRouted.Train.Number, trains);
                 int routeIndex = trainRouted.TrainRouteDirectionIndex;
                 if (train != null)
                 {
@@ -201,7 +201,7 @@ namespace Orts.Simulation.Signalling
 
             foreach (Train.TrainRouted trainRouted in queue)
             {
-                Train train = Signals.FindTrain(trainRouted.Train.Number, trains);
+                Train train = SignalEnvironment.FindTrain(trainRouted.Train.Number, trains);
                 int routeIndex = trainRouted.TrainRouteDirectionIndex;
                 if (train != null)
                 {

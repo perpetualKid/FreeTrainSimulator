@@ -74,7 +74,7 @@ namespace Orts.Simulation.Signalling
             State = state;
         }
 
-        public static SignalItemInfo Restore(BinaryReader inf, Signals signals)
+        public static SignalItemInfo Restore(BinaryReader inf, SignalEnvironment signals)
         {
             if (null == inf)
                 throw new ArgumentNullException(nameof(inf));

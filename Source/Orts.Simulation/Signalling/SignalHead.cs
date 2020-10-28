@@ -104,7 +104,7 @@ namespace Orts.Simulation.Signalling
                 SignalType = signalConfig.SignalTypes[signalItem.SignalType];
 
                 // get related signalscript
-                Signals.scrfile.SignalScripts.Scripts.TryGetValue(SignalType, out signalScript);
+                SignalEnvironment.SignaScriptsFile.SignalScripts.Scripts.TryGetValue(SignalType, out signalScript);
 
                 // set signal speeds
                 foreach (SignalAspect aspect in SignalType.Aspects)
@@ -144,7 +144,7 @@ namespace Orts.Simulation.Signalling
             }
             else
             {
-                Trace.TraceWarning($"SignalObject trItem={MainSignal.trItem}, trackNode={MainSignal.trackNode} has SignalHead with undefined SignalType {signalItem.SignalType}.");
+                Trace.TraceWarning($"SignalObject trItem={MainSignal.trItem}, trackNode={MainSignal.TrackNode} has SignalHead with undefined SignalType {signalItem.SignalType}.");
             }
         }
 
@@ -226,18 +226,18 @@ namespace Orts.Simulation.Signalling
 
         public SignalAspectState SignalLRById(int signalId, int signalType)
         {
-            if (signalId >= 0 && signalId < MainSignal.signalRef.SignalObjects.Length)
+            if (signalId >= 0 && signalId < Signal.SignalEnvironment.SignalObjects.Count)
             {
-                return MainSignal.signalRef.SignalObjects[signalId].this_sig_lr(signalType);
+                return Signal.SignalEnvironment.SignalObjects[signalId].this_sig_lr(signalType);
             }
             return SignalAspectState.Stop;
         }
 
         public int SignalEnabledById(int signalId)
         {
-            if (signalId >= 0 && signalId < MainSignal.signalRef.SignalObjects.Length)
+            if (signalId >= 0 && signalId < Signal.SignalEnvironment.SignalObjects.Count)
             {
-                return MainSignal.signalRef.SignalObjects[signalId].enabled ? 1 : 0;
+                return Signal.SignalEnvironment.SignalObjects[signalId].enabled ? 1 : 0;
             }
             return 0;
         }
@@ -259,9 +259,9 @@ namespace Orts.Simulation.Signalling
 
         public int LocalVariableBySignalId(int signalId, int index)
         {
-            if (signalId >= 0 && signalId < MainSignal.signalRef.SignalObjects.Length)
+            if (signalId >= 0 && signalId < Signal.SignalEnvironment.SignalObjects.Count)
             {
-                return MainSignal.signalRef.SignalObjects[signalId].this_sig_lvar(index);
+                return Signal.SignalEnvironment.SignalObjects[signalId].this_sig_lvar(index);
             }
             return 0;
         }
@@ -278,9 +278,9 @@ namespace Orts.Simulation.Signalling
 
         public int SignalHasNormalSubtypeById(int signalId, int requestedSubtype)
         {
-            if (signalId >= 0 && signalId < MainSignal.signalRef.SignalObjects.Length)
+            if (signalId >= 0 && signalId < Signal.SignalEnvironment.SignalObjects.Count)
             {
-                return MainSignal.signalRef.SignalObjects[signalId].this_sig_hasnormalsubtype(requestedSubtype);
+                return Signal.SignalEnvironment.SignalObjects[signalId].this_sig_hasnormalsubtype(requestedSubtype);
             }
             return 0;
         }
@@ -321,7 +321,7 @@ namespace Orts.Simulation.Signalling
 
             while (thisSignal.sigfound[signalType] >= 0)
             {
-                thisSignal = thisSignal.signalRef.SignalObjects[thisSignal.sigfound[signalType]];
+                thisSignal = Signal.SignalEnvironment.SignalObjects[thisSignal.sigfound[signalType]];
 
                 SignalAspectState thisState = thisSignal.MRSignalOnRoute(signalType);
 
@@ -384,7 +384,7 @@ namespace Orts.Simulation.Signalling
 
             while (thisSignal.sigfound[signalType] >= 0)
             {
-                thisSignal = thisSignal.signalRef.SignalObjects[thisSignal.sigfound[signalType]];
+                thisSignal = Signal.SignalEnvironment.SignalObjects[thisSignal.sigfound[signalType]];
 
                 SignalAspectState thisState = thisSignal.this_sig_lr(signalType);
 
@@ -423,7 +423,7 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         public bool VerifySignalFeature(int feature)
         {
-            if (feature < MainSignal.WorldObject?.FlagsSet.Length)
+            if (feature < MainSignal.WorldObject?.FlagsSet.Count)
             {
                 return MainSignal.WorldObject.FlagsSet[feature];
             }
@@ -474,14 +474,14 @@ namespace Orts.Simulation.Signalling
             //added by JTang
             else if (MPManager.IsMultiPlayer())
             {
-                TrackNode node = MainSignal.signalRef.trackDB.TrackNodes[MainSignal.trackNode];
+                TrackNode node = Signal.SignalEnvironment.Simulator.TDB.TrackDB.TrackNodes[MainSignal.TrackNode];
                 if (!(node is TrackJunctionNode) && node.TrackPins != null && MainSignal.TCDirection < node.TrackPins.Length)
                 {
-                    node = MainSignal.signalRef.trackDB.TrackNodes[node.TrackPins[MainSignal.TCDirection].Link];
+                    node = Signal.SignalEnvironment.Simulator.TDB.TrackDB.TrackNodes[node.TrackPins[MainSignal.TCDirection].Link];
                     if (!(node is TrackJunctionNode junctionNode)) return 0;
                     for (int pin = junctionNode.InPins; pin < junctionNode.InPins + junctionNode.OutPins; pin++)
                     {
-                        if (junctionNode.TrackPins[pin].Link == MainSignal.trackNode && pin - junctionNode.InPins != junctionNode.SelectedRoute)
+                        if (junctionNode.TrackPins[pin].Link == MainSignal.TrackNode && pin - junctionNode.InPins != junctionNode.SelectedRoute)
                         {
                             return 0;
                         }
@@ -498,7 +498,7 @@ namespace Orts.Simulation.Signalling
 
         public void Update()
         {
-            SIGSCRfile.SH_update(this, Signals.scrfile);
+            SIGSCRfile.SH_update(this, SignalEnvironment.SignaScriptsFile);
         }
     } //Update
 

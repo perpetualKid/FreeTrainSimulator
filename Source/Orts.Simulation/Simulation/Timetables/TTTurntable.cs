@@ -573,7 +573,7 @@ namespace Orts.Simulation.Timetables
             // check if turntable track section is in path - must be in first element (path must start at turntable end)
             int vectorIndex = -1;
             TrackCircuitSection thisSection = Simulatorref.Signals.TrackCircuitList[thisPath[0].TCSectionIndex];
-            TrackVectorNode thisTDBsection = Simulatorref.Signals.trackDB.TrackNodes[thisSection.OriginalIndex] as TrackVectorNode;
+            TrackVectorNode thisTDBsection = Simulatorref.TDB.TrackDB.TrackNodes[thisSection.OriginalIndex] as TrackVectorNode;
 
             for (int iVector = 0; iVector < thisTDBsection.TrackVectorSections.Length; iVector++)
             {
@@ -631,7 +631,7 @@ namespace Orts.Simulation.Timetables
             TrackCircuitSection thisSection = Simulatorref.Signals.TrackCircuitList[thisPath.AccessPath[0].TCSectionIndex];
             int trackNodeIndex = thisSection.OriginalIndex;
 
-            TrackVectorSection[] trackVectors = (Simulatorref.Signals.trackDB.TrackNodes[trackNodeIndex] as TrackVectorNode).TrackVectorSections;
+            TrackVectorSection[] trackVectors = (Simulatorref.TDB.TrackDB.TrackNodes[trackNodeIndex] as TrackVectorNode).TrackVectorSections;
 
             // check if path is in front or behind turntable
 
@@ -711,7 +711,7 @@ namespace Orts.Simulation.Timetables
             TrackCircuitSection thisSection = Simulatorref.Signals.TrackCircuitList[thisPath.StoragePath[0].TCSectionIndex];
             int trackNodeIndex = thisSection.OriginalIndex;
 
-            TrackVectorSection[] trackVectors = (Simulatorref.Signals.trackDB.TrackNodes[trackNodeIndex] as TrackVectorNode).TrackVectorSections;
+            TrackVectorSection[] trackVectors = (Simulatorref.TDB.TrackDB.TrackNodes[trackNodeIndex] as TrackVectorNode).TrackVectorSections;
 
             // check if path is in front or behind turntable
 
@@ -1362,7 +1362,7 @@ namespace Orts.Simulation.Timetables
         /// Get end of route distance on approach to turntable
         /// </summary>
 
-        override public float GetEndOfRouteDistance(Train.TCSubpathRoute thisRoute, Train.TCPosition frontPosition, int pathIndex, Signals signalRef)
+        override public float GetEndOfRouteDistance(Train.TCSubpathRoute thisRoute, Train.TCPosition frontPosition, int pathIndex, SignalEnvironment signalRef)
         {
             // get distance to approach point from present position of train
             int turntableSectionIndex = thisRoute.GetRouteIndex(AdditionalTurntableDetails.AccessPaths[pathIndex].AccessPath[0].TCSectionIndex, 0);

@@ -30,6 +30,7 @@ using Orts.Formats.Msts;
 using Orts.Formats.Msts.Parsers;
 using Orts.Scripting.Api;
 using Orts.Simulation.Physics;
+using Orts.Formats.Msts.Models;
 
 namespace Orts.Simulation.RollingStocks.SubSystems
 {
@@ -543,7 +544,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             SignalDistance = float.MaxValue;
             MainHeadSignalTypeName = "";
 
-            int fn_type = Locomotive.Train.signalRef.ORTSSignalTypes.IndexOf(signalTypeName);
+            int fn_type = OrSignalTypes.Instance.FunctionTypes.IndexOf(signalTypeName);
             if (fn_type <= 0) // Invalid value or NORMAL signal
                 return retval;
 

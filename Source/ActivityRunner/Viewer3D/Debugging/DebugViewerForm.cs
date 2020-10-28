@@ -325,7 +325,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                 {
                     SignalItem si = item as SignalItem;
 
-                    if (si.SignalObject >= 0 && si.SignalObject < simulator.Signals.SignalObjects.Length)
+                    if (si.SignalObject >= 0 && si.SignalObject < simulator.Signals.SignalObjects.Count)
                     {
                         Signal s = simulator.Signals.SignalObjects[si.SignalObject];
                         if (s != null && s.isSignal && s.isSignalNormal()) signals.Add(new SignalWidget(si, s));
@@ -2149,7 +2149,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             Location = VectorFromLocation(item.Location);
             try
             {
-                var node = Program.Simulator.TDB.TrackDB.TrackNodes[signal.trackNode];
+                var node = Program.Simulator.TDB.TrackDB.TrackNodes[signal.TrackNode];
                 Vector2 v2;
                 if (node is TrackVectorNode trackVectorNode) 
                 { 

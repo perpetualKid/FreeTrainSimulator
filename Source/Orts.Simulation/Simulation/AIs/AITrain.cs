@@ -6724,7 +6724,7 @@ namespace Orts.Simulation.AIs
         // Restore
         //
 
-        public AIActionItem(BinaryReader inf, Signals signalRef)
+        public AIActionItem(BinaryReader inf, SignalEnvironment signalRef)
         {
             RequiredDistance = inf.ReadSingle();
             RequiredSpeedMpS = inf.ReadSingle();

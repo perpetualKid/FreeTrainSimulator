@@ -55,7 +55,7 @@ namespace Orts.Simulation.Signalling
             StoppedInLoop,
         }
 
-        private readonly Signals signalRef;                                       // reference to overlaying Signals class
+        private readonly SignalEnvironment signalRef;                                       // reference to overlaying Signals class
         private readonly int deadlockIndex;                                          // this deadlock unique index reference
         private int nextTrainSubpathIndex;                                 // counter for train/subpath index
 
@@ -72,7 +72,7 @@ namespace Orts.Simulation.Signalling
         /// Constructor
         /// </summary>
 
-        public DeadlockInfo(Signals signalReference)
+        public DeadlockInfo(SignalEnvironment signalReference)
         {
             signalRef = signalReference;
 
@@ -95,7 +95,7 @@ namespace Orts.Simulation.Signalling
         /// Constructor for restore
         /// </summary>
 
-        public DeadlockInfo(Signals signalReference, BinaryReader inf)
+        public DeadlockInfo(SignalEnvironment signalReference, BinaryReader inf)
         {
             if (null == inf)
                 throw new ArgumentNullException(nameof(inf));
@@ -296,7 +296,7 @@ namespace Orts.Simulation.Signalling
         /// Create deadlock info from alternative path or find related info
         /// </summary>
 
-        internal static DeadlockInfo FindDeadlockInfo(Signals sourceSignals, Train.TCSubpathRoute partPath, Train.TCSubpathRoute mainPath, int startSectionIndex, int endSectionIndex)
+        internal static DeadlockInfo FindDeadlockInfo(SignalEnvironment sourceSignals, Train.TCSubpathRoute partPath, Train.TCSubpathRoute mainPath, int startSectionIndex, int endSectionIndex)
         {
             TrackCircuitSection startSection = sourceSignals.TrackCircuitList[startSectionIndex];
             TrackCircuitSection endSection = sourceSignals.TrackCircuitList[endSectionIndex];
@@ -606,7 +606,7 @@ namespace Orts.Simulation.Signalling
         /// check if path has no conflict with overlapping deadlock paths
         /// returns false if there is an overlap
         /// </summary>
-        private static bool CheckNoOverlapDeadlockPaths(Train.TCSubpathRoute path, Signals signalRef)
+        private static bool CheckNoOverlapDeadlockPaths(Train.TCSubpathRoute path, SignalEnvironment signalRef)
         {
             foreach (Train.TCRouteElement element in path)
             {

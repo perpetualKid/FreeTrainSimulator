@@ -359,7 +359,7 @@ namespace Orts.Simulation
         public int RearConnectedTarget = -1; // index of trackend connected
         public float TargetY = 0; //final target for Viewer;
 
-        public Signals signalRef { get; protected set; }
+        public SignalEnvironment signalRef { get; protected set; }
 
         public Turntable(STFReader stf, Simulator simulator)
             : base(stf, simulator)

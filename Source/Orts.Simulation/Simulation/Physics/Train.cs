@@ -255,7 +255,7 @@ namespace Orts.Simulation.Physics
         private float standardWaitTimeS = 60.0f;         // wait for 1 min before claim state
         private float backwardThreshold = 20;            // counter threshold to detect backward move
 
-        public Signals signalRef { get; protected set; } // reference to main Signals class: SPA change protected to public with get, set!
+        public SignalEnvironment signalRef { get; protected set; } // reference to main Signals class: SPA change protected to public with get, set!
         public TCRoutePath TCRoute;                      // train path converted to TC base
         public TCSubpathRoute[] ValidRoute = new TCSubpathRoute[2] { null, null };  // actual valid path
         public TCSubpathRoute TrainRoute;                // partial route under train for Manual mode
@@ -7933,7 +7933,7 @@ namespace Orts.Simulation.Physics
             bool hasEndSignal = false;     // ends with cleared signal
             int sectionWithSignalIndex = 0;
 
-            Signal previousSignal = new Signal(signalRef.ORTSSignalTypeCount);
+            Signal previousSignal = null;
 
             for (int iindex = 0; iindex < newRoute.Count && !endWithSignal; iindex++)
             {
@@ -7949,7 +7949,8 @@ namespace Orts.Simulation.Physics
                     var endSignal = thisSection.EndSignals[reqDirection];
                     SignalAspectState thisAspect = thisSection.EndSignals[reqDirection].this_sig_lr(SignalFunction.Normal);
                     hasEndSignal = true;
-                    if (previousSignal.signalRef != null) previousSignal.sigfound[(int)SignalFunction.Normal] = endSignal.thisRef;
+                    if (previousSignal != null) 
+                        previousSignal.sigfound[(int)SignalFunction.Normal] = endSignal.thisRef;
                     previousSignal = thisSection.EndSignals[reqDirection];
 
                     if (thisAspect == SignalAspectState.Stop && endSignal.hasPermission != SignalPermission.Granted)
@@ -7957,7 +7958,7 @@ namespace Orts.Simulation.Physics
                         endWithSignal = true;
                         sectionWithSignalIndex = iindex;
                     }
-                    else if (endSignal.enabledTrain == null && endSignal.hasFixedRoute) // signal cleared by default - make sure train is set
+                    else if (endSignal.enabledTrain == null && endSignal.FixedRoute) // signal cleared by default - make sure train is set
                     {
                         endSignal.enabledTrain = thisRouted;
                         endSignal.SetDefaultRoute();
@@ -9696,7 +9697,7 @@ namespace Orts.Simulation.Physics
             TrackCircuitSection thisSection = signalRef.TrackCircuitList[ValidRoute[0][firstSectionIndex].TCSectionIndex];
             TrackDirection thisDirection = (TrackDirection)ValidRoute[0][firstSectionIndex].Direction;
 
-            for (int isigtype = 0; isigtype < signalRef.ORTSSignalTypeCount; isigtype++)
+            for (int isigtype = 0; isigtype < signalRef.OrtsSignalTypeCount; isigtype++)
             {
                 TrackCircuitSignalList thisList = thisSection.CircuitItems.TrackCircuitSignals[thisDirection][isigtype];
                 foreach (TrackCircuitSignalItem thisItem in thisList)
@@ -9714,7 +9715,7 @@ namespace Orts.Simulation.Physics
                 thisSection = signalRef.TrackCircuitList[ValidRoute[0][firstSectionIndex].TCSectionIndex];
                 thisDirection = (TrackDirection)ValidRoute[0][firstSectionIndex].Direction;
 
-                for (int isigtype = 0; isigtype < signalRef.ORTSSignalTypeCount; isigtype++)
+                for (int isigtype = 0; isigtype < signalRef.OrtsSignalTypeCount; isigtype++)
                 {
                     TrackCircuitSignalList thisList = thisSection.CircuitItems.TrackCircuitSignals[thisDirection][isigtype];
                     foreach (TrackCircuitSignalItem thisItem in thisList)
@@ -14527,7 +14528,7 @@ namespace Orts.Simulation.Physics
         /// Create Track Circuit Route Path
         /// </summary>
 
-        public void SetRoutePath(AIPath aiPath, Signals orgSignals)
+        public void SetRoutePath(AIPath aiPath, SignalEnvironment orgSignals)
         {
 #if DEBUG_TEST
             File.AppendAllText(@"C:\temp\TCSections.txt", "--------------------------------------------------\n");
@@ -14543,7 +14544,7 @@ namespace Orts.Simulation.Physics
         // Preset switches for explorer mode
         //
 
-        public void PresetExplorerPath(AIPath aiPath, Signals orgSignals)
+        public void PresetExplorerPath(AIPath aiPath, SignalEnvironment orgSignals)
         {
             int orgDirection = (RearTDBTraveller != null) ? (int)RearTDBTraveller.Direction : -2;
             TCRoute = new TCRoutePath(aiPath, orgDirection, 0, orgSignals, Number, Simulator.Settings);
@@ -15981,7 +15982,7 @@ namespace Orts.Simulation.Physics
             /// Constructor (from AIPath)
             /// </summary>
 
-            public TCRoutePath(AIPath aiPath, int orgDir, float thisTrainLength, Signals orgSignals, int trainNumber, UserSettings settings)
+            public TCRoutePath(AIPath aiPath, int orgDir, float thisTrainLength, SignalEnvironment orgSignals, int trainNumber, UserSettings settings)
             {
                 activeSubpath = 0;
                 activeAltpath = -1;
@@ -16955,7 +16956,7 @@ namespace Orts.Simulation.Physics
             // process alternative paths - MSTS style Path definition
             //
 
-            public void ProcessAlternativePath_PathDef(Dictionary<int, int[]> AlternativeRoutes, AIPath aiPath, Signals orgSignals)
+            public void ProcessAlternativePath_PathDef(Dictionary<int, int[]> AlternativeRoutes, AIPath aiPath, SignalEnvironment orgSignals)
             {
                 int altlist = 0;
 
@@ -17168,7 +17169,7 @@ namespace Orts.Simulation.Physics
             // process alternative paths - location definition
             //
 
-            public void ProcessAlternativePath_LocationDef(Dictionary<int, int[]> AlternativeRoutes, AIPath aiPath, Signals orgSignals, int trainNumber)
+            public void ProcessAlternativePath_LocationDef(Dictionary<int, int[]> AlternativeRoutes, AIPath aiPath, SignalEnvironment orgSignals, int trainNumber)
             {
                 foreach (KeyValuePair<int, int[]> thisAltPathIndex in AlternativeRoutes)
                 {
@@ -17372,7 +17373,7 @@ namespace Orts.Simulation.Physics
             //
 
             public void InsertPassingPath(TCSubpathRoute mainPath, TCSubpathRoute passPath, int startSectionIndex, int endSectionIndex,
-                                  Signals orgSignals, int trainNumber, int sublistRef)
+                                  SignalEnvironment orgSignals, int trainNumber, int sublistRef)
             {
                 // if main set, check if path is valid diverge path - otherwise assume it is indeed
 
@@ -17516,7 +17517,7 @@ namespace Orts.Simulation.Physics
             // includes public paths
             //
 
-            public void SearchPassingPaths(int trainNumber, float trainLength, Signals orgSignals)
+            public void SearchPassingPaths(int trainNumber, float trainLength, SignalEnvironment orgSignals)
             {
                 for (int iSubpath = 0; iSubpath <= TCRouteSubpaths.Count - 1; iSubpath++)
                 {
@@ -17551,7 +17552,7 @@ namespace Orts.Simulation.Physics
             // search for loops
             //
 
-            public void LoopSearch(Signals orgSignals)
+            public void LoopSearch(SignalEnvironment orgSignals)
             {
                 List<List<int[]>> loopList = new List<List<int[]>>();
 
@@ -17902,7 +17903,7 @@ namespace Orts.Simulation.Physics
             // build station xref list
             //
 
-            public void SetStationReference(List<TCSubpathRoute> subpaths, int sectionIndex, Signals orgSignals)
+            public void SetStationReference(List<TCSubpathRoute> subpaths, int sectionIndex, SignalEnvironment orgSignals)
             {
                 TrackCircuitSection actSection = orgSignals.TrackCircuitList[sectionIndex];
                 foreach (int platformRef in actSection.PlatformIndices)
@@ -18183,7 +18184,7 @@ namespace Orts.Simulation.Physics
             /// Constructor from tracknode
             /// </summary>
 
-            public TCRouteElement(TrackNode thisNode, int TCIndex, int direction, Signals mySignals)
+            public TCRouteElement(TrackNode thisNode, int TCIndex, int direction, SignalEnvironment mySignals)
             {
                 TCSectionIndex = thisNode.TrackCircuitCrossReferences[TCIndex].Index;
                 Direction = direction;
@@ -18220,7 +18221,7 @@ namespace Orts.Simulation.Physics
             /// Constructor from CircuitSection
             /// </summary>
 
-            public TCRouteElement(TrackCircuitSection thisSection, int direction, Signals mySignals, int lastSectionIndex)
+            public TCRouteElement(TrackCircuitSection thisSection, int direction, SignalEnvironment mySignals, int lastSectionIndex)
             {
                 TCSectionIndex = thisSection.Index;
                 Direction = direction;
@@ -18534,7 +18535,7 @@ namespace Orts.Simulation.Physics
             /// <\summary>
 
             public float GetDistanceAlongRoute(int startSectionIndex, float startOffset,
-               int endSectionIndex, float endOffset, bool forward, Signals signals)
+               int endSectionIndex, float endOffset, bool forward, SignalEnvironment signals)
 
             // startSectionIndex and endSectionIndex are indices in route list
             // startOffset is remaining length of startSection in required direction
@@ -18694,7 +18695,7 @@ namespace Orts.Simulation.Physics
             ///    value is usefull length
             /// <\summary>
 
-            public Dictionary<int, float> GetUsefullLength(float defaultSignalClearingDistance, Signals signals, int startIndex, int endIndex)
+            public Dictionary<int, float> GetUsefullLength(float defaultSignalClearingDistance, SignalEnvironment signals, int startIndex, int endIndex)
             {
                 float actLength = 0.0f;
                 float useLength = 0.0f;
@@ -18813,7 +18814,7 @@ namespace Orts.Simulation.Physics
             /// reverses existing path
             /// <\summary>
 
-            public TCSubpathRoute ReversePath(Signals orgSignals)
+            public TCSubpathRoute ReversePath(SignalEnvironment orgSignals)
             {
                 TCSubpathRoute reversePath = new TCSubpathRoute();
                 int lastSectionIndex = -1;
@@ -19026,7 +19027,7 @@ namespace Orts.Simulation.Physics
             /// Reverse (or continue in same direction)
             /// <\summary>
 
-            public void Reverse(int oldDirection, TCSubpathRoute thisRoute, float offset, Signals orgSignals)
+            public void Reverse(int oldDirection, TCSubpathRoute thisRoute, float offset, SignalEnvironment orgSignals)
             {
                 RouteListIndex = thisRoute.GetRouteIndex(TCSectionIndex, 0);
                 if (RouteListIndex >= 0)
@@ -19092,7 +19093,7 @@ namespace Orts.Simulation.Physics
             /// Constructor (from route path details)
             /// <\summary>
 
-            public TCReversalInfo(TCSubpathRoute lastRoute, int prevReversalIndex, TCSubpathRoute firstRoute, Signals orgSignals, float reverseReversalOffset, int reversalIndex, int reversalSectionIndex)
+            public TCReversalInfo(TCSubpathRoute lastRoute, int prevReversalIndex, TCSubpathRoute firstRoute, SignalEnvironment orgSignals, float reverseReversalOffset, int reversalIndex, int reversalSectionIndex)
             {
                 // preset values
                 Valid = false;
@@ -19987,7 +19988,7 @@ namespace Orts.Simulation.Physics
             // Restore
             //
 
-            public StationStop(BinaryReader inf, Signals signalRef)
+            public StationStop(BinaryReader inf, SignalEnvironment signalRef)
             {
                 ActualStopType = (STOPTYPE)inf.ReadInt32();
                 PlatformReference = inf.ReadInt32();

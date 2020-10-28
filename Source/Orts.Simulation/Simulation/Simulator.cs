@@ -114,7 +114,7 @@ namespace Orts.Simulation
 
         public static int DbfEvalOverSpeedCoupling;//Debrief eval
 
-        public Signals Signals;
+        public SignalEnvironment Signals;
         public AI AI;
         public SeasonType Season;
         public WeatherType WeatherType;
@@ -432,7 +432,7 @@ namespace Orts.Simulation
 
         public void Start(CancellationToken cancellation)
         {
-            Signals = new Signals(this, SIGCFG, cancellation);
+            Signals = new SignalEnvironment(this, SIGCFG, cancellation);
             TurntableFile = new TurntableFile(RoutePath + @"\openrails\turntables.dat", RoutePath + @"\shapes\", MovingTables, this);
             LevelCrossings = new LevelCrossings(this);
             FuelManager = new FuelManager(this);
@@ -469,7 +469,7 @@ namespace Orts.Simulation
         public void StartTimetable(CancellationToken cancellation)
         {
             TimetableMode = true;
-            Signals = new Signals(this, SIGCFG, cancellation);
+            Signals = new SignalEnvironment(this, SIGCFG, cancellation);
             TurntableFile = new TurntableFile(RoutePath + @"\openrails\turntables.dat", RoutePath + @"\shapes\", MovingTables, this);
             LevelCrossings = new LevelCrossings(this);
             FuelManager = new FuelManager(this);
@@ -510,7 +510,7 @@ namespace Orts.Simulation
             InitialTileZ = initialTileZ;
             PoolHolder = new Poolholder(inf, this);
 
-            Signals = new Signals(this, SIGCFG, inf, cancellation);
+            Signals = new SignalEnvironment(this, SIGCFG, inf, cancellation);
 
             RestoreTrains(inf);
             LevelCrossings = new LevelCrossings(this);
