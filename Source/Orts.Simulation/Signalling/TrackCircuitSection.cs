@@ -257,10 +257,10 @@ namespace Orts.Simulation.Signalling
             if (null == inf)
                 throw new ArgumentNullException(nameof(inf));
 
-            ActivePins[0, 0] = new TrackPin(inf.ReadInt32(), inf.ReadInt32());
-            ActivePins[1, 0] = new TrackPin(inf.ReadInt32(), inf.ReadInt32());
-            ActivePins[0, 1] = new TrackPin(inf.ReadInt32(), inf.ReadInt32());
-            ActivePins[1, 1] = new TrackPin(inf.ReadInt32(), inf.ReadInt32());
+            ActivePins[0, 0] = new TrackPin(inf.ReadInt32(), (TrackDirection)inf.ReadInt32());
+            ActivePins[1, 0] = new TrackPin(inf.ReadInt32(), (TrackDirection)inf.ReadInt32());
+            ActivePins[0, 1] = new TrackPin(inf.ReadInt32(), (TrackDirection)inf.ReadInt32());
+            ActivePins[1, 1] = new TrackPin(inf.ReadInt32(), (TrackDirection)inf.ReadInt32());
 
             JunctionSetManual = inf.ReadInt32();
             JunctionLastRoute = inf.ReadInt32();
@@ -329,13 +329,13 @@ namespace Orts.Simulation.Signalling
                 throw new ArgumentNullException(nameof(outf));
 
             outf.Write(ActivePins[0, 0].Link);
-            outf.Write(ActivePins[0, 0].Direction);
+            outf.Write((int)ActivePins[0, 0].Direction);
             outf.Write(ActivePins[1, 0].Link);
-            outf.Write(ActivePins[1, 0].Direction);
+            outf.Write((int)ActivePins[1, 0].Direction);
             outf.Write(ActivePins[0, 1].Link);
-            outf.Write(ActivePins[0, 1].Direction);
+            outf.Write((int)ActivePins[0, 1].Direction);
             outf.Write(ActivePins[1, 1].Link);
-            outf.Write(ActivePins[1, 1].Direction);
+            outf.Write((int)ActivePins[1, 1].Direction);
 
             outf.Write(JunctionSetManual);
             outf.Write(JunctionLastRoute);
@@ -1467,7 +1467,7 @@ namespace Orts.Simulation.Signalling
                             // if not found either, build temp route
                             if (nextRouteFrontIndex < 0 || nextRouteRearIndex < 0)
                             {
-                                Train.TCSubpathRoute tempRoute = signals.BuildTempRoute(nextTrain.Train, nextFront.TCSectionIndex, nextFront.TCOffset, nextFront.TCDirection,
+                                Train.TCSubpathRoute tempRoute = signals.BuildTempRoute(nextTrain.Train, nextFront.TCSectionIndex, nextFront.TCOffset, (TrackDirection)nextFront.TCDirection,
                                     nextTrain.Train.Length, true, true, false);
                                 nextRouteFrontIndex = tempRoute.GetRouteIndex(nextFront.TCSectionIndex, 0);
                                 nextRouteRearIndex = tempRoute.GetRouteIndex(nextRear.TCSectionIndex, 0);
@@ -1544,7 +1544,7 @@ namespace Orts.Simulation.Signalling
                             // if not found either, build temp route
                             if (nextRouteFrontIndex < 0 || nextRouteRearIndex < 0)
                             {
-                                Train.TCSubpathRoute tempRoute = signals.BuildTempRoute(nextTrain.Train, nextFront.TCSectionIndex, nextFront.TCOffset, nextFront.TCDirection,
+                                Train.TCSubpathRoute tempRoute = signals.BuildTempRoute(nextTrain.Train, nextFront.TCSectionIndex, nextFront.TCOffset, (TrackDirection)nextFront.TCDirection,
                                     nextTrain.Train.Length, true, true, false);
                                 nextRouteFrontIndex = tempRoute.GetRouteIndex(nextFront.TCSectionIndex, 0);
                                 nextRouteRearIndex = tempRoute.GetRouteIndex(nextRear.TCSectionIndex, 0);
@@ -1602,7 +1602,7 @@ namespace Orts.Simulation.Signalling
         /// Get next active link
         /// </summary>
 
-        public TrackPin GetNextActiveLink(int direction, int lastIndex)
+        public TrackPin GetNextActiveLink(TrackDirection direction, int lastIndex)
         {
 
             // Crossover
@@ -1612,11 +1612,11 @@ namespace Orts.Simulation.Signalling
                 int inPinIndex = direction == 0 ? 1 : 0;
                 if (Pins[inPinIndex, 0].Link == lastIndex)
                 {
-                    return ActivePins[direction, 0];
+                    return ActivePins[(int)direction, 0];
                 }
                 else if (Pins[inPinIndex, 1].Link == lastIndex)
                 {
-                    return ActivePins[direction, 1];
+                    return ActivePins[(int)direction, 1];
                 }
                 else
                 {
@@ -1626,22 +1626,22 @@ namespace Orts.Simulation.Signalling
 
             // All other sections
 
-            if (ActivePins[direction, 0].Link > 0)
+            if (ActivePins[(int)direction, 0].Link > 0)
             {
-                return ActivePins[direction, 0];
+                return ActivePins[(int)direction, 0];
             }
 
-            return ActivePins[direction, 1];
+            return ActivePins[(int)direction, 1];
         }
 
         //================================================================================================//
         /// <summary>
         /// Get distance between objects
         /// </summary>
-        public static float GetDistanceBetweenObjects(int startSectionIndex, float startOffset, int startDirection, int endSectionIndex, float endOffset)
+        public static float GetDistanceBetweenObjects(int startSectionIndex, float startOffset, TrackDirection startDirection, int endSectionIndex, float endOffset)
         {
             int currentSectionIndex = startSectionIndex;
-            int direction = startDirection;
+            TrackDirection direction = startDirection;
 
             TrackCircuitSection section = TrackCircuitList[currentSectionIndex];
 
@@ -1982,9 +1982,9 @@ namespace Orts.Simulation.Signalling
             // set new pins
 
             replacementSection.Pins[0, 0] = sourceSection.Pins[0, 0];
-            replacementSection.Pins[1, 0] = new TrackPin(targetSectionIndex, 1);
+            replacementSection.Pins[1, 0] = new TrackPin(targetSectionIndex, TrackDirection.Reverse);
 
-            targetSection.Pins[0, 0] = new TrackPin(sourceSectionIndex, 0);
+            targetSection.Pins[0, 0] = new TrackPin(sourceSectionIndex, TrackDirection.Ahead);
             targetSection.Pins[1, 0] = sourceSection.Pins[1, 0];
 
             // update pins on adjacent sections
@@ -2134,10 +2134,10 @@ namespace Orts.Simulation.Signalling
             trailSection0.Pins[0, 0] = trailSection0.Pins[0, 0].FromLink(JnIndex);
             trailSection1.Pins[0, 0] = trailSection1.Pins[0, 0].FromLink(JnIndex);
 
-            JnSection.Pins[0, 0] = new TrackPin(leadSectionIndex0, 0);
-            JnSection.Pins[0, 1] = new TrackPin(leadSectionIndex1, 0);
-            JnSection.Pins[1, 0] = new TrackPin(trailSectionIndex0, 1);
-            JnSection.Pins[1, 1] = new TrackPin(trailSectionIndex1, 1);
+            JnSection.Pins[0, 0] = new TrackPin(leadSectionIndex0, TrackDirection.Ahead);
+            JnSection.Pins[0, 1] = new TrackPin(leadSectionIndex1, TrackDirection.Ahead);
+            JnSection.Pins[1, 0] = new TrackPin(trailSectionIndex0, TrackDirection.Reverse);
+            JnSection.Pins[1, 1] = new TrackPin(trailSectionIndex1, TrackDirection.Reverse);
 
             if (tsectiondat.TrackShapes.ContainsKey(crossOver.TrackShape))
             {
@@ -2158,19 +2158,17 @@ namespace Orts.Simulation.Signalling
         /// insert end node to capture database break
         /// </summary>
 
-        public static void InsertEndNode(int node, int direction, int pin, int endNode)
+        public static void InsertEndNode(int node, TrackDirection direction, int pin, int endNode)
         {
 
-            TrackCircuitSection thisSection = TrackCircuitList[node];
+            TrackCircuitSection section = TrackCircuitList[node];
             TrackCircuitSection endSection = new TrackCircuitSection(endNode)
             {
                 CircuitType = TrackCircuitType.EndOfTrack
             };
-            int endDirection = direction == 0 ? 1 : 0;
-            int iDirection = thisSection.Pins[direction, pin].Direction == 0 ? 1 : 0;
-            endSection.Pins[iDirection, 0] = new TrackPin(node, endDirection);
+            endSection.Pins[(int)(section.Pins[(int)direction, pin].Direction.Next()), 0] = new TrackPin(node, direction.Next());
 
-            thisSection.Pins[direction, pin] = thisSection.Pins[direction, pin].FromLink(endNode);
+            section.Pins[(int)direction, pin] = section.Pins[(int)direction, pin].FromLink(endNode);
 
             TrackCircuitList.Add(endSection);
         }

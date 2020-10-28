@@ -812,7 +812,7 @@ namespace Orts.Formats.Msts.Models
         /// <summary>Index of the tracknode connected to the parent of this pin</summary>
         public int Link { get; }
         /// <summary>In case a connection is made to a vector node this determines the side of the vector node that is connected to</summary>
-        public int Direction { get; }
+        public TrackDirection Direction { get; }
 
         /// <summary>
         /// Default constructor used during file parsing.
@@ -822,11 +822,11 @@ namespace Orts.Formats.Msts.Models
         {
             stf.MustMatchBlockStart();
             Link = stf.ReadInt(null);
-            Direction = stf.ReadInt(null);
+            Direction = (TrackDirection)stf.ReadInt(null);
             stf.SkipRestOfBlock();
         }
 
-        public TrackPin(int link, int direction)
+        public TrackPin(int link, TrackDirection direction)
         {
             Link = link;
             Direction = direction;
@@ -837,7 +837,7 @@ namespace Orts.Formats.Msts.Models
             return new TrackPin(link, Direction);
         }
 
-        public static readonly TrackPin Empty = new TrackPin(-1, -1);
+        public static readonly TrackPin Empty = new TrackPin(-1, (TrackDirection)(-1));
     }
     #endregion
 

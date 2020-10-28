@@ -296,7 +296,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                         try
                         {
                             if (vectorNode == null || vectorNode.TrackVectorSections.Length < 1) continue;
-                            if (pin.Direction == 1)
+                            if (pin.Direction == TrackDirection.Reverse)
                                 item = vectorNode.TrackVectorSections.First();
                             else
                                 item = vectorNode.TrackVectorSections.Last();

@@ -26,6 +26,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+
+using Orts.Common;
 using Orts.Common.Threading;
 using Orts.Formats.OR.Parsers;
 using Orts.Simulation.AIs;
@@ -1044,7 +1046,7 @@ namespace Orts.Simulation.Timetables
 
             // clear track behind engine, only keep actual occupied sections
             Train.TCSubpathRoute tempRoute = train.signalRef.BuildTempRoute(train, train.PresentPosition[1].TCSectionIndex, train.PresentPosition[1].TCOffset,
-                train.PresentPosition[1].TCDirection, train.Length, true, true, false);
+                (TrackDirection)train.PresentPosition[1].TCDirection, train.Length, true, true, false);
             train.OccupiedTrack.Clear();
 
             foreach (Train.TCRouteElement thisElement in tempRoute)

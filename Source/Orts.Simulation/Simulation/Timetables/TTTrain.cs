@@ -1501,7 +1501,7 @@ namespace Orts.Simulation.Timetables
             float deltaLength = thisPlatform.Length - Length; // platform length - train length
 
             // get all sections which form platform
-            TCSubpathRoute platformRoute = signalRef.BuildTempRoute(this, beginSectionIndex, beginOffset, thisElement.Direction, thisPlatform.Length, true, true, false);
+            TCSubpathRoute platformRoute = signalRef.BuildTempRoute(this, beginSectionIndex, beginOffset, (TrackDirection)thisElement.Direction, thisPlatform.Length, true, true, false);
             int platformRouteIndex = platformRoute.GetRouteIndex(routeSectionIndex, 0);
 
             TrackCircuitSection beginSection = signalRef.TrackCircuitList[platformRoute.First().TCSectionIndex];
@@ -1535,7 +1535,7 @@ namespace Orts.Simulation.Timetables
                     newLength += thisSection.Length;
                 }
 
-                platformRoute = signalRef.BuildTempRoute(this, beginSectionIndex, beginOffset, thisElement.Direction, newLength, true, true, false);
+                platformRoute = signalRef.BuildTempRoute(this, beginSectionIndex, beginOffset, (TrackDirection)thisElement.Direction, newLength, true, true, false);
                 platformRouteIndex = routeIndex;
 
                 deltaLength = newLength - Length; // platform length - train length
@@ -1581,7 +1581,7 @@ namespace Orts.Simulation.Timetables
                         newLength += thisSection.Length;
                     }
 
-                    platformRoute = signalRef.BuildTempRoute(this, beginSectionIndex, beginOffset, thisElement.Direction, newLength, true, true, false);
+                    platformRoute = signalRef.BuildTempRoute(this, beginSectionIndex, beginOffset, (TrackDirection)thisElement.Direction, newLength, true, true, false);
                     platformRouteIndex = routeIndex;
 
                     deltaLength = newLength - Length; // platform length - train length
@@ -1631,7 +1631,7 @@ namespace Orts.Simulation.Timetables
                         newLength += thisSection.Length;
                     }
 
-                    platformRoute = signalRef.BuildTempRoute(this, beginSectionIndex, beginOffset, thisElement.Direction, newLength, true, true, false);
+                    platformRoute = signalRef.BuildTempRoute(this, beginSectionIndex, beginOffset, (TrackDirection)thisElement.Direction, newLength, true, true, false);
                     platformRouteIndex = routeIndex;
 
                     deltaLength = newLength - Length; // platform length - train length
@@ -3895,7 +3895,7 @@ namespace Orts.Simulation.Timetables
                         }
 
                         // create temp route and set as valid route
-                        int newDirection = PresentPosition[0].TCDirection == 0 ? 1 : 0;
+                        TrackDirection newDirection = ((TrackDirection)PresentPosition[0].TCDirection).Next();
                         TCSubpathRoute tempRoute = signalRef.BuildTempRoute(this, PresentPosition[0].TCSectionIndex, 0.0f, newDirection, distanceToTrain, true, true, false);
 
                         // set reverse positions
@@ -3923,7 +3923,7 @@ namespace Orts.Simulation.Timetables
                     else
                     {
                         // build path to train - straight forward, set distance of 2000m (should be enough)
-                        TCSubpathRoute tempRoute = signalRef.BuildTempRoute(this, PresentPosition[1].TCSectionIndex, 0.0f, PresentPosition[1].TCDirection, 2000, true, true, false);
+                        TCSubpathRoute tempRoute = signalRef.BuildTempRoute(this, PresentPosition[1].TCSectionIndex, 0.0f, (TrackDirection)PresentPosition[1].TCDirection, 2000, true, true, false);
                         ValidRoute[0] = tempRoute;
                         TCRoute.TCRouteSubpaths[TCRoute.activeSubpath] = new TCSubpathRoute(tempRoute);
 
@@ -5957,7 +5957,7 @@ namespace Orts.Simulation.Timetables
             if (ValidRoute[0] == null)
             {
                 ValidRoute[0] = signalRef.BuildTempRoute(this, thisSection.Index, PresentPosition[1].TCOffset,
-                            PresentPosition[1].TCDirection, trainLength, true, true, false);
+                            (TrackDirection)PresentPosition[1].TCDirection, trainLength, true, true, false);
             }
 
             // find sections
@@ -6057,7 +6057,7 @@ namespace Orts.Simulation.Timetables
             // create route to cover all train sections
 
             TCSubpathRoute tempRoute = signalRef.BuildTempRoute(this, PresentPosition[1].TCSectionIndex, PresentPosition[1].TCOffset,
-                        PresentPosition[1].TCDirection, Length, true, true, false);
+                        (TrackDirection)PresentPosition[1].TCDirection, Length, true, true, false);
 
             if (ValidRoute[0] == null)
             {
@@ -10132,7 +10132,7 @@ namespace Orts.Simulation.Timetables
             }
 
             TrackCircuitSection rearSection = signalRef.TrackCircuitList[PresentPosition[1].TCSectionIndex];
-            float reversalDistanceM = TrackCircuitSection.GetDistanceBetweenObjects(PresentPosition[1].TCSectionIndex, PresentPosition[1].TCOffset, PresentPosition[1].TCDirection,
+            float reversalDistanceM = TrackCircuitSection.GetDistanceBetweenObjects(PresentPosition[1].TCSectionIndex, PresentPosition[1].TCOffset, (TrackDirection)PresentPosition[1].TCDirection,
             reversalSection, 0.0f);
 
             bool reversalEnabled = true;
@@ -10491,7 +10491,7 @@ namespace Orts.Simulation.Timetables
                             }
 
                             // create temp route and set as valid route
-                            int newDirection = PresentPosition[0].TCDirection == 0 ? 1 : 0;
+                            TrackDirection newDirection = ((TrackDirection)PresentPosition[0].TCDirection).Next();
                             TCSubpathRoute tempRoute = signalRef.BuildTempRoute(this, PresentPosition[0].TCSectionIndex, 0.0f, newDirection, distanceToTrain, true, true, false);
 
                             // set reverse positions
@@ -10519,7 +10519,7 @@ namespace Orts.Simulation.Timetables
                         else
                         {
                             // build path to train - straight forward, set distance of 2000m (should be enough)
-                            TCSubpathRoute tempRoute = signalRef.BuildTempRoute(this, PresentPosition[1].TCSectionIndex, 0.0f, PresentPosition[1].TCDirection, 2000, true, true, false);
+                            TCSubpathRoute tempRoute = signalRef.BuildTempRoute(this, PresentPosition[1].TCSectionIndex, 0.0f, (TrackDirection)PresentPosition[1].TCDirection, 2000, true, true, false);
                             ValidRoute[0] = tempRoute;
                             attachPositionInfo = Simulator.Catalog.GetString(", forward");
                         }
@@ -11638,7 +11638,7 @@ namespace Orts.Simulation.Timetables
 
             // set new track sections occupied
             TCSubpathRoute tempRoute = signalRef.BuildTempRoute(attachTrain, attachTrain.PresentPosition[1].TCSectionIndex,
-                attachTrain.PresentPosition[1].TCOffset, attachTrain.PresentPosition[1].TCDirection, attachTrain.Length, true, true, false);
+                attachTrain.PresentPosition[1].TCOffset, (TrackDirection)attachTrain.PresentPosition[1].TCDirection, attachTrain.Length, true, true, false);
 
             List<TrackCircuitSection> newOccupiedSections = new List<TrackCircuitSection>();
             foreach (TCRouteElement thisElement in tempRoute)
@@ -12102,7 +12102,7 @@ namespace Orts.Simulation.Timetables
 
             // get new track sections occupied
             Train.TCSubpathRoute tempRouteTrain = Simulator.Signals.BuildTempRoute(this, PresentPosition[1].TCSectionIndex,
-                PresentPosition[1].TCOffset, PresentPosition[1].TCDirection, Length, false, true, false);
+                PresentPosition[1].TCOffset, (TrackDirection)PresentPosition[1].TCDirection, Length, false, true, false);
 
             // if detached from front, clear train from track and all further sections
             // set train occupied for new sections
@@ -12166,7 +12166,7 @@ namespace Orts.Simulation.Timetables
 
             // build temp route for new train
             Train.TCSubpathRoute tempRouteNewTrain = Simulator.Signals.BuildTempRoute(newTrain, newTrain.PresentPosition[1].TCSectionIndex,
-                newTrain.PresentPosition[1].TCOffset, newTrain.PresentPosition[1].TCDirection, newTrain.Length, false, true, false);
+                newTrain.PresentPosition[1].TCOffset, (TrackDirection)newTrain.PresentPosition[1].TCDirection, newTrain.Length, false, true, false);
 
             // if train has no valid route, create from occupied sections
             if (newTrain.ValidRoute[0] == null)
@@ -12302,7 +12302,7 @@ namespace Orts.Simulation.Timetables
                     if (PresentPosition[1].TCSectionIndex >= 0)
                     {
                         tempRoute = signalRef.BuildTempRoute(this, PresentPosition[1].TCSectionIndex, PresentPosition[1].TCOffset,
-                            PresentPosition[1].TCDirection, Length, true, true, false);
+                            (TrackDirection)PresentPosition[1].TCDirection, Length, true, true, false);
                     }
 
                     // add if first section is occupied
@@ -12360,7 +12360,7 @@ namespace Orts.Simulation.Timetables
                     if (PresentPosition[1].TCSectionIndex >= 0)
                     {
                         tempRoute = signalRef.BuildTempRoute(this, PresentPosition[1].TCSectionIndex, PresentPosition[1].TCOffset,
-                            PresentPosition[1].TCDirection, Length, true, true, false);
+                            (TrackDirection)PresentPosition[1].TCDirection, Length, true, true, false);
                     }
 
                     // add if last section is occupied
@@ -13630,7 +13630,7 @@ namespace Orts.Simulation.Timetables
                     newTrain = new TTTrain(train.AI.Simulator, train);
                     newTrain.AI = train.AI;  // set AT as Simulator.AI does not exist in prerun mode
                     newTrain.ValidRoute[0] = train.signalRef.BuildTempRoute(newTrain, train.PresentPosition[0].TCSectionIndex, 
-                        train.PresentPosition[0].TCOffset, train.PresentPosition[0].TCDirection, train.Length, true, true, false);
+                        train.PresentPosition[0].TCOffset, (TrackDirection)train.PresentPosition[0].TCDirection, train.Length, true, true, false);
                     train.PresentPosition[0].CopyTo(ref newTrain.PresentPosition[0]);
                     train.PresentPosition[1].CopyTo(ref newTrain.PresentPosition[1]);
 
