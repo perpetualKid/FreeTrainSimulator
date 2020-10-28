@@ -565,7 +565,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             {
                 var thisElement = routePath[index];
                 TrackCircuitSection thisSection = Locomotive.Train.signalRef.TrackCircuitList[thisElement.TCSectionIndex];
-                TrackCircuitSignalList thisSignalList = thisSection.CircuitItems.TrackCircuitSignals[(Heading)thisElement.Direction][fn_type];
+                TrackCircuitSignalList thisSignalList = thisSection.CircuitItems.TrackCircuitSignals[(TrackDirection)thisElement.Direction][fn_type];
                 foreach (TrackCircuitSignalItem thisSignal in thisSignalList)
                 {
                     if (thisSignal.SignalLocation > lengthOffset)

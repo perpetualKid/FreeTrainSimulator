@@ -118,6 +118,12 @@ namespace Orts.Common
         Permission,
     }
 
+    public enum TrackDirection
+    {
+        Ahead,
+        Reverse,
+    }
+
     public enum CabSetting
     {
         Name,       // name of control

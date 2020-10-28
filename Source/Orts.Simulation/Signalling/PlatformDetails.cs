@@ -52,11 +52,11 @@ namespace Orts.Simulation.Signalling
 
         public List<int> TCSectionIndex { get; } = new List<int>();
         public EnumArray<int, Location> PlatformReference { get; } = new EnumArray<int, Location>();
-        public EnumArray2D<float, Location, Heading> TrackCircuitOffset { get; } = new EnumArray2D<float, Location, Heading>();
+        public EnumArray2D<float, Location, TrackDirection> TrackCircuitOffset { get; } = new EnumArray2D<float, Location, TrackDirection>();
         public EnumArray<float, Location> NodeOffset { get; } = new EnumArray<float, Location>();
         public float Length { get; set; }
-        public EnumArray<int, Heading> EndSignals { get; } = new EnumArray<int, Heading>(-1);
-        public EnumArray<float, Heading> DistanceToSignals { get; } = new EnumArray<float, Heading>();
+        public EnumArray<int, TrackDirection> EndSignals { get; } = new EnumArray<int, TrackDirection>(-1);
+        public EnumArray<float, TrackDirection> DistanceToSignals { get; } = new EnumArray<float, TrackDirection>();
         public string Name { get; internal set; }
         public uint MinWaitingTime { get; internal set; }
         public int NumPassengersWaiting { get; internal set; }

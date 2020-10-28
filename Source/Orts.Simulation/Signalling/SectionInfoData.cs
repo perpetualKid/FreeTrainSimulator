@@ -23,35 +23,35 @@ namespace Orts.Simulation.Signalling
 {
     public class SectionInfoBase
     {
-        public EnumArray<float, Heading> Start { get; } = new EnumArray<float, Heading>();              // start position of tunnel : -1 if start is in tunnel
+        public EnumArray<float, TrackDirection> Start { get; } = new EnumArray<float, TrackDirection>();              // start position of tunnel : -1 if start is in tunnel
 
-        public EnumArray<float, Heading> End { get; } = new EnumArray<float, Heading>();                // end position of tunnel : -1 if end is in tunnel
+        public EnumArray<float, TrackDirection> End { get; } = new EnumArray<float, TrackDirection>();                // end position of tunnel : -1 if end is in tunnel
         public float LengthInSection { get; }                                                           // length of tunnel within this TCS
         public float LengthTotal { get; }                                                               // total length of tunnel
-        public EnumArray<float, Heading> SectionStartOffset { get; } = new EnumArray<float, Heading>(); // offset in tunnel of start of this TCS : -1 if tunnel start in this TCS
+        public EnumArray<float, TrackDirection> SectionStartOffset { get; } = new EnumArray<float, TrackDirection>(); // offset in tunnel of start of this TCS : -1 if tunnel start in this TCS
 
         public SectionInfoBase(float start, float end, float lengthInSection, float length, float trackcircuitSectionLength, float startOffset)
         {
             LengthInSection = lengthInSection;
             LengthTotal = length;
-            Start[Heading.Reverse] = start;
-            End[Heading.Reverse] = end;
-            SectionStartOffset[Heading.Reverse] = startOffset;
+            Start[TrackDirection.Reverse] = start;
+            End[TrackDirection.Reverse] = end;
+            SectionStartOffset[TrackDirection.Reverse] = startOffset;
 
-            Start[Heading.Ahead] = end < 0 ? -1 : trackcircuitSectionLength - end;
-            End[Heading.Ahead] = start < 0 ? -1 : trackcircuitSectionLength - start;
+            Start[TrackDirection.Ahead] = end < 0 ? -1 : trackcircuitSectionLength - end;
+            End[TrackDirection.Ahead] = start < 0 ? -1 : trackcircuitSectionLength - start;
 
             if (start >= 0)
             {
-                SectionStartOffset[Heading.Ahead] = -1;
+                SectionStartOffset[TrackDirection.Ahead] = -1;
             }
             else if (startOffset < 0)
             {
-                SectionStartOffset[Heading.Ahead] = LengthTotal - lengthInSection;
+                SectionStartOffset[TrackDirection.Ahead] = LengthTotal - lengthInSection;
             }
             else
             {
-                SectionStartOffset[Heading.Ahead] = LengthTotal - startOffset - trackcircuitSectionLength;
+                SectionStartOffset[TrackDirection.Ahead] = LengthTotal - startOffset - trackcircuitSectionLength;
             }
         }
     }

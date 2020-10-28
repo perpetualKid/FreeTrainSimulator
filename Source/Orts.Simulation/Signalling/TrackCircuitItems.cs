@@ -34,9 +34,9 @@ namespace Orts.Simulation.Signalling
 
     public class TrackCircuitItems
     {
-        public EnumArray<List<TrackCircuitSignalList>, Heading> TrackCircuitSignals { get; } = new EnumArray<List<TrackCircuitSignalList>, Heading>();
+        public EnumArray<List<TrackCircuitSignalList>, TrackDirection> TrackCircuitSignals { get; } = new EnumArray<List<TrackCircuitSignalList>, TrackDirection>();
         // List of signals (per direction and per type) //
-        public EnumArray<TrackCircuitSignalList, Heading> TrackCircuitSpeedPosts { get; } = new EnumArray<TrackCircuitSignalList, Heading>();
+        public EnumArray<TrackCircuitSignalList, TrackDirection> TrackCircuitSpeedPosts { get; } = new EnumArray<TrackCircuitSignalList, TrackDirection>();
         // List of speedposts (per direction) //
         public TrackCircuitMilepostList TrackCircuitMileposts { get; } = new TrackCircuitMilepostList();
         // List of mileposts //
@@ -48,7 +48,7 @@ namespace Orts.Simulation.Signalling
 
         public TrackCircuitItems(int orSignalTypes)
         {
-            foreach (Heading heading in EnumExtension.GetValues<Heading>())
+            foreach (TrackDirection heading in EnumExtension.GetValues<TrackDirection>())
             {
                 List<TrackCircuitSignalList> trackSignalLists = new List<TrackCircuitSignalList>();
                 for (int fntype = 0; fntype < orSignalTypes; fntype++)

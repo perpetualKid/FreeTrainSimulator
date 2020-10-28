@@ -67,7 +67,7 @@ namespace Orts.Simulation.Signalling
         public List<int> LinkedSignals { get; internal set; }                           // switchstands linked with this switch    //
         public List<int> SignalsPassingRoutes { get; private set; }                     // list of signals reading passed junction //
 
-        public EnumArray<Signal, Heading> EndSignals { get; private set; } = new EnumArray<Signal, Heading>();   // signals at either end      //
+        public EnumArray<Signal, TrackDirection> EndSignals { get; private set; } = new EnumArray<Signal, TrackDirection>();   // signals at either end      //
 
         public double Overlap { get; private set; }                                     // overlap for junction nodes //
         public List<int> PlatformIndices { get; } = new List<int>();                    // platforms along section    //
@@ -396,8 +396,8 @@ namespace Orts.Simulation.Signalling
                 CircuitType = TrackCircuitType.Normal// CircuitType;
             };
 
-            newSection.EndSignals[Heading.Ahead] = EndSignals[Heading.Ahead];
-            newSection.EndSignals[Heading.Reverse] = EndSignals[Heading.Reverse];
+            newSection.EndSignals[TrackDirection.Ahead] = EndSignals[TrackDirection.Ahead];
+            newSection.EndSignals[TrackDirection.Reverse] = EndSignals[TrackDirection.Reverse];
 
             newSection.Length = Length;
 
@@ -636,7 +636,7 @@ namespace Orts.Simulation.Signalling
 
                 if (currentIndex < 0) return; //Added by JTang
                 routeElement = route[currentIndex];
-                Heading direction = (Heading)routeElement.Direction;
+                TrackDirection direction = (TrackDirection)routeElement.Direction;
 
                 for (int fntype = 0; fntype < signals.ORTSSignalTypeCount; fntype++)
                 {
@@ -906,7 +906,7 @@ namespace Orts.Simulation.Signalling
             ClearDeadlockTrap(train.Train.Number); // clear deadlock traps
 
             // if signal at either end is still enabled for this train, reset the signal
-            foreach (Heading heading in EnumExtension.GetValues<Heading>())
+            foreach (TrackDirection heading in EnumExtension.GetValues<TrackDirection>())
             {
                 if (EndSignals[heading]?.enabledTrain == train && resetEndSignal)
                 {
@@ -1934,7 +1934,7 @@ namespace Orts.Simulation.Signalling
             for (int i = startindex - 2; i >= trainRouted.Train.PresentPosition[0].RouteListIndex; i--)
             {
                 TrackCircuitSection thisSection = TrackCircuitList[trainRouted.Train.ValidRoute[trainRouted.TrainRouteDirectionIndex][i].TCSectionIndex];
-                Signal thisSignal = thisSection.EndSignals[(Heading)trainRouted.Train.ValidRoute[trainRouted.TrainRouteDirectionIndex][i].Direction];
+                Signal thisSignal = thisSection.EndSignals[(TrackDirection)trainRouted.Train.ValidRoute[trainRouted.TrainRouteDirectionIndex][i].Direction];
                 if (thisSignal != null)
                 {
                     thisSignal.ResetSignal(false);
@@ -2024,11 +2024,11 @@ namespace Orts.Simulation.Signalling
                 }
             }
 
-            for (int itype = 0; itype < sourceSection.CircuitItems.TrackCircuitSignals[Heading.Reverse].Count; itype++)
+            for (int itype = 0; itype < sourceSection.CircuitItems.TrackCircuitSignals[TrackDirection.Reverse].Count; itype++)
             {
-                TrackCircuitSignalList orgSigList = sourceSection.CircuitItems.TrackCircuitSignals[Heading.Reverse][itype];
-                TrackCircuitSignalList replSigList = replacementSection.CircuitItems.TrackCircuitSignals[Heading.Reverse][itype];
-                TrackCircuitSignalList newSigList = targetSection.CircuitItems.TrackCircuitSignals[Heading.Reverse][itype];
+                TrackCircuitSignalList orgSigList = sourceSection.CircuitItems.TrackCircuitSignals[TrackDirection.Reverse][itype];
+                TrackCircuitSignalList replSigList = replacementSection.CircuitItems.TrackCircuitSignals[TrackDirection.Reverse][itype];
+                TrackCircuitSignalList newSigList = targetSection.CircuitItems.TrackCircuitSignals[TrackDirection.Reverse][itype];
 
                 foreach (TrackCircuitSignalItem thisSignal in orgSigList)
                 {
@@ -2065,9 +2065,9 @@ namespace Orts.Simulation.Signalling
                 }
             }
 
-            orgSpeedList = sourceSection.CircuitItems.TrackCircuitSpeedPosts[Heading.Reverse];
-            replSpeedList = replacementSection.CircuitItems.TrackCircuitSpeedPosts[Heading.Reverse];
-            newSpeedList = targetSection.CircuitItems.TrackCircuitSpeedPosts[Heading.Reverse];
+            orgSpeedList = sourceSection.CircuitItems.TrackCircuitSpeedPosts[TrackDirection.Reverse];
+            replSpeedList = replacementSection.CircuitItems.TrackCircuitSpeedPosts[TrackDirection.Reverse];
+            newSpeedList = targetSection.CircuitItems.TrackCircuitSpeedPosts[TrackDirection.Reverse];
 
             foreach (TrackCircuitSignalItem thisSpeedpost in orgSpeedList)
             {

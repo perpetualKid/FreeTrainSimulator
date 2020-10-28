@@ -2428,7 +2428,7 @@ namespace Orts.Simulation.RollingStocks
             int thisSectionIndex = Train.PresentPosition[0].TCSectionIndex;
             if (thisSectionIndex < 0) return isOverTrough;
             float thisSectionOffset = Train.PresentPosition[0].TCOffset;
-            Heading thisSectionDirection = (Heading)Train.PresentPosition[0].TCDirection;
+            TrackDirection thisSectionDirection = (TrackDirection)Train.PresentPosition[0].TCDirection;
 
 
             float usedCarLength = CarLengthM;
@@ -2479,7 +2479,7 @@ namespace Orts.Simulation.RollingStocks
                         thisSectionIndex = thisSectionRouteIndex;
                         thisSection = Train.signalRef.TrackCircuitList[thisSectionIndex];
                         thisSectionOffset = thisSection.Length;  // always at end of next section
-                        thisSectionDirection = (Heading)Train.ValidRoute[0][thisSectionRouteIndex].Direction;
+                        thisSectionDirection = (TrackDirection)Train.ValidRoute[0][thisSectionRouteIndex].Direction;
                     }
                     else // ran out of train
                     {
