@@ -14,6 +14,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>none</DebugType>
     <DebugSymbols>false</DebugSymbols>
+    <DefineConstants>TRACE</DefineConstants>
   </PropertyGroup>
   <PropertyGroup>
     <VersionPrefix>1.3.5</VersionPrefix>
@@ -24,7 +25,4 @@
     <Copyright>Copyright © 2020</Copyright>
     <NoWin32Manifest>true</NoWin32Manifest>
     <NeutralLanguage>en</NeutralLanguage>  </PropertyGroup>
-  <PropertyGroup>
-    <NoWarn></NoWarn>
-  </PropertyGroup>
 </Project>

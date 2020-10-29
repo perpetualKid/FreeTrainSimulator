@@ -16,11 +16,11 @@
     <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DefineConstants>NEW_ACTION;WITH_NEW_SAVE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;NEW_ACTION;WITH_NEW_SAVE</DefineConstants>
     <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DefineConstants>NEW_ACTION;WITH_NEW_SAVE</DefineConstants>
+    <DefineConstants>TRACE;NEW_ACTION;WITH_NEW_SAVE</DefineConstants>
     <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>

@@ -12,12 +12,6 @@
     <ApplicationIcon>..\..\Orts.ico</ApplicationIcon>
     <AssemblyName>Contrib.TrackViewer</AssemblyName>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net48|AnyCPU'">
-    <DefineConstants>TRACE;</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net48|AnyCPU'">
-    <DefineConstants>TRACE</DefineConstants>
-  </PropertyGroup>
   <ItemGroup>
     <Compile Remove="Editing\EditorContextMenu.cs" />
     <Compile Remove="Editing\UncouplePointDialog.xaml.cs" />
