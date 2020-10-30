@@ -977,7 +977,7 @@ namespace Orts.Simulation.Timetables
         /// Test if route leads to pool
         /// </summary>
 
-        public bool TestRouteLeadingToPool(Train.TCSubpathRoute testedRoute, int poolIndex, string dumpfile, string trainName)
+        public bool TestRouteLeadingToPool(Train.TCSubpathRoute testedRoute, int poolIndex, string trainName)
         {
             Train.TCSubpathRoute poolStorage = StoragePool[poolIndex].StoragePath;
 
@@ -986,12 +986,6 @@ namespace Orts.Simulation.Timetables
             {
                 if (testedRoute.GetRouteIndex(routeElement.TCSectionIndex, 0) > 0)
                 {
-                    if (!String.IsNullOrEmpty(dumpfile))
-                    {
-                        var sob = new StringBuilder();
-                        sob.AppendFormat("CALL ON : Train {0} : valid - train is going into pool {1} \n", trainName, PoolName);
-                        File.AppendAllText(dumpfile, sob.ToString());
-                    }
                     return (true);
                 }
             }

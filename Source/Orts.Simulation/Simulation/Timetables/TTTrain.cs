@@ -6793,17 +6793,11 @@ namespace Orts.Simulation.Timetables
         /// <param name="thisRoute"></param>
         /// <param name="dumpfile"></param>
         /// <returns></returns>
-        public override bool TestCallOn(Signal thisSignal, bool allowOnNonePlatform, TCSubpathRoute thisRoute, string dumpfile)
+        public override bool TestCallOn(Signal thisSignal, bool allowOnNonePlatform, TCSubpathRoute thisRoute)
         {
             // always allow if set for stable working
             if (Stable_CallOn)
             {
-                if (!String.IsNullOrEmpty(dumpfile))
-                {
-                    var sob = new StringBuilder();
-                    sob.AppendFormat("CALL ON : Train {0} : valid - train has Stable_CallOn set \n", Name);
-                    File.AppendAllText(dumpfile, sob.ToString());
-                }
                 return (true);
             }
 
@@ -6811,7 +6805,7 @@ namespace Orts.Simulation.Timetables
             if (PoolStorageIndex >= 0)
             {
                 TimetablePool thisPool = AI.Simulator.PoolHolder.Pools[ExitPool];
-                if (thisPool.TestRouteLeadingToPool(thisRoute, PoolStorageIndex, dumpfile, Name))
+                if (thisPool.TestRouteLeadingToPool(thisRoute, PoolStorageIndex, Name))
                 {
                     return (true);
                 }
@@ -6841,12 +6835,6 @@ namespace Orts.Simulation.Timetables
                         // if train is moving - do not allow call on
                         if (Math.Abs(occTTTrain.SpeedMpS) > 0.1f)
                         {
-                            if (!String.IsNullOrEmpty(dumpfile))
-                            {
-                                var sob = new StringBuilder();
-                                sob.AppendFormat("CALL ON : Train {0} : invalid - train {1} is moving (speed : {2} (m/s)) \n", Name, occTTTrain.Name, occTTTrain.SpeedMpS);
-                                File.AppendAllText(dumpfile, sob.ToString());
-                            }
                             return (false);
                         }
 
@@ -6864,32 +6852,14 @@ namespace Orts.Simulation.Timetables
                         {
                             if (movState == AITrain.AI_MOVEMENT_STATE.STOPPED || movState == AITrain.AI_MOVEMENT_STATE.STATION_STOP || movState == AITrain.AI_MOVEMENT_STATE.AI_STATIC)
                             {
-                                if (!String.IsNullOrEmpty(dumpfile))
-                                {
-                                    var sob = new StringBuilder();
-                                    sob.AppendFormat("CALL ON : Train {0} : valid - train is to attach to {1} \n", Name, occTTTrain.Name);
-                                    File.AppendAllText(dumpfile, sob.ToString());
-                                }
                                 return (true);
                             }
                             else if (occTTTrain.TrainType == TRAINTYPE.PLAYER && occTTTrain.AtStation)
                             {
-                                if (!String.IsNullOrEmpty(dumpfile))
-                                {
-                                    var sob = new StringBuilder();
-                                    sob.AppendFormat("CALL ON : Train {0} : valid - train is to attach to {1} \n", Name, occTTTrain.Name);
-                                    File.AppendAllText(dumpfile, sob.ToString());
-                                }
                                 return (true);
                             }
                             else
                             {
-                                if (!String.IsNullOrEmpty(dumpfile))
-                                {
-                                    var sob = new StringBuilder();
-                                    sob.AppendFormat("CALL ON : Train {0} : invalid - train is to attach to {1} but train is moving \n", Name, occTTTrain.Name);
-                                    File.AppendAllText(dumpfile, sob.ToString());
-                                }
                                 return (false);
                             }
                         }
@@ -6900,22 +6870,10 @@ namespace Orts.Simulation.Timetables
 
                         if (CheckPickUp(occTTTrain))
                         {
-                            if (!String.IsNullOrEmpty(dumpfile))
-                            {
-                                var sob = new StringBuilder();
-                                sob.AppendFormat("CALL ON : Train {0} : valid - train is to pickup {1} \n", Name, occTTTrain.Name);
-                                File.AppendAllText(dumpfile, sob.ToString());
-                            }
                             return (true);
                         }
                         else if (CheckTransfer(occTTTrain, ref transferStationIndex, ref transferTrainIndex))
                         {
-                            if (!String.IsNullOrEmpty(dumpfile))
-                            {
-                                var sob = new StringBuilder();
-                                sob.AppendFormat("CALL ON : Train {0} : valid - train is to transfer to {1} \n", Name, occTTTrain.Name);
-                                File.AppendAllText(dumpfile, sob.ToString());
-                            }
                             return (true);
                         }
                     }
@@ -6943,30 +6901,12 @@ namespace Orts.Simulation.Timetables
 
                                     if (movState == AITrain.AI_MOVEMENT_STATE.STOPPED || movState == AITrain.AI_MOVEMENT_STATE.STATION_STOP || movState == AITrain.AI_MOVEMENT_STATE.AI_STATIC)
                                     {
-                                        if (!String.IsNullOrEmpty(dumpfile))
-                                        {
-                                            var sob = new StringBuilder();
-                                            sob.AppendFormat("CALL ON : Train {0} : access to platform {1}, train {2} is stopped \n", Name, thisPlatform.Name, occTTTrain.Name);
-                                            File.AppendAllText(dumpfile, sob.ToString());
-                                        }
                                     }
                                     else if (occTTTrain.TrainType == Train.TRAINTYPE.PLAYER && occTTTrain.AtStation)
                                     {
-                                        if (!String.IsNullOrEmpty(dumpfile))
-                                        {
-                                            var sob = new StringBuilder();
-                                            sob.AppendFormat("CALL ON : Train {0} : access to platform {1}, train {2} (player train) is at station \n", Name, thisPlatform.Name, occTTTrain.Name);
-                                            File.AppendAllText(dumpfile, sob.ToString());
-                                        }
                                     }
                                     else
                                     {
-                                        if (!String.IsNullOrEmpty(dumpfile))
-                                        {
-                                            var sob = new StringBuilder();
-                                            sob.AppendFormat("CALL ON : Train {0} : invalid - access to platform {1}, but train {2} is moving \n", Name, thisPlatform.Name, occTTTrain.Name);
-                                            File.AppendAllText(dumpfile, sob.ToString());
-                                        }
                                         allclear = false;
                                         break; // no need to check for other trains
                                     }
@@ -6975,24 +6915,12 @@ namespace Orts.Simulation.Timetables
                             else
                             {
                                 // not first station or train has call-on not set
-                                if (!String.IsNullOrEmpty(dumpfile))
-                                {
-                                    var sob = new StringBuilder();
-                                    sob.AppendFormat("CALL ON : Train {0} : invalid - access to platform {1}, train does not call or has no call-on set \n", Name, thisPlatform.Name);
-                                    File.AppendAllText(dumpfile, sob.ToString());
-                                }
                                 allclear = false;
                             }
                         }
                         else
                         {
                             // train has no stops
-                            if (!String.IsNullOrEmpty(dumpfile))
-                            {
-                                var sob = new StringBuilder();
-                                sob.AppendFormat("CALL ON : Train {0} : invalid - access to platform {1}, but train has no stops \n", Name, thisPlatform.Name);
-                                File.AppendAllText(dumpfile, sob.ToString());
-                            }
                             allclear = false;
                         }
                     }
@@ -7029,12 +6957,6 @@ namespace Orts.Simulation.Timetables
             else
             {
                 // path does not lead into platform - return state as defined in call
-                if (!String.IsNullOrEmpty(dumpfile))
-                {
-                    var sob = new StringBuilder();
-                    sob.AppendFormat("CALL ON : Train {0} : {1} - route does not lead into platform \n", Name, allowOnNonePlatform);
-                    File.AppendAllText(dumpfile, sob.ToString());
-                }
                 return (allowOnNonePlatform);
             }
         }

@@ -1832,7 +1832,7 @@ namespace Orts.Simulation.AIs
                 {
 //                    locked = true;
                     Trace.TraceWarning("SignalObject trItem={0}, trackNode={1}, wasn't locked for train {2}.",
-                        SignalReferenced.trItem, SignalReferenced.TrackNode, thisTrain.Number);
+                        SignalReferenced.TrackItemIndex, SignalReferenced.TrackNode, thisTrain.Number);
                 }
             }
             if (ClearSignal(thisTrain) || (thisTrain.NextSignalObject[0] != null && (thisTrain.NextSignalObject[0].this_sig_lr(SignalFunction.Normal) > SignalAspectState.Stop)) ||

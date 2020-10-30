@@ -972,7 +972,7 @@ namespace Orts.Simulation.Signalling
                                 Signal AddSignal = SignalHeadList[thisReference.Key];
                                 if (MainSignal.TrackNode != AddSignal.TrackNode)
                                 {
-                                    Trace.TraceWarning("Signal head {0} in different track node than signal head {1} of same signal", MainSignal.trItem, thisReference.Key);
+                                    Trace.TraceWarning("Signal head {0} in different track node than signal head {1} of same signal", MainSignal.TrackItemIndex, thisReference.Key);
                                     MainSignal = null;
                                     break;
                                 }
@@ -1763,7 +1763,7 @@ namespace Orts.Simulation.Signalling
 
                     for (int fntype = 0; fntype < OrtsSignalTypeCount; fntype++)
                     {
-                        if (thisSignal.isORTSSignalType(fntype))
+                        if (thisSignal.OrtsSignalType(fntype))
                         {
                             TrackCircuitSignalItem thisTCItem =
                                     new TrackCircuitSignalItem(thisSignal, signalDistance);

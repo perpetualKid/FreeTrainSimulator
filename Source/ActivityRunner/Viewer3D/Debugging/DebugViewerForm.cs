@@ -328,7 +328,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                     if (si.SignalObject >= 0 && si.SignalObject < simulator.Signals.SignalObjects.Count)
                     {
                         Signal s = simulator.Signals.SignalObjects[si.SignalObject];
-                        if (s != null && s.IsSignal && s.isSignalNormal()) signals.Add(new SignalWidget(si, s));
+                        if (s != null && s.IsSignal && s.SignalNormal()) signals.Add(new SignalWidget(si, s));
                     }
                 }
 			  if (item is SidingItem || item is PlatformItem)
@@ -738,7 +738,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
 				 s.Location2D.X = scaledItem.X; 
                     s.Location2D.Y = scaledItem.Y;
-				 if (s.Signal.isSignalNormal())//only show nor
+				 if (s.Signal.SignalNormal())//only show nor
 				 {
 					 var color = Brushes.Green;
 					 var pen = greenPen;

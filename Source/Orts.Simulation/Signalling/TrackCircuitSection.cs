@@ -624,7 +624,7 @@ namespace Orts.Simulation.Signalling
                     foreach (TrackCircuitSignalItem item in CircuitItems.TrackCircuitSignals[direction][fntype])
                     {
                         Signal thisSignal = item.Signal;
-                        if (!thisSignal.isSignalNormal())
+                        if (!thisSignal.SignalNormal())
                         {
                             thisSignal.EnabledTrain = train;
                         }
@@ -634,7 +634,7 @@ namespace Orts.Simulation.Signalling
                 // also set enabled for speedpost to process speed signals
                 foreach (TrackCircuitSignalItem item in CircuitItems.TrackCircuitSpeedPosts[direction])
                 {
-                    if (!item.Signal.isSignalNormal())
+                    if (!item.Signal.SignalNormal())
                     {
                         item.Signal.EnabledTrain = train;
                     }
@@ -914,7 +914,7 @@ namespace Orts.Simulation.Signalling
                 foreach (TrackCircuitSignalItem thisItem in thisSpeedpostList)
                 {
                     Signal thisSpeedpost = thisItem.Signal;
-                    if (!thisSpeedpost.isSignalNormal())
+                    if (!thisSpeedpost.SignalNormal())
                     {
                         thisSpeedpost.resetSignalEnabled();
                     }

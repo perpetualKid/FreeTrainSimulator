@@ -6508,7 +6508,7 @@ namespace Orts.Simulation.Physics
                             }
                             break;
                         }
-                        else if (ControlMode == TRAIN_CONTROL.AUTO_SIGNAL && NextSignalObject[direction].block_state() != SignalBlockState.Clear) // route to next signal not clear
+                        else if (ControlMode == TRAIN_CONTROL.AUTO_SIGNAL && NextSignalObject[direction].BlockState() != SignalBlockState.Clear) // route to next signal not clear
                         {
                             SwitchToNodeControl(LastReservedSection[direction]);
 #if DEBUG_REPORTS
@@ -7433,7 +7433,7 @@ namespace Orts.Simulation.Physics
         /// <returns></returns>
         /// 
 
-        public virtual bool TestCallOn(Signal thisSignal, bool allowOnNonePlatform, TCSubpathRoute thisRoute, string dumpfile)
+        public virtual bool TestCallOn(Signal thisSignal, bool allowOnNonePlatform, TCSubpathRoute thisRoute)
         {
             bool intoPlatform = false;
 
@@ -7452,23 +7452,11 @@ namespace Orts.Simulation.Physics
             if (!intoPlatform)
             {
                 //if track does not lead into platform, return state as defined in call
-                if (!String.IsNullOrEmpty(dumpfile))
-                {
-                    var sob = new StringBuilder();
-                    sob.AppendFormat("CALL ON : Train {0} : {1} - route does not lead into platform \n", Name, allowOnNonePlatform);
-                    File.AppendAllText(dumpfile, sob.ToString());
-                }
                 return (allowOnNonePlatform);
             }
             else
             {
                 // never allow if track leads into platform
-                if (!String.IsNullOrEmpty(dumpfile))
-                {
-                    var sob = new StringBuilder();
-                    sob.AppendFormat("CALL ON : Train {0} : invalid - route leads into platform \n", Name);
-                    File.AppendAllText(dumpfile, sob.ToString());
-                }
                 return (false);
             }
         }
@@ -9702,7 +9690,7 @@ namespace Orts.Simulation.Physics
                 TrackCircuitSignalList thisList = thisSection.CircuitItems.TrackCircuitSignals[thisDirection][isigtype];
                 foreach (TrackCircuitSignalItem thisItem in thisList)
                 {
-                    if (thisItem.SignalLocation > PresentPosition[0].TCOffset && !thisItem.Signal.isSignalNormal())
+                    if (thisItem.SignalLocation > PresentPosition[0].TCOffset && !thisItem.Signal.SignalNormal())
                     {
                         thisItem.Signal.EnabledTrain = this.routedForward;
                     }
@@ -9720,7 +9708,7 @@ namespace Orts.Simulation.Physics
                     TrackCircuitSignalList thisList = thisSection.CircuitItems.TrackCircuitSignals[thisDirection][isigtype];
                     foreach (TrackCircuitSignalItem thisItem in thisList)
                     {
-                        if (!thisItem.Signal.isSignalNormal())
+                        if (!thisItem.Signal.SignalNormal())
                         {
                             thisItem.Signal.EnabledTrain = this.routedForward;
                         }

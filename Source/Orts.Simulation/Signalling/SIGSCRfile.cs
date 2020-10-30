@@ -113,7 +113,7 @@ namespace Orts.Simulation.Signalling
 
         public void SH_update_basic(SignalHead thisHead)
         {
-            if (thisHead.MainSignal.block_state() == SignalBlockState.Clear)
+            if (thisHead.MainSignal.BlockState() == SignalBlockState.Clear)
             {
                 thisHead.SetLeastRestrictiveAspect();
             }
@@ -472,7 +472,7 @@ namespace Orts.Simulation.Signalling
                             break;
 
                         case SignalScripts.SCRExternalFloats.BLOCK_STATE:
-                            return_value = (int)thisHead.MainSignal.block_state();
+                            return_value = (int)thisHead.MainSignal.BlockState();
                             break;
 
                         case SignalScripts.SCRExternalFloats.APPROACH_CONTROL_REQ_POSITION:
@@ -550,7 +550,7 @@ namespace Orts.Simulation.Signalling
                 // BlockState
 
                 case (SignalScripts.SCRExternalFunctions.BLOCK_STATE):
-                    return_value = (int)thisHead.MainSignal.block_state();
+                    return_value = (int)thisHead.MainSignal.BlockState();
                     break;
 
                 // Route set
@@ -893,7 +893,7 @@ namespace Orts.Simulation.Signalling
                         dumpfile = String.Concat(dpr_fileLoc, "printproc.txt");
                     }
 #endif
-                    temp_value = thisHead.MainSignal.ApproachControlPosition(parameter1_value, dumpfile, false);
+                    temp_value = thisHead.MainSignal.ApproachControlPosition(parameter1_value, false);
                     return_value = Convert.ToInt32(temp_value);
                     break;
 
@@ -915,7 +915,7 @@ namespace Orts.Simulation.Signalling
                         dumpfile = String.Concat(dpr_fileLoc, "printproc.txt");
                     }
 #endif
-                    temp_value = thisHead.MainSignal.ApproachControlPosition(parameter1_value, dumpfile, true);
+                    temp_value = thisHead.MainSignal.ApproachControlPosition(parameter1_value, true);
                     return_value = Convert.ToInt32(temp_value);
                     break;
 
@@ -937,7 +937,7 @@ namespace Orts.Simulation.Signalling
                         dumpfile = String.Concat(dpr_fileLoc, "printproc.txt");
                     }
 #endif
-                    temp_value = thisHead.MainSignal.ApproachControlSpeed(parameter1_value, parameter2_value, dumpfile);
+                    temp_value = thisHead.MainSignal.ApproachControlSpeed(parameter1_value, parameter2_value);
                     return_value = Convert.ToInt32(temp_value);
                     break;
 
@@ -958,7 +958,7 @@ namespace Orts.Simulation.Signalling
                         dumpfile = String.Concat(dpr_fileLoc, "printproc.txt");
                     }
 #endif
-                    temp_value = thisHead.MainSignal.ApproachControlNextStop(parameter1_value, parameter2_value, dumpfile);
+                    temp_value = thisHead.MainSignal.ApproachControlNextStop(parameter1_value, parameter2_value);
                     return_value = Convert.ToInt32(temp_value);
                     break;
 
@@ -1006,7 +1006,7 @@ namespace Orts.Simulation.Signalling
                         dumpfile = String.Concat(dpr_fileLoc, "printproc.txt");
                     }
 #endif
-                    temp_value = thisHead.MainSignal.CheckTimingTrigger(parameter1_value, dumpfile);
+                    temp_value = thisHead.MainSignal.CheckTimingTrigger(parameter1_value);
                     return_value = Convert.ToInt32(temp_value);
                     break;
 
@@ -1028,7 +1028,7 @@ namespace Orts.Simulation.Signalling
                         dumpfile = String.Concat(dpr_fileLoc, "printproc.txt");
                     }
 #endif
-                    temp_value = thisHead.MainSignal.TrainHasCallOn(true, false, dumpfile);
+                    temp_value = thisHead.MainSignal.TrainHasCallOn(true, false);
                     return_value = Convert.ToInt32(temp_value);
                     break;
 
@@ -1050,7 +1050,7 @@ namespace Orts.Simulation.Signalling
                         dumpfile = String.Concat(dpr_fileLoc, "printproc.txt");
                     }
 #endif
-                    temp_value = thisHead.MainSignal.TrainHasCallOn(false, false, dumpfile);
+                    temp_value = thisHead.MainSignal.TrainHasCallOn(false, false);
                     return_value = Convert.ToInt32(temp_value);
                     break;
 
@@ -1072,7 +1072,7 @@ namespace Orts.Simulation.Signalling
                         dumpfile = String.Concat(dpr_fileLoc, "printproc.txt");
                     }
 #endif
-                    temp_value = thisHead.MainSignal.TrainHasCallOn(true, true, dumpfile);
+                    temp_value = thisHead.MainSignal.TrainHasCallOn(true, true);
                     return_value = Convert.ToInt32(temp_value);
                     break;
 
@@ -1094,7 +1094,7 @@ namespace Orts.Simulation.Signalling
                         dumpfile = String.Concat(dpr_fileLoc, "printproc.txt");
                     }
 #endif
-                    temp_value = thisHead.MainSignal.TrainHasCallOn(false, true, dumpfile);
+                    temp_value = thisHead.MainSignal.TrainHasCallOn(false, true);
                     return_value = Convert.ToInt32(temp_value);
                     break;
 
@@ -1116,7 +1116,7 @@ namespace Orts.Simulation.Signalling
                         dumpfile = String.Concat(dpr_fileLoc, "printproc.txt");
                     }
 #endif
-                    temp_value = thisHead.MainSignal.RequiresNextSignal(parameter1_value, parameter2_value, dumpfile);
+                    temp_value = thisHead.MainSignal.RequiresNextSignal(parameter1_value, parameter2_value);
                     return_value = Convert.ToInt32(temp_value);
                     break;
 
@@ -1136,7 +1136,7 @@ namespace Orts.Simulation.Signalling
                         dumpfile = String.Concat(dpr_fileLoc, "printproc.txt");
                     }
 #endif
-                    return_value = thisHead.MainSignal.FindReqNormalSignal(parameter1_value, dumpfile);
+                    return_value = thisHead.MainSignal.FindReqNormalSignal(parameter1_value);
                     break;
 
                 // check if route upto required signal is fully cleared
@@ -1157,7 +1157,7 @@ namespace Orts.Simulation.Signalling
                         dumpfile = String.Concat(dpr_fileLoc, "printproc.txt");
                     }
 #endif
-                    return_value = (int)thisHead.MainSignal.RouteClearedToSignal(parameter1_value, false, dumpfile);
+                    return_value = (int)thisHead.MainSignal.RouteClearedToSignal(parameter1_value, false);
                     break;
 
                 // check if route upto required signal is fully cleared, but allow callon
@@ -1178,7 +1178,7 @@ namespace Orts.Simulation.Signalling
                         dumpfile = String.Concat(dpr_fileLoc, "printproc.txt");
                     }
 #endif
-                    return_value = (int)thisHead.MainSignal.RouteClearedToSignal(parameter1_value, true, dumpfile);
+                    return_value = (int)thisHead.MainSignal.RouteClearedToSignal(parameter1_value, true);
                     break;
 
                 // check if specified head enabled

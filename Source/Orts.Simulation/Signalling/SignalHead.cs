@@ -144,7 +144,7 @@ namespace Orts.Simulation.Signalling
             }
             else
             {
-                Trace.TraceWarning($"SignalObject trItem={MainSignal.trItem}, trackNode={MainSignal.TrackNode} has SignalHead with undefined SignalType {signalItem.SignalType}.");
+                Trace.TraceWarning($"SignalObject trItem={MainSignal.TrackItemIndex}, trackNode={MainSignal.TrackNode} has SignalHead with undefined SignalType {signalItem.SignalType}.");
             }
         }
 
@@ -312,7 +312,7 @@ namespace Orts.Simulation.Signalling
 
             // ensure next signal of type 1 is located correctly (cannot be done for normal signals searching next normal signal)
 
-            if (!thisSignal.isSignalNormal() || signalType != (int)SignalFunction.Normal)
+            if (!thisSignal.SignalNormal() || signalType != (int)SignalFunction.Normal)
             {
                 thisSignal.Signalfound[signalType] = thisSignal.SONextSignal(signalType);
             }
@@ -326,12 +326,12 @@ namespace Orts.Simulation.Signalling
                 SignalAspectState thisState = thisSignal.MRSignalOnRoute(signalType);
 
                 // ensure correct next signals are located
-                if (signalType != (int)SignalFunction.Normal || !thisSignal.isSignalNormal())
+                if (signalType != (int)SignalFunction.Normal || !thisSignal.SignalNormal())
                 {
                     int sigFound = thisSignal.SONextSignal(signalType);
                     if (sigFound >= 0) thisSignal.Signalfound[(int)signalType] = thisSignal.SONextSignal(signalType);
                 }
-                if (signalTypeOther != (int)SignalFunction.Normal || !thisSignal.isSignalNormal())
+                if (signalTypeOther != (int)SignalFunction.Normal || !thisSignal.SignalNormal())
                 {
                     int sigFound = thisSignal.SONextSignal(signalTypeOther);
                     if (sigFound >= 0) thisSignal.Signalfound[(int)signalTypeOther] = thisSignal.SONextSignal(signalTypeOther);
@@ -375,7 +375,7 @@ namespace Orts.Simulation.Signalling
 
             // ensure next signal of type 1 is located correctly (cannot be done for normal signals searching next normal signal)
 
-            if (!thisSignal.isSignalNormal() || signalType != (int)SignalFunction.Normal)
+            if (!thisSignal.SignalNormal() || signalType != (int)SignalFunction.Normal)
             {
                 thisSignal.Signalfound[signalType] = thisSignal.SONextSignal(signalType);
             }
@@ -389,13 +389,13 @@ namespace Orts.Simulation.Signalling
                 SignalAspectState thisState = thisSignal.this_sig_lr(signalType);
 
                 // ensure correct next signals are located
-                if (signalType != (int)SignalFunction.Normal || !thisSignal.isSignalNormal())
+                if (signalType != (int)SignalFunction.Normal || !thisSignal.SignalNormal())
                 {
                     int sigFound = thisSignal.SONextSignal(signalType);
                     if (sigFound >= 0)
                         thisSignal.Signalfound[signalType] = thisSignal.SONextSignal(signalType);
                 }
-                if (signalTypeOther != (int)SignalFunction.Normal || !thisSignal.isSignalNormal())
+                if (signalTypeOther != (int)SignalFunction.Normal || !thisSignal.SignalNormal())
                 {
                     int sigFound = thisSignal.SONextSignal(signalTypeOther);
                     if (sigFound >= 0)
