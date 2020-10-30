@@ -104,7 +104,7 @@ namespace Orts.Simulation.Signalling
                 SignalType = signalConfig.SignalTypes[signalItem.SignalType];
 
                 // get related signalscript
-                SignalEnvironment.SignaScriptsFile.SignalScripts.Scripts.TryGetValue(SignalType, out signalScript);
+                SignalEnvironment.SignalScriptsFile.SignalScripts.Scripts.TryGetValue(SignalType, out signalScript);
 
                 // set signal speeds
                 foreach (SignalAspect aspect in SignalType.Aspects)
@@ -498,7 +498,7 @@ namespace Orts.Simulation.Signalling
 
         public void Update()
         {
-            SIGSCRfile.SH_update(this, SignalEnvironment.SignaScriptsFile);
+            SIGSCRfile.SH_update(this, SignalEnvironment.SignalScriptsFile);
         }
     } //Update
 

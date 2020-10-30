@@ -181,6 +181,19 @@ namespace Orts.Simulation.Signalling
         internal void ResetIndex(int reference)
         {
             Index = reference;
+            foreach (SignalHead head in SignalHeads)
+            {
+                head.ResetMain(this);//TODO 20201030 may not be necessary, should be done in SignalHead .ctor
+                switch (trackItems[head.TDBIndex])
+                {
+                    case SignalItem signalItem:
+                        signalItem.SignalObject = Index;
+                        break;
+                    case SpeedPostItem speedItem:
+                        speedItem.SignalObject = Index;
+                        break;
+                }
+            }
         }
 
         //================================================================================================//
