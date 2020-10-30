@@ -468,7 +468,7 @@ namespace Orts.Simulation.Signalling
                             break;
 
                         case SignalScripts.SCRExternalFloats.ENABLED:
-                            return_value = Convert.ToInt32(thisHead.MainSignal.enabled);
+                            return_value = Convert.ToInt32(thisHead.MainSignal.Enabled);
                             break;
 
                         case SignalScripts.SCRExternalFloats.BLOCK_STATE:
@@ -1368,7 +1368,7 @@ namespace Orts.Simulation.Signalling
                 // this_sig_noupdate
 
                 case (SignalScripts.SCRExternalFunctions.THIS_SIG_NOUPDATE):
-                    thisHead.MainSignal.noupdate = true;
+                    thisHead.MainSignal.Static = true;
                     break;
 
                 // this_sig_hasnormalsubtype

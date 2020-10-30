@@ -3448,13 +3448,13 @@ namespace Orts.Simulation.Timetables
                                 {
                                     // set this signal as passed, and next signal as waiting
                                     signalCleared = false;   // signal is not clear
-                                    int nextSignalIndex = NextSignalObject[0].sigfound[(int)SignalFunction.Normal];
+                                    int nextSignalIndex = NextSignalObject[0].Signalfound[(int)SignalFunction.Normal];
                                     if (nextSignalIndex >= 0)
                                     {
                                         NextSignalObject[0] = signalRef.SignalObjects[nextSignalIndex];
 
-                                        int reqSectionIndex = NextSignalObject[0].TCReference;
-                                        float endOffset = NextSignalObject[0].TCOffset;
+                                        int reqSectionIndex = NextSignalObject[0].TrackCircuitIndex;
+                                        float endOffset = NextSignalObject[0].TrackCicruitOffset;
 
                                         DistanceToSignal = GetDistanceToTrain(reqSectionIndex, endOffset);
                                         SignalObjectItems.RemoveAt(0);
@@ -3779,11 +3779,11 @@ namespace Orts.Simulation.Timetables
                     if (CheckTrain)
                     {
                         File.AppendAllText(@"C:\temp\checktrain.txt", "Train " +
-                             Number.ToString() + " clearing hold signal " + nextSignal.thisRef.ToString() + " at station " +
+                             Number.ToString() + " clearing hold signal " + nextSignal.Index.ToString() + " at station " +
                              StationStops[0].PlatformItem.Name + "\n");
                     }
 
-                    if (nextSignal.enabledTrain != null && nextSignal.enabledTrain.Train == this)
+                    if (nextSignal.EnabledTrain != null && nextSignal.EnabledTrain.Train == this)
                     {
                         nextSignal.requestClearSignal(ValidRoute[0], routedForward, 0, false, null);// for AI always use direction 0
                     }
@@ -3963,7 +3963,7 @@ namespace Orts.Simulation.Timetables
             // check for exit signal
 
             bool exitSignalStop = false;
-            if (thisStation.ExitSignal >= 0 && NextSignalObject[0] != null && NextSignalObject[0].thisRef == thisStation.ExitSignal)
+            if (thisStation.ExitSignal >= 0 && NextSignalObject[0] != null && NextSignalObject[0].Index == thisStation.ExitSignal)
             {
                 SignalAspectState nextAspect = GetNextSignalAspect(0);
                 exitSignalStop = (nextAspect == SignalAspectState.Stop && !thisStation.NoWaitSignal);
@@ -4187,7 +4187,7 @@ namespace Orts.Simulation.Timetables
                     {
                         File.AppendAllText(@"C:\temp\checktrain.txt", "Train " +
                               Number.ToString() + " : signal " +
-                              nextActionInfo.ActiveItem.SignalDetails.thisRef.ToString() + " : speed : " +
+                              nextActionInfo.ActiveItem.SignalDetails.Index.ToString() + " : speed : " +
                               FormatStrings.FormatSpeed(nextActionInfo.ActiveItem.ActualSpeed, true) + " >= limit : " +
                               FormatStrings.FormatSpeed(AllowedMaxSpeedMpS, true) + " at " +
                             //FormatStrings.FormatDistance(nextActionInfo.ActivateDistanceM, true) + " (now at " +
@@ -4214,7 +4214,7 @@ namespace Orts.Simulation.Timetables
                     {
                         File.AppendAllText(@"C:\temp\checktrain.txt", "Train " +
                               Number.ToString() + " : signal " +
-                              nextActionInfo.ActiveItem.SignalDetails.thisRef.ToString() + " : speed : " +
+                              nextActionInfo.ActiveItem.SignalDetails.Index.ToString() + " : speed : " +
                               FormatStrings.FormatSpeed(nextActionInfo.ActiveItem.ActualSpeed, true) + " cleared at " +
                               nextActionInfo.ActivateDistanceM.ToString() + " (now at " +
                               PresentPosition[0].DistanceTravelledM.ToString() + " - " +
@@ -4244,7 +4244,7 @@ namespace Orts.Simulation.Timetables
                     {
                         File.AppendAllText(@"C:\temp\checktrain.txt", "Train " +
                               Number.ToString() + " : signal " +
-                              nextActionInfo.ActiveItem.SignalDetails.thisRef.ToString() + " at " +
+                              nextActionInfo.ActiveItem.SignalDetails.Index.ToString() + " at " +
                             //FormatStrings.FormatDistance(nextActionInfo.ActivateDistanceM, true) + " cleared (now at " +
                             //FormatStrings.FormatDistance(PresentPosition[0].DistanceTravelledM, true) + " - " +
                               nextActionInfo.ActivateDistanceM.ToString() + " cleared (now at " +
@@ -4271,7 +4271,7 @@ namespace Orts.Simulation.Timetables
                         {
                             File.AppendAllText(@"C:\temp\checktrain.txt",
                               Number.ToString() + " : signal " +
-                              nextActionInfo.ActiveItem.SignalDetails.thisRef.ToString() + " at " +
+                              nextActionInfo.ActiveItem.SignalDetails.Index.ToString() + " at " +
                                 //FormatStrings.FormatDistance(nextActionInfo.ActivateDistanceM, true) + " cleared (now at " +
                                 //FormatStrings.FormatDistance(PresentPosition[0].DistanceTravelledM, true) + " - " +
                               nextActionInfo.ActivateDistanceM.ToString() + " cleared (now at " +
@@ -4303,7 +4303,7 @@ namespace Orts.Simulation.Timetables
                     {
                         File.AppendAllText(@"C:\temp\checktrain.txt",
                           Number.ToString() + " : signal " +
-                          nextActionInfo.ActiveItem.SignalDetails.thisRef.ToString() + " at " +
+                          nextActionInfo.ActiveItem.SignalDetails.Index.ToString() + " at " +
                             //FormatStrings.FormatDistance(nextActionInfo.ActivateDistanceM, true) + " cleared (now at " +
                             //FormatStrings.FormatDistance(PresentPosition[0].DistanceTravelledM, true) + " - " +
                           nextActionInfo.ActivateDistanceM.ToString() + " cleared (now at " +
@@ -7913,7 +7913,7 @@ namespace Orts.Simulation.Timetables
 
                                 if (routeSection.EndSignals[(TrackDirection)routeElement.Direction] != null)
                                 {
-                                    signalFound = routeSection.EndSignals[(TrackDirection)routeElement.Direction].thisRef;
+                                    signalFound = routeSection.EndSignals[(TrackDirection)routeElement.Direction].Index;
                                 }
                                 else
                                 {
@@ -7952,7 +7952,7 @@ namespace Orts.Simulation.Timetables
 
                                 if (routeSection.EndSignals[(TrackDirection)routeElement.Direction] != null)
                                 {
-                                    signalFound = routeSection.EndSignals[(TrackDirection)routeElement.Direction].thisRef;
+                                    signalFound = routeSection.EndSignals[(TrackDirection)routeElement.Direction].Index;
                                 }
                                 else
                                 {
@@ -9722,13 +9722,13 @@ namespace Orts.Simulation.Timetables
             // if stopped at station and NoWaitSignal is set, train cannot be waiting for a signal
             if (!endOfRoute && !(AtStation && StationStops[0].NoWaitSignal))
             {
-                if (NextSignalObject[0] != null && PresentPosition[0].TCSectionIndex == NextSignalObject[0].TCReference &&
-                     NextSignalObject[0].TCReference == ValidRoute[0][lastValidRouteIndex].TCSectionIndex)
+                if (NextSignalObject[0] != null && PresentPosition[0].TCSectionIndex == NextSignalObject[0].TrackCircuitIndex &&
+                     NextSignalObject[0].TrackCircuitIndex == ValidRoute[0][lastValidRouteIndex].TCSectionIndex)
                 {
                     endOfRoute = true;
                 }
                 if (NextSignalObject[0] != null && ControlMode == TRAIN_CONTROL.AUTO_SIGNAL && CheckTrainWaitingForSignal(NextSignalObject[0], 0) &&
-                 NextSignalObject[0].TCReference == ValidRoute[0][lastValidRouteIndex].TCSectionIndex)
+                 NextSignalObject[0].TrackCircuitIndex == ValidRoute[0][lastValidRouteIndex].TCSectionIndex)
                 {
                     endOfRoute = true;
                 }
@@ -9738,8 +9738,8 @@ namespace Orts.Simulation.Timetables
             // if stopped at station and NoWaitSignal is set, train cannot be waiting for a signal
             if (!endOfRoute && !(AtStation && StationStops[0].NoWaitSignal))
             {
-                if (NextSignalObject[0] != null && PresentPosition[0].TCSectionIndex == NextSignalObject[0].TCReference &&
-                     NextSignalObject[0].TCNextTC == ValidRoute[0][lastValidRouteIndex].TCSectionIndex && reversalSectionIndex < 0)
+                if (NextSignalObject[0] != null && PresentPosition[0].TCSectionIndex == NextSignalObject[0].TrackCircuitIndex &&
+                     NextSignalObject[0].TrackCircuitNextIndex == ValidRoute[0][lastValidRouteIndex].TCSectionIndex && reversalSectionIndex < 0)
                 {
                     endOfRoute = true;
                 }
@@ -10599,8 +10599,8 @@ namespace Orts.Simulation.Timetables
                             {
                                 // check if signal ahead is cleared - if not, and signal is station exit signal, do not allow depart
                                 if (NextSignalObject[0] != null && NextSignalObject[0].this_sig_lr(SignalFunction.Normal) == SignalAspectState.Stop
-                                    && NextSignalObject[0].hasPermission != SignalPermission.Granted && !StationStops[0].NoWaitSignal
-                                    && NextSignalObject[0].thisRef == StationStops[0].ExitSignal)
+                                    && NextSignalObject[0].OverridePermission != SignalPermission.Granted && !StationStops[0].NoWaitSignal
+                                    && NextSignalObject[0].Index == StationStops[0].ExitSignal)
                                 {
                                     DisplayMessage = Simulator.Catalog.GetString("Passenger boarding completed. Waiting for signal ahead to clear.");
                                 }

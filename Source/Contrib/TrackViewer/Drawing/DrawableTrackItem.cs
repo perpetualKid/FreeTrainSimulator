@@ -90,7 +90,7 @@ namespace ORTS.TrackViewer.Drawing
     class DrawableSignalItem : DrawableTrackItem
     {
         /// <summary>direction (forward or backward the signal relative to the direction of the track</summary>
-        private Traveller.TravellerDirection direction;
+        private TrackDirection direction;
 
         /// <summary>angle to draw the signal at</summary>
         private float angle;
@@ -111,7 +111,7 @@ namespace ORTS.TrackViewer.Drawing
             this.Description = "signal";
             this.isNormal = true; // default value
             SignalItem originalSignalItem = originalTrItem as SignalItem;
-            this.direction = originalSignalItem.Direction == 0 ? Traveller.TravellerDirection.Forward : Traveller.TravellerDirection.Backward;
+            this.direction = originalSignalItem.Direction;
             this.signalType = originalSignalItem.SignalType;
         }
 
@@ -126,7 +126,7 @@ namespace ORTS.TrackViewer.Drawing
             this.angle = 0;
             try
             {
-                Traveller signalTraveller = new Traveller(tsectionDat, trackDB.TrackNodes, tn, WorldLocation, this.direction);
+                Traveller signalTraveller = new Traveller(tsectionDat, trackDB.TrackNodes, tn, WorldLocation, (Traveller.TravellerDirection)this.direction);
                 this.angle = signalTraveller.RotY;
 
                 // Shift signal a little bit to be able to distinguish backfacing from normal facing

@@ -3,6 +3,7 @@ using System.Diagnostics;
 
 using Microsoft.Xna.Framework;
 
+using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Common.Position;
 using Orts.Formats.Msts.Parsers;
@@ -146,7 +147,7 @@ namespace Orts.Formats.Msts.Models
         /// <summary>Set to  00000001 if junction link set</summary>
         public uint Flags1 { get; private set; }
         /// <summary>0 or 1 depending on which way signal is facing</summary>
-        public uint Direction { get; private set; }
+        public TrackDirection Direction { get; private set; }
         /// <summary>index to Sigal Object Table</summary>
         public int SignalObject { get; set; }
         /// <summary>Signal Data 1</summary>
@@ -173,7 +174,7 @@ namespace Orts.Formats.Msts.Models
                 new STFReader.TokenProcessor("trsignaltype", ()=>{
                     stf.MustMatchBlockStart();
                     Flags1 = stf.ReadUInt(null);
-                    Direction = stf.ReadUInt(null);
+                    Direction = (TrackDirection)stf.ReadUInt(null);
                     SignalData = stf.ReadFloat(STFReader.Units.None, null);
                     SignalType = stf.ReadString();
                     // To do get index to Sigtypes table corresponding to this sigmal

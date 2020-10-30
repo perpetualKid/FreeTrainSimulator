@@ -2728,8 +2728,8 @@ namespace Orts.Simulation.Physics
 
                 //the following is added by CSantucci, applying also to manual mode what Jtang implemented for activity mode: after passing a manually forced signal,
                 // system will take back control of the signal
-                if (signalObject.holdState == SignalHoldState.ManualPass ||
-                    signalObject.holdState == SignalHoldState.ManualApproach) signalObject.holdState = SignalHoldState.None;
+                if (signalObject.HoldState == SignalHoldState.ManualPass ||
+                    signalObject.HoldState == SignalHoldState.ManualApproach) signalObject.HoldState = SignalHoldState.None;
             }
             UpdateSectionStateManual();                                                           // update track occupation          //
             UpdateManualMode(SignalObjIndex);                                                     // update route clearance           //
@@ -2755,8 +2755,8 @@ namespace Orts.Simulation.Physics
 
                 //the following is added by CSantucci, applying also to explorer mode what Jtang implemented for activity mode: after passing a manually forced signal,
                 // system will take back control of the signal
-                if (signalObject.holdState == SignalHoldState.ManualPass ||
-                    signalObject.holdState == SignalHoldState.ManualApproach) signalObject.holdState = SignalHoldState.None;
+                if (signalObject.HoldState == SignalHoldState.ManualPass ||
+                    signalObject.HoldState == SignalHoldState.ManualApproach) signalObject.HoldState = SignalHoldState.None;
             }
             UpdateSectionStateExplorer();                                                         // update track occupation          //
             UpdateExplorerMode(SignalObjIndex);                                                   // update route clearance           //
@@ -2946,9 +2946,9 @@ namespace Orts.Simulation.Physics
                             }
 
                             if (newSpeedMpS < allowedAbsoluteMaxSpeedLimitMpS) allowedAbsoluteMaxSpeedLimitMpS = newSpeedMpS;
-                            thisSectionIndex = thisSpeedpost.TCReference;
-                            thisSectionOffset = thisSpeedpost.TCOffset;
-                            thisDirection = (TrackDirection)thisSpeedpost.TCDirection;
+                            thisSectionIndex = thisSpeedpost.TrackCircuitIndex;
+                            thisSectionOffset = thisSpeedpost.TrackCicruitOffset;
+                            thisDirection = thisSpeedpost.TrackCircuitDirection;
                             remLength = distanceFromFront;
                         }
                         else
@@ -2980,7 +2980,7 @@ namespace Orts.Simulation.Physics
             {
                 firstObject.DistanceToTrain = firstObject.DistanceFound;
                 SignalObjectItems.Add(firstObject);
-                if (firstObject.SignalDetails.isSignal)
+                if (firstObject.SignalDetails.IsSignal)
                 {
                     nextAspect = firstObject.SignalDetails.this_sig_lr(SignalFunction.Normal);
                     firstObject.SignalState = nextAspect;
@@ -3009,12 +3009,12 @@ namespace Orts.Simulation.Physics
 
                 var thisSignal = prevObject.SignalDetails;
 
-                int reqTCReference = thisSignal.TCReference;
-                float reqOffset = thisSignal.TCOffset + 0.0001f;   // make sure you find NEXT object ! //
+                int reqTCReference = thisSignal.TrackCircuitIndex;
+                float reqOffset = thisSignal.TrackCicruitOffset + 0.0001f;   // make sure you find NEXT object ! //
 
-                if (thisSignal.TCNextTC > 0)
+                if (thisSignal.TrackCircuitNextIndex > 0)
                 {
-                    reqTCReference = thisSignal.TCNextTC;
+                    reqTCReference = thisSignal.TrackCircuitNextIndex;
                     reqOffset = 0.0f;
                 }
 
@@ -3038,7 +3038,7 @@ namespace Orts.Simulation.Physics
 
                 if (returnState == SignalItemFindState.Item)
                 {
-                    if (nextObject.SignalDetails.isSignal)
+                    if (nextObject.SignalDetails.IsSignal)
                     {
                         nextObject.SignalState = nextObject.SignalDetails.this_sig_lr(SignalFunction.Normal);
                         nextAspect = nextObject.SignalState;
@@ -3150,7 +3150,7 @@ namespace Orts.Simulation.Physics
                 while (firstObject.DistanceToTrain < 0.0f && SignalObjectItems.Count > 0)
                 {
                     var temp1MaxSpeedMpS = IsFreight ? firstObject.SpeedInfo.FreightSpeed : firstObject.SpeedInfo.PassengerSpeed;
-                    if (firstObject.SignalDetails.isSignal)
+                    if (firstObject.SignalDetails.IsSignal)
                     {
                         allowedAbsoluteMaxSpeedSignalMpS = temp1MaxSpeedMpS == -1 ? (float)Simulator.TRK.Route.SpeedLimit : temp1MaxSpeedMpS;
                     }
@@ -3178,7 +3178,7 @@ namespace Orts.Simulation.Physics
                             }
 
 
-                            if (firstObject.SignalDetails.isSignal)
+                            if (firstObject.SignalDetails.IsSignal)
                             {
                                 allowedMaxSpeedSignalMpS = tempMaxSpeedMps;
                             }
@@ -3196,7 +3196,7 @@ namespace Orts.Simulation.Physics
                         {
                             ActivateSpeedLimit speedLimit;
                             float reqDistance = DistanceTravelledM + Length;
-                            if (firstObject.SignalDetails.isSignal)
+                            if (firstObject.SignalDetails.IsSignal)
                             {
                                 speedLimit = new ActivateSpeedLimit(reqDistance, -1f, firstObject.ActualSpeed);
                             }
@@ -3220,7 +3220,7 @@ namespace Orts.Simulation.Physics
                         var tempMaxSpeedMps = IsFreight ? firstObject.SpeedInfo.FreightSpeed : firstObject.SpeedInfo.PassengerSpeed;
                         if (tempMaxSpeedMps >= 0)
                         {
-                            if (firstObject.SignalDetails.isSignal)
+                            if (firstObject.SignalDetails.IsSignal)
                             {
                                 allowedMaxSpeedSignalMpS = tempMaxSpeedMps;
                             }
@@ -3230,7 +3230,7 @@ namespace Orts.Simulation.Physics
                                 else allowedMaxTempSpeedLimitMpS = tempMaxSpeedMps;
                             }
                         }
-                        else if (firstObject.SignalDetails.isSignal)
+                        else if (firstObject.SignalDetails.IsSignal)
                         {
                             allowedMaxSpeedSignalMpS = allowedAbsoluteMaxSpeedSignalMpS;
                         }
@@ -3272,9 +3272,9 @@ namespace Orts.Simulation.Physics
                         returnState = newObjectItem.State;
                         if (returnState == SignalItemFindState.Item)
                         {
-                            newSignalIndex = newObjectItem.SignalDetails.thisRef;
+                            newSignalIndex = newObjectItem.SignalDetails.Index;
 
-                            noMoreNewSignals = (NextSignalObject[0] == null || (NextSignalObject[0] != null && newSignalIndex == NextSignalObject[0].thisRef));
+                            noMoreNewSignals = (NextSignalObject[0] == null || (NextSignalObject[0] != null && newSignalIndex == NextSignalObject[0].Index));
 
                             if (!noMoreNewSignals)
                             {
@@ -3288,7 +3288,7 @@ namespace Orts.Simulation.Physics
                                 SignalObjectItems.Insert(0, newObjectItem);
                                 listChanged = true;
 
-                                int foundIndex = ValidRoute[0].GetRouteIndex(newObjectItem.SignalDetails.TCNextTC, thisIndex);
+                                int foundIndex = ValidRoute[0].GetRouteIndex(newObjectItem.SignalDetails.TrackCircuitNextIndex, thisIndex);
 
                                 if (foundIndex > 0)
                                 {
@@ -3343,7 +3343,7 @@ namespace Orts.Simulation.Physics
                 // Update state and speed of first object if signal
                 //
 
-                if (firstObject.SignalDetails.isSignal)
+                if (firstObject.SignalDetails.IsSignal)
                 {
                     firstObject.SignalState = firstObject.SignalDetails.this_sig_lr(SignalFunction.Normal);
                     firstObject.SpeedInfo = new SpeedInfo(firstObject.SignalDetails.this_sig_speed(SignalFunction.Normal));
@@ -3370,10 +3370,10 @@ namespace Orts.Simulation.Physics
                     nextObject.DistanceToTrain = prevObject.DistanceToTrain + nextObject.DistanceToObject;
                     lastDistance = nextObject.DistanceToTrain;
 
-                    if (nextObject.SignalDetails.isSignal)
+                    if (nextObject.SignalDetails.IsSignal)
                     {
                         nextObject.SignalState = nextObject.SignalDetails.this_sig_lr(SignalFunction.Normal);
-                        if (nextObject.SignalDetails.enabledTrain != null && nextObject.SignalDetails.enabledTrain.Train != this)
+                        if (nextObject.SignalDetails.EnabledTrain != null && nextObject.SignalDetails.EnabledTrain.Train != this)
                             nextObject.SignalState = SignalAspectState.Stop; // state not valid if not enabled for this train
                         nextObject.SpeedInfo = new SpeedInfo(nextObject.SignalState == SignalAspectState.Stop ? null : nextObject.SignalDetails.this_sig_speed(SignalFunction.Normal));
                     }
@@ -3424,12 +3424,12 @@ namespace Orts.Simulation.Physics
                 {
 
                     var prevSignal = prevObject.SignalDetails;
-                    int reqTCReference = prevSignal.TCReference;
-                    float reqOffset = prevSignal.TCOffset + 0.0001f;   // make sure you find NEXT object ! //
+                    int reqTCReference = prevSignal.TrackCircuitIndex;
+                    float reqOffset = prevSignal.TrackCicruitOffset + 0.0001f;   // make sure you find NEXT object ! //
 
-                    if (prevSignal.TCNextTC > 0 && ValidRoute[0].GetRouteIndex(prevSignal.TCNextTC, lastIndex) > 0)
+                    if (prevSignal.TrackCircuitNextIndex > 0 && ValidRoute[0].GetRouteIndex(prevSignal.TrackCircuitNextIndex, lastIndex) > 0)
                     {
-                        reqTCReference = prevSignal.TCNextTC;
+                        reqTCReference = prevSignal.TrackCircuitNextIndex;
                         reqOffset = 0.0f;
                     }
 
@@ -3453,7 +3453,7 @@ namespace Orts.Simulation.Physics
                         lastDistance = nextObject.DistanceToTrain;
                         SignalObjectItems.Add(nextObject);
 
-                        if (nextObject.SignalDetails.isSignal)
+                        if (nextObject.SignalDetails.IsSignal)
                         {
                             nextObject.SignalState = nextObject.SignalDetails.this_sig_lr(SignalFunction.Normal);
                             nextAspect = nextObject.SignalState;
@@ -3623,7 +3623,7 @@ namespace Orts.Simulation.Physics
 
                 float actualSpeedMpS = IsFreight ? thisObject.SpeedInfo.FreightSpeed : thisObject.SpeedInfo.PassengerSpeed;
 
-                if (thisObject.SignalDetails.isSignal)
+                if (thisObject.SignalDetails.IsSignal)
                 {
                     if (actualSpeedMpS > 0 && (thisObject.SpeedInfo.Flag || !Simulator.TimetableMode))
                     {
@@ -6445,7 +6445,7 @@ namespace Orts.Simulation.Physics
                     if (ValidRoute[direction].SignalIsAheadOfTrain(NextSignalObject[direction], trainPreviousPos)) // train was in front on last check, so we did pass
                     {
                         SignalAspectState signalState = GetNextSignalAspect(direction);
-                        passedSignalIndex = NextSignalObject[direction].thisRef;
+                        passedSignalIndex = NextSignalObject[direction].Index;
 
 #if DEBUG_REPORTS
                         String report = "Passing signal ";
@@ -6477,7 +6477,7 @@ namespace Orts.Simulation.Physics
                         if (CheckTrain)
                         {
                             String reportCT = "Passing signal ";
-                            reportCT = String.Concat(reportCT, NextSignalObject[direction].thisRef.ToString());
+                            reportCT = String.Concat(reportCT, NextSignalObject[direction].Index.ToString());
                             reportCT = String.Concat(reportCT, " with state ", signalState.ToString());
                             reportCT = String.Concat(reportCT, " by train ", Number.ToString());
                             reportCT = String.Concat(reportCT, " at ", DistanceTravelledM.ToString());
@@ -6485,16 +6485,16 @@ namespace Orts.Simulation.Physics
                             File.AppendAllText(@"C:\temp\checktrain.txt", reportCT + "\n");
                         }
 
-                        if (signalState == SignalAspectState.Stop && NextSignalObject[direction].hasPermission == SignalPermission.Denied)
+                        if (signalState == SignalAspectState.Stop && NextSignalObject[direction].OverridePermission == SignalPermission.Denied)
                         {
                             Trace.TraceWarning("Train {1} ({0}) passing signal {2} at {3} at danger at {4}",
-                               Number.ToString(), Name, NextSignalObject[direction].thisRef.ToString(),
+                               Number.ToString(), Name, NextSignalObject[direction].Index.ToString(),
                                DistanceTravelledM.ToString("###0.0"), SpeedMpS.ToString("##0.00"));
                             SetTrainOutOfControl(OUTOFCONTROL.SPAD);
                             break;
                         }
 
-                        else if (ControlMode == TRAIN_CONTROL.AUTO_SIGNAL && NextSignalObject[direction].sigfound[(int)SignalFunction.Normal] < 0) // no next signal
+                        else if (ControlMode == TRAIN_CONTROL.AUTO_SIGNAL && NextSignalObject[direction].Signalfound[(int)SignalFunction.Normal] < 0) // no next signal
                         {
                             SwitchToNodeControl(LastReservedSection[direction]);
 #if DEBUG_REPORTS
@@ -6504,7 +6504,7 @@ namespace Orts.Simulation.Physics
                             if (CheckTrain)
                             {
                                 File.AppendAllText(@"C:\temp\checktrain.txt", "Train " + Number.ToString() +
-                                                " set to NODE control for no next signal from " + NextSignalObject[direction].thisRef.ToString() + "\n");
+                                                " set to NODE control for no next signal from " + NextSignalObject[direction].Index.ToString() + "\n");
                             }
                             break;
                         }
@@ -6518,19 +6518,19 @@ namespace Orts.Simulation.Physics
                             if (CheckTrain)
                             {
                                 File.AppendAllText(@"C:\temp\checktrain.txt", "Train " + Number.ToString() +
-                                                " set to NODE control for route to next signal not clear from " + NextSignalObject[direction].thisRef.ToString() + "\n");
+                                                " set to NODE control for route to next signal not clear from " + NextSignalObject[direction].Index.ToString() + "\n");
                             }
                             break;
                         }
 
                         // get next signal
-                        int nextSignalIndex = NextSignalObject[direction].sigfound[(int)SignalFunction.Normal];
+                        int nextSignalIndex = NextSignalObject[direction].Signalfound[(int)SignalFunction.Normal];
                         if (nextSignalIndex >= 0)
                         {
                             NextSignalObject[direction] = signalRef.SignalObjects[nextSignalIndex];
 
-                            int reqSectionIndex = NextSignalObject[direction].TCReference;
-                            float endOffset = NextSignalObject[direction].TCOffset;
+                            int reqSectionIndex = NextSignalObject[direction].TrackCircuitIndex;
+                            float endOffset = NextSignalObject[direction].TrackCicruitOffset;
 
                             DistanceToSignal = GetDistanceToTrain(reqSectionIndex, endOffset);
                         }
@@ -6542,13 +6542,13 @@ namespace Orts.Simulation.Physics
                     else
                     {
                         // get next signal
-                        int nextSignalIndex = NextSignalObject[direction].sigfound[(int)SignalFunction.Normal];
+                        int nextSignalIndex = NextSignalObject[direction].Signalfound[(int)SignalFunction.Normal];
                         if (nextSignalIndex >= 0)
                         {
                             NextSignalObject[direction] = signalRef.SignalObjects[nextSignalIndex];
 
-                            int reqSectionIndex = NextSignalObject[direction].TCReference;
-                            float endOffset = NextSignalObject[direction].TCOffset;
+                            int reqSectionIndex = NextSignalObject[direction].TrackCircuitIndex;
+                            float endOffset = NextSignalObject[direction].TrackCicruitOffset;
 
                             DistanceToSignal = GetDistanceToTrain(reqSectionIndex, endOffset);
                         }
@@ -6650,13 +6650,13 @@ namespace Orts.Simulation.Physics
                     overlapPosition.TCOffset = thisSection.Length - (PresentPosition[1].TCOffset + rearPositionOverlap);  // reverse offset because of reversed direction
                     overlapPosition.TCDirection = overlapPosition.TCDirection == 0 ? 1 : 0; // looking backwards, so reverse direction
 
-                    TrackCircuitSection rearSection = signalRef.TrackCircuitList[RearSignalObject.TCNextTC];
+                    TrackCircuitSection rearSection = signalRef.TrackCircuitList[RearSignalObject.TrackCircuitNextIndex];
                     if (!TCSubpathRoute.IsAheadOfTrain(rearSection, 0.0f, overlapPosition))
                     {
                         if (RearSignalObject.this_sig_lr(SignalFunction.Normal) == SignalAspectState.Stop)
                         {
                             Trace.TraceWarning("Train {1} ({0}) passing rear signal {2} at {3} at danger at {4}",
-                            Number.ToString(), Name, RearSignalObject.thisRef.ToString(),
+                            Number.ToString(), Name, RearSignalObject.Index.ToString(),
                             DistanceTravelledM.ToString("###0.0"), SpeedMpS.ToString("##0.00"));
                             SetTrainOutOfControl(OUTOFCONTROL.SPAD_REAR);
                             outOfControl = true;
@@ -6960,10 +6960,10 @@ namespace Orts.Simulation.Physics
             {
                 if (ControlMode == TRAIN_CONTROL.AUTO_SIGNAL) // for Auto mode try forward only
                 {
-                    if (NextSignalObject[0] != null && NextSignalObject[0].enabledTrain == routedForward)
+                    if (NextSignalObject[0] != null && NextSignalObject[0].EnabledTrain == routedForward)
                     {
                         NextSignalObject[0].resetSignalEnabled();
-                        int nextRouteIndex = ValidRoute[0].GetRouteIndex(NextSignalObject[0].TCNextTC, 0);
+                        int nextRouteIndex = ValidRoute[0].GetRouteIndex(NextSignalObject[0].TrackCircuitNextIndex, 0);
 
                         // clear rest of route to avoid accidental signal activation
                         if (nextRouteIndex >= 0)
@@ -7217,8 +7217,8 @@ namespace Orts.Simulation.Physics
                         lastValidRouteIndex--;
 
                     // if waiting for next signal and section beyond signal is last in route and there is no valid reversal index - end of route reached
-                    if (NextSignalObject[0] != null && PresentPosition[0].TCSectionIndex == NextSignalObject[0].TCReference &&
-                         NextSignalObject[0].TCNextTC == ValidRoute[0][lastValidRouteIndex].TCSectionIndex && reversalSectionIndex < 0 &&
+                    if (NextSignalObject[0] != null && PresentPosition[0].TCSectionIndex == NextSignalObject[0].TrackCircuitIndex &&
+                         NextSignalObject[0].TrackCircuitNextIndex == ValidRoute[0][lastValidRouteIndex].TCSectionIndex && reversalSectionIndex < 0 &&
                          NextSignalObject[0].this_sig_lr(SignalFunction.Normal) == SignalAspectState.Stop && TCRoute.ReversalInfo[TCRoute.activeSubpath].Valid)
                     {
                         endOfRoute = true;
@@ -7281,10 +7281,10 @@ namespace Orts.Simulation.Physics
                 var signalObject = signalRef.SignalObjects[signalObjectIndex];
 
                 //the following is added by JTang, passing a hold signal, will take back control by the system
-                if (signalObject.holdState == SignalHoldState.ManualPass ||
-                    signalObject.holdState == SignalHoldState.ManualApproach)
+                if (signalObject.HoldState == SignalHoldState.ManualPass ||
+                    signalObject.HoldState == SignalHoldState.ManualApproach)
                 {
-                    signalObject.holdState = SignalHoldState.None;
+                    signalObject.HoldState = SignalHoldState.None;
                 }
 
                 signalObject.resetSignalEnabled();
@@ -7303,13 +7303,13 @@ namespace Orts.Simulation.Physics
 
             if (backward > backwardThreshold)
             {
-                if (NextSignalObject[0] != null && NextSignalObject[0].enabledTrain != routedForward)
+                if (NextSignalObject[0] != null && NextSignalObject[0].EnabledTrain != routedForward)
                 {
-                    if (NextSignalObject[0].enabledTrain != null)
+                    if (NextSignalObject[0].EnabledTrain != null)
                     {
                         NextSignalObject[0].ResetSignal(true);
                     }
-                    signalObjectIndex = NextSignalObject[0].thisRef;
+                    signalObjectIndex = NextSignalObject[0].Index;
                 }
             }
 
@@ -7319,7 +7319,7 @@ namespace Orts.Simulation.Physics
             if (signalObjectIndex >= 0)
             {
                 var thisSignal = signalRef.SignalObjects[signalObjectIndex];
-                int nextSignalIndex = thisSignal.sigfound[(int)SignalFunction.Normal];
+                int nextSignalIndex = thisSignal.Signalfound[(int)SignalFunction.Normal];
                 if (nextSignalIndex >= 0)
                 {
                     var nextSignal = signalRef.SignalObjects[nextSignalIndex];
@@ -7329,7 +7329,7 @@ namespace Orts.Simulation.Physics
 
             // if next signal not enabled or enabled for other train, also send request (can happen after choosing passing path or after detach)
 
-            else if (NextSignalObject[0] != null && (!NextSignalObject[0].enabled || NextSignalObject[0].enabledTrain != routedForward))
+            else if (NextSignalObject[0] != null && (!NextSignalObject[0].Enabled || NextSignalObject[0].EnabledTrain != routedForward))
             {
                 NextSignalObject[0].requestClearSignal(ValidRoute[0], routedForward, 0, false, null);
             }
@@ -7356,12 +7356,12 @@ namespace Orts.Simulation.Physics
                 if (isInWaitState()) claimAllowed = false;
 
                 // cannot claim on hold signal
-                if (HoldingSignals.Contains(NextSignalObject[0].thisRef)) claimAllowed = false;
+                if (HoldingSignals.Contains(NextSignalObject[0].Index)) claimAllowed = false;
 
                 // process claim if allowed
                 if (claimAllowed)
                 {
-                    if (CheckStoppedTrains(NextSignalObject[0].signalRoute)) // do not claim when train ahead is stationary or in Manual mode
+                    if (CheckStoppedTrains(NextSignalObject[0].SignalRoute)) // do not claim when train ahead is stationary or in Manual mode
                     {
                         actualWaitTimeS = standardWaitTimeS;  // allow immediate claim if other train moves
                         ClaimState = false;
@@ -7437,7 +7437,7 @@ namespace Orts.Simulation.Physics
         {
             bool intoPlatform = false;
 
-            foreach (Train.TCRouteElement routeElement in thisSignal.signalRoute)
+            foreach (Train.TCRouteElement routeElement in thisSignal.SignalRoute)
             {
                 TrackCircuitSection routeSection = signalRef.TrackCircuitList[routeElement.TCSectionIndex];
 
@@ -7482,7 +7482,7 @@ namespace Orts.Simulation.Physics
         {
             TrainRouted thisRouted = direction == 0 ? routedForward : routedBackward;
             int trainRouteIndex = PresentPosition[direction].RouteListIndex;
-            int signalRouteIndex = ValidRoute[direction].GetRouteIndex(thisSignal.TCReference, trainRouteIndex);
+            int signalRouteIndex = ValidRoute[direction].GetRouteIndex(thisSignal.TrackCircuitIndex, trainRouteIndex);
 
             // signal section is not in train route, so train can't be waiting for signal
 
@@ -7530,7 +7530,7 @@ namespace Orts.Simulation.Physics
                         Trace.TraceWarning("Train {0} ({1}) in Signal control but route to signal not cleared - switching to Node control",
                                 Name, Number);
 
-                        if (thisSignal.enabledTrain == thisRouted)
+                        if (thisSignal.EnabledTrain == thisRouted)
                         {
                             thisSignal.ResetSignal(true);
                         }
@@ -7543,24 +7543,24 @@ namespace Orts.Simulation.Physics
 
             // we are waiting, but is signal clearance requested ?
 
-            if (thisSignal.enabledTrain == null)
+            if (thisSignal.EnabledTrain == null)
             {
                 thisSignal.requestClearSignal(ValidRoute[0], thisRouted, 0, false, null);
             }
 
             // we are waiting, but is it really our signal ?
 
-            else if (thisSignal.enabledTrain != thisRouted)
+            else if (thisSignal.EnabledTrain != thisRouted)
             {
 
                 // something is wrong - we are waiting, but it is not our signal - give warning, reset signal and clear route
 
                 Trace.TraceWarning("Train {0} ({1}) waiting for signal which is enabled to train {2}",
-                        Name, Number, thisSignal.enabledTrain.Train.Number);
+                        Name, Number, thisSignal.EnabledTrain.Train.Number);
 
                 // stop other train - switch other train to node control
 
-                Train otherTrain = thisSignal.enabledTrain.Train;
+                Train otherTrain = thisSignal.EnabledTrain.Train;
                 otherTrain.LastReservedSection[0] = -1;
                 if (Math.Abs(otherTrain.SpeedMpS) > 0)
                 {
@@ -7577,16 +7577,16 @@ namespace Orts.Simulation.Physics
 
             // signal is in holding list - so not really waiting - but remove from list if held for station stop
 
-            if (thisSignal.holdState == SignalHoldState.ManualLock)
+            if (thisSignal.HoldState == SignalHoldState.ManualLock)
             {
                 return (false);
             }
-            else if (thisSignal.holdState == SignalHoldState.StationStop && HoldingSignals.Contains(thisSignal.thisRef))
+            else if (thisSignal.HoldState == SignalHoldState.StationStop && HoldingSignals.Contains(thisSignal.Index))
             {
-                if (StationStops != null && StationStops.Count > 0 && StationStops[0].ExitSignal != thisSignal.thisRef) // not present station stop
+                if (StationStops != null && StationStops.Count > 0 && StationStops[0].ExitSignal != thisSignal.Index) // not present station stop
                 {
-                    HoldingSignals.Remove(thisSignal.thisRef);
-                    thisSignal.holdState = SignalHoldState.None;
+                    HoldingSignals.Remove(thisSignal.Index);
+                    thisSignal.HoldState = SignalHoldState.None;
                     return (false);
                 }
             }
@@ -7774,10 +7774,10 @@ namespace Orts.Simulation.Physics
             if (signalObjectIndex >= 0)
             {
                 var thisSignal = signalRef.SignalObjects[signalObjectIndex];
-                thisSignal.hasPermission = SignalPermission.Denied;
+                thisSignal.OverridePermission = SignalPermission.Denied;
                 //the following is added by JTang, passing a hold signal, will take back control by the system
-                if (thisSignal.holdState == SignalHoldState.ManualPass ||
-                    thisSignal.holdState == SignalHoldState.ManualApproach) thisSignal.holdState = SignalHoldState.None;
+                if (thisSignal.HoldState == SignalHoldState.ManualPass ||
+                    thisSignal.HoldState == SignalHoldState.ManualApproach) thisSignal.HoldState = SignalHoldState.None;
 
                 thisSignal.resetSignalEnabled();
             }
@@ -7950,17 +7950,17 @@ namespace Orts.Simulation.Physics
                     SignalAspectState thisAspect = thisSection.EndSignals[reqDirection].this_sig_lr(SignalFunction.Normal);
                     hasEndSignal = true;
                     if (previousSignal != null) 
-                        previousSignal.sigfound[(int)SignalFunction.Normal] = endSignal.thisRef;
+                        previousSignal.Signalfound[(int)SignalFunction.Normal] = endSignal.Index;
                     previousSignal = thisSection.EndSignals[reqDirection];
 
-                    if (thisAspect == SignalAspectState.Stop && endSignal.hasPermission != SignalPermission.Granted)
+                    if (thisAspect == SignalAspectState.Stop && endSignal.OverridePermission != SignalPermission.Granted)
                     {
                         endWithSignal = true;
                         sectionWithSignalIndex = iindex;
                     }
-                    else if (endSignal.enabledTrain == null && endSignal.FixedRoute) // signal cleared by default - make sure train is set
+                    else if (endSignal.EnabledTrain == null && endSignal.FixedRoute) // signal cleared by default - make sure train is set
                     {
-                        endSignal.enabledTrain = thisRouted;
+                        endSignal.EnabledTrain = thisRouted;
                         endSignal.SetDefaultRoute();
                     }
                 }
@@ -8228,7 +8228,7 @@ namespace Orts.Simulation.Physics
                 if (thisRouteSection.EndSignals[thisReqDirection] != null)
                 {
                     var endSignal = thisRouteSection.EndSignals[thisReqDirection];
-                    if (endSignal.enabledTrain != null && endSignal.enabledTrain.Train == this) endSignal.enabledTrain = null;
+                    if (endSignal.EnabledTrain != null && endSignal.EnabledTrain.Train == this) endSignal.EnabledTrain = null;
                 }
             }
         }
@@ -8285,7 +8285,7 @@ namespace Orts.Simulation.Physics
             }
 
             var requestedSignal = lastSection.EndSignals[(TrackDirection)lastElement.Direction];
-            if (requestedSignal.enabledTrain != null && requestedSignal.enabledTrain.Train != this)
+            if (requestedSignal.EnabledTrain != null && requestedSignal.EnabledTrain.Train != this)
             {
                 if (Simulator.Confirmer != null) // As Confirmer may not be created until after a restore.
                     Simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("Next signal already allocated to other train"));
@@ -8293,10 +8293,10 @@ namespace Orts.Simulation.Physics
                 return;
             }
 
-            requestedSignal.enabledTrain = routeIndex == 0 ? routedForward : routedBackward;
-            requestedSignal.signalRoute.Clear();
-            requestedSignal.holdState = SignalHoldState.None;
-            requestedSignal.hasPermission = SignalPermission.Requested;
+            requestedSignal.EnabledTrain = routeIndex == 0 ? routedForward : routedBackward;
+            requestedSignal.SignalRoute.Clear();
+            requestedSignal.HoldState = SignalHoldState.None;
+            requestedSignal.OverridePermission = SignalPermission.Requested;
 
             // get route from next signal - extend to next signal or maximum length
 
@@ -8337,12 +8337,12 @@ namespace Orts.Simulation.Physics
                     {
                         TCRouteElement thisElement = new Train.TCRouteElement(signalRef.TrackCircuitList[Math.Abs(sectionIndex)],
                                 sectionIndex > 0 ? 0 : 1, signalRef, prevSection);
-                        requestedSignal.signalRoute.Add(thisElement);
+                        requestedSignal.SignalRoute.Add(thisElement);
                         selectedRoute.Add(thisElement);
                         prevSection = Math.Abs(sectionIndex);
                     }
 
-                    requestedSignal.checkRouteState(false, requestedSignal.signalRoute, routedForward);
+                    requestedSignal.checkRouteState(false, requestedSignal.SignalRoute, routedForward);
                     requestValid = true;
                 }
 
@@ -8645,17 +8645,17 @@ namespace Orts.Simulation.Physics
             if (foundSpeedLimit.Count > 0)
             {
                 var thisSignal = signalRef.SignalObjects[Math.Abs(foundSpeedLimit[0])];
-                if (thisSignal.isSignal)
+                if (thisSignal.IsSignal)
                 {
                     // if signal is now just behind train - set speed as signal speed limit, do not reenter in list
-                    if (PassedSignalSpeeds.ContainsKey(thisSignal.thisRef))
+                    if (PassedSignalSpeeds.ContainsKey(thisSignal.Index))
                     {
-                        allowedMaxSpeedSignalMpS = PassedSignalSpeeds[thisSignal.thisRef];
+                        allowedMaxSpeedSignalMpS = PassedSignalSpeeds[thisSignal.Index];
                         AllowedMaxSpeedMpS = Math.Min(allowedMaxSpeedSignalMpS, AllowedMaxSpeedMpS);
-                        LastPassedSignal[routeDirection] = thisSignal.thisRef;
+                        LastPassedSignal[routeDirection] = thisSignal.Index;
                     }
                     // if signal is not last passed signal - reset signal speed limit
-                    else if (thisSignal.thisRef != LastPassedSignal[routeDirection])
+                    else if (thisSignal.Index != LastPassedSignal[routeDirection])
                     {
                         allowedMaxSpeedSignalMpS = TrainMaxSpeedMpS;
                         LastPassedSignal[routeDirection] = -1;
@@ -8697,33 +8697,33 @@ namespace Orts.Simulation.Physics
                 var thisObject = signalRef.SignalObjects[Math.Abs(foundSpeedLimit[0])];
 
                 // check if not beyond end of train
-                TrackCircuitSection reqSection = signalRef.TrackCircuitList[thisObject.TCReference];
+                TrackCircuitSection reqSection = signalRef.TrackCircuitList[thisObject.TrackCircuitIndex];
                 float speedLimitDistance = TrackCircuitSection.GetDistanceBetweenObjects(thisElement.TCSectionIndex, reverseOffset, (TrackDirection)thisElement.Direction,
-                    thisObject.TCReference, thisObject.TCOffset);
+                    thisObject.TrackCircuitIndex, thisObject.TrackCicruitOffset);
                 if (speedLimitDistance > Length)
                 {
                     limitAlongTrain = false;
                 }
                 else
                 {
-                    int nextSectionIndex = thisObject.TCReference;
-                    TrackDirection direction = (TrackDirection)thisObject.TCDirection;
-                    float objectOffset = thisObject.TCOffset;
+                    int nextSectionIndex = thisObject.TrackCircuitIndex;
+                    TrackDirection direction = thisObject.TrackCircuitDirection;
+                    float objectOffset = thisObject.TrackCicruitOffset;
 
-                    if (thisObject.isSignal)
+                    if (thisObject.IsSignal)
                     {
-                        nextSectionIndex = thisObject.TCNextTC;
-                        direction = (TrackDirection)thisObject.TCNextDirection;
+                        nextSectionIndex = thisObject.TrackCircuitNextIndex;
+                        direction = thisObject.TrackCircuitNextDirection;
                         objectOffset = 0.0f;
 
-                        if (PassedSignalSpeeds.ContainsKey(thisObject.thisRef))
+                        if (PassedSignalSpeeds.ContainsKey(thisObject.Index))
                         {
-                            allowedMaxSpeedSignalMpS = PassedSignalSpeeds[thisObject.thisRef];
+                            allowedMaxSpeedSignalMpS = PassedSignalSpeeds[thisObject.Index];
                             if (Simulator.TimetableMode) AllowedMaxSpeedMpS = Math.Min(AllowedMaxSpeedMpS, allowedMaxSpeedSignalMpS);
                             else AllowedMaxSpeedMpS = Math.Min(allowedMaxSpeedLimitMpS, Math.Min(allowedMaxTempSpeedLimitMpS, allowedMaxSpeedSignalMpS));
 
-                            if (!remainingSignals.ContainsKey(thisObject.thisRef))
-                                remainingSignals.Add(thisObject.thisRef, allowedMaxSpeedSignalMpS);
+                            if (!remainingSignals.ContainsKey(thisObject.Index))
+                                remainingSignals.Add(thisObject.Index, allowedMaxSpeedSignalMpS);
                         }
                     }
                     else
@@ -8755,7 +8755,7 @@ namespace Orts.Simulation.Physics
                         }
                     }
 
-                    remLength -= (thisObject.TCOffset - offsetStart);
+                    remLength -= (thisObject.TrackCicruitOffset - offsetStart);
 
                     foundSpeedLimit = signalRef.ScanRoute(this, nextSectionIndex, objectOffset, direction,
                         true, remLength, false, true, false, false, false, true, false, true, false, IsFreight);
@@ -8780,12 +8780,12 @@ namespace Orts.Simulation.Physics
                 if (thisSpeedInfo != null)
                 {
                     float thisSpeedMpS = IsFreight ? thisSpeedInfo.FreightSpeed : thisSpeedInfo.PassengerSpeed;
-                    if (thisSpeedMpS > 0 && !PassedSignalSpeeds.ContainsKey(passedSignal.thisRef))
+                    if (thisSpeedMpS > 0 && !PassedSignalSpeeds.ContainsKey(passedSignal.Index))
                     {
                         allowedMaxSpeedSignalMpS = allowedMaxSpeedSignalMpS > 0 ? Math.Min(allowedMaxSpeedSignalMpS, thisSpeedMpS) : thisSpeedMpS;
                         AllowedMaxSpeedMpS = Math.Min(AllowedMaxSpeedMpS, allowedMaxSpeedSignalMpS);
 
-                        PassedSignalSpeeds.Add(passedSignal.thisRef, thisSpeedMpS);
+                        PassedSignalSpeeds.Add(passedSignal.Index, thisSpeedMpS);
                     }
                 }
             }
@@ -8940,7 +8940,7 @@ namespace Orts.Simulation.Physics
             if (signalObjectIndex >= 0)
             {
                 var thisSignal = signalRef.SignalObjects[signalObjectIndex];
-                thisSignal.hasPermission = SignalPermission.Denied;
+                thisSignal.OverridePermission = SignalPermission.Denied;
 
                 thisSignal.resetSignalEnabled();
             }
@@ -9068,12 +9068,12 @@ namespace Orts.Simulation.Physics
                     var endSignal = thisSection.EndSignals[reqDirection];
                     var thisAspect = thisSection.EndSignals[reqDirection].this_sig_lr(SignalFunction.Normal);
 
-                    if (thisAspect == SignalAspectState.Stop && endSignal.hasPermission != SignalPermission.Granted)
+                    if (thisAspect == SignalAspectState.Stop && endSignal.OverridePermission != SignalPermission.Granted)
                     {
                         endWithSignal = true;
                         sectionWithSignalIndex = iindex;
                     }
-                    else if (!endSignal.enabled)   // signal cleared by default only - request for proper clearing
+                    else if (!endSignal.Enabled)   // signal cleared by default only - request for proper clearing
                     {
                         endSignal.requestClearSignalExplorer(newRoute, thisRouted, true, 0);  // do NOT propagate
                     }
@@ -9108,11 +9108,11 @@ namespace Orts.Simulation.Physics
                 var nextSignal = thisSection.EndSignals[(TrackDirection)thisElement.Direction];
                 if (nextSignal != null &&
                     nextSignal.this_sig_lr(SignalFunction.Normal) == SignalAspectState.Stop &&
-                    nextSignal.hasPermission != SignalPermission.Granted)
+                    nextSignal.OverridePermission != SignalPermission.Granted)
                 {
                     unclearedSignal = true;
                     signalIndex = iindex;
-                    nextUnclearSignalIndex = nextSignal.thisRef;
+                    nextUnclearSignalIndex = nextSignal.Index;
                 }
             }
 
@@ -9261,7 +9261,7 @@ namespace Orts.Simulation.Physics
                 {
                     TrackCircuitSection lastSection = signalRef.TrackCircuitList[newRoute[newRoute.Count - 1].TCSectionIndex];
                     TrackDirection lastDirection = (TrackDirection)newRoute[newRoute.Count - 1].Direction;
-                    if (lastSection.EndSignals[lastDirection] != null && lastSection.EndSignals[lastDirection].thisRef == nextUnclearSignalIndex)
+                    if (lastSection.EndSignals[lastDirection] != null && lastSection.EndSignals[lastDirection].Index == nextUnclearSignalIndex)
                     {
                         Signal reqSignal = signalRef.SignalObjects[nextUnclearSignalIndex];
                         newRoute = reqSignal.requestClearSignalExplorer(newRoute, forward ? routedForward : routedBackward, false, 0);
@@ -9345,7 +9345,7 @@ namespace Orts.Simulation.Physics
 
             // signal at danger is found - set PERMISSION REQUESTED, and request clear signal
             // if signal has a route, set PERMISSION REQUESTED, and perform signal update
-            reqSignal.hasPermission = SignalPermission.Requested;
+            reqSignal.OverridePermission = SignalPermission.Requested;
 
             TCPosition tempPos = new TCPosition();
 
@@ -9362,7 +9362,7 @@ namespace Orts.Simulation.Physics
             TCSubpathRoute newRouteR = CheckExplorerPath(routeIndex, tempPos, ValidRoute[routeIndex], true, ref EndAuthorityType[routeIndex],
                 ref DistanceToEndNodeAuthorityM[routeIndex]);
             ValidRoute[routeIndex] = newRouteR;
-            Simulator.SoundNotify = reqSignal.hasPermission == SignalPermission.Granted ?
+            Simulator.SoundNotify = reqSignal.OverridePermission == SignalPermission.Granted ?
                 TrainEvent.PermissionGranted :
                 TrainEvent.PermissionDenied;
         }
@@ -9537,8 +9537,8 @@ namespace Orts.Simulation.Physics
                 TrackDirection signalDirection = (TrackDirection)thisElement.Direction;
 
                 if (thisSection.EndSignals[signalDirection] != null &&
-                    thisSection.EndSignals[signalDirection].enabledTrain != null &&
-                    thisSection.EndSignals[signalDirection].enabledTrain.Train == this)
+                    thisSection.EndSignals[signalDirection].EnabledTrain != null &&
+                    thisSection.EndSignals[signalDirection].EnabledTrain.Train == this)
                 {
                     firstSignal = thisSection.EndSignals[signalDirection];
                     lastIndex = iindex;
@@ -9691,7 +9691,7 @@ namespace Orts.Simulation.Physics
 
             // enable any none-NORMAL signals between front of train and first NORMAL signal
             int firstSectionIndex = PresentPosition[0].RouteListIndex;
-            int lastSectionIndex = ValidRoute[0].GetRouteIndex(thisSignal.TCReference, firstSectionIndex);
+            int lastSectionIndex = ValidRoute[0].GetRouteIndex(thisSignal.TrackCircuitIndex, firstSectionIndex);
 
             // first, all signals in present section beyond position of train
             TrackCircuitSection thisSection = signalRef.TrackCircuitList[ValidRoute[0][firstSectionIndex].TCSectionIndex];
@@ -9704,7 +9704,7 @@ namespace Orts.Simulation.Physics
                 {
                     if (thisItem.SignalLocation > PresentPosition[0].TCOffset && !thisItem.Signal.isSignalNormal())
                     {
-                        thisItem.Signal.enabledTrain = this.routedForward;
+                        thisItem.Signal.EnabledTrain = this.routedForward;
                     }
                 }
             }
@@ -9722,7 +9722,7 @@ namespace Orts.Simulation.Physics
                     {
                         if (!thisItem.Signal.isSignalNormal())
                         {
-                            thisItem.Signal.enabledTrain = this.routedForward;
+                            thisItem.Signal.EnabledTrain = this.routedForward;
                         }
                     }
                 }
@@ -9737,17 +9737,17 @@ namespace Orts.Simulation.Physics
         public virtual void SwitchToNodeControl(int thisSectionIndex)
         {
             // reset enabled signal if required
-            if (ControlMode == TRAIN_CONTROL.AUTO_SIGNAL && NextSignalObject[0] != null && NextSignalObject[0].enabledTrain == routedForward)
+            if (ControlMode == TRAIN_CONTROL.AUTO_SIGNAL && NextSignalObject[0] != null && NextSignalObject[0].EnabledTrain == routedForward)
             {
                 // reset any claims
-                foreach (TCRouteElement thisElement in NextSignalObject[0].signalRoute)
+                foreach (TCRouteElement thisElement in NextSignalObject[0].SignalRoute)
                 {
                     TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TCSectionIndex];
                     thisSection.CircuitState.TrainClaimed.Remove(routedForward);
                 }
 
                 // reset signal
-                NextSignalObject[0].enabledTrain = null;
+                NextSignalObject[0].EnabledTrain = null;
                 NextSignalObject[0].ResetSignal(true);
             }
 
@@ -10225,7 +10225,7 @@ namespace Orts.Simulation.Physics
 
                 else if (NextSignalObject[0] != null)
                 {
-                    NextSignalObject[0].hasPermission = SignalPermission.Requested;
+                    NextSignalObject[0].OverridePermission = SignalPermission.Requested;
                 }
             }
         }
@@ -10246,7 +10246,7 @@ namespace Orts.Simulation.Physics
                     if (NextSignalObject[reqRouteIndex] != null &&
                         NextSignalObject[reqRouteIndex].this_sig_lr(SignalFunction.Normal) != SignalAspectState.Stop)
                     {
-                        int routeIndex = ValidRoute[reqRouteIndex].GetRouteIndex(NextSignalObject[reqRouteIndex].TCNextTC, PresentPosition[reqRouteIndex].RouteListIndex);
+                        int routeIndex = ValidRoute[reqRouteIndex].GetRouteIndex(NextSignalObject[reqRouteIndex].TrackCircuitNextIndex, PresentPosition[reqRouteIndex].RouteListIndex);
                         signalRef.BreakDownRouteList(ValidRoute[reqRouteIndex], routeIndex, routedForward);
                         ValidRoute[reqRouteIndex].RemoveRange(routeIndex, ValidRoute[reqRouteIndex].Count - routeIndex);
 
@@ -10266,8 +10266,8 @@ namespace Orts.Simulation.Physics
 
             // follow active links to get to object
 
-            int reqSectionIndex = thisObject.SignalDetails.TCReference;
-            float endOffset = thisObject.SignalDetails.TCOffset;
+            int reqSectionIndex = thisObject.SignalDetails.TrackCircuitIndex;
+            float endOffset = thisObject.SignalDetails.TrackCicruitOffset;
 
             float distanceM = GetDistanceToTrain(reqSectionIndex, endOffset);
 
@@ -10336,14 +10336,14 @@ namespace Orts.Simulation.Physics
             // clear all reserved sections etc. - both directions
             if (ControlMode == TRAIN_CONTROL.AUTO_SIGNAL)
             {
-                if (NextSignalObject[0] != null && NextSignalObject[0].enabledTrain == routedForward)
+                if (NextSignalObject[0] != null && NextSignalObject[0].EnabledTrain == routedForward)
                 {
-                    var routeIndexBeforeSignal = NextSignalObject[0].thisTrainRouteIndex - 1;
+                    var routeIndexBeforeSignal = NextSignalObject[0].TrainRouteIndex - 1;
                     NextSignalObject[0].ResetSignal(true);
                     if (routeIndexBeforeSignal >= 0)
                         signalRef.BreakDownRoute(ValidRoute[0][routeIndexBeforeSignal].TCSectionIndex, routedForward);
                 }
-                if (NextSignalObject[1] != null && NextSignalObject[1].enabledTrain == routedBackward)
+                if (NextSignalObject[1] != null && NextSignalObject[1].EnabledTrain == routedBackward)
                 {
                     NextSignalObject[1].ResetSignal(true);
                 }
@@ -10448,14 +10448,14 @@ namespace Orts.Simulation.Physics
             // clear all reserved sections etc. - both directions
             if (ControlMode == TRAIN_CONTROL.AUTO_SIGNAL)
             {
-                if (NextSignalObject[0] != null && NextSignalObject[0].enabledTrain == routedForward)
+                if (NextSignalObject[0] != null && NextSignalObject[0].EnabledTrain == routedForward)
                 {
-                    int routeIndexBeforeSignal = NextSignalObject[0].thisTrainRouteIndex - 1;
+                    int routeIndexBeforeSignal = NextSignalObject[0].TrainRouteIndex - 1;
                     NextSignalObject[0].ResetSignal(true);
                     if (routeIndexBeforeSignal >= 0)
                         signalRef.BreakDownRoute(ValidRoute[0][routeIndexBeforeSignal].TCSectionIndex, routedForward);
                 }
-                if (NextSignalObject[1] != null && NextSignalObject[1].enabledTrain == routedBackward)
+                if (NextSignalObject[1] != null && NextSignalObject[1].EnabledTrain == routedBackward)
                 {
                     NextSignalObject[1].ResetSignal(true);
                 }
@@ -12299,7 +12299,7 @@ namespace Orts.Simulation.Physics
 
             // check section list of signal for any deadlock traps
 
-            foreach (TCRouteElement thisElement in nextSignal.signalRoute)
+            foreach (TCRouteElement thisElement in nextSignal.SignalRoute)
             {
                 TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TCSectionIndex];
                 if (thisSection.DeadlockTraps.ContainsKey(Number))              // deadlock trap
@@ -13499,12 +13499,12 @@ namespace Orts.Simulation.Physics
                 if (NextSignalObject[1] != null)
                 {
                     SignalAspectState nextAspect = GetNextSignalAspect(1);
-                    if (NextSignalObject[1].enabledTrain == null || NextSignalObject[1].enabledTrain.Train != this) nextAspect = SignalAspectState.Stop;  // aspect only valid if signal enabled for this train
+                    if (NextSignalObject[1].EnabledTrain == null || NextSignalObject[1].EnabledTrain.Train != this) nextAspect = SignalAspectState.Stop;  // aspect only valid if signal enabled for this train
 
                     switch (nextAspect)
                     {
                         case SignalAspectState.Stop:
-                            if (NextSignalObject[1].hasPermission == SignalPermission.Granted)
+                            if (NextSignalObject[1].OverridePermission == SignalPermission.Granted)
                             {
                                 firstchar = "G";
                             }
@@ -13543,12 +13543,12 @@ namespace Orts.Simulation.Physics
                 if (NextSignalObject[0] != null)
                 {
                     SignalAspectState nextAspect = GetNextSignalAspect(0);
-                    if (NextSignalObject[0].enabledTrain == null || NextSignalObject[0].enabledTrain.Train != this) nextAspect = SignalAspectState.Stop;  // aspect only valid if signal enabled for this train
+                    if (NextSignalObject[0].EnabledTrain == null || NextSignalObject[0].EnabledTrain.Train != this) nextAspect = SignalAspectState.Stop;  // aspect only valid if signal enabled for this train
 
                     switch (nextAspect)
                     {
                         case SignalAspectState.Stop:
-                            if (NextSignalObject[0].hasPermission == SignalPermission.Granted)
+                            if (NextSignalObject[0].OverridePermission == SignalPermission.Granted)
                             {
                                 lastchar = "G";
                             }
@@ -14049,7 +14049,7 @@ namespace Orts.Simulation.Physics
                 {
                     TrackMonitorSignalAspect signalAspect =
                         thisItem.SignalDetails.TranslateTMAspect(thisItem.SignalDetails.this_sig_lr(SignalFunction.Normal));
-                    if (thisItem.SignalDetails.enabledTrain == null || thisItem.SignalDetails.enabledTrain.Train != this)
+                    if (thisItem.SignalDetails.EnabledTrain == null || thisItem.SignalDetails.EnabledTrain.Train != this)
                     {
                         signalAspect = TrackMonitorSignalAspect.Stop;
                         TrainObjectItem stopItem = new TrainObjectItem(signalAspect,
@@ -14071,7 +14071,7 @@ namespace Orts.Simulation.Physics
                 }
             }
 
-            if (!signalProcessed && NextSignalObject[0] != null && NextSignalObject[0].enabledTrain != null && NextSignalObject[0].enabledTrain.Train == this)
+            if (!signalProcessed && NextSignalObject[0] != null && NextSignalObject[0].EnabledTrain != null && NextSignalObject[0].EnabledTrain.Train == this)
             {
                 TrackMonitorSignalAspect signalAspect =
                     NextSignalObject[0].TranslateTMAspect(NextSignalObject[0].this_sig_lr(SignalFunction.Normal));
@@ -14693,7 +14693,7 @@ namespace Orts.Simulation.Physics
                 File.AppendAllText(@"C:\temp\checktrain.txt", "Train " + Number.ToString() +
                 " : set alternative route no. : " + altRouteIndex.ToString() +
                 " from section " + ValidRoute[0][startElementIndex].TCSectionIndex.ToString() +
-                " (request from signal " + nextSignal.thisRef.ToString() + " )\n");
+                " (request from signal " + nextSignal.Index.ToString() + " )\n");
             }
 
             // set new train route
@@ -14750,10 +14750,10 @@ namespace Orts.Simulation.Physics
 
             TCSubpathRoute newSignalRoute = new TCSubpathRoute();
 
-            int splitSignalIndex = nextSignal.signalRoute.GetRouteIndex(thisRoute[startElementIndex].TCSectionIndex, 0);
+            int splitSignalIndex = nextSignal.SignalRoute.GetRouteIndex(thisRoute[startElementIndex].TCSectionIndex, 0);
             for (int iElement = 0; iElement < splitSignalIndex; iElement++)
             {
-                newSignalRoute.Add(nextSignal.signalRoute[iElement]);
+                newSignalRoute.Add(nextSignal.SignalRoute[iElement]);
             }
 
             // extract new route upto next signal
@@ -14765,7 +14765,7 @@ namespace Orts.Simulation.Physics
             }
 
             nextSignal.ResetSignal(true);
-            nextSignal.signalRoute = newSignalRoute;
+            nextSignal.SignalRoute = newSignalRoute;
 
             if (ControlMode == TRAIN_CONTROL.AUTO_SIGNAL)
             {
@@ -14828,7 +14828,7 @@ namespace Orts.Simulation.Physics
                 File.AppendAllText(@"C:\temp\checktrain.txt", "Train " + Number.ToString() +
                 " : set alternative route no. : " + usedPath.ToString() +
                 " from section " + startSectionIndex.ToString() +
-                " (request from signal " + nextSignal.thisRef.ToString() + " )\n");
+                " (request from signal " + nextSignal.Index.ToString() + " )\n");
             }
 
             // set new train route
@@ -14922,10 +14922,10 @@ namespace Orts.Simulation.Physics
             {
                 TCSubpathRoute newSignalRoute = new TCSubpathRoute();
 
-                int splitSignalIndex = nextSignal.signalRoute.GetRouteIndex(thisRoute[startElementIndex].TCSectionIndex, 0);
+                int splitSignalIndex = nextSignal.SignalRoute.GetRouteIndex(thisRoute[startElementIndex].TCSectionIndex, 0);
                 for (int iElement = 0; iElement < splitSignalIndex; iElement++)
                 {
-                    newSignalRoute.Add(nextSignal.signalRoute[iElement]);
+                    newSignalRoute.Add(nextSignal.SignalRoute[iElement]);
                 }
 
                 // extract new route upto next signal
@@ -14941,7 +14941,7 @@ namespace Orts.Simulation.Physics
                 // if train in signal mode, request clear signal
 
                 nextSignal.ResetSignal(true);
-                nextSignal.signalRoute = newSignalRoute;
+                nextSignal.SignalRoute = newSignalRoute;
 
                 if (ControlMode == TRAIN_CONTROL.AUTO_SIGNAL)
                 {
@@ -18494,7 +18494,7 @@ namespace Orts.Simulation.Physics
 
             public bool SignalIsAheadOfTrain(Signal thisSignal, TCPosition trainPosition)
             {
-                int signalSection = thisSignal.TCReference;
+                int signalSection = thisSignal.TrackCircuitIndex;
                 int signalRouteIndex = GetRouteIndexBackward(signalSection, trainPosition.RouteListIndex);
                 if (signalRouteIndex >= 0)
                     return (false);  // signal section passed earlier in route
@@ -18502,7 +18502,7 @@ namespace Orts.Simulation.Physics
                 if (signalRouteIndex >= 0)
                     return (true); // signal section still ahead
 
-                if (trainPosition.TCSectionIndex == thisSignal.TCNextTC)
+                if (trainPosition.TCSectionIndex == thisSignal.TrackCircuitNextIndex)
                     return (false); // if train in section following signal, assume we passed
 
                 // signal is not on route - assume we did not pass
@@ -18516,14 +18516,14 @@ namespace Orts.Simulation.Physics
                                 " in section " + thisSignal.TCReference.ToString() +
                                 ", starting from section " + trainPosition.TCSectionIndex.ToString() + "\n");
 #endif
-                if (thisSignal.enabledTrain != null && thisSignal.enabledTrain.Train.CheckTrain)
+                if (thisSignal.EnabledTrain != null && thisSignal.EnabledTrain.Train.CheckTrain)
                 {
-                    int trainnoCT = (thisSignal.enabledTrain != null) ? thisSignal.enabledTrain.Train.Number : -1;
+                    int trainnoCT = (thisSignal.EnabledTrain != null) ? thisSignal.EnabledTrain.Train.Number : -1;
 
                     File.AppendAllText(@"C:\temp\checktrain.txt", "Cannot find signal on route : " +
                                     " Train " + trainnoCT.ToString() +
-                                    ", Signal : " + thisSignal.thisRef.ToString() +
-                                    " in section " + thisSignal.TCReference.ToString() +
+                                    ", Signal : " + thisSignal.Index.ToString() +
+                                    " in section " + thisSignal.TrackCircuitIndex.ToString() +
                                     ", starting from section " + trainPosition.TCSectionIndex.ToString() + "\n");
                 }
                 return (true);

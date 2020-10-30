@@ -138,8 +138,8 @@ namespace Orts.Simulation.Signalling
 
                 if (SignalFunction == SignalFunction.Speed)
                 {
-                    MainSignal.isSignal = false;
-                    MainSignal.isSpeedSignal = true;
+                    MainSignal.IsSignal = false;
+                    MainSignal.IsSpeedSignal = true;
                 }
             }
             else
@@ -237,7 +237,7 @@ namespace Orts.Simulation.Signalling
         {
             if (signalId >= 0 && signalId < Signal.SignalEnvironment.SignalObjects.Count)
             {
-                return Signal.SignalEnvironment.SignalObjects[signalId].enabled ? 1 : 0;
+                return Signal.SignalEnvironment.SignalObjects[signalId].Enabled ? 1 : 0;
             }
             return 0;
         }
@@ -301,11 +301,11 @@ namespace Orts.Simulation.Signalling
             bool foundValid = false;
 
             // get signal of type 2 (end signal)
-            int sig2Index = MainSignal.sigfound[signalTypeOther];
+            int sig2Index = MainSignal.Signalfound[signalTypeOther];
             if (sig2Index < 0)           // try renewed search with full route
             {
                 sig2Index = MainSignal.SONextSignal(signalTypeOther);
-                MainSignal.sigfound[signalTypeOther] = sig2Index;
+                MainSignal.Signalfound[signalTypeOther] = sig2Index;
             }
 
             Signal thisSignal = MainSignal;
@@ -314,14 +314,14 @@ namespace Orts.Simulation.Signalling
 
             if (!thisSignal.isSignalNormal() || signalType != (int)SignalFunction.Normal)
             {
-                thisSignal.sigfound[signalType] = thisSignal.SONextSignal(signalType);
+                thisSignal.Signalfound[signalType] = thisSignal.SONextSignal(signalType);
             }
 
             // loop through all available signals of type 1
 
-            while (thisSignal.sigfound[signalType] >= 0)
+            while (thisSignal.Signalfound[signalType] >= 0)
             {
-                thisSignal = Signal.SignalEnvironment.SignalObjects[thisSignal.sigfound[signalType]];
+                thisSignal = Signal.SignalEnvironment.SignalObjects[thisSignal.Signalfound[signalType]];
 
                 SignalAspectState thisState = thisSignal.MRSignalOnRoute(signalType);
 
@@ -329,19 +329,19 @@ namespace Orts.Simulation.Signalling
                 if (signalType != (int)SignalFunction.Normal || !thisSignal.isSignalNormal())
                 {
                     int sigFound = thisSignal.SONextSignal(signalType);
-                    if (sigFound >= 0) thisSignal.sigfound[(int)signalType] = thisSignal.SONextSignal(signalType);
+                    if (sigFound >= 0) thisSignal.Signalfound[(int)signalType] = thisSignal.SONextSignal(signalType);
                 }
                 if (signalTypeOther != (int)SignalFunction.Normal || !thisSignal.isSignalNormal())
                 {
                     int sigFound = thisSignal.SONextSignal(signalTypeOther);
-                    if (sigFound >= 0) thisSignal.sigfound[(int)signalTypeOther] = thisSignal.SONextSignal(signalTypeOther);
+                    if (sigFound >= 0) thisSignal.Signalfound[(int)signalTypeOther] = thisSignal.SONextSignal(signalTypeOther);
                 }
 
-                if (sig2Index == thisSignal.thisRef) // this signal also contains type 2 signal and is therefor valid
+                if (sig2Index == thisSignal.Index) // this signal also contains type 2 signal and is therefor valid
                 {
                     return foundState < thisState ? foundState : thisState;
                 }
-                else if (sig2Index >= 0 && thisSignal.sigfound[signalTypeOther] != sig2Index)  // we are beyond type 2 signal
+                else if (sig2Index >= 0 && thisSignal.Signalfound[signalTypeOther] != sig2Index)  // we are beyond type 2 signal
                 {
                     return (foundValid ? foundState : SignalAspectState.Stop);
                 }
@@ -364,11 +364,11 @@ namespace Orts.Simulation.Signalling
 
             // get signal of type 2 (end signal)
 
-            int sig2Index = MainSignal.sigfound[signalTypeOther];
+            int sig2Index = MainSignal.Signalfound[signalTypeOther];
             if (sig2Index < 0)           // try renewed search with full route
             {
                 sig2Index = MainSignal.SONextSignal(signalTypeOther);
-                MainSignal.sigfound[signalTypeOther] = sig2Index;
+                MainSignal.Signalfound[signalTypeOther] = sig2Index;
             }
 
             Signal thisSignal = MainSignal;
@@ -377,14 +377,14 @@ namespace Orts.Simulation.Signalling
 
             if (!thisSignal.isSignalNormal() || signalType != (int)SignalFunction.Normal)
             {
-                thisSignal.sigfound[signalType] = thisSignal.SONextSignal(signalType);
+                thisSignal.Signalfound[signalType] = thisSignal.SONextSignal(signalType);
             }
 
             // loop through all available signals of type 1
 
-            while (thisSignal.sigfound[signalType] >= 0)
+            while (thisSignal.Signalfound[signalType] >= 0)
             {
-                thisSignal = Signal.SignalEnvironment.SignalObjects[thisSignal.sigfound[signalType]];
+                thisSignal = Signal.SignalEnvironment.SignalObjects[thisSignal.Signalfound[signalType]];
 
                 SignalAspectState thisState = thisSignal.this_sig_lr(signalType);
 
@@ -393,20 +393,20 @@ namespace Orts.Simulation.Signalling
                 {
                     int sigFound = thisSignal.SONextSignal(signalType);
                     if (sigFound >= 0)
-                        thisSignal.sigfound[signalType] = thisSignal.SONextSignal(signalType);
+                        thisSignal.Signalfound[signalType] = thisSignal.SONextSignal(signalType);
                 }
                 if (signalTypeOther != (int)SignalFunction.Normal || !thisSignal.isSignalNormal())
                 {
                     int sigFound = thisSignal.SONextSignal(signalTypeOther);
                     if (sigFound >= 0)
-                        thisSignal.sigfound[signalTypeOther] = thisSignal.SONextSignal(signalTypeOther);
+                        thisSignal.Signalfound[signalTypeOther] = thisSignal.SONextSignal(signalTypeOther);
                 }
 
-                if (sig2Index == thisSignal.thisRef) // this signal also contains type 2 signal and is therefor valid
+                if (sig2Index == thisSignal.Index) // this signal also contains type 2 signal and is therefor valid
                 {
                     return foundState < thisState ? foundState : thisState;
                 }
-                else if (sig2Index >= 0 && thisSignal.sigfound[signalTypeOther] != sig2Index)  // we are beyond type 2 signal
+                else if (sig2Index >= 0 && thisSignal.Signalfound[signalTypeOther] != sig2Index)  // we are beyond type 2 signal
                 {
                     return (foundValid ? foundState : SignalAspectState.Stop);
                 }
@@ -475,9 +475,9 @@ namespace Orts.Simulation.Signalling
             else if (MPManager.IsMultiPlayer())
             {
                 TrackNode node = Signal.SignalEnvironment.Simulator.TDB.TrackDB.TrackNodes[MainSignal.TrackNode];
-                if (!(node is TrackJunctionNode) && node.TrackPins != null && MainSignal.TCDirection < node.TrackPins.Length)
+                if (!(node is TrackJunctionNode) && node.TrackPins != null && (int)MainSignal.TrackCircuitDirection < node.TrackPins.Length)
                 {
-                    node = Signal.SignalEnvironment.Simulator.TDB.TrackDB.TrackNodes[node.TrackPins[MainSignal.TCDirection].Link];
+                    node = Signal.SignalEnvironment.Simulator.TDB.TrackDB.TrackNodes[node.TrackPins[(int)MainSignal.TrackCircuitDirection].Link];
                     if (!(node is TrackJunctionNode junctionNode)) return 0;
                     for (int pin = junctionNode.InPins; pin < junctionNode.InPins + junctionNode.OutPins; pin++)
                     {

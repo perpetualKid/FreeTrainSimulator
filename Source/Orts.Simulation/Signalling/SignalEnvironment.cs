@@ -253,35 +253,9 @@ namespace Orts.Simulation.Signalling
             SignalRefList.Clear();
             SignalHeadList.Clear();
 
-            if (SignalObjects != null)
+            foreach (Signal signal in SignalObjects ?? Enumerable.Empty<Signal>())
             {
-                foreach (Signal thisSignal in SignalObjects)
-                {
-                    if (thisSignal != null)
-                    {
-                        if (thisSignal.isSignalNormal())
-                        {
-                            if (thisSignal.TCNextTC < 0)
-                            {
-                                Trace.TraceInformation("Signal " + thisSignal.thisRef +
-                                    " ; TC : " + thisSignal.TCReference +
-                                    " ; NextTC : " + thisSignal.TCNextTC +
-                                    " ; TN : " + thisSignal.TrackNode +
-                                    " ; TDB (0) : " + thisSignal.SignalHeads[0].TDBIndex);
-                            }
-
-                            if (thisSignal.TCReference < 0) // signal is not on any track - remove it!
-                            {
-                                Trace.TraceInformation("Signal removed " + thisSignal.thisRef +
-                                    " ; TC : " + thisSignal.TCReference +
-                                    " ; NextTC : " + thisSignal.TCNextTC +
-                                    " ; TN : " + thisSignal.TrackNode +
-                                    " ; TDB (0) : " + thisSignal.SignalHeads[0].TDBIndex);
-                                SignalObjects[thisSignal.thisRef] = null;
-                            }
-                        }
-                    }
-                }
+                signal?.ValidateSignal();
             }
 
             DeadlockInfoList = new Dictionary<int, DeadlockInfo>();
@@ -392,7 +366,7 @@ namespace Orts.Simulation.Signalling
                 {
                     if (thisSignal != null)
                     {
-                        outf.Write(thisSignal.thisRef);
+                        outf.Write(thisSignal.Index);
                         thisSignal.Save(outf);
                     }
                 }
@@ -569,7 +543,7 @@ namespace Orts.Simulation.Signalling
                 for (int icount = updatecount; icount < Math.Min(totalSignal, updatecount + updatestep); icount++)
                 {
                     Signal signal = SignalObjects[icount];
-                    if (signal != null && !signal.noupdate) // to cater for orphans, and skip signals which do not require updates
+                    if (signal != null && !signal.Static) // to cater for orphans, and skip signals which do not require updates
                     {
                         signal.Update();
                     }
@@ -642,7 +616,7 @@ namespace Orts.Simulation.Signalling
                     if (SignalObjects[iSignal] != null)
                     {
                         var thisObject = SignalObjects[iSignal];
-                        thisObject.thisRef = iSignal;
+                        thisObject.ResetIndex(iSignal);
 
                         foreach (var thisHead in thisObject.SignalHeads)
                         {
@@ -652,11 +626,11 @@ namespace Orts.Simulation.Signalling
                             var speedItem = trackItem as SpeedPostItem;
                             if (sigItem != null)
                             {
-                                sigItem.SignalObject = thisObject.thisRef;
+                                sigItem.SignalObject = thisObject.Index;
                             }
                             else if (speedItem != null)
                             {
-                                speedItem.SignalObject = thisObject.thisRef;
+                                speedItem.SignalObject = thisObject.Index;
                             }
                         }
                     }
@@ -692,7 +666,7 @@ namespace Orts.Simulation.Signalling
             for (int isignal = 0; isignal < SignalObjects.Count - 1; isignal++)
             {
                 Signal singleSignal = SignalObjects[isignal];
-                if (singleSignal != null && singleSignal.isSignal && singleSignal.WorldObject?.Backfacing.Count > 0)
+                if (singleSignal != null && singleSignal.IsSignal && singleSignal.WorldObject?.Backfacing.Count > 0)
                 {
 
                     //
@@ -700,11 +674,10 @@ namespace Orts.Simulation.Signalling
                     // use Backfacing flags and reset head indication
                     //
 
-                    Signal newSignal = new Signal(singleSignal);
+                    Signal newSignal = new Signal(newindex, singleSignal);
 
-                    newSignal.thisRef = newindex;
                     newSignal.TrackItemRefIndex = 0;
-
+                        
                     newSignal.WorldObject.UpdateFlags(singleSignal.WorldObject.FlagsSetBackfacing);
                     newSignal.WorldObject.HeadsSet.SetAll(false);
 
@@ -775,18 +748,18 @@ namespace Orts.Simulation.Signalling
                         if (singleSignal.SignalHeads.Count > 0)
                         {
                             SignalItem thisItemOld = TrItems[singleSignal.SignalHeads[0].TDBIndex] as SignalItem;
-                            if (singleSignal.direction != thisItemOld.Direction)
+                            if (singleSignal.Direction != (TrackDirection)thisItemOld.Direction)
                             {
-                                singleSignal.direction = (int)thisItemOld.Direction;
-                                singleSignal.tdbtraveller.ReverseDirection();                           // reverse //
+                                singleSignal.Direction = (TrackDirection)thisItemOld.Direction;
+                                singleSignal.TdbTraveller.ReverseDirection();                           // reverse //
                             }
                         }
 
                         SignalItem thisItemNew = TrItems[newSignal.SignalHeads[0].TDBIndex] as SignalItem;
-                        if (newSignal.direction != thisItemNew.Direction)
+                        if (newSignal.Direction != (TrackDirection)thisItemNew.Direction)
                         {
-                            newSignal.direction = (int)thisItemNew.Direction;
-                            newSignal.tdbtraveller.ReverseDirection();                           // reverse //
+                            newSignal.Direction = (TrackDirection)thisItemNew.Direction;
+                            newSignal.TdbTraveller.ReverseDirection();                           // reverse //
                         }
 
                         //
@@ -806,7 +779,7 @@ namespace Orts.Simulation.Signalling
                                         if (TDBRef == thisHead.TDBIndex)
                                         {
                                             SignalItem sigItem = (SignalItem)TrItems[TDBRef];
-                                            sigItem.SignalObject = newSignal.thisRef;
+                                            sigItem.SignalObject = newSignal.Index;
                                             newSignal.TrackItemRefIndex = i;
 
                                             // remove this key from the original signal //
@@ -834,7 +807,7 @@ namespace Orts.Simulation.Signalling
                                         if (TDBRef == thisHead.TDBIndex)
                                         {
                                             SignalItem sigItem = (SignalItem)TrItems[TDBRef];
-                                            sigItem.SignalObject = singleSignal.thisRef;
+                                            sigItem.SignalObject = singleSignal.Index;
                                             singleSignal.TrackItemRefIndex = i;
 
                                             // remove this key from the new signal //
@@ -931,7 +904,7 @@ namespace Orts.Simulation.Signalling
                             {
                                 speedItem.SignalObject = foundSignals;
 
-                                lastSignal = AddSpeed(index, i, speedItem, TDBRef, tsectiondat, tdbfile, OrtsSignalTypeCount);
+                                lastSignal = AddSpeed(index, i, speedItem, TDBRef, tsectiondat, tdbfile);
                                 speedItem.SignalObject = lastSignal;
 
                             }
@@ -1006,7 +979,7 @@ namespace Orts.Simulation.Signalling
                                 foreach (SignalHead thisHead in AddSignal.SignalHeads)
                                 {
                                     MainSignal.SignalHeads.Add(thisHead);
-                                    SignalObjects[AddSignal.thisRef] = null;
+                                    SignalObjects[AddSignal.Index] = null;
                                 }
                             }
                         }
@@ -1028,15 +1001,7 @@ namespace Orts.Simulation.Signalling
         private int AddSignal(int trackNode, int nodeIndx, SignalItem sigItem, int TDBRef, TrackSectionsFile tsectiondat, TrackDatabaseFile tdbfile, ref bool validSignal)
         {
             validSignal = true;
-
-            SignalObjects[foundSignals] = new Signal();
-            SignalObjects[foundSignals].isSignal = true;
-            SignalObjects[foundSignals].isSpeedSignal = false;
-            SignalObjects[foundSignals].direction = (int)sigItem.Direction;
-            SignalObjects[foundSignals].TrackNode = trackNode;
-            SignalObjects[foundSignals].TrackItemRefIndex = nodeIndx;
-            SignalObjects[foundSignals].AddHead(nodeIndx, TDBRef, sigItem);
-            SignalObjects[foundSignals].thisRef = foundSignals;
+            Traveller traveller = null;
 
             if (!(tdbfile.TrackDB.TrackNodes[trackNode] is TrackVectorNode tvn))
             {
@@ -1045,9 +1010,16 @@ namespace Orts.Simulation.Signalling
             }
             else
             {
-                SignalObjects[foundSignals].tdbtraveller =
-                new Traveller(tsectiondat, tdbfile.TrackDB.TrackNodes, tvn, sigItem.Location, (Traveller.TravellerDirection)(1 - sigItem.Direction));
+                traveller = new Traveller(tsectiondat, tdbfile.TrackDB.TrackNodes, tvn, sigItem.Location, (Traveller.TravellerDirection)(1 - sigItem.Direction));
             }
+
+            SignalObjects[foundSignals] = new Signal(foundSignals, traveller);
+            SignalObjects[foundSignals].IsSignal = true;
+            SignalObjects[foundSignals].IsSpeedSignal = false;
+            SignalObjects[foundSignals].Direction = sigItem.Direction;
+            SignalObjects[foundSignals].TrackNode = trackNode;
+            SignalObjects[foundSignals].TrackItemRefIndex = nodeIndx;
+            SignalObjects[foundSignals].AddHead(nodeIndx, TDBRef, sigItem);
 
             SignalObjects[foundSignals].WorldObject = null;
 
@@ -1076,30 +1048,28 @@ namespace Orts.Simulation.Signalling
         /// This method adds a new Speedpost to the list
         /// </summary>
 
-        private int AddSpeed(int trackNode, int nodeIndx, SpeedPostItem speedItem, int TDBRef, TrackSectionsFile tsectiondat, TrackDatabaseFile tdbfile, int ORTSSignalTypeCount)
+        private int AddSpeed(int trackNode, int nodeIndx, SpeedPostItem speedItem, int TDBRef, TrackSectionsFile tsectiondat, TrackDatabaseFile tdbfile)
         {
-            SignalObjects[foundSignals] = new Signal();
-            SignalObjects[foundSignals].isSignal = false;
-            SignalObjects[foundSignals].isSpeedSignal = false;
-            SignalObjects[foundSignals].direction = 0;                  // preset - direction not yet known //
+            Traveller traveller = new Traveller(tsectiondat, tdbfile.TrackDB.TrackNodes, tdbfile.TrackDB.TrackNodes[trackNode] as TrackVectorNode, speedItem.Location, Traveller.TravellerDirection.Backward);
+
+            SignalObjects[foundSignals] = new Signal(foundSignals, traveller);
+            SignalObjects[foundSignals].IsSignal = false;
+            SignalObjects[foundSignals].IsSpeedSignal = false;
+            SignalObjects[foundSignals].Direction = 0;                  // preset - direction not yet known //
             SignalObjects[foundSignals].TrackNode = trackNode;
             SignalObjects[foundSignals].TrackItemRefIndex = nodeIndx;
             SignalObjects[foundSignals].AddHead(nodeIndx, TDBRef, speedItem);
-            SignalObjects[foundSignals].thisRef = foundSignals;
 
-            SignalObjects[foundSignals].tdbtraveller =
-            new Traveller(tsectiondat, tdbfile.TrackDB.TrackNodes, tdbfile.TrackDB.TrackNodes[trackNode] as TrackVectorNode, speedItem.Location, (Traveller.TravellerDirection)SignalObjects[foundSignals].direction);
-
-            double delta_angle = SignalObjects[foundSignals].tdbtraveller.RotY - ((Math.PI / 2) - speedItem.Angle);
+            double delta_angle = SignalObjects[foundSignals].TdbTraveller.RotY - ((Math.PI / 2) - speedItem.Angle);
             float delta_float = MathHelper.WrapAngle((float)delta_angle);
             if (Math.Abs(delta_float) < (Math.PI / 2))
             {
-                SignalObjects[foundSignals].direction = SignalObjects[foundSignals].tdbtraveller.Direction == 0 ? 1 : 0;
+                SignalObjects[foundSignals].Direction = ((TrackDirection)(int)SignalObjects[foundSignals].TdbTraveller.Direction).Next();
             }
             else
             {
-                SignalObjects[foundSignals].direction = (int)SignalObjects[foundSignals].tdbtraveller.Direction;
-                SignalObjects[foundSignals].tdbtraveller.ReverseDirection();
+                SignalObjects[foundSignals].Direction = (TrackDirection)(int)SignalObjects[foundSignals].TdbTraveller.Direction;
+                SignalObjects[foundSignals].TdbTraveller.ReverseDirection();
             }
 
 #if DEBUG_PRINT
@@ -1140,17 +1110,13 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// Add the sigcfg reference to each signal object.
         /// </summary>
-
-        private void AddCFG(SignalConfigurationFile sigCFG)
+        private void AddCFG(SignalConfigurationFile signalConfig)
         {
             foreach (Signal signal in SignalObjects)
             {
-                if (signal != null)
+                if (null != signal && signal.IsSignal)
                 {
-                    if (signal.isSignal)
-                    {
-                        signal.SetSignalType(sigCFG);
-                    }
+                    signal.SetSignalType(signalConfig);
                 }
             }
         }//AddCFG
@@ -1214,18 +1180,9 @@ namespace Orts.Simulation.Signalling
 
         public void SetNumSignalHeads()
         {
-            foreach (Signal thisSignal in SignalObjects)
+            foreach (Signal signal in SignalObjects)
             {
-                if (thisSignal != null)
-                {
-                    foreach (SignalHead thisHead in thisSignal.SignalHeads)
-                    {
-                        if (thisHead.SignalFunction == SignalFunction.Normal)
-                        {
-                            thisSignal.SignalNumNormalHeads++;
-                        }
-                    }
-                }
+                signal?.SetNumberSignalHeads();
             }
         }
 
@@ -1314,7 +1271,7 @@ namespace Orts.Simulation.Signalling
                             }
 
                             // also set signal in list if it is a speed signal as state of speed signal may change
-                            else if (thisSpeedpost.Signal.isSpeedSignal)
+                            else if (thisSpeedpost.Signal.IsSpeedSignal)
                             {
                                 locstate = SignalItemFindState.Item;
                                 foundObject = thisSpeedpost.Signal;
@@ -1486,7 +1443,7 @@ namespace Orts.Simulation.Signalling
                 {
                     signalState = SignalItemFindState.PassedDanger;
                 }
-                else if (thisTrain != null && foundSignal.enabledTrain != thisTrain)
+                else if (thisTrain != null && foundSignal.EnabledTrain != thisTrain)
                 {
                     signalState = SignalItemFindState.PassedDanger;
                     nextSignal.SignalState = signalState;  // do not return OBJECT_FOUND - signal is not valid
@@ -1702,9 +1659,9 @@ namespace Orts.Simulation.Signalling
             // Set cross-reference for signals
             //
 
-            for (int iNode = 0; iNode < TrackCircuitList.Count; iNode++)
+            foreach(TrackCircuitSection section in TrackCircuitList)
             {
-                setSignalCrossReference(iNode);
+                Signal.SetSignalCrossReference(section);
             }
 
             //
@@ -1716,7 +1673,7 @@ namespace Orts.Simulation.Signalling
                 Signal thisSignal = SignalObjects[iSignal];
                 if (thisSignal != null)
                 {
-                    thisSignal.setSignalDefaultNextSignal();
+                    thisSignal.SetSignalDefaultNextSignal();
                 }
             }
         }
@@ -1799,7 +1756,7 @@ namespace Orts.Simulation.Signalling
                         return newLastDistance;
                     }
                     float signalDistance = thisSignal.DistanceTo(TDBTrav);
-                    if (thisSignal.direction == 1)
+                    if (thisSignal.Direction == TrackDirection.Reverse)
                     {
                         signalDistance = thisCircuit.Length - signalDistance;
                     }
@@ -1811,7 +1768,7 @@ namespace Orts.Simulation.Signalling
                             TrackCircuitSignalItem thisTCItem =
                                     new TrackCircuitSignalItem(thisSignal, signalDistance);
 
-                            TrackDirection directionList = thisSignal.direction == 0 ? TrackDirection.Reverse : TrackDirection.Ahead;
+                            TrackDirection directionList = thisSignal.Direction == 0 ? TrackDirection.Reverse : TrackDirection.Ahead;
                             TrackCircuitSignalList signalList = thisCircuit.CircuitItems.TrackCircuitSignals[directionList][fntype];
 
                             // if signal is SPEED type, insert in speedpost list
@@ -1842,7 +1799,7 @@ namespace Orts.Simulation.Signalling
                             }
                         }
                     }
-                    newLastDistance[thisSignal.direction] = signalDistance;
+                    newLastDistance[(int)thisSignal.Direction] = signalDistance;
                 }
             }
 
@@ -1859,12 +1816,12 @@ namespace Orts.Simulation.Signalling
                     {
                         Signal thisSpeedpost = SignalObjects[speedItem.SignalObject];
                         float speedpostDistance = thisSpeedpost.DistanceTo(TDBTrav);
-                        if (thisSpeedpost.direction == 1)
+                        if (thisSpeedpost.Direction == TrackDirection.Reverse)
                         {
                             speedpostDistance = thisCircuit.Length - speedpostDistance;
                         }
 
-                        if (speedpostDistance == lastDistance[thisSpeedpost.direction]) // if at same position as last item
+                        if (speedpostDistance == lastDistance[(int)thisSpeedpost.Direction]) // if at same position as last item
                         {
                             speedpostDistance = speedpostDistance + 0.001f;  // shift 1 mm so it will be found
                         }
@@ -1872,7 +1829,7 @@ namespace Orts.Simulation.Signalling
                         TrackCircuitSignalItem thisTCItem =
                                 new TrackCircuitSignalItem(thisSpeedpost, speedpostDistance);
 
-                        TrackDirection directionList = thisSpeedpost.direction == 0 ? TrackDirection.Reverse : TrackDirection.Ahead;
+                        TrackDirection directionList = thisSpeedpost.Direction == 0 ? TrackDirection.Reverse : TrackDirection.Ahead;
                         TrackCircuitSignalList thisSignalList = thisCircuit.CircuitItems.TrackCircuitSpeedPosts[directionList];
 
                         if (directionList == 0)
@@ -1884,7 +1841,7 @@ namespace Orts.Simulation.Signalling
                             thisSignalList.Add(thisTCItem);
                         }
 
-                        newLastDistance[thisSpeedpost.direction] = speedpostDistance;
+                        newLastDistance[(int)thisSpeedpost.Direction] = speedpostDistance;
                     }
 
                     // Milepost
@@ -2343,85 +2300,6 @@ namespace Orts.Simulation.Signalling
 
         //================================================================================================//
         /// <summary>
-        /// Set trackcircuit cross reference for signal items and speedposts
-        /// </summary>
-
-        private void setSignalCrossReference(int thisNode)
-        {
-
-            TrackCircuitSection thisSection = TrackCircuitList[thisNode];
-
-            // process end signals
-
-            foreach (TrackDirection direction in EnumExtension.GetValues<TrackDirection>())
-            {
-                Signal thisSignal = thisSection.EndSignals[direction];
-                if (thisSignal != null)
-                {
-                    thisSignal.TCReference = thisNode;
-                    thisSignal.TCOffset = thisSection.Length;
-                    thisSignal.TCDirection = (int)direction;
-
-                    thisSignal.TCNextTC = thisSection.Pins[direction, Location.NearEnd].Link;
-                    thisSignal.TCNextDirection = (int)thisSection.Pins[direction, Location.NearEnd].Direction;
-                }
-            }
-
-            // process other signals - only set info if not already set
-
-            foreach (TrackDirection heading in EnumExtension.GetValues<TrackDirection>())
-            {
-                for (int fntype = 0; fntype < OrtsSignalTypeCount; fntype++)
-                {
-                    TrackCircuitSignalList thisList = thisSection.CircuitItems.TrackCircuitSignals[heading][fntype];
-                    foreach (TrackCircuitSignalItem thisItem in thisList)
-                    {
-                        Signal thisSignal = thisItem.Signal;
-
-                        if (thisSignal.TCReference <= 0)
-                        {
-                            thisSignal.TCReference = thisNode;
-                            thisSignal.TCOffset = thisItem.SignalLocation;
-                            thisSignal.TCDirection = (int)heading;
-                        }
-                    }
-                }
-            }
-
-
-            // process speedposts
-
-            foreach (TrackDirection heading in EnumExtension.GetValues<TrackDirection>())
-            {
-                TrackCircuitSignalList thisList = thisSection.CircuitItems.TrackCircuitSpeedPosts[heading];
-                foreach (TrackCircuitSignalItem thisItem in thisList)
-                {
-                    Signal thisSignal = thisItem.Signal;
-
-                    if (thisSignal.TCReference <= 0)
-                    {
-                        thisSignal.TCReference = thisNode;
-                        thisSignal.TCOffset = thisItem.SignalLocation;
-                        thisSignal.TCDirection = (int)heading;
-                    }
-                }
-            }
-
-
-            // process mileposts
-
-            foreach (TrackCircuitMilepost trackCircuitMilepost in thisSection.CircuitItems.TrackCircuitMileposts)
-            {
-                if (trackCircuitMilepost.Milepost.TrackCircuitReference <= 0)
-                {
-                    trackCircuitMilepost.Milepost.SetCircuit(thisNode, trackCircuitMilepost.MilepostLocation[Location.NearEnd]);
-                }
-            }
-
-        }
-
-        //================================================================================================//
-        /// <summary>
         /// Set physical switch
         /// </summary>
 
@@ -2825,7 +2703,7 @@ namespace Orts.Simulation.Signalling
                             {
                                 Signal endSignal = thisSection.EndSignals[(TrackDirection)thisElement.Direction];
                                 // check if signal enabled for other train - if so, keep in node control
-                                if (endSignal.enabledTrain == null || endSignal.enabledTrain == thisTrain)
+                                if (endSignal.EnabledTrain == null || endSignal.EnabledTrain == thisTrain)
                                 {
                                     if (routeIndex < routePart.Count)
                                     {
@@ -3293,7 +3171,7 @@ namespace Orts.Simulation.Signalling
                             {
                                 if (thisItem.SignalLocation > offset)
                                 {
-                                    foundObject.Add(thisItem.Signal.thisRef);
+                                    foundObject.Add(thisItem.Signal.Index);
                                     endOfRoute = true;
                                 }
                             }
@@ -3312,7 +3190,7 @@ namespace Orts.Simulation.Signalling
                             {
                                 if (offset == 0 || thisItem.SignalLocation < offset)
                                 {
-                                    foundObject.Add(thisItem.Signal.thisRef);
+                                    foundObject.Add(thisItem.Signal.Index);
                                     endOfRoute = true;
                                 }
                             }
@@ -3322,7 +3200,7 @@ namespace Orts.Simulation.Signalling
 
                 if (searchFacingSignal && thisSection.EndSignals[curDirection] != null)           // search facing signal
                 {
-                    foundObject.Add(thisSection.EndSignals[curDirection].thisRef);
+                    foundObject.Add(thisSection.EndSignals[curDirection].Index);
                     endOfRoute = true;
                 }
 
@@ -3350,7 +3228,7 @@ namespace Orts.Simulation.Signalling
                                 if (thisItem.SignalLocation < thisSection.Length - offset)
                                 {
                                     endOfRoute = true;
-                                    foundObject.Add(-(thisItem.Signal.thisRef));
+                                    foundObject.Add(-(thisItem.Signal.Index));
                                 }
                             }
                         }
@@ -3369,7 +3247,7 @@ namespace Orts.Simulation.Signalling
                                 if (offset == 0 || thisItem.SignalLocation > thisSection.Length - offset)
                                 {
                                     endOfRoute = true;
-                                    foundObject.Add(-(thisItem.Signal.thisRef));
+                                    foundObject.Add(-(thisItem.Signal.Index));
                                 }
                             }
                         }
@@ -3486,7 +3364,7 @@ namespace Orts.Simulation.Signalling
                     if (searchBackwardSignal && thisSection.EndSignals[oppDirection] != null)
                     {
                         endOfRoute = true;
-                        foundObject.Add(-(thisSection.EndSignals[oppDirection].thisRef));
+                        foundObject.Add(-(thisSection.EndSignals[oppDirection].Index));
                     }
                 }
 
@@ -3738,7 +3616,7 @@ namespace Orts.Simulation.Signalling
                             // end signal is always valid in timetable mode
                             if (Simulator.TimetableMode || distToSignal <= 150)
                             {
-                                thisDetails.EndSignals[TrackDirection.Ahead] = thisSection.EndSignals[TrackDirection.Ahead].thisRef;
+                                thisDetails.EndSignals[TrackDirection.Ahead] = thisSection.EndSignals[TrackDirection.Ahead].Index;
                                 thisDetails.DistanceToSignals[TrackDirection.Ahead] = distToSignal;
                             }
                             // end signal is only valid if it has no fixed route in activity mode
@@ -3754,7 +3632,7 @@ namespace Orts.Simulation.Signalling
                                 }
                                 if (!thisSection.EndSignals[TrackDirection.Ahead].FixedRoute && !(approachControlLimitPositionM != null && (float)approachControlLimitPositionM < distToSignal + 100))
                                 {
-                                    thisDetails.EndSignals[TrackDirection.Ahead] = thisSection.EndSignals[TrackDirection.Ahead].thisRef;
+                                    thisDetails.EndSignals[TrackDirection.Ahead] = thisSection.EndSignals[TrackDirection.Ahead].Index;
                                     thisDetails.DistanceToSignals[TrackDirection.Ahead] = distToSignal;
                                 }
                             }
@@ -3791,7 +3669,7 @@ namespace Orts.Simulation.Signalling
                         {
                             if (Simulator.TimetableMode || distToSignal <= 150)
                             {
-                                thisDetails.EndSignals[TrackDirection.Reverse] = thisSection.EndSignals[TrackDirection.Reverse].thisRef;
+                                thisDetails.EndSignals[TrackDirection.Reverse] = thisSection.EndSignals[TrackDirection.Reverse].Index;
                                 thisDetails.DistanceToSignals[TrackDirection.Reverse] = distToSignal;
                             }
                             else
@@ -3806,7 +3684,7 @@ namespace Orts.Simulation.Signalling
                                 }
                                 if (!thisSection.EndSignals[TrackDirection.Reverse].FixedRoute && !(approachControlLimitPositionM != null && (float)approachControlLimitPositionM < distToSignal + 100))
                                 {
-                                    thisDetails.EndSignals[TrackDirection.Reverse] = thisSection.EndSignals[TrackDirection.Reverse].thisRef;
+                                    thisDetails.EndSignals[TrackDirection.Reverse] = thisSection.EndSignals[TrackDirection.Reverse].Index;
                                     thisDetails.DistanceToSignals[TrackDirection.Reverse] = distToSignal;
                                 }
                             }

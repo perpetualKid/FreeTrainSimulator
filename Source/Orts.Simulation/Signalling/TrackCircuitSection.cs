@@ -626,7 +626,7 @@ namespace Orts.Simulation.Signalling
                         Signal thisSignal = item.Signal;
                         if (!thisSignal.isSignalNormal())
                         {
-                            thisSignal.enabledTrain = train;
+                            thisSignal.EnabledTrain = train;
                         }
                     }
                 }
@@ -636,7 +636,7 @@ namespace Orts.Simulation.Signalling
                 {
                     if (!item.Signal.isSignalNormal())
                     {
-                        item.Signal.enabledTrain = train;
+                        item.Signal.EnabledTrain = train;
                     }
                 }
 
@@ -889,7 +889,7 @@ namespace Orts.Simulation.Signalling
             // if signal at either end is still enabled for this train, reset the signal
             foreach (TrackDirection heading in EnumExtension.GetValues<TrackDirection>())
             {
-                if (EndSignals[heading]?.enabledTrain == train && resetEndSignal)
+                if (EndSignals[heading]?.EnabledTrain == train && resetEndSignal)
                 {
                     EndSignals[heading].resetSignalEnabled();
                 }
@@ -902,7 +902,7 @@ namespace Orts.Simulation.Signalling
                     foreach (TrackCircuitSignalItem thisItem in thisSignalList)
                     {
                         Signal thisSignal = thisItem.Signal;
-                        if (thisSignal.enabledTrain == train)
+                        if (thisSignal.EnabledTrain == train)
                         {
                             thisSignal.resetSignalEnabled();
                         }
@@ -1314,7 +1314,7 @@ namespace Orts.Simulation.Signalling
                         bool reservedTrainStillThere = false;
                         foreach (Signal signal in EndSignals)
                         {
-                            if (signal != null && signal.enabledTrain != null && signal.enabledTrain.Train == reservedTrain.Train) reservedTrainStillThere = true;
+                            if (signal != null && signal.EnabledTrain != null && signal.EnabledTrain.Train == reservedTrain.Train) reservedTrainStillThere = true;
                         }
 
                         if (reservedTrainStillThere && reservedTrain.Train.ValidRoute[0] != null && reservedTrain.Train.PresentPosition[0] != null &&

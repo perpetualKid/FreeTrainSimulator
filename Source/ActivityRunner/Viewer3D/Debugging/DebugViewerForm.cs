@@ -328,7 +328,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                     if (si.SignalObject >= 0 && si.SignalObject < simulator.Signals.SignalObjects.Count)
                     {
                         Signal s = simulator.Signals.SignalObjects[si.SignalObject];
-                        if (s != null && s.isSignal && s.isSignalNormal()) signals.Add(new SignalWidget(si, s));
+                        if (s != null && s.IsSignal && s.isSignalNormal()) signals.Add(new SignalWidget(si, s));
                     }
                 }
 			  if (item is SidingItem || item is PlatformItem)
@@ -1944,7 +1944,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                   signal.requestHoldSignalDispatcher(true);
 				  break;
 			  case 2:
-                  signal.holdState = SignalHoldState.ManualApproach;
+                  signal.HoldState = SignalHoldState.ManualApproach;
                   foreach (var sigHead in signal.SignalHeads)
                   {
                       var drawstate1 = sigHead.DefaultDrawState(SignalAspectState.Approach_1);
@@ -1957,7 +1957,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                   }
 				  break;
 			  case 3:
-                  signal.holdState = SignalHoldState.ManualPass;
+                  signal.HoldState = SignalHoldState.ManualPass;
                   foreach (var sigHead in signal.SignalHeads)
                   {
                       sigHead.SetLeastRestrictiveAspect();
@@ -2166,10 +2166,10 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                 var v1 = new Vector2(Location.X, Location.Y); 
                 var v3 = v1 - v2; 
                 v3.Normalize(); 
-                v2 = v1 - Vector2.Multiply(v3, signal.direction == 0 ? 12f : -12f);
+                v2 = v1 - Vector2.Multiply(v3, signal.Direction == TrackDirection.Ahead ? 12f : -12f);
                 Dir.X = v2.X; 
                 Dir.Y = v2.Y;
-                v2 = v1 - Vector2.Multiply(v3, signal.direction == 0 ? 1.5f : -1.5f);//shift signal along the dir for 2m, so signals will not be overlapped
+                v2 = v1 - Vector2.Multiply(v3, signal.Direction == TrackDirection.Ahead ? 1.5f : -1.5f);//shift signal along the dir for 2m, so signals will not be overlapped
                 Location.X = v2.X; 
                 Location.Y = v2.Y;
                 hasDir = true;
