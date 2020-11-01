@@ -65,7 +65,7 @@ namespace Orts.Simulation.Signalling
             {
                 ItemType = SignalItemType.SpeedLimit;
                 SignalState = SignalAspectState.Unknown;
-                SpeedInfo = signal.this_lim_speed(SignalFunction.Speed);
+                SpeedInfo = signal.SpeedLimit(SignalFunction.Speed);
             }
         }
 
@@ -85,7 +85,7 @@ namespace Orts.Simulation.Signalling
             {
                 ItemType = (SignalItemType)inf.ReadInt32(),
                 State = (SignalItemFindState)inf.ReadInt32(),
-                SignalDetails = signals.SignalObjects[inf.ReadInt32()],
+                SignalDetails = signals.Signals[inf.ReadInt32()],
                 DistanceFound = inf.ReadSingle(),
                 DistanceToTrain = inf.ReadSingle(),
                 DistanceToObject = inf.ReadSingle(),
@@ -94,7 +94,7 @@ namespace Orts.Simulation.Signalling
             result.ActualSpeed = inf.ReadSingle();
 
             result.Processed = inf.ReadBoolean();
-            result.SignalState = result.SignalDetails.IsSignal ? result.SignalDetails.this_sig_lr(SignalFunction.Normal) : SignalAspectState.Unknown;
+            result.SignalState = result.SignalDetails.IsSignal ? result.SignalDetails.SignalLR(SignalFunction.Normal) : SignalAspectState.Unknown;
 
             return (result);
         }

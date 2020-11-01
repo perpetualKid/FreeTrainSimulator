@@ -605,7 +605,7 @@ namespace Orts.Simulation.Signalling
 
                         foreach (int thisSignalIndex in SignalsPassingRoutes)
                         {
-                            Signal thisSignal = signals.SignalObjects[thisSignalIndex];
+                            Signal thisSignal = signals.Signals[thisSignalIndex];
                             thisSignal.ResetRoute(Index);
                         }
                         SignalsPassingRoutes.Clear();
@@ -891,7 +891,7 @@ namespace Orts.Simulation.Signalling
             {
                 if (EndSignals[heading]?.EnabledTrain == train && resetEndSignal)
                 {
-                    EndSignals[heading].resetSignalEnabled();
+                    EndSignals[heading].ResetSignalEnabled();
                 }
 
                 // disable all signals along section if enabled for this train
@@ -904,7 +904,7 @@ namespace Orts.Simulation.Signalling
                         Signal thisSignal = thisItem.Signal;
                         if (thisSignal.EnabledTrain == train)
                         {
-                            thisSignal.resetSignalEnabled();
+                            thisSignal.ResetSignalEnabled();
                         }
                     }
                 }
@@ -916,7 +916,7 @@ namespace Orts.Simulation.Signalling
                     Signal thisSpeedpost = thisItem.Signal;
                     if (!thisSpeedpost.SignalNormal())
                     {
-                        thisSpeedpost.resetSignalEnabled();
+                        thisSpeedpost.ResetSignalEnabled();
                     }
                 }
             }
@@ -931,7 +931,7 @@ namespace Orts.Simulation.Signalling
 
                 foreach (int thisSignalIndex in SignalsPassingRoutes)
                 {
-                    Signal thisSignal = signals.SignalObjects[thisSignalIndex];
+                    Signal thisSignal = signals.Signals[thisSignalIndex];
                     thisSignal.ResetRoute(Index);
                 }
                 SignalsPassingRoutes.Clear();

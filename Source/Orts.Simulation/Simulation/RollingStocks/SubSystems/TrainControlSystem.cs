@@ -506,7 +506,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 {
                     if (signalHead.SignalType.FunctionType == SignalFunction.Distance)
                     {
-                        return Locomotive.Train.signalRef.TranslateToTCSAspect(signal.this_sig_lr(SignalFunction.Distance));
+                        return Locomotive.Train.signalRef.TranslateToTCSAspect(signal.SignalLR(SignalFunction.Distance));
                     }
                 }
             }
@@ -571,7 +571,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 {
                     if (thisSignal.SignalLocation > lengthOffset)
                     {
-                        SignalAspect = Locomotive.Train.signalRef.TranslateToTCSAspect(thisSignal.Signal.this_sig_lr(fn_type));
+                        SignalAspect = Locomotive.Train.signalRef.TranslateToTCSAspect(thisSignal.Signal.SignalLRLimited(fn_type));
                         SignalDistance = thisSignal.SignalLocation - lengthOffset + totalLength;
                         MainHeadSignalTypeName = thisSignal.Signal.SignalHeads[0].SignalType?.Name ?? string.Empty;
                         return retval;

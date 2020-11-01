@@ -3380,7 +3380,7 @@ namespace Orts.Simulation.Timetables
                 if (nextActionInfo != null && nextActionInfo.ActiveItem != null &&
                     nextActionInfo.ActiveItem.SignalDetails == NextSignalObject[0])
                 {
-                    nextAspect = nextActionInfo.ActiveItem.SignalDetails.this_sig_lr(SignalFunction.Normal);
+                    nextAspect = nextActionInfo.ActiveItem.SignalDetails.SignalLR(SignalFunction.Normal);
                 }
                 else
                 {
@@ -3451,10 +3451,10 @@ namespace Orts.Simulation.Timetables
                                     int nextSignalIndex = NextSignalObject[0].Signalfound[(int)SignalFunction.Normal];
                                     if (nextSignalIndex >= 0)
                                     {
-                                        NextSignalObject[0] = signalRef.SignalObjects[nextSignalIndex];
+                                        NextSignalObject[0] = signalRef.Signals[nextSignalIndex];
 
                                         int reqSectionIndex = NextSignalObject[0].TrackCircuitIndex;
-                                        float endOffset = NextSignalObject[0].TrackCicruitOffset;
+                                        float endOffset = NextSignalObject[0].TrackCircuitOffset;
 
                                         DistanceToSignal = GetDistanceToTrain(reqSectionIndex, endOffset);
                                         SignalObjectItems.RemoveAt(0);
@@ -3774,7 +3774,7 @@ namespace Orts.Simulation.Timetables
                      thisStation.HoldSignal)
                 {
                     HoldingSignals.Remove(thisStation.ExitSignal);
-                    var nextSignal = signalRef.SignalObjects[thisStation.ExitSignal];
+                    var nextSignal = signalRef.Signals[thisStation.ExitSignal];
 
                     if (CheckTrain)
                     {
@@ -3785,7 +3785,7 @@ namespace Orts.Simulation.Timetables
 
                     if (nextSignal.EnabledTrain != null && nextSignal.EnabledTrain.Train == this)
                     {
-                        nextSignal.requestClearSignal(ValidRoute[0], routedForward, 0, false, null);// for AI always use direction 0
+                        nextSignal.RequestClearSignal(ValidRoute[0], routedForward, 0, false, null);// for AI always use direction 0
                     }
                     thisStation.HoldSignal = false;
                 }
@@ -3947,12 +3947,12 @@ namespace Orts.Simulation.Timetables
             if (thisStation.ExitSignal >= 0 && thisStation.HoldSignal)
             {
                 HoldingSignals.Remove(thisStation.ExitSignal);
-                var nextSignal = signalRef.SignalObjects[thisStation.ExitSignal];
+                var nextSignal = signalRef.Signals[thisStation.ExitSignal];
 
                 // only request signal if in signal mode (train may be in node control)
                 if (ControlMode == TRAIN_CONTROL.AUTO_SIGNAL)
                 {
-                    nextSignal.requestClearSignal(ValidRoute[0], routedForward, 0, false, null); // for AI always use direction 0
+                    nextSignal.RequestClearSignal(ValidRoute[0], routedForward, 0, false, null); // for AI always use direction 0
                 }
             }
 
@@ -4256,7 +4256,7 @@ namespace Orts.Simulation.Timetables
                 {
                     nextActionInfo.NextAction = AIActionItem.AI_ACTION_TYPE.SIGNAL_ASPECT_RESTRICTED;
                     if (((nextActionInfo.ActivateDistanceM - PresentPosition[0].DistanceTravelledM) < signalApproachDistanceM) ||
-                         nextActionInfo.ActiveItem.SignalDetails.this_sig_noSpeedReduction(SignalFunction.Normal))
+                         nextActionInfo.ActiveItem.SignalDetails.SignalNoSpeedReduction(SignalFunction.Normal))
                     {
                         clearAction = true;
 #if DEBUG_REPORTS
@@ -4288,7 +4288,7 @@ namespace Orts.Simulation.Timetables
             {
                 if ((nextActionInfo.ActiveItem.SignalState >= SignalAspectState.Approach_1) ||
                    ((nextActionInfo.ActivateDistanceM - PresentPosition[0].DistanceTravelledM) < signalApproachDistanceM) ||
-                   (nextActionInfo.ActiveItem.SignalDetails.this_sig_noSpeedReduction(SignalFunction.Normal)))
+                   (nextActionInfo.ActiveItem.SignalDetails.SignalNoSpeedReduction(SignalFunction.Normal)))
                 {
                     clearAction = true;
 #if DEBUG_REPORTS
@@ -4434,7 +4434,7 @@ namespace Orts.Simulation.Timetables
                     // check if station has exit signal and if signal is clear
                     // if signal is at stop, check if stop position is sufficiently clear of signal
 
-                    if (NextSignalObject[0] != null && NextSignalObject[0].this_sig_lr(SignalFunction.Normal) == SignalAspectState.Stop)
+                    if (NextSignalObject[0] != null && NextSignalObject[0].SignalLR(SignalFunction.Normal) == SignalAspectState.Stop)
                     {
                         float reqsignaldistance = StationStops[0].CloseupSignal ? keepDistanceCloseupSignalM : signalApproachDistanceM;
                         if (distanceToGoM > DistanceToSignal.Value - reqsignaldistance)
@@ -10503,8 +10503,8 @@ namespace Orts.Simulation.Timetables
 
                             if (ControlMode == TRAIN_CONTROL.AUTO_SIGNAL)
                             {
-                                Signal nextSignal = signalRef.SignalObjects[StationStops[0].ExitSignal];
-                                nextSignal.requestClearSignal(ValidRoute[0], routedForward, 0, false, null);
+                                Signal nextSignal = signalRef.Signals[StationStops[0].ExitSignal];
+                                nextSignal.RequestClearSignal(ValidRoute[0], routedForward, 0, false, null);
                             }
                         }
 
@@ -10520,7 +10520,7 @@ namespace Orts.Simulation.Timetables
                             else if (!MayDepart)
                             {
                                 // check if signal ahead is cleared - if not, and signal is station exit signal, do not allow depart
-                                if (NextSignalObject[0] != null && NextSignalObject[0].this_sig_lr(SignalFunction.Normal) == SignalAspectState.Stop
+                                if (NextSignalObject[0] != null && NextSignalObject[0].SignalLR(SignalFunction.Normal) == SignalAspectState.Stop
                                     && NextSignalObject[0].OverridePermission != SignalPermission.Granted && !StationStops[0].NoWaitSignal
                                     && NextSignalObject[0].Index == StationStops[0].ExitSignal)
                                 {
@@ -10754,8 +10754,8 @@ namespace Orts.Simulation.Timetables
 
                     if (ControlMode == TRAIN_CONTROL.AUTO_SIGNAL)
                     {
-                        Signal nextSignal = signalRef.SignalObjects[thisStation.ExitSignal];
-                        nextSignal.requestClearSignal(ValidRoute[0], routedForward, 0, false, null);
+                        Signal nextSignal = signalRef.Signals[thisStation.ExitSignal];
+                        nextSignal.RequestClearSignal(ValidRoute[0], routedForward, 0, false, null);
                     }
                 }
             }

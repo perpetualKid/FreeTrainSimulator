@@ -325,9 +325,9 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                 {
                     SignalItem si = item as SignalItem;
 
-                    if (si.SignalObject >= 0 && si.SignalObject < simulator.Signals.SignalObjects.Count)
+                    if (si.SignalObject >= 0 && si.SignalObject < simulator.Signals.Signals.Count)
                     {
-                        Signal s = simulator.Signals.SignalObjects[si.SignalObject];
+                        Signal s = simulator.Signals.Signals[si.SignalObject];
                         if (s != null && s.IsSignal && s.SignalNormal()) signals.Add(new SignalWidget(si, s));
                     }
                 }
@@ -1938,10 +1938,10 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 		  switch (type)
 		  {
 			  case 0:
-                  signal.clearHoldSignalDispatcher();
+                  signal.DispatcherClearHoldSignal();
 				  break;
 			  case 1:
-                  signal.requestHoldSignalDispatcher(true);
+                  signal.DispatcherRequestHoldSignal(true);
 				  break;
 			  case 2:
                   signal.HoldState = SignalHoldState.ManualApproach;

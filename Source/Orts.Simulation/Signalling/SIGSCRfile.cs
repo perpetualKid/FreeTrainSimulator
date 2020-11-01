@@ -623,17 +623,15 @@ namespace Orts.Simulation.Signalling
                 // this_sig_lr
 
                 case (SignalScripts.SCRExternalFunctions.THIS_SIG_LR):
-                    bool sigfound_lr = false;
-                    SignalAspectState returnState_lr = thisHead.ThisSignalLR(parameter1_value, ref sigfound_lr);
-                    return_value = sigfound_lr ? (int)returnState_lr : -1;
+                    SignalAspectState returnState_lr = thisHead.ThisSignalLR(parameter1_value);
+                    return_value = returnState_lr != SignalAspectState.Unknown ? (int)returnState_lr : -1;
                     break;
 
                 // this_sig_mr
 
                 case (SignalScripts.SCRExternalFunctions.THIS_SIG_MR):
-                    bool sigfound_mr = false;
-                    SignalAspectState returnState_mr = thisHead.ThisSignalMR(parameter1_value, ref sigfound_mr);
-                    return_value = sigfound_mr ? (int)returnState_mr : -1;
+                    SignalAspectState returnState_mr = thisHead.ThisSignalMR(parameter1_value);
+                    return_value = returnState_mr != SignalAspectState.Unknown ? (int)returnState_mr : -1;
                     break;
 
                 // opp_sig_lr
@@ -1136,7 +1134,7 @@ namespace Orts.Simulation.Signalling
                         dumpfile = String.Concat(dpr_fileLoc, "printproc.txt");
                     }
 #endif
-                    return_value = thisHead.MainSignal.FindReqNormalSignal(parameter1_value);
+                    return_value = thisHead.MainSignal.FindRequiredNormalSignal(parameter1_value);
                     break;
 
                 // check if route upto required signal is fully cleared
@@ -1374,7 +1372,7 @@ namespace Orts.Simulation.Signalling
                 // this_sig_hasnormalsubtype
 
                 case (SignalScripts.SCRExternalFunctions.THIS_SIG_HASNORMALSUBTYPE):
-                    return_value = thisHead.ThisSignalHasNormalSubtype(parameter1_value);
+                    return_value = thisHead.SignalHasNormalSubtype(parameter1_value);
                     break;
 
                 // next_sig_hasnormalsubtype

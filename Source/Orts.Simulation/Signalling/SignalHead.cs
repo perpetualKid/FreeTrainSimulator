@@ -119,9 +119,9 @@ namespace Orts.Simulation.Signalling
 
                 if (SignalFunction == SignalFunction.Normal)
                 {
-                    MainSignal.SignalNumClearAhead_MSTS = Math.Max(MainSignal.SignalNumClearAhead_MSTS, SignalType.NumClearAhead_MSTS);
-                    MainSignal.SignalNumClearAhead_ORTS = Math.Max(MainSignal.SignalNumClearAhead_ORTS, SignalType.NumClearAhead_ORTS);
-                    MainSignal.SignalNumClearAheadActive = MainSignal.SignalNumClearAhead_ORTS;
+                    MainSignal.SignalNumClearAheadMsts = Math.Max(MainSignal.SignalNumClearAheadMsts, SignalType.NumClearAhead_MSTS);
+                    MainSignal.SignalNumClearAheadOrts = Math.Max(MainSignal.SignalNumClearAheadOrts, SignalType.NumClearAhead_ORTS);
+                    MainSignal.SignalNumClearAheadActive = MainSignal.SignalNumClearAheadOrts;
                 }
 
                 // set approach control limits
@@ -156,138 +156,118 @@ namespace Orts.Simulation.Signalling
 
         public SignalAspectState NextSignalMR(int signalType)
         {
-            return MainSignal.next_sig_mr(signalType);
+            return MainSignal.NextSignalMR(signalType);
         }
 
         public SignalAspectState NextSignalLR(int signalType)
         {
-            return MainSignal.next_sig_lr(signalType);
+            return MainSignal.NextSignalLR(signalType);
         }
 
         public SignalAspectState ThisSignalLR(int signalType)
         {
-            return MainSignal.this_sig_lr(signalType);
-        }
-
-        public SignalAspectState ThisSignalLR(int signalType, ref bool sigfound)
-        {
-            return MainSignal.this_sig_lr(signalType, ref sigfound);
+            return MainSignal.SignalLR(signalType);
         }
 
         public SignalAspectState ThisSignalMR(int signalType)
         {
-            return MainSignal.this_sig_mr(signalType);
-        }
-
-        public SignalAspectState ThisSignalMR(int signalType, ref bool sigfound)
-        {
-            return MainSignal.this_sig_mr(signalType, ref sigfound);
+            return MainSignal.SignalMR(signalType);
         }
 
         public SignalAspectState OppositeSignalMR(int signalType)
         {
-            return MainSignal.opp_sig_mr(signalType);
-        }
-
-        public SignalAspectState OppositeSignalMR(int signalType, ref Signal signalFound) // for debug purposes
-        {
-            return MainSignal.opp_sig_mr(signalType, ref signalFound);
+            return MainSignal.OppositeSignalMR(signalType);
         }
 
         public SignalAspectState OppositeSignalLR(int signalType)
         {
-            return MainSignal.opp_sig_lr(signalType);
-        }
-
-        public SignalAspectState OppositeSignalLR(int signalType, ref Signal signalFound) // for debug purposes
-        {
-            return MainSignal.opp_sig_lr(signalType, ref signalFound);
+            return MainSignal.OppositeSignalLR(signalType);
         }
 
         public SignalAspectState NextNthSignalLR(int signalType, int nsignals)
         {
-            return MainSignal.next_nsig_lr(signalType, nsignals);
+            return MainSignal.NextNthSignalLR(signalType, nsignals);
         }
 
         public int NextSignalId(int signalType)
         {
-            return MainSignal.next_sig_id(signalType);
+            return MainSignal.NextSignalId(signalType);
         }
 
         public int NextNthSignalId(int signalType, int nsignal)
         {
-            return MainSignal.next_nsig_id(signalType, nsignal);
+            return MainSignal.NextNthSignalId(signalType, nsignal);
         }
 
         public int OppositeSignalId(int signalType)
         {
-            return MainSignal.opp_sig_id(signalType);
+            return MainSignal.OppositeSignalId(signalType);
         }
 
         public SignalAspectState SignalLRById(int signalId, int signalType)
         {
-            if (signalId >= 0 && signalId < Signal.SignalEnvironment.SignalObjects.Count)
+            if (signalId >= 0 && signalId < Signal.SignalEnvironment.Signals.Count)
             {
-                return Signal.SignalEnvironment.SignalObjects[signalId].this_sig_lr(signalType);
+                return Signal.SignalEnvironment.Signals[signalId].SignalLRLimited(signalType);
             }
             return SignalAspectState.Stop;
         }
 
         public int SignalEnabledById(int signalId)
         {
-            if (signalId >= 0 && signalId < Signal.SignalEnvironment.SignalObjects.Count)
+            if (signalId >= 0 && signalId < Signal.SignalEnvironment.Signals.Count)
             {
-                return Signal.SignalEnvironment.SignalObjects[signalId].Enabled ? 1 : 0;
+                return Signal.SignalEnvironment.Signals[signalId].Enabled ? 1 : 0;
             }
             return 0;
         }
 
         public void StoreLocalVariable(int index, int value)
         {
-            MainSignal.store_lvar(index, value);
+            MainSignal.StoreLocalVariable(index, value);
         }
 
         public int ThisSignalLocalVariable(int index)
         {
-            return MainSignal.this_sig_lvar(index);
+            return MainSignal.SignalLocalVariable(index);
         }
 
         public int NextSignalLocalVariable(int signalType, int index)
         {
-            return MainSignal.next_sig_lvar(signalType, index);
+            return MainSignal.NextSignalLocalVariable(signalType, index);
         }
 
         public int LocalVariableBySignalId(int signalId, int index)
         {
-            if (signalId >= 0 && signalId < Signal.SignalEnvironment.SignalObjects.Count)
+            if (signalId >= 0 && signalId < Signal.SignalEnvironment.Signals.Count)
             {
-                return Signal.SignalEnvironment.SignalObjects[signalId].this_sig_lvar(index);
+                return Signal.SignalEnvironment.Signals[signalId].SignalLocalVariable(index);
             }
             return 0;
         }
 
         public int NextSignalHasNormalSubtype(int requestedSubtype)
         {
-            return MainSignal.next_sig_hasnormalsubtype(requestedSubtype);
+            return MainSignal.NextSignalHasNormalSubtype(requestedSubtype);
         }
 
-        public int ThisSignalHasNormalSubtype(int requestedSubtype)
+        public int SignalHasNormalSubtype(int requestedSubtype)
         {
-            return MainSignal.this_sig_hasnormalsubtype(requestedSubtype);
+            return MainSignal.SignalHasNormalSubtype(requestedSubtype);
         }
 
         public int SignalHasNormalSubtypeById(int signalId, int requestedSubtype)
         {
-            if (signalId >= 0 && signalId < Signal.SignalEnvironment.SignalObjects.Count)
+            if (signalId >= 0 && signalId < Signal.SignalEnvironment.Signals.Count)
             {
-                return Signal.SignalEnvironment.SignalObjects[signalId].this_sig_hasnormalsubtype(requestedSubtype);
+                return Signal.SignalEnvironment.Signals[signalId].SignalHasNormalSubtype(requestedSubtype);
             }
             return 0;
         }
 
         internal int Switchstand(int aspect1, int aspect2)
         {
-            return MainSignal.switchstand(aspect1, aspect2);
+            return MainSignal.Switchstand(aspect1, aspect2);
         }
 
         //================================================================================================//
@@ -321,7 +301,7 @@ namespace Orts.Simulation.Signalling
 
             while (thisSignal.Signalfound[signalType] >= 0)
             {
-                thisSignal = Signal.SignalEnvironment.SignalObjects[thisSignal.Signalfound[signalType]];
+                thisSignal = Signal.SignalEnvironment.Signals[thisSignal.Signalfound[signalType]];
 
                 SignalAspectState thisState = thisSignal.MRSignalOnRoute(signalType);
 
@@ -384,9 +364,9 @@ namespace Orts.Simulation.Signalling
 
             while (thisSignal.Signalfound[signalType] >= 0)
             {
-                thisSignal = Signal.SignalEnvironment.SignalObjects[thisSignal.Signalfound[signalType]];
+                thisSignal = Signal.SignalEnvironment.Signals[thisSignal.Signalfound[signalType]];
 
-                SignalAspectState thisState = thisSignal.this_sig_lr(signalType);
+                SignalAspectState thisState = thisSignal.SignalLRLimited(signalType);
 
                 // ensure correct next signals are located
                 if (signalType != (int)SignalFunction.Normal || !thisSignal.SignalNormal())
@@ -469,7 +449,7 @@ namespace Orts.Simulation.Signalling
             // call route_set routine from main signal
             if (TrackJunctionNode > 0)
             {
-                return MainSignal.route_set(JunctionMainNode, TrackJunctionNode) ? 1 : 0;
+                return MainSignal.CheckRouteSet(JunctionMainNode, TrackJunctionNode) ? 1 : 0;
             }
             //added by JTang
             else if (MPManager.IsMultiPlayer())

@@ -1246,7 +1246,7 @@ namespace Orts.Simulation.AIs
                         }
                         else if (thisInfo.DistanceToTrain > 2.0f * signalApproachDistanceM) // set restricted only if not close
                         {
-                            if (!thisInfo.SignalDetails.this_sig_noSpeedReduction(SignalFunction.Normal))
+                            if (!thisInfo.SignalDetails.SignalNoSpeedReduction(SignalFunction.Normal))
                             {
                                 CreateTrainAction(validSpeed, 0.0f,
                                         thisInfo.DistanceToTrain, thisInfo,
@@ -1675,7 +1675,7 @@ namespace Orts.Simulation.AIs
                     nextActionInfo.ActiveItem.SignalDetails == NextSignalObject[0])
                 {
                     nextSignal = nextActionInfo.ActiveItem.SignalDetails;
-                    nextAspect = nextSignal.this_sig_lr(SignalFunction.Normal);
+                    nextAspect = nextSignal.SignalLR(SignalFunction.Normal);
                 }
                 else
                 {
@@ -2019,7 +2019,7 @@ namespace Orts.Simulation.AIs
                      thisStation.HoldSignal)
                 {
                     HoldingSignals.Remove(thisStation.ExitSignal);
-                    var nextSignal = signalRef.SignalObjects[thisStation.ExitSignal];
+                    var nextSignal = signalRef.Signals[thisStation.ExitSignal];
 
                     if (CheckTrain)
                     {
@@ -2030,7 +2030,7 @@ namespace Orts.Simulation.AIs
 
                     if (nextSignal.EnabledTrain != null && nextSignal.EnabledTrain.Train == this)
                     {
-                        nextSignal.requestClearSignal(ValidRoute[0], routedForward, 0, false, null);// for AI always use direction 0
+                        nextSignal.RequestClearSignal(ValidRoute[0], routedForward, 0, false, null);// for AI always use direction 0
                     }
                     thisStation.HoldSignal = false;
                 }
@@ -2067,15 +2067,15 @@ namespace Orts.Simulation.AIs
 
             // first, check state of signal
 
-            if (thisStation.ExitSignal >= 0 && (thisStation.HoldSignal || signalRef.SignalObjects[thisStation.ExitSignal].HoldState == SignalHoldState.StationStop))
+            if (thisStation.ExitSignal >= 0 && (thisStation.HoldSignal || signalRef.Signals[thisStation.ExitSignal].HoldState == SignalHoldState.StationStop))
             {
                 if (HoldingSignals.Contains(thisStation.ExitSignal)) HoldingSignals.Remove(thisStation.ExitSignal);
-                var nextSignal = signalRef.SignalObjects[thisStation.ExitSignal];
+                var nextSignal = signalRef.Signals[thisStation.ExitSignal];
 
                 // only request signal if in signal mode (train may be in node control)
                 if (ControlMode == TRAIN_CONTROL.AUTO_SIGNAL)
                 {
-                    nextSignal.requestClearSignal(ValidRoute[0], routedForward, 0, false, null); // for AI always use direction 0
+                    nextSignal.RequestClearSignal(ValidRoute[0], routedForward, 0, false, null); // for AI always use direction 0
                 }
             }
 
@@ -2349,7 +2349,7 @@ namespace Orts.Simulation.AIs
                 {
                     nextActionInfo.NextAction = AIActionItem.AI_ACTION_TYPE.SIGNAL_ASPECT_RESTRICTED;
                     if (((nextActionInfo.ActivateDistanceM - PresentPosition[0].DistanceTravelledM) < signalApproachDistanceM) ||
-                         nextActionInfo.ActiveItem.SignalDetails.this_sig_noSpeedReduction(SignalFunction.Normal))
+                         nextActionInfo.ActiveItem.SignalDetails.SignalNoSpeedReduction(SignalFunction.Normal))
                     {
                         clearAction = true;
 #if DEBUG_REPORTS
@@ -2379,7 +2379,7 @@ namespace Orts.Simulation.AIs
             {
                 if ((nextActionInfo.ActiveItem.SignalState >= SignalAspectState.Approach_1) ||
                    ((nextActionInfo.ActivateDistanceM - PresentPosition[0].DistanceTravelledM) < signalApproachDistanceM) ||
-                   (nextActionInfo.ActiveItem.SignalDetails.this_sig_noSpeedReduction(SignalFunction.Normal)))
+                   (nextActionInfo.ActiveItem.SignalDetails.SignalNoSpeedReduction(SignalFunction.Normal)))
                 {
                     clearAction = true;
 #if DEBUG_REPORTS
@@ -3995,7 +3995,7 @@ namespace Orts.Simulation.AIs
                         if (insertSigDelegate && (waitingPoint[2] != 60002) && signalIndex[iWait] > -1)
                         {
                             AIActSigDelegateRef delegateAction = new AIActSigDelegateRef(this, waitingPoint[5], 0f, waitingPoint[0], lastIndex, thisRoute[lastIndex].TCSectionIndex, direction, action);
-                            signalRef.SignalObjects[signalIndex[iWait]].LockForTrain(this.Number, waitingPoint[0]);
+                            signalRef.Signals[signalIndex[iWait]].LockForTrain(this.Number, waitingPoint[0]);
                             delegateAction.SetEndSignalIndex(signalIndex[iWait]);
 
                             if (randomizedDelay >= 30000 && randomizedDelay < 40000)
@@ -4004,7 +4004,7 @@ namespace Orts.Simulation.AIs
                                 delegateAction.IsAbsolute = true;
                             }
                             else delegateAction.Delay = 0;
-                            delegateAction.SetSignalObject(signalRef.SignalObjects[signalIndex[iWait]]);
+                            delegateAction.SetSignalObject(signalRef.Signals[signalIndex[iWait]]);
 
                             AuxActionsContain.Add(delegateAction);
                         }
@@ -4021,11 +4021,11 @@ namespace Orts.Simulation.AIs
                     action.SetDelay( (randomizedDelay >= 30000 && randomizedDelay < 40000)? randomizedDelay : 0);
                     AuxActionsContain.Add(action);
                     AIActSigDelegateRef delegateAction = new AIActSigDelegateRef(this, waitingPoint[5], 0f, waitingPoint[0], lastIndex, thisRoute[lastIndex].TCSectionIndex, direction, action);
-                    signalRef.SignalObjects[signalIndex[iWait]].LockForTrain(this.Number, waitingPoint[0]);
+                    signalRef.Signals[signalIndex[iWait]].LockForTrain(this.Number, waitingPoint[0]);
                     delegateAction.SetEndSignalIndex(signalIndex[iWait]);
                     delegateAction.Delay = randomizedDelay;
                     if (randomizedDelay >= 30000 && randomizedDelay < 40000) delegateAction.IsAbsolute = true;
-                    delegateAction.SetSignalObject(signalRef.SignalObjects[signalIndex[iWait]]);
+                    delegateAction.SetSignalObject(signalRef.Signals[signalIndex[iWait]]);
 
                     AuxActionsContain.Add(delegateAction);
                 }
@@ -4920,7 +4920,7 @@ namespace Orts.Simulation.AIs
             requestedSignal.HoldState = SignalHoldState.None;
             requestedSignal.OverridePermission = SignalPermission.Requested;
 
-            requestedSignal.checkRouteState(false, requestedSignal.SignalRoute, routedForward, false);
+            requestedSignal.CheckRouteState(false, requestedSignal.SignalRoute, routedForward, false);
         }
 
 
@@ -5451,7 +5451,7 @@ namespace Orts.Simulation.AIs
                 {
                     thisItem.NextAction = AIActionItem.AI_ACTION_TYPE.SIGNAL_ASPECT_RESTRICTED;
                     if (((thisItem.ActivateDistanceM - PresentPosition[0].DistanceTravelledM) < signalApproachDistanceM) ||
-                         thisItem.ActiveItem.SignalDetails.this_sig_noSpeedReduction(SignalFunction.Normal))
+                         thisItem.ActiveItem.SignalDetails.SignalNoSpeedReduction(SignalFunction.Normal))
                     {
                         actionValid = false;
                         actionCleared = true;
@@ -6517,8 +6517,8 @@ namespace Orts.Simulation.AIs
 
                             if (ControlMode == TRAIN_CONTROL.AUTO_SIGNAL)
                             {
-                                Signal nextSignal = signalRef.SignalObjects[StationStops[0].ExitSignal];
-                                nextSignal.requestClearSignal(ValidRoute[0], routedForward, 0, false, null);
+                                Signal nextSignal = signalRef.Signals[StationStops[0].ExitSignal];
+                                nextSignal.RequestClearSignal(ValidRoute[0], routedForward, 0, false, null);
                             }
                             StationStops[0].ExitSignal = -1;
                         }
@@ -6532,7 +6532,7 @@ namespace Orts.Simulation.AIs
                                 if (NextSignalObject[0] != null) distanceToNextSignal = NextSignalObject[0].DistanceTo(FrontTDBTraveller);
                                                                         // check if signal ahead is cleared - if not, do not allow depart
                                 if (NextSignalObject[0] != null && distanceToNextSignal >= 0 && distanceToNextSignal < 300 &&
-                                        NextSignalObject[0].this_sig_lr(SignalFunction.Normal) == SignalAspectState.Stop
+                                        NextSignalObject[0].SignalLR(SignalFunction.Normal) == SignalAspectState.Stop
                                     && NextSignalObject[0].OverridePermission != SignalPermission.Granted)
                                 {
                                     DisplayMessage = Simulator.Catalog.GetString("Passenger boarding completed. Waiting for signal ahead to clear.");

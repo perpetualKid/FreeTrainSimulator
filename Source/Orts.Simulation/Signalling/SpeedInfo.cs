@@ -34,9 +34,9 @@ namespace Orts.Simulation.Signalling
         /// Constructor
         /// </summary>
 
-        public SpeedInfo(float pass, float freight, bool asap, bool reset, int limitedSpeedReduction)
+        public SpeedInfo(float passenger, float freight, bool asap, bool reset, int limitedSpeedReduction)
         {
-            PassengerSpeed = pass;
+            PassengerSpeed = passenger;
             FreightSpeed = freight;
             Flag = asap;
             Reset = reset;

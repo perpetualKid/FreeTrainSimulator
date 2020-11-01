@@ -917,7 +917,7 @@ namespace Orts.MultiPlayer
             // update linked signals
             foreach (int thisSignalIndex in switchSection.LinkedSignals ?? Enumerable.Empty<int>())
             {
-                Signal thisSignal = MPManager.Simulator.Signals.SignalObjects[thisSignalIndex];
+                Signal thisSignal = MPManager.Simulator.Signals.Signals[thisSignalIndex];
                 thisSignal.Update();
             }
         }
@@ -1033,7 +1033,7 @@ namespace Orts.MultiPlayer
             // update linked signals
             foreach (int thisSignalIndex in switchSection.LinkedSignals ?? Enumerable.Empty<int>())
             {
-                Signal thisSignal = MPManager.Simulator.Signals.SignalObjects[thisSignalIndex];
+                Signal thisSignal = MPManager.Simulator.Signals.Signals[thisSignalIndex];
                 thisSignal.Update();
             }
         }
@@ -1161,7 +1161,7 @@ namespace Orts.MultiPlayer
             // update linked signals
             foreach (int thisSignalIndex in switchSection.LinkedSignals ?? Enumerable.Empty<int>())
             {
-                Signal thisSignal = MPManager.Simulator.Signals.SignalObjects[thisSignalIndex];
+                Signal thisSignal = MPManager.Simulator.Signals.Signals[thisSignalIndex];
                 thisSignal.Update();
             }
         }
@@ -3017,9 +3017,9 @@ namespace Orts.MultiPlayer
             if (signals == null)
             {
                 signals = new SortedList<long, SignalHead>();
-                if (MPManager.Simulator.Signals.SignalObjects != null)
+                if (MPManager.Simulator.Signals.Signals != null)
                 {
-                    foreach (var s in MPManager.Simulator.Signals.SignalObjects)
+                    foreach (var s in MPManager.Simulator.Signals.Signals)
                     {
                         if (s != null && (s.IsSignal || s.IsSpeedSignal) && s.SignalHeads != null)
                             foreach (var h in s.SignalHeads)
@@ -3067,9 +3067,9 @@ namespace Orts.MultiPlayer
                 signals = new SortedList<long, SignalHead>();
                 try
                 {
-                    if (MPManager.Simulator.Signals.SignalObjects != null)
+                    if (MPManager.Simulator.Signals.Signals != null)
                     {
-                        foreach (var s in MPManager.Simulator.Signals.SignalObjects)
+                        foreach (var s in MPManager.Simulator.Signals.Signals)
                         {
                             if (s != null && (s.IsSignal || s.IsSpeedSignal) && s.SignalHeads != null)
                                 foreach (var h in s.SignalHeads)
@@ -3495,7 +3495,7 @@ namespace Orts.MultiPlayer
         {
             if (MPManager.Server != null && !MPManager.Instance().aiderList.Contains(sender)) return; //client will ignore it, also if not an aider, will ignore it
 
-            var signal = MPManager.Simulator.Signals.SignalObjects[index];
+            var signal = MPManager.Simulator.Signals.Signals[index];
             switch (pick)
             {
                 case 0:

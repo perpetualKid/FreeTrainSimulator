@@ -588,7 +588,7 @@ namespace Orts.Simulation.AIs
             AskingTrain = new List<KeyValuePair<int, WorldLocation>>();
             EndSignalIndex = inf.ReadInt32();
             if (EndSignalIndex >= 0)
-                SetSignalObject(thisTrain.signalRef.SignalObjects[EndSignalIndex]);
+                SetSignalObject(thisTrain.signalRef.Signals[EndSignalIndex]);
             else
                 SetSignalObject(null);
             ActionType = actionType;
@@ -1730,7 +1730,7 @@ namespace Orts.Simulation.AIs
         {
             if (SignalReferenced != null)
             {
-                bool ret = SignalReferenced.requestClearSignal(thisTrain.ValidRoute[0], thisTrain.routedForward, 0, false, null);
+                bool ret = SignalReferenced.RequestClearSignal(thisTrain.ValidRoute[0], thisTrain.routedForward, 0, false, null);
                 return ret;
             }
             return true;
@@ -1835,7 +1835,7 @@ namespace Orts.Simulation.AIs
                         SignalReferenced.TrackItemIndex, SignalReferenced.TrackNode, thisTrain.Number);
                 }
             }
-            if (ClearSignal(thisTrain) || (thisTrain.NextSignalObject[0] != null && (thisTrain.NextSignalObject[0].this_sig_lr(SignalFunction.Normal) > SignalAspectState.Stop)) ||
+            if (ClearSignal(thisTrain) || (thisTrain.NextSignalObject[0] != null && (thisTrain.NextSignalObject[0].SignalLR(SignalFunction.Normal) > SignalAspectState.Stop)) ||
                 thisTrain.NextSignalObject[0] == null || SignalReferenced != thisTrain.NextSignalObject[0] ||
                 thisTrain.PresentPosition[0].TCSectionIndex == thisTrain.ValidRoute[0][thisTrain.ValidRoute[0].Count - 1].TCSectionIndex)
             {
