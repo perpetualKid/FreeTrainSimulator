@@ -49,7 +49,6 @@ namespace Orts.Simulation.Signalling
 
         public static SignalEnvironment SignalEnvironment { get; private set; }   //back reference to the signal environment
 
-        private TrackCircuitSection trackSection;
         public SignalWorldInfo WorldObject { get; set; }                // Signal World Object information
 
         private int? nextSwitchIndex;                       // index of first switch in path
@@ -104,11 +103,11 @@ namespace Orts.Simulation.Signalling
         public bool IsSpeedSignal { get; internal set; } = true;    // if signal of type SPEED, false if fixed speedpost or actual signal
 
         public List<SignalHead> SignalHeads { get; } = new List<SignalHead>();
-        public int TrackCircuitIndex => trackSection.Index; // Reference to TrackCircuit (index)
+        public int TrackCircuitIndex { get; private set; } = -1;        // Reference to TrackCircuit (index)
         public float TrackCircuitOffset { get; private set; }           // Position within TrackCircuit
         public TrackDirection TrackCircuitDirection { get; private set; }   // Direction within TrackCircuit
-        public int TrackCircuitNextIndex => trackSection?.Pins[TrackCircuitDirection, Location.NearEnd].Link ?? -1; // Index of next TrackCircuit (NORMAL signals only)
-        public TrackDirection TrackCircuitNextDirection => trackSection?.Pins[TrackCircuitDirection, Location.NearEnd].Direction ?? TrackDirection.Ahead; // Direction of next TrackCircuit 
+        public int TrackCircuitNextIndex { get; private set; } = -1;    // Index of next TrackCircuit (NORMAL signals only)
+        public TrackDirection TrackCircuitNextDirection { get; private set; } // Direction of next TrackCircuit 
 
         internal static void Initialize(SignalEnvironment signals, TrackNode[] trackNodes, TrackItem[] trackItems)
         {
@@ -151,9 +150,11 @@ namespace Orts.Simulation.Signalling
             TrackNode = source.TrackNode;
             lockedTrains = new List<KeyValuePair<int, int>>(source.lockedTrains);
 
-            trackSection = source.trackSection;
+            TrackCircuitIndex = source.TrackCircuitIndex;
             TrackCircuitOffset = source.TrackCircuitOffset;
             TrackCircuitDirection = source.TrackCircuitDirection;
+            TrackCircuitNextIndex = source.TrackCircuitNextIndex;
+            TrackCircuitNextDirection = source.TrackCircuitNextDirection;
 
             Direction = source.Direction;
             IsSignal = source.IsSignal;
@@ -3625,9 +3626,12 @@ namespace Orts.Simulation.Signalling
                 Signal signal = section.EndSignals[direction];
                 if (signal != null)
                 {
-                    signal.trackSection = section;
+                    signal.TrackCircuitIndex = section.Index;
                     signal.TrackCircuitOffset = section.Length;
                     signal.TrackCircuitDirection = direction;
+
+                    signal.TrackCircuitNextIndex = section.Pins[direction, Location.NearEnd].Link;
+                    signal.TrackCircuitNextDirection = section.Pins[direction, Location.NearEnd].Direction;
                 }
             }
 
@@ -3640,9 +3644,9 @@ namespace Orts.Simulation.Signalling
                     {
                         Signal signal = signalItem.Signal;
 
-                        if (signal.trackSection == null)
+                        if (signal.TrackCircuitIndex <= 0)
                         {
-                            signal.trackSection = section;
+                            signal.TrackCircuitIndex = section.Index;
                             signal.TrackCircuitOffset = signalItem.SignalLocation;
                             signal.TrackCircuitDirection = direction;
                         }
@@ -3657,9 +3661,9 @@ namespace Orts.Simulation.Signalling
                 {
                     Signal signal = signalItem.Signal;
 
-                    if (signal.trackSection == null)
+                    if (signal.TrackCircuitIndex <= 0)
                     {
-                        signal.trackSection = section;
+                        signal.TrackCircuitIndex = section.Index;
                         signal.TrackCircuitOffset = signalItem.SignalLocation;
                         signal.TrackCircuitDirection = direction;
                     }
