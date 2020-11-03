@@ -70,7 +70,7 @@ namespace Orts.Models.Simplified
                     },
                     new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = Environment.ProcessorCount });
 
-                foreach (var folder in folders)
+                foreach (KeyValuePair<string, string> folder in folders)
                     await actionBlock.SendAsync(folder).ConfigureAwait(false);
 
                 actionBlock.Complete();

@@ -71,7 +71,7 @@ namespace Orts.Models.Simplified
             {
                 try
                 {
-                    var patFile = new PathFile(filePath);
+                    PathFile patFile = new PathFile(filePath);
                     IsPlayerPath = patFile.IsPlayerPath;
                     Name = patFile.Name;
                     Start = patFile.Start;

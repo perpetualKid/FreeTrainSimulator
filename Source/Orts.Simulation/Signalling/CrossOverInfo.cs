@@ -23,13 +23,9 @@ namespace Orts.Simulation.Signalling
 {
     //================================================================================================//
     /// <summary>
-    ///
-    /// class CrossOverItem
     /// Class for cross over items
-    ///
     /// </summary>
     //================================================================================================//
-
     public class CrossOverInfo
     {
 #pragma warning disable CA1034 // Nested types should not be visible

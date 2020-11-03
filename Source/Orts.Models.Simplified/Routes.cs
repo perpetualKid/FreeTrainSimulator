@@ -42,7 +42,7 @@ namespace Orts.Models.Simplified
             string trkFilePath = RouteFolder.TrackFileName;
             try
             {
-                var trkFile = new RouteFile(trkFilePath);
+                RouteFile trkFile = new RouteFile(trkFilePath);
                 Name = trkFile.Route.Name;
                 RouteID = trkFile.Route.RouteID;
                 Description = trkFile.Route.Description;
