@@ -30,12 +30,14 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Threading.Tasks.Dataflow;
 
 using Microsoft.Xna.Framework;
 
 using Orts.Common;
 using Orts.Common.Position;
-using Orts.Common.Threading;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
@@ -45,7 +47,6 @@ using Orts.Simulation.Physics;
 
 namespace Orts.Simulation.Signalling
 {
-
 
     //================================================================================================//
     //================================================================================================//
@@ -96,7 +97,7 @@ namespace Orts.Simulation.Signalling
         /// Constructor
         /// </summary>
 
-        public SignalEnvironment(Simulator simulator, SignalConfigurationFile sigcfg, CancellationToken cancellation)
+        public SignalEnvironment(Simulator simulator, SignalConfigurationFile sigcfg, CancellationToken token)
         {
             Simulator = simulator;
 
@@ -114,12 +115,11 @@ namespace Orts.Simulation.Signalling
             Trace.Write(" SIGSCR ");
             SignalScriptsFile = new SIGSCRfile(new SignalScripts(sigcfg.ScriptPath, sigcfg.ScriptFiles, sigcfg.SignalTypes));
 
+            //TODO 20201103 async method called from sync ctor
             // build list of signal world file information
-
-            BuildSignalWorld(simulator, sigcfg, cancellation);
+            BuildSignalWorld(simulator.RouteFolder.WorldFolder, sigcfg, token).Wait();
 
             // build list of signals in TDB file
-
             BuildSignalList(trackDB.TrackItems, trackDB.TrackNodes, tsectiondat, Simulator.TDB, platformList);
 
             if (Signals.Count > 0)
@@ -186,10 +186,12 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// Overlay constructor for restore after saved game
         /// </summary>
-
-        public SignalEnvironment(Simulator simulator, SignalConfigurationFile sigcfg, BinaryReader inf, CancellationToken cancellation)
-            : this(simulator, sigcfg, cancellation)
+        public SignalEnvironment(Simulator simulator, SignalConfigurationFile sigcfg, BinaryReader inf, CancellationToken token)
+            : this(simulator, sigcfg, token)
         {
+            if (null == inf)
+                throw new ArgumentNullException(nameof(inf));
+
             int signalIndex = inf.ReadInt32();
             while (signalIndex >= 0)
             {
@@ -241,33 +243,26 @@ namespace Orts.Simulation.Signalling
         /// Restore Train links
         /// Train links must be restored separately as Trains is restored later as Signals
         /// </summary>
-
         public void RestoreTrains(List<Train> trains)
         {
-            foreach (TrackCircuitSection thisSection in TrackCircuitList)
+            foreach (TrackCircuitSection section in TrackCircuitList)
             {
-                thisSection.CircuitState.RestoreTrains(trains, thisSection.Index);
+                section.CircuitState.RestoreTrains(trains, section.Index);
             }
 
-            // restore train information
-
+            //TODO 20201103 could those loops be combined? need to check for dependencies/cross references
+            // restore train information       
             if (Signals != null)
             {
-                foreach (Signal thisSignal in Signals)
+                foreach (Signal signal in Signals)
                 {
-                    if (thisSignal != null)
-                    {
-                        thisSignal.RestoreTrains(trains);
-                    }
+                    signal.RestoreTrains(trains);
                 }
 
                 // restore correct aspects
-                foreach (Signal thisSignal in Signals)
+                foreach (Signal signal in Signals)
                 {
-                    if (thisSignal != null)
-                    {
-                        thisSignal.RestoreAspect();
-                    }
+                    signal.RestoreAspect();
                 }
             }
         }
@@ -276,26 +271,25 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// Save game
         /// </summary>
-
         public void Save(BinaryWriter outf)
         {
+            if (null == outf)
+                throw new ArgumentNullException(nameof(outf));
+
             if (Signals != null)
             {
-                foreach (Signal thisSignal in Signals)
+                foreach (Signal signal in Signals)
                 {
-                    if (thisSignal != null)
-                    {
-                        outf.Write(thisSignal.Index);
-                        thisSignal.Save(outf);
-                    }
+                    outf.Write(signal.Index);
+                    signal.Save(outf);
                 }
             }
             outf.Write(-1);
 
             outf.Write(TrackCircuitList.Count);
-            foreach (TrackCircuitSection thisSection in TrackCircuitList)
+            foreach (TrackCircuitSection section in TrackCircuitList)
             {
-                thisSection.Save(outf);
+                section.Save(outf);
             }
 
             outf.Write(UseLocationPassingPaths);
@@ -322,104 +316,89 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// Read all world files to get signal flags
         /// </summary>
-
-        private void BuildSignalWorld(Simulator simulator, SignalConfigurationFile sigcfg, CancellationToken cancellation)
+        private async Task BuildSignalWorld(string worldPath, SignalConfigurationFile sigcfg, CancellationToken token)
         {
-
-            // get all filesnames in World directory
-
-            var WFilePath = simulator.RoutePath + @"\WORLD\";
-
-            var Tokens = new List<TokenID>();
-            Tokens.Add(TokenID.Signal);
-            Tokens.Add(TokenID.Platform);
-
-            // loop through files, use only extention .w, skip w+1000000+1000000.w file
-
-            foreach (var fileName in Directory.GetFiles(WFilePath, "*.w"))
+            List<TokenID> Tokens = new List<TokenID>
             {
-                if (cancellation.IsCancellationRequested) return; // ping loader watchdog
-                // validate file name a little bit
+                TokenID.Signal,
+                TokenID.Platform
+            };
 
-                if (Path.GetFileName(fileName).Length != 17)
-                    continue;
-
-                // read w-file, get SignalObjects only
-
-                Trace.Write("W");
-                WorldFile WFile;
-                try
+            using (SemaphoreSlim addSignal = new SemaphoreSlim(1), addPlatform = new SemaphoreSlim(1))
+            {
+                ActionBlock<string> actionBlock = new ActionBlock<string>
+                (async fileName =>
                 {
-                    WFile = new WorldFile(fileName, Tokens);
-                }
-                catch (FileLoadException error)
-                {
-                    Trace.WriteLine(error);
-                    continue;
-                }
-
-                // loop through all signals
-
-                foreach (var worldObject in WFile.Objects)
-                {
-                    if (worldObject is SignalObject signalObject)
+                    Trace.Write("W");
+                    try
                     {
-                        if (signalObject.SignalUnits == null) continue; //this has no unit, will ignore it and treat it as static in scenary.cs
-
-                        //check if signalheads are on same or adjacent tile as signal itself - otherwise there is an invalid match
-                        uint? BadSignal = null;
-                        foreach (var si in signalObject.SignalUnits)
+                        WorldFile worldFile = new WorldFile(fileName, Tokens);
+                        // loop through all signals
+                        foreach (WorldObject worldObject in worldFile.Objects)
                         {
-                            if (this.trackDB.TrackItems == null || si.TrackItem >= this.trackDB.TrackItems.Count())
+                            if (worldObject is SignalObject signalObject && signalObject.SignalUnits != null)//SignalUnits may be null if this has no unit, will ignore it and treat it as static in scenary.cs
                             {
-                                BadSignal = si.TrackItem;
-                                break;
+                                //check if signalheads are on same or adjacent tile as signal itself - otherwise there is an invalid match
+                                bool invalid = false;
+                                foreach (SignalUnit signalUnit in signalObject.SignalUnits)
+                                {
+                                    if (signalUnit.TrackItem >= trackDB.TrackItems.Length ||
+                                        Math.Abs(trackDB.TrackItems[signalUnit.TrackItem].Location.TileX - worldObject.WorldPosition.TileX) > 1 ||
+                                        Math.Abs(trackDB.TrackItems[signalUnit.TrackItem].Location.TileZ - worldObject.WorldPosition.TileZ) > 1)
+                                    {
+                                        Trace.TraceWarning($"Signal referenced in .w file {worldObject.WorldPosition.TileX} {worldObject.WorldPosition.TileZ} as TrItem {signalUnit.TrackItem} not present in .tdb file ");
+                                        invalid = true;
+                                        break;
+                                    }
+                                }
+                                if (invalid)
+                                    continue;
+
+                                // if valid, add signal
+                                SignalWorldInfo signalWorldInfo = new SignalWorldInfo(signalObject, sigcfg);
+                                await addSignal.WaitAsync(token).ConfigureAwait(false);
+                                signalWorldList.Add(signalWorldInfo);
+                                foreach (KeyValuePair<uint, uint> reference in signalWorldInfo.HeadReference)
+                                {
+                                    if (!signalRefList.ContainsKey(reference.Key))
+                                    {
+                                        signalRefList.Add(reference.Key, new SignalReferenceInfo(signalWorldList.Count - 1, reference.Value));
+                                    }
+                                }
+                                addSignal.Release();
                             }
-                            var item = this.trackDB.TrackItems[si.TrackItem];
-                            if (Math.Abs(item.Location.TileX - worldObject.WorldPosition.TileX) > 1 || Math.Abs(item.Location.TileZ - worldObject.WorldPosition.TileZ) > 1)
+                            else if (worldObject is PlatformObject platformObject)
                             {
-                                BadSignal = si.TrackItem;
-                                break;
-                            }
-                        }
-                        if (BadSignal.HasValue)
-                        {
-                            Trace.TraceWarning("Signal referenced in .w file {0} {1} as TrItem {2} not present in .tdb file ", worldObject.WorldPosition.TileX, worldObject.WorldPosition.TileZ, BadSignal.Value);
-                            continue;
-                        }
-
-                        // if valid, add signal
-
-                        SignalWorldInfo signalWorldInfo = new SignalWorldInfo(signalObject, sigcfg);
-                        signalWorldList.Add(signalWorldInfo);
-                        foreach (KeyValuePair<uint, uint> thisref in signalWorldInfo.HeadReference)
-                        {
-                            var thisSignalCount = signalWorldList.Count - 1;    // Index starts at 0
-                            var thisRefObject = new SignalReferenceInfo(thisSignalCount, thisref.Value);
-                            if (!signalRefList.ContainsKey(thisref.Key))
-                            {
-                                signalRefList.Add(thisref.Key, thisRefObject);
+                                await addPlatform.WaitAsync(token).ConfigureAwait(false);
+                                if (!PlatformSidesList.ContainsKey(platformObject.TrackItemIds.TrackDbItems[0]))
+                                    PlatformSidesList.Add(platformObject.TrackItemIds.TrackDbItems[0], platformObject.PlatformData);
+                                if (!PlatformSidesList.ContainsKey(platformObject.TrackItemIds.TrackDbItems[1])) //this was [0] but presumably wrong
+                                    PlatformSidesList.Add(platformObject.TrackItemIds.TrackDbItems[1], platformObject.PlatformData);
+                                addPlatform.Release();
                             }
                         }
                     }
-                    else if (worldObject is PlatformObject platformObject)
+                    catch (FileLoadException error)
                     {
-                        if (!PlatformSidesList.ContainsKey(platformObject.TrackItemIds.TrackDbItems[0]))
-                            PlatformSidesList.Add(platformObject.TrackItemIds.TrackDbItems[0], platformObject.PlatformData);
-                        if (!PlatformSidesList.ContainsKey(platformObject.TrackItemIds.TrackDbItems[1])) //this was [0] but presumably wrong
-                            PlatformSidesList.Add(platformObject.TrackItemIds.TrackDbItems[1], platformObject.PlatformData);
+                        Trace.WriteLine(error);
                     }
-                }
+
+                },
+                new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = System.Environment.ProcessorCount, CancellationToken = token });
+
+                foreach (string worldFile in Directory.EnumerateFiles(worldPath, "w-??????+??????.w"))
+                    await actionBlock.SendAsync(worldFile).ConfigureAwait(false);
+
+                actionBlock.Complete();
+                await actionBlock.Completion.ConfigureAwait(false);
             }
-        }  //BuildSignalWorld
-
+        }
 
         //================================================================================================//
         /// <summary>
         /// Update : perform signal updates
         /// </summary>
-
-        public void Update(bool preUpdate)
+        public void Update(bool fullUpdate)
         {
             if (MPManager.IsClient()) return; //in MP, client will not update
 
@@ -433,7 +412,7 @@ namespace Orts.Simulation.Signalling
                 int totalSignal = Signals.Count;// - 1;
 
                 int updatestep = (totalSignal / 20) + 1;
-                if (preUpdate)
+                if (fullUpdate)
                 {
                     updatestep = totalSignal;
                 }
@@ -526,7 +505,7 @@ namespace Orts.Simulation.Signalling
                     Signal newSignal = new Signal(Signals.Count, singleSignal);
 
                     newSignal.TrackItemRefIndex = 0;
-                        
+
                     newSignal.WorldObject.UpdateFlags(singleSignal.WorldObject.FlagsSetBackfacing);
                     newSignal.WorldObject.HeadsSet.SetAll(false);
 
@@ -732,7 +711,7 @@ namespace Orts.Simulation.Signalling
                             if (speedItem.IsLimit)
                             {
                                 AddSpeed(index, i, speedItem, TDBRef, tsectiondat, tdbfile);
-                                speedItem.SignalObject = Signals.Count -1;
+                                speedItem.SignalObject = Signals.Count - 1;
 
                             }
                             else if (speedItem.IsMilePost)
@@ -1455,7 +1434,7 @@ namespace Orts.Simulation.Signalling
             // Set cross-reference for signals
             //
 
-            foreach(TrackCircuitSection section in TrackCircuitList)
+            foreach (TrackCircuitSection section in TrackCircuitList)
             {
                 Signal.SetSignalCrossReference(section);
             }
