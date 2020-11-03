@@ -105,12 +105,15 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                     switch (notch.NotchStateType)
                     {
                         case ControllerState.Release:
-                            pressureBar += x * ReleaseRateBarpS() * elapsedClockSeconds;
+                        case ControllerState.FullQuickRelease:
+                            if (pressureBar <= MaxPressureBar())
+                                pressureBar = IncreasePressure(pressureBar, MaxPressureBar(), notch.NotchStateType == ControllerState.FullQuickRelease ? QuickReleaseRateBarpS() : ReleaseRateBarpS(), elapsedClockSeconds);
+                            else
+                                pressureBar = DecreasePressure(pressureBar, MaxPressureBar(), OverchargeEliminationRateBarpS(), elapsedClockSeconds);
                             epState = -1;
                             break;
-                        case ControllerState.FullQuickRelease:
-                            pressureBar += x * QuickReleaseRateBarpS() * elapsedClockSeconds;
-                            epState = -1;
+                        case ControllerState.Overcharge:
+                            pressureBar = IncreasePressure(pressureBar, Math.Min(MaxOverchargePressureBar(), MainReservoirPressureBar()), QuickReleaseRateBarpS(), elapsedClockSeconds);
                             break;
                         case ControllerState.Apply:
                         case ControllerState.FullServ:
@@ -168,8 +171,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                 }
             }
 
-            if (pressureBar > MaxPressureBar())
-                pressureBar = MaxPressureBar();
             if (pressureBar < 0)
                 pressureBar = 0;
             return new Tuple<double, double>(pressureBar, epState);

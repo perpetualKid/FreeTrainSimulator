@@ -451,7 +451,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                 }
                 if (AuxResPressurePSI > BrakeLine1PressurePSI) // Allow small flow from auxiliary reservoir to brake pipe to restore normal pressure after overcharge
                 {
-                    float dp = elapsedClockSeconds * 0.05f;
+                    float dp = (float)elapsedClockSeconds * 0.05f;
                     if (AuxResPressurePSI - dp < BrakeLine1PressurePSI + dp * AuxBrakeLineVolumeRatio)
                         dp = (AuxResPressurePSI - BrakeLine1PressurePSI) / (1 + AuxBrakeLineVolumeRatio);
                     AuxResPressurePSI -= dp;

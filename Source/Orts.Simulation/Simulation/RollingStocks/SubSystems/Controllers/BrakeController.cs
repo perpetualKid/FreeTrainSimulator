@@ -104,8 +104,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
         }
 
         public float MaxPressurePSI { get; set; }
+        public float MaxOverchargePressurePSI { get; private set; }
         public float ReleaseRatePSIpS { get; private set; }
         public float QuickReleaseRatePSIpS { get; private set; }
+        public float OverchargeEliminationRatePSIpS { get; private set; }
         public float ApplyRatePSIpS { get; private set; }
         public float EmergencyRatePSIpS { get; private set; }
         public float FullServReductionPSI { get; private set; }
@@ -144,8 +146,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             Locomotive = locomotive;
 
             MaxPressurePSI = 90;
+            MaxOverchargePressurePSI = 95;
             ReleaseRatePSIpS = 5;
             QuickReleaseRatePSIpS = 10;
+            OverchargeEliminationRatePSIpS = 0.036f;
             ApplyRatePSIpS = 2;
             EmergencyRatePSIpS = 10;
             FullServReductionPSI = 26;
@@ -159,8 +163,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
 
             ScriptName = controller.ScriptName;
             MaxPressurePSI = controller.MaxPressurePSI;
+            MaxOverchargePressurePSI = controller.MaxOverchargePressurePSI;
             ReleaseRatePSIpS = controller.ReleaseRatePSIpS;
             QuickReleaseRatePSIpS = controller.QuickReleaseRatePSIpS;
+            OverchargeEliminationRatePSIpS = controller.OverchargeEliminationRatePSIpS;
             ApplyRatePSIpS = controller.ApplyRatePSIpS;
             EmergencyRatePSIpS = controller.EmergencyRatePSIpS;
             FullServReductionPSI = controller.FullServReductionPSI;
@@ -197,6 +203,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                     MaxPressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null);
                     break;
 
+                case "engine(trainbrakescontrollermaxoverchargepressure":
+                    MaxOverchargePressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null);
+                    break;
+
                 case "engine(trainbrakescontrollermaxreleaserate":
                 case "engine(enginebrakescontrollermaxreleaserate":    
                     ReleaseRatePSIpS = stf.ReadFloatBlock(STFReader.Units.PressureRateDefaultPSIpS, null);
@@ -205,6 +215,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                 case "engine(trainbrakescontrollermaxquickreleaserate":
                 case "engine(enginebrakescontrollermaxquickreleaserate":
                     QuickReleaseRatePSIpS = stf.ReadFloatBlock(STFReader.Units.PressureRateDefaultPSIpS, null);
+                    break;
+
+                case "engine(trainbrakescontrolleroverchargeeliminationrate":
+                    OverchargeEliminationRatePSIpS = stf.ReadFloatBlock(STFReader.Units.PressureRateDefaultPSIpS, null);
                     break;
 
                 case "engine(trainbrakescontrollermaxapplicationrate":
@@ -294,8 +308,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                         return float.MaxValue;
                 };
                 Script.MaxPressureBar = () => (float)Pressure.Atmospheric.FromPSI(MaxPressurePSI);
+                Script.MaxOverchargePressureBar = () => (float)Pressure.Atmospheric.FromPSI(MaxOverchargePressurePSI);
                 Script.ReleaseRateBarpS = () => (float)Rate.Pressure.FromPSIpS(ReleaseRatePSIpS);
                 Script.QuickReleaseRateBarpS = () => (float)Rate.Pressure.FromPSIpS(QuickReleaseRatePSIpS);
+                Script.OverchargeEliminationRateBarpS = () => (float)Rate.Pressure.FromPSIpS(OverchargeEliminationRatePSIpS);
                 Script.ApplyRateBarpS = () => (float)Rate.Pressure.FromPSIpS(ApplyRatePSIpS);
                 Script.EmergencyRateBarpS = () => (float)Rate.Pressure.FromPSIpS(EmergencyRatePSIpS);
                 Script.FullServReductionBar = () => (float)Pressure.Atmospheric.FromPSI(FullServReductionPSI);
