@@ -45,6 +45,8 @@ namespace Orts.Formats.Msts
                 public string TrafficFolder => Path.Combine(routeFolder, "TRAFFIC");
 
                 public string SoundsFolder => Path.Combine(routeFolder, "SOUND");
+                
+                public string WorldFolder => Path.Combine(routeFolder, "WORLD");
 
                 public string ServiceFile(string serviceName)
                 {

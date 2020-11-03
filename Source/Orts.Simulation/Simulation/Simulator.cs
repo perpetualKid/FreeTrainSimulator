@@ -86,6 +86,8 @@ namespace Orts.Simulation
 
         public readonly UserSettings Settings;
 
+        public FolderStructure.ContentFolder.RouteFolder RouteFolder { get; }
+
         public string BasePath;     // ie c:\program files\microsoft games\train simulator
         public string RoutePath;    // ie c:\program files\microsoft games\train simulator\routes\usa1  - may be different on different pc's
 
@@ -276,6 +278,7 @@ namespace Orts.Simulation
             if (useOpenRailsDirectory) RoutePath = Path.GetDirectoryName(RoutePath); // starting one level deeper!
             RoutePathName = Path.GetFileName(RoutePath);
             BasePath = Path.GetDirectoryName(Path.GetDirectoryName(RoutePath));
+            RouteFolder = FolderStructure.RouteFromActivity(activityPath);
             DayAmbientLight = (int)Settings.DayAmbientLight;
 
 
