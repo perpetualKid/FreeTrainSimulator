@@ -323,9 +323,6 @@ namespace Orts.Menu
             {
                 gridSaves.ClearSelection();
 
-                if (!Directory.Exists(UserSettings.DeletedSaveFolder))
-                    Directory.CreateDirectory(UserSettings.DeletedSaveFolder);
-
                 for (int i = 0; i < selectedRows.Count; i++)
                 {
                     DeleteSavePoint(selectedRows[i].DataBoundItem as SavePoint);
@@ -338,6 +335,9 @@ namespace Orts.Menu
         {
             if (null != savePoint)
             {
+                if (!Directory.Exists(UserSettings.DeletedSaveFolder))
+                    Directory.CreateDirectory(UserSettings.DeletedSaveFolder);
+
                 foreach (string fileName in Directory.EnumerateFiles(Path.GetDirectoryName(savePoint.File), savePoint.Name + ".*"))
                 {
                     try
