@@ -402,6 +402,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             if (PlayerLocomotive == null) PlayerLocomotive = Simulator.InitialPlayerLocomotive();
             SelectedTrain = PlayerTrain;
+            PlayerTrain.InitializePlayerTrainData();
             if (PlayerTrain.TrainType == TrainType.AiPlayerHosting)
             {
                 Simulator.InitializeAiPlayerHosting();

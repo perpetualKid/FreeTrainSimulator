@@ -130,6 +130,12 @@ namespace Orts.Common
         Reverse,
     }
 
+    public enum SwitchDirection
+    { 
+        Facing,
+        Trailing,
+    }
+
     public enum CabSetting
     {
         Name,       // name of control

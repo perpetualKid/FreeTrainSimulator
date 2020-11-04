@@ -1,6 +1,7 @@
 ﻿using System;
 
 using Orts.Common;
+using Orts.Simulation.Signalling;
 
 namespace Orts.Simulation.Physics
 {
@@ -26,12 +27,14 @@ namespace Orts.Simulation.Physics
         public bool Valid { get; }
         public string Miles { get; }
         public bool SwitchDivertsRight { get; }
+        public Signal Signal { get; }
 
         // field validity :
         // if ItemType == SIGNAL :
         //      SignalState
         //      AllowedSpeedMpS if value > 0
         //      DistanceToTrainM
+        //      Signal
         //
         // if ItemType == SPEEDPOST :
         //      AllowedSpeedMpS
@@ -49,6 +52,10 @@ namespace Orts.Simulation.Physics
         //
         // if ItemType == OUTOFCONTROL :
         //      OutOfControlReason
+        //
+        // if ItemType == GENERIC_SIGNAL :
+        //      DistanceToTrainM
+        //      Signal
 
 
         //================================================================================================//
@@ -57,13 +64,14 @@ namespace Orts.Simulation.Physics
         /// <\summary>
 
         // Constructor for Signal
-        public TrainPathItem(TrackMonitorSignalAspect aspect, float speed, float distance)
+        public TrainPathItem(TrackMonitorSignalAspect aspect, float speed, float distance, Signal signal)
         {
             ItemType = TrainPathItemType.Signal;
             AuthorityType = EndAuthorityType.NoPathReserved;
             SignalState = aspect;
             AllowedSpeedMpS = speed;
             DistanceToTrainM = distance;
+            Signal = signal;
         }
 
         // Constructor for Speedpost
@@ -77,10 +85,10 @@ namespace Orts.Simulation.Physics
             SpeedObjectType = speedItemType;
         }
 
-        // Constructor for Station
-        public TrainPathItem(float distance, int platformLength)
+        // Constructor for Station or Tunnel
+        public TrainPathItem(float distance, int platformLength, TrainPathItemType itemType)
         {
-            ItemType = TrainPathItemType.Station;
+            ItemType = itemType;
             AuthorityType = EndAuthorityType.NoPathReserved;
             SignalState = TrackMonitorSignalAspect.Clear2;
             AllowedSpeedMpS = -1;
@@ -139,13 +147,25 @@ namespace Orts.Simulation.Physics
             Miles = miles;
         }
 
-        // Constructor for facing Switch
-        public TrainPathItem(bool isRightSwitch, float distance)
+        // Constructor for Switches
+        public TrainPathItem(bool isRightSwitch, float distance, TrainPathItemType itemType)
         {
-            ItemType = TrainPathItemType.FacingSwitch;
+            ItemType = itemType;
             DistanceToTrainM = distance;
             SwitchDivertsRight = isRightSwitch;
         }
+
+        /// <summary>
+        /// Constructor for generic signals
+        /// </summary>
+        public TrainPathItem(float distance, Signal signal)
+        {
+            ItemType = TrainPathItemType.GenericSignal;
+            AuthorityType = EndAuthorityType.NoPathReserved;
+            DistanceToTrainM = distance;
+            Signal = signal;
+        }
+
 
 
         /// no need for Restore or Save items as info is not kept in permanent variables

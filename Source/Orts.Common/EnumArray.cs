@@ -8,9 +8,7 @@ namespace Orts.Common
     /// <summary>An array indexed by an Enum</summary>
     /// <typeparam name="T">Type stored in array</typeparam>
     /// <typeparam name="TEnum">Indexer Enum type</typeparam>
-#pragma warning disable CA1710 // Identifiers should have correct suffix
     public class EnumArray<T, TEnum> : IEnumerable, IEnumerable<T> where TEnum : Enum
-#pragma warning restore CA1715 // Identifiers should have correct prefix
     {
         private readonly T[] array;
         private readonly int lowBound;
@@ -33,6 +31,17 @@ namespace Orts.Common
             foreach (T item in source)
             {
                 array[i] = item;
+            }
+        }
+
+        public EnumArray(Func<T> initializer) : this()
+        {
+            if (initializer == null)
+                throw new ArgumentNullException(nameof(initializer));
+
+            for (int i = 0; i < array.Length; i++)
+            {
+                array[i] = initializer.Invoke();
             }
         }
 
@@ -108,6 +117,16 @@ namespace Orts.Common
             for (int col = 0; col < array.GetLength(0); col++)
                 for (int row = 0; row < array.GetLength(1); row++)
                     array[col, row] = source;
+        }
+
+        public EnumArray2D(Func<T> initializer) : this()
+        {
+            if (initializer == null)
+                throw new ArgumentNullException(nameof(initializer));
+
+            for (int col = 0; col < array.GetLength(0); col++)
+                for (int row = 0; row < array.GetLength(1); row++)
+                    array[col, row] = initializer.Invoke();
         }
 
         public EnumArray2D(IList<T> source) : this()
