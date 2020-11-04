@@ -10,7 +10,7 @@
   <ItemGroup>
     <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.0.1641" />
     <PackageReference Include="System.Management" Version="4.7.0" />
-    <PackageReference Include="GetText.NET" Version="0.9.3" />
+    <PackageReference Include="GetText.NET" Version="0.9.5" />
     <PackageReference Include="NuGet.Versioning" Version="5.7.0" />
   </ItemGroup>
   <ItemGroup>
@@ -22,7 +22,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Update="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="3.3.0">
+    <PackageReference Update="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="3.3.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>

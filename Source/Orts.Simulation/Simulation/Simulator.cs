@@ -435,7 +435,7 @@ namespace Orts.Simulation
 
         public void Start(CancellationToken cancellation)
         {
-            Signals = new SignalEnvironment(this, SIGCFG, cancellation);
+            Signals = new SignalEnvironment(this, SIGCFG, System.Threading.CancellationToken.None);
             TurntableFile = new TurntableFile(RoutePath + @"\openrails\turntables.dat", RoutePath + @"\shapes\", MovingTables, this);
             LevelCrossings = new LevelCrossings(this);
             FuelManager = new FuelManager(this);
@@ -472,7 +472,7 @@ namespace Orts.Simulation
         public void StartTimetable(CancellationToken cancellation)
         {
             TimetableMode = true;
-            Signals = new SignalEnvironment(this, SIGCFG, cancellation);
+            Signals = new SignalEnvironment(this, SIGCFG, System.Threading.CancellationToken.None);
             TurntableFile = new TurntableFile(RoutePath + @"\openrails\turntables.dat", RoutePath + @"\shapes\", MovingTables, this);
             LevelCrossings = new LevelCrossings(this);
             FuelManager = new FuelManager(this);
@@ -513,7 +513,7 @@ namespace Orts.Simulation
             InitialTileZ = initialTileZ;
             PoolHolder = new Poolholder(inf, this);
 
-            Signals = new SignalEnvironment(this, SIGCFG, inf, cancellation);
+            Signals = new SignalEnvironment(this, SIGCFG, inf, System.Threading.CancellationToken.None);
 
             RestoreTrains(inf);
             LevelCrossings = new LevelCrossings(this);
