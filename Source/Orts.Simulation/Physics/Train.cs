@@ -6798,7 +6798,7 @@ namespace Orts.Simulation.Physics
 
                 // build new route
                 List<int> tempSections = SignalEnvironment.ScanRoute(this, requiredPosition.TrackCircuitSectionIndex, requiredPosition.Offset,
-                        requiredPosition.Direction, forward, -1, true, false, false, false, true, false, false, false, false, IsFreight);
+                    requiredPosition.Direction, forward, MinCheckDistanceM, true, false, true, false, true, false, false, false, false, IsFreight);
 
                 if (tempSections.Count > 0)
                 {
@@ -6829,6 +6829,7 @@ namespace Orts.Simulation.Physics
             TrackCircuitSection section = TrackCircuitSection.TrackCircuitList[requiredPosition.TrackCircuitSectionIndex];
             float offsetM = direction == Direction.Forward ? requiredPosition.Offset : section.Length - requiredPosition.Offset;
             bool endWithSignal = false;    // ends with signal at STOP
+            bool hasEndSignal = false;     // ends with cleared signal
             int sectionWithSignalIndex = 0;
 
             TrackDirection reqDirection;
@@ -6848,15 +6849,19 @@ namespace Orts.Simulation.Physics
                 {
                     Signal endSignal = section.EndSignals[reqDirection];
                     SignalAspectState aspect = section.EndSignals[reqDirection].SignalLR(SignalFunction.Normal);
+                    hasEndSignal = true;
 
                     if (aspect == SignalAspectState.Stop && endSignal.OverridePermission != SignalPermission.Granted)
                     {
                         endWithSignal = true;
                         sectionWithSignalIndex = i;
                     }
-                    else if (!endSignal.Enabled)   // signal cleared by default only - request for proper clearing
+                    else if (endSignal.EnabledTrain == null)   // signal cleared by default only - request for proper clearing
                     {
                         endSignal.RequestClearSignalExplorer(newRoute, trainRouted, true, 0);  // do NOT propagate
+                        var extendedRoute = endSignal.RequestClearSignalExplorer(newRoute, trainRouted, true, 0);  // do NOT propagate
+                        if (i + 1 == newRoute.Count)
+                            newRoute = extendedRoute;
                     }
                 }
             }
@@ -6873,6 +6878,57 @@ namespace Orts.Simulation.Physics
                 }
             }
 
+            // if route does not end with signal and is too short, extend
+            if (!endWithSignal && totalLengthM < MinCheckDistanceM)
+            {
+
+                float extendedDistanceM = MinCheckDistanceM - totalLengthM;
+                TrackCircuitRouteElement lastElement = newRoute[newRoute.Count - 1];
+
+                int lastSectionIndex = lastElement.TrackCircuitSection.Index;
+                TrackCircuitSection lastSection = TrackCircuitSection.TrackCircuitList[lastSectionIndex];
+
+                int nextSectionIndex = lastSection.Pins[lastElement.OutPin[Location.NearEnd], (Location)lastElement.OutPin[Location.FarEnd]].Link;
+                TrackDirection nextSectionDirection = lastSection.Pins[lastElement.OutPin[Location.NearEnd], (Location)lastElement.OutPin[Location.FarEnd]].Direction;
+
+                // check if last item is non-aligned switch
+
+                misalignedSwitch[direction, TrackDirection.Ahead] = -1;
+                misalignedSwitch[direction, TrackDirection.Reverse] = -1;
+
+                TrackCircuitSection nextSection = nextSectionIndex >= 0 ? TrackCircuitSection.TrackCircuitList[nextSectionIndex] : null;
+                if (nextSection != null && nextSection.CircuitType == TrackCircuitType.Junction)
+                {
+                    if (nextSection.Pins[0, 0].Link != lastSectionIndex && nextSection.Pins[TrackDirection.Ahead, Location.FarEnd].Link != lastSectionIndex && nextSection.Pins[TrackDirection.Reverse, (Location)nextSection.JunctionLastRoute].Link != lastSectionIndex)
+                    {
+                        misalignedSwitch[direction, TrackDirection.Ahead] = nextSection.Index;
+                        misalignedSwitch[direction, TrackDirection.Reverse] = lastSectionIndex;
+                    }
+                }
+
+                List<int> tempSections = new List<int>();
+
+                if (nextSectionIndex >= 0 && misalignedSwitch[direction, TrackDirection.Ahead] < 0)
+                {
+                    bool reqAutoAlign = hasEndSignal; // auto-align switches if route is extended from signal
+
+                    tempSections = SignalEnvironment.ScanRoute(this, nextSectionIndex, 0, nextSectionDirection, forward, extendedDistanceM, true, reqAutoAlign, true, false, true, false, false, false, false, IsFreight);
+                }
+
+                if (tempSections.Count > 0)
+                {
+                    // add new sections
+
+                    int prevSection = lastElement.TrackCircuitSection.Index;
+
+                    foreach (int sectionIndex in tempSections)
+                    {
+                        routeElement = new TrackCircuitRouteElement(TrackCircuitSection.TrackCircuitList[Math.Abs(sectionIndex)], sectionIndex > 0 ? TrackDirection.Ahead : TrackDirection.Reverse, prevSection);
+                        newRoute.Add(routeElement);
+                        prevSection = Math.Abs(sectionIndex);
+                    }
+                }
+            }
             // check for any uncleared signals in route - if first found, request clear signal
             bool unclearedSignal = false;
             int signalIndex = newRoute.Count - 1;
@@ -7018,12 +7074,66 @@ namespace Orts.Simulation.Physics
 
                 if (endAuthority == EndAuthorityType.Signal)
                 {
-                    TrackCircuitSection lastSection = newRoute[newRoute.Count - 1].TrackCircuitSection;
-                    TrackDirection lastDirection = newRoute[newRoute.Count - 1].Direction;
-                    if (lastSection.EndSignals[lastDirection] != null && lastSection.EndSignals[lastDirection].Index == nextUnclearSignalIndex)
+                    // The logic here is to keep the value of SNCA of first signal found in path, and reduce this value as cleared signals are passed.
+                    // When an uncleared signal is found, it is requested to clear if SNCA of first signal is not satisfied.
+                    // If we are far away from the first signal, there is no point in clearing it until we get closer.
+                    if (unclearedSignal && signalIndex < newRoute.Count)
                     {
                         Signal reqSignal = signalRef.Signals[nextUnclearSignalIndex];
-                        newRoute = reqSignal.RequestClearSignalExplorer(newRoute, forward ? RoutedForward : RoutedBackward, false, 0);
+                        bool firstSignalPassed = false;
+                        int numCleared = 0;
+                        totalLengthM = 0;
+                        offsetM = direction == Direction.Forward ? requiredPosition.Offset : section.Length - requiredPosition.Offset;
+                        for (int i = 0; i < newRoute.Count && (firstSignalPassed || totalLengthM < MinCheckDistanceM); i++)
+                        {
+                            section = TrackCircuitSection.TrackCircuitList[newRoute[i].TrackCircuitSection.Index];
+                            TrackDirection currentDirection = newRoute[i].Direction;
+
+                            if (!section.IsAvailable(this))
+                                break;
+
+                            totalLengthM += section.Length - offsetM;
+                            offsetM = 0;
+
+                            if (section.EndSignals[currentDirection] != null)
+                            {
+                                Signal signal = section.EndSignals[currentDirection];
+                                if (!firstSignalPassed)
+                                {
+                                    firstSignalPassed = true;
+                                    if (signal == reqSignal)
+                                    {
+                                        for (int j = newRoute.Count - 1; j >= j + 1; j--)
+                                        {
+                                            section = TrackCircuitSection.TrackCircuitList[newRoute[j].TrackCircuitSection.Index];
+                                            section.RemoveTrain(this, true);
+                                            newRoute.RemoveAt(j);
+                                        }
+                                        newRoute = signal.RequestClearSignalExplorer(newRoute, trainRouted, false, 0);
+                                        break;
+                                    }
+                                    int num = signal.SignalNumClearAheadMsts;
+                                    if (num <= -2)
+                                        num = signal.SignalNumClearAheadActive;
+                                    numCleared = Math.Max(num, 0);
+                                }
+                                else
+                                {
+                                    if (signal == reqSignal && numCleared > 0)
+                                    {
+                                        for (int j = newRoute.Count - 1; j >= j + 1; j--)
+                                        {
+                                            section = TrackCircuitSection.TrackCircuitList[newRoute[j].TrackCircuitSection.Index];
+                                            section.RemoveTrain(this, true);
+                                            newRoute.RemoveAt(j);
+                                        }
+                                        newRoute = signal.RequestClearSignalExplorer(newRoute, trainRouted, true, numCleared);
+                                        break;
+                                    }
+                                    numCleared = Math.Max(numCleared, 0);
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -7297,7 +7407,8 @@ namespace Orts.Simulation.Physics
                     signalRef.SetSwitch(switchSection.OriginalIndex, switchSection.JunctionSetManual, switchSection);
 
                     // build new route - use signal request
-                    firstSignal.RequestClearSignalExplorer(selectedRoute, trainRouted, false, 0);
+                    selectedRoute = firstSignal.RequestClearSignalExplorer(selectedRoute, trainRouted, false, 0);
+                    ValidRoute[routeDirectionIndex] = selectedRoute;
                 }
                 else
                 {
