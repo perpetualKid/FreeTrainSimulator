@@ -493,5 +493,5 @@ namespace Orts.Scripting.Api
         public string MainHeadSignalTypeName;
         public TrackMonitorSignalAspect Aspect;
         public float DistanceM;
-        public float SpeedLimitM;
+        public float SpeedLimitMpS;
 }
