@@ -82,6 +82,8 @@ namespace Orts.Simulation.Signalling
         internal int SignalNumClearAheadOrts { get; set; } = -2;    // Overall maximum SignalNumClearAhead over all heads (ORTS calculation)
         internal int SignalNumClearAheadActive { get; set; } = -2;   // Active SignalNumClearAhead (for ORST calculation only, as set by script)
 
+        internal bool Static { get; set; }                  // set if signal does not required updates (fixed signals)
+
         public int Index { get; private set; }              // This signal's reference.
         public TrackDirection Direction { get; internal set; }  // Direction facing on track
 
@@ -95,7 +97,6 @@ namespace Orts.Simulation.Signalling
         public Train.TrainRouted EnabledTrain { get; internal set; } // full train structure for which signal is enabled
         public IList<int> Signalfound { get; }              // active next signal - used for signals with NORMAL heads only
         public SignalPermission OverridePermission { get; set; } = SignalPermission.Denied;  // Permission to pass red signal
-        public bool Static { get; internal set; }           // set if signal does not required updates (fixed signals)
         public SignalHoldState HoldState { get; set; } = SignalHoldState.None;
 
         //TODO 20201030 next two properties may be better joined into an enum setting
@@ -181,7 +182,7 @@ namespace Orts.Simulation.Signalling
             Index = reference;
             foreach (SignalHead head in SignalHeads)
             {
-                head.ResetMain(this);//TODO 20201030 may not be necessary, should be done in SignalHead .ctor
+                head.ResetMain(this);
                 switch (trackItems[head.TDBIndex])
                 {
                     case SignalItem signalItem:
@@ -1346,7 +1347,7 @@ namespace Orts.Simulation.Signalling
             }
 
             // find next speed object
-            TrackCircuitSignalItem foundItem = SignalEnvironment.Find_Next_Object_InRoute(EnabledTrain.Train.ValidRoute[0], routeListIndex, TrackCircuitOffset, -1, SignalFunction.Speed, EnabledTrain);
+            TrackCircuitSignalItem foundItem = SignalEnvironment.FindNextObjectInRoute(EnabledTrain.Train.ValidRoute[0], routeListIndex, TrackCircuitOffset, -1, SignalFunction.Speed, EnabledTrain);
             if (foundItem.SignalState == SignalItemFindState.Item)
             {
                 return foundItem.Signal.Index;
@@ -1492,6 +1493,8 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         public void Update()
         {
+            if (Static)
+                return;
             // perform route update for normal signals if enabled
             if (SignalNormal())
             {
@@ -3680,7 +3683,7 @@ namespace Orts.Simulation.Signalling
             }
         }
 
-        internal void ValidateSignal()
+        internal bool ValidateSignal()
         {
             if (SignalNormal())
             {
@@ -3692,10 +3695,10 @@ namespace Orts.Simulation.Signalling
                 if (TrackCircuitIndex < 0) // signal is not on any track - remove it!
                 {
                     Trace.TraceInformation($"Signal removed {Index}; TC : {TrackCircuitIndex}; NextTC : {TrackCircuitNextIndex}; TN : {TrackNode}; TDB (0) : {SignalHeads[0].TDBIndex}");
-                    SignalEnvironment.Signals[Index] = null;
+                    return false;
                 }
             }
-
+            return true;
         }
     }  // SignalObject
 

@@ -435,7 +435,7 @@ namespace Orts.Simulation
 
         public void Start(CancellationToken cancellation)
         {
-            Signals = new SignalEnvironment(this, SIGCFG, System.Threading.CancellationToken.None);
+            Signals = new SignalEnvironment(this, SIGCFG, Settings.UseLocationPassingPaths, System.Threading.CancellationToken.None);
             TurntableFile = new TurntableFile(RoutePath + @"\openrails\turntables.dat", RoutePath + @"\shapes\", MovingTables, this);
             LevelCrossings = new LevelCrossings(this);
             FuelManager = new FuelManager(this);
@@ -443,9 +443,6 @@ namespace Orts.Simulation
             PoolHolder = new Poolholder();
 
             Train playerTrain;
-
-            // define style of passing path and process player passing paths as required
-            Signals.UseLocationPassingPaths = Settings.UseLocationPassingPaths;
 
             switch (IsAutopilotMode)
             {
@@ -472,7 +469,7 @@ namespace Orts.Simulation
         public void StartTimetable(CancellationToken cancellation)
         {
             TimetableMode = true;
-            Signals = new SignalEnvironment(this, SIGCFG, System.Threading.CancellationToken.None);
+            Signals = new SignalEnvironment(this, SIGCFG, true, System.Threading.CancellationToken.None);
             TurntableFile = new TurntableFile(RoutePath + @"\openrails\turntables.dat", RoutePath + @"\shapes\", MovingTables, this);
             LevelCrossings = new LevelCrossings(this);
             FuelManager = new FuelManager(this);

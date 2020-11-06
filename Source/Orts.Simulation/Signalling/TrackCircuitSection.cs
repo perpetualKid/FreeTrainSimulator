@@ -162,7 +162,7 @@ namespace Orts.Simulation.Signalling
                 Overlap = trackShape.ClearanceDistance;
 
                 JunctionLastRoute = JunctionDefaultRoute;
-                signals.setSwitch(OriginalIndex, JunctionLastRoute, this);
+                signals.SetSwitch(OriginalIndex, JunctionLastRoute, this);
             }
 
             //
@@ -235,7 +235,7 @@ namespace Orts.Simulation.Signalling
             // if physical junction, throw switch
             if (CircuitType == TrackCircuitType.Junction)
             {
-                signals.setSwitch(OriginalIndex, JunctionLastRoute, this);
+                signals.SetSwitch(OriginalIndex, JunctionLastRoute, this);
             }
 
             int deadlockTrapsCount = inf.ReadInt32();
@@ -1179,7 +1179,7 @@ namespace Orts.Simulation.Signalling
 
                 if (switchPos >= 0)
                 {
-                    signals.setSwitch(OriginalIndex, switchPos, this);
+                    signals.SetSwitch(OriginalIndex, switchPos, this);
                 }
             }
         }
@@ -1283,7 +1283,7 @@ namespace Orts.Simulation.Signalling
                         foreach (Location location in EnumExtension.GetValues<Location>())
                         {
                             int nextSectionIndex = Pins[reqPinIndex, location].Link;
-                            int routeListIndex = route == null ? -1 : route.GetRouteIndex(nextSectionIndex, 0);
+                            int routeListIndex = route.GetRouteIndex(nextSectionIndex, 0);
                             if (routeListIndex >= 0)
                                 switchEnd = location;  // required exit
                         }

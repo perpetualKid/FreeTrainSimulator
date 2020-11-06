@@ -842,9 +842,6 @@ namespace Orts.Simulation.Timetables
             playerTrain.ControlMode = Physics.Train.TRAIN_CONTROL.INACTIVE;
             playerTrain.MovementState = AITrain.AI_MOVEMENT_STATE.AI_STATIC;
 
-            // define style of passing path
-            simulator.Signals.UseLocationPassingPaths = true;
-
             // create traveller
             AIPath usedPath = Paths[TrainRouteXRef[reqTrain.Index]];
             playerTrain.RearTDBTraveller = new Traveller(simulator.TSectionDat, simulator.TDB.TrackDB.TrackNodes, usedPath);

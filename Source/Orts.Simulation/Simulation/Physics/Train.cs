@@ -2971,7 +2971,7 @@ namespace Orts.Simulation.Physics
             float distanceToLastObject = 9E29f;  // set to overlarge value
             SignalAspectState nextAspect = SignalAspectState.Unknown;
 
-            SignalItemInfo firstObject = signalRef.GetNextObject_InRoute(routedForward, ValidRoute[0],
+            SignalItemInfo firstObject = signalRef.GetNextObjectInRoute(routedForward, ValidRoute[0],
                 PresentPosition[0].RouteListIndex, PresentPosition[0].TCOffset, -1,
                 SignalItemType.Any);
 
@@ -3031,7 +3031,7 @@ namespace Orts.Simulation.Physics
                     }
                 }
 
-                nextObject = signalRef.GetNextObject_InRoute(routedForward, ValidRoute[0],
+                nextObject = signalRef.GetNextObjectInRoute(routedForward, ValidRoute[0],
                 nextIndex, offset, -1, SignalItemType.Any);
 
                 returnState = nextObject.State;
@@ -3097,7 +3097,7 @@ namespace Orts.Simulation.Physics
             }
             else
             {
-                SignalItemInfo firstSignalObject = signalRef.GetNextObject_InRoute(routedForward, ValidRoute[0],
+                SignalItemInfo firstSignalObject = signalRef.GetNextObjectInRoute(routedForward, ValidRoute[0],
                     PresentPosition[0].RouteListIndex, PresentPosition[0].TCOffset, -1,
                     SignalItemType.Signal);
 
@@ -3266,7 +3266,7 @@ namespace Orts.Simulation.Physics
 
                     while (!noMoreNewSignals)
                     {
-                        SignalItemInfo newObjectItem = signalRef.GetNextObject_InRoute(routedForward, ValidRoute[0],
+                        SignalItemInfo newObjectItem = signalRef.GetNextObjectInRoute(routedForward, ValidRoute[0],
                            thisIndex, offset, -1, SignalItemType.Signal);
 
                         returnState = newObjectItem.State;
@@ -3311,7 +3311,7 @@ namespace Orts.Simulation.Physics
 
             if (SignalObjectItems.Count <= 0)
             {
-                firstObject = signalRef.GetNextObject_InRoute(routedForward, ValidRoute[0],
+                firstObject = signalRef.GetNextObjectInRoute(routedForward, ValidRoute[0],
                       PresentPosition[0].RouteListIndex, PresentPosition[0].TCOffset, -1,
                       SignalItemType.Any);
 
@@ -3440,7 +3440,7 @@ namespace Orts.Simulation.Physics
                         offset = reqOffset;
                     }
 
-                    SignalItemInfo nextObject = signalRef.GetNextObject_InRoute(routedForward, ValidRoute[0],
+                    SignalItemInfo nextObject = signalRef.GetNextObjectInRoute(routedForward, ValidRoute[0],
                          lastIndex, offset, -1, SignalItemType.Any);
 
                     returnState = nextObject.State;
@@ -3522,7 +3522,7 @@ namespace Orts.Simulation.Physics
 
             if (IndexNextSignal < 0)
             {
-                SignalItemInfo firstSignalObject = signalRef.GetNextObject_InRoute(routedForward, ValidRoute[0],
+                SignalItemInfo firstSignalObject = signalRef.GetNextObjectInRoute(routedForward, ValidRoute[0],
                         PresentPosition[0].RouteListIndex, PresentPosition[0].TCOffset, -1,
                         SignalItemType.Signal);
 
@@ -7643,7 +7643,7 @@ namespace Orts.Simulation.Physics
 
             // perform node update - forward only
 
-            signalRef.requestClearNode(routedForward, ValidRoute[0]);
+            signalRef.RequestClearNode(routedForward, ValidRoute[0]);
         }
 
         //================================================================================================//
@@ -8416,7 +8416,7 @@ namespace Orts.Simulation.Physics
                 if (!reqSwitch.CircuitState.Occupied() && reqSwitch.CircuitState.TrainReserved == null && reqSwitch.CircuitState.SignalReserved < 0)
                 {
                     reqSwitch.JunctionSetManual = reqSwitch.JunctionLastRoute == 0 ? 1 : 0;
-                    signalRef.setSwitch(reqSwitch.OriginalIndex, reqSwitch.JunctionSetManual, reqSwitch);
+                    signalRef.SetSwitch(reqSwitch.OriginalIndex, reqSwitch.JunctionSetManual, reqSwitch);
                     switchSet = true;
                 }
                 // check if switch reserved by this train - if so, dealign and breakdown route
@@ -8431,7 +8431,7 @@ namespace Orts.Simulation.Physics
                             reqSwitch.Index, reqRouteIndex, routeDirectionIndex);
                     reqSwitch.DeAlignSwitchPins();
                     reqSwitch.JunctionSetManual = reqSwitch.JunctionLastRoute == 0 ? 1 : 0;
-                    signalRef.setSwitch(reqSwitch.OriginalIndex, reqSwitch.JunctionSetManual, reqSwitch);
+                    signalRef.SetSwitch(reqSwitch.OriginalIndex, reqSwitch.JunctionSetManual, reqSwitch);
                     switchSet = true;
                 }
 
@@ -8537,7 +8537,7 @@ namespace Orts.Simulation.Physics
 
             // set switch
             switchSection.DeAlignSwitchPins();
-            signalRef.setSwitch(switchSection.OriginalIndex, switchSection.JunctionSetManual, switchSection);
+            signalRef.SetSwitch(switchSection.OriginalIndex, switchSection.JunctionSetManual, switchSection);
 
             // reset indication for misaligned switch
             MisalignedSwitch[routeDirectionIndex, 0] = -1;
@@ -9429,7 +9429,7 @@ namespace Orts.Simulation.Physics
                 if (!reqSwitch.CircuitState.Occupied() && reqSwitch.CircuitState.TrainReserved == null && reqSwitch.CircuitState.SignalReserved < 0)
                 {
                     reqSwitch.JunctionSetManual = reqSwitch.JunctionLastRoute == 0 ? 1 : 0;
-                    signalRef.setSwitch(reqSwitch.OriginalIndex, reqSwitch.JunctionSetManual, reqSwitch);
+                    signalRef.SetSwitch(reqSwitch.OriginalIndex, reqSwitch.JunctionSetManual, reqSwitch);
                     switchSet = true;
                 }
                 // check if switch reserved by this train - if so, dealign
@@ -9437,7 +9437,7 @@ namespace Orts.Simulation.Physics
                 {
                     reqSwitch.DeAlignSwitchPins();
                     reqSwitch.JunctionSetManual = reqSwitch.JunctionLastRoute == 0 ? 1 : 0;
-                    signalRef.setSwitch(reqSwitch.OriginalIndex, reqSwitch.JunctionSetManual, reqSwitch);
+                    signalRef.SetSwitch(reqSwitch.OriginalIndex, reqSwitch.JunctionSetManual, reqSwitch);
                     switchSet = true;
                 }
 
@@ -9556,7 +9556,7 @@ namespace Orts.Simulation.Physics
 
                     // set switch
                     switchSection.DeAlignSwitchPins();
-                    signalRef.setSwitch(switchSection.OriginalIndex, switchSection.JunctionSetManual, switchSection);
+                    signalRef.SetSwitch(switchSection.OriginalIndex, switchSection.JunctionSetManual, switchSection);
 
                     // build new route - use signal request
                     firstSignal.RequestClearSignalExplorer(selectedRoute, thisRouted, false, 0);
@@ -9572,7 +9572,7 @@ namespace Orts.Simulation.Physics
 
                     // set switch
                     switchSection.DeAlignSwitchPins();
-                    signalRef.setSwitch(switchSection.OriginalIndex, switchSection.JunctionSetManual, switchSection);
+                    signalRef.SetSwitch(switchSection.OriginalIndex, switchSection.JunctionSetManual, switchSection);
                 }
             }
 
@@ -9788,7 +9788,7 @@ namespace Orts.Simulation.Physics
 
             if (activeSectionIndex < 0 || EndAuthorityType[0] != END_AUTHORITY.MAX_DISTANCE)
             {
-                signalRef.requestClearNode(routedForward, ValidRoute[0]);
+                signalRef.RequestClearNode(routedForward, ValidRoute[0]);
             }
         }
 
@@ -11051,7 +11051,7 @@ namespace Orts.Simulation.Physics
             }
             else
             {
-                signalRef.requestClearNode(routedForward, ValidRoute[0]);
+                signalRef.RequestClearNode(routedForward, ValidRoute[0]);
             }
 
 #if DEBUG_REPORTS
@@ -11447,7 +11447,7 @@ namespace Orts.Simulation.Physics
             else
             {
                 CheckDeadlock(ValidRoute[0], Number);
-                signalRef.requestClearNode(routedForward, ValidRoute[0]);
+                signalRef.RequestClearNode(routedForward, ValidRoute[0]);
             }
         }
 

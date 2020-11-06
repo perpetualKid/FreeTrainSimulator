@@ -121,7 +121,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 Console.Write("  UNIT {0}: TrItem={1,-5} SubObj={2,-2}", i, mstsSignal.SignalUnits.Units[i].TrItem, mstsSignal.SignalUnits.Units[i].SubObj);
 #endif
                 // Find the simulation SignalObject for this shape.
-                var signalAndHead = viewer.Simulator.Signals.FindByTrItem(mstsSignal.SignalUnits[i].TrackItem);
+                var signalAndHead = viewer.Simulator.Signals.FindByTrackItem(mstsSignal.SignalUnits[i].TrackItem);
                 if (!signalAndHead.HasValue)
                 {
                     Trace.TraceWarning("Skipped {0} signal {1} unit {2} with invalid TrItem {3}", WorldPosition.ToString(), mstsSignal.UiD, i, mstsSignal.SignalUnits[i].TrackItem);
