@@ -209,7 +209,10 @@ namespace Orts.Simulation.Physics
         private int nextSpeedLimitIndex = -1;             // Index in SignalObjectItems for next speedpost
         internal Signal[] NextSignalObject { get; } = new Signal[2];  // direct reference to next signal
 
-        internal float TrainMaxSpeedMpS { get; set; }                   // Max speed as set by route (default value)
+        // Local max speed independently from signal and speedpost speed;
+        // depends from various parameters like route max speed, overall or section efficiency of service,
+        // max speed of player locomotive, max speed of consist (MaxVelocityA)
+        internal float TrainMaxSpeedMpS { get; set; }
         public float AllowedMaxSpeedMpS { get; internal set; }                 // Max speed as allowed
         internal float allowedMaxSpeedSignalMpS { get; set; }           // Max speed as set by signal
         internal float allowedMaxSpeedLimitMpS { get; set; }            // Max speed as set by limit
@@ -261,6 +264,8 @@ namespace Orts.Simulation.Physics
                 return this == simulator.PlayerLocomotive.Train;
             }
         }
+
+        internal float MaxDistanceCheckedAhead => Math.Max((IsActualPlayerTrain ? (float)simulator.TRK.Route.SpeedLimit : AllowedMaxSpeedMpS) * MaxTimeS, MinCheckDistanceM);
 
         public bool IsPlayerDriven => TrainType == TrainType.Player || TrainType == TrainType.AiPlayerDriven;
 
@@ -2716,11 +2721,7 @@ namespace Orts.Simulation.Physics
                 distanceToLastObject = firstObject.DistanceFound;
             }
 
-            // get next items within max distance
-
-            float maxDistance = Math.Max(AllowedMaxSpeedMpS * MaxTimeS, MinCheckDistanceM);
-
-            // look maxTimeS or minCheckDistance ahead
+            // get next items within max distance; longer for player train to provide correct TCS handling
 
             SignalItemInfo nextObject;
             SignalItemInfo prevObject = firstObject;
@@ -2729,7 +2730,7 @@ namespace Orts.Simulation.Physics
             float offset = PresentPosition[Direction.Forward].Offset;
             int nextIndex = routeListIndex;
 
-            while (returnState == SignalItemFindState.Item && distanceToLastObject < maxDistance && nextAspect != SignalAspectState.Stop)
+            while (returnState == SignalItemFindState.Item && distanceToLastObject < MaxDistanceCheckedAhead && nextAspect != SignalAspectState.Stop)
             {
                 int foundSection = -1;
 
@@ -3089,16 +3090,14 @@ namespace Orts.Simulation.Physics
                     }
                 }
 
-                // read next items if last item within max distance
-                float maxDistance = Math.Max(AllowedMaxSpeedMpS * MaxTimeS, MinCheckDistanceM);
-
+                // get next items within max distance; longer for player train to provide correct TCS handling
                 int routeListIndex = PresentPosition[Direction.Forward].RouteListIndex;
                 int lastIndex = routeListIndex;
                 float offset = PresentPosition[Direction.Forward].Offset;
 
                 prevObject = SignalObjectItems[SignalObjectItems.Count - 1];  // last object
 
-                while (lastDistance < maxDistance &&
+                while (lastDistance < MaxDistanceCheckedAhead &&
                           returnState == SignalItemFindState.Item &&
                           nextAspect != SignalAspectState.Stop)
                 {
@@ -5582,9 +5581,7 @@ namespace Orts.Simulation.Physics
             //                return;
             //            }
 
-            // look maxTimeS or minCheckDistance ahead
-            float maxDistance = Math.Max(AllowedMaxSpeedMpS * MaxTimeS, MinCheckDistanceM);
-            if (EndAuthorityTypes[0] == EndAuthorityType.MaxDistance && DistanceToEndNodeAuthorityM[0] > maxDistance)
+            if (EndAuthorityTypes[0] == EndAuthorityType.MaxDistance && DistanceToEndNodeAuthorityM[0] > MaxDistanceCheckedAhead)
             {
                 return;   // no update required //
             }
@@ -7576,7 +7573,6 @@ namespace Orts.Simulation.Physics
             }
 
             // use direction forward only
-            float maxDistance = Math.Max(AllowedMaxSpeedMpS * MaxTimeS, MinCheckDistanceM);
             int activeSectionIndex = sectionIndex;
             ControlMode = TrainControlMode.AutoNode;
             EndAuthorityTypes[0] = EndAuthorityType.NoPathReserved;
@@ -7599,7 +7595,7 @@ namespace Orts.Simulation.Physics
                 {
                     TrackCircuitSection section = TrackCircuitSection.TrackCircuitList[activeSectionIndex];
                     float clearedDistanceM = GetDistanceToTrain(activeSectionIndex, section.Length);
-                    if (clearedDistanceM > maxDistance)
+                    if (clearedDistanceM > MaxDistanceCheckedAhead)
                     {
                         EndAuthorityTypes[0] = EndAuthorityType.MaxDistance;
                         LastReservedSection[0] = section.Index;
@@ -10562,6 +10558,8 @@ namespace Orts.Simulation.Physics
 
         public void UpdatePlayerTrainData(float maxDistanceM)
         {
+            // variable used to search for NORMAL signals and speedposts when not in AUTO mode
+            float maxDistanceNormalSignal = ControlMode == TrainControlMode.Explorer ? Math.Max(maxDistanceM, (float)simulator.TRK.Route.SpeedLimit * 250.0f) : maxDistanceM;
             InitializePlayerTrainData();
             // fill in the lists
             TrainPathItem trainPathItem;
@@ -10580,9 +10578,9 @@ namespace Orts.Simulation.Physics
                     // we put them all without checking with max distance
                     bool signalProcessed = false;
                     foreach (SignalItemInfo signalObjectItem in SignalObjectItems)
-                            {
-                                if (signalObjectItem.ItemType == SignalItemType.Signal)
-                                {
+                    {
+                        if (signalObjectItem.ItemType == SignalItemType.Signal)
+                        {
                             TrackMonitorSignalAspect signalAspect =
                                 signalObjectItem.SignalDetails.TranslateTMAspect(signalObjectItem.SignalDetails.SignalLR(SignalFunction.Normal));
                             if (signalObjectItem.SignalDetails.EnabledTrain == null || signalObjectItem.SignalDetails.EnabledTrain.Train != this)
@@ -10625,13 +10623,14 @@ namespace Orts.Simulation.Physics
                 }
 
                 float lengthOffset = (dir == Direction.Backward) ? (-PresentPosition[dir].Offset + TrackCircuitSection.TrackCircuitList[PresentPosition[dir].TrackCircuitSectionIndex].Length) : PresentPosition[dir].Offset;
-                        float totalLength = 0;
-                        TrackCircuitPartialPathRoute routePath = ValidRoute[(int)dir];
+                float totalLength = 0;
+                TrackCircuitPartialPathRoute routePath = ValidRoute[(int)dir];
                 float prevMilepostValue = -1f;
                 float prevMilepostDistance = -1f;
 
-                while (index < routePath.Count && totalLength - lengthOffset < maxDistanceM)
+                while (index < routePath.Count && totalLength - lengthOffset < maxDistanceNormalSignal)
                 {
+                    float sectionDistanceToTrainM = totalLength - lengthOffset;
                     TrackCircuitRouteElement routeElement = routePath[index];
                     TrackDirection sectionDirection = routeElement.Direction;
                     TrackCircuitSection section = TrackCircuitSection.TrackCircuitList[routeElement.TrackCircuitSection.Index];
@@ -10645,18 +10644,18 @@ namespace Orts.Simulation.Physics
                                 SpeedInfo speedInfo = signal.SignalSpeed(SignalFunction.Normal);
                                 float validSpeed = speedInfo == null ? -1 : (IsFreight ? speedInfo.FreightSpeed : speedInfo.PassengerSpeed);
                                 TrackMonitorSignalAspect signalAspect = signal.TranslateTMAspect(signal.SignalLR(SignalFunction.Normal));
-                                trainPathItem = new TrainPathItem(signalAspect, validSpeed, section.Length - lengthOffset + totalLength, signal);
+                                trainPathItem = new TrainPathItem(signalAspect, validSpeed, section.Length + sectionDistanceToTrainM, signal);
                                 PlayerTrainSignals[dir][fn_type].Add(trainPathItem);
                             }
                         }
-                        else if (OrSignalTypes.Instance.FunctionTypes[fn_type] != "NORMAL")
+                        else if (OrSignalTypes.Instance.FunctionTypes[fn_type] != "NORMAL" && sectionDistanceToTrainM < maxDistanceM)
                         {
                             TrackCircuitSignalList signalList = section.CircuitItems.TrackCircuitSignals[sectionDirection][fn_type];
                             foreach (TrackCircuitSignalItem signal in signalList)
                             {
                                 if (signal.SignalLocation > lengthOffset)
                                 {
-                                    trainPathItem = new TrainPathItem(signal.SignalLocation - lengthOffset + totalLength, signal.Signal);
+                                    trainPathItem = new TrainPathItem(signal.SignalLocation + sectionDistanceToTrainM, signal.Signal);
                                     PlayerTrainSignals[dir][fn_type].Add(trainPathItem);
                                 }
                             }
@@ -10677,13 +10676,13 @@ namespace Orts.Simulation.Physics
                                 if (speedInfo != null && speedInfo.Reset)
                                     validSpeed = progressiveMaxSpeedLimitMpS;
                                 else progressiveMaxSpeedLimitMpS = validSpeed;
-                                trainPathItem = new TrainPathItem(validSpeed, speeditem.SignalLocation - lengthOffset + totalLength, (SpeedItemType)speedpost.SpeedPostType());
+                                trainPathItem = new TrainPathItem(validSpeed, speeditem.SignalLocation + sectionDistanceToTrainM, (SpeedItemType)speedpost.SpeedPostType());
                                 PlayerTrainSpeedposts[dir].Add(trainPathItem);
                             }
                         }
                     }
                     // search for switches
-                    if (section.CircuitType == TrackCircuitType.Junction && totalLength - lengthOffset < maxDistanceM)
+                    if (section.CircuitType == TrackCircuitType.Junction && sectionDistanceToTrainM < maxDistanceM)
                     {
                         bool rightSwitch = true;
                         TrackJunctionNode junctionNode = simulator.TDB.TrackDB.TrackNodes[section.OriginalIndex] as TrackJunctionNode;
@@ -10701,7 +10700,7 @@ namespace Orts.Simulation.Physics
                             }
                             if (diverging)
                             {
-                                trainPathItem = new TrainPathItem(rightSwitch, totalLength - lengthOffset, TrainPathItemType.FacingSwitch);
+                                trainPathItem = new TrainPathItem(rightSwitch, sectionDistanceToTrainM, TrainPathItemType.FacingSwitch);
                                 PlayerTrainDivergingSwitches[dir, SwitchDirection.Facing].Add(trainPathItem);
                             }
                         }
@@ -10715,7 +10714,7 @@ namespace Orts.Simulation.Physics
                                 float junctionAngle = junctionNode.GetAngle(simulator.TSectionDat);
                                 if (junctionAngle < 0) rightSwitch = false; // FIXME: or the opposite? untested...
 
-                                trainPathItem = new TrainPathItem(rightSwitch, totalLength - lengthOffset, TrainPathItemType.TrailingSwitch);
+                                trainPathItem = new TrainPathItem(rightSwitch, sectionDistanceToTrainM, TrainPathItemType.TrailingSwitch);
                                 PlayerTrainDivergingSwitches[dir, SwitchDirection.Trailing].Add(trainPathItem);
                             }
                         }
@@ -10726,15 +10725,19 @@ namespace Orts.Simulation.Physics
                         foreach (TrackCircuitMilepost milepostItem in section.CircuitItems.TrackCircuitMileposts)
                         {
                             Milepost milepost = milepostItem.Milepost;
-                            float distanceToTrainM = milepostItem.MilepostLocation[(Location)sectionDirection.Next()] - lengthOffset + totalLength;
-
-                            if (!(distanceToTrainM - prevMilepostDistance < 50 && milepost.Value == prevMilepostValue) && distanceToTrainM > 0 && distanceToTrainM < maxDistanceM)
+                            float distanceToTrainM = milepostItem.MilepostLocation[(Location)sectionDirection.Next()] + sectionDistanceToTrainM;
+                            if (distanceToTrainM < maxDistanceM)
                             {
-                                trainPathItem = new TrainPathItem($"{milepost.Value}", distanceToTrainM);
-                                prevMilepostDistance = distanceToTrainM;
-                                prevMilepostValue = milepost.Value;
-                                PlayerTrainMileposts[dir].Add(trainPathItem);
+                                if (!(distanceToTrainM - prevMilepostDistance < 50 && milepost.Value == prevMilepostValue) && distanceToTrainM > 0 && distanceToTrainM < maxDistanceM)
+                                {
+                                    trainPathItem = new TrainPathItem($"{milepost.Value}", distanceToTrainM);
+                                    prevMilepostDistance = distanceToTrainM;
+                                    prevMilepostValue = milepost.Value;
+                                    PlayerTrainMileposts[dir].Add(trainPathItem);
+                                }
                             }
+                            else
+                                break;
                         }
                     }
                     // search for tunnels
@@ -10743,11 +10746,17 @@ namespace Orts.Simulation.Physics
                         foreach (TunnelInfoData tunnel in section.TunnelInfo)
                         {
                             float tunnelStartOffset = tunnel.SectionStartOffset[sectionDirection];
-                            if (tunnelStartOffset > lengthOffset)
+                            float distanceToTrainM = tunnelStartOffset + sectionDistanceToTrainM;
+                            if (distanceToTrainM < maxDistanceM)
                             {
-                                trainPathItem = new TrainPathItem(tunnelStartOffset - lengthOffset + totalLength, (int)tunnel.LengthTotal, TrainPathItemType.Tunnel);
-                                PlayerTrainTunnels[dir].Add(trainPathItem);
+                                if (tunnelStartOffset > lengthOffset)
+                                {
+                                    trainPathItem = new TrainPathItem(tunnelStartOffset + sectionDistanceToTrainM, (int)tunnel.LengthTotal, TrainPathItemType.Tunnel);
+                                    PlayerTrainTunnels[dir].Add(trainPathItem);
+                                }
                             }
+                            else
+                                break;
                         }
                     }
 
@@ -10827,24 +10836,24 @@ namespace Orts.Simulation.Physics
             }
             foreach (TrainPathItem trainItem in PlayerTrainSpeedposts[Direction.Forward])
             {
-                if (trainItem.DistanceToTrainM <= maxDistanceM) 
+                if (trainItem.DistanceToTrainM <= maxDistanceM)
                     result.ObjectInfoForward.Add(trainItem);
-                else 
+                else
                     break;
             }
 
             foreach (TrainPathItem trainItem in PlayerTrainMileposts[Direction.Forward])
             {
-                if (trainItem.DistanceToTrainM <= maxDistanceM) 
+                if (trainItem.DistanceToTrainM <= maxDistanceM)
                     result.ObjectInfoForward.Add(trainItem);
-                else 
+                else
                     break;
             }
             foreach (TrainPathItem trainItem in PlayerTrainDivergingSwitches[Direction.Forward, SwitchDirection.Facing])
             {
-                if (trainItem.DistanceToTrainM <= maxDistanceM) 
+                if (trainItem.DistanceToTrainM <= maxDistanceM)
                     result.ObjectInfoForward.Add(trainItem);
-                else 
+                else
                     break;
             }
 
@@ -10978,23 +10987,23 @@ namespace Orts.Simulation.Physics
                 }
                 foreach (TrainPathItem trainItem in PlayerTrainSpeedposts[Direction.Forward])
                 {
-                    if (trainItem.DistanceToTrainM <= maxDistanceM) 
+                    if (trainItem.DistanceToTrainM <= maxDistanceM)
                         result.ObjectInfoForward.Add(trainItem);
-                    else 
+                    else
                         break;
                 }
                 foreach (TrainPathItem trainItem in PlayerTrainMileposts[Direction.Forward])
                 {
-                    if (trainItem.DistanceToTrainM <= maxDistanceM) 
+                    if (trainItem.DistanceToTrainM <= maxDistanceM)
                         result.ObjectInfoForward.Add(trainItem);
-                    else 
+                    else
                         break;
                 }
                 foreach (TrainPathItem trainItem in PlayerTrainDivergingSwitches[Direction.Forward, SwitchDirection.Facing])
                 {
-                    if (trainItem.DistanceToTrainM <= maxDistanceM) 
+                    if (trainItem.DistanceToTrainM <= maxDistanceM)
                         result.ObjectInfoForward.Add(trainItem);
-                    else 
+                    else
                         break;
                 }
             }
@@ -11013,23 +11022,23 @@ namespace Orts.Simulation.Physics
                 }
                 foreach (TrainPathItem trainItem in PlayerTrainSpeedposts[Direction.Backward])
                 {
-                    if (trainItem.DistanceToTrainM <= maxDistanceM) 
+                    if (trainItem.DistanceToTrainM <= maxDistanceM)
                         result.ObjectInfoBackward.Add(trainItem);
-                    else 
+                    else
                         break; ;
                 }
                 foreach (TrainPathItem trainItem in PlayerTrainMileposts[Direction.Backward])
                 {
-                    if (trainItem.DistanceToTrainM <= maxDistanceM) 
+                    if (trainItem.DistanceToTrainM <= maxDistanceM)
                         result.ObjectInfoBackward.Add(trainItem);
-                    else 
+                    else
                         break;
                 }
                 foreach (TrainPathItem trainItem in PlayerTrainDivergingSwitches[Direction.Backward, SwitchDirection.Facing])
                 {
-                    if (trainItem.DistanceToTrainM <= maxDistanceM) 
+                    if (trainItem.DistanceToTrainM <= maxDistanceM)
                         result.ObjectInfoBackward.Add(trainItem);
-                    else 
+                    else
                         break;
                 }
             }
@@ -12213,11 +12222,11 @@ namespace Orts.Simulation.Physics
 
         internal void UpdateTrainJump(in WorldLocation location, int direction, float distanceTravelled, float maxSpeed)
         {
-            expectedTileX = location.TileX; 
-            expectedTileZ = location.TileZ; 
-            expectedX = location.Location.X; 
+            expectedTileX = location.TileX;
+            expectedTileZ = location.TileZ;
+            expectedX = location.Location.X;
             expectedZ = location.Location.Z;
-            expectedTDir = direction; 
+            expectedTDir = direction;
             expectedDIr = (int)MUDirection;
             expectedTravelled = DistanceTravelledM = DistanceTravelled = distanceTravelled;
             TrainMaxSpeedMpS = maxSpeed;
@@ -12246,7 +12255,7 @@ namespace Orts.Simulation.Physics
 
         private void UpdateCarSlack(float expectedLength)
         {
-            if (Cars.Count <= 1) 
+            if (Cars.Count <= 1)
                 return;
             float staticLength = 0f;
             foreach (TrainCar car in Cars)
@@ -12271,60 +12280,60 @@ namespace Orts.Simulation.Physics
                 UpdateMSGReceived = false;
                 //try
                 //{
-                    targetSpeedMpS = SpeedMpS;
-                    if (doReverseTrav)
+                targetSpeedMpS = SpeedMpS;
+                if (doReverseTrav)
+                {
+                    doReverseTrav = false;
+                    ReverseFormation(doReverseMU == 1);
+                    UpdateCarSlack(expectedLength);//update car slack first
+                    CalculatePositionOfCars(elapsedClockSeconds, SpeedMpS * elapsedClockSeconds);
+                    newDistanceTravelledM = DistanceTravelledM + (float)(SpeedMpS * elapsedClockSeconds);
+                    MUDirection = (MidpointDirection)expectedDIr;
+                }
+                else
+                {
+                    UpdateCarSlack(expectedLength);//update car slack first
+
+                    double x = DistanceTravelled + previousSpeedMpS * elapsedClockSeconds + (SpeedMpS - previousSpeedMpS) / 2 * elapsedClockSeconds;
+                    //                    xx = x;
+                    MUDirection = (MidpointDirection)expectedDIr;
+
+                    if (Math.Abs(x - expectedTravelled) < 1 || Math.Abs(x - expectedTravelled) > 20)
                     {
-                        doReverseTrav = false;
-                        ReverseFormation(doReverseMU == 1);
-                        UpdateCarSlack(expectedLength);//update car slack first
+                        CalculatePositionOfCars(elapsedClockSeconds, expectedTravelled - DistanceTravelled);
+                        newDistanceTravelledM = DistanceTravelledM + expectedTravelled - DistanceTravelled;
+
+                        //if something wrong with the switch
+                        if (RearTDBTraveller.TrackNodeIndex != expectedTracIndex)
+                        {
+                            Traveller t = null;
+                            if (expectedTracIndex <= 0)
+                            {
+                                t = new Traveller(simulator.TSectionDat, simulator.TDB.TrackDB.TrackNodes, new WorldLocation(expectedTileX, expectedTileZ, expectedX, 0, expectedZ), (Traveller.TravellerDirection)expectedTDir);
+                            }
+                            else
+                            {
+                                t = new Traveller(simulator.TSectionDat, simulator.TDB.TrackDB.TrackNodes, simulator.TDB.TrackDB.TrackNodes[expectedTracIndex] as TrackVectorNode, new WorldLocation(expectedTileX, expectedTileZ, expectedX, 0, expectedZ), (Traveller.TravellerDirection)expectedTDir);
+                            }
+                            //move = SpeedMpS > 0 ? 0.001f : -0.001f;
+                            DistanceTravelled = expectedTravelled;
+                            RearTDBTraveller = t;
+                            CalculatePositionOfCars();
+
+                        }
+                    }
+                    else//if the predicted location and reported location are similar, will try to increase/decrease the speed to bridge the gap in 1 second
+                    {
+                        SpeedMpS += (float)(expectedTravelled - x) / 1;
                         CalculatePositionOfCars(elapsedClockSeconds, SpeedMpS * elapsedClockSeconds);
                         newDistanceTravelledM = DistanceTravelledM + (float)(SpeedMpS * elapsedClockSeconds);
-                        MUDirection = (MidpointDirection)expectedDIr;
                     }
-                    else
+                    if (RequestJump)
                     {
-                        UpdateCarSlack(expectedLength);//update car slack first
-
-                        double x = DistanceTravelled + previousSpeedMpS * elapsedClockSeconds + (SpeedMpS - previousSpeedMpS) / 2 * elapsedClockSeconds;
-                        //                    xx = x;
-                        MUDirection = (MidpointDirection)expectedDIr;
-
-                        if (Math.Abs(x - expectedTravelled) < 1 || Math.Abs(x - expectedTravelled) > 20)
-                        {
-                            CalculatePositionOfCars(elapsedClockSeconds, expectedTravelled - DistanceTravelled);
-                            newDistanceTravelledM = DistanceTravelledM + expectedTravelled - DistanceTravelled;
-
-                            //if something wrong with the switch
-                            if (RearTDBTraveller.TrackNodeIndex != expectedTracIndex)
-                            {
-                                Traveller t = null;
-                                if (expectedTracIndex <= 0)
-                                {
-                                    t = new Traveller(simulator.TSectionDat, simulator.TDB.TrackDB.TrackNodes, new WorldLocation(expectedTileX, expectedTileZ, expectedX, 0, expectedZ), (Traveller.TravellerDirection)expectedTDir);
-                                }
-                                else
-                                {
-                                    t = new Traveller(simulator.TSectionDat, simulator.TDB.TrackDB.TrackNodes, simulator.TDB.TrackDB.TrackNodes[expectedTracIndex] as TrackVectorNode, new WorldLocation(expectedTileX, expectedTileZ, expectedX, 0, expectedZ), (Traveller.TravellerDirection)expectedTDir);
-                                }
-                                //move = SpeedMpS > 0 ? 0.001f : -0.001f;
-                                DistanceTravelled = expectedTravelled;
-                                RearTDBTraveller = t;
-                                CalculatePositionOfCars();
-
-                            }
-                        }
-                        else//if the predicted location and reported location are similar, will try to increase/decrease the speed to bridge the gap in 1 second
-                        {
-                            SpeedMpS += (float)(expectedTravelled - x) / 1;
-                            CalculatePositionOfCars(elapsedClockSeconds, SpeedMpS * elapsedClockSeconds);
-                            newDistanceTravelledM = DistanceTravelledM + (float)(SpeedMpS * elapsedClockSeconds);
-                        }
-                        if (RequestJump)
-                        {
-                            jumpRequested = true;
-                            RequestJump = false;
-                        }
+                        jumpRequested = true;
+                        RequestJump = false;
                     }
+                }
                 //}
                 //catch (Exception)
                 //{
@@ -12345,7 +12354,7 @@ namespace Orts.Simulation.Physics
                 if (car != null)
                 {
                     car.SpeedMpS = SpeedMpS;
-                    if (car.Flipped) 
+                    if (car.Flipped)
                         car.SpeedMpS = -car.SpeedMpS;
                     car.AbsSpeedMpS = (float)(car.AbsSpeedMpS * (1 - elapsedClockSeconds) + targetSpeedMpS * elapsedClockSeconds);
                     if (car.IsDriveable && car is MSTSWagon mstsWagon)
@@ -12477,9 +12486,9 @@ namespace Orts.Simulation.Physics
                 return;
             }
 
-            if (simulator.Activity == null && !simulator.TimetableMode) 
+            if (simulator.Activity == null && !simulator.TimetableMode)
                 ToggleToExplorerMode();
-            else 
+            else
                 ToggleToManualMode();
             simulator.Confirmer.Confirm(CabControl.SignalMode, CabSetting.Off);
         }

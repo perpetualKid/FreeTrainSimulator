@@ -270,7 +270,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 Script.IsSpeedControlEnabled = () => Simulator.Settings.SpeedControl;
                 Script.AlerterSound = () => Locomotive.AlerterSnd;
                 Script.TrainSpeedLimitMpS = () => Math.Min(Locomotive.Train.AllowedMaxSpeedMpS, Locomotive.Train.TrainMaxSpeedMpS);
-                Script.TrainMaxSpeedMpS = () => Locomotive.Train.TrainMaxSpeedMpS;
+                Script.TrainMaxSpeedMpS = () => Locomotive.Train.TrainMaxSpeedMpS; // max speed for train in a specific section, independently from speedpost and signal limits
                 Script.CurrentSignalSpeedLimitMpS = () => Locomotive.Train.allowedMaxSpeedSignalMpS;
                 Script.NextSignalSpeedLimitMpS = (value) => NextGenericSignalItem<float>(value, ref ItemSpeedLimit, float.MaxValue, TrainPathItemType.Signal, "NORMAL");
                 Script.NextSignalAspect = (value) => NextGenericSignalItem<TrackMonitorSignalAspect>(value, ref ItemAspect, float.MaxValue, TrainPathItemType.Signal, "NORMAL");
@@ -295,11 +295,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 Script.NextPostDistanceM = (value) => NextGenericSignalItem<float>(value, ref ItemDistance, float.MaxValue, TrainPathItemType.Speedpost);
                 Script.TrainLengthM = () => Locomotive.Train != null ? Locomotive.Train.Length : 0f;
                 Script.SpeedMpS = () => Math.Abs(Locomotive.SpeedMpS);
-                Script.CurrentDirection = () => Locomotive.Direction;
+                Script.CurrentDirection = () => Locomotive.Direction; // Direction of locomotive, may be different from direction of train
                 Script.IsDirectionForward = () => Locomotive.Direction == MidpointDirection.Forward;
                 Script.IsDirectionNeutral = () => Locomotive.Direction == MidpointDirection.N;
                 Script.IsDirectionReverse = () => Locomotive.Direction == MidpointDirection.Reverse;
-                Script.CurrentTrainMUDirection = () => Locomotive.Train.MUDirection;
+                Script.CurrentTrainMUDirection = () => Locomotive.Train.MUDirection; // Direction of train
                 Script.IsFlipped = () => Locomotive.Flipped;
                 Script.IsRearCab = () => Locomotive.UsingRearCab;
                 Script.IsBrakeEmergency = () => Locomotive.TrainBrakeController.EmergencyBraking;
@@ -520,7 +520,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             MainHeadSignalTypeName = ItemFeatures.MainHeadSignalTypeName;
             ItemAspect = ItemFeatures.Aspect;
             ItemDistance = ItemFeatures.DistanceM;
-            ItemSpeedLimit = ItemFeatures.SpeedLimit;
+            ItemSpeedLimit = ItemFeatures.SpeedLimitM;
             return retval;
         }
 
@@ -529,7 +529,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             ItemFeatures.MainHeadSignalTypeName = string.Empty;
             ItemFeatures.Aspect = TrackMonitorSignalAspect.None;
             ItemFeatures.DistanceM = float.MaxValue;
-            ItemFeatures.SpeedLimit = -1.0f;
+            ItemFeatures.SpeedLimitM = -1.0f;
 
             Direction dir = Locomotive.Train.MUDirection == MidpointDirection.Reverse ? Direction.Backward : Direction.Forward;
 
@@ -556,7 +556,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 if (signalTypeName == "NORMAL")
                 {
                     ItemFeatures.Aspect = trainSignal.SignalState;
-                    ItemFeatures.SpeedLimit = trainSignal.AllowedSpeedMpS;
+                    ItemFeatures.SpeedLimitM = trainSignal.AllowedSpeedMpS;
                 }
                 else
                 {
@@ -574,7 +574,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
 
                 // All OK, we can retrieve the data for the required speedpost;
                 ItemFeatures.DistanceM = trainSpeedpost.DistanceToTrainM;
-                ItemFeatures.SpeedLimit = trainSpeedpost.AllowedSpeedMpS;
+                ItemFeatures.SpeedLimitM = trainSpeedpost.AllowedSpeedMpS;
             }
 
             return ItemFeatures;
