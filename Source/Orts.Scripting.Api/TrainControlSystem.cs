@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using Orts.Common;
 
 using Orts.Common;
 
@@ -166,7 +165,7 @@ namespace Orts.Scripting.Api
         /// True if circuit breaker or power contactor opening order is true.
         /// </summary>
         public Func<bool> CircuitBreakerOpeningOrder;
-         /// <summary>
+        /// <summary>
         /// Returns the number of pantographs on the locomotive.
         /// </summary>
         public Func<int> PantographCount;
@@ -486,12 +485,25 @@ namespace Orts.Scripting.Api
         /// </summary>
         public virtual void Restore(BinaryReader inf) { }
     }
-    }
 
-    public struct SignalFeatures
+#pragma warning disable CA1815 // Override equals and operator equals on value types
+    public readonly struct SignalFeatures
+#pragma warning restore CA1815 // Override equals and operator equals on value types
     {
-        public string MainHeadSignalTypeName;
-        public TrackMonitorSignalAspect Aspect;
-        public float DistanceM;
-        public float SpeedLimitMpS;
+        private static readonly SignalFeatures none = new SignalFeatures(string.Empty, TrackMonitorSignalAspect.None, float.MaxValue, -1f);
+        public static ref readonly SignalFeatures None => ref none;
+
+        public string MainHeadSignalTypeName { get; }
+        public TrackMonitorSignalAspect Aspect { get; }
+        public float DistanceM { get; }
+        public float SpeedLimitMpS { get; }
+
+        public SignalFeatures(string mainHeadSignalTypeName, TrackMonitorSignalAspect aspect, float distance, float speedLimit)
+        {
+            MainHeadSignalTypeName = mainHeadSignalTypeName;
+            Aspect = aspect;
+            DistanceM = distance;
+            SpeedLimitMpS = speedLimit;
+        }
+    }
 }

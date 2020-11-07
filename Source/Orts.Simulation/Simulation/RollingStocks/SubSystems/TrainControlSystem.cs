@@ -128,7 +128,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         TrackMonitorSignalAspect ItemAspect;
         float ItemDistance;
         string MainHeadSignalTypeName;
-        SignalFeatures ItemFeatures;
 
         MonitoringDevice VigilanceMonitor;
         MonitoringDevice OverspeedMonitor;
@@ -514,78 +513,68 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             return true;
         }
 
-        T NextGenericSignalItem<T>(int itemSequenceIndex, ref T retval, float maxDistanceM, TrainPathItemType type, string signalTypeName = "UNKNOWN")
+        private T NextGenericSignalItem<T>(int itemSequenceIndex, ref T retval, float maxDistanceM, TrainPathItemType type, string signalTypeName = "UNKNOWN")
         {
-            NextGenericSignalFeatures(signalTypeName, itemSequenceIndex, maxDistanceM, type);
-            MainHeadSignalTypeName = ItemFeatures.MainHeadSignalTypeName;
-            ItemAspect = ItemFeatures.Aspect;
-            ItemDistance = ItemFeatures.DistanceM;
-            ItemSpeedLimit = ItemFeatures.SpeedLimitMpS;
+            SignalFeatures item = NextGenericSignalFeatures(signalTypeName, itemSequenceIndex, maxDistanceM, type);
+            MainHeadSignalTypeName = item.MainHeadSignalTypeName;
+            ItemAspect = item.Aspect;
+            ItemDistance = item.DistanceM;
+            ItemSpeedLimit = item.SpeedLimitMpS;
             return retval;
         }
 
-        SignalFeatures NextGenericSignalFeatures(string signalTypeName, int itemSequenceIndex, float maxDistanceM, TrainPathItemType type)
+        private SignalFeatures NextGenericSignalFeatures(string signalTypeName, int itemSequenceIndex, float maxDistanceM, TrainPathItemType type)
         {
-            ItemFeatures.MainHeadSignalTypeName = string.Empty;
-            ItemFeatures.Aspect = TrackMonitorSignalAspect.None;
-            ItemFeatures.DistanceM = float.MaxValue;
-            ItemFeatures.SpeedLimitMpS = -1.0f;
+            string mainHeadSignalTypeName = string.Empty;
+            TrackMonitorSignalAspect aspect = TrackMonitorSignalAspect.None;
+            float distanceM = float.MaxValue;
+            float speedLimitMpS = -1f;
 
             Direction dir = Locomotive.Train.MUDirection == MidpointDirection.Reverse ? Direction.Backward : Direction.Forward;
 
             if (Locomotive.Train.ValidRoute[(int)dir] == null || dir == Direction.Backward && Locomotive.Train.PresentPosition[dir].TrackCircuitSectionIndex < 0)
-                return ItemFeatures;
+                return SignalFeatures.None;
 
             int index = dir == Direction.Forward ? Locomotive.Train.PresentPosition[dir].RouteListIndex :
                 Locomotive.Train.ValidRoute[(int)dir].GetRouteIndex(Locomotive.Train.PresentPosition[dir].TrackCircuitSectionIndex, 0);
             int fn_type = OrSignalTypes.Instance.FunctionTypes.IndexOf(signalTypeName);
             if (index < 0)
-                return ItemFeatures;
+                return SignalFeatures.None;
+
+            TrainPathItem trainpathItem;
+            if (itemSequenceIndex > Locomotive.Train.PlayerTrainSpeedposts[dir].Count - 1 || (trainpathItem = Locomotive.Train.PlayerTrainSpeedposts[dir][itemSequenceIndex]).DistanceToTrainM > maxDistanceM)
+                return SignalFeatures.None; // no n-th speedpost available or the requested speedpost is too distant
+
             if (type == TrainPathItemType.Signal)
             {
-                List<TrainPathItem> playerTrainSignalList = Locomotive.Train.PlayerTrainSignals[dir][fn_type];
-                if (itemSequenceIndex > playerTrainSignalList.Count - 1)
-                    return ItemFeatures; // no n-th signal available
-                TrainPathItem trainSignal = playerTrainSignalList[itemSequenceIndex];
-                if (trainSignal.DistanceToTrainM > maxDistanceM)
-                    return ItemFeatures; // the requested signal is too distant
-
                 // All OK, we can retrieve the data for the required signal;
-                ItemFeatures.DistanceM = trainSignal.DistanceToTrainM;
-                ItemFeatures.MainHeadSignalTypeName = trainSignal.Signal.SignalHeads[0].SignalType.Name;
+                distanceM = trainpathItem.DistanceToTrainM;
+                mainHeadSignalTypeName = trainpathItem.Signal.SignalHeads[0].SignalType.Name;
                 if (signalTypeName == "NORMAL")
                 {
-                    ItemFeatures.Aspect = trainSignal.SignalState;
-                    ItemFeatures.SpeedLimitMpS = trainSignal.AllowedSpeedMpS;
+                    aspect = trainpathItem.SignalState;
+                    speedLimitMpS = trainpathItem.AllowedSpeedMpS;
                 }
                 else
                 {
-                    ItemFeatures.Aspect = SignalEnvironment.TranslateToTCSAspect(trainSignal.Signal.SignalLR(fn_type));
+                    aspect = SignalEnvironment.TranslateToTCSAspect(trainpathItem.Signal.SignalLR(fn_type));
                 }
             }
             else if (type == TrainPathItemType.Speedpost)
             {
-                List<TrainPathItem> playerTrainSpeedpostList = Locomotive.Train.PlayerTrainSpeedposts[dir];
-                if (itemSequenceIndex > playerTrainSpeedpostList.Count - 1)
-                    return ItemFeatures; // no n-th speedpost available
-                TrainPathItem trainSpeedpost = playerTrainSpeedpostList[itemSequenceIndex];
-                if (trainSpeedpost.DistanceToTrainM > maxDistanceM)
-                    return ItemFeatures; // the requested speedpost is too distant
-
                 // All OK, we can retrieve the data for the required speedpost;
-                ItemFeatures.DistanceM = trainSpeedpost.DistanceToTrainM;
-                ItemFeatures.SpeedLimitMpS = trainSpeedpost.AllowedSpeedMpS;
+                distanceM = trainpathItem.DistanceToTrainM;
+                speedLimitMpS = trainpathItem.AllowedSpeedMpS;
             }
-
-            return ItemFeatures;
+            return new SignalFeatures(mainHeadSignalTypeName, aspect, distanceM, speedLimitMpS);
         }
 
         private bool DoesNextNormalSignalHaveRepeaterHead()
         {
-            var signal = Locomotive.Train.NextSignalObject[Locomotive.Train.MUDirection == MidpointDirection.Reverse ? 1 : 0];
+            Signal signal = Locomotive.Train.NextSignalObject[Locomotive.Train.MUDirection == MidpointDirection.Reverse ? 1 : 0];
             if (signal != null)
             {
-                foreach (var signalHead in signal.SignalHeads)
+                foreach (SignalHead signalHead in signal.SignalHeads)
                 {
                     if (signalHead.SignalType.FunctionType == SignalFunction.Repeater) return true;
                 }
