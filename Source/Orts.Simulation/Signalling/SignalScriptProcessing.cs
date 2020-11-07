@@ -54,7 +54,7 @@ namespace Orts.Simulation.Signalling
     //
     //================================================================================================//
 
-    public class SIGSCRfile
+    public class SignalScriptProcessing
     {
 
 #if DEBUG_PRINT_PROCESS
@@ -76,7 +76,7 @@ namespace Orts.Simulation.Signalling
         //
         //================================================================================================//
 
-        public SIGSCRfile(SignalScripts scripts)
+        public SignalScriptProcessing(SignalScripts scripts)
         {
             SignalScripts = scripts;
         }
@@ -91,7 +91,7 @@ namespace Orts.Simulation.Signalling
         //
         //================================================================================================//
 
-        public static void SH_update(SignalHead thisHead, SIGSCRfile sigscr)
+        public static void SH_update(SignalHead thisHead, SignalScriptProcessing sigscr)
         {
             if (thisHead.SignalType == null)
                 return;
@@ -129,7 +129,7 @@ namespace Orts.Simulation.Signalling
         //
         //================================================================================================//
 
-        public void SH_process_script(SignalHead thisHead, SignalScripts.SCRScripts signalScript, SIGSCRfile sigscr)
+        public void SH_process_script(SignalHead thisHead, SignalScripts.SCRScripts signalScript, SignalScriptProcessing sigscr)
         {
 
             int[] localFloats = new int[signalScript.TotalLocalFloats];
@@ -194,7 +194,7 @@ namespace Orts.Simulation.Signalling
         //================================================================================================//
 
         public bool SH_process_StatementBlock(SignalHead thisHead, ArrayList Statements,
-                    int[] localFloats, SIGSCRfile sigscr)
+                    int[] localFloats, SignalScriptProcessing sigscr)
         {
 
             // loop through all lines
@@ -278,7 +278,7 @@ namespace Orts.Simulation.Signalling
         //================================================================================================//
 
         public void SH_processAssignStatement(SignalHead thisHead, SignalScripts.SCRScripts.SCRStatement thisStat,
-                    int[] localFloats, SIGSCRfile sigscr)
+                    int[] localFloats, SignalScriptProcessing sigscr)
         {
 
             // get term value
@@ -336,7 +336,7 @@ namespace Orts.Simulation.Signalling
 
         public int SH_processAssignTerm(SignalHead thisHead, List<SignalScripts.SCRScripts.SCRStatTerm> StatementTerms,
                            SignalScripts.SCRScripts.SCRStatTerm thisTerm, int sublevel,
-                           int[] localFloats, SIGSCRfile sigscr)
+                           int[] localFloats, SignalScriptProcessing sigscr)
         {
 
             int termvalue = 0;
@@ -369,7 +369,7 @@ namespace Orts.Simulation.Signalling
         //================================================================================================//
 
         public int SH_processSubTerm(SignalHead thisHead, List<SignalScripts.SCRScripts.SCRStatTerm> StatementTerms,
-                           int sublevel, int[] localFloats, SIGSCRfile sigscr)
+                           int sublevel, int[] localFloats, SignalScriptProcessing sigscr)
         {
             int tempvalue = 0;
             int termvalue = 0;
@@ -437,7 +437,7 @@ namespace Orts.Simulation.Signalling
         //================================================================================================//
 
         public static int SH_termvalue(SignalHead thisHead, SignalScripts.SCRScripts.SCRParameterType thisParameter,
-                    int[] localFloats, SIGSCRfile sigscr)
+                    int[] localFloats, SignalScriptProcessing sigscr)
         {
 
             int return_value = 0;
@@ -513,7 +513,7 @@ namespace Orts.Simulation.Signalling
         //================================================================================================//
 
         public int SH_function_value(SignalHead thisHead, SignalScripts.SCRScripts.SCRStatTerm thisTerm,
-                    int[] localFloats, SIGSCRfile sigscr)
+                    int[] localFloats, SignalScriptProcessing sigscr)
         {
 
             int return_value = 0;
@@ -1439,7 +1439,7 @@ namespace Orts.Simulation.Signalling
         //================================================================================================//
 
         public bool SH_processIfCondition(SignalHead thisHead, SignalScripts.SCRScripts.SCRConditionBlock thisCond,
-                    int[] localFloats, SIGSCRfile sigscr)
+                    int[] localFloats, SignalScriptProcessing sigscr)
         {
 
             //                                SCRScripts.SCRConditionBlock thisCond = (SCRScripts.SCRConditionBlock) scriptstat;
@@ -1522,7 +1522,7 @@ namespace Orts.Simulation.Signalling
         //================================================================================================//
 
         public bool SH_processConditionStatement(SignalHead thisHead, ArrayList thisCStatList,
-                    int[] localFloats, SIGSCRfile sigscr)
+                    int[] localFloats, SignalScriptProcessing sigscr)
         {
 
             // loop through all conditions
@@ -1617,7 +1617,7 @@ namespace Orts.Simulation.Signalling
         //================================================================================================//
 
         public bool SH_processSingleCondition(SignalHead thisHead, SignalScripts.SCRScripts.SCRConditions thisCond,
-                    int[] localFloats, SIGSCRfile sigscr)
+                    int[] localFloats, SignalScriptProcessing sigscr)
         {
 
             int term1value = 0;

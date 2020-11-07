@@ -478,7 +478,7 @@ namespace Orts.Simulation.Signalling
 
         public void Update()
         {
-            SIGSCRfile.SH_update(this, SignalEnvironment.SignalScriptsFile);
+            SignalScriptProcessing.SH_update(this, SignalEnvironment.SignalScriptsFile);
         }
     } //Update
 

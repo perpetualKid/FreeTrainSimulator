@@ -68,7 +68,7 @@ namespace Orts.Simulation.Signalling
         private readonly TrackDB trackDB;
         private TrackSectionsFile tsectiondat;
 
-        public static SIGSCRfile SignalScriptsFile { get; private set; }
+        public static SignalScriptProcessing SignalScriptsFile { get; private set; }
         public int OrtsSignalTypeCount { get; private set; }
 
         private int updateStart;
@@ -106,7 +106,7 @@ namespace Orts.Simulation.Signalling
             // read SIGSCR files
 
             Trace.Write(" SIGSCR ");
-            SignalScriptsFile = new SIGSCRfile(new SignalScripts(sigcfg.ScriptPath, sigcfg.ScriptFiles, sigcfg.SignalTypes));
+            SignalScriptsFile = new SignalScriptProcessing(new SignalScripts(sigcfg.ScriptPath, sigcfg.ScriptFiles, sigcfg.SignalTypes));
 
             ConcurrentBag<SignalWorldInfo> signalWorldList = new ConcurrentBag<SignalWorldInfo>();
             ConcurrentDictionary<uint, SignalWorldInfo> signalWorldLookup = new ConcurrentDictionary<uint, SignalWorldInfo>();
