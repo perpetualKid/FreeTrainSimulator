@@ -29,7 +29,6 @@ namespace Orts.Simulation.Signalling
         public int TDBIndex { get; private set; }
         public EnumArray<SpeedInfo, SignalAspectState> SpeedInfoSet { get; } = new EnumArray<SpeedInfo, SignalAspectState>();
         public Signal MainSignal { get; private set; }
-        public SignalScripts.SCRScripts SignalScript => signalScript;
 
         public SignalAspectState SignalIndicationState { get; set; } = SignalAspectState.Stop;
         public int DrawState { get; set; }
@@ -104,7 +103,7 @@ namespace Orts.Simulation.Signalling
                 SignalType = signalConfig.SignalTypes[signalItem.SignalType];
 
                 // get related signalscript
-                SignalEnvironment.SignalScriptsFile.SignalScripts.Scripts.TryGetValue(SignalType, out signalScript);
+                SignalScriptProcessing.SignalScripts.Scripts.TryGetValue(SignalType, out signalScript);
 
                 // set signal speeds
                 foreach (SignalAspect aspect in SignalType.Aspects)
@@ -478,7 +477,7 @@ namespace Orts.Simulation.Signalling
 
         public void Update()
         {
-            SignalScriptProcessing.SH_update(this, SignalEnvironment.SignalScriptsFile);
+            SignalScriptProcessing.SignalHeadUpdate(this, signalScript);
         }
     } //Update
 

@@ -66,7 +66,7 @@ namespace Orts.ContentChecker
             else {
                 // we want to load the signal scripts one by one, not as a group
                 var scriptFiles = new List<string>() { Path.GetFileName(file) };
-                var scrfile = new SignalScriptProcessing(new SignalScripts(_sigcfg.ScriptPath, scriptFiles, _sigcfg.SignalTypes));
+                SignalScriptProcessing.Instance.Initialize(new SignalScripts(_sigcfg.ScriptPath, scriptFiles, _sigcfg.SignalTypes));
             }
         }
     }
