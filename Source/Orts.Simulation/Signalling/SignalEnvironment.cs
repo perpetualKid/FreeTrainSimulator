@@ -467,24 +467,23 @@ namespace Orts.Simulation.Signalling
 
                     // loop through the list with headreferences, check this agains the list with backfacing heads
                     // use the TDBreference to find the actual head
-                    List<int> removeHead = new List<int>();  // list to keep trace of heads which are moved //
+                    bool backfacingHeads = false;
 
-                    foreach (KeyValuePair<uint, uint> thisHeadRef in signal.WorldObject.HeadReference)
+                    foreach (KeyValuePair<uint, uint> headRef in signal.WorldObject.HeadReference)
                     {
-                        for (int j = signal.WorldObject.Backfacing.Count - 1; j >= 0; j--)
+                        foreach (int headIndex in signal.WorldObject.Backfacing)
                         {
-                            int headIndex = signal.WorldObject.Backfacing[j];
-                            if (thisHeadRef.Value == headIndex)
+                            if (headRef.Value == headIndex)
                             {
-                                for (int k = 0; k < signal.SignalHeads.Count; k++)
+                                for (int k = signal.SignalHeads.Count -1; k >= 0; k--)
                                 {
                                     SignalHead head = signal.SignalHeads[k];
 
                                     // backfacing head found - add to new signal, set to remove from exising signal
-                                    if (head.TDBIndex == thisHeadRef.Key)
+                                    if (head.TDBIndex == headRef.Key)
                                     {
-                                        removeHead.Add(k);
-
+                                        signal.SignalHeads.RemoveAt(k);
+                                        backfacingHeads = true;
                                         head.ResetMain(newSignal);
                                         newSignal.SignalHeads.Add(head);
                                     }
@@ -498,17 +497,8 @@ namespace Orts.Simulation.Signalling
                     }
 
                     // check if there were actually any backfacing signal heads
-                    if (removeHead.Count > 0)
+                    if (backfacingHeads)
                     {
-                        // remove moved heads from existing signal
-                        for (int ihead = signal.SignalHeads.Count - 1; ihead >= 0; ihead--)
-                        {
-                            if (removeHead.Contains(ihead))
-                            {
-                                signal.SignalHeads.RemoveAt(ihead);
-                            }
-                        }
-
                         // Check direction of heads to set correct direction for signal
                         if (signal.SignalHeads.Count > 0)
                         {
