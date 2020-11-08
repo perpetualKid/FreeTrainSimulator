@@ -3700,7 +3700,7 @@ namespace Orts.Simulation.Signalling
 
                 foreach (Train train in Simulator.Trains)
                 {
-                    if (train.TrainType != Train.TRAINTYPE.STATIC)
+                    if (train.TrainType != TrainType.Static)
                     {
                         if (train.ControlMode != TrainControlMode.AutoNode && train.ControlMode != TrainControlMode.AutoSignal)
                             train.ProcessRequestExplorerSetSwitch(switchSection.Index);

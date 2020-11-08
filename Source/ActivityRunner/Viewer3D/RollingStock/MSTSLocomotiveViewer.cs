@@ -37,6 +37,7 @@ using Orts.Common.Xna;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
+using Orts.Simulation;
 using Orts.Simulation.Commanding;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
@@ -1813,7 +1814,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     break;
                 case CabViewControlType.Dynamic_Brake:
                 case CabViewControlType.Dynamic_Brake_Display:
-                    var dynBrakePercent = Locomotive.Train.TrainType == Train.TRAINTYPE.AI_PLAYERHOSTING ?
+                    var dynBrakePercent = Locomotive.Train.TrainType == TrainType.AiPlayerHosting ?
                         Locomotive.DynamicBrakePercent : Locomotive.LocalDynamicBrakePercent;
                     if (Locomotive.DynamicBrakeController != null)
                     {

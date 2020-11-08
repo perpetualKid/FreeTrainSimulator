@@ -25,6 +25,7 @@ using Microsoft.Xna.Framework;
 
 using Orts.Common;
 using Orts.Common.Input;
+using Orts.Simulation;
 using Orts.Simulation.Commanding;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
@@ -55,8 +56,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             foreach (var drawer in Exhaust)
                 drawer.Initialize(dieselTexture);
 
-            if (car.Train != null && (car.Train.TrainType == Train.TRAINTYPE.AI ||
-                ((car.Train.TrainType == Train.TRAINTYPE.PLAYER || car.Train.TrainType == Train.TRAINTYPE.AI_PLAYERDRIVEN || car.Train.TrainType == Train.TRAINTYPE.AI_PLAYERHOSTING) &&
+            if (car.Train != null && (car.Train.TrainType == TrainType.Ai ||
+                ((car.Train.TrainType == TrainType.Player || car.Train.TrainType == TrainType.AiPlayerDriven || car.Train.TrainType == TrainType.AiPlayerHosting) &&
                 (car.Train.MUDirection != Direction.N && (car as MSTSDieselLocomotive).DieselEngines[0].EngineStatus == Simulation.RollingStocks.SubSystems.PowerSupplies.DieselEngine.Status.Running))))
             {
                 (car as MSTSDieselLocomotive).SignalEvent(TrainEvent.ReverserToForwardBackward);
@@ -91,7 +92,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             var car = this.Car as MSTSDieselLocomotive;
             
             // Diesel exhaust
-            var exhaustParticles = car.Train != null && car.Train.TrainType == Train.TRAINTYPE.STATIC ? 0 : car.ExhaustParticles.SmoothedValue;
+            var exhaustParticles = car.Train != null && car.Train.TrainType == TrainType.Static ? 0 : car.ExhaustParticles.SmoothedValue;
             foreach (var drawer in Exhaust)
             {
                 var colorR = car.ExhaustColorR.SmoothedValue / 255f;

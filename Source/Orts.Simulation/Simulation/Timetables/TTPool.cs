@@ -1319,7 +1319,7 @@ namespace Orts.Simulation.Timetables
                 }
 
                 // existing train is player, so continue as player
-                if (selectedTrain.TrainType == Train.TRAINTYPE.PLAYER)
+                if (selectedTrain.TrainType == TrainType.Player)
                 {
                     train.AI.TrainsToRemoveFromAI.Add(train);
 
@@ -1335,7 +1335,7 @@ namespace Orts.Simulation.Timetables
                     train.Simulator.Trains.Add(train);
 
                     train.SetFormedOccupied();
-                    train.TrainType = Train.TRAINTYPE.PLAYER;
+                    train.TrainType = TrainType.Player;
                     train.ControlMode = TrainControlMode.Inactive;
                     train.MovementState = AITrain.AI_MOVEMENT_STATE.AI_STATIC;
 
@@ -1357,9 +1357,9 @@ namespace Orts.Simulation.Timetables
                 }
 
                 // new train is intended as player
-                else if (train.TrainType == Train.TRAINTYPE.PLAYER || train.TrainType == Train.TRAINTYPE.INTENDED_PLAYER)
+                else if (train.TrainType == TrainType.Player || train.TrainType == TrainType.PlayerIntended)
                 {
-                    train.TrainType = Train.TRAINTYPE.PLAYER;
+                    train.TrainType = TrainType.Player;
                     train.ControlMode = TrainControlMode.Inactive;
                     train.MovementState = AITrain.AI_MOVEMENT_STATE.AI_STATIC;
 
@@ -1417,7 +1417,7 @@ namespace Orts.Simulation.Timetables
                     train.DelayedStart = true;
                     train.DelayedStartState = TTTrain.AI_START_MOVEMENT.NEW;
 
-                    train.TrainType = Train.TRAINTYPE.AI;
+                    train.TrainType = TrainType.Ai;
                     train.AI.TrainsToAdd.Add(train);
                 }
 

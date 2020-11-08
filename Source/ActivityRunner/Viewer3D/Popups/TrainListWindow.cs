@@ -24,6 +24,7 @@ using Orts.Simulation.AIs;
 using Orts.Simulation.Physics;
 using Orts.Common;
 using Orts.Common.Input;
+using Orts.Simulation;
 
 namespace Orts.ActivityRunner.Viewer3D.Popups
 {
@@ -79,8 +80,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 }
                 foreach (var thisTrain in Owner.Viewer.Simulator.AI.AITrains)
                 {
-                    if (thisTrain.MovementState != AITrain.AI_MOVEMENT_STATE.AI_STATIC && thisTrain.TrainType != Train.TRAINTYPE.PLAYER
-                        && ! (thisTrain.TrainType == Train.TRAINTYPE.AI_INCORPORATED && !thisTrain.IncorporatingTrain.IsPathless))
+                    if (thisTrain.MovementState != AITrain.AI_MOVEMENT_STATE.AI_STATIC && thisTrain.TrainType != TrainType.Player
+                        && ! (thisTrain.TrainType == TrainType.AiIncorporated && !thisTrain.IncorporatingTrain.IsPathless))
                     {
                         var line = scrollbox.AddLayoutHorizontalLineOfText();
                         TrainLabel number, name, viewed;
@@ -114,7 +115,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 {
                     foreach (var thisTrain in Owner.Viewer.Simulator.Trains)
                     {
-                        if (thisTrain.TrainType == Train.TRAINTYPE.STATIC && thisTrain.IsPlayable)
+                        if (thisTrain.TrainType == TrainType.Static && thisTrain.IsPlayable)
                         {
                             var line = scrollbox.AddLayoutHorizontalLineOfText();
                             TrainLabel number, name, viewed;
@@ -179,7 +180,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 Viewer.Simulator.TrainSwitcher.ClickedTrainFromList = true;
 
             }
-            if (PickedTrainFromList != null && (PickedTrainFromList == Viewer.SelectedTrain || (PickedTrainFromList.TrainType == Train.TRAINTYPE.AI_INCORPORATED && 
+            if (PickedTrainFromList != null && (PickedTrainFromList == Viewer.SelectedTrain || (PickedTrainFromList.TrainType == TrainType.AiIncorporated && 
                 (PickedTrainFromList as AITrain).IncorporatingTrain.IsPathless && (PickedTrainFromList as AITrain).IncorporatingTrain == Viewer.SelectedTrain)) && !PickedTrainFromList.IsActualPlayerTrain &&
                 Viewer.Simulator.IsAutopilotMode && PickedTrainFromList.IsPlayable)
             {

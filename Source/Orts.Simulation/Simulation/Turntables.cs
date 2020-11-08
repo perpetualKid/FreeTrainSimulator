@@ -288,7 +288,7 @@ namespace Orts.Simulation
                     }
                 }
             }
-            if (Simulator.ActivityRun != null && !train.IsPathless && train.TrainType != Train.TRAINTYPE.STATIC && trainIndex != -1 &&
+            if (Simulator.ActivityRun != null && !train.IsPathless && train.TrainType != TrainType.Static && trainIndex != -1 &&
                 TrainsOnMovingTable[trainIndex].FrontOnBoard && TrainsOnMovingTable[trainIndex].BackOnBoard && train.SpeedMpS <= 0.1f && train.ControlMode != TrainControlMode.Manual &&
                 train.TCRoute.activeSubpath == train.TCRoute.TCRouteSubpaths.Count - 1 && train.TCRoute.TCRouteSubpaths[train.TCRoute.activeSubpath].Count > 1 &&
                 (train.PresentPosition[0].RouteListIndex == train.TCRoute.TCRouteSubpaths[train.TCRoute.activeSubpath].Count - 2 ||

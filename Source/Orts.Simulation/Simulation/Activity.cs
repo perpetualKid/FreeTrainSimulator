@@ -239,7 +239,7 @@ namespace Orts.Simulation
             {
                 Current = Current.NextTask;
             }
-            if (Simulator.OriginalPlayerTrain.TrainType == Train.TRAINTYPE.PLAYER || Simulator.OriginalPlayerTrain.TrainType == Train.TRAINTYPE.AI_PLAYERDRIVEN)
+            if (Simulator.OriginalPlayerTrain.TrainType == TrainType.Player || Simulator.OriginalPlayerTrain.TrainType == TrainType.AiPlayerDriven)
             {
                 if (Math.Abs(Simulator.OriginalPlayerTrain.SpeedMpS) < 0.2f)
                 {
@@ -802,8 +802,8 @@ namespace Orts.Simulation
             // The train is stopped.
             if (EventType == ActivityEventType.TrainStop)
             {
-                if (MyPlayerTrain.TrainType != Train.TRAINTYPE.AI_PLAYERHOSTING && IsAtStation(MyPlayerTrain)  ||
-                    MyPlayerTrain.TrainType == Train.TRAINTYPE.AI_PLAYERHOSTING && (MyPlayerTrain as AITrain).MovementState == AITrain.AI_MOVEMENT_STATE.STATION_STOP)
+                if (MyPlayerTrain.TrainType != TrainType.AiPlayerHosting && IsAtStation(MyPlayerTrain)  ||
+                    MyPlayerTrain.TrainType == TrainType.AiPlayerHosting && (MyPlayerTrain as AITrain).MovementState == AITrain.AI_MOVEMENT_STATE.STATION_STOP)
                 {
                     if (Simulator.TimetableMode || MyPlayerTrain.StationStops.Count == 0)
                     {
@@ -889,7 +889,7 @@ namespace Orts.Simulation
                     CompletedAt = ActDepart.Value;
                     // Completeness depends on the elapsed waiting time
                     IsCompleted = maydepart;
-                    if (MyPlayerTrain.TrainType != Train.TRAINTYPE.AI_PLAYERHOSTING)
+                    if (MyPlayerTrain.TrainType != TrainType.AiPlayerHosting)
                         MyPlayerTrain.ClearStation(PlatformEnd1.LinkedPlatformItemId, PlatformEnd2.LinkedPlatformItemId, true);
 
                     if (LogStationStops)
@@ -926,7 +926,7 @@ namespace Orts.Simulation
                     else if (remaining < 11) DisplayColor = new Color(255, 255, 128);
                     else DisplayColor = Color.White;
 
-                    if (remaining < 120 && (MyPlayerTrain.TrainType != Train.TRAINTYPE.AI_PLAYERHOSTING))
+                    if (remaining < 120 && (MyPlayerTrain.TrainType != TrainType.AiPlayerHosting))
                     {
                         MyPlayerTrain.ClearStation(PlatformEnd1.LinkedPlatformItemId, PlatformEnd2.LinkedPlatformItemId, false);
                     }
@@ -1012,7 +1012,7 @@ namespace Orts.Simulation
                     int tmp = (int)(Simulator.ClockTime % 10);
                     if (tmp != TimerChk)
                     {
-                        if (IsMissedStation() && (MyPlayerTrain.TrainType != Train.TRAINTYPE.AI_PLAYERHOSTING))
+                        if (IsMissedStation() && (MyPlayerTrain.TrainType != TrainType.AiPlayerHosting))
                         {
                             MyPlayerTrain.ClearStation(PlatformEnd1.LinkedPlatformItemId, PlatformEnd2.LinkedPlatformItemId, true);
                             IsCompleted = false;
@@ -1387,7 +1387,7 @@ namespace Orts.Simulation
         static bool excludesWagons(Train train, List<string> wagonIdList)
         {
             // The Cars list is a global list that includes STATIC cars.  We need to make sure that the active train/car is processed only.
-            if (train.TrainType == Train.TRAINTYPE.STATIC)
+            if (train.TrainType == TrainType.Static)
                 return true;
 
             bool lNotFound = false;

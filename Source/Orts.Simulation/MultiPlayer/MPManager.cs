@@ -191,7 +191,7 @@ namespace Orts.MultiPlayer
 				//I am the server, I have control
 				if (IsServer())
 				{
-					train.TrainType = Train.TRAINTYPE.PLAYER; train.LeadLocomotive = Simulator.PlayerLocomotive;
+					train.TrainType = TrainType.Player; train.LeadLocomotive = Simulator.PlayerLocomotive;
                     InitializeBrakesCommand.Receiver = MPManager.Simulator.PlayerLocomotive.Train;
                     train.InitializeSignals(false);
                     if (Simulator.Confirmer != null)
@@ -240,7 +240,7 @@ namespace Orts.MultiPlayer
 			if (Server != null && newtime - lastMoveTime >= 1f)
 			{
 				MSGMove move = new MSGMove();
-                if (Simulator.PlayerLocomotive.Train.TrainType != Train.TRAINTYPE.REMOTE)
+                if (Simulator.PlayerLocomotive.Train.TrainType != TrainType.Remote)
                     move.AddNewItem(GetUserName(), Simulator.PlayerLocomotive.Train);
 				Server.BroadCast(OnlineTrains.MoveTrains(move));
                 MSGExhaust exhaust = new MSGExhaust(); // Also updating loco exhaust
@@ -285,7 +285,7 @@ namespace Orts.MultiPlayer
 				MSGMove move = new MSGMove();
                 MSGExhaust exhaust = new MSGExhaust(); // Also updating loco exhaust
                 //if I am still controlling the train
-                if (t.TrainType != Train.TRAINTYPE.REMOTE)
+                if (t.TrainType != TrainType.Remote)
 				{
                     if (Math.Abs(t.SpeedMpS) > 0.001 || newtime - begineZeroTime < 5f || Math.Abs(t.LastReportedSpeed) > 0)
                     {
@@ -370,7 +370,7 @@ namespace Orts.MultiPlayer
 			var Locomotive = (MSTSLocomotive)Simulator.PlayerLocomotive;
 			if (Locomotive == null) return;
 			var train = Locomotive.Train;
-			if (train == null ||train.TrainType == Train.TRAINTYPE.REMOTE) return;//no train or is remotely controlled
+			if (train == null ||train.TrainType == TrainType.Remote) return;//no train or is remotely controlled
 
 			//var spad = false;
 			var maxSpeed = Math.Abs(train.AllowedMaxSpeedMpS) + 3;//allow some margin of error (about 10km/h)
@@ -525,7 +525,7 @@ namespace Orts.MultiPlayer
 		{
 			//if (Math.Abs(t1.SpeedMpS) > 10 || Math.Abs(t2.SpeedMpS) > 10) return false; //we do not like high speed punch in MP, will mess up a lot.
 
-			if (t1.TrainType != Train.TRAINTYPE.REMOTE && t2.TrainType != Train.TRAINTYPE.REMOTE) return true;
+			if (t1.TrainType != TrainType.Remote && t2.TrainType != TrainType.Remote) return true;
 
 			bool result = true;
 			try
@@ -551,7 +551,7 @@ namespace Orts.MultiPlayer
 		{
 
 			string info = "";
-			if (Simulator.PlayerLocomotive.Train.TrainType == Train.TRAINTYPE.REMOTE) info = "Your locomotive is a helper\t";
+			if (Simulator.PlayerLocomotive.Train.TrainType == TrainType.Remote) info = "Your locomotive is a helper\t";
 			info += ("" + (OnlineTrains.Players.Count + 1)+ (OnlineTrains.Players.Count <= 0 ? " player " : "  players "));
 			info += ("" + Simulator.Trains.Count + (Simulator.Trains.Count <= 1 ? " train" : "  trains"));
 			TrainCar mine = Simulator.PlayerLocomotive;

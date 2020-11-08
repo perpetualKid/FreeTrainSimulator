@@ -33,6 +33,7 @@ using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Common.Info;
 using Orts.Common.Native;
+using Orts.Simulation;
 using Orts.Simulation.AIs;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
@@ -487,7 +488,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             TableAddLabelValue(table, Viewer.Catalog.GetString("FPS"), "{0:F0}", Viewer.RenderProcess.FrameRate.SmoothedValue);
             TableAddLine(table);
 
-            if (Viewer.PlayerLocomotive.Train.TrainType == Train.TRAINTYPE.AI_PLAYERHOSTING)
+            if (Viewer.PlayerLocomotive.Train.TrainType == TrainType.AiPlayerHosting)
                 TableAddLine(table, Viewer.Catalog.GetString("Autopilot") + "???");
 
             if (Viewer.PlayerTrain.IsWheelSlip)
@@ -1438,7 +1439,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             int totalactive = 0;
             foreach (var thisTrain in Viewer.Simulator.AI.AITrains)
             {
-                if (thisTrain.MovementState != AITrain.AI_MOVEMENT_STATE.AI_STATIC && thisTrain.TrainType != Train.TRAINTYPE.AI_INCORPORATED)
+                if (thisTrain.MovementState != AITrain.AI_MOVEMENT_STATE.AI_STATIC && thisTrain.TrainType != TrainType.AiIncorporated)
                 {
                     totalactive++;
                 }
@@ -1496,11 +1497,11 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             // first is player train
             foreach (var thisTrain in Viewer.Simulator.Trains)
             {
-                if (thisTrain.TrainType == Train.TRAINTYPE.PLAYER || (thisTrain.TrainType == Train.TRAINTYPE.REMOTE && Orts.MultiPlayer.MPManager.IsServer())
+                if (thisTrain.TrainType == TrainType.Player || (thisTrain.TrainType == TrainType.Remote && Orts.MultiPlayer.MPManager.IsServer())
                     || thisTrain.IsActualPlayerTrain)
                 {
                     var status = thisTrain.GetStatus(Viewer.MilepostUnitsMetric);
-                    if (thisTrain.TrainType == Train.TRAINTYPE.AI_PLAYERHOSTING) status = ((AITrain)thisTrain).AddMovementState(status, Viewer.MilepostUnitsMetric);
+                    if (thisTrain.TrainType == TrainType.AiPlayerHosting) status = ((AITrain)thisTrain).AddMovementState(status, Viewer.MilepostUnitsMetric);
                     else if (thisTrain == Program.Simulator.OriginalPlayerTrain && Program.Simulator.Activity != null) status = thisTrain.AddRestartTime(status);
                     else if (thisTrain.IsActualPlayerTrain && Program.Simulator.Activity != null && thisTrain.ControlMode != TrainControlMode.Explorer && !thisTrain.IsPathless)
                         status = thisTrain.AddRestartTime(status);
@@ -1516,8 +1517,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             // next is active AI trains which are delayed
             foreach (var thisTrain in Viewer.Simulator.AI.AITrains)
             {
-                if (thisTrain.MovementState != AITrain.AI_MOVEMENT_STATE.AI_STATIC && thisTrain.TrainType != Train.TRAINTYPE.PLAYER
-                    && thisTrain.TrainType != Train.TRAINTYPE.AI_INCORPORATED)
+                if (thisTrain.MovementState != AITrain.AI_MOVEMENT_STATE.AI_STATIC && thisTrain.TrainType != TrainType.Player
+                    && thisTrain.TrainType != TrainType.AiIncorporated)
                 {
                     if (thisTrain.Delay.HasValue && thisTrain.Delay.Value.TotalMinutes >= 1)
                     {
@@ -1535,8 +1536,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             // next is active AI trains which are not delayed
             foreach (var thisTrain in Viewer.Simulator.AI.AITrains)
             {
-                if (thisTrain.MovementState != AITrain.AI_MOVEMENT_STATE.AI_STATIC && thisTrain.TrainType != Train.TRAINTYPE.PLAYER
-                    && thisTrain.TrainType != Train.TRAINTYPE.AI_INCORPORATED)
+                if (thisTrain.MovementState != AITrain.AI_MOVEMENT_STATE.AI_STATIC && thisTrain.TrainType != TrainType.Player
+                    && thisTrain.TrainType != TrainType.AiIncorporated)
                 {
                     if (!thisTrain.Delay.HasValue || thisTrain.Delay.Value.TotalMinutes < 1)
                     {
@@ -1554,7 +1555,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             // finally is static AI trains
             foreach (var thisTrain in Viewer.Simulator.AI.AITrains)
             {
-                if (thisTrain.MovementState == AITrain.AI_MOVEMENT_STATE.AI_STATIC && thisTrain.TrainType != Train.TRAINTYPE.PLAYER)
+                if (thisTrain.MovementState == AITrain.AI_MOVEMENT_STATE.AI_STATIC && thisTrain.TrainType != TrainType.Player)
                 {
                     var status = thisTrain.GetStatus(Viewer.MilepostUnitsMetric);
                     status = thisTrain.AddMovementState(status, Viewer.MilepostUnitsMetric);

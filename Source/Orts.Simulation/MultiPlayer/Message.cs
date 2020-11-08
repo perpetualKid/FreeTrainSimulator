@@ -182,7 +182,7 @@ namespace Orts.MultiPlayer
                 if (m.user == MPManager.GetUserName())//about itself, check if the number of car has changed, otherwise ignore
                 {
                     //if I am a remote controlled train now
-                    if (MPManager.Simulator.PlayerLocomotive.Train.TrainType == Train.TRAINTYPE.REMOTE)
+                    if (MPManager.Simulator.PlayerLocomotive.Train.TrainType == TrainType.Remote)
                     {
                         MPManager.Simulator.PlayerLocomotive.Train.ToDoUpdate(m.trackNodeIndex, m.TileX, m.TileZ, m.X, m.Z, m.travelled, m.speed, m.direction, m.tdbDir, m.Length);
                     }
@@ -212,7 +212,7 @@ namespace Orts.MultiPlayer
                                     continue;
                                 }
                             }
-                            if (t.TrainType == Train.TRAINTYPE.REMOTE)
+                            if (t.TrainType == TrainType.Remote)
                             {
                                 var reverseTrav = false;
 //                                 Alternate way to check for train flip
@@ -234,7 +234,7 @@ namespace Orts.MultiPlayer
                         // skip the case where this train is merged with yours and you are the boss of that train
                         if (t.Number == MPManager.Simulator.PlayerLocomotive.Train.Number &&
                             MPManager.Simulator.PlayerLocomotive == MPManager.Simulator.PlayerLocomotive.Train.LeadLocomotive &&
-                            t.TrainType != Train.TRAINTYPE.REMOTE && t.TrainType != Train.TRAINTYPE.STATIC) continue;
+                            t.TrainType != TrainType.Remote && t.TrainType != TrainType.Static) continue;
                         found = true;
                         t.ToDoUpdate(m.trackNodeIndex, m.TileX, m.TileZ, m.X, m.Z, m.travelled, m.speed, m.direction, m.tdbDir, m.Length);
                         // This is necessary as sometimes a train isn't in the Trains list
@@ -1307,7 +1307,7 @@ namespace Orts.MultiPlayer
             train = new Train(MPManager.Simulator);
             train.Number = this.TrainNum;
 
-            train.TrainType = Train.TRAINTYPE.REMOTE;
+            train.TrainType = TrainType.Remote;
             train.travelled = Travelled;
             train.MUDirection = (Direction)this.mDirection;
             train.RearTDBTraveller = new Traveller(MPManager.Simulator.TSectionDat, MPManager.Simulator.TDB.TrackDB.TrackNodes, location, direction == 1 ? Traveller.TravellerDirection.Forward : Traveller.TravellerDirection.Backward);
@@ -1554,7 +1554,7 @@ namespace Orts.MultiPlayer
                 train.CheckFreight();
                 return;
             }
-            train1.TrainType = Train.TRAINTYPE.REMOTE;
+            train1.TrainType = TrainType.Remote;
             train1.travelled = Travelled;
             train1.RearTDBTraveller = new Traveller(MPManager.Simulator.TSectionDat, MPManager.Simulator.TDB.TrackDB.TrackNodes, location, direction == 1 ? Traveller.TravellerDirection.Forward : Traveller.TravellerDirection.Backward);
             for (var i = 0; i < cars.Length; i++)// cars.Length-1; i >= 0; i--) {
@@ -1924,7 +1924,7 @@ namespace Orts.MultiPlayer
             if (MPManager.GetUserName() == user && level == "Confirm")
             {
                 Train train = MPManager.Simulator.PlayerLocomotive.Train;
-                train.TrainType = Train.TRAINTYPE.PLAYER; train.LeadLocomotive = MPManager.Simulator.PlayerLocomotive;
+                train.TrainType = TrainType.Player; train.LeadLocomotive = MPManager.Simulator.PlayerLocomotive;
                 InitializeBrakesCommand.Receiver = MPManager.Simulator.PlayerLocomotive.Train;
                 train.InitializeSignals(false);
                 if (MPManager.Simulator.Confirmer != null)
@@ -1942,7 +1942,7 @@ namespace Orts.MultiPlayer
                             if (t.Number == this.num) p.Value.Train = t;
                         }
                         MPManager.Instance().RemoveUncoupledTrains(p.Value.Train);
-                        p.Value.Train.TrainType = Train.TRAINTYPE.REMOTE;
+                        p.Value.Train.TrainType = TrainType.Remote;
                         p.Value.Train.TrainMaxSpeedMpS = trainmaxspeed;
                         break;
                     }
@@ -1958,7 +1958,7 @@ namespace Orts.MultiPlayer
                         {
                             if (t.Number == this.num) p.Value.Train = t;
                         }
-                        p.Value.Train.TrainType = Train.TRAINTYPE.REMOTE;
+                        p.Value.Train.TrainType = TrainType.Remote;
                         p.Value.Train.TrainMaxSpeedMpS = trainmaxspeed;
                         p.Value.Train.InitializeSignals(false);
                         MPManager.Instance().RemoveUncoupledTrains(p.Value.Train);
@@ -2192,7 +2192,7 @@ namespace Orts.MultiPlayer
                 MPManager.BroadCast(this.ToString()); //if the server, will broadcast
                 //if the one quit controls my train, I will gain back the control
                 if (p.Train == MPManager.Simulator.PlayerLocomotive.Train)
-                    MPManager.Simulator.PlayerLocomotive.Train.TrainType = Train.TRAINTYPE.PLAYER;
+                    MPManager.Simulator.PlayerLocomotive.Train.TrainType = TrainType.Player;
                 MPManager.Instance().AddRemovedPlayer(p);
                 //the client may quit because of lost connection, will remember it so it may recover in the future when the player log in again
                 if (p.Train != null && p.status != OnlinePlayer.Status.Removed) //if this player has train and is not removed by the dispatcher
@@ -2209,12 +2209,12 @@ namespace Orts.MultiPlayer
             {
                 //if the one quit controls my train, I will gain back the control
                 if (p.Train == MPManager.Simulator.PlayerLocomotive.Train)
-                    MPManager.Simulator.PlayerLocomotive.Train.TrainType = Train.TRAINTYPE.PLAYER;
+                    MPManager.Simulator.PlayerLocomotive.Train.TrainType = TrainType.Player;
                 MPManager.Instance().AddRemovedPlayer(p);
                 if (ServerQuit)//warning, need to remove other player trains if there are not AI, in the future
                 {
                     //no matter what, let player gain back the control of the player train
-                    MPManager.Simulator.PlayerLocomotive.Train.TrainType = Train.TRAINTYPE.PLAYER;
+                    MPManager.Simulator.PlayerLocomotive.Train.TrainType = TrainType.Player;
                     throw new MultiPlayerError(); //server quit, end communication by throwing this error 
                 }
             }
@@ -2262,7 +2262,7 @@ namespace Orts.MultiPlayer
             MPManager.BroadCast((new MSGQuit(user)).ToString()); //if the server, will broadcast a quit to every one
             //if the one quit controls my train, I will gain back the control
             if (p.Train == MPManager.Simulator.PlayerLocomotive.Train)
-                MPManager.Simulator.PlayerLocomotive.Train.TrainType = Train.TRAINTYPE.PLAYER;
+                MPManager.Simulator.PlayerLocomotive.Train.TrainType = TrainType.Player;
             MPManager.Instance().AddRemovedPlayer(p);
             //the client may quit because of lost connection, will remember it so it may recover in the future when the player log in again
             if (p.Train != null && p.status != OnlinePlayer.Status.Removed) //if this player has train and is not removed by the dispatcher
@@ -2416,7 +2416,7 @@ namespace Orts.MultiPlayer
             else
             {
                 newTrainNumber = 1000000 + MPManager.Random.Next(1000000);//client: temporary assign a train number 1000000-2000000, will change to the correct one after receiving response from the server
-                newT.TrainType = Train.TRAINTYPE.REMOTE; //by default, uncoupled train will be controlled by the server
+                newT.TrainType = TrainType.Remote; //by default, uncoupled train will be controlled by the server
             }
             if (!newT.Cars.Contains(MPManager.Simulator.PlayerLocomotive)) //if newT does not have player locomotive, it may be controlled remotely
             {
@@ -2430,7 +2430,7 @@ namespace Orts.MultiPlayer
                         if (car1.CarID.StartsWith(p.Value.LeadingLocomotiveID))
                         {
                             p.Value.Train = car1.Train;
-                            car1.Train.TrainType = Train.TRAINTYPE.REMOTE;
+                            car1.Train.TrainType = TrainType.Remote;
                             break;
                         }
                     }
@@ -2449,7 +2449,7 @@ namespace Orts.MultiPlayer
                         if (car1.CarID.StartsWith(p.Value.LeadingLocomotiveID))
                         {
                             p.Value.Train = car1.Train;
-                            car1.Train.TrainType = Train.TRAINTYPE.REMOTE;
+                            car1.Train.TrainType = TrainType.Remote;
                             break;
                         }
                     }
@@ -2734,7 +2734,7 @@ namespace Orts.MultiPlayer
                 if (MPManager.IsServer())
                 {
                     this.newTrainNumber = train2.Number;//we got a new train number, will tell others.
-                    train2.TrainType = Train.TRAINTYPE.STATIC;
+                    train2.TrainType = TrainType.Static;
                     this.oldTrainNumber = train.Number;
                     train2.LastReportedSpeed = 1;
                     if (train2.Name.Length < 4) train2.Name = String.Concat("STATIC-", String.Copy(train2.Name));
@@ -2745,7 +2745,7 @@ namespace Orts.MultiPlayer
                 }
                 else
                 {
-                    train2.TrainType = Train.TRAINTYPE.REMOTE;
+                    train2.TrainType = TrainType.Remote;
                     train2.Number = this.newTrainNumber; //client receives a message, will use the train number specified by the server
                     train.Number = this.oldTrainNumber;
                 }
@@ -2870,7 +2870,7 @@ namespace Orts.MultiPlayer
                 if (MPManager.Simulator.Confirmer != null)
                     MPManager.Simulator.Confirmer.Information(MPManager.Catalog.GetString("Trains coupled, hit \\ then Shift-? to release brakes"));
             }
-            if (!MPManager.IsServer() || !(oldT.TrainType == Train.TRAINTYPE.AI_INCORPORATED))
+            if (!MPManager.IsServer() || !(oldT.TrainType == TrainType.AiIncorporated))
             {
                 if (MPManager.IsServer())
                 {
@@ -2966,7 +2966,7 @@ namespace Orts.MultiPlayer
             //mine is not the leading locomotive, thus I give up the control
             if (train.LeadLocomotive != MPManager.Simulator.PlayerLocomotive)
             {
-                train.TrainType = Train.TRAINTYPE.REMOTE; //make the train remote controlled
+                train.TrainType = TrainType.Remote; //make the train remote controlled
             }
 
             if (MPManager.FindPlayerTrain(train2))
@@ -3204,7 +3204,7 @@ namespace Orts.MultiPlayer
         {
             foreach (Train t in MPManager.Simulator.Trains)
             {
-                if (t.TrainType != Train.TRAINTYPE.REMOTE && t.Number == tnum)
+                if (t.TrainType != TrainType.Remote && t.Number == tnum)
                 {
                     foreach (var car in t.Cars)
                     {

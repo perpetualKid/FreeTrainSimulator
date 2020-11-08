@@ -18,6 +18,7 @@
 // #define DEBUG_MULTIPLAYER
 // DEBUG flag for debug prints
 
+using Orts.Simulation;
 using Orts.Simulation.Physics;
 using System;
 using System.Diagnostics;
@@ -152,7 +153,7 @@ namespace Orts.MultiPlayer
 			//no matter what, let player gain back the control of the player train
 			if (MPManager.Simulator.PlayerLocomotive != null && MPManager.Simulator.PlayerLocomotive.Train != null)
 			{
-				MPManager.Simulator.PlayerLocomotive.Train.TrainType = Train.TRAINTYPE.PLAYER;
+				MPManager.Simulator.PlayerLocomotive.Train.TrainType = TrainType.Player;
 				MPManager.Simulator.PlayerLocomotive.Train.LeadLocomotive = MPManager.Simulator.PlayerLocomotive;
 			}
 			if (MPManager.Simulator.Confirmer != null)

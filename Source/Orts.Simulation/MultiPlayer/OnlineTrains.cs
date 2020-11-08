@@ -66,7 +66,7 @@ namespace Orts.MultiPlayer
             if (move == null) move = new MSGMove();
             foreach (OnlinePlayer p in Players.Values)
             {
-                if (p.Train != null && MPManager.Simulator.PlayerLocomotive != null && !(p.Train == MPManager.Simulator.PlayerLocomotive.Train && p.Train.TrainType != Train.TRAINTYPE.REMOTE))
+                if (p.Train != null && MPManager.Simulator.PlayerLocomotive != null && !(p.Train == MPManager.Simulator.PlayerLocomotive.Train && p.Train.TrainType != TrainType.Remote))
                 {
                     if (Math.Abs(p.Train.SpeedMpS) > 0.001 || Math.Abs(p.Train.LastReportedSpeed) > 0)
                     {
@@ -144,7 +144,7 @@ namespace Orts.MultiPlayer
             p.con = MPManager.Simulator.BasePath + "\\TRAINS\\CONSISTS\\" + player.con;
             p.path = MPManager.Simulator.RoutePath + "\\PATHS\\" + player.path;
             Train train = new Train(MPManager.Simulator);
-            train.TrainType = Train.TRAINTYPE.REMOTE;
+            train.TrainType = TrainType.Remote;
             if (MPManager.IsServer()) //server needs to worry about correct train number
             {
             }
@@ -292,12 +292,12 @@ namespace Orts.MultiPlayer
             if (MPManager.IsServer()) //server needs to worry about correct train number
             {
                 train = MPManager.Simulator.Trains.Find(t => t.Number == player.num);
-                train.TrainType = Train.TRAINTYPE.REMOTE;
+                train.TrainType = TrainType.Remote;
             }
             else
             {
                 train = MPManager.Simulator.Trains.Find(t => t.Number == player.num);
-                train.TrainType = Train.TRAINTYPE.REMOTE;
+                train.TrainType = TrainType.Remote;
             }
             p.Train = train;
             if (player.newTrainReverseFormation) p.Train.ReverseFormation(false);

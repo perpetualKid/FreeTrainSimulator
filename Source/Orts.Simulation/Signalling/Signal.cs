@@ -2109,7 +2109,7 @@ namespace Orts.Simulation.Signalling
                     int forcedRouteSectionIndex = train.Train.ValidRoute[0].GetRouteIndex(forcedTCSectionIndex, 0);
 #pragma warning restore CA1062 // Validate arguments of public methods
                     train.Train.ReRouteTrain(forcedRouteSectionIndex, forcedTCSectionIndex);
-                    if (train.Train.TrainType == Train.TRAINTYPE.AI || train.Train.TrainType == Train.TRAINTYPE.AI_PLAYERHOSTING)
+                    if (train.Train.TrainType == TrainType.Ai || train.Train.TrainType == TrainType.AiPlayerHosting)
                         (train.Train as AITrain).ResetActions(true);
                     forcedTrackSection.CircuitState.Forced = false;
                 }

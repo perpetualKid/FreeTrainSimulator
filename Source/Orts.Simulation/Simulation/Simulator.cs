@@ -672,7 +672,7 @@ namespace Orts.Simulation
             {
                 movingTrains.Add(PlayerLocomotive.Train);
                 if (PlayerLocomotive.Train.LeadLocomotive != null
-                    && PlayerLocomotive.Train.TrainType != Physics.Train.TRAINTYPE.AI_PLAYERHOSTING
+                    && PlayerLocomotive.Train.TrainType != TrainType.AiPlayerHosting
                     && string.Compare(PlayerLocomotive.Train.LeadLocomotive.CarID, PlayerLocomotive.CarID) != 0
                     && !MPManager.IsMultiPlayer())
                 {
@@ -682,7 +682,7 @@ namespace Orts.Simulation
 
             foreach (Physics.Train train in Trains)
             {
-                if ((train.SpeedMpS != 0 || (train.ControlMode == TrainControlMode.Explorer && train.TrainType == Train.TRAINTYPE.REMOTE && MPManager.IsServer())) &&
+                if ((train.SpeedMpS != 0 || (train.ControlMode == TrainControlMode.Explorer && train.TrainType == TrainType.Remote && MPManager.IsServer())) &&
                     train.GetType() != typeof(AITrain) && train.GetType() != typeof(TTTrain) &&
                     (PlayerLocomotive == null || train != PlayerLocomotive.Train))
                 {
@@ -696,13 +696,13 @@ namespace Orts.Simulation
                 {
                     try
                     {
-                        if (train.TrainType != Physics.Train.TRAINTYPE.AI_PLAYERHOSTING)
+                        if (train.TrainType != TrainType.AiPlayerHosting)
                             train.Update(elapsedClockSeconds, false);
                         else ((AITrain)train).AIUpdate(elapsedClockSeconds, ClockTime, false);
                     }
                     catch (Exception e) { Trace.TraceWarning(e.Message); }
                 }
-                else if (train.TrainType != Physics.Train.TRAINTYPE.AI_PLAYERHOSTING)
+                else if (train.TrainType != TrainType.AiPlayerHosting)
                 {
                     train.Update(elapsedClockSeconds, false);
                 }
@@ -794,7 +794,7 @@ namespace Orts.Simulation
                     }
                 }
             }
-            if (train.TrainType == Physics.Train.TRAINTYPE.AI && (((AITrain)train).UncondAttach ||
+            if (train.TrainType == TrainType.Ai && (((AITrain)train).UncondAttach ||
                 train.TCRoute.activeSubpath < train.TCRoute.TCRouteSubpaths.Count - 1 || train.ValidRoute[0].Count > 5))
             {
                 if (((drivenTrain.TCRoute != null && drivenTrain.TCRoute.activeSubpath == drivenTrain.TCRoute.TCRouteSubpaths.Count - 1 &&
@@ -803,7 +803,7 @@ namespace Orts.Simulation
                     // Switch to the attached train as the one where we are now is at the end of its life
                     TrainSwitcher.PickedTrainFromList = train;
                     TrainSwitcher.ClickedTrainFromList = true;
-                    train.TrainType = Physics.Train.TRAINTYPE.AI_PLAYERHOSTING;
+                    train.TrainType = TrainType.AiPlayerHosting;
                     Confirmer.Message(ConfirmLevel.Information, Catalog.GetString("Player train has been included into train {0} service {1}, that automatically becomes the new player train",
                         train.Number, train.Name));
                     train.Cars.Clear();
@@ -867,13 +867,13 @@ namespace Orts.Simulation
             else
             {
                 train.RemoveFromTrack();
-                if (train.TrainType != Physics.Train.TRAINTYPE.AI_INCORPORATED)
+                if (train.TrainType != TrainType.AiIncorporated)
                 {
                     Trains.Remove(train);
                     TrainDictionary.Remove(train.Number);
                     NameDictionary.Remove(train.Name.ToLower());
                 }
-                if (MPManager.IsMultiPlayer()) MPManager.BroadCast((new MSGCouple(drivenTrain, train, train.TrainType != Physics.Train.TRAINTYPE.AI_INCORPORATED)).ToString());
+                if (MPManager.IsMultiPlayer()) MPManager.BroadCast((new MSGCouple(drivenTrain, train, train.TrainType != TrainType.AiIncorporated)).ToString());
             }
             if (train.UncoupledFrom != null)
                 train.UncoupledFrom.UncoupledFrom = null;
@@ -913,14 +913,14 @@ namespace Orts.Simulation
             if (drivenTrain.SpeedMpS < 0)
             {
                 foreach (Physics.Train train in Trains)
-                    if (train != drivenTrain && train.TrainType != Physics.Train.TRAINTYPE.AI_INCORPORATED)
+                    if (train != drivenTrain && train.TrainType != TrainType.AiIncorporated)
                     {
                         //avoid coupling of player train with other players train
                         if (MPManager.IsMultiPlayer() && !MPManager.TrainOK2Couple(this, drivenTrain, train)) continue;
 
                         float d1 = drivenTrain.RearTDBTraveller.OverlapDistanceM(train.FrontTDBTraveller, true);
                         // Give another try if multiplayer
-                        if (d1 >= 0 && drivenTrain.TrainType == Physics.Train.TRAINTYPE.REMOTE &&
+                        if (d1 >= 0 && drivenTrain.TrainType == TrainType.Remote &&
                             drivenTrain.PresentPosition[1].TCSectionIndex == train.PresentPosition[0].TCSectionIndex && drivenTrain.PresentPosition[1].TCSectionIndex != -1)
                             d1 = drivenTrain.RearTDBTraveller.RoughOverlapDistanceM(train.FrontTDBTraveller, drivenTrain.FrontTDBTraveller, train.RearTDBTraveller, drivenTrain.Length, train.Length, true);
                         if (d1 < 0)
@@ -948,7 +948,7 @@ namespace Orts.Simulation
                         }
                         float d2 = drivenTrain.RearTDBTraveller.OverlapDistanceM(train.RearTDBTraveller, true);
                         // Give another try if multiplayer
-                        if (d2 >= 0 && drivenTrain.TrainType == Physics.Train.TRAINTYPE.REMOTE &&
+                        if (d2 >= 0 && drivenTrain.TrainType == TrainType.Remote &&
                             drivenTrain.PresentPosition[1].TCSectionIndex == train.PresentPosition[1].TCSectionIndex && drivenTrain.PresentPosition[1].TCSectionIndex != -1)
                             d2 = drivenTrain.RearTDBTraveller.RoughOverlapDistanceM(train.RearTDBTraveller, drivenTrain.FrontTDBTraveller, train.FrontTDBTraveller, drivenTrain.Length, train.Length, true);
                         if (d2 < 0)
@@ -982,7 +982,7 @@ namespace Orts.Simulation
             else if (drivenTrain.SpeedMpS > 0)
             {
                 foreach (Physics.Train train in Trains)
-                    if (train != drivenTrain && train.TrainType != Physics.Train.TRAINTYPE.AI_INCORPORATED)
+                    if (train != drivenTrain && train.TrainType != TrainType.AiIncorporated)
                     {
                         //avoid coupling of player train with other players train if it is too short alived (e.g, when a train is just spawned, it may overlap with another train)
                         if (MPManager.IsMultiPlayer() && !MPManager.TrainOK2Couple(this, drivenTrain, train)) continue;
@@ -992,7 +992,7 @@ namespace Orts.Simulation
                         //	}
                         float d1 = drivenTrain.FrontTDBTraveller.OverlapDistanceM(train.RearTDBTraveller, false);
                         // Give another try if multiplayer
-                        if (d1 >= 0 && drivenTrain.TrainType == Physics.Train.TRAINTYPE.REMOTE &&
+                        if (d1 >= 0 && drivenTrain.TrainType == TrainType.Remote &&
                             drivenTrain.PresentPosition[0].TCSectionIndex == train.PresentPosition[1].TCSectionIndex && drivenTrain.PresentPosition[0].TCSectionIndex != -1)
                             d1 = drivenTrain.FrontTDBTraveller.RoughOverlapDistanceM(train.RearTDBTraveller, drivenTrain.RearTDBTraveller, train.FrontTDBTraveller, drivenTrain.Length, train.Length, false);
                         if (d1 < 0)
@@ -1044,7 +1044,7 @@ namespace Orts.Simulation
                         }
                         float d2 = drivenTrain.FrontTDBTraveller.OverlapDistanceM(train.FrontTDBTraveller, false);
                         // Give another try if multiplayer
-                        if (d2 >= 0 && drivenTrain.TrainType == Physics.Train.TRAINTYPE.REMOTE &&
+                        if (d2 >= 0 && drivenTrain.TrainType == TrainType.Remote &&
                             drivenTrain.PresentPosition[0].TCSectionIndex == train.PresentPosition[0].TCSectionIndex && drivenTrain.PresentPosition[0].TCSectionIndex != -1)
                             d2 = drivenTrain.FrontTDBTraveller.RoughOverlapDistanceM(train.FrontTDBTraveller, drivenTrain.RearTDBTraveller, train.RearTDBTraveller, drivenTrain.Length, train.Length, false);
                         if (d2 < 0)
@@ -1087,7 +1087,7 @@ namespace Orts.Simulation
             // set up the player locomotive
 
             Train train = new Train(this);
-            train.TrainType = Train.TRAINTYPE.PLAYER;
+            train.TrainType = TrainType.Player;
             train.Number = 0;
             train.Name = "PLAYER";
 
@@ -1241,7 +1241,7 @@ namespace Orts.Simulation
             train.ResetInitialTrainRoute(tempRoute);
 
             train.CalculatePositionOfCars();
-            train.TrainType = Physics.Train.TRAINTYPE.AI_PLAYERDRIVEN;
+            train.TrainType = TrainType.AiPlayerDriven;
             Trains.Add(train);
 
             // Note the initial position to be stored by a Save and used in Menu.exe to calculate DistanceFromStartM 
@@ -1288,7 +1288,7 @@ namespace Orts.Simulation
                 {
                     // construct train data
                     Physics.Train train = new Physics.Train(this);
-                    train.TrainType = Physics.Train.TRAINTYPE.STATIC;
+                    train.TrainType = TrainType.Static;
                     train.Name = "STATIC" + "-" + activityObject.ID;
                     int consistDirection;
                     switch (activityObject.Direction)  // TODO, we don't really understand this
@@ -1378,15 +1378,15 @@ namespace Orts.Simulation
 
             foreach (Physics.Train train in Trains)
             {
-                if (train.TrainType != Physics.Train.TRAINTYPE.AI && train.TrainType != Physics.Train.TRAINTYPE.AI_PLAYERDRIVEN && train.TrainType != Physics.Train.TRAINTYPE.AI_PLAYERHOSTING &&
-                    train.TrainType != Physics.Train.TRAINTYPE.AI_INCORPORATED && train.GetType() != typeof(TTTrain))
+                if (train.TrainType != TrainType.Ai && train.TrainType != TrainType.AiPlayerDriven && train.TrainType != TrainType.AiPlayerHosting &&
+                    train.TrainType != TrainType.AiIncorporated && train.GetType() != typeof(TTTrain))
                 {
                     outf.Write(0);
-                    if (train is AITrain && train.TrainType == Physics.Train.TRAINTYPE.STATIC)
+                    if (train is AITrain && train.TrainType == TrainType.Static)
                         ((AITrain)train).SaveBase(outf);
                     else train.Save(outf);
                 }
-                else if (train.TrainType == Physics.Train.TRAINTYPE.AI_PLAYERDRIVEN || train.TrainType == Physics.Train.TRAINTYPE.AI_PLAYERHOSTING)
+                else if (train.TrainType == TrainType.AiPlayerDriven || train.TrainType == TrainType.AiPlayerHosting)
                 {
                     outf.Write(-2);
                     AI.SaveAutopil(train, outf);
@@ -1421,8 +1421,8 @@ namespace Orts.Simulation
             // find player train
             foreach (Physics.Train thisTrain in Trains)
             {
-                if (thisTrain.TrainType == Physics.Train.TRAINTYPE.PLAYER
-                    || thisTrain.TrainType == Physics.Train.TRAINTYPE.AI_PLAYERDRIVEN || thisTrain.TrainType == Physics.Train.TRAINTYPE.AI_PLAYERHOSTING)
+                if (thisTrain.TrainType == TrainType.Player
+                    || thisTrain.TrainType == TrainType.AiPlayerDriven || thisTrain.TrainType == TrainType.AiPlayerHosting)
                 {
                     TrainDictionary.Add(thisTrain.Number, thisTrain);
                     NameDictionary.Add(thisTrain.Name, thisTrain);
@@ -1435,7 +1435,7 @@ namespace Orts.Simulation
                     {
                         thisTrain.RestoreManualMode();
                     }
-                    else if (thisTrain.TrainType == Physics.Train.TRAINTYPE.PLAYER)
+                    else if (thisTrain.TrainType == TrainType.Player)
                     {
                         thisTrain.InitializeSignals(true);
                     }
@@ -1616,13 +1616,13 @@ namespace Orts.Simulation
             if (train.IncorporatedTrainNo != -1)
             {
                 train2.AITrainBrakePercent = 100;
-                train2.TrainType = Physics.Train.TRAINTYPE.AI;
+                train2.TrainType = TrainType.Ai;
                 train.IncorporatedTrainNo = -1;
                 train2.MUDirection = Direction.Forward;
             }
-            else train2.TrainType = Physics.Train.TRAINTYPE.STATIC;
+            else train2.TrainType = TrainType.Static;
             train2.LeadLocomotive = null;
-            if ((train.TrainType == Physics.Train.TRAINTYPE.AI || train.TrainType == Physics.Train.TRAINTYPE.AI_PLAYERHOSTING) && train2.TrainType == Physics.Train.TRAINTYPE.STATIC)
+            if ((train.TrainType == TrainType.Ai || train.TrainType == TrainType.AiPlayerHosting) && train2.TrainType == TrainType.Static)
                 train2.InitializeBrakes();
             else
             {
@@ -1643,13 +1643,13 @@ namespace Orts.Simulation
                 train.UpdateTrackActionsUncoupling(true);
                 inPath = train2.UpdateTrackActionsUncoupling(false);
             }
-            if (!inPath && train2.TrainType == Physics.Train.TRAINTYPE.AI)
+            if (!inPath && train2.TrainType == TrainType.Ai)
             // Out of path, degrade to static
             {
-                train2.TrainType = Physics.Train.TRAINTYPE.STATIC;
+                train2.TrainType = TrainType.Static;
                 ((AITrain)train2).AI.TrainsToRemoveFromAI.Add((AITrain)train2);
             }
-            if (train2.TrainType == Physics.Train.TRAINTYPE.AI)
+            if (train2.TrainType == TrainType.Ai)
             {
                 // Move reversal point under train if there is one in the section where the train is
                 if (train2.PresentPosition[0].TCSectionIndex ==
@@ -1694,7 +1694,7 @@ namespace Orts.Simulation
             }
             if (Confirmer != null && IsReplaying) Confirmer.Confirm(CabControl.Uncouple, train.LastCar.CarID);
             if (AI != null) AI.aiListChanged = true;
-            if (train2.TrainType == Physics.Train.TRAINTYPE.STATIC && (train.TrainType == Physics.Train.TRAINTYPE.PLAYER || train.TrainType == Physics.Train.TRAINTYPE.AI_PLAYERDRIVEN))
+            if (train2.TrainType == TrainType.Static && (train.TrainType == TrainType.Player || train.TrainType == TrainType.AiPlayerDriven))
             {
                 // check if detached on turntable or transfertable
                 if (ActiveMovingTable != null) ActiveMovingTable.CheckTrainOnMovingTable(train2);
@@ -1725,13 +1725,13 @@ namespace Orts.Simulation
                             TrainSwitcher.ClickedSelectedAsPlayer = false;
                             return;
                         }
-                        if (playerTrain.TrainType == Physics.Train.TRAINTYPE.AI_PLAYERDRIVEN)
+                        if (playerTrain.TrainType == TrainType.AiPlayerDriven)
                         {
                             // it must be autopiloted first
                             playerTrain.SwitchToAutopilotControl();
                         }
                         // and now switch!
-                        playerTrain.TrainType = Physics.Train.TRAINTYPE.AI;
+                        playerTrain.TrainType = TrainType.Ai;
                         AI.AITrains.Add(playerTrain);
                         if (TrainSwitcher.SuspendOldPlayer)
                         {
@@ -1745,7 +1745,7 @@ namespace Orts.Simulation
 
                     }
                 }
-                else if (selectedAsPlayer.TrainType == Physics.Train.TRAINTYPE.AI_INCORPORATED && selectedAsPlayer.IncorporatingTrain.IsPathless)
+                else if (selectedAsPlayer.TrainType == TrainType.AiIncorporated && selectedAsPlayer.IncorporatingTrain.IsPathless)
                 {
                     // the former static train disappears now and becomes part of the other train. TODO; also wagons must be moved.
                     var dyingTrain = PlayerLocomotive.Train;
@@ -1778,7 +1778,7 @@ namespace Orts.Simulation
                     selectedAsPlayer.AITrainDirectionForward = dyingTrain.AITrainDirectionForward;
 
                     selectedAsPlayer.AITrainBrakePercent = 100;
-                    selectedAsPlayer.TrainType = Physics.Train.TRAINTYPE.AI;
+                    selectedAsPlayer.TrainType = TrainType.Ai;
                     selectedAsPlayer.MUDirection = Direction.Forward;
 
                     selectedAsPlayer.LeadLocomotive = null;
@@ -1798,13 +1798,13 @@ namespace Orts.Simulation
 
                     inPath = selectedAsPlayer.UpdateTrackActionsUncoupling(false);
 
-                    if (!inPath && selectedAsPlayer.TrainType == Physics.Train.TRAINTYPE.AI)
+                    if (!inPath && selectedAsPlayer.TrainType == TrainType.Ai)
                     // Out of path, degrade to static
                     {
-                        selectedAsPlayer.TrainType = Physics.Train.TRAINTYPE.STATIC;
+                        selectedAsPlayer.TrainType = TrainType.Static;
                         ((AITrain)selectedAsPlayer).AI.TrainsToRemoveFromAI.Add((AITrain)selectedAsPlayer);
                     }
-                    if (selectedAsPlayer.TrainType == Physics.Train.TRAINTYPE.AI)
+                    if (selectedAsPlayer.TrainType == TrainType.Ai)
                     {
                         ((AITrain)selectedAsPlayer).AI.aiListChanged = true;
                         // Move reversal point under train if there is one in the section where the train is
@@ -1853,7 +1853,7 @@ namespace Orts.Simulation
                             playerTrain.signalRef.BreakDownRoute(playerTrain.ValidRoute[1][playerTrain.PresentPosition[1].RouteListIndex + 1].TCSectionIndex,
                             playerTrain.routedBackward);
                         playerTrain.ControlMode = TrainControlMode.Undefined;
-                        playerTrain.TrainType = Physics.Train.TRAINTYPE.STATIC;
+                        playerTrain.TrainType = TrainType.Static;
                         playerTrain.SpeedMpS = 0;
                         foreach (TrainCar car in playerTrain.Cars) car.SpeedMpS = 0;
                         playerTrain.CheckFreight();
@@ -1861,10 +1861,10 @@ namespace Orts.Simulation
                     }
                 }
                 var oldPlayerTrain = PlayerLocomotive.Train;
-                if (selectedAsPlayer.TrainType != Physics.Train.TRAINTYPE.STATIC)
+                if (selectedAsPlayer.TrainType != TrainType.Static)
                 {
                     var playerTrain = selectedAsPlayer as AITrain;
-                    if (!(playerTrain.TrainType == Physics.Train.TRAINTYPE.AI_INCORPORATED && playerTrain.IncorporatingTrain == PlayerLocomotive.Train))
+                    if (!(playerTrain.TrainType == TrainType.AiIncorporated && playerTrain.IncorporatingTrain == PlayerLocomotive.Train))
                     {
                         PlayerLocomotive = SetPlayerLocomotive(playerTrain);
                         if (oldPlayerTrain != null) oldPlayerTrain.LeadLocomotiveIndex = -1;
@@ -1894,7 +1894,7 @@ namespace Orts.Simulation
 
         private void CompleteSwitchPlayerTrain()
         {
-            if (PlayerLocomotive.Train.TrainType != Physics.Train.TRAINTYPE.STATIC)
+            if (PlayerLocomotive.Train.TrainType != TrainType.Static)
             {
                 AI.AITrains.Remove(PlayerLocomotive.Train as AITrain);
                 if ((PlayerLocomotive.Train as AITrain).MovementState == AITrain.AI_MOVEMENT_STATE.SUSPENDED)

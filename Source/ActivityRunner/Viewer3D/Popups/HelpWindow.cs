@@ -612,7 +612,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             dbfevalActivityEnded = true;
 
                             //If Autopilot control then update recorded time
-                            if (!ldbfevalupdateautopilottime && owner.Viewer.PlayerLocomotive.Train.TrainType == Simulation.Physics.Train.TRAINTYPE.AI_PLAYERHOSTING)
+                            if (!ldbfevalupdateautopilottime && owner.Viewer.PlayerLocomotive.Train.TrainType == TrainType.AiPlayerHosting)
                             {
                                 Viewer.DbfEvalAutoPilotTimeS = Viewer.DbfEvalAutoPilotTimeS + (owner.Viewer.Simulator.ClockTime - Viewer.DbfEvalIniAutoPilotTimeS);
                                 ldbfevalupdateautopilottime = true;

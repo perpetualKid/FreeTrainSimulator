@@ -439,7 +439,7 @@ namespace Orts.Simulation.Signalling
                 return (true);
             }
 
-            if (!signals.Simulator.TimetableMode && train.Train.TrainType == Train.TRAINTYPE.AI_NOTSTARTED &&
+            if (!signals.Simulator.TimetableMode && train.Train.TrainType == TrainType.AiNotStarted &&
                 CircuitState.TrainReserved != null && CircuitState.TrainReserved.Train != train.Train)
             {
                 ClearSectionsOfTrainBehind(CircuitState.TrainReserved, this);
@@ -455,7 +455,7 @@ namespace Orts.Simulation.Signalling
                 {
                     Train.TrainRouted trainRouted = CircuitState.TrainReserved;
                     ClearSectionsOfTrainBehind(trainRouted, this);
-                    if (trainRouted.Train.TrainType == Train.TRAINTYPE.AI || trainRouted.Train.TrainType == Train.TRAINTYPE.AI_PLAYERHOSTING)
+                    if (trainRouted.Train.TrainType == TrainType.Ai || trainRouted.Train.TrainType == TrainType.AiPlayerHosting)
                         ((AITrain)trainRouted.Train).ResetActions(true);
                 }
             }

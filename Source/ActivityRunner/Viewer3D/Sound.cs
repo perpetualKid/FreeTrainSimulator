@@ -1063,7 +1063,7 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 return (!IsEnvSound && !IsExternal && (Viewer.Camera.Style == Camera.Styles.Cab || Viewer.Camera.Style == Camera.Styles.ThreeDimCab)
                     && Car != null && Viewer.Camera.AttachedCar != null && !(Car is MSTSLocomotive) && !Car.HasInsideView && Car.PassengerViewpoints.Count == 0
-                    && (Car.Train == Viewer.Camera.AttachedCar.Train || Car.Train.TrainType == Simulation.Physics.Train.TRAINTYPE.STATIC || Car.Train.TrainType == Simulation.Physics.Train.TRAINTYPE.AI_NOTSTARTED));
+                    && (Car.Train == Viewer.Camera.AttachedCar.Train || Car.Train.TrainType == TrainType.Static || Car.Train.TrainType == TrainType.AiNotStarted));
             }
         }
 

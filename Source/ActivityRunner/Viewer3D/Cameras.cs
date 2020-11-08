@@ -828,7 +828,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         protected virtual List<TrainCar> GetCameraCars()
         {
-            if (Viewer.SelectedTrain.TrainType == Train.TRAINTYPE.AI_INCORPORATED) Viewer.ChangeSelectedTrain(Viewer.SelectedTrain.IncorporatingTrain);
+            if (Viewer.SelectedTrain.TrainType == TrainType.AiIncorporated) Viewer.ChangeSelectedTrain(Viewer.SelectedTrain.IncorporatingTrain);
             return Viewer.SelectedTrain.Cars;
         }
 

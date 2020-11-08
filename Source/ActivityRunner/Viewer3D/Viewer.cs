@@ -400,7 +400,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             if (PlayerLocomotive == null) PlayerLocomotive = Simulator.InitialPlayerLocomotive();
             SelectedTrain = PlayerTrain;
-            if (PlayerTrain.TrainType == Train.TRAINTYPE.AI_PLAYERHOSTING)
+            if (PlayerTrain.TrainType == TrainType.AiPlayerHosting)
             {
                 Simulator.Trains[0].LeadLocomotive = null;
                 Simulator.Trains[0].LeadLocomotiveIndex = -1;
@@ -1181,7 +1181,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             if (UserInput.IsPressed(UserCommand.GameAutopilotMode))
             {
-                if (PlayerLocomotive.Train.TrainType == Train.TRAINTYPE.AI_PLAYERHOSTING)
+                if (PlayerLocomotive.Train.TrainType == TrainType.AiPlayerHosting)
                 {
                     var success = ((AITrain)PlayerLocomotive.Train).SwitchToPlayerControl();
                     if (success)
@@ -1190,7 +1190,7 @@ namespace Orts.ActivityRunner.Viewer3D
                         DbfEvalAutoPilot = false;//Debrief eval
                     }
                 }
-                else if (PlayerLocomotive.Train.TrainType == Train.TRAINTYPE.AI_PLAYERDRIVEN)
+                else if (PlayerLocomotive.Train.TrainType == TrainType.AiPlayerDriven)
                 {
                     if (PlayerLocomotive.Train.ControlMode == TrainControlMode.Manual)
                         Simulator.Confirmer.Message(ConfirmLevel.Warning, Viewer.Catalog.GetString("You can't switch from manual to autopilot mode"));

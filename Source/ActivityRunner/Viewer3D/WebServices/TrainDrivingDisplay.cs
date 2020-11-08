@@ -22,6 +22,7 @@ using System.Linq;
 
 using Orts.Common;
 using Orts.Common.Input;
+using Orts.Simulation;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems.Brakes;
@@ -624,7 +625,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
 
             // Messages
             // Autopilot
-            bool autopilot = locomotive.Train.TrainType == Train.TRAINTYPE.AI_PLAYERHOSTING;
+            bool autopilot = locomotive.Train.TrainType == TrainType.AiPlayerHosting;
             AddLabel(new ListLabel
             {
                 FirstCol = Viewer.Catalog.GetString("Autopilot"),

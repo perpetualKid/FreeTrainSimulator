@@ -29,6 +29,7 @@ using Orts.ActivityRunner.Viewer3D;
 using Orts.ActivityRunner.Viewer3D.Popups;
 using Orts.Common;
 using Orts.Common.Input;
+using Orts.Simulation;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems.Brakes;
@@ -438,7 +439,7 @@ namespace Orts.Viewer3D.Popups
             else
             {
                 // Detect Autopilot is on to avoid flickering when slim window is displayed
-                var AutopilotOn = Owner.Viewer.PlayerLocomotive.Train.TrainType == Train.TRAINTYPE.AI_PLAYERHOSTING ? true : false;
+                var AutopilotOn = Owner.Viewer.PlayerLocomotive.Train.TrainType == TrainType.AiPlayerHosting ? true : false;
 
                 //ResizeWindow, when the string spans over the right boundary of the window
                 var maxFirstColWidth = ListToLabel.Max(x => x.FirstColWidth);
@@ -832,12 +833,12 @@ namespace Orts.Viewer3D.Popups
             // Messages
             // Autopilot
             keyPressed = "";
-            if (Owner.Viewer.PlayerLocomotive.Train.TrainType == Train.TRAINTYPE.AI_PLAYERHOSTING)
+            if (Owner.Viewer.PlayerLocomotive.Train.TrainType == TrainType.AiPlayerHosting)
             {
                 keyPressed = UserInput.IsDown(UserCommand.GameAutopilotMode) ? arrowUp.ToString() + "???" : "";
                 InfoToLabel(keyPressed, Viewer.Catalog.GetString("Autopilot"), Viewer.Catalog.GetString("On") + "???", "", false, keyPressed);
             }
-            else if (Owner.Viewer.PlayerLocomotive.Train.TrainType != Train.TRAINTYPE.AI_PLAYERHOSTING)
+            else if (Owner.Viewer.PlayerLocomotive.Train.TrainType != TrainType.AiPlayerHosting)
             {
                 keyPressed = UserInput.IsDown(UserCommand.GameAutopilotMode) ? arrowDown.ToString() + "???" : "";
                 InfoToLabel(keyPressed, Viewer.Catalog.GetString("Autopilot"), Viewer.Catalog.GetString("Off"), "", false, keyPressed);

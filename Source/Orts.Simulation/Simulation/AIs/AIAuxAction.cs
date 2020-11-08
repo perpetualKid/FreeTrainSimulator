@@ -129,8 +129,8 @@ namespace Orts.Simulation.AIs
                     if (actionRef.AssociatedWPAction != null) actionRef.AssociatedWPAction.SetDelay(remainingDelay);
                     actionRef.Delay = remainingDelay;
                 }
-            if (!(ThisTrain == ThisTrain.Simulator.OriginalPlayerTrain && (ThisTrain.TrainType == Train.TRAINTYPE.AI_PLAYERDRIVEN ||
-                ThisTrain.TrainType == Train.TRAINTYPE.AI_PLAYERHOSTING || ThisTrain.TrainType == Train.TRAINTYPE.PLAYER || ThisTrain.TrainType == Train.TRAINTYPE.AI)))
+            if (!(ThisTrain == ThisTrain.Simulator.OriginalPlayerTrain && (ThisTrain.TrainType == TrainType.AiPlayerDriven ||
+                ThisTrain.TrainType == TrainType.AiPlayerHosting || ThisTrain.TrainType == TrainType.Player || ThisTrain.TrainType == TrainType.Ai)))
             {
 
                 if (ThisTrain is AITrain && ((aiTrain.MovementState == AITrain.AI_MOVEMENT_STATE.HANDLE_ACTION && aiTrain.nextActionInfo != null &&
@@ -388,7 +388,7 @@ namespace Orts.Simulation.AIs
                 float[] distancesM;
                 while (!validAction)
                 {
-                    if (thisTrain is AITrain && thisTrain.TrainType != Train.TRAINTYPE.AI_PLAYERDRIVEN)
+                    if (thisTrain is AITrain && thisTrain.TrainType != TrainType.AiPlayerDriven)
                     {
                         AITrain aiTrain = thisTrain as AITrain;
                         distancesM = thisAction.CalculateDistancesToNextAction(aiTrain, ((AITrain)aiTrain).TrainMaxSpeedMpS, true);
@@ -421,7 +421,7 @@ namespace Orts.Simulation.AIs
                             {
                                 bool found = false;
                                 requiredActionsInserted = true;
-                                if ((thisTrain.TrainType == Train.TRAINTYPE.AI_PLAYERDRIVEN || thisTrain.TrainType == Train.TRAINTYPE.AI_PLAYERHOSTING) && thisTrain.requiredActions.Count > 0)
+                                if ((thisTrain.TrainType == TrainType.AiPlayerDriven || thisTrain.TrainType == TrainType.AiPlayerHosting) && thisTrain.requiredActions.Count > 0)
                                 {
                                     // check if action already inserted
                                     foreach (Train.DistanceTravelledItem item in thisTrain.requiredActions)
@@ -831,7 +831,7 @@ namespace Orts.Simulation.AIs
 
             float triggerDistanceM = TriggerDistance;
 
-            if (thisTrain.TrainType != Train.TRAINTYPE.AI_PLAYERDRIVEN)
+            if (thisTrain.TrainType != TrainType.AiPlayerDriven)
             {
 
                 if (thisTrain is AITrain)
@@ -1147,7 +1147,7 @@ namespace Orts.Simulation.AIs
             if (actionIndex0 != -1 && actionRouteIndex != -1)
                 activateDistanceTravelledM = thisTrain.PresentPosition[0].DistanceTravelledM + thisTrain.ValidRoute[0].GetDistanceAlongRoute(actionIndex0, leftInSectionM, actionRouteIndex, this.RequiredDistance, true, thisTrain.signalRef);
 
-            var currBrakeSection = (thisTrain is AITrain && !(thisTrain.TrainType == Train.TRAINTYPE.AI_PLAYERDRIVEN)) ? 1 : brakeSection;
+            var currBrakeSection = (thisTrain is AITrain && !(thisTrain.TrainType == TrainType.AiPlayerDriven)) ? 1 : brakeSection;
             float triggerDistanceM = activateDistanceTravelledM - Math.Min(this.RequiredDistance, 300);   //  TODO, add the size of train
 
             float[] distancesM = new float[2];
@@ -1326,7 +1326,7 @@ namespace Orts.Simulation.AIs
             if (ActionRef == null || thisTrain.PresentPosition[0].RouteListIndex == -1)
                 return false;
             float[] distancesM = ((AIAuxActionsRef)ActionRef).CalculateDistancesToNextAction(thisTrain, SpeedMpS, reschedule);
-            if (thisTrain.TrainType != Train.TRAINTYPE.AI_PLAYERDRIVEN)
+            if (thisTrain.TrainType != TrainType.AiPlayerDriven)
             {
                 if (RequiredDistance < thisTrain.DistanceTravelledM) // trigger point
                 {
@@ -1357,7 +1357,7 @@ namespace Orts.Simulation.AIs
             bool actionValid = false;
 
             actionValid = CanActivate(thisTrain, thisTrain.SpeedMpS, true);
-            if (thisTrain is AITrain && thisTrain.TrainType != Train.TRAINTYPE.AI_PLAYERDRIVEN)
+            if (thisTrain is AITrain && thisTrain.TrainType != TrainType.AiPlayerDriven)
             {
                 AITrain aiTrain = thisTrain as AITrain;
                 if (!actionValid)
@@ -1376,7 +1376,7 @@ namespace Orts.Simulation.AIs
                 AITrain aiTrain = thisTrain as AITrain;
 
                 // repeat stopping of train, because it could have been moved by UpdateBrakingState after ProcessAction
-                if (aiTrain.TrainType != Train.TRAINTYPE.AI_PLAYERDRIVEN)
+                if (aiTrain.TrainType != TrainType.AiPlayerDriven)
                 {
                     aiTrain.AdjustControlsBrakeMore(aiTrain.MaxDecelMpSS, elapsedClockSeconds, 100);
                     aiTrain.SpeedMpS = 0;
@@ -1405,7 +1405,7 @@ namespace Orts.Simulation.AIs
         {
             if (thisTrain is AITrain)
             {
-                if (thisTrain.TrainType != Train.TRAINTYPE.AI_PLAYERDRIVEN)
+                if (thisTrain.TrainType != TrainType.AiPlayerDriven)
                 {
                      thisTrain.SpeedMpS = 0;
                 }
@@ -1750,7 +1750,7 @@ namespace Orts.Simulation.AIs
             {
                 if (thisTrain.SpeedMpS > 0f)
                 {
-                    if (thisTrain is AITrain && thisTrain.TrainType != Train.TRAINTYPE.AI_PLAYERDRIVEN)
+                    if (thisTrain is AITrain && thisTrain.TrainType != TrainType.AiPlayerDriven)
                     {
                         thisTrain.SetTrainOutOfControl(OutOfControlReason.OutOfPath);
                         return true;

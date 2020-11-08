@@ -837,7 +837,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 					{
 						worldPos = t.Cars[0].WorldPosition;
 						name = t.GetTrainName(t.Cars[0].CarID);
-						if (t.TrainType == Train.TRAINTYPE.AI)
+						if (t.TrainType == TrainType.Ai)
 							name = t.Number.ToString() + ":" +t.Name;
 						firstCar = t.Cars[0];
 					}

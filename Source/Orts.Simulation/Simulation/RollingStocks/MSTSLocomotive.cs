@@ -1548,8 +1548,8 @@ namespace Orts.Simulation.RollingStocks
 
             switch (this.Train.TrainType)
             {
-                case Train.TRAINTYPE.AI:
-                case Train.TRAINTYPE.AI_PLAYERHOSTING:
+                case TrainType.Ai:
+                case TrainType.AiPlayerHosting:
                     if (AcceptMUSignals)
                     {
                         if (!PowerOn)
@@ -1582,12 +1582,12 @@ namespace Orts.Simulation.RollingStocks
                     if (Train.IsActualPlayerTrain) FilteredMotiveForceN = (float)CurrentFilter.Filter(MotiveForceN, elapsedClockSeconds);
                     WheelSpeedMpS = Flipped ? -AbsSpeedMpS : AbsSpeedMpS;            //make the wheels go round
                     break;
-                case Train.TRAINTYPE.STATIC:
-                case Train.TRAINTYPE.INTENDED_PLAYER:
+                case TrainType.Static:
+                case TrainType.PlayerIntended:
                     break;
-                case Train.TRAINTYPE.PLAYER:
-                case Train.TRAINTYPE.AI_PLAYERDRIVEN:
-                case Train.TRAINTYPE.REMOTE:
+                case TrainType.Player:
+                case TrainType.AiPlayerDriven:
+                case TrainType.Remote:
                     // For notched throttle controls (e.g. Dash 9 found on Marias Pass) UpdateValue is always 0.0
                     if (ThrottleController.UpdateValue != 0.0)
                     {
@@ -1644,7 +1644,7 @@ namespace Orts.Simulation.RollingStocks
             }
 
             // always set AntiSlip for AI trains
-            if (Train.TrainType == Train.TRAINTYPE.AI || Train.TrainType == Train.TRAINTYPE.AI_PLAYERHOSTING)
+            if (Train.TrainType == TrainType.Ai || Train.TrainType == TrainType.AiPlayerHosting)
             {
                 AntiSlip = true;
             }
@@ -2149,12 +2149,12 @@ namespace Orts.Simulation.RollingStocks
             if (Bell && !PreviousBell)
             {
                 SignalEvent(TrainEvent.BellOn);
-                if (Train.TrainType != Train.TRAINTYPE.REMOTE && MPManager.IsMultiPlayer()) MPManager.Notify((new MSGEvent(MPManager.GetUserName(), "BELL", 1)).ToString());
+                if (Train.TrainType != TrainType.Remote && MPManager.IsMultiPlayer()) MPManager.Notify((new MSGEvent(MPManager.GetUserName(), "BELL", 1)).ToString());
             }
             else if (!Bell && PreviousBell)
             {
                 SignalEvent(TrainEvent.BellOff);
-                if (Train.TrainType != Train.TRAINTYPE.REMOTE && MPManager.IsMultiPlayer()) MPManager.Notify((new MSGEvent(MPManager.GetUserName(), "BELL", 0)).ToString());
+                if (Train.TrainType != TrainType.Remote && MPManager.IsMultiPlayer()) MPManager.Notify((new MSGEvent(MPManager.GetUserName(), "BELL", 0)).ToString());
             }
 
             PreviousHorn = Horn;
@@ -3843,7 +3843,7 @@ namespace Orts.Simulation.RollingStocks
 
         public void SetEmergency(bool emergency)
         {
-            if (this.Train != null && this.Train.TrainType == Train.TRAINTYPE.REMOTE) return; //not apply emergency for remote trains.
+            if (this.Train != null && this.Train.TrainType == TrainType.Remote) return; //not apply emergency for remote trains.
             TrainControlSystem.SetEmergency(emergency);
         }
 
@@ -4010,7 +4010,7 @@ namespace Orts.Simulation.RollingStocks
                 case TrainEvent.TrainBrakePressureDecrease:
                 case TrainEvent.TrainBrakePressureIncrease:
                     {
-                        if (Train.TrainType == Train.TRAINTYPE.AI || Train.TrainType == Train.TRAINTYPE.AI_PLAYERHOSTING)
+                        if (Train.TrainType == TrainType.Ai || Train.TrainType == TrainType.AiPlayerHosting)
                         {
                             if (Train.Simulator.GameTime - LastBrakeSoundTime < 15) // don't repeat sound too often for AI trains (which frequently set brakes on and off)
                             {
@@ -4401,7 +4401,7 @@ namespace Orts.Simulation.RollingStocks
                 case CabViewControlType.Throttle_Display:
                 case CabViewControlType.Cph_Display:
                     {
-                        data = Train.TrainType == Train.TRAINTYPE.AI_PLAYERHOSTING ? ThrottlePercent / 100f : LocalThrottlePercent / 100f;
+                        data = Train.TrainType == TrainType.AiPlayerHosting ? ThrottlePercent / 100f : LocalThrottlePercent / 100f;
                         break;
                     }
                 case CabViewControlType.Engine_Brake:
@@ -4521,7 +4521,7 @@ namespace Orts.Simulation.RollingStocks
                     }
                 case CabViewControlType.WheelSlip:
                     {
-                        if (AdvancedAdhesionModel && Train.TrainType != Train.TRAINTYPE.AI_PLAYERHOSTING)
+                        if (AdvancedAdhesionModel && Train.TrainType != TrainType.AiPlayerHosting)
                             data = LocomotiveAxle.IsWheelSlipWarning ? 1 : 0;
                         else
                             data = WheelSlip ? 1 : 0;
