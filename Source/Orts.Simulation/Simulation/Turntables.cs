@@ -289,7 +289,7 @@ namespace Orts.Simulation
                 }
             }
             if (Simulator.ActivityRun != null && !train.IsPathless && train.TrainType != Train.TRAINTYPE.STATIC && trainIndex != -1 &&
-                TrainsOnMovingTable[trainIndex].FrontOnBoard && TrainsOnMovingTable[trainIndex].BackOnBoard && train.SpeedMpS <= 0.1f && train.ControlMode != Train.TRAIN_CONTROL.MANUAL &&
+                TrainsOnMovingTable[trainIndex].FrontOnBoard && TrainsOnMovingTable[trainIndex].BackOnBoard && train.SpeedMpS <= 0.1f && train.ControlMode != TrainControlMode.Manual &&
                 train.TCRoute.activeSubpath == train.TCRoute.TCRouteSubpaths.Count - 1 && train.TCRoute.TCRouteSubpaths[train.TCRoute.activeSubpath].Count > 1 &&
                 (train.PresentPosition[0].RouteListIndex == train.TCRoute.TCRouteSubpaths[train.TCRoute.activeSubpath].Count - 2 ||
                 train.PresentPosition[1].RouteListIndex == train.TCRoute.TCRouteSubpaths[train.TCRoute.activeSubpath].Count - 2))
@@ -606,16 +606,16 @@ namespace Orts.Simulation
                 // Preparing for rotation
                 var train = TrainsOnMovingTable[0].Train;
                 if (Math.Abs(train.SpeedMpS) > 0.1 || (train.LeadLocomotiveIndex != -1 && (train.LeadLocomotive.ThrottlePercent >= 1 || !(train.LeadLocomotive.Direction == Direction.N 
-                 || Math.Abs(train.MUReverserPercent) <= 1))) || (train.ControlMode != Train.TRAIN_CONTROL.MANUAL && train.ControlMode != Train.TRAIN_CONTROL.TURNTABLE &&
-                 train.ControlMode != Train.TRAIN_CONTROL.EXPLORER && train.ControlMode != Train.TRAIN_CONTROL.UNDEFINED))
+                 || Math.Abs(train.MUReverserPercent) <= 1))) || (train.ControlMode != TrainControlMode.Manual && train.ControlMode != TrainControlMode.TurnTable &&
+                 train.ControlMode != TrainControlMode.Explorer && train.ControlMode != TrainControlMode.Undefined))
                 {
                     if (SendNotifications) Simulator.Confirmer.Warning(Simulator.Catalog.GetString("Rotation can't start: check throttle, speed, direction and control mode"));
                     return;
                 }
-                if (train.ControlMode == Train.TRAIN_CONTROL.MANUAL || train.ControlMode == Train.TRAIN_CONTROL.EXPLORER || train.ControlMode == Train.TRAIN_CONTROL.UNDEFINED)
+                if (train.ControlMode == TrainControlMode.Manual || train.ControlMode == TrainControlMode.Explorer || train.ControlMode == TrainControlMode.Undefined)
                 {
                     ComputeTrainPosition(train);
-                    train.ControlMode = Train.TRAIN_CONTROL.TURNTABLE;
+                    train.ControlMode = TrainControlMode.TurnTable;
                 }
                 if (SendNotifications) Simulator.Confirmer.Information(Simulator.Catalog.GetString("Turntable starting rotation with train"));
 
@@ -662,7 +662,7 @@ namespace Orts.Simulation
         {
             AnimationXNAMatrix = animationXNAMatrix;
             if ((Clockwise || Counterclockwise || GoToTarget || GoToAutoTarget) && TrainsOnMovingTable.Count == 1 && TrainsOnMovingTable[0].FrontOnBoard &&
-                TrainsOnMovingTable[0].BackOnBoard && TrainsOnMovingTable[0].Train.ControlMode == Train.TRAIN_CONTROL.TURNTABLE)
+                TrainsOnMovingTable[0].BackOnBoard && TrainsOnMovingTable[0].Train.ControlMode == TrainControlMode.TurnTable)
             {
                 // Rotate together also train
                 var iRelativeCarPositions = 0;
@@ -790,7 +790,7 @@ namespace Orts.Simulation
             if (TrainsOnMovingTable.Count == 1)
             {
                 var train = TrainsOnMovingTable[0].Train;
-                if (train.ControlMode == Train.TRAIN_CONTROL.TURNTABLE)
+                if (train.ControlMode == TrainControlMode.TurnTable)
                     train.ReenterTrackSections(MyTrackNodesIndex[ConnectedTrackEnd], MyTrVectorSectionsIndex[ConnectedTrackEnd], FinalFrontTravellerXNALocation, FinalRearTravellerXNALocation, direction);
             }
         }
@@ -822,7 +822,7 @@ namespace Orts.Simulation
         public void PerformUpdateActions ( Matrix absAnimationMatrix)
         {
             RotateTrain(absAnimationMatrix);
-            if ((GoToTarget || GoToAutoTarget) && TrainsOnMovingTable.Count == 1 && TrainsOnMovingTable[0].Train.ControlMode == Train.TRAIN_CONTROL.TURNTABLE)
+            if ((GoToTarget || GoToAutoTarget) && TrainsOnMovingTable.Count == 1 && TrainsOnMovingTable[0].Train.ControlMode == TrainControlMode.TurnTable)
             {
                 RecalculateTravellerXNALocations(absAnimationMatrix);
             }

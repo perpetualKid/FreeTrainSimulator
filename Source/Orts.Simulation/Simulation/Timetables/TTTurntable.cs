@@ -1073,7 +1073,7 @@ namespace Orts.Simulation.Timetables
 
                     train.SetFormedOccupied();
                     train.TrainType = Train.TRAINTYPE.PLAYER;
-                    train.ControlMode = Train.TRAIN_CONTROL.INACTIVE;
+                    train.ControlMode = TrainControlMode.Inactive;
                     train.MovementState = AITrain.AI_MOVEMENT_STATE.AI_STATIC;
 
                     // inform viewer about player train switch
@@ -1097,7 +1097,7 @@ namespace Orts.Simulation.Timetables
                 else if (train.TrainType == Train.TRAINTYPE.PLAYER || train.TrainType == Train.TRAINTYPE.INTENDED_PLAYER)
                 {
                     train.TrainType = Train.TRAINTYPE.PLAYER;
-                    train.ControlMode = Train.TRAIN_CONTROL.INACTIVE;
+                    train.ControlMode = TrainControlMode.Inactive;
                     train.MovementState = AITrain.AI_MOVEMENT_STATE.AI_STATIC;
 
                     train.AI.TrainsToAdd.Add(train);
@@ -1867,7 +1867,7 @@ namespace Orts.Simulation.Timetables
                     }
                     else if (parentTrain.SpeedMpS < 0.05f)
                     {
-                        parentTrain.ControlMode = Train.TRAIN_CONTROL.TURNTABLE;
+                        parentTrain.ControlMode = TrainControlMode.TurnTable;
 
                         var loco = parentTrain.LeadLocomotive;
                         if (loco.ThrottlePercent < 1 && Math.Abs(loco.SpeedMpS) < 0.05 && (loco.Direction == Direction.N || Math.Abs(parentTrain.MUReverserPercent) <= 1))
@@ -1924,7 +1924,7 @@ namespace Orts.Simulation.Timetables
                     }
                     else if (parentTrain.SpeedMpS < 0.05f)
                     {
-                        parentTrain.ControlMode = Train.TRAIN_CONTROL.TURNTABLE;
+                        parentTrain.ControlMode = TrainControlMode.TurnTable;
 
                         var loco = parentTrain.LeadLocomotive;
                         if (loco.ThrottlePercent < 1 && Math.Abs(loco.SpeedMpS) < 0.05 && (loco.Direction == Direction.N || Math.Abs(parentTrain.MUReverserPercent) <= 1))
@@ -2384,7 +2384,7 @@ namespace Orts.Simulation.Timetables
             parentTrain.DelayedStartMoving(AITrain.AI_START_MOVEMENT.TURNTABLE);
 
             // set train on table
-            parentTrain.ControlMode = Train.TRAIN_CONTROL.TURNTABLE;
+            parentTrain.ControlMode = TrainControlMode.TurnTable;
 
             TrainOnMovingTable trainOnTable = new TrainOnMovingTable(parentTrain, parentPool.Simulatorref);
             trainOnTable.SetFrontState(true);
@@ -2492,7 +2492,7 @@ namespace Orts.Simulation.Timetables
             // reinitiate train
             MovingTableState = MovingTableStateEnum.Completed;
             parentTrain.MovementState = AITrain.AI_MOVEMENT_STATE.AI_STATIC;
-            parentTrain.ControlMode = Train.TRAIN_CONTROL.AUTO_NODE;
+            parentTrain.ControlMode = TrainControlMode.AutoNode;
             parentTrain.DistanceTravelledM = 0;
             parentTrain.DelayedStartMoving(AITrain.AI_START_MOVEMENT.PATH_ACTION);
 

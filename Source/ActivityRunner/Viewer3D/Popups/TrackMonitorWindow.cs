@@ -41,7 +41,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         Label Gradient;
         TrackMonitor Monitor;
 
-        readonly Dictionary<Train.TRAIN_CONTROL, string> ControlModeLabels;
+        readonly Dictionary<TrainControlMode, string> ControlModeLabels;
 
         static readonly Dictionary<Train.END_AUTHORITY, string> AuthorityLabels = new Dictionary<Train.END_AUTHORITY, string>
         {
@@ -73,16 +73,16 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         public TrackMonitorWindow(WindowManager owner)
             : base(owner, Window.DecorationSize.X + owner.TextFontDefault.Height * 10, Window.DecorationSize.Y + owner.TextFontDefault.Height * (5 + TrackMonitorHeightInLinesOfText) + ControlLayout.SeparatorSize * 3, Viewer.Catalog.GetString("Track Monitor"))
         {
-            ControlModeLabels = new Dictionary<Train.TRAIN_CONTROL, string> 
+            ControlModeLabels = new Dictionary<TrainControlMode, string> 
             {
-			    { Train.TRAIN_CONTROL.AUTO_SIGNAL , Viewer.Catalog.GetString("Auto Signal") },
-			    { Train.TRAIN_CONTROL.AUTO_NODE, Viewer.Catalog.GetString("Node") },
-			    { Train.TRAIN_CONTROL.MANUAL, Viewer.Catalog.GetString("Manual") },
-                { Train.TRAIN_CONTROL.EXPLORER, Viewer.Catalog.GetString("Explorer") },
-			    { Train.TRAIN_CONTROL.OUT_OF_CONTROL, Viewer.Catalog.GetString("OutOfControl : ") },
-                { Train.TRAIN_CONTROL.INACTIVE, Viewer.Catalog.GetString("Inactive") },
-                { Train.TRAIN_CONTROL.TURNTABLE, Viewer.Catalog.GetString("Turntable") },
-			    { Train.TRAIN_CONTROL.UNDEFINED, Viewer.Catalog.GetString("Unknown") },
+			    { TrainControlMode.AutoSignal , Viewer.Catalog.GetString("Auto Signal") },
+			    { TrainControlMode.AutoNode, Viewer.Catalog.GetString("Node") },
+			    { TrainControlMode.Manual, Viewer.Catalog.GetString("Manual") },
+                { TrainControlMode.Explorer, Viewer.Catalog.GetString("Explorer") },
+			    { TrainControlMode.OutOfControl, Viewer.Catalog.GetString("OutOfControl : ") },
+                { TrainControlMode.Inactive, Viewer.Catalog.GetString("Inactive") },
+                { TrainControlMode.TurnTable, Viewer.Catalog.GetString("Turntable") },
+			    { TrainControlMode.Undefined, Viewer.Catalog.GetString("Unknown") },
 		    };
         }
 
@@ -138,11 +138,11 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 SpeedAllowed.Text = FormatStrings.FormatSpeedLimit(thisInfo.allowedSpeedMpS, Owner.Viewer.MilepostUnitsMetric);
 
                 var ControlText = ControlModeLabels[thisInfo.ControlMode];
-                if (thisInfo.ControlMode == Train.TRAIN_CONTROL.AUTO_NODE)
+                if (thisInfo.ControlMode == TrainControlMode.AutoNode)
                 {
                     ControlText = FindAuthorityInfo(thisInfo.ObjectInfoForward, ControlText);
                 }
-                else if (thisInfo.ControlMode == Train.TRAIN_CONTROL.OUT_OF_CONTROL)
+                else if (thisInfo.ControlMode == TrainControlMode.OutOfControl)
                 {
                     ControlText = String.Concat(ControlText, OutOfControlLabels[thisInfo.ObjectInfoForward[0].OutOfControlReason]);
                 }
@@ -354,11 +354,11 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             {
                 drawMPInfo(spriteBatch, offset);
             }
-            else if (validInfo.ControlMode == Train.TRAIN_CONTROL.AUTO_NODE || validInfo.ControlMode == Train.TRAIN_CONTROL.AUTO_SIGNAL)
+            else if (validInfo.ControlMode == TrainControlMode.AutoNode || validInfo.ControlMode == TrainControlMode.AutoSignal)
             {
                 drawAutoInfo(spriteBatch, offset);
             }
-            else if (validInfo.ControlMode == Train.TRAIN_CONTROL.TURNTABLE) return;
+            else if (validInfo.ControlMode == TrainControlMode.TurnTable) return;
             else
             {
                 drawManualInfo(spriteBatch, offset);

@@ -230,16 +230,16 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
         /// <remarks>
         /// Equivalent to <see cref="Popups.TrackMonitorWindow.ControlModeLabels"/>.
         /// </remarks>
-        private static readonly Dictionary<Train.TRAIN_CONTROL, string> ControlModeLabels = new Dictionary<Train.TRAIN_CONTROL, string>
+        private static readonly Dictionary<TrainControlMode, string> ControlModeLabels = new Dictionary<TrainControlMode, string>
         {
-            { Train.TRAIN_CONTROL.AUTO_SIGNAL , Viewer.Catalog.GetString("Auto Signal") },
-            { Train.TRAIN_CONTROL.AUTO_NODE, Viewer.Catalog.GetString("Node") },
-            { Train.TRAIN_CONTROL.MANUAL, Viewer.Catalog.GetString("Manual") },
-            { Train.TRAIN_CONTROL.EXPLORER, Viewer.Catalog.GetString("Explorer") },
-            { Train.TRAIN_CONTROL.OUT_OF_CONTROL, Viewer.Catalog.GetString("OutOfControl : ") },
-            { Train.TRAIN_CONTROL.INACTIVE, Viewer.Catalog.GetString("Inactive") },
-            { Train.TRAIN_CONTROL.TURNTABLE, Viewer.Catalog.GetString("Turntable") },
-            { Train.TRAIN_CONTROL.UNDEFINED, Viewer.Catalog.GetString("Unknown") },
+            { TrainControlMode.AutoSignal, Viewer.Catalog.GetString("Auto Signal") },
+            { TrainControlMode.AutoNode, Viewer.Catalog.GetString("Node") },
+            { TrainControlMode.Manual, Viewer.Catalog.GetString("Manual") },
+            { TrainControlMode.Explorer, Viewer.Catalog.GetString("Explorer") },
+            { TrainControlMode.OutOfControl, Viewer.Catalog.GetString("OutOfControl : ") },
+            { TrainControlMode.Inactive, Viewer.Catalog.GetString("Inactive") },
+            { TrainControlMode.TurnTable, Viewer.Catalog.GetString("Turntable") },
+            { TrainControlMode.Undefined, Viewer.Catalog.GetString("Unknown") },
         };
 
         /// <summary>
@@ -345,9 +345,9 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
 
             // Control mode
             string controlIndicator;
-            if (thisInfo.ControlMode == Train.TRAIN_CONTROL.AUTO_NODE)
+            if (thisInfo.ControlMode == TrainControlMode.AutoNode)
                 controlIndicator = FindAuthorityInfo(thisInfo.ObjectInfoForward, ControlModeLabels[thisInfo.ControlMode]);
-            else if (thisInfo.ControlMode == Train.TRAIN_CONTROL.OUT_OF_CONTROL)
+            else if (thisInfo.ControlMode == TrainControlMode.OutOfControl)
                 controlIndicator = $"{ControlModeLabels[thisInfo.ControlMode]}{OutOfControlLabels[thisInfo.ObjectInfoForward.First().OutOfControlReason]}";
             else
                 controlIndicator = ControlModeLabels[thisInfo.ControlMode];
@@ -379,11 +379,11 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
                 {
                     switch (thisInfo.ControlMode)
                     {
-                        case Train.TRAIN_CONTROL.AUTO_NODE:
-                        case Train.TRAIN_CONTROL.AUTO_SIGNAL:
+                        case TrainControlMode.AutoNode:
+                        case TrainControlMode.AutoSignal:
                             DrawAutoModeInfo(trackLabels, thisInfo, useMetric);
                             break;
-                        case Train.TRAIN_CONTROL.TURNTABLE:
+                        case TrainControlMode.TurnTable:
                             break;
                         default:
                             DrawManualModeInfo(trackLabels, thisInfo, useMetric);

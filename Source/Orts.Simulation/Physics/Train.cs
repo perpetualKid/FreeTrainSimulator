@@ -316,21 +316,7 @@ namespace Orts.Simulation.Physics
         public TrainRouted routedForward;                 // routed train class for forward moves (used in signalling)
         public TrainRouted routedBackward;                // routed train class for backward moves (used in signalling)
 
-
-        //TODO replace with Orts.Common.TrainControlMode
-        public enum TRAIN_CONTROL
-        {
-            AUTO_SIGNAL,
-            AUTO_NODE,
-            MANUAL,
-            EXPLORER,
-            OUT_OF_CONTROL,
-            INACTIVE,
-            TURNTABLE,
-            UNDEFINED
-        }
-
-        public TRAIN_CONTROL ControlMode = TRAIN_CONTROL.UNDEFINED;     // train control mode
+        public TrainControlMode ControlMode { get; set; } = TrainControlMode.Undefined;     // train control mode
 
         public enum OUTOFCONTROL
         {
@@ -813,7 +799,7 @@ namespace Orts.Simulation.Physics
                 TrafficService = RestoreTrafficSDefinition(inf);
             }
 
-            ControlMode = (TRAIN_CONTROL)inf.ReadInt32();
+            ControlMode = (TrainControlMode)inf.ReadInt32();
             OutOfControlReason = (OUTOFCONTROL)inf.ReadInt32();
             EndAuthorityType[0] = (END_AUTHORITY)inf.ReadInt32();
             EndAuthorityType[1] = (END_AUTHORITY)inf.ReadInt32();
@@ -1578,24 +1564,24 @@ namespace Orts.Simulation.Physics
 
             // perform overall update
 
-            if (ControlMode == TRAIN_CONTROL.TURNTABLE)
+            if (ControlMode == TrainControlMode.TurnTable)
             {
                 UpdateTurntable(elapsedClockSeconds);
             }
 
-            else if (ControlMode == TRAIN_CONTROL.MANUAL)                                        // manual mode
+            else if (ControlMode == TrainControlMode.Manual)                                        // manual mode
             {
                 UpdateManual(elapsedClockSeconds);
             }
 
-            else if (ControlMode == TRAIN_CONTROL.EXPLORER)                                 // explorer mode
+            else if (ControlMode == TrainControlMode.Explorer)                                 // explorer mode
             {
                 UpdateExplorer(elapsedClockSeconds);
             }
 
             else if (ValidRoute[0] != null && GetAIMovementState() != AITrain.AI_MOVEMENT_STATE.AI_STATIC)     // no actions required for static objects //
             {
-                if (ControlMode != TRAIN_CONTROL.OUT_OF_CONTROL) movedBackward = CheckBackwardClearance();  // check clearance at rear if not out of control //
+                if (ControlMode != TrainControlMode.OutOfControl) movedBackward = CheckBackwardClearance();  // check clearance at rear if not out of control //
                 UpdateTrainPosition();                                                          // position update         //
                 UpdateTrainPositionInformation();                                               // position update         //
                 int SignalObjIndex = CheckSignalPassed(0, PresentPosition[0], PreviousPosition[0]);   // check if passed signal  //
@@ -1608,7 +1594,7 @@ namespace Orts.Simulation.Physics
                 }
 
                 bool stillExist = true;
-                if ((TrainType != TRAINTYPE.AI && TrainType != TRAINTYPE.AI_PLAYERHOSTING) && ControlMode != TRAIN_CONTROL.OUT_OF_CONTROL)
+                if ((TrainType != TRAINTYPE.AI && TrainType != TRAINTYPE.AI_PLAYERHOSTING) && ControlMode != TrainControlMode.OutOfControl)
                 {
                     stillExist = CheckRouteActions(elapsedClockSeconds);                          // check routepath (AI check at other point) //
                 }
@@ -1804,7 +1790,7 @@ namespace Orts.Simulation.Physics
             SpeedMpS /= Cars.Count;
 
             SlipperySpotDistanceM -= SpeedMpS * (float)elapsedClockSeconds;
-            if (ControlMode != TRAIN_CONTROL.TURNTABLE)
+            if (ControlMode != TrainControlMode.TurnTable)
                 CalculatePositionOfCars(elapsedClockSeconds, distanceM);
 
             // calculate projected speed
@@ -2772,7 +2758,7 @@ namespace Orts.Simulation.Physics
         {
             //           UpdateTrainPosition();                                                                // position update                  //
             if (LeadLocomotive != null && (LeadLocomotive.ThrottlePercent >= 1 || Math.Abs(LeadLocomotive.SpeedMpS) > 0.05 || !(LeadLocomotive.Direction == Direction.N
-            || Math.Abs(MUReverserPercent) <= 1)) || ControlMode != TRAIN_CONTROL.TURNTABLE)
+            || Math.Abs(MUReverserPercent) <= 1)) || ControlMode != TrainControlMode.TurnTable)
             // Go to emergency.
             {
                 ((MSTSLocomotive)LeadLocomotive).SetEmergency(true);
@@ -3548,7 +3534,7 @@ namespace Orts.Simulation.Physics
             {
                 DistanceToSignal = NextSignalObject[0].DistanceTo(FrontTDBTraveller);
             }
-            else if (ControlMode != TRAIN_CONTROL.AUTO_NODE)
+            else if (ControlMode != TrainControlMode.AutoNode)
             {
                 bool validModeSwitch = true;
 
@@ -6315,7 +6301,7 @@ namespace Orts.Simulation.Physics
 
             // don't bother with update if train out of control - all will be reset when train is stopped
 
-            if (ControlMode == TRAIN_CONTROL.OUT_OF_CONTROL)
+            if (ControlMode == TrainControlMode.OutOfControl)
             {
                 return;
             }
@@ -6409,7 +6395,7 @@ namespace Orts.Simulation.Physics
             foreach (KeyValuePair<TrainRouted, int> trainToCheckInfo in thisSection.CircuitState.OccupationState)
             {
                 Train OtherTrain = trainToCheckInfo.Key.Train;
-                if (OtherTrain.ControlMode == TRAIN_CONTROL.AUTO_SIGNAL) // train is still in signal mode, might need adjusting
+                if (OtherTrain.ControlMode == TrainControlMode.AutoSignal) // train is still in signal mode, might need adjusting
                 {
                     otherdirection = OtherTrain.PresentPosition[0].TCSectionIndex == thisSection.Index ? OtherTrain.PresentPosition[0].TCDirection :
                         OtherTrain.PresentPosition[1].TCSectionIndex == thisSection.Index ? OtherTrain.PresentPosition[1].TCDirection : -1;
@@ -6494,7 +6480,7 @@ namespace Orts.Simulation.Physics
                             break;
                         }
 
-                        else if (ControlMode == TRAIN_CONTROL.AUTO_SIGNAL && NextSignalObject[direction].Signalfound[(int)SignalFunction.Normal] < 0) // no next signal
+                        else if (ControlMode == TrainControlMode.AutoSignal && NextSignalObject[direction].Signalfound[(int)SignalFunction.Normal] < 0) // no next signal
                         {
                             SwitchToNodeControl(LastReservedSection[direction]);
 #if DEBUG_REPORTS
@@ -6508,7 +6494,7 @@ namespace Orts.Simulation.Physics
                             }
                             break;
                         }
-                        else if (ControlMode == TRAIN_CONTROL.AUTO_SIGNAL && NextSignalObject[direction].BlockState() != SignalBlockState.Clear) // route to next signal not clear
+                        else if (ControlMode == TrainControlMode.AutoSignal && NextSignalObject[direction].BlockState() != SignalBlockState.Clear) // route to next signal not clear
                         {
                             SwitchToNodeControl(LastReservedSection[direction]);
 #if DEBUG_REPORTS
@@ -6818,7 +6804,7 @@ namespace Orts.Simulation.Physics
             // obtain reversal section index
 
             int reversalSectionIndex = -1;
-            if (TCRoute != null && (ControlMode == TRAIN_CONTROL.AUTO_NODE || ControlMode == TRAIN_CONTROL.AUTO_SIGNAL))
+            if (TCRoute != null && (ControlMode == TrainControlMode.AutoNode || ControlMode == TrainControlMode.AutoSignal))
             {
                 TCReversalInfo thisReversal = TCRoute.ReversalInfo[TCRoute.activeSubpath];
                 if (thisReversal.Valid)
@@ -6831,7 +6817,7 @@ namespace Orts.Simulation.Physics
             // if so, forward to next subroute and continue
             if (checkLoop || StationStops.Count <= 1 || StationStops.Count > 1 && TCRoute != null && StationStops[1].SubrouteIndex > TCRoute.activeSubpath)
             {
-                if (TCRoute != null && (ControlMode == TRAIN_CONTROL.AUTO_NODE || ControlMode == TRAIN_CONTROL.AUTO_SIGNAL) && TCRoute.LoopEnd[TCRoute.activeSubpath] >= 0)
+                if (TCRoute != null && (ControlMode == TrainControlMode.AutoNode || ControlMode == TrainControlMode.AutoSignal) && TCRoute.LoopEnd[TCRoute.activeSubpath] >= 0)
                 {
                     int loopSectionIndex = ValidRoute[0].GetRouteIndex(TCRoute.LoopEnd[TCRoute.activeSubpath], 0);
 
@@ -6958,7 +6944,7 @@ namespace Orts.Simulation.Physics
 
             if (endOfRoute && (!nextRouteAvailable || (nextRouteAvailable && nextRouteReady)))
             {
-                if (ControlMode == TRAIN_CONTROL.AUTO_SIGNAL) // for Auto mode try forward only
+                if (ControlMode == TrainControlMode.AutoSignal) // for Auto mode try forward only
                 {
                     if (NextSignalObject[0] != null && NextSignalObject[0].EnabledTrain == routedForward)
                     {
@@ -7126,7 +7112,7 @@ namespace Orts.Simulation.Physics
                 presentSection.ClearReversalClaims(routedForward);
 
                 // switch to NODE mode
-                if (ControlMode == TRAIN_CONTROL.AUTO_SIGNAL)
+                if (ControlMode == TrainControlMode.AutoSignal)
                 {
                     SwitchToNodeControl(PresentPosition[0].TCSectionIndex);
                 }
@@ -7150,7 +7136,7 @@ namespace Orts.Simulation.Physics
             // obtain reversal section index
 
             int reversalSectionIndex = -1;
-            if (TCRoute != null && (ControlMode == TRAIN_CONTROL.AUTO_NODE || ControlMode == TRAIN_CONTROL.AUTO_SIGNAL))
+            if (TCRoute != null && (ControlMode == TrainControlMode.AutoNode || ControlMode == TrainControlMode.AutoSignal))
             {
                 TCReversalInfo thisReversal = TCRoute.ReversalInfo[TCRoute.activeSubpath];
                 if (thisReversal.Valid)
@@ -7246,24 +7232,24 @@ namespace Orts.Simulation.Physics
         {
             switch (ControlMode)
             {
-                case (TRAIN_CONTROL.AUTO_SIGNAL):
+                case (TrainControlMode.AutoSignal):
                     {
                         UpdateSignalMode(signalObjectIndex, backward, elapsedClockSeconds);
                         break;
                     }
-                case (TRAIN_CONTROL.AUTO_NODE):
+                case (TrainControlMode.AutoNode):
                     {
                         UpdateNodeMode();
                         break;
                     }
-                case (TRAIN_CONTROL.OUT_OF_CONTROL):
+                case (TrainControlMode.OutOfControl):
                     {
                         UpdateOutOfControl();
                         if (LeadLocomotive != null)
                             ((MSTSLocomotive)LeadLocomotive).SetEmergency(true);
                         break;
                     }
-                case (TRAIN_CONTROL.UNDEFINED):
+                case (TrainControlMode.Undefined):
                     {
                         SwitchToNodeControl(-1);
                         break;
@@ -7412,7 +7398,7 @@ namespace Orts.Simulation.Physics
                     {
                         return (true);
                     }
-                    if (thisTrain.Key.Train.ControlMode == TRAIN_CONTROL.MANUAL)
+                    if (thisTrain.Key.Train.ControlMode == TrainControlMode.Manual)
                     {
                         return (true);
                     }
@@ -9594,7 +9580,7 @@ namespace Orts.Simulation.Physics
 
         public void ToggleToExplorerMode()
         {
-            if (ControlMode == TRAIN_CONTROL.OUT_OF_CONTROL && LeadLocomotive != null)
+            if (ControlMode == TrainControlMode.OutOfControl && LeadLocomotive != null)
                 ((MSTSLocomotive)LeadLocomotive).SetEmergency(false);
 
             // set track occupation (using present route)
@@ -9636,7 +9622,7 @@ namespace Orts.Simulation.Physics
 
             // set explorer mode
 
-            ControlMode = TRAIN_CONTROL.EXPLORER;
+            ControlMode = TrainControlMode.Explorer;
 
             // reset routes and check sections either end of train
 
@@ -9674,7 +9660,7 @@ namespace Orts.Simulation.Physics
         {
             // in auto mode, use forward direction only
 
-            ControlMode = TRAIN_CONTROL.AUTO_SIGNAL;
+            ControlMode = TrainControlMode.AutoSignal;
             thisSignal.RequestClearSignal(ValidRoute[0], routedForward, 0, false, null);
 
             // enable any none-NORMAL signals between front of train and first NORMAL signal
@@ -9725,7 +9711,7 @@ namespace Orts.Simulation.Physics
         public virtual void SwitchToNodeControl(int thisSectionIndex)
         {
             // reset enabled signal if required
-            if (ControlMode == TRAIN_CONTROL.AUTO_SIGNAL && NextSignalObject[0] != null && NextSignalObject[0].EnabledTrain == routedForward)
+            if (ControlMode == TrainControlMode.AutoSignal && NextSignalObject[0] != null && NextSignalObject[0].EnabledTrain == routedForward)
             {
                 // reset any claims
                 foreach (TCRouteElement thisElement in NextSignalObject[0].SignalRoute)
@@ -9746,7 +9732,7 @@ namespace Orts.Simulation.Physics
             int activeSectionIndex = thisSectionIndex;
             int endListIndex = -1;
 
-            ControlMode = TRAIN_CONTROL.AUTO_NODE;
+            ControlMode = TrainControlMode.AutoNode;
             EndAuthorityType[0] = END_AUTHORITY.NO_PATH_RESERVED;
             IndexNextSignal = -1; // no next signal in Node Control
 
@@ -9804,12 +9790,12 @@ namespace Orts.Simulation.Physics
                 if (Simulator.Confirmer != null) // As Confirmer may not be created until after a restore.
                     Simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("You cannot enter manual mode when autopiloted"));
             }
-            else if (IsPathless && ControlMode != TRAIN_CONTROL.OUT_OF_CONTROL && ControlMode == TRAIN_CONTROL.MANUAL)
+            else if (IsPathless && ControlMode != TrainControlMode.OutOfControl && ControlMode == TrainControlMode.Manual)
             {
                 if (Simulator.Confirmer != null) // As Confirmer may not be created until after a restore.
                     Simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("You cannot use this command for pathless trains"));
             }
-            else if (ControlMode == TRAIN_CONTROL.MANUAL)
+            else if (ControlMode == TrainControlMode.Manual)
             {
                 // check if train is back on path
 
@@ -9838,7 +9824,7 @@ namespace Orts.Simulation.Physics
                 }
 
             }
-            else if (ControlMode == TRAIN_CONTROL.EXPLORER)
+            else if (ControlMode == TrainControlMode.Explorer)
             {
                 if (LeadLocomotive != null &&
                     (((MSTSLocomotive)LeadLocomotive).TrainBrakeController.TCSEmergencyBraking || ((MSTSLocomotive)LeadLocomotive).TrainBrakeController.TCSFullServiceBraking))
@@ -9906,7 +9892,7 @@ namespace Orts.Simulation.Physics
 
             // set manual mode
 
-            ControlMode = TRAIN_CONTROL.MANUAL;
+            ControlMode = TrainControlMode.Manual;
 
             // reset routes and check sections either end of train
 
@@ -9991,7 +9977,7 @@ namespace Orts.Simulation.Physics
 
         public void ResetExplorerMode()
         {
-            if (ControlMode == TRAIN_CONTROL.OUT_OF_CONTROL && LeadLocomotive != null)
+            if (ControlMode == TrainControlMode.OutOfControl && LeadLocomotive != null)
                 ((MSTSLocomotive)LeadLocomotive).SetEmergency(false);
 
             // set track occupation (using present route)
@@ -10033,7 +10019,7 @@ namespace Orts.Simulation.Physics
 
             // set explorer mode
 
-            ControlMode = TRAIN_CONTROL.EXPLORER;
+            ControlMode = TrainControlMode.Explorer;
 
             // reset routes and check sections either end of train
 
@@ -10180,7 +10166,7 @@ namespace Orts.Simulation.Physics
                 MPManager.Notify((new MSGResetSignal(MPManager.GetUserName())).ToString());
                 return;
             }
-            if (ControlMode == TRAIN_CONTROL.MANUAL)
+            if (ControlMode == TrainControlMode.Manual)
             {
                 if (direction == Direction.Forward)
                 {
@@ -10191,7 +10177,7 @@ namespace Orts.Simulation.Physics
                     RequestManualSignalPermission(ref ValidRoute[1], 1);
                 }
             }
-            else if (ControlMode == TRAIN_CONTROL.EXPLORER)
+            else if (ControlMode == TrainControlMode.Explorer)
             {
                 if (direction == Direction.Forward)
                 {
@@ -10227,7 +10213,7 @@ namespace Orts.Simulation.Physics
         {
             if (!MPManager.IsMultiPlayer())
             {
-                if (ControlMode == TRAIN_CONTROL.MANUAL || ControlMode == TRAIN_CONTROL.EXPLORER)
+                if (ControlMode == TrainControlMode.Manual || ControlMode == TrainControlMode.Explorer)
                 {
                     int reqRouteIndex = direction == Direction.Forward ? 0 : 1;
 
@@ -10316,13 +10302,13 @@ namespace Orts.Simulation.Physics
         public void SetTrainOutOfControl(OUTOFCONTROL reason)
         {
 
-            if (ControlMode == TRAIN_CONTROL.OUT_OF_CONTROL) // allready out of control, so exit
+            if (ControlMode == TrainControlMode.OutOfControl) // allready out of control, so exit
             {
                 return;
             }
 
             // clear all reserved sections etc. - both directions
-            if (ControlMode == TRAIN_CONTROL.AUTO_SIGNAL)
+            if (ControlMode == TrainControlMode.AutoSignal)
             {
                 if (NextSignalObject[0] != null && NextSignalObject[0].EnabledTrain == routedForward)
                 {
@@ -10336,7 +10322,7 @@ namespace Orts.Simulation.Physics
                     NextSignalObject[1].ResetSignal(true);
                 }
             }
-            else if (ControlMode == TRAIN_CONTROL.AUTO_NODE)
+            else if (ControlMode == TrainControlMode.AutoNode)
             {
                 signalRef.BreakDownRoute(LastReservedSection[0], routedForward);
             }
@@ -10347,8 +10333,8 @@ namespace Orts.Simulation.Physics
 
                 // set control state and issue warning
 
-                if (ControlMode != TRAIN_CONTROL.EXPLORER)
-                    ControlMode = TRAIN_CONTROL.OUT_OF_CONTROL;
+                if (ControlMode != TrainControlMode.Explorer)
+                    ControlMode = TrainControlMode.OutOfControl;
 
                 var report = string.Format("Train {0} is out of control and will be stopped. Reason : ", Number.ToString());
 
@@ -10395,7 +10381,7 @@ namespace Orts.Simulation.Physics
             {
                 GenerateValidRoute(PresentPosition[0].RouteListIndex, PresentPosition[0].TCSectionIndex);
                 // switch to NODE mode
-                if (ControlMode == TRAIN_CONTROL.AUTO_SIGNAL)
+                if (ControlMode == TrainControlMode.AutoSignal)
                 {
                     SwitchToNodeControl(PresentPosition[0].TCSectionIndex);
                 }
@@ -10412,7 +10398,7 @@ namespace Orts.Simulation.Physics
         public void ReRouteTrain(int forcedRouteSectionIndex, int forcedTCSectionIndex)
         {
             // check for any stations in abandoned path
-            if (ControlMode == TRAIN_CONTROL.AUTO_SIGNAL || ControlMode == TRAIN_CONTROL.AUTO_NODE)
+            if (ControlMode == TrainControlMode.AutoSignal || ControlMode == TrainControlMode.AutoNode)
             // Local trains, having a defined TCRoute
             {
                 int actSubpath = TCRoute.activeSubpath;
@@ -10434,7 +10420,7 @@ namespace Orts.Simulation.Physics
         public void ResetValidRoute()
         {
             // clear all reserved sections etc. - both directions
-            if (ControlMode == TRAIN_CONTROL.AUTO_SIGNAL)
+            if (ControlMode == TrainControlMode.AutoSignal)
             {
                 if (NextSignalObject[0] != null && NextSignalObject[0].EnabledTrain == routedForward)
                 {
@@ -10448,7 +10434,7 @@ namespace Orts.Simulation.Physics
                     NextSignalObject[1].ResetSignal(true);
                 }
             }
-            else if (ControlMode == TRAIN_CONTROL.AUTO_NODE)
+            else if (ControlMode == TrainControlMode.AutoNode)
             {
                 signalRef.BreakDownRoute(LastReservedSection[0], routedForward);
             }
@@ -11012,7 +10998,7 @@ namespace Orts.Simulation.Physics
 
             InitializeSignals(true);
 
-            if (TCRoute != null && (ControlMode == TRAIN_CONTROL.AUTO_SIGNAL || ControlMode == TRAIN_CONTROL.AUTO_NODE))
+            if (TCRoute != null && (ControlMode == TrainControlMode.AutoSignal || ControlMode == TrainControlMode.AutoNode))
             {
                 PresentPosition[0].RouteListIndex = ValidRoute[0].GetRouteIndex(PresentPosition[0].TCSectionIndex, 0);
                 PresentPosition[1].RouteListIndex = ValidRoute[0].GetRouteIndex(PresentPosition[1].TCSectionIndex, 0);
@@ -11021,7 +11007,7 @@ namespace Orts.Simulation.Physics
                 CheckDeadlock(ValidRoute[0], Number);
                 TCRoute.SetReversalOffset(Length, Simulator.TimetableMode);
             }
-            else if (ControlMode == TRAIN_CONTROL.MANUAL)
+            else if (ControlMode == TrainControlMode.Manual)
             {
                 // set track occupation
 
@@ -11035,7 +11021,7 @@ namespace Orts.Simulation.Physics
 
                 UpdateManualMode(-1);
             }
-            else if (ControlMode == TRAIN_CONTROL.EXPLORER)
+            else if (ControlMode == TrainControlMode.Explorer)
             {
                 // set track occupation
 
@@ -11258,7 +11244,7 @@ namespace Orts.Simulation.Physics
 
                 // clear routes, required actions, traffic details
 
-                ControlMode = TRAIN_CONTROL.UNDEFINED;
+                ControlMode = TrainControlMode.Undefined;
                 if (TCRoute != null)
                 {
                     if (TCRoute.TCRouteSubpaths != null) TCRoute.TCRouteSubpaths.Clear();
@@ -11302,7 +11288,7 @@ namespace Orts.Simulation.Physics
             {
 
                 //<CSComment> InitializeSignals needs this info sometimes, so I repeat lines below here
-                if (!IsActualPlayerTrain && (ControlMode == TRAIN_CONTROL.AUTO_SIGNAL || ControlMode == TRAIN_CONTROL.AUTO_NODE))
+                if (!IsActualPlayerTrain && (ControlMode == TrainControlMode.AutoSignal || ControlMode == TrainControlMode.AutoNode))
                 {
                     while (TCRoute.activeSubpath <= TCRoute.TCRouteSubpaths.Count - 1)
                     {
@@ -11407,7 +11393,7 @@ namespace Orts.Simulation.Physics
 
             InitializeSignals(true);
 
-            if (ControlMode == TRAIN_CONTROL.AUTO_SIGNAL || ControlMode == TRAIN_CONTROL.AUTO_NODE)
+            if (ControlMode == TrainControlMode.AutoSignal || ControlMode == TrainControlMode.AutoNode)
             {
                 PresentPosition[0].RouteListIndex = ValidRoute[0].GetRouteIndex(PresentPosition[0].TCSectionIndex, 0);
                 PresentPosition[1].RouteListIndex = ValidRoute[0].GetRouteIndex(PresentPosition[1].TCSectionIndex, 0);
@@ -11416,7 +11402,7 @@ namespace Orts.Simulation.Physics
                 SwitchToNodeControl(PresentPosition[0].TCSectionIndex);
                 TCRoute.SetReversalOffset(Length, Simulator.TimetableMode);
             }
-            else if (ControlMode == TRAIN_CONTROL.MANUAL)
+            else if (ControlMode == TrainControlMode.Manual)
             {
                 // set track occupation
 
@@ -11430,7 +11416,7 @@ namespace Orts.Simulation.Physics
 
                 UpdateManualMode(-1);
             }
-            else if (ControlMode == TRAIN_CONTROL.EXPLORER)
+            else if (ControlMode == TrainControlMode.Explorer)
             {
                 // set track occupation
 
@@ -13106,7 +13092,7 @@ namespace Orts.Simulation.Physics
                 {
                     HoldingSignals.Remove(thisStation.ExitSignal);
 
-                    if (ControlMode == TRAIN_CONTROL.AUTO_SIGNAL)
+                    if (ControlMode == TrainControlMode.AutoSignal)
                     {
                         Signal nextSignal = signalRef.Signals[thisStation.ExitSignal];
                         nextSignal.RequestClearSignal(ValidRoute[0], routedForward, 0, false, null);
@@ -13348,7 +13334,7 @@ namespace Orts.Simulation.Physics
             //  6, "Mode"
             switch (ControlMode)
             {
-                case TRAIN_CONTROL.AUTO_SIGNAL:
+                case TrainControlMode.AutoSignal:
                     if (Delay.HasValue)
                     {
                         statusString[iColumn] = String.Concat("S +", Delay.Value.TotalMinutes.ToString("00"));
@@ -13358,7 +13344,7 @@ namespace Orts.Simulation.Physics
                         statusString[iColumn] = "SIGN";
                     }
                     break;
-                case TRAIN_CONTROL.AUTO_NODE:
+                case TrainControlMode.AutoNode:
                     if (Delay.HasValue)
                     {
                         statusString[iColumn] = String.Concat("N +", Delay.Value.TotalMinutes.ToString("00"));
@@ -13368,16 +13354,16 @@ namespace Orts.Simulation.Physics
                         statusString[iColumn] = "NODE";
                     }
                     break;
-                case TRAIN_CONTROL.MANUAL:
+                case TrainControlMode.Manual:
                     statusString[iColumn] = "MAN";
                     break;
-                case TRAIN_CONTROL.OUT_OF_CONTROL:
+                case TrainControlMode.OutOfControl:
                     statusString[iColumn] = "OOC";
                     break;
-                case TRAIN_CONTROL.EXPLORER:
+                case TrainControlMode.Explorer:
                     statusString[iColumn] = "EXPL";
                     break;
-                case TRAIN_CONTROL.TURNTABLE:
+                case TrainControlMode.TurnTable:
                     statusString[iColumn] = "TURN";
                     break;
                 default:
@@ -13387,7 +13373,7 @@ namespace Orts.Simulation.Physics
 
             iColumn++;
             //  7, "Auth"
-            if (ControlMode == TRAIN_CONTROL.OUT_OF_CONTROL)
+            if (ControlMode == TrainControlMode.OutOfControl)
             {
                 switch (OutOfControlReason)
                 {
@@ -13428,7 +13414,7 @@ namespace Orts.Simulation.Physics
                 statusString[iColumn] = " ";
             }
 
-            else if (ControlMode == TRAIN_CONTROL.AUTO_NODE)
+            else if (ControlMode == TrainControlMode.AutoNode)
             {
                 switch (EndAuthorityType[0])
                 {
@@ -13479,7 +13465,7 @@ namespace Orts.Simulation.Physics
 
             iColumn++;
             //  9, "Signal"
-            if (ControlMode == TRAIN_CONTROL.MANUAL || ControlMode == TRAIN_CONTROL.EXPLORER)
+            if (ControlMode == TrainControlMode.Manual|| ControlMode == TrainControlMode.Explorer)
             {
                 // reverse direction
                 string firstchar = "-";
@@ -13645,7 +13631,7 @@ namespace Orts.Simulation.Physics
             //  11, "Path"
             string circuitString = String.Empty;
 
-            if ((ControlMode != TRAIN_CONTROL.MANUAL && ControlMode != TRAIN_CONTROL.EXPLORER) || ValidRoute[1] == null)
+            if ((ControlMode != TrainControlMode.Manual && ControlMode != TrainControlMode.Explorer) || ValidRoute[1] == null)
             {
                 // station stops
                 if (StationStops == null || StationStops.Count == 0)
@@ -13954,15 +13940,15 @@ namespace Orts.Simulation.Physics
         {
             TrainInfo thisInfo = new TrainInfo();
 
-            if (ControlMode == TRAIN_CONTROL.AUTO_NODE || ControlMode == TRAIN_CONTROL.AUTO_SIGNAL)
+            if (ControlMode == TrainControlMode.AutoNode || ControlMode == TrainControlMode.AutoSignal)
             {
                 GetTrainInfoAuto(ref thisInfo);
             }
-            else if (ControlMode == TRAIN_CONTROL.MANUAL || ControlMode == TRAIN_CONTROL.EXPLORER)
+            else if (ControlMode == TrainControlMode.Manual || ControlMode == TrainControlMode.Explorer)
             {
                 GetTrainInfoManual(ref thisInfo);
             }
-            else if (ControlMode == TRAIN_CONTROL.OUT_OF_CONTROL)
+            else if (ControlMode == TrainControlMode.OutOfControl)
             {
                 GetTrainInfoOOC(ref thisInfo);
             }
@@ -14023,7 +14009,7 @@ namespace Orts.Simulation.Physics
 
             bool maxAuthSet = false;
             // set object items - forward
-            if (ControlMode == TRAIN_CONTROL.AUTO_NODE)
+            if (ControlMode == TrainControlMode.AutoNode)
             {
                 TrainObjectItem nextItem = new TrainObjectItem(EndAuthorityType[0], DistanceToEndNodeAuthorityM[0]);
                 thisInfo.ObjectInfoForward.Add(nextItem);
@@ -14755,7 +14741,7 @@ namespace Orts.Simulation.Physics
             nextSignal.ResetSignal(true);
             nextSignal.SignalRoute = newSignalRoute;
 
-            if (ControlMode == TRAIN_CONTROL.AUTO_SIGNAL)
+            if (ControlMode == TrainControlMode.AutoSignal)
             {
                 // keep any items allready passed
                 List<SignalItemInfo> keeplist = new List<SignalItemInfo>();
@@ -14931,7 +14917,7 @@ namespace Orts.Simulation.Physics
                 nextSignal.ResetSignal(true);
                 nextSignal.SignalRoute = newSignalRoute;
 
-                if (ControlMode == TRAIN_CONTROL.AUTO_SIGNAL)
+                if (ControlMode == TrainControlMode.AutoSignal)
                 {
                     // keep any items allready passed
                     List<SignalItemInfo> keeplist = new List<SignalItemInfo>();
@@ -20394,7 +20380,7 @@ namespace Orts.Simulation.Physics
 
         public class TrainInfo
         {
-            public TRAIN_CONTROL ControlMode;                // present control mode 
+            public TrainControlMode ControlMode;             // present control mode 
             public float speedMpS;                           // present speed
             public float projectedSpeedMpS;                  // projected speed
             public float allowedSpeedMpS;                    // max allowed speed
@@ -20857,7 +20843,7 @@ namespace Orts.Simulation.Physics
 
             if (TrainType == TRAINTYPE.STATIC)
             {
-                ControlMode = TRAIN_CONTROL.UNDEFINED;
+                ControlMode = TrainControlMode.Undefined;
                 return;
             }
 

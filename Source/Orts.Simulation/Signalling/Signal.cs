@@ -1897,7 +1897,7 @@ namespace Orts.Simulation.Signalling
                 SignalEnvironment.BreakDownRouteList(otherTrain.Train.ValidRoute[otherTrain.TrainRouteDirectionIndex], routeListIndex, otherTrain);
 
                 train.Train.SwitchToNodeControl(train.Train.PresentPosition[train.TrainRouteDirectionIndex].TCSectionIndex);
-                if (otherTrain.Train.ControlMode != Train.TRAIN_CONTROL.EXPLORER && !otherTrain.Train.IsPathless)
+                if (otherTrain.Train.ControlMode != TrainControlMode.Explorer && !otherTrain.Train.IsPathless)
                     otherTrain.Train.SwitchToNodeControl(otherTrain.Train.PresentPosition[otherTrain.TrainRouteDirectionIndex].TCSectionIndex);
                 return false;
             }
@@ -2177,7 +2177,7 @@ namespace Orts.Simulation.Signalling
             }
             else
             {
-                if (EnabledTrain != null && EnabledTrain.Train.ControlMode == Train.TRAIN_CONTROL.MANUAL &&
+                if (EnabledTrain != null && EnabledTrain.Train.ControlMode == TrainControlMode.Manual &&
                     internalBlockState <= InternalBlockstate.OccupiedSameDirection && OverridePermission == SignalPermission.Requested)
                 {
                     SignalEnvironment.Simulator.SoundNotify = TrainEvent.PermissionGranted;
@@ -2188,7 +2188,7 @@ namespace Orts.Simulation.Signalling
                         SignalEnvironment.Simulator.SoundNotify = TrainEvent.PermissionDenied;
                 }
 
-                if (EnabledTrain != null && EnabledTrain.Train.ControlMode == Train.TRAIN_CONTROL.MANUAL && signalState == SignalAspectState.Stop &&
+                if (EnabledTrain != null && EnabledTrain.Train.ControlMode == TrainControlMode.Manual && signalState == SignalAspectState.Stop &&
                     internalBlockState <= InternalBlockstate.OccupiedSameDirection && OverridePermission == SignalPermission.Requested)
                 {
                     OverridePermission = SignalPermission.Granted;
@@ -2776,7 +2776,7 @@ namespace Orts.Simulation.Signalling
 
                 if (section.DeadlockReference > 0 && routeElement.FacingPoint && train != null)
                 {
-                    if (train.Train.ControlMode == Train.TRAIN_CONTROL.AUTO_NODE || train.Train.ControlMode == Train.TRAIN_CONTROL.AUTO_SIGNAL)
+                    if (train.Train.ControlMode == TrainControlMode.AutoNode || train.Train.ControlMode == TrainControlMode.AutoSignal)
                     {
                         DeadlockInfo sectionDeadlockInfo = SignalEnvironment.DeadlockInfoList[section.DeadlockReference];
 

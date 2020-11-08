@@ -251,13 +251,13 @@ namespace Orts.Simulation
                 // Preparing for transfer
                 var train = TrainsOnMovingTable[0].Train;
                 if (Math.Abs(train.SpeedMpS) > 0.1 || (train.LeadLocomotiveIndex != -1 && (train.LeadLocomotive.ThrottlePercent >= 1 || !(train.LeadLocomotive.Direction == Direction.N 
-                 || Math.Abs(train.MUReverserPercent) <= 1))) || (train.ControlMode != Train.TRAIN_CONTROL.MANUAL && train.ControlMode != Train.TRAIN_CONTROL.TURNTABLE &&
-                 train.ControlMode != Train.TRAIN_CONTROL.EXPLORER && train.ControlMode != Train.TRAIN_CONTROL.UNDEFINED))
+                 || Math.Abs(train.MUReverserPercent) <= 1))) || (train.ControlMode != TrainControlMode.Manual && train.ControlMode != TrainControlMode.TurnTable &&
+                 train.ControlMode != TrainControlMode.Explorer && train.ControlMode != TrainControlMode.Undefined))
                 {
                     Simulator.Confirmer.Warning(Simulator.Catalog.GetString("Transfer can't start: check throttle, speed, direction and control mode"));
                     return;
                 }
-                if (train.ControlMode == Train.TRAIN_CONTROL.MANUAL || train.ControlMode == Train.TRAIN_CONTROL.EXPLORER || train.ControlMode == Train.TRAIN_CONTROL.UNDEFINED)
+                if (train.ControlMode == TrainControlMode.Manual || train.ControlMode == TrainControlMode.Explorer || train.ControlMode == TrainControlMode.Undefined)
                 {
                     SaveConnected = Connected ^ !MyTrackNodesOrientation[ConnectedTrackEnd];
                     var invAnimationXNAMatrix = Matrix.Invert(AnimationXNAMatrix);
@@ -279,7 +279,7 @@ namespace Orts.Simulation
                     XNALocation.X = XNALocation.X + 2048 * (train.RearTDBTraveller.TileX - WorldPosition.TileX);
                     XNALocation.Z = XNALocation.Z - 2048 * (train.RearTDBTraveller.TileZ - WorldPosition.TileZ);
                     RelativeRearTravellerXNALocation = Vector3.Transform(XNALocation, invAnimationXNAMatrix);
-                    train.ControlMode = Train.TRAIN_CONTROL.TURNTABLE;
+                    train.ControlMode = TrainControlMode.TurnTable;
                 }
                 Simulator.Confirmer.Information (Simulator.Catalog.GetString("Transfertable starting transferring train"));
                 // Computing position of cars relative to center of transfertable
@@ -302,7 +302,7 @@ namespace Orts.Simulation
         {
             AnimationXNAMatrix = animationXNAMatrix;
             if ((Forward || Reverse || GoToTarget) && TrainsOnMovingTable.Count == 1 && TrainsOnMovingTable[0].FrontOnBoard &&
-                TrainsOnMovingTable[0].BackOnBoard && TrainsOnMovingTable[0].Train.ControlMode == Train.TRAIN_CONTROL.TURNTABLE)
+                TrainsOnMovingTable[0].BackOnBoard && TrainsOnMovingTable[0].Train.ControlMode == TrainControlMode.TurnTable)
             {
                 // Move together also train
                 var iRelativeCarPositions = 0;
@@ -380,7 +380,7 @@ namespace Orts.Simulation
             if (TrainsOnMovingTable.Count == 1)
             {
                 var train = TrainsOnMovingTable[0].Train;
-                if (train.ControlMode == Train.TRAIN_CONTROL.TURNTABLE)
+                if (train.ControlMode == TrainControlMode.TurnTable)
                     train.ReenterTrackSections(MyTrackNodesIndex[ConnectedTrackEnd], MyTrVectorSectionsIndex[ConnectedTrackEnd], FinalFrontTravellerXNALocation, FinalRearTravellerXNALocation, direction);
             }
         }
@@ -407,7 +407,7 @@ namespace Orts.Simulation
         public void PerformUpdateActions(Matrix absAnimationMatrix, in WorldPosition worldPosition)
         {
             TransferTrain(absAnimationMatrix);
-            if (GoToTarget && TrainsOnMovingTable.Count == 1 && TrainsOnMovingTable[0].Train.ControlMode == Train.TRAIN_CONTROL.TURNTABLE)
+            if (GoToTarget && TrainsOnMovingTable.Count == 1 && TrainsOnMovingTable[0].Train.ControlMode == TrainControlMode.TurnTable)
             {
                 RecalculateTravellerXNALocations(absAnimationMatrix);
             }

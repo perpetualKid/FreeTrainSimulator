@@ -161,12 +161,12 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
         void TrainListLabel_Click(Control arg1, Point arg2)
         {
-            if (PickedTrainFromList != null && PickedTrainFromList.ControlMode == Train.TRAIN_CONTROL.TURNTABLE)
+            if (PickedTrainFromList != null && PickedTrainFromList.ControlMode == TrainControlMode.TurnTable)
             {
                 Viewer.Simulator.Confirmer.Information(Viewer.Catalog.GetString("Train in turntable not aligned to a track can't be selected"));
                 return;
             }
-            if (PickedTrainFromList != null && Viewer.PlayerLocomotive != null && Viewer.PlayerLocomotive.Train != null && Viewer.PlayerLocomotive.Train.ControlMode == Train.TRAIN_CONTROL.TURNTABLE)
+            if (PickedTrainFromList != null && Viewer.PlayerLocomotive != null && Viewer.PlayerLocomotive.Train != null && Viewer.PlayerLocomotive.Train.ControlMode == TrainControlMode.TurnTable)
             {
                 Viewer.Simulator.Confirmer.Information(Viewer.Catalog.GetString("Player train can't be switched when in turntable not aligned to a track"));
                 return;

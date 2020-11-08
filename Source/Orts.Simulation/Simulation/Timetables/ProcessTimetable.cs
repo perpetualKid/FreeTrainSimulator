@@ -839,7 +839,7 @@ namespace Orts.Simulation.Timetables
             playerTrain.TrainType = Physics.Train.TRAINTYPE.INTENDED_PLAYER;
             playerTrain.OrgAINumber = playerTrain.Number;
             playerTrain.Number = 0;
-            playerTrain.ControlMode = Physics.Train.TRAIN_CONTROL.INACTIVE;
+            playerTrain.ControlMode = TrainControlMode.Inactive;
             playerTrain.MovementState = AITrain.AI_MOVEMENT_STATE.AI_STATIC;
 
             // create traveller

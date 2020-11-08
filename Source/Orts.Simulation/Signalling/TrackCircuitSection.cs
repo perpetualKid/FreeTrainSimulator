@@ -444,7 +444,7 @@ namespace Orts.Simulation.Signalling
             {
                 ClearSectionsOfTrainBehind(CircuitState.TrainReserved, this);
             }
-            else if (train.Train.IsPlayerDriven && train.Train.ControlMode != Train.TRAIN_CONTROL.MANUAL && train.Train.DistanceTravelledM == 0.0 &&
+            else if (train.Train.IsPlayerDriven && train.Train.ControlMode != TrainControlMode.Manual && train.Train.DistanceTravelledM == 0.0 &&
                      train.Train.TCRoute != null && train.Train.ValidRoute[0] != null && train.Train.TCRoute.activeSubpath == 0) // We are at initial placement
                                                                                                                                  // Check if section is under train, and therefore can be unreserved from other trains
             {
@@ -939,7 +939,7 @@ namespace Orts.Simulation.Signalling
 
             // reset manual junction setting if train is in manual mode
 
-            if (train.Train.ControlMode == Train.TRAIN_CONTROL.MANUAL && CircuitType == TrackCircuitType.Junction && JunctionSetManual >= 0)
+            if (train.Train.ControlMode == TrainControlMode.Manual && CircuitType == TrackCircuitType.Junction && JunctionSetManual >= 0)
             {
                 JunctionSetManual = -1;
             }

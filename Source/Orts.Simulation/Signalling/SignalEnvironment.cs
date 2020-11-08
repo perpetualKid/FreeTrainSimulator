@@ -3614,9 +3614,12 @@ namespace Orts.Simulation.Signalling
 
             switch (train.ControlMode)
             {
-                case Train.TRAIN_CONTROL.MANUAL: return train.ProcessRequestManualSetSwitch(direction);
-                case Train.TRAIN_CONTROL.EXPLORER: return train.ProcessRequestExplorerSetSwitch(direction);
-                default: return false;
+                case TrainControlMode.Manual: 
+                    return train.ProcessRequestManualSetSwitch(direction);
+                case TrainControlMode.Explorer: 
+                    return train.ProcessRequestExplorerSetSwitch(direction);
+                default: 
+                    return false;
             }
         }
 
@@ -3651,12 +3654,12 @@ namespace Orts.Simulation.Signalling
 
             // if switch reserved by manual train then notify train
 
-            else if (train != null && train.ControlMode == Train.TRAIN_CONTROL.MANUAL)
+            else if (train != null && train.ControlMode == TrainControlMode.Manual)
             {
                 switchSection.JunctionSetManual = switchSection.JunctionLastRoute == 0 ? 1 : 0;
                 switchSet = train.ProcessRequestManualSetSwitch(switchSection.Index);
             }
-            else if (train != null && train.ControlMode == Train.TRAIN_CONTROL.EXPLORER)
+            else if (train != null && train.ControlMode == TrainControlMode.Explorer)
             {
                 switchSection.JunctionSetManual = switchSection.JunctionLastRoute == 0 ? 1 : 0;
                 switchSet = train.ProcessRequestExplorerSetSwitch(switchSection.Index);
@@ -3699,7 +3702,7 @@ namespace Orts.Simulation.Signalling
                 {
                     if (train.TrainType != Train.TRAINTYPE.STATIC)
                     {
-                        if (train.ControlMode != Train.TRAIN_CONTROL.AUTO_NODE && train.ControlMode != Train.TRAIN_CONTROL.AUTO_SIGNAL)
+                        if (train.ControlMode != TrainControlMode.AutoNode && train.ControlMode != TrainControlMode.AutoSignal)
                             train.ProcessRequestExplorerSetSwitch(switchSection.Index);
                         else
                             train.ProcessRequestAutoSetSwitch(switchSection.Index);

@@ -682,7 +682,7 @@ namespace Orts.Simulation
 
             foreach (Physics.Train train in Trains)
             {
-                if ((train.SpeedMpS != 0 || (train.ControlMode == Train.TRAIN_CONTROL.EXPLORER && train.TrainType == Train.TRAINTYPE.REMOTE && MPManager.IsServer())) &&
+                if ((train.SpeedMpS != 0 || (train.ControlMode == TrainControlMode.Explorer && train.TrainType == Train.TRAINTYPE.REMOTE && MPManager.IsServer())) &&
                     train.GetType() != typeof(AITrain) && train.GetType() != typeof(TTTrain) &&
                     (PlayerLocomotive == null || train != PlayerLocomotive.Train))
                 {
@@ -1170,7 +1170,7 @@ namespace Orts.Simulation
             train.CheckFreight();
 
             train.PresetExplorerPath(aiPath, Signals);
-            train.ControlMode = Train.TRAIN_CONTROL.EXPLORER;
+            train.ControlMode = TrainControlMode.Explorer;
 
             bool canPlace = true;
             Train.TCSubpathRoute tempRoute = train.CalculateInitialTrainPosition(ref canPlace);
@@ -1427,11 +1427,11 @@ namespace Orts.Simulation
                     TrainDictionary.Add(thisTrain.Number, thisTrain);
                     NameDictionary.Add(thisTrain.Name, thisTrain);
                     // restore signal references depending on state
-                    if (thisTrain.ControlMode == Physics.Train.TRAIN_CONTROL.EXPLORER)
+                    if (thisTrain.ControlMode == TrainControlMode.Explorer)
                     {
                         thisTrain.RestoreExplorerMode();
                     }
-                    else if (thisTrain.ControlMode == Physics.Train.TRAIN_CONTROL.MANUAL)
+                    else if (thisTrain.ControlMode == TrainControlMode.Manual)
                     {
                         thisTrain.RestoreManualMode();
                     }
@@ -1537,7 +1537,7 @@ namespace Orts.Simulation
                 train2 = TrainDictionary[train.IncorporatedTrainNo];
             }
 
-            if (MPManager.IsMultiPlayer() && !(train2 is AITrain)) train2.ControlMode = Physics.Train.TRAIN_CONTROL.EXPLORER;
+            if (MPManager.IsMultiPlayer() && !(train2 is AITrain)) train2.ControlMode = TrainControlMode.Explorer;
             // Player locomotive is in first or in second part of train?
             int j = 0;
             while (train.Cars[j] != PlayerLocomotive && j < i) j++;
@@ -1667,8 +1667,8 @@ namespace Orts.Simulation
             }
             if (MPManager.IsMultiPlayer())
             {
-                if (!(train is AITrain)) train.ControlMode = Physics.Train.TRAIN_CONTROL.EXPLORER;
-                if (!(train2 is AITrain)) train2.ControlMode = Physics.Train.TRAIN_CONTROL.EXPLORER;
+                if (!(train is AITrain)) train.ControlMode = TrainControlMode.Explorer;
+                if (!(train2 is AITrain)) train2.ControlMode = TrainControlMode.Explorer;
             }
 
             if (MPManager.IsMultiPlayer() && !MPManager.IsServer())
@@ -1716,7 +1716,7 @@ namespace Orts.Simulation
                     var playerTrain = PlayerLocomotive.Train as AITrain;
                     if (playerTrain != null)
                     {
-                        if (playerTrain.ControlMode == Physics.Train.TRAIN_CONTROL.MANUAL) TrainSwitcher.SuspendOldPlayer = true; // force suspend state to avoid disappearing of train;
+                        if (playerTrain.ControlMode == TrainControlMode.Manual) TrainSwitcher.SuspendOldPlayer = true; // force suspend state to avoid disappearing of train;
                         if (TrainSwitcher.SuspendOldPlayer && 
                             (playerTrain.SpeedMpS < -0.025 || playerTrain.SpeedMpS > 0.025 || playerTrain.PresentPosition[0].TCOffset != playerTrain.PreviousPosition[0].TCOffset))
                         {
@@ -1819,7 +1819,7 @@ namespace Orts.Simulation
                     }
                     if (MPManager.IsMultiPlayer() && !MPManager.IsServer())
                     {
-                        selectedAsPlayer.ControlMode = Physics.Train.TRAIN_CONTROL.EXPLORER;
+                        selectedAsPlayer.ControlMode = TrainControlMode.Explorer;
                         //add the new train to a list of uncoupled trains, handled specially
                         if (PlayerLocomotive != null) MPManager.Instance().AddUncoupledTrains(selectedAsPlayer);
                     }
@@ -1852,7 +1852,7 @@ namespace Orts.Simulation
                         if (playerTrain.ValidRoute[1] != null && playerTrain.ValidRoute[1].Count > playerTrain.PresentPosition[1].RouteListIndex + 1)
                             playerTrain.signalRef.BreakDownRoute(playerTrain.ValidRoute[1][playerTrain.PresentPosition[1].RouteListIndex + 1].TCSectionIndex,
                             playerTrain.routedBackward);
-                        playerTrain.ControlMode = Physics.Train.TRAIN_CONTROL.UNDEFINED;
+                        playerTrain.ControlMode = TrainControlMode.Undefined;
                         playerTrain.TrainType = Physics.Train.TRAINTYPE.STATIC;
                         playerTrain.SpeedMpS = 0;
                         foreach (TrainCar car in playerTrain.Cars) car.SpeedMpS = 0;

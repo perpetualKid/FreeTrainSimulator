@@ -1099,14 +1099,14 @@ namespace Orts.ActivityRunner.Viewer3D
             }
             if (UserInput.IsPressed(UserCommand.GameSwitchAhead))
             {
-                if (PlayerTrain.ControlMode == Train.TRAIN_CONTROL.MANUAL || PlayerTrain.ControlMode == Train.TRAIN_CONTROL.EXPLORER)
+                if (PlayerTrain.ControlMode == TrainControlMode.Manual || PlayerTrain.ControlMode == TrainControlMode.Explorer)
                     new ToggleSwitchAheadCommand(Log);
                 else
                     Simulator.Confirmer.Warning(CabControl.SwitchAhead, CabSetting.Warn1);
             }
             if (UserInput.IsPressed(UserCommand.GameSwitchBehind))
             {
-                if (PlayerTrain.ControlMode == Train.TRAIN_CONTROL.MANUAL || PlayerTrain.ControlMode == Train.TRAIN_CONTROL.EXPLORER)
+                if (PlayerTrain.ControlMode == TrainControlMode.Manual || PlayerTrain.ControlMode == TrainControlMode.Explorer)
                     new ToggleSwitchBehindCommand(Log);
                 else
                     Simulator.Confirmer.Warning(CabControl.SwitchBehind, CabSetting.Warn1);
@@ -1192,7 +1192,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 }
                 else if (PlayerLocomotive.Train.TrainType == Train.TRAINTYPE.AI_PLAYERDRIVEN)
                 {
-                    if (PlayerLocomotive.Train.ControlMode == Train.TRAIN_CONTROL.MANUAL)
+                    if (PlayerLocomotive.Train.ControlMode == TrainControlMode.Manual)
                         Simulator.Confirmer.Message(ConfirmLevel.Warning, Viewer.Catalog.GetString("You can't switch from manual to autopilot mode"));
                     else
                     {
@@ -1721,11 +1721,11 @@ namespace Orts.ActivityRunner.Viewer3D
         }
         public void ToggleSwitchAhead()
         {
-            if (PlayerTrain.ControlMode == Train.TRAIN_CONTROL.MANUAL)
+            if (PlayerTrain.ControlMode == TrainControlMode.Manual)
             {
                 PlayerTrain.ProcessRequestManualSetSwitch(Direction.Forward);
             }
-            else if (PlayerTrain.ControlMode == Train.TRAIN_CONTROL.EXPLORER)
+            else if (PlayerTrain.ControlMode == TrainControlMode.Explorer)
             {
                 PlayerTrain.ProcessRequestExplorerSetSwitch(Direction.Forward);
             }
@@ -1733,11 +1733,11 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public void ToggleSwitchBehind()
         {
-            if (PlayerTrain.ControlMode == Train.TRAIN_CONTROL.MANUAL)
+            if (PlayerTrain.ControlMode == TrainControlMode.Manual)
             {
                 PlayerTrain.ProcessRequestManualSetSwitch(Direction.Reverse);
             }
-            else if (PlayerTrain.ControlMode == Train.TRAIN_CONTROL.EXPLORER)
+            else if (PlayerTrain.ControlMode == TrainControlMode.Explorer)
             {
                 PlayerTrain.ProcessRequestExplorerSetSwitch(Direction.Reverse);
             }

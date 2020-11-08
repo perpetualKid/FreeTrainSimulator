@@ -1336,7 +1336,7 @@ namespace Orts.Simulation.Timetables
 
                     train.SetFormedOccupied();
                     train.TrainType = Train.TRAINTYPE.PLAYER;
-                    train.ControlMode = Train.TRAIN_CONTROL.INACTIVE;
+                    train.ControlMode = TrainControlMode.Inactive;
                     train.MovementState = AITrain.AI_MOVEMENT_STATE.AI_STATIC;
 
                     // inform viewer about player train switch
@@ -1360,7 +1360,7 @@ namespace Orts.Simulation.Timetables
                 else if (train.TrainType == Train.TRAINTYPE.PLAYER || train.TrainType == Train.TRAINTYPE.INTENDED_PLAYER)
                 {
                     train.TrainType = Train.TRAINTYPE.PLAYER;
-                    train.ControlMode = Train.TRAIN_CONTROL.INACTIVE;
+                    train.ControlMode = TrainControlMode.Inactive;
                     train.MovementState = AITrain.AI_MOVEMENT_STATE.AI_STATIC;
 
                     train.AI.TrainsToAdd.Add(train);

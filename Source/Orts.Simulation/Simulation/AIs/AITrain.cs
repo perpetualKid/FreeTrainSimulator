@@ -579,7 +579,7 @@ namespace Orts.Simulation.AIs
 
         public override AI_MOVEMENT_STATE GetAIMovementState()
         {
-            return (ControlMode == TRAIN_CONTROL.INACTIVE ? AI_MOVEMENT_STATE.AI_STATIC : MovementState);
+            return (ControlMode == TrainControlMode.Inactive ? AI_MOVEMENT_STATE.AI_STATIC : MovementState);
         }
 
  
@@ -683,7 +683,7 @@ namespace Orts.Simulation.AIs
 
                 // check if state still matches authority level
 
-                if (MovementState != AI_MOVEMENT_STATE.INIT && ControlMode == TRAIN_CONTROL.AUTO_NODE && EndAuthorityType[0] != END_AUTHORITY.MAX_DISTANCE) // restricted authority
+                if (MovementState != AI_MOVEMENT_STATE.INIT && ControlMode == TrainControlMode.AutoNode && EndAuthorityType[0] != END_AUTHORITY.MAX_DISTANCE) // restricted authority
                 {
                     CheckRequiredAction();
                 }
@@ -693,7 +693,7 @@ namespace Orts.Simulation.AIs
 
                 // check if out of control - if so, remove
 
-                if (ControlMode == TRAIN_CONTROL.OUT_OF_CONTROL && TrainType != TRAINTYPE.AI_PLAYERHOSTING)
+                if (ControlMode == TrainControlMode.OutOfControl && TrainType != TRAINTYPE.AI_PLAYERHOSTING)
                 {
                     Trace.TraceInformation("Train {0} ({1}) is removed for out of control, reason : {2}", Name, Number, OutOfControlReason.ToString());
                     RemoveTrain();
@@ -902,7 +902,7 @@ namespace Orts.Simulation.AIs
                 File.AppendAllText(@"C:\temp\checktrain.txt",
                        "Control: " + ControlMode.ToString() + "\n");
 
-                if (ControlMode == TRAIN_CONTROL.AUTO_NODE)
+                if (ControlMode == TrainControlMode.AutoNode)
                 {
                     File.AppendAllText(@"C:\temp\checktrain.txt",
                        "Auth   : " + EndAuthorityType[0].ToString() + "\n");
@@ -1175,7 +1175,7 @@ namespace Orts.Simulation.AIs
                     {
                         bool process_req = true;
 
-                        if (ControlMode == TRAIN_CONTROL.AUTO_NODE &&
+                        if (ControlMode == TrainControlMode.AutoNode &&
                                         thisInfo.DistanceToTrain > DistanceToEndNodeAuthorityM[0])
                         {
                             process_req = false;
@@ -1224,7 +1224,7 @@ namespace Orts.Simulation.AIs
                         File.AppendAllText(@"C:\temp\checktrain.txt",
                                 "Signal restricted\n");
                     }
-                    if (!(ControlMode == TRAIN_CONTROL.AUTO_NODE &&
+                    if (!(ControlMode == TrainControlMode.AutoNode &&
                                     thisInfo.DistanceToTrain > (DistanceToEndNodeAuthorityM[0] - clearingDistanceM)))
                     {
                         if (thisInfo.SignalState == SignalAspectState.Stop ||
@@ -1583,7 +1583,7 @@ namespace Orts.Simulation.AIs
 
             // check if train ahead - if so, determine speed and distance
 
-            if (ControlMode == TRAIN_CONTROL.AUTO_NODE &&
+            if (ControlMode == TrainControlMode.AutoNode &&
                 EndAuthorityType[0] == END_AUTHORITY.TRAIN_AHEAD)
             {
 
@@ -1648,14 +1648,14 @@ namespace Orts.Simulation.AIs
 
             // Other node mode : check distance ahead (path may have cleared)
 
-            else if (ControlMode == TRAIN_CONTROL.AUTO_NODE && EndAuthorityType[0] != END_AUTHORITY.RESERVED_SWITCH &&
+            else if (ControlMode == TrainControlMode.AutoNode && EndAuthorityType[0] != END_AUTHORITY.RESERVED_SWITCH &&
                         DistanceToEndNodeAuthorityM[0] > activityClearingDistanceM)
             {
                 NextStopDistanceM = DistanceToEndNodeAuthorityM[0];
                 StartMoving(AI_START_MOVEMENT.SIGNAL_CLEARED);
             }
 
-            else if (ControlMode == TRAIN_CONTROL.AUTO_NODE && EndAuthorityType[0] == END_AUTHORITY.RESERVED_SWITCH &&
+            else if (ControlMode == TrainControlMode.AutoNode && EndAuthorityType[0] == END_AUTHORITY.RESERVED_SWITCH &&
                         DistanceToEndNodeAuthorityM[0] > 2.0f * junctionOverlapM + activityClearingDistanceM)
             {
                 NextStopDistanceM = DistanceToEndNodeAuthorityM[0] - 2.0f * junctionOverlapM;
@@ -1665,7 +1665,7 @@ namespace Orts.Simulation.AIs
 
             // signal node : check state of signal
 
-            else if (ControlMode == TRAIN_CONTROL.AUTO_SIGNAL)
+            else if (ControlMode == TrainControlMode.AutoSignal)
             {
                 SignalAspectState nextAspect = SignalAspectState.Unknown;
                 bool nextPermission = false;
@@ -2073,7 +2073,7 @@ namespace Orts.Simulation.AIs
                 var nextSignal = signalRef.Signals[thisStation.ExitSignal];
 
                 // only request signal if in signal mode (train may be in node control)
-                if (ControlMode == TRAIN_CONTROL.AUTO_SIGNAL)
+                if (ControlMode == TrainControlMode.AutoSignal)
                 {
                     nextSignal.RequestClearSignal(ValidRoute[0], routedForward, 0, false, null); // for AI always use direction 0
                 }
@@ -2199,7 +2199,7 @@ namespace Orts.Simulation.AIs
 
             if (nextActionInfo == null) // action has been reset - keep status quo
             {
-                if (ControlMode == TRAIN_CONTROL.AUTO_NODE)  // node control : use control distance
+                if (ControlMode == TrainControlMode.AutoNode)  // node control : use control distance
                 {
                     distanceToGoM = DistanceToEndNodeAuthorityM[0];
 
@@ -3023,7 +3023,7 @@ namespace Orts.Simulation.AIs
                                         " ; speed : " + FormatStrings.FormatSpeed(SpeedMpS, true) + "\n");
             }
 
-            if (ControlMode != TRAIN_CONTROL.AUTO_NODE || EndAuthorityType[0] != END_AUTHORITY.TRAIN_AHEAD) // train is gone
+            if (ControlMode != TrainControlMode.AutoNode || EndAuthorityType[0] != END_AUTHORITY.TRAIN_AHEAD) // train is gone
             {
                 if (CheckTrain)
                 {
@@ -3521,7 +3521,7 @@ namespace Orts.Simulation.AIs
                 AITrainThrottlePercent = 25;
                 AdjustControlsBrakeOff();
             }
-            else if (ControlMode == TRAIN_CONTROL.AUTO_NODE && EndAuthorityType[0] == END_AUTHORITY.TRAIN_AHEAD)
+            else if (ControlMode == TrainControlMode.AutoNode && EndAuthorityType[0] == END_AUTHORITY.TRAIN_AHEAD)
             {
                 MovementState = AI_MOVEMENT_STATE.FOLLOWING;
                 AITrainThrottlePercent = 0;
@@ -3560,7 +3560,7 @@ namespace Orts.Simulation.AIs
             foreach (KeyValuePair<Train, float> trainAhead in trainsInSection) // always just one
             {
                 Train OtherTrain = trainAhead.Key;
-                if (OtherTrain.ControlMode == TRAIN_CONTROL.AUTO_SIGNAL) // train is still in signal mode, might need adjusting
+                if (OtherTrain.ControlMode == TrainControlMode.AutoSignal) // train is still in signal mode, might need adjusting
                 {
                     // check directions of this and other train
                     int owndirection = -1;
@@ -6515,7 +6515,7 @@ namespace Orts.Simulation.AIs
                         {
                             HoldingSignals.Remove(StationStops[0].ExitSignal);
 
-                            if (ControlMode == TRAIN_CONTROL.AUTO_SIGNAL)
+                            if (ControlMode == TrainControlMode.AutoSignal)
                             {
                                 Signal nextSignal = signalRef.Signals[StationStops[0].ExitSignal];
                                 nextSignal.RequestClearSignal(ValidRoute[0], routedForward, 0, false, null);
@@ -6569,7 +6569,7 @@ namespace Orts.Simulation.AIs
                             StationStops[0].CalculateDepartTime(presentTime, this);
                         }
                     }
-                    else if (ControlMode == TRAIN_CONTROL.AUTO_NODE || ControlMode == TRAIN_CONTROL.AUTO_SIGNAL)
+                    else if (ControlMode == TrainControlMode.AutoNode || ControlMode == TrainControlMode.AutoSignal)
                     {
                         // check if station missed : station must be at least 250m. behind us
                         bool missedStation = IsMissedPlatform(250);

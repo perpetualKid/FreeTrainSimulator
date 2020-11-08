@@ -217,7 +217,7 @@ namespace Orts.MultiPlayer
             }
 
             p.Username = player.user;
-            train.ControlMode = Train.TRAIN_CONTROL.EXPLORER;
+            train.ControlMode = TrainControlMode.Explorer;
             train.CheckFreight();
             train.InitializeBrakes();
             bool canPlace = true;

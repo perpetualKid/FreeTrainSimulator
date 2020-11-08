@@ -148,7 +148,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     // train name
                     StationPlatform.Text = String.Concat(playerTimetableTrain.Name.Substring(0, Math.Min(playerTimetableTrain.Name.Length, 20)));
 
-                    if (playerTimetableTrain.ControlMode == Train.TRAIN_CONTROL.INACTIVE || playerTimetableTrain.MovementState == Simulation.AIs.AITrain.AI_MOVEMENT_STATE.AI_STATIC)
+                    if (playerTimetableTrain.ControlMode == TrainControlMode.Inactive || playerTimetableTrain.MovementState == Simulation.AIs.AITrain.AI_MOVEMENT_STATE.AI_STATIC)
                     {
                         // no info available
                         StationPreviousName.Text = "";
@@ -218,7 +218,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             if (playerTimetableTrain.ActivateTime.HasValue)
                             {
                                 DateTime activateDT = new DateTime((long)(Math.Pow(10, 7) * playerTimetableTrain.ActivateTime.Value));
-                                if (playerTimetableTrain.ControlMode == Train.TRAIN_CONTROL.INACTIVE)
+                                if (playerTimetableTrain.ControlMode == TrainControlMode.Inactive)
                                 {
                                     Message.Text = Viewer.Catalog.GetString("Train inactive.");
                                 }
@@ -430,7 +430,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     // train name
                     StationPlatform.Text = String.Concat(playerTrain.Name.Substring(0, Math.Min(playerTrain.Name.Length, 20)));
 
-                    if (playerTrain.ControlMode == Train.TRAIN_CONTROL.INACTIVE)
+                    if (playerTrain.ControlMode == TrainControlMode.Inactive)
                     {
                         // no info available
                         StationPreviousName.Text = "";

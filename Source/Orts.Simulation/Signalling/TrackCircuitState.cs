@@ -23,6 +23,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
+using Orts.Common;
 using Orts.Simulation.Physics;
 
 namespace Orts.Simulation.Signalling
@@ -160,13 +161,13 @@ namespace Orts.Simulation.Signalling
                     bool validreserve = true;
 
                     // check if reserved section is on train's route except when train is in explorer or manual mode
-                    if (reservedTrain.ValidRoute[reservedDirection].Count > 0 && reservedTrain.ControlMode != Train.TRAIN_CONTROL.EXPLORER && reservedTrain.ControlMode != Train.TRAIN_CONTROL.MANUAL)
+                    if (reservedTrain.ValidRoute[reservedDirection].Count > 0 && reservedTrain.ControlMode != TrainControlMode.Explorer && reservedTrain.ControlMode != TrainControlMode.Manual)
                     {
                         _ = reservedTrain.ValidRoute[reservedDirection].GetRouteIndex(sectionIndex, reservedTrain.PresentPosition[0].RouteListIndex);
                         validreserve = reservedTrain.ValidRoute[reservedDirection].GetRouteIndex(sectionIndex, reservedTrain.PresentPosition[0].RouteListIndex) >= 0;
                     }
 
-                    if (validreserve || reservedTrain.ControlMode == Train.TRAIN_CONTROL.EXPLORER)
+                    if (validreserve || reservedTrain.ControlMode == TrainControlMode.Explorer)
                     {
                         TrainReserved = reservedDirection == 0 ? reservedTrain.routedForward : reservedTrain.routedBackward;
                     }

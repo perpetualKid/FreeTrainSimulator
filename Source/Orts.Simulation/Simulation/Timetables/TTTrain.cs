@@ -1172,13 +1172,13 @@ namespace Orts.Simulation.Timetables
                 InitializeSignals(false);               // Get signal information
                 TCRoute.SetReversalOffset(Length);      // set reversal information for first subpath
                 SetEndOfRouteAction();                  // set action to ensure train stops at end of route
-                ControlMode = TRAIN_CONTROL.INACTIVE;   // set control mode to INACTIVE
+                ControlMode = TrainControlMode.Inactive;   // set control mode to INACTIVE
 
                 // active train
                 if (activateTrain)
                 {
                     MovementState = AI_MOVEMENT_STATE.INIT;        // start in INIT mode to collect info
-                    ControlMode = TRAIN_CONTROL.AUTO_NODE;         // start up in NODE control
+                    ControlMode = TrainControlMode.AutoNode;         // start up in NODE control
 
                     // if there is an active turntable and action is not completed, start in turntable state
                     if (ActiveTurntable != null && ActiveTurntable.MovingTableState != TimetableTurntableControl.MovingTableStateEnum.Completed)
@@ -2543,7 +2543,7 @@ namespace Orts.Simulation.Timetables
 
             // set state
             MovementState = AI_MOVEMENT_STATE.AI_STATIC;
-            ControlMode = TRAIN_CONTROL.INACTIVE;
+            ControlMode = TrainControlMode.Inactive;
 
             int eightHundredHours = 8 * 3600;
             int sixteenHundredHours = 16 * 3600;
@@ -2622,7 +2622,7 @@ namespace Orts.Simulation.Timetables
 
             // perform overall update
 
-            if (ControlMode == TRAIN_CONTROL.TURNTABLE)
+            if (ControlMode == TrainControlMode.TurnTable)
             {
                 UpdateTurntable(elapsedClockSeconds);
             }
@@ -2736,12 +2736,12 @@ namespace Orts.Simulation.Timetables
 
             // perform overall update
 
-            if (ControlMode == TRAIN_CONTROL.MANUAL)                                        // manual mode
+            if (ControlMode == TrainControlMode.Manual)                                        // manual mode
             {
                 UpdateManual(elapsedClockSeconds);
             }
 
-            else if (TrainType == TRAINTYPE.PLAYER && ControlMode == TRAIN_CONTROL.TURNTABLE) // turntable mode
+            else if (TrainType == TRAINTYPE.PLAYER && ControlMode == TrainControlMode.TurnTable) // turntable mode
             {
                 string infoString = String.Copy("Do NOT move the train");
 
@@ -2759,7 +2759,7 @@ namespace Orts.Simulation.Timetables
             }
             else if (ValidRoute[0] != null && GetAIMovementState() != AITrain.AI_MOVEMENT_STATE.AI_STATIC)     // no actions required for static objects //
             {
-                if (ControlMode != TRAIN_CONTROL.OUT_OF_CONTROL) movedBackward = CheckBackwardClearance();  // check clearance at rear if not out of control //
+                if (ControlMode != TrainControlMode.OutOfControl) movedBackward = CheckBackwardClearance();  // check clearance at rear if not out of control //
                 UpdateTrainPosition();                                                          // position update         //
                 UpdateTrainPositionInformation();                                               // position update         //
                 int SignalObjIndex = CheckSignalPassed(0, PresentPosition[0], PreviousPosition[0]);   // check if passed signal  //
@@ -2779,13 +2779,13 @@ namespace Orts.Simulation.Timetables
                         CheckStationTask();
                         CheckPlayerAttachState();                                               // check for player attach
 
-                        if (ControlMode != TRAIN_CONTROL.OUT_OF_CONTROL)
+                        if (ControlMode != TrainControlMode.OutOfControl)
                         {
                             stillExist = CheckRouteActions(elapsedClockSeconds);                 // check routepath (AI check at other point) //
                         }
                     }
                 }
-                if (stillExist && ControlMode != TRAIN_CONTROL.OUT_OF_CONTROL)
+                if (stillExist && ControlMode != TrainControlMode.OutOfControl)
                 {
                     UpdateRouteClearanceAhead(SignalObjIndex, movedBackward, elapsedClockSeconds);  // update route clearance  //
                     if (CheckTrain)
@@ -3210,7 +3210,7 @@ namespace Orts.Simulation.Timetables
 
             // check if train ahead - if so, determine speed and distance
 
-            if (ControlMode == TRAIN_CONTROL.AUTO_NODE &&
+            if (ControlMode == TrainControlMode.AutoNode &&
                 EndAuthorityType[0] == END_AUTHORITY.TRAIN_AHEAD)
             {
 
@@ -3353,7 +3353,7 @@ namespace Orts.Simulation.Timetables
 
      // Other node mode : check distance ahead (path may have cleared)
 
-            else if (ControlMode == TRAIN_CONTROL.AUTO_NODE)
+            else if (ControlMode == TrainControlMode.AutoNode)
             {
                 if (EndAuthorityType[0] == END_AUTHORITY.RESERVED_SWITCH || EndAuthorityType[0] == END_AUTHORITY.LOOP)
                 {
@@ -3373,7 +3373,7 @@ namespace Orts.Simulation.Timetables
 
     // signal node : check state of signal
 
-            else if (ControlMode == TRAIN_CONTROL.AUTO_SIGNAL)
+            else if (ControlMode == TrainControlMode.AutoSignal)
             {
                 SignalAspectState nextAspect = SignalAspectState.Unknown;
                 // there is a next item and it is the next signal
@@ -3950,7 +3950,7 @@ namespace Orts.Simulation.Timetables
                 var nextSignal = signalRef.Signals[thisStation.ExitSignal];
 
                 // only request signal if in signal mode (train may be in node control)
-                if (ControlMode == TRAIN_CONTROL.AUTO_SIGNAL)
+                if (ControlMode == TrainControlMode.AutoSignal)
                 {
                     nextSignal.RequestClearSignal(ValidRoute[0], routedForward, 0, false, null); // for AI always use direction 0
                 }
@@ -4099,7 +4099,7 @@ namespace Orts.Simulation.Timetables
 
             else if (nextActionInfo == null) // action has been reset - keep status quo
             {
-                if (ControlMode == TRAIN_CONTROL.AUTO_NODE)  // node control : use control distance
+                if (ControlMode == TrainControlMode.AutoNode)  // node control : use control distance
                 {
                     distanceToGoM = DistanceToEndNodeAuthorityM[0];
 
@@ -5068,7 +5068,7 @@ namespace Orts.Simulation.Timetables
                                         " ; speed : " + FormatStrings.FormatSpeed(SpeedMpS, true) + "\n");
             }
 
-            if (ControlMode != TRAIN_CONTROL.AUTO_NODE || EndAuthorityType[0] != END_AUTHORITY.TRAIN_AHEAD) // train is gone
+            if (ControlMode != TrainControlMode.AutoNode || EndAuthorityType[0] != END_AUTHORITY.TRAIN_AHEAD) // train is gone
             {
                 if (CheckTrain)
                 {
@@ -5819,7 +5819,7 @@ namespace Orts.Simulation.Timetables
                     MovementState = AI_MOVEMENT_STATE.TURNTABLE;
                 }
             }
-            else if (ControlMode == TRAIN_CONTROL.AUTO_NODE && EndAuthorityType[0] == END_AUTHORITY.TRAIN_AHEAD)
+            else if (ControlMode == TrainControlMode.AutoNode && EndAuthorityType[0] == END_AUTHORITY.TRAIN_AHEAD)
             {
                 MovementState = AI_MOVEMENT_STATE.FOLLOWING;
                 AITrainThrottlePercent = 0;
@@ -6830,7 +6830,7 @@ namespace Orts.Simulation.Timetables
                     foreach (KeyValuePair<Train, float> thisTrain in trainInfo) // always just one
                     {
                         TTTrain occTTTrain = thisTrain.Key as TTTrain;
-                        AITrain.AI_MOVEMENT_STATE movState = occTTTrain.ControlMode == Train.TRAIN_CONTROL.INACTIVE ? AITrain.AI_MOVEMENT_STATE.AI_STATIC : occTTTrain.MovementState;
+                        AITrain.AI_MOVEMENT_STATE movState = occTTTrain.ControlMode == TrainControlMode.Inactive ? AITrain.AI_MOVEMENT_STATE.AI_STATIC : occTTTrain.MovementState;
 
                         // if train is moving - do not allow call on
                         if (Math.Abs(occTTTrain.SpeedMpS) > 0.1f)
@@ -6897,7 +6897,7 @@ namespace Orts.Simulation.Timetables
                                 {
                                     Train.TrainRouted occTrain = occTrainInfo.Key;
                                     TTTrain occTTTrain = occTrain.Train as TTTrain;
-                                    AITrain.AI_MOVEMENT_STATE movState = occTTTrain.ControlMode == Train.TRAIN_CONTROL.INACTIVE ? AITrain.AI_MOVEMENT_STATE.AI_STATIC : occTTTrain.MovementState;
+                                    AITrain.AI_MOVEMENT_STATE movState = occTTTrain.ControlMode == TrainControlMode.Inactive ? AITrain.AI_MOVEMENT_STATE.AI_STATIC : occTTTrain.MovementState;
 
                                     if (movState == AITrain.AI_MOVEMENT_STATE.STOPPED || movState == AITrain.AI_MOVEMENT_STATE.STATION_STOP || movState == AITrain.AI_MOVEMENT_STATE.AI_STATIC)
                                     {
@@ -7012,7 +7012,7 @@ namespace Orts.Simulation.Timetables
             }
 
             // pick up is only possible if train is stopped, inactive and not reactivated at any time
-            if (Math.Abs(otherTrain.SpeedMpS) < 0.1f && otherTrain.ControlMode == TRAIN_CONTROL.INACTIVE && otherTrain.ActivateTime == null)
+            if (Math.Abs(otherTrain.SpeedMpS) < 0.1f && otherTrain.ControlMode == TrainControlMode.Inactive && otherTrain.ActivateTime == null)
             {
                 // check train
                 if (PickUpTrains.Contains(otherTrain.Number))
@@ -7157,7 +7157,7 @@ namespace Orts.Simulation.Timetables
             }
 
             // train transfer
-            if (otherTrain.ControlMode == TRAIN_CONTROL.INACTIVE)
+            if (otherTrain.ControlMode == TrainControlMode.Inactive)
             {
                 if (TransferTrainDetails.ContainsKey(otherTrain.Number))
                 {
@@ -9196,7 +9196,7 @@ namespace Orts.Simulation.Timetables
                 }
 
                 MovementState = AI_MOVEMENT_STATE.AI_STATIC;
-                ControlMode = TRAIN_CONTROL.INACTIVE;
+                ControlMode = TrainControlMode.Inactive;
                 StartTime = null;  // set starttime to invalid
                 ActivateTime = null;  // set activate to invalid
 
@@ -9526,7 +9526,7 @@ namespace Orts.Simulation.Timetables
 
             // obtain reversal section index
             int reversalSectionIndex = -1;
-            if (TCRoute != null && (ControlMode == TRAIN_CONTROL.AUTO_NODE || ControlMode == TRAIN_CONTROL.AUTO_SIGNAL))
+            if (TCRoute != null && (ControlMode == TrainControlMode.AutoNode || ControlMode == TrainControlMode.AutoSignal))
             {
                 TCReversalInfo thisReversal = TCRoute.ReversalInfo[TCRoute.activeSubpath];
                 if (thisReversal.Valid)
@@ -9541,7 +9541,7 @@ namespace Orts.Simulation.Timetables
                 lastValidRouteIndex--;
 
             // train authority is end of path
-            if (ControlMode == TRAIN_CONTROL.AUTO_NODE &&
+            if (ControlMode == TrainControlMode.AutoNode &&
                 (EndAuthorityType[0] == END_AUTHORITY.END_OF_TRACK || EndAuthorityType[0] == END_AUTHORITY.END_OF_PATH || EndAuthorityType[0] == END_AUTHORITY.END_OF_AUTHORITY))
             {
                 // front is in last route section
@@ -9649,7 +9649,7 @@ namespace Orts.Simulation.Timetables
                 {
                     endOfRoute = true;
                 }
-                if (NextSignalObject[0] != null && ControlMode == TRAIN_CONTROL.AUTO_SIGNAL && CheckTrainWaitingForSignal(NextSignalObject[0], 0) &&
+                if (NextSignalObject[0] != null && ControlMode == TrainControlMode.AutoSignal && CheckTrainWaitingForSignal(NextSignalObject[0], 0) &&
                  NextSignalObject[0].TrackCircuitIndex == ValidRoute[0][lastValidRouteIndex].TCSectionIndex)
                 {
                     endOfRoute = true;
@@ -10501,7 +10501,7 @@ namespace Orts.Simulation.Timetables
                         {
                             HoldingSignals.Remove(StationStops[0].ExitSignal);
 
-                            if (ControlMode == TRAIN_CONTROL.AUTO_SIGNAL)
+                            if (ControlMode == TrainControlMode.AutoSignal)
                             {
                                 Signal nextSignal = signalRef.Signals[StationStops[0].ExitSignal];
                                 nextSignal.RequestClearSignal(ValidRoute[0], routedForward, 0, false, null);
@@ -10752,7 +10752,7 @@ namespace Orts.Simulation.Timetables
                 {
                     HoldingSignals.Remove(thisStation.ExitSignal);
 
-                    if (ControlMode == TRAIN_CONTROL.AUTO_SIGNAL)
+                    if (ControlMode == TrainControlMode.AutoSignal)
                     {
                         Signal nextSignal = signalRef.Signals[thisStation.ExitSignal];
                         nextSignal.RequestClearSignal(ValidRoute[0], routedForward, 0, false, null);
@@ -10956,7 +10956,7 @@ namespace Orts.Simulation.Timetables
                 // train is terminated and does not form next train - set to static
                 if (Forms < 0)
                 {
-                    ControlMode = TRAIN_CONTROL.INACTIVE;
+                    ControlMode = TrainControlMode.Inactive;
                     ActivateTime = null;
                     StartTime = null;
 
@@ -11053,7 +11053,7 @@ namespace Orts.Simulation.Timetables
 
                     formedTrain.SetFormedOccupied();
                     formedTrain.TrainType = TRAINTYPE.PLAYER;
-                    formedTrain.ControlMode = TRAIN_CONTROL.INACTIVE;
+                    formedTrain.ControlMode = TrainControlMode.Inactive;
                     formedTrain.MovementState = AI_MOVEMENT_STATE.AI_STATIC;
 
                     // copy train control details
@@ -11994,7 +11994,7 @@ namespace Orts.Simulation.Timetables
             if (!newIsPlayer)
             {
                 newTrain.TrainType = Train.TRAINTYPE.AI;
-                newTrain.ControlMode = TRAIN_CONTROL.INACTIVE;
+                newTrain.ControlMode = TrainControlMode.Inactive;
                 newTrain.AI.TrainsToAdd.Add(newTrain);
             }
 
@@ -12044,7 +12044,7 @@ namespace Orts.Simulation.Timetables
                     thisSection.SetOccupied(routedForward);
                 }
 
-                if (ControlMode == TRAIN_CONTROL.AUTO_SIGNAL) ControlMode = TRAIN_CONTROL.AUTO_NODE;  // set to node control as detached portion is in front
+                if (ControlMode == TrainControlMode.AutoSignal) ControlMode = TrainControlMode.AutoNode;  // set to node control as detached portion is in front
                 NextSignalObject[0] = null; // reset signal object (signal is not directly in front)
             }
 
@@ -13639,7 +13639,7 @@ namespace Orts.Simulation.Timetables
 
                             newTrain.SetFormedOccupied();
                             newTrain.TrainType = Train.TRAINTYPE.PLAYER;
-                            newTrain.ControlMode = Train.TRAIN_CONTROL.INACTIVE;
+                            newTrain.ControlMode = TrainControlMode.Inactive;
                             newTrain.MovementState = AITrain.AI_MOVEMENT_STATE.AI_STATIC;
 
                             // inform viewer about player train switch
@@ -13708,7 +13708,7 @@ namespace Orts.Simulation.Timetables
                 else if (newTrain.TrainType == Train.TRAINTYPE.PLAYER || newTrain.TrainType == Train.TRAINTYPE.INTENDED_PLAYER)
                 {
                     newTrain.TrainType = Train.TRAINTYPE.PLAYER;
-                    newTrain.ControlMode = Train.TRAIN_CONTROL.INACTIVE;
+                    newTrain.ControlMode = TrainControlMode.Inactive;
                     newTrain.MovementState = AITrain.AI_MOVEMENT_STATE.AI_STATIC;
                     if (!newTrain.StartTime.HasValue) newTrain.StartTime = 0;
 
@@ -13819,7 +13819,7 @@ namespace Orts.Simulation.Timetables
                 newTrain.Number = 0;
                 newTrain.LeadLocomotiveIndex = newLocoIndex;
                 newTrain.TrainType = Train.TRAINTYPE.PLAYER;
-                newTrain.ControlMode = Train.TRAIN_CONTROL.INACTIVE;
+                newTrain.ControlMode = TrainControlMode.Inactive;
                 newTrain.MovementState = AITrain.AI_MOVEMENT_STATE.AI_STATIC;
                 newTrain.AI.TrainsToAdd.Add(newTrain);
                 newTrain.AI.aiListChanged = true;

@@ -142,7 +142,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
             TrackCircuitSection switchSection = Owner.Viewer.Simulator.Signals.TrackCircuitList[SwitchNode.TrackCircuitCrossReferences[0].Index];
             if (switchSection.CircuitState.Occupied() || switchSection.CircuitState.SignalReserved >= 0 ||
-                (switchSection.CircuitState.TrainReserved != null && switchSection.CircuitState.TrainReserved.Train.ControlMode != Train.TRAIN_CONTROL.MANUAL))
+                (switchSection.CircuitState.TrainReserved != null && switchSection.CircuitState.TrainReserved.Train.ControlMode != TrainControlMode.Manual))
                 image.Source.Y += 2 * SwitchImageSize;
         }
 

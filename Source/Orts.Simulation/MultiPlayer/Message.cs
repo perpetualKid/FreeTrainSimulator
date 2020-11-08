@@ -2609,7 +2609,7 @@ namespace Orts.MultiPlayer
                         t.SpeedMpS = Speed1;
                         t.LeadLocomotive = lead;
                         t.MUDirection = (Direction)mDirection1;
-                        train.ControlMode = Train.TRAIN_CONTROL.EXPLORER;
+                        train.ControlMode = TrainControlMode.Explorer;
                         train.CheckFreight();
                         train.InitializeBrakes();
                         canPlace = true;
@@ -2681,7 +2681,7 @@ namespace Orts.MultiPlayer
                 train2.travelled = Travelled2;
                 train2.SpeedMpS = Speed2;
                 train2.MUDirection = (Direction)mDirection2;
-                train2.ControlMode = Train.TRAIN_CONTROL.EXPLORER;
+                train2.ControlMode = TrainControlMode.Explorer;
                 train2.CheckFreight();
                 train2.InitializeBrakes();
                 canPlace = true;
