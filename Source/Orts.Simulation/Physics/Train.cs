@@ -215,20 +215,6 @@ namespace Orts.Simulation.Physics
         public static int NumOfCouplerBreaks = 0;//Debrief Eval
         public bool DbfEvalValueChanged { get; set; }//Debrief Eval
 
-        public enum TRAINTYPE
-        {
-            PLAYER,
-            INTENDED_PLAYER,
-            STATIC,
-            AI,
-            AI_NOTSTARTED,
-            AI_AUTOGENERATE,
-            REMOTE,
-            AI_PLAYERDRIVEN,   //Player is on board and is durrently driving train
-            AI_PLAYERHOSTING,   //Player is on board, but train is currently autopiloted
-            AI_INCORPORATED    // AI train is incorporated in other train
-        }
-
         public TrainType TrainType { get; set; } = TrainType.Player;
 
         public float? DistanceToSignal = null;
