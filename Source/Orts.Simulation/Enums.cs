@@ -1,4 +1,6 @@
-﻿namespace Orts.Simulation
+﻿using System.ComponentModel;
+
+namespace Orts.Simulation
 {
     public enum SignalItemFindState
     {
@@ -17,5 +19,19 @@
         Any,
         Signal,
         SpeedLimit,
+    }
+
+    public enum OutOfControlReason
+    {
+        [Description("SPAD")]PassedAtDanger,   //SignalPassedAtDanger
+        [Description("SPAD-Rear")] RearPassedAtDanger,
+        [Description("Misalg Sw")] MisalignedSwitch,
+        [Description("Off Auth")] OutOfAuthority,
+        [Description("Off Path")] OutOfPath,
+        [Description("Splipped")] SlippedIntoPath,
+        [Description("Slipped")] SlippedToEndOfTrack,
+        [Description("Off Track")] OutOfTrack,
+        [Description("Slip Turn")] SlippedIntoTurnTable,
+        [Description("Undefined")] UnDefined
     }
 }

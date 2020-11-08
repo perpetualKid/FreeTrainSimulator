@@ -1752,7 +1752,7 @@ namespace Orts.Simulation.AIs
                 {
                     if (thisTrain is AITrain && thisTrain.TrainType != Train.TRAINTYPE.AI_PLAYERDRIVEN)
                     {
-                        thisTrain.SetTrainOutOfControl(Train.OUTOFCONTROL.OUT_OF_PATH);
+                        thisTrain.SetTrainOutOfControl(OutOfControlReason.OutOfPath);
                         return true;
                     }
                     else return false;

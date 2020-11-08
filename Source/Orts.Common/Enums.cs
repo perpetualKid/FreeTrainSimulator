@@ -82,19 +82,19 @@ namespace Orts.Common
     [Flags]
     public enum EvaluationLogContents
     {
-        [Description("None")] None                  = 0,
-        [Description("Time")] Time                  = 1 << 0,
-        [Description("Train Speed")] Speed          = 1 << 1,
-        [Description("Max. Speed")] MaxSpeed        = 1 << 2,
-        [Description("SignalAspect")] SignalAspect  = 1 << 3,
-        [Description("Track Elevation")] Elevation  = 1 << 4,
-        [Description("Direction")] Direction        = 1 << 5,
+        [Description("None")] None = 0,
+        [Description("Time")] Time = 1 << 0,
+        [Description("Train Speed")] Speed = 1 << 1,
+        [Description("Max. Speed")] MaxSpeed = 1 << 2,
+        [Description("SignalAspect")] SignalAspect = 1 << 3,
+        [Description("Track Elevation")] Elevation = 1 << 4,
+        [Description("Direction")] Direction = 1 << 5,
         [Description("Distance Travelled")] Distance = 1 << 6,
-        [Description("Control Mode")] ControlMode   = 1 << 7,
-        [Description("Throttle %")] Throttle        = 1 << 8,
-        [Description("Brake Cyl Press")] Brake      = 1 << 9,
-        [Description("Dyn Brake %")] DynBrake       = 1 << 10,
-        [Description("Gear Setting")] Gear          = 1 << 11,
+        [Description("Control Mode")] ControlMode = 1 << 7,
+        [Description("Throttle %")] Throttle = 1 << 8,
+        [Description("Brake Cyl Press")] Brake = 1 << 9,
+        [Description("Dyn Brake %")] DynBrake = 1 << 10,
+        [Description("Gear Setting")] Gear = 1 << 11,
     }
 
     public enum ClockType
@@ -553,14 +553,14 @@ namespace Orts.Common
 
     public enum TrainControlMode
     {
-        AutoSignal,
-        AutoNode,
-        Manual,
-        Explorer,
-        OutOfControl,
-        Inactive,
-        TurnTable,
-        Undefined,
+        [Description("Auto Signal")] AutoSignal,
+        [Description("Node")] AutoNode,
+        [Description("Manual")] Manual,
+        [Description("Explorer")] Explorer,
+        [Description("OutOfControl")] OutOfControl,
+        [Description("Inactive")] Inactive,
+        [Description("Turntable")] TurnTable,
+        [Description("Unknown")] Undefined,
     }
 
 

@@ -23,6 +23,7 @@ using Microsoft.Xna.Framework;
 
 using Orts.Common;
 using Orts.Common.Calc;
+using Orts.Simulation;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 
@@ -224,44 +225,6 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             { Train.END_AUTHORITY.END_OF_AUTHORITY, "End Auth" },
         };
 
-        /// <summary>
-        /// Control mode message lookup table.
-        /// </summary>
-        /// <remarks>
-        /// Equivalent to <see cref="Popups.TrackMonitorWindow.ControlModeLabels"/>.
-        /// </remarks>
-        private static readonly Dictionary<TrainControlMode, string> ControlModeLabels = new Dictionary<TrainControlMode, string>
-        {
-            { TrainControlMode.AutoSignal, Viewer.Catalog.GetString("Auto Signal") },
-            { TrainControlMode.AutoNode, Viewer.Catalog.GetString("Node") },
-            { TrainControlMode.Manual, Viewer.Catalog.GetString("Manual") },
-            { TrainControlMode.Explorer, Viewer.Catalog.GetString("Explorer") },
-            { TrainControlMode.OutOfControl, Viewer.Catalog.GetString("OutOfControl : ") },
-            { TrainControlMode.Inactive, Viewer.Catalog.GetString("Inactive") },
-            { TrainControlMode.TurnTable, Viewer.Catalog.GetString("Turntable") },
-            { TrainControlMode.Undefined, Viewer.Catalog.GetString("Unknown") },
-        };
-
-        /// <summary>
-        /// Out-of-control status message lookup table.
-        /// </summary>
-        /// <remarks>
-        /// Equivalent to <see cref="Popups.TrackMonitorWindow.OutOfControlLabels"/>.
-        /// </remarks>
-        private static readonly Dictionary<Train.OUTOFCONTROL, string> OutOfControlLabels = new Dictionary<Train.OUTOFCONTROL, string>
-        {
-            { Train.OUTOFCONTROL.SPAD, "SPAD" },
-            { Train.OUTOFCONTROL.SPAD_REAR, "SPAD-Rear" },
-            { Train.OUTOFCONTROL.MISALIGNED_SWITCH, "Misalg Sw" },
-            { Train.OUTOFCONTROL.OUT_OF_AUTHORITY, "Off Auth" },
-            { Train.OUTOFCONTROL.OUT_OF_PATH, "Off Path" },
-            { Train.OUTOFCONTROL.SLIPPED_INTO_PATH, "Splipped" },
-            { Train.OUTOFCONTROL.SLIPPED_TO_ENDOFTRACK, "Slipped" },
-            { Train.OUTOFCONTROL.OUT_OF_TRACK, "Off Track" },
-            { Train.OUTOFCONTROL.SLIPPED_INTO_TURNTABLE, "Slip Turn" },
-            { Train.OUTOFCONTROL.UNDEFINED, "Undefined" },
-        };
-
         private static int RowOffset { get => MultiPlayer.MPManager.IsMultiPlayer() ? 1 : 2; }
 
         /// <summary>
@@ -346,11 +309,11 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             // Control mode
             string controlIndicator;
             if (thisInfo.ControlMode == TrainControlMode.AutoNode)
-                controlIndicator = FindAuthorityInfo(thisInfo.ObjectInfoForward, ControlModeLabels[thisInfo.ControlMode]);
+                controlIndicator = FindAuthorityInfo(thisInfo.ObjectInfoForward, Viewer.Catalog.GetString(thisInfo.ControlMode.GetDescription()));
             else if (thisInfo.ControlMode == TrainControlMode.OutOfControl)
-                controlIndicator = $"{ControlModeLabels[thisInfo.ControlMode]}{OutOfControlLabels[thisInfo.ObjectInfoForward.First().OutOfControlReason]}";
+                controlIndicator = $"{Viewer.Catalog.GetString(thisInfo.ControlMode.GetDescription())}: {thisInfo.ObjectInfoForward.First().OutOfControlReason.GetDescription()}";
             else
-                controlIndicator = ControlModeLabels[thisInfo.ControlMode];
+                controlIndicator = Viewer.Catalog.GetString(thisInfo.ControlMode.GetDescription());
             AddSeparator();
             AddLabel(new ListLabel
             {

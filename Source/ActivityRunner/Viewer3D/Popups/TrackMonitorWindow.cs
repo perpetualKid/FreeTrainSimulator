@@ -41,8 +41,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         Label Gradient;
         TrackMonitor Monitor;
 
-        readonly Dictionary<TrainControlMode, string> ControlModeLabels;
-
         static readonly Dictionary<Train.END_AUTHORITY, string> AuthorityLabels = new Dictionary<Train.END_AUTHORITY, string>
         {
 			{ Train.END_AUTHORITY.END_OF_TRACK, "End Trck" },
@@ -56,34 +54,9 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             { Train.END_AUTHORITY.END_OF_AUTHORITY, "End Auth" },
 		};
 
-        static readonly Dictionary<Train.OUTOFCONTROL, string> OutOfControlLabels = new Dictionary<Train.OUTOFCONTROL, string>
-        {
-			{ Train.OUTOFCONTROL.SPAD, "SPAD" },
-			{ Train.OUTOFCONTROL.SPAD_REAR, "SPAD-Rear" },
-            { Train.OUTOFCONTROL.MISALIGNED_SWITCH, "Misalg Sw" },
-			{ Train.OUTOFCONTROL.OUT_OF_AUTHORITY, "Off Auth" },
-			{ Train.OUTOFCONTROL.OUT_OF_PATH, "Off Path" },
-			{ Train.OUTOFCONTROL.SLIPPED_INTO_PATH, "Splipped" },
-			{ Train.OUTOFCONTROL.SLIPPED_TO_ENDOFTRACK, "Slipped" },
-			{ Train.OUTOFCONTROL.OUT_OF_TRACK, "Off Track" },
-            { Train.OUTOFCONTROL.SLIPPED_INTO_TURNTABLE, "Slip Turn" },
-			{ Train.OUTOFCONTROL.UNDEFINED, "Undefined" },
-		};
-
         public TrackMonitorWindow(WindowManager owner)
             : base(owner, Window.DecorationSize.X + owner.TextFontDefault.Height * 10, Window.DecorationSize.Y + owner.TextFontDefault.Height * (5 + TrackMonitorHeightInLinesOfText) + ControlLayout.SeparatorSize * 3, Viewer.Catalog.GetString("Track Monitor"))
         {
-            ControlModeLabels = new Dictionary<TrainControlMode, string> 
-            {
-			    { TrainControlMode.AutoSignal , Viewer.Catalog.GetString("Auto Signal") },
-			    { TrainControlMode.AutoNode, Viewer.Catalog.GetString("Node") },
-			    { TrainControlMode.Manual, Viewer.Catalog.GetString("Manual") },
-                { TrainControlMode.Explorer, Viewer.Catalog.GetString("Explorer") },
-			    { TrainControlMode.OutOfControl, Viewer.Catalog.GetString("OutOfControl : ") },
-                { TrainControlMode.Inactive, Viewer.Catalog.GetString("Inactive") },
-                { TrainControlMode.TurnTable, Viewer.Catalog.GetString("Turntable") },
-			    { TrainControlMode.Undefined, Viewer.Catalog.GetString("Unknown") },
-		    };
         }
 
         protected override ControlLayout Layout(ControlLayout layout)
@@ -137,16 +110,16 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 SpeedProjected.Text = FormatStrings.FormatSpeedDisplay(Math.Abs(thisInfo.projectedSpeedMpS), Owner.Viewer.MilepostUnitsMetric);
                 SpeedAllowed.Text = FormatStrings.FormatSpeedLimit(thisInfo.allowedSpeedMpS, Owner.Viewer.MilepostUnitsMetric);
 
-                var ControlText = ControlModeLabels[thisInfo.ControlMode];
+                var ControlText = Viewer.Catalog.GetString(thisInfo.ControlMode.GetDescription());
                 if (thisInfo.ControlMode == TrainControlMode.AutoNode)
                 {
                     ControlText = FindAuthorityInfo(thisInfo.ObjectInfoForward, ControlText);
                 }
                 else if (thisInfo.ControlMode == TrainControlMode.OutOfControl)
                 {
-                    ControlText = String.Concat(ControlText, OutOfControlLabels[thisInfo.ObjectInfoForward[0].OutOfControlReason]);
+                    ControlText += thisInfo.ObjectInfoForward[0].OutOfControlReason.GetDescription();
                 }
-                ControlMode.Text = String.Copy(ControlText);
+                ControlMode.Text = ControlText;
                 if (-thisInfo.currentElevationPercent < -0.00015)
                 {
                     var c = '\u2198';

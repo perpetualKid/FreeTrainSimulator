@@ -318,21 +318,7 @@ namespace Orts.Simulation.Physics
 
         public TrainControlMode ControlMode { get; set; } = TrainControlMode.Undefined;     // train control mode
 
-        public enum OUTOFCONTROL
-        {
-            SPAD,
-            SPAD_REAR,
-            MISALIGNED_SWITCH,
-            OUT_OF_AUTHORITY,
-            OUT_OF_PATH,
-            SLIPPED_INTO_PATH,
-            SLIPPED_TO_ENDOFTRACK,
-            OUT_OF_TRACK,
-            SLIPPED_INTO_TURNTABLE,
-            UNDEFINED
-        }
-
-        public OUTOFCONTROL OutOfControlReason = OUTOFCONTROL.UNDEFINED; // train out of control
+        public OutOfControlReason OutOfControlReason { get; set; } = OutOfControlReason.UnDefined; // train out of control
 
         public TCPosition[] PresentPosition = new TCPosition[2] { new TCPosition(), new TCPosition() };         // present position : 0 = front, 1 = rear
         public TCPosition[] PreviousPosition = new TCPosition[2] { new TCPosition(), new TCPosition() };        // previous train position
@@ -800,7 +786,7 @@ namespace Orts.Simulation.Physics
             }
 
             ControlMode = (TrainControlMode)inf.ReadInt32();
-            OutOfControlReason = (OUTOFCONTROL)inf.ReadInt32();
+            OutOfControlReason = (OutOfControlReason)inf.ReadInt32();
             EndAuthorityType[0] = (END_AUTHORITY)inf.ReadInt32();
             EndAuthorityType[1] = (END_AUTHORITY)inf.ReadInt32();
             LastReservedSection[0] = inf.ReadInt32();
@@ -5978,7 +5964,7 @@ namespace Orts.Simulation.Physics
 
             if (PresentPosition[0].RouteListIndex < 0)
             {
-                SetTrainOutOfControl(OUTOFCONTROL.OUT_OF_PATH);
+                SetTrainOutOfControl(OutOfControlReason.OutOfPath);
             }
             else if (StationStops.Count > 0)
             {
@@ -6310,7 +6296,7 @@ namespace Orts.Simulation.Physics
 
             if (presentIndex < 0)
             {
-                SetTrainOutOfControl(OUTOFCONTROL.OUT_OF_PATH);
+                SetTrainOutOfControl(OutOfControlReason.OutOfPath);
                 return;
             }
 
@@ -6476,7 +6462,7 @@ namespace Orts.Simulation.Physics
                             Trace.TraceWarning("Train {1} ({0}) passing signal {2} at {3} at danger at {4}",
                                Number.ToString(), Name, NextSignalObject[direction].Index.ToString(),
                                DistanceTravelledM.ToString("###0.0"), SpeedMpS.ToString("##0.00"));
-                            SetTrainOutOfControl(OUTOFCONTROL.SPAD);
+                            SetTrainOutOfControl(OutOfControlReason.PassedAtDanger);
                             break;
                         }
 
@@ -6566,7 +6552,7 @@ namespace Orts.Simulation.Physics
 
             if (presentIndex < 0) // we are off the path, stop train //
             {
-                SetTrainOutOfControl(OUTOFCONTROL.OUT_OF_PATH);
+                SetTrainOutOfControl(OutOfControlReason.OutOfPath);
             }
 
             // backward
@@ -6644,7 +6630,7 @@ namespace Orts.Simulation.Physics
                             Trace.TraceWarning("Train {1} ({0}) passing rear signal {2} at {3} at danger at {4}",
                             Number.ToString(), Name, RearSignalObject.Index.ToString(),
                             DistanceTravelledM.ToString("###0.0"), SpeedMpS.ToString("##0.00"));
-                            SetTrainOutOfControl(OUTOFCONTROL.SPAD_REAR);
+                            SetTrainOutOfControl(OutOfControlReason.RearPassedAtDanger);
                             outOfControl = true;
                         }
                         else
@@ -6678,7 +6664,7 @@ namespace Orts.Simulation.Physics
                                 TrackCircuitSection nextSection = signalRef.TrackCircuitList[nextSectionIndex];
                                 if (!nextSection.IsAvailable(this))
                                 {
-                                    SetTrainOutOfControl(OUTOFCONTROL.SLIPPED_INTO_PATH);
+                                    SetTrainOutOfControl(OutOfControlReason.SlippedIntoPath);
                                     outOfControl = true;
 
                                     // stop train in path
@@ -6700,7 +6686,7 @@ namespace Orts.Simulation.Physics
                                     thisSection = nextSection;
                                     if (thisSection.CircuitType == TrackCircuitType.EndOfTrack)
                                     {
-                                        SetTrainOutOfControl(OUTOFCONTROL.SLIPPED_TO_ENDOFTRACK);
+                                        SetTrainOutOfControl(OutOfControlReason.SlippedToEndOfTrack);
                                         outOfControl = true;
                                     }
                                 }
@@ -7839,7 +7825,7 @@ namespace Orts.Simulation.Physics
                             MisalignedSwitch[direction, 1] = -1;
 
                             // set to out of control
-                            SetTrainOutOfControl(OUTOFCONTROL.MISALIGNED_SWITCH);
+                            SetTrainOutOfControl(OutOfControlReason.MisalignedSwitch);
 
                             // recalculate track position
                             UpdateTrainPosition();
@@ -10299,7 +10285,7 @@ namespace Orts.Simulation.Physics
         /// Set mode and apply emergency brake
         /// </summary>
 
-        public void SetTrainOutOfControl(OUTOFCONTROL reason)
+        public void SetTrainOutOfControl(OutOfControlReason reason)
         {
 
             if (ControlMode == TrainControlMode.OutOfControl) // allready out of control, so exit
@@ -10328,7 +10314,7 @@ namespace Orts.Simulation.Physics
             }
 
             // TODO : clear routes for MANUAL
-            if (!MPManager.IsMultiPlayer() || Simulator.TimetableMode || reason != OUTOFCONTROL.OUT_OF_PATH || IsActualPlayerTrain)
+            if (!MPManager.IsMultiPlayer() || Simulator.TimetableMode || reason != OutOfControlReason.OutOfPath || IsActualPlayerTrain)
             {
 
                 // set control state and issue warning
@@ -10342,25 +10328,25 @@ namespace Orts.Simulation.Physics
 
                 switch (reason)
                 {
-                    case (OUTOFCONTROL.SPAD):
+                    case (OutOfControlReason.PassedAtDanger):
                         report = String.Concat(report, " train passed signal at Danger");
                         break;
-                    case (OUTOFCONTROL.SPAD_REAR):
+                    case (OutOfControlReason.RearPassedAtDanger):
                         report = String.Concat(report, " train passed signal at Danger at rear of train");
                         break;
-                    case (OUTOFCONTROL.OUT_OF_AUTHORITY):
+                    case (OutOfControlReason.OutOfAuthority):
                         report = String.Concat(report, " train passed limit of authority");
                         break;
-                    case (OUTOFCONTROL.OUT_OF_PATH):
+                    case (OutOfControlReason.OutOfPath):
                         report = String.Concat(report, " train has ran off its allocated path");
                         break;
-                    case (OUTOFCONTROL.SLIPPED_INTO_PATH):
+                    case (OutOfControlReason.SlippedIntoPath):
                         report = String.Concat(report, " train slipped back into path of another train");
                         break;
-                    case (OUTOFCONTROL.SLIPPED_TO_ENDOFTRACK):
+                    case (OutOfControlReason.SlippedToEndOfTrack):
                         report = String.Concat(report, " train slipped of the end of track");
                         break;
-                    case (OUTOFCONTROL.OUT_OF_TRACK):
+                    case (OutOfControlReason.OutOfTrack):
                         report = String.Concat(report, " train has moved off the track");
                         break;
                 }
@@ -13377,31 +13363,31 @@ namespace Orts.Simulation.Physics
             {
                 switch (OutOfControlReason)
                 {
-                    case OUTOFCONTROL.SPAD:
+                    case OutOfControlReason.PassedAtDanger:
                         statusString[iColumn] = "SPAD";
                         break;
-                    case OUTOFCONTROL.SPAD_REAR:
+                    case OutOfControlReason.RearPassedAtDanger:
                         statusString[iColumn] = "RSPD";
                         break;
-                    case OUTOFCONTROL.OUT_OF_AUTHORITY:
+                    case OutOfControlReason.OutOfAuthority:
                         statusString[iColumn] = "OOAU";
                         break;
-                    case OUTOFCONTROL.OUT_OF_PATH:
+                    case OutOfControlReason.OutOfPath:
                         statusString[iColumn] = "OOPA";
                         break;
-                    case OUTOFCONTROL.SLIPPED_INTO_PATH:
+                    case OutOfControlReason.SlippedIntoPath:
                         statusString[iColumn] = "SLPP";
                         break;
-                    case OUTOFCONTROL.SLIPPED_TO_ENDOFTRACK:
+                    case OutOfControlReason.SlippedToEndOfTrack:
                         statusString[iColumn] = "SLPT";
                         break;
-                    case OUTOFCONTROL.OUT_OF_TRACK:
+                    case OutOfControlReason.OutOfTrack:
                         statusString[iColumn] = "OOTR";
                         break;
-                    case OUTOFCONTROL.MISALIGNED_SWITCH:
+                    case OutOfControlReason.MisalignedSwitch:
                         statusString[iColumn] = "MASW";
                         break;
-                    case OUTOFCONTROL.SLIPPED_INTO_TURNTABLE:
+                    case OutOfControlReason.SlippedIntoTurnTable:
                         statusString[iColumn] = "SLPT";
                         break;
                     default:
@@ -20435,7 +20421,7 @@ namespace Orts.Simulation.Physics
             }
 
             public TRAINOBJECTTYPE ItemType;
-            public OUTOFCONTROL OutOfControlReason;
+            public OutOfControlReason OutOfControlReason;
             public END_AUTHORITY AuthorityType;
             public TrackMonitorSignalAspect SignalState;
             public float AllowedSpeedMpS;
@@ -20531,10 +20517,10 @@ namespace Orts.Simulation.Physics
             }
 
             // Constructor for OutOfControl
-            public TrainObjectItem(OUTOFCONTROL thisReason)
+            public TrainObjectItem(OutOfControlReason reason)
             {
                 ItemType = TRAINOBJECTTYPE.OUT_OF_CONTROL;
-                OutOfControlReason = thisReason;
+                OutOfControlReason = reason;
             }
 
             // Constructor for Waiting Point

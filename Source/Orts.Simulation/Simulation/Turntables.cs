@@ -224,7 +224,7 @@ namespace Orts.Simulation
                         {
                             TrainsOnMovingTable[trainIndex].SetFrontState(true);
                             Simulator.Confirmer.Warning(Simulator.Catalog.GetString("Train slipped into non aligned {0}", thisTableType));
-                            train.SetTrainOutOfControl(Train.OUTOFCONTROL.SLIPPED_INTO_TURNTABLE);
+                            train.SetTrainOutOfControl(OutOfControlReason.SlippedIntoTurnTable);
                             train.SpeedMpS = 0;
                             foreach (var car in train.Cars) car.SpeedMpS = 0;
                             return false;
@@ -265,7 +265,7 @@ namespace Orts.Simulation
                         {
                             TrainsOnMovingTable[trainIndex].SetBackState(true);
                             Simulator.Confirmer.Warning(Simulator.Catalog.GetString("Train slipped into non aligned {0}", thisTableType));
-                            train.SetTrainOutOfControl(Train.OUTOFCONTROL.SLIPPED_INTO_TURNTABLE);
+                            train.SetTrainOutOfControl(OutOfControlReason.SlippedIntoTurnTable);
                             train.SpeedMpS = 0;
                             foreach (var car in train.Cars) car.SpeedMpS = 0;
                             return false;
