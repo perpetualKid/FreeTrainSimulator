@@ -206,25 +206,6 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             { 10.0f, 2.0f },
         };
 
-        /// <summary>
-        /// Authorized status message lookup table.
-        /// </summary>
-        /// <remarks>
-        /// Equivalent to <see cref="Popups.TrackMonitorWindow.AuthorityLabels"/>.
-        /// </remarks>
-        private static readonly Dictionary<Train.END_AUTHORITY, string> AuthorityLabels = new Dictionary<Train.END_AUTHORITY, string>
-        {
-            { Train.END_AUTHORITY.END_OF_TRACK, "End Trck" },
-            { Train.END_AUTHORITY.END_OF_PATH, "End Path" },
-            { Train.END_AUTHORITY.RESERVED_SWITCH, "Switch" },
-            { Train.END_AUTHORITY.LOOP, "Loop" },
-            { Train.END_AUTHORITY.TRAIN_AHEAD, "TrainAhd" },
-            { Train.END_AUTHORITY.MAX_DISTANCE, "Max Dist" },
-            { Train.END_AUTHORITY.NO_PATH_RESERVED, "No Path" },
-            { Train.END_AUTHORITY.SIGNAL, "Signal" },
-            { Train.END_AUTHORITY.END_OF_AUTHORITY, "End Auth" },
-        };
-
         private static int RowOffset { get => MultiPlayer.MPManager.IsMultiPlayer() ? 1 : 2; }
 
         /// <summary>
@@ -425,7 +406,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
         private static string FindAuthorityInfo(IEnumerable<Train.TrainObjectItem> objects, string controlText)
         {
             Train.TrainObjectItem authInfo = objects.SingleOrDefault((info) => info.ItemType == TRAINOBJECTTYPE.AUTHORITY);
-            return authInfo == null ? controlText : $"{controlText} : {AuthorityLabels[authInfo.AuthorityType]}";
+            return authInfo == null ? controlText : $"{controlText} : {authInfo.AuthorityType.GetDescription()}";
         }
 
         /// <summary>
@@ -532,7 +513,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             {
                 FirstCol = Viewer.Catalog.GetString(
                     backwardObject?.ItemType == Train.TrainObjectItem.TRAINOBJECTTYPE.AUTHORITY &&
-                    backwardObject?.AuthorityType == Train.END_AUTHORITY.NO_PATH_RESERVED ? "SprtrRed" : "SprtrDarkGray"),
+                    backwardObject?.AuthorityType == EndAuthorityType.NoPathReserved ? "SprtrRed" : "SprtrDarkGray"),
             });
 
             // Draw direction arrow
@@ -810,16 +791,16 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             {
                 switch (item.AuthorityType)
                 {
-                    case Train.END_AUTHORITY.END_OF_AUTHORITY:
-                    case Train.END_AUTHORITY.END_OF_PATH:
-                    case Train.END_AUTHORITY.END_OF_TRACK:
-                    case Train.END_AUTHORITY.RESERVED_SWITCH:
-                    case Train.END_AUTHORITY.LOOP:
+                    case EndAuthorityType.EndOfAuthority:
+                    case EndAuthorityType.EndOfPath:
+                    case EndAuthorityType.EndOfTrack:
+                    case EndAuthorityType.ReservedSwitch:
+                    case EndAuthorityType.Loop:
                         Sprite = Sprites.EndAuthoritySprite;
                         Symbol = Symbols.EndAuthorityWS;
                         Render = true;
                         break;
-                    case Train.END_AUTHORITY.TRAIN_AHEAD:
+                    case EndAuthorityType.TrainAhead:
                         Sprite = direction == TrainDirection.Forward ? Sprites.OppositeTrainForwardSprite : Sprites.OppositeTrainBackwardSprite;
                         Symbol = direction == TrainDirection.Forward ? Symbols.OppositeTrainForwardWS : Symbols.OppositeTrainBackwardWS;
                         Render = true;

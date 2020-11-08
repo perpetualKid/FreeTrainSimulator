@@ -2640,7 +2640,7 @@ namespace Orts.Simulation.Timetables
                 UpdateMinimalDelay();
 
                 // if train ahead and approaching turntable, check if train is beyond turntable
-                if (ValidRoute[0].Last().MovingTableApproachPath > -1 && EndAuthorityType[0] == END_AUTHORITY.TRAIN_AHEAD)
+                if (ValidRoute[0].Last().MovingTableApproachPath > -1 && EndAuthorityTypes[0] == EndAuthorityType.TrainAhead)
                 {
                     CheckTrainBeyondTurntable();
                 }
@@ -2790,7 +2790,7 @@ namespace Orts.Simulation.Timetables
                     UpdateRouteClearanceAhead(SignalObjIndex, movedBackward, elapsedClockSeconds);  // update route clearance  //
                     if (CheckTrain)
                     {
-                        File.AppendAllText(@"C:\temp\checktrain.txt", "MovementState : " + MovementState.ToString() + " ; End Authority : " + EndAuthorityType[0].ToString() + "\n");
+                        File.AppendAllText(@"C:\temp\checktrain.txt", "MovementState : " + MovementState.ToString() + " ; End Authority : " + EndAuthorityTypes[0].ToString() + "\n");
                     }
 
                     if (MovementState != AI_MOVEMENT_STATE.TURNTABLE)
@@ -2799,7 +2799,7 @@ namespace Orts.Simulation.Timetables
                     }
 
                     // if train ahead and approaching turntable, check if train is beyond turntable
-                    if (ValidRoute[0].Last().MovingTableApproachPath > -1 && EndAuthorityType[0] == END_AUTHORITY.TRAIN_AHEAD)
+                    if (ValidRoute[0].Last().MovingTableApproachPath > -1 && EndAuthorityTypes[0] == EndAuthorityType.TrainAhead)
                     {
                         CheckTrainBeyondTurntable();
                     }
@@ -2842,7 +2842,7 @@ namespace Orts.Simulation.Timetables
 
                 if (lengthToGoM < DistanceToEndNodeAuthorityM[0])
                 {
-                    EndAuthorityType[0] = END_AUTHORITY.END_OF_PATH;
+                    EndAuthorityTypes[0] = EndAuthorityType.EndOfPath;
                     DistanceToEndNodeAuthorityM[0] = NextStopDistanceM = lengthToGoM + clearingDistanceM; // add clearing distance to avoid position lock short of turntable
                 }
             }
@@ -3140,7 +3140,7 @@ namespace Orts.Simulation.Timetables
         public override void CheckRequiredAction()
         {
             // check if train ahead
-            if (EndAuthorityType[0] == END_AUTHORITY.TRAIN_AHEAD)
+            if (EndAuthorityTypes[0] == EndAuthorityType.TrainAhead)
             {
                 if (MovementState != AI_MOVEMENT_STATE.STATION_STOP && MovementState != AI_MOVEMENT_STATE.STOPPED)
                 {
@@ -3148,7 +3148,7 @@ namespace Orts.Simulation.Timetables
                     CheckReadyToAttach();                         // check for attach
                 }
             }
-            else if (EndAuthorityType[0] == END_AUTHORITY.RESERVED_SWITCH || EndAuthorityType[0] == END_AUTHORITY.LOOP || EndAuthorityType[0] == END_AUTHORITY.NO_PATH_RESERVED)
+            else if (EndAuthorityTypes[0] == EndAuthorityType.ReservedSwitch || EndAuthorityTypes[0] == EndAuthorityType.Loop || EndAuthorityTypes[0] == EndAuthorityType.NoPathReserved)
             {
                 ResetActions(true);
                 NextStopDistanceM = DistanceToEndNodeAuthorityM[0] - 2.0f * junctionOverlapM;
@@ -3156,7 +3156,7 @@ namespace Orts.Simulation.Timetables
                            AIActionItem.AI_ACTION_TYPE.END_OF_AUTHORITY);
             }
             // first handle outstanding actions
-            else if (EndAuthorityType[0] == END_AUTHORITY.END_OF_PATH &&
+            else if (EndAuthorityTypes[0] == EndAuthorityType.EndOfPath &&
                 (nextActionInfo == null || nextActionInfo.NextAction == AIActionItem.AI_ACTION_TYPE.END_OF_ROUTE))
             {
                 ResetActions(false);
@@ -3211,7 +3211,7 @@ namespace Orts.Simulation.Timetables
             // check if train ahead - if so, determine speed and distance
 
             if (ControlMode == TrainControlMode.AutoNode &&
-                EndAuthorityType[0] == END_AUTHORITY.TRAIN_AHEAD)
+                EndAuthorityTypes[0] == EndAuthorityType.TrainAhead)
             {
 
                 // check if train ahead is in same section
@@ -3254,7 +3254,7 @@ namespace Orts.Simulation.Timetables
                         TTTrain OtherTrain = trainAhead.Key as TTTrain;
                         float distanceToTrain = trainAhead.Value + addOffset;
 
-                        if (EndAuthorityType[0] == END_AUTHORITY.TRAIN_AHEAD)
+                        if (EndAuthorityTypes[0] == EndAuthorityType.TrainAhead)
                         {
                             DistanceToEndNodeAuthorityM[0] = distanceToTrain;
                         }
@@ -3355,7 +3355,7 @@ namespace Orts.Simulation.Timetables
 
             else if (ControlMode == TrainControlMode.AutoNode)
             {
-                if (EndAuthorityType[0] == END_AUTHORITY.RESERVED_SWITCH || EndAuthorityType[0] == END_AUTHORITY.LOOP)
+                if (EndAuthorityTypes[0] == EndAuthorityType.ReservedSwitch|| EndAuthorityTypes[0] == EndAuthorityType.Loop)
                 {
                     float ReqStopDistanceM = DistanceToEndNodeAuthorityM[0] - 2.0f * junctionOverlapM;
                     if (ReqStopDistanceM > clearingDistanceM)
@@ -4103,11 +4103,11 @@ namespace Orts.Simulation.Timetables
                 {
                     distanceToGoM = DistanceToEndNodeAuthorityM[0];
 
-                    if (EndAuthorityType[0] == END_AUTHORITY.RESERVED_SWITCH)
+                    if (EndAuthorityTypes[0] == EndAuthorityType.ReservedSwitch)
                     {
                         distanceToGoM = DistanceToEndNodeAuthorityM[0] - 2.0f * junctionOverlapM;
                     }
-                    else if (EndAuthorityType[0] == END_AUTHORITY.END_OF_PATH || EndAuthorityType[0] == END_AUTHORITY.END_OF_AUTHORITY)
+                    else if (EndAuthorityTypes[0] == EndAuthorityType.EndOfPath || EndAuthorityTypes[0] == EndAuthorityType.EndOfAuthority)
                     {
                         distanceToGoM = DistanceToEndNodeAuthorityM[0] - (Closeup ? keepDistanceCloseupM : clearingDistanceM);
                     }
@@ -4318,7 +4318,7 @@ namespace Orts.Simulation.Timetables
             else if (nextActionInfo.NextAction == AIActionItem.AI_ACTION_TYPE.END_OF_AUTHORITY)
             {
                 nextActionInfo.ActivateDistanceM = DistanceToEndNodeAuthorityM[0] + DistanceTravelledM;
-                if (EndAuthorityType[0] == END_AUTHORITY.MAX_DISTANCE)
+                if (EndAuthorityTypes[0] == EndAuthorityType.MaxDistance)
                 {
                     clearAction = true;
                 }
@@ -5068,7 +5068,7 @@ namespace Orts.Simulation.Timetables
                                         " ; speed : " + FormatStrings.FormatSpeed(SpeedMpS, true) + "\n");
             }
 
-            if (ControlMode != TrainControlMode.AutoNode || EndAuthorityType[0] != END_AUTHORITY.TRAIN_AHEAD) // train is gone
+            if (ControlMode != TrainControlMode.AutoNode || EndAuthorityTypes[0] != EndAuthorityType.TrainAhead) // train is gone
             {
                 if (CheckTrain)
                 {
@@ -5819,7 +5819,7 @@ namespace Orts.Simulation.Timetables
                     MovementState = AI_MOVEMENT_STATE.TURNTABLE;
                 }
             }
-            else if (ControlMode == TrainControlMode.AutoNode && EndAuthorityType[0] == END_AUTHORITY.TRAIN_AHEAD)
+            else if (ControlMode == TrainControlMode.AutoNode && EndAuthorityTypes[0] == EndAuthorityType.TrainAhead)
             {
                 MovementState = AI_MOVEMENT_STATE.FOLLOWING;
                 AITrainThrottlePercent = 0;
@@ -6556,7 +6556,7 @@ namespace Orts.Simulation.Timetables
                 }
             }
             // check for train to attach in static mode
-            else if (EndAuthorityType[0] == END_AUTHORITY.TRAIN_AHEAD && AttachDetails.StationPlatformReference < 0 && AttachDetails.Valid)
+            else if (EndAuthorityTypes[0] == EndAuthorityType.TrainAhead && AttachDetails.StationPlatformReference < 0 && AttachDetails.Valid)
             {
                 for (int iRouteSection = PresentPosition[0].RouteListIndex; iRouteSection < ValidRoute[0].Count; iRouteSection++)
                 {
@@ -9542,7 +9542,7 @@ namespace Orts.Simulation.Timetables
 
             // train authority is end of path
             if (ControlMode == TrainControlMode.AutoNode &&
-                (EndAuthorityType[0] == END_AUTHORITY.END_OF_TRACK || EndAuthorityType[0] == END_AUTHORITY.END_OF_PATH || EndAuthorityType[0] == END_AUTHORITY.END_OF_AUTHORITY))
+                (EndAuthorityTypes[0] == EndAuthorityType.EndOfTrack || EndAuthorityTypes[0] == EndAuthorityType.EndOfPath || EndAuthorityTypes[0] == EndAuthorityType.EndOfAuthority))
             {
                 // front is in last route section
                 if (PresentPosition[0].RouteListIndex == lastValidRouteIndex)

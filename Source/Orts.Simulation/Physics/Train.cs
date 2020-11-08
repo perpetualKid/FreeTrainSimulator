@@ -352,20 +352,7 @@ namespace Orts.Simulation.Physics
         // TODO: Replace this with an event
         public bool FormationReversed;          // flags the execution of the ReverseFormation method (executed at reversal points)
 
-        public enum END_AUTHORITY
-        {
-            END_OF_TRACK,
-            END_OF_PATH,
-            RESERVED_SWITCH,
-            TRAIN_AHEAD,
-            MAX_DISTANCE,
-            LOOP,
-            SIGNAL,                                       // in Manual mode only
-            END_OF_AUTHORITY,                             // when moving backward in Auto mode
-            NO_PATH_RESERVED
-        }
-
-        public END_AUTHORITY[] EndAuthorityType = new END_AUTHORITY[2] { END_AUTHORITY.NO_PATH_RESERVED, END_AUTHORITY.NO_PATH_RESERVED };
+        public EndAuthorityType[] EndAuthorityTypes = new EndAuthorityType[2] { EndAuthorityType.NoPathReserved, EndAuthorityType.NoPathReserved};
 
         public int[] LastReservedSection = new int[2] { -1, -1 };         // index of furthest cleared section (for NODE control)
         public float[] DistanceToEndNodeAuthorityM = new float[2];      // distance to end of authority
@@ -787,8 +774,8 @@ namespace Orts.Simulation.Physics
 
             ControlMode = (TrainControlMode)inf.ReadInt32();
             OutOfControlReason = (OutOfControlReason)inf.ReadInt32();
-            EndAuthorityType[0] = (END_AUTHORITY)inf.ReadInt32();
-            EndAuthorityType[1] = (END_AUTHORITY)inf.ReadInt32();
+            EndAuthorityTypes[0] = (EndAuthorityType)inf.ReadInt32();
+            EndAuthorityTypes[1] = (EndAuthorityType)inf.ReadInt32();
             LastReservedSection[0] = inf.ReadInt32();
             LastReservedSection[1] = inf.ReadInt32();
             LoopSection = inf.ReadInt32();
@@ -1087,8 +1074,8 @@ namespace Orts.Simulation.Physics
 
             outf.Write((int)ControlMode);
             outf.Write((int)OutOfControlReason);
-            outf.Write((int)EndAuthorityType[0]);
-            outf.Write((int)EndAuthorityType[1]);
+            outf.Write((int)EndAuthorityTypes[0]);
+            outf.Write((int)EndAuthorityTypes[1]);
             outf.Write(LastReservedSection[0]);
             outf.Write(LastReservedSection[1]);
             outf.Write(LoopSection);
@@ -6360,7 +6347,7 @@ namespace Orts.Simulation.Physics
                     if (!Simulator.TimetableMode && thisSection.CircuitState.OccupiedByOtherTrains(routedForward))
                     {
                         SwitchToNodeControl(sectionIndex);
-                        EndAuthorityType[0] = END_AUTHORITY.TRAIN_AHEAD;
+                        EndAuthorityTypes[0] = EndAuthorityType.TrainAhead;
                         ChangeControlModeOtherTrains(thisSection);
                     }
                     // additional actions for child classes
@@ -7608,7 +7595,7 @@ namespace Orts.Simulation.Physics
 
             // look maxTimeS or minCheckDistance ahead
             float maxDistance = Math.Max(AllowedMaxSpeedMpS * maxTimeS, minCheckDistanceM);
-            if (EndAuthorityType[0] == END_AUTHORITY.MAX_DISTANCE && DistanceToEndNodeAuthorityM[0] > maxDistance)
+            if (EndAuthorityTypes[0] == EndAuthorityType.MaxDistance && DistanceToEndNodeAuthorityM[0] > maxDistance)
             {
                 return;   // no update required //
             }
@@ -7692,7 +7679,7 @@ namespace Orts.Simulation.Physics
         public void UpdateManualMode(int signalObjectIndex)
         {
             // check present forward
-            TCSubpathRoute newRouteF = CheckManualPath(0, PresentPosition[0], ValidRoute[0], true, ref EndAuthorityType[0],
+            TCSubpathRoute newRouteF = CheckManualPath(0, PresentPosition[0], ValidRoute[0], true, ref EndAuthorityTypes[0],
                 ref DistanceToEndNodeAuthorityM[0]);
             ValidRoute[0] = newRouteF;
             int routeIndex = ValidRoute[0].GetRouteIndex(PresentPosition[0].TCSectionIndex, 0);
@@ -7703,7 +7690,7 @@ namespace Orts.Simulation.Physics
             TCPosition tempRear = new TCPosition();
             PresentPosition[1].CopyTo(ref tempRear);
             tempRear.TCDirection = tempRear.TCDirection == 0 ? 1 : 0;
-            TCSubpathRoute newRouteR = CheckManualPath(1, tempRear, ValidRoute[1], true, ref EndAuthorityType[1],
+            TCSubpathRoute newRouteR = CheckManualPath(1, tempRear, ValidRoute[1], true, ref EndAuthorityTypes[1],
                 ref DistanceToEndNodeAuthorityM[1]);
             ValidRoute[1] = newRouteR;
 
@@ -7773,7 +7760,7 @@ namespace Orts.Simulation.Physics
         /// <\summary>
 
         public TCSubpathRoute CheckManualPath(int direction, TCPosition requiredPosition, TCSubpathRoute requiredRoute, bool forward,
-            ref END_AUTHORITY endAuthority, ref float endAuthorityDistanceM)
+            ref EndAuthorityType endAuthority, ref float endAuthorityDistanceM)
         {
             TrainRouted thisRouted = direction == 0 ? routedForward : routedBackward;
 
@@ -8035,7 +8022,7 @@ namespace Orts.Simulation.Physics
                 {
                     foreach (KeyValuePair<Train, float> thisTrainAhead in firstTrainInfo)  // there is only one value
                     {
-                        endAuthority = END_AUTHORITY.TRAIN_AHEAD;
+                        endAuthority = EndAuthorityType.TrainAhead;
                         endAuthorityDistanceM = thisTrainAhead.Value;
                         if (!thisSection.CircuitState.OccupiedByThisTrain(this))
                             thisSection.PreReserve(thisRouted);
@@ -8073,7 +8060,7 @@ namespace Orts.Simulation.Physics
                     }
 
                     // set default authority to max distance
-                    endAuthority = END_AUTHORITY.MAX_DISTANCE;
+                    endAuthority = EndAuthorityType.MaxDistance;
                     endAuthorityDistanceM = totalLengthM;
 
                     // if last section ends with signal, set authority to signal
@@ -8083,7 +8070,7 @@ namespace Orts.Simulation.Physics
                     // last section ends with signal
                     if (thisSection.EndSignals[reqDirection] != null)
                     {
-                        endAuthority = END_AUTHORITY.SIGNAL;
+                        endAuthority = EndAuthorityType.Signal;
                         endAuthorityDistanceM = totalLengthM;
                     }
 
@@ -8105,7 +8092,7 @@ namespace Orts.Simulation.Physics
                         // last section is end of track
                         if (thisSection.CircuitType == TrackCircuitType.EndOfTrack)
                         {
-                            endAuthority = END_AUTHORITY.END_OF_TRACK;
+                            endAuthority = EndAuthorityType.EndOfTrack;
                             endAuthorityDistanceM = totalLengthM;
                         }
 
@@ -8113,14 +8100,14 @@ namespace Orts.Simulation.Physics
                         else if (nextSection != null && (nextSection.CircuitType == TrackCircuitType.Junction ||
                                      nextSection.CircuitType == TrackCircuitType.Crossover))
                         {
-                            endAuthority = END_AUTHORITY.RESERVED_SWITCH;
+                            endAuthority = EndAuthorityType.ReservedSwitch;
                             endAuthorityDistanceM = totalLengthM;
                         }
 
                         // set authority is end of path unless train ahead
                         else
                         {
-                            endAuthority = END_AUTHORITY.END_OF_PATH;
+                            endAuthority = EndAuthorityType.EndOfPath;
                             endAuthorityDistanceM = totalLengthM;
 
                             // check if train ahead not moving in opposite direction, in first non-available section
@@ -8139,7 +8126,7 @@ namespace Orts.Simulation.Physics
                                     {
                                         foreach (KeyValuePair<Train, float> thisTrainAhead in nextTrainInfo)  // there is only one value
                                         {
-                                            endAuthority = END_AUTHORITY.TRAIN_AHEAD;
+                                            endAuthority = EndAuthorityType.TrainAhead;
                                             endAuthorityDistanceM = thisTrainAhead.Value + totalLengthM;
                                             lastValidSectionIndex++;
                                             nextSection.PreReserve(thisRouted);
@@ -8165,7 +8152,7 @@ namespace Orts.Simulation.Physics
             // no valid route could be found
             else
             {
-                endAuthority = END_AUTHORITY.NO_PATH_RESERVED;
+                endAuthority = EndAuthorityType.NoPathReserved;
                 endAuthorityDistanceM = 0.0f;
             }
 
@@ -8521,7 +8508,7 @@ namespace Orts.Simulation.Physics
 
             if (direction == Direction.Forward)
             {
-                selectedRoute = CheckManualPath(0, PresentPosition[0], null, true, ref EndAuthorityType[0],
+                selectedRoute = CheckManualPath(0, PresentPosition[0], null, true, ref EndAuthorityTypes[0],
                     ref DistanceToEndNodeAuthorityM[0]);
                 routeIndex = 0;
 
@@ -8531,7 +8518,7 @@ namespace Orts.Simulation.Physics
                 TCPosition tempRear = new TCPosition();
                 PresentPosition[1].CopyTo(ref tempRear);
                 tempRear.TCDirection = tempRear.TCDirection == 0 ? 1 : 0;
-                selectedRoute = CheckManualPath(1, tempRear, null, true, ref EndAuthorityType[1],
+                selectedRoute = CheckManualPath(1, tempRear, null, true, ref EndAuthorityTypes[1],
                      ref DistanceToEndNodeAuthorityM[1]);
                 routeIndex = 1;
             }
@@ -8859,7 +8846,7 @@ namespace Orts.Simulation.Physics
             }
 
             // check present forward
-            TCSubpathRoute newRouteF = CheckExplorerPath(0, PresentPosition[0], ValidRoute[0], true, ref EndAuthorityType[0],
+            TCSubpathRoute newRouteF = CheckExplorerPath(0, PresentPosition[0], ValidRoute[0], true, ref EndAuthorityTypes[0],
                 ref DistanceToEndNodeAuthorityM[0]);
             ValidRoute[0] = newRouteF;
             int routeIndex = ValidRoute[0].GetRouteIndex(PresentPosition[0].TCSectionIndex, 0);
@@ -8870,7 +8857,7 @@ namespace Orts.Simulation.Physics
             TCPosition tempRear = new TCPosition();
             PresentPosition[1].CopyTo(ref tempRear);
             tempRear.TCDirection = tempRear.TCDirection == 0 ? 1 : 0;
-            TCSubpathRoute newRouteR = CheckExplorerPath(1, tempRear, ValidRoute[1], true, ref EndAuthorityType[1],
+            TCSubpathRoute newRouteR = CheckExplorerPath(1, tempRear, ValidRoute[1], true, ref EndAuthorityTypes[1],
                 ref DistanceToEndNodeAuthorityM[1]);
             ValidRoute[1] = newRouteR;
 
@@ -8935,7 +8922,7 @@ namespace Orts.Simulation.Physics
         /// <\summary>
 
         public TCSubpathRoute CheckExplorerPath(int direction, TCPosition requiredPosition, TCSubpathRoute requiredRoute, bool forward,
-            ref END_AUTHORITY endAuthority, ref float endAuthorityDistanceM)
+            ref EndAuthorityType endAuthority, ref float endAuthorityDistanceM)
         {
             TrainRouted thisRouted = direction == 0 ? routedForward : routedBackward;
 
@@ -9091,7 +9078,7 @@ namespace Orts.Simulation.Physics
                 {
                     foreach (KeyValuePair<Train, float> thisTrainAhead in firstTrainInfo)  // there is only one value
                     {
-                        endAuthority = END_AUTHORITY.TRAIN_AHEAD;
+                        endAuthority = EndAuthorityType.TrainAhead;
                         endAuthorityDistanceM = thisTrainAhead.Value;
                         if (!thisSection.CircuitState.OccupiedByThisTrain(this)) thisSection.PreReserve(thisRouted);
                     }
@@ -9127,7 +9114,7 @@ namespace Orts.Simulation.Physics
                     }
 
                     // set default authority to max distance
-                    endAuthority = END_AUTHORITY.MAX_DISTANCE;
+                    endAuthority = EndAuthorityType.MaxDistance;
                     endAuthorityDistanceM = totalLengthM;
 
                     // if last section ends with signal, set authority to signal
@@ -9137,7 +9124,7 @@ namespace Orts.Simulation.Physics
                     // last section ends with signal
                     if (thisSection.EndSignals[reqDirection] != null)
                     {
-                        endAuthority = END_AUTHORITY.SIGNAL;
+                        endAuthority = EndAuthorityType.Signal;
                         endAuthorityDistanceM = totalLengthM;
                     }
 
@@ -9159,7 +9146,7 @@ namespace Orts.Simulation.Physics
                         // last section is end of track
                         if (thisSection.CircuitType == TrackCircuitType.EndOfTrack)
                         {
-                            endAuthority = END_AUTHORITY.END_OF_TRACK;
+                            endAuthority = EndAuthorityType.EndOfTrack;
                             endAuthorityDistanceM = totalLengthM;
                         }
 
@@ -9167,14 +9154,14 @@ namespace Orts.Simulation.Physics
                         else if (nextSection != null && (nextSection.CircuitType == TrackCircuitType.Junction ||
                                      nextSection.CircuitType == TrackCircuitType.Crossover))
                         {
-                            endAuthority = END_AUTHORITY.RESERVED_SWITCH;
+                            endAuthority = EndAuthorityType.ReservedSwitch;
                             endAuthorityDistanceM = totalLengthM;
                         }
 
                         // set authority is end of path unless train ahead
                         else
                         {
-                            endAuthority = END_AUTHORITY.END_OF_PATH;
+                            endAuthority = EndAuthorityType.EndOfPath;
                             endAuthorityDistanceM = totalLengthM;
 
                             // check if train ahead not moving in opposite direction, in first non-available section
@@ -9193,7 +9180,7 @@ namespace Orts.Simulation.Physics
                                     {
                                         foreach (KeyValuePair<Train, float> thisTrainAhead in nextTrainInfo)  // there is only one value
                                         {
-                                            endAuthority = END_AUTHORITY.TRAIN_AHEAD;
+                                            endAuthority = EndAuthorityType.TrainAhead;
                                             endAuthorityDistanceM = thisTrainAhead.Value + totalLengthM;
                                             lastValidSectionIndex++;
                                             nextSection.PreReserve(thisRouted);
@@ -9217,7 +9204,7 @@ namespace Orts.Simulation.Physics
                 // check if route ends at signal and this is first unclear signal
                 // if so, request clear signal
 
-                if (endAuthority == END_AUTHORITY.SIGNAL)
+                if (endAuthority == EndAuthorityType.Signal)
                 {
                     TrackCircuitSection lastSection = signalRef.TrackCircuitList[newRoute[newRoute.Count - 1].TCSectionIndex];
                     TrackDirection lastDirection = (TrackDirection)newRoute[newRoute.Count - 1].Direction;
@@ -9232,7 +9219,7 @@ namespace Orts.Simulation.Physics
             // no valid route could be found
             else
             {
-                endAuthority = END_AUTHORITY.NO_PATH_RESERVED;
+                endAuthority = EndAuthorityType.NoPathReserved;
                 endAuthorityDistanceM = 0.0f;
             }
 
@@ -9319,7 +9306,7 @@ namespace Orts.Simulation.Physics
                 tempPos.TCDirection = tempPos.TCDirection == 0 ? 1 : 0;
             }
 
-            TCSubpathRoute newRouteR = CheckExplorerPath(routeIndex, tempPos, ValidRoute[routeIndex], true, ref EndAuthorityType[routeIndex],
+            TCSubpathRoute newRouteR = CheckExplorerPath(routeIndex, tempPos, ValidRoute[routeIndex], true, ref EndAuthorityTypes[routeIndex],
                 ref DistanceToEndNodeAuthorityM[routeIndex]);
             ValidRoute[routeIndex] = newRouteR;
             Simulator.SoundNotify = reqSignal.OverridePermission == SignalPermission.Granted ?
@@ -9719,7 +9706,7 @@ namespace Orts.Simulation.Physics
             int endListIndex = -1;
 
             ControlMode = TrainControlMode.AutoNode;
-            EndAuthorityType[0] = END_AUTHORITY.NO_PATH_RESERVED;
+            EndAuthorityTypes[0] = EndAuthorityType.NoPathReserved;
             IndexNextSignal = -1; // no next signal in Node Control
 
             // if section is set, check if it is on route and ahead of train
@@ -9745,20 +9732,20 @@ namespace Orts.Simulation.Physics
 
                     if (clearedDistanceM > maxDistance)
                     {
-                        EndAuthorityType[0] = END_AUTHORITY.MAX_DISTANCE;
+                        EndAuthorityTypes[0] = EndAuthorityType.MaxDistance;
                         LastReservedSection[0] = thisSection.Index;
                         DistanceToEndNodeAuthorityM[0] = clearedDistanceM;
                     }
                 }
                 else
                 {
-                    EndAuthorityType[0] = END_AUTHORITY.NO_PATH_RESERVED;
+                    EndAuthorityTypes[0] = EndAuthorityType.NoPathReserved;
                 }
             }
 
             // new request or not beyond max distance
 
-            if (activeSectionIndex < 0 || EndAuthorityType[0] != END_AUTHORITY.MAX_DISTANCE)
+            if (activeSectionIndex < 0 || EndAuthorityTypes[0] != EndAuthorityType.MaxDistance)
             {
                 signalRef.RequestClearNode(routedForward, ValidRoute[0]);
             }
@@ -13402,27 +13389,27 @@ namespace Orts.Simulation.Physics
 
             else if (ControlMode == TrainControlMode.AutoNode)
             {
-                switch (EndAuthorityType[0])
+                switch (EndAuthorityTypes[0])
                 {
-                    case END_AUTHORITY.END_OF_TRACK:
+                    case EndAuthorityType.EndOfTrack:
                         statusString[iColumn] = "EOT";
                         break;
-                    case END_AUTHORITY.END_OF_PATH:
+                    case EndAuthorityType.EndOfPath:
                         statusString[iColumn] = "EOP";
                         break;
-                    case END_AUTHORITY.RESERVED_SWITCH:
+                    case EndAuthorityType.ReservedSwitch:
                         statusString[iColumn] = "RSW";
                         break;
-                    case END_AUTHORITY.LOOP:
+                    case EndAuthorityType.Loop:
                         statusString[iColumn] = "LP ";
                         break;
-                    case END_AUTHORITY.TRAIN_AHEAD:
+                    case EndAuthorityType.TrainAhead:
                         statusString[iColumn] = "TAH";
                         break;
-                    case END_AUTHORITY.MAX_DISTANCE:
+                    case EndAuthorityType.MaxDistance:
                         statusString[iColumn] = "MXD";
                         break;
-                    case END_AUTHORITY.NO_PATH_RESERVED:
+                    case EndAuthorityType.NoPathReserved:
                         statusString[iColumn] = "NOP";
                         break;
                     default:
@@ -13432,7 +13419,7 @@ namespace Orts.Simulation.Physics
 
                 iColumn++;
                 //  8, "Distance"
-                if (EndAuthorityType[0] != END_AUTHORITY.MAX_DISTANCE && EndAuthorityType[0] != END_AUTHORITY.NO_PATH_RESERVED)
+                if (EndAuthorityTypes[0] != EndAuthorityType.MaxDistance && EndAuthorityTypes[0] != EndAuthorityType.NoPathReserved)
                 {
                     statusString[iColumn] = FormatStrings.FormatDistance(DistanceToEndNodeAuthorityM[0], metric);
                 }
@@ -13943,7 +13930,7 @@ namespace Orts.Simulation.Physics
                 thisInfo.ControlMode = ControlMode;
                 thisInfo.direction = 0;
                 thisInfo.speedMpS = 0;
-                TrainObjectItem dummyItem = new TrainObjectItem(END_AUTHORITY.NO_PATH_RESERVED, 0.0f);
+                TrainObjectItem dummyItem = new TrainObjectItem(EndAuthorityType.NoPathReserved, 0.0f);
                 thisInfo.ObjectInfoForward.Add(dummyItem);
                 thisInfo.ObjectInfoBackward.Add(dummyItem);
             }
@@ -13997,7 +13984,7 @@ namespace Orts.Simulation.Physics
             // set object items - forward
             if (ControlMode == TrainControlMode.AutoNode)
             {
-                TrainObjectItem nextItem = new TrainObjectItem(EndAuthorityType[0], DistanceToEndNodeAuthorityM[0]);
+                TrainObjectItem nextItem = new TrainObjectItem(EndAuthorityTypes[0], DistanceToEndNodeAuthorityM[0]);
                 thisInfo.ObjectInfoForward.Add(nextItem);
                 maxAuthSet = true;
             }
@@ -14073,7 +14060,7 @@ namespace Orts.Simulation.Physics
 
             if (ClearanceAtRearM <= 0)
             {
-                TrainObjectItem nextItem = new TrainObjectItem(END_AUTHORITY.NO_PATH_RESERVED, 0.0f);
+                TrainObjectItem nextItem = new TrainObjectItem(EndAuthorityType.NoPathReserved, 0.0f);
                 thisInfo.ObjectInfoBackward.Add(nextItem);
             }
             else
@@ -14086,7 +14073,7 @@ namespace Orts.Simulation.Physics
                 }
                 else
                 {
-                    TrainObjectItem nextItem = new TrainObjectItem(END_AUTHORITY.END_OF_AUTHORITY, ClearanceAtRearM);
+                    TrainObjectItem nextItem = new TrainObjectItem(EndAuthorityType.EndOfAuthority, ClearanceAtRearM);
                     thisInfo.ObjectInfoBackward.Add(nextItem);
                 }
             }
@@ -14269,7 +14256,7 @@ namespace Orts.Simulation.Physics
             // set forward information
 
             // set authority
-            TrainObjectItem thisItem = new TrainObjectItem(EndAuthorityType[0], DistanceToEndNodeAuthorityM[0]);
+            TrainObjectItem thisItem = new TrainObjectItem(EndAuthorityTypes[0], DistanceToEndNodeAuthorityM[0]);
             thisInfo.ObjectInfoForward.Add(thisItem);
 
             // run along forward path to catch all speedposts and signals
@@ -14331,7 +14318,7 @@ namespace Orts.Simulation.Physics
             // set backward information
 
             // set authority
-            thisItem = new TrainObjectItem(EndAuthorityType[1], DistanceToEndNodeAuthorityM[1]);
+            thisItem = new TrainObjectItem(EndAuthorityTypes[1], DistanceToEndNodeAuthorityM[1]);
             thisInfo.ObjectInfoBackward.Add(thisItem);
 
             // run along backward path to catch all speedposts and signals
@@ -20422,7 +20409,7 @@ namespace Orts.Simulation.Physics
 
             public TRAINOBJECTTYPE ItemType;
             public OutOfControlReason OutOfControlReason;
-            public END_AUTHORITY AuthorityType;
+            public EndAuthorityType AuthorityType;
             public TrackMonitorSignalAspect SignalState;
             public float AllowedSpeedMpS;
             public float DistanceToTrainM;
@@ -20466,7 +20453,7 @@ namespace Orts.Simulation.Physics
             public TrainObjectItem(TrackMonitorSignalAspect thisAspect, float thisSpeedMpS, float? thisDistanceM)
             {
                 ItemType = TRAINOBJECTTYPE.SIGNAL;
-                AuthorityType = END_AUTHORITY.NO_PATH_RESERVED;
+                AuthorityType = EndAuthorityType.NoPathReserved;
                 SignalState = thisAspect;
                 AllowedSpeedMpS = thisSpeedMpS;
                 DistanceToTrainM = thisDistanceM.HasValue ? thisDistanceM.Value : 0.1f;
@@ -20476,7 +20463,7 @@ namespace Orts.Simulation.Physics
             public TrainObjectItem(float thisSpeedMpS, float thisDistanceM, SpeedItemType speedObjectType = SpeedItemType.Standard)
             {
                 ItemType = TRAINOBJECTTYPE.SPEEDPOST;
-                AuthorityType = END_AUTHORITY.NO_PATH_RESERVED;
+                AuthorityType = EndAuthorityType.NoPathReserved;
                 SignalState = TrackMonitorSignalAspect.Clear2;
                 AllowedSpeedMpS = thisSpeedMpS;
                 DistanceToTrainM = thisDistanceM;
@@ -20487,7 +20474,7 @@ namespace Orts.Simulation.Physics
             public TrainObjectItem(float thisDistanceM, int thisPlatformLength)
             {
                 ItemType = TRAINOBJECTTYPE.STATION;
-                AuthorityType = END_AUTHORITY.NO_PATH_RESERVED;
+                AuthorityType = EndAuthorityType.NoPathReserved;
                 SignalState = TrackMonitorSignalAspect.Clear2;
                 AllowedSpeedMpS = -1;
                 DistanceToTrainM = thisDistanceM;
@@ -20498,7 +20485,7 @@ namespace Orts.Simulation.Physics
             public TrainObjectItem(bool enabled, float thisDistanceM, bool valid = true)
             {
                 ItemType = TRAINOBJECTTYPE.REVERSAL;
-                AuthorityType = END_AUTHORITY.NO_PATH_RESERVED;
+                AuthorityType = EndAuthorityType.NoPathReserved;
                 SignalState = TrackMonitorSignalAspect.Clear2;
                 AllowedSpeedMpS = -1;
                 DistanceToTrainM = thisDistanceM;
@@ -20507,10 +20494,10 @@ namespace Orts.Simulation.Physics
             }
 
             // Constructor for Authority
-            public TrainObjectItem(END_AUTHORITY thisAuthority, float thisDistanceM)
+            public TrainObjectItem(EndAuthorityType authority, float thisDistanceM)
             {
                 ItemType = TRAINOBJECTTYPE.AUTHORITY;
-                AuthorityType = thisAuthority;
+                AuthorityType = authority;
                 SignalState = TrackMonitorSignalAspect.Clear2;
                 AllowedSpeedMpS = -1;
                 DistanceToTrainM = thisDistanceM;
@@ -20527,7 +20514,7 @@ namespace Orts.Simulation.Physics
             public TrainObjectItem(float thisDistanceM, bool enabled)
             {
                 ItemType = TRAINOBJECTTYPE.WAITING_POINT;
-                AuthorityType = END_AUTHORITY.NO_PATH_RESERVED;
+                AuthorityType = EndAuthorityType.NoPathReserved;
                 SignalState = TrackMonitorSignalAspect.Clear2;
                 AllowedSpeedMpS = -1;
                 DistanceToTrainM = thisDistanceM;
@@ -20538,7 +20525,7 @@ namespace Orts.Simulation.Physics
             public TrainObjectItem(string thisMile, float thisDistanceM)
             {
                 ItemType = TRAINOBJECTTYPE.MILEPOST;
-                AuthorityType = END_AUTHORITY.NO_PATH_RESERVED;
+                AuthorityType = EndAuthorityType.NoPathReserved;
                 SignalState = TrackMonitorSignalAspect.Clear2;
                 AllowedSpeedMpS = -1;
                 DistanceToTrainM = thisDistanceM;

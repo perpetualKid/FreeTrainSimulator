@@ -683,7 +683,7 @@ namespace Orts.Simulation.AIs
 
                 // check if state still matches authority level
 
-                if (MovementState != AI_MOVEMENT_STATE.INIT && ControlMode == TrainControlMode.AutoNode && EndAuthorityType[0] != END_AUTHORITY.MAX_DISTANCE) // restricted authority
+                if (MovementState != AI_MOVEMENT_STATE.INIT && ControlMode == TrainControlMode.AutoNode && EndAuthorityTypes[0] != EndAuthorityType.MaxDistance) // restricted authority
                 {
                     CheckRequiredAction();
                 }
@@ -905,7 +905,7 @@ namespace Orts.Simulation.AIs
                 if (ControlMode == TrainControlMode.AutoNode)
                 {
                     File.AppendAllText(@"C:\temp\checktrain.txt",
-                       "Auth   : " + EndAuthorityType[0].ToString() + "\n");
+                       "Auth   : " + EndAuthorityTypes[0].ToString() + "\n");
                     File.AppendAllText(@"C:\temp\checktrain.txt",
                        "AuthDis: " + DistanceToEndNodeAuthorityM[0].ToString() + "\n");
                 }
@@ -1102,7 +1102,7 @@ namespace Orts.Simulation.AIs
         public virtual void CheckRequiredAction()
         {
             // check if train ahead
-            if (EndAuthorityType[0] == END_AUTHORITY.TRAIN_AHEAD)
+            if (EndAuthorityTypes[0] == EndAuthorityType.TrainAhead)
             {
                 if (MovementState != AI_MOVEMENT_STATE.STATION_STOP && MovementState != AI_MOVEMENT_STATE.STOPPED)
                 {
@@ -1112,7 +1112,7 @@ namespace Orts.Simulation.AIs
                     }
                 }
             }
-            else if (EndAuthorityType[0] == END_AUTHORITY.RESERVED_SWITCH || EndAuthorityType[0] == END_AUTHORITY.LOOP)
+            else if (EndAuthorityTypes[0] == EndAuthorityType.ReservedSwitch || EndAuthorityTypes[0] == EndAuthorityType.Loop)
             {
                 if (MovementState != AI_MOVEMENT_STATE.INIT_ACTION && MovementState != AI_MOVEMENT_STATE.HANDLE_ACTION &&
                      (nextActionInfo == null || nextActionInfo.NextAction != AIActionItem.AI_ACTION_TYPE.END_OF_AUTHORITY))
@@ -1125,7 +1125,7 @@ namespace Orts.Simulation.AIs
                 }
             }
             // first handle outstanding actions
-            else if (EndAuthorityType[0] == END_AUTHORITY.END_OF_PATH &&
+            else if (EndAuthorityTypes[0] == EndAuthorityType.EndOfPath &&
                 (nextActionInfo == null || nextActionInfo.NextAction == AIActionItem.AI_ACTION_TYPE.END_OF_ROUTE))
             {
                 ResetActions(false);
@@ -1502,11 +1502,11 @@ namespace Orts.Simulation.AIs
         public override void UpdateNodeMode()
         {
             // update node mode
-            END_AUTHORITY oldAuthority = EndAuthorityType[0];
+            EndAuthorityType oldAuthority = EndAuthorityTypes[0];
             base.UpdateNodeMode();
 
             // if authoriy type changed, reset actions
-            if (EndAuthorityType[0] != oldAuthority)
+            if (EndAuthorityTypes[0] != oldAuthority)
             {
                 ResetActions(true, false);
             }
@@ -1584,7 +1584,7 @@ namespace Orts.Simulation.AIs
             // check if train ahead - if so, determine speed and distance
 
             if (ControlMode == TrainControlMode.AutoNode &&
-                EndAuthorityType[0] == END_AUTHORITY.TRAIN_AHEAD)
+                EndAuthorityTypes[0] == EndAuthorityType.TrainAhead)
             {
 
                 // check if train ahead is in same section
@@ -1648,14 +1648,14 @@ namespace Orts.Simulation.AIs
 
             // Other node mode : check distance ahead (path may have cleared)
 
-            else if (ControlMode == TrainControlMode.AutoNode && EndAuthorityType[0] != END_AUTHORITY.RESERVED_SWITCH &&
+            else if (ControlMode == TrainControlMode.AutoNode && EndAuthorityTypes[0] != EndAuthorityType.ReservedSwitch &&
                         DistanceToEndNodeAuthorityM[0] > activityClearingDistanceM)
             {
                 NextStopDistanceM = DistanceToEndNodeAuthorityM[0];
                 StartMoving(AI_START_MOVEMENT.SIGNAL_CLEARED);
             }
 
-            else if (ControlMode == TrainControlMode.AutoNode && EndAuthorityType[0] == END_AUTHORITY.RESERVED_SWITCH &&
+            else if (ControlMode == TrainControlMode.AutoNode && EndAuthorityTypes[0] == EndAuthorityType.ReservedSwitch &&
                         DistanceToEndNodeAuthorityM[0] > 2.0f * junctionOverlapM + activityClearingDistanceM)
             {
                 NextStopDistanceM = DistanceToEndNodeAuthorityM[0] - 2.0f * junctionOverlapM;
@@ -1857,7 +1857,7 @@ namespace Orts.Simulation.AIs
             }
             float distanceToNextSignal = DistanceToSignal.HasValue ? DistanceToSignal.Value : 0.1f;
             if (AuxActionnextActionInfo != null && MovementState == AI_MOVEMENT_STATE.STOPPED && tryBraking && distanceToNextSignal > clearingDistanceM
-                && EndAuthorityType[0] != END_AUTHORITY.RESERVED_SWITCH && DistanceToEndNodeAuthorityM[0] <= 2.0f * junctionOverlapM)   // && ControlMode == TRAIN_CONTROL.AUTO_NODE)
+                && EndAuthorityTypes[0] != EndAuthorityType.ReservedSwitch && DistanceToEndNodeAuthorityM[0] <= 2.0f * junctionOverlapM)   // && ControlMode == TRAIN_CONTROL.AUTO_NODE)
             {
                 MovementState = AI_MOVEMENT_STATE.BRAKING;
             }
@@ -2203,11 +2203,11 @@ namespace Orts.Simulation.AIs
                 {
                     distanceToGoM = DistanceToEndNodeAuthorityM[0];
 
-                    if (EndAuthorityType[0] == END_AUTHORITY.RESERVED_SWITCH)
+                    if (EndAuthorityTypes[0] == EndAuthorityType.ReservedSwitch)
                     {
                         distanceToGoM = DistanceToEndNodeAuthorityM[0] - 2.0f * junctionOverlapM;
                     }
-                    else if (EndAuthorityType[0] == END_AUTHORITY.END_OF_PATH)
+                    else if (EndAuthorityTypes[0] == EndAuthorityType.EndOfPath)
                     {
                         distanceToGoM = DistanceToEndNodeAuthorityM[0] - activityClearingDistanceM;
                     }
@@ -2407,11 +2407,11 @@ namespace Orts.Simulation.AIs
             else if (nextActionInfo.NextAction == AIActionItem.AI_ACTION_TYPE.END_OF_AUTHORITY)
             {
                 nextActionInfo.ActivateDistanceM = DistanceToEndNodeAuthorityM[0] + DistanceTravelledM;
-                if (EndAuthorityType[0] == END_AUTHORITY.MAX_DISTANCE)
+                if (EndAuthorityTypes[0] == EndAuthorityType.MaxDistance)
                 {
                     clearAction = true;
                 }
-                else if (EndAuthorityType[0] == END_AUTHORITY.RESERVED_SWITCH)
+                else if (EndAuthorityTypes[0] == EndAuthorityType.ReservedSwitch)
                 {
                     nextActionInfo.ActivateDistanceM -= 2.0f * junctionOverlapM;
                 }
@@ -3023,7 +3023,7 @@ namespace Orts.Simulation.AIs
                                         " ; speed : " + FormatStrings.FormatSpeed(SpeedMpS, true) + "\n");
             }
 
-            if (ControlMode != TrainControlMode.AutoNode || EndAuthorityType[0] != END_AUTHORITY.TRAIN_AHEAD) // train is gone
+            if (ControlMode != TrainControlMode.AutoNode || EndAuthorityTypes[0] != EndAuthorityType.TrainAhead) // train is gone
             {
                 if (CheckTrain)
                 {
@@ -3521,7 +3521,7 @@ namespace Orts.Simulation.AIs
                 AITrainThrottlePercent = 25;
                 AdjustControlsBrakeOff();
             }
-            else if (ControlMode == TrainControlMode.AutoNode && EndAuthorityType[0] == END_AUTHORITY.TRAIN_AHEAD)
+            else if (ControlMode == TrainControlMode.AutoNode && EndAuthorityTypes[0] == EndAuthorityType.TrainAhead)
             {
                 MovementState = AI_MOVEMENT_STATE.FOLLOWING;
                 AITrainThrottlePercent = 0;

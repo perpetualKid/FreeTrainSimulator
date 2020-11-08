@@ -34,4 +34,19 @@ namespace Orts.Simulation
         [Description("Slip Turn")] SlippedIntoTurnTable,
         [Description("Undefined")] UnDefined
     }
+
+    public enum EndAuthorityType
+    {
+        [Description("End Trck")]EndOfTrack,
+        [Description("End Path")] EndOfPath,
+        [Description("Switch")] ReservedSwitch,
+        [Description("TrainAhd")] TrainAhead,
+        [Description("Max Dist")] MaxDistance,
+        [Description("Loop")] Loop,
+        [Description("Signal")] Signal,                                       // in Manual mode only
+        [Description("End Auth")] EndOfAuthority,                             // when moving backward in Auto mode
+        [Description("No Path")] NoPathReserved,
+    }
+
+
 }

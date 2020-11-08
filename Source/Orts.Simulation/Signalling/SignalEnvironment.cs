@@ -1821,7 +1821,7 @@ namespace Orts.Simulation.Signalling
             List<int> sectionsInRoute = new List<int>();
 
             float clearedDistanceM = 0.0f;
-            Train.END_AUTHORITY endAuthority = Train.END_AUTHORITY.NO_PATH_RESERVED;
+            EndAuthorityType endAuthority = EndAuthorityType.NoPathReserved;
             float maxDistance = Math.Max(train.Train.AllowedMaxSpeedMpS * train.Train.maxTimeS, train.Train.minCheckDistanceM);
 
             int lastReserved = train.Train.LastReservedSection[train.TrainRouteDirectionIndex];
@@ -1908,7 +1908,7 @@ namespace Orts.Simulation.Signalling
 
                 if (clearedDistanceM > maxDistance)
                 {
-                    endAuthority = Train.END_AUTHORITY.MAX_DISTANCE;
+                    endAuthority = EndAuthorityType.MaxDistance;
                     furthestRouteCleared = true;
                 }
                 else
@@ -1957,7 +1957,7 @@ namespace Orts.Simulation.Signalling
                     (section.CircuitState.TrainReserved != null && section.CircuitState.TrainReserved.Train == train.Train))
                 {
                     furthestRouteCleared = true;
-                    endAuthority = Train.END_AUTHORITY.LOOP;
+                    endAuthority = EndAuthorityType.Loop;
                 }
                 else
                 {
@@ -2025,7 +2025,7 @@ namespace Orts.Simulation.Signalling
                     if (sectionsInRoute.Contains(section.Index) ||
                         (routeIndex > startRouteIndex && sectionIndex == train.Train.PresentPosition[train.TrainRouteDirectionIndex].TCSectionIndex))
                     {
-                        endAuthority = Train.END_AUTHORITY.LOOP;
+                        endAuthority = EndAuthorityType.Loop;
                         train.Train.LoopSection = section.Index;
                         routeAvailable = false;
 
@@ -2101,7 +2101,7 @@ namespace Orts.Simulation.Signalling
                             if (clearedDistanceM > train.Train.minCheckDistanceM &&
                                             clearedDistanceM > (train.Train.AllowedMaxSpeedMpS * train.Train.maxTimeS))
                             {
-                                endAuthority = Train.END_AUTHORITY.MAX_DISTANCE;
+                                endAuthority = EndAuthorityType.MaxDistance;
                                 furthestRouteCleared = true;
                             }
                         }
@@ -2118,7 +2118,7 @@ namespace Orts.Simulation.Signalling
 
             // if not cleared to max distance or looped, determine reason
 
-            if (!furthestRouteCleared && lastRouteIndex > 0 && routePart[lastRouteIndex].TCSectionIndex >= 0 && endAuthority != Train.END_AUTHORITY.LOOP)
+            if (!furthestRouteCleared && lastRouteIndex > 0 && routePart[lastRouteIndex].TCSectionIndex >= 0 && endAuthority != EndAuthorityType.Loop)
             {
 
                 routeElement = routePart[lastRouteIndex];
@@ -2128,7 +2128,7 @@ namespace Orts.Simulation.Signalling
                 // end of track reached
                 if (section.CircuitType == TrackCircuitType.EndOfTrack)
                 {
-                    endAuthority = Train.END_AUTHORITY.END_OF_TRACK;
+                    endAuthority = EndAuthorityType.EndOfTrack;
                     furthestRouteCleared = true;
                 }
 
@@ -2136,7 +2136,7 @@ namespace Orts.Simulation.Signalling
 
                 if (!furthestRouteCleared && lastRouteIndex > (routePart.Count - 1))
                 {
-                    endAuthority = Train.END_AUTHORITY.END_OF_PATH;
+                    endAuthority = EndAuthorityType.EndOfPath;
                     furthestRouteCleared = true;
                 }
             }
@@ -2181,7 +2181,7 @@ namespace Orts.Simulation.Signalling
                         // switch is not properly set, so it blocks the path
                         if (!jnAligned)
                         {
-                            endAuthority = Train.END_AUTHORITY.RESERVED_SWITCH;
+                            endAuthority = EndAuthorityType.ReservedSwitch;
                             furthestRouteCleared = true;
                         }
                     }
@@ -2191,7 +2191,7 @@ namespace Orts.Simulation.Signalling
             // check if next section is occupied by stationary train or train moving in similar direction
             // if so calculate distance to end of train
             // only allowed for NORMAL sections and if not looped
-            if (!furthestRouteCleared && lastRouteIndex < (routePart.Count - 1) && endAuthority != Train.END_AUTHORITY.LOOP)
+            if (!furthestRouteCleared && lastRouteIndex < (routePart.Count - 1) && endAuthority != EndAuthorityType.Loop)
             {
                 Train.TCRouteElement nextElement = routePart[lastRouteIndex + 1];
                 int reqDirection = nextElement.Direction;
@@ -2205,7 +2205,7 @@ namespace Orts.Simulation.Signalling
                 {
                     if (section.CircuitState.OccupiedByOtherTrains(revDirection, false, train))
                     {
-                        endAuthority = Train.END_AUTHORITY.TRAIN_AHEAD;
+                        endAuthority = EndAuthorityType.TrainAhead;
                     }
                     // check for train further ahead and determine distance to train
                     Dictionary<Train, float> trainAhead = section.TestTrainAhead(train.Train, offset, reqDirection);
@@ -2214,7 +2214,7 @@ namespace Orts.Simulation.Signalling
                     {
                         foreach (KeyValuePair<Train, float> thisTrainAhead in trainAhead)  // there is only one value
                         {
-                            endAuthority = Train.END_AUTHORITY.TRAIN_AHEAD;
+                            endAuthority = EndAuthorityType.TrainAhead;
                             clearedDistanceM += thisTrainAhead.Value;
                             furthestRouteCleared = true;
                         }
@@ -2222,21 +2222,21 @@ namespace Orts.Simulation.Signalling
                 }
                 else if (section.GetSectionStateClearNode(train, routeElement.Direction, routePart))
                 {
-                    endAuthority = Train.END_AUTHORITY.END_OF_AUTHORITY;
+                    endAuthority = EndAuthorityType.EndOfAuthority;
                 }
                 else if (section.CircuitType == TrackCircuitType.Crossover || section.CircuitType == TrackCircuitType.Junction)
                 {
                     // first not-available section is crossover or junction - treat as reserved switch
-                    endAuthority = Train.END_AUTHORITY.RESERVED_SWITCH;
+                    endAuthority = EndAuthorityType.ReservedSwitch;
                 }
             }
             else if (routeIndex >= routePart.Count)
             {
-                endAuthority = Train.END_AUTHORITY.END_OF_AUTHORITY;
+                endAuthority = EndAuthorityType.EndOfAuthority;
             }
 
             // update train details
-            train.Train.EndAuthorityType[train.TrainRouteDirectionIndex] = endAuthority;
+            train.Train.EndAuthorityTypes[train.TrainRouteDirectionIndex] = endAuthority;
             train.Train.LastReservedSection[train.TrainRouteDirectionIndex] = lastReserved;
             train.Train.DistanceToEndNodeAuthorityM[train.TrainRouteDirectionIndex] = clearedDistanceM;
         }

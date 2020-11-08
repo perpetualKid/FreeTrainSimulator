@@ -1598,7 +1598,7 @@ namespace Orts.Simulation.Timetables
                     {
                         parentTrain.DelayedStartMoving(TTTrain.AI_START_MOVEMENT.TURNTABLE);
                         MovingTableState = TimetableTurntableControl.MovingTableStateEnum.AccessToMovingTable;
-                        parentTrain.EndAuthorityType[0] = Train.END_AUTHORITY.END_OF_PATH;
+                        parentTrain.EndAuthorityTypes[0] = EndAuthorityType.EndOfPath;
 
                         // calculate end position
                         parentTrain.DistanceToEndNodeAuthorityM[0] = CalculateDistanceToTurntable();
@@ -1632,7 +1632,7 @@ namespace Orts.Simulation.Timetables
                     {
                         parentTrain.DelayedStartMoving(TTTrain.AI_START_MOVEMENT.TURNTABLE);
                         MovingTableState = TimetableTurntableControl.MovingTableStateEnum.StorageToMovingTable;
-                        parentTrain.EndAuthorityType[0] = Train.END_AUTHORITY.END_OF_PATH;
+                        parentTrain.EndAuthorityTypes[0] = EndAuthorityType.EndOfPath;
 
                         // calculate end position
                         parentTrain.DistanceToEndNodeAuthorityM[0] = CalculateDistanceToTurntable();
@@ -1768,7 +1768,7 @@ namespace Orts.Simulation.Timetables
                         MovingTableState = TimetableTurntableControl.MovingTableStateEnum.AccessToMovingTable;
 
                         // calculate end position - place in front of timetable incl. clearance
-                        parentTrain.EndAuthorityType[0] = Train.END_AUTHORITY.END_OF_PATH;
+                        parentTrain.EndAuthorityTypes[0] = EndAuthorityType.EndOfPath;
                         parentTrain.DistanceToEndNodeAuthorityM[0] =
                             CalculateDistanceToTurntable() - (parentTurntable.Length / 2.0f) - parentPool.AdditionalTurntableDetails.TurntableApproachClearanceM;
 
@@ -1812,7 +1812,7 @@ namespace Orts.Simulation.Timetables
                         MovingTableState = TimetableTurntableControl.MovingTableStateEnum.StorageToMovingTable;
 
                         // calculate end position - place in front of timetable incl. clearance
-                        parentTrain.EndAuthorityType[0] = Train.END_AUTHORITY.END_OF_PATH;
+                        parentTrain.EndAuthorityTypes[0] = EndAuthorityType.EndOfPath;
                         parentTrain.DistanceToEndNodeAuthorityM[0] =
                             CalculateDistanceToTurntable() - (parentTurntable.Length / 2.0f) - parentPool.AdditionalTurntableDetails.TurntableApproachClearanceM;
 
@@ -1843,7 +1843,7 @@ namespace Orts.Simulation.Timetables
                 case TimetableTurntableControl.MovingTableStateEnum.AccessToMovingTable:
 
                     // set end of authority beyond turntable
-                    parentTrain.EndAuthorityType[0] = Train.END_AUTHORITY.END_OF_PATH;
+                    parentTrain.EndAuthorityTypes[0] = EndAuthorityType.EndOfPath;
                     parentTrain.DistanceToEndNodeAuthorityM[0] = CalculateDistanceToTurntable() + (parentTurntable.Length / 2.0f);
 
                     // check if train position on turntable
@@ -1900,7 +1900,7 @@ namespace Orts.Simulation.Timetables
                 case TimetableTurntableControl.MovingTableStateEnum.StorageToMovingTable:
 
                     // set end of authority beyond turntable
-                    parentTrain.EndAuthorityType[0] = Train.END_AUTHORITY.END_OF_PATH;
+                    parentTrain.EndAuthorityTypes[0] = EndAuthorityType.EndOfPath;
                     parentTrain.DistanceToEndNodeAuthorityM[0] = CalculateDistanceToTurntable() + (parentTurntable.Length / 2.0f);
 
                     // check if train position on turntable

@@ -24,6 +24,7 @@ using Orts.Common;
 using System;
 using System.Collections.Generic;
 using Orts.Common.Calc;
+using Orts.Simulation;
 
 namespace Orts.ActivityRunner.Viewer3D.Popups
 {
@@ -40,19 +41,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         Label ControlMode;
         Label Gradient;
         TrackMonitor Monitor;
-
-        static readonly Dictionary<Train.END_AUTHORITY, string> AuthorityLabels = new Dictionary<Train.END_AUTHORITY, string>
-        {
-			{ Train.END_AUTHORITY.END_OF_TRACK, "End Trck" },
-			{ Train.END_AUTHORITY.END_OF_PATH, "End Path" },
-			{ Train.END_AUTHORITY.RESERVED_SWITCH, "Switch" },
-            { Train.END_AUTHORITY.LOOP, "Loop" },
-			{ Train.END_AUTHORITY.TRAIN_AHEAD, "TrainAhd" },
-			{ Train.END_AUTHORITY.MAX_DISTANCE, "Max Dist" },
-			{ Train.END_AUTHORITY.NO_PATH_RESERVED, "No Path" },
-            { Train.END_AUTHORITY.SIGNAL, "Signal" },
-            { Train.END_AUTHORITY.END_OF_AUTHORITY, "End Auth" },
-		};
 
         public TrackMonitorWindow(WindowManager owner)
             : base(owner, Window.DecorationSize.X + owner.TextFontDefault.Height * 10, Window.DecorationSize.Y + owner.TextFontDefault.Height * (5 + TrackMonitorHeightInLinesOfText) + ControlLayout.SeparatorSize * 3, Viewer.Catalog.GetString("Track Monitor"))
@@ -143,7 +131,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 if (thisInfo.ItemType == Train.TrainObjectItem.TRAINOBJECTTYPE.AUTHORITY)
                 {
                     // TODO: Concatenating strings is bad for localization.
-                    return ControlText + " : " + AuthorityLabels[thisInfo.AuthorityType];
+                    return ControlText + " : " + thisInfo.AuthorityType.GetDescription();
                 }
             }
 
@@ -390,7 +378,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             var lineColor = Color.DarkGray;
             if (validInfo.ObjectInfoBackward != null && validInfo.ObjectInfoBackward.Count > 0 &&
                 validInfo.ObjectInfoBackward[0].ItemType == Train.TrainObjectItem.TRAINOBJECTTYPE.AUTHORITY &&
-                validInfo.ObjectInfoBackward[0].AuthorityType == Train.END_AUTHORITY.NO_PATH_RESERVED)
+                validInfo.ObjectInfoBackward[0].AuthorityType == EndAuthorityType.NoPathReserved)
             {
                 lineColor = Color.Red;
             }
@@ -682,17 +670,17 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             var displayRequired = false;
             var offsetArray = new int[0];
 
-            if (thisItem.AuthorityType == Train.END_AUTHORITY.END_OF_AUTHORITY ||
-                thisItem.AuthorityType == Train.END_AUTHORITY.END_OF_PATH ||
-                thisItem.AuthorityType == Train.END_AUTHORITY.END_OF_TRACK ||
-                thisItem.AuthorityType == Train.END_AUTHORITY.RESERVED_SWITCH ||
-                thisItem.AuthorityType == Train.END_AUTHORITY.LOOP)
+            if (thisItem.AuthorityType == EndAuthorityType.EndOfAuthority ||
+                thisItem.AuthorityType == EndAuthorityType.EndOfPath ||
+                thisItem.AuthorityType == EndAuthorityType.EndOfTrack||
+                thisItem.AuthorityType == EndAuthorityType.ReservedSwitch ||
+                thisItem.AuthorityType == EndAuthorityType.Loop)
             {
                 displayItem = endAuthoritySprite;
                 offsetArray = endAuthorityPosition;
                 displayRequired = true;
             }
-            else if (thisItem.AuthorityType == Train.END_AUTHORITY.TRAIN_AHEAD)
+            else if (thisItem.AuthorityType == EndAuthorityType.TrainAhead)
             {
                 displayItem = forward ? oppositeTrainForwardSprite : oppositeTrainBackwardSprite;
                 offsetArray = otherTrainPosition;
