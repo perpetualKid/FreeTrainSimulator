@@ -38,7 +38,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             ElectricLocomotive = car;
             if (ElectricLocomotive.Train != null && (car.Train.TrainType == TrainType.Ai ||
                 ((car.Train.TrainType == TrainType.Player || car.Train.TrainType == TrainType.AiPlayerDriven || car.Train.TrainType == TrainType.AiPlayerHosting) &&
-                (car.Train.MUDirection != Direction.N && ElectricLocomotive.PowerOn))))
+                (car.Train.MUDirection != MidpointDirection.N && ElectricLocomotive.PowerOn))))
             {
                 ElectricLocomotive.SignalEvent(TrainEvent.Pantograph1Up);
                 ElectricLocomotive.SignalEvent(TrainEvent.EnginePowerOn);

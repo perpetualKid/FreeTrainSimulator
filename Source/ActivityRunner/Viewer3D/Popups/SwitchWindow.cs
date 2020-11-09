@@ -150,8 +150,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         {
             image.Source = new Rectangle(0, 0, SwitchImageSize, SwitchImageSize);
             image.Source.Y = 4 * SwitchImageSize;
-            image.Source.X = train.MUDirection == Direction.Forward ? 2 * SwitchImageSize :
-                (train.MUDirection == Direction.Reverse ? 1 * SwitchImageSize : 0);
+            image.Source.X = train.MUDirection == MidpointDirection.Forward ? 2 * SwitchImageSize :
+                (train.MUDirection == MidpointDirection.Reverse ? 1 * SwitchImageSize : 0);
         }
 
         static void UpdateEye(Image image, Train train, bool front)

@@ -2749,7 +2749,7 @@ namespace Orts.Simulation.Timetables
                 {
                     infoString = String.Concat(infoString, " ; set throttle to 0");
                 }
-                if (LeadLocomotive.Direction != Direction.N || Math.Abs(MUReverserPercent) > 1)
+                if (LeadLocomotive.Direction != MidpointDirection.N || Math.Abs(MUReverserPercent) > 1)
                 {
                     infoString = String.Concat(infoString, " ; set reverser to neutral (or 0)");
                 }
@@ -6357,7 +6357,7 @@ namespace Orts.Simulation.Timetables
             Traveller usedTraveller = new Traveller(FrontTDBTraveller);
             int usePosition = 0;
 
-            if (MUDirection == Direction.Reverse)
+            if (MUDirection == MidpointDirection.Reverse)
             {
                 usedTraveller = new Traveller(RearTDBTraveller, Traveller.TravellerDirection.Backward); // use in direction of movement
                 thisTrainFront = false;
@@ -6520,7 +6520,7 @@ namespace Orts.Simulation.Timetables
                 if (attachTrain != null)
                 {
                     // if in neutral, use forward position
-                    int direction = MUDirection == Direction.N ? (int)Direction.Forward : (int)MUDirection;
+                    int direction = MUDirection == MidpointDirection.N ? (int)MidpointDirection.Forward : (int)MUDirection;
 
                     // check if train is in same section
                     if (PresentPosition[direction].TCSectionIndex == attachTrain.PresentPosition[0].TCSectionIndex ||
@@ -6601,7 +6601,7 @@ namespace Orts.Simulation.Timetables
                     if (NeedPickUp)
                     {
                         // if in neutral, use forward position
-                        int direction = MUDirection == Direction.N ? (int)Direction.Forward : (int)MUDirection;
+                        int direction = MUDirection == MidpointDirection.N ? (int)MidpointDirection.Forward : (int)MUDirection;
 
                         // check if train is in same section
                         if (PresentPosition[direction].TCSectionIndex == otherTTTrain.PresentPosition[0].TCSectionIndex ||
@@ -6655,7 +6655,7 @@ namespace Orts.Simulation.Timetables
                 if (transferRequired)
                 {
                     // if in neutral, use forward position
-                    int direction = MUDirection == Direction.N ? (int)Direction.Forward : (int)MUDirection;
+                    int direction = MUDirection == MidpointDirection.N ? (int)MidpointDirection.Forward : (int)MUDirection;
 
                     // check if train is in same section
                     if (PresentPosition[direction].TCSectionIndex == otherTrain.PresentPosition[0].TCSectionIndex ||
@@ -10043,14 +10043,15 @@ namespace Orts.Simulation.Timetables
         /// Override from Train class
         /// </summary>
 
-        public override void AddTrainReversalInfo(TCReversalInfo thisReversal, ref TrainInfo thisInfo)
+        internal override void AddTrainReversalInfo(TrainInfo trainInfo, TCReversalInfo reversalInfo)
         {
-            if (!thisReversal.Valid) return;
+            if (!reversalInfo.Valid) 
+                return;
 
             int reversalSection = TCRoute.TCRouteSubpaths[TCRoute.activeSubpath][(TCRoute.TCRouteSubpaths[TCRoute.activeSubpath].Count) - 1].TCSectionIndex;
-            if (thisReversal.LastDivergeIndex >= 0)
+            if (reversalInfo.LastDivergeIndex >= 0)
             {
-                reversalSection = thisReversal.SignalUsed ? thisReversal.SignalSectorIndex : thisReversal.DivergeSectorIndex;
+                reversalSection = reversalInfo.SignalUsed ? reversalInfo.SignalSectorIndex : reversalInfo.DivergeSectorIndex;
             }
 
             TrackCircuitSection rearSection = signalRef.TrackCircuitList[PresentPosition[1].TCSectionIndex];
@@ -10060,8 +10061,7 @@ namespace Orts.Simulation.Timetables
             bool reversalEnabled = true;
             if (reversalDistanceM > 0)
             {
-                TrainObjectItem nextItem = new TrainObjectItem(reversalEnabled, reversalDistanceM, true);
-                thisInfo.ObjectInfoForward.Add(nextItem);
+                trainInfo.ObjectInfoForward.Add(new TrainObjectItem(reversalEnabled, reversalDistanceM, true));
             }
         }
 
@@ -13810,7 +13810,7 @@ namespace Orts.Simulation.Timetables
                 train.Simulator.Trains.Remove(train);
                 train.AI.TrainsToRemoveFromAI.Add(train);
                 train.AI.TrainsToAdd.Add(train);
-                train.MUDirection = Direction.Forward;
+                train.MUDirection = MidpointDirection.Forward;
 
                 // set proper details for new formed train
                 newTrain.AI.TrainsToRemoveFromAI.Add(newTrain);

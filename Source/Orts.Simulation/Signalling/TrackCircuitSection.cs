@@ -1718,7 +1718,7 @@ namespace Orts.Simulation.Signalling
                         }
                         else
                         {
-                            Train.TCPosition trainPosition = trainAhead.Key.PresentPosition[trainAhead.Key.MUDirection == Direction.Forward ? 0 : 1];
+                            Train.TCPosition trainPosition = trainAhead.Key.PresentPosition[trainAhead.Key.MUDirection == MidpointDirection.Forward ? 0 : 1];
                             if (trainPosition.TCSectionIndex == Index && trainAhead.Key.SpeedMpS > 0 && trainPosition.TCDirection != train.PresentPosition[0].TCDirection)
                             {
                                 return false;   // train is moving towards us

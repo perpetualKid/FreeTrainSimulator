@@ -94,9 +94,9 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             // Update text fields on full update only.
             if (updateFull)
             {
-                SpeedCurrent.Text = FormatStrings.FormatSpeedDisplay(Math.Abs(thisInfo.speedMpS), Owner.Viewer.MilepostUnitsMetric);
-                SpeedProjected.Text = FormatStrings.FormatSpeedDisplay(Math.Abs(thisInfo.projectedSpeedMpS), Owner.Viewer.MilepostUnitsMetric);
-                SpeedAllowed.Text = FormatStrings.FormatSpeedLimit(thisInfo.allowedSpeedMpS, Owner.Viewer.MilepostUnitsMetric);
+                SpeedCurrent.Text = FormatStrings.FormatSpeedDisplay(Math.Abs(thisInfo.Speed), Owner.Viewer.MilepostUnitsMetric);
+                SpeedProjected.Text = FormatStrings.FormatSpeedDisplay(Math.Abs(thisInfo.ProjectedSpeed), Owner.Viewer.MilepostUnitsMetric);
+                SpeedAllowed.Text = FormatStrings.FormatSpeedLimit(thisInfo.AllowedSpeed, Owner.Viewer.MilepostUnitsMetric);
 
                 var ControlText = Viewer.Catalog.GetString(thisInfo.ControlMode.GetDescription());
                 if (thisInfo.ControlMode == TrainControlMode.AutoNode)
@@ -108,16 +108,16 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     ControlText += thisInfo.ObjectInfoForward[0].OutOfControlReason.GetDescription();
                 }
                 ControlMode.Text = ControlText;
-                if (-thisInfo.currentElevationPercent < -0.00015)
+                if (-thisInfo.Gradient < -0.00015)
                 {
                     var c = '\u2198';
-                    Gradient.Text = String.Format("|  {0:F1}%{1} ", -thisInfo.currentElevationPercent, c);
+                    Gradient.Text = String.Format("|  {0:F1}%{1} ", -thisInfo.Gradient, c);
                     Gradient.Color = Color.LightSkyBlue;
                 }
-                else if (-thisInfo.currentElevationPercent > 0.00015)
+                else if (-thisInfo.Gradient > 0.00015)
                 {
                     var c = '\u2197';
-                    Gradient.Text = String.Format("|  {0:F1}%{1} ", -thisInfo.currentElevationPercent, c);
+                    Gradient.Text = String.Format("|  {0:F1}%{1} ", -thisInfo.Gradient, c);
                     Gradient.Color = Color.Yellow;
                 }
                 else Gradient.Text = "";
@@ -154,7 +154,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         public static Double DbfEvalOverSpeedTimeS = 0;//Debrief eval
         public static double DbfEvalIniOverSpeedTimeS = 0;//Debrief eval
 
-        Train.TrainInfo validInfo;
+        TrainInfo validInfo;
 
         const int DesignWidth = 150; // All Width/X values are relative to this width.
 
@@ -309,7 +309,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 return;
             }
 
-            drawTrack(spriteBatch, offset, validInfo.speedMpS, validInfo.allowedSpeedMpS);
+            drawTrack(spriteBatch, offset, validInfo.Speed, validInfo.AllowedSpeed);
 
             if (Orts.MultiPlayer.MPManager.IsMultiPlayer())
             {
@@ -326,7 +326,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             }
         }
 
-        public void StoreInfo(Train.TrainInfo thisInfo)
+        public void StoreInfo(TrainInfo thisInfo)
         {
             validInfo = thisInfo;
         }
@@ -385,11 +385,11 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             spriteBatch.Draw(MonitorTexture, new Rectangle(offset.X, offset.Y + endObjectArea, Position.Width, 1), lineColor);
 
             // draw direction arrow
-            if (validInfo.direction == 0)
+            if (validInfo.Direction == Direction.Forward)
             {
                 drawArrow(spriteBatch, offset, forwardArrowSprite, zeroObjectPointMiddle + arrowPosition[1]);
             }
-            else if (validInfo.direction == 1)
+            else if (validInfo.Direction == Direction.Backward)
             {
                 drawArrow(spriteBatch, offset, backwardArrowSprite, zeroObjectPointMiddle + arrowPosition[2]);
             }
@@ -419,13 +419,13 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             var zeroObjectPointTop = 0;
             var zeroObjectPointMiddle = 0;
             var zeroObjectPointBottom = 0;
-            if (validInfo.direction == 0)
+            if (validInfo.Direction == Direction.Forward)
             {
                 zeroObjectPointTop = endObjectArea - trainPosition[4];
                 zeroObjectPointMiddle = zeroObjectPointTop - trainPosition[1];
                 zeroObjectPointBottom = zeroObjectPointMiddle - trainPosition[2];
             }
-            else if (validInfo.direction == 1)
+            else if (validInfo.Direction == Direction.Backward)
             {
                 zeroObjectPointTop = startObjectArea;
                 zeroObjectPointMiddle = zeroObjectPointTop - trainPosition[1];
@@ -438,21 +438,21 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 zeroObjectPointBottom = zeroObjectPointMiddle - trainPosition[2];
             }
             var distanceFactor = (float)(endObjectArea - startObjectArea - trainPosition[4]) / TrackMonitorWindow.MaximumDistance;
-            if (validInfo.direction == -1)
+            if (validInfo.Direction == (Direction)(-1))
                 distanceFactor /= 2;
 
-            if (validInfo.direction == 0)
+            if (validInfo.Direction == Direction.Forward)
             {
                 // draw direction arrow
                 drawArrow(spriteBatch, offset, forwardArrowSprite, zeroObjectPointMiddle + arrowPosition[1]);
             }
-            else if (validInfo.direction == 1)
+            else if (validInfo.Direction == Direction.Backward)
             {
                 // draw direction arrow
                 drawArrow(spriteBatch, offset, backwardArrowSprite, zeroObjectPointMiddle + arrowPosition[2]);
             }
 
-            if (validInfo.direction != 1)
+            if (validInfo.Direction != Direction.Backward)
             {
                 // draw fixed distance indications
                 var firstMarkerDistance = drawDistanceMarkers(spriteBatch, offset, TrackMonitorWindow.MaximumDistance, distanceFactor, zeroObjectPointTop, 4, true);
@@ -462,7 +462,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 drawItems(spriteBatch, offset, startObjectArea, endObjectArea, zeroObjectPointTop, zeroObjectPointBottom, TrackMonitorWindow.MaximumDistance, distanceFactor, firstLabelPosition, validInfo.ObjectInfoForward, true);
             }
 
-            if (validInfo.direction != 0)
+            if (validInfo.Direction != 0)
             {
                 // draw fixed distance indications
                 var firstMarkerDistance = drawDistanceMarkers(spriteBatch, offset, TrackMonitorWindow.MaximumDistance, distanceFactor, zeroObjectPointBottom, 4, false);
@@ -473,7 +473,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             }
 
             // draw own train marker
-            drawOwnTrain(spriteBatch, offset, validInfo.direction == -1 ? trainPositionManualOnRouteSprite : validInfo.direction == 0 ? trainPositionAutoForwardsSprite : trainPositionAutoBackwardsSprite, zeroObjectPointTop);
+            drawOwnTrain(spriteBatch, offset, validInfo.Direction == (Direction)(-1) ? trainPositionManualOnRouteSprite : validInfo.Direction == Direction.Forward ? trainPositionAutoForwardsSprite : trainPositionAutoBackwardsSprite, zeroObjectPointTop);
         }
 
         // draw manual info
@@ -494,11 +494,11 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             spriteBatch.Draw(MonitorTexture, new Rectangle(offset.X, offset.Y + zeroObjectPointBottom - 1, Position.Width, 1), Color.DarkGray);
 
             // draw direction arrow
-            if (validInfo.direction == 0)
+            if (validInfo.Direction == Direction.Forward)
             {
                 drawArrow(spriteBatch, offset, forwardArrowSprite, zeroObjectPointMiddle + arrowPosition[1]);
             }
-            else if (validInfo.direction == 1)
+            else if (validInfo.Direction == Direction.Backward)
             {
                 drawArrow(spriteBatch, offset, backwardArrowSprite, zeroObjectPointMiddle + arrowPosition[2]);
             }
@@ -518,7 +518,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             drawItems(spriteBatch, offset, startObjectArea, endObjectArea, zeroObjectPointBottom, zeroObjectPointTop, TrackMonitorWindow.MaximumDistance, distanceFactor, firstLabelPosition, validInfo.ObjectInfoBackward, false);
 
             // draw own train marker
-            var ownTrainSprite = validInfo.isOnPath ? trainPositionManualOnRouteSprite : trainPositionManualOffRouteSprite;
+            var ownTrainSprite = validInfo.PathDefined ? trainPositionManualOnRouteSprite : trainPositionManualOffRouteSprite;
             drawOwnTrain(spriteBatch, offset, ownTrainSprite, zeroObjectPointTop);
         }
 
@@ -538,7 +538,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         void drawEye(SpriteBatch spriteBatch, Point offset, int forwardsY, int backwardsY)
         {
             // draw eye
-            if (validInfo.cabOrientation == 0)
+            if (validInfo.CabOrientation == Direction.Forward)
             {
                 spriteBatch.Draw(TrackMonitorImages, new Rectangle(offset.X + eyePosition[0], offset.Y + forwardsY + eyePosition[1], eyePosition[3], eyePosition[4]), eyeSprite, Color.White);
             }

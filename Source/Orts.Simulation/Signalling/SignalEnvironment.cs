@@ -2352,7 +2352,7 @@ namespace Orts.Simulation.Signalling
                 }
                 else
                 {
-                    section.EndSignals[(TrackDirection)requiredRoute[i].Direction].ResetSignal(false);
+                    section.EndSignals[(TrackDirection)requiredRoute[i].Direction]?.ResetSignal(false);
                 }
             }
         }

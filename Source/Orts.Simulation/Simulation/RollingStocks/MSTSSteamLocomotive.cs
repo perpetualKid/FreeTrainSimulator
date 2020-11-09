@@ -2158,7 +2158,7 @@ namespace Orts.Simulation.RollingStocks
             if (this.IsLeadLocomotive())
             {
                 Train.MUReverserPercent = CutoffController.Update(elapsedClockSeconds) * 100.0f;
-                Direction = Train.MUReverserPercent >= 0 ? Direction.Forward : Direction.Reverse;
+                Direction = Train.MUReverserPercent >= 0 ? MidpointDirection.Forward : MidpointDirection.Reverse;
             }
             else
                 CutoffController.Update(elapsedClockSeconds);
@@ -2167,9 +2167,9 @@ namespace Orts.Simulation.RollingStocks
                 // On a steam locomotive, the Reverser is the same as the Cut Off Control.
                 switch (Direction)
                 {
-                    case Direction.Reverse: Simulator.Confirmer.ConfirmWithPerCent(CabControl.SteamLocomotiveReverser, Math.Abs(Train.MUReverserPercent), CabSetting.Off); break;
-                    case Direction.N: Simulator.Confirmer.Confirm(CabControl.SteamLocomotiveReverser, CabSetting.Neutral); break;
-                    case Direction.Forward: Simulator.Confirmer.ConfirmWithPerCent(CabControl.SteamLocomotiveReverser, Math.Abs(Train.MUReverserPercent), CabSetting.On); break;
+                    case MidpointDirection.Reverse: Simulator.Confirmer.ConfirmWithPerCent(CabControl.SteamLocomotiveReverser, Math.Abs(Train.MUReverserPercent), CabSetting.Off); break;
+                    case MidpointDirection.N: Simulator.Confirmer.Confirm(CabControl.SteamLocomotiveReverser, CabSetting.Neutral); break;
+                    case MidpointDirection.Forward: Simulator.Confirmer.ConfirmWithPerCent(CabControl.SteamLocomotiveReverser, Math.Abs(Train.MUReverserPercent), CabSetting.On); break;
                 }
             if (IsPlayerTrain)
             {
@@ -4571,12 +4571,12 @@ namespace Orts.Simulation.RollingStocks
             MaxSpeedMpS = (float)Size.Length.FromMi(Frequency.Periodic.FromHours(MaxLocoSpeedMpH)); // Note this is not the true max velocity of the locomotive, but  the speed at which max HP is reached
 
             // Set "current" motive force based upon the throttle, cylinders, steam pressure, etc. Also reduce motive force by water scoop drag if applicable	
-            MotiveForceN = (Direction == Direction.Forward ? 1 : -1) * (float)Dynamics.Force.FromLbf(TractiveEffortLbsF) - WaterScoopDragForceN;
+            MotiveForceN = (Direction == MidpointDirection.Forward ? 1 : -1) * (float)Dynamics.Force.FromLbf(TractiveEffortLbsF) - WaterScoopDragForceN;
 
             // On starting allow maximum motive force to be used, unless gear is in neutral (normally only geared locomotive will be zero).
             if (absSpeedMpS < 1.0f && cutoff > 0.70f && throttle > 0.98f && MotiveForceGearRatio != 0)
             {
-                MotiveForceN = (Direction == Direction.Forward ? 1 : -1) * MaxForceN;
+                MotiveForceN = (Direction == MidpointDirection.Forward ? 1 : -1) * MaxForceN;
             }
 
             if (absSpeedMpS == 0 && cutoff < 0.05f) // If the reverser is set too low then not sufficient steam is admitted to the steam cylinders, and hence insufficient Motive Force will produced to move the train.
@@ -4868,7 +4868,7 @@ namespace Orts.Simulation.RollingStocks
 
                 // Static Friction Force - adhesive factor increased by vertical thrust when travelling forward, and reduced by vertical thrust when travelling backwards
 
-                if (Direction == Direction.Forward)
+                if (Direction == MidpointDirection.Forward)
                 {
                 StartStaticWheelFrictionForceLbf = (float)(Mass.Kilogram.ToLb(DrvWheelWeightKg) + StartVerticalThrustForceLeft + StartVerticalThrustForceRight + StartVerticalThrustForceMiddle) * Train.LocomotiveCoefficientFriction;
                 }
@@ -4971,11 +4971,11 @@ namespace Orts.Simulation.RollingStocks
 
                     if (FrictionWheelSpeedMpS > WheelSpeedMpS) // If slip speed is greater then normal forward speed use slip speed
                     {
-                        WheelSpeedSlipMpS = (Direction == Direction.Forward ? 1 : -1) * FrictionWheelSpeedMpS;
+                        WheelSpeedSlipMpS = (Direction == MidpointDirection.Forward ? 1 : -1) * FrictionWheelSpeedMpS;
                     }
                     else // use normal wheel speed
                     {
-                        WheelSpeedSlipMpS = (Direction == Direction.Forward ? 1 : -1) * WheelSpeedMpS;
+                        WheelSpeedSlipMpS = (Direction == MidpointDirection.Forward ? 1 : -1) * WheelSpeedMpS;
                     }
 
                     MotiveForceN *= Train.LocomotiveCoefficientFriction;  // Reduce locomotive tractive force to stop it moving forward
@@ -6956,9 +6956,9 @@ namespace Orts.Simulation.RollingStocks
             CutoffController.CommandStartTime = Simulator.ClockTime;
             switch (Direction)
             {
-                case Direction.Reverse: Simulator.Confirmer.ConfirmWithPerCent(CabControl.SteamLocomotiveReverser, Math.Abs(Train.MUReverserPercent), CabSetting.Off); break;
-                case Direction.N: Simulator.Confirmer.Confirm(CabControl.SteamLocomotiveReverser, CabSetting.Neutral); break;
-                case Direction.Forward: Simulator.Confirmer.ConfirmWithPerCent(CabControl.SteamLocomotiveReverser, Math.Abs(Train.MUReverserPercent), CabSetting.On); break;
+                case MidpointDirection.Reverse: Simulator.Confirmer.ConfirmWithPerCent(CabControl.SteamLocomotiveReverser, Math.Abs(Train.MUReverserPercent), CabSetting.Off); break;
+                case MidpointDirection.N: Simulator.Confirmer.Confirm(CabControl.SteamLocomotiveReverser, CabSetting.Neutral); break;
+                case MidpointDirection.Forward: Simulator.Confirmer.ConfirmWithPerCent(CabControl.SteamLocomotiveReverser, Math.Abs(Train.MUReverserPercent), CabSetting.On); break;
             }
             SignalEvent(TrainEvent.ReverserChange);
         }
@@ -6975,9 +6975,9 @@ namespace Orts.Simulation.RollingStocks
             CutoffController.CommandStartTime = Simulator.ClockTime;
             switch (Direction)
             {
-                case Direction.Reverse: Simulator.Confirmer.ConfirmWithPerCent(CabControl.SteamLocomotiveReverser, Math.Abs(Train.MUReverserPercent), CabSetting.Off); break;
-                case Direction.N: Simulator.Confirmer.Confirm(CabControl.SteamLocomotiveReverser, CabSetting.Neutral); break;
-                case Direction.Forward: Simulator.Confirmer.ConfirmWithPerCent(CabControl.SteamLocomotiveReverser, Math.Abs(Train.MUReverserPercent), CabSetting.On); break;
+                case MidpointDirection.Reverse: Simulator.Confirmer.ConfirmWithPerCent(CabControl.SteamLocomotiveReverser, Math.Abs(Train.MUReverserPercent), CabSetting.Off); break;
+                case MidpointDirection.N: Simulator.Confirmer.Confirm(CabControl.SteamLocomotiveReverser, CabSetting.Neutral); break;
+                case MidpointDirection.Forward: Simulator.Confirmer.ConfirmWithPerCent(CabControl.SteamLocomotiveReverser, Math.Abs(Train.MUReverserPercent), CabSetting.On); break;
             }
             SignalEvent(TrainEvent.ReverserChange);
         }
@@ -7023,7 +7023,7 @@ namespace Orts.Simulation.RollingStocks
         public void SetCutoffPercent(float percent)
         {
             Train.MUReverserPercent = CutoffController.SetPercent(percent);
-            Direction = Train.MUReverserPercent >= 0 ? Direction.Forward : Direction.Reverse;
+            Direction = Train.MUReverserPercent >= 0 ? MidpointDirection.Forward : MidpointDirection.Reverse;
         }
 
         public void StartInjector1Increase(float? target)
@@ -7589,8 +7589,8 @@ public void ToggleCylinderCocks()
 
         public override void SwitchToAutopilotControl()
         {
-            if (Train.MUDirection != Direction.Forward) SignalEvent(TrainEvent.ReverserChange);
-            Train.MUDirection = Direction.Forward;
+            if (Train.MUDirection != MidpointDirection.Forward) SignalEvent(TrainEvent.ReverserChange);
+            Train.MUDirection = MidpointDirection.Forward;
             Train.MUReverserPercent = 100;
             base.SwitchToAutopilotControl();
         }

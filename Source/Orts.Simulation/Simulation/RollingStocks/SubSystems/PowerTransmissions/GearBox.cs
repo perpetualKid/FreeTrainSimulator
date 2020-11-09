@@ -243,7 +243,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
         {
             get
             {
-                if(DieselEngine.locomotive.Direction == Direction.Reverse)
+                if(DieselEngine.locomotive.Direction == MidpointDirection.Reverse)
                     return -(DieselEngine.locomotive.SpeedMpS);
                 else
                     return (DieselEngine.locomotive.SpeedMpS);

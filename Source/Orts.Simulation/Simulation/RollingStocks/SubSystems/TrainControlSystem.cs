@@ -118,7 +118,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
 
         public bool Activated = false;
 
-        Train.TrainInfo TrainInfo = new Train.TrainInfo();
+        TrainInfo TrainInfo = new TrainInfo();
 
         readonly MSTSLocomotive Locomotive;
         readonly Simulator Simulator;
@@ -269,7 +269,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 };
                 Script.IsSpeedControlEnabled = () => Simulator.Settings.SpeedControl;
                 Script.AlerterSound = () => Locomotive.AlerterSnd;
-                Script.TrainSpeedLimitMpS = () => TrainInfo.allowedSpeedMpS;
+                Script.TrainSpeedLimitMpS = () => TrainInfo.AllowedSpeed;
                 Script.TrainMaxSpeedMpS = () => Locomotive.Train.TrainMaxSpeedMpS;
                 Script.CurrentSignalSpeedLimitMpS = () => Locomotive.Train.allowedMaxSpeedSignalMpS;
                 Script.NextSignalSpeedLimitMpS = (value) => NextSignalItem<float>(value, ref SignalSpeedLimits, Train.TrainObjectItem.TRAINOBJECTTYPE.SIGNAL);
@@ -294,9 +294,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 Script.TrainLengthM = () => Locomotive.Train != null ? Locomotive.Train.Length : 0f;
                 Script.SpeedMpS = () => Math.Abs(Locomotive.SpeedMpS);
                 Script.CurrentDirection = () => Locomotive.Direction;
-                Script.IsDirectionForward = () => Locomotive.Direction == Direction.Forward;
-                Script.IsDirectionNeutral = () => Locomotive.Direction == Direction.N;
-                Script.IsDirectionReverse = () => Locomotive.Direction == Direction.Reverse;
+                Script.IsDirectionForward = () => Locomotive.Direction == MidpointDirection.Forward;
+                Script.IsDirectionNeutral = () => Locomotive.Direction == MidpointDirection.N;
+                Script.IsDirectionReverse = () => Locomotive.Direction == MidpointDirection.Reverse;
                 Script.IsBrakeEmergency = () => Locomotive.TrainBrakeController.EmergencyBraking;
                 Script.IsBrakeFullService = () => Locomotive.TrainBrakeController.TCSFullServiceBraking;
                 Script.PowerAuthorization = () => PowerAuthorization;
@@ -443,7 +443,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             var signalsFound = 0;
             var postsFound = 0;
 
-            foreach (var foundItem in Locomotive.Train.MUDirection == Direction.Reverse ? TrainInfo.ObjectInfoBackward : TrainInfo.ObjectInfoForward)
+            foreach (var foundItem in Locomotive.Train.MUDirection == MidpointDirection.Reverse ? TrainInfo.ObjectInfoBackward : TrainInfo.ObjectInfoForward)
             {
                 switch (foundItem.ItemType)
                 {
@@ -499,7 +499,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
 
         private TrackMonitorSignalAspect NextNormalSignalDistanceHeadsAspect()
         {
-            var signal = Locomotive.Train.NextSignalObject[Locomotive.Train.MUDirection == Direction.Reverse ? 1 : 0];
+            var signal = Locomotive.Train.NextSignalObject[Locomotive.Train.MUDirection == MidpointDirection.Reverse ? 1 : 0];
             if (signal != null)
             {
                 foreach (var signalHead in signal.SignalHeads)
@@ -516,7 +516,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         private bool DoesNextNormalSignalHaveTwoAspects()
             // ...and the two aspects of each head are STOP and ( CLEAR_2 or CLEAR_1 or RESTRICTING)
         {
-            var signal = Locomotive.Train.NextSignalObject[Locomotive.Train.MUDirection == Direction.Reverse ? 1 : 0];
+            var signal = Locomotive.Train.NextSignalObject[Locomotive.Train.MUDirection == MidpointDirection.Reverse ? 1 : 0];
             if (signal != null)
             {
                 if (signal.SignalHeads[0].SignalType.Aspects.Count > 2) return false;
@@ -548,7 +548,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             if (fn_type <= 0) // Invalid value or NORMAL signal
                 return retval;
 
-            int dir = Locomotive.Train.MUDirection == Direction.Reverse ? 1 : 0;
+            int dir = Locomotive.Train.MUDirection == MidpointDirection.Reverse ? 1 : 0;
 
             if (Locomotive.Train.ValidRoute[dir] == null || dir == 1 && Locomotive.Train.PresentPosition[dir].TCSectionIndex < 0)
                 return retval;
@@ -591,7 +591,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
 
         private bool DoesNextNormalSignalHaveRepeaterHead()
         {
-            var signal = Locomotive.Train.NextSignalObject[Locomotive.Train.MUDirection == Direction.Reverse ? 1 : 0];
+            var signal = Locomotive.Train.NextSignalObject[Locomotive.Train.MUDirection == MidpointDirection.Reverse ? 1 : 0];
             if (signal != null)
             {
                 foreach (var signalHead in signal.SignalHeads)
@@ -628,7 +628,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         {
             var LocalTrainInfo = Locomotive.Train.GetTrainInfo();
             SignalDistance = float.MaxValue;
-            foreach (var foundItem in Locomotive.Train.MUDirection == Direction.Reverse ? TrainInfo.ObjectInfoBackward : TrainInfo.ObjectInfoForward)
+            foreach (var foundItem in Locomotive.Train.MUDirection == MidpointDirection.Reverse ? TrainInfo.ObjectInfoBackward : TrainInfo.ObjectInfoForward)
             {
                 if (foundItem.DistanceToTrainM > maxDistanceM)
                 {
@@ -832,7 +832,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 {
                     if (VigilanceMonitor.ResetOnDirectionNeutral)
                     {
-                        enabled &= CurrentDirection() != Direction.N;
+                        enabled &= CurrentDirection() != MidpointDirection.N;
                     }
 
                     if (VigilanceMonitor.ResetOnZeroSpeed)
@@ -855,7 +855,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 {
                     if (VigilanceMonitor.ResetOnDirectionNeutral)
                     {
-                        vigilanceReset &= CurrentDirection() == Direction.N;
+                        vigilanceReset &= CurrentDirection() == MidpointDirection.N;
                     }
 
                     if (VigilanceMonitor.ResetOnZeroSpeed)
@@ -923,7 +923,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 {
                     if (OverspeedMonitor.ResetOnDirectionNeutral)
                     {
-                        overspeedReset &= CurrentDirection() == Direction.N;
+                        overspeedReset &= CurrentDirection() == MidpointDirection.N;
                     }
 
                     if (OverspeedMonitor.ResetOnZeroSpeed)

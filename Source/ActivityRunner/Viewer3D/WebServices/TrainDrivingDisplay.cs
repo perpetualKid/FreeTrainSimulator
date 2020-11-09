@@ -181,7 +181,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             bool showRetainers = train.RetainerSetting != RetainerSetting.Exhaust;
             bool stretched = train.Cars.Count > 1 && train.NPull == train.Cars.Count - 1;
             bool bunched = !stretched && train.Cars.Count > 1 && train.NPush == train.Cars.Count - 1;
-            Train.TrainInfo trainInfo = train.GetTrainInfo();
+            TrainInfo trainInfo = train.GetTrainInfo();
 
             // First Block
             // Client and server may have a time difference.
@@ -200,11 +200,11 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             }
 
             Color speedColor;
-            if (locomotive.SpeedMpS < trainInfo.allowedSpeedMpS - 1f)
+            if (locomotive.SpeedMpS < trainInfo.AllowedSpeed - 1f)
                 speedColor = Color.White;
-            else if (locomotive.SpeedMpS < trainInfo.allowedSpeedMpS)
+            else if (locomotive.SpeedMpS < trainInfo.AllowedSpeed)
                 speedColor = Color.PaleGreen;
-            else if (locomotive.SpeedMpS < trainInfo.allowedSpeedMpS + 5f)
+            else if (locomotive.SpeedMpS < trainInfo.AllowedSpeed + 5f)
                 speedColor = Color.Orange;
             else
                 speedColor = Color.OrangeRed;
@@ -217,7 +217,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             // Gradient info
             if (normalTextMode)
             {
-                float gradient = -trainInfo.currentElevationPercent;
+                float gradient = -trainInfo.Gradient;
                 const float minSlope = 0.00015f;
                 string gradientIndicator;
                 if (gradient < -minSlope)
@@ -241,7 +241,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
                 UserCommand? reverserCommand = GetPressedKey(UserCommand.ControlBackwards, UserCommand.ControlForwards);
                 string reverserKey;
                 bool moving = Math.Abs(trainCar.SpeedMpS) > 1;
-                bool nonSteamEnd = trainCar.EngineType != TrainCar.EngineTypes.Steam && trainCar.Direction == Direction.N && (trainCar.ThrottlePercent >= 1 || moving);
+                bool nonSteamEnd = trainCar.EngineType != TrainCar.EngineTypes.Steam && trainCar.Direction == MidpointDirection.N && (trainCar.ThrottlePercent >= 1 || moving);
                 bool steamEnd = locomotive is MSTSSteamLocomotive steamLocomotive2 && steamLocomotive2.CutoffController.MaximumValue == Math.Abs(train.MUReverserPercent / 100);
                 if (reverserCommand != null && (nonSteamEnd || steamEnd))
                     reverserKey = Symbols.End + ColorCode[Color.Yellow];

@@ -1618,7 +1618,7 @@ namespace Orts.Simulation
                 train2.AITrainBrakePercent = 100;
                 train2.TrainType = TrainType.Ai;
                 train.IncorporatedTrainNo = -1;
-                train2.MUDirection = Direction.Forward;
+                train2.MUDirection = MidpointDirection.Forward;
             }
             else train2.TrainType = TrainType.Static;
             train2.LeadLocomotive = null;
@@ -1779,7 +1779,7 @@ namespace Orts.Simulation
 
                     selectedAsPlayer.AITrainBrakePercent = 100;
                     selectedAsPlayer.TrainType = TrainType.Ai;
-                    selectedAsPlayer.MUDirection = Direction.Forward;
+                    selectedAsPlayer.MUDirection = MidpointDirection.Forward;
 
                     selectedAsPlayer.LeadLocomotive = null;
                     selectedAsPlayer.Cars[0].BrakeSystem.PropagateBrakePressure(5);

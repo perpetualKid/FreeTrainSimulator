@@ -112,7 +112,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
         protected virtual void ReverserControlForwards()
         {
-            if (Locomotive.Direction != Direction.Forward
+            if (Locomotive.Direction != MidpointDirection.Forward
             && (Locomotive.ThrottlePercent >= 1
             || Math.Abs(Locomotive.SpeedMpS) > 1))
             {
@@ -124,7 +124,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
         protected virtual void ReverserControlBackwards()
         {
-            if (Locomotive.Direction != Direction.Reverse
+            if (Locomotive.Direction != MidpointDirection.Reverse
             && (Locomotive.ThrottlePercent >= 1
             || Math.Abs(Locomotive.SpeedMpS) > 1))
             {
@@ -227,11 +227,11 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     if (Locomotive.CombinedControlType != MSTSLocomotive.CombinedControl.ThrottleAir)
                         Locomotive.SetDynamicBrakePercentWithSound(UserInput.Raildriver.DynamicBrakePercent);
                     if (UserInput.Raildriver.DirectionPercent > 50)
-                        Locomotive.SetDirection(Direction.Forward);
+                        Locomotive.SetDirection(MidpointDirection.Forward);
                     else if (UserInput.Raildriver.DirectionPercent < -50)
-                        Locomotive.SetDirection(Direction.Reverse);
+                        Locomotive.SetDirection(MidpointDirection.Reverse);
                     else
-                        Locomotive.SetDirection(Direction.N);
+                        Locomotive.SetDirection(MidpointDirection.N);
                         Locomotive.SetEmergency(UserInput.Raildriver.Emergency);
                     if (UserInput.Raildriver.Wipers == 1 && Locomotive.Wiper)
                         Locomotive.SignalEvent(TrainEvent.WiperOff);

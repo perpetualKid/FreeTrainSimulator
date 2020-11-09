@@ -1870,7 +1870,7 @@ namespace Orts.Simulation.Timetables
                         parentTrain.ControlMode = TrainControlMode.TurnTable;
 
                         var loco = parentTrain.LeadLocomotive;
-                        if (loco.ThrottlePercent < 1 && Math.Abs(loco.SpeedMpS) < 0.05 && (loco.Direction == Direction.N || Math.Abs(parentTrain.MUReverserPercent) <= 1))
+                        if (loco.ThrottlePercent < 1 && Math.Abs(loco.SpeedMpS) < 0.05 && (loco.Direction == MidpointDirection.N || Math.Abs(parentTrain.MUReverserPercent) <= 1))
                         {
                             // check if train still on turntable
                             if (!WorldLocation.Within(parentTrain.FrontTDBTraveller.WorldLocation, parentTurntable.WorldPosition.WorldLocation, parentTurntable.Length / 2))
@@ -1927,7 +1927,7 @@ namespace Orts.Simulation.Timetables
                         parentTrain.ControlMode = TrainControlMode.TurnTable;
 
                         var loco = parentTrain.LeadLocomotive;
-                        if (loco.ThrottlePercent < 1 && Math.Abs(loco.SpeedMpS) < 0.05 && (loco.Direction == Direction.N || Math.Abs(parentTrain.MUReverserPercent) <= 1))
+                        if (loco.ThrottlePercent < 1 && Math.Abs(loco.SpeedMpS) < 0.05 && (loco.Direction == MidpointDirection.N || Math.Abs(parentTrain.MUReverserPercent) <= 1))
                         {
                             // check if train still on turntable
                             if (!WorldLocation.Within(parentTrain.FrontTDBTraveller.WorldLocation, parentTurntable.WorldPosition.WorldLocation, parentTurntable.Length / 2))

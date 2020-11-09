@@ -1901,7 +1901,7 @@ namespace Orts.Simulation.RollingStocks
         {
             // Method to set force and power info
             // An alternative method in the steam locomotive will override this and input force and power info for it.
-            if (PowerOn && Direction != Direction.N)
+            if (PowerOn && Direction != MidpointDirection.N)
             {
                 if (TractiveForceCurves == null)
                 {
@@ -1951,13 +1951,13 @@ namespace Orts.Simulation.RollingStocks
                 {
                     switch (Direction)
                     {
-                        case Direction.Forward:
+                        case MidpointDirection.Forward:
                             //MotiveForceN *= 1;     //Not necessary
                             break;
-                        case Direction.Reverse:
+                        case MidpointDirection.Reverse:
                             MotiveForceN *= -1;
                             break;
-                        case Direction.N:
+                        case MidpointDirection.N:
                         default:
                             MotiveForceN *= 0;
                             break;
@@ -1967,7 +1967,7 @@ namespace Orts.Simulation.RollingStocks
                 {
                     switch (Direction)
                     {
-                        case Direction.Reverse:
+                        case MidpointDirection.Reverse:
                             MotiveForceN *= -1;
                             break;
                         default:
@@ -2384,7 +2384,7 @@ namespace Orts.Simulation.RollingStocks
                     RefillingFromTrough = false;
                     return;
                 }
-                else if (IsTenderRequired == 1 && Direction == Direction.Reverse) // Locomotives with tenders cannot go in reverse
+                else if (IsTenderRequired == 1 && Direction == MidpointDirection.Reverse) // Locomotives with tenders cannot go in reverse
                 {
                     if (!WaterScoopDirectionFlag)
                     {
@@ -2712,16 +2712,16 @@ namespace Orts.Simulation.RollingStocks
         }
 
 #region Reverser
-        public void SetDirection(Direction direction)
+        public void SetDirection(MidpointDirection direction)
         {
             if (Direction != direction && ThrottlePercent < 1)
             {
                 Direction = direction;
                 switch (direction)
                 {
-                    case Direction.Reverse: SignalEvent(TrainEvent.ReverserToForwardBackward); break;
-                    case Direction.N: SignalEvent(TrainEvent.ReverserToNeutral); break;
-                    case Direction.Forward: SignalEvent(TrainEvent.ReverserToForwardBackward); break;
+                    case MidpointDirection.Reverse: SignalEvent(TrainEvent.ReverserToForwardBackward); break;
+                    case MidpointDirection.N: SignalEvent(TrainEvent.ReverserToNeutral); break;
+                    case MidpointDirection.Forward: SignalEvent(TrainEvent.ReverserToForwardBackward); break;
                 }
                 // passes event also to other locomotives
                 foreach (TrainCar car in Train.Cars)
@@ -2730,14 +2730,14 @@ namespace Orts.Simulation.RollingStocks
                     if (loco != null && car != this && loco.AcceptMUSignals)
                         switch (direction)
                         {
-                            case Direction.Reverse: loco.SignalEvent(TrainEvent.ReverserToForwardBackward); break;
-                            case Direction.N: loco.SignalEvent(TrainEvent.ReverserToNeutral); break;
-                            case Direction.Forward: loco.SignalEvent(TrainEvent.ReverserToForwardBackward); break;
+                            case MidpointDirection.Reverse: loco.SignalEvent(TrainEvent.ReverserToForwardBackward); break;
+                            case MidpointDirection.N: loco.SignalEvent(TrainEvent.ReverserToNeutral); break;
+                            case MidpointDirection.Forward: loco.SignalEvent(TrainEvent.ReverserToForwardBackward); break;
                         }
 
                 }
                 SignalEvent(TrainEvent.ReverserChange);
-                if (direction == Direction.Forward)
+                if (direction == MidpointDirection.Forward)
                     Train.MUReverserPercent = 100;
                 else
                     Train.MUReverserPercent = -100;
@@ -2753,9 +2753,9 @@ namespace Orts.Simulation.RollingStocks
                 {
                     switch (Direction)
                     {
-                        case Direction.Reverse: SetDirection(Direction.N); Simulator.Confirmer.Confirm(CabControl.Reverser, CabSetting.Neutral); break;
-                        case Direction.N: SetDirection(Direction.Forward); Simulator.Confirmer.Confirm(CabControl.Reverser, CabSetting.On); break;
-                        case Direction.Forward: SetDirection(Direction.Forward); Simulator.Confirmer.Confirm(CabControl.Reverser, CabSetting.On); break;
+                        case MidpointDirection.Reverse: SetDirection(MidpointDirection.N); Simulator.Confirmer.Confirm(CabControl.Reverser, CabSetting.Neutral); break;
+                        case MidpointDirection.N: SetDirection(MidpointDirection.Forward); Simulator.Confirmer.Confirm(CabControl.Reverser, CabSetting.On); break;
+                        case MidpointDirection.Forward: SetDirection(MidpointDirection.Forward); Simulator.Confirmer.Confirm(CabControl.Reverser, CabSetting.On); break;
                     }
                 }
             }
@@ -2769,9 +2769,9 @@ namespace Orts.Simulation.RollingStocks
                 {
                     switch (Direction)
                     {
-                        case Direction.Reverse: SetDirection(Direction.Reverse); Simulator.Confirmer.Confirm(CabControl.Reverser, CabSetting.Off); break;
-                        case Direction.N: SetDirection(Direction.Reverse); Simulator.Confirmer.Confirm(CabControl.Reverser, CabSetting.Off); break;
-                        case Direction.Forward: SetDirection(Direction.N); Simulator.Confirmer.Confirm(CabControl.Reverser, CabSetting.Neutral); break;
+                        case MidpointDirection.Reverse: SetDirection(MidpointDirection.Reverse); Simulator.Confirmer.Confirm(CabControl.Reverser, CabSetting.Off); break;
+                        case MidpointDirection.N: SetDirection(MidpointDirection.Reverse); Simulator.Confirmer.Confirm(CabControl.Reverser, CabSetting.Off); break;
+                        case MidpointDirection.Forward: SetDirection(MidpointDirection.N); Simulator.Confirmer.Confirm(CabControl.Reverser, CabSetting.Neutral); break;
                     }
                 }
             }
@@ -3803,12 +3803,12 @@ namespace Orts.Simulation.RollingStocks
             if (Train == null)
                 return;
 
-            if (OdometerCountingForwards != OdometerCountingUp ^ (Direction == Direction.Reverse))
+            if (OdometerCountingForwards != OdometerCountingUp ^ (Direction == MidpointDirection.Reverse))
             {
                 OdometerCountingForwards = !OdometerCountingForwards;
             }
 
-            if (Direction == Direction.Reverse)
+            if (Direction == MidpointDirection.Reverse)
             {
                 if (OdometerCountingForwards)
                     OdometerResetPositionM = Train.DistanceTravelledM - Train.Length;
@@ -4531,9 +4531,9 @@ namespace Orts.Simulation.RollingStocks
                 case CabViewControlType.Direction:
                 case CabViewControlType.Direction_Display:
                     {
-                        if (Direction == Direction.Forward)
+                        if (Direction == MidpointDirection.Forward)
                             data = 2;
-                        else if (Direction == Direction.Reverse)
+                        else if (Direction == MidpointDirection.Reverse)
                             data = 0;
                         else
                             data = 1;

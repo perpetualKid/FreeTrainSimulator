@@ -108,7 +108,7 @@ namespace Orts.Scripting.Api
         /// <summary>
         /// Train's direction.
         /// </summary>
-        public Func<Direction> CurrentDirection;
+        public Func<MidpointDirection> CurrentDirection;
         /// <summary>
         /// True if train direction is forward.
         /// </summary>

@@ -520,25 +520,25 @@ namespace Orts.Viewer3D.Popups
 
             InfoToLabel(keyPressed, Viewer.Catalog.GetString("Speed"),
                 FormatStrings.FormatSpeedDisplay(Owner.Viewer.PlayerLocomotive.SpeedMpS, Owner.Viewer.PlayerLocomotive.IsMetric) +
-                (ThisInfo.speedMpS < ThisInfo.allowedSpeedMpS - 1.0f ? "!??" :        // White
-                ThisInfo.speedMpS < ThisInfo.allowedSpeedMpS + 0.0f ? "?!!" :         // PaleGreen
-                ThisInfo.speedMpS < ThisInfo.allowedSpeedMpS + 5.0f ? "!!?" : "!!!"), "", false, keyPressed);// Orange : Red
+                (ThisInfo.Speed < ThisInfo.AllowedSpeed - 1.0f ? "!??" :        // White
+                ThisInfo.Speed < ThisInfo.AllowedSpeed + 0.0f ? "?!!" :         // PaleGreen
+                ThisInfo.Speed < ThisInfo.AllowedSpeed + 5.0f ? "!!?" : "!!!"), "", false, keyPressed);// Orange : Red
             keyPressed = "";
 
             // Gradient info
             if (StandardHUD)
             {
-                if (-ThisInfo.currentElevationPercent < -0.00015)
+                if (-ThisInfo.Gradient < -0.00015)
                 {
                     var c = '\u2198';
-                    Gradient = String.Format("{0:F1}%{1}", -ThisInfo.currentElevationPercent, c) + "$$$";
+                    Gradient = String.Format("{0:F1}%{1}", -ThisInfo.Gradient, c) + "$$$";
                 }
-                else if (-ThisInfo.currentElevationPercent > 0.00015)
+                else if (-ThisInfo.Gradient > 0.00015)
                 {
                     var c = '\u2197';
-                    Gradient = String.Format("{0:F1}%{1}", -ThisInfo.currentElevationPercent, c) + "???";
+                    Gradient = String.Format("{0:F1}%{1}", -ThisInfo.Gradient, c) + "???";
                 }
-                else Gradient = String.Format("{0:F1}%", -ThisInfo.currentElevationPercent);
+                else Gradient = String.Format("{0:F1}%", -ThisInfo.Gradient);
 
                 InfoToLabel(keyPressed, Viewer.Catalog.GetString("Gradient"), Gradient, "", false, keyPressed);
                 keyPressed = "";
@@ -553,8 +553,8 @@ namespace Orts.Viewer3D.Popups
             if (UserInput.IsDown(UserCommand.ControlBackwards) || UserInput.IsDown(UserCommand.ControlForwards))
             {
                 if ((Owner.Viewer.PlayerLocomotive.EngineType != TrainCar.EngineTypes.Steam &&
-                    (Owner.Viewer.PlayerLocomotive.Direction != Direction.Forward
-                    || Owner.Viewer.PlayerLocomotive.Direction != Direction.Reverse)
+                    (Owner.Viewer.PlayerLocomotive.Direction != MidpointDirection.Forward
+                    || Owner.Viewer.PlayerLocomotive.Direction != MidpointDirection.Reverse)
                     && (Owner.Viewer.PlayerLocomotive.ThrottlePercent >= 1
                     || Math.Abs(Owner.Viewer.PlayerLocomotive.SpeedMpS) > 1))
                     || (Owner.Viewer.PlayerLocomotive.EngineType == TrainCar.EngineTypes.Steam && LocomotiveSteam.CutoffController.MaximumValue == Math.Abs(PlayerTrain.MUReverserPercent / 100))

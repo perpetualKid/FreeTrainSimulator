@@ -916,7 +916,7 @@ namespace Orts.Simulation.RollingStocks
 
         public override void SwitchToAutopilotControl()
         {
-            SetDirection(Direction.Forward);
+            SetDirection(MidpointDirection.Forward);
             foreach (DieselEngine de in DieselEngines)
             {
                 if (de.EngineStatus != DieselEngine.Status.Running)

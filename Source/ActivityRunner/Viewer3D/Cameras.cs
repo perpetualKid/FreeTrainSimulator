@@ -818,7 +818,7 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             if (attachedCar == null || attachedCar.Train != Viewer.SelectedTrain)
             {
-                if (Viewer.SelectedTrain.MUDirection != Direction.Reverse)
+                if (Viewer.SelectedTrain.MUDirection != MidpointDirection.Reverse)
                     SetCameraCar(GetCameraCars().First());
                 else
                     SetCameraCar(GetCameraCars().Last());
@@ -2238,7 +2238,7 @@ namespace Orts.ActivityRunner.Viewer3D
             }
             if (attachedCar == null || attachedCar.Train != Viewer.SelectedTrain)
             {
-                if (Viewer.SelectedTrain.MUDirection != Direction.Reverse)
+                if (Viewer.SelectedTrain.MUDirection != MidpointDirection.Reverse)
                     attachedCar = Viewer.SelectedTrain.Cars.First();
                 else
                     attachedCar = Viewer.SelectedTrain.Cars.Last();

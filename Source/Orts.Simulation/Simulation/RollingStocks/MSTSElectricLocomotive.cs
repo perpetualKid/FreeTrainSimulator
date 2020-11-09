@@ -463,7 +463,7 @@ namespace Orts.Simulation.RollingStocks
 
         public override void SwitchToAutopilotControl()
         {
-            SetDirection(Direction.Forward);
+            SetDirection(MidpointDirection.Forward);
             base.SwitchToAutopilotControl();
         }
 

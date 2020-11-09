@@ -58,7 +58,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
             if (car.Train != null && (car.Train.TrainType == TrainType.Ai ||
                 ((car.Train.TrainType == TrainType.Player || car.Train.TrainType == TrainType.AiPlayerDriven || car.Train.TrainType == TrainType.AiPlayerHosting) &&
-                (car.Train.MUDirection != Direction.N && (car as MSTSDieselLocomotive).DieselEngines[0].EngineStatus == Simulation.RollingStocks.SubSystems.PowerSupplies.DieselEngine.Status.Running))))
+                (car.Train.MUDirection != MidpointDirection.N && (car as MSTSDieselLocomotive).DieselEngines[0].EngineStatus == Simulation.RollingStocks.SubSystems.PowerSupplies.DieselEngine.Status.Running))))
             {
                 (car as MSTSDieselLocomotive).SignalEvent(TrainEvent.ReverserToForwardBackward);
                 (car as MSTSDieselLocomotive).SignalEvent(TrainEvent.ReverserChange);

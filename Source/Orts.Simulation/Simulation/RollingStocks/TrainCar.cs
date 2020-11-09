@@ -434,7 +434,7 @@ namespace Orts.Simulation.RollingStocks
                     LocalDynamicBrakePercent = value;
             }
         }
-        public Direction Direction
+        public MidpointDirection Direction
         {
             //TODO: following code lines have been modified to flip trainset physics in order to get viewing direction coincident with loco direction when using rear cab.
             // To achieve the same result with other means, without flipping trainset physics, the code lines probably should be changed
@@ -443,17 +443,17 @@ namespace Orts.Simulation.RollingStocks
                 if (IsDriveable && Train.IsActualPlayerTrain)
                 {
                     var loco = this as MSTSLocomotive;
-                    return Flipped ^ loco.UsingRearCab ? (Direction)((int)Train.MUDirection * -1) : Train.MUDirection;
+                    return Flipped ^ loco.UsingRearCab ? (MidpointDirection)((int)Train.MUDirection * -1) : Train.MUDirection;
                 }
                 else
                 {
-                    return Flipped ? (Direction)((int)Train.MUDirection * -1) : Train.MUDirection;
+                    return Flipped ? (MidpointDirection)((int)Train.MUDirection * -1) : Train.MUDirection;
                 }
             }
             set
             {
                 var loco = this as MSTSLocomotive;
-                Train.MUDirection = Flipped ^ loco.UsingRearCab ? (Direction)((int)value * -1) : value;
+                Train.MUDirection = Flipped ^ loco.UsingRearCab ? (MidpointDirection)((int)value * -1) : value;
             }
         }
         public BrakeSystem BrakeSystem;

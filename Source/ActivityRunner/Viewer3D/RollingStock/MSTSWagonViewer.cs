@@ -609,7 +609,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             if (car.Train != null) // only process this visual feature if this is a valid car in the train
             {
                 // Water spray for water scoop (uses steam effects currently) - Forward direction
-                if (car.Direction == Direction.Forward)
+                if (car.Direction == MidpointDirection.Forward)
                 {
                     foreach (var drawer in WaterScoop)
                     {
@@ -617,7 +617,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     }
                 }
                 // If travelling in reverse turn on rearward facing effect
-                else if (car.Direction == Direction.Reverse)
+                else if (car.Direction == MidpointDirection.Reverse)
                 {
                     foreach (var drawer in WaterScoopReverse)
                     {

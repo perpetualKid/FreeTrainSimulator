@@ -605,7 +605,7 @@ namespace Orts.Simulation
             {
                 // Preparing for rotation
                 var train = TrainsOnMovingTable[0].Train;
-                if (Math.Abs(train.SpeedMpS) > 0.1 || (train.LeadLocomotiveIndex != -1 && (train.LeadLocomotive.ThrottlePercent >= 1 || !(train.LeadLocomotive.Direction == Direction.N 
+                if (Math.Abs(train.SpeedMpS) > 0.1 || (train.LeadLocomotiveIndex != -1 && (train.LeadLocomotive.ThrottlePercent >= 1 || !(train.LeadLocomotive.Direction == MidpointDirection.N 
                  || Math.Abs(train.MUReverserPercent) <= 1))) || (train.ControlMode != TrainControlMode.Manual && train.ControlMode != TrainControlMode.TurnTable &&
                  train.ControlMode != TrainControlMode.Explorer && train.ControlMode != TrainControlMode.Undefined))
                 {

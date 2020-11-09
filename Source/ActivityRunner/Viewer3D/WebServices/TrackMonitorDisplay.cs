@@ -228,34 +228,34 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             });
 
             // Always get train details to pass on to TrackMonitor.
-            Train.TrainInfo thisInfo = viewer.PlayerTrain.GetTrainInfo();
-            Color speedColor = SpeedColor(thisInfo.speedMpS, thisInfo.allowedSpeedMpS);
-            Color trackColor = TrackColor(thisInfo.speedMpS, thisInfo.allowedSpeedMpS);
+            TrainInfo thisInfo = viewer.PlayerTrain.GetTrainInfo();
+            Color speedColor = SpeedColor(thisInfo.Speed, thisInfo.AllowedSpeed);
+            Color trackColor = TrackColor(thisInfo.Speed, thisInfo.AllowedSpeed);
 
             // Speed
             AddLabel(new ListLabel
             {
                 FirstCol = Viewer.Catalog.GetString("Speed"),
-                TrackCol = $"{FormatStrings.FormatSpeedDisplay(Math.Abs(thisInfo.speedMpS), useMetric)}{ColorCode[speedColor]}",
+                TrackCol = $"{FormatStrings.FormatSpeedDisplay(Math.Abs(thisInfo.Speed), useMetric)}{ColorCode[speedColor]}",
             });
 
             // Projected
             AddLabel(new ListLabel
             {
                 FirstCol = Viewer.Catalog.GetString("Projected"),
-                TrackCol = FormatStrings.FormatSpeedDisplay(Math.Abs(thisInfo.projectedSpeedMpS), useMetric),
+                TrackCol = FormatStrings.FormatSpeedDisplay(Math.Abs(thisInfo.ProjectedSpeed), useMetric),
             });
 
             // Allowed speed
             AddLabel(new ListLabel
             {
                 FirstCol = Viewer.Catalog.GetString("Limit"),
-                TrackCol = FormatStrings.FormatSpeedLimit(thisInfo.allowedSpeedMpS, useMetric),
+                TrackCol = FormatStrings.FormatSpeedLimit(thisInfo.AllowedSpeed, useMetric),
             });
             AddSeparator();
 
             // Gradient
-            float gradient = -thisInfo.currentElevationPercent;
+            float gradient = -thisInfo.Gradient;
             const float minSlope = 0.00015f;
             string gradientIndicator;
             if (gradient < -minSlope)
@@ -284,7 +284,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             AddLabel(new ListLabel
             {
                 FirstCol = Viewer.Catalog.GetString("Cab ORIEN"),
-                TrackCol = thisInfo.cabOrientation == 0 ? Viewer.Catalog.GetString("Forward") : Viewer.Catalog.GetString("Backward"),
+                TrackCol = Viewer.Catalog.GetString(thisInfo.CabOrientation.GetDescription()),
             });
 
             // Control mode
@@ -431,18 +431,18 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
         /// Draw train position and upcoming track items on the ListLabel list.
         /// </summary>
         /// <param name="labels">The list of labels to modify.</param>
-        private static void DrawMPModeInfo(List<ListLabel> labels, Train.TrainInfo trainInfo, bool useMetric)
+        private static void DrawMPModeInfo(List<ListLabel> labels, TrainInfo trainInfo, bool useMetric)
         {
             int startObjectArea = AdditionalInfoHeight;
             int endObjectArea = MonitorHeight - (MonitorHeight - (int)Math.Ceiling(MonitorHeight / MonitorScale)) - AdditionalInfoHeight;
             int zeroObjectPointTop, zeroObjectPointMiddle, zeroObjectPointBottom;
-            if (trainInfo.direction == 0)
+            if (trainInfo.Direction == Direction.Forward)
             {
                 zeroObjectPointTop = endObjectArea - Positions.Train[4];
                 zeroObjectPointMiddle = zeroObjectPointTop - Positions.Train[1];
                 zeroObjectPointBottom = zeroObjectPointMiddle - Positions.Train[2];
             }
-            else if (trainInfo.direction == 1)
+            else if (trainInfo.Direction == Direction.Backward)
             {
                 zeroObjectPointTop = startObjectArea;
                 zeroObjectPointMiddle = zeroObjectPointTop - Positions.Train[1];
@@ -454,15 +454,15 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
                 zeroObjectPointTop = zeroObjectPointMiddle + Positions.Train[1];
                 zeroObjectPointBottom = zeroObjectPointMiddle - Positions.Train[2];
             }
-            float distanceFactor = (endObjectArea - startObjectArea - Positions.Train[4]) / MaximumDistanceM / (trainInfo.direction == -1 ? 2 : 1);
+            float distanceFactor = (endObjectArea - startObjectArea - Positions.Train[4]) / MaximumDistanceM / (trainInfo.Direction == (Direction)(-1) ? 2 : 1);
 
             // Draw direction arrow
-            if (trainInfo.direction == 0)
+            if (trainInfo.Direction == Direction.Forward)
                 DrawArrow(labels, TrainDirection.Forward, zeroObjectPointMiddle);
-            else if (trainInfo.direction == 1)
+            else if (trainInfo.Direction == Direction.Backward)
                 DrawArrow(labels, TrainDirection.Backward, zeroObjectPointMiddle);
 
-            if (trainInfo.direction != 1)
+            if (trainInfo.Direction != Direction.Backward)
             {
                 // Draw fixed distance indications
                 float markerIntervalM = DrawDistanceMarkers(labels, distanceFactor, zeroObjectPointTop, numberOfMarkers: 4, direction: TrainDirection.Forward, useMetric);
@@ -470,7 +470,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
                 // Draw forward items
                 DrawTrackItems(labels, trainInfo.ObjectInfoForward, zeroObjectPointTop, distanceFactor, markerIntervalM, direction: TrainDirection.Forward, useMetric);
             }
-            if (trainInfo.direction !=0)
+            if (trainInfo.Direction !=0)
             {
                 // Draw fixed distance indications
                 float markerIntervalM = DrawDistanceMarkers(labels, distanceFactor, zeroObjectPointBottom, numberOfMarkers: 4, direction: TrainDirection.Backward, useMetric);
@@ -481,9 +481,9 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
 
             // Draw own train marker
             TrainPosition trainPosition;
-            if (trainInfo.direction == -1)
+            if (trainInfo.Direction == (Direction)(-1))
                 trainPosition = TrainPosition.ManualOnRoute;
-            else if (trainInfo.direction == 0)
+            else if (trainInfo.Direction == 0)
                 trainPosition = TrainPosition.AutoForwards;
             else
                 trainPosition = TrainPosition.AutoBackwards;
@@ -494,7 +494,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
         /// Draw train position and upcoming track items on the ListLabel list.
         /// </summary>
         /// <param name="labels">The list of labels to modify.</param>
-        private static void DrawAutoModeInfo(List<ListLabel> labels, Train.TrainInfo trainInfo, bool useMetric)
+        private static void DrawAutoModeInfo(List<ListLabel> labels, TrainInfo trainInfo, bool useMetric)
         {
             int startObjectArea = AdditionalInfoHeight;
             int endObjectArea = MonitorHeight - (MonitorHeight - (int)Math.Ceiling(MonitorHeight / MonitorScale)) - AdditionalInfoHeight - Positions.Train[4];
@@ -517,9 +517,9 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             });
 
             // Draw direction arrow
-            if (trainInfo.direction == 0)
+            if (trainInfo.Direction == Direction.Forward)
                 DrawArrow(labels, TrainDirection.Forward, zeroObjectPointMiddle);
-            else if (trainInfo.direction == 1)
+            else if (trainInfo.Direction == Direction.Backward)
                 DrawArrow(labels, TrainDirection.Backward, zeroObjectPointMiddle);
 
             // Draw eye
@@ -539,7 +539,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
         /// Draw train position and upcoming track items on the ListLabel list.
         /// </summary>
         /// <param name="labels">The list of labels to modify.</param>
-        private static void DrawManualModeInfo(List<ListLabel> labels, Train.TrainInfo trainInfo, bool useMetric)
+        private static void DrawManualModeInfo(List<ListLabel> labels, TrainInfo trainInfo, bool useMetric)
         {
             int startObjectArea = AdditionalInfoHeight;
             int endObjectArea = MonitorHeight - (MonitorHeight - (int)Math.Ceiling(MonitorHeight / MonitorScale)) - AdditionalInfoHeight;
@@ -557,9 +557,9 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             ChangeLabelAt(labels, ItemLocationToRow(zeroObjectPointBottom, zeroObjectPointBottom) - 1, DarkGraySeparator);
 
             // Draw direction arrow
-            if (trainInfo.direction == 0)
+            if (trainInfo.Direction == Direction.Forward)
                 DrawArrow(labels, TrainDirection.Forward, zeroObjectPointMiddle);
-            else if (trainInfo.direction == 1)
+            else if (trainInfo.Direction == Direction.Backward)
                 DrawArrow(labels, TrainDirection.Backward, zeroObjectPointMiddle);
 
             // Draw eye
@@ -576,7 +576,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             DrawTrackItems(labels, trainInfo.ObjectInfoBackward, zeroObjectPointBottom, distanceFactor, markerIntervalM, direction: TrainDirection.Backward, useMetric);
 
             // Draw own train marker
-            DrawOwnTrain(labels, trainInfo.isOnPath ? TrainPosition.ManualOnRoute : TrainPosition.ManualOffRoute, zeroObjectPointTop);
+            DrawOwnTrain(labels, trainInfo.PathDefined ? TrainPosition.ManualOnRoute : TrainPosition.ManualOffRoute, zeroObjectPointTop);
         }
 
         private static void DrawArrow(List<ListLabel> labels, TrainDirection direction, int zeroObjectPointMiddle)
@@ -590,9 +590,9 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             });
         }
 
-        private static void DrawEye(List<ListLabel> labels, Train.TrainInfo trainInfo)
+        private static void DrawEye(List<ListLabel> labels, TrainInfo trainInfo)
         {
-            int position = trainInfo.cabOrientation == 0 ? 0 : MonitorHeight;
+            int position = trainInfo.CabOrientation == Direction.Forward ? 0 : MonitorHeight;
             int itemLocationWS = ItemLocationToRow(position, position);
             ChangeLabelAt(labels, itemLocationWS, (ListLabel dataCol) =>
             {

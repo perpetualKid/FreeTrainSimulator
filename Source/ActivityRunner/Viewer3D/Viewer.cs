@@ -1112,9 +1112,9 @@ namespace Orts.ActivityRunner.Viewer3D
                     Simulator.Confirmer.Warning(CabControl.SwitchBehind, CabSetting.Warn1);
             }
             if (UserInput.IsPressed(UserCommand.GameClearSignalForward)) PlayerTrain.RequestSignalPermission(Direction.Forward);
-            if (UserInput.IsPressed(UserCommand.GameClearSignalBackward)) PlayerTrain.RequestSignalPermission(Direction.Reverse);
+            if (UserInput.IsPressed(UserCommand.GameClearSignalBackward)) PlayerTrain.RequestSignalPermission(Direction.Backward);
             if (UserInput.IsPressed(UserCommand.GameResetSignalForward)) PlayerTrain.RequestResetSignal(Direction.Forward);
-            if (UserInput.IsPressed(UserCommand.GameResetSignalBackward)) PlayerTrain.RequestResetSignal(Direction.Reverse);
+            if (UserInput.IsPressed(UserCommand.GameResetSignalBackward)) PlayerTrain.RequestResetSignal(Direction.Backward);
 
             if (UserInput.IsPressed(UserCommand.GameSwitchManualMode)) PlayerTrain.RequestToggleManualMode();
 
@@ -1503,7 +1503,7 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             // Diesel and electric locos have a Reverser lever and,
             // in the neutral position, direction == N
-            return car.Direction == Direction.N
+            return car.Direction == MidpointDirection.N
                 // Steam locos never have direction == N, so check for setting close to zero.
             || Math.Abs(car.Train.MUReverserPercent) <= 1;
         }
@@ -1735,11 +1735,11 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             if (PlayerTrain.ControlMode == TrainControlMode.Manual)
             {
-                PlayerTrain.ProcessRequestManualSetSwitch(Direction.Reverse);
+                PlayerTrain.ProcessRequestManualSetSwitch(Direction.Backward);
             }
             else if (PlayerTrain.ControlMode == TrainControlMode.Explorer)
             {
-                PlayerTrain.ProcessRequestExplorerSetSwitch(Direction.Reverse);
+                PlayerTrain.ProcessRequestExplorerSetSwitch(Direction.Backward);
             }
         }
 

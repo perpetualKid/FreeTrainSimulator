@@ -21,7 +21,7 @@ using System.ComponentModel;
 namespace Orts.Common
 {
     [Description("Reverser")]
-    public enum Direction
+    public enum MidpointDirection
     {
         [Description("Reverse")] Reverse = -1,
         [Description("N")] N = 0,
@@ -116,6 +116,12 @@ namespace Orts.Common
         StopAndProceed,
         Stop,
         Permission,
+    }
+
+    public enum Direction
+    {
+        Forward,
+        Backward,
     }
 
     public enum TrackDirection

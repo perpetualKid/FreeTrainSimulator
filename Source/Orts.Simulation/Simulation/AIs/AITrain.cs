@@ -361,7 +361,7 @@ namespace Orts.Simulation.AIs
                     return;
                 }
                 SpeedMpS = InitialSpeed;
-                MUDirection = Direction.Forward;
+                MUDirection = MidpointDirection.Forward;
                 float initialThrottlepercent = InitialThrottlepercent;
                 MUDynamicBrakePercent = -1;
                 AITrainBrakePercent = 0;
@@ -4238,7 +4238,7 @@ namespace Orts.Simulation.AIs
             Traveller usedTraveller = new Traveller(FrontTDBTraveller);
             int usePosition = 0;
 
-            if (MUDirection == Direction.Reverse)
+            if (MUDirection == MidpointDirection.Reverse)
             {
                 usedTraveller = new Traveller(RearTDBTraveller, Traveller.TravellerDirection.Backward); // use in direction of movement
                 thisTrainFront = false;

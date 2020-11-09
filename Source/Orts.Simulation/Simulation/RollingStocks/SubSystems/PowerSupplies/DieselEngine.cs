@@ -908,7 +908,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             else
                 DemandedThrottlePercent = 0f;
 
-            if (locomotive.Direction == Direction.Reverse)
+            if (locomotive.Direction == MidpointDirection.Reverse)
                 locomotive.PrevMotiveForceN *= -1f;
 
             if ((EngineStatus == DieselEngine.Status.Running) && (locomotive.ThrottlePercent > 0))
