@@ -21,6 +21,26 @@ namespace Orts.Simulation
         SpeedLimit,
     }
 
+    public enum SpeedItemType
+    {
+        Standard = 0,
+        TempRestrictedStart = 1,
+        TempRestrictedResume = 2,
+    }
+
+    public enum TrainPathItemType
+    {
+        Signal,
+        SpeedPost,
+        Station,
+        Authority,
+        Reversal,
+        OutOfControl,
+        WaitingPoint,
+        MilePost,
+        FacingSwitch
+    }
+
     public enum OutOfControlReason
     {
         [Description("SPAD")]PassedAtDanger,   //SignalPassedAtDanger

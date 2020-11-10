@@ -124,11 +124,11 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             }
         }
 
-        static string FindAuthorityInfo(List<Train.TrainObjectItem> ObjectInfo, string ControlText)
+        static string FindAuthorityInfo(List<TrainPathItem> ObjectInfo, string ControlText)
         {
             foreach (var thisInfo in ObjectInfo)
             {
-                if (thisInfo.ItemType == Train.TrainObjectItem.TRAINOBJECTTYPE.AUTHORITY)
+                if (thisInfo.ItemType == TrainPathItemType.Authority)
                 {
                     // TODO: Concatenating strings is bad for localization.
                     return ControlText + " : " + thisInfo.AuthorityType.GetDescription();
@@ -377,7 +377,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             // use red if no info for reverse move available
             var lineColor = Color.DarkGray;
             if (validInfo.ObjectInfoBackward != null && validInfo.ObjectInfoBackward.Count > 0 &&
-                validInfo.ObjectInfoBackward[0].ItemType == Train.TrainObjectItem.TRAINOBJECTTYPE.AUTHORITY &&
+                validInfo.ObjectInfoBackward[0].ItemType == TrainPathItemType.Authority &&
                 validInfo.ObjectInfoBackward[0].AuthorityType == EndAuthorityType.NoPathReserved)
             {
                 lineColor = Color.Red;
@@ -584,7 +584,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         // draw signal, speed and authority items
         // items are sorted in order of increasing distance
 
-        void drawItems(SpriteBatch spriteBatch, Point offset, int startObjectArea, int endObjectArea, int zeroPoint, int lastLabelPosition, float maxDistance, float distanceFactor, int firstLabelPosition, List<Train.TrainObjectItem> itemList, bool forward)
+        void drawItems(SpriteBatch spriteBatch, Point offset, int startObjectArea, int endObjectArea, int zeroPoint, int lastLabelPosition, float maxDistance, float distanceFactor, int firstLabelPosition, List<TrainPathItem> itemList, bool forward)
         {
             var signalShown = false;
             var firstLabelShown = false;
@@ -594,35 +594,35 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             {
                 switch (thisItem.ItemType)
                 {
-                    case Train.TrainObjectItem.TRAINOBJECTTYPE.AUTHORITY:
+                    case TrainPathItemType.Authority:
                         drawAuthority(spriteBatch, offset, startObjectArea, endObjectArea, zeroPoint, maxDistance, distanceFactor, firstLabelPosition, forward, lastLabelPosition, thisItem, ref firstLabelShown);
                         break;
 
-                    case Train.TrainObjectItem.TRAINOBJECTTYPE.SIGNAL:
+                    case TrainPathItemType.Signal:
                         lastLabelPosition = drawSignalForward(spriteBatch, offset, startObjectArea, endObjectArea, zeroPoint, maxDistance, distanceFactor, firstLabelPosition, forward, lastLabelPosition, thisItem, ref signalShown, ref borderSignalShown, ref firstLabelShown);
                         break;
 
-                    case Train.TrainObjectItem.TRAINOBJECTTYPE.SPEEDPOST:
+                    case TrainPathItemType.SpeedPost:
                         lastLabelPosition = drawSpeedpost(spriteBatch, offset, startObjectArea, endObjectArea, zeroPoint, maxDistance, distanceFactor, firstLabelPosition, forward, lastLabelPosition, thisItem, ref firstLabelShown);
                         break;
 
-                    case Train.TrainObjectItem.TRAINOBJECTTYPE.STATION:
+                    case TrainPathItemType.Station:
                         drawStation(spriteBatch, offset, startObjectArea, endObjectArea, zeroPoint, maxDistance, distanceFactor, firstLabelPosition, forward, lastLabelPosition, thisItem);
                         break;
 
-                    case Train.TrainObjectItem.TRAINOBJECTTYPE.WAITING_POINT:
+                    case TrainPathItemType.WaitingPoint:
                         drawWaitingPoint(spriteBatch, offset, startObjectArea, endObjectArea, zeroPoint, maxDistance, distanceFactor, firstLabelPosition, forward, lastLabelPosition, thisItem, ref firstLabelShown);
                         break;
 
-                    case Train.TrainObjectItem.TRAINOBJECTTYPE.MILEPOST:
+                    case TrainPathItemType.MilePost:
                         lastLabelPosition = drawMilePost(spriteBatch, offset, startObjectArea, endObjectArea, zeroPoint, maxDistance, distanceFactor, firstLabelPosition, forward, lastLabelPosition, thisItem, ref firstLabelShown);
                         break;
 
-                    case Train.TrainObjectItem.TRAINOBJECTTYPE.FACING_SWITCH:
+                    case TrainPathItemType.FacingSwitch:
                         drawSwitch(spriteBatch, offset, startObjectArea, endObjectArea, zeroPoint, maxDistance, distanceFactor, firstLabelPosition, forward, lastLabelPosition, thisItem, ref firstLabelShown);
                         break;
 
-                    case Train.TrainObjectItem.TRAINOBJECTTYPE.REVERSAL:
+                    case TrainPathItemType.Reversal:
                         drawReversal(spriteBatch, offset, startObjectArea, endObjectArea, zeroPoint, maxDistance, distanceFactor, firstLabelPosition, forward, lastLabelPosition, thisItem, ref firstLabelShown);
                         break;
 
@@ -635,11 +635,11 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             {
                 switch (thisItem.ItemType)
                 {
-                    case Train.TrainObjectItem.TRAINOBJECTTYPE.FACING_SWITCH:
+                    case TrainPathItemType.FacingSwitch:
                         drawSwitch(spriteBatch, offset, startObjectArea, endObjectArea, zeroPoint, maxDistance, distanceFactor, firstLabelPosition, forward, lastLabelPosition, thisItem, ref firstLabelShown);
                         break;
 
-                    case Train.TrainObjectItem.TRAINOBJECTTYPE.REVERSAL:
+                    case TrainPathItemType.Reversal:
                         drawReversal(spriteBatch, offset, startObjectArea, endObjectArea, zeroPoint, maxDistance, distanceFactor, firstLabelPosition, forward, lastLabelPosition, thisItem, ref firstLabelShown);
                         break;
 
@@ -653,7 +653,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 var thisItem = itemList[iItems];
                 switch (thisItem.ItemType)
                 {
-                    case Train.TrainObjectItem.TRAINOBJECTTYPE.SIGNAL:
+                    case TrainPathItemType.Signal:
                         drawSignalBackward(spriteBatch, offset, startObjectArea, endObjectArea, zeroPoint, maxDistance, distanceFactor, forward, thisItem, signalShown);
                         break;
 
@@ -664,7 +664,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         }
 
         // draw authority information
-        void drawAuthority(SpriteBatch spriteBatch, Point offset, int startObjectArea, int endObjectArea, int zeroPoint, float maxDistance, float distanceFactor, int firstLabelPosition, bool forward, int lastLabelPosition, Train.TrainObjectItem thisItem, ref bool firstLabelShown)
+        void drawAuthority(SpriteBatch spriteBatch, Point offset, int startObjectArea, int endObjectArea, int zeroPoint, float maxDistance, float distanceFactor, int firstLabelPosition, bool forward, int lastLabelPosition, TrainPathItem thisItem, ref bool firstLabelShown)
         {
             var displayItem = new Rectangle(0, 0, 0, 0);
             var displayRequired = false;
@@ -704,7 +704,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         }
 
         // check signal information for reverse display
-        int drawSignalForward(SpriteBatch spriteBatch, Point offset, int startObjectArea, int endObjectArea, int zeroPoint, float maxDistance, float distanceFactor, int firstLabelPosition, bool forward, int lastLabelPosition, Train.TrainObjectItem thisItem, ref bool signalShown, ref bool borderSignalShown, ref bool firstLabelShown)
+        int drawSignalForward(SpriteBatch spriteBatch, Point offset, int startObjectArea, int endObjectArea, int zeroPoint, float maxDistance, float distanceFactor, int firstLabelPosition, bool forward, int lastLabelPosition, TrainPathItem thisItem, ref bool signalShown, ref bool borderSignalShown, ref bool firstLabelShown)
         {
             var displayItem = SignalMarkers[thisItem.SignalState];
             var newLabelPosition = lastLabelPosition;
@@ -751,7 +751,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         }
 
         // draw signal information
-        void drawSignalBackward(SpriteBatch spriteBatch, Point offset, int startObjectArea, int endObjectArea, int zeroPoint, float maxDistance, float distanceFactor, bool forward, Train.TrainObjectItem thisItem, bool signalShown)
+        void drawSignalBackward(SpriteBatch spriteBatch, Point offset, int startObjectArea, int endObjectArea, int zeroPoint, float maxDistance, float distanceFactor, bool forward, TrainPathItem thisItem, bool signalShown)
         {
             var displayItem = SignalMarkers[thisItem.SignalState];
  
@@ -781,7 +781,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         }
 
         // draw speedpost information
-        int drawSpeedpost(SpriteBatch spriteBatch, Point offset, int startObjectArea, int endObjectArea, int zeroPoint, float maxDistance, float distanceFactor, int firstLabelPosition, bool forward, int lastLabelPosition, Train.TrainObjectItem thisItem, ref bool firstLabelShown)
+        int drawSpeedpost(SpriteBatch spriteBatch, Point offset, int startObjectArea, int endObjectArea, int zeroPoint, float maxDistance, float distanceFactor, int firstLabelPosition, bool forward, int lastLabelPosition, TrainPathItem thisItem, ref bool firstLabelShown)
         {
             var newLabelPosition = lastLabelPosition;
 
@@ -802,8 +802,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
                 var labelPoint = new Point(offset.X + speedTextOffset, offset.Y + newLabelPosition + textOffset[forward ? 0 : 1]);
                 var speedString = FormatStrings.FormatSpeedLimitNoUoM(allowedSpeed, metric);
-                Font.Draw(spriteBatch, labelPoint, speedString, thisItem.SpeedObjectType == Train.TrainObjectItem.SpeedItemType.Standard ? Color.White :
-                    (thisItem.SpeedObjectType == Train.TrainObjectItem.SpeedItemType.TempRestrictedStart ? Color.Red : Color.LightGreen));
+                Font.Draw(spriteBatch, labelPoint, speedString, thisItem.SpeedObjectType == SpeedItemType.Standard ? Color.White :
+                    (thisItem.SpeedObjectType == SpeedItemType.TempRestrictedStart ? Color.Red : Color.LightGreen));
 
                 if (itemOffset < firstLabelPosition && !firstLabelShown)
                 {
@@ -819,7 +819,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
 
         // draw station stop information
-        int drawStation(SpriteBatch spriteBatch, Point offset, int startObjectArea, int endObjectArea, int zeroPoint, float maxDistance, float distanceFactor, float firstLabelDistance, bool forward, int lastLabelPosition, Train.TrainObjectItem thisItem)
+        int drawStation(SpriteBatch spriteBatch, Point offset, int startObjectArea, int endObjectArea, int zeroPoint, float maxDistance, float distanceFactor, float firstLabelDistance, bool forward, int lastLabelPosition, TrainPathItem thisItem)
         {
             var displayItem = stationSprite;
             var newLabelPosition = lastLabelPosition;
@@ -837,7 +837,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         }
 
         // draw reversal information
-        int drawReversal(SpriteBatch spriteBatch, Point offset, int startObjectArea, int endObjectArea, int zeroPoint, float maxDistance, float distanceFactor, float firstLabelDistance, bool forward, int lastLabelPosition, Train.TrainObjectItem thisItem, ref bool firstLabelShown)
+        int drawReversal(SpriteBatch spriteBatch, Point offset, int startObjectArea, int endObjectArea, int zeroPoint, float maxDistance, float distanceFactor, float firstLabelDistance, bool forward, int lastLabelPosition, TrainPathItem thisItem, ref bool firstLabelShown)
         {
             var displayItem = thisItem.Valid ? reversalSprite : invalidReversalSprite;
             var newLabelPosition = lastLabelPosition;
@@ -876,7 +876,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         }
 
         // draw waiting point information
-        int drawWaitingPoint(SpriteBatch spriteBatch, Point offset, int startObjectArea, int endObjectArea, int zeroPoint, float maxDistance, float distanceFactor, float firstLabelDistance, bool forward, int lastLabelPosition, Train.TrainObjectItem thisItem, ref bool firstLabelShown)
+        int drawWaitingPoint(SpriteBatch spriteBatch, Point offset, int startObjectArea, int endObjectArea, int zeroPoint, float maxDistance, float distanceFactor, float firstLabelDistance, bool forward, int lastLabelPosition, TrainPathItem thisItem, ref bool firstLabelShown)
         {
             var displayItem = waitingPointSprite;
             var newLabelPosition = lastLabelPosition;
@@ -903,7 +903,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         }
 
         // draw milepost information
-        int drawMilePost(SpriteBatch spriteBatch, Point offset, int startObjectArea, int endObjectArea, int zeroPoint, float maxDistance, float distanceFactor, int firstLabelPosition, bool forward, int lastLabelPosition, Train.TrainObjectItem thisItem, ref bool firstLabelShown)
+        int drawMilePost(SpriteBatch spriteBatch, Point offset, int startObjectArea, int endObjectArea, int zeroPoint, float maxDistance, float distanceFactor, int firstLabelPosition, bool forward, int lastLabelPosition, TrainPathItem thisItem, ref bool firstLabelShown)
         {
             var newLabelPosition = lastLabelPosition;
 
@@ -922,9 +922,9 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         }
 
         // draw switch information
-        int drawSwitch(SpriteBatch spriteBatch, Point offset, int startObjectArea, int endObjectArea, int zeroPoint, float maxDistance, float distanceFactor, float firstLabelDistance, bool forward, int lastLabelPosition, Train.TrainObjectItem thisItem, ref bool firstLabelShown)
+        int drawSwitch(SpriteBatch spriteBatch, Point offset, int startObjectArea, int endObjectArea, int zeroPoint, float maxDistance, float distanceFactor, float firstLabelDistance, bool forward, int lastLabelPosition, TrainPathItem thisItem, ref bool firstLabelShown)
         {
-            var displayItem = thisItem.IsRightSwitch ? rightArrowSprite : leftArrowSprite;
+            var displayItem = thisItem.SwitchDivertsRight ? rightArrowSprite : leftArrowSprite;
             var newLabelPosition = lastLabelPosition;
 
             if (thisItem.DistanceToTrainM < (maxDistance - textSpacing / distanceFactor))
@@ -933,7 +933,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 var itemLocation = forward ? zeroPoint - itemOffset : zeroPoint + itemOffset;
                 newLabelPosition = forward ? Math.Min(itemLocation, lastLabelPosition - textSpacing) : Math.Max(itemLocation, lastLabelPosition + textSpacing);
 
-                var markerPlacement = thisItem.IsRightSwitch ?
+                var markerPlacement = thisItem.SwitchDivertsRight ?
                     new Rectangle(offset.X + rightSwitchPosition[0], offset.Y + itemLocation + rightSwitchPosition[forward ? 1 : 2], rightSwitchPosition[3], rightSwitchPosition[4]) :
                     new Rectangle(offset.X + leftSwitchPosition[0], offset.Y + itemLocation + leftSwitchPosition[forward ? 1 : 2], leftSwitchPosition[3], leftSwitchPosition[4]);
                 spriteBatch.Draw(TrackMonitorImages, markerPlacement, displayItem, Color.White);

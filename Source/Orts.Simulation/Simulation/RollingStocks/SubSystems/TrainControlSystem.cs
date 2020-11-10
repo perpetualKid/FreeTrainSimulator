@@ -272,25 +272,25 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 Script.TrainSpeedLimitMpS = () => TrainInfo.AllowedSpeed;
                 Script.TrainMaxSpeedMpS = () => Locomotive.Train.TrainMaxSpeedMpS;
                 Script.CurrentSignalSpeedLimitMpS = () => Locomotive.Train.allowedMaxSpeedSignalMpS;
-                Script.NextSignalSpeedLimitMpS = (value) => NextSignalItem<float>(value, ref SignalSpeedLimits, Train.TrainObjectItem.TRAINOBJECTTYPE.SIGNAL);
-            Script.NextSignalAspect = (value) => NextSignalItem<TrackMonitorSignalAspect>(value, ref SignalAspects, Train.TrainObjectItem.TRAINOBJECTTYPE.SIGNAL);
-                Script.NextSignalDistanceM = (value) => NextSignalItem<float>(value, ref SignalDistances, Train.TrainObjectItem.TRAINOBJECTTYPE.SIGNAL);
+                Script.NextSignalSpeedLimitMpS = (value) => NextSignalItem<float>(value, ref SignalSpeedLimits, TrainPathItemType.Signal);
+            Script.NextSignalAspect = (value) => NextSignalItem<TrackMonitorSignalAspect>(value, ref SignalAspects, TrainPathItemType.Signal);
+                Script.NextSignalDistanceM = (value) => NextSignalItem<float>(value, ref SignalDistances, TrainPathItemType.Signal);
                 Script.NextNormalSignalDistanceHeadsAspect = () => NextNormalSignalDistanceHeadsAspect();
                 Script.DoesNextNormalSignalHaveTwoAspects = () => DoesNextNormalSignalHaveTwoAspects();
                 Script.NextDistanceSignalAspect = () =>
-                NextGenericSignalItem<TrackMonitorSignalAspect>(ref SignalAspect, Train.TrainObjectItem.TRAINOBJECTTYPE.SIGNAL, "DISTANCE");
+                NextGenericSignalItem<TrackMonitorSignalAspect>(ref SignalAspect, TrainPathItemType.Signal, "DISTANCE");
                 Script.NextDistanceSignalDistanceM = () =>
-                    NextGenericSignalItem<float>(ref SignalDistance, Train.TrainObjectItem.TRAINOBJECTTYPE.SIGNAL, "DISTANCE");
+                    NextGenericSignalItem<float>(ref SignalDistance, TrainPathItemType.Signal, "DISTANCE");
                 Script.NextGenericSignalMainHeadSignalType = (string type) =>
-                    NextGenericSignalItem<string>(ref MainHeadSignalTypeName, Train.TrainObjectItem.TRAINOBJECTTYPE.SIGNAL, type);
+                    NextGenericSignalItem<string>(ref MainHeadSignalTypeName, TrainPathItemType.Signal, type);
                 Script.NextGenericSignalAspect = (string type) =>
-                NextGenericSignalItem<TrackMonitorSignalAspect>(ref SignalAspect, Train.TrainObjectItem.TRAINOBJECTTYPE.SIGNAL, type);
+                NextGenericSignalItem<TrackMonitorSignalAspect>(ref SignalAspect, TrainPathItemType.Signal, type);
                 Script.NextGenericSignalDistanceM = (string type) =>
-                    NextGenericSignalItem<float>(ref SignalDistance, Train.TrainObjectItem.TRAINOBJECTTYPE.SIGNAL, type);
+                    NextGenericSignalItem<float>(ref SignalDistance, TrainPathItemType.Signal, type);
                 Script.DoesNextNormalSignalHaveRepeaterHead = () => DoesNextNormalSignalHaveRepeaterHead();
                 Script.CurrentPostSpeedLimitMpS = () => Locomotive.Train.allowedMaxSpeedLimitMpS;
-                Script.NextPostSpeedLimitMpS = (value) => NextSignalItem<float>(value, ref PostSpeedLimits, Train.TrainObjectItem.TRAINOBJECTTYPE.SPEEDPOST);
-                Script.NextPostDistanceM = (value) => NextSignalItem<float>(value, ref PostDistances, Train.TrainObjectItem.TRAINOBJECTTYPE.SPEEDPOST);
+                Script.NextPostSpeedLimitMpS = (value) => NextSignalItem<float>(value, ref PostSpeedLimits, TrainPathItemType.SpeedPost);
+                Script.NextPostDistanceM = (value) => NextSignalItem<float>(value, ref PostDistances, TrainPathItemType.SpeedPost);
                 Script.TrainLengthM = () => Locomotive.Train != null ? Locomotive.Train.Length : 0f;
                 Script.SpeedMpS = () => Math.Abs(Locomotive.SpeedMpS);
                 Script.CurrentDirection = () => Locomotive.Direction;
@@ -311,7 +311,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 Script.DoesStartFromTerminalStation = () => DoesStartFromTerminalStation();
                 Script.IsColdStart = () => Locomotive.Train.ColdStart;
                 Script.GetTrackNodeOffset = () => Locomotive.Train.FrontTDBTraveller.TrackNodeLength - Locomotive.Train.FrontTDBTraveller.TrackNodeOffset;
-                Script.NextDivergingSwitchDistanceM = (value) => NextDivergingSwitchItem<float>(value, ref SignalDistance, Train.TrainObjectItem.TRAINOBJECTTYPE.FACING_SWITCH);
+                Script.NextDivergingSwitchDistanceM = (value) => NextDivergingSwitchItem<float>(value, ref SignalDistance, TrainPathItemType.FacingSwitch);
                 Script.NextTrailingDivergingSwitchDistanceM = (value) => Locomotive.Train.NextTrailingDivergingSwitchDistanceM(value);
             Script.GetControlMode = () => (TrainControlMode)(int)Locomotive.Train.ControlMode;
                 Script.NextStationName = () => Locomotive.Train.StationStops != null && Locomotive.Train.StationStops.Count > 0 ? Locomotive.Train.StationStops[0].PlatformItem.Name : "";
@@ -427,7 +427,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             Script?.InitializeMoving();
         }
 
-        T NextSignalItem<T>(int forsight, ref List<T> list, Train.TrainObjectItem.TRAINOBJECTTYPE type)
+        T NextSignalItem<T>(int forsight, ref List<T> list, TrainPathItemType type)
         {
             if (forsight < 0) forsight = 0;
             if (forsight >= list.Count) SearchTrainInfo(forsight, type);
@@ -435,7 +435,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             return list[forsight < list.Count ? forsight : list.Count - 1];
         }
 
-        void SearchTrainInfo(float forsight, Train.TrainObjectItem.TRAINOBJECTTYPE searchFor)
+        void SearchTrainInfo(float forsight, TrainPathItemType searchFor)
         {
             if (SignalSpeedLimits.Count == 0)
                 TrainInfo = Locomotive.Train.GetTrainInfo();
@@ -447,7 +447,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             {
                 switch (foundItem.ItemType)
                 {
-                    case Train.TrainObjectItem.TRAINOBJECTTYPE.SIGNAL:
+                    case TrainPathItemType.Signal:
                         signalsFound++;
                         if (signalsFound > SignalSpeedLimits.Count)
                         {
@@ -457,7 +457,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                         }
                         break;
 
-                    case Train.TrainObjectItem.TRAINOBJECTTYPE.SPEEDPOST:
+                    case TrainPathItemType.SpeedPost:
                         postsFound++;
                         if (postsFound > PostSpeedLimits.Count)
                         {
@@ -466,7 +466,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                         }
                         break;
 
-                    case Train.TrainObjectItem.TRAINOBJECTTYPE.AUTHORITY:
+                    case TrainPathItemType.Authority:
                         signalsFound++;
                         if (signalsFound > SignalSpeedLimits.Count)
                         {
@@ -477,20 +477,20 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                         break;
                 }
 
-                if (searchFor == Train.TrainObjectItem.TRAINOBJECTTYPE.SIGNAL && signalsFound > forsight ||
-                    searchFor == Train.TrainObjectItem.TRAINOBJECTTYPE.SPEEDPOST && postsFound > forsight)
+                if (searchFor == TrainPathItemType.Signal && signalsFound > forsight ||
+                    searchFor == TrainPathItemType.SpeedPost && postsFound > forsight)
                 {
                     break;
                 }
             }
 
-            if (searchFor == Train.TrainObjectItem.TRAINOBJECTTYPE.SIGNAL && signalsFound == 0)
+            if (searchFor == TrainPathItemType.Signal && signalsFound == 0)
             {
                 SignalSpeedLimits.Add(-1);
                 SignalAspects.Add(TrackMonitorSignalAspect.None);
                 SignalDistances.Add(float.MaxValue);
             }
-            if (searchFor == Train.TrainObjectItem.TRAINOBJECTTYPE.SPEEDPOST && postsFound == 0)
+            if (searchFor == TrainPathItemType.SpeedPost && postsFound == 0)
             {
                 PostSpeedLimits.Add(-1);
                 PostDistances.Add(float.MaxValue);
@@ -538,7 +538,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             return true;
         }
 
-        T NextGenericSignalItem<T>(ref T retval, Train.TrainObjectItem.TRAINOBJECTTYPE type, string signalTypeName)
+        T NextGenericSignalItem<T>(ref T retval, TrainPathItemType type, string signalTypeName)
         {
             SignalAspect = TrackMonitorSignalAspect.None;
             SignalDistance = float.MaxValue;
@@ -624,7 +624,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             }
         }
 
-        T NextDivergingSwitchItem<T>(float maxDistanceM, ref T retval, Train.TrainObjectItem.TRAINOBJECTTYPE type)
+        T NextDivergingSwitchItem<T>(float maxDistanceM, ref T retval, TrainPathItemType type)
         {
             var LocalTrainInfo = Locomotive.Train.GetTrainInfo();
             SignalDistance = float.MaxValue;

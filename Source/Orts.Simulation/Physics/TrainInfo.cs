@@ -20,8 +20,8 @@ namespace Orts.Simulation.Physics
         public Direction Direction { get; }                     // present direction (0=forward, 1=backward)
         public Direction CabOrientation { get; }                // present cab orientation (0=forward, 1=backward)
         public bool PathDefined { get; }                        // train is on defined path (valid in Manual mode only)
-        public List<TrainObjectItem> ObjectInfoForward { get; } // forward objects
-        public List<TrainObjectItem> ObjectInfoBackward { get; }// backward objects
+        public List<TrainPathItem> ObjectInfoForward { get; } // forward objects
+        public List<TrainPathItem> ObjectInfoBackward { get; }// backward objects
 
         //================================================================================================//
         /// <summary>
@@ -30,8 +30,8 @@ namespace Orts.Simulation.Physics
 
         public TrainInfo()
         {
-            ObjectInfoForward = new List<TrainObjectItem>();
-            ObjectInfoBackward = new List<TrainObjectItem>();
+            ObjectInfoForward = new List<TrainPathItem>();
+            ObjectInfoBackward = new List<TrainPathItem>();
         }
 
         public TrainInfo(TrainControlMode controlMode, Direction direction, float speed):

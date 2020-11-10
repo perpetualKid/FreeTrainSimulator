@@ -27,8 +27,6 @@ using Orts.Simulation;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 
-using static Orts.Simulation.Physics.Train.TrainObjectItem;
-
 namespace Orts.ActivityRunner.Viewer3D.WebServices
 {
     /// <summary>
@@ -403,9 +401,9 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
         /// <remarks>
         /// Equivalent to <see cref="Popups.TrackMonitorWindow.FindAuthorityInfo"/>.
         /// </remarks>
-        private static string FindAuthorityInfo(IEnumerable<Train.TrainObjectItem> objects, string controlText)
+        private static string FindAuthorityInfo(IEnumerable<TrainPathItem> objects, string controlText)
         {
-            Train.TrainObjectItem authInfo = objects.SingleOrDefault((info) => info.ItemType == TRAINOBJECTTYPE.AUTHORITY);
+            TrainPathItem authInfo = objects.SingleOrDefault((info) => info.ItemType == TrainPathItemType.Authority);
             return authInfo == null ? controlText : $"{controlText} : {authInfo.AuthorityType.GetDescription()}";
         }
 
@@ -508,11 +506,11 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
 
             // Draw train position line
             // Use red if no info for reverse move available
-            Train.TrainObjectItem backwardObject = trainInfo.ObjectInfoBackward?.FirstOrDefault();
+            TrainPathItem backwardObject = trainInfo.ObjectInfoBackward?.FirstOrDefault();
             ChangeLabelAt(labels, itemLocationWS, (ListLabel _) => new ListLabel
             {
                 FirstCol = Viewer.Catalog.GetString(
-                    backwardObject?.ItemType == Train.TrainObjectItem.TRAINOBJECTTYPE.AUTHORITY &&
+                    backwardObject?.ItemType == TrainPathItemType.Authority &&
                     backwardObject?.AuthorityType == EndAuthorityType.NoPathReserved ? "SprtrRed" : "SprtrDarkGray"),
             });
 
@@ -640,27 +638,27 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             return markerIntervalM;
         }
 
-        private static void DrawTrackItems(List<ListLabel> labels, IEnumerable<Train.TrainObjectItem> itemList, int zeroPoint, float distanceFactor, float markerIntervalM, TrainDirection direction, bool useMetric)
+        private static void DrawTrackItems(List<ListLabel> labels, IEnumerable<TrainPathItem> itemList, int zeroPoint, float distanceFactor, float markerIntervalM, TrainDirection direction, bool useMetric)
         {
-            TrackItem MakeTrackItem(Train.TrainObjectItem item)
+            TrackItem MakeTrackItem(TrainPathItem item)
             {
                 switch (item.ItemType)
                 {
-                    case TRAINOBJECTTYPE.AUTHORITY:
+                    case TrainPathItemType.Authority:
                         return new TrackAuthorityItem(item, direction);
-                    case TRAINOBJECTTYPE.SIGNAL:
+                    case TrainPathItemType.Signal:
                         return new TrackSignalForwardItem(item, useMetric);
-                    case TRAINOBJECTTYPE.SPEEDPOST:
+                    case TrainPathItemType.SpeedPost:
                         return new TrackSpeedpostItem(item, useMetric);
-                    case TRAINOBJECTTYPE.STATION:
+                    case TrainPathItemType.Station:
                         return new TrackStationItem(item);
-                    case TRAINOBJECTTYPE.WAITING_POINT:
+                    case TrainPathItemType.WaitingPoint:
                         return new TrackWaitingPointItem(item);
-                    case TRAINOBJECTTYPE.MILEPOST:
+                    case TrainPathItemType.MilePost:
                         return new TrackMilePostItem(item);
-                    case TRAINOBJECTTYPE.FACING_SWITCH:
+                    case TrainPathItemType.FacingSwitch:
                         return new TrackSwitchItem(item);
-                    case TRAINOBJECTTYPE.REVERSAL:
+                    case TrainPathItemType.Reversal:
                         return new TrackReversalItem(item);
                     default:
                         return new TrackUnknownItem();
@@ -670,7 +668,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
                 .Select(MakeTrackItem)
                 .Where((TrackItem item) => item.Render)
                 .Where((TrackItem item) => (item.Item.DistanceToTrainM < MaximumDistanceM - TextSpacing / distanceFactor)
-                    || (item.Item.ItemType == TRAINOBJECTTYPE.SIGNAL && item.Item.DistanceToTrainM > markerIntervalM && item.Item.SignalState != TrackMonitorSignalAspect.Stop)));
+                    || (item.Item.ItemType == TrainPathItemType.Signal && item.Item.DistanceToTrainM > markerIntervalM && item.Item.SignalState != TrackMonitorSignalAspect.Stop)));
             // Keep a pointer to the next available row. If a track item conflicts with a previously placed one, bump it to the next row.
             var nextLocations = new Dictionary<TrackItemColumn, int>();
             foreach (TrackItem trackItem in trackItems)
@@ -688,7 +686,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
                 {
                     itemLocationWS = Math.Min(nextLocationWS, ItemLocationToRow(zeroPoint, zeroPoint - itemOffset));
                     // Signal at top
-                    if (trackItem.Item.ItemType == TRAINOBJECTTYPE.SIGNAL && trackItem.Item.SignalState != TrackMonitorSignalAspect.Stop && trackItem.Item.DistanceToTrainM > MaximumDistanceM)
+                    if (trackItem.Item.ItemType == TrainPathItemType.Signal && trackItem.Item.SignalState != TrackMonitorSignalAspect.Stop && trackItem.Item.DistanceToTrainM > MaximumDistanceM)
                     {
                         ChangeLabelAt(labels, itemLocationWS, (ListLabel dataCol) =>
                         {
@@ -730,9 +728,9 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
         /// </summary>
         private abstract class TrackItem
         {
-            public readonly Train.TrainObjectItem Item;
+            public readonly TrainPathItem Item;
 
-            public TrackItem(Train.TrainObjectItem item)
+            public TrackItem(TrainPathItem item)
             {
                 Item = item;
             }
@@ -787,7 +785,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             private readonly Rectangle Sprite;
             private readonly string Symbol;
 
-            public TrackAuthorityItem(Train.TrainObjectItem item, TrainDirection direction) : base(item)
+            public TrackAuthorityItem(TrainPathItem item, TrainDirection direction) : base(item)
             {
                 switch (item.AuthorityType)
                 {
@@ -827,7 +825,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
         {
             private readonly bool Metric;
 
-            public TrackSignalForwardItem(Train.TrainObjectItem item, bool useMetric) : base(item)
+            public TrackSignalForwardItem(TrainPathItem item, bool useMetric) : base(item)
             {
                 Metric = useMetric;
             }
@@ -850,7 +848,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
         {
             private readonly bool Metric;
 
-            public TrackSpeedpostItem(Train.TrainObjectItem item, bool useMetric) : base(item)
+            public TrackSpeedpostItem(TrainPathItem item, bool useMetric) : base(item)
             {
                 Metric = useMetric;
             }
@@ -882,7 +880,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
         [Column(TrackItemColumn.Track)]
         private class TrackStationItem : TrackItem
         {
-            public TrackStationItem(Train.TrainObjectItem item) : base(item) { }
+            public TrackStationItem(TrainPathItem item) : base(item) { }
 
             public override bool Render => true;
             public override bool ShowDistance => false;
@@ -899,7 +897,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
         [Column(TrackItemColumn.Track)]
         private class TrackWaitingPointItem : TrackItem
         {
-            public TrackWaitingPointItem(Train.TrainObjectItem item) : base(item) { }
+            public TrackWaitingPointItem(TrainPathItem item) : base(item) { }
 
             public override bool Render => true;
 
@@ -917,7 +915,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
         [Column(TrackItemColumn.First)]
         private class TrackMilePostItem : TrackItem
         {
-            public TrackMilePostItem(Train.TrainObjectItem item) : base(item) { }
+            public TrackMilePostItem(TrainPathItem item) : base(item) { }
 
             public override bool Render => true;
 
@@ -933,7 +931,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
         [Column(TrackItemColumn.Track)]
         private class TrackSwitchItem : TrackItem
         {
-            public TrackSwitchItem(Train.TrainObjectItem item) : base(item) { }
+            public TrackSwitchItem(TrainPathItem item) : base(item) { }
 
             public override bool Render => true;
 
@@ -941,8 +939,8 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
 
             public override ListLabel TransformLabel(ListLabel dataCol)
             {
-                dataCol.TrackCol = Item.IsRightSwitch ? Symbols.RightArrowWS : Symbols.LeftArrowWS;
-                dataCol.TrackColItem = Item.IsRightSwitch ? Sprites.RightArrowSprite : Sprites.LeftArrowSprite;
+                dataCol.TrackCol = Item.SwitchDivertsRight ? Symbols.RightArrowWS : Symbols.LeftArrowWS;
+                dataCol.TrackColItem = Item.SwitchDivertsRight ? Sprites.RightArrowSprite : Sprites.LeftArrowSprite;
                 return dataCol;
             }
         }
@@ -950,7 +948,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
         [Column(TrackItemColumn.Track)]
         private class TrackReversalItem : TrackItem
         {
-            public TrackReversalItem(Train.TrainObjectItem item) : base(item) { }
+            public TrackReversalItem(TrainPathItem item) : base(item) { }
 
             public override bool Render => true;
 

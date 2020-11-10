@@ -10061,7 +10061,7 @@ namespace Orts.Simulation.Timetables
             bool reversalEnabled = true;
             if (reversalDistanceM > 0)
             {
-                trainInfo.ObjectInfoForward.Add(new TrainObjectItem(reversalEnabled, reversalDistanceM, true));
+                trainInfo.ObjectInfoForward.Add(new TrainPathItem(reversalEnabled, reversalDistanceM, true));
             }
         }
 

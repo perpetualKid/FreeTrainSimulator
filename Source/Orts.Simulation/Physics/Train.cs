@@ -183,10 +183,6 @@ namespace Orts.Simulation.Physics
         float OneAtmospherePSI = 14.696f;      // Atmospheric Pressure
         float PipeHeatTransCoeffWpM2K = 22.0f;    // heat transmission coefficient for a steel pipe.
         float BoltzmanConstPipeWpM2 = 0.0000000567f; // Boltzman's Constant
-        Interpolator OutsideWinterTempbyLatitudeC;
-        Interpolator OutsideAutumnTempbyLatitudeC;
-        Interpolator OutsideSpringTempbyLatitudeC;
-        Interpolator OutsideSummerTempbyLatitudeC;
         public bool TrainHeatingBoilerInitialised = false;
 
         // Values for Wind Direction and Speed - needed for wind resistance and lateral force
@@ -13893,7 +13889,7 @@ namespace Orts.Simulation.Physics
 
         public TrainInfo GetTrainInfo()
         {
-            TrainInfo result = new TrainInfo();
+            TrainInfo result;
             switch (ControlMode)
             {
                 case TrainControlMode.AutoNode:
@@ -13909,7 +13905,7 @@ namespace Orts.Simulation.Physics
                     break;
                 default:// no state? should not occur, but just set no details at all
                     result = new TrainInfo(ControlMode, Direction.Forward, 0);
-                    TrainObjectItem dummyItem = new TrainObjectItem(EndAuthorityType.NoPathReserved, 0.0f);
+                    TrainPathItem dummyItem = new TrainPathItem(EndAuthorityType.NoPathReserved, 0.0f);
                     result.ObjectInfoForward.Add(dummyItem);
                     result.ObjectInfoBackward.Add(dummyItem);
                     break;
@@ -13942,7 +13938,7 @@ namespace Orts.Simulation.Physics
             // set object items - forward
             if (ControlMode == TrainControlMode.AutoNode)
             {
-                result.ObjectInfoForward.Add(new TrainObjectItem(EndAuthorityTypes[0], DistanceToEndNodeAuthorityM[0]));
+                result.ObjectInfoForward.Add(new TrainPathItem(EndAuthorityTypes[0], DistanceToEndNodeAuthorityM[0]));
                 maxAuthSet = true;
             }
 
@@ -13955,16 +13951,16 @@ namespace Orts.Simulation.Physics
                     if (signalItem.SignalDetails.EnabledTrain == null || signalItem.SignalDetails.EnabledTrain.Train != this)
                     {
                         signalAspect = TrackMonitorSignalAspect.Stop;
-                        result.ObjectInfoForward.Add(new TrainObjectItem(signalAspect, signalItem.ActualSpeed, signalItem.DistanceToTrain));
+                        result.ObjectInfoForward.Add(new TrainPathItem(signalAspect, signalItem.ActualSpeed, signalItem.DistanceToTrain));
                         signalProcessed = true;
                         break;
                     }
-                    result.ObjectInfoForward.Add(new TrainObjectItem(signalAspect, signalItem.ActualSpeed, signalItem.DistanceToTrain));
+                    result.ObjectInfoForward.Add(new TrainPathItem(signalAspect, signalItem.ActualSpeed, signalItem.DistanceToTrain));
                     signalProcessed = true;
                 }
                 else if (signalItem.ItemType == SignalItemType.SpeedLimit && signalItem.ActualSpeed > 0)
                 {
-                    result.ObjectInfoForward.Add(new TrainObjectItem(signalItem.ActualSpeed, signalItem.DistanceToTrain, (TrainObjectItem.SpeedItemType)(signalItem.SpeedInfo.LimitedSpeedReduction)));
+                    result.ObjectInfoForward.Add(new TrainPathItem(signalItem.ActualSpeed, signalItem.DistanceToTrain, (SpeedItemType)(signalItem.SpeedInfo.LimitedSpeedReduction)));
                 }
             }
 
@@ -13974,13 +13970,13 @@ namespace Orts.Simulation.Physics
                 SpeedInfo speedInfo = NextSignalObject[0].SignalSpeed(SignalFunction.Normal);
                 float validSpeed = speedInfo == null ? -1 : (IsFreight ? speedInfo.FreightSpeed : speedInfo.PassengerSpeed);
 
-                result.ObjectInfoForward.Add(new TrainObjectItem(signalAspect, validSpeed, DistanceToSignal));
+                result.ObjectInfoForward.Add(new TrainPathItem(signalAspect, validSpeed, DistanceToSignal.GetValueOrDefault(0.1f)));
             }
 
             if (StationStops?.Count > 0 && (!maxAuthSet || StationStops[0].DistanceToTrainM < DistanceToEndNodeAuthorityM[0]) &&
                 StationStops[0].SubrouteIndex == TCRoute.activeSubpath)
             {
-                result.ObjectInfoForward.Add(new TrainObjectItem(StationStops[0].DistanceToTrainM, (int)StationStops[0].PlatformItem.Length));
+                result.ObjectInfoForward.Add(new TrainPathItem(StationStops[0].DistanceToTrainM, (int)StationStops[0].PlatformItem.Length));
             }
 
 
@@ -14005,18 +14001,18 @@ namespace Orts.Simulation.Physics
 
             if (ClearanceAtRearM <= 0)
             {
-                result.ObjectInfoBackward.Add(new TrainObjectItem(EndAuthorityType.NoPathReserved, 0.0f));
+                result.ObjectInfoBackward.Add(new TrainPathItem(EndAuthorityType.NoPathReserved, 0.0f));
             }
             else
             {
                 if (RearSignalObject != null)
                 {
                     TrackMonitorSignalAspect signalAspect = RearSignalObject.TranslateTMAspect(RearSignalObject.SignalLR(SignalFunction.Normal));
-                    result.ObjectInfoBackward.Add(new TrainObjectItem(signalAspect, -1.0f, ClearanceAtRearM));
+                    result.ObjectInfoBackward.Add(new TrainPathItem(signalAspect, -1.0f, ClearanceAtRearM));
                 }
                 else
                 {
-                    result.ObjectInfoBackward.Add(new TrainObjectItem(EndAuthorityType.EndOfAuthority, ClearanceAtRearM));
+                    result.ObjectInfoBackward.Add(new TrainPathItem(EndAuthorityType.EndOfAuthority, ClearanceAtRearM));
                 }
             }
             return result;
@@ -14035,7 +14031,7 @@ namespace Orts.Simulation.Physics
             var prevMilepostDistance = -1f;
             if (ValidRoute[routeDirection] != null)
             {
-                TrainObjectItem thisItem;
+                TrainPathItem thisItem;
                 float distanceToTrainM = 0.0f;
                 float offset = PresentPosition[routeDirection].TCOffset;
                 TrackCircuitSection firstSection = signalRef.TrackCircuitList[PresentPosition[routeDirection].TCSectionIndex];
@@ -14064,7 +14060,7 @@ namespace Orts.Simulation.Physics
                             }
                             if (isDiverging)
                             {
-                                thisItem = new TrainObjectItem(isRightSwitch, sectionStart);
+                                thisItem = new TrainPathItem(isRightSwitch, sectionStart);
                                 if (direction == Direction.Forward)
                                     trainInfo.ObjectInfoForward.Add(thisItem);
                                 else
@@ -14081,7 +14077,7 @@ namespace Orts.Simulation.Physics
 
                                 if (!(distanceToTrainM - prevMilepostDistance < 50 && thisMilepost.Value == prevMilepostValue) && distanceToTrainM > 0 && distanceToTrainM < 7000)
                                 {
-                                    thisItem = new TrainObjectItem(thisMilepost.Value.ToString(), distanceToTrainM);
+                                    thisItem = new TrainPathItem(thisMilepost.Value.ToString(), distanceToTrainM);
                                     prevMilepostDistance = distanceToTrainM;
                                     prevMilepostValue = thisMilepost.Value;
                                     if (direction == Direction.Forward)
@@ -14127,7 +14123,7 @@ namespace Orts.Simulation.Physics
             }
             if (reversalDistanceM > 0)
             {
-                trainInfo.ObjectInfoForward.Add(new TrainObjectItem(reversalEnabled, reversalDistanceM, reversalInfo.Valid));
+                trainInfo.ObjectInfoForward.Add(new TrainPathItem(reversalEnabled, reversalDistanceM, reversalInfo.Valid));
             }
         }
 
@@ -14156,7 +14152,7 @@ namespace Orts.Simulation.Physics
                     (AuxActionsContain.SpecAuxActions[0] as AIActionWPRef).keepIt.currentMvmtState == AITrain.AI_MOVEMENT_STATE.HANDLE_ACTION) ||
                     ((this as AITrain).nextActionInfo is AuxActionWPItem && (this as AITrain).MovementState == AITrain.AI_MOVEMENT_STATE.HANDLE_ACTION))) wpEnabled = true;
 
-                trainInfo.ObjectInfoForward.Add(new TrainObjectItem(wpDistance, wpEnabled));
+                trainInfo.ObjectInfoForward.Add(new TrainPathItem(wpDistance, wpEnabled));
             }
         }
 
@@ -14182,7 +14178,7 @@ namespace Orts.Simulation.Physics
             // set forward information
 
             // set authority
-            result.ObjectInfoForward.Add(new TrainObjectItem(EndAuthorityTypes[0], DistanceToEndNodeAuthorityM[0]));
+            result.ObjectInfoForward.Add(new TrainPathItem(EndAuthorityTypes[0], DistanceToEndNodeAuthorityM[0]));
 
             // run along forward path to catch all speedposts and signals
             if (ValidRoute[0] != null)
@@ -14205,7 +14201,7 @@ namespace Orts.Simulation.Physics
                         float validSpeed = thisSpeedInfo == null ? -1 : (IsFreight ? thisSpeedInfo.FreightSpeed : thisSpeedInfo.PassengerSpeed);
 
                         TrackMonitorSignalAspect signalAspect = thisSignal.TranslateTMAspect(thisSignal.SignalLR(SignalFunction.Normal));
-                        result.ObjectInfoForward.Add(new TrainObjectItem(signalAspect, validSpeed, distanceToTrainM));
+                        result.ObjectInfoForward.Add(new TrainPathItem(signalAspect, validSpeed, distanceToTrainM));
                     }
 
                     if (thisSection.CircuitItems.TrackCircuitSpeedPosts[sectionDirection] != null)
@@ -14223,7 +14219,7 @@ namespace Orts.Simulation.Physics
                                 if (thisSpeedInfo != null && thisSpeedInfo.Reset)
                                     validSpeed = progressiveMaxSpeedLimitMpS;
                                 else progressiveMaxSpeedLimitMpS = validSpeed;
-                                result.ObjectInfoForward.Add(new TrainObjectItem(validSpeed, distanceToTrainM, (TrainObjectItem.SpeedItemType)thisSpeedpost.SpeedPostType()));
+                                result.ObjectInfoForward.Add(new TrainPathItem(validSpeed, distanceToTrainM, (SpeedItemType)thisSpeedpost.SpeedPostType()));
                             }
                         }
                     }
@@ -14240,7 +14236,7 @@ namespace Orts.Simulation.Physics
             // set backward information
 
             // set authority
-            result.ObjectInfoBackward.Add(new TrainObjectItem(EndAuthorityTypes[1], DistanceToEndNodeAuthorityM[1]));
+            result.ObjectInfoBackward.Add(new TrainPathItem(EndAuthorityTypes[1], DistanceToEndNodeAuthorityM[1]));
 
             // run along backward path to catch all speedposts and signals
 
@@ -14265,7 +14261,7 @@ namespace Orts.Simulation.Physics
                         float validSpeed = thisSpeedInfo == null ? -1 : (IsFreight ? thisSpeedInfo.FreightSpeed : thisSpeedInfo.PassengerSpeed);
 
                         TrackMonitorSignalAspect signalAspect = thisSignal.TranslateTMAspect(thisSignal.SignalLR(SignalFunction.Normal));
-                        result.ObjectInfoBackward.Add(new TrainObjectItem(signalAspect, validSpeed, distanceToTrainM));
+                        result.ObjectInfoBackward.Add(new TrainPathItem(signalAspect, validSpeed, distanceToTrainM));
                     }
 
                     if (thisSection.CircuitItems.TrackCircuitSpeedPosts[sectionDirection] != null)
@@ -14282,7 +14278,7 @@ namespace Orts.Simulation.Physics
                                 if (thisSpeedInfo != null && thisSpeedInfo.Reset)
                                     validSpeed = progressiveMaxSpeedLimitMpS;
                                 else progressiveMaxSpeedLimitMpS = validSpeed;
-                                result.ObjectInfoBackward.Add(new TrainObjectItem(validSpeed, distanceToTrainM, (TrainObjectItem.SpeedItemType)thisSpeedpost.SpeedPostType()));
+                                result.ObjectInfoBackward.Add(new TrainPathItem(validSpeed, distanceToTrainM, (SpeedItemType)thisSpeedpost.SpeedPostType()));
                             }
                         }
                     }
@@ -14308,7 +14304,7 @@ namespace Orts.Simulation.Physics
                 (Simulator.PlayerLocomotive.Flipped ^ Simulator.PlayerLocomotive.GetCabFlipped()) ? Direction.Backward : Direction.Forward, false) ;
 
             // set out of control reason
-            result.ObjectInfoForward.Add(new TrainObjectItem(OutOfControlReason));
+            result.ObjectInfoForward.Add(new TrainPathItem(OutOfControlReason));
             return result;
         }
 
@@ -20250,185 +20246,6 @@ namespace Orts.Simulation.Physics
                 }
             }
 
-        }
-
-        //================================================================================================//
-        /// <summary>
-        /// Class TrainObjectItem : info on objects etc. in train path
-        /// Used as interface for TrackMonitorWindow as part of TrainInfo class
-        /// <\summary>
-
-        public class TrainObjectItem : IComparable<TrainObjectItem>
-        {
-            public enum TRAINOBJECTTYPE
-            {
-                SIGNAL,
-                SPEEDPOST,
-                STATION,
-                AUTHORITY,
-                REVERSAL,
-                OUT_OF_CONTROL,
-                WAITING_POINT,
-                MILEPOST,
-                FACING_SWITCH
-            }
-
-            public enum SpeedItemType
-            {
-                Standard = 0,
-                TempRestrictedStart = 1,
-                TempRestrictedResume = 2,
-            }
-
-            public TRAINOBJECTTYPE ItemType;
-            public OutOfControlReason OutOfControlReason;
-            public EndAuthorityType AuthorityType;
-            public TrackMonitorSignalAspect SignalState;
-            public float AllowedSpeedMpS;
-            public float DistanceToTrainM;
-            public bool Enabled;
-            public int StationPlatformLength;
-            public SpeedItemType SpeedObjectType;
-            public bool Valid;
-            public string ThisMile;
-            public bool IsRightSwitch;
-
-            // field validity :
-            // if ItemType == SIGNAL :
-            //      SignalState
-            //      AllowedSpeedMpS if value > 0
-            //      DistanceToTrainM
-            //
-            // if ItemType == SPEEDPOST :
-            //      AllowedSpeedMpS
-            //      DistanceToTrainM
-            //
-            // if ItemType == STATION :
-            //      DistanceToTrainM
-            //
-            // if ItemType == AUTHORITY :
-            //      AuthorityType
-            //      DistanceToTrainM
-            //
-            // if ItemType == REVERSAL :
-            //      DistanceToTrainM
-            //
-            // if ItemType == OUTOFCONTROL :
-            //      OutOfControlReason
-
-
-            //================================================================================================//
-            /// <summary>
-            /// Constructors
-            /// <\summary>
-
-            // Constructor for Signal
-            public TrainObjectItem(TrackMonitorSignalAspect thisAspect, float thisSpeedMpS, float? thisDistanceM)
-            {
-                ItemType = TRAINOBJECTTYPE.SIGNAL;
-                AuthorityType = EndAuthorityType.NoPathReserved;
-                SignalState = thisAspect;
-                AllowedSpeedMpS = thisSpeedMpS;
-                DistanceToTrainM = thisDistanceM.HasValue ? thisDistanceM.Value : 0.1f;
-            }
-
-            // Constructor for Speedpost
-            public TrainObjectItem(float thisSpeedMpS, float thisDistanceM, SpeedItemType speedObjectType = SpeedItemType.Standard)
-            {
-                ItemType = TRAINOBJECTTYPE.SPEEDPOST;
-                AuthorityType = EndAuthorityType.NoPathReserved;
-                SignalState = TrackMonitorSignalAspect.Clear2;
-                AllowedSpeedMpS = thisSpeedMpS;
-                DistanceToTrainM = thisDistanceM;
-                SpeedObjectType = speedObjectType;
-            }
-
-            // Constructor for Station
-            public TrainObjectItem(float thisDistanceM, int thisPlatformLength)
-            {
-                ItemType = TRAINOBJECTTYPE.STATION;
-                AuthorityType = EndAuthorityType.NoPathReserved;
-                SignalState = TrackMonitorSignalAspect.Clear2;
-                AllowedSpeedMpS = -1;
-                DistanceToTrainM = thisDistanceM;
-                StationPlatformLength = thisPlatformLength;
-            }
-
-            // Constructor for Reversal
-            public TrainObjectItem(bool enabled, float thisDistanceM, bool valid = true)
-            {
-                ItemType = TRAINOBJECTTYPE.REVERSAL;
-                AuthorityType = EndAuthorityType.NoPathReserved;
-                SignalState = TrackMonitorSignalAspect.Clear2;
-                AllowedSpeedMpS = -1;
-                DistanceToTrainM = thisDistanceM;
-                Enabled = enabled;
-                Valid = valid;
-            }
-
-            // Constructor for Authority
-            public TrainObjectItem(EndAuthorityType authority, float thisDistanceM)
-            {
-                ItemType = TRAINOBJECTTYPE.AUTHORITY;
-                AuthorityType = authority;
-                SignalState = TrackMonitorSignalAspect.Clear2;
-                AllowedSpeedMpS = -1;
-                DistanceToTrainM = thisDistanceM;
-            }
-
-            // Constructor for OutOfControl
-            public TrainObjectItem(OutOfControlReason reason)
-            {
-                ItemType = TRAINOBJECTTYPE.OUT_OF_CONTROL;
-                OutOfControlReason = reason;
-            }
-
-            // Constructor for Waiting Point
-            public TrainObjectItem(float thisDistanceM, bool enabled)
-            {
-                ItemType = TRAINOBJECTTYPE.WAITING_POINT;
-                AuthorityType = EndAuthorityType.NoPathReserved;
-                SignalState = TrackMonitorSignalAspect.Clear2;
-                AllowedSpeedMpS = -1;
-                DistanceToTrainM = thisDistanceM;
-                Enabled = enabled;
-            }
-
-            // Constructor for Milepost
-            public TrainObjectItem(string thisMile, float thisDistanceM)
-            {
-                ItemType = TRAINOBJECTTYPE.MILEPOST;
-                AuthorityType = EndAuthorityType.NoPathReserved;
-                SignalState = TrackMonitorSignalAspect.Clear2;
-                AllowedSpeedMpS = -1;
-                DistanceToTrainM = thisDistanceM;
-                ThisMile = thisMile;
-            }
-
-            // Constructor for facing Switch
-            public TrainObjectItem(bool isRightSwitch, float thisDistanceM)
-            {
-                ItemType = TRAINOBJECTTYPE.FACING_SWITCH;
-                DistanceToTrainM = thisDistanceM;
-                IsRightSwitch = isRightSwitch;
-            }
-
-
-            /// no need for Restore or Save items as info is not kept in permanent variables
-
-            //================================================================================================//
-            //
-            // Compare To (to allow sort)
-            //
-
-            public int CompareTo(TrainObjectItem otherItem)
-            {
-                if (this.DistanceToTrainM < otherItem.DistanceToTrainM)
-                    return (-1);
-                if (this.DistanceToTrainM == otherItem.DistanceToTrainM)
-                    return (0);
-                return (1);
-            }
         }
 
         //used by remote train to update location based on message received
