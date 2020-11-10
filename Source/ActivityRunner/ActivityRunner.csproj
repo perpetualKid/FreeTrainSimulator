@@ -124,9 +124,9 @@
   <ItemGroup>
     <PackageReference Include="EmbedIO" Version="3.4.3" />
     <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.0.1641" />
-    <PackageReference Include="GetText.NET" Version="0.9.5" />
-    <PackageReference Include="GetText.NET.WindowsForms" Version="0.9.5" />
-	<PackageReference Include="System.Resources.Extensions" Version="4.6.0" />
+    <PackageReference Include="GetText.NET" Version="0.9.6" />
+    <PackageReference Include="GetText.NET.WindowsForms" Version="0.9.6" />
+	<PackageReference Include="System.Resources.Extensions" Version="5.0.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Orts.Common\Orts.Common.csproj" />
@@ -217,6 +217,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Update="Microsoft.NETCore.Targets" Version="5.0.0" />
   </ItemGroup>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Exec Command="if not exist $(TargetDir)Content\*.mgfx (&#xD;&#xA;cd %25temp%25&#xD;&#xA;dotnet new tool-manifest --force&#xD;&#xA;dotnet tool install dotnet-mgfxc&#xD;&#xA;FOR %25%25i IN ($(ProjectDir)Content\Shaders\*.fx) DO ( dotnet tool run mgfxc $(ProjectDir)Content\Shaders\%25%25~nxi $(TargetDir)Content\%25%25~ni.mgfx /Profile:DirectX_11))" />

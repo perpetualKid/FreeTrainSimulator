@@ -89,8 +89,8 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.0.1641" />
-    <PackageReference Include="GetText.NET" Version="0.9.5" />
-    <PackageReference Include="GetText.NET.WindowsForms" Version="0.9.5" />
+    <PackageReference Include="GetText.NET" Version="0.9.6" />
+    <PackageReference Include="GetText.NET.WindowsForms" Version="0.9.6" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\ActivityRunner\ActivityRunner.csproj" />
@@ -105,5 +105,6 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Update="Microsoft.NETCore.Targets" Version="5.0.0" />
   </ItemGroup>
 </Project>
