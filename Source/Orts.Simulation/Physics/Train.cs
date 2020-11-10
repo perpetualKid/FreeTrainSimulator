@@ -6859,7 +6859,7 @@ namespace Orts.Simulation.Physics
                     else if (endSignal.EnabledTrain == null)   // signal cleared by default only - request for proper clearing
                     {
                         endSignal.RequestClearSignalExplorer(newRoute, trainRouted, true, 0);  // do NOT propagate
-                        var extendedRoute = endSignal.RequestClearSignalExplorer(newRoute, trainRouted, true, 0);  // do NOT propagate
+                        TrackCircuitPartialPathRoute extendedRoute = endSignal.RequestClearSignalExplorer(newRoute, trainRouted, true, 0);  // do NOT propagate
                         if (i + 1 == newRoute.Count)
                             newRoute = extendedRoute;
                     }
@@ -7084,7 +7084,7 @@ namespace Orts.Simulation.Physics
                         int numCleared = 0;
                         totalLengthM = 0;
                         offsetM = direction == Direction.Forward ? requiredPosition.Offset : section.Length - requiredPosition.Offset;
-                        for (int i = 0; i < newRoute.Count && (firstSignalPassed || totalLengthM < MinCheckDistanceM); i++)
+                        for (int i = 0; i < newRoute.Count && (firstSignalPassed || totalLengthM < MinCheckDistanceM) && (!firstSignalPassed || numCleared != 0); i++)
                         {
                             section = TrackCircuitSection.TrackCircuitList[newRoute[i].TrackCircuitSection.Index];
                             TrackDirection currentDirection = newRoute[i].Direction;
@@ -7103,34 +7103,23 @@ namespace Orts.Simulation.Physics
                                     firstSignalPassed = true;
                                     if (signal == reqSignal)
                                     {
-                                        for (int j = newRoute.Count - 1; j >= j + 1; j--)
-                                        {
-                                            section = TrackCircuitSection.TrackCircuitList[newRoute[j].TrackCircuitSection.Index];
-                                            section.RemoveTrain(this, true);
-                                            newRoute.RemoveAt(j);
-                                        }
+                                        signalRef.BreakDownRouteList(newRoute, i + 1, trainRouted);
+                                        newRoute.RemoveRange(i + 1, newRoute.Count - i - 1);
                                         newRoute = signal.RequestClearSignalExplorer(newRoute, trainRouted, false, 0);
                                         break;
                                     }
-                                    int num = signal.SignalNumClearAheadMsts;
-                                    if (num <= -2)
-                                        num = signal.SignalNumClearAheadActive;
-                                    numCleared = Math.Max(num, 0);
+                                    numCleared = signal.GetRequestNumberClearAheadExplorer(false, 0);
                                 }
                                 else
                                 {
-                                    if (signal == reqSignal && numCleared > 0)
+                                    if (signal == reqSignal)
                                     {
-                                        for (int j = newRoute.Count - 1; j >= j + 1; j--)
-                                        {
-                                            section = TrackCircuitSection.TrackCircuitList[newRoute[j].TrackCircuitSection.Index];
-                                            section.RemoveTrain(this, true);
-                                            newRoute.RemoveAt(j);
-                                        }
+                                        signalRef.BreakDownRouteList(newRoute, i + 1, trainRouted);
+                                        newRoute.RemoveRange(i + 1, newRoute.Count - i - 1);
                                         newRoute = signal.RequestClearSignalExplorer(newRoute, trainRouted, true, numCleared);
                                         break;
                                     }
-                                    numCleared = Math.Max(numCleared, 0);
+                                    numCleared = signal.GetRequestNumberClearAheadExplorer(true, numCleared);
                                 }
                             }
                         }

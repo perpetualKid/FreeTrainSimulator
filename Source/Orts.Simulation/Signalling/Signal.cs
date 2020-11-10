@@ -1832,40 +1832,51 @@ namespace Orts.Simulation.Signalling
             if (extendRoute && fullRoute)
             {
                 isPropagated = propagated;
-                int reqNumClearAhead;
-                if (SignalNumClearAheadMsts > -2)
-                {
-                    reqNumClearAhead = propagated ? signalNumClearAhead - signalNumberNormalHeads : SignalNumClearAheadMsts - signalNumberNormalHeads;
-                }
-                else
-                {
-                    if (SignalNumClearAheadActive == -1)
-                    {
-                        reqNumClearAhead = propagated ? signalNumClearAhead : 1;
-                    }
-                    else if (SignalNumClearAheadActive == 0)
-                    {
-                        reqNumClearAhead = 0;
-                    }
-                    else
-                    {
-                        reqNumClearAhead = isPropagated ? signalNumClearAhead - 1 : SignalNumClearAheadActive - 1;
-                    }
-                }
-
-                if (reqNumClearAhead > 0)
+                int ReqNumClearAhead = GetRequestNumberClearAheadExplorer(isPropagated, signalNumClearAhead);
+                if (ReqNumClearAhead > 0)
                 {
                     int nextSignalIndex = Signalfound[(int)SignalFunction.Normal];
                     if (nextSignalIndex >= 0)
                     {
                         Signal nextSignal = signalEnvironment.Signals[nextSignalIndex];
-                        newRoute = nextSignal.RequestClearSignalExplorer(newRoute, train, true, reqNumClearAhead);
+                        newRoute = nextSignal.RequestClearSignalExplorer(newRoute, train, true, ReqNumClearAhead);
                     }
                 }
             }
 
-            return newRoute;
+            return (newRoute);
         }
+
+        //================================================================================================//
+        /// <summary>
+        /// number of remaining signals to clear
+        /// </summary>
+        public int GetRequestNumberClearAheadExplorer(bool propagated, int signalNumClearAhead)
+        {
+            int requestNumberClearAhead;
+            if (SignalNumClearAheadMsts > -2)
+            {
+                requestNumberClearAhead = propagated ?  signalNumClearAhead - signalNumberNormalHeads : SignalNumClearAheadMsts - signalNumberNormalHeads;
+            }
+            else
+            {
+                if (SignalNumClearAheadActive == -1)
+                {
+                    requestNumberClearAhead = propagated ? signalNumClearAhead : 1;
+                }
+                else if (SignalNumClearAheadActive == 0)
+                {
+                    requestNumberClearAhead = 0;
+                }
+                else
+                {
+                    requestNumberClearAhead = isPropagated ? signalNumClearAhead - 1 : SignalNumClearAheadActive - 1;
+                }
+            }
+
+            return requestNumberClearAhead;
+        }
+
         //================================================================================================//
         /// <summary>
         /// request to clear signal
