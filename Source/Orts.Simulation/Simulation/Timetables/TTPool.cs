@@ -780,18 +780,6 @@ namespace Orts.Simulation.Timetables
             {
                 Trace.TraceWarning("Pool : " + PoolName + " : overflow : cannot place train : " + train.Name + "\n");
 
-                if (train.CheckTrain)
-                {
-                    File.AppendAllText(@"C:\temp\checktrain.txt", "Required Pool Exit : " + PoolName + "\n");
-                    File.AppendAllText(@"C:\temp\checktrain.txt", "Pool overflow : train length : " + train.Length + "\n");
-                    File.AppendAllText(@"C:\temp\checktrain.txt", "                pool lengths : \n");
-                    foreach (PoolDetails thisStorage in StoragePool)
-                    {
-                        File.AppendAllText(@"C:\temp\checktrain.txt", "                  path : " + thisStorage.StorageName + " ; stored units : " +
-                            thisStorage.StoredUnits.Count + " ; rem length : " + thisStorage.RemLength + "\n");
-                    }
-                }
-
                 // train will be abandoned when reaching end of path
                 train.FormsStatic = false;
                 train.Closeup = false;
@@ -801,12 +789,6 @@ namespace Orts.Simulation.Timetables
             else if (poolStorageState == (int)TTTrain.PoolAccessState.PoolInvalid)
             {
                 Trace.TraceWarning("Pool : " + PoolName + " : no valid pool found : " + train.Name + "\n");
-
-                if (train.CheckTrain)
-                {
-                    File.AppendAllText(@"C:\temp\checktrain.txt", "Required Pool Exit : " + PoolName + "\n");
-                    File.AppendAllText(@"C:\temp\checktrain.txt", "No valid pool found \n");
-                }
 
                 // train will be abandoned when reaching end of path
                 train.FormsStatic = false;
@@ -1023,10 +1005,6 @@ namespace Orts.Simulation.Timetables
                 sob.AppendFormat("           stored units : {0}\n", thisPool.StoredUnits.Count);
                 File.AppendAllText(@"C:\temp\PoolAnal.csv", sob.ToString() + "\n");
 #endif
-
-#if DEBUG_TRACEINFO
-                Trace.TraceInformation("Pool {0} : added unit : {1} ; stored units : {2} ( last = {3} )", PoolName, train.Name, thisPool.StoredUnits.Count, thisPool.StoredUnits.Last());
-#endif
             }
 
             // update altered pool
@@ -1149,9 +1127,6 @@ namespace Orts.Simulation.Timetables
                 // no train found but claim is active - create engine is delayed
                 if (claimActive)
                 {
-#if DEBUG_TRACEINFO
-                Trace.TraceInformation("Pool {0} : train {1} : delayed through claimed access\n", PoolName, train.Name);
-#endif
                     return (TrainFromPool.Delayed);
                 }
 
@@ -1267,9 +1242,6 @@ namespace Orts.Simulation.Timetables
             // if incoming engine is approach, do not create train
             if (incomingEngine)
             {
-#if DEBUG_TRACEINFO
-                Trace.TraceInformation("Pool {0} : train {1} : delayed through incoming engine\n", PoolName, train.Name);
-#endif
                 return (TrainFromPool.Delayed);
             }
 
@@ -1300,10 +1272,6 @@ namespace Orts.Simulation.Timetables
             sob.AppendFormat("Pool {0} : train {1} ({2}) extracted as {3} ({4}) \n", PoolName, selectedTrain.Number, selectedTrain.Name, train.Number, train.Name);
             sob.AppendFormat("           stored units : {0}", reqStorage.StoredUnits.Count);
             File.AppendAllText(@"C:\temp\PoolAnal.csv", sob.ToString() + "\n");
-#endif
-
-#if DEBUG_TRACEINFO
-            Trace.TraceInformation("Pool : {0} : train {1} extracted as {2}", PoolName, selectedTrain.Name, train.Name);
 #endif
             // set details for new train from existing train
             bool validFormed = train.StartFromAITrain(selectedTrain, presentTime, occupiedSections);
@@ -1438,22 +1406,11 @@ namespace Orts.Simulation.Timetables
             }
             else
             {
-#if DEBUG_TRACEINFO
-                Trace.TraceWarning("Failed to extract required train " + train.Name + " from pool " + PoolName + "\n");
-#endif
                 return (TrainFromPool.Failed);
             }
 
             // update pool data
             reqStorage.StoredUnits.Remove(selectedTrainNumber);
-
-#if DEBUG_TRACEINFO
-            Trace.TraceInformation("Pool {0} : remaining units : {1}", PoolName, reqStorage.StoredUnits.Count);
-            if (reqStorage.StoredUnits.Count > 0)
-            {
-                Trace.TraceInformation("Pool {0} : last stored unit : {1}", PoolName, reqStorage.StoredUnits.Last());
-            }
-#endif
 
             // get last train in storage
             TTTrain storedTrain = null;

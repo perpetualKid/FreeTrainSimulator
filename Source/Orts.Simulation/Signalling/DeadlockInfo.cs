@@ -19,8 +19,6 @@
 
 // Debug flags :
 // #define DEBUG_PRINT
-// prints details of the derived signal structure
-// #define DEBUG_REPORTS
 // print details of train behaviour
 // #define DEBUG_DEADLOCK
 // print details of deadlock processing

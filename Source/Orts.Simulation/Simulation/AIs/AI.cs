@@ -27,7 +27,6 @@
 // 
 // Flag to print deadlock info
 // #define DEBUG_DEADLOCK
-// #define DEBUG_TRACEINFO
 //
 
 using System;
@@ -1217,11 +1216,6 @@ namespace Orts.Simulation.AIs
 
             if (validPosition)
             {
-                if (thisTrain.CheckTrain)
-                {
-                    File.AppendAllText(@"C:\temp\checktrain.txt", "Train added to world : " + thisTrain.Number + " ; type = " + thisTrain.TrainType + "\n");
-                }
-
                 thisTrain.actualWaitTimeS = 0; // reset wait counter //
 
                 if (!AITrains.Contains(thisTrain))
@@ -1247,9 +1241,6 @@ namespace Orts.Simulation.AIs
             else
             {
                 TimeSpan timeStart = new TimeSpan((long)(Math.Pow(10, 7) * thisTrain.StartTime.Value));
-#if DEBUG_TRACEINFO
-                Trace.TraceWarning("Delay to placing AI train {0} ({1}) at time {2}", thisTrain.Number, thisTrain.Name, timeStart.ToString());
-#endif
                 thisTrain.StartTime += 30;    // try again in half a minute
                 thisTrain.actualWaitTimeS += 30;
                 if (thisTrain.actualWaitTimeS > 900)   // tried for 15 mins

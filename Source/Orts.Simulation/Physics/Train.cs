@@ -34,10 +34,7 @@
  */
 
 // Compiler flags for debug print-out facilities
-// #define DEBUG_TEST
-// #define DEBUG_REPORTS
 // #define DEBUG_DEADLOCK
-// #define DEBUG_TRACEINFO
 // #define DEBUG_SIGNALPASS
 
 // Debug Calculation of Aux Tender operation
@@ -342,9 +339,6 @@ namespace Orts.Simulation.Physics
         // per section : list with trainno and end section
         public Dictionary<int, List<Dictionary<int, int>>> DeadlockInfo =
             new Dictionary<int, List<Dictionary<int, int>>>();
-
-        // Logging and debugging info
-        public readonly bool CheckTrain;                          // debug print required
 
         private static double lastLogTime;
         private protected bool evaluateTrainSpeed;                  // logging of train speed required
@@ -3415,9 +3409,6 @@ namespace Orts.Simulation.Physics
 
                 if (IndexNextSignal >= SignalObjectItems.Count)
                 {
-                    if (CheckTrain)
-                        File.AppendAllText(@"C:\temp\checktrain.txt", "Error in UpdateSignalState: IndexNextSignal out of range : " + IndexNextSignal +
-                                             " (max value : " + SignalObjectItems.Count + ") \n");
                     listChanged = true;
                 }
             }
@@ -3575,10 +3566,6 @@ namespace Orts.Simulation.Physics
                             {
                                 actualSpeedMpS = -1;
                             }
-#if DEBUG_REPORTS
-                            File.AppendAllText(@"C:\temp\printproc.txt", "Speed reset : Signal : " + thisObject.ObjectDetails.thisRef.ToString() +
-                                " : " + validSpeedSignalMpS.ToString() + " ; Limit : " + validSpeedLimitMpS.ToString() + "\n");
-#endif
                         }
                     }
                     else
@@ -5654,10 +5641,6 @@ namespace Orts.Simulation.Physics
             int rearIndex = ValidRoute[0].GetRouteIndex(PresentPosition[1].TCSectionIndex, 0);
             if (rearIndex < 0)
             {
-                if (CheckTrain)
-                {
-                    File.AppendAllText(@"C:\temp\checktrain.txt", "Start position of end of train {0} not on route " + Number);
-                }
                 rearIndex = 0;
             }
 
@@ -6383,16 +6366,6 @@ namespace Orts.Simulation.Physics
                     {
                         SignalAspectState signalState = GetNextSignalAspect(direction);
                         passedSignalIndex = NextSignalObject[direction].Index;
-
-#if DEBUG_REPORTS
-                        String report = "Passing signal ";
-                        report = String.Concat(report, NextSignalObject[direction].thisRef.ToString());
-                        report = String.Concat(report, " with state ", signalState.ToString());
-                        report = String.Concat(report, " by train ", Number.ToString());
-                        report = String.Concat(report, " at ", FormatStrings.FormatDistance(DistanceTravelledM, true));
-                        report = String.Concat(report, " and ", FormatStrings.FormatSpeed(SpeedMpS, true));
-                        File.AppendAllText(@"C:\temp\printproc.txt", report + "\n");
-#endif
 #if DEBUG_SIGNALPASS
                         double passtime = 0;
                         if (TrainType != Train.TRAINTYPE.PLAYER)
@@ -6411,17 +6384,6 @@ namespace Orts.Simulation.Physics
                         File.AppendAllText(@"C:\temp\passsignal.txt", sob.ToString() + "\n");
 #endif
 
-                        if (CheckTrain)
-                        {
-                            String reportCT = "Passing signal ";
-                            reportCT = String.Concat(reportCT, NextSignalObject[direction].Index.ToString());
-                            reportCT = String.Concat(reportCT, " with state ", signalState.ToString());
-                            reportCT = String.Concat(reportCT, " by train ", Number.ToString());
-                            reportCT = String.Concat(reportCT, " at ", DistanceTravelledM.ToString());
-                            reportCT = String.Concat(reportCT, " and ", FormatStrings.FormatSpeed(SpeedMpS, true));
-                            File.AppendAllText(@"C:\temp\checktrain.txt", reportCT + "\n");
-                        }
-
                         if (signalState == SignalAspectState.Stop && NextSignalObject[direction].OverridePermission == SignalPermission.Denied)
                         {
                             Trace.TraceWarning("Train {1} ({0}) passing signal {2} at {3} at danger at {4}",
@@ -6434,29 +6396,11 @@ namespace Orts.Simulation.Physics
                         else if (ControlMode == TrainControlMode.AutoSignal && NextSignalObject[direction].Signalfound[(int)SignalFunction.Normal] < 0) // no next signal
                         {
                             SwitchToNodeControl(LastReservedSection[direction]);
-#if DEBUG_REPORTS
-                            File.AppendAllText(@"C:\temp\printproc.txt", "Train " + Number.ToString() +
-                                            " set to NODE control for no next signal from " + NextSignalObject[direction].thisRef.ToString() + "\n");
-#endif
-                            if (CheckTrain)
-                            {
-                                File.AppendAllText(@"C:\temp\checktrain.txt", "Train " + Number.ToString() +
-                                                " set to NODE control for no next signal from " + NextSignalObject[direction].Index.ToString() + "\n");
-                            }
                             break;
                         }
                         else if (ControlMode == TrainControlMode.AutoSignal && NextSignalObject[direction].BlockState() != SignalBlockState.Clear) // route to next signal not clear
                         {
                             SwitchToNodeControl(LastReservedSection[direction]);
-#if DEBUG_REPORTS
-                            File.AppendAllText(@"C:\temp\printproc.txt", "Train " + Number.ToString() +
-                                            " set to NODE control for route to next signal not clear from " + NextSignalObject[direction].thisRef.ToString() + "\n");
-#endif
-                            if (CheckTrain)
-                            {
-                                File.AppendAllText(@"C:\temp\checktrain.txt", "Train " + Number.ToString() +
-                                                " set to NODE control for route to next signal not clear from " + NextSignalObject[direction].Index.ToString() + "\n");
-                            }
                             break;
                         }
 
@@ -6525,47 +6469,10 @@ namespace Orts.Simulation.Physics
             if (presentIndex < lastIndex || (presentIndex == lastIndex && presentOffset < lastOffset))
             {
                 movedBackward = movedBackward < 2 * backwardThreshold ? ++movedBackward : movedBackward;
-
-#if DEBUG_REPORTS
-                String report = "Moving backward : ";
-                report = String.Concat(report, " train ", Number.ToString());
-                File.AppendAllText(@"C:\temp\printproc.txt", report + "\n");
-                report = "Previous position : ";
-                report = String.Concat(report, lastIndex.ToString(), " + ", lastOffset.ToString());
-                File.AppendAllText(@"C:\temp\printproc.txt", report + "\n");
-                report = "Present  position : ";
-                report = String.Concat(report, presentIndex.ToString(), " + ", presentOffset.ToString());
-                File.AppendAllText(@"C:\temp\printproc.txt", report + "\n");
-                report = "Backward counter : ";
-                report = String.Concat(report, movedBackward.ToString());
-                File.AppendAllText(@"C:\temp\printproc.txt", report + "\n");
-#endif
-                if (CheckTrain)
-                {
-                    string ctreport = "Moving backward : ";
-                    ctreport = String.Concat(ctreport, " train ", Number.ToString());
-                    File.AppendAllText(@"C:\temp\checktrain.txt", ctreport + "\n");
-                    ctreport = "Previous position : ";
-                    ctreport = String.Concat(ctreport, lastIndex.ToString(), " + ", lastOffset.ToString());
-                    File.AppendAllText(@"C:\temp\checktrain.txt", ctreport + "\n");
-                    ctreport = "Present  position : ";
-                    ctreport = String.Concat(ctreport, presentIndex.ToString(), " + ", presentOffset.ToString());
-                    File.AppendAllText(@"C:\temp\checktrain.txt", ctreport + "\n");
-                    ctreport = "Backward counter : ";
-                    ctreport = String.Concat(ctreport, movedBackward.ToString());
-                    File.AppendAllText(@"C:\temp\checktrain.txt", ctreport + "\n");
-                }
             }
 
             if (movedBackward > backwardThreshold)
             {
-                if (CheckTrain)
-                {
-                    string ctreport = "Moving backward : exceeding backward threshold : ";
-                    ctreport = String.Concat(ctreport, " train ", Number.ToString());
-                    File.AppendAllText(@"C:\temp\checktrain.txt", ctreport + "\n");
-                }
-
                 // run through sections behind train
                 // if still in train route : try to reserve section
                 // if multiple train in section : calculate distance to next train, stop oncoming train
@@ -6918,16 +6825,6 @@ namespace Orts.Simulation.Physics
                     }
                 }
 
-#if DEBUG_REPORTS
-                File.AppendAllText(@"C:\temp\printproc.txt",
-                                "Train " + Number.ToString() + " at end of path\n");
-#endif
-                if (CheckTrain)
-                {
-                    File.AppendAllText(@"C:\temp\checktrain.txt",
-                                    "Train " + Number.ToString() + " at end of path\n");
-                }
-
                 int nextIndex = PresentPosition[0].RouteListIndex + 1;
                 if (nextIndex <= (ValidRoute[0].Count - 1))
                 {
@@ -6979,34 +6876,8 @@ namespace Orts.Simulation.Physics
 
                 // perform any remaining actions of type clear section (except sections now occupied)
 
-#if DEBUG_REPORTS
-                int nextSubpath = TCRoute.activeSubpath + 1;
-                File.AppendAllText(@"C:\temp\printproc.txt",
-                                "Train " + Number.ToString() +
-                                " starts subpath " + nextSubpath.ToString() + "\n");
-#endif
-                if (CheckTrain)
-                {
-                    int nextSubpathCT = TCRoute.activeSubpath + 1;
-                    File.AppendAllText(@"C:\temp\checktrain.txt",
-                                    "Train " + Number.ToString() +
-                                    " starts subpath " + nextSubpathCT.ToString() + "\n");
-                }
-
                 // reset old actions
                 ClearActiveSectionItems();
-
-                if (CheckTrain)
-                {
-                    File.AppendAllText(@"C:\temp\checktrain.txt", "* Remaining active items : \n");
-                    LinkedListNode<DistanceTravelledItem> nextNode = requiredActions.First;
-                    while (nextNode != null)
-                    {
-                        File.AppendAllText(@"C:\temp\checktrain.txt",
-                            " -- Distance : " + nextNode.Value.RequiredDistance + " ; Type : " + nextNode.Value.GetType().ToString() + "\n");
-                        nextNode = nextNode.Next;
-                    }
-                }
 
                 // set new route
                 TCRoute.activeSubpath++;
@@ -10316,14 +10187,6 @@ namespace Orts.Simulation.Physics
                         break;
                 }
 
-#if DEBUG_REPORTS
-                File.AppendAllText(@"C:\temp\printproc.txt", report + "\n");
-#endif
-                if (CheckTrain)
-                {
-                    File.AppendAllText(@"C:\temp\checktrain.txt", report + "\n");
-                }
-
                 if (LeadLocomotive != null)
                     ((MSTSLocomotive)LeadLocomotive).SetEmergency(true);
             }
@@ -10577,13 +10440,6 @@ namespace Orts.Simulation.Physics
                 allowedMaxTempSpeedLimitMpS = allowedAbsoluteMaxTempSpeedLimitMpS;
                 AllowedMaxSpeedMpS = Math.Min(speedInfo.MaxTempSpeedMpSLimit, Math.Min(allowedMaxSpeedSignalMpS, allowedMaxSpeedLimitMpS));
             }
-#if DEBUG_REPORTS
-            File.AppendAllText(@"C:\temp\printproc.txt", "Validated speedlimit : " +
-               "Limit : " + allowedMaxSpeedLimitMpS.ToString() + " ; " +
-               "Signal : " + allowedMaxSpeedSignalMpS.ToString() + " ; " +
-               "Overall : " + AllowedMaxSpeedMpS.ToString() + "\n");
-
-#endif
             if (IsActualPlayerTrain && AllowedMaxSpeedMpS > prevMaxSpeedMpS)
             {
                 Simulator.OnAllowedSpeedRaised(this);
@@ -10631,14 +10487,6 @@ namespace Orts.Simulation.Physics
 
                 if (Simulator.Confirmer != null) // As Confirmer may not be created until after a restore.
                     Simulator.Confirmer.Message(ConfirmLevel.Warning, report);
-
-#if DEBUG_REPORTS
-                File.AppendAllText(@"C:\temp\printproc.txt", report + "\n");
-#endif
-                if (CheckTrain)
-                {
-                    File.AppendAllText(@"C:\temp\checktrain.txt", report + "\n");
-                }
 
             }
 
@@ -10766,20 +10614,6 @@ namespace Orts.Simulation.Physics
 
         public void UpdateTrackActionsCoupling(bool couple_to_front)
         {
-
-#if DEBUG_REPORTS
-            File.AppendAllText(@"C:\temp\printproc.txt",
-                            "Train " + Number.ToString() +
-                            " coupled (front : " + couple_to_front.ToString() +
-            " ) while on section " + PresentPosition[0].TCSectionIndex.ToString() + "\n");
-#endif
-            if (CheckTrain)
-            {
-                File.AppendAllText(@"C:\temp\checktrain.txt",
-                                "Train " + Number.ToString() +
-                                " coupled (front : " + couple_to_front.ToString() +
-                " ) while on section " + PresentPosition[0].TCSectionIndex.ToString() + "\n");
-            }
 
             // remove train from track - clear all reservations etc.
 
@@ -10990,18 +10824,6 @@ namespace Orts.Simulation.Physics
             {
                 signalRef.RequestClearNode(routedForward, ValidRoute[0]);
             }
-
-#if DEBUG_REPORTS
-            File.AppendAllText(@"C:\temp\printproc.txt",
-                            "Train " + Number.ToString() +
-                            " couple procedure completed \n");
-#endif
-            if (CheckTrain)
-            {
-                File.AppendAllText(@"C:\temp\checktrain.txt",
-                                "Train " + Number.ToString() +
-                                " couple procedure completed \n");
-            }
         }
 
         //================================================================================================//
@@ -11132,20 +10954,6 @@ namespace Orts.Simulation.Physics
         public bool UpdateTrackActionsUncoupling(bool originalTrain)
         {
             bool inPath = true;
-
-#if DEBUG_REPORTS
-            File.AppendAllText(@"C:\temp\printproc.txt",
-                            "Train " + Number.ToString() +
-                            " uncouple actions, org train : " + originalTrain.ToString() +
-                " ; new type : " + TrainType.ToString() + "\n");
-#endif
-            if (CheckTrain)
-            {
-                File.AppendAllText(@"C:\temp\checktrain.txt",
-                                "Train " + Number.ToString() +
-                            " uncouple actions, org train : " + originalTrain.ToString() +
-                " ; new type : " + TrainType.ToString() + "\n");
-            }
 
             if (originalTrain)
             {
@@ -11310,18 +11118,6 @@ namespace Orts.Simulation.Physics
                 }
 
                 Reinitialize();
-            }
-
-#if DEBUG_REPORTS
-            File.AppendAllText(@"C:\temp\printproc.txt",
-                            "Train " + Number.ToString() +
-                            " uncouple procedure completed \n");
-#endif
-            if (CheckTrain)
-            {
-                File.AppendAllText(@"C:\temp\checktrain.txt",
-                                "Train " + Number.ToString() +
-                                " uncouple procedure completed \n");
             }
             return inPath;
         }
@@ -12779,42 +12575,6 @@ namespace Orts.Simulation.Physics
             {
                 return (false);
             }
-
-#if DEBUG_TEST
-            File.AppendAllText(@"C:\temp\TCSections.txt", "\nSTATION STOPS\n\n");
-
-            if (StationStops.Count <= 0)
-            {
-                File.AppendAllText(@"C:\temp\TCSections.txt", " No stops\n");
-            }
-            else
-            {
-                foreach (StationStop thisStation in StationStops)
-                {
-                    File.AppendAllText(@"C:\temp\TCSections.txt", "\n");
-                    if (thisStation.PlatformItem == null)
-                    {
-                        File.AppendAllText(@"C:\temp\TCSections.txt", "Waiting Point");
-                    }
-                    else
-                    {
-                        File.AppendAllText(@"C:\temp\TCSections.txt", "Station : " + thisStation.PlatformItem.Name + "\n");
-                        DateTime baseDT = new DateTime();
-                        DateTime arrTime = baseDT.AddSeconds(thisStation.ArrivalTime);
-                        File.AppendAllText(@"C:\temp\TCSections.txt", "Arrive  : " + arrTime.ToString("HH:mm:ss") + "\n");
-                        DateTime depTime = baseDT.AddSeconds(thisStation.DepartTime);
-                        File.AppendAllText(@"C:\temp\TCSections.txt", "Depart  : " + depTime.ToString("HH:mm:ss") + "\n");
-                    }
-                    File.AppendAllText(@"C:\temp\TCSections.txt", "Exit Sig: " + thisStation.ExitSignal.ToString() + "\n");
-                    File.AppendAllText(@"C:\temp\TCSections.txt", "Hold Sig: " + thisStation.HoldSignal.ToString() + "\n");
-                    File.AppendAllText(@"C:\temp\TCSections.txt", "Subpath : " + thisStation.SubrouteIndex.ToString() + "\n");
-                    File.AppendAllText(@"C:\temp\TCSections.txt", "Index   : " + lastRouteIndex.ToString() + "\n");
-                    File.AppendAllText(@"C:\temp\TCSections.txt", "Section : " + thisStation.TCSectionIndex.ToString() + "\n");
-                    File.AppendAllText(@"C:\temp\TCSections.txt", "Direct  : " + thisStation.Direction.ToString() + "\n");
-                    File.AppendAllText(@"C:\temp\TCSections.txt", "Stop    : " + thisStation.StopOffset.ToString("###0.00") + "\n");
-                }
-            }
-#endif
             return (true);
         }
 
@@ -14315,10 +14075,6 @@ namespace Orts.Simulation.Physics
 
         public void SetRoutePath(AIPath aiPath)
         {
-#if DEBUG_TEST
-            File.AppendAllText(@"C:\temp\TCSections.txt", "--------------------------------------------------\n");
-            File.AppendAllText(@"C:\temp\TCSections.txt", "Train : " + Number.ToString() + "\n\n");
-#endif
             TCRoute = new TCRoutePath(aiPath, (int)FrontTDBTraveller.Direction, Length, signalRef, Number, Simulator.Settings);
             ValidRoute[0] = TCRoute.TCRouteSubpaths[TCRoute.activeSubpath];
         }
@@ -14379,10 +14135,6 @@ namespace Orts.Simulation.Physics
 
         public void SetRoutePath(AIPath aiPath, SignalEnvironment orgSignals)
         {
-#if DEBUG_TEST
-            File.AppendAllText(@"C:\temp\TCSections.txt", "--------------------------------------------------\n");
-            File.AppendAllText(@"C:\temp\TCSections.txt", "Train : " + Number.ToString() + "\n\n");
-#endif
             int orgDirection = (RearTDBTraveller != null) ? (int)RearTDBTraveller.Direction : -2;
             TCRoute = new TCRoutePath(aiPath, orgDirection, Length, orgSignals, Number, Simulator.Settings);
             ValidRoute[0] = TCRoute.TCRouteSubpaths[TCRoute.activeSubpath];
@@ -14529,22 +14281,6 @@ namespace Orts.Simulation.Physics
 
         public virtual void SetAlternativeRoute_pathBased(int startElementIndex, int altRouteIndex, Signal nextSignal)
         {
-
-#if DEBUG_REPORTS
-            File.AppendAllText(@"C:\temp\printproc.txt", "Train " + Number.ToString() +
-                    " : set alternative route no. : " + altRouteIndex.ToString() +
-                    " from section " + ValidRoute[0][startElementIndex].TCSectionIndex.ToString() +
-                    " (request from signal " + nextSignal.thisRef.ToString() + " )\n");
-#endif
-
-            if (CheckTrain)
-            {
-                File.AppendAllText(@"C:\temp\checktrain.txt", "Train " + Number.ToString() +
-                " : set alternative route no. : " + altRouteIndex.ToString() +
-                " from section " + ValidRoute[0][startElementIndex].TCSectionIndex.ToString() +
-                " (request from signal " + nextSignal.Index.ToString() + " )\n");
-            }
-
             // set new train route
 
             TCSubpathRoute thisRoute = ValidRoute[0];
@@ -14665,21 +14401,6 @@ namespace Orts.Simulation.Physics
 
         public virtual void SetAlternativeRoute_locationBased(int startSectionIndex, DeadlockInfo sectionDeadlockInfo, int usedPath, Signal nextSignal)
         {
-#if DEBUG_REPORTS
-            File.AppendAllText(@"C:\temp\printproc.txt", "Train " + Number.ToString() +
-            " : set alternative route no. : " + usedPath.ToString() +
-            " from section " + startSectionIndex.ToString() +
-            " (request from signal " + nextSignal.thisRef.ToString() + " )\n");
-#endif
-
-            if (CheckTrain)
-            {
-                File.AppendAllText(@"C:\temp\checktrain.txt", "Train " + Number.ToString() +
-                " : set alternative route no. : " + usedPath.ToString() +
-                " from section " + startSectionIndex.ToString() +
-                " (request from signal " + nextSignal.Index.ToString() + " )\n");
-            }
-
             // set new train route
 
             TCSubpathRoute thisRoute = ValidRoute[0];
@@ -14951,37 +14672,6 @@ namespace Orts.Simulation.Physics
                 {
                     StationStop newStop = CalculateStationStop(signalRef.PlatformDetailsList[altPlatformIndex].PlatformReference[Location.NearEnd],
                         orgStop.ArrivalTime, orgStop.DepartTime, orgStop.arrivalDT, orgStop.departureDT, 15.0f);
-
-#if DEBUG_REPORTS
-                    if (newStop != null)
-                    {
-                        File.AppendAllText(@"C:\temp\printproc.txt", "Train " + Number.ToString() +
-                        " : alternative stop required for " + orgStop.PlatformItem.Name +
-                        " ; found : " + newStop.PlatformReference + "\n");
-                    }
-                    else
-                    {
-                        File.AppendAllText(@"C:\temp\printproc.txt", "Train " + Number.ToString() +
-                        " : alternative stop required for " + orgStop.PlatformItem.Name +
-                        " ; not found \n");
-                    }
-#endif
-
-                    if (CheckTrain)
-                    {
-                        if (newStop != null)
-                        {
-                            File.AppendAllText(@"C:\temp\checktrain.txt", "Train " + Number.ToString() +
-                            " : alternative stop required for " + orgStop.PlatformItem.Name +
-                            " ; found : " + newStop.PlatformReference + "\n");
-                        }
-                        else
-                        {
-                            File.AppendAllText(@"C:\temp\checktrain.txt", "Train " + Number.ToString() +
-                            " : alternative stop required for " + orgStop.PlatformItem.Name +
-                            " ; not found \n");
-                        }
-                    }
 
                     return (newStop);
                 }
@@ -16592,99 +16282,6 @@ namespace Orts.Simulation.Physics
                 // search for loops
 
                 LoopSearch(orgSignals);
-
-#if DEBUG_TEST
-                for (int iSub = 0; iSub < TCRouteSubpaths.Count; iSub++)
-                {
-                    TCSubpathRoute printSubpath = TCRouteSubpaths[iSub];
-                    File.AppendAllText(@"C:\temp\TCSections.txt", "\n-- Subpath : " + iSub.ToString() + " --\n\n");
-
-                    foreach (TCRouteElement printElement in printSubpath)
-                    {
-                        File.AppendAllText(@"C:\temp\TCSections.txt", " TC Index   : " + printElement.TCSectionIndex.ToString() + "\n");
-                        File.AppendAllText(@"C:\temp\TCSections.txt", " direction  : " + printElement.Direction.ToString() + "\n");
-                        File.AppendAllText(@"C:\temp\TCSections.txt",
-                            " outpins    : " + printElement.OutPin[0].ToString() + " - " + printElement.OutPin[1].ToString() + "\n");
-                        if (printElement.StartAlternativePath != null)
-                        {
-                            File.AppendAllText(@"C:\temp\TCSections.txt", "\n Start Alternative Path : " +
-                        printElement.StartAlternativePath[0].ToString() +
-                        " upto section " + printElement.StartAlternativePath[1].ToString() + "\n");
-                        }
-                        if (printElement.EndAlternativePath != null)
-                        {
-                            File.AppendAllText(@"C:\temp\TCSections.txt", "\n End Alternative Path : " +
-                        printElement.EndAlternativePath[0].ToString() +
-                        " from section " + printElement.EndAlternativePath[1].ToString() + "\n");
-                        }
-
-                        File.AppendAllText(@"C:\temp\TCSections.txt", "\n");
-                    }
-
-                    if (iSub < TCRouteSubpaths.Count - 1)
-                    {
-                        if (LoopEnd[iSub] > 0)
-                        {
-                            int loopSection = printSubpath[LoopEnd[iSub]].TCSectionIndex;
-                            File.AppendAllText(@"C:\temp\TCSections.txt", "\n-- Loop at : " + LoopEnd[iSub] + " : section : " + loopSection + "--\n");
-                        }
-                        else if (ReversalInfo[iSub].Valid)
-                        {
-                            File.AppendAllText(@"C:\temp\TCSections.txt", "\n-- reversal --\n");
-                        }
-                        else
-                        {
-                            File.AppendAllText(@"C:\temp\TCSections.txt", "\n-- path break --\n");
-                        }
-                    }
-                }
-
-                for (int iAlt = 0; iAlt < TCAlternativePaths.Count; iAlt++)
-                {
-                    File.AppendAllText(@"C:\temp\TCSections.txt", "--------------------------------------------------\n");
-
-                    TCSubpathRoute printSubpath = TCAlternativePaths[iAlt];
-                    File.AppendAllText(@"C:\temp\TCSections.txt", "\n-- Alternative path : " + iAlt.ToString() + " --\n\n");
-
-                    foreach (TCRouteElement printElement in printSubpath)
-                    {
-                        File.AppendAllText(@"C:\temp\TCSections.txt", " TC Index   : " + printElement.TCSectionIndex.ToString() + "\n");
-                        File.AppendAllText(@"C:\temp\TCSections.txt", " direction  : " + printElement.Direction.ToString() + "\n");
-                        File.AppendAllText(@"C:\temp\TCSections.txt",
-                            " outpins    : " + printElement.OutPin[0].ToString() + " - " + printElement.OutPin[1].ToString() + "\n");
-                        File.AppendAllText(@"C:\temp\TCSections.txt", "\n");
-                    }
-                }
-
-                for (int iRI = 0; iRI < ReversalInfo.Count; iRI++)
-                {
-                    File.AppendAllText(@"C:\temp\TCSections.txt", "--------------------------------------------------\n");
-                    File.AppendAllText(@"C:\temp\TCSections.txt", "\n-- Reversal Info : " + iRI.ToString() + " --\n\n");
-                    TCReversalInfo thisReversalInfo = ReversalInfo[iRI];
-
-                    File.AppendAllText(@"C:\temp\TCSections.txt", "Diverge sector : " + thisReversalInfo.DivergeSectorIndex.ToString() + "\n");
-                    File.AppendAllText(@"C:\temp\TCSections.txt", "Diverge offset : " + thisReversalInfo.DivergeOffset.ToString() + "\n");
-                    File.AppendAllText(@"C:\temp\TCSections.txt", "First Index    : " + thisReversalInfo.FirstDivergeIndex.ToString() + "\n");
-                    File.AppendAllText(@"C:\temp\TCSections.txt", "First Signal   : " + thisReversalInfo.FirstSignalIndex.ToString() + "\n");
-                    File.AppendAllText(@"C:\temp\TCSections.txt", "Last Index     : " + thisReversalInfo.LastDivergeIndex.ToString() + "\n");
-                    File.AppendAllText(@"C:\temp\TCSections.txt", "Last Signal    : " + thisReversalInfo.LastSignalIndex.ToString() + "\n");
-                }
-
-                for (int iWP = 0; iWP < WaitingPoints.Count; iWP++)
-                {
-
-                    File.AppendAllText(@"C:\temp\TCSections.txt", "--------------------------------------------------\n");
-                    File.AppendAllText(@"C:\temp\TCSections.txt", "\n-- Waiting Point Info : " + iWP.ToString() + " --\n\n");
-                    int[] thisWaitingPoint = WaitingPoints[iWP];
-
-                    File.AppendAllText(@"C:\temp\TCSections.txt", "Sublist   : " + thisWaitingPoint[0].ToString() + "\n");
-                    File.AppendAllText(@"C:\temp\TCSections.txt", "Section   : " + thisWaitingPoint[1].ToString() + "\n");
-                    File.AppendAllText(@"C:\temp\TCSections.txt", "Wait time : " + thisWaitingPoint[2].ToString() + "\n");
-                    File.AppendAllText(@"C:\temp\TCSections.txt", "Dep time  : " + thisWaitingPoint[3].ToString() + "\n");
-                }
-
-                File.AppendAllText(@"C:\temp\TCSections.txt", "--------------------------------------------------\n");
-#endif
             }
 
             //  SPA: Used with enhanced MSTS Mode, please don't change
@@ -18355,26 +17952,6 @@ namespace Orts.Simulation.Physics
                     return (false); // if train in section following signal, assume we passed
 
                 // signal is not on route - assume we did not pass
-
-#if DEBUG_REPORTS
-                int trainno = (thisSignal.enabledTrain != null) ? thisSignal.enabledTrain.Train.Number : -1;
-
-                File.AppendAllText(@"C:\temp\printproc.txt", "Cannot find signal on route : " +
-                                " Train " + trainno.ToString() +
-                                ", Signal : " + thisSignal.thisRef.ToString() +
-                                " in section " + thisSignal.TCReference.ToString() +
-                                ", starting from section " + trainPosition.TCSectionIndex.ToString() + "\n");
-#endif
-                if (thisSignal.EnabledTrain != null && thisSignal.EnabledTrain.Train.CheckTrain)
-                {
-                    int trainnoCT = (thisSignal.EnabledTrain != null) ? thisSignal.EnabledTrain.Train.Number : -1;
-
-                    File.AppendAllText(@"C:\temp\checktrain.txt", "Cannot find signal on route : " +
-                                    " Train " + trainnoCT.ToString() +
-                                    ", Signal : " + thisSignal.Index.ToString() +
-                                    " in section " + thisSignal.TrackCircuitIndex.ToString() +
-                                    ", starting from section " + trainPosition.TCSectionIndex.ToString() + "\n");
-                }
                 return (true);
             }
 

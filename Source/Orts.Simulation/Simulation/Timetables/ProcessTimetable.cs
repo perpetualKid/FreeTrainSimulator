@@ -21,8 +21,6 @@
 // Set debug flag to extract additional info
 // Info is printed to C:\temp\timetableproc.txt
 // #define DEBUG_TIMETABLE
-// #define DEBUG_TRACEINFO
-
 //
 
 using System;
@@ -2805,17 +2803,6 @@ namespace Orts.Simulation.Timetables
                         Trace.TraceWarning("Train :  {0} : Dispose details : formed train {1} not found",
                             TTTrain.Name, otherTrainName[1]);
                     }
-
-#if DEBUG_TRACEINFO
-                    if (trainFound)
-                    {
-                        Trace.TraceInformation("Dispose : {0} {1} {2} ", TTTrain.Name, DisposeDetails.FormType.ToString(), otherTrainName[1]);
-                    }
-                    else
-                    {
-                        Trace.TraceInformation("Dispose : {0} : cannot find {1} ", TTTrain.Name, otherTrainName[1]);
-                    }
-#endif
                 }
 
                 TTTrain outTrain = null;

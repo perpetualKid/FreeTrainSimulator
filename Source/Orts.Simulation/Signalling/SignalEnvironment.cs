@@ -17,14 +17,6 @@
 
 // This module covers all classes and code for signal, speed post, track occupation and track reservation control
 
-// Debug flags :
-// #define DEBUG_PRINT
-// prints details of the derived signal structure
-// #define DEBUG_REPORTS
-// print details of train behaviour
-// #define DEBUG_DEADLOCK
-// print details of deadlock processing
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
