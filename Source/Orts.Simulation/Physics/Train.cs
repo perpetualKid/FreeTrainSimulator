@@ -100,6 +100,9 @@ namespace Orts.Simulation.Physics
         internal const float MinCheckDistanceM = 5000;           // minimum distance to check ahead
         internal const float MinCheckDistanceManualM = 3000;     // minimum distance to check ahead in manual mode
 
+        internal float MinCheckDistanceExplorerM => Math.Max(AllowedMaxSpeedMpS * MaxTimeS * 2, MinCheckDistanceM);      // minimum distance to check ahead in explorer mode
+
+
         #endregion
 
         public List<TrainCar> Cars { get; } = new List<TrainCar>();           // listed front to back
@@ -6798,7 +6801,7 @@ namespace Orts.Simulation.Physics
 
                 // build new route
                 List<int> tempSections = SignalEnvironment.ScanRoute(this, requiredPosition.TrackCircuitSectionIndex, requiredPosition.Offset,
-                    requiredPosition.Direction, forward, MinCheckDistanceM, true, false, true, false, true, false, false, false, false, IsFreight);
+                    requiredPosition.Direction, forward, MinCheckDistanceExplorerM, true, false, true, false, true, false, false, false, false, IsFreight);
 
                 if (tempSections.Count > 0)
                 {
@@ -6879,10 +6882,10 @@ namespace Orts.Simulation.Physics
             }
 
             // if route does not end with signal and is too short, extend
-            if (!endWithSignal && totalLengthM < MinCheckDistanceM)
+            if (!endWithSignal && totalLengthM < MinCheckDistanceExplorerM)
             {
 
-                float extendedDistanceM = MinCheckDistanceM - totalLengthM;
+                float extendedDistanceM = MinCheckDistanceExplorerM - totalLengthM;
                 TrackCircuitRouteElement lastElement = newRoute[newRoute.Count - 1];
 
                 int lastSectionIndex = lastElement.TrackCircuitSection.Index;
@@ -7084,7 +7087,7 @@ namespace Orts.Simulation.Physics
                         int numCleared = 0;
                         totalLengthM = 0;
                         offsetM = direction == Direction.Forward ? requiredPosition.Offset : section.Length - requiredPosition.Offset;
-                        for (int i = 0; i < newRoute.Count && (firstSignalPassed || totalLengthM < MinCheckDistanceM) && (!firstSignalPassed || numCleared != 0); i++)
+                        for (int i = 0; i < newRoute.Count && (firstSignalPassed || totalLengthM < MinCheckDistanceExplorerM) && (!firstSignalPassed || numCleared != 0); i++)
                         {
                             section = TrackCircuitSection.TrackCircuitList[newRoute[i].TrackCircuitSection.Index];
                             TrackDirection currentDirection = newRoute[i].Direction;
