@@ -4040,7 +4040,7 @@ namespace Orts.Simulation.RollingStocks
                 RatioOfExpansion_bc = (CylinderExhaustOpenFactor + CylinderClearancePC) / (cutoff + CylinderClearancePC);
                 // Absolute Mean Pressure = Ratio of Expansion
 
-                SteamChestPressurePSI = (float)(throttle * InitialPressureDropRatioRpMtoX[Frequency.Periodic.ToMinutes(DrvWheelRevRpS)] * BoilerPressurePSI); // pressure in cylinder steam chest - allowance for pressure drop between boiler and steam chest
+                SteamChestPressurePSI = (float)(throttle * InitialPressureDropRatioRpMtoX[Frequency.Periodic.ToMinutes(DrvWheelRevRpS * MotiveForceGearRatio)] * BoilerPressurePSI); // pressure in cylinder steam chest - allowance for pressure drop between boiler and steam chest
 
                 LogSteamChestPressurePSI = SteamChestPressurePSI;  // Value for recording in log file
                 LogSteamChestPressurePSI = MathHelper.Clamp(LogSteamChestPressurePSI, 0.00f, LogSteamChestPressurePSI); // Clamp so that steam chest pressure does not go negative
@@ -4048,14 +4048,14 @@ namespace Orts.Simulation.RollingStocks
                 // Initial pressure will be decreased depending upon locomotive speed
                 // This drop can be adjusted with a table in Eng File
                 // (a) - Initial Pressure
-                Pressure_a_AtmPSI = (float)(((throttle * BoilerPressurePSI) + OneAtmospherePSI) * InitialPressureDropRatioRpMtoX[Frequency.Periodic.ToMinutes(DrvWheelRevRpS)]); // This is the gauge pressure + atmospheric pressure to find the absolute pressure - pressure drop gas been allowed for as the steam goes into the cylinder through the opening in the steam chest port.
+                Pressure_a_AtmPSI = (float)(((throttle * BoilerPressurePSI) + OneAtmospherePSI) * InitialPressureDropRatioRpMtoX[Frequency.Periodic.ToMinutes(DrvWheelRevRpS * MotiveForceGearRatio)]); // This is the gauge pressure + atmospheric pressure to find the absolute pressure - pressure drop gas been allowed for as the steam goes into the cylinder through the opening in the steam chest port.
 
                 LogInitialPressurePSI = Pressure_a_AtmPSI - OneAtmospherePSI; // Value for log file & display
                 LogInitialPressurePSI = MathHelper.Clamp(LogInitialPressurePSI, 0.00f, LogInitialPressurePSI); // Clamp so that initial pressure does not go negative
 
                 // Calculate Cut-off Pressure drop - cutoff pressure drops as speed of locomotive increases.
-                double CutoffDropUpper = CutoffInitialPressureDropRatioUpper.Get(Frequency.Periodic.ToMinutes(DrvWheelRevRpS), cutoff);  // Get Cutoff Pressure to Initial pressure drop - upper limit
-                double CutoffDropLower = CutoffInitialPressureDropRatioLower.Get(Frequency.Periodic.ToMinutes(DrvWheelRevRpS), cutoff);  // Get Cutoff Pressure to Initial pressure drop - lower limit
+                double CutoffDropUpper = CutoffInitialPressureDropRatioUpper.Get(Frequency.Periodic.ToMinutes(DrvWheelRevRpS * MotiveForceGearRatio), cutoff);  // Get Cutoff Pressure to Initial pressure drop - upper limit
+                double CutoffDropLower = CutoffInitialPressureDropRatioLower.Get(Frequency.Periodic.ToMinutes(DrvWheelRevRpS * MotiveForceGearRatio), cutoff);  // Get Cutoff Pressure to Initial pressure drop - lower limit
 
                 // calculate value based upon setting of Cylinder port opening
 
@@ -4064,7 +4064,7 @@ namespace Orts.Simulation.RollingStocks
                 if (HasSuperheater) // If locomotive is superheated then cutoff pressure drop will be different.
                 {
                     double DrvWheelRevpM = Frequency.Periodic.ToMinutes(DrvWheelRevRpS);
-                    CutoffPressureDropRatio = (float)((1.0f - ((1 / SuperheatCutoffPressureFactor) * Math.Sqrt(Frequency.Periodic.ToMinutes(DrvWheelRevRpS)))));
+                    CutoffPressureDropRatio = (float)((1.0f - ((1 / SuperheatCutoffPressureFactor) * Math.Sqrt(Frequency.Periodic.ToMinutes(DrvWheelRevRpS * MotiveForceGearRatio)))));
                 }
 
 
