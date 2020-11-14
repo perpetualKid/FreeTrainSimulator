@@ -10600,14 +10600,14 @@ namespace Orts.Simulation.Physics
                             trainPathItem = new TrainPathItem(signalObjectItem.ActualSpeed, signalObjectItem.DistanceToTrain, (SpeedItemType)(signalObjectItem.SpeedInfo.LimitedSpeedReduction));
                             PlayerTrainSpeedposts[dir].Add(trainPathItem);
                         }
-                        if (!signalProcessed && NextSignalObject[0] != null && NextSignalObject[0].EnabledTrain != null && NextSignalObject[0].EnabledTrain.Train == this)
-                        {
-                            TrackMonitorSignalAspect signalAspect = NextSignalObject[0].TranslateTMAspect(NextSignalObject[0].SignalLR(SignalFunction.Normal));
-                            SpeedInfo thisSpeedInfo = NextSignalObject[0].SignalSpeed(SignalFunction.Normal);
-                            float validSpeed = thisSpeedInfo == null ? -1 : (IsFreight ? thisSpeedInfo.FreightSpeed : thisSpeedInfo.PassengerSpeed);
-                            trainPathItem = new TrainPathItem(signalAspect, validSpeed, DistanceToSignal.GetValueOrDefault(), NextSignalObject[0]);
-                            PlayerTrainSignals[Direction.Forward][0].Add(trainPathItem);
-                        }
+                    }
+                    if (!signalProcessed && NextSignalObject[0] != null && NextSignalObject[0].EnabledTrain != null && NextSignalObject[0].EnabledTrain.Train == this)
+                    {
+                        TrackMonitorSignalAspect signalAspect = NextSignalObject[0].TranslateTMAspect(NextSignalObject[0].SignalLR(SignalFunction.Normal));
+                        SpeedInfo thisSpeedInfo = NextSignalObject[0].SignalSpeed(SignalFunction.Normal);
+                        float validSpeed = thisSpeedInfo == null ? -1 : (IsFreight ? thisSpeedInfo.FreightSpeed : thisSpeedInfo.PassengerSpeed);
+                        trainPathItem = new TrainPathItem(signalAspect, validSpeed, DistanceToSignal.GetValueOrDefault(), NextSignalObject[0]);
+                        PlayerTrainSignals[Direction.Forward][0].Add(trainPathItem);
                     }
                 }
                 // rear direction, auto mode
