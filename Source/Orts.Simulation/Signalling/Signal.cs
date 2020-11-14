@@ -1782,6 +1782,10 @@ namespace Orts.Simulation.Signalling
             // build output route from input route
             TrackCircuitPartialPathRoute newRoute = new TrackCircuitPartialPathRoute(route);
 
+            // don't clear if enabled for another train
+            if (EnabledTrain != null && EnabledTrain != train)
+                return newRoute;
+
             // if signal has fixed route, use that else build route
             if (fixedRoute?.Count > 0)
             {

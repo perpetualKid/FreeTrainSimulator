@@ -7065,10 +7065,8 @@ namespace Orts.Simulation.Physics
                     // remove invalid sections from route
                     if (lastValidSectionIndex < newRoute.Count - 1)
                     {
-                        for (int i = newRoute.Count - 1; i > lastValidSectionIndex; i--)
-                        {
-                            newRoute.RemoveAt(i);
-                        }
+                        signalRef.BreakDownRouteList(newRoute, lastValidSectionIndex + 1, trainRouted);
+                        newRoute.RemoveRange(lastValidSectionIndex + 1, newRoute.Count - lastValidSectionIndex - 1);
                     }
                 }
 
@@ -7345,8 +7343,7 @@ namespace Orts.Simulation.Physics
         /// </summary>
         private void ProcessExplorerSwitch(int routeDirectionIndex, TrackCircuitSection switchSection, Direction direction)
         {
-            //<CSComment> Probably also in singleplayer the logic of multiplayer should be used, but it's unwise to modify it just before a release
-            TrainRouted trainRouted = direction == Direction.Backward ^ !MPManager.IsMultiPlayer() ? RoutedBackward : RoutedForward;
+            TrainRouted trainRouted = direction == Direction.Backward ? RoutedBackward : RoutedForward;
             TrackCircuitPartialPathRoute selectedRoute = ValidRoute[routeDirectionIndex];
 
             // store required position
