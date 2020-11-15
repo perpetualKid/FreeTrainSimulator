@@ -20,45 +20,45 @@
 using System.Collections.Generic;
 
 using Orts.Common;
+using Orts.Simulation.Signalling;
 
-namespace Orts.Simulation.Signalling
+namespace Orts.Simulation.TrackCircuit
 {
     //================================================================================================//
     /// <summary>
     ///
-    /// class TrackCircuitItems
-    /// Class for track circuit item storage
+    /// class TrackCircuitMilepostList
+    /// Class for track circuit mile post lists
     ///
     /// </summary>
     //================================================================================================//
-
-    public class TrackCircuitItems
+    public class TrackCircuitMilepostList : List<TrackCircuitMilepost>
     {
-        public EnumArray<List<TrackCircuitSignalList>, TrackDirection> TrackCircuitSignals { get; } = new EnumArray<List<TrackCircuitSignalList>, TrackDirection>();
-        // List of signals (per direction and per type) //
-        public EnumArray<TrackCircuitSignalList, TrackDirection> TrackCircuitSpeedPosts { get; } = new EnumArray<TrackCircuitSignalList, TrackDirection>();
-        // List of speedposts (per direction) //
-        public TrackCircuitMilepostList TrackCircuitMileposts { get; } = new TrackCircuitMilepostList();
-        // List of mileposts //
+    }
+
+    //================================================================================================//
+    /// <summary>
+    ///
+    /// class MilepostObject
+    /// Class for track circuit mileposts
+    ///
+    /// </summary>
+    //================================================================================================//
+    public class TrackCircuitMilepost
+    {
+        public Milepost Milepost { get; }                       // reference to milepost 
+        public EnumArray<float, Location> MilepostLocation { get; } = new EnumArray<float, Location>();         // milepost location from both ends //
 
         //================================================================================================//
         /// <summary>
         /// Constructor
         /// </summary>
 
-        public TrackCircuitItems(int orSignalTypes)
+        public TrackCircuitMilepost(Milepost milepost, float nearEnd, float farEnd)
         {
-            foreach (TrackDirection heading in EnumExtension.GetValues<TrackDirection>())
-            {
-                List<TrackCircuitSignalList> trackSignalLists = new List<TrackCircuitSignalList>();
-                for (int fntype = 0; fntype < orSignalTypes; fntype++)
-                {
-                    trackSignalLists.Add(new TrackCircuitSignalList());
-                }
-                TrackCircuitSignals[heading] = trackSignalLists;
-
-                TrackCircuitSpeedPosts[heading] = new TrackCircuitSignalList(); ;
-            }
+            Milepost = milepost;
+            MilepostLocation[Location.NearEnd] = nearEnd;
+            MilepostLocation[Location.FarEnd] = farEnd; 
         }
     }
 

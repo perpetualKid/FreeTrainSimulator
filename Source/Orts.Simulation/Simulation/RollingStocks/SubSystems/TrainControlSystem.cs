@@ -31,6 +31,7 @@ using Orts.Formats.Msts.Parsers;
 using Orts.Scripting.Api;
 using Orts.Simulation.Physics;
 using Orts.Formats.Msts.Models;
+using Orts.Simulation.TrackCircuit;
 
 namespace Orts.Simulation.RollingStocks.SubSystems
 {
@@ -289,8 +290,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                     NextGenericSignalItem<float>(ref SignalDistance, TrainPathItemType.Signal, type);
                 Script.DoesNextNormalSignalHaveRepeaterHead = () => DoesNextNormalSignalHaveRepeaterHead();
                 Script.CurrentPostSpeedLimitMpS = () => Locomotive.Train.allowedMaxSpeedLimitMpS;
-                Script.NextPostSpeedLimitMpS = (value) => NextSignalItem<float>(value, ref PostSpeedLimits, TrainPathItemType.SpeedPost);
-                Script.NextPostDistanceM = (value) => NextSignalItem<float>(value, ref PostDistances, TrainPathItemType.SpeedPost);
+                Script.NextPostSpeedLimitMpS = (value) => NextSignalItem<float>(value, ref PostSpeedLimits, TrainPathItemType.Speedpost);
+                Script.NextPostDistanceM = (value) => NextSignalItem<float>(value, ref PostDistances, TrainPathItemType.Speedpost);
                 Script.TrainLengthM = () => Locomotive.Train != null ? Locomotive.Train.Length : 0f;
                 Script.SpeedMpS = () => Math.Abs(Locomotive.SpeedMpS);
                 Script.CurrentDirection = () => Locomotive.Direction;
@@ -457,7 +458,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                         }
                         break;
 
-                    case TrainPathItemType.SpeedPost:
+                    case TrainPathItemType.Speedpost:
                         postsFound++;
                         if (postsFound > PostSpeedLimits.Count)
                         {
@@ -478,7 +479,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 }
 
                 if (searchFor == TrainPathItemType.Signal && signalsFound > forsight ||
-                    searchFor == TrainPathItemType.SpeedPost && postsFound > forsight)
+                    searchFor == TrainPathItemType.Speedpost && postsFound > forsight)
                 {
                     break;
                 }
@@ -490,7 +491,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 SignalAspects.Add(TrackMonitorSignalAspect.None);
                 SignalDistances.Add(float.MaxValue);
             }
-            if (searchFor == TrainPathItemType.SpeedPost && postsFound == 0)
+            if (searchFor == TrainPathItemType.Speedpost && postsFound == 0)
             {
                 PostSpeedLimits.Add(-1);
                 PostDistances.Add(float.MaxValue);

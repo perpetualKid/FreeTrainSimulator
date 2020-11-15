@@ -19,45 +19,58 @@
 
 using System.Collections.Generic;
 
-using Orts.Common;
+using Orts.Simulation.Signalling;
 
-namespace Orts.Simulation.Signalling
+namespace Orts.Simulation.TrackCircuit
 {
     //================================================================================================//
     /// <summary>
     ///
-    /// class TrackCircuitMilepostList
-    /// Class for track circuit mile post lists
+    /// class TrackCircuitSignalList
+    /// Class for track circuit signal list
     ///
     /// </summary>
     //================================================================================================//
-    public class TrackCircuitMilepostList : List<TrackCircuitMilepost>
+    public class TrackCircuitSignalList : List<TrackCircuitSignalItem>
     {
     }
 
     //================================================================================================//
     /// <summary>
     ///
-    /// class MilepostObject
-    /// Class for track circuit mileposts
+    /// class TrackCircuitSignalItem
+    /// Class for track circuit signal item
     ///
     /// </summary>
     //================================================================================================//
-    public class TrackCircuitMilepost
+    public class TrackCircuitSignalItem
     {
-        public Milepost Milepost { get; }                       // reference to milepost 
-        public EnumArray<float, Location> MilepostLocation { get; } = new EnumArray<float, Location>();         // milepost location from both ends //
+        public SignalItemFindState SignalState { get; internal set; }  // returned state // 
+        public Signal Signal { get; internal set; }            // related SignalObject     //
+        public float SignalLocation { get; internal set; }              // relative signal position //
+
 
         //================================================================================================//
         /// <summary>
-        /// Constructor
+        /// Constructor setting object
         /// </summary>
 
-        public TrackCircuitMilepost(Milepost milepost, float nearEnd, float farEnd)
+        public TrackCircuitSignalItem(Signal signal, float location)
         {
-            Milepost = milepost;
-            MilepostLocation[Location.NearEnd] = nearEnd;
-            MilepostLocation[Location.FarEnd] = farEnd; 
+            SignalState = SignalItemFindState.Item;
+            Signal = signal;
+            SignalLocation = location;
+        }
+
+
+        //================================================================================================//
+        /// <summary>
+        /// Constructor setting state
+        /// </summary>
+
+        public TrackCircuitSignalItem(SignalItemFindState state)
+        {
+            SignalState = state;
         }
     }
 

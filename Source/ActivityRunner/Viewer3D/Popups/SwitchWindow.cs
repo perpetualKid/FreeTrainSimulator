@@ -29,6 +29,7 @@ using Orts.Formats.Msts.Models;
 using Orts.Simulation;
 using Orts.Simulation.Physics;
 using Orts.Simulation.Signalling;
+using Orts.Simulation.TrackCircuit;
 
 namespace Orts.ActivityRunner.Viewer3D.Popups
 {

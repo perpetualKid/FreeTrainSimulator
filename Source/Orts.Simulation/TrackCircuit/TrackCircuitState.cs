@@ -25,8 +25,9 @@ using System.Linq;
 
 using Orts.Common;
 using Orts.Simulation.Physics;
+using Orts.Simulation.Signalling;
 
-namespace Orts.Simulation.Signalling
+namespace Orts.Simulation.TrackCircuit
 {
     //================================================================================================//
     /// <summary>

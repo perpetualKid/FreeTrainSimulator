@@ -25,6 +25,7 @@ using Orts.Simulation.Signalling;
 using Orts.Common;
 using System;
 using System.Collections.Generic;
+using Orts.Simulation.TrackCircuit;
 
 namespace Orts.ActivityRunner.Viewer3D.Popups
 {

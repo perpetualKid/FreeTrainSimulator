@@ -35,6 +35,7 @@ using Orts.Simulation.Commanding;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.Signalling;
+using Orts.Simulation.TrackCircuit;
 
 namespace Orts.MultiPlayer
 {

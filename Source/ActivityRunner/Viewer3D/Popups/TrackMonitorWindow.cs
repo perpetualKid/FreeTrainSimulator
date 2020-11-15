@@ -602,7 +602,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                         lastLabelPosition = drawSignalForward(spriteBatch, offset, startObjectArea, endObjectArea, zeroPoint, maxDistance, distanceFactor, firstLabelPosition, forward, lastLabelPosition, thisItem, ref signalShown, ref borderSignalShown, ref firstLabelShown);
                         break;
 
-                    case TrainPathItemType.SpeedPost:
+                    case TrainPathItemType.Speedpost:
                         lastLabelPosition = drawSpeedpost(spriteBatch, offset, startObjectArea, endObjectArea, zeroPoint, maxDistance, distanceFactor, firstLabelPosition, forward, lastLabelPosition, thisItem, ref firstLabelShown);
                         break;
 
@@ -614,7 +614,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                         drawWaitingPoint(spriteBatch, offset, startObjectArea, endObjectArea, zeroPoint, maxDistance, distanceFactor, firstLabelPosition, forward, lastLabelPosition, thisItem, ref firstLabelShown);
                         break;
 
-                    case TrainPathItemType.MilePost:
+                    case TrainPathItemType.Milepost:
                         lastLabelPosition = drawMilePost(spriteBatch, offset, startObjectArea, endObjectArea, zeroPoint, maxDistance, distanceFactor, firstLabelPosition, forward, lastLabelPosition, thisItem, ref firstLabelShown);
                         break;
 
@@ -803,7 +803,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 var labelPoint = new Point(offset.X + speedTextOffset, offset.Y + newLabelPosition + textOffset[forward ? 0 : 1]);
                 var speedString = FormatStrings.FormatSpeedLimitNoUoM(allowedSpeed, metric);
                 Font.Draw(spriteBatch, labelPoint, speedString, thisItem.SpeedObjectType == SpeedItemType.Standard ? Color.White :
-                    (thisItem.SpeedObjectType == SpeedItemType.TempRestrictedStart ? Color.Red : Color.LightGreen));
+                    (thisItem.SpeedObjectType == SpeedItemType.TemporaryRestrictionStart ? Color.Red : Color.LightGreen));
 
                 if (itemOffset < firstLabelPosition && !firstLabelShown)
                 {

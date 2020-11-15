@@ -69,7 +69,7 @@ namespace Orts.Simulation.Physics
         // Constructor for Speedpost
         public TrainPathItem(float speed, float distance, SpeedItemType speedItemType = SpeedItemType.Standard)
         {
-            ItemType = TrainPathItemType.SpeedPost;
+            ItemType = TrainPathItemType.Speedpost;
             AuthorityType = EndAuthorityType.NoPathReserved;
             SignalState = TrackMonitorSignalAspect.Clear2;
             AllowedSpeedMpS = speed;
@@ -131,7 +131,7 @@ namespace Orts.Simulation.Physics
         // Constructor for Milepost
         public TrainPathItem(string thisMile, float distance)
         {
-            ItemType = TrainPathItemType.MilePost;
+            ItemType = TrainPathItemType.Milepost;
             AuthorityType = EndAuthorityType.NoPathReserved;
             SignalState = TrackMonitorSignalAspect.Clear2;
             AllowedSpeedMpS = -1;

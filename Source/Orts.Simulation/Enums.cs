@@ -24,20 +24,20 @@ namespace Orts.Simulation
     public enum SpeedItemType
     {
         Standard = 0,
-        TempRestrictedStart = 1,
-        TempRestrictedResume = 2,
+        TemporaryRestrictionStart = 1,
+        TemporaryRestrictionStartResume = 2,
     }
 
     public enum TrainPathItemType
     {
         Signal,
-        SpeedPost,
+        Speedpost,
         Station,
         Authority,
         Reversal,
         OutOfControl,
         WaitingPoint,
-        MilePost,
+        Milepost,
         FacingSwitch
     }
 
@@ -81,5 +81,15 @@ namespace Orts.Simulation
         AiPlayerHosting,    //Player is on board, but train is currently autopiloted
         AiIncorporated,      // AI train is incorporated in other train
     }
+
+    public enum TrackCircuitType
+    {
+        Normal,
+        Junction,
+        Crossover,
+        EndOfTrack,
+        Empty,
+    }
+
 
 }

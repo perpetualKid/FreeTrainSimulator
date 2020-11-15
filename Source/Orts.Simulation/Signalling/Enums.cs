@@ -12,15 +12,6 @@
         OtherEnd,
     }
 
-    public enum TrackCircuitType
-    {
-        Normal,
-        Junction,
-        Crossover,
-        EndOfTrack,
-        Empty,
-    }
-
     public enum InternalBlockstate
     {
         Reserved,                   // all sections reserved for requiring train       //

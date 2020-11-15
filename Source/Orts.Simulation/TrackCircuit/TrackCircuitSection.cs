@@ -31,8 +31,9 @@ using Orts.Formats.Msts.Models;
 using Orts.MultiPlayer;
 using Orts.Simulation.AIs;
 using Orts.Simulation.Physics;
+using Orts.Simulation.Signalling;
 
-namespace Orts.Simulation.Signalling
+namespace Orts.Simulation.TrackCircuit
 {
 
     //================================================================================================//

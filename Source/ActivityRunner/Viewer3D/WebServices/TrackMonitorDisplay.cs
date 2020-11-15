@@ -648,13 +648,13 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
                         return new TrackAuthorityItem(item, direction);
                     case TrainPathItemType.Signal:
                         return new TrackSignalForwardItem(item, useMetric);
-                    case TrainPathItemType.SpeedPost:
+                    case TrainPathItemType.Speedpost:
                         return new TrackSpeedpostItem(item, useMetric);
                     case TrainPathItemType.Station:
                         return new TrackStationItem(item);
                     case TrainPathItemType.WaitingPoint:
                         return new TrackWaitingPointItem(item);
-                    case TrainPathItemType.MilePost:
+                    case TrainPathItemType.Milepost:
                         return new TrackMilePostItem(item);
                     case TrainPathItemType.FacingSwitch:
                         return new TrackSwitchItem(item);
@@ -865,7 +865,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
                     case SpeedItemType.Standard:
                         color = Color.White;
                         break;
-                    case SpeedItemType.TempRestrictedStart:
+                    case SpeedItemType.TemporaryRestrictionStart:
                         color = Color.OrangeRed;
                         break;
                     default:
