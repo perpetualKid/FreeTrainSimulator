@@ -36,7 +36,7 @@ using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
 using Orts.MultiPlayer;
 using Orts.Simulation.Physics;
-using Orts.Simulation.TrackCircuit;
+using Orts.Simulation.Track;
 
 namespace Orts.Simulation.Signalling
 {

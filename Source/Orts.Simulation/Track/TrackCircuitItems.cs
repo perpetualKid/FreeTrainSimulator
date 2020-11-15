@@ -21,7 +21,7 @@ using System.Collections.Generic;
 
 using Orts.Common;
 
-namespace Orts.Simulation.TrackCircuit
+namespace Orts.Simulation.Track
 {
     //================================================================================================//
     /// <summary>

@@ -31,7 +31,7 @@ using Orts.Formats.Msts.Parsers;
 using Orts.Scripting.Api;
 using Orts.Simulation.Physics;
 using Orts.Formats.Msts.Models;
-using Orts.Simulation.TrackCircuit;
+using Orts.Simulation.Track;
 
 namespace Orts.Simulation.RollingStocks.SubSystems
 {

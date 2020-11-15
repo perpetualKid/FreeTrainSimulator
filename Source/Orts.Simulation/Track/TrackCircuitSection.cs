@@ -33,7 +33,7 @@ using Orts.Simulation.AIs;
 using Orts.Simulation.Physics;
 using Orts.Simulation.Signalling;
 
-namespace Orts.Simulation.TrackCircuit
+namespace Orts.Simulation.Track
 {
 
     //================================================================================================//

@@ -30,7 +30,7 @@ using System.IO;
 using System.Linq;
 
 using Orts.Simulation.Physics;
-using Orts.Simulation.TrackCircuit;
+using Orts.Simulation.Track;
 
 namespace Orts.Simulation.Signalling
 {

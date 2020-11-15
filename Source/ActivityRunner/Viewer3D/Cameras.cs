@@ -34,7 +34,7 @@ using Orts.Simulation;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.Signalling;
-using Orts.Simulation.TrackCircuit;
+using Orts.Simulation.Track;
 
 namespace Orts.ActivityRunner.Viewer3D
 {

@@ -53,7 +53,7 @@ using Orts.Simulation.RollingStocks.SubSystems;
 using Orts.Simulation.RollingStocks.SubSystems.Brakes;
 using Orts.Simulation.Signalling;
 using Orts.Simulation.Timetables;
-using Orts.Simulation.TrackCircuit;
+using Orts.Simulation.Track;
 
 namespace Orts.Simulation.RollingStocks
 {
