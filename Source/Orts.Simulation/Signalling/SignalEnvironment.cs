@@ -838,7 +838,7 @@ namespace Orts.Simulation.Signalling
         ///   -6  : end of (sub)route
         /// </summary>
 
-        public TrackCircuitSignalItem FindNextObjectInRoute(Train.TCSubpathRoute routePath, int routeIndex, float routePosition, float maxDistance, SignalFunction signalType, Train.TrainRouted train)
+        internal TrackCircuitSignalItem FindNextObjectInRoute(Train.TCSubpathRoute routePath, int routeIndex, float routePosition, float maxDistance, SignalFunction signalType, Train.TrainRouted train)
         {
             if (null == routePath)
                 throw new ArgumentNullException(nameof(routePath));

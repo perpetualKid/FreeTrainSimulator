@@ -73,7 +73,7 @@ namespace Orts.Simulation.Track
         public double Overlap { get; private set; }                                     // overlap for junction nodes //
         public List<int> PlatformIndices { get; } = new List<int>();                    // platforms along section    //
 
-        public TrackCircuitItems CircuitItems { get; internal set; }                    // all items                  //
+        internal TrackCircuitItems CircuitItems { get; set; }                    // all items                  //
         public TrackCircuitState CircuitState { get; internal set; }                    // normal states              //
 
         // old style deadlock definitions
@@ -85,10 +85,10 @@ namespace Orts.Simulation.Track
         public int DeadlockReference { get; internal set; }                             // index of deadlock to related deadlockinfo object for boundary //
         public Dictionary<int, int> DeadlockBoundaries { get; internal set; }           // list of boundaries and path index to boundary for within deadlock //
 
-        public List<TunnelInfoData> TunnelInfo { get; private set; }                    // full tunnel info data
+        internal List<TunnelInfoData> TunnelInfo { get; private set; }                    // full tunnel info data
 
         // trough data
-        public List<TroughInfoData> TroughInfo { get; private set; }                    // full trough info data
+        internal List<TroughInfoData> TroughInfo { get; private set; }                    // full trough info data
 
         //================================================================================================//
         /// <summary>
@@ -349,7 +349,7 @@ namespace Orts.Simulation.Track
             }
         }
 
-        public void AddTunnelData(TunnelInfoData tunnelData)
+        internal void AddTunnelData(TunnelInfoData tunnelData)
         {
             if (null == TunnelInfo)
                 TunnelInfo = new List<TunnelInfoData>();
@@ -357,7 +357,7 @@ namespace Orts.Simulation.Track
         }
 
 
-        public void AddTroughData(TroughInfoData troughData)
+        internal void AddTroughData(TroughInfoData troughData)
         {
             if (null == TroughInfo)
                 TroughInfo = new List<TroughInfoData>();
@@ -2093,7 +2093,7 @@ namespace Orts.Simulation.Track
         /// Add junction sections for Crossover
         /// </summary>
 
-        public static void AddCrossoverJunction(int leadSectionIndex0, int trailSectionIndex0, int leadSectionIndex1, int trailSectionIndex1, int JnIndex,
+        internal static void AddCrossoverJunction(int leadSectionIndex0, int trailSectionIndex0, int leadSectionIndex1, int trailSectionIndex1, int JnIndex,
                         CrossOverInfo crossOver, TrackSectionsFile tsectiondat)
         {
             if (null == crossOver)

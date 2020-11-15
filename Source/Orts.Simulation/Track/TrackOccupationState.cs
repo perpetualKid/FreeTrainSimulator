@@ -22,7 +22,7 @@ using System.Collections.Generic;
 
 using Orts.Simulation.Physics;
 
-namespace Orts.Simulation.Signalling
+namespace Orts.Simulation.Track
 {
     //================================================================================================//
     /// <summary>
@@ -33,7 +33,7 @@ namespace Orts.Simulation.Signalling
     /// </summary>
     //================================================================================================//
     [Serializable]
-    public class TrackOccupationState : Dictionary<Train.TrainRouted, int>
+    internal class TrackOccupationState : Dictionary<Train.TrainRouted, int>
     {
         public TrackOccupationState() 
         { }

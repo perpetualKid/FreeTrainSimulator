@@ -28,7 +28,7 @@ using Orts.Formats.Msts;
 namespace Orts.Simulation.Signalling
 {
 
-    public static class SignalScriptProcessing
+    internal static class SignalScriptProcessing
     {
 
         public static SignalScripts SignalScripts { get; private set; }

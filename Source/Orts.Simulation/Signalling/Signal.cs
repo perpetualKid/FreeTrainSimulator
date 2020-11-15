@@ -50,7 +50,7 @@ namespace Orts.Simulation.Signalling
 
         public static SignalEnvironment SignalEnvironment { get; private set; }   //back reference to the signal environment
 
-        public SignalWorldInfo WorldObject { get; set; }                // Signal World Object information
+        internal SignalWorldInfo WorldObject { get; set; }                // Signal World Object information
 
         private int? nextSwitchIndex;                       // index of first switch in path
 
@@ -745,7 +745,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// Returns the speed related to the least restrictive aspect (for normal signal)
         /// </summary>
-        public SpeedInfo SignalSpeed(SignalFunction signalType)
+        internal SpeedInfo SignalSpeed(SignalFunction signalType)
         {
             SpeedInfo set_speed = new SpeedInfo(null);
 
@@ -897,7 +897,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// Returns the lowest allowed speed (for speedpost and speed signal)
         /// </summary>
-        public SpeedInfo SpeedLimit(SignalFunction signalType)
+        internal SpeedInfo SpeedLimit(SignalFunction signalType)
         {
             SpeedInfo setSpeed = new SpeedInfo(9E9f, 9E9f, false, false, 0);
 

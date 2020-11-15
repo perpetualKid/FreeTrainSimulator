@@ -14400,7 +14400,7 @@ namespace Orts.Simulation.Physics
         // Set train route to alternative route - location based deadlock processing
         //
 
-        public virtual void SetAlternativeRoute_locationBased(int startSectionIndex, DeadlockInfo sectionDeadlockInfo, int usedPath, Signal nextSignal)
+        internal virtual void SetAlternativeRoute_locationBased(int startSectionIndex, DeadlockInfo sectionDeadlockInfo, int usedPath, Signal nextSignal)
         {
             // set new train route
 

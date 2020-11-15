@@ -33,7 +33,7 @@ namespace Orts.Simulation.Signalling
     /// </summary>
     //================================================================================================//
 
-    public class DeadlockPathInfo
+    internal class DeadlockPathInfo
     {
         public string Name { get; internal set; }
         public Train.TCSubpathRoute Path { get; }

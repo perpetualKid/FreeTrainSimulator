@@ -39,11 +39,11 @@ namespace Orts.Simulation.Track
     //================================================================================================//
     public class TrackCircuitState
     {
-        public TrackOccupationState OccupationState { get; internal set; }  // trains occupying section      //
+        internal TrackOccupationState OccupationState { get; set; }  // trains occupying section      //
         public Train.TrainRouted TrainReserved { get; internal set; }   // train reserving section       //
         public int SignalReserved { get; internal set; }        // signal reserving section      //
-        public TrainQueue TrainPreReserved { get; }             // trains with pre-reservation   //
-        public TrainQueue TrainClaimed { get; }                 // trains with normal claims     //
+        internal TrainQueue TrainPreReserved { get; }             // trains with pre-reservation   //
+        internal TrainQueue TrainClaimed { get; }                 // trains with normal claims     //
         public bool Forced { get; internal set; }               // forced by human dispatcher    //
 
         //================================================================================================//

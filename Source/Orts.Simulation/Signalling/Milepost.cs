@@ -7,7 +7,7 @@
     ///
     /// </summary>
     //================================================================================================//
-    public class Milepost
+    internal class Milepost
     {
         public uint TrackItemId { get; }
         public int TrackCircuitReference { get; private set; } = -1;

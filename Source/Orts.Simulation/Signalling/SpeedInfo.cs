@@ -19,7 +19,7 @@
 
 namespace Orts.Simulation.Signalling
 {
-    public class SpeedInfo
+    internal class SpeedInfo
     {
         public float PassengerSpeed { get; internal set; }
         public float FreightSpeed { get; internal set; }

@@ -32,7 +32,7 @@ namespace Orts.Simulation.Track
     ///
     /// </summary>
     //================================================================================================//
-    public class TrackCircuitMilepostList : List<TrackCircuitMilepost>
+    internal class TrackCircuitMilepostList : List<TrackCircuitMilepost>
     {
     }
 
@@ -44,7 +44,7 @@ namespace Orts.Simulation.Track
     ///
     /// </summary>
     //================================================================================================//
-    public class TrackCircuitMilepost
+    internal class TrackCircuitMilepost
     {
         public Milepost Milepost { get; }                       // reference to milepost 
         public EnumArray<float, Location> MilepostLocation { get; } = new EnumArray<float, Location>();         // milepost location from both ends //

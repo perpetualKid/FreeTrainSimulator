@@ -21,7 +21,7 @@ using Orts.Common;
 
 namespace Orts.Simulation.Signalling
 {
-    public class SectionInfoBase
+    internal class SectionInfoBase
     {
         public EnumArray<float, TrackDirection> Start { get; } = new EnumArray<float, TrackDirection>();              // start position of tunnel : -1 if start is in tunnel
 
@@ -56,7 +56,7 @@ namespace Orts.Simulation.Signalling
         }
     }
 
-    public class TunnelInfoData: SectionInfoBase
+    internal class TunnelInfoData: SectionInfoBase
     {
         public int NumberPaths { get; }                                                                 // number of paths through this item
 
@@ -67,7 +67,7 @@ namespace Orts.Simulation.Signalling
         }
     }
 
-    public class TroughInfoData : SectionInfoBase
+    internal class TroughInfoData : SectionInfoBase
     {
         public TroughInfoData(float tunnelStart, float tunnelEnd, float lengthInSection, float length, float trackcircuitSectionLength, float startOffset) :
             base(tunnelStart, tunnelEnd, lengthInSection, length, trackcircuitSectionLength, startOffset)

@@ -42,7 +42,7 @@ namespace Orts.Simulation.Signalling
     /// </summary>
     //================================================================================================//
 
-    public class DeadlockInfo
+    internal class DeadlockInfo
     {
         public enum DeadlockTrainState                                    // state of train wrt this deadlock                     
         {

@@ -31,7 +31,7 @@ namespace Orts.Simulation.Signalling
     ///
     /// </summary>
     //================================================================================================//
-    public class TrainQueue : Queue<Train.TrainRouted>, ICollection<Train.TrainRouted>
+    internal class TrainQueue : Queue<Train.TrainRouted>, ICollection<Train.TrainRouted>
     {
         public bool IsReadOnly => false;
 

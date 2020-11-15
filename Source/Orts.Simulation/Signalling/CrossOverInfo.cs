@@ -26,11 +26,9 @@ namespace Orts.Simulation.Signalling
     /// Class for cross over items
     /// </summary>
     //================================================================================================//
-    public class CrossOverInfo
+    internal class CrossOverInfo
     {
-#pragma warning disable CA1034 // Nested types should not be visible
         public class Detail
-#pragma warning restore CA1034 // Nested types should not be visible
         {
             public float Position { get; internal set; } // position within track sections //
             public int SectionIndex { get; internal set; } // indices of original sections   //

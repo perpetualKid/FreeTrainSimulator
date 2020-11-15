@@ -27,7 +27,7 @@ namespace Orts.Simulation.Signalling
         public SignalType SignalType { get; private set; }
         public int OrtsNormalSubtypeIndex { get; set; }
         public int TDBIndex { get; private set; }
-        public EnumArray<SpeedInfo, SignalAspectState> SpeedInfoSet { get; } = new EnumArray<SpeedInfo, SignalAspectState>();
+        internal EnumArray<SpeedInfo, SignalAspectState> SpeedInfoSet { get; } = new EnumArray<SpeedInfo, SignalAspectState>();
         public Signal MainSignal { get; private set; }
 
         public SignalAspectState SignalIndicationState { get; set; } = SignalAspectState.Stop;

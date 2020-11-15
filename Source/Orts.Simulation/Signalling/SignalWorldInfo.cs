@@ -37,7 +37,7 @@ namespace Orts.Simulation.Signalling
     ///
     /// </summary>
     //================================================================================================//
-    public class SignalWorldInfo
+    internal class SignalWorldInfo
     {
         public Dictionary<uint, uint> HeadReference { get; }     // key=TDBIndex, value=headindex
         public BitArray HeadsSet { get; }                          // Flags heads which are set

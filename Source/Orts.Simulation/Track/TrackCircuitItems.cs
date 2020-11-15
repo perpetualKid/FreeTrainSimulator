@@ -32,13 +32,13 @@ namespace Orts.Simulation.Track
     /// </summary>
     //================================================================================================//
 
-    public class TrackCircuitItems
+    internal class TrackCircuitItems
     {
         public EnumArray<List<TrackCircuitSignalList>, TrackDirection> TrackCircuitSignals { get; } = new EnumArray<List<TrackCircuitSignalList>, TrackDirection>();
         // List of signals (per direction and per type) //
         public EnumArray<TrackCircuitSignalList, TrackDirection> TrackCircuitSpeedPosts { get; } = new EnumArray<TrackCircuitSignalList, TrackDirection>();
         // List of speedposts (per direction) //
-        public TrackCircuitMilepostList TrackCircuitMileposts { get; } = new TrackCircuitMilepostList();
+        internal TrackCircuitMilepostList TrackCircuitMileposts { get; } = new TrackCircuitMilepostList();
         // List of mileposts //
 
         //================================================================================================//

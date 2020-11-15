@@ -31,7 +31,7 @@ namespace Orts.Simulation.Track
     ///
     /// </summary>
     //================================================================================================//
-    public class TrackCircuitSignalList : List<TrackCircuitSignalItem>
+    internal class TrackCircuitSignalList : List<TrackCircuitSignalItem>
     {
     }
 
@@ -43,7 +43,7 @@ namespace Orts.Simulation.Track
     ///
     /// </summary>
     //================================================================================================//
-    public class TrackCircuitSignalItem
+    internal class TrackCircuitSignalItem
     {
         public SignalItemFindState SignalState { get; internal set; }  // returned state // 
         public Signal Signal { get; internal set; }            // related SignalObject     //
