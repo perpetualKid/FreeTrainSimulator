@@ -253,17 +253,7 @@ namespace Orts.Simulation.Physics
         public int[] LastPassedSignal { get; } = new int[2] { -1, -1 };  // index of last signal which set speed limit per direction (manual and explorer mode)
 
         // Variables used for autopilot mode and played train switching
-        public bool IsActualPlayerTrain
-        {
-            get
-            {
-                if (simulator.PlayerLocomotive == null)
-                {
-                    return false;
-                }
-                return this == simulator.PlayerLocomotive.Train;
-            }
-        }
+        public bool IsActualPlayerTrain => this == simulator.PlayerLocomotive?.Train;
 
         internal float MaxDistanceCheckedAhead => Math.Max((IsActualPlayerTrain ? (float)simulator.TRK.Route.SpeedLimit : AllowedMaxSpeedMpS) * MaxTimeS, MinCheckDistanceM);
 
@@ -1467,10 +1457,6 @@ namespace Orts.Simulation.Physics
 
             // check position of train wrt tunnels
             ProcessTunnels();
-
-            // prepare train data for Train Control System
-            if (IsActualPlayerTrain)
-                UpdatePlayerTrainData();
 
             // log train details
 
