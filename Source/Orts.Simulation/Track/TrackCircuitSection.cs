@@ -499,7 +499,7 @@ namespace Orts.Simulation.Track
                         // if deadlock is allready awaited set available to false to keep one track open
                         if (thisElement.StartAlternativePath != null)
                         {
-                            TrackCircuitSection endSection = TrackCircuitList[thisElement.StartAlternativePath[1]];
+                            TrackCircuitSection endSection = TrackCircuitList[thisElement.StartAlternativePath.TrackCircuitSection];
                             if (endSection.CheckDeadlockAwaited(train.Train.Number))
                             {
                                 return (false);
@@ -656,7 +656,7 @@ namespace Orts.Simulation.Track
                 {
                     if (routeElement?.StartAlternativePath != null)
                     {
-                        TrackCircuitSection endSection = TrackCircuitList[routeElement.StartAlternativePath[1]];
+                        TrackCircuitSection endSection = TrackCircuitList[routeElement.StartAlternativePath.TrackCircuitSection];
 
                         // no deadlock yet active
                         if (train.Train.DeadlockInfo.ContainsKey(endSection.Index))
