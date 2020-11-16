@@ -4243,7 +4243,7 @@ namespace Orts.Simulation.AIs
         /// Insert action item
         /// </summary>
 
-        public void CreateTrainAction(float presentSpeedMpS, float reqSpeedMpS, float distanceToTrainM,
+        internal void CreateTrainAction(float presentSpeedMpS, float reqSpeedMpS, float distanceToTrainM,
                 SignalItemInfo thisItem, AIActionItem.AI_ACTION_TYPE thisAction)
         {
             // if signal or speed limit take off clearing distance
@@ -5546,7 +5546,7 @@ namespace Orts.Simulation.AIs
         public float RequiredSpeedMpS;
         public float ActivateDistanceM;
         public float InsertedDistanceM;
-        public SignalItemInfo ActiveItem;
+        internal SignalItemInfo ActiveItem;
         public int ReqTablePath;
 
         public enum AI_ACTION_TYPE
@@ -5572,7 +5572,7 @@ namespace Orts.Simulation.AIs
         /// constructor for AIActionItem
         /// </summary>
 
-        public AIActionItem(SignalItemInfo thisItem, AI_ACTION_TYPE thisAction)
+        internal AIActionItem(SignalItemInfo thisItem, AI_ACTION_TYPE thisAction)
         {
             ActiveItem = thisItem;
             NextAction = thisAction;

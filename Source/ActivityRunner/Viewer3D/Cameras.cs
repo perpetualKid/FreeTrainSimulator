@@ -2488,7 +2488,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
                 int tcSectionIndex;
                 int routeIndex;
-                Train.TCSubpathRoute thisRoute = null;
+                TCSubpathRoute thisRoute = null;
                 // search for near platform in fast way, using TCSection data
                 if (trainForwards && train.ValidRoute[0] != null)
                 {
@@ -2528,12 +2528,12 @@ namespace Orts.ActivityRunner.Viewer3D
                             foreach (int platformIndex in TCSection.PlatformIndices)
                             {
                                 PlatformDetails thisPlatform = train.signalRef.PlatformDetailsList[platformIndex];
-                                if (thisPlatform.TrackCircuitOffset[Simulation.Signalling.Location.NearEnd, (TrackDirection)thisRoute[routeIndex].Direction] + incrDistance < MaximumSpecialPointDistance * 0.7f
-                                    && (thisPlatform.TrackCircuitOffset[Simulation.Signalling.Location.NearEnd, (TrackDirection)thisRoute[routeIndex].Direction] + incrDistance > 0 || FirstUpdateLoop))
+                                if (thisPlatform.TrackCircuitOffset[Simulation.Signalling.Location.NearEnd, thisRoute[routeIndex].Direction] + incrDistance < MaximumSpecialPointDistance * 0.7f
+                                    && (thisPlatform.TrackCircuitOffset[Simulation.Signalling.Location.NearEnd, thisRoute[routeIndex].Direction] + incrDistance > 0 || FirstUpdateLoop))
                                 {
                                     // platform found, compute distance to viewing point
                                     distanceToViewingPoint = Math.Min(MaximumSpecialPointDistance * 0.7f,
-                                        incrDistance + thisPlatform.TrackCircuitOffset[Simulation.Signalling.Location.NearEnd, (TrackDirection)thisRoute[routeIndex].Direction] + thisPlatform.Length * 0.7f);
+                                        incrDistance + thisPlatform.TrackCircuitOffset[Simulation.Signalling.Location.NearEnd, thisRoute[routeIndex].Direction] + thisPlatform.Length * 0.7f);
                                     if (FirstUpdateLoop && Math.Abs(train.SpeedMpS) <= 0.2f) distanceToViewingPoint =
                                             Math.Min(distanceToViewingPoint, train.Length * 0.95f);
                                     tdb.Move(distanceToViewingPoint);

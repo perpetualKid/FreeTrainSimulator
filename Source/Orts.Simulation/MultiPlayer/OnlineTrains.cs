@@ -25,6 +25,7 @@ using Orts.Simulation;
 using Orts.Simulation.AIs;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
+using Orts.Simulation.Track;
 
 namespace Orts.MultiPlayer
 {
@@ -221,7 +222,7 @@ namespace Orts.MultiPlayer
             train.CheckFreight();
             train.InitializeBrakes();
             bool canPlace = true;
-            Train.TCSubpathRoute tempRoute = train.CalculateInitialTrainPosition(ref canPlace);
+            TCSubpathRoute tempRoute = train.CalculateInitialTrainPosition(ref canPlace);
             if (tempRoute.Count == 0 || !canPlace)
             {
                 MPManager.BroadCast((new MSGMessage(p.Username, "Error", "Cannot be placed into the game")).ToString());//server will broadcast this error

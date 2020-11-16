@@ -43,6 +43,7 @@ using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS;
 using Orts.Simulation.Signalling;
 using Orts.Simulation.Timetables;
+using Orts.Simulation.Track;
 
 namespace Orts.Simulation
 {
@@ -1173,7 +1174,7 @@ namespace Orts.Simulation
             train.ControlMode = TrainControlMode.Explorer;
 
             bool canPlace = true;
-            Train.TCSubpathRoute tempRoute = train.CalculateInitialTrainPosition(ref canPlace);
+            TCSubpathRoute tempRoute = train.CalculateInitialTrainPosition(ref canPlace);
             if (tempRoute.Count == 0 || !canPlace)
             {
                 throw new InvalidDataException("Player train original position not clear");
@@ -1231,7 +1232,7 @@ namespace Orts.Simulation
             OriginalPlayerTrain = train;
             train.Efficiency = 0.9f; // Forced efficiency, as considered most similar to human player
             bool canPlace = true;
-            Physics.Train.TCSubpathRoute tempRoute = train.CalculateInitialTrainPosition(ref canPlace);
+            TCSubpathRoute tempRoute = train.CalculateInitialTrainPosition(ref canPlace);
             if (tempRoute.Count == 0 || !canPlace)
             {
                 throw new InvalidDataException("Player train original position not clear");

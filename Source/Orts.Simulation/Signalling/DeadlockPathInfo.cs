@@ -22,6 +22,7 @@ using System.Collections.Generic;
 using System.IO;
 
 using Orts.Simulation.Physics;
+using Orts.Simulation.Track;
 
 namespace Orts.Simulation.Signalling
 {
@@ -36,7 +37,7 @@ namespace Orts.Simulation.Signalling
     internal class DeadlockPathInfo
     {
         public string Name { get; internal set; }
-        public Train.TCSubpathRoute Path { get; }
+        public TCSubpathRoute Path { get; }
         public List<string> Groups { get; }// groups of which this path is a part
         public List<int> AllowedTrains { get; }// list of train for which path is valid (ref. is train/subpath index); -1 indicates public path
         public int LastUsefulSectionIndex { get; internal set; }// Index in Path for last section which can be used before stop position
@@ -48,9 +49,9 @@ namespace Orts.Simulation.Signalling
         /// Constructor
         /// </summary>
 
-        public DeadlockPathInfo(Train.TCSubpathRoute thisPath, int pathIndex)
+        public DeadlockPathInfo(TCSubpathRoute path, int pathIndex)
         {
-            Path = new Train.TCSubpathRoute(thisPath);
+            Path = new TCSubpathRoute(path);
             Name = string.Empty;
             Groups = new List<string>();
 
@@ -72,7 +73,7 @@ namespace Orts.Simulation.Signalling
             if (null == inf)
                 throw new ArgumentNullException(nameof(inf));
 
-            Path = new Train.TCSubpathRoute(inf);
+            Path = new TCSubpathRoute(inf);
             Name = inf.ReadString();
 
             Groups = new List<string>();

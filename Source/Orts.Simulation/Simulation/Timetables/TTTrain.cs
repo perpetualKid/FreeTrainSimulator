@@ -2196,7 +2196,7 @@ namespace Orts.Simulation.Timetables
             for (int iStation = firstStopIndex; iStation < StationStops.Count; iStation++)
             {
                 StationStop actualStation = StationStops[iStation];
-                Train.TCSubpathRoute thisRoute = TCRoute.TCRouteSubpaths[actualStation.SubrouteIndex];
+                TCSubpathRoute thisRoute = TCRoute.TCRouteSubpaths[actualStation.SubrouteIndex];
                 TrackCircuitRouteElement thisElement = thisRoute[actualStation.RouteIndex];
                 PlatformDetails thisPlatform = actualStation.PlatformItem;
 
@@ -7796,7 +7796,7 @@ namespace Orts.Simulation.Timetables
         /// Override method from train
         /// </summary>
 
-        public override bool TrainGetSectionStateClearNode(int elementDirection, Train.TCSubpathRoute routePart, TrackCircuitSection thisSection)
+        public override bool TrainGetSectionStateClearNode(int elementDirection, TCSubpathRoute routePart, TrackCircuitSection thisSection)
         {
             return (thisSection.GetSectionState(routedForward, elementDirection, InternalBlockstate.Reserved, routePart, -1) <= InternalBlockstate.OccupiedSameDirection);
         }
@@ -10967,7 +10967,7 @@ namespace Orts.Simulation.Timetables
             PresentPosition[1].RouteListIndex = ValidRoute[0].GetRouteIndex(PresentPosition[1].TCSectionIndex, 0);
 
             // get new track sections occupied
-            Train.TCSubpathRoute tempRouteTrain = Simulator.Signals.BuildTempRoute(this, PresentPosition[1].TCSectionIndex,
+            TCSubpathRoute tempRouteTrain = Simulator.Signals.BuildTempRoute(this, PresentPosition[1].TCSectionIndex,
                 PresentPosition[1].TCOffset, (TrackDirection)PresentPosition[1].TCDirection, Length, false, true, false);
 
             // if detached from front, clear train from track and all further sections
@@ -11031,14 +11031,14 @@ namespace Orts.Simulation.Timetables
             }
 
             // build temp route for new train
-            Train.TCSubpathRoute tempRouteNewTrain = Simulator.Signals.BuildTempRoute(newTrain, newTrain.PresentPosition[1].TCSectionIndex,
+            TCSubpathRoute tempRouteNewTrain = Simulator.Signals.BuildTempRoute(newTrain, newTrain.PresentPosition[1].TCSectionIndex,
                 newTrain.PresentPosition[1].TCOffset, (TrackDirection)newTrain.PresentPosition[1].TCDirection, newTrain.Length, false, true, false);
 
             // if train has no valid route, create from occupied sections
             if (newTrain.ValidRoute[0] == null)
             {
-                newTrain.ValidRoute[0] = new Train.TCSubpathRoute(tempRouteNewTrain);
-                newTrain.TCRoute.TCRouteSubpaths.Add(new Train.TCSubpathRoute(tempRouteNewTrain));
+                newTrain.ValidRoute[0] = new TCSubpathRoute(tempRouteNewTrain);
+                newTrain.TCRoute.TCRouteSubpaths.Add(new TCSubpathRoute(tempRouteNewTrain));
                 newTrain.PresentPosition[0].RouteListIndex = newTrain.ValidRoute[0].GetRouteIndex(newTrain.PresentPosition[0].TCSectionIndex, 0);
                 newTrain.PresentPosition[0].CopyTo(ref newTrain.PreviousPosition[0]);
                 newTrain.PresentPosition[1].RouteListIndex = newTrain.ValidRoute[0].GetRouteIndex(newTrain.PresentPosition[1].TCSectionIndex, 0);
@@ -11425,7 +11425,7 @@ namespace Orts.Simulation.Timetables
             }
             else
             {
-                formedTrain.ValidRoute[0] = new Train.TCSubpathRoute(formedTrain.TCRoute.TCRouteSubpaths[0]);
+                formedTrain.ValidRoute[0] = new TCSubpathRoute(formedTrain.TCRoute.TCRouteSubpaths[0]);
             }
 
             formedTrain.AITrainDirectionForward = true;
@@ -11786,7 +11786,7 @@ namespace Orts.Simulation.Timetables
         public int? holdTimeS;                                // required hold time (in seconds)
 
         // wait types WaitInfo (no post-processing required) :
-        public Train.TCSubpathRoute CheckPath = null;         // required path to check in case of WaitAny
+        public TCSubpathRoute CheckPath = null;         // required path to check in case of WaitAny
 
         public CheckPathDirection PathDirection = CheckPathDirection.Same; // required path direction
 
@@ -11896,7 +11896,7 @@ namespace Orts.Simulation.Timetables
             }
             else
             {
-                CheckPath = new Train.TCSubpathRoute(inf);
+                CheckPath = new TCSubpathRoute(inf);
                 PathDirection = (CheckPathDirection)inf.ReadInt32();
             }
         }
@@ -12496,9 +12496,9 @@ namespace Orts.Simulation.Timetables
                     // if new train has no route, create from present position
                     if (newTrain.TCRoute == null)
                     {
-                        Train.TCSubpathRoute newTrainPath = new Train.TCSubpathRoute(train.ValidRoute[0], train.PresentPosition[1].RouteListIndex, train.PresentPosition[0].RouteListIndex);
-                        newTrain.TCRoute = new Train.TCRoutePath(newTrainPath);
-                        newTrain.ValidRoute[0] = new Train.TCSubpathRoute(newTrain.TCRoute.TCRouteSubpaths[0]);
+                        TCSubpathRoute newTrainPath = new TCSubpathRoute(train.ValidRoute[0], train.PresentPosition[1].RouteListIndex, train.PresentPosition[0].RouteListIndex);
+                        newTrain.TCRoute = new Orts.Simulation.Physics.Train.TCRoutePath(newTrainPath);
+                        newTrain.ValidRoute[0] = new TCSubpathRoute(newTrain.TCRoute.TCRouteSubpaths[0]);
                     }
 
                     // handle player train
@@ -12940,7 +12940,7 @@ namespace Orts.Simulation.Timetables
                 int frontSectionIndex = thisTrain.PresentPosition[0].TCSectionIndex;
                 TrackDirection thisDirection = (TrackDirection)thisTrain.PresentPosition[0].TCDirection;
 
-                Train.TCSubpathRoute otherPath = detachedTrain.TCRoute.TCRouteSubpaths[0];
+                TCSubpathRoute otherPath = detachedTrain.TCRoute.TCRouteSubpaths[0];
                 int otherTrainIndex = otherPath.GetRouteIndex(frontSectionIndex, 0);
 
                 if (otherTrainIndex >= 0)
@@ -12954,7 +12954,7 @@ namespace Orts.Simulation.Timetables
                 int frontSectionIndex = thisTrain.PresentPosition[1].TCSectionIndex;
                 TrackDirection thisDirection = (TrackDirection)thisTrain.PresentPosition[1].TCDirection;
 
-                Train.TCSubpathRoute otherPath = detachedTrain.TCRoute.TCRouteSubpaths[0];
+                TCSubpathRoute otherPath = detachedTrain.TCRoute.TCRouteSubpaths[0];
                 int otherTrainIndex = otherPath.GetRouteIndex(frontSectionIndex, 0);
 
                 if (otherTrainIndex >= 0)
@@ -13940,9 +13940,9 @@ namespace Orts.Simulation.Timetables
                 int firstSectionIndex = thisTrain.OccupiedTrack[0].Index;
                 int lastSectionIndex = thisTrain.OccupiedTrack.Last().Index;
                 int lastRouteIndex = Math.Max(thisTrain.ValidRoute[0].GetRouteIndex(firstSectionIndex, 0), thisTrain.ValidRoute[0].GetRouteIndex(lastSectionIndex, 0));
-                Train.TCSubpathRoute newRoute = new Train.TCSubpathRoute(thisTrain.TCRoute.TCRouteSubpaths[thisTrain.TCRoute.activeSubpath], 0, lastRouteIndex);
-                thisTrain.TCRoute.TCRouteSubpaths[thisTrain.TCRoute.activeSubpath] = new Train.TCSubpathRoute(newRoute);
-                thisTrain.ValidRoute[0] = new Train.TCSubpathRoute(newRoute);
+                TCSubpathRoute newRoute = new TCSubpathRoute(thisTrain.TCRoute.TCRouteSubpaths[thisTrain.TCRoute.activeSubpath], 0, lastRouteIndex);
+                thisTrain.TCRoute.TCRouteSubpaths[thisTrain.TCRoute.activeSubpath] = new TCSubpathRoute(newRoute);
+                thisTrain.ValidRoute[0] = new TCSubpathRoute(newRoute);
 
                 thisTrain.MovementState = AITrain.AI_MOVEMENT_STATE.STOPPED;
             }

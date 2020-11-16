@@ -1345,7 +1345,7 @@ namespace Orts.MultiPlayer
             //train.InitializeSignals(false);//client do it won't have impact
             train.CheckFreight();
             bool canPlace = true;
-            Train.TCSubpathRoute tempRoute = train.CalculateInitialTrainPosition(ref canPlace);
+            TCSubpathRoute tempRoute = train.CalculateInitialTrainPosition(ref canPlace);
 
             train.SetInitialTrainRoute(tempRoute);
             train.CalculatePositionOfCars();
@@ -1588,7 +1588,7 @@ namespace Orts.MultiPlayer
             //train1.InitializeSignals(false);
             train1.CheckFreight();
             bool canPlace = true;
-            Train.TCSubpathRoute tempRoute = train1.CalculateInitialTrainPosition(ref canPlace);
+            TCSubpathRoute tempRoute = train1.CalculateInitialTrainPosition(ref canPlace);
 
             train1.SetInitialTrainRoute(tempRoute);
             train1.CalculatePositionOfCars();
@@ -2575,7 +2575,7 @@ namespace Orts.MultiPlayer
                 Train train = null;
                 List<TrainCar> trainCars = null;
                 bool canPlace = true;
-                Train.TCSubpathRoute tempRoute;
+                TCSubpathRoute tempRoute;
                 foreach (Train t in MPManager.Simulator.Trains)
                 {
                     var found = false;

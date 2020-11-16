@@ -177,10 +177,10 @@ namespace Orts.Simulation.Timetables
 
         public struct PoolDetails
         {
-            public Train.TCSubpathRoute StoragePath;          // path defined as storage location
+            public TCSubpathRoute StoragePath;          // path defined as storage location
             public Traveller StoragePathTraveller;            // traveller used to get path position and direction
             public string StorageName;                        // storage name
-            public List<Train.TCSubpathRoute> AccessPaths;    // access paths defined for storage location
+            public List<TCSubpathRoute> AccessPaths;    // access paths defined for storage location
             public float StorageLength;                       // available length
             public float StorageCorrection;                   // length correction (e.g. due to switch overlap safety) - difference between length of sections in path and actual storage length
 
@@ -296,16 +296,16 @@ namespace Orts.Simulation.Timetables
                 int maxStorage = 0;
 
                 PoolDetails newPool = new PoolDetails();
-                newPool.StoragePath = new Train.TCSubpathRoute(inf);
+                newPool.StoragePath = new TCSubpathRoute(inf);
                 newPool.StoragePathTraveller = new Traveller(simulatorref.TSectionDat, simulatorref.TDB.TrackDB.TrackNodes, inf);
                 newPool.StorageName = inf.ReadString();
 
-                newPool.AccessPaths = new List<Train.TCSubpathRoute>();
+                newPool.AccessPaths = new List<TCSubpathRoute>();
                 int noAccessPaths = inf.ReadInt32();
 
                 for (int iPath = 0; iPath < noAccessPaths; iPath++)
                 {
-                    newPool.AccessPaths.Add(new Train.TCSubpathRoute(inf));
+                    newPool.AccessPaths.Add(new TCSubpathRoute(inf));
                 }
 
                 newPool.StoredUnits = new List<int>();
@@ -367,7 +367,7 @@ namespace Orts.Simulation.Timetables
                 outf.Write(thisStorage.StorageName);
 
                 outf.Write(thisStorage.AccessPaths.Count);
-                foreach (Train.TCSubpathRoute thisPath in thisStorage.AccessPaths)
+                foreach (TCSubpathRoute thisPath in thisStorage.AccessPaths)
                 {
                     thisPath.Save(outf);
                 }
@@ -512,7 +512,7 @@ namespace Orts.Simulation.Timetables
             }
 
             // process storage paths
-            newPool.AccessPaths = new List<Train.TCSubpathRoute>();
+            newPool.AccessPaths = new List<TCSubpathRoute>();
             newPool.StoredUnits = new List<int>();
             newPool.ClaimUnits = new List<int>();
             newPool.StorageLength = 0.0f;
@@ -527,7 +527,7 @@ namespace Orts.Simulation.Timetables
             {
                 Train.TCRoutePath fullRoute = new Train.TCRoutePath(newPath, -2, 1, simulatorref.Signals, -1, simulatorref.Settings);
 
-                newPool.StoragePath = new Train.TCSubpathRoute(fullRoute.TCRouteSubpaths[0]);
+                newPool.StoragePath = new TCSubpathRoute(fullRoute.TCRouteSubpaths[0]);
                 newPool.StoragePathTraveller = new Traveller(simulatorref.TSectionDat, simulatorref.TDB.TrackDB.TrackNodes, newPath);
                 Traveller dummy = new Traveller(newPool.StoragePathTraveller);
                 dummy.Move(simulatorref.Signals.TrackCircuitList[newPool.StoragePath[0].TrackCircuitSectionIndex].Length - newPool.StoragePathTraveller.TrackNodeOffset - 1.0f);
@@ -563,14 +563,14 @@ namespace Orts.Simulation.Timetables
                 {
                     Train.TCRoutePath fullRoute = new Train.TCRoutePath(newPath, -2, 1, simulatorref.Signals, -1, simulatorref.Settings);
                     // if last element is end of track, remove it from path
-                    Train.TCSubpathRoute usedRoute = fullRoute.TCRouteSubpaths[0];
+                    TCSubpathRoute usedRoute = fullRoute.TCRouteSubpaths[0];
                     int lastIndex = usedRoute.Count - 1;
                     int lastSectionIndex = usedRoute[lastIndex].TrackCircuitSectionIndex;
                     if (simulatorref.Signals.TrackCircuitList[lastSectionIndex].CircuitType == TrackCircuitType.EndOfTrack)
                     {
                         lastIndex = usedRoute.Count - 2;
                     }
-                    newPool.AccessPaths.Add(new Train.TCSubpathRoute(usedRoute, 0, lastIndex));
+                    newPool.AccessPaths.Add(new TCSubpathRoute(usedRoute, 0, lastIndex));
 
                     // check for multiple subpaths - not allowed for storage area
                     if (fullRoute.TCRouteSubpaths.Count > 1)
@@ -594,7 +594,7 @@ namespace Orts.Simulation.Timetables
 
             for (int iPath = 0; iPath < newPool.AccessPaths.Count; iPath++)
             {
-                Train.TCSubpathRoute accessPath = newPool.AccessPaths[iPath];
+                TCSubpathRoute accessPath = newPool.AccessPaths[iPath];
                 int firstAccessSection = accessPath[0].TrackCircuitSectionIndex;
                 TrackDirection firstAccessDirection = accessPath[0].Direction;
                 string accessName = accessPathNames[iPath];
@@ -613,14 +613,14 @@ namespace Orts.Simulation.Timetables
                     // path may be in wrong direction due to path conversion problems
                     if (firstAccessDirection != newPool.StoragePath[reqElementIndex].Direction)
                     {
-                        Train.TCSubpathRoute newRoute = new Train.TCSubpathRoute();
+                        TCSubpathRoute newRoute = new TCSubpathRoute();
                         for (int iElement = newPool.StoragePath.Count - 1; iElement >= 0; iElement--)
                         {
                             TrackCircuitRouteElement thisElement = newPool.StoragePath[iElement];
                             thisElement.Direction = thisElement.Direction.Next();
                             newRoute.Add(thisElement);
                         }
-                        newPool.StoragePath = new Train.TCSubpathRoute(newRoute);
+                        newPool.StoragePath = new TCSubpathRoute(newRoute);
                     }
 
                     // remove elements from access path which are part of storage path
@@ -633,7 +633,7 @@ namespace Orts.Simulation.Timetables
                         storageRouteIndex = newPool.StoragePath.GetRouteIndex(accessPath[lastReqElement].TrackCircuitSectionIndex, 0);
                     }
 
-                    newPool.AccessPaths[iPath] = new Train.TCSubpathRoute(accessPath, 0, lastReqElement);
+                    newPool.AccessPaths[iPath] = new TCSubpathRoute(accessPath, 0, lastReqElement);
                 }
             }
 
@@ -710,7 +710,7 @@ namespace Orts.Simulation.Timetables
             // find relevant access path
             for (int iPath = 0; iPath < thisStorage.AccessPaths.Count && reqPath < 0; iPath++)
             {
-                Train.TCSubpathRoute accessPath = thisStorage.AccessPaths[iPath];
+                TCSubpathRoute accessPath = thisStorage.AccessPaths[iPath];
                 reqPathIndex = accessPath.GetRouteIndex(lastSectionIndex, 0);
 
                 // path is defined outbound, so directions must be opposite
@@ -744,10 +744,10 @@ namespace Orts.Simulation.Timetables
         /// </summary>
         /// <param name="train"></param>
 
-        virtual public Train.TCSubpathRoute CreateInPool(TTTrain train, out int poolStorageIndex, bool checkAccessPath)
+        virtual public TCSubpathRoute CreateInPool(TTTrain train, out int poolStorageIndex, bool checkAccessPath)
         {
             int tempIndex;
-            Train.TCSubpathRoute newRoute = SetPoolExit(train, out tempIndex, checkAccessPath);
+            TCSubpathRoute newRoute = SetPoolExit(train, out tempIndex, checkAccessPath);
             poolStorageIndex = tempIndex;
             return (newRoute);
         }
@@ -758,10 +758,10 @@ namespace Orts.Simulation.Timetables
         /// Returned poolStorageState : <0 : state (enum TTTrain.PoolAccessState); >0 : poolIndex
         /// </summary>
         /// <param name="train"></param>
-        virtual public Train.TCSubpathRoute SetPoolExit(TTTrain train, out int poolStorageState, bool checkAccessPath)
+        virtual public TCSubpathRoute SetPoolExit(TTTrain train, out int poolStorageState, bool checkAccessPath)
         {
             // new route
-            Train.TCSubpathRoute newRoute = null;
+            TCSubpathRoute newRoute = null;
             poolStorageState = (int) TTTrain.PoolAccessState.PoolInvalid;
 
             // set dispose states
@@ -813,7 +813,7 @@ namespace Orts.Simulation.Timetables
                     // find relevant access path
                     for (int iPath = 0; iPath < thisStorage.AccessPaths.Count && reqPath < 0; iPath++)
                     {
-                        Train.TCSubpathRoute accessPath = thisStorage.AccessPaths[iPath];
+                        TCSubpathRoute accessPath = thisStorage.AccessPaths[iPath];
                         reqPathIndex = accessPath.GetRouteIndex(lastSectionIndex, 0);
 
                         // path is defined outbound, so directions must be opposite
@@ -834,8 +834,8 @@ namespace Orts.Simulation.Timetables
                     // path found : extend train path with access and storage paths
                     else
                     {
-                        Train.TCSubpathRoute accessPath = thisStorage.AccessPaths[reqPath];
-                        newRoute = new Train.TCSubpathRoute(train.TCRoute.TCRouteSubpaths.Last());
+                        TCSubpathRoute accessPath = thisStorage.AccessPaths[reqPath];
+                        newRoute = new TCSubpathRoute(train.TCRoute.TCRouteSubpaths.Last());
 
                         // add elements from access route except those allready on the path
                         // add in reverse order and reverse direction as path is defined outbound
@@ -866,7 +866,7 @@ namespace Orts.Simulation.Timetables
                 // create new route from storage and access track only
                 else
                 {
-                    newRoute = new Train.TCSubpathRoute(thisStorage.AccessPaths[0]);
+                    newRoute = new TCSubpathRoute(thisStorage.AccessPaths[0]);
 
                     foreach (TrackCircuitRouteElement thisElement in thisStorage.StoragePath)
                     {
@@ -887,7 +887,7 @@ namespace Orts.Simulation.Timetables
         /// Base class to allow override for moving table classes
         /// </summary>
 
-        virtual public float GetEndOfRouteDistance(Train.TCSubpathRoute thisRoute, Train.TCPosition frontPosition, int pathIndex, SignalEnvironment signalRef)
+        virtual public float GetEndOfRouteDistance(TCSubpathRoute thisRoute, Train.TCPosition frontPosition, int pathIndex, SignalEnvironment signalRef)
         {
             return (0);
         }
@@ -960,9 +960,9 @@ namespace Orts.Simulation.Timetables
         /// Test if route leads to pool
         /// </summary>
 
-        public bool TestRouteLeadingToPool(Train.TCSubpathRoute testedRoute, int poolIndex, string trainName)
+        public bool TestRouteLeadingToPool(TCSubpathRoute testedRoute, int poolIndex, string trainName)
         {
-            Train.TCSubpathRoute poolStorage = StoragePool[poolIndex].StoragePath;
+            TCSubpathRoute poolStorage = StoragePool[poolIndex].StoragePath;
 
             // check if signal route leads to pool
             foreach (TrackCircuitRouteElement routeElement in poolStorage)
@@ -1018,7 +1018,7 @@ namespace Orts.Simulation.Timetables
             }
 
             // clear track behind engine, only keep actual occupied sections
-            Train.TCSubpathRoute tempRoute = train.signalRef.BuildTempRoute(train, train.PresentPosition[1].TCSectionIndex, train.PresentPosition[1].TCOffset,
+            TCSubpathRoute tempRoute = train.signalRef.BuildTempRoute(train, train.PresentPosition[1].TCSectionIndex, train.PresentPosition[1].TCOffset,
                 (TrackDirection)train.PresentPosition[1].TCDirection, train.Length, true, true, false);
             train.OccupiedTrack.Clear();
 
@@ -1166,7 +1166,7 @@ namespace Orts.Simulation.Timetables
             int reqAccessPath = -1;
             for (int iPath = 0; iPath < reqStorage.AccessPaths.Count; iPath++)
             {
-                Train.TCSubpathRoute thisPath = reqStorage.AccessPaths[iPath];
+                TCSubpathRoute thisPath = reqStorage.AccessPaths[iPath];
                 if (thisPath.GetRouteIndex(firstSectionIndex, 0) >= 0)
                 {
                     reqAccessPath = iPath;
@@ -1266,7 +1266,7 @@ namespace Orts.Simulation.Timetables
             selectedTrain.Forms = -1;
             selectedTrain.RemoveTrain();
             train.FormedOfType = TTTrain.FormCommand.TerminationFormed;
-            train.ValidRoute[0] = new Train.TCSubpathRoute(train.TCRoute.TCRouteSubpaths[0]);
+            train.ValidRoute[0] = new TCSubpathRoute(train.TCRoute.TCRouteSubpaths[0]);
 
 #if DEBUG_POOLINFO
             sob = new StringBuilder();

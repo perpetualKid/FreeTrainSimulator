@@ -838,7 +838,7 @@ namespace Orts.Simulation.Signalling
         ///   -6  : end of (sub)route
         /// </summary>
 
-        internal TrackCircuitSignalItem FindNextObjectInRoute(Train.TCSubpathRoute routePath, int routeIndex, float routePosition, float maxDistance, SignalFunction signalType, Train.TrainRouted train)
+        internal TrackCircuitSignalItem FindNextObjectInRoute(TCSubpathRoute routePath, int routeIndex, float routePosition, float maxDistance, SignalFunction signalType, Train.TrainRouted train)
         {
             if (null == routePath)
                 throw new ArgumentNullException(nameof(routePath));
@@ -982,7 +982,7 @@ namespace Orts.Simulation.Signalling
 
 
         // call without position
-        public SignalItemInfo GetNextObjectInRoute(Train.TrainRouted train, Train.TCSubpathRoute routePath,
+        internal SignalItemInfo GetNextObjectInRoute(Train.TrainRouted train, TCSubpathRoute routePath,
                     int routeIndex, float routePosition, float maxDistance, SignalItemType requiredType)
         {
             if (train == null)
@@ -992,7 +992,7 @@ namespace Orts.Simulation.Signalling
         }
 
         // call with position
-        public SignalItemInfo GetNextObjectInRoute(Train.TrainRouted train, Train.TCSubpathRoute routePath,
+        internal SignalItemInfo GetNextObjectInRoute(Train.TrainRouted train, TCSubpathRoute routePath,
                     int routeIndex, float routePosition, float maxDistance, SignalItemType requiredType, Train.TCPosition position)
         {
             if (train == null)
@@ -1007,7 +1007,7 @@ namespace Orts.Simulation.Signalling
 
             bool findSignal = requiredType == SignalItemType.Any || requiredType == SignalItemType.Signal;
 
-            Train.TCSubpathRoute usedRoute = routePath;
+            TCSubpathRoute usedRoute = routePath;
 
             // if routeIndex is not valid, build temp route from present position to first node or signal
 
@@ -1016,7 +1016,7 @@ namespace Orts.Simulation.Signalling
                 List<int> Sections = ScanRoute(train.Train, position.TCSectionIndex, position.TCOffset, (TrackDirection)position.TCDirection,
                     true, 200f, false, true, true, false, true, false, false, true, false, train.Train.IsFreight);
 
-                Train.TCSubpathRoute route = new Train.TCSubpathRoute();
+                TCSubpathRoute route = new TCSubpathRoute();
                 int prevSection = -2;
 
                 foreach (int sectionIndex in Sections)
@@ -1110,6 +1110,14 @@ namespace Orts.Simulation.Signalling
             }
 
             return returnItem;
+        }
+
+        public (Signal Signal, float Distance) GetSignalItemInfo(Train.TCPosition position, float routeLength)
+        {
+            TCSubpathRoute route = BuildTempRoute(null, position.TCSectionIndex, position.TCOffset, (TrackDirection)position.TCDirection, routeLength, true, false, false);
+            SignalItemInfo signalInfo = GetNextObjectInRoute(null, route, 0, position.TCOffset, -1, SignalItemType.Signal, position);
+
+            return (signalInfo?.SignalDetails, signalInfo.DistanceFound);
         }
 
         //================================================================================================//
@@ -1804,7 +1812,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// Node control track clearance update request
         /// </summary>
-        public void RequestClearNode(Train.TrainRouted train, Train.TCSubpathRoute routePart)
+        public void RequestClearNode(Train.TrainRouted train, TCSubpathRoute routePart)
         {
             if (null == train)
                 throw new ArgumentNullException(nameof(train));
@@ -1823,7 +1831,7 @@ namespace Orts.Simulation.Signalling
 
             bool furthestRouteCleared = false;
 
-            Train.TCSubpathRoute subPathRoute = new Train.TCSubpathRoute(train.Train.ValidRoute[train.TrainRouteDirectionIndex]);
+            TCSubpathRoute subPathRoute = new TCSubpathRoute(train.Train.ValidRoute[train.TrainRouteDirectionIndex]);
             Train.TCPosition position = new Train.TCPosition();
             train.Train.PresentPosition[train.TrainRouteDirectionIndex].CopyTo(ref position);
 
@@ -1935,7 +1943,7 @@ namespace Orts.Simulation.Signalling
                 section = TrackCircuitList[train.Train.LoopSection];
 
                 // test if train is really occupying this section
-                Train.TCSubpathRoute tempRoute = BuildTempRoute(train.Train, train.Train.PresentPosition[1].TCSectionIndex, train.Train.PresentPosition[1].TCOffset,
+                TCSubpathRoute tempRoute = BuildTempRoute(train.Train, train.Train.PresentPosition[1].TCSectionIndex, train.Train.PresentPosition[1].TCOffset,
                     (TrackDirection)train.Train.PresentPosition[1].TCDirection, train.Train.Length, true, true, false);
 
                 if (tempRoute.GetRouteIndex(section.Index, 0) < 0)
@@ -2330,7 +2338,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// Break down reserved route using route list
         /// </summary>
-        public void BreakDownRouteList(Train.TCSubpathRoute requiredRoute, int firstRouteIndex, Train.TrainRouted requiredTrain)
+        public void BreakDownRouteList(TCSubpathRoute requiredRoute, int firstRouteIndex, Train.TrainRouted requiredTrain)
         {
             if (null == requiredTrain)
                 throw new ArgumentNullException(nameof(requiredTrain));
@@ -2356,13 +2364,13 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// Used for trains without path (eg stationary constists), manual operation
         /// </summary>
-        public Train.TCSubpathRoute BuildTempRoute(Train train, int firstSectionIndex, float firstOffset, TrackDirection firstDirection,
+        public TCSubpathRoute BuildTempRoute(Train train, int firstSectionIndex, float firstOffset, TrackDirection firstDirection,
                 float routeLength, bool overrideManualSwitchState, bool autoAlign, bool stopAtFacingSignal)
         {
             bool honourManualSwitchState = !overrideManualSwitchState;
             List<int> sectionList = ScanRoute(train, firstSectionIndex, firstOffset, firstDirection,
                     true, routeLength, honourManualSwitchState, autoAlign, stopAtFacingSignal, false, true, false, false, false, false, false);
-            Train.TCSubpathRoute tempRoute = new Train.TCSubpathRoute();
+            TCSubpathRoute tempRoute = new TCSubpathRoute();
             int lastIndex = -1;
 
             foreach (int i in sectionList)
@@ -2589,7 +2597,7 @@ namespace Orts.Simulation.Signalling
                         if (checkReenterOriginalRoute)
                         {
 #pragma warning disable CA1062 // Validate arguments of public methods
-                            Train.TCSubpathRoute originalSubpath = train.TCRoute.TCRouteSubpaths[train.TCRoute.OriginalSubpath];
+                            TCSubpathRoute originalSubpath = train.TCRoute.TCRouteSubpaths[train.TCRoute.OriginalSubpath];
 #pragma warning restore CA1062 // Validate arguments of public methods
                             if (outPinDirection == 0)
                             {

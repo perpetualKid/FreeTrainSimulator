@@ -32,6 +32,7 @@ using Orts.Formats.Msts.Models;
 using Orts.Simulation;
 using Orts.Simulation.Physics;
 using Orts.Simulation.Signalling;
+using Orts.Simulation.Track;
 
 namespace Orts.ActivityRunner.Viewer3D.Popups
 {
@@ -293,17 +294,19 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 int direction = (int)trackNode.Direction;
 
                 thisPosition.SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
-                Train.TCSubpathRoute tempRoute = Owner.Viewer.Simulator.Signals.BuildTempRoute(null, thisPosition.TCSectionIndex, thisPosition.TCOffset, (TrackDirection)thisPosition.TCDirection, 5000.0f, true, false, false);
 
-                SignalItemInfo thisInfo = Owner.Viewer.Simulator.Signals.GetNextObjectInRoute(null, tempRoute, 0,
-                    thisPosition.TCOffset, -1, SignalItemType.Signal, thisPosition);
+                var signalItemInfo = Owner.Viewer.Simulator.Signals.GetSignalItemInfo(thisPosition, 5000f);
+                //TCSubpathRoute tempRoute = Owner.Viewer.Simulator.Signals.BuildTempRoute(null, thisPosition.TCSectionIndex, thisPosition.TCOffset, (TrackDirection)thisPosition.TCDirection, 5000.0f, true, false, false);
 
-                var signal = thisInfo.SignalDetails;
+                //SignalItemInfo thisInfo = Owner.Viewer.Simulator.Signals.GetNextObjectInRoute(null, tempRoute, 0,
+                //    thisPosition.TCOffset, -1, SignalItemType.Signal, thisPosition);
+//                var signal = thisInfo.SignalDetails;
+                var signal = signalItemInfo.Signal;
                 if (signal == null)
                     break;
                 if (signal.SignalLR(SignalFunction.Normal) == SignalAspectState.Unknown)
                     break;
-                var signalDistance = thisInfo.DistanceFound;
+                var signalDistance = signalItemInfo.Distance;
 
                 if (signalDistance > 0)
                 {

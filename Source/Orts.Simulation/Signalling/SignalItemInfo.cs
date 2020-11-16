@@ -24,7 +24,7 @@ using Orts.Formats.Msts;
 
 namespace Orts.Simulation.Signalling
 {
-    public class SignalItemInfo
+    internal class SignalItemInfo
     {
         public SignalItemType ItemType { get; private set; }                     // type information
         public SignalItemFindState State { get; private set; }               // state information
