@@ -38,6 +38,7 @@ using Orts.Formats.OR.Parsers;
 using Orts.Simulation.AIs;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.Signalling;
+using Orts.Simulation.Track;
 
 namespace Orts.Simulation.Timetables
 {
@@ -812,7 +813,7 @@ namespace Orts.Simulation.Timetables
                             }
                             else
                             {
-                                int lastSectionIndex = reqTrain.TTTrain.TCRoute.TCRouteSubpaths.Last().Last().TCSectionIndex;
+                                int lastSectionIndex = reqTrain.TTTrain.TCRoute.TCRouteSubpaths.Last().Last().TrackCircuitSectionIndex;
                                 thisDetach.DetachFormedTrain = reqTrain.TTTrain.CreateStaticTrainRef(reqTrain.TTTrain, ref trainList, thisDetach.DetachFormedTrainName, lastSectionIndex, detachCount);
                                 detachCount++;
                             }
@@ -931,7 +932,7 @@ namespace Orts.Simulation.Timetables
                         }
                         else
                         {
-                            int lastSectionIndex = reqTrain.TTTrain.TCRoute.TCRouteSubpaths.Last().Last().TCSectionIndex;
+                            int lastSectionIndex = reqTrain.TTTrain.TCRoute.TCRouteSubpaths.Last().Last().TrackCircuitSectionIndex;
                             thisDetach.DetachFormedTrain = reqTrain.TTTrain.CreateStaticTrainRef(reqTrain.TTTrain, ref trainList, thisDetach.DetachFormedTrainName, lastSectionIndex, detachCount);
                             detachCount++;
                         }
@@ -3141,15 +3142,15 @@ namespace Orts.Simulation.Timetables
             {
                 // get matching route sections to check on direction
                 int lastElementIndex = thisTrainRoute.Count - 1;
-                Physics.Train.TCRouteElement lastElement = thisTrainRoute[lastElementIndex];
+                TrackCircuitRouteElement lastElement = thisTrainRoute[lastElementIndex];
 
-                int firstElementIndex = formedTrainRoute.GetRouteIndex(lastElement.TCSectionIndex, 0);
+                int firstElementIndex = formedTrainRoute.GetRouteIndex(lastElement.TrackCircuitSectionIndex, 0);
 
                 while (firstElementIndex < 0 && lastElementIndex > 0)
                 {
                     lastElementIndex--;
                     lastElement = thisTrainRoute[lastElementIndex];
-                    firstElementIndex = formedTrainRoute.GetRouteIndex(lastElement.TCSectionIndex, 0);
+                    firstElementIndex = formedTrainRoute.GetRouteIndex(lastElement.TrackCircuitSectionIndex, 0);
                 }
 
                 // if no matching sections found leave train without consist
@@ -3158,7 +3159,7 @@ namespace Orts.Simulation.Timetables
                     return false;
                 }
 
-                Physics.Train.TCRouteElement firstElement = formedTrainRoute[firstElementIndex];
+                TrackCircuitRouteElement firstElement = formedTrainRoute[firstElementIndex];
 
                 // reverse required
                 return (firstElement.Direction != lastElement.Direction);
@@ -3489,7 +3490,7 @@ namespace Orts.Simulation.Timetables
                         {
                             validStop = true;
 
-                            sectionIndex = actTrain.TCRoute.TCRouteSubpaths[actSubpath][routeIndex].TCSectionIndex;
+                            sectionIndex = actTrain.TCRoute.TCRouteSubpaths[actSubpath][routeIndex].TrackCircuitSectionIndex;
                             foreach (TTTrainCommands thisCommand in Commands)
                             {
                                 actTrain.ProcessTimetableStopCommands(thisCommand, actSubpath, sectionIndex, -1, actPlatformID, refTTInfo);

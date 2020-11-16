@@ -1,0 +1,231 @@
+﻿using System;
+using System.IO;
+
+using Orts.Common;
+using Orts.Formats.Msts.Models;
+using Orts.Simulation.Signalling;
+
+namespace Orts.Simulation.Track
+{
+    //================================================================================================//
+    /// <summary>
+    /// Track Circuit Route Element
+    /// </summary>
+    public class TrackCircuitRouteElement
+    {
+        internal class AlternativePath
+        {
+            //Index of Alternative Path
+            public int PathIndex;
+            //related TrackCircuitCrossReferences Index
+            public int TrackCircuitSection;
+        }
+
+        public int TrackCircuitSectionIndex { get; private set; }
+        public TrackDirection Direction { get; internal set; }
+        public EnumArray<TrackDirection, Location> OutPin { get; } = new EnumArray<TrackDirection, Location>();
+        
+        // path based passing path definitions
+        internal AlternativePath StartAlternativePath { get; set; }  // if used : index 0 = index of alternative path, index 1 = TC end index
+        internal AlternativePath EndAlternativePath { get; set; }    // if used : index 0 = index of alternative path, index 1 = TC start index
+
+        // used for location based passing path processing
+        public bool FacingPoint { get; private set; }            // element is facing point
+        public int UsedAlternativePath { get; internal set; }     // set to index of used alternative path
+
+        public int MovingTableApproachPath { get; internal set; } // set if approaching moving table, is index in access path list
+                                                                  // used for moving table approach in timetable mode
+
+        //================================================================================================//
+        /// <summary>
+        /// Constructor from tracknode
+        /// </summary>
+
+        public TrackCircuitRouteElement(TrackNode node, int trackCircuitIndex, TrackDirection direction)
+        {
+            if (null == node)
+                throw new ArgumentNullException(nameof(node));
+
+            TrackCircuitSectionIndex = node.TrackCircuitCrossReferences[trackCircuitIndex].Index;
+            Direction = direction;
+            OutPin[Location.NearEnd] = direction;
+            OutPin[Location.FarEnd] = TrackDirection.Ahead;           // always 0 for NORMAL sections, updated for JUNCTION sections
+
+            TrackCircuitSection section = TrackCircuitSection.TrackCircuitList[TrackCircuitSectionIndex];
+            if (section.CircuitType == TrackCircuitType.Crossover)
+            {
+                TrackDirection outPinLink = direction;
+                int nextIndex;
+                nextIndex = direction == TrackDirection.Reverse ? node.TrackCircuitCrossReferences[trackCircuitIndex - 1].Index : node.TrackCircuitCrossReferences[trackCircuitIndex + 1].Index;
+                OutPin[Location.FarEnd] = (section.Pins[outPinLink, Location.NearEnd].Link == nextIndex) ? TrackDirection.Ahead : TrackDirection.Reverse;
+            }
+
+            FacingPoint = (section.CircuitType == TrackCircuitType.Junction && section.Pins[direction, Location.FarEnd].Link != -1);
+
+            UsedAlternativePath = -1;
+            MovingTableApproachPath = -1;
+        }
+
+        //================================================================================================//
+        /// <summary>
+        /// Constructor from CircuitSection
+        /// </summary>
+        public TrackCircuitRouteElement(TrackCircuitSection section, TrackDirection direction, int lastSectionIndex)
+        {
+            if (null == section)
+                throw new ArgumentNullException(nameof(section));
+
+            TrackCircuitSectionIndex = section.Index;
+            Direction = direction;
+            OutPin[Location.NearEnd] = direction;
+            OutPin[Location.FarEnd] = TrackDirection.Ahead;           // always 0 for NORMAL sections, updated for JUNCTION sections
+
+            if (section.CircuitType == TrackCircuitType.Crossover)
+            {
+                TrackDirection inPinLink = direction.Next();
+                OutPin[Location.FarEnd] = (section.Pins[inPinLink, Location.NearEnd].Link == lastSectionIndex) ? TrackDirection.Ahead : TrackDirection.Reverse;
+            }
+
+            FacingPoint = (section.CircuitType == TrackCircuitType.Junction && section.Pins[direction, Location.FarEnd].Link != -1);
+
+            UsedAlternativePath = -1;
+            MovingTableApproachPath = -1;
+        }
+
+        //================================================================================================//
+        /// <summary>
+        /// Constructor for additional items for route checking (not part of train route, NORMAL items only)
+        /// </summary>
+        public TrackCircuitRouteElement(int trackCircuitIndex, TrackDirection direction)
+        {
+            TrackCircuitSectionIndex = trackCircuitIndex;
+            Direction = direction;
+            OutPin[Location.NearEnd] = direction;
+            OutPin[Location.FarEnd] = TrackDirection.Ahead;
+            UsedAlternativePath = -1;
+            MovingTableApproachPath = -1;
+        }
+
+        //================================================================================================//
+        //
+        // Constructor from other route element
+        //
+        public TrackCircuitRouteElement(TrackCircuitRouteElement source)
+        {
+            if (null == source)
+                throw new ArgumentNullException(nameof(source));
+
+            TrackCircuitSectionIndex = source.TrackCircuitSectionIndex;
+            Direction = source.Direction;
+
+            OutPin = new EnumArray<TrackDirection, Location>(source.OutPin);
+
+            if (source.StartAlternativePath != null)
+            {
+                StartAlternativePath = new AlternativePath()
+                {
+                    PathIndex = source.StartAlternativePath.PathIndex,
+                    TrackCircuitSection = source.StartAlternativePath.TrackCircuitSection,
+                };
+            }
+
+            if (source.EndAlternativePath != null)
+            {
+                EndAlternativePath = new AlternativePath()
+                {
+                    PathIndex = source.EndAlternativePath.PathIndex,
+                    TrackCircuitSection = source.EndAlternativePath.TrackCircuitSection,
+                };
+            }
+
+            FacingPoint = source.FacingPoint;
+            UsedAlternativePath = source.UsedAlternativePath;
+            MovingTableApproachPath = source.MovingTableApproachPath;
+        }
+
+        //================================================================================================//
+        //
+        // Restore
+        //
+        public TrackCircuitRouteElement(BinaryReader inf)
+        {
+            if (null == inf)
+                throw new ArgumentNullException(nameof(inf));
+
+            TrackCircuitSectionIndex = inf.ReadInt32();
+            Direction = (TrackDirection)inf.ReadInt32();
+            OutPin = new EnumArray<TrackDirection, Location>(new TrackDirection[] { (TrackDirection)inf.ReadInt32(), (TrackDirection)inf.ReadInt32() });
+
+            int altindex = inf.ReadInt32();
+            if (altindex >= 0)
+            {
+                StartAlternativePath = new AlternativePath()
+                {
+                    PathIndex = altindex,
+                    TrackCircuitSection = inf.ReadInt32(),
+                };
+            }
+
+            altindex = inf.ReadInt32();
+            if (altindex >= 0)
+            {
+                EndAlternativePath = new AlternativePath()
+                {
+                    PathIndex = altindex,
+                    TrackCircuitSection = inf.ReadInt32(),
+                };
+            }
+
+            FacingPoint = inf.ReadBoolean();
+            UsedAlternativePath = inf.ReadInt32();
+            MovingTableApproachPath = inf.ReadInt32();
+        }
+
+        //================================================================================================//
+        //
+        // Save
+        //
+        public void Save(BinaryWriter outf)
+        {
+            if (null == outf)
+                throw new ArgumentNullException(nameof(outf));
+
+            outf.Write(TrackCircuitSectionIndex);
+            outf.Write((int)Direction);
+            outf.Write((int)OutPin[Location.NearEnd]);
+            outf.Write((int)OutPin[Location.FarEnd]);
+
+            if (StartAlternativePath != null)
+            {
+                outf.Write(StartAlternativePath.PathIndex);
+                outf.Write(StartAlternativePath.TrackCircuitSection);
+            }
+            else
+            {
+                outf.Write(-1);
+            }
+
+
+            if (EndAlternativePath != null)
+            {
+                outf.Write(EndAlternativePath.PathIndex);
+                outf.Write(EndAlternativePath.TrackCircuitSection);
+            }
+            else
+            {
+                outf.Write(-1);
+            }
+
+            outf.Write(FacingPoint);
+            outf.Write(UsedAlternativePath);
+            outf.Write(MovingTableApproachPath);
+        }
+
+        // Invalidate preceding section index to avoid wrong indexing when building route forward (in Reserve())
+        internal void Invalidate()
+        {
+            TrackCircuitSectionIndex = -1;
+        }
+    }
+
+}

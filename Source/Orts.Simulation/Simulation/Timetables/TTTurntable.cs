@@ -191,7 +191,7 @@ namespace Orts.Simulation.Timetables
                                 // if last element is end of track, remove it from path
                                 Train.TCSubpathRoute usedRoute = fullRoute.TCRouteSubpaths[0];
                                 int lastIndex = usedRoute.Count - 1;
-                                int lastSectionIndex = usedRoute[lastIndex].TCSectionIndex;
+                                int lastSectionIndex = usedRoute[lastIndex].TrackCircuitSectionIndex;
                                 if (Simulatorref.Signals.TrackCircuitList[lastSectionIndex].CircuitType == TrackCircuitType.EndOfTrack)
                                 {
                                     lastIndex = usedRoute.Count - 2;
@@ -573,7 +573,7 @@ namespace Orts.Simulation.Timetables
         {
             // check if turntable track section is in path - must be in first element (path must start at turntable end)
             int vectorIndex = -1;
-            TrackCircuitSection thisSection = Simulatorref.Signals.TrackCircuitList[thisPath[0].TCSectionIndex];
+            TrackCircuitSection thisSection = Simulatorref.Signals.TrackCircuitList[thisPath[0].TrackCircuitSectionIndex];
             TrackVectorNode thisTDBsection = Simulatorref.TDB.TrackDB.TrackNodes[thisSection.OriginalIndex] as TrackVectorNode;
 
             for (int iVector = 0; iVector < thisTDBsection.TrackVectorSections.Length; iVector++)
@@ -625,11 +625,11 @@ namespace Orts.Simulation.Timetables
             // calculate total length of path sections except first section
             for (int isection = 1; isection < thisPath.AccessPath.Count; isection++)
             {
-                baseLength += Simulatorref.Signals.TrackCircuitList[thisPath.AccessPath[isection].TCSectionIndex].Length;
+                baseLength += Simulatorref.Signals.TrackCircuitList[thisPath.AccessPath[isection].TrackCircuitSectionIndex].Length;
             }
 
             // calculate total length of track sections in first section backward upto turntable section
-            TrackCircuitSection thisSection = Simulatorref.Signals.TrackCircuitList[thisPath.AccessPath[0].TCSectionIndex];
+            TrackCircuitSection thisSection = Simulatorref.Signals.TrackCircuitList[thisPath.AccessPath[0].TrackCircuitSectionIndex];
             int trackNodeIndex = thisSection.OriginalIndex;
 
             TrackVectorSection[] trackVectors = (Simulatorref.TDB.TrackDB.TrackNodes[trackNodeIndex] as TrackVectorNode).TrackVectorSections;
@@ -647,7 +647,7 @@ namespace Orts.Simulation.Timetables
                 lastVectorIndex = thisPath.TableVectorIndex + 1;
                 entrySectionLength = CalculateVectorLength(lastVectorIndex, trackVectors.Length - 1, lastVectorIndex, trackVectors);
                 exitSectionLength = CalculateVectorLength(0, lastVectorIndex - 2, lastVectorIndex, trackVectors);
-                thisPath.AccessPath[0].Direction = 1;
+                thisPath.AccessPath[0].Direction = TrackDirection.Reverse;
                 thisPath.AccessTraveller.Direction = Traveller.TravellerDirection.Forward;
             }
             else
@@ -657,7 +657,7 @@ namespace Orts.Simulation.Timetables
                 lastVectorIndex = thisPath.TableVectorIndex - 1;
                 entrySectionLength = CalculateVectorLength(0, lastVectorIndex, lastVectorIndex, trackVectors);
                 exitSectionLength = CalculateVectorLength(lastVectorIndex + 2, trackVectors.Length - 1, lastVectorIndex, trackVectors);
-                thisPath.AccessPath[0].Direction = 0;
+                thisPath.AccessPath[0].Direction = TrackDirection.Ahead;
                 thisPath.AccessTraveller.Direction = Traveller.TravellerDirection.Backward;
             }
 
@@ -705,11 +705,11 @@ namespace Orts.Simulation.Timetables
             // calculate total length of path sections except first section
             for (int isection = 1; isection < thisPath.StoragePath.Count; isection++)
             {
-                baseLength += Simulatorref.Signals.TrackCircuitList[thisPath.StoragePath[isection].TCSectionIndex].Length;
+                baseLength += Simulatorref.Signals.TrackCircuitList[thisPath.StoragePath[isection].TrackCircuitSectionIndex].Length;
             }
 
             // calculate total length of track sections in first section backward upto turntable section
-            TrackCircuitSection thisSection = Simulatorref.Signals.TrackCircuitList[thisPath.StoragePath[0].TCSectionIndex];
+            TrackCircuitSection thisSection = Simulatorref.Signals.TrackCircuitList[thisPath.StoragePath[0].TrackCircuitSectionIndex];
             int trackNodeIndex = thisSection.OriginalIndex;
 
             TrackVectorSection[] trackVectors = (Simulatorref.TDB.TrackDB.TrackNodes[trackNodeIndex] as TrackVectorNode).TrackVectorSections;
@@ -727,7 +727,7 @@ namespace Orts.Simulation.Timetables
                 lastVectorIndex = thisPath.TableVectorIndex + 1;
                 entrySectionLength = CalculateVectorLength(lastVectorIndex, trackVectors.Length - 1, lastVectorIndex, trackVectors);
                 exitSectionLength = CalculateVectorLength(0, lastVectorIndex - 2, lastVectorIndex, trackVectors);
-                thisPath.StoragePath[0].Direction = 1;
+                thisPath.StoragePath[0].Direction = TrackDirection.Reverse;
                 thisPath.StoragePathTraveller.Direction = Traveller.TravellerDirection.Forward;
             }
             else
@@ -737,7 +737,7 @@ namespace Orts.Simulation.Timetables
                 lastVectorIndex = thisPath.TableVectorIndex - 1;
                 entrySectionLength = CalculateVectorLength(0, lastVectorIndex, lastVectorIndex, trackVectors);
                 exitSectionLength = CalculateVectorLength(lastVectorIndex + 2, trackVectors.Length - 1, lastVectorIndex, trackVectors);
-                thisPath.StoragePath[0].Direction = 0;
+                thisPath.StoragePath[0].Direction = TrackDirection.Ahead;
                 thisPath.StoragePathTraveller.Direction = Traveller.TravellerDirection.Backward;
             }
 
@@ -866,8 +866,8 @@ namespace Orts.Simulation.Timetables
             int lastValidSectionIndex = train.TCRoute.TCRouteSubpaths.Last().Count - 1;
             for (int iSection = train.TCRoute.TCRouteSubpaths.Last().Count - 1; iSection >= 0 && reqPath == -1; iSection--)
             {
-                int lastSectionIndex = train.TCRoute.TCRouteSubpaths.Last()[iSection].TCSectionIndex;
-                int lastSectionDirection = train.TCRoute.TCRouteSubpaths.Last().Last().Direction;
+                int lastSectionIndex = train.TCRoute.TCRouteSubpaths.Last()[iSection].TrackCircuitSectionIndex;
+                TrackDirection lastSectionDirection = train.TCRoute.TCRouteSubpaths.Last().Last().Direction;
 
                 for (int iPath = 0; iPath < AdditionalTurntableDetails.AccessPaths.Count && reqPath < 0; iPath++)
                 {
@@ -979,7 +979,7 @@ namespace Orts.Simulation.Timetables
             }
 
             // find required access path
-            int firstSectionIndex = train.TCRoute.TCRouteSubpaths[0][0].TCSectionIndex;
+            int firstSectionIndex = train.TCRoute.TCRouteSubpaths[0][0].TrackCircuitSectionIndex;
 
             int reqAccessPath = -1;
             for (int iPath = 0; iPath < AdditionalTurntableDetails.AccessPaths.Count; iPath++)
@@ -1233,10 +1233,6 @@ namespace Orts.Simulation.Timetables
             train.FormsStatic = true;
             train.Closeup = true;
 
-            // find relevant access path
-            int lastSectionIndex = train.TCRoute.TCRouteSubpaths.Last().Last().TCSectionIndex;
-            int lastSectionDirection = train.TCRoute.TCRouteSubpaths.Last().Last().Direction;
-
             // find storage path with enough space to store train
 
             int reqPool = GetPoolExitIndex(train);
@@ -1290,10 +1286,10 @@ namespace Orts.Simulation.Timetables
                         // add in reverse order and reverse direction as path is defined outbound
                         for (int iElement = accessPath.Count - 1; iElement >= 0; iElement--)
                         {
-                            if (newRoute.GetRouteIndex(accessPath[iElement].TCSectionIndex, 0) < 0)
+                            if (newRoute.GetRouteIndex(accessPath[iElement].TrackCircuitSectionIndex, 0) < 0)
                             {
-                                Train.TCRouteElement newElement = new Train.TCRouteElement(accessPath[iElement]);
-                                newElement.Direction = newElement.Direction == 1 ? 0 : 1;
+                                TrackCircuitRouteElement newElement = new TrackCircuitRouteElement(accessPath[iElement]);
+                                newElement.Direction = newElement.Direction.Next();
                                 newRoute.Add(newElement);
                             }
                         }
@@ -1330,7 +1326,7 @@ namespace Orts.Simulation.Timetables
         override public float GetEndOfRouteDistance(Train.TCSubpathRoute thisRoute, Train.TCPosition frontPosition, int pathIndex, SignalEnvironment signalRef)
         {
             // get distance to approach point from present position of train
-            int turntableSectionIndex = thisRoute.GetRouteIndex(AdditionalTurntableDetails.AccessPaths[pathIndex].AccessPath[0].TCSectionIndex, 0);
+            int turntableSectionIndex = thisRoute.GetRouteIndex(AdditionalTurntableDetails.AccessPaths[pathIndex].AccessPath[0].TrackCircuitSectionIndex, 0);
             float startoffset = signalRef.TrackCircuitList[frontPosition.TCSectionIndex].Length - frontPosition.TCOffset;
             float distanceToTurntable = thisRoute.GetDistanceAlongRoute(frontPosition.RouteListIndex, startoffset,
                 turntableSectionIndex, AdditionalTurntableDetails.AccessPaths[pathIndex].TableApproachOffset, true, signalRef);
@@ -1962,7 +1958,7 @@ namespace Orts.Simulation.Timetables
         public int GetAccessPathIndex()
         {
             int presentSection = parentTrain.PresentPosition[0].TCSectionIndex;
-            int presentDirection = parentTrain.PresentPosition[0].TCDirection;
+            TrackDirection presentDirection = (TrackDirection)parentTrain.PresentPosition[0].TCDirection;
 
             // search if section in access path
             // direction must be reverse as access path is defined outbound
@@ -2241,7 +2237,7 @@ namespace Orts.Simulation.Timetables
 
                 for (int iIndex = parentTrain.PresentPosition[0].RouteListIndex + 1; iIndex < parentTrain.ValidRoute[0].Count - 1; iIndex++)
                 {
-                    remDistance += parentTrain.signalRef.TrackCircuitList[parentTrain.ValidRoute[0][iIndex].TCSectionIndex].Length;
+                    remDistance += parentTrain.signalRef.TrackCircuitList[parentTrain.ValidRoute[0][iIndex].TrackCircuitSectionIndex].Length;
                 }
 
                 if (MovingTableState == MovingTableStateEnum.StorageToMovingTable)
@@ -2386,7 +2382,7 @@ namespace Orts.Simulation.Timetables
             if (reverseFormation) parentTrain.ReverseCars();
 
             // get traveller at start of path tracknode
-            TrackCircuitSection thisSection = parentTrain.signalRef.TrackCircuitList[parentTrain.ValidRoute[0][0].TCSectionIndex];
+            TrackCircuitSection thisSection = parentTrain.signalRef.TrackCircuitList[parentTrain.ValidRoute[0][0].TrackCircuitSectionIndex];
             Traveller middlePosition = new Traveller(parentPool.Simulatorref.TSectionDat, parentPool.Simulatorref.TDB.TrackDB.TrackNodes, parentPool.Simulatorref.TDB.TrackDB.TrackNodes[thisSection.OriginalIndex] as TrackVectorNode);
 
 #if DEBUG_TURNTABLEINFO

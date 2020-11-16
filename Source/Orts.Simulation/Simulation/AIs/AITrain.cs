@@ -1348,8 +1348,8 @@ namespace Orts.Simulation.AIs
                 // search for train ahead in route sections
                 for (int iIndex = startIndex + 1; iIndex <= endIndex && trainInfo.Count <= 0; iIndex++)
                 {
-                    thisSection = signalRef.TrackCircuitList[ValidRoute[0][iIndex].TCSectionIndex];
-                    trainInfo = thisSection.TestTrainAhead(this, 0.0f, ValidRoute[0][iIndex].Direction);
+                    thisSection = signalRef.TrackCircuitList[ValidRoute[0][iIndex].TrackCircuitSectionIndex];
+                    trainInfo = thisSection.TestTrainAhead(this, 0.0f, (int)ValidRoute[0][iIndex].Direction);
                 }
 
                 if (trainInfo.Count <= 0)
@@ -1357,9 +1357,9 @@ namespace Orts.Simulation.AIs
                 {
                     if (endIndex < ValidRoute[0].Count - 1)
                     {
-                        thisSection = signalRef.TrackCircuitList[ValidRoute[0][endIndex + 1].TCSectionIndex];
+                        thisSection = signalRef.TrackCircuitList[ValidRoute[0][endIndex + 1].TrackCircuitSectionIndex];
 
-                        trainInfo = thisSection.TestTrainAhead(this, 0.0f, ValidRoute[0][endIndex + 1].Direction);
+                        trainInfo = thisSection.TestTrainAhead(this, 0.0f, (int)ValidRoute[0][endIndex + 1].Direction);
                     }
                 }
 
@@ -1371,9 +1371,9 @@ namespace Orts.Simulation.AIs
                         if (Math.Abs(OtherTrain.SpeedMpS) < 0.001f &&
                                     (DistanceToEndNodeAuthorityM[0] > followDistanceStatTrainM || UncondAttach || OtherTrain.TrainType == TrainType.Static ||
                                     OtherTrain.PresentPosition[0].TCSectionIndex ==
-                                    TCRoute.TCRouteSubpaths[TCRoute.activeSubpath][TCRoute.TCRouteSubpaths[TCRoute.activeSubpath].Count - 1].TCSectionIndex
+                                    TCRoute.TCRouteSubpaths[TCRoute.activeSubpath][TCRoute.TCRouteSubpaths[TCRoute.activeSubpath].Count - 1].TrackCircuitSectionIndex
                                     || OtherTrain.PresentPosition[1].TCSectionIndex ==
-                                    TCRoute.TCRouteSubpaths[TCRoute.activeSubpath][TCRoute.TCRouteSubpaths[TCRoute.activeSubpath].Count - 1].TCSectionIndex))
+                                    TCRoute.TCRouteSubpaths[TCRoute.activeSubpath][TCRoute.TCRouteSubpaths[TCRoute.activeSubpath].Count - 1].TrackCircuitSectionIndex))
                         {
                             // allow creeping closer
                             CreateTrainAction(creepSpeedMpS, 0.0f, DistanceToEndNodeAuthorityM[0], null, AIActionItem.AI_ACTION_TYPE.TRAIN_AHEAD);
@@ -2402,7 +2402,7 @@ namespace Orts.Simulation.AIs
                 Dictionary<Train, float> trainInfo = null;
 
                 // find other train
-                int sectionIndex = ValidRoute[0][PresentPosition[0].RouteListIndex].TCSectionIndex;
+                int sectionIndex = ValidRoute[0][PresentPosition[0].RouteListIndex].TrackCircuitSectionIndex;
                 int startIndex = PresentPosition[0].RouteListIndex;
                 int endSectionIndex = LastReservedSection[0];
                 int endIndex = ValidRoute[0].GetRouteIndex(endSectionIndex, startIndex);
@@ -2424,15 +2424,15 @@ namespace Orts.Simulation.AIs
                 // train not in this section, try reserved sections ahead
                 for (int iIndex = startIndex + 1; iIndex <= endIndex && trainInfo.Count <= 0; iIndex++)
                 {
-                    TrackCircuitSection nextSection = signalRef.TrackCircuitList[ValidRoute[0][iIndex].TCSectionIndex];
-                    trainInfo = nextSection.TestTrainAhead(this, 0, ValidRoute[0][iIndex].Direction);
+                    TrackCircuitSection nextSection = signalRef.TrackCircuitList[ValidRoute[0][iIndex].TrackCircuitSectionIndex];
+                    trainInfo = nextSection.TestTrainAhead(this, 0, (int)ValidRoute[0][iIndex].Direction);
                 }
 
                 // if train not ahead, try first section beyond last reserved
                 if (trainInfo.Count <= 0 && endIndex < ValidRoute[0].Count - 1)
                 {
-                    TrackCircuitSection nextSection = signalRef.TrackCircuitList[ValidRoute[0][endIndex + 1].TCSectionIndex];
-                    trainInfo = nextSection.TestTrainAhead(this, 0, ValidRoute[0][endIndex + 1].Direction);
+                    TrackCircuitSection nextSection = signalRef.TrackCircuitList[ValidRoute[0][endIndex + 1].TrackCircuitSectionIndex];
+                    trainInfo = nextSection.TestTrainAhead(this, 0, (int)ValidRoute[0][endIndex + 1].Direction);
                     if (trainInfo.Count <= 0)
                     {
                         addOffset += nextSection.Length;
@@ -2457,12 +2457,10 @@ namespace Orts.Simulation.AIs
                         // if other train is static or other train is in last section of this train, pass to passive coupling
                         if (Math.Abs(OtherTrain.SpeedMpS) < 0.025f && distanceToTrain <= 2 * keepDistanceMovingTrainM)
                         {
-                            var rearOrFront = ValidRoute[0][ValidRoute[0].Count - 1].Direction == 1 ? 0 : 1;
-
                             if (OtherTrain.TrainType == TrainType.Static || (OtherTrain.PresentPosition[0].TCSectionIndex ==
-                                TCRoute.TCRouteSubpaths[TCRoute.activeSubpath][TCRoute.TCRouteSubpaths[TCRoute.activeSubpath].Count - 1].TCSectionIndex
+                                TCRoute.TCRouteSubpaths[TCRoute.activeSubpath][TCRoute.TCRouteSubpaths[TCRoute.activeSubpath].Count - 1].TrackCircuitSectionIndex
                                 || OtherTrain.PresentPosition[1].TCSectionIndex ==
-                                TCRoute.TCRouteSubpaths[TCRoute.activeSubpath][TCRoute.TCRouteSubpaths[TCRoute.activeSubpath].Count - 1].TCSectionIndex) && 
+                                TCRoute.TCRouteSubpaths[TCRoute.activeSubpath][TCRoute.TCRouteSubpaths[TCRoute.activeSubpath].Count - 1].TrackCircuitSectionIndex) && 
                                 (TCRoute.ReversalInfo[TCRoute.activeSubpath].Valid || TCRoute.activeSubpath == TCRoute.TCRouteSubpaths.Count - 1) 
                                 || UncondAttach)
                             {
@@ -2643,7 +2641,7 @@ namespace Orts.Simulation.AIs
 
                                             for (int iIndex = ValidRoute[0].Count - 1; iIndex > PresentPosition[0].RouteListIndex; iIndex--)
                                             {
-                                                int nextSectionIndex = ValidRoute[0][iIndex].TCSectionIndex;
+                                                int nextSectionIndex = ValidRoute[0][iIndex].TrackCircuitSectionIndex;
                                                 if (nextRoute.GetRouteIndex(nextSectionIndex, 0) <= 0)
                                                 {
                                                     nextRoute.Insert(0, ValidRoute[0][iIndex]);
@@ -3180,9 +3178,9 @@ namespace Orts.Simulation.AIs
                 int endSignalIndex = -1;
                 float distanceToEndOfWPSection = 0;
 
-                TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisRoute[routeIndex].TCSectionIndex];
+                TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisRoute[routeIndex].TrackCircuitSectionIndex];
                 TrackCircuitSection nextSection =
-                    routeIndex < thisRoute.Count - 2 ? signalRef.TrackCircuitList[thisRoute[routeIndex + 1].TCSectionIndex] : null;
+                    routeIndex < thisRoute.Count - 2 ? signalRef.TrackCircuitList[thisRoute[routeIndex + 1].TrackCircuitSectionIndex] : null;
                 TrackDirection direction = (TrackDirection)thisRoute[routeIndex].Direction;
                 if (thisSection.EndSignals[direction] != null)
                 {
@@ -3203,7 +3201,7 @@ namespace Orts.Simulation.AIs
                 int nextIndex = routeIndex + 1;
                 while (nextIndex < thisRoute.Count - 1 && !endSectionFound)
                 {
-                    nextSection = signalRef.TrackCircuitList[thisRoute[nextIndex].TCSectionIndex];
+                    nextSection = signalRef.TrackCircuitList[thisRoute[nextIndex].TrackCircuitSectionIndex];
                     direction = (TrackDirection)thisRoute[nextIndex].Direction;
 
                     if (nextSection.EndSignals[direction] != null)
@@ -3277,18 +3275,18 @@ namespace Orts.Simulation.AIs
                     Trace.TraceInformation("Waiting point for train " + Name + "(" + Number.ToString() + ") is not on route - point removed");
                     continue;
                 }
-                int direction = thisRoute[routeIndex].Direction;
+                TrackDirection direction = thisRoute[routeIndex].Direction;
                 if (!IsActualPlayerTrain)
                 {
                     if (waitingPoint[2] >= 60011 && waitingPoint[2] <= 60020)
                     {
-                        AIActionHornRef action = new AIActionHornRef(this, waitingPoint[5], 0f, waitingPoint[0], lastIndex, thisRoute[lastIndex].TCSectionIndex, direction);
+                        AIActionHornRef action = new AIActionHornRef(this, waitingPoint[5], 0f, waitingPoint[0], lastIndex, thisRoute[lastIndex].TrackCircuitSectionIndex, (int)direction);
                         action.SetDelay(waitingPoint[2] - 60010);
                         AuxActionsContain.Add(action);
                     }
                     else
                     {
-                        AIActionWPRef action = new AIActionWPRef(this, waitingPoint[5], 0f, waitingPoint[0], lastIndex, thisRoute[lastIndex].TCSectionIndex, direction);
+                        AIActionWPRef action = new AIActionWPRef(this, waitingPoint[5], 0f, waitingPoint[0], lastIndex, thisRoute[lastIndex].TrackCircuitSectionIndex, (int)direction);
                         var randomizedDelay = waitingPoint[2];
                         if (Simulator.Settings.ActRandomizationLevel > 0)
                         {
@@ -3298,7 +3296,7 @@ namespace Orts.Simulation.AIs
                         AuxActionsContain.Add(action);
                         if (insertSigDelegate && (waitingPoint[2] != 60002) && signalIndex[iWait] > -1)
                         {
-                            AIActSigDelegateRef delegateAction = new AIActSigDelegateRef(this, waitingPoint[5], 0f, waitingPoint[0], lastIndex, thisRoute[lastIndex].TCSectionIndex, direction, action);
+                            AIActSigDelegateRef delegateAction = new AIActSigDelegateRef(this, waitingPoint[5], 0f, waitingPoint[0], lastIndex, thisRoute[lastIndex].TrackCircuitSectionIndex, (int)direction, action);
                             signalRef.Signals[signalIndex[iWait]].LockForTrain(this.Number, waitingPoint[0]);
                             delegateAction.SetEndSignalIndex(signalIndex[iWait]);
 
@@ -3316,7 +3314,7 @@ namespace Orts.Simulation.AIs
                 }
                 else if (insertSigDelegate && signalIndex[iWait] > -1)
                 {
-                    AIActionWPRef action = new AIActionWPRef(this, waitingPoint[5], 0f, waitingPoint[0], lastIndex, thisRoute[lastIndex].TCSectionIndex, direction);
+                    AIActionWPRef action = new AIActionWPRef(this, waitingPoint[5], 0f, waitingPoint[0], lastIndex, thisRoute[lastIndex].TrackCircuitSectionIndex, (int)direction);
                     var randomizedDelay = waitingPoint[2];
                     if (Simulator.Settings.ActRandomizationLevel > 0)
                     {
@@ -3324,7 +3322,7 @@ namespace Orts.Simulation.AIs
                     }
                     action.SetDelay( (randomizedDelay >= 30000 && randomizedDelay < 40000)? randomizedDelay : 0);
                     AuxActionsContain.Add(action);
-                    AIActSigDelegateRef delegateAction = new AIActSigDelegateRef(this, waitingPoint[5], 0f, waitingPoint[0], lastIndex, thisRoute[lastIndex].TCSectionIndex, direction, action);
+                    AIActSigDelegateRef delegateAction = new AIActSigDelegateRef(this, waitingPoint[5], 0f, waitingPoint[0], lastIndex, thisRoute[lastIndex].TrackCircuitSectionIndex, (int)direction, action);
                     signalRef.Signals[signalIndex[iWait]].LockForTrain(this.Number, waitingPoint[0]);
                     delegateAction.SetEndSignalIndex(signalIndex[iWait]);
                     delegateAction.Delay = randomizedDelay;
@@ -3391,8 +3389,8 @@ namespace Orts.Simulation.AIs
                 return (returnValue);
             }
 
-            int directionNow = ValidRoute[0][PresentPosition[0].RouteListIndex].Direction;
-            int positionNow = ValidRoute[0][PresentPosition[0].RouteListIndex].TCSectionIndex;
+            TrackDirection directionNow = ValidRoute[0][PresentPosition[0].RouteListIndex].Direction;
+            int positionNow = ValidRoute[0][PresentPosition[0].RouteListIndex].TrackCircuitSectionIndex;
 
             bool[] nextPart = UpdateRouteActions(0, checkLoop);
 
@@ -3401,14 +3399,14 @@ namespace Orts.Simulation.AIs
             returnValue[0] = true; // end of path reached
             if (nextPart[1])   // next route available
             {
-                if (positionNow == PresentPosition[0].TCSectionIndex && directionNow != PresentPosition[0].TCDirection)
+                if (positionNow == PresentPosition[0].TCSectionIndex && directionNow != (TrackDirection)PresentPosition[0].TCDirection)
                 {
                     ReverseFormation(false);
                     // active subpath must be incremented in parallel in incorporated train if present
                     if (IncorporatedTrainNo >= 0)
                         IncrementSubpath(Simulator.TrainDictionary[IncorporatedTrainNo]);
                 }
-                else if (positionNow == PresentPosition[1].TCSectionIndex && directionNow != PresentPosition[1].TCDirection)
+                else if (positionNow == PresentPosition[1].TCSectionIndex && directionNow != (TrackDirection)PresentPosition[1].TCDirection)
                 {
                     ReverseFormation(false);
                     // active subpath must be incremented in parallel in incorporated train if present
@@ -3704,7 +3702,7 @@ namespace Orts.Simulation.AIs
                     this.IncorporatingTrainNo = attachTrain.Number;
                     this.IncorporatingTrain = attachTrain;
                     SuspendTrain(attachTrain);
-                    if (ppTCSectionIndex == TCRoute.TCRouteSubpaths[TCRoute.activeSubpath][TCRoute.TCRouteSubpaths[TCRoute.activeSubpath].Count - 1].TCSectionIndex)
+                    if (ppTCSectionIndex == TCRoute.TCRouteSubpaths[TCRoute.activeSubpath][TCRoute.TCRouteSubpaths[TCRoute.activeSubpath].Count - 1].TrackCircuitSectionIndex)
                         IncrementSubpath(this);
                     attachTrain.IncorporatedTrainNo = this.Number;
                 }
@@ -4163,8 +4161,8 @@ namespace Orts.Simulation.AIs
 
             // check if signal at danger
 
-            TCRouteElement thisElement = selectedRoute[PresentPosition[0].RouteListIndex];
-            TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TCSectionIndex];
+            TrackCircuitRouteElement thisElement = selectedRoute[PresentPosition[0].RouteListIndex];
+            TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
 
             // no signal in required direction
 
@@ -4335,8 +4333,8 @@ namespace Orts.Simulation.AIs
 
                 for (int iElement = PresentPosition[0].RouteListIndex + 1; iElement < ValidRoute[0].Count; iElement++)
                 {
-                    TCRouteElement thisElement = ValidRoute[0][iElement];
-                    thisSection = signalRef.TrackCircuitList[thisElement.TCSectionIndex];
+                    TrackCircuitRouteElement thisElement = ValidRoute[0][iElement];
+                    thisSection = signalRef.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
                     lengthToGoM += thisSection.Length;
                 }
             }
@@ -4346,8 +4344,8 @@ namespace Orts.Simulation.AIs
             // if last section does not end at signal at next section is switch, set back overlap to keep clear of switch
             // only do so for last subroute to avoid falling short of reversal points
 
-            TCRouteElement lastElement = ValidRoute[0][ValidRoute[0].Count - 1];
-            TrackCircuitSection lastSection = signalRef.TrackCircuitList[lastElement.TCSectionIndex];
+            TrackCircuitRouteElement lastElement = ValidRoute[0][ValidRoute[0].Count - 1];
+            TrackCircuitSection lastSection = signalRef.TrackCircuitList[lastElement.TrackCircuitSectionIndex];
 
             CreateTrainAction(TrainMaxSpeedMpS, 0.0f, lengthToGoM, null,
                     AIActionItem.AI_ACTION_TYPE.END_OF_ROUTE);

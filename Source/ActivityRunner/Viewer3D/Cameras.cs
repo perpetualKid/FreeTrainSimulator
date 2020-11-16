@@ -2570,7 +2570,7 @@ namespace Orts.ActivityRunner.Viewer3D
                             {
                                 incrDistance += distanceToAdd;
                                 routeIndex++;
-                                TCSection = train.signalRef.TrackCircuitList[thisRoute[routeIndex].TCSectionIndex];
+                                TCSection = train.signalRef.TrackCircuitList[thisRoute[routeIndex].TrackCircuitSectionIndex];
                                 distanceToAdd = TCSection.Length;
                             }
                             else break;
