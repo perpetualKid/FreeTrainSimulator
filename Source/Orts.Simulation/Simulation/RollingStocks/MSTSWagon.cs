@@ -2023,7 +2023,7 @@ namespace Orts.Simulation.RollingStocks
         /// then the A value in the Davis formula.
         /// 
         /// This model uses the following criteria:
-        /// i) Fixed journal resistance based upon UK figures (never is less then the Ao Davis value). This value is also varied with different wheel diameters. Reference wheel diameter = 37" (uk wheel).
+        /// i) Fixed journal resistance based upon UK figures (never is less then the A Davis value). This value is also varied with different wheel diameters. Reference wheel diameter = 37" (uk wheel).
         /// ii) Track resistance which varies depending upon the axle weight
         /// 
         /// </remarks>
@@ -2061,21 +2061,21 @@ namespace Orts.Simulation.RollingStocks
                 // Assume a linear relationship between the two sets of points above and plot a straight line relationship.
                 float LowTemperature = -10.0f;
                 float HighTemeprature = 25.0f;
-                float LowTemperatureResistance = (float)Dynamics.Force.FromLbf( 12.0f ) * wheelvariationfactor;
-                float HighTemperatureResistance = (float)Dynamics.Force.FromLbf( 4.5f) * wheelvariationfactor;
+                float LowTemperatureResistanceN = (float)Dynamics.Force.FromLbf( 12.0f ) * wheelvariationfactor;
+                float HighTemperatureResistanceN = (float)Dynamics.Force.FromLbf( 4.5f) * wheelvariationfactor;
 
-                float LowGrad = (LowTemperatureResistance - HighTemperatureResistance) / (LowTemperature - HighTemeprature);
-                float LowIntersect = LowTemperatureResistance - (LowGrad * LowTemperature);
+                float LowGrad = (LowTemperatureResistanceN - HighTemperatureResistanceN) / (LowTemperature - HighTemeprature);
+                float LowIntersect = LowTemperatureResistanceN - (LowGrad * LowTemperature);
 
                 if (WheelBearingTemperatureDegC < -10)
                 {
                     // Set to snowing (frozen value)
-                    StartFrictionInternalFactorN = LowTemperatureResistance;  // Starting friction for car with standard roller bearings, snowing
+                    StartFrictionInternalFactorN = LowTemperatureResistanceN;  // Starting friction for car with standard roller bearings, snowing
                 }
                 else if (WheelBearingTemperatureDegC > 25)
                 {
                     // Set to normal temperature value
-                    StartFrictionInternalFactorN = HighTemperatureResistance;  // Starting friction for car with standard roller bearings, not snowing
+                    StartFrictionInternalFactorN = HighTemperatureResistanceN;  // Starting friction for car with standard roller bearings, not snowing
                 }
                 else
                 {
@@ -2091,21 +2091,21 @@ namespace Orts.Simulation.RollingStocks
                 // Assume a linear relationship between the two sets of points above and plot a straight line relationship.
                 float LowTemperature = -10.0f;
                 float HighTemeprature = 25.0f;
-                float LowTemperatureResistance = (float)Dynamics.Force.FromLbf(7.5f) * wheelvariationfactor;
-                float HighTemperatureResistance = (float)Dynamics.Force.FromLbf(2.5f) * wheelvariationfactor;
+                float LowTemperatureResistanceN = (float)Dynamics.Force.FromLbf(7.5f) * wheelvariationfactor;
+                float HighTemperatureResistanceN = (float)Dynamics.Force.FromLbf(2.5f) * wheelvariationfactor;
 
-                float LowGrad = (LowTemperatureResistance - HighTemperatureResistance) / (LowTemperature - HighTemeprature);
-                float LowIntersect = LowTemperatureResistance - (LowGrad * LowTemperature);
+                float LowGrad = (LowTemperatureResistanceN - HighTemperatureResistanceN) / (LowTemperature - HighTemeprature);
+                float LowIntersect = LowTemperatureResistanceN - (LowGrad * LowTemperature);
 
                 if (WheelBearingTemperatureDegC < -10)
                 {
                     // Set to snowing (frozen value)
-                    StartFrictionInternalFactorN = LowTemperatureResistance;  // Starting friction for car with Low torque bearings, snowing
+                    StartFrictionInternalFactorN = LowTemperatureResistanceN;  // Starting friction for car with Low torque bearings, snowing
                 }
                 else if (WheelBearingTemperatureDegC > 25)
                 {
                     // Set to normal temperature value
-                    StartFrictionInternalFactorN = HighTemperatureResistance;  // Starting friction for car with Low troque bearings, not snowing
+                    StartFrictionInternalFactorN = HighTemperatureResistanceN;  // Starting friction for car with Low troque bearings, not snowing
                 }
                 else
                 {
@@ -2121,21 +2121,21 @@ namespace Orts.Simulation.RollingStocks
                 // Assume a linear relationship between the two sets of points above and plot a straight line relationship.
                 float LowTemperature = -10.0f;
                 float HighTemeprature = 25.0f;
-                float LowTemperatureResistance = (float)Dynamics.Force.FromLbf(45.0f) * wheelvariationfactor;
-                float HighTemperatureResistance = (float)Dynamics.Force.FromLbf(30.0f) * wheelvariationfactor;
+                float LowTemperatureResistanceN = (float)Dynamics.Force.FromLbf(45.0f) * wheelvariationfactor;
+                float HighTemperatureResistanceN = (float)Dynamics.Force.FromLbf(30.0f) * wheelvariationfactor;
 
-                float LowGrad = (LowTemperatureResistance - HighTemperatureResistance) / (LowTemperature - HighTemeprature);
-                float LowIntersect = LowTemperatureResistance - (LowGrad * LowTemperature);
+                float LowGrad = (LowTemperatureResistanceN - HighTemperatureResistanceN) / (LowTemperature - HighTemeprature);
+                float LowIntersect = LowTemperatureResistanceN - (LowGrad * LowTemperature);
 
                 if (WheelBearingTemperatureDegC < -10)
                 {
                     // Set to snowing (frozen value)
-                    StartFrictionInternalFactorN = LowTemperatureResistance;  // Starting friction car with Low torque bearings, snowing
+                    StartFrictionInternalFactorN = LowTemperatureResistanceN;  // Starting friction car with Low torque bearings, snowing
                 }
                 else if (WheelBearingTemperatureDegC > 25)
                 {
                     // Set to normal temperature value
-                    StartFrictionInternalFactorN = HighTemperatureResistance;  // Starting friction for car with Low troque bearings, not snowing
+                    StartFrictionInternalFactorN = HighTemperatureResistanceN;  // Starting friction for car with Low troque bearings, not snowing
                 }
                 else
                 {
@@ -2152,21 +2152,21 @@ namespace Orts.Simulation.RollingStocks
                 // Assume a linear relationship between the two sets of points above and plot a straight line relationship.
                 float LowTemperature = -10.0f;
                 float HighTemeprature = 25.0f;
-                float LowTemperatureResistance = (float)Dynamics.Force.FromLbf(30.0f) * wheelvariationfactor;
-                float HighTemperatureResistance = (float)Dynamics.Force.FromLbf(20.0f) * wheelvariationfactor;
+                float LowTemperatureResistanceN = (float)Dynamics.Force.FromLbf(30.0f) * wheelvariationfactor;
+                float HighTemperatureResistanceN = (float)Dynamics.Force.FromLbf(20.0f) * wheelvariationfactor;
 
-                float LowGrad = (LowTemperatureResistance - HighTemperatureResistance) / (LowTemperature - HighTemeprature);
-                float LowIntersect = LowTemperatureResistance - (LowGrad * LowTemperature);
+                float LowGrad = (LowTemperatureResistanceN - HighTemperatureResistanceN) / (LowTemperature - HighTemeprature);
+                float LowIntersect = LowTemperatureResistanceN - (LowGrad * LowTemperature);
 
                 if (WheelBearingTemperatureDegC < -10)
                 {
                     // Set to snowing (frozen value)
-                    StartFrictionInternalFactorN = (float)Dynamics.Force.FromLbf(LowTemperatureResistance); // Starting friction for car with friction (journal) bearings - ton (US), snowing
+                    StartFrictionInternalFactorN = (float)Dynamics.Force.FromLbf(LowTemperatureResistanceN); // Starting friction for car with friction (journal) bearings - ton (US), snowing
                 }
                 else if (WheelBearingTemperatureDegC > 25)
                 {
                     // Set to normal temperature value
-                    StartFrictionInternalFactorN = (float)Dynamics.Force.FromLbf(HighTemperatureResistance); // Starting friction for car with friction (journal) bearings - ton (US), not snowing
+                    StartFrictionInternalFactorN = (float)Dynamics.Force.FromLbf(HighTemperatureResistanceN); // Starting friction for car with friction (journal) bearings - ton (US), not snowing
                 }
                 else
                 {
@@ -2208,7 +2208,7 @@ namespace Orts.Simulation.RollingStocks
             // Determine the running resistance due to wheel bearing temperature
             float WheelBearingTemperatureResistanceFactor = 0;
 
-
+            // This section temperature compensates the running friction only - for comparion of merge point of running and starting friction.
             // Assume the running resistance is impacted by wheel bearing temperature, ie gets higher as tmperature decreasses. This will only impact the A parameter as it is related to
             // bearing. Assume that resistance will increase by 30% as temperature drops below 0 DegC.
             // At -10 DegC it will be equal to the snowing value, as the temperature increases to 25 DegC, it will move towards the summer value
@@ -2246,7 +2246,6 @@ namespace Orts.Simulation.RollingStocks
                 Friction0N = Friction0DavisN * 1.2f;
             }
 
-//            Trace.TraceInformation("Starting Resistance: CarId {0} Rj = {1} Rt = {2} Rest = {3}", CarID, N.ToLbf(StartFrictionInternalFactorN * Kg.ToTonne(MassKG)), (trackfactor * (1 / ResistanceGrade) * Kg.ToTUK(AxleLoadKg)), ResistanceGrade);
             // Calculation of resistance @ low speeds
             // Wind resistance is not included at low speeds, as it does not have a significant enough impact
             float speed5 = (float)Speed.MeterPerSecond.FromMpH(5); // 5 mph
