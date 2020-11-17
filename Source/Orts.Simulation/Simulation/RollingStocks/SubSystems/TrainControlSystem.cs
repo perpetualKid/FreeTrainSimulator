@@ -560,13 +560,13 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 return retval;
 
             float lengthOffset = (dir == 1) ? (-Locomotive.Train.PresentPosition[1].TCOffset +
-                     Locomotive.Train.signalRef.TrackCircuitList[Locomotive.Train.PresentPosition[1].TCSectionIndex].Length) : Locomotive.Train.PresentPosition[0].TCOffset;
+                     TrackCircuitSection.TrackCircuitList[Locomotive.Train.PresentPosition[1].TCSectionIndex].Length) : Locomotive.Train.PresentPosition[0].TCOffset;
             float totalLength = 0;
             var routePath = Locomotive.Train.ValidRoute[dir];
             while (index < routePath.Count && totalLength < 400) // Check only first 400m
             {
                 var thisElement = routePath[index];
-                TrackCircuitSection thisSection = Locomotive.Train.signalRef.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
+                TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
                 TrackCircuitSignalList thisSignalList = thisSection.CircuitItems.TrackCircuitSignals[(TrackDirection)thisElement.Direction][fn_type];
                 foreach (TrackCircuitSignalItem thisSignal in thisSignalList)
                 {

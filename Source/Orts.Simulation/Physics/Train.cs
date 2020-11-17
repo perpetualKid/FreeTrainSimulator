@@ -237,8 +237,8 @@ namespace Orts.Simulation.Physics
 
         public SignalEnvironment signalRef { get; protected set; } // reference to main Signals class: SPA change protected to public with get, set!
         public TCRoutePath TCRoute;                      // train path converted to TC base
-        public TCSubpathRoute[] ValidRoute = new TCSubpathRoute[2] { null, null };  // actual valid path
-        public TCSubpathRoute TrainRoute;                // partial route under train for Manual mode
+        public TrackCircuitPartialPathRoute[] ValidRoute = new TrackCircuitPartialPathRoute[2] { null, null };  // actual valid path
+        public TrackCircuitPartialPathRoute TrainRoute;                // partial route under train for Manual mode
         public bool ClaimState;                          // train is allowed to perform claim on sections
         public double actualWaitTimeS;                    // actual time waiting for signal
         public int movedBackward;                        // counter to detect backward move
@@ -533,8 +533,8 @@ namespace Orts.Simulation.Physics
                 TCRoute = new TCRoutePath(orgTrain.TCRoute);
             }
 
-            ValidRoute[0] = new TCSubpathRoute(orgTrain.ValidRoute[0]);
-            ValidRoute[1] = new TCSubpathRoute(orgTrain.ValidRoute[1]);
+            ValidRoute[0] = new TrackCircuitPartialPathRoute(orgTrain.ValidRoute[0]);
+            ValidRoute[1] = new TrackCircuitPartialPathRoute(orgTrain.ValidRoute[1]);
 
             DistanceTravelledM = orgTrain.DistanceTravelledM;
 
@@ -670,21 +670,21 @@ namespace Orts.Simulation.Physics
             bool validRouteAvailable = inf.ReadBoolean();
             if (validRouteAvailable)
             {
-                ValidRoute[0] = new TCSubpathRoute(inf);
+                ValidRoute[0] = new TrackCircuitPartialPathRoute(inf);
             }
 
             ValidRoute[1] = null;
             validRouteAvailable = inf.ReadBoolean();
             if (validRouteAvailable)
             {
-                ValidRoute[1] = new TCSubpathRoute(inf);
+                ValidRoute[1] = new TrackCircuitPartialPathRoute(inf);
             }
 
             int totalOccTrack = inf.ReadInt32();
             for (int iTrack = 0; iTrack < totalOccTrack; iTrack++)
             {
                 int sectionIndex = inf.ReadInt32();
-                TrackCircuitSection thisSection = signalRef.TrackCircuitList[sectionIndex];
+                TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[sectionIndex];
                 OccupiedTrack.Add(thisSection);
             }
 
@@ -2319,7 +2319,7 @@ namespace Orts.Simulation.Physics
 
                 while (validSections)
                 {
-                    TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisSectionIndex];
+                    TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisSectionIndex];
                     bool inTunnel = false;
 
                     // car spans sections
@@ -2395,7 +2395,7 @@ namespace Orts.Simulation.Physics
                         if (thisSectionRouteIndex >= 0)
                         {
                             thisSectionIndex = thisSectionRouteIndex;
-                            thisSection = signalRef.TrackCircuitList[thisSectionIndex];
+                            thisSection = TrackCircuitSection.TrackCircuitList[thisSectionIndex];
                             thisSectionOffset = thisSection.Length;  // always at end of next section
                             thisSectionDirection = (TrackDirection)ValidRoute[0][thisSectionRouteIndex].Direction;
                         }
@@ -2822,7 +2822,7 @@ namespace Orts.Simulation.Physics
 
                 //  try to find first speed limits behind the train
 
-                List<int> speedpostList = signalRef.ScanRoute(null, PresentPosition[1].TCSectionIndex, PresentPosition[1].TCOffset,
+                List<int> speedpostList = SignalEnvironment.ScanRoute(null, PresentPosition[1].TCSectionIndex, PresentPosition[1].TCOffset,
                                 (TrackDirection)PresentPosition[1].TCDirection, false, -1, false, true, false, false, false, false, false, true, false, IsFreight);
 
                 if (speedpostList.Count > 0)
@@ -2846,7 +2846,7 @@ namespace Orts.Simulation.Physics
 
                 while (!noMoreSpeedposts)
                 {
-                    speedpostList = signalRef.ScanRoute(null, thisSectionIndex, thisSectionOffset,
+                    speedpostList = SignalEnvironment.ScanRoute(null, thisSectionIndex, thisSectionOffset,
                             thisDirection, true, remLength, false, true, false, false, false, false, false, true, false, IsFreight);
 
                     if (speedpostList.Count > 0)
@@ -5466,7 +5466,7 @@ namespace Orts.Simulation.Physics
         /// Calculate initial position
         /// </summary>
 
-        public virtual TCSubpathRoute CalculateInitialTrainPosition(ref bool trackClear)
+        public virtual TrackCircuitPartialPathRoute CalculateInitialTrainPosition(ref bool trackClear)
         {
 
             // calculate train length
@@ -5490,7 +5490,7 @@ namespace Orts.Simulation.Physics
             int direction = (int)RearTDBTraveller.Direction;
 
             PresentPosition[1].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
-            TrackCircuitSection thisSection = signalRef.TrackCircuitList[PresentPosition[1].TCSectionIndex];
+            TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[PresentPosition[1].TCSectionIndex];
             offset = PresentPosition[1].TCOffset;
 
             //<CSComment> must do preliminary calculation of PresentPosition[0] parameters in order to use subsequent code
@@ -5507,7 +5507,7 @@ namespace Orts.Simulation.Physics
 
             if (ValidRoute[0] == null)
             {
-                ValidRoute[0] = signalRef.BuildTempRoute(this, thisSection.Index, PresentPosition[1].TCOffset,
+                ValidRoute[0] = SignalEnvironment.BuildTempRoute(this, thisSection.Index, PresentPosition[1].TCOffset,
                             (TrackDirection)PresentPosition[1].TCDirection, trainLength, true, true, false);
             }
 
@@ -5521,10 +5521,10 @@ namespace Orts.Simulation.Physics
 
             bool sectionsClear = true;
 
-            TCSubpathRoute tempRoute = new TCSubpathRoute();
+            TrackCircuitPartialPathRoute tempRoute = new TrackCircuitPartialPathRoute();
 
             TrackCircuitRouteElement thisElement = ValidRoute[0][routeIndex];
-            thisSection = signalRef.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
+            thisSection = TrackCircuitSection.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
             if (!thisSection.CanPlaceTrain(this, offset, remLength))
             {
                 sectionsClear = false;
@@ -5542,7 +5542,7 @@ namespace Orts.Simulation.Physics
                     {
                         routeIndex++;
                         thisElement = ValidRoute[0][routeIndex];
-                        thisSection = signalRef.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
+                        thisSection = TrackCircuitSection.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
                         if (!thisSection.CanPlaceTrain(this, offset, remLength))
                         {
                             sectionsClear = false;
@@ -5575,14 +5575,14 @@ namespace Orts.Simulation.Physics
         // Set initial train route
         //
 
-        public void SetInitialTrainRoute(TCSubpathRoute tempRoute)
+        public void SetInitialTrainRoute(TrackCircuitPartialPathRoute tempRoute)
         {
 
             // reserve sections, use direction 0 only
 
             foreach (TrackCircuitRouteElement thisElement in tempRoute)
             {
-                TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
+                TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
                 thisSection.Reserve(routedForward, tempRoute);
             }
         }
@@ -5592,14 +5592,14 @@ namespace Orts.Simulation.Physics
         // Reset initial train route
         //
 
-        public void ResetInitialTrainRoute(TCSubpathRoute tempRoute)
+        public void ResetInitialTrainRoute(TrackCircuitPartialPathRoute tempRoute)
         {
 
             // unreserve sections
 
             foreach (TrackCircuitRouteElement thisElement in tempRoute)
             {
-                TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
+                TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
                 thisSection.RemoveTrain(this, false);
             }
         }
@@ -5633,7 +5633,7 @@ namespace Orts.Simulation.Physics
 
             if (ValidRoute[0] == null)
             {
-                ValidRoute[0] = signalRef.BuildTempRoute(this, PresentPosition[1].TCSectionIndex, PresentPosition[1].TCOffset,
+                ValidRoute[0] = SignalEnvironment.BuildTempRoute(this, PresentPosition[1].TCSectionIndex, PresentPosition[1].TCOffset,
                         (TrackDirection)PresentPosition[1].TCDirection, Length, true, true, false);
             }
 
@@ -5672,7 +5672,7 @@ namespace Orts.Simulation.Physics
 
             for (int iRouteIndex = rearIndex; iRouteIndex <= frontIndex && sectionAvailable; iRouteIndex++)
             {
-                TrackCircuitSection thisSection = signalRef.TrackCircuitList[ValidRoute[0][iRouteIndex].TrackCircuitSectionIndex];
+                TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[ValidRoute[0][iRouteIndex].TrackCircuitSectionIndex];
                 if (thisSection.CanPlaceTrain(this, offset, remLength))
                 {
                     placementSections.Add(thisSection);
@@ -5684,7 +5684,7 @@ namespace Orts.Simulation.Physics
                         {
                             routeIndex++;
                             TrackCircuitRouteElement thisElement = ValidRoute[0][routeIndex];
-                            thisSection = signalRef.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
+                            thisSection = TrackCircuitSection.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
                             offset = 0.0f;
                         }
                         else
@@ -5722,7 +5722,7 @@ namespace Orts.Simulation.Physics
                             int endSectionIndex = thisDetail.Value;
                             if (ValidRoute[0].GetRouteIndex(endSectionIndex, rearIndex) >= 0)
                             {
-                                TrackCircuitSection endSection = signalRef.TrackCircuitList[endSectionIndex];
+                                TrackCircuitSection endSection = TrackCircuitSection.TrackCircuitList[endSectionIndex];
                                 endSection.SetDeadlockTrap(Number, thisDetail.Key);
                             }
                         }
@@ -5766,7 +5766,7 @@ namespace Orts.Simulation.Physics
 
             for (int iRouteIndex = rearIndex; iRouteIndex <= frontIndex; iRouteIndex++)
             {
-                TrackCircuitSection thisSection = signalRef.TrackCircuitList[ValidRoute[0][iRouteIndex].TrackCircuitSectionIndex];
+                TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[ValidRoute[0][iRouteIndex].TrackCircuitSectionIndex];
                 placementSections.Add(thisSection);
                 remLength -= (thisSection.Length - offset);
 
@@ -5776,7 +5776,7 @@ namespace Orts.Simulation.Physics
                     {
                         routeIndex++;
                         TrackCircuitRouteElement thisElement = ValidRoute[0][routeIndex];
-                        thisSection = signalRef.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
+                        thisSection = TrackCircuitSection.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
                         offset = 0.0f;
                     }
                     else
@@ -5942,7 +5942,7 @@ namespace Orts.Simulation.Physics
         public float ComputeDistanceToNextStation(StationStop thisStation)
         {
             int thisSectionIndex = PresentPosition[0].TCSectionIndex;
-            TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisSectionIndex];
+            TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisSectionIndex];
             float leftInSectionM = thisSection.Length - PresentPosition[0].TCOffset;
             float distanceToTrainM = -1;
             int stationIndex;
@@ -5956,9 +5956,9 @@ namespace Orts.Simulation.Physics
                 else
                 {
                     int lastSectionRouteIndex = TCRoute.TCRouteSubpaths[TCRoute.activeSubpath].Count - 1;
-                    float lastSectionLength = signalRef.TrackCircuitList[TCRoute.TCRouteSubpaths[TCRoute.activeSubpath][lastSectionRouteIndex].TrackCircuitSectionIndex].Length;
+                    float lastSectionLength = TrackCircuitSection.TrackCircuitList[TCRoute.TCRouteSubpaths[TCRoute.activeSubpath][lastSectionRouteIndex].TrackCircuitSectionIndex].Length;
                     distanceToTrainM = TCRoute.TCRouteSubpaths[TCRoute.activeSubpath].GetDistanceAlongRoute(PresentPosition[0].RouteListIndex,
-                 leftInSectionM, lastSectionRouteIndex, lastSectionLength, true, signalRef);
+                 leftInSectionM, lastSectionRouteIndex, lastSectionLength, true);
                 }
                 float lengthOfIntSubpath = 0;
                 int firstSection = 0;
@@ -5995,7 +5995,7 @@ namespace Orts.Simulation.Physics
                                 {
                                     firstSection = iSection + 1;
                                     tempSectionTCSectionIndex = TCRoute.TCRouteSubpaths[iSubpath][firstSection].TrackCircuitSectionIndex;
-                                    firstSectionOffsetToGo = signalRef.TrackCircuitList[tempSectionTCSectionIndex].Length;
+                                    firstSectionOffsetToGo = TrackCircuitSection.TrackCircuitList[tempSectionTCSectionIndex].Length;
                                     break;
                                 }
                             }
@@ -6018,11 +6018,11 @@ namespace Orts.Simulation.Physics
                         {
                             lastSection = TCRoute.TCRouteSubpaths[iSubpath].Count - 1;
                             tempSectionTCSectionIndex = TCRoute.TCRouteSubpaths[iSubpath][lastSection].TrackCircuitSectionIndex;
-                            lastSectionOffsetToGo = signalRef.TrackCircuitList[tempSectionTCSectionIndex].Length;
+                            lastSectionOffsetToGo = TrackCircuitSection.TrackCircuitList[tempSectionTCSectionIndex].Length;
                         }
 
                         lengthOfIntSubpath = TCRoute.TCRouteSubpaths[iSubpath].GetDistanceAlongRoute(firstSection,
-                            firstSectionOffsetToGo, lastSection, lastSectionOffsetToGo, true, signalRef);
+                            firstSectionOffsetToGo, lastSection, lastSectionOffsetToGo, true);
                         if (lengthOfIntSubpath < 0)
                         {
                             distanceToTrainM = -1;
@@ -6056,7 +6056,7 @@ namespace Orts.Simulation.Physics
                             {
                                 firstSection = iSection + 1;
                                 tempSectionTCSectionIndex = TCRoute.TCRouteSubpaths[thisStation.SubrouteIndex][firstSection].TrackCircuitSectionIndex;
-                                firstSectionOffsetToGo = signalRef.TrackCircuitList[tempSectionTCSectionIndex].Length;
+                                firstSectionOffsetToGo = TrackCircuitSection.TrackCircuitList[tempSectionTCSectionIndex].Length;
                                 break;
                             }
                         }
@@ -6064,7 +6064,7 @@ namespace Orts.Simulation.Physics
 
                     stationIndex = thisStation.RouteIndex;
                     float distanceFromStartOfsubPath = TCRoute.TCRouteSubpaths[thisStation.SubrouteIndex].GetDistanceAlongRoute(firstSection,
-                        firstSectionOffsetToGo, stationIndex, thisStation.StopOffset, true, signalRef);
+                        firstSectionOffsetToGo, stationIndex, thisStation.StopOffset, true);
                     if (distanceFromStartOfsubPath < 0) distanceToTrainM = -1;
                     else distanceToTrainM += distanceFromStartOfsubPath;
                 }
@@ -6076,8 +6076,7 @@ namespace Orts.Simulation.Physics
                 // if present position off route, try rear position
                 // if both off route, skip station stop
                 stationIndex = ValidRoute[0].GetRouteIndex(thisStation.TCSectionIndex, PresentPosition[0].RouteListIndex);
-                distanceToTrainM = ValidRoute[0].GetDistanceAlongRoute(PresentPosition[0].RouteListIndex,
-                    leftInSectionM, stationIndex, thisStation.StopOffset, true, signalRef);
+                distanceToTrainM = ValidRoute[0].GetDistanceAlongRoute(PresentPosition[0].RouteListIndex, leftInSectionM, stationIndex, thisStation.StopOffset, true);
             }
             return distanceToTrainM;
         }
@@ -6099,7 +6098,7 @@ namespace Orts.Simulation.Physics
             }
             // in case the AI train is out of its original path the reversal info is simulated to point to the end of the last route section
             int reversalRouteIndex = ValidRoute[0].Count - 1;
-            TrackCircuitSection reversalSection = signalRef.TrackCircuitList[ValidRoute[0][reversalRouteIndex].TrackCircuitSectionIndex];
+            TrackCircuitSection reversalSection = TrackCircuitSection.TrackCircuitList[ValidRoute[0][reversalRouteIndex].TrackCircuitSectionIndex];
             float reverseReversalOffset = reversalSection.Length;
             reversalRouteIndex = ValidRoute[0].GetRouteIndex(TCRoute.ReversalInfo[TCRoute.activeSubpath].ReversalSectionIndex, PresentPosition[0].RouteListIndex);
             if (reversalRouteIndex == -1)
@@ -6107,14 +6106,14 @@ namespace Orts.Simulation.Physics
                 Trace.TraceWarning("Train {0} service {1}, reversal or end point off path; distance to reversal point set to -1", Number, Name);
                 return -1;
             }
-            reversalSection = signalRef.TrackCircuitList[TCRoute.ReversalInfo[TCRoute.activeSubpath].ReversalSectionIndex];
+            reversalSection = TrackCircuitSection.TrackCircuitList[TCRoute.ReversalInfo[TCRoute.activeSubpath].ReversalSectionIndex];
             reverseReversalOffset = TCRoute.ReversalInfo[TCRoute.activeSubpath].ReverseReversalOffset;
             if (PresentPosition[0].RouteListIndex <= reversalRouteIndex)
             {
                 for (int iElement = PresentPosition[0].RouteListIndex; iElement < ValidRoute[0].Count; iElement++)
                 {
                     TrackCircuitRouteElement thisElement = ValidRoute[0][iElement];
-                    thisSection = signalRef.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
+                    thisSection = TrackCircuitSection.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
                     if (thisSection.Index == reversalSection.Index)
                     {
                         break;
@@ -6128,7 +6127,7 @@ namespace Orts.Simulation.Physics
                 for (int iElement = PresentPosition[0].RouteListIndex - 1; iElement >= 0; iElement--)
                 {
                     TrackCircuitRouteElement thisElement = ValidRoute[0][iElement];
-                    thisSection = signalRef.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
+                    thisSection = TrackCircuitSection.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
                     if (thisSection.Index == reversalSection.Index)
                     {
                         break;
@@ -6153,7 +6152,7 @@ namespace Orts.Simulation.Physics
                 tcRouteSubpathIndex++;
                 if (tcRouteSubpathIndex > 0 && TCRoute.ReversalInfo[tcRouteSubpathIndex - 1].Valid) pathLength += TCRoute.ReversalInfo[tcRouteSubpathIndex - 1].ReverseReversalOffset;
                 else if (tcRouteSubpathIndex > 0) pathLength += TCRoute.ReversalInfo[tcRouteSubpathIndex - 1].ReverseReversalOffset -
-                    signalRef.TrackCircuitList[TCRoute.ReversalInfo[tcRouteSubpathIndex - 1].ReversalSectionIndex].Length;
+                    TrackCircuitSection.TrackCircuitList[TCRoute.ReversalInfo[tcRouteSubpathIndex - 1].ReversalSectionIndex].Length;
                 else { } //start point offset?
                 int routeListIndex = 1;
                 TrackCircuitSection thisSection;
@@ -6168,7 +6167,7 @@ namespace Orts.Simulation.Physics
                     for (int iElement = routeListIndex; iElement < tcRouteSubpath.Count; iElement++)
                     {
                         TrackCircuitRouteElement thisElement = tcRouteSubpath[iElement];
-                        thisSection = signalRef.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
+                        thisSection = TrackCircuitSection.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
                         if (thisSection.Index == TCRoute.ReversalInfo[tcRouteSubpathIndex].ReversalSectionIndex)
                         {
                             break;
@@ -6180,7 +6179,7 @@ namespace Orts.Simulation.Physics
                 else
                 {
                     pathLength += TCRoute.ReversalInfo[tcRouteSubpathIndex].ReverseReversalOffset -
-                    signalRef.TrackCircuitList[TCRoute.ReversalInfo[tcRouteSubpathIndex].ReversalSectionIndex].Length;
+                    TrackCircuitSection.TrackCircuitList[TCRoute.ReversalInfo[tcRouteSubpathIndex].ReversalSectionIndex].Length;
                 }
             }
             return pathLength;
@@ -6229,7 +6228,7 @@ namespace Orts.Simulation.Physics
             int presentIndex = PresentPosition[0].RouteListIndex;
 
             int lastDTM = Convert.ToInt32(PreviousPosition[0].DistanceTravelledM);
-            TrackCircuitSection lastSection = signalRef.TrackCircuitList[PreviousPosition[0].TCSectionIndex];
+            TrackCircuitSection lastSection = TrackCircuitSection.TrackCircuitList[PreviousPosition[0].TCSectionIndex];
             int lastDTatEndLastSectionM = lastDTM + Convert.ToInt32(lastSection.Length - PreviousPosition[0].TCOffset);
 
             int presentDTM = Convert.ToInt32(DistanceTravelledM);
@@ -6262,11 +6261,11 @@ namespace Orts.Simulation.Physics
                     {
                         sectionIndex = ValidRoute[0][iIndex].TrackCircuitSectionIndex;
                         sectionList.Add(new int[2] { iIndex, presentDTM });
-                        thisSection = signalRef.TrackCircuitList[sectionIndex];
+                        thisSection = TrackCircuitSection.TrackCircuitList[sectionIndex];
                     }
 
                     sectionIndex = ValidRoute[0][presentIndex].TrackCircuitSectionIndex;
-                    thisSection = signalRef.TrackCircuitList[sectionIndex];
+                    thisSection = TrackCircuitSection.TrackCircuitList[sectionIndex];
                     sectionList.Add(new int[2] { presentIndex, presentDTM });
                 }
             }
@@ -6281,14 +6280,14 @@ namespace Orts.Simulation.Physics
                     TrackCircuitSection thisSection;
 
                     sectionIndex = ValidRoute[0][lastIndex].TrackCircuitSectionIndex;
-                    thisSection = signalRef.TrackCircuitList[sectionIndex];
+                    thisSection = TrackCircuitSection.TrackCircuitList[sectionIndex];
                     int lastValidDTM = lastDTatEndLastSectionM;
 
                     for (int iIndex = lastIndex + 1; iIndex < presentIndex; iIndex++)
                     {
                         sectionIndex = ValidRoute[0][iIndex].TrackCircuitSectionIndex;
                         sectionList.Add(new int[2] { iIndex, lastValidDTM });
-                        thisSection = signalRef.TrackCircuitList[sectionIndex];
+                        thisSection = TrackCircuitSection.TrackCircuitList[sectionIndex];
                         lastValidDTM += Convert.ToInt32(thisSection.Length);
                     }
 
@@ -6302,7 +6301,7 @@ namespace Orts.Simulation.Physics
             foreach (int[] routeListIndex in sectionList)
             {
                 int sectionIndex = ValidRoute[0][routeListIndex[0]].TrackCircuitSectionIndex;
-                TrackCircuitSection thisSection = signalRef.TrackCircuitList[sectionIndex];
+                TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[sectionIndex];
                 if (!thisSection.CircuitState.OccupiedByThisTrain(routedForward))
                 {
                     thisSection.SetOccupied(routedForward, routeListIndex[1]);
@@ -6491,12 +6490,12 @@ namespace Orts.Simulation.Physics
 
                     TCPosition overlapPosition = new TCPosition();
                     PresentPosition[1].CopyTo(ref overlapPosition);
-                    TrackCircuitSection thisSection = signalRef.TrackCircuitList[overlapPosition.TCSectionIndex];
+                    TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[overlapPosition.TCSectionIndex];
                     overlapPosition.TCOffset = thisSection.Length - (PresentPosition[1].TCOffset + rearPositionOverlap);  // reverse offset because of reversed direction
                     overlapPosition.TCDirection = overlapPosition.TCDirection == 0 ? 1 : 0; // looking backwards, so reverse direction
 
-                    TrackCircuitSection rearSection = signalRef.TrackCircuitList[RearSignalObject.TrackCircuitNextIndex];
-                    if (!TCSubpathRoute.IsAheadOfTrain(rearSection, 0.0f, overlapPosition))
+                    TrackCircuitSection rearSection = TrackCircuitSection.TrackCircuitList[RearSignalObject.TrackCircuitNextIndex];
+                    if (!TrackCircuitPartialPathRoute.IsAheadOfTrain(rearSection, 0.0f, overlapPosition))
                     {
                         if (RearSignalObject.SignalLR(SignalFunction.Normal) == SignalAspectState.Stop)
                         {
@@ -6515,7 +6514,7 @@ namespace Orts.Simulation.Physics
 
                 if (!outOfControl && RearSignalObject == null)
                 {
-                    TrackCircuitSection thisSection = signalRef.TrackCircuitList[PresentPosition[1].TCSectionIndex];
+                    TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[PresentPosition[1].TCSectionIndex];
                     float clearPath = thisSection.Length - PresentPosition[1].TCOffset;   // looking other direction //
                     TrackDirection direction = ((TrackDirection)PresentPosition[1].TCDirection).Next();
 
@@ -6534,7 +6533,7 @@ namespace Orts.Simulation.Physics
                             int nextSectionIndex = thisSection.Pins[pinLink, Location.NearEnd].Link;
                             if (nextSectionIndex >= 0)
                             {
-                                TrackCircuitSection nextSection = signalRef.TrackCircuitList[nextSectionIndex];
+                                TrackCircuitSection nextSection = TrackCircuitSection.TrackCircuitList[nextSectionIndex];
                                 if (!nextSection.IsAvailable(this))
                                 {
                                     SetTrainOutOfControl(OutOfControlReason.SlippedIntoPath);
@@ -6726,7 +6725,7 @@ namespace Orts.Simulation.Physics
 
             bool nextRouteAvailable = false;
 
-            TCSubpathRoute nextRoute = null;
+            TrackCircuitPartialPathRoute nextRoute = null;
 
             if (endOfRoute && TCRoute.activeSubpath < (TCRoute.TCRouteSubpaths.Count - 1))
             {
@@ -6771,7 +6770,7 @@ namespace Orts.Simulation.Physics
                             for (int iIndex = firstRouteIndex + 1; iIndex < nextRoute.Count && !junctionFound; iIndex++)
                             {
                                 int thisSectionIndex = nextRoute[iIndex].TrackCircuitSectionIndex;
-                                TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisSectionIndex];
+                                TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisSectionIndex];
                                 if (thisSection.CircuitType == TrackCircuitType.Junction)
                                 {
                                     junctionFound = true;
@@ -6779,7 +6778,7 @@ namespace Orts.Simulation.Physics
                                     {
                                         // Before deciding that route is not yet ready check if the new train head is off path because at end of new route
                                         var thisElement = nextRoute[nextRoute.Count - 1];
-                                        thisSection = signalRef.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
+                                        thisSection = TrackCircuitSection.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
                                         if (thisSection.CircuitState.OccupiedByThisTrain(this)) break;
                                         junctionOccupied = true;
                                     }
@@ -6898,12 +6897,12 @@ namespace Orts.Simulation.Physics
 
                 if (rearIndex < 0) // end of train not on new route
                 {
-                    TCSubpathRoute tempRoute = signalRef.BuildTempRoute(this, PresentPosition[1].TCSectionIndex, PresentPosition[1].TCOffset,
+                    TrackCircuitPartialPathRoute tempRoute = SignalEnvironment.BuildTempRoute(this, PresentPosition[1].TCSectionIndex, PresentPosition[1].TCOffset,
                         (TrackDirection)PresentPosition[1].TCDirection, Length, false, true, false);
 
                     for (int iIndex = 0; iIndex < tempRoute.Count; iIndex++)
                     {
-                        TrackCircuitSection thisSection = signalRef.TrackCircuitList[tempRoute[iIndex].TrackCircuitSectionIndex];
+                        TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[tempRoute[iIndex].TrackCircuitSectionIndex];
                         thisSection.SetOccupied(routedForward);
                     }
                 }
@@ -6911,7 +6910,7 @@ namespace Orts.Simulation.Physics
                 {
                     for (int iIndex = PresentPosition[1].RouteListIndex; iIndex <= PresentPosition[0].RouteListIndex; iIndex++)
                     {
-                        TrackCircuitSection thisSection = signalRef.TrackCircuitList[ValidRoute[0][iIndex].TrackCircuitSectionIndex];
+                        TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[ValidRoute[0][iIndex].TrackCircuitSectionIndex];
                         thisSection.SetOccupied(routedForward);
                     }
                 }
@@ -6931,7 +6930,7 @@ namespace Orts.Simulation.Physics
                 // clear claims of any trains which have claimed present occupied sections upto common point - this avoids deadlocks
                 // trains may have claimed while train was reversing
 
-                TrackCircuitSection presentSection = signalRef.TrackCircuitList[LastReservedSection[0]];
+                TrackCircuitSection presentSection = TrackCircuitSection.TrackCircuitList[LastReservedSection[0]];
                 presentSection.ClearReversalClaims(routedForward);
 
                 // switch to NODE mode
@@ -6986,7 +6985,7 @@ namespace Orts.Simulation.Physics
                 // front is within 150m. of end of route and no junctions inbetween (only very short sections ahead of train)
                 else
                 {
-                    TrackCircuitSection thisSection = signalRef.TrackCircuitList[PresentPosition[0].TCSectionIndex];
+                    TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[PresentPosition[0].TCSectionIndex];
                     float lengthToGo = thisSection.Length - PresentPosition[0].TCOffset;
 
                     bool junctionFound = false;
@@ -6994,7 +6993,7 @@ namespace Orts.Simulation.Physics
                     {
                         for (int iIndex = PresentPosition[0].RouteListIndex + 1; iIndex < ValidRoute[0].Count && !junctionFound; iIndex++)
                         {
-                            thisSection = signalRef.TrackCircuitList[ValidRoute[0][iIndex].TrackCircuitSectionIndex];
+                            thisSection = TrackCircuitSection.TrackCircuitList[ValidRoute[0][iIndex].TrackCircuitSectionIndex];
                             junctionFound = thisSection.CircuitType == TrackCircuitType.Junction;
                             lengthToGo += thisSection.Length;
                         }
@@ -7022,7 +7021,7 @@ namespace Orts.Simulation.Physics
                 {
                     // if last entry in route is END_OF_TRACK, check against previous entry as this can never be the trains position nor a signal reference section
                     int lastValidRouteIndex = ValidRoute[0].Count - 1;
-                    if (signalRef.TrackCircuitList[ValidRoute[0][lastValidRouteIndex].TrackCircuitSectionIndex].CircuitType == TrackCircuitType.EndOfTrack)
+                    if (TrackCircuitSection.TrackCircuitList[ValidRoute[0][lastValidRouteIndex].TrackCircuitSectionIndex].CircuitType == TrackCircuitType.EndOfTrack)
                         lastValidRouteIndex--;
 
                     // if waiting for next signal and section beyond signal is last in route and there is no valid reversal index - end of route reached
@@ -7193,7 +7192,7 @@ namespace Orts.Simulation.Physics
                     for (int iIndex = PresentPosition[0].RouteListIndex; iIndex <= ValidRoute[0].Count - 1; iIndex++)
                     {
                         int sectionIndex = ValidRoute[0][iIndex].TrackCircuitSectionIndex;
-                        TrackCircuitSection claimSection = signalRef.TrackCircuitList[sectionIndex];
+                        TrackCircuitSection claimSection = TrackCircuitSection.TrackCircuitList[sectionIndex];
                         claimSection.CircuitState.TrainClaimed.Remove(routedForward);
                     }
                 }
@@ -7210,11 +7209,11 @@ namespace Orts.Simulation.Physics
         // Check if train is waiting for a stationary (stopped) train or a train in manual mode
         //
 
-        public bool CheckStoppedTrains(TCSubpathRoute thisRoute)
+        public bool CheckStoppedTrains(TrackCircuitPartialPathRoute thisRoute)
         {
             foreach (TrackCircuitRouteElement thisElement in thisRoute)
             {
-                TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
+                TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
                 foreach (KeyValuePair<TrainRouted, int> thisTrain in thisSection.CircuitState.OccupationState)
                 {
                     if (thisTrain.Key.Train.SpeedMpS == 0.0f)
@@ -7242,13 +7241,13 @@ namespace Orts.Simulation.Physics
         /// <returns></returns>
         /// 
 
-        public virtual bool TestCallOn(Signal thisSignal, bool allowOnNonePlatform, TCSubpathRoute thisRoute)
+        public virtual bool TestCallOn(Signal thisSignal, bool allowOnNonePlatform, TrackCircuitPartialPathRoute thisRoute)
         {
             bool intoPlatform = false;
 
             foreach (TrackCircuitRouteElement routeElement in thisSignal.SignalRoute)
             {
-                TrackCircuitSection routeSection = signalRef.TrackCircuitList[routeElement.TrackCircuitSectionIndex];
+                TrackCircuitSection routeSection = TrackCircuitSection.TrackCircuitList[routeElement.TrackCircuitSectionIndex];
 
                 // check if route leads into platform
 
@@ -7291,7 +7290,7 @@ namespace Orts.Simulation.Physics
             // check if any other trains in section ahead of this train
 
             int thisSectionIndex = ValidRoute[0][trainRouteIndex].TrackCircuitSectionIndex;
-            TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisSectionIndex];
+            TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisSectionIndex];
 
             Dictionary<Train, float> trainAhead = thisSection.TestTrainAhead(this,
                     PresentPosition[0].TCOffset, PresentPosition[0].TCDirection);
@@ -7313,7 +7312,7 @@ namespace Orts.Simulation.Physics
                 for (int iIndex = trainRouteIndex + 1; iIndex <= signalRouteIndex; iIndex++)
                 {
                     int nextSectionIndex = ValidRoute[0][iIndex].TrackCircuitSectionIndex;
-                    TrackCircuitSection nextSection = signalRef.TrackCircuitList[nextSectionIndex];
+                    TrackCircuitSection nextSection = TrackCircuitSection.TrackCircuitList[nextSectionIndex];
 
                     if (nextSection.CircuitState.Occupied())  // train is ahead - it's not our signal //
                     {
@@ -7405,7 +7404,7 @@ namespace Orts.Simulation.Physics
             for (int iIndex = routeIndex + 1; iIndex < (ValidRoute[routeDirectionIndex].Count - 1) && isClaimed; iIndex++)
             {
                 thisSection.RemoveTrain(this, false);
-                nextSection = signalRef.TrackCircuitList[ValidRoute[routeDirectionIndex][iIndex].TrackCircuitSectionIndex];
+                nextSection = TrackCircuitSection.TrackCircuitList[ValidRoute[routeDirectionIndex][iIndex].TrackCircuitSectionIndex];
             }
         }
 
@@ -7422,12 +7421,12 @@ namespace Orts.Simulation.Physics
 
             int lastRouteIndex = ValidRoute[0].GetRouteIndex(LastReservedSection[0], PresentPosition[0].RouteListIndex);
 
-            TrackCircuitSection thisSection = signalRef.TrackCircuitList[PresentPosition[0].TCSectionIndex];
+            TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[PresentPosition[0].TCSectionIndex];
             DistanceToEndNodeAuthorityM[0] = thisSection.Length - PresentPosition[0].TCOffset;
 
             for (int iSection = PresentPosition[0].RouteListIndex + 1; iSection <= lastRouteIndex; iSection++)
             {
-                thisSection = signalRef.TrackCircuitList[ValidRoute[0][iSection].TrackCircuitSectionIndex];
+                thisSection = TrackCircuitSection.TrackCircuitList[ValidRoute[0][iSection].TrackCircuitSectionIndex];
                 DistanceToEndNodeAuthorityM[0] += thisSection.Length;
             }
 
@@ -7462,7 +7461,7 @@ namespace Orts.Simulation.Physics
 
         public bool ProcessRequestAutoSetSwitch(int reqSwitchIndex)
         {
-            TrackCircuitSection reqSwitch = signalRef.TrackCircuitList[reqSwitchIndex];
+            TrackCircuitSection reqSwitch = TrackCircuitSection.TrackCircuitList[reqSwitchIndex];
 
             bool switchSet = false;
             if (reqSwitch.CircuitState.TrainReserved != null && reqSwitch.CircuitState.TrainReserved.Train == this)
@@ -7487,7 +7486,7 @@ namespace Orts.Simulation.Physics
         {
             // occupation is set in forward mode only
             // build route from rear to front - before reset occupy so correct switch alignment is used
-            TrainRoute = signalRef.BuildTempRoute(this, PresentPosition[1].TCSectionIndex, PresentPosition[1].TCOffset, (TrackDirection)PresentPosition[1].TCDirection, Length, false, true, false);
+            TrainRoute = SignalEnvironment.BuildTempRoute(this, PresentPosition[1].TCSectionIndex, PresentPosition[1].TCOffset, (TrackDirection)PresentPosition[1].TCDirection, Length, false, true, false);
 
             // save present occupation list
 
@@ -7503,7 +7502,7 @@ namespace Orts.Simulation.Physics
 
             foreach (TrackCircuitRouteElement thisElement in TrainRoute)
             {
-                TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
+                TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
 
                 if (clearedSections.Contains(thisSection))
                 {
@@ -7529,7 +7528,7 @@ namespace Orts.Simulation.Physics
         public void UpdateManualMode(int signalObjectIndex)
         {
             // check present forward
-            TCSubpathRoute newRouteF = CheckManualPath(0, PresentPosition[0], ValidRoute[0], true, ref EndAuthorityTypes[0],
+            TrackCircuitPartialPathRoute newRouteF = CheckManualPath(0, PresentPosition[0], ValidRoute[0], true, ref EndAuthorityTypes[0],
                 ref DistanceToEndNodeAuthorityM[0]);
             ValidRoute[0] = newRouteF;
             int routeIndex = ValidRoute[0].GetRouteIndex(PresentPosition[0].TCSectionIndex, 0);
@@ -7540,7 +7539,7 @@ namespace Orts.Simulation.Physics
             TCPosition tempRear = new TCPosition();
             PresentPosition[1].CopyTo(ref tempRear);
             tempRear.TCDirection = tempRear.TCDirection == 0 ? 1 : 0;
-            TCSubpathRoute newRouteR = CheckManualPath(1, tempRear, ValidRoute[1], true, ref EndAuthorityTypes[1],
+            TrackCircuitPartialPathRoute newRouteR = CheckManualPath(1, tempRear, ValidRoute[1], true, ref EndAuthorityTypes[1],
                 ref DistanceToEndNodeAuthorityM[1]);
             ValidRoute[1] = newRouteR;
 
@@ -7550,19 +7549,19 @@ namespace Orts.Simulation.Physics
             if (MUDirection == MidpointDirection.Forward)
             {
                 // use position from other end of section
-                float reverseOffset = signalRef.TrackCircuitList[PresentPosition[1].TCSectionIndex].Length - PresentPosition[1].TCOffset;
+                float reverseOffset = TrackCircuitSection.TrackCircuitList[PresentPosition[1].TCSectionIndex].Length - PresentPosition[1].TCOffset;
                 CheckSpeedLimitManual(ValidRoute[1], TrainRoute, reverseOffset, PresentPosition[1].TCOffset, signalObjectIndex, 0);
             }
             else
             {
-                TCSubpathRoute tempRoute = new TCSubpathRoute(); // reversed trainRoute
+                TrackCircuitPartialPathRoute tempRoute = new TrackCircuitPartialPathRoute(); // reversed trainRoute
                 for (int iindex = TrainRoute.Count - 1; iindex >= 0; iindex--)
                 {
                     TrackCircuitRouteElement thisElement = TrainRoute[iindex];
                     thisElement.Direction = thisElement.Direction.Next();
                     tempRoute.Add(thisElement);
                 }
-                float reverseOffset = signalRef.TrackCircuitList[PresentPosition[0].TCSectionIndex].Length - PresentPosition[0].TCOffset;
+                float reverseOffset = TrackCircuitSection.TrackCircuitList[PresentPosition[0].TCSectionIndex].Length - PresentPosition[0].TCOffset;
                 CheckSpeedLimitManual(ValidRoute[0], tempRoute, PresentPosition[0].TCOffset, reverseOffset, signalObjectIndex, 1);
             }
 
@@ -7586,7 +7585,7 @@ namespace Orts.Simulation.Physics
             for (int iindex = 0; iindex < ValidRoute[0].Count && NextSignalObject[0] == null; iindex++)
             {
                 TrackCircuitRouteElement thisElement = ValidRoute[0][iindex];
-                TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
+                TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
                 NextSignalObject[0] = thisSection.EndSignals[(TrackDirection)thisElement.Direction];
             }
 
@@ -7595,7 +7594,7 @@ namespace Orts.Simulation.Physics
             for (int iindex = 0; iindex < ValidRoute[1].Count && NextSignalObject[1] == null; iindex++)
             {
                 TrackCircuitRouteElement thisElement = ValidRoute[1][iindex];
-                TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
+                TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
                 NextSignalObject[1] = thisSection.EndSignals[(TrackDirection)thisElement.Direction];
             }
 
@@ -7609,14 +7608,14 @@ namespace Orts.Simulation.Physics
         /// Check Manual Path
         /// <\summary>
 
-        public TCSubpathRoute CheckManualPath(int direction, TCPosition requiredPosition, TCSubpathRoute requiredRoute, bool forward,
+        public TrackCircuitPartialPathRoute CheckManualPath(int direction, TCPosition requiredPosition, TrackCircuitPartialPathRoute requiredRoute, bool forward,
             ref EndAuthorityType endAuthority, ref float endAuthorityDistanceM)
         {
             TrainRouted thisRouted = direction == 0 ? routedForward : routedBackward;
 
             // create new route or set to existing route
 
-            TCSubpathRoute newRoute = null;
+            TrackCircuitPartialPathRoute newRoute = null;
 
             TrackCircuitRouteElement thisElement = null;
             TrackCircuitSection thisSection = null;
@@ -7626,7 +7625,7 @@ namespace Orts.Simulation.Physics
 
             if (requiredRoute == null)
             {
-                newRoute = new TCSubpathRoute();
+                newRoute = new TrackCircuitPartialPathRoute();
             }
             else
             {
@@ -7643,12 +7642,12 @@ namespace Orts.Simulation.Physics
                 if (newRoute.Count > 0)
                 {
                     // get last section, and get next expected section
-                    TrackCircuitSection lastSection = signalRef.TrackCircuitList[newRoute[newRoute.Count - 1].TrackCircuitSectionIndex];
+                    TrackCircuitSection lastSection = TrackCircuitSection.TrackCircuitList[newRoute[newRoute.Count - 1].TrackCircuitSectionIndex];
                     int nextSectionIndex = lastSection.ActivePins[(TrackDirection)newRoute[newRoute.Count - 1].Direction, Location.NearEnd].Link;
 
                     if (nextSectionIndex >= 0)
                     {
-                        TrackCircuitSection nextSection = signalRef.TrackCircuitList[nextSectionIndex];
+                        TrackCircuitSection nextSection = TrackCircuitSection.TrackCircuitList[nextSectionIndex];
 
                         // is next expected section misaligned switch and is present section trailing end of this switch
                         if (nextSectionIndex == MisalignedSwitch[direction, 0] && lastSection.Index == MisalignedSwitch[direction, 1] &&
@@ -7691,7 +7690,7 @@ namespace Orts.Simulation.Physics
                 MisalignedSwitch[direction, 1] = -1;
 
                 List<int> tempSections = new List<int>();
-                tempSections = signalRef.ScanRoute(this, requiredPosition.TCSectionIndex, requiredPosition.TCOffset,
+                tempSections = SignalEnvironment.ScanRoute(this, requiredPosition.TCSectionIndex, requiredPosition.TCOffset,
                         (TrackDirection)requiredPosition.TCDirection, forward, minCheckDistanceManualM, true, false,
                         true, false, true, false, false, false, false, IsFreight);
 
@@ -7705,7 +7704,7 @@ namespace Orts.Simulation.Physics
                     foreach (int sectionIndex in tempSections)
                     {
                         TrackDirection sectionDirection = sectionIndex > 0 ? TrackDirection.Ahead : TrackDirection.Reverse;
-                        thisElement = new TrackCircuitRouteElement(signalRef.TrackCircuitList[Math.Abs(sectionIndex)], sectionDirection, prevSection);
+                        thisElement = new TrackCircuitRouteElement(TrackCircuitSection.TrackCircuitList[Math.Abs(sectionIndex)], sectionDirection, prevSection);
                         newRoute.Add(thisElement);
                         prevSection = Math.Abs(sectionIndex);
                     }
@@ -7723,7 +7722,7 @@ namespace Orts.Simulation.Physics
             // check if route ends at signal, determine length
 
             totalLengthM = 0;
-            thisSection = signalRef.TrackCircuitList[requiredPosition.TCSectionIndex];
+            thisSection = TrackCircuitSection.TrackCircuitList[requiredPosition.TCSectionIndex];
             offsetM = direction == 0 ? requiredPosition.TCOffset : thisSection.Length - requiredPosition.TCOffset;
             bool endWithSignal = false;    // ends with signal at STOP
             bool hasEndSignal = false;     // ends with cleared signal
@@ -7735,7 +7734,7 @@ namespace Orts.Simulation.Physics
             {
                 thisElement = newRoute[iindex];
 
-                thisSection = signalRef.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
+                thisSection = TrackCircuitSection.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
                 totalLengthM += (thisSection.Length - offsetM);
                 offsetM = 0.0f; // reset offset for further sections
 
@@ -7769,7 +7768,7 @@ namespace Orts.Simulation.Physics
             {
                 for (int iindex = newRoute.Count - 1; iindex >= sectionWithSignalIndex + 1; iindex--)
                 {
-                    thisSection = signalRef.TrackCircuitList[newRoute[iindex].TrackCircuitSectionIndex];
+                    thisSection = TrackCircuitSection.TrackCircuitList[newRoute[iindex].TrackCircuitSectionIndex];
                     thisSection.RemoveTrain(this, true);
                     newRoute.RemoveAt(iindex);
                 }
@@ -7784,7 +7783,7 @@ namespace Orts.Simulation.Physics
                 TrackCircuitRouteElement lastElement = newRoute[newRoute.Count - 1];
 
                 int lastSectionIndex = lastElement.TrackCircuitSectionIndex;
-                TrackCircuitSection lastSection = signalRef.TrackCircuitList[lastSectionIndex];
+                TrackCircuitSection lastSection = TrackCircuitSection.TrackCircuitList[lastSectionIndex];
 
                 int nextSectionIndex = lastSection.Pins[lastElement.OutPin[Location.NearEnd], (Location)lastElement.OutPin[Location.FarEnd]].Link;
                 TrackDirection nextSectionDirection = lastSection.Pins[lastElement.OutPin[Location.NearEnd], (Location)lastElement.OutPin[Location.FarEnd]].Direction;
@@ -7794,7 +7793,7 @@ namespace Orts.Simulation.Physics
                 MisalignedSwitch[direction, 0] = -1;
                 MisalignedSwitch[direction, 1] = -1;
 
-                TrackCircuitSection nextSection = nextSectionIndex >= 0 ? signalRef.TrackCircuitList[nextSectionIndex] : null;
+                TrackCircuitSection nextSection = nextSectionIndex >= 0 ? TrackCircuitSection.TrackCircuitList[nextSectionIndex] : null;
                 if (nextSection != null && nextSection.CircuitType == TrackCircuitType.Junction)
                 {
                     if (nextSection.Pins[TrackDirection.Ahead, Location.NearEnd].Link != lastSectionIndex &&
@@ -7811,7 +7810,7 @@ namespace Orts.Simulation.Physics
                 {
                     bool reqAutoAlign = hasEndSignal; // auto-align switchs if route is extended from signal
 
-                    tempSections = signalRef.ScanRoute(this, nextSectionIndex, 0,
+                    tempSections = SignalEnvironment.ScanRoute(this, nextSectionIndex, 0,
                             nextSectionDirection, forward, extendedDistanceM, true, reqAutoAlign,
                             true, false, true, false, false, false, false, IsFreight);
                 }
@@ -7824,7 +7823,7 @@ namespace Orts.Simulation.Physics
 
                     foreach (int sectionIndex in tempSections)
                     {
-                        thisElement = new TrackCircuitRouteElement(signalRef.TrackCircuitList[Math.Abs(sectionIndex)], 
+                        thisElement = new TrackCircuitRouteElement(TrackCircuitSection.TrackCircuitList[Math.Abs(sectionIndex)], 
                             sectionIndex > 0 ? TrackDirection.Ahead : TrackDirection.Reverse, prevSection);
                         newRoute.Add(thisElement);
                         prevSection = Math.Abs(sectionIndex);
@@ -7836,13 +7835,13 @@ namespace Orts.Simulation.Physics
 
             else if (totalLengthM > minCheckDistanceManualM)
             {
-                float remainingLengthM = totalLengthM - signalRef.TrackCircuitList[newRoute[0].TrackCircuitSectionIndex].Length; // do not count first section
+                float remainingLengthM = totalLengthM - TrackCircuitSection.TrackCircuitList[newRoute[0].TrackCircuitSectionIndex].Length; // do not count first section
                 bool lengthExceeded = remainingLengthM > minCheckDistanceManualM;
 
                 for (int iindex = newRoute.Count - 1; iindex > 1 && lengthExceeded; iindex--)
                 {
                     thisElement = newRoute[iindex];
-                    thisSection = signalRef.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
+                    thisSection = TrackCircuitSection.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
 
                     if ((remainingLengthM - thisSection.Length) > minCheckDistanceManualM)
                     {
@@ -7862,7 +7861,7 @@ namespace Orts.Simulation.Physics
             if (newRoute.Count > 0)
             {
                 thisElement = newRoute[0];
-                thisSection = signalRef.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
+                thisSection = TrackCircuitSection.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
                 reqDirection = forward ? (TrackDirection)thisElement.Direction : ((TrackDirection)thisElement.Direction).Next();
                 offsetM = direction == 0 ? requiredPosition.TCOffset : thisSection.Length - requiredPosition.TCOffset;
 
@@ -7890,7 +7889,7 @@ namespace Orts.Simulation.Physics
 
                     for (int iindex = 0; iindex < newRoute.Count && isAvailable; iindex++)
                     {
-                        thisSection = signalRef.TrackCircuitList[newRoute[iindex].TrackCircuitSectionIndex];
+                        thisSection = TrackCircuitSection.TrackCircuitList[newRoute[iindex].TrackCircuitSectionIndex];
 
                         if (isAvailable)
                         {
@@ -7914,7 +7913,7 @@ namespace Orts.Simulation.Physics
 
                     // if last section ends with signal, set authority to signal
                     thisElement = newRoute[lastValidSectionIndex];
-                    thisSection = signalRef.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
+                    thisSection = TrackCircuitSection.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
                     reqDirection = forward ? (TrackDirection)thisElement.Direction : ((TrackDirection)thisElement.Direction).Next();
                     // last section ends with signal
                     if (thisSection.EndSignals[reqDirection] != null)
@@ -7934,7 +7933,7 @@ namespace Orts.Simulation.Physics
                         if (lastValidSectionIndex < newRoute.Count - 1)
                         {
                             nextElement = newRoute[lastValidSectionIndex + 1];
-                            nextSection = signalRef.TrackCircuitList[nextElement.TrackCircuitSectionIndex];
+                            nextSection = TrackCircuitSection.TrackCircuitList[nextElement.TrackCircuitSectionIndex];
                         }
 
                         // check for end authority if not ended with signal
@@ -8014,12 +8013,12 @@ namespace Orts.Simulation.Physics
         /// They were set before testing whether there is an occupying train
         /// </summary>
 
-        private void RemoveSignalEnablings(int firstSection, TCSubpathRoute newRoute)
+        private void RemoveSignalEnablings(int firstSection, TrackCircuitPartialPathRoute newRoute)
         {
             for (int iSection = firstSection; iSection <= newRoute.Count - 1; iSection++)
             {
                 var thisRouteElement = newRoute[iSection];
-                var thisRouteSection = signalRef.TrackCircuitList[thisRouteElement.TrackCircuitSectionIndex];
+                var thisRouteSection = TrackCircuitSection.TrackCircuitList[thisRouteElement.TrackCircuitSectionIndex];
                 TrackDirection thisReqDirection = (TrackDirection)thisRouteElement.Direction;
                 if (thisRouteSection.EndSignals[thisReqDirection] != null)
                 {
@@ -8043,7 +8042,7 @@ namespace Orts.Simulation.Physics
             for (int iindex = 0; iindex < ValidRoute[0].Count && NextSignalObject[0] == null; iindex++)
             {
                 TrackCircuitRouteElement thisElement = ValidRoute[0][iindex];
-                TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
+                TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
                 NextSignalObject[0] = thisSection.EndSignals[(TrackDirection)thisElement.Direction];
             }
 
@@ -8052,7 +8051,7 @@ namespace Orts.Simulation.Physics
             for (int iindex = 0; iindex < ValidRoute[1].Count && NextSignalObject[1] == null; iindex++)
             {
                 TrackCircuitRouteElement thisElement = ValidRoute[1][iindex];
-                TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
+                TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
                 NextSignalObject[1] = thisSection.EndSignals[(TrackDirection)thisElement.Direction];
             }
         }
@@ -8063,13 +8062,13 @@ namespace Orts.Simulation.Physics
         // Request signal permission in manual mode
         //
 
-        public void RequestManualSignalPermission(ref TCSubpathRoute selectedRoute, int routeIndex)
+        public void RequestManualSignalPermission(ref TrackCircuitPartialPathRoute selectedRoute, int routeIndex)
         {
 
             // check if route ends with signal at danger
 
             TrackCircuitRouteElement lastElement = selectedRoute[selectedRoute.Count - 1];
-            TrackCircuitSection lastSection = signalRef.TrackCircuitList[lastElement.TrackCircuitSectionIndex];
+            TrackCircuitSection lastSection = TrackCircuitSection.TrackCircuitList[lastElement.TrackCircuitSectionIndex];
 
             // no signal in required direction at end of path
 
@@ -8101,7 +8100,7 @@ namespace Orts.Simulation.Physics
             float totalLengthM = 0;
             for (int iindex = 1; iindex < selectedRoute.Count; iindex++)
             {
-                TrackCircuitSection thisSection = signalRef.TrackCircuitList[selectedRoute[iindex].TrackCircuitSectionIndex];
+                TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[selectedRoute[iindex].TrackCircuitSectionIndex];
                 totalLengthM += thisSection.Length;
             }
 
@@ -8119,7 +8118,7 @@ namespace Orts.Simulation.Physics
 
             if (nextSectionIndex > 0)
             {
-                List<int> tempSections = signalRef.ScanRoute(this, nextSectionIndex, 0,
+                List<int> tempSections = SignalEnvironment.ScanRoute(this, nextSectionIndex, 0,
                     nextSectionDirection, true, remainingLengthM, true, true,
                     true, false, true, false, false, false, false, IsFreight);
 
@@ -8131,7 +8130,7 @@ namespace Orts.Simulation.Physics
 
                     foreach (int sectionIndex in tempSections)
                     {
-                        TrackCircuitRouteElement thisElement = new TrackCircuitRouteElement(signalRef.TrackCircuitList[Math.Abs(sectionIndex)],
+                        TrackCircuitRouteElement thisElement = new TrackCircuitRouteElement(TrackCircuitSection.TrackCircuitList[Math.Abs(sectionIndex)],
                                 sectionIndex > 0 ? TrackDirection.Ahead : TrackDirection.Reverse, prevSection);
                         requestedSignal.SignalRoute.Add(thisElement);
                         selectedRoute.Add(thisElement);
@@ -8166,7 +8165,7 @@ namespace Orts.Simulation.Physics
 
             for (int iindex = 0; iindex < ValidRoute[routeDirectionIndex].Count && reqSwitch == null; iindex++)
             {
-                TrackCircuitSection thisSection = signalRef.TrackCircuitList[ValidRoute[routeDirectionIndex][iindex].TrackCircuitSectionIndex];
+                TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[ValidRoute[routeDirectionIndex][iindex].TrackCircuitSectionIndex];
                 if (thisSection.CircuitType == TrackCircuitType.Junction)
                 {
                     reqSwitch = thisSection;
@@ -8178,7 +8177,7 @@ namespace Orts.Simulation.Physics
                 // search beyond last section for switch using default pins (continue through normal sections only)
 
                 TrackCircuitRouteElement thisElement = ValidRoute[routeDirectionIndex][ValidRoute[routeDirectionIndex].Count - 1];
-                TrackCircuitSection lastSection = signalRef.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
+                TrackCircuitSection lastSection = TrackCircuitSection.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
                 TrackDirection curDirection = (TrackDirection)thisElement.Direction;
                 int nextSectionIndex = thisElement.TrackCircuitSectionIndex;
 
@@ -8204,7 +8203,7 @@ namespace Orts.Simulation.Physics
                     {
                         nextSectionIndex = lastSection.Pins[curDirection, Location.NearEnd].Link;
                         curDirection = lastSection.ActivePins[curDirection, Location.NearEnd].Direction;
-                        lastSection = signalRef.TrackCircuitList[nextSectionIndex];
+                        lastSection = TrackCircuitSection.TrackCircuitList[nextSectionIndex];
                     }
 
                     if (lastSection.CircuitType == TrackCircuitType.Junction)
@@ -8289,7 +8288,7 @@ namespace Orts.Simulation.Physics
 
             if (switchFound)
             {
-                TrackCircuitSection reqSwitch = signalRef.TrackCircuitList[reqSwitchIndex];
+                TrackCircuitSection reqSwitch = TrackCircuitSection.TrackCircuitList[reqSwitchIndex];
                 ProcessManualSwitch(routeDirectionIndex, reqSwitch, direction);
                 return (true);
             }
@@ -8305,7 +8304,7 @@ namespace Orts.Simulation.Physics
         public void ProcessManualSwitch(int routeDirectionIndex, TrackCircuitSection switchSection, Direction direction)
         {
             TrainRouted thisRouted = direction == Direction.Backward ? routedForward : routedBackward; //TODO 20201109 double check why using the forward route for backward direction
-            TCSubpathRoute selectedRoute = ValidRoute[routeDirectionIndex];
+            TrackCircuitPartialPathRoute selectedRoute = ValidRoute[routeDirectionIndex];
 
             // store required position
             int reqSwitchPosition = switchSection.JunctionSetManual;
@@ -8319,7 +8318,7 @@ namespace Orts.Simulation.Physics
             for (int iindex = 0; iindex < junctionIndex; iindex++)
             {
                 TrackCircuitRouteElement thisElement = selectedRoute[iindex];
-                TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
+                TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
                 TrackDirection signalDirection = (TrackDirection)thisElement.Direction;
 
                 if (thisSection.EndSignals[signalDirection] != null)
@@ -8375,7 +8374,7 @@ namespace Orts.Simulation.Physics
             // if route ends at previously cleared signal, request clear signal again
 
             TrackCircuitRouteElement lastElement = selectedRoute[selectedRoute.Count - 1];
-            TrackCircuitSection lastSection = signalRef.TrackCircuitList[lastElement.TrackCircuitSectionIndex];
+            TrackCircuitSection lastSection = TrackCircuitSection.TrackCircuitList[lastElement.TrackCircuitSectionIndex];
             TrackDirection lastDirection = (TrackDirection)lastElement.Direction;
 
             var lastSignal = lastSection.EndSignals[lastDirection];
@@ -8385,7 +8384,7 @@ namespace Orts.Simulation.Physics
                 RequestManualSignalPermission(ref selectedRoute, routeIndex);
 
                 lastElement = selectedRoute[selectedRoute.Count - 1];
-                lastSection = signalRef.TrackCircuitList[lastElement.TrackCircuitSectionIndex];
+                lastSection = TrackCircuitSection.TrackCircuitList[lastElement.TrackCircuitSectionIndex];
                 lastDirection = (TrackDirection)lastElement.Direction;
 
                 lastSignal = lastSection.EndSignals[lastDirection];
@@ -8399,7 +8398,7 @@ namespace Orts.Simulation.Physics
         /// Update speed limit in manual mode
         /// </summary>
 
-        public void CheckSpeedLimitManual(TCSubpathRoute routeBehind, TCSubpathRoute routeUnderTrain, float offsetStart,
+        public void CheckSpeedLimitManual(TrackCircuitPartialPathRoute routeBehind, TrackCircuitPartialPathRoute routeUnderTrain, float offsetStart,
             float reverseOffset, int passedSignalIndex, int routeDirection)
         {
             // check backward for last speedlimit in direction of train - raise speed if passed
@@ -8407,7 +8406,7 @@ namespace Orts.Simulation.Physics
             TrackCircuitRouteElement thisElement = routeBehind[0];
             List<int> foundSpeedLimit = new List<int>();
 
-            foundSpeedLimit = signalRef.ScanRoute(this, thisElement.TrackCircuitSectionIndex, offsetStart, (TrackDirection)thisElement.Direction,
+            foundSpeedLimit = SignalEnvironment.ScanRoute(this, thisElement.TrackCircuitSectionIndex, offsetStart, (TrackDirection)thisElement.Direction,
                     true, -1, false, true, false, false, false, false, false, false, true, IsFreight);
 
             if (foundSpeedLimit.Count > 0)
@@ -8435,7 +8434,7 @@ namespace Orts.Simulation.Physics
             // search also checks for speedlimit to see which is nearest train
 
             foundSpeedLimit.Clear();
-            foundSpeedLimit = signalRef.ScanRoute(this, thisElement.TrackCircuitSectionIndex, offsetStart, (TrackDirection)thisElement.Direction,
+            foundSpeedLimit = SignalEnvironment.ScanRoute(this, thisElement.TrackCircuitSectionIndex, offsetStart, (TrackDirection)thisElement.Direction,
                     true, -1, false, true, false, false, false, false, true, false, true, IsFreight, true);
 
             if (foundSpeedLimit.Count > 0)
@@ -8484,7 +8483,7 @@ namespace Orts.Simulation.Physics
             float remLength = Length;
             Dictionary<int, float> remainingSignals = new Dictionary<int, float>();
 
-            foundSpeedLimit = signalRef.ScanRoute(this, thisElement.TrackCircuitSectionIndex, reverseOffset, (TrackDirection)thisElement.Direction,
+            foundSpeedLimit = SignalEnvironment.ScanRoute(this, thisElement.TrackCircuitSectionIndex, reverseOffset, (TrackDirection)thisElement.Direction,
                     true, remLength, false, true, false, false, false, true, false, true, false, IsFreight);
 
             bool limitAlongTrain = true;
@@ -8493,7 +8492,7 @@ namespace Orts.Simulation.Physics
                 var thisObject = signalRef.Signals[Math.Abs(foundSpeedLimit[0])];
 
                 // check if not beyond end of train
-                TrackCircuitSection reqSection = signalRef.TrackCircuitList[thisObject.TrackCircuitIndex];
+                TrackCircuitSection reqSection = TrackCircuitSection.TrackCircuitList[thisObject.TrackCircuitIndex];
                 float speedLimitDistance = TrackCircuitSection.GetDistanceBetweenObjects(thisElement.TrackCircuitSectionIndex, reverseOffset, (TrackDirection)thisElement.Direction,
                     thisObject.TrackCircuitIndex, thisObject.TrackCircuitOffset);
                 if (speedLimitDistance > Length)
@@ -8553,7 +8552,7 @@ namespace Orts.Simulation.Physics
 
                     remLength -= (thisObject.TrackCircuitOffset - offsetStart);
 
-                    foundSpeedLimit = signalRef.ScanRoute(this, nextSectionIndex, objectOffset, direction,
+                    foundSpeedLimit = SignalEnvironment.ScanRoute(this, nextSectionIndex, objectOffset, direction,
                         true, remLength, false, true, false, false, false, true, false, true, false, IsFreight);
                 }
             }
@@ -8597,7 +8596,7 @@ namespace Orts.Simulation.Physics
         {
             // occupation is set in forward mode only
             // build route from rear to front - before reset occupy so correct switch alignment is used
-            TrainRoute = signalRef.BuildTempRoute(this, PresentPosition[1].TCSectionIndex, PresentPosition[1].TCOffset,
+            TrainRoute = SignalEnvironment.BuildTempRoute(this, PresentPosition[1].TCSectionIndex, PresentPosition[1].TCOffset,
                             (TrackDirection)PresentPosition[1].TCDirection, Length, false, true, false);
 
             // save present occupation list
@@ -8613,7 +8612,7 @@ namespace Orts.Simulation.Physics
             int reqDirection = MUDirection == MidpointDirection.Forward ? 0 : 1;
             foreach (TrackCircuitRouteElement thisElement in TrainRoute)
             {
-                TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
+                TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
 
                 // occupying misaligned switch : reset routes and position
                 if (thisSection.Index == MisalignedSwitch[reqDirection, 0])
@@ -8640,7 +8639,7 @@ namespace Orts.Simulation.Physics
 
             foreach (TrackCircuitRouteElement thisElement in TrainRoute)
             {
-                TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
+                TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
 
                 if (clearedSections.Contains(thisSection))
                 {
@@ -8672,7 +8671,7 @@ namespace Orts.Simulation.Physics
                 {
                     foreach (var tcRouteElement in ValidRoute[0])
                     {
-                        var tcSection = signalRef.TrackCircuitList[tcRouteElement.TrackCircuitSectionIndex];
+                        var tcSection = TrackCircuitSection.TrackCircuitList[tcRouteElement.TrackCircuitSectionIndex];
                         if (tcSection.CheckReserved(routedForward) && !tcSection.CircuitState.OccupationState.ContainsTrain(this))
                         {
                             tcSection.Unreserve();
@@ -8684,7 +8683,7 @@ namespace Orts.Simulation.Physics
                 {
                     foreach (var tcRouteElement in ValidRoute[1])
                     {
-                        var tcSection = signalRef.TrackCircuitList[tcRouteElement.TrackCircuitSectionIndex];
+                        var tcSection = TrackCircuitSection.TrackCircuitList[tcRouteElement.TrackCircuitSectionIndex];
                         if (tcSection.CheckReserved(routedBackward) && !tcSection.CircuitState.OccupationState.ContainsTrain(this))
                         {
                             tcSection.Unreserve();
@@ -8695,7 +8694,7 @@ namespace Orts.Simulation.Physics
             }
 
             // check present forward
-            TCSubpathRoute newRouteF = CheckExplorerPath(0, PresentPosition[0], ValidRoute[0], true, ref EndAuthorityTypes[0],
+            TrackCircuitPartialPathRoute newRouteF = CheckExplorerPath(0, PresentPosition[0], ValidRoute[0], true, ref EndAuthorityTypes[0],
                 ref DistanceToEndNodeAuthorityM[0]);
             ValidRoute[0] = newRouteF;
             int routeIndex = ValidRoute[0].GetRouteIndex(PresentPosition[0].TCSectionIndex, 0);
@@ -8706,7 +8705,7 @@ namespace Orts.Simulation.Physics
             TCPosition tempRear = new TCPosition();
             PresentPosition[1].CopyTo(ref tempRear);
             tempRear.TCDirection = tempRear.TCDirection == 0 ? 1 : 0;
-            TCSubpathRoute newRouteR = CheckExplorerPath(1, tempRear, ValidRoute[1], true, ref EndAuthorityTypes[1],
+            TrackCircuitPartialPathRoute newRouteR = CheckExplorerPath(1, tempRear, ValidRoute[1], true, ref EndAuthorityTypes[1],
                 ref DistanceToEndNodeAuthorityM[1]);
             ValidRoute[1] = newRouteR;
 
@@ -8715,19 +8714,19 @@ namespace Orts.Simulation.Physics
             if (MUDirection == MidpointDirection.Forward)
             {
                 // use position from other end of section
-                float reverseOffset = signalRef.TrackCircuitList[PresentPosition[1].TCSectionIndex].Length - PresentPosition[1].TCOffset;
+                float reverseOffset = TrackCircuitSection.TrackCircuitList[PresentPosition[1].TCSectionIndex].Length - PresentPosition[1].TCOffset;
                 CheckSpeedLimitManual(ValidRoute[1], TrainRoute, reverseOffset, PresentPosition[1].TCOffset, signalObjectIndex, 0);
             }
             else
             {
-                TCSubpathRoute tempRoute = new TCSubpathRoute(); // reversed trainRoute
+                TrackCircuitPartialPathRoute tempRoute = new TrackCircuitPartialPathRoute(); // reversed trainRoute
                 for (int iindex = TrainRoute.Count - 1; iindex >= 0; iindex--)
                 {
                     TrackCircuitRouteElement thisElement = TrainRoute[iindex];
                     thisElement.Direction = thisElement.Direction.Next();
                     tempRoute.Add(thisElement);
                 }
-                float reverseOffset = signalRef.TrackCircuitList[PresentPosition[0].TCSectionIndex].Length - PresentPosition[0].TCOffset;
+                float reverseOffset = TrackCircuitSection.TrackCircuitList[PresentPosition[0].TCSectionIndex].Length - PresentPosition[0].TCOffset;
                 CheckSpeedLimitManual(ValidRoute[0], tempRoute, PresentPosition[0].TCOffset, reverseOffset, signalObjectIndex, 1);
             }
 
@@ -8748,7 +8747,7 @@ namespace Orts.Simulation.Physics
             for (int iindex = 0; iindex < ValidRoute[0].Count && NextSignalObject[0] == null; iindex++)
             {
                 TrackCircuitRouteElement thisElement = ValidRoute[0][iindex];
-                TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
+                TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
                 NextSignalObject[0] = thisSection.EndSignals[(TrackDirection)thisElement.Direction];
             }
 
@@ -8757,7 +8756,7 @@ namespace Orts.Simulation.Physics
             for (int iindex = 0; iindex < ValidRoute[1].Count && NextSignalObject[1] == null; iindex++)
             {
                 TrackCircuitRouteElement thisElement = ValidRoute[1][iindex];
-                TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
+                TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
                 NextSignalObject[1] = thisSection.EndSignals[(TrackDirection)thisElement.Direction];
             }
 
@@ -8770,14 +8769,14 @@ namespace Orts.Simulation.Physics
         /// Check Explorer Path
         /// <\summary>
 
-        public TCSubpathRoute CheckExplorerPath(int direction, TCPosition requiredPosition, TCSubpathRoute requiredRoute, bool forward,
+        public TrackCircuitPartialPathRoute CheckExplorerPath(int direction, TCPosition requiredPosition, TrackCircuitPartialPathRoute requiredRoute, bool forward,
             ref EndAuthorityType endAuthority, ref float endAuthorityDistanceM)
         {
             TrainRouted thisRouted = direction == 0 ? routedForward : routedBackward;
 
             // create new route or set to existing route
 
-            TCSubpathRoute newRoute = null;
+            TrackCircuitPartialPathRoute newRoute = null;
 
             TrackCircuitRouteElement thisElement = null;
             TrackCircuitSection thisSection = null;
@@ -8787,7 +8786,7 @@ namespace Orts.Simulation.Physics
 
             if (requiredRoute == null)
             {
-                newRoute = new TCSubpathRoute();
+                newRoute = new TrackCircuitPartialPathRoute();
             }
             else
             {
@@ -8809,7 +8808,7 @@ namespace Orts.Simulation.Physics
 
                 List<int> tempSections = new List<int>();
 
-                tempSections = signalRef.ScanRoute(this, requiredPosition.TCSectionIndex, requiredPosition.TCOffset,
+                tempSections = SignalEnvironment.ScanRoute(this, requiredPosition.TCSectionIndex, requiredPosition.TCOffset,
                         (TrackDirection)requiredPosition.TCDirection, forward, -1, true, false,
                         false, false, true, false, false, false, false, IsFreight);
 
@@ -8822,7 +8821,7 @@ namespace Orts.Simulation.Physics
 
                     foreach (int sectionIndex in tempSections)
                     {
-                        thisElement = new TrackCircuitRouteElement(signalRef.TrackCircuitList[Math.Abs(sectionIndex)],
+                        thisElement = new TrackCircuitRouteElement(TrackCircuitSection.TrackCircuitList[Math.Abs(sectionIndex)],
                                 sectionIndex > 0 ? TrackDirection.Ahead : TrackDirection.Reverse, prevSection);
                         newRoute.Add(thisElement);
                         prevSection = Math.Abs(sectionIndex);
@@ -8841,7 +8840,7 @@ namespace Orts.Simulation.Physics
             // check if route ends at signal, determine length
 
             totalLengthM = 0;
-            thisSection = signalRef.TrackCircuitList[requiredPosition.TCSectionIndex];
+            thisSection = TrackCircuitSection.TrackCircuitList[requiredPosition.TCSectionIndex];
             offsetM = direction == 0 ? requiredPosition.TCOffset : thisSection.Length - requiredPosition.TCOffset;
             bool endWithSignal = false;    // ends with signal at STOP
             int sectionWithSignalIndex = 0;
@@ -8850,7 +8849,7 @@ namespace Orts.Simulation.Physics
             {
                 thisElement = newRoute[iindex];
 
-                thisSection = signalRef.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
+                thisSection = TrackCircuitSection.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
                 totalLengthM += (thisSection.Length - offsetM);
                 offsetM = 0.0f; // reset offset for further sections
 
@@ -8883,7 +8882,7 @@ namespace Orts.Simulation.Physics
             {
                 for (int iindex = newRoute.Count - 1; iindex >= sectionWithSignalIndex + 1; iindex--)
                 {
-                    thisSection = signalRef.TrackCircuitList[newRoute[iindex].TrackCircuitSectionIndex];
+                    thisSection = TrackCircuitSection.TrackCircuitList[newRoute[iindex].TrackCircuitSectionIndex];
                     thisSection.RemoveTrain(this, true);
                     newRoute.RemoveAt(iindex);
                 }
@@ -8898,7 +8897,7 @@ namespace Orts.Simulation.Physics
             for (int iindex = 0; iindex <= newRoute.Count - 1 && !unclearedSignal; iindex++)
             {
                 thisElement = newRoute[iindex];
-                thisSection = signalRef.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
+                thisSection = TrackCircuitSection.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
 
                 var nextSignal = thisSection.EndSignals[(TrackDirection)thisElement.Direction];
                 if (nextSignal != null &&
@@ -8917,7 +8916,7 @@ namespace Orts.Simulation.Physics
             if (newRoute.Count > 0)
             {
                 thisElement = newRoute[0];
-                thisSection = signalRef.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
+                thisSection = TrackCircuitSection.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
                 reqDirection = forward ? (TrackDirection)thisElement.Direction : ((TrackDirection)thisElement.Direction).Next();
                 offsetM = direction == 0 ? requiredPosition.TCOffset : thisSection.Length - requiredPosition.TCOffset;
 
@@ -8943,7 +8942,7 @@ namespace Orts.Simulation.Physics
 
                     for (int iindex = 0; iindex <= signalIndex && isAvailable; iindex++)
                     {
-                        thisSection = signalRef.TrackCircuitList[newRoute[iindex].TrackCircuitSectionIndex];
+                        thisSection = TrackCircuitSection.TrackCircuitList[newRoute[iindex].TrackCircuitSectionIndex];
 
                         if (isAvailable)
                         {
@@ -8967,7 +8966,7 @@ namespace Orts.Simulation.Physics
 
                     // if last section ends with signal, set authority to signal
                     thisElement = newRoute[lastValidSectionIndex];
-                    thisSection = signalRef.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
+                    thisSection = TrackCircuitSection.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
                     reqDirection = forward ? (TrackDirection)thisElement.Direction : ((TrackDirection)thisElement.Direction).Next();
                     // last section ends with signal
                     if (thisSection.EndSignals[reqDirection] != null)
@@ -8987,7 +8986,7 @@ namespace Orts.Simulation.Physics
                         if (lastValidSectionIndex < newRoute.Count - 1)
                         {
                             nextElement = newRoute[lastValidSectionIndex + 1];
-                            nextSection = signalRef.TrackCircuitList[nextElement.TrackCircuitSectionIndex];
+                            nextSection = TrackCircuitSection.TrackCircuitList[nextElement.TrackCircuitSectionIndex];
                         }
 
                         // check for end authority if not ended with signal
@@ -9054,7 +9053,7 @@ namespace Orts.Simulation.Physics
 
                 if (endAuthority == EndAuthorityType.Signal)
                 {
-                    TrackCircuitSection lastSection = signalRef.TrackCircuitList[newRoute[newRoute.Count - 1].TrackCircuitSectionIndex];
+                    TrackCircuitSection lastSection = TrackCircuitSection.TrackCircuitList[newRoute[newRoute.Count - 1].TrackCircuitSectionIndex];
                     TrackDirection lastDirection = (TrackDirection)newRoute[newRoute.Count - 1].Direction;
                     if (lastSection.EndSignals[lastDirection] != null && lastSection.EndSignals[lastDirection].Index == nextUnclearSignalIndex)
                     {
@@ -9088,7 +9087,7 @@ namespace Orts.Simulation.Physics
             for (int iindex = 0; iindex < ValidRoute[0].Count && NextSignalObject[0] == null; iindex++)
             {
                 TrackCircuitRouteElement thisElement = ValidRoute[0][iindex];
-                TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
+                TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
                 NextSignalObject[0] = thisSection.EndSignals[(TrackDirection)thisElement.Direction];
             }
 
@@ -9097,7 +9096,7 @@ namespace Orts.Simulation.Physics
             for (int iindex = 0; iindex < ValidRoute[1].Count && NextSignalObject[1] == null; iindex++)
             {
                 TrackCircuitRouteElement thisElement = ValidRoute[1][iindex];
-                TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
+                TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
                 NextSignalObject[1] = thisSection.EndSignals[(TrackDirection)thisElement.Direction];
             }
         }
@@ -9108,7 +9107,7 @@ namespace Orts.Simulation.Physics
         // Request signal permission in explorer mode
         //
 
-        public void RequestExplorerSignalPermission(ref TCSubpathRoute selectedRoute, int routeIndex)
+        public void RequestExplorerSignalPermission(ref TrackCircuitPartialPathRoute selectedRoute, int routeIndex)
         {
             // check route for first signal at danger, from present position
 
@@ -9119,7 +9118,7 @@ namespace Orts.Simulation.Physics
             {
                 for (int iIndex = PresentPosition[routeIndex].RouteListIndex; iIndex <= ValidRoute[routeIndex].Count - 1 && !signalFound; iIndex++)
                 {
-                    TrackCircuitSection thisSection = signalRef.TrackCircuitList[ValidRoute[routeIndex][iIndex].TrackCircuitSectionIndex];
+                    TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[ValidRoute[routeIndex][iIndex].TrackCircuitSectionIndex];
                     TrackDirection direction = (TrackDirection)ValidRoute[routeIndex][iIndex].Direction;
 
                     if (thisSection.EndSignals[direction] != null)
@@ -9154,7 +9153,7 @@ namespace Orts.Simulation.Physics
                 tempPos.TCDirection = tempPos.TCDirection == 0 ? 1 : 0;
             }
 
-            TCSubpathRoute newRouteR = CheckExplorerPath(routeIndex, tempPos, ValidRoute[routeIndex], true, ref EndAuthorityTypes[routeIndex],
+            TrackCircuitPartialPathRoute newRouteR = CheckExplorerPath(routeIndex, tempPos, ValidRoute[routeIndex], true, ref EndAuthorityTypes[routeIndex],
                 ref DistanceToEndNodeAuthorityM[routeIndex]);
             ValidRoute[routeIndex] = newRouteR;
             Simulator.SoundNotify = reqSignal.OverridePermission == SignalPermission.Granted ?
@@ -9178,7 +9177,7 @@ namespace Orts.Simulation.Physics
 
             for (int iindex = 0; iindex < ValidRoute[routeDirectionIndex].Count && reqSwitch == null; iindex++)
             {
-                TrackCircuitSection thisSection = signalRef.TrackCircuitList[ValidRoute[routeDirectionIndex][iindex].TrackCircuitSectionIndex];
+                TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[ValidRoute[routeDirectionIndex][iindex].TrackCircuitSectionIndex];
                 if (thisSection.CircuitType == TrackCircuitType.Junction)
                 {
                     reqSwitch = thisSection;
@@ -9190,7 +9189,7 @@ namespace Orts.Simulation.Physics
                 // search beyond last section for switch using default pins (continue through normal sections only)
 
                 TrackCircuitRouteElement thisElement = ValidRoute[routeDirectionIndex][ValidRoute[routeDirectionIndex].Count - 1];
-                TrackCircuitSection lastSection = signalRef.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
+                TrackCircuitSection lastSection = TrackCircuitSection.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
                 TrackDirection curDirection = (TrackDirection)thisElement.Direction;
                 int nextSectionIndex = thisElement.TrackCircuitSectionIndex;
 
@@ -9216,7 +9215,7 @@ namespace Orts.Simulation.Physics
                     {
                         nextSectionIndex = lastSection.Pins[curDirection, Location.NearEnd].Link;
                         curDirection = lastSection.ActivePins[curDirection, Location.NearEnd].Direction;
-                        lastSection = signalRef.TrackCircuitList[nextSectionIndex];
+                        lastSection = TrackCircuitSection.TrackCircuitList[nextSectionIndex];
                     }
 
                     if (lastSection.CircuitType == TrackCircuitType.Junction)
@@ -9293,7 +9292,7 @@ namespace Orts.Simulation.Physics
 
             if (switchFound)
             {
-                TrackCircuitSection reqSwitch = signalRef.TrackCircuitList[reqSwitchIndex];
+                TrackCircuitSection reqSwitch = TrackCircuitSection.TrackCircuitList[reqSwitchIndex];
                 ProcessExplorerSwitch(routeDirectionIndex, reqSwitch, direction);
                 return (true);
             }
@@ -9310,7 +9309,7 @@ namespace Orts.Simulation.Physics
         {
             //<CSComment> Probably also in singleplayer the logic of multiplayer should be used, but it's unwise to modify it just before a release
             TrainRouted thisRouted = direction == Direction.Backward ^ !MPManager.IsMultiPlayer() ? routedBackward : routedForward;
-            TCSubpathRoute selectedRoute = ValidRoute[routeDirectionIndex];
+            TrackCircuitPartialPathRoute selectedRoute = ValidRoute[routeDirectionIndex];
 
             // store required position
             int reqSwitchPosition = switchSection.JunctionSetManual;
@@ -9326,7 +9325,7 @@ namespace Orts.Simulation.Physics
             for (int iindex = 0; iindex < junctionIndex && firstSignal == null; iindex++)
             {
                 TrackCircuitRouteElement thisElement = selectedRoute[iindex];
-                TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
+                TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
                 if (iindex > 0) coveredLength += thisSection.Length; // do not use first section
 
                 TrackDirection signalDirection = (TrackDirection)thisElement.Direction;
@@ -9388,7 +9387,7 @@ namespace Orts.Simulation.Physics
             {
                 signalRef.BreakDownRouteList(selectedRoute, 0, thisRouted);
                 selectedRoute.Clear();
-                TrainRoute = signalRef.BuildTempRoute(this, PresentPosition[1].TCSectionIndex, PresentPosition[1].TCOffset,
+                TrainRoute = SignalEnvironment.BuildTempRoute(this, PresentPosition[1].TCSectionIndex, PresentPosition[1].TCOffset,
                     (TrackDirection)PresentPosition[1].TCDirection, Length, false, true, false);
                 UpdateExplorerMode(-1);
             }
@@ -9489,7 +9488,7 @@ namespace Orts.Simulation.Physics
             int lastSectionIndex = ValidRoute[0].GetRouteIndex(thisSignal.TrackCircuitIndex, firstSectionIndex);
 
             // first, all signals in present section beyond position of train
-            TrackCircuitSection thisSection = signalRef.TrackCircuitList[ValidRoute[0][firstSectionIndex].TrackCircuitSectionIndex];
+            TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[ValidRoute[0][firstSectionIndex].TrackCircuitSectionIndex];
             TrackDirection thisDirection = (TrackDirection)ValidRoute[0][firstSectionIndex].Direction;
 
             for (int isigtype = 0; isigtype < signalRef.OrtsSignalTypeCount; isigtype++)
@@ -9507,7 +9506,7 @@ namespace Orts.Simulation.Physics
             // next, signals in any further sections
             for (int iSectionIndex = firstSectionIndex + 1; iSectionIndex <= lastSectionIndex; iSectionIndex++)
             {
-                thisSection = signalRef.TrackCircuitList[ValidRoute[0][firstSectionIndex].TrackCircuitSectionIndex];
+                thisSection = TrackCircuitSection.TrackCircuitList[ValidRoute[0][firstSectionIndex].TrackCircuitSectionIndex];
                 thisDirection = (TrackDirection)ValidRoute[0][firstSectionIndex].Direction;
 
                 for (int isigtype = 0; isigtype < signalRef.OrtsSignalTypeCount; isigtype++)
@@ -9537,7 +9536,7 @@ namespace Orts.Simulation.Physics
                 // reset any claims
                 foreach (TrackCircuitRouteElement thisElement in NextSignalObject[0].SignalRoute)
                 {
-                    TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
+                    TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
                     thisSection.CircuitState.TrainClaimed.Remove(routedForward);
                 }
 
@@ -9575,7 +9574,7 @@ namespace Orts.Simulation.Physics
 
                 if (activeSectionIndex > 0)
                 {
-                    TrackCircuitSection thisSection = signalRef.TrackCircuitList[activeSectionIndex];
+                    TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[activeSectionIndex];
                     clearedDistanceM = GetDistanceToTrain(activeSectionIndex, thisSection.Length);
 
                     if (clearedDistanceM > maxDistance)
@@ -9620,7 +9619,7 @@ namespace Orts.Simulation.Physics
             {
                 // check if train is back on path
 
-                TCSubpathRoute lastRoute = TCRoute.TCRouteSubpaths[TCRoute.activeSubpath];
+                TrackCircuitPartialPathRoute lastRoute = TCRoute.TCRouteSubpaths[TCRoute.activeSubpath];
                 int routeIndex = lastRoute.GetRouteIndex(PresentPosition[0].TCSectionIndex, 0);
 
                 if (routeIndex < 0)
@@ -9733,8 +9732,8 @@ namespace Orts.Simulation.Physics
         {
             // extract route at present front position
 
-            TCSubpathRoute newRoute = new TCSubpathRoute();
-            TCSubpathRoute oldRoute = TCRoute.TCRouteSubpaths[TCRoute.activeSubpath];
+            TrackCircuitPartialPathRoute newRoute = new TrackCircuitPartialPathRoute();
+            TrackCircuitPartialPathRoute oldRoute = TCRoute.TCRouteSubpaths[TCRoute.activeSubpath];
 
             // test on reversal, if so check rear of train
 
@@ -9856,7 +9855,7 @@ namespace Orts.Simulation.Physics
         // Check if reversal is required
         //
 
-        public bool CheckReversal(TCSubpathRoute reqRoute, ref bool reversal)
+        public bool CheckReversal(TrackCircuitPartialPathRoute reqRoute, ref bool reversal)
         {
             bool valid = true;
 
@@ -9893,7 +9892,7 @@ namespace Orts.Simulation.Physics
         // Restore train placement
         //
 
-        public void RestoreTrainPlacement(ref TCSubpathRoute newRoute, TCSubpathRoute oldRoute, int frontIndex, bool reversal)
+        public void RestoreTrainPlacement(ref TrackCircuitPartialPathRoute newRoute, TrackCircuitPartialPathRoute oldRoute, int frontIndex, bool reversal)
         {
             // reverse train if required
 
@@ -9924,7 +9923,7 @@ namespace Orts.Simulation.Physics
             if (rearIndex < 0)
             {
 
-                TCSubpathRoute tempRoute = signalRef.BuildTempRoute(this, PresentPosition[1].TCSectionIndex, PresentPosition[1].TCOffset,
+                TrackCircuitPartialPathRoute tempRoute = SignalEnvironment.BuildTempRoute(this, PresentPosition[1].TCSectionIndex, PresentPosition[1].TCOffset,
                             (TrackDirection)PresentPosition[1].TCDirection, Length, true, true, false);
 
                 for (int iindex = tempRoute.Count - 1; iindex >= 0; iindex--)
@@ -10109,7 +10108,7 @@ namespace Orts.Simulation.Physics
             int thisSectionIndex = PresentPosition[0].TCSectionIndex;
             TrackDirection direction = (TrackDirection)PresentPosition[0].TCDirection;
             float startOffset = PresentPosition[0].TCOffset;
-            TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisSectionIndex];
+            TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisSectionIndex];
 
             return (TrackCircuitSection.GetDistanceBetweenObjects(thisSectionIndex, startOffset, direction, sectionIndex, endOffset));
         }
@@ -10267,16 +10266,16 @@ namespace Orts.Simulation.Physics
             if (TCRoute.OriginalSubpath == -1) TCRoute.OriginalSubpath = TCRoute.activeSubpath;
             if (PresentPosition[0].RouteListIndex > 0)
                 // clean case, train is in route and switch has been forced in front of it
-                tempSections = signalRef.ScanRoute(this, forcedTCSectionIndex, 0, (TrackDirection)ValidRoute[0][forcedRouteSectionIndex].Direction,
+                tempSections = SignalEnvironment.ScanRoute(this, forcedTCSectionIndex, 0, (TrackDirection)ValidRoute[0][forcedRouteSectionIndex].Direction,
                         true, 0, true, true,
                         false, false, true, false, false, false, false, IsFreight, false, true);
             else
                 // dirty case, train is out of route and has already passed forced switch
-                tempSections = signalRef.ScanRoute(this, PresentPosition[0].TCSectionIndex, PresentPosition[0].TCOffset,
+                tempSections = SignalEnvironment.ScanRoute(this, PresentPosition[0].TCSectionIndex, PresentPosition[0].TCOffset,
                     (TrackDirection)PresentPosition[0].TCDirection, true, 0, true, true,
                     false, false, true, false, false, false, false, IsFreight, false, true);
 
-            TCSubpathRoute newRoute = new TCSubpathRoute();
+            TrackCircuitPartialPathRoute newRoute = new TrackCircuitPartialPathRoute();
             // Copy part of route already run
             if (PresentPosition[0].RouteListIndex > 0)
             {
@@ -10295,12 +10294,12 @@ namespace Orts.Simulation.Physics
                 foreach (int sectionIndex in tempSections)
                 {
                     TrackDirection sectionDirection = sectionIndex > 0 ? TrackDirection.Ahead : TrackDirection.Reverse;
-                    thisElement = new TrackCircuitRouteElement(signalRef.TrackCircuitList[Math.Abs(sectionIndex)], sectionDirection, prevSection);
+                    thisElement = new TrackCircuitRouteElement(TrackCircuitSection.TrackCircuitList[Math.Abs(sectionIndex)], sectionDirection, prevSection);
                     // if junction, you have to adjust the OutPin
-                    signalRef.TrackCircuitList[Math.Abs(sectionIndex)].CircuitState.Forced = false;
-                    if (signalRef.TrackCircuitList[Math.Abs(sectionIndex)].CircuitType == TrackCircuitType.Junction && thisElement.FacingPoint == true)
+                    TrackCircuitSection.TrackCircuitList[Math.Abs(sectionIndex)].CircuitState.Forced = false;
+                    if (TrackCircuitSection.TrackCircuitList[Math.Abs(sectionIndex)].CircuitType == TrackCircuitType.Junction && thisElement.FacingPoint == true)
                     {
-                        var TCSection = signalRef.TrackCircuitList[Math.Abs(sectionIndex)];
+                        var TCSection = TrackCircuitSection.TrackCircuitList[Math.Abs(sectionIndex)];
                         if (tempSectionsIndex < tempSections.Count - 1 && TCSection.Pins[sectionDirection, Location.FarEnd].Link == tempSections[tempSectionsIndex + 1])
                             thisElement.OutPin[Location.FarEnd] = TrackDirection.Reverse;
                         else thisElement.OutPin[Location.FarEnd] = TrackDirection.Ahead;
@@ -10352,7 +10351,7 @@ namespace Orts.Simulation.Physics
                     TCRoute.ReversalInfo.Add(new TCReversalInfo());
                     TCRoute.ReversalInfo[TCRoute.ReversalInfo.Count - 1].ReversalIndex = newRoute.Count - 1;
                     TCRoute.ReversalInfo[TCRoute.ReversalInfo.Count - 1].ReversalSectionIndex = newRoute[newRoute.Count - 1].TrackCircuitSectionIndex;
-                    TrackCircuitSection endSection = signalRef.TrackCircuitList[newRoute[newRoute.Count - 1].TrackCircuitSectionIndex];
+                    TrackCircuitSection endSection = TrackCircuitSection.TrackCircuitList[newRoute[newRoute.Count - 1].TrackCircuitSectionIndex];
                     TCRoute.ReversalInfo[TCRoute.ReversalInfo.Count - 1].ReverseReversalOffset = endSection.Length;
                     TCRoute.LoopEnd.Add(-1);
                 }
@@ -10406,7 +10405,7 @@ namespace Orts.Simulation.Physics
         public void ClearOccupiedSection(ClearSectionItem sectionInfo)
         {
             int thisSectionIndex = sectionInfo.TrackSectionIndex;
-            TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisSectionIndex];
+            TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisSectionIndex];
 
             thisSection.ClearOccupied(this, true);
         }
@@ -10459,7 +10458,7 @@ namespace Orts.Simulation.Physics
                 {
                     ClearSectionItem sectionInfo = thisAction as ClearSectionItem;
                     int thisSectionIndex = sectionInfo.TrackSectionIndex;
-                    TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisSectionIndex];
+                    TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisSectionIndex];
 
                     if (!OccupiedTrack.Contains(thisSection))
                     {
@@ -10509,7 +10508,7 @@ namespace Orts.Simulation.Physics
         // Remove train from not-occupied sections only (for reset after uncoupling)
         //
 
-        public void RemoveFromTrackNotOccupied(TCSubpathRoute newSections)
+        public void RemoveFromTrackNotOccupied(TrackCircuitPartialPathRoute newSections)
         {
             // clear occupied track
 
@@ -10537,7 +10536,7 @@ namespace Orts.Simulation.Physics
                     ClearSectionItem thisItem = thisAction as ClearSectionItem;
                     if (clearedSectionIndices.Contains(thisItem.TrackSectionIndex))
                     {
-                        TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisItem.TrackSectionIndex];
+                        TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisItem.TrackSectionIndex];
                         thisSection.ClearOccupied(this, true);
                     }
                 }
@@ -10560,7 +10559,7 @@ namespace Orts.Simulation.Physics
                 for (int iIndex = presentIndex; iIndex < ValidRoute[0].Count; iIndex++)
                 {
                     TrackCircuitRouteElement thisElement = ValidRoute[0][iIndex];
-                    TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
+                    TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
                     thisSection.RemoveTrain(this, true);
                 }
             }
@@ -10572,7 +10571,7 @@ namespace Orts.Simulation.Physics
                 for (int iIndex = 0; iIndex < ValidRoute[1].Count; iIndex++)
                 {
                     TrackCircuitRouteElement thisElement = ValidRoute[1][iIndex];
-                    TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
+                    TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
                     thisSection.RemoveTrain(this, true);
                 }
             }
@@ -10599,7 +10598,7 @@ namespace Orts.Simulation.Physics
                 if (thisAction is ClearSectionItem)
                 {
                     ClearSectionItem thisItem = thisAction as ClearSectionItem;
-                    TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisItem.TrackSectionIndex];
+                    TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisItem.TrackSectionIndex];
                     thisSection.ClearOccupied(this, true);
                 }
             }
@@ -10671,13 +10670,13 @@ namespace Orts.Simulation.Physics
                 }
                 else
                 {
-                    TrackCircuitSection thisSection = signalRef.TrackCircuitList[oldPresentPosition.TCSectionIndex];
+                    TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[oldPresentPosition.TCSectionIndex];
                     deltaoffset = thisSection.Length - offset_old;
                     deltaoffset += offset_new;
 
                     for (int iIndex = oldPresentPosition.RouteListIndex + 1; iIndex < PresentPosition[0].RouteListIndex; iIndex++)
                     {
-                        thisSection = signalRef.TrackCircuitList[ValidRoute[0][iIndex].TrackCircuitSectionIndex];
+                        thisSection = TrackCircuitSection.TrackCircuitList[ValidRoute[0][iIndex].TrackCircuitSectionIndex];
                         deltaoffset += thisSection.Length;
                     }
                 }
@@ -10696,12 +10695,12 @@ namespace Orts.Simulation.Physics
                 else
                 {
                     deltaoffset = offset_old;
-                    TrackCircuitSection thisSection = signalRef.TrackCircuitList[PresentPosition[1].TCSectionIndex];
+                    TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[PresentPosition[1].TCSectionIndex];
                     deltaoffset += (thisSection.Length - offset_new);
 
                     for (int iIndex = oldRearPosition.RouteListIndex - 1; iIndex > PresentPosition[1].RouteListIndex; iIndex--)
                     {
-                        thisSection = signalRef.TrackCircuitList[ValidRoute[0][iIndex].TrackCircuitSectionIndex];
+                        thisSection = TrackCircuitSection.TrackCircuitList[ValidRoute[0][iIndex].TrackCircuitSectionIndex];
                         deltaoffset += thisSection.Length;
                     }
                 }
@@ -10832,12 +10831,12 @@ namespace Orts.Simulation.Physics
         public void UpdateOccupancies()
         {
             if (TrainRoute != null) TrainRoute.Clear();
-            TrainRoute = signalRef.BuildTempRoute(this, PresentPosition[1].TCSectionIndex, PresentPosition[1].TCOffset,
+            TrainRoute = SignalEnvironment.BuildTempRoute(this, PresentPosition[1].TCSectionIndex, PresentPosition[1].TCOffset,
                 (TrackDirection)PresentPosition[1].TCDirection, Length, false, true, false);
 
             foreach (TrackCircuitRouteElement thisElement in TrainRoute)
             {
-                TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
+                TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
                 thisSection.Reserve(routedForward, TrainRoute);
                 if (!thisSection.CircuitState.OccupiedByThisTrain(this))
                     thisSection.SetOccupied(routedForward);
@@ -10866,7 +10865,7 @@ namespace Orts.Simulation.Physics
 
                     if (nextIndex < 0) // this section is not in route - if last index = 0, add to start else add to rear
                     {
-                        TrackCircuitSection thisSection = signalRef.TrackCircuitList[nextSectionIndex];
+                        TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[nextSectionIndex];
                         TrackDirection thisDirection = TrackDirection.Ahead;
 
                         foreach (Location location in EnumExtension.GetValues<Location>())
@@ -10911,7 +10910,7 @@ namespace Orts.Simulation.Physics
 
                     if (nextIndex < 0) // this section is not in route - if last index = 0, add to start else add to rear
                     {
-                        TrackCircuitSection thisSection = signalRef.TrackCircuitList[nextSectionIndex];
+                        TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[nextSectionIndex];
                         TrackDirection thisDirection = TrackDirection.Ahead;
 
                         foreach (Location location in EnumExtension.GetValues<Location>())
@@ -10988,7 +10987,7 @@ namespace Orts.Simulation.Physics
             // build route of sections now occupied
             OccupiedTrack.Clear();
             if (TrainRoute != null) TrainRoute.Clear();
-            TrainRoute = signalRef.BuildTempRoute(this, PresentPosition[1].TCSectionIndex, PresentPosition[1].TCOffset,
+            TrainRoute = SignalEnvironment.BuildTempRoute(this, PresentPosition[1].TCSectionIndex, PresentPosition[1].TCOffset,
                 (TrackDirection)PresentPosition[1].TCDirection, Length, false, true, false);
 
             TrackCircuitSection thisSection;
@@ -11025,15 +11024,15 @@ namespace Orts.Simulation.Physics
 
                 // build dummy route
 
-                thisSection = signalRef.TrackCircuitList[PresentPosition[1].TCSectionIndex];
+                thisSection = TrackCircuitSection.TrackCircuitList[PresentPosition[1].TCSectionIndex];
                 offset = PresentPosition[1].TCOffset;
 
-                ValidRoute[0] = signalRef.BuildTempRoute(this, thisSection.Index, PresentPosition[1].TCOffset,
+                ValidRoute[0] = SignalEnvironment.BuildTempRoute(this, thisSection.Index, PresentPosition[1].TCOffset,
                             (TrackDirection)PresentPosition[1].TCDirection, Length, true, true, false);
 
                 foreach (TrackCircuitRouteElement thisElement in TrainRoute)
                 {
-                    thisSection = signalRef.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
+                    thisSection = TrackCircuitSection.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
                     thisSection.SetOccupied(routedForward);
                 }
 
@@ -11083,7 +11082,7 @@ namespace Orts.Simulation.Physics
 
                 foreach (TrackCircuitRouteElement thisElement in TrainRoute)
                 {
-                    thisSection = signalRef.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
+                    thisSection = TrackCircuitSection.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
                     thisSection.SetOccupied(routedForward);
                 }
                 // rebuild list of station stops
@@ -11215,7 +11214,7 @@ namespace Orts.Simulation.Physics
         // Check on deadlock
         //
 
-        internal void CheckDeadlock(TCSubpathRoute thisRoute, int thisNumber)
+        internal void CheckDeadlock(TrackCircuitPartialPathRoute thisRoute, int thisNumber)
         {
             if (signalRef.UseLocationPassingPaths)
             {
@@ -11232,7 +11231,7 @@ namespace Orts.Simulation.Physics
         // Check on deadlock - old style path based logic
         //
 
-        internal void CheckDeadlock_pathBased(TCSubpathRoute thisRoute, int thisNumber)
+        internal void CheckDeadlock_pathBased(TrackCircuitPartialPathRoute thisRoute, int thisNumber)
         {
             // clear existing deadlock info
 
@@ -11244,14 +11243,14 @@ namespace Orts.Simulation.Physics
             {
                 if (otherTrain.Number != thisNumber && otherTrain.TrainType != TrainType.Static)
                 {
-                    TCSubpathRoute otherRoute = otherTrain.ValidRoute[0];
+                    TrackCircuitPartialPathRoute otherRoute = otherTrain.ValidRoute[0];
                     Dictionary<int, int> otherRouteDict = otherRoute.ConvertRoute();
 
                     for (int iElement = 0; iElement < thisRoute.Count; iElement++)
                     {
                         TrackCircuitRouteElement thisElement = thisRoute[iElement];
                         int thisSectionIndex = thisElement.TrackCircuitSectionIndex;
-                        TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisSectionIndex];
+                        TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisSectionIndex];
                         TrackDirection thisSectionDirection = thisElement.Direction;
 
                         if (thisSection.CircuitType != TrackCircuitType.Crossover)
@@ -11301,7 +11300,7 @@ namespace Orts.Simulation.Physics
         // Obtain deadlock details - old style path based logic
         //
 
-        private int[] SetDeadlock_pathBased(int thisIndex, TCSubpathRoute thisRoute, TCSubpathRoute otherRoute, Train otherTrain)
+        private int[] SetDeadlock_pathBased(int thisIndex, TrackCircuitPartialPathRoute thisRoute, TrackCircuitPartialPathRoute otherRoute, Train otherTrain)
         {
             int[] returnValue = new int[2];
             returnValue[1] = -1;  // set to no alternative path used
@@ -11348,7 +11347,7 @@ namespace Orts.Simulation.Physics
                     break;
                 }
 
-                TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisTrainSection];
+                TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisTrainSection];
 
                 if (thisSection.IsSet(otherTrain, true))
                 {
@@ -11369,7 +11368,7 @@ namespace Orts.Simulation.Physics
                 thisRoute[thisTrainIndex - 1].TrackCircuitSectionIndex;
 
             // if section is not a junction, check if either route not ended, if so continue up to next junction
-            TrackCircuitSection lastSection = signalRef.TrackCircuitList[lastSectionIndex];
+            TrackCircuitSection lastSection = TrackCircuitSection.TrackCircuitList[lastSectionIndex];
             if (lastSection.CircuitType != TrackCircuitType.Junction)
             {
                 bool endSectionFound = false;
@@ -11377,7 +11376,7 @@ namespace Orts.Simulation.Physics
                 {
                     for (int iIndex = thisTrainIndex + 1; iIndex < thisRoute.Count - 1 && !endSectionFound; iIndex++)
                     {
-                        lastSection = signalRef.TrackCircuitList[thisRoute[iIndex].TrackCircuitSectionIndex];
+                        lastSection = TrackCircuitSection.TrackCircuitList[thisRoute[iIndex].TrackCircuitSectionIndex];
                         endSectionFound = lastSection.CircuitType == TrackCircuitType.Junction;
                     }
                 }
@@ -11386,7 +11385,7 @@ namespace Orts.Simulation.Physics
                 {
                     for (int iIndex = otherTrainIndex - 1; iIndex >= 0 && !endSectionFound; iIndex--)
                     {
-                        lastSection = signalRef.TrackCircuitList[otherRoute[iIndex].TrackCircuitSectionIndex];
+                        lastSection = TrackCircuitSection.TrackCircuitList[otherRoute[iIndex].TrackCircuitSectionIndex];
                         endSectionFound = lastSection.CircuitType == TrackCircuitType.Junction;
                         if (lastSection.IsSet(otherTrain, true))
                         {
@@ -11404,7 +11403,7 @@ namespace Orts.Simulation.Physics
 
             if (allreadyActive)
             {
-                TrackCircuitSection thisSection = signalRef.TrackCircuitList[lastSectionIndex];
+                TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[lastSectionIndex];
                 thisSection.SetDeadlockTrap(otherTrain, otherTrain.DeadlockInfo[lastSectionIndex]);
             }
 
@@ -11419,7 +11418,7 @@ namespace Orts.Simulation.Physics
         // Check on deadlock - new style location based logic
         //
 
-        internal void CheckDeadlock_locationBased(TCSubpathRoute thisRoute, int thisNumber)
+        internal void CheckDeadlock_locationBased(TrackCircuitPartialPathRoute thisRoute, int thisNumber)
         {
             // clear existing deadlock info
 
@@ -11440,14 +11439,14 @@ namespace Orts.Simulation.Physics
 
                 if (otherTrain.Number != thisNumber && otherTrain.TrainType != TrainType.Static && validTrain)
                 {
-                    TCSubpathRoute otherRoute = otherTrain.ValidRoute[0];
+                    TrackCircuitPartialPathRoute otherRoute = otherTrain.ValidRoute[0];
                     Dictionary<int, int> otherRouteDict = otherRoute.ConvertRoute();
 
                     for (int iElement = 0; iElement < thisRoute.Count; iElement++)
                     {
                         TrackCircuitRouteElement thisElement = thisRoute[iElement];
                         int thisSectionIndex = thisElement.TrackCircuitSectionIndex;
-                        TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisSectionIndex];
+                        TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisSectionIndex];
                         TrackDirection thisSectionDirection = thisElement.Direction;
 
                         if (thisSection.CircuitType != TrackCircuitType.Crossover)
@@ -11484,7 +11483,7 @@ namespace Orts.Simulation.Physics
         // Obtain deadlock details - new style location based logic
         //
 
-        private int[] SetDeadlock_locationBased(int thisIndex, TCSubpathRoute thisRoute, TCSubpathRoute otherRoute, Train otherTrain)
+        private int[] SetDeadlock_locationBased(int thisIndex, TrackCircuitPartialPathRoute thisRoute, TrackCircuitPartialPathRoute otherRoute, Train otherTrain)
         {
             int[] returnValue = new int[2];
             returnValue[1] = -1;  // set to no alternative path used
@@ -11525,13 +11524,13 @@ namespace Orts.Simulation.Physics
                 otherTrainElement = otherRoute[otherTrainIndex];
                 otherTrainSectionIndex = otherTrainElement.TrackCircuitSectionIndex;
 
-                TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisTrainSectionIndex];
+                TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisTrainSectionIndex];
 
                 // if sections not equal : test length of next not-common section, if long enough then exit loop
                 if (thisTrainSectionIndex != otherTrainSectionIndex)
                 {
                     int nextThisRouteIndex = thisTrainIndex;
-                    TrackCircuitSection passLoopSection = signalRef.TrackCircuitList[ValidRoute[0][nextThisRouteIndex].TrackCircuitSectionIndex];
+                    TrackCircuitSection passLoopSection = TrackCircuitSection.TrackCircuitList[ValidRoute[0][nextThisRouteIndex].TrackCircuitSectionIndex];
                     int nextOtherRouteIndex = otherRoute.GetRouteIndex(passLoopSection.Index, otherTrainIndex);
 
                     float passLength = passLoopSection.Length;
@@ -11550,7 +11549,7 @@ namespace Orts.Simulation.Physics
                         else if (nextThisRouteIndex < ValidRoute[0].Count - 2)
                         {
                             nextThisRouteIndex++;
-                            passLoopSection = signalRef.TrackCircuitList[ValidRoute[0][nextThisRouteIndex].TrackCircuitSectionIndex];
+                            passLoopSection = TrackCircuitSection.TrackCircuitList[ValidRoute[0][nextThisRouteIndex].TrackCircuitSectionIndex];
                             nextOtherRouteIndex = otherRoute.GetRouteIndexBackward(passLoopSection.Index, otherTrainIndex);
 
                             // new common section after too short loop - not a valid deadlock point
@@ -11753,7 +11752,7 @@ namespace Orts.Simulation.Physics
             // otherwise, last common sections was previous sections for this train
             int lastSectionIndex = (thisTrainSectionIndex == otherTrainSectionIndex) ? thisTrainSectionIndex :
                 thisRoute[thisTrainIndex - 1].TrackCircuitSectionIndex;
-            TrackCircuitSection lastSection = signalRef.TrackCircuitList[lastSectionIndex];
+            TrackCircuitSection lastSection = TrackCircuitSection.TrackCircuitList[lastSectionIndex];
 
             // TODO : if section is not a junction but deadlock is allready active, wind back to last junction
             // if section is not a junction, check if either route not ended, if so continue up to next junction
@@ -11764,7 +11763,7 @@ namespace Orts.Simulation.Physics
                 {
                     for (int iIndex = thisTrainIndex; iIndex < thisRoute.Count - 1 && !endSectionFound; iIndex++)
                     {
-                        lastSection = signalRef.TrackCircuitList[thisRoute[iIndex].TrackCircuitSectionIndex];
+                        lastSection = TrackCircuitSection.TrackCircuitList[thisRoute[iIndex].TrackCircuitSectionIndex];
                         endSectionFound = lastSection.CircuitType == TrackCircuitType.Junction;
                     }
                 }
@@ -11773,7 +11772,7 @@ namespace Orts.Simulation.Physics
                 {
                     for (int iIndex = otherTrainIndex; iIndex >= 0 && !endSectionFound; iIndex--)
                     {
-                        lastSection = signalRef.TrackCircuitList[otherRoute[iIndex].TrackCircuitSectionIndex];
+                        lastSection = TrackCircuitSection.TrackCircuitList[otherRoute[iIndex].TrackCircuitSectionIndex];
                         endSectionFound = false;
 
                         // junction found - end of loop
@@ -11809,14 +11808,14 @@ namespace Orts.Simulation.Physics
 
             // if any section occupied by own train, reverse deadlock is active
 
-            TrackCircuitSection firstSection = signalRef.TrackCircuitList[firstSectionIndex];
+            TrackCircuitSection firstSection = TrackCircuitSection.TrackCircuitList[firstSectionIndex];
 
             int firstRouteIndex = ValidRoute[0].GetRouteIndex(firstSectionIndex, 0);
             int lastRouteIndex = ValidRoute[0].GetRouteIndex(lastSectionIndex, 0);
 
             for (int iRouteIndex = firstRouteIndex; iRouteIndex < lastRouteIndex; iRouteIndex++)
             {
-                TrackCircuitSection partSection = signalRef.TrackCircuitList[ValidRoute[0][iRouteIndex].TrackCircuitSectionIndex];
+                TrackCircuitSection partSection = TrackCircuitSection.TrackCircuitList[ValidRoute[0][iRouteIndex].TrackCircuitSectionIndex];
                 if (partSection.IsSet(this, true))
                 {
                     firstSection.SetDeadlockTrap(this, DeadlockInfo[firstSectionIndex]);
@@ -11840,11 +11839,11 @@ namespace Orts.Simulation.Physics
         // If not a deadlock, the REF int elementIndex is set to index of the last common section (will be increased in the loop)
         //
 
-        internal bool CheckRealDeadlock_locationBased(TCSubpathRoute thisRoute, TCSubpathRoute otherRoute, ref int elementIndex)
+        internal bool CheckRealDeadlock_locationBased(TrackCircuitPartialPathRoute thisRoute, TrackCircuitPartialPathRoute otherRoute, ref int elementIndex)
         {
             bool isValidDeadlock = false;
 
-            TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisRoute[elementIndex].TrackCircuitSectionIndex];
+            TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisRoute[elementIndex].TrackCircuitSectionIndex];
 
             // check if section is start or part of deadlock definition
             if (thisSection.DeadlockReference >= 0 || (thisSection.DeadlockBoundaries != null && thisSection.DeadlockBoundaries.Count > 0))
@@ -11867,8 +11866,8 @@ namespace Orts.Simulation.Physics
 
                 if (validLoop)
                 {
-                    TrackCircuitSection thisRouteSection = signalRef.TrackCircuitList[thisRoute[thisElementIndex].TrackCircuitSectionIndex];
-                    TrackCircuitSection otherRouteSection = signalRef.TrackCircuitList[otherRoute[otherElementIndex].TrackCircuitSectionIndex];
+                    TrackCircuitSection thisRouteSection = TrackCircuitSection.TrackCircuitList[thisRoute[thisElementIndex].TrackCircuitSectionIndex];
+                    TrackCircuitSection otherRouteSection = TrackCircuitSection.TrackCircuitList[otherRoute[otherElementIndex].TrackCircuitSectionIndex];
 
                     if (thisRouteSection.Index != otherRouteSection.Index)
                     {
@@ -11902,7 +11901,7 @@ namespace Orts.Simulation.Physics
                     else
                     {
                         TrackCircuitRouteElement thisElement = thisRoute[thisElementIndex];
-                        TrackCircuitSection thisRouteSection = signalRef.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
+                        TrackCircuitSection thisRouteSection = TrackCircuitSection.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
                         totalDistance += thisRouteSection.Length;
 
                         if (thisRouteSection.EndSignals[(TrackDirection)thisElement.Direction] != null)
@@ -11930,7 +11929,7 @@ namespace Orts.Simulation.Physics
                     else
                     {
                         TrackCircuitRouteElement thisElement = otherRoute[thisElementIndex];
-                        TrackCircuitSection thisRouteSection = signalRef.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
+                        TrackCircuitSection thisRouteSection = TrackCircuitSection.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
                         totalDistance += thisRouteSection.Length;
 
                         if (thisRouteSection.EndSignals[(TrackDirection)thisElement.Direction] != null)
@@ -11985,7 +11984,7 @@ namespace Orts.Simulation.Physics
         // Get end of common section
         //
 
-        static int EndCommonSection(int thisIndex, TCSubpathRoute thisRoute, TCSubpathRoute otherRoute)
+        static int EndCommonSection(int thisIndex, TrackCircuitPartialPathRoute thisRoute, TrackCircuitPartialPathRoute otherRoute)
         {
             int firstSection = thisRoute[thisIndex].TrackCircuitSectionIndex;
 
@@ -12020,7 +12019,7 @@ namespace Orts.Simulation.Physics
 
             foreach (TrackCircuitRouteElement thisElement in nextSignal.SignalRoute)
             {
-                TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
+                TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
                 if (thisSection.DeadlockTraps.ContainsKey(Number))              // deadlock trap
                 {
                     deadlockWait = true;
@@ -12035,7 +12034,7 @@ namespace Orts.Simulation.Physics
                             {
                                 if (!deadlockTrains.Contains(thisDeadlock.Key))
                                 {
-                                    TrackCircuitSection endSection = signalRef.TrackCircuitList[thisDeadlock.Value];
+                                    TrackCircuitSection endSection = TrackCircuitSection.TrackCircuitList[thisDeadlock.Value];
                                     endSection.SetDeadlockTrap(Number, thisDeadlock.Key);
                                 }
                                 else
@@ -12059,7 +12058,7 @@ namespace Orts.Simulation.Physics
                                                     commonSectionFound = true;
                                                 }
                                             }
-                                            TrackCircuitSection otherSection = signalRef.TrackCircuitList[sectionIndex];
+                                            TrackCircuitSection otherSection = TrackCircuitSection.TrackCircuitList[sectionIndex];
                                             if (otherSection.CircuitState.TrainReserved == null || otherSection.CircuitState.TrainReserved.Train.Number != otherTrain.Number)
                                             {
                                                 lastReserved = true;
@@ -12069,7 +12068,7 @@ namespace Orts.Simulation.Physics
 
                                         if (!commonSectionFound)
                                         {
-                                            TrackCircuitSection endSection = signalRef.TrackCircuitList[thisDeadlock.Value];
+                                            TrackCircuitSection endSection = TrackCircuitSection.TrackCircuitList[thisDeadlock.Value];
                                             endSection.ClearDeadlockTrap(Number);
                                             thisSection.ClearDeadlockTrap(otherTrain.Number);
                                             deadlockWait = false;
@@ -12128,7 +12127,7 @@ namespace Orts.Simulation.Physics
             int activeSubroute = beginActiveSubroute;
             bool terminalStation = false;
 
-            TCSubpathRoute thisRoute = TCRoute.TCRouteSubpaths[activeSubroute];
+            TrackCircuitPartialPathRoute thisRoute = TCRoute.TCRouteSubpaths[activeSubroute];
 
             // get platform details
 
@@ -12250,7 +12249,7 @@ namespace Orts.Simulation.Physics
 
                 float deltaLength = thisPlatform.Length - Length; // platform length - train length
 
-                TrackCircuitSection endSection = signalRef.TrackCircuitList[endSectionIndex];
+                TrackCircuitSection endSection = TrackCircuitSection.TrackCircuitList[endSectionIndex];
 
 
                 int firstRouteIndex = thisRoute.GetRouteIndex(beginSectionIndex, 0);
@@ -12268,7 +12267,7 @@ namespace Orts.Simulation.Physics
                 {
                     float actualBegin = beginOffset;
 
-                    TrackCircuitSection thisSection = signalRef.TrackCircuitList[beginSectionIndex];
+                    TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[beginSectionIndex];
 
                     // Other platforms in same section
 
@@ -12301,8 +12300,7 @@ namespace Orts.Simulation.Physics
                                         if (lastRouteIndex > 0)
                                         {
                                             float thisLength =
-                                                thisRoute.GetDistanceAlongRoute(addRouteIndex, addOffset,
-                                                        lastRouteIndex, endOffset, true, signalRef);
+                                                thisRoute.GetDistanceAlongRoute(addRouteIndex, addOffset, lastRouteIndex, endOffset, true);
                                             if (thisLength > fullLength)
                                                 fullLength = thisLength;
                                         }
@@ -12327,7 +12325,7 @@ namespace Orts.Simulation.Physics
                                 iIndex--)
                     {
                         int nextSectionIndex = thisRoute[iIndex].TrackCircuitSectionIndex;
-                        TrackCircuitSection nextSection = signalRef.TrackCircuitList[nextSectionIndex];
+                        TrackCircuitSection nextSection = TrackCircuitSection.TrackCircuitList[nextSectionIndex];
 
                         foreach (int otherPlatformIndex in nextSection.PlatformIndices)
                         {
@@ -12346,16 +12344,16 @@ namespace Orts.Simulation.Physics
                 }
 
                 // check whether terminal station or not
-                TCSubpathRoute routeToEndOfTrack = signalRef.BuildTempRoute(this, endSectionIndex, endOffset, (TrackDirection)thisElement.Direction, 30, true, true, false);
+                TrackCircuitPartialPathRoute routeToEndOfTrack = SignalEnvironment.BuildTempRoute(this, endSectionIndex, endOffset, (TrackDirection)thisElement.Direction, 30, true, true, false);
                 if (routeToEndOfTrack.Count > 0)
                 {
-                    TrackCircuitSection thisSection = signalRef.TrackCircuitList[routeToEndOfTrack[routeToEndOfTrack.Count - 1].TrackCircuitSectionIndex];
+                    TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[routeToEndOfTrack[routeToEndOfTrack.Count - 1].TrackCircuitSectionIndex];
                     if (thisSection.CircuitType == TrackCircuitType.EndOfTrack)
                     {
                         terminalStation = true;
                         foreach (TrackCircuitRouteElement tcElement in routeToEndOfTrack)
                         {
-                            thisSection = signalRef.TrackCircuitList[tcElement.TrackCircuitSectionIndex];
+                            thisSection = TrackCircuitSection.TrackCircuitList[tcElement.TrackCircuitSectionIndex];
                             if (thisSection.CircuitType == TrackCircuitType.Junction)
                             {
                                 terminalStation = false;
@@ -12380,7 +12378,7 @@ namespace Orts.Simulation.Physics
 
                     for (int iIndex = lastRouteIndex; iIndex < thisRoute.Count && overlap < addOffset; iIndex++)
                     {
-                        TrackCircuitSection nextSection = signalRef.TrackCircuitList[thisRoute[iIndex].TrackCircuitSectionIndex];
+                        TrackCircuitSection nextSection = TrackCircuitSection.TrackCircuitList[thisRoute[iIndex].TrackCircuitSectionIndex];
                         overlap += nextSection.Length;
                     }
 
@@ -12642,9 +12640,9 @@ namespace Orts.Simulation.Physics
                 }
                 else if (stationRouteIndex <= PresentPosition[1].RouteListIndex)
                 {
-                    var platformSection = signalRef.TrackCircuitList[StationStops[0].TCSectionIndex];
+                    var platformSection = TrackCircuitSection.TrackCircuitList[StationStops[0].TCSectionIndex];
                     var platformReverseStopOffset = platformSection.Length - StationStops[0].StopOffset;
-                    return ValidRoute[0].GetDistanceAlongRoute(stationRouteIndex, platformReverseStopOffset, PresentPosition[1].RouteListIndex, PresentPosition[1].TCOffset, true, signalRef) > thresholdDistance;
+                    return ValidRoute[0].GetDistanceAlongRoute(stationRouteIndex, platformReverseStopOffset, PresentPosition[1].RouteListIndex, PresentPosition[1].TCOffset, true) > thresholdDistance;
                 }
             }
             return false;
@@ -12677,7 +12675,7 @@ namespace Orts.Simulation.Physics
                 for (int iElement = routeListIndex; iElement < TCRoute.TCRouteSubpaths[activeSubpath].Count; iElement++)
                 {
                     TrackCircuitRouteElement thisElement = TCRoute.TCRouteSubpaths[activeSubpath][iElement];
-                    thisSection = signalRef.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
+                    thisSection = TrackCircuitSection.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
                     if (thisSection.Index == TCRoute.ReversalInfo[TCRoute.activeSubpath].ReversalSectionIndex)
                     {
                         break;
@@ -13373,7 +13371,7 @@ namespace Orts.Simulation.Physics
                     for (int iIndex = PresentPosition[0].RouteListIndex; iIndex < ValidRoute[0].Count; iIndex++)
                     {
                         TrackCircuitRouteElement thisElement = ValidRoute[0][iIndex];
-                        TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
+                        TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
 
                         circuitString = BuildSectionString(circuitString, thisSection, 0);
 
@@ -13394,7 +13392,7 @@ namespace Orts.Simulation.Physics
                 string backstring = String.Empty;
                 for (int iindex = ValidRoute[1].Count - 1; iindex >= 0; iindex--)
                 {
-                    TrackCircuitSection thisSection = signalRef.TrackCircuitList[ValidRoute[1][iindex].TrackCircuitSectionIndex];
+                    TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[ValidRoute[1][iindex].TrackCircuitSectionIndex];
                     backstring = BuildSectionString(backstring, thisSection, 1);
                 }
 
@@ -13430,7 +13428,7 @@ namespace Orts.Simulation.Physics
                 string forwardstring = String.Empty;
                 for (int iindex = 0; iindex < ValidRoute[0].Count; iindex++)
                 {
-                    TrackCircuitSection thisSection = signalRef.TrackCircuitList[ValidRoute[0][iindex].TrackCircuitSectionIndex];
+                    TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[ValidRoute[0][iindex].TrackCircuitSectionIndex];
                     forwardstring = BuildSectionString(forwardstring, thisSection, 0);
                 }
                 circuitString = String.Concat(circuitString, forwardstring);
@@ -13792,7 +13790,7 @@ namespace Orts.Simulation.Physics
                 TrainPathItem thisItem;
                 float distanceToTrainM = 0.0f;
                 float offset = PresentPosition[routeDirection].TCOffset;
-                TrackCircuitSection firstSection = signalRef.TrackCircuitList[PresentPosition[routeDirection].TCSectionIndex];
+                TrackCircuitSection firstSection = TrackCircuitSection.TrackCircuitList[PresentPosition[routeDirection].TCSectionIndex];
                 float sectionStart = routeDirection == 0 ? -offset : offset - firstSection.Length;
                 int startRouteIndex = PresentPosition[routeDirection].RouteListIndex;
                 if (startRouteIndex < 0) startRouteIndex = ValidRoute[routeDirection].GetRouteIndex(PresentPosition[routeDirection].TCSectionIndex, 0);
@@ -13800,7 +13798,7 @@ namespace Orts.Simulation.Physics
                 {
                     for (int iRouteElement = startRouteIndex; iRouteElement < ValidRoute[routeDirection].Count && distanceToTrainM < 7000 && sectionStart < 7000; iRouteElement++)
                     {
-                        TrackCircuitSection thisSection = signalRef.TrackCircuitList[ValidRoute[routeDirection][iRouteElement].TrackCircuitSectionIndex];
+                        TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[ValidRoute[routeDirection][iRouteElement].TrackCircuitSectionIndex];
                         TrackDirection sectionDirection = (TrackDirection)ValidRoute[routeDirection][iRouteElement].Direction;
 
                         if (thisSection.CircuitType == TrackCircuitType.Junction && (thisSection.Pins[sectionDirection, Location.FarEnd].Link != -1) && sectionStart < 7000)
@@ -13866,11 +13864,11 @@ namespace Orts.Simulation.Physics
                 reversalSection = reversalInfo.SignalUsed ? reversalInfo.SignalSectorIndex : reversalInfo.DivergeSectorIndex;
             }
 
-            TrackCircuitSection rearSection = signalRef.TrackCircuitList[PresentPosition[1].TCSectionIndex];
+            TrackCircuitSection rearSection = TrackCircuitSection.TrackCircuitList[PresentPosition[1].TCSectionIndex];
             float reversalDistanceM = TrackCircuitSection.GetDistanceBetweenObjects(PresentPosition[1].TCSectionIndex, PresentPosition[1].TCOffset, (TrackDirection)PresentPosition[1].TCDirection, reversalSection, 0.0f);
 
             bool reversalEnabled = true;
-            TrackCircuitSection frontSection = signalRef.TrackCircuitList[PresentPosition[0].TCSectionIndex];
+            TrackCircuitSection frontSection = TrackCircuitSection.TrackCircuitList[PresentPosition[0].TCSectionIndex];
             reversalDistanceM = Math.Max(reversalDistanceM, TrackCircuitSection.GetDistanceBetweenObjects
                 (PresentPosition[0].TCSectionIndex, PresentPosition[0].TCOffset, (TrackDirection)PresentPosition[0].TCDirection,
                 reversalInfo.ReversalSectionIndex, reversalInfo.ReverseReversalOffset));
@@ -13895,16 +13893,16 @@ namespace Orts.Simulation.Physics
             if (AuxActionsContain.SpecAuxActions.Count > 0 && AuxActionsContain.SpecAuxActions[0] is AIActionWPRef &&
                 (AuxActionsContain.SpecAuxActions[0] as AIActionWPRef).SubrouteIndex == TCRoute.activeSubpath)
             {
-                TrackCircuitSection frontSection = signalRef.TrackCircuitList[PresentPosition[0].TCSectionIndex];
+                TrackCircuitSection frontSection = TrackCircuitSection.TrackCircuitList[PresentPosition[0].TCSectionIndex];
                 int thisSectionIndex = PresentPosition[0].TCSectionIndex;
-                TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisSectionIndex];
+                TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisSectionIndex];
                 float leftInSectionM = thisSection.Length - PresentPosition[0].TCOffset;
 
                 // get action route index - if not found, return distances < 0
 
                 int actionIndex0 = PresentPosition[0].RouteListIndex;
                 int actionRouteIndex = ValidRoute[0].GetRouteIndex((AuxActionsContain.SpecAuxActions[0] as AIActionWPRef).TCSectionIndex, actionIndex0);
-                var wpDistance = ValidRoute[0].GetDistanceAlongRoute(actionIndex0, leftInSectionM, actionRouteIndex, (AuxActionsContain.SpecAuxActions[0] as AIActionWPRef).RequiredDistance, AITrainDirectionForward, signalRef);
+                var wpDistance = ValidRoute[0].GetDistanceAlongRoute(actionIndex0, leftInSectionM, actionRouteIndex, (AuxActionsContain.SpecAuxActions[0] as AIActionWPRef).RequiredDistance, AITrainDirectionForward);
                 bool wpEnabled = false;
                 if (Math.Abs(SpeedMpS) <= Simulator.MaxStoppedMpS && (((AuxActionsContain.SpecAuxActions[0] as AIActionWPRef).keepIt != null &&
                     (AuxActionsContain.SpecAuxActions[0] as AIActionWPRef).keepIt.currentMvmtState == AITrain.AI_MOVEMENT_STATE.HANDLE_ACTION) ||
@@ -13924,7 +13922,7 @@ namespace Orts.Simulation.Physics
             bool validPath = true;
             if (TCRoute != null && TCRoute.activeSubpath >= 0 && TCRoute.TCRouteSubpaths != null && TCRoute.TCRouteSubpaths.Count > TCRoute.activeSubpath)
             {
-                TCSubpathRoute pathRoute = TCRoute.TCRouteSubpaths[TCRoute.activeSubpath];
+                TrackCircuitPartialPathRoute pathRoute = TCRoute.TCRouteSubpaths[TCRoute.activeSubpath];
                 validPath = pathRoute.GetRouteIndex(PresentPosition[0].TCSectionIndex, 0) >= 0;
             }
 
@@ -13948,7 +13946,7 @@ namespace Orts.Simulation.Physics
 
                 foreach (TrackCircuitRouteElement thisElement in ValidRoute[0])
                 {
-                    TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
+                    TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
                     TrackDirection sectionDirection = (TrackDirection)thisElement.Direction;
 
                     if (thisSection.EndSignals[sectionDirection] != null)
@@ -14002,13 +14000,13 @@ namespace Orts.Simulation.Physics
             {
                 float distanceToTrainM = 0.0f;
                 float offset = PresentPosition[1].TCOffset;
-                TrackCircuitSection firstSection = signalRef.TrackCircuitList[PresentPosition[1].TCSectionIndex];
+                TrackCircuitSection firstSection = TrackCircuitSection.TrackCircuitList[PresentPosition[1].TCSectionIndex];
                 float sectionStart = offset - firstSection.Length;
                 float progressiveMaxSpeedLimitMpS = allowedMaxSpeedLimitMpS;
 
                 foreach (TrackCircuitRouteElement thisElement in ValidRoute[1])
                 {
-                    TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
+                    TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
                     TrackDirection sectionDirection = (TrackDirection)thisElement.Direction;
 
                     if (thisSection.EndSignals[sectionDirection] != null)
@@ -14091,7 +14089,7 @@ namespace Orts.Simulation.Physics
             {
                 float distanceToTrainM = 0.0f;
                 float offset = PresentPosition[0].TCOffset;
-                TrackCircuitSection firstSection = signalRef.TrackCircuitList[PresentPosition[0].TCSectionIndex];
+                TrackCircuitSection firstSection = TrackCircuitSection.TrackCircuitList[PresentPosition[0].TCSectionIndex];
                 float sectionStart = -offset;
                 int startRouteIndex = PresentPosition[0].RouteListIndex;
                 if (startRouteIndex < 0) startRouteIndex = ValidRoute[0].GetRouteIndex(PresentPosition[0].TCSectionIndex, 0);
@@ -14100,7 +14098,7 @@ namespace Orts.Simulation.Physics
                     int routeSectionIndex = PresentPosition[0].TCSectionIndex;
                     for (int iRouteElement = startRouteIndex; iRouteElement < ValidRoute[0].Count && distanceToTrainM < maxDistanceM && sectionStart < maxDistanceM; iRouteElement++)
                     {
-                        TrackCircuitSection thisSection = signalRef.TrackCircuitList[ValidRoute[0][iRouteElement].TrackCircuitSectionIndex];
+                        TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[ValidRoute[0][iRouteElement].TrackCircuitSectionIndex];
                         TrackDirection sectionDirection = (TrackDirection)ValidRoute[0][iRouteElement].Direction;
 
                         if (thisSection.CircuitType == TrackCircuitType.Junction && (thisSection.Pins[sectionDirection, Location.FarEnd].Link == -1) && sectionStart < maxDistanceM)
@@ -14152,7 +14150,7 @@ namespace Orts.Simulation.Physics
 
             for (int iElement = 1; iElement <= TCRoute.TCRouteSubpaths[0].Count - 2; iElement++)
             {
-                TrackCircuitSection thisSection = orgSignals.TrackCircuitList[TCRoute.TCRouteSubpaths[0][iElement].TrackCircuitSectionIndex];
+                TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[TCRoute.TCRouteSubpaths[0][iElement].TrackCircuitSectionIndex];
                 int nextSectionIndex = TCRoute.TCRouteSubpaths[0][iElement + 1].TrackCircuitSectionIndex;
                 int prevSectionIndex = TCRoute.TCRouteSubpaths[0][iElement - 1].TrackCircuitSectionIndex;
 
@@ -14181,7 +14179,7 @@ namespace Orts.Simulation.Physics
         private float GetReservedLength()
         {
             float totalLength = 0f;
-            TCSubpathRoute usedRoute = null;
+            TrackCircuitPartialPathRoute usedRoute = null;
             int routeListIndex = -1;
             float presentOffset = 0f;
             TrainRouted routedTrain = null;
@@ -14203,13 +14201,13 @@ namespace Orts.Simulation.Physics
 
             if (routeListIndex >= 0 && usedRoute != null && routeListIndex <= (usedRoute.Count - 1))
             {
-                TrackCircuitSection thisSection = signalRef.TrackCircuitList[usedRoute[routeListIndex].TrackCircuitSectionIndex];
+                TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[usedRoute[routeListIndex].TrackCircuitSectionIndex];
                 totalLength = thisSection.Length - presentOffset;
 
                 while (routeListIndex < usedRoute.Count - 1)
                 {
                     routeListIndex++;
-                    thisSection = signalRef.TrackCircuitList[usedRoute[routeListIndex].TrackCircuitSectionIndex];
+                    thisSection = TrackCircuitSection.TrackCircuitList[usedRoute[routeListIndex].TrackCircuitSectionIndex];
                     if (thisSection.IsSet(routedTrain, false))
                     {
                         totalLength += thisSection.Length;
@@ -14229,16 +14227,16 @@ namespace Orts.Simulation.Physics
         // Extract alternative route
         //
 
-        public TCSubpathRoute ExtractAlternativeRoute_pathBased(int altRouteIndex)
+        public TrackCircuitPartialPathRoute ExtractAlternativeRoute_pathBased(int altRouteIndex)
         {
-            TCSubpathRoute returnRoute = new TCSubpathRoute();
+            TrackCircuitPartialPathRoute returnRoute = new TrackCircuitPartialPathRoute();
 
             // extract entries of alternative route upto first signal
 
             foreach (TrackCircuitRouteElement thisElement in TCRoute.TCAlternativePaths[altRouteIndex])
             {
                 returnRoute.Add(thisElement);
-                TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
+                TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
                 if (thisSection.EndSignals[(TrackDirection)thisElement.Direction] != null)
                 {
                     break;
@@ -14253,16 +14251,16 @@ namespace Orts.Simulation.Physics
         // Extract alternative route
         //
 
-        public TCSubpathRoute ExtractAlternativeRoute_locationBased(TCSubpathRoute altRoute)
+        public TrackCircuitPartialPathRoute ExtractAlternativeRoute_locationBased(TrackCircuitPartialPathRoute altRoute)
         {
-            TCSubpathRoute returnRoute = new TCSubpathRoute();
+            TrackCircuitPartialPathRoute returnRoute = new TrackCircuitPartialPathRoute();
 
             // extract entries of alternative route upto first signal
 
             foreach (TrackCircuitRouteElement thisElement in altRoute)
             {
                 returnRoute.Add(thisElement);
-                TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
+                TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
                 if (thisSection.EndSignals[(TrackDirection)thisElement.Direction] != null)
                 {
                     break;
@@ -14281,11 +14279,11 @@ namespace Orts.Simulation.Physics
         {
             // set new train route
 
-            TCSubpathRoute thisRoute = ValidRoute[0];
-            TCSubpathRoute newRoute = new TCSubpathRoute();
+            TrackCircuitPartialPathRoute thisRoute = ValidRoute[0];
+            TrackCircuitPartialPathRoute newRoute = new TrackCircuitPartialPathRoute();
             int actSubpath = TCRoute.activeSubpath;
 
-            TCSubpathRoute altRoute = TCRoute.TCAlternativePaths[altRouteIndex];
+            TrackCircuitPartialPathRoute altRoute = TCRoute.TCAlternativePaths[altRouteIndex];
             TCRoute.activeAltpath = altRouteIndex;
 
             // part upto split
@@ -14331,7 +14329,7 @@ namespace Orts.Simulation.Physics
             // set signal route
             // part upto split
 
-            TCSubpathRoute newSignalRoute = new TCSubpathRoute();
+            TrackCircuitPartialPathRoute newSignalRoute = new TrackCircuitPartialPathRoute();
 
             int splitSignalIndex = nextSignal.SignalRoute.GetRouteIndex(thisRoute[startElementIndex].TrackCircuitSectionIndex, 0);
             for (int iElement = 0; iElement < splitSignalIndex; iElement++)
@@ -14341,7 +14339,7 @@ namespace Orts.Simulation.Physics
 
             // extract new route upto next signal
 
-            TCSubpathRoute nextPart = ExtractAlternativeRoute_pathBased(altRouteIndex);
+            TrackCircuitPartialPathRoute nextPart = ExtractAlternativeRoute_pathBased(altRouteIndex);
             foreach (TrackCircuitRouteElement thisElement in nextPart)
             {
                 newSignalRoute.Add(thisElement);
@@ -14401,10 +14399,10 @@ namespace Orts.Simulation.Physics
         {
             // set new train route
 
-            TCSubpathRoute thisRoute = ValidRoute[0];
-            TCSubpathRoute newRoute = new TCSubpathRoute();
+            TrackCircuitPartialPathRoute thisRoute = ValidRoute[0];
+            TrackCircuitPartialPathRoute newRoute = new TrackCircuitPartialPathRoute();
 
-            TCSubpathRoute altRoute = sectionDeadlockInfo.AvailablePathList[usedPath].Path;
+            TrackCircuitPartialPathRoute altRoute = sectionDeadlockInfo.AvailablePathList[usedPath].Path;
             int actSubpath = TCRoute.activeSubpath;
 
             // part upto split
@@ -14427,7 +14425,7 @@ namespace Orts.Simulation.Physics
             int lastAlternativeSectionIndex = thisRoute.GetRouteIndex(altRoute[altRoute.Count - 1].TrackCircuitSectionIndex, startElementIndex);
             for (int iElement = startElementIndex; iElement <= lastAlternativeSectionIndex; iElement++)
             {
-                TrackCircuitSection abdSection = signalRef.TrackCircuitList[thisRoute[iElement].TrackCircuitSectionIndex];
+                TrackCircuitSection abdSection = TrackCircuitSection.TrackCircuitList[thisRoute[iElement].TrackCircuitSectionIndex];
 
 #if DEBUG_DEADLOCK
                 File.AppendAllText(@"C:\temp\deadlock.txt","Abandoning section " + abdSection.Index + " for Train " + Number + "\n");
@@ -14488,7 +14486,7 @@ namespace Orts.Simulation.Physics
 
             if (nextSignal != null)
             {
-                TCSubpathRoute newSignalRoute = new TCSubpathRoute();
+                TrackCircuitPartialPathRoute newSignalRoute = new TrackCircuitPartialPathRoute();
 
                 int splitSignalIndex = nextSignal.SignalRoute.GetRouteIndex(thisRoute[startElementIndex].TrackCircuitSectionIndex, 0);
                 for (int iElement = 0; iElement < splitSignalIndex; iElement++)
@@ -14498,7 +14496,7 @@ namespace Orts.Simulation.Physics
 
                 // extract new route upto next signal
 
-                TCSubpathRoute nextPart = ExtractAlternativeRoute_locationBased(altRoute);
+                TrackCircuitPartialPathRoute nextPart = ExtractAlternativeRoute_locationBased(altRoute);
                 foreach (TrackCircuitRouteElement thisElement in nextPart)
                 {
                     newSignalRoute.Add(thisElement);
@@ -14600,7 +14598,7 @@ namespace Orts.Simulation.Physics
         // Look for stations in alternative route
         //
         //
-        private void LookForReplacementStations(Dictionary<int, StationStop> abdStations, TCSubpathRoute newRoute, TCSubpathRoute altRoute)
+        private void LookForReplacementStations(Dictionary<int, StationStop> abdStations, TrackCircuitPartialPathRoute newRoute, TrackCircuitPartialPathRoute altRoute)
         {
 
             if (StationStops != null)
@@ -14640,7 +14638,7 @@ namespace Orts.Simulation.Physics
         //
         //
 
-        public virtual StationStop SetAlternativeStationStop(StationStop orgStop, TCSubpathRoute newRoute)
+        public virtual StationStop SetAlternativeStationStop(StationStop orgStop, TrackCircuitPartialPathRoute newRoute)
         {
             int altPlatformIndex = -1;
 
@@ -14689,7 +14687,7 @@ namespace Orts.Simulation.Physics
             int lastRouteIndex = 0;
             int activeSubroute = 0;
 
-            TCSubpathRoute thisRoute = TCRoute.TCRouteSubpaths[activeSubroute];
+            TrackCircuitPartialPathRoute thisRoute = TCRoute.TCRouteSubpaths[activeSubroute];
 
             // get platform details
 
@@ -14753,7 +14751,7 @@ namespace Orts.Simulation.Physics
 
                 float deltaLength = thisPlatform.Length - Length; // platform length - train length
 
-                TrackCircuitSection endSection = signalRef.TrackCircuitList[endSectionIndex];
+                TrackCircuitSection endSection = TrackCircuitSection.TrackCircuitList[endSectionIndex];
 
 
                 int firstRouteIndex = thisRoute.GetRouteIndex(beginSectionIndex, 0);
@@ -14772,7 +14770,7 @@ namespace Orts.Simulation.Physics
                 {
                     float actualBegin = beginOffset;
 
-                    TrackCircuitSection thisSection = signalRef.TrackCircuitList[beginSectionIndex];
+                    TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[beginSectionIndex];
 
                     // Other platforms in same section
 
@@ -14805,8 +14803,7 @@ namespace Orts.Simulation.Physics
                                         if (lastRouteIndex > 0)
                                         {
                                             float thisLength =
-                                                thisRoute.GetDistanceAlongRoute(addRouteIndex, addOffset,
-                                                        lastRouteIndex, endOffset, true, signalRef);
+                                                thisRoute.GetDistanceAlongRoute(addRouteIndex, addOffset, lastRouteIndex, endOffset, true);
                                             if (thisLength > fullLength)
                                                 fullLength = thisLength;
                                         }
@@ -14831,7 +14828,7 @@ namespace Orts.Simulation.Physics
                                 iIndex--)
                     {
                         int nextSectionIndex = thisRoute[iIndex].TrackCircuitSectionIndex;
-                        TrackCircuitSection nextSection = signalRef.TrackCircuitList[nextSectionIndex];
+                        TrackCircuitSection nextSection = TrackCircuitSection.TrackCircuitList[nextSectionIndex];
 
                         foreach (int otherPlatformIndex in nextSection.PlatformIndices)
                         {
@@ -14863,7 +14860,7 @@ namespace Orts.Simulation.Physics
 
                     for (int iIndex = lastRouteIndex; iIndex < thisRoute.Count && overlap < addOffset; iIndex++)
                     {
-                        TrackCircuitSection nextSection = signalRef.TrackCircuitList[thisRoute[iIndex].TrackCircuitSectionIndex];
+                        TrackCircuitSection nextSection = TrackCircuitSection.TrackCircuitList[thisRoute[iIndex].TrackCircuitSectionIndex];
                         overlap += nextSection.Length;
                     }
 
@@ -15024,7 +15021,7 @@ namespace Orts.Simulation.Physics
                 File.AppendAllText(@"C:\Temp\deadlock.txt", "\n === Removed Train : " + Number.ToString() + "\n");
                 File.AppendAllText(@"C:\Temp\deadlock.txt", "Deadlock at section : " + thisDeadlock.Key.ToString() + "\n");
 #endif
-                TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisDeadlock.Key];
+                TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisDeadlock.Key];
                 foreach (Dictionary<int, int> deadlockTrapInfo in thisDeadlock.Value)
                 {
                     foreach (KeyValuePair<int, int> deadlockedTrain in deadlockTrapInfo)
@@ -15077,7 +15074,7 @@ namespace Orts.Simulation.Physics
                             if (otherTrain.DeadlockInfo.Count <= 0)
                                 thisSection.ClearDeadlockTrap(otherTrain.Number);
                         }
-                        TrackCircuitSection otherSection = signalRef.TrackCircuitList[deadlockedTrain.Value];
+                        TrackCircuitSection otherSection = TrackCircuitSection.TrackCircuitList[deadlockedTrain.Value];
                         otherSection.ClearDeadlockTrap(Number);
                     }
                 }
@@ -15232,7 +15229,7 @@ namespace Orts.Simulation.Physics
         /// Virtual method to allow differentiation by child classes
         /// </summary>
 
-        public virtual bool TrainGetSectionStateClearNode(int elementDirection, TCSubpathRoute routePart, TrackCircuitSection thisSection)
+        public virtual bool TrainGetSectionStateClearNode(int elementDirection, TrackCircuitPartialPathRoute routePart, TrackCircuitSection thisSection)
         {
             return (thisSection.IsAvailable(this));
         }
@@ -15500,8 +15497,8 @@ namespace Orts.Simulation.Physics
 
         public class TCRoutePath
         {
-            public List<TCSubpathRoute> TCRouteSubpaths = new List<TCSubpathRoute>();
-            public List<TCSubpathRoute> TCAlternativePaths = new List<TCSubpathRoute>();
+            public List<TrackCircuitPartialPathRoute> TCRouteSubpaths = new List<TrackCircuitPartialPathRoute>();
+            public List<TrackCircuitPartialPathRoute> TCAlternativePaths = new List<TrackCircuitPartialPathRoute>();
             public int activeSubpath;
             public int activeAltpath;
             public List<int[]> WaitingPoints = new List<int[]>(); // [0] = sublist in which WP is placed; 
@@ -15536,7 +15533,7 @@ namespace Orts.Simulation.Physics
                 Queue<int> ActiveAlternativeRoutes = new Queue<int>();
 
                 //  Create the first TCSubpath into the TCRoute
-                TCSubpathRoute thisSubpath = new TCSubpathRoute();
+                TrackCircuitPartialPathRoute thisSubpath = new TrackCircuitPartialPathRoute();
                 TCRouteSubpaths.Add(thisSubpath);
 
                 TrackDirection currentDir = (TrackDirection)orgDir;
@@ -15703,7 +15700,7 @@ namespace Orts.Simulation.Physics
                                 //                                }
 
                                 sublist++;
-                                thisSubpath = new TCSubpathRoute();
+                                thisSubpath = new TrackCircuitPartialPathRoute();
                                 TCRouteSubpaths.Add(thisSubpath);
                                 currentDir = currentDir.Next();
                                 reversal--;        // reset reverse point
@@ -15865,7 +15862,7 @@ namespace Orts.Simulation.Physics
                             newDir = thisNode.TrackPins[(int)currentDir].Direction;
                         }
                         sublist++;
-                        thisSubpath = new TCSubpathRoute();
+                        thisSubpath = new TrackCircuitPartialPathRoute();
                         TCRouteSubpaths.Add(thisSubpath);
                         currentDir = currentDir.Next();
                         reversal--;        // reset reverse point
@@ -15910,7 +15907,7 @@ namespace Orts.Simulation.Physics
 
                 // only add last section if end point is in different tracknode as last added item
                 if (thisSubpath.Count <= 0 ||
-                    thisNode.Index != orgSignals.TrackCircuitList[thisSubpath[thisSubpath.Count - 1].TrackCircuitSectionIndex].OriginalIndex)
+                    thisNode.Index != TrackCircuitSection.TrackCircuitList[thisSubpath[thisSubpath.Count - 1].TrackCircuitSectionIndex].OriginalIndex)
                 {
                     if (currentDir == 0)
                     {
@@ -15950,22 +15947,22 @@ namespace Orts.Simulation.Physics
                 // check if section extends to end of track
 
                 TrackCircuitRouteElement lastElement = thisSubpath[thisSubpath.Count - 1];
-                TrackCircuitSection lastEndSection = orgSignals.TrackCircuitList[lastElement.TrackCircuitSectionIndex];
-                TrackDirection lastDirection = (TrackDirection)lastElement.Direction;
+                TrackCircuitSection lastEndSection = TrackCircuitSection.TrackCircuitList[lastElement.TrackCircuitSectionIndex];
+                TrackDirection lastDirection = lastElement.Direction;
 
                 List<TrackCircuitRouteElement> addedElements = new List<TrackCircuitRouteElement>();
                 if (lastEndSection.CircuitType != TrackCircuitType.EndOfTrack && lastEndSection.EndSignals[lastDirection] == null)
                 {
                     TrackDirection thisDirection = lastDirection;
-                    lastDirection = (TrackDirection)lastEndSection.Pins[thisDirection, Location.NearEnd].Direction;
-                    lastEndSection = orgSignals.TrackCircuitList[lastEndSection.Pins[thisDirection, Location.NearEnd].Link];
+                    lastDirection = lastEndSection.Pins[thisDirection, Location.NearEnd].Direction;
+                    lastEndSection = TrackCircuitSection.TrackCircuitList[lastEndSection.Pins[thisDirection, Location.NearEnd].Link];
 
                     while (lastEndSection.CircuitType == TrackCircuitType.Normal && lastEndSection.EndSignals[lastDirection] == null)
                     {
                         addedElements.Add(new TrackCircuitRouteElement(lastEndSection.Index, lastDirection));
                         thisDirection = lastDirection;
-                        lastDirection = (TrackDirection)lastEndSection.Pins[thisDirection, Location.NearEnd].Direction;
-                        lastEndSection = orgSignals.TrackCircuitList[lastEndSection.Pins[thisDirection, Location.NearEnd].Link];
+                        lastDirection = lastEndSection.Pins[thisDirection, Location.NearEnd].Direction;
+                        lastEndSection = TrackCircuitSection.TrackCircuitList[lastEndSection.Pins[thisDirection, Location.NearEnd].Link];
                     }
 
                     if (lastEndSection.CircuitType == TrackCircuitType.EndOfTrack)
@@ -15983,7 +15980,7 @@ namespace Orts.Simulation.Physics
 
                 for (int iSub = 0; iSub < reversalOffset.Count; iSub++)  // no reversal for final path
                 {
-                    TCSubpathRoute revSubPath = TCRouteSubpaths[reversalIndex[iSub]];
+                    TrackCircuitPartialPathRoute revSubPath = TCRouteSubpaths[reversalIndex[iSub]];
                     offset = reversalOffset[iSub];
                     if (revSubPath.Count <= 0)
                         continue;
@@ -16000,7 +15997,7 @@ namespace Orts.Simulation.Physics
                     {
                         for (int iSection = revSubPath.Count - 1; iSection > 0 && withinOffset; iSection--)
                         {
-                            TrackCircuitSection thisSection = orgSignals.TrackCircuitList[revSubPath[iSection].TrackCircuitSectionIndex];
+                            TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[revSubPath[iSection].TrackCircuitSectionIndex];
                             if (thisSection.CircuitType == TrackCircuitType.Junction)
                             {
                                 withinOffset = false;    // always end on junction (next node)
@@ -16025,7 +16022,7 @@ namespace Orts.Simulation.Physics
                     {
                         for (int iSection = revSubPath.Count - 1; iSection > 0 && withinOffset; iSection--)
                         {
-                            TrackCircuitSection thisSection = orgSignals.TrackCircuitList[revSubPath[iSection].TrackCircuitSectionIndex];
+                            TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[revSubPath[iSection].TrackCircuitSectionIndex];
                             if (thisSection.CircuitType == TrackCircuitType.Junction)
                             {
                                 withinOffset = false;     // always end on junction (next node)
@@ -16053,9 +16050,9 @@ namespace Orts.Simulation.Physics
 
                     for (int iSection = lastSectionIndex; iSection < revSubPath.Count - 1 && !signalFound; iSection++)
                     {
-                        TrackCircuitSection thisSection = orgSignals.TrackCircuitList[revSubPath[iSection].TrackCircuitSectionIndex];
+                        TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[revSubPath[iSection].TrackCircuitSectionIndex];
                         removeSections.Remove(iSection);
-                        if (thisSection.EndSignals[(TrackDirection)direction] != null)
+                        if (thisSection.EndSignals[direction] != null)
                         {
                             signalFound = true;
                         }
@@ -16140,11 +16137,11 @@ namespace Orts.Simulation.Physics
                 // first, find last signal - there may not be a junction between last signal and end
                 // last end must be end-of-track
 
-                foreach (TCSubpathRoute endSubPath in TCRouteSubpaths)
+                foreach (TrackCircuitPartialPathRoute endSubPath in TCRouteSubpaths)
                 {
                     int lastIndex = endSubPath.Count - 1;
                     TrackCircuitRouteElement thisElement = endSubPath[lastIndex];
-                    TrackCircuitSection lastSection = orgSignals.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
+                    TrackCircuitSection lastSection = TrackCircuitSection.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
 
                     // build additional route from end of last section but not further than train length
 
@@ -16157,12 +16154,12 @@ namespace Orts.Simulation.Physics
                     if (nextSectionIndex > 0)
                     {
                         lastUseIndex = lastIndex;  // last element is not end of track
-                        addSections = orgSignals.ScanRoute(null, nextSectionIndex, 0.0f, nextDirection,
+                        addSections = SignalEnvironment.ScanRoute(null, nextSectionIndex, 0.0f, nextDirection,
                            true, thisTrainLength, false, true, true, false, true, false, false, false, false, false);
 
                         if (addSections.Count > 0)
                         {
-                            lastSection = orgSignals.TrackCircuitList[Math.Abs(addSections[addSections.Count - 1])];
+                            lastSection = TrackCircuitSection.TrackCircuitList[Math.Abs(addSections[addSections.Count - 1])];
                         }
                     }
 
@@ -16176,7 +16173,7 @@ namespace Orts.Simulation.Physics
 
                         for (int iSection = 0; iSection < addSections.Count - 2; iSection++)  // exclude end of track
                         {
-                            TrackCircuitSection thisSection = orgSignals.TrackCircuitList[Math.Abs(addSections[iSection])];
+                            TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[Math.Abs(addSections[iSection])];
                             totalLength += thisSection.Length;
                             if (thisSection.CircuitType != TrackCircuitType.Normal)
                             {
@@ -16194,7 +16191,7 @@ namespace Orts.Simulation.Physics
                                 iSection--)
                         {
                             thisElement = endSubPath[iSection];
-                            TrackCircuitSection thisSection = orgSignals.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
+                            TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
 
                             if (thisSection.EndSignals[thisElement.Direction] != null)
                             {
@@ -16221,7 +16218,7 @@ namespace Orts.Simulation.Physics
                                 {
                                     RoughReversalInfos[RoughReversalInfos.Count - 1].ReversalSectionIndex = endSubPath[sigIndex].TrackCircuitSectionIndex;
                                     RoughReversalInfos[RoughReversalInfos.Count - 1].ReverseReversalOffset =
-                                        orgSignals.TrackCircuitList[endSubPath[sigIndex].TrackCircuitSectionIndex].Length;
+                                        TrackCircuitSection.TrackCircuitList[endSubPath[sigIndex].TrackCircuitSectionIndex].Length;
                                 }
                                 endSubPath.RemoveAt(iSection);
                             }
@@ -16406,7 +16403,7 @@ namespace Orts.Simulation.Physics
 
                 foreach (KeyValuePair<int, int[]> thisAltPath in AlternativeRoutes)
                 {
-                    TCSubpathRoute thisAltpath = new TCSubpathRoute();
+                    TrackCircuitPartialPathRoute thisAltpath = new TrackCircuitPartialPathRoute();
 
                     int startSection = thisAltPath.Key;
                     int[] pathDetails = thisAltPath.Value;
@@ -16612,7 +16609,7 @@ namespace Orts.Simulation.Physics
             {
                 foreach (KeyValuePair<int, int[]> thisAltPathIndex in AlternativeRoutes)
                 {
-                    TCSubpathRoute thisAltpath = new TCSubpathRoute();
+                    TrackCircuitPartialPathRoute thisAltpath = new TrackCircuitPartialPathRoute();
 
                     int startSectionIndex = thisAltPathIndex.Key;
                     int[] pathDetails = thisAltPathIndex.Value;
@@ -16811,7 +16808,7 @@ namespace Orts.Simulation.Physics
             // main path may be NULL if private path is to be set for fixed deadlocks
             //
 
-            public void InsertPassingPath(TCSubpathRoute mainPath, TCSubpathRoute passPath, int startSectionIndex, int endSectionIndex,
+            public void InsertPassingPath(TrackCircuitPartialPathRoute mainPath, TrackCircuitPartialPathRoute passPath, int startSectionIndex, int endSectionIndex,
                                   SignalEnvironment orgSignals, int trainNumber, int sublistRef)
             {
                 // if main set, check if path is valid diverge path - otherwise assume it is indeed
@@ -16844,7 +16841,7 @@ namespace Orts.Simulation.Physics
                 int usedStartSectionRouteIndex = mainPath.GetRouteIndex(usedStartSectionIndex, 0);
                 int usedEndSectionRouteIndex = mainPath.GetRouteIndex(usedEndSectionIndex, usedStartSectionRouteIndex);
 
-                TCSubpathRoute mainPathPart = new TCSubpathRoute(mainPath, usedStartSectionRouteIndex, usedEndSectionRouteIndex);
+                TrackCircuitPartialPathRoute mainPathPart = new TrackCircuitPartialPathRoute(mainPath, usedStartSectionRouteIndex, usedEndSectionRouteIndex);
                 if (mainPathPart != null)
                 {
                     (int PathIndex, bool Exists) mainIndex = thisDeadlock.AddPath(mainPathPart, usedStartSectionIndex);  // [0] is Index, [1] > 0 is existing
@@ -16874,7 +16871,7 @@ namespace Orts.Simulation.Physics
 
                         if (String.Compare(thisDeadlockPathInfo.Name, "MAIN") == 0 && !orgSignals.Simulator.TimetableMode)
                         {
-                            TCSubpathRoute inverseMainPath = mainPathPart.ReversePath();
+                            TrackCircuitPartialPathRoute inverseMainPath = mainPathPart.ReversePath();
                             (int PathIndex, bool Exists) inverseIndex = thisDeadlock.AddPath(inverseMainPath, endSectionIndex, "MAIN", string.Empty);
                             DeadlockPathInfo thisDeadlockInverseInfo = thisDeadlock.AvailablePathList[inverseIndex.PathIndex];
 
@@ -16926,7 +16923,7 @@ namespace Orts.Simulation.Physics
 
                     if (trainNumber < 0)
                     {
-                        TCSubpathRoute inversePassPath = passPath.ReversePath();
+                        TrackCircuitPartialPathRoute inversePassPath = passPath.ReversePath();
                         (int PathIndex, bool Exists) inverseIndex = thisDeadlock.AddPath(inversePassPath, endSectionIndex, String.Copy(thisDeadlockPathInfo.Name), String.Empty);
                         DeadlockPathInfo thisDeadlockInverseInfo = thisDeadlock.AvailablePathList[inverseIndex.PathIndex];
 
@@ -16960,12 +16957,12 @@ namespace Orts.Simulation.Physics
             {
                 for (int iSubpath = 0; iSubpath <= TCRouteSubpaths.Count - 1; iSubpath++)
                 {
-                    TCSubpathRoute thisSubpath = TCRouteSubpaths[iSubpath];
+                    TrackCircuitPartialPathRoute thisSubpath = TCRouteSubpaths[iSubpath];
 
                     for (int iElement = 0; iElement <= thisSubpath.Count - 1; iElement++)
                     {
                         TrackCircuitRouteElement thisElement = thisSubpath[iElement];
-                        TrackCircuitSection thisSection = orgSignals.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
+                        TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
 
                         // if section is a deadlock boundary determine available paths
                         if (thisSection.DeadlockReference > 0)
@@ -16995,7 +16992,7 @@ namespace Orts.Simulation.Physics
             {
                 List<List<int[]>> loopList = new List<List<int[]>>();
 
-                foreach (TCSubpathRoute thisRoute in TCRouteSubpaths)
+                foreach (TrackCircuitPartialPathRoute thisRoute in TCRouteSubpaths)
                 {
                     Dictionary<int, int> sections = new Dictionary<int, int>();
                     List<int[]> loopInfo = new List<int[]>();
@@ -17084,7 +17081,7 @@ namespace Orts.Simulation.Physics
                 int orgTotalRoutes = TCRouteSubpaths.Count;
                 for (int iRoute = orgTotalRoutes - 1; iRoute >= 0; iRoute--)
                 {
-                    TCSubpathRoute thisRoute = TCRouteSubpaths[iRoute];
+                    TrackCircuitPartialPathRoute thisRoute = TCRouteSubpaths[iRoute];
 
                     List<int[]> loopInfo = loopList[iRoute];
 
@@ -17096,7 +17093,7 @@ namespace Orts.Simulation.Physics
                         // copy route and add after existing route
                         // remove points from loop-end in first route
                         // remove points upto loop-start in second route
-                        TCSubpathRoute newRoute = new TCSubpathRoute(thisRoute);
+                        TrackCircuitPartialPathRoute newRoute = new TrackCircuitPartialPathRoute(thisRoute);
                         thisRoute.RemoveRange(loopDetails[1], thisRoute.Count - loopDetails[1]);
                         newRoute.RemoveRange(0, loopDetails[0] + 1);
 
@@ -17112,7 +17109,7 @@ namespace Orts.Simulation.Physics
                         dummyReversal.Valid = false;
                         dummyReversal.ReversalSectionIndex = thisRoute[thisRoute.Count - 1].TrackCircuitSectionIndex;
                         dummyReversal.ReversalIndex = thisRoute.Count - 1;
-                        TrackCircuitSection thisSection = orgSignals.TrackCircuitList[thisRoute[thisRoute.Count - 1].TrackCircuitSectionIndex];
+                        TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisRoute[thisRoute.Count - 1].TrackCircuitSectionIndex];
                         dummyReversal.ReverseReversalOffset = thisSection.Length;
                         ReversalInfo.Insert(iRoute, dummyReversal);
 
@@ -17136,13 +17133,13 @@ namespace Orts.Simulation.Physics
 
                 for (int iSubpath = 0; iSubpath < otherPath.TCRouteSubpaths.Count; iSubpath++)
                 {
-                    TCSubpathRoute newSubpath = new TCSubpathRoute(otherPath.TCRouteSubpaths[iSubpath]);
+                    TrackCircuitPartialPathRoute newSubpath = new TrackCircuitPartialPathRoute(otherPath.TCRouteSubpaths[iSubpath]);
                     TCRouteSubpaths.Add(newSubpath);
                 }
 
                 for (int iAltpath = 0; iAltpath < otherPath.TCAlternativePaths.Count; iAltpath++)
                 {
-                    TCSubpathRoute newAltpath = new TCSubpathRoute(otherPath.TCAlternativePaths[iAltpath]);
+                    TrackCircuitPartialPathRoute newAltpath = new TrackCircuitPartialPathRoute(otherPath.TCAlternativePaths[iAltpath]);
                     TCAlternativePaths.Add(newAltpath);
                 }
 
@@ -17183,7 +17180,7 @@ namespace Orts.Simulation.Physics
             // Constructor from single subpath
             //
 
-            public TCRoutePath(TCSubpathRoute subPath)
+            public TCRoutePath(TrackCircuitPartialPathRoute subPath)
             {
                 activeSubpath = 0;
                 activeAltpath = -1;
@@ -17204,14 +17201,14 @@ namespace Orts.Simulation.Physics
                 int totalSubpath = inf.ReadInt32();
                 for (int iSubpath = 0; iSubpath < totalSubpath; iSubpath++)
                 {
-                    TCSubpathRoute thisSubpath = new TCSubpathRoute(inf);
+                    TrackCircuitPartialPathRoute thisSubpath = new TrackCircuitPartialPathRoute(inf);
                     TCRouteSubpaths.Add(thisSubpath);
                 }
 
                 int totalAltpath = inf.ReadInt32();
                 for (int iAltpath = 0; iAltpath < totalAltpath; iAltpath++)
                 {
-                    TCSubpathRoute thisSubpath = new TCSubpathRoute(inf);
+                    TrackCircuitPartialPathRoute thisSubpath = new TrackCircuitPartialPathRoute(inf);
                     TCAlternativePaths.Add(thisSubpath);
                 }
 
@@ -17256,13 +17253,13 @@ namespace Orts.Simulation.Physics
                 outf.Write(activeSubpath);
                 outf.Write(activeAltpath);
                 outf.Write(TCRouteSubpaths.Count);
-                foreach (TCSubpathRoute thisSubpath in TCRouteSubpaths)
+                foreach (TrackCircuitPartialPathRoute thisSubpath in TCRouteSubpaths)
                 {
                     thisSubpath.Save(outf);
                 }
 
                 outf.Write(TCAlternativePaths.Count);
-                foreach (TCSubpathRoute thisAltpath in TCAlternativePaths)
+                foreach (TrackCircuitPartialPathRoute thisAltpath in TCAlternativePaths)
                 {
                     thisAltpath.Save(outf);
                 }
@@ -17342,9 +17339,9 @@ namespace Orts.Simulation.Physics
             // build station xref list
             //
 
-            public void SetStationReference(List<TCSubpathRoute> subpaths, int sectionIndex, SignalEnvironment orgSignals)
+            public void SetStationReference(List<TrackCircuitPartialPathRoute> subpaths, int sectionIndex, SignalEnvironment orgSignals)
             {
-                TrackCircuitSection actSection = orgSignals.TrackCircuitList[sectionIndex];
+                TrackCircuitSection actSection = TrackCircuitSection.TrackCircuitList[sectionIndex];
                 foreach (int platformRef in actSection.PlatformIndices)
                 {
                     PlatformDetails actPlatform = orgSignals.PlatformDetailsList[platformRef];
@@ -17370,7 +17367,7 @@ namespace Orts.Simulation.Physics
             {
                 int subpathIdx = WaitingPoints[WPIdx][0];
                 var subpath = TCRouteSubpaths[subpathIdx];
-                TCSubpathRoute nextRoute = new TCSubpathRoute();
+                TrackCircuitPartialPathRoute nextRoute = new TrackCircuitPartialPathRoute();
                 TCRouteSubpaths.Insert(subpathIdx + 1, nextRoute);
                 TCReversalInfo nextReversalPoint = new TCReversalInfo(); // also add dummy reversal info to match total number
                 //CSComment: insert subpath number and subpath index
@@ -17398,7 +17395,7 @@ namespace Orts.Simulation.Physics
             // add sections from other path at front
             //
 
-            public void AddSectionsAtStart(TCSubpathRoute otherRoute, Train train, bool reverse)
+            public void AddSectionsAtStart(TrackCircuitPartialPathRoute otherRoute, Train train, bool reverse)
             {
                 int addedSections = 0;
 
@@ -17484,9 +17481,9 @@ namespace Orts.Simulation.Physics
             // Add subroute from other path at front
             //
 
-            public void AddSubrouteAtStart(TCSubpathRoute otherRoute, Train train)
+            public void AddSubrouteAtStart(TrackCircuitPartialPathRoute otherRoute, Train train)
             {
-                TCRouteSubpaths.Insert(0, new TCSubpathRoute(otherRoute));
+                TCRouteSubpaths.Insert(0, new TrackCircuitPartialPathRoute(otherRoute));
 
                 // add additional reversal info
                 TCReversalInfo newReversal = new TCReversalInfo();
@@ -17520,7 +17517,7 @@ namespace Orts.Simulation.Physics
             // Add sections from other path at end
             //
 
-            public void AddSectionsAtEnd(TCSubpathRoute otherRoute, bool reverse)
+            public void AddSectionsAtEnd(TrackCircuitPartialPathRoute otherRoute, bool reverse)
             {
                 int addedSections = 0;
 
@@ -17580,9 +17577,9 @@ namespace Orts.Simulation.Physics
             // Add subroute from other path at end
             //
 
-            public void AddSubrouteAtEnd(TCSubpathRoute otherRoute)
+            public void AddSubrouteAtEnd(TrackCircuitPartialPathRoute otherRoute)
             {
-                TCRouteSubpaths.Add(new TCSubpathRoute(otherRoute));
+                TCRouteSubpaths.Add(new TrackCircuitPartialPathRoute(otherRoute));
 
                 // add additional reversal info
                 TCReversalInfo newReversal = new TCReversalInfo();
@@ -17768,7 +17765,7 @@ namespace Orts.Simulation.Physics
             /// Reverse (or continue in same direction)
             /// <\summary>
 
-            public void Reverse(TrackDirection oldDirection, TCSubpathRoute thisRoute, float offset, SignalEnvironment orgSignals)
+            public void Reverse(TrackDirection oldDirection, TrackCircuitPartialPathRoute thisRoute, float offset, SignalEnvironment orgSignals)
             {
                 RouteListIndex = thisRoute.GetRouteIndex(TCSectionIndex, 0);
                 if (RouteListIndex >= 0)
@@ -17780,7 +17777,7 @@ namespace Orts.Simulation.Physics
                     TCDirection = TCDirection == 0 ? 1 : 0;
                 }
 
-                TrackCircuitSection thisSection = orgSignals.TrackCircuitList[TCSectionIndex];
+                TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[TCSectionIndex];
                 if (oldDirection != (TrackDirection)TCDirection)
                     TCOffset = thisSection.Length - TCOffset; // actual reversal so adjust offset
 
@@ -17834,7 +17831,7 @@ namespace Orts.Simulation.Physics
             /// Constructor (from route path details)
             /// <\summary>
 
-            public TCReversalInfo(TCSubpathRoute lastRoute, int prevReversalIndex, TCSubpathRoute firstRoute, SignalEnvironment orgSignals, float reverseReversalOffset, int reversalIndex, int reversalSectionIndex)
+            public TCReversalInfo(TrackCircuitPartialPathRoute lastRoute, int prevReversalIndex, TrackCircuitPartialPathRoute firstRoute, SignalEnvironment orgSignals, float reverseReversalOffset, int reversalIndex, int reversalSectionIndex)
             {
                 // preset values
                 Valid = false;
@@ -17927,7 +17924,7 @@ namespace Orts.Simulation.Physics
                     DivergeOffset = 0.0f;
                     for (int iSection = LastDivergeIndex; iSection < lastRoute.Count; iSection++)
                     {
-                        TrackCircuitSection thisSection = orgSignals.TrackCircuitList[lastRoute[iSection].TrackCircuitSectionIndex];
+                        TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[lastRoute[iSection].TrackCircuitSectionIndex];
                         DivergeOffset += thisSection.Length;
                     }
 
@@ -17949,8 +17946,8 @@ namespace Orts.Simulation.Physics
                         }
                         for (int iSection = startSection; iSection <= FirstDivergeIndex && !signalFound; iSection++)
                         {
-                            TrackCircuitSection thisSection = orgSignals.TrackCircuitList[firstRoute[iSection].TrackCircuitSectionIndex];
-                            if (thisSection.EndSignals[(TrackDirection)firstRoute[iSection].Direction] != null)   // signal in required direction
+                            TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[firstRoute[iSection].TrackCircuitSectionIndex];
+                            if (thisSection.EndSignals[firstRoute[iSection].Direction] != null)   // signal in required direction
                             {
                                 signalFound = true;
                                 FirstSignalIndex = iSection;
@@ -17963,8 +17960,8 @@ namespace Orts.Simulation.Physics
                     {
                         for (int iSection = FirstDivergeIndex; iSection >= startSection && !signalFound; iSection--)
                         {
-                            TrackCircuitSection thisSection = orgSignals.TrackCircuitList[firstRoute[iSection].TrackCircuitSectionIndex];
-                            if (thisSection.EndSignals[(TrackDirection)firstRoute[iSection].Direction] != null)   // signal in required direction
+                            TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[firstRoute[iSection].TrackCircuitSectionIndex];
+                            if (thisSection.EndSignals[firstRoute[iSection].Direction] != null)   // signal in required direction
                             {
                                 signalFound = true;
                                 FirstSignalIndex = iSection;
@@ -17984,7 +17981,7 @@ namespace Orts.Simulation.Physics
                             SignalOffset = 0.0f;
                             for (int iSection = LastSignalIndex; iSection < lastRoute.Count; iSection++)
                             {
-                                TrackCircuitSection thisSection = orgSignals.TrackCircuitList[lastRoute[iSection].TrackCircuitSectionIndex];
+                                TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[lastRoute[iSection].TrackCircuitSectionIndex];
                                 SignalOffset += thisSection.Length;
                             }
                         }
@@ -19377,7 +19374,7 @@ namespace Orts.Simulation.Physics
             ClearValidRoutes();
             bool canPlace = true;
             PresentPosition[0].TCSectionIndex = -1;
-            TCSubpathRoute tempRoute = CalculateInitialTrainPosition(ref canPlace);
+            TrackCircuitPartialPathRoute tempRoute = CalculateInitialTrainPosition(ref canPlace);
             if (tempRoute.Count == 0 || !canPlace)
             {
                 throw new InvalidDataException("Position of train in turntable not clear");

@@ -2438,7 +2438,7 @@ namespace Orts.Simulation.RollingStocks
 
             while (validSections)
             {
-                TrackCircuitSection thisSection = Train.signalRef.TrackCircuitList[thisSectionIndex];
+                TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisSectionIndex];
                 isOverTrough = false;
 
                 // car spans sections
@@ -2478,7 +2478,7 @@ namespace Orts.Simulation.RollingStocks
                     if (thisSectionRouteIndex >= 0)
                     {
                         thisSectionIndex = thisSectionRouteIndex;
-                        thisSection = Train.signalRef.TrackCircuitList[thisSectionIndex];
+                        thisSection = TrackCircuitSection.TrackCircuitList[thisSectionIndex];
                         thisSectionOffset = thisSection.Length;  // always at end of next section
                         thisSectionDirection = (TrackDirection)Train.ValidRoute[0][thisSectionRouteIndex].Direction;
                     }

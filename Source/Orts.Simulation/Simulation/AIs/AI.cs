@@ -982,7 +982,7 @@ namespace Orts.Simulation.AIs
             // clear track and align switches - check state
 
             bool validPosition = true;
-            TCSubpathRoute tempRoute = thisTrain.CalculateInitialTrainPosition(ref validPosition);
+            TrackCircuitPartialPathRoute tempRoute = thisTrain.CalculateInitialTrainPosition(ref validPosition);
 
             if (validPosition)
             {
@@ -1069,7 +1069,7 @@ namespace Orts.Simulation.AIs
         {
             bool endPreRun = false;
             bool validPosition = true;
-            TCSubpathRoute tempRoute = null;
+            TrackCircuitPartialPathRoute tempRoute = null;
 
             // create from pool
             if (!String.IsNullOrEmpty(thisTrain.CreateFromPool))
@@ -1141,7 +1141,7 @@ namespace Orts.Simulation.AIs
 
                 int PoolStorageState = (int)TTTrain.PoolAccessState.PoolInvalid;
                 thisTrain.TCRoute.TCRouteSubpaths[0] = thisPool.CreateInPool(thisTrain, out PoolStorageState, false);
-                thisTrain.ValidRoute[0] = new TCSubpathRoute(thisTrain.TCRoute.TCRouteSubpaths[0]);
+                thisTrain.ValidRoute[0] = new TrackCircuitPartialPathRoute(thisTrain.TCRoute.TCRouteSubpaths[0]);
                 thisTrain.TCRoute.activeSubpath = 0;
 
                 // if no storage available - abondone train

@@ -533,7 +533,7 @@ namespace Orts.Simulation.Track
         /// <summary>
         /// Reserve : set reserve state
         /// </summary>
-        public void Reserve(Train.TrainRouted train, TCSubpathRoute route)
+        public void Reserve(Train.TrainRouted train, TrackCircuitPartialPathRoute route)
         {
             if (train == null)
                 throw new ArgumentNullException(nameof(train));
@@ -848,7 +848,7 @@ namespace Orts.Simulation.Track
 
             if (train.Train.TCRoute != null && train.Train.TCRoute.activeAltpath >= 0)
             {
-                TCSubpathRoute altRoute = train.Train.TCRoute.TCAlternativePaths[train.Train.TCRoute.activeAltpath];
+                TrackCircuitPartialPathRoute altRoute = train.Train.TCRoute.TCAlternativePaths[train.Train.TCRoute.activeAltpath];
                 TrackCircuitRouteElement startElement = altRoute[0];
                 if (Index == startElement.TrackCircuitSectionIndex)
                 {
@@ -950,7 +950,7 @@ namespace Orts.Simulation.Track
             if (CircuitState.OccupationState.Count <= 0 && CircuitState.TrainPreReserved.Count > 0)
             {
                 Train.TrainRouted nextTrain = CircuitState.TrainPreReserved.Dequeue();
-                TCSubpathRoute RoutePart = nextTrain.Train.ValidRoute[nextTrain.TrainRouteDirectionIndex];
+                TrackCircuitPartialPathRoute RoutePart = nextTrain.Train.ValidRoute[nextTrain.TrainRouteDirectionIndex];
 
                 Reserve(nextTrain, RoutePart);
             }
@@ -1105,7 +1105,7 @@ namespace Orts.Simulation.Track
             }
 
             // get train route
-            TCSubpathRoute usedRoute = train.Train.ValidRoute[train.TrainRouteDirectionIndex];
+            TrackCircuitPartialPathRoute usedRoute = train.Train.ValidRoute[train.TrainRouteDirectionIndex];
             int routeIndex = usedRoute.GetRouteIndex(Index, 0);
 
             // run down route and clear all claims for found trains, until end 
@@ -1213,7 +1213,7 @@ namespace Orts.Simulation.Track
         /// Get section state for request clear node
         /// Method is put through to train class because of differences between activity and timetable mode
         /// </summary>
-        public bool GetSectionStateClearNode(Train.TrainRouted train, int elementDirection, TCSubpathRoute routePart)
+        public bool GetSectionStateClearNode(Train.TrainRouted train, int elementDirection, TrackCircuitPartialPathRoute routePart)
         {
             if (train == null)
                 throw new ArgumentNullException(nameof(train));
@@ -1227,7 +1227,7 @@ namespace Orts.Simulation.Track
         /// Get state of single section
         /// Check for train
         /// </summary>
-        public InternalBlockstate GetSectionState(Train.TrainRouted train, int direction, InternalBlockstate passedBlockstate, TCSubpathRoute route, int signalIndex)
+        public InternalBlockstate GetSectionState(Train.TrainRouted train, int direction, InternalBlockstate passedBlockstate, TrackCircuitPartialPathRoute route, int signalIndex)
         {
             InternalBlockstate localBlockstate = InternalBlockstate.Reservable;  // default value
             bool stateSet = false;
@@ -1451,7 +1451,7 @@ namespace Orts.Simulation.Track
                             // if not found either, build temp route
                             if (nextRouteFrontIndex < 0 || nextRouteRearIndex < 0)
                             {
-                                TCSubpathRoute tempRoute = signals.BuildTempRoute(nextTrain.Train, nextFront.TCSectionIndex, nextFront.TCOffset, (TrackDirection)nextFront.TCDirection,
+                                TrackCircuitPartialPathRoute tempRoute = SignalEnvironment.BuildTempRoute(nextTrain.Train, nextFront.TCSectionIndex, nextFront.TCOffset, (TrackDirection)nextFront.TCDirection,
                                     nextTrain.Train.Length, true, true, false);
                                 nextRouteFrontIndex = tempRoute.GetRouteIndex(nextFront.TCSectionIndex, 0);
                                 nextRouteRearIndex = tempRoute.GetRouteIndex(nextRear.TCSectionIndex, 0);
@@ -1528,7 +1528,7 @@ namespace Orts.Simulation.Track
                             // if not found either, build temp route
                             if (nextRouteFrontIndex < 0 || nextRouteRearIndex < 0)
                             {
-                                TCSubpathRoute tempRoute = signals.BuildTempRoute(nextTrain.Train, nextFront.TCSectionIndex, nextFront.TCOffset, (TrackDirection)nextFront.TCDirection,
+                                TrackCircuitPartialPathRoute tempRoute = SignalEnvironment.BuildTempRoute(nextTrain.Train, nextFront.TCSectionIndex, nextFront.TCOffset, (TrackDirection)nextFront.TCDirection,
                                     nextTrain.Train.Length, true, true, false);
                                 nextRouteFrontIndex = tempRoute.GetRouteIndex(nextFront.TCSectionIndex, 0);
                                 nextRouteRearIndex = tempRoute.GetRouteIndex(nextRear.TCSectionIndex, 0);

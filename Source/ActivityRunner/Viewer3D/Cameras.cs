@@ -2488,7 +2488,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
                 int tcSectionIndex;
                 int routeIndex;
-                TCSubpathRoute thisRoute = null;
+                TrackCircuitPartialPathRoute thisRoute = null;
                 // search for near platform in fast way, using TCSection data
                 if (trainForwards && train.ValidRoute[0] != null)
                 {
@@ -2515,7 +2515,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     if (routeIndex != -1)
                     {
                         float distanceToViewingPoint = 0;
-                        TrackCircuitSection TCSection = train.signalRef.TrackCircuitList[tcSectionIndex];
+                        TrackCircuitSection TCSection = TrackCircuitSection.TrackCircuitList[tcSectionIndex];
                         float distanceToAdd = TCSection.Length;
                         float incrDistance;
                         if (FirstUpdateLoop)
@@ -2570,7 +2570,7 @@ namespace Orts.ActivityRunner.Viewer3D
                             {
                                 incrDistance += distanceToAdd;
                                 routeIndex++;
-                                TCSection = train.signalRef.TrackCircuitList[thisRoute[routeIndex].TrackCircuitSectionIndex];
+                                TCSection = TrackCircuitSection.TrackCircuitList[thisRoute[routeIndex].TrackCircuitSectionIndex];
                                 distanceToAdd = TCSection.Length;
                             }
                             else break;

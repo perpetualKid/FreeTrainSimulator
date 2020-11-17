@@ -4,33 +4,32 @@ using System.IO;
 using System.Linq;
 
 using Orts.Common;
+using Orts.Simulation.Physics;
 using Orts.Simulation.Signalling;
-
-using static Orts.Simulation.Physics.Train;
 
 namespace Orts.Simulation.Track
 {
     /// <summary>
     /// Subpath list : list of TCRouteElements building a subpath
     /// </summary>
-    public class TCSubpathRoute : List<TrackCircuitRouteElement>
+    public class TrackCircuitPartialPathRoute : List<TrackCircuitRouteElement>
     {
 
         // Base constructor
-        public TCSubpathRoute()
+        public TrackCircuitPartialPathRoute()
         {
         }
 
 
         // Constructor from existing subpath
-        public TCSubpathRoute(TCSubpathRoute source):
+        public TrackCircuitPartialPathRoute(TrackCircuitPartialPathRoute source):
             base(source ?? Enumerable.Empty<TrackCircuitRouteElement>())
         {
         }
 
         // Constructor from part of existing subpath
         // if either value is < 0, start from start or stop at end
-        public TCSubpathRoute(TCSubpathRoute source, int startIndex, int endIndex)
+        public TrackCircuitPartialPathRoute(TrackCircuitPartialPathRoute source, int startIndex, int endIndex)
         {
             if (null == source)
                 throw new ArgumentNullException(nameof(source));
@@ -46,7 +45,7 @@ namespace Orts.Simulation.Track
         }
 
         // Restore
-        public TCSubpathRoute(BinaryReader inf)
+        public TrackCircuitPartialPathRoute(BinaryReader inf)
         {
             if (null == inf)
                 throw new ArgumentNullException(nameof(inf));
@@ -76,16 +75,16 @@ namespace Orts.Simulation.Track
         /// <\summary>
         public int GetRouteIndex(int sectionIndex, int startIndex)
         {
-            for (int iNode = startIndex; iNode >= 0 && iNode < this.Count; iNode++)
+            for (int i = startIndex; i >= 0 && i < Count; i++)
             {
-                TrackCircuitRouteElement thisElement = this[iNode];
+                TrackCircuitRouteElement thisElement = this[i];
                 if (thisElement.TrackCircuitSectionIndex == sectionIndex)
                 {
-                    return (iNode);
+                    return i;
                 }
             }
 
-            return (-1);
+            return -1;
         }
 
         //================================================================================================//
@@ -112,9 +111,9 @@ namespace Orts.Simulation.Track
         /// returns if signal is ahead of train
         /// <\summary>
 
-        public bool SignalIsAheadOfTrain(Signal thisSignal, TCPosition trainPosition)
+        public bool SignalIsAheadOfTrain(Signal signal, Train.TCPosition trainPosition)
         {
-            int signalSection = thisSignal.TrackCircuitIndex;
+            int signalSection = signal.TrackCircuitIndex;
             int signalRouteIndex = GetRouteIndexBackward(signalSection, trainPosition.RouteListIndex);
             if (signalRouteIndex >= 0)
                 return (false);  // signal section passed earlier in route
@@ -122,7 +121,7 @@ namespace Orts.Simulation.Track
             if (signalRouteIndex >= 0)
                 return (true); // signal section still ahead
 
-            if (trainPosition.TCSectionIndex == thisSignal.TrackCircuitNextIndex)
+            if (trainPosition.TCSectionIndex == signal.TrackCircuitNextIndex)
                 return (false); // if train in section following signal, assume we passed
 
             // signal is not on route - assume we did not pass
@@ -134,48 +133,44 @@ namespace Orts.Simulation.Track
         /// returns distance along route
         /// <\summary>
 
-        public float GetDistanceAlongRoute(int startSectionIndex, float startOffset,
-           int endSectionIndex, float endOffset, bool forward, SignalEnvironment signals)
-
-        // startSectionIndex and endSectionIndex are indices in route list
-        // startOffset is remaining length of startSection in required direction
-        // endOffset is length along endSection in required direction
+        public float GetDistanceAlongRoute(int startIndex, float startOffset, int endIndex, float endOffset, bool forward)
         {
-            float totalLength = startOffset;
+            // startSectionIndex and endSectionIndex are indices in route list
+            // startOffset is remaining length of startSection in required direction
+            // endOffset is length along endSection in required direction
 
-            if (startSectionIndex == endSectionIndex)
+            if (startIndex == endIndex)
             {
-                TrackCircuitSection thisSection = signals.TrackCircuitList[this[startSectionIndex].TrackCircuitSectionIndex];
-                totalLength = startOffset - (thisSection.Length - endOffset);
-                return (totalLength);
+                TrackCircuitSection section = TrackCircuitSection.TrackCircuitList[this[startIndex].TrackCircuitSectionIndex];
+                return startOffset - (section.Length - endOffset);
             }
 
             if (forward)
             {
-                if (startSectionIndex > endSectionIndex)
-                    return (-1);
+                if (startIndex > endIndex)
+                    return -1;
 
-                for (int iIndex = startSectionIndex + 1; iIndex < endSectionIndex; iIndex++)
+                for (int i = startIndex + 1; i < endIndex; i++)
                 {
-                    TrackCircuitSection thisSection = signals.TrackCircuitList[this[iIndex].TrackCircuitSectionIndex];
-                    totalLength += thisSection.Length;
+                    TrackCircuitSection section = TrackCircuitSection.TrackCircuitList[this[i].TrackCircuitSectionIndex];
+                    startOffset += section.Length;
                 }
             }
             else
             {
-                if (startSectionIndex < endSectionIndex)
-                    return (-1);
+                if (startIndex < endIndex)
+                    return -1;
 
-                for (int iIndex = startSectionIndex - 1; iIndex > endSectionIndex; iIndex--)
+                for (int i = startIndex - 1; i > endIndex; i--)
                 {
-                    TrackCircuitSection thisSection = signals.TrackCircuitList[this[iIndex].TrackCircuitSectionIndex];
-                    totalLength += thisSection.Length;
+                    TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[this[i].TrackCircuitSectionIndex];
+                    startOffset += thisSection.Length;
                 }
             }
 
-            totalLength += endOffset;
+            startOffset += endOffset;
 
-            return (totalLength);
+            return startOffset;
         }
 
         //================================================================================================//
@@ -184,7 +179,7 @@ namespace Orts.Simulation.Track
         /// <\summary>
 
         // without offset
-        public static bool IsAheadOfTrain(TrackCircuitSection thisSection, TCPosition trainPosition)
+        public static bool IsAheadOfTrain(TrackCircuitSection thisSection, Train.TCPosition trainPosition)
         {
             float distanceAhead = TrackCircuitSection.GetDistanceBetweenObjects(
                 trainPosition.TCSectionIndex, trainPosition.TCOffset, (TrackDirection)trainPosition.TCDirection,
@@ -193,7 +188,7 @@ namespace Orts.Simulation.Track
         }
 
         // with offset
-        public static bool IsAheadOfTrain(TrackCircuitSection thisSection, float offset, TCPosition trainPosition)
+        public static bool IsAheadOfTrain(TrackCircuitSection thisSection, float offset, Train.TCPosition trainPosition)
         {
             float distanceAhead = TrackCircuitSection.GetDistanceBetweenObjects(
                 trainPosition.TCSectionIndex, trainPosition.TCOffset, (TrackDirection)trainPosition.TCDirection,
@@ -241,7 +236,7 @@ namespace Orts.Simulation.Track
         /// Returns : [0,*] = Main Route, [1,*] = Alt Route, [*,0] = Start Index, [*,1] = End Index
         /// <\summary>
 
-        public int[,] FindActualDivergePath(TCSubpathRoute altRoute, int startIndex, int endIndex)
+        public int[,] FindActualDivergePath(TrackCircuitPartialPathRoute altRoute, int startIndex, int endIndex)
         {
             int[,] returnValue = new int[2, 2] { { -1, -1 }, { -1, -1 } };
 
@@ -363,7 +358,7 @@ namespace Orts.Simulation.Track
         /// paths must be exactly equal (no part check)
         /// <\summary>
 
-        public bool EqualsPath(TCSubpathRoute otherRoute)
+        public bool EqualsPath(TrackCircuitPartialPathRoute otherRoute)
         {
             // check common route parts
 
@@ -389,7 +384,7 @@ namespace Orts.Simulation.Track
         /// paths must be exactly equal (no part check)
         /// <\summary>
 
-        public bool EqualsReversePath(TCSubpathRoute otherRoute)
+        public bool EqualsReversePath(TrackCircuitPartialPathRoute otherRoute)
         {
             // check common route parts
 
@@ -414,9 +409,9 @@ namespace Orts.Simulation.Track
         /// reverses existing path
         /// <\summary>
 
-        public TCSubpathRoute ReversePath()
+        public TrackCircuitPartialPathRoute ReversePath()
         {
-            TCSubpathRoute reversePath = new TCSubpathRoute();
+            TrackCircuitPartialPathRoute reversePath = new TrackCircuitPartialPathRoute();
             int lastSectionIndex = -1;
 
             for (int iIndex = Count - 1; iIndex >= 0; iIndex--)

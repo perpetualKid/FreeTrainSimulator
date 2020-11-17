@@ -141,7 +141,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             image.Source.X = ((switchBranchesAwayFromUs == front ? 1 : 3) + (switchMainRouteIsLeft ? 1 : 0)) * SwitchImageSize;
             image.Source.Y = SwitchNode.SelectedRoute * SwitchImageSize;
 
-            TrackCircuitSection switchSection = Owner.Viewer.Simulator.Signals.TrackCircuitList[SwitchNode.TrackCircuitCrossReferences[0].Index];
+            TrackCircuitSection switchSection = TrackCircuitSection.TrackCircuitList[SwitchNode.TrackCircuitCrossReferences[0].Index];
             if (switchSection.CircuitState.Occupied() || switchSection.CircuitState.SignalReserved >= 0 ||
                 (switchSection.CircuitState.TrainReserved != null && switchSection.CircuitState.TrainReserved.Train.ControlMode != TrainControlMode.Manual))
                 image.Source.Y += 2 * SwitchImageSize;

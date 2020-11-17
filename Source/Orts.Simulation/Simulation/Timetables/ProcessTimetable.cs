@@ -763,7 +763,7 @@ namespace Orts.Simulation.Timetables
                     reqTrain.TTTrain.Path = usedPath;
                     reqTrain.TTTrain.CreateRoute(false);  // create route without use of FrontTDBtraveller
                     reqTrain.TTTrain.EndRouteAtLastSignal();
-                    reqTrain.TTTrain.ValidRoute[0] = new TCSubpathRoute(reqTrain.TTTrain.TCRoute.TCRouteSubpaths[0]);
+                    reqTrain.TTTrain.ValidRoute[0] = new TrackCircuitPartialPathRoute(reqTrain.TTTrain.TCRoute.TCRouteSubpaths[0]);
                     reqTrain.TTTrain.AITrainDirectionForward = true;
 
                     // process stops
@@ -848,7 +848,7 @@ namespace Orts.Simulation.Timetables
             // extract train path
             playerTrain.SetRoutePath(usedPath, simulator.Signals);
             playerTrain.EndRouteAtLastSignal();
-            playerTrain.ValidRoute[0] = new TCSubpathRoute(playerTrain.TCRoute.TCRouteSubpaths[0]);
+            playerTrain.ValidRoute[0] = new TrackCircuitPartialPathRoute(playerTrain.TCRoute.TCRouteSubpaths[0]);
         }
 
         //================================================================================================//
@@ -2829,7 +2829,7 @@ namespace Orts.Simulation.Timetables
                         outTrain.RearTDBTraveller = new Traveller(simulator.TSectionDat, simulator.TDB.TrackDB.TrackNodes, outPath);
                         outTrain.Path = outPath;
                         outTrain.CreateRoute(false);
-                        outTrain.ValidRoute[0] = new TCSubpathRoute(outTrain.TCRoute.TCRouteSubpaths[0]);
+                        outTrain.ValidRoute[0] = new TrackCircuitPartialPathRoute(outTrain.TCRoute.TCRouteSubpaths[0]);
                         outTrain.AITrainDirectionForward = true;
                         outTrain.StartTime = DisposeDetails.StableInfo.Stable_outtime;
                         outTrain.ActivateTime = DisposeDetails.StableInfo.Stable_outtime;
@@ -2882,7 +2882,7 @@ namespace Orts.Simulation.Timetables
                             inTrain.RearTDBTraveller = new Traveller(simulator.TSectionDat, simulator.TDB.TrackDB.TrackNodes, inPath);
                             inTrain.Path = inPath;
                             inTrain.CreateRoute(false);
-                            inTrain.ValidRoute[0] = new TCSubpathRoute(inTrain.TCRoute.TCRouteSubpaths[0]);
+                            inTrain.ValidRoute[0] = new TrackCircuitPartialPathRoute(inTrain.TCRoute.TCRouteSubpaths[0]);
                             inTrain.AITrainDirectionForward = true;
                             inTrain.StartTime = DisposeDetails.StableInfo.Stable_intime;
                             inTrain.ActivateTime = DisposeDetails.StableInfo.Stable_intime;
@@ -2912,7 +2912,7 @@ namespace Orts.Simulation.Timetables
                             formedTrain.FormedOf = inTrain.Number;
                             formedTrain.FormedOfType = TTTrain.FormCommand.TerminationFormed;
 
-                            TCSubpathRoute lastSubpath = inTrain.TCRoute.TCRouteSubpaths[inTrain.TCRoute.TCRouteSubpaths.Count - 1];
+                            TrackCircuitPartialPathRoute lastSubpath = inTrain.TCRoute.TCRouteSubpaths[inTrain.TCRoute.TCRouteSubpaths.Count - 1];
                             if (inTrain.FormedOfType == TTTrain.FormCommand.TerminationTriggered && formedTrain.Number != 0) // no need to set consist for player train
                             {
                                 bool reverseTrain = CheckFormedReverse(lastSubpath, formedTrain.TCRoute.TCRouteSubpaths[0]);
@@ -3027,7 +3027,7 @@ namespace Orts.Simulation.Timetables
                     formedTrain.RearTDBTraveller = new Traveller(simulator.TSectionDat, simulator.TDB.TrackDB.TrackNodes, formedPath);
                     formedTrain.Path = formedPath;
                     formedTrain.CreateRoute(false);
-                    formedTrain.ValidRoute[0] = new TCSubpathRoute(formedTrain.TCRoute.TCRouteSubpaths[0]);
+                    formedTrain.ValidRoute[0] = new TrackCircuitPartialPathRoute(formedTrain.TCRoute.TCRouteSubpaths[0]);
                     formedTrain.AITrainDirectionForward = true;
                     formedTrain.Name = String.Concat("RR_", rrtrain.Number.ToString("0000"));
                     formedTrain.FormedOf = rrtrain.Number;
@@ -3043,7 +3043,7 @@ namespace Orts.Simulation.Timetables
                     formedTrain.AttachDetails = new AttachInfo(rrtrain);
                     trainList.Add(formedTrain);
 
-                    TCSubpathRoute lastSubpath = rrtrain.TCRoute.TCRouteSubpaths[rrtrain.TCRoute.TCRouteSubpaths.Count - 1];
+                    TrackCircuitPartialPathRoute lastSubpath = rrtrain.TCRoute.TCRouteSubpaths[rrtrain.TCRoute.TCRouteSubpaths.Count - 1];
                     if (atStart) lastSubpath = rrtrain.TCRoute.TCRouteSubpaths[0]; // if runround at start use first subpath
 
                     bool reverseTrain = CheckFormedReverse(lastSubpath, formedTrain.TCRoute.TCRouteSubpaths[0]);
@@ -3093,7 +3093,7 @@ namespace Orts.Simulation.Timetables
             /// <param name="stabledTrain"></param>
             /// <param name="cars"></param>
             /// <param name="trainRoute"></param>
-            private void BuildStabledConsist(ref TTTrain stabledTrain, List<TrainCar> cars, TCSubpathRoute trainRoute, bool reverseTrain)
+            private void BuildStabledConsist(ref TTTrain stabledTrain, List<TrainCar> cars, TrackCircuitPartialPathRoute trainRoute, bool reverseTrain)
             {
                 int totalreverse = 0;
 
@@ -3138,7 +3138,7 @@ namespace Orts.Simulation.Timetables
             /// <param name="thisTrainRoute"></param>
             /// <param name="formedTrainRoute"></param>
             /// <returns></returns>
-            public bool CheckFormedReverse(TCSubpathRoute thisTrainRoute, TCSubpathRoute formedTrainRoute)
+            public bool CheckFormedReverse(TrackCircuitPartialPathRoute thisTrainRoute, TrackCircuitPartialPathRoute formedTrainRoute)
             {
                 // get matching route sections to check on direction
                 int lastElementIndex = thisTrainRoute.Count - 1;
@@ -3473,7 +3473,7 @@ namespace Orts.Simulation.Timetables
                         while (routeIndex < 0 && actSubpath < (actTrain.TCRoute.TCRouteSubpaths.Count - 1))
                         {
                             actSubpath++;
-                            TCSubpathRoute thisRoute = actTrain.TCRoute.TCRouteSubpaths[actSubpath];
+                            TrackCircuitPartialPathRoute thisRoute = actTrain.TCRoute.TCRouteSubpaths[actSubpath];
                             routeIndex = thisRoute.GetRouteIndex(sectionIndex, 0);
 
                             // if first section not found in route, try last

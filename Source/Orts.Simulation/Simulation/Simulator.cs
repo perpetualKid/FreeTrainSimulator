@@ -1174,7 +1174,7 @@ namespace Orts.Simulation
             train.ControlMode = TrainControlMode.Explorer;
 
             bool canPlace = true;
-            TCSubpathRoute tempRoute = train.CalculateInitialTrainPosition(ref canPlace);
+            TrackCircuitPartialPathRoute tempRoute = train.CalculateInitialTrainPosition(ref canPlace);
             if (tempRoute.Count == 0 || !canPlace)
             {
                 throw new InvalidDataException("Player train original position not clear");
@@ -1232,7 +1232,7 @@ namespace Orts.Simulation
             OriginalPlayerTrain = train;
             train.Efficiency = 0.9f; // Forced efficiency, as considered most similar to human player
             bool canPlace = true;
-            TCSubpathRoute tempRoute = train.CalculateInitialTrainPosition(ref canPlace);
+            TrackCircuitPartialPathRoute tempRoute = train.CalculateInitialTrainPosition(ref canPlace);
             if (tempRoute.Count == 0 || !canPlace)
             {
                 throw new InvalidDataException("Player train original position not clear");

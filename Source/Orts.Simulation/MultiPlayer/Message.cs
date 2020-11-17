@@ -911,7 +911,7 @@ namespace Orts.MultiPlayer
 
         public static void SetSwitch(TrackNode switchNode, int desiredState)
         {
-            TrackCircuitSection switchSection = MPManager.Simulator.Signals.TrackCircuitList[switchNode.TrackCircuitCrossReferences[0].Index];
+            TrackCircuitSection switchSection = TrackCircuitSection.TrackCircuitList[switchNode.TrackCircuitCrossReferences[0].Index];
             (MPManager.Simulator.TDB.TrackDB.TrackNodes[switchSection.OriginalIndex] as TrackJunctionNode).SelectedRoute = switchSection.JunctionSetManual = desiredState;
             switchSection.JunctionLastRoute = switchSection.JunctionSetManual;
 
@@ -1027,7 +1027,7 @@ namespace Orts.MultiPlayer
 
         public static void SetSwitch(TrackNode switchNode, int desiredState)
         {
-            TrackCircuitSection switchSection = MPManager.Simulator.Signals.TrackCircuitList[switchNode.TrackCircuitCrossReferences[0].Index];
+            TrackCircuitSection switchSection = TrackCircuitSection.TrackCircuitList[switchNode.TrackCircuitCrossReferences[0].Index];
             (MPManager.Simulator.TDB.TrackDB.TrackNodes[switchSection.OriginalIndex] as TrackJunctionNode).SelectedRoute = switchSection.JunctionSetManual = desiredState;
             switchSection.JunctionLastRoute = switchSection.JunctionSetManual;
 
@@ -1155,7 +1155,7 @@ namespace Orts.MultiPlayer
 
         public static void SetSwitch(TrackNode switchNode, int desiredState)
         {
-            TrackCircuitSection switchSection = MPManager.Simulator.Signals.TrackCircuitList[switchNode.TrackCircuitCrossReferences[0].Index];
+            TrackCircuitSection switchSection = TrackCircuitSection.TrackCircuitList[switchNode.TrackCircuitCrossReferences[0].Index];
             (MPManager.Simulator.TDB.TrackDB.TrackNodes[switchSection.OriginalIndex] as TrackJunctionNode).SelectedRoute = switchSection.JunctionSetManual = desiredState;
             switchSection.JunctionLastRoute = switchSection.JunctionSetManual;
 
@@ -1345,7 +1345,7 @@ namespace Orts.MultiPlayer
             //train.InitializeSignals(false);//client do it won't have impact
             train.CheckFreight();
             bool canPlace = true;
-            TCSubpathRoute tempRoute = train.CalculateInitialTrainPosition(ref canPlace);
+            TrackCircuitPartialPathRoute tempRoute = train.CalculateInitialTrainPosition(ref canPlace);
 
             train.SetInitialTrainRoute(tempRoute);
             train.CalculatePositionOfCars();
@@ -1588,7 +1588,7 @@ namespace Orts.MultiPlayer
             //train1.InitializeSignals(false);
             train1.CheckFreight();
             bool canPlace = true;
-            TCSubpathRoute tempRoute = train1.CalculateInitialTrainPosition(ref canPlace);
+            TrackCircuitPartialPathRoute tempRoute = train1.CalculateInitialTrainPosition(ref canPlace);
 
             train1.SetInitialTrainRoute(tempRoute);
             train1.CalculatePositionOfCars();
@@ -2575,7 +2575,7 @@ namespace Orts.MultiPlayer
                 Train train = null;
                 List<TrainCar> trainCars = null;
                 bool canPlace = true;
-                TCSubpathRoute tempRoute;
+                TrackCircuitPartialPathRoute tempRoute;
                 foreach (Train t in MPManager.Simulator.Trains)
                 {
                     var found = false;

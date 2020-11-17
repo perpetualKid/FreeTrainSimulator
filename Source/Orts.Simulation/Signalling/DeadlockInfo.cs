@@ -296,10 +296,10 @@ namespace Orts.Simulation.Signalling
         /// Create deadlock info from alternative path or find related info
         /// </summary>
 
-        internal static DeadlockInfo FindDeadlockInfo(SignalEnvironment sourceSignals, TCSubpathRoute partPath, TCSubpathRoute mainPath, int startSectionIndex, int endSectionIndex)
+        internal static DeadlockInfo FindDeadlockInfo(SignalEnvironment sourceSignals, TrackCircuitPartialPathRoute partPath, TrackCircuitPartialPathRoute mainPath, int startSectionIndex, int endSectionIndex)
         {
-            TrackCircuitSection startSection = sourceSignals.TrackCircuitList[startSectionIndex];
-            TrackCircuitSection endSection = sourceSignals.TrackCircuitList[endSectionIndex];
+            TrackCircuitSection startSection = TrackCircuitSection.TrackCircuitList[startSectionIndex];
+            TrackCircuitSection endSection = TrackCircuitSection.TrackCircuitList[endSectionIndex];
 
             int usedStartSectionRouteIndex = mainPath.GetRouteIndex(startSectionIndex, 0);
             int usedEndSectionRouteIndex = mainPath.GetRouteIndex(endSectionIndex, usedStartSectionRouteIndex);
@@ -318,7 +318,7 @@ namespace Orts.Simulation.Signalling
                 foreach (KeyValuePair<int, int> startSectionInfo in startSection.DeadlockBoundaries)
                 {
                     DeadlockInfo existDeadlockInfo = sourceSignals.DeadlockInfoList[startSectionInfo.Key];
-                    TCSubpathRoute existPath = existDeadlockInfo.AvailablePathList[startSectionInfo.Value].Path;
+                    TrackCircuitPartialPathRoute existPath = existDeadlockInfo.AvailablePathList[startSectionInfo.Value].Path;
                     newStartSectionRouteIndex = mainPath.GetRouteIndexBackward(existPath[0].TrackCircuitSectionIndex, usedStartSectionRouteIndex);
                     if (newStartSectionRouteIndex < 0) // may be wrong direction - try end section
                     {
@@ -356,7 +356,7 @@ namespace Orts.Simulation.Signalling
                 foreach (KeyValuePair<int, int> endSectionInfo in endSection.DeadlockBoundaries)
                 {
                     DeadlockInfo existDeadlockInfo = sourceSignals.DeadlockInfoList[endSectionInfo.Key];
-                    TCSubpathRoute existPath = existDeadlockInfo.AvailablePathList[endSectionInfo.Value].Path;
+                    TrackCircuitPartialPathRoute existPath = existDeadlockInfo.AvailablePathList[endSectionInfo.Value].Path;
                     newEndSectionRouteIndex = mainPath.GetRouteIndex(existPath[0].TrackCircuitSectionIndex, usedEndSectionRouteIndex);
                     if (newEndSectionRouteIndex < 0) // may be wrong direction - try end section
                     {
@@ -423,7 +423,7 @@ namespace Orts.Simulation.Signalling
         /// return : [0] index to path
         ///          [1] > 0 : existing, < 0 : new
         /// </summary>
-        internal (int PathIndex, bool Exists) AddPath(TCSubpathRoute path, int startSectionIndex)
+        internal (int PathIndex, bool Exists) AddPath(TrackCircuitPartialPathRoute path, int startSectionIndex)
         {
             if (path == null)
                 throw new ArgumentNullException(nameof(path));
@@ -508,7 +508,7 @@ namespace Orts.Simulation.Signalling
         /// return : [0] index to path
         ///          [1] > 0 : existing, < 0 : new
         /// </summary>
-        internal (int PathIndex, bool Exists) AddPath(TCSubpathRoute path, int startSectionIndex, string name, string groupName)
+        internal (int PathIndex, bool Exists) AddPath(TrackCircuitPartialPathRoute path, int startSectionIndex, string name, string groupName)
         {
             if (path == null)
                 throw new ArgumentNullException(nameof(path));
@@ -606,11 +606,11 @@ namespace Orts.Simulation.Signalling
         /// check if path has no conflict with overlapping deadlock paths
         /// returns false if there is an overlap
         /// </summary>
-        private static bool CheckNoOverlapDeadlockPaths(TCSubpathRoute path, SignalEnvironment signalRef)
+        private static bool CheckNoOverlapDeadlockPaths(TrackCircuitPartialPathRoute path, SignalEnvironment signalRef)
         {
             foreach (TrackCircuitRouteElement element in path)
             {
-                TrackCircuitSection thisSection = signalRef.TrackCircuitList[element.TrackCircuitSectionIndex];
+                TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[element.TrackCircuitSectionIndex];
                 if (thisSection.DeadlockReference >= 0)
                 {
                     return (false);
@@ -635,7 +635,7 @@ namespace Orts.Simulation.Signalling
 
             // get end section for this train
             int endSectionIndex = GetEndSection(train);
-            TrackCircuitSection endSection = signalRef.TrackCircuitList[endSectionIndex];
+            TrackCircuitSection endSection = TrackCircuitSection.TrackCircuitList[endSectionIndex];
 
             // get list of paths which are available
             List<int> freePaths = GetFreePaths(train);
@@ -827,14 +827,14 @@ namespace Orts.Simulation.Signalling
             {
                 int pathIndex = TrainReferences[thisTrainAndSubpathIndex][iPath];
                 DeadlockPathInfo altPathInfo = AvailablePathList[pathIndex];
-                TCSubpathRoute altPath = altPathInfo.Path;
+                TrackCircuitPartialPathRoute altPath = altPathInfo.Path;
 
                 // check all sections upto and including last used index, but do not check first junction section
 
                 bool pathAvail = true;
                 for (int iElement = 1; iElement <= altPathInfo.LastUsefulSectionIndex; iElement++)
                 {
-                    TrackCircuitSection thisSection = signalRef.TrackCircuitList[altPath[iElement].TrackCircuitSectionIndex];
+                    TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[altPath[iElement].TrackCircuitSectionIndex];
                     if (!thisSection.IsAvailable(train.routedForward))
                     {
                         pathAvail = false;
@@ -863,7 +863,7 @@ namespace Orts.Simulation.Signalling
             bool checkedOwn = false;
 
             endSectionIndex = GetEndSection(train);
-            TrackCircuitSection endSection = signalRef.TrackCircuitList[endSectionIndex];
+            TrackCircuitSection endSection = TrackCircuitSection.TrackCircuitList[endSectionIndex];
 
             bool preferMain = true;
             // if deadlock actives : main least preferred
@@ -975,12 +975,12 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// set deadlock info references for intermediate sections
         /// </summary>
-        private void SetIntermediateReferences(TCSubpathRoute path, int pathIndex)
+        private void SetIntermediateReferences(TrackCircuitPartialPathRoute path, int pathIndex)
         {
             for (int i = 1; i <= path.Count - 2; i++) // loop through path excluding first and last section
             {
                 TrackCircuitRouteElement thisElement = path[i];
-                TrackCircuitSection thisSection = signalRef.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
+                TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
                 if (thisSection.DeadlockBoundaries == null)
                 {
                     thisSection.DeadlockBoundaries = new Dictionary<int, int>();
@@ -1073,7 +1073,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// Insert train reference details
         /// </summary>
-        internal int SetTrainDetails(int trainNumber, int subpathRef, float trainLength, TCSubpathRoute subpath, int elementRouteIndex)
+        internal int SetTrainDetails(int trainNumber, int subpathRef, float trainLength, TrackCircuitPartialPathRoute subpath, int elementRouteIndex)
         {
 
             // search if trains path has valid equivalent
@@ -1087,7 +1087,7 @@ namespace Orts.Simulation.Signalling
             int trainSubpathIndex = GetTrainAndSubpathIndex(trainNumber, subpathRef);
             int sectionIndex = subpath[elementRouteIndex].TrackCircuitSectionIndex;
             (int Result, int PathIndex) matchingPath = SearchMatchingFullPath(subpath, sectionIndex, elementRouteIndex);
-            TCSubpathRoute partPath;
+            TrackCircuitPartialPathRoute partPath;
 
             switch (matchingPath.Result)
             {
@@ -1105,7 +1105,7 @@ namespace Orts.Simulation.Signalling
                 // matchingPath[1] = end section index in route
                 case 2:
                     {
-                        partPath = new TCSubpathRoute(subpath, elementRouteIndex, matchingPath.PathIndex);
+                        partPath = new TrackCircuitPartialPathRoute(subpath, elementRouteIndex, matchingPath.PathIndex);
                         (int PathIndex, _) = AddPath(partPath, sectionIndex);
                         DeadlockPathInfo thisPathInfo = AvailablePathList[PathIndex];
 
@@ -1181,7 +1181,7 @@ namespace Orts.Simulation.Signalling
 
             // get end section from first valid path
 
-            partPath = new TCSubpathRoute(AvailablePathList[availPathList[0]].Path);
+            partPath = new TrackCircuitPartialPathRoute(AvailablePathList[availPathList[0]].Path);
             int lastSection = partPath[partPath.Count - 1].TrackCircuitSectionIndex;
             int returnIndex = subpath.GetRouteIndex(lastSection, elementRouteIndex);
             return (returnIndex);
@@ -1197,7 +1197,7 @@ namespace Orts.Simulation.Signalling
         ///          [0] = 2 : no matching path but route does run through area, [1] contains end section index
         ///          [0] = 3 : no matching path in required direction but route does run through area, [1] contains end section index
         /// </summary>
-        private (int Result, int PathIndex) SearchMatchingFullPath(TCSubpathRoute fullPath, int startSectionIndex, int startSectionRouteIndex)
+        private (int Result, int PathIndex) SearchMatchingFullPath(TrackCircuitPartialPathRoute fullPath, int startSectionIndex, int startSectionRouteIndex)
         {
             int foundMatchingEndRouteIndex = -1;
             int matchingPath = -1;
@@ -1212,14 +1212,14 @@ namespace Orts.Simulation.Signalling
                 for (int iPath = 0; iPath <= availablePaths.Count - 1; iPath++)
                 {
                     // extract path, get indices in train path
-                    TCSubpathRoute testPath = AvailablePathList[availablePaths[iPath]].Path;
+                    TrackCircuitPartialPathRoute testPath = AvailablePathList[availablePaths[iPath]].Path;
                     int endSectionIndex = AvailablePathList[availablePaths[iPath]].EndSectionIndex;
                     int endSectionRouteIndex = fullPath.GetRouteIndex(endSectionIndex, startSectionRouteIndex);
 
                     // can only be matching path if endindex > 0 and endindex != startindex (if wrong way path, endindex = startindex)
                     if (endSectionRouteIndex > 0 && endSectionRouteIndex != startSectionRouteIndex)
                     {
-                        TCSubpathRoute partPath = new TCSubpathRoute(fullPath, startSectionRouteIndex, endSectionRouteIndex);
+                        TrackCircuitPartialPathRoute partPath = new TrackCircuitPartialPathRoute(fullPath, startSectionRouteIndex, endSectionRouteIndex);
 
                         // test route
                         if (partPath.EqualsPath(testPath))
