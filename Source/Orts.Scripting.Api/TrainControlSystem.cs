@@ -110,6 +110,11 @@ namespace Orts.Scripting.Api
         /// </summary>
         public Func<int, float> NextPostDistanceM;
         /// <summary>
+        /// Distance to end of authority.
+        /// int: direction; 0: forwards; 1: backwards
+        /// </summary>
+        public Func<int, float> EOADistanceM;
+        /// <summary>
         /// Train's length
         /// </summary>
         public Func<float> TrainLengthM;
