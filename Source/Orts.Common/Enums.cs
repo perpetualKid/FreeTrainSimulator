@@ -509,59 +509,63 @@ namespace Orts.Common
     {
         // MSTS values (DO NOT CHANGE THE ORDER !)
         [Description("")]
-        Dummy,              // Dummy
+        Dummy,                  // Dummy
         [Description("Release")]
-        Release,            // ReleaseStart 
+        Release,                // ReleaseStart 
         [Description("Quick Release")]
-        FullQuickRelease,   // FullQuickReleaseStart
+        FullQuickRelease,       // FullQuickReleaseStart
         [Description("Running")]
-        Running,            // RunningStart 
+        Running,                // RunningStart 
         [Description("Neutral")]
-        Neutral,            // NeutralhandleOffStart
+        Neutral,                // NeutralhandleOffStart
         [Description("Self Lap")]
-        SelfLap,            // SelfLapStart 
+        SelfLap,                // SelfLapStart 
         [Description("Lap")]
-        Lap,                // HoldLapStart 
+        Lap,                    // HoldLapStart 
         [Description("Apply")]
-        Apply,              // ApplyStart 
+        Apply,                  // ApplyStart 
         [Description("EPApply")]
-        EPApply,            // EPApplyStart 
+        EPApply,                // EPApplyStart 
         [Description("Service")]
-        GSelfLap,           // GraduatedSelfLapLimitedStart
+        GSelfLap,               // GraduatedSelfLapLimitedStart
         [Description("Service")]
-        GSelfLapH,          // GraduatedSelfLapLimitedHoldStart
+        GSelfLapH,              // GraduatedSelfLapLimitedHoldStart
         [Description("Suppression")]
-        Suppression,        // SuppressionStart 
+        Suppression,            // SuppressionStart 
         [Description("Cont. Service")]
-        ContServ,           // ContinuousServiceStart 
+        ContServ,               // ContinuousServiceStart 
         [Description("Full Service")]
-        FullServ,           // FullServiceStart 
+        FullServ,               // FullServiceStart 
         [Description("Emergency")]
-        Emergency,          // EmergencyStart
+        Emergency,              // EmergencyStart
 
         // Extra MSTS values
         [Description("Minimum Reduction")]
-        MinimalReduction,  // MinimalReductionStart,
+        MinimalReduction,       // MinimalReductionStart,
         [Description("Hold")]
         Hold,                   // HoldStart
 
         // OR values
         [Description("Overcharge")]
-        Overcharge,         // Overcharge
+        Overcharge,             // Overcharge
         [Description("Emergency Braking Push Button")]
-        EBPB,               // Emergency Braking Push Button
+        EBPB,                   // Emergency Braking Push Button
         [Description("TCS Emergency Braking")]
-        TCSEmergency,       // TCS Emergency Braking
+        TCSEmergency,           // TCS Emergency Braking
         [Description("TCS Full Service Braking")]
-        TCSFullServ,        // TCS Full Service Braking
+        TCSFullServ,            // TCS Full Service Braking
         [Description("Vac. Cont. Service")]
-        VacContServ,         // VacuumContinuousServiceStart
+        VacContServ,            // VacuumContinuousServiceStart
         [Description("Vac. Apply Cont.Service")]
-        VacApplyContServ,    // TrainBrakesControllerVacuumApplyContinuousServiceStart
+        VacApplyContServ,       // TrainBrakesControllerVacuumApplyContinuousServiceStart
         [Description("Manual Braking")]
-        ManualBraking,        // BrakemanBrakesControllerManualBraking
+        ManualBraking,          // BrakemanBrakesControllerManualBraking
         [Description("Notch")]
-        BrakeNotch           // EngineBrakesControllerBrakeNotchStart
+        BrakeNotch,             // EngineBrakesControllerBrakeNotchStart
+        [Description("EP Service")]
+        EPOnly,                 // TrainBrakesControllerEPOnlyStart
+        [Description("EP Full Service")]
+        EPFullServ,             // TrainBrakesControllerEPFullServiceStart
     }
 
     public enum TrainControlMode

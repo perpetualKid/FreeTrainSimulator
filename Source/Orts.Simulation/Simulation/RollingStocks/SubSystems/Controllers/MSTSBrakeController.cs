@@ -116,12 +116,14 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                             break;
                         case ControllerState.Overcharge:
                             pressureBar = IncreasePressure(pressureBar, Math.Min(MaxOverchargePressureBar(), MainReservoirPressureBar()), QuickReleaseRateBarpS(), elapsedClockSeconds);
+                            epState = -1;
                             break;
                         case ControllerState.Apply:
-                        case ControllerState.FullServ:
-                            if (notch.NotchStateType == ControllerState.FullServ)
-                                epState = x;
                             pressureBar -= x * ApplyRateBarpS() * elapsedClockSeconds;
+                            break;
+                        case ControllerState.FullServ:
+                            epState = x;
+                            pressureBar = DecreasePressure(pressureBar, MaxPressureBar()-FullServReductionBar(), ApplyRateBarpS(), elapsedClockSeconds);
                             break;
                         case ControllerState.Lap:
                             // Lap position applies min service reduction when first selected, and previous contoller position was Running, then no change in pressure occurs 
@@ -146,15 +148,24 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                             epState = -1;
                             break;
                         case ControllerState.EPApply:
+                        case ControllerState.EPOnly:
+                        case ControllerState.ContServ:
+                        case ControllerState.EPFullServ:
+                            epState = x;
+                            if (notch.NotchStateType == ControllerState.EPApply || notch.NotchStateType == ControllerState.ContServ)
+                            {
+                                x = MaxPressureBar() - MinReductionBar() * (1 - x) - FullServReductionBar() * x;
+                                pressureBar = DecreasePressure(pressureBar, x, ApplyRateBarpS(), elapsedClockSeconds);
+                                if (ForceControllerReleaseGraduated || notch.NotchStateType == ControllerState.EPApply)
+                                    pressureBar = IncreasePressure(pressureBar, x, ReleaseRateBarpS(), elapsedClockSeconds);
+                            }
+                            break;
                         case ControllerState.GSelfLapH:
                         case ControllerState.Suppression:
-                        case ControllerState.ContServ:
                         case ControllerState.GSelfLap:
-                            if (notch.NotchStateType == ControllerState.EPApply || notch.NotchStateType == ControllerState.ContServ)
-                                epState = x;
                             x = MaxPressureBar() - MinReductionBar() * (1 - x) - FullServReductionBar() * x;
                             pressureBar = DecreasePressure(pressureBar, x, ApplyRateBarpS(), elapsedClockSeconds);
-                            if (ForceControllerReleaseGraduated)
+                            if (ForceControllerReleaseGraduated || notch.NotchStateType == ControllerState.GSelfLap)
                                 pressureBar = IncreasePressure(pressureBar, x, ReleaseRateBarpS(), elapsedClockSeconds);
                             break;
                         case ControllerState.Emergency:
@@ -162,7 +173,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                             epState = 1;
                             break;
                         case ControllerState.Dummy:
-                            x *= MaxPressureBar() - FullServReductionBar();
+                            x = MaxPressureBar() - FullServReductionBar() * (notch.Smooth ? x : CurrentValue());
                             pressureBar = IncreasePressure(pressureBar, x, ReleaseRateBarpS(), elapsedClockSeconds);
                             pressureBar = DecreasePressure(pressureBar, x, ApplyRateBarpS(), elapsedClockSeconds);
                             epState = -1;

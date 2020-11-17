@@ -127,7 +127,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
         {
             get
             {
-                return Notches.Count > 0 ? Notches[CurrentNotch].NotchStateType : ControllerState.Dummy;
+                if (Script is MSTSBrakeController)
+                    return Notches.Count > 0 ? Notches[CurrentNotch].NotchStateType : ControllerState.Dummy;
+                else
+                    return Script.GetState();
             }
         }
 
