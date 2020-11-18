@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -12,19 +13,98 @@ namespace Orts.Simulation.Track
     /// <summary>
     /// Subpath list : list of TCRouteElements building a subpath
     /// </summary>
-    public class TrackCircuitPartialPathRoute : List<TrackCircuitRouteElement>
+    public class TrackCircuitPartialPathRoute : IList<TrackCircuitRouteElement>
     {
+        private List<TrackCircuitRouteElement> list;
+        private Dictionary<int, int> items;
+        private Dictionary<int, int> routeDirections;
+
+        #region interface implementation
+        public int Count => list.Count;
+
+        public bool IsReadOnly => false;
+
+        public TrackCircuitRouteElement this[int index] { get => list[index]; set => list[index] = value; }
+
+        public int IndexOf(TrackCircuitRouteElement item)
+        {
+            return list.IndexOf(item);
+        }
+
+        public void Insert(int index, TrackCircuitRouteElement item)
+        {
+            list.Insert(index, item);
+            items = null;
+            routeDirections = null;
+        }
+
+        public void RemoveAt(int index)
+        {
+            list.RemoveAt(index);
+            items = null;
+            routeDirections = null;
+        }
+
+        public void Add(TrackCircuitRouteElement item)
+        {
+            list.Add(item);
+            items = null;
+            routeDirections = null;
+        }
+
+        public void Clear()
+        {
+            list.Clear();
+            items = null;
+            routeDirections = null;
+        }
+
+        public bool Contains(TrackCircuitRouteElement item)
+        {
+            return list.Contains(item);
+        }
+
+        public void CopyTo(TrackCircuitRouteElement[] array, int arrayIndex)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool Remove(TrackCircuitRouteElement item)
+        {
+            items = null;
+            routeDirections = null;
+            return list.Remove(item);
+        }
+
+        public IEnumerator<TrackCircuitRouteElement> GetEnumerator()
+        {
+            return list.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return list.GetEnumerator();
+        }
+
+        public void RemoveRange(int index, int count)
+        {
+            list.RemoveRange(index, count);
+            items = null;
+            routeDirections = null;
+        }
+        #endregion
 
         // Base constructor
         public TrackCircuitPartialPathRoute()
         {
+            list = new List<TrackCircuitRouteElement>();
         }
 
 
         // Constructor from existing subpath
-        public TrackCircuitPartialPathRoute(TrackCircuitPartialPathRoute source):
-            base(source ?? Enumerable.Empty<TrackCircuitRouteElement>())
+        public TrackCircuitPartialPathRoute(TrackCircuitPartialPathRoute source)
         {
+            list = new List<TrackCircuitRouteElement>(source?.list);
         }
 
         // Constructor from part of existing subpath
@@ -34,6 +114,7 @@ namespace Orts.Simulation.Track
             if (null == source)
                 throw new ArgumentNullException(nameof(source));
 
+            list = new List<TrackCircuitRouteElement>();
             startIndex = Math.Max(startIndex, 0);
             endIndex = Math.Min(source.Count - 1, endIndex);
             endIndex = Math.Max(startIndex, endIndex);
@@ -49,6 +130,7 @@ namespace Orts.Simulation.Track
         {
             if (null == inf)
                 throw new ArgumentNullException(nameof(inf));
+            list = new List<TrackCircuitRouteElement>();
 
             int totalElements = inf.ReadInt32();
 
@@ -70,20 +152,31 @@ namespace Orts.Simulation.Track
             }
         }
 
+        private void ReIndex()
+        {
+            items = list.Select((i, Index) => (i.TrackCircuitSection.Index, Index)).ToDictionary(pair => pair.Item1, pair => pair.Item2);
+        }
+
         /// <summary>
         /// Get sectionindex in subpath
         /// <\summary>
         public int GetRouteIndex(int sectionIndex, int startIndex)
         {
-            for (int i = startIndex; i >= 0 && i < Count; i++)
+            if (Count == 1 && startIndex == 0 && this[0].TrackCircuitSection.Index == sectionIndex)
             {
-                TrackCircuitRouteElement thisElement = this[i];
-                if (thisElement.TrackCircuitSection.Index == sectionIndex)
+                return 0;
+            }
+            else if (Count > 1 && startIndex < Count)
+            {
+                if (items == null)
                 {
-                    return i;
+                    ReIndex();
+                }
+                if (items.TryGetValue(sectionIndex, out int index) && index >= startIndex)
+                {
+                    return index;
                 }
             }
-
             return -1;
         }
 
@@ -92,12 +185,29 @@ namespace Orts.Simulation.Track
         /// Get sectionindex in subpath
         /// <\summary>
 
-        public int GetRouteIndexBackward(int thisSectionIndex, int startIndex)
+        public int GetRouteIndexBackward(int sectionIndex, int startIndex)
         {
+            //if (Count == 1 && startIndex == 0 && this[0].TrackCircuitSection.Index == sectionIndex)
+            //{
+            //    return 0;
+            //}
+            //else if (Count > 1 && startIndex < Count)
+            //{
+            //    if (items == null)
+            //    {
+            //        ReIndex();
+            //    }
+            //    if (items.TryGetValue(sectionIndex, out int index) && index < startIndex)
+            //    {
+            //        return index;
+            //    }
+            //}
+            //return -1;
+
             for (int iNode = startIndex - 1; iNode >= 0 && iNode < Count; iNode--)
             {
                 TrackCircuitRouteElement thisElement = this[iNode];
-                if (thisElement.TrackCircuitSection.Index == thisSectionIndex)
+                if (thisElement.TrackCircuitSection.Index == sectionIndex)
                 {
                     return iNode;
                 }
@@ -177,20 +287,13 @@ namespace Orts.Simulation.Track
         //
         // Converts list of elements to dictionary
         //
-
         public Dictionary<int, int> ConvertRoute()
         {
-            Dictionary<int, int> thisDict = new Dictionary<int, int>();
-
-            foreach (TrackCircuitRouteElement thisElement in this)
+            if(routeDirections == null)
             {
-                if (!thisDict.ContainsKey(thisElement.TrackCircuitSection.Index))
-                {
-                    thisDict.Add(thisElement.TrackCircuitSection.Index, (int)thisElement.Direction);
-                }
+                routeDirections = list.ToDictionary(item => item.TrackCircuitSection.Index, item => (int)item.Direction);
             }
-
-            return (thisDict);
+            return routeDirections;
         }
 
         //================================================================================================//
@@ -199,11 +302,15 @@ namespace Orts.Simulation.Track
         /// <\summary>
         internal bool ContainsSection(TrackCircuitRouteElement routeElement)
         {
-            // convert route to dictionary
-            foreach(TrackCircuitRouteElement current in this)
+            if (Count == 1 && this[0].TrackCircuitSection.Index == routeElement.TrackCircuitSection.Index)
             {
-                if (current.TrackCircuitSection.Index == routeElement.TrackCircuitSection.Index)
-                    return true;
+                return true;
+            }
+            else if (Count > 1)
+            {
+                if (items == null)
+                    ReIndex();
+                return items.ContainsKey(routeElement.TrackCircuitSection.Index);
             }
             return false;
         }
@@ -354,7 +461,7 @@ namespace Orts.Simulation.Track
         public bool EqualsPath(TrackCircuitPartialPathRoute otherRoute)
         {
             // check common route parts
-            if (otherRoute == null || Count != otherRoute.Count) 
+            if (otherRoute == null || Count != otherRoute.Count)
                 return false;  // if path lengths are unequal they cannot be the same
 
             for (int i = 0; i < Count - 1; i++)
@@ -377,7 +484,7 @@ namespace Orts.Simulation.Track
         public bool EqualsReversePath(TrackCircuitPartialPathRoute otherRoute)
         {
             // check common route parts
-            if (otherRoute == null || Count != otherRoute.Count) 
+            if (otherRoute == null || Count != otherRoute.Count)
                 return false;  // if path lengths are unequal they cannot be the same
 
             for (int i = 0; i < Count - 1; i++)
