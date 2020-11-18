@@ -78,7 +78,7 @@ namespace Orts.Simulation.Track
             for (int i = startIndex; i >= 0 && i < Count; i++)
             {
                 TrackCircuitRouteElement thisElement = this[i];
-                if (thisElement.TrackCircuitSectionIndex == sectionIndex)
+                if (thisElement.TrackCircuitSection.Index == sectionIndex)
                 {
                     return i;
                 }
@@ -94,45 +94,49 @@ namespace Orts.Simulation.Track
 
         public int GetRouteIndexBackward(int thisSectionIndex, int startIndex)
         {
-            for (int iNode = startIndex - 1; iNode >= 0 && iNode < this.Count; iNode--)
+            for (int iNode = startIndex - 1; iNode >= 0 && iNode < Count; iNode--)
             {
                 TrackCircuitRouteElement thisElement = this[iNode];
-                if (thisElement.TrackCircuitSectionIndex == thisSectionIndex)
+                if (thisElement.TrackCircuitSection.Index == thisSectionIndex)
                 {
-                    return (iNode);
+                    return iNode;
                 }
             }
 
-            return (-1);
+            return -1;
         }
 
         //================================================================================================//
         /// <summary>
         /// returns if signal is ahead of train
         /// <\summary>
-
         public bool SignalIsAheadOfTrain(Signal signal, Train.TCPosition trainPosition)
         {
+            if (null == signal)
+                throw new ArgumentNullException(nameof(signal));
+            if (null == trainPosition)
+                throw new ArgumentNullException(nameof(trainPosition));
+
             int signalSection = signal.TrackCircuitIndex;
             int signalRouteIndex = GetRouteIndexBackward(signalSection, trainPosition.RouteListIndex);
             if (signalRouteIndex >= 0)
-                return (false);  // signal section passed earlier in route
+                return false;  // signal section passed earlier in route
+
             signalRouteIndex = GetRouteIndex(signalSection, trainPosition.RouteListIndex);
             if (signalRouteIndex >= 0)
-                return (true); // signal section still ahead
+                return true; // signal section still ahead
 
             if (trainPosition.TCSectionIndex == signal.TrackCircuitNextIndex)
-                return (false); // if train in section following signal, assume we passed
+                return false; // if train in section following signal, assume we passed
 
             // signal is not on route - assume we did not pass
-            return (true);
+            return true;
         }
 
         //================================================================================================//
         /// <summary>
         /// returns distance along route
         /// <\summary>
-
         public float GetDistanceAlongRoute(int startIndex, float startOffset, int endIndex, float endOffset, bool forward)
         {
             // startSectionIndex and endSectionIndex are indices in route list
@@ -141,8 +145,7 @@ namespace Orts.Simulation.Track
 
             if (startIndex == endIndex)
             {
-                TrackCircuitSection section = TrackCircuitSection.TrackCircuitList[this[startIndex].TrackCircuitSectionIndex];
-                return startOffset - (section.Length - endOffset);
+                return startOffset - (this[startIndex].TrackCircuitSection.Length - endOffset);
             }
 
             if (forward)
@@ -152,8 +155,7 @@ namespace Orts.Simulation.Track
 
                 for (int i = startIndex + 1; i < endIndex; i++)
                 {
-                    TrackCircuitSection section = TrackCircuitSection.TrackCircuitList[this[i].TrackCircuitSectionIndex];
-                    startOffset += section.Length;
+                    startOffset += this[i].TrackCircuitSection.Length;
                 }
             }
             else
@@ -163,13 +165,11 @@ namespace Orts.Simulation.Track
 
                 for (int i = startIndex - 1; i > endIndex; i--)
                 {
-                    TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[this[i].TrackCircuitSectionIndex];
-                    startOffset += thisSection.Length;
+                    startOffset += this[i].TrackCircuitSection.Length;
                 }
             }
 
             startOffset += endOffset;
-
             return startOffset;
         }
 
@@ -207,9 +207,9 @@ namespace Orts.Simulation.Track
 
             foreach (TrackCircuitRouteElement thisElement in this)
             {
-                if (!thisDict.ContainsKey(thisElement.TrackCircuitSectionIndex))
+                if (!thisDict.ContainsKey(thisElement.TrackCircuitSection.Index))
                 {
-                    thisDict.Add(thisElement.TrackCircuitSectionIndex, (int)thisElement.Direction);
+                    thisDict.Add(thisElement.TrackCircuitSection.Index, (int)thisElement.Direction);
                 }
             }
 
@@ -226,7 +226,7 @@ namespace Orts.Simulation.Track
             // convert route to dictionary
 
             Dictionary<int, int> thisRoute = ConvertRoute();
-            return (thisRoute.ContainsKey(thisElement.TrackCircuitSectionIndex));
+            return (thisRoute.ContainsKey(thisElement.TrackCircuitSection.Index));
         }
 
 
@@ -251,7 +251,7 @@ namespace Orts.Simulation.Track
             for (int iIndex = 0; iIndex < altRoute.Count && !firstfound; iIndex++)
             {
                 int mainIndex = iIndex + startIndex;
-                if (altRoute[iIndex].TrackCircuitSectionIndex != this[mainIndex].TrackCircuitSectionIndex)
+                if (altRoute[iIndex].TrackCircuitSection.Index != this[mainIndex].TrackCircuitSection.Index)
                 {
                     firstfound = true;
                     MainPathActualStartRouteIndex = mainIndex;
@@ -263,7 +263,7 @@ namespace Orts.Simulation.Track
             {
                 int altIndex = altRoute.Count - 1 - iIndex;
                 int mainIndex = endIndex - iIndex;
-                if (altRoute[altIndex].TrackCircuitSectionIndex != this[mainIndex].TrackCircuitSectionIndex)
+                if (altRoute[altIndex].TrackCircuitSection.Index != this[mainIndex].TrackCircuitSection.Index)
                 {
                     lastfound = true;
                     MainPathActualEndRouteIndex = mainIndex;
@@ -301,7 +301,7 @@ namespace Orts.Simulation.Track
             int lastUsedIndex = startIndex;
 
             // first junction
-            TrackCircuitSection firstSection = TrackCircuitSection.TrackCircuitList[this[usedStartIndex].TrackCircuitSectionIndex];
+            TrackCircuitSection firstSection = this[usedStartIndex].TrackCircuitSection;
             if (firstSection.CircuitType == TrackCircuitType.Junction)
             {
                 actLength = firstSection.Length - (float)(2 * firstSection.Overlap);
@@ -318,11 +318,11 @@ namespace Orts.Simulation.Track
             for (int iSection = usedStartIndex + 1; iSection < usedEndIndex - 1; iSection++)
             {
                 TrackCircuitRouteElement thisElement = this[iSection];
-                TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
+                TrackCircuitSection thisSection = thisElement.TrackCircuitSection;
                 actLength += thisSection.Length;
 
                 // if section has end signal, set usefull length upto this point
-                if (thisSection.EndSignals[(TrackDirection)thisElement.Direction] != null)
+                if (thisSection.EndSignals[thisElement.Direction] != null)
                 {
                     useLength = actLength - (2 * defaultSignalClearingDistance);
                     endSignal = true;
@@ -334,7 +334,7 @@ namespace Orts.Simulation.Track
 
             if (!endSignal)
             {
-                TrackCircuitSection lastSection = TrackCircuitSection.TrackCircuitList[this[usedEndIndex].TrackCircuitSectionIndex];
+                TrackCircuitSection lastSection = this[usedEndIndex].TrackCircuitSection;
                 if (lastSection.CircuitType == TrackCircuitType.Junction)
                 {
                     actLength += (lastSection.Length - (float)(2 * lastSection.Overlap));
@@ -368,7 +368,7 @@ namespace Orts.Simulation.Track
 
             for (int iIndex = 0; iIndex < Count - 1; iIndex++)
             {
-                if (this[iIndex].TrackCircuitSectionIndex != otherRoute[iIndex].TrackCircuitSectionIndex)
+                if (this[iIndex].TrackCircuitSection.Index != otherRoute[iIndex].TrackCircuitSection.Index)
                 {
                     equalPath = false;
                     break;
@@ -394,7 +394,7 @@ namespace Orts.Simulation.Track
 
             for (int iIndex = 0; iIndex < Count - 1; iIndex++)
             {
-                if (this[iIndex].TrackCircuitSectionIndex != otherRoute[otherRoute.Count - 1 - iIndex].TrackCircuitSectionIndex)
+                if (this[iIndex].TrackCircuitSection.Index != otherRoute[otherRoute.Count - 1 - iIndex].TrackCircuitSection.Index)
                 {
                     equalPath = false;
                     break;
@@ -417,7 +417,7 @@ namespace Orts.Simulation.Track
             for (int iIndex = Count - 1; iIndex >= 0; iIndex--)
             {
                 TrackCircuitRouteElement thisElement = this[iIndex];
-                TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
+                TrackCircuitSection thisSection = thisElement.TrackCircuitSection;
 
                 TrackCircuitRouteElement newElement = new TrackCircuitRouteElement(thisSection, thisElement.Direction.Next(), lastSectionIndex);
 
@@ -432,7 +432,7 @@ namespace Orts.Simulation.Track
                         if (iIndex >= 1)
                         {
                             newElement.OutPin[Location.NearEnd] = TrackDirection.Reverse;
-                            newElement.OutPin[Location.FarEnd] = (thisSection.Pins[TrackDirection.Reverse, Location.NearEnd].Link == this[iIndex - 1].TrackCircuitSectionIndex) ? TrackDirection.Ahead : TrackDirection.Reverse;
+                            newElement.OutPin[Location.FarEnd] = (thisSection.Pins[TrackDirection.Reverse, Location.NearEnd].Link == this[iIndex - 1].TrackCircuitSection.Index) ? TrackDirection.Ahead : TrackDirection.Reverse;
                         }
                     }
                     else
@@ -443,7 +443,7 @@ namespace Orts.Simulation.Track
                 }
 
                 reversePath.Add(newElement);
-                lastSectionIndex = thisElement.TrackCircuitSectionIndex;
+                lastSectionIndex = thisElement.TrackCircuitSection.Index;
             }
 
             return (reversePath);

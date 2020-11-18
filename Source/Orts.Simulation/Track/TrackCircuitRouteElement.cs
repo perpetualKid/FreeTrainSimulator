@@ -18,10 +18,10 @@ namespace Orts.Simulation.Track
             //Index of Alternative Path
             public int PathIndex;
             //related TrackCircuitCrossReferences Index
-            public int TrackCircuitSection;
+            public TrackCircuitSection TrackCircuitSection;
         }
 
-        public int TrackCircuitSectionIndex { get; private set; }
+        public TrackCircuitSection TrackCircuitSection { get; private set; }
         public TrackDirection Direction { get; internal set; }
         public EnumArray<TrackDirection, Location> OutPin { get; } = new EnumArray<TrackDirection, Location>();
         
@@ -46,21 +46,20 @@ namespace Orts.Simulation.Track
             if (null == node)
                 throw new ArgumentNullException(nameof(node));
 
-            TrackCircuitSectionIndex = node.TrackCircuitCrossReferences[trackCircuitIndex].Index;
+            TrackCircuitSection = TrackCircuitSection.TrackCircuitList[node.TrackCircuitCrossReferences[trackCircuitIndex].Index];
             Direction = direction;
             OutPin[Location.NearEnd] = direction;
             OutPin[Location.FarEnd] = TrackDirection.Ahead;           // always 0 for NORMAL sections, updated for JUNCTION sections
 
-            TrackCircuitSection section = TrackCircuitSection.TrackCircuitList[TrackCircuitSectionIndex];
-            if (section.CircuitType == TrackCircuitType.Crossover)
+            if (TrackCircuitSection.CircuitType == TrackCircuitType.Crossover)
             {
                 TrackDirection outPinLink = direction;
                 int nextIndex;
                 nextIndex = direction == TrackDirection.Reverse ? node.TrackCircuitCrossReferences[trackCircuitIndex - 1].Index : node.TrackCircuitCrossReferences[trackCircuitIndex + 1].Index;
-                OutPin[Location.FarEnd] = (section.Pins[outPinLink, Location.NearEnd].Link == nextIndex) ? TrackDirection.Ahead : TrackDirection.Reverse;
+                OutPin[Location.FarEnd] = (TrackCircuitSection.Pins[outPinLink, Location.NearEnd].Link == nextIndex) ? TrackDirection.Ahead : TrackDirection.Reverse;
             }
 
-            FacingPoint = (section.CircuitType == TrackCircuitType.Junction && section.Pins[direction, Location.FarEnd].Link != -1);
+            FacingPoint = (TrackCircuitSection.CircuitType == TrackCircuitType.Junction && TrackCircuitSection.Pins[direction, Location.FarEnd].Link != -1);
 
             UsedAlternativePath = -1;
             MovingTableApproachPath = -1;
@@ -75,7 +74,7 @@ namespace Orts.Simulation.Track
             if (null == section)
                 throw new ArgumentNullException(nameof(section));
 
-            TrackCircuitSectionIndex = section.Index;
+            TrackCircuitSection = section;
             Direction = direction;
             OutPin[Location.NearEnd] = direction;
             OutPin[Location.FarEnd] = TrackDirection.Ahead;           // always 0 for NORMAL sections, updated for JUNCTION sections
@@ -98,7 +97,7 @@ namespace Orts.Simulation.Track
         /// </summary>
         public TrackCircuitRouteElement(int trackCircuitIndex, TrackDirection direction)
         {
-            TrackCircuitSectionIndex = trackCircuitIndex;
+            TrackCircuitSection = TrackCircuitSection.TrackCircuitList[trackCircuitIndex];
             Direction = direction;
             OutPin[Location.NearEnd] = direction;
             OutPin[Location.FarEnd] = TrackDirection.Ahead;
@@ -115,7 +114,7 @@ namespace Orts.Simulation.Track
             if (null == source)
                 throw new ArgumentNullException(nameof(source));
 
-            TrackCircuitSectionIndex = source.TrackCircuitSectionIndex;
+            TrackCircuitSection = source.TrackCircuitSection;
             Direction = source.Direction;
 
             OutPin = new EnumArray<TrackDirection, Location>(source.OutPin);
@@ -152,7 +151,7 @@ namespace Orts.Simulation.Track
             if (null == inf)
                 throw new ArgumentNullException(nameof(inf));
 
-            TrackCircuitSectionIndex = inf.ReadInt32();
+            TrackCircuitSection = TrackCircuitSection.TrackCircuitList[inf.ReadInt32()];
             Direction = (TrackDirection)inf.ReadInt32();
             OutPin = new EnumArray<TrackDirection, Location>(new TrackDirection[] { (TrackDirection)inf.ReadInt32(), (TrackDirection)inf.ReadInt32() });
 
@@ -162,7 +161,7 @@ namespace Orts.Simulation.Track
                 StartAlternativePath = new AlternativePath()
                 {
                     PathIndex = altindex,
-                    TrackCircuitSection = inf.ReadInt32(),
+                    TrackCircuitSection = TrackCircuitSection.TrackCircuitList[inf.ReadInt32()],
                 };
             }
 
@@ -172,7 +171,7 @@ namespace Orts.Simulation.Track
                 EndAlternativePath = new AlternativePath()
                 {
                     PathIndex = altindex,
-                    TrackCircuitSection = inf.ReadInt32(),
+                    TrackCircuitSection = TrackCircuitSection.TrackCircuitList[inf.ReadInt32()],
                 };
             }
 
@@ -190,7 +189,7 @@ namespace Orts.Simulation.Track
             if (null == outf)
                 throw new ArgumentNullException(nameof(outf));
 
-            outf.Write(TrackCircuitSectionIndex);
+            outf.Write(TrackCircuitSection.Index);
             outf.Write((int)Direction);
             outf.Write((int)OutPin[Location.NearEnd]);
             outf.Write((int)OutPin[Location.FarEnd]);
@@ -198,7 +197,7 @@ namespace Orts.Simulation.Track
             if (StartAlternativePath != null)
             {
                 outf.Write(StartAlternativePath.PathIndex);
-                outf.Write(StartAlternativePath.TrackCircuitSection);
+                outf.Write(StartAlternativePath.TrackCircuitSection.Index);
             }
             else
             {
@@ -209,7 +208,7 @@ namespace Orts.Simulation.Track
             if (EndAlternativePath != null)
             {
                 outf.Write(EndAlternativePath.PathIndex);
-                outf.Write(EndAlternativePath.TrackCircuitSection);
+                outf.Write(EndAlternativePath.TrackCircuitSection.Index);
             }
             else
             {
@@ -224,7 +223,7 @@ namespace Orts.Simulation.Track
         // Invalidate preceding section index to avoid wrong indexing when building route forward (in Reserve())
         internal void Invalidate()
         {
-            TrackCircuitSectionIndex = -1;
+            TrackCircuitSection = TrackCircuitSection.Invalid;
         }
     }
 

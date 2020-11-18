@@ -566,8 +566,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             while (index < routePath.Count && totalLength < 400) // Check only first 400m
             {
                 var thisElement = routePath[index];
-                TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
-                TrackCircuitSignalList thisSignalList = thisSection.CircuitItems.TrackCircuitSignals[(TrackDirection)thisElement.Direction][fn_type];
+                TrackCircuitSection thisSection = thisElement.TrackCircuitSection;
+                TrackCircuitSignalList thisSignalList = thisSection.CircuitItems.TrackCircuitSignals[thisElement.Direction][fn_type];
                 foreach (TrackCircuitSignalItem thisSignal in thisSignalList)
                 {
                     if (thisSignal.SignalLocation > lengthOffset)

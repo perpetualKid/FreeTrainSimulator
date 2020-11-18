@@ -1838,7 +1838,7 @@ namespace Orts.Simulation.AIs
             }
             if (ClearSignal(thisTrain) || (thisTrain.NextSignalObject[0] != null && (thisTrain.NextSignalObject[0].SignalLR(SignalFunction.Normal) > SignalAspectState.Stop)) ||
                 thisTrain.NextSignalObject[0] == null || SignalReferenced != thisTrain.NextSignalObject[0] ||
-                thisTrain.PresentPosition[0].TCSectionIndex == thisTrain.ValidRoute[0][thisTrain.ValidRoute[0].Count - 1].TrackCircuitSectionIndex)
+                thisTrain.PresentPosition[0].TCSectionIndex == thisTrain.ValidRoute[0][thisTrain.ValidRoute[0].Count - 1].TrackCircuitSection.Index)
             {
 #if WITH_PATH_DEBUG
             File.AppendAllText(@"C:\temp\checkpath.txt", "WP, Action ended for train " + thisTrain.Number + " at " + presentTime + "(STOPPED)\n");

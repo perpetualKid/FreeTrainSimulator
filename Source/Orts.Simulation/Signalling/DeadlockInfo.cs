@@ -319,7 +319,7 @@ namespace Orts.Simulation.Signalling
                 {
                     DeadlockInfo existDeadlockInfo = sourceSignals.DeadlockInfoList[startSectionInfo.Key];
                     TrackCircuitPartialPathRoute existPath = existDeadlockInfo.AvailablePathList[startSectionInfo.Value].Path;
-                    newStartSectionRouteIndex = mainPath.GetRouteIndexBackward(existPath[0].TrackCircuitSectionIndex, usedStartSectionRouteIndex);
+                    newStartSectionRouteIndex = mainPath.GetRouteIndexBackward(existPath[0].TrackCircuitSection.Index, usedStartSectionRouteIndex);
                     if (newStartSectionRouteIndex < 0) // may be wrong direction - try end section
                     {
                         newStartSectionRouteIndex =
@@ -357,7 +357,7 @@ namespace Orts.Simulation.Signalling
                 {
                     DeadlockInfo existDeadlockInfo = sourceSignals.DeadlockInfoList[endSectionInfo.Key];
                     TrackCircuitPartialPathRoute existPath = existDeadlockInfo.AvailablePathList[endSectionInfo.Value].Path;
-                    newEndSectionRouteIndex = mainPath.GetRouteIndex(existPath[0].TrackCircuitSectionIndex, usedEndSectionRouteIndex);
+                    newEndSectionRouteIndex = mainPath.GetRouteIndex(existPath[0].TrackCircuitSection.Index, usedEndSectionRouteIndex);
                     if (newEndSectionRouteIndex < 0) // may be wrong direction - try end section
                     {
                         newEndSectionRouteIndex =
@@ -610,7 +610,7 @@ namespace Orts.Simulation.Signalling
         {
             foreach (TrackCircuitRouteElement element in path)
             {
-                TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[element.TrackCircuitSectionIndex];
+                TrackCircuitSection thisSection = element.TrackCircuitSection;
                 if (thisSection.DeadlockReference >= 0)
                 {
                     return (false);
@@ -834,7 +834,7 @@ namespace Orts.Simulation.Signalling
                 bool pathAvail = true;
                 for (int iElement = 1; iElement <= altPathInfo.LastUsefulSectionIndex; iElement++)
                 {
-                    TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[altPath[iElement].TrackCircuitSectionIndex];
+                    TrackCircuitSection thisSection = altPath[iElement].TrackCircuitSection;
                     if (!thisSection.IsAvailable(train.routedForward))
                     {
                         pathAvail = false;
@@ -980,7 +980,7 @@ namespace Orts.Simulation.Signalling
             for (int i = 1; i <= path.Count - 2; i++) // loop through path excluding first and last section
             {
                 TrackCircuitRouteElement thisElement = path[i];
-                TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisElement.TrackCircuitSectionIndex];
+                TrackCircuitSection thisSection = thisElement.TrackCircuitSection;
                 if (thisSection.DeadlockBoundaries == null)
                 {
                     thisSection.DeadlockBoundaries = new Dictionary<int, int>();
@@ -1085,7 +1085,7 @@ namespace Orts.Simulation.Signalling
             }
 
             int trainSubpathIndex = GetTrainAndSubpathIndex(trainNumber, subpathRef);
-            int sectionIndex = subpath[elementRouteIndex].TrackCircuitSectionIndex;
+            int sectionIndex = subpath[elementRouteIndex].TrackCircuitSection.Index;
             (int Result, int PathIndex) matchingPath = SearchMatchingFullPath(subpath, sectionIndex, elementRouteIndex);
             TrackCircuitPartialPathRoute partPath;
 
@@ -1113,7 +1113,7 @@ namespace Orts.Simulation.Signalling
                         KeyValuePair<int, float> pathEndAndLengthValue = pathEndAndLengthInfo.ElementAt(0);
                         thisPathInfo.UsefulLength = pathEndAndLengthValue.Value;
                         thisPathInfo.LastUsefulSectionIndex = pathEndAndLengthValue.Key;
-                        thisPathInfo.EndSectionIndex = subpath[matchingPath.PathIndex].TrackCircuitSectionIndex;
+                        thisPathInfo.EndSectionIndex = subpath[matchingPath.PathIndex].TrackCircuitSection.Index;
                         thisPathInfo.Name = string.Empty;  // path has no name
 
                         thisPathInfo.AllowedTrains.Add(trainSubpathIndex);
@@ -1182,7 +1182,7 @@ namespace Orts.Simulation.Signalling
             // get end section from first valid path
 
             partPath = new TrackCircuitPartialPathRoute(AvailablePathList[availPathList[0]].Path);
-            int lastSection = partPath[partPath.Count - 1].TrackCircuitSectionIndex;
+            int lastSection = partPath[partPath.Count - 1].TrackCircuitSection.Index;
             int returnIndex = subpath.GetRouteIndex(lastSection, elementRouteIndex);
             return (returnIndex);
 
@@ -1245,7 +1245,7 @@ namespace Orts.Simulation.Signalling
                         // train has same direction - check if end of path is really within the path
                         if (areadirection == traindirection)
                         {
-                            int pathEndSection = fullPath[fullPath.Count - 1].TrackCircuitSectionIndex;
+                            int pathEndSection = fullPath[fullPath.Count - 1].TrackCircuitSection.Index;
                             if (testPath.GetRouteIndex(pathEndSection, 0) >= 0) // end point is within section
                             {
                                 return (1, 0);
@@ -1264,7 +1264,7 @@ namespace Orts.Simulation.Signalling
             {
                 if (startSectionIndex == AvailablePathList[0].EndSectionIndex)
                 {
-                    int matchingEndIndex = fullPath.GetRouteIndex(AvailablePathList[0].Path[0].TrackCircuitSectionIndex, startSectionRouteIndex);
+                    int matchingEndIndex = fullPath.GetRouteIndex(AvailablePathList[0].Path[0].TrackCircuitSection.Index, startSectionRouteIndex);
                     if (matchingEndIndex > 0)
                     {
                         return (2, matchingEndIndex);
