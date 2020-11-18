@@ -15,7 +15,7 @@ namespace Orts.Simulation.Track
     /// </summary>
     public class TrackCircuitPartialPathRoute : IList<TrackCircuitRouteElement>
     {
-        private List<TrackCircuitRouteElement> list;
+        private readonly List<TrackCircuitRouteElement> list;
         private Dictionary<int, int> items;
         private Dictionary<int, int> routeDirections;
 
@@ -187,32 +187,21 @@ namespace Orts.Simulation.Track
 
         public int GetRouteIndexBackward(int sectionIndex, int startIndex)
         {
-            //if (Count == 1 && startIndex == 0 && this[0].TrackCircuitSection.Index == sectionIndex)
-            //{
-            //    return 0;
-            //}
-            //else if (Count > 1 && startIndex < Count)
-            //{
-            //    if (items == null)
-            //    {
-            //        ReIndex();
-            //    }
-            //    if (items.TryGetValue(sectionIndex, out int index) && index < startIndex)
-            //    {
-            //        return index;
-            //    }
-            //}
-            //return -1;
-
-            for (int iNode = startIndex - 1; iNode >= 0 && iNode < Count; iNode--)
+            if (Count == 1 && startIndex == 0 && this[0].TrackCircuitSection.Index == sectionIndex)
             {
-                TrackCircuitRouteElement thisElement = this[iNode];
-                if (thisElement.TrackCircuitSection.Index == sectionIndex)
+                return 0;
+            }
+            else if (Count > 1 && startIndex < Count)
+            {
+                if (items == null)
                 {
-                    return iNode;
+                    ReIndex();
+                }
+                if (items.TryGetValue(sectionIndex, out int index) && index < startIndex)
+                {
+                    return index;
                 }
             }
-
             return -1;
         }
 
