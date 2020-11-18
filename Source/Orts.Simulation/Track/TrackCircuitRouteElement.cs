@@ -71,10 +71,7 @@ namespace Orts.Simulation.Track
         /// </summary>
         public TrackCircuitRouteElement(TrackCircuitSection section, TrackDirection direction, int lastSectionIndex)
         {
-            if (null == section)
-                throw new ArgumentNullException(nameof(section));
-
-            TrackCircuitSection = section;
+            TrackCircuitSection = section ?? throw new ArgumentNullException(nameof(section));
             Direction = direction;
             OutPin[Location.NearEnd] = direction;
             OutPin[Location.FarEnd] = TrackDirection.Ahead;           // always 0 for NORMAL sections, updated for JUNCTION sections

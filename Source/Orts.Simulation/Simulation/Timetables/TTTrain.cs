@@ -7444,10 +7444,6 @@ namespace Orts.Simulation.Timetables
             // preset result
             int[,] sectionFound = new int[2, 2] { { -1, -1 }, { -1, -1 } };
 
-            // derive sections
-            int thisSectionIndex = thisRoute[thisRouteIndex].TrackCircuitSection.Index;
-            int otherSectionIndex = otherRoute[otherRouteIndex].TrackCircuitSection.Index;
-
             // convert other subpath to dictionary for quick reference
             TrackCircuitPartialPathRoute partRoute;
             if (otherRouteIndex < otherRouteEndIndex)
@@ -7458,24 +7454,19 @@ namespace Orts.Simulation.Timetables
             {
                 partRoute = new TrackCircuitPartialPathRoute(otherRoute, otherRouteEndIndex, otherRouteIndex);
             }
-            Dictionary<int, int> dictRoute = partRoute.ConvertRoute();
-
 
             // loop until common section is found or route is ended
             while (!commonSectionFound && !otherEndOfRoute)
             {
                 while (!thisEndOfRoute)
                 {
-                    // get section indices
-                    thisSectionIndex = TCRoute.TCRouteSubpaths[thisSubpathIndex][thisRouteIndex].TrackCircuitSection.Index;
-
-                    if (dictRoute.ContainsKey(thisSectionIndex))
+                    if (partRoute.ContainsSection(TCRoute.TCRouteSubpaths[thisSubpathIndex][thisRouteIndex]))
                     {
                         commonSectionFound = true;
                         sectionFound[0, 0] = thisSubpathIndex;
                         sectionFound[0, 1] = thisRouteIndex;
                         sectionFound[1, 0] = otherSubpathIndex;
-                        sectionFound[1, 1] = otherRoute.GetRouteIndex(thisSectionIndex, 0);
+                        sectionFound[1, 1] = otherRoute.GetRouteIndex(TCRoute.TCRouteSubpaths[thisSubpathIndex][thisRouteIndex].TrackCircuitSection.Index, 0);
                         break;
                     }
 
@@ -7499,7 +7490,6 @@ namespace Orts.Simulation.Timetables
                     else
                     {
                         otherRoute = otherTrainRoute.TCRouteSubpaths[otherSubpathIndex];
-                        dictRoute = otherTrainRoute.TCRouteSubpaths[otherSubpathIndex].ConvertRoute();
                     }
                 }
                 else
@@ -7508,10 +7498,6 @@ namespace Orts.Simulation.Timetables
                     if (otherSubpathIndex < otherSubpathEndIndex)
                     {
                         otherEndOfRoute = true;
-                    }
-                    else
-                    {
-                        dictRoute = otherTrainRoute.TCRouteSubpaths[otherSubpathIndex].ConvertRoute();
                     }
                 }
 

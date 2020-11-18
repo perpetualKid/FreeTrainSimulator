@@ -6471,7 +6471,7 @@ namespace Orts.Simulation.Physics
                     overlapPosition.TCDirection = overlapPosition.TCDirection == 0 ? 1 : 0; // looking backwards, so reverse direction
 
                     TrackCircuitSection rearSection = TrackCircuitSection.TrackCircuitList[RearSignalObject.TrackCircuitNextIndex];
-                    if (!TrackCircuitPartialPathRoute.IsAheadOfTrain(rearSection, 0.0f, overlapPosition))
+                    if (!IsAheadOfTrain(rearSection, 0.0f, overlapPosition))
                     {
                         if (RearSignalObject.SignalLR(SignalFunction.Normal) == SignalAspectState.Stop)
                         {
@@ -16707,20 +16707,15 @@ namespace Orts.Simulation.Physics
             {
                 // if main set, check if path is valid diverge path - otherwise assume it is indeed
 
-                if (mainPath != null)
+                if (mainPath != null && !mainPath.HasActualDivergePath(passPath, 0))
                 {
-                    int[,] validPassingPath = mainPath.FindActualDivergePath(passPath, 0, mainPath.Count - 1);
-
-                    if (validPassingPath[0, 0] < 0)
-                    {
-                        Trace.TraceInformation("Invalid passing path defined for train {0} at section {1} : path does not diverge from main path",
-                            trainNumber, startSectionIndex);
-                        return;
-                    }
+                    Trace.TraceInformation("Invalid passing path defined for train {0} at section {1} : path does not diverge from main path",
+                        trainNumber, startSectionIndex);
+                    return;
                 }
 
                 // find related deadlock definition - note that path may be extended to match other deadlock paths
-                DeadlockInfo thisDeadlock = Orts.Simulation.Signalling.DeadlockInfo.FindDeadlockInfo(orgSignals, passPath, mainPath, startSectionIndex, endSectionIndex);
+                DeadlockInfo thisDeadlock = Signalling.DeadlockInfo.FindDeadlockInfo(orgSignals, passPath, mainPath, startSectionIndex, endSectionIndex);
 
                 if (thisDeadlock == null) // path is not valid in relation to other deadlocks
                 {
@@ -16743,39 +16738,31 @@ namespace Orts.Simulation.Physics
                     if (!mainIndex.Exists)
                     {
                         // calculate usefull lenght and usefull end section for main path
-                        Dictionary<int, float> mainPathUsefullInfo = mainPathPart.GetUsefullLength(0.0f, -1, -1);
-                        KeyValuePair<int, float> mainPathUsefullValues = mainPathUsefullInfo.ElementAt(0);
-
-                        DeadlockPathInfo thisDeadlockPathInfo = thisDeadlock.AvailablePathList[mainIndex.PathIndex];
-                        thisDeadlockPathInfo.EndSectionIndex = usedEndSectionIndex;
-                        thisDeadlockPathInfo.LastUsefulSectionIndex = mainPathUsefullValues.Key;
-                        thisDeadlockPathInfo.UsefulLength = mainPathUsefullValues.Value;
+                        DeadlockPathInfo deadlockPathInfo = thisDeadlock.AvailablePathList[mainIndex.PathIndex];
+                        deadlockPathInfo.EndSectionIndex = usedEndSectionIndex;
+                        (deadlockPathInfo.LastUsefulSectionIndex, deadlockPathInfo.UsefulLength) = mainPathPart.GetUsefullLength(0.0f, -1, -1);
 
                         // only allow as public path if not in timetable mode
                         if (orgSignals.Simulator.TimetableMode)
                         {
-                            thisDeadlockPathInfo.AllowedTrains.Add(thisDeadlock.GetTrainAndSubpathIndex(trainNumber, sublistRef));
+                            deadlockPathInfo.AllowedTrains.Add(thisDeadlock.GetTrainAndSubpathIndex(trainNumber, sublistRef));
                         }
                         else
                         {
-                            thisDeadlockPathInfo.AllowedTrains.Add(-1); // set as public path
+                            deadlockPathInfo.AllowedTrains.Add(-1); // set as public path
                         }
 
                         // if name is main insert inverse path also as MAIN to ensure reverse path is available
 
-                        if (String.Compare(thisDeadlockPathInfo.Name, "MAIN") == 0 && !orgSignals.Simulator.TimetableMode)
+                        if (String.Compare(deadlockPathInfo.Name, "MAIN") == 0 && !orgSignals.Simulator.TimetableMode)
                         {
                             TrackCircuitPartialPathRoute inverseMainPath = mainPathPart.ReversePath();
                             (int PathIndex, bool Exists) inverseIndex = thisDeadlock.AddPath(inverseMainPath, endSectionIndex, "MAIN", string.Empty);
-                            DeadlockPathInfo thisDeadlockInverseInfo = thisDeadlock.AvailablePathList[inverseIndex.PathIndex];
+                            DeadlockPathInfo deadlockInverseInfo = thisDeadlock.AvailablePathList[inverseIndex.PathIndex];
 
-                            Dictionary<int, float> mainInversePathUsefullInfo = inverseMainPath.GetUsefullLength(0.0f, -1, -1);
-                            KeyValuePair<int, float> mainInversePathUsefullValues = mainInversePathUsefullInfo.ElementAt(0);
-
-                            thisDeadlockInverseInfo.EndSectionIndex = startSectionIndex;
-                            thisDeadlockInverseInfo.LastUsefulSectionIndex = mainInversePathUsefullValues.Key;
-                            thisDeadlockInverseInfo.UsefulLength = mainInversePathUsefullValues.Value;
-                            thisDeadlockInverseInfo.AllowedTrains.Add(-1);
+                            deadlockInverseInfo.EndSectionIndex = startSectionIndex;
+                            (deadlockInverseInfo.LastUsefulSectionIndex, deadlockInverseInfo.UsefulLength) = inverseMainPath.GetUsefullLength(0.0f, -1, -1);
+                            deadlockInverseInfo.AllowedTrains.Add(-1);
                         }
                     }
                     // if existing path, add trainnumber if set and path is not public
@@ -16796,21 +16783,17 @@ namespace Orts.Simulation.Physics
                 if (!passIndex.Exists)
                 {
                     // calculate usefull lenght and usefull end section for passing path
-                    Dictionary<int, float> altPathUsefullInfo = passPath.GetUsefullLength(0.0f, -1, -1);
-                    KeyValuePair<int, float> altPathUsefullValues = altPathUsefullInfo.ElementAt(0);
-
-                    DeadlockPathInfo thisDeadlockPathInfo = thisDeadlock.AvailablePathList[passIndex.PathIndex];
-                    thisDeadlockPathInfo.EndSectionIndex = endSectionIndex;
-                    thisDeadlockPathInfo.LastUsefulSectionIndex = altPathUsefullValues.Key;
-                    thisDeadlockPathInfo.UsefulLength = altPathUsefullValues.Value;
+                    DeadlockPathInfo deadlockPathInfo = thisDeadlock.AvailablePathList[passIndex.PathIndex];
+                    deadlockPathInfo.EndSectionIndex = endSectionIndex;
+                    (deadlockPathInfo.LastUsefulSectionIndex, deadlockPathInfo.UsefulLength) = passPath.GetUsefullLength(0.0f, -1, -1);
 
                     if (trainNumber > 0)
                     {
-                        thisDeadlockPathInfo.AllowedTrains.Add(thisDeadlock.GetTrainAndSubpathIndex(trainNumber, sublistRef));
+                        deadlockPathInfo.AllowedTrains.Add(thisDeadlock.GetTrainAndSubpathIndex(trainNumber, sublistRef));
                     }
                     else
                     {
-                        thisDeadlockPathInfo.AllowedTrains.Add(-1);
+                        deadlockPathInfo.AllowedTrains.Add(-1);
                     }
 
                     // insert inverse path only if public
@@ -16818,16 +16801,11 @@ namespace Orts.Simulation.Physics
                     if (trainNumber < 0)
                     {
                         TrackCircuitPartialPathRoute inversePassPath = passPath.ReversePath();
-                        (int PathIndex, bool Exists) inverseIndex = thisDeadlock.AddPath(inversePassPath, endSectionIndex, String.Copy(thisDeadlockPathInfo.Name), String.Empty);
-                        DeadlockPathInfo thisDeadlockInverseInfo = thisDeadlock.AvailablePathList[inverseIndex.PathIndex];
-
-                        Dictionary<int, float> altInversePathUsefullInfo = inversePassPath.GetUsefullLength(0.0f, -1, -1);
-                        KeyValuePair<int, float> altInversePathUsefullValues = altInversePathUsefullInfo.ElementAt(0);
-
-                        thisDeadlockInverseInfo.EndSectionIndex = startSectionIndex;
-                        thisDeadlockInverseInfo.LastUsefulSectionIndex = altInversePathUsefullValues.Key;
-                        thisDeadlockInverseInfo.UsefulLength = altInversePathUsefullValues.Value;
-                        thisDeadlockInverseInfo.AllowedTrains.Add(-1);
+                        (int PathIndex, bool Exists) inverseIndex = thisDeadlock.AddPath(inversePassPath, endSectionIndex, deadlockPathInfo.Name, string.Empty);
+                        DeadlockPathInfo deadlockInverseInfo = thisDeadlock.AvailablePathList[inverseIndex.PathIndex];
+                        deadlockInverseInfo.EndSectionIndex = startSectionIndex;
+                        (deadlockInverseInfo.LastUsefulSectionIndex, deadlockInverseInfo.UsefulLength) = inversePassPath.GetUsefullLength(0.0f, -1, -1);
+                        deadlockInverseInfo.AllowedTrains.Add(-1);
                     }
                 }
                 // if existing path, add trainnumber if set and path is not public
@@ -19299,5 +19277,29 @@ namespace Orts.Simulation.Physics
             return midpointDirection == MidpointDirection.Forward ? Direction.Forward :
                 midpointDirection == MidpointDirection.Reverse ? Direction.Backward : (Direction)(-1);
         }
+
+        //================================================================================================//
+        /// <summary>
+        /// returns if position is ahead of train
+        /// <\summary>
+        // without offset
+        public static bool IsAheadOfTrain(TrackCircuitSection section, Train.TCPosition position)
+        {
+            return IsAheadOfTrain(section, 0f, position);
+        }
+
+        // with offset
+        public static bool IsAheadOfTrain(TrackCircuitSection section, float offset, Train.TCPosition position)
+        {
+            if (null == section)
+                throw new ArgumentNullException(nameof(section));
+            if (null == position)
+                throw new ArgumentNullException(nameof(position));
+
+            float distanceAhead = TrackCircuitSection.GetDistanceBetweenObjects(
+                position.TCSectionIndex, position.TCOffset, (TrackDirection)position.TCDirection, section.Index, offset);
+            return (distanceAhead > 0.0f);
+        }
+
     }// class Train
 }

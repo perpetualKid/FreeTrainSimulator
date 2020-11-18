@@ -401,7 +401,7 @@ namespace Orts.Simulation.Signalling
                 // if both references are null, check for existing references along route
                 else if (startSectionDLReference < 0 && endSectionDLReference < 0)
                 {
-                    if (CheckNoOverlapDeadlockPaths(partPath, sourceSignals))
+                    if (CheckNoOverlapDeadlockPaths(partPath))
                     {
                         newDeadlockInfo = new DeadlockInfo(sourceSignals);
                         sourceSignals.DeadlockReference.Add(startSectionIndex, newDeadlockInfo.deadlockIndex);
@@ -606,7 +606,7 @@ namespace Orts.Simulation.Signalling
         /// check if path has no conflict with overlapping deadlock paths
         /// returns false if there is an overlap
         /// </summary>
-        private static bool CheckNoOverlapDeadlockPaths(TrackCircuitPartialPathRoute path, SignalEnvironment signalRef)
+        private static bool CheckNoOverlapDeadlockPaths(TrackCircuitPartialPathRoute path)
         {
             foreach (TrackCircuitRouteElement element in path)
             {
@@ -1109,10 +1109,7 @@ namespace Orts.Simulation.Signalling
                         (int PathIndex, _) = AddPath(partPath, sectionIndex);
                         DeadlockPathInfo thisPathInfo = AvailablePathList[PathIndex];
 
-                        Dictionary<int, float> pathEndAndLengthInfo = partPath.GetUsefullLength(0.0f, -1, -1);
-                        KeyValuePair<int, float> pathEndAndLengthValue = pathEndAndLengthInfo.ElementAt(0);
-                        thisPathInfo.UsefulLength = pathEndAndLengthValue.Value;
-                        thisPathInfo.LastUsefulSectionIndex = pathEndAndLengthValue.Key;
+                        (thisPathInfo.LastUsefulSectionIndex, thisPathInfo.UsefulLength) = partPath.GetUsefullLength(0.0f, -1, -1);
                         thisPathInfo.EndSectionIndex = subpath[matchingPath.PathIndex].TrackCircuitSection.Index;
                         thisPathInfo.Name = string.Empty;  // path has no name
 
