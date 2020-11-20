@@ -17,11 +17,13 @@
 
 // This file is the responsibility of the 3D & Environment Team. 
 
-using Orts.Simulation.RollingStocks;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+
+using Orts.Simulation;
+using Orts.Simulation.RollingStocks;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -933,9 +935,9 @@ namespace Orts.ActivityRunner.Viewer3D
                 OpenAL.alGetSourcei(SoundSourceID, OpenAL.AL_SOURCE_STATE, out state);
                 if (state != OpenAL.AL_PLAYING)
                 {
-                    if (StoppedAt > Program.Simulator.ClockTime)
-                        StoppedAt = Program.Simulator.GameTime;
-                    else if (StoppedAt < Program.Simulator.GameTime - 0.2)
+                    if (StoppedAt > Simulator.Instance.ClockTime)
+                        StoppedAt = Simulator.Instance.GameTime;
+                    else if (StoppedAt < Simulator.Instance.GameTime - 0.2)
                     {
                         StoppedAt = double.MaxValue;
                         HardDeactivate();

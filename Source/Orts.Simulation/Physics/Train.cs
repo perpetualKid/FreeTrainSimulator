@@ -479,7 +479,7 @@ namespace Orts.Simulation.Physics
             Number = TotalNumber;
             TotalNumber++;
             SignalObjectItems = new List<SignalItemInfo>();
-            signalRef = simulator.Signals;
+            signalRef = simulator.SignalEnvironment;
             Name = "";
 
             routedForward = new TrainRouted(this, 0);
@@ -515,7 +515,7 @@ namespace Orts.Simulation.Physics
             Name = String.Concat(String.Copy(orgTrain.Name), TotalNumber.ToString());
             TotalNumber++;
             SignalObjectItems = new List<SignalItemInfo>();
-            signalRef = simulator.Signals;
+            signalRef = simulator.SignalEnvironment;
 
             AuxActionsContain = new AuxActionsContainer(this);
             if (orgTrain.TrafficService != null)
@@ -640,7 +640,7 @@ namespace Orts.Simulation.Physics
 
 
             SignalObjectItems = new List<SignalItemInfo>();
-            signalRef = simulator.Signals;
+            signalRef = simulator.SignalEnvironment;
 
             TrainType = (TrainType)inf.ReadInt32();
             IsTilting = inf.ReadBoolean();
@@ -15783,7 +15783,7 @@ namespace Orts.Simulation.Physics
                     thisPathNode = nextPathNode;
                 }
 
-                if (!orgSignals.Simulator.TimetableMode)
+                if (!Simulator.Instance.TimetableMode)
                 {
                     // insert reversals when they are in last section
                     while (reversal > 0)
@@ -16743,7 +16743,7 @@ namespace Orts.Simulation.Physics
                         (deadlockPathInfo.LastUsefulSectionIndex, deadlockPathInfo.UsefulLength) = mainPathPart.GetUsefullLength(0.0f, -1, -1);
 
                         // only allow as public path if not in timetable mode
-                        if (orgSignals.Simulator.TimetableMode)
+                        if (Simulator.Instance.TimetableMode)
                         {
                             deadlockPathInfo.AllowedTrains.Add(thisDeadlock.GetTrainAndSubpathIndex(trainNumber, sublistRef));
                         }
@@ -16754,7 +16754,7 @@ namespace Orts.Simulation.Physics
 
                         // if name is main insert inverse path also as MAIN to ensure reverse path is available
 
-                        if (String.Compare(deadlockPathInfo.Name, "MAIN") == 0 && !orgSignals.Simulator.TimetableMode)
+                        if (String.Compare(deadlockPathInfo.Name, "MAIN") == 0 && !Simulator.Instance.TimetableMode)
                         {
                             TrackCircuitPartialPathRoute inverseMainPath = mainPathPart.ReversePath();
                             (int PathIndex, bool Exists) inverseIndex = thisDeadlock.AddPath(inverseMainPath, endSectionIndex, "MAIN", string.Empty);
@@ -17759,7 +17759,7 @@ namespace Orts.Simulation.Physics
                     firstIndex = firstCommonSection;
 
                     int endLastIndex = (prevReversalIndex > 0 && prevReversalIndex < lastCommonSection &&
-                        orgSignals.Simulator.TimetableMode) ? prevReversalIndex : 0;
+                        Simulator.Instance.TimetableMode) ? prevReversalIndex : 0;
 
                     while (lastIndex >= endLastIndex && firstIndex <= (firstRoute.Count - 1) && lastRoute[lastIndex].TrackCircuitSection.Index == firstRoute[firstIndex].TrackCircuitSection.Index)
                     {
@@ -17780,7 +17780,7 @@ namespace Orts.Simulation.Physics
 
                     Valid = LastDivergeIndex >= 0; // it is a reversal
                     validDivPoint = true;
-                    if (orgSignals.Simulator.TimetableMode)
+                    if (Simulator.Instance.TimetableMode)
                         validDivPoint = LastDivergeIndex > 0 && FirstDivergeIndex < (firstRoute.Count - 1); // valid reversal point
                     if (lastRoute.Count == 1 && FirstDivergeIndex < (firstRoute.Count - 1)) validDivPoint = true; // valid reversal point in first and only section
                 }
@@ -17801,7 +17801,7 @@ namespace Orts.Simulation.Physics
                     bool signalFound = false;
                     int startSection = 0;
 
-                    if (!orgSignals.Simulator.TimetableMode)
+                    if (!Simulator.Instance.TimetableMode)
                     // In activity mode test starts only after reverse point.
                     {
                         for (int iSection = 0; iSection < firstRoute.Count; iSection++)

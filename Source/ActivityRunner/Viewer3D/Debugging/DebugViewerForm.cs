@@ -132,16 +132,11 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         /// </summary>
         /// <param name="simulator"></param>
         /// /// <param name="viewer"></param>
-        public DispatchViewer(Simulator simulator, Viewer viewer)
+        public DispatchViewer(Viewer viewer)
         {
             InitializeComponent();
 
-            if (simulator == null)
-            {
-                throw new ArgumentNullException("simulator", "Simulator object cannot be null.");
-            }
-
-            this.simulator = simulator;
+            simulator = Simulator.Instance;
             this.Viewer = viewer;
 
             nodes = simulator.TDB.TrackDB.TrackNodes;
@@ -172,7 +167,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
             InitData();
             InitImage();
-            chkShowAvatars.Checked = Program.Simulator.Settings.ShowAvatar;
+            chkShowAvatars.Checked = simulator.Settings.ShowAvatar;
             if (!MultiPlayer.MPManager.IsMultiPlayer())//single player mode, make those unnecessary removed
             {
                 msgAll.Visible = false; msgSelected.Visible = false; composeMSG.Visible = false; MSG.Visible = false; messages.Visible = false;
@@ -226,8 +221,8 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 		  if (Viewer.DebugViewerEnabled == false) { this.Visible = false; firstShow = true; return; }
 		  else this.Visible = true;
 
-		 if (Program.Simulator.GameTime - lastUpdateTime < 1) return;
-		 lastUpdateTime = Program.Simulator.GameTime;
+		 if (simulator.GameTime - lastUpdateTime < 1) return;
+		 lastUpdateTime = simulator.GameTime;
 
             GenerateView();
 	  }
@@ -325,9 +320,9 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                 {
                     SignalItem si = item as SignalItem;
 
-                    if (si.SignalObject >= 0 && si.SignalObject < simulator.Signals.Signals.Count)
+                    if (si.SignalObject >= 0 && si.SignalObject < simulator.SignalEnvironment.Signals.Count)
                     {
-                        Signal s = simulator.Signals.Signals[si.SignalObject];
+                        Signal s = simulator.SignalEnvironment.Signals[si.SignalObject];
                         if (s != null && s.IsSignal && s.SignalNormal()) signals.Add(new SignalWidget(si, s));
                     }
                 }
@@ -377,7 +372,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 		  bool FindDefault = false;
 		  try
 		  {
-			  if (Program.Simulator.Settings.ShowAvatar == false) throw new Exception();
+			  if (simulator.Settings.ShowAvatar == false) throw new Exception();
 			  FindDefault = true;
 			  var request = WebRequest.Create(url);
 			  using (var response = request.GetResponse())
@@ -447,7 +442,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 		  //add myself
 		  if (!avatarList.ContainsKey(username))
 		  {
-			  AddAvatar(username, Program.Simulator.Settings.AvatarURL);
+			  AddAvatar(username, simulator.Settings.AvatarURL);
 		  }
 
 		  foreach (var p in player) {
@@ -470,7 +465,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 		  imageList1.Images.Clear();
 		  AvatarView.Items.Clear();
 		  var i = 0;
-		  if (!Program.Simulator.Settings.ShowAvatar)
+		  if (!simulator.Settings.ShowAvatar)
 		  {
 			  this.AvatarView.View = View.List;
 			  foreach (var pair in avatarList)
@@ -598,8 +593,10 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 			  WorldPosition pos;
 			  //see who should I look at:
 			  //if the player is selected in the avatar list, show the player, otherwise, show the one with the lowest index
-			  if (Program.Simulator.PlayerLocomotive != null) pos = Program.Simulator.PlayerLocomotive.WorldPosition;
-			  else pos = Program.Simulator.Trains[0].Cars[0].WorldPosition;
+			  if (simulator.PlayerLocomotive != null) 
+                    pos = simulator.PlayerLocomotive.WorldPosition;
+			  else 
+                    pos = simulator.Trains[0].Cars[0].WorldPosition;
 			  bool hasSelectedTrain = false;
 			  if (AvatarView.SelectedIndices.Count > 0 && !AvatarView.SelectedIndices.Contains(0))
 			  {
@@ -801,9 +798,9 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 						var train = MultiPlayer.MPManager.OnlineTrains.findTrain(name);
 						if (train != null) { selectedTrainList.Remove(train); selectedTrainList.Add(train); redTrain--; }
 						//if selected include myself, will show it as blue
-						if (MultiPlayer.MPManager.GetUserName() == name && Program.Simulator.PlayerLocomotive != null)
+						if (MultiPlayer.MPManager.GetUserName() == name && simulator.PlayerLocomotive != null)
 						{
-							selectedTrainList.Remove(Program.Simulator.PlayerLocomotive.Train); selectedTrainList.Add(Program.Simulator.PlayerLocomotive.Train);
+							selectedTrainList.Remove(simulator.PlayerLocomotive.Train); selectedTrainList.Add(simulator.PlayerLocomotive.Train);
 							redTrain--;
 						}
 
@@ -1060,7 +1057,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 		{
 			if (DrawPath != true) return;
 			bool ok = false;
-			if (train == Program.Simulator.PlayerLocomotive.Train) ok = true;
+			if (train == simulator.PlayerLocomotive.Train) ok = true;
 			if (MultiPlayer.MPManager.IsMultiPlayer())
 			{
 				if (MultiPlayer.MPManager.OnlineTrains.findTrain(train)) ok = true;
@@ -1615,7 +1612,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 		  PickedTrain = null;  float tX, tY;
 		  closest = 100f;
 
-		  foreach (var t in Program.Simulator.Trains)
+		  foreach (var t in simulator.Trains)
 		  {
 			  firstCar = null;
 			  if (t.LeadLocomotive != null)
@@ -1694,7 +1691,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
 	  private void chkShowAvatars_CheckedChanged(object sender, EventArgs e)
 	  {
-		  Program.Simulator.Settings.ShowAvatar = chkShowAvatars.Checked;
+		  simulator.Settings.ShowAvatar = chkShowAvatars.Checked;
 		  AvatarView.Items.Clear();
 		  if (avatarList != null) avatarList.Clear();
 		  if (chkShowAvatars.Checked) AvatarView.Font = new Font(FontFamily.GenericSansSerif, 12);
@@ -1909,8 +1906,8 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 		  var name = AvatarView.SelectedItems[0].Text.Split(' ')[0].Trim();
 		  if (name == MultiPlayer.MPManager.GetUserName())
 		  {
-			  if (Program.Simulator.PlayerLocomotive != null) PickedTrain = Program.Simulator.PlayerLocomotive.Train;
-			  else if (Program.Simulator.Trains.Count > 0) PickedTrain = Program.Simulator.Trains[0];
+			  if (simulator.PlayerLocomotive != null) PickedTrain = simulator.PlayerLocomotive.Train;
+			  else if (simulator.Trains.Count > 0) PickedTrain = simulator.Trains[0];
 		  }
 		  else PickedTrain = MultiPlayer.MPManager.OnlineTrains.findTrain(name);
 
@@ -1994,7 +1991,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 			  //aider selects and throws the switch, but need to confirm by the dispatcher
 			  MultiPlayer.MPManager.Notify((new MultiPlayer.MSGSwitch(MultiPlayer.MPManager.GetUserName(),
 				  nextSwitchTrack.UiD.Location.TileX, nextSwitchTrack.UiD.Location.TileZ, nextSwitchTrack.UiD.WorldId, Selected, true)).ToString());
-			  Program.Simulator.Confirmer.Information(Viewer.Catalog.GetString("Switching Request Sent to the Server"));
+			  simulator.Confirmer.Information(Viewer.Catalog.GetString("Switching Request Sent to the Server"));
 
 		  }
 		  //server throws the switch immediately
@@ -2003,11 +2000,11 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 			  switch (type)
 			  {
 				  case 0:
-                      Program.Simulator.Signals.RequestSetSwitch(sw, (int)switchPickedItem.main);
+                      simulator.SignalEnvironment.RequestSetSwitch(sw, (int)switchPickedItem.main);
 					  //sw.SelectedRoute = (int)switchPickedItem.main;
 					  break;
 				  case 1:
-                      Program.Simulator.Signals.RequestSetSwitch(sw, 1 - (int)switchPickedItem.main);
+                      simulator.SignalEnvironment.RequestSetSwitch(sw, 1 - (int)switchPickedItem.main);
                       //sw.SelectedRoute = 1 - (int)switchPickedItem.main;
 					  break;
 			  }
@@ -2149,7 +2146,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             Location = VectorFromLocation(item.Location);
             try
             {
-                var node = Program.Simulator.TDB.TrackDB.TrackNodes[signal.TrackNode];
+                var node = Simulator.Instance.TDB.TrackDB.TrackNodes[signal.TrackNode];
                 Vector2 v2;
                 if (node is TrackVectorNode trackVectorNode) 
                 { 
@@ -2195,7 +2192,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         public SwitchWidget(TrackJunctionNode item)
         {
             Item = item;
-            var TS = Program.Simulator.TSectionDat.TrackShapes[item.ShapeIndex];  // TSECTION.DAT tells us which is the main route
+            var TS = Simulator.Instance.TSectionDat.TrackShapes[item.ShapeIndex];  // TSECTION.DAT tells us which is the main route
 
             if (TS != null) { main = TS.MainRoute; }
             else main = 0;
@@ -2291,7 +2288,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 		   if (Section == null) return;
            //MySection = Section;
 		   uint k = Section.SectionIndex;
-		   TrackSection ts = Program.Simulator.TSectionDat.TrackSections.Get(k);
+		   TrackSection ts = Simulator.Instance.TSectionDat.TrackSections.Get(k);
 		   if (ts != null)
 		   {
 			   if (ts.Curved)

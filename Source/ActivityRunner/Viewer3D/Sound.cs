@@ -2259,9 +2259,9 @@ namespace Orts.ActivityRunner.Viewer3D
                 iFile = Viewer.Random.Next(Files.Length);
             }
 
-            string[] pathArray = {  Path.Combine(Program.Simulator.RoutePath, "SOUND"),
+            string[] pathArray = {  Path.Combine(Simulator.Instance.RoutePath, "SOUND"),
                                     ORTSStream.SoundSource.SMSFolder,
-                                    Path.Combine(Program.Simulator.BasePath, "SOUND") };
+                                    Path.Combine(Simulator.Instance.BasePath, "SOUND") };
             return FolderStructure.FindFileFromFolders(pathArray, Files[iFile]) ?? string.Empty;
         }
     }
@@ -2631,28 +2631,28 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public void Update()
         {
-            if (Program.Simulator.ActivityRun == null || Program.Simulator.ActivityRun.triggeredEventWrapper == null || 
-                (Program.Simulator.ActivityRun.triggeredEventWrapper.ParsedObject.SoundFile == null && (Program.Simulator.ActivityRun.triggeredEventWrapper.ParsedObject.Outcomes == null
-                || Program.Simulator.ActivityRun.triggeredEventWrapper.ParsedObject.Outcomes.ActivitySound == null))) 
+            if (Simulator.Instance.ActivityRun == null || Simulator.Instance.ActivityRun.triggeredEventWrapper == null || 
+                (Simulator.Instance.ActivityRun.triggeredEventWrapper.ParsedObject.SoundFile == null && (Simulator.Instance.ActivityRun.triggeredEventWrapper.ParsedObject.Outcomes == null
+                || Simulator.Instance.ActivityRun.triggeredEventWrapper.ParsedObject.Outcomes.ActivitySound == null))) 
                 return;
-            var localEventID = Program.Simulator.ActivityRun.triggeredEventWrapper.ParsedObject.ID;
+            var localEventID = Simulator.Instance.ActivityRun.triggeredEventWrapper.ParsedObject.ID;
             string ORTSActSoundFile;
             OrtsActivitySoundFileType ORTSActSoundFileType;
             ActivitySound activitySound = null;
-            if (Program.Simulator.ActivityRun.triggeredEventWrapper.ParsedObject.Outcomes == null
-                || Program.Simulator.ActivityRun.triggeredEventWrapper.ParsedObject.Outcomes.ActivitySound == null)
+            if (Simulator.Instance.ActivityRun.triggeredEventWrapper.ParsedObject.Outcomes == null
+                || Simulator.Instance.ActivityRun.triggeredEventWrapper.ParsedObject.Outcomes.ActivitySound == null)
             {
-                ORTSActSoundFile = Program.Simulator.ActivityRun.triggeredEventWrapper.ParsedObject.SoundFile;
-                ORTSActSoundFileType = Program.Simulator.ActivityRun.triggeredEventWrapper.ParsedObject.SoundFileType;
+                ORTSActSoundFile = Simulator.Instance.ActivityRun.triggeredEventWrapper.ParsedObject.SoundFile;
+                ORTSActSoundFileType = Simulator.Instance.ActivityRun.triggeredEventWrapper.ParsedObject.SoundFileType;
             }
             else
             {
-                activitySound = Program.Simulator.ActivityRun.triggeredEventWrapper.ParsedObject.Outcomes.ActivitySound;
+                activitySound = Simulator.Instance.ActivityRun.triggeredEventWrapper.ParsedObject.Outcomes.ActivitySound;
                 ORTSActSoundFile = activitySound.SoundFile;
                 ORTSActSoundFileType = activitySound.SoundFileType;
             }
-            var train = Program.Simulator.ActivityRun.triggeredEventWrapper.Train;
-            Program.Simulator.ActivityRun.triggeredEventWrapper = null;
+            var train = Simulator.Instance.ActivityRun.triggeredEventWrapper.Train;
+            Simulator.Instance.ActivityRun.triggeredEventWrapper = null;
             var extension = Path.GetExtension(ORTSActSoundFile);
             SoundSource ActivitySounds;
             switch (extension)

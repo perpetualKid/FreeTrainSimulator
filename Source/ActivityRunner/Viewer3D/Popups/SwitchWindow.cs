@@ -159,7 +159,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         {
             image.Source = new Rectangle(0, 0, SwitchImageSize, SwitchImageSize / 2);
             image.Source.Y = (int)(4.25 * SwitchImageSize);
-            bool flipped = Program.Simulator.PlayerLocomotive.Flipped ^ Program.Simulator.PlayerLocomotive.GetCabFlipped();
+            bool flipped = Simulator.Instance.PlayerLocomotive.Flipped ^ Simulator.Instance.PlayerLocomotive.GetCabFlipped();
             image.Source.X = (front ^ !flipped) ? 0 : 3 * SwitchImageSize;
         }
 

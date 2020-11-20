@@ -442,7 +442,7 @@ namespace Orts.Simulation.Track
                 return (true);
             }
 
-            if (!signals.Simulator.TimetableMode && train.Train.TrainType == TrainType.AiNotStarted &&
+            if (!Simulator.Instance.TimetableMode && train.Train.TrainType == TrainType.AiNotStarted &&
                 CircuitState.TrainReserved != null && CircuitState.TrainReserved.Train != train.Train)
             {
                 ClearSectionsOfTrainBehind(CircuitState.TrainReserved, this);
@@ -1504,8 +1504,8 @@ namespace Orts.Simulation.Track
                             // this can happen in pre-run mode due to large interval
                             if (thisTrain != null && thisTrainDistanceM < distanceTrainAheadM && thisTrainOffset < offset)
                             {
-                                if ((!signals.Simulator.TimetableMode && thisTrainOffset >= (offset - nextTrain.Train.Length)) ||
-                                    (signals.Simulator.TimetableMode && thisTrainOffset >= (offset - thisTrain.Length)))
+                                if ((!Simulator.Instance.TimetableMode && thisTrainOffset >= (offset - nextTrain.Train.Length)) ||
+                                    (Simulator.Instance.TimetableMode && thisTrainOffset >= (offset - thisTrain.Length)))
                                 {
                                     distanceTrainAheadM = offset;
                                     trainFound = nextTrain.Train;

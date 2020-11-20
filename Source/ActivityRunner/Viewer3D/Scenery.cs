@@ -50,6 +50,7 @@ using Orts.Common.Position;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
+using Orts.Simulation;
 
 using System;
 using System.Collections.Generic;
@@ -81,12 +82,12 @@ namespace Orts.ActivityRunner.Viewer3D
         public void Load()
         {
             var cancellation = Viewer.LoaderProcess.CancellationToken;
-            Viewer.DontLoadNightTextures = (Program.Simulator.Settings.ConditionalLoadOfDayOrNightTextures &&
-            ((Viewer.MaterialManager.sunDirection.Y > 0.05f && Program.Simulator.ClockTime % 86400 < 43200) ||
-            (Viewer.MaterialManager.sunDirection.Y > 0.15f && Program.Simulator.ClockTime % 86400 >= 43200))) ? true : false;
-            Viewer.DontLoadDayTextures = (Program.Simulator.Settings.ConditionalLoadOfDayOrNightTextures &&
-            ((Viewer.MaterialManager.sunDirection.Y < -0.05f && Program.Simulator.ClockTime % 86400 >= 43200) ||
-            (Viewer.MaterialManager.sunDirection.Y < -0.15f && Program.Simulator.ClockTime % 86400 < 43200))) ? true : false;
+            Viewer.DontLoadNightTextures = (Simulator.Instance.Settings.ConditionalLoadOfDayOrNightTextures &&
+            ((Viewer.MaterialManager.sunDirection.Y > 0.05f && Simulator.Instance.ClockTime % 86400 < 43200) ||
+            (Viewer.MaterialManager.sunDirection.Y > 0.15f && Simulator.Instance.ClockTime % 86400 >= 43200))) ? true : false;
+            Viewer.DontLoadDayTextures = (Simulator.Instance.Settings.ConditionalLoadOfDayOrNightTextures &&
+            ((Viewer.MaterialManager.sunDirection.Y < -0.05f && Simulator.Instance.ClockTime % 86400 >= 43200) ||
+            (Viewer.MaterialManager.sunDirection.Y < -0.15f && Simulator.Instance.ClockTime % 86400 < 43200))) ? true : false;
             if (TileX != VisibleTileX || TileZ != VisibleTileZ)
             {
                 TileX = VisibleTileX;
@@ -117,7 +118,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 Viewer.tryLoadingNightTextures = true; // when Tiles loaded change you can try
                 Viewer.tryLoadingDayTextures = true; // when Tiles loaded change you can try
             }
-            else if (Viewer.NightTexturesNotLoaded && Program.Simulator.ClockTime % 86400 >= 43200 && Viewer.tryLoadingNightTextures)
+            else if (Viewer.NightTexturesNotLoaded && Simulator.Instance.ClockTime % 86400 >= 43200 && Viewer.tryLoadingNightTextures)
             {
                 var sunHeight = Viewer.MaterialManager.sunDirection.Y;
                 if (sunHeight < 0.10f && sunHeight > 0.01)
@@ -137,7 +138,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 else if (sunHeight <= 0.01)
                     Viewer.NightTexturesNotLoaded = false; // too late to try, we must give up and we don't load the night textures
             }
-            else if (Viewer.DayTexturesNotLoaded && Program.Simulator.ClockTime % 86400 < 43200 && Viewer.tryLoadingDayTextures)
+            else if (Viewer.DayTexturesNotLoaded && Simulator.Instance.ClockTime % 86400 < 43200 && Viewer.tryLoadingDayTextures)
             {
                 var sunHeight = Viewer.MaterialManager.sunDirection.Y;
                 if (sunHeight > -0.10f && sunHeight < -0.01)
@@ -295,9 +296,9 @@ namespace Orts.ActivityRunner.Viewer3D
 
             // to avoid loop checking for every object this pre-check is performed
             bool containsMovingTable = false;
-            if (Program.Simulator.MovingTables != null)
+            if (Simulator.Instance.MovingTables != null)
             {
-                foreach (var movingTable in Program.Simulator.MovingTables)
+                foreach (var movingTable in Simulator.Instance.MovingTables)
                     if (movingTable.WFile == WFileName)
                     {
                         containsMovingTable = true;
@@ -381,7 +382,7 @@ namespace Orts.ActivityRunner.Viewer3D
                             else
                             {
                                 var found = false;
-                                foreach (var movingTable in Program.Simulator.MovingTables)
+                                foreach (var movingTable in Simulator.Instance.MovingTables)
                                 {
                                     if (worldObject.UiD == movingTable.UID && WFileName == movingTable.WFile)
                                     {
@@ -456,10 +457,10 @@ namespace Orts.ActivityRunner.Viewer3D
                     }
                     else if (worldObject.GetType() == typeof(CarSpawnerObject))
                     {
-                        if (Program.Simulator.CarSpawnerLists != null && ((CarSpawnerObject)worldObject).ListName != null)
+                        if (Simulator.Instance.CarSpawnerLists != null && ((CarSpawnerObject)worldObject).ListName != null)
                         {
-                            ((CarSpawnerObject)worldObject).CarSpawnerListIndex = Program.Simulator.CarSpawnerLists.FindIndex(x => x.ListName == ((CarSpawnerObject)worldObject).ListName);
-                            if (((CarSpawnerObject)worldObject).CarSpawnerListIndex < 0 || ((CarSpawnerObject)worldObject).CarSpawnerListIndex > Program.Simulator.CarSpawnerLists.Count-1) ((CarSpawnerObject)worldObject).CarSpawnerListIndex = 0;
+                            ((CarSpawnerObject)worldObject).CarSpawnerListIndex = Simulator.Instance.CarSpawnerLists.FindIndex(x => x.ListName == ((CarSpawnerObject)worldObject).ListName);
+                            if (((CarSpawnerObject)worldObject).CarSpawnerListIndex < 0 || ((CarSpawnerObject)worldObject).CarSpawnerListIndex > Simulator.Instance.CarSpawnerLists.Count-1) ((CarSpawnerObject)worldObject).CarSpawnerListIndex = 0;
                         }
                         else ((CarSpawnerObject)worldObject).CarSpawnerListIndex = 0;
                         carSpawners.Add(new RoadCarSpawner(viewer, worldMatrix, (CarSpawnerObject)worldObject));
@@ -563,8 +564,8 @@ namespace Orts.ActivityRunner.Viewer3D
         //Method to check a shape name is listed in "openrails\clocks.dat"
         public ClockType OrClockType(string shape)
         {
-            if (null != Program.Simulator.Clocks)
-                foreach (var clock in Program.Simulator.Clocks)
+            if (null != Simulator.Instance.Clocks)
+                foreach (var clock in Simulator.Instance.Clocks)
                 {
                     if (Path.GetFileName(clock.Name).Equals(shape, StringComparison.OrdinalIgnoreCase))
                         return clock.ClockType;

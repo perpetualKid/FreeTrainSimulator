@@ -77,8 +77,8 @@ namespace Orts.ActivityRunner.Viewer3D
             Weather = Viewer.Simulator.Weather;
 
             var pathArray = new[] {
-                Path.Combine(Program.Simulator.RoutePath, "SOUND"),
-                Path.Combine(Program.Simulator.BasePath, "SOUND")
+                Path.Combine(Simulator.Instance.RoutePath, "SOUND"),
+                Path.Combine(Simulator.Instance.BasePath, "SOUND")
             };
 
             ClearSound = new List<SoundSourceBase>() {
@@ -514,8 +514,8 @@ namespace Orts.ActivityRunner.Viewer3D
                     MPManager.Notify((new MSGWeather(-1, Weather.OvercastFactor, Weather.PricipitationIntensityPPSPM2, Weather.FogDistance)).ToString());
                 }
             }
-            if (Program.Simulator != null && Program.Simulator.ActivityRun != null && Program.Simulator.ActivityRun.triggeredEventWrapper != null &&
-               (Program.Simulator.ActivityRun.triggeredEventWrapper.ParsedObject.WeatherChange != null || Program.Simulator.ActivityRun.triggeredEventWrapper.ParsedObject.Outcomes.WeatherChange != null))
+            if (Simulator.Instance != null && Simulator.Instance.ActivityRun != null && Simulator.Instance.ActivityRun.triggeredEventWrapper != null &&
+               (Simulator.Instance.ActivityRun.triggeredEventWrapper.ParsedObject.WeatherChange != null || Simulator.Instance.ActivityRun.triggeredEventWrapper.ParsedObject.Outcomes.WeatherChange != null))
                 // Start a weather change sequence in activity mode
             {
                 // if not yet weather changes, create the instance
@@ -523,10 +523,10 @@ namespace Orts.ActivityRunner.Viewer3D
                 {
                     dynamicWeather = new DynamicWeather();
                 }
-                var weatherChange = Program.Simulator.ActivityRun.triggeredEventWrapper.ParsedObject.Outcomes.WeatherChange != null ?
-                    Program.Simulator.ActivityRun.triggeredEventWrapper.ParsedObject.Outcomes.WeatherChange : Program.Simulator.ActivityRun.triggeredEventWrapper.ParsedObject.WeatherChange;
+                var weatherChange = Simulator.Instance.ActivityRun.triggeredEventWrapper.ParsedObject.Outcomes.WeatherChange != null ?
+                    Simulator.Instance.ActivityRun.triggeredEventWrapper.ParsedObject.Outcomes.WeatherChange : Simulator.Instance.ActivityRun.triggeredEventWrapper.ParsedObject.WeatherChange;
                 dynamicWeather.WeatherChange_Init(weatherChange, this);
-                Program.Simulator.ActivityRun.triggeredEventWrapper = null;               
+                Simulator.Instance.ActivityRun.triggeredEventWrapper = null;               
             }
             if (weatherChangeOn)
                 // manage the weather change sequence

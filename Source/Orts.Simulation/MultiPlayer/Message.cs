@@ -890,7 +890,7 @@ namespace Orts.MultiPlayer
                     return;
                 }
                 TrackJunctionNode trj = MPManager.Simulator.TDB.TrackDB.GetJunctionNode(TileX, TileZ, WorldID);
-                bool state = MPManager.Simulator.Signals.RequestSetSwitch(trj, this.Selection);
+                bool state = MPManager.Simulator.SignalEnvironment.RequestSetSwitch(trj, this.Selection);
                 if (state == false)
                     MPManager.BroadCast((new MSGMessage(user, "Warning", "Train on the switch, cannot throw")).ToString());
                 else MPManager.BroadCast(this.ToString()); //server will tell others
@@ -918,7 +918,7 @@ namespace Orts.MultiPlayer
             // update linked signals
             foreach (int thisSignalIndex in switchSection.LinkedSignals ?? Enumerable.Empty<int>())
             {
-                Signal thisSignal = MPManager.Simulator.Signals.Signals[thisSignalIndex];
+                Signal thisSignal = MPManager.Simulator.SignalEnvironment.Signals[thisSignalIndex];
                 thisSignal.Update();
             }
         }
@@ -1034,7 +1034,7 @@ namespace Orts.MultiPlayer
             // update linked signals
             foreach (int thisSignalIndex in switchSection.LinkedSignals ?? Enumerable.Empty<int>())
             {
-                Signal thisSignal = MPManager.Simulator.Signals.Signals[thisSignalIndex];
+                Signal thisSignal = MPManager.Simulator.SignalEnvironment.Signals[thisSignalIndex];
                 thisSignal.Update();
             }
         }
@@ -1162,7 +1162,7 @@ namespace Orts.MultiPlayer
             // update linked signals
             foreach (int thisSignalIndex in switchSection.LinkedSignals ?? Enumerable.Empty<int>())
             {
-                Signal thisSignal = MPManager.Simulator.Signals.Signals[thisSignalIndex];
+                Signal thisSignal = MPManager.Simulator.SignalEnvironment.Signals[thisSignalIndex];
                 thisSignal.Update();
             }
         }
@@ -3018,9 +3018,9 @@ namespace Orts.MultiPlayer
             if (signals == null)
             {
                 signals = new SortedList<long, SignalHead>();
-                if (MPManager.Simulator.Signals.Signals != null)
+                if (MPManager.Simulator.SignalEnvironment.Signals != null)
                 {
-                    foreach (var s in MPManager.Simulator.Signals.Signals)
+                    foreach (var s in MPManager.Simulator.SignalEnvironment.Signals)
                     {
                         if (s != null && (s.IsSignal || s.IsSpeedSignal) && s.SignalHeads != null)
                             foreach (var h in s.SignalHeads)
@@ -3068,9 +3068,9 @@ namespace Orts.MultiPlayer
                 signals = new SortedList<long, SignalHead>();
                 try
                 {
-                    if (MPManager.Simulator.Signals.Signals != null)
+                    if (MPManager.Simulator.SignalEnvironment.Signals != null)
                     {
-                        foreach (var s in MPManager.Simulator.Signals.Signals)
+                        foreach (var s in MPManager.Simulator.SignalEnvironment.Signals)
                         {
                             if (s != null && (s.IsSignal || s.IsSpeedSignal) && s.SignalHeads != null)
                                 foreach (var h in s.SignalHeads)
@@ -3496,7 +3496,7 @@ namespace Orts.MultiPlayer
         {
             if (MPManager.Server != null && !MPManager.Instance().aiderList.Contains(sender)) return; //client will ignore it, also if not an aider, will ignore it
 
-            var signal = MPManager.Simulator.Signals.Signals[index];
+            var signal = MPManager.Simulator.SignalEnvironment.Signals[index];
             switch (pick)
             {
                 case 0:

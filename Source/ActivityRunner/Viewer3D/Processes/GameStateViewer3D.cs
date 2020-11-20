@@ -21,6 +21,7 @@ using System;
 
 using Orts.ActivityRunner.Viewer3D.Debugging;
 using Orts.MultiPlayer;
+using Orts.Simulation;
 
 namespace Orts.ActivityRunner.Viewer3D.Processes
 {
@@ -60,7 +61,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
 
                 if (MPManager.IsMultiPlayer() || Game.Settings.ViewDispatcher)
                 {
-                    Program.DebugViewer = new DispatchViewer(Viewer.Simulator, Viewer);
+                    Program.DebugViewer = new DispatchViewer(Viewer);
                     Program.DebugViewer.Hide();
                     Viewer.DebugViewerEnabled = false;
                 }
@@ -135,7 +136,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 Viewer.Terminate();
                 MPManager.Server?.Stop();
                 MPManager.Client?.Stop();
-                Program.Simulator?.Stop();
+                Simulator.Instance.Stop();
                 Program.DebugViewer?.Dispose();
                 Program.SoundDebugForm?.Dispose();
             }

@@ -66,6 +66,9 @@ namespace Orts.Simulation
     public class Simulator
     {
         public static ICatalog Catalog { get; private set; }
+
+        public static Simulator Instance { get; private set; }
+
         public static Random Random { get; private set; }
         public static double Resolution = 1000000; // resolution for calculation of random value with a pseudo-gaussian distribution
         public const float MaxStoppedMpS = 0.1f; // stopped is taken to be a speed less than this 
@@ -85,7 +88,7 @@ namespace Orts.Simulation
         // while Simulator.Update() is running, objects are adjusted to this target time 
         // after Simulator.Update() is complete, the simulator state matches this time
 
-        public readonly UserSettings Settings;
+        public UserSettings Settings { get; }
 
         public FolderStructure.ContentFolder.RouteFolder RouteFolder { get; }
 
@@ -117,7 +120,7 @@ namespace Orts.Simulation
 
         public static int DbfEvalOverSpeedCoupling;//Debrief eval
 
-        public SignalEnvironment Signals;
+        public SignalEnvironment SignalEnvironment { get; private set; }
         public AI AI;
         public SeasonType Season;
         public WeatherType WeatherType;
@@ -261,7 +264,9 @@ namespace Orts.Simulation
 
         public Simulator(UserSettings settings, string activityPath, bool useOpenRailsDirectory)
         {
+            Instance = this;
             Catalog = new Catalog("Orts.Simulation", RuntimeInfo.LocalesFolder);
+
             Random = new Random();
 
             MPManager.Simulator = this;
@@ -436,7 +441,7 @@ namespace Orts.Simulation
 
         public void Start(CancellationToken cancellation)
         {
-            Signals = new SignalEnvironment(this, SIGCFG, Settings.UseLocationPassingPaths, System.Threading.CancellationToken.None);
+            SignalEnvironment = new SignalEnvironment(this, SIGCFG, Settings.UseLocationPassingPaths, System.Threading.CancellationToken.None);
             TurntableFile = new TurntableFile(RoutePath + @"\openrails\turntables.dat", RoutePath + @"\shapes\", MovingTables, this);
             LevelCrossings = new LevelCrossings(this);
             FuelManager = new FuelManager(this);
@@ -470,7 +475,7 @@ namespace Orts.Simulation
         public void StartTimetable(CancellationToken cancellation)
         {
             TimetableMode = true;
-            Signals = new SignalEnvironment(this, SIGCFG, true, System.Threading.CancellationToken.None);
+            SignalEnvironment = new SignalEnvironment(this, SIGCFG, true, System.Threading.CancellationToken.None);
             TurntableFile = new TurntableFile(RoutePath + @"\openrails\turntables.dat", RoutePath + @"\shapes\", MovingTables, this);
             LevelCrossings = new LevelCrossings(this);
             FuelManager = new FuelManager(this);
@@ -511,7 +516,7 @@ namespace Orts.Simulation
             InitialTileZ = initialTileZ;
             PoolHolder = new Poolholder(inf, this);
 
-            Signals = new SignalEnvironment(this, SIGCFG, inf, System.Threading.CancellationToken.None);
+            SignalEnvironment = new SignalEnvironment(this, SIGCFG, inf, System.Threading.CancellationToken.None);
 
             RestoreTrains(inf);
             LevelCrossings = new LevelCrossings(this);
@@ -529,8 +534,8 @@ namespace Orts.Simulation
             }
 
             ActivityRun = Orts.Simulation.Activity.Restore(inf, this, ActivityRun);
-            Signals.RestoreTrains(Trains);  // restore links to trains
-            Signals.Update(true);           // update all signals once to set proper stat
+            SignalEnvironment.RestoreTrains(Trains);  // restore links to trains
+            SignalEnvironment.Update(true);           // update all signals once to set proper stat
             MPManager.Instance().RememberOriginalSwitchState(); // this prepares a string that must then be passed to clients
         }
 
@@ -542,7 +547,7 @@ namespace Orts.Simulation
             outf.Write(TimetableMode);
             outf.Write(UserWeatherFile);
             PoolHolder.Save(outf);
-            Signals.Save(outf);
+            SignalEnvironment.Save(outf);
             SaveTrains(outf);
             // LevelCrossings
             // InterlockingSystem
@@ -728,9 +733,9 @@ namespace Orts.Simulation
                 }
             }
 
-            if (Signals != null)
+            if (SignalEnvironment != null)
             {
-                if (!MPManager.IsMultiPlayer() || MPManager.IsServer()) Signals.Update(false);
+                if (!MPManager.IsMultiPlayer() || MPManager.IsServer()) SignalEnvironment.Update(false);
             }
 
             if (AI != null)
@@ -1170,7 +1175,7 @@ namespace Orts.Simulation
 
             train.CheckFreight();
 
-            train.PresetExplorerPath(aiPath, Signals);
+            train.PresetExplorerPath(aiPath, SignalEnvironment);
             train.ControlMode = TrainControlMode.Explorer;
 
             bool canPlace = true;
@@ -1263,10 +1268,10 @@ namespace Orts.Simulation
                 train.InitializeBrakes();
 
             // process player passing paths as required
-            if (Signals.UseLocationPassingPaths)
+            if (SignalEnvironment.UseLocationPassingPaths)
             {
                 int orgDirection = (train.RearTDBTraveller != null) ? (int)train.RearTDBTraveller.Direction : -2;
-                Physics.Train.TCRoutePath dummyRoute = new Physics.Train.TCRoutePath(train.Path, orgDirection, 0, Signals, -1, Settings);   // SPA: Add settings to get enhanced mode
+                Physics.Train.TCRoutePath dummyRoute = new Physics.Train.TCRoutePath(train.Path, orgDirection, 0, SignalEnvironment, -1, Settings);   // SPA: Add settings to get enhanced mode
             }
 
             if (conFileName.Contains("tilted")) train.IsTilting = true;

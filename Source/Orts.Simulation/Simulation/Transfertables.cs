@@ -56,7 +56,7 @@ namespace Orts.Simulation
 
         public Transfertable(STFReader stf, Simulator simulator): base(stf, simulator)
         {
-            signalRef = Simulator.Signals;
+            signalRef = Simulator.SignalEnvironment;
             string animation;
             Matrix position = Matrix.Identity;
             position.M44 = 100000000; //WorlPosition not yet defined, will be loaded when loading related tile;

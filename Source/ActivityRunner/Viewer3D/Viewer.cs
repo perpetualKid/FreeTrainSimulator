@@ -1019,9 +1019,9 @@ namespace Orts.ActivityRunner.Viewer3D
 
             if (UserInput.IsPressed(UserCommand.CameraVibrate))
             {
-                Program.Simulator.CarVibrating = (Program.Simulator.CarVibrating + 1) % 4;
-                Simulator.Confirmer.Message(ConfirmLevel.Information, Catalog.GetString("Vibrating at level {0}", Program.Simulator.CarVibrating));
-                Settings.CarVibratingLevel = Program.Simulator.CarVibrating;
+                Simulator.Instance.CarVibrating = (Simulator.Instance.CarVibrating + 1) % 4;
+                Simulator.Confirmer.Message(ConfirmLevel.Information, Catalog.GetString("Vibrating at level {0}", Simulator.Instance.CarVibrating));
+                Settings.CarVibratingLevel = Simulator.Instance.CarVibrating;
                 Settings.Save("CarVibratingLevel");
             }
 
@@ -1717,7 +1717,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public void ToggleAnySwitch(int index)
         {
-            Simulator.Signals.RequestSetSwitch(index);
+            Simulator.SignalEnvironment.RequestSetSwitch(index);
         }
         public void ToggleSwitchAhead()
         {

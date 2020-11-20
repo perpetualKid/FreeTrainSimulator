@@ -68,7 +68,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         private static ActionType actionType;
         private static ActivityType activityType;
 
-        private static Simulator Simulator { get { return Program.Simulator; } set { Program.Simulator = value; } }
+        private Simulator simulator;
 
         //for Multiplayer
         private static Server Server { get { return MPManager.Server; } set { MPManager.Server = value; } }
@@ -275,29 +275,29 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             switch (activityType)
             {
                 case ActivityType.TimeTable:
-                    Simulator.StartTimetable(Game.LoaderProcess.CancellationToken);
+                    simulator.StartTimetable(Game.LoaderProcess.CancellationToken);
                     break;
 
                 default:
-                    Simulator.Start(Game.LoaderProcess.CancellationToken);
+                    simulator.Start(Game.LoaderProcess.CancellationToken);
                     break;
             }
 
             if (Client != null)
             {
-                Client.Send((new MSGPlayer(userName, code, Simulator.conFileName, Simulator.patFileName, Simulator.Trains[0], 0, Simulator.Settings.AvatarURL)).ToString());
+                Client.Send((new MSGPlayer(userName, code, simulator.conFileName, simulator.patFileName, simulator.Trains[0], 0, simulator.Settings.AvatarURL)).ToString());
                 // wait 5 seconds to see if you get a reply from server with updated position/consist data, else go on
 
                 System.Threading.Thread.Sleep(5000);
-                if (Simulator.Trains[0].jumpRequested)
+                if (simulator.Trains[0].jumpRequested)
                 {
-                    Simulator.Trains[0].UpdateRemoteTrainPos(0);
+                    simulator.Trains[0].UpdateRemoteTrainPos(0);
                 }
                 if (Game.LoaderProcess.CancellationToken.IsCancellationRequested)
                     return;
             }
 
-            viewer = new Viewer(Simulator, Game);
+            viewer = new Viewer(simulator, Game);
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
             Game.ReplaceState(new GameStateViewer3D(viewer));
@@ -309,6 +309,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         /// </summary>
         public static void Save()
         {
+            Simulator simulator = Simulator.Instance;
             if (MPManager.IsMultiPlayer() && !MPManager.IsServer())
                 return; //no save for multiplayer sessions yet
 
@@ -316,7 +317,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             // that are likely to match the previously chosen route and activity.
             // Append the current date and time, so that each file is unique.
             // This is the "sortable" date format, ISO 8601, but with "." in place of the ":" which are not valid in filenames.
-            string fileStem = $"{(Simulator.Activity != null ? Simulator.ActivityFileName : (!string.IsNullOrEmpty(Simulator.TimetableFileName) ? $"{Simulator.RoutePathName} {Simulator.TimetableFileName}" : Simulator.RoutePathName))} {(MPManager.IsMultiPlayer() && MPManager.IsServer() ? "$Multipl$ " : " ")}{DateTime.Now:yyyy'-'MM'-'dd HH'.'mm'.'ss}";
+            string fileStem = $"{(simulator.Activity != null ? simulator.ActivityFileName : (!string.IsNullOrEmpty(simulator.TimetableFileName) ? $"{simulator.RoutePathName} {simulator.TimetableFileName}" : simulator.RoutePathName))} {(MPManager.IsMultiPlayer() && MPManager.IsServer() ? "$Multipl$ " : " ")}{DateTime.Now:yyyy'-'MM'-'dd HH'.'mm'.'ss}";
 
             using (BinaryWriter outf = new BinaryWriter(new FileStream(Path.Combine(UserSettings.UserDataFolder, fileStem + ".save"), FileMode.Create, FileAccess.Write)))
             {
@@ -326,15 +327,15 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 // Save heading data used in Menu.exe
                 if (MPManager.IsMultiPlayer() && MPManager.IsServer())
                     outf.Write("$Multipl$");
-                outf.Write(Simulator.RouteName);
-                outf.Write(Simulator.PathName);
+                outf.Write(simulator.RouteName);
+                outf.Write(simulator.PathName);
 
-                outf.Write((int)Simulator.GameTime);
+                outf.Write((int)simulator.GameTime);
                 outf.Write(DateTime.Now.ToBinary());
-                outf.Write(Simulator.Trains[0].FrontTDBTraveller.TileX + (Simulator.Trains[0].FrontTDBTraveller.X / 2048));
-                outf.Write(Simulator.Trains[0].FrontTDBTraveller.TileZ + (Simulator.Trains[0].FrontTDBTraveller.Z / 2048));
-                outf.Write(Simulator.InitialTileX);
-                outf.Write(Simulator.InitialTileZ);
+                outf.Write(simulator.Trains[0].FrontTDBTraveller.TileX + (simulator.Trains[0].FrontTDBTraveller.X / 2048));
+                outf.Write(simulator.Trains[0].FrontTDBTraveller.TileZ + (simulator.Trains[0].FrontTDBTraveller.Z / 2048));
+                outf.Write(simulator.InitialTileX);
+                outf.Write(simulator.InitialTileZ);
 
                 // Now save the data used by ActivityRunner.exe
                 outf.Write(data.Length);
@@ -343,8 +344,8 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 outf.Write((int)activityType);
 
                 // The Save command is the only command that doesn't take any action. It just serves as a marker.
-                _ = new SaveCommand(Simulator.Log, fileStem);
-                Simulator.Log.SaveLog(Path.Combine(UserSettings.UserDataFolder, fileStem + ".replay"));
+                _ = new SaveCommand(simulator.Log, fileStem);
+                simulator.Log.SaveLog(Path.Combine(UserSettings.UserDataFolder, fileStem + ".replay"));
 
                 // Copy the logfile to the save folder
                 string logName = Path.Combine(UserSettings.UserDataFolder, fileStem + ".txt");
@@ -356,7 +357,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                     File.Copy(logFileName, logName);
                 }
 
-                Simulator.Save(outf);
+                simulator.Save(outf);
                 viewer.Save(outf, fileStem);
                 // Save multiplayer parameters
                 if (MPManager.IsMultiPlayer() && MPManager.IsServer())
@@ -369,7 +370,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             //Debrief Eval
             if (viewer.Settings.DebriefActivityEval)
             {
-                foreach (string file in Directory.EnumerateFiles(UserSettings.UserDataFolder, Simulator.ActivityFileName + "*.dbfeval"))
+                foreach (string file in Directory.EnumerateFiles(UserSettings.UserDataFolder, simulator.ActivityFileName + "*.dbfeval"))
                     File.Delete(file);//Delete all debrief eval files previously saved, for the same activity.//fileDbfEval
 
                 using (BinaryWriter outf = new BinaryWriter(new FileStream(UserSettings.UserDataFolder + $"\\{fileStem}.dbfeval", FileMode.Create, FileAccess.Write)))
@@ -394,7 +395,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                     outf.Write(Simulator.DbfEvalOverSpeedCoupling);
                     outf.Write(Viewer.DbfEvalAutoPilotTimeS);
                     outf.Write(Viewer.DbfEvalIniAutoPilotTimeS);
-                    outf.Write(Simulator.PlayerLocomotive.DistanceM + Popups.HelpWindow.DbfEvalDistanceTravelled);
+                    outf.Write(simulator.PlayerLocomotive.DistanceM + Popups.HelpWindow.DbfEvalDistanceTravelled);
                 }
             }
         }
@@ -422,13 +423,13 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                     activityType = ActivityType;
                     data = Args;
                     InitSimulator(settings);
-                    Simulator.Restore(inf, PathName, InitialTileX, InitialTileZ, Game.LoaderProcess.CancellationToken);
-                    viewer = new Viewer(Simulator, Game);
+                    simulator.Restore(inf, PathName, InitialTileX, InitialTileZ, Game.LoaderProcess.CancellationToken);
+                    viewer = new Viewer(simulator, Game);
                     if (Client != null || Server != null && ActivityType == ActivityType.Activity)
-                        Simulator.GetPathAndConsist();
+                        simulator.GetPathAndConsist();
                     if (Client != null)
                     {
-                        Client.Send((new MSGPlayer(userName, code, Simulator.conFileName, Simulator.patFileName, Simulator.Trains[0], 0, Simulator.Settings.AvatarURL)).ToString());
+                        Client.Send((new MSGPlayer(userName, code, simulator.conFileName, simulator.patFileName, simulator.Trains[0], 0, simulator.Settings.AvatarURL)).ToString());
                     }
                     viewer.Restore(inf);
 
@@ -490,7 +491,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 }
 
                 // Reload the command log
-                Simulator.Log.LoadLog(Path.ChangeExtension(saveFile, "replay"));
+                simulator.Log.LoadLog(Path.ChangeExtension(saveFile, "replay"));
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
                 Game.ReplaceState(new GameStateViewer3D(viewer));
@@ -516,20 +517,20 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 inf.ReadString();    // Build
                 (string PathName, float InitialTileX, float InitialTileZ, string[] _, ActivityType ActivityType) = GetSavedValues(inf);
                 InitSimulator(settings);
-                Simulator.Start(Game.LoaderProcess.CancellationToken);
-                viewer = new Viewer(Simulator, Game);
+                simulator.Start(Game.LoaderProcess.CancellationToken);
+                viewer = new Viewer(simulator, Game);
             }
 
             // Load command log to replay
-            Simulator.ReplayCommandList = new List<ICommand>();
+            simulator.ReplayCommandList = new List<ICommand>();
             string replayFile = Path.ChangeExtension(saveFile, "replay");
-            Simulator.Log.LoadLog(replayFile);
-            foreach (ICommand command in Simulator.Log.CommandList)
+            simulator.Log.LoadLog(replayFile);
+            foreach (ICommand command in simulator.Log.CommandList)
             {
-                Simulator.ReplayCommandList.Add(command);
+                simulator.ReplayCommandList.Add(command);
             }
-            Simulator.Log.CommandList.Clear();
-            CommandLog.ReportReplayCommands(Simulator.ReplayCommandList);
+            simulator.Log.CommandList.Clear();
+            CommandLog.ReportReplayCommands(simulator.ReplayCommandList);
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
             Game.ReplaceState(new GameStateViewer3D(viewer));
@@ -589,8 +590,8 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                     data = Args;
                     InitSimulator(settings);
                 }
-                Simulator.Start(Game.LoaderProcess.CancellationToken);
-                viewer = new Viewer(Simulator, Game);
+                simulator.Start(Game.LoaderProcess.CancellationToken);
+                viewer = new Viewer(simulator, Game);
             }
             else
             {
@@ -603,17 +604,17 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                     data = Args;
                     actionType = ActionType.Resume;
                     InitSimulator(settings);
-                    Simulator.Restore(inf, PathName, InitialTileX, InitialTileZ, Game.LoaderProcess.CancellationToken);
-                    viewer = new Viewer(Simulator, Game);
+                    simulator.Restore(inf, PathName, InitialTileX, InitialTileZ, Game.LoaderProcess.CancellationToken);
+                    viewer = new Viewer(simulator, Game);
                     viewer.Restore(inf);
                 }
             }
 
             // Now Simulator exists, link the log to it in both directions
-            Simulator.Log = log;
-            log.Simulator = Simulator;
-            Simulator.ReplayCommandList = replayCommandList;
-            CommandLog.ReportReplayCommands(Simulator.ReplayCommandList);
+            simulator.Log = log;
+            log.Simulator = simulator;
+            simulator.ReplayCommandList = replayCommandList;
+            CommandLog.ReportReplayCommands(simulator.ReplayCommandList);
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
             Game.ReplaceState(new GameStateViewer3D(viewer));
@@ -649,8 +650,8 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             {
                 actionType = ActionType.Test;
                 InitSimulator(settings);
-                Simulator.Start(Game.LoaderProcess.CancellationToken);
-                viewer = new Viewer(Simulator, Game);
+                simulator.Start(Game.LoaderProcess.CancellationToken);
+                viewer = new Viewer(simulator, Game);
                 Game.ReplaceState(exitGameState);
 #pragma warning disable CA2000 // Dispose objects before losing scope
                 Game.PushState(new GameStateViewer3D(viewer));
@@ -945,37 +946,37 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             switch (activityType)
             {
                 case ActivityType.Activity:
-                    Simulator = new Simulator(settings, data[0], false);
+                    simulator = new Simulator(settings, data[0], false);
                     if (loadingScreen == null)
                         loadingScreen = new LoadingScreenPrimitive(Game);
-                    Simulator.SetActivity(data[0]);
+                    simulator.SetActivity(data[0]);
                     break;
 
                 case ActivityType.Explorer:
-                    Simulator = new Simulator(settings, data[0], false);
+                    simulator = new Simulator(settings, data[0], false);
                     if (loadingScreen == null)
                         loadingScreen = new LoadingScreenPrimitive(Game);
-                    Simulator.SetExplore(data[0], data[1], startTime, season, weather);
+                    simulator.SetExplore(data[0], data[1], startTime, season, weather);
                     break;
 
                 case ActivityType.ExploreActivity:
-                    Simulator = new Simulator(settings, data[0], false);
+                    simulator = new Simulator(settings, data[0], false);
                     if (loadingScreen == null)
                         loadingScreen = new LoadingScreenPrimitive(Game);
-                    Simulator.SetExploreThroughActivity(data[0], data[1], startTime, season, weather);
+                    simulator.SetExploreThroughActivity(data[0], data[1], startTime, season, weather);
                     break;
 
                 case ActivityType.TimeTable:
-                    Simulator = new Simulator(settings, data[0], true);
+                    simulator = new Simulator(settings, data[0], true);
                     if (loadingScreen == null)
                         loadingScreen = new LoadingScreenPrimitive(Game);
                     if (actionType != ActionType.Start) // no specific action for start, handled in start_timetable
                     {
                         // for resume and replay : set timetable file and selected train info
-                        Simulator.TimetableFileName = Path.GetFileNameWithoutExtension(data[0]);
-                        Simulator.PathName = data[1];
+                        simulator.TimetableFileName = Path.GetFileNameWithoutExtension(data[0]);
+                        simulator.PathName = data[1];
                     }
-                    Simulator.SetTimetableOptions(data[0], data[1], season, weather, data.Length > 5 ? data[5] : string.Empty);
+                    simulator.SetTimetableOptions(data[0], data[1], season, weather, data.Length > 5 ? data[5] : string.Empty);
 
                     break;
             }

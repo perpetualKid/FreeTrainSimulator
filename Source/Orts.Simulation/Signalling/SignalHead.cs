@@ -205,18 +205,18 @@ namespace Orts.Simulation.Signalling
 
         public SignalAspectState SignalLRById(int signalId, int signalType)
         {
-            if (signalId >= 0 && signalId < Signal.SignalEnvironment.Signals.Count)
+            if (signalId >= 0 && signalId < Simulator.Instance.SignalEnvironment.Signals.Count)
             {
-                return Signal.SignalEnvironment.Signals[signalId].SignalLRLimited(signalType);
+                return Simulator.Instance.SignalEnvironment.Signals[signalId].SignalLRLimited(signalType);
             }
             return SignalAspectState.Stop;
         }
 
         public int SignalEnabledById(int signalId)
         {
-            if (signalId >= 0 && signalId < Signal.SignalEnvironment.Signals.Count)
+            if (signalId >= 0 && signalId < Simulator.Instance.SignalEnvironment.Signals.Count)
             {
-                return Signal.SignalEnvironment.Signals[signalId].Enabled ? 1 : 0;
+                return Simulator.Instance.SignalEnvironment.Signals[signalId].Enabled ? 1 : 0;
             }
             return 0;
         }
@@ -238,9 +238,9 @@ namespace Orts.Simulation.Signalling
 
         public int LocalVariableBySignalId(int signalId, int index)
         {
-            if (signalId >= 0 && signalId < Signal.SignalEnvironment.Signals.Count)
+            if (signalId >= 0 && signalId < Simulator.Instance.SignalEnvironment.Signals.Count)
             {
-                return Signal.SignalEnvironment.Signals[signalId].SignalLocalVariable(index);
+                return Simulator.Instance.SignalEnvironment.Signals[signalId].SignalLocalVariable(index);
             }
             return 0;
         }
@@ -257,9 +257,9 @@ namespace Orts.Simulation.Signalling
 
         public int SignalHasNormalSubtypeById(int signalId, int requestedSubtype)
         {
-            if (signalId >= 0 && signalId < Signal.SignalEnvironment.Signals.Count)
+            if (signalId >= 0 && signalId < Simulator.Instance.SignalEnvironment.Signals.Count)
             {
-                return Signal.SignalEnvironment.Signals[signalId].SignalHasNormalSubtype(requestedSubtype);
+                return Simulator.Instance.SignalEnvironment.Signals[signalId].SignalHasNormalSubtype(requestedSubtype);
             }
             return 0;
         }
@@ -300,7 +300,7 @@ namespace Orts.Simulation.Signalling
 
             while (thisSignal.Signalfound[signalType] >= 0)
             {
-                thisSignal = Signal.SignalEnvironment.Signals[thisSignal.Signalfound[signalType]];
+                thisSignal = Simulator.Instance.SignalEnvironment.Signals[thisSignal.Signalfound[signalType]];
 
                 SignalAspectState thisState = thisSignal.MRSignalOnRoute(signalType);
 
@@ -363,7 +363,7 @@ namespace Orts.Simulation.Signalling
 
             while (thisSignal.Signalfound[signalType] >= 0)
             {
-                thisSignal = Signal.SignalEnvironment.Signals[thisSignal.Signalfound[signalType]];
+                thisSignal = Simulator.Instance.SignalEnvironment.Signals[thisSignal.Signalfound[signalType]];
 
                 SignalAspectState thisState = thisSignal.SignalLRLimited(signalType);
 
@@ -453,10 +453,10 @@ namespace Orts.Simulation.Signalling
             //added by JTang
             else if (MPManager.IsMultiPlayer())
             {
-                TrackNode node = Signal.SignalEnvironment.Simulator.TDB.TrackDB.TrackNodes[MainSignal.TrackNode];
+                TrackNode node = Simulator.Instance.TDB.TrackDB.TrackNodes[MainSignal.TrackNode];
                 if (!(node is TrackJunctionNode) && node.TrackPins != null && (int)MainSignal.TrackCircuitDirection < node.TrackPins.Length)
                 {
-                    node = Signal.SignalEnvironment.Simulator.TDB.TrackDB.TrackNodes[node.TrackPins[(int)MainSignal.TrackCircuitDirection].Link];
+                    node = Simulator.Instance.TDB.TrackDB.TrackNodes[node.TrackPins[(int)MainSignal.TrackCircuitDirection].Link];
                     if (!(node is TrackJunctionNode junctionNode)) return 0;
                     for (int pin = junctionNode.InPins; pin < junctionNode.InPins + junctionNode.OutPins; pin++)
                     {

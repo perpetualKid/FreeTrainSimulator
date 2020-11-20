@@ -53,7 +53,7 @@ namespace Orts.Simulation.Signalling
         // local data
         //================================================================================================//
 
-        internal readonly Simulator Simulator;
+        private Simulator simulator;
 
         /// Gets an array of all the SignalObjects.
         public List<Signal> Signals { get; private set; }
@@ -85,7 +85,7 @@ namespace Orts.Simulation.Signalling
 
         public SignalEnvironment(Simulator simulator, SignalConfigurationFile sigcfg, bool locationPassingPaths, CancellationToken token)
         {
-            Simulator = simulator ?? throw new ArgumentNullException(nameof(simulator));
+            this.simulator = simulator ?? throw new ArgumentNullException(nameof(simulator));
             UseLocationPassingPaths = locationPassingPaths;
             Dictionary<int, int> platformList = new Dictionary<int, int>();
 
@@ -107,7 +107,7 @@ namespace Orts.Simulation.Signalling
             BuildSignalWorld(simulator.RouteFolder.WorldFolder, sigcfg, signalWorldList, signalWorldLookup, platformSidesList, token);
 
             // build list of signals in TDB file
-            BuildSignalList(trackDB.TrackItems, trackDB.TrackNodes, tsectiondat, Simulator.TDB, platformList, signalWorldList);
+            BuildSignalList(trackDB.TrackItems, trackDB.TrackNodes, tsectiondat, this.simulator.TDB, platformList, signalWorldList);
 
             if (Signals.Count > 0)
             {
@@ -1366,7 +1366,7 @@ namespace Orts.Simulation.Signalling
                     else if (speedItem.IsMilePost)
                     {
                         Milepost milepost = milepostList[speedItem.SignalObject];
-                        TrackItem milepostTrItem = Simulator.TDB.TrackDB.TrackItems[milepost.TrackItemId];
+                        TrackItem milepostTrItem = simulator.TDB.TrackDB.TrackItems[milepost.TrackItemId];
                         float milepostDistance = traveller.DistanceTo(milepostTrItem.Location);
 
                         TrackCircuitMilepost trackCircuitItem = new TrackCircuitMilepost(milepost, milepostDistance, circuit.Length - milepostDistance);
@@ -2908,7 +2908,7 @@ namespace Orts.Simulation.Signalling
                         if (section.EndSignals[TrackDirection.Ahead] != null)
                         {
                             // end signal is always valid in timetable mode
-                            if (Simulator.TimetableMode || distToSignal <= 150)
+                            if (simulator.TimetableMode || distToSignal <= 150)
                             {
                                 platformDetails.EndSignals[TrackDirection.Ahead] = section.EndSignals[TrackDirection.Ahead].Index;
                                 platformDetails.DistanceToSignals[TrackDirection.Ahead] = distToSignal;
@@ -2960,7 +2960,7 @@ namespace Orts.Simulation.Signalling
 
                         if (section.EndSignals[TrackDirection.Reverse] != null)
                         {
-                            if (Simulator.TimetableMode || distToSignal <= 150)
+                            if (simulator.TimetableMode || distToSignal <= 150)
                             {
                                 platformDetails.EndSignals[TrackDirection.Reverse] = section.EndSignals[TrackDirection.Reverse].Index;
                                 platformDetails.DistanceToSignals[TrackDirection.Reverse] = distToSignal;
@@ -2998,11 +2998,11 @@ namespace Orts.Simulation.Signalling
                 }
             }
 
-            if (Simulator.Activity != null && Simulator.Activity.Activity.PlatformWaitingPassengers != null)
+            if (simulator.Activity != null && simulator.Activity.Activity.PlatformWaitingPassengers != null)
             {
                 // Override .tdb NumPassengersWaiting info with .act NumPassengersWaiting info if any available
                 int overriddenPlatformDetailsIndex;
-                foreach (PlatformData platformData in Simulator.Activity.Activity.PlatformWaitingPassengers)
+                foreach (PlatformData platformData in simulator.Activity.Activity.PlatformWaitingPassengers)
                 {
                     overriddenPlatformDetailsIndex = PlatformDetailsList.FindIndex(platformDetails => (platformDetails.PlatformReference[Location.NearEnd] == platformData.ID) || (platformDetails.PlatformReference[Location.FarEnd] == platformData.ID));
                     if (overriddenPlatformDetailsIndex >= 0)
@@ -3686,7 +3686,7 @@ namespace Orts.Simulation.Signalling
                 switchSection.JunctionLastRoute = switchSection.JunctionSetManual;
                 switchSet = true;
 
-                if (!Simulator.TimetableMode)
+                if (!simulator.TimetableMode)
                     switchSection.CircuitState.Forced = true;
 
                 foreach (int i in switchSection.LinkedSignals ?? Enumerable.Empty<int>())
@@ -3694,7 +3694,7 @@ namespace Orts.Simulation.Signalling
                     Signals[i].Update();
                 }
 
-                foreach (Train train in Simulator.Trains)
+                foreach (Train train in simulator.Trains)
                 {
                     if (train.TrainType != TrainType.Static)
                     {

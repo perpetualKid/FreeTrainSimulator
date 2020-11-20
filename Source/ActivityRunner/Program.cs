@@ -32,7 +32,6 @@ namespace Orts.ActivityRunner
 {
     internal static class Program
     {
-        public static Simulator Simulator;
         public static Viewer Viewer;
         public static DispatchViewer DebugViewer;
         public static SoundDebugForm SoundDebugForm;

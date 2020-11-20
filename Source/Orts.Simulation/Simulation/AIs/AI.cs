@@ -350,7 +350,7 @@ namespace Orts.Simulation.AIs
                     if (fullsec % 3600 == 0) Trace.Write(" " + (fullsec / 3600).ToString("00") + ":00 ");
 
                     AIUpdate((float)(runTime - clockTime), PreUpdate);
-                    Simulator.Signals.Update(true);
+                    Simulator.SignalEnvironment.Update(true);
                     clockTime = runTime;
                     if (cancellation.IsCancellationRequested) return; // ping watchdog process
                 }
@@ -383,7 +383,7 @@ namespace Orts.Simulation.AIs
 
                     if (activeTrains)
                     {
-                        Simulator.Signals.Update(true);
+                        Simulator.SignalEnvironment.Update(true);
                     }
 
                     clockTime = runTime;
@@ -543,7 +543,7 @@ namespace Orts.Simulation.AIs
                     while (!playerTrainStarted)
                     {
                         endPreRun = AITTUpdate((float)(runTime - clockTime), PreUpdate, ref dummy);
-                        Simulator.Signals.Update(true);
+                        Simulator.SignalEnvironment.Update(true);
                         clockTime = runTime;
                         runTime += deltaTime;
                         if (cancellation.IsCancellationRequested) // ping loader watchdog

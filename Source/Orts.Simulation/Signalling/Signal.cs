@@ -48,7 +48,7 @@ namespace Orts.Simulation.Signalling
         private static TrackNode[] trackNodes;
         private static TrackItem[] trackItems;
 
-        public static SignalEnvironment SignalEnvironment { get; private set; }   //back reference to the signal environment
+        private static SignalEnvironment signalEnvironment; //back reference to the signal environment
 
         internal SignalWorldInfo WorldObject { get; set; }                // Signal World Object information
 
@@ -113,7 +113,7 @@ namespace Orts.Simulation.Signalling
 
         internal static void Initialize(SignalEnvironment signals, TrackNode[] trackNodes, TrackItem[] trackItems)
         {
-            SignalEnvironment = signals;               // reference to overlaying Signal class
+            signalEnvironment = signals;               // reference to overlaying Signal class
             Signal.trackNodes = trackNodes;
             Signal.trackItems = trackItems;
         }
@@ -476,7 +476,7 @@ namespace Orts.Simulation.Signalling
                 }
 
                 // other signals
-                for (int i = (int)SignalFunction.Normal.Next(); i < SignalEnvironment.OrtsSignalTypeCount; i++)
+                for (int i = (int)SignalFunction.Normal.Next(); i < signalEnvironment.OrtsSignalTypeCount; i++)
                 {
                     if (defaultNextSignal[i] < 0)
                     {
@@ -497,7 +497,7 @@ namespace Orts.Simulation.Signalling
             }
 
             // copy default as valid items
-            for (int i = 0; i < SignalEnvironment.OrtsSignalTypeCount; i++)
+            for (int i = 0; i < signalEnvironment.OrtsSignalTypeCount; i++)
             {
                 Signalfound[i] = defaultNextSignal[i];
             }
@@ -554,7 +554,7 @@ namespace Orts.Simulation.Signalling
                 Signalfound[signalType] = nextSignal;
             }
 
-            return nextSignal >= 0 ? SignalEnvironment.Signals[nextSignal].SignalMRLimited(signalType) : SignalAspectState.Stop;
+            return nextSignal >= 0 ? signalEnvironment.Signals[nextSignal].SignalMRLimited(signalType) : SignalAspectState.Stop;
         }
 
         //================================================================================================//
@@ -569,7 +569,7 @@ namespace Orts.Simulation.Signalling
                 nextSignal = SONextSignal(signalType);
                 Signalfound[signalType] = nextSignal;
             }
-            return nextSignal >= 0 ? SignalEnvironment.Signals[nextSignal].SignalLRLimited(signalType) : SignalAspectState.Stop;
+            return nextSignal >= 0 ? signalEnvironment.Signals[nextSignal].SignalLRLimited(signalType) : SignalAspectState.Stop;
         }
 
         //================================================================================================//
@@ -599,7 +599,7 @@ namespace Orts.Simulation.Signalling
                 {
                     foundsignal++;
 
-                    nextSignalObject = SignalEnvironment.Signals[nextSignal];
+                    nextSignalObject = signalEnvironment.Signals[nextSignal];
                     foundAspect = nextSignalObject.SignalLRLimited(signalType);
 
                     // reached required signal or state is stop : return
@@ -625,7 +625,7 @@ namespace Orts.Simulation.Signalling
         public SignalAspectState OppositeSignalMR(int signalType)
         {
             int signalFound = SONextSignalOpposite(signalType);
-            return signalFound >= 0 ? SignalEnvironment.Signals[signalFound].SignalMRLimited(signalType) : SignalAspectState.Stop;
+            return signalFound >= 0 ? signalEnvironment.Signals[signalFound].SignalMRLimited(signalType) : SignalAspectState.Stop;
         }//opp_sig_mr
 
         //================================================================================================//
@@ -636,7 +636,7 @@ namespace Orts.Simulation.Signalling
         public SignalAspectState OppositeSignalLR(int signalType)
         {
             int signalFound = SONextSignalOpposite(signalType);
-            return signalFound >= 0 ? SignalEnvironment.Signals[signalFound].SignalLRLimited(signalType) : SignalAspectState.Stop;
+            return signalFound >= 0 ? signalEnvironment.Signals[signalFound].SignalLRLimited(signalType) : SignalAspectState.Stop;
         }//opp_sig_lr
 
         //================================================================================================//
@@ -776,7 +776,7 @@ namespace Orts.Simulation.Signalling
             {
                 if (signalType != (int)SignalFunction.Normal)
                 {
-                    Signal foundSignalObject = SignalEnvironment.Signals[nextSignal];
+                    Signal foundSignalObject = signalEnvironment.Signals[nextSignal];
                     if (SignalNormal())
                     {
                         foundSignalObject.requestingNormalSignal = Index;
@@ -822,7 +822,7 @@ namespace Orts.Simulation.Signalling
                 if (nextSignal >= 0)
                 {
                     foundsignal++;
-                    nextSignalObject = SignalEnvironment.Signals[nextSignal];
+                    nextSignalObject = signalEnvironment.Signals[nextSignal];
                 }
             }
 
@@ -970,7 +970,7 @@ namespace Orts.Simulation.Signalling
             }
             if (nextSignal >= 0)
             {
-                Signal nextSignalObject = SignalEnvironment.Signals[nextSignal];
+                Signal nextSignalObject = signalEnvironment.Signals[nextSignal];
                 if (nextSignalObject.localStorage.ContainsKey(index))
                 {
                     return nextSignalObject.localStorage[index];
@@ -994,7 +994,7 @@ namespace Orts.Simulation.Signalling
             }
             if (nextSignal >= 0)
             {
-                Signal nextSignalObject = SignalEnvironment.Signals[nextSignal];
+                Signal nextSignalObject = signalEnvironment.Signals[nextSignal];
                 return (nextSignalObject.SignalHasNormalSubtype(subtype));
             }
             return 0;
@@ -1217,7 +1217,7 @@ namespace Orts.Simulation.Signalling
             bool sectionSet = false;
 
             // maximise fntype to length of available type list
-            int reqtype = Math.Min(signalType, SignalEnvironment.OrtsSignalTypeCount);
+            int reqtype = Math.Min(signalType, signalEnvironment.OrtsSignalTypeCount);
 
             // if searching for SPEED signal : check if enabled and use train to find next speedpost
             if (reqtype == (int)SignalFunction.Speed)
@@ -1309,7 +1309,7 @@ namespace Orts.Simulation.Signalling
             // if signal not found, use route from requesting normal signal
             if (signalFound < 0 && requestingNormalSignal >= 0)
             {
-                Signal refSignal = SignalEnvironment.Signals[requestingNormalSignal];
+                Signal refSignal = signalEnvironment.Signals[requestingNormalSignal];
                 if (refSignal.SignalRoute != null && refSignal.SignalRoute.Count > 0)
                 {
                     int nextSectionIndex = refSignal.SignalRoute.GetRouteIndex(TrackCircuitIndex, 0);
@@ -1348,7 +1348,7 @@ namespace Orts.Simulation.Signalling
             }
 
             // find next speed object
-            TrackCircuitSignalItem foundItem = SignalEnvironment.FindNextObjectInRoute(EnabledTrain.Train.ValidRoute[0], routeListIndex, TrackCircuitOffset, -1, SignalFunction.Speed, EnabledTrain);
+            TrackCircuitSignalItem foundItem = signalEnvironment.FindNextObjectInRoute(EnabledTrain.Train.ValidRoute[0], routeListIndex, TrackCircuitOffset, -1, SignalFunction.Speed, EnabledTrain);
             if (foundItem.SignalState == SignalItemFindState.Item)
             {
                 return foundItem.Signal.Index;
@@ -1583,7 +1583,7 @@ namespace Orts.Simulation.Signalling
             internalBlockState = InternalBlockstate.Blocked;
 
             // reset next signal information to default
-            for (int i = 0; i < SignalEnvironment.OrtsSignalTypeCount; i++)
+            for (int i = 0; i < signalEnvironment.OrtsSignalTypeCount; i++)
             {
                 Signalfound[i] = defaultNextSignal[i];
             }
@@ -1858,7 +1858,7 @@ namespace Orts.Simulation.Signalling
                     int nextSignalIndex = Signalfound[(int)SignalFunction.Normal];
                     if (nextSignalIndex >= 0)
                     {
-                        Signal nextSignal = SignalEnvironment.Signals[nextSignalIndex];
+                        Signal nextSignal = signalEnvironment.Signals[nextSignalIndex];
                         newRoute = nextSignal.RequestClearSignalExplorer(newRoute, train, true, reqNumClearAhead);
                     }
                 }
@@ -1893,9 +1893,9 @@ namespace Orts.Simulation.Signalling
                 Train.TrainRouted otherTrain = EnabledTrain;
                 ResetSignal(true);
                 int routeListIndex = train.Train.PresentPosition[train.TrainRouteDirectionIndex].RouteListIndex;
-                SignalEnvironment.BreakDownRouteList(train.Train.ValidRoute[train.TrainRouteDirectionIndex], routeListIndex, train);
+                signalEnvironment.BreakDownRouteList(train.Train.ValidRoute[train.TrainRouteDirectionIndex], routeListIndex, train);
                 routeListIndex = otherTrain.Train.PresentPosition[otherTrain.TrainRouteDirectionIndex].RouteListIndex;
-                SignalEnvironment.BreakDownRouteList(otherTrain.Train.ValidRoute[otherTrain.TrainRouteDirectionIndex], routeListIndex, otherTrain);
+                signalEnvironment.BreakDownRouteList(otherTrain.Train.ValidRoute[otherTrain.TrainRouteDirectionIndex], routeListIndex, otherTrain);
 
                 train.Train.SwitchToNodeControl(train.Train.PresentPosition[train.TrainRouteDirectionIndex].TCSectionIndex);
                 if (otherTrain.Train.ControlMode != TrainControlMode.Explorer && !otherTrain.Train.IsPathless)
@@ -1908,7 +1908,7 @@ namespace Orts.Simulation.Signalling
             }
             if (EnabledTrain != train) // new allocation - reset next signals
             {
-                for (int i = 0; i < SignalEnvironment.OrtsSignalTypeCount; i++)
+                for (int i = 0; i < signalEnvironment.OrtsSignalTypeCount; i++)
                 {
                     Signalfound[i] = defaultNextSignal[i];
                 }
@@ -2173,19 +2173,19 @@ namespace Orts.Simulation.Signalling
             {
                 OverridePermission = SignalPermission.Granted;
                 if (sound)
-                    SignalEnvironment.Simulator.SoundNotify = TrainEvent.PermissionGranted;
+                    Simulator.Instance.SoundNotify = TrainEvent.PermissionGranted;
             }
             else
             {
                 if (EnabledTrain != null && EnabledTrain.Train.ControlMode == TrainControlMode.Manual &&
                     internalBlockState <= InternalBlockstate.OccupiedSameDirection && OverridePermission == SignalPermission.Requested)
                 {
-                    SignalEnvironment.Simulator.SoundNotify = TrainEvent.PermissionGranted;
+                    Simulator.Instance.SoundNotify = TrainEvent.PermissionGranted;
                 }
                 else if (OverridePermission == SignalPermission.Requested)
                 {
                     if (sound)
-                        SignalEnvironment.Simulator.SoundNotify = TrainEvent.PermissionDenied;
+                        Simulator.Instance.SoundNotify = TrainEvent.PermissionDenied;
                 }
 
                 if (EnabledTrain != null && EnabledTrain.Train.ControlMode == TrainControlMode.Manual && signalState == SignalAspectState.Stop &&
@@ -2342,7 +2342,7 @@ namespace Orts.Simulation.Signalling
             Signal nextSignal = null;
             if (Signalfound[(int)SignalFunction.Normal] >= 0)
             {
-                nextSignal = SignalEnvironment.Signals[Signalfound[(int)SignalFunction.Normal]];
+                nextSignal = signalEnvironment.Signals[Signalfound[(int)SignalFunction.Normal]];
             }
 
             TrackCircuitPartialPathRoute RoutePart;
@@ -2420,7 +2420,7 @@ namespace Orts.Simulation.Signalling
 
                     while (furtherSignalIndex >= 0)
                     {
-                        Signal furtherSignal = SignalEnvironment.Signals[furtherSignalIndex];
+                        Signal furtherSignal = signalEnvironment.Signals[furtherSignalIndex];
                         if (furtherSignal.SignalLR(SignalFunction.Normal) >= SignalAspectState.Approach_1 && !furtherSignal.Enabled && furtherSignal.FixedRoute)
                         {
                             firstSectionIndex = furtherSignal.fixedRoute.First().TrackCircuitSection.Index;
@@ -2557,7 +2557,7 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         private bool GetBlockState(TrackCircuitPartialPathRoute route, Train.TrainRouted train, bool aiPermissionRequest)
         {
-            return SignalEnvironment.UseLocationPassingPaths ? GetLocationBasedBlockState(route, train, aiPermissionRequest) : GetPathBasedBlockState(route, train);
+            return signalEnvironment.UseLocationPassingPaths ? GetLocationBasedBlockState(route, train, aiPermissionRequest) : GetPathBasedBlockState(route, train);
         }
 
         //================================================================================================//
@@ -2775,7 +2775,7 @@ namespace Orts.Simulation.Signalling
                 {
                     if (train.Train.ControlMode == TrainControlMode.AutoNode || train.Train.ControlMode == TrainControlMode.AutoSignal)
                     {
-                        DeadlockInfo sectionDeadlockInfo = SignalEnvironment.DeadlockInfoList[section.DeadlockReference];
+                        DeadlockInfo sectionDeadlockInfo = signalEnvironment.DeadlockInfoList[section.DeadlockReference];
 
                         // if deadlock area and no path yet selected - exit loop; else follow assigned path
                         if (sectionDeadlockInfo.HasTrainAndSubpathIndex(train.Train.Number, train.Train.TCRoute.activeSubpath) &&
@@ -2804,7 +2804,7 @@ namespace Orts.Simulation.Signalling
                 {
 
                     TrackCircuitSection lastSection = lastElement.TrackCircuitSection;
-                    DeadlockInfo sectionDeadlockInfo = SignalEnvironment.DeadlockInfoList[lastSection.DeadlockReference];
+                    DeadlockInfo sectionDeadlockInfo = signalEnvironment.DeadlockInfoList[lastSection.DeadlockReference];
                     List<int> availableRoutes = sectionDeadlockInfo.CheckDeadlockPathAvailability(lastSection, train.Train);
 
                     if (availableRoutes.Count >= 1)
@@ -2958,9 +2958,9 @@ namespace Orts.Simulation.Signalling
 
             if (propagateReset)
             {
-                while (thisSignalIndex >= 0 && SignalEnvironment.Signals[thisSignalIndex].EnabledTrain == thisTrain)
+                while (thisSignalIndex >= 0 && signalEnvironment.Signals[thisSignalIndex].EnabledTrain == thisTrain)
                 {
-                    thisSignal = SignalEnvironment.Signals[thisSignalIndex];
+                    thisSignal = signalEnvironment.Signals[thisSignalIndex];
                     passedSignals.Add(thisSignal);
                     thisSignalIndex = thisSignal.Signalfound[(int)SignalFunction.Normal];
                 }
@@ -3016,7 +3016,7 @@ namespace Orts.Simulation.Signalling
 
             junctionsPassed.Clear();
 
-            for (int i = 0; i < SignalEnvironment.OrtsSignalTypeCount; i++)
+            for (int i = 0; i < signalEnvironment.OrtsSignalTypeCount; i++)
             {
                 Signalfound[i] = defaultNextSignal[i];
             }
@@ -3265,7 +3265,7 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         public void ActivateTimingTrigger()
         {
-            timingTriggerValue = SignalEnvironment.Simulator.GameTime;
+            timingTriggerValue = Simulator.Instance.GameTime;
         }
 
         //================================================================================================//
@@ -3274,7 +3274,7 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         public bool CheckTimingTrigger(int requiredTiming)
         {
-            int foundDelta = (int)(SignalEnvironment.Simulator.GameTime - timingTriggerValue);
+            int foundDelta = (int)(Simulator.Instance.GameTime - timingTriggerValue);
             return foundDelta > requiredTiming;
         }
 
@@ -3325,7 +3325,7 @@ namespace Orts.Simulation.Signalling
             }
 
             // next signal is not valid
-            if (nextSignalId < 0 || nextSignalId >= SignalEnvironment.Signals.Count || !SignalEnvironment.Signals[nextSignalId].SignalNormal())
+            if (nextSignalId < 0 || nextSignalId >= signalEnvironment.Signals.Count || !signalEnvironment.Signals[nextSignalId].SignalNormal())
             {
                 return false;
             }
@@ -3338,7 +3338,7 @@ namespace Orts.Simulation.Signalling
             }
 
             // check if section beyond or ahead of next signal is within trains path ahead of present position of train
-            int reqSection = requiredPosition == 1 ? SignalEnvironment.Signals[nextSignalId].TrackCircuitNextIndex : SignalEnvironment.Signals[nextSignalId].TrackCircuitIndex;
+            int reqSection = requiredPosition == 1 ? signalEnvironment.Signals[nextSignalId].TrackCircuitNextIndex : signalEnvironment.Signals[nextSignalId].TrackCircuitIndex;
 
             int sectionIndex = reqTrain.ValidRoute[EnabledTrain.TrainRouteDirectionIndex].GetRouteIndex(reqSection, reqTrain.PresentPosition[EnabledTrain.TrainRouteDirectionIndex].RouteListIndex);
             if (sectionIndex > 0)
@@ -3402,9 +3402,9 @@ namespace Orts.Simulation.Signalling
         public SignalBlockState RouteClearedToSignal(int requiredSignalId, bool allowCallOn)
         {
             SignalBlockState routeState = SignalBlockState.Jn_Obstructed;
-            if (EnabledTrain?.Train.ValidRoute[EnabledTrain.TrainRouteDirectionIndex] != null && requiredSignalId >= 0 && requiredSignalId < SignalEnvironment.Signals.Count)
+            if (EnabledTrain?.Train.ValidRoute[EnabledTrain.TrainRouteDirectionIndex] != null && requiredSignalId >= 0 && requiredSignalId < signalEnvironment.Signals.Count)
             {
-                Signal otherSignal = SignalEnvironment.Signals[requiredSignalId];
+                Signal otherSignal = signalEnvironment.Signals[requiredSignalId];
 
                 TrackCircuitPartialPathRoute trainRoute = EnabledTrain.Train.ValidRoute[EnabledTrain.TrainRouteDirectionIndex];
 
@@ -3581,7 +3581,7 @@ namespace Orts.Simulation.Signalling
                 int signalRouteIndex = EnabledTrain.Train.ValidRoute[EnabledTrain.TrainRouteDirectionIndex].GetRouteIndex(TrackCircuitNextIndex, 0);
                 if (signalRouteIndex >= 0)
                 {
-                    SignalEnvironment.BreakDownRouteList(EnabledTrain.Train.ValidRoute[EnabledTrain.TrainRouteDirectionIndex], signalRouteIndex, EnabledTrain);
+                    signalEnvironment.BreakDownRouteList(EnabledTrain.Train.ValidRoute[EnabledTrain.TrainRouteDirectionIndex], signalRouteIndex, EnabledTrain);
                     ResetSignal(true);
                     HoldState = SignalHoldState.ManualLock;
                     returnValue[0] = true;
@@ -3638,7 +3638,7 @@ namespace Orts.Simulation.Signalling
             // process other signals - only set info if not already set
             foreach (TrackDirection direction in EnumExtension.GetValues<TrackDirection>())
             {
-                for (int i = 0; i < SignalEnvironment.OrtsSignalTypeCount; i++)
+                for (int i = 0; i < signalEnvironment.OrtsSignalTypeCount; i++)
                 {
                     foreach (TrackCircuitSignalItem signalItem in section.CircuitItems.TrackCircuitSignals[direction][i])
                     {

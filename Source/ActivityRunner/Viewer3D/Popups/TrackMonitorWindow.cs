@@ -794,9 +794,9 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 var allowedSpeed = thisItem.AllowedSpeedMpS;
                 if (allowedSpeed > 998)
                 {
-                    if (!Program.Simulator.TimetableMode)
+                    if (!Simulator.Instance.TimetableMode)
                     {
-                        allowedSpeed = (float)Program.Simulator.TRK.Route.SpeedLimit;
+                        allowedSpeed = (float)Simulator.Instance.TRK.Route.SpeedLimit;
                     }
                 }
 
@@ -863,7 +863,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 }
 
                 // Only show distance for enhanced MSTS compatibility (this is the only time the position is controlled by the author).
-                if (itemOffset < firstLabelDistance && !firstLabelShown && !Program.Simulator.TimetableMode)
+                if (itemOffset < firstLabelDistance && !firstLabelShown && !Simulator.Instance.TimetableMode)
                 {
                     var labelPoint = new Point(offset.X + distanceTextOffset, offset.Y + newLabelPosition + textOffset[forward ? 0 : 1]);
                     var distanceString = FormatStrings.FormatDistanceDisplay(thisItem.DistanceToTrainM, metric);
@@ -939,7 +939,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 spriteBatch.Draw(TrackMonitorImages, markerPlacement, displayItem, Color.White);
 
                 // Only show distance for enhanced MSTS compatibility (this is the only time the position is controlled by the author).
-                if (itemOffset < firstLabelDistance && !firstLabelShown && !Program.Simulator.TimetableMode)
+                if (itemOffset < firstLabelDistance && !firstLabelShown && !Simulator.Instance.TimetableMode)
                 {
                     var labelPoint = new Point(offset.X + distanceTextOffset, offset.Y + newLabelPosition + textOffset[forward ? 0 : 1]);
                     var distanceString = FormatStrings.FormatDistanceDisplay(thisItem.DistanceToTrainM, metric);

@@ -295,7 +295,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
                 thisPosition.SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
 
-                var signalItemInfo = Owner.Viewer.Simulator.Signals.GetSignalItemInfo(thisPosition, 5000f);
+                var signalItemInfo = Owner.Viewer.Simulator.SignalEnvironment.GetSignalItemInfo(thisPosition, 5000f);
                 //TCSubpathRoute tempRoute = Owner.Viewer.Simulator.Signals.BuildTempRoute(null, thisPosition.TCSectionIndex, thisPosition.TCOffset, (TrackDirection)thisPosition.TCDirection, 5000.0f, true, false, false);
 
                 //SignalItemInfo thisInfo = Owner.Viewer.Simulator.Signals.GetNextObjectInRoute(null, tempRoute, 0,

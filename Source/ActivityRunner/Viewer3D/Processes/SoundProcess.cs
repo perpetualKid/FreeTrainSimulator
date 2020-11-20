@@ -26,6 +26,7 @@ using System.Diagnostics;
 using System.Threading;
 using Orts.Common;
 using Orts.ActivityRunner.Processes;
+using Orts.Simulation;
 
 namespace Orts.ActivityRunner.Viewer3D.Processes
 {
@@ -136,7 +137,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 if (viewer == null)
                     return;
 
-                OpenAL.alListenerf(OpenAL.AL_GAIN, Program.Simulator.Paused ? 0 : (float)Game.Settings.SoundVolumePercent / 100f);
+                OpenAL.alListenerf(OpenAL.AL_GAIN, Simulator.Instance.Paused ? 0 : (float)Game.Settings.SoundVolumePercent / 100f);
 
                 // Update activity sounds
                 if (viewer.Simulator.SoundNotify != TrainEvent.None)

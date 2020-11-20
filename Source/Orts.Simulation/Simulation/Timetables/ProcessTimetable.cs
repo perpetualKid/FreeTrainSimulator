@@ -123,7 +123,7 @@ namespace Orts.Simulation.Timetables
 #endif
 
                 // convert to train info
-                indexcount = ConvertFileContents(fileContents, simulator.Signals, ref trainInfoList, indexcount, filePath);
+                indexcount = ConvertFileContents(fileContents, simulator.SignalEnvironment, ref trainInfoList, indexcount, filePath);
             }
 
             // read and pre-process routes
@@ -846,7 +846,7 @@ namespace Orts.Simulation.Timetables
             playerTrain.RearTDBTraveller = new Traveller(simulator.TSectionDat, simulator.TDB.TrackDB.TrackNodes, usedPath);
 
             // extract train path
-            playerTrain.SetRoutePath(usedPath, simulator.Signals);
+            playerTrain.SetRoutePath(usedPath, simulator.SignalEnvironment);
             playerTrain.EndRouteAtLastSignal();
             playerTrain.ValidRoute[0] = new TrackCircuitPartialPathRoute(playerTrain.TCRoute.TCRouteSubpaths[0]);
         }
@@ -2633,7 +2633,7 @@ namespace Orts.Simulation.Timetables
                     {
                         StopInfo stationInfo = stationStop.Value;
                         int[] platformInfo = actTrain.TCRoute.StationXRef[stationStop.Key];
-                        bool ValidStop = stationInfo.BuildStopInfo(actTrain, platformInfo[2], simulator.Signals);
+                        bool ValidStop = stationInfo.BuildStopInfo(actTrain, platformInfo[2], simulator.SignalEnvironment);
                         if (!ValidStop)
                         {
                             Trace.TraceInformation("Station {0} not found for train {1}:{2} ", stationStop.Key, Name, TTDescription);
