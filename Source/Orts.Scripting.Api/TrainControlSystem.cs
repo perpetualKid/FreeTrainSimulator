@@ -2,12 +2,15 @@ using System;
 using System.IO;
 
 using Orts.Common;
+using Orts.Scripting.Api.Etcs;
 
 namespace Orts.Scripting.Api
 {
     public abstract class TrainControlSystem : TrainScriptBase
     {
         public bool Activated { get; set; }
+
+        public ETCSStatus ETCSStatus;
 
         /// <summary>
         /// True if train control is switched on (the locomotive is the lead locomotive and the train is not autopiloted).
@@ -405,7 +408,7 @@ namespace Orts.Scripting.Api
         /// <summary>
         /// Monitoring status determines the colors speeds displayed with. (E.g. circular speed gauge).
         /// </summary>
-        public Action<MonitoringStatus> SetMonitoringStatus;
+        public Action<Common.MonitoringStatus> SetMonitoringStatus;
         /// <summary>
         /// Set current speed limit of the train, as to be shown on SPEEDLIMIT cabcontrol.
         /// </summary>
@@ -499,6 +502,52 @@ namespace Orts.Scripting.Api
     {
         private static readonly SignalFeatures none = new SignalFeatures(string.Empty, TrackMonitorSignalAspect.None, float.MaxValue, -1f, float.MinValue);
         public static ref readonly SignalFeatures None => ref none;
+
+    /// <summary>
+    /// Monitoring status of ETCS
+    /// </summary>
+    /*public enum MonitoringStatus2
+    {
+        /// <summary>
+        /// No speed restriction ahead, a fixed speed is supervised.
+        /// </summary>
+        CeilingSpeed,
+        /// <summary>
+        /// A target speed is being supervised.
+        /// </summary>
+        TargetSpeed,
+        /// <summary>
+        /// A release speed is supervised while approaching a zero speed target
+        /// </summary>
+        ReleaseSpeed
+    }
+
+    /// <summary>
+    /// Controls supervision status of ETCS
+    /// </summary>
+    public enum SupervisionStatus
+    {
+        /// <summary>
+        /// Grey color. No speed restriction is ahead.
+        /// </summary>
+        Normal,
+        /// <summary>
+        /// Yellow color. Next signal is restricted, driver should start decreasing speed.
+        /// </summary>
+        Indication,
+        /// <summary>
+        /// Orange color. The locomotive is over the permitted supervision limit.
+        /// </summary>
+        Overspeed,
+        /// <summary>
+        /// Orange color. Computer is close to apply brakes, audible warning is played.
+        /// </summary>
+        Warning,
+        /// <summary>
+        /// Red color. Train control system intervention speed. Computer has to apply full service or emergency brake to maintain speed restriction.
+        /// </summary>
+        Intervention
+    }*/
 
         public string MainHeadSignalTypeName { get; }
         public TrackMonitorSignalAspect Aspect { get; }

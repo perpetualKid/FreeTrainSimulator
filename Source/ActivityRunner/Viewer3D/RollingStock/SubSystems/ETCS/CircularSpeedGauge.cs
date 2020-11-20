@@ -24,14 +24,13 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using Orts.ActivityRunner.Viewer3D.Popups;
-using Orts.ActivityRunner.Viewer3D.RollingStock;
 using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation.RollingStocks;
 
-namespace Orts.ActivityRunner.Viewer3D
+namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
 {
     public class CircularSpeedGauge
     {
@@ -49,7 +48,7 @@ namespace Orts.ActivityRunner.Viewer3D
         const float FontHeightDial = 16;
         const float FontHeightReleaseSpeed = 17;
         const float FontHeightCurrentSpeed = 18;
-        
+
         const int LineQuarter = 11;
         const int RadiusText = 99;
         readonly int[] CurrentSpeedPosition = new int[] { 150, 135, 120, 137 }; // x 10^0, x 10^1, x 10^2, y
@@ -68,10 +67,10 @@ namespace Orts.ActivityRunner.Viewer3D
         readonly Color ColorRed = new Color(191, 0, 2);
         //readonly Color ColorDarkYellow = new Color(105, 105, 0);
         //readonly Color ColorBackground = new Color(3, 17, 34); // dark blue
-        
+
         const string UnitMetricString = "km/h";
         const string UnitImperialString = "mph";
-        
+
         // Some national railways specify the unit (km/h or mph) is to be shown on dial, in contrast to ETA.
         bool UnitVisible;
         bool UnitMetric;
@@ -80,7 +79,7 @@ namespace Orts.ActivityRunner.Viewer3D
         // Some national railways specify the scale lines and numbers above a certain limit not to be visible
         int MaxVisibleScale;
         int[] StandardScales;
-        
+
         float MidSpeed;
         string Unit;
 
@@ -113,21 +112,21 @@ namespace Orts.ActivityRunner.Viewer3D
         WindowTextFont FontCurrentSpeed;
 
         readonly Rectangle SourceRectangle = new Rectangle(0, 0, Width, Height);
-        public float Scale { get; private set; }
-        
+        public float Scale { get; set; }
+
         public CircularSpeedGauge(int width, int height, int maxSpeed, bool unitMetric, bool unitVisible, bool dialQuarterLines, int maxVisibleScale,
             MSTSLocomotive locomotive, Viewer viewer, CabShader shader)
         {
             UnitVisible = unitVisible;
             SetUnit(unitMetric);
-            
+
             DialQuarterLines = dialQuarterLines;
             MaxSpeed = maxSpeed;
             MaxVisibleScale = maxVisibleScale;
             Viewer = viewer;
             Locomotive = locomotive;
             cabShader = shader;
-            
+
             SizeTo(width, height);
             SetRange(MaxSpeed);
 
@@ -152,7 +151,7 @@ namespace Orts.ActivityRunner.Viewer3D
                         ) ? Color.White : Color.Transparent;
             }
         }
-        
+
         /// <summary>
         /// Select the actual unit of measure for speed
         /// </summary>
@@ -175,7 +174,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 StandardScales = StandardScalesMpH;
             }
         }
-        
+
         /// <summary>
         /// Set new font heights to match the actual scale.
         /// </summary>
@@ -250,7 +249,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     {
                         DialLineCoords.Add(new Vector4(x, y, LineFull, angle + MathHelper.PiOver2));
 
-                        if (MaxSpeed != StandardScales[StandardScales.Length - 1] || speed < MidSpeed 
+                        if (MaxSpeed != StandardScales[StandardScales.Length - 1] || speed < MidSpeed
                             || UnitMetric && speed % 100 == 0
                             || !UnitMetric && speed % 40 == 0)
                         {
@@ -272,7 +271,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     }
                     else
                         DialLineCoords.Add(new Vector4(x, y, LineHalf, angle + MathHelper.PiOver2));
-                    
+
                     longLine++;
                     longLine %= MaxSpeed != StandardScales[StandardScales.Length - 1] ? 2 : UnitMetric ? 5 : (speed + 5 > MidSpeed) ? 4 : 2;
                 }
@@ -281,13 +280,13 @@ namespace Orts.ActivityRunner.Viewer3D
                     DialLineCoords.Add(new Vector4(x, y, LineQuarter, angle + MathHelper.PiOver2));
                 }
             }
-            
+
             if (Unit != "")
             {
                 var unitPosition = new Point((int)(UnitCenterPosition[0] - FontDialSpeeds.MeasureString(Unit) / Scale / 2f), (int)(UnitCenterPosition[1] - textHeight / 2f));
                 DialSpeeds.Add(new TextPrimitive(unitPosition, Color.White, Unit, FontDialSpeeds));
             }
-            
+
             Active = true;
         }
 
@@ -318,10 +317,10 @@ namespace Orts.ActivityRunner.Viewer3D
 
         private void SetData(float currentSpeed, int permittedSpeed, int targetSpeed, int releaseSpeed, float interventionSpeed, MonitoringStatus status)
         {
-            if (interventionSpeed < permittedSpeed)
-                interventionSpeed = permittedSpeed;
+            if (interventionSpeed < permittedSpeed && interventionSpeed < releaseSpeed)
+                interventionSpeed = Math.Max(permittedSpeed, releaseSpeed);
             if (currentSpeed > permittedSpeed && currentSpeed > interventionSpeed)
-                interventionSpeed = currentSpeed - 1;
+                interventionSpeed = Math.Max(currentSpeed - 1, releaseSpeed);
 
             switch (status)
             {
@@ -329,7 +328,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     GaugeColor = targetSpeed < permittedSpeed ? Color.White : ColorDarkGrey;
                     NeedleColor = ColorMediumGrey; SpeedColor = Color.Black; releaseSpeed = 0; interventionSpeed = permittedSpeed; break;
                 case MonitoringStatus.Indication: GaugeColor = NeedleColor = Color.White; SpeedColor = Color.Black; interventionSpeed = permittedSpeed; break;
-                case MonitoringStatus.Overspeed: GaugeColor = NeedleColor = ColorYellow; SpeedColor = Color.Black; interventionSpeed = permittedSpeed; break;
+                case MonitoringStatus.Overspeed: GaugeColor = NeedleColor = ColorYellow; SpeedColor = Color.Black; interventionSpeed = Math.Max(permittedSpeed, releaseSpeed); break;
                 case MonitoringStatus.Warning: GaugeColor = ColorYellow; NeedleColor = ColorOrange; SpeedColor = Color.Black; break;
                 case MonitoringStatus.Intervention: GaugeColor = ColorYellow; NeedleColor = ColorRed; SpeedColor = Color.White; break;
             }
@@ -370,7 +369,7 @@ namespace Orts.ActivityRunner.Viewer3D
             }
 
             if (!Active) return;
-            
+
             int x = 0, y = 0;
 
             foreach (var lines in DialLineCoords)
@@ -381,16 +380,20 @@ namespace Orts.ActivityRunner.Viewer3D
                 spriteBatch.Draw(ColorTexture, new Rectangle(x, y, length, 1), null, Color.White, lines.W, new Vector2(0, 0), SpriteEffects.None, 0);
             }
 
+            /* TODO: Check different implementation between NewYear and Official MG versions
+            Shader.CurrentTechnique = Shader.Techniques["CircularSpeedGauge"];
+            Shader.CurrentTechnique.Passes[0].Apply();
+            spriteBatch.Draw(ColorTexture, new Vector2(position.X, position.Y), SourceRectangle, Color.Transparent, 0, new Vector2(0, 0), Scale, SpriteEffects.None, 0);
+            */
+
             // Monogame Spritebatch change Shaders procedure.
             // Following spriteBatch.Begin statements must reflect those for CabSpriteBatchMaterial in materials.cs
 
             // Apply DriverMachineInterface Shader
 
             spriteBatch.End();
-//TODO           Shader.CurrentTechnique.Passes[0].Apply();
-//TODO            spriteBatch.Draw(ColorTexture, new Vector2(position.X, position.Y), SourceRectangle, Color.Transparent, 0, new Vector2(0, 0), Scale, SpriteEffects.None, 0);
             spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, null, DepthStencilState.Default, null, Shader);
-            
+
             // Draw gauge needle centre and speed limit markings
 
             spriteBatch.Draw(ColorTexture, new Vector2(position.X, position.Y), SourceRectangle, Color.Transparent, 0, new Vector2(0, 0), Scale, SpriteEffects.None, 0);
@@ -401,10 +404,10 @@ namespace Orts.ActivityRunner.Viewer3D
             if (cabShader != null)
                 spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, null, DepthStencilState.Default, null, cabShader);
             else
-                spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, null, DepthStencilState.Default, null ,null);
+                spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, null, DepthStencilState.Default, null, null);
 
             spriteBatch.Draw(ColorTexture, new Vector2(position.X, position.Y), SourceRectangle, Color.Transparent, 0, new Vector2(0, 0), Scale, SpriteEffects.None, 0);
-            
+
             // End of spritebatch change Shaders
 
             foreach (var text in DialSpeeds)
@@ -432,27 +435,6 @@ namespace Orts.ActivityRunner.Viewer3D
                 x = position.X + (int)(ReleaseSpeed.Position.X * Scale);
                 y = position.Y + (int)(ReleaseSpeed.Position.Y * Scale);
                 ReleaseSpeed.Draw(spriteBatch, new Point(x, y));
-            }
-        }
-
-        private class TextPrimitive
-        {
-            public Point Position;
-            public Color Color;
-            public WindowTextFont Font;
-            public string Text;
-
-            public TextPrimitive(Point position, Color color, string text, WindowTextFont font)
-            {
-                Position = position;
-                Color = color;
-                Text = text;
-                Font = font;
-            }
-
-            public void Draw(SpriteBatch spriteBatch, Point position)
-            {
-                Font.Draw(spriteBatch, position, Text, Color);
             }
         }
     }
@@ -506,13 +488,13 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             CircularSpeedGauge.PrepareFrame();
         }
-        
+
         internal override void Draw(SpriteBatch spriteBatch, Point position)
         {
             // Hack to adjust for track monitor
             position.X += 8;
             position.Y += 20;
-            
+
             CircularSpeedGauge.Draw(spriteBatch, position);
         }
     }
@@ -555,7 +537,7 @@ namespace Orts.ActivityRunner.Viewer3D
             }
         }
 
-		public override void Draw()
+        public override void Draw()
         {
             CircularSpeedGauge.Draw(CabShaderControlView.SpriteBatch, new Point(DrawPosition.X, DrawPosition.Y));
         }

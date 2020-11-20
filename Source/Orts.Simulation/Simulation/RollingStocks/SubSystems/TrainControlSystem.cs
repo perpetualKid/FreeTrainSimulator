@@ -156,6 +156,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         string ParametersFileName;
         TrainControlSystem Script;
 
+        public Scripting.Api.Etcs.ETCSStatus ETCSStatus { get { return Script?.ETCSStatus; } }
+
         public Dictionary<TrainControlSystem, string> Sounds = new Dictionary<TrainControlSystem, string>();
 
         const float GravityMpS2 = 9.80665f;
@@ -987,6 +989,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 OverspeedPenaltyTimer.Setup(OverspeedMonitor.PenaltyTimeS);
             }
 
+            ETCSStatus = new Scripting.Api.Etcs.ETCSStatus();
+            ETCSStatus.DMIActive = ETCSStatus.PlanningAreaShown = true;
+
             Activated = true;
         }
 
@@ -1070,6 +1075,34 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 else
                     Status = MonitoringStatus.Normal;
                 SetMonitoringStatus(Status);
+
+                float maxDistanceAheadM = 0;
+                ETCSStatus.SpeedTargets.Clear();
+                ETCSStatus.SpeedTargets.Add(new Orts.Scripting.Api.Etcs.PlanningTarget(0, CurrentSpeedLimitMpS));
+                for (int i=0; i<5; i++)
+                {
+                    maxDistanceAheadM = NextSignalDistanceM(i);
+                    float speedLimMpS = NextSignalSpeedLimitMpS(i); 
+                    if (NextSignalAspect(i) == TrackMonitorSignalAspect.Stop) break;
+                    if (speedLimMpS >=0) ETCSStatus.SpeedTargets.Add(new Orts.Scripting.Api.Etcs.PlanningTarget(maxDistanceAheadM, speedLimMpS));
+                }
+                float prevDist=0;
+                float prevSpeed = 0;
+                for (int i=0; i<10; i++)
+                {
+                    float distanceM = NextPostDistanceM(i);
+                    if (distanceM > maxDistanceAheadM) break;
+                    float speed = NextPostSpeedLimitMpS(i);
+                    if (speed == prevSpeed || distanceM - prevDist < 10) continue;
+                    ETCSStatus.SpeedTargets.Add(new Orts.Scripting.Api.Etcs.PlanningTarget(distanceM, speed));
+                    prevDist = distanceM;
+                    prevSpeed = speed;
+                }
+                ETCSStatus.SpeedTargets.Sort((x, y) => x.DistanceToTrainM.CompareTo(y.DistanceToTrainM));
+                ETCSStatus.SpeedTargets.Add(new Orts.Scripting.Api.Etcs.PlanningTarget(maxDistanceAheadM, 0));
+                ETCSStatus.GradientProfile.Clear();
+                ETCSStatus.GradientProfile.Add(new Orts.Scripting.Api.Etcs.GradientProfileElement(0, (int)(Locomotive().CurrentElevationPercent * 10)));
+                ETCSStatus.GradientProfile.Add(new Orts.Scripting.Api.Etcs.GradientProfileElement(maxDistanceAheadM, 0)); // End of profile
             }
         }
 
