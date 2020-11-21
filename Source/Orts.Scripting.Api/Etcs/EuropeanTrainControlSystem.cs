@@ -27,19 +27,20 @@ namespace Orts.Scripting.Api.Etcs
         // General status
         public bool DMIActive = true;
         public Level CurrentLevel;
-        public Mode CurrentMode;
+        public Mode CurrentMode = Mode.FS;
         public string NTCMode;
 
         // Speed and distance monitoring
-        public bool SpeedAreaShown;
+        public bool SpeedAreaShown = true;
         public float EstimatedSpeedMpS;
         public float AllowedSpeedMpS;
+        public float InterventionSpeedMpS;
         public float? TargetSpeedMpS;
         public float? TargetDistanceM;
         public float? ReleaseSpeedMpS;
         public float? TimeToIndication;
-        MonitoringStatus CurrentMonitor;
-        SupervisionStatus CurrentSupervisionStatus;
+        public Monitor CurrentMonitor;
+        public SupervisionStatus CurrentSupervisionStatus;
 
         // Planning information
         public bool PlanningAreaShown = true;
@@ -47,6 +48,7 @@ namespace Orts.Scripting.Api.Etcs
         public PlanningTarget? IndicationMarkerTarget;
         public float? IndicationMarkerDistanceM;
         public List<GradientProfileElement> GradientProfile = new List<GradientProfileElement>();
+        public List<PlanningTrackCondition> PlanningTrackConditions = new List<PlanningTrackCondition>();
 
         public ETCSStatus Clone()
         {
@@ -54,24 +56,57 @@ namespace Orts.Scripting.Api.Etcs
             other.NTCMode = (string)NTCMode?.Clone();
             other.SpeedTargets = new List<PlanningTarget>(SpeedTargets);
             other.GradientProfile = new List<GradientProfileElement>(GradientProfile);
+            other.PlanningTrackConditions = new List<PlanningTrackCondition>();
             return other;
         }
     }
 
-    public enum MonitoringStatus
+    /// <summary>
+    /// Monitoring status of ETCS
+    /// </summary>
+    public enum Monitor
     {
-        CSM,
-        TSM,
-        RSM,
+        /// <summary>
+        /// No speed restriction ahead, a fixed speed is supervised.
+        /// </summary>
+        CeilingSpeed,
+        /// <summary>
+        /// A target speed is being supervised.
+        /// </summary>
+        TargetSpeed,
+        /// <summary>
+        /// A release speed is supervised while approaching a zero speed target
+        /// </summary>
+        ReleaseSpeed
     }
+
+    /// <summary>
+    /// Controls supervision status of ETCS
+    /// </summary>
     public enum SupervisionStatus
     {
-        NoS,
-        IndS,
-        OvS,
-        WaS,
-        IntS
+        /// <summary>
+        /// Grey color. No speed restriction is ahead.
+        /// </summary>
+        Normal,
+        /// <summary>
+        /// Yellow color. Next signal is restricted, driver should start decreasing speed.
+        /// </summary>
+        Indication,
+        /// <summary>
+        /// Orange color. The locomotive is over the permitted supervision limit.
+        /// </summary>
+        Overspeed,
+        /// <summary>
+        /// Orange color. Computer is close to apply brakes, audible warning is played.
+        /// </summary>
+        Warning,
+        /// <summary>
+        /// Red color. Train control system intervention speed. Computer has to apply full service or emergency brake to maintain speed restriction.
+        /// </summary>
+        Intervention
     }
+
     public enum Level
     {
         N0,
@@ -115,6 +150,7 @@ namespace Orts.Scripting.Api.Etcs
         RegenerativeBrakeInhibition,
         OpenAirIntake,
         CloseAirIntake,
+        SoundHorn,
         TractionSystemChange
     }
 
@@ -124,14 +160,14 @@ namespace Orts.Scripting.Api.Etcs
         AC25kV
     }
 
-    public struct TrackCondition
+    public struct PlanningTrackCondition
     {
         public readonly TrackConditionType Type;
         public float DistanceToTrainM;
         public readonly bool YellowColour;
         public TractionSystem? TractionSystem;
 
-        public TrackCondition(TrackConditionType type, bool isYellowColour, float distanceToTrainM)
+        public PlanningTrackCondition(TrackConditionType type, bool isYellowColour, float distanceToTrainM)
         {
             DistanceToTrainM = distanceToTrainM;
             Type = type;
@@ -139,7 +175,7 @@ namespace Orts.Scripting.Api.Etcs
             TractionSystem = null;
         }
 
-        public TrackCondition(TractionSystem tractionSystem, bool isYellowColour, float distanceToTrainM)
+        public PlanningTrackCondition(TractionSystem tractionSystem, bool isYellowColour, float distanceToTrainM)
         {
             DistanceToTrainM = distanceToTrainM;
             Type = TrackConditionType.TractionSystemChange;

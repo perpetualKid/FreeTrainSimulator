@@ -57,7 +57,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
         {
             CurrentStatus = Locomotive.TrainControlSystem.ETCSStatus?.Clone(); // Clone the status class so everything can be accessed safely
             if (CurrentStatus == null || !CurrentStatus.DMIActive) return;
-            CircularSpeedGauge.PrepareFrame();
+            CircularSpeedGauge.PrepareFrame(CurrentStatus);
             PlanningWindow.PrepareFrame(CurrentStatus);
         }
         public void SizeTo(float width, float height)
