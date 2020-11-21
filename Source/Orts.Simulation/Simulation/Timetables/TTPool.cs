@@ -886,7 +886,7 @@ namespace Orts.Simulation.Timetables
         /// Base class to allow override for moving table classes
         /// </summary>
 
-        virtual public float GetEndOfRouteDistance(TrackCircuitPartialPathRoute thisRoute, Train.TCPosition frontPosition, int pathIndex, SignalEnvironment signalRef)
+        virtual public float GetEndOfRouteDistance(TrackCircuitPartialPathRoute thisRoute, Train.TCPosition frontPosition, int pathIndex)
         {
             return (0);
         }

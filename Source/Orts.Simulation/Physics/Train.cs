@@ -14037,6 +14037,17 @@ namespace Orts.Simulation.Physics
             ValidRoute[0] = TCRoute.TCRouteSubpaths[TCRoute.activeSubpath];
         }
 
+        //================================================================================================//
+        /// <summary>
+        /// Create Track Circuit Route Path
+        /// </summary>
+
+        public void SetRoutePath(AIPath aiPath, bool usePosition)
+        {
+            int orgDirection = usePosition ? (int)FrontTDBTraveller.Direction : (RearTDBTraveller != null) ? (int)RearTDBTraveller?.Direction : -2;
+            TCRoute = new TCRoutePath(aiPath, orgDirection, Length, Number);
+            ValidRoute[0] = TCRoute.TCRouteSubpaths[TCRoute.activeSubpath];
+        }
 
         //================================================================================================//
         /// <summary>
@@ -14082,20 +14093,6 @@ namespace Orts.Simulation.Physics
                 }
             }
             return switchDistanceM;
-        }
-
-
-
-        //================================================================================================//
-        /// <summary>
-        /// Create Track Circuit Route Path
-        /// </summary>
-
-        public void SetRoutePath(AIPath aiPath, SignalEnvironment orgSignals)
-        {
-            int orgDirection = (RearTDBTraveller != null) ? (int)RearTDBTraveller.Direction : -2;
-            TCRoute = new TCRoutePath(aiPath, orgDirection, Length, Number);
-            ValidRoute[0] = TCRoute.TCRouteSubpaths[TCRoute.activeSubpath];
         }
 
         //================================================================================================//

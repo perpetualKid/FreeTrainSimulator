@@ -2588,7 +2588,7 @@ namespace Orts.Simulation.Timetables
             if (lastElement.MovingTableApproachPath > -1 && AI.Simulator.PoolHolder.Pools.ContainsKey(ExitPool))
             {
                 TimetablePool thisPool = AI.Simulator.PoolHolder.Pools[ExitPool];
-                float lengthToGoM = thisPool.GetEndOfRouteDistance(TCRoute.TCRouteSubpaths.Last(), PresentPosition[0], lastElement.MovingTableApproachPath, signalRef);
+                float lengthToGoM = thisPool.GetEndOfRouteDistance(TCRoute.TCRouteSubpaths.Last(), PresentPosition[0], lastElement.MovingTableApproachPath);
 
                 if (lengthToGoM < DistanceToEndNodeAuthorityM[0])
                 {
@@ -6335,7 +6335,7 @@ namespace Orts.Simulation.Timetables
             if (lastElement.MovingTableApproachPath > -1 && AI.Simulator.PoolHolder.Pools.ContainsKey(ExitPool))
             {
                 TimetablePool thisPool = AI.Simulator.PoolHolder.Pools[ExitPool];
-                lengthToGoM = thisPool.GetEndOfRouteDistance(TCRoute.TCRouteSubpaths.Last(), PresentPosition[0], lastElement.MovingTableApproachPath, signalRef);
+                lengthToGoM = thisPool.GetEndOfRouteDistance(TCRoute.TCRouteSubpaths.Last(), PresentPosition[0], lastElement.MovingTableApproachPath);
             }
 
             // remaining length first section

@@ -846,7 +846,7 @@ namespace Orts.Simulation.Timetables
             playerTrain.RearTDBTraveller = new Traveller(simulator.TSectionDat, simulator.TDB.TrackDB.TrackNodes, usedPath);
 
             // extract train path
-            playerTrain.SetRoutePath(usedPath, simulator.SignalEnvironment);
+            playerTrain.SetRoutePath(usedPath, true);
             playerTrain.EndRouteAtLastSignal();
             playerTrain.ValidRoute[0] = new TrackCircuitPartialPathRoute(playerTrain.TCRoute.TCRouteSubpaths[0]);
         }

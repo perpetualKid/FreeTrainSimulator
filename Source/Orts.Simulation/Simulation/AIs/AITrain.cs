@@ -173,34 +173,11 @@ namespace Orts.Simulation.AIs
         /// convert route and build station list
         /// </summary>
 
-        public void CreateRoute()
+        public void CreateRoute(bool usePosition)
         {
             if (Path != null)
             {
-                SetRoutePath(Path);
-            }
-            else
-            {
-                TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[PresentPosition[1].TCSectionIndex];
-
-                ValidRoute[0] = SignalEnvironment.BuildTempRoute(this, thisSection.Index, PresentPosition[1].TCOffset, (TrackDirection)PresentPosition[1].TCDirection, Length, true, true, false);
-            }
-        }
-
-        //================================================================================================//
-        /// <summary>
-        /// convert route and build station list
-        /// </summary>
-
-        public void CreateRoute(bool usePosition)
-        {
-            if (Path != null && !usePosition)
-            {
-                SetRoutePath(Path, signalRef);
-            }
-            else if (Path != null)
-            {
-                SetRoutePath(Path);
+                SetRoutePath(Path, usePosition);
             }
             else if (usePosition)
             {
