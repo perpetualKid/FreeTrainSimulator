@@ -3509,9 +3509,9 @@ namespace Orts.Simulation.Timetables
                         PresentPosition[1].CopyTo(ref PresentPosition[0]);
                         tempPosition.CopyTo(ref PresentPosition[1]);
 
-                        PresentPosition[0].Reverse(ValidRoute[0][PresentPosition[0].RouteListIndex].Direction, tempRoute, Length, signalRef);
+                        PresentPosition[0].Reverse(ValidRoute[0][PresentPosition[0].RouteListIndex].Direction, tempRoute, Length);
                         PresentPosition[0].CopyTo(ref PreviousPosition[0]);
-                        PresentPosition[1].Reverse(ValidRoute[0][PresentPosition[1].RouteListIndex].Direction, tempRoute, 0.0f, signalRef);
+                        PresentPosition[1].Reverse(ValidRoute[0][PresentPosition[1].RouteListIndex].Direction, tempRoute, 0.0f);
 
                         // reverse formation
                         ReverseFormation(false);
@@ -6795,7 +6795,7 @@ namespace Orts.Simulation.Timetables
 
                         if (fullpath != null) // valid path
                         {
-                            TCRoutePath fullRoute = new TCRoutePath(fullpath, -2, 1, signalRef, -1, Simulator.Settings);
+                            TCRoutePath fullRoute = new TCRoutePath(fullpath, -2, 1, -1);
                             newWaitItem.CheckPath = new TrackCircuitPartialPathRoute(fullRoute.TCRouteSubpaths[0]);
 
                             // find first overlap section with train route
@@ -9369,9 +9369,9 @@ namespace Orts.Simulation.Timetables
                             PresentPosition[1].CopyTo(ref PresentPosition[0]);
                             tempPosition.CopyTo(ref PresentPosition[1]);
 
-                            PresentPosition[0].Reverse(ValidRoute[0][PresentPosition[0].RouteListIndex].Direction, tempRoute, Length, signalRef);
+                            PresentPosition[0].Reverse(ValidRoute[0][PresentPosition[0].RouteListIndex].Direction, tempRoute, Length);
                             PresentPosition[0].CopyTo(ref PreviousPosition[0]);
-                            PresentPosition[1].Reverse(ValidRoute[0][PresentPosition[1].RouteListIndex].Direction, tempRoute, 0.0f, signalRef);
+                            PresentPosition[1].Reverse(ValidRoute[0][PresentPosition[1].RouteListIndex].Direction, tempRoute, 0.0f);
 
                             // reverse formation
                             ReverseFormation(true);

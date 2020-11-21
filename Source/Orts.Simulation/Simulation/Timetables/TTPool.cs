@@ -525,7 +525,7 @@ namespace Orts.Simulation.Timetables
 
             if (pathValid)
             {
-                Train.TCRoutePath fullRoute = new Train.TCRoutePath(newPath, -2, 1, simulatorref.SignalEnvironment, -1, simulatorref.Settings);
+                Train.TCRoutePath fullRoute = new Train.TCRoutePath(newPath, -2, 1, -1);
 
                 newPool.StoragePath = new TrackCircuitPartialPathRoute(fullRoute.TCRouteSubpaths[0]);
                 newPool.StoragePathTraveller = new Traveller(simulatorref.TSectionDat, simulatorref.TDB.TrackDB.TrackNodes, newPath);
@@ -561,7 +561,7 @@ namespace Orts.Simulation.Timetables
 
                 if (pathValid)
                 {
-                    Train.TCRoutePath fullRoute = new Train.TCRoutePath(newPath, -2, 1, simulatorref.SignalEnvironment, -1, simulatorref.Settings);
+                    Train.TCRoutePath fullRoute = new Train.TCRoutePath(newPath, -2, 1, -1);
                     // if last element is end of track, remove it from path
                     TrackCircuitPartialPathRoute usedRoute = fullRoute.TCRouteSubpaths[0];
                     int lastIndex = usedRoute.Count - 1;

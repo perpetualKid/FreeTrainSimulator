@@ -55,7 +55,6 @@ namespace Orts.Simulation.Signalling
             StoppedInLoop,
         }
 
-        private readonly SignalEnvironment signalRef;                                       // reference to overlaying Signals class
         private readonly int deadlockIndex;                                          // this deadlock unique index reference
         private int nextTrainSubpathIndex;                                 // counter for train/subpath index
 
@@ -72,12 +71,8 @@ namespace Orts.Simulation.Signalling
         /// Constructor
         /// </summary>
 
-        public DeadlockInfo(SignalEnvironment signalReference)
+        public DeadlockInfo()
         {
-            signalRef = signalReference;
-
-            deadlockIndex = signalRef.deadlockIndex++;
-
             AvailablePathList = new List<DeadlockPathInfo>();
             PathReferences = new Dictionary<int, List<int>>();
             TrainReferences = new Dictionary<int, List<int>>();
@@ -87,7 +82,7 @@ namespace Orts.Simulation.Signalling
             TrainSubpathIndex = new Dictionary<int, Dictionary<int, int>>();
             nextTrainSubpathIndex = 0;
 
-            signalRef.DeadlockInfoList.Add(deadlockIndex, this);
+            Simulator.Instance.SignalEnvironment.DeadlockInfoList.Add(Simulator.Instance.SignalEnvironment.deadlockIndex++, this);
         }
 
         //================================================================================================//
@@ -95,12 +90,10 @@ namespace Orts.Simulation.Signalling
         /// Constructor for restore
         /// </summary>
 
-        public DeadlockInfo(SignalEnvironment signalReference, BinaryReader inf)
+        public DeadlockInfo(BinaryReader inf)
         {
             if (null == inf)
                 throw new ArgumentNullException(nameof(inf));
-
-            signalRef = signalReference;
 
             deadlockIndex = inf.ReadInt32();
             AvailablePathList = new List<DeadlockPathInfo>();
@@ -296,7 +289,7 @@ namespace Orts.Simulation.Signalling
         /// Create deadlock info from alternative path or find related info
         /// </summary>
 
-        internal static DeadlockInfo FindDeadlockInfo(SignalEnvironment sourceSignals, TrackCircuitPartialPathRoute partPath, TrackCircuitPartialPathRoute mainPath, int startSectionIndex, int endSectionIndex)
+        internal static DeadlockInfo FindDeadlockInfo(TrackCircuitPartialPathRoute partPath, TrackCircuitPartialPathRoute mainPath, int startSectionIndex, int endSectionIndex)
         {
             TrackCircuitSection startSection = TrackCircuitSection.TrackCircuitList[startSectionIndex];
             TrackCircuitSection endSection = TrackCircuitSection.TrackCircuitList[endSectionIndex];
@@ -317,7 +310,7 @@ namespace Orts.Simulation.Signalling
                 int newStartSectionRouteIndex = -1;
                 foreach (KeyValuePair<int, int> startSectionInfo in startSection.DeadlockBoundaries)
                 {
-                    DeadlockInfo existDeadlockInfo = sourceSignals.DeadlockInfoList[startSectionInfo.Key];
+                    DeadlockInfo existDeadlockInfo = Simulator.Instance.SignalEnvironment.DeadlockInfoList[startSectionInfo.Key];
                     TrackCircuitPartialPathRoute existPath = existDeadlockInfo.AvailablePathList[startSectionInfo.Value].Path;
                     newStartSectionRouteIndex = mainPath.GetRouteIndexBackward(existPath[0].TrackCircuitSection.Index, usedStartSectionRouteIndex);
                     if (newStartSectionRouteIndex < 0) // may be wrong direction - try end section
@@ -355,7 +348,7 @@ namespace Orts.Simulation.Signalling
                 int newEndSectionRouteIndex = -1;
                 foreach (KeyValuePair<int, int> endSectionInfo in endSection.DeadlockBoundaries)
                 {
-                    DeadlockInfo existDeadlockInfo = sourceSignals.DeadlockInfoList[endSectionInfo.Key];
+                    DeadlockInfo existDeadlockInfo = Simulator.Instance.SignalEnvironment.DeadlockInfoList[endSectionInfo.Key];
                     TrackCircuitPartialPathRoute existPath = existDeadlockInfo.AvailablePathList[endSectionInfo.Value].Path;
                     newEndSectionRouteIndex = mainPath.GetRouteIndex(existPath[0].TrackCircuitSection.Index, usedEndSectionRouteIndex);
                     if (newEndSectionRouteIndex < 0) // may be wrong direction - try end section
@@ -395,7 +388,7 @@ namespace Orts.Simulation.Signalling
                 // if both references are equal, use existing information
                 if (startSectionDLReference > 0 && startSectionDLReference == endSectionDLReference)
                 {
-                    newDeadlockInfo = sourceSignals.DeadlockInfoList[startSectionDLReference];
+                    newDeadlockInfo = Simulator.Instance.SignalEnvironment.DeadlockInfoList[startSectionDLReference];
                 }
 
                 // if both references are null, check for existing references along route
@@ -403,9 +396,9 @@ namespace Orts.Simulation.Signalling
                 {
                     if (CheckNoOverlapDeadlockPaths(partPath))
                     {
-                        newDeadlockInfo = new DeadlockInfo(sourceSignals);
-                        sourceSignals.DeadlockReference.Add(startSectionIndex, newDeadlockInfo.deadlockIndex);
-                        sourceSignals.DeadlockReference.Add(endSectionIndex, newDeadlockInfo.deadlockIndex);
+                        newDeadlockInfo = new DeadlockInfo();
+                        Simulator.Instance.SignalEnvironment.DeadlockReference.Add(startSectionIndex, newDeadlockInfo.deadlockIndex);
+                        Simulator.Instance.SignalEnvironment.DeadlockReference.Add(endSectionIndex, newDeadlockInfo.deadlockIndex);
 
                         startSection.DeadlockReference = newDeadlockInfo.deadlockIndex;
                         endSection.DeadlockReference = newDeadlockInfo.deadlockIndex;

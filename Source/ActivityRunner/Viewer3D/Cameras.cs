@@ -2527,7 +2527,7 @@ namespace Orts.ActivityRunner.Viewer3D
                         {
                             foreach (int platformIndex in TCSection.PlatformIndices)
                             {
-                                PlatformDetails thisPlatform = train.signalRef.PlatformDetailsList[platformIndex];
+                                PlatformDetails thisPlatform = Simulator.Instance.SignalEnvironment.PlatformDetailsList[platformIndex];
                                 if (thisPlatform.TrackCircuitOffset[Simulation.Signalling.Location.NearEnd, thisRoute[routeIndex].Direction] + incrDistance < MaximumSpecialPointDistance * 0.7f
                                     && (thisPlatform.TrackCircuitOffset[Simulation.Signalling.Location.NearEnd, thisRoute[routeIndex].Direction] + incrDistance > 0 || FirstUpdateLoop))
                                 {

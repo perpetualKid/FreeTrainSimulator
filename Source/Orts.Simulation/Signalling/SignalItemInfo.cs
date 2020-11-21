@@ -74,18 +74,16 @@ namespace Orts.Simulation.Signalling
             State = state;
         }
 
-        public static SignalItemInfo Restore(BinaryReader inf, SignalEnvironment signals)
+        public static SignalItemInfo Restore(BinaryReader inf)
         {
             if (null == inf)
                 throw new ArgumentNullException(nameof(inf));
-            if (null == signals)
-                throw new ArgumentNullException(nameof(signals));
 
             SignalItemInfo result = new SignalItemInfo(SignalItemFindState.None)
             {
                 ItemType = (SignalItemType)inf.ReadInt32(),
                 State = (SignalItemFindState)inf.ReadInt32(),
-                SignalDetails = signals.Signals[inf.ReadInt32()],
+                SignalDetails = Simulator.Instance.SignalEnvironment.Signals[inf.ReadInt32()],
                 DistanceFound = inf.ReadSingle(),
                 DistanceToTrain = inf.ReadSingle(),
                 DistanceToObject = inf.ReadSingle(),

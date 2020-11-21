@@ -589,7 +589,7 @@ namespace Orts.Simulation.AIs
             AskingTrain = new List<KeyValuePair<int, WorldLocation>>();
             EndSignalIndex = inf.ReadInt32();
             if (EndSignalIndex >= 0)
-                SetSignalObject(thisTrain.signalRef.Signals[EndSignalIndex]);
+                SetSignalObject(Simulator.Instance.SignalEnvironment.Signals[EndSignalIndex]);
             else
                 SetSignalObject(null);
             ActionType = actionType;
@@ -1220,8 +1220,8 @@ namespace Orts.Simulation.AIs
         // Restore
         //
 
-        public AuxActionItem(BinaryReader inf, SignalEnvironment signalRef)
-            : base(inf, signalRef)
+        public AuxActionItem(BinaryReader inf)
+            : base(inf)
         {
         }
 

@@ -204,7 +204,7 @@ namespace Orts.Simulation.Signalling
             for (int iDeadlock = 0; iDeadlock <= totalDeadlocks - 1; iDeadlock++)
             {
                 int thisDeadlockIndex = inf.ReadInt32();
-                DeadlockInfo thisInfo = new DeadlockInfo(this, inf);
+                DeadlockInfo thisInfo = new DeadlockInfo(inf);
                 DeadlockInfoList.Add(thisDeadlockIndex, thisInfo);
             }
 

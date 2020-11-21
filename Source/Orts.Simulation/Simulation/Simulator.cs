@@ -1175,7 +1175,7 @@ namespace Orts.Simulation
 
             train.CheckFreight();
 
-            train.PresetExplorerPath(aiPath, SignalEnvironment);
+            train.PresetExplorerPath(aiPath);
             train.ControlMode = TrainControlMode.Explorer;
 
             bool canPlace = true;
@@ -1271,7 +1271,7 @@ namespace Orts.Simulation
             if (SignalEnvironment.UseLocationPassingPaths)
             {
                 int orgDirection = (train.RearTDBTraveller != null) ? (int)train.RearTDBTraveller.Direction : -2;
-                Physics.Train.TCRoutePath dummyRoute = new Physics.Train.TCRoutePath(train.Path, orgDirection, 0, SignalEnvironment, -1, Settings);   // SPA: Add settings to get enhanced mode
+                Train.TCRoutePath dummyRoute = new Train.TCRoutePath(train.Path, orgDirection, 0, -1);
             }
 
             if (conFileName.Contains("tilted")) train.IsTilting = true;
@@ -1744,7 +1744,7 @@ namespace Orts.Simulation
                             playerTrain.MovementState = AITrain.AI_MOVEMENT_STATE.SUSPENDED;
                             if (playerTrain.ValidRoute[0] != null && playerTrain.PresentPosition[0].RouteListIndex != -1 &&
                                 playerTrain.ValidRoute[0].Count > playerTrain.PresentPosition[0].RouteListIndex + 1)
-                                playerTrain.signalRef.BreakDownRoute(playerTrain.ValidRoute[0][playerTrain.PresentPosition[0].RouteListIndex + 1].TrackCircuitSection.Index,
+                                SignalEnvironment.BreakDownRoute(playerTrain.ValidRoute[0][playerTrain.PresentPosition[0].RouteListIndex + 1].TrackCircuitSection.Index,
                                    playerTrain.routedForward);
                             TrainSwitcher.SuspendOldPlayer = false;
                         }
@@ -1853,10 +1853,10 @@ namespace Orts.Simulation
                             return;
                         }
                         if (playerTrain.ValidRoute[0] != null && playerTrain.ValidRoute[0].Count > playerTrain.PresentPosition[0].RouteListIndex + 1)
-                            playerTrain.signalRef.BreakDownRoute(playerTrain.ValidRoute[0][playerTrain.PresentPosition[0].RouteListIndex + 1].TrackCircuitSection.Index,
+                            SignalEnvironment.BreakDownRoute(playerTrain.ValidRoute[0][playerTrain.PresentPosition[0].RouteListIndex + 1].TrackCircuitSection.Index,
                             playerTrain.routedForward);
                         if (playerTrain.ValidRoute[1] != null && playerTrain.ValidRoute[1].Count > playerTrain.PresentPosition[1].RouteListIndex + 1)
-                            playerTrain.signalRef.BreakDownRoute(playerTrain.ValidRoute[1][playerTrain.PresentPosition[1].RouteListIndex + 1].TrackCircuitSection.Index,
+                            SignalEnvironment.BreakDownRoute(playerTrain.ValidRoute[1][playerTrain.PresentPosition[1].RouteListIndex + 1].TrackCircuitSection.Index,
                             playerTrain.routedBackward);
                         playerTrain.ControlMode = TrainControlMode.Undefined;
                         playerTrain.TrainType = TrainType.Static;

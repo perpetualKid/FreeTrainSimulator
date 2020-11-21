@@ -187,7 +187,7 @@ namespace Orts.Simulation.Timetables
 
                             if (pathValid)
                             {
-                                Train.TCRoutePath fullRoute = new Train.TCRoutePath(newPath, -2, 1, Simulatorref.SignalEnvironment, -1, Simulatorref.Settings);
+                                Train.TCRoutePath fullRoute = new Train.TCRoutePath(newPath, -2, 1, -1);
                                 // if last element is end of track, remove it from path
                                 TrackCircuitPartialPathRoute usedRoute = fullRoute.TCRouteSubpaths[0];
                                 int lastIndex = usedRoute.Count - 1;
