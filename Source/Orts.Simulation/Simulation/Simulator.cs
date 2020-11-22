@@ -801,9 +801,9 @@ namespace Orts.Simulation
                 }
             }
             if (train.TrainType == TrainType.Ai && (((AITrain)train).UncondAttach ||
-                train.TCRoute.activeSubpath < train.TCRoute.TCRouteSubpaths.Count - 1 || train.ValidRoute[0].Count > 5))
+                train.TCRoute.ActiveSubPath < train.TCRoute.TCRouteSubpaths.Count - 1 || train.ValidRoute[0].Count > 5))
             {
-                if (((drivenTrain.TCRoute != null && drivenTrain.TCRoute.activeSubpath == drivenTrain.TCRoute.TCRouteSubpaths.Count - 1 &&
+                if (((drivenTrain.TCRoute != null && drivenTrain.TCRoute.ActiveSubPath == drivenTrain.TCRoute.TCRouteSubpaths.Count - 1 &&
                     drivenTrain.ValidRoute[0].Count < 5) || (drivenTrain is AITrain && ((AITrain)drivenTrain).UncondAttach)) && drivenTrain != OriginalPlayerTrain)
                 {
                     // Switch to the attached train as the one where we are now is at the end of its life
@@ -837,7 +837,7 @@ namespace Orts.Simulation
                     PlayerLocomotive = SetPlayerLocomotive(train);
                     (train as AITrain).SwitchToPlayerControl();
                     OnPlayerLocomotiveChanged();
-                    if (drivenTrain.TCRoute.activeSubpath == drivenTrain.TCRoute.TCRouteSubpaths.Count - 1 && drivenTrain.ValidRoute[0].Count < 5)
+                    if (drivenTrain.TCRoute.ActiveSubPath == drivenTrain.TCRoute.TCRouteSubpaths.Count - 1 && drivenTrain.ValidRoute[0].Count < 5)
                     {
                         (drivenTrain as AITrain).RemoveTrain();
                         train.UpdateTrackActionsCoupling(couple_to_front);
@@ -845,10 +845,10 @@ namespace Orts.Simulation
                     }
                     // if there is just here a reversal point, increment subpath in order to be in accordance with train
                     var ppTCSectionIndex = drivenTrain.PresentPosition[0].TCSectionIndex;
-                    if (ppTCSectionIndex == drivenTrain.TCRoute.TCRouteSubpaths[drivenTrain.TCRoute.activeSubpath][drivenTrain.TCRoute.TCRouteSubpaths[drivenTrain.TCRoute.activeSubpath].Count - 1].TrackCircuitSection.Index)
+                    if (ppTCSectionIndex == drivenTrain.TCRoute.TCRouteSubpaths[drivenTrain.TCRoute.ActiveSubPath][drivenTrain.TCRoute.TCRouteSubpaths[drivenTrain.TCRoute.ActiveSubPath].Count - 1].TrackCircuitSection.Index)
                         drivenTrain.IncrementSubpath(drivenTrain);
                     // doubled check in case of double reverse point.
-                    if (ppTCSectionIndex == drivenTrain.TCRoute.TCRouteSubpaths[drivenTrain.TCRoute.activeSubpath][drivenTrain.TCRoute.TCRouteSubpaths[drivenTrain.TCRoute.activeSubpath].Count - 1].TrackCircuitSection.Index)
+                    if (ppTCSectionIndex == drivenTrain.TCRoute.TCRouteSubpaths[drivenTrain.TCRoute.ActiveSubPath][drivenTrain.TCRoute.TCRouteSubpaths[drivenTrain.TCRoute.ActiveSubPath].Count - 1].TrackCircuitSection.Index)
                         drivenTrain.IncrementSubpath(drivenTrain);
                     var tempTrain = drivenTrain;
                     drivenTrain = train;
@@ -858,10 +858,10 @@ namespace Orts.Simulation
                 else
                 {
                     var ppTCSectionIndex = train.PresentPosition[0].TCSectionIndex;
-                    if (ppTCSectionIndex == train.TCRoute.TCRouteSubpaths[train.TCRoute.activeSubpath][train.TCRoute.TCRouteSubpaths[train.TCRoute.activeSubpath].Count - 1].TrackCircuitSection.Index)
+                    if (ppTCSectionIndex == train.TCRoute.TCRouteSubpaths[train.TCRoute.ActiveSubPath][train.TCRoute.TCRouteSubpaths[train.TCRoute.ActiveSubPath].Count - 1].TrackCircuitSection.Index)
                         train.IncrementSubpath(train);
                     // doubled check in case of double reverse point.
-                    if (ppTCSectionIndex == train.TCRoute.TCRouteSubpaths[train.TCRoute.activeSubpath][train.TCRoute.TCRouteSubpaths[train.TCRoute.activeSubpath].Count - 1].TrackCircuitSection.Index)
+                    if (ppTCSectionIndex == train.TCRoute.TCRouteSubpaths[train.TCRoute.ActiveSubPath][train.TCRoute.TCRouteSubpaths[train.TCRoute.ActiveSubPath].Count - 1].TrackCircuitSection.Index)
                         train.IncrementSubpath(train);
                 }
                 train.IncorporatingTrain = drivenTrain;
@@ -1270,8 +1270,8 @@ namespace Orts.Simulation
             // process player passing paths as required
             if (SignalEnvironment.UseLocationPassingPaths)
             {
-                int orgDirection = (train.RearTDBTraveller != null) ? (int)train.RearTDBTraveller.Direction : -2;
-                Train.TCRoutePath dummyRoute = new Train.TCRoutePath(train.Path, orgDirection, 0, -1);
+                TrackDirection orgDirection = (TrackDirection)(train.RearTDBTraveller != null ? (int)train.RearTDBTraveller.Direction : -2);
+                _ = new TrackCircuitRoutePath(train.Path, orgDirection, 0, -1);
             }
 
             if (conFileName.Contains("tilted")) train.IsTilting = true;
@@ -1659,10 +1659,10 @@ namespace Orts.Simulation
             {
                 // Move reversal point under train if there is one in the section where the train is
                 if (train2.PresentPosition[0].TCSectionIndex ==
-                                    train2.TCRoute.TCRouteSubpaths[train2.TCRoute.activeSubpath][train2.TCRoute.TCRouteSubpaths[train2.TCRoute.activeSubpath].Count - 1].TrackCircuitSection.Index &&
-                    train2.TCRoute.activeSubpath < train2.TCRoute.TCRouteSubpaths.Count - 1)
+                                    train2.TCRoute.TCRouteSubpaths[train2.TCRoute.ActiveSubPath][train2.TCRoute.TCRouteSubpaths[train2.TCRoute.ActiveSubPath].Count - 1].TrackCircuitSection.Index &&
+                    train2.TCRoute.ActiveSubPath < train2.TCRoute.TCRouteSubpaths.Count - 1)
                 {
-                    train2.TCRoute.ReversalInfo[train2.TCRoute.activeSubpath].ReverseReversalOffset = train2.PresentPosition[0].TCOffset - 10f;
+                    train2.TCRoute.ReversalInfo[train2.TCRoute.ActiveSubPath].ReverseReversalOffset = train2.PresentPosition[0].TCOffset - 10f;
                     train2.AuxActionsContain.MoveAuxActionAfterReversal(train2);
                 }
                 else if ((train.IsActualPlayerTrain && j >= i) || !keepFront)
@@ -1815,10 +1815,10 @@ namespace Orts.Simulation
                         ((AITrain)selectedAsPlayer).AI.aiListChanged = true;
                         // Move reversal point under train if there is one in the section where the train is
                         if (selectedAsPlayer.PresentPosition[0].TCSectionIndex ==
-                                            selectedAsPlayer.TCRoute.TCRouteSubpaths[selectedAsPlayer.TCRoute.activeSubpath][selectedAsPlayer.TCRoute.TCRouteSubpaths[selectedAsPlayer.TCRoute.activeSubpath].Count - 1].TrackCircuitSection.Index &&
-                            selectedAsPlayer.TCRoute.activeSubpath < selectedAsPlayer.TCRoute.TCRouteSubpaths.Count - 1)
+                                            selectedAsPlayer.TCRoute.TCRouteSubpaths[selectedAsPlayer.TCRoute.ActiveSubPath][selectedAsPlayer.TCRoute.TCRouteSubpaths[selectedAsPlayer.TCRoute.ActiveSubPath].Count - 1].TrackCircuitSection.Index &&
+                            selectedAsPlayer.TCRoute.ActiveSubPath < selectedAsPlayer.TCRoute.TCRouteSubpaths.Count - 1)
                         {
-                            selectedAsPlayer.TCRoute.ReversalInfo[selectedAsPlayer.TCRoute.activeSubpath].ReverseReversalOffset = selectedAsPlayer.PresentPosition[0].TCOffset - 10f;
+                            selectedAsPlayer.TCRoute.ReversalInfo[selectedAsPlayer.TCRoute.ActiveSubPath].ReverseReversalOffset = selectedAsPlayer.PresentPosition[0].TCOffset - 10f;
                             selectedAsPlayer.AuxActionsContain.MoveAuxActionAfterReversal(selectedAsPlayer);
                         }
                         ((AITrain)selectedAsPlayer).ResetActions(true);

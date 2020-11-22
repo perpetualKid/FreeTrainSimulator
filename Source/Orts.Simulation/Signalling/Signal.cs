@@ -1902,7 +1902,7 @@ namespace Orts.Simulation.Signalling
                     otherTrain.Train.SwitchToNodeControl(otherTrain.Train.PresentPosition[otherTrain.TrainRouteDirectionIndex].TCSectionIndex);
                 return false;
             }
-            if (train.Train.TCRoute != null && HasLockForTrain(train.Train.Number, train.Train.TCRoute.activeSubpath))
+            if (train.Train.TCRoute != null && HasLockForTrain(train.Train.Number, train.Train.TCRoute.ActiveSubPath))
             {
                 return false;
             }
@@ -2778,7 +2778,7 @@ namespace Orts.Simulation.Signalling
                         DeadlockInfo sectionDeadlockInfo = signalEnvironment.DeadlockInfoList[section.DeadlockReference];
 
                         // if deadlock area and no path yet selected - exit loop; else follow assigned path
-                        if (sectionDeadlockInfo.HasTrainAndSubpathIndex(train.Train.Number, train.Train.TCRoute.activeSubpath) &&
+                        if (sectionDeadlockInfo.HasTrainAndSubpathIndex(train.Train.Number, train.Train.TCRoute.ActiveSubPath) &&
                             routeElement.UsedAlternativePath < 0)
                         {
                             deadlockArea = true;

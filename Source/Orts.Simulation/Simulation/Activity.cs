@@ -778,7 +778,7 @@ namespace Orts.Simulation
         {
             if (myTrain.StationStops.Count == 0) return false;
             var thisStation = myTrain.StationStops[0];
-            if (myTrain.StationStops[0].SubrouteIndex != myTrain.TCRoute.activeSubpath) return false;
+            if (myTrain.StationStops[0].SubrouteIndex != myTrain.TCRoute.ActiveSubPath) return false;
             return myTrain.CheckStationPosition(thisStation.PlatformItem, thisStation.Direction, thisStation.TCSectionIndex);
         }
 
@@ -787,7 +787,7 @@ namespace Orts.Simulation
             // Check if station is in present train path
 
             if (MyPlayerTrain.StationStops.Count == 0 ||
-                MyPlayerTrain.TCRoute.activeSubpath != MyPlayerTrain.StationStops[0].SubrouteIndex || !(MyPlayerTrain.ControlMode == TrainControlMode.AutoNode || MyPlayerTrain.ControlMode == TrainControlMode.AutoSignal))
+                MyPlayerTrain.TCRoute.ActiveSubPath != MyPlayerTrain.StationStops[0].SubrouteIndex || !(MyPlayerTrain.ControlMode == TrainControlMode.AutoNode || MyPlayerTrain.ControlMode == TrainControlMode.AutoSignal))
             {
                 return (false);
             }
@@ -1484,7 +1484,7 @@ namespace Orts.Simulation
                     return triggered;
                 }
             }
-            var trainFrontPosition = new Traveller(train.nextRouteReady && train.TCRoute.activeSubpath > 0 && train.TCRoute.ReversalInfo[train.TCRoute.activeSubpath - 1].Valid ?
+            var trainFrontPosition = new Traveller(train.nextRouteReady && train.TCRoute.ActiveSubPath > 0 && train.TCRoute.ReversalInfo[train.TCRoute.ActiveSubPath - 1].Valid ?
                 train.RearTDBTraveller : train.FrontTDBTraveller); // just after reversal the old train front position must be considered
             var distance = trainFrontPosition.DistanceTo(e.Location, e.RadiusM);
             if (distance == -1)

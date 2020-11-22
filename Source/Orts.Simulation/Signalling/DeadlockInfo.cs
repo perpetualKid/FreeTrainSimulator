@@ -646,7 +646,7 @@ namespace Orts.Simulation.Signalling
                 Train otherTrain = train.GetOtherTrainByNumber(otherTrainNumber);
 
                 // TODO : find proper most matching path
-                if (HasTrainAndSubpathIndex(otherTrain.Number, otherTrain.TCRoute.activeSubpath))
+                if (HasTrainAndSubpathIndex(otherTrain.Number, otherTrain.TCRoute.ActiveSubPath))
                 {
                     List<int> otherFreePaths = GetFreePaths(otherTrain);
                     foreach (int iPath in otherFreePaths)
@@ -815,7 +815,7 @@ namespace Orts.Simulation.Signalling
 
             List<int> freePaths = new List<int>();
 
-            int thisTrainAndSubpathIndex = GetTrainAndSubpathIndex(train.Number, train.TCRoute.activeSubpath);
+            int thisTrainAndSubpathIndex = GetTrainAndSubpathIndex(train.Number, train.TCRoute.ActiveSubPath);
             for (int iPath = 0; iPath <= TrainReferences[thisTrainAndSubpathIndex].Count - 1; iPath++)
             {
                 int pathIndex = TrainReferences[thisTrainAndSubpathIndex][iPath];
@@ -868,7 +868,7 @@ namespace Orts.Simulation.Signalling
 
             // check if own path is also main path - if so, do not check it separately
 
-            int indexTrainAndSubroute = GetTrainAndSubpathIndex(train.Number, train.TCRoute.activeSubpath);
+            int indexTrainAndSubroute = GetTrainAndSubpathIndex(train.Number, train.TCRoute.ActiveSubPath);
             int ownPathIndex = TrainOwnPath[indexTrainAndSubroute];
             int defaultPath = ownPathIndex;
             if (AvailablePathList[ownPathIndex].Name.Equals("MAIN", StringComparison.OrdinalIgnoreCase))
@@ -954,7 +954,7 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         private int GetEndSection(Train train)
         {
-            int thisTrainAndSubpathIndex = GetTrainAndSubpathIndex(train.Number, train.TCRoute.activeSubpath);
+            int thisTrainAndSubpathIndex = GetTrainAndSubpathIndex(train.Number, train.TCRoute.ActiveSubPath);
             if (!TrainReferences.ContainsKey(thisTrainAndSubpathIndex))
             {
                 Trace.TraceWarning("Multiple passing paths at the same location, without common branch out, or return switch. Check the passing paths for Train name: {0} (number: {1}), and other train's paths, which have passing paths at the same locations", train.Name, train.Number);

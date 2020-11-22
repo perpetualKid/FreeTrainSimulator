@@ -1061,9 +1061,9 @@ namespace Orts.Simulation.Timetables
                 }
 
                 // if subroute is present route, create new ValidRoute
-                if (lastStop.SubrouteIndex == TCRoute.activeSubpath)
+                if (lastStop.SubrouteIndex == TCRoute.ActiveSubPath)
                 {
-                    ValidRoute[0] = new TrackCircuitPartialPathRoute(TCRoute.TCRouteSubpaths[TCRoute.activeSubpath]);
+                    ValidRoute[0] = new TrackCircuitPartialPathRoute(TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath]);
                 }
             }
 
@@ -1119,7 +1119,7 @@ namespace Orts.Simulation.Timetables
                 }
 
                 InitializeSignals(false);               // Get signal information
-                TCRoute.SetReversalOffset(Length);      // set reversal information for first subpath
+                TCRoute.SetReversalOffset(Length, true);      // set reversal information for first subpath
                 SetEndOfRouteAction();                  // set action to ensure train stops at end of route
                 ControlMode = TrainControlMode.Inactive;   // set control mode to INACTIVE
 
@@ -1208,7 +1208,7 @@ namespace Orts.Simulation.Timetables
                 InitializeSignals(false);     // Get signal information - only if train has route //
                 if (TrainType != TrainType.Static)
                     CheckDeadlock(ValidRoute[0], Number);    // Check deadlock against all other trains (not for static trains)
-                if (TCRoute != null) TCRoute.SetReversalOffset(Length);
+                if (TCRoute != null) TCRoute.SetReversalOffset(Length, true);
             }
 
             // set train speed logging flag (valid per activity, so will be restored after save)
@@ -2015,7 +2015,7 @@ namespace Orts.Simulation.Timetables
             // get station details
 
             StationStop thisStation = StationStops[0];
-            if (thisStation.SubrouteIndex != TCRoute.activeSubpath)
+            if (thisStation.SubrouteIndex != TCRoute.ActiveSubPath)
             {
                 return (false);
             }
@@ -2129,7 +2129,7 @@ namespace Orts.Simulation.Timetables
 
             int stationIndex = 0;
             StationStop thisStation = StationStops[stationIndex];
-            while (thisStation.SubrouteIndex < TCRoute.activeSubpath) // station was in previous subpath
+            while (thisStation.SubrouteIndex < TCRoute.ActiveSubPath) // station was in previous subpath
             {
                 StationStops.RemoveAt(0);
                 if (StationStops.Count == 0) // no more stations
@@ -2139,7 +2139,7 @@ namespace Orts.Simulation.Timetables
                 thisStation = StationStops[0];
             }
 
-            if (thisStation.SubrouteIndex > TCRoute.activeSubpath)    // station is not in this subpath
+            if (thisStation.SubrouteIndex > TCRoute.ActiveSubPath)    // station is not in this subpath
             {
                 return;
             }
@@ -2159,7 +2159,7 @@ namespace Orts.Simulation.Timetables
                     }
 
                     thisStation = StationStops[0];
-                    if (thisStation.SubrouteIndex > TCRoute.activeSubpath) return;  // station not in this subpath - exit
+                    if (thisStation.SubrouteIndex > TCRoute.ActiveSubPath) return;  // station not in this subpath - exit
                 }
                 else
                 {
@@ -2816,18 +2816,18 @@ namespace Orts.Simulation.Timetables
                 return; // other reversal still active - reversal not valid
             }
 
-            if (StationStops != null && StationStops.Count > 0 && StationStops[0].SubrouteIndex == TCRoute.activeSubpath)
+            if (StationStops != null && StationStops.Count > 0 && StationStops[0].SubrouteIndex == TCRoute.ActiveSubPath)
             {
                 return; // station stop required in this subpath - reversal not valid
             }
 
-            if (TCRoute.ReversalInfo[TCRoute.activeSubpath].Valid)
+            if (TCRoute.ReversalInfo[TCRoute.ActiveSubPath].Valid)
             {
-                int reqSection = (TCRoute.ReversalInfo[TCRoute.activeSubpath].SignalUsed && !ForceReversal) ?
-                    TCRoute.ReversalInfo[TCRoute.activeSubpath].LastSignalIndex :
-                    TCRoute.ReversalInfo[TCRoute.activeSubpath].LastDivergeIndex;
+                int reqSection = (TCRoute.ReversalInfo[TCRoute.ActiveSubPath].SignalUsed && !ForceReversal) ?
+                    TCRoute.ReversalInfo[TCRoute.ActiveSubPath].LastSignalIndex :
+                    TCRoute.ReversalInfo[TCRoute.ActiveSubPath].LastDivergeIndex;
 
-                if (reqSection >= 0 && PresentPosition[1].RouteListIndex >= reqSection && TCRoute.ReversalInfo[TCRoute.activeSubpath].ReversalActionInserted == false)
+                if (reqSection >= 0 && PresentPosition[1].RouteListIndex >= reqSection && TCRoute.ReversalInfo[TCRoute.ActiveSubPath].ReversalActionInserted == false)
                 {
                     if (!NeedPickUp && !CheckTransferRequired())
                     {
@@ -3026,7 +3026,7 @@ namespace Orts.Simulation.Timetables
                     // if no action, check for station stop (may not be activated due to distance travelled)
                     else if (nextActionInfo == null && StationStops != null && StationStops.Count > 0)
                     {
-                        if (StationStops[0].SubrouteIndex == TCRoute.activeSubpath &&
+                        if (StationStops[0].SubrouteIndex == TCRoute.ActiveSubPath &&
                            ValidRoute[0].GetRouteIndex(StationStops[0].TCSectionIndex, PresentPosition[0].RouteListIndex) <= PresentPosition[0].RouteListIndex)
                         // assume to be in station
                         {
@@ -3179,7 +3179,7 @@ namespace Orts.Simulation.Timetables
                 else if (nextActionInfo != null &&
                  nextActionInfo.NextAction == AIActionItem.AI_ACTION_TYPE.STATION_STOP)
                 {
-                    if (StationStops[0].SubrouteIndex == TCRoute.activeSubpath &&
+                    if (StationStops[0].SubrouteIndex == TCRoute.ActiveSubPath &&
                        ValidRoute[0].GetRouteIndex(StationStops[0].TCSectionIndex, PresentPosition[0].RouteListIndex) <= PresentPosition[0].RouteListIndex)
                     // assume to be in station
                     {
@@ -3520,7 +3520,7 @@ namespace Orts.Simulation.Timetables
 
                         DistanceTravelledM = 0;
                         ValidRoute[0] = tempRoute;
-                        TCRoute.TCRouteSubpaths[TCRoute.activeSubpath] = new TrackCircuitPartialPathRoute(tempRoute);
+                        TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath] = new TrackCircuitPartialPathRoute(tempRoute);
 
                         PresentPosition[0].RouteListIndex = ValidRoute[0].GetRouteIndex(PresentPosition[0].TCSectionIndex, 0);
                         PresentPosition[1].RouteListIndex = ValidRoute[0].GetRouteIndex(PresentPosition[1].TCSectionIndex, 0);
@@ -3530,7 +3530,7 @@ namespace Orts.Simulation.Timetables
                         // build path to train - straight forward, set distance of 2000m (should be enough)
                         TrackCircuitPartialPathRoute tempRoute = SignalEnvironment.BuildTempRoute(this, PresentPosition[1].TCSectionIndex, 0.0f, (TrackDirection)PresentPosition[1].TCDirection, 2000, true, true, false);
                         ValidRoute[0] = tempRoute;
-                        TCRoute.TCRouteSubpaths[TCRoute.activeSubpath] = new TrackCircuitPartialPathRoute(tempRoute);
+                        TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath] = new TrackCircuitPartialPathRoute(tempRoute);
 
                         PresentPosition[0].RouteListIndex = ValidRoute[0].GetRouteIndex(PresentPosition[0].TCSectionIndex, 0);
                         PresentPosition[1].RouteListIndex = ValidRoute[0].GetRouteIndex(PresentPosition[1].TCSectionIndex, 0);
@@ -4429,10 +4429,10 @@ namespace Orts.Simulation.Timetables
                             }
 
                             // if reversing on track where train is located, also allow closeup
-                            if (TCRoute.activeSubpath < TCRoute.TCRouteSubpaths.Count - 1 && TCRoute.ReversalInfo[TCRoute.activeSubpath].Valid)
+                            if (TCRoute.ActiveSubPath < TCRoute.TCRouteSubpaths.Count - 1 && TCRoute.ReversalInfo[TCRoute.ActiveSubPath].Valid)
                             {
-                                if (TCRoute.ReversalInfo[TCRoute.activeSubpath].ReversalSectionIndex == OtherTrain.PresentPosition[0].TCSectionIndex ||
-                                    TCRoute.ReversalInfo[TCRoute.activeSubpath].ReversalSectionIndex == OtherTrain.PresentPosition[1].TCSectionIndex)
+                                if (TCRoute.ReversalInfo[TCRoute.ActiveSubPath].ReversalSectionIndex == OtherTrain.PresentPosition[0].TCSectionIndex ||
+                                    TCRoute.ReversalInfo[TCRoute.ActiveSubPath].ReversalSectionIndex == OtherTrain.PresentPosition[1].TCSectionIndex)
                                 {
                                     keepDistanceTrainM = keepDistanceTrainAheadCloseupM;
                                 }
@@ -4600,7 +4600,7 @@ namespace Orts.Simulation.Timetables
                                     otherTrainInStation = (OtherAITrain.MovementState == AI_MOVEMENT_STATE.STATION_STOP || OtherAITrain.MovementState == AI_MOVEMENT_STATE.AI_STATIC);
 
                                     bool thisTrainInStation = (nextActionInfo != null && nextActionInfo.NextAction == AIActionItem.AI_ACTION_TYPE.STATION_STOP);
-                                    if (thisTrainInStation) thisTrainInStation = (StationStops[0].SubrouteIndex == TCRoute.activeSubpath);
+                                    if (thisTrainInStation) thisTrainInStation = (StationStops[0].SubrouteIndex == TCRoute.ActiveSubPath);
                                     if (thisTrainInStation)
                                     {
                                         if (otherTrainInStation)
@@ -4642,7 +4642,7 @@ namespace Orts.Simulation.Timetables
                                             // if waited behind other train, move remaining track sections to next subroute if required
 
                                             // scan sections in backward order
-                                            TrackCircuitPartialPathRoute nextRoute = TCRoute.TCRouteSubpaths[TCRoute.activeSubpath + 1];
+                                            TrackCircuitPartialPathRoute nextRoute = TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath + 1];
 
                                             for (int iIndex = ValidRoute[0].Count - 1; iIndex > PresentPosition[0].RouteListIndex; iIndex--)
                                             {
@@ -5780,7 +5780,7 @@ namespace Orts.Simulation.Timetables
 
                     PoolStorageIndex = PoolStorageState;
                     TCRoute.TCRouteSubpaths[TCRoute.TCRouteSubpaths.Count - 1] = new TrackCircuitPartialPathRoute(newRoute);
-                    if (TCRoute.activeSubpath == TCRoute.TCRouteSubpaths.Count - 1)
+                    if (TCRoute.ActiveSubPath == TCRoute.TCRouteSubpaths.Count - 1)
                     {
                         ValidRoute[0] = new TrackCircuitPartialPathRoute(newRoute);
 
@@ -6097,7 +6097,7 @@ namespace Orts.Simulation.Timetables
                 if (!pickUpTrain && PickUpStaticOnForms)
                 {
                     // train is not in last subpath so pickup cannot be valid
-                    if (TCRoute.activeSubpath != TCRoute.TCRouteSubpaths.Count - 1)
+                    if (TCRoute.ActiveSubPath != TCRoute.TCRouteSubpaths.Count - 1)
                     {
                         return (false);
                     }
@@ -6138,9 +6138,9 @@ namespace Orts.Simulation.Timetables
                             int useindex = Math.Max(otherTrainRearIndex, otherTrainFrontIndex);
                             float remLength = 0;
 
-                            for (int iElement = useindex + 1; iElement < TCRoute.TCRouteSubpaths[TCRoute.activeSubpath].Count; iElement++)
+                            for (int iElement = useindex + 1; iElement < TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath].Count; iElement++)
                             {
-                                remLength += TCRoute.TCRouteSubpaths[TCRoute.activeSubpath][iElement].TrackCircuitSection.Length;
+                                remLength += TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath][iElement].TrackCircuitSection.Length;
                             }
 
                             if (remLength < endOfRouteDistance)
@@ -6155,9 +6155,9 @@ namespace Orts.Simulation.Timetables
                             bool moretrains = false;
                             int useindex = Math.Max(otherTrainRearIndex, otherTrainFrontIndex);
 
-                            for (int iElement = useindex + 1; iElement < TCRoute.TCRouteSubpaths[TCRoute.activeSubpath].Count; iElement++)
+                            for (int iElement = useindex + 1; iElement < TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath].Count; iElement++)
                             {
-                                TrackCircuitSection thisSection = TCRoute.TCRouteSubpaths[TCRoute.activeSubpath][iElement].TrackCircuitSection;
+                                TrackCircuitSection thisSection = TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath][iElement].TrackCircuitSection;
                                 List<Train.TrainRouted> trainsInSection = thisSection.CircuitState.TrainsOccupying();
                                 if (trainsInSection.Count > 0)
                                 {
@@ -6359,7 +6359,7 @@ namespace Orts.Simulation.Timetables
                 // only do so if last section is not a station and closeup is not set for dispose
 
                 TrackCircuitSection lastSection = lastElement.TrackCircuitSection;
-                if (lastSection.EndSignals[lastElement.Direction] == null && TCRoute.activeSubpath == (TCRoute.TCRouteSubpaths.Count - 1))
+                if (lastSection.EndSignals[lastElement.Direction] == null && TCRoute.ActiveSubPath == (TCRoute.TCRouteSubpaths.Count - 1))
                 {
                     int nextIndex = lastSection.Pins[lastElement.Direction, Location.NearEnd].Link;
                     bool lastIsStation = false;
@@ -6795,7 +6795,7 @@ namespace Orts.Simulation.Timetables
 
                         if (fullpath != null) // valid path
                         {
-                            TCRoutePath fullRoute = new TCRoutePath(fullpath, -2, 1, -1);
+                            TrackCircuitRoutePath fullRoute = new TrackCircuitRoutePath(fullpath, (TrackDirection)(-2), 1, -1);
                             newWaitItem.CheckPath = new TrackCircuitPartialPathRoute(fullRoute.TCRouteSubpaths[0]);
 
                             // find first overlap section with train route
@@ -7422,7 +7422,7 @@ namespace Orts.Simulation.Timetables
         /// <param name="foundSameDirection"></param>
         /// <returns></returns>
 
-        public int[,] FindCommonSectionStart(int thisTrainStartSubpathIndex, int thisTrainStartRouteIndex, TCRoutePath otherTrainRoute,
+        private int[,] FindCommonSectionStart(int thisTrainStartSubpathIndex, int thisTrainStartRouteIndex, TrackCircuitRoutePath otherTrainRoute,
                 int startSubpath, int startIndex, int endSubpath, int endIndex, int increment)
         {
             // preset all loop data
@@ -7653,7 +7653,7 @@ namespace Orts.Simulation.Timetables
                 return (false);
             }
 
-            while (firstWait.activeSubrouteIndex == TCRoute.activeSubpath && firstWait.activeSectionIndex == trackSectionIndex)
+            while (firstWait.activeSubrouteIndex == TCRoute.ActiveSubPath && firstWait.activeSectionIndex == trackSectionIndex)
             {
                 switch (firstWait.WaitType)
                 {
@@ -7834,7 +7834,7 @@ namespace Orts.Simulation.Timetables
                 // other train in correct subpath
                 // check if trigger time passed
 
-                if (otherTrain.TCRoute.activeSubpath == reqWait.waitTrainSubpathIndex)
+                if (otherTrain.TCRoute.ActiveSubPath == reqWait.waitTrainSubpathIndex)
                 {
                     // check if section on train route and if so, if end of train is beyond this section
                     // check only for forward path - train must have passed section in 'normal' mode
@@ -7890,7 +7890,7 @@ namespace Orts.Simulation.Timetables
                 }
 
                 // if other train not in this subpath but notstarted is set, wait is valid (except when conditioned by own delay)
-                else if (otherTrain.TCRoute.activeSubpath < reqWait.waitTrainSubpathIndex && reqWait.notStarted.HasValue && owndelayexceeded)
+                else if (otherTrain.TCRoute.ActiveSubPath < reqWait.waitTrainSubpathIndex && reqWait.notStarted.HasValue && owndelayexceeded)
                 {
                     waitState = true;
                     reqWait.WaitActive = true;
@@ -8064,7 +8064,7 @@ namespace Orts.Simulation.Timetables
                         StationStops.RemoveAt(0);
                     }
                     // if station was in previous path, checked if passed
-                    else if (thisStation.SubrouteIndex < TCRoute.activeSubpath)
+                    else if (thisStation.SubrouteIndex < TCRoute.ActiveSubPath)
                     {
                         int routeIndex = ValidRoute[0].GetRouteIndex(thisStation.TCSectionIndex, 0);
                         if (routeIndex < 0 || PresentPosition[0].RouteListIndex > routeIndex) // station no longer on route or train beyond station
@@ -8078,7 +8078,7 @@ namespace Orts.Simulation.Timetables
                         // if in station set correct subroute and route indices
                         else if (PresentPosition[0].RouteListIndex == routeIndex)
                         {
-                            thisStation.SubrouteIndex = TCRoute.activeSubpath;
+                            thisStation.SubrouteIndex = TCRoute.ActiveSubPath;
                             thisStation.RouteIndex = routeIndex;
 
                             AtStation = true;
@@ -8362,7 +8362,7 @@ namespace Orts.Simulation.Timetables
             if (endOfRoute)
             {
                 // if train needs to pick up before reaching end of path, continue train
-                if (PickUpStaticOnForms && TCRoute.activeSubpath == (TCRoute.TCRouteSubpaths.Count - 1))
+                if (PickUpStaticOnForms && TCRoute.ActiveSubPath == (TCRoute.TCRouteSubpaths.Count - 1))
                 {
                     return (false);
                 }
@@ -8442,13 +8442,13 @@ namespace Orts.Simulation.Timetables
             }
 
             // if not stopped in station and next stop in this subpath, it cannot be end of route
-            if (!AtStation && StationStops.Count > 0 && StationStops[0].SubrouteIndex == TCRoute.activeSubpath)
+            if (!AtStation && StationStops.Count > 0 && StationStops[0].SubrouteIndex == TCRoute.ActiveSubPath)
             {
                 return (endOfRoute);
             }
 
             // if stopped at station and next stop in this subpath, it cannot be end of route
-            if (AtStation && StationStops.Count > 1 && StationStops[1].SubrouteIndex == TCRoute.activeSubpath)
+            if (AtStation && StationStops.Count > 1 && StationStops[1].SubrouteIndex == TCRoute.ActiveSubPath)
             {
                 return (endOfRoute);
             }
@@ -8476,7 +8476,7 @@ namespace Orts.Simulation.Timetables
             int reversalSectionIndex = -1;
             if (TCRoute != null && (ControlMode == TrainControlMode.AutoNode || ControlMode == TrainControlMode.AutoSignal))
             {
-                TCReversalInfo thisReversal = TCRoute.ReversalInfo[TCRoute.activeSubpath];
+                TCReversalInfo thisReversal = TCRoute.ReversalInfo[TCRoute.ActiveSubPath];
                 if (thisReversal.Valid)
                 {
                     reversalSectionIndex = (thisReversal.SignalUsed && !ForceReversal) ? thisReversal.LastSignalIndex : thisReversal.LastDivergeIndex;
@@ -8659,7 +8659,7 @@ namespace Orts.Simulation.Timetables
                 {
                     // if there is a station ahead, this is not end of route
                     if (MovementState != AI_MOVEMENT_STATE.STATION_STOP && StationStops != null && StationStops.Count > 0 &&
-                        StationStops[0].SubrouteIndex == TCRoute.activeSubpath)
+                        StationStops[0].SubrouteIndex == TCRoute.ActiveSubPath)
                     {
                         endOfRoute = false;
                     }
@@ -8995,7 +8995,7 @@ namespace Orts.Simulation.Timetables
             if (!reversalInfo.Valid) 
                 return;
 
-            int reversalSection = TCRoute.TCRouteSubpaths[TCRoute.activeSubpath][(TCRoute.TCRouteSubpaths[TCRoute.activeSubpath].Count) - 1].TrackCircuitSection.Index;
+            int reversalSection = TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath][(TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath].Count) - 1].TrackCircuitSection.Index;
             if (reversalInfo.LastDivergeIndex >= 0)
             {
                 reversalSection = reversalInfo.SignalUsed ? reversalInfo.SignalSectorIndex : reversalInfo.DivergeSectorIndex;
@@ -9051,9 +9051,9 @@ namespace Orts.Simulation.Timetables
                 if (StationStops.Count > 0)
                 {
                     StationStop thisStation = StationStops[0];
-                    if (thisStation.SubrouteIndex < TCRoute.activeSubpath)
+                    if (thisStation.SubrouteIndex < TCRoute.ActiveSubPath)
                     {
-                        thisStation.SubrouteIndex = TCRoute.activeSubpath;
+                        thisStation.SubrouteIndex = TCRoute.ActiveSubPath;
                     }
                 }
             }
@@ -9578,7 +9578,7 @@ namespace Orts.Simulation.Timetables
 
                         int stationRouteIndex = ValidRoute[0].GetRouteIndex(StationStops[0].TCSectionIndex, 0);
 
-                        if (StationStops[0].SubrouteIndex == TCRoute.activeSubpath)
+                        if (StationStops[0].SubrouteIndex == TCRoute.ActiveSubPath)
                         {
                             if (stationRouteIndex < 0)
                             {
@@ -9689,7 +9689,7 @@ namespace Orts.Simulation.Timetables
                     foundStation = iStation;
                 }
 
-                if (thisStation.SubrouteIndex > TCRoute.activeSubpath) break; // stop looking if station is in next subpath
+                if (thisStation.SubrouteIndex > TCRoute.ActiveSubPath) break; // stop looking if station is in next subpath
             }
 
             if (foundStation >= 0)
@@ -10571,7 +10571,7 @@ namespace Orts.Simulation.Timetables
                     }
                     else if (attachTrainAction == AIActionItem.AI_ACTION_TYPE.STATION_STOP)
                     {
-                        if (attachTrain.StationStops[0].SubrouteIndex == attachTrain.TCRoute.activeSubpath &&
+                        if (attachTrain.StationStops[0].SubrouteIndex == attachTrain.TCRoute.ActiveSubPath &&
                            attachTrain.ValidRoute[0].GetRouteIndex(attachTrain.StationStops[0].TCSectionIndex, attachTrain.PresentPosition[0].RouteListIndex) <= attachTrain.PresentPosition[0].RouteListIndex)
                         // assume to be in station
                         // also set state of present train to station stop
@@ -11133,7 +11133,7 @@ namespace Orts.Simulation.Timetables
                 if (addFront)
                 {
                     //ensure first section in route is occupied, otherwise do not add sections
-                    int firstIndex = TCRoute.TCRouteSubpaths[TCRoute.activeSubpath][0].TrackCircuitSection.Index;
+                    int firstIndex = TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath][0].TrackCircuitSection.Index;
                     bool firstoccupied = false;
                     for (int iSection = occupiedSections.Length - 1; iSection >= 0 && !firstoccupied; iSection--)
                     {
@@ -11154,7 +11154,7 @@ namespace Orts.Simulation.Timetables
                     for (int iSection = occupiedSections.Length - 1; iSection >= 0 && firstoccupied; iSection--)
                     {
                         TrackCircuitSection thisSection = occupiedSections[iSection];
-                        int routeIndex = TCRoute.TCRouteSubpaths[TCRoute.activeSubpath].GetRouteIndex(thisSection.Index, 0);
+                        int routeIndex = TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath].GetRouteIndex(thisSection.Index, 0);
 
                         if (routeIndex < 0)
                         {
@@ -11183,7 +11183,7 @@ namespace Orts.Simulation.Timetables
                                 }
                             }
 
-                            TCRoute.TCRouteSubpaths[TCRoute.activeSubpath].Insert(0, newElement);
+                            TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath].Insert(0, newElement);
                             addedSections++;
                         }
                     }
@@ -11192,7 +11192,7 @@ namespace Orts.Simulation.Timetables
                 else
                 {
                     //ensure last section in route is occupied, otherwise do not add sections
-                    int lastIndex = TCRoute.TCRouteSubpaths[TCRoute.activeSubpath].Last().TrackCircuitSection.Index;
+                    int lastIndex = TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath].Last().TrackCircuitSection.Index;
                     bool lastoccupied = false;
                     for (int iSection = occupiedSections.Length - 1; iSection >= 0 && !lastoccupied; iSection--)
                     {
@@ -11212,7 +11212,7 @@ namespace Orts.Simulation.Timetables
                     for (int iSection = 0; iSection < occupiedSections.Length && lastoccupied; iSection++)
                     {
                         TrackCircuitSection thisSection = occupiedSections[iSection];
-                        int routeIndex = TCRoute.TCRouteSubpaths[TCRoute.activeSubpath].GetRouteIndex(thisSection.Index, 0);
+                        int routeIndex = TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath].GetRouteIndex(thisSection.Index, 0);
                         if (routeIndex < 0)
                         {
                             TrackCircuitRouteElement newElement = null;
@@ -11240,13 +11240,13 @@ namespace Orts.Simulation.Timetables
                                 }
                             }
 
-                            TCRoute.TCRouteSubpaths[TCRoute.activeSubpath].Add(newElement);
+                            TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath].Add(newElement);
                             addedSections++;
                         }
                     }
                 }
 
-                ValidRoute[0] = new TrackCircuitPartialPathRoute(TCRoute.TCRouteSubpaths[TCRoute.activeSubpath]);
+                ValidRoute[0] = new TrackCircuitPartialPathRoute(TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath]);
 
                 // update section index references in TCroute data
                 if (TCRoute.ReversalInfo[0].Valid)
@@ -11276,7 +11276,7 @@ namespace Orts.Simulation.Timetables
                 if (addFront)
                 {
                     //ensure first section in route is occupied, otherwise do not add sections
-                    int firstIndex = TCRoute.TCRouteSubpaths[TCRoute.activeSubpath][0].TrackCircuitSection.Index;
+                    int firstIndex = TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath][0].TrackCircuitSection.Index;
                     bool firstoccupied = false;
                     for (int iSection = occupiedSections.Length - 1; iSection >= 0 && !firstoccupied; iSection--)
                     {
@@ -11287,12 +11287,12 @@ namespace Orts.Simulation.Timetables
                     for (int iSection = occupiedSections.Length - 1; iSection >= 0 && firstoccupied; iSection--)
                     {
                         TrackCircuitSection thisSection = occupiedSections[iSection];
-                        int routeIndex = TCRoute.TCRouteSubpaths[TCRoute.activeSubpath].GetRouteIndex(thisSection.Index, 0);
+                        int routeIndex = TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath].GetRouteIndex(thisSection.Index, 0);
                         if (routeIndex < 0)
                         {
                             int otherTrainRouteIndex = oldTrain.ValidRoute[0].GetRouteIndex(thisSection.Index, 0);
                             TrackCircuitRouteElement newElement = new TrackCircuitRouteElement(oldTrain.ValidRoute[0][otherTrainRouteIndex]);
-                            TCRoute.TCRouteSubpaths[TCRoute.activeSubpath].Insert(0, newElement);
+                            TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath].Insert(0, newElement);
                             addedSections++;
                         }
                     }
@@ -11300,7 +11300,7 @@ namespace Orts.Simulation.Timetables
                 else
                 {
                     //ensure last section in route is occupied, otherwise do not add sections
-                    int lastIndex = TCRoute.TCRouteSubpaths[TCRoute.activeSubpath].Last().TrackCircuitSection.Index;
+                    int lastIndex = TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath].Last().TrackCircuitSection.Index;
                     bool lastoccupied = false;
                     for (int iSection = occupiedSections.Length - 1; iSection >= 0 && !lastoccupied; iSection--)
                     {
@@ -11311,27 +11311,27 @@ namespace Orts.Simulation.Timetables
                     for (int iSection = 0; iSection < occupiedSections.Length && lastoccupied; iSection++)
                     {
                         TrackCircuitSection thisSection = occupiedSections[iSection];
-                        int routeIndex = TCRoute.TCRouteSubpaths[TCRoute.activeSubpath].GetRouteIndex(thisSection.Index, 0);
+                        int routeIndex = TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath].GetRouteIndex(thisSection.Index, 0);
                         if (routeIndex < 0)
                         {
                             int otherTrainRouteIndex = oldTrain.ValidRoute[0].GetRouteIndex(thisSection.Index, 0);
                             TrackCircuitRouteElement newElement = new TrackCircuitRouteElement(oldTrain.ValidRoute[0][otherTrainRouteIndex]);
-                            TCRoute.TCRouteSubpaths[TCRoute.activeSubpath].Add(newElement);
+                            TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath].Add(newElement);
                             addedSections++;
                         }
                     }
                 }
 
                 trainFrontPositionIndex = 0;
-                ValidRoute[0] = new TrackCircuitPartialPathRoute(TCRoute.TCRouteSubpaths[TCRoute.activeSubpath]);
+                ValidRoute[0] = new TrackCircuitPartialPathRoute(TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath]);
 
                 // update section index references in TCroute data
-                if (TCRoute.ReversalInfo[TCRoute.activeSubpath].Valid)
+                if (TCRoute.ReversalInfo[TCRoute.ActiveSubPath].Valid)
                 {
-                    TCRoute.ReversalInfo[TCRoute.activeSubpath].FirstDivergeIndex += addedSections;
-                    TCRoute.ReversalInfo[TCRoute.activeSubpath].FirstSignalIndex += addedSections;
-                    TCRoute.ReversalInfo[TCRoute.activeSubpath].LastDivergeIndex += addedSections;
-                    TCRoute.ReversalInfo[TCRoute.activeSubpath].LastSignalIndex += addedSections;
+                    TCRoute.ReversalInfo[TCRoute.ActiveSubPath].FirstDivergeIndex += addedSections;
+                    TCRoute.ReversalInfo[TCRoute.ActiveSubPath].FirstSignalIndex += addedSections;
+                    TCRoute.ReversalInfo[TCRoute.ActiveSubPath].LastDivergeIndex += addedSections;
+                    TCRoute.ReversalInfo[TCRoute.ActiveSubPath].LastSignalIndex += addedSections;
                 }
                 // update station stop indices
                 if (StationStops != null)
@@ -11400,7 +11400,7 @@ namespace Orts.Simulation.Timetables
             formedTrain.CreateRoute(true);
             if (formedTrain.TCRoute == null)
             {
-                formedTrain.TCRoute = new TCRoutePath(formedTrain.ValidRoute[0]);
+                formedTrain.TCRoute = new TrackCircuitRoutePath(formedTrain.ValidRoute[0]);
             }
             else
             {
@@ -12476,7 +12476,7 @@ namespace Orts.Simulation.Timetables
                     if (newTrain.TCRoute == null)
                     {
                         TrackCircuitPartialPathRoute newTrainPath = new TrackCircuitPartialPathRoute(train.ValidRoute[0], train.PresentPosition[1].RouteListIndex, train.PresentPosition[0].RouteListIndex);
-                        newTrain.TCRoute = new Orts.Simulation.Physics.Train.TCRoutePath(newTrainPath);
+                        newTrain.TCRoute = new TrackCircuitRoutePath(newTrainPath);
                         newTrain.ValidRoute[0] = new TrackCircuitPartialPathRoute(newTrain.TCRoute.TCRouteSubpaths[0]);
                     }
 
@@ -13919,8 +13919,8 @@ namespace Orts.Simulation.Timetables
                 int firstSectionIndex = thisTrain.OccupiedTrack[0].Index;
                 int lastSectionIndex = thisTrain.OccupiedTrack.Last().Index;
                 int lastRouteIndex = Math.Max(thisTrain.ValidRoute[0].GetRouteIndex(firstSectionIndex, 0), thisTrain.ValidRoute[0].GetRouteIndex(lastSectionIndex, 0));
-                TrackCircuitPartialPathRoute newRoute = new TrackCircuitPartialPathRoute(thisTrain.TCRoute.TCRouteSubpaths[thisTrain.TCRoute.activeSubpath], 0, lastRouteIndex);
-                thisTrain.TCRoute.TCRouteSubpaths[thisTrain.TCRoute.activeSubpath] = new TrackCircuitPartialPathRoute(newRoute);
+                TrackCircuitPartialPathRoute newRoute = new TrackCircuitPartialPathRoute(thisTrain.TCRoute.TCRouteSubpaths[thisTrain.TCRoute.ActiveSubPath], 0, lastRouteIndex);
+                thisTrain.TCRoute.TCRouteSubpaths[thisTrain.TCRoute.ActiveSubPath] = new TrackCircuitPartialPathRoute(newRoute);
                 thisTrain.ValidRoute[0] = new TrackCircuitPartialPathRoute(newRoute);
 
                 thisTrain.MovementState = AITrain.AI_MOVEMENT_STATE.STOPPED;

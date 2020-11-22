@@ -466,7 +466,7 @@ namespace Orts.Simulation.AIs
             // get station details
 
             StationStop thisStation = StationStops[0];
-            if (thisStation.SubrouteIndex != TCRoute.activeSubpath)
+            if (thisStation.SubrouteIndex != TCRoute.ActiveSubPath)
             {
                 return (false);
             }
@@ -866,13 +866,13 @@ namespace Orts.Simulation.AIs
         {
             if ((nextActionInfo == null ||
                  (nextActionInfo.NextAction != AIActionItem.AI_ACTION_TYPE.STATION_STOP && nextActionInfo.NextAction != AIActionItem.AI_ACTION_TYPE.REVERSAL)) &&
-                 TCRoute.ReversalInfo[TCRoute.activeSubpath].Valid)
+                 TCRoute.ReversalInfo[TCRoute.ActiveSubPath].Valid)
             {
-                int reqSection = TCRoute.ReversalInfo[TCRoute.activeSubpath].SignalUsed ?
-                    TCRoute.ReversalInfo[TCRoute.activeSubpath].LastSignalIndex :
-                    TCRoute.ReversalInfo[TCRoute.activeSubpath].LastDivergeIndex;
+                int reqSection = TCRoute.ReversalInfo[TCRoute.ActiveSubPath].SignalUsed ?
+                    TCRoute.ReversalInfo[TCRoute.ActiveSubPath].LastSignalIndex :
+                    TCRoute.ReversalInfo[TCRoute.ActiveSubPath].LastDivergeIndex;
 
-                if (reqSection >= 0 && PresentPosition[1].RouteListIndex >= reqSection && TCRoute.ReversalInfo[TCRoute.activeSubpath].ReversalActionInserted == false)
+                if (reqSection >= 0 && PresentPosition[1].RouteListIndex >= reqSection && TCRoute.ReversalInfo[TCRoute.ActiveSubPath].ReversalActionInserted == false)
                 {
                     float reqDistance = SpeedMpS * SpeedMpS * MaxDecelMpSS;
                     float distanceToReversalPoint = 0;
@@ -883,7 +883,7 @@ namespace Orts.Simulation.AIs
                     // <CSComment: the AI train runs up to the reverse point no matter how far it is from the diverging point.
 
                     CreateTrainAction(TrainMaxSpeedMpS, 0.0f, distanceToReversalPoint, null, AIActionItem.AI_ACTION_TYPE.REVERSAL);
-                    TCRoute.ReversalInfo[TCRoute.activeSubpath].ReversalActionInserted = true;
+                    TCRoute.ReversalInfo[TCRoute.ActiveSubPath].ReversalActionInserted = true;
 
                 }
             }
@@ -924,7 +924,7 @@ namespace Orts.Simulation.AIs
                 (nextActionInfo == null || nextActionInfo.NextAction == AIActionItem.AI_ACTION_TYPE.END_OF_ROUTE))
             {
                 ResetActions(false);
-                if (TCRoute.activeSubpath < TCRoute.TCRouteSubpaths.Count - 1)
+                if (TCRoute.ActiveSubPath < TCRoute.TCRouteSubpaths.Count - 1)
                     NextStopDistanceM = DistanceToEndNodeAuthorityM[0] - activityClearingDistanceM;
                 else NextStopDistanceM = ComputeDistanceToReversalPoint() - activityClearingDistanceM;
             }
@@ -1052,7 +1052,7 @@ namespace Orts.Simulation.AIs
 
             int stationIndex = 0;
             StationStop thisStation = StationStops[stationIndex];
-            while (thisStation.SubrouteIndex < TCRoute.activeSubpath) // station was in previous subpath
+            while (thisStation.SubrouteIndex < TCRoute.ActiveSubPath) // station was in previous subpath
             {
                 StationStops.RemoveAt(0);
                 if (StationStops.Count == 0) // no more stations
@@ -1062,7 +1062,7 @@ namespace Orts.Simulation.AIs
                 thisStation = StationStops[0];
             }
 
-            if (thisStation.SubrouteIndex > TCRoute.activeSubpath)    // station is not in this subpath
+            if (thisStation.SubrouteIndex > TCRoute.ActiveSubPath)    // station is not in this subpath
             {
                 return;
             }
@@ -1085,7 +1085,7 @@ namespace Orts.Simulation.AIs
                         }
 
                         thisStation = StationStops[0];
-                        if (thisStation.SubrouteIndex > TCRoute.activeSubpath) return;  // station not in this subpath - exit
+                        if (thisStation.SubrouteIndex > TCRoute.ActiveSubPath) return;  // station not in this subpath - exit
                     }
                     else
                     {
@@ -1345,9 +1345,9 @@ namespace Orts.Simulation.AIs
                         if (Math.Abs(OtherTrain.SpeedMpS) < 0.001f &&
                                     (DistanceToEndNodeAuthorityM[0] > followDistanceStatTrainM || UncondAttach || OtherTrain.TrainType == TrainType.Static ||
                                     OtherTrain.PresentPosition[0].TCSectionIndex ==
-                                    TCRoute.TCRouteSubpaths[TCRoute.activeSubpath][TCRoute.TCRouteSubpaths[TCRoute.activeSubpath].Count - 1].TrackCircuitSection.Index
+                                    TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath][TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath].Count - 1].TrackCircuitSection.Index
                                     || OtherTrain.PresentPosition[1].TCSectionIndex ==
-                                    TCRoute.TCRouteSubpaths[TCRoute.activeSubpath][TCRoute.TCRouteSubpaths[TCRoute.activeSubpath].Count - 1].TrackCircuitSection.Index))
+                                    TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath][TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath].Count - 1].TrackCircuitSection.Index))
                         {
                             // allow creeping closer
                             CreateTrainAction(creepSpeedMpS, 0.0f, DistanceToEndNodeAuthorityM[0], null, AIActionItem.AI_ACTION_TYPE.TRAIN_AHEAD);
@@ -1484,7 +1484,7 @@ namespace Orts.Simulation.AIs
                 {
                     // if stop but train is well away from signal allow to close; also if at end of path.
                     if (DistanceToSignal.HasValue && DistanceToSignal.Value > 5 * signalApproachDistanceM ||
-                        (TCRoute.TCRouteSubpaths[TCRoute.activeSubpath].Count - 1 == PresentPosition[0].RouteListIndex))
+                        (TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath].Count - 1 == PresentPosition[0].RouteListIndex))
                     {
                         MovementState = AI_MOVEMENT_STATE.ACCELERATING;
                         StartMoving(AI_START_MOVEMENT.PATH_ACTION);
@@ -1500,7 +1500,7 @@ namespace Orts.Simulation.AIs
                 else if (nextActionInfo != null &&
                  nextActionInfo.NextAction == AIActionItem.AI_ACTION_TYPE.STATION_STOP)
                 {
-                    if (StationStops[0].SubrouteIndex == TCRoute.activeSubpath &&
+                    if (StationStops[0].SubrouteIndex == TCRoute.ActiveSubPath &&
                        ValidRoute[0].GetRouteIndex(StationStops[0].TCSectionIndex, PresentPosition[0].RouteListIndex) <= PresentPosition[0].RouteListIndex)
                     // assume to be in station
                     {
@@ -1531,7 +1531,7 @@ namespace Orts.Simulation.AIs
                         {
                             var distanceSignaltoTrain = NextSignalObject[0].DistanceTo(FrontTDBTraveller);
                             float distanceToReversalPoint = 10000000f;
-                            if (TCRoute.ReversalInfo[TCRoute.activeSubpath] != null && TCRoute.ReversalInfo[TCRoute.activeSubpath].Valid)
+                            if (TCRoute.ReversalInfo[TCRoute.ActiveSubPath] != null && TCRoute.ReversalInfo[TCRoute.ActiveSubPath].Valid)
                             {
                                 distanceToReversalPoint = ComputeDistanceToReversalPoint();
                             }
@@ -1756,9 +1756,9 @@ namespace Orts.Simulation.AIs
             else if (thisStation.ExitSignal >= 0 && NextSignalObject[0] != null && NextSignalObject[0].Index == thisStation.ExitSignal)
             {
                 SignalAspectState nextAspect = GetNextSignalAspect(0);
-                if (nextAspect == SignalAspectState.Stop && !NextSignalObject[0].HasLockForTrain(Number, TCRoute.activeSubpath) && 
-                    !(TCRoute.TCRouteSubpaths[TCRoute.activeSubpath].Count - 1 == PresentPosition[0].RouteListIndex &&
-                        TCRoute.TCRouteSubpaths.Count -1 == TCRoute.activeSubpath))
+                if (nextAspect == SignalAspectState.Stop && !NextSignalObject[0].HasLockForTrain(Number, TCRoute.ActiveSubPath) && 
+                    !(TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath].Count - 1 == PresentPosition[0].RouteListIndex &&
+                        TCRoute.TCRouteSubpaths.Count -1 == TCRoute.ActiveSubPath))
                 {
                     return;  // do not depart if exit signal at danger
                 }
@@ -2431,10 +2431,10 @@ namespace Orts.Simulation.AIs
                         if (Math.Abs(OtherTrain.SpeedMpS) < 0.025f && distanceToTrain <= 2 * keepDistanceMovingTrainM)
                         {
                             if (OtherTrain.TrainType == TrainType.Static || (OtherTrain.PresentPosition[0].TCSectionIndex ==
-                                TCRoute.TCRouteSubpaths[TCRoute.activeSubpath][TCRoute.TCRouteSubpaths[TCRoute.activeSubpath].Count - 1].TrackCircuitSection.Index
+                                TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath][TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath].Count - 1].TrackCircuitSection.Index
                                 || OtherTrain.PresentPosition[1].TCSectionIndex ==
-                                TCRoute.TCRouteSubpaths[TCRoute.activeSubpath][TCRoute.TCRouteSubpaths[TCRoute.activeSubpath].Count - 1].TrackCircuitSection.Index) && 
-                                (TCRoute.ReversalInfo[TCRoute.activeSubpath].Valid || TCRoute.activeSubpath == TCRoute.TCRouteSubpaths.Count - 1) 
+                                TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath][TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath].Count - 1].TrackCircuitSection.Index) && 
+                                (TCRoute.ReversalInfo[TCRoute.ActiveSubPath].Valid || TCRoute.ActiveSubPath == TCRoute.TCRouteSubpaths.Count - 1) 
                                 || UncondAttach)
                             {
                                 attachToTrain = true;
@@ -2577,7 +2577,7 @@ namespace Orts.Simulation.AIs
                                     }
 
                                     bool thisTrainInStation = (nextActionInfo != null && nextActionInfo.NextAction == AIActionItem.AI_ACTION_TYPE.STATION_STOP);
-                                    if (thisTrainInStation) thisTrainInStation = (StationStops[0].SubrouteIndex == TCRoute.activeSubpath);
+                                    if (thisTrainInStation) thisTrainInStation = (StationStops[0].SubrouteIndex == TCRoute.ActiveSubPath);
                                     if (thisTrainInStation)
                                     {
                                         var thisStation = StationStops[0];
@@ -2610,7 +2610,7 @@ namespace Orts.Simulation.AIs
                                             // if waited behind other train, move remaining track sections to next subroute if required
 
                                             // scan sections in backward order
-                                            TrackCircuitPartialPathRoute nextRoute = TCRoute.TCRouteSubpaths[TCRoute.activeSubpath + 1];
+                                            TrackCircuitPartialPathRoute nextRoute = TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath + 1];
 
                                             for (int iIndex = ValidRoute[0].Count - 1; iIndex > PresentPosition[0].RouteListIndex; iIndex--)
                                             {
@@ -3396,9 +3396,9 @@ namespace Orts.Simulation.AIs
                     {
                         StationStops.RemoveAt(0);
                     }
-                    else if (thisStation.SubrouteIndex < TCRoute.activeSubpath)
+                    else if (thisStation.SubrouteIndex < TCRoute.ActiveSubPath)
                     {
-                        thisStation.SubrouteIndex = TCRoute.activeSubpath;
+                        thisStation.SubrouteIndex = TCRoute.ActiveSubPath;
 
                         if (ValidRoute[0].GetRouteIndex(thisStation.TCSectionIndex, 0) < 0) // station no longer on route
                         {
@@ -3431,7 +3431,7 @@ namespace Orts.Simulation.AIs
 
             if (Simulator.TimetableMode) removeIt = true;
             else if (TrainType == TrainType.AiPlayerHosting || Simulator.OriginalPlayerTrain == this) removeIt = false;
-            else if (TCRoute.TCRouteSubpaths.Count == 1 || TCRoute.activeSubpath != TCRoute.TCRouteSubpaths.Count - 1) removeIt = true;
+            else if (TCRoute.TCRouteSubpaths.Count == 1 || TCRoute.ActiveSubPath != TCRoute.TCRouteSubpaths.Count - 1) removeIt = true;
             else if (NextSignalObject[0] != null && NextSignalObject[0].IsSignal && distanceToNextSignal < 25 && distanceToNextSignal >= 0 && PresentPosition[1].DistanceTravelledM < distanceThreshold)
             {
                 removeIt = false;
@@ -3448,7 +3448,7 @@ namespace Orts.Simulation.AIs
             }
             else 
             {
-                if (TCRoute.ReversalInfo[TCRoute.activeSubpath - 1].Valid && PresentPosition[1].DistanceTravelledM < distanceThreshold && PresentPosition[1].TCOffset < 25)
+                if (TCRoute.ReversalInfo[TCRoute.ActiveSubPath - 1].Valid && PresentPosition[1].DistanceTravelledM < distanceThreshold && PresentPosition[1].TCOffset < 25)
                 {
                     var tempTraveller = new Traveller(RearTDBTraveller);
                     tempTraveller.ReverseDirection();
@@ -3544,12 +3544,12 @@ namespace Orts.Simulation.AIs
             AdjustControlsThrottleOff();
             physicsUpdate(0);
             // check for length of remaining path
-            if (attachTrain.TrainType == TrainType.Static && (TCRoute.activeSubpath < TCRoute.TCRouteSubpaths.Count - 1 || ValidRoute[0].Count > 5))
+            if (attachTrain.TrainType == TrainType.Static && (TCRoute.ActiveSubPath < TCRoute.TCRouteSubpaths.Count - 1 || ValidRoute[0].Count > 5))
             {
                 CoupleAIToStatic(attachTrain, thisTrainFront, attachTrainFront);
                 return;
             }
-            else if (attachTrain.TrainType != TrainType.Static && TCRoute.activeSubpath < TCRoute.TCRouteSubpaths.Count - 1 && !UncondAttach)
+            else if (attachTrain.TrainType != TrainType.Static && TCRoute.ActiveSubPath < TCRoute.TCRouteSubpaths.Count - 1 && !UncondAttach)
             {
                 if ((thisTrainFront && Cars[0] is MSTSLocomotive) || (!thisTrainFront && Cars[Cars.Count - 1] is MSTSLocomotive))
                 {
@@ -3674,7 +3674,7 @@ namespace Orts.Simulation.AIs
                     this.IncorporatingTrainNo = attachTrain.Number;
                     this.IncorporatingTrain = attachTrain;
                     SuspendTrain(attachTrain);
-                    if (ppTCSectionIndex == TCRoute.TCRouteSubpaths[TCRoute.activeSubpath][TCRoute.TCRouteSubpaths[TCRoute.activeSubpath].Count - 1].TrackCircuitSection.Index)
+                    if (ppTCSectionIndex == TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath][TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath].Count - 1].TrackCircuitSection.Index)
                         IncrementSubpath(this);
                     attachTrain.IncorporatedTrainNo = this.Number;
                 }
@@ -3995,13 +3995,13 @@ namespace Orts.Simulation.AIs
             attachTrain.CheckFreight();
             attachTrain.activityClearingDistanceM = attachTrain.Cars.Count < standardTrainMinCarNo ? shortClearingDistanceM : standardClearingDistanceM;
             // anticipate reversal point and remove active action
-            TCRoute.ReversalInfo[TCRoute.activeSubpath].ReverseReversalOffset = Math.Max(PresentPosition[0].TCOffset - 10f, 0.3f);
-            if (PresentPosition[0].TCSectionIndex != TCRoute.ReversalInfo[TCRoute.activeSubpath].ReversalSectionIndex)
+            TCRoute.ReversalInfo[TCRoute.ActiveSubPath].ReverseReversalOffset = Math.Max(PresentPosition[0].TCOffset - 10f, 0.3f);
+            if (PresentPosition[0].TCSectionIndex != TCRoute.ReversalInfo[TCRoute.ActiveSubPath].ReversalSectionIndex)
             {
-                TCRoute.ReversalInfo[TCRoute.activeSubpath].ReversalSectionIndex = PresentPosition[0].TCSectionIndex;
+                TCRoute.ReversalInfo[TCRoute.ActiveSubPath].ReversalSectionIndex = PresentPosition[0].TCSectionIndex;
             }
-            if (PresentPosition[1].RouteListIndex < TCRoute.ReversalInfo[TCRoute.activeSubpath].LastSignalIndex)
-                TCRoute.ReversalInfo[TCRoute.activeSubpath].LastSignalIndex = PresentPosition[1].RouteListIndex;
+            if (PresentPosition[1].RouteListIndex < TCRoute.ReversalInfo[TCRoute.ActiveSubPath].LastSignalIndex)
+                TCRoute.ReversalInfo[TCRoute.ActiveSubPath].LastSignalIndex = PresentPosition[1].RouteListIndex;
             // move WP, if any, just under the loco;
             AuxActionsContain.MoveAuxActionAfterReversal(this);
             ResetActions(true);
@@ -4299,7 +4299,7 @@ namespace Orts.Simulation.AIs
 
             TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[PresentPosition[0].TCSectionIndex];
             float lengthToGoM = thisSection.Length - PresentPosition[0].TCOffset;
-            if (TCRoute.activeSubpath < TCRoute.TCRouteSubpaths.Count - 1)
+            if (TCRoute.ActiveSubPath < TCRoute.TCRouteSubpaths.Count - 1)
             {
                 // go through all further sections
 
@@ -4361,9 +4361,9 @@ namespace Orts.Simulation.AIs
             }
 
             // to allow re-inserting of reversal action if necessary
-            if (TCRoute.ReversalInfo[TCRoute.activeSubpath].ReversalActionInserted == true)
+            if (TCRoute.ReversalInfo[TCRoute.ActiveSubPath].ReversalActionInserted == true)
             {
-                TCRoute.ReversalInfo[TCRoute.activeSubpath].ReversalActionInserted = false;
+                TCRoute.ReversalInfo[TCRoute.ActiveSubPath].ReversalActionInserted = false;
             }
         }
 
@@ -4611,7 +4611,7 @@ namespace Orts.Simulation.AIs
             if (actionValid && nextActionInfo != null && nextActionInfo is AuxActionWPItem &&
                 thisItem.NextAction == AIActionItem.AI_ACTION_TYPE.SIGNAL_ASPECT_STOP)
             {
-                if ((thisItem.ActiveItem.SignalDetails.HasLockForTrain(Number, TCRoute.activeSubpath) && nextActionInfo.ActivateDistanceM - thisItem.ActivateDistanceM < 40) ||
+                if ((thisItem.ActiveItem.SignalDetails.HasLockForTrain(Number, TCRoute.ActiveSubPath) && nextActionInfo.ActivateDistanceM - thisItem.ActivateDistanceM < 40) ||
                     nextActionInfo.ActivateDistanceM - thisItem.ActivateDistanceM < activityClearingDistanceM)
                 {
                     actionValid = false;
@@ -4714,7 +4714,7 @@ namespace Orts.Simulation.AIs
                                nextActionInfo.NextAction == AIActionItem.AI_ACTION_TYPE.SIGNAL_ASPECT_STOP)
                     {
                         // check if it is the the AI action is related to the signal linked to the WP
-                        if ((nextActionInfo.ActiveItem.SignalDetails.HasLockForTrain(Number, TCRoute.activeSubpath) && thisItem.ActivateDistanceM - nextActionInfo.ActivateDistanceM < 40) ||
+                        if ((nextActionInfo.ActiveItem.SignalDetails.HasLockForTrain(Number, TCRoute.ActiveSubPath) && thisItem.ActivateDistanceM - nextActionInfo.ActivateDistanceM < 40) ||
                             thisItem.ActivateDistanceM - nextActionInfo.ActivateDistanceM < activityClearingDistanceM)
                         {
                             earlier = true;

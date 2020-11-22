@@ -187,7 +187,7 @@ namespace Orts.Simulation.Timetables
 
                             if (pathValid)
                             {
-                                Train.TCRoutePath fullRoute = new Train.TCRoutePath(newPath, -2, 1, -1);
+                                TrackCircuitRoutePath fullRoute = new TrackCircuitRoutePath(newPath, (TrackDirection)(-2), 1, -1);
                                 // if last element is end of track, remove it from path
                                 TrackCircuitPartialPathRoute usedRoute = fullRoute.TCRouteSubpaths[0];
                                 int lastIndex = usedRoute.Count - 1;
@@ -1322,7 +1322,7 @@ namespace Orts.Simulation.Timetables
         /// Get end of route distance on approach to turntable
         /// </summary>
 
-        override public float GetEndOfRouteDistance(TrackCircuitPartialPathRoute thisRoute, Train.TCPosition frontPosition, int pathIndex)
+        public override float GetEndOfRouteDistance(TrackCircuitPartialPathRoute thisRoute, Train.TCPosition frontPosition, int pathIndex)
         {
             // get distance to approach point from present position of train
             int turntableSectionIndex = thisRoute.GetRouteIndex(AdditionalTurntableDetails.AccessPaths[pathIndex].AccessPath[0].TrackCircuitSection.Index, 0);
@@ -2363,8 +2363,8 @@ namespace Orts.Simulation.Timetables
         {
 
             // set next active path for train
-            parentTrain.TCRoute.activeSubpath++;
-            parentTrain.ValidRoute[0] = new TrackCircuitPartialPathRoute(parentTrain.TCRoute.TCRouteSubpaths[parentTrain.TCRoute.activeSubpath]);
+            parentTrain.TCRoute.ActiveSubPath++;
+            parentTrain.ValidRoute[0] = new TrackCircuitPartialPathRoute(parentTrain.TCRoute.TCRouteSubpaths[parentTrain.TCRoute.ActiveSubPath]);
 
             // check if formation reverse is required
             bool reverseFormation = reqReverseFormation;

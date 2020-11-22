@@ -236,7 +236,7 @@ namespace Orts.Simulation.Physics
         private float backwardThreshold = 20;            // counter threshold to detect backward move
 
         protected SignalEnvironment signalRef; // reference to main Signals class: SPA change protected to public with get, set!
-        public TCRoutePath TCRoute;                      // train path converted to TC base
+        internal TrackCircuitRoutePath TCRoute;                      // train path converted to TC base
         public TrackCircuitPartialPathRoute[] ValidRoute = new TrackCircuitPartialPathRoute[2] { null, null };  // actual valid path
         public TrackCircuitPartialPathRoute TrainRoute;                // partial route under train for Manual mode
         public bool ClaimState;                          // train is allowed to perform claim on sections
@@ -530,7 +530,7 @@ namespace Orts.Simulation.Physics
 
             if (orgTrain.TCRoute != null)
             {
-                TCRoute = new TCRoutePath(orgTrain.TCRoute);
+                TCRoute = new TrackCircuitRoutePath(orgTrain.TCRoute);
             }
 
             ValidRoute[0] = new TrackCircuitPartialPathRoute(orgTrain.ValidRoute[0]);
@@ -663,7 +663,7 @@ namespace Orts.Simulation.Physics
             bool routeAvailable = inf.ReadBoolean();
             if (routeAvailable)
             {
-                TCRoute = new TCRoutePath(inf);
+                TCRoute = new TrackCircuitRoutePath(inf);
             }
 
             ValidRoute[0] = null;
@@ -5943,17 +5943,17 @@ namespace Orts.Simulation.Physics
             float distanceToTrainM = -1;
             int stationIndex;
 
-            if (thisStation.SubrouteIndex > TCRoute.activeSubpath && !Simulator.TimetableMode)
+            if (thisStation.SubrouteIndex > TCRoute.ActiveSubPath && !Simulator.TimetableMode)
             // if the station is in a further subpath, distance computation is longer
             {
                 // first compute distance up to end or reverse point of activeSubpath. To be restudied for subpaths with no reversal
-                if (TCRoute.ReversalInfo[TCRoute.activeSubpath].Valid)
+                if (TCRoute.ReversalInfo[TCRoute.ActiveSubPath].Valid)
                     distanceToTrainM = ComputeDistanceToReversalPoint();
                 else
                 {
-                    int lastSectionRouteIndex = TCRoute.TCRouteSubpaths[TCRoute.activeSubpath].Count - 1;
-                    float lastSectionLength = TCRoute.TCRouteSubpaths[TCRoute.activeSubpath][lastSectionRouteIndex].TrackCircuitSection.Length;
-                    distanceToTrainM = TCRoute.TCRouteSubpaths[TCRoute.activeSubpath].GetDistanceAlongRoute(PresentPosition[0].RouteListIndex,
+                    int lastSectionRouteIndex = TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath].Count - 1;
+                    float lastSectionLength = TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath][lastSectionRouteIndex].TrackCircuitSection.Length;
+                    distanceToTrainM = TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath].GetDistanceAlongRoute(PresentPosition[0].RouteListIndex,
                  leftInSectionM, lastSectionRouteIndex, lastSectionLength, true);
                 }
                 float lengthOfIntSubpath = 0;
@@ -5966,7 +5966,7 @@ namespace Orts.Simulation.Physics
 
                     // compute length of intermediate subpaths, if any, from reversal or section at beginning to reversal or section at end
 
-                    for (int iSubpath = TCRoute.activeSubpath + 1; iSubpath < thisStation.SubrouteIndex; iSubpath++)
+                    for (int iSubpath = TCRoute.ActiveSubPath + 1; iSubpath < thisStation.SubrouteIndex; iSubpath++)
                     {
                         if (TCRoute.ReversalInfo[iSubpath - 1].Valid)
                         // skip sections before reversal at beginning of path
@@ -6092,14 +6092,14 @@ namespace Orts.Simulation.Physics
             int reversalRouteIndex = ValidRoute[0].Count - 1;
             TrackCircuitSection reversalSection = ValidRoute[0][reversalRouteIndex].TrackCircuitSection;
             float reverseReversalOffset = reversalSection.Length;
-            reversalRouteIndex = ValidRoute[0].GetRouteIndex(TCRoute.ReversalInfo[TCRoute.activeSubpath].ReversalSectionIndex, PresentPosition[0].RouteListIndex);
+            reversalRouteIndex = ValidRoute[0].GetRouteIndex(TCRoute.ReversalInfo[TCRoute.ActiveSubPath].ReversalSectionIndex, PresentPosition[0].RouteListIndex);
             if (reversalRouteIndex == -1)
             {
                 Trace.TraceWarning("Train {0} service {1}, reversal or end point off path; distance to reversal point set to -1", Number, Name);
                 return -1;
             }
-            reversalSection = TrackCircuitSection.TrackCircuitList[TCRoute.ReversalInfo[TCRoute.activeSubpath].ReversalSectionIndex];
-            reverseReversalOffset = TCRoute.ReversalInfo[TCRoute.activeSubpath].ReverseReversalOffset;
+            reversalSection = TrackCircuitSection.TrackCircuitList[TCRoute.ReversalInfo[TCRoute.ActiveSubPath].ReversalSectionIndex];
+            reverseReversalOffset = TCRoute.ReversalInfo[TCRoute.ActiveSubPath].ReverseReversalOffset;
             if (PresentPosition[0].RouteListIndex <= reversalRouteIndex)
             {
                 for (int iElement = PresentPosition[0].RouteListIndex; iElement < ValidRoute[0].Count; iElement++)
@@ -6610,9 +6610,9 @@ namespace Orts.Simulation.Physics
             if (nextRoute[1] && StationStops.Count > 0)
             {
                 StationStop thisStation = StationStops[0];
-                if (thisStation.SubrouteIndex < TCRoute.activeSubpath)
+                if (thisStation.SubrouteIndex < TCRoute.ActiveSubPath)
                 {
-                    thisStation.SubrouteIndex = TCRoute.activeSubpath;
+                    thisStation.SubrouteIndex = TCRoute.ActiveSubPath;
                 }
             }
 
@@ -6640,7 +6640,7 @@ namespace Orts.Simulation.Physics
             int reversalSectionIndex = -1;
             if (TCRoute != null && (ControlMode == TrainControlMode.AutoNode || ControlMode == TrainControlMode.AutoSignal))
             {
-                TCReversalInfo thisReversal = TCRoute.ReversalInfo[TCRoute.activeSubpath];
+                TCReversalInfo thisReversal = TCRoute.ReversalInfo[TCRoute.ActiveSubPath];
                 if (thisReversal.Valid)
                 {
                     reversalSectionIndex = thisReversal.SignalUsed ? thisReversal.LastSignalIndex : thisReversal.LastDivergeIndex;
@@ -6649,18 +6649,18 @@ namespace Orts.Simulation.Physics
 
             // check if train in loop
             // if so, forward to next subroute and continue
-            if (checkLoop || StationStops.Count <= 1 || StationStops.Count > 1 && TCRoute != null && StationStops[1].SubrouteIndex > TCRoute.activeSubpath)
+            if (checkLoop || StationStops.Count <= 1 || StationStops.Count > 1 && TCRoute != null && StationStops[1].SubrouteIndex > TCRoute.ActiveSubPath)
             {
-                if (TCRoute != null && (ControlMode == TrainControlMode.AutoNode || ControlMode == TrainControlMode.AutoSignal) && TCRoute.LoopEnd[TCRoute.activeSubpath] >= 0)
+                if (TCRoute != null && (ControlMode == TrainControlMode.AutoNode || ControlMode == TrainControlMode.AutoSignal) && TCRoute.LoopEnd[TCRoute.ActiveSubPath] >= 0)
                 {
-                    int loopSectionIndex = ValidRoute[0].GetRouteIndex(TCRoute.LoopEnd[TCRoute.activeSubpath], 0);
+                    int loopSectionIndex = ValidRoute[0].GetRouteIndex(TCRoute.LoopEnd[TCRoute.ActiveSubPath], 0);
 
                     if (loopSectionIndex >= 0 && PresentPosition[1].RouteListIndex > loopSectionIndex)
                     {
-                        int frontSection = TCRoute.TCRouteSubpaths[TCRoute.activeSubpath][PresentPosition[0].RouteListIndex].TrackCircuitSection.Index;
-                        int rearSection = TCRoute.TCRouteSubpaths[TCRoute.activeSubpath][PresentPosition[1].RouteListIndex].TrackCircuitSection.Index;
-                        TCRoute.activeSubpath++;
-                        ValidRoute[0] = TCRoute.TCRouteSubpaths[TCRoute.activeSubpath];
+                        int frontSection = TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath][PresentPosition[0].RouteListIndex].TrackCircuitSection.Index;
+                        int rearSection = TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath][PresentPosition[1].RouteListIndex].TrackCircuitSection.Index;
+                        TCRoute.ActiveSubPath++;
+                        ValidRoute[0] = TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath];
 
                         PresentPosition[0].RouteListIndex = ValidRoute[0].GetRouteIndex(frontSection, 0);
                         PresentPosition[1].RouteListIndex = ValidRoute[0].GetRouteIndex(rearSection, 0);
@@ -6679,7 +6679,7 @@ namespace Orts.Simulation.Physics
                     // if loopend no longer on this valid route, remove loopend indication
                     else if (loopSectionIndex < 0)
                     {
-                        TCRoute.LoopEnd[TCRoute.activeSubpath] = -1;
+                        TCRoute.LoopEnd[TCRoute.ActiveSubPath] = -1;
                     }
                 }
             }
@@ -6703,11 +6703,11 @@ namespace Orts.Simulation.Physics
 
             TrackCircuitPartialPathRoute nextRoute = null;
 
-            if (endOfRoute && TCRoute.activeSubpath < (TCRoute.TCRouteSubpaths.Count - 1))
+            if (endOfRoute && TCRoute.ActiveSubPath < (TCRoute.TCRouteSubpaths.Count - 1))
             {
                 nextRouteAvailable = true;
 
-                nextRoute = TCRoute.TCRouteSubpaths[TCRoute.activeSubpath + 1];
+                nextRoute = TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath + 1];
                 int firstSectionIndex = PresentPosition[1].TCSectionIndex;
 
                 // find index of present rear position
@@ -6733,7 +6733,7 @@ namespace Orts.Simulation.Physics
                         {
                             Trace.TraceInformation(
                                 "Cannot find next part of route (index {0}) for Train {1} ({2}) (at section {3})",
-                                TCRoute.activeSubpath.ToString(), Name, Number.ToString(),
+                                TCRoute.ActiveSubPath.ToString(), Name, Number.ToString(),
                                 PresentPosition[0].TCSectionIndex.ToString());
                         }
                         // search for junction and check if it is not clear
@@ -6856,8 +6856,8 @@ namespace Orts.Simulation.Physics
                 ClearActiveSectionItems();
 
                 // set new route
-                TCRoute.activeSubpath++;
-                ValidRoute[0] = TCRoute.TCRouteSubpaths[TCRoute.activeSubpath];
+                TCRoute.ActiveSubPath++;
+                ValidRoute[0] = TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath];
 
 
                 TCRoute.SetReversalOffset(Length, Simulator.TimetableMode);
@@ -6936,7 +6936,7 @@ namespace Orts.Simulation.Physics
             int reversalSectionIndex = -1;
             if (TCRoute != null && (ControlMode == TrainControlMode.AutoNode || ControlMode == TrainControlMode.AutoSignal))
             {
-                TCReversalInfo thisReversal = TCRoute.ReversalInfo[TCRoute.activeSubpath];
+                TCReversalInfo thisReversal = TCRoute.ReversalInfo[TCRoute.ActiveSubPath];
                 if (thisReversal.Valid)
                 {
                     reversalSectionIndex = thisReversal.SignalUsed ? thisReversal.LastSignalIndex : thisReversal.LastDivergeIndex;
@@ -6944,7 +6944,7 @@ namespace Orts.Simulation.Physics
             }
 
             // check if present subroute ends in reversal or is last subroute
-            if (TCRoute.ReversalInfo[TCRoute.activeSubpath].Valid || TCRoute.activeSubpath == TCRoute.TCRouteSubpaths.Count - 1)
+            if (TCRoute.ReversalInfo[TCRoute.ActiveSubPath].Valid || TCRoute.ActiveSubPath == TCRoute.TCRouteSubpaths.Count - 1)
             {
                 // can only be performed if train is stationary
 
@@ -6954,7 +6954,7 @@ namespace Orts.Simulation.Physics
                 // check position in relation to present end of path
                 // front is in last route section
                 if (PresentPosition[0].RouteListIndex == (ValidRoute[0].Count - 1) &&
-                    (!TCRoute.ReversalInfo[TCRoute.activeSubpath].Valid && TCRoute.activeSubpath < TCRoute.TCRouteSubpaths.Count - 1))
+                    (!TCRoute.ReversalInfo[TCRoute.ActiveSubPath].Valid && TCRoute.ActiveSubPath < TCRoute.TCRouteSubpaths.Count - 1))
                 {
                     endOfRoute = true;
                 }
@@ -6965,7 +6965,7 @@ namespace Orts.Simulation.Physics
                     float lengthToGo = thisSection.Length - PresentPosition[0].TCOffset;
 
                     bool junctionFound = false;
-                    if (TCRoute.activeSubpath < TCRoute.TCRouteSubpaths.Count - 1)
+                    if (TCRoute.ActiveSubPath < TCRoute.TCRouteSubpaths.Count - 1)
                     {
                         for (int iIndex = PresentPosition[0].RouteListIndex + 1; iIndex < ValidRoute[0].Count && !junctionFound; iIndex++)
                         {
@@ -6976,17 +6976,17 @@ namespace Orts.Simulation.Physics
                     }
                     else lengthToGo = ComputeDistanceToReversalPoint();
                     float compatibilityNegligibleRouteChunk = ((TrainType == TrainType.Ai || TrainType == TrainType.AiPlayerHosting)
-                        && TCRoute.TCRouteSubpaths.Count - 1 == TCRoute.activeSubpath) ? 40f : 5f;
+                        && TCRoute.TCRouteSubpaths.Count - 1 == TCRoute.ActiveSubPath) ? 40f : 5f;
                     float negligibleRouteChunk = compatibilityNegligibleRouteChunk;
 
-                    if (lengthToGo < negligibleRouteChunk && !junctionFound && !TCRoute.ReversalInfo[TCRoute.activeSubpath].Valid)
+                    if (lengthToGo < negligibleRouteChunk && !junctionFound && !TCRoute.ReversalInfo[TCRoute.ActiveSubPath].Valid)
                     {
                         endOfRoute = true;
                     }
                 }
 
                 //<CSComment: check of vicinity to reverse point; only in subpaths ending with reversal
-                if (TCRoute.ReversalInfo[TCRoute.activeSubpath].Valid)
+                if (TCRoute.ReversalInfo[TCRoute.ActiveSubPath].Valid)
                 {
                     float distanceToReversalPoint = ComputeDistanceToReversalPoint();
                     if (distanceToReversalPoint < 50 && PresentPosition[1].RouteListIndex >= reversalSectionIndex)
@@ -7003,7 +7003,7 @@ namespace Orts.Simulation.Physics
                     // if waiting for next signal and section beyond signal is last in route and there is no valid reversal index - end of route reached
                     if (NextSignalObject[0] != null && PresentPosition[0].TCSectionIndex == NextSignalObject[0].TrackCircuitIndex &&
                          NextSignalObject[0].TrackCircuitNextIndex == ValidRoute[0][lastValidRouteIndex].TrackCircuitSection.Index && reversalSectionIndex < 0 &&
-                         NextSignalObject[0].SignalLR(SignalFunction.Normal) == SignalAspectState.Stop && TCRoute.ReversalInfo[TCRoute.activeSubpath].Valid)
+                         NextSignalObject[0].SignalLR(SignalFunction.Normal) == SignalAspectState.Stop && TCRoute.ReversalInfo[TCRoute.ActiveSubPath].Valid)
                     {
                         endOfRoute = true;
                     }
@@ -9588,7 +9588,7 @@ namespace Orts.Simulation.Physics
             {
                 // check if train is back on path
 
-                TrackCircuitPartialPathRoute lastRoute = TCRoute.TCRouteSubpaths[TCRoute.activeSubpath];
+                TrackCircuitPartialPathRoute lastRoute = TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath];
                 int routeIndex = lastRoute.GetRouteIndex(PresentPosition[0].TCSectionIndex, 0);
 
                 if (routeIndex < 0)
@@ -9702,7 +9702,7 @@ namespace Orts.Simulation.Physics
             // extract route at present front position
 
             TrackCircuitPartialPathRoute newRoute = new TrackCircuitPartialPathRoute();
-            TrackCircuitPartialPathRoute oldRoute = TCRoute.TCRouteSubpaths[TCRoute.activeSubpath];
+            TrackCircuitPartialPathRoute oldRoute = TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath];
 
             // test on reversal, if so check rear of train
 
@@ -9910,10 +9910,10 @@ namespace Orts.Simulation.Physics
             ValidRoute[0] = newRoute;
 
             // Reindexes ReversalInfo items
-            if (TCRoute.ReversalInfo[TCRoute.activeSubpath].LastDivergeIndex >= 0)
-                TCRoute.ReversalInfo[TCRoute.activeSubpath].LastDivergeIndex = ValidRoute[0].GetRouteIndex(TCRoute.ReversalInfo[TCRoute.activeSubpath].DivergeSectorIndex, 0);
-            if (TCRoute.ReversalInfo[TCRoute.activeSubpath].LastSignalIndex >= 0)
-                TCRoute.ReversalInfo[TCRoute.activeSubpath].LastSignalIndex = ValidRoute[0].GetRouteIndex(TCRoute.ReversalInfo[TCRoute.activeSubpath].SignalSectorIndex, 0);
+            if (TCRoute.ReversalInfo[TCRoute.ActiveSubPath].LastDivergeIndex >= 0)
+                TCRoute.ReversalInfo[TCRoute.ActiveSubPath].LastDivergeIndex = ValidRoute[0].GetRouteIndex(TCRoute.ReversalInfo[TCRoute.ActiveSubPath].DivergeSectorIndex, 0);
+            if (TCRoute.ReversalInfo[TCRoute.ActiveSubPath].LastSignalIndex >= 0)
+                TCRoute.ReversalInfo[TCRoute.ActiveSubPath].LastSignalIndex = ValidRoute[0].GetRouteIndex(TCRoute.ReversalInfo[TCRoute.ActiveSubPath].SignalSectorIndex, 0);
 
 
 
@@ -10182,7 +10182,7 @@ namespace Orts.Simulation.Physics
             if (ControlMode == TrainControlMode.AutoSignal || ControlMode == TrainControlMode.AutoNode)
             // Local trains, having a defined TCRoute
             {
-                int actSubpath = TCRoute.activeSubpath;
+                int actSubpath = TCRoute.ActiveSubPath;
                 Dictionary<int, StationStop> abdStations = new Dictionary<int, StationStop>();
 
                 CheckAbandonedStations(forcedRouteSectionIndex, ValidRoute[0].Count - 1, actSubpath, abdStations);
@@ -10232,7 +10232,7 @@ namespace Orts.Simulation.Physics
             // We don't kill the AI train and build a new route for it
             // first of all we have to find out the new route
             List<int> tempSections = new List<int>();
-            if (TCRoute.OriginalSubpath == -1) TCRoute.OriginalSubpath = TCRoute.activeSubpath;
+            if (TCRoute.OriginalSubpath == -1) TCRoute.OriginalSubpath = TCRoute.ActiveSubPath;
             if (PresentPosition[0].RouteListIndex > 0)
                 // clean case, train is in route and switch has been forced in front of it
                 tempSections = SignalEnvironment.ScanRoute(this, forcedTCSectionIndex, 0, (TrackDirection)ValidRoute[0][forcedRouteSectionIndex].Direction,
@@ -10289,24 +10289,24 @@ namespace Orts.Simulation.Physics
                         newRoute.Add(thisRoute[iElement]);
                     }
 
-                    if (TCRoute.activeSubpath != TCRoute.OriginalSubpath)
+                    if (TCRoute.ActiveSubPath != TCRoute.OriginalSubpath)
                     {
-                        TCRoute.TCRouteSubpaths[TCRoute.activeSubpath] = null;
-                        TCRoute.ReversalInfo[TCRoute.activeSubpath] = null;
-                        TCRoute.LoopEnd.RemoveAt(TCRoute.activeSubpath);
+                        TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath] = null;
+                        TCRoute.ReversalInfo[TCRoute.ActiveSubPath] = null;
+                        TCRoute.LoopEnd.RemoveAt(TCRoute.ActiveSubPath);
                     }
-                    TCRoute.activeSubpath = TCRoute.OriginalSubpath;
+                    TCRoute.ActiveSubPath = TCRoute.OriginalSubpath;
                     TCRoute.OriginalSubpath = -1;
 
                     // readjust item indexes
                     // Reindexes ReversalInfo items
                     var countDifference = newRoute.Count - ValidRoute[0].Count;
-                    if (TCRoute.ReversalInfo[TCRoute.activeSubpath].LastDivergeIndex >= 0)
-                        TCRoute.ReversalInfo[TCRoute.activeSubpath].LastDivergeIndex = TCRoute.ReversalInfo[TCRoute.activeSubpath].LastDivergeIndex + countDifference;
-                    if (TCRoute.ReversalInfo[TCRoute.activeSubpath].LastSignalIndex >= 0)
-                        TCRoute.ReversalInfo[TCRoute.activeSubpath].LastSignalIndex = TCRoute.ReversalInfo[TCRoute.activeSubpath].LastSignalIndex + countDifference;
+                    if (TCRoute.ReversalInfo[TCRoute.ActiveSubPath].LastDivergeIndex >= 0)
+                        TCRoute.ReversalInfo[TCRoute.ActiveSubPath].LastDivergeIndex = TCRoute.ReversalInfo[TCRoute.ActiveSubPath].LastDivergeIndex + countDifference;
+                    if (TCRoute.ReversalInfo[TCRoute.ActiveSubPath].LastSignalIndex >= 0)
+                        TCRoute.ReversalInfo[TCRoute.ActiveSubPath].LastSignalIndex = TCRoute.ReversalInfo[TCRoute.ActiveSubPath].LastSignalIndex + countDifference;
 
-                    TCRoute.TCRouteSubpaths[TCRoute.activeSubpath] = newRoute;
+                    TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath] = newRoute;
 
                 }
                 else
@@ -10315,7 +10315,7 @@ namespace Orts.Simulation.Physics
                     TCRoute.TCRouteSubpaths.Add(newRoute);
 
                     // TODO add reversalInfo here.
-                    TCRoute.activeSubpath = TCRoute.TCRouteSubpaths.Count - 1;
+                    TCRoute.ActiveSubPath = TCRoute.TCRouteSubpaths.Count - 1;
 
                     TCRoute.ReversalInfo.Add(new TCReversalInfo());
                     TCRoute.ReversalInfo[TCRoute.ReversalInfo.Count - 1].ReversalIndex = newRoute.Count - 1;
@@ -10974,7 +10974,7 @@ namespace Orts.Simulation.Physics
                 {
                     if (TCRoute.TCRouteSubpaths != null) TCRoute.TCRouteSubpaths.Clear();
                     if (TCRoute.TCAlternativePaths != null) TCRoute.TCAlternativePaths.Clear();
-                    TCRoute.activeAltpath = -1;
+                    TCRoute.ActiveAlternativePath = -1;
                 }
                 if (ValidRoute[0] != null && ValidRoute[0].Count > 0)
                 {
@@ -11015,18 +11015,18 @@ namespace Orts.Simulation.Physics
                 //<CSComment> InitializeSignals needs this info sometimes, so I repeat lines below here
                 if (!IsActualPlayerTrain && (ControlMode == TrainControlMode.AutoSignal || ControlMode == TrainControlMode.AutoNode))
                 {
-                    while (TCRoute.activeSubpath <= TCRoute.TCRouteSubpaths.Count - 1)
+                    while (TCRoute.ActiveSubPath <= TCRoute.TCRouteSubpaths.Count - 1)
                     {
                         PresentPosition[0].RouteListIndex = ValidRoute[0].GetRouteIndex(PresentPosition[0].TCSectionIndex, 0);
                         PresentPosition[1].RouteListIndex = ValidRoute[0].GetRouteIndex(PresentPosition[1].TCSectionIndex, 0);
                         if (PresentPosition[0].RouteListIndex < 0 || PresentPosition[1].RouteListIndex < 0)
                         {
                             // Try first to change valid route, if there are other subpaths.
-                            if (TCRoute.activeSubpath < TCRoute.TCRouteSubpaths.Count - 1)
+                            if (TCRoute.ActiveSubPath < TCRoute.TCRouteSubpaths.Count - 1)
                             {
                                 ValidRoute[0] = null;
-                                TCRoute.activeSubpath++;
-                                ValidRoute[0] = TCRoute.TCRouteSubpaths[TCRoute.activeSubpath];
+                                TCRoute.ActiveSubPath++;
+                                ValidRoute[0] = TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath];
                             }
                             else
                             {
@@ -11170,10 +11170,10 @@ namespace Orts.Simulation.Physics
         //
         public void IncrementSubpath(Train thisTrain)
         {
-            if (thisTrain.TCRoute.activeSubpath < thisTrain.TCRoute.TCRouteSubpaths.Count - 1)
+            if (thisTrain.TCRoute.ActiveSubPath < thisTrain.TCRoute.TCRouteSubpaths.Count - 1)
             {
-                thisTrain.TCRoute.activeSubpath++;
-                thisTrain.ValidRoute[0] = thisTrain.TCRoute.TCRouteSubpaths[thisTrain.TCRoute.activeSubpath];
+                thisTrain.TCRoute.ActiveSubPath++;
+                thisTrain.ValidRoute[0] = thisTrain.TCRoute.TCRouteSubpaths[thisTrain.TCRoute.ActiveSubPath];
             }
         }
 
@@ -11564,23 +11564,23 @@ namespace Orts.Simulation.Physics
                         DeadlockInfo thisDeadlockInfo = signalRef.DeadlockInfoList[thisSection.DeadlockReference];
 
                         // get allocated paths for this train - if none yet set, create references
-                        int thisTrainReferenceIndex = thisDeadlockInfo.GetTrainAndSubpathIndex(Number, TCRoute.activeSubpath);
+                        int thisTrainReferenceIndex = thisDeadlockInfo.GetTrainAndSubpathIndex(Number, TCRoute.ActiveSubPath);
                         if (!thisDeadlockInfo.TrainReferences.ContainsKey(thisTrainReferenceIndex))
                         {
-                            thisDeadlockInfo.SetTrainDetails(Number, TCRoute.activeSubpath, Length, ValidRoute[0], thisTrainIndex);
+                            thisDeadlockInfo.SetTrainDetails(Number, TCRoute.ActiveSubPath, Length, ValidRoute[0], thisTrainIndex);
                         }
 
                         // if valid path for this train
                         if (thisDeadlockInfo.TrainReferences.ContainsKey(thisTrainReferenceIndex))
                         {
-                            thisTrainAllocatedPaths = thisDeadlockInfo.TrainReferences[thisDeadlockInfo.GetTrainAndSubpathIndex(Number, TCRoute.activeSubpath)];
+                            thisTrainAllocatedPaths = thisDeadlockInfo.TrainReferences[thisDeadlockInfo.GetTrainAndSubpathIndex(Number, TCRoute.ActiveSubPath)];
 
                             // if paths available, get end section and check train against shortest path
                             if (thisTrainAllocatedPaths.Count > 0)
                             {
                                 endSectionIndex = thisDeadlockInfo.AvailablePathList[thisTrainAllocatedPaths[0]].EndSectionIndex;
                                 endSectionRouteIndex = thisRoute.GetRouteIndex(endSectionIndex, thisTrainIndex);
-                                Dictionary<int, bool> thisTrainFitList = thisDeadlockInfo.TrainLengthFit[thisDeadlockInfo.GetTrainAndSubpathIndex(Number, TCRoute.activeSubpath)];
+                                Dictionary<int, bool> thisTrainFitList = thisDeadlockInfo.TrainLengthFit[thisDeadlockInfo.GetTrainAndSubpathIndex(Number, TCRoute.ActiveSubPath)];
                                 foreach (int iPath in thisTrainAllocatedPaths)
                                 {
                                     if (thisTrainFitList[iPath])
@@ -11597,18 +11597,18 @@ namespace Orts.Simulation.Physics
                         }
 
                         // get allocated paths for other train - if none yet set, create references
-                        int otherTrainReferenceIndex = thisDeadlockInfo.GetTrainAndSubpathIndex(otherTrain.Number, otherTrain.TCRoute.activeSubpath);
+                        int otherTrainReferenceIndex = thisDeadlockInfo.GetTrainAndSubpathIndex(otherTrain.Number, otherTrain.TCRoute.ActiveSubPath);
                         if (!thisDeadlockInfo.TrainReferences.ContainsKey(otherTrainReferenceIndex))
                         {
                             int otherTrainElementIndex = otherTrain.ValidRoute[0].GetRouteIndexBackward(endSectionIndex, otherFirstIndex);
                             if (otherTrainElementIndex < 0) // train joins deadlock area on different node
                             {
                                 validPassLocation = false;
-                                thisDeadlockInfo.RemoveTrainAndSubpathIndex(otherTrain.Number, otherTrain.TCRoute.activeSubpath); // remove index as train has no valid path
+                                thisDeadlockInfo.RemoveTrainAndSubpathIndex(otherTrain.Number, otherTrain.TCRoute.ActiveSubPath); // remove index as train has no valid path
                             }
                             else
                             {
-                                thisDeadlockInfo.SetTrainDetails(otherTrain.Number, otherTrain.TCRoute.activeSubpath, otherTrain.Length,
+                                thisDeadlockInfo.SetTrainDetails(otherTrain.Number, otherTrain.TCRoute.ActiveSubPath, otherTrain.Length,
                                     otherTrain.ValidRoute[0], otherTrainElementIndex);
                             }
                         }
@@ -11617,7 +11617,7 @@ namespace Orts.Simulation.Physics
                         if (validPassLocation && thisDeadlockInfo.TrainReferences.ContainsKey(otherTrainReferenceIndex))
                         {
                             otherTrainAllocatedPaths =
-                                thisDeadlockInfo.TrainReferences[thisDeadlockInfo.GetTrainAndSubpathIndex(otherTrain.Number, otherTrain.TCRoute.activeSubpath)];
+                                thisDeadlockInfo.TrainReferences[thisDeadlockInfo.GetTrainAndSubpathIndex(otherTrain.Number, otherTrain.TCRoute.ActiveSubPath)];
 
                             // if paths available, get end section (if not yet set) and check train against shortest path
                             if (otherTrainAllocatedPaths.Count > 0)
@@ -11629,7 +11629,7 @@ namespace Orts.Simulation.Physics
                                 }
 
                                 Dictionary<int, bool> otherTrainFitList =
-                                    thisDeadlockInfo.TrainLengthFit[thisDeadlockInfo.GetTrainAndSubpathIndex(otherTrain.Number, otherTrain.TCRoute.activeSubpath)];
+                                    thisDeadlockInfo.TrainLengthFit[thisDeadlockInfo.GetTrainAndSubpathIndex(otherTrain.Number, otherTrain.TCRoute.ActiveSubPath)];
                                 foreach (int iPath in otherTrainAllocatedPaths)
                                 {
                                     if (otherTrainFitList[iPath])
@@ -12005,7 +12005,7 @@ namespace Orts.Simulation.Physics
                                 else
                                 {
                                     // check if train has reversal before end of path of other train
-                                    if (TCRoute.TCRouteSubpaths.Count > (TCRoute.activeSubpath + 1))
+                                    if (TCRoute.TCRouteSubpaths.Count > (TCRoute.ActiveSubPath + 1))
                                     {
                                         Train otherTrain = GetOtherTrainByNumber(thisDeadlock.Key);
 
@@ -12595,7 +12595,7 @@ namespace Orts.Simulation.Physics
 
             int stationRouteIndex = ValidRoute[0].GetRouteIndex(StationStops[0].TCSectionIndex, 0);
 
-            if (StationStops[0].SubrouteIndex == TCRoute.activeSubpath)
+            if (StationStops[0].SubrouteIndex == TCRoute.ActiveSubPath)
             {
                 if (stationRouteIndex < 0)
                 {
@@ -12627,7 +12627,7 @@ namespace Orts.Simulation.Physics
                 Trace.TraceWarning("Train {0} service {1}, platform off path; reversal point considered remote", Number, Name);
                 return false;
             }
-            int reversalRouteIndex = TCRoute.TCRouteSubpaths[activeSubpath].GetRouteIndex(TCRoute.ReversalInfo[TCRoute.activeSubpath].ReversalSectionIndex, routeListIndex);
+            int reversalRouteIndex = TCRoute.TCRouteSubpaths[activeSubpath].GetRouteIndex(TCRoute.ReversalInfo[TCRoute.ActiveSubPath].ReversalSectionIndex, routeListIndex);
             if (reversalRouteIndex == -1)
             {
                 Trace.TraceWarning("Train {0} service {1}, reversal or end point off path; reversal point considered remote", Number, Name);
@@ -12638,7 +12638,7 @@ namespace Orts.Simulation.Physics
                 for (int iElement = routeListIndex; iElement < TCRoute.TCRouteSubpaths[activeSubpath].Count; iElement++)
                 {
                     thisSection = TCRoute.TCRouteSubpaths[activeSubpath][iElement].TrackCircuitSection;
-                    if (thisSection.Index == TCRoute.ReversalInfo[TCRoute.activeSubpath].ReversalSectionIndex)
+                    if (thisSection.Index == TCRoute.ReversalInfo[TCRoute.ActiveSubPath].ReversalSectionIndex)
                     {
                         break;
                     }
@@ -12648,7 +12648,7 @@ namespace Orts.Simulation.Physics
                         if (lengthToGoM > Threshold) return false;
                     }
                 }
-                return lengthToGoM + TCRoute.ReversalInfo[TCRoute.activeSubpath].ReverseReversalOffset < Threshold;
+                return lengthToGoM + TCRoute.ReversalInfo[TCRoute.ActiveSubPath].ReverseReversalOffset < Threshold;
             }
             else
                 // platform is beyond reversal point
@@ -12744,14 +12744,14 @@ namespace Orts.Simulation.Physics
             for (int iStation = 0; iStation < StationStops.Count && foundStation < 0; iStation++)
             {
                 thisStation = StationStops[iStation];
-                if (thisStation.SubrouteIndex > TCRoute.activeSubpath) break;
+                if (thisStation.SubrouteIndex > TCRoute.ActiveSubPath) break;
                 if (thisStation.PlatformReference == id1 ||
                     thisStation.PlatformReference == id2)
                 {
                     foundStation = iStation;
                 }
 
-                if (thisStation.SubrouteIndex > TCRoute.activeSubpath) break; // stop looking if station is in next subpath
+                if (thisStation.SubrouteIndex > TCRoute.ActiveSubPath) break; // stop looking if station is in next subpath
             }
 
             if (foundStation >= 0)
@@ -13319,7 +13319,7 @@ namespace Orts.Simulation.Physics
                 }
                 else
                 {
-                    circuitString = String.Concat(circuitString, TCRoute.activeSubpath.ToString());
+                    circuitString = String.Concat(circuitString, TCRoute.ActiveSubPath.ToString());
                     circuitString = String.Concat(circuitString, "={");
                 }
 
@@ -13342,9 +13342,9 @@ namespace Orts.Simulation.Physics
 
                 circuitString = String.Concat(circuitString, "}");
 
-                if (TCRoute != null && TCRoute.activeSubpath < TCRoute.TCRouteSubpaths.Count - 1)
+                if (TCRoute != null && TCRoute.ActiveSubPath < TCRoute.TCRouteSubpaths.Count - 1)
                 {
-                    circuitString = String.Concat(circuitString, "x", (TCRoute.activeSubpath + 1).ToString());
+                    circuitString = String.Concat(circuitString, "x", (TCRoute.ActiveSubPath + 1).ToString());
                 }
                 if (TCRoute != null && TCRoute.OriginalSubpath != -1) circuitString += "???";
             }
@@ -13646,7 +13646,7 @@ namespace Orts.Simulation.Physics
                 SpeedMpS, ProjectedSpeedMpS, Math.Min(AllowedMaxSpeedMpS, TrainMaxSpeedMpS), Simulator.PlayerLocomotive?.CurrentElevationPercent ?? 0,
                 Simulator.PlayerLocomotive != null ? ((Simulator.PlayerLocomotive.Flipped ^ Simulator.PlayerLocomotive.GetCabFlipped()) ? Direction.Backward : Direction.Forward) : Direction.Forward, true);
 
-            AddTrainReversalInfo(result, TCRoute.ReversalInfo[TCRoute.activeSubpath]);
+            AddTrainReversalInfo(result, TCRoute.ReversalInfo[TCRoute.ActiveSubPath]);
 
             // set waiting point
             if (this != Simulator.OriginalPlayerTrain)
@@ -13692,7 +13692,7 @@ namespace Orts.Simulation.Physics
             }
 
             if (StationStops?.Count > 0 && (!maxAuthSet || StationStops[0].DistanceToTrainM < DistanceToEndNodeAuthorityM[0]) &&
-                StationStops[0].SubrouteIndex == TCRoute.activeSubpath)
+                StationStops[0].SubrouteIndex == TCRoute.ActiveSubPath)
             {
                 result.ObjectInfoForward.Add(new TrainPathItem(StationStops[0].DistanceToTrainM, (int)StationStops[0].PlatformItem.Length));
             }
@@ -13817,7 +13817,7 @@ namespace Orts.Simulation.Physics
         /// </summary>
         internal virtual void AddTrainReversalInfo(TrainInfo trainInfo, TCReversalInfo reversalInfo)
         {
-            if (!reversalInfo.Valid && TCRoute.activeSubpath == TCRoute.TCRouteSubpaths.Count - 1)
+            if (!reversalInfo.Valid && TCRoute.ActiveSubPath == TCRoute.TCRouteSubpaths.Count - 1)
                 return;
 
             int reversalSection = reversalInfo.ReversalSectionIndex;
@@ -13853,7 +13853,7 @@ namespace Orts.Simulation.Physics
         internal void AddWaitingPointInfo(TrainInfo trainInfo)
         {
             if (AuxActionsContain.SpecAuxActions.Count > 0 && AuxActionsContain.SpecAuxActions[0] is AIActionWPRef &&
-                (AuxActionsContain.SpecAuxActions[0] as AIActionWPRef).SubrouteIndex == TCRoute.activeSubpath)
+                (AuxActionsContain.SpecAuxActions[0] as AIActionWPRef).SubrouteIndex == TCRoute.ActiveSubPath)
             {
                 TrackCircuitSection frontSection = TrackCircuitSection.TrackCircuitList[PresentPosition[0].TCSectionIndex];
                 int thisSectionIndex = PresentPosition[0].TCSectionIndex;
@@ -13882,9 +13882,9 @@ namespace Orts.Simulation.Physics
         private TrainInfo GetTrainInfoManual()
         {
             bool validPath = true;
-            if (TCRoute != null && TCRoute.activeSubpath >= 0 && TCRoute.TCRouteSubpaths != null && TCRoute.TCRouteSubpaths.Count > TCRoute.activeSubpath)
+            if (TCRoute != null && TCRoute.ActiveSubPath >= 0 && TCRoute.TCRouteSubpaths != null && TCRoute.TCRouteSubpaths.Count > TCRoute.ActiveSubPath)
             {
-                TrackCircuitPartialPathRoute pathRoute = TCRoute.TCRouteSubpaths[TCRoute.activeSubpath];
+                TrackCircuitPartialPathRoute pathRoute = TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath];
                 validPath = pathRoute.GetRouteIndex(PresentPosition[0].TCSectionIndex, 0) >= 0;
             }
 
@@ -14030,23 +14030,11 @@ namespace Orts.Simulation.Physics
         /// <summary>
         /// Create Track Circuit Route Path
         /// </summary>
-
-        public void SetRoutePath(AIPath aiPath)
-        {
-            TCRoute = new TCRoutePath(aiPath, (int)FrontTDBTraveller.Direction, Length, Number);
-            ValidRoute[0] = TCRoute.TCRouteSubpaths[TCRoute.activeSubpath];
-        }
-
-        //================================================================================================//
-        /// <summary>
-        /// Create Track Circuit Route Path
-        /// </summary>
-
         public void SetRoutePath(AIPath aiPath, bool usePosition)
         {
-            int orgDirection = usePosition ? (int)FrontTDBTraveller.Direction : (RearTDBTraveller != null) ? (int)RearTDBTraveller?.Direction : -2;
-            TCRoute = new TCRoutePath(aiPath, orgDirection, Length, Number);
-            ValidRoute[0] = TCRoute.TCRouteSubpaths[TCRoute.activeSubpath];
+            TrackDirection direction = (TrackDirection)(usePosition ? (int)FrontTDBTraveller.Direction : (RearTDBTraveller != null) ? (int)RearTDBTraveller?.Direction : -2);
+            TCRoute = new TrackCircuitRoutePath(aiPath, direction, Length, Number);
+            ValidRoute[0] = TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath];
         }
 
         //================================================================================================//
@@ -14102,8 +14090,8 @@ namespace Orts.Simulation.Physics
 
         public void PresetExplorerPath(AIPath aiPath)
         {
-            int orgDirection = (RearTDBTraveller != null) ? (int)RearTDBTraveller.Direction : -2;
-            TCRoute = new TCRoutePath(aiPath, orgDirection, 0, Number);
+            TrackDirection direction = (TrackDirection)(RearTDBTraveller != null ? (int)RearTDBTraveller.Direction : -2);
+            TCRoute = new TrackCircuitRoutePath(aiPath, direction, 0, Number);
 
             // loop through all sections in first subroute except first and last (neither can be junction)
 
@@ -14240,10 +14228,10 @@ namespace Orts.Simulation.Physics
 
             TrackCircuitPartialPathRoute thisRoute = ValidRoute[0];
             TrackCircuitPartialPathRoute newRoute = new TrackCircuitPartialPathRoute();
-            int actSubpath = TCRoute.activeSubpath;
+            int actSubpath = TCRoute.ActiveSubPath;
 
             TrackCircuitPartialPathRoute altRoute = TCRoute.TCAlternativePaths[altRouteIndex];
-            TCRoute.activeAltpath = altRouteIndex;
+            TCRoute.ActiveAlternativePath = altRouteIndex;
 
             // part upto split
 
@@ -14272,15 +14260,15 @@ namespace Orts.Simulation.Physics
             }
             // Reindexes ReversalInfo items
             var countDifference = newRoute.Count - ValidRoute[0].Count;
-            if (TCRoute.ReversalInfo[TCRoute.activeSubpath].LastDivergeIndex >= 0)
-                TCRoute.ReversalInfo[TCRoute.activeSubpath].LastDivergeIndex = TCRoute.ReversalInfo[TCRoute.activeSubpath].LastDivergeIndex + countDifference;
-            if (TCRoute.ReversalInfo[TCRoute.activeSubpath].LastSignalIndex >= 0)
-                TCRoute.ReversalInfo[TCRoute.activeSubpath].LastSignalIndex = TCRoute.ReversalInfo[TCRoute.activeSubpath].LastSignalIndex + countDifference;
+            if (TCRoute.ReversalInfo[TCRoute.ActiveSubPath].LastDivergeIndex >= 0)
+                TCRoute.ReversalInfo[TCRoute.ActiveSubPath].LastDivergeIndex = TCRoute.ReversalInfo[TCRoute.ActiveSubPath].LastDivergeIndex + countDifference;
+            if (TCRoute.ReversalInfo[TCRoute.ActiveSubPath].LastSignalIndex >= 0)
+                TCRoute.ReversalInfo[TCRoute.ActiveSubPath].LastSignalIndex = TCRoute.ReversalInfo[TCRoute.ActiveSubPath].LastSignalIndex + countDifference;
 
             // set new route
 
             ValidRoute[0] = newRoute;
-            TCRoute.TCRouteSubpaths[TCRoute.activeSubpath] = newRoute;
+            TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath] = newRoute;
 
             // check for abandoned stations - try to find alternative on passing path
             LookForReplacementStations(abdStations, newRoute, altRoute);
@@ -14362,7 +14350,7 @@ namespace Orts.Simulation.Physics
             TrackCircuitPartialPathRoute newRoute = new TrackCircuitPartialPathRoute();
 
             TrackCircuitPartialPathRoute altRoute = sectionDeadlockInfo.AvailablePathList[usedPath].Path;
-            int actSubpath = TCRoute.activeSubpath;
+            int actSubpath = TCRoute.ActiveSubPath;
 
             // part upto split
 
@@ -14427,15 +14415,15 @@ namespace Orts.Simulation.Physics
 
             // Reindexes ReversalInfo items
             var countDifference = newRoute.Count - ValidRoute[0].Count;
-            if (TCRoute.ReversalInfo[TCRoute.activeSubpath].LastDivergeIndex >= 0)
-                TCRoute.ReversalInfo[TCRoute.activeSubpath].LastDivergeIndex = TCRoute.ReversalInfo[TCRoute.activeSubpath].LastDivergeIndex + countDifference;
-            if (TCRoute.ReversalInfo[TCRoute.activeSubpath].LastSignalIndex >= 0)
-                TCRoute.ReversalInfo[TCRoute.activeSubpath].LastSignalIndex = TCRoute.ReversalInfo[TCRoute.activeSubpath].LastSignalIndex + countDifference;
+            if (TCRoute.ReversalInfo[TCRoute.ActiveSubPath].LastDivergeIndex >= 0)
+                TCRoute.ReversalInfo[TCRoute.ActiveSubPath].LastDivergeIndex = TCRoute.ReversalInfo[TCRoute.ActiveSubPath].LastDivergeIndex + countDifference;
+            if (TCRoute.ReversalInfo[TCRoute.ActiveSubPath].LastSignalIndex >= 0)
+                TCRoute.ReversalInfo[TCRoute.ActiveSubPath].LastSignalIndex = TCRoute.ReversalInfo[TCRoute.ActiveSubPath].LastSignalIndex + countDifference;
 
             // set new route
 
             ValidRoute[0] = newRoute;
-            TCRoute.TCRouteSubpaths[TCRoute.activeSubpath] = newRoute;
+            TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath] = newRoute;
 
             // check for abandoned stations - try to find alternative on passing path
             LookForReplacementStations(abdStations, newRoute, altRoute);
@@ -15446,2017 +15434,6 @@ namespace Orts.Simulation.Physics
                 TrainRouteDirectionIndex = thisIndex;
             }
         }
-
-        //================================================================================================//
-        /// <summary>
-        /// Track Circuit Route Path
-        /// </summary>
-
-        public class TCRoutePath
-        {
-            public List<TrackCircuitPartialPathRoute> TCRouteSubpaths = new List<TrackCircuitPartialPathRoute>();
-            public List<TrackCircuitPartialPathRoute> TCAlternativePaths = new List<TrackCircuitPartialPathRoute>();
-            public int activeSubpath;
-            public int activeAltpath;
-            public List<int[]> WaitingPoints = new List<int[]>(); // [0] = sublist in which WP is placed; 
-            // [1] = WP section; [2] = WP wait time (delta); [3] = WP depart time;
-            // [4] = hold signal
-            public List<TCReversalInfo> ReversalInfo = new List<TCReversalInfo>();
-            public List<RoughReversalInfo> RoughReversalInfos = new List<RoughReversalInfo>();
-            public List<int> LoopEnd = new List<int>();
-            public Dictionary<string, int[]> StationXRef = new Dictionary<string, int[]>();
-            // int[0] = subpath index, int[1] = element index, int[2] = platform ID
-            public int OriginalSubpath = -1; // reminds original subpath when train manually rerouted
-
-            //================================================================================================//
-            /// <summary>
-            /// Constructor (from AIPath)
-            /// </summary>
-
-            public TCRoutePath(AIPath aiPath, int orgDir, float thisTrainLength, int trainNumber)
-            {
-                activeSubpath = 0;
-                activeAltpath = -1;
-                float offset = 0;
-
-                //
-                // collect all TC Elements
-                //
-                // get tracknode from first path node
-                //
-                int sublist = 0;
-
-                Dictionary<int, int[]> AlternativeRoutes = new Dictionary<int, int[]>();
-                Queue<int> ActiveAlternativeRoutes = new Queue<int>();
-
-                //  Create the first TCSubpath into the TCRoute
-                TrackCircuitPartialPathRoute thisSubpath = new TrackCircuitPartialPathRoute();
-                TCRouteSubpaths.Add(thisSubpath);
-
-                TrackDirection currentDir = (TrackDirection)orgDir;
-                TrackDirection newDir = (TrackDirection)orgDir;
-
-                List<float> reversalOffset = new List<float>();
-                List<int> reversalIndex = new List<int>();
-
-                //
-                // if original direction not set, determine it through first switch
-                //
-                if ((int)orgDir < -1)
-                {
-                    bool firstSwitch = false;
-                    int prevTNode = 0;
-                    TrackDirection jnDir = TrackDirection.Ahead;
-
-                    for (int iPNode = 0; iPNode < aiPath.Nodes.Count - 1 && !firstSwitch; iPNode++)
-                    {
-                        AIPathNode pNode = aiPath.Nodes[iPNode];
-                        if (pNode.JunctionIndex > 0)
-                        {
-                            TrackNode jn = aiPath.TrackDB.TrackNodes[pNode.JunctionIndex];
-                            firstSwitch = true;
-                            for (int iPin = 0; iPin < jn.TrackPins.Length; iPin++)
-                            {
-                                if (jn.TrackPins[iPin].Link == prevTNode)
-                                {
-                                    jnDir = jn.TrackPins[iPin].Direction.Next();
-                                }
-                            }
-                        }
-                        else
-                        {
-                            if (pNode.Type == AIPathNodeType.Other)
-                                prevTNode = pNode.NextMainTVNIndex;
-                        }
-                    }
-
-                    currentDir = jnDir;
-                }
-
-                //
-                // loop through path nodes
-                //
-
-                AIPathNode thisPathNode = aiPath.Nodes[0];
-                AIPathNode nextPathNode = null;
-                AIPathNode lastPathNode = null;
-
-                int trackNodeIndex = thisPathNode.NextMainTVNIndex;
-                TrackNode thisNode = null;
-
-                thisPathNode = thisPathNode.NextMainNode;
-                int reversal = 0;
-
-                while (thisPathNode != null)
-                {
-                    lastPathNode = thisPathNode;
-
-                    // process siding items
-
-                    if (thisPathNode.Type == AIPathNodeType.SidingStart)
-                    {
-                        TrackNode sidingNode = aiPath.TrackDB.TrackNodes[thisPathNode.JunctionIndex];
-                        int startTCSectionIndex = sidingNode.TrackCircuitCrossReferences[0].Index;
-                        int[] altRouteReference = new int[3];
-                        altRouteReference[0] = sublist;
-                        altRouteReference[1] = thisPathNode.Index;
-                        altRouteReference[2] = -1;
-                        AlternativeRoutes.Add(startTCSectionIndex, altRouteReference);
-                        ActiveAlternativeRoutes.Enqueue(startTCSectionIndex);
-
-                        thisPathNode.Type = AIPathNodeType.Other;
-                    }
-                    else if (thisPathNode.Type == AIPathNodeType.SidingEnd)
-                    {
-                        TrackNode sidingNode = aiPath.TrackDB.TrackNodes[thisPathNode.JunctionIndex];
-                        int endTCSectionIndex = sidingNode.TrackCircuitCrossReferences[0].Index;
-
-                        int refStartIndex = ActiveAlternativeRoutes.Dequeue();
-                        int[] altRouteReference = AlternativeRoutes[refStartIndex];
-                        altRouteReference[2] = endTCSectionIndex;
-
-                        thisPathNode.Type = AIPathNodeType.Other;
-                    }
-
-                    //
-                    // process last non-junction section
-                    //
-
-                    if (thisPathNode.Type == AIPathNodeType.Other)
-                    {
-                        thisNode = aiPath.TrackDB.TrackNodes[trackNodeIndex];
-
-                        //  SPA:    Subpath:    Add TCRouteElement for each TrackCircuitsection in node
-                        if (currentDir == 0)
-                        {
-                            for (int iTC = 0; iTC < thisNode.TrackCircuitCrossReferences.Count; iTC++)
-                            {
-                                TrackCircuitRouteElement thisElement =
-                                    new TrackCircuitRouteElement(thisNode, iTC, currentDir);
-                                thisSubpath.Add(thisElement);
-                                SetStationReference(TCRouteSubpaths, thisElement.TrackCircuitSection.Index);
-                            }
-                            newDir = thisNode.TrackPins[(int)currentDir].Direction;
-
-                        }
-                        else
-                        {
-                            for (int iTC = thisNode.TrackCircuitCrossReferences.Count - 1; iTC >= 0; iTC--)
-                            {
-                                TrackCircuitRouteElement thisElement =
-                                    new TrackCircuitRouteElement(thisNode, iTC, currentDir);
-                                thisSubpath.Add(thisElement);
-                                SetStationReference(TCRouteSubpaths, thisElement.TrackCircuitSection.Index);
-                            }
-                            newDir = thisNode.TrackPins[(int)currentDir].Direction;
-                        }
-
-                        if (reversal > 0)
-                        {
-                            while (reversal > 0)
-                            {
-                                //<CSComment> following block can be uncommented if it is preferred to leave in the path the double reverse points
-                                //                                if (!Simulator.TimetableMode && Simulator.Settings.EnhancedActCompatibility && sublist > 0 &&
-                                //                                    TCRouteSubpaths[sublist].Count <= 0)
-                                //                                {
-                                //                                    // check if preceding subpath has no sections, and in such case insert the one it should have,
-                                //                                    // taking the last section from the preceding subpath
-                                //                                    thisNode = aiPath.TrackDB.TrackNodes[trackNodeIndex];
-                                //                                    if (currentDir == 0)
-                                //                                    {
-                                //                                        for (int iTC = 0; iTC < thisNode.TCCrossReference.Count; iTC++)
-                                //                                        {
-                                //                                            if (thisNode.TCCrossReference[iTC].Index == RoughReversalInfos[sublist].ReversalSectionIndex)
-                                //                                            {
-                                //                                                TCRouteElement thisElement =
-                                //                                                     new TCRouteElement(thisNode, iTC, currentDir, orgSignals);
-                                //                                                thisSubpath.Add(thisElement);
-                                //                                                //  SPA:    Station:    A adapter, 
-                                //                                                SetStationReference(TCRouteSubpaths, thisElement.TCSectionIndex, orgSignals);
-                                //                                                break;
-                                //                                            }
-                                //                                        }
-                                //                                        newDir = thisNode.TrPins[currentDir].Direction;
-                                //
-                                //                                    }
-                                //                                    else
-                                //                                    {
-                                //                                        for (int iTC = thisNode.TCCrossReference.Count - 1; iTC >= 0; iTC--)
-                                //                                        {
-                                //                                            if (thisNode.TCCrossReference[iTC].Index == RoughReversalInfos[sublist].ReversalSectionIndex)
-                                //                                            {
-                                //                                                TCRouteElement thisElement =
-                                //                                                   new TCRouteElement(thisNode, iTC, currentDir, orgSignals);
-                                //                                                thisSubpath.Add(thisElement);
-                                //                                                SetStationReference(TCRouteSubpaths, thisElement.TCSectionIndex, orgSignals);
-                                //                                                break;
-                                //                                            }
-                                //                                        }
-                                //                                        newDir = thisNode.TrPins[currentDir].Direction;
-                                //                                    }
-                                //                                }
-
-                                sublist++;
-                                thisSubpath = new TrackCircuitPartialPathRoute();
-                                TCRouteSubpaths.Add(thisSubpath);
-                                currentDir = currentDir.Next();
-                                reversal--;        // reset reverse point
-                            }
-                            continue;          // process this node again in reverse direction
-                        }
-                        //  SPA:    WP: New forms 
-
-                        //
-                        // process junction section
-                        //
-
-                        if (thisPathNode.JunctionIndex > 0)
-                        {
-                            TrackNode junctionNode = aiPath.TrackDB.TrackNodes[thisPathNode.JunctionIndex];
-                            TrackCircuitRouteElement thisElement =
-                                new TrackCircuitRouteElement(junctionNode, 0, newDir);
-                            thisSubpath.Add(thisElement);
-
-                            trackNodeIndex = thisPathNode.NextMainTVNIndex;
-
-                            if (thisPathNode.IsFacingPoint)   // exit is one of two switch paths //
-                            {
-                                int firstpin = (junctionNode.InPins > 1) ? 0 : junctionNode.InPins;
-                                if (junctionNode.TrackPins[firstpin].Link == trackNodeIndex)
-                                {
-                                    newDir = junctionNode.TrackPins[firstpin].Direction;
-                                    thisElement.OutPin[Location.FarEnd] = TrackDirection.Ahead;
-                                }
-                                else
-                                {
-                                    firstpin++;
-                                    newDir = junctionNode.TrackPins[firstpin].Direction;
-                                    thisElement.OutPin[Location.FarEnd] = TrackDirection.Reverse;
-                                }
-                            }
-                            else  // exit is single path //
-                            {
-                                int firstpin = (junctionNode.InPins > 1) ? junctionNode.InPins : 0;
-                                newDir = junctionNode.TrackPins[firstpin].Direction;
-                            }
-                        }
-                        //
-                        // find next junction path node
-                        //
-                        nextPathNode = thisPathNode.NextMainNode;
-
-                        // if we were on last main node, direction was already set
-                        if (nextPathNode != null) currentDir = newDir;
-
-                    }
-                    else
-                    {
-                        nextPathNode = thisPathNode;
-                    }
-
-                    while (nextPathNode != null && nextPathNode.JunctionIndex < 0)
-                    {
-                        lastPathNode = nextPathNode;
-
-                        if (nextPathNode.Type == AIPathNodeType.Reverse)
-                        {
-                            TrackVectorNode reversalNode = aiPath.TrackDB.TrackNodes[nextPathNode.NextMainTVNIndex] as TrackVectorNode;
-                            TrackVectorSection firstSection = reversalNode.TrackVectorSections[0];
-                            Traveller TDBTrav = new Traveller(aiPath.TSectionDat, aiPath.TrackDB.TrackNodes, reversalNode, firstSection.Location, (Traveller.TravellerDirection)1);
-                            offset = TDBTrav.DistanceTo(reversalNode, nextPathNode.Location);
-                            float reverseOffset = 0;
-                            int sectionIndex = -1;
-                            TrackDirection validDir = currentDir;
-                            if (reversal % 2 == 1) validDir = validDir.Next();
-                            if (validDir == TrackDirection.Ahead)
-                            {
-                                reverseOffset = -offset;
-                                for (int i = reversalNode.TrackCircuitCrossReferences.Count - 1; i >= 0 && reverseOffset <= 0; i--)
-                                {
-                                    reverseOffset += reversalNode.TrackCircuitCrossReferences[i].Length;
-                                    sectionIndex = reversalNode.TrackCircuitCrossReferences[i].Index;
-
-                                }
-                            }
-                            else
-                            {
-                                int exti = 0;
-                                reverseOffset = offset;
-                                for (int i = reversalNode.TrackCircuitCrossReferences.Count - 1; i >= 0 && reverseOffset >= 0; i--)
-                                {
-                                    reverseOffset -= reversalNode.TrackCircuitCrossReferences[i].Length;
-                                    sectionIndex = reversalNode.TrackCircuitCrossReferences[i].Index;
-                                    exti = i;
-                                }
-                                reverseOffset += reversalNode.TrackCircuitCrossReferences[exti].Length;
-                            }
-                            RoughReversalInfo roughReversalInfo = new RoughReversalInfo(sublist + reversal, reverseOffset, sectionIndex);
-                            RoughReversalInfos.Add(roughReversalInfo);
-                            reversalOffset.Add(offset);
-                            reversalIndex.Add(sublist);
-                            reversal++;
-                        }
-                        else if (nextPathNode.Type == AIPathNodeType.Stop)
-                        {
-                            TrackDirection validDir = currentDir;
-                            if (reversal % 2 == 1) validDir = validDir.Next();
-                            offset = GetOffsetToPathNode(aiPath, (int)validDir, nextPathNode);
-                            int[] waitingPoint = new int[6];
-                            waitingPoint[0] = sublist + reversal;
-                            waitingPoint[1] = ConvertWaitingPoint(nextPathNode, aiPath.TrackDB, aiPath.TSectionDat, (int)currentDir);
-
-                            waitingPoint[2] = nextPathNode.WaitTimeS;
-                            waitingPoint[3] = nextPathNode.WaitUntil;
-                            waitingPoint[4] = -1; // hold signal set later
-                            waitingPoint[5] = (int)offset;
-                            WaitingPoints.Add(waitingPoint);
-                        }
-
-                        // other type of path need not be processed
-
-                        // go to next node
-                        nextPathNode = nextPathNode.NextMainNode;
-                    }
-                    thisPathNode = nextPathNode;
-                }
-
-                if (!Simulator.Instance.TimetableMode)
-                {
-                    // insert reversals when they are in last section
-                    while (reversal > 0)
-                    {
-                        thisNode = aiPath.TrackDB.TrackNodes[trackNodeIndex];
-                        if (currentDir == 0)
-                        {
-                            for (int iTC = 0; iTC < thisNode.TrackCircuitCrossReferences.Count; iTC++)
-                            {
-                                TrackCircuitRouteElement thisElement =
-                                  new TrackCircuitRouteElement(thisNode, iTC, currentDir);
-                                thisSubpath.Add(thisElement);
-                                //  SPA:    Station:    A adapter, 
-                                SetStationReference(TCRouteSubpaths, thisElement.TrackCircuitSection.Index);
-                                if (thisNode.TrackCircuitCrossReferences[iTC].Index == RoughReversalInfos[sublist].ReversalSectionIndex)
-                                {
-                                    break;
-                                }
-                            }
-                            newDir = thisNode.TrackPins[(int)currentDir].Direction;
-
-                        }
-                        else
-                        {
-                            for (int iTC = thisNode.TrackCircuitCrossReferences.Count - 1; iTC >= 0; iTC--)
-                            {
-                                TrackCircuitRouteElement thisElement =
-                                    new TrackCircuitRouteElement(thisNode, iTC, currentDir);
-                                thisSubpath.Add(thisElement);
-                                SetStationReference(TCRouteSubpaths, thisElement.TrackCircuitSection.Index);
-                                if (thisNode.TrackCircuitCrossReferences[iTC].Index == RoughReversalInfos[sublist].ReversalSectionIndex)
-                                {
-                                    break;
-                                }
-                            }
-                            newDir = thisNode.TrackPins[(int)currentDir].Direction;
-                        }
-                        sublist++;
-                        thisSubpath = new TrackCircuitPartialPathRoute();
-                        TCRouteSubpaths.Add(thisSubpath);
-                        currentDir = currentDir.Next();
-                        reversal--;        // reset reverse point
-                    }
-                }
-                //
-                // add last section
-                //
-
-                thisNode = aiPath.TrackDB.TrackNodes[trackNodeIndex];
-                TrackVectorSection endFirstSection = (thisNode as TrackVectorNode).TrackVectorSections[0];
-                Traveller TDBEndTrav = new Traveller(aiPath.TSectionDat, aiPath.TrackDB.TrackNodes, thisNode as TrackVectorNode, endFirstSection.Location, (Traveller.TravellerDirection)1);
-                float endOffset = TDBEndTrav.DistanceTo(thisNode, lastPathNode.Location);
-
-                // Prepare info about route end point
-                float reverseEndOffset = 0;
-                int endNodeSectionIndex = -1;
-                if (currentDir == 0)
-                {
-                    reverseEndOffset = -endOffset;
-                    for (int i = thisNode.TrackCircuitCrossReferences.Count - 1; i >= 0 && reverseEndOffset <= 0; i--)
-                    {
-                        reverseEndOffset += thisNode.TrackCircuitCrossReferences[i].Length;
-                        endNodeSectionIndex = thisNode.TrackCircuitCrossReferences[i].Index;
-
-                    }
-                }
-                else
-                {
-                    int exti = 0;
-                    reverseEndOffset = endOffset;
-                    for (int i = thisNode.TrackCircuitCrossReferences.Count - 1; i >= 0 && reverseEndOffset >= 0; i--)
-                    {
-                        reverseEndOffset -= thisNode.TrackCircuitCrossReferences[i].Length;
-                        endNodeSectionIndex = thisNode.TrackCircuitCrossReferences[i].Index;
-                        exti = i;
-                    }
-                    reverseEndOffset += thisNode.TrackCircuitCrossReferences[exti].Length;
-                }
-                RoughReversalInfo lastReversalInfo = new RoughReversalInfo(sublist, reverseEndOffset, endNodeSectionIndex);
-                RoughReversalInfos.Add(lastReversalInfo);
-
-                // only add last section if end point is in different tracknode as last added item
-                if (thisSubpath.Count <= 0 ||
-                    thisNode.Index != thisSubpath[thisSubpath.Count - 1].TrackCircuitSection.OriginalIndex)
-                {
-                    if (currentDir == 0)
-                    {
-                        for (int iTC = 0; iTC < thisNode.TrackCircuitCrossReferences.Count; iTC++)
-                        {
-                            if ((thisNode.TrackCircuitCrossReferences[iTC].OffsetLength[1] + thisNode.TrackCircuitCrossReferences[iTC].Length) > endOffset)
-                            //                      if (thisNode.TCCrossReference[iTC].Position[0] < endOffset)
-                            {
-                                TrackCircuitRouteElement thisElement =
-                                    new TrackCircuitRouteElement(thisNode, iTC, currentDir);
-                                if (thisSubpath.Count <= 0 || thisSubpath[thisSubpath.Count - 1].TrackCircuitSection.Index != thisElement.TrackCircuitSection.Index)
-                                {
-                                    thisSubpath.Add(thisElement); // only add if not yet set
-                                    SetStationReference(TCRouteSubpaths, thisElement.TrackCircuitSection.Index);
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        for (int iTC = thisNode.TrackCircuitCrossReferences.Count - 1; iTC >= 0; iTC--)
-                        {
-                            if (thisNode.TrackCircuitCrossReferences[iTC].OffsetLength[1] < endOffset)
-                            {
-                                TrackCircuitRouteElement thisElement =
-                                new TrackCircuitRouteElement(thisNode, iTC, currentDir);
-                                if (thisSubpath.Count <= 0 || thisSubpath[thisSubpath.Count - 1].TrackCircuitSection.Index != thisElement.TrackCircuitSection.Index)
-                                {
-                                    thisSubpath.Add(thisElement); // only add if not yet set
-                                    SetStationReference(TCRouteSubpaths, thisElement.TrackCircuitSection.Index);
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // check if section extends to end of track
-
-                TrackCircuitRouteElement lastElement = thisSubpath[thisSubpath.Count - 1];
-                TrackCircuitSection lastEndSection = lastElement.TrackCircuitSection;
-                TrackDirection lastDirection = lastElement.Direction;
-
-                List<TrackCircuitRouteElement> addedElements = new List<TrackCircuitRouteElement>();
-                if (lastEndSection.CircuitType != TrackCircuitType.EndOfTrack && lastEndSection.EndSignals[lastDirection] == null)
-                {
-                    TrackDirection thisDirection = lastDirection;
-                    lastDirection = lastEndSection.Pins[thisDirection, Location.NearEnd].Direction;
-                    lastEndSection = TrackCircuitSection.TrackCircuitList[lastEndSection.Pins[thisDirection, Location.NearEnd].Link];
-
-                    while (lastEndSection.CircuitType == TrackCircuitType.Normal && lastEndSection.EndSignals[lastDirection] == null)
-                    {
-                        addedElements.Add(new TrackCircuitRouteElement(lastEndSection.Index, lastDirection));
-                        thisDirection = lastDirection;
-                        lastDirection = lastEndSection.Pins[thisDirection, Location.NearEnd].Direction;
-                        lastEndSection = TrackCircuitSection.TrackCircuitList[lastEndSection.Pins[thisDirection, Location.NearEnd].Link];
-                    }
-
-                    if (lastEndSection.CircuitType == TrackCircuitType.EndOfTrack)
-                    {
-                        foreach (TrackCircuitRouteElement addedElement in addedElements)
-                        {
-                            thisSubpath.Add(addedElement);
-                            SetStationReference(TCRouteSubpaths, addedElement.TrackCircuitSection.Index);
-                        }
-                        thisSubpath.Add(new TrackCircuitRouteElement(lastEndSection.Index, lastDirection));
-                    }
-                }
-
-                // remove sections beyond reversal points
-
-                for (int iSub = 0; iSub < reversalOffset.Count; iSub++)  // no reversal for final path
-                {
-                    TrackCircuitPartialPathRoute revSubPath = TCRouteSubpaths[reversalIndex[iSub]];
-                    offset = reversalOffset[iSub];
-                    if (revSubPath.Count <= 0)
-                        continue;
-
-                    TrackDirection direction = revSubPath[revSubPath.Count - 1].Direction;
-
-                    bool withinOffset = true;
-                    List<int> removeSections = new List<int>();
-                    int lastSectionIndex = revSubPath.Count - 1;
-
-                    // create list of sections beyond reversal point 
-
-                    if (direction == TrackDirection.Ahead)
-                    {
-                        for (int iSection = revSubPath.Count - 1; iSection > 0 && withinOffset; iSection--)
-                        {
-                            TrackCircuitSection thisSection = revSubPath[iSection].TrackCircuitSection;
-                            if (thisSection.CircuitType == TrackCircuitType.Junction)
-                            {
-                                withinOffset = false;    // always end on junction (next node)
-                            }
-                            else if (thisSection.CircuitType == TrackCircuitType.Crossover)
-                            {
-                                removeSections.Add(iSection);        // always remove crossover if last section was removed
-                                lastSectionIndex = iSection - 1;
-                            }
-                            else if (thisSection.OffsetLength[Location.FarEnd] + thisSection.Length < offset) // always use offsetLength[1] as offset is wrt begin of original section
-                            {
-                                removeSections.Add(iSection);
-                                lastSectionIndex = iSection - 1;
-                            }
-                            else
-                            {
-                                withinOffset = false;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        for (int iSection = revSubPath.Count - 1; iSection > 0 && withinOffset; iSection--)
-                        {
-                            TrackCircuitSection thisSection = revSubPath[iSection].TrackCircuitSection;
-                            if (thisSection.CircuitType == TrackCircuitType.Junction)
-                            {
-                                withinOffset = false;     // always end on junction (next node)
-                            }
-                            else if (thisSection.CircuitType == TrackCircuitType.Crossover)
-                            {
-                                removeSections.Add(iSection);        // always remove crossover if last section was removed
-                                lastSectionIndex = iSection - 1;
-                            }
-                            else if (thisSection.OffsetLength[Location.FarEnd] > offset)
-                            {
-                                removeSections.Add(iSection);
-                                lastSectionIndex = iSection - 1;
-                            }
-                            else
-                            {
-                                withinOffset = false;
-                            }
-                        }
-                    }
-
-                    // extend route to first signal or first node
-
-                    bool signalFound = false;
-
-                    for (int iSection = lastSectionIndex; iSection < revSubPath.Count - 1 && !signalFound; iSection++)
-                    {
-                        TrackCircuitSection thisSection = revSubPath[iSection].TrackCircuitSection;
-                        removeSections.Remove(iSection);
-                        if (thisSection.EndSignals[direction] != null)
-                        {
-                            signalFound = true;
-                        }
-                    }
-
-                    // remove sections beyond first signal or first node from reversal point
-
-                    for (int iSection = 0; iSection < removeSections.Count; iSection++)
-                    {
-                        revSubPath.RemoveAt(removeSections[iSection]);
-                    }
-                }
-
-                // remove dummy subpaths (from double reversion)
-
-                List<int> subRemoved = new List<int>();
-                int orgCount = TCRouteSubpaths.Count;
-                int removed = 0;
-                Dictionary<int, int> newIndices = new Dictionary<int, int>();
-
-                for (int iSub = TCRouteSubpaths.Count - 1; iSub >= 0; iSub--)
-                {
-                    if (TCRouteSubpaths[iSub].Count <= 0)
-                    {
-                        TCRouteSubpaths.RemoveAt(iSub);
-                        subRemoved.Add(iSub);
-                        var itemToRemove = RoughReversalInfos.FindIndex(r => r.SubPathIndex >= iSub);
-                        if (itemToRemove != -1)
-                        {
-                            if (RoughReversalInfos[itemToRemove].SubPathIndex == iSub) RoughReversalInfos.RemoveAt(itemToRemove);
-                            for (int i = itemToRemove; i < RoughReversalInfos.Count; i++)
-                            {
-                                RoughReversalInfos[i].SubPathIndex--;
-                            }
-                        }
-                    }
-                }
-
-                // calculate new indices
-                for (int iSub = 0; iSub <= orgCount - 1; iSub++) //<CSComment> maybe comparison only with less than?
-                {
-                    newIndices.Add(iSub, iSub - removed);
-                    if (subRemoved.Contains(iSub))
-                    {
-                        removed++;
-                    }
-                }
-
-                // if removed, update indices of waiting points
-                if (removed > 0)
-                {
-                    foreach (int[] thisWP in WaitingPoints)
-                    {
-                        thisWP[0] = newIndices[thisWP[0]];
-                    }
-
-                    // if remove, update indices of alternative paths
-                    Dictionary<int, int[]> copyAltRoutes = AlternativeRoutes;
-                    AlternativeRoutes.Clear();
-                    foreach (KeyValuePair<int, int[]> thisAltPath in copyAltRoutes)
-                    {
-                        int[] pathDetails = thisAltPath.Value;
-                        pathDetails[0] = newIndices[pathDetails[0]];
-                        AlternativeRoutes.Add(thisAltPath.Key, pathDetails);
-                    }
-
-                    // if remove, update indices in station xref
-
-                    Dictionary<string, int[]> copyXRef = StationXRef;
-                    StationXRef.Clear();
-
-                    foreach (KeyValuePair<string, int[]> actXRef in copyXRef)
-                    {
-                        int[] oldValue = actXRef.Value;
-                        int[] newValue = new int[3] { newIndices[oldValue[0]], oldValue[1], oldValue[2] };
-                        StationXRef.Add(actXRef.Key, newValue);
-                    }
-                }
-
-                // find if last stretch is dummy track
-
-                // first, find last signal - there may not be a junction between last signal and end
-                // last end must be end-of-track
-
-                foreach (TrackCircuitPartialPathRoute endSubPath in TCRouteSubpaths)
-                {
-                    int lastIndex = endSubPath.Count - 1;
-                    TrackCircuitRouteElement thisElement = endSubPath[lastIndex];
-                    TrackCircuitSection lastSection = thisElement.TrackCircuitSection;
-
-                    // build additional route from end of last section but not further than train length
-
-                    int nextSectionIndex = lastSection.ActivePins[thisElement.OutPin[Location.NearEnd], (Location)thisElement.OutPin[Location.FarEnd]].Link;
-                    TrackDirection nextDirection = lastSection.ActivePins[thisElement.OutPin[Location.NearEnd], (Location)thisElement.OutPin[Location.FarEnd]].Direction;
-                    int lastUseIndex = lastIndex - 1;  // do not use final element if this is end of track
-
-                    List<int> addSections = new List<int>();
-
-                    if (nextSectionIndex > 0)
-                    {
-                        lastUseIndex = lastIndex;  // last element is not end of track
-                        addSections = SignalEnvironment.ScanRoute(null, nextSectionIndex, 0.0f, nextDirection,
-                           true, thisTrainLength, false, true, true, false, true, false, false, false, false, false);
-
-                        if (addSections.Count > 0)
-                        {
-                            lastSection = TrackCircuitSection.TrackCircuitList[Math.Abs(addSections[addSections.Count - 1])];
-                        }
-                    }
-
-                    if (lastSection.CircuitType == TrackCircuitType.EndOfTrack)
-                    {
-
-                        // first length of added sections
-
-                        float totalLength = 0.0f;
-                        bool juncfound = false;
-
-                        for (int iSection = 0; iSection < addSections.Count - 2; iSection++)  // exclude end of track
-                        {
-                            TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[Math.Abs(addSections[iSection])];
-                            totalLength += thisSection.Length;
-                            if (thisSection.CircuitType != TrackCircuitType.Normal)
-                            {
-                                juncfound = true;
-                            }
-                        }
-
-                        // next length of sections back to last signal
-                        // stop loop : when junction found, when signal found, when length exceeds train length
-
-                        int sigIndex = -1;
-
-                        for (int iSection = lastUseIndex;
-                                iSection >= 0 && sigIndex < 0 && !juncfound && totalLength < 0.5 * thisTrainLength;
-                                iSection--)
-                        {
-                            thisElement = endSubPath[iSection];
-                            TrackCircuitSection thisSection = thisElement.TrackCircuitSection;
-
-                            if (thisSection.EndSignals[thisElement.Direction] != null)
-                            {
-                                sigIndex = iSection;
-                            }
-                            else if (thisSection.CircuitType != TrackCircuitType.Normal)
-                            {
-                                juncfound = true;
-                            }
-                            else
-                            {
-                                totalLength += thisSection.Length;
-                            }
-                        }
-
-                        // remove dummy ends
-
-                        if (sigIndex > 0 && totalLength < 0.5f * thisTrainLength)
-                        {
-                            for (int iSection = endSubPath.Count - 1; iSection > sigIndex; iSection--)
-                            {
-                                if (endSubPath == TCRouteSubpaths[TCRouteSubpaths.Count - 1] &&
-                                    endSubPath[iSection].TrackCircuitSection.Index == RoughReversalInfos[RoughReversalInfos.Count - 1].ReversalSectionIndex)
-                                {
-                                    RoughReversalInfos[RoughReversalInfos.Count - 1].ReversalSectionIndex = endSubPath[sigIndex].TrackCircuitSection.Index;
-                                    RoughReversalInfos[RoughReversalInfos.Count - 1].ReverseReversalOffset =
-                                        endSubPath[sigIndex].TrackCircuitSection.Length;
-                                }
-                                endSubPath.RemoveAt(iSection);
-                            }
-                        }
-                    }
-                }
-
-                // for reversals, find actual diverging section
-
-                int prevDivergeSectorIndex = -1;
-                int iReversalLists = 0;
-                TCReversalInfo reversalInfo;
-                for (int iSubpath = 1; iSubpath < TCRouteSubpaths.Count; iSubpath++)
-                {
-                    while (RoughReversalInfos.Count > 0 && RoughReversalInfos[iReversalLists].SubPathIndex < iSubpath - 1 && iReversalLists < RoughReversalInfos.Count - 2)
-                    {
-                        iReversalLists++;
-                    }
-
-                    if (RoughReversalInfos.Count > 0 && RoughReversalInfos[iReversalLists].SubPathIndex == iSubpath - 1)
-                    {
-                        reversalInfo = new TCReversalInfo(TCRouteSubpaths[iSubpath - 1], prevDivergeSectorIndex,
-                            TCRouteSubpaths[iSubpath], RoughReversalInfos[iReversalLists].ReverseReversalOffset, RoughReversalInfos[iReversalLists].SubPathIndex, RoughReversalInfos[iReversalLists].ReversalSectionIndex);
-                    }
-                    else
-                    {
-                        reversalInfo = new TCReversalInfo(TCRouteSubpaths[iSubpath - 1], prevDivergeSectorIndex,
-                            TCRouteSubpaths[iSubpath], -1, -1, -1);
-                    }
-
-                    ReversalInfo.Add(reversalInfo);
-                    prevDivergeSectorIndex = reversalInfo.Valid ? reversalInfo.FirstDivergeIndex : -1;
-                }
-                ReversalInfo.Add(new TCReversalInfo());  // add invalid item to make up the numbers (equals no. subpaths)
-                // Insert data for end route offset
-                ReversalInfo[ReversalInfo.Count - 1].ReverseReversalOffset = RoughReversalInfos[RoughReversalInfos.Count - 1].ReverseReversalOffset;
-                ReversalInfo[ReversalInfo.Count - 1].ReversalIndex = RoughReversalInfos[RoughReversalInfos.Count - 1].SubPathIndex;
-                ReversalInfo[ReversalInfo.Count - 1].ReversalSectionIndex = RoughReversalInfos[RoughReversalInfos.Count - 1].ReversalSectionIndex;
-
-                RoughReversalInfos.Clear(); // no more used
-
-
-                // process alternative paths - MSTS style
-
-                if (Simulator.Instance.Settings.UseLocationPassingPaths)
-                {
-                    ProcessAlternativePath_LocationDef(AlternativeRoutes, aiPath, trainNumber);
-                    if (trainNumber >= 0) SearchPassingPaths(trainNumber, thisTrainLength);
-                }
-                else
-                {
-                    ProcessAlternativePath_PathDef(AlternativeRoutes, aiPath);
-                }
-
-                // search for loops
-
-                LoopSearch();
-            }
-
-            //  SPA: Used with enhanced MSTS Mode, please don't change
-            float GetOffsetToPathNode(AIPath aiPath, int direction, AIPathNode pathNode)
-            {
-
-                float offset = 0;
-                TrackVectorNode WPNode;
-                TrackVectorSection firstSection;
-                //int nextNodeIdx = 0;
-                int NodeDir = direction;
-
-                WPNode = aiPath.TrackDB.TrackNodes[pathNode.NextMainTVNIndex] as TrackVectorNode;
-                int idxSectionWP = ConvertWaitingPoint(pathNode, aiPath.TrackDB, aiPath.TSectionDat, direction);
-                firstSection = WPNode.TrackVectorSections[0];
-                Traveller TDBTrav = new Traveller(aiPath.TSectionDat, aiPath.TrackDB.TrackNodes, WPNode, firstSection.Location, (Traveller.TravellerDirection)NodeDir);
-                if (TDBTrav.Direction == Traveller.TravellerDirection.Backward)
-                {
-                    NodeDir = 1 - direction;
-                    TDBTrav = new Traveller(aiPath.TSectionDat, aiPath.TrackDB.TrackNodes, WPNode, firstSection.Location, (Traveller.TravellerDirection)NodeDir);
-                    offset = TDBTrav.DistanceTo(WPNode, pathNode.Location);
-                    for (int idx = 0; idx < WPNode.TrackCircuitCrossReferences.Count(); idx++)
-                    {
-                        int TCSectionIndex = WPNode.TrackCircuitCrossReferences[idx].Index;
-                        if (TCSectionIndex == idxSectionWP)
-                        {
-                            float sectionOffset = offset - WPNode.TrackCircuitCrossReferences[idx].OffsetLength[NodeDir];
-                            offset = WPNode.TrackCircuitCrossReferences[idx].Length - sectionOffset;
-                            break;
-                        }
-                    }
-                }
-                else
-                {
-                    //Trace.TraceInformation("no reverse");
-                    offset = TDBTrav.DistanceTo(WPNode, pathNode.Location);
-                    for (int idx = 0; idx < WPNode.TrackCircuitCrossReferences.Count(); idx++)
-                    {
-                        int TCSectionIndex = WPNode.TrackCircuitCrossReferences[idx].Index;
-                        if (TCSectionIndex == idxSectionWP)
-                        {
-                            offset = offset - WPNode.TrackCircuitCrossReferences[idx].OffsetLength[NodeDir];
-                            break;
-                        }
-                    }
-                }
-                return offset;
-            }
-
-            //================================================================================================//
-            //
-            // process alternative paths - MSTS style Path definition
-            //
-
-            public void ProcessAlternativePath_PathDef(Dictionary<int, int[]> AlternativeRoutes, AIPath aiPath)
-            {
-                int altlist = 0;
-
-                foreach (KeyValuePair<int, int[]> thisAltPath in AlternativeRoutes)
-                {
-                    TrackCircuitPartialPathRoute thisAltpath = new TrackCircuitPartialPathRoute();
-
-                    int startSection = thisAltPath.Key;
-                    int[] pathDetails = thisAltPath.Value;
-                    int sublistRef = pathDetails[0];
-
-                    int startSectionRouteIndex = TCRouteSubpaths[sublistRef].GetRouteIndex(startSection, 0);
-                    int endSectionRouteIndex = -1;
-
-                    int endSection = pathDetails[2];
-                    if (endSection < 0)
-                    {
-                        Trace.TraceInformation("No end-index found for alternative path starting at " + startSection.ToString());
-                    }
-                    else
-                    {
-                        endSectionRouteIndex = TCRouteSubpaths[sublistRef].GetRouteIndex(endSection, 0);
-                    }
-
-                    if (startSectionRouteIndex < 0 || endSectionRouteIndex < 0)
-                    {
-                        Trace.TraceInformation("Start section " + startSection.ToString() + "or end section " + endSection.ToString() +
-                                               " for alternative path not in subroute " + sublistRef.ToString());
-                    }
-                    else
-                    {
-                        TrackCircuitRouteElement startElement = TCRouteSubpaths[sublistRef][startSectionRouteIndex];
-                        TrackCircuitRouteElement endElement = TCRouteSubpaths[sublistRef][endSectionRouteIndex];
-
-                        startElement.StartAlternativePath = new TrackCircuitRouteElement.AlternativePath() { PathIndex = altlist, TrackCircuitSection = TrackCircuitSection.TrackCircuitList[endSection] };
-                        endElement.EndAlternativePath = new TrackCircuitRouteElement.AlternativePath() { PathIndex = altlist, TrackCircuitSection = TrackCircuitSection.TrackCircuitList[startSection] };
-
-                        TrackDirection currentDir = startElement.Direction;
-                        TrackDirection newDir = currentDir;
-
-                        //
-                        // loop through path nodes
-                        //
-
-                        AIPathNode thisPathNode = aiPath.Nodes[pathDetails[1]];
-                        AIPathNode nextPathNode = null;
-                        AIPathNode lastPathNode = null;
-
-                        // process junction node
-
-                        TrackNode firstJunctionNode = aiPath.TrackDB.TrackNodes[thisPathNode.JunctionIndex];
-                        TrackCircuitRouteElement thisJunctionElement =
-                            new TrackCircuitRouteElement(firstJunctionNode, 0, currentDir);
-                        thisAltpath.Add(thisJunctionElement);
-
-                        int trackNodeIndex = thisPathNode.NextSidingTVNIndex;
-
-                        int firstJunctionPin = (firstJunctionNode.InPins > 1) ? 0 : firstJunctionNode.InPins;
-                        if (firstJunctionNode.TrackPins[firstJunctionPin].Link == trackNodeIndex)
-                        {
-                            currentDir = firstJunctionNode.TrackPins[firstJunctionPin].Direction;
-                            thisJunctionElement.OutPin[Location.FarEnd] = TrackDirection.Ahead;
-                        }
-                        else
-                        {
-                            firstJunctionPin++;
-                            currentDir = firstJunctionNode.TrackPins[firstJunctionPin].Direction;
-                            thisJunctionElement.OutPin[Location.FarEnd] = TrackDirection.Reverse;
-                        }
-
-                        // process alternative path
-
-                        TrackNode thisNode = null;
-                        thisPathNode = thisPathNode.NextSidingNode;
-
-                        while (thisPathNode != null)
-                        {
-
-                            //
-                            // process last non-junction section
-                            //
-
-                            if (thisPathNode.Type == AIPathNodeType.Other)
-                            {
-                                if (trackNodeIndex > 0)
-                                {
-                                    thisNode = aiPath.TrackDB.TrackNodes[trackNodeIndex];
-
-                                    if (currentDir == 0)
-                                    {
-                                        for (int iTC = 0; iTC < thisNode.TrackCircuitCrossReferences.Count; iTC++)
-                                        {
-                                            TrackCircuitRouteElement thisElement =
-                                                new TrackCircuitRouteElement(thisNode, iTC, currentDir);
-                                            thisAltpath.Add(thisElement);
-                                        }
-                                        newDir = thisNode.TrackPins[(int)currentDir].Direction;
-
-                                    }
-                                    else
-                                    {
-                                        for (int iTC = thisNode.TrackCircuitCrossReferences.Count - 1; iTC >= 0; iTC--)
-                                        {
-                                            TrackCircuitRouteElement thisElement =
-                                                new TrackCircuitRouteElement(thisNode, iTC, currentDir);
-                                            thisAltpath.Add(thisElement);
-                                        }
-                                        newDir = thisNode.TrackPins[(int)currentDir].Direction;
-                                    }
-                                    trackNodeIndex = -1;
-                                }
-
-                                //
-                                // process junction section
-                                //
-
-                                if (thisPathNode.JunctionIndex > 0)
-                                {
-                                    TrackNode junctionNode = aiPath.TrackDB.TrackNodes[thisPathNode.JunctionIndex];
-                                    TrackCircuitRouteElement thisElement =
-                                        new TrackCircuitRouteElement(junctionNode, 0, newDir);
-                                    thisAltpath.Add(thisElement);
-
-                                    trackNodeIndex = thisPathNode.NextSidingTVNIndex;
-
-                                    if (thisPathNode.IsFacingPoint)   // exit is one of two switch paths //
-                                    {
-                                        int firstpin = (junctionNode.InPins > 1) ? 0 : junctionNode.InPins;
-                                        if (junctionNode.TrackPins[firstpin].Link == trackNodeIndex)
-                                        {
-                                            newDir = junctionNode.TrackPins[firstpin].Direction;
-                                            thisElement.OutPin[Location.FarEnd] = TrackDirection.Ahead;
-                                        }
-                                        else
-                                        {
-                                            firstpin++;
-                                            newDir = junctionNode.TrackPins[firstpin].Direction;
-                                            thisElement.OutPin[Location.FarEnd] = TrackDirection.Reverse;
-                                        }
-                                    }
-                                    else  // exit is single path //
-                                    {
-                                        int firstpin = (junctionNode.InPins > 1) ? junctionNode.InPins : 0;
-                                        newDir = junctionNode.TrackPins[firstpin].Direction;
-                                    }
-                                }
-
-                                currentDir = newDir;
-
-                                //
-                                // find next junction path node
-                                //
-
-                                nextPathNode = thisPathNode.NextSidingNode;
-                            }
-                            else
-                            {
-                                nextPathNode = thisPathNode;
-                            }
-
-                            while (nextPathNode != null && nextPathNode.JunctionIndex < 0)
-                            {
-                                nextPathNode = nextPathNode.NextSidingNode;
-                            }
-
-                            lastPathNode = thisPathNode;
-                            thisPathNode = nextPathNode;
-                        }
-                        //
-                        // add last section
-                        //
-
-                        if (trackNodeIndex > 0)
-                        {
-                            thisNode = aiPath.TrackDB.TrackNodes[trackNodeIndex];
-
-                            if (currentDir == 0)
-                            {
-                                for (int iTC = 0; iTC < thisNode.TrackCircuitCrossReferences.Count; iTC++)
-                                {
-                                    TrackCircuitRouteElement thisElement =
-                                        new TrackCircuitRouteElement(thisNode, iTC, currentDir);
-                                    thisAltpath.Add(thisElement);
-                                }
-                            }
-                            else
-                            {
-                                for (int iTC = thisNode.TrackCircuitCrossReferences.Count - 1; iTC >= 0; iTC--)
-                                {
-                                    TrackCircuitRouteElement thisElement =
-                                        new TrackCircuitRouteElement(thisNode, iTC, currentDir);
-                                    thisAltpath.Add(thisElement);
-                                }
-                            }
-                        }
-
-                        TCAlternativePaths.Add(thisAltpath);
-                        altlist++;
-                    }
-                }
-            }
-
-            //================================================================================================//
-            //
-            // process alternative paths - location definition
-            //
-
-            public void ProcessAlternativePath_LocationDef(Dictionary<int, int[]> AlternativeRoutes, AIPath aiPath, int trainNumber)
-            {
-                foreach (KeyValuePair<int, int[]> thisAltPathIndex in AlternativeRoutes)
-                {
-                    TrackCircuitPartialPathRoute thisAltpath = new TrackCircuitPartialPathRoute();
-
-                    int startSectionIndex = thisAltPathIndex.Key;
-                    int[] pathDetails = thisAltPathIndex.Value;
-                    int sublistRef = pathDetails[0];
-
-                    int startSectionRouteIndex = TCRouteSubpaths[sublistRef].GetRouteIndex(startSectionIndex, 0);
-                    int endSectionRouteIndex = -1;
-
-                    int endSectionIndex = pathDetails[2];
-                    if (endSectionIndex < 0)
-                    {
-                        Trace.TraceInformation("No end-index found for passing path for train {0} starting at {1}",
-                            trainNumber, startSectionIndex.ToString());
-                    }
-                    else
-                    {
-                        endSectionRouteIndex = TCRouteSubpaths[sublistRef].GetRouteIndex(endSectionIndex, 0);
-                    }
-
-                    if (startSectionRouteIndex < 0 || endSectionRouteIndex < 0)
-                    {
-                        Trace.TraceInformation("Start section " + startSectionIndex.ToString() + "or end section " + endSectionIndex.ToString() +
-                                               " for passing path not in subroute " + sublistRef.ToString());
-                    }
-                    else
-                    {
-                        TrackCircuitRouteElement startElement = TCRouteSubpaths[sublistRef][startSectionRouteIndex];
-                        TrackDirection currentDir = startElement.Direction;
-                        TrackDirection newDir = currentDir;
-
-                        //
-                        // loop through path nodes
-                        //
-
-                        AIPathNode thisPathNode = aiPath.Nodes[pathDetails[1]];
-                        AIPathNode nextPathNode = null;
-                        AIPathNode lastPathNode = null;
-
-                        // process junction node
-
-                        TrackNode firstJunctionNode = aiPath.TrackDB.TrackNodes[thisPathNode.JunctionIndex];
-                        TrackCircuitRouteElement thisJunctionElement =
-                            new TrackCircuitRouteElement(firstJunctionNode, 0, currentDir);
-                        thisAltpath.Add(thisJunctionElement);
-
-                        int trackNodeIndex = thisPathNode.NextSidingTVNIndex;
-
-                        int firstJunctionPin = (firstJunctionNode.InPins > 1) ? 0 : firstJunctionNode.InPins;
-                        if (firstJunctionNode.TrackPins[firstJunctionPin].Link == trackNodeIndex)
-                        {
-                            currentDir = firstJunctionNode.TrackPins[firstJunctionPin].Direction;
-                            thisJunctionElement.OutPin[Location.FarEnd] = TrackDirection.Ahead;
-                        }
-                        else
-                        {
-                            firstJunctionPin++;
-                            currentDir = firstJunctionNode.TrackPins[firstJunctionPin].Direction;
-                            thisJunctionElement.OutPin[Location.FarEnd] = TrackDirection.Reverse;
-                        }
-
-                        // process alternative path
-
-                        TrackNode thisNode = null;
-                        thisPathNode = thisPathNode.NextSidingNode;
-
-                        while (thisPathNode != null)
-                        {
-
-                            //
-                            // process last non-junction section
-                            //
-
-                            if (thisPathNode.Type == AIPathNodeType.Other)
-                            {
-                                if (trackNodeIndex > 0)
-                                {
-                                    thisNode = aiPath.TrackDB.TrackNodes[trackNodeIndex];
-
-                                    if (currentDir == 0)
-                                    {
-                                        for (int iTC = 0; iTC < thisNode.TrackCircuitCrossReferences.Count; iTC++)
-                                        {
-                                            TrackCircuitRouteElement thisElement =
-                                                new TrackCircuitRouteElement(thisNode, iTC, currentDir);
-                                            thisAltpath.Add(thisElement);
-                                        }
-                                        newDir = thisNode.TrackPins[(int)currentDir].Direction;
-
-                                    }
-                                    else
-                                    {
-                                        for (int iTC = thisNode.TrackCircuitCrossReferences.Count - 1; iTC >= 0; iTC--)
-                                        {
-                                            TrackCircuitRouteElement thisElement =
-                                                new TrackCircuitRouteElement(thisNode, iTC, currentDir);
-                                            thisAltpath.Add(thisElement);
-                                        }
-                                        newDir = thisNode.TrackPins[(int)currentDir].Direction;
-                                    }
-                                    trackNodeIndex = -1;
-                                }
-
-                                //
-                                // process junction section
-                                //
-
-                                if (thisPathNode.JunctionIndex > 0)
-                                {
-                                    TrackNode junctionNode = aiPath.TrackDB.TrackNodes[thisPathNode.JunctionIndex];
-                                    TrackCircuitRouteElement thisElement =
-                                        new TrackCircuitRouteElement(junctionNode, 0, newDir);
-                                    thisAltpath.Add(thisElement);
-
-                                    trackNodeIndex = thisPathNode.NextSidingTVNIndex;
-
-                                    if (thisPathNode.IsFacingPoint)   // exit is one of two switch paths //
-                                    {
-                                        int firstpin = (junctionNode.InPins > 1) ? 0 : junctionNode.InPins;
-                                        if (junctionNode.TrackPins[firstpin].Link == trackNodeIndex)
-                                        {
-                                            newDir = junctionNode.TrackPins[firstpin].Direction;
-                                            thisElement.OutPin[Location.FarEnd] = TrackDirection.Ahead;
-                                        }
-                                        else
-                                        {
-                                            firstpin++;
-                                            newDir = junctionNode.TrackPins[firstpin].Direction;
-                                            thisElement.OutPin[Location.FarEnd] = TrackDirection.Reverse;
-                                        }
-                                    }
-                                    else  // exit is single path //
-                                    {
-                                        int firstpin = (junctionNode.InPins > 1) ? junctionNode.InPins : 0;
-                                        newDir = junctionNode.TrackPins[firstpin].Direction;
-                                    }
-                                }
-
-                                currentDir = newDir;
-
-                                //
-                                // find next junction path node
-                                //
-
-                                nextPathNode = thisPathNode.NextSidingNode;
-                            }
-                            else
-                            {
-                                nextPathNode = thisPathNode;
-                            }
-
-                            while (nextPathNode != null && nextPathNode.JunctionIndex < 0)
-                            {
-                                nextPathNode = nextPathNode.NextSidingNode;
-                            }
-
-                            lastPathNode = thisPathNode;
-                            thisPathNode = nextPathNode;
-                        }
-                        //
-                        // add last section
-                        //
-
-                        if (trackNodeIndex > 0)
-                        {
-                            thisNode = aiPath.TrackDB.TrackNodes[trackNodeIndex];
-
-                            if (currentDir == 0)
-                            {
-                                for (int iTC = 0; iTC < thisNode.TrackCircuitCrossReferences.Count; iTC++)
-                                {
-                                    TrackCircuitRouteElement thisElement =
-                                        new TrackCircuitRouteElement(thisNode, iTC, currentDir);
-                                    thisAltpath.Add(thisElement);
-                                }
-                            }
-                            else
-                            {
-                                for (int iTC = thisNode.TrackCircuitCrossReferences.Count - 1; iTC >= 0; iTC--)
-                                {
-                                    TrackCircuitRouteElement thisElement =
-                                        new TrackCircuitRouteElement(thisNode, iTC, currentDir);
-                                    thisAltpath.Add(thisElement);
-                                }
-                            }
-                        }
-
-                        InsertPassingPath(TCRouteSubpaths[sublistRef], thisAltpath, startSectionIndex, endSectionIndex, trainNumber, sublistRef);
-                    }
-                }
-            }
-            // check if path is valid diverge path
-
-            //================================================================================================//
-            //
-            // process alternative paths - location definition
-            // main path may be NULL if private path is to be set for fixed deadlocks
-            //
-
-            public void InsertPassingPath(TrackCircuitPartialPathRoute mainPath, TrackCircuitPartialPathRoute passPath, int startSectionIndex, int endSectionIndex,
-                                  int trainNumber, int sublistRef)
-            {
-                // if main set, check if path is valid diverge path - otherwise assume it is indeed
-
-                if (mainPath != null && !mainPath.HasActualDivergePath(passPath, 0))
-                {
-                    Trace.TraceInformation("Invalid passing path defined for train {0} at section {1} : path does not diverge from main path",
-                        trainNumber, startSectionIndex);
-                    return;
-                }
-
-                // find related deadlock definition - note that path may be extended to match other deadlock paths
-                DeadlockInfo thisDeadlock = Signalling.DeadlockInfo.FindDeadlockInfo(passPath, mainPath, startSectionIndex, endSectionIndex);
-
-                if (thisDeadlock == null) // path is not valid in relation to other deadlocks
-                {
-                    Trace.TraceInformation("Invalid passing path defined for train {0} at section {1} : overlaps with other passing path", trainNumber, startSectionIndex);
-                    return;
-                }
-
-                // insert main path
-
-                int usedStartSectionIndex = passPath[0].TrackCircuitSection.Index;
-                int usedEndSectionIndex = passPath[passPath.Count - 1].TrackCircuitSection.Index;
-                int usedStartSectionRouteIndex = mainPath.GetRouteIndex(usedStartSectionIndex, 0);
-                int usedEndSectionRouteIndex = mainPath.GetRouteIndex(usedEndSectionIndex, usedStartSectionRouteIndex);
-
-                TrackCircuitPartialPathRoute mainPathPart = new TrackCircuitPartialPathRoute(mainPath, usedStartSectionRouteIndex, usedEndSectionRouteIndex);
-                if (mainPathPart != null)
-                {
-                    (int PathIndex, bool Exists) mainIndex = thisDeadlock.AddPath(mainPathPart, usedStartSectionIndex);  // [0] is Index, [1] > 0 is existing
-
-                    if (!mainIndex.Exists)
-                    {
-                        // calculate usefull lenght and usefull end section for main path
-                        DeadlockPathInfo deadlockPathInfo = thisDeadlock.AvailablePathList[mainIndex.PathIndex];
-                        deadlockPathInfo.EndSectionIndex = usedEndSectionIndex;
-                        (deadlockPathInfo.LastUsefulSectionIndex, deadlockPathInfo.UsefulLength) = mainPathPart.GetUsefullLength(0.0f, -1, -1);
-
-                        // only allow as public path if not in timetable mode
-                        if (Simulator.Instance.TimetableMode)
-                        {
-                            deadlockPathInfo.AllowedTrains.Add(thisDeadlock.GetTrainAndSubpathIndex(trainNumber, sublistRef));
-                        }
-                        else
-                        {
-                            deadlockPathInfo.AllowedTrains.Add(-1); // set as public path
-                        }
-
-                        // if name is main insert inverse path also as MAIN to ensure reverse path is available
-
-                        if (String.Compare(deadlockPathInfo.Name, "MAIN") == 0 && !Simulator.Instance.TimetableMode)
-                        {
-                            TrackCircuitPartialPathRoute inverseMainPath = mainPathPart.ReversePath();
-                            (int PathIndex, bool Exists) inverseIndex = thisDeadlock.AddPath(inverseMainPath, endSectionIndex, "MAIN", string.Empty);
-                            DeadlockPathInfo deadlockInverseInfo = thisDeadlock.AvailablePathList[inverseIndex.PathIndex];
-
-                            deadlockInverseInfo.EndSectionIndex = startSectionIndex;
-                            (deadlockInverseInfo.LastUsefulSectionIndex, deadlockInverseInfo.UsefulLength) = inverseMainPath.GetUsefullLength(0.0f, -1, -1);
-                            deadlockInverseInfo.AllowedTrains.Add(-1);
-                        }
-                    }
-                    // if existing path, add trainnumber if set and path is not public
-                    else if (trainNumber >= 0)
-                    {
-                        DeadlockPathInfo thisDeadlockPathInfo = thisDeadlock.AvailablePathList[mainIndex.PathIndex];
-                        if (!thisDeadlockPathInfo.AllowedTrains.Contains(-1))
-                        {
-                            thisDeadlockPathInfo.AllowedTrains.Add(thisDeadlock.GetTrainAndSubpathIndex(trainNumber, sublistRef));
-                        }
-                    }
-                }
-
-                // add passing path
-
-                (int PathIndex, bool Exists) passIndex = thisDeadlock.AddPath(passPath, startSectionIndex);
-
-                if (!passIndex.Exists)
-                {
-                    // calculate usefull lenght and usefull end section for passing path
-                    DeadlockPathInfo deadlockPathInfo = thisDeadlock.AvailablePathList[passIndex.PathIndex];
-                    deadlockPathInfo.EndSectionIndex = endSectionIndex;
-                    (deadlockPathInfo.LastUsefulSectionIndex, deadlockPathInfo.UsefulLength) = passPath.GetUsefullLength(0.0f, -1, -1);
-
-                    if (trainNumber > 0)
-                    {
-                        deadlockPathInfo.AllowedTrains.Add(thisDeadlock.GetTrainAndSubpathIndex(trainNumber, sublistRef));
-                    }
-                    else
-                    {
-                        deadlockPathInfo.AllowedTrains.Add(-1);
-                    }
-
-                    // insert inverse path only if public
-
-                    if (trainNumber < 0)
-                    {
-                        TrackCircuitPartialPathRoute inversePassPath = passPath.ReversePath();
-                        (int PathIndex, bool Exists) inverseIndex = thisDeadlock.AddPath(inversePassPath, endSectionIndex, deadlockPathInfo.Name, string.Empty);
-                        DeadlockPathInfo deadlockInverseInfo = thisDeadlock.AvailablePathList[inverseIndex.PathIndex];
-                        deadlockInverseInfo.EndSectionIndex = startSectionIndex;
-                        (deadlockInverseInfo.LastUsefulSectionIndex, deadlockInverseInfo.UsefulLength) = inversePassPath.GetUsefullLength(0.0f, -1, -1);
-                        deadlockInverseInfo.AllowedTrains.Add(-1);
-                    }
-                }
-                // if existing path, add trainnumber if set and path is not public
-                else if (trainNumber >= 0)
-                {
-                    DeadlockPathInfo thisDeadlockPathInfo = thisDeadlock.AvailablePathList[passIndex.PathIndex];
-                    if (!thisDeadlockPathInfo.AllowedTrains.Contains(-1))
-                    {
-                        thisDeadlockPathInfo.AllowedTrains.Add(thisDeadlock.GetTrainAndSubpathIndex(trainNumber, sublistRef));
-                    }
-                }
-            }
-
-            //================================================================================================//
-            //
-            // search for valid passing paths
-            // includes public paths
-            //
-
-            public void SearchPassingPaths(int trainNumber, float trainLength)
-            {
-                for (int iSubpath = 0; iSubpath <= TCRouteSubpaths.Count - 1; iSubpath++)
-                {
-                    TrackCircuitPartialPathRoute thisSubpath = TCRouteSubpaths[iSubpath];
-
-                    for (int iElement = 0; iElement <= thisSubpath.Count - 1; iElement++)
-                    {
-                        TrackCircuitRouteElement thisElement = thisSubpath[iElement];
-                        TrackCircuitSection thisSection = thisElement.TrackCircuitSection;
-
-                        // if section is a deadlock boundary determine available paths
-                        if (thisSection.DeadlockReference > 0)
-                        {
-                            DeadlockInfo thisDeadlockInfo = Simulator.Instance.SignalEnvironment.DeadlockInfoList[thisSection.DeadlockReference];
-                            int nextElement = thisDeadlockInfo.SetTrainDetails(trainNumber, iSubpath, trainLength, thisSubpath, iElement);
-
-                            if (nextElement < 0) // end of path reached
-                            {
-                                break;
-                            }
-                            else // skip deadlock area
-                            {
-                                iElement = nextElement;
-                            }
-                        }
-                    }
-                }
-            }
-
-            //================================================================================================//
-            //
-            // search for loops
-            //
-
-            public void LoopSearch()
-            {
-                List<List<int[]>> loopList = new List<List<int[]>>();
-
-                foreach (TrackCircuitPartialPathRoute thisRoute in TCRouteSubpaths)
-                {
-                    Dictionary<int, int> sections = new Dictionary<int, int>();
-                    List<int[]> loopInfo = new List<int[]>();
-                    loopList.Add(loopInfo);
-
-                    bool loopset = false;
-                    int loopindex = -1;
-
-                    for (int iElement = 0; iElement < thisRoute.Count; iElement++)
-                    {
-                        TrackCircuitRouteElement thisElement = thisRoute[iElement];
-
-                        if (sections.ContainsKey(thisElement.TrackCircuitSection.Index) && !loopset)
-                        {
-                            int[] loopDetails = new int[2];
-                            loopindex = sections[thisElement.TrackCircuitSection.Index];
-                            loopDetails[0] = loopindex;
-                            loopDetails[1] = iElement;
-                            loopInfo.Add(loopDetails);
-                            loopset = true;
-
-                            // check if loop reverses or continues
-                        }
-                        else if (sections.ContainsKey(thisElement.TrackCircuitSection.Index) && loopset)
-                        {
-                            int preloopindex = sections[thisElement.TrackCircuitSection.Index];
-
-                            if (thisElement.Direction == thisRoute[preloopindex].Direction)
-                            {
-                                loopindex++;
-                            }
-                            else
-                            {
-                                loopindex--;
-                            }
-
-                            if (loopindex >= 0 && loopindex <= (thisRoute.Count - 1))
-                            {
-                                loopset = (thisElement.TrackCircuitSection.Index == thisRoute[loopindex].TrackCircuitSection.Index);
-                            }
-                        }
-                        else
-                        {
-                            loopset = false;
-                        }
-
-                        if (!loopset && !sections.ContainsKey(thisElement.TrackCircuitSection.Index))
-                        {
-                            sections.Add(thisElement.TrackCircuitSection.Index, iElement);
-                        }
-                    }
-                }
-
-                // check for inner loops within outer loops
-                // if found, remove outer loops
-
-                for (int iRoute = 0; iRoute <= TCRouteSubpaths.Count - 1; iRoute++)
-                {
-                    List<int> invalids = new List<int>();
-                    for (int iLoop = loopList[iRoute].Count - 1; iLoop >= 1; iLoop--)
-                    {
-                        if (loopList[iRoute][iLoop][1] > loopList[iRoute][iLoop - 1][0] && loopList[iRoute][iLoop][0] < loopList[iRoute][iLoop - 1][1])
-                        {
-                            invalids.Add(iLoop);
-                        }
-                    }
-                    foreach (int iLoopRemove in invalids)
-                    {
-                        loopList[iRoute].RemoveAt(iLoopRemove);
-                    }
-                }
-
-                // preset loop ends to invalid
-
-                for (int iRoute = 0; iRoute <= TCRouteSubpaths.Count - 1; iRoute++)
-                {
-                    LoopEnd.Add(-1);
-                }
-
-                // split loops with overlap - search backward as subroutes may be added
-
-                int orgTotalRoutes = TCRouteSubpaths.Count;
-                for (int iRoute = orgTotalRoutes - 1; iRoute >= 0; iRoute--)
-                {
-                    TrackCircuitPartialPathRoute thisRoute = TCRouteSubpaths[iRoute];
-
-                    List<int[]> loopInfo = loopList[iRoute];
-
-                    // loop through looppoints backward as well
-                    for (int iLoop = loopInfo.Count - 1; iLoop >= 0; iLoop--)
-                    {
-                        int[] loopDetails = loopInfo[iLoop];
-
-                        // copy route and add after existing route
-                        // remove points from loop-end in first route
-                        // remove points upto loop-start in second route
-                        TrackCircuitPartialPathRoute newRoute = new TrackCircuitPartialPathRoute(thisRoute);
-                        thisRoute.RemoveRange(loopDetails[1], thisRoute.Count - loopDetails[1]);
-                        newRoute.RemoveRange(0, loopDetails[0] + 1);
-
-                        // add new route to list
-                        TCRouteSubpaths.Insert(iRoute + 1, newRoute);
-
-                        // set loop end
-                        LoopEnd.Insert(iRoute, thisRoute[loopDetails[0]].TrackCircuitSection.Index);
-
-                        // create dummy reversal lists
-                        // shift waiting points and reversal lists
-                        TCReversalInfo dummyReversal = new TCReversalInfo();
-                        dummyReversal.Valid = false;
-                        dummyReversal.ReversalSectionIndex = thisRoute[thisRoute.Count - 1].TrackCircuitSection.Index;
-                        dummyReversal.ReversalIndex = thisRoute.Count - 1;
-                        TrackCircuitSection thisSection = thisRoute[thisRoute.Count - 1].TrackCircuitSection;
-                        dummyReversal.ReverseReversalOffset = thisSection.Length;
-                        ReversalInfo.Insert(iRoute, dummyReversal);
-
-                        foreach (int[] thisWaitingPoint in WaitingPoints)
-                        {
-                            if (thisWaitingPoint[0] >= iRoute) thisWaitingPoint[0]++;
-                        }
-                    }
-                }
-            }
-
-            //================================================================================================//
-            //
-            // Constructor from existing path
-            //
-
-            public TCRoutePath(TCRoutePath otherPath)
-            {
-                activeSubpath = otherPath.activeSubpath;
-                activeAltpath = otherPath.activeAltpath;
-
-                for (int iSubpath = 0; iSubpath < otherPath.TCRouteSubpaths.Count; iSubpath++)
-                {
-                    TrackCircuitPartialPathRoute newSubpath = new TrackCircuitPartialPathRoute(otherPath.TCRouteSubpaths[iSubpath]);
-                    TCRouteSubpaths.Add(newSubpath);
-                }
-
-                for (int iAltpath = 0; iAltpath < otherPath.TCAlternativePaths.Count; iAltpath++)
-                {
-                    TrackCircuitPartialPathRoute newAltpath = new TrackCircuitPartialPathRoute(otherPath.TCAlternativePaths[iAltpath]);
-                    TCAlternativePaths.Add(newAltpath);
-                }
-
-                for (int iWaitingPoint = 0; iWaitingPoint < otherPath.WaitingPoints.Count; iWaitingPoint++)
-                {
-                    int[] oldWaitingPoint = otherPath.WaitingPoints[iWaitingPoint];
-                    int[] newWaitingPoint = new int[oldWaitingPoint.Length];
-                    oldWaitingPoint.CopyTo(newWaitingPoint, 0);
-                    WaitingPoints.Add(newWaitingPoint);
-                }
-
-                for (int iReversalPoint = 0; iReversalPoint < otherPath.ReversalInfo.Count; iReversalPoint++)
-                {
-                    if (otherPath.ReversalInfo[iReversalPoint] == null)
-                    {
-                        ReversalInfo.Add(null);
-                    }
-                    else
-                    {
-                        TCReversalInfo reversalInfo = new TCReversalInfo(otherPath.ReversalInfo[iReversalPoint]);
-                        ReversalInfo.Add(reversalInfo);
-                    }
-                }
-
-                for (int iLoopEnd = 0; iLoopEnd < otherPath.LoopEnd.Count; iLoopEnd++)
-                {
-                    LoopEnd.Add(otherPath.LoopEnd[iLoopEnd]);
-                }
-
-                foreach (KeyValuePair<string, int[]> actStation in otherPath.StationXRef)
-                {
-                    StationXRef.Add(actStation.Key, actStation.Value);
-                }
-            }
-
-            //================================================================================================//
-            //
-            // Constructor from single subpath
-            //
-
-            public TCRoutePath(TrackCircuitPartialPathRoute subPath)
-            {
-                activeSubpath = 0;
-                activeAltpath = -1;
-
-                TCRouteSubpaths.Add(subPath);
-            }
-
-            //================================================================================================//
-            //
-            // Restore
-            //
-
-            public TCRoutePath(BinaryReader inf)
-            {
-                activeSubpath = inf.ReadInt32();
-                activeAltpath = inf.ReadInt32();
-
-                int totalSubpath = inf.ReadInt32();
-                for (int iSubpath = 0; iSubpath < totalSubpath; iSubpath++)
-                {
-                    TrackCircuitPartialPathRoute thisSubpath = new TrackCircuitPartialPathRoute(inf);
-                    TCRouteSubpaths.Add(thisSubpath);
-                }
-
-                int totalAltpath = inf.ReadInt32();
-                for (int iAltpath = 0; iAltpath < totalAltpath; iAltpath++)
-                {
-                    TrackCircuitPartialPathRoute thisSubpath = new TrackCircuitPartialPathRoute(inf);
-                    TCAlternativePaths.Add(thisSubpath);
-                }
-
-                int totalWaitingPoint = inf.ReadInt32();
-                for (int iWP = 0; iWP < totalWaitingPoint; iWP++)
-                {
-                    int[] waitingPoint = new int[6];
-                    waitingPoint[0] = inf.ReadInt32();
-                    waitingPoint[1] = inf.ReadInt32();
-                    waitingPoint[2] = inf.ReadInt32();
-                    waitingPoint[3] = inf.ReadInt32();
-                    waitingPoint[4] = inf.ReadInt32();
-                    waitingPoint[5] = inf.ReadInt32();
-
-                    WaitingPoints.Add(waitingPoint);
-                }
-
-                int totalReversalPoint = inf.ReadInt32();
-                for (int iRP = 0; iRP < totalReversalPoint; iRP++)
-                {
-                    ReversalInfo.Add(new TCReversalInfo(inf));
-                }
-
-                int totalLoopEnd = inf.ReadInt32();
-                for (int iLE = 0; iLE < totalLoopEnd; iLE++)
-                {
-                    LoopEnd.Add(inf.ReadInt32());
-                }
-
-                OriginalSubpath = inf.ReadInt32();
-
-                // note : stationXRef only used on init, not saved
-            }
-
-            //================================================================================================//
-            //
-            // Save
-            //
-
-            public void Save(BinaryWriter outf)
-            {
-                outf.Write(activeSubpath);
-                outf.Write(activeAltpath);
-                outf.Write(TCRouteSubpaths.Count);
-                foreach (TrackCircuitPartialPathRoute thisSubpath in TCRouteSubpaths)
-                {
-                    thisSubpath.Save(outf);
-                }
-
-                outf.Write(TCAlternativePaths.Count);
-                foreach (TrackCircuitPartialPathRoute thisAltpath in TCAlternativePaths)
-                {
-                    thisAltpath.Save(outf);
-                }
-
-                outf.Write(WaitingPoints.Count);
-                foreach (int[] waitingPoint in WaitingPoints)
-                {
-                    outf.Write(waitingPoint[0]);
-                    outf.Write(waitingPoint[1]);
-                    outf.Write(waitingPoint[2]);
-                    outf.Write(waitingPoint[3]);
-                    outf.Write(waitingPoint[4]);
-                    outf.Write(waitingPoint[5]);
-                }
-
-                outf.Write(ReversalInfo.Count);
-                for (int iRP = 0; iRP < ReversalInfo.Count; iRP++)
-                {
-                    ReversalInfo[iRP].Save(outf);
-                }
-
-                outf.Write(LoopEnd.Count);
-                for (int iLE = 0; iLE < LoopEnd.Count; iLE++)
-                {
-                    outf.Write(LoopEnd[iLE]);
-                }
-
-                outf.Write(OriginalSubpath);
-
-                // note : stationXRef only used on init, need not be saved
-            }
-
-            //================================================================================================//
-            //
-            // Convert waiting point to section no.
-            //
-
-            static int ConvertWaitingPoint(AIPathNode stopPathNode, TrackDB TrackDB, TrackSectionsFile TSectionDat, int direction)
-            {
-                TrackVectorNode waitingNode = TrackDB.TrackNodes[stopPathNode.NextMainTVNIndex] as TrackVectorNode;
-                TrackVectorSection firstSection = waitingNode.TrackVectorSections[0];
-                Traveller TDBTrav = new Traveller(TSectionDat, TrackDB.TrackNodes, waitingNode, firstSection.Location, (Traveller.TravellerDirection)1);
-                float offset = TDBTrav.DistanceTo(waitingNode, stopPathNode.Location);
-
-                int TCSectionIndex = -1;
-
-                for (int iXRef = waitingNode.TrackCircuitCrossReferences.Count - 1; iXRef >= 0 && TCSectionIndex < 0; iXRef--)
-                {
-                    if (offset <
-                     (waitingNode.TrackCircuitCrossReferences[iXRef].OffsetLength[1] + waitingNode.TrackCircuitCrossReferences[iXRef].Length))
-                    {
-                        TCSectionIndex = waitingNode.TrackCircuitCrossReferences[iXRef].Index;
-                    }
-                }
-
-                if (TCSectionIndex < 0)
-                {
-                    TCSectionIndex = waitingNode.TrackCircuitCrossReferences[0].Index;
-                }
-
-                return TCSectionIndex;
-            }
-
-            //================================================================================================//
-            //
-            // Check for reversal offset margin
-            //
-
-            public void SetReversalOffset(float trainLength, bool timetableMode = true)
-            {
-                TCReversalInfo thisReversal = ReversalInfo[activeSubpath];
-                thisReversal.SignalUsed = thisReversal.Valid && thisReversal.SignalAvailable && timetableMode && trainLength < thisReversal.SignalOffset;
-            }
-
-            //================================================================================================//
-            //
-            // build station xref list
-            //
-
-            public void SetStationReference(List<TrackCircuitPartialPathRoute> subpaths, int sectionIndex)
-            {
-                TrackCircuitSection actSection = TrackCircuitSection.TrackCircuitList[sectionIndex];
-                foreach (int platformRef in actSection.PlatformIndices)
-                {
-                    PlatformDetails actPlatform = Simulator.Instance.SignalEnvironment.PlatformDetailsList[platformRef];
-
-                    string stationName = actPlatform.Name.ToLower().Trim();
-
-                    if (!StationXRef.ContainsKey(stationName))
-                    {
-                        int[] platformInfo = new int[3] { subpaths.Count - 1, subpaths[subpaths.Count - 1].Count - 1, actPlatform.PlatformReference[0] };
-                        StationXRef.Add(stationName, platformInfo);
-                    }
-                }
-            }
-
-            //================================================================================================//
-            //
-            //  Clone subpath at a specific position.  The new subpath will be inserted after the current one and all TCElement from position
-            //  To the end will be added to the new subpath.
-            //  The WaitingPoint list will be aligned with.
-            //
-
-            public void CloneSubPath(int WPIdx, int position)
-            {
-                int subpathIdx = WaitingPoints[WPIdx][0];
-                var subpath = TCRouteSubpaths[subpathIdx];
-                TrackCircuitPartialPathRoute nextRoute = new TrackCircuitPartialPathRoute();
-                TCRouteSubpaths.Insert(subpathIdx + 1, nextRoute);
-                TCReversalInfo nextReversalPoint = new TCReversalInfo(); // also add dummy reversal info to match total number
-                //CSComment: insert subpath number and subpath index
-                nextReversalPoint.ReversalIndex = subpathIdx + 1;
-                ReversalInfo.Insert(subpathIdx + 1, nextReversalPoint);
-                LoopEnd.Add(-1); // also add dummy loop end
-                for (int iElement = subpath.Count - 1; iElement >= position + 1; iElement--)
-                {
-                    nextRoute.Insert(0, subpath[iElement]);
-                    subpath.RemoveAt(iElement);
-                }
-                nextRoute.Insert(0, subpath[position]);
-                for (int cntWP = WPIdx + 1; cntWP < WaitingPoints.Count; cntWP++)
-                {
-                    WaitingPoints[cntWP][0]++;
-                }
-                for (int cntRI = subpathIdx + 2; cntRI < ReversalInfo.Count - 1; cntRI++)
-                {
-                    if (ReversalInfo[cntRI].ReversalIndex >= 0) ReversalInfo[cntRI].ReversalIndex++;
-                }
-            }
-
-            //================================================================================================//
-            //
-            // add sections from other path at front
-            //
-
-            public void AddSectionsAtStart(TrackCircuitPartialPathRoute otherRoute, Train train, bool reverse)
-            {
-                int addedSections = 0;
-
-                // add sections from other path at front
-                // as sections are inserted at index 0, insertion must take place in reverse sequence to preserve original sequence
-
-                // add in reverse sequence - also reverse direction
-                if (reverse)
-                {
-                    bool startAdding = false;
-                    for (int iSection = 0; iSection < otherRoute.Count; iSection++)
-                    {
-                        TrackCircuitRouteElement thisElement = otherRoute[iSection];
-                        if (startAdding)
-                        {
-                            TrackCircuitRouteElement newElement = new TrackCircuitRouteElement(thisElement);
-                            newElement.Direction = newElement.Direction.Next();
-                            TCRouteSubpaths[0].Insert(0, newElement);
-                            addedSections++;
-                        }
-                        else if (TCRouteSubpaths[0].GetRouteIndex(thisElement.TrackCircuitSection.Index, 0) < 0)
-                        {
-                            startAdding = true;
-                            TrackCircuitRouteElement newElement = new TrackCircuitRouteElement(thisElement);
-                            newElement.Direction = newElement.Direction.Next();
-                            TCRouteSubpaths[0].Insert(0, newElement);
-                            addedSections++;
-                        }
-                    }
-                }
-                // add in forward sequence
-                else
-                {
-                    bool startAdding = false;
-                    for (int iSection = otherRoute.Count - 1; iSection >= 0; iSection--)
-                    {
-                        TrackCircuitRouteElement thisElement = otherRoute[iSection];
-                        if (startAdding)
-                        {
-                            TrackCircuitRouteElement newElement = new TrackCircuitRouteElement(thisElement);
-                            TCRouteSubpaths[0].Insert(0, newElement);
-                            addedSections++;
-                        }
-                        else if (TCRouteSubpaths[0].GetRouteIndex(thisElement.TrackCircuitSection.Index, 0) < 0)
-                        {
-                            startAdding = true;
-                            TrackCircuitRouteElement newElement = new TrackCircuitRouteElement(thisElement);
-                            TCRouteSubpaths[0].Insert(0, newElement);
-                            addedSections++;
-                        }
-                    }
-                }
-
-                // add number of added sections to reversal info
-                if (ReversalInfo[0].Valid)
-                {
-                    ReversalInfo[0].FirstDivergeIndex += addedSections;
-                    ReversalInfo[0].FirstSignalIndex += addedSections;
-                    ReversalInfo[0].LastDivergeIndex += addedSections;
-                    ReversalInfo[0].LastSignalIndex += addedSections;
-                }
-
-                // add number of sections to station stops
-                if (train.StationStops != null && train.StationStops.Count > 0)
-                {
-                    for (int iStop = 0; iStop < train.StationStops.Count; iStop++)
-                    {
-                        Train.StationStop thisStop = train.StationStops[iStop];
-                        if (thisStop.SubrouteIndex == 0)
-                        {
-                            thisStop.RouteIndex += addedSections;
-                        }
-                        else
-                        {
-                            break;
-                        }
-                    }
-                }
-            }
-
-            //================================================================================================//
-            //
-            // Add subroute from other path at front
-            //
-
-            public void AddSubrouteAtStart(TrackCircuitPartialPathRoute otherRoute, Train train)
-            {
-                TCRouteSubpaths.Insert(0, new TrackCircuitPartialPathRoute(otherRoute));
-
-                // add additional reversal info
-                TCReversalInfo newReversal = new TCReversalInfo();
-                newReversal.Valid = false;
-                ReversalInfo.Insert(0, newReversal);
-                RoughReversalInfos.Insert(0, null);
-
-                // add additional loop end info
-                LoopEnd.Insert(0, -1);
-
-                // adjust waiting point indices
-                foreach (var wp in WaitingPoints)
-                {
-                    wp[0] += 1;
-                }
-
-                // shift subroute index for station stops
-                if (train.StationStops != null && train.StationStops.Count > 0)
-                {
-                    for (int iStop = 0; iStop < train.StationStops.Count; iStop++)
-                    {
-                        Train.StationStop thisStop = train.StationStops[iStop];
-                        thisStop.SubrouteIndex++;
-                    }
-                }
-
-            }
-
-            //================================================================================================//
-            //
-            // Add sections from other path at end
-            //
-
-            public void AddSectionsAtEnd(TrackCircuitPartialPathRoute otherRoute, bool reverse)
-            {
-                int addedSections = 0;
-
-                // add sections from other path at end
-                // add in reverse sequence
-                if (reverse)
-                {
-                    bool startAdding = false;
-                    for (int iSection = otherRoute.Count - 1; iSection >= 0; iSection--)
-                    {
-                        TrackCircuitRouteElement thisElement = otherRoute[iSection];
-
-                        if (startAdding)
-                        {
-                            TrackCircuitRouteElement newElement = new TrackCircuitRouteElement(thisElement);
-                            newElement.Direction = newElement.Direction.Next();
-                            TCRouteSubpaths[TCRouteSubpaths.Count - 1].Add(newElement);
-                            addedSections++;
-                        }
-                        else if (TCRouteSubpaths[TCRouteSubpaths.Count - 1].GetRouteIndex(thisElement.TrackCircuitSection.Index, 0) < 0)
-                        {
-                            startAdding = true;
-                            TrackCircuitRouteElement newElement = new TrackCircuitRouteElement(thisElement);
-                            newElement.Direction = newElement.Direction.Next();
-                            TCRouteSubpaths[TCRouteSubpaths.Count - 1].Add(newElement);
-                            addedSections++;
-                        }
-                    }
-                }
-                // add in forward sequence
-                else
-                {
-                    bool startAdding = false;
-                    for (int iSection = 0; iSection < otherRoute.Count; iSection++)
-                    {
-                        TrackCircuitRouteElement thisElement = otherRoute[iSection];
-
-                        if (startAdding)
-                        {
-                            TrackCircuitRouteElement newElement = new TrackCircuitRouteElement(thisElement);
-                            TCRouteSubpaths[TCRouteSubpaths.Count - 1].Add(newElement);
-                            addedSections++;
-                        }
-                        else if (TCRouteSubpaths[TCRouteSubpaths.Count - 1].GetRouteIndex(thisElement.TrackCircuitSection.Index, 0) < 0)
-                        {
-                            startAdding = true;
-                            TrackCircuitRouteElement newElement = new TrackCircuitRouteElement(thisElement);
-                            TCRouteSubpaths[TCRouteSubpaths.Count - 1].Add(newElement);
-                            addedSections++;
-                        }
-                    }
-                }
-            }
-
-            //================================================================================================//
-            //
-            // Add subroute from other path at end
-            //
-
-            public void AddSubrouteAtEnd(TrackCircuitPartialPathRoute otherRoute)
-            {
-                TCRouteSubpaths.Add(new TrackCircuitPartialPathRoute(otherRoute));
-
-                // add additional reversal info
-                TCReversalInfo newReversal = new TCReversalInfo();
-                newReversal.Valid = false;
-                ReversalInfo.Add(newReversal);
-                RoughReversalInfos.Add(null);
-
-                // add additional loop end info
-                LoopEnd.Add(-1);
-
-            }
-        }
-
 
         //================================================================================================//
         /// <summary>

@@ -448,7 +448,7 @@ namespace Orts.Simulation.Track
                 ClearSectionsOfTrainBehind(CircuitState.TrainReserved, this);
             }
             else if (train.Train.IsPlayerDriven && train.Train.ControlMode != TrainControlMode.Manual && train.Train.DistanceTravelledM == 0.0 &&
-                     train.Train.TCRoute != null && train.Train.ValidRoute[0] != null && train.Train.TCRoute.activeSubpath == 0) // We are at initial placement
+                     train.Train.TCRoute != null && train.Train.ValidRoute[0] != null && train.Train.TCRoute.ActiveSubPath == 0) // We are at initial placement
                                                                                                                                  // Check if section is under train, and therefore can be unreserved from other trains
             {
                 int routeIndex = train.Train.ValidRoute[0].GetRouteIndex(Index, 0);
@@ -676,9 +676,9 @@ namespace Orts.Simulation.Track
                     if (routeElement != null && routeElement.FacingPoint && DeadlockReference >= 0)
                     {
                         DeadlockInfo sectionDeadlockInfo = signals.DeadlockInfoList[DeadlockReference];
-                        if (sectionDeadlockInfo.HasTrainAndSubpathIndex(train.Train.Number, train.Train.TCRoute.activeSubpath))
+                        if (sectionDeadlockInfo.HasTrainAndSubpathIndex(train.Train.Number, train.Train.TCRoute.ActiveSubPath))
                         {
-                            int trainAndSubpathIndex = sectionDeadlockInfo.GetTrainAndSubpathIndex(train.Train.Number, train.Train.TCRoute.activeSubpath);
+                            int trainAndSubpathIndex = sectionDeadlockInfo.GetTrainAndSubpathIndex(train.Train.Number, train.Train.TCRoute.ActiveSubPath);
                             int availableRoute = sectionDeadlockInfo.TrainReferences[trainAndSubpathIndex][0];
                             int endSectionIndex = sectionDeadlockInfo.AvailablePathList[availableRoute].EndSectionIndex;
                             TrackCircuitSection endSection = TrackCircuitList[endSectionIndex];
@@ -847,9 +847,9 @@ namespace Orts.Simulation.Track
 
             // check for deadlock trap if taking alternative path
 
-            if (train.Train.TCRoute != null && train.Train.TCRoute.activeAltpath >= 0)
+            if (train.Train.TCRoute != null && train.Train.TCRoute.ActiveAlternativePath >= 0)
             {
-                TrackCircuitPartialPathRoute altRoute = train.Train.TCRoute.TCAlternativePaths[train.Train.TCRoute.activeAltpath];
+                TrackCircuitPartialPathRoute altRoute = train.Train.TCRoute.TCAlternativePaths[train.Train.TCRoute.ActiveAlternativePath];
                 TrackCircuitRouteElement startElement = altRoute[0];
                 if (Index == startElement.TrackCircuitSection.Index)
                 {

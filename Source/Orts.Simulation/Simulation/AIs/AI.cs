@@ -1142,7 +1142,7 @@ namespace Orts.Simulation.AIs
                 int PoolStorageState = (int)TTTrain.PoolAccessState.PoolInvalid;
                 thisTrain.TCRoute.TCRouteSubpaths[0] = thisPool.CreateInPool(thisTrain, out PoolStorageState, false);
                 thisTrain.ValidRoute[0] = new TrackCircuitPartialPathRoute(thisTrain.TCRoute.TCRouteSubpaths[0]);
-                thisTrain.TCRoute.activeSubpath = 0;
+                thisTrain.TCRoute.ActiveSubPath = 0;
 
                 // if no storage available - abondone train
                 if (PoolStorageState < 0)

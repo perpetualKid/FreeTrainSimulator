@@ -371,11 +371,11 @@ namespace Orts.Simulation.AIs
                 {
                     thisAction = (AIAuxActionsRef)SpecAuxActions[specAuxActionsIndex];
 
-                    if (thisAction.SubrouteIndex > thisTrain.TCRoute.activeSubpath)
+                    if (thisAction.SubrouteIndex > thisTrain.TCRoute.ActiveSubPath)
                     {
                         return;
                     }
-                    if (thisAction.SubrouteIndex == thisTrain.TCRoute.activeSubpath)
+                    if (thisAction.SubrouteIndex == thisTrain.TCRoute.ActiveSubPath)
                         break;
                     else
                     {
@@ -466,7 +466,7 @@ namespace Orts.Simulation.AIs
                 return;
             AIAuxActionsRef thisAction;
             thisAction = (AIAuxActionsRef)SpecAuxActions[0];
-            if (thisAction.SubrouteIndex != thisTrain.TCRoute.activeSubpath) return;
+            if (thisAction.SubrouteIndex != thisTrain.TCRoute.ActiveSubPath) return;
             thisAction.LinkedAuxAction = false;
             return;
          }
@@ -483,7 +483,7 @@ namespace Orts.Simulation.AIs
                 return;
             AIAuxActionsRef thisAction;
             thisAction = (AIAuxActionsRef)SpecAuxActions[0];
-            if (thisAction is AIActionWPRef && thisAction.SubrouteIndex == thisTrain.TCRoute.activeSubpath && thisAction.TCSectionIndex == thisTrain.PresentPosition[0].TCSectionIndex)
+            if (thisAction is AIActionWPRef && thisAction.SubrouteIndex == thisTrain.TCRoute.ActiveSubPath && thisAction.TCSectionIndex == thisTrain.PresentPosition[0].TCSectionIndex)
             // Waiting point is just in the same section where the train is; move it under the train
             {
                 AuxActionWPItem thisWPItem;
@@ -511,7 +511,7 @@ namespace Orts.Simulation.AIs
                 return;
             AIAuxActionsRef thisAction;
             thisAction = (AIAuxActionsRef)SpecAuxActions[0];
-            if (thisAction is AIActionWPRef && thisAction.SubrouteIndex == thisTrain.TCRoute.activeSubpath+1 && thisAction.TCSectionIndex == thisTrain.PresentPosition[1].TCSectionIndex)
+            if (thisAction is AIActionWPRef && thisAction.SubrouteIndex == thisTrain.TCRoute.ActiveSubPath+1 && thisAction.TCSectionIndex == thisTrain.PresentPosition[1].TCSectionIndex)
                 // Waiting point is just in the same section where the train is; move it under the train
             {
                 int thisSectionIndex = thisTrain.PresentPosition[1].TCSectionIndex;
@@ -1111,7 +1111,7 @@ namespace Orts.Simulation.AIs
             if (AssociatedItem != null && AssociatedItem.SignalReferenced != null)
             {
                 if (AssociatedItem.locked)
-                    AssociatedItem.SignalReferenced.UnlockForTrain(thisTrain.Number, thisTrain.TCRoute.activeSubpath);
+                    AssociatedItem.SignalReferenced.UnlockForTrain(thisTrain.Number, thisTrain.TCRoute.ActiveSubPath);
                 AssociatedItem.SignalReferenced = null;
                 AssociatedItem = null;
                 return true;
@@ -1827,8 +1827,8 @@ namespace Orts.Simulation.AIs
             if (locked && SignalReferenced != null)
             {
                 locked = false;
-                if (SignalReferenced.HasLockForTrain(thisTrain.Number, thisTrain.TCRoute.activeSubpath))
-                    SignalReferenced.UnlockForTrain(thisTrain.Number, thisTrain.TCRoute.activeSubpath);
+                if (SignalReferenced.HasLockForTrain(thisTrain.Number, thisTrain.TCRoute.ActiveSubPath))
+                    SignalReferenced.UnlockForTrain(thisTrain.Number, thisTrain.TCRoute.ActiveSubPath);
                 else
                 {
 //                    locked = true;

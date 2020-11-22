@@ -2629,23 +2629,23 @@ namespace Orts.Simulation.Timetables
             {
                 foreach (KeyValuePair<string, StopInfo> stationStop in Stops)
                 {
-                    if (actTrain.TCRoute.StationXRef.ContainsKey(stationStop.Key))
+                    if (actTrain.TCRoute.StationCrossReferences.ContainsKey(stationStop.Key))
                     {
                         StopInfo stationInfo = stationStop.Value;
-                        int[] platformInfo = actTrain.TCRoute.StationXRef[stationStop.Key];
+                        int[] platformInfo = actTrain.TCRoute.StationCrossReferences[stationStop.Key];
                         bool ValidStop = stationInfo.BuildStopInfo(actTrain, platformInfo[2], simulator.SignalEnvironment);
                         if (!ValidStop)
                         {
                             Trace.TraceInformation("Station {0} not found for train {1}:{2} ", stationStop.Key, Name, TTDescription);
                         }
-                        actTrain.TCRoute.StationXRef.Remove(stationStop.Key);
+                        actTrain.TCRoute.StationCrossReferences.Remove(stationStop.Key);
                     }
                     else
                     {
                         Trace.TraceInformation("Station {0} not found for train {1}:{2} ", stationStop.Key, Name, TTDescription);
                     }
                 }
-                actTrain.TCRoute.StationXRef.Clear();  // info no longer required
+                actTrain.TCRoute.StationCrossReferences.Clear();  // info no longer required
             }
 
             //================================================================================================//
