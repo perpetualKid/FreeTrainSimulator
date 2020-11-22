@@ -15646,33 +15646,6 @@ namespace Orts.Simulation.Physics
 
         //================================================================================================//
         /// <summary>
-        /// Rough Reversal information class, used only during route building.
-        /// </summary>
-
-        public class RoughReversalInfo
-        {
-            public int SubPathIndex;
-            public float ReverseReversalOffset;
-            public int ReversalSectionIndex;
-
-            //================================================================================================//
-            /// <summary>
-            /// Constructor (from route path details)
-            /// <\summary>
-
-            public RoughReversalInfo(int subPathIndex, float reverseReversalOffset, int reversalSectionIndex)
-            {
-
-
-                SubPathIndex = subPathIndex;
-                ReverseReversalOffset = reverseReversalOffset;
-                ReversalSectionIndex = reversalSectionIndex;
-            }
-        }
-
-
-        //================================================================================================//
-        /// <summary>
         /// Distance Travelled action item list
         /// </summary>
 

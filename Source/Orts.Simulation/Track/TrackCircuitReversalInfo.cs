@@ -274,4 +274,22 @@ namespace Orts.Simulation.Track
         }
 
     }//TCReversalInfo
+
+    /// <summary>
+    /// Rough Reversal information class, used only during route building.
+    /// </summary>
+    internal class RoughReversalInfo
+    {
+        public int SubPathIndex { get; set; }
+        public float ReverseReversalOffset { get; set; }
+        public int ReversalSectionIndex { get; set; }
+
+        /// Constructor (from route path details)
+        public RoughReversalInfo(int subPathIndex, float reverseReversalOffset, int reversalSectionIndex)
+        {
+            SubPathIndex = subPathIndex;
+            ReverseReversalOffset = reverseReversalOffset;
+            ReversalSectionIndex = reversalSectionIndex;
+        }
+    }
 }
