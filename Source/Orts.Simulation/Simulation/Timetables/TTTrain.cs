@@ -1784,7 +1784,7 @@ namespace Orts.Simulation.Timetables
 
             if (TCRoute.ReversalInfo[activeSubroute].Valid)
             {
-                TCReversalInfo thisReversal = TCRoute.ReversalInfo[activeSubroute];
+                TrackCircuitReversalInfo thisReversal = TCRoute.ReversalInfo[activeSubroute];
                 int reversalIndex = thisReversal.SignalUsed ? thisReversal.LastSignalIndex : thisReversal.LastDivergeIndex;
                 if (reversalIndex >= 0 && reversalIndex <= lastRouteIndex) // reversal point is this section or earlier
                 {
@@ -8476,7 +8476,7 @@ namespace Orts.Simulation.Timetables
             int reversalSectionIndex = -1;
             if (TCRoute != null && (ControlMode == TrainControlMode.AutoNode || ControlMode == TrainControlMode.AutoSignal))
             {
-                TCReversalInfo thisReversal = TCRoute.ReversalInfo[TCRoute.ActiveSubPath];
+                TrackCircuitReversalInfo thisReversal = TCRoute.ReversalInfo[TCRoute.ActiveSubPath];
                 if (thisReversal.Valid)
                 {
                     reversalSectionIndex = (thisReversal.SignalUsed && !ForceReversal) ? thisReversal.LastSignalIndex : thisReversal.LastDivergeIndex;
@@ -8990,7 +8990,7 @@ namespace Orts.Simulation.Timetables
         /// Override from Train class
         /// </summary>
 
-        internal override void AddTrainReversalInfo(TrainInfo trainInfo, TCReversalInfo reversalInfo)
+        internal override void AddTrainReversalInfo(TrainInfo trainInfo, TrackCircuitReversalInfo reversalInfo)
         {
             if (!reversalInfo.Valid) 
                 return;

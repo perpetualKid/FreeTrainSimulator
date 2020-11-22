@@ -29,7 +29,7 @@ namespace Orts.Simulation.Track
         public List<int[]> WaitingPoints { get; } = new List<int[]>(); // [0] = sublist in which WP is placed; 
                                                               // [1] = WP section; [2] = WP wait time (delta); [3] = WP depart time;
                                                               // [4] = hold signal
-        public List<TCReversalInfo> ReversalInfo { get; } = new List<TCReversalInfo>();
+        public List<TrackCircuitReversalInfo> ReversalInfo { get; } = new List<TrackCircuitReversalInfo>();
         public List<RoughReversalInfo> RoughReversalInfos { get; } = new List<RoughReversalInfo>();
         public List<int> LoopEnd { get; } = new List<int>();
         public Dictionary<string, int[]> StationCrossReferences { get; } = new Dictionary<string, int[]>(StringComparer.OrdinalIgnoreCase);
@@ -747,7 +747,7 @@ namespace Orts.Simulation.Track
 
             int prevDivergeSectorIndex = -1;
             int iReversalLists = 0;
-            TCReversalInfo reversalInfo;
+            TrackCircuitReversalInfo reversalInfo;
             for (int iSubpath = 1; iSubpath < TCRouteSubpaths.Count; iSubpath++)
             {
                 while (RoughReversalInfos.Count > 0 && RoughReversalInfos[iReversalLists].SubPathIndex < iSubpath - 1 && iReversalLists < RoughReversalInfos.Count - 2)
@@ -757,19 +757,19 @@ namespace Orts.Simulation.Track
 
                 if (RoughReversalInfos.Count > 0 && RoughReversalInfos[iReversalLists].SubPathIndex == iSubpath - 1)
                 {
-                    reversalInfo = new TCReversalInfo(TCRouteSubpaths[iSubpath - 1], prevDivergeSectorIndex,
+                    reversalInfo = new TrackCircuitReversalInfo(TCRouteSubpaths[iSubpath - 1], prevDivergeSectorIndex,
                         TCRouteSubpaths[iSubpath], RoughReversalInfos[iReversalLists].ReverseReversalOffset, RoughReversalInfos[iReversalLists].SubPathIndex, RoughReversalInfos[iReversalLists].ReversalSectionIndex);
                 }
                 else
                 {
-                    reversalInfo = new TCReversalInfo(TCRouteSubpaths[iSubpath - 1], prevDivergeSectorIndex,
+                    reversalInfo = new TrackCircuitReversalInfo(TCRouteSubpaths[iSubpath - 1], prevDivergeSectorIndex,
                         TCRouteSubpaths[iSubpath], -1, -1, -1);
                 }
 
                 ReversalInfo.Add(reversalInfo);
                 prevDivergeSectorIndex = reversalInfo.Valid ? reversalInfo.FirstDivergeIndex : -1;
             }
-            ReversalInfo.Add(new TCReversalInfo());  // add invalid item to make up the numbers (equals no. subpaths)
+            ReversalInfo.Add(new TrackCircuitReversalInfo());  // add invalid item to make up the numbers (equals no. subpaths)
                                                      // Insert data for end route offset
             ReversalInfo[ReversalInfo.Count - 1].ReverseReversalOffset = RoughReversalInfos[RoughReversalInfos.Count - 1].ReverseReversalOffset;
             ReversalInfo[ReversalInfo.Count - 1].ReversalIndex = RoughReversalInfos[RoughReversalInfos.Count - 1].SubPathIndex;
@@ -837,7 +837,7 @@ namespace Orts.Simulation.Track
                 }
                 else
                 {
-                    TCReversalInfo reversalInfo = new TCReversalInfo(source.ReversalInfo[iReversalPoint]);
+                    TrackCircuitReversalInfo reversalInfo = new TrackCircuitReversalInfo(source.ReversalInfo[iReversalPoint]);
                     ReversalInfo.Add(reversalInfo);
                 }
             }
@@ -894,7 +894,7 @@ namespace Orts.Simulation.Track
             int totalReversalPoint = inf.ReadInt32();
             for (int i = 0; i < totalReversalPoint; i++)
             {
-                ReversalInfo.Add(new TCReversalInfo(inf));
+                ReversalInfo.Add(new TrackCircuitReversalInfo(inf));
             }
 
             int totalLoopEnd = inf.ReadInt32();
@@ -1623,13 +1623,15 @@ namespace Orts.Simulation.Track
 
                     // create dummy reversal lists
                     // shift waiting points and reversal lists
-                    TCReversalInfo dummyReversal = new TCReversalInfo
+
+                    TrackCircuitReversalInfo dummyReversal = new TrackCircuitReversalInfo(null, -1, null,
+                        partialRoute[partialRoute.Count - 1].TrackCircuitSection.Length, partialRoute.Count - 1, partialRoute[partialRoute.Count - 1].TrackCircuitSection.Index)
                     {
-                        Valid = false,
-                        ReversalSectionIndex = partialRoute[partialRoute.Count - 1].TrackCircuitSection.Index,
-                        ReversalIndex = partialRoute.Count - 1
+                        //ReversalSectionIndex = partialRoute[partialRoute.Count - 1].TrackCircuitSection.Index,
+                        //ReversalIndex = partialRoute.Count - 1
+                        //ReverseReversalOffset = partialRoute[partialRoute.Count - 1].TrackCircuitSection.Length;
                     };
-                    dummyReversal.ReverseReversalOffset = partialRoute[partialRoute.Count - 1].TrackCircuitSection.Length;
+
                     ReversalInfo.Insert(i, dummyReversal);
 
                     foreach (int[] waitingPoint in WaitingPoints)
@@ -1670,7 +1672,7 @@ namespace Orts.Simulation.Track
         // Check for reversal offset margin
         public void SetReversalOffset(float trainLength, bool timetableMode)
         {
-            TCReversalInfo reversal = ReversalInfo[ActiveSubPath];
+            TrackCircuitReversalInfo reversal = ReversalInfo[ActiveSubPath];
             reversal.SignalUsed = reversal.Valid && reversal.SignalAvailable && timetableMode && trainLength < reversal.SignalOffset;
         }
 
@@ -1782,11 +1784,7 @@ namespace Orts.Simulation.Track
             TCRouteSubpaths.Insert(0, new TrackCircuitPartialPathRoute(otherRoute));
 
             // add additional reversal info
-            TCReversalInfo newReversal = new TCReversalInfo
-            {
-                Valid = false
-            };
-            ReversalInfo.Insert(0, newReversal);
+            ReversalInfo.Insert(0, new TrackCircuitReversalInfo());
             RoughReversalInfos.Insert(0, null);
 
             // add additional loop end info
@@ -1874,9 +1872,7 @@ namespace Orts.Simulation.Track
             TCRouteSubpaths.Add(new TrackCircuitPartialPathRoute(otherRoute));
 
             // add additional reversal info
-            TCReversalInfo newReversal = new TCReversalInfo();
-            newReversal.Valid = false;
-            ReversalInfo.Add(newReversal);
+            ReversalInfo.Add(new TrackCircuitReversalInfo());
             RoughReversalInfos.Add(null);
 
             // add additional loop end info

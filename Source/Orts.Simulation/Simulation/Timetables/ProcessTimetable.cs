@@ -3098,7 +3098,7 @@ namespace Orts.Simulation.Timetables
                 int totalreverse = 0;
 
                 // check no. of reversals
-                foreach (Physics.Train.TCReversalInfo reversalInfo in stabledTrain.TCRoute.ReversalInfo)
+                foreach (TrackCircuitReversalInfo reversalInfo in stabledTrain.TCRoute.ReversalInfo)
                 {
                     if (reversalInfo.Valid) totalreverse++;
                 }
