@@ -295,8 +295,8 @@ namespace Orts.Simulation.Physics
 
         public OutOfControlReason OutOfControlReason { get; set; } = OutOfControlReason.UnDefined; // train out of control
 
-        internal TrackCircuitPosition[] PresentPosition = new TrackCircuitPosition[2] { new TrackCircuitPosition(), new TrackCircuitPosition() };         // present position : 0 = front, 1 = rear
-        internal TrackCircuitPosition[] PreviousPosition = new TrackCircuitPosition[2] { new TrackCircuitPosition(), new TrackCircuitPosition() };        // previous train position
+        public TrackCircuitPosition[] PresentPosition = new TrackCircuitPosition[2] { new TrackCircuitPosition(), new TrackCircuitPosition() };         // present position : 0 = front, 1 = rear
+        public TrackCircuitPosition[] PreviousPosition = new TrackCircuitPosition[2] { new TrackCircuitPosition(), new TrackCircuitPosition() };        // previous train position
 
         public float DistanceTravelledM;                                 // actual distance travelled
         public float ReservedTrackLengthM = 0.0f;                        // lenght of reserved section
@@ -774,9 +774,9 @@ namespace Orts.Simulation.Physics
             {
                 DistanceTravelledM = inf.ReadSingle();
                 PresentPosition[0] = new TrackCircuitPosition();
-                PresentPosition[0].RestorePresentPositionDummy(inf, this);
+                PresentPosition[0].RestorePresentPositionDummy(inf);
                 PresentPosition[1] = new TrackCircuitPosition();
-                PresentPosition[1].RestorePresentRearDummy(inf, this);
+                PresentPosition[1].RestorePresentRearDummy(inf);
                 PreviousPosition[0] = new TrackCircuitPosition();
                 PreviousPosition[0].RestorePreviousPositionDummy(inf);
             }
