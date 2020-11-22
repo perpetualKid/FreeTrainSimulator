@@ -483,7 +483,7 @@ namespace Orts.Simulation.AIs
                 return;
             AIAuxActionsRef thisAction;
             thisAction = (AIAuxActionsRef)SpecAuxActions[0];
-            if (thisAction is AIActionWPRef && thisAction.SubrouteIndex == thisTrain.TCRoute.ActiveSubPath && thisAction.TCSectionIndex == thisTrain.PresentPosition[0].TCSectionIndex)
+            if (thisAction is AIActionWPRef && thisAction.SubrouteIndex == thisTrain.TCRoute.ActiveSubPath && thisAction.TCSectionIndex == thisTrain.PresentPosition[0].TrackCircuitSectionIndex)
             // Waiting point is just in the same section where the train is; move it under the train
             {
                 AuxActionWPItem thisWPItem;
@@ -492,11 +492,11 @@ namespace Orts.Simulation.AIs
                     thisWPItem = (AuxActionWPItem)thisAITrain.nextActionInfo;
                     if (thisWPItem.ActionRef == thisAction)
                     {
-                        thisWPItem.ActivateDistanceM = thisTrain.PresentPosition[0].DistanceTravelledM - 5;
+                        thisWPItem.ActivateDistanceM = thisTrain.PresentPosition[0].DistanceTravelled - 5;
                         thisAction.LinkedAuxAction = true;
                     }
                  }
-                thisAction.RequiredDistance = thisTrain.PresentPosition[0].TCOffset - 5;
+                thisAction.RequiredDistance = thisTrain.PresentPosition[0].Offset - 5;
             }
         }
 
@@ -511,12 +511,12 @@ namespace Orts.Simulation.AIs
                 return;
             AIAuxActionsRef thisAction;
             thisAction = (AIAuxActionsRef)SpecAuxActions[0];
-            if (thisAction is AIActionWPRef && thisAction.SubrouteIndex == thisTrain.TCRoute.ActiveSubPath+1 && thisAction.TCSectionIndex == thisTrain.PresentPosition[1].TCSectionIndex)
+            if (thisAction is AIActionWPRef && thisAction.SubrouteIndex == thisTrain.TCRoute.ActiveSubPath+1 && thisAction.TCSectionIndex == thisTrain.PresentPosition[1].TrackCircuitSectionIndex)
                 // Waiting point is just in the same section where the train is; move it under the train
             {
-                int thisSectionIndex = thisTrain.PresentPosition[1].TCSectionIndex;
+                int thisSectionIndex = thisTrain.PresentPosition[1].TrackCircuitSectionIndex;
                 TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisSectionIndex];
-                thisAction.RequiredDistance = thisSection.Length - thisTrain.PresentPosition[1].TCOffset - 5;
+                thisAction.RequiredDistance = thisSection.Length - thisTrain.PresentPosition[1].Offset - 5;
             }
         }
 
@@ -631,7 +631,7 @@ namespace Orts.Simulation.AIs
         {
             float[] distancesM = new float[2];
             distancesM[1] = 0.0f;
-            distancesM[0] = thisTrain.PresentPosition[0].DistanceTravelledM;
+            distancesM[0] = thisTrain.PresentPosition[0].DistanceTravelled;
 
             return (distancesM);
         }
@@ -817,15 +817,15 @@ namespace Orts.Simulation.AIs
         {
             float[] distancesM = new float[2];
 
-            int thisSectionIndex = thisTrain.PresentPosition[0].TCSectionIndex;
+            int thisSectionIndex = thisTrain.PresentPosition[0].TrackCircuitSectionIndex;
             TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisSectionIndex];
-            float leftInSectionM = thisSection.Length - thisTrain.PresentPosition[0].TCOffset;
+            float leftInSectionM = thisSection.Length - thisTrain.PresentPosition[0].Offset;
 
             // get action route index - if not found, return distances < 0
 
             int actionIndex0 = thisTrain.PresentPosition[0].RouteListIndex;
             int actionRouteIndex = thisTrain.ValidRoute[0].GetRouteIndex(TCSectionIndex, actionIndex0);
-            float activateDistanceTravelledM = thisTrain.PresentPosition[0].DistanceTravelledM + thisTrain.ValidRoute[0].GetDistanceAlongRoute(actionIndex0, leftInSectionM, actionRouteIndex, this.RequiredDistance, thisTrain.AITrainDirectionForward);
+            float activateDistanceTravelledM = thisTrain.PresentPosition[0].DistanceTravelled + thisTrain.ValidRoute[0].GetDistanceAlongRoute(actionIndex0, leftInSectionM, actionRouteIndex, this.RequiredDistance, thisTrain.AITrainDirectionForward);
 
 
             // if reschedule, use actual speed
@@ -843,7 +843,7 @@ namespace Orts.Simulation.AIs
                         float firstPartTime = 0.0f;
                         float firstPartRangeM = 0.0f;
                         float secndPartRangeM = 0.0f;
-                        float remainingRangeM = activateDistanceTravelledM - thisTrain.PresentPosition[0].DistanceTravelledM;
+                        float remainingRangeM = activateDistanceTravelledM - thisTrain.PresentPosition[0].DistanceTravelled;
 
                         firstPartTime = presentSpeedMpS / (0.25f * aiTrain.MaxDecelMpSS);
                         firstPartRangeM = 0.25f * aiTrain.MaxDecelMpSS * (firstPartTime * firstPartTime);
@@ -867,27 +867,27 @@ namespace Orts.Simulation.AIs
                 }
                 else
                 {
-                    activateDistanceTravelledM = thisTrain.PresentPosition[0].DistanceTravelledM + thisTrain.ValidRoute[0].GetDistanceAlongRoute(actionIndex0, leftInSectionM, actionRouteIndex, this.RequiredDistance, true);
+                    activateDistanceTravelledM = thisTrain.PresentPosition[0].DistanceTravelled + thisTrain.ValidRoute[0].GetDistanceAlongRoute(actionIndex0, leftInSectionM, actionRouteIndex, this.RequiredDistance, true);
                     triggerDistanceM = activateDistanceTravelledM;
                 }
 
                 distancesM[1] = triggerDistanceM;
-                if (activateDistanceTravelledM < thisTrain.PresentPosition[0].DistanceTravelledM &&
-                    thisTrain.PresentPosition[0].DistanceTravelledM - activateDistanceTravelledM < thisTrain.Length)
-                    activateDistanceTravelledM = thisTrain.PresentPosition[0].DistanceTravelledM;
+                if (activateDistanceTravelledM < thisTrain.PresentPosition[0].DistanceTravelled &&
+                    thisTrain.PresentPosition[0].DistanceTravelled - activateDistanceTravelledM < thisTrain.Length)
+                    activateDistanceTravelledM = thisTrain.PresentPosition[0].DistanceTravelled;
                 distancesM[0] = activateDistanceTravelledM;
 
                 return (distancesM);
             }
             else
             {
-                activateDistanceTravelledM = thisTrain.PresentPosition[0].DistanceTravelledM + thisTrain.ValidRoute[0].GetDistanceAlongRoute(actionIndex0, leftInSectionM, actionRouteIndex, this.RequiredDistance, true);
+                activateDistanceTravelledM = thisTrain.PresentPosition[0].DistanceTravelled + thisTrain.ValidRoute[0].GetDistanceAlongRoute(actionIndex0, leftInSectionM, actionRouteIndex, this.RequiredDistance, true);
                 triggerDistanceM = activateDistanceTravelledM - Math.Min(this.RequiredDistance, 300); 
 
-                if (activateDistanceTravelledM < thisTrain.PresentPosition[0].DistanceTravelledM &&
-                    thisTrain.PresentPosition[0].DistanceTravelledM - activateDistanceTravelledM < thisTrain.Length)
+                if (activateDistanceTravelledM < thisTrain.PresentPosition[0].DistanceTravelled &&
+                    thisTrain.PresentPosition[0].DistanceTravelled - activateDistanceTravelledM < thisTrain.Length)
                 {
-                    activateDistanceTravelledM = thisTrain.PresentPosition[0].DistanceTravelledM;
+                    activateDistanceTravelledM = thisTrain.PresentPosition[0].DistanceTravelled;
                     triggerDistanceM = activateDistanceTravelledM;
                 }
                 distancesM[1] = triggerDistanceM;
@@ -1024,15 +1024,15 @@ namespace Orts.Simulation.AIs
 
         public override float[] CalculateDistancesToNextAction(Train thisTrain, float presentSpeedMpS, bool reschedule)
         {
-            int thisSectionIndex = thisTrain.PresentPosition[0].TCSectionIndex;
+            int thisSectionIndex = thisTrain.PresentPosition[0].TrackCircuitSectionIndex;
             TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisSectionIndex];
-            float leftInSectionM = thisSection.Length - thisTrain.PresentPosition[0].TCOffset;
+            float leftInSectionM = thisSection.Length - thisTrain.PresentPosition[0].Offset;
 
             // get action route index - if not found, return distances < 0
 
             int actionIndex0 = thisTrain.PresentPosition[0].RouteListIndex;
             int actionRouteIndex = thisTrain.ValidRoute[0].GetRouteIndex(TCSectionIndex, actionIndex0);
-            float activateDistanceTravelledM = thisTrain.PresentPosition[0].DistanceTravelledM + thisTrain.ValidRoute[0].GetDistanceAlongRoute(actionIndex0, leftInSectionM, actionRouteIndex, this.RequiredDistance, thisTrain.AITrainDirectionForward);
+            float activateDistanceTravelledM = thisTrain.PresentPosition[0].DistanceTravelled + thisTrain.ValidRoute[0].GetDistanceAlongRoute(actionIndex0, leftInSectionM, actionRouteIndex, this.RequiredDistance, thisTrain.AITrainDirectionForward);
             float[] distancesM = new float[2];
             distancesM[1] = activateDistanceTravelledM;
             distancesM[0] = activateDistanceTravelledM;
@@ -1135,9 +1135,9 @@ namespace Orts.Simulation.AIs
 
         public override float[] CalculateDistancesToNextAction(Train thisTrain, float presentSpeedMpS, bool reschedule)
         {
-            int thisSectionIndex = thisTrain.PresentPosition[0].TCSectionIndex;
+            int thisSectionIndex = thisTrain.PresentPosition[0].TrackCircuitSectionIndex;
             TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisSectionIndex];
-            float leftInSectionM = thisSection.Length - thisTrain.PresentPosition[0].TCOffset;
+            float leftInSectionM = thisSection.Length - thisTrain.PresentPosition[0].Offset;
 
             // get action route index - if not found, return distances < 0
 
@@ -1146,16 +1146,16 @@ namespace Orts.Simulation.AIs
             float activateDistanceTravelledM = -1;
 
             if (actionIndex0 != -1 && actionRouteIndex != -1)
-                activateDistanceTravelledM = thisTrain.PresentPosition[0].DistanceTravelledM + thisTrain.ValidRoute[0].GetDistanceAlongRoute(actionIndex0, leftInSectionM, actionRouteIndex, this.RequiredDistance, true);
+                activateDistanceTravelledM = thisTrain.PresentPosition[0].DistanceTravelled + thisTrain.ValidRoute[0].GetDistanceAlongRoute(actionIndex0, leftInSectionM, actionRouteIndex, this.RequiredDistance, true);
 
             var currBrakeSection = (thisTrain is AITrain && !(thisTrain.TrainType == TrainType.AiPlayerDriven)) ? 1 : brakeSection;
             float triggerDistanceM = activateDistanceTravelledM - Math.Min(this.RequiredDistance, 300);   //  TODO, add the size of train
 
             float[] distancesM = new float[2];
             distancesM[1] = triggerDistanceM;
-            if (activateDistanceTravelledM < thisTrain.PresentPosition[0].DistanceTravelledM &&
-                thisTrain.PresentPosition[0].DistanceTravelledM - activateDistanceTravelledM < thisTrain.Length)
-                activateDistanceTravelledM = thisTrain.PresentPosition[0].DistanceTravelledM;
+            if (activateDistanceTravelledM < thisTrain.PresentPosition[0].DistanceTravelled &&
+                thisTrain.PresentPosition[0].DistanceTravelled - activateDistanceTravelledM < thisTrain.Length)
+                activateDistanceTravelledM = thisTrain.PresentPosition[0].DistanceTravelled;
             distancesM[0] = activateDistanceTravelledM;
 
             return (distancesM);
@@ -1465,7 +1465,7 @@ namespace Orts.Simulation.AIs
                     {
                         AITrain aiTrain = thisTrain as AITrain;
                         float distanceToGoM = thisTrain.activityClearingDistanceM;
-                        distanceToGoM = ActivateDistanceM - aiTrain.PresentPosition[0].DistanceTravelledM;
+                        distanceToGoM = ActivateDistanceM - aiTrain.PresentPosition[0].DistanceTravelled;
                         float NextStopDistanceM = distanceToGoM;
                         if (distanceToGoM <= 0f)
                         {
@@ -1669,7 +1669,7 @@ namespace Orts.Simulation.AIs
                     if (this.ActionRef.ActionType != AuxActionRef.AuxiliaryAction.SoundHorn)
                     {
                         float distanceToGoM = thisTrain.activityClearingDistanceM;
-                        distanceToGoM = ActivateDistanceM - thisTrain.PresentPosition[0].DistanceTravelledM;
+                        distanceToGoM = ActivateDistanceM - thisTrain.PresentPosition[0].DistanceTravelled;
                         float NextStopDistanceM = distanceToGoM;
                         if (distanceToGoM < 0f)
                         {
@@ -1838,7 +1838,7 @@ namespace Orts.Simulation.AIs
             }
             if (ClearSignal(thisTrain) || (thisTrain.NextSignalObject[0] != null && (thisTrain.NextSignalObject[0].SignalLR(SignalFunction.Normal) > SignalAspectState.Stop)) ||
                 thisTrain.NextSignalObject[0] == null || SignalReferenced != thisTrain.NextSignalObject[0] ||
-                thisTrain.PresentPosition[0].TCSectionIndex == thisTrain.ValidRoute[0][thisTrain.ValidRoute[0].Count - 1].TrackCircuitSection.Index)
+                thisTrain.PresentPosition[0].TrackCircuitSectionIndex == thisTrain.ValidRoute[0][thisTrain.ValidRoute[0].Count - 1].TrackCircuitSection.Index)
             {
 #if WITH_PATH_DEBUG
             File.AppendAllText(@"C:\temp\checkpath.txt", "WP, Action ended for train " + thisTrain.Number + " at " + presentTime + "(STOPPED)\n");

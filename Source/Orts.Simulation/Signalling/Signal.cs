@@ -1897,9 +1897,9 @@ namespace Orts.Simulation.Signalling
                 routeListIndex = otherTrain.Train.PresentPosition[otherTrain.TrainRouteDirectionIndex].RouteListIndex;
                 signalEnvironment.BreakDownRouteList(otherTrain.Train.ValidRoute[otherTrain.TrainRouteDirectionIndex], routeListIndex, otherTrain);
 
-                train.Train.SwitchToNodeControl(train.Train.PresentPosition[train.TrainRouteDirectionIndex].TCSectionIndex);
+                train.Train.SwitchToNodeControl(train.Train.PresentPosition[train.TrainRouteDirectionIndex].TrackCircuitSectionIndex);
                 if (otherTrain.Train.ControlMode != TrainControlMode.Explorer && !otherTrain.Train.IsPathless)
-                    otherTrain.Train.SwitchToNodeControl(otherTrain.Train.PresentPosition[otherTrain.TrainRouteDirectionIndex].TCSectionIndex);
+                    otherTrain.Train.SwitchToNodeControl(otherTrain.Train.PresentPosition[otherTrain.TrainRouteDirectionIndex].TrackCircuitSectionIndex);
                 return false;
             }
             if (train.Train.TCRoute != null && HasLockForTrain(train.Train.Number, train.Train.TCRoute.ActiveSubPath))
@@ -2503,7 +2503,7 @@ namespace Orts.Simulation.Signalling
                     {
                         if (section.Index == TrackCircuitIndex)  // for section where signal is placed, check if train is ahead
                         {
-                            Dictionary<Train, float> trainAhead = section.TestTrainAhead(null, TrackCircuitOffset, (int)TrackCircuitDirection);
+                            Dictionary<Train, float> trainAhead = section.TestTrainAhead(null, TrackCircuitOffset, TrackCircuitDirection);
                             if (trainAhead.Count > 0)
                                 localBlockState = InternalBlockstate.OccupiedSameDirection;
                         }
@@ -2608,7 +2608,7 @@ namespace Orts.Simulation.Signalling
                 int altRoute = -1;
 
                 TrackCircuitPartialPathRoute trainRoute = train.Train.ValidRoute[train.TrainRouteDirectionIndex];
-                Train.TCPosition position = train.Train.PresentPosition[train.TrainRouteDirectionIndex];
+                TrackCircuitPosition position = train.Train.PresentPosition[train.TrainRouteDirectionIndex];
 
                 for (int iElement = lastElementIndex; iElement >= 0; iElement--)
                 {
@@ -2673,7 +2673,7 @@ namespace Orts.Simulation.Signalling
                 TrackCircuitSection endSection = null;
 
                 TrackCircuitPartialPathRoute trainRoute = train.Train.ValidRoute[train.TrainRouteDirectionIndex];
-                Train.TCPosition position = train.Train.PresentPosition[train.TrainRouteDirectionIndex];
+                TrackCircuitPosition position = train.Train.PresentPosition[train.TrainRouteDirectionIndex];
 
                 for (int iElement = lastElementIndex; iElement >= 0; iElement--)
                 {
@@ -3074,14 +3074,14 @@ namespace Orts.Simulation.Signalling
             float distance = 0;
             int actDirection = EnabledTrain.TrainRouteDirectionIndex;
             TrackCircuitPartialPathRoute routePath = EnabledTrain.Train.ValidRoute[actDirection];
-            int actRouteIndex = routePath == null ? -1 : routePath.GetRouteIndex(EnabledTrain.Train.PresentPosition[actDirection].TCSectionIndex, 0);
+            int actRouteIndex = routePath == null ? -1 : routePath.GetRouteIndex(EnabledTrain.Train.PresentPosition[actDirection].TrackCircuitSectionIndex, 0);
             if (actRouteIndex >= 0)
             {
                 float offset;
                 if (EnabledTrain.TrainRouteDirectionIndex == 0)
-                    offset = EnabledTrain.Train.PresentPosition[0].TCOffset;
+                    offset = EnabledTrain.Train.PresentPosition[0].Offset;
                 else
-                    offset = TrackCircuitSection.TrackCircuitList[EnabledTrain.Train.PresentPosition[1].TCSectionIndex].Length - EnabledTrain.Train.PresentPosition[1].TCOffset;
+                    offset = TrackCircuitSection.TrackCircuitList[EnabledTrain.Train.PresentPosition[1].TrackCircuitSectionIndex].Length - EnabledTrain.Train.PresentPosition[1].Offset;
 
                 while (!found)
                 {

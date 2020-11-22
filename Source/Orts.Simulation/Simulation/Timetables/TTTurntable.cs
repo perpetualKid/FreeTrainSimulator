@@ -1322,11 +1322,11 @@ namespace Orts.Simulation.Timetables
         /// Get end of route distance on approach to turntable
         /// </summary>
 
-        public override float GetEndOfRouteDistance(TrackCircuitPartialPathRoute thisRoute, Train.TCPosition frontPosition, int pathIndex)
+        internal override float GetEndOfRouteDistance(TrackCircuitPartialPathRoute thisRoute, TrackCircuitPosition frontPosition, int pathIndex)
         {
             // get distance to approach point from present position of train
             int turntableSectionIndex = thisRoute.GetRouteIndex(AdditionalTurntableDetails.AccessPaths[pathIndex].AccessPath[0].TrackCircuitSection.Index, 0);
-            float startoffset = TrackCircuitSection.TrackCircuitList[frontPosition.TCSectionIndex].Length - frontPosition.TCOffset;
+            float startoffset = TrackCircuitSection.TrackCircuitList[frontPosition.TrackCircuitSectionIndex].Length - frontPosition.Offset;
             float distanceToTurntable = thisRoute.GetDistanceAlongRoute(frontPosition.RouteListIndex, startoffset,
                 turntableSectionIndex, AdditionalTurntableDetails.AccessPaths[pathIndex].TableApproachOffset, true);
 
@@ -1956,8 +1956,8 @@ namespace Orts.Simulation.Timetables
 
         public int GetAccessPathIndex()
         {
-            int presentSection = parentTrain.PresentPosition[0].TCSectionIndex;
-            TrackDirection presentDirection = (TrackDirection)parentTrain.PresentPosition[0].TCDirection;
+            int presentSection = parentTrain.PresentPosition[0].TrackCircuitSectionIndex;
+            TrackDirection presentDirection = parentTrain.PresentPosition[0].Direction;
 
             // search if section in access path
             // direction must be reverse as access path is defined outbound
@@ -2231,8 +2231,8 @@ namespace Orts.Simulation.Timetables
             // check present position is in last section of route
             if (parentTrain.PresentPosition[0].RouteListIndex < parentTrain.ValidRoute[0].Count - 1)
             {
-                TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[parentTrain.PresentPosition[0].TCSectionIndex];
-                remDistance = thisSection.Length - parentTrain.PresentPosition[0].TCOffset;
+                TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[parentTrain.PresentPosition[0].TrackCircuitSectionIndex];
+                remDistance = thisSection.Length - parentTrain.PresentPosition[0].Offset;
 
                 for (int iIndex = parentTrain.PresentPosition[0].RouteListIndex + 1; iIndex < parentTrain.ValidRoute[0].Count - 1; iIndex++)
                 {
@@ -2253,11 +2253,11 @@ namespace Orts.Simulation.Timetables
             {
                 if (MovingTableState == MovingTableStateEnum.StorageToMovingTable)
                 {
-                    remDistance += parentPool.StoragePool[StoragePathIndex].TableMiddleEntry - parentTrain.PresentPosition[0].TCOffset + parentTrain.Length / 2.0f;
+                    remDistance += parentPool.StoragePool[StoragePathIndex].TableMiddleEntry - parentTrain.PresentPosition[0].Offset + parentTrain.Length / 2.0f;
                 }
                 else if (MovingTableState == MovingTableStateEnum.AccessToMovingTable)
                 {
-                    remDistance += parentPool.AdditionalTurntableDetails.AccessPaths[AccessPathIndex].TableMiddleEntry - parentTrain.PresentPosition[0].TCOffset + parentTrain.Length / 2.0f;
+                    remDistance += parentPool.AdditionalTurntableDetails.AccessPaths[AccessPathIndex].TableMiddleEntry - parentTrain.PresentPosition[0].Offset + parentTrain.Length / 2.0f;
                 }
             }
 

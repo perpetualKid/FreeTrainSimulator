@@ -267,7 +267,7 @@ namespace Orts.ActivityRunner.Viewer3D
                         {
                             reSelect = true;
                         }
-                        else if ((CarLeading == 0 && Car.Train.PresentPosition[0].TCSectionIndex != initTrackSection) || (CarLeading != 0 && Car.Train.PresentPosition[1].TCSectionIndex != initTrackSection))
+                        else if ((CarLeading == 0 && Car.Train.PresentPosition[0].TrackCircuitSectionIndex != initTrackSection) || (CarLeading != 0 && Car.Train.PresentPosition[1].TrackCircuitSectionIndex != initTrackSection))
                         {
                             reSelect = true;
                         }
@@ -284,7 +284,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     {
                         //_curTType = Viewer.WorldSounds.GetTType(_tdbObjs);
                         initCar = Car;
-                        initTrackSection = CarLeading == 0 ? Car.Train.PresentPosition[0].TCSectionIndex : Car.Train.PresentPosition[1].TCSectionIndex;
+                        initTrackSection = CarLeading == 0 ? Car.Train.PresentPosition[0].TrackCircuitSectionIndex : Car.Train.PresentPosition[1].TrackCircuitSectionIndex;
                         initDist = CarLeading == 0 ? Car.Train.DistanceTravelledM : Car.Train.DistanceTravelledM - Car.Train.Length;
                         Car.TrackSoundType = Viewer.World.Sounds.GetTType(Car.Train, out prevDist, out nextDist);
                         if (Car.TrackSoundType != int.MaxValue)
@@ -442,7 +442,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     var CarBehind = Car.Train.Cars[CarNo + CarIncr];
                     var carPreviouslyOnSwitch = CarOnSwitch;
                     CarOnSwitch = false;
-                    if (Car.Train.PresentPosition[0].TCSectionIndex != Car.Train.PresentPosition[1].TCSectionIndex)
+                    if (Car.Train.PresentPosition[0].TrackCircuitSectionIndex != Car.Train.PresentPosition[1].TrackCircuitSectionIndex)
                     {
                         var copyOccupiedTrack = Car.Train.OccupiedTrack.ToArray();
                         foreach (var thisSection in copyOccupiedTrack)

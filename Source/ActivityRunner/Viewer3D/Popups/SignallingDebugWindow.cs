@@ -288,19 +288,12 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             var distance = 0f;
             while (true)
             {
-                Train.TCPosition thisPosition = new Train.TCPosition();
                 TrackNode tn = trackNode.TN;
                 float offset = trackNode.TrackNodeOffset;
                 int direction = (int)trackNode.Direction;
 
-                thisPosition.SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
+                var signalItemInfo = Simulator.Instance.SignalEnvironment.GetSignalItemInfo(tn.TrackCircuitCrossReferences, offset, direction, 5000f);
 
-                var signalItemInfo = Owner.Viewer.Simulator.SignalEnvironment.GetSignalItemInfo(thisPosition, 5000f);
-                //TCSubpathRoute tempRoute = Owner.Viewer.Simulator.Signals.BuildTempRoute(null, thisPosition.TCSectionIndex, thisPosition.TCOffset, (TrackDirection)thisPosition.TCDirection, 5000.0f, true, false, false);
-
-                //SignalItemInfo thisInfo = Owner.Viewer.Simulator.Signals.GetNextObjectInRoute(null, tempRoute, 0,
-                //    thisPosition.TCOffset, -1, SignalItemType.Signal, thisPosition);
-//                var signal = thisInfo.SignalDetails;
                 var signal = signalItemInfo.Signal;
                 if (signal == null)
                     break;

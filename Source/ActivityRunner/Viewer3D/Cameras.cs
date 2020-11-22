@@ -2504,12 +2504,12 @@ namespace Orts.ActivityRunner.Viewer3D
                 {
                     if (FirstUpdateLoop)
                     {
-                        tcSectionIndex = trainForwards ? train.PresentPosition[1].TCSectionIndex : train.PresentPosition[0].TCSectionIndex;
+                        tcSectionIndex = trainForwards ? train.PresentPosition[1].TrackCircuitSectionIndex : train.PresentPosition[0].TrackCircuitSectionIndex;
                         routeIndex = trainForwards ? train.PresentPosition[1].RouteListIndex : train.PresentPosition[0].RouteListIndex;
                     }
                     else
                     {
-                        tcSectionIndex = trainForwards ? train.PresentPosition[0].TCSectionIndex : train.PresentPosition[1].TCSectionIndex;
+                        tcSectionIndex = trainForwards ? train.PresentPosition[0].TrackCircuitSectionIndex : train.PresentPosition[1].TrackCircuitSectionIndex;
                         routeIndex = trainForwards ? train.PresentPosition[0].RouteListIndex : train.PresentPosition[1].RouteListIndex;
                     }
                     if (routeIndex != -1)
@@ -2519,9 +2519,9 @@ namespace Orts.ActivityRunner.Viewer3D
                         float distanceToAdd = TCSection.Length;
                         float incrDistance;
                         if (FirstUpdateLoop)
-                            incrDistance = trainForwards ? -train.PresentPosition[1].TCOffset : -TCSection.Length + train.PresentPosition[0].TCOffset;
+                            incrDistance = trainForwards ? -train.PresentPosition[1].Offset : -TCSection.Length + train.PresentPosition[0].Offset;
                         else
-                            incrDistance = trainForwards ? -train.PresentPosition[0].TCOffset : -TCSection.Length + train.PresentPosition[1].TCOffset;
+                            incrDistance = trainForwards ? -train.PresentPosition[0].Offset : -TCSection.Length + train.PresentPosition[1].Offset;
                         // scanning route in direction of train, searching for a platform
                         while (incrDistance < MaximumSpecialPointDistance * 0.7f)
                         {

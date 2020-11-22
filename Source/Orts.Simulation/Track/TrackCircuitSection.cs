@@ -801,26 +801,26 @@ namespace Orts.Simulation.Track
                 }
             }
 
-            Train.TCPosition presentFront = train.Train.PresentPosition[train.TrainRouteDirectionIndex];
+            TrackCircuitPosition presentFront = train.Train.PresentPosition[train.TrainRouteDirectionIndex];
             int reverseDirectionIndex = train.TrainRouteDirectionIndex == 0 ? 1 : 0;
-            Train.TCPosition presentRear = train.Train.PresentPosition[reverseDirectionIndex];
+            TrackCircuitPosition presentRear = train.Train.PresentPosition[reverseDirectionIndex];
 
             // correct offset if position direction is not equal to route direction
-            float frontOffset = presentFront.TCOffset;
+            float frontOffset = presentFront.Offset;
             if (presentFront.RouteListIndex >= 0 &&
-                presentFront.TCDirection != (int)train.Train.ValidRoute[train.TrainRouteDirectionIndex][presentFront.RouteListIndex].Direction)
+                presentFront.Direction != train.Train.ValidRoute[train.TrainRouteDirectionIndex][presentFront.RouteListIndex].Direction)
                 frontOffset = Length - frontOffset;
 
-            float rearOffset = presentRear.TCOffset;
+            float rearOffset = presentRear.Offset;
             if (presentRear.RouteListIndex >= 0 &&
-                presentRear.TCDirection != (int)train.Train.ValidRoute[train.TrainRouteDirectionIndex][presentRear.RouteListIndex].Direction)
+                presentRear.Direction != train.Train.ValidRoute[train.TrainRouteDirectionIndex][presentRear.RouteListIndex].Direction)
                 rearOffset = Length - rearOffset;
 
-            if (presentFront.TCSectionIndex == Index)
+            if (presentFront.TrackCircuitSectionIndex == Index)
             {
                 distanceToClear += train.Train.Length - frontOffset;
             }
-            else if (presentRear.TCSectionIndex == Index)
+            else if (presentRear.TrackCircuitSectionIndex == Index)
             {
                 distanceToClear -= rearOffset;
             }
@@ -1389,7 +1389,7 @@ namespace Orts.Simulation.Track
         /// <summary>
         /// Test if train ahead and calculate distance to that train (front or rear depending on direction)
         /// </summary>
-        public Dictionary<Train, float> TestTrainAhead(Train thisTrain, float offset, int direction)
+        public Dictionary<Train, float> TestTrainAhead(Train train, float offset, TrackDirection direction)
         {
             Train trainFound = null;
             float distanceTrainAheadM = Length + 1.0f; // ensure train is always within section
@@ -1397,12 +1397,12 @@ namespace Orts.Simulation.Track
             List<Train.TrainRouted> trainsInSection = CircuitState.TrainsOccupying();
 
             // remove own train
-            if (thisTrain != null)
+            if (train != null)
             {
-                for (int iindex = trainsInSection.Count - 1; iindex >= 0; iindex--)
+                for (int i = trainsInSection.Count - 1; i >= 0; i--)
                 {
-                    if (trainsInSection[iindex].Train == thisTrain)
-                        trainsInSection.RemoveAt(iindex);
+                    if (trainsInSection[i].Train == train)
+                        trainsInSection.RemoveAt(i);
                 }
             }
 
@@ -1412,23 +1412,23 @@ namespace Orts.Simulation.Track
                 int nextTrainRouteIndex = nextTrain.Train.ValidRoute[nextTrain.TrainRouteDirectionIndex].GetRouteIndex(Index, 0);
                 if (nextTrainRouteIndex >= 0)
                 {
-                    Train.TCPosition nextFront = nextTrain.Train.PresentPosition[nextTrain.TrainRouteDirectionIndex];
+                    TrackCircuitPosition nextFront = nextTrain.Train.PresentPosition[nextTrain.TrainRouteDirectionIndex];
                     int reverseDirection = nextTrain.TrainRouteDirectionIndex == 0 ? 1 : 0;
-                    Train.TCPosition nextRear = nextTrain.Train.PresentPosition[reverseDirection];
+                    TrackCircuitPosition nextRear = nextTrain.Train.PresentPosition[reverseDirection];
 
                     TrackCircuitRouteElement thisElement = nextTrain.Train.ValidRoute[nextTrain.TrainRouteDirectionIndex][nextTrainRouteIndex];
-                    if (thisElement.Direction == (TrackDirection)direction) // same direction, so if the train is in front we're looking at the rear of the train
+                    if (thisElement.Direction == direction) // same direction, so if the train is in front we're looking at the rear of the train
                     {
-                        if (nextRear.TCSectionIndex == Index) // rear of train is in same section
+                        if (nextRear.TrackCircuitSectionIndex == Index) // rear of train is in same section
                         {
-                            float thisTrainDistanceM = nextRear.TCOffset;
+                            float thisTrainDistanceM = nextRear.Offset;
 
-                            if (thisTrainDistanceM < distanceTrainAheadM && nextRear.TCOffset >= offset) // train is nearest train and in front
+                            if (thisTrainDistanceM < distanceTrainAheadM && nextRear.Offset >= offset) // train is nearest train and in front
                             {
                                 distanceTrainAheadM = thisTrainDistanceM;
                                 trainFound = nextTrain.Train;
                             }
-                            else if (nextRear.TCOffset < offset && nextRear.TCOffset + nextTrain.Train.Length > offset) // our end is in the middle of the train
+                            else if (nextRear.Offset < offset && nextRear.Offset + nextTrain.Train.Length > offset) // our end is in the middle of the train
                             {
                                 distanceTrainAheadM = offset; // set distance to 0 (offset is deducted later)
                                 trainFound = nextTrain.Train;
@@ -1437,25 +1437,25 @@ namespace Orts.Simulation.Track
                         else
                         {
                             // try to use next train indices
-                            int nextRouteFrontIndex = nextTrain.Train.ValidRoute[nextTrain.TrainRouteDirectionIndex].GetRouteIndex(nextFront.TCSectionIndex, 0);
-                            int nextRouteRearIndex = nextTrain.Train.ValidRoute[nextTrain.TrainRouteDirectionIndex].GetRouteIndex(nextRear.TCSectionIndex, 0);
+                            int nextRouteFrontIndex = nextTrain.Train.ValidRoute[nextTrain.TrainRouteDirectionIndex].GetRouteIndex(nextFront.TrackCircuitSectionIndex, 0);
+                            int nextRouteRearIndex = nextTrain.Train.ValidRoute[nextTrain.TrainRouteDirectionIndex].GetRouteIndex(nextRear.TrackCircuitSectionIndex, 0);
                             int usedTrainRouteIndex = nextTrainRouteIndex;
 
                             // if not on route, try this trains route
-                            if (thisTrain != null && (nextRouteFrontIndex < 0 || nextRouteRearIndex < 0))
+                            if (train != null && (nextRouteFrontIndex < 0 || nextRouteRearIndex < 0))
                             {
-                                nextRouteFrontIndex = thisTrain.ValidRoute[0].GetRouteIndex(nextFront.TCSectionIndex, 0);
-                                nextRouteRearIndex = thisTrain.ValidRoute[0].GetRouteIndex(nextRear.TCSectionIndex, 0);
-                                usedTrainRouteIndex = thisTrain.ValidRoute[0].GetRouteIndex(Index, 0);
+                                nextRouteFrontIndex = train.ValidRoute[0].GetRouteIndex(nextFront.TrackCircuitSectionIndex, 0);
+                                nextRouteRearIndex = train.ValidRoute[0].GetRouteIndex(nextRear.TrackCircuitSectionIndex, 0);
+                                usedTrainRouteIndex = train.ValidRoute[0].GetRouteIndex(Index, 0);
                             }
 
                             // if not found either, build temp route
                             if (nextRouteFrontIndex < 0 || nextRouteRearIndex < 0)
                             {
-                                TrackCircuitPartialPathRoute tempRoute = SignalEnvironment.BuildTempRoute(nextTrain.Train, nextFront.TCSectionIndex, nextFront.TCOffset, (TrackDirection)nextFront.TCDirection,
+                                TrackCircuitPartialPathRoute tempRoute = SignalEnvironment.BuildTempRoute(nextTrain.Train, nextFront.TrackCircuitSectionIndex, nextFront.Offset, nextFront.Direction,
                                     nextTrain.Train.Length, true, true, false);
-                                nextRouteFrontIndex = tempRoute.GetRouteIndex(nextFront.TCSectionIndex, 0);
-                                nextRouteRearIndex = tempRoute.GetRouteIndex(nextRear.TCSectionIndex, 0);
+                                nextRouteFrontIndex = tempRoute.GetRouteIndex(nextFront.TrackCircuitSectionIndex, 0);
+                                nextRouteRearIndex = tempRoute.GetRouteIndex(nextRear.TrackCircuitSectionIndex, 0);
                                 usedTrainRouteIndex = tempRoute.GetRouteIndex(Index, 0);
                             }
 
@@ -1471,17 +1471,17 @@ namespace Orts.Simulation.Track
                             {
                                 // check if still ahead of us
 
-                                if (thisTrain != null && thisTrain.ValidRoute != null)
+                                if (train != null && train.ValidRoute != null)
                                 {
-                                    int lastSectionIndex = thisTrain.ValidRoute[0].GetRouteIndex(nextRear.TCSectionIndex, thisTrain.PresentPosition[0].RouteListIndex);
-                                    if (lastSectionIndex >= thisTrain.PresentPosition[0].RouteListIndex)
+                                    int lastSectionIndex = train.ValidRoute[0].GetRouteIndex(nextRear.TrackCircuitSectionIndex, train.PresentPosition[0].RouteListIndex);
+                                    if (lastSectionIndex >= train.PresentPosition[0].RouteListIndex)
                                     {
                                         distanceTrainAheadM = Length;  // offset is deducted later
                                         for (int isection = nextTrainRouteIndex + 1; isection <= nextRear.RouteListIndex - 1; isection++)
                                         {
                                             distanceTrainAheadM += nextTrain.Train.ValidRoute[nextTrain.TrainRouteDirectionIndex][isection].TrackCircuitSection.Length;
                                         }
-                                        distanceTrainAheadM += nextTrain.Train.PresentPosition[1].TCOffset;
+                                        distanceTrainAheadM += nextTrain.Train.PresentPosition[1].Offset;
                                         trainFound = nextTrain.Train;
                                     }
                                 }
@@ -1490,8 +1490,8 @@ namespace Orts.Simulation.Track
                     }
                     else // reverse direction, so we're looking at the front - use section length - offset as position
                     {
-                        float thisTrainOffset = Length - nextFront.TCOffset;
-                        if (nextFront.TCSectionIndex == Index)  // front of train in section
+                        float thisTrainOffset = Length - nextFront.Offset;
+                        if (nextFront.TrackCircuitSectionIndex == Index)  // front of train in section
                         {
                             float thisTrainDistanceM = thisTrainOffset;
 
@@ -1502,10 +1502,10 @@ namespace Orts.Simulation.Track
                             }
                             // extra test : if front is beyond other train but rear is not, train is considered to be still in front (at distance = offset)
                             // this can happen in pre-run mode due to large interval
-                            if (thisTrain != null && thisTrainDistanceM < distanceTrainAheadM && thisTrainOffset < offset)
+                            if (train != null && thisTrainDistanceM < distanceTrainAheadM && thisTrainOffset < offset)
                             {
                                 if ((!Simulator.Instance.TimetableMode && thisTrainOffset >= (offset - nextTrain.Train.Length)) ||
-                                    (Simulator.Instance.TimetableMode && thisTrainOffset >= (offset - thisTrain.Length)))
+                                    (Simulator.Instance.TimetableMode && thisTrainOffset >= (offset - train.Length)))
                                 {
                                     distanceTrainAheadM = offset;
                                     trainFound = nextTrain.Train;
@@ -1514,25 +1514,25 @@ namespace Orts.Simulation.Track
                         }
                         else
                         {
-                            int nextRouteFrontIndex = nextTrain.Train.ValidRoute[nextTrain.TrainRouteDirectionIndex].GetRouteIndex(nextFront.TCSectionIndex, 0);
-                            int nextRouteRearIndex = nextTrain.Train.ValidRoute[nextTrain.TrainRouteDirectionIndex].GetRouteIndex(nextRear.TCSectionIndex, 0);
+                            int nextRouteFrontIndex = nextTrain.Train.ValidRoute[nextTrain.TrainRouteDirectionIndex].GetRouteIndex(nextFront.TrackCircuitSectionIndex, 0);
+                            int nextRouteRearIndex = nextTrain.Train.ValidRoute[nextTrain.TrainRouteDirectionIndex].GetRouteIndex(nextRear.TrackCircuitSectionIndex, 0);
                             int usedTrainRouteIndex = nextTrainRouteIndex;
 
                             // if not on route, try this trains route
-                            if (thisTrain != null && (nextRouteFrontIndex < 0 || nextRouteRearIndex < 0))
+                            if (train != null && (nextRouteFrontIndex < 0 || nextRouteRearIndex < 0))
                             {
-                                nextRouteFrontIndex = thisTrain.ValidRoute[0].GetRouteIndex(nextFront.TCSectionIndex, 0);
-                                nextRouteRearIndex = thisTrain.ValidRoute[0].GetRouteIndex(nextRear.TCSectionIndex, 0);
-                                usedTrainRouteIndex = thisTrain.ValidRoute[0].GetRouteIndex(Index, 0);
+                                nextRouteFrontIndex = train.ValidRoute[0].GetRouteIndex(nextFront.TrackCircuitSectionIndex, 0);
+                                nextRouteRearIndex = train.ValidRoute[0].GetRouteIndex(nextRear.TrackCircuitSectionIndex, 0);
+                                usedTrainRouteIndex = train.ValidRoute[0].GetRouteIndex(Index, 0);
                             }
 
                             // if not found either, build temp route
                             if (nextRouteFrontIndex < 0 || nextRouteRearIndex < 0)
                             {
-                                TrackCircuitPartialPathRoute tempRoute = SignalEnvironment.BuildTempRoute(nextTrain.Train, nextFront.TCSectionIndex, nextFront.TCOffset, (TrackDirection)nextFront.TCDirection,
+                                TrackCircuitPartialPathRoute tempRoute = SignalEnvironment.BuildTempRoute(nextTrain.Train, nextFront.TrackCircuitSectionIndex, nextFront.Offset, nextFront.Direction,
                                     nextTrain.Train.Length, true, true, false);
-                                nextRouteFrontIndex = tempRoute.GetRouteIndex(nextFront.TCSectionIndex, 0);
-                                nextRouteRearIndex = tempRoute.GetRouteIndex(nextRear.TCSectionIndex, 0);
+                                nextRouteFrontIndex = tempRoute.GetRouteIndex(nextFront.TrackCircuitSectionIndex, 0);
+                                nextRouteRearIndex = tempRoute.GetRouteIndex(nextRear.TrackCircuitSectionIndex, 0);
                                 usedTrainRouteIndex = tempRoute.GetRouteIndex(Index, 0);
                             }
 
@@ -1547,17 +1547,17 @@ namespace Orts.Simulation.Track
                             else  // if index is greater, train has moved on - return section length minus offset
                             {
                                 // check if still ahead of us
-                                if (thisTrain != null && thisTrain.ValidRoute != null)
+                                if (train != null && train.ValidRoute != null)
                                 {
-                                    int lastSectionIndex = thisTrain.ValidRoute[0].GetRouteIndex(nextRear.TCSectionIndex, thisTrain.PresentPosition[0].RouteListIndex);
-                                    if (lastSectionIndex > thisTrain.PresentPosition[0].RouteListIndex)
+                                    int lastSectionIndex = train.ValidRoute[0].GetRouteIndex(nextRear.TrackCircuitSectionIndex, train.PresentPosition[0].RouteListIndex);
+                                    if (lastSectionIndex > train.PresentPosition[0].RouteListIndex)
                                     {
                                         distanceTrainAheadM = Length;  // offset is deducted later
                                         for (int isection = nextTrainRouteIndex + 1; isection <= nextRear.RouteListIndex - 1; isection++)
                                         {
                                             distanceTrainAheadM += nextTrain.Train.ValidRoute[nextTrain.TrainRouteDirectionIndex][isection].TrackCircuitSection.Length;
                                         }
-                                        distanceTrainAheadM += nextTrain.Train.PresentPosition[1].TCOffset;
+                                        distanceTrainAheadM += nextTrain.Train.PresentPosition[1].Offset;
                                         trainFound = nextTrain.Train;
                                     }
                                 }
@@ -1700,14 +1700,14 @@ namespace Orts.Simulation.Track
 
                 // test train ahead of rear end (for non-placed trains, always use direction 0)
 
-                if (train.PresentPosition[1].TCSectionIndex == Index)
+                if (train.PresentPosition[1].TrackCircuitSectionIndex == Index)
                 {
-                    trainInfo = TestTrainAhead(train, offsetFromStart, train.PresentPosition[1].TCDirection); // rear end in this section, use offset
+                    trainInfo = TestTrainAhead(train, offsetFromStart, train.PresentPosition[1].Direction); // rear end in this section, use offset
                 }
                 else
                 {
                     offsetFromStart = 0.0f;
-                    trainInfo = TestTrainAhead(train, 0.0f, train.PresentPosition[1].TCDirection); // test from start
+                    trainInfo = TestTrainAhead(train, 0.0f, train.PresentPosition[1].Direction); // test from start
                 }
 
                 if (trainInfo.Count > 0)
@@ -1720,8 +1720,8 @@ namespace Orts.Simulation.Track
                         }
                         else
                         {
-                            Train.TCPosition trainPosition = trainAhead.Key.PresentPosition[trainAhead.Key.MUDirection == MidpointDirection.Forward ? 0 : 1];
-                            if (trainPosition.TCSectionIndex == Index && trainAhead.Key.SpeedMpS > 0 && trainPosition.TCDirection != train.PresentPosition[0].TCDirection)
+                            TrackCircuitPosition trainPosition = trainAhead.Key.PresentPosition[trainAhead.Key.MUDirection == MidpointDirection.Forward ? 0 : 1];
+                            if (trainPosition.TrackCircuitSectionIndex == Index && trainAhead.Key.SpeedMpS > 0 && trainPosition.Direction != train.PresentPosition[0].Direction)
                             {
                                 return false;   // train is moving towards us
                             }
@@ -1730,8 +1730,8 @@ namespace Orts.Simulation.Track
                 }
 
                 // test train behind of front end
-                int revDirection = train.PresentPosition[0].TCDirection == 0 ? 1 : 0;
-                if (train.PresentPosition[0].TCSectionIndex == Index)
+                TrackDirection revDirection = train.PresentPosition[0].Direction.Next();
+                if (train.PresentPosition[0].TrackCircuitSectionIndex == Index)
                 {
                     float offsetFromEnd = Length - (trainLength + offsetFromStart);
                     trainInfo = TestTrainAhead(train, offsetFromEnd, revDirection); // test remaining length

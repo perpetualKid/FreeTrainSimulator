@@ -2426,10 +2426,10 @@ namespace Orts.Simulation.RollingStocks
         {
             var isOverTrough = false;
             // start at front of train
-            int thisSectionIndex = Train.PresentPosition[0].TCSectionIndex;
+            int thisSectionIndex = Train.PresentPosition[0].TrackCircuitSectionIndex;
             if (thisSectionIndex < 0) return isOverTrough;
-            float thisSectionOffset = Train.PresentPosition[0].TCOffset;
-            TrackDirection thisSectionDirection = (TrackDirection)Train.PresentPosition[0].TCDirection;
+            float thisSectionOffset = Train.PresentPosition[0].Offset;
+            TrackDirection thisSectionDirection = Train.PresentPosition[0].Direction;
 
 
             float usedCarLength = CarLengthM;
@@ -2502,14 +2502,14 @@ namespace Orts.Simulation.RollingStocks
             // To Do - This identifies the start of the train, but needs to be further refined to work for each carriage.
             var isOverJunction = false;
             // start at front of train
-            int thisSectionIndex = Train.PresentPosition[0].TCSectionIndex;
-            float thisSectionOffset = Train.PresentPosition[0].TCOffset;
-            int thisSectionDirection = Train.PresentPosition[0].TCDirection;
+            //int thisSectionIndex = Train.PresentPosition[0].TrackCircuitSectionIndex;
+            //float thisSectionOffset = Train.PresentPosition[0].Offset;
+            //TrackDirection thisSectionDirection = Train.PresentPosition[0].Direction;
 
 
             float usedCarLength = CarLengthM;
 
-            if (Train.PresentPosition[0].TCSectionIndex != Train.PresentPosition[1].TCSectionIndex)
+            if (Train.PresentPosition[0].TrackCircuitSectionIndex != Train.PresentPosition[1].TrackCircuitSectionIndex)
             {
                 try
                 {

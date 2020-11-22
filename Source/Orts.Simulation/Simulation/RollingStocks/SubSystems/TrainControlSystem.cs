@@ -551,16 +551,16 @@ namespace Orts.Simulation.RollingStocks.SubSystems
 
             int dir = Locomotive.Train.MUDirection == MidpointDirection.Reverse ? 1 : 0;
 
-            if (Locomotive.Train.ValidRoute[dir] == null || dir == 1 && Locomotive.Train.PresentPosition[dir].TCSectionIndex < 0)
+            if (Locomotive.Train.ValidRoute[dir] == null || dir == 1 && Locomotive.Train.PresentPosition[dir].TrackCircuitSectionIndex < 0)
                 return retval;
 
             int index = dir == 0 ? Locomotive.Train.PresentPosition[dir].RouteListIndex : 
-                Locomotive.Train.ValidRoute[dir].GetRouteIndex(Locomotive.Train.PresentPosition[dir].TCSectionIndex, 0);
+                Locomotive.Train.ValidRoute[dir].GetRouteIndex(Locomotive.Train.PresentPosition[dir].TrackCircuitSectionIndex, 0);
             if (index < 0)
                 return retval;
 
-            float lengthOffset = (dir == 1) ? (-Locomotive.Train.PresentPosition[1].TCOffset +
-                     TrackCircuitSection.TrackCircuitList[Locomotive.Train.PresentPosition[1].TCSectionIndex].Length) : Locomotive.Train.PresentPosition[0].TCOffset;
+            float lengthOffset = (dir == 1) ? (-Locomotive.Train.PresentPosition[1].Offset +
+                     TrackCircuitSection.TrackCircuitList[Locomotive.Train.PresentPosition[1].TrackCircuitSectionIndex].Length) : Locomotive.Train.PresentPosition[0].Offset;
             float totalLength = 0;
             var routePath = Locomotive.Train.ValidRoute[dir];
             while (index < routePath.Count && totalLength < 400) // Check only first 400m

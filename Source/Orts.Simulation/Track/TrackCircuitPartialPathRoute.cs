@@ -209,7 +209,7 @@ namespace Orts.Simulation.Track
         /// <summary>
         /// returns if signal is ahead of train
         /// <\summary>
-        public bool SignalIsAheadOfTrain(Signal signal, Train.TCPosition trainPosition)
+        internal bool SignalIsAheadOfTrain(Signal signal, TrackCircuitPosition trainPosition)
         {
             if (null == signal)
                 throw new ArgumentNullException(nameof(signal));
@@ -225,7 +225,7 @@ namespace Orts.Simulation.Track
             if (signalRouteIndex >= 0)
                 return true; // signal section still ahead
 
-            if (trainPosition.TCSectionIndex == signal.TrackCircuitNextIndex)
+            if (trainPosition.TrackCircuitSectionIndex == signal.TrackCircuitNextIndex)
                 return false; // if train in section following signal, assume we passed
 
             // signal is not on route - assume we did not pass

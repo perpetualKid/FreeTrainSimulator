@@ -181,9 +181,9 @@ namespace Orts.Simulation.AIs
             }
             else if (usePosition)
             {
-                TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[PresentPosition[1].TCSectionIndex];
+                TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[PresentPosition[1].TrackCircuitSectionIndex];
 
-                ValidRoute[0] = SignalEnvironment.BuildTempRoute(this, thisSection.Index, PresentPosition[1].TCOffset, (TrackDirection)PresentPosition[1].TCDirection, Length, true, true, false);
+                ValidRoute[0] = SignalEnvironment.BuildTempRoute(this, thisSection.Index, PresentPosition[1].Offset, PresentPosition[1].Direction, Length, true, true, false);
             }
         }
 
@@ -1105,8 +1105,8 @@ namespace Orts.Simulation.AIs
 
         public float[] CalculateDistancesToNextStation(StationStop thisStation, float presentSpeedMpS, bool reschedule)
         {
-            TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[PresentPosition[0].TCSectionIndex];
-            float leftInSectionM = thisSection.Length - PresentPosition[0].TCOffset;
+            TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[PresentPosition[0].TrackCircuitSectionIndex];
+            float leftInSectionM = thisSection.Length - PresentPosition[0].Offset;
 
             // get station route index - if not found, return distances < 0
 
@@ -1125,8 +1125,8 @@ namespace Orts.Simulation.AIs
             // if front beyond station, use rear position (correct for length)
             else if (stationIndex1 >= 0)
             {
-                thisSection = TrackCircuitSection.TrackCircuitList[PresentPosition[1].TCSectionIndex];
-                leftInSectionM = thisSection.Length - PresentPosition[1].TCOffset;
+                thisSection = TrackCircuitSection.TrackCircuitList[PresentPosition[1].TrackCircuitSectionIndex];
+                leftInSectionM = thisSection.Length - PresentPosition[1].Offset;
                 distanceToTrainM = ValidRoute[0].GetDistanceAlongRoute(PresentPosition[1].RouteListIndex,
                     leftInSectionM, stationIndex1, thisStation.StopOffset, true) - Length;
             }
@@ -1134,7 +1134,7 @@ namespace Orts.Simulation.AIs
             // if beyond station and train is stopped - return present position
             if (distanceToTrainM < 0f && MovementState == AI_MOVEMENT_STATE.STATION_STOP)
             {
-                return (new float[2] { PresentPosition[0].DistanceTravelledM, 0.0f });
+                return (new float[2] { PresentPosition[0].DistanceTravelled, 0.0f });
             }
 
             // if station not on route at all return negative values
@@ -1145,7 +1145,7 @@ namespace Orts.Simulation.AIs
 
             // if reschedule, use actual speed
 
-            float activateDistanceTravelledM = PresentPosition[0].DistanceTravelledM + distanceToTrainM;
+            float activateDistanceTravelledM = PresentPosition[0].DistanceTravelled + distanceToTrainM;
             float triggerDistanceM = 0.0f;
 
             if (reschedule)
@@ -1153,7 +1153,7 @@ namespace Orts.Simulation.AIs
                 float firstPartTime = 0.0f;
                 float firstPartRangeM = 0.0f;
                 float secndPartRangeM = 0.0f;
-                float remainingRangeM = activateDistanceTravelledM - PresentPosition[0].DistanceTravelledM;
+                float remainingRangeM = activateDistanceTravelledM - PresentPosition[0].DistanceTravelled;
 
                 firstPartTime = presentSpeedMpS / (0.25f * MaxDecelMpSS);
                 firstPartRangeM = 0.25f * MaxDecelMpSS * (firstPartTime * firstPartTime);
@@ -1313,19 +1313,18 @@ namespace Orts.Simulation.AIs
             {
 
                 // check if train ahead is in same section
-                int sectionIndex = PresentPosition[0].TCSectionIndex;
+                int sectionIndex = PresentPosition[0].TrackCircuitSectionIndex;
                 int startIndex = ValidRoute[0].GetRouteIndex(sectionIndex, 0);
                 int endIndex = ValidRoute[0].GetRouteIndex(LastReservedSection[0], 0);
 
                 TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[sectionIndex];
 
-                Dictionary<Train, float> trainInfo = thisSection.TestTrainAhead(this,
-                                PresentPosition[0].TCOffset, PresentPosition[0].TCDirection);
+                Dictionary<Train, float> trainInfo = thisSection.TestTrainAhead(this, PresentPosition[0].Offset, PresentPosition[0].Direction);
 
                 // search for train ahead in route sections
                 for (int iIndex = startIndex + 1; iIndex <= endIndex && trainInfo.Count <= 0; iIndex++)
                 {
-                    trainInfo = ValidRoute[0][iIndex].TrackCircuitSection.TestTrainAhead(this, 0.0f, (int)ValidRoute[0][iIndex].Direction);
+                    trainInfo = ValidRoute[0][iIndex].TrackCircuitSection.TestTrainAhead(this, 0.0f, ValidRoute[0][iIndex].Direction);
                 }
 
                 if (trainInfo.Count <= 0)
@@ -1333,7 +1332,7 @@ namespace Orts.Simulation.AIs
                 {
                     if (endIndex < ValidRoute[0].Count - 1)
                     {
-                        trainInfo = ValidRoute[0][endIndex + 1].TrackCircuitSection.TestTrainAhead(this, 0.0f, (int)ValidRoute[0][endIndex + 1].Direction);
+                        trainInfo = ValidRoute[0][endIndex + 1].TrackCircuitSection.TestTrainAhead(this, 0.0f, ValidRoute[0][endIndex + 1].Direction);
                     }
                 }
 
@@ -1344,9 +1343,9 @@ namespace Orts.Simulation.AIs
                         Train OtherTrain = trainAhead.Key;
                         if (Math.Abs(OtherTrain.SpeedMpS) < 0.001f &&
                                     (DistanceToEndNodeAuthorityM[0] > followDistanceStatTrainM || UncondAttach || OtherTrain.TrainType == TrainType.Static ||
-                                    OtherTrain.PresentPosition[0].TCSectionIndex ==
+                                    OtherTrain.PresentPosition[0].TrackCircuitSectionIndex ==
                                     TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath][TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath].Count - 1].TrackCircuitSection.Index
-                                    || OtherTrain.PresentPosition[1].TCSectionIndex ==
+                                    || OtherTrain.PresentPosition[1].TrackCircuitSectionIndex ==
                                     TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath][TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath].Count - 1].TrackCircuitSection.Index))
                         {
                             // allow creeping closer
@@ -1408,7 +1407,7 @@ namespace Orts.Simulation.AIs
 
                 if (NextSignalObject[0] == null) // no signal ahead so switch Node control
                 {
-                    SwitchToNodeControl(PresentPosition[0].TCSectionIndex);
+                    SwitchToNodeControl(PresentPosition[0].TrackCircuitSectionIndex);
                     NextStopDistanceM = DistanceToEndNodeAuthorityM[0];
                 }
 
@@ -1872,7 +1871,7 @@ namespace Orts.Simulation.AIs
                 else if (nextActionInfo.ActiveItem.SignalState != SignalAspectState.Stop)
                 {
                     nextActionInfo.NextAction = AIActionItem.AI_ACTION_TYPE.SIGNAL_ASPECT_RESTRICTED;
-                    if (((nextActionInfo.ActivateDistanceM - PresentPosition[0].DistanceTravelledM) < signalApproachDistanceM) ||
+                    if (((nextActionInfo.ActivateDistanceM - PresentPosition[0].DistanceTravelled) < signalApproachDistanceM) ||
                          nextActionInfo.ActiveItem.SignalDetails.SignalNoSpeedReduction(SignalFunction.Normal))
                     {
                         clearAction = true;
@@ -1885,7 +1884,7 @@ namespace Orts.Simulation.AIs
             else if (nextActionInfo.NextAction == AIActionItem.AI_ACTION_TYPE.SIGNAL_ASPECT_RESTRICTED)
             {
                 if ((nextActionInfo.ActiveItem.SignalState >= SignalAspectState.Approach_1) ||
-                   ((nextActionInfo.ActivateDistanceM - PresentPosition[0].DistanceTravelledM) < signalApproachDistanceM) ||
+                   ((nextActionInfo.ActivateDistanceM - PresentPosition[0].DistanceTravelled) < signalApproachDistanceM) ||
                    (nextActionInfo.ActiveItem.SignalDetails.SignalNoSpeedReduction(SignalFunction.Normal)))
                 {
                     clearAction = true;
@@ -1942,7 +1941,7 @@ namespace Orts.Simulation.AIs
             if (nextActionInfo != null)
             {
                 requiredSpeedMpS = nextActionInfo.RequiredSpeedMpS;
-                distanceToGoM = nextActionInfo.ActivateDistanceM - PresentPosition[0].DistanceTravelledM;
+                distanceToGoM = nextActionInfo.ActivateDistanceM - PresentPosition[0].DistanceTravelled;
 
                 if (nextActionInfo.ActiveItem != null)
                 {
@@ -2363,7 +2362,7 @@ namespace Orts.Simulation.AIs
 
         public virtual void UpdateFollowingState(double elapsedClockSeconds, int presentTime)
         {
-            if (nextActionInfo != null && nextActionInfo.NextAction == AIActionItem.AI_ACTION_TYPE.TRAIN_AHEAD && nextActionInfo.ActivateDistanceM - PresentPosition[0].DistanceTravelledM < -5)
+            if (nextActionInfo != null && nextActionInfo.NextAction == AIActionItem.AI_ACTION_TYPE.TRAIN_AHEAD && nextActionInfo.ActivateDistanceM - PresentPosition[0].DistanceTravelled < -5)
 
             if (ControlMode != TrainControlMode.AutoNode || EndAuthorityTypes[0] != EndAuthorityType.TrainAhead) // train is gone
             {
@@ -2382,11 +2381,11 @@ namespace Orts.Simulation.AIs
 
                     TrackCircuitSection thisSection = ValidRoute[0][PresentPosition[0].RouteListIndex].TrackCircuitSection;
 
-                trainInfo = thisSection.TestTrainAhead(this, PresentPosition[0].TCOffset, PresentPosition[0].TCDirection);
+                trainInfo = thisSection.TestTrainAhead(this, PresentPosition[0].Offset, PresentPosition[0].Direction);
                 float addOffset = 0;
                 if (trainInfo.Count <= 0)
                 {
-                    addOffset = thisSection.Length - PresentPosition[0].TCOffset;
+                    addOffset = thisSection.Length - PresentPosition[0].Offset;
                 }
                 else
                 {
@@ -2398,14 +2397,14 @@ namespace Orts.Simulation.AIs
                 for (int iIndex = startIndex + 1; iIndex <= endIndex && trainInfo.Count <= 0; iIndex++)
                 {
                     TrackCircuitSection nextSection = ValidRoute[0][iIndex].TrackCircuitSection;
-                    trainInfo = nextSection.TestTrainAhead(this, 0, (int)ValidRoute[0][iIndex].Direction);
+                    trainInfo = nextSection.TestTrainAhead(this, 0, ValidRoute[0][iIndex].Direction);
                 }
 
                 // if train not ahead, try first section beyond last reserved
                 if (trainInfo.Count <= 0 && endIndex < ValidRoute[0].Count - 1)
                 {
                     TrackCircuitSection nextSection = ValidRoute[0][endIndex + 1].TrackCircuitSection;
-                    trainInfo = nextSection.TestTrainAhead(this, 0, (int)ValidRoute[0][endIndex + 1].Direction);
+                    trainInfo = nextSection.TestTrainAhead(this, 0, ValidRoute[0][endIndex + 1].Direction);
                     if (trainInfo.Count <= 0)
                     {
                         addOffset += nextSection.Length;
@@ -2430,9 +2429,9 @@ namespace Orts.Simulation.AIs
                         // if other train is static or other train is in last section of this train, pass to passive coupling
                         if (Math.Abs(OtherTrain.SpeedMpS) < 0.025f && distanceToTrain <= 2 * keepDistanceMovingTrainM)
                         {
-                            if (OtherTrain.TrainType == TrainType.Static || (OtherTrain.PresentPosition[0].TCSectionIndex ==
+                            if (OtherTrain.TrainType == TrainType.Static || (OtherTrain.PresentPosition[0].TrackCircuitSectionIndex ==
                                 TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath][TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath].Count - 1].TrackCircuitSection.Index
-                                || OtherTrain.PresentPosition[1].TCSectionIndex ==
+                                || OtherTrain.PresentPosition[1].TrackCircuitSectionIndex ==
                                 TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath][TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath].Count - 1].TrackCircuitSection.Index) && 
                                 (TCRoute.ReversalInfo[TCRoute.ActiveSubPath].Valid || TCRoute.ActiveSubPath == TCRoute.TCRouteSubpaths.Count - 1) 
                                 || UncondAttach)
@@ -2630,8 +2629,9 @@ namespace Orts.Simulation.AIs
                         {
                             // check whether trains are running same direction or not
                             bool runningAgainst = false;
-                            if (PresentPosition[0].TCSectionIndex == OtherTrain.PresentPosition[0].TCSectionIndex &&
-                                PresentPosition[0].TCDirection != OtherTrain.PresentPosition[0].TCDirection) runningAgainst = true;
+                            if (PresentPosition[0].TrackCircuitSectionIndex == OtherTrain.PresentPosition[0].TrackCircuitSectionIndex &&
+                                PresentPosition[0].Direction != OtherTrain.PresentPosition[0].Direction) 
+                                    runningAgainst = true;
                             if ((SpeedMpS > (OtherTrain.SpeedMpS + hysterisMpS) && !runningAgainst)||
                                 SpeedMpS > (maxFollowSpeedMpS + hysterisMpS) ||
                                 distanceToTrain < (keepDistanceTrainM - clearingDistanceM))
@@ -3372,14 +3372,14 @@ namespace Orts.Simulation.AIs
             returnValue[0] = true; // end of path reached
             if (nextPart[1])   // next route available
             {
-                if (positionNow == PresentPosition[0].TCSectionIndex && directionNow != (TrackDirection)PresentPosition[0].TCDirection)
+                if (positionNow == PresentPosition[0].TrackCircuitSectionIndex && directionNow != PresentPosition[0].Direction)
                 {
                     ReverseFormation(false);
                     // active subpath must be incremented in parallel in incorporated train if present
                     if (IncorporatedTrainNo >= 0)
                         IncrementSubpath(Simulator.TrainDictionary[IncorporatedTrainNo]);
                 }
-                else if (positionNow == PresentPosition[1].TCSectionIndex && directionNow != (TrackDirection)PresentPosition[1].TCDirection)
+                else if (positionNow == PresentPosition[1].TrackCircuitSectionIndex && directionNow != PresentPosition[1].Direction)
                 {
                     ReverseFormation(false);
                     // active subpath must be incremented in parallel in incorporated train if present
@@ -3432,12 +3432,12 @@ namespace Orts.Simulation.AIs
             if (Simulator.TimetableMode) removeIt = true;
             else if (TrainType == TrainType.AiPlayerHosting || Simulator.OriginalPlayerTrain == this) removeIt = false;
             else if (TCRoute.TCRouteSubpaths.Count == 1 || TCRoute.ActiveSubPath != TCRoute.TCRouteSubpaths.Count - 1) removeIt = true;
-            else if (NextSignalObject[0] != null && NextSignalObject[0].IsSignal && distanceToNextSignal < 25 && distanceToNextSignal >= 0 && PresentPosition[1].DistanceTravelledM < distanceThreshold)
+            else if (NextSignalObject[0] != null && NextSignalObject[0].IsSignal && distanceToNextSignal < 25 && distanceToNextSignal >= 0 && PresentPosition[1].DistanceTravelled < distanceThreshold)
             {
                 removeIt = false;
                 MovementState = AI_MOVEMENT_STATE.FROZEN;
             }
-            else if (PresentPosition[1].DistanceTravelledM < distanceThreshold && FrontTDBTraveller.TrackNodeOffset + 25 > FrontTDBTraveller.TrackNodeLength)
+            else if (PresentPosition[1].DistanceTravelled < distanceThreshold && FrontTDBTraveller.TrackNodeOffset + 25 > FrontTDBTraveller.TrackNodeLength)
             {
                 var tempTraveller = new Traveller(FrontTDBTraveller);
                 if (tempTraveller.NextTrackNode() && tempTraveller.IsEnd)
@@ -3448,7 +3448,7 @@ namespace Orts.Simulation.AIs
             }
             else 
             {
-                if (TCRoute.ReversalInfo[TCRoute.ActiveSubPath - 1].Valid && PresentPosition[1].DistanceTravelledM < distanceThreshold && PresentPosition[1].TCOffset < 25)
+                if (TCRoute.ReversalInfo[TCRoute.ActiveSubPath - 1].Valid && PresentPosition[1].DistanceTravelled < distanceThreshold && PresentPosition[1].Offset < 25)
                 {
                     var tempTraveller = new Traveller(RearTDBTraveller);
                     tempTraveller.ReverseDirection();
@@ -3489,11 +3489,11 @@ namespace Orts.Simulation.AIs
             bool withinSection = false;
 
             // Check if train is in same section as other train, either for the other trains front or rear
-            if (PresentPosition[usePosition].TCSectionIndex == attachTrain.PresentPosition[0].TCSectionIndex) // train in same section as front
+            if (PresentPosition[usePosition].TrackCircuitSectionIndex == attachTrain.PresentPosition[0].TrackCircuitSectionIndex) // train in same section as front
             {
                 withinSection = true;
             }
-            else if (PresentPosition[usePosition].TCSectionIndex == attachTrain.PresentPosition[1].TCSectionIndex) // train in same section as rear
+            else if (PresentPosition[usePosition].TrackCircuitSectionIndex == attachTrain.PresentPosition[1].TrackCircuitSectionIndex) // train in same section as rear
             {
                 useOtherPosition = 1;
                 withinSection = true;
@@ -3505,7 +3505,7 @@ namespace Orts.Simulation.AIs
             }
 
             // test directions
-            if (PresentPosition[usePosition].TCDirection == attachTrain.PresentPosition[useOtherPosition].TCDirection) // trains are in same direction
+            if (PresentPosition[usePosition].Direction == attachTrain.PresentPosition[useOtherPosition].Direction) // trains are in same direction
             {
                 if (usePosition == 1)
                 {
@@ -3624,14 +3624,14 @@ namespace Orts.Simulation.AIs
                 // update positions train
                 TrackNode tn = attachTrain.FrontTDBTraveller.TN;
                 float offset = attachTrain.FrontTDBTraveller.TrackNodeOffset;
-                int direction = (int)attachTrain.FrontTDBTraveller.Direction;
+                TrackDirection direction = (TrackDirection)attachTrain.FrontTDBTraveller.Direction;
 
                 attachTrain.PresentPosition[0].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
-                attachTrain.PresentPosition[0].CopyTo(ref attachTrain.PreviousPosition[0]);
+                attachTrain.PreviousPosition[0].UpdateFrom(attachTrain.PresentPosition[0]);
 
                 tn = attachTrain.RearTDBTraveller.TN;
                 offset = attachTrain.RearTDBTraveller.TrackNodeOffset;
-                direction = (int)attachTrain.RearTDBTraveller.Direction;
+                direction = (TrackDirection)attachTrain.RearTDBTraveller.Direction;
 
                 attachTrain.PresentPosition[1].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
                 // set various items
@@ -3670,7 +3670,7 @@ namespace Orts.Simulation.AIs
                 {
                     // if there is just here a reversal point, increment subpath in order to be in accordance with attachTrain
 
-                    var ppTCSectionIndex = PresentPosition[0].TCSectionIndex;
+                    var ppTCSectionIndex = PresentPosition[0].TrackCircuitSectionIndex;
                     this.IncorporatingTrainNo = attachTrain.Number;
                     this.IncorporatingTrain = attachTrain;
                     SuspendTrain(attachTrain);
@@ -3726,27 +3726,27 @@ namespace Orts.Simulation.AIs
             {
                 CalculatePositionOfCars();
                 DistanceTravelledM += attachTrain.Length;
-                PresentPosition[0].DistanceTravelledM = DistanceTravelledM;
+                PresentPosition[0].DistanceTravelled = DistanceTravelledM;
                 requiredActions.ModifyRequiredDistance(attachTrain.Length);
             }
             else // coupled to rear so front position is still valid
             {
                 RepositionRearTraveller();    // fix the rear traveller
                 CalculatePositionOfCars();
-                PresentPosition[1].DistanceTravelledM = DistanceTravelledM - Length;
+                PresentPosition[1].DistanceTravelled = DistanceTravelledM - Length;
             }
 
             // update positions train
             TrackNode tn = FrontTDBTraveller.TN;
             float offset = FrontTDBTraveller.TrackNodeOffset;
-            int direction = (int)FrontTDBTraveller.Direction;
+            TrackDirection direction = (TrackDirection)FrontTDBTraveller.Direction;
 
             PresentPosition[0].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
-            PresentPosition[0].CopyTo(ref PreviousPosition[0]);
+            PreviousPosition[0].UpdateFrom(PresentPosition[0]);
 
             tn = RearTDBTraveller.TN;
             offset = RearTDBTraveller.TrackNodeOffset;
-            direction = (int)RearTDBTraveller.Direction;
+            direction = (TrackDirection)RearTDBTraveller.Direction;
 
             PresentPosition[1].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
             // set various items
@@ -3965,28 +3965,28 @@ namespace Orts.Simulation.AIs
             // update positions of coupling train
             TrackNode tn = FrontTDBTraveller.TN;
             float offset = FrontTDBTraveller.TrackNodeOffset;
-            int direction = (int)FrontTDBTraveller.Direction;
+            TrackDirection direction = (TrackDirection)FrontTDBTraveller.Direction;
 
             PresentPosition[0].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
-            PresentPosition[0].CopyTo(ref PreviousPosition[0]);
+            PreviousPosition[0].UpdateFrom(PresentPosition[0]);
 
             tn = RearTDBTraveller.TN;
             offset = RearTDBTraveller.TrackNodeOffset;
-            direction = (int)RearTDBTraveller.Direction;
+            direction = (TrackDirection)RearTDBTraveller.Direction;
 
             PresentPosition[1].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
 
             // update positions of coupled train
             tn = attachTrain.FrontTDBTraveller.TN;
             offset = attachTrain.FrontTDBTraveller.TrackNodeOffset;
-            direction = (int)attachTrain.FrontTDBTraveller.Direction;
+            direction = (TrackDirection)attachTrain.FrontTDBTraveller.Direction;
 
             attachTrain.PresentPosition[0].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
-            attachTrain.PresentPosition[0].CopyTo(ref PreviousPosition[0]);
+            PreviousPosition[0].UpdateFrom(attachTrain.PresentPosition[0]);
 
             tn = attachTrain.RearTDBTraveller.TN;
             offset = attachTrain.RearTDBTraveller.TrackNodeOffset;
-            direction = (int)attachTrain.RearTDBTraveller.Direction;
+            direction = (TrackDirection)attachTrain.RearTDBTraveller.Direction;
 
             attachTrain.PresentPosition[1].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
             // set various items
@@ -3995,10 +3995,10 @@ namespace Orts.Simulation.AIs
             attachTrain.CheckFreight();
             attachTrain.activityClearingDistanceM = attachTrain.Cars.Count < standardTrainMinCarNo ? shortClearingDistanceM : standardClearingDistanceM;
             // anticipate reversal point and remove active action
-            TCRoute.ReversalInfo[TCRoute.ActiveSubPath].ReverseReversalOffset = Math.Max(PresentPosition[0].TCOffset - 10f, 0.3f);
-            if (PresentPosition[0].TCSectionIndex != TCRoute.ReversalInfo[TCRoute.ActiveSubPath].ReversalSectionIndex)
+            TCRoute.ReversalInfo[TCRoute.ActiveSubPath].ReverseReversalOffset = Math.Max(PresentPosition[0].Offset - 10f, 0.3f);
+            if (PresentPosition[0].TrackCircuitSectionIndex != TCRoute.ReversalInfo[TCRoute.ActiveSubPath].ReversalSectionIndex)
             {
-                TCRoute.ReversalInfo[TCRoute.ActiveSubPath].ReversalSectionIndex = PresentPosition[0].TCSectionIndex;
+                TCRoute.ReversalInfo[TCRoute.ActiveSubPath].ReversalSectionIndex = PresentPosition[0].TrackCircuitSectionIndex;
             }
             if (PresentPosition[1].RouteListIndex < TCRoute.ReversalInfo[TCRoute.ActiveSubPath].LastSignalIndex)
                 TCRoute.ReversalInfo[TCRoute.ActiveSubPath].LastSignalIndex = PresentPosition[1].RouteListIndex;
@@ -4220,7 +4220,7 @@ namespace Orts.Simulation.AIs
         {
             // if signal or speed limit take off clearing distance
 
-            float activateDistanceTravelledM = PresentPosition[0].DistanceTravelledM + distanceToTrainM;
+            float activateDistanceTravelledM = PresentPosition[0].DistanceTravelled + distanceToTrainM;
             if (thisItem != null)
             {
                 activateDistanceTravelledM -= Simulator.TimetableMode ? clearingDistanceM : activityClearingDistanceM;
@@ -4233,9 +4233,9 @@ namespace Orts.Simulation.AIs
             float secondPartTime = 0.0f;
             float secondPartRangeM = 0.0f;
             float minReqRangeM = 0.0f;
-            float remainingRangeM = activateDistanceTravelledM - PresentPosition[0].DistanceTravelledM;
+            float remainingRangeM = activateDistanceTravelledM - PresentPosition[0].DistanceTravelled;
 
-            float triggerDistanceM = PresentPosition[0].DistanceTravelledM; // worst case
+            float triggerDistanceM = PresentPosition[0].DistanceTravelled; // worst case
 
             // braking distance - use 0.22 * MaxDecelMpSS as average deceleration (due to braking delay)
             // T = deltaV / A
@@ -4279,7 +4279,7 @@ namespace Orts.Simulation.AIs
             }
 
             // correct trigger for approach distance but not backward beyond present position
-            triggerDistanceM = Math.Max(PresentPosition[0].DistanceTravelledM, triggerDistanceM - (3.0f * signalApproachDistanceM));
+            triggerDistanceM = Math.Max(PresentPosition[0].DistanceTravelled, triggerDistanceM - (3.0f * signalApproachDistanceM));
 
             // create and insert action
 
@@ -4297,8 +4297,8 @@ namespace Orts.Simulation.AIs
         {
             // remaining length first section
 
-            TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[PresentPosition[0].TCSectionIndex];
-            float lengthToGoM = thisSection.Length - PresentPosition[0].TCOffset;
+            TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[PresentPosition[0].TrackCircuitSectionIndex];
+            float lengthToGoM = thisSection.Length - PresentPosition[0].Offset;
             if (TCRoute.ActiveSubPath < TCRoute.TCRouteSubpaths.Count - 1)
             {
                 // go through all further sections
@@ -4507,7 +4507,7 @@ namespace Orts.Simulation.AIs
                 else if (thisItem.ActiveItem.SignalState != SignalAspectState.Stop)
                 {
                     thisItem.NextAction = AIActionItem.AI_ACTION_TYPE.SIGNAL_ASPECT_RESTRICTED;
-                    if (((thisItem.ActivateDistanceM - PresentPosition[0].DistanceTravelledM) < signalApproachDistanceM) ||
+                    if (((thisItem.ActivateDistanceM - PresentPosition[0].DistanceTravelled) < signalApproachDistanceM) ||
                          thisItem.ActiveItem.SignalDetails.SignalNoSpeedReduction(SignalFunction.Normal))
                     {
                         actionValid = false;
@@ -4521,7 +4521,7 @@ namespace Orts.Simulation.AIs
                     float firstPartTime = 0.0f;
                     float firstPartRangeM = 0.0f;
                     float secndPartRangeM = 0.0f;
-                    float remainingRangeM = thisItem.ActivateDistanceM - PresentPosition[0].DistanceTravelledM;
+                    float remainingRangeM = thisItem.ActivateDistanceM - PresentPosition[0].DistanceTravelled;
 
                     if (SpeedMpS > thisItem.RequiredSpeedMpS)   // if present speed higher, brake distance is always required
                     {
@@ -4551,7 +4551,7 @@ namespace Orts.Simulation.AIs
             else if (thisItem.NextAction == AIActionItem.AI_ACTION_TYPE.SIGNAL_ASPECT_RESTRICTED)
             {
                 if (thisItem.ActiveItem.SignalState >= SignalAspectState.Approach_1 ||
-                (thisItem.ActivateDistanceM - PresentPosition[0].DistanceTravelledM) < signalApproachDistanceM)
+                (thisItem.ActivateDistanceM - PresentPosition[0].DistanceTravelled) < signalApproachDistanceM)
                 {
                     actionValid = false;
                 }
@@ -4765,7 +4765,7 @@ namespace Orts.Simulation.AIs
                 }
                 if (nextActionInfo.RequiredSpeedMpS == 0)
                 {
-                    NextStopDistanceM = thisItem.ActivateDistanceM - PresentPosition[0].DistanceTravelledM;
+                    NextStopDistanceM = thisItem.ActivateDistanceM - PresentPosition[0].DistanceTravelled;
                     if (AI.PreUpdate && !(nextActionInfo.NextAction == AIActionItem.AI_ACTION_TYPE.AUX_ACTION && NextStopDistanceM > minCheckDistanceM))
                     {
                         AITrainBrakePercent = 100; // because of short reaction time
@@ -5061,7 +5061,7 @@ namespace Orts.Simulation.AIs
 
                 retString[7] = String.Copy(actString);
                 retString[8] = FormatStrings.FormatDistance(
-                        nextActionInfo.ActivateDistanceM - PresentPosition[0].DistanceTravelledM, metric);
+                        nextActionInfo.ActivateDistanceM - PresentPosition[0].DistanceTravelled, metric);
 
             }
 
