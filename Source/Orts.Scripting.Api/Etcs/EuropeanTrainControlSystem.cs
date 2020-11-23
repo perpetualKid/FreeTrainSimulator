@@ -157,7 +157,11 @@ namespace Orts.Scripting.Api.Etcs
     public enum TractionSystem
     {
         NonFitted,
-        AC25kV
+        AC25kV,
+        AC15kV,
+        DC3000V,
+        DC1500V,
+        DC750V
     }
 
     public struct PlanningTrackCondition
