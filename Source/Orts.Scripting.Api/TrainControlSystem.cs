@@ -500,17 +500,17 @@ namespace Orts.Scripting.Api
 
         public string MainHeadSignalTypeName { get; }
         public TrackMonitorSignalAspect Aspect { get; }
-        public float DistanceM { get; }
-        public float SpeedLimitMpS { get; }
-        public float AltitudeOrLengthM { get; }
+        public float Distance { get; }
+        public float SpeedLimit { get; }
+        public float Altitude { get; }
 
-        public SignalFeatures(string mainHeadSignalTypeName, TrackMonitorSignalAspect aspect, float distance, float speedLimit, float altitudeOrLengthM)
+        public SignalFeatures(string mainHeadSignalTypeName, TrackMonitorSignalAspect aspect, float distance, float speedLimit, float altitude)
         {
             MainHeadSignalTypeName = mainHeadSignalTypeName;
             Aspect = aspect;
-            DistanceM = distance;
-            SpeedLimitMpS = speedLimit;
-            AltitudeOrLengthM = altitudeOrLengthM;
+            Distance = distance;
+            SpeedLimit = speedLimit;
+            Altitude = altitude;
         }
     }
 }

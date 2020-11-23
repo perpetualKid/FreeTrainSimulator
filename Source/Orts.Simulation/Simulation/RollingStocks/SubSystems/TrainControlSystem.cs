@@ -519,8 +519,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             SignalFeatures item = NextGenericSignalFeatures(signalTypeName, itemSequenceIndex, maxDistanceM, type);
             MainHeadSignalTypeName = item.MainHeadSignalTypeName;
             ItemAspect = item.Aspect;
-            ItemDistance = item.DistanceM;
-            ItemSpeedLimit = item.SpeedLimitMpS;
+            ItemDistance = item.Distance;
+            ItemSpeedLimit = item.SpeedLimit;
             return retval;
         }
 
