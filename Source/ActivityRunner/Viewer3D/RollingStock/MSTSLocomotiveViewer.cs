@@ -1656,6 +1656,14 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         }
     }
 
+    public interface ICabViewMouseControlRenderer
+    {
+        bool IsMouseWithin(Point mousePoint);
+        void HandleUserInput(GenericButtonEventType buttonEventType, Point position, Vector2 delta);
+        string GetControlName(Point mousePoint);
+
+    }
+
     /// <summary>
     /// Dial Cab Control Renderer
     /// Problems with aspect ratio
@@ -1954,7 +1962,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
     /// <summary>
     /// Discrete renderer for Lever, Twostate, Tristate, Multistate, Signal
     /// </summary>
-    public class CabViewDiscreteRenderer : CabViewControlRenderer
+    public class CabViewDiscreteRenderer : CabViewControlRenderer, ICabViewMouseControlRenderer
     {
         readonly CabViewFramedControl ControlDiscrete;
         readonly Rectangle SourceRectangle;
@@ -2231,6 +2239,11 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 default:
                     return value + (ControlDiscrete.Orientation > 0 ? delta.Y / Control.Bounds.Height : delta.X / Control.Bounds.Width) * (ControlDiscrete.Direction > 0 ? -1 : 1);
             }
+        }
+
+        public string GetControlName(Point mousePoint)
+        {
+            return Locomotive.TrainControlSystem.GetDisplayString(GetControlType().ToString());
         }
 
         /// <summary>

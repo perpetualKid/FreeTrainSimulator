@@ -2223,7 +2223,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 {
                     if (pointedControl != control)
                         // say what control you have here
-                        Viewer.Simulator.Confirmer.Message(ConfirmLevel.None, (Viewer.PlayerLocomotive as MSTSLocomotive).TrainControlSystem.GetDisplayString(pointedControl.GetControlType().ToString()));
+                        Viewer.Simulator.Confirmer.Message(ConfirmLevel.None, pointedControl.GetControlName(pointerCommandArgs.Position));
                     Viewer.RenderProcess.ActualCursor = Cursors.Hand;
                 }
                 else
@@ -2577,7 +2577,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 {
                     if (pointedControl != control)
                         // say what control you have here
-                        Viewer.Simulator.Confirmer.Message(ConfirmLevel.None, (Viewer.PlayerLocomotive as MSTSLocomotive).TrainControlSystem.GetDisplayString(pointedControl.GetControlType().ToString()));
+                        Viewer.Simulator.Confirmer.Message(ConfirmLevel.None, pointedControl.GetControlName(pointerCommandArgs.Position));
                     Viewer.RenderProcess.ActualCursor = Cursors.Hand;
                 }
                 else

@@ -169,6 +169,9 @@ namespace Orts.ActivityRunner.Viewer3D
         private Cursor actualCursor = Cursors.Default;
         public static Viewport DefaultViewport;
 
+        ICabViewMouseControlRenderer MouseChangingControl;
+        ICabViewMouseControlRenderer MousePickedControl;
+        ICabViewMouseControlRenderer OldMousePickedControl;
         public bool SaveScreenshot { get; set; }
         public bool SaveActivityThumbnail { get; private set; }
         public string SaveActivityFileStem { get; private set; }
