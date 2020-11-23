@@ -303,11 +303,15 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 Script.PowerAuthorization = () => PowerAuthorization;
                 Script.CircuitBreakerClosingOrder = () => CircuitBreakerClosingOrder;
                 Script.CircuitBreakerOpeningOrder = () => CircuitBreakerOpeningOrder;
+                Script.PantographState = (pantoID) => Locomotive.Pantographs[pantoID].State;
+                Script.ArePantographsDown = () => Locomotive.Pantographs.State == PantographState.Down;
+                Script.ThrottlePercent = () => Locomotive.ThrottleController.CurrentValue * 100;
                 Script.TractionAuthorization = () => TractionAuthorization;
             Script.BrakePipePressureBar = () => Locomotive.BrakeSystem != null ? (float)Pressure.Atmospheric.FromPSI(Locomotive.BrakeSystem.BrakeLine1PressurePSI) : float.MaxValue;
             Script.LocomotiveBrakeCylinderPressureBar = () => Locomotive.BrakeSystem != null ? (float)Pressure.Atmospheric.FromPSI(Locomotive.BrakeSystem.GetCylPressurePSI()) : float.MaxValue;
                 Script.DoesBrakeCutPower = () => Locomotive.DoesBrakeCutPower;
             Script.BrakeCutsPowerAtBrakeCylinderPressureBar = () => (float)Pressure.Atmospheric.FromPSI(Locomotive.BrakeCutsPowerAtBrakeCylinderPressurePSI);
+                Script.CurrentElevationPercent = () => Locomotive.CurrentElevationPercent;
             Script.LineSpeedMpS = () => (float)Simulator.TRK.Route.SpeedLimit;
                 Script.DoesStartFromTerminalStation = () => DoesStartFromTerminalStation();
                 Script.IsColdStart = () => Locomotive.Train.ColdStart;
@@ -363,6 +367,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                         Locomotive.Train.SignalEvent(PowerSupplyEvent.LowerPantograph);
                     }
                 };
+                Script.SetPantograph = (pantoCommand, pantoID) => Locomotive.Train.SignalEvent(pantoCommand, pantoID);
                 Script.SetPowerAuthorization = (value) => PowerAuthorization = value;
                 Script.SetCircuitBreakerClosingOrder = (value) => CircuitBreakerClosingOrder = value;
                 Script.SetCircuitBreakerOpeningOrder = (value) => CircuitBreakerOpeningOrder = value;

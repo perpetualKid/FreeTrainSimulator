@@ -142,6 +142,19 @@ namespace Orts.Scripting.Api
         /// </summary>
         public Func<bool> CircuitBreakerOpeningOrder;
         /// <summary>
+        /// Checks the state of any pantograph
+        /// int: pantograph ID (1 for first pantograph)
+        /// </summary>
+        public Func<int, PantographState> PantographState;
+        /// <summary>
+        /// True if all pantographs are down.
+        /// </summary>
+        public Func<bool> ArePantographsDown;
+        /// <summary>
+        /// Returns throttle percent
+        /// </summary>
+        public Func<float> ThrottlePercent;
+        /// <summary>
         /// True if traction is authorized.
         /// </summary>
         public Func<bool> TractionAuthorization;
@@ -161,6 +174,10 @@ namespace Orts.Scripting.Api
         /// Train brake pressure value which triggers the power cut-off.
         /// </summary>
         public Func<float> BrakeCutsPowerAtBrakeCylinderPressureBar;
+        /// <summary>
+        /// Elevation percent at the locomotive's location.
+        /// </summary>
+        public Func<float> CurrentElevationPercent;
         /// <summary>
         /// Line speed taken from .trk file.
         /// </summary>
@@ -240,6 +257,12 @@ namespace Orts.Scripting.Api
         /// Cut power by pull all pantographs down.
         /// </summary>
         public Action SetPantographsDown;
+        /// <summary>
+        /// Cut power by pull all pantographs down.
+        /// PowerSupplyEvent: may be LowerPantograph or RaisePantograph
+        /// int: pantographID, from 1 to 4
+        /// </summary>
+        public Action<PowerSupplyEvent, int> SetPantograph;
         /// <summary>
         /// Set the circuit breaker or power contactor closing authorization.
         /// </summary>
