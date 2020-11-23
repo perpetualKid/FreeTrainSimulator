@@ -471,12 +471,12 @@ namespace Orts.Simulation.AIs
                 return (false);
             }
 
-            if (thisStation.ActualStopType != StationStop.STOPTYPE.STATION_STOP)
+            if (thisStation.StopType != StationStopType.Station)
             {
                 return (false);
             }
 
-            atStation = CheckStationPosition(thisStation.PlatformItem, thisStation.Direction, thisStation.TCSectionIndex);
+            atStation = CheckStationPosition(thisStation.PlatformItem, thisStation.Direction, thisStation.TrackCircuitSectionIndex);
 
             // At station : set state, create action item
 
@@ -1110,8 +1110,8 @@ namespace Orts.Simulation.AIs
 
             // get station route index - if not found, return distances < 0
 
-            int stationIndex0 = ValidRoute[0].GetRouteIndex(thisStation.TCSectionIndex, PresentPosition[0].RouteListIndex);
-            int stationIndex1 = ValidRoute[0].GetRouteIndex(thisStation.TCSectionIndex, PresentPosition[1].RouteListIndex);
+            int stationIndex0 = ValidRoute[0].GetRouteIndex(thisStation.TrackCircuitSectionIndex, PresentPosition[0].RouteListIndex);
+            int stationIndex1 = ValidRoute[0].GetRouteIndex(thisStation.TrackCircuitSectionIndex, PresentPosition[1].RouteListIndex);
 
             float distanceToTrainM = -1f;
 
@@ -1500,7 +1500,7 @@ namespace Orts.Simulation.AIs
                  nextActionInfo.NextAction == AIActionItem.AI_ACTION_TYPE.STATION_STOP)
                 {
                     if (StationStops[0].SubrouteIndex == TCRoute.ActiveSubPath &&
-                       ValidRoute[0].GetRouteIndex(StationStops[0].TCSectionIndex, PresentPosition[0].RouteListIndex) <= PresentPosition[0].RouteListIndex)
+                       ValidRoute[0].GetRouteIndex(StationStops[0].TrackCircuitSectionIndex, PresentPosition[0].RouteListIndex) <= PresentPosition[0].RouteListIndex)
                     // assume to be in station
                     {
                         MovementState = AI_MOVEMENT_STATE.STATION_STOP;
@@ -1583,14 +1583,14 @@ namespace Orts.Simulation.AIs
 
             // no arrival / departure time set : update times
 
-            if (thisStation.ActualStopType == StationStop.STOPTYPE.STATION_STOP)
+            if (thisStation.StopType == StationStopType.Station)
             {
                 AtStation = true;
 
                 if (thisStation.ActualArrival < 0)
                 {
                     thisStation.ActualArrival = presentTime;
-                    var stopTime = thisStation.CalculateDepartTime(presentTime, this);
+                    var stopTime = thisStation.CalculateDepartTime(this);
                     actualdepart = thisStation.ActualDepart;
                     doorOpenDelay = 4.0f;
                     doorCloseAdvance = stopTime - 10.0f;
@@ -1685,7 +1685,7 @@ namespace Orts.Simulation.AIs
 #endif
             if (actualdepart > correctedTime)
             {
-                if (thisStation.ActualStopType == StationStop.STOPTYPE.STATION_STOP &&
+                if (thisStation.StopType == StationStopType.Station &&
                     (actualdepart - 120 < correctedTime) &&
                      thisStation.HoldSignal)
                 {
@@ -1707,7 +1707,7 @@ namespace Orts.Simulation.AIs
             Delay = TimeSpan.FromSeconds((presentTime - thisStation.DepartTime) % (24 * 3600));
             PreviousStop = thisStation.CreateCopy();
 
-            if (thisStation.ActualStopType == StationStop.STOPTYPE.STATION_STOP
+            if (thisStation.StopType == StationStopType.Station
                 && MaxVelocityA > 0 && ServiceDefinition != null && ServiceDefinition.Count > 0 && this != Simulator.Trains[0])
             // <CScomment> Recalculate TrainMaxSpeedMpS and AllowedMaxSpeedMpS
             {
@@ -1978,10 +1978,10 @@ namespace Orts.Simulation.AIs
                             MovementState = AI_MOVEMENT_STATE.STATION_STOP;
                             StationStop thisStation = StationStops[0];
 
-                            if (thisStation.ActualStopType == StationStop.STOPTYPE.STATION_STOP)
+                            if (thisStation.StopType == StationStopType.Station)
                             {
                             }
-                            else if (thisStation.ActualStopType == StationStop.STOPTYPE.WAITING_POINT)
+                            else if (thisStation.StopType == StationStopType.WaitingPoint)
                             {
                                 thisStation.ActualArrival = presentTime;
 
@@ -2580,7 +2580,7 @@ namespace Orts.Simulation.AIs
                                     if (thisTrainInStation)
                                     {
                                         var thisStation = StationStops[0];
-                                        thisTrainInStation = CheckStationPosition(thisStation.PlatformItem, thisStation.Direction, thisStation.TCSectionIndex);
+                                        thisTrainInStation = CheckStationPosition(thisStation.PlatformItem, thisStation.Direction, thisStation.TrackCircuitSectionIndex);
                                     }
 
                                     if (thisTrainInStation)
@@ -2588,10 +2588,10 @@ namespace Orts.Simulation.AIs
                                         MovementState = AI_MOVEMENT_STATE.STATION_STOP;
                                         StationStop thisStation = StationStops[0];
 
-                                        if (thisStation.ActualStopType == StationStop.STOPTYPE.STATION_STOP)
+                                        if (thisStation.StopType == StationStopType.Station)
                                         {
                                         }
-                                        else if (thisStation.ActualStopType == StationStop.STOPTYPE.WAITING_POINT)
+                                        else if (thisStation.StopType == StationStopType.WaitingPoint)
                                         {
                                             thisStation.ActualArrival = presentTime;
 
@@ -3400,7 +3400,7 @@ namespace Orts.Simulation.AIs
                     {
                         thisStation.SubrouteIndex = TCRoute.ActiveSubPath;
 
-                        if (ValidRoute[0].GetRouteIndex(thisStation.TCSectionIndex, 0) < 0) // station no longer on route
+                        if (ValidRoute[0].GetRouteIndex(thisStation.TrackCircuitSectionIndex, 0) < 0) // station no longer on route
                         {
                             if (thisStation.ExitSignal >= 0 && thisStation.HoldSignal && HoldingSignals.Contains(thisStation.ExitSignal))
                             {
@@ -4959,11 +4959,11 @@ namespace Orts.Simulation.AIs
                     abString = "..:..:..";
                 }
 
-                if (StationStops[0].ActualStopType == StationStop.STOPTYPE.STATION_STOP)
+                if (StationStops[0].StopType == StationStopType.Station)
                 {
                     movString = "STA";
                 }
-                else if (StationStops[0].ActualStopType == StationStop.STOPTYPE.WAITING_POINT)
+                else if (StationStops[0].StopType == StationStopType.WaitingPoint)
                 {
                     movString = "WTP";
                 }
@@ -5404,7 +5404,7 @@ namespace Orts.Simulation.AIs
                         {
                             int presentTime = Convert.ToInt32(Math.Floor(Simulator.ClockTime));
                             StationStops[0].ActualArrival = presentTime;
-                            StationStops[0].CalculateDepartTime(presentTime, this);
+                            StationStops[0].CalculateDepartTime(this);
                         }
                     }
                     else if (ControlMode == TrainControlMode.AutoNode || ControlMode == TrainControlMode.AutoSignal)

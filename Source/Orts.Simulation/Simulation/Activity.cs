@@ -779,7 +779,7 @@ namespace Orts.Simulation
             if (myTrain.StationStops.Count == 0) return false;
             var thisStation = myTrain.StationStops[0];
             if (myTrain.StationStops[0].SubrouteIndex != myTrain.TCRoute.ActiveSubPath) return false;
-            return myTrain.CheckStationPosition(thisStation.PlatformItem, thisStation.Direction, thisStation.TCSectionIndex);
+            return myTrain.CheckStationPosition(thisStation.PlatformItem, thisStation.Direction, thisStation.TrackCircuitSectionIndex);
         }
 
         public bool IsMissedStation()

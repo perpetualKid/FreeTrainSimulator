@@ -91,5 +91,13 @@ namespace Orts.Simulation
         Empty,
     }
 
+    public enum StationStopType
+    {
+        Station,
+        Siding,
+        Manual,
+        WaitingPoint,
+    }
+
 
 }

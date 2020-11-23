@@ -5801,17 +5801,17 @@ namespace Orts.Simulation.Physics
         /// <param name="stationDirection"></param>
         /// <param name="stationTCSectionIndex"></param>
         /// <returns></returns>
-        public virtual bool CheckStationPosition(PlatformDetails thisPlatform, int stationDirection, int stationTCSectionIndex)
+        public virtual bool CheckStationPosition(PlatformDetails thisPlatform, TrackDirection stationDirection, int stationTCSectionIndex)
         {
             bool atStation = false;
-            float platformBeginOffset = thisPlatform.TrackCircuitOffset[Location.NearEnd, (TrackDirection)stationDirection];
-            float platformEndOffset = thisPlatform.TrackCircuitOffset[Location.FarEnd, (TrackDirection)stationDirection];
-            int endSectionIndex = stationDirection == 0 ?
+            float platformBeginOffset = thisPlatform.TrackCircuitOffset[Location.NearEnd, stationDirection];
+            float platformEndOffset = thisPlatform.TrackCircuitOffset[Location.FarEnd, stationDirection];
+            int endSectionIndex = stationDirection == TrackDirection.Ahead ?
                     thisPlatform.TCSectionIndex[thisPlatform.TCSectionIndex.Count - 1] :
                     thisPlatform.TCSectionIndex[0];
             int endSectionRouteIndex = ValidRoute[0].GetRouteIndex(endSectionIndex, 0);
 
-            int beginSectionIndex = stationDirection == 1 ?
+            int beginSectionIndex = stationDirection == TrackDirection.Reverse ?
                     thisPlatform.TCSectionIndex[thisPlatform.TCSectionIndex.Count - 1] :
                     thisPlatform.TCSectionIndex[0];
             int beginSectionRouteIndex = ValidRoute[0].GetRouteIndex(beginSectionIndex, 0);
@@ -5924,10 +5924,10 @@ namespace Orts.Simulation.Physics
         /// also check validity of depart time value
         /// <\summary>
 
-        public virtual bool ComputeTrainBoardingTime(StationStop thisStop, ref int stopTime)
+        public virtual (bool, int) ComputeTrainBoardingTime(StationStop thisStop, int stopTime)
         {
             stopTime = thisStop.ComputeStationBoardingTime(this);
-            return (thisStop.CheckScheduleValidity(this));
+            return (thisStop.CheckScheduleValidity(this), stopTime);
         }
 
         //================================================================================================//
@@ -6067,7 +6067,7 @@ namespace Orts.Simulation.Physics
                 // No enhanced compatibility, simple computation
                 // if present position off route, try rear position
                 // if both off route, skip station stop
-                stationIndex = ValidRoute[0].GetRouteIndex(thisStation.TCSectionIndex, PresentPosition[0].RouteListIndex);
+                stationIndex = ValidRoute[0].GetRouteIndex(thisStation.TrackCircuitSectionIndex, PresentPosition[0].RouteListIndex);
                 distanceToTrainM = ValidRoute[0].GetDistanceAlongRoute(PresentPosition[0].RouteListIndex, leftInSectionM, stationIndex, thisStation.StopOffset, true);
             }
             return distanceToTrainM;
@@ -12033,10 +12033,8 @@ namespace Orts.Simulation.Physics
 
             foreach (ServiceTrafficItem thisItem in TrafficService)
             {
-                DateTime arriveDT = new DateTime().AddSeconds(thisItem.ArrivalTime);
-                DateTime departDT = new DateTime().AddSeconds(thisItem.DepartTime);
                 bool validStop =
-                    CreateStationStop(thisItem.PlatformStartID, thisItem.ArrivalTime, thisItem.DepartTime, arriveDT, departDT, clearingDistanceM,
+                    CreateStationStop(thisItem.PlatformStartID, thisItem.ArrivalTime, thisItem.DepartTime, clearingDistanceM,
                     ref beginActiveSubroute, ref activeSubrouteNodeIndex);
                 if (!validStop)
                 {
@@ -12051,7 +12049,7 @@ namespace Orts.Simulation.Physics
         /// Create station stop list
         /// <\summary>
 
-        public bool CreateStationStop(int platformStartID, int arrivalTime, int departTime, DateTime arrivalDT, DateTime departureDT, float clearingDistanceM,
+        public bool CreateStationStop(int platformStartID, int arrivalTime, int departTime, float clearingDistanceM,
             ref int beginActiveSubroute, ref int activeSubrouteNodeIndex)
         {
             int platformIndex;
@@ -12446,7 +12444,7 @@ namespace Orts.Simulation.Physics
                         activeSubroute,
                         lastRouteIndex,
                         lastElement.TrackCircuitSection.Index,
-                        (int)thisElement.Direction,
+                        thisElement.Direction,
                         EndSignal,
                         HoldSignal,
                         NoWaitSignal,
@@ -12464,10 +12462,7 @@ namespace Orts.Simulation.Physics
                         false,
                         false,
                         false,
-                        StationStop.STOPTYPE.STATION_STOP);
-
-                thisStation.arrivalDT = arrivalDT;
-                thisStation.departureDT = departureDT;
+                        StationStopType.Station);
 
                 StationStops.Add(thisStation);
 
@@ -12561,7 +12556,7 @@ namespace Orts.Simulation.Physics
         {
             // check if station missed
 
-            int stationRouteIndex = ValidRoute[0].GetRouteIndex(StationStops[0].TCSectionIndex, 0);
+            int stationRouteIndex = ValidRoute[0].GetRouteIndex(StationStops[0].TrackCircuitSectionIndex, 0);
 
             if (StationStops[0].SubrouteIndex == TCRoute.ActiveSubPath)
             {
@@ -12571,7 +12566,7 @@ namespace Orts.Simulation.Physics
                 }
                 else if (stationRouteIndex <= PresentPosition[1].RouteListIndex)
                 {
-                    var platformSection = TrackCircuitSection.TrackCircuitList[StationStops[0].TCSectionIndex];
+                    var platformSection = TrackCircuitSection.TrackCircuitList[StationStops[0].TrackCircuitSectionIndex];
                     var platformReverseStopOffset = platformSection.Length - StationStops[0].StopOffset;
                     return ValidRoute[0].GetDistanceAlongRoute(stationRouteIndex, platformReverseStopOffset, PresentPosition[1].RouteListIndex, PresentPosition[1].Offset, true) > thresholdDistance;
                 }
@@ -14541,7 +14536,7 @@ namespace Orts.Simulation.Physics
                 int prevIndex = 0;
                 foreach (StationStop statStop in StationStops)
                 {
-                    statStop.RouteIndex = newRoute.GetRouteIndex(statStop.TCSectionIndex, prevIndex);
+                    statStop.RouteIndex = newRoute.GetRouteIndex(statStop.TrackCircuitSectionIndex, prevIndex);
                     prevIndex = statStop.RouteIndex;
                 }
             }
@@ -14582,7 +14577,7 @@ namespace Orts.Simulation.Physics
                 if (altPlatformIndex > 0)
                 {
                     StationStop newStop = CalculateStationStop(signalRef.PlatformDetailsList[altPlatformIndex].PlatformReference[Location.NearEnd],
-                        orgStop.ArrivalTime, orgStop.DepartTime, orgStop.arrivalDT, orgStop.departureDT, 15.0f);
+                        orgStop.ArrivalTime, orgStop.DepartTime, 15.0f);
 
                     return (newStop);
                 }
@@ -14596,7 +14591,7 @@ namespace Orts.Simulation.Physics
         /// Create station stop (used in activity mode only)
         /// <\summary>
 
-        public StationStop CalculateStationStop(int platformStartID, int arrivalTime, int departTime, DateTime arrivalDT, DateTime departureDT, float clearingDistanceM)
+        public StationStop CalculateStationStop(int platformStartID, int arrivalTime, int departTime, float clearingDistanceM)
         {
             int platformIndex;
             int lastRouteIndex = 0;
@@ -14893,7 +14888,7 @@ namespace Orts.Simulation.Physics
                         activeSubroute,
                         lastRouteIndex,
                         lastElement.TrackCircuitSection.Index,
-                        (int)thisElement.Direction,
+                        thisElement.Direction,
                         EndSignal,
                         HoldSignal,
                         NoWaitSignal,
@@ -14911,10 +14906,7 @@ namespace Orts.Simulation.Physics
                         false,
                         false,
                         false,
-                        StationStop.STOPTYPE.STATION_STOP);
-
-                thisStation.arrivalDT = arrivalDT;
-                thisStation.departureDT = departureDT;
+                        StationStopType.Station);
 
                 return (thisStation);
             }
@@ -15871,544 +15863,6 @@ namespace Orts.Simulation.Physics
             public void SaveItem(BinaryWriter outf)
             {
                 outf.Write(OriginalMaxTrainSpeedMpS);
-            }
-
-        }
-
-        //================================================================================================//
-        /// <summary>
-        /// StationStop class
-        /// Class to hold information on station stops
-        /// <\summary>
-
-        public class StationStop : IComparable<StationStop>
-        {
-
-            public enum STOPTYPE
-            {
-                STATION_STOP,
-                SIDING_STOP,
-                MANUAL_STOP,
-                WAITING_POINT,
-            }
-
-            // common variables
-            public STOPTYPE ActualStopType;
-
-            public int PlatformReference;
-            public PlatformDetails PlatformItem;
-            public int SubrouteIndex;
-            public int RouteIndex;
-            public int TCSectionIndex;
-            public int Direction;
-            public int ExitSignal;
-            public bool HoldSignal;
-            public bool NoWaitSignal;
-            public bool CallOnAllowed;
-            public bool NoClaimAllowed;
-            public float StopOffset;
-            public float DistanceToTrainM;
-            public int ArrivalTime;
-            public int DepartTime;
-            public int ActualArrival;
-            public int ActualDepart;
-            public DateTime arrivalDT;
-            public DateTime departureDT;
-            public bool Passed;
-
-            // variables for activity mode only
-            public const int NumSecPerPass = 10; // number of seconds to board of a passengers
-            public const int DefaultFreightStopTime = 20; // MSTS stoptime for freight trains
-
-            // variables for timetable mode only
-            public bool Terminal;                                                                 // station is terminal - train will run to end of platform
-            public int? ActualMinStopTime;                                                        // actual minimum stop time
-            public float? KeepClearFront = null;                                                  // distance to be kept clear ahead of train
-            public float? KeepClearRear = null;                                                   // distance to be kept clear behind train
-            public bool ForcePosition = false;                                                    // front or rear clear position must be forced
-            public bool CloseupSignal = false;                                                    // train may close up to signal within normal clearing distance
-            public bool Closeup = false;                                                          // train may close up to other train in platform
-            public bool RestrictPlatformToSignal = false;                                         // restrict end of platform to signal position
-            public bool ExtendPlatformToSignal = false;                                           // extend end of platform to next signal position
-            public bool EndStop = false;                                                          // train terminates at station
-            public List<int> ConnectionsWaiting = new List<int>();                                // List of trains waiting
-            public Dictionary<int, int> ConnectionsAwaited = new Dictionary<int, int>();          // List of awaited trains : key = trainno., value = arr time
-            public Dictionary<int, WaitInfo> ConnectionDetails = new Dictionary<int, WaitInfo>(); // Details of connection : key = trainno., value = wait info
-
-            //================================================================================================//
-            //
-            // Constructor
-            //
-
-            public StationStop(int platformReference, PlatformDetails platformItem, int subrouteIndex, int routeIndex,
-                int tcSectionIndex, int direction, int exitSignal, bool holdSignal, bool noWaitSignal, bool noClaimAllowed, float stopOffset,
-                int arrivalTime, int departTime, bool terminal, int? actualMinStopTime, float? keepClearFront, float? keepClearRear,
-                bool forcePosition, bool closeupSignal, bool closeup,
-                bool restrictPlatformToSignal, bool extendPlatformToSignal, bool endStop, STOPTYPE actualStopType)
-            {
-                ActualStopType = actualStopType;
-                PlatformReference = platformReference;
-                PlatformItem = platformItem;
-                SubrouteIndex = subrouteIndex;
-                RouteIndex = routeIndex;
-                TCSectionIndex = tcSectionIndex;
-                Direction = direction;
-                ExitSignal = exitSignal;
-                HoldSignal = holdSignal;
-                NoWaitSignal = noWaitSignal;
-                NoClaimAllowed = noClaimAllowed;
-                StopOffset = stopOffset;
-                if (actualStopType == STOPTYPE.STATION_STOP)
-                {
-                    ArrivalTime = Math.Max(0, arrivalTime);
-                    DepartTime = Math.Max(0, departTime);
-                }
-                else
-                // times may be <0 for waiting point
-                {
-                    ArrivalTime = arrivalTime;
-                    DepartTime = departTime;
-                }
-                ActualArrival = -1;
-                ActualDepart = -1;
-                DistanceToTrainM = 9999999f;
-                Passed = false;
-
-                Terminal = terminal;
-                ActualMinStopTime = actualMinStopTime;
-                KeepClearFront = keepClearFront;
-                KeepClearRear = keepClearRear;
-                ForcePosition = forcePosition;
-                CloseupSignal = closeupSignal;
-                Closeup = closeup;
-                RestrictPlatformToSignal = restrictPlatformToSignal;
-                ExtendPlatformToSignal = extendPlatformToSignal;
-                EndStop = endStop;
-
-                CallOnAllowed = false;
-            }
-
-            //================================================================================================//
-            //
-            // Constructor to create empty item (used for passing variables only)
-            //
-
-            public StationStop()
-            {
-            }
-
-            //================================================================================================//
-            //
-            // Restore
-            //
-
-            public StationStop(BinaryReader inf)
-            {
-                ActualStopType = (STOPTYPE)inf.ReadInt32();
-                PlatformReference = inf.ReadInt32();
-
-                if (PlatformReference >= 0)
-                {
-                    int platformIndex;
-                    if (Simulator.Instance.SignalEnvironment.PlatformXRefList.TryGetValue(PlatformReference, out platformIndex))
-                    {
-                        PlatformItem = Simulator.Instance.SignalEnvironment.PlatformDetailsList[platformIndex];
-                    }
-                    else
-                    {
-                        Trace.TraceInformation("Cannot find platform {0}", PlatformReference);
-                    }
-                }
-                else
-                {
-                    PlatformItem = null;
-                }
-
-                SubrouteIndex = inf.ReadInt32();
-                RouteIndex = inf.ReadInt32();
-                TCSectionIndex = inf.ReadInt32();
-                Direction = inf.ReadInt32();
-                ExitSignal = inf.ReadInt32();
-                HoldSignal = inf.ReadBoolean();
-                NoWaitSignal = inf.ReadBoolean();
-                NoClaimAllowed = inf.ReadBoolean();
-                CallOnAllowed = inf.ReadBoolean();
-                StopOffset = inf.ReadSingle();
-                ArrivalTime = inf.ReadInt32();
-                DepartTime = inf.ReadInt32();
-                ActualArrival = inf.ReadInt32();
-                ActualDepart = inf.ReadInt32();
-                DistanceToTrainM = 9999999f;
-                Passed = inf.ReadBoolean();
-                arrivalDT = new DateTime(inf.ReadInt64());
-                departureDT = new DateTime(inf.ReadInt64());
-
-                ConnectionsWaiting = new List<int>();
-                int totalConWait = inf.ReadInt32();
-                for (int iCW = 0; iCW <= totalConWait - 1; iCW++)
-                {
-                    ConnectionsWaiting.Add(inf.ReadInt32());
-                }
-
-                ConnectionsAwaited = new Dictionary<int, int>();
-                int totalConAwait = inf.ReadInt32();
-                for (int iCA = 0; iCA <= totalConAwait - 1; iCA++)
-                {
-                    ConnectionsAwaited.Add(inf.ReadInt32(), inf.ReadInt32());
-                }
-
-                ConnectionDetails = new Dictionary<int, WaitInfo>();
-                int totalConDetails = inf.ReadInt32();
-                for (int iCD = 0; iCD <= totalConDetails - 1; iCD++)
-                {
-                    ConnectionDetails.Add(inf.ReadInt32(), new WaitInfo(inf));
-                }
-
-                if (inf.ReadBoolean())
-                {
-                    ActualMinStopTime = inf.ReadInt32();
-                }
-                else
-                {
-                    ActualMinStopTime = null;
-                }
-
-                if (inf.ReadBoolean())
-                {
-                    KeepClearFront = inf.ReadSingle();
-                }
-                else
-                {
-                    KeepClearFront = null;
-                }
-
-                if (inf.ReadBoolean())
-                {
-                    KeepClearRear = inf.ReadSingle();
-                }
-                else
-                {
-                    KeepClearRear = null;
-                }
-
-                Terminal = inf.ReadBoolean();
-                ForcePosition = inf.ReadBoolean();
-                CloseupSignal = inf.ReadBoolean();
-                Closeup = inf.ReadBoolean();
-                RestrictPlatformToSignal = inf.ReadBoolean();
-                ExtendPlatformToSignal = inf.ReadBoolean();
-                EndStop = inf.ReadBoolean();
-            }
-
-            //================================================================================================//
-            //
-            // Compare To (to allow sort)
-            //
-
-            public int CompareTo(StationStop otherStop)
-            {
-                if (this.SubrouteIndex < otherStop.SubrouteIndex)
-                {
-                    return -1;
-                }
-                else if (this.SubrouteIndex > otherStop.SubrouteIndex)
-                {
-                    return 1;
-                }
-                else if (this.RouteIndex < otherStop.RouteIndex)
-                {
-                    return -1;
-                }
-                else if (this.RouteIndex > otherStop.RouteIndex)
-                {
-                    return 1;
-                }
-                else if (this.StopOffset < otherStop.StopOffset)
-                {
-                    return -1;
-                }
-                else if (this.StopOffset > otherStop.StopOffset)
-                {
-                    return 1;
-                }
-                else
-                {
-                    return 0;
-                }
-            }
-
-            //================================================================================================//
-            //
-            // Save
-            //
-
-            public void Save(BinaryWriter outf)
-            {
-                outf.Write((int)ActualStopType);
-                outf.Write(PlatformReference);
-                outf.Write(SubrouteIndex);
-                outf.Write(RouteIndex);
-                outf.Write(TCSectionIndex);
-                outf.Write(Direction);
-                outf.Write(ExitSignal);
-                outf.Write(HoldSignal);
-                outf.Write(NoWaitSignal);
-                outf.Write(NoClaimAllowed);
-                outf.Write(CallOnAllowed);
-                outf.Write(StopOffset);
-                outf.Write(ArrivalTime);
-                outf.Write(DepartTime);
-                outf.Write(ActualArrival);
-                outf.Write(ActualDepart);
-                outf.Write(Passed);
-                outf.Write((Int64)arrivalDT.Ticks);
-                outf.Write((Int64)departureDT.Ticks);
-
-                outf.Write(ConnectionsWaiting.Count);
-                foreach (int iWait in ConnectionsWaiting)
-                {
-                    outf.Write(iWait);
-                }
-
-                outf.Write(ConnectionsAwaited.Count);
-                foreach (KeyValuePair<int, int> thisAwait in ConnectionsAwaited)
-                {
-                    outf.Write(thisAwait.Key);
-                    outf.Write(thisAwait.Value);
-                }
-
-                outf.Write(ConnectionDetails.Count);
-                foreach (KeyValuePair<int, WaitInfo> thisDetails in ConnectionDetails)
-                {
-                    outf.Write(thisDetails.Key);
-                    WaitInfo thisWait = (WaitInfo)thisDetails.Value;
-                    thisWait.Save(outf);
-                }
-
-                if (ActualMinStopTime.HasValue)
-                {
-                    outf.Write(true);
-                    outf.Write(ActualMinStopTime.Value);
-                }
-                else
-                {
-                    outf.Write(false);
-                }
-
-                if (KeepClearFront.HasValue)
-                {
-                    outf.Write(true);
-                    outf.Write(KeepClearFront.Value);
-                }
-                else
-                {
-                    outf.Write(false);
-                }
-                if (KeepClearRear.HasValue)
-                {
-                    outf.Write(true);
-                    outf.Write(KeepClearRear.Value);
-                }
-                else
-                {
-                    outf.Write(false);
-                }
-
-                outf.Write(Terminal);
-                outf.Write(ForcePosition);
-                outf.Write(CloseupSignal);
-                outf.Write(Closeup);
-                outf.Write(RestrictPlatformToSignal);
-                outf.Write(ExtendPlatformToSignal);
-                outf.Write(EndStop);
-            }
-
-            /// <summary>
-            ///  create copy
-            /// </summary>
-            /// <returns></returns>
-            public StationStop CreateCopy()
-            {
-                return ((StationStop)this.MemberwiseClone());
-            }
-
-            /// <summary>
-            /// Calculate actual depart time
-            /// Make special checks for stops arount midnight
-            /// </summary>
-            /// <param name="presentTime"></param>
-
-            public int CalculateDepartTime(int presentTime, Train stoppedTrain)
-            {
-                int eightHundredHours = 8 * 3600;
-                int sixteenHundredHours = 16 * 3600;
-
-                // preset depart to booked time
-                ActualDepart = DepartTime;
-
-                // correct arrival for stop around midnight
-                if (ActualArrival < eightHundredHours && ArrivalTime > sixteenHundredHours) // arrived after midnight, expected to arrive before
-                {
-                    ActualArrival += (24 * 3600);
-                }
-                else if (ActualArrival > sixteenHundredHours && ArrivalTime < eightHundredHours) // arrived before midnight, expected to arrive before
-                {
-                    ActualArrival -= (24 * 3600);
-                }
-
-                // correct stop time for stop around midnight
-                int stopTime = DepartTime - ArrivalTime;
-                if (DepartTime < eightHundredHours && ArrivalTime > sixteenHundredHours) // stop over midnight
-                {
-                    stopTime += (24 * 3600);
-                }
-
-                // compute boarding time (depends on train type)
-                var validSched = stoppedTrain.ComputeTrainBoardingTime(this, ref stopTime);
-
-                // correct departure time for stop around midnight
-                int correctedTime = ActualArrival + stopTime;
-                if (validSched)
-                {
-                    ActualDepart = Time.Compare.Latest(DepartTime, correctedTime);
-                }
-                else
-                {
-                    ActualDepart = correctedTime;
-                    if (ActualDepart < 0)
-                    {
-                        ActualDepart += (24 * 3600);
-                        ActualArrival += (24 * 3600);
-                    }
-                }
-                if (ActualDepart != correctedTime)
-                {
-                    stopTime += ActualDepart - correctedTime;
-                    if (stopTime > 24 * 3600) stopTime -= 24 * 3600;
-                    else if (stopTime < 0) stopTime += 24 * 3600;
-
-                }
-                return stopTime;
-            }
-
-            //================================================================================================//
-            /// <summary>
-            /// <CScomment> Compute boarding time for passenger train. Solution based on number of carriages within platform.
-            /// Number of carriages computed considering an average Traincar length...
-            /// ...moreover considering that carriages are in the train part within platform (MSTS apparently does so).
-            /// Player train has more sophisticated computing, as in MSTS.
-            /// As of now the position of the carriages within the train is computed here at every station together with the statement if the carriage is within the 
-            /// platform boundaries. To be evaluated if the position of the carriages within the train could later be computed together with the CheckFreight method</CScomment>
-            /// <\summary>
-            public int ComputeStationBoardingTime(Train stopTrain)
-            {
-                var passengerCarsWithinPlatform = stopTrain.PassengerCarsNumber;
-                int stopTime = DefaultFreightStopTime;
-                if (passengerCarsWithinPlatform == 0) return stopTime; // pure freight train
-                var distancePlatformHeadtoTrainHead = -stopTrain.StationStops[0].StopOffset
-                   + PlatformItem.TrackCircuitOffset[Location.FarEnd, (TrackDirection)stopTrain.StationStops[0].Direction]
-                   + stopTrain.StationStops[0].DistanceToTrainM;
-                var trainPartOutsidePlatformForward = distancePlatformHeadtoTrainHead < 0 ? -distancePlatformHeadtoTrainHead : 0;
-                if (trainPartOutsidePlatformForward >= stopTrain.Length) return (int)PlatformItem.MinWaitingTime; // train actually passed platform; should not happen
-                var distancePlatformTailtoTrainTail = distancePlatformHeadtoTrainHead - PlatformItem.Length + stopTrain.Length;
-                var trainPartOutsidePlatformBackward = distancePlatformTailtoTrainTail > 0 ? distancePlatformTailtoTrainTail : 0;
-                if (trainPartOutsidePlatformBackward >= stopTrain.Length) return (int)PlatformItem.MinWaitingTime; // train actually stopped before platform; should not happen
-                if (stopTrain == stopTrain.Simulator.OriginalPlayerTrain)
-                {
-                    if (trainPartOutsidePlatformForward == 0 && trainPartOutsidePlatformBackward == 0) passengerCarsWithinPlatform = stopTrain.PassengerCarsNumber;
-                    else
-                    {
-                        if (trainPartOutsidePlatformForward > 0)
-                        {
-                            var walkingDistance = 0.0f;
-                            int trainCarIndex = 0;
-                            while (walkingDistance <= trainPartOutsidePlatformForward && passengerCarsWithinPlatform > 0 && trainCarIndex < stopTrain.Cars.Count - 1)
-                            {
-                                var walkingDistanceBehind = walkingDistance + stopTrain.Cars[trainCarIndex].CarLengthM;
-                                if ((stopTrain.Cars[trainCarIndex].WagonType != TrainCar.WagonTypes.Freight && stopTrain.Cars[trainCarIndex].WagonType != TrainCar.WagonTypes.Tender && !stopTrain.Cars[trainCarIndex].IsDriveable) ||
-                                   (stopTrain.Cars[trainCarIndex].IsDriveable && stopTrain.Cars[trainCarIndex].HasPassengerCapacity))
-                                {
-                                    if ((trainPartOutsidePlatformForward - walkingDistance) > 0.67 * stopTrain.Cars[trainCarIndex].CarLengthM) passengerCarsWithinPlatform--;
-                                }
-                                walkingDistance = walkingDistanceBehind;
-                                trainCarIndex++;
-                            }
-                        }
-                        if (trainPartOutsidePlatformBackward > 0 && passengerCarsWithinPlatform > 0)
-                        {
-                            var walkingDistance = 0.0f;
-                            int trainCarIndex = stopTrain.Cars.Count - 1;
-                            while (walkingDistance <= trainPartOutsidePlatformBackward && passengerCarsWithinPlatform > 0 && trainCarIndex >= 0)
-                            {
-                                var walkingDistanceBehind = walkingDistance + stopTrain.Cars[trainCarIndex].CarLengthM;
-                                if ((stopTrain.Cars[trainCarIndex].WagonType != TrainCar.WagonTypes.Freight && stopTrain.Cars[trainCarIndex].WagonType != TrainCar.WagonTypes.Tender && !stopTrain.Cars[trainCarIndex].IsDriveable) ||
-                                   (stopTrain.Cars[trainCarIndex].IsDriveable && stopTrain.Cars[trainCarIndex].HasPassengerCapacity))
-                                {
-                                    if ((trainPartOutsidePlatformBackward - walkingDistance) > 0.67 * stopTrain.Cars[trainCarIndex].CarLengthM) passengerCarsWithinPlatform--;
-                                }
-                                walkingDistance = walkingDistanceBehind;
-                                trainCarIndex--;
-                            }
-                        }
-                    }
-                }
-                else
-                {
-
-                    passengerCarsWithinPlatform = stopTrain.Length - trainPartOutsidePlatformForward - trainPartOutsidePlatformBackward > 0 ?
-                    stopTrain.PassengerCarsNumber : (int)Math.Min((stopTrain.Length - trainPartOutsidePlatformForward - trainPartOutsidePlatformBackward) / stopTrain.Cars.Count() + 0.33,
-                    stopTrain.PassengerCarsNumber);
-                }
-                if (passengerCarsWithinPlatform > 0)
-                {
-                    var actualNumPassengersWaiting = PlatformItem.NumPassengersWaiting;
-                    if (stopTrain.TrainType != TrainType.AiPlayerHosting) RandomizePassengersWaiting(ref actualNumPassengersWaiting, stopTrain);
-                    stopTime = Math.Max(NumSecPerPass * actualNumPassengersWaiting / passengerCarsWithinPlatform, DefaultFreightStopTime);
-                }
-                else stopTime = 0; // no passenger car stopped within platform: sorry, no countdown starts
-                return stopTime;
-            }
-
-            //================================================================================================//
-            /// <summary>
-            /// CheckScheduleValidity
-            /// Quite frequently in MSTS activities AI trains have invalid values (often near midnight), because MSTS does not consider them anyway
-            /// As OR considers them, it is wise to discard the least credible values, to avoid AI trains stopping for hours
-            /// </summary>
-            public bool CheckScheduleValidity(Train stopTrain)
-            {
-                if (stopTrain.TrainType != TrainType.Ai) return true;
-                if (ArrivalTime == DepartTime && Math.Abs(ArrivalTime - ActualArrival) > 14400) return false;
-                else return true;
-            }
-
-            //================================================================================================//
-            /// <summary>
-            /// RandomizePassengersWaiting
-            /// Randomizes number of passengers waiting for train, and therefore boarding time
-            /// Randomization can be upwards or downwards
-            /// </summary>
-
-            private void RandomizePassengersWaiting(ref int actualNumPassengersWaiting, Train stopTrain)
-            {
-                if (stopTrain.Simulator.Settings.ActRandomizationLevel > 0)
-                {
-                    var randms = DateTime.UtcNow.Millisecond % 10;
-                    if (randms >= 6 - stopTrain.Simulator.Settings.ActRandomizationLevel)
-                    {
-                        if (randms < 8)
-                        {
-                            actualNumPassengersWaiting += stopTrain.RandomizedDelay(2 * PlatformItem.NumPassengersWaiting *
-                                stopTrain.Simulator.Settings.ActRandomizationLevel); // real passenger number may be up to 3 times the standard.
-                        }
-                        else
-                        // less passengers than standard
-                        {
-                            actualNumPassengersWaiting -= stopTrain.RandomizedDelay(PlatformItem.NumPassengersWaiting *
-                                stopTrain.Simulator.Settings.ActRandomizationLevel / 6);
-                        }
-                    }
-                }
             }
 
         }

@@ -953,7 +953,7 @@ namespace Orts.Simulation.Timetables
         /// <param name="orgStop"></param>
         /// <param name="newRoute"></param>
         /// <returns></returns>
-
+        //TODO 20201123 this should potentially be moved to StationStop class
         public override StationStop SetAlternativeStationStop(StationStop orgStop, TrackCircuitPartialPathRoute newRoute)
         {
             int altPlatformIndex = -1;
@@ -984,13 +984,15 @@ namespace Orts.Simulation.Timetables
                 if (altPlatformIndex > 0)
                 {
                     StationStop newStop = CalculateStationStop(signalRef.PlatformDetailsList[altPlatformIndex].PlatformReference[Location.NearEnd],
-                        orgStop.ArrivalTime, orgStop.DepartTime, orgStop.arrivalDT, orgStop.departureDT, clearingDistanceM, minStopDistanceM,
+                        orgStop.ArrivalTime, orgStop.DepartTime, clearingDistanceM, minStopDistanceM,
                         orgStop.Terminal, orgStop.ActualMinStopTime, orgStop.KeepClearFront, orgStop.KeepClearRear, orgStop.ForcePosition, 
                         orgStop.CloseupSignal, orgStop.Closeup, orgStop.RestrictPlatformToSignal, orgStop.ExtendPlatformToSignal, orgStop.EndStop);
 
                     if (newStop != null)
                     {
-                        foreach (KeyValuePair<int, WaitInfo> thisConnect in orgStop.ConnectionDetails)
+                        if (orgStop.ConnectionDetails != null)
+                            newStop.EnsureListsExists();
+                        foreach (KeyValuePair<int, WaitInfo> thisConnect in orgStop.ConnectionDetails ?? Enumerable.Empty<KeyValuePair<int, WaitInfo>>())
                         {
                             newStop.ConnectionDetails.Add(thisConnect.Key, thisConnect.Value);
                         }
@@ -1031,9 +1033,7 @@ namespace Orts.Simulation.Timetables
 
                         newStop.ArrivalTime = startvalue;
                         newStop.DepartTime = startvalue;
-                        newStop.arrivalDT = new DateTime((long)(startvalue * Math.Pow(10, 7)));
-                        newStop.departureDT = new DateTime((long)(startvalue * Math.Pow(10, 7)));
-                        newStop.RouteIndex = lastSubpath.GetRouteIndex(newStop.TCSectionIndex, 0);
+                        newStop.RouteIndex = lastSubpath.GetRouteIndex(newStop.TrackCircuitSectionIndex, 0);
                         newStop.SubrouteIndex = TCRoute.TCRouteSubpaths.Count - 1;
                         if (newStop.RouteIndex >= 0)
                         {
@@ -1252,7 +1252,7 @@ namespace Orts.Simulation.Timetables
         /// Calculate actual station stop details
         /// <\summary>
 
-        public StationStop CalculateStationStop(int platformStartID, int arrivalTime, int departTime, DateTime arrivalDT, DateTime departureDT, float clearingDistanceM,
+        public StationStop CalculateStationStop(int platformStartID, int arrivalTime, int departTime, float clearingDistanceM,
             float minStopDistance, bool terminal, int? actMinStopTime, float? keepClearFront, float? keepClearRear, bool forcePosition, bool closeupSignal, 
             bool closeup, bool restrictPlatformToSignal, bool extendPlatformToSignal, bool endStop)
         {
@@ -1320,7 +1320,7 @@ namespace Orts.Simulation.Timetables
                         thisPlatform,
                         activeSubroute,
                         dummyStop.RouteIndex,
-                        dummyStop.TCSectionIndex,
+                        dummyStop.TrackCircuitSectionIndex,
                         dummyStop.Direction,
                         dummyStop.ExitSignal,
                         dummyStop.HoldSignal,
@@ -1339,10 +1339,7 @@ namespace Orts.Simulation.Timetables
                         restrictPlatformToSignal,
                         extendPlatformToSignal,
                         endStop,
-                        StationStop.STOPTYPE.STATION_STOP);
-
-                thisStation.arrivalDT = arrivalDT;
-                thisStation.departureDT = departureDT;
+                        StationStopType.Station);
 
                 return (thisStation);
             }
@@ -1365,8 +1362,6 @@ namespace Orts.Simulation.Timetables
             float? keepClearFront, float? keepClearRear, bool forcePosition, bool closeupSignal, bool closeup, 
             bool restrictPlatformToSignal, bool ExtendPlatformToSignal, bool terminal, int platformIndex)
         {
-            StationStop dummyStop = new StationStop();
-
             TrackCircuitRouteElement thisElement = thisRoute[routeIndex];
 
             int routeSectionIndex = thisElement.TrackCircuitSection.Index;
@@ -1922,14 +1917,8 @@ namespace Orts.Simulation.Timetables
 
             // store details
             TrackCircuitRouteElement lastElement = thisRoute[lastRouteIndex];
-            dummyStop.TCSectionIndex = lastElement.TrackCircuitSection.Index;
-            dummyStop.Direction = (int)lastElement.Direction;
-            dummyStop.ExitSignal = EndSignal;
-            dummyStop.HoldSignal = EndSignal >= 0 ? HoldSignal : false;
-            dummyStop.StopOffset = stopOffset;
-            dummyStop.RouteIndex = lastRouteIndex;
 
-            return (dummyStop);
+            return new StationStop(lastElement.TrackCircuitSection.Index, lastElement.Direction, EndSignal, EndSignal >= 0 && HoldSignal, stopOffset, lastRouteIndex);
         }
 
         /// <summary>
@@ -1938,8 +1927,6 @@ namespace Orts.Simulation.Timetables
         /// <param name="platformStartID"></param>
         /// <param name="arrivalTime"></param>
         /// <param name="departTime"></param>
-        /// <param name="arrivalDT"></param>
-        /// <param name="departureDT"></param>
         /// <param name="clearingDistanceM"></param>
         /// <param name="minStopDistanceM"></param>
         /// <param name="terminal"></param>
@@ -1949,11 +1936,11 @@ namespace Orts.Simulation.Timetables
         /// <param name="forcePosition"></param>
         /// <param name="endStop"></param>
         /// <returns></returns>
-        public bool CreateStationStop(int platformStartID, int arrivalTime, int departTime, DateTime arrivalDT, DateTime departureDT, float clearingDistanceM,
+        public bool CreateStationStop(int platformStartID, int arrivalTime, int departTime, float clearingDistanceM,
             float minStopDistanceM, bool terminal, int? actMinStopTime, float? keepClearFront, float? keepClearRear, bool forcePosition, bool closeupSignal, 
             bool closeup, bool restrictPlatformToSignal, bool extendPlatformToSignal, bool endStop)
         {
-            StationStop thisStation = CalculateStationStop(platformStartID, arrivalTime, departTime, arrivalDT, departureDT, clearingDistanceM,
+            StationStop thisStation = CalculateStationStop(platformStartID, arrivalTime, departTime, clearingDistanceM,
                 minStopDistanceM, terminal, actMinStopTime, keepClearFront, keepClearRear, forcePosition, closeupSignal, closeup,
                 restrictPlatformToSignal, extendPlatformToSignal, endStop);
 
@@ -2020,12 +2007,12 @@ namespace Orts.Simulation.Timetables
                 return (false);
             }
 
-            if (thisStation.ActualStopType != StationStop.STOPTYPE.STATION_STOP)
+            if (thisStation.StopType != StationStopType.Station)
             {
                 return (false);
             }
 
-            atStation = CheckStationPosition(thisStation.PlatformItem, thisStation.Direction, thisStation.TCSectionIndex);
+            atStation = CheckStationPosition(thisStation.PlatformItem, thisStation.Direction, thisStation.TrackCircuitSectionIndex);
 
             // At station : set state, create action item
 
@@ -2052,19 +2039,19 @@ namespace Orts.Simulation.Timetables
         /// <param name="stationDirection"></param>
         /// <param name="stationTCSectionIndex"></param>
         /// <returns></returns>
-        public override bool CheckStationPosition(PlatformDetails thisPlatform, int stationDirection, int stationTCSectionIndex)
+        public override bool CheckStationPosition(PlatformDetails thisPlatform, TrackDirection stationDirection, int stationTCSectionIndex)
         {
             bool atStation = false;
             //            PlatformDetails thisPlatform = thisStation.PlatformItem;
 
-            float platformBeginOffset = thisPlatform.TrackCircuitOffset[Location.NearEnd, (TrackDirection)stationDirection];
-            float platformEndOffset = thisPlatform.TrackCircuitOffset[Location.FarEnd, (TrackDirection)stationDirection];
-            int endSectionIndex = stationDirection == 0 ?
+            float platformBeginOffset = thisPlatform.TrackCircuitOffset[Location.NearEnd, stationDirection];
+            float platformEndOffset = thisPlatform.TrackCircuitOffset[Location.FarEnd, stationDirection];
+            int endSectionIndex = stationDirection == TrackDirection.Ahead ?
                     thisPlatform.TCSectionIndex[thisPlatform.TCSectionIndex.Count - 1] :
                     thisPlatform.TCSectionIndex[0];
             int endSectionRouteIndex = ValidRoute[0].GetRouteIndex(endSectionIndex, 0);
 
-            int beginSectionIndex = stationDirection == 1 ?
+            int beginSectionIndex = stationDirection == TrackDirection.Reverse ?
                     thisPlatform.TCSectionIndex[thisPlatform.TCSectionIndex.Count - 1] :
                     thisPlatform.TCSectionIndex[0];
             int beginSectionRouteIndex = ValidRoute[0].GetRouteIndex(beginSectionIndex, 0);
@@ -2204,7 +2191,7 @@ namespace Orts.Simulation.Timetables
                     actualStation.Terminal, actualStation.PlatformReference);
 
                 actualStation.RouteIndex = newStop.RouteIndex;
-                actualStation.TCSectionIndex = newStop.TCSectionIndex;
+                actualStation.TrackCircuitSectionIndex = newStop.TrackCircuitSectionIndex;
                 actualStation.StopOffset = newStop.StopOffset;
                 actualStation.HoldSignal = newStop.HoldSignal;
                 actualStation.ExitSignal = newStop.ExitSignal;
@@ -3027,7 +3014,7 @@ namespace Orts.Simulation.Timetables
                     else if (nextActionInfo == null && StationStops != null && StationStops.Count > 0)
                     {
                         if (StationStops[0].SubrouteIndex == TCRoute.ActiveSubPath &&
-                           ValidRoute[0].GetRouteIndex(StationStops[0].TCSectionIndex, PresentPosition[0].RouteListIndex) <= PresentPosition[0].RouteListIndex)
+                           ValidRoute[0].GetRouteIndex(StationStops[0].TrackCircuitSectionIndex, PresentPosition[0].RouteListIndex) <= PresentPosition[0].RouteListIndex)
                         // assume to be in station
                         {
                             MovementState = AI_MOVEMENT_STATE.STATION_STOP;
@@ -3180,7 +3167,7 @@ namespace Orts.Simulation.Timetables
                  nextActionInfo.NextAction == AIActionItem.AI_ACTION_TYPE.STATION_STOP)
                 {
                     if (StationStops[0].SubrouteIndex == TCRoute.ActiveSubPath &&
-                       ValidRoute[0].GetRouteIndex(StationStops[0].TCSectionIndex, PresentPosition[0].RouteListIndex) <= PresentPosition[0].RouteListIndex)
+                       ValidRoute[0].GetRouteIndex(StationStops[0].TrackCircuitSectionIndex, PresentPosition[0].RouteListIndex) <= PresentPosition[0].RouteListIndex)
                     // assume to be in station
                     {
                         MovementState = AI_MOVEMENT_STATE.STATION_STOP;
@@ -3256,14 +3243,14 @@ namespace Orts.Simulation.Timetables
 
             // no arrival / departure time set : update times
 
-            if (thisStation.ActualStopType == StationStop.STOPTYPE.STATION_STOP)
+            if (thisStation.StopType == StationStopType.Station)
             {
                 AtStation = true;
 
                 if (thisStation.ActualArrival < 0)
                 {
                     thisStation.ActualArrival = presentTime;
-                    thisStation.CalculateDepartTime(presentTime, this);
+                    thisStation.CalculateDepartTime(this);
                     actualdepart = thisStation.ActualDepart;
                 }
 
@@ -3271,23 +3258,20 @@ namespace Orts.Simulation.Timetables
                     TTAnalysisUpdateStationState1(presentTime, thisStation);
 #endif
 
-                    // set reference arrival for any waiting connections
-                if (thisStation.ConnectionsWaiting.Count > 0)
+                // set reference arrival for any waiting connections
+                foreach (int otherTrainNumber in thisStation.ConnectionsWaiting ?? Enumerable.Empty<int>())
                 {
-                    foreach (int otherTrainNumber in thisStation.ConnectionsWaiting)
+                    Train otherTrain = GetOtherTrainByNumber(otherTrainNumber);
+                    if (otherTrain != null)
                     {
-                        Train otherTrain = GetOtherTrainByNumber(otherTrainNumber);
-                        if (otherTrain != null)
+                        foreach (StationStop otherStop in otherTrain.StationStops)
                         {
-                            foreach (StationStop otherStop in otherTrain.StationStops)
+                            if (String.Compare(thisStation.PlatformItem.Name, otherStop.PlatformItem.Name) == 0)
                             {
-                                if (String.Compare(thisStation.PlatformItem.Name, otherStop.PlatformItem.Name) == 0)
+                                if (otherStop.ConnectionsAwaited?.ContainsKey(Number) ?? false)
                                 {
-                                    if (otherStop.ConnectionsAwaited.ContainsKey(Number))
-                                    {
-                                        otherStop.ConnectionsAwaited.Remove(Number);
-                                        otherStop.ConnectionsAwaited.Add(Number, thisStation.ActualArrival);
-                                    }
+                                    otherStop.ConnectionsAwaited.Remove(Number);
+                                    otherStop.ConnectionsAwaited.Add(Number, thisStation.ActualArrival);
                                 }
                             }
                         }
@@ -3315,7 +3299,7 @@ namespace Orts.Simulation.Timetables
 
                 // check for connections
 
-                if (thisStation.ConnectionsAwaited.Count > 0)
+                if (thisStation.ConnectionsAwaited?.Count > 0)
                 {
                     int deptime = -1;
                     int needwait = -1;
@@ -3381,7 +3365,7 @@ namespace Orts.Simulation.Timetables
 
             if (actualdepart > correctedTime)
             {
-                if (thisStation.ActualStopType == StationStop.STOPTYPE.STATION_STOP &&
+                if (thisStation.StopType == StationStopType.Station &&
                     (actualdepart - 120 < correctedTime) &&
                      thisStation.HoldSignal)
                 {
@@ -3605,7 +3589,7 @@ namespace Orts.Simulation.Timetables
                     }
                 }
 
-                if (thisStation.ActualStopType == StationStop.STOPTYPE.STATION_STOP)
+                if (thisStation.StopType == StationStopType.Station)
                 {
                     Delay = TimeSpan.FromSeconds((presentTime - thisStation.DepartTime) % (24 * 3600));
                 }
@@ -4419,7 +4403,7 @@ namespace Orts.Simulation.Timetables
                                     keepDistanceTrainM = keepDistanceTrainAheadCloseupM;
                                 }
                                 // other train in station and this is same station
-                                else if (OtherTrain.PresentPosition[1].TrackCircuitSectionIndex == StationStops[0].TCSectionIndex)
+                                else if (OtherTrain.PresentPosition[1].TrackCircuitSectionIndex == StationStops[0].TrackCircuitSectionIndex)
                                 {
                                     keepDistanceTrainM = keepDistanceTrainAheadCloseupM;
                                 }
@@ -4603,12 +4587,12 @@ namespace Orts.Simulation.Timetables
                                         if (otherTrainInStation)
                                         {
                                             thisTrainInStation =
-                                                (ValidRoute[0].GetRouteIndex(StationStops[0].TCSectionIndex, PresentPosition[0].RouteListIndex) >= PresentPosition[0].RouteListIndex);
+                                                (ValidRoute[0].GetRouteIndex(StationStops[0].TrackCircuitSectionIndex, PresentPosition[0].RouteListIndex) >= PresentPosition[0].RouteListIndex);
                                         }
                                         else
                                         {
                                             thisTrainInStation =
-                                                (ValidRoute[0].GetRouteIndex(StationStops[0].TCSectionIndex, PresentPosition[0].RouteListIndex) == PresentPosition[0].RouteListIndex);
+                                                (ValidRoute[0].GetRouteIndex(StationStops[0].TrackCircuitSectionIndex, PresentPosition[0].RouteListIndex) == PresentPosition[0].RouteListIndex);
                                         }
                                     }
 
@@ -4618,10 +4602,10 @@ namespace Orts.Simulation.Timetables
                                         AtStation = true;
                                         StationStop thisStation = StationStops[0];
 
-                                        if (thisStation.ActualStopType == StationStop.STOPTYPE.STATION_STOP)
+                                        if (thisStation.StopType == StationStopType.Station)
                                         {
                                         }
-                                        else if (thisStation.ActualStopType == StationStop.STOPTYPE.WAITING_POINT)
+                                        else if (thisStation.StopType == StationStopType.WaitingPoint)
                                         {
                                             thisStation.ActualArrival = presentTime;
 
@@ -6978,7 +6962,7 @@ namespace Orts.Simulation.Timetables
                     // detach at station
                     if (thisStationStop != null)
                     {
-                        DetachInfo thisDetach = new DetachInfo(this, thisCommand, false, true, false, thisStationStop.TCSectionIndex, thisStationStop.ArrivalTime);
+                        DetachInfo thisDetach = new DetachInfo(this, thisCommand, false, true, false, thisStationStop.TrackCircuitSectionIndex, thisStationStop.ArrivalTime);
                         if (DetachDetails.ContainsKey(thisStationStop.PlatformReference))
                         {
                             List<DetachInfo> thisDetachList = DetachDetails[thisStationStop.PlatformReference];
@@ -7607,9 +7591,10 @@ namespace Orts.Simulation.Timetables
                 newWait.waitTrainNumber = otherTrain.Number;
                 if (otherTrain.Number == 0) newWait.waitTrainNumber = otherTrain.OrgAINumber;
                 StationStop otherTrainStationStop = otherTrain.StationStops[otherStationStopIndex];
+                otherTrainStationStop.EnsureListsExists();
                 otherTrainStationStop.ConnectionsWaiting.Add(Number);
                 newWait.waitTrainSubpathIndex = otherTrainStationStop.SubrouteIndex;
-                newWait.startSectionIndex = otherTrainStationStop.TCSectionIndex;
+                newWait.startSectionIndex = otherTrainStationStop.TrackCircuitSectionIndex;
 
                 newWait.activeSubrouteIndex = reqWait.startSubrouteIndex;
                 newWait.activeSectionIndex = reqWait.startSectionIndex;
@@ -8062,7 +8047,7 @@ namespace Orts.Simulation.Timetables
                     // if station was in previous path, checked if passed
                     else if (thisStation.SubrouteIndex < TCRoute.ActiveSubPath)
                     {
-                        int routeIndex = ValidRoute[0].GetRouteIndex(thisStation.TCSectionIndex, 0);
+                        int routeIndex = ValidRoute[0].GetRouteIndex(thisStation.TrackCircuitSectionIndex, 0);
                         if (routeIndex < 0 || PresentPosition[0].RouteListIndex > routeIndex) // station no longer on route or train beyond station
                         {
                             if (thisStation.ExitSignal >= 0 && thisStation.HoldSignal && HoldingSignals.Contains(thisStation.ExitSignal))
@@ -8329,9 +8314,8 @@ namespace Orts.Simulation.Timetables
                         {
                             formedTrain.AtStation = true;
                             formedTrain.StationStops[0].ActualArrival = StationStops[0].ActualArrival;
-                            formedTrain.StationStops[0].arrivalDT = StationStops[0].arrivalDT;
                             formedTrain.StationStops[0].ArrivalTime = StationStops[0].ArrivalTime;
-                            formedTrain.StationStops[0].CalculateDepartTime(presentTime, this);
+                            formedTrain.StationStops[0].CalculateDepartTime(this);
                         }
                     }
                 }
@@ -8904,11 +8888,11 @@ namespace Orts.Simulation.Timetables
                     abString = "..:..:..";
                 }
 
-                if (StationStops[0].ActualStopType == StationStop.STOPTYPE.STATION_STOP)
+                if (StationStops[0].StopType == StationStopType.Station)
                 {
                     movString = "STA";
                 }
-                else if (StationStops[0].ActualStopType == StationStop.STOPTYPE.WAITING_POINT)
+                else if (StationStops[0].StopType == StationStopType.WaitingPoint)
                 {
                     movString = "WTP";
                 }
@@ -9077,7 +9061,7 @@ namespace Orts.Simulation.Timetables
         /// Override from Train class
         /// <\summary>
 
-        public override bool ComputeTrainBoardingTime(StationStop thisStop, ref int stopTime)
+        public override (bool, int) ComputeTrainBoardingTime(StationStop thisStop, int stopTime)
         {
             // use minimun station dwell time
             if (stopTime <= 0 && thisStop.ActualMinStopTime.HasValue)
@@ -9093,7 +9077,7 @@ namespace Orts.Simulation.Timetables
                 stopTime = (int)thisStop.PlatformItem.MinWaitingTime;
             }
 
-            return (true);
+            return (true, stopTime);
         }
 
         //================================================================================================//
@@ -9129,7 +9113,7 @@ namespace Orts.Simulation.Timetables
                         if (StationStops[0].ActualArrival < 0)
                         {
                             StationStops[0].ActualArrival = presentTime;
-                            StationStops[0].CalculateDepartTime(presentTime, this);
+                            StationStops[0].CalculateDepartTime(this);
                         }
                         break;
                     }
@@ -9194,23 +9178,20 @@ namespace Orts.Simulation.Timetables
                     int needwait = -1;
 
                     // keep trying to set connections as train may be created during stop
-                    if (StationStops[0].ConnectionsWaiting.Count > 0)
+                    foreach (int otherTrainNumber in StationStops[0].ConnectionsWaiting ?? Enumerable.Empty<int>())
                     {
-                        foreach (int otherTrainNumber in StationStops[0].ConnectionsWaiting)
+                        TTTrain otherTrain = GetOtherTTTrainByNumber(otherTrainNumber);
+                        if (otherTrain != null)
                         {
-                            TTTrain otherTrain = GetOtherTTTrainByNumber(otherTrainNumber);
-                            if (otherTrain != null)
+                            foreach (StationStop otherStop in otherTrain.StationStops)
                             {
-                                foreach (StationStop otherStop in otherTrain.StationStops)
+                                if (String.Compare(StationStops[0].PlatformItem.Name, otherStop.PlatformItem.Name) == 0)
                                 {
-                                    if (String.Compare(StationStops[0].PlatformItem.Name, otherStop.PlatformItem.Name) == 0)
+                                    int RefNumber = OrgAINumber > 0 ? OrgAINumber : Number;
+                                    if (otherStop.ConnectionsAwaited?.ContainsKey(RefNumber) ?? false)
                                     {
-                                        int RefNumber = OrgAINumber > 0 ? OrgAINumber : Number;
-                                        if (otherStop.ConnectionsAwaited.ContainsKey(RefNumber))
-                                        {
-                                            otherStop.ConnectionsAwaited.Remove(RefNumber);
-                                            otherStop.ConnectionsAwaited.Add(RefNumber, StationStops[0].ActualArrival);
-                                        }
+                                        otherStop.ConnectionsAwaited.Remove(RefNumber);
+                                        otherStop.ConnectionsAwaited.Add(RefNumber, StationStops[0].ActualArrival);
                                     }
                                 }
                             }
@@ -9218,7 +9199,7 @@ namespace Orts.Simulation.Timetables
                     }
 
                     // check if waiting for connection
-                    if (StationStops[0].ConnectionsAwaited.Count > 0)
+                    if (StationStops[0].ConnectionsAwaited?.Count > 0)
                     {
                         needwait = ProcessConnections(StationStops[0], out helddepart);
                     }
@@ -9533,25 +9514,22 @@ namespace Orts.Simulation.Timetables
                         {
                             int presentTime = Convert.ToInt32(Math.Floor(Simulator.ClockTime));
                             StationStops[0].ActualArrival = presentTime;
-                            StationStops[0].CalculateDepartTime(presentTime, this);
+                            StationStops[0].CalculateDepartTime(this);
 
-                            if (StationStops[0].ConnectionsWaiting.Count > 0)
+                            foreach (int otherTrainNumber in StationStops[0].ConnectionsWaiting ?? Enumerable.Empty<int>())
                             {
-                                foreach (int otherTrainNumber in StationStops[0].ConnectionsWaiting)
+                                TTTrain otherTrain = GetOtherTTTrainByNumber(otherTrainNumber);
+                                if (otherTrain != null)
                                 {
-                                    TTTrain otherTrain = GetOtherTTTrainByNumber(otherTrainNumber);
-                                    if (otherTrain != null)
+                                    foreach (StationStop otherStop in otherTrain.StationStops)
                                     {
-                                        foreach (StationStop otherStop in otherTrain.StationStops)
+                                        if (String.Compare(StationStops[0].PlatformItem.Name, otherStop.PlatformItem.Name) == 0)
                                         {
-                                            if (String.Compare(StationStops[0].PlatformItem.Name, otherStop.PlatformItem.Name) == 0)
+                                            int RefNumber = OrgAINumber > 0 ? OrgAINumber : Number;
+                                            if (otherStop.ConnectionsAwaited?.ContainsKey(RefNumber) ?? false)
                                             {
-                                                int RefNumber = OrgAINumber > 0 ? OrgAINumber : Number;
-                                                if (otherStop.ConnectionsAwaited.ContainsKey(RefNumber))
-                                                {
-                                                    otherStop.ConnectionsAwaited.Remove(RefNumber);
-                                                    otherStop.ConnectionsAwaited.Add(RefNumber, StationStops[0].ActualArrival);
-                                                }
+                                                otherStop.ConnectionsAwaited.Remove(RefNumber);
+                                                otherStop.ConnectionsAwaited.Add(RefNumber, StationStops[0].ActualArrival);
                                             }
                                         }
                                     }
@@ -9570,7 +9548,7 @@ namespace Orts.Simulation.Timetables
                         // check if station missed : station must be at least 500m. behind us
                         bool missedStation = false;
 
-                        int stationRouteIndex = ValidRoute[0].GetRouteIndex(StationStops[0].TCSectionIndex, 0);
+                        int stationRouteIndex = ValidRoute[0].GetRouteIndex(StationStops[0].TrackCircuitSectionIndex, 0);
 
                         if (StationStops[0].SubrouteIndex == TCRoute.ActiveSubPath)
                         {
@@ -9722,13 +9700,13 @@ namespace Orts.Simulation.Timetables
             int needwait = -1;
             List<int> removeKeys = new List<int>();
 
-            foreach (KeyValuePair<int, int> connectionInfo in thisStop.ConnectionsAwaited)
+            foreach (KeyValuePair<int, int> connectionInfo in thisStop.ConnectionsAwaited ?? Enumerable.Empty<KeyValuePair<int, int>>())
             {
                 // check if train arrival time set
                 int otherTrainNumber = connectionInfo.Key;
-                WaitInfo reqWait = thisStop.ConnectionDetails[otherTrainNumber];
+                WaitInfo reqWait = thisStop.ConnectionDetails?[otherTrainNumber];
 
-                if (connectionInfo.Value >= 0)
+                if (reqWait != null && connectionInfo.Value >= 0)
                 {
                     removeKeys.Add(connectionInfo.Key);
                     int reqHoldTime = (reqWait.holdTimeS.HasValue) ? reqWait.holdTimeS.Value : 0;
@@ -9772,7 +9750,7 @@ namespace Orts.Simulation.Timetables
                         }
 
                         // check if train is not passed the station
-                        if (reqStop != null)
+                        if (reqStop != null && reqWait != null)
                         {
                             if (otherTrain.Delay.HasValue && reqWait.maxDelayS.HasValue)
                             {
@@ -10052,9 +10030,8 @@ namespace Orts.Simulation.Timetables
                     {
                         formedTrain.MovementState = AI_MOVEMENT_STATE.STATION_STOP;
                         formedTrain.StationStops[0].ActualArrival = StationStops[0].ActualArrival;
-                        formedTrain.StationStops[0].arrivalDT = StationStops[0].arrivalDT;
                         formedTrain.StationStops[0].ArrivalTime = StationStops[0].ArrivalTime;
-                        formedTrain.StationStops[0].CalculateDepartTime(presentTime, this);
+                        formedTrain.StationStops[0].CalculateDepartTime(this);
                     }
 
                     // clear replay commands
@@ -10566,7 +10543,7 @@ namespace Orts.Simulation.Timetables
                     else if (attachTrainAction == AIActionItem.AI_ACTION_TYPE.STATION_STOP)
                     {
                         if (attachTrain.StationStops[0].SubrouteIndex == attachTrain.TCRoute.ActiveSubPath &&
-                           attachTrain.ValidRoute[0].GetRouteIndex(attachTrain.StationStops[0].TCSectionIndex, attachTrain.PresentPosition[0].RouteListIndex) <= attachTrain.PresentPosition[0].RouteListIndex)
+                           attachTrain.ValidRoute[0].GetRouteIndex(attachTrain.StationStops[0].TrackCircuitSectionIndex, attachTrain.PresentPosition[0].RouteListIndex) <= attachTrain.PresentPosition[0].RouteListIndex)
                         // assume to be in station
                         // also set state of present train to station stop
                         {
@@ -11488,25 +11465,6 @@ namespace Orts.Simulation.Timetables
                 }
 
             return (notStarted);
-        }
-
-        //================================================================================================//
-        /// <summary>
-        /// TTAnalys methods : dump methods for Timetable Analysis
-        /// </summary>
-
-        public void TTAnalysisUpdateStationState1(int presentTime, StationStop thisStation)
-        {
-
-            DateTime baseDTA = new DateTime();
-            DateTime arrTimeA = baseDTA.AddSeconds(presentTime);
-            DateTime depTimeA = baseDTA.AddSeconds(thisStation.ActualDepart);
-
-            var sob = new StringBuilder();
-            sob.AppendFormat("{0};{1};{2};{3};{4};{5};{6};{7};{8};{9};{10};{11};{12}",
-                Number, AI.clockTime, Name, Delay, thisStation.PlatformItem.Name, thisStation.arrivalDT.ToString("HH:mm:ss"), thisStation.departureDT.ToString("HH:mm:ss"),
-                arrTimeA.ToString("HH:mm:ss"), depTimeA.ToString("HH:mm:ss"), "", "", "", "");
-            File.AppendAllText(@"C:\temp\TTAnalysis.csv", sob.ToString() + "\n");
         }
 
         public void TTAnalysisUpdateStationState2()

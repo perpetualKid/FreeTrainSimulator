@@ -3402,7 +3402,7 @@ namespace Orts.Simulation.Timetables
                     }
 
                     // create station stop info
-                    validStop = actTrain.CreateStationStop(actPlatformID, arrivalTime, departureTime, arrivalDT, departureDT, AITrain.clearingDistanceM,
+                    validStop = actTrain.CreateStationStop(actPlatformID, arrivalTime, departureTime, AITrain.clearingDistanceM,
                         AITrain.minStopDistanceM, terminal, actMinStopTime,keepClearFront, keepClearRear, forcePosition, closeupSignal, closeup, restrictPlatformToSignal, extendPlatformToSignal, endStop);
 
                     // override holdstate using stop info - but only if exit signal is defined
@@ -3418,7 +3418,7 @@ namespace Orts.Simulation.Timetables
                     // process additional commands
                     if (Commands != null && validStop)
                     {
-                        int sectionIndex = actTrain.StationStops[actTrain.StationStops.Count - 1].TCSectionIndex;
+                        int sectionIndex = actTrain.StationStops[actTrain.StationStops.Count - 1].TrackCircuitSectionIndex;
                         int subrouteIndex = actTrain.StationStops[actTrain.StationStops.Count - 1].SubrouteIndex;
 
                         foreach (TTTrainCommands thisCommand in Commands)
