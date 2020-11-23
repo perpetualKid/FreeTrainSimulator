@@ -1295,12 +1295,12 @@ namespace Orts.Simulation.Timetables
                     train.OrgAINumber = train.Number;
                     train.Number = 0;
                     train.LeadLocomotiveIndex = selectedTrain.LeadLocomotiveIndex;
-                    for (int carid = 0; carid < train.Cars.Count; carid++ )
+                    for (int carid = 0; carid < train.Cars.Count; carid++)
                     {
                         train.Cars[carid].CarID = selectedTrain.Cars[carid].CarID;
                     }
                     train.AI.TrainsToAdd.Add(train);
-                    train.Simulator.Trains.Add(train);
+                    Simulator.Instance.Trains.Add(train);
 
                     train.SetFormedOccupied();
                     train.TrainType = TrainType.Player;
@@ -1308,20 +1308,19 @@ namespace Orts.Simulation.Timetables
                     train.MovementState = AITrain.AI_MOVEMENT_STATE.AI_STATIC;
 
                     // inform viewer about player train switch
-                    train.Simulator.PlayerLocomotive = train.LeadLocomotive;
-                    train.Simulator.OnPlayerLocomotiveChanged();
+                    Simulator.Instance.PlayerLocomotive = train.LeadLocomotive;
+                    Simulator.Instance.OnPlayerLocomotiveChanged();
 
-                    train.Simulator.OnPlayerTrainChanged(selectedTrain, train);
-                    train.Simulator.PlayerLocomotive.Train = train;
+                    Simulator.Instance.OnPlayerTrainChanged(selectedTrain, train);
+                    Simulator.Instance.PlayerLocomotive.Train = train;
 
                     train.SetupStationStopHandling();
 
                     // clear replay commands
-                    train.Simulator.Log.CommandList.Clear();
+                    Simulator.Instance.Log.CommandList.Clear();
 
                     // display messages
-                    if (train.Simulator.Confirmer != null) // As Confirmer may not be created until after a restore.
-                        train.Simulator.Confirmer.Information("Player switched to train : " + train.Name);
+                    Simulator.Instance.Confirmer?.Information("Player switched to train : " + train.Name);// As Confirmer may not be created until after a restore.
                 }
 
                 // new train is intended as player

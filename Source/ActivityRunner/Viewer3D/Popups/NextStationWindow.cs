@@ -179,9 +179,9 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             TTTrain otherTrain = playerTimetableTrain.GetOtherTTTrainByNumber(attachTrains[0]);
                             if (otherTrain == null)
                             {
-                                if (playerTimetableTrain.Simulator.AutoGenDictionary.ContainsKey(attachTrains[0]))
+                                if (Simulator.Instance.AutoGenDictionary.ContainsKey(attachTrains[0]))
                                 {
-                                    otherTrain = playerTimetableTrain.Simulator.AutoGenDictionary[attachTrains[0]] as TTTrain;
+                                    otherTrain = Simulator.Instance.AutoGenDictionary[attachTrains[0]] as TTTrain;
                                 }
                             }
 

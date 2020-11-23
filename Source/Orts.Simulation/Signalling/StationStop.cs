@@ -433,7 +433,7 @@ namespace Orts.Simulation.Signalling
             float trainPartOutsidePlatformBackward = distancePlatformTailtoTrainTail > 0 ? distancePlatformTailtoTrainTail : 0;
             if (trainPartOutsidePlatformBackward >= train.Length) 
                 return (int)PlatformItem.MinWaitingTime; // train actually stopped before platform; should not happen
-            if (train == train.Simulator.OriginalPlayerTrain)
+            if (train == Simulator.Instance.OriginalPlayerTrain)
             {
                 if (trainPartOutsidePlatformForward == 0 && trainPartOutsidePlatformBackward == 0) 
                     passengerCarsWithinPlatform = train.PassengerCarsNumber;
@@ -515,21 +515,21 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         private int RandomizePassengersWaiting(int actualNumPassengersWaiting, Train train)
         {
-            if (train.Simulator.Settings.ActRandomizationLevel > 0)
+            if (Simulator.Instance.Settings.ActRandomizationLevel > 0)
             {
                 int randms = DateTime.UtcNow.Millisecond % 10;
-                if (randms >= 6 - train.Simulator.Settings.ActRandomizationLevel)
+                if (randms >= 6 - Simulator.Instance.Settings.ActRandomizationLevel)
                 {
                     if (randms < 8)
                     {
                         actualNumPassengersWaiting += train.RandomizedDelay(2 * PlatformItem.NumPassengersWaiting *
-                            train.Simulator.Settings.ActRandomizationLevel); // real passenger number may be up to 3 times the standard.
+                            Simulator.Instance.Settings.ActRandomizationLevel); // real passenger number may be up to 3 times the standard.
                     }
                     else
                     // less passengers than standard
                     {
                         actualNumPassengersWaiting -= train.RandomizedDelay(PlatformItem.NumPassengersWaiting *
-                            train.Simulator.Settings.ActRandomizationLevel / 6);
+                            Simulator.Instance.Settings.ActRandomizationLevel / 6);
                     }
                 }
             }

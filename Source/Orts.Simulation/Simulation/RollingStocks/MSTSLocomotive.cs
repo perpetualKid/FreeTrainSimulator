@@ -4012,11 +4012,11 @@ namespace Orts.Simulation.RollingStocks
                     {
                         if (Train.TrainType == TrainType.Ai || Train.TrainType == TrainType.AiPlayerHosting)
                         {
-                            if (Train.Simulator.GameTime - LastBrakeSoundTime < 15) // don't repeat sound too often for AI trains (which frequently set brakes on and off)
+                            if (Simulator.Instance.GameTime - LastBrakeSoundTime < 15) // don't repeat sound too often for AI trains (which frequently set brakes on and off)
                             {
                                 return;
                             }
-                            LastBrakeSoundTime = Train.Simulator.GameTime;
+                            LastBrakeSoundTime = Simulator.Instance.GameTime;
                         }
                         break;
                     }

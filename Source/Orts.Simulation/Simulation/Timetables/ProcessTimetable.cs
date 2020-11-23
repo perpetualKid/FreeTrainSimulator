@@ -1322,7 +1322,7 @@ namespace Orts.Simulation.Timetables
             {
                 parentInfo = thisParent;
                 Name = String.Copy(trainName.Trim());
-                TTTrain = new TTTrain(simulator);
+                TTTrain = new TTTrain();
                 columnIndex = icolumn;
                 Index = index;
             }
@@ -2816,7 +2816,7 @@ namespace Orts.Simulation.Timetables
                     int finalForms = TTTrain.Forms;
 
                     // create outbound train (note : train is defined WITHOUT consist as it is formed of incoming train)
-                    outTrain = new TTTrain(simulator, TTTrain);
+                    outTrain = new TTTrain(TTTrain);
 
                     bool addPathNoLoadFailure;
                     AIPath outPath = parentInfo.LoadPath(DisposeDetails.StableInfo.Stable_outpath, out addPathNoLoadFailure);
@@ -2870,7 +2870,7 @@ namespace Orts.Simulation.Timetables
                         outTrain.FormsStatic = false;
 
                         // create inbound train
-                        inTrain = new TTTrain(simulator, TTTrain);
+                        inTrain = new TTTrain(TTTrain);
 
                         AIPath inPath = parentInfo.LoadPath(DisposeDetails.StableInfo.Stable_inpath, out addPathNoLoadFailure);
                         if (!addPathNoLoadFailure)
@@ -3008,7 +3008,7 @@ namespace Orts.Simulation.Timetables
             public bool BuildRunRound(ref TTTrain rrtrain, bool atStart, DisposeInfo disposeDetails, Simulator simulator, ref List<TTTrain> trainList)
             {
                 bool loadPathNoFailure = true;
-                TTTrain formedTrain = new TTTrain(simulator, TTTrain);
+                TTTrain formedTrain = new TTTrain(TTTrain);
 
                 string pathDirectory = Path.Combine(simulator.RoutePath, "Paths");
                 string formedpathFilefull = Path.Combine(pathDirectory, DisposeDetails.RunRoundPath);

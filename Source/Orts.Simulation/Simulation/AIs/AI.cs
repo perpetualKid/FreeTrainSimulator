@@ -166,7 +166,7 @@ namespace Orts.Simulation.AIs
                 // activity mode trains
                 if (String.Equals(trainType, "AI"))
                 {
-                    AITrain aiTrain = new AITrain(Simulator, inf, this);
+                    AITrain aiTrain = new AITrain(inf, this);
                     AITrains.Add(aiTrain);
                     Simulator.Trains.Add(aiTrain);
                     simulator.TrainDictionary.Add(aiTrain.Number, aiTrain);
@@ -176,7 +176,7 @@ namespace Orts.Simulation.AIs
 
                 // timetable mode trains
                 else {
-                    TTTrain aiTrain = new TTTrain(Simulator, inf, this);
+                    TTTrain aiTrain = new TTTrain(inf, this);
                     if (aiTrain.TrainType != TrainType.Player) // add to AITrains except when it is player train
                     {
                         AITrains.Add(aiTrain);
@@ -199,13 +199,13 @@ namespace Orts.Simulation.AIs
                 string trainType = inf.ReadString();
                 if (String.Equals(trainType, "AI"))
                 {
-                    AITrain aiTrain = new AITrain(Simulator, inf, this);
+                    AITrain aiTrain = new AITrain(inf, this);
                     StartList.InsertTrain(aiTrain);
                     Simulator.StartReference.Add(aiTrain.Number);
                 }
                 else
                 {
-                    TTTrain aiTrain = new TTTrain(Simulator, inf, this);
+                    TTTrain aiTrain = new TTTrain(inf, this);
                     StartList.InsertTrain(aiTrain);
                     Simulator.StartReference.Add(aiTrain.Number);
                 }
@@ -218,13 +218,13 @@ namespace Orts.Simulation.AIs
                 string trainType = inf.ReadString();
                 if (String.Equals(trainType, "AI"))
                 {
-                    AITrain aiTrain = new AITrain(Simulator, inf, this);
+                    AITrain aiTrain = new AITrain(inf, this);
                     AutoGenTrains.Add(aiTrain);
                     Simulator.AutoGenDictionary.Add(aiTrain.Number, aiTrain);
                 }
                 else
                 {
-                    TTTrain aiTrain = new TTTrain(Simulator, inf, this);
+                    TTTrain aiTrain = new TTTrain(inf, this);
                     AutoGenTrains.Add(aiTrain);
                     Simulator.AutoGenDictionary.Add(aiTrain.Number, aiTrain);
                 }
@@ -265,7 +265,7 @@ namespace Orts.Simulation.AIs
             Debug.Assert(simulator.Trains != null, "Cannot restore AI without Simulator.Trains.");
             Simulator = simulator;
             string trainType = inf.ReadString(); // may be ignored, can be AI only
-            AITrain aiTrain = new AITrain(Simulator, inf, this);
+            AITrain aiTrain = new AITrain(inf, this);
             int PlayerLocomotiveIndex = inf.ReadInt32();
             if (PlayerLocomotiveIndex >= 0) Simulator.PlayerLocomotive = aiTrain.Cars[PlayerLocomotiveIndex];
             Simulator.Trains.Add(aiTrain);
@@ -867,7 +867,7 @@ namespace Orts.Simulation.AIs
             float maxVelocityA = conFile.Train.MaxVelocity.A;
             // sd.Name is the name of the service file.
             // srvFile.Name points to the name of the service within the Name() category such as Name ( "Eastbound Freight Train" ) in the service file.
-            AITrain train = new AITrain(Simulator, sd, this, aiPath, srvFile.Efficiency, srvFile.Name, trfDef, maxVelocityA);
+            AITrain train = new AITrain(sd, this, aiPath, srvFile.Efficiency, srvFile.Name, trfDef, maxVelocityA);
             Simulator.TrainDictionary.Add(train.Number, train);
 
             if (!Simulator.NameDictionary.ContainsKey(train.Name.ToLower()))
@@ -1162,7 +1162,7 @@ namespace Orts.Simulation.AIs
                     TTTrain lastTrain = thisTrain.GetOtherTTTrainByNumber(lastTrainNumber);
                     if (lastTrain == null)
                     {
-                        lastTrain = thisTrain.Simulator.GetAutoGenTTTrainByNumber(lastTrainNumber);
+                        lastTrain = Simulator.Instance.GetAutoGenTTTrainByNumber(lastTrainNumber);
                     }
                     if (lastTrain != null)
                     {

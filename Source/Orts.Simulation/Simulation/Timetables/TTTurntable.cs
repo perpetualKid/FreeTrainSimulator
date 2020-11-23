@@ -1062,7 +1062,7 @@ namespace Orts.Simulation.Timetables
                         train.Cars[carid].CarID = selectedTrain.Cars[carid].CarID;
                     }
                     train.AI.TrainsToAdd.Add(train);
-                    train.Simulator.Trains.Add(train);
+                    Simulator.Instance.Trains.Add(train);
 
                     train.SetFormedOccupied();
                     train.TrainType = TrainType.Player;
@@ -1070,20 +1070,19 @@ namespace Orts.Simulation.Timetables
                     train.MovementState = AITrain.AI_MOVEMENT_STATE.AI_STATIC;
 
                     // inform viewer about player train switch
-                    train.Simulator.PlayerLocomotive = train.LeadLocomotive;
-                    train.Simulator.OnPlayerLocomotiveChanged();
+                    Simulator.Instance.PlayerLocomotive = train.LeadLocomotive;
+                    Simulator.Instance.OnPlayerLocomotiveChanged();
 
-                    train.Simulator.OnPlayerTrainChanged(selectedTrain, train);
-                    train.Simulator.PlayerLocomotive.Train = train;
+                    Simulator.Instance.OnPlayerTrainChanged(selectedTrain, train);
+                    Simulator.Instance.PlayerLocomotive.Train = train;
 
                     train.SetupStationStopHandling();
 
                     // clear replay commands
-                    train.Simulator.Log.CommandList.Clear();
+                    Simulator.Instance.Log.CommandList.Clear();
 
                     // display messages
-                    if (train.Simulator.Confirmer != null) // As Confirmer may not be created until after a restore.
-                        train.Simulator.Confirmer.Information("Player switched to train : " + train.Name);
+                    Simulator.Instance.Confirmer?.Information("Player switched to train : " + train.Name); // As Confirmer may not be created until after a restore.
                 }
 
                 // new train is intended as player
@@ -1747,11 +1746,11 @@ namespace Orts.Simulation.Timetables
                         parentTrain.TCRoute.AddSubrouteAtEnd(parentPool.StoragePool[parentTrain.PoolStorageIndex].StoragePath);
 
                         // send message
-                        var message = Simulator.Catalog.GetString("Turntable is ready for access - allowed speed set to {0}", FormatStrings.FormatSpeedDisplay(parentTrain.AllowedMaxSpeedMpS, parentTrain.Simulator.MilepostUnitsMetric));
-                        parentTrain.Simulator.Confirmer.Information(message);
+                        var message = Simulator.Catalog.GetString("Turntable is ready for access - allowed speed set to {0}", FormatStrings.FormatSpeedDisplay(parentTrain.AllowedMaxSpeedMpS, Simulator.Instance.MilepostUnitsMetric));
+                        Simulator.Instance.Confirmer.Information(message);
 
                         // create train-on-table class
-                        trainOnTable = new TrainOnMovingTable(parentTrain.Simulator);
+                        trainOnTable = new TrainOnMovingTable(Simulator.Instance);
                         trainOnTable.Train = parentTrain;
                         trainOnTable.SetFrontState(false);
                         trainOnTable.SetBackState(false);
@@ -1788,11 +1787,11 @@ namespace Orts.Simulation.Timetables
                         parentTrain.AllowedMaxSpeedMpS = Math.Min(parentTrain.AllowedMaxSpeedMpS, parentTrain.TrainMaxSpeedMpS);
 
                         // send message
-                        var message = Simulator.Catalog.GetString("Turntable is ready for access - allowed speed set to {0}", FormatStrings.FormatSpeedDisplay(parentTrain.AllowedMaxSpeedMpS, parentTrain.Simulator.MilepostUnitsMetric));
-                        parentTrain.Simulator.Confirmer.Information(message);
+                        var message = Simulator.Catalog.GetString("Turntable is ready for access - allowed speed set to {0}", FormatStrings.FormatSpeedDisplay(parentTrain.AllowedMaxSpeedMpS, Simulator.Instance.MilepostUnitsMetric));
+                        Simulator.Instance.Confirmer.Information(message);
 
                         // create train-on-table class
-                        trainOnTable = new TrainOnMovingTable(parentTrain.Simulator);
+                        trainOnTable = new TrainOnMovingTable(Simulator.Instance);
                         trainOnTable.Train = parentTrain;
                         trainOnTable.SetFrontState(false);
                         trainOnTable.SetBackState(false);
@@ -1812,7 +1811,7 @@ namespace Orts.Simulation.Timetables
                         if (WorldLocation.Within(parentTrain.FrontTDBTraveller.WorldLocation, parentTurntable.WorldPosition.WorldLocation, parentTurntable.Length / 2))
                         {
                             trainOnTable.SetFrontState(true);
-                            parentTrain.Simulator.Confirmer.Information("Front of train is on table");
+                            Simulator.Instance.Confirmer.Information("Front of train is on table");
 
                         }
                     }
@@ -1821,8 +1820,8 @@ namespace Orts.Simulation.Timetables
                         if (WorldLocation.Within(parentTrain.RearTDBTraveller.WorldLocation, parentTurntable.WorldPosition.WorldLocation, parentTurntable.Length / 2))
                         {
                             trainOnTable.SetBackState(true);
-                            parentTrain.Simulator.Confirmer.Information("Rear of train is on table");
-                            parentTrain.Simulator.Confirmer.Information("Stop train, set throttle to zero, set reverser to neutral");
+                            Simulator.Instance.Confirmer.Information("Rear of train is on table");
+                            Simulator.Instance.Confirmer.Information("Stop train, set throttle to zero, set reverser to neutral");
                         }
                     }
                     else if (parentTrain.SpeedMpS < 0.05f)
@@ -1836,12 +1835,12 @@ namespace Orts.Simulation.Timetables
                             if (!WorldLocation.Within(parentTrain.FrontTDBTraveller.WorldLocation, parentTurntable.WorldPosition.WorldLocation, parentTurntable.Length / 2))
                             {
                                 trainOnTable.SetFrontState(false);
-                                parentTrain.Simulator.Confirmer.Information("Front of train slipped off table");
+                                Simulator.Instance.Confirmer.Information("Front of train slipped off table");
                             }
                             if (!WorldLocation.Within(parentTrain.RearTDBTraveller.WorldLocation, parentTurntable.WorldPosition.WorldLocation, parentTurntable.Length / 2))
                             {
                                 trainOnTable.SetBackState(false);
-                                parentTrain.Simulator.Confirmer.Information("Rear of train slipped off table");
+                                Simulator.Instance.Confirmer.Information("Rear of train slipped off table");
                             }
 
                             if (trainOnTable.FrontOnBoard && trainOnTable.BackOnBoard)
@@ -1869,7 +1868,7 @@ namespace Orts.Simulation.Timetables
                         if (WorldLocation.Within(parentTrain.FrontTDBTraveller.WorldLocation, parentTurntable.WorldPosition.WorldLocation, parentTurntable.Length / 2))
                         {
                             trainOnTable.SetFrontState(true);
-                            parentTrain.Simulator.Confirmer.Information("Front of train is on table");
+                            Simulator.Instance.Confirmer.Information("Front of train is on table");
 
                         }
                     }
@@ -1878,8 +1877,8 @@ namespace Orts.Simulation.Timetables
                         if (WorldLocation.Within(parentTrain.RearTDBTraveller.WorldLocation, parentTurntable.WorldPosition.WorldLocation, parentTurntable.Length / 2))
                         {
                             trainOnTable.SetBackState(true);
-                            parentTrain.Simulator.Confirmer.Information("Rear of train is on table");
-                            parentTrain.Simulator.Confirmer.Information("Stop train, set throttle to zero, set reverser to neutral");
+                            Simulator.Instance.Confirmer.Information("Rear of train is on table");
+                            Simulator.Instance.Confirmer.Information("Stop train, set throttle to zero, set reverser to neutral");
                         }
                     }
                     else if (parentTrain.SpeedMpS < 0.05f)
@@ -1893,12 +1892,12 @@ namespace Orts.Simulation.Timetables
                             if (!WorldLocation.Within(parentTrain.FrontTDBTraveller.WorldLocation, parentTurntable.WorldPosition.WorldLocation, parentTurntable.Length / 2))
                             {
                                 trainOnTable.SetFrontState(false);
-                                parentTrain.Simulator.Confirmer.Information("Front of train slipped off table");
+                                Simulator.Instance.Confirmer.Information("Front of train slipped off table");
                             }
                             if (!WorldLocation.Within(parentTrain.RearTDBTraveller.WorldLocation, parentTurntable.WorldPosition.WorldLocation, parentTurntable.Length / 2))
                             {
                                 trainOnTable.SetBackState(false);
-                                parentTrain.Simulator.Confirmer.Information("Rear of train slipped off table");
+                                Simulator.Instance.Confirmer.Information("Rear of train slipped off table");
                             }
 
                             if (trainOnTable.FrontOnBoard && trainOnTable.BackOnBoard)

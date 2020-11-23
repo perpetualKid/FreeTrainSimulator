@@ -76,7 +76,7 @@ namespace Orts.Simulation.Track
                 int trainNumber = inf.ReadInt32();
                 int trainRouteIndex = inf.ReadInt32();
                 int trainDirection = inf.ReadInt32();
-                Train thisTrain = new Train(simulator, trainNumber);
+                Train thisTrain = new Train(trainNumber);
                 Train.TrainRouted thisRouted = new Train.TrainRouted(thisTrain, trainRouteIndex);
                 OccupationState.Add(thisRouted, trainDirection);
             }
@@ -85,7 +85,7 @@ namespace Orts.Simulation.Track
             if (trainReserved >= 0)
             {
                 int trainRouteIndexR = inf.ReadInt32();
-                Train thisTrain = new Train(simulator, trainReserved);
+                Train thisTrain = new Train(trainReserved);
                 Train.TrainRouted trainRoute = new Train.TrainRouted(thisTrain, trainRouteIndexR);
                 TrainReserved = trainRoute;
             }
@@ -97,7 +97,7 @@ namespace Orts.Simulation.Track
             {
                 int trainNumber = inf.ReadInt32();
                 int trainRouteIndex = inf.ReadInt32();
-                Train thisTrain = new Train(simulator, trainNumber);
+                Train thisTrain = new Train(trainNumber);
                 Train.TrainRouted thisRouted = new Train.TrainRouted(thisTrain, trainRouteIndex);
                 TrainPreReserved.Enqueue(thisRouted);
             }
@@ -107,7 +107,7 @@ namespace Orts.Simulation.Track
             {
                 int trainNumber = inf.ReadInt32();
                 int trainRouteIndex = inf.ReadInt32();
-                Train thisTrain = new Train(simulator, trainNumber);
+                Train thisTrain = new Train(trainNumber);
                 Train.TrainRouted thisRouted = new Train.TrainRouted(thisTrain, trainRouteIndex);
                 TrainClaimed.Enqueue(thisRouted);
             }

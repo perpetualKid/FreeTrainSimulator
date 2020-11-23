@@ -130,7 +130,7 @@ namespace Orts.Simulation.AIs
                     if (actionRef.AssociatedWPAction != null) actionRef.AssociatedWPAction.SetDelay(remainingDelay);
                     actionRef.Delay = remainingDelay;
                 }
-            if (!(ThisTrain == ThisTrain.Simulator.OriginalPlayerTrain && (ThisTrain.TrainType == TrainType.AiPlayerDriven ||
+            if (!(ThisTrain == Simulator.Instance.OriginalPlayerTrain && (ThisTrain.TrainType == TrainType.AiPlayerDriven ||
                 ThisTrain.TrainType == TrainType.AiPlayerHosting || ThisTrain.TrainType == TrainType.Player || ThisTrain.TrainType == TrainType.Ai)))
             {
 
@@ -198,7 +198,7 @@ namespace Orts.Simulation.AIs
 #endif
         protected void SetGenAuxActions(AITrain thisTrain)  //  Add here the new Generic Action
         {
-            if (!thisTrain.Simulator.TimetableMode && thisTrain.Simulator.Activity.Activity.AIHornAtCrossings > 0 && SpecAuxActions.Count == 0)
+            if (!Simulator.Instance.TimetableMode && Simulator.Instance.Activity.Activity.AIHornAtCrossings > 0 && SpecAuxActions.Count == 0)
             {
                 AuxActionHorn auxActionHorn = new AuxActionHorn(true);
                 AIActionHornRef horn = new AIActionHornRef(thisTrain, auxActionHorn, 0);

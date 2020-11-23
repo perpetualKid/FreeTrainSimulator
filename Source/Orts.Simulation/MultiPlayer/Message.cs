@@ -1305,7 +1305,7 @@ namespace Orts.MultiPlayer
             //System.Console.WriteLine(this.ToString());
             // construct train data
             Train train = null;
-            train = new Train(MPManager.Simulator);
+            train = new Train();
             train.Number = this.TrainNum;
 
             train.TrainType = TrainType.Remote;
@@ -1514,7 +1514,7 @@ namespace Orts.MultiPlayer
                 if (!found)
                 {
                     //not found, create new train
-                    train1 = new Train(MPManager.Simulator); train1.Number = this.TrainNum;
+                    train1 = new Train(); train1.Number = this.TrainNum;
                 }
             }
             if (found)
@@ -2647,7 +2647,7 @@ namespace Orts.MultiPlayer
 
                 if (train == null || trainCars == null) return;
 
-                Train train2 = new Train(MPManager.Simulator);
+                Train train2 = new Train();
                 List<TrainCar> tmpcars2 = new List<TrainCar>();
                 for (var i = 0; i < ids2.Length; i++)
                 {

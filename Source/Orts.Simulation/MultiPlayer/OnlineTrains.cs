@@ -144,7 +144,7 @@ namespace Orts.MultiPlayer
             p.LeadingLocomotiveID = player.leadingID;
             p.con = MPManager.Simulator.BasePath + "\\TRAINS\\CONSISTS\\" + player.con;
             p.path = MPManager.Simulator.RoutePath + "\\PATHS\\" + player.path;
-            Train train = new Train(MPManager.Simulator);
+            Train train = new Train();
             train.TrainType = TrainType.Remote;
             if (MPManager.IsServer()) //server needs to worry about correct train number
             {

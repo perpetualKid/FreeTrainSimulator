@@ -249,7 +249,7 @@ namespace Orts.Simulation.Signalling
 
             if (trainNumber >= 0)
             {
-                Train thisTrain = new Train(simulator, trainNumber);
+                Train thisTrain = new Train(trainNumber);
                 Train.TrainRouted thisTrainRouted = new Train.TrainRouted(thisTrain, 0);
                 EnabledTrain = thisTrainRouted;
             }

@@ -138,9 +138,8 @@ namespace Orts.Simulation.AIs
         /// Constructor
         /// </summary>
 
-        public AITrain(Simulator simulator, Services sd, AI ai, AIPath path, float efficiency,
-                string name, ServiceTraffics trafficService, float maxVelocityA)
-            : base(simulator)
+        public AITrain(Services sd, AI ai, AIPath path, float efficiency, string name, ServiceTraffics trafficService, float maxVelocityA)
+            : base()
         {
             ServiceDefinition = sd;
             UiD = ServiceDefinition.UiD;
@@ -149,11 +148,11 @@ namespace Orts.Simulation.AIs
             TrainType = TrainType.AiNotStarted;
             StartTime = ServiceDefinition.Time;
             Efficiency = efficiency;
-            if (Simulator.Settings.ActRandomizationLevel > 0 && Simulator.ActivityRun != null) // randomize efficiency
+            if (simulator.Settings.ActRandomizationLevel > 0 && simulator.ActivityRun != null) // randomize efficiency
             {
                 RandomizeEfficiency(ref Efficiency);
             }
-            Name = String.Copy(name);
+            Name = name;
             TrafficService = trafficService;
             MaxVelocityA = maxVelocityA;
             // <CSComment> TODO: as Cars.Count is always = 0 at this point, activityClearingDistanceM is set to the short distance also for long trains
@@ -161,11 +160,10 @@ namespace Orts.Simulation.AIs
             if (Cars.Count < standardTrainMinCarNo) activityClearingDistanceM = shortClearingDistanceM;
         }
 
-        public AITrain(Simulator simulator)
-            : base(simulator)
+        public AITrain()
+            : base()
         {
             TrainType = TrainType.AiNotStarted;
-
         }
 
         //================================================================================================//
@@ -192,8 +190,8 @@ namespace Orts.Simulation.AIs
         /// Restore
         /// </summary>
 
-        public AITrain(Simulator simulator, BinaryReader inf, AI airef)
-            : base(simulator, inf)
+        public AITrain(BinaryReader inf, AI airef)
+            : base(inf)
         {
             AI = airef;
             ColdStart = false;
@@ -224,7 +222,7 @@ namespace Orts.Simulation.AIs
             UncondAttach = inf.ReadBoolean();
             doorCloseAdvance = inf.ReadSingle();
             doorOpenDelay = inf.ReadSingle();
-            if (!Simulator.TimetableMode && doorOpenDelay <= 0 && doorCloseAdvance > 0 && Simulator.OpenDoorsInAITrains &&
+            if (!simulator.TimetableMode && doorOpenDelay <= 0 && doorCloseAdvance > 0 && simulator.OpenDoorsInAITrains &&
                 MovementState == AI_MOVEMENT_STATE.STATION_STOP && StationStops.Count > 0)
             {
                 StationStop thisStation = StationStops[0];
@@ -264,7 +262,8 @@ namespace Orts.Simulation.AIs
                 if (MovementState != AI_MOVEMENT_STATE.SUSPENDED) ObtainRequiredActions(0);
             }
             // associate location events
-            if (Simulator.ActivityRun != null) Simulator.ActivityRun.AssociateEvents(this);
+            if (simulator.ActivityRun != null) 
+                simulator.ActivityRun.AssociateEvents(this);
         }
 
         //================================================================================================//
@@ -409,16 +408,16 @@ namespace Orts.Simulation.AIs
 
                 // <CSComment> This creates problems in push-pull paths </CSComment>
 //                StationStops.Sort();
-                if (!atStation && StationStops.Count > 0 && this != Simulator.Trains[0])
+                if (!atStation && StationStops.Count > 0 && this != simulator.Trains[0])
                 {
                     if (MaxVelocityA > 0 &&
                         ServiceDefinition != null && ServiceDefinition.Count > 0)
                     {
                         // <CScomment> gets efficiency from .act file to override TrainMaxSpeedMpS computed from .srv efficiency
                         var sectionEfficiency = ServiceDefinition[0].Efficiency;
-                        if (Simulator.Settings.ActRandomizationLevel > 0) RandomizeEfficiency(ref sectionEfficiency);
+                        if (simulator.Settings.ActRandomizationLevel > 0) RandomizeEfficiency(ref sectionEfficiency);
                         if (sectionEfficiency > 0)
-                            TrainMaxSpeedMpS = Math.Min((float)Simulator.TRK.Route.SpeedLimit, MaxVelocityA * sectionEfficiency);
+                            TrainMaxSpeedMpS = Math.Min((float)simulator.TRK.Route.SpeedLimit, MaxVelocityA * sectionEfficiency);
                     }
                 }
 
@@ -608,11 +607,11 @@ namespace Orts.Simulation.AIs
                 // set wipers on or off
                 if (Cars[0] is MSTSLocomotive leadingloco)
                 {
-                    if (Simulator.Weather.PricipitationIntensityPPSPM2 > 0 && !leadingloco.Wiper)
+                    if (simulator.Weather.PricipitationIntensityPPSPM2 > 0 && !leadingloco.Wiper)
                     {
                         leadingloco.SignalEvent(TrainEvent.WiperOn);
                     }
-                    else if (Simulator.Weather.PricipitationIntensityPPSPM2 == 0 && leadingloco.Wiper)
+                    else if (simulator.Weather.PricipitationIntensityPPSPM2 == 0 && leadingloco.Wiper)
                     {
                         leadingloco.SignalEvent(TrainEvent.WiperOff);
                     }
@@ -1005,14 +1004,14 @@ namespace Orts.Simulation.AIs
                                     thisInfo.DistanceToTrain, thisInfo,
                                     AIActionItem.AI_ACTION_TYPE.SIGNAL_ASPECT_STOP);
                             processedList.Add(thisInfo);
-                            var validClearingDistanceM = Simulator.TimetableMode ? clearingDistanceM : activityClearingDistanceM;
+                            var validClearingDistanceM = simulator.TimetableMode ? clearingDistanceM : activityClearingDistanceM;
                             if (((thisInfo.DistanceToTrain - validClearingDistanceM) < validClearingDistanceM) &&
                                          (SpeedMpS > 0.0f || MovementState == AI_MOVEMENT_STATE.ACCELERATING))
                             {
                                 AITrainBrakePercent = 100;
                                 AITrainThrottlePercent = 0;
                                 NextStopDistanceM = validClearingDistanceM;
-                                if (PreUpdate && !Simulator.TimetableMode) ObtainRequiredActions(movedBackward); // fast track to stop train; else a precious update is lost
+                                if (PreUpdate && !simulator.TimetableMode) ObtainRequiredActions(movedBackward); // fast track to stop train; else a precious update is lost
                             }
                         }
                         else if (thisInfo.DistanceToTrain > 2.0f * signalApproachDistanceM) // set restricted only if not close
@@ -1045,8 +1044,8 @@ namespace Orts.Simulation.AIs
         public virtual void SetNextStationAction(bool fromAutopilotSwitch = false)
         {
             // if train is player driven and is at station, do nothing
-            if (TrainType == TrainType.AiPlayerDriven && this == Simulator.OriginalPlayerTrain && Simulator.ActivityRun.Current is ActivityTaskPassengerStopAt &&
-                ((ActivityTaskPassengerStopAt)Simulator.ActivityRun.Current).IsAtStation(this)) return;
+            if (TrainType == TrainType.AiPlayerDriven && this == simulator.OriginalPlayerTrain && simulator.ActivityRun.Current is ActivityTaskPassengerStopAt &&
+                ((ActivityTaskPassengerStopAt)simulator.ActivityRun.Current).IsAtStation(this)) return;
 
             // check if station in this subpath
 
@@ -1069,8 +1068,8 @@ namespace Orts.Simulation.AIs
 
             // get distance to station, but not if just after switch to Autopilot and not during station stop
             bool validStop = false;
-            if (!fromAutopilotSwitch || (Simulator.PlayerLocomotive != null && Simulator.ActivityRun != null && !(
-                this == Simulator.OriginalPlayerTrain && Simulator.ActivityRun.Current is ActivityTaskPassengerStopAt && ((ActivityTaskPassengerStopAt)Simulator.ActivityRun.Current).IsAtStation(this))))
+            if (!fromAutopilotSwitch || (simulator.PlayerLocomotive != null && simulator.ActivityRun != null && !(
+                this == simulator.OriginalPlayerTrain && simulator.ActivityRun.Current is ActivityTaskPassengerStopAt && ((ActivityTaskPassengerStopAt)simulator.ActivityRun.Current).IsAtStation(this))))
             {
                 while (!validStop)
                 {
@@ -1603,7 +1602,7 @@ namespace Orts.Simulation.AIs
                 }
                 else
                 {
-                    if (!IsFreight && Simulator.OpenDoorsInAITrains)
+                    if (!IsFreight && simulator.OpenDoorsInAITrains)
                     {
                         var frontIsFront = thisStation.PlatformReference == thisStation.PlatformItem.PlatformFrontUiD;
                         if (doorOpenDelay > 0)
@@ -1708,23 +1707,23 @@ namespace Orts.Simulation.AIs
             PreviousStop = thisStation.CreateCopy();
 
             if (thisStation.StopType == StationStopType.Station
-                && MaxVelocityA > 0 && ServiceDefinition != null && ServiceDefinition.Count > 0 && this != Simulator.Trains[0])
+                && MaxVelocityA > 0 && ServiceDefinition != null && ServiceDefinition.Count > 0 && this != simulator.Trains[0])
             // <CScomment> Recalculate TrainMaxSpeedMpS and AllowedMaxSpeedMpS
             {
                 var actualServiceItemIdx = ServiceDefinition.FindIndex(si => si.PlatformStartID == thisStation.PlatformReference);
                 if (actualServiceItemIdx >= 0 && ServiceDefinition.Count >= actualServiceItemIdx + 2)
                 {
                     var sectionEfficiency = ServiceDefinition[actualServiceItemIdx + 1].Efficiency;
-                    if (Simulator.Settings.ActRandomizationLevel > 0) RandomizeEfficiency(ref sectionEfficiency);
+                    if (simulator.Settings.ActRandomizationLevel > 0) RandomizeEfficiency(ref sectionEfficiency);
                     if (sectionEfficiency > 0)
                     {
-                        TrainMaxSpeedMpS = Math.Min((float)Simulator.TRK.Route.SpeedLimit, MaxVelocityA * sectionEfficiency);
+                        TrainMaxSpeedMpS = Math.Min((float)simulator.TRK.Route.SpeedLimit, MaxVelocityA * sectionEfficiency);
                         RecalculateAllowedMaxSpeed();
                     }
                 }
                 else if (MaxVelocityA > 0 && Efficiency > 0)
                 {
-                    TrainMaxSpeedMpS = Math.Min((float)Simulator.TRK.Route.SpeedLimit, MaxVelocityA * Efficiency);
+                    TrainMaxSpeedMpS = Math.Min((float)simulator.TRK.Route.SpeedLimit, MaxVelocityA * Efficiency);
                     RecalculateAllowedMaxSpeed();
                 }
             }
@@ -2947,10 +2946,10 @@ namespace Orts.Simulation.AIs
                 {
                     if (FirstCar is MSTSLocomotive)
                         ((MSTSLocomotive)FirstCar).SetTrainBrakePercent(AITrainBrakePercent);
-                    if (Simulator.PlayerLocomotive != null && FirstCar != Simulator.PlayerLocomotive)
+                    if (simulator.PlayerLocomotive != null && FirstCar != simulator.PlayerLocomotive)
                     {
-                        Simulator.PlayerLocomotive.BrakeSystem.AISetPercent(AITrainBrakePercent);
-                        ((MSTSLocomotive)Simulator.PlayerLocomotive).SetTrainBrakePercent(AITrainBrakePercent);
+                        simulator.PlayerLocomotive.BrakeSystem.AISetPercent(AITrainBrakePercent);
+                        ((MSTSLocomotive)simulator.PlayerLocomotive).SetTrainBrakePercent(AITrainBrakePercent);
                     }
                 }
             }
@@ -2968,10 +2967,10 @@ namespace Orts.Simulation.AIs
                 {
                     if (FirstCar is MSTSLocomotive)
                         ((MSTSLocomotive)FirstCar).SetTrainBrakePercent(AITrainBrakePercent);
-                    if (Simulator.PlayerLocomotive != null && FirstCar != Simulator.PlayerLocomotive)
+                    if (simulator.PlayerLocomotive != null && FirstCar != simulator.PlayerLocomotive)
                     {
-                        Simulator.PlayerLocomotive.BrakeSystem.AISetPercent(AITrainBrakePercent);
-                        ((MSTSLocomotive)Simulator.PlayerLocomotive).SetTrainBrakePercent(AITrainBrakePercent);
+                        simulator.PlayerLocomotive.BrakeSystem.AISetPercent(AITrainBrakePercent);
+                        ((MSTSLocomotive)simulator.PlayerLocomotive).SetTrainBrakePercent(AITrainBrakePercent);
                     }
                 }
             }
@@ -2990,10 +2989,10 @@ namespace Orts.Simulation.AIs
                     {
                         ((MSTSLocomotive)FirstCar).SetThrottlePercent(AITrainThrottlePercent);
                     }
-                    if (Simulator.PlayerLocomotive != null && FirstCar != Simulator.PlayerLocomotive)
+                    if (simulator.PlayerLocomotive != null && FirstCar != simulator.PlayerLocomotive)
                     {
-                        Simulator.PlayerLocomotive.ThrottlePercent = AITrainThrottlePercent;
-                        ((MSTSLocomotive)Simulator.PlayerLocomotive).SetThrottlePercent(AITrainThrottlePercent);
+                        simulator.PlayerLocomotive.ThrottlePercent = AITrainThrottlePercent;
+                        ((MSTSLocomotive)simulator.PlayerLocomotive).SetThrottlePercent(AITrainThrottlePercent);
                     }
                 }
             }
@@ -3087,12 +3086,12 @@ namespace Orts.Simulation.AIs
                         ((MSTSLocomotive)FirstCar).SetTrainBrakePercent(AITrainBrakePercent);
                         ((MSTSLocomotive)FirstCar).SetThrottlePercent(AITrainThrottlePercent);
                     }
-                    if (Simulator.PlayerLocomotive != null && FirstCar != Simulator.PlayerLocomotive)
+                    if (simulator.PlayerLocomotive != null && FirstCar != simulator.PlayerLocomotive)
                     {
-                        Simulator.PlayerLocomotive.ThrottlePercent = AITrainThrottlePercent;
-                        Simulator.PlayerLocomotive.BrakeSystem.AISetPercent(AITrainBrakePercent);
-                        ((MSTSLocomotive)Simulator.PlayerLocomotive).SetTrainBrakePercent(AITrainBrakePercent);
-                        ((MSTSLocomotive)Simulator.PlayerLocomotive).SetThrottlePercent(AITrainThrottlePercent);
+                        simulator.PlayerLocomotive.ThrottlePercent = AITrainThrottlePercent;
+                        simulator.PlayerLocomotive.BrakeSystem.AISetPercent(AITrainBrakePercent);
+                        ((MSTSLocomotive)simulator.PlayerLocomotive).SetTrainBrakePercent(AITrainBrakePercent);
+                        ((MSTSLocomotive)simulator.PlayerLocomotive).SetThrottlePercent(AITrainThrottlePercent);
                     }
                 }
             }
@@ -3261,7 +3260,7 @@ namespace Orts.Simulation.AIs
                     {
                         AIActionWPRef action = new AIActionWPRef(this, waitingPoint[5], 0f, waitingPoint[0], lastIndex, thisRoute[lastIndex].TrackCircuitSection.Index, (int)direction);
                         var randomizedDelay = waitingPoint[2];
-                        if (Simulator.Settings.ActRandomizationLevel > 0)
+                        if (simulator.Settings.ActRandomizationLevel > 0)
                         {
                             RandomizedWPDelay(ref randomizedDelay);
                         }
@@ -3289,7 +3288,7 @@ namespace Orts.Simulation.AIs
                 {
                     AIActionWPRef action = new AIActionWPRef(this, waitingPoint[5], 0f, waitingPoint[0], lastIndex, thisRoute[lastIndex].TrackCircuitSection.Index, (int)direction);
                     var randomizedDelay = waitingPoint[2];
-                    if (Simulator.Settings.ActRandomizationLevel > 0)
+                    if (simulator.Settings.ActRandomizationLevel > 0)
                     {
                         RandomizedWPDelay(ref randomizedDelay);
                     }
@@ -3377,13 +3376,13 @@ namespace Orts.Simulation.AIs
                     ReverseFormation(false);
                     // active subpath must be incremented in parallel in incorporated train if present
                     if (IncorporatedTrainNo >= 0)
-                        IncrementSubpath(Simulator.TrainDictionary[IncorporatedTrainNo]);
+                        IncrementSubpath(simulator.TrainDictionary[IncorporatedTrainNo]);
                 }
                 else if (positionNow == PresentPosition[1].TrackCircuitSectionIndex && directionNow != PresentPosition[1].Direction)
                 {
                     ReverseFormation(false);
                     // active subpath must be incremented in parallel in incorporated train if present
-                    if (IncorporatedTrainNo >= 0) IncrementSubpath(Simulator.TrainDictionary[IncorporatedTrainNo]);
+                    if (IncorporatedTrainNo >= 0) IncrementSubpath(simulator.TrainDictionary[IncorporatedTrainNo]);
                 }
 
                 // check if next station was on previous subpath - if so, move to this subpath
@@ -3429,8 +3428,8 @@ namespace Orts.Simulation.AIs
             var distanceThreshold = PreUpdate ? 5.0f : 2.0f;
             var distanceToNextSignal = DistanceToSignal.HasValue ? DistanceToSignal.Value : 0.1f;
 
-            if (Simulator.TimetableMode) removeIt = true;
-            else if (TrainType == TrainType.AiPlayerHosting || Simulator.OriginalPlayerTrain == this) removeIt = false;
+            if (simulator.TimetableMode) removeIt = true;
+            else if (TrainType == TrainType.AiPlayerHosting || simulator.OriginalPlayerTrain == this) removeIt = false;
             else if (TCRoute.TCRouteSubpaths.Count == 1 || TCRoute.ActiveSubPath != TCRoute.TCRouteSubpaths.Count - 1) removeIt = true;
             else if (NextSignalObject[0] != null && NextSignalObject[0].IsSignal && distanceToNextSignal < 25 && distanceToNextSignal >= 0 && PresentPosition[1].DistanceTravelled < distanceThreshold)
             {
@@ -3462,8 +3461,8 @@ namespace Orts.Simulation.AIs
             
             if (removeIt)
             {
-                if (IncorporatedTrainNo >= 0 && Simulator.TrainDictionary.Count > IncorporatedTrainNo &&
-                   Simulator.TrainDictionary[IncorporatedTrainNo] != null) Simulator.TrainDictionary[IncorporatedTrainNo].RemoveTrain();
+                if (IncorporatedTrainNo >= 0 && simulator.TrainDictionary.Count > IncorporatedTrainNo &&
+                   simulator.TrainDictionary[IncorporatedTrainNo] != null) simulator.TrainDictionary[IncorporatedTrainNo].RemoveTrain();
                 RemoveTrain();
             }
             returnValue[1] = false;
@@ -3648,18 +3647,18 @@ namespace Orts.Simulation.AIs
                 //            InitializeBrakes();
                 attachTrain.physicsUpdate(0);   // stop the wheels from moving etc
                 // remove original train
-                if (isActualPlayerTrain && this != Simulator.OriginalPlayerTrain)
+                if (isActualPlayerTrain && this != simulator.OriginalPlayerTrain)
                 {
                     // Switch to the attached train as the one where we are now will be removed
-                    Simulator.TrainSwitcher.PickedTrainFromList = attachTrain;
-                    Simulator.TrainSwitcher.ClickedTrainFromList = true;
+                    simulator.TrainSwitcher.PickedTrainFromList = attachTrain;
+                    simulator.TrainSwitcher.ClickedTrainFromList = true;
                     attachTrain.TrainType = TrainType.AiPlayerHosting;
                     AI.TrainsToRemoveFromAI.Add((AITrain)attachTrain);
-                    Simulator.Confirmer.Message(ConfirmLevel.Information, Simulator.Catalog.GetString("Player train has been included into train {0} service {1}, that automatically becomes the new player train",
+                    simulator.Confirmer.Message(ConfirmLevel.Information, Simulator.Catalog.GetString("Player train has been included into train {0} service {1}, that automatically becomes the new player train",
                         Number, Name));
-                    Simulator.PlayerLocomotive = Simulator.SetPlayerLocomotive(attachTrain);
+                    simulator.PlayerLocomotive = simulator.SetPlayerLocomotive(attachTrain);
                     (attachTrain as AITrain).SwitchToPlayerControl();
-                    Simulator.OnPlayerLocomotiveChanged();
+                    simulator.OnPlayerLocomotiveChanged();
                     AI.AITrains.Add(this);
                 }
                 if (!UncondAttach)
@@ -3760,9 +3759,9 @@ namespace Orts.Simulation.AIs
             else
             {
                 attachTrain.RemoveFromTrack();
-                Simulator.Trains.Remove(attachTrain);
-                Simulator.TrainDictionary.Remove(attachTrain.Number);
-                Simulator.NameDictionary.Remove(attachTrain.Name.ToLower());
+                simulator.Trains.Remove(attachTrain);
+                simulator.TrainDictionary.Remove(attachTrain.Number);
+                simulator.NameDictionary.Remove(attachTrain.Name.ToLower());
             }
             if (MPManager.IsMultiPlayer()) MPManager.BroadCast((new MSGCouple(this, attachTrain, false)).ToString());
             UpdateOccupancies();
@@ -4032,10 +4031,10 @@ namespace Orts.Simulation.AIs
             }
             carsToKeep = (delay - 40000) / 100;
             delay = delay - 40000 - carsToKeep * 100;
-            if (IsActualPlayerTrain && TrainType == TrainType.AiPlayerDriven && this != Simulator.OriginalPlayerTrain)
+            if (IsActualPlayerTrain && TrainType == TrainType.AiPlayerDriven && this != simulator.OriginalPlayerTrain)
             {
-                Simulator.ActivityRun.MsgFromNewPlayer = String.Format("Uncouple and keep coupled only {0} {1} cars", carsToKeep, keepFront ? "first" : "last");
-                Simulator.ActivityRun.NewMsgFromNewPlayer = true;
+                simulator.ActivityRun.MsgFromNewPlayer = String.Format("Uncouple and keep coupled only {0} {1} cars", carsToKeep, keepFront ? "first" : "last");
+                simulator.ActivityRun.NewMsgFromNewPlayer = true;
             }
             else UncoupleSomeWagons(carsToKeep, keepFront);
         }
@@ -4074,7 +4073,7 @@ namespace Orts.Simulation.AIs
                 return;
             }
             int uncouplePoint = keepFront ? carsToKeep - 1 : Cars.Count - carsToKeep - 1;
-            Simulator.UncoupleBehind(Cars[uncouplePoint], keepFront);
+            simulator.UncoupleBehind(Cars[uncouplePoint], keepFront);
 
 
         }
@@ -4091,10 +4090,10 @@ namespace Orts.Simulation.AIs
             if (delay != 60001) return;
             else
             {
-                if (IsActualPlayerTrain && this != Simulator.OriginalPlayerTrain)
+                if (IsActualPlayerTrain && this != simulator.OriginalPlayerTrain)
                 {
-                    Simulator.ActivityRun.MsgFromNewPlayer = "You are involved in a join and split task; when you will couple to next train, you automatically will be switched to drive such next train";
-                    Simulator.ActivityRun.NewMsgFromNewPlayer = true;
+                    simulator.ActivityRun.MsgFromNewPlayer = "You are involved in a join and split task; when you will couple to next train, you automatically will be switched to drive such next train";
+                    simulator.ActivityRun.NewMsgFromNewPlayer = true;
                 }
                 delay = 0;
                 UncondAttach = true;
@@ -4114,10 +4113,10 @@ namespace Orts.Simulation.AIs
             else
             {
                 delay = 20;
-                if (IsActualPlayerTrain && TrainType == TrainType.AiPlayerDriven && this != Simulator.OriginalPlayerTrain)
+                if (IsActualPlayerTrain && TrainType == TrainType.AiPlayerDriven && this != simulator.OriginalPlayerTrain)
                 {
-                    Simulator.ActivityRun.MsgFromNewPlayer = "Ask permission to pass signal (press TAB or Shift-TAB) and proceed";
-                    Simulator.ActivityRun.NewMsgFromNewPlayer = true;
+                    simulator.ActivityRun.MsgFromNewPlayer = "Ask permission to pass signal (press TAB or Shift-TAB) and proceed";
+                    simulator.ActivityRun.NewMsgFromNewPlayer = true;
                 }
                 else RequestSignalPermission(ValidRoute[0], 0);
             }
@@ -4206,7 +4205,7 @@ namespace Orts.Simulation.AIs
             Cars.Clear();
             requiredActions.RemovePendingAIActionItems(true);
             UncondAttach = false;
-            Simulator.Confirmer.Message(ConfirmLevel.Information, Simulator.Catalog.GetString("Join success: Train {0} service {1} has been incorporated into train {2} service {3}",
+            simulator.Confirmer.Message(ConfirmLevel.Information, Simulator.Catalog.GetString("Join success: Train {0} service {1} has been incorporated into train {2} service {3}",
                 Number, Name.Substring(0, Math.Min(Name.Length, 20)), incorporatingTrain.Number, incorporatingTrain.Name.Substring(0, Math.Min(incorporatingTrain.Name.Length, 20))));
         }
 
@@ -4223,7 +4222,7 @@ namespace Orts.Simulation.AIs
             float activateDistanceTravelledM = PresentPosition[0].DistanceTravelled + distanceToTrainM;
             if (thisItem != null)
             {
-                activateDistanceTravelledM -= Simulator.TimetableMode ? clearingDistanceM : activityClearingDistanceM;
+                activateDistanceTravelledM -= simulator.TimetableMode ? clearingDistanceM : activityClearingDistanceM;
             }
 
             // calculate braking distance
@@ -4404,14 +4403,14 @@ namespace Orts.Simulation.AIs
                     var valid = ((AuxActionItem)thisAction).ValidAction(this);
                     if (valid && TrainType == TrainType.AiPlayerDriven)
                     {
-                        var presentTime = Convert.ToInt32(Math.Floor(Simulator.ClockTime));
+                        var presentTime = Convert.ToInt32(Math.Floor(simulator.ClockTime));
                         ((AuxActionItem)thisAction).ProcessAction(this, presentTime);
                     }
                 }
                 else if (thisAction is AuxActionItem)
                 {
                     var presentTime = 0;
-                    if (!PreUpdate) presentTime = Convert.ToInt32(Math.Floor(Simulator.ClockTime));
+                    if (!PreUpdate) presentTime = Convert.ToInt32(Math.Floor(simulator.ClockTime));
                     else presentTime = Convert.ToInt32(Math.Floor(AI.clockTime));
                     var actionState = ((AuxActionItem)thisAction).ProcessAction(this, presentTime);
                     if (actionState != AI_MOVEMENT_STATE.INIT_ACTION && actionState != AI_MOVEMENT_STATE.HANDLE_ACTION)
@@ -4429,18 +4428,18 @@ namespace Orts.Simulation.AIs
         {
             if (speedInfo.MaxSpeedMpSSignal > 0)
             {
-                allowedMaxSpeedSignalMpS = Simulator.TimetableMode ? speedInfo.MaxSpeedMpSSignal : allowedAbsoluteMaxSpeedSignalMpS;
+                allowedMaxSpeedSignalMpS = simulator.TimetableMode ? speedInfo.MaxSpeedMpSSignal : allowedAbsoluteMaxSpeedSignalMpS;
                 AllowedMaxSpeedMpS = Math.Min(speedInfo.MaxSpeedMpSSignal, Math.Min(allowedMaxSpeedLimitMpS, allowedMaxTempSpeedLimitMpS));
             }
             if (speedInfo.MaxSpeedMpSLimit > 0)
             {
-                allowedMaxSpeedLimitMpS = Simulator.TimetableMode ? speedInfo.MaxSpeedMpSLimit : allowedAbsoluteMaxSpeedLimitMpS;
-                if (Simulator.TimetableMode)
+                allowedMaxSpeedLimitMpS = simulator.TimetableMode ? speedInfo.MaxSpeedMpSLimit : allowedAbsoluteMaxSpeedLimitMpS;
+                if (simulator.TimetableMode)
                     AllowedMaxSpeedMpS = speedInfo.MaxSpeedMpSLimit;
                 else
                     AllowedMaxSpeedMpS = Math.Min(speedInfo.MaxSpeedMpSLimit, Math.Min(allowedMaxSpeedSignalMpS, allowedMaxTempSpeedLimitMpS));
             }
-            if (speedInfo.MaxTempSpeedMpSLimit > 0 && !Simulator.TimetableMode)
+            if (speedInfo.MaxTempSpeedMpSLimit > 0 && !simulator.TimetableMode)
             {
                 allowedMaxTempSpeedLimitMpS = allowedAbsoluteMaxTempSpeedLimitMpS;
                 AllowedMaxSpeedMpS = Math.Min(speedInfo.MaxTempSpeedMpSLimit, Math.Min(allowedMaxSpeedSignalMpS, allowedMaxSpeedLimitMpS));
@@ -4451,7 +4450,7 @@ namespace Orts.Simulation.AIs
             if (MovementState == AI_MOVEMENT_STATE.RUNNING && SpeedMpS < AllowedMaxSpeedMpS - 2.0f * hysterisMpS)
             {
                 MovementState = AI_MOVEMENT_STATE.ACCELERATING;
-                Alpha10 = PreUpdate & !Simulator.TimetableMode ? 2 : 10;
+                Alpha10 = PreUpdate & !simulator.TimetableMode ? 2 : 10;
             }
             // reset pending actions to recalculate braking distance
 
@@ -4780,7 +4779,7 @@ namespace Orts.Simulation.AIs
                     MovementState != AI_MOVEMENT_STATE.BRAKING)
                 {
                     MovementState = AI_MOVEMENT_STATE.BRAKING;
-                    Alpha10 = PreUpdate & !Simulator.TimetableMode ? 2 : 10;
+                    Alpha10 = PreUpdate & !simulator.TimetableMode ? 2 : 10;
                 }
                 else if (MovementState == AI_MOVEMENT_STATE.STOPPED && nextActionInfo.GetType().IsSubclassOf(typeof(AuxActionItem)))
                 {
@@ -5087,15 +5086,15 @@ namespace Orts.Simulation.AIs
                 if (car is MSTSLocomotive)
                 {
                     var loco = car as MSTSLocomotive;
-                    loco.LocomotiveAxle.Reset(Simulator.GameTime, SpeedMpS);
+                    loco.LocomotiveAxle.Reset(simulator.GameTime, SpeedMpS);
                     loco.LocomotiveAxle.AxleSpeedMpS = SpeedMpS;
                     loco.LocomotiveAxle.FilterMovingAverage.Initialize(loco.AverageForceN);
                     loco.AntiSlip = false; // <CSComment> TODO Temporary patch until AntiSlip is re-implemented
                 }
-                if (car == Simulator.PlayerLocomotive) { leadLocomotiveIndex = j; }
+                if (car == simulator.PlayerLocomotive) { leadLocomotiveIndex = j; }
                 j++;
             }
-            MSTSLocomotive lead = (MSTSLocomotive)Simulator.PlayerLocomotive;
+            MSTSLocomotive lead = (MSTSLocomotive)simulator.PlayerLocomotive;
             foreach (TrainCar car in Cars)
             {
                 if (car.BrakeSystem is AirSinglePipe)
@@ -5104,7 +5103,7 @@ namespace Orts.Simulation.AIs
                 }
             }
             LeadLocomotiveIndex = leadLocomotiveIndex;
-            Simulator.PlayerLocomotive.SwitchToPlayerControl();
+            simulator.PlayerLocomotive.SwitchToPlayerControl();
             if (MovementState == AI_MOVEMENT_STATE.HANDLE_ACTION && nextActionInfo != null && nextActionInfo.GetType().IsSubclassOf(typeof(AuxActionItem))
                 && AuxActionsContain[0] != null && ((AIAuxActionsRef)AuxActionsContain[0]).NextAction == AuxActionRef.AuxiliaryAction.WaitingPoint)
             {
@@ -5124,7 +5123,7 @@ namespace Orts.Simulation.AIs
         {
             bool success = false;
             // MUDirection set within following method call
-            Simulator.PlayerLocomotive.SwitchToAutopilotControl();
+            simulator.PlayerLocomotive.SwitchToAutopilotControl();
             LeadLocomotive = null;
             LeadLocomotiveIndex = -1;
             TrainType = TrainType.AiPlayerHosting;
@@ -5144,22 +5143,22 @@ namespace Orts.Simulation.AIs
                 FirstCar.BrakeSystem.AISetPercent(AITrainBrakePercent);
                 if (FirstCar is MSTSLocomotive)
                     ((MSTSLocomotive)FirstCar).SetTrainBrakePercent(AITrainBrakePercent);
-                if (Simulator.PlayerLocomotive != null && FirstCar != Simulator.PlayerLocomotive)
+                if (simulator.PlayerLocomotive != null && FirstCar != simulator.PlayerLocomotive)
                 {
-                    Simulator.PlayerLocomotive.BrakeSystem.AISetPercent(AITrainBrakePercent);
-                    ((MSTSLocomotive)Simulator.PlayerLocomotive).SetTrainBrakePercent(AITrainBrakePercent);
+                    simulator.PlayerLocomotive.BrakeSystem.AISetPercent(AITrainBrakePercent);
+                    ((MSTSLocomotive)simulator.PlayerLocomotive).SetTrainBrakePercent(AITrainBrakePercent);
                 }
             }
             ResetActions(true, true);
             if (SpeedMpS != 0) MovementState = AI_MOVEMENT_STATE.BRAKING;
-            else if (this == Simulator.OriginalPlayerTrain && Simulator.ActivityRun != null && Simulator.ActivityRun.Current is ActivityTaskPassengerStopAt && ((ActivityTaskPassengerStopAt)Simulator.ActivityRun.Current).IsAtStation(this) &&
-                ((ActivityTaskPassengerStopAt)Simulator.ActivityRun.Current).BoardingS > 0)
+            else if (this == simulator.OriginalPlayerTrain && simulator.ActivityRun != null && simulator.ActivityRun.Current is ActivityTaskPassengerStopAt && ((ActivityTaskPassengerStopAt)simulator.ActivityRun.Current).IsAtStation(this) &&
+                ((ActivityTaskPassengerStopAt)simulator.ActivityRun.Current).BoardingS > 0)
             {
-                StationStops[0].ActualDepart = (int)((ActivityTaskPassengerStopAt)Simulator.ActivityRun.Current).BoardingEndS;
-                StationStops[0].ActualArrival = -(int)(new DateTime().Add(TimeSpan.FromSeconds(0.0)) - ((ActivityTaskPassengerStopAt)Simulator.ActivityRun.Current).ActArrive).Value.TotalSeconds;
+                StationStops[0].ActualDepart = (int)((ActivityTaskPassengerStopAt)simulator.ActivityRun.Current).BoardingEndS;
+                StationStops[0].ActualArrival = -(int)(new DateTime().Add(TimeSpan.FromSeconds(0.0)) - ((ActivityTaskPassengerStopAt)simulator.ActivityRun.Current).ActArrive).Value.TotalSeconds;
                 MovementState = AI_MOVEMENT_STATE.STATION_STOP;
             }
-            else if (this != Simulator.OriginalPlayerTrain && AtStation)
+            else if (this != simulator.OriginalPlayerTrain && AtStation)
             {
                 MovementState = AI_MOVEMENT_STATE.STATION_STOP;
             }
@@ -5294,7 +5293,7 @@ namespace Orts.Simulation.AIs
             // if at station
             if (AtStation)
             {
-                int presentTime = Convert.ToInt32(Math.Floor(Simulator.ClockTime));
+                int presentTime = Convert.ToInt32(Math.Floor(simulator.ClockTime));
                 int eightHundredHours = 8 * 3600;
                 int sixteenHundredHours = 16 * 3600;
 
@@ -5379,7 +5378,7 @@ namespace Orts.Simulation.AIs
                                 {
                                     MayDepart = true;
                                     DisplayMessage = Simulator.Catalog.GetString("Passenger boarding completed. You may depart now.");
-                                    Simulator.SoundNotify = TrainEvent.PermissionToDepart;
+                                    simulator.SoundNotify = TrainEvent.PermissionToDepart;
                                 }
                             }
                         }
@@ -5402,7 +5401,7 @@ namespace Orts.Simulation.AIs
                         AtStation = IsAtPlatform();
                          if (AtStation)
                         {
-                            int presentTime = Convert.ToInt32(Math.Floor(Simulator.ClockTime));
+                            int presentTime = Convert.ToInt32(Math.Floor(simulator.ClockTime));
                             StationStops[0].ActualArrival = presentTime;
                             StationStops[0].CalculateDepartTime(this);
                         }
@@ -5429,7 +5428,7 @@ namespace Orts.Simulation.AIs
         {
             var delayToRestart = restartWaitingTrain.DelayToRestart;
             var matchingWPDelay = restartWaitingTrain.MatchingWPDelay;
-            int presentTime = Convert.ToInt32(Math.Floor(Simulator.ClockTime));
+            int presentTime = Convert.ToInt32(Math.Floor(simulator.ClockTime));
             var roughActualDepart = presentTime + delayToRestart;
             if (MovementState == AITrain.AI_MOVEMENT_STATE.HANDLE_ACTION && (((nextActionInfo as AuxActionWPItem).ActionRef as AIActionWPRef).Delay == matchingWPDelay ||
                 (AuxActionsContain.specRequiredActions.Count > 0 && ((AuxActSigDelegate)(AuxActionsContain.specRequiredActions).First.Value).currentMvmtState == AITrain.AI_MOVEMENT_STATE.HANDLE_ACTION &&

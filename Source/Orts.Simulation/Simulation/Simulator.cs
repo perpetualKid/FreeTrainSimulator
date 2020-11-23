@@ -1092,7 +1092,7 @@ namespace Orts.Simulation
             Debug.Assert(Trains != null, "Cannot InitializePlayerTrain() without Simulator.Trains.");
             // set up the player locomotive
 
-            Train train = new Train(this);
+            Train train = new Train();
             train.TrainType = TrainType.Player;
             train.Number = 0;
             train.Name = "PLAYER";
@@ -1293,7 +1293,7 @@ namespace Orts.Simulation
                 try
                 {
                     // construct train data
-                    Physics.Train train = new Physics.Train(this);
+                    Train train = new Train();
                     train.TrainType = TrainType.Static;
                     train.Name = "STATIC" + "-" + activityObject.ID;
                     int consistDirection;
@@ -1415,7 +1415,7 @@ namespace Orts.Simulation
             int trainType = inf.ReadInt32();
             while (trainType != -1)
             {
-                if (trainType >= 0) Trains.Add(new Physics.Train(this, inf));
+                if (trainType >= 0) Trains.Add(new Train(inf));
                 else if (trainType == -2)                   // Autopilot mode
                 {
                     AI = new AI(this, inf, true);
@@ -1535,7 +1535,7 @@ namespace Orts.Simulation
             Physics.Train train2;
             if (train.IncorporatedTrainNo == -1)
             {
-                train2 = new Physics.Train(this, train);
+                train2 = new Train(train);
                 Trains.Add(train2);
             }
             else
