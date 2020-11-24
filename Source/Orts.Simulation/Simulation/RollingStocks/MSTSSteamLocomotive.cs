@@ -1073,7 +1073,7 @@ namespace Orts.Simulation.RollingStocks
             if (ZeroError(CylinderStrokeM, "CylinderStroke"))
                 CylinderStrokeM = 1;
             if (ZeroError(DriverWheelRadiusM, "WheelRadius"))
-                DriverWheelRadiusM = (float)Size.Length.FromIn(30.0f);
+                DriverWheelRadiusM = (float)Size.Length.FromIn(30.0f); // Wheel radius of loco drive wheels can be anywhere from about 10" to 40"
             if (ZeroError(MaxBoilerPressurePSI, "MaxBoilerPressure"))
                 MaxBoilerPressurePSI = 1;
             if (ZeroError(BoilerVolumeFT3, "BoilerVolume"))
