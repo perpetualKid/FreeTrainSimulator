@@ -155,6 +155,10 @@ namespace Orts.Scripting.Api
         /// </summary>
         public Func<float> ThrottlePercent;
         /// <summary>
+        /// Returns dynamic brake percent
+        /// </summary>
+        public Func<float> DynamicBrakePercent;
+        /// <summary>
         /// True if traction is authorized.
         /// </summary>
         public Func<bool> TractionAuthorization;
@@ -175,9 +179,21 @@ namespace Orts.Scripting.Api
         /// </summary>
         public Func<float> BrakeCutsPowerAtBrakeCylinderPressureBar;
         /// <summary>
-        /// Elevation percent at the locomotive's location.
+        /// Track slope percent at the locomotive's location.
         /// </summary>
-        public Func<float> CurrentElevationPercent;
+        public Func<ControllerState> TrainBrakeControllerState;
+        /// <summary>
+        /// Locomotive acceleration.
+        /// </summary>
+        public Func<float> AccelerationMpSS;
+        /// <summary>
+        /// Locomotive elevation.
+        /// </summary>
+        public Func<float> ElevationM;
+        /// <summary>
+        /// Track slope percent at the locomotive's location.
+        /// </summary>
+        public Func<float> CurrentSlopePercent;
         /// <summary>
         /// Line speed taken from .trk file.
         /// </summary>
