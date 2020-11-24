@@ -848,7 +848,7 @@ namespace Orts.Simulation.AIs
                 movedBackward = CheckBackwardClearance();                                       // check clearance at rear //
                 UpdateTrainPosition();                                                          // position update         //              
                 UpdateTrainPositionInformation();                                               // position linked info    //
-                int SignalObjIndex = CheckSignalPassed(0, PresentPosition[0], PreviousPosition[0]);    // check if passed signal  //
+                int SignalObjIndex = CheckSignalPassed(0, PresentPosition[0], PreviousPosition[TrainPosition.Front]);    // check if passed signal  //
                 UpdateSectionState(movedBackward);                                              // update track occupation //
                 ObtainRequiredActions(movedBackward);                                           // process Actions         //
                 UpdateRouteClearanceAhead(SignalObjIndex, movedBackward, elapsedClockSeconds);  // update route clearance  //
@@ -3313,7 +3313,7 @@ namespace Orts.Simulation.AIs
         /// Initialize brakes for AI trains
         /// </summary>
 
-        public override void InitializeBrakes()
+        internal override void InitializeBrakes()
         {
             if (TrainType == TrainType.AiPlayerDriven || TrainType == TrainType.Player)
             {
@@ -3626,7 +3626,7 @@ namespace Orts.Simulation.AIs
                 TrackDirection direction = (TrackDirection)attachTrain.FrontTDBTraveller.Direction;
 
                 attachTrain.PresentPosition[0].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
-                attachTrain.PreviousPosition[0].UpdateFrom(attachTrain.PresentPosition[0]);
+                attachTrain.PreviousPosition[TrainPosition.Front].UpdateFrom(attachTrain.PresentPosition[0]);
 
                 tn = attachTrain.RearTDBTraveller.TN;
                 offset = attachTrain.RearTDBTraveller.TrackNodeOffset;
@@ -3741,7 +3741,7 @@ namespace Orts.Simulation.AIs
             TrackDirection direction = (TrackDirection)FrontTDBTraveller.Direction;
 
             PresentPosition[0].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
-            PreviousPosition[0].UpdateFrom(PresentPosition[0]);
+            PreviousPosition[TrainPosition.Front].UpdateFrom(PresentPosition[0]);
 
             tn = RearTDBTraveller.TN;
             offset = RearTDBTraveller.TrackNodeOffset;
@@ -3967,7 +3967,7 @@ namespace Orts.Simulation.AIs
             TrackDirection direction = (TrackDirection)FrontTDBTraveller.Direction;
 
             PresentPosition[0].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
-            PreviousPosition[0].UpdateFrom(PresentPosition[0]);
+            PreviousPosition[TrainPosition.Front].UpdateFrom(PresentPosition[0]);
 
             tn = RearTDBTraveller.TN;
             offset = RearTDBTraveller.TrackNodeOffset;
@@ -3981,7 +3981,7 @@ namespace Orts.Simulation.AIs
             direction = (TrackDirection)attachTrain.FrontTDBTraveller.Direction;
 
             attachTrain.PresentPosition[0].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
-            PreviousPosition[0].UpdateFrom(attachTrain.PresentPosition[0]);
+            PreviousPosition[TrainPosition.Front].UpdateFrom(attachTrain.PresentPosition[0]);
 
             tn = attachTrain.RearTDBTraveller.TN;
             offset = attachTrain.RearTDBTraveller.TrackNodeOffset;
@@ -4371,7 +4371,7 @@ namespace Orts.Simulation.AIs
         /// Perform stored actions
         /// </summary>
 
-        public override void PerformActions(List<DistanceTravelledItem> nowActions)
+        private protected override void PerformActions(List<DistanceTravelledItem> nowActions)
         {
             foreach (var thisAction in nowActions)
             {

@@ -1258,10 +1258,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             // **************  Engine Brake *************
             // Propagate engine brake pipe (#3) data
 
-            int first = -1;
-            int last = -1;
-
-            train.FindLeadLocomotives(ref first, ref last);
+            (int first, int last) = train.FindLeadLocomotives();
             int continuousFromInclusive = 0;
             int continuousToExclusive = train.Cars.Count;
 

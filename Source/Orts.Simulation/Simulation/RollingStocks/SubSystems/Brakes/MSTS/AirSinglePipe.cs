@@ -730,9 +730,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             }
 
             // Propagate main reservoir pipe (2) and engine brake pipe (3) data
-            int first = -1;
-            int last = -1;
-            train.FindLeadLocomotives(ref first, ref last);
+            (int first, int last) = train.FindLeadLocomotives();
             float sumpv = 0;
             float sumv = 0;
             int continuousFromInclusive = 0;

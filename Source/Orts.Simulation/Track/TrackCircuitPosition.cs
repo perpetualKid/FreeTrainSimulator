@@ -13,12 +13,12 @@ namespace Orts.Simulation.Track
     /// </summary>
     public class TrackCircuitPosition
     {
-        public int TrackCircuitSectionIndex { get; set; }
-        public TrackDirection Direction { get; set; }
-        public float Offset { get; set; }
-        public int RouteListIndex { get; set; }
+        public int TrackCircuitSectionIndex { get; internal set; }
+        public TrackDirection Direction { get; internal set; }
+        public float Offset { get; internal set; }
+        public int RouteListIndex { get; internal set; }
         public int TrackNode { get; private set; }
-        public float DistanceTravelled { get; set; }
+        public float DistanceTravelled { get; internal set; }
 
         /// <summary>
         /// constructor - creates empty item

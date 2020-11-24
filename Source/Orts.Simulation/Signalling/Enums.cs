@@ -6,12 +6,6 @@
         FarEnd,
     }
 
-    public enum PinEnd
-    {
-        ThisEnd,
-        OtherEnd,
-    }
-
     public enum InternalBlockstate
     {
         Reserved,                   // all sections reserved for requiring train       //

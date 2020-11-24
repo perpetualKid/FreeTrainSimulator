@@ -17,7 +17,7 @@ namespace Orts.Simulation.Track
     {
         private readonly List<TrackCircuitRouteElement> list;
         private Dictionary<int, int> items;
-        private Dictionary<int, int> routeDirections;
+        private Dictionary<int, TrackDirection> routeDirections;
 
         #region interface implementation
         public int Count => list.Count;
@@ -276,11 +276,11 @@ namespace Orts.Simulation.Track
         //
         // Converts list of elements to dictionary
         //
-        public Dictionary<int, int> ConvertRoute()
+        public Dictionary<int, TrackDirection> ConvertRoute()
         {
             if(routeDirections == null)
             {
-                routeDirections = list.ToDictionary(item => item.TrackCircuitSection.Index, item => (int)item.Direction);
+                routeDirections = list.ToDictionary(item => item.TrackCircuitSection.Index, item => item.Direction);
             }
             return routeDirections;
         }

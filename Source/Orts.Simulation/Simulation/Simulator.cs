@@ -1722,9 +1722,10 @@ namespace Orts.Simulation
                     var playerTrain = PlayerLocomotive.Train as AITrain;
                     if (playerTrain != null)
                     {
-                        if (playerTrain.ControlMode == TrainControlMode.Manual) TrainSwitcher.SuspendOldPlayer = true; // force suspend state to avoid disappearing of train;
+                        if (playerTrain.ControlMode == TrainControlMode.Manual) 
+                            TrainSwitcher.SuspendOldPlayer = true; // force suspend state to avoid disappearing of train;
                         if (TrainSwitcher.SuspendOldPlayer && 
-                            (playerTrain.SpeedMpS < -0.025 || playerTrain.SpeedMpS > 0.025 || playerTrain.PresentPosition[0].Offset != playerTrain.PreviousPosition[0].Offset))
+                            (playerTrain.SpeedMpS < -0.025 || playerTrain.SpeedMpS > 0.025 || playerTrain.IsMoving()))
                         {
                             Confirmer.Message(ConfirmLevel.Warning, Catalog.GetString("Train can't be suspended with speed not equal 0"));
                             TrainSwitcher.SuspendOldPlayer = false;
