@@ -202,8 +202,8 @@ namespace Orts.ActivityRunner.Viewer3D
     public class SharedMaterialManager
     {
         readonly Viewer Viewer;
-        IDictionary<(string, string, int, float, int, Effect), Material> Materials = new Dictionary<(string, string, int, float, int, Effect), Material>();
-        IDictionary<(string, string, int, float, int, Effect), bool> MaterialMarks = new Dictionary<(string, string, int, float, int, Effect), bool>();
+        IDictionary<(string, string, int, float, Effect), Material> Materials = new Dictionary<(string, string, int, float, Effect), Material>();
+        IDictionary<(string, string, int, float, Effect), bool> MaterialMarks = new Dictionary<(string, string, int, float, Effect), bool>();
 
         public readonly LightConeShader LightConeShader;
         public readonly LightGlowShader LightGlowShader;
@@ -267,12 +267,12 @@ namespace Orts.ActivityRunner.Viewer3D
 
         }
 
-        public Material Load(string materialName, string textureName = null, int options = 0, float mipMapBias = 0f, int cabShaderKey = 0, CabShader cabShader = null, Effect effect = null)
+        public Material Load(string materialName, string textureName = null, int options = 0, float mipMapBias = 0f, Effect effect = null)
         {
             if (textureName != null)
                 textureName = textureName.ToLower();
 
-            var materialKey = (materialName, textureName, options, mipMapBias, cabShaderKey, effect);
+            var materialKey = (materialName, textureName, options, mipMapBias, effect);
             if (!Materials.ContainsKey(materialKey))
             {
                 switch (materialName)
@@ -323,10 +323,10 @@ namespace Orts.ActivityRunner.Viewer3D
                         Materials[materialKey] = new MSTSSkyMaterial(Viewer);
                         break;
                     case "SpriteBatch":
-                        Materials[materialKey] = new SpriteBatchMaterial(Viewer, effect: effect);
+                        Materials[materialKey] = new SpriteBatchMaterial(Viewer, effect);
                         break;
                     case "CabSpriteBatch":
-                        Materials[materialKey] = new CabSpriteBatchMaterial(Viewer, cabShader);
+                        Materials[materialKey] = new CabSpriteBatchMaterial(Viewer, effect as CabShader);
                         break;
                     case "Terrain":
                         Materials[materialKey] = new TerrainMaterial(Viewer, textureName, SharedMaterialManager.MissingTexture);
