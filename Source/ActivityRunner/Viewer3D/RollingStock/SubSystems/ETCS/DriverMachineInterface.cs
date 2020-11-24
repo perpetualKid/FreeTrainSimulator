@@ -26,6 +26,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Orts.ActivityRunner.Viewer3D.Popups;
 using Orts.Common;
 using Orts.Common.Input;
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Scripting.Api.Etcs;
 using Orts.Simulation.RollingStocks;
@@ -39,6 +40,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
         public readonly CircularSpeedGauge CircularSpeedGauge;
         public readonly PlanningWindow PlanningWindow;
         float PrevScale = 1;
+
+        bool Active;
+
+        public bool ShowDistanceAndSpeedInformation;
         public float Scale { get; private set; }
         readonly int Height = 480;
         readonly int Width = 640;
@@ -59,9 +64,20 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
 
         Texture2D ColorTexture;
 
+        /// <summary>
+        /// True if the screen is sensitive
+        /// </summary>
         public bool IsTouchScreen = true;
+        /// <summary>
+        /// Controls the layout of the DMI screen depending.
+        /// Must be true if there are physical buttons to control the DMI, even if it is a touch screen.
+        /// If false, the screen must be tactile.
+        /// </summary>
         public bool IsSoftLayout;
 
+        /// <summary>
+        /// Class to store information of sensitive areas of the touch screen
+        /// </summary>
         public class Button
         {
             public readonly string Name;
@@ -79,12 +95,16 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
 
         public readonly List<Button> SensitiveButtons = new List<Button>();
 
-        Button ActiveButton; // Name of the button currently being pressed without valid pulsation yet
-        public Button PressedButton; // Name of the button with a valid pulsation in current frame 
+        /// <summary>
+        /// Name of the button currently being pressed without valid pulsation yet
+        /// </summary>
+        Button ActiveButton;
+        /// <summary>
+        /// Name of the button with a valid pulsation in current update cycle
+        /// </summary>
+        public Button PressedButton;
 
-        ETCSStatus CurrentStatus;
-
-        public DriverMachineInterface(float height, float width, MSTSLocomotive locomotive, Viewer viewer)
+        public DriverMachineInterface(float height, float width, MSTSLocomotive locomotive, Viewer viewer, CabViewDigitalControl control)
         {
             Viewer = viewer;
             Locomotive = locomotive;
@@ -96,14 +116,15 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
             CircularSpeedGauge = new CircularSpeedGauge(
                    (int)(280 * Scale),
                    (int)(300 * Scale),
-                   /*(int)Control.MaxValue*/400,
-                   true/**/,
-                   false/*true*/,
-                   false/*Control.MaxValue == 240 || Control.MaxValue == 260*/,
-                   /*(int)Control.MinValue*/400,
+                   (int)control.ScaleRangeMax,
+                   control.ControlUnit == CabViewControlUnit.Km_Per_Hour,
+                   true,
+                   control.ScaleRangeMax == 240 || control.ScaleRangeMax == 260,
+                   (int)control.ScaleRangeMin,
                    Locomotive,
                    Viewer,
-                   null
+                   null,
+                   this
                );
             PlanningWindow = new PlanningWindow(this, Viewer, PlanningLocation);
 
@@ -113,10 +134,11 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
 
         public void PrepareFrame()
         {
-            CurrentStatus = Locomotive.TrainControlSystem.ETCSStatus?.Clone(); // Clone the status class so everything can be accessed safely
-            if (CurrentStatus == null || !CurrentStatus.DMIActive) return;
-            CircularSpeedGauge.PrepareFrame(CurrentStatus);
-            PlanningWindow.PrepareFrame(CurrentStatus);
+            ETCSStatus currentStatus = Locomotive.TrainControlSystem.ETCSStatus;
+            Active = currentStatus != null && currentStatus.DMIActive;
+            if (!Active) return;
+            CircularSpeedGauge.PrepareFrame(currentStatus);
+            PlanningWindow.PrepareFrame(currentStatus);
         }
         public void SizeTo(float width, float height)
         {
@@ -141,7 +163,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
             }
             spriteBatch.End();
             spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, null, DepthStencilState.Default, null, null);
-            if (CurrentStatus == null || !CurrentStatus.DMIActive) return;
+            if (!Active) return;
             spriteBatch.Draw(ColorTexture, new Rectangle(position, new Point((int)(640 * Scale), (int)(480 * Scale))), ColorBackground);
             CircularSpeedGauge.Draw(spriteBatch, new Point(position.X + (int)(SpeedAreaLocation.X * Scale), position.Y + (int)(SpeedAreaLocation.Y * Scale)));
             PlanningWindow.Draw(spriteBatch, new Point(position.X + (int)(PlanningLocation.X * Scale), position.Y + (int)(PlanningLocation.Y * Scale)));
@@ -219,6 +241,23 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
             }
         }*/
     }
+
+    public abstract class DMIWindow
+    {
+        protected readonly DriverMachineInterface DMI;
+        public float Scale;
+        protected DMIWindow(DriverMachineInterface dmi)
+        {
+            DMI = dmi;
+        }
+
+        public abstract void PrepareFrame(ETCSStatus status);
+        public abstract void Draw(SpriteBatch spriteBatch, Point position);
+        public Rectangle ScaledRectangle(Point origin, int x, int y, int width, int height)
+        {
+            return new Rectangle(origin.X + (int)(x * Scale), origin.Y + (int)(y * Scale), Math.Max((int)(width * Scale), 1), Math.Max((int)(height * Scale), 1));
+        }
+    }
     public class DriverMachineInterfaceRenderer : CabViewDigitalRenderer, ICabViewMouseControlRenderer
     {
         private readonly DriverMachineInterface driverMachineInterface;
@@ -226,7 +265,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
         public DriverMachineInterfaceRenderer(Viewer viewer, MSTSLocomotive locomotive, CabViewDigitalControl control, CabShader shader)
             : base(viewer, locomotive, control, shader)
         {
-            driverMachineInterface = new DriverMachineInterface((int)Control.Bounds.Width, (int)Control.Bounds.Height, locomotive, viewer);
+            driverMachineInterface = new DriverMachineInterface((int)Control.Bounds.Width, (int)Control.Bounds.Height, locomotive, viewer, control);
 
             viewer.UserCommandController.AddEvent(CommonUserCommand.PointerPressed, MouseClickedEvent);
             viewer.UserCommandController.AddEvent(CommonUserCommand.PointerReleased, MouseReleasedEvent);

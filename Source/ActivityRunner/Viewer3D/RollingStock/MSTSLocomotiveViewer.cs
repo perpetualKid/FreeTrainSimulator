@@ -1379,7 +1379,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         {
                             CabViewDigitalRenderer cvdr;
                             if (viewer.Settings.CircularSpeedGauge && digital.ControlStyle == CabViewControlStyle.Needle)
-                                cvdr = new DriverMachineInterfaceRenderer(viewer, car, digital, _Shader);//new CabViewCircularSpeedGaugeRenderer(viewer, car, digital, _Shader);
+                                cvdr = new DriverMachineInterfaceRenderer(viewer, car, digital, _Shader);
                             else
                                 cvdr = new CabViewDigitalRenderer(viewer, car, digital, _Shader);
                             cvdr.SortIndex = controlSortIndex;
@@ -1477,7 +1477,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 {
                     CabViewDigitalRenderer cvdr;
                     if (viewer.Settings.CircularSpeedGauge && digital.ControlStyle == CabViewControlStyle.Needle)
-                        cvdr = new DriverMachineInterfaceRenderer(viewer, car, digital, _Shader);//new CabViewCircularSpeedGaugeRenderer(viewer, car, digital, _Shader);
+                        cvdr = new DriverMachineInterfaceRenderer(viewer, car, digital, _Shader);
                     else
                         cvdr = new CabViewDigitalRenderer(viewer, car, digital, _Shader);
                     cvdr.SortIndex = controlSortIndex;
@@ -1656,6 +1656,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         }
     }
 
+    /// <summary>
+    /// Interface for mouse controllable CabViewControls
+    /// </summary>
     public interface ICabViewMouseControlRenderer
     {
         bool IsMouseWithin(Point mousePoint);

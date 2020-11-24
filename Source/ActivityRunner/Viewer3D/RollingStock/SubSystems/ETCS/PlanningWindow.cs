@@ -32,9 +32,15 @@ using static Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs.DriverMac
 namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
 {
     // Compliant with ERA_ERTMS_015560 version 3.6.0 (ETCS DRIVER MACHINE INTERFACE)
-    public class PlanningWindow
+    public class PlanningWindow : DMIWindow
     {
+        /// <summary>
+        /// Target with the lowest distance to indication. It will be shown in yellow
+        /// </summary>
         PlanningTarget? IndicationMarkerTarget;
+        /// <summary>
+        /// Distance to the point where the TSM or RSM monitors will be activated. It is shown as a yellow line.
+        /// </summary>
         float? IndicationMarkerDistanceM;
 
         int MaxViewingDistanceM = 8000;
@@ -44,8 +50,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
         bool Visible;
 
         readonly Viewer Viewer;
-
-        readonly DriverMachineInterface DMI;
 
         Texture2D ColorTexture;
 
@@ -97,16 +101,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
 
         readonly int[] TrackConditionPositions = { 55, 80, 105 };
 
-        /*readonly Point TrackConditionLocation = new Point(0, 15);
-        readonly Point GradientLocation = new Point(115, 15);
-        readonly Point PASPLocation = new Point(133, 15);*/
-
-        public float Scale = 1;
-
-        public PlanningWindow(DriverMachineInterface dmi, Viewer viewer, Point planningLocation)
+        public PlanningWindow(DriverMachineInterface dmi, Viewer viewer, Point planningLocation) : base(dmi)
         {
             Viewer = viewer;
-            DMI = dmi;
 
             SpeedIncreaseTexture = SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "ETCS", "PL_21.png"));
             SpeedReductionTexture = SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "ETCS", "PL_22.png"));
@@ -151,11 +148,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
             }
             if (MaxViewingDistanceM >= MaxZoomDistanceM) ButtonScaleDown.Enabled = false;
         }
-        Rectangle ScaledRectangle(Point origin, int x, int y, int width, int height)
-        {
-            return new Rectangle(origin.X + (int)(x * Scale), origin.Y + (int)(y * Scale), Math.Max((int)(width * Scale), 1), Math.Max((int)(height * Scale), 1));
-        }
-        public void Draw(SpriteBatch spriteBatch, Point position)
+        public override void Draw(SpriteBatch spriteBatch, Point position)
         {
             if (ColorTexture == null)
             {
@@ -438,7 +431,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
             TrackConditionTextures = trackConditionTextures;
         }
 
-        public void PrepareFrame(ETCSStatus status)
+        public override void PrepareFrame(ETCSStatus status)
         {
             if (Visible != status.PlanningAreaShown)
             {
