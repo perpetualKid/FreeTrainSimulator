@@ -315,7 +315,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 Script.TrainBrakeControllerState = () => Locomotive.TrainBrakeController.TrainBrakeControllerState;
                 Script.AccelerationMpSS = () => Locomotive.AccelerationMpSS;
                 Script.ElevationM = () => Locomotive.WorldPosition.Location.Y;
-                Script.CurrentSlopePercent = () => Locomotive.CurrentElevationPercent;
+                Script.CurrentGradientPercent = () => Locomotive.CurrentElevationPercent;
                 Script.LineSpeedMpS = () => (float)Simulator.TRK.Route.SpeedLimit;
                 Script.DoesStartFromTerminalStation = () => DoesStartFromTerminalStation();
                 Script.IsColdStart = () => Locomotive.Train.ColdStart;
