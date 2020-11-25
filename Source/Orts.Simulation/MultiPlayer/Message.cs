@@ -1547,7 +1547,8 @@ namespace Orts.MultiPlayer
 
                 if (tmpCars.Count == 0) return;
 
-                train.Cars = tmpCars;
+                train.Cars.Clear();
+                train.Cars.AddRange(tmpCars);
                 train.MUDirection = (MidpointDirection)mDirection;
                 train.RearTDBTraveller = traveller;
                 train.CalculatePositionOfCars();
@@ -2602,7 +2603,8 @@ namespace Orts.MultiPlayer
                         }
                         if (tmpcars.Count == 0) return;
                         if (MPManager.IsServer()) MPManager.Instance().AddOrRemoveLocomotives(user, train, false);
-                        t.Cars = tmpcars;
+                        t.Cars.Clear();
+                        t.Cars.AddRange(tmpcars);
                         Traveller.TravellerDirection d1 = Traveller.TravellerDirection.Forward;
                         if (trainDirection == 1) d1 = Traveller.TravellerDirection.Backward;
                         t.RearTDBTraveller = new Traveller(MPManager.Simulator.TSectionDat, MPManager.Simulator.TDB.TrackDB.TrackNodes, location1, d1);
@@ -2657,7 +2659,8 @@ namespace Orts.MultiPlayer
                     car.Flipped = flipped2[i] == 0 ? false : true;
                 }
                 if (tmpcars2.Count == 0) return;
-                train2.Cars = tmpcars2;
+                train2.Cars.Clear()
+                train2.Cars.AddRange(tmpcars2);
                 train2.Name = String.Concat(String.Copy(train.Name), Train.TotalNumber.ToString());
                 train2.LeadLocomotive = null;
                 train2.LeadNextLocomotive();
@@ -2952,7 +2955,8 @@ namespace Orts.MultiPlayer
             }// for each rail car
             if (tmpCars.Count == 0) return;
             //List<TrainCar> oldList = train.Cars;
-            train.Cars = tmpCars;
+            train.Cars.Clear();
+            train.Cars.AddRange(tmpCars);
 
             train.travelled = Travelled;
             train.MUDirection = (MidpointDirection)mDirection;
