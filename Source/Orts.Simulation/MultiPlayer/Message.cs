@@ -2659,7 +2659,7 @@ namespace Orts.MultiPlayer
                     car.Flipped = flipped2[i] == 0 ? false : true;
                 }
                 if (tmpcars2.Count == 0) return;
-                train2.Cars.Clear()
+                train2.Cars.Clear();
                 train2.Cars.AddRange(tmpcars2);
                 train2.Name = String.Concat(String.Copy(train.Name), Train.TotalNumber.ToString());
                 train2.LeadLocomotive = null;
