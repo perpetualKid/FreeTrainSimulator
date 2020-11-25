@@ -549,20 +549,20 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             if (fn_type <= 0) // Invalid value or NORMAL signal
                 return retval;
 
-            int dir = Locomotive.Train.MUDirection == MidpointDirection.Reverse ? 1 : 0;
+            Direction direction = Locomotive.Train.MUDirection == MidpointDirection.Reverse ? Direction.Backward : Direction.Forward;
 
-            if (Locomotive.Train.ValidRoute[dir] == null || dir == 1 && Locomotive.Train.PresentPosition[dir].TrackCircuitSectionIndex < 0)
+            if (Locomotive.Train.ValidRoute[(int)direction] == null || direction == Direction.Backward && Locomotive.Train.PresentPosition[direction].TrackCircuitSectionIndex < 0)
                 return retval;
 
-            int index = dir == 0 ? Locomotive.Train.PresentPosition[dir].RouteListIndex : 
-                Locomotive.Train.ValidRoute[dir].GetRouteIndex(Locomotive.Train.PresentPosition[dir].TrackCircuitSectionIndex, 0);
+            int index = direction == 0 ? Locomotive.Train.PresentPosition[direction].RouteListIndex : 
+                Locomotive.Train.ValidRoute[(int)direction].GetRouteIndex(Locomotive.Train.PresentPosition[direction].TrackCircuitSectionIndex, 0);
             if (index < 0)
                 return retval;
 
-            float lengthOffset = (dir == 1) ? (-Locomotive.Train.PresentPosition[1].Offset +
-                     TrackCircuitSection.TrackCircuitList[Locomotive.Train.PresentPosition[1].TrackCircuitSectionIndex].Length) : Locomotive.Train.PresentPosition[0].Offset;
+            float lengthOffset = (direction == Direction.Backward) ? (-Locomotive.Train.PresentPosition[Direction.Backward].Offset +
+                     TrackCircuitSection.TrackCircuitList[Locomotive.Train.PresentPosition[Direction.Backward].TrackCircuitSectionIndex].Length) : Locomotive.Train.PresentPosition[Direction.Forward].Offset;
             float totalLength = 0;
-            var routePath = Locomotive.Train.ValidRoute[dir];
+            var routePath = Locomotive.Train.ValidRoute[(int)direction];
             while (index < routePath.Count && totalLength < 400) // Check only first 400m
             {
                 var thisElement = routePath[index];

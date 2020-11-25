@@ -939,7 +939,7 @@ namespace Orts.Simulation.RollingStocks
                         stf.SkipRestOfBlock();
                     }
                     break;
-                case "wagon(ortsauxtenderwatermass": AuxTenderWaterMassKG = stf.ReadFloatBlock(STFReader.Units.Mass, null); break;
+                case "wagon(ortsauxtenderwatermass": AuxTenderWaterMassKG = stf.ReadFloatBlock(STFReader.Units.Mass, null); AuxWagonType = AuxTenderWaterMassKG > 0 ? AuxWagonType.AuxiliaryTender : (AuxWagonType)WagonType;  break;
                 case "wagon(ortsheatingwindowderatingfactor": WindowDeratingFactor = stf.ReadFloatBlock(STFReader.Units.None, null); break;
                 case "wagon(ortsheatingcompartmenttemperatureset": DesiredCompartmentTempSetpointC = stf.ReadFloatBlock(STFReader.Units.Temperature, null); break; // Temperature conversion is incorrect - to be checked!!!
                 case "wagon(ortsheatingcompartmentpipeareafactor": CompartmentHeatingPipeAreaFactor = stf.ReadFloatBlock(STFReader.Units.None, null); break;
@@ -1547,18 +1547,18 @@ namespace Orts.Simulation.RollingStocks
 
             UpdateSpecialEffects(elapsedClockSeconds); // Updates the wagon special effects
 
-            // Update Aux Tender Information
+            //// Update Aux Tender Information
 
-            // TODO: Replace AuxWagonType with new values of WagonType or similar. It's a bad idea having two fields that are nearly the same but not quite.
-            if (AuxTenderWaterMassKG != 0)   // SetStreamVolume wagon type for later use
-            {
+            //// TODO: Replace AuxWagonType with new values of WagonType or similar. It's a bad idea having two fields that are nearly the same but not quite.
+            //if (AuxTenderWaterMassKG != 0)   // SetStreamVolume wagon type for later use
+            //{
 
-                AuxWagonType = "AuxiliaryTender";
-            }
-            else
-            {
-                AuxWagonType = WagonType.ToString();
-            }
+            //    AuxWagonType = "AuxiliaryTender";
+            //}
+            //else
+            //{
+            //    AuxWagonType = WagonType.ToString();
+            //}
 
 #if DEBUG_AUXTENDER
             Trace.TraceInformation("***************************************** DEBUG_AUXTENDER (MSTSWagon.cs) ***************************************************************");
@@ -1626,7 +1626,7 @@ namespace Orts.Simulation.RollingStocks
             MSTSBrakeSystem.Update(elapsedClockSeconds);
 
             // Updates freight load animations when defined in WAG file - Locomotive and Tender load animation are done independently in UpdateTenderLoad() & UpdateLocomotiveLoadPhysics()
-            if (WeightLoadController != null && WagonType != WagonTypes.Tender && AuxWagonType != "AuxiliaryTender" && WagonType != WagonTypes.Engine)
+            if (WeightLoadController != null && WagonType != WagonTypes.Tender && AuxWagonType != AuxWagonType.AuxiliaryTender && WagonType != WagonTypes.Engine)
             {
                 WeightLoadController.Update(elapsedClockSeconds);
                 if (FreightAnimations.LoadedOne != null)
@@ -2649,7 +2649,7 @@ namespace Orts.Simulation.RollingStocks
                     // Update CoG related parameters
                     CentreOfGravityM.Y = ((LoadFullCentreOfGravityM_Y - LoadEmptyCentreOfGravityM_Y) * TempTenderMassDiffRatio) + LoadEmptyCentreOfGravityM_Y;
                 }
-                else if (AuxWagonType == "AuxiliaryTender")
+                else if (AuxWagonType == AuxWagonType.AuxiliaryTender)
                 {
                     // Find the associated steam locomotive for this tender
                     if (AuxTendersSteamLocomotive == null) FindAuxTendersSteamLocomotive();

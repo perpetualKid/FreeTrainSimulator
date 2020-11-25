@@ -153,11 +153,9 @@ namespace Orts.Simulation.Physics
             }
 
             // if not a valid deadlock, find end of common section
-
             if (!isValidDeadlock)
             {
-                int newElementIndex = EndCommonSection(elementIndex, route, otherRoute);
-                elementIndex = newElementIndex;
+                elementIndex = EndCommonSection(elementIndex, route, otherRoute); ;
             }
 
             return isValidDeadlock;
@@ -197,12 +195,12 @@ namespace Orts.Simulation.Physics
                                         Train otherTrain = GetOtherTrainByNumber(deadlock.Key);
 
                                         bool commonSectionFound = false;
-                                        for (int i = otherTrain.PresentPosition[0].RouteListIndex + 1;
+                                        for (int i = otherTrain.PresentPosition[Direction.Forward].RouteListIndex + 1;
                                              i < otherTrain.ValidRoute[0].Count - 1 && !commonSectionFound;
                                              i++)
                                         {
                                             TrackCircuitSection otherSection = otherTrain.ValidRoute[0][i].TrackCircuitSection;
-                                            for (int j = PresentPosition[0].RouteListIndex; j < ValidRoute[0].Count - 1; j++)
+                                            for (int j = PresentPosition[Direction.Forward].RouteListIndex; j < ValidRoute[0].Count - 1; j++)
                                             {
                                                 if (otherSection.Index == ValidRoute[0][j].TrackCircuitSection.Index)
                                                 {
@@ -307,8 +305,8 @@ namespace Orts.Simulation.Physics
                                 TrackDirection otherTrainDirection = otherRouteDict[section.Index];
                                 //<CSComment> Right part of OR clause refers to initial placement with trains back-to-back and running away one from the other</CSComment>
                                 if (otherTrainDirection == sectionDirection ||
-                                    (PresentPosition[1].TrackCircuitSectionIndex == otherTrain.PresentPosition[1].TrackCircuitSectionIndex && section.Index == PresentPosition[1].TrackCircuitSectionIndex &&
-                                    PresentPosition[1].Offset + otherTrain.PresentPosition[1].Offset - 1 > section.Length))
+                                    (PresentPosition[Direction.Backward].TrackCircuitSectionIndex == otherTrain.PresentPosition[Direction.Backward].TrackCircuitSectionIndex && section.Index == PresentPosition[Direction.Backward].TrackCircuitSectionIndex &&
+                                    PresentPosition[Direction.Backward].Offset + otherTrain.PresentPosition[Direction.Backward].Offset - 1 > section.Length))
                                 {
                                     i = EndCommonSection(i, route, otherRoute);
                                 }

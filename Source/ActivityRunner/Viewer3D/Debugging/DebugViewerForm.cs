@@ -2163,10 +2163,10 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                 var v1 = new Vector2(Location.X, Location.Y); 
                 var v3 = v1 - v2; 
                 v3.Normalize(); 
-                v2 = v1 - Vector2.Multiply(v3, signal.Direction == TrackDirection.Ahead ? 12f : -12f);
+                v2 = v1 - Vector2.Multiply(v3, signal.TrackDirection == TrackDirection.Ahead ? 12f : -12f);
                 Dir.X = v2.X; 
                 Dir.Y = v2.Y;
-                v2 = v1 - Vector2.Multiply(v3, signal.Direction == TrackDirection.Ahead ? 1.5f : -1.5f);//shift signal along the dir for 2m, so signals will not be overlapped
+                v2 = v1 - Vector2.Multiply(v3, signal.TrackDirection == TrackDirection.Ahead ? 1.5f : -1.5f);//shift signal along the dir for 2m, so signals will not be overlapped
                 Location.X = v2.X; 
                 Location.Y = v2.Y;
                 hasDir = true;

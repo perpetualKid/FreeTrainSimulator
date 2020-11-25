@@ -65,7 +65,7 @@ namespace Orts.Simulation.Track
         /// Restore
         /// IMPORTANT : trains are restored to dummy value, will be restored to full contents later
         /// </summary>
-        public void Restore(Simulator simulator, BinaryReader inf)
+        public void Restore(BinaryReader inf)
         {
             if (null == inf)
                 throw new ArgumentNullException(nameof(inf));
@@ -121,7 +121,6 @@ namespace Orts.Simulation.Track
         /// </summary>
         public void RestoreTrains(List<Train> trains, int sectionIndex)
         {
-
             // Occupy
             Dictionary<int[], int> tempTrains = new Dictionary<int[], int>();
 
@@ -164,8 +163,8 @@ namespace Orts.Simulation.Track
                     // check if reserved section is on train's route except when train is in explorer or manual mode
                     if (reservedTrain.ValidRoute[reservedDirection].Count > 0 && reservedTrain.ControlMode != TrainControlMode.Explorer && reservedTrain.ControlMode != TrainControlMode.Manual)
                     {
-                        _ = reservedTrain.ValidRoute[reservedDirection].GetRouteIndex(sectionIndex, reservedTrain.PresentPosition[0].RouteListIndex);
-                        validreserve = reservedTrain.ValidRoute[reservedDirection].GetRouteIndex(sectionIndex, reservedTrain.PresentPosition[0].RouteListIndex) >= 0;
+                        _ = reservedTrain.ValidRoute[reservedDirection].GetRouteIndex(sectionIndex, reservedTrain.PresentPosition[Direction.Forward].RouteListIndex);
+                        validreserve = reservedTrain.ValidRoute[reservedDirection].GetRouteIndex(sectionIndex, reservedTrain.PresentPosition[Direction.Forward].RouteListIndex) >= 0;
                     }
 
                     if (validreserve || reservedTrain.ControlMode == TrainControlMode.Explorer)

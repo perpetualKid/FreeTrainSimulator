@@ -229,7 +229,7 @@ namespace Orts.Simulation.RollingStocks
         public float SkidFriction = 0.08f; // Friction if wheel starts skidding - based upon wheel dynamic friction of approx 0.08
 
         public float AuxTenderWaterMassKG;    // Water mass in auxiliary tender
-        public string AuxWagonType;           // Store wagon type for use with auxilary tender calculations
+        public AuxWagonType AuxWagonType;           // Store wagon type for use with auxilary tender calculations
 
         public Lights Lights;
         public FreightAnimations FreightAnimations;
@@ -2426,10 +2426,10 @@ namespace Orts.Simulation.RollingStocks
         {
             var isOverTrough = false;
             // start at front of train
-            int thisSectionIndex = Train.PresentPosition[0].TrackCircuitSectionIndex;
+            int thisSectionIndex = Train.PresentPosition[Common.Direction.Forward].TrackCircuitSectionIndex;
             if (thisSectionIndex < 0) return isOverTrough;
-            float thisSectionOffset = Train.PresentPosition[0].Offset;
-            TrackDirection thisSectionDirection = Train.PresentPosition[0].Direction;
+            float thisSectionOffset = Train.PresentPosition[Common.Direction.Forward].Offset;
+            TrackDirection thisSectionDirection = Train.PresentPosition[Common.Direction.Forward].Direction;
 
 
             float usedCarLength = CarLengthM;
@@ -2474,7 +2474,7 @@ namespace Orts.Simulation.RollingStocks
                 processedCarLength += usedCarLength;
                 {
                     // go back one section
-                    int thisSectionRouteIndex = Train.ValidRoute[0].GetRouteIndexBackward(thisSectionIndex, Train.PresentPosition[0].RouteListIndex);
+                    int thisSectionRouteIndex = Train.ValidRoute[0].GetRouteIndexBackward(thisSectionIndex, Train.PresentPosition[Common.Direction.Forward].RouteListIndex);
                     if (thisSectionRouteIndex >= 0)
                     {
                         thisSectionIndex = thisSectionRouteIndex;
@@ -2502,14 +2502,14 @@ namespace Orts.Simulation.RollingStocks
             // To Do - This identifies the start of the train, but needs to be further refined to work for each carriage.
             var isOverJunction = false;
             // start at front of train
-            //int thisSectionIndex = Train.PresentPosition[0].TrackCircuitSectionIndex;
-            //float thisSectionOffset = Train.PresentPosition[0].Offset;
-            //TrackDirection thisSectionDirection = Train.PresentPosition[0].Direction;
+            //int thisSectionIndex = Train.PresentPosition[Direction.Forward].TrackCircuitSectionIndex;
+            //float thisSectionOffset = Train.PresentPosition[Direction.Forward].Offset;
+            //TrackDirection thisSectionDirection = Train.PresentPosition[Direction.Forward].Direction;
 
 
             float usedCarLength = CarLengthM;
 
-            if (Train.PresentPosition[0].TrackCircuitSectionIndex != Train.PresentPosition[1].TrackCircuitSectionIndex)
+            if (Train.PresentPosition[Common.Direction.Forward].TrackCircuitSectionIndex != Train.PresentPosition[Common.Direction.Backward].TrackCircuitSectionIndex)
             {
                 try
                 {

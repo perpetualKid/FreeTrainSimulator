@@ -737,7 +737,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                     FuelType = FuelTypes.DieselOil;
                                 }
 
-                                if (item.EngineType == TrainCar.EngineTypes.Steam && item.AuxWagonType == "Engine")
+                                if (item.EngineType == TrainCar.EngineTypes.Steam && item.AuxWagonType == AuxWagonType.Engine)
                                 {//Fuel Steam
                                     nCoalvolume = nCoalvolume + (item as MSTSSteamLocomotive).MaxTenderCoalMassKG;
                                     nCoallevel = nCoallevel + (item as MSTSSteamLocomotive).TenderCoalMassKG;

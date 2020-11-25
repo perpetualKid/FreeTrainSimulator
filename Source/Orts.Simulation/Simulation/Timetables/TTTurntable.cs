@@ -1955,8 +1955,8 @@ namespace Orts.Simulation.Timetables
 
         public int GetAccessPathIndex()
         {
-            int presentSection = parentTrain.PresentPosition[0].TrackCircuitSectionIndex;
-            TrackDirection presentDirection = parentTrain.PresentPosition[0].Direction;
+            int presentSection = parentTrain.PresentPosition[Direction.Forward].TrackCircuitSectionIndex;
+            TrackDirection presentDirection = parentTrain.PresentPosition[Direction.Forward].Direction;
 
             // search if section in access path
             // direction must be reverse as access path is defined outbound
@@ -2228,12 +2228,12 @@ namespace Orts.Simulation.Timetables
             float remDistance = 0.0f;
 
             // check present position is in last section of route
-            if (parentTrain.PresentPosition[0].RouteListIndex < parentTrain.ValidRoute[0].Count - 1)
+            if (parentTrain.PresentPosition[Direction.Forward].RouteListIndex < parentTrain.ValidRoute[0].Count - 1)
             {
-                TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[parentTrain.PresentPosition[0].TrackCircuitSectionIndex];
-                remDistance = thisSection.Length - parentTrain.PresentPosition[0].Offset;
+                TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[parentTrain.PresentPosition[Direction.Forward].TrackCircuitSectionIndex];
+                remDistance = thisSection.Length - parentTrain.PresentPosition[Direction.Forward].Offset;
 
-                for (int iIndex = parentTrain.PresentPosition[0].RouteListIndex + 1; iIndex < parentTrain.ValidRoute[0].Count - 1; iIndex++)
+                for (int iIndex = parentTrain.PresentPosition[Direction.Forward].RouteListIndex + 1; iIndex < parentTrain.ValidRoute[0].Count - 1; iIndex++)
                 {
                     remDistance += parentTrain.ValidRoute[0][iIndex].TrackCircuitSection.Length;
                 }
@@ -2252,11 +2252,11 @@ namespace Orts.Simulation.Timetables
             {
                 if (MovingTableState == MovingTableStateEnum.StorageToMovingTable)
                 {
-                    remDistance += parentPool.StoragePool[StoragePathIndex].TableMiddleEntry - parentTrain.PresentPosition[0].Offset + parentTrain.Length / 2.0f;
+                    remDistance += parentPool.StoragePool[StoragePathIndex].TableMiddleEntry - parentTrain.PresentPosition[Direction.Forward].Offset + parentTrain.Length / 2.0f;
                 }
                 else if (MovingTableState == MovingTableStateEnum.AccessToMovingTable)
                 {
-                    remDistance += parentPool.AdditionalTurntableDetails.AccessPaths[AccessPathIndex].TableMiddleEntry - parentTrain.PresentPosition[0].Offset + parentTrain.Length / 2.0f;
+                    remDistance += parentPool.AdditionalTurntableDetails.AccessPaths[AccessPathIndex].TableMiddleEntry - parentTrain.PresentPosition[Direction.Forward].Offset + parentTrain.Length / 2.0f;
                 }
             }
 

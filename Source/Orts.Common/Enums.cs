@@ -118,12 +118,6 @@ namespace Orts.Common
         Permission,
     }
 
-    public enum TrainPosition
-    {
-        Front,
-        Rear,
-    }
-
     public enum Direction
     {
         Forward,

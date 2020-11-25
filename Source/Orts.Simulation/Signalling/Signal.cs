@@ -86,7 +86,7 @@ namespace Orts.Simulation.Signalling
         internal bool Static { get; set; }                  // set if signal does not required updates (fixed signals)
 
         public int Index { get; private set; }              // This signal's reference.
-        public TrackDirection Direction { get; internal set; }  // Direction facing on track
+        public TrackDirection TrackDirection { get; internal set; }  // Direction facing on track
 
         public int TrackNode { get; internal set; }         // Track node which contains this signal
         public int TrackItemRefIndex { get; internal set; } // Index to TrItemRef within Track Node 
@@ -158,7 +158,7 @@ namespace Orts.Simulation.Signalling
             TrackCircuitNextIndex = source.TrackCircuitNextIndex;
             TrackCircuitNextDirection = source.TrackCircuitNextDirection;
 
-            Direction = source.Direction;
+            TrackDirection = source.TrackDirection;
             IsSignal = source.IsSignal;
             SignalNumClearAheadMsts = source.SignalNumClearAheadMsts;
             SignalNumClearAheadOrts = source.SignalNumClearAheadOrts;
@@ -202,7 +202,7 @@ namespace Orts.Simulation.Signalling
         /// IMPORTANT : enabled train is restore temporarily as Trains are restored later as Signals
         /// Full restore of train link follows in RestoreTrains
         /// </summary>
-        internal void Restore(Simulator simulator, BinaryReader inf)
+        internal void Restore(BinaryReader inf)
         {
             int trainNumber = inf.ReadInt32();
 
@@ -1339,7 +1339,7 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         private int SONextSignalSpeed()
         {
-            int routeListIndex = EnabledTrain.Train.ValidRoute[0].GetRouteIndex(TrackCircuitIndex, EnabledTrain.Train.PresentPosition[0].RouteListIndex);
+            int routeListIndex = EnabledTrain.Train.ValidRoute[0].GetRouteIndex(TrackCircuitIndex, EnabledTrain.Train.PresentPosition[Direction.Forward].RouteListIndex);
 
             // signal not in train's route
             if (routeListIndex < 0)
@@ -1892,14 +1892,14 @@ namespace Orts.Simulation.Signalling
                                        Index, train.Train.Name, EnabledTrain.Train.Name);
                 Train.TrainRouted otherTrain = EnabledTrain;
                 ResetSignal(true);
-                int routeListIndex = train.Train.PresentPosition[train.TrainRouteDirectionIndex].RouteListIndex;
+                int routeListIndex = train.Train.PresentPosition[train.Direction].RouteListIndex;
                 signalEnvironment.BreakDownRouteList(train.Train.ValidRoute[train.TrainRouteDirectionIndex], routeListIndex, train);
-                routeListIndex = otherTrain.Train.PresentPosition[otherTrain.TrainRouteDirectionIndex].RouteListIndex;
+                routeListIndex = otherTrain.Train.PresentPosition[otherTrain.Direction].RouteListIndex;
                 signalEnvironment.BreakDownRouteList(otherTrain.Train.ValidRoute[otherTrain.TrainRouteDirectionIndex], routeListIndex, otherTrain);
 
-                train.Train.SwitchToNodeControl(train.Train.PresentPosition[train.TrainRouteDirectionIndex].TrackCircuitSectionIndex);
+                train.Train.SwitchToNodeControl(train.Train.PresentPosition[train.Direction].TrackCircuitSectionIndex);
                 if (otherTrain.Train.ControlMode != TrainControlMode.Explorer && !otherTrain.Train.IsPathless)
-                    otherTrain.Train.SwitchToNodeControl(otherTrain.Train.PresentPosition[otherTrain.TrainRouteDirectionIndex].TrackCircuitSectionIndex);
+                    otherTrain.Train.SwitchToNodeControl(otherTrain.Train.PresentPosition[otherTrain.Direction].TrackCircuitSectionIndex);
                 return false;
             }
             if (train.Train.TCRoute != null && HasLockForTrain(train.Train.Number, train.Train.TCRoute.ActiveSubPath))
@@ -1925,7 +1925,7 @@ namespace Orts.Simulation.Signalling
             }
             if (firstIndex < 0)
             {
-                firstIndex = train.Train.PresentPosition[train.TrainRouteDirectionIndex].RouteListIndex;
+                firstIndex = train.Train.PresentPosition[train.Direction].RouteListIndex;
             }
 
             if (firstIndex >= 0)
@@ -2608,7 +2608,7 @@ namespace Orts.Simulation.Signalling
                 int altRoute = -1;
 
                 TrackCircuitPartialPathRoute trainRoute = train.Train.ValidRoute[train.TrainRouteDirectionIndex];
-                TrackCircuitPosition position = train.Train.PresentPosition[train.TrainRouteDirectionIndex];
+                TrackCircuitPosition position = train.Train.PresentPosition[train.Direction];
 
                 for (int iElement = lastElementIndex; iElement >= 0; iElement--)
                 {
@@ -2673,7 +2673,7 @@ namespace Orts.Simulation.Signalling
                 TrackCircuitSection endSection = null;
 
                 TrackCircuitPartialPathRoute trainRoute = train.Train.ValidRoute[train.TrainRouteDirectionIndex];
-                TrackCircuitPosition position = train.Train.PresentPosition[train.TrainRouteDirectionIndex];
+                TrackCircuitPosition position = train.Train.PresentPosition[train.Direction];
 
                 for (int iElement = lastElementIndex; iElement >= 0; iElement--)
                 {
@@ -2837,12 +2837,12 @@ namespace Orts.Simulation.Signalling
             {
                 foreach (int sectionNo in SectionsWithAlternativePath)
                 {
-                    int routeIndex = train.Train.ValidRoute[0].GetRouteIndex(sectionNo, train.Train.PresentPosition[0].RouteListIndex);
+                    int routeIndex = train.Train.ValidRoute[0].GetRouteIndex(sectionNo, train.Train.PresentPosition[Direction.Forward].RouteListIndex);
                     train.Train.ValidRoute[0][routeIndex].UsedAlternativePath = -1;
                 }
                 foreach (int sectionNo in SectionsWithAltPathSet)
                 {
-                    int routeIndex = train.Train.ValidRoute[0].GetRouteIndex(sectionNo, train.Train.PresentPosition[0].RouteListIndex);
+                    int routeIndex = train.Train.ValidRoute[0].GetRouteIndex(sectionNo, train.Train.PresentPosition[Direction.Forward].RouteListIndex);
                     train.Train.ValidRoute[0][routeIndex].UsedAlternativePath = -1;
                 }
             }
@@ -3072,16 +3072,15 @@ namespace Orts.Simulation.Signalling
 
             bool found = false;
             float distance = 0;
-            int actDirection = EnabledTrain.TrainRouteDirectionIndex;
-            TrackCircuitPartialPathRoute routePath = EnabledTrain.Train.ValidRoute[actDirection];
-            int actRouteIndex = routePath == null ? -1 : routePath.GetRouteIndex(EnabledTrain.Train.PresentPosition[actDirection].TrackCircuitSectionIndex, 0);
+            TrackCircuitPartialPathRoute routePath = EnabledTrain.Train.ValidRoute[EnabledTrain.TrainRouteDirectionIndex];
+            int actRouteIndex = routePath == null ? -1 : routePath.GetRouteIndex(EnabledTrain.Train.PresentPosition[EnabledTrain.Direction].TrackCircuitSectionIndex, 0);
             if (actRouteIndex >= 0)
             {
                 float offset;
                 if (EnabledTrain.TrainRouteDirectionIndex == 0)
-                    offset = EnabledTrain.Train.PresentPosition[0].Offset;
+                    offset = EnabledTrain.Train.PresentPosition[Direction.Forward].Offset;
                 else
-                    offset = TrackCircuitSection.TrackCircuitList[EnabledTrain.Train.PresentPosition[1].TrackCircuitSectionIndex].Length - EnabledTrain.Train.PresentPosition[1].Offset;
+                    offset = TrackCircuitSection.TrackCircuitList[EnabledTrain.Train.PresentPosition[Direction.Backward].TrackCircuitSectionIndex].Length - EnabledTrain.Train.PresentPosition[Direction.Backward].Offset;
 
                 while (!found)
                 {
@@ -3331,8 +3330,8 @@ namespace Orts.Simulation.Signalling
             }
 
             // trains present position is unknown
-            if (reqTrain.PresentPosition[EnabledTrain.TrainRouteDirectionIndex].RouteListIndex < 0 ||
-                reqTrain.PresentPosition[EnabledTrain.TrainRouteDirectionIndex].RouteListIndex >= reqTrain.ValidRoute[EnabledTrain.TrainRouteDirectionIndex].Count)
+            if (reqTrain.PresentPosition[EnabledTrain.Direction].RouteListIndex < 0 ||
+                reqTrain.PresentPosition[EnabledTrain.Direction].RouteListIndex >= reqTrain.ValidRoute[EnabledTrain.TrainRouteDirectionIndex].Count)
             {
                 return false;
             }
@@ -3340,7 +3339,7 @@ namespace Orts.Simulation.Signalling
             // check if section beyond or ahead of next signal is within trains path ahead of present position of train
             int reqSection = requiredPosition == 1 ? signalEnvironment.Signals[nextSignalId].TrackCircuitNextIndex : signalEnvironment.Signals[nextSignalId].TrackCircuitIndex;
 
-            int sectionIndex = reqTrain.ValidRoute[EnabledTrain.TrainRouteDirectionIndex].GetRouteIndex(reqSection, reqTrain.PresentPosition[EnabledTrain.TrainRouteDirectionIndex].RouteListIndex);
+            int sectionIndex = reqTrain.ValidRoute[EnabledTrain.TrainRouteDirectionIndex].GetRouteIndex(reqSection, reqTrain.PresentPosition[EnabledTrain.Direction].RouteListIndex);
             if (sectionIndex > 0)
             {
                 return true;
@@ -3359,7 +3358,7 @@ namespace Orts.Simulation.Signalling
             // signal not enabled - no route available
             if (EnabledTrain != null)
             {
-                int startIndex = EnabledTrain.Train.ValidRoute[EnabledTrain.TrainRouteDirectionIndex].GetRouteIndex(TrackCircuitNextIndex, EnabledTrain.Train.PresentPosition[0].RouteListIndex);
+                int startIndex = EnabledTrain.Train.ValidRoute[EnabledTrain.TrainRouteDirectionIndex].GetRouteIndex(TrackCircuitNextIndex, EnabledTrain.Train.PresentPosition[Direction.Forward].RouteListIndex);
                 if (startIndex >= 0)
                 {
                     for (int iRouteIndex = startIndex; iRouteIndex < EnabledTrain.Train.ValidRoute[EnabledTrain.TrainRouteDirectionIndex].Count; iRouteIndex++)

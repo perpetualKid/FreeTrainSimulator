@@ -441,7 +441,7 @@ namespace Orts.Simulation
 
         public void Start(CancellationToken cancellation)
         {
-            SignalEnvironment = new SignalEnvironment(this, SIGCFG, Settings.UseLocationPassingPaths, System.Threading.CancellationToken.None);
+            SignalEnvironment = new SignalEnvironment(SIGCFG, Settings.UseLocationPassingPaths, System.Threading.CancellationToken.None);
             TurntableFile = new TurntableFile(RoutePath + @"\openrails\turntables.dat", RoutePath + @"\shapes\", MovingTables, this);
             LevelCrossings = new LevelCrossings(this);
             FuelManager = new FuelManager(this);
@@ -475,7 +475,7 @@ namespace Orts.Simulation
         public void StartTimetable(CancellationToken cancellation)
         {
             TimetableMode = true;
-            SignalEnvironment = new SignalEnvironment(this, SIGCFG, true, System.Threading.CancellationToken.None);
+            SignalEnvironment = new SignalEnvironment(SIGCFG, true, System.Threading.CancellationToken.None);
             TurntableFile = new TurntableFile(RoutePath + @"\openrails\turntables.dat", RoutePath + @"\shapes\", MovingTables, this);
             LevelCrossings = new LevelCrossings(this);
             FuelManager = new FuelManager(this);
@@ -516,7 +516,7 @@ namespace Orts.Simulation
             InitialTileZ = initialTileZ;
             PoolHolder = new Poolholder(inf, this);
 
-            SignalEnvironment = new SignalEnvironment(this, SIGCFG, inf, System.Threading.CancellationToken.None);
+            SignalEnvironment = new SignalEnvironment(SIGCFG, inf, System.Threading.CancellationToken.None);
 
             RestoreTrains(inf);
             LevelCrossings = new LevelCrossings(this);
@@ -844,7 +844,7 @@ namespace Orts.Simulation
                         return;
                     }
                     // if there is just here a reversal point, increment subpath in order to be in accordance with train
-                    var ppTCSectionIndex = drivenTrain.PresentPosition[0].TrackCircuitSectionIndex;
+                    var ppTCSectionIndex = drivenTrain.PresentPosition[Direction.Forward].TrackCircuitSectionIndex;
                     if (ppTCSectionIndex == drivenTrain.TCRoute.TCRouteSubpaths[drivenTrain.TCRoute.ActiveSubPath][drivenTrain.TCRoute.TCRouteSubpaths[drivenTrain.TCRoute.ActiveSubPath].Count - 1].TrackCircuitSection.Index)
                         drivenTrain.IncrementSubpath(drivenTrain);
                     // doubled check in case of double reverse point.
@@ -857,7 +857,7 @@ namespace Orts.Simulation
                 }
                 else
                 {
-                    var ppTCSectionIndex = train.PresentPosition[0].TrackCircuitSectionIndex;
+                    var ppTCSectionIndex = train.PresentPosition[Direction.Forward].TrackCircuitSectionIndex;
                     if (ppTCSectionIndex == train.TCRoute.TCRouteSubpaths[train.TCRoute.ActiveSubPath][train.TCRoute.TCRouteSubpaths[train.TCRoute.ActiveSubPath].Count - 1].TrackCircuitSection.Index)
                         train.IncrementSubpath(train);
                     // doubled check in case of double reverse point.
@@ -927,7 +927,7 @@ namespace Orts.Simulation
                         float d1 = drivenTrain.RearTDBTraveller.OverlapDistanceM(train.FrontTDBTraveller, true);
                         // Give another try if multiplayer
                         if (d1 >= 0 && drivenTrain.TrainType == TrainType.Remote &&
-                            drivenTrain.PresentPosition[1].TrackCircuitSectionIndex == train.PresentPosition[0].TrackCircuitSectionIndex && drivenTrain.PresentPosition[1].TrackCircuitSectionIndex != -1)
+                            drivenTrain.PresentPosition[Direction.Backward].TrackCircuitSectionIndex == train.PresentPosition[Direction.Forward].TrackCircuitSectionIndex && drivenTrain.PresentPosition[Direction.Backward].TrackCircuitSectionIndex != -1)
                             d1 = drivenTrain.RearTDBTraveller.RoughOverlapDistanceM(train.FrontTDBTraveller, drivenTrain.FrontTDBTraveller, train.RearTDBTraveller, drivenTrain.Length, train.Length, true);
                         if (d1 < 0)
                         {
@@ -955,7 +955,7 @@ namespace Orts.Simulation
                         float d2 = drivenTrain.RearTDBTraveller.OverlapDistanceM(train.RearTDBTraveller, true);
                         // Give another try if multiplayer
                         if (d2 >= 0 && drivenTrain.TrainType == TrainType.Remote &&
-                            drivenTrain.PresentPosition[1].TrackCircuitSectionIndex == train.PresentPosition[1].TrackCircuitSectionIndex && drivenTrain.PresentPosition[1].TrackCircuitSectionIndex != -1)
+                            drivenTrain.PresentPosition[Direction.Backward].TrackCircuitSectionIndex == train.PresentPosition[Direction.Backward].TrackCircuitSectionIndex && drivenTrain.PresentPosition[Direction.Backward].TrackCircuitSectionIndex != -1)
                             d2 = drivenTrain.RearTDBTraveller.RoughOverlapDistanceM(train.RearTDBTraveller, drivenTrain.FrontTDBTraveller, train.FrontTDBTraveller, drivenTrain.Length, train.Length, true);
                         if (d2 < 0)
                         {
@@ -999,7 +999,7 @@ namespace Orts.Simulation
                         float d1 = drivenTrain.FrontTDBTraveller.OverlapDistanceM(train.RearTDBTraveller, false);
                         // Give another try if multiplayer
                         if (d1 >= 0 && drivenTrain.TrainType == TrainType.Remote &&
-                            drivenTrain.PresentPosition[0].TrackCircuitSectionIndex == train.PresentPosition[1].TrackCircuitSectionIndex && drivenTrain.PresentPosition[0].TrackCircuitSectionIndex != -1)
+                            drivenTrain.PresentPosition[Direction.Forward].TrackCircuitSectionIndex == train.PresentPosition[Direction.Backward].TrackCircuitSectionIndex && drivenTrain.PresentPosition[Direction.Forward].TrackCircuitSectionIndex != -1)
                             d1 = drivenTrain.FrontTDBTraveller.RoughOverlapDistanceM(train.RearTDBTraveller, drivenTrain.RearTDBTraveller, train.FrontTDBTraveller, drivenTrain.Length, train.Length, false);
                         if (d1 < 0)
                         {
@@ -1051,7 +1051,7 @@ namespace Orts.Simulation
                         float d2 = drivenTrain.FrontTDBTraveller.OverlapDistanceM(train.FrontTDBTraveller, false);
                         // Give another try if multiplayer
                         if (d2 >= 0 && drivenTrain.TrainType == TrainType.Remote &&
-                            drivenTrain.PresentPosition[0].TrackCircuitSectionIndex == train.PresentPosition[0].TrackCircuitSectionIndex && drivenTrain.PresentPosition[0].TrackCircuitSectionIndex != -1)
+                            drivenTrain.PresentPosition[Direction.Forward].TrackCircuitSectionIndex == train.PresentPosition[Direction.Forward].TrackCircuitSectionIndex && drivenTrain.PresentPosition[Direction.Forward].TrackCircuitSectionIndex != -1)
                             d2 = drivenTrain.FrontTDBTraveller.RoughOverlapDistanceM(train.FrontTDBTraveller, drivenTrain.RearTDBTraveller, train.RearTDBTraveller, drivenTrain.Length, train.Length, false);
                         if (d2 < 0)
                         {
@@ -1658,11 +1658,11 @@ namespace Orts.Simulation
             if (train2.TrainType == TrainType.Ai)
             {
                 // Move reversal point under train if there is one in the section where the train is
-                if (train2.PresentPosition[0].TrackCircuitSectionIndex ==
+                if (train2.PresentPosition[Direction.Forward].TrackCircuitSectionIndex ==
                                     train2.TCRoute.TCRouteSubpaths[train2.TCRoute.ActiveSubPath][train2.TCRoute.TCRouteSubpaths[train2.TCRoute.ActiveSubPath].Count - 1].TrackCircuitSection.Index &&
                     train2.TCRoute.ActiveSubPath < train2.TCRoute.TCRouteSubpaths.Count - 1)
                 {
-                    train2.TCRoute.ReversalInfo[train2.TCRoute.ActiveSubPath].ReverseReversalOffset = train2.PresentPosition[0].Offset - 10f;
+                    train2.TCRoute.ReversalInfo[train2.TCRoute.ActiveSubPath].ReverseReversalOffset = train2.PresentPosition[Direction.Forward].Offset - 10f;
                     train2.AuxActionsContain.MoveAuxActionAfterReversal(train2);
                 }
                 else if ((train.IsActualPlayerTrain && j >= i) || !keepFront)
@@ -1743,9 +1743,9 @@ namespace Orts.Simulation
                         if (TrainSwitcher.SuspendOldPlayer)
                         {
                             playerTrain.MovementState = AITrain.AI_MOVEMENT_STATE.SUSPENDED;
-                            if (playerTrain.ValidRoute[0] != null && playerTrain.PresentPosition[0].RouteListIndex != -1 &&
-                                playerTrain.ValidRoute[0].Count > playerTrain.PresentPosition[0].RouteListIndex + 1)
-                                SignalEnvironment.BreakDownRoute(playerTrain.ValidRoute[0][playerTrain.PresentPosition[0].RouteListIndex + 1].TrackCircuitSection.Index,
+                            if (playerTrain.ValidRoute[0] != null && playerTrain.PresentPosition[Direction.Forward].RouteListIndex != -1 &&
+                                playerTrain.ValidRoute[0].Count > playerTrain.PresentPosition[Direction.Forward].RouteListIndex + 1)
+                                SignalEnvironment.BreakDownRoute(playerTrain.ValidRoute[0][playerTrain.PresentPosition[Direction.Forward].RouteListIndex + 1].TrackCircuitSection.Index,
                                    playerTrain.routedForward);
                             TrainSwitcher.SuspendOldPlayer = false;
                         }
@@ -1815,11 +1815,11 @@ namespace Orts.Simulation
                     {
                         ((AITrain)selectedAsPlayer).AI.aiListChanged = true;
                         // Move reversal point under train if there is one in the section where the train is
-                        if (selectedAsPlayer.PresentPosition[0].TrackCircuitSectionIndex ==
+                        if (selectedAsPlayer.PresentPosition[Direction.Forward].TrackCircuitSectionIndex ==
                                             selectedAsPlayer.TCRoute.TCRouteSubpaths[selectedAsPlayer.TCRoute.ActiveSubPath][selectedAsPlayer.TCRoute.TCRouteSubpaths[selectedAsPlayer.TCRoute.ActiveSubPath].Count - 1].TrackCircuitSection.Index &&
                             selectedAsPlayer.TCRoute.ActiveSubPath < selectedAsPlayer.TCRoute.TCRouteSubpaths.Count - 1)
                         {
-                            selectedAsPlayer.TCRoute.ReversalInfo[selectedAsPlayer.TCRoute.ActiveSubPath].ReverseReversalOffset = selectedAsPlayer.PresentPosition[0].Offset - 10f;
+                            selectedAsPlayer.TCRoute.ReversalInfo[selectedAsPlayer.TCRoute.ActiveSubPath].ReverseReversalOffset = selectedAsPlayer.PresentPosition[Direction.Forward].Offset - 10f;
                             selectedAsPlayer.AuxActionsContain.MoveAuxActionAfterReversal(selectedAsPlayer);
                         }
                         ((AITrain)selectedAsPlayer).ResetActions(true);
@@ -1853,11 +1853,11 @@ namespace Orts.Simulation
                             TrainSwitcher.ClickedSelectedAsPlayer = false;
                             return;
                         }
-                        if (playerTrain.ValidRoute[0] != null && playerTrain.ValidRoute[0].Count > playerTrain.PresentPosition[0].RouteListIndex + 1)
-                            SignalEnvironment.BreakDownRoute(playerTrain.ValidRoute[0][playerTrain.PresentPosition[0].RouteListIndex + 1].TrackCircuitSection.Index,
+                        if (playerTrain.ValidRoute[0] != null && playerTrain.ValidRoute[0].Count > playerTrain.PresentPosition[Direction.Forward].RouteListIndex + 1)
+                            SignalEnvironment.BreakDownRoute(playerTrain.ValidRoute[0][playerTrain.PresentPosition[Direction.Forward].RouteListIndex + 1].TrackCircuitSection.Index,
                             playerTrain.routedForward);
-                        if (playerTrain.ValidRoute[1] != null && playerTrain.ValidRoute[1].Count > playerTrain.PresentPosition[1].RouteListIndex + 1)
-                            SignalEnvironment.BreakDownRoute(playerTrain.ValidRoute[1][playerTrain.PresentPosition[1].RouteListIndex + 1].TrackCircuitSection.Index,
+                        if (playerTrain.ValidRoute[1] != null && playerTrain.ValidRoute[1].Count > playerTrain.PresentPosition[Direction.Backward].RouteListIndex + 1)
+                            SignalEnvironment.BreakDownRoute(playerTrain.ValidRoute[1][playerTrain.PresentPosition[Direction.Backward].RouteListIndex + 1].TrackCircuitSection.Index,
                             playerTrain.routedBackward);
                         playerTrain.ControlMode = TrainControlMode.Undefined;
                         playerTrain.TrainType = TrainType.Static;

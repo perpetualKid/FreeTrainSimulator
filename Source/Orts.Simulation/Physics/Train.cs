@@ -48,6 +48,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -190,9 +191,6 @@ namespace Orts.Simulation.Physics
         // Auxiliary Water Tenders
         public float MaxAuxTenderWaterMassKG;
         public bool IsAuxTenderCoupled = false;
-        bool AuxTenderFound = false;
-        string PrevWagonType;
-
 
         //To investigate coupler breaks on route
         private bool numOfCouplerBreaksNoted = false;
@@ -284,8 +282,10 @@ namespace Orts.Simulation.Physics
 
         public OutOfControlReason OutOfControlReason { get; private set; } = OutOfControlReason.UnDefined; // train out of control
 
-        public TrackCircuitPosition[] PresentPosition { get; } = new TrackCircuitPosition[2] { new TrackCircuitPosition(), new TrackCircuitPosition() };         // present position : 0 = front, 1 = rear
-        public EnumArray<TrackCircuitPosition, TrainPosition> PreviousPosition { get; } = new EnumArray<TrackCircuitPosition, TrainPosition>( new TrackCircuitPosition[] { new TrackCircuitPosition(), new TrackCircuitPosition() });        // previous train position
+        public EnumArray<TrackCircuitPosition, Direction> PresentPosition { get; } = 
+            new EnumArray<TrackCircuitPosition, Direction>(new TrackCircuitPosition[] { new TrackCircuitPosition(), new TrackCircuitPosition() });         // present position : 0 = front, 1 = rear
+        public EnumArray<TrackCircuitPosition, Direction> PreviousPosition { get; } = 
+            new EnumArray<TrackCircuitPosition, Direction>( new TrackCircuitPosition[] { new TrackCircuitPosition(), new TrackCircuitPosition() });        // previous train position
 
         public float DistanceTravelledM;                                 // actual distance travelled
         public float ReservedTrackLengthM = 0.0f;                        // lenght of reserved section
@@ -332,6 +332,13 @@ namespace Orts.Simulation.Physics
 
         private protected static readonly Simulator simulator = Simulator.Instance;                 // reference to the simulator
         private protected static readonly SignalEnvironment signalRef = simulator.SignalEnvironment;// reference to main Signals class, shortcut only
+        private protected static readonly char Separator = (char)simulator.Settings.DataLoggerSeparator;
+
+        #region steam and heating
+        private static readonly double desiredCompartmentAlarmTempSetpointC = Temperature.Celsius.FromF(45.0); // Alarm temperature
+        private static readonly double resetCompartmentAlarmTempSetpointC = Temperature.Celsius.FromF(65.0);
+        #endregion
+
 
         // For AI control of the train
         public float AITrainBrakePercent
@@ -725,25 +732,25 @@ namespace Orts.Simulation.Physics
                 CalculatePositionOfCars();
 
                 DistanceTravelledM = inf.ReadSingle();
-                PresentPosition[0] = new TrackCircuitPosition();
-                PresentPosition[0].RestorePresentPosition(inf, this);
-                PresentPosition[1] = new TrackCircuitPosition();
-                PresentPosition[1].RestorePresentRear(inf, this);
-                PreviousPosition[TrainPosition.Front] = new TrackCircuitPosition();
-                PreviousPosition[TrainPosition.Front].RestorePreviousPosition(inf);
+                PresentPosition[Direction.Forward] = new TrackCircuitPosition();
+                PresentPosition[Direction.Forward].RestorePresentPosition(inf, this);
+                PresentPosition[Direction.Backward] = new TrackCircuitPosition();
+                PresentPosition[Direction.Backward].RestorePresentRear(inf, this);
+                PreviousPosition[Direction.Forward] = new TrackCircuitPosition();
+                PreviousPosition[Direction.Forward].RestorePreviousPosition(inf);
 
-                PresentPosition[0].RouteListIndex = ValidRoute[0].GetRouteIndex(PresentPosition[0].TrackCircuitSectionIndex, 0);
-                PresentPosition[1].RouteListIndex = ValidRoute[0].GetRouteIndex(PresentPosition[1].TrackCircuitSectionIndex, 0);
+                PresentPosition[Direction.Forward].RouteListIndex = ValidRoute[0].GetRouteIndex(PresentPosition[Direction.Forward].TrackCircuitSectionIndex, 0);
+                PresentPosition[Direction.Backward].RouteListIndex = ValidRoute[0].GetRouteIndex(PresentPosition[Direction.Backward].TrackCircuitSectionIndex, 0);
             }
             else
             {
                 DistanceTravelledM = inf.ReadSingle();
-                PresentPosition[0] = new TrackCircuitPosition();
-                PresentPosition[0].RestorePresentPositionDummy(inf);
-                PresentPosition[1] = new TrackCircuitPosition();
-                PresentPosition[1].RestorePresentRearDummy(inf);
-                PreviousPosition[TrainPosition.Front] = new TrackCircuitPosition();
-                PreviousPosition[TrainPosition.Front].RestorePreviousPositionDummy(inf);
+                PresentPosition[Direction.Forward] = new TrackCircuitPosition();
+                PresentPosition[Direction.Forward].RestorePresentPositionDummy(inf);
+                PresentPosition[Direction.Backward] = new TrackCircuitPosition();
+                PresentPosition[Direction.Backward].RestorePresentRearDummy(inf);
+                PreviousPosition[Direction.Forward] = new TrackCircuitPosition();
+                PreviousPosition[Direction.Forward].RestorePreviousPositionDummy(inf);
             }
             travelled = DistanceTravelledM;
             count = inf.ReadInt32();
@@ -1013,9 +1020,9 @@ namespace Orts.Simulation.Physics
             outf.Write(DistanceToEndNodeAuthorityM[1]);
 
             outf.Write(DistanceTravelledM);
-            PresentPosition[0].Save(outf);
-            PresentPosition[1].Save(outf);
-            PreviousPosition[TrainPosition.Front].Save(outf);
+            PresentPosition[Direction.Forward].Save(outf);
+            PresentPosition[Direction.Backward].Save(outf);
+            PreviousPosition[Direction.Forward].Save(outf);
             //  Save requiredAction, the original actions
             outf.Write(requiredActions.Count);
             foreach (DistanceTravelledItem thisAction in requiredActions)
@@ -1227,70 +1234,30 @@ namespace Orts.Simulation.Physics
             else
             {
                 string username = MPManager.GetUserName();
-                var skip = false;
                 foreach (OnlinePlayer onlinePlayer in MPManager.OnlineTrains.Players.Values)
                 {
                     // don't consider the present user
-                    if (onlinePlayer.Username == username) continue;
+                    if (onlinePlayer.Username == username) 
+                        continue;
                     if (onlinePlayer.LeadingLocomotiveID == Cars[i].CarID)
                     {
-                        skip = true;
-                        break;
+                        return true;
                     }
                 }
-                return skip;
+                return false;
             }
         }
 
-        //================================================================================================//
-        /// <summary>
-        /// Flips the train if necessary so that the train orientation matches the lead locomotive cab direction
-        /// </summary>
-
-        //       public void Orient()
-        //       {
-        //           TrainCar lead = LeadLocomotive;
-        //           if (lead == null || !(lead.Flipped ^ lead.GetCabFlipped()))
-        //               return;
-        //
-        //           if (ControlMode == TRAIN_CONTROL.AUTO_SIGNAL || ControlMode == TRAIN_CONTROL.AUTO_NODE || ControlMode == TRAIN_CONTROL.MANUAL)
-        //               return;
-        //
-        //           for (int i = Cars.Count - 1; i > 0; i--)
-        //               Cars[i].CopyCoupler(Cars[i - 1]);
-        //           for (int i = 0; i < Cars.Count / 2; i++)
-        //           {
-        //               int j = Cars.Count - i - 1;
-        //               TrainCar car = Cars[i];
-        //               Cars[i] = Cars[j];
-        //               Cars[j] = car;
-        //           }
-        //           if (LeadLocomotiveIndex >= 0)
-        //               LeadLocomotiveIndex = Cars.Count - LeadLocomotiveIndex - 1;
-        //           for (int i = 0; i < Cars.Count; i++)
-        //               Cars[i].Flipped = !Cars[i].Flipped;
-        //
-        //           Traveller t = FrontTDBTraveller;
-        //           FrontTDBTraveller = new Traveller(RearTDBTraveller, Traveller.TravellerDirection.Backward);
-        //           RearTDBTraveller = new Traveller(t, Traveller.TravellerDirection.Backward);
-        //
-        //           MUDirection = DirectionControl.Flip(MUDirection);
-        //           MUReverserPercent = -MUReverserPercent;
-        //       }
-
-        //================================================================================================//
-        /// <summary>
         /// Reverse train formation
         /// Only performed when train activates a reversal point
         /// NOTE : this routine handles the physical train orientation only, all related route settings etc. must be handled separately
-        /// </summary>
-
-        public void ReverseFormation(bool setMUParameters)
+        internal void ReverseFormation(bool setMUParameters)
         {
-            if (MPManager.IsMultiPlayer()) MPManager.BroadCast((new MSGFlip(this, setMUParameters, Number)).ToString()); // message contains data before flip
+            if (MPManager.IsMultiPlayer()) 
+                MPManager.BroadCast((new MSGFlip(this, setMUParameters, Number)).ToString()); // message contains data before flip
             ReverseCars();
             // Flip the train's travellers.
-            var t = FrontTDBTraveller;
+            Traveller t = FrontTDBTraveller;
             FrontTDBTraveller = new Traveller(RearTDBTraveller, Traveller.TravellerDirection.Backward);
             RearTDBTraveller = new Traveller(t, Traveller.TravellerDirection.Backward);
             // If we are updating the controls...
@@ -1300,26 +1267,22 @@ namespace Orts.Simulation.Physics
                 MUDirection = (MidpointDirection)((int)MUDirection * -1);
                 MUReverserPercent = -MUReverserPercent;
             }
-            if (!((this is AITrain && (this as AITrain).AI.PreUpdate) || TrainType == TrainType.Static)) FormationReversed = true;
+            if (!((this is AITrain aitrain && aitrain.AI.PreUpdate) || TrainType == TrainType.Static)) 
+                FormationReversed = true;
         }
 
-        //================================================================================================//
-        /// <summary>
         /// Reverse cars and car order
-        /// </summary>
-        /// 
-
-        public void ReverseCars()
+        internal void ReverseCars()
         {
             // Shift all the coupler data along the train by 1 car. Not sure whether this logic is correct, as it appears to give incorrect coupler information - To Be Checked
-            for (var i = Cars.Count - 1; i > 0; i--)
+            for (int i = Cars.Count - 1; i > 0; i--)
             {
                 Cars[i].CopyCoupler(Cars[i - 1]);
             }
             // Reverse brake hose connections and angle cocks
-            for (var i = 0; i < Cars.Count; i++)
+            for (int i = 0; i < Cars.Count; i++)
             {
-                var ac = Cars[i].BrakeSystem.AngleCockAOpen;
+                bool ac = Cars[i].BrakeSystem.AngleCockAOpen;
                 Cars[i].BrakeSystem.AngleCockAOpen = Cars[i].BrakeSystem.AngleCockBOpen;
                 Cars[i].BrakeSystem.AngleCockBOpen = ac;
                 if (i == Cars.Count - 1)
@@ -1333,18 +1296,12 @@ namespace Orts.Simulation.Physics
             if (LeadLocomotiveIndex >= 0)
                 LeadLocomotiveIndex = Cars.Count - LeadLocomotiveIndex - 1;
             // Update flipped state of each car.
-            for (var i = 0; i < Cars.Count; i++)
+            for (int i = 0; i < Cars.Count; i++)
                 Cars[i].Flipped = !Cars[i].Flipped;
         }
 
-
-
-        //================================================================================================//
-        /// <summary>
         /// Someone is sending an event notification to all cars on this train.
         /// ie doors open, pantograph up, lights on etc.
-        /// </summary>
-
         public void SignalEvent(TrainEvent evt)
         {
             foreach (TrainCar car in Cars)
@@ -1446,7 +1403,7 @@ namespace Orts.Simulation.Physics
 
             // Update train physics, position and movement
 
-            physicsUpdate(elapsedClockSeconds);
+            PhysicsUpdate(elapsedClockSeconds);
 
             // Update the UiD of First Wagon
             FirstCarUiD = GetFirstWagonUiD();
@@ -1487,7 +1444,7 @@ namespace Orts.Simulation.Physics
                 if (ControlMode != TrainControlMode.OutOfControl) movedBackward = CheckBackwardClearance();  // check clearance at rear if not out of control //
                 UpdateTrainPosition();                                                          // position update         //
                 UpdateTrainPositionInformation();                                               // position update         //
-                int SignalObjIndex = CheckSignalPassed(0, PresentPosition[0], PreviousPosition[TrainPosition.Front]);   // check if passed signal  //
+                int SignalObjIndex = CheckSignalPassed(0, PresentPosition[Direction.Forward], PreviousPosition[Direction.Forward]);   // check if passed signal  //
                 UpdateSectionState(movedBackward);                                              // update track occupation //
                 if (!(this is AITrain && (this as AITrain).MovementState == AITrain.AI_MOVEMENT_STATE.SUSPENDED)) ObtainRequiredActions(movedBackward);    // process list of actions //
 
@@ -1527,7 +1484,7 @@ namespace Orts.Simulation.Physics
         /// Update train physics
         /// <\summary>
 
-        public virtual void physicsUpdate(double elapsedClockSeconds)
+        internal virtual void PhysicsUpdate(double elapsedClockSeconds)
         {
             //if out of track, will set it to stop
             if ((FrontTDBTraveller != null && FrontTDBTraveller.IsEnd) || (RearTDBTraveller != null && RearTDBTraveller.IsEnd))
@@ -1537,13 +1494,18 @@ namespace Orts.Simulation.Physics
                     RearTDBTraveller.ReverseDirection();
                     RearTDBTraveller.NextTrackNode();
                 }
-                else if (FrontTDBTraveller.IsEnd) RearTDBTraveller.Move(-1);//if front is out, move back
-                else if (RearTDBTraveller.IsEnd) RearTDBTraveller.Move(1);//if rear is out, move forward
-                foreach (var car in Cars) { car.SpeedMpS = 0; } //can set crash here by setting XNA matrix
+                else if (FrontTDBTraveller.IsEnd) 
+                    RearTDBTraveller.Move(-1);//if front is out, move back
+                else if (RearTDBTraveller.IsEnd) 
+                    RearTDBTraveller.Move(1);//if rear is out, move forward
+                foreach (TrainCar car in Cars) 
+                { 
+                    car.SpeedMpS = 0; 
+                }
                 SignalEvent(TrainEvent.ResetWheelSlip);//reset everything to 0 power
             }
 
-            if (TrainType == TrainType.Remote || updateMSGReceived == true) //server tolds me this train (may include mine) needs to update position
+            if (TrainType == TrainType.Remote || updateMSGReceived) //server tolds me this train (may include mine) needs to update position
             {
                 UpdateRemoteTrainPos(elapsedClockSeconds);
                 return;
@@ -1624,7 +1586,7 @@ namespace Orts.Simulation.Physics
                         NumOfCouplerBreaks++;
                         DbfEvalValueChanged = true;//Debrief eval
 
-                        Trace.WriteLine(String.Format("Num of coupler breaks: {0}", NumOfCouplerBreaks));
+                        Trace.WriteLine($"Num of coupler breaks: {NumOfCouplerBreaks}");
                         numOfCouplerBreaksNoted = true;
 
                         if (simulator.BreakCouplers)
@@ -1659,20 +1621,21 @@ namespace Orts.Simulation.Physics
             UpdateWindComponents();
 
             double distanceM = LastCar.SpeedMpS * elapsedClockSeconds;
-            if (double.IsNaN(distanceM)) distanceM = 0;//avoid NaN, if so will not move
+            if (double.IsNaN(distanceM)) 
+                distanceM = 0;//avoid NaN, if so will not move
             if (TrainType == TrainType.Ai && LeadLocomotiveIndex == (Cars.Count - 1) && LastCar.Flipped)
                 distanceM = -distanceM;
             DistanceTravelledM += (float)distanceM;
 
             SpeedMpS = 0;
-            foreach (TrainCar car1 in Cars)
+            foreach (TrainCar car in Cars)
             {
-                SpeedMpS += car1.SpeedMpS;
+                SpeedMpS += car.SpeedMpS;
                 //TODO: next code line has been modified to flip trainset physics in order to get viewing direction coincident with loco direction when using rear cab.
                 // To achieve the same result with other means, without flipping trainset physics, the line should be changed as follows:
                 //                 if (car1.Flipped)
-                if (car1.Flipped ^ (car1.IsDriveable && car1.Train.IsActualPlayerTrain && ((MSTSLocomotive)car1).UsingRearCab))
-                    car1.SpeedMpS = -car1.SpeedMpS;
+                if (car.Flipped ^ (car.IsDriveable && car.Train.IsActualPlayerTrain && ((MSTSLocomotive)car).UsingRearCab))
+                    car.SpeedMpS = -car.SpeedMpS;
             }
 #if DEBUG_SPEED_FORCES
             Trace.TraceInformation(" ========================= Train Speed #1 (Train.cs) ======================================== ");
@@ -1705,12 +1668,8 @@ namespace Orts.Simulation.Physics
                 Math.Max(0, ProjectedSpeedMpS) : SpeedMpS < -float.Epsilon ? Math.Min(0, ProjectedSpeedMpS) : 0;
         }
 
-        //================================================================================================//
-        /// <summary>
         /// Update Wind components for the train
-        /// <\summary>
-
-        public void UpdateWindComponents()
+        private void UpdateWindComponents()
         {
             // Gets wind direction and speed, and determines HUD display values for the train as a whole. 
             //These will be representative of the train whilst it is on a straight track, but each wagon will vary when going around a curve.
@@ -1740,8 +1699,7 @@ namespace Orts.Simulation.Physics
                     ResultantWindComponentDeg = 0.0f;
 
                 // Correct wind direction if it is greater then 360 deg, then correct to a value less then 360
-                if (Math.Abs(ResultantWindComponentDeg) > 360)
-                    ResultantWindComponentDeg = ResultantWindComponentDeg - 360.0f;
+                    ResultantWindComponentDeg %= 360.0f;
 
                 // Wind angle should be kept between 0 and 180 the formulas do not cope with angles > 180. If angle > 180, denotes wind of "other" side of train
                 if (ResultantWindComponentDeg > 180)
@@ -1758,64 +1716,54 @@ namespace Orts.Simulation.Physics
             }
         }
 
-
-        //================================================================================================//
-        /// <summary>
         /// Update Auxiliary Tenders added to train
-        /// <\summary>
-
-        public void UpdateAuxTender()
+        private void UpdateAuxTender()
         {
+            if (!(Cars[0] is MSTSSteamLocomotive mstsSteamLocomotive))
+                return;  // Don't process if locomotive is not steam locomotive
 
-            var mstsSteamLocomotive = Cars[0] as MSTSSteamLocomotive;  // Don't process if locomotive is not steam locomotive
-            if (mstsSteamLocomotive != null)
+            bool auxTenderFound = false;    // Flag to confirm that there is still an auxiliary tender in consist
+                                       // Calculate when an auxiliary tender is coupled to train
+            for (int i = 0; i < Cars.Count; i++)
             {
-                AuxTenderFound = false;    // Flag to confirm that there is still an auxiliary tender in consist
-                // Calculate when an auxiliary tender is coupled to train
-                for (int i = 0; i < Cars.Count; i++)
+                if (Cars[i].AuxWagonType == AuxWagonType.AuxiliaryTender && i > LeadLocomotiveIndex && IsPlayerDriven)  // If value has been entered for auxiliary tender & AuxTender car value is greater then the lead locomotive & and it is player driven
                 {
-
-                    if (Cars[i].AuxWagonType == "AuxiliaryTender" && i > LeadLocomotiveIndex && IsPlayerDriven)  // If value has been entered for auxiliary tender & AuxTender car value is greater then the lead locomotive & and it is player driven
+                    if (Cars[i - 1].AuxWagonType == AuxWagonType.Tender || Cars[i - 1].AuxWagonType == AuxWagonType.Engine)  // Aux tender found in consist
                     {
-                        PrevWagonType = Cars[i - 1].AuxWagonType;
-                        if (PrevWagonType == "Tender" || PrevWagonType == "Engine")  // Aux tender found in consist
+                        if (simulator.Activity != null) // If an activity check to see if fuel presets are used.
                         {
-                            if (simulator.Activity != null) // If an activity check to see if fuel presets are used.
+                            if (!mstsSteamLocomotive.AuxTenderMoveFlag)  // If locomotive hasn't moved and Auxtender connected use fuel presets on aux tender
                             {
-                                if (mstsSteamLocomotive.AuxTenderMoveFlag == false)  // If locomotive hasn't moved and Auxtender connected use fuel presets on aux tender
-                                {
-                                    MaxAuxTenderWaterMassKG = Cars[i].AuxTenderWaterMassKG;
-                                    mstsSteamLocomotive.CurrentAuxTenderWaterMassKG = Cars[i].AuxTenderWaterMassKG * (simulator.Activity.Activity.Header.FuelWater / 100.0f); // 
-                                    IsAuxTenderCoupled = true;      // Flag to advise MSTSSteamLovcomotive that tender is set.
-                                    AuxTenderFound = true;      // Auxililary tender found in consist.
+                                MaxAuxTenderWaterMassKG = Cars[i].AuxTenderWaterMassKG;
+                                mstsSteamLocomotive.CurrentAuxTenderWaterMassKG = Cars[i].AuxTenderWaterMassKG * (simulator.Activity.Activity.Header.FuelWater / 100.0f); // 
+                                IsAuxTenderCoupled = true;      // Flag to advise MSTSSteamLovcomotive that tender is set.
+                                auxTenderFound = true;      // Auxililary tender found in consist.
 
-                                }
-                                else     // Otherwise assume aux tender not connected at start of activity and therefore full value of water mass available when connected.
-                                {
-                                    MaxAuxTenderWaterMassKG = Cars[i].AuxTenderWaterMassKG;
-                                    mstsSteamLocomotive.CurrentAuxTenderWaterMassKG = Cars[i].AuxTenderWaterMassKG;
-                                    IsAuxTenderCoupled = true;
-                                    AuxTenderFound = true;      // Auxililary tender found in consist.
-                                }
                             }
-                            else  // In explore mode set aux tender to full water value
+                            else     // Otherwise assume aux tender not connected at start of activity and therefore full value of water mass available when connected.
                             {
                                 MaxAuxTenderWaterMassKG = Cars[i].AuxTenderWaterMassKG;
                                 mstsSteamLocomotive.CurrentAuxTenderWaterMassKG = Cars[i].AuxTenderWaterMassKG;
                                 IsAuxTenderCoupled = true;
-                                AuxTenderFound = true;      // Auxililary tender found in consist.
-
+                                auxTenderFound = true;      // Auxililary tender found in consist.
                             }
-
-
                         }
-                        else // Aux tender not found in consist
+                        else  // In explore mode set aux tender to full water value
                         {
-                            MaxAuxTenderWaterMassKG = 0.0f;
-                            IsAuxTenderCoupled = false;
-                        }
+                            MaxAuxTenderWaterMassKG = Cars[i].AuxTenderWaterMassKG;
+                            mstsSteamLocomotive.CurrentAuxTenderWaterMassKG = Cars[i].AuxTenderWaterMassKG;
+                            IsAuxTenderCoupled = true;
+                            auxTenderFound = true;      // Auxililary tender found in consist.
 
+                        }
                     }
+                    else // Aux tender not found in consist
+                    {
+                        MaxAuxTenderWaterMassKG = 0.0f;
+                        IsAuxTenderCoupled = false;
+                    }
+
+                }
 
 #if DEBUG_AUXTENDER
                     Trace.TraceInformation("=============================== DEBUG_AUXTENDER (Train.cs) ==============================================================");
@@ -1824,447 +1772,417 @@ namespace Orts.Simulation.Physics
                     Trace.TraceInformation("Prev {0} Coupled {1}", PrevWagonType, IsAuxTenderCoupled);
 #endif
 
-                }
-
-                if (AuxTenderFound == false && IsAuxTenderCoupled == true)     // If an auxiliary tender is not found in the consist, then assume that it has been uncoupled
-                {
-                    MaxAuxTenderWaterMassKG = 0.0f;     // Reset values
-                    IsAuxTenderCoupled = false;
-                }
             }
 
+            if (!auxTenderFound && IsAuxTenderCoupled)     // If an auxiliary tender is not found in the consist, then assume that it has been uncoupled
+            {
+                MaxAuxTenderWaterMassKG = 0.0f;     // Reset values
+                IsAuxTenderCoupled = false;
+            }
         }
 
-
-        //================================================================================================//
-        /// <summary>
         /// Update Steam Heating - this model calculates the total train heat losses and gains for all the cars
-        /// <\summary>
-
-        // The carriage steam heating model is based upon a description provided in a number of articles, including, "The Steam Heating of Railway Carriages" by Frank W. Marillier ( http://www.gwr.org.uk/links.html ),
-        // and "Some Considerations on the Problem of the Heating of British Railway Coaches" by F. J. Pepper. (Journal Institution of Locomotive Engineers - Paper No. 568 - pg 13 -74)
-        // Steam is carried the length of the train by a 2" or 1.5" steam pipe that is fitted between each of the cars. Rubber pressure hoses are used to couple the carriage steam pipes together. 
-        // Typically these pipes would have some level of insulation on them.
-        // Typically 2" bore steam pipes are then placed at strategic locations within the car. For cars with separate compartments, a steam pipe would need to be located in each compartment.
-        // The length of each of these compartment steam pipes was determined by a rule of thumb based upon the volume of the space that it was desgined to heat, so for example, a 
-        // 2nd class compartment, would have 1" of pipe length for each 3.5cu ft of compartment volume.
-        // Steam entering into the passenger area of the train is typically reduced to atmospheric pressure??? 
-        // Some articles suggest that a typical steam heating system could use approx 100lbs of steam per hour per car. (more detail)
-
-        // The model calculates the heat capacity of each car at a default temperature, and the various heat losses, such as heat loss from the cars, main steam pipe, leaks, etc are 
-        // subtracted from this value. Heat gain from the radiation heat exchange area are added to this value. If all is ok then a balance should be achieved.
-
-        // Leaks in system, loss of heat (and pressure) as steam moves along train
-
-        public void UpdateCarSteamHeat(double elapsedClockSeconds)
+        private void UpdateCarSteamHeat(double elapsedClockSeconds)
         {
-            var mstsLocomotive = simulator.PlayerLocomotive as MSTSLocomotive;
-            if (mstsLocomotive != null)
+            // The carriage steam heating model is based upon a description provided in a number of articles, including, "The Steam Heating of Railway Carriages" by Frank W. Marillier ( http://www.gwr.org.uk/links.html ),
+            // and "Some Considerations on the Problem of the Heating of British Railway Coaches" by F. J. Pepper. (Journal Institution of Locomotive Engineers - Paper No. 568 - pg 13 -74)
+            // Steam is carried the length of the train by a 2" or 1.5" steam pipe that is fitted between each of the cars. Rubber pressure hoses are used to couple the carriage steam pipes together. 
+            // Typically these pipes would have some level of insulation on them.
+            // Typically 2" bore steam pipes are then placed at strategic locations within the car. For cars with separate compartments, a steam pipe would need to be located in each compartment.
+            // The length of each of these compartment steam pipes was determined by a rule of thumb based upon the volume of the space that it was desgined to heat, so for example, a 
+            // 2nd class compartment, would have 1" of pipe length for each 3.5cu ft of compartment volume.
+            // Steam entering into the passenger area of the train is typically reduced to atmospheric pressure??? 
+            // Some articles suggest that a typical steam heating system could use approx 100lbs of steam per hour per car. (more detail)
+
+            // The model calculates the heat capacity of each car at a default temperature, and the various heat losses, such as heat loss from the cars, main steam pipe, leaks, etc are 
+            // subtracted from this value. Heat gain from the radiation heat exchange area are added to this value. If all is ok then a balance should be achieved.
+
+            // Leaks in system, loss of heat (and pressure) as steam moves along train
+
+            if (!(simulator.PlayerLocomotive is MSTSLocomotive mstsLocomotive))
+                return;
+
+            if (IsFirstTimeBoilerCarAttached)
             {
-
-                if (IsFirstTimeBoilerCarAttached)
+                foreach (TrainCar car in Cars)
                 {
-                    for (int i = 0; i < Cars.Count; i++)
+                    switch(car.WagonSpecialType)
                     {
-                        var car = Cars[i];
-                        if (car.WagonSpecialType == MSTSWagon.WagonSpecialTypes.HeatingBoiler)
-                        {
+                        case TrainCar.WagonSpecialTypes.HeatingBoiler:
                             HeatingBoilerCarAttached = true; // A steam heating boiler is fitted in a wagon
-                        }
-                        if (car.WagonSpecialType == MSTSWagon.WagonSpecialTypes.Heated)
-                        {
+                            break;
+                        case TrainCar.WagonSpecialTypes.Heated:
                             HeatedCarAttached = true; // A steam heating boiler is fitted in a wagon
+                            break;
+                    }
+                }
+                IsFirstTimeBoilerCarAttached = false;
+            }
+
+            // Check to confirm that train is player driven and has passenger cars in the consist. Steam heating is OFF if steam heat valve is closed and no pressure is present
+            if (IsPlayerDriven && (PassengerCarsNumber > 0 || HeatedCarAttached) && (mstsLocomotive.IsSteamHeatFitted || HeatingBoilerCarAttached) && mstsLocomotive.CurrentSteamHeatPressurePSI > 0)
+            {
+                // Set default values required
+                float steamFlowRateLbpHr = 0;
+                float progressiveHeatAlongTrainBTU = 0;
+                float connectSteamHoseLengthFt = 2.0f * 2.0f; // Assume two hoses on each car * 2 ft long
+
+                // Calculate total heat loss and car temperature along the train
+                foreach (TrainCar car in Cars)
+                {
+                    // Calculate volume in carriage - note height reduced by 1.06m to allow for bogies, etc
+                    float BogieHeightM = 1.06f;
+
+                    car.CarHeatVolumeM3 = car.CarWidthM * (car.CarLengthM) * (car.CarHeightM - BogieHeightM); // Check whether this needs to be same as compartment volume
+                    car.CarOutsideTempC = TrainOutsideTempC;  // Update Outside temp
+
+                    // Only initialise these values the first time around the loop
+                    if (car.IsCarSteamHeatInitial)
+                    {
+
+                        // This section sets some arbitary default values the first time that this section is processed. Real values are set on subsequent loops, once steam heat is turned on in locomotive
+                        if (TrainInsideTempC == 0)
+                        {
+                            TrainInsideTempC = car.DesiredCompartmentTempSetpointC; // Set intial temp - will be set in Steam and Diesel Eng, but these are done after this step
                         }
 
-                    }
-                    IsFirstTimeBoilerCarAttached = false;
-                }
-
-                // Check to confirm that train is player driven and has passenger cars in the consist. Steam heating is OFF if steam heat valve is closed and no pressure is present
-                if (IsPlayerDriven && (PassengerCarsNumber > 0 || HeatedCarAttached) && (mstsLocomotive.IsSteamHeatFitted || HeatingBoilerCarAttached) && mstsLocomotive.CurrentSteamHeatPressurePSI > 0)
-                {
-                    // Set default values required
-                    float SteamFlowRateLbpHr = 0;
-                    float ProgressiveHeatAlongTrainBTU = 0;
-                    float ConnectSteamHoseLengthFt = 2.0f * 2.0f; // Assume two hoses on each car * 2 ft long
-
-                    // Calculate total heat loss and car temperature along the train
-                    for (int i = 0; i < Cars.Count; i++)
-                    {
-                        var car = Cars[i];
-                        // Calculate volume in carriage - note height reduced by 1.06m to allow for bogies, etc
-                        float BogieHeightM = 1.06f;
-
-                        car.CarHeatVolumeM3 = car.CarWidthM * (car.CarLengthM) * (car.CarHeightM - BogieHeightM); // Check whether this needs to be same as compartment volume
-                        car.CarOutsideTempC = TrainOutsideTempC;  // Update Outside temp
-
-                        // Only initialise these values the first time around the loop
-                        if (car.IsCarSteamHeatInitial)
+                        if (TrainOutsideTempC == 0)
                         {
 
-                            // This section sets some arbitary default values the first time that this section is processed. Real values are set on subsequent loops, once steam heat is turned on in locomotive
-                            if (TrainInsideTempC == 0)
-                            {
-                                TrainInsideTempC = car.DesiredCompartmentTempSetpointC; // Set intial temp - will be set in Steam and Diesel Eng, but these are done after this step
-                            }
+                            TrainOutsideTempC = 10.0f; // Set intial temp - will be set in Steam and Diesel Eng, but these are done after this step
+                        }
 
-                            if (TrainOutsideTempC == 0)
+                        if (mstsLocomotive.EngineType == TrainCar.EngineTypes.Steam && simulator.Settings.HotStart || mstsLocomotive.EngineType == TrainCar.EngineTypes.Diesel || mstsLocomotive.EngineType == TrainCar.EngineTypes.Electric)
+                        {
+                            if (TrainOutsideTempC < car.DesiredCompartmentTempSetpointC)
                             {
-
-                                TrainOutsideTempC = 10.0f; // Set intial temp - will be set in Steam and Diesel Eng, but these are done after this step
-                            }
-
-                            if (mstsLocomotive.EngineType == TrainCar.EngineTypes.Steam && simulator.Settings.HotStart || mstsLocomotive.EngineType == TrainCar.EngineTypes.Diesel || mstsLocomotive.EngineType == TrainCar.EngineTypes.Electric)
-                            {
-                                if (TrainOutsideTempC < car.DesiredCompartmentTempSetpointC)
-                                {
-                                    car.CarCurrentCarriageHeatTempC = car.DesiredCompartmentTempSetpointC; // Set intial temp
-                                }
-                                else
-                                {
-                                    car.CarCurrentCarriageHeatTempC = TrainOutsideTempC;
-                                }
+                                car.CarCurrentCarriageHeatTempC = car.DesiredCompartmentTempSetpointC; // Set intial temp
                             }
                             else
                             {
                                 car.CarCurrentCarriageHeatTempC = TrainOutsideTempC;
                             }
-
-                            // Calculate a random factor for steam heat leaks in connecting pipes
-                            car.SteamHoseLeakRateRandom = (float)Simulator.Random.Next(100) / 100.0f; // Achieves a two digit random number betwee 0 and 1
-                            car.SteamHoseLeakRateRandom = MathHelper.Clamp(car.SteamHoseLeakRateRandom, 0.5f, 1.0f); // Keep Random Factor ratio within bounds
-
-                            // Calculate Starting Heat value in Car Q = C * M * Tdiff, where C = Specific heat capacity, M = Mass ( Volume * Density), Tdiff - difference in temperature
-                            car.TotalPossibleCarHeatW = (float)(Dynamics.Power.FromKW(SpecificHeatCapcityAirKJpKgK * DensityAirKgpM3 * car.CarHeatVolumeM3 * (car.CarCurrentCarriageHeatTempC - TrainOutsideTempC)));
-
-                            //                            Trace.TraceInformation("Initialise TotalCarHeat - CarID {0} Possible {1} Max {2} Out {3} Vol {4} Density {5} Specific {6}", car.CarID, car.TotalPossibleCarHeatW, car.CarCurrentCarriageHeatTempC, TrainOutsideTempC, car.CarHeatVolumeM3, DensityAirKgpM3, SpecificHeatCapcityAirKJpKgC);
-
-                            // Initialise current Train Steam Heat based upon selected Current carriage Temp
-                            car.CarHeatCurrentCompartmentHeatW = car.TotalPossibleCarHeatW;
-                            car.IsCarSteamHeatInitial = false;
-                        }
-
-                        // Heat loss due to train movement and air flow, based upon convection heat transfer information - http://www.engineeringtoolbox.com/convective-heat-transfer-d_430.html
-                        // The formula on this page ( hc = 10.45 - v + 10v1/2), where v = m/s. This formula is used to develop a multiplication factor with train speed.
-                        // Curve is only valid between 2.0m/s and 20.0m/s
-
-                        float LowSpeedMpS = 2.0f;
-                        float HighSpeedMpS = 20.0f;
-                        float ConvHeatTxfMinSpeed = 10.45f - LowSpeedMpS + (10.0f * (float)Math.Pow(LowSpeedMpS, 0.5));
-                        float ConvHeatTxfMaxSpeed = 10.45f - HighSpeedMpS + (10.0f * (float)Math.Pow(HighSpeedMpS, 0.5));
-                        float ConvHeatTxActualSpeed = 10.45f - car.AbsSpeedMpS + (10.0f * (float)Math.Pow(car.AbsSpeedMpS, 0.5));
-                        float ConvFactor = 0;
-
-                        if (car.AbsSpeedMpS > 2 && car.AbsSpeedMpS < 20.0f)
-                        {
-                            ConvFactor = ConvHeatTxActualSpeed / ConvHeatTxfMinSpeed; // Calculate fraction only between 2 and 20
-                        }
-                        else if (car.AbsSpeedMpS < 2)
-                        {
-                            ConvFactor = 1.0f; // If speed less then 2m/s then set fracftion to give stationary Kc value 
                         }
                         else
                         {
-                            ConvFactor = ConvHeatTxActualSpeed / ConvHeatTxfMinSpeed; // Calculate constant fraction over 20m/s
-                        }
-                        ConvFactor = MathHelper.Clamp(ConvFactor, 1.0f, 1.6f); // Keep Conv Factor ratio within bounds - should not exceed 1.6.
-
-
-                        if (car.WagonType == TrainCar.WagonTypes.Passenger || car.WagonSpecialType == MSTSWagon.WagonSpecialTypes.Heated) // Only calculate compartment heat in passenger or specially marked heated cars
-                        {
-
-                            // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-                            // Calculate heat loss from inside the carriage
-                            // Initialise car values for heating to zero
-                            car.TotalCarCompartmentHeatLossWpT = 0.0f;
-                            car.CarHeatCompartmentPipeAreaM2 = 0.0f;
-                            car.CarHeatVolumeM3 = 0.0f;
-                            float HeatLossTransmissionWpT = 0;
-
-                            // Transmission heat loss = exposed area * heat transmission coeff (inside temp - outside temp)
-                            // Calculate the heat loss through the roof, wagon sides, and floor separately  
-                            // Calculate the heat loss through the carriage sides, per degree of temp change
-                            // References - https://www.engineeringtoolbox.com/heat-loss-transmission-d_748.html  and https://www.engineeringtoolbox.com/heat-loss-buildings-d_113.html
-                            float HeatTransCoeffRoofWm2C = 1.7f * ConvFactor; // 2 inch wood - uninsulated
-                            float HeatTransCoeffEndsWm2C = 0.9f * ConvFactor; // 2 inch wood - insulated - this compensates for the fact that the ends of the cars are somewhat protected from the environment
-                            float HeatTransCoeffSidesWm2C = 1.7f * ConvFactor; // 2 inch wood - uninsulated
-                            float HeatTransCoeffWindowsWm2C = 4.7f * ConvFactor; // Single glazed glass window in wooden frame
-                            float HeatTransCoeffFloorWm2C = 2.5f * ConvFactor; // uninsulated floor
-
-                            // Calculate volume in carriage - note height reduced by 1.06m to allow for bogies, etc
-                            float CarCouplingPipeM = 1.2f;  // Allow for connection between cars (assume 2' each end) - no heat is contributed to carriages.
-
-                            // Calculate the heat loss through the roof, allow 15% additional heat loss through roof because of radiation to space
-                            float RoofHeatLossFactor = 1.15f;
-                            float HeatLossTransRoofWpT = RoofHeatLossFactor * (car.CarWidthM * (car.CarLengthM - CarCouplingPipeM)) * HeatTransCoeffRoofWm2C * (car.CarCurrentCarriageHeatTempC - car.CarOutsideTempC);
-
-                            // Each car will have 2 x sides + 2 x ends. Each side will be made up of solid walls, and windows. A factor has been assumed to determine the ratio of window area to wall area.
-                            float HeatLossTransWindowsWpT = (car.WindowDeratingFactor * (car.CarHeightM - BogieHeightM) * (car.CarLengthM - CarCouplingPipeM)) * HeatTransCoeffWindowsWm2C * (car.CarCurrentCarriageHeatTempC - car.CarOutsideTempC);
-                            float HeatLossTransSidesWpT = ((1.0f - car.WindowDeratingFactor) * (car.CarHeightM - BogieHeightM) * (car.CarLengthM - CarCouplingPipeM)) * HeatTransCoeffSidesWm2C * (car.CarCurrentCarriageHeatTempC - car.CarOutsideTempC);
-                            float HeatLossTransEndsWpT = ((car.CarHeightM - BogieHeightM) * (car.CarLengthM - CarCouplingPipeM)) * HeatTransCoeffEndsWm2C * (car.CarCurrentCarriageHeatTempC - car.CarOutsideTempC);
-
-                            // Total equals 2 x sides, ends, windows
-                            float HeatLossTransTotalSidesWpT = (2.0f * HeatLossTransWindowsWpT) + (2.0f * HeatLossTransSidesWpT) + (2.0f * HeatLossTransEndsWpT);
-
-                            // Calculate the heat loss through the floor
-                            float HeatLossTransFloorWpT = (car.CarWidthM * (car.CarLengthM - CarCouplingPipeM)) * HeatTransCoeffFloorWm2C * (car.CarCurrentCarriageHeatTempC - car.CarOutsideTempC);
-
-                            HeatLossTransmissionWpT = HeatLossTransRoofWpT + HeatLossTransTotalSidesWpT + HeatLossTransFloorWpT;
-
-                            // ++++++++++++++++++++++++
-                            // Ventilation Heat loss, per degree of temp change
-                            // This will occur when the train is stopped at the station and prior to being ready to depart. Typically will only apply in activity mode, and not explore mode
-                            float HeatLossVentilationWpT = 0;
-                            float HeatRecoveryEfficiency = 0.5f; // Assume a HRF of 50%
-                            float AirFlowVolumeM3pS = car.CarHeatVolumeM3 / 300.0f; // Assume that the volume of the car is emptied over a period of 5 minutes
-
-                            if (AtStation) // When train is at station.
-                            {
-                                if (MayDepart) // If the train is ready to depart, assume all doors are closed, and hence no ventilation loss
-                                {
-                                    HeatLossVentilationWpT = 0;
-                                }
-                                else //
-                                {
-                                    HeatLossVentilationWpT = (float)Dynamics.Power.FromKW((1.0f - HeatRecoveryEfficiency) * SpecificHeatCapcityAirKJpKgK * DensityAirKgpM3 * AirFlowVolumeM3pS * (car.CarCurrentCarriageHeatTempC - car.CarOutsideTempC));
-                                }
-                            }
-
-                            // ++++++++++++++++++++++++
-                            // Infiltration Heat loss, per degree of temp change
-                            float NumAirShiftspSec = (float)Frequency.Periodic.FromHours(10.0);      // Pepper article suggests that approx 14 air changes per hour happen for a train that is moving @ 50mph, use and av figure of 10.0.
-                            float HeatLossInfiltrationWpT = 0;
-                            car.CarHeatVolumeM3 = car.CarWidthM * (car.CarLengthM - CarCouplingPipeM) * (car.CarHeightM - BogieHeightM);
-                            HeatLossInfiltrationWpT = (float)(Dynamics.Power.FromKW(SpecificHeatCapcityAirKJpKgK * DensityAirKgpM3 * NumAirShiftspSec * car.CarHeatVolumeM3 * (car.CarCurrentCarriageHeatTempC - car.CarOutsideTempC)));
-
-                            car.TotalCarCompartmentHeatLossWpT = HeatLossTransmissionWpT + HeatLossInfiltrationWpT + HeatLossVentilationWpT;
-
-                            //++++++++++++++++++++++++++++++++++++++++
-                            // Calculate heat produced by steam pipe acting as heat exchanger inside carriage - this model is based upon the heat loss from a steam pipe. 
-                            // The heat loss per metre from a bare pipe equals the heat loss by convection and radiation. Temperatures in degrees Kelvin
-                            // QConv = hc * A * (Tp - To), where hc = convection coeff, A = surface area of pipe, Tp = pipe temperature, To = temperature of air around the pipe
-                            // QRad = % * A * e * (Tp^4 - To^4), where % = Boltzmans constant, A = surface area of pipe, Tp^4 = pipe temperature, To^4 = temperature of air around the pipe, e = emissivity factor
-
-                            // Calculate steam pipe surface area
-                            float CompartmentSteamPipeRadiusM = (float)(Size.Length.FromIn(2.375f) / 2.0f);  // Assume the steam pipes in the compartments have  have internal diameter of 2" (50mm) - external = 2.375"
-                            float DoorSteamPipeRadiusM = (float)(Size.Length.FromIn(2.75f) / 2.0f);        // Assume the steam pipes in the doors have diameter of 1.75" (50mm) - assume external = 2.0"
-
-                            // Assume door pipes are 3' 4" (ie 3.3') long, and that there are doors at both ends of the car, ie x 2
-                            float CarDoorLengthM = 2.0f * (float)(Size.Length.FromFt(3.3f));
-                            float CarDoorVolumeM3 = car.CarWidthM * CarDoorLengthM * (car.CarHeightM - BogieHeightM);
-
-                            float CarDoorPipeAreaM2 = 2.0f * MathHelper.Pi * DoorSteamPipeRadiusM * CarDoorLengthM;
-
-                            // Use rule of thumb - 1" of 2" steam heat pipe for every 3.0 cu ft of volume in car compartment (third class)
-                            float CarCompartmentPipeLengthM = (float)(Size.Length.FromIn((car.CarHeatVolumeM3 - CarDoorVolumeM3) / (Size.Volume.FromFt3(car.CompartmentHeatingPipeAreaFactor))));
-                            float CarCompartmentPipeAreaM2 = 2.0f * MathHelper.Pi * CompartmentSteamPipeRadiusM * CarCompartmentPipeLengthM;
-
-                            car.CarHeatCompartmentPipeAreaM2 = CarCompartmentPipeAreaM2 + CarDoorPipeAreaM2;
-
-                            // Pipe convection heat produced - steam is reduced to atmospheric pressure when it is injected into compartment
-                            float CompartmentSteamPipeTempC = (float)Temperature.Celsius.FromF(mstsLocomotive.SteamHeatPressureToTemperaturePSItoF[0]);
-                            car.CarCompartmentSteamPipeHeatConvW = (PipeHeatTransCoeffWpM2K * car.CarHeatCompartmentPipeAreaM2 * (CompartmentSteamPipeTempC - car.CarCurrentCarriageHeatTempC));
-
-                            // Pipe radiation heat produced
-                            float PipeTempAK = (float)Math.Pow(Temperature.Kelvin.FromF(CompartmentSteamPipeTempC), 4.0f);
-                            float PipeTempBK = (float)Math.Pow(Temperature.Celsius.ToK(car.CarCurrentCarriageHeatTempC), 4.0f);
-                            car.CarCompartmentSteamHeatPipeRadW = (BoltzmanConstPipeWpM2 * EmissivityFactor * car.CarHeatCompartmentPipeAreaM2 * (PipeTempAK - PipeTempBK));
-
-                            car.CarHeatCompartmentSteamPipeHeatW = car.CarCompartmentSteamHeatPipeRadW + car.CarCompartmentSteamPipeHeatConvW;
-
+                            car.CarCurrentCarriageHeatTempC = TrainOutsideTempC;
                         }
 
-                        //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-                        // Calculate heating loss in main supply pipe that runs under carriage
+                        // Calculate a random factor for steam heat leaks in connecting pipes
+                        car.SteamHoseLeakRateRandom = Simulator.Random.Next(100) / 100.0f; // Achieves a two digit random number between 0 and 1
+                        car.SteamHoseLeakRateRandom = MathHelper.Clamp(car.SteamHoseLeakRateRandom, 0.5f, 1.0f); // Keep Random Factor ratio within bounds
 
-                        // Set heat trans coeff
-                        float HeatTransCoeffMainPipeBTUpFt2pHrpF = 0.4f * ConvFactor; // insulated pipe - BTU / sq.ft. / hr / l in / °F.
-                        float HeatTransCoeffConnectHoseBTUpFt2pHrpF = 0.04f * ConvFactor; // rubber connecting hoses - BTU / sq.ft. / hr / l in / °F. TO BE CHECKED
+                        // Calculate Starting Heat value in Car Q = C * M * Tdiff, where C = Specific heat capacity, M = Mass ( Volume * Density), Tdiff - difference in temperature
+                        car.TotalPossibleCarHeatW = (float)(Dynamics.Power.FromKW(SpecificHeatCapcityAirKJpKgK * DensityAirKgpM3 * car.CarHeatVolumeM3 * (car.CarCurrentCarriageHeatTempC - TrainOutsideTempC)));
 
-                        // Calculate Length of carriage and heat loss in main steam pipe
-                        float CarMainSteamPipeTempF = (float)mstsLocomotive.SteamHeatPressureToTemperaturePSItoF[car.CarSteamHeatMainPipeSteamPressurePSI];
-                        car.CarHeatSteamMainPipeHeatLossBTU = (float)(Size.Length.ToFt(car.CarLengthM) * (MathHelper.Pi * Size.Length.ToFt(car.MainSteamHeatPipeOuterDiaM)) * HeatTransCoeffMainPipeBTUpFt2pHrpF * (CarMainSteamPipeTempF - Temperature.Celsius.ToF(car.CarOutsideTempC)));
+                        //Trace.TraceInformation("Initialise TotalCarHeat - CarID {0} Possible {1} Max {2} Out {3} Vol {4} Density {5} Specific {6}", car.CarID, car.TotalPossibleCarHeatW, car.CarCurrentCarriageHeatTempC, TrainOutsideTempC, car.CarHeatVolumeM3, DensityAirKgpM3, SpecificHeatCapcityAirKJpKgC);
 
-                        // calculate steam connecting hoses heat loss - assume 1.5" hose
-                        float ConnectSteamHoseOuterDiaFt = (float)Size.Length.ToFt(car.CarConnectSteamHoseOuterDiaM);
-                        car.CarHeatConnectSteamHoseHeatLossBTU = (float)(ConnectSteamHoseLengthFt * (MathHelper.Pi * ConnectSteamHoseOuterDiaFt) * HeatTransCoeffConnectHoseBTUpFt2pHrpF * (CarMainSteamPipeTempF - Temperature.Celsius.ToF(car.CarOutsideTempC)));
-
-                        // Use Napier formula to calculate steam discharge rate through steam trap valve, ie Discharge (lb/s) = (Valve area * Abs Pressure) / 70
-                        const float SteamTrapValveDischargeFactor = 70.0f;
-
-                        // Find area of pipe - assume 0.1875" (3/16") dia steam trap
-                        float SteamTrapDiaIn = 0.1875f;
-                        float SteamTrapValveSizeAreaIn2 = (float)Math.PI * (SteamTrapDiaIn / 2.0f) * (SteamTrapDiaIn / 2.0f);
-
-                        car.CarHeatSteamTrapUsageLBpS = (SteamTrapValveSizeAreaIn2 * (car.CarSteamHeatMainPipeSteamPressurePSI + OneAtmospherePSI)) / SteamTrapValveDischargeFactor;
-
-                        // Use Napier formula to calculate steam discharge rate through steam leak in connecting hose, ie Discharge (lb/s) = (Valve area * Abs Pressure) / 70
-                        const float ConnectingHoseDischargeFactor = 70.0f;
-
-                        // Find area of pipe - assume 0.1875" (3/16") dia steam trap
-                        float ConnectingHoseLeakDiaIn = 0.1875f;
-                        float ConnectingHoseLeakAreaIn2 = (float)Math.PI * (ConnectingHoseLeakDiaIn / 2.0f) * (ConnectingHoseLeakDiaIn / 2.0f);
-
-                        car.CarHeatConnectingSteamHoseLeakageLBpS = car.SteamHoseLeakRateRandom * (ConnectingHoseLeakAreaIn2 * (car.CarSteamHeatMainPipeSteamPressurePSI + OneAtmospherePSI)) / ConnectingHoseDischargeFactor;
-
-                        //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-                        float CurrentComparmentSteamPipeHeatW = 0;
-
-                        // Calculate total steam loss along main pipe, by calculating heat into steam pipe at locomotive, deduct heat loss for each car, 
-                        // note if pipe pressure drops, then compartment heating will stop
-                        if (car.CarSteamHeatMainPipeSteamPressurePSI >= 1 && car.CarHeatCompartmentHeaterOn && (car.WagonType == TrainCar.WagonTypes.Passenger || car.WagonSpecialType == MSTSWagon.WagonSpecialTypes.Heated))
-                        {
-                            // If main pipe pressure is > 0 then heating will start to occur in comparment, so include compartment heat exchanger value
-                            ProgressiveHeatAlongTrainBTU += (float)((car.CarHeatSteamMainPipeHeatLossBTU + car.CarHeatConnectSteamHoseHeatLossBTU) + Frequency.Periodic.ToHours(Dynamics.Power.ToBTUpS(car.CarHeatCompartmentSteamPipeHeatW)));
-                            CurrentComparmentSteamPipeHeatW = car.CarHeatCompartmentSteamPipeHeatW; // Car is being heated as main pipe pressure is high enough, and temperature increase is required
-                            car.SteamHeatingCompartmentSteamTrapOn = true; // turn on the compartment steam traps
-                        }
-                        else
-                        {
-                            // If main pipe pressure is < 0 or temperature in compartment is above the desired temeperature,
-                            // then no heating will occur in comparment, so leave compartment heat exchanger value out
-                            ProgressiveHeatAlongTrainBTU += (car.CarHeatSteamMainPipeHeatLossBTU + car.CarHeatConnectSteamHoseHeatLossBTU);
-                            CurrentComparmentSteamPipeHeatW = 0; // Car is not being heated as main pipe pressure is not high enough, or car temp is hot enough
-                            car.SteamHeatingCompartmentSteamTrapOn = false; // turn off the compartment steam traps
-                        }
-
-                        // Calculate steam flow rates and steam used
-                        SteamFlowRateLbpHr = (float)((ProgressiveHeatAlongTrainBTU / mstsLocomotive.SteamHeatPSItoBTUpLB[mstsLocomotive.CurrentSteamHeatPressurePSI]) + Frequency.Periodic.ToHours(car.CarHeatSteamTrapUsageLBpS) + Frequency.Periodic.ToHours(car.CarHeatConnectingSteamHoseLeakageLBpS));
-                        mstsLocomotive.CalculatedCarHeaterSteamUsageLBpS = (float)Frequency.Periodic.FromHours(SteamFlowRateLbpHr);
-
-                        // Calculate Net steam heat loss or gain for each compartment in the car
-                        car.CarNetSteamHeatLossWpTime = CurrentComparmentSteamPipeHeatW - car.TotalCarCompartmentHeatLossWpT;
-
-                        car.DisplayTrainNetSteamHeatLossWpTime = car.CarNetSteamHeatLossWpTime;
-
-                        // Given the net heat loss the car calculate the current heat capacity, and corresponding temperature
-                        if (car.CarNetSteamHeatLossWpTime < 0)
-                        {
-                            car.CarNetSteamHeatLossWpTime = -1.0f * car.CarNetSteamHeatLossWpTime; // If steam heat loss is negative, convert to a positive number
-                            car.CarHeatCurrentCompartmentHeatW -= (float)(car.CarNetSteamHeatLossWpTime * elapsedClockSeconds);  // Losses per elapsed time
-                        }
-                        else
-                        {
-
-                            car.CarHeatCurrentCompartmentHeatW += (float)(car.CarNetSteamHeatLossWpTime * elapsedClockSeconds);  // Gains per elapsed time         
-                        }
-
-                        car.CarCurrentCarriageHeatTempC = (float)(Dynamics.Power.ToKW(car.CarHeatCurrentCompartmentHeatW) / (SpecificHeatCapcityAirKJpKgK * DensityAirKgpM3 * car.CarHeatVolumeM3) + TrainOutsideTempC);
-
-                        float DesiredCompartmentTempResetpointC = car.DesiredCompartmentTempSetpointC - 2.5f; // Allow 2.5Deg bandwidth for temperature
-
-                        if (car.CarCurrentCarriageHeatTempC > car.DesiredCompartmentTempSetpointC)
-                        {
-                            car.CarHeatCompartmentHeaterOn = false;
-                        }
-                        else if (car.CarCurrentCarriageHeatTempC < DesiredCompartmentTempResetpointC)
-                        {
-                            car.CarHeatCompartmentHeaterOn = true;
-                        }
-
-                        float DesiredCompartmentAlarmTempSetpointC = (float)Temperature.Celsius.FromF(45.0f); // Alarm temperature
-                        if (car.CarCurrentCarriageHeatTempC < DesiredCompartmentAlarmTempSetpointC) // If temp below 45of then alarm
-                        {
-                            if (!IsSteamHeatLow)
-                            {
-                                IsSteamHeatLow = true;
-                                // Provide warning message if temperature is too hot
-                                float CarTemp = car.CarCurrentCarriageHeatTempC;
-                                if (car.WagonType == TrainCar.WagonTypes.Passenger)
-                                {
-                                    simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("Carriage {0} temperature is too cold, the passengers are freezing.", car.CarID));
-                                }
-                                else
-                                {
-                                    simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("Car {0} temperature is too cold for the freight.", car.CarID));
-                                }
-                            }
-
-                        }
-                        else if (car.CarCurrentCarriageHeatTempC > Temperature.Celsius.FromF(65.0f))
-                        {
-
-                            IsSteamHeatLow = false;        // Reset temperature warning
-                        }
+                        // Initialise current Train Steam Heat based upon selected Current carriage Temp
+                        car.CarHeatCurrentCompartmentHeatW = car.TotalPossibleCarHeatW;
+                        car.IsCarSteamHeatInitial = false;
                     }
 
-                    #region Calculate Steam Pressure drop along train
+                    // Heat loss due to train movement and air flow, based upon convection heat transfer information - http://www.engineeringtoolbox.com/convective-heat-transfer-d_430.html
+                    // The formula on this page ( hc = 10.45 - v + 10v1/2), where v = m/s. This formula is used to develop a multiplication factor with train speed.
+                    // Curve is only valid between 2.0m/s and 20.0m/s
 
-                    // Initialise main steam pipe pressure to same as steam heat valve setting
-                    float ProgressivePressureAlongTrainPSI = mstsLocomotive.CurrentSteamHeatPressurePSI;
+                    float LowSpeedMpS = 2.0f;
+                    float HighSpeedMpS = 20.0f;
+                    float ConvHeatTxfMinSpeed = 10.45f - LowSpeedMpS + (10.0f * (float)Math.Pow(LowSpeedMpS, 0.5));
+                    float ConvHeatTxfMaxSpeed = 10.45f - HighSpeedMpS + (10.0f * (float)Math.Pow(HighSpeedMpS, 0.5));
+                    float ConvHeatTxActualSpeed = 10.45f - car.AbsSpeedMpS + (10.0f * (float)Math.Pow(car.AbsSpeedMpS, 0.5));
+                    float ConvFactor = 0;
 
-                    // Calculate pressure drop along whole train
-                    for (int i = 0; i < Cars.Count; i++)
+                    if (car.AbsSpeedMpS > 2 && car.AbsSpeedMpS < 20.0f)
                     {
-                        var car = Cars[i];
+                        ConvFactor = ConvHeatTxActualSpeed / ConvHeatTxfMinSpeed; // Calculate fraction only between 2 and 20
+                    }
+                    else if (car.AbsSpeedMpS < 2)
+                    {
+                        ConvFactor = 1.0f; // If speed less then 2m/s then set fracftion to give stationary Kc value 
+                    }
+                    else
+                    {
+                        ConvFactor = ConvHeatTxActualSpeed / ConvHeatTxfMinSpeed; // Calculate constant fraction over 20m/s
+                    }
+                    ConvFactor = MathHelper.Clamp(ConvFactor, 1.0f, 1.6f); // Keep Conv Factor ratio within bounds - should not exceed 1.6.
 
-                        // Calculate pressure drop in pipe along train. This calculation is based upon the Unwin formula - https://www.engineeringtoolbox.com/steam-pressure-drop-calculator-d_1093.html
-                        // dp = 0.0001306 * q^2 * L * (1 + 3.6/d) / (3600 * ρ * d^5)
-                        // where dp = pressure drop (psi), q = steam flow rate(lb/ hr), L = length of pipe(ft), d = pipe inside diameter(inches), ρ = steam density(lb / ft3)
-                        // Use values for the specific volume corresponding to the average pressure if the pressure drop exceeds 10 - 15 % of the initial absolute pressure
 
-                        float HeatPipePressureDropPSI = (float)((0.0001306f * SteamFlowRateLbpHr * SteamFlowRateLbpHr * Size.Length.ToFt(car.CarLengthM) * (1 + 3.6f / 2.5f)) / (3600 * mstsLocomotive.SteamDensityPSItoLBpFT3[mstsLocomotive.CurrentSteamHeatPressurePSI] * (float)Math.Pow(car.MainSteamHeatPipeInnerDiaM, 5.0f)));
-                        float ConnectHosePressureDropPSI = (float)((0.0001306f * SteamFlowRateLbpHr * SteamFlowRateLbpHr * ConnectSteamHoseLengthFt * (1 + 3.6f / 2.5f)) / (3600 * mstsLocomotive.SteamDensityPSItoLBpFT3[mstsLocomotive.CurrentSteamHeatPressurePSI] * (float)Math.Pow(car.CarConnectSteamHoseInnerDiaM, 5.0f)));
-                        float CarPressureDropPSI = HeatPipePressureDropPSI + ConnectHosePressureDropPSI;
+                    if (car.WagonType == TrainCar.WagonTypes.Passenger || car.WagonSpecialType == MSTSWagon.WagonSpecialTypes.Heated) // Only calculate compartment heat in passenger or specially marked heated cars
+                    {
 
-                        ProgressivePressureAlongTrainPSI -= CarPressureDropPSI;
-                        if (ProgressivePressureAlongTrainPSI < 0)
+                        // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+                        // Calculate heat loss from inside the carriage
+                        // Initialise car values for heating to zero
+                        car.TotalCarCompartmentHeatLossWpT = 0.0f;
+                        car.CarHeatCompartmentPipeAreaM2 = 0.0f;
+                        car.CarHeatVolumeM3 = 0.0f;
+                        float HeatLossTransmissionWpT = 0;
+
+                        // Transmission heat loss = exposed area * heat transmission coeff (inside temp - outside temp)
+                        // Calculate the heat loss through the roof, wagon sides, and floor separately  
+                        // Calculate the heat loss through the carriage sides, per degree of temp change
+                        // References - https://www.engineeringtoolbox.com/heat-loss-transmission-d_748.html  and https://www.engineeringtoolbox.com/heat-loss-buildings-d_113.html
+                        float HeatTransCoeffRoofWm2C = 1.7f * ConvFactor; // 2 inch wood - uninsulated
+                        float HeatTransCoeffEndsWm2C = 0.9f * ConvFactor; // 2 inch wood - insulated - this compensates for the fact that the ends of the cars are somewhat protected from the environment
+                        float HeatTransCoeffSidesWm2C = 1.7f * ConvFactor; // 2 inch wood - uninsulated
+                        float HeatTransCoeffWindowsWm2C = 4.7f * ConvFactor; // Single glazed glass window in wooden frame
+                        float HeatTransCoeffFloorWm2C = 2.5f * ConvFactor; // uninsulated floor
+
+                        // Calculate volume in carriage - note height reduced by 1.06m to allow for bogies, etc
+                        float CarCouplingPipeM = 1.2f;  // Allow for connection between cars (assume 2' each end) - no heat is contributed to carriages.
+
+                        // Calculate the heat loss through the roof, allow 15% additional heat loss through roof because of radiation to space
+                        float RoofHeatLossFactor = 1.15f;
+                        float HeatLossTransRoofWpT = RoofHeatLossFactor * (car.CarWidthM * (car.CarLengthM - CarCouplingPipeM)) * HeatTransCoeffRoofWm2C * (car.CarCurrentCarriageHeatTempC - car.CarOutsideTempC);
+
+                        // Each car will have 2 x sides + 2 x ends. Each side will be made up of solid walls, and windows. A factor has been assumed to determine the ratio of window area to wall area.
+                        float HeatLossTransWindowsWpT = (car.WindowDeratingFactor * (car.CarHeightM - BogieHeightM) * (car.CarLengthM - CarCouplingPipeM)) * HeatTransCoeffWindowsWm2C * (car.CarCurrentCarriageHeatTempC - car.CarOutsideTempC);
+                        float HeatLossTransSidesWpT = ((1.0f - car.WindowDeratingFactor) * (car.CarHeightM - BogieHeightM) * (car.CarLengthM - CarCouplingPipeM)) * HeatTransCoeffSidesWm2C * (car.CarCurrentCarriageHeatTempC - car.CarOutsideTempC);
+                        float HeatLossTransEndsWpT = ((car.CarHeightM - BogieHeightM) * (car.CarLengthM - CarCouplingPipeM)) * HeatTransCoeffEndsWm2C * (car.CarCurrentCarriageHeatTempC - car.CarOutsideTempC);
+
+                        // Total equals 2 x sides, ends, windows
+                        float HeatLossTransTotalSidesWpT = (2.0f * HeatLossTransWindowsWpT) + (2.0f * HeatLossTransSidesWpT) + (2.0f * HeatLossTransEndsWpT);
+
+                        // Calculate the heat loss through the floor
+                        float HeatLossTransFloorWpT = (car.CarWidthM * (car.CarLengthM - CarCouplingPipeM)) * HeatTransCoeffFloorWm2C * (car.CarCurrentCarriageHeatTempC - car.CarOutsideTempC);
+
+                        HeatLossTransmissionWpT = HeatLossTransRoofWpT + HeatLossTransTotalSidesWpT + HeatLossTransFloorWpT;
+
+                        // ++++++++++++++++++++++++
+                        // Ventilation Heat loss, per degree of temp change
+                        // This will occur when the train is stopped at the station and prior to being ready to depart. Typically will only apply in activity mode, and not explore mode
+                        float HeatLossVentilationWpT = 0;
+                        float HeatRecoveryEfficiency = 0.5f; // Assume a HRF of 50%
+                        float AirFlowVolumeM3pS = car.CarHeatVolumeM3 / 300.0f; // Assume that the volume of the car is emptied over a period of 5 minutes
+
+                        if (AtStation) // When train is at station.
                         {
-                            ProgressivePressureAlongTrainPSI = 0; // Make sure that pressure never goes negative
+                            // If the train is ready to depart, assume all doors are closed, and hence no ventilation loss
+                            HeatLossVentilationWpT = MayDepart ? 0 : (float)Dynamics.Power.FromKW((1.0f - HeatRecoveryEfficiency) * SpecificHeatCapcityAirKJpKgK * DensityAirKgpM3 * AirFlowVolumeM3pS * (car.CarCurrentCarriageHeatTempC - car.CarOutsideTempC));
                         }
-                        car.CarSteamHeatMainPipeSteamPressurePSI = ProgressivePressureAlongTrainPSI;
 
-                        // For the boiler heating car adjust mass based upon fuel and water usage
-                        if (car.WagonSpecialType == MSTSWagon.WagonSpecialTypes.HeatingBoiler)
+                        // ++++++++++++++++++++++++
+                        // Infiltration Heat loss, per degree of temp change
+                        float NumAirShiftspSec = (float)Frequency.Periodic.FromHours(10.0);      // Pepper article suggests that approx 14 air changes per hour happen for a train that is moving @ 50mph, use and av figure of 10.0.
+                        float HeatLossInfiltrationWpT = 0;
+                        car.CarHeatVolumeM3 = car.CarWidthM * (car.CarLengthM - CarCouplingPipeM) * (car.CarHeightM - BogieHeightM);
+                        HeatLossInfiltrationWpT = (float)(Dynamics.Power.FromKW(SpecificHeatCapcityAirKJpKgK * DensityAirKgpM3 * NumAirShiftspSec * car.CarHeatVolumeM3 * (car.CarCurrentCarriageHeatTempC - car.CarOutsideTempC)));
+
+                        car.TotalCarCompartmentHeatLossWpT = HeatLossTransmissionWpT + HeatLossInfiltrationWpT + HeatLossVentilationWpT;
+
+                        //++++++++++++++++++++++++++++++++++++++++
+                        // Calculate heat produced by steam pipe acting as heat exchanger inside carriage - this model is based upon the heat loss from a steam pipe. 
+                        // The heat loss per metre from a bare pipe equals the heat loss by convection and radiation. Temperatures in degrees Kelvin
+                        // QConv = hc * A * (Tp - To), where hc = convection coeff, A = surface area of pipe, Tp = pipe temperature, To = temperature of air around the pipe
+                        // QRad = % * A * e * (Tp^4 - To^4), where % = Boltzmans constant, A = surface area of pipe, Tp^4 = pipe temperature, To^4 = temperature of air around the pipe, e = emissivity factor
+
+                        // Calculate steam pipe surface area
+                        float CompartmentSteamPipeRadiusM = (float)(Size.Length.FromIn(2.375f) / 2.0f);  // Assume the steam pipes in the compartments have  have internal diameter of 2" (50mm) - external = 2.375"
+                        float DoorSteamPipeRadiusM = (float)(Size.Length.FromIn(2.75f) / 2.0f);        // Assume the steam pipes in the doors have diameter of 1.75" (50mm) - assume external = 2.0"
+
+                        // Assume door pipes are 3' 4" (ie 3.3') long, and that there are doors at both ends of the car, ie x 2
+                        float CarDoorLengthM = 2.0f * (float)(Size.Length.FromFt(3.3f));
+                        float CarDoorVolumeM3 = car.CarWidthM * CarDoorLengthM * (car.CarHeightM - BogieHeightM);
+
+                        float CarDoorPipeAreaM2 = 2.0f * MathHelper.Pi * DoorSteamPipeRadiusM * CarDoorLengthM;
+
+                        // Use rule of thumb - 1" of 2" steam heat pipe for every 3.0 cu ft of volume in car compartment (third class)
+                        float CarCompartmentPipeLengthM = (float)(Size.Length.FromIn((car.CarHeatVolumeM3 - CarDoorVolumeM3) / (Size.Volume.FromFt3(car.CompartmentHeatingPipeAreaFactor))));
+                        float CarCompartmentPipeAreaM2 = 2.0f * MathHelper.Pi * CompartmentSteamPipeRadiusM * CarCompartmentPipeLengthM;
+
+                        car.CarHeatCompartmentPipeAreaM2 = CarCompartmentPipeAreaM2 + CarDoorPipeAreaM2;
+
+                        // Pipe convection heat produced - steam is reduced to atmospheric pressure when it is injected into compartment
+                        float CompartmentSteamPipeTempC = (float)Temperature.Celsius.FromF(mstsLocomotive.SteamHeatPressureToTemperaturePSItoF[0]);
+                        car.CarCompartmentSteamPipeHeatConvW = (PipeHeatTransCoeffWpM2K * car.CarHeatCompartmentPipeAreaM2 * (CompartmentSteamPipeTempC - car.CarCurrentCarriageHeatTempC));
+
+                        // Pipe radiation heat produced
+                        float PipeTempAK = (float)Math.Pow(Temperature.Kelvin.FromF(CompartmentSteamPipeTempC), 4.0f);
+                        float PipeTempBK = (float)Math.Pow(Temperature.Celsius.ToK(car.CarCurrentCarriageHeatTempC), 4.0f);
+                        car.CarCompartmentSteamHeatPipeRadW = (BoltzmanConstPipeWpM2 * EmissivityFactor * car.CarHeatCompartmentPipeAreaM2 * (PipeTempAK - PipeTempBK));
+
+                        car.CarHeatCompartmentSteamPipeHeatW = car.CarCompartmentSteamHeatPipeRadW + car.CarCompartmentSteamPipeHeatConvW;
+
+                    }
+
+                    //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+                    // Calculate heating loss in main supply pipe that runs under carriage
+
+                    // Set heat trans coeff
+                    float HeatTransCoeffMainPipeBTUpFt2pHrpF = 0.4f * ConvFactor; // insulated pipe - BTU / sq.ft. / hr / l in / °F.
+                    float HeatTransCoeffConnectHoseBTUpFt2pHrpF = 0.04f * ConvFactor; // rubber connecting hoses - BTU / sq.ft. / hr / l in / °F. TO BE CHECKED
+
+                    // Calculate Length of carriage and heat loss in main steam pipe
+                    float CarMainSteamPipeTempF = (float)mstsLocomotive.SteamHeatPressureToTemperaturePSItoF[car.CarSteamHeatMainPipeSteamPressurePSI];
+                    car.CarHeatSteamMainPipeHeatLossBTU = (float)(Size.Length.ToFt(car.CarLengthM) * (MathHelper.Pi * Size.Length.ToFt(car.MainSteamHeatPipeOuterDiaM)) * HeatTransCoeffMainPipeBTUpFt2pHrpF * (CarMainSteamPipeTempF - Temperature.Celsius.ToF(car.CarOutsideTempC)));
+
+                    // calculate steam connecting hoses heat loss - assume 1.5" hose
+                    float ConnectSteamHoseOuterDiaFt = (float)Size.Length.ToFt(car.CarConnectSteamHoseOuterDiaM);
+                    car.CarHeatConnectSteamHoseHeatLossBTU = (float)(connectSteamHoseLengthFt * (MathHelper.Pi * ConnectSteamHoseOuterDiaFt) * HeatTransCoeffConnectHoseBTUpFt2pHrpF * (CarMainSteamPipeTempF - Temperature.Celsius.ToF(car.CarOutsideTempC)));
+
+                    // Use Napier formula to calculate steam discharge rate through steam trap valve, ie Discharge (lb/s) = (Valve area * Abs Pressure) / 70
+                    const float SteamTrapValveDischargeFactor = 70.0f;
+
+                    // Find area of pipe - assume 0.1875" (3/16") dia steam trap
+                    float SteamTrapDiaIn = 0.1875f;
+                    float SteamTrapValveSizeAreaIn2 = (float)Math.PI * (SteamTrapDiaIn / 2.0f) * (SteamTrapDiaIn / 2.0f);
+
+                    car.CarHeatSteamTrapUsageLBpS = (SteamTrapValveSizeAreaIn2 * (car.CarSteamHeatMainPipeSteamPressurePSI + OneAtmospherePSI)) / SteamTrapValveDischargeFactor;
+
+                    // Use Napier formula to calculate steam discharge rate through steam leak in connecting hose, ie Discharge (lb/s) = (Valve area * Abs Pressure) / 70
+                    const float ConnectingHoseDischargeFactor = 70.0f;
+
+                    // Find area of pipe - assume 0.1875" (3/16") dia steam trap
+                    float ConnectingHoseLeakDiaIn = 0.1875f;
+                    float ConnectingHoseLeakAreaIn2 = (float)Math.PI * (ConnectingHoseLeakDiaIn / 2.0f) * (ConnectingHoseLeakDiaIn / 2.0f);
+
+                    car.CarHeatConnectingSteamHoseLeakageLBpS = car.SteamHoseLeakRateRandom * (ConnectingHoseLeakAreaIn2 * (car.CarSteamHeatMainPipeSteamPressurePSI + OneAtmospherePSI)) / ConnectingHoseDischargeFactor;
+
+                    //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+                    float CurrentComparmentSteamPipeHeatW = 0;
+
+                    // Calculate total steam loss along main pipe, by calculating heat into steam pipe at locomotive, deduct heat loss for each car, 
+                    // note if pipe pressure drops, then compartment heating will stop
+                    if (car.CarSteamHeatMainPipeSteamPressurePSI >= 1 && car.CarHeatCompartmentHeaterOn && (car.WagonType == TrainCar.WagonTypes.Passenger || car.WagonSpecialType == MSTSWagon.WagonSpecialTypes.Heated))
+                    {
+                        // If main pipe pressure is > 0 then heating will start to occur in comparment, so include compartment heat exchanger value
+                        progressiveHeatAlongTrainBTU += (float)((car.CarHeatSteamMainPipeHeatLossBTU + car.CarHeatConnectSteamHoseHeatLossBTU) + Frequency.Periodic.ToHours(Dynamics.Power.ToBTUpS(car.CarHeatCompartmentSteamPipeHeatW)));
+                        CurrentComparmentSteamPipeHeatW = car.CarHeatCompartmentSteamPipeHeatW; // Car is being heated as main pipe pressure is high enough, and temperature increase is required
+                        car.SteamHeatingCompartmentSteamTrapOn = true; // turn on the compartment steam traps
+                    }
+                    else
+                    {
+                        // If main pipe pressure is < 0 or temperature in compartment is above the desired temeperature,
+                        // then no heating will occur in comparment, so leave compartment heat exchanger value out
+                        progressiveHeatAlongTrainBTU += (car.CarHeatSteamMainPipeHeatLossBTU + car.CarHeatConnectSteamHoseHeatLossBTU);
+                        CurrentComparmentSteamPipeHeatW = 0; // Car is not being heated as main pipe pressure is not high enough, or car temp is hot enough
+                        car.SteamHeatingCompartmentSteamTrapOn = false; // turn off the compartment steam traps
+                    }
+
+                    // Calculate steam flow rates and steam used
+                    steamFlowRateLbpHr = (float)((progressiveHeatAlongTrainBTU / mstsLocomotive.SteamHeatPSItoBTUpLB[mstsLocomotive.CurrentSteamHeatPressurePSI]) + Frequency.Periodic.ToHours(car.CarHeatSteamTrapUsageLBpS) + Frequency.Periodic.ToHours(car.CarHeatConnectingSteamHoseLeakageLBpS));
+                    mstsLocomotive.CalculatedCarHeaterSteamUsageLBpS = (float)Frequency.Periodic.FromHours(steamFlowRateLbpHr);
+
+                    // Calculate Net steam heat loss or gain for each compartment in the car
+                    car.CarNetSteamHeatLossWpTime = CurrentComparmentSteamPipeHeatW - car.TotalCarCompartmentHeatLossWpT;
+
+                    car.DisplayTrainNetSteamHeatLossWpTime = car.CarNetSteamHeatLossWpTime;
+
+                    // Given the net heat loss the car calculate the current heat capacity, and corresponding temperature
+                    if (car.CarNetSteamHeatLossWpTime < 0)
+                    {
+                        car.CarNetSteamHeatLossWpTime = -1.0f * car.CarNetSteamHeatLossWpTime; // If steam heat loss is negative, convert to a positive number
+                        car.CarHeatCurrentCompartmentHeatW -= (float)(car.CarNetSteamHeatLossWpTime * elapsedClockSeconds);  // Losses per elapsed time
+                    }
+                    else
+                    {
+
+                        car.CarHeatCurrentCompartmentHeatW += (float)(car.CarNetSteamHeatLossWpTime * elapsedClockSeconds);  // Gains per elapsed time         
+                    }
+
+                    car.CarCurrentCarriageHeatTempC = (float)(Dynamics.Power.ToKW(car.CarHeatCurrentCompartmentHeatW) / (SpecificHeatCapcityAirKJpKgK * DensityAirKgpM3 * car.CarHeatVolumeM3) + TrainOutsideTempC);
+
+                    float DesiredCompartmentTempResetpointC = car.DesiredCompartmentTempSetpointC - 2.5f; // Allow 2.5Deg bandwidth for temperature
+
+                    if (car.CarCurrentCarriageHeatTempC > car.DesiredCompartmentTempSetpointC)
+                    {
+                        car.CarHeatCompartmentHeaterOn = false;
+                    }
+                    else if (car.CarCurrentCarriageHeatTempC < DesiredCompartmentTempResetpointC)
+                    {
+                        car.CarHeatCompartmentHeaterOn = true;
+                    }
+
+                    if (car.CarCurrentCarriageHeatTempC < desiredCompartmentAlarmTempSetpointC) // If temp below 45of then alarm
+                    {
+                        if (!IsSteamHeatLow)
                         {
-
-                            // Don't process if water or fule capacities are low
-                            if (mstsLocomotive.CurrentSteamHeatPressurePSI > 0 && car.CurrentSteamHeatBoilerFuelCapacityL > 0 && car.CurrentCarSteamHeatBoilerWaterCapacityL > 0 && !car.IsSteamHeatBoilerLockedOut)
+                            IsSteamHeatLow = true;
+                            // Provide warning message if temperature is too hot
+                            if (car.WagonType == TrainCar.WagonTypes.Passenger)
                             {
-                                // Test boiler steam capacity can deliever steam required for the system
-                                if (mstsLocomotive.CalculatedCarHeaterSteamUsageLBpS > car.MaximumSteamHeatingBoilerSteamUsageRateLbpS)
-                                {
-                                    car.IsSteamHeatBoilerLockedOut = true; // Lock steam heat boiler out is steam usage exceeds capacity
-                                    simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("The steam usage has exceeded the capacity of the steam boiler. Steam boiler locked out."));
-                                    Trace.TraceInformation("Steam heat boiler locked out as capacity exceeded");
-                                }
-
-                                // Calculate fuel usage for steam heat boiler
-                                double FuelUsageLpS = Size.LiquidVolume.FromGallonUK(Frequency.Periodic.FromHours(car.TrainHeatBoilerFuelUsageGalukpH[Frequency.Periodic.ToHours(mstsLocomotive.CalculatedCarHeaterSteamUsageLBpS)]));
-                                double FuelOilConvertLtoKg = 0.85f;
-                                car.CurrentSteamHeatBoilerFuelCapacityL -= (float)(FuelUsageLpS * elapsedClockSeconds); // Reduce tank capacity as fuel used.
-                                car.MassKG -= (float)(FuelUsageLpS * elapsedClockSeconds * FuelOilConvertLtoKg); // Reduce locomotive weight as Steam heat boiler uses fuel.
-
-                                // Calculate water usage for steam heat boiler
-                                double WaterUsageLpS = Size.LiquidVolume.FromGallonUK(Frequency.Periodic.FromHours(car.TrainHeatBoilerWaterUsageGalukpH[Frequency.Periodic.ToHours(mstsLocomotive.CalculatedCarHeaterSteamUsageLBpS)]));
-                                car.CurrentCarSteamHeatBoilerWaterCapacityL -= (float)(WaterUsageLpS * elapsedClockSeconds); // Reduce tank capacity as water used.
-                                car.MassKG -= (float)(WaterUsageLpS * elapsedClockSeconds); // Reduce locomotive weight as Steam heat boiler uses water - NB 1 litre of water = 1 kg.
+                                simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("Carriage {0} temperature is too cold, the passengers are freezing.", car.CarID));
+                            }
+                            else
+                            {
+                                simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("Car {0} temperature is too cold for the freight.", car.CarID));
                             }
                         }
                     }
-
-                    #endregion
+                    else if (car.CarCurrentCarriageHeatTempC > resetCompartmentAlarmTempSetpointC)
+                    {
+                        IsSteamHeatLow = false;        // Reset temperature warning
+                    }
                 }
+
+                #region Calculate Steam Pressure drop along train
+
+                // Initialise main steam pipe pressure to same as steam heat valve setting
+                float ProgressivePressureAlongTrainPSI = mstsLocomotive.CurrentSteamHeatPressurePSI;
+
+                // Calculate pressure drop along whole train
+                foreach (TrainCar car in Cars)
+                {
+                    // Calculate pressure drop in pipe along train. This calculation is based upon the Unwin formula - https://www.engineeringtoolbox.com/steam-pressure-drop-calculator-d_1093.html
+                    // dp = 0.0001306 * q^2 * L * (1 + 3.6/d) / (3600 * ρ * d^5)
+                    // where dp = pressure drop (psi), q = steam flow rate(lb/ hr), L = length of pipe(ft), d = pipe inside diameter(inches), ρ = steam density(lb / ft3)
+                    // Use values for the specific volume corresponding to the average pressure if the pressure drop exceeds 10 - 15 % of the initial absolute pressure
+
+                    float HeatPipePressureDropPSI = (float)((0.0001306f * steamFlowRateLbpHr * steamFlowRateLbpHr * Size.Length.ToFt(car.CarLengthM) * (1 + 3.6f / 2.5f)) / (3600 * mstsLocomotive.SteamDensityPSItoLBpFT3[mstsLocomotive.CurrentSteamHeatPressurePSI] * (float)Math.Pow(car.MainSteamHeatPipeInnerDiaM, 5.0f)));
+                    float ConnectHosePressureDropPSI = (float)((0.0001306f * steamFlowRateLbpHr * steamFlowRateLbpHr * connectSteamHoseLengthFt * (1 + 3.6f / 2.5f)) / (3600 * mstsLocomotive.SteamDensityPSItoLBpFT3[mstsLocomotive.CurrentSteamHeatPressurePSI] * (float)Math.Pow(car.CarConnectSteamHoseInnerDiaM, 5.0f)));
+                    float CarPressureDropPSI = HeatPipePressureDropPSI + ConnectHosePressureDropPSI;
+
+                    ProgressivePressureAlongTrainPSI -= CarPressureDropPSI;
+                    if (ProgressivePressureAlongTrainPSI < 0)
+                    {
+                        ProgressivePressureAlongTrainPSI = 0; // Make sure that pressure never goes negative
+                    }
+                    car.CarSteamHeatMainPipeSteamPressurePSI = ProgressivePressureAlongTrainPSI;
+
+                    // For the boiler heating car adjust mass based upon fuel and water usage
+                    if (car.WagonSpecialType == TrainCar.WagonSpecialTypes.HeatingBoiler)
+                    {
+
+                        // Don't process if water or fule capacities are low
+                        if (mstsLocomotive.CurrentSteamHeatPressurePSI > 0 && car.CurrentSteamHeatBoilerFuelCapacityL > 0 && car.CurrentCarSteamHeatBoilerWaterCapacityL > 0 && !car.IsSteamHeatBoilerLockedOut)
+                        {
+                            // Test boiler steam capacity can deliever steam required for the system
+                            if (mstsLocomotive.CalculatedCarHeaterSteamUsageLBpS > car.MaximumSteamHeatingBoilerSteamUsageRateLbpS)
+                            {
+                                car.IsSteamHeatBoilerLockedOut = true; // Lock steam heat boiler out is steam usage exceeds capacity
+                                simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("The steam usage has exceeded the capacity of the steam boiler. Steam boiler locked out."));
+                                Trace.TraceInformation("Steam heat boiler locked out as capacity exceeded");
+                            }
+
+                            // Calculate fuel usage for steam heat boiler
+                            double FuelUsageLpS = Size.LiquidVolume.FromGallonUK(Frequency.Periodic.FromHours(car.TrainHeatBoilerFuelUsageGalukpH[Frequency.Periodic.ToHours(mstsLocomotive.CalculatedCarHeaterSteamUsageLBpS)]));
+                            double FuelOilConvertLtoKg = 0.85f;
+                            car.CurrentSteamHeatBoilerFuelCapacityL -= (float)(FuelUsageLpS * elapsedClockSeconds); // Reduce tank capacity as fuel used.
+                            car.MassKG -= (float)(FuelUsageLpS * elapsedClockSeconds * FuelOilConvertLtoKg); // Reduce locomotive weight as Steam heat boiler uses fuel.
+
+                            // Calculate water usage for steam heat boiler
+                            double WaterUsageLpS = Size.LiquidVolume.FromGallonUK(Frequency.Periodic.FromHours(car.TrainHeatBoilerWaterUsageGalukpH[Frequency.Periodic.ToHours(mstsLocomotive.CalculatedCarHeaterSteamUsageLBpS)]));
+                            car.CurrentCarSteamHeatBoilerWaterCapacityL -= (float)(WaterUsageLpS * elapsedClockSeconds); // Reduce tank capacity as water used.
+                            car.MassKG -= (float)(WaterUsageLpS * elapsedClockSeconds); // Reduce locomotive weight as Steam heat boiler uses water - NB 1 litre of water = 1 kg.
+                        }
+                    }
+                }
+                #endregion
             }
         }
 
-        //================================================================================================//
-        /// <summary>
         /// ProcessTunnels : check position of each car in train wrt tunnel
-        /// <\summary>        
-
-        public void ProcessTunnels()
+        protected void ProcessTunnels()
         {
             // start at front of train
-            int thisSectionIndex = PresentPosition[0].TrackCircuitSectionIndex;
-            float thisSectionOffset = PresentPosition[0].Offset;
-            TrackDirection sectionDirection = PresentPosition[0].Direction;
+            int sectionIndex = PresentPosition[Direction.Forward].TrackCircuitSectionIndex;
+            float sectionOffset = PresentPosition[Direction.Forward].Offset;
+            TrackDirection sectionDirection = PresentPosition[Direction.Forward].Direction;
 
-            for (int icar = 0; icar <= Cars.Count - 1; icar++)
+            foreach (TrainCar car in Cars)
             {
-                var car = Cars[icar];
-
                 float usedCarLength = car.CarLengthM;
                 float processedCarLength = 0;
                 bool validSections = true;
@@ -2276,38 +2194,38 @@ namespace Orts.Simulation.Physics
 
                 while (validSections)
                 {
-                    TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisSectionIndex];
+                    TrackCircuitSection section = TrackCircuitSection.TrackCircuitList[sectionIndex];
                     bool inTunnel = false;
 
                     // car spans sections
-                    if ((car.CarLengthM - processedCarLength) > thisSectionOffset)
+                    if ((car.CarLengthM - processedCarLength) > sectionOffset)
                     {
-                        usedCarLength = thisSectionOffset - processedCarLength;
+                        usedCarLength = sectionOffset - processedCarLength;
                     }
 
                     // section has tunnels
-                    foreach (TunnelInfoData tunnel in thisSection.TunnelInfo ?? Enumerable.Empty<TunnelInfoData>())
+                    foreach (TunnelInfoData tunnel in section.TunnelInfo ?? Enumerable.Empty<TunnelInfoData>())
                     {
                         float tunnelStartOffset = tunnel.Start[sectionDirection];
                         float tunnelEndOffset = tunnel.End[sectionDirection];
 
-                        if (tunnelStartOffset > 0 && tunnelStartOffset > thisSectionOffset)      // start of tunnel is in section beyond present position - cannot be in this tunnel nor any following
+                        if (tunnelStartOffset > 0 && tunnelStartOffset > sectionOffset)      // start of tunnel is in section beyond present position - cannot be in this tunnel nor any following
                         {
                             break;
                         }
 
-                        if (tunnelEndOffset > 0 && tunnelEndOffset < (thisSectionOffset - usedCarLength)) // beyond end of tunnel, test next
+                        if (tunnelEndOffset > 0 && tunnelEndOffset < (sectionOffset - usedCarLength)) // beyond end of tunnel, test next
                         {
                             continue;
                         }
 
-                        if (tunnelStartOffset <= 0 || tunnelStartOffset < (thisSectionOffset - usedCarLength)) // start of tunnel is behind
+                        if (tunnelStartOffset <= 0 || tunnelStartOffset < (sectionOffset - usedCarLength)) // start of tunnel is behind
                         {
                             if (tunnelEndOffset < 0) // end of tunnel is out of this section
                             {
                                 if (processedCarLength != 0)
                                 {
-                                    Trace.TraceInformation("Train : " + Name + " ; found tunnel in section " + thisSectionIndex + " with End < 0 while processed length : " + processedCarLength + "\n");
+                                    Trace.TraceInformation($"Train : {Name}; found tunnel in section {sectionIndex} with End < 0 while processed length : {processedCarLength}");
                                 }
                             }
 
@@ -2318,13 +2236,13 @@ namespace Orts.Simulation.Physics
                             // get position in tunnel
                             if (tunnelStartOffset < 0)
                             {
-                                FrontCarPositionInTunnel = thisSectionOffset + tunnel.SectionStartOffset[sectionDirection];
+                                FrontCarPositionInTunnel = sectionOffset + tunnel.SectionStartOffset[sectionDirection];
                                 FrontCarLengthOfTunnelAhead = tunnel.LengthTotal - FrontCarPositionInTunnel;
                                 RearCarLengthOfTunnelBehind = tunnel.LengthTotal - (FrontCarLengthOfTunnelAhead + car.CarLengthM);
                             }
                             else
                             {
-                                FrontCarPositionInTunnel = thisSectionOffset - tunnelStartOffset;
+                                FrontCarPositionInTunnel = sectionOffset - tunnelStartOffset;
                                 FrontCarLengthOfTunnelAhead = tunnel.LengthTotal - FrontCarPositionInTunnel - processedCarLength;
                                 RearCarLengthOfTunnelBehind = tunnel.LengthTotal - (FrontCarLengthOfTunnelAhead + car.CarLengthM);
                             }
@@ -2338,7 +2256,7 @@ namespace Orts.Simulation.Physics
                     if (inTunnel || processedCarLength >= car.CarLengthM)
                     {
                         validSections = false;  // end of while loop through sections
-                        thisSectionOffset = thisSectionOffset - usedCarLength;   // position of next car in this section
+                        sectionOffset -= usedCarLength;   // position of next car in this section
 
                         car.CarTunnelData.FrontPositionBeyondStartOfTunnel = FrontCarPositionInTunnel.HasValue ? FrontCarPositionInTunnel : null;
                         car.CarTunnelData.LengthMOfTunnelAheadFront = FrontCarLengthOfTunnelAhead.HasValue ? FrontCarLengthOfTunnelAhead : null;
@@ -2348,13 +2266,13 @@ namespace Orts.Simulation.Physics
                     else
                     {
                         // go back one section
-                        int thisSectionRouteIndex = ValidRoute[0].GetRouteIndexBackward(thisSectionIndex, PresentPosition[0].RouteListIndex);
+                        int thisSectionRouteIndex = ValidRoute[0].GetRouteIndexBackward(sectionIndex, PresentPosition[Direction.Forward].RouteListIndex);
                         if (thisSectionRouteIndex >= 0)
                         {
-                            thisSectionIndex = thisSectionRouteIndex;
-                            thisSection = TrackCircuitSection.TrackCircuitList[thisSectionIndex];
-                            thisSectionOffset = thisSection.Length;  // always at end of next section
-                            sectionDirection = (TrackDirection)ValidRoute[0][thisSectionRouteIndex].Direction;
+                            sectionIndex = thisSectionRouteIndex;
+                            section = TrackCircuitSection.TrackCircuitList[sectionIndex];
+                            sectionOffset = section.Length;  // always at end of next section
+                            sectionDirection = ValidRoute[0][thisSectionRouteIndex].Direction;
                         }
                         else // ran out of train
                         {
@@ -2370,100 +2288,94 @@ namespace Orts.Simulation.Physics
             }
         }
 
-        //================================================================================================//
-        /// <summary>
         /// Train speed evaluation logging - open file
-        /// <\summary>
-
-        public void CreateLogFile()
+        protected void CreateLogFile()
         {
             //Time, Train Speed, Max Speed, Signal Aspect, Elevation, Direction, Control Mode, Distance Travelled, Throttle, Brake, Dyn Brake, Gear
 
-            StringBuilder stringBuild = new StringBuilder();
+            StringBuilder builder = new StringBuilder();
 
-            if (!File.Exists(evaluationLogFile))
+            if (!string.IsNullOrEmpty(evaluationLogFile) && !File.Exists(evaluationLogFile))
             {
-                char Separator = (char)simulator.Settings.DataLoggerSeparator;
-
                 if ((evaluationContent & EvaluationLogContents.Time) == EvaluationLogContents.Time)
                 {
-                    stringBuild.Append("TIME");
-                    stringBuild.Append(Separator);
+                    builder.Append("TIME");
+                    builder.Append(Separator);
                 }
 
                 if ((evaluationContent & EvaluationLogContents.Speed) == EvaluationLogContents.Speed)
                 {
-                    stringBuild.Append("TRAINSPEED");
-                    stringBuild.Append(Separator);
+                    builder.Append("TRAINSPEED");
+                    builder.Append(Separator);
                 }
 
                 if ((evaluationContent & EvaluationLogContents.MaxSpeed) == EvaluationLogContents.MaxSpeed)
                 {
-                    stringBuild.Append("MAXSPEED");
-                    stringBuild.Append(Separator);
+                    builder.Append("MAXSPEED");
+                    builder.Append(Separator);
                 }
 
                 if ((evaluationContent & EvaluationLogContents.SignalAspect) == EvaluationLogContents.SignalAspect)
                 {
-                    stringBuild.Append("SIGNALASPECT");
-                    stringBuild.Append(Separator);
+                    builder.Append("SIGNALASPECT");
+                    builder.Append(Separator);
                 }
 
                 if ((evaluationContent & EvaluationLogContents.Elevation) == EvaluationLogContents.Elevation)
                 {
-                    stringBuild.Append("ELEVATION");
-                    stringBuild.Append(Separator);
+                    builder.Append("ELEVATION");
+                    builder.Append(Separator);
                 }
 
                 if ((evaluationContent & EvaluationLogContents.Direction) == EvaluationLogContents.Direction)
                 {
-                    stringBuild.Append("DIRECTION");
-                    stringBuild.Append(Separator);
+                    builder.Append("DIRECTION");
+                    builder.Append(Separator);
                 }
 
                 if ((evaluationContent & EvaluationLogContents.ControlMode) == EvaluationLogContents.ControlMode)
                 {
-                    stringBuild.Append("CONTROLMODE");
-                    stringBuild.Append(Separator);
+                    builder.Append("CONTROLMODE");
+                    builder.Append(Separator);
                 }
 
                 if ((evaluationContent & EvaluationLogContents.Distance) == EvaluationLogContents.Distance)
                 {
-                    stringBuild.Append("DISTANCETRAVELLED");
-                    stringBuild.Append(Separator);
+                    builder.Append("DISTANCETRAVELLED");
+                    builder.Append(Separator);
                 }
 
                 if ((evaluationContent & EvaluationLogContents.Throttle) == EvaluationLogContents.Throttle)
                 {
-                    stringBuild.Append("THROTTLEPERC");
-                    stringBuild.Append(Separator);
+                    builder.Append("THROTTLEPERC");
+                    builder.Append(Separator);
                 }
 
                 if ((evaluationContent & EvaluationLogContents.Brake) == EvaluationLogContents.Brake)
                 {
-                    stringBuild.Append("BRAKEPRESSURE");
-                    stringBuild.Append(Separator);
+                    builder.Append("BRAKEPRESSURE");
+                    builder.Append(Separator);
                 }
 
                 if ((evaluationContent & EvaluationLogContents.DynBrake) == EvaluationLogContents.DynBrake)
                 {
-                    stringBuild.Append("DYNBRAKEPERC");
-                    stringBuild.Append(Separator);
+                    builder.Append("DYNBRAKEPERC");
+                    builder.Append(Separator);
                 }
 
                 if ((evaluationContent & EvaluationLogContents.Gear) == EvaluationLogContents.Gear)
                 {
-                    stringBuild.Append("GEARINDEX");
-                    stringBuild.Append(Separator);
+                    builder.Append("GEARINDEX");
+                    builder.Append(Separator);
                 }
 
-                stringBuild.Append('\n');
+                builder.Append('\n');
 
                 try
                 {
-                    File.AppendAllText(evaluationLogFile, stringBuild.ToString());
+                    File.AppendAllText(evaluationLogFile, builder.ToString());
                 }
-                catch (Exception e)
+                catch (Exception e) when (e is IOException || e is UnauthorizedAccessException )
                 {
                     Trace.TraceWarning("Cannot open required logfile : " + evaluationLogFile + " : " + e.Message);
                     evaluateTrainSpeed = false;
@@ -2471,13 +2383,10 @@ namespace Orts.Simulation.Physics
             }
         }
 
-        //================================================================================================//
-        /// <summary>
         /// Train speed evaluation logging
-        /// <\summary>
-
-        public void LogTrainSpeed(double timeStamp)
+        protected void LogTrainSpeed(double timeStamp)
         {
+            //TODO 20201125 may run in separate thread
             if (lastLogTime + evaluationInterval >= timeStamp)
             {
                 lastLogTime = timeStamp;
@@ -2486,8 +2395,6 @@ namespace Orts.Simulation.Physics
                 //Time, Train Speed, Max Speed, Signal Aspect, Elevation, Direction, Control Mode, Distance Travelled, Throttle, Brake, Dyn Brake, Gear
 
                 StringBuilder builder = new StringBuilder();
-
-                char Separator = (char)simulator.Settings.DataLoggerSeparator;
 
                 if ((evaluationContent & EvaluationLogContents.Time) == EvaluationLogContents.Time)
                 {
@@ -2498,61 +2405,35 @@ namespace Orts.Simulation.Physics
                 bool moveForward = (Math.Sign(SpeedMpS) >= 0);
                 if ((evaluationContent & EvaluationLogContents.Speed) == EvaluationLogContents.Speed)
                 {
-                    builder.Append(Speed.MeterPerSecond.FromMpS(Math.Abs(SpeedMpS), simulator.MilepostUnitsMetric).ToString("0000.0"));
-                    builder.Append(Separator);
+                    builder.Append($"{Speed.MeterPerSecond.FromMpS(Math.Abs(SpeedMpS), simulator.MilepostUnitsMetric):0000.0}{Separator}");
                 }
 
                 if ((evaluationContent & EvaluationLogContents.MaxSpeed) == EvaluationLogContents.MaxSpeed)
                 {
-                    builder.Append(Speed.MeterPerSecond.FromMpS(AllowedMaxSpeedMpS, simulator.MilepostUnitsMetric).ToString("0000.0"));
-                    builder.Append(Separator);
+                    builder.Append($"{Speed.MeterPerSecond.FromMpS(AllowedMaxSpeedMpS, simulator.MilepostUnitsMetric):0000.0}{Separator}");
                 }
 
                 if ((evaluationContent & EvaluationLogContents.SignalAspect) == EvaluationLogContents.SignalAspect)
                 {
                     if (moveForward)
                     {
-                        if (NextSignalObject[0] == null)
-                        {
-                            builder.Append("-");
-                        }
-                        else
-                        {
-                            SignalAspectState nextAspect = NextSignalObject[0].SignalLR(SignalFunction.Normal);
-                            builder.Append(nextAspect.ToString());
-                        }
+                        builder.Append(NextSignalObject[0]?.SignalLR(SignalFunction.Normal).ToString() ?? "-");
                     }
                     else
                     {
-                        if (NextSignalObject[1] == null)
-                        {
-                            builder.Append("-");
-                        }
-                        else
-                        {
-                            SignalAspectState nextAspect = NextSignalObject[1].SignalLR(SignalFunction.Normal);
-                            builder.Append(nextAspect.ToString());
-                        }
+                        builder.Append(NextSignalObject[1]?.SignalLR(SignalFunction.Normal).ToString() ?? "-");
                     }
                     builder.Append(Separator);
                 }
 
                 if ((evaluationContent & EvaluationLogContents.Elevation) == EvaluationLogContents.Elevation)
                 {
-                    builder.Append((0 - simulator.PlayerLocomotive.CurrentElevationPercent).ToString("00.0"));
-                    builder.Append(Separator);
+                    builder.Append($"{(0 - simulator.PlayerLocomotive.CurrentElevationPercent):00.0}{Separator}");
                 }
 
                 if ((evaluationContent & EvaluationLogContents.Direction) == EvaluationLogContents.Direction)
                 {
-                    if (moveForward)
-                    {
-                        builder.Append("F");
-                    }
-                    else
-                    {
-                        builder.Append("B");
-                    }
+                    builder.Append(moveForward ? 'F' : 'B');
                     builder.Append(Separator);
                 }
 
@@ -2564,33 +2445,27 @@ namespace Orts.Simulation.Physics
 
                 if ((evaluationContent & EvaluationLogContents.Distance) == EvaluationLogContents.Distance)
                 {
-                    builder.Append(PresentPosition[0].DistanceTravelled.ToString());
-                    builder.Append(Separator);
+                    builder.Append($"{PresentPosition[Direction.Forward].DistanceTravelled:0.00}{Separator}");
                 }
 
                 if ((evaluationContent & EvaluationLogContents.Throttle) == EvaluationLogContents.Throttle)
                 {
-                    builder.Append(MUThrottlePercent.ToString("000"));
-                    builder.Append(Separator);
+                    builder.Append($"{MUThrottlePercent:000}{Separator}");
                 }
 
                 if ((evaluationContent & EvaluationLogContents.Brake) == EvaluationLogContents.Brake)
                 {
-                    //                    stringBuild.Append(BrakeLine1PressurePSIorInHg.ToString("000"));
-                    builder.Append(simulator.PlayerLocomotive.BrakeSystem.GetCylPressurePSI().ToString("000"));
-                    builder.Append(Separator);
+                    builder.Append($"{simulator.PlayerLocomotive.BrakeSystem.GetCylPressurePSI():000}{Separator}");
                 }
 
                 if ((evaluationContent & EvaluationLogContents.DynBrake) == EvaluationLogContents.DynBrake)
                 {
-                    builder.Append(MUDynamicBrakePercent.ToString("000"));
-                    builder.Append(Separator);
+                    builder.Append($"{MUDynamicBrakePercent:000}{Separator}");
                 }
 
                 if ((evaluationContent & EvaluationLogContents.Gear) == EvaluationLogContents.Gear)
                 {
-                    builder.Append(MUGearboxGearIndex.ToString("0"));
-                    builder.Append(Separator);
+                    builder.Append($"{MUGearboxGearIndex:0}{Separator}");
                 }
 
                 builder.Append('\n');
@@ -2603,10 +2478,10 @@ namespace Orts.Simulation.Physics
         {
             _ = elapsedClockSeconds;
             UpdateTrainPosition();                                                                // position update                  //
-            int SignalObjIndex = CheckSignalPassed(0, PresentPosition[0], PreviousPosition[TrainPosition.Front]);   // check if passed signal forward   //
+            int SignalObjIndex = CheckSignalPassed(0, PresentPosition[Direction.Forward], PreviousPosition[Direction.Forward]);   // check if passed signal forward   //
             if (SignalObjIndex < 0)
             {
-                SignalObjIndex = CheckSignalPassed(1, PresentPosition[1], PreviousPosition[TrainPosition.Rear]);   // check if passed signal backward  //
+                SignalObjIndex = CheckSignalPassed(1, PresentPosition[Direction.Backward], PreviousPosition[Direction.Backward]);   // check if passed signal backward  //
             }
             if (SignalObjIndex >= 0)
             {
@@ -2627,10 +2502,10 @@ namespace Orts.Simulation.Physics
         {
             _ = elapsedClockSeconds;
             UpdateTrainPosition();                                                                // position update                  //
-            int SignalObjIndex = CheckSignalPassed(0, PresentPosition[0], PreviousPosition[TrainPosition.Front]);   // check if passed signal forward   //
+            int SignalObjIndex = CheckSignalPassed(0, PresentPosition[Direction.Forward], PreviousPosition[Direction.Forward]);   // check if passed signal forward   //
             if (SignalObjIndex < 0)
             {
-                SignalObjIndex = CheckSignalPassed(1, PresentPosition[1], PreviousPosition[TrainPosition.Rear]);   // check if passed signal backward  //
+                SignalObjIndex = CheckSignalPassed(1, PresentPosition[Direction.Backward], PreviousPosition[Direction.Backward]);   // check if passed signal backward  //
             }
             if (SignalObjIndex >= 0)
             {
@@ -2659,16 +2534,11 @@ namespace Orts.Simulation.Physics
             }
         }
 
-        //================================================================================================//
-        /// <summary>
         /// Post Init : perform all actions required to start
-        /// </summary>
-
-        public virtual bool PostInit()
+        internal virtual bool PostInit()
         {
 
             // if train has no valid route, build route over trainlength (from back to front)
-
             bool validPosition = InitialTrainPlacement();
 
             if (validPosition)
@@ -2676,27 +2546,23 @@ namespace Orts.Simulation.Physics
                 InitializeSignals(false);     // Get signal information - only if train has route //
                 if (TrainType != TrainType.Static)
                     CheckDeadlock(ValidRoute[0], Number);    // Check deadlock against all other trains (not for static trains)
-                if (TCRoute != null) TCRoute.SetReversalOffset(Length, simulator.TimetableMode);
+                if (TCRoute != null) 
+                    TCRoute.SetReversalOffset(Length, simulator.TimetableMode);
 
                 AuxActionsContain.SetAuxAction(this);
             }
 
 
             // set train speed logging flag (valid per activity, so will be restored after save)
-
             if (IsActualPlayerTrain)
             {
                 SetTrainSpeedLoggingFlag();
             }
 
-            return (validPosition);
+            return validPosition;
         }
 
-        //================================================================================================//
-        /// <summary>
         /// set train speed logging flag (valid per activity, so will be restored after save)
-        /// </summary>
-
         protected void SetTrainSpeedLoggingFlag()
         {
             evaluateTrainSpeed = simulator.Settings.EvaluationTrainSpeed;
@@ -2719,11 +2585,7 @@ namespace Orts.Simulation.Physics
             }
         }
 
-        //================================================================================================//
-        /// <summary>
         /// get aspect of next signal ahead
-        /// </summary>
-
         public SignalAspectState GetNextSignalAspect(int direction)
         {
             SignalAspectState thisAspect = SignalAspectState.Stop;
@@ -2755,16 +2617,16 @@ namespace Orts.Simulation.Physics
 
             if (!existingSpeedLimits)
             {
-                if ((TrainMaxSpeedMpS <= 0f) && (this.LeadLocomotive != null))
-                    TrainMaxSpeedMpS = (this.LeadLocomotive as MSTSLocomotive).MaxSpeedMpS;
+                if ((TrainMaxSpeedMpS <= 0f) && (LeadLocomotive != null))
+                    TrainMaxSpeedMpS = (LeadLocomotive as MSTSLocomotive).MaxSpeedMpS;
                 AllowedMaxSpeedMpS = TrainMaxSpeedMpS;   // set default
                 allowedMaxSpeedSignalMpS = TrainMaxSpeedMpS;   // set default
                 allowedMaxTempSpeedLimitMpS = AllowedMaxSpeedMpS; // set default
 
                 //  try to find first speed limits behind the train
 
-                List<int> speedpostList = SignalEnvironment.ScanRoute(null, PresentPosition[1].TrackCircuitSectionIndex, PresentPosition[1].Offset,
-                                PresentPosition[1].Direction, false, -1, false, true, false, false, false, false, false, true, false, IsFreight);
+                List<int> speedpostList = SignalEnvironment.ScanRoute(null, PresentPosition[Direction.Backward].TrackCircuitSectionIndex, PresentPosition[Direction.Backward].Offset,
+                                PresentPosition[Direction.Backward].Direction, false, -1, false, true, false, false, false, false, false, true, false, IsFreight);
 
                 if (speedpostList.Count > 0)
                 {
@@ -2780,9 +2642,9 @@ namespace Orts.Simulation.Physics
                 //  try to find first speed limits along train - scan back to front
 
                 bool noMoreSpeedposts = false;
-                int thisSectionIndex = PresentPosition[1].TrackCircuitSectionIndex;
-                float thisSectionOffset = PresentPosition[1].Offset;
-                TrackDirection thisDirection = PresentPosition[1].Direction;
+                int thisSectionIndex = PresentPosition[Direction.Backward].TrackCircuitSectionIndex;
+                float thisSectionOffset = PresentPosition[Direction.Backward].Offset;
+                TrackDirection thisDirection = PresentPosition[Direction.Backward].Direction;
                 float remLength = Length;
 
                 while (!noMoreSpeedposts)
@@ -2845,7 +2707,7 @@ namespace Orts.Simulation.Physics
             SignalAspectState nextAspect = SignalAspectState.Unknown;
 
             SignalItemInfo firstObject = signalRef.GetNextObjectInRoute(routedForward, ValidRoute[0],
-                PresentPosition[0].RouteListIndex, PresentPosition[0].Offset, -1,
+                PresentPosition[Direction.Forward].RouteListIndex, PresentPosition[Direction.Forward].Offset, -1,
                 SignalItemType.Any);
 
             returnState = firstObject.State;
@@ -2870,8 +2732,8 @@ namespace Orts.Simulation.Physics
             SignalItemInfo nextObject;
             SignalItemInfo prevObject = firstObject;
 
-            int routeListIndex = PresentPosition[0].RouteListIndex;
-            float offset = PresentPosition[0].Offset;
+            int routeListIndex = PresentPosition[Direction.Forward].RouteListIndex;
+            float offset = PresentPosition[Direction.Forward].Offset;
             int nextIndex = routeListIndex;
 
             while (returnState == SignalItemFindState.Item &&
@@ -2971,7 +2833,7 @@ namespace Orts.Simulation.Physics
             else
             {
                 SignalItemInfo firstSignalObject = signalRef.GetNextObjectInRoute(routedForward, ValidRoute[0],
-                    PresentPosition[0].RouteListIndex, PresentPosition[0].Offset, -1,
+                    PresentPosition[Direction.Forward].RouteListIndex, PresentPosition[Direction.Forward].Offset, -1,
                     SignalItemType.Signal);
 
                 if (firstSignalObject.State == SignalItemFindState.Item)
@@ -3134,8 +2996,8 @@ namespace Orts.Simulation.Physics
                     int newSignalIndex = -1;
                     bool noMoreNewSignals = false;
 
-                    int thisIndex = PresentPosition[0].RouteListIndex;
-                    float offset = PresentPosition[0].Offset;
+                    int thisIndex = PresentPosition[Direction.Forward].RouteListIndex;
+                    float offset = PresentPosition[Direction.Forward].Offset;
 
                     while (!noMoreNewSignals)
                     {
@@ -3185,7 +3047,7 @@ namespace Orts.Simulation.Physics
             if (SignalObjectItems.Count <= 0)
             {
                 firstObject = signalRef.GetNextObjectInRoute(routedForward, ValidRoute[0],
-                      PresentPosition[0].RouteListIndex, PresentPosition[0].Offset, -1,
+                      PresentPosition[Direction.Forward].RouteListIndex, PresentPosition[Direction.Forward].Offset, -1,
                       SignalItemType.Any);
 
                 returnState = firstObject.State;
@@ -3285,9 +3147,9 @@ namespace Orts.Simulation.Physics
 
                 float maxDistance = Math.Max(AllowedMaxSpeedMpS * maxTimeS, minCheckDistanceM);
 
-                int routeListIndex = PresentPosition[0].RouteListIndex;
+                int routeListIndex = PresentPosition[Direction.Forward].RouteListIndex;
                 int lastIndex = routeListIndex;
-                float offset = PresentPosition[0].Offset;
+                float offset = PresentPosition[Direction.Forward].Offset;
 
                 prevObject = SignalObjectItems[SignalObjectItems.Count - 1];  // last object
 
@@ -3393,7 +3255,7 @@ namespace Orts.Simulation.Physics
             if (IndexNextSignal < 0)
             {
                 SignalItemInfo firstSignalObject = signalRef.GetNextObjectInRoute(routedForward, ValidRoute[0],
-                        PresentPosition[0].RouteListIndex, PresentPosition[0].Offset, -1,
+                        PresentPosition[Direction.Forward].RouteListIndex, PresentPosition[Direction.Forward].Offset, -1,
                         SignalItemType.Signal);
 
                 if (firstSignalObject.State == SignalItemFindState.Item)
@@ -5416,33 +5278,33 @@ namespace Orts.Simulation.Physics
             float offset = RearTDBTraveller.TrackNodeOffset;
             TrackDirection direction = (TrackDirection)RearTDBTraveller.Direction;
 
-            PresentPosition[1].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
-            TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[PresentPosition[1].TrackCircuitSectionIndex];
-            offset = PresentPosition[1].Offset;
+            PresentPosition[Direction.Backward].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
+            TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[PresentPosition[Direction.Backward].TrackCircuitSectionIndex];
+            offset = PresentPosition[Direction.Backward].Offset;
 
-            //<CSComment> must do preliminary calculation of PresentPosition[0] parameters in order to use subsequent code
+            //<CSComment> must do preliminary calculation of PresentPosition[Direction.Forward] parameters in order to use subsequent code
             // limited however to case of train fully in one section to avoid placement ambiguities </CSComment>
             float offsetFromEnd = thisSection.Length - (Length + offset);
-            if (PresentPosition[0].TrackCircuitSectionIndex == -1 && offsetFromEnd >= 0) // train is fully in one section
+            if (PresentPosition[Direction.Forward].TrackCircuitSectionIndex == -1 && offsetFromEnd >= 0) // train is fully in one section
             {
-                PresentPosition[0].Direction = PresentPosition[1].Direction;
-                PresentPosition[0].TrackCircuitSectionIndex = PresentPosition[1].TrackCircuitSectionIndex;
-                PresentPosition[0].Offset = PresentPosition[1].Offset + trainLength;
+                PresentPosition[Direction.Forward].Direction = PresentPosition[Direction.Backward].Direction;
+                PresentPosition[Direction.Forward].TrackCircuitSectionIndex = PresentPosition[Direction.Backward].TrackCircuitSectionIndex;
+                PresentPosition[Direction.Forward].Offset = PresentPosition[Direction.Backward].Offset + trainLength;
             }
 
             // create route if train has none
 
             if (ValidRoute[0] == null)
             {
-                ValidRoute[0] = SignalEnvironment.BuildTempRoute(this, thisSection.Index, PresentPosition[1].Offset,
-                            PresentPosition[1].Direction, trainLength, true, true, false);
+                ValidRoute[0] = SignalEnvironment.BuildTempRoute(this, thisSection.Index, PresentPosition[Direction.Backward].Offset,
+                            PresentPosition[Direction.Backward].Direction, trainLength, true, true, false);
             }
 
             // find sections
 
             bool sectionAvailable = true;
             float remLength = trainLength;
-            int routeIndex = ValidRoute[0].GetRouteIndex(PresentPosition[1].TrackCircuitSectionIndex, 0);
+            int routeIndex = ValidRoute[0].GetRouteIndex(PresentPosition[Direction.Backward].TrackCircuitSectionIndex, 0);
             if (routeIndex < 0)
                 routeIndex = 0;
 
@@ -5545,8 +5407,8 @@ namespace Orts.Simulation.Physics
             float offset = FrontTDBTraveller.TrackNodeOffset;
             TrackDirection direction = (TrackDirection)FrontTDBTraveller.Direction;
 
-            PresentPosition[0].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
-            PreviousPosition[TrainPosition.Front].UpdateFrom(PresentPosition[0]);
+            PresentPosition[Direction.Forward].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
+            PreviousPosition[Direction.Forward].UpdateFrom(PresentPosition[Direction.Forward]);
 
             DistanceTravelledM = 0.0f;
 
@@ -5554,36 +5416,36 @@ namespace Orts.Simulation.Physics
             offset = RearTDBTraveller.TrackNodeOffset;
             direction = (TrackDirection)RearTDBTraveller.Direction;
 
-            PresentPosition[1].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
+            PresentPosition[Direction.Backward].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
 
             // check if train has route, if not create dummy
 
             if (ValidRoute[0] == null)
             {
-                ValidRoute[0] = SignalEnvironment.BuildTempRoute(this, PresentPosition[1].TrackCircuitSectionIndex, PresentPosition[1].Offset,
-                        PresentPosition[1].Direction, Length, true, true, false);
+                ValidRoute[0] = SignalEnvironment.BuildTempRoute(this, PresentPosition[Direction.Backward].TrackCircuitSectionIndex, PresentPosition[Direction.Backward].Offset,
+                        PresentPosition[Direction.Backward].Direction, Length, true, true, false);
             }
 
             // get index of first section in route
 
-            int rearIndex = ValidRoute[0].GetRouteIndex(PresentPosition[1].TrackCircuitSectionIndex, 0);
+            int rearIndex = ValidRoute[0].GetRouteIndex(PresentPosition[Direction.Backward].TrackCircuitSectionIndex, 0);
             if (rearIndex < 0)
             {
                 rearIndex = 0;
             }
 
-            PresentPosition[1].RouteListIndex = rearIndex;
+            PresentPosition[Direction.Backward].RouteListIndex = rearIndex;
 
             // get index of front of train
 
-            int frontIndex = ValidRoute[0].GetRouteIndex(PresentPosition[0].TrackCircuitSectionIndex, 0);
+            int frontIndex = ValidRoute[0].GetRouteIndex(PresentPosition[Direction.Forward].TrackCircuitSectionIndex, 0);
             if (frontIndex < 0)
             {
                 Trace.TraceWarning("Start position of front of train {0}, service name {1} not on route ", Number, Name);
                 frontIndex = 0;
             }
 
-            PresentPosition[0].RouteListIndex = frontIndex;
+            PresentPosition[Direction.Forward].RouteListIndex = frontIndex;
 
             // check if train can be placed
             // get index of section in train route //
@@ -5593,7 +5455,7 @@ namespace Orts.Simulation.Physics
 
             // check if route is available
 
-            offset = PresentPosition[1].Offset;
+            offset = PresentPosition[Direction.Backward].Offset;
             float remLength = Length;
             bool sectionAvailable = true;
 
@@ -5677,8 +5539,8 @@ namespace Orts.Simulation.Physics
         public void SetFormedOccupied()
         {
 
-            int rearIndex = PresentPosition[1].RouteListIndex;
-            int frontIndex = PresentPosition[0].RouteListIndex;
+            int rearIndex = PresentPosition[Direction.Backward].RouteListIndex;
+            int frontIndex = PresentPosition[Direction.Forward].RouteListIndex;
 
             int routeIndex = rearIndex;
 
@@ -5686,7 +5548,7 @@ namespace Orts.Simulation.Physics
 
             // route is always available as previous train was there
 
-            float offset = PresentPosition[1].Offset;
+            float offset = PresentPosition[Direction.Backward].Offset;
             float remLength = Length;
 
             for (int iRouteIndex = rearIndex; iRouteIndex <= frontIndex; iRouteIndex++)
@@ -5744,30 +5606,30 @@ namespace Orts.Simulation.Physics
             int beginSectionRouteIndex = ValidRoute[0].GetRouteIndex(beginSectionIndex, 0);
 
             // if rear is in platform, station is valid
-            if (((((beginSectionRouteIndex != -1 && PresentPosition[1].RouteListIndex == beginSectionRouteIndex) || (PresentPosition[1].RouteListIndex == -1 && PresentPosition[1].TrackCircuitSectionIndex == beginSectionIndex))
-                && PresentPosition[1].Offset >= platformBeginOffset) || PresentPosition[1].RouteListIndex > beginSectionRouteIndex) &&
-                ((PresentPosition[1].TrackCircuitSectionIndex == endSectionIndex && PresentPosition[1].Offset <= platformEndOffset) || endSectionRouteIndex == -1 && beginSectionRouteIndex != -1 ||
-                PresentPosition[1].RouteListIndex < endSectionRouteIndex))
+            if (((((beginSectionRouteIndex != -1 && PresentPosition[Direction.Backward].RouteListIndex == beginSectionRouteIndex) || (PresentPosition[Direction.Backward].RouteListIndex == -1 && PresentPosition[Direction.Backward].TrackCircuitSectionIndex == beginSectionIndex))
+                && PresentPosition[Direction.Backward].Offset >= platformBeginOffset) || PresentPosition[Direction.Backward].RouteListIndex > beginSectionRouteIndex) &&
+                ((PresentPosition[Direction.Backward].TrackCircuitSectionIndex == endSectionIndex && PresentPosition[Direction.Backward].Offset <= platformEndOffset) || endSectionRouteIndex == -1 && beginSectionRouteIndex != -1 ||
+                PresentPosition[Direction.Backward].RouteListIndex < endSectionRouteIndex))
             {
                 atStation = true;
             }
             // if front is in platform and most of the train is as well, station is valid
-            else if (((((endSectionRouteIndex != -1 && PresentPosition[0].RouteListIndex == endSectionRouteIndex) || (PresentPosition[0].RouteListIndex == -1 && PresentPosition[0].TrackCircuitSectionIndex == endSectionIndex))
-                && PresentPosition[0].Offset <= platformEndOffset) && ((thisPlatform.Length - (platformEndOffset - PresentPosition[0].Offset)) > Length / 2)) ||
-                (PresentPosition[0].RouteListIndex != -1 && PresentPosition[0].RouteListIndex < endSectionRouteIndex &&
-                (PresentPosition[0].RouteListIndex > beginSectionRouteIndex || (PresentPosition[0].RouteListIndex == beginSectionRouteIndex && PresentPosition[0].Offset >= platformBeginOffset))))
+            else if (((((endSectionRouteIndex != -1 && PresentPosition[Direction.Forward].RouteListIndex == endSectionRouteIndex) || (PresentPosition[Direction.Forward].RouteListIndex == -1 && PresentPosition[Direction.Forward].TrackCircuitSectionIndex == endSectionIndex))
+                && PresentPosition[Direction.Forward].Offset <= platformEndOffset) && ((thisPlatform.Length - (platformEndOffset - PresentPosition[Direction.Forward].Offset)) > Length / 2)) ||
+                (PresentPosition[Direction.Forward].RouteListIndex != -1 && PresentPosition[Direction.Forward].RouteListIndex < endSectionRouteIndex &&
+                (PresentPosition[Direction.Forward].RouteListIndex > beginSectionRouteIndex || (PresentPosition[Direction.Forward].RouteListIndex == beginSectionRouteIndex && PresentPosition[Direction.Forward].Offset >= platformBeginOffset))))
             {
                 atStation = true;
             }
             // if front is beyond platform and and most of the train is within it, station is valid (isn't it already covered by cases 1 or 4?)
-            else if (endSectionRouteIndex != -1 && PresentPosition[0].RouteListIndex == endSectionRouteIndex && PresentPosition[0].Offset > platformEndOffset &&
-                     (PresentPosition[0].Offset - platformEndOffset) < (Length / 3))
+            else if (endSectionRouteIndex != -1 && PresentPosition[Direction.Forward].RouteListIndex == endSectionRouteIndex && PresentPosition[Direction.Forward].Offset > platformEndOffset &&
+                     (PresentPosition[Direction.Forward].Offset - platformEndOffset) < (Length / 3))
             {
                 atStation = true;
             }
             // if front is beyond platform and rear is not on route or before platform : train spans platform
-            else if (((endSectionRouteIndex != -1 && PresentPosition[0].RouteListIndex > endSectionRouteIndex) || (endSectionRouteIndex != -1 && PresentPosition[0].RouteListIndex == endSectionRouteIndex && PresentPosition[0].Offset >= platformEndOffset))
-                  && (PresentPosition[1].RouteListIndex < beginSectionRouteIndex || (PresentPosition[1].RouteListIndex == beginSectionRouteIndex && PresentPosition[1].Offset <= platformBeginOffset)))
+            else if (((endSectionRouteIndex != -1 && PresentPosition[Direction.Forward].RouteListIndex > endSectionRouteIndex) || (endSectionRouteIndex != -1 && PresentPosition[Direction.Forward].RouteListIndex == endSectionRouteIndex && PresentPosition[Direction.Forward].Offset >= platformEndOffset))
+                  && (PresentPosition[Direction.Backward].RouteListIndex < beginSectionRouteIndex || (PresentPosition[Direction.Backward].RouteListIndex == beginSectionRouteIndex && PresentPosition[Direction.Backward].Offset <= platformBeginOffset)))
             {
                 atStation = true;
             }
@@ -5785,35 +5647,35 @@ namespace Orts.Simulation.Physics
         {
             // update positions
 
-            PreviousPosition[TrainPosition.Front].UpdateFrom(PresentPosition[0]);
+            PreviousPosition[Direction.Forward].UpdateFrom(PresentPosition[Direction.Forward]);
 
             TrackNode tn = FrontTDBTraveller.TN;
             float offset = FrontTDBTraveller.TrackNodeOffset;
             TrackDirection direction = (TrackDirection)FrontTDBTraveller.Direction;
             int routeIndex;
 
-            PresentPosition[0].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
-            routeIndex = ValidRoute[0].GetRouteIndex(PresentPosition[0].TrackCircuitSectionIndex, 0);
-            PresentPosition[0].RouteListIndex = routeIndex;
+            PresentPosition[Direction.Forward].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
+            routeIndex = ValidRoute[0].GetRouteIndex(PresentPosition[Direction.Forward].TrackCircuitSectionIndex, 0);
+            PresentPosition[Direction.Forward].RouteListIndex = routeIndex;
 
             tn = RearTDBTraveller.TN;
             offset = RearTDBTraveller.TrackNodeOffset;
             direction = (TrackDirection)RearTDBTraveller.Direction;
 
-            PresentPosition[1].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
-            routeIndex = ValidRoute[0].GetRouteIndex(PresentPosition[1].TrackCircuitSectionIndex, 0);
-            PresentPosition[1].RouteListIndex = routeIndex;
+            PresentPosition[Direction.Backward].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
+            routeIndex = ValidRoute[0].GetRouteIndex(PresentPosition[Direction.Backward].TrackCircuitSectionIndex, 0);
+            PresentPosition[Direction.Backward].RouteListIndex = routeIndex;
 
             if (doJump) // jump do be performed in multiplayer mode when train re-enters game in different position
             {
                 doJump = false;
-                PreviousPosition[TrainPosition.Front].UpdateFrom(PresentPosition[0]);
+                PreviousPosition[Direction.Forward].UpdateFrom(PresentPosition[Direction.Forward]);
                 Trace.TraceInformation("Multiplayer server requested the player train to jump");
                 // reset some items
                 SignalObjectItems.Clear();
                 NextSignalObject[0] = null;
                 InitializeSignals(true);
-                LastReservedSection[0] = PresentPosition[0].TrackCircuitSectionIndex;
+                LastReservedSection[0] = PresentPosition[Direction.Forward].TrackCircuitSectionIndex;
             }
 
             // get reserved length
@@ -5831,10 +5693,10 @@ namespace Orts.Simulation.Physics
 
             // check if train still on route - set train to OUT_OF_CONTROL
 
-            PresentPosition[0].DistanceTravelled = DistanceTravelledM;
-            PresentPosition[1].DistanceTravelled = DistanceTravelledM - Length;
+            PresentPosition[Direction.Forward].DistanceTravelled = DistanceTravelledM;
+            PresentPosition[Direction.Backward].DistanceTravelled = DistanceTravelledM - Length;
 
-            if (PresentPosition[0].RouteListIndex < 0)
+            if (PresentPosition[Direction.Forward].RouteListIndex < 0)
             {
                 SetTrainOutOfControl(OutOfControlReason.OutOfPath);
             }
@@ -5864,9 +5726,9 @@ namespace Orts.Simulation.Physics
         /// 
         public float ComputeDistanceToNextStation(StationStop thisStation)
         {
-            int thisSectionIndex = PresentPosition[0].TrackCircuitSectionIndex;
+            int thisSectionIndex = PresentPosition[Direction.Forward].TrackCircuitSectionIndex;
             TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisSectionIndex];
-            float leftInSectionM = thisSection.Length - PresentPosition[0].Offset;
+            float leftInSectionM = thisSection.Length - PresentPosition[Direction.Forward].Offset;
             float distanceToTrainM = -1;
             int stationIndex;
 
@@ -5880,7 +5742,7 @@ namespace Orts.Simulation.Physics
                 {
                     int lastSectionRouteIndex = TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath].Count - 1;
                     float lastSectionLength = TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath][lastSectionRouteIndex].TrackCircuitSection.Length;
-                    distanceToTrainM = TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath].GetDistanceAlongRoute(PresentPosition[0].RouteListIndex,
+                    distanceToTrainM = TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath].GetDistanceAlongRoute(PresentPosition[Direction.Forward].RouteListIndex,
                  leftInSectionM, lastSectionRouteIndex, lastSectionLength, true);
                 }
                 float lengthOfIntSubpath = 0;
@@ -5994,8 +5856,8 @@ namespace Orts.Simulation.Physics
                 // No enhanced compatibility, simple computation
                 // if present position off route, try rear position
                 // if both off route, skip station stop
-                stationIndex = ValidRoute[0].GetRouteIndex(thisStation.TrackCircuitSectionIndex, PresentPosition[0].RouteListIndex);
-                distanceToTrainM = ValidRoute[0].GetDistanceAlongRoute(PresentPosition[0].RouteListIndex, leftInSectionM, stationIndex, thisStation.StopOffset, true);
+                stationIndex = ValidRoute[0].GetRouteIndex(thisStation.TrackCircuitSectionIndex, PresentPosition[Direction.Forward].RouteListIndex);
+                distanceToTrainM = ValidRoute[0].GetDistanceAlongRoute(PresentPosition[Direction.Forward].RouteListIndex, leftInSectionM, stationIndex, thisStation.StopOffset, true);
             }
             return distanceToTrainM;
         }
@@ -6008,9 +5870,9 @@ namespace Orts.Simulation.Physics
 
         public float ComputeDistanceToReversalPoint()
         {
-            float lengthToGoM = -PresentPosition[0].Offset;
+            float lengthToGoM = -PresentPosition[Direction.Forward].Offset;
             TrackCircuitSection thisSection;
-            if (PresentPosition[0].RouteListIndex == -1)
+            if (PresentPosition[Direction.Forward].RouteListIndex == -1)
             {
                 Trace.TraceWarning("Train {0} service {1} off path; distance to reversal point set to -1", Number, Name);
                 return -1;
@@ -6019,7 +5881,7 @@ namespace Orts.Simulation.Physics
             int reversalRouteIndex = ValidRoute[0].Count - 1;
             TrackCircuitSection reversalSection = ValidRoute[0][reversalRouteIndex].TrackCircuitSection;
             float reverseReversalOffset = reversalSection.Length;
-            reversalRouteIndex = ValidRoute[0].GetRouteIndex(TCRoute.ReversalInfo[TCRoute.ActiveSubPath].ReversalSectionIndex, PresentPosition[0].RouteListIndex);
+            reversalRouteIndex = ValidRoute[0].GetRouteIndex(TCRoute.ReversalInfo[TCRoute.ActiveSubPath].ReversalSectionIndex, PresentPosition[Direction.Forward].RouteListIndex);
             if (reversalRouteIndex == -1)
             {
                 Trace.TraceWarning("Train {0} service {1}, reversal or end point off path; distance to reversal point set to -1", Number, Name);
@@ -6027,9 +5889,9 @@ namespace Orts.Simulation.Physics
             }
             reversalSection = TrackCircuitSection.TrackCircuitList[TCRoute.ReversalInfo[TCRoute.ActiveSubPath].ReversalSectionIndex];
             reverseReversalOffset = TCRoute.ReversalInfo[TCRoute.ActiveSubPath].ReverseReversalOffset;
-            if (PresentPosition[0].RouteListIndex <= reversalRouteIndex)
+            if (PresentPosition[Direction.Forward].RouteListIndex <= reversalRouteIndex)
             {
-                for (int iElement = PresentPosition[0].RouteListIndex; iElement < ValidRoute[0].Count; iElement++)
+                for (int iElement = PresentPosition[Direction.Forward].RouteListIndex; iElement < ValidRoute[0].Count; iElement++)
                 {
                     TrackCircuitRouteElement thisElement = ValidRoute[0][iElement];
                     thisSection = thisElement.TrackCircuitSection;
@@ -6043,7 +5905,7 @@ namespace Orts.Simulation.Physics
             }
             else
             {
-                for (int iElement = PresentPosition[0].RouteListIndex - 1; iElement >= 0; iElement--)
+                for (int iElement = PresentPosition[Direction.Forward].RouteListIndex - 1; iElement >= 0; iElement--)
                 {
                     TrackCircuitRouteElement thisElement = ValidRoute[0][iElement];
                     thisSection = thisElement.TrackCircuitSection;
@@ -6143,12 +6005,12 @@ namespace Orts.Simulation.Physics
 
             List<int[]> sectionList = new List<int[]>();
 
-            int lastIndex = PreviousPosition[TrainPosition.Front].RouteListIndex;
-            int presentIndex = PresentPosition[0].RouteListIndex;
+            int lastIndex = PreviousPosition[Direction.Forward].RouteListIndex;
+            int presentIndex = PresentPosition[Direction.Forward].RouteListIndex;
 
-            int lastDTM = Convert.ToInt32(PreviousPosition[TrainPosition.Front].DistanceTravelled);
-            TrackCircuitSection lastSection = TrackCircuitSection.TrackCircuitList[PreviousPosition[TrainPosition.Front].TrackCircuitSectionIndex];
-            int lastDTatEndLastSectionM = lastDTM + Convert.ToInt32(lastSection.Length - PreviousPosition[TrainPosition.Front].Offset);
+            int lastDTM = Convert.ToInt32(PreviousPosition[Direction.Forward].DistanceTravelled);
+            TrackCircuitSection lastSection = TrackCircuitSection.TrackCircuitList[PreviousPosition[Direction.Forward].TrackCircuitSectionIndex];
+            int lastDTatEndLastSectionM = lastDTM + Convert.ToInt32(lastSection.Length - PreviousPosition[Direction.Forward].Offset);
 
             int presentDTM = Convert.ToInt32(DistanceTravelledM);
 
@@ -6228,14 +6090,14 @@ namespace Orts.Simulation.Physics
         public void ChangeControlModeOtherTrains(TrackCircuitSection thisSection)
         {
             TrackDirection otherdirection = (TrackDirection)(-1);
-            TrackDirection owndirection = PresentPosition[0].Direction;
+            TrackDirection owndirection = PresentPosition[Direction.Forward].Direction;
             foreach (KeyValuePair<TrainRouted, int> trainToCheckInfo in thisSection.CircuitState.OccupationState)
             {
                 Train OtherTrain = trainToCheckInfo.Key.Train;
                 if (OtherTrain.ControlMode == TrainControlMode.AutoSignal) // train is still in signal mode, might need adjusting
                 {
-                    otherdirection = OtherTrain.PresentPosition[0].TrackCircuitSectionIndex == thisSection.Index ? OtherTrain.PresentPosition[0].Direction :
-                        OtherTrain.PresentPosition[1].TrackCircuitSectionIndex == thisSection.Index ? OtherTrain.PresentPosition[1].Direction : (TrackDirection)(-1);
+                    otherdirection = OtherTrain.PresentPosition[Direction.Forward].TrackCircuitSectionIndex == thisSection.Index ? OtherTrain.PresentPosition[Direction.Forward].Direction :
+                        OtherTrain.PresentPosition[Direction.Backward].TrackCircuitSectionIndex == thisSection.Index ? OtherTrain.PresentPosition[Direction.Backward].Direction : (TrackDirection)(-1);
                     if (owndirection >= 0 && otherdirection >= 0) // both trains found
                     {
                         if (owndirection != otherdirection) // opposite directions - this train is now ahead of train in section
@@ -6357,10 +6219,10 @@ namespace Orts.Simulation.Physics
         {
             bool outOfControl = false;
 
-            int lastIndex = PreviousPosition[TrainPosition.Front].RouteListIndex;
-            float lastOffset = PreviousPosition[TrainPosition.Front].Offset;
-            int presentIndex = PresentPosition[0].RouteListIndex;
-            float presentOffset = PresentPosition[0].Offset;
+            int lastIndex = PreviousPosition[Direction.Forward].RouteListIndex;
+            float lastOffset = PreviousPosition[Direction.Forward].Offset;
+            int presentIndex = PresentPosition[Direction.Forward].RouteListIndex;
+            float presentOffset = PresentPosition[Direction.Forward].Offset;
 
             if (presentIndex < 0) // we are off the path, stop train //
             {
@@ -6391,9 +6253,9 @@ namespace Orts.Simulation.Physics
 
                     // create new position some 25 m. behind train as allowed overlap
 
-                    TrackCircuitPosition overlapPosition = new TrackCircuitPosition(PresentPosition[1]);
+                    TrackCircuitPosition overlapPosition = new TrackCircuitPosition(PresentPosition[Direction.Backward]);
                     TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[overlapPosition.TrackCircuitSectionIndex];
-                    overlapPosition.Offset = thisSection.Length - (PresentPosition[1].Offset + rearPositionOverlap);  // reverse offset because of reversed direction
+                    overlapPosition.Offset = thisSection.Length - (PresentPosition[Direction.Backward].Offset + rearPositionOverlap);  // reverse offset because of reversed direction
                     overlapPosition.Direction = overlapPosition.Direction.Next(); // looking backwards, so reverse direction
 
                     TrackCircuitSection rearSection = TrackCircuitSection.TrackCircuitList[RearSignalObject.TrackCircuitNextIndex];
@@ -6416,9 +6278,9 @@ namespace Orts.Simulation.Physics
 
                 if (!outOfControl && RearSignalObject == null)
                 {
-                    TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[PresentPosition[1].TrackCircuitSectionIndex];
-                    float clearPath = thisSection.Length - PresentPosition[1].Offset;   // looking other direction //
-                    TrackDirection direction = PresentPosition[1].Direction.Next();
+                    TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[PresentPosition[Direction.Backward].TrackCircuitSectionIndex];
+                    float clearPath = thisSection.Length - PresentPosition[Direction.Backward].Offset;   // looking other direction //
+                    TrackDirection direction = PresentPosition[Direction.Backward].Direction.Next();
 
                     while (clearPath < rearPositionOverlap && !outOfControl && RearSignalObject == null)
                     {
@@ -6501,13 +6363,13 @@ namespace Orts.Simulation.Physics
 
         public virtual bool CheckRouteActions(double elapsedClockSeconds)
         {
-            TrackDirection directionNow = PresentPosition[0].Direction;
-            int positionNow = PresentPosition[0].TrackCircuitSectionIndex;
-            TrackDirection directionNowBack = PresentPosition[1].Direction;
-            int positionNowBack = PresentPosition[1].TrackCircuitSectionIndex;
+            TrackDirection directionNow = PresentPosition[Direction.Forward].Direction;
+            int positionNow = PresentPosition[Direction.Forward].TrackCircuitSectionIndex;
+            TrackDirection directionNowBack = PresentPosition[Direction.Backward].Direction;
+            int positionNowBack = PresentPosition[Direction.Backward].TrackCircuitSectionIndex;
 
-            if (PresentPosition[0].RouteListIndex >= 0)
-                directionNow = ValidRoute[0][PresentPosition[0].RouteListIndex].Direction;
+            if (PresentPosition[Direction.Forward].RouteListIndex >= 0)
+                directionNow = ValidRoute[0][PresentPosition[Direction.Forward].RouteListIndex].Direction;
 
             bool[] nextRoute = UpdateRouteActions(elapsedClockSeconds, false);
 
@@ -6518,13 +6380,13 @@ namespace Orts.Simulation.Physics
 
             if (nextRoute[1])
             {
-                if (positionNowBack == PresentPosition[0].TrackCircuitSectionIndex && directionNowBack != PresentPosition[0].Direction)
+                if (positionNowBack == PresentPosition[Direction.Forward].TrackCircuitSectionIndex && directionNowBack != PresentPosition[Direction.Forward].Direction)
                 {
                     ReverseFormation(IsActualPlayerTrain);
                     // active subpath must be incremented in parallel in incorporated train if present
                     if (IncorporatedTrainNo >= 0) IncrementSubpath(simulator.TrainDictionary[IncorporatedTrainNo]);
                 }
-                else if (positionNow == PresentPosition[1].TrackCircuitSectionIndex && directionNow != PresentPosition[1].Direction)
+                else if (positionNow == PresentPosition[Direction.Backward].TrackCircuitSectionIndex && directionNow != PresentPosition[Direction.Backward].Direction)
                 {
                     ReverseFormation(IsActualPlayerTrain);
                     // active subpath must be incremented in parallel in incorporated train if present
@@ -6582,19 +6444,19 @@ namespace Orts.Simulation.Physics
                 {
                     int loopSectionIndex = ValidRoute[0].GetRouteIndex(TCRoute.LoopEnd[TCRoute.ActiveSubPath], 0);
 
-                    if (loopSectionIndex >= 0 && PresentPosition[1].RouteListIndex > loopSectionIndex)
+                    if (loopSectionIndex >= 0 && PresentPosition[Direction.Backward].RouteListIndex > loopSectionIndex)
                     {
-                        int frontSection = TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath][PresentPosition[0].RouteListIndex].TrackCircuitSection.Index;
-                        int rearSection = TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath][PresentPosition[1].RouteListIndex].TrackCircuitSection.Index;
+                        int frontSection = TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath][PresentPosition[Direction.Forward].RouteListIndex].TrackCircuitSection.Index;
+                        int rearSection = TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath][PresentPosition[Direction.Backward].RouteListIndex].TrackCircuitSection.Index;
                         TCRoute.ActiveSubPath++;
                         ValidRoute[0] = TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath];
 
-                        PresentPosition[0].RouteListIndex = ValidRoute[0].GetRouteIndex(frontSection, 0);
-                        PresentPosition[1].RouteListIndex = ValidRoute[0].GetRouteIndex(rearSection, 0);
+                        PresentPosition[Direction.Forward].RouteListIndex = ValidRoute[0].GetRouteIndex(frontSection, 0);
+                        PresentPosition[Direction.Backward].RouteListIndex = ValidRoute[0].GetRouteIndex(rearSection, 0);
 
                         // Invalidate preceding section indexes to avoid wrong indexing when building route forward (in Reserve())
 
-                        for (int routeListIndex = 0; routeListIndex < PresentPosition[1].RouteListIndex; routeListIndex++)
+                        for (int routeListIndex = 0; routeListIndex < PresentPosition[Direction.Backward].RouteListIndex; routeListIndex++)
                         {
                             ValidRoute[0][routeListIndex].Invalidate();
                         }
@@ -6635,7 +6497,7 @@ namespace Orts.Simulation.Physics
                 nextRouteAvailable = true;
 
                 nextRoute = TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath + 1];
-                int firstSectionIndex = PresentPosition[1].TrackCircuitSectionIndex;
+                int firstSectionIndex = PresentPosition[Direction.Backward].TrackCircuitSectionIndex;
 
                 // find index of present rear position
 
@@ -6649,19 +6511,19 @@ namespace Orts.Simulation.Physics
                 }
                 else
                 {
-                    firstSectionIndex = PresentPosition[0].TrackCircuitSectionIndex;
+                    firstSectionIndex = PresentPosition[Direction.Forward].TrackCircuitSectionIndex;
                     firstRouteIndex = nextRoute.GetRouteIndex(firstSectionIndex, 0);
 
                     // cant find next part of route - check if really at end of this route, if so, error, else just wait and see (train stopped for other reason)
 
-                    if (PresentPosition[0].RouteListIndex == ValidRoute[0].Count - 1)
+                    if (PresentPosition[Direction.Forward].RouteListIndex == ValidRoute[0].Count - 1)
                     {
                         if (firstRouteIndex < 0)
                         {
                             Trace.TraceInformation(
                                 "Cannot find next part of route (index {0}) for Train {1} ({2}) (at section {3})",
                                 TCRoute.ActiveSubPath.ToString(), Name, Number.ToString(),
-                                PresentPosition[0].TrackCircuitSectionIndex.ToString());
+                                PresentPosition[Direction.Forward].TrackCircuitSectionIndex.ToString());
                         }
                         // search for junction and check if it is not clear
 
@@ -6720,15 +6582,15 @@ namespace Orts.Simulation.Physics
                         }
                     }
 
-                    if (PresentPosition[0].RouteListIndex >= 0 && PresentPosition[0].RouteListIndex < ValidRoute[0].Count - 1) // not at end of route
+                    if (PresentPosition[Direction.Forward].RouteListIndex >= 0 && PresentPosition[Direction.Forward].RouteListIndex < ValidRoute[0].Count - 1) // not at end of route
                     {
-                        int nextRouteIndex = PresentPosition[0].RouteListIndex + 1;
+                        int nextRouteIndex = PresentPosition[Direction.Forward].RouteListIndex + 1;
                         signalRef.BreakDownRouteList(ValidRoute[0], nextRouteIndex, routedForward);
                         ValidRoute[0].RemoveRange(nextRouteIndex, ValidRoute[0].Count - nextRouteIndex);
                     }
                 }
 
-                int nextIndex = PresentPosition[0].RouteListIndex + 1;
+                int nextIndex = PresentPosition[Direction.Forward].RouteListIndex + 1;
                 if (nextIndex <= (ValidRoute[0].Count - 1))
                 {
                     signalRef.BreakDownRoute(ValidRoute[0][nextIndex].TrackCircuitSection.Index, routedForward);
@@ -6746,32 +6608,32 @@ namespace Orts.Simulation.Physics
 
                 // check if reverse is required
 
-                int newIndex = nextRoute.GetRouteIndex(PresentPosition[0].TrackCircuitSectionIndex, 0);
-                var oldDirection = ValidRoute[0][PresentPosition[0].RouteListIndex].Direction;
+                int newIndex = nextRoute.GetRouteIndex(PresentPosition[Direction.Forward].TrackCircuitSectionIndex, 0);
+                var oldDirection = ValidRoute[0][PresentPosition[Direction.Forward].RouteListIndex].Direction;
                 if (newIndex < 0)
                 {
-                    newIndex = nextRoute.GetRouteIndex(PresentPosition[1].TrackCircuitSectionIndex, 0);
-                    oldDirection = ValidRoute[0][PresentPosition[1].RouteListIndex].Direction;
+                    newIndex = nextRoute.GetRouteIndex(PresentPosition[Direction.Backward].TrackCircuitSectionIndex, 0);
+                    oldDirection = ValidRoute[0][PresentPosition[Direction.Backward].RouteListIndex].Direction;
                 }
 
                 if (oldDirection != nextRoute[newIndex].Direction)
                 {
 
                     // set new train positions and reset distance travelled
-                    (PresentPosition[0], PresentPosition[1]) = (PresentPosition[1], PresentPosition[0]);
+                    (PresentPosition[Direction.Forward], PresentPosition[Direction.Backward]) = (PresentPosition[Direction.Backward], PresentPosition[Direction.Forward]);
 
-                    PresentPosition[0].Reverse(ValidRoute[0][PresentPosition[0].RouteListIndex].Direction, nextRoute, Length);
-                    PreviousPosition[TrainPosition.Front].UpdateFrom(PresentPosition[0]);
-                    PresentPosition[1].Reverse(ValidRoute[0][PresentPosition[1].RouteListIndex].Direction, nextRoute, 0.0f);
+                    PresentPosition[Direction.Forward].Reverse(ValidRoute[0][PresentPosition[Direction.Forward].RouteListIndex].Direction, nextRoute, Length);
+                    PreviousPosition[Direction.Forward].UpdateFrom(PresentPosition[Direction.Forward]);
+                    PresentPosition[Direction.Backward].Reverse(ValidRoute[0][PresentPosition[Direction.Backward].RouteListIndex].Direction, nextRoute, 0.0f);
                 }
                 else
                 {
-                    PresentPosition[0].RouteListIndex = nextRoute.GetRouteIndex(PresentPosition[0].TrackCircuitSectionIndex, 0);
-                    PresentPosition[1].RouteListIndex = nextRoute.GetRouteIndex(PresentPosition[1].TrackCircuitSectionIndex, 0);
-                    PreviousPosition[TrainPosition.Front].UpdateFrom(PresentPosition[0]);
+                    PresentPosition[Direction.Forward].RouteListIndex = nextRoute.GetRouteIndex(PresentPosition[Direction.Forward].TrackCircuitSectionIndex, 0);
+                    PresentPosition[Direction.Backward].RouteListIndex = nextRoute.GetRouteIndex(PresentPosition[Direction.Backward].TrackCircuitSectionIndex, 0);
+                    PreviousPosition[Direction.Forward].UpdateFrom(PresentPosition[Direction.Forward]);
                 }
 
-                DistanceTravelledM = PresentPosition[0].DistanceTravelled;
+                DistanceTravelledM = PresentPosition[Direction.Forward].DistanceTravelled;
 
                 // perform any remaining actions of type clear section (except sections now occupied)
 
@@ -6792,12 +6654,12 @@ namespace Orts.Simulation.Physics
                     thisSection.ResetOccupied(this);
 
                 }
-                int rearIndex = PresentPosition[1].RouteListIndex;
+                int rearIndex = PresentPosition[Direction.Backward].RouteListIndex;
 
                 if (rearIndex < 0) // end of train not on new route
                 {
-                    TrackCircuitPartialPathRoute tempRoute = SignalEnvironment.BuildTempRoute(this, PresentPosition[1].TrackCircuitSectionIndex, PresentPosition[1].Offset,
-                        PresentPosition[1].Direction, Length, false, true, false);
+                    TrackCircuitPartialPathRoute tempRoute = SignalEnvironment.BuildTempRoute(this, PresentPosition[Direction.Backward].TrackCircuitSectionIndex, PresentPosition[Direction.Backward].Offset,
+                        PresentPosition[Direction.Backward].Direction, Length, false, true, false);
 
                     for (int iIndex = 0; iIndex < tempRoute.Count; iIndex++)
                     {
@@ -6807,7 +6669,7 @@ namespace Orts.Simulation.Physics
                 }
                 else
                 {
-                    for (int iIndex = PresentPosition[1].RouteListIndex; iIndex <= PresentPosition[0].RouteListIndex; iIndex++)
+                    for (int iIndex = PresentPosition[Direction.Backward].RouteListIndex; iIndex <= PresentPosition[Direction.Forward].RouteListIndex; iIndex++)
                     {
                         TrackCircuitSection thisSection = ValidRoute[0][iIndex].TrackCircuitSection;
                         thisSection.SetOccupied(routedForward);
@@ -6824,7 +6686,7 @@ namespace Orts.Simulation.Physics
 
                 InitializeSignals(true);
 
-                LastReservedSection[0] = PresentPosition[0].TrackCircuitSectionIndex;
+                LastReservedSection[0] = PresentPosition[Direction.Forward].TrackCircuitSectionIndex;
 
                 // clear claims of any trains which have claimed present occupied sections upto common point - this avoids deadlocks
                 // trains may have claimed while train was reversing
@@ -6835,7 +6697,7 @@ namespace Orts.Simulation.Physics
                 // switch to NODE mode
                 if (ControlMode == TrainControlMode.AutoSignal)
                 {
-                    SwitchToNodeControl(PresentPosition[0].TrackCircuitSectionIndex);
+                    SwitchToNodeControl(PresentPosition[Direction.Forward].TrackCircuitSectionIndex);
                 }
             }
 
@@ -6876,7 +6738,7 @@ namespace Orts.Simulation.Physics
 
                 // check position in relation to present end of path
                 // front is in last route section
-                if (PresentPosition[0].RouteListIndex == (ValidRoute[0].Count - 1) &&
+                if (PresentPosition[Direction.Forward].RouteListIndex == (ValidRoute[0].Count - 1) &&
                     (!TCRoute.ReversalInfo[TCRoute.ActiveSubPath].Valid && TCRoute.ActiveSubPath < TCRoute.TCRouteSubpaths.Count - 1))
                 {
                     endOfRoute = true;
@@ -6884,13 +6746,13 @@ namespace Orts.Simulation.Physics
                 // front is within 150m. of end of route and no junctions inbetween (only very short sections ahead of train)
                 else
                 {
-                    TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[PresentPosition[0].TrackCircuitSectionIndex];
-                    float lengthToGo = thisSection.Length - PresentPosition[0].Offset;
+                    TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[PresentPosition[Direction.Forward].TrackCircuitSectionIndex];
+                    float lengthToGo = thisSection.Length - PresentPosition[Direction.Forward].Offset;
 
                     bool junctionFound = false;
                     if (TCRoute.ActiveSubPath < TCRoute.TCRouteSubpaths.Count - 1)
                     {
-                        for (int iIndex = PresentPosition[0].RouteListIndex + 1; iIndex < ValidRoute[0].Count && !junctionFound; iIndex++)
+                        for (int iIndex = PresentPosition[Direction.Forward].RouteListIndex + 1; iIndex < ValidRoute[0].Count && !junctionFound; iIndex++)
                         {
                             thisSection = ValidRoute[0][iIndex].TrackCircuitSection;
                             junctionFound = thisSection.CircuitType == TrackCircuitType.Junction;
@@ -6912,7 +6774,7 @@ namespace Orts.Simulation.Physics
                 if (TCRoute.ReversalInfo[TCRoute.ActiveSubPath].Valid)
                 {
                     float distanceToReversalPoint = ComputeDistanceToReversalPoint();
-                    if (distanceToReversalPoint < 50 && PresentPosition[1].RouteListIndex >= reversalSectionIndex)
+                    if (distanceToReversalPoint < 50 && PresentPosition[Direction.Backward].RouteListIndex >= reversalSectionIndex)
                         endOfRoute = true;
                 }
                 // other checks unrelated to state
@@ -6924,7 +6786,7 @@ namespace Orts.Simulation.Physics
                         lastValidRouteIndex--;
 
                     // if waiting for next signal and section beyond signal is last in route and there is no valid reversal index - end of route reached
-                    if (NextSignalObject[0] != null && PresentPosition[0].TrackCircuitSectionIndex == NextSignalObject[0].TrackCircuitIndex &&
+                    if (NextSignalObject[0] != null && PresentPosition[Direction.Forward].TrackCircuitSectionIndex == NextSignalObject[0].TrackCircuitIndex &&
                          NextSignalObject[0].TrackCircuitNextIndex == ValidRoute[0][lastValidRouteIndex].TrackCircuitSection.Index && reversalSectionIndex < 0 &&
                          NextSignalObject[0].SignalLR(SignalFunction.Normal) == SignalAspectState.Stop && TCRoute.ReversalInfo[TCRoute.ActiveSubPath].Valid)
                     {
@@ -7047,7 +6909,7 @@ namespace Orts.Simulation.Physics
             else if (SpeedMpS < Math.Abs(0.1) &&
              NextSignalObject[0] != null &&
                      GetNextSignalAspect(0) == SignalAspectState.Stop &&
-                     CheckTrainWaitingForSignal(NextSignalObject[0], 0))
+                     CheckTrainWaitingForSignal(NextSignalObject[0], Direction.Forward))
             {
                 bool hasClaimed = ClaimState;
                 bool claimAllowed = true;
@@ -7088,7 +6950,7 @@ namespace Orts.Simulation.Physics
                     ClaimState = false;
 
                     // Reset any invalid claims (occurs on WAIT commands, reason still to be checked!) - not unclaiming causes deadlocks
-                    for (int iIndex = PresentPosition[0].RouteListIndex; iIndex <= ValidRoute[0].Count - 1; iIndex++)
+                    for (int iIndex = PresentPosition[Direction.Forward].RouteListIndex; iIndex <= ValidRoute[0].Count - 1; iIndex++)
                     {
                         TrackCircuitSection claimSection = ValidRoute[0][iIndex].TrackCircuitSection;
                         claimSection.CircuitState.TrainClaimed.Remove(routedForward);
@@ -7172,11 +7034,11 @@ namespace Orts.Simulation.Physics
         /// Check if train is waiting for signal
         /// </summary>
 
-        public bool CheckTrainWaitingForSignal(Signal thisSignal, int direction)
+        public bool CheckTrainWaitingForSignal(Signal thisSignal, Direction direction)
         {
             TrainRouted thisRouted = direction == 0 ? routedForward : routedBackward;
             int trainRouteIndex = PresentPosition[direction].RouteListIndex;
-            int signalRouteIndex = ValidRoute[direction].GetRouteIndex(thisSignal.TrackCircuitIndex, trainRouteIndex);
+            int signalRouteIndex = ValidRoute[(int)direction].GetRouteIndex(thisSignal.TrackCircuitIndex, trainRouteIndex);
 
             // signal section is not in train route, so train can't be waiting for signal
 
@@ -7189,7 +7051,7 @@ namespace Orts.Simulation.Physics
 
             TrackCircuitSection thisSection = ValidRoute[0][trainRouteIndex].TrackCircuitSection;
 
-            Dictionary<Train, float> trainAhead = thisSection.TestTrainAhead(this, PresentPosition[0].Offset, PresentPosition[0].Direction);
+            Dictionary<Train, float> trainAhead = thisSection.TestTrainAhead(this, PresentPosition[Direction.Forward].Offset, PresentPosition[Direction.Forward].Direction);
 
             if (trainAhead.Count > 0)
             {
@@ -7290,16 +7152,16 @@ namespace Orts.Simulation.Physics
         /// Breakdown claimed route when signal set to hold
         /// </summary>
 
-        public void BreakdownClaim(TrackCircuitSection thisSection, int routeDirectionIndex, TrainRouted thisTrainRouted)
+        public void BreakdownClaim(TrackCircuitSection thisSection, Direction routeDirection, TrainRouted thisTrainRouted)
         {
             TrackCircuitSection nextSection = thisSection;
-            int routeIndex = ValidRoute[routeDirectionIndex].GetRouteIndex(thisSection.Index, PresentPosition[routeDirectionIndex].RouteListIndex);
+            int routeIndex = ValidRoute[(int)routeDirection].GetRouteIndex(thisSection.Index, PresentPosition[routeDirection].RouteListIndex);
             bool isClaimed = thisSection.CircuitState.TrainClaimed.Contains(thisTrainRouted);
 
-            for (int iIndex = routeIndex + 1; iIndex < (ValidRoute[routeDirectionIndex].Count - 1) && isClaimed; iIndex++)
+            for (int iIndex = routeIndex + 1; iIndex < (ValidRoute[(int)routeDirection].Count - 1) && isClaimed; iIndex++)
             {
                 thisSection.RemoveTrain(this, false);
-                nextSection = ValidRoute[routeDirectionIndex][iIndex].TrackCircuitSection;
+                nextSection = ValidRoute[(int)routeDirection][iIndex].TrackCircuitSection;
             }
         }
 
@@ -7314,12 +7176,12 @@ namespace Orts.Simulation.Physics
 
             // update distance to end of authority
 
-            int lastRouteIndex = ValidRoute[0].GetRouteIndex(LastReservedSection[0], PresentPosition[0].RouteListIndex);
+            int lastRouteIndex = ValidRoute[0].GetRouteIndex(LastReservedSection[0], PresentPosition[Direction.Forward].RouteListIndex);
 
-            TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[PresentPosition[0].TrackCircuitSectionIndex];
-            DistanceToEndNodeAuthorityM[0] = thisSection.Length - PresentPosition[0].Offset;
+            TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[PresentPosition[Direction.Forward].TrackCircuitSectionIndex];
+            DistanceToEndNodeAuthorityM[0] = thisSection.Length - PresentPosition[Direction.Forward].Offset;
 
-            for (int iSection = PresentPosition[0].RouteListIndex + 1; iSection <= lastRouteIndex; iSection++)
+            for (int iSection = PresentPosition[Direction.Forward].RouteListIndex + 1; iSection <= lastRouteIndex; iSection++)
             {
                 thisSection = ValidRoute[0][iSection].TrackCircuitSection;
                 DistanceToEndNodeAuthorityM[0] += thisSection.Length;
@@ -7381,7 +7243,7 @@ namespace Orts.Simulation.Physics
         {
             // occupation is set in forward mode only
             // build route from rear to front - before reset occupy so correct switch alignment is used
-            TrainRoute = SignalEnvironment.BuildTempRoute(this, PresentPosition[1].TrackCircuitSectionIndex, PresentPosition[1].Offset, PresentPosition[1].Direction, Length, false, true, false);
+            TrainRoute = SignalEnvironment.BuildTempRoute(this, PresentPosition[Direction.Backward].TrackCircuitSectionIndex, PresentPosition[Direction.Backward].Offset, PresentPosition[Direction.Backward].Direction, Length, false, true, false);
 
             // save present occupation list
 
@@ -7423,15 +7285,15 @@ namespace Orts.Simulation.Physics
         public void UpdateManualMode(int signalObjectIndex)
         {
             // check present forward
-            TrackCircuitPartialPathRoute newRouteF = CheckManualPath(0, PresentPosition[0], ValidRoute[0], true, ref EndAuthorityTypes[0],
+            TrackCircuitPartialPathRoute newRouteF = CheckManualPath(0, PresentPosition[Direction.Forward], ValidRoute[0], true, ref EndAuthorityTypes[0],
                 ref DistanceToEndNodeAuthorityM[0]);
             ValidRoute[0] = newRouteF;
-            int routeIndex = ValidRoute[0].GetRouteIndex(PresentPosition[0].TrackCircuitSectionIndex, 0);
-            PresentPosition[0].RouteListIndex = routeIndex;
+            int routeIndex = ValidRoute[0].GetRouteIndex(PresentPosition[Direction.Forward].TrackCircuitSectionIndex, 0);
+            PresentPosition[Direction.Forward].RouteListIndex = routeIndex;
 
             // check present reverse
             // reverse present rear position direction to build correct path backwards
-            TrackCircuitPosition tempRear = new TrackCircuitPosition(PresentPosition[1], true);
+            TrackCircuitPosition tempRear = new TrackCircuitPosition(PresentPosition[Direction.Backward], true);
             TrackCircuitPartialPathRoute newRouteR = CheckManualPath(1, tempRear, ValidRoute[1], true, ref EndAuthorityTypes[1], ref DistanceToEndNodeAuthorityM[1]);
             ValidRoute[1] = newRouteR;
 
@@ -7441,8 +7303,8 @@ namespace Orts.Simulation.Physics
             if (MUDirection == MidpointDirection.Forward)
             {
                 // use position from other end of section
-                float reverseOffset = TrackCircuitSection.TrackCircuitList[PresentPosition[1].TrackCircuitSectionIndex].Length - PresentPosition[1].Offset;
-                CheckSpeedLimitManual(ValidRoute[1], TrainRoute, reverseOffset, PresentPosition[1].Offset, signalObjectIndex, 0);
+                float reverseOffset = TrackCircuitSection.TrackCircuitList[PresentPosition[Direction.Backward].TrackCircuitSectionIndex].Length - PresentPosition[Direction.Backward].Offset;
+                CheckSpeedLimitManual(ValidRoute[1], TrainRoute, reverseOffset, PresentPosition[Direction.Backward].Offset, signalObjectIndex, 0);
             }
             else
             {
@@ -7453,8 +7315,8 @@ namespace Orts.Simulation.Physics
                     thisElement.Direction = thisElement.Direction.Next();
                     tempRoute.Add(thisElement);
                 }
-                float reverseOffset = TrackCircuitSection.TrackCircuitList[PresentPosition[0].TrackCircuitSectionIndex].Length - PresentPosition[0].Offset;
-                CheckSpeedLimitManual(ValidRoute[0], tempRoute, PresentPosition[0].Offset, reverseOffset, signalObjectIndex, 1);
+                float reverseOffset = TrackCircuitSection.TrackCircuitList[PresentPosition[Direction.Forward].TrackCircuitSectionIndex].Length - PresentPosition[Direction.Forward].Offset;
+                CheckSpeedLimitManual(ValidRoute[0], tempRoute, PresentPosition[Direction.Forward].Offset, reverseOffset, signalObjectIndex, 1);
             }
 
             // reset signal
@@ -8246,13 +8108,13 @@ namespace Orts.Simulation.Physics
 
             if (direction == Direction.Forward)
             {
-                selectedRoute = CheckManualPath(0, PresentPosition[0], null, true, ref EndAuthorityTypes[0], ref DistanceToEndNodeAuthorityM[0]);
+                selectedRoute = CheckManualPath(0, PresentPosition[Direction.Forward], null, true, ref EndAuthorityTypes[0], ref DistanceToEndNodeAuthorityM[0]);
                 routeIndex = 0;
 
             }
             else
             {
-                TrackCircuitPosition tempRear = new TrackCircuitPosition(PresentPosition[1], true);
+                TrackCircuitPosition tempRear = new TrackCircuitPosition(PresentPosition[Direction.Backward], true);
                 selectedRoute = CheckManualPath(1, tempRear, null, true, ref EndAuthorityTypes[1], ref DistanceToEndNodeAuthorityM[1]);
                 routeIndex = 1;
             }
@@ -8479,8 +8341,8 @@ namespace Orts.Simulation.Physics
         {
             // occupation is set in forward mode only
             // build route from rear to front - before reset occupy so correct switch alignment is used
-            TrainRoute = SignalEnvironment.BuildTempRoute(this, PresentPosition[1].TrackCircuitSectionIndex, PresentPosition[1].Offset,
-                            PresentPosition[1].Direction, Length, false, true, false);
+            TrainRoute = SignalEnvironment.BuildTempRoute(this, PresentPosition[Direction.Backward].TrackCircuitSectionIndex, PresentPosition[Direction.Backward].Offset,
+                            PresentPosition[Direction.Backward].Direction, Length, false, true, false);
 
             // save present occupation list
 
@@ -8577,15 +8439,15 @@ namespace Orts.Simulation.Physics
             }
 
             // check present forward
-            TrackCircuitPartialPathRoute newRouteF = CheckExplorerPath(0, PresentPosition[0], ValidRoute[0], true, ref EndAuthorityTypes[0],
+            TrackCircuitPartialPathRoute newRouteF = CheckExplorerPath(0, PresentPosition[Direction.Forward], ValidRoute[0], true, ref EndAuthorityTypes[0],
                 ref DistanceToEndNodeAuthorityM[0]);
             ValidRoute[0] = newRouteF;
-            int routeIndex = ValidRoute[0].GetRouteIndex(PresentPosition[0].TrackCircuitSectionIndex, 0);
-            PresentPosition[0].RouteListIndex = routeIndex;
+            int routeIndex = ValidRoute[0].GetRouteIndex(PresentPosition[Direction.Forward].TrackCircuitSectionIndex, 0);
+            PresentPosition[Direction.Forward].RouteListIndex = routeIndex;
 
             // check present reverse
             // reverse present rear position direction to build correct path backwards
-            TrackCircuitPosition tempRear = new TrackCircuitPosition(PresentPosition[1], true);
+            TrackCircuitPosition tempRear = new TrackCircuitPosition(PresentPosition[Direction.Backward], true);
             TrackCircuitPartialPathRoute newRouteR = CheckExplorerPath(1, tempRear, ValidRoute[1], true, ref EndAuthorityTypes[1], ref DistanceToEndNodeAuthorityM[1]);
             ValidRoute[1] = newRouteR;
 
@@ -8594,8 +8456,8 @@ namespace Orts.Simulation.Physics
             if (MUDirection == MidpointDirection.Forward)
             {
                 // use position from other end of section
-                float reverseOffset = TrackCircuitSection.TrackCircuitList[PresentPosition[1].TrackCircuitSectionIndex].Length - PresentPosition[1].Offset;
-                CheckSpeedLimitManual(ValidRoute[1], TrainRoute, reverseOffset, PresentPosition[1].Offset, signalObjectIndex, 0);
+                float reverseOffset = TrackCircuitSection.TrackCircuitList[PresentPosition[Direction.Backward].TrackCircuitSectionIndex].Length - PresentPosition[Direction.Backward].Offset;
+                CheckSpeedLimitManual(ValidRoute[1], TrainRoute, reverseOffset, PresentPosition[Direction.Backward].Offset, signalObjectIndex, 0);
             }
             else
             {
@@ -8606,8 +8468,8 @@ namespace Orts.Simulation.Physics
                     thisElement.Direction = thisElement.Direction.Next();
                     tempRoute.Add(thisElement);
                 }
-                float reverseOffset = TrackCircuitSection.TrackCircuitList[PresentPosition[0].TrackCircuitSectionIndex].Length - PresentPosition[0].Offset;
-                CheckSpeedLimitManual(ValidRoute[0], tempRoute, PresentPosition[0].Offset, reverseOffset, signalObjectIndex, 1);
+                float reverseOffset = TrackCircuitSection.TrackCircuitList[PresentPosition[Direction.Forward].TrackCircuitSectionIndex].Length - PresentPosition[Direction.Forward].Offset;
+                CheckSpeedLimitManual(ValidRoute[0], tempRoute, PresentPosition[Direction.Forward].Offset, reverseOffset, signalObjectIndex, 1);
             }
 
             // reset signal permission
@@ -8986,19 +8848,19 @@ namespace Orts.Simulation.Physics
         // Request signal permission in explorer mode
         //
 
-        public void RequestExplorerSignalPermission(ref TrackCircuitPartialPathRoute selectedRoute, int routeIndex)
+        public void RequestExplorerSignalPermission(ref TrackCircuitPartialPathRoute selectedRoute, Direction routeDirection)
         {
             // check route for first signal at danger, from present position
 
             Signal reqSignal = null;
             bool signalFound = false;
 
-            if (ValidRoute[routeIndex] != null)
+            if (ValidRoute[(int)routeDirection] != null)
             {
-                for (int iIndex = PresentPosition[routeIndex].RouteListIndex; iIndex <= ValidRoute[routeIndex].Count - 1 && !signalFound; iIndex++)
+                for (int iIndex = PresentPosition[routeDirection].RouteListIndex; iIndex <= ValidRoute[(int)routeDirection].Count - 1 && !signalFound; iIndex++)
                 {
-                    TrackCircuitSection thisSection = ValidRoute[routeIndex][iIndex].TrackCircuitSection;
-                    TrackDirection direction = ValidRoute[routeIndex][iIndex].Direction;
+                    TrackCircuitSection thisSection = ValidRoute[(int)routeDirection][iIndex].TrackCircuitSection;
+                    TrackDirection direction = ValidRoute[(int)routeDirection][iIndex].Direction;
 
                     if (thisSection.EndSignals[direction] != null)
                     {
@@ -9020,10 +8882,10 @@ namespace Orts.Simulation.Physics
             // if signal has a route, set PERMISSION REQUESTED, and perform signal update
             reqSignal.OverridePermission = SignalPermission.Requested;
 
-            TrackCircuitPosition tempPos = new TrackCircuitPosition(PresentPosition[1], routeIndex != 0);
-            TrackCircuitPartialPathRoute newRouteR = CheckExplorerPath(routeIndex, tempPos, ValidRoute[routeIndex], true, ref EndAuthorityTypes[routeIndex],
-                ref DistanceToEndNodeAuthorityM[routeIndex]);
-            ValidRoute[routeIndex] = newRouteR;
+            TrackCircuitPosition tempPos = new TrackCircuitPosition(PresentPosition[Direction.Backward], routeDirection != Direction.Forward);
+            TrackCircuitPartialPathRoute newRouteR = CheckExplorerPath((int)routeDirection, tempPos, ValidRoute[(int)routeDirection], true, ref EndAuthorityTypes[(int)routeDirection],
+                ref DistanceToEndNodeAuthorityM[(int)routeDirection]);
+            ValidRoute[(int)routeDirection] = newRouteR;
             simulator.SoundNotify = reqSignal.OverridePermission == SignalPermission.Granted ?
                 TrainEvent.PermissionGranted :
                 TrainEvent.PermissionDenied;
@@ -9255,8 +9117,8 @@ namespace Orts.Simulation.Physics
             {
                 signalRef.BreakDownRouteList(selectedRoute, 0, thisRouted);
                 selectedRoute.Clear();
-                TrainRoute = SignalEnvironment.BuildTempRoute(this, PresentPosition[1].TrackCircuitSectionIndex, PresentPosition[1].Offset,
-                    PresentPosition[1].Direction, Length, false, true, false);
+                TrainRoute = SignalEnvironment.BuildTempRoute(this, PresentPosition[Direction.Backward].TrackCircuitSectionIndex, PresentPosition[Direction.Backward].Offset,
+                    PresentPosition[Direction.Backward].Direction, Length, false, true, false);
                 UpdateExplorerMode(-1);
             }
         }
@@ -9278,7 +9140,7 @@ namespace Orts.Simulation.Physics
 
             if (ValidRoute[0] != null)
             {
-                int listIndex = PresentPosition[0].RouteListIndex;
+                int listIndex = PresentPosition[Direction.Forward].RouteListIndex;
                 signalRef.BreakDownRouteList(ValidRoute[0], listIndex, routedForward);
                 ClearDeadlocks();
             }
@@ -9288,7 +9150,7 @@ namespace Orts.Simulation.Physics
 
             if (ValidRoute[1] != null)
             {
-                int listIndex = PresentPosition[1].RouteListIndex;
+                int listIndex = PresentPosition[Direction.Backward].RouteListIndex;
                 signalRef.BreakDownRouteList(ValidRoute[1], listIndex, routedBackward);
             }
             ValidRoute[1] = null;
@@ -9314,9 +9176,9 @@ namespace Orts.Simulation.Physics
 
             // reset routes and check sections either end of train
 
-            PresentPosition[0].RouteListIndex = -1;
-            PresentPosition[1].RouteListIndex = -1;
-            PreviousPosition[TrainPosition.Front].RouteListIndex = -1;
+            PresentPosition[Direction.Forward].RouteListIndex = -1;
+            PresentPosition[Direction.Backward].RouteListIndex = -1;
+            PreviousPosition[Direction.Forward].RouteListIndex = -1;
 
             UpdateExplorerMode(-1);
         }
@@ -9352,7 +9214,7 @@ namespace Orts.Simulation.Physics
             thisSignal.RequestClearSignal(ValidRoute[0], routedForward, 0, false, null);
 
             // enable any none-NORMAL signals between front of train and first NORMAL signal
-            int firstSectionIndex = PresentPosition[0].RouteListIndex;
+            int firstSectionIndex = PresentPosition[Direction.Forward].RouteListIndex;
             int lastSectionIndex = ValidRoute[0].GetRouteIndex(thisSignal.TrackCircuitIndex, firstSectionIndex);
 
             // first, all signals in present section beyond position of train
@@ -9364,7 +9226,7 @@ namespace Orts.Simulation.Physics
                 TrackCircuitSignalList thisList = thisSection.CircuitItems.TrackCircuitSignals[thisDirection][isigtype];
                 foreach (TrackCircuitSignalItem thisItem in thisList)
                 {
-                    if (thisItem.SignalLocation > PresentPosition[0].Offset && !thisItem.Signal.SignalNormal())
+                    if (thisItem.SignalLocation > PresentPosition[Direction.Forward].Offset && !thisItem.Signal.SignalNormal())
                     {
                         thisItem.Signal.EnabledTrain = this.routedForward;
                     }
@@ -9428,7 +9290,7 @@ namespace Orts.Simulation.Physics
 
             if (activeSectionIndex > 0)
             {
-                endListIndex = ValidRoute[0].GetRouteIndex(thisSectionIndex, PresentPosition[0].RouteListIndex);
+                endListIndex = ValidRoute[0].GetRouteIndex(thisSectionIndex, PresentPosition[Direction.Forward].RouteListIndex);
 
                 // section is not on route - give warning and break down route, following active links and resetting reservation
 
@@ -9488,7 +9350,7 @@ namespace Orts.Simulation.Physics
                 // check if train is back on path
 
                 TrackCircuitPartialPathRoute lastRoute = TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath];
-                int routeIndex = lastRoute.GetRouteIndex(PresentPosition[0].TrackCircuitSectionIndex, 0);
+                int routeIndex = lastRoute.GetRouteIndex(PresentPosition[Direction.Forward].TrackCircuitSectionIndex, 0);
 
                 if (routeIndex < 0)
                 {
@@ -9498,7 +9360,7 @@ namespace Orts.Simulation.Physics
                 else
                 {
                     TrackDirection lastDirection = lastRoute[routeIndex].Direction;
-                    TrackDirection presentDirection = PresentPosition[0].Direction;
+                    TrackDirection presentDirection = PresentPosition[Direction.Forward].Direction;
                     if (lastDirection != presentDirection && Math.Abs(SpeedMpS) > 0.1f)
                     {
                         if (simulator.Confirmer != null) // As Confirmer may not be created until after a restore.
@@ -9548,7 +9410,7 @@ namespace Orts.Simulation.Physics
 
             if (ValidRoute[0] != null)
             {
-                int listIndex = PresentPosition[0].RouteListIndex;
+                int listIndex = PresentPosition[Direction.Forward].RouteListIndex;
                 signalRef.BreakDownRouteList(ValidRoute[0], listIndex, routedForward);
                 ClearDeadlocks();
             }
@@ -9558,7 +9420,7 @@ namespace Orts.Simulation.Physics
 
             if (ValidRoute[1] != null)
             {
-                int listIndex = PresentPosition[1].RouteListIndex;
+                int listIndex = PresentPosition[Direction.Backward].RouteListIndex;
                 signalRef.BreakDownRouteList(ValidRoute[1], listIndex, routedBackward);
             }
             ValidRoute[1] = null;
@@ -9584,9 +9446,9 @@ namespace Orts.Simulation.Physics
 
             // reset routes and check sections either end of train
 
-            PresentPosition[0].RouteListIndex = -1;
-            PresentPosition[1].RouteListIndex = -1;
-            PreviousPosition[TrainPosition.Front].RouteListIndex = -1;
+            PresentPosition[Direction.Forward].RouteListIndex = -1;
+            PresentPosition[Direction.Backward].RouteListIndex = -1;
+            PreviousPosition[Direction.Forward].RouteListIndex = -1;
 
             UpdateManualMode(-1);
         }
@@ -9633,8 +9495,8 @@ namespace Orts.Simulation.Physics
             RestoreTrainPlacement(ref newRoute, oldRoute, routeIndex, reversal);
 
             // restore distance travelled in Present Position
-            PresentPosition[0].DistanceTravelled = DistanceTravelledM;
-            PresentPosition[1].DistanceTravelled = DistanceTravelledM - Length;
+            PresentPosition[Direction.Forward].DistanceTravelled = DistanceTravelledM;
+            PresentPosition[Direction.Backward].DistanceTravelled = DistanceTravelledM - Length;
 
             // set track occupation (using present route)
             // This procedure is also needed for clearing track occupation.
@@ -9650,11 +9512,11 @@ namespace Orts.Simulation.Physics
 
             // switch to AutoNode mode
 
-            LastReservedSection[0] = PresentPosition[0].TrackCircuitSectionIndex;
-            LastReservedSection[1] = PresentPosition[1].TrackCircuitSectionIndex;
+            LastReservedSection[0] = PresentPosition[Direction.Forward].TrackCircuitSectionIndex;
+            LastReservedSection[1] = PresentPosition[Direction.Backward].TrackCircuitSectionIndex;
 
             if (!simulator.TimetableMode) AuxActionsContain.ResetAuxAction(this);
-            SwitchToNodeControl(PresentPosition[0].TrackCircuitSectionIndex);
+            SwitchToNodeControl(PresentPosition[Direction.Forward].TrackCircuitSectionIndex);
             TCRoute.SetReversalOffset(Length, simulator.TimetableMode);
         }
 
@@ -9675,7 +9537,7 @@ namespace Orts.Simulation.Physics
 
             if (ValidRoute[0] != null)
             {
-                int listIndex = PresentPosition[0].RouteListIndex;
+                int listIndex = PresentPosition[Direction.Forward].RouteListIndex;
                 signalRef.BreakDownRouteList(ValidRoute[0], listIndex, routedForward);
                 ClearDeadlocks();
             }
@@ -9685,7 +9547,7 @@ namespace Orts.Simulation.Physics
 
             if (ValidRoute[1] != null)
             {
-                int listIndex = PresentPosition[1].RouteListIndex;
+                int listIndex = PresentPosition[Direction.Backward].RouteListIndex;
                 signalRef.BreakDownRouteList(ValidRoute[1], listIndex, routedBackward);
             }
             ValidRoute[1] = null;
@@ -9711,9 +9573,9 @@ namespace Orts.Simulation.Physics
 
             // reset routes and check sections either end of train
 
-            PresentPosition[0].RouteListIndex = -1;
-            PresentPosition[1].RouteListIndex = -1;
-            PreviousPosition[TrainPosition.Front].RouteListIndex = -1;
+            PresentPosition[Direction.Forward].RouteListIndex = -1;
+            PresentPosition[Direction.Backward].RouteListIndex = -1;
+            PreviousPosition[Direction.Forward].RouteListIndex = -1;
 
             UpdateExplorerMode(-1);
         }
@@ -9727,8 +9589,8 @@ namespace Orts.Simulation.Physics
         {
             bool valid = true;
 
-            int presentRouteIndex = ValidRoute[0].GetRouteIndex(PresentPosition[0].TrackCircuitSectionIndex, 0);
-            int reqRouteIndex = reqRoute.GetRouteIndex(PresentPosition[0].TrackCircuitSectionIndex, 0);
+            int presentRouteIndex = ValidRoute[0].GetRouteIndex(PresentPosition[Direction.Forward].TrackCircuitSectionIndex, 0);
+            int reqRouteIndex = reqRoute.GetRouteIndex(PresentPosition[Direction.Forward].TrackCircuitSectionIndex, 0);
             if (presentRouteIndex < 0 || reqRouteIndex < 0)
             {
                 valid = false;  // front of train not on present route or not on required route
@@ -9748,7 +9610,7 @@ namespace Orts.Simulation.Physics
             // if reversal required : check if rear of train is on required route
             if (valid && reversal)
             {
-                int rearRouteIndex = reqRoute.GetRouteIndex(PresentPosition[1].TrackCircuitSectionIndex, 0);
+                int rearRouteIndex = reqRoute.GetRouteIndex(PresentPosition[Direction.Backward].TrackCircuitSectionIndex, 0);
                 valid = rearRouteIndex >= 0;
             }
 
@@ -9778,7 +9640,7 @@ namespace Orts.Simulation.Physics
             // check if end of train on original route
             // copy sections from earliest start point (front or rear)
 
-            int rearIndex = oldRoute.GetRouteIndex(PresentPosition[1].TrackCircuitSectionIndex, 0);
+            int rearIndex = oldRoute.GetRouteIndex(PresentPosition[Direction.Backward].TrackCircuitSectionIndex, 0);
             int startIndex = rearIndex >= 0 ? Math.Min(rearIndex, frontIndex) : frontIndex;
 
             for (int iindex = startIndex; iindex < oldRoute.Count; iindex++)
@@ -9791,8 +9653,8 @@ namespace Orts.Simulation.Physics
             if (rearIndex < 0)
             {
 
-                TrackCircuitPartialPathRoute tempRoute = SignalEnvironment.BuildTempRoute(this, PresentPosition[1].TrackCircuitSectionIndex, PresentPosition[1].Offset,
-                            PresentPosition[1].Direction, Length, true, true, false);
+                TrackCircuitPartialPathRoute tempRoute = SignalEnvironment.BuildTempRoute(this, PresentPosition[Direction.Backward].TrackCircuitSectionIndex, PresentPosition[Direction.Backward].Offset,
+                            PresentPosition[Direction.Backward].Direction, Length, true, true, false);
 
                 for (int iindex = tempRoute.Count - 1; iindex >= 0; iindex--)
                 {
@@ -9818,15 +9680,15 @@ namespace Orts.Simulation.Physics
 
             // get index of first section in route
 
-            rearIndex = ValidRoute[0].GetRouteIndex(PresentPosition[1].TrackCircuitSectionIndex, 0);
-            PresentPosition[1].RouteListIndex = rearIndex;
+            rearIndex = ValidRoute[0].GetRouteIndex(PresentPosition[Direction.Backward].TrackCircuitSectionIndex, 0);
+            PresentPosition[Direction.Backward].RouteListIndex = rearIndex;
 
             // get index of front of train
 
-            frontIndex = ValidRoute[0].GetRouteIndex(PresentPosition[0].TrackCircuitSectionIndex, 0);
-            PresentPosition[0].RouteListIndex = frontIndex;
+            frontIndex = ValidRoute[0].GetRouteIndex(PresentPosition[Direction.Forward].TrackCircuitSectionIndex, 0);
+            PresentPosition[Direction.Forward].RouteListIndex = frontIndex;
 
-            PreviousPosition[TrainPosition.Front].UpdateFrom(PresentPosition[0]);
+            PreviousPosition[Direction.Forward].UpdateFrom(PresentPosition[Direction.Forward]);
 
             // set track occupied - forward only
 
@@ -9867,14 +9729,7 @@ namespace Orts.Simulation.Physics
             }
             else if (ControlMode == TrainControlMode.Explorer)
             {
-                if (direction == Direction.Forward)
-                {
-                    RequestExplorerSignalPermission(ref ValidRoute[0], 0);
-                }
-                else
-                {
-                    RequestExplorerSignalPermission(ref ValidRoute[1], 1);
-                }
+                RequestExplorerSignalPermission(ref ValidRoute[0], direction);
             }
             else
             {
@@ -9903,16 +9758,13 @@ namespace Orts.Simulation.Physics
             {
                 if (ControlMode == TrainControlMode.Manual || ControlMode == TrainControlMode.Explorer)
                 {
-                    int reqRouteIndex = (int)direction;
-
-                    if (NextSignalObject[reqRouteIndex] != null &&
-                        NextSignalObject[reqRouteIndex].SignalLR(SignalFunction.Normal) != SignalAspectState.Stop)
+                    if (NextSignalObject[(int)direction]?.SignalLR(SignalFunction.Normal) != SignalAspectState.Stop)
                     {
-                        int routeIndex = ValidRoute[reqRouteIndex].GetRouteIndex(NextSignalObject[reqRouteIndex].TrackCircuitNextIndex, PresentPosition[reqRouteIndex].RouteListIndex);
-                        signalRef.BreakDownRouteList(ValidRoute[reqRouteIndex], routeIndex, routedForward);
-                        ValidRoute[reqRouteIndex].RemoveRange(routeIndex, ValidRoute[reqRouteIndex].Count - routeIndex);
+                        int routeIndex = ValidRoute[(int)direction].GetRouteIndex(NextSignalObject[(int)direction].TrackCircuitNextIndex, PresentPosition[direction].RouteListIndex);
+                        signalRef.BreakDownRouteList(ValidRoute[(int)direction], routeIndex, routedForward);
+                        ValidRoute[(int)direction].RemoveRange(routeIndex, ValidRoute[(int)direction].Count - routeIndex);
 
-                        NextSignalObject[reqRouteIndex].ResetSignal(true);
+                        NextSignalObject[(int)direction].ResetSignal(true);
                     }
                 }
             }
@@ -9952,16 +9804,16 @@ namespace Orts.Simulation.Physics
         {
             // use start of list to see if passed position
 
-            int endListIndex = ValidRoute[0].GetRouteIndex(sectionIndex, PresentPosition[0].RouteListIndex);
+            int endListIndex = ValidRoute[0].GetRouteIndex(sectionIndex, PresentPosition[Direction.Forward].RouteListIndex);
             if (endListIndex < 0)
                 endListIndex = ValidRoute[0].GetRouteIndex(sectionIndex, 0);
 
-            if (endListIndex >= 0 && endListIndex < PresentPosition[0].RouteListIndex) // index before present so we must have passed object
+            if (endListIndex >= 0 && endListIndex < PresentPosition[Direction.Forward].RouteListIndex) // index before present so we must have passed object
             {
                 return (-1.0f);
             }
 
-            if (endListIndex == PresentPosition[0].RouteListIndex && endOffset < PresentPosition[0].Offset) // just passed
+            if (endListIndex == PresentPosition[Direction.Forward].RouteListIndex && endOffset < PresentPosition[Direction.Forward].Offset) // just passed
             {
                 return (-1.0f);
             }
@@ -9973,9 +9825,9 @@ namespace Orts.Simulation.Physics
                 return (-1.0f);
             }
 
-            int thisSectionIndex = PresentPosition[0].TrackCircuitSectionIndex;
-            TrackDirection direction = PresentPosition[0].Direction;
-            float startOffset = PresentPosition[0].Offset;
+            int thisSectionIndex = PresentPosition[Direction.Forward].TrackCircuitSectionIndex;
+            TrackDirection direction = PresentPosition[Direction.Forward].Direction;
+            float startOffset = PresentPosition[Direction.Forward].Offset;
 
             return (TrackCircuitSection.GetDistanceBetweenObjects(thisSectionIndex, startOffset, direction, sectionIndex, endOffset));
         }
@@ -10054,11 +9906,11 @@ namespace Orts.Simulation.Physics
             // the AI train is now out of path. Instead of killing him, we give him a chance on a new path
             else
             {
-                GenerateValidRoute(PresentPosition[0].RouteListIndex, PresentPosition[0].TrackCircuitSectionIndex);
+                GenerateValidRoute(PresentPosition[Direction.Forward].RouteListIndex, PresentPosition[Direction.Forward].TrackCircuitSectionIndex);
                 // switch to NODE mode
                 if (ControlMode == TrainControlMode.AutoSignal)
                 {
-                    SwitchToNodeControl(PresentPosition[0].TrackCircuitSectionIndex);
+                    SwitchToNodeControl(PresentPosition[Direction.Forward].TrackCircuitSectionIndex);
                 }
                 // reset actions to recalculate distances
                 if (TrainType == TrainType.Ai || TrainType == TrainType.AiPlayerHosting)
@@ -10124,25 +9976,25 @@ namespace Orts.Simulation.Physics
             // first of all we have to find out the new route
             List<int> tempSections = new List<int>();
             if (TCRoute.OriginalSubpath == -1) TCRoute.OriginalSubpath = TCRoute.ActiveSubPath;
-            if (PresentPosition[0].RouteListIndex > 0)
+            if (PresentPosition[Direction.Forward].RouteListIndex > 0)
                 // clean case, train is in route and switch has been forced in front of it
                 tempSections = SignalEnvironment.ScanRoute(this, forcedTCSectionIndex, 0, (TrackDirection)ValidRoute[0][forcedRouteSectionIndex].Direction,
                         true, 0, true, true,
                         false, false, true, false, false, false, false, IsFreight, false, true);
             else
                 // dirty case, train is out of route and has already passed forced switch
-                tempSections = SignalEnvironment.ScanRoute(this, PresentPosition[0].TrackCircuitSectionIndex, PresentPosition[0].Offset,
-                    PresentPosition[0].Direction, true, 0, true, true, false, false, true, false, false, false, false, IsFreight, false, true);
+                tempSections = SignalEnvironment.ScanRoute(this, PresentPosition[Direction.Forward].TrackCircuitSectionIndex, PresentPosition[Direction.Forward].Offset,
+                    PresentPosition[Direction.Forward].Direction, true, 0, true, true, false, false, true, false, false, false, false, IsFreight, false, true);
 
             TrackCircuitPartialPathRoute newRoute = new TrackCircuitPartialPathRoute();
             // Copy part of route already run
-            if (PresentPosition[0].RouteListIndex > 0)
+            if (PresentPosition[Direction.Forward].RouteListIndex > 0)
             {
                 for (int routeListIndex = 0; routeListIndex < forcedRouteSectionIndex; routeListIndex++) newRoute.Add(ValidRoute[0][routeListIndex]);
             }
-            else if (PresentPosition[0].RouteListIndex < 0)
+            else if (PresentPosition[Direction.Forward].RouteListIndex < 0)
             {
-                for (int routeListIndex = 0; routeListIndex <= PreviousPosition[TrainPosition.Front].RouteListIndex + 1; routeListIndex++) newRoute.Add(ValidRoute[0][routeListIndex]); // maybe + 1 is wrong?
+                for (int routeListIndex = 0; routeListIndex <= PreviousPosition[Direction.Forward].RouteListIndex + 1; routeListIndex++) newRoute.Add(ValidRoute[0][routeListIndex]); // maybe + 1 is wrong?
             }
             if (tempSections.Count > 0)
             {
@@ -10218,8 +10070,8 @@ namespace Orts.Simulation.Physics
             // then we pass this route to ValidRoute[0]
             ValidRoute[0] = newRoute;
             // we set the routelistindex of the present position in case it was = -1
-            if (PresentPosition[0].RouteListIndex == -1)
-                PresentPosition[0].RouteListIndex = ValidRoute[0].GetRouteIndex(PresentPosition[0].TrackCircuitSectionIndex, PreviousPosition[TrainPosition.Front].RouteListIndex);
+            if (PresentPosition[Direction.Forward].RouteListIndex == -1)
+                PresentPosition[Direction.Forward].RouteListIndex = ValidRoute[0].GetRouteIndex(PresentPosition[Direction.Forward].TrackCircuitSectionIndex, PreviousPosition[Direction.Forward].RouteListIndex);
 
             // reset signal information
 
@@ -10227,7 +10079,7 @@ namespace Orts.Simulation.Physics
             NextSignalObject[0] = null;
             // create new list
             InitializeSignals(true);
-            LastReservedSection[0] = PresentPosition[0].TrackCircuitSectionIndex;
+            LastReservedSection[0] = PresentPosition[Direction.Forward].TrackCircuitSectionIndex;
             CheckDeadlock(ValidRoute[0], Number);    // Check deadlock against all other trains
         }
 
@@ -10401,7 +10253,7 @@ namespace Orts.Simulation.Physics
         {
             // check if no reserved sections remain
 
-            int presentIndex = PresentPosition[1].RouteListIndex;
+            int presentIndex = PresentPosition[Direction.Backward].RouteListIndex;
 
             if (presentIndex >= 0)
             {
@@ -10478,11 +10330,11 @@ namespace Orts.Simulation.Physics
 
             // save existing TCPositions
 
-            TrackCircuitPosition oldPresentPosition = PresentPosition[0];
-            TrackCircuitPosition oldRearPosition = PresentPosition[1];
+            TrackCircuitPosition oldPresentPosition = PresentPosition[Direction.Forward];
+            TrackCircuitPosition oldRearPosition = PresentPosition[Direction.Backward];
 
-            PresentPosition[0] = new TrackCircuitPosition();
-            PresentPosition[1] = new TrackCircuitPosition();
+            PresentPosition[Direction.Forward] = new TrackCircuitPosition();
+            PresentPosition[Direction.Backward] = new TrackCircuitPosition();
 
             // create new TCPositions
 
@@ -10490,17 +10342,17 @@ namespace Orts.Simulation.Physics
             float offset = FrontTDBTraveller.TrackNodeOffset;
             TrackDirection direction = (TrackDirection)FrontTDBTraveller.Direction;
 
-            PresentPosition[0].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
-            PreviousPosition[TrainPosition.Front].UpdateFrom(PresentPosition[0]);
+            PresentPosition[Direction.Forward].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
+            PreviousPosition[Direction.Forward].UpdateFrom(PresentPosition[Direction.Forward]);
 
             tn = RearTDBTraveller.TN;
             offset = RearTDBTraveller.TrackNodeOffset;
             direction = (TrackDirection)RearTDBTraveller.Direction;
 
-            PresentPosition[1].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
+            PresentPosition[Direction.Backward].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
 
-            PresentPosition[0].DistanceTravelled = DistanceTravelledM;
-            PresentPosition[1].DistanceTravelled = oldRearPosition.DistanceTravelled;
+            PresentPosition[Direction.Forward].DistanceTravelled = DistanceTravelledM;
+            PresentPosition[Direction.Backward].DistanceTravelled = oldRearPosition.DistanceTravelled;
 
             // use difference in position to update existing DistanceTravelled
 
@@ -10509,9 +10361,9 @@ namespace Orts.Simulation.Physics
             if (couple_to_front)
             {
                 float offset_old = oldPresentPosition.Offset;
-                float offset_new = PresentPosition[0].Offset;
+                float offset_new = PresentPosition[Direction.Forward].Offset;
 
-                if (oldPresentPosition.TrackCircuitSectionIndex == PresentPosition[0].TrackCircuitSectionIndex)
+                if (oldPresentPosition.TrackCircuitSectionIndex == PresentPosition[Direction.Forward].TrackCircuitSectionIndex)
                 {
                     deltaoffset = offset_new - offset_old;
                 }
@@ -10521,37 +10373,37 @@ namespace Orts.Simulation.Physics
                     deltaoffset = thisSection.Length - offset_old;
                     deltaoffset += offset_new;
 
-                    for (int iIndex = oldPresentPosition.RouteListIndex + 1; iIndex < PresentPosition[0].RouteListIndex; iIndex++)
+                    for (int iIndex = oldPresentPosition.RouteListIndex + 1; iIndex < PresentPosition[Direction.Forward].RouteListIndex; iIndex++)
                     {
                         thisSection = ValidRoute[0][iIndex].TrackCircuitSection;
                         deltaoffset += thisSection.Length;
                     }
                 }
-                PresentPosition[0].DistanceTravelled += deltaoffset;
+                PresentPosition[Direction.Forward].DistanceTravelled += deltaoffset;
                 DistanceTravelledM += deltaoffset;
             }
             else
             {
                 float offset_old = oldRearPosition.Offset;
-                float offset_new = PresentPosition[1].Offset;
+                float offset_new = PresentPosition[Direction.Backward].Offset;
 
-                if (oldRearPosition.TrackCircuitSectionIndex == PresentPosition[1].TrackCircuitSectionIndex)
+                if (oldRearPosition.TrackCircuitSectionIndex == PresentPosition[Direction.Backward].TrackCircuitSectionIndex)
                 {
                     deltaoffset = offset_old - offset_new;
                 }
                 else
                 {
                     deltaoffset = offset_old;
-                    TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[PresentPosition[1].TrackCircuitSectionIndex];
+                    TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[PresentPosition[Direction.Backward].TrackCircuitSectionIndex];
                     deltaoffset += (thisSection.Length - offset_new);
 
-                    for (int iIndex = oldRearPosition.RouteListIndex - 1; iIndex > PresentPosition[1].RouteListIndex; iIndex--)
+                    for (int iIndex = oldRearPosition.RouteListIndex - 1; iIndex > PresentPosition[Direction.Backward].RouteListIndex; iIndex--)
                     {
                         thisSection = ValidRoute[0][iIndex].TrackCircuitSection;
                         deltaoffset += thisSection.Length;
                     }
                 }
-                PresentPosition[1].DistanceTravelled -= deltaoffset;
+                PresentPosition[Direction.Backward].DistanceTravelled -= deltaoffset;
             }
 
             // Set track sections to occupied - forward direction only
@@ -10569,13 +10421,13 @@ namespace Orts.Simulation.Physics
                     distanceToClear += Length + junctionOverlapM;
                 }
 
-                if (PresentPosition[0].TrackCircuitSectionIndex == thisSection.Index)
+                if (PresentPosition[Direction.Forward].TrackCircuitSectionIndex == thisSection.Index)
                 {
-                    distanceToClear += Length - PresentPosition[0].Offset;
+                    distanceToClear += Length - PresentPosition[Direction.Forward].Offset;
                 }
-                else if (PresentPosition[1].TrackCircuitSectionIndex == thisSection.Index)
+                else if (PresentPosition[Direction.Backward].TrackCircuitSectionIndex == thisSection.Index)
                 {
-                    distanceToClear -= PresentPosition[1].Offset;
+                    distanceToClear -= PresentPosition[Direction.Backward].Offset;
                 }
                 else
                 {
@@ -10622,17 +10474,17 @@ namespace Orts.Simulation.Physics
             SignalObjectItems.Clear();
             NextSignalObject[0] = null;
             NextSignalObject[1] = null;
-            LastReservedSection[0] = PresentPosition[0].TrackCircuitSectionIndex;
-            LastReservedSection[1] = PresentPosition[0].TrackCircuitSectionIndex;
+            LastReservedSection[0] = PresentPosition[Direction.Forward].TrackCircuitSectionIndex;
+            LastReservedSection[1] = PresentPosition[Direction.Forward].TrackCircuitSectionIndex;
 
             InitializeSignals(true);
 
             if (TCRoute != null && (ControlMode == TrainControlMode.AutoSignal || ControlMode == TrainControlMode.AutoNode))
             {
-                PresentPosition[0].RouteListIndex = ValidRoute[0].GetRouteIndex(PresentPosition[0].TrackCircuitSectionIndex, 0);
-                PresentPosition[1].RouteListIndex = ValidRoute[0].GetRouteIndex(PresentPosition[1].TrackCircuitSectionIndex, 0);
+                PresentPosition[Direction.Forward].RouteListIndex = ValidRoute[0].GetRouteIndex(PresentPosition[Direction.Forward].TrackCircuitSectionIndex, 0);
+                PresentPosition[Direction.Backward].RouteListIndex = ValidRoute[0].GetRouteIndex(PresentPosition[Direction.Backward].TrackCircuitSectionIndex, 0);
 
-                SwitchToNodeControl(PresentPosition[0].TrackCircuitSectionIndex);
+                SwitchToNodeControl(PresentPosition[Direction.Forward].TrackCircuitSectionIndex);
                 CheckDeadlock(ValidRoute[0], Number);
                 TCRoute.SetReversalOffset(Length, simulator.TimetableMode);
             }
@@ -10644,9 +10496,9 @@ namespace Orts.Simulation.Physics
 
                 // reset routes and check sections either end of train
 
-                PresentPosition[0].RouteListIndex = -1;
-                PresentPosition[1].RouteListIndex = -1;
-                PreviousPosition[TrainPosition.Front].RouteListIndex = -1;
+                PresentPosition[Direction.Forward].RouteListIndex = -1;
+                PresentPosition[Direction.Backward].RouteListIndex = -1;
+                PreviousPosition[Direction.Forward].RouteListIndex = -1;
 
                 UpdateManualMode(-1);
             }
@@ -10658,9 +10510,9 @@ namespace Orts.Simulation.Physics
 
                 // reset routes and check sections either end of train
 
-                PresentPosition[0].RouteListIndex = -1;
-                PresentPosition[1].RouteListIndex = -1;
-                PreviousPosition[TrainPosition.Front].RouteListIndex = -1;
+                PresentPosition[Direction.Forward].RouteListIndex = -1;
+                PresentPosition[Direction.Backward].RouteListIndex = -1;
+                PreviousPosition[Direction.Forward].RouteListIndex = -1;
 
                 UpdateExplorerMode(-1);
             }
@@ -10678,8 +10530,8 @@ namespace Orts.Simulation.Physics
         public void UpdateOccupancies()
         {
             if (TrainRoute != null) TrainRoute.Clear();
-            TrainRoute = SignalEnvironment.BuildTempRoute(this, PresentPosition[1].TrackCircuitSectionIndex, PresentPosition[1].Offset,
-                PresentPosition[1].Direction, Length, false, true, false);
+            TrainRoute = SignalEnvironment.BuildTempRoute(this, PresentPosition[Direction.Backward].TrackCircuitSectionIndex, PresentPosition[Direction.Backward].Offset,
+                PresentPosition[Direction.Backward].Direction, Length, false, true, false);
 
             foreach (TrackCircuitRouteElement thisElement in TrainRoute)
             {
@@ -10815,17 +10667,17 @@ namespace Orts.Simulation.Physics
             float offset = FrontTDBTraveller.TrackNodeOffset;
             TrackDirection direction = (TrackDirection)FrontTDBTraveller.Direction;
 
-            PresentPosition[0].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
-            PreviousPosition[TrainPosition.Front].UpdateFrom(PresentPosition[0]);
+            PresentPosition[Direction.Forward].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
+            PreviousPosition[Direction.Forward].UpdateFrom(PresentPosition[Direction.Forward]);
 
             tn = RearTDBTraveller.TN;
             offset = RearTDBTraveller.TrackNodeOffset;
             direction = (TrackDirection)RearTDBTraveller.Direction;
 
-            PresentPosition[1].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
+            PresentPosition[Direction.Backward].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
 
-            PresentPosition[0].DistanceTravelled = DistanceTravelledM;
-            PresentPosition[1].DistanceTravelled = DistanceTravelledM - Length;
+            PresentPosition[Direction.Forward].DistanceTravelled = DistanceTravelledM;
+            PresentPosition[Direction.Backward].DistanceTravelled = DistanceTravelledM - Length;
 
             // Set track sections to occupied
 
@@ -10834,8 +10686,8 @@ namespace Orts.Simulation.Physics
             // build route of sections now occupied
             OccupiedTrack.Clear();
             if (TrainRoute != null) TrainRoute.Clear();
-            TrainRoute = SignalEnvironment.BuildTempRoute(this, PresentPosition[1].TrackCircuitSectionIndex, PresentPosition[1].Offset,
-                PresentPosition[1].Direction, Length, false, true, false);
+            TrainRoute = SignalEnvironment.BuildTempRoute(this, PresentPosition[Direction.Backward].TrackCircuitSectionIndex, PresentPosition[Direction.Backward].Offset,
+                PresentPosition[Direction.Backward].Direction, Length, false, true, false);
 
             TrackCircuitSection thisSection;
 
@@ -10871,11 +10723,11 @@ namespace Orts.Simulation.Physics
 
                 // build dummy route
 
-                thisSection = TrackCircuitSection.TrackCircuitList[PresentPosition[1].TrackCircuitSectionIndex];
-                offset = PresentPosition[1].Offset;
+                thisSection = TrackCircuitSection.TrackCircuitList[PresentPosition[Direction.Backward].TrackCircuitSectionIndex];
+                offset = PresentPosition[Direction.Backward].Offset;
 
-                ValidRoute[0] = SignalEnvironment.BuildTempRoute(this, thisSection.Index, PresentPosition[1].Offset,
-                            PresentPosition[1].Direction, Length, true, true, false);
+                ValidRoute[0] = SignalEnvironment.BuildTempRoute(this, thisSection.Index, PresentPosition[Direction.Backward].Offset,
+                            PresentPosition[Direction.Backward].Direction, Length, true, true, false);
 
                 foreach (TrackCircuitRouteElement thisElement in TrainRoute)
                 {
@@ -10895,9 +10747,9 @@ namespace Orts.Simulation.Physics
                 {
                     while (TCRoute.ActiveSubPath <= TCRoute.TCRouteSubpaths.Count - 1)
                     {
-                        PresentPosition[0].RouteListIndex = ValidRoute[0].GetRouteIndex(PresentPosition[0].TrackCircuitSectionIndex, 0);
-                        PresentPosition[1].RouteListIndex = ValidRoute[0].GetRouteIndex(PresentPosition[1].TrackCircuitSectionIndex, 0);
-                        if (PresentPosition[0].RouteListIndex < 0 || PresentPosition[1].RouteListIndex < 0)
+                        PresentPosition[Direction.Forward].RouteListIndex = ValidRoute[0].GetRouteIndex(PresentPosition[Direction.Forward].TrackCircuitSectionIndex, 0);
+                        PresentPosition[Direction.Backward].RouteListIndex = ValidRoute[0].GetRouteIndex(PresentPosition[Direction.Backward].TrackCircuitSectionIndex, 0);
+                        if (PresentPosition[Direction.Forward].RouteListIndex < 0 || PresentPosition[Direction.Backward].RouteListIndex < 0)
                         {
                             // Try first to change valid route, if there are other subpaths.
                             if (TCRoute.ActiveSubPath < TCRoute.TCRouteSubpaths.Count - 1)
@@ -10914,13 +10766,13 @@ namespace Orts.Simulation.Physics
                         }
                         else
                         {
-                            if (PresentPosition[0].Direction != ValidRoute[0][PresentPosition[0].RouteListIndex].Direction)
+                            if (PresentPosition[Direction.Forward].Direction != ValidRoute[0][PresentPosition[Direction.Forward].RouteListIndex].Direction)
                             // Train must be reverted
                             {
                                 ReverseFormation(false);
-                                var tempTCPosition = PresentPosition[0];
-                                PresentPosition[0] = PresentPosition[1];
-                                PresentPosition[1] = tempTCPosition;
+                                var tempTCPosition = PresentPosition[Direction.Forward];
+                                PresentPosition[Direction.Forward] = PresentPosition[Direction.Backward];
+                                PresentPosition[Direction.Backward] = tempTCPosition;
                             }
                             break;
                         }
@@ -10978,19 +10830,19 @@ namespace Orts.Simulation.Physics
             SignalObjectItems.Clear();
             NextSignalObject[0] = null;
             NextSignalObject[1] = null;
-            LastReservedSection[0] = PresentPosition[0].TrackCircuitSectionIndex;
-            LastReservedSection[1] = PresentPosition[1].TrackCircuitSectionIndex;
+            LastReservedSection[0] = PresentPosition[Direction.Forward].TrackCircuitSectionIndex;
+            LastReservedSection[1] = PresentPosition[Direction.Backward].TrackCircuitSectionIndex;
 
 
             InitializeSignals(true);
 
             if (ControlMode == TrainControlMode.AutoSignal || ControlMode == TrainControlMode.AutoNode)
             {
-                PresentPosition[0].RouteListIndex = ValidRoute[0].GetRouteIndex(PresentPosition[0].TrackCircuitSectionIndex, 0);
-                PresentPosition[1].RouteListIndex = ValidRoute[0].GetRouteIndex(PresentPosition[1].TrackCircuitSectionIndex, 0);
+                PresentPosition[Direction.Forward].RouteListIndex = ValidRoute[0].GetRouteIndex(PresentPosition[Direction.Forward].TrackCircuitSectionIndex, 0);
+                PresentPosition[Direction.Backward].RouteListIndex = ValidRoute[0].GetRouteIndex(PresentPosition[Direction.Backward].TrackCircuitSectionIndex, 0);
 
                 CheckDeadlock(ValidRoute[0], Number);
-                SwitchToNodeControl(PresentPosition[0].TrackCircuitSectionIndex);
+                SwitchToNodeControl(PresentPosition[Direction.Forward].TrackCircuitSectionIndex);
                 TCRoute.SetReversalOffset(Length, simulator.TimetableMode);
             }
             else if (ControlMode == TrainControlMode.Manual)
@@ -11001,9 +10853,9 @@ namespace Orts.Simulation.Physics
 
                 // reset routes and check sections either end of train
 
-                PresentPosition[0].RouteListIndex = -1;
-                PresentPosition[1].RouteListIndex = -1;
-                PreviousPosition[TrainPosition.Front].RouteListIndex = -1;
+                PresentPosition[Direction.Forward].RouteListIndex = -1;
+                PresentPosition[Direction.Backward].RouteListIndex = -1;
+                PreviousPosition[Direction.Forward].RouteListIndex = -1;
 
                 UpdateManualMode(-1);
             }
@@ -11015,9 +10867,9 @@ namespace Orts.Simulation.Physics
 
                 // reset routes and check sections either end of train
 
-                PresentPosition[0].RouteListIndex = -1;
-                PresentPosition[1].RouteListIndex = -1;
-                PreviousPosition[TrainPosition.Front].RouteListIndex = -1;
+                PresentPosition[Direction.Forward].RouteListIndex = -1;
+                PresentPosition[Direction.Backward].RouteListIndex = -1;
+                PreviousPosition[Direction.Forward].RouteListIndex = -1;
 
                 UpdateExplorerMode(-1);
             }
@@ -11575,8 +11427,8 @@ namespace Orts.Simulation.Physics
         {
             // build list of occupied section
             bool atStation = false;
-            int frontIndex = PresentPosition[0].RouteListIndex;
-            int rearIndex = PresentPosition[1].RouteListIndex;
+            int frontIndex = PresentPosition[Direction.Forward].RouteListIndex;
+            int rearIndex = PresentPosition[Direction.Backward].RouteListIndex;
             List<int> occupiedSections = new List<int>();
 
             // check valid positions
@@ -11629,11 +11481,11 @@ namespace Orts.Simulation.Physics
                 {
                     return true;
                 }
-                else if (stationRouteIndex <= PresentPosition[1].RouteListIndex)
+                else if (stationRouteIndex <= PresentPosition[Direction.Backward].RouteListIndex)
                 {
                     var platformSection = TrackCircuitSection.TrackCircuitList[StationStops[0].TrackCircuitSectionIndex];
                     var platformReverseStopOffset = platformSection.Length - StationStops[0].StopOffset;
-                    return ValidRoute[0].GetDistanceAlongRoute(stationRouteIndex, platformReverseStopOffset, PresentPosition[1].RouteListIndex, PresentPosition[1].Offset, true) > thresholdDistance;
+                    return ValidRoute[0].GetDistanceAlongRoute(stationRouteIndex, platformReverseStopOffset, PresentPosition[Direction.Backward].RouteListIndex, PresentPosition[Direction.Backward].Offset, true) > thresholdDistance;
                 }
             }
             return false;
@@ -12351,14 +12203,14 @@ namespace Orts.Simulation.Physics
                     circuitString = String.Concat(circuitString, "={");
                 }
 
-                int startIndex = PresentPosition[0].RouteListIndex;
+                int startIndex = PresentPosition[Direction.Forward].RouteListIndex;
                 if (startIndex < 0)
                 {
                     circuitString = String.Concat(circuitString, "<out of route>");
                 }
                 else
                 {
-                    for (int iIndex = PresentPosition[0].RouteListIndex; iIndex < ValidRoute[0].Count; iIndex++)
+                    for (int iIndex = PresentPosition[Direction.Forward].RouteListIndex; iIndex < ValidRoute[0].Count; iIndex++)
                     {
                         TrackCircuitRouteElement thisElement = ValidRoute[0][iIndex];
                         TrackCircuitSection thisSection = thisElement.TrackCircuitSection;
@@ -12779,11 +12631,11 @@ namespace Orts.Simulation.Physics
             {
                 TrainPathItem thisItem;
                 float distanceToTrainM = 0.0f;
-                float offset = PresentPosition[routeDirection].Offset;
-                TrackCircuitSection firstSection = TrackCircuitSection.TrackCircuitList[PresentPosition[routeDirection].TrackCircuitSectionIndex];
+                float offset = PresentPosition[direction].Offset;
+                TrackCircuitSection firstSection = TrackCircuitSection.TrackCircuitList[PresentPosition[direction].TrackCircuitSectionIndex];
                 float sectionStart = routeDirection == 0 ? -offset : offset - firstSection.Length;
-                int startRouteIndex = PresentPosition[routeDirection].RouteListIndex;
-                if (startRouteIndex < 0) startRouteIndex = ValidRoute[routeDirection].GetRouteIndex(PresentPosition[routeDirection].TrackCircuitSectionIndex, 0);
+                int startRouteIndex = PresentPosition[direction].RouteListIndex;
+                if (startRouteIndex < 0) startRouteIndex = ValidRoute[routeDirection].GetRouteIndex(PresentPosition[direction].TrackCircuitSectionIndex, 0);
                 if (startRouteIndex >= 0)
                 {
                     for (int iRouteElement = startRouteIndex; iRouteElement < ValidRoute[routeDirection].Count && distanceToTrainM < 7000 && sectionStart < 7000; iRouteElement++)
@@ -12854,16 +12706,16 @@ namespace Orts.Simulation.Physics
                 reversalSection = reversalInfo.SignalUsed ? reversalInfo.SignalSectorIndex : reversalInfo.DivergeSectorIndex;
             }
 
-            TrackCircuitSection rearSection = TrackCircuitSection.TrackCircuitList[PresentPosition[1].TrackCircuitSectionIndex];
-            float reversalDistanceM = TrackCircuitSection.GetDistanceBetweenObjects(PresentPosition[1].TrackCircuitSectionIndex, PresentPosition[1].Offset, PresentPosition[1].Direction, reversalSection, 0.0f);
+            TrackCircuitSection rearSection = TrackCircuitSection.TrackCircuitList[PresentPosition[Direction.Backward].TrackCircuitSectionIndex];
+            float reversalDistanceM = TrackCircuitSection.GetDistanceBetweenObjects(PresentPosition[Direction.Backward].TrackCircuitSectionIndex, PresentPosition[Direction.Backward].Offset, PresentPosition[Direction.Backward].Direction, reversalSection, 0.0f);
 
             bool reversalEnabled = true;
-            TrackCircuitSection frontSection = TrackCircuitSection.TrackCircuitList[PresentPosition[0].TrackCircuitSectionIndex];
+            TrackCircuitSection frontSection = TrackCircuitSection.TrackCircuitList[PresentPosition[Direction.Forward].TrackCircuitSectionIndex];
             reversalDistanceM = Math.Max(reversalDistanceM, TrackCircuitSection.GetDistanceBetweenObjects
-                (PresentPosition[0].TrackCircuitSectionIndex, PresentPosition[0].Offset, PresentPosition[0].Direction,
+                (PresentPosition[Direction.Forward].TrackCircuitSectionIndex, PresentPosition[Direction.Forward].Offset, PresentPosition[Direction.Forward].Direction,
                 reversalInfo.ReversalSectionIndex, reversalInfo.ReverseReversalOffset));
             int reversalIndex = reversalInfo.SignalUsed ? reversalInfo.LastSignalIndex : reversalInfo.LastDivergeIndex;
-            if (reversalDistanceM > 50f || (PresentPosition[1].RouteListIndex < reversalIndex))
+            if (reversalDistanceM > 50f || (PresentPosition[Direction.Backward].RouteListIndex < reversalIndex))
             {
                 reversalEnabled = false;
             }
@@ -12883,14 +12735,14 @@ namespace Orts.Simulation.Physics
             if (AuxActionsContain.SpecAuxActions.Count > 0 && AuxActionsContain.SpecAuxActions[0] is AIActionWPRef &&
                 (AuxActionsContain.SpecAuxActions[0] as AIActionWPRef).SubrouteIndex == TCRoute.ActiveSubPath)
             {
-                TrackCircuitSection frontSection = TrackCircuitSection.TrackCircuitList[PresentPosition[0].TrackCircuitSectionIndex];
-                int thisSectionIndex = PresentPosition[0].TrackCircuitSectionIndex;
+                TrackCircuitSection frontSection = TrackCircuitSection.TrackCircuitList[PresentPosition[Direction.Forward].TrackCircuitSectionIndex];
+                int thisSectionIndex = PresentPosition[Direction.Forward].TrackCircuitSectionIndex;
                 TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisSectionIndex];
-                float leftInSectionM = thisSection.Length - PresentPosition[0].Offset;
+                float leftInSectionM = thisSection.Length - PresentPosition[Direction.Forward].Offset;
 
                 // get action route index - if not found, return distances < 0
 
-                int actionIndex0 = PresentPosition[0].RouteListIndex;
+                int actionIndex0 = PresentPosition[Direction.Forward].RouteListIndex;
                 int actionRouteIndex = ValidRoute[0].GetRouteIndex((AuxActionsContain.SpecAuxActions[0] as AIActionWPRef).TCSectionIndex, actionIndex0);
                 var wpDistance = ValidRoute[0].GetDistanceAlongRoute(actionIndex0, leftInSectionM, actionRouteIndex, (AuxActionsContain.SpecAuxActions[0] as AIActionWPRef).RequiredDistance, AITrainDirectionForward);
                 bool wpEnabled = false;
@@ -12913,7 +12765,7 @@ namespace Orts.Simulation.Physics
             if (TCRoute != null && TCRoute.ActiveSubPath >= 0 && TCRoute.TCRouteSubpaths != null && TCRoute.TCRouteSubpaths.Count > TCRoute.ActiveSubPath)
             {
                 TrackCircuitPartialPathRoute pathRoute = TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath];
-                validPath = pathRoute.GetRouteIndex(PresentPosition[0].TrackCircuitSectionIndex, 0) >= 0;
+                validPath = pathRoute.GetRouteIndex(PresentPosition[Direction.Forward].TrackCircuitSectionIndex, 0) >= 0;
             }
 
             TrainInfo result = new TrainInfo(ControlMode, MidPointDirectionToDirectionUnset(MUDirection), SpeedMpS, ProjectedSpeedMpS,
@@ -12930,7 +12782,7 @@ namespace Orts.Simulation.Physics
             if (ValidRoute[0] != null)
             {
                 float distanceToTrainM = 0.0f;
-                float offset = PresentPosition[0].Offset;
+                float offset = PresentPosition[Direction.Forward].Offset;
                 float sectionStart = -offset;
                 float progressiveMaxSpeedLimitMpS = allowedMaxSpeedLimitMpS;
 
@@ -12989,8 +12841,8 @@ namespace Orts.Simulation.Physics
             if (ValidRoute[1] != null)
             {
                 float distanceToTrainM = 0.0f;
-                float offset = PresentPosition[1].Offset;
-                TrackCircuitSection firstSection = TrackCircuitSection.TrackCircuitList[PresentPosition[1].TrackCircuitSectionIndex];
+                float offset = PresentPosition[Direction.Backward].Offset;
+                TrackCircuitSection firstSection = TrackCircuitSection.TrackCircuitList[PresentPosition[Direction.Backward].TrackCircuitSectionIndex];
                 float sectionStart = offset - firstSection.Length;
                 float progressiveMaxSpeedLimitMpS = allowedMaxSpeedLimitMpS;
 
@@ -13077,14 +12929,14 @@ namespace Orts.Simulation.Physics
             if (ValidRoute[0] != null)
             {
                 float distanceToTrainM = 0.0f;
-                float offset = PresentPosition[0].Offset;
-                TrackCircuitSection firstSection = TrackCircuitSection.TrackCircuitList[PresentPosition[0].TrackCircuitSectionIndex];
+                float offset = PresentPosition[Direction.Forward].Offset;
+                TrackCircuitSection firstSection = TrackCircuitSection.TrackCircuitList[PresentPosition[Direction.Forward].TrackCircuitSectionIndex];
                 float sectionStart = -offset;
-                int startRouteIndex = PresentPosition[0].RouteListIndex;
-                if (startRouteIndex < 0) startRouteIndex = ValidRoute[0].GetRouteIndex(PresentPosition[0].TrackCircuitSectionIndex, 0);
+                int startRouteIndex = PresentPosition[Direction.Forward].RouteListIndex;
+                if (startRouteIndex < 0) startRouteIndex = ValidRoute[0].GetRouteIndex(PresentPosition[Direction.Forward].TrackCircuitSectionIndex, 0);
                 if (startRouteIndex >= 0)
                 {
-                    int routeSectionIndex = PresentPosition[0].TrackCircuitSectionIndex;
+                    int routeSectionIndex = PresentPosition[Direction.Forward].TrackCircuitSectionIndex;
                     for (int iRouteElement = startRouteIndex; iRouteElement < ValidRoute[0].Count && distanceToTrainM < maxDistanceM && sectionStart < maxDistanceM; iRouteElement++)
                     {
                         TrackCircuitSection thisSection = ValidRoute[0][iRouteElement].TrackCircuitSection;
@@ -13162,15 +13014,15 @@ namespace Orts.Simulation.Physics
             if (MUDirection == MidpointDirection.Forward || MUDirection == MidpointDirection.N || ValidRoute[1] == null)
             {
                 usedRoute = ValidRoute[0];
-                routeListIndex = PresentPosition[0].RouteListIndex;
-                presentOffset = PresentPosition[0].Offset;
+                routeListIndex = PresentPosition[Direction.Forward].RouteListIndex;
+                presentOffset = PresentPosition[Direction.Forward].Offset;
                 routedTrain = routedForward;
             }
             else
             {
                 usedRoute = ValidRoute[1];
-                routeListIndex = PresentPosition[1].RouteListIndex;
-                presentOffset = PresentPosition[1].Offset;
+                routeListIndex = PresentPosition[Direction.Backward].RouteListIndex;
+                presentOffset = PresentPosition[Direction.Backward].Offset;
                 routedTrain = routedBackward;
             }
 
@@ -13382,7 +13234,7 @@ namespace Orts.Simulation.Physics
 
             // part upto split
 
-            int startElementIndex = thisRoute.GetRouteIndex(startSectionIndex, PresentPosition[0].RouteListIndex);
+            int startElementIndex = thisRoute.GetRouteIndex(startSectionIndex, PresentPosition[Direction.Forward].RouteListIndex);
             for (int iElement = 0; iElement < startElementIndex; iElement++)
             {
                 newRoute.Add(thisRoute[iElement]);
@@ -14337,7 +14189,12 @@ namespace Orts.Simulation.Physics
         public class TrainRouted
         {
             public Train Train;
-            public int TrainRouteDirectionIndex;
+            public int TrainRouteDirectionIndex
+            {
+                get { return (int)Direction; }
+                set { Direction = (Direction)value; }
+            }
+            public Direction Direction { get; private set; }
 
             //================================================================================================//
             /// <summary>
@@ -15007,7 +14864,7 @@ namespace Orts.Simulation.Physics
 
             if (ValidRoute[0] != null)
             {
-                int listIndex = PresentPosition[0].RouteListIndex;
+                int listIndex = PresentPosition[Direction.Forward].RouteListIndex;
                 signalRef.BreakDownRouteList(ValidRoute[0], listIndex, routedForward);
                 ClearDeadlocks();
             }
@@ -15017,7 +14874,7 @@ namespace Orts.Simulation.Physics
 
             if (ValidRoute[1] != null)
             {
-                int listIndex = PresentPosition[1].RouteListIndex;
+                int listIndex = PresentPosition[Direction.Backward].RouteListIndex;
                 signalRef.BreakDownRouteList(ValidRoute[1], listIndex, routedBackward);
             }
             ValidRoute[1] = null;
@@ -15032,7 +14889,7 @@ namespace Orts.Simulation.Physics
 
             if (ValidRoute[0] != null)
             {
-                int listIndex = PresentPosition[0].RouteListIndex;
+                int listIndex = PresentPosition[Direction.Forward].RouteListIndex;
                 signalRef.BreakDownRouteList(ValidRoute[0], listIndex, routedForward);
                 ClearDeadlocks();
             }
@@ -15059,7 +14916,7 @@ namespace Orts.Simulation.Physics
 
             ClearValidRoutes();
             bool canPlace = true;
-            PresentPosition[0].TrackCircuitSectionIndex = -1;
+            PresentPosition[Direction.Forward].TrackCircuitSectionIndex = -1;
             TrackCircuitPartialPathRoute tempRoute = CalculateInitialTrainPosition(ref canPlace);
             if (tempRoute.Count == 0 || !canPlace)
             {
@@ -15076,8 +14933,8 @@ namespace Orts.Simulation.Physics
             float offset = FrontTDBTraveller.TrackNodeOffset;
             TrackDirection direction1 = (TrackDirection)FrontTDBTraveller.Direction;
 
-            PresentPosition[0].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction1);
-            PreviousPosition[TrainPosition.Front].UpdateFrom(PresentPosition[0]);
+            PresentPosition[Direction.Forward].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction1);
+            PreviousPosition[Direction.Forward].UpdateFrom(PresentPosition[Direction.Forward]);
 
             if (TrainType == TrainType.Static)
             {
@@ -15121,7 +14978,7 @@ namespace Orts.Simulation.Physics
 
         internal bool IsMoving()
         {
-            return PresentPosition[0].Offset != PreviousPosition[TrainPosition.Front].Offset;
+            return PresentPosition[Direction.Forward].Offset != PreviousPosition[Direction.Forward].Offset;
         }
     }
         // class Train

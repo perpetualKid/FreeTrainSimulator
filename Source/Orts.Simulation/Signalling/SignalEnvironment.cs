@@ -83,16 +83,15 @@ namespace Orts.Simulation.Signalling
         /// Constructor
         /// </summary>
 
-        public SignalEnvironment(Simulator simulator, SignalConfigurationFile sigcfg, bool locationPassingPaths, CancellationToken token)
+        public SignalEnvironment(SignalConfigurationFile sigcfg, bool locationPassingPaths, CancellationToken token)
         {
-            this.simulator = simulator ?? throw new ArgumentNullException(nameof(simulator));
             UseLocationPassingPaths = locationPassingPaths;
             Dictionary<int, int> platformList = new Dictionary<int, int>();
 
             OrtsSignalTypeCount = OrSignalTypes.Instance.FunctionTypes.Count;
 
-            trackDB = simulator.TDB.TrackDB;
-            tsectiondat = simulator.TSectionDat;
+            trackDB = Simulator.Instance.TDB.TrackDB;
+            tsectiondat = Simulator.Instance.TSectionDat;
 
             // read SIGSCR files
 
@@ -104,10 +103,10 @@ namespace Orts.Simulation.Signalling
             ConcurrentDictionary<int, uint> platformSidesList = new ConcurrentDictionary<int, uint>();
 
             // build list of signal world file information
-            BuildSignalWorld(simulator.RouteFolder.WorldFolder, sigcfg, signalWorldList, signalWorldLookup, platformSidesList, token);
+            BuildSignalWorld(Simulator.Instance.RouteFolder.WorldFolder, sigcfg, signalWorldList, signalWorldLookup, platformSidesList, token);
 
             // build list of signals in TDB file
-            BuildSignalList(trackDB.TrackItems, trackDB.TrackNodes, tsectiondat, this.simulator.TDB, platformList, signalWorldList);
+            BuildSignalList(trackDB.TrackItems, trackDB.TrackNodes, tsectiondat, Simulator.Instance.TDB, platformList, signalWorldList);
 
             if (Signals.Count > 0)
             {
@@ -168,8 +167,8 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// Overlay constructor for restore after saved game
         /// </summary>
-        public SignalEnvironment(Simulator simulator, SignalConfigurationFile sigcfg, BinaryReader inf, CancellationToken token)
-            : this(simulator, sigcfg, false, token)
+        public SignalEnvironment(SignalConfigurationFile sigcfg, BinaryReader inf, CancellationToken token)
+            : this(sigcfg, false, token)
         {
             if (null == inf)
                 throw new ArgumentNullException(nameof(inf));
@@ -177,8 +176,8 @@ namespace Orts.Simulation.Signalling
             int signalIndex = inf.ReadInt32();
             while (signalIndex >= 0)
             {
-                Signal thisSignal = Signals[signalIndex];
-                thisSignal.Restore(simulator, inf);
+                Signal signal = Signals[signalIndex];
+                signal.Restore(inf);
                 signalIndex = inf.ReadInt32();
             }
 
@@ -191,9 +190,9 @@ namespace Orts.Simulation.Signalling
             }
             else
             {
-                foreach (TrackCircuitSection thisSection in TrackCircuitSection.TrackCircuitList)
+                foreach (TrackCircuitSection section in TrackCircuitSection.TrackCircuitList)
                 {
-                    thisSection.Restore(simulator, inf);
+                    section.Restore(inf);
                 }
             }
 
@@ -368,20 +367,29 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         public void Update(bool fullUpdate)
         {
+            //TODO 20201125 re-enable Parallelism 
             if (fullUpdate)
             {
-                Parallel.ForEach(Signals, new ParallelOptions() { MaxDegreeOfParallelism = System.Environment.ProcessorCount }, (signal) =>
+                for(int i = 0; i < Signals.Count; i++)
                 {
-                    signal.Update();
-                });
+                    Signals[i].Update();
+                }
+                //Parallel.ForEach(Signals, new ParallelOptions() { MaxDegreeOfParallelism = System.Environment.ProcessorCount }, (signal) =>
+                //{
+                //    signal.Update();
+                //});
             }
             else
             {
-                //only a fraction (1/20) of all signals is processed each update loop to limit load
-                Parallel.For(updateStart, Math.Min(updateStart + updateStep, Signals.Count), new ParallelOptions() { MaxDegreeOfParallelism = System.Environment.ProcessorCount }, (i) =>
+                for (int i = updateStart; i < Math.Min(updateStart + updateStep, Signals.Count); i++)
                 {
                     Signals[i].Update();
-                });
+                }
+                ////only a fraction (1/20) of all signals is processed each update loop to limit load
+                //Parallel.For(updateStart, Math.Min(updateStart + updateStep, Signals.Count), new ParallelOptions() { MaxDegreeOfParallelism = System.Environment.ProcessorCount }, (i) =>
+                //{
+                //    Signals[i].Update();
+                //});
             }
             updateStart += updateStep;
             if (updateStart >= Signals.Count)
@@ -494,17 +502,17 @@ namespace Orts.Simulation.Signalling
                         if (signal.SignalHeads.Count > 0)
                         {
                             SignalItem oldItem = trackItems[signal.SignalHeads[0].TDBIndex] as SignalItem;
-                            if (signal.Direction != oldItem.Direction)
+                            if (signal.TrackDirection != oldItem.Direction)
                             {
-                                signal.Direction = oldItem.Direction;
+                                signal.TrackDirection = oldItem.Direction;
                                 signal.TdbTraveller.ReverseDirection();                           // reverse //
                             }
                         }
 
                         SignalItem newItem = trackItems[newSignal.SignalHeads[0].TDBIndex] as SignalItem;
-                        if (newSignal.Direction != newItem.Direction)
+                        if (newSignal.TrackDirection != newItem.Direction)
                         {
-                            newSignal.Direction = newItem.Direction;
+                            newSignal.TrackDirection = newItem.Direction;
                             newSignal.TdbTraveller.ReverseDirection();                           // reverse //
                         }
 
@@ -698,7 +706,7 @@ namespace Orts.Simulation.Signalling
 
             Signal signal = new Signal(Signals.Count, traveller)
             {
-                IsSignal = true, IsSpeedSignal = false, Direction = sigItem.Direction, TrackNode = trackNode, TrackItemRefIndex = nodeIndex
+                IsSignal = true, IsSpeedSignal = false, TrackDirection = sigItem.Direction, TrackNode = trackNode, TrackItemRefIndex = nodeIndex
 
             };
             signal.AddHead(nodeIndex, tdbRef, sigItem);
@@ -727,7 +735,7 @@ namespace Orts.Simulation.Signalling
 
             Signal signal = new Signal(Signals.Count, traveller)
             {
-                IsSignal = false, IsSpeedSignal = false, Direction = TrackDirection.Ahead, TrackNode = trackNode, TrackItemRefIndex = nodeIndex,
+                IsSignal = false, IsSpeedSignal = false, TrackDirection = TrackDirection.Ahead, TrackNode = trackNode, TrackItemRefIndex = nodeIndex,
             };
             signal.AddHead(nodeIndex, tdbRef, speedItem);
 
@@ -735,11 +743,11 @@ namespace Orts.Simulation.Signalling
             float delta_float = MathHelper.WrapAngle((float)delta_angle);
             if (Math.Abs(delta_float) < (Math.PI / 2))
             {
-                signal.Direction = ((TrackDirection)(int)signal.TdbTraveller.Direction).Next();
+                signal.TrackDirection = ((TrackDirection)(int)signal.TdbTraveller.Direction).Next();
             }
             else
             {
-                signal.Direction = (TrackDirection)(int)signal.TdbTraveller.Direction;
+                signal.TrackDirection = (TrackDirection)(int)signal.TdbTraveller.Direction;
                 signal.TdbTraveller.ReverseDirection();
             }
             Signals.Add(signal);
@@ -985,7 +993,7 @@ namespace Orts.Simulation.Signalling
             if (train == null)
                 throw new ArgumentNullException(nameof(train));
 
-            return GetNextObjectInRoute(train, routePath, routeIndex, routePosition, maxDistance, requiredType, train.Train.PresentPosition[train.TrainRouteDirectionIndex]);
+            return GetNextObjectInRoute(train, routePath, routeIndex, routePosition, maxDistance, requiredType, train.Train.PresentPosition[train.Direction]);
         }
 
         // call with position
@@ -1291,7 +1299,7 @@ namespace Orts.Simulation.Signalling
                     Signal signal = Signals[signalItem.SignalObject];
 
                     float signalDistance = signal.DistanceTo(traveller);
-                    if (signal.Direction == TrackDirection.Reverse)
+                    if (signal.TrackDirection == TrackDirection.Reverse)
                     {
                         signalDistance = circuit.Length - signalDistance;
                     }
@@ -1302,7 +1310,7 @@ namespace Orts.Simulation.Signalling
                         {
                             TrackCircuitSignalItem trackCircuitItem = new TrackCircuitSignalItem(signal, signalDistance);
 
-                            TrackDirection direction = signal.Direction.Next();
+                            TrackDirection direction = signal.TrackDirection.Next();
                             TrackCircuitSignalList signalList = circuit.CircuitItems.TrackCircuitSignals[direction][i];
 
                             // if signal is SPEED type, insert in speedpost list
@@ -1324,7 +1332,7 @@ namespace Orts.Simulation.Signalling
                             }
                         }
                     }
-                    newLastDistance[(int)signal.Direction] = signalDistance;
+                    newLastDistance[(int)signal.TrackDirection] = signalDistance;
                 }
             }
             // Insert speedpost
@@ -1336,19 +1344,19 @@ namespace Orts.Simulation.Signalling
                     {
                         Signal speedpost = Signals[speedItem.SignalObject];
                         float speedpostDistance = speedpost.DistanceTo(traveller);
-                        if (speedpost.Direction == TrackDirection.Reverse)
+                        if (speedpost.TrackDirection == TrackDirection.Reverse)
                         {
                             speedpostDistance = circuit.Length - speedpostDistance;
                         }
 
-                        if (speedpostDistance == lastDistance[(int)speedpost.Direction]) // if at same position as last item
+                        if (speedpostDistance == lastDistance[(int)speedpost.TrackDirection]) // if at same position as last item
                         {
                             speedpostDistance += 0.001f;  // shift 1 mm so it will be found
                         }
 
                         TrackCircuitSignalItem trackCircuitItem = new TrackCircuitSignalItem(speedpost, speedpostDistance);
 
-                        TrackDirection direction = speedpost.Direction.Next();
+                        TrackDirection direction = speedpost.TrackDirection.Next();
                         TrackCircuitSignalList signalList = circuit.CircuitItems.TrackCircuitSpeedPosts[direction];
 
                         if (direction == TrackDirection.Ahead)
@@ -1360,13 +1368,13 @@ namespace Orts.Simulation.Signalling
                             signalList.Add(trackCircuitItem);
                         }
 
-                        newLastDistance[(int)speedpost.Direction] = speedpostDistance;
+                        newLastDistance[(int)speedpost.TrackDirection] = speedpostDistance;
                     }
                     // Milepost
                     else if (speedItem.IsMilePost)
                     {
                         Milepost milepost = milepostList[speedItem.SignalObject];
-                        TrackItem milepostTrItem = simulator.TDB.TrackDB.TrackItems[milepost.TrackItemId];
+                        TrackItem milepostTrItem = Simulator.Instance.TDB.TrackDB.TrackItems[milepost.TrackItemId];
                         float milepostDistance = traveller.DistanceTo(milepostTrItem.Location);
 
                         TrackCircuitMilepost trackCircuitItem = new TrackCircuitMilepost(milepost, milepostDistance, circuit.Length - milepostDistance);
@@ -1832,7 +1840,7 @@ namespace Orts.Simulation.Signalling
             bool furthestRouteCleared = false;
 
             TrackCircuitPartialPathRoute subPathRoute = new TrackCircuitPartialPathRoute(train.Train.ValidRoute[train.TrainRouteDirectionIndex]);
-            TrackCircuitPosition position = new TrackCircuitPosition(train.Train.PresentPosition[train.TrainRouteDirectionIndex]);
+            TrackCircuitPosition position = new TrackCircuitPosition(train.Train.PresentPosition[train.Direction]);
 
             // for loop detection, set occupied sections in sectionsInRoute list - but remove present position
             foreach (TrackCircuitSection occSection in train.Train.OccupiedTrack)
@@ -1843,7 +1851,7 @@ namespace Orts.Simulation.Signalling
             // correct for invalid combination of present position and occupied sections
             if (sectionsInRoute.Count > 0 && position.TrackCircuitSectionIndex != sectionsInRoute.First() && position.TrackCircuitSectionIndex != sectionsInRoute.Last())
             {
-                if (train.Train.PresentPosition[1].TrackCircuitSectionIndex == sectionsInRoute.First())
+                if (train.Train.PresentPosition[Direction.Backward].TrackCircuitSectionIndex == sectionsInRoute.First())
                 {
                     for (int i = sectionsInRoute.Count - 1; i >= 0; i--)
                     {
@@ -1857,7 +1865,7 @@ namespace Orts.Simulation.Signalling
                         }
                     }
                 }
-                else if (train.Train.PresentPosition[1].TrackCircuitSectionIndex == sectionsInRoute.Last())
+                else if (train.Train.PresentPosition[Direction.Backward].TrackCircuitSectionIndex == sectionsInRoute.Last())
                 {
                     for (int i = 0; i < sectionsInRoute.Count; i++)
                     {
@@ -1942,8 +1950,8 @@ namespace Orts.Simulation.Signalling
                 section = TrackCircuitSection.TrackCircuitList[train.Train.LoopSection];
 
                 // test if train is really occupying this section
-                TrackCircuitPartialPathRoute tempRoute = BuildTempRoute(train.Train, train.Train.PresentPosition[1].TrackCircuitSectionIndex, train.Train.PresentPosition[1].Offset,
-                    train.Train.PresentPosition[1].Direction, train.Train.Length, true, true, false);
+                TrackCircuitPartialPathRoute tempRoute = BuildTempRoute(train.Train, train.Train.PresentPosition[Direction.Backward].TrackCircuitSectionIndex, train.Train.PresentPosition[Direction.Backward].Offset,
+                    train.Train.PresentPosition[Direction.Backward].Direction, train.Train.Length, true, true, false);
 
                 if (tempRoute.GetRouteIndex(section.Index, 0) < 0)
                 {
@@ -1963,7 +1971,7 @@ namespace Orts.Simulation.Signalling
                 else
                 {
                     // update trains ValidRoute to avoid continuation at wrong entry
-                    int rearIndex = train.Train.PresentPosition[1].RouteListIndex;
+                    int rearIndex = train.Train.PresentPosition[Direction.Backward].RouteListIndex;
                     int nextIndex = routePart.GetRouteIndex(train.Train.LoopSection, rearIndex);
                     int firstIndex = routePart.GetRouteIndex(train.Train.LoopSection, 0);
 
@@ -2022,7 +2030,7 @@ namespace Orts.Simulation.Signalling
 
                     // check if section is in loop
                     if (sectionsInRoute.Contains(section.Index) ||
-                        (routeIndex > startRouteIndex && section.Index == train.Train.PresentPosition[train.TrainRouteDirectionIndex].TrackCircuitSectionIndex))
+                        (routeIndex > startRouteIndex && section.Index == train.Train.PresentPosition[train.Direction].TrackCircuitSectionIndex))
                     {
                         endAuthority = EndAuthorityType.Loop;
                         train.Train.LoopSection = section.Index;
@@ -2907,7 +2915,7 @@ namespace Orts.Simulation.Signalling
                         if (section.EndSignals[TrackDirection.Ahead] != null)
                         {
                             // end signal is always valid in timetable mode
-                            if (simulator.TimetableMode || distToSignal <= 150)
+                            if (Simulator.Instance.TimetableMode || distToSignal <= 150)
                             {
                                 platformDetails.EndSignals[TrackDirection.Ahead] = section.EndSignals[TrackDirection.Ahead].Index;
                                 platformDetails.DistanceToSignals[TrackDirection.Ahead] = distToSignal;
@@ -2959,7 +2967,7 @@ namespace Orts.Simulation.Signalling
 
                         if (section.EndSignals[TrackDirection.Reverse] != null)
                         {
-                            if (simulator.TimetableMode || distToSignal <= 150)
+                            if (Simulator.Instance.TimetableMode || distToSignal <= 150)
                             {
                                 platformDetails.EndSignals[TrackDirection.Reverse] = section.EndSignals[TrackDirection.Reverse].Index;
                                 platformDetails.DistanceToSignals[TrackDirection.Reverse] = distToSignal;
@@ -2997,20 +3005,16 @@ namespace Orts.Simulation.Signalling
                 }
             }
 
-            if (simulator.Activity != null && simulator.Activity.Activity.PlatformWaitingPassengers != null)
+            // Override .tdb NumPassengersWaiting info with .act NumPassengersWaiting info if any available
+            int overriddenPlatformDetailsIndex;
+            foreach (PlatformData platformData in Simulator.Instance.Activity?.Activity.PlatformWaitingPassengers ?? Enumerable.Empty<PlatformData>())
             {
-                // Override .tdb NumPassengersWaiting info with .act NumPassengersWaiting info if any available
-                int overriddenPlatformDetailsIndex;
-                foreach (PlatformData platformData in simulator.Activity.Activity.PlatformWaitingPassengers)
-                {
-                    overriddenPlatformDetailsIndex = PlatformDetailsList.FindIndex(platformDetails => (platformDetails.PlatformReference[Location.NearEnd] == platformData.ID) || (platformDetails.PlatformReference[Location.FarEnd] == platformData.ID));
-                    if (overriddenPlatformDetailsIndex >= 0)
-                        PlatformDetailsList[overriddenPlatformDetailsIndex].NumPassengersWaiting = platformData.PassengerCount;
-                    else
-                        Trace.TraceWarning("Platform referenced in .act file with TrItemId {0} not present in .tdb file ", platformData.ID);
-                }
+                overriddenPlatformDetailsIndex = PlatformDetailsList.FindIndex(platformDetails => (platformDetails.PlatformReference[Location.NearEnd] == platformData.ID) || (platformDetails.PlatformReference[Location.FarEnd] == platformData.ID));
+                if (overriddenPlatformDetailsIndex >= 0)
+                    PlatformDetailsList[overriddenPlatformDetailsIndex].NumPassengersWaiting = platformData.PassengerCount;
+                else
+                    Trace.TraceWarning("Platform referenced in .act file with TrItemId {0} not present in .tdb file ", platformData.ID);
             }
-
         }// ProcessPlatforms
 
         //================================================================================================//
@@ -3685,7 +3689,7 @@ namespace Orts.Simulation.Signalling
                 switchSection.JunctionLastRoute = switchSection.JunctionSetManual;
                 switchSet = true;
 
-                if (!simulator.TimetableMode)
+                if (!Simulator.Instance.TimetableMode)
                     switchSection.CircuitState.Forced = true;
 
                 foreach (int i in switchSection.LinkedSignals ?? Enumerable.Empty<int>())
@@ -3693,7 +3697,7 @@ namespace Orts.Simulation.Signalling
                     Signals[i].Update();
                 }
 
-                foreach (Train train in simulator.Trains)
+                foreach (Train train in Simulator.Instance.Trains)
                 {
                     if (train.TrainType != TrainType.Static)
                     {

@@ -99,5 +99,12 @@ namespace Orts.Simulation
         WaitingPoint,
     }
 
-
+    public enum AuxWagonType
+    {
+        //keep in sync with WagonType enum to allow mapping for Engine and Tender 
+        Unknown,
+        Engine,
+        Tender,
+        AuxiliaryTender,
+    }
 }

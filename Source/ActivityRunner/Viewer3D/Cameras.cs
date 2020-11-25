@@ -2504,13 +2504,13 @@ namespace Orts.ActivityRunner.Viewer3D
                 {
                     if (FirstUpdateLoop)
                     {
-                        tcSectionIndex = trainForwards ? train.PresentPosition[1].TrackCircuitSectionIndex : train.PresentPosition[0].TrackCircuitSectionIndex;
-                        routeIndex = trainForwards ? train.PresentPosition[1].RouteListIndex : train.PresentPosition[0].RouteListIndex;
+                        tcSectionIndex = trainForwards ? train.PresentPosition[Direction.Backward].TrackCircuitSectionIndex : train.PresentPosition[Direction.Forward].TrackCircuitSectionIndex;
+                        routeIndex = trainForwards ? train.PresentPosition[Direction.Backward].RouteListIndex : train.PresentPosition[Direction.Forward].RouteListIndex;
                     }
                     else
                     {
-                        tcSectionIndex = trainForwards ? train.PresentPosition[0].TrackCircuitSectionIndex : train.PresentPosition[1].TrackCircuitSectionIndex;
-                        routeIndex = trainForwards ? train.PresentPosition[0].RouteListIndex : train.PresentPosition[1].RouteListIndex;
+                        tcSectionIndex = trainForwards ? train.PresentPosition[Direction.Forward].TrackCircuitSectionIndex : train.PresentPosition[Direction.Backward].TrackCircuitSectionIndex;
+                        routeIndex = trainForwards ? train.PresentPosition[Direction.Forward].RouteListIndex : train.PresentPosition[Direction.Backward].RouteListIndex;
                     }
                     if (routeIndex != -1)
                     {
@@ -2519,9 +2519,9 @@ namespace Orts.ActivityRunner.Viewer3D
                         float distanceToAdd = TCSection.Length;
                         float incrDistance;
                         if (FirstUpdateLoop)
-                            incrDistance = trainForwards ? -train.PresentPosition[1].Offset : -TCSection.Length + train.PresentPosition[0].Offset;
+                            incrDistance = trainForwards ? -train.PresentPosition[Direction.Backward].Offset : -TCSection.Length + train.PresentPosition[Direction.Forward].Offset;
                         else
-                            incrDistance = trainForwards ? -train.PresentPosition[0].Offset : -TCSection.Length + train.PresentPosition[1].Offset;
+                            incrDistance = trainForwards ? -train.PresentPosition[Direction.Forward].Offset : -TCSection.Length + train.PresentPosition[Direction.Backward].Offset;
                         // scanning route in direction of train, searching for a platform
                         while (incrDistance < MaximumSpecialPointDistance * 0.7f)
                         {
