@@ -127,9 +127,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
                    this
                );
             PlanningWindow = new PlanningWindow(this, Viewer, PlanningLocation);
-
-            CircularSpeedGauge.Scale = Scale;
-            PlanningWindow.Scale = Scale;
         }
 
         public void PrepareFrame()
@@ -249,6 +246,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
         protected DMIWindow(DriverMachineInterface dmi)
         {
             DMI = dmi;
+            Scale = dmi.Scale;
         }
 
         public abstract void PrepareFrame(ETCSStatus status);

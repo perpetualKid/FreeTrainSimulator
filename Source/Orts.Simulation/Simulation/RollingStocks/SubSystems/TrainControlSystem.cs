@@ -34,6 +34,8 @@ using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
 using Orts.Simulation.Signalling;
 
+using static Orts.Scripting.Api.Etcs.ETCSStatus;
+
 namespace Orts.Simulation.RollingStocks.SubSystems
 {
     public class ScriptedTrainControlSystem

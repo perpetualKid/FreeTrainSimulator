@@ -28,6 +28,7 @@ using Orts.Common.Calc;
 using Orts.Scripting.Api.Etcs;
 
 using static Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs.DriverMachineInterface;
+using static Orts.Scripting.Api.Etcs.ETCSStatus;
 
 namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
 {
@@ -99,7 +100,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
         readonly int[] LinePositions = { 283, 250, 206, 182, 164, 150, 107, 64, 21 };
         readonly int[] LineDistances = { 0, 25, 50, 75, 100, 125, 250, 500, 1000 };
 
-        readonly int[] TrackConditionPositions = { 55, 80, 105 };
+        readonly int[] TrackConditionPositions = { 45, 70, 95 };
 
         public PlanningWindow(DriverMachineInterface dmi, Viewer viewer, Point planningLocation) : base(dmi)
         {
@@ -217,7 +218,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
             }
 
             // Scale buttons
-            spriteBatch.Draw(ScaleUpTexture[ButtonScaleUp.Enabled ? 1 : 0], ScaledRectangle(position, 14, 287, 12, 12), Color.White);
+            spriteBatch.Draw(ScaleUpTexture[ButtonScaleUp.Enabled ? 1 : 0], new Vector2(position.X + 14*Scale, position.Y + 287*Scale), null, Color.White, 0, new Vector2(0, 0), Scale, SpriteEffects.None, 1);
+            //spriteBatch.Draw(ScaleUpTexture[ButtonScaleUp.Enabled ? 1 : 0], ScaledRectangle(position, 14, 287, 12, 12), Color.White);
             spriteBatch.Draw(ScaleDownTexture[ButtonScaleDown.Enabled ? 1 : 0], ScaledRectangle(position, 14, 1, 12, 12), Color.White);
         }
 
@@ -402,22 +404,22 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
                         switch(condition.TractionSystem)
                         {
                             case TractionSystem.NonFitted:
-                                tex = TrackConditionTextureData[condition.YellowColour ? 24 : 23];
-                                break;
-                            case TractionSystem.AC25kV:
                                 tex = TrackConditionTextureData[condition.YellowColour ? 26 : 25];
                                 break;
-                            case TractionSystem.AC15kV:
+                            case TractionSystem.AC25kV:
                                 tex = TrackConditionTextureData[condition.YellowColour ? 28 : 27];
                                 break;
-                            case TractionSystem.DC3000V:
+                            case TractionSystem.AC15kV:
                                 tex = TrackConditionTextureData[condition.YellowColour ? 30 : 29];
                                 break;
-                            case TractionSystem.DC1500V:
+                            case TractionSystem.DC3000V:
                                 tex = TrackConditionTextureData[condition.YellowColour ? 32 : 31];
                                 break;
-                            case TractionSystem.DC750V:
+                            case TractionSystem.DC1500V:
                                 tex = TrackConditionTextureData[condition.YellowColour ? 34 : 33];
+                                break;
+                            case TractionSystem.DC750V:
+                                tex = TrackConditionTextureData[condition.YellowColour ? 36 : 35];
                                 break;
                             default:
                                 continue;
