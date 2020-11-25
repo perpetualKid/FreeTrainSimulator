@@ -292,6 +292,20 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 Script.CurrentPostSpeedLimitMpS = () => Locomotive.Train.allowedMaxSpeedLimitMpS;
                 Script.NextPostSpeedLimitMpS = (value) => NextGenericSignalItem<float>(value, ref ItemSpeedLimit, float.MaxValue, TrainPathItemType.Speedpost);
                 Script.NextPostDistanceM = (value) => NextGenericSignalItem<float>(value, ref ItemDistance, float.MaxValue, TrainPathItemType.Speedpost);
+                Script.NextTunnel = (value) =>
+                {
+                    List<TrainPathItem> list = Locomotive.Train.PlayerTrainTunnels[Locomotive.Train.MUDirection == MidpointDirection.Reverse ? Direction.Backward : Direction.Forward];
+                    if (value >= list?.Count) 
+                        return new TunnelInfo(float.MaxValue, -1);
+                    return new TunnelInfo(list[value].DistanceToTrainM, list[value].StationPlatformLength);
+                };
+                Script.NextMilepost = (value) =>
+                {
+                    List<TrainPathItem> list = Locomotive.Train.PlayerTrainMileposts[Locomotive.Train.MUDirection == MidpointDirection.Reverse ? Direction.Backward : Direction.Forward];
+                    if (value >= list?.Count) 
+                        return new MilepostInfo(float.MaxValue, -1);
+                    return new MilepostInfo(list[value].DistanceToTrainM, list[value].Miles);
+                };
                 Script.EOADistanceM = (value) => Locomotive.Train.DistanceToEndNodeAuthorityM[value];
                 Script.TrainLengthM = () => Locomotive.Train != null ? Locomotive.Train.Length : 0f;
                 Script.SpeedMpS = () => Math.Abs(Locomotive.SpeedMpS);

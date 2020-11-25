@@ -10716,7 +10716,7 @@ namespace Orts.Simulation.Physics
                             {
                                 if (!(distanceToTrainM - prevMilepostDistance < 50 && milepost.Value == prevMilepostValue) && distanceToTrainM > 0 && distanceToTrainM < maxDistanceM)
                                 {
-                                    trainPathItem = new TrainPathItem($"{milepost.Value}", distanceToTrainM);
+                                    trainPathItem = new TrainPathItem(milepost.Value, distanceToTrainM);
                                     prevMilepostDistance = distanceToTrainM;
                                     prevMilepostValue = milepost.Value;
                                     PlayerTrainMileposts[dir].Add(trainPathItem);
@@ -10731,7 +10731,7 @@ namespace Orts.Simulation.Physics
                     {
                         foreach (TunnelInfoData tunnel in section.TunnelInfo)
                         {
-                            float tunnelStartOffset = tunnel.SectionStartOffset[sectionDirection];
+                            float tunnelStartOffset = tunnel.Start[sectionDirection];
                             float distanceToTrainM = tunnelStartOffset + sectionDistanceToTrainM;
                             if (distanceToTrainM < maxDistanceM)
                             {
@@ -10740,6 +10740,14 @@ namespace Orts.Simulation.Physics
                                     trainPathItem = new TrainPathItem(tunnelStartOffset + sectionDistanceToTrainM, (int)tunnel.LengthTotal, TrainPathItemType.Tunnel);
                                     PlayerTrainTunnels[dir].Add(trainPathItem);
                                 }
+                                else if (PlayerTrainTunnels[dir].Count == 0 && (tunnel.End[sectionDirection] < 0 || tunnel.End[sectionDirection] > lengthOffset))
+                                {
+                                    // Train is in tunnel, compute remaining length
+                                    float remainingLength = tunnel.LengthTotal - lengthOffset - (tunnelStartOffset < 0 ? tunnel.SectionStartOffset[sectionDirection] : tunnelStartOffset);
+                                    trainPathItem = new TrainPathItem(-1, (int)remainingLength, TrainPathItemType.Tunnel);
+                                    PlayerTrainTunnels[dir].Add(trainPathItem);
+                                }
+
                             }
                             else
                                 break;
@@ -10846,7 +10854,7 @@ namespace Orts.Simulation.Physics
             if (StationStops?.Count > 0 && (!maxAuthSet || StationStops[0].DistanceToTrainM < DistanceToEndNodeAuthorityM[0]) &&
                 StationStops[0].SubrouteIndex == TCRoute.ActiveSubPath)
             {
-                result.ObjectInfoForward.Add(new TrainPathItem(StationStops[0].DistanceToTrainM, (int)StationStops[0].PlatformItem.Length));
+                result.ObjectInfoForward.Add(new TrainPathItem(StationStops[0].DistanceToTrainM, (int)StationStops[0].PlatformItem.Length, TrainPathItemType.Station));
             }
 
 

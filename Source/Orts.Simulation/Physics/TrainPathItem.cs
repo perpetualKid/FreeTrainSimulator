@@ -25,7 +25,7 @@ namespace Orts.Simulation.Physics
         public int StationPlatformLength { get; }
         public SpeedItemType SpeedObjectType { get; }
         public bool Valid { get; }
-        public string Miles { get; }
+        public float Miles { get; }
         public bool SwitchDivertsRight { get; }
         public Signal Signal { get; }
 
@@ -137,7 +137,7 @@ namespace Orts.Simulation.Physics
         }
 
         // Constructor for Milepost
-        public TrainPathItem(string miles, float distance)
+        public TrainPathItem(float miles, float distance)
         {
             ItemType = TrainPathItemType.Milepost;
             AuthorityType = EndAuthorityType.NoPathReserved;

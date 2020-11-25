@@ -110,6 +110,17 @@ namespace Orts.Scripting.Api
         /// </summary>
         public Func<int, float> NextPostDistanceM;
         /// <summary>
+        /// Distance and length of next tunnels
+        /// int: position of tunnel along the train route, starting from train front; 0 for first tunnel;
+        /// If train is in tunnel, index 0 will contain the remaining length of the tunnel
+        /// </summary>
+        public Func<int, TunnelInfo> NextTunnel;
+        /// <summary>
+        /// Distance and value of next mileposts
+        /// int: return nth milepost ahead; 0 for first milepost
+        /// </summary>
+        public Func<int, MilepostInfo> NextMilepost;
+        /// <summary>
         /// Distance to end of authority.
         /// int: direction; 0: forwards; 1: backwards
         /// </summary>
@@ -511,6 +522,48 @@ namespace Orts.Scripting.Api
             Distance = distance;
             SpeedLimit = speedLimit;
             Altitude = altitude;
+        }
+    }
+
+#pragma warning disable CA1815 // Override equals and operator equals on value types
+    public readonly struct TunnelInfo
+#pragma warning restore CA1815 // Override equals and operator equals on value types
+    {
+        /// <summary>
+        /// Distance to tunnel (m)
+        /// -1 if train is in tunnel
+        /// </summary>
+        public float Distance { get; }
+        /// <summary>
+        /// Tunnel length (m)
+        /// If train is in tunnel, remaining distance to exit
+        /// </summary>
+        public float Length { get; }
+
+        public TunnelInfo(float distance, float length)
+        {
+            Distance = distance;
+            Length = length;
+        }
+    }
+
+#pragma warning disable CA1815 // Override equals and operator equals on value types
+    public readonly struct MilepostInfo
+#pragma warning restore CA1815 // Override equals and operator equals on value types
+    {
+        /// <summary>
+        /// Distance to milepost (m)
+        /// </summary>
+        public float Distance { get; }
+        /// <summary>
+        /// Value of the milepost
+        /// </summary>
+        public float Value { get; }
+
+        public MilepostInfo(float distance, float value)
+        {
+            Distance = distance;
+            Value = value;
         }
     }
 }
