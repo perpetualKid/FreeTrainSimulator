@@ -56,7 +56,8 @@ namespace Orts.Common.Logging
 
         public void EndLine()
         {
-            cache.Length--;
+            if (cache.Length > 0)
+                cache.Length--;
             cache.AppendLine();
             if (cache.Length >= cacheSize)
                 Flush();
