@@ -104,6 +104,8 @@ namespace Orts.Common
         {
             if (source == null)
                 throw new ArgumentNullException(nameof(source));
+            if (!(source is ValueType))
+                throw new InvalidOperationException($"Cannot use reference type input to initialize multipe instances.");
 
             for (int col = 0; col < array.GetLength(0); col++)
                 for (int row = 0; row < array.GetLength(1); row++)

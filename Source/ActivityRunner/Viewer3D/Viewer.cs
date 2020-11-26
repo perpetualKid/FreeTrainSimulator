@@ -54,6 +54,7 @@ using Orts.Simulation.RollingStocks;
 using Orts.Viewer3D.Popups;
 using Orts.Scripting.Api;
 using Orts.Common.Info;
+using Orts.Simulation.Signalling;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -1719,28 +1720,31 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             Simulator.SignalEnvironment.RequestSetSwitch(index);
         }
+
         public void ToggleSwitchAhead()
         {
-            if (PlayerTrain.ControlMode == TrainControlMode.Manual)
-            {
-                PlayerTrain.ProcessRequestManualSetSwitch(Direction.Forward);
-            }
-            else if (PlayerTrain.ControlMode == TrainControlMode.Explorer)
-            {
-                PlayerTrain.ProcessRequestExplorerSetSwitch(Direction.Forward);
-            }
+            SignalEnvironment.RequestSetSwitch(PlayerTrain, Direction.Forward);
+            //if (PlayerTrain.ControlMode == TrainControlMode.Manual)
+            //{
+            //    PlayerTrain.ProcessRequestManualSetSwitch(Direction.Forward);
+            //}
+            //else if (PlayerTrain.ControlMode == TrainControlMode.Explorer)
+            //{
+            //    PlayerTrain.ProcessRequestExplorerSetSwitch(Direction.Forward);
+            //}
         }
 
         public void ToggleSwitchBehind()
         {
-            if (PlayerTrain.ControlMode == TrainControlMode.Manual)
-            {
-                PlayerTrain.ProcessRequestManualSetSwitch(Direction.Backward);
-            }
-            else if (PlayerTrain.ControlMode == TrainControlMode.Explorer)
-            {
-                PlayerTrain.ProcessRequestExplorerSetSwitch(Direction.Backward);
-            }
+            SignalEnvironment.RequestSetSwitch(PlayerTrain, Direction.Backward);
+            //if (PlayerTrain.ControlMode == TrainControlMode.Manual)
+            //{
+            //    PlayerTrain.ProcessRequestManualSetSwitch(Direction.Backward);
+            //}
+            //else if (PlayerTrain.ControlMode == TrainControlMode.Explorer)
+            //{
+            //    PlayerTrain.ProcessRequestExplorerSetSwitch(Direction.Backward);
+            //}
         }
 
         internal void UncoupleBehind(int carPosition)
