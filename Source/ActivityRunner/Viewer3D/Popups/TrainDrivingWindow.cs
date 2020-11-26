@@ -477,8 +477,8 @@ namespace Orts.Viewer3D.Popups
             var CombinedCT = Locomotive.CombinedControlType == MSTSLocomotive.CombinedControl.ThrottleDynamic ? true : false;
             var ShowMUReverser = Math.Abs(PlayerTrain.MUReverserPercent) != 100;
             var ShowRetainers = PlayerTrain.RetainerSetting != RetainerSetting.Exhaust;
-            var Stretched = PlayerTrain.Cars.Count > 1 && PlayerTrain.NPull == PlayerTrain.Cars.Count - 1;
-            var Bunched = !Stretched && PlayerTrain.Cars.Count > 1 && PlayerTrain.NPush == PlayerTrain.Cars.Count - 1;
+            var Stretched = PlayerTrain.Cars.Count > 1 && PlayerTrain.CouplersPulled == PlayerTrain.Cars.Count - 1;
+            var Bunched = !Stretched && PlayerTrain.Cars.Count > 1 && PlayerTrain.CouplersPushed == PlayerTrain.Cars.Count - 1;
             var ThisInfo = Owner.Viewer.PlayerTrain.GetTrainInfo();
             expandWindow = '\u23FA';// ⏺ toggle window
 

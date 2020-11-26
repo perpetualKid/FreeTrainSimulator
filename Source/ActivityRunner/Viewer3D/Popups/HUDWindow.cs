@@ -439,8 +439,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             var brakemanBrakeStatus = Viewer.PlayerLocomotive.GetBrakemanBrakeStatus();
             var dynamicBrakeStatus = Viewer.PlayerLocomotive.GetDynamicBrakeStatus();
             var locomotiveStatus = Viewer.PlayerLocomotive.GetStatus();
-            var stretched = playerTrain.Cars.Count > 1 && playerTrain.NPull == playerTrain.Cars.Count - 1;
-            var bunched = !stretched && playerTrain.Cars.Count > 1 && playerTrain.NPush == playerTrain.Cars.Count - 1;
+            var stretched = playerTrain.Cars.Count > 1 && playerTrain.CouplersPulled == playerTrain.Cars.Count - 1;
+            var bunched = !stretched && playerTrain.Cars.Count > 1 && playerTrain.CouplersPushed == playerTrain.Cars.Count - 1;
             
             //Disable Hudscroll.
             if(Viewer.HUDScrollWindow.Visible)

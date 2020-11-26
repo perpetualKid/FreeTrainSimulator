@@ -28,6 +28,7 @@ using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Common.Info;
 using Orts.Common.Threading;
+using Orts.Common.Xna;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
@@ -1512,7 +1513,9 @@ namespace Orts.Simulation
                                             0, 0, 0, 1);
 
             Matrix xnaLocation = Matrix.CreateTranslation((x1 + x2) / 2f, (y1 + y2) / 2f, -(z1 + z2) / 2f);
-            return xnaTilt * xnaRotation * xnaLocation;
+            MatrixExtension.Multiply(xnaTilt, xnaRotation, out Matrix result);
+            return MatrixExtension.Multiply(result, xnaLocation);
+//            return xnaTilt * xnaRotation * xnaLocation;
         }
 
         public void UncoupleBehind(int carPosition)

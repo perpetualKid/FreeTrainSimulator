@@ -495,7 +495,7 @@ namespace Orts.Simulation.RollingStocks
         // MotiveForceN and GravityForceN act to accelerate the train. The others act to brake the train.
         public float TotalForceN; // 
 
-        public string CarBrakeSystemType;
+        public string CarBrakeSystemType;       //TODO 20201125 convert to Enum
 
         public float CurrentElevationPercent;
 
@@ -2566,6 +2566,15 @@ namespace Orts.Simulation.RollingStocks
         {
             return 0f;
         }
+
+        /// changes the coupler force equation for car to make the corresponding force equal to forceN
+        internal void SetCouplerForce(float forceN)
+        {
+            CouplerForceA = CouplerForceC = 0;
+            CouplerForceB = 1;
+            CouplerForceR = forceN;
+        }
+
 
     }
 
