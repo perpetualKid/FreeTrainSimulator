@@ -78,12 +78,12 @@ namespace Orts.Simulation.Physics
                 MSTSLocomotive lead = (MSTSLocomotive)Cars[LeadLocomotiveIndex];
                 if (lead.TrainBrakeController != null)
                 {
-                    (double pressurePSI, double epControllerState) = lead.TrainBrakeController.UpdatePressure(EqualReservoirPressurePSIorInHg, BrakeLine4, 1000);
-                    EqualReservoirPressurePSIorInHg = (float)pressurePSI;
-                    BrakeLine4 = (float)epControllerState;
                     maxPressurePSI = lead.TrainBrakeController.MaxPressurePSI;
                     fullServPressurePSI = lead.BrakeSystem is VacuumSinglePipe ? 16 : maxPressurePSI - lead.TrainBrakeController.FullServReductionPSI;
-                    EqualReservoirPressurePSIorInHg = Math.Max(EqualReservoirPressurePSIorInHg, fullServPressurePSI);
+                    EqualReservoirPressurePSIorInHg = Math.Min(maxPressurePSI, EqualReservoirPressurePSIorInHg);
+                    (double pressurePSI, double epControllerState) = lead.TrainBrakeController.UpdatePressure(EqualReservoirPressurePSIorInHg, BrakeLine4, 1000);
+                    BrakeLine4 = (float)epControllerState;
+                    EqualReservoirPressurePSIorInHg = (float)Math.Max(pressurePSI, fullServPressurePSI);
                 }
                 if (lead.EngineBrakeController != null)
                     BrakeLine3PressurePSI = (float)lead.EngineBrakeController.UpdateEngineBrakePressure(BrakeLine3PressurePSI, 1000);
