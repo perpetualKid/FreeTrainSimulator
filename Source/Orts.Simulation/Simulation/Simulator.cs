@@ -1179,9 +1179,8 @@ namespace Orts.Simulation
             train.PresetExplorerPath(aiPath);
             train.ControlMode = TrainControlMode.Explorer;
 
-            bool canPlace = true;
-            TrackCircuitPartialPathRoute tempRoute = train.CalculateInitialTrainPosition(ref canPlace);
-            if (tempRoute.Count == 0 || !canPlace)
+            TrackCircuitPartialPathRoute tempRoute = train.CalculateInitialTrainPosition();
+            if (tempRoute.Count == 0)
             {
                 throw new InvalidDataException("Player train original position not clear");
             }
@@ -1237,9 +1236,8 @@ namespace Orts.Simulation
             train.Cars[0].Headlight = 0;
             OriginalPlayerTrain = train;
             train.Efficiency = 0.9f; // Forced efficiency, as considered most similar to human player
-            bool canPlace = true;
-            TrackCircuitPartialPathRoute tempRoute = train.CalculateInitialTrainPosition(ref canPlace);
-            if (tempRoute.Count == 0 || !canPlace)
+            TrackCircuitPartialPathRoute tempRoute = train.CalculateInitialTrainPosition();
+            if (tempRoute.Count == 0)
             {
                 throw new InvalidDataException("Player train original position not clear");
             }
@@ -1666,11 +1664,11 @@ namespace Orts.Simulation
                     train2.TCRoute.ActiveSubPath < train2.TCRoute.TCRouteSubpaths.Count - 1)
                 {
                     train2.TCRoute.ReversalInfo[train2.TCRoute.ActiveSubPath].ReverseReversalOffset = train2.PresentPosition[Direction.Forward].Offset - 10f;
-                    train2.AuxActionsContain.MoveAuxActionAfterReversal(train2);
+                    train2.AuxActionsContainer.MoveAuxActionAfterReversal(train2);
                 }
                 else if ((train.IsActualPlayerTrain && j >= i) || !keepFront)
                 {
-                    train2.AuxActionsContain.MoveAuxAction(train2);
+                    train2.AuxActionsContainer.MoveAuxAction(train2);
                 }
                 ((AITrain)train2).ResetActions(true);
             }
@@ -1823,7 +1821,7 @@ namespace Orts.Simulation
                             selectedAsPlayer.TCRoute.ActiveSubPath < selectedAsPlayer.TCRoute.TCRouteSubpaths.Count - 1)
                         {
                             selectedAsPlayer.TCRoute.ReversalInfo[selectedAsPlayer.TCRoute.ActiveSubPath].ReverseReversalOffset = selectedAsPlayer.PresentPosition[Direction.Forward].Offset - 10f;
-                            selectedAsPlayer.AuxActionsContain.MoveAuxActionAfterReversal(selectedAsPlayer);
+                            selectedAsPlayer.AuxActionsContainer.MoveAuxActionAfterReversal(selectedAsPlayer);
                         }
                         ((AITrain)selectedAsPlayer).ResetActions(true);
                     }

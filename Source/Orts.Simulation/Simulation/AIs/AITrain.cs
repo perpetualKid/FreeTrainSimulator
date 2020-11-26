@@ -428,7 +428,7 @@ namespace Orts.Simulation.AIs
                 SetEndOfRouteAction();              // set action to ensure train stops at end of route
 
                 // check if train starts at station stop
-                AuxActionsContain.SetAuxAction(this);
+                AuxActionsContainer.SetAuxAction(this);
                 if (StationStops.Count > 0)
                 {
                     atStation = CheckInitialStation();
@@ -627,8 +627,8 @@ namespace Orts.Simulation.AIs
 #endif
             bool[] stillExist;
 
-            AuxActionsContain.ProcessGenAction(this, presentTime, elapsedClockSeconds, MovementState);
-            MovementState = AuxActionsContain.ProcessSpecAction(this, presentTime, elapsedClockSeconds, MovementState);
+            AuxActionsContainer.ProcessGenAction(this, presentTime, elapsedClockSeconds, MovementState);
+            MovementState = AuxActionsContainer.ProcessSpecAction(this, presentTime, elapsedClockSeconds, MovementState);
 
             switch (MovementState)
             {
@@ -3254,7 +3254,7 @@ namespace Orts.Simulation.AIs
                     {
                         AIActionHornRef action = new AIActionHornRef(this, waitingPoint[5], 0f, waitingPoint[0], lastIndex, thisRoute[lastIndex].TrackCircuitSection.Index, (int)direction);
                         action.SetDelay(waitingPoint[2] - 60010);
-                        AuxActionsContain.Add(action);
+                        AuxActionsContainer.Add(action);
                     }
                     else
                     {
@@ -3265,7 +3265,7 @@ namespace Orts.Simulation.AIs
                             RandomizedWPDelay(ref randomizedDelay);
                         }
                         action.SetDelay(randomizedDelay);
-                        AuxActionsContain.Add(action);
+                        AuxActionsContainer.Add(action);
                         if (insertSigDelegate && (waitingPoint[2] != 60002) && signalIndex[iWait] > -1)
                         {
                             AIActSigDelegateRef delegateAction = new AIActSigDelegateRef(this, waitingPoint[5], 0f, waitingPoint[0], lastIndex, thisRoute[lastIndex].TrackCircuitSection.Index, (int)direction, action);
@@ -3280,7 +3280,7 @@ namespace Orts.Simulation.AIs
                             else delegateAction.Delay = 0;
                             delegateAction.SetSignalObject(signalRef.Signals[signalIndex[iWait]]);
 
-                            AuxActionsContain.Add(delegateAction);
+                            AuxActionsContainer.Add(delegateAction);
                         }
                     }
                 }
@@ -3293,7 +3293,7 @@ namespace Orts.Simulation.AIs
                         RandomizedWPDelay(ref randomizedDelay);
                     }
                     action.SetDelay( (randomizedDelay >= 30000 && randomizedDelay < 40000)? randomizedDelay : 0);
-                    AuxActionsContain.Add(action);
+                    AuxActionsContainer.Add(action);
                     AIActSigDelegateRef delegateAction = new AIActSigDelegateRef(this, waitingPoint[5], 0f, waitingPoint[0], lastIndex, thisRoute[lastIndex].TrackCircuitSection.Index, (int)direction, action);
                     signalRef.Signals[signalIndex[iWait]].LockForTrain(this.Number, waitingPoint[0]);
                     delegateAction.SetEndSignalIndex(signalIndex[iWait]);
@@ -3301,7 +3301,7 @@ namespace Orts.Simulation.AIs
                     if (randomizedDelay >= 30000 && randomizedDelay < 40000) delegateAction.IsAbsolute = true;
                     delegateAction.SetSignalObject(signalRef.Signals[signalIndex[iWait]]);
 
-                    AuxActionsContain.Add(delegateAction);
+                    AuxActionsContainer.Add(delegateAction);
                 }
                 //                insertSigDelegate = false;
             }
@@ -3364,12 +3364,13 @@ namespace Orts.Simulation.AIs
             TrackDirection directionNow = ValidRoute[0][PresentPosition[Direction.Forward].RouteListIndex].Direction;
             int positionNow = ValidRoute[0][PresentPosition[Direction.Forward].RouteListIndex].TrackCircuitSection.Index;
 
-            bool[] nextPart = UpdateRouteActions(0, checkLoop);
+            (bool endOfRoute, bool otherRouteAvailable) = UpdateRouteActions(0, checkLoop);
 
-            if (!nextPart[0]) return (returnValue);   // not at end and not to attach to anything
+            if (!endOfRoute) 
+                return returnValue;   // not at end and not to attach to anything
 
             returnValue[0] = true; // end of path reached
-            if (nextPart[1])   // next route available
+            if (otherRouteAvailable)   // next route available
             {
                 if (positionNow == PresentPosition[Direction.Forward].TrackCircuitSectionIndex && directionNow != PresentPosition[Direction.Forward].Direction)
                 {
@@ -3625,14 +3626,14 @@ namespace Orts.Simulation.AIs
                 float offset = attachTrain.FrontTDBTraveller.TrackNodeOffset;
                 TrackDirection direction = (TrackDirection)attachTrain.FrontTDBTraveller.Direction;
 
-                attachTrain.PresentPosition[Direction.Forward].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
+                attachTrain.PresentPosition[Direction.Forward].SetPosition(tn.TrackCircuitCrossReferences, offset, direction);
                 attachTrain.PreviousPosition[Direction.Forward].UpdateFrom(attachTrain.PresentPosition[Direction.Forward]);
 
                 tn = attachTrain.RearTDBTraveller.TN;
                 offset = attachTrain.RearTDBTraveller.TrackNodeOffset;
                 direction = (TrackDirection)attachTrain.RearTDBTraveller.Direction;
 
-                attachTrain.PresentPosition[Direction.Backward].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
+                attachTrain.PresentPosition[Direction.Backward].SetPosition(tn.TrackCircuitCrossReferences, offset, direction);
                 // set various items
                 attachTrain.CheckFreight();
                 attachTrain.activityClearingDistanceM = attachTrain.Cars.Count < standardTrainMinCarNo ? shortClearingDistanceM : standardClearingDistanceM;
@@ -3740,14 +3741,14 @@ namespace Orts.Simulation.AIs
             float offset = FrontTDBTraveller.TrackNodeOffset;
             TrackDirection direction = (TrackDirection)FrontTDBTraveller.Direction;
 
-            PresentPosition[Direction.Forward].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
+            PresentPosition[Direction.Forward].SetPosition(tn.TrackCircuitCrossReferences, offset, direction);
             PreviousPosition[Direction.Forward].UpdateFrom(PresentPosition[Direction.Forward]);
 
             tn = RearTDBTraveller.TN;
             offset = RearTDBTraveller.TrackNodeOffset;
             direction = (TrackDirection)RearTDBTraveller.Direction;
 
-            PresentPosition[Direction.Backward].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
+            PresentPosition[Direction.Backward].SetPosition(tn.TrackCircuitCrossReferences, offset, direction);
             // set various items
             CheckFreight();
             activityClearingDistanceM = Cars.Count < standardTrainMinCarNo ? shortClearingDistanceM : standardClearingDistanceM;
@@ -3966,28 +3967,28 @@ namespace Orts.Simulation.AIs
             float offset = FrontTDBTraveller.TrackNodeOffset;
             TrackDirection direction = (TrackDirection)FrontTDBTraveller.Direction;
 
-            PresentPosition[Direction.Forward].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
+            PresentPosition[Direction.Forward].SetPosition(tn.TrackCircuitCrossReferences, offset, direction);
             PreviousPosition[Direction.Forward].UpdateFrom(PresentPosition[Direction.Forward]);
 
             tn = RearTDBTraveller.TN;
             offset = RearTDBTraveller.TrackNodeOffset;
             direction = (TrackDirection)RearTDBTraveller.Direction;
 
-            PresentPosition[Direction.Backward].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
+            PresentPosition[Direction.Backward].SetPosition(tn.TrackCircuitCrossReferences, offset, direction);
 
             // update positions of coupled train
             tn = attachTrain.FrontTDBTraveller.TN;
             offset = attachTrain.FrontTDBTraveller.TrackNodeOffset;
             direction = (TrackDirection)attachTrain.FrontTDBTraveller.Direction;
 
-            attachTrain.PresentPosition[Direction.Forward].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
+            attachTrain.PresentPosition[Direction.Forward].SetPosition(tn.TrackCircuitCrossReferences, offset, direction);
             PreviousPosition[Direction.Forward].UpdateFrom(attachTrain.PresentPosition[Direction.Forward]);
 
             tn = attachTrain.RearTDBTraveller.TN;
             offset = attachTrain.RearTDBTraveller.TrackNodeOffset;
             direction = (TrackDirection)attachTrain.RearTDBTraveller.Direction;
 
-            attachTrain.PresentPosition[Direction.Backward].SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
+            attachTrain.PresentPosition[Direction.Backward].SetPosition(tn.TrackCircuitCrossReferences, offset, direction);
             // set various items
             CheckFreight();
             activityClearingDistanceM = Cars.Count < standardTrainMinCarNo ? shortClearingDistanceM : standardClearingDistanceM;
@@ -4002,7 +4003,7 @@ namespace Orts.Simulation.AIs
             if (PresentPosition[Direction.Backward].RouteListIndex < TCRoute.ReversalInfo[TCRoute.ActiveSubPath].LastSignalIndex)
                 TCRoute.ReversalInfo[TCRoute.ActiveSubPath].LastSignalIndex = PresentPosition[Direction.Backward].RouteListIndex;
             // move WP, if any, just under the loco;
-            AuxActionsContain.MoveAuxActionAfterReversal(this);
+            AuxActionsContainer.MoveAuxActionAfterReversal(this);
             ResetActions(true);
 
             PhysicsUpdate(0);   // stop the wheels from moving etc
@@ -4199,7 +4200,7 @@ namespace Orts.Simulation.AIs
             NextSignalObject[0] = null;
             NextSignalObject[1] = null;
             // reset AuxAction if any
-            AuxActionsContain.ResetAuxAction(this);
+            AuxActionsContainer.ResetAuxAction(this);
             TrainType = TrainType.AiIncorporated;
             LeadLocomotiveIndex = -1;
             Cars.Clear();
@@ -4345,7 +4346,7 @@ namespace Orts.Simulation.AIs
             requiredActions.RemovePendingAIActionItems(false);
 
             // reset auxiliary actions
-            AuxActionsContain.SetAuxAction(this);
+            AuxActionsContainer.SetAuxAction(this);
 
             // set next station stop in not at station
             if (StationStops.Count > 0)
@@ -4976,7 +4977,7 @@ namespace Orts.Simulation.AIs
                     {
                         movString = "Gen";
                     }
-                    else if (AuxActionsContain[0] != null && ((AIAuxActionsRef)AuxActionsContain[0]).NextAction == AuxActionRef.AuxiliaryAction.WaitingPoint)
+                    else if (AuxActionsContainer[0] != null && ((AIAuxActionsRef)AuxActionsContainer[0]).NextAction == AuxActionRef.AuxiliaryAction.WaitingPoint)
                     {
                         movString = "WTP";
                         DateTime baseDT = new DateTime();
@@ -4991,12 +4992,12 @@ namespace Orts.Simulation.AIs
                         }
                     }
                 }
-                else if (AuxActionsContain.specRequiredActions.Count > 0 && AuxActionsContain.specRequiredActions.First.Value is AuxActSigDelegate &&
-                     (AuxActionsContain.specRequiredActions.First.Value as AuxActSigDelegate).currentMvmtState == AITrain.AI_MOVEMENT_STATE.HANDLE_ACTION)
+                else if (AuxActionsContainer.specRequiredActions.Count > 0 && AuxActionsContainer.specRequiredActions.First.Value is AuxActSigDelegate &&
+                     (AuxActionsContainer.specRequiredActions.First.Value as AuxActSigDelegate).currentMvmtState == AITrain.AI_MOVEMENT_STATE.HANDLE_ACTION)
                 {
                     movString = "WTS";
                     DateTime baseDT = new DateTime();
-                    DateTime depTime = baseDT.AddSeconds((AuxActionsContain.specRequiredActions.First.Value as AuxActSigDelegate).ActualDepart);
+                    DateTime depTime = baseDT.AddSeconds((AuxActionsContainer.specRequiredActions.First.Value as AuxActSigDelegate).ActualDepart);
                     abString = depTime.ToString("HH:mm:ss");
                 }
 
@@ -5105,9 +5106,9 @@ namespace Orts.Simulation.AIs
             LeadLocomotiveIndex = leadLocomotiveIndex;
             simulator.PlayerLocomotive.SwitchToPlayerControl();
             if (MovementState == AI_MOVEMENT_STATE.HANDLE_ACTION && nextActionInfo != null && nextActionInfo.GetType().IsSubclassOf(typeof(AuxActionItem))
-                && AuxActionsContain[0] != null && ((AIAuxActionsRef)AuxActionsContain[0]).NextAction == AuxActionRef.AuxiliaryAction.WaitingPoint)
+                && AuxActionsContainer[0] != null && ((AIAuxActionsRef)AuxActionsContainer[0]).NextAction == AuxActionRef.AuxiliaryAction.WaitingPoint)
             {
-                (AuxActionsContain.SpecAuxActions[0] as AIActionWPRef).keepIt.currentMvmtState = AI_MOVEMENT_STATE.HANDLE_ACTION;
+                (AuxActionsContainer.SpecAuxActions[0] as AIActionWPRef).keepIt.currentMvmtState = AI_MOVEMENT_STATE.HANDLE_ACTION;
             }
             TrainType = TrainType.AiPlayerDriven;
             success = true;
@@ -5162,8 +5163,8 @@ namespace Orts.Simulation.AIs
             {
                 MovementState = AI_MOVEMENT_STATE.STATION_STOP;
             }
-            else if (Math.Abs(SpeedMpS) <= 0.1f && ((AuxActionsContain.SpecAuxActions.Count > 0 && AuxActionsContain.SpecAuxActions[0] is AIActionWPRef && (AuxActionsContain.SpecAuxActions[0] as AIActionWPRef).keepIt != null &&
-            (AuxActionsContain.SpecAuxActions[0] as AIActionWPRef).keepIt.currentMvmtState == AITrain.AI_MOVEMENT_STATE.HANDLE_ACTION) || (nextActionInfo is AuxActionWPItem &&
+            else if (Math.Abs(SpeedMpS) <= 0.1f && ((AuxActionsContainer.SpecAuxActions.Count > 0 && AuxActionsContainer.SpecAuxActions[0] is AIActionWPRef && (AuxActionsContainer.SpecAuxActions[0] as AIActionWPRef).keepIt != null &&
+            (AuxActionsContainer.SpecAuxActions[0] as AIActionWPRef).keepIt.currentMvmtState == AITrain.AI_MOVEMENT_STATE.HANDLE_ACTION) || (nextActionInfo is AuxActionWPItem &&
                     MovementState == AITrain.AI_MOVEMENT_STATE.HANDLE_ACTION)))
             {
                 MovementState = AI_MOVEMENT_STATE.HANDLE_ACTION;
@@ -5431,8 +5432,8 @@ namespace Orts.Simulation.AIs
             int presentTime = Convert.ToInt32(Math.Floor(simulator.ClockTime));
             var roughActualDepart = presentTime + delayToRestart;
             if (MovementState == AITrain.AI_MOVEMENT_STATE.HANDLE_ACTION && (((nextActionInfo as AuxActionWPItem).ActionRef as AIActionWPRef).Delay == matchingWPDelay ||
-                (AuxActionsContain.specRequiredActions.Count > 0 && ((AuxActSigDelegate)(AuxActionsContain.specRequiredActions).First.Value).currentMvmtState == AITrain.AI_MOVEMENT_STATE.HANDLE_ACTION &&
-                (((AuxActSigDelegate)(AuxActionsContain.specRequiredActions).First.Value).ActionRef as AIActSigDelegateRef).Delay == matchingWPDelay)))
+                (AuxActionsContainer.specRequiredActions.Count > 0 && ((AuxActSigDelegate)(AuxActionsContainer.specRequiredActions).First.Value).currentMvmtState == AITrain.AI_MOVEMENT_STATE.HANDLE_ACTION &&
+                (((AuxActSigDelegate)(AuxActionsContainer.specRequiredActions).First.Value).ActionRef as AIActSigDelegateRef).Delay == matchingWPDelay)))
             {
                 if (((nextActionInfo as AuxActionWPItem).ActionRef as AIActionWPRef).Delay >= 30000 && ((nextActionInfo as AuxActionWPItem).ActionRef as AIActionWPRef).Delay < 32400)
                 // absolute WP, use minutes as unit of measure
@@ -5453,11 +5454,11 @@ namespace Orts.Simulation.AIs
                 if (((nextActionInfo as AuxActionWPItem).ActionRef as AIActionWPRef).LinkedAuxAction)
                 // also a signal is connected with this WP
                 {
-                    if (AuxActionsContain.specRequiredActions.Count > 0 && AuxActionsContain.specRequiredActions.First.Value is AuxActSigDelegate)
+                    if (AuxActionsContainer.specRequiredActions.Count > 0 && AuxActionsContainer.specRequiredActions.First.Value is AuxActSigDelegate)
                     // if should be true only for absolute WPs, where the linked aux action is started in parallel
                     {
-                        (AuxActionsContain.specRequiredActions.First.Value as AuxActSigDelegate).ActualDepart = (nextActionInfo as AuxActionWPItem).ActualDepart;
-                        ((AuxActionsContain.specRequiredActions.First.Value as AuxActSigDelegate).ActionRef as AIActSigDelegateRef).Delay = ((nextActionInfo as AuxActionWPItem).ActionRef as AIActionWPRef).Delay;
+                        (AuxActionsContainer.specRequiredActions.First.Value as AuxActSigDelegate).ActualDepart = (nextActionInfo as AuxActionWPItem).ActualDepart;
+                        ((AuxActionsContainer.specRequiredActions.First.Value as AuxActSigDelegate).ActionRef as AIActSigDelegateRef).Delay = ((nextActionInfo as AuxActionWPItem).ActionRef as AIActionWPRef).Delay;
                     }
                 }
 
@@ -5474,8 +5475,8 @@ namespace Orts.Simulation.AIs
                     var minutes = (roughActualDepart - hrs * 3600) / 60;
                     ((nextActionInfo as AuxActionWPItem).ActionRef as AIActionWPRef).Delay = 30000 + minutes + hrs * 100;
                     (nextActionInfo as AuxActionWPItem).SetDelay(30000 + minutes + hrs * 100);
-                    if (AuxActionsContain.SpecAuxActions.Count > 0 && AuxActionsContain.SpecAuxActions[0] is AIActionWPRef)
-                        (AuxActionsContain.SpecAuxActions[0] as AIActionWPRef).Delay = 30000 + minutes + hrs * 100;
+                    if (AuxActionsContainer.SpecAuxActions.Count > 0 && AuxActionsContainer.SpecAuxActions[0] is AIActionWPRef)
+                        (AuxActionsContainer.SpecAuxActions[0] as AIActionWPRef).Delay = 30000 + minutes + hrs * 100;
                     actualDepart = (roughActualDepart / 60) * 60 + (roughActualDepart % 60 == 0 ? 0 : 60);
                     delay = ((nextActionInfo as AuxActionWPItem).ActionRef as AIActionWPRef).Delay;
                 }
@@ -5489,14 +5490,14 @@ namespace Orts.Simulation.AIs
                 if (((nextActionInfo as AuxActionWPItem).ActionRef as AIActionWPRef).LinkedAuxAction)
                 // also a signal is connected with this WP
                 {
-                    if (AuxActionsContain.specRequiredActions.Count > 0 && AuxActionsContain.specRequiredActions.First.Value is AuxActSigDelegate)
+                    if (AuxActionsContainer.specRequiredActions.Count > 0 && AuxActionsContainer.specRequiredActions.First.Value is AuxActSigDelegate)
                     // if should be true only for absolute WPs, where the linked aux action is started in parallel
                     {
-                        (AuxActionsContain.specRequiredActions.First.Value as AuxActSigDelegate).ActualDepart = actualDepart;
-                        ((AuxActionsContain.specRequiredActions.First.Value as AuxActSigDelegate).ActionRef as AIActSigDelegateRef).Delay = ((nextActionInfo as AuxActionWPItem).ActionRef as AIActionWPRef).Delay;
+                        (AuxActionsContainer.specRequiredActions.First.Value as AuxActSigDelegate).ActualDepart = actualDepart;
+                        ((AuxActionsContainer.specRequiredActions.First.Value as AuxActSigDelegate).ActionRef as AIActSigDelegateRef).Delay = ((nextActionInfo as AuxActionWPItem).ActionRef as AIActionWPRef).Delay;
                     }
-                    if (AuxActionsContain.SpecAuxActions.Count > 1 && AuxActionsContain.SpecAuxActions[1] is AIActSigDelegateRef)
-                        (AuxActionsContain.SpecAuxActions[1] as AIActSigDelegateRef).Delay = delay;
+                    if (AuxActionsContainer.SpecAuxActions.Count > 1 && AuxActionsContainer.SpecAuxActions[1] is AIActSigDelegateRef)
+                        (AuxActionsContainer.SpecAuxActions[1] as AIActSigDelegateRef).Delay = delay;
                 }
             }
         }

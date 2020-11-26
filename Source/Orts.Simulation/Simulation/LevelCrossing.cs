@@ -186,7 +186,7 @@ namespace Orts.Simulation
                 if (train is AITrain && frontDist <= hornReqDist && (train.ReservedTrackLengthM <= 0 || frontDist < train.ReservedTrackLengthM) && rearDist <= minimumDist)
                 {
                     //  Add generic actions if needed
-                    ((AITrain)train).AuxActionsContain.CheckGenActions(this.GetType(), crossing.Location, rearDist, frontDist, crossing.TrackIndex);
+                    ((AITrain)train).AuxActionsContainer.CheckGenActions(this.GetType(), crossing.Location, rearDist, frontDist, crossing.TrackIndex);
                 }
 
                 // The tests below is to allow the crossings operate like the crossings under MSTS

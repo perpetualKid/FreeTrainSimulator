@@ -1121,7 +1121,7 @@ namespace Orts.Simulation.Signalling
                 throw new ArgumentNullException(nameof(trackCircuitXRefList));
 
             TrackCircuitPosition position = new TrackCircuitPosition();
-            position.SetTCPosition(trackCircuitXRefList, offset, (TrackDirection)direction);
+            position.SetPosition(trackCircuitXRefList, offset, (TrackDirection)direction);
             TrackCircuitPartialPathRoute route = BuildTempRoute(null, position.TrackCircuitSectionIndex, position.Offset, position.Direction, routeLength, true, false, false);
             SignalItemInfo signalInfo = GetNextObjectInRoute(null, route, 0, position.Offset, -1, SignalItemType.Signal, position);
 

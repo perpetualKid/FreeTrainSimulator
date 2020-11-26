@@ -62,7 +62,7 @@ namespace Orts.Simulation.Track
             TrackDirection direction = (TrackDirection)train.FrontTDBTraveller.Direction;
 
             TrackCircuitPosition tempPosition = new TrackCircuitPosition();
-            tempPosition.SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
+            tempPosition.SetPosition(tn.TrackCircuitCrossReferences, offset, direction);
 
             TrackCircuitSectionIndex = inf.ReadInt32();
             Direction = (TrackDirection)inf.ReadInt32();
@@ -94,7 +94,7 @@ namespace Orts.Simulation.Track
             TrackDirection direction = (TrackDirection)train.RearTDBTraveller.Direction;
 
             TrackCircuitPosition tempPosition = new TrackCircuitPosition();
-            tempPosition.SetTCPosition(tn.TrackCircuitCrossReferences, offset, direction);
+            tempPosition.SetPosition(tn.TrackCircuitCrossReferences, offset, direction);
 
             TrackCircuitSectionIndex = inf.ReadInt32();
             Direction = (TrackDirection)inf.ReadInt32();
@@ -193,12 +193,11 @@ namespace Orts.Simulation.Track
             DistanceTravelled = source.DistanceTravelled;
         }
 
-        //================================================================================================//
         /// <summary>
         /// Reverse (or continue in same direction)
         /// <\summary>
 
-        public void Reverse(TrackDirection oldDirection, TrackCircuitPartialPathRoute route, float offset)
+        internal void Reverse(TrackDirection oldDirection, TrackCircuitPartialPathRoute route, float offset)
         {
             if (null == route)
                 throw new ArgumentNullException(nameof(route));
@@ -219,7 +218,7 @@ namespace Orts.Simulation.Track
         /// <param name="trackCircuitCrossReferecenList">List of cross-references from tracknode to trackcircuitsection</param>
         /// <param name="offset">Offset along the tracknode</param>
         /// <param name="direction">direction along the tracknode (1 is forward)</param>
-        public void SetTCPosition(TrackCircuitCrossReferences trackCircuitCrossReferecenList, float offset, TrackDirection direction)
+        internal void SetPosition(TrackCircuitCrossReferences trackCircuitCrossReferecenList, float offset, TrackDirection direction)
         {
             if (null == trackCircuitCrossReferecenList)
                 throw new ArgumentNullException(nameof(trackCircuitCrossReferecenList));

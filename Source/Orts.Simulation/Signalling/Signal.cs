@@ -96,7 +96,7 @@ namespace Orts.Simulation.Signalling
         public TrackCircuitPartialPathRoute SignalRoute { get; internal set; } = new TrackCircuitPartialPathRoute();  // train route from signal
         public int TrainRouteIndex { get; private set; }    // index of section after signal in train route list
         public Train.TrainRouted EnabledTrain { get; internal set; } // full train structure for which signal is enabled
-        public IList<int> Signalfound { get; }              // active next signal - used for signals with NORMAL heads only
+        public IList<int> Signalfound { get; }              // active next signal - used for signals with NORMAL heads only     //TODO 20201126 convert to EnumArray on SignalFunction enum
         public SignalPermission OverridePermission { get; set; } = SignalPermission.Denied;  // Permission to pass red signal
         public SignalHoldState HoldState { get; set; } = SignalHoldState.None;
 
@@ -2053,7 +2053,7 @@ namespace Orts.Simulation.Signalling
             if (train.Train is AITrain aitrain && Math.Abs(train.Train.SpeedMpS) <= Simulator.MaxStoppedMpS)
             {
                 ref readonly WorldLocation location = ref TdbTraveller.WorldLocation;
-                aitrain.AuxActionsContain.CheckGenActions(GetType(), location, 0f, 0f, TdbTraveller.TrackNodeIndex);
+                aitrain.AuxActionsContainer.CheckGenActions(GetType(), location, 0f, 0f, TdbTraveller.TrackNodeIndex);
             }
 
             return SignalMR(SignalFunction.Normal) != SignalAspectState.Stop;

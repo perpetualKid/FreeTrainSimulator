@@ -505,10 +505,7 @@ namespace Orts.Simulation.AIs
                 // if player train exists but cannot be placed or has no power 
                 else if (playerTrain != null)
                 {
-                    bool playerHasValidPosition = false;
-                    playerTrain.CalculateInitialTrainPosition(ref playerHasValidPosition);
-
-                    if (!playerHasValidPosition)
+                    if (playerTrain.CalculateInitialTrainPosition().Count == 0)
                     {
                         delayedrun = true;
                         Trace.TraceInformation("Player train start delayed as track is not clear");
@@ -590,7 +587,7 @@ namespace Orts.Simulation.AIs
                         }
                         else
                         {
-                            playerTrain.CalculateInitialTrainPosition(ref playerTrainStarted);
+                            playerTrainStarted = playerTrain.CalculateInitialTrainPosition().Count > 0;
                         }
                     }
 
@@ -981,9 +978,8 @@ namespace Orts.Simulation.AIs
         {
             // clear track and align switches - check state
 
-            bool validPosition = true;
-            TrackCircuitPartialPathRoute tempRoute = thisTrain.CalculateInitialTrainPosition(ref validPosition);
-
+            TrackCircuitPartialPathRoute tempRoute = thisTrain.CalculateInitialTrainPosition();
+            bool validPosition = tempRoute.Count > 0;
             if (validPosition)
             {
                 thisTrain.SetInitialTrainRoute(tempRoute);

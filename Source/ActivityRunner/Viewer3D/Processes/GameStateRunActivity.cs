@@ -289,7 +289,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 // wait 5 seconds to see if you get a reply from server with updated position/consist data, else go on
 
                 System.Threading.Thread.Sleep(5000);
-                if (simulator.Trains[0].jumpRequested)
+                if (simulator.Trains[0].RequestJump)
                 {
                     simulator.Trains[0].UpdateRemoteTrainPos(0);
                 }

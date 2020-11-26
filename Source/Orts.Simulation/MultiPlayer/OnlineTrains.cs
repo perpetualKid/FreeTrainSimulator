@@ -221,9 +221,8 @@ namespace Orts.MultiPlayer
             train.ControlMode = TrainControlMode.Explorer;
             train.CheckFreight();
             train.InitializeBrakes();
-            bool canPlace = true;
-            TrackCircuitPartialPathRoute tempRoute = train.CalculateInitialTrainPosition(ref canPlace);
-            if (tempRoute.Count == 0 || !canPlace)
+            TrackCircuitPartialPathRoute tempRoute = train.CalculateInitialTrainPosition();
+            if (tempRoute.Count == 0)
             {
                 MPManager.BroadCast((new MSGMessage(p.Username, "Error", "Cannot be placed into the game")).ToString());//server will broadcast this error
                 throw new InvalidDataException("Remote train original position not clear");

@@ -136,14 +136,14 @@ namespace Orts.Simulation.AIs
 
                 if (ThisTrain is AITrain && ((aiTrain.MovementState == AITrain.AI_MOVEMENT_STATE.HANDLE_ACTION && aiTrain.nextActionInfo != null &&
                 aiTrain.nextActionInfo.NextAction == AIActionItem.AI_ACTION_TYPE.AUX_ACTION && aiTrain.nextActionInfo is AuxActionWPItem)
-                || ( aiTrain.AuxActionsContain.SpecAuxActions.Count > 0 &&
-                aiTrain.AuxActionsContain.SpecAuxActions[0] is AIActionWPRef && (aiTrain.AuxActionsContain.SpecAuxActions[0] as AIActionWPRef).keepIt != null &&
-                (aiTrain.AuxActionsContain.SpecAuxActions[0] as AIActionWPRef).keepIt.currentMvmtState == AITrain.AI_MOVEMENT_STATE.HANDLE_ACTION)))
+                || ( aiTrain.AuxActionsContainer.SpecAuxActions.Count > 0 &&
+                aiTrain.AuxActionsContainer.SpecAuxActions[0] is AIActionWPRef && (aiTrain.AuxActionsContainer.SpecAuxActions[0] as AIActionWPRef).keepIt != null &&
+                (aiTrain.AuxActionsContainer.SpecAuxActions[0] as AIActionWPRef).keepIt.currentMvmtState == AITrain.AI_MOVEMENT_STATE.HANDLE_ACTION)))
                 // WP is running
                 {
                     // Do nothing if it is an absolute WP
-                    if (!(aiTrain.AuxActionsContain.SpecAuxActions.Count > 0 && aiTrain.AuxActionsContain.SpecAuxActions[0] is AIActionWPRef && 
-                        (aiTrain.AuxActionsContain.SpecAuxActions[0] as AIActionWPRef).Delay >= 30000 && (aiTrain.AuxActionsContain.SpecAuxActions[0] as AIActionWPRef).Delay < 40000))
+                    if (!(aiTrain.AuxActionsContainer.SpecAuxActions.Count > 0 && aiTrain.AuxActionsContainer.SpecAuxActions[0] is AIActionWPRef && 
+                        (aiTrain.AuxActionsContainer.SpecAuxActions[0] as AIActionWPRef).Delay >= 30000 && (aiTrain.AuxActionsContainer.SpecAuxActions[0] as AIActionWPRef).Delay < 40000))
                     {
                         int remainingDelay;
                         if (aiTrain.nextActionInfo != null && aiTrain.nextActionInfo is AuxActionWPItem) remainingDelay = ((AuxActionWPItem)aiTrain.nextActionInfo).ActualDepart - currentClock;
@@ -153,9 +153,9 @@ namespace Orts.Simulation.AIs
                 }
             }
             // check for horn actions
-            if (ThisTrain is AITrain && aiTrain.AuxActionsContain.specRequiredActions.Count > 0)
+            if (ThisTrain is AITrain && aiTrain.AuxActionsContainer.specRequiredActions.Count > 0)
             {
-                foreach (AITrain.DistanceTravelledItem specRequiredAction in aiTrain.AuxActionsContain.specRequiredActions)
+                foreach (AITrain.DistanceTravelledItem specRequiredAction in aiTrain.AuxActionsContainer.specRequiredActions)
                 {
                     if (specRequiredAction is AuxActionHornItem)
                     {
@@ -1392,7 +1392,7 @@ namespace Orts.Simulation.AIs
                 // If delay equal to 60002 it is considered as a request for permission to pass signal;
                 aiTrain.TestPermission(ref Delay);
                 ActualDepart = correctedTime + Delay;
-                aiTrain.AuxActionsContain.CheckGenActions(this.GetType(), aiTrain.RearTDBTraveller.WorldLocation, Delay);
+                aiTrain.AuxActionsContainer.CheckGenActions(this.GetType(), aiTrain.RearTDBTraveller.WorldLocation, Delay);
 
 #if WITH_PATH_DEBUG
                 File.AppendAllText(@"C:\temp\checkpath.txt", "WP, init action for train " + aiTrain.Number + " at " + correctedTime + " to " + ActualDepart + "(HANDLE_ACTION)\n");
@@ -1412,7 +1412,7 @@ namespace Orts.Simulation.AIs
                 }
                 AITrain aiTrain = thisTrain as AITrain;
 
-                thisTrain.AuxActionsContain.CheckGenActions(this.GetType(), aiTrain.RearTDBTraveller.WorldLocation, ActualDepart - presentTime);
+                thisTrain.AuxActionsContainer.CheckGenActions(this.GetType(), aiTrain.RearTDBTraveller.WorldLocation, ActualDepart - presentTime);
 
                 if (ActualDepart > presentTime)
                 {
@@ -1426,8 +1426,8 @@ namespace Orts.Simulation.AIs
 #if WITH_PATH_DEBUG
             File.AppendAllText(@"C:\temp\checkpath.txt", "WP, Action ended for train " + thisTrain.Number + " at " + presentTime + "(STOPPED)\n");
 #endif
-                    if (thisTrain.AuxActionsContain.CountSpec() > 0)
-                        thisTrain.AuxActionsContain.Remove(this);
+                    if (thisTrain.AuxActionsContainer.CountSpec() > 0)
+                        thisTrain.AuxActionsContainer.Remove(this);
                     return AITrain.AI_MOVEMENT_STATE.STOPPED;
                 }
             }
@@ -1436,8 +1436,8 @@ namespace Orts.Simulation.AIs
 #if WITH_PATH_DEBUG
             File.AppendAllText(@"C:\temp\checkpath.txt", "WP, Action ended for train " + thisTrain.Number + " at " + presentTime + "(STOPPED)\n");
 #endif
-                if (thisTrain.AuxActionsContain.CountSpec() > 0)
-                    thisTrain.AuxActionsContain.Remove(this);
+                if (thisTrain.AuxActionsContainer.CountSpec() > 0)
+                    thisTrain.AuxActionsContainer.Remove(this);
                 return AITrain.AI_MOVEMENT_STATE.STOPPED;
             }
             return movementState;
@@ -1486,14 +1486,14 @@ namespace Orts.Simulation.AIs
                     }
                     else
                     {
-                        if (thisTrain.AuxActionsContain.CountSpec() > 0)
-                            thisTrain.AuxActionsContain.RemoveAt(0);
+                        if (thisTrain.AuxActionsContainer.CountSpec() > 0)
+                            thisTrain.AuxActionsContainer.RemoveAt(0);
                     }
                     break;
                 case AITrain.AI_MOVEMENT_STATE.STOPPED:
                     if (!(thisTrain is AITrain))
-                        if (thisTrain.AuxActionsContain.CountSpec() > 0)
-                            thisTrain.AuxActionsContain.Remove(this);
+                        if (thisTrain.AuxActionsContainer.CountSpec() > 0)
+                            thisTrain.AuxActionsContainer.Remove(this);
 
 
  #if WITH_PATH_DEBUG
@@ -1645,7 +1645,7 @@ namespace Orts.Simulation.AIs
                 }
                 else if (((MSTSLocomotive)locomotive).DoesHornTriggerBell && ActualDepart + BellPlayTime < presentTime)
                     ((MSTSLocomotive)locomotive).BellState = MSTSLocomotive.SoundState.Stopped;
-                thisTrain.AuxActionsContain.Remove(this);
+                thisTrain.AuxActionsContainer.Remove(this);
                 return currentMvmtState;    //  Restore previous MovementState
             }
             return movementState;
@@ -1741,7 +1741,7 @@ namespace Orts.Simulation.AIs
         {
             if (ActionRef == null || SignalReferenced == null)
             {
-                thisTrain.AuxActionsContain.RemoveSpecReqAction(this);
+                thisTrain.AuxActionsContainer.RemoveSpecReqAction(this);
                 return false;
             }
             if (ActionRef != null && ((AIAuxActionsRef)ActionRef).LinkedAuxAction)
@@ -1850,14 +1850,14 @@ namespace Orts.Simulation.AIs
                     {
                         thisTrain.requiredActions.Remove(WPAction);
                     }
-                    if (thisTrain.AuxActionsContain.specRequiredActions.Contains(WPAction))
-                        thisTrain.AuxActionsContain.specRequiredActions.Remove(WPAction);
-                    if (thisTrain.AuxActionsContain.SpecAuxActions.Contains(((AIActSigDelegateRef)ActionRef).AssociatedWPAction))
-                        thisTrain.AuxActionsContain.SpecAuxActions.Remove(((AIActSigDelegateRef)ActionRef).AssociatedWPAction);
+                    if (thisTrain.AuxActionsContainer.specRequiredActions.Contains(WPAction))
+                        thisTrain.AuxActionsContainer.specRequiredActions.Remove(WPAction);
+                    if (thisTrain.AuxActionsContainer.SpecAuxActions.Contains(((AIActSigDelegateRef)ActionRef).AssociatedWPAction))
+                        thisTrain.AuxActionsContainer.SpecAuxActions.Remove(((AIActSigDelegateRef)ActionRef).AssociatedWPAction);
                 }
-                if (thisTrain.AuxActionsContain.CountSpec() > 0)
+                if (thisTrain.AuxActionsContainer.CountSpec() > 0)
                 {
-                    thisTrain.AuxActionsContain.Remove(this);
+                    thisTrain.AuxActionsContainer.Remove(this);
                 }
 #if WITH_PATH_DEBUG
                 else

@@ -613,7 +613,7 @@ namespace Orts.MultiPlayer
                                 }
                             }
                             t.updateMSGReceived = true;
-                            t.jumpRequested = true; // server has requested me to jump after I re-entered the game
+                            t.RequestJump = true; // server has requested me to jump after I re-entered the game
                         }
                     }
                     MPManager.Simulator.ClockTime = this.seconds;
@@ -1344,8 +1344,7 @@ namespace Orts.MultiPlayer
             train.InitializeBrakes();
             //train.InitializeSignals(false);//client do it won't have impact
             train.CheckFreight();
-            bool canPlace = true;
-            TrackCircuitPartialPathRoute tempRoute = train.CalculateInitialTrainPosition(ref canPlace);
+            TrackCircuitPartialPathRoute tempRoute = train.CalculateInitialTrainPosition();
 
             train.SetInitialTrainRoute(tempRoute);
             train.CalculatePositionOfCars();
@@ -1588,8 +1587,7 @@ namespace Orts.MultiPlayer
             train1.InitializeBrakes();
             //train1.InitializeSignals(false);
             train1.CheckFreight();
-            bool canPlace = true;
-            TrackCircuitPartialPathRoute tempRoute = train1.CalculateInitialTrainPosition(ref canPlace);
+            TrackCircuitPartialPathRoute tempRoute = train1.CalculateInitialTrainPosition();
 
             train1.SetInitialTrainRoute(tempRoute);
             train1.CalculatePositionOfCars();
@@ -2615,9 +2613,8 @@ namespace Orts.MultiPlayer
                         train.ControlMode = TrainControlMode.Explorer;
                         train.CheckFreight();
                         train.InitializeBrakes();
-                        canPlace = true;
-                        tempRoute = train.CalculateInitialTrainPosition(ref canPlace);
-                        if (tempRoute.Count == 0 || !canPlace)
+                        tempRoute = train.CalculateInitialTrainPosition();
+                        if (tempRoute.Count == 0)
                         {
                             throw new InvalidDataException("Remote train original position not clear");
                         }
@@ -2688,9 +2685,8 @@ namespace Orts.MultiPlayer
                 train2.ControlMode = TrainControlMode.Explorer;
                 train2.CheckFreight();
                 train2.InitializeBrakes();
-                canPlace = true;
-                tempRoute = train2.CalculateInitialTrainPosition(ref canPlace);
-                if (tempRoute.Count == 0 || !canPlace)
+                tempRoute = train2.CalculateInitialTrainPosition();
+                if (tempRoute.Count == 0)
                 {
                     throw new InvalidDataException("Remote train original position not clear");
                 }
