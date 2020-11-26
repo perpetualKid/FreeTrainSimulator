@@ -1223,7 +1223,7 @@ namespace Orts.Simulation.AIs
             }
         }
 
-        public override void UpdateNodeMode()
+        protected override void UpdateNodeMode()
         {
             // update node mode
             EndAuthorityType oldAuthority = EndAuthorityTypes[0];

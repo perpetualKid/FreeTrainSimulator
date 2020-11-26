@@ -5814,7 +5814,7 @@ namespace Orts.Simulation.Timetables
         /// <param name="thisRoute"></param>
         /// <param name="dumpfile"></param>
         /// <returns></returns>
-        public override bool TestCallOn(Signal thisSignal, bool allowOnNonePlatform, TrackCircuitPartialPathRoute thisRoute)
+        internal override bool TestCallOn(Signal thisSignal, bool allowOnNonePlatform, TrackCircuitPartialPathRoute thisRoute)
         {
             // always allow if set for stable working
             if (Stable_CallOn)
@@ -8332,7 +8332,7 @@ namespace Orts.Simulation.Timetables
         /// Override class from Train, but needs additional checks before actually testing end of route
         /// </summary>
 
-        public override bool CheckEndOfRoutePosition()
+        protected override bool CheckEndOfRoutePosition()
         {
             // check if at end of route
             bool endOfRoute = CheckEndOfRoutePositionTT();
@@ -9582,12 +9582,14 @@ namespace Orts.Simulation.Timetables
         /// Override from Train class to allow call from common methods
         /// <\summary>
 
-        public override void ActionsForSignalStop(ref bool claimAllowed)
+        public override bool ActionsForSignalStop()
         {
+            bool result = true;
             // cannot claim if in station and noclaim is set
             if (AtStation)
             {
-                if (StationStops[0].NoClaimAllowed) claimAllowed = false;
+                if (StationStops[0].NoClaimAllowed) 
+                    result = false;
             }
 
             // test for attach for train ahead
@@ -9622,6 +9624,7 @@ namespace Orts.Simulation.Timetables
                     }
                 }
             }
+            return result;
         }
 
         //================================================================================================//

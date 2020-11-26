@@ -996,7 +996,7 @@ namespace Orts.Simulation.AIs
 
             if (validPosition)
             {
-                thisTrain.actualWaitTimeS = 0; // reset wait counter //
+                thisTrain.ActualWaitTimeS = 0; // reset wait counter //
                 thisTrain.TrainType = TrainType.Ai;
                 AITrains.Add(thisTrain);
                 aiListChanged = true;
@@ -1024,8 +1024,8 @@ namespace Orts.Simulation.AIs
             else
             {
                 thisTrain.StartTime += 30;    // try again in half a minute
-                thisTrain.actualWaitTimeS += 30;
-                if (thisTrain.actualWaitTimeS > 900)   // tried for 15 mins
+                thisTrain.ActualWaitTimeS += 30;
+                if (thisTrain.ActualWaitTimeS > 900)   // tried for 15 mins
                 {
                     TimeSpan timeStart = new TimeSpan((long)(Math.Pow(10, 7) * thisTrain.StartTime.Value));
                     Trace.TraceWarning("Cannot place AI train {0} ({1}) at time {2}", thisTrain.Name, thisTrain.Number, timeStart.ToString());
@@ -1213,7 +1213,7 @@ namespace Orts.Simulation.AIs
 
             if (validPosition)
             {
-                thisTrain.actualWaitTimeS = 0; // reset wait counter //
+                thisTrain.ActualWaitTimeS = 0; // reset wait counter //
 
                 if (!AITrains.Contains(thisTrain))
                 {
@@ -1239,8 +1239,8 @@ namespace Orts.Simulation.AIs
             {
                 TimeSpan timeStart = new TimeSpan((long)(Math.Pow(10, 7) * thisTrain.StartTime.Value));
                 thisTrain.StartTime += 30;    // try again in half a minute
-                thisTrain.actualWaitTimeS += 30;
-                if (thisTrain.actualWaitTimeS > 900)   // tried for 15 mins
+                thisTrain.ActualWaitTimeS += 30;
+                if (thisTrain.ActualWaitTimeS > 900)   // tried for 15 mins
                 {
                     timeStart = new TimeSpan((long)(Math.Pow(10, 7) * thisTrain.StartTime.Value));
                     Trace.TraceWarning("Cannot place AI train {0} ({1}) at time {2}", thisTrain.Number, thisTrain.Name, timeStart.ToString());

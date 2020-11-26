@@ -528,7 +528,28 @@ namespace Orts.Simulation.Track
                 lastSectionIndex = routeElement.TrackCircuitSection.Index;
             }
 
-            return (reversePath);
+            return reversePath;
         }
+
+        /// <summary>
+        /// Check if a train is waiting for a stationary (stopped) train or a train in manual mode 
+        /// </summary>
+        public bool CheckStoppedTrains()
+        {
+            foreach (TrackCircuitRouteElement routeElement in this)
+            {
+                TrackCircuitSection section = routeElement.TrackCircuitSection;
+                foreach (KeyValuePair<Train.TrainRouted, int> item in section.CircuitState.OccupationState)
+                {
+                    if (item.Key.Train.SpeedMpS == 0.0f || item.Key.Train.ControlMode == TrainControlMode.Manual)
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+
     }// end class TCSubpathRoute
 }

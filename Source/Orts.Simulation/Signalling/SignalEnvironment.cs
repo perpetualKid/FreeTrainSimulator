@@ -3622,49 +3622,30 @@ namespace Orts.Simulation.Signalling
             }
         }
 
-        public bool RequestSetSwitch(TrackNode switchNode)
-        {
-            if (null == switchNode)
-                throw new ArgumentNullException(nameof(switchNode));
-
-            return RequestSetSwitch(switchNode.TrackCircuitCrossReferences[0].Index);
-        }
-
-        public bool RequestSetSwitch(int trackCircuitIndex)
+        public void RequestSetSwitch(int trackCircuitIndex)
         {
             TrackCircuitSection switchSection = TrackCircuitSection.TrackCircuitList[trackCircuitIndex];
             Train train = switchSection.CircuitState.TrainReserved?.Train;
             bool switchReserved = (switchSection.CircuitState.SignalReserved >= 0 || switchSection.CircuitState.TrainClaimed.Count > 0);
-            bool switchSet = false;
 
             // set physical state
 
-            if (switchReserved)
-            {
-                switchSet = false;
-            }
-
-            else if (!switchSection.CircuitState.Occupied() && train == null)
+            if (!switchSection.CircuitState.Occupied() && train == null)
             {
                 switchSection.JunctionSetManual = switchSection.JunctionLastRoute == 0 ? 1 : 0;
                 SetSwitch(switchSection.OriginalIndex, switchSection.JunctionSetManual, switchSection);
-                switchSet = true;
             }
-
             // if switch reserved by manual train then notify train
-
             else if (train != null && train.ControlMode == TrainControlMode.Manual)
             {
                 switchSection.JunctionSetManual = switchSection.JunctionLastRoute == 0 ? 1 : 0;
-                switchSet = train.ProcessRequestManualSetSwitch(switchSection.Index);
+                train.ProcessRequestManualSetSwitch(switchSection.Index);
             }
             else if (train != null && train.ControlMode == TrainControlMode.Explorer)
             {
                 switchSection.JunctionSetManual = switchSection.JunctionLastRoute == 0 ? 1 : 0;
-                switchSet = train.ProcessRequestExplorerSetSwitch(switchSection.Index);
+                train.ProcessRequestExplorerSetSwitch(switchSection.Index);
             }
-
-            return switchSet;
         }
 
         //only used by MP to manually set a switch to a desired position
