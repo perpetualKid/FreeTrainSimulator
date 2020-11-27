@@ -7691,7 +7691,7 @@ namespace Orts.Simulation.Physics
             LastReservedSection[0] = PresentPosition[Direction.Forward].TrackCircuitSectionIndex;
             LastReservedSection[1] = PresentPosition[Direction.Backward].TrackCircuitSectionIndex;
 
-            if (!simulator.TimetableMode) 
+            if (!simulator.TimetableMode)
                 AuxActionsContainer.ResetAuxAction(this);
             SwitchToNodeControl(PresentPosition[Direction.Forward].TrackCircuitSectionIndex);
             TCRoute.SetReversalOffset(Length, simulator.TimetableMode);
@@ -7797,7 +7797,7 @@ namespace Orts.Simulation.Physics
             {
                 ReverseFormation(true);
                 // active subpath must be incremented in parallel in incorporated train if present
-                if (IncorporatedTrainNo >= 0) 
+                if (IncorporatedTrainNo >= 0)
                     IncrementSubpath(simulator.TrainDictionary[IncorporatedTrainNo]);
             }
 
@@ -8113,7 +8113,7 @@ namespace Orts.Simulation.Physics
         {
             // We don't kill the AI train and build a new route for it
             // first of all we have to find out the new route
-            if (TCRoute.OriginalSubpath == -1) 
+            if (TCRoute.OriginalSubpath == -1)
                 TCRoute.OriginalSubpath = TCRoute.ActiveSubPath;
             List<int> tempSections;
             if (PresentPosition[Direction.Forward].RouteListIndex > 0)
@@ -8133,12 +8133,12 @@ namespace Orts.Simulation.Physics
             // Copy part of route already run
             if (PresentPosition[Direction.Forward].RouteListIndex > 0)
             {
-                for (int routeListIndex = 0; routeListIndex < forcedRouteSectionIndex; routeListIndex++) 
+                for (int routeListIndex = 0; routeListIndex < forcedRouteSectionIndex; routeListIndex++)
                     newRoute.Add(ValidRoute[0][routeListIndex]);
             }
             else if (PresentPosition[Direction.Forward].RouteListIndex < 0)
             {
-                for (int routeListIndex = 0; routeListIndex <= PreviousPosition[Direction.Forward].RouteListIndex + 1; routeListIndex++) 
+                for (int routeListIndex = 0; routeListIndex <= PreviousPosition[Direction.Forward].RouteListIndex + 1; routeListIndex++)
                     newRoute.Add(ValidRoute[0][routeListIndex]); // maybe + 1 is wrong?
             }
             if (tempSections.Count > 0)
@@ -9059,7 +9059,7 @@ namespace Orts.Simulation.Physics
                     && StationStops[StationStops.Count - 1].SubrouteIndex == activeSubroute
                     && StationStops[StationStops.Count - 1].PlatformItem.TrackCircuitOffset[Location.FarEnd, route[routeIndex].Direction] >= platform.TrackCircuitOffset[Location.FarEnd, route[routeIndex].Direction])
                 {
-                    if (activeSubrouteNodeIndex < route.Count - 1) 
+                    if (activeSubrouteNodeIndex < route.Count - 1)
                         activeSubrouteNodeIndex++;
                     else if (activeSubroute < (TCRoute.TCRouteSubpaths.Count - 1))
                     {
@@ -9487,9 +9487,9 @@ namespace Orts.Simulation.Physics
             }
 
             // correct position if either end is off route
-            if (frontIndex < 0) 
+            if (frontIndex < 0)
                 frontIndex = rearIndex;
-            if (rearIndex < 0) 
+            if (rearIndex < 0)
                 rearIndex = frontIndex;
 
             // set start and stop in correct order
@@ -9571,7 +9571,7 @@ namespace Orts.Simulation.Physics
                     else
                     {
                         lengthToGoM += section.Length;
-                        if (lengthToGoM > threshold) 
+                        if (lengthToGoM > threshold)
                             return false;
                     }
                 }
@@ -9591,7 +9591,7 @@ namespace Orts.Simulation.Physics
         /// </summary>Ac
         protected static int RandomizedDelayWithThreshold(int maxAddedDelay)
         {
-            if (DateTime.UtcNow.Millisecond % 10 < 6 - simulator.Settings.ActRandomizationLevel) 
+            if (DateTime.UtcNow.Millisecond % 10 < 6 - simulator.Settings.ActRandomizationLevel)
                 return 0;
             return (int)(Simulator.Random.Next(0, (int)(Simulator.Resolution * Simulator.Random.NextDouble()) + 1) / Simulator.Resolution * maxAddedDelay);
         }
@@ -9628,9 +9628,9 @@ namespace Orts.Simulation.Physics
             else if (randomizedDelay > 40000 && randomizedDelay < 60000) // car detach WP
             {
                 int additionalDelay = RandomizedDelayWithThreshold(25);
-                if (randomizedDelay % 100 + additionalDelay > 99) 
+                if (randomizedDelay % 100 + additionalDelay > 99)
                     randomizedDelay += 99;
-                else 
+                else
                     randomizedDelay += additionalDelay;
             }
             return randomizedDelay;
@@ -9664,7 +9664,7 @@ namespace Orts.Simulation.Physics
             for (int i = 0; i < StationStops.Count; i++)
             {
                 station = StationStops[i];
-                if (station.SubrouteIndex > TCRoute.ActiveSubPath) 
+                if (station.SubrouteIndex > TCRoute.ActiveSubPath)
                     break;
                 if (station.PlatformReference == id1 || station.PlatformReference == id2)
                 {
@@ -9672,7 +9672,7 @@ namespace Orts.Simulation.Physics
                     break;
                 }
 
-                if (station.SubrouteIndex > TCRoute.ActiveSubPath) 
+                if (station.SubrouteIndex > TCRoute.ActiveSubPath)
                     break; // stop looking if station is in next subpath
             }
 
@@ -9730,13 +9730,13 @@ namespace Orts.Simulation.Physics
         /// </summary>
         public static string GetTrainName(string trainId)
         {
+            if (string.IsNullOrEmpty(trainId))
+                return trainId;
             int location = trainId.LastIndexOf('-');
-            if (location < 0) 
+            if (location < 0)
                 return trainId;
             return trainId.Substring(0, location - 1);
         }
-
-        //================================================================================================//
 
         /// <summary>
         /// Create status line
@@ -9879,184 +9879,159 @@ namespace Orts.Simulation.Physics
         public string[] GetStatus(bool metric)
         {
 
-            int iColumn = 0;
-
             string[] statusString = new string[13];
 
             //  0, "Train"
-            statusString[iColumn] = Number.ToString();
-
             if (Delay.HasValue && Delay.Value.TotalMinutes >= 1)
             {
-                statusString[iColumn] = String.Concat(statusString[iColumn], " D");
+                statusString[0] = $"{Number} D";
             }
             else if (IsFreight)
             {
-                statusString[iColumn] = String.Concat(statusString[iColumn], " F");
+                statusString[0] = $"{Number} F";
             }
             else
             {
-                statusString[iColumn] = String.Concat(statusString[iColumn], " P");
+                statusString[0] = $"{Number} P";
             }
-            iColumn++;
 
             //  1, "Travelled"
-            statusString[iColumn] = FormatStrings.FormatDistanceDisplay(DistanceTravelledM, metric);
-            iColumn++;
+            statusString[1] = FormatStrings.FormatDistanceDisplay(DistanceTravelledM, metric);
+
             //  2, "Speed"
-            var trainSpeed = TrainType == TrainType.Remote && SpeedMpS != 0 ? targetSpeedMpS : SpeedMpS;
-            statusString[iColumn] = FormatStrings.FormatSpeedDisplay(trainSpeed, metric);
-            if (Math.Abs(trainSpeed) > Math.Abs(AllowedMaxSpeedMpS)) statusString[iColumn] += "!!!";
-            iColumn++;
+            float trainSpeed = TrainType == TrainType.Remote && SpeedMpS != 0 ? targetSpeedMpS : SpeedMpS;
+            statusString[2] = FormatStrings.FormatSpeedDisplay(trainSpeed, metric);
+            if (Math.Abs(trainSpeed) > Math.Abs(AllowedMaxSpeedMpS))
+                statusString[2] += "!!!";
+
             //  3, "Max"
-            statusString[iColumn] = FormatStrings.FormatSpeedLimit(AllowedMaxSpeedMpS, metric);
-            iColumn++;
+            statusString[3] = FormatStrings.FormatSpeedLimit(AllowedMaxSpeedMpS, metric);
 
             //  4, "AI mode"
-            statusString[iColumn] = " ";  // for AI trains
-            iColumn++;
+            statusString[4] = " ";  // for AI trains
+
             //  5, "AI data"
-            statusString[iColumn] = " ";  // for AI trains
-            iColumn++;
+            statusString[5] = " ";  // for AI trains
 
             //  6, "Mode"
             switch (ControlMode)
             {
                 case TrainControlMode.AutoSignal:
-                    if (Delay.HasValue)
-                    {
-                        statusString[iColumn] = String.Concat("S +", Delay.Value.TotalMinutes.ToString("00"));
-                    }
-                    else
-                    {
-                        statusString[iColumn] = "SIGN";
-                    }
+                    statusString[6] = Delay.HasValue ? $"S +{Delay.Value.TotalMinutes:00}" : "SIGN";
                     break;
                 case TrainControlMode.AutoNode:
-                    if (Delay.HasValue)
-                    {
-                        statusString[iColumn] = String.Concat("N +", Delay.Value.TotalMinutes.ToString("00"));
-                    }
-                    else
-                    {
-                        statusString[iColumn] = "NODE";
-                    }
+                    statusString[6] = Delay.HasValue ? $"N +{Delay.Value.TotalMinutes:00}" : "NODE";
                     break;
                 case TrainControlMode.Manual:
-                    statusString[iColumn] = "MAN";
+                    statusString[6] = "MAN";
                     break;
                 case TrainControlMode.OutOfControl:
-                    statusString[iColumn] = "OOC";
+                    statusString[6] = "OOC";
                     break;
                 case TrainControlMode.Explorer:
-                    statusString[iColumn] = "EXPL";
+                    statusString[6] = "EXPL";
                     break;
                 case TrainControlMode.TurnTable:
-                    statusString[iColumn] = "TURN";
+                    statusString[6] = "TURN";
                     break;
                 default:
-                    statusString[iColumn] = "----";
+                    statusString[6] = "----";
                     break;
             }
 
-            iColumn++;
             //  7, "Auth"
             if (ControlMode == TrainControlMode.OutOfControl)
             {
                 switch (OutOfControlReason)
                 {
                     case OutOfControlReason.PassedAtDanger:
-                        statusString[iColumn] = "SPAD";
+                        statusString[7] = "SPAD";
                         break;
                     case OutOfControlReason.RearPassedAtDanger:
-                        statusString[iColumn] = "RSPD";
+                        statusString[7] = "RSPD";
                         break;
                     case OutOfControlReason.OutOfAuthority:
-                        statusString[iColumn] = "OOAU";
+                        statusString[7] = "OOAU";
                         break;
                     case OutOfControlReason.OutOfPath:
-                        statusString[iColumn] = "OOPA";
+                        statusString[7] = "OOPA";
                         break;
                     case OutOfControlReason.SlippedIntoPath:
-                        statusString[iColumn] = "SLPP";
+                        statusString[7] = "SLPP";
                         break;
                     case OutOfControlReason.SlippedToEndOfTrack:
-                        statusString[iColumn] = "SLPT";
+                        statusString[7] = "SLPT";
                         break;
                     case OutOfControlReason.OutOfTrack:
-                        statusString[iColumn] = "OOTR";
+                        statusString[7] = "OOTR";
                         break;
                     case OutOfControlReason.MisalignedSwitch:
-                        statusString[iColumn] = "MASW";
+                        statusString[7] = "MASW";
                         break;
                     case OutOfControlReason.SlippedIntoTurnTable:
-                        statusString[iColumn] = "SLPT";
+                        statusString[7] = "SLPT";
                         break;
                     default:
-                        statusString[iColumn] = "....";
+                        statusString[7] = "....";
                         break;
                 }
 
-                iColumn++;
                 //  8, "Distance"
-                statusString[iColumn] = " ";
+                statusString[8] = " ";
             }
-
             else if (ControlMode == TrainControlMode.AutoNode)
             {
                 switch (EndAuthorityTypes[0])
                 {
                     case EndAuthorityType.EndOfTrack:
-                        statusString[iColumn] = "EOT";
+                        statusString[7] = "EOT";
                         break;
                     case EndAuthorityType.EndOfPath:
-                        statusString[iColumn] = "EOP";
+                        statusString[7] = "EOP";
                         break;
                     case EndAuthorityType.ReservedSwitch:
-                        statusString[iColumn] = "RSW";
+                        statusString[7] = "RSW";
                         break;
                     case EndAuthorityType.Loop:
-                        statusString[iColumn] = "LP ";
+                        statusString[7] = "LP ";
                         break;
                     case EndAuthorityType.TrainAhead:
-                        statusString[iColumn] = "TAH";
+                        statusString[7] = "TAH";
                         break;
                     case EndAuthorityType.MaxDistance:
-                        statusString[iColumn] = "MXD";
+                        statusString[7] = "MXD";
                         break;
                     case EndAuthorityType.NoPathReserved:
-                        statusString[iColumn] = "NOP";
+                        statusString[7] = "NOP";
                         break;
                     default:
-                        statusString[iColumn] = "";
+                        statusString[7] = "";
                         break;
                 }
 
-                iColumn++;
                 //  8, "Distance"
                 if (EndAuthorityTypes[0] != EndAuthorityType.MaxDistance && EndAuthorityTypes[0] != EndAuthorityType.NoPathReserved)
                 {
-                    statusString[iColumn] = FormatStrings.FormatDistance(DistanceToEndNodeAuthorityM[0], metric);
+                    statusString[8] = FormatStrings.FormatDistance(DistanceToEndNodeAuthorityM[0], metric);
                 }
                 else
                 {
-                    statusString[iColumn] = " ";
+                    statusString[8] = " ";
                 }
             }
             else
             {
-                statusString[iColumn] = " ";
-                iColumn++;
+                statusString[7] = " ";
+
                 //  8, "Distance"
-                statusString[iColumn] = " ";
+                statusString[7] = " ";
             }
 
-            iColumn++;
             //  9, "Signal"
             if (ControlMode == TrainControlMode.Manual || ControlMode == TrainControlMode.Explorer)
             {
                 // reverse direction
-                string firstchar = "-";
+                char firstchar = '-';
 
                 if (NextSignalObject[1] != null)
                 {
@@ -10066,41 +10041,34 @@ namespace Orts.Simulation.Physics
                     switch (nextAspect)
                     {
                         case SignalAspectState.Stop:
-                            if (NextSignalObject[1].OverridePermission == SignalPermission.Granted)
-                            {
-                                firstchar = "G";
-                            }
-                            else
-                            {
-                                firstchar = "S";
-                            }
+                            firstchar = (NextSignalObject[1].OverridePermission == SignalPermission.Granted) ? 'G' : 'S';
                             break;
                         case SignalAspectState.Stop_And_Proceed:
-                            firstchar = "P";
+                            firstchar = 'P';
                             break;
                         case SignalAspectState.Restricting:
-                            firstchar = "R";
+                            firstchar = 'R';
                             break;
                         case SignalAspectState.Approach_1:
-                            firstchar = "A";
+                            firstchar = 'A';
                             break;
                         case SignalAspectState.Approach_2:
-                            firstchar = "A";
+                            firstchar = 'A';
                             break;
                         case SignalAspectState.Approach_3:
-                            firstchar = "A";
+                            firstchar = 'A';
                             break;
                         case SignalAspectState.Clear_1:
-                            firstchar = "C";
+                            firstchar = 'C';
                             break;
                         case SignalAspectState.Clear_2:
-                            firstchar = "C";
+                            firstchar = 'C';
                             break;
                     }
                 }
 
                 // forward direction
-                string lastchar = "-";
+                char lastchar = '-';
 
                 if (NextSignalObject[0] != null)
                 {
@@ -10110,43 +10078,35 @@ namespace Orts.Simulation.Physics
                     switch (nextAspect)
                     {
                         case SignalAspectState.Stop:
-                            if (NextSignalObject[0].OverridePermission == SignalPermission.Granted)
-                            {
-                                lastchar = "G";
-                            }
-                            else
-                            {
-                                lastchar = "S";
-                            }
+                            lastchar = NextSignalObject[0].OverridePermission == SignalPermission.Granted ? 'G' : 'S';
                             break;
                         case SignalAspectState.Stop_And_Proceed:
-                            lastchar = "P";
+                            lastchar = 'P';
                             break;
                         case SignalAspectState.Restricting:
-                            lastchar = "R";
+                            lastchar = 'R';
                             break;
                         case SignalAspectState.Approach_1:
-                            lastchar = "A";
+                            lastchar = 'A';
                             break;
                         case SignalAspectState.Approach_2:
-                            lastchar = "A";
+                            lastchar = 'A';
                             break;
                         case SignalAspectState.Approach_3:
-                            lastchar = "A";
+                            lastchar = 'A';
                             break;
                         case SignalAspectState.Clear_1:
-                            lastchar = "C";
+                            lastchar = 'C';
                             break;
                         case SignalAspectState.Clear_2:
-                            lastchar = "C";
+                            lastchar = 'C';
                             break;
                     }
                 }
+                statusString[9] = $"{firstchar}<>{lastchar}";
 
-                statusString[iColumn] = String.Concat(firstchar, "<>", lastchar);
-                iColumn++;
-                //  9, "Distance"
-                statusString[iColumn] = " ";
+                //  10, "Distance"
+                statusString[10] = " ";
             }
             else
             {
@@ -10157,171 +10117,157 @@ namespace Orts.Simulation.Physics
                     switch (nextAspect)
                     {
                         case SignalAspectState.Stop:
-                            statusString[iColumn] = "STOP";
+                            statusString[9] = "STOP";
                             break;
                         case SignalAspectState.Stop_And_Proceed:
-                            statusString[iColumn] = "SPRC";
+                            statusString[9] = "SPRC";
                             break;
                         case SignalAspectState.Restricting:
-                            statusString[iColumn] = "REST";
+                            statusString[9] = "REST";
                             break;
                         case SignalAspectState.Approach_1:
-                            statusString[iColumn] = "APP1";
+                            statusString[9] = "APP1";
                             break;
                         case SignalAspectState.Approach_2:
-                            statusString[iColumn] = "APP2";
+                            statusString[9] = "APP2";
                             break;
                         case SignalAspectState.Approach_3:
-                            statusString[iColumn] = "APP3";
+                            statusString[9] = "APP3";
                             break;
                         case SignalAspectState.Clear_1:
-                            statusString[iColumn] = "CLR1";
+                            statusString[9] = "CLR1";
                             break;
                         case SignalAspectState.Clear_2:
-                            statusString[iColumn] = "CLR2";
+                            statusString[9] = "CLR2";
                             break;
                     }
 
-                    iColumn++;
-                    //  9, "Distance"
-                    if (DistanceToSignal.HasValue)
-                    {
-                        statusString[iColumn] = FormatStrings.FormatDistance(DistanceToSignal.Value, metric);
-                    }
-                    else
-                    {
-                        statusString[iColumn] = "-";
-                    }
+                    //  10, "Distance"
+                    statusString[10] = DistanceToSignal.HasValue ? FormatStrings.FormatDistance(DistanceToSignal.Value, metric) : "-";
                 }
                 else
                 {
-                    statusString[iColumn] = " ";
-                    iColumn++;
-                    //  9, "Distance"
-                    statusString[iColumn] = " ";
+                    statusString[9] = " ";
+                    //  10, "Distance"
+                    statusString[10] = " ";
                 }
             }
 
-            iColumn++;
-            //  10, "Consist"
-            statusString[iColumn] = "PLAYER";
-            if (!simulator.TimetableMode && this != simulator.OriginalPlayerTrain) statusString[iColumn] = Name.Substring(0, Math.Min(Name.Length, 7));
+            //  11, "Consist"
+            statusString[11] = "PLAYER";
+            if (!simulator.TimetableMode && this != simulator.OriginalPlayerTrain)
+                statusString[11] = Name.Substring(0, Math.Min(Name.Length, 7));
+
             if (TrainType == TrainType.Remote)
             {
-                var trainName = "";
-                if (LeadLocomotive != null) trainName = GetTrainName(LeadLocomotive.CarID);
-                else if (Cars != null && Cars.Count > 0) trainName = GetTrainName(Cars[0].CarID);
-                else trainName = "REMOTE";
-                statusString[iColumn] = trainName.Substring(0, Math.Min(trainName.Length, 7));
+                string trainName;
+                if (LeadLocomotive != null)
+                    trainName = GetTrainName(LeadLocomotive.CarID);
+                else if (Cars != null && Cars.Count > 0)
+                    trainName = GetTrainName(Cars[0].CarID);
+                else
+                    trainName = "REMOTE";
+                statusString[11] = trainName.Substring(0, Math.Min(trainName.Length, 7));
             }
 
-            iColumn++;
-            //  11, "Path"
-            string circuitString = String.Empty;
+            //  12, "Path"
+            StringBuilder circuitString = new StringBuilder();
 
             if ((ControlMode != TrainControlMode.Manual && ControlMode != TrainControlMode.Explorer) || ValidRoute[1] == null)
             {
                 // station stops
                 if (StationStops == null || StationStops.Count == 0)
                 {
-                    circuitString = string.Concat(circuitString, "[ ] ");
+                    circuitString.Append("[ ] ");
                 }
                 else
                 {
-                    circuitString = string.Concat(circuitString, "[", StationStops.Count, "] ");
+                    circuitString.Append($"[{StationStops.Count}] ");
                 }
 
                 // route
                 if (TCRoute == null)
                 {
-                    circuitString = string.Concat(circuitString, "?={");
+                    circuitString.Append("?={");
                 }
                 else
                 {
-                    circuitString = String.Concat(circuitString, TCRoute.ActiveSubPath.ToString());
-                    circuitString = String.Concat(circuitString, "={");
+                    circuitString.Append(TCRoute.ActiveSubPath);
+                    circuitString.Append("={");
                 }
 
                 int startIndex = PresentPosition[Direction.Forward].RouteListIndex;
                 if (startIndex < 0)
                 {
-                    circuitString = String.Concat(circuitString, "<out of route>");
+                    circuitString.Append("<out of route>");
                 }
                 else
                 {
-                    for (int iIndex = PresentPosition[Direction.Forward].RouteListIndex; iIndex < ValidRoute[0].Count; iIndex++)
+                    for (int i = PresentPosition[Direction.Forward].RouteListIndex; i < ValidRoute[0].Count; i++)
                     {
-                        TrackCircuitRouteElement thisElement = ValidRoute[0][iIndex];
-                        TrackCircuitSection thisSection = thisElement.TrackCircuitSection;
-
-                        circuitString = BuildSectionString(circuitString, thisSection, 0);
+                        BuildSectionString(circuitString, ValidRoute[0][i].TrackCircuitSection, Direction.Forward);
 
                     }
                 }
 
-                circuitString = String.Concat(circuitString, "}");
+                circuitString.Append('}');
 
                 if (TCRoute != null && TCRoute.ActiveSubPath < TCRoute.TCRouteSubpaths.Count - 1)
                 {
-                    circuitString = String.Concat(circuitString, "x", (TCRoute.ActiveSubPath + 1).ToString());
+                    circuitString.Append('x');
+                    circuitString.Append(TCRoute.ActiveSubPath + 1);
                 }
-                if (TCRoute != null && TCRoute.OriginalSubpath != -1) circuitString += "???";
+                if (TCRoute != null && TCRoute.OriginalSubpath != -1)
+                    circuitString.Append("???");
             }
             else
             {
                 // backward path
-                string backstring = String.Empty;
-                for (int iindex = ValidRoute[1].Count - 1; iindex >= 0; iindex--)
+                StringBuilder backstring = new StringBuilder();
+                for (int i = ValidRoute[1].Count - 1; i >= 0; i--)
                 {
-                    TrackCircuitSection thisSection = ValidRoute[1][iindex].TrackCircuitSection;
-                    backstring = BuildSectionString(backstring, thisSection, 1);
+                    BuildSectionString(backstring, ValidRoute[1][i].TrackCircuitSection, Direction.Backward);
                 }
 
-                if (backstring.Length > 30)
+                if (backstring.Length > 20)
                 {
-                    backstring = backstring.Substring(backstring.Length - 30);
                     // ensure string starts with section delimiter
-                    while (String.Compare(backstring.Substring(0, 1), "-") != 0 &&
-                           String.Compare(backstring.Substring(0, 1), "+") != 0 &&
-                           String.Compare(backstring.Substring(0, 1), "<") != 0)
-                    {
-                        backstring = backstring.Substring(1);
-                    }
+                    while (backstring[0] != '-' && backstring[0] != '+' && backstring[0] != '<')
+                        backstring.Remove(0, 1);
 
-                    circuitString = String.Concat(circuitString, "...");
+                    if (backstring.Length > 20)
+                        backstring.Length = 20;
+
+                    circuitString.Append("...");
                 }
-                circuitString = String.Concat(circuitString, backstring);
+                circuitString.Append(backstring.ToString());
 
                 // train indication and direction
-                circuitString = String.Concat(circuitString, "={");
+                circuitString.Append("={");
                 if (MUDirection == MidpointDirection.Reverse)
                 {
-                    circuitString = String.Concat(circuitString, "<");
+                    circuitString.Append('<');
                 }
                 else
                 {
-                    circuitString = String.Concat(circuitString, ">");
+                    circuitString.Append('>');
                 }
-                circuitString = String.Concat(circuitString, "}=");
+                circuitString.Append("}=");
 
                 // forward path
 
-                string forwardstring = String.Empty;
-                for (int iindex = 0; iindex < ValidRoute[0].Count; iindex++)
+                StringBuilder forwardstring = new StringBuilder();
+                for (int i = 0; i < ValidRoute[0].Count; i++)
                 {
-                    TrackCircuitSection thisSection = ValidRoute[0][iindex].TrackCircuitSection;
-                    forwardstring = BuildSectionString(forwardstring, thisSection, 0);
+                    BuildSectionString(forwardstring, ValidRoute[0][i].TrackCircuitSection, 0);
                 }
-                circuitString = String.Concat(circuitString, forwardstring);
+                circuitString.Append(forwardstring.ToString());
             }
 
-            statusString[iColumn] = String.Copy(circuitString);
+            statusString[12] = circuitString.ToString();
 
-            return (statusString);
+            return statusString;
         }
-
-        //================================================================================================//
-
 
         /// <summary>
         ///  Build string for section information
@@ -10348,140 +10294,97 @@ namespace Orts.Simulation.Physics
         ///     If one or more train claim
         ///         #</c>
         /// </summary>
-        public string BuildSectionString(string thisString, TrackCircuitSection thisSection, int direction)
+        private void BuildSectionString(StringBuilder builder, TrackCircuitSection section, Direction direction)
         {
-
-            string returnString = String.Copy(thisString);
-
-            switch (thisSection.CircuitType)
+            switch (section.CircuitType)
             {
                 case TrackCircuitType.Junction:
-                    returnString = String.Concat(returnString, ">");
+                    builder.Append('>');
                     break;
                 case TrackCircuitType.Crossover:
-                    returnString = String.Concat(returnString, "+");
+                    builder.Append('+');
                     break;
                 case TrackCircuitType.EndOfTrack:
-                    returnString = direction == 0 ? String.Concat(returnString, "]") : String.Concat(returnString, "[");
+                    builder.Append(direction == Direction.Forward ? ']' : '[');
                     break;
                 default:
-                    returnString = String.Concat(returnString, "-");
+                    builder.Append('-');
                     break;
             }
 
-            if (thisSection.DeadlockTraps.ContainsKey(Number))
+            if (section.DeadlockTraps.ContainsKey(Number))
             {
-                if (thisSection.DeadlockAwaited.Contains(Number))
+                if (section.DeadlockAwaited.Contains(Number))
                 {
-                    returnString = String.Concat(returnString, "^[");
-                    List<int> deadlockInfo = thisSection.DeadlockTraps[Number];
+                    builder.Append("^[");
+                    List<int> deadlockInfo = section.DeadlockTraps[Number];
                     for (int index = 0; index < deadlockInfo.Count - 2; index++)
                     {
-                        returnString = String.Concat(returnString, deadlockInfo[index].ToString(), ",");
+                        builder.Append(deadlockInfo[index]);
+                        builder.Append(",");
                     }
-                    returnString = String.Concat(returnString, deadlockInfo.Last().ToString(), "]");
+                    builder.Append(deadlockInfo.Last());
+                    builder.Append(']');
                 }
-                else if (thisSection.DeadlockAwaited.Count > 0)
+                else if (section.DeadlockAwaited.Count > 0)
                 {
-                    returnString = String.Concat(returnString, "~");
+                    builder.Append('~');
                 }
-                returnString = String.Concat(returnString, "*");
+                builder.Append('*');
             }
 
-            if (thisSection.CircuitState.OccupationState.Count > 0)
+            if (section.CircuitState.OccupationState.Count > 0)
             {
-                List<TrainRouted> allTrains = thisSection.CircuitState.TrainsOccupying();
-                int trainno = allTrains[0].Train.Number;
-                returnString = String.Concat(returnString, trainno.ToString());
+                List<TrainRouted> allTrains = section.CircuitState.TrainsOccupying();
+                builder.Append(allTrains[0].Train.Number);
                 if (allTrains.Count > 1)
                 {
-                    returnString = String.Concat(returnString, "&");
+                    builder.Append('&');
                 }
             }
 
-            if (thisSection.CircuitState.TrainReserved != null)
+            if (section.CircuitState.TrainReserved != null)
             {
-                int trainno = thisSection.CircuitState.TrainReserved.Train.Number;
-                returnString = String.Concat(returnString, "(", trainno.ToString(), ")");
+                builder.Append($"({section.CircuitState.TrainReserved.Train.Number})");
             }
 
-            if (thisSection.CircuitState.SignalReserved >= 0)
+            if (section.CircuitState.SignalReserved >= 0)
             {
-                returnString = String.Concat(returnString, "(S", thisSection.CircuitState.SignalReserved.ToString(), ")");
+                builder.Append($"(S{section.CircuitState.SignalReserved})");
             }
 
-            if (thisSection.CircuitState.TrainClaimed.Count > 0)
+            if (section.CircuitState.TrainClaimed.Count > 0)
             {
-                returnString = String.Concat(returnString, "#");
+                builder.Append('#');
             }
-
-            return (returnString);
         }
 
-#if WITH_PATH_DEBUG
-        //================================================================================================//
-        /// <summary>
-        /// Create Path information line
-        /// "Train", "Path"
-        /// <\summary>
-
-        public String[] GetPathStatus(bool metric)
-        {
-            int iColumn = 0;
-
-            string[] statusString = new string[5];
-
-            //  "Train"
-            statusString[0] = Number.ToString();
-            iColumn++;
-
-            //  "Action"
-            statusString[1] = "----";
-            statusString[2] = "..";
-            iColumn = 3;
-
-            string circuitString = String.Empty;
-            circuitString = string.Concat(circuitString, "Path: ");
-
-
-            statusString[iColumn] = String.Copy(circuitString);
-            iColumn++;
-
-            return (statusString);
-
-        }
-#endif
-
-        //================================================================================================//
         /// <summary>
         /// Add restart times at stations and waiting points
         /// Update the string for 'TextPageDispatcherInfo'.
         /// Modifiy fields 4 and 5
         /// <\summary>
-
-        public String[] AddRestartTime(String[] stateString)
+        public void AddRestartTime(string[] stateString)
         {
-            String[] retString = new String[stateString.Length];
-            stateString.CopyTo(retString, 0);
+            if (null == stateString)
+                return;
+            string movString = string.Empty;
+            string abString = string.Empty;
 
-            string movString = "";
-            string abString = "";
             DateTime baseDT = new DateTime();
             if (this == simulator.OriginalPlayerTrain)
             {
-                if (simulator.ActivityRun != null && simulator.ActivityRun.Current is ActivityTaskPassengerStopAt && ((ActivityTaskPassengerStopAt)simulator.ActivityRun.Current).BoardingS > 0)
+                if (simulator.ActivityRun?.Current is ActivityTaskPassengerStopAt passengerStop && passengerStop.BoardingS > 0)
                 {
                     movString = "STA";
-                    DateTime depTime = baseDT.AddSeconds(((ActivityTaskPassengerStopAt)simulator.ActivityRun.Current).BoardingEndS);
-                    abString = depTime.ToString("HH:mm:ss");
+                    abString = $"{TimeSpan.FromSeconds(passengerStop.BoardingEndS):c}";
                 }
-                else
-                   if (Math.Abs(SpeedMpS) <= 0.01 && AuxActionsContainer.specRequiredActions.Count > 0 && AuxActionsContainer.specRequiredActions.First.Value is AuxActSigDelegate &&
-                    (AuxActionsContainer.specRequiredActions.First.Value as AuxActSigDelegate).currentMvmtState == AITrain.AI_MOVEMENT_STATE.HANDLE_ACTION)
+                else if (Math.Abs(SpeedMpS) <= 0.01 && AuxActionsContainer.specRequiredActions.Count > 0 && 
+                    AuxActionsContainer.specRequiredActions.First.Value is AuxActSigDelegate auxAction &&
+                    auxAction.currentMvmtState == AITrain.AI_MOVEMENT_STATE.HANDLE_ACTION)
                 {
                     movString = "WTS";
-                    DateTime depTime = baseDT.AddSeconds((AuxActionsContainer.specRequiredActions.First.Value as AuxActSigDelegate).ActualDepart);
-                    abString = depTime.ToString("HH:mm:ss");
+                    abString = $"{TimeSpan.FromSeconds(auxAction.ActualDepart):c}";
                 }
             }
             else if (StationStops.Count > 0 && AtStation)
@@ -10489,33 +10392,27 @@ namespace Orts.Simulation.Physics
                 movString = "STA";
                 if (StationStops[0].ActualDepart > 0)
                 {
-                    DateTime depTime = baseDT.AddSeconds(StationStops[0].ActualDepart);
-                    abString = depTime.ToString("HH:mm:ss");
+                    abString = $"{TimeSpan.FromSeconds(StationStops[0].ActualDepart):c}";
                 }
                 else
                 {
                     abString = "..:..:..";
                 }
             }
-            else if (Math.Abs(SpeedMpS) <= 0.01 && (this as AITrain).nextActionInfo is AuxActionWPItem &&
-                    (this as AITrain).MovementState == AITrain.AI_MOVEMENT_STATE.HANDLE_ACTION)
+            else if (Math.Abs(SpeedMpS) <= 0.01 && this is AITrain aiTrain && aiTrain.nextActionInfo is AuxActionWPItem auxAction &&
+                    aiTrain.MovementState == AITrain.AI_MOVEMENT_STATE.HANDLE_ACTION)
             {
                 movString = "WTP";
-                DateTime depTime = baseDT.AddSeconds(((this as AITrain).nextActionInfo as AuxActionWPItem).ActualDepart);
-                abString = depTime.ToString("HH:mm:ss");
+                abString = $"{TimeSpan.FromSeconds(auxAction.ActualDepart):c}";
             }
-            else if (Math.Abs(SpeedMpS) <= 0.01 && AuxActionsContainer.SpecAuxActions.Count > 0 && AuxActionsContainer.SpecAuxActions[0] is AIActionWPRef &&
-                (AuxActionsContainer.SpecAuxActions[0] as AIActionWPRef).keepIt != null &&
-                (AuxActionsContainer.SpecAuxActions[0] as AIActionWPRef).keepIt.currentMvmtState == AITrain.AI_MOVEMENT_STATE.HANDLE_ACTION)
+            else if (Math.Abs(SpeedMpS) <= 0.01 && AuxActionsContainer.SpecAuxActions.Count > 0 && AuxActionsContainer.SpecAuxActions[0] is AIActionWPRef auxWPAction &&
+                auxWPAction.keepIt?.currentMvmtState == AITrain.AI_MOVEMENT_STATE.HANDLE_ACTION)
             {
                 movString = "WTP";
-                DateTime depTime = baseDT.AddSeconds((AuxActionsContainer.SpecAuxActions[0] as AIActionWPRef).keepIt.ActualDepart);
-                abString = depTime.ToString("HH:mm:ss");
+                abString = $"{TimeSpan.FromSeconds(auxWPAction.keepIt.ActualDepart):c}";
             }
-            retString[4] = String.Copy(movString);
-            retString[5] = String.Copy(abString);
-
-            return (retString);
+            stateString[4] = movString;
+            stateString[5] = abString;
         }
 
 

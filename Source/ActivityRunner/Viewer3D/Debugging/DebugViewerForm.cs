@@ -827,13 +827,13 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 					if (t.LeadLocomotive != null)
 					{
 						worldPos = t.LeadLocomotive.WorldPosition;
-						name = t.GetTrainName(t.LeadLocomotive.CarID);
+						name = Train.GetTrainName(t.LeadLocomotive.CarID);
 						firstCar = t.LeadLocomotive;
 					}
 					else if (t.Cars != null && t.Cars.Count > 0)
 					{
 						worldPos = t.Cars[0].WorldPosition;
-						name = t.GetTrainName(t.Cars[0].CarID);
+						name = Train.GetTrainName(t.Cars[0].CarID);
 						if (t.TrainType == TrainType.Ai)
 							name = t.Number.ToString() + ":" +t.Name;
 						firstCar = t.Cars[0];
