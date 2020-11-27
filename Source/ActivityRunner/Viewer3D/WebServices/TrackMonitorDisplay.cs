@@ -923,7 +923,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
 
             public override ListLabel TransformLabel(ListLabel dataCol)
             {
-                dataCol.FirstCol = Item.ThisMile;
+                dataCol.FirstCol = Item.Miles;
                 return dataCol;
             }
         }

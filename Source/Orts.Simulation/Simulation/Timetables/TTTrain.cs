@@ -8969,7 +8969,7 @@ namespace Orts.Simulation.Timetables
         /// Override from Train class
         /// </summary>
 
-        internal override void AddTrainReversalInfo(TrainInfo trainInfo, TrackCircuitReversalInfo reversalInfo)
+        private protected override void AddTrainReversalInfo(TrainInfo trainInfo, TrackCircuitReversalInfo reversalInfo)
         {
             if (!reversalInfo.Valid) 
                 return;

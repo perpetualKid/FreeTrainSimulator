@@ -913,7 +913,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 var itemLocation = forward ? zeroPoint - itemOffset : zeroPoint + itemOffset;
                 newLabelPosition = forward ? Math.Min(itemLocation, lastLabelPosition - textSpacing) : Math.Max(itemLocation, lastLabelPosition + textSpacing);
                 var labelPoint = new Point(offset.X + milepostTextOffset, offset.Y + newLabelPosition + textOffset[forward ? 0 : 1]);
-                var milepostString = thisItem.ThisMile;
+                var milepostString = thisItem.Miles;
                 Font.Draw(spriteBatch, labelPoint, milepostString, Color.White);
 
             }
