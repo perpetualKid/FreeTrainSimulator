@@ -792,7 +792,7 @@ namespace Orts.Simulation
                 return (false);
             }
 
-            return MyPlayerTrain.IsMissedPlatform(200.0f);
+            return MyPlayerTrain.MissedPlatform(200.0f);
         }
 
         public override void NotifyEvent(ActivityEventType EventType)

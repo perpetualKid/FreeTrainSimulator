@@ -8781,7 +8781,7 @@ namespace Orts.Simulation.Timetables
         /// Override from Train class
         /// <\summary>
 
-        public override void RemoveTrain()
+        internal override void RemoveTrain()
         {
             RemoveFromTrack();
             ClearDeadlocks();
@@ -9633,7 +9633,7 @@ namespace Orts.Simulation.Timetables
         /// Override from Train class
         /// <\summary>
 
-        public override void SwitchToNodeControl(int thisSectionIndex)
+        internal override void SwitchToNodeControl(int thisSectionIndex)
         {
             base.SwitchToNodeControl(thisSectionIndex);
 
@@ -9650,7 +9650,7 @@ namespace Orts.Simulation.Timetables
         /// Override from Train class
         /// <\summary>
 
-        public override void ClearStation(uint id1, uint id2, bool removeStation)
+        internal override void ClearStation(uint id1, uint id2, bool removeStation)
         {
             int foundStation = -1;
             StationStop thisStation = null;

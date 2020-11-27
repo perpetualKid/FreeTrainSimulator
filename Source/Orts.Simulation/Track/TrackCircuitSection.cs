@@ -61,8 +61,8 @@ namespace Orts.Simulation.Track
         public int OriginalIndex { get; private set; }                                  // original TDB section index             //
         public TrackCircuitType CircuitType { get; private set; }                       // type of section                        //
 
-        public EnumArray2D<TrackPin, TrackDirection, Location> Pins { get; } = new EnumArray2D<TrackPin, TrackDirection, Location>(TrackPin.Empty);                   // next sections                          //
-        public EnumArray2D<TrackPin, TrackDirection, Location> ActivePins { get; } = new EnumArray2D<TrackPin, TrackDirection, Location>(TrackPin.Empty);// active next sections                   //
+        public EnumArray2D<TrackPin, TrackDirection, Location> Pins { get; } = new EnumArray2D<TrackPin, TrackDirection, Location>(Enumerable.Repeat(TrackPin.Empty, 4).ToList());                   // next sections                          //
+        public EnumArray2D<TrackPin, TrackDirection, Location> ActivePins { get; } = new EnumArray2D<TrackPin, TrackDirection, Location>(Enumerable.Repeat(TrackPin.Empty, 4).ToList());// active next sections                   //
 
         public int JunctionDefaultRoute { get; private set; } = -1;                     // jn default route, value is out-pin      //
         public int JunctionLastRoute { get; internal set; } = -1;                       // jn last route, value is out-pin         //

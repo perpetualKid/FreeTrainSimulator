@@ -1186,7 +1186,7 @@ namespace Orts.Simulation.AIs
         /// Override Switch to Signal control
         /// </summary>
 
-        public override void SwitchToSignalControl(Signal thisSignal)
+        internal override void SwitchToSignalControl(Signal thisSignal)
         {
             base.SwitchToSignalControl(thisSignal);
             if (TrainType != TrainType.Player)
@@ -1207,7 +1207,7 @@ namespace Orts.Simulation.AIs
         /// Override Switch to Node control
         /// </summary>
 
-        public override void SwitchToNodeControl(int thisSectionIndex)
+        internal override void SwitchToNodeControl(int thisSectionIndex)
         {
             base.SwitchToNodeControl(thisSectionIndex);
             if (TrainType != TrainType.Player)
@@ -3262,7 +3262,7 @@ namespace Orts.Simulation.AIs
                         var randomizedDelay = waitingPoint[2];
                         if (simulator.Settings.ActRandomizationLevel > 0)
                         {
-                            RandomizedWPDelay(ref randomizedDelay);
+                            randomizedDelay = RandomizedWPDelay(randomizedDelay);
                         }
                         action.SetDelay(randomizedDelay);
                         AuxActionsContainer.Add(action);
@@ -3290,7 +3290,7 @@ namespace Orts.Simulation.AIs
                     var randomizedDelay = waitingPoint[2];
                     if (simulator.Settings.ActRandomizationLevel > 0)
                     {
-                        RandomizedWPDelay(ref randomizedDelay);
+                        randomizedDelay = RandomizedWPDelay(randomizedDelay);
                     }
                     action.SetDelay( (randomizedDelay >= 30000 && randomizedDelay < 40000)? randomizedDelay : 0);
                     AuxActionsContainer.Add(action);
@@ -4158,7 +4158,7 @@ namespace Orts.Simulation.AIs
         /// Remove train
         /// </summary>
 
-        public override void RemoveTrain()
+        internal override void RemoveTrain()
         {
             RemoveFromTrack();
             ClearDeadlocks();
@@ -5399,7 +5399,7 @@ namespace Orts.Simulation.AIs
                     // check if stopped at station
                     if (Math.Abs(SpeedMpS) == 0.0f)
                     {
-                        AtStation = IsAtPlatform();
+                        AtStation = AtPlatform();
                          if (AtStation)
                         {
                             int presentTime = Convert.ToInt32(Math.Floor(simulator.ClockTime));
@@ -5410,7 +5410,7 @@ namespace Orts.Simulation.AIs
                     else if (ControlMode == TrainControlMode.AutoNode || ControlMode == TrainControlMode.AutoSignal)
                     {
                         // check if station missed : station must be at least 250m. behind us
-                        bool missedStation = IsMissedPlatform(250);
+                        bool missedStation = MissedPlatform(250);
 
                         if (missedStation)
                         {

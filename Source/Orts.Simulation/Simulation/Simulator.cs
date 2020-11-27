@@ -847,10 +847,10 @@ namespace Orts.Simulation
                     // if there is just here a reversal point, increment subpath in order to be in accordance with train
                     var ppTCSectionIndex = drivenTrain.PresentPosition[Direction.Forward].TrackCircuitSectionIndex;
                     if (ppTCSectionIndex == drivenTrain.TCRoute.TCRouteSubpaths[drivenTrain.TCRoute.ActiveSubPath][drivenTrain.TCRoute.TCRouteSubpaths[drivenTrain.TCRoute.ActiveSubPath].Count - 1].TrackCircuitSection.Index)
-                        drivenTrain.IncrementSubpath(drivenTrain);
+                        Train.IncrementSubpath(drivenTrain);
                     // doubled check in case of double reverse point.
                     if (ppTCSectionIndex == drivenTrain.TCRoute.TCRouteSubpaths[drivenTrain.TCRoute.ActiveSubPath][drivenTrain.TCRoute.TCRouteSubpaths[drivenTrain.TCRoute.ActiveSubPath].Count - 1].TrackCircuitSection.Index)
-                        drivenTrain.IncrementSubpath(drivenTrain);
+                        Train.IncrementSubpath(drivenTrain);
                     var tempTrain = drivenTrain;
                     drivenTrain = train;
                     train = tempTrain;
@@ -860,10 +860,10 @@ namespace Orts.Simulation
                 {
                     var ppTCSectionIndex = train.PresentPosition[Direction.Forward].TrackCircuitSectionIndex;
                     if (ppTCSectionIndex == train.TCRoute.TCRouteSubpaths[train.TCRoute.ActiveSubPath][train.TCRoute.TCRouteSubpaths[train.TCRoute.ActiveSubPath].Count - 1].TrackCircuitSection.Index)
-                        train.IncrementSubpath(train);
+                        Train.IncrementSubpath(train);
                     // doubled check in case of double reverse point.
                     if (ppTCSectionIndex == train.TCRoute.TCRouteSubpaths[train.TCRoute.ActiveSubPath][train.TCRoute.TCRouteSubpaths[train.TCRoute.ActiveSubPath].Count - 1].TrackCircuitSection.Index)
-                        train.IncrementSubpath(train);
+                        Train.IncrementSubpath(train);
                 }
                 train.IncorporatingTrain = drivenTrain;
                 train.IncorporatingTrainNo = drivenTrain.Number;

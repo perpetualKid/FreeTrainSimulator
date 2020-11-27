@@ -79,9 +79,7 @@ namespace Orts.Common
     /// <typeparam name="T">Type stored in array</typeparam>
     /// <typeparam name="TDimension1">Indexer dimension 1 Enum type</typeparam>
     /// <typeparam name="TDimension2">Indexer dimension 2 Enum type</typeparam>
-#pragma warning disable CA1710 // Identifiers should have correct suffix
     public class EnumArray2D<T, TDimension1, TDimension2> where TDimension1: Enum where TDimension2: Enum
-#pragma warning restore CA1715 // Identifiers should have correct prefix
     {
 #pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
         private readonly T[,] array;
@@ -110,6 +108,20 @@ namespace Orts.Common
             for (int col = 0; col < array.GetLength(0); col++)
                 for (int row = 0; row < array.GetLength(1); row++)
                     array[col, row] = source;
+        }
+
+        public EnumArray2D(IList<T> source) : this()
+        {
+            if (source == null)
+                throw new ArgumentNullException(nameof(source));
+            int columns = array.GetLength(0);
+            int rows = array.GetLength(1);
+            if (source.Count != columns * rows)
+                throw new InvalidOperationException($"Source array needs to fit into target array.");
+
+            for (int col = 0; col < columns; col++)
+                for (int row = 0; row < rows; row++)
+                    array[col, row] = source[col * columns + row];
         }
 
         public T this[TDimension1 x, TDimension2 y]

@@ -236,7 +236,7 @@ namespace Orts.Simulation.Physics
         public List<TrackCircuitSection> OccupiedTrack { get; } = new List<TrackCircuitSection>();
 
         // Station Info
-        public List<int> HoldingSignals = new List<int>();// list of signals which must not be cleared (eg station stops)
+        internal List<int> HoldingSignals { get; } = new List<int>();// list of signals which must not be cleared (eg station stops)
         public List<StationStop> StationStops = new List<StationStop>();  //list of station stop details
         public StationStop PreviousStop = null;                           //last stop passed
         public bool AtStation = false;                                    //set if train is in station
@@ -6109,25 +6109,22 @@ namespace Orts.Simulation.Physics
             NextSignalObject[0] = null;
             for (int i = 0; i < ValidRoute[0].Count && NextSignalObject[0] == null; i++)
             {
-                TrackCircuitRouteElement thisElement = ValidRoute[0][i];
-                TrackCircuitSection thisSection = thisElement.TrackCircuitSection;
-                NextSignalObject[0] = thisSection.EndSignals[thisElement.Direction];
+                TrackCircuitRouteElement routeElement = ValidRoute[0][i];
+                NextSignalObject[0] = routeElement.TrackCircuitSection.EndSignals[routeElement.Direction];
             }
 
             // backward
             NextSignalObject[1] = null;
-            for (int iindex = 0; iindex < ValidRoute[1].Count && NextSignalObject[1] == null; iindex++)
+            for (int i = 0; i < ValidRoute[1].Count && NextSignalObject[1] == null; i++)
             {
-                TrackCircuitRouteElement thisElement = ValidRoute[1][iindex];
-                TrackCircuitSection thisSection = thisElement.TrackCircuitSection;
-                NextSignalObject[1] = thisSection.EndSignals[thisElement.Direction];
+                TrackCircuitRouteElement routeElement = ValidRoute[1][i];
+                NextSignalObject[1] = routeElement.TrackCircuitSection.EndSignals[routeElement.Direction];
             }
         }
 
         // Request signal permission in manual mode
         private void RequestManualSignalPermission(TrackCircuitPartialPathRoute selectedRoute, int routeIndex)
         {
-
             // check if route ends with signal at danger
             TrackCircuitRouteElement lastElement = selectedRoute[selectedRoute.Count - 1];
             TrackCircuitSection lastSection = lastElement.TrackCircuitSection;
@@ -6447,13 +6444,13 @@ namespace Orts.Simulation.Physics
 
                 if (speedMpS > 0)
                 {
-                    if (speedInfo.LimitedSpeedReduction == 0) 
+                    if (speedInfo.LimitedSpeedReduction == 0)
                         allowedMaxSpeedLimitMpS = speedMpS;
-                    else 
+                    else
                         allowedMaxTempSpeedLimitMpS = speedMpS;
-                    if (simulator.TimetableMode) 
+                    if (simulator.TimetableMode)
                         AllowedMaxSpeedMpS = speedMpS;
-                    else 
+                    else
                         AllowedMaxSpeedMpS = Math.Min(allowedMaxSpeedLimitMpS, Math.Min(allowedMaxTempSpeedLimitMpS,
                                        allowedMaxSpeedSignalMpS == -1 ? 999 : allowedMaxSpeedSignalMpS));
                 }
@@ -6547,9 +6544,9 @@ namespace Orts.Simulation.Physics
                         if (PassedSignalSpeeds.ContainsKey(signal.Index))
                         {
                             allowedMaxSpeedSignalMpS = PassedSignalSpeeds[signal.Index];
-                            if (simulator.TimetableMode) 
+                            if (simulator.TimetableMode)
                                 AllowedMaxSpeedMpS = Math.Min(AllowedMaxSpeedMpS, allowedMaxSpeedSignalMpS);
-                            else 
+                            else
                                 AllowedMaxSpeedMpS = Math.Min(allowedMaxSpeedLimitMpS, Math.Min(allowedMaxTempSpeedLimitMpS, allowedMaxSpeedSignalMpS));
 
                             if (!remainingSignals.ContainsKey(signal.Index))
@@ -6722,7 +6719,7 @@ namespace Orts.Simulation.Physics
             }
 
             // check present forward
-            TrackCircuitPartialPathRoute newRouteF = CheckExplorerPath(0, PresentPosition[Direction.Forward], ValidRoute[0], true, ref EndAuthorityTypes[0],
+            TrackCircuitPartialPathRoute newRouteF = CheckExplorerPath(Direction.Forward, PresentPosition[Direction.Forward], ValidRoute[0], true, ref EndAuthorityTypes[0],
                 ref DistanceToEndNodeAuthorityM[0]);
             ValidRoute[0] = newRouteF;
             int routeIndex = ValidRoute[0].GetRouteIndex(PresentPosition[Direction.Forward].TrackCircuitSectionIndex, 0);
@@ -6731,7 +6728,7 @@ namespace Orts.Simulation.Physics
             // check present reverse
             // reverse present rear position direction to build correct path backwards
             TrackCircuitPosition tempRear = new TrackCircuitPosition(PresentPosition[Direction.Backward], true);
-            TrackCircuitPartialPathRoute newRouteR = CheckExplorerPath(1, tempRear, ValidRoute[1], true, ref EndAuthorityTypes[1], ref DistanceToEndNodeAuthorityM[1]);
+            TrackCircuitPartialPathRoute newRouteR = CheckExplorerPath(Direction.Backward, tempRear, ValidRoute[1], true, ref EndAuthorityTypes[1], ref DistanceToEndNodeAuthorityM[1]);
             ValidRoute[1] = newRouteR;
 
             // select valid route
@@ -6788,221 +6785,180 @@ namespace Orts.Simulation.Physics
             requiredActions.RemovePendingAIActionItems(true);
         }
 
-        //================================================================================================//
         /// <summary>
         /// Check Explorer Path
         /// <\summary>
-
-        private TrackCircuitPartialPathRoute CheckExplorerPath(int direction, TrackCircuitPosition requiredPosition, TrackCircuitPartialPathRoute requiredRoute, bool forward,
+        private TrackCircuitPartialPathRoute CheckExplorerPath(Direction direction, TrackCircuitPosition requiredPosition, TrackCircuitPartialPathRoute requiredRoute, bool forward,
             ref EndAuthorityType endAuthority, ref float endAuthorityDistanceM)
         {
-            TrainRouted thisRouted = direction == 0 ? routedForward : routedBackward;
+            TrainRouted trainRouted = direction == Direction.Forward ? routedForward : routedBackward;
 
             // create new route or set to existing route
-
-            TrackCircuitPartialPathRoute newRoute = null;
-
-            TrackCircuitRouteElement thisElement = null;
-            TrackCircuitSection thisSection = null;
-            TrackDirection reqDirection = TrackDirection.Ahead;
-            float offsetM = 0.0f;
-            float totalLengthM = 0.0f;
-
-            if (requiredRoute == null)
-            {
-                newRoute = new TrackCircuitPartialPathRoute();
-            }
-            else
-            {
-                newRoute = requiredRoute;
-            }
+            TrackCircuitPartialPathRoute newRoute = requiredRoute ?? new TrackCircuitPartialPathRoute();
 
             // check if train on valid position in route
-
-            int thisRouteIndex = newRoute.GetRouteIndex(requiredPosition.TrackCircuitSectionIndex, 0);
-            if (thisRouteIndex < 0)    // no valid point in route
+            int routeIndex = newRoute.GetRouteIndex(requiredPosition.TrackCircuitSectionIndex, 0);
+            TrackCircuitRouteElement routeElement;
+            if (routeIndex < 0)    // no valid point in route
             {
                 if (requiredRoute != null && requiredRoute.Count > 0)  // if route defined, then breakdown route
                 {
-                    signalRef.BreakDownRouteList(requiredRoute, 0, thisRouted);
+                    signalRef.BreakDownRouteList(requiredRoute, 0, trainRouted);
                     requiredRoute.Clear();
                 }
 
                 // build new route
-
-                List<int> tempSections = new List<int>();
-
-                tempSections = SignalEnvironment.ScanRoute(this, requiredPosition.TrackCircuitSectionIndex, requiredPosition.Offset,
+                List<int> tempSections = SignalEnvironment.ScanRoute(this, requiredPosition.TrackCircuitSectionIndex, requiredPosition.Offset,
                         requiredPosition.Direction, forward, -1, true, false, false, false, true, false, false, false, false, IsFreight);
 
                 if (tempSections.Count > 0)
                 {
-
                     // create subpath route
-
                     int prevSection = -2;    // preset to invalid
 
                     foreach (int sectionIndex in tempSections)
                     {
-                        thisElement = new TrackCircuitRouteElement(TrackCircuitSection.TrackCircuitList[Math.Abs(sectionIndex)],
+                        routeElement = new TrackCircuitRouteElement(TrackCircuitSection.TrackCircuitList[Math.Abs(sectionIndex)],
                                 sectionIndex > 0 ? TrackDirection.Ahead : TrackDirection.Reverse, prevSection);
-                        newRoute.Add(thisElement);
+                        newRoute.Add(routeElement);
                         prevSection = Math.Abs(sectionIndex);
                     }
                 }
             }
             // remove any sections before present position - train has passed over these sections
-            else if (thisRouteIndex > 0)
+            else if (routeIndex > 0)
             {
-                for (int iindex = thisRouteIndex - 1; iindex >= 0; iindex--)
+                for (int i = routeIndex - 1; i >= 0; i--)
                 {
-                    newRoute.RemoveAt(iindex);
+                    newRoute.RemoveAt(i);
                 }
             }
 
             // check if route ends at signal, determine length
 
-            totalLengthM = 0;
-            thisSection = TrackCircuitSection.TrackCircuitList[requiredPosition.TrackCircuitSectionIndex];
-            offsetM = direction == 0 ? requiredPosition.Offset : thisSection.Length - requiredPosition.Offset;
+            float totalLengthM = 0;
+            TrackCircuitSection section = TrackCircuitSection.TrackCircuitList[requiredPosition.TrackCircuitSectionIndex];
+            float offsetM = direction == Direction.Forward ? requiredPosition.Offset : section.Length - requiredPosition.Offset;
             bool endWithSignal = false;    // ends with signal at STOP
             int sectionWithSignalIndex = 0;
 
-            for (int iindex = 0; iindex < newRoute.Count && !endWithSignal; iindex++)
+            TrackDirection reqDirection;
+            for (int i = 0; i < newRoute.Count && !endWithSignal; i++)
             {
-                thisElement = newRoute[iindex];
+                routeElement = newRoute[i];
 
-                thisSection = thisElement.TrackCircuitSection;
-                totalLengthM += (thisSection.Length - offsetM);
+                section = routeElement.TrackCircuitSection;
+                totalLengthM += (section.Length - offsetM);
                 offsetM = 0.0f; // reset offset for further sections
 
                 // check on state of signals
                 // also check if signal properly enabled
 
-                reqDirection = (TrackDirection)thisElement.Direction;
-                if (thisSection.EndSignals[reqDirection] != null)
+                reqDirection = routeElement.Direction;
+                if (section.EndSignals[reqDirection] != null)
                 {
-                    var endSignal = thisSection.EndSignals[reqDirection];
-                    var thisAspect = thisSection.EndSignals[reqDirection].SignalLR(SignalFunction.Normal);
+                    Signal endSignal = section.EndSignals[reqDirection];
+                    SignalAspectState aspect = section.EndSignals[reqDirection].SignalLR(SignalFunction.Normal);
 
-                    if (thisAspect == SignalAspectState.Stop && endSignal.OverridePermission != SignalPermission.Granted)
+                    if (aspect == SignalAspectState.Stop && endSignal.OverridePermission != SignalPermission.Granted)
                     {
                         endWithSignal = true;
-                        sectionWithSignalIndex = iindex;
+                        sectionWithSignalIndex = i;
                     }
                     else if (!endSignal.Enabled)   // signal cleared by default only - request for proper clearing
                     {
-                        endSignal.RequestClearSignalExplorer(newRoute, thisRouted, true, 0);  // do NOT propagate
+                        endSignal.RequestClearSignalExplorer(newRoute, trainRouted, true, 0);  // do NOT propagate
                     }
-
                 }
             }
 
             // check if signal is in last section
             // if not, probably moved forward beyond a signal, so remove all beyond first signal
-
             if (endWithSignal && sectionWithSignalIndex < newRoute.Count - 1)
             {
-                for (int iindex = newRoute.Count - 1; iindex >= sectionWithSignalIndex + 1; iindex--)
+                for (int i = newRoute.Count - 1; i >= sectionWithSignalIndex + 1; i--)
                 {
-                    thisSection = newRoute[iindex].TrackCircuitSection;
-                    thisSection.RemoveTrain(this, true);
-                    newRoute.RemoveAt(iindex);
+                    section = newRoute[i].TrackCircuitSection;
+                    section.RemoveTrain(this, true);
+                    newRoute.RemoveAt(i);
                 }
             }
 
             // check for any uncleared signals in route - if first found, request clear signal
-
             bool unclearedSignal = false;
             int signalIndex = newRoute.Count - 1;
             int nextUnclearSignalIndex = -1;
 
-            for (int iindex = 0; iindex <= newRoute.Count - 1 && !unclearedSignal; iindex++)
+            for (int i = 0; i <= newRoute.Count - 1 && !unclearedSignal; i++)
             {
-                thisElement = newRoute[iindex];
-                thisSection = thisElement.TrackCircuitSection;
+                routeElement = newRoute[i];
+                section = routeElement.TrackCircuitSection;
 
-                var nextSignal = thisSection.EndSignals[(TrackDirection)thisElement.Direction];
-                if (nextSignal != null &&
-                    nextSignal.SignalLR(SignalFunction.Normal) == SignalAspectState.Stop &&
-                    nextSignal.OverridePermission != SignalPermission.Granted)
+                Signal nextSignal = section.EndSignals[routeElement.Direction];
+                if (nextSignal?.SignalLR(SignalFunction.Normal) == SignalAspectState.Stop && nextSignal.OverridePermission != SignalPermission.Granted)
                 {
                     unclearedSignal = true;
-                    signalIndex = iindex;
+                    signalIndex = i;
                     nextUnclearSignalIndex = nextSignal.Index;
                 }
             }
 
             // route created to signal or max length, now check availability - but only up to first unclear signal
             // check if other train in first section
-
             if (newRoute.Count > 0)
             {
-                thisElement = newRoute[0];
-                thisSection = thisElement.TrackCircuitSection;
-                reqDirection = forward ? thisElement.Direction : thisElement.Direction.Next();
-                offsetM = direction == 0 ? requiredPosition.Offset : thisSection.Length - requiredPosition.Offset;
+                routeElement = newRoute[0];
+                section = routeElement.TrackCircuitSection;
+                reqDirection = forward ? routeElement.Direction : routeElement.Direction.Next();
+                offsetM = direction == 0 ? requiredPosition.Offset : section.Length - requiredPosition.Offset;
 
-                Dictionary<Train, float> firstTrainInfo = thisSection.TestTrainAhead(this, offsetM, reqDirection);
+                Dictionary<Train, float> firstTrainInfo = section.TestTrainAhead(this, offsetM, reqDirection);
                 if (firstTrainInfo.Count > 0)
                 {
-                    foreach (KeyValuePair<Train, float> thisTrainAhead in firstTrainInfo)  // there is only one value
+                    foreach (KeyValuePair<Train, float> item in firstTrainInfo)  // there is only one value
                     {
                         endAuthority = EndAuthorityType.TrainAhead;
-                        endAuthorityDistanceM = thisTrainAhead.Value;
-                        if (!thisSection.CircuitState.OccupiedByThisTrain(this)) thisSection.PreReserve(thisRouted);
+                        endAuthorityDistanceM = item.Value;
+                        if (!section.CircuitState.OccupiedByThisTrain(this)) section.PreReserve(trainRouted);
                     }
                 }
-
                 // check route availability
                 // reserve sections which are available
-
                 else
                 {
                     int lastValidSectionIndex = 0;
-                    bool isAvailable = true;
                     totalLengthM = 0;
 
-                    for (int iindex = 0; iindex <= signalIndex && isAvailable; iindex++)
+                    for (int i = 0; i <= signalIndex; i++)
                     {
-                        thisSection = newRoute[iindex].TrackCircuitSection;
+                        section = newRoute[i].TrackCircuitSection;
 
-                        if (isAvailable)
+                        if (section.IsAvailable(this))
                         {
-                            if (thisSection.IsAvailable(this))
-                            {
-                                lastValidSectionIndex = iindex;
-                                totalLengthM += (thisSection.Length - offsetM);
-                                offsetM = 0;
-                                thisSection.Reserve(thisRouted, newRoute);
-                            }
-                            else
-                            {
-                                isAvailable = false;
-                            }
+                            lastValidSectionIndex = i;
+                            totalLengthM += (section.Length - offsetM);
+                            offsetM = 0;
+                            section.Reserve(trainRouted, newRoute);
+                        }
+                        else
+                        {
+                            break;
                         }
                     }
 
-                    // set default authority to max distance
-                    endAuthority = EndAuthorityType.MaxDistance;
-                    endAuthorityDistanceM = totalLengthM;
-
                     // if last section ends with signal, set authority to signal
-                    thisElement = newRoute[lastValidSectionIndex];
-                    thisSection = thisElement.TrackCircuitSection;
-                    reqDirection = forward ? thisElement.Direction : thisElement.Direction.Next();
+                    routeElement = newRoute[lastValidSectionIndex];
+                    section = routeElement.TrackCircuitSection;
+                    reqDirection = forward ? routeElement.Direction : routeElement.Direction.Next();
                     // last section ends with signal
-                    if (thisSection.EndSignals[reqDirection] != null)
+                    if (section.EndSignals[reqDirection] != null)
                     {
                         endAuthority = EndAuthorityType.Signal;
                         endAuthorityDistanceM = totalLengthM;
                     }
-
                     // sections not clear - check if end has signal
-
                     else
                     {
-
                         TrackCircuitSection nextSection = null;
                         TrackCircuitRouteElement nextElement = null;
 
@@ -7014,20 +6970,17 @@ namespace Orts.Simulation.Physics
 
                         // check for end authority if not ended with signal
                         // last section is end of track
-                        if (thisSection.CircuitType == TrackCircuitType.EndOfTrack)
+                        if (section.CircuitType == TrackCircuitType.EndOfTrack)
                         {
                             endAuthority = EndAuthorityType.EndOfTrack;
                             endAuthorityDistanceM = totalLengthM;
                         }
-
                         // first non-available section is switch or crossover
-                        else if (nextSection != null && (nextSection.CircuitType == TrackCircuitType.Junction ||
-                                     nextSection.CircuitType == TrackCircuitType.Crossover))
+                        else if (nextSection != null && (nextSection.CircuitType == TrackCircuitType.Junction || nextSection.CircuitType == TrackCircuitType.Crossover))
                         {
                             endAuthority = EndAuthorityType.ReservedSwitch;
                             endAuthorityDistanceM = totalLengthM;
                         }
-
                         // set authority is end of path unless train ahead
                         else
                         {
@@ -7038,10 +6991,10 @@ namespace Orts.Simulation.Physics
 
                             if (nextSection != null)
                             {
-                                int oppositeDirection = forward ? (nextElement.Direction == 0 ? 1 : 0) : (nextElement.Direction == 0 ? 0 : 1);
+                                TrackDirection oppositeDirection = forward ? nextElement.Direction.Next() : nextElement.Direction;
                                 reqDirection = forward ? nextElement.Direction : nextElement.Direction.Next();
 
-                                bool oppositeTrain = nextSection.CircuitState.Occupied(oppositeDirection, false);
+                                bool oppositeTrain = nextSection.CircuitState.Occupied((int)oppositeDirection, false);
 
                                 if (!oppositeTrain)
                                 {
@@ -7053,7 +7006,7 @@ namespace Orts.Simulation.Physics
                                             endAuthority = EndAuthorityType.TrainAhead;
                                             endAuthorityDistanceM = thisTrainAhead.Value + totalLengthM;
                                             lastValidSectionIndex++;
-                                            nextSection.PreReserve(thisRouted);
+                                            nextSection.PreReserve(trainRouted);
                                         }
                                     }
                                 }
@@ -7064,9 +7017,9 @@ namespace Orts.Simulation.Physics
                     // remove invalid sections from route
                     if (lastValidSectionIndex < newRoute.Count - 1)
                     {
-                        for (int iindex = newRoute.Count - 1; iindex > lastValidSectionIndex; iindex--)
+                        for (int i = newRoute.Count - 1; i > lastValidSectionIndex; i--)
                         {
-                            newRoute.RemoveAt(iindex);
+                            newRoute.RemoveAt(i);
                         }
                     }
                 }
@@ -7077,7 +7030,7 @@ namespace Orts.Simulation.Physics
                 if (endAuthority == EndAuthorityType.Signal)
                 {
                     TrackCircuitSection lastSection = newRoute[newRoute.Count - 1].TrackCircuitSection;
-                    TrackDirection lastDirection = (TrackDirection)newRoute[newRoute.Count - 1].Direction;
+                    TrackDirection lastDirection = newRoute[newRoute.Count - 1].Direction;
                     if (lastSection.EndSignals[lastDirection] != null && lastSection.EndSignals[lastDirection].Index == nextUnclearSignalIndex)
                     {
                         Signal reqSignal = signalRef.Signals[nextUnclearSignalIndex];
@@ -7085,7 +7038,6 @@ namespace Orts.Simulation.Physics
                     }
                 }
             }
-
             // no valid route could be found
             else
             {
@@ -7093,45 +7045,37 @@ namespace Orts.Simulation.Physics
                 endAuthorityDistanceM = 0.0f;
             }
 
-            return (newRoute);
+            return newRoute;
         }
 
-        //================================================================================================//
         /// <summary>
         /// Restore Explorer Mode
         /// </summary>
-
-        public void RestoreExplorerMode()
+        internal void RestoreExplorerMode()
         {
             // get next signal
 
             // forward
             NextSignalObject[0] = null;
-            for (int iindex = 0; iindex < ValidRoute[0].Count && NextSignalObject[0] == null; iindex++)
+            for (int i = 0; i < ValidRoute[0].Count && NextSignalObject[0] == null; i++)
             {
-                TrackCircuitRouteElement thisElement = ValidRoute[0][iindex];
-                TrackCircuitSection thisSection = thisElement.TrackCircuitSection;
-                NextSignalObject[0] = thisSection.EndSignals[thisElement.Direction];
+                TrackCircuitRouteElement routeElement = ValidRoute[0][i];
+                NextSignalObject[0] = routeElement.TrackCircuitSection.EndSignals[routeElement.Direction];
             }
 
             // backward
             NextSignalObject[1] = null;
-            for (int iindex = 0; iindex < ValidRoute[1].Count && NextSignalObject[1] == null; iindex++)
+            for (int i = 0; i < ValidRoute[1].Count && NextSignalObject[1] == null; i++)
             {
-                TrackCircuitRouteElement thisElement = ValidRoute[1][iindex];
-                TrackCircuitSection thisSection = thisElement.TrackCircuitSection;
-                NextSignalObject[1] = thisSection.EndSignals[thisElement.Direction];
+                TrackCircuitRouteElement routeElement = ValidRoute[1][i];
+                NextSignalObject[1] = routeElement.TrackCircuitSection.EndSignals[routeElement.Direction];
             }
         }
 
-
-        //================================================================================================//
-        //
         // Request signal permission in explorer mode
-        //
-
-        public void RequestExplorerSignalPermission(ref TrackCircuitPartialPathRoute selectedRoute, Direction routeDirection)
+        private void RequestExplorerSignalPermission(TrackCircuitPartialPathRoute selectedRoute, Direction routeDirection)
         {
+            _ = selectedRoute;
             // check route for first signal at danger, from present position
 
             Signal reqSignal = null;
@@ -7139,15 +7083,15 @@ namespace Orts.Simulation.Physics
 
             if (ValidRoute[(int)routeDirection] != null)
             {
-                for (int iIndex = PresentPosition[routeDirection].RouteListIndex; iIndex <= ValidRoute[(int)routeDirection].Count - 1 && !signalFound; iIndex++)
+                for (int i = PresentPosition[routeDirection].RouteListIndex; i <= ValidRoute[(int)routeDirection].Count - 1 && !signalFound; i++)
                 {
-                    TrackCircuitSection thisSection = ValidRoute[(int)routeDirection][iIndex].TrackCircuitSection;
-                    TrackDirection direction = ValidRoute[(int)routeDirection][iIndex].Direction;
+                    TrackCircuitSection section = ValidRoute[(int)routeDirection][i].TrackCircuitSection;
+                    TrackDirection direction = ValidRoute[(int)routeDirection][i].Direction;
 
-                    if (thisSection.EndSignals[direction] != null)
+                    if (section.EndSignals[direction] != null)
                     {
-                        reqSignal = thisSection.EndSignals[direction];
-                        signalFound = (reqSignal.SignalLR(SignalFunction.Normal) == SignalAspectState.Stop);
+                        reqSignal = section.EndSignals[direction];
+                        signalFound = reqSignal.SignalLR(SignalFunction.Normal) == SignalAspectState.Stop;
                     }
                 }
             }
@@ -7155,8 +7099,8 @@ namespace Orts.Simulation.Physics
             // if no signal at danger is found - report warning
             if (!signalFound)
             {
-                if (simulator.Confirmer != null && TrainType != TrainType.Remote) // As Confirmer may not be created until after a restore.
-                    simulator.Confirmer.Message(ConfirmLevel.Information, Simulator.Catalog.GetString("No signal in train's path"));
+                if (TrainType != TrainType.Remote) // As Confirmer may not be created until after a restore.
+                    simulator.Confirmer?.Message(ConfirmLevel.Information, Simulator.Catalog.GetString("No signal in train's path"));
                 return;
             }
 
@@ -7165,21 +7109,17 @@ namespace Orts.Simulation.Physics
             reqSignal.OverridePermission = SignalPermission.Requested;
 
             TrackCircuitPosition tempPos = new TrackCircuitPosition(PresentPosition[Direction.Backward], routeDirection != Direction.Forward);
-            TrackCircuitPartialPathRoute newRouteR = CheckExplorerPath((int)routeDirection, tempPos, ValidRoute[(int)routeDirection], true, ref EndAuthorityTypes[(int)routeDirection],
+            TrackCircuitPartialPathRoute newRouteR = CheckExplorerPath(routeDirection, tempPos, ValidRoute[(int)routeDirection], true, ref EndAuthorityTypes[(int)routeDirection],
                 ref DistanceToEndNodeAuthorityM[(int)routeDirection]);
             ValidRoute[(int)routeDirection] = newRouteR;
-            simulator.SoundNotify = reqSignal.OverridePermission == SignalPermission.Granted ?
-                TrainEvent.PermissionGranted :
-                TrainEvent.PermissionDenied;
+            simulator.SoundNotify = reqSignal.OverridePermission == SignalPermission.Granted ? TrainEvent.PermissionGranted : TrainEvent.PermissionDenied;
         }
 
-        //================================================================================================//
         /// <summary>
         /// Process request to set switch in explorer mode
         /// Request may contain direction or actual node
         /// </summary>
-
-        public bool ProcessRequestExplorerSetSwitch(Direction direction)
+        internal bool ProcessRequestExplorerSetSwitch(Direction direction)
         {
             // find first switch in required direction
 
@@ -7187,12 +7127,13 @@ namespace Orts.Simulation.Physics
             int routeDirectionIndex = (int)direction;
             bool switchSet = false;
 
-            for (int iindex = 0; iindex < ValidRoute[routeDirectionIndex].Count && reqSwitch == null; iindex++)
+            for (int i = 0; i < ValidRoute[routeDirectionIndex].Count; i++)
             {
-                TrackCircuitSection thisSection = ValidRoute[routeDirectionIndex][iindex].TrackCircuitSection;
-                if (thisSection.CircuitType == TrackCircuitType.Junction)
+                TrackCircuitSection section = ValidRoute[routeDirectionIndex][i].TrackCircuitSection;
+                if (section.CircuitType == TrackCircuitType.Junction)
                 {
-                    reqSwitch = thisSection;
+                    reqSwitch = section;
+                    break;
                 }
             }
 
@@ -7200,10 +7141,10 @@ namespace Orts.Simulation.Physics
             {
                 // search beyond last section for switch using default pins (continue through normal sections only)
 
-                TrackCircuitRouteElement thisElement = ValidRoute[routeDirectionIndex][ValidRoute[routeDirectionIndex].Count - 1];
-                TrackCircuitSection lastSection = thisElement.TrackCircuitSection;
-                TrackDirection curDirection = thisElement.Direction;
-                int nextSectionIndex = thisElement.TrackCircuitSection.Index;
+                TrackCircuitRouteElement routeElement = ValidRoute[routeDirectionIndex][ValidRoute[routeDirectionIndex].Count - 1];
+                TrackCircuitSection lastSection = routeElement.TrackCircuitSection;
+                TrackDirection curDirection = routeElement.Direction;
+                int nextSectionIndex = routeElement.TrackCircuitSection.Index;
 
                 bool validRoute = lastSection.CircuitType == TrackCircuitType.Normal;
 
@@ -7264,11 +7205,10 @@ namespace Orts.Simulation.Physics
             }
             else
             {
-                if (simulator.Confirmer != null) // As Confirmer may not be created until after a restore.
-                    simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("No switch found"));
+                simulator.Confirmer?.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("No switch found"));
             }
 
-            return (switchSet);
+            return switchSet;
         }
 
         internal void ProcessRequestExplorerSetSwitch(int reqSwitchIndex)
@@ -7279,9 +7219,9 @@ namespace Orts.Simulation.Physics
             bool switchFound = false;
             Direction direction = Direction.Forward;
 
-            for (int iindex = 0; iindex < ValidRoute[0].Count - 1 && !switchFound; iindex++)
+            for (int i = 0; i < ValidRoute[0].Count - 1 && !switchFound; i++)
             {
-                if (ValidRoute[0][iindex].TrackCircuitSection.Index == reqSwitchIndex)
+                if (ValidRoute[0][i].TrackCircuitSection.Index == reqSwitchIndex)
                 {
                     routeDirectionIndex = 0;
                     direction = Direction.Forward;
@@ -7291,9 +7231,9 @@ namespace Orts.Simulation.Physics
 
             if (ValidRoute[1] != null)
             {
-                for (int iindex = 0; iindex < ValidRoute[1].Count - 1 && !switchFound; iindex++)
+                for (int i = 0; i < ValidRoute[1].Count - 1 && !switchFound; i++)
                 {
-                    if (ValidRoute[1][iindex].TrackCircuitSection.Index == reqSwitchIndex)
+                    if (ValidRoute[1][i].TrackCircuitSection.Index == reqSwitchIndex)
                     {
                         routeDirectionIndex = 1;
                         direction = Direction.Backward;
@@ -7309,15 +7249,13 @@ namespace Orts.Simulation.Physics
             }
         }
 
-        //================================================================================================//
         /// <summary>
         /// Process switching of explorer switch
         /// </summary>
-
-        public void ProcessExplorerSwitch(int routeDirectionIndex, TrackCircuitSection switchSection, Direction direction)
+        private void ProcessExplorerSwitch(int routeDirectionIndex, TrackCircuitSection switchSection, Direction direction)
         {
             //<CSComment> Probably also in singleplayer the logic of multiplayer should be used, but it's unwise to modify it just before a release
-            TrainRouted thisRouted = direction == Direction.Backward ^ !MPManager.IsMultiPlayer() ? routedBackward : routedForward;
+            TrainRouted trainRouted = direction == Direction.Backward ^ !MPManager.IsMultiPlayer() ? routedBackward : routedForward;
             TrackCircuitPartialPathRoute selectedRoute = ValidRoute[routeDirectionIndex];
 
             // store required position
@@ -7331,25 +7269,22 @@ namespace Orts.Simulation.Physics
             Signal firstSignal = null;
             float coveredLength = 0;
 
-            for (int iindex = 0; iindex < junctionIndex && firstSignal == null; iindex++)
+            for (int i = 0; i < junctionIndex && firstSignal == null; i++)
             {
-                TrackCircuitRouteElement thisElement = selectedRoute[iindex];
-                TrackCircuitSection thisSection = thisElement.TrackCircuitSection;
-                if (iindex > 0) coveredLength += thisSection.Length; // do not use first section
+                TrackCircuitRouteElement routeElement = selectedRoute[i];
+                TrackCircuitSection section = routeElement.TrackCircuitSection;
+                if (i > 0) coveredLength += section.Length; // do not use first section
 
-                TrackDirection signalDirection = thisElement.Direction;
+                TrackDirection signalDirection = routeElement.Direction;
 
-                if (thisSection.EndSignals[signalDirection] != null &&
-                    thisSection.EndSignals[signalDirection].EnabledTrain != null &&
-                    thisSection.EndSignals[signalDirection].EnabledTrain.Train == this)
+                if (section.EndSignals[signalDirection]?.EnabledTrain?.Train == this)
                 {
-                    firstSignal = thisSection.EndSignals[signalDirection];
-                    lastIndex = iindex;
+                    firstSignal = section.EndSignals[signalDirection];
+                    lastIndex = i;
                 }
             }
 
             // if last first is found : reset signal and further signals, clear route as from signal and request clear signal
-
             if (firstSignal != null)
             {
                 firstSignal.ResetSignal(true);
@@ -7360,10 +7295,9 @@ namespace Orts.Simulation.Physics
                 //<CSComment> Probably also in singleplayer the logic of multiplayer should be used, but it's unwise to modify it just before a release
                 if (switchSection.Pins[TrackDirection.Ahead, Location.NearEnd].Link == selectedRoute[lastIndex].TrackCircuitSection.Index || !MPManager.IsMultiPlayer())
                 // leading, train may still own switch
-
                 {
 
-                    signalRef.BreakDownRouteList(selectedRoute, lastIndex + 1, thisRouted);
+                    signalRef.BreakDownRouteList(selectedRoute, lastIndex + 1, trainRouted);
                     selectedRoute.RemoveRange(lastIndex + 1, selectedRoute.Count - lastIndex - 1);
 
                     // restore required position (is cleared by route breakdown)
@@ -7374,12 +7308,12 @@ namespace Orts.Simulation.Physics
                     signalRef.SetSwitch(switchSection.OriginalIndex, switchSection.JunctionSetManual, switchSection);
 
                     // build new route - use signal request
-                    firstSignal.RequestClearSignalExplorer(selectedRoute, thisRouted, false, 0);
+                    firstSignal.RequestClearSignalExplorer(selectedRoute, trainRouted, false, 0);
                 }
                 else
                 {
                     // trailing, train must not own switch any more
-                    signalRef.BreakDownRouteList(selectedRoute, junctionIndex, thisRouted);
+                    signalRef.BreakDownRouteList(selectedRoute, junctionIndex, trainRouted);
                     selectedRoute.RemoveRange(junctionIndex, selectedRoute.Count - junctionIndex);
 
                     // restore required position (is cleared by route breakdown)
@@ -7390,11 +7324,10 @@ namespace Orts.Simulation.Physics
                     signalRef.SetSwitch(switchSection.OriginalIndex, switchSection.JunctionSetManual, switchSection);
                 }
             }
-
             // no signal is found - build route using full update process
             else
             {
-                signalRef.BreakDownRouteList(selectedRoute, 0, thisRouted);
+                signalRef.BreakDownRouteList(selectedRoute, 0, trainRouted);
                 selectedRoute.Clear();
                 manualTrainRoute = SignalEnvironment.BuildTempRoute(this, PresentPosition[Direction.Backward].TrackCircuitSectionIndex, PresentPosition[Direction.Backward].Offset,
                     PresentPosition[Direction.Backward].Direction, Length, false, true, false);
@@ -7402,12 +7335,10 @@ namespace Orts.Simulation.Physics
             }
         }
 
-        //================================================================================================//
         //
         // Switch to explorer mode
         //
-
-        public void ToggleToExplorerMode()
+        private void ToggleToExplorerMode()
         {
             if (ControlMode == TrainControlMode.OutOfControl && LeadLocomotive != null)
                 ((MSTSLocomotive)LeadLocomotive).SetEmergency(false);
@@ -7436,12 +7367,10 @@ namespace Orts.Simulation.Physics
             LastReservedSection[1] = -1;
 
             // clear all outstanding actions
-
             ClearActiveSectionItems();
             requiredActions.RemovePendingAIActionItems(true);
 
             // clear signal info
-
             NextSignalObject[0] = null;
             NextSignalObject[1] = null;
 
@@ -7450,11 +7379,9 @@ namespace Orts.Simulation.Physics
             PassedSignalSpeeds.Clear();
 
             // set explorer mode
-
             ControlMode = TrainControlMode.Explorer;
 
             // reset routes and check sections either end of train
-
             PresentPosition[Direction.Forward].RouteListIndex = -1;
             PresentPosition[Direction.Backward].RouteListIndex = -1;
             PreviousPosition[Direction.Forward].RouteListIndex = -1;
@@ -7462,14 +7389,12 @@ namespace Orts.Simulation.Physics
             UpdateExplorerMode(-1);
         }
 
-        //================================================================================================//
         /// <summary>
         /// Update out-of-control mode
         /// </summary>
-
-        public void UpdateOutOfControl()
+        private void UpdateOutOfControl()
         {
-
+            _ = ControlMode;
             // train is at a stand : 
             // clear all occupied blocks
             // clear signal/speedpost list 
@@ -7480,67 +7405,63 @@ namespace Orts.Simulation.Physics
             // all the above is still TODO
         }
 
-        //================================================================================================//
         /// <summary>
         /// Switch to Auto Signal mode
         /// </summary>
-
-        public virtual void SwitchToSignalControl(Signal thisSignal)
+        internal virtual void SwitchToSignalControl(Signal signal)
         {
             // in auto mode, use forward direction only
 
             ControlMode = TrainControlMode.AutoSignal;
-            thisSignal.RequestClearSignal(ValidRoute[0], routedForward, 0, false, null);
+            signal.RequestClearSignal(ValidRoute[0], routedForward, 0, false, null);
 
             // enable any none-NORMAL signals between front of train and first NORMAL signal
             int firstSectionIndex = PresentPosition[Direction.Forward].RouteListIndex;
-            int lastSectionIndex = ValidRoute[0].GetRouteIndex(thisSignal.TrackCircuitIndex, firstSectionIndex);
+            int lastSectionIndex = ValidRoute[0].GetRouteIndex(signal.TrackCircuitIndex, firstSectionIndex);
 
             // first, all signals in present section beyond position of train
-            TrackCircuitSection thisSection = ValidRoute[0][firstSectionIndex].TrackCircuitSection;
-            TrackDirection thisDirection = ValidRoute[0][firstSectionIndex].Direction;
+            TrackCircuitSection section = ValidRoute[0][firstSectionIndex].TrackCircuitSection;
+            TrackDirection direction = ValidRoute[0][firstSectionIndex].Direction;
 
-            for (int isigtype = 0; isigtype < signalRef.OrtsSignalTypeCount; isigtype++)
+            for (int i = 0; i < signalRef.OrtsSignalTypeCount; i++)
             {
-                TrackCircuitSignalList thisList = thisSection.CircuitItems.TrackCircuitSignals[thisDirection][isigtype];
-                foreach (TrackCircuitSignalItem thisItem in thisList)
+                TrackCircuitSignalList signalList = section.CircuitItems.TrackCircuitSignals[direction][i];
+                foreach (TrackCircuitSignalItem signalItem in signalList)
                 {
-                    if (thisItem.SignalLocation > PresentPosition[Direction.Forward].Offset && !thisItem.Signal.SignalNormal())
+                    if (signalItem.SignalLocation > PresentPosition[Direction.Forward].Offset && !signalItem.Signal.SignalNormal())
                     {
-                        thisItem.Signal.EnabledTrain = this.routedForward;
+                        signalItem.Signal.EnabledTrain = routedForward;
                     }
                 }
             }
 
             // next, signals in any further sections
-            for (int iSectionIndex = firstSectionIndex + 1; iSectionIndex <= lastSectionIndex; iSectionIndex++)
+            for (int sectionIndex = firstSectionIndex + 1; sectionIndex <= lastSectionIndex; sectionIndex++)
             {
-                thisSection = ValidRoute[0][firstSectionIndex].TrackCircuitSection;
-                thisDirection = ValidRoute[0][firstSectionIndex].Direction;
+                section = ValidRoute[0][firstSectionIndex].TrackCircuitSection;
+                direction = ValidRoute[0][firstSectionIndex].Direction;
 
-                for (int isigtype = 0; isigtype < signalRef.OrtsSignalTypeCount; isigtype++)
+                for (int i = 0; i < signalRef.OrtsSignalTypeCount; i++)
                 {
-                    TrackCircuitSignalList thisList = thisSection.CircuitItems.TrackCircuitSignals[thisDirection][isigtype];
-                    foreach (TrackCircuitSignalItem thisItem in thisList)
+                    TrackCircuitSignalList signalList = section.CircuitItems.TrackCircuitSignals[direction][i];
+                    foreach (TrackCircuitSignalItem signalItem in signalList)
                     {
-                        if (!thisItem.Signal.SignalNormal())
+                        if (!signalItem.Signal.SignalNormal())
                         {
-                            thisItem.Signal.EnabledTrain = this.routedForward;
+                            signalItem.Signal.EnabledTrain = routedForward;
                         }
                     }
                 }
             }
         }
 
-        //================================================================================================//
         /// <summary>
         /// Switch to Auto Node mode
         /// </summary>
-
-        public virtual void SwitchToNodeControl(int thisSectionIndex)
+        internal virtual void SwitchToNodeControl(int sectionIndex)
         {
             // reset enabled signal if required
-            if (ControlMode == TrainControlMode.AutoSignal && NextSignalObject[0] != null && NextSignalObject[0].EnabledTrain == routedForward)
+            if (ControlMode == TrainControlMode.AutoSignal && NextSignalObject[0]?.EnabledTrain == routedForward)
             {
                 // reset any claims
                 foreach (TrackCircuitRouteElement thisElement in NextSignalObject[0].SignalRoute)
@@ -7556,40 +7477,32 @@ namespace Orts.Simulation.Physics
 
             // use direction forward only
             float maxDistance = Math.Max(AllowedMaxSpeedMpS * maxTimeS, minCheckDistanceM);
-            float clearedDistanceM = 0.0f;
-
-            int activeSectionIndex = thisSectionIndex;
-            int endListIndex = -1;
-
+            int activeSectionIndex = sectionIndex;
             ControlMode = TrainControlMode.AutoNode;
             EndAuthorityTypes[0] = EndAuthorityType.NoPathReserved;
             IndexNextSignal = -1; // no next signal in Node Control
 
             // if section is set, check if it is on route and ahead of train
-
             if (activeSectionIndex > 0)
             {
-                endListIndex = ValidRoute[0].GetRouteIndex(thisSectionIndex, PresentPosition[Direction.Forward].RouteListIndex);
+                int endListIndex = ValidRoute[0].GetRouteIndex(sectionIndex, PresentPosition[Direction.Forward].RouteListIndex);
 
                 // section is not on route - give warning and break down route, following active links and resetting reservation
-
                 if (endListIndex < 0)
                 {
-                    signalRef.BreakDownRoute(thisSectionIndex, routedForward);
+                    signalRef.BreakDownRoute(sectionIndex, routedForward);
                     activeSectionIndex = -1;
                 }
 
                 // if section is (still) set, check if this is at maximum distance
-
                 if (activeSectionIndex > 0)
                 {
-                    TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[activeSectionIndex];
-                    clearedDistanceM = GetDistanceToTrain(activeSectionIndex, thisSection.Length);
-
+                    TrackCircuitSection section = TrackCircuitSection.TrackCircuitList[activeSectionIndex];
+                    float clearedDistanceM = GetDistanceToTrain(activeSectionIndex, section.Length);
                     if (clearedDistanceM > maxDistance)
                     {
                         EndAuthorityTypes[0] = EndAuthorityType.MaxDistance;
-                        LastReservedSection[0] = thisSection.Index;
+                        LastReservedSection[0] = section.Index;
                         DistanceToEndNodeAuthorityM[0] = clearedDistanceM;
                     }
                 }
@@ -7600,29 +7513,24 @@ namespace Orts.Simulation.Physics
             }
 
             // new request or not beyond max distance
-
             if (activeSectionIndex < 0 || EndAuthorityTypes[0] != EndAuthorityType.MaxDistance)
             {
                 signalRef.RequestClearNode(routedForward, ValidRoute[0]);
             }
         }
 
-        //================================================================================================//
-        //
-        // Request to switch to or from manual mode
-        //
-
+        /// <summary>
+        /// Request to switch to or from manual mode
+        /// </summary>
         public void RequestToggleManualMode()
         {
             if (TrainType == TrainType.AiPlayerHosting)
             {
-                if (simulator.Confirmer != null) // As Confirmer may not be created until after a restore.
-                    simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("You cannot enter manual mode when autopiloted"));
+                simulator.Confirmer?.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("You cannot enter manual mode when autopiloted"));
             }
             else if (IsPathless && ControlMode != TrainControlMode.OutOfControl && ControlMode == TrainControlMode.Manual)
             {
-                if (simulator.Confirmer != null) // As Confirmer may not be created until after a restore.
-                    simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("You cannot use this command for pathless trains"));
+                simulator.Confirmer?.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("You cannot use this command for pathless trains"));
             }
             else if (ControlMode == TrainControlMode.Manual)
             {
@@ -7633,8 +7541,7 @@ namespace Orts.Simulation.Physics
 
                 if (routeIndex < 0)
                 {
-                    if (simulator.Confirmer != null) // As Confirmer may not be created until after a restore.
-                        simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("Train is not back on original route"));
+                    simulator.Confirmer?.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("Train is not back on original route"));
                 }
                 else
                 {
@@ -7642,8 +7549,7 @@ namespace Orts.Simulation.Physics
                     TrackDirection presentDirection = PresentPosition[Direction.Forward].Direction;
                     if (lastDirection != presentDirection && Math.Abs(SpeedMpS) > 0.1f)
                     {
-                        if (simulator.Confirmer != null) // As Confirmer may not be created until after a restore.
-                            simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("Original route is reverse from present direction, stop train before switching"));
+                        simulator.Confirmer?.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("Original route is reverse from present direction, stop train before switching"));
                     }
                     else
                     {
@@ -7651,33 +7557,29 @@ namespace Orts.Simulation.Physics
                         simulator.Confirmer.Confirm(CabControl.SignalMode, CabSetting.On);
                     }
                 }
-
             }
             else if (ControlMode == TrainControlMode.Explorer)
             {
-                if (LeadLocomotive != null &&
-                    (((MSTSLocomotive)LeadLocomotive).TrainBrakeController.TCSEmergencyBraking || ((MSTSLocomotive)LeadLocomotive).TrainBrakeController.TCSFullServiceBraking))
+                if (LeadLocomotive is MSTSLocomotive locomotive && (locomotive.TrainBrakeController.TCSEmergencyBraking || locomotive.TrainBrakeController.TCSFullServiceBraking))
                 {
-                    ((MSTSLocomotive)LeadLocomotive).SetEmergency(false);
+                    locomotive.SetEmergency(false);
                     ResetExplorerMode();
                     return;
                 }
-                else if (simulator.Confirmer != null) // As Confirmer may not be created until after a restore.
-                    simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("Cannot change to Manual Mode while in Explorer Mode"));
+                else
+                    simulator.Confirmer?.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("Cannot change to Manual Mode while in Explorer Mode"));
             }
             else
             {
                 ToggleToManualMode();
-                simulator.Confirmer.Confirm(CabControl.SignalMode, CabSetting.Off);
+                simulator.Confirmer?.Confirm(CabControl.SignalMode, CabSetting.Off);
             }
         }
 
-        //================================================================================================//
-        //
-        // Switch to manual mode
-        //
-
-        public void ToggleToManualMode()
+        /// <summary>
+        /// Switch to manual mode 
+        /// </summary>
+        private void ToggleToManualMode()
         {
             if (LeadLocomotive != null)
                 ((MSTSLocomotive)LeadLocomotive).SetEmergency(false);
@@ -7732,12 +7634,11 @@ namespace Orts.Simulation.Physics
             UpdateManualMode(-1);
         }
 
-        //================================================================================================//
-        //
-        // Switch back from manual mode
-        //
-
-        public void ToggleFromManualMode(int routeIndex)
+        /// <summary>
+        /// Switch back from manual mode 
+        /// </summary>
+        /// <param name="routeIndex"></param>
+        private void ToggleFromManualMode(int routeIndex)
         {
             // extract route at present front position
 
@@ -7746,11 +7647,10 @@ namespace Orts.Simulation.Physics
 
             // test on reversal, if so check rear of train
 
-            bool reversal = false;
-            if (!CheckReversal(oldRoute, ref reversal))
+            (bool valid, bool reversal) = CheckReversal(oldRoute);
+            if (!valid)
             {
-                if (simulator.Confirmer != null) // As Confirmer may not be created until after a restore.
-                    simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("Reversal required and rear of train not on required route"));
+                simulator.Confirmer?.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("Reversal required and rear of train not on required route"));
                 return;
             }
 
@@ -7758,20 +7658,17 @@ namespace Orts.Simulation.Physics
             signalRef.BreakDownRouteList(ValidRoute[0], 0, routedForward);
             signalRef.BreakDownRouteList(ValidRoute[1], 0, routedBackward);
 
-
             // clear occupied sections
-
-            for (int iSection = OccupiedTrack.Count - 1; iSection >= 0; iSection--)
+            for (int i = OccupiedTrack.Count - 1; i >= 0; i--)
             {
-                TrackCircuitSection thisSection = OccupiedTrack[iSection];
-                thisSection.ResetOccupied(this);
+                OccupiedTrack[i].ResetOccupied(this);
             }
 
             // remove any actions build up during manual mode
             requiredActions.RemovePendingAIActionItems(true);
 
             // restore train placement
-            RestoreTrainPlacement(ref newRoute, oldRoute, routeIndex, reversal);
+            RestoreTrainPlacement(newRoute, oldRoute, routeIndex, reversal);
 
             // restore distance travelled in Present Position
             PresentPosition[Direction.Forward].DistanceTravelled = DistanceTravelledM;
@@ -7794,17 +7691,16 @@ namespace Orts.Simulation.Physics
             LastReservedSection[0] = PresentPosition[Direction.Forward].TrackCircuitSectionIndex;
             LastReservedSection[1] = PresentPosition[Direction.Backward].TrackCircuitSectionIndex;
 
-            if (!simulator.TimetableMode) AuxActionsContainer.ResetAuxAction(this);
+            if (!simulator.TimetableMode) 
+                AuxActionsContainer.ResetAuxAction(this);
             SwitchToNodeControl(PresentPosition[Direction.Forward].TrackCircuitSectionIndex);
             TCRoute.SetReversalOffset(Length, simulator.TimetableMode);
         }
 
-        //================================================================================================//
-        //
-        // ResetExplorerMode
-        //
-
-        public void ResetExplorerMode()
+        /// <summary>
+        /// Reset Explorer Mode
+        /// </summary>
+        private void ResetExplorerMode()
         {
             if (ControlMode == TrainControlMode.OutOfControl && LeadLocomotive != null)
                 ((MSTSLocomotive)LeadLocomotive).SetEmergency(false);
@@ -7813,7 +7709,6 @@ namespace Orts.Simulation.Physics
             UpdateSectionStateExplorer();
 
             // breakdown present route - both directions if set
-
             if (ValidRoute[0] != null)
             {
                 int listIndex = PresentPosition[Direction.Forward].RouteListIndex;
@@ -7833,7 +7728,6 @@ namespace Orts.Simulation.Physics
             LastReservedSection[1] = -1;
 
             // clear all outstanding actions
-
             ClearActiveSectionItems();
             requiredActions.RemovePendingAIActionItems(true);
 
@@ -7847,11 +7741,9 @@ namespace Orts.Simulation.Physics
             PassedSignalSpeeds.Clear();
 
             // set explorer mode
-
             ControlMode = TrainControlMode.Explorer;
 
             // reset routes and check sections either end of train
-
             PresentPosition[Direction.Forward].RouteListIndex = -1;
             PresentPosition[Direction.Backward].RouteListIndex = -1;
             PreviousPosition[Direction.Forward].RouteListIndex = -1;
@@ -7859,17 +7751,16 @@ namespace Orts.Simulation.Physics
             UpdateExplorerMode(-1);
         }
 
-        //================================================================================================//
-        //
-        // Check if reversal is required
-        //
-
-        public bool CheckReversal(TrackCircuitPartialPathRoute reqRoute, ref bool reversal)
+        /// <summary>
+        /// Check if reversal is required
+        /// </summary>
+        private (bool valid, bool reversal) CheckReversal(TrackCircuitPartialPathRoute requiredRoute)
         {
             bool valid = true;
+            bool reversal = false;
 
             int presentRouteIndex = ValidRoute[0].GetRouteIndex(PresentPosition[Direction.Forward].TrackCircuitSectionIndex, 0);
-            int reqRouteIndex = reqRoute.GetRouteIndex(PresentPosition[Direction.Forward].TrackCircuitSectionIndex, 0);
+            int reqRouteIndex = requiredRoute.GetRouteIndex(PresentPosition[Direction.Forward].TrackCircuitSectionIndex, 0);
             if (presentRouteIndex < 0 || reqRouteIndex < 0)
             {
                 valid = false;  // front of train not on present route or not on required route
@@ -7878,7 +7769,7 @@ namespace Orts.Simulation.Physics
             else
             {
                 TrackCircuitRouteElement presentElement = ValidRoute[0][presentRouteIndex];
-                TrackCircuitRouteElement pathElement = reqRoute[reqRouteIndex];
+                TrackCircuitRouteElement pathElement = requiredRoute[reqRouteIndex];
 
                 if (presentElement.Direction != pathElement.Direction)
                 {
@@ -7889,31 +7780,28 @@ namespace Orts.Simulation.Physics
             // if reversal required : check if rear of train is on required route
             if (valid && reversal)
             {
-                int rearRouteIndex = reqRoute.GetRouteIndex(PresentPosition[Direction.Backward].TrackCircuitSectionIndex, 0);
+                int rearRouteIndex = requiredRoute.GetRouteIndex(PresentPosition[Direction.Backward].TrackCircuitSectionIndex, 0);
                 valid = rearRouteIndex >= 0;
             }
 
-            return (valid);
+            return (valid, reversal);
         }
 
-        //================================================================================================//
-        //
-        // Restore train placement
-        //
-
-        public void RestoreTrainPlacement(ref TrackCircuitPartialPathRoute newRoute, TrackCircuitPartialPathRoute oldRoute, int frontIndex, bool reversal)
+        /// <summary>
+        /// Restore train placement
+        /// </summary>
+        private void RestoreTrainPlacement(TrackCircuitPartialPathRoute newRoute, TrackCircuitPartialPathRoute oldRoute, int frontIndex, bool reversal)
         {
             // reverse train if required
-
             if (reversal)
             {
                 ReverseFormation(true);
                 // active subpath must be incremented in parallel in incorporated train if present
-                if (IncorporatedTrainNo >= 0) IncrementSubpath(simulator.TrainDictionary[IncorporatedTrainNo]);
+                if (IncorporatedTrainNo >= 0) 
+                    IncrementSubpath(simulator.TrainDictionary[IncorporatedTrainNo]);
             }
 
             // reset distance travelled
-
             DistanceTravelledM = 0.0f;
 
             // check if end of train on original route
@@ -7922,31 +7810,29 @@ namespace Orts.Simulation.Physics
             int rearIndex = oldRoute.GetRouteIndex(PresentPosition[Direction.Backward].TrackCircuitSectionIndex, 0);
             int startIndex = rearIndex >= 0 ? Math.Min(rearIndex, frontIndex) : frontIndex;
 
-            for (int iindex = startIndex; iindex < oldRoute.Count; iindex++)
+            for (int i = startIndex; i < oldRoute.Count; i++)
             {
-                newRoute.Add(oldRoute[iindex]);
+                newRoute.Add(oldRoute[i]);
             }
 
             // if rear not on route, build route under train and add sections
-
             if (rearIndex < 0)
             {
 
                 TrackCircuitPartialPathRoute tempRoute = SignalEnvironment.BuildTempRoute(this, PresentPosition[Direction.Backward].TrackCircuitSectionIndex, PresentPosition[Direction.Backward].Offset,
                             PresentPosition[Direction.Backward].Direction, Length, true, true, false);
 
-                for (int iindex = tempRoute.Count - 1; iindex >= 0; iindex--)
+                for (int i = tempRoute.Count - 1; i >= 0; i--)
                 {
-                    TrackCircuitRouteElement thisElement = tempRoute[iindex];
-                    if (!newRoute.ContainsSection(thisElement))
+                    TrackCircuitRouteElement routeElement = tempRoute[i];
+                    if (!newRoute.ContainsSection(routeElement))
                     {
-                        newRoute.Insert(0, thisElement);
+                        newRoute.Insert(0, routeElement);
                     }
                 }
             }
 
             // set route as valid route
-
             ValidRoute[0] = newRoute;
 
             // Reindexes ReversalInfo items
@@ -7958,36 +7844,30 @@ namespace Orts.Simulation.Physics
 
 
             // get index of first section in route
-
             rearIndex = ValidRoute[0].GetRouteIndex(PresentPosition[Direction.Backward].TrackCircuitSectionIndex, 0);
             PresentPosition[Direction.Backward].RouteListIndex = rearIndex;
 
             // get index of front of train
-
             frontIndex = ValidRoute[0].GetRouteIndex(PresentPosition[Direction.Forward].TrackCircuitSectionIndex, 0);
             PresentPosition[Direction.Forward].RouteListIndex = frontIndex;
 
             PreviousPosition[Direction.Forward].UpdateFrom(PresentPosition[Direction.Forward]);
 
             // set track occupied - forward only
-
-            foreach (TrackCircuitSection thisSection in OccupiedTrack)
+            foreach (TrackCircuitSection section in OccupiedTrack)
             {
-                if (!thisSection.CircuitState.OccupiedByThisTrain(this))
+                if (!section.CircuitState.OccupiedByThisTrain(this))
                 {
-                    thisSection.Reserve(routedForward, ValidRoute[0]);
-                    thisSection.SetOccupied(routedForward);
+                    section.Reserve(routedForward, ValidRoute[0]);
+                    section.SetOccupied(routedForward);
                 }
             }
-
         }
 
 
-        //================================================================================================//
         //
         // Request permission to pass signal
         //
-
         public void RequestSignalPermission(Direction direction)
         {
             if (MPManager.IsClient())
@@ -7997,28 +7877,19 @@ namespace Orts.Simulation.Physics
             }
             if (ControlMode == TrainControlMode.Manual)
             {
-                if (direction == Direction.Forward)
-                {
-                    RequestManualSignalPermission(ValidRoute[0], 0);
-                }
-                else
-                {
-                    RequestManualSignalPermission(ValidRoute[1], 1);
-                }
+                RequestManualSignalPermission(ValidRoute[(int)direction], (int)direction);
             }
             else if (ControlMode == TrainControlMode.Explorer)
             {
-                RequestExplorerSignalPermission(ref ValidRoute[0], direction);
+                RequestExplorerSignalPermission(ValidRoute[(int)Direction.Forward], direction);
             }
             else
             {
                 if (direction != Direction.Forward)
                 {
-                    if (simulator.Confirmer != null) // As Confirmer may not be created until after a restore.
-                        simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("Cannot clear signal behind train while in AUTO mode"));
+                    simulator.Confirmer?.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("Cannot clear signal behind train while in AUTO mode"));
                     simulator.SoundNotify = TrainEvent.PermissionDenied;
                 }
-
                 else if (NextSignalObject[0] != null)
                 {
                     NextSignalObject[0].OverridePermission = SignalPermission.Requested;
@@ -8026,11 +7897,9 @@ namespace Orts.Simulation.Physics
             }
         }
 
-        //================================================================================================//
         //
         // Request reset signal
         //
-
         public void RequestResetSignal(Direction direction)
         {
             if (!MPManager.IsMultiPlayer())
@@ -8049,18 +7918,14 @@ namespace Orts.Simulation.Physics
             }
         }
 
-        //================================================================================================//
         /// <summary>
         /// Get distance from train to object position using route list
         /// </summary>
-
-        private float GetObjectDistanceToTrain(SignalItemInfo thisObject)
+        private float GetObjectDistanceToTrain(SignalItemInfo signalInfo)
         {
-
             // follow active links to get to object
-
-            int reqSectionIndex = thisObject.SignalDetails.TrackCircuitIndex;
-            float endOffset = thisObject.SignalDetails.TrackCircuitOffset;
+            int reqSectionIndex = signalInfo.SignalDetails.TrackCircuitIndex;
+            float endOffset = signalInfo.SignalDetails.TrackCircuitOffset;
 
             float distanceM = GetDistanceToTrain(reqSectionIndex, endOffset);
 
@@ -8069,17 +7934,16 @@ namespace Orts.Simulation.Physics
             //              distanceM = thisObject.ObjectDetails.DistanceTo(FrontTDBTraveller);
             //          }
 
-            return (distanceM);
+            return distanceM;
         }
 
-        //================================================================================================//
         /// <summary>
         /// Get distance from train to location using route list
         /// TODO : rewrite to use active links, and if fails use traveller
         /// location must have same direction as train
         /// </summary>
 
-        public float GetDistanceToTrain(int sectionIndex, float endOffset)
+        internal float GetDistanceToTrain(int sectionIndex, float endOffset)
         {
             // use start of list to see if passed position
 
@@ -8089,26 +7953,26 @@ namespace Orts.Simulation.Physics
 
             if (endListIndex >= 0 && endListIndex < PresentPosition[Direction.Forward].RouteListIndex) // index before present so we must have passed object
             {
-                return (-1.0f);
+                return -1.0f;
             }
 
             if (endListIndex == PresentPosition[Direction.Forward].RouteListIndex && endOffset < PresentPosition[Direction.Forward].Offset) // just passed
             {
-                return (-1.0f);
+                return -1.0f;
             }
 
             // section is not on route
 
             if (endListIndex < 0)
             {
-                return (-1.0f);
+                return -1.0f;
             }
 
-            int thisSectionIndex = PresentPosition[Direction.Forward].TrackCircuitSectionIndex;
+            int presentSectionIndex = PresentPosition[Direction.Forward].TrackCircuitSectionIndex;
             TrackDirection direction = PresentPosition[Direction.Forward].Direction;
             float startOffset = PresentPosition[Direction.Forward].Offset;
 
-            return (TrackCircuitSection.GetDistanceBetweenObjects(thisSectionIndex, startOffset, direction, sectionIndex, endOffset));
+            return TrackCircuitSection.GetDistanceBetweenObjects(presentSectionIndex, startOffset, direction, sectionIndex, endOffset);
         }
 
         /// Switch train to Out-of-Control
@@ -8197,12 +8061,10 @@ namespace Orts.Simulation.Physics
             }
         }
 
-        //================================================================================================//
         /// <summary>
         /// Re-routes a train in auto mode after a switch moved manually
         /// </summary>
-
-        public void ReRouteTrain(int forcedRouteSectionIndex, int forcedTCSectionIndex)
+        internal void ReRouteTrain(int forcedRouteSectionIndex, int forcedTCSectionIndex)
         {
             // check for any stations in abandoned path
             if (ControlMode == TrainControlMode.AutoSignal || ControlMode == TrainControlMode.AutoNode)
@@ -8244,57 +8106,60 @@ namespace Orts.Simulation.Physics
         }
 
 
-        //================================================================================================//
         /// <summary>
         /// Generates a new ValidRoute after some event like a switch moved
         /// </summary>
-
-        public void GenerateValidRoute(int forcedRouteSectionIndex, int forcedTCSectionIndex)
+        private void GenerateValidRoute(int forcedRouteSectionIndex, int forcedTCSectionIndex)
         {
             // We don't kill the AI train and build a new route for it
             // first of all we have to find out the new route
-            List<int> tempSections = new List<int>();
-            if (TCRoute.OriginalSubpath == -1) TCRoute.OriginalSubpath = TCRoute.ActiveSubPath;
+            if (TCRoute.OriginalSubpath == -1) 
+                TCRoute.OriginalSubpath = TCRoute.ActiveSubPath;
+            List<int> tempSections;
             if (PresentPosition[Direction.Forward].RouteListIndex > 0)
+            {
                 // clean case, train is in route and switch has been forced in front of it
-                tempSections = SignalEnvironment.ScanRoute(this, forcedTCSectionIndex, 0, (TrackDirection)ValidRoute[0][forcedRouteSectionIndex].Direction,
+                tempSections = SignalEnvironment.ScanRoute(this, forcedTCSectionIndex, 0, ValidRoute[0][forcedRouteSectionIndex].Direction,
                         true, 0, true, true,
                         false, false, true, false, false, false, false, IsFreight, false, true);
+            }
             else
+            {
                 // dirty case, train is out of route and has already passed forced switch
                 tempSections = SignalEnvironment.ScanRoute(this, PresentPosition[Direction.Forward].TrackCircuitSectionIndex, PresentPosition[Direction.Forward].Offset,
                     PresentPosition[Direction.Forward].Direction, true, 0, true, true, false, false, true, false, false, false, false, IsFreight, false, true);
-
+            }
             TrackCircuitPartialPathRoute newRoute = new TrackCircuitPartialPathRoute();
             // Copy part of route already run
             if (PresentPosition[Direction.Forward].RouteListIndex > 0)
             {
-                for (int routeListIndex = 0; routeListIndex < forcedRouteSectionIndex; routeListIndex++) newRoute.Add(ValidRoute[0][routeListIndex]);
+                for (int routeListIndex = 0; routeListIndex < forcedRouteSectionIndex; routeListIndex++) 
+                    newRoute.Add(ValidRoute[0][routeListIndex]);
             }
             else if (PresentPosition[Direction.Forward].RouteListIndex < 0)
             {
-                for (int routeListIndex = 0; routeListIndex <= PreviousPosition[Direction.Forward].RouteListIndex + 1; routeListIndex++) newRoute.Add(ValidRoute[0][routeListIndex]); // maybe + 1 is wrong?
+                for (int routeListIndex = 0; routeListIndex <= PreviousPosition[Direction.Forward].RouteListIndex + 1; routeListIndex++) 
+                    newRoute.Add(ValidRoute[0][routeListIndex]); // maybe + 1 is wrong?
             }
             if (tempSections.Count > 0)
             {
-                // Add new part of route
-                TrackCircuitRouteElement thisElement = null;
                 int prevSection = -2;    // preset to invalid
-                var tempSectionsIndex = 0;
+                int tempSectionsIndex = 0;
                 foreach (int sectionIndex in tempSections)
                 {
                     TrackDirection sectionDirection = sectionIndex > 0 ? TrackDirection.Ahead : TrackDirection.Reverse;
-                    thisElement = new TrackCircuitRouteElement(TrackCircuitSection.TrackCircuitList[Math.Abs(sectionIndex)], sectionDirection, prevSection);
+                    // Add new part of route
+                    TrackCircuitRouteElement routeElement = new TrackCircuitRouteElement(TrackCircuitSection.TrackCircuitList[Math.Abs(sectionIndex)], sectionDirection, prevSection);
                     // if junction, you have to adjust the OutPin
                     TrackCircuitSection.TrackCircuitList[Math.Abs(sectionIndex)].CircuitState.Forced = false;
-                    if (TrackCircuitSection.TrackCircuitList[Math.Abs(sectionIndex)].CircuitType == TrackCircuitType.Junction && thisElement.FacingPoint == true)
+                    if (TrackCircuitSection.TrackCircuitList[Math.Abs(sectionIndex)].CircuitType == TrackCircuitType.Junction && routeElement.FacingPoint == true)
                     {
-                        var TCSection = TrackCircuitSection.TrackCircuitList[Math.Abs(sectionIndex)];
-                        if (tempSectionsIndex < tempSections.Count - 1 && TCSection.Pins[sectionDirection, Location.FarEnd].Link == tempSections[tempSectionsIndex + 1])
-                            thisElement.OutPin[Location.FarEnd] = TrackDirection.Reverse;
-                        else thisElement.OutPin[Location.FarEnd] = TrackDirection.Ahead;
+                        TrackCircuitSection section = TrackCircuitSection.TrackCircuitList[Math.Abs(sectionIndex)];
+                        if (tempSectionsIndex < tempSections.Count - 1 && section.Pins[sectionDirection, Location.FarEnd].Link == tempSections[tempSectionsIndex + 1])
+                            routeElement.OutPin[Location.FarEnd] = TrackDirection.Reverse;
+                        else routeElement.OutPin[Location.FarEnd] = TrackDirection.Ahead;
                     }
-                    newRoute.Add(thisElement);
+                    newRoute.Add(routeElement);
                     prevSection = Math.Abs(sectionIndex);
                     tempSectionsIndex++;
                 }
@@ -8304,10 +8169,10 @@ namespace Orts.Simulation.Physics
                 if (lastAlternativeSectionIndex != -1)
                 {
                     // continued path
-                    var thisRoute = TCRoute.TCRouteSubpaths[TCRoute.OriginalSubpath];
-                    for (int iElement = lastAlternativeSectionIndex + 1; iElement < thisRoute.Count; iElement++)
+                    TrackCircuitPartialPathRoute route = TCRoute.TCRouteSubpaths[TCRoute.OriginalSubpath];
+                    for (int i = lastAlternativeSectionIndex + 1; i < route.Count; i++)
                     {
-                        newRoute.Add(thisRoute[iElement]);
+                        newRoute.Add(route[i]);
                     }
 
                     if (TCRoute.ActiveSubPath != TCRoute.OriginalSubpath)
@@ -8321,7 +8186,7 @@ namespace Orts.Simulation.Physics
 
                     // readjust item indexes
                     // Reindexes ReversalInfo items
-                    var countDifference = newRoute.Count - ValidRoute[0].Count;
+                    int countDifference = newRoute.Count - ValidRoute[0].Count;
                     if (TCRoute.ReversalInfo[TCRoute.ActiveSubPath].LastDivergeIndex >= 0)
                         TCRoute.ReversalInfo[TCRoute.ActiveSubPath].LastDivergeIndex = TCRoute.ReversalInfo[TCRoute.ActiveSubPath].LastDivergeIndex + countDifference;
                     if (TCRoute.ReversalInfo[TCRoute.ActiveSubPath].LastSignalIndex >= 0)
@@ -8376,7 +8241,7 @@ namespace Orts.Simulation.Physics
                         SetPendingSpeedLimit(activateSpeedLimit);
                         break;
                     case AuxActionItem auxAction:
-                        int presentTime = Convert.ToInt32(Math.Floor(simulator.ClockTime));
+                        int presentTime = (int)simulator.ClockTime;
                         auxAction.ProcessAction(this, presentTime);
                         break;
                 }
@@ -8390,12 +8255,10 @@ namespace Orts.Simulation.Physics
             section.ClearOccupied(this, true);
         }
 
-        //================================================================================================//
         /// <summary>
         /// Set pending speed limits
         /// </summary>
-
-        public void SetPendingSpeedLimit(ActivateSpeedLimit speedInfo)
+        internal void SetPendingSpeedLimit(ActivateSpeedLimit speedInfo)
         {
             float prevMaxSpeedMpS = AllowedMaxSpeedMpS;
 
@@ -8423,20 +8286,17 @@ namespace Orts.Simulation.Physics
             }
         }
 
-        //================================================================================================//
         /// <summary>
         /// Clear all active items on occupied track
         /// <\summary>
-
-        public void ClearActiveSectionItems()
+        internal void ClearActiveSectionItems()
         {
-            ClearSectionItem dummyItem = new ClearSectionItem(0.0f, 0);
-            List<DistanceTravelledItem> activeActions = requiredActions.GetActions(99999999f, dummyItem.GetType());
-            foreach (DistanceTravelledItem thisAction in activeActions)
+            List<DistanceTravelledItem> activeActions = requiredActions.GetActions(99999999f, typeof(ClearSectionItem));
+            foreach (DistanceTravelledItem action in activeActions)
             {
-                if (thisAction is ClearSectionItem)
+                if (action is ClearSectionItem)
                 {
-                    ClearSectionItem sectionInfo = thisAction as ClearSectionItem;
+                    ClearSectionItem sectionInfo = action as ClearSectionItem;
                     int thisSectionIndex = sectionInfo.TrackSectionIndex;
                     TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisSectionIndex];
 
@@ -8448,47 +8308,37 @@ namespace Orts.Simulation.Physics
             }
         }
 
-        //================================================================================================//
         /// <summary>
         /// Forced stop due to problems with other train
         /// <\summary>
-
-        public void ForcedStop(String reason, string otherTrainName, int otherTrainNumber)
+        private void ForcedStop(string reason, string otherTrainName, int otherTrainNumber)
         {
-            Trace.TraceInformation("Train {0} ({1}) stopped for train {2} ({3}) : {4}",
-                    Name, Number, otherTrainName, otherTrainNumber, reason);
+            Trace.TraceInformation($"Train {Name} ({Number}) stopped for train {otherTrainName} ({otherTrainNumber}): {reason}");
 
             if (simulator.PlayerLocomotive != null && simulator.PlayerLocomotive.Train == this)
             {
-                var report = Simulator.Catalog.GetString("Train stopped due to problems with other train: train {0} , reason: {1}", otherTrainNumber, reason);
-
-                if (simulator.Confirmer != null) // As Confirmer may not be created until after a restore.
-                    simulator.Confirmer.Message(ConfirmLevel.Warning, report);
-
+                string report = Simulator.Catalog.GetString("Train stopped due to problems with other train: train {0} , reason: {1}", otherTrainNumber, reason);
+                simulator.Confirmer?.Message(ConfirmLevel.Warning, report);
             }
 
             if (LeadLocomotive != null)
                 ((MSTSLocomotive)LeadLocomotive).SetEmergency(true);
         }
 
-        //================================================================================================//
         /// <summary>
         /// Remove train
         /// <\summary>
-
-        public virtual void RemoveTrain()
+        internal virtual void RemoveTrain()
         {
             RemoveFromTrack();
             ClearDeadlocks();
             simulator.Trains.Remove(this);
         }
 
-        //================================================================================================//
         //
         // Remove train from not-occupied sections only (for reset after uncoupling)
         //
-
-        public void RemoveFromTrackNotOccupied(TrackCircuitPartialPathRoute newSections)
+        private protected void RemoveFromTrackNotOccupied(TrackCircuitPartialPathRoute newSections)
         {
             // clear occupied track
 
@@ -8496,39 +8346,36 @@ namespace Orts.Simulation.Physics
             TrackCircuitSection[] tempSectionArray = new TrackCircuitSection[OccupiedTrack.Count]; // copy sections as list is cleared by ClearOccupied method
             OccupiedTrack.CopyTo(tempSectionArray);
 
-            for (int iIndex = 0; iIndex < tempSectionArray.Length; iIndex++)
+            for (int i = 0; i < tempSectionArray.Length; i++)
             {
-                TrackCircuitSection thisSection = tempSectionArray[iIndex];
-                int newRouteIndex = newSections.GetRouteIndex(thisSection.Index, 0);
+                TrackCircuitSection section = tempSectionArray[i];
+                int newRouteIndex = newSections.GetRouteIndex(section.Index, 0);
                 if (newRouteIndex < 0)
                 {
-                    thisSection.ClearOccupied(this, true);
-                    clearedSectionIndices.Add(thisSection.Index);
+                    section.ClearOccupied(this, true);
+                    clearedSectionIndices.Add(section.Index);
                 }
             }
 
             // clear outstanding clear sections for sections no longer occupied
 
-            foreach (DistanceTravelledItem thisAction in requiredActions)
+            foreach (DistanceTravelledItem action in requiredActions)
             {
-                if (thisAction is ClearSectionItem)
+                if (action is ClearSectionItem)
                 {
-                    ClearSectionItem thisItem = thisAction as ClearSectionItem;
-                    if (clearedSectionIndices.Contains(thisItem.TrackSectionIndex))
+                    ClearSectionItem clearSectionItem = action as ClearSectionItem;
+                    if (clearedSectionIndices.Contains(clearSectionItem.TrackSectionIndex))
                     {
-                        TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisItem.TrackSectionIndex];
-                        thisSection.ClearOccupied(this, true);
+                        TrackCircuitSection.TrackCircuitList[clearSectionItem.TrackSectionIndex].ClearOccupied(this, true);
                     }
                 }
             }
         }
 
-        //================================================================================================//
         //
         // Remove train (after coupling or when train disappeared in multiplayer)
         //
-
-        public void RemoveFromTrack()
+        internal void RemoveFromTrack()
         {
             // check if no reserved sections remain
 
@@ -8536,35 +8383,30 @@ namespace Orts.Simulation.Physics
 
             if (presentIndex >= 0)
             {
-                for (int iIndex = presentIndex; iIndex < ValidRoute[0].Count; iIndex++)
+                for (int i = presentIndex; i < ValidRoute[0].Count; i++)
                 {
-                    TrackCircuitRouteElement thisElement = ValidRoute[0][iIndex];
+                    TrackCircuitRouteElement thisElement = ValidRoute[0][i];
                     TrackCircuitSection thisSection = thisElement.TrackCircuitSection;
                     thisSection.RemoveTrain(this, true);
                 }
             }
 
             // for explorer (e.g. in Multiplayer) and manual mode check also backward route
-
             if (ValidRoute[1] != null && ValidRoute[1].Count > 0)
             {
-                for (int iIndex = 0; iIndex < ValidRoute[1].Count; iIndex++)
+                for (int i = 0; i < ValidRoute[1].Count; i++)
                 {
-                    TrackCircuitRouteElement thisElement = ValidRoute[1][iIndex];
-                    TrackCircuitSection thisSection = thisElement.TrackCircuitSection;
-                    thisSection.RemoveTrain(this, true);
+                    ValidRoute[1][i].TrackCircuitSection.RemoveTrain(this, true);
                 }
             }
 
             // clear occupied track
-
             TrackCircuitSection[] tempSectionArray = new TrackCircuitSection[OccupiedTrack.Count]; // copy sections as list is cleared by ClearOccupied method
             OccupiedTrack.CopyTo(tempSectionArray);
 
-            for (int iIndex = 0; iIndex < tempSectionArray.Length; iIndex++)
+            foreach (TrackCircuitSection section in tempSectionArray)
             {
-                TrackCircuitSection thisSection = tempSectionArray[iIndex];
-                thisSection.ClearOccupied(this, true);
+                section.ClearOccupied(this, true);
             }
 
             // clear last reserved section
@@ -8573,38 +8415,30 @@ namespace Orts.Simulation.Physics
 
             // clear outstanding clear sections
 
-            foreach (DistanceTravelledItem thisAction in requiredActions)
+            foreach (DistanceTravelledItem actionItem in requiredActions)
             {
-                if (thisAction is ClearSectionItem)
+                if (actionItem is ClearSectionItem clearSectionItem)
                 {
-                    ClearSectionItem thisItem = thisAction as ClearSectionItem;
-                    TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisItem.TrackSectionIndex];
-                    thisSection.ClearOccupied(this, true);
+                    TrackCircuitSection.TrackCircuitList[clearSectionItem.TrackSectionIndex].ClearOccupied(this, true);
                 }
             }
         }
 
-        //================================================================================================//
         //
         // Update track actions after coupling
         //
-
-        public void UpdateTrackActionsCoupling(bool couple_to_front)
+        internal void UpdateTrackActionsCoupling(bool coupleToFront)
         {
 
             // remove train from track - clear all reservations etc.
-
             RemoveFromTrack();
             ClearDeadlocks();
 
             // check if new train is freight or not
-
             CheckFreight();
 
             // clear all track occupation actions
-
-            ClearSectionItem dummyItem = new ClearSectionItem(0.0f, 0);
-            List<DistanceTravelledItem> activeActions = requiredActions.GetActions(99999999f, dummyItem.GetType());
+            List<DistanceTravelledItem> activeActions = requiredActions.GetActions(99999999f, typeof(ClearSectionItem));
             activeActions.Clear();
 
             // save existing TCPositions
@@ -8635,9 +8469,8 @@ namespace Orts.Simulation.Physics
 
             // use difference in position to update existing DistanceTravelled
 
-            float deltaoffset = 0.0f;
-
-            if (couple_to_front)
+            float deltaoffset;
+            if (coupleToFront)
             {
                 float offset_old = oldPresentPosition.Offset;
                 float offset_new = PresentPosition[Direction.Forward].Offset;
@@ -8673,13 +8506,13 @@ namespace Orts.Simulation.Physics
                 else
                 {
                     deltaoffset = offset_old;
-                    TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[PresentPosition[Direction.Backward].TrackCircuitSectionIndex];
-                    deltaoffset += (thisSection.Length - offset_new);
+                    TrackCircuitSection section = TrackCircuitSection.TrackCircuitList[PresentPosition[Direction.Backward].TrackCircuitSectionIndex];
+                    deltaoffset += (section.Length - offset_new);
 
-                    for (int iIndex = oldRearPosition.RouteListIndex - 1; iIndex > PresentPosition[Direction.Backward].RouteListIndex; iIndex--)
+                    for (int i = oldRearPosition.RouteListIndex - 1; i > PresentPosition[Direction.Backward].RouteListIndex; i--)
                     {
-                        thisSection = ValidRoute[0][iIndex].TrackCircuitSection;
-                        deltaoffset += thisSection.Length;
+                        section = ValidRoute[0][i].TrackCircuitSection;
+                        deltaoffset += section.Length;
                     }
                 }
                 PresentPosition[Direction.Backward].DistanceTravelled -= deltaoffset;
@@ -8690,21 +8523,20 @@ namespace Orts.Simulation.Physics
             UpdateOccupancies();
 
             // add sections to required actions list
-
-            foreach (TrackCircuitSection thisSection in OccupiedTrack)
+            foreach (TrackCircuitSection section in OccupiedTrack)
             {
-                float distanceToClear = DistanceTravelledM + thisSection.Length + standardOverlapM;
-                if (thisSection.CircuitType == TrackCircuitType.Junction ||
-                    thisSection.CircuitType == TrackCircuitType.Crossover)
+                float distanceToClear = DistanceTravelledM + section.Length + standardOverlapM;
+                if (section.CircuitType == TrackCircuitType.Junction ||
+                    section.CircuitType == TrackCircuitType.Crossover)
                 {
                     distanceToClear += Length + junctionOverlapM;
                 }
 
-                if (PresentPosition[Direction.Forward].TrackCircuitSectionIndex == thisSection.Index)
+                if (PresentPosition[Direction.Forward].TrackCircuitSectionIndex == section.Index)
                 {
                     distanceToClear += Length - PresentPosition[Direction.Forward].Offset;
                 }
-                else if (PresentPosition[Direction.Backward].TrackCircuitSectionIndex == thisSection.Index)
+                else if (PresentPosition[Direction.Backward].TrackCircuitSectionIndex == section.Index)
                 {
                     distanceToClear -= PresentPosition[Direction.Backward].Offset;
                 }
@@ -8712,7 +8544,7 @@ namespace Orts.Simulation.Physics
                 {
                     distanceToClear += Length;
                 }
-                requiredActions.InsertAction(new ClearSectionItem(distanceToClear, thisSection.Index));
+                requiredActions.InsertAction(new ClearSectionItem(distanceToClear, section.Index));
             }
 
             // rebuild list of station stops
@@ -8726,18 +8558,18 @@ namespace Orts.Simulation.Physics
                 BuildStationList(15.0f);
 
                 bool removeStations = false;
-                for (int iStation = StationStops.Count - 1; iStation >= 0; iStation--)
+                for (int i = StationStops.Count - 1; i >= 0; i--)
                 {
                     if (removeStations)
                     {
-                        if (StationStops[iStation].ExitSignal >= 0 && HoldingSignals.Contains(StationStops[iStation].ExitSignal))
+                        if (StationStops[i].ExitSignal >= 0 && HoldingSignals.Contains(StationStops[i].ExitSignal))
                         {
-                            HoldingSignals.Remove(StationStops[iStation].ExitSignal);
+                            HoldingSignals.Remove(StationStops[i].ExitSignal);
                         }
-                        StationStops.RemoveAt(iStation);
+                        StationStops.RemoveAt(i);
                     }
 
-                    if (StationStops[iStation].PlatformReference == presentStop)
+                    if (StationStops[i].PlatformReference == presentStop)
                     {
                         removeStations = true;
                     }
@@ -8801,12 +8633,9 @@ namespace Orts.Simulation.Physics
             }
         }
 
-        //================================================================================================//
-        //
         // Update occupancies
         // Update track occupancies after coupling
-        //
-        public void UpdateOccupancies()
+        protected void UpdateOccupancies()
         {
             if (manualTrainRoute != null) manualTrainRoute.Clear();
             manualTrainRoute = SignalEnvironment.BuildTempRoute(this, PresentPosition[Direction.Backward].TrackCircuitSectionIndex, PresentPosition[Direction.Backward].Offset,
@@ -8821,13 +8650,11 @@ namespace Orts.Simulation.Physics
             }
         }
 
-        //================================================================================================//
         //
         // AddTrackSections
         // Add track sections not present in path to avoid out-of-path detection
         //
-
-        public void AddTrackSections()
+        protected void AddTrackSections()
         {
             // check if first section in route
 
@@ -8836,23 +8663,23 @@ namespace Orts.Simulation.Physics
                 int lastSectionIndex = OccupiedTrack[0].Index;
                 int lastIndex = ValidRoute[0].GetRouteIndex(lastSectionIndex, 0);
 
-                for (int isection = 1; isection <= OccupiedTrack.Count - 1; isection++)
+                for (int i = 1; i <= OccupiedTrack.Count - 1; i++)
                 {
-                    int nextSectionIndex = OccupiedTrack[isection].Index;
+                    int nextSectionIndex = OccupiedTrack[i].Index;
                     int nextIndex = ValidRoute[0].GetRouteIndex(nextSectionIndex, 0);
 
                     if (nextIndex < 0) // this section is not in route - if last index = 0, add to start else add to rear
                     {
-                        TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[nextSectionIndex];
-                        TrackDirection thisDirection = TrackDirection.Ahead;
+                        TrackCircuitSection section = TrackCircuitSection.TrackCircuitList[nextSectionIndex];
+                        TrackDirection trackDirection = TrackDirection.Ahead;
 
                         foreach (Location location in EnumExtension.GetValues<Location>())
                         {
                             foreach (TrackDirection direction in EnumExtension.GetValues<TrackDirection>())
                             {
-                                if (thisSection.Pins[direction, location].Link == lastSectionIndex)
+                                if (section.Pins[direction, location].Link == lastSectionIndex)
                                 {
-                                    thisDirection = thisSection.Pins[direction, location].Direction;
+                                    trackDirection = section.Pins[direction, location].Direction;
                                     break;
                                 }
                             }
@@ -8860,11 +8687,11 @@ namespace Orts.Simulation.Physics
 
                         if (lastIndex == 0)
                         {
-                            ValidRoute[0].Insert(0, new TrackCircuitRouteElement(OccupiedTrack[isection], thisDirection, lastSectionIndex));
+                            ValidRoute[0].Insert(0, new TrackCircuitRouteElement(OccupiedTrack[i], trackDirection, lastSectionIndex));
                         }
                         else
                         {
-                            ValidRoute[0].Add(new TrackCircuitRouteElement(OccupiedTrack[isection], thisDirection, lastSectionIndex));
+                            ValidRoute[0].Add(new TrackCircuitRouteElement(OccupiedTrack[i], trackDirection, lastSectionIndex));
                         }
                     }
                     else
@@ -8881,23 +8708,23 @@ namespace Orts.Simulation.Physics
                 int lastSectionIndex = OccupiedTrack[otIndex].Index;
                 int lastIndex = ValidRoute[0].GetRouteIndex(lastSectionIndex, 0);
 
-                for (int isection = otIndex - 1; isection >= 0; isection--)
+                for (int i = otIndex - 1; i >= 0; i--)
                 {
-                    int nextSectionIndex = OccupiedTrack[isection].Index;
+                    int nextSectionIndex = OccupiedTrack[i].Index;
                     int nextIndex = ValidRoute[0].GetRouteIndex(nextSectionIndex, 0);
 
                     if (nextIndex < 0) // this section is not in route - if last index = 0, add to start else add to rear
                     {
-                        TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[nextSectionIndex];
-                        TrackDirection thisDirection = TrackDirection.Ahead;
+                        TrackCircuitSection section = TrackCircuitSection.TrackCircuitList[nextSectionIndex];
+                        TrackDirection trackDirection = TrackDirection.Ahead;
 
                         foreach (Location location in EnumExtension.GetValues<Location>())
                         {
                             foreach (TrackDirection direction in EnumExtension.GetValues<TrackDirection>())
                             {
-                                if (thisSection.Pins[direction, location].Link == lastSectionIndex)
+                                if (section.Pins[direction, location].Link == lastSectionIndex)
                                 {
-                                    thisDirection = thisSection.Pins[direction, location].Direction;
+                                    trackDirection = section.Pins[direction, location].Direction;
                                     break;
                                 }
                             }
@@ -8905,11 +8732,11 @@ namespace Orts.Simulation.Physics
 
                         if (lastIndex == 0)
                         {
-                            ValidRoute[0].Insert(0, new TrackCircuitRouteElement(OccupiedTrack[isection], thisDirection, lastSectionIndex));
+                            ValidRoute[0].Insert(0, new TrackCircuitRouteElement(OccupiedTrack[i], trackDirection, lastSectionIndex));
                         }
                         else
                         {
-                            ValidRoute[0].Add(new TrackCircuitRouteElement(OccupiedTrack[isection], thisDirection, lastSectionIndex));
+                            ValidRoute[0].Add(new TrackCircuitRouteElement(OccupiedTrack[i], trackDirection, lastSectionIndex));
                         }
                     }
                     else
@@ -8921,12 +8748,10 @@ namespace Orts.Simulation.Physics
             }
         }
 
-        //================================================================================================//
         //
         // Update track details after uncoupling
         //
-
-        public bool UpdateTrackActionsUncoupling(bool originalTrain)
+        internal bool UpdateTrackActionsUncoupling(bool originalTrain)
         {
             bool inPath = true;
 
@@ -8935,8 +8760,7 @@ namespace Orts.Simulation.Physics
                 RemoveFromTrack();
                 ClearDeadlocks();
 
-                ClearSectionItem dummyItem = new ClearSectionItem(0.0f, 0);
-                List<DistanceTravelledItem> activeActions = requiredActions.GetActions(99999999f, dummyItem.GetType());
+                List<DistanceTravelledItem> activeActions = requiredActions.GetActions(99999999f, typeof(ClearSectionItem));
                 activeActions.Clear();
             }
 
@@ -8968,11 +8792,7 @@ namespace Orts.Simulation.Physics
             manualTrainRoute = SignalEnvironment.BuildTempRoute(this, PresentPosition[Direction.Backward].TrackCircuitSectionIndex, PresentPosition[Direction.Backward].Offset,
                 PresentPosition[Direction.Backward].Direction, Length, false, true, false);
 
-            TrackCircuitSection thisSection;
-
-
             // static train
-
             if (TrainType == TrainType.Static)
             {
 
@@ -9001,26 +8821,21 @@ namespace Orts.Simulation.Physics
                     TrafficService.Clear();
 
                 // build dummy route
+                TrackCircuitSection section = TrackCircuitSection.TrackCircuitList[PresentPosition[Direction.Backward].TrackCircuitSectionIndex];
 
-                thisSection = TrackCircuitSection.TrackCircuitList[PresentPosition[Direction.Backward].TrackCircuitSectionIndex];
-                offset = PresentPosition[Direction.Backward].Offset;
-
-                ValidRoute[0] = SignalEnvironment.BuildTempRoute(this, thisSection.Index, PresentPosition[Direction.Backward].Offset,
+                ValidRoute[0] = SignalEnvironment.BuildTempRoute(this, section.Index, PresentPosition[Direction.Backward].Offset,
                             PresentPosition[Direction.Backward].Direction, Length, true, true, false);
 
                 foreach (TrackCircuitRouteElement thisElement in manualTrainRoute)
                 {
-                    thisSection = thisElement.TrackCircuitSection;
-                    thisSection.SetOccupied(routedForward);
+                    section = thisElement.TrackCircuitSection;
+                    section.SetOccupied(routedForward);
                 }
 
             }
-
             // player train or AI train
-
             else
             {
-
                 //<CSComment> InitializeSignals needs this info sometimes, so I repeat lines below here
                 if (!IsActualPlayerTrain && (ControlMode == TrainControlMode.AutoSignal || ControlMode == TrainControlMode.AutoNode))
                 {
@@ -9049,7 +8864,7 @@ namespace Orts.Simulation.Physics
                             // Train must be reverted
                             {
                                 ReverseFormation(false);
-                                var tempTCPosition = PresentPosition[Direction.Forward];
+                                TrackCircuitPosition tempTCPosition = PresentPosition[Direction.Forward];
                                 PresentPosition[Direction.Forward] = PresentPosition[Direction.Backward];
                                 PresentPosition[Direction.Backward] = tempTCPosition;
                             }
@@ -9058,10 +8873,9 @@ namespace Orts.Simulation.Physics
                     }
                 }
 
-                foreach (TrackCircuitRouteElement thisElement in manualTrainRoute)
+                foreach (TrackCircuitRouteElement routeElement in manualTrainRoute)
                 {
-                    thisSection = thisElement.TrackCircuitSection;
-                    thisSection.SetOccupied(routedForward);
+                    routeElement.TrackCircuitSection.SetOccupied(routedForward);
                 }
                 // rebuild list of station stops
 
@@ -9074,18 +8888,18 @@ namespace Orts.Simulation.Physics
                     BuildStationList(15.0f);
 
                     bool removeStations = false;
-                    for (int iStation = StationStops.Count - 1; iStation >= 0; iStation--)
+                    for (int i = StationStops.Count - 1; i >= 0; i--)
                     {
                         if (removeStations)
                         {
-                            if (StationStops[iStation].ExitSignal >= 0 && StationStops[iStation].HoldSignal && HoldingSignals.Contains(StationStops[iStation].ExitSignal))
+                            if (StationStops[i].ExitSignal >= 0 && StationStops[i].HoldSignal && HoldingSignals.Contains(StationStops[i].ExitSignal))
                             {
-                                HoldingSignals.Remove(StationStops[iStation].ExitSignal);
+                                HoldingSignals.Remove(StationStops[i].ExitSignal);
                             }
-                            StationStops.RemoveAt(iStation);
+                            StationStops.RemoveAt(i);
                         }
 
-                        if (StationStops[iStation].PlatformReference == presentStop)
+                        if (StationStops[i].PlatformReference == presentStop)
                         {
                             removeStations = true;
                         }
@@ -9097,12 +8911,10 @@ namespace Orts.Simulation.Physics
             return inPath;
         }
 
-        //================================================================================================//
         //
         // Perform various reinitializations
         //
-
-        public void Reinitialize()
+        internal void Reinitialize()
         {
             // reset signals etc.
 
@@ -9112,234 +8924,209 @@ namespace Orts.Simulation.Physics
             LastReservedSection[0] = PresentPosition[Direction.Forward].TrackCircuitSectionIndex;
             LastReservedSection[1] = PresentPosition[Direction.Backward].TrackCircuitSectionIndex;
 
-
             InitializeSignals(true);
 
-            if (ControlMode == TrainControlMode.AutoSignal || ControlMode == TrainControlMode.AutoNode)
+            switch (ControlMode)
             {
-                PresentPosition[Direction.Forward].RouteListIndex = ValidRoute[0].GetRouteIndex(PresentPosition[Direction.Forward].TrackCircuitSectionIndex, 0);
-                PresentPosition[Direction.Backward].RouteListIndex = ValidRoute[0].GetRouteIndex(PresentPosition[Direction.Backward].TrackCircuitSectionIndex, 0);
+                case TrainControlMode.AutoSignal:
+                case TrainControlMode.AutoNode:
+                    PresentPosition[Direction.Forward].RouteListIndex = ValidRoute[0].GetRouteIndex(PresentPosition[Direction.Forward].TrackCircuitSectionIndex, 0);
+                    PresentPosition[Direction.Backward].RouteListIndex = ValidRoute[0].GetRouteIndex(PresentPosition[Direction.Backward].TrackCircuitSectionIndex, 0);
 
-                CheckDeadlock(ValidRoute[0], Number);
-                SwitchToNodeControl(PresentPosition[Direction.Forward].TrackCircuitSectionIndex);
-                TCRoute.SetReversalOffset(Length, simulator.TimetableMode);
-            }
-            else if (ControlMode == TrainControlMode.Manual)
-            {
-                // set track occupation
+                    CheckDeadlock(ValidRoute[0], Number);
+                    SwitchToNodeControl(PresentPosition[Direction.Forward].TrackCircuitSectionIndex);
+                    TCRoute.SetReversalOffset(Length, simulator.TimetableMode);
+                    break;
+                case TrainControlMode.Manual:
+                    // set track occupation
 
-                UpdateSectionStateManual();
+                    UpdateSectionStateManual();
 
-                // reset routes and check sections either end of train
+                    // reset routes and check sections either end of train
 
-                PresentPosition[Direction.Forward].RouteListIndex = -1;
-                PresentPosition[Direction.Backward].RouteListIndex = -1;
-                PreviousPosition[Direction.Forward].RouteListIndex = -1;
+                    PresentPosition[Direction.Forward].RouteListIndex = -1;
+                    PresentPosition[Direction.Backward].RouteListIndex = -1;
+                    PreviousPosition[Direction.Forward].RouteListIndex = -1;
 
-                UpdateManualMode(-1);
-            }
-            else if (ControlMode == TrainControlMode.Explorer)
-            {
-                // set track occupation
+                    UpdateManualMode(-1);
+                    break;
+                case TrainControlMode.Explorer:
+                    // set track occupation
 
-                UpdateSectionStateExplorer();
+                    UpdateSectionStateExplorer();
 
-                // reset routes and check sections either end of train
+                    // reset routes and check sections either end of train
 
-                PresentPosition[Direction.Forward].RouteListIndex = -1;
-                PresentPosition[Direction.Backward].RouteListIndex = -1;
-                PreviousPosition[Direction.Forward].RouteListIndex = -1;
+                    PresentPosition[Direction.Forward].RouteListIndex = -1;
+                    PresentPosition[Direction.Backward].RouteListIndex = -1;
+                    PreviousPosition[Direction.Forward].RouteListIndex = -1;
 
-                UpdateExplorerMode(-1);
-            }
-            else
-            {
-                CheckDeadlock(ValidRoute[0], Number);
-                signalRef.RequestClearNode(routedForward, ValidRoute[0]);
+                    UpdateExplorerMode(-1);
+                    break;
+                default:
+                    CheckDeadlock(ValidRoute[0], Number);
+                    signalRef.RequestClearNode(routedForward, ValidRoute[0]);
+                    break;
             }
         }
 
-        //================================================================================================//
         //
         // Temporarily remove from track to allow decoupled train to set occupied sections
         //
-
-        public void TemporarilyRemoveFromTrack()
+        internal void TemporarilyRemoveFromTrack()
         {
             RemoveFromTrack();
             ClearDeadlocks();
-            ClearSectionItem dummyItem = new ClearSectionItem(0.0f, 0);
-            List<DistanceTravelledItem> activeActions = requiredActions.GetActions(99999999f, dummyItem.GetType());
+            List<DistanceTravelledItem> activeActions = requiredActions.GetActions(99999999f, typeof(ClearSectionItem));
             activeActions.Clear();
         }
 
-        //================================================================================================//
         //
         // Goes to next active subpath
         //
-        public void IncrementSubpath(Train thisTrain)
+        internal static void IncrementSubpath(Train train)
         {
-            if (thisTrain.TCRoute.ActiveSubPath < thisTrain.TCRoute.TCRouteSubpaths.Count - 1)
+            if (train.TCRoute.ActiveSubPath < train.TCRoute.TCRouteSubpaths.Count - 1)
             {
-                thisTrain.TCRoute.ActiveSubPath++;
-                thisTrain.ValidRoute[0] = thisTrain.TCRoute.TCRouteSubpaths[thisTrain.TCRoute.ActiveSubPath];
+                train.TCRoute.ActiveSubPath++;
+                train.ValidRoute[0] = train.TCRoute.TCRouteSubpaths[train.TCRoute.ActiveSubPath];
             }
         }
 
-        //================================================================================================//
         //
         // Get end of common section
         //
-
-        static int EndCommonSection(int thisIndex, TrackCircuitPartialPathRoute thisRoute, TrackCircuitPartialPathRoute otherRoute)
+        private static int EndCommonSection(int index, TrackCircuitPartialPathRoute route, TrackCircuitPartialPathRoute otherRoute)
         {
-            int firstSection = thisRoute[thisIndex].TrackCircuitSection.Index;
+            int firstSection = route[index].TrackCircuitSection.Index;
 
-            int thisTrainSection = firstSection;
+            int trainSection = firstSection;
             int otherTrainSection = firstSection;
 
-            int thisTrainIndex = thisIndex;
+            int trainIndex = index;
             int otherTrainIndex = otherRoute.GetRouteIndex(firstSection, 0);
 
-            while (thisTrainSection == otherTrainSection && thisTrainIndex < (thisRoute.Count - 1) && otherTrainIndex > 0)
+            while (trainSection == otherTrainSection && trainIndex < (route.Count - 1) && otherTrainIndex > 0)
             {
-                thisTrainIndex++;
+                trainIndex++;
                 otherTrainIndex--;
-                thisTrainSection = thisRoute[thisTrainIndex].TrackCircuitSection.Index;
+                trainSection = route[trainIndex].TrackCircuitSection.Index;
                 otherTrainSection = otherRoute[otherTrainIndex].TrackCircuitSection.Index;
             }
 
-            return (thisTrainIndex);
+            return trainIndex;
         }
 
-        //================================================================================================//
         /// <summary>
         /// Create station stop list
         /// <\summary>
-
-        public void BuildStationList(float clearingDistanceM)
+        protected void BuildStationList(float clearingDistanceM)
         {
             if (TrafficService == null)
                 return;   // no traffic definition
 
             // loop through traffic points
 
-            int beginActiveSubroute = 0;
-            int activeSubrouteNodeIndex = 0;
-
-            foreach (ServiceTrafficItem thisItem in TrafficService)
+            foreach (ServiceTrafficItem serviceTraffic in TrafficService)
             {
-                bool validStop =
-                    CreateStationStop(thisItem.PlatformStartID, thisItem.ArrivalTime, thisItem.DepartTime, clearingDistanceM,
-                    ref beginActiveSubroute, ref activeSubrouteNodeIndex);
+                bool validStop = CreateStationStop(serviceTraffic.PlatformStartID, serviceTraffic.ArrivalTime, serviceTraffic.DepartTime, clearingDistanceM, 0, 0);
                 if (!validStop)
                 {
-                    Trace.TraceInformation("Train {0} Service {1} : cannot find platform {2}",
-                        Number.ToString(), Name, thisItem.PlatformStartID.ToString());
+                    Trace.TraceInformation($"Train {Number} Service {Name}: cannot find platform {serviceTraffic.PlatformStartID}");
                 }
             }
         }
 
-        //================================================================================================//
         /// <summary>
         /// Create station stop list
         /// <\summary>
-
-        public bool CreateStationStop(int platformStartID, int arrivalTime, int departTime, float clearingDistanceM,
-            ref int beginActiveSubroute, ref int activeSubrouteNodeIndex)
+        private bool CreateStationStop(int platformStartID, int arrivalTime, int departTime, float clearingDistanceM, int beginActiveSubroute, int activeSubrouteNodeIndex)
         {
-            int platformIndex;
-            int lastRouteIndex = 0;
             int activeSubroute = beginActiveSubroute;
             bool terminalStation = false;
 
-            TrackCircuitPartialPathRoute thisRoute = TCRoute.TCRouteSubpaths[activeSubroute];
+            TrackCircuitPartialPathRoute route = TCRoute.TCRouteSubpaths[activeSubroute];
 
             // get platform details
 
-            if (signalRef.PlatformXRefList.TryGetValue(platformStartID, out platformIndex))
+            if (signalRef.PlatformXRefList.TryGetValue(platformStartID, out int platformIndex))
             {
-                PlatformDetails thisPlatform = signalRef.PlatformDetailsList[platformIndex];
-                int sectionIndex = thisPlatform.TCSectionIndex[0];
-                int routeIndex = thisRoute.GetRouteIndex(sectionIndex, activeSubrouteNodeIndex);
+                PlatformDetails platform = signalRef.PlatformDetailsList[platformIndex];
+                int sectionIndex = platform.TCSectionIndex[0];
+                int routeIndex = route.GetRouteIndex(sectionIndex, activeSubrouteNodeIndex);
                 // No backwards!
                 if (routeIndex >= 0 && StationStops.Count > 0 && StationStops[StationStops.Count - 1].RouteIndex == routeIndex
                     && StationStops[StationStops.Count - 1].SubrouteIndex == activeSubroute
-                    && StationStops[StationStops.Count - 1].PlatformItem.TrackCircuitOffset[Location.FarEnd, (TrackDirection)thisRoute[routeIndex].Direction] >= thisPlatform.TrackCircuitOffset[Location.FarEnd, (TrackDirection)thisRoute[routeIndex].Direction])
+                    && StationStops[StationStops.Count - 1].PlatformItem.TrackCircuitOffset[Location.FarEnd, route[routeIndex].Direction] >= platform.TrackCircuitOffset[Location.FarEnd, route[routeIndex].Direction])
                 {
-                    if (activeSubrouteNodeIndex < thisRoute.Count - 1) activeSubrouteNodeIndex++;
+                    if (activeSubrouteNodeIndex < route.Count - 1) 
+                        activeSubrouteNodeIndex++;
                     else if (activeSubroute < (TCRoute.TCRouteSubpaths.Count - 1))
                     {
                         activeSubroute++;
                         activeSubrouteNodeIndex = 0;
-                        thisRoute = TCRoute.TCRouteSubpaths[activeSubroute];
+                        route = TCRoute.TCRouteSubpaths[activeSubroute];
                     }
                     else
                     {
-                        Trace.TraceWarning("Train {0} Service {1} : platform {2} not in correct sequence",
-                            Number.ToString(), Name, platformStartID.ToString());
+                        Trace.TraceWarning($"Train {Number} Service {Name} : platform {platformStartID} not in correct sequence");
                         return false;
                     }
-                    routeIndex = thisRoute.GetRouteIndex(sectionIndex, activeSubrouteNodeIndex);
+                    routeIndex = route.GetRouteIndex(sectionIndex, activeSubrouteNodeIndex);
                 }
 
-                if (!simulator.TimetableMode && routeIndex == thisRoute.Count - 1 && TCRoute.ReversalInfo[activeSubroute].Valid)
+                if (!simulator.TimetableMode && routeIndex == route.Count - 1 && TCRoute.ReversalInfo[activeSubroute].Valid)
                 {
                     // Check if station beyond reversal point
-                    if (TCRoute.ReversalInfo[activeSubroute].ReverseReversalOffset < thisPlatform.TrackCircuitOffset[Location.NearEnd, (TrackDirection)thisRoute[routeIndex].Direction])
+                    if (TCRoute.ReversalInfo[activeSubroute].ReverseReversalOffset < platform.TrackCircuitOffset[Location.NearEnd, route[routeIndex].Direction])
                         routeIndex = -1;
                 }
 
-
                 // if first section not found in route, try last
-
                 if (routeIndex < 0)
                 {
-                    sectionIndex = thisPlatform.TCSectionIndex[thisPlatform.TCSectionIndex.Count - 1];
-                    routeIndex = thisRoute.GetRouteIndex(sectionIndex, activeSubrouteNodeIndex);
-                    if (!simulator.TimetableMode && routeIndex == thisRoute.Count - 1 && TCRoute.ReversalInfo[activeSubroute].Valid)
+                    sectionIndex = platform.TCSectionIndex[platform.TCSectionIndex.Count - 1];
+                    routeIndex = route.GetRouteIndex(sectionIndex, activeSubrouteNodeIndex);
+                    if (!simulator.TimetableMode && routeIndex == route.Count - 1 && TCRoute.ReversalInfo[activeSubroute].Valid)
                     {
                         // Check if station beyond reversal point
-                        if (TCRoute.ReversalInfo[activeSubroute].ReverseReversalOffset < thisPlatform.TrackCircuitOffset[Location.NearEnd, (TrackDirection)thisRoute[routeIndex].Direction])
+                        if (TCRoute.ReversalInfo[activeSubroute].ReverseReversalOffset < platform.TrackCircuitOffset[Location.NearEnd, route[routeIndex].Direction])
                         {
                             routeIndex = -1;
                             // jump next subpath, because station stop can't be there
                             activeSubroute++;
-                            activeSubrouteNodeIndex = 0;
                         }
                     }
                 }
 
                 // if neither section found - try next subroute - keep trying till found or out of subroutes
-
                 while (routeIndex < 0 && activeSubroute < (TCRoute.TCRouteSubpaths.Count - 1))
                 {
                     activeSubroute++;
                     activeSubrouteNodeIndex = 0;
-                    thisRoute = TCRoute.TCRouteSubpaths[activeSubroute];
-                    routeIndex = thisRoute.GetRouteIndex(sectionIndex, activeSubrouteNodeIndex);
-                    if (!simulator.TimetableMode && routeIndex == thisRoute.Count - 1 && TCRoute.ReversalInfo[activeSubroute].Valid)
+                    route = TCRoute.TCRouteSubpaths[activeSubroute];
+                    routeIndex = route.GetRouteIndex(sectionIndex, activeSubrouteNodeIndex);
+                    if (!simulator.TimetableMode && routeIndex == route.Count - 1 && TCRoute.ReversalInfo[activeSubroute].Valid)
                     {
                         // Check if station beyond reversal point
-                        if (TCRoute.ReversalInfo[activeSubroute].ReverseReversalOffset < thisPlatform.TrackCircuitOffset[Location.NearEnd, (TrackDirection)thisRoute[routeIndex].Direction])
+                        if (TCRoute.ReversalInfo[activeSubroute].ReverseReversalOffset < platform.TrackCircuitOffset[Location.NearEnd, route[routeIndex].Direction])
                             routeIndex = -1;
                     }
                     // if first section not found in route, try last
 
                     if (routeIndex < 0)
                     {
-                        sectionIndex = thisPlatform.TCSectionIndex[thisPlatform.TCSectionIndex.Count - 1];
-                        routeIndex = thisRoute.GetRouteIndex(sectionIndex, activeSubrouteNodeIndex);
-                        if (!simulator.TimetableMode && routeIndex == thisRoute.Count - 1 && TCRoute.ReversalInfo[activeSubroute].Valid)
+                        sectionIndex = platform.TCSectionIndex[platform.TCSectionIndex.Count - 1];
+                        routeIndex = route.GetRouteIndex(sectionIndex, activeSubrouteNodeIndex);
+                        if (!simulator.TimetableMode && routeIndex == route.Count - 1 && TCRoute.ReversalInfo[activeSubroute].Valid)
                         {
                             // Check if station beyond reversal point
-                            var direction = thisRoute[routeIndex].Direction;
-                            if (TCRoute.ReversalInfo[activeSubroute].ReverseReversalOffset < thisPlatform.TrackCircuitOffset[Location.NearEnd, (TrackDirection)direction])
+                            TrackDirection direction = route[routeIndex].Direction;
+                            if (TCRoute.ReversalInfo[activeSubroute].ReverseReversalOffset < platform.TrackCircuitOffset[Location.NearEnd, direction])
                             {
                                 routeIndex = -1;
                                 // jump next subpath, because station stop can't be there
                                 activeSubroute++;
-                                activeSubrouteNodeIndex = 0;
                             }
                         }
                     }
@@ -9349,86 +9136,81 @@ namespace Orts.Simulation.Physics
 
                 if (routeIndex < 0)
                 {
-                    Trace.TraceWarning("Train {0} Service {1} : platform {2} is not on route",
-                            Number.ToString(), Name, platformStartID.ToString());
-                    return (false);
+                    Trace.TraceWarning($"Train {Number} Service {Name} : platform {platformStartID} is not on route");
+                    return false;
                 }
                 else
                 {
                     activeSubrouteNodeIndex = routeIndex;
-                    beginActiveSubroute = activeSubroute;
                 }
 
                 // determine end stop position depending on direction
+                TrackCircuitRouteElement routeElement = route[routeIndex];
 
-                TrackCircuitRouteElement thisElement = thisRoute[routeIndex];
+                int endSectionIndex = routeElement.Direction == 0 ?
+                    platform.TCSectionIndex[platform.TCSectionIndex.Count - 1] :
+                    platform.TCSectionIndex[0];
+                int beginSectionIndex = routeElement.Direction == 0 ?
+                    platform.TCSectionIndex[0] :
+                    platform.TCSectionIndex[platform.TCSectionIndex.Count - 1];
 
-                int endSectionIndex = thisElement.Direction == 0 ?
-                    thisPlatform.TCSectionIndex[thisPlatform.TCSectionIndex.Count - 1] :
-                    thisPlatform.TCSectionIndex[0];
-                int beginSectionIndex = thisElement.Direction == 0 ?
-                    thisPlatform.TCSectionIndex[0] :
-                    thisPlatform.TCSectionIndex[thisPlatform.TCSectionIndex.Count - 1];
+                float endOffset = platform.TrackCircuitOffset[Location.FarEnd, (TrackDirection)routeElement.Direction];
+                float beginOffset = platform.TrackCircuitOffset[Location.NearEnd, (TrackDirection)routeElement.Direction];
 
-                float endOffset = thisPlatform.TrackCircuitOffset[Location.FarEnd, (TrackDirection)thisElement.Direction];
-                float beginOffset = thisPlatform.TrackCircuitOffset[Location.NearEnd, (TrackDirection)thisElement.Direction];
-
-                float deltaLength = thisPlatform.Length - Length; // platform length - train length
+                float deltaLength = platform.Length - Length; // platform length - train length
 
                 TrackCircuitSection endSection = TrackCircuitSection.TrackCircuitList[endSectionIndex];
 
 
-                int firstRouteIndex = thisRoute.GetRouteIndex(beginSectionIndex, 0);
+                int firstRouteIndex = route.GetRouteIndex(beginSectionIndex, 0);
                 if (firstRouteIndex < 0)
                     firstRouteIndex = routeIndex;
-                lastRouteIndex = thisRoute.GetRouteIndex(endSectionIndex, 0);
+                int lastRouteIndex = route.GetRouteIndex(endSectionIndex, 0);
                 if (lastRouteIndex < 0)
                     lastRouteIndex = routeIndex;
 
                 // if train too long : search back for platform with same name
-
-                float fullLength = thisPlatform.Length;
+                float fullLength = platform.Length;
 
                 if (deltaLength < 0)
                 {
                     float actualBegin = beginOffset;
 
-                    TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[beginSectionIndex];
+                    TrackCircuitSection section = TrackCircuitSection.TrackCircuitList[beginSectionIndex];
 
                     // Other platforms in same section
 
-                    if (thisSection.PlatformIndices.Count > 1)
+                    if (section.PlatformIndices.Count > 1)
                     {
-                        foreach (int nextIndex in thisSection.PlatformIndices)
+                        foreach (int nextIndex in section.PlatformIndices)
                         {
                             if (nextIndex != platformIndex)
                             {
                                 PlatformDetails otherPlatform = signalRef.PlatformDetailsList[nextIndex];
-                                if (String.Compare(otherPlatform.Name, thisPlatform.Name) == 0)
+                                if (string.Compare(otherPlatform.Name, platform.Name, StringComparison.OrdinalIgnoreCase) == 0)
                                 {
-                                    int otherSectionIndex = thisElement.Direction == 0 ?
+                                    int otherSectionIndex = routeElement.Direction == 0 ?
                                         otherPlatform.TCSectionIndex[0] :
-                                        otherPlatform.TCSectionIndex[thisPlatform.TCSectionIndex.Count - 1];
+                                        otherPlatform.TCSectionIndex[platform.TCSectionIndex.Count - 1];
                                     if (otherSectionIndex == beginSectionIndex)
                                     {
-                                        if (otherPlatform.TrackCircuitOffset[Location.NearEnd, (TrackDirection)thisElement.Direction] < actualBegin)
+                                        if (otherPlatform.TrackCircuitOffset[Location.NearEnd, routeElement.Direction] < actualBegin)
                                         {
-                                            actualBegin = otherPlatform.TrackCircuitOffset[Location.NearEnd, (TrackDirection)thisElement.Direction];
+                                            actualBegin = otherPlatform.TrackCircuitOffset[Location.NearEnd, routeElement.Direction];
                                             fullLength = endOffset - actualBegin;
                                         }
                                     }
                                     else
                                     {
-                                        int addRouteIndex = thisRoute.GetRouteIndex(otherSectionIndex, 0);
-                                        float addOffset = otherPlatform.TrackCircuitOffset[Location.FarEnd, (TrackDirection)(thisElement.Direction == 0 ? 1 : 0)];
+                                        int addRouteIndex = route.GetRouteIndex(otherSectionIndex, 0);
+                                        float addOffset = otherPlatform.TrackCircuitOffset[Location.FarEnd, routeElement.Direction.Next()];
                                         // offset of begin in other direction is length of available track
 
                                         if (lastRouteIndex > 0)
                                         {
-                                            float thisLength =
-                                                thisRoute.GetDistanceAlongRoute(addRouteIndex, addOffset, lastRouteIndex, endOffset, true);
-                                            if (thisLength > fullLength)
-                                                fullLength = thisLength;
+                                            float length = route.GetDistanceAlongRoute(addRouteIndex, addOffset, lastRouteIndex, endOffset, true);
+                                            if (length > fullLength)
+                                                fullLength = length;
                                         }
                                     }
                                 }
@@ -9440,22 +9222,19 @@ namespace Orts.Simulation.Physics
                 }
 
                 // search back along route
-
                 if (deltaLength < 0)
                 {
                     float distance = fullLength + beginOffset;
                     bool platformFound = false;
 
-                    for (int iIndex = firstRouteIndex - 1;
-                                iIndex >= 0 && distance < 500f && platformFound;
-                                iIndex--)
+                    for (int i = firstRouteIndex - 1; i >= 0 && distance < 500f && !platformFound; i--)
                     {
-                        TrackCircuitSection nextSection = thisRoute[iIndex].TrackCircuitSection;
+                        TrackCircuitSection nextSection = route[i].TrackCircuitSection;
 
                         foreach (int otherPlatformIndex in nextSection.PlatformIndices)
                         {
                             PlatformDetails otherPlatform = signalRef.PlatformDetailsList[otherPlatformIndex];
-                            if (String.Compare(otherPlatform.Name, thisPlatform.Name) == 0)
+                            if (string.Compare(otherPlatform.Name, platform.Name, StringComparison.OrdinalIgnoreCase) == 0)
                             {
                                 fullLength = otherPlatform.Length + distance;
                                 // we miss a little bit (offset) - that's because we don't know direction of other platform
@@ -9469,17 +9248,17 @@ namespace Orts.Simulation.Physics
                 }
 
                 // check whether terminal station or not
-                TrackCircuitPartialPathRoute routeToEndOfTrack = SignalEnvironment.BuildTempRoute(this, endSectionIndex, endOffset, thisElement.Direction, 30, true, true, false);
+                TrackCircuitPartialPathRoute routeToEndOfTrack = SignalEnvironment.BuildTempRoute(this, endSectionIndex, endOffset, routeElement.Direction, 30, true, true, false);
                 if (routeToEndOfTrack.Count > 0)
                 {
-                    TrackCircuitSection thisSection = routeToEndOfTrack[routeToEndOfTrack.Count - 1].TrackCircuitSection;
-                    if (thisSection.CircuitType == TrackCircuitType.EndOfTrack)
+                    TrackCircuitSection section = routeToEndOfTrack[routeToEndOfTrack.Count - 1].TrackCircuitSection;
+                    if (section.CircuitType == TrackCircuitType.EndOfTrack)
                     {
                         terminalStation = true;
                         foreach (TrackCircuitRouteElement tcElement in routeToEndOfTrack)
                         {
-                            thisSection = tcElement.TrackCircuitSection;
-                            if (thisSection.CircuitType == TrackCircuitType.Junction)
+                            section = tcElement.TrackCircuitSection;
+                            if (section.CircuitType == TrackCircuitType.Junction)
                             {
                                 terminalStation = false;
                                 break;
@@ -9488,22 +9267,20 @@ namespace Orts.Simulation.Physics
                     }
                 }
 
-
                 // determine stop position
                 float stopOffset = endOffset - (0.5f * deltaLength);
                 if (terminalStation && deltaLength > 0 && !simulator.TimetableMode)
                     stopOffset = endOffset - 1;
 
                 // beyond section : check for route validity (may not exceed route)
-
                 if (stopOffset > endSection.Length)
                 {
                     float addOffset = stopOffset - endSection.Length;
                     float overlap = 0f;
 
-                    for (int iIndex = lastRouteIndex; iIndex < thisRoute.Count && overlap < addOffset; iIndex++)
+                    for (int i = lastRouteIndex; i < route.Count && overlap < addOffset; i++)
                     {
-                        TrackCircuitSection nextSection = thisRoute[iIndex].TrackCircuitSection;
+                        TrackCircuitSection nextSection = route[i].TrackCircuitSection;
                         overlap += nextSection.Length;
                     }
 
@@ -9512,16 +9289,15 @@ namespace Orts.Simulation.Physics
                 }
 
                 // check if stop offset beyond end signal - do not hold at signal
-
-                int EndSignal = -1;
-                bool HoldSignal = false;
+                int endSignal = -1;
+                bool holdSignal = false;
                 bool NoWaitSignal = false;
                 bool NoClaimAllowed = false;
 
                 // check if train is to reverse in platform
                 // if so, set signal at other end as hold signal
 
-                TrackDirection useDirection = thisElement.Direction;
+                TrackDirection useDirection = routeElement.Direction;
                 bool inDirection = true;
 
                 if (TCRoute.ReversalInfo[activeSubroute].Valid)
@@ -9529,8 +9305,8 @@ namespace Orts.Simulation.Physics
                     TrackCircuitReversalInfo thisReversal = TCRoute.ReversalInfo[activeSubroute];
                     int reversalIndex = thisReversal.SignalUsed ? thisReversal.LastSignalIndex : thisReversal.LastDivergeIndex;
                     if (reversalIndex >= 0 && reversalIndex <= lastRouteIndex &&
-                        (CheckVicinityOfPlatformToReversalPoint(thisPlatform.TrackCircuitOffset[Location.FarEnd, (TrackDirection)thisElement.Direction], activeSubrouteNodeIndex, activeSubroute) || simulator.TimetableMode)
-                        && !(reversalIndex == lastRouteIndex && thisReversal.ReverseReversalOffset - 50.0 > thisPlatform.TrackCircuitOffset[Location.FarEnd, (TrackDirection)thisElement.Direction])) // reversal point is this section or earlier
+                        (CheckVicinityOfPlatformToReversalPoint(platform.TrackCircuitOffset[Location.FarEnd, routeElement.Direction], activeSubrouteNodeIndex, activeSubroute) || simulator.TimetableMode)
+                        && !(reversalIndex == lastRouteIndex && thisReversal.ReverseReversalOffset - 50.0 > platform.TrackCircuitOffset[Location.FarEnd, routeElement.Direction])) // reversal point is this section or earlier
                     {
                         useDirection = useDirection.Next();
                         inDirection = false;
@@ -9538,88 +9314,87 @@ namespace Orts.Simulation.Physics
                 }
 
                 // check for end signal
-
-                if (thisPlatform.EndSignals[useDirection] >= 0)
+                if (platform.EndSignals[useDirection] >= 0)
                 {
-                    EndSignal = thisPlatform.EndSignals[useDirection];
+                    endSignal = platform.EndSignals[useDirection];
 
                     // stop location is in front of signal
                     if (inDirection)
                     {
-                        if (thisPlatform.DistanceToSignals[useDirection] > (stopOffset - endOffset))
+                        if (platform.DistanceToSignals[useDirection] > (stopOffset - endOffset))
                         {
-                            HoldSignal = true;
+                            holdSignal = true;
 
-                            if ((thisPlatform.DistanceToSignals[useDirection] + (endOffset - stopOffset)) < clearingDistanceM)
+                            if ((platform.DistanceToSignals[useDirection] + (endOffset - stopOffset)) < clearingDistanceM)
                             {
-                                stopOffset = endOffset + thisPlatform.DistanceToSignals[useDirection] - clearingDistanceM - 1.0f;
+                                stopOffset = endOffset + platform.DistanceToSignals[useDirection] - clearingDistanceM - 1.0f;
                             }
                         }
                         // at terminal station we will stop just in front of signal
                         else if (terminalStation && deltaLength <= 0 && !simulator.TimetableMode)
                         {
-                            HoldSignal = true;
-                            stopOffset = endOffset + thisPlatform.DistanceToSignals[useDirection] - 3.0f;
+                            holdSignal = true;
+                            stopOffset = endOffset + platform.DistanceToSignals[useDirection] - 3.0f;
                         }
                         // if most of train fits in platform then stop at signal
-                        else if ((thisPlatform.DistanceToSignals[useDirection] - clearingDistanceM + thisPlatform.Length) >
+                        else if ((platform.DistanceToSignals[useDirection] - clearingDistanceM + platform.Length) >
                                       (0.6 * Length))
                         {
-                            HoldSignal = true;
-                            stopOffset = endOffset + thisPlatform.DistanceToSignals[useDirection] - clearingDistanceM - 1.0f;
+                            holdSignal = true;
+                            stopOffset = endOffset + platform.DistanceToSignals[useDirection] - clearingDistanceM - 1.0f;
                             // set 1m earlier to give priority to station stop over signal
                         }
                         // train does not fit in platform - reset exit signal
                         else
                         {
-                            EndSignal = -1;
+                            endSignal = -1;
                         }
                     }
                     else
                     // end of train is beyond signal
                     {
                         TrackDirection oldUseDirection = useDirection.Next();
-                        if (thisPlatform.EndSignals[oldUseDirection] >= 0 && terminalStation && deltaLength <= 0 && !simulator.TimetableMode)
+                        if (platform.EndSignals[oldUseDirection] >= 0 && terminalStation && deltaLength <= 0 && !simulator.TimetableMode)
                         {
                             // check also the back of train after reverse
-                            stopOffset = endOffset + thisPlatform.DistanceToSignals[oldUseDirection] - 3.0f;
+                            stopOffset = endOffset + platform.DistanceToSignals[oldUseDirection] - 3.0f;
                         }
-                        if ((beginOffset - thisPlatform.DistanceToSignals[useDirection]) < (stopOffset - Length))
+                        if ((beginOffset - platform.DistanceToSignals[useDirection]) < (stopOffset - Length))
                         {
-                            HoldSignal = true;
+                            holdSignal = true;
 
-                            if ((stopOffset - Length - beginOffset + thisPlatform.DistanceToSignals[useDirection]) < clearingDistanceM)
+                            if ((stopOffset - Length - beginOffset + platform.DistanceToSignals[useDirection]) < clearingDistanceM)
                             {
                                 if (!(terminalStation && deltaLength > 0 && !simulator.TimetableMode))
-                                    stopOffset = beginOffset - thisPlatform.DistanceToSignals[useDirection] + Length + clearingDistanceM + 1.0f;
+                                    stopOffset = beginOffset - platform.DistanceToSignals[useDirection] + Length + clearingDistanceM + 1.0f;
                             }
                         }
                         // if most of train fits in platform then stop at signal
-                        else if ((thisPlatform.DistanceToSignals[useDirection] - clearingDistanceM + thisPlatform.Length) >
+                        else if ((platform.DistanceToSignals[useDirection] - clearingDistanceM + platform.Length) >
                                       (0.6 * Length))
                         {
                             // set 1m earlier to give priority to station stop over signal
                             if (!(terminalStation && deltaLength > 0 && !simulator.TimetableMode))
-                                stopOffset = beginOffset - thisPlatform.DistanceToSignals[useDirection] + Length + clearingDistanceM + 1.0f;
+                                stopOffset = beginOffset - platform.DistanceToSignals[useDirection] + Length + clearingDistanceM + 1.0f;
 
                             // check if stop is clear of end signal (if any)
-                            if (thisPlatform.EndSignals[(TrackDirection)thisElement.Direction] != -1)
+                            if (platform.EndSignals[routeElement.Direction] != -1)
                             {
-                                if (stopOffset < (endOffset + thisPlatform.DistanceToSignals[(TrackDirection)thisElement.Direction]))
+                                if (stopOffset < (endOffset + platform.DistanceToSignals[routeElement.Direction]))
                                 {
-                                    HoldSignal = true; // if train fits between signals
+                                    holdSignal = true; // if train fits between signals
                                 }
                                 else
                                 {
                                     if (!(terminalStation && deltaLength > 0 && !simulator.TimetableMode))
-                                        stopOffset = endOffset + thisPlatform.DistanceToSignals[(TrackDirection)thisElement.Direction] - 1.0f; // stop at end signal
+                                        stopOffset = endOffset + platform.DistanceToSignals[routeElement.Direction] - 1.0f; // stop at end signal
                                 }
                             }
                         }
                         // train does not fit in platform - reset exit signal
                         else
                         {
-                            EndSignal = -1;
+                            endSignal = -1;
                         }
                     }
                 }
@@ -9627,22 +9402,22 @@ namespace Orts.Simulation.Physics
                 if (simulator.Settings.NoForcedRedAtStationStops)
                 {
                     // We don't want reds at exit signal in this case
-                    HoldSignal = false;
+                    holdSignal = false;
                 }
 
                 // build and add station stop
 
-                TrackCircuitRouteElement lastElement = thisRoute[lastRouteIndex];
+                TrackCircuitRouteElement lastElement = route[lastRouteIndex];
 
                 StationStop thisStation = new StationStop(
                         platformStartID,
-                        thisPlatform,
+                        platform,
                         activeSubroute,
                         lastRouteIndex,
                         lastElement.TrackCircuitSection.Index,
-                        thisElement.Direction,
-                        EndSignal,
-                        HoldSignal,
+                        routeElement.Direction,
+                        endSignal,
+                        holdSignal,
                         NoWaitSignal,
                         NoClaimAllowed,
                         stopOffset,
@@ -9663,7 +9438,6 @@ namespace Orts.Simulation.Physics
                 StationStops.Add(thisStation);
 
                 //<CSComment> should this be reused?
-
                 // 
                 //
                 //                    // if station has hold signal and this signal is the same as the exit signal for previous station, remove the exit signal from the previous station
@@ -9681,28 +9455,24 @@ namespace Orts.Simulation.Physics
                 //                        }
                 //                    }
 
-
                 // add signal to list of hold signals
-
-                if (HoldSignal)
+                if (holdSignal)
                 {
-                    HoldingSignals.Add(EndSignal);
+                    HoldingSignals.Add(endSignal);
                 }
             }
             else
             {
-                return (false);
+                return false;
             }
-            return (true);
+            return true;
         }
 
-        //================================================================================================//
         /// <summary>
         /// Check whether train is at Platform
         /// returns true if yes
         /// </summary>
-
-        public bool IsAtPlatform()
+        protected bool AtPlatform()
         {
             // build list of occupied section
             bool atStation = false;
@@ -9717,8 +9487,10 @@ namespace Orts.Simulation.Physics
             }
 
             // correct position if either end is off route
-            if (frontIndex < 0) frontIndex = rearIndex;
-            if (rearIndex < 0) rearIndex = frontIndex;
+            if (frontIndex < 0) 
+                frontIndex = rearIndex;
+            if (rearIndex < 0) 
+                rearIndex = frontIndex;
 
             // set start and stop in correct order
             int startIndex = frontIndex < rearIndex ? frontIndex : rearIndex;
@@ -9742,16 +9514,13 @@ namespace Orts.Simulation.Physics
             return atStation;
         }
 
-        //================================================================================================//
         /// <summary>
         /// Check whether train has missed platform
         /// returns true if yes
         /// </summary>
-
-        public bool IsMissedPlatform(float thresholdDistance)
+        internal bool MissedPlatform(float thresholdDistance)
         {
             // check if station missed
-
             int stationRouteIndex = ValidRoute[0].GetRouteIndex(StationStops[0].TrackCircuitSectionIndex, 0);
 
             if (StationStops[0].SubrouteIndex == TCRoute.ActiveSubPath)
@@ -9762,59 +9531,57 @@ namespace Orts.Simulation.Physics
                 }
                 else if (stationRouteIndex <= PresentPosition[Direction.Backward].RouteListIndex)
                 {
-                    var platformSection = TrackCircuitSection.TrackCircuitList[StationStops[0].TrackCircuitSectionIndex];
-                    var platformReverseStopOffset = platformSection.Length - StationStops[0].StopOffset;
+                    TrackCircuitSection platformSection = TrackCircuitSection.TrackCircuitList[StationStops[0].TrackCircuitSectionIndex];
+                    float platformReverseStopOffset = platformSection.Length - StationStops[0].StopOffset;
                     return ValidRoute[0].GetDistanceAlongRoute(stationRouteIndex, platformReverseStopOffset, PresentPosition[Direction.Backward].RouteListIndex, PresentPosition[Direction.Backward].Offset, true) > thresholdDistance;
                 }
             }
             return false;
         }
 
-        //================================================================================================//
         /// <summary>
         /// Check vicinity of reversal point to Platform
         /// returns false if distance greater than preset value 
         /// </summary>
-
-        public bool CheckVicinityOfPlatformToReversalPoint(float tcOffset, int routeListIndex, int activeSubpath)
+        private bool CheckVicinityOfPlatformToReversalPoint(float tcOffset, int routeListIndex, int activeSubpath)
         {
-            float Threshold = 100.0f;
+            float threshold = 100.0f;
             float lengthToGoM = -tcOffset;
-            TrackCircuitSection thisSection;
+            TrackCircuitSection section;
             if (routeListIndex == -1)
             {
-                Trace.TraceWarning("Train {0} service {1}, platform off path; reversal point considered remote", Number, Name);
+                Trace.TraceWarning($"Train {Number} service {Name}, platform off path; reversal point considered remote");
                 return false;
             }
             int reversalRouteIndex = TCRoute.TCRouteSubpaths[activeSubpath].GetRouteIndex(TCRoute.ReversalInfo[TCRoute.ActiveSubPath].ReversalSectionIndex, routeListIndex);
             if (reversalRouteIndex == -1)
             {
-                Trace.TraceWarning("Train {0} service {1}, reversal or end point off path; reversal point considered remote", Number, Name);
+                Trace.TraceWarning($"Train {Number} service {Name}, reversal or end point off path; reversal point considered remote");
                 return false;
             }
             if (routeListIndex <= reversalRouteIndex)
             {
-                for (int iElement = routeListIndex; iElement < TCRoute.TCRouteSubpaths[activeSubpath].Count; iElement++)
+                for (int i = routeListIndex; i < TCRoute.TCRouteSubpaths[activeSubpath].Count; i++)
                 {
-                    thisSection = TCRoute.TCRouteSubpaths[activeSubpath][iElement].TrackCircuitSection;
-                    if (thisSection.Index == TCRoute.ReversalInfo[TCRoute.ActiveSubPath].ReversalSectionIndex)
+                    section = TCRoute.TCRouteSubpaths[activeSubpath][i].TrackCircuitSection;
+                    if (section.Index == TCRoute.ReversalInfo[TCRoute.ActiveSubPath].ReversalSectionIndex)
                     {
                         break;
                     }
                     else
                     {
-                        lengthToGoM += thisSection.Length;
-                        if (lengthToGoM > Threshold) return false;
+                        lengthToGoM += section.Length;
+                        if (lengthToGoM > threshold) 
+                            return false;
                     }
                 }
-                return lengthToGoM + TCRoute.ReversalInfo[TCRoute.ActiveSubPath].ReverseReversalOffset < Threshold;
+                return lengthToGoM + TCRoute.ReversalInfo[TCRoute.ActiveSubPath].ReverseReversalOffset < threshold;
             }
             else
                 // platform is beyond reversal point
                 return true;
         }
 
-        //================================================================================================//
         /// <summary>
         /// in a certain % of cases depending from randomization level returns a 0 delay
         /// in the remainder of cases computes a randomized delay using a single-sided pseudo-gaussian distribution
@@ -9822,32 +9589,28 @@ namespace Orts.Simulation.Physics
         /// Parameters: 
         /// maxDelay maximum added random delay (may be seconds or minutes)
         /// </summary>Ac
-
-        public int RandomizedDelayWithThreshold(int maxAddedDelay)
+        protected static int RandomizedDelayWithThreshold(int maxAddedDelay)
         {
-            if (DateTime.UtcNow.Millisecond % 10 < 6 - simulator.Settings.ActRandomizationLevel) return 0;
+            if (DateTime.UtcNow.Millisecond % 10 < 6 - simulator.Settings.ActRandomizationLevel) 
+                return 0;
             return (int)(Simulator.Random.Next(0, (int)(Simulator.Resolution * Simulator.Random.NextDouble()) + 1) / Simulator.Resolution * maxAddedDelay);
         }
 
-        //================================================================================================//
         /// <summary>
         /// Computes a randomized delay using a single-sided pseudo-gaussian distribution
         /// following Daniel Howard's suggestion here https://stackoverflow.com/questions/218060/random-gaussian-variables
         /// Parameters: 
         /// maxDelay maximum added random delay (may be seconds or minutes)
         /// </summary>
-
-        public int RandomizedDelay(int maxAddedDelay)
+        internal static int RandomizedDelay(int maxAddedDelay)
         {
             return (int)(Simulator.Random.Next(0, (int)(Simulator.Resolution * Simulator.Random.NextDouble()) + 1) / Simulator.Resolution * maxAddedDelay);
         }
 
-        //================================================================================================//
         /// <summary>
         /// Computes a randomized delay for the various types of waiting points.
         /// </summary>
-
-        public int RandomizedWPDelay(ref int randomizedDelay)
+        protected static int RandomizedWPDelay(int randomizedDelay)
         {
             if (randomizedDelay < 30000) // standard WP
             {
@@ -9864,19 +9627,19 @@ namespace Orts.Simulation.Physics
             }
             else if (randomizedDelay > 40000 && randomizedDelay < 60000) // car detach WP
             {
-                var additionalDelay = RandomizedDelayWithThreshold(25);
-                if (randomizedDelay % 100 + additionalDelay > 99) randomizedDelay += 99;
-                else randomizedDelay += additionalDelay;
+                int additionalDelay = RandomizedDelayWithThreshold(25);
+                if (randomizedDelay % 100 + additionalDelay > 99) 
+                    randomizedDelay += 99;
+                else 
+                    randomizedDelay += additionalDelay;
             }
             return randomizedDelay;
         }
 
-        //================================================================================================//
         /// <summary>
         /// Convert player traffic list to station list
         /// <\summary>
-
-        public void ConvertPlayerTraffic(List<ServiceTrafficItem> playerList)
+        internal void ConvertPlayerTraffic(List<ServiceTrafficItem> playerList)
         {
 
             if (playerList == null || playerList.Count == 0)
@@ -9890,49 +9653,49 @@ namespace Orts.Simulation.Physics
             BuildStationList(15.0f);  // use 15m. clearing distance
         }
 
-        //================================================================================================//
         /// <summary>
         /// Clear station from list, clear exit signal if required
         /// <\summary>
-
-        public virtual void ClearStation(uint id1, uint id2, bool removeStation)
+        internal virtual void ClearStation(uint id1, uint id2, bool removeStation)
         {
             int foundStation = -1;
-            StationStop thisStation = null;
+            StationStop station;
 
-            for (int iStation = 0; iStation < StationStops.Count && foundStation < 0; iStation++)
+            for (int i = 0; i < StationStops.Count; i++)
             {
-                thisStation = StationStops[iStation];
-                if (thisStation.SubrouteIndex > TCRoute.ActiveSubPath) break;
-                if (thisStation.PlatformReference == id1 ||
-                    thisStation.PlatformReference == id2)
+                station = StationStops[i];
+                if (station.SubrouteIndex > TCRoute.ActiveSubPath) 
+                    break;
+                if (station.PlatformReference == id1 || station.PlatformReference == id2)
                 {
-                    foundStation = iStation;
+                    foundStation = i;
+                    break;
                 }
 
-                if (thisStation.SubrouteIndex > TCRoute.ActiveSubPath) break; // stop looking if station is in next subpath
+                if (station.SubrouteIndex > TCRoute.ActiveSubPath) 
+                    break; // stop looking if station is in next subpath
             }
 
             if (foundStation >= 0)
             {
-                thisStation = StationStops[foundStation];
-                if (thisStation.ExitSignal >= 0)
+                station = StationStops[foundStation];
+                if (station.ExitSignal >= 0)
                 {
-                    HoldingSignals.Remove(thisStation.ExitSignal);
+                    HoldingSignals.Remove(station.ExitSignal);
 
                     if (ControlMode == TrainControlMode.AutoSignal)
                     {
-                        Signal nextSignal = signalRef.Signals[thisStation.ExitSignal];
+                        Signal nextSignal = signalRef.Signals[station.ExitSignal];
                         nextSignal.RequestClearSignal(ValidRoute[0], routedForward, 0, false, null);
                     }
                 }
             }
             if (removeStation)
             {
-                for (int iStation = foundStation; iStation >= 0; iStation--)
+                for (int i = foundStation; i >= 0; i--)
                 {
-                    PreviousStop = StationStops[iStation].CreateCopy();
-                    StationStops.RemoveAt(iStation);
+                    PreviousStop = StationStops[i].CreateCopy();
+                    StationStops.RemoveAt(i);
                 }
             }
         }
@@ -9940,8 +9703,7 @@ namespace Orts.Simulation.Physics
         /// <summary>
         /// Create pathless player train out of static train
         /// </summary>
-
-        public void CreatePathlessPlayerTrain()
+        internal void CreatePathlessPlayerTrain()
         {
             TrainType = TrainType.Player;
             IsPathless = true;
@@ -9955,8 +9717,7 @@ namespace Orts.Simulation.Physics
         /// Initializes speeds for pathless player train
         /// </summary>
         ///
-
-        public void InitializeSpeeds()
+        private void InitializeSpeeds()
         {
             allowedMaxSpeedSignalMpS = allowedAbsoluteMaxSpeedSignalMpS;
             allowedMaxSpeedLimitMpS = allowedAbsoluteMaxSpeedLimitMpS;
@@ -9967,13 +9728,12 @@ namespace Orts.Simulation.Physics
         /// <summary>
         /// Gets the train name from one CarID; used for remote trains
         /// </summary>
-        ///
-
-        public string GetTrainName(string ID)
+        public static string GetTrainName(string trainId)
         {
-            int location = ID.LastIndexOf('-');
-            if (location < 0) return ID;
-            return ID.Substring(0, location - 1);
+            int location = trainId.LastIndexOf('-');
+            if (location < 0) 
+                return trainId;
+            return trainId.Substring(0, location - 1);
         }
 
         //================================================================================================//
@@ -10116,7 +9876,7 @@ namespace Orts.Simulation.Physics
         ///      If one or more train claim
         ///          #
         /// <\remarks>
-        public String[] GetStatus(bool metric)
+        public string[] GetStatus(bool metric)
         {
 
             int iColumn = 0;
