@@ -311,7 +311,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
             if (!Active || !status.SpeedAreaShown) return;
             float currentSpeed = (float)Math.Abs(SpeedFromMpS(Locomotive.SpeedMpS));
             int permittedSpeed = (int)SpeedFromMpS(status.AllowedSpeedMpS);
-            int targetSpeed = (int)SpeedFromMpS(status.TargetSpeedMpS ?? float.MaxValue);
+            int targetSpeed = status.TargetSpeedMpS < status.AllowedSpeedMpS ? (int)SpeedFromMpS(status.TargetSpeedMpS.Value) : permittedSpeed;
             int releaseSpeed = (int)SpeedFromMpS(status.ReleaseSpeedMpS ?? 0);
             float interventionSpeed = (float)SpeedFromMpS(status.InterventionSpeedMpS);
 
@@ -485,10 +485,12 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
         TextPrimitive TargetDistanceText;
         WindowTextFont TargetDistanceFont;
         readonly float TargetDistanceFontHeight = 10;
-        Texture2D ColorTexture;
-        public DistanceArea(DriverMachineInterface dmi, Point position) : base(dmi)
-        {
 
+        readonly Viewer Viewer;
+        public DistanceArea(DriverMachineInterface dmi, Point position, Viewer viewer) : base(dmi)
+        {
+            Viewer = viewer;
+            SetFont();
         }
         public override void Draw(SpriteBatch spriteBatch, Point position)
         {
@@ -532,7 +534,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
 
         void SetFont()
         {
-
+            TargetDistanceFont = Viewer.WindowManager.TextManager.GetExact("Arial", TargetDistanceFontHeight * Scale, System.Drawing.FontStyle.Regular);
         }
     }
 }

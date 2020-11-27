@@ -270,8 +270,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
         public DriverMachineInterfaceRenderer(Viewer viewer, MSTSLocomotive locomotive, CabViewDigitalControl control, CabShader shader)
             : base(viewer, locomotive, control, shader)
         {
-            driverMachineInterface = new DriverMachineInterface((int)Control.Bounds.Width, (int)Control.Bounds.Height, locomotive, viewer, control);
-
+            // Height is adjusted to keep compatibility with existing gauges
+            driverMachineInterface = new DriverMachineInterface((int)(Control.Bounds.Width * 640 / 280), (int)(Control.Bounds.Height * 480 / 300), locomotive, viewer, control);
             viewer.UserCommandController.AddEvent(CommonUserCommand.PointerPressed, MouseClickedEvent);
             viewer.UserCommandController.AddEvent(CommonUserCommand.PointerReleased, MouseReleasedEvent);
         }
@@ -280,13 +280,13 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
         {
             base.PrepareFrame(frame, elapsedTime);
             driverMachineInterface.PrepareFrame();
-            driverMachineInterface.SizeTo(DrawPosition.Width, DrawPosition.Height);
+            driverMachineInterface.SizeTo(DrawPosition.Width * 640 / 280, DrawPosition.Height * 480 / 300);
         }
 
         public bool IsMouseWithin(Point mousePoint)
         {
-            int x = (int)((mousePoint.X - DrawPosition.X) / driverMachineInterface.Scale);
-            int y = (int)((mousePoint.Y - DrawPosition.Y) / driverMachineInterface.Scale);
+            int x = (int)((mousePoint.X - DrawPosition.X) / driverMachineInterface.Scale + 54);
+            int y = (int)((mousePoint.Y - DrawPosition.Y) / driverMachineInterface.Scale + 15);
             foreach (DriverMachineInterface.Button button in driverMachineInterface.SensitiveButtons)
             {
                 if (button.SensitiveArea.Contains(x, y)) 
@@ -302,8 +302,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
 
         public string GetControlName(Point mousePoint)
         {
-            int x = (int)((mousePoint.X - DrawPosition.X) / driverMachineInterface.Scale);
-            int y = (int)((mousePoint.Y - DrawPosition.Y) / driverMachineInterface.Scale);
+            int x = (int)((mousePoint.X - DrawPosition.X) / driverMachineInterface.Scale + 54);
+            int y = (int)((mousePoint.Y - DrawPosition.Y) / driverMachineInterface.Scale + 15);
 
             foreach (DriverMachineInterface.Button button in driverMachineInterface.SensitiveButtons)
             {
@@ -315,7 +315,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
 
         public override void Draw()
         {
-            driverMachineInterface.Draw(CabShaderControlView.SpriteBatch, new Point(DrawPosition.X, DrawPosition.Y));
+            driverMachineInterface.Draw(CabShaderControlView.SpriteBatch, new Point((int)(DrawPosition.X - 54 * driverMachineInterface.Scale), (int)(DrawPosition.Y - 15 * driverMachineInterface.Scale)));
             CabShaderControlView.SpriteBatch.End();
             CabShaderControlView.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, null, DepthStencilState.Default, null, Shader);
         }
@@ -323,13 +323,13 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
         private void MouseClickedEvent(UserCommandArgs userCommandArgs)
         {
             Point pointerLocation = (userCommandArgs as PointerCommandArgs).Position;
-            driverMachineInterface.MouseClickedEvent(new Point((int)((pointerLocation.X - DrawPosition.X) / driverMachineInterface.Scale), (int)((pointerLocation.Y - DrawPosition.Y) / driverMachineInterface.Scale)));
+            driverMachineInterface.MouseClickedEvent(new Point((int)((pointerLocation.X - DrawPosition.X) / driverMachineInterface.Scale + 54), (int)((pointerLocation.Y - DrawPosition.Y) / driverMachineInterface.Scale + 15)));
         }
 
         private void MouseReleasedEvent(UserCommandArgs userCommandArgs)
         {
             Point pointerLocation = (userCommandArgs as PointerCommandArgs).Position;
-            driverMachineInterface.MouseReleasedEvent(new Point((int)((pointerLocation.X - DrawPosition.X) / driverMachineInterface.Scale), (int)((pointerLocation.Y - DrawPosition.Y) / driverMachineInterface.Scale)));
+            driverMachineInterface.MouseReleasedEvent(new Point((int)((pointerLocation.X - DrawPosition.X) / driverMachineInterface.Scale + 54), (int)((pointerLocation.Y - DrawPosition.Y) / driverMachineInterface.Scale + 15)));
         }
     }
 
