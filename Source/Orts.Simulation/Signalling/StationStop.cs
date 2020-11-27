@@ -522,13 +522,13 @@ namespace Orts.Simulation.Signalling
                 {
                     if (randms < 8)
                     {
-                        actualNumPassengersWaiting += train.RandomizedDelay(2 * PlatformItem.NumPassengersWaiting *
+                        actualNumPassengersWaiting += Train.RandomizedDelay(2 * PlatformItem.NumPassengersWaiting *
                             Simulator.Instance.Settings.ActRandomizationLevel); // real passenger number may be up to 3 times the standard.
                     }
                     else
                     // less passengers than standard
                     {
-                        actualNumPassengersWaiting -= train.RandomizedDelay(PlatformItem.NumPassengersWaiting *
+                        actualNumPassengersWaiting -= Train.RandomizedDelay(PlatformItem.NumPassengersWaiting *
                             Simulator.Instance.Settings.ActRandomizationLevel / 6);
                     }
                 }

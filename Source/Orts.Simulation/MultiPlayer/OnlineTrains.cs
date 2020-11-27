@@ -257,11 +257,11 @@ namespace Orts.MultiPlayer
 
             if (train.LeadLocomotive != null)
             {
-                train.Name = train.GetTrainName(train.LeadLocomotive.CarID);
+                train.Name = Train.GetTrainName(train.LeadLocomotive.CarID);
             }
             else if (train.Cars != null && train.Cars.Count > 0)
             {
-                train.Name = train.GetTrainName(train.Cars[0].CarID);
+                train.Name = Train.GetTrainName(train.Cars[0].CarID);
             }
             else if (player !=null && player.user != null) train.Name = player.user;
 
