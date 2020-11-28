@@ -307,8 +307,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
 
             foreach (DriverMachineInterface.Button button in driverMachineInterface.SensitiveButtons)
             {
-                if (button.SensitiveArea.Contains(x, y)) 
-                    return $"ETCS {button.Name}";
+                if (b.SensitiveArea.Contains(x, y)) return b.Name;
             }
             return "";
         }
