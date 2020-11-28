@@ -1386,7 +1386,7 @@ namespace Orts.Simulation.AIs
                 // If delay between 40000 and 60000 an uncoupling is performed and delay is returned with the two lowest digits of the original one
                 aiTrain.TestUncouple( ref Delay);
                 // If delay between 30000 and 40000 it is considered an absolute delay in the form 3HHMM, where HH and MM are hour and minute where the delay ends
-                thisTrain.TestAbsDelay(ref Delay, correctedTime);
+                Delay = thisTrain.TestAbsDelay(Delay, correctedTime);
                 // If delay equal to 60001 it is considered as a command to unconditionally attach to the nearby train;
                 aiTrain.TestUncondAttach(ref Delay);
                 // If delay equal to 60002 it is considered as a request for permission to pass signal;
@@ -1803,7 +1803,7 @@ namespace Orts.Simulation.AIs
         {
             int delay = ((AIActSigDelegateRef)ActionRef).Delay;
             // If delay between 30000 and 40000 it is considered an absolute delay in the form 3HHMM, where HH and MM are hour and minute where the delay ends
-            thisTrain.TestAbsDelay(ref delay, presentTime);
+            delay = thisTrain.TestAbsDelay(delay, presentTime);
             ActualDepart = presentTime + delay;
 #if WITH_PATH_DEBUG
             File.AppendAllText(@"C:\temp\checkpath.txt", "SigDelegate, init action for train " + thisTrain.Number + " at " + 

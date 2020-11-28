@@ -643,7 +643,7 @@ namespace Orts.Simulation.Signalling
             // loop through other trains
             foreach (int otherTrainNumber in endSection.DeadlockActives)
             {
-                Train otherTrain = train.GetOtherTrainByNumber(otherTrainNumber);
+                Train otherTrain = Train.GetOtherTrainByNumber(otherTrainNumber);
 
                 // TODO : find proper most matching path
                 if (HasTrainAndSubpathIndex(otherTrain.Number, otherTrain.TCRoute.ActiveSubPath))

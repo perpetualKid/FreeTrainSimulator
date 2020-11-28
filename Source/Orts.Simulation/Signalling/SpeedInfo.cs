@@ -25,6 +25,7 @@ namespace Orts.Simulation.Signalling
         public float FreightSpeed { get; internal set; }
         public bool Flag { get; internal set; }
         public bool Reset { get; internal set; }
+        //TODO 20201128 convert to SpeedItemType
         public int LimitedSpeedReduction { get; internal set; } // No Speed Reduction or is Temporary Speed Reduction
                                                                 // for signals: if = 1 no speed reduction; for speedposts: if = 0 standard; = 1 start of temp speedreduction post; = 2 end of temp speed reduction post
 

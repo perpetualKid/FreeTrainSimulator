@@ -1771,7 +1771,7 @@ namespace Orts.Simulation.Track
                 foreach (KeyValuePair<int, int> deadlockDetails in deadlockInfo)
                 {
                     int otherTrainNumber = deadlockDetails.Key;
-                    Train otherTrain = train.GetOtherTrainByNumber(deadlockDetails.Key);
+                    Train otherTrain = Train.GetOtherTrainByNumber(deadlockDetails.Key);
 
                     int endSectionIndex = deadlockDetails.Value;
 

@@ -2638,7 +2638,7 @@ namespace Orts.Simulation.Signalling
 
                 if (startAlternativeRoute > 0)
                 {
-                    TrackCircuitPartialPathRoute altRoutePart = train.Train.ExtractAlternativeRoute_pathBased(altRoute);
+                    TrackCircuitPartialPathRoute altRoutePart = train.Train.ExtractAlternativeRoutePathBased(altRoute);
 
                     // check availability of alternative route
 
@@ -2658,7 +2658,7 @@ namespace Orts.Simulation.Signalling
                     if (newblockstate <= InternalBlockstate.Reservable)
                     {
                         blockstate = newblockstate;
-                        train.Train.SetAlternativeRoute_pathBased(startAlternativeRoute, altRoute, this);
+                        train.Train.SetAlternativeRoutePathBased(startAlternativeRoute, altRoute, this);
                         returnvalue = true;
                     }
                 }
@@ -2697,7 +2697,7 @@ namespace Orts.Simulation.Signalling
                 if (startAlternativeRoute > 0 &&
                     (startSection.CircuitState.TrainReserved == null || startSection.CircuitState.TrainReserved.Train != train.Train))
                 {
-                    TrackCircuitPartialPathRoute altRoutePart = train.Train.ExtractAlternativeRoute_pathBased(altRoute);
+                    TrackCircuitPartialPathRoute altRoutePart = train.Train.ExtractAlternativeRoutePathBased(altRoute);
 
                     // check availability of alternative route
 
@@ -2716,7 +2716,7 @@ namespace Orts.Simulation.Signalling
                     if (newblockstate <= InternalBlockstate.Reservable)
                     {
                         blockstate = newblockstate;
-                        train.Train.SetAlternativeRoute_pathBased(startAlternativeRoute, altRoute, this);
+                        train.Train.SetAlternativeRoutePathBased(startAlternativeRoute, altRoute, this);
                         if (endSection.DeadlockTraps.ContainsKey(train.Train.Number) && !endSection.DeadlockAwaited.Contains(train.Train.Number))
                             endSection.DeadlockAwaited.Add(train.Train.Number);
                         returnvalue = true;
@@ -2815,7 +2815,7 @@ namespace Orts.Simulation.Signalling
                         SectionsWithAltPathSet.Add(lastElement.TrackCircuitSection.Index);
                         altRouteAssigned = true;
 
-                        train.Train.SetAlternativeRoute_locationBased(lastSection.Index, sectionDeadlockInfo, usedRoute, this);
+                        train.Train.SetAlternativeRouteLocationBased(lastSection.Index, sectionDeadlockInfo, usedRoute, this);
                         returnvalue = true;
                         blockstate = InternalBlockstate.Reservable;
                     }

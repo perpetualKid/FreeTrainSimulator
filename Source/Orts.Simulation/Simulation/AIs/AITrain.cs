@@ -499,7 +499,7 @@ namespace Orts.Simulation.AIs
         /// Get AI Movement State
         /// </summary>
 
-        public override AI_MOVEMENT_STATE GetAIMovementState()
+        internal override AI_MOVEMENT_STATE GetAiMovementState()
         {
             return (ControlMode == TrainControlMode.Inactive ? AI_MOVEMENT_STATE.AI_STATIC : MovementState);
         }
@@ -1242,7 +1242,7 @@ namespace Orts.Simulation.AIs
         /// </summary>
         /// <param name="presentTime"></param>
 
-        public override void UpdateAIStaticState(int presentTime)
+        internal override void UpdateAIStaticState(int presentTime)
         {
             // start if start time is reached
 
@@ -4818,18 +4818,18 @@ namespace Orts.Simulation.AIs
         // Extra actions when alternative route is set
         //
 
-        public override void SetAlternativeRoute_pathBased(int startElementIndex, int altRouteIndex, Signal nextSignal)
+        internal override void SetAlternativeRoutePathBased(int startElementIndex, int altRouteIndex, Signal nextSignal)
         {
-            base.SetAlternativeRoute_pathBased(startElementIndex, altRouteIndex, nextSignal);
+            base.SetAlternativeRoutePathBased(startElementIndex, altRouteIndex, nextSignal);
 
             // reset actions to recalculate distances
 
             ResetActions(true);
         }
 
-        internal override void SetAlternativeRoute_locationBased(int startSectionIndex, DeadlockInfo sectionDeadlockInfo, int usedPath, Signal nextSignal)
+        internal override void SetAlternativeRouteLocationBased(int startSectionIndex, DeadlockInfo sectionDeadlockInfo, int usedPath, Signal nextSignal)
         {
-            base.SetAlternativeRoute_locationBased(startSectionIndex, sectionDeadlockInfo, usedPath, nextSignal);
+            base.SetAlternativeRouteLocationBased(startSectionIndex, sectionDeadlockInfo, usedPath, nextSignal);
 
             // reset actions to recalculate distances
 
@@ -4842,7 +4842,7 @@ namespace Orts.Simulation.AIs
         //
         //
 
-        public override StationStop SetAlternativeStationStop(StationStop orgStop, TrackCircuitPartialPathRoute newRoute)
+        private protected override StationStop SetAlternativeStationStop(StationStop orgStop, TrackCircuitPartialPathRoute newRoute)
         {
             var newStop = base.SetAlternativeStationStop(orgStop, newRoute);
             if (newStop != null)
@@ -5289,7 +5289,7 @@ namespace Orts.Simulation.AIs
         /// <summary>
         /// Check on station tasks, required when player train is not original player train
         /// </summary>
-        public override void CheckStationTask()
+        protected override void CheckStationTask()
         {
             // if at station
             if (AtStation)

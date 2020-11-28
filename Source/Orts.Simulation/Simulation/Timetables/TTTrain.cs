@@ -954,7 +954,7 @@ namespace Orts.Simulation.Timetables
         /// <param name="newRoute"></param>
         /// <returns></returns>
         //TODO 20201123 this should potentially be moved to StationStop class
-        public override StationStop SetAlternativeStationStop(StationStop orgStop, TrackCircuitPartialPathRoute newRoute)
+        private protected override StationStop SetAlternativeStationStop(StationStop orgStop, TrackCircuitPartialPathRoute newRoute)
         {
             int altPlatformIndex = -1;
 
@@ -2473,7 +2473,7 @@ namespace Orts.Simulation.Timetables
 
             //Exit here when train is static consist (no further actions required)
 
-            if (GetAIMovementState() == AITrain.AI_MOVEMENT_STATE.AI_STATIC)
+            if (GetAiMovementState() == AITrain.AI_MOVEMENT_STATE.AI_STATIC)
             {
                 int presentTime = Convert.ToInt32(Math.Floor(simulator.ClockTime));
                 UpdateAIStaticState(presentTime);
@@ -2505,7 +2505,7 @@ namespace Orts.Simulation.Timetables
 
                 ActiveTurntable.UpdateTurntableStatePlayer(elapsedClockSeconds);            // update turntable state
             }
-            else if (ValidRoute[0] != null && GetAIMovementState() != AITrain.AI_MOVEMENT_STATE.AI_STATIC)     // no actions required for static objects //
+            else if (ValidRoute[0] != null && GetAiMovementState() != AITrain.AI_MOVEMENT_STATE.AI_STATIC)     // no actions required for static objects //
             {
                 if (ControlMode != TrainControlMode.OutOfControl) movedBackward = CheckBackwardClearance();  // check clearance at rear if not out of control //
                 UpdateTrainPosition();                                                          // position update         //
@@ -2634,8 +2634,9 @@ namespace Orts.Simulation.Timetables
         /// Dummy to allow function for parent classes (Train class) to be called in common methods
         /// </summary>
         /// 
-        public override void TestAbsDelay(ref int delay, int correctedTime)
+        internal override int TestAbsDelay(int delay, int correctedTime)
         {
+            return delay;
         }
 
         //================================================================================================//
@@ -2645,7 +2646,7 @@ namespace Orts.Simulation.Timetables
         /// </summary>
         /// <param name="presentTime"></param>
 
-        public override void UpdateAIStaticState(int presentTime)
+        internal override void UpdateAIStaticState(int presentTime)
         {
             // start if start time is reached
             bool reqActivate = false;
@@ -5496,7 +5497,7 @@ namespace Orts.Simulation.Timetables
         /// Clear moving table after moving off table
         /// </summary>
 
-        public override void ClearMovingTable()
+        internal override void ClearMovingTable()
         {
             // only if valid reference
             if (ActiveTurntable != null)
@@ -5739,7 +5740,7 @@ namespace Orts.Simulation.Timetables
         /// If so, extend route to pool storage road
         /// Override from Train class
         /// </endsummary>
-        public override bool CheckPoolAccess(int sectionIndex)
+        internal override bool CheckPoolAccess(int sectionIndex)
         {
             bool validPool = false;
 
@@ -6379,7 +6380,7 @@ namespace Orts.Simulation.Timetables
         /// Override from Train class
         /// </summary>
         /// <returns></returns>
-        public override bool isInWaitState()
+        protected override bool InWaitState()
         {
             bool inWaitState = false;
 
@@ -6410,7 +6411,7 @@ namespace Orts.Simulation.Timetables
         /// </summary>
         /// <param name="index"></param>
         /// <returns></returns>
-        public override bool CheckAnyWaitCondition(int index)
+        protected override bool CheckAnyWaitCondition(int index)
         {
             if (WaitAnyList != null && WaitAnyList.ContainsKey(index))
             {
@@ -7611,7 +7612,7 @@ namespace Orts.Simulation.Timetables
         /// </summary>
         /// <param name="trackSectionIndex"></param>
         /// <returns></returns>
-        public override bool CheckWaitCondition(int trackSectionIndex)
+        internal override bool CheckWaitCondition(int trackSectionIndex)
         {
             // no waits defined
             if (WaitList == null || WaitList.Count <= 0)
@@ -7754,7 +7755,7 @@ namespace Orts.Simulation.Timetables
         /// Override method from train
         /// </summary>
 
-        public override bool TrainGetSectionStateClearNode(int elementDirection, TrackCircuitPartialPathRoute routePart, TrackCircuitSection thisSection)
+        internal override bool TrainGetSectionStateClearNode(int elementDirection, TrackCircuitPartialPathRoute routePart, TrackCircuitSection thisSection)
         {
             return (thisSection.GetSectionState(routedForward, elementDirection, InternalBlockstate.Reserved, routePart, -1) <= InternalBlockstate.OccupiedSameDirection);
         }
@@ -7957,7 +7958,7 @@ namespace Orts.Simulation.Timetables
         /// Check for any active waits in indicated path
         /// </summary>
 
-        public override bool HasActiveWait(int startSectionIndex, int endSectionIndex)
+        internal override bool HasActiveWait(int startSectionIndex, int endSectionIndex)
         {
             bool returnValue = false;
 
@@ -9126,7 +9127,7 @@ namespace Orts.Simulation.Timetables
         /// Check on station tasks for player train
         /// Override from Train class, to allow call from common methods
         /// </summary>
-        public override void CheckStationTask()
+        protected override void CheckStationTask()
         {
             // if at station
             if (AtStation)
@@ -9582,7 +9583,7 @@ namespace Orts.Simulation.Timetables
         /// Override from Train class to allow call from common methods
         /// <\summary>
 
-        public override bool ActionsForSignalStop()
+        protected override bool ActionsForSignalStop()
         {
             bool result = true;
             // cannot claim if in station and noclaim is set
