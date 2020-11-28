@@ -6411,7 +6411,7 @@ namespace Orts.Simulation.Timetables
         /// </summary>
         /// <param name="index"></param>
         /// <returns></returns>
-        protected override bool CheckAnyWaitCondition(int index)
+        internal override bool CheckAnyWaitCondition(int index)
         {
             if (WaitAnyList != null && WaitAnyList.ContainsKey(index))
             {

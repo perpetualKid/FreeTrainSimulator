@@ -11706,7 +11706,7 @@ namespace Orts.Simulation.Physics
         }
 
         // Check if train has AnyWait valid for this section - dummy method to allow virtualization by child classes
-        protected virtual bool CheckAnyWaitCondition(int index)
+        internal virtual bool CheckAnyWaitCondition(int index)
         {
             return false;
         }
