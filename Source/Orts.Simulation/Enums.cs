@@ -107,4 +107,38 @@ namespace Orts.Simulation
         Tender,
         AuxiliaryTender,
     }
+
+    public enum AiMovementState
+    {
+        Static,
+        Init,
+        Stopped,
+        StationStop,
+        Braking,
+        Accelerating,
+        Following,
+        Running,
+        ApproachingEndOfPath,
+        StoppedExisting,
+        InitAction,
+        HandleAction,
+        Suspended,
+        Frozen,
+        Turntable,
+        Unknown
+    }
+
+    public enum AiStartMovement
+    {
+        SignalCleared,
+        SignalRestricted,
+        FollowTrain,
+        EndStationStop,
+        NewTrain,
+        PathAction,
+        Turntable,
+        Reset             // used to clear state
+    }
+
+
 }

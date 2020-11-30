@@ -1224,7 +1224,7 @@ namespace Orts.Simulation.Timetables
                 foreach (Train.TrainRouted otherTrain in otherTrains)
                 {
                     TTTrain otherTTTrain = otherTrain.Train as TTTrain;
-                    if (String.Equals(otherTTTrain.ExitPool, PoolName) && otherTTTrain.MovementState != AITrain.AI_MOVEMENT_STATE.AI_STATIC)
+                    if (String.Equals(otherTTTrain.ExitPool, PoolName) && otherTTTrain.MovementState != AiMovementState.Static)
                     {
                         incomingEngine = true;
 #if DEBUG_POOLINFO
@@ -1305,7 +1305,7 @@ namespace Orts.Simulation.Timetables
                     train.SetFormedOccupied();
                     train.TrainType = TrainType.Player;
                     train.ControlMode = TrainControlMode.Inactive;
-                    train.MovementState = AITrain.AI_MOVEMENT_STATE.AI_STATIC;
+                    train.MovementState = AiMovementState.Static;
 
                     // inform viewer about player train switch
                     Simulator.Instance.PlayerLocomotive = train.LeadLocomotive;
@@ -1328,7 +1328,7 @@ namespace Orts.Simulation.Timetables
                 {
                     train.TrainType = TrainType.Player;
                     train.ControlMode = TrainControlMode.Inactive;
-                    train.MovementState = AITrain.AI_MOVEMENT_STATE.AI_STATIC;
+                    train.MovementState = AiMovementState.Static;
 
                     train.AI.TrainsToAdd.Add(train);
 
@@ -1382,13 +1382,13 @@ namespace Orts.Simulation.Timetables
                     float randDelay = (float)Simulator.Random.Next((train.DelayedStartSettings.newStart.randomPartS * 10));
                     train.RestdelayS = train.DelayedStartSettings.newStart.fixedPartS + (randDelay / 10f);
                     train.DelayedStart = true;
-                    train.DelayedStartState = TTTrain.AI_START_MOVEMENT.NEW;
+                    train.DelayedStartState = AiStartMovement.NewTrain;
 
                     train.TrainType = TrainType.Ai;
                     train.AI.TrainsToAdd.Add(train);
                 }
 
-                train.MovementState = AITrain.AI_MOVEMENT_STATE.AI_STATIC;
+                train.MovementState = AiMovementState.Static;
                 train.SetFormedOccupied();
 
                 // update any outstanding required actions adding the added length

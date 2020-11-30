@@ -147,7 +147,7 @@ namespace Orts.Simulation.Timetables
         // delayed restart
         public bool DelayedStart = false;                                 // start is delayed
         public float RestdelayS = 0.0f;                                   // time to wait
-        public AITrain.AI_START_MOVEMENT DelayedStartState;               // state to start
+        public AiStartMovement DelayedStartState;               // state to start
 
         public struct DelayedStartBase
         {
@@ -229,7 +229,7 @@ namespace Orts.Simulation.Timetables
             MaxDecelMpSSF = DefMaxDecelMpSSF;
 
             // preset movement state
-            MovementState = AI_MOVEMENT_STATE.AI_STATIC;
+            MovementState = AiMovementState.Static;
 
             // preset restart delays
             DelayedStartSettings.newStart.fixedPartS = 0;
@@ -276,7 +276,7 @@ namespace Orts.Simulation.Timetables
             MaxDecelMpSSF = DefMaxDecelMpSSF;
 
             // preset movement state
-            MovementState = AI_MOVEMENT_STATE.AI_STATIC;
+            MovementState = AiMovementState.Static;
 
             // copy restart delays
             DelayedStartSettings = TTrain.DelayedStartSettings;
@@ -516,7 +516,7 @@ namespace Orts.Simulation.Timetables
             DelayedStartSettings.reverseAddedDelaySperM = inf.ReadSingle();
 
             DelayedStart = inf.ReadBoolean();
-            DelayedStartState = (AI_START_MOVEMENT)inf.ReadInt32();
+            DelayedStartState = (AiStartMovement)inf.ReadInt32();
             RestdelayS = inf.ReadSingle();
 
             // preset speed values
@@ -603,7 +603,7 @@ namespace Orts.Simulation.Timetables
 
             if (activeTrain)
             {
-                if (MovementState == AI_MOVEMENT_STATE.AI_STATIC || MovementState == AI_MOVEMENT_STATE.INIT) activeTrain = false;
+                if (MovementState == AiMovementState.Static || MovementState == AiMovementState.Init) activeTrain = false;
             }
 
             if (activeTrain)
@@ -623,7 +623,7 @@ namespace Orts.Simulation.Timetables
             outf.Write("TT");
             SaveBase(outf);
 
-            outf.Write(UiD);
+            outf.Write(uid);
             outf.Write(MaxDecelMpSS);
             outf.Write(MaxAccelMpSS);
 
@@ -1126,13 +1126,13 @@ namespace Orts.Simulation.Timetables
                 // active train
                 if (activateTrain)
                 {
-                    MovementState = AI_MOVEMENT_STATE.INIT;        // start in INIT mode to collect info
+                    MovementState = AiMovementState.Init;        // start in INIT mode to collect info
                     ControlMode = TrainControlMode.AutoNode;         // start up in NODE control
 
                     // if there is an active turntable and action is not completed, start in turntable state
                     if (ActiveTurntable != null && ActiveTurntable.MovingTableState != TimetableTurntableControl.MovingTableStateEnum.Completed)
                     {
-                        MovementState = AI_MOVEMENT_STATE.TURNTABLE;
+                        MovementState = AiMovementState.Turntable;
                         if (TrainType == TrainType.Player)
                         {
                             if (ActiveTurntable.MovingTableState == TimetableTurntableControl.MovingTableStateEnum.WaitingMovingTableAvailability)
@@ -1161,7 +1161,7 @@ namespace Orts.Simulation.Timetables
                     }
                     else if (atStation)
                     {
-                        MovementState = AI_MOVEMENT_STATE.STATION_STOP;
+                        MovementState = AiMovementState.StationStop;
                         AIActionItem newAction = new AIActionItem(null, AIActionItem.AI_ACTION_TYPE.STATION_STOP);
                         newAction.SetParam(-10f, 0.0f, 0.0f, 0.0f);
 
@@ -1172,7 +1172,7 @@ namespace Orts.Simulation.Timetables
                 // start train as static
                 else
                 {
-                    MovementState = AI_MOVEMENT_STATE.AI_STATIC;   // start in STATIC mode until required activate time
+                    MovementState = AiMovementState.Static;   // start in STATIC mode until required activate time
                 }
             }
 
@@ -2020,7 +2020,7 @@ namespace Orts.Simulation.Timetables
             {
                 thisStation.ActualArrival = -1;
                 thisStation.ActualDepart = -1;
-                MovementState = AI_MOVEMENT_STATE.STATION_STOP;
+                MovementState = AiMovementState.StationStop;
 
                 AIActionItem newAction = new AIActionItem(null, AIActionItem.AI_ACTION_TYPE.STATION_STOP);
                 newAction.SetParam(-10f, 0.0f, 0.0f, 0.0f);
@@ -2107,7 +2107,7 @@ namespace Orts.Simulation.Timetables
         public override void SetNextStationAction(bool fromAutopilotSwitch = false)
         {
             // do not set action if stopped in station
-            if (MovementState == AI_MOVEMENT_STATE.STATION_STOP || AtStation)
+            if (MovementState == AiMovementState.StationStop || AtStation)
             {
                 return;
             }
@@ -2136,7 +2136,7 @@ namespace Orts.Simulation.Timetables
             while (!validStop)
             {
                 float[] distancesM = CalculateDistancesToNextStation(thisStation, TrainMaxSpeedMpS, false);
-                if (distancesM[0] < 0f && !(MovementState == AI_MOVEMENT_STATE.STATION_STOP && distancesM[0] != -1)) // stop is not valid
+                if (distancesM[0] < 0f && !(MovementState == AiMovementState.StationStop && distancesM[0] != -1)) // stop is not valid
                 {
 
                     StationStops.RemoveAt(0);
@@ -2165,7 +2165,7 @@ namespace Orts.Simulation.Timetables
         /// </summary>
         public void RecalculateStationStops()
         {
-            bool isAtStation = AtStation || MovementState == AI_MOVEMENT_STATE.STATION_STOP;
+            bool isAtStation = AtStation || MovementState == AiMovementState.StationStop;
             RecalculateStationStops(isAtStation);
         }
 
@@ -2329,7 +2329,7 @@ namespace Orts.Simulation.Timetables
             }
 
             // set state
-            MovementState = AI_MOVEMENT_STATE.AI_STATIC;
+            MovementState = AiMovementState.Static;
             ControlMode = TrainControlMode.Inactive;
 
             int eightHundredHours = 8 * 3600;
@@ -2391,7 +2391,7 @@ namespace Orts.Simulation.Timetables
             {
                 UpdateTurntable(elapsedClockSeconds);
             }
-            else if (ValidRoute != null && MovementState != AI_MOVEMENT_STATE.AI_STATIC)        // no actions required for static objects //
+            else if (ValidRoute != null && MovementState != AiMovementState.Static)        // no actions required for static objects //
             {
                 movedBackward = CheckBackwardClearance();                                       // check clearance at rear //
                 UpdateTrainPosition();                                                          // position update         //              
@@ -2473,7 +2473,7 @@ namespace Orts.Simulation.Timetables
 
             //Exit here when train is static consist (no further actions required)
 
-            if (GetAiMovementState() == AITrain.AI_MOVEMENT_STATE.AI_STATIC)
+            if (GetAiMovementState() == AiMovementState.Static)
             {
                 int presentTime = Convert.ToInt32(Math.Floor(simulator.ClockTime));
                 UpdateAIStaticState(presentTime);
@@ -2505,7 +2505,7 @@ namespace Orts.Simulation.Timetables
 
                 ActiveTurntable.UpdateTurntableStatePlayer(elapsedClockSeconds);            // update turntable state
             }
-            else if (ValidRoute[0] != null && GetAiMovementState() != AITrain.AI_MOVEMENT_STATE.AI_STATIC)     // no actions required for static objects //
+            else if (ValidRoute[0] != null && GetAiMovementState() != AiMovementState.Static)     // no actions required for static objects //
             {
                 if (ControlMode != TrainControlMode.OutOfControl) movedBackward = CheckBackwardClearance();  // check clearance at rear if not out of control //
                 UpdateTrainPosition();                                                          // position update         //
@@ -2518,7 +2518,7 @@ namespace Orts.Simulation.Timetables
 
                 if (TrainType == TrainType.Player)                                              // player train is to check own stations
                 {
-                    if (MovementState == AI_MOVEMENT_STATE.TURNTABLE)
+                    if (MovementState == AiMovementState.Turntable)
                     {
                         ActiveTurntable.UpdateTurntableStatePlayer(elapsedClockSeconds);
                     }
@@ -2536,7 +2536,7 @@ namespace Orts.Simulation.Timetables
                 if (stillExist && ControlMode != TrainControlMode.OutOfControl)
                 {
                     UpdateRouteClearanceAhead(SignalObjIndex, movedBackward, elapsedClockSeconds);  // update route clearance  //
-                    if (MovementState != AI_MOVEMENT_STATE.TURNTABLE)
+                    if (MovementState != AiMovementState.Turntable)
                     {
                         UpdateSignalState(movedBackward);                                           // update signal state but not when on turntable
                     }
@@ -2824,7 +2824,7 @@ namespace Orts.Simulation.Timetables
 
                         nextActionInfo = new AIActionItem(null, AIActionItem.AI_ACTION_TYPE.REVERSAL);
                         nextActionInfo.SetParam((PresentPosition[Direction.Forward].DistanceTravelled - 1), 0.0f, reqDistance, PresentPosition[Direction.Forward].DistanceTravelled);
-                        MovementState = MovementState != AI_MOVEMENT_STATE.STOPPED ? AI_MOVEMENT_STATE.BRAKING : AI_MOVEMENT_STATE.STOPPED;
+                        MovementState = MovementState != AiMovementState.Stopped ? AiMovementState.Braking : AiMovementState.Stopped;
                     }
                 }
             }
@@ -2841,9 +2841,9 @@ namespace Orts.Simulation.Timetables
             // check if train ahead
             if (EndAuthorityTypes[0] == EndAuthorityType.TrainAhead)
             {
-                if (MovementState != AI_MOVEMENT_STATE.STATION_STOP && MovementState != AI_MOVEMENT_STATE.STOPPED)
+                if (MovementState != AiMovementState.StationStop && MovementState != AiMovementState.Stopped)
                 {
-                    MovementState = AI_MOVEMENT_STATE.FOLLOWING;  // start following
+                    MovementState = AiMovementState.Following;  // start following
                     CheckReadyToAttach();                         // check for attach
                 }
             }
@@ -2869,7 +2869,7 @@ namespace Orts.Simulation.Timetables
         /// Override from AITrain class
         /// <\summary>
 
-        public override AITrain.AI_MOVEMENT_STATE UpdateStoppedState(double elapsedClockSeconds)
+        public override AiMovementState UpdateStoppedState(double elapsedClockSeconds)
         {
             // check if restart is delayed
             if (DelayedStart && simulator.Settings.TTUseRestartDelays)
@@ -2955,14 +2955,14 @@ namespace Orts.Simulation.Timetables
                             // allow creeping closer
                             CreateTrainAction(SpeedSettings.creepSpeedMpS.Value, 0.0f,
                                     distanceToTrain, null, AIActionItem.AI_ACTION_TYPE.TRAIN_AHEAD);
-                            DelayedStartMoving(AI_START_MOVEMENT.FOLLOW_TRAIN);
+                            DelayedStartMoving(AiStartMovement.FollowTrain);
                         }
 
                         else if (Math.Abs(OtherTrain.SpeedMpS) > 0.1f &&
                             distanceToTrain > keepDistanceMovingTrainM)
                         {
                             // train started moving
-                            DelayedStartMoving(AI_START_MOVEMENT.FOLLOW_TRAIN);
+                            DelayedStartMoving(AiStartMovement.FollowTrain);
                         }
                         else
                         {
@@ -3000,7 +3000,7 @@ namespace Orts.Simulation.Timetables
                             // if to attach to train, start moving
                             if (attachToTrain || pickUpTrain || transferTrain)
                             {
-                                DelayedStartMoving(AI_START_MOVEMENT.FOLLOW_TRAIN);
+                                DelayedStartMoving(AiStartMovement.FollowTrain);
                             }
                         }
                     }
@@ -3018,7 +3018,7 @@ namespace Orts.Simulation.Timetables
                            ValidRoute[0].GetRouteIndex(StationStops[0].TrackCircuitSectionIndex, PresentPosition[Direction.Forward].RouteListIndex) <= PresentPosition[Direction.Forward].RouteListIndex)
                         // assume to be in station
                         {
-                            MovementState = AI_MOVEMENT_STATE.STATION_STOP;
+                            MovementState = AiMovementState.StationStop;
                         }
                     }
                 }
@@ -3044,13 +3044,13 @@ namespace Orts.Simulation.Timetables
                     if (ReqStopDistanceM > clearingDistanceM)
                     {
                         NextStopDistanceM = DistanceToEndNodeAuthorityM[0];
-                        DelayedStartMoving(AI_START_MOVEMENT.SIGNAL_CLEARED);
+                        DelayedStartMoving(AiStartMovement.SignalCleared);
                     }
                 }
                 else if (DistanceToEndNodeAuthorityM[0] > clearingDistanceM)
                 {
                     NextStopDistanceM = DistanceToEndNodeAuthorityM[0];
-                    DelayedStartMoving(AI_START_MOVEMENT.SIGNAL_CLEARED);
+                    DelayedStartMoving(AiStartMovement.SignalCleared);
                 }
             }
 
@@ -3107,7 +3107,7 @@ namespace Orts.Simulation.Timetables
                     {
                         ResetActions(true);
                         NextStopDistanceM = 5000f; // clear to 5000m, will be updated if required
-                        DelayedStartMoving(AI_START_MOVEMENT.SIGNAL_RESTRICTED);
+                        DelayedStartMoving(AiStartMovement.SignalRestricted);
                     }
                 }
                 else if (nextAspect >= SignalAspectState.Approach_1)
@@ -3151,7 +3151,7 @@ namespace Orts.Simulation.Timetables
                     {
                         ResetActions(true);
                         NextStopDistanceM = 5000f; // clear to 5000m, will be updated if required
-                        DelayedStartMoving(AI_START_MOVEMENT.SIGNAL_CLEARED);
+                        DelayedStartMoving(AiStartMovement.SignalCleared);
                     }
                 }
 
@@ -3161,7 +3161,7 @@ namespace Orts.Simulation.Timetables
                     if (DistanceToSignal.HasValue && DistanceToSignal.Value > 5 * signalApproachDistanceM)
                     {
                         ResetActions(true);
-                        DelayedStartMoving(AI_START_MOVEMENT.PATH_ACTION);
+                        DelayedStartMoving(AiStartMovement.PathAction);
                     }
                 }
                 else if (nextActionInfo != null &&
@@ -3171,19 +3171,19 @@ namespace Orts.Simulation.Timetables
                        ValidRoute[0].GetRouteIndex(StationStops[0].TrackCircuitSectionIndex, PresentPosition[Direction.Forward].RouteListIndex) <= PresentPosition[Direction.Forward].RouteListIndex)
                     // assume to be in station
                     {
-                        MovementState = AI_MOVEMENT_STATE.STATION_STOP;
+                        MovementState = AiMovementState.StationStop;
                     }
                     else
                     // approaching next station
                     {
-                        MovementState = AI_MOVEMENT_STATE.BRAKING;
+                        MovementState = AiMovementState.Braking;
                     }
                 }
                 else if (nextActionInfo == null || nextActionInfo.NextAction != AIActionItem.AI_ACTION_TYPE.SIGNAL_ASPECT_STOP)
                 {
                     if (nextAspect != SignalAspectState.Stop)
                     {
-                        DelayedStartMoving(AI_START_MOVEMENT.SIGNAL_CLEARED);
+                        DelayedStartMoving(AiStartMovement.SignalCleared);
                     }
                 }
             }
@@ -3217,7 +3217,7 @@ namespace Orts.Simulation.Timetables
             // check if turntable available, else exit turntable mode
             if (ActiveTurntable == null || ActiveTurntable.MovingTableState == TimetableTurntableControl.MovingTableStateEnum.Inactive)
             {
-                MovementState = AI_MOVEMENT_STATE.STOPPED;  // set state to stopped to revert to normal working
+                MovementState = AiMovementState.Stopped;  // set state to stopped to revert to normal working
                 return;
             }
 
@@ -3521,9 +3521,9 @@ namespace Orts.Simulation.Timetables
                     LastReservedSection[0] = PresentPosition[Direction.Forward].TrackCircuitSectionIndex;
                     LastReservedSection[1] = PresentPosition[Direction.Backward].TrackCircuitSectionIndex;
 
-                    MovementState = AI_MOVEMENT_STATE.FOLLOWING;
+                    MovementState = AiMovementState.Following;
                     SwitchToNodeControl(PresentPosition[Direction.Forward].TrackCircuitSectionIndex);
-                    StartMoving(AI_START_MOVEMENT.FOLLOW_TRAIN);
+                    StartMoving(AiStartMovement.FollowTrain);
 
                     return;
                 }
@@ -3573,12 +3573,12 @@ namespace Orts.Simulation.Timetables
             // change state if train still exists
             if (endOfPath[1])
             {
-                if (MovementState == AI_MOVEMENT_STATE.STATION_STOP && !exitSignalStop)
+                if (MovementState == AiMovementState.StationStop && !exitSignalStop)
                 {
                     AtStation = false;
                     thisStation.Passed = true;
 
-                    MovementState = AI_MOVEMENT_STATE.STOPPED;   // if state is still station_stop and ready and allowed to depart - change to stop to check action
+                    MovementState = AiMovementState.Stopped;   // if state is still station_stop and ready and allowed to depart - change to stop to check action
                     RestdelayS = (float)DelayedStartSettings.stationRestart.fixedPartS + ((float)Simulator.Random.Next(DelayedStartSettings.stationRestart.randomPartS * 10) / 10f);
                     if (!endOfPath[0])
                     {
@@ -3618,7 +3618,7 @@ namespace Orts.Simulation.Timetables
             bool clearAction = false;
             float distanceToGoM = clearingDistanceM;
 
-            if (MovementState == AI_MOVEMENT_STATE.TURNTABLE)
+            if (MovementState == AiMovementState.Turntable)
             {
                 distanceToGoM = DistanceToEndNodeAuthorityM[0];
             }
@@ -3648,7 +3648,7 @@ namespace Orts.Simulation.Timetables
 
                     if (distanceToGoM < clearingDistanceM && SpeedMpS <= 0)
                     {
-                        MovementState = AI_MOVEMENT_STATE.STOPPED;
+                        MovementState = AiMovementState.Stopped;
 
 #if DEBUG_TTANALYSIS
                         TTAnalysisUpdateBrakingState1();
@@ -3661,11 +3661,11 @@ namespace Orts.Simulation.Timetables
                 {
                     if (SpeedMpS > 0)
                     {
-                        MovementState = AI_MOVEMENT_STATE.RUNNING;
+                        MovementState = AiMovementState.Running;
                     }
                     else
                     {
-                        MovementState = AI_MOVEMENT_STATE.STOPPED;
+                        MovementState = AiMovementState.Stopped;
                     }
                     return;
                 }
@@ -3746,7 +3746,7 @@ namespace Orts.Simulation.Timetables
             if (clearAction)
             {
                 ResetActions(true);
-                MovementState = AI_MOVEMENT_STATE.RUNNING;
+                MovementState = AiMovementState.Running;
                 Alpha10 = 10;
                 if (SpeedMpS < AllowedMaxSpeedMpS - 3.0f * hysterisMpS)
                 {
@@ -3760,7 +3760,7 @@ namespace Orts.Simulation.Timetables
             float requiredSpeedMpS = 0;
             float creepDistanceM = 3.0f * signalApproachDistanceM;
 
-            if (MovementState == AI_MOVEMENT_STATE.TURNTABLE)
+            if (MovementState == AiMovementState.Turntable)
             {
                 creepDistanceM = distanceToGoM + signalApproachDistanceM; // ensure creep distance always exceeds distance to go
                 NextStopDistanceM = distanceToGoM;
@@ -3814,7 +3814,7 @@ namespace Orts.Simulation.Timetables
                         if (Math.Abs(SpeedMpS) < 0.05f)
                         {
                             SpeedMpS = 0;
-                            MovementState = AI_MOVEMENT_STATE.STATION_STOP;
+                            MovementState = AiMovementState.StationStop;
                         }
 
                     // perform slow approach to stop
@@ -3845,7 +3845,7 @@ namespace Orts.Simulation.Timetables
                     {
                         AdjustControlsBrakeOff();
                         AllowedMaxSpeedMpS = nextActionInfo.RequiredSpeedMpS;
-                        MovementState = AI_MOVEMENT_STATE.RUNNING;
+                        MovementState = AiMovementState.Running;
                         Alpha10 = 5;
                         ResetActions(true);
                         return;
@@ -3856,7 +3856,7 @@ namespace Orts.Simulation.Timetables
 
                 else if (nextActionInfo.NextAction == AIActionItem.AI_ACTION_TYPE.REVERSAL)
                 {
-                    if (SpeedMpS < 0.05f) MovementState = AI_MOVEMENT_STATE.STOPPED;
+                    if (SpeedMpS < 0.05f) MovementState = AiMovementState.Stopped;
                     RestdelayS = DelayedStartSettings.reverseAddedDelaySperM * Length;
                 }
 
@@ -3880,7 +3880,7 @@ namespace Orts.Simulation.Timetables
                         if (Math.Abs(SpeedMpS) < 0.05f)
                         {
                             SpeedMpS = 0;
-                            MovementState = AI_MOVEMENT_STATE.STOPPED;
+                            MovementState = AiMovementState.Stopped;
 #if DEBUG_TTANALYSIS
                             TTAnalysisUpdateBrakingState2();
 #endif
@@ -4252,7 +4252,7 @@ namespace Orts.Simulation.Timetables
             if (SpeedMpS > (AllowedMaxSpeedMpS - ((9.0f - 6.0f * Efficiency) * hysterisMpS)))
             {
                 AdjustControlsAccelLess(0.0f, elapsedClockSeconds, (int)(AITrainThrottlePercent * 0.5f));
-                MovementState = AI_MOVEMENT_STATE.RUNNING;
+                MovementState = AiMovementState.Running;
                 Alpha10 = 0;
             }
         }
@@ -4267,7 +4267,7 @@ namespace Orts.Simulation.Timetables
         {
             if (ControlMode != TrainControlMode.AutoNode || EndAuthorityTypes[0] != EndAuthorityType.TrainAhead) // train is gone
             {
-                MovementState = AI_MOVEMENT_STATE.RUNNING;
+                MovementState = AiMovementState.Running;
                 ResetActions(true);
             }
             else
@@ -4441,7 +4441,7 @@ namespace Orts.Simulation.Timetables
 
                             if (deltaDistance < distanceToTrain) // perform to normal braking to handle action
                             {
-                                MovementState = AI_MOVEMENT_STATE.BRAKING;  // not following the train
+                                MovementState = AiMovementState.Braking;  // not following the train
                                 UpdateBrakingState(elapsedClockSeconds, presentTime);
                                 return;
                             }
@@ -4567,7 +4567,7 @@ namespace Orts.Simulation.Timetables
                                 }
                                 else
                                 {
-                                    MovementState = AI_MOVEMENT_STATE.STOPPED;
+                                    MovementState = AiMovementState.Stopped;
 
                                     // check if stopped in next station
                                     // conditions : 
@@ -4579,7 +4579,7 @@ namespace Orts.Simulation.Timetables
                                     bool otherTrainInStation = false;
 
                                     TTTrain OtherAITrain = OtherTrain as TTTrain;
-                                    otherTrainInStation = (OtherAITrain.MovementState == AI_MOVEMENT_STATE.STATION_STOP || OtherAITrain.MovementState == AI_MOVEMENT_STATE.AI_STATIC);
+                                    otherTrainInStation = (OtherAITrain.MovementState == AiMovementState.StationStop || OtherAITrain.MovementState == AiMovementState.Static);
 
                                     bool thisTrainInStation = (nextActionInfo != null && nextActionInfo.NextAction == AIActionItem.AI_ACTION_TYPE.STATION_STOP);
                                     if (thisTrainInStation) thisTrainInStation = (StationStops[0].SubrouteIndex == TCRoute.ActiveSubPath);
@@ -4599,7 +4599,7 @@ namespace Orts.Simulation.Timetables
 
                                     if (thisTrainInStation)
                                     {
-                                        MovementState = AI_MOVEMENT_STATE.STATION_STOP;
+                                        MovementState = AiMovementState.StationStop;
                                         AtStation = true;
                                         StationStop thisStation = StationStops[0];
 
@@ -4803,7 +4803,7 @@ namespace Orts.Simulation.Timetables
         /// Delay Start Moving
         /// <\summary>
 
-        public void DelayedStartMoving(AI_START_MOVEMENT reason)
+        public void DelayedStartMoving(AiStartMovement reason)
         {
             // do not apply delayed restart while running in pre-update
             if (AI.PreUpdate)
@@ -4820,27 +4820,27 @@ namespace Orts.Simulation.Timetables
 
             switch (reason)
             {
-                case AI_START_MOVEMENT.END_STATION_STOP: // not used as state is processed through stop - rest delay is preset
+                case AiStartMovement.EndStationStop: // not used as state is processed through stop - rest delay is preset
                     break;
 
-                case AI_START_MOVEMENT.FOLLOW_TRAIN:
+                case AiStartMovement.FollowTrain:
                     baseDelayPart = DelayedStartSettings.followRestart.fixedPartS;
                     randDelayPart = DelayedStartSettings.followRestart.randomPartS * 10;
                     break;
 
-                case AI_START_MOVEMENT.NEW:
+                case AiStartMovement.NewTrain:
                     baseDelayPart = DelayedStartSettings.newStart.fixedPartS;
                     randDelayPart = DelayedStartSettings.newStart.randomPartS * 10;
                     break;
 
-                case AI_START_MOVEMENT.PATH_ACTION:
-                case AI_START_MOVEMENT.SIGNAL_CLEARED:
-                case AI_START_MOVEMENT.SIGNAL_RESTRICTED:
+                case AiStartMovement.PathAction:
+                case AiStartMovement.SignalCleared:
+                case AiStartMovement.SignalRestricted:
                     baseDelayPart = DelayedStartSettings.pathRestart.fixedPartS;
                     randDelayPart = DelayedStartSettings.pathRestart.randomPartS * 10;
                     break;
 
-                case AI_START_MOVEMENT.TURNTABLE:
+                case AiStartMovement.Turntable:
                     baseDelayPart = DelayedStartSettings.movingtableRestart.fixedPartS;
                     randDelayPart = DelayedStartSettings.movingtableRestart.randomPartS * 10;
                     break;
@@ -4865,43 +4865,43 @@ namespace Orts.Simulation.Timetables
         /// Override from AITrain class
         /// <\summary>
 
-        public override void StartMoving(AI_START_MOVEMENT reason)
+        public override void StartMoving(AiStartMovement reason)
         {
             // reset brakes, set throttle
 
-            if (reason == AI_START_MOVEMENT.FOLLOW_TRAIN)
+            if (reason == AiStartMovement.FollowTrain)
             {
-                MovementState = AI_MOVEMENT_STATE.FOLLOWING;
+                MovementState = AiMovementState.Following;
                 AITrainThrottlePercent = 25;
                 AdjustControlsBrakeOff();
             }
-            else if (reason == AI_START_MOVEMENT.TURNTABLE)
+            else if (reason == AiStartMovement.Turntable)
             {
-                if (MovementState != AI_MOVEMENT_STATE.AI_STATIC)  // do not restart while still in static mode)
+                if (MovementState != AiMovementState.Static)  // do not restart while still in static mode)
                 {
-                    MovementState = AI_MOVEMENT_STATE.TURNTABLE;
+                    MovementState = AiMovementState.Turntable;
                 }
             }
             else if (ControlMode == TrainControlMode.AutoNode && EndAuthorityTypes[0] == EndAuthorityType.TrainAhead)
             {
-                MovementState = AI_MOVEMENT_STATE.FOLLOWING;
+                MovementState = AiMovementState.Following;
                 AITrainThrottlePercent = 0;
             }
-            else if (reason == AI_START_MOVEMENT.NEW)
+            else if (reason == AiStartMovement.NewTrain)
             {
-                MovementState = AI_MOVEMENT_STATE.STOPPED;
+                MovementState = AiMovementState.Stopped;
                 AITrainThrottlePercent = 0;
             }
             else if (nextActionInfo != null)  // train has valid action, so start in BRAKE mode
             {
-                MovementState = AI_MOVEMENT_STATE.BRAKING;
+                MovementState = AiMovementState.Braking;
                 Alpha10 = 10;
                 AITrainThrottlePercent = 25;
                 AdjustControlsBrakeOff();
             }
             else
             {
-                MovementState = AI_MOVEMENT_STATE.ACCELERATING;
+                MovementState = AiMovementState.Accelerating;
                 Alpha10 = 10;
                 AITrainThrottlePercent = PreUpdate ? 50 : 25;
                 AdjustControlsBrakeOff();
@@ -5612,7 +5612,7 @@ namespace Orts.Simulation.Timetables
                         foreach (TrainRouted routedTrain in allTrains)
                         {
                             TTTrain otherTrain = routedTrain.Train as TTTrain;
-                            if (otherTrain.Number == AttachDetails.AttachTrain && otherTrain.MovementState == AI_MOVEMENT_STATE.AI_STATIC && otherTrain.ActivateTime != null)
+                            if (otherTrain.Number == AttachDetails.AttachTrain && otherTrain.MovementState == AiMovementState.Static && otherTrain.ActivateTime != null)
                             {
                                 AttachDetails.ReadyToAttach = true;
                             }
@@ -5852,7 +5852,7 @@ namespace Orts.Simulation.Timetables
                     foreach (KeyValuePair<Train, float> thisTrain in trainInfo) // always just one
                     {
                         TTTrain occTTTrain = thisTrain.Key as TTTrain;
-                        AITrain.AI_MOVEMENT_STATE movState = occTTTrain.ControlMode == TrainControlMode.Inactive ? AITrain.AI_MOVEMENT_STATE.AI_STATIC : occTTTrain.MovementState;
+                        AiMovementState movState = occTTTrain.ControlMode == TrainControlMode.Inactive ? AiMovementState.Static : occTTTrain.MovementState;
 
                         // if train is moving - do not allow call on
                         if (Math.Abs(occTTTrain.SpeedMpS) > 0.1f)
@@ -5872,7 +5872,7 @@ namespace Orts.Simulation.Timetables
 
                         if (goingToAttach)
                         {
-                            if (movState == AITrain.AI_MOVEMENT_STATE.STOPPED || movState == AITrain.AI_MOVEMENT_STATE.STATION_STOP || movState == AITrain.AI_MOVEMENT_STATE.AI_STATIC)
+                            if (movState == AiMovementState.Stopped || movState == AiMovementState.StationStop || movState == AiMovementState.Static)
                             {
                                 return (true);
                             }
@@ -5919,9 +5919,9 @@ namespace Orts.Simulation.Timetables
                                 {
                                     Train.TrainRouted occTrain = occTrainInfo.Key;
                                     TTTrain occTTTrain = occTrain.Train as TTTrain;
-                                    AITrain.AI_MOVEMENT_STATE movState = occTTTrain.ControlMode == TrainControlMode.Inactive ? AITrain.AI_MOVEMENT_STATE.AI_STATIC : occTTTrain.MovementState;
+                                    AiMovementState movState = occTTTrain.ControlMode == TrainControlMode.Inactive ? AiMovementState.Static : occTTTrain.MovementState;
 
-                                    if (movState == AITrain.AI_MOVEMENT_STATE.STOPPED || movState == AITrain.AI_MOVEMENT_STATE.STATION_STOP || movState == AITrain.AI_MOVEMENT_STATE.AI_STATIC)
+                                    if (movState == AiMovementState.Stopped || movState == AiMovementState.StationStop || movState == AiMovementState.Static)
                                     {
                                     }
                                     else if (occTTTrain.TrainType == TrainType.Player && occTTTrain.AtStation)
@@ -6001,12 +6001,12 @@ namespace Orts.Simulation.Timetables
                         foreach (TrainRouted routedTrain in allTrains)
                         {
                             TTTrain otherTrain = routedTrain.Train as TTTrain;
-                            if (otherTrain.Number == AttachDetails.AttachTrain && otherTrain.MovementState == AI_MOVEMENT_STATE.AI_STATIC && otherTrain.ActivateTime != null)
+                            if (otherTrain.Number == AttachDetails.AttachTrain && otherTrain.MovementState == AiMovementState.Static && otherTrain.ActivateTime != null)
                             {
                                 AttachDetails.ReadyToAttach = true;
                                 break;
                             }
-                            else if (otherTrain.TrainType == TrainType.Player && otherTrain.OrgAINumber == AttachDetails.AttachTrain && otherTrain.MovementState == AI_MOVEMENT_STATE.AI_STATIC && otherTrain.ActivateTime != null)
+                            else if (otherTrain.TrainType == TrainType.Player && otherTrain.OrgAINumber == AttachDetails.AttachTrain && otherTrain.MovementState == AiMovementState.Static && otherTrain.ActivateTime != null)
                             {
                                 AttachDetails.ReadyToAttach = true;
                                 break;
@@ -6192,7 +6192,7 @@ namespace Orts.Simulation.Timetables
                     trainTransferIndex = otherTrain.OrgAINumber;
                 }
                 // static transfer required and train is static, set this train number
-                else if (TransferTrainDetails.ContainsKey(-99) && otherTrain.MovementState == AI_MOVEMENT_STATE.AI_STATIC && otherTrain.Forms < 0)
+                else if (TransferTrainDetails.ContainsKey(-99) && otherTrain.MovementState == AiMovementState.Static && otherTrain.Forms < 0)
                 {
                     TransferTrainDetails.Add(otherTrain.Number, TransferTrainDetails[-99]);
                     TransferTrainDetails.Remove(-99);
@@ -8063,7 +8063,7 @@ namespace Orts.Simulation.Timetables
                             thisStation.RouteIndex = routeIndex;
 
                             AtStation = true;
-                            MovementState = AI_MOVEMENT_STATE.STATION_STOP;
+                            MovementState = AiMovementState.StationStop;
                         }
                     }
                 }
@@ -8156,7 +8156,7 @@ namespace Orts.Simulation.Timetables
                     if (detachList.Count <= 0) DetachDetails.Remove(-1);
                 }
 
-                MovementState = AI_MOVEMENT_STATE.AI_STATIC;
+                MovementState = AiMovementState.Static;
                 ControlMode = TrainControlMode.Inactive;
                 StartTime = null;  // set starttime to invalid
                 ActivateTime = null;  // set activate to invalid
@@ -8305,10 +8305,10 @@ namespace Orts.Simulation.Timetables
                         AI.TrainsToAdd.Add(formedTrain);
                     }
 
-                    formedTrain.MovementState = AI_MOVEMENT_STATE.AI_STATIC;
+                    formedTrain.MovementState = AiMovementState.Static;
                     formedTrain.SetFormedOccupied();
 
-                    if (MovementState == AI_MOVEMENT_STATE.STATION_STOP && formedTrain.StationStops != null && formedTrain.StationStops.Count > 0)
+                    if (MovementState == AiMovementState.StationStop && formedTrain.StationStops != null && formedTrain.StationStops.Count > 0)
                     {
                         if (StationStops[0].PlatformReference == formedTrain.StationStops[0].PlatformReference)
                         {
@@ -8446,7 +8446,7 @@ namespace Orts.Simulation.Timetables
                             AI.Simulator, this);
                         ActiveTurntable.MovingTableState = TimetableTurntableControl.MovingTableStateEnum.WaitingMovingTableAvailability;
                         ActiveTurntable.MovingTableAction = TimetableTurntableControl.MovingTableActionEnum.FromAccess;
-                        MovementState = AI_MOVEMENT_STATE.TURNTABLE;
+                        MovementState = AiMovementState.Turntable;
                         return (endOfRoute);
                     }
                 }
@@ -8530,7 +8530,7 @@ namespace Orts.Simulation.Timetables
             // if in last station and station is on end of route
             if (!endOfRoute)
             {
-                if (MovementState == AI_MOVEMENT_STATE.STATION_STOP && StationStops.Count == 1)
+                if (MovementState == AiMovementState.StationStop && StationStops.Count == 1)
                 {
                     StationStop presentStation = StationStops[0];
                     int stationRouteIndex = -1;
@@ -8638,7 +8638,7 @@ namespace Orts.Simulation.Timetables
                 if (reversalSectionIndex >= 0 && PresentPosition[Direction.Backward].RouteListIndex >= reversalSectionIndex)
                 {
                     // if there is a station ahead, this is not end of route
-                    if (MovementState != AI_MOVEMENT_STATE.STATION_STOP && StationStops != null && StationStops.Count > 0 &&
+                    if (MovementState != AiMovementState.StationStop && StationStops != null && StationStops.Count > 0 &&
                         StationStops[0].SubrouteIndex == TCRoute.ActiveSubPath)
                     {
                         endOfRoute = false;
@@ -8838,30 +8838,30 @@ namespace Orts.Simulation.Timetables
             string movString = "";
             switch (MovementState)
             {
-                case AI_MOVEMENT_STATE.INIT:
+                case AiMovementState.Init:
                     movString = "INI ";
                     break;
-                case AI_MOVEMENT_STATE.AI_STATIC:
+                case AiMovementState.Static:
                     movString = "STC ";
                     break;
-                case AI_MOVEMENT_STATE.STOPPED:
+                case AiMovementState.Stopped:
                     movString = "STP ";
                     break;
-                case AI_MOVEMENT_STATE.STATION_STOP:
+                case AiMovementState.StationStop:
                     break;   // set below
-                case AI_MOVEMENT_STATE.BRAKING:
+                case AiMovementState.Braking:
                     movString = "BRK ";
                     break;
-                case AI_MOVEMENT_STATE.ACCELERATING:
+                case AiMovementState.Accelerating:
                     movString = "ACC ";
                     break;
-                case AI_MOVEMENT_STATE.FOLLOWING:
+                case AiMovementState.Following:
                     movString = "FOL ";
                     break;
-                case AI_MOVEMENT_STATE.RUNNING:
+                case AiMovementState.Running:
                     movString = "RUN ";
                     break;
-                case AI_MOVEMENT_STATE.APPROACHING_END_OF_PATH:
+                case AiMovementState.ApproachingEndOfPath:
                     movString = "EOP ";
                     break;
             }
@@ -8870,7 +8870,7 @@ namespace Orts.Simulation.Timetables
             abString = String.Concat(abString, "&", AITrainBrakePercent.ToString("000"));
 
             // if station stop : show departure time
-            if (MovementState == AI_MOVEMENT_STATE.STATION_STOP)
+            if (MovementState == AiMovementState.StationStop)
             {
                 DateTime baseDT = new DateTime();
                 if (StationStops[0].DepartTime > 0)
@@ -8897,7 +8897,7 @@ namespace Orts.Simulation.Timetables
                     movString = "WTP";
                 }
             }
-            else if (MovementState == AI_MOVEMENT_STATE.AI_STATIC)
+            else if (MovementState == AiMovementState.Static)
             {
                 if (TriggeredActivationRequired)
                 {
@@ -8919,7 +8919,7 @@ namespace Orts.Simulation.Timetables
 
             string actString = "";
 
-            if (MovementState != AI_MOVEMENT_STATE.AI_STATIC && nextActionInfo != null)
+            if (MovementState != AiMovementState.Static && nextActionInfo != null)
             {
                 switch (nextActionInfo.NextAction)
                 {
@@ -9239,7 +9239,7 @@ namespace Orts.Simulation.Timetables
                         if (attachTrain != null)
                         {
                             waitArrivalAttach = AttachDetails.AttachTrain;
-                            if (attachTrain.MovementState == AI_MOVEMENT_STATE.STATION_STOP && attachTrain.StationStops[0].PlatformReference == StationStops[0].PlatformReference)
+                            if (attachTrain.MovementState == AiMovementState.StationStop && attachTrain.StationStops[0].PlatformReference == StationStops[0].PlatformReference)
                             {
                                 // attach not already taking place
                                 if (AttachDetails.ReadyToAttach)
@@ -9372,7 +9372,7 @@ namespace Orts.Simulation.Timetables
                         LastReservedSection[0] = PresentPosition[Direction.Forward].TrackCircuitSectionIndex;
                         LastReservedSection[1] = PresentPosition[Direction.Backward].TrackCircuitSectionIndex;
 
-                        MovementState = AI_MOVEMENT_STATE.FOLLOWING;
+                        MovementState = AiMovementState.Following;
                         SwitchToNodeControl(PresentPosition[Direction.Forward].TrackCircuitSectionIndex);
 
                         DisplayMessage = Simulator.Catalog.GetString("Train is ready to attach to : ");
@@ -9540,7 +9540,7 @@ namespace Orts.Simulation.Timetables
                     }
                     else
                     {
-                        MovementState = AI_MOVEMENT_STATE.RUNNING;   // reset movement state (must not remain set at STATION_STOP)
+                        MovementState = AiMovementState.Running;   // reset movement state (must not remain set at STATION_STOP)
                         if (nextActionInfo != null && nextActionInfo.NextAction == AIActionItem.AI_ACTION_TYPE.STATION_STOP)
                         {
                             nextActionInfo = null;   // clear next action if still referring to station stop
@@ -9613,11 +9613,11 @@ namespace Orts.Simulation.Timetables
                             {
                                 AttachDetails.ReadyToAttach = true;
                             }
-                            else if (otherTrain.Number == AttachDetails.AttachTrain && otherTrain.MovementState == AI_MOVEMENT_STATE.AI_STATIC && otherTrain.ActivateTime != null)
+                            else if (otherTrain.Number == AttachDetails.AttachTrain && otherTrain.MovementState == AiMovementState.Static && otherTrain.ActivateTime != null)
                             {
                                 AttachDetails.ReadyToAttach = true;
                             }
-                            else if (otherTrain.TrainType == TrainType.Player && otherTrain.OrgAINumber == AttachDetails.AttachTrain && otherTrain.MovementState == AI_MOVEMENT_STATE.AI_STATIC && otherTrain.ActivateTime != null)
+                            else if (otherTrain.TrainType == TrainType.Player && otherTrain.OrgAINumber == AttachDetails.AttachTrain && otherTrain.MovementState == AiMovementState.Static && otherTrain.ActivateTime != null)
                             {
                                 AttachDetails.ReadyToAttach = true;
                             }
@@ -9890,7 +9890,7 @@ namespace Orts.Simulation.Timetables
                         thisPool.AddUnit(this, false);
                     }
 
-                    MovementState = AI_MOVEMENT_STATE.AI_STATIC;
+                    MovementState = AiMovementState.Static;
                     return (true);
                 }
 
@@ -9973,7 +9973,7 @@ namespace Orts.Simulation.Timetables
                     formedTrain.SetFormedOccupied();
                     formedTrain.TrainType = TrainType.Player;
                     formedTrain.ControlMode = TrainControlMode.Inactive;
-                    formedTrain.MovementState = AI_MOVEMENT_STATE.AI_STATIC;
+                    formedTrain.MovementState = AiMovementState.Static;
 
                     // copy train control details
                     formedTrain.MUDirection = MUDirection;
@@ -10032,7 +10032,7 @@ namespace Orts.Simulation.Timetables
 
                     if (AtStation && formedTrain.AtStation && StationStops[0].PlatformReference == formedTrain.StationStops[0].PlatformReference)
                     {
-                        formedTrain.MovementState = AI_MOVEMENT_STATE.STATION_STOP;
+                        formedTrain.MovementState = AiMovementState.StationStop;
                         formedTrain.StationStops[0].ActualArrival = StationStops[0].ActualArrival;
                         formedTrain.StationStops[0].ArrivalTime = StationStops[0].ArrivalTime;
                         formedTrain.StationStops[0].CalculateDepartTime(this);
@@ -10511,7 +10511,7 @@ namespace Orts.Simulation.Timetables
 
             // if not static, reassess signals if coupled at front (no need to reassess signals if coupled to rear)
             // also, reset movement state if not player train
-            if (attachTrain.MovementState != AI_MOVEMENT_STATE.AI_STATIC)
+            if (attachTrain.MovementState != AiMovementState.Static)
             {
                 if (attachTrainFront)
                 {
@@ -10520,7 +10520,7 @@ namespace Orts.Simulation.Timetables
 
                 if (attachTrain.TrainType != TrainType.Player && attachTrain.TrainType != TrainType.PlayerIntended)
                 {
-                    attachTrain.MovementState = AI_MOVEMENT_STATE.STOPPED;
+                    attachTrain.MovementState = AiMovementState.Stopped;
                     AIActionItem.AI_ACTION_TYPE attachTrainAction = AIActionItem.AI_ACTION_TYPE.NONE;
                     if (attachTrain.nextActionInfo != null)
                     {
@@ -10533,7 +10533,7 @@ namespace Orts.Simulation.Timetables
                     {
                         if (StationStops[0].PlatformReference == attachTrain.StationStops[0].PlatformReference)
                         {
-                            attachTrain.MovementState = AI_MOVEMENT_STATE.STATION_STOP;
+                            attachTrain.MovementState = AiMovementState.StationStop;
                             if (attachTrain.nextActionInfo != null && attachTrain.nextActionInfo.NextAction == AIActionItem.AI_ACTION_TYPE.STATION_STOP)
                             {
                                 attachTrain.nextActionInfo = null;
@@ -10542,7 +10542,7 @@ namespace Orts.Simulation.Timetables
                     }
                     else if (attachTrain.AtStation)
                     {
-                        attachTrain.MovementState = AI_MOVEMENT_STATE.STATION_STOP;
+                        attachTrain.MovementState = AiMovementState.StationStop;
                     }
                     else if (attachTrainAction == AIActionItem.AI_ACTION_TYPE.STATION_STOP)
                     {
@@ -10551,7 +10551,7 @@ namespace Orts.Simulation.Timetables
                         // assume to be in station
                         // also set state of present train to station stop
                         {
-                            MovementState = attachTrain.MovementState = AI_MOVEMENT_STATE.STATION_STOP;
+                            MovementState = attachTrain.MovementState = AiMovementState.StationStop;
                             attachTrain.AtStation = true;
                         }
                     }
@@ -10678,7 +10678,7 @@ namespace Orts.Simulation.Timetables
                 attachTrain.TrainType = TrainType.Player;
 
                 // if present movement state is active state, copy to new train
-                if (MovementState != AI_MOVEMENT_STATE.AI_STATIC)
+                if (MovementState != AiMovementState.Static)
                 {
                     attachTrain.MovementState = MovementState;
                 }
@@ -10743,7 +10743,7 @@ namespace Orts.Simulation.Timetables
                 float randDelay = (float)Simulator.Random.Next((DelayedStartSettings.attachRestart.randomPartS * 10));
                 RestdelayS = DelayedStartSettings.attachRestart.fixedPartS + (randDelay / 10f);
                 DelayedStart = true;
-                DelayedStartState = AI_START_MOVEMENT.PATH_ACTION;
+                DelayedStartState = AiStartMovement.PathAction;
             }
         }
 
@@ -10880,14 +10880,14 @@ namespace Orts.Simulation.Timetables
             newTrain.ProcessSpeedSettings();
 
             // set states
-            newTrain.MovementState = AITrain.AI_MOVEMENT_STATE.AI_STATIC; // start of as AI static
+            newTrain.MovementState = AiMovementState.Static; // start of as AI static
             newTrain.StartTime = null; // time will be set later
 
             // set delay
             float randDelay = (float)Simulator.Random.Next((DelayedStartSettings.detachRestart.randomPartS * 10));
             RestdelayS = DelayedStartSettings.detachRestart.fixedPartS + (randDelay / 10f);
             DelayedStart = true;
-            DelayedStartState = AI_START_MOVEMENT.NEW;
+            DelayedStartState = AiStartMovement.NewTrain;
 
             if (!newIsPlayer)
             {
@@ -11017,12 +11017,12 @@ namespace Orts.Simulation.Timetables
             RecalculateStationStops();
 
             // if normal stop, set restart delay
-            if (MovementState == AI_MOVEMENT_STATE.STOPPED)
+            if (MovementState == AiMovementState.Stopped)
             {
                 randDelay = (float)Simulator.Random.Next((DelayedStartSettings.detachRestart.randomPartS * 10));
                 RestdelayS = DelayedStartSettings.detachRestart.fixedPartS + (randDelay / 10f);
                 DelayedStart = true;
-                DelayedStartState = AI_START_MOVEMENT.PATH_ACTION;
+                DelayedStartState = AiStartMovement.PathAction;
             }
 
             // return new lead locomotive position
@@ -11394,7 +11394,7 @@ namespace Orts.Simulation.Timetables
             formedTrain.FormedOf = train.Number;
             formedTrain.FormedOfType = TTTrain.FormCommand.Detached;
             formedTrain.TrainType = TrainType.AiAutoGenerated;
-            formedTrain.MovementState = AITrain.AI_MOVEMENT_STATE.AI_STATIC;
+            formedTrain.MovementState = AiMovementState.Static;
 
             // set starttime to 1 sec, and set activate time to null (train is never activated)
             formedTrain.StartTime = 1;
@@ -12506,7 +12506,7 @@ namespace Orts.Simulation.Timetables
                             newTrain.SetFormedOccupied();
                             newTrain.TrainType = TrainType.Player;
                             newTrain.ControlMode = TrainControlMode.Inactive;
-                            newTrain.MovementState = AITrain.AI_MOVEMENT_STATE.AI_STATIC;
+                            newTrain.MovementState = AiMovementState.Static;
 
                             // inform viewer about player train switch
                             Simulator.Instance.OnPlayerTrainChanged(train, newTrain);
@@ -12567,7 +12567,7 @@ namespace Orts.Simulation.Timetables
                 {
                     newTrain.TrainType = TrainType.Player;
                     newTrain.ControlMode = TrainControlMode.Inactive;
-                    newTrain.MovementState = AITrain.AI_MOVEMENT_STATE.AI_STATIC;
+                    newTrain.MovementState = AiMovementState.Static;
                     if (!newTrain.StartTime.HasValue) newTrain.StartTime = 0;
 
                     newTrain.AI.TrainsToAdd.Add(newTrain);
@@ -12658,7 +12658,7 @@ namespace Orts.Simulation.Timetables
                 // set proper details for existing train
                 train.Number = train.OrgAINumber;
                 train.TrainType = TrainType.Ai;
-                train.MovementState = train.AtStation ? AITrain.AI_MOVEMENT_STATE.STATION_STOP : AITrain.AI_MOVEMENT_STATE.STOPPED;
+                train.MovementState = train.AtStation ? AiMovementState.StationStop : AiMovementState.Stopped;
                 train.LeadLocomotiveIndex = -1;
                 Simulator.Instance.Trains.Remove(train);
                 train.AI.TrainsToRemoveFromAI.Add(train);
@@ -12673,7 +12673,7 @@ namespace Orts.Simulation.Timetables
                 newTrain.LeadLocomotiveIndex = newLocoIndex;
                 newTrain.TrainType = TrainType.Player;
                 newTrain.ControlMode = TrainControlMode.Inactive;
-                newTrain.MovementState = AITrain.AI_MOVEMENT_STATE.AI_STATIC;
+                newTrain.MovementState = AiMovementState.Static;
                 newTrain.AI.TrainsToAdd.Add(newTrain);
                 newTrain.AI.aiListChanged = true;
                 Simulator.Instance.Trains.Add(newTrain);
@@ -13876,7 +13876,7 @@ namespace Orts.Simulation.Timetables
                 thisTrain.TCRoute.TCRouteSubpaths[thisTrain.TCRoute.ActiveSubPath] = new TrackCircuitPartialPathRoute(newRoute);
                 thisTrain.ValidRoute[0] = new TrackCircuitPartialPathRoute(newRoute);
 
-                thisTrain.MovementState = AITrain.AI_MOVEMENT_STATE.STOPPED;
+                thisTrain.MovementState = AiMovementState.Stopped;
             }
         }
 

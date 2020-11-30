@@ -282,7 +282,7 @@ namespace Orts.Simulation.Physics
             foreach (Train otherTrain in simulator.Trains)
             {
                 // check if not AI_Static
-                if (signalRef.UseLocationPassingPaths && otherTrain.GetAiMovementState() == AITrain.AI_MOVEMENT_STATE.AI_STATIC)
+                if (signalRef.UseLocationPassingPaths && otherTrain.GetAiMovementState() == AiMovementState.Static)
                 {
                     continue;
                 }

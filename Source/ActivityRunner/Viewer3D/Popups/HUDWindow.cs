@@ -1439,7 +1439,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             int totalactive = 0;
             foreach (var thisTrain in Viewer.Simulator.AI.AITrains)
             {
-                if (thisTrain.MovementState != AITrain.AI_MOVEMENT_STATE.AI_STATIC && thisTrain.TrainType != TrainType.AiIncorporated)
+                if (thisTrain.MovementState != AiMovementState.Static && thisTrain.TrainType != TrainType.AiIncorporated)
                 {
                     totalactive++;
                 }
@@ -1518,7 +1518,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             // next is active AI trains which are delayed
             foreach (var thisTrain in Viewer.Simulator.AI.AITrains)
             {
-                if (thisTrain.MovementState != AITrain.AI_MOVEMENT_STATE.AI_STATIC && thisTrain.TrainType != TrainType.Player
+                if (thisTrain.MovementState != AiMovementState.Static && thisTrain.TrainType != TrainType.Player
                     && thisTrain.TrainType != TrainType.AiIncorporated)
                 {
                     if (thisTrain.Delay.HasValue && thisTrain.Delay.Value.TotalMinutes >= 1)
@@ -1537,7 +1537,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             // next is active AI trains which are not delayed
             foreach (var thisTrain in Viewer.Simulator.AI.AITrains)
             {
-                if (thisTrain.MovementState != AITrain.AI_MOVEMENT_STATE.AI_STATIC && thisTrain.TrainType != TrainType.Player
+                if (thisTrain.MovementState != AiMovementState.Static && thisTrain.TrainType != TrainType.Player
                     && thisTrain.TrainType != TrainType.AiIncorporated)
                 {
                     if (!thisTrain.Delay.HasValue || thisTrain.Delay.Value.TotalMinutes < 1)
@@ -1556,7 +1556,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             // finally is static AI trains
             foreach (var thisTrain in Viewer.Simulator.AI.AITrains)
             {
-                if (thisTrain.MovementState == AITrain.AI_MOVEMENT_STATE.AI_STATIC && thisTrain.TrainType != TrainType.Player)
+                if (thisTrain.MovementState == AiMovementState.Static && thisTrain.TrainType != TrainType.Player)
                 {
                     var status = thisTrain.GetStatus(Viewer.MilepostUnitsMetric);
                     status = thisTrain.AddMovementState(status, Viewer.MilepostUnitsMetric);

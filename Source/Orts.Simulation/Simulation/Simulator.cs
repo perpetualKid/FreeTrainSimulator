@@ -585,10 +585,10 @@ namespace Orts.Simulation
             {
                 var validPosition = playerTrain.PostInit();  // place player train after pre-running of AI trains
                 if (validPosition && AI != null) AI.PreUpdate = false;
-                if (playerTrain.InitialSpeed > 0 && playerTrain.MovementState != AITrain.AI_MOVEMENT_STATE.STATION_STOP)
+                if (playerTrain.InitialSpeed > 0 && playerTrain.MovementState != AiMovementState.StationStop)
                 {
                     playerTrain.InitializeMoving();
-                    playerTrain.MovementState = AITrain.AI_MOVEMENT_STATE.BRAKING;
+                    playerTrain.MovementState = AiMovementState.Braking;
                 }
                 else if (playerTrain.InitialSpeed == 0)
                     playerTrain.InitializeBrakes();
@@ -1258,10 +1258,10 @@ namespace Orts.Simulation
                 train.TrainMaxSpeedMpS = Math.Min((float)TRK.Route.SpeedLimit, ((MSTSLocomotive)PlayerLocomotive).MaxSpeedMpS);
             else
                 train.TrainMaxSpeedMpS = Math.Min((float)TRK.Route.SpeedLimit, train.MaxVelocityA);
-            if (train.InitialSpeed > 0 && train.MovementState != AITrain.AI_MOVEMENT_STATE.STATION_STOP)
+            if (train.InitialSpeed > 0 && train.MovementState != AiMovementState.StationStop)
             {
                 train.InitializeMoving();
-                train.MovementState = AITrain.AI_MOVEMENT_STATE.BRAKING;
+                train.MovementState = AiMovementState.Braking;
             }
             else if (train.InitialSpeed == 0)
                 train.InitializeBrakes();
@@ -1743,7 +1743,7 @@ namespace Orts.Simulation
                         AI.AITrains.Add(playerTrain);
                         if (TrainSwitcher.SuspendOldPlayer)
                         {
-                            playerTrain.MovementState = AITrain.AI_MOVEMENT_STATE.SUSPENDED;
+                            playerTrain.MovementState = AiMovementState.Suspended;
                             if (playerTrain.ValidRoute[0] != null && playerTrain.PresentPosition[Direction.Forward].RouteListIndex != -1 &&
                                 playerTrain.ValidRoute[0].Count > playerTrain.PresentPosition[Direction.Forward].RouteListIndex + 1)
                                 SignalEnvironment.BreakDownRoute(playerTrain.ValidRoute[0][playerTrain.PresentPosition[Direction.Forward].RouteListIndex + 1].TrackCircuitSection.Index,
@@ -1905,11 +1905,11 @@ namespace Orts.Simulation
             if (PlayerLocomotive.Train.TrainType != TrainType.Static)
             {
                 AI.AITrains.Remove(PlayerLocomotive.Train as AITrain);
-                if ((PlayerLocomotive.Train as AITrain).MovementState == AITrain.AI_MOVEMENT_STATE.SUSPENDED)
+                if ((PlayerLocomotive.Train as AITrain).MovementState == AiMovementState.Suspended)
                 {
                     PlayerLocomotive.Train.Reinitialize();
                     (PlayerLocomotive.Train as AITrain).MovementState = Math.Abs(PlayerLocomotive.Train.SpeedMpS) <= MaxStoppedMpS ?
-                        AITrain.AI_MOVEMENT_STATE.INIT : AITrain.AI_MOVEMENT_STATE.BRAKING;
+                        AiMovementState.Init : AiMovementState.Braking;
                 }
                 (PlayerLocomotive.Train as AITrain).SwitchToPlayerControl();
             }

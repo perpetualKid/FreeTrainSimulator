@@ -1067,7 +1067,7 @@ namespace Orts.Simulation.Timetables
                     train.SetFormedOccupied();
                     train.TrainType = TrainType.Player;
                     train.ControlMode = TrainControlMode.Inactive;
-                    train.MovementState = AITrain.AI_MOVEMENT_STATE.AI_STATIC;
+                    train.MovementState = AiMovementState.Static;
 
                     // inform viewer about player train switch
                     Simulator.Instance.PlayerLocomotive = train.LeadLocomotive;
@@ -1090,7 +1090,7 @@ namespace Orts.Simulation.Timetables
                 {
                     train.TrainType = TrainType.Player;
                     train.ControlMode = TrainControlMode.Inactive;
-                    train.MovementState = AITrain.AI_MOVEMENT_STATE.AI_STATIC;
+                    train.MovementState = AiMovementState.Static;
 
                     train.AI.TrainsToAdd.Add(train);
 
@@ -1142,7 +1142,7 @@ namespace Orts.Simulation.Timetables
                     float randDelay = (float)Simulator.Random.Next((train.DelayedStartSettings.newStart.randomPartS * 10));
                     train.RestdelayS = train.DelayedStartSettings.newStart.fixedPartS + (randDelay / 10f);
                     train.DelayedStart = true;
-                    train.DelayedStartState = TTTrain.AI_START_MOVEMENT.NEW;
+                    train.DelayedStartState = AiStartMovement.NewTrain;
 
                     train.TrainType = TrainType.Ai;
                     train.AI.TrainsToAdd.Add(train);
@@ -1168,7 +1168,7 @@ namespace Orts.Simulation.Timetables
                 train.ActiveTurntable.MovingTableAction = TimetableTurntableControl.MovingTableActionEnum.FromStorage;
                 train.ActiveTurntable.AccessPathIndex = reqAccessPath;
                 train.ActiveTurntable.StoragePathIndex = selectedStorage;
-                train.MovementState = AITrain.AI_MOVEMENT_STATE.AI_STATIC;
+                train.MovementState = AiMovementState.Static;
                 train.ActivateTime = presentTime - 1; // train is immediately activated
             }
             else
@@ -1555,7 +1555,7 @@ namespace Orts.Simulation.Timetables
 
                     if (AutoRequestExit(reqTurntableExit, reqEntryDirection, reqExitDirection, elapsedClockSeconds))
                     {
-                        parentTrain.DelayedStartMoving(TTTrain.AI_START_MOVEMENT.TURNTABLE);
+                        parentTrain.DelayedStartMoving(AiStartMovement.Turntable);
                         MovingTableState = TimetableTurntableControl.MovingTableStateEnum.AccessToMovingTable;
                         parentTrain.EndAuthorityTypes[0] = EndAuthorityType.EndOfPath;
 
@@ -1589,7 +1589,7 @@ namespace Orts.Simulation.Timetables
 
                     if (AutoRequestExit(reqTurntableExit, reqEntryDirection, reqExitDirection, elapsedClockSeconds))
                     {
-                        parentTrain.DelayedStartMoving(TTTrain.AI_START_MOVEMENT.TURNTABLE);
+                        parentTrain.DelayedStartMoving(AiStartMovement.Turntable);
                         MovingTableState = TimetableTurntableControl.MovingTableStateEnum.StorageToMovingTable;
                         parentTrain.EndAuthorityTypes[0] = EndAuthorityType.EndOfPath;
 
@@ -2340,7 +2340,7 @@ namespace Orts.Simulation.Timetables
             }
 
             parentTrain.ResetActions(false);
-            parentTrain.DelayedStartMoving(AITrain.AI_START_MOVEMENT.TURNTABLE);
+            parentTrain.DelayedStartMoving(AiStartMovement.Turntable);
 
             // set train on table
             parentTrain.ControlMode = TrainControlMode.TurnTable;
@@ -2450,10 +2450,10 @@ namespace Orts.Simulation.Timetables
 
             // reinitiate train
             MovingTableState = MovingTableStateEnum.Completed;
-            parentTrain.MovementState = AITrain.AI_MOVEMENT_STATE.AI_STATIC;
+            parentTrain.MovementState = AiMovementState.Static;
             parentTrain.ControlMode = TrainControlMode.AutoNode;
             parentTrain.DistanceTravelledM = 0;
-            parentTrain.DelayedStartMoving(AITrain.AI_START_MOVEMENT.PATH_ACTION);
+            parentTrain.DelayedStartMoving(AiStartMovement.PathAction);
 
             // actions for mode access (train going into storage)
             if (MovingTableAction == MovingTableActionEnum.FromAccess)

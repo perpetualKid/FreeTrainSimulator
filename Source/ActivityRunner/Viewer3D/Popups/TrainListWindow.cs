@@ -66,7 +66,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                         number.Color = train0.IsPlayable ? Color.LightGreen : Color.White;
                         name.Color = train0.IsPlayable ? Color.LightGreen : Color.White;
                     }
-                    if (train0 is AITrain && (train0 as AITrain).MovementState == AITrain.AI_MOVEMENT_STATE.SUSPENDED)
+                    if (train0 is AITrain && (train0 as AITrain).MovementState == AiMovementState.Suspended)
                     {
                         number.Color = Color.Orange;
                         name.Color = Color.Orange;
@@ -80,7 +80,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 }
                 foreach (var thisTrain in Owner.Viewer.Simulator.AI.AITrains)
                 {
-                    if (thisTrain.MovementState != AITrain.AI_MOVEMENT_STATE.AI_STATIC && thisTrain.TrainType != TrainType.Player
+                    if (thisTrain.MovementState != AiMovementState.Static && thisTrain.TrainType != TrainType.Player
                         && ! (thisTrain.TrainType == TrainType.AiIncorporated && !thisTrain.IncorporatingTrain.IsPathless))
                     {
                         var line = scrollbox.AddLayoutHorizontalLineOfText();
@@ -97,7 +97,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             number.Color = thisTrain.IsPlayable ? Color.LightGreen : Color.White;
                             name.Color = thisTrain.IsPlayable ? Color.LightGreen : Color.White;
                         }
-                        if (thisTrain.MovementState == AITrain.AI_MOVEMENT_STATE.SUSPENDED)
+                        if (thisTrain.MovementState == AiMovementState.Suspended)
                         {
                             number.Color = Color.Orange;
                             name.Color = Color.Orange;

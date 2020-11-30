@@ -1403,7 +1403,7 @@ namespace Orts.Simulation.Physics
 
             //Exit here when train is static consist (no further actions required)
 
-            if (GetAiMovementState() == AITrain.AI_MOVEMENT_STATE.AI_STATIC)
+            if (GetAiMovementState() == AiMovementState.Static)
             {
                 int presentTime = Convert.ToInt32(Math.Floor(simulator.ClockTime));
                 UpdateAIStaticState(presentTime);
@@ -1429,14 +1429,14 @@ namespace Orts.Simulation.Physics
                 UpdateExplorer(elapsedClockSeconds);
             }
 
-            else if (ValidRoute[0] != null && GetAiMovementState() != AITrain.AI_MOVEMENT_STATE.AI_STATIC)     // no actions required for static objects //
+            else if (ValidRoute[0] != null && GetAiMovementState() != AiMovementState.Static)     // no actions required for static objects //
             {
                 if (ControlMode != TrainControlMode.OutOfControl) movedBackward = CheckBackwardClearance();  // check clearance at rear if not out of control //
                 UpdateTrainPosition();                                                          // position update         //
                 UpdateTrainPositionInformation();                                               // position update         //
                 int SignalObjIndex = CheckSignalPassed(0, PresentPosition[Direction.Forward], PreviousPosition[Direction.Forward]);   // check if passed signal  //
                 UpdateSectionState(movedBackward);                                              // update track occupation //
-                if (!(this is AITrain && (this as AITrain).MovementState == AITrain.AI_MOVEMENT_STATE.SUSPENDED)) ObtainRequiredActions(movedBackward);    // process list of actions //
+                if (!(this is AITrain && (this as AITrain).MovementState == AiMovementState.Suspended)) ObtainRequiredActions(movedBackward);    // process list of actions //
 
                 if (TrainType == TrainType.Player && CheckStations) // if player train is to check own stations
                 {
@@ -4529,7 +4529,7 @@ namespace Orts.Simulation.Physics
         /// </summary>
         protected void ObtainRequiredActions(int backward)
         {
-            if (this is AITrain aiTrain && aiTrain.MovementState == AITrain.AI_MOVEMENT_STATE.SUSPENDED)
+            if (this is AITrain aiTrain && aiTrain.MovementState == AiMovementState.Suspended)
                 return;
             if (backward < BackwardThreshold)
             {
@@ -10367,7 +10367,7 @@ namespace Orts.Simulation.Physics
                 }
                 else if (Math.Abs(SpeedMpS) <= 0.01 && AuxActionsContainer.specRequiredActions.Count > 0 &&
                     AuxActionsContainer.specRequiredActions.First.Value is AuxActSigDelegate auxAction &&
-                    auxAction.currentMvmtState == AITrain.AI_MOVEMENT_STATE.HANDLE_ACTION)
+                    auxAction.currentMvmtState == AiMovementState.HandleAction)
                 {
                     movString = "WTS";
                     abString = $"{TimeSpan.FromSeconds(auxAction.ActualDepart):c}";
@@ -10379,13 +10379,13 @@ namespace Orts.Simulation.Physics
                 abString = (StationStops[0].ActualDepart > 0) ? $"{TimeSpan.FromSeconds(StationStops[0].ActualDepart):c}" : "..:..:..";
             }
             else if (Math.Abs(SpeedMpS) <= 0.01 && this is AITrain aiTrain && aiTrain.nextActionInfo is AuxActionWPItem auxAction &&
-                    aiTrain.MovementState == AITrain.AI_MOVEMENT_STATE.HANDLE_ACTION)
+                    aiTrain.MovementState == AiMovementState.HandleAction)
             {
                 movString = "WTP";
                 abString = $"{TimeSpan.FromSeconds(auxAction.ActualDepart):c}";
             }
             else if (Math.Abs(SpeedMpS) <= 0.01 && AuxActionsContainer.SpecAuxActions.Count > 0 && AuxActionsContainer.SpecAuxActions[0] is AIActionWPRef auxWPAction &&
-                auxWPAction.keepIt?.currentMvmtState == AITrain.AI_MOVEMENT_STATE.HANDLE_ACTION)
+                auxWPAction.keepIt?.currentMvmtState == AiMovementState.HandleAction)
             {
                 movString = "WTP";
                 abString = $"{TimeSpan.FromSeconds(auxWPAction.keepIt.ActualDepart):c}";
@@ -10650,8 +10650,8 @@ namespace Orts.Simulation.Physics
                 float wpDistance = ValidRoute[0].GetDistanceAlongRoute(actionIndex0, leftInSectionM, actionRouteIndex, (AuxActionsContainer.SpecAuxActions[0] as AIActionWPRef).RequiredDistance, AITrainDirectionForward);
                 bool wpEnabled = false;
                 if (Math.Abs(SpeedMpS) <= Simulator.MaxStoppedMpS && (((AuxActionsContainer.SpecAuxActions[0] as AIActionWPRef).keepIt != null &&
-                    (AuxActionsContainer.SpecAuxActions[0] as AIActionWPRef).keepIt.currentMvmtState == AITrain.AI_MOVEMENT_STATE.HANDLE_ACTION) ||
-                    ((this as AITrain).nextActionInfo is AuxActionWPItem && (this as AITrain).MovementState == AITrain.AI_MOVEMENT_STATE.HANDLE_ACTION))) wpEnabled = true;
+                    (AuxActionsContainer.SpecAuxActions[0] as AIActionWPRef).keepIt.currentMvmtState == AiMovementState.HandleAction) ||
+                    ((this as AITrain).nextActionInfo is AuxActionWPItem && (this as AITrain).MovementState == AiMovementState.HandleAction))) wpEnabled = true;
 
                 trainInfo.ObjectInfoForward.Add(new TrainPathItem(wpDistance, wpEnabled));
             }
@@ -11662,9 +11662,9 @@ namespace Orts.Simulation.Physics
         /// <summary>
         /// Get AI Movement State - dummy method to allow virtualization by child classes
         /// </summary>
-        internal virtual AITrain.AI_MOVEMENT_STATE GetAiMovementState()
+        internal virtual AiMovementState GetAiMovementState()
         {
-            return AITrain.AI_MOVEMENT_STATE.UNKNOWN;
+            return AiMovementState.Unknown;
         }
 
         /// <summary>

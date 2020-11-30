@@ -404,7 +404,7 @@ namespace Orts.Simulation.AIs
                     if (PlayTrain != null)
                     {
                         PlayTrain.TrainType = TrainType.Player;
-                        PlayTrain.MovementState = AITrain.AI_MOVEMENT_STATE.INIT;
+                        PlayTrain.MovementState = AiMovementState.Init;
                     }
                     else
                     {
@@ -482,7 +482,7 @@ namespace Orts.Simulation.AIs
                     if (PlayTrain != null)
                     {
                         PlayTrain.TrainType = TrainType.Player;
-                        PlayTrain.MovementState = AITrain.AI_MOVEMENT_STATE.INIT;
+                        PlayTrain.MovementState = AiMovementState.Init;
                     }
                     else
                     {
@@ -717,12 +717,12 @@ namespace Orts.Simulation.AIs
                 foreach (AITrain acttrain in AITrains)
                 {
                     TTTrain actTTTrain = acttrain as TTTrain;
-                    if (acttrain.MovementState != AITrain.AI_MOVEMENT_STATE.AI_STATIC && acttrain.TrainType != TrainType.Player)
+                    if (acttrain.MovementState != AiMovementState.Static && acttrain.TrainType != TrainType.Player)
                     {
                         activeTrains = true;
                         break;
                     }
-                    else if (acttrain.MovementState == AITrain.AI_MOVEMENT_STATE.AI_STATIC && actTTTrain.ActivateTime < clockTime)
+                    else if (acttrain.MovementState == AiMovementState.Static && actTTTrain.ActivateTime < clockTime)
                     {
                         activeTrains = true;
                         break;
@@ -767,7 +767,7 @@ namespace Orts.Simulation.AIs
                                     train.AIUpdate(intervalTime, clockTime, preUpdate);
                                 }
                             }
-                            else if (train.TrainType == TrainType.PlayerIntended && train.MovementState == AITrain.AI_MOVEMENT_STATE.AI_STATIC)
+                            else if (train.TrainType == TrainType.PlayerIntended && train.MovementState == AiMovementState.Static)
                             {
                                 TTTrain trainTT = train as TTTrain;
                                 int presentTime = Convert.ToInt32(Math.Floor(clockTime));
@@ -1005,10 +1005,10 @@ namespace Orts.Simulation.AIs
                 Simulator.TrainDictionary.Add(thisTrain.Number, thisTrain);
                 if (Simulator.NameDictionary.ContainsKey(thisTrain.Name.ToLower())) Simulator.NameDictionary.Remove(thisTrain.Name.ToLower());
                 Simulator.NameDictionary.Add(thisTrain.Name.ToLower(), thisTrain);
-                if (thisTrain.InitialSpeed > 0 && thisTrain.MovementState != AITrain.AI_MOVEMENT_STATE.STATION_STOP)
+                if (thisTrain.InitialSpeed > 0 && thisTrain.MovementState != AiMovementState.StationStop)
                 {
                     thisTrain.InitializeMoving();
-                    thisTrain.MovementState = AITrain.AI_MOVEMENT_STATE.BRAKING;
+                    thisTrain.MovementState = AiMovementState.Braking;
                 }
                 else if (thisTrain.InitialSpeed == 0)
                 {

@@ -803,7 +803,7 @@ namespace Orts.Simulation
             if (EventType == ActivityEventType.TrainStop)
             {
                 if (MyPlayerTrain.TrainType != TrainType.AiPlayerHosting && IsAtStation(MyPlayerTrain)  ||
-                    MyPlayerTrain.TrainType == TrainType.AiPlayerHosting && (MyPlayerTrain as AITrain).MovementState == AITrain.AI_MOVEMENT_STATE.STATION_STOP)
+                    MyPlayerTrain.TrainType == TrainType.AiPlayerHosting && (MyPlayerTrain as AITrain).MovementState == AiMovementState.StationStop)
                 {
                     if (Simulator.TimetableMode || MyPlayerTrain.StationStops.Count == 0)
                     {

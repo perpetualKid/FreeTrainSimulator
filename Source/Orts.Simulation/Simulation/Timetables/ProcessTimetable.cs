@@ -839,7 +839,7 @@ namespace Orts.Simulation.Timetables
             playerTrain.OrgAINumber = playerTrain.Number;
             playerTrain.Number = 0;
             playerTrain.ControlMode = TrainControlMode.Inactive;
-            playerTrain.MovementState = AITrain.AI_MOVEMENT_STATE.AI_STATIC;
+            playerTrain.MovementState = AiMovementState.Static;
 
             // create traveller
             AIPath usedPath = Paths[TrainRouteXRef[reqTrain.Index]];
@@ -1367,7 +1367,7 @@ namespace Orts.Simulation.Timetables
                     TTTrain.Name = Name + ":" + TTDescription;
                 }
 
-                TTTrain.MovementState = AITrain.AI_MOVEMENT_STATE.AI_STATIC;
+                TTTrain.MovementState = AiMovementState.Static;
 
                 // derive various directory paths
                 string pathDirectory = Path.Combine(ttInfo.simulator.RoutePath, "Paths");

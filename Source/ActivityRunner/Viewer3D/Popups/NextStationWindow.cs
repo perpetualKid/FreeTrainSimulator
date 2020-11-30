@@ -150,7 +150,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     // train name
                     StationPlatform.Text = String.Concat(playerTimetableTrain.Name.Substring(0, Math.Min(playerTimetableTrain.Name.Length, 20)));
 
-                    if (playerTimetableTrain.ControlMode == TrainControlMode.Inactive || playerTimetableTrain.MovementState == Simulation.AIs.AITrain.AI_MOVEMENT_STATE.AI_STATIC)
+                    if (playerTimetableTrain.ControlMode == TrainControlMode.Inactive || playerTimetableTrain.MovementState == AiMovementState.Static)
                     {
                         // no info available
                         StationPreviousName.Text = "";
@@ -224,7 +224,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                 {
                                     Message.Text = Viewer.Catalog.GetString("Train inactive.");
                                 }
-                                else if (playerTimetableTrain.MovementState == Simulation.AIs.AITrain.AI_MOVEMENT_STATE.AI_STATIC)
+                                else if (playerTimetableTrain.MovementState == AiMovementState.Static)
                                 {
                                     Message.Text = Viewer.Catalog.GetString("Train static.");
                                 }
