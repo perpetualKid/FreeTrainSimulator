@@ -298,6 +298,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 Script.IsDirectionForward = () => Locomotive.Direction == MidpointDirection.Forward;
                 Script.IsDirectionNeutral = () => Locomotive.Direction == MidpointDirection.N;
                 Script.IsDirectionReverse = () => Locomotive.Direction == MidpointDirection.Reverse;
+                Script.IsFlipped = () => Locomotive.Flipped;
+                Script.IsRearCab = () => Locomotive.UsingRearCab;
                 Script.IsBrakeEmergency = () => Locomotive.TrainBrakeController.EmergencyBraking;
                 Script.IsBrakeFullService = () => Locomotive.TrainBrakeController.TCSFullServiceBraking;
                 Script.PowerAuthorization = () => PowerAuthorization;
