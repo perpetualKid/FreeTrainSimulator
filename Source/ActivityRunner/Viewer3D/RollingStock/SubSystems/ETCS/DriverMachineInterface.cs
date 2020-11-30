@@ -39,6 +39,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
         readonly Viewer Viewer;
         public readonly CircularSpeedGauge CircularSpeedGauge;
         public readonly PlanningWindow PlanningWindow;
+        public readonly DistanceArea DistanceArea;
         float PrevScale = 1;
 
         bool Active;
@@ -61,6 +62,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
 
         readonly Point SpeedAreaLocation;
         readonly Point PlanningLocation;
+        readonly Point DistanceAreaLocation;
 
         Texture2D ColorTexture;
 
@@ -114,10 +116,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
 
             PlanningLocation = new Point(334, IsSoftLayout ? 0 : 15);
             SpeedAreaLocation = new Point(54, IsSoftLayout ? 0 : 15);
+            DistanceAreaLocation = new Point(0, IsSoftLayout ? 0 : 15);
 
             CircularSpeedGauge = new CircularSpeedGauge(
-                   (int)(280 * Scale),
-                   (int)(300 * Scale),
                    (int)control.ScaleRangeMax,
                    control.ControlUnit == CabViewControlUnit.Km_Per_Hour,
                    true,
@@ -129,6 +130,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
                    this
                );
             PlanningWindow = new PlanningWindow(this, Viewer, PlanningLocation);
+            DistanceArea = new DistanceArea(this, Viewer, DistanceAreaLocation);
         }
 
         public void PrepareFrame()
@@ -138,18 +140,18 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
             if (!Active) return;
             CircularSpeedGauge.PrepareFrame(currentStatus);
             PlanningWindow.PrepareFrame(currentStatus);
+            DistanceArea.PrepareFrame(currentStatus);
         }
         public void SizeTo(float width, float height)
         {
             Scale = Math.Min(width / Width, height / Height);
-            CircularSpeedGauge.Scale = Scale;
-            PlanningWindow.Scale = Scale;
 
             if (Math.Abs(1f - PrevScale / Scale) > 0.1f)
             {
                 PrevScale = Scale;
                 CircularSpeedGauge.SetFont();
                 PlanningWindow.SetFont();
+                DistanceArea.SetFont();
             }
         }
 
@@ -166,6 +168,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
             if (DisplayBackground) spriteBatch.Draw(ColorTexture, new Rectangle(position, new Point((int)(640 * Scale), (int)(480 * Scale))), ColorBackground);
             CircularSpeedGauge.Draw(spriteBatch, new Point(position.X + (int)(SpeedAreaLocation.X * Scale), position.Y + (int)(SpeedAreaLocation.Y * Scale)));
             PlanningWindow.Draw(spriteBatch, new Point(position.X + (int)(PlanningLocation.X * Scale), position.Y + (int)(PlanningLocation.Y * Scale)));
+            DistanceArea.Draw(spriteBatch, new Point(position.X + (int)(DistanceAreaLocation.X * Scale), position.Y + (int)(DistanceAreaLocation.Y * Scale)));
         }
 
         internal void MouseClickedEvent(Point location)
@@ -244,12 +247,11 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
     public abstract class DMIWindow
     {
         protected readonly DriverMachineInterface DMI;
-        public float Scale;
+        public float Scale => DMI.Scale;
         protected Texture2D ColorTexture;
         protected DMIWindow(DriverMachineInterface dmi)
         {
             DMI = dmi;
-            Scale = dmi.Scale;
         }
 
         public abstract void PrepareFrame(ETCSStatus status);
@@ -261,6 +263,17 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
         public void DrawSymbol(SpriteBatch spriteBatch, Texture2D texture, Point origin, float x, float y)
         {
             spriteBatch.Draw(texture, new Vector2(origin.X + x * Scale, origin.Y + y * Scale), null, Color.White, 0, Vector2.Zero, Scale, SpriteEffects.None, 0);
+        }
+        /// <summary>
+        /// Get scaled font size, increasing it if result is small
+        /// </summary>
+        /// <param name="requiredSize"></param>
+        /// <returns></returns>
+        public float GetScaledFontSize(float requiredSize)
+        {
+            float size = requiredSize * Scale;
+            if (size < 5) return size * 1.2f;
+            return size;
         }
     }
     public class DriverMachineInterfaceRenderer : CabViewDigitalRenderer, ICabViewMouseControlRenderer

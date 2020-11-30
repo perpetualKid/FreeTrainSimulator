@@ -234,7 +234,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
                 int maxp = GetPlanningHeight(e.DistanceToTrainM) - 15;
                 if (max > MaxViewingDistanceM) minp = 0;
                 int size = maxp - minp;
-                gradientRectangles.Add(new Point(minp, maxp), e.GradientPerMille < 0);
+                gradientRectangles[new Point(minp, maxp)] = e.GradientPerMille < 0;
                 Color textColor = e.GradientPerMille < 0 ? Color.Black : Color.White;
                 string sign = e.GradientPerMille < 0 ? "-" : "+";
                 var signWidth = FontGradient.MeasureString(sign) / Scale;
@@ -326,7 +326,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
                 PlanningTarget prev = speedTargets[ld];
                 if (cur.DistanceToTrainM < 0) continue;
                 ld = i;
-                bool im = (IndicationMarkerDistanceM??-1) > 0 && IndicationMarkerTarget.Value.Equals(cur);
+                bool im = cur.Equals(IndicationMarkerTarget);
                 if (cur.DistanceToTrainM > MaxViewingDistanceM) break;
                 int a = GetPlanningHeight(cur.DistanceToTrainM) - 15;
                 string text = ((int)Speed.MeterPerSecond.ToKpH(cur.TargetSpeedMpS)).ToString();
@@ -467,9 +467,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
         /// </summary>
         public void SetFont()
         {
-            FontDistance = Viewer.WindowManager.TextManager.GetExact("Arial", FontHeightDistance * Scale, System.Drawing.FontStyle.Regular);
-            FontTargetSpeed = Viewer.WindowManager.TextManager.GetExact("Arial", FontHeightTargetSpeed * Scale, System.Drawing.FontStyle.Regular);
-            FontGradient = Viewer.WindowManager.TextManager.GetExact("Arial", FontHeightGradient * Scale, System.Drawing.FontStyle.Regular);
+            FontDistance = Viewer.WindowManager.TextManager.GetExact("Arial", GetScaledFontSize(FontHeightDistance), System.Drawing.FontStyle.Regular);
+            FontTargetSpeed = Viewer.WindowManager.TextManager.GetExact("Arial", GetScaledFontSize(FontHeightTargetSpeed), System.Drawing.FontStyle.Regular);
+            FontGradient = Viewer.WindowManager.TextManager.GetExact("Arial", GetScaledFontSize(FontHeightGradient), System.Drawing.FontStyle.Regular);
 
             SetDistanceText();
         }
