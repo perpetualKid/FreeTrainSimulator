@@ -141,6 +141,10 @@ namespace Orts.Scripting.Api
         /// True if circuit breaker or power contactor opening order is true.
         /// </summary>
         public Func<bool> CircuitBreakerOpeningOrder;
+         /// <summary>
+        /// Returns the number of pantographs on the locomotive.
+        /// </summary>
+        public Func<int> PantographCount;
         /// <summary>
         /// Checks the state of any pantograph
         /// int: pantograph ID (1 for first pantograph)
@@ -191,9 +195,9 @@ namespace Orts.Scripting.Api
         /// </summary>
         public Func<float> AltitudeM;
         /// <summary>
-        /// Track gradient percent at the locomotive's location.
+        /// Track gradient percent at the locomotive's location (positive = uphill).
         /// </summary>
-        public Func<float> CurrentElevationPercent;
+        public Func<float> CurrentGradientPercent;
         /// <summary>
         /// Line speed taken from .trk file.
         /// </summary>
