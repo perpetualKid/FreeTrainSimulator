@@ -403,8 +403,7 @@ namespace Orts.ActivityRunner.Viewer3D
             SelectedTrain = PlayerTrain;
             if (PlayerTrain.TrainType == TrainType.AiPlayerHosting)
             {
-                Simulator.Trains[0].LeadLocomotive = null;
-                Simulator.Trains[0].LeadLocomotiveIndex = -1;
+                Simulator.InitializeAiPlayerHosting();
             }
 
             SharedSMSFileManager.Initialize(TrackTypes.Count, Simulator.TRK.Route.SwitchSMSNumber, Simulator.TRK.Route.CurveSMSNumber, Simulator.TRK.Route.CurveSwitchSMSNumber);

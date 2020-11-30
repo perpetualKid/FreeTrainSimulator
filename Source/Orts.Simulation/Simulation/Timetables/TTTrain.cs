@@ -1026,7 +1026,7 @@ namespace Orts.Simulation.Timetables
 
                     if (nextTrain.StationStops[0].PlatformItem.TCSectionIndex.Contains(lastSectionIndex))
                     {
-                        StationStops = new List<StationStop>();
+                        StationStops.Clear();
                         StationStop newStop = nextTrain.StationStops[0].CreateCopy();
 
                         int startvalue = nextTrain.ActivateTime.HasValue ? nextTrain.ActivateTime.Value : nextTrain.StartTime.Value;
@@ -1094,7 +1094,7 @@ namespace Orts.Simulation.Timetables
 
             // set initial position and state
 
-            bool atStation = AtStation;
+            bool atStation = base.AtStation;
             bool validPosition = InitialTrainPlacement(String.IsNullOrEmpty(CreateAhead));     // Check track and if clear, set occupied
 
             if (validPosition)
@@ -1994,7 +1994,7 @@ namespace Orts.Simulation.Timetables
         public override bool CheckInitialStation()
         {
             bool atStation = false;
-            if (FormedOf > 0 && AtStation)  // if train was formed and at station, train is in initial station
+            if (FormedOf > 0 && base.AtStation)  // if train was formed and at station, train is in initial station
             {
                 return (true);
             }
@@ -2850,7 +2850,7 @@ namespace Orts.Simulation.Timetables
             else if (EndAuthorityTypes[0] == EndAuthorityType.ReservedSwitch || EndAuthorityTypes[0] == EndAuthorityType.Loop || EndAuthorityTypes[0] == EndAuthorityType.NoPathReserved)
             {
                 ResetActions(true);
-                NextStopDistanceM = DistanceToEndNodeAuthorityM[0] - 2.0f * junctionOverlapM;
+                NextStopDistanceM = DistanceToEndNodeAuthorityM[0] - 2.0f * JunctionOverlapM;
                 CreateTrainAction(SpeedMpS, 0.0f, NextStopDistanceM, null,
                            AIActionItem.AI_ACTION_TYPE.END_OF_AUTHORITY);
             }
@@ -3040,7 +3040,7 @@ namespace Orts.Simulation.Timetables
             {
                 if (EndAuthorityTypes[0] == EndAuthorityType.ReservedSwitch|| EndAuthorityTypes[0] == EndAuthorityType.Loop)
                 {
-                    float ReqStopDistanceM = DistanceToEndNodeAuthorityM[0] - 2.0f * junctionOverlapM;
+                    float ReqStopDistanceM = DistanceToEndNodeAuthorityM[0] - 2.0f * JunctionOverlapM;
                     if (ReqStopDistanceM > clearingDistanceM)
                     {
                         NextStopDistanceM = DistanceToEndNodeAuthorityM[0];
@@ -3375,7 +3375,7 @@ namespace Orts.Simulation.Timetables
 
                     if (nextSignal.EnabledTrain != null && nextSignal.EnabledTrain.Train == this)
                     {
-                        nextSignal.RequestClearSignal(ValidRoute[0], routedForward, 0, false, null);// for AI always use direction 0
+                        nextSignal.RequestClearSignal(ValidRoute[0], RoutedForward, 0, false, null);// for AI always use direction 0
                     }
                     thisStation.HoldSignal = false;
                 }
@@ -3539,7 +3539,7 @@ namespace Orts.Simulation.Timetables
                 // only request signal if in signal mode (train may be in node control)
                 if (ControlMode == TrainControlMode.AutoSignal)
                 {
-                    nextSignal.RequestClearSignal(ValidRoute[0], routedForward, 0, false, null); // for AI always use direction 0
+                    nextSignal.RequestClearSignal(ValidRoute[0], RoutedForward, 0, false, null); // for AI always use direction 0
                 }
             }
 
@@ -3631,7 +3631,7 @@ namespace Orts.Simulation.Timetables
 
                     if (EndAuthorityTypes[0] == EndAuthorityType.ReservedSwitch)
                     {
-                        distanceToGoM = DistanceToEndNodeAuthorityM[0] - 2.0f * junctionOverlapM;
+                        distanceToGoM = DistanceToEndNodeAuthorityM[0] - 2.0f * JunctionOverlapM;
                     }
                     else if (EndAuthorityTypes[0] == EndAuthorityType.EndOfPath || EndAuthorityTypes[0] == EndAuthorityType.EndOfAuthority)
                     {
@@ -4521,7 +4521,7 @@ namespace Orts.Simulation.Timetables
                                     AdjustControlsAccelMore(0.5f * MaxAccelMpSS, elapsedClockSeconds, 20);
                                 }
                             }
-                            else if ((distanceToTrain - brakingDistance) > keepDistanceTrainM + standardClearingDistanceM)
+                            else if ((distanceToTrain - brakingDistance) > keepDistanceTrainM + StandardClearingDistanceM)
                             {
                                 if (SpeedMpS > maxspeed)
                                 {
@@ -5223,7 +5223,7 @@ namespace Orts.Simulation.Timetables
             List<TrackCircuitSection> newPlacementSections = new List<TrackCircuitSection>();
             foreach (TrackCircuitSection thisSection in placementSections)
             {
-                if (!thisSection.IsSet(routedForward, false))
+                if (!thisSection.IsSet(RoutedForward, false))
                 {
                     newPlacementSections.Add(thisSection);
                 }
@@ -5232,14 +5232,14 @@ namespace Orts.Simulation.Timetables
             // first reserve to ensure switches are all alligned properly
             foreach (TrackCircuitSection thisSection in newPlacementSections)
             {
-                thisSection.Reserve(routedForward, ValidRoute[0]);
+                thisSection.Reserve(RoutedForward, ValidRoute[0]);
             }
 
             // next set occupied
             foreach (TrackCircuitSection thisSection in newPlacementSections)
             {
                 if (OccupiedTrack.Contains(thisSection)) OccupiedTrack.Remove(thisSection);
-                thisSection.SetOccupied(routedForward);
+                thisSection.SetOccupied(RoutedForward);
             }
 
             // reset TrackOccupied to remove any 'hanging' occupations and set the sections in correct sequence
@@ -5634,7 +5634,7 @@ namespace Orts.Simulation.Timetables
             int thisSectionIndex = PresentPosition[Direction.Forward].TrackCircuitSectionIndex;
             TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisSectionIndex];
 
-            if (thisSection.CircuitState.OccupiedByOtherTrains(routedForward))
+            if (thisSection.CircuitState.OccupiedByOtherTrains(RoutedForward))
             {
                 List<TrainRouted> otherTrains = thisSection.CircuitState.TrainsOccupying();
 
@@ -5686,7 +5686,7 @@ namespace Orts.Simulation.Timetables
             TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisSectionIndex];
 
             // check train ahead
-            if (thisSection.CircuitState.OccupiedByOtherTrains(routedForward))
+            if (thisSection.CircuitState.OccupiedByOtherTrains(RoutedForward))
             {
                 Dictionary<Train, float> trainInfo = thisSection.TestTrainAhead(this, PresentPosition[Direction.Forward].Offset, PresentPosition[Direction.Forward].Direction);
 
@@ -5844,7 +5844,7 @@ namespace Orts.Simulation.Timetables
 
                 // if train is to attach to train in section, allow callon if train is stopped
 
-                if (routeSection.CircuitState.OccupiedByOtherTrains(routedForward))
+                if (routeSection.CircuitState.OccupiedByOtherTrains(RoutedForward))
                 {
                     firstTrainFound = true;
                     Dictionary<Train, float> trainInfo = routeSection.TestTrainAhead(this, 0, routeElement.Direction);
@@ -6274,7 +6274,7 @@ namespace Orts.Simulation.Timetables
                 for (int iRouteIndex = PresentPosition[Direction.Forward].RouteListIndex; iRouteIndex < ValidRoute[0].Count && !firstTrainFound; iRouteIndex++)
                 {
                     TrackCircuitSection thisSection = ValidRoute[0][iRouteIndex].TrackCircuitSection;
-                    if (thisSection.CircuitState.OccupiedByOtherTrains(routedForward))
+                    if (thisSection.CircuitState.OccupiedByOtherTrains(RoutedForward))
                     {
                         firstTrainFound = true;
                         Dictionary<Train, float> trainInfo = thisSection.TestTrainAhead(this, 0, ValidRoute[0][iRouteIndex].Direction);
@@ -6358,7 +6358,7 @@ namespace Orts.Simulation.Timetables
                     {
                         if (TrackCircuitSection.TrackCircuitList[nextIndex].CircuitType == TrackCircuitType.Junction)
                         {
-                            float lengthCorrection = Math.Max(Convert.ToSingle(TrackCircuitSection.TrackCircuitList[nextIndex].Overlap), standardOverlapM);
+                            float lengthCorrection = Math.Max(Convert.ToSingle(TrackCircuitSection.TrackCircuitList[nextIndex].Overlap), StandardOverlapM);
                             if (lastSection.Length - 2 * lengthCorrection < Length) // make sure train fits
                             {
                                 lengthCorrection = Math.Max(0.0f, (lastSection.Length - Length) / 2);
@@ -7757,7 +7757,7 @@ namespace Orts.Simulation.Timetables
 
         internal override bool TrainGetSectionStateClearNode(int elementDirection, TrackCircuitPartialPathRoute routePart, TrackCircuitSection thisSection)
         {
-            return (thisSection.GetSectionState(routedForward, elementDirection, InternalBlockstate.Reserved, routePart, -1) <= InternalBlockstate.OccupiedSameDirection);
+            return (thisSection.GetSectionState(RoutedForward, elementDirection, InternalBlockstate.Reserved, routePart, -1) <= InternalBlockstate.OccupiedSameDirection);
         }
 
         //================================================================================================//
@@ -7945,7 +7945,7 @@ namespace Orts.Simulation.Timetables
                 TrackCircuitSection thisSection = thisElement.TrackCircuitSection;
                 TrackDirection direction = sameDirection ? thisElement.Direction : thisElement.Direction.Next();
 
-                blockstate = thisSection.GetSectionState(routedForward, (int)direction, blockstate, thisRoute, -1);
+                blockstate = thisSection.GetSectionState(RoutedForward, (int)direction, blockstate, thisRoute, -1);
                 if (blockstate > InternalBlockstate.Reservable)
                     break;     // exit on first none-available section
             }
@@ -8169,7 +8169,7 @@ namespace Orts.Simulation.Timetables
 
                 foreach (TrackCircuitSection occSection in occupiedSections)
                 {
-                    occSection.SetOccupied(routedForward);
+                    occSection.SetOccupied(RoutedForward);
                 }
 
                 // train is in pool : update pool info
@@ -8601,12 +8601,12 @@ namespace Orts.Simulation.Timetables
                 TrackCircuitSection thisSection = ValidRoute[0][PresentPosition[Direction.Forward].RouteListIndex].TrackCircuitSection;
                 float remLength = (thisSection.Length - PresentPosition[Direction.Forward].Offset);
 
-                for (int Index = PresentPosition[Direction.Forward].RouteListIndex + 1; Index <= lastValidRouteIndex && (remLength < 2 * standardOverlapM); Index++)
+                for (int Index = PresentPosition[Direction.Forward].RouteListIndex + 1; Index <= lastValidRouteIndex && (remLength < 2 * StandardOverlapM); Index++)
                 {
                     remLength += ValidRoute[0][Index].TrackCircuitSection.Length;
                 }
 
-                if (remLength < 2 * standardOverlapM)
+                if (remLength < 2 * StandardOverlapM)
                 {
                     endOfRoute = true;
                 }
@@ -8625,7 +8625,7 @@ namespace Orts.Simulation.Timetables
                 if (nextActionInfo != null && nextActionInfo.NextAction == AIActionItem.AI_ACTION_TYPE.END_OF_ROUTE && !junctionFound)
                 {
                     float remDistance = nextActionInfo.ActivateDistanceM - DistanceTravelledM;
-                    if (remDistance < 2 * standardOverlapM)
+                    if (remDistance < 2 * StandardOverlapM)
                     {
                         endOfRoute = true;
                     }
@@ -9427,7 +9427,7 @@ namespace Orts.Simulation.Timetables
                             if (ControlMode == TrainControlMode.AutoSignal)
                             {
                                 Signal nextSignal = signalRef.Signals[StationStops[0].ExitSignal];
-                                nextSignal.RequestClearSignal(ValidRoute[0], routedForward, 0, false, null);
+                                nextSignal.RequestClearSignal(ValidRoute[0], RoutedForward, 0, false, null);
                             }
                         }
 
@@ -9678,7 +9678,7 @@ namespace Orts.Simulation.Timetables
                     if (ControlMode == TrainControlMode.AutoSignal)
                     {
                         Signal nextSignal = signalRef.Signals[thisStation.ExitSignal];
-                        nextSignal.RequestClearSignal(ValidRoute[0], routedForward, 0, false, null);
+                        nextSignal.RequestClearSignal(ValidRoute[0], RoutedForward, 0, false, null);
                     }
                 }
             }
@@ -10487,13 +10487,13 @@ namespace Orts.Simulation.Timetables
             // first reserve to ensure all switches are properly alligned
             foreach (TrackCircuitSection newSection in newOccupiedSections)
             {
-                newSection.Reserve(attachTrain.routedForward, tempRoute);
+                newSection.Reserve(attachTrain.RoutedForward, tempRoute);
             }
 
             // next set occupied
             foreach (TrackCircuitSection newSection in newOccupiedSections)
             {
-                newSection.SetOccupied(attachTrain.routedForward);
+                newSection.SetOccupied(attachTrain.RoutedForward);
             }
 
             // reset OccupiedTrack to ensure it is set in correct sequence
@@ -10934,12 +10934,12 @@ namespace Orts.Simulation.Timetables
                 for (int iIndex = 0; iIndex < tempRouteTrain.Count; iIndex++)
                 {
                     TrackCircuitSection thisSection = tempRouteTrain[iIndex].TrackCircuitSection;
-                    thisSection.Reserve(routedForward, tempRouteTrain);
+                    thisSection.Reserve(RoutedForward, tempRouteTrain);
                 }
                 for (int iIndex = 0; iIndex < tempRouteTrain.Count; iIndex++)
                 {
                     TrackCircuitSection thisSection = tempRouteTrain[iIndex].TrackCircuitSection;
-                    thisSection.SetOccupied(routedForward);
+                    thisSection.SetOccupied(RoutedForward);
                 }
 
                 if (ControlMode == TrainControlMode.AutoSignal) ControlMode = TrainControlMode.AutoNode;  // set to node control as detached portion is in front
@@ -11003,14 +11003,14 @@ namespace Orts.Simulation.Timetables
             for (int iIndex = 0; iIndex < tempRouteNewTrain.Count; iIndex++)
             {
                 TrackCircuitSection thisSection = tempRouteNewTrain[iIndex].TrackCircuitSection;
-                thisSection.Reserve(newTrain.routedForward, tempRouteNewTrain);
+                thisSection.Reserve(newTrain.RoutedForward, tempRouteNewTrain);
             }
 
             // set track section occupied
             for (int iIndex = 0; iIndex < tempRouteNewTrain.Count; iIndex++)
             {
                 TrackCircuitSection thisSection = tempRouteNewTrain[iIndex].TrackCircuitSection;
-                thisSection.SetOccupied(newTrain.routedForward);
+                thisSection.SetOccupied(newTrain.RoutedForward);
             }
 
             // update station stop offsets for continuing train

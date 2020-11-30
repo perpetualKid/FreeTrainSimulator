@@ -60,8 +60,8 @@ namespace Orts.Simulation.AIs
         public int Alpha10 = 10;                         // 10*alpha
 
         public bool PreUpdate;                           // pre update state
-        public AIActionItem nextActionInfo;              // no next action
-        public AIActionItem nextGenAction;               // Can't remove GenAction if already active but we need to manage the normal Action, so
+        internal AIActionItem nextActionInfo;              // no next action
+        internal AIActionItem nextGenAction;               // Can't remove GenAction if already active but we need to manage the normal Action, so
         public float NextStopDistanceM;                  // distance to next stop node
         public int? StartTime;                           // starting time
         public bool PowerState = true;                   // actual power state : true if power in on
@@ -153,11 +153,11 @@ namespace Orts.Simulation.AIs
                 RandomizeEfficiency(ref Efficiency);
             }
             Name = name;
-            TrafficService = trafficService;
+            base.trafficService = trafficService;
             MaxVelocityA = maxVelocityA;
             // <CSComment> TODO: as Cars.Count is always = 0 at this point, activityClearingDistanceM is set to the short distance also for long trains
             // However as no one complained about AI train SPADs it may be considered to consolidate short distance for all trains</CSComment>
-            if (Cars.Count < standardTrainMinCarNo) activityClearingDistanceM = shortClearingDistanceM;
+            if (Cars.Count < StandardTrainMinCarNo) ActivityClearingDistanceM = ShortClearingDistanceM;
         }
 
         public AITrain()
@@ -199,7 +199,7 @@ namespace Orts.Simulation.AIs
             MaxDecelMpSS = inf.ReadSingle();
             MaxAccelMpSS = inf.ReadSingle();
 
-            if (Cars.Count < standardTrainMinCarNo) activityClearingDistanceM = shortClearingDistanceM;
+            if (Cars.Count < StandardTrainMinCarNo) ActivityClearingDistanceM = ShortClearingDistanceM;
 
             int startTimeValue = inf.ReadInt32();
             if (startTimeValue < 0)
@@ -403,8 +403,8 @@ namespace Orts.Simulation.AIs
 
                 }
 
-                BuildWaitingPointList(activityClearingDistanceM);
-                BuildStationList(activityClearingDistanceM);
+                BuildWaitingPointList(ActivityClearingDistanceM);
+                BuildStationList(ActivityClearingDistanceM);
 
                 // <CSComment> This creates problems in push-pull paths </CSComment>
 //                StationStops.Sort();
@@ -912,7 +912,7 @@ namespace Orts.Simulation.AIs
                      (nextActionInfo == null || nextActionInfo.NextAction != AIActionItem.AI_ACTION_TYPE.END_OF_AUTHORITY))
                 {
                     ResetActions(true);
-                    NextStopDistanceM = DistanceToEndNodeAuthorityM[0] - 2.0f * junctionOverlapM;
+                    NextStopDistanceM = DistanceToEndNodeAuthorityM[0] - 2.0f * JunctionOverlapM;
                     CreateTrainAction(SpeedMpS, 0.0f, NextStopDistanceM, null,
                                 AIActionItem.AI_ACTION_TYPE.END_OF_AUTHORITY);
                     ObtainRequiredActions(0);
@@ -924,8 +924,8 @@ namespace Orts.Simulation.AIs
             {
                 ResetActions(false);
                 if (TCRoute.ActiveSubPath < TCRoute.TCRouteSubpaths.Count - 1)
-                    NextStopDistanceM = DistanceToEndNodeAuthorityM[0] - activityClearingDistanceM;
-                else NextStopDistanceM = ComputeDistanceToReversalPoint() - activityClearingDistanceM;
+                    NextStopDistanceM = DistanceToEndNodeAuthorityM[0] - ActivityClearingDistanceM;
+                else NextStopDistanceM = ComputeDistanceToReversalPoint() - ActivityClearingDistanceM;
             }
         }
 
@@ -998,13 +998,13 @@ namespace Orts.Simulation.AIs
                                     thisInfo.DistanceToTrain > (DistanceToEndNodeAuthorityM[0] - clearingDistanceM)))
                     {
                         if (thisInfo.SignalState == SignalAspectState.Stop ||
-                            thisInfo.SignalDetails.EnabledTrain != routedForward)
+                            thisInfo.SignalDetails.EnabledTrain != RoutedForward)
                         {
                             CreateTrainAction(validSpeed, 0.0f,
                                     thisInfo.DistanceToTrain, thisInfo,
                                     AIActionItem.AI_ACTION_TYPE.SIGNAL_ASPECT_STOP);
                             processedList.Add(thisInfo);
-                            var validClearingDistanceM = simulator.TimetableMode ? clearingDistanceM : activityClearingDistanceM;
+                            var validClearingDistanceM = simulator.TimetableMode ? clearingDistanceM : ActivityClearingDistanceM;
                             if (((thisInfo.DistanceToTrain - validClearingDistanceM) < validClearingDistanceM) &&
                                          (SpeedMpS > 0.0f || MovementState == AI_MOVEMENT_STATE.ACCELERATING))
                             {
@@ -1369,16 +1369,16 @@ namespace Orts.Simulation.AIs
             // Other node mode : check distance ahead (path may have cleared)
 
             else if (ControlMode == TrainControlMode.AutoNode && EndAuthorityTypes[0] != EndAuthorityType.ReservedSwitch &&
-                        DistanceToEndNodeAuthorityM[0] > activityClearingDistanceM)
+                        DistanceToEndNodeAuthorityM[0] > ActivityClearingDistanceM)
             {
                 NextStopDistanceM = DistanceToEndNodeAuthorityM[0];
                 StartMoving(AI_START_MOVEMENT.SIGNAL_CLEARED);
             }
 
             else if (ControlMode == TrainControlMode.AutoNode && EndAuthorityTypes[0] == EndAuthorityType.ReservedSwitch &&
-                        DistanceToEndNodeAuthorityM[0] > 2.0f * junctionOverlapM + activityClearingDistanceM)
+                        DistanceToEndNodeAuthorityM[0] > 2.0f * JunctionOverlapM + ActivityClearingDistanceM)
             {
-                NextStopDistanceM = DistanceToEndNodeAuthorityM[0] - 2.0f * junctionOverlapM;
+                NextStopDistanceM = DistanceToEndNodeAuthorityM[0] - 2.0f * JunctionOverlapM;
                 StartMoving(AI_START_MOVEMENT.SIGNAL_CLEARED);
             }
 
@@ -1550,7 +1550,7 @@ namespace Orts.Simulation.AIs
             }
             float distanceToNextSignal = DistanceToSignal.HasValue ? DistanceToSignal.Value : 0.1f;
             if (AuxActionnextActionInfo != null && MovementState == AI_MOVEMENT_STATE.STOPPED && tryBraking && distanceToNextSignal > clearingDistanceM
-                && EndAuthorityTypes[0] != EndAuthorityType.ReservedSwitch && DistanceToEndNodeAuthorityM[0] <= 2.0f * junctionOverlapM)   // && ControlMode == TRAIN_CONTROL.AUTO_NODE)
+                && EndAuthorityTypes[0] != EndAuthorityType.ReservedSwitch && DistanceToEndNodeAuthorityM[0] <= 2.0f * JunctionOverlapM)   // && ControlMode == TRAIN_CONTROL.AUTO_NODE)
             {
                 MovementState = AI_MOVEMENT_STATE.BRAKING;
             }
@@ -1693,7 +1693,7 @@ namespace Orts.Simulation.AIs
 
                     if (nextSignal.EnabledTrain != null && nextSignal.EnabledTrain.Train == this)
                     {
-                        nextSignal.RequestClearSignal(ValidRoute[0], routedForward, 0, false, null);// for AI always use direction 0
+                        nextSignal.RequestClearSignal(ValidRoute[0], RoutedForward, 0, false, null);// for AI always use direction 0
                     }
                     thisStation.HoldSignal = false;
                 }
@@ -1738,7 +1738,7 @@ namespace Orts.Simulation.AIs
                 // only request signal if in signal mode (train may be in node control)
                 if (ControlMode == TrainControlMode.AutoSignal)
                 {
-                    nextSignal.RequestClearSignal(ValidRoute[0], routedForward, 0, false, null); // for AI always use direction 0
+                    nextSignal.RequestClearSignal(ValidRoute[0], RoutedForward, 0, false, null); // for AI always use direction 0
                 }
             }
 
@@ -1793,7 +1793,7 @@ namespace Orts.Simulation.AIs
 
             bool clearAction = false;
 
-            float distanceToGoM = activityClearingDistanceM;
+            float distanceToGoM = ActivityClearingDistanceM;
             if (nextActionInfo != null && nextActionInfo.RequiredSpeedMpS == 99999f)  //  RequiredSpeed doesn't matter
             {
                 return;
@@ -1807,11 +1807,11 @@ namespace Orts.Simulation.AIs
 
                     if (EndAuthorityTypes[0] == EndAuthorityType.ReservedSwitch)
                     {
-                        distanceToGoM = DistanceToEndNodeAuthorityM[0] - 2.0f * junctionOverlapM;
+                        distanceToGoM = DistanceToEndNodeAuthorityM[0] - 2.0f * JunctionOverlapM;
                     }
                     else if (EndAuthorityTypes[0] == EndAuthorityType.EndOfPath)
                     {
-                        distanceToGoM = DistanceToEndNodeAuthorityM[0] - activityClearingDistanceM;
+                        distanceToGoM = DistanceToEndNodeAuthorityM[0] - ActivityClearingDistanceM;
                     }
 
                     if (distanceToGoM <= 0)
@@ -1822,7 +1822,7 @@ namespace Orts.Simulation.AIs
                         }
                     }
 
-                    if (distanceToGoM < activityClearingDistanceM && SpeedMpS <= 0)
+                    if (distanceToGoM < ActivityClearingDistanceM && SpeedMpS <= 0)
                     {
                         MovementState = AI_MOVEMENT_STATE.STOPPED;
                         return;
@@ -1901,7 +1901,7 @@ namespace Orts.Simulation.AIs
                 }
                 else if (EndAuthorityTypes[0] == EndAuthorityType.ReservedSwitch)
                 {
-                    nextActionInfo.ActivateDistanceM -= 2.0f * junctionOverlapM;
+                    nextActionInfo.ActivateDistanceM -= 2.0f * JunctionOverlapM;
                 }
             }
 
@@ -2422,7 +2422,7 @@ namespace Orts.Simulation.AIs
                         // update action info with new position
 
                         float keepDistanceTrainM = 0f;
-                        bool attachToTrain = AttachTo == OtherTrain.Number;
+                        bool attachToTrain = attachTo == OtherTrain.Number;
 
                         // <CScomment> Make check when this train in same section of OtherTrain or other train at less than 50m;
                         // if other train is static or other train is in last section of this train, pass to passive coupling
@@ -2436,7 +2436,7 @@ namespace Orts.Simulation.AIs
                                 || UncondAttach)
                             {
                                 attachToTrain = true;
-                                AttachTo = OtherTrain.Number;
+                                attachTo = OtherTrain.Number;
                             }
 
                         }
@@ -2528,7 +2528,7 @@ namespace Orts.Simulation.AIs
                                     MovementState = AI_MOVEMENT_STATE.STOPPED;
                                     CoupleAI(OtherTrain, thisTrainFront, otherTrainFront);
                                     AI.aiListChanged = true;
-                                    AttachTo = -1;
+                                    attachTo = -1;
                                 }
                                 else if ((SpeedMpS - reqMinSpeedMpS) > 0.1f)
                                 {
@@ -2648,7 +2648,7 @@ namespace Orts.Simulation.AIs
                 }
 
                 // train not found - keep moving, state will change next update
-                else AttachTo = -1;
+                else attachTo = -1;
             }
         }
 
@@ -3636,7 +3636,7 @@ namespace Orts.Simulation.AIs
                 attachTrain.PresentPosition[Direction.Backward].SetPosition(tn.TrackCircuitCrossReferences, offset, direction);
                 // set various items
                 attachTrain.CheckFreight();
-                attachTrain.activityClearingDistanceM = attachTrain.Cars.Count < standardTrainMinCarNo ? shortClearingDistanceM : standardClearingDistanceM;
+                attachTrain.ActivityClearingDistanceM = attachTrain.Cars.Count < StandardTrainMinCarNo ? ShortClearingDistanceM : StandardClearingDistanceM;
                 attachCar.SignalEvent(TrainEvent.Couple);
 
                 // <CSComment> as of now it seems to run better without this initialization
@@ -3751,7 +3751,7 @@ namespace Orts.Simulation.AIs
             PresentPosition[Direction.Backward].SetPosition(tn.TrackCircuitCrossReferences, offset, direction);
             // set various items
             CheckFreight();
-            activityClearingDistanceM = Cars.Count < standardTrainMinCarNo ? shortClearingDistanceM : standardClearingDistanceM;
+            ActivityClearingDistanceM = Cars.Count < StandardTrainMinCarNo ? ShortClearingDistanceM : StandardClearingDistanceM;
             attachCar.SignalEvent(TrainEvent.Couple);
 
             // remove attached train
@@ -3991,9 +3991,9 @@ namespace Orts.Simulation.AIs
             attachTrain.PresentPosition[Direction.Backward].SetPosition(tn.TrackCircuitCrossReferences, offset, direction);
             // set various items
             CheckFreight();
-            activityClearingDistanceM = Cars.Count < standardTrainMinCarNo ? shortClearingDistanceM : standardClearingDistanceM;
+            ActivityClearingDistanceM = Cars.Count < StandardTrainMinCarNo ? ShortClearingDistanceM : StandardClearingDistanceM;
             attachTrain.CheckFreight();
-            attachTrain.activityClearingDistanceM = attachTrain.Cars.Count < standardTrainMinCarNo ? shortClearingDistanceM : standardClearingDistanceM;
+            attachTrain.ActivityClearingDistanceM = attachTrain.Cars.Count < StandardTrainMinCarNo ? ShortClearingDistanceM : StandardClearingDistanceM;
             // anticipate reversal point and remove active action
             TCRoute.ReversalInfo[TCRoute.ActiveSubPath].ReverseReversalOffset = Math.Max(PresentPosition[Direction.Forward].Offset - 10f, 0.3f);
             if (PresentPosition[Direction.Forward].TrackCircuitSectionIndex != TCRoute.ReversalInfo[TCRoute.ActiveSubPath].ReversalSectionIndex)
@@ -4145,11 +4145,11 @@ namespace Orts.Simulation.AIs
             if (requestedSignal.EnabledTrain != null && requestedSignal.EnabledTrain.Train != this)
                 return;
 
-            requestedSignal.EnabledTrain = routeIndex == 0 ? routedForward : routedBackward;
+            requestedSignal.EnabledTrain = routeIndex == 0 ? RoutedForward : RoutedBackward;
             requestedSignal.HoldState = SignalHoldState.None;
             requestedSignal.OverridePermission = SignalPermission.Requested;
 
-            requestedSignal.CheckRouteState(false, requestedSignal.SignalRoute, routedForward, false);
+            requestedSignal.CheckRouteState(false, requestedSignal.SignalRoute, RoutedForward, false);
         }
 
 
@@ -4223,7 +4223,7 @@ namespace Orts.Simulation.AIs
             float activateDistanceTravelledM = PresentPosition[Direction.Forward].DistanceTravelled + distanceToTrainM;
             if (thisItem != null)
             {
-                activateDistanceTravelledM -= simulator.TimetableMode ? clearingDistanceM : activityClearingDistanceM;
+                activateDistanceTravelledM -= simulator.TimetableMode ? clearingDistanceM : ActivityClearingDistanceM;
             }
 
             // calculate braking distance
@@ -4425,7 +4425,7 @@ namespace Orts.Simulation.AIs
         /// Set pending speed limits
         /// </summary>
 
-        public void SetAIPendingSpeedLimit(ActivateSpeedLimit speedInfo)
+        internal void SetAIPendingSpeedLimit(ActivateSpeedLimit speedInfo)
         {
             if (speedInfo.MaxSpeedMpSSignal > 0)
             {
@@ -4463,7 +4463,7 @@ namespace Orts.Simulation.AIs
         /// Process pending actions
         /// </summary>
 
-        public void ProcessActionItem(AIActionItem thisItem)
+        private void ProcessActionItem(AIActionItem thisItem)
         {
             // normal actions
 
@@ -4581,7 +4581,7 @@ namespace Orts.Simulation.AIs
         }
 
         //  SPA:    To be able to call it by AuxActionItems
-        public void EndProcessAction(bool actionValid, AIActionItem thisItem, bool actionCleared)
+        internal void EndProcessAction(bool actionValid, AIActionItem thisItem, bool actionCleared)
         {
             // if still valid - check if at station and signal is exit signal
             // if so, use minimum distance of both items to ensure train stops in time for signal
@@ -4612,7 +4612,7 @@ namespace Orts.Simulation.AIs
                 thisItem.NextAction == AIActionItem.AI_ACTION_TYPE.SIGNAL_ASPECT_STOP)
             {
                 if ((thisItem.ActiveItem.SignalDetails.HasLockForTrain(Number, TCRoute.ActiveSubPath) && nextActionInfo.ActivateDistanceM - thisItem.ActivateDistanceM < 40) ||
-                    nextActionInfo.ActivateDistanceM - thisItem.ActivateDistanceM < activityClearingDistanceM)
+                    nextActionInfo.ActivateDistanceM - thisItem.ActivateDistanceM < ActivityClearingDistanceM)
                 {
                     actionValid = false;
                     nextActionInfo.ActivateDistanceM = Math.Min(nextActionInfo.ActivateDistanceM, thisItem.ActivateDistanceM);
@@ -4661,7 +4661,7 @@ namespace Orts.Simulation.AIs
                     if (earlier && thisItem.NextAction == AIActionItem.AI_ACTION_TYPE.SIGNAL_ASPECT_STOP &&
                                  nextActionInfo.NextAction == AIActionItem.AI_ACTION_TYPE.STATION_STOP)
                     {
-                        float newposition = thisItem.ActivateDistanceM + 0.75f * activityClearingDistanceM; // correct with clearing distance - leave smaller gap
+                        float newposition = thisItem.ActivateDistanceM + 0.75f * ActivityClearingDistanceM; // correct with clearing distance - leave smaller gap
                         float actposition = nextActionInfo.ActivateDistanceM;
 
                         if (actposition < newposition) earlier = false;
@@ -4715,7 +4715,7 @@ namespace Orts.Simulation.AIs
                     {
                         // check if it is the the AI action is related to the signal linked to the WP
                         if ((nextActionInfo.ActiveItem.SignalDetails.HasLockForTrain(Number, TCRoute.ActiveSubPath) && thisItem.ActivateDistanceM - nextActionInfo.ActivateDistanceM < 40) ||
-                            thisItem.ActivateDistanceM - nextActionInfo.ActivateDistanceM < activityClearingDistanceM)
+                            thisItem.ActivateDistanceM - nextActionInfo.ActivateDistanceM < ActivityClearingDistanceM)
                         {
                             earlier = true;
                             thisItem.ActivateDistanceM = Math.Min(nextActionInfo.ActivateDistanceM, thisItem.ActivateDistanceM);
@@ -4766,7 +4766,7 @@ namespace Orts.Simulation.AIs
                 if (nextActionInfo.RequiredSpeedMpS == 0)
                 {
                     NextStopDistanceM = thisItem.ActivateDistanceM - PresentPosition[Direction.Forward].DistanceTravelled;
-                    if (AI.PreUpdate && !(nextActionInfo.NextAction == AIActionItem.AI_ACTION_TYPE.AUX_ACTION && NextStopDistanceM > minCheckDistanceM))
+                    if (AI.PreUpdate && !(nextActionInfo.NextAction == AIActionItem.AI_ACTION_TYPE.AUX_ACTION && NextStopDistanceM > MinCheckDistanceM))
                     {
                         AITrainBrakePercent = 100; // because of short reaction time
                         AITrainThrottlePercent = 0;
@@ -5356,7 +5356,7 @@ namespace Orts.Simulation.AIs
                             if (ControlMode == TrainControlMode.AutoSignal)
                             {
                                 Signal nextSignal = signalRef.Signals[StationStops[0].ExitSignal];
-                                nextSignal.RequestClearSignal(ValidRoute[0], routedForward, 0, false, null);
+                                nextSignal.RequestClearSignal(ValidRoute[0], RoutedForward, 0, false, null);
                             }
                             StationStops[0].ExitSignal = -1;
                         }
@@ -5511,7 +5511,7 @@ namespace Orts.Simulation.AIs
     /// </summary>
 
 
-    public class AIActionItem : Train.DistanceTravelledItem
+    internal class AIActionItem : DistanceTravelledItem
     {
         public float RequiredSpeedMpS;
         public float ActivateDistanceM;

@@ -279,13 +279,13 @@ namespace Orts.Simulation.Signalling
                 // check if this signal is next signal forward for this train
                 if (Index == foundTrain?.NextSignalObject[0]?.Index)
                 {
-                    EnabledTrain = foundTrain.routedForward;
+                    EnabledTrain = foundTrain.RoutedForward;
                     foundTrain.NextSignalObject[0] = this;
                 }
                 // check if this signal is next signal backward for this train
                 else if (Index == foundTrain?.NextSignalObject[1]?.Index)
                 {
-                    EnabledTrain = foundTrain.routedBackward;
+                    EnabledTrain = foundTrain.RoutedBackward;
                     foundTrain.NextSignalObject[1] = this;
                 }
                 else

@@ -144,7 +144,7 @@ namespace Orts.Simulation.Track
                 Train thisTrain = SignalEnvironment.FindTrain(number, trains);
                 if (thisTrain != null)
                 {
-                    Train.TrainRouted thisTrainRouted = routeIndex == 0 ? thisTrain.routedForward : thisTrain.routedBackward;
+                    Train.TrainRouted thisTrainRouted = routeIndex == 0 ? thisTrain.RoutedForward : thisTrain.RoutedBackward;
                     OccupationState.Add(thisTrainRouted, direction);
                 }
             }
@@ -169,7 +169,7 @@ namespace Orts.Simulation.Track
 
                     if (validreserve || reservedTrain.ControlMode == TrainControlMode.Explorer)
                     {
-                        TrainReserved = reservedDirection == 0 ? reservedTrain.routedForward : reservedTrain.routedBackward;
+                        TrainReserved = reservedDirection == 0 ? reservedTrain.RoutedForward : reservedTrain.RoutedBackward;
                     }
                     else
                     {
@@ -192,7 +192,7 @@ namespace Orts.Simulation.Track
                 int routeIndex = trainRouted.TrainRouteDirectionIndex;
                 if (train != null)
                 {
-                    TrainPreReserved.Enqueue(routeIndex == 0 ? train.routedForward : train.routedBackward);
+                    TrainPreReserved.Enqueue(routeIndex == 0 ? train.RoutedForward : train.RoutedBackward);
                 }
             }
 
@@ -206,7 +206,7 @@ namespace Orts.Simulation.Track
                 int routeIndex = trainRouted.TrainRouteDirectionIndex;
                 if (train != null)
                 {
-                    TrainClaimed.Enqueue(routeIndex == 0 ? train.routedForward : train.routedBackward);
+                    TrainClaimed.Enqueue(routeIndex == 0 ? train.RoutedForward : train.RoutedBackward);
                 }
             }
         }

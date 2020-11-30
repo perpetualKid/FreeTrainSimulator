@@ -412,7 +412,7 @@ namespace Orts.Simulation.Track
 
         public bool IsSet(Train train, bool validClaim)    // using unrouted train
         {
-            return train != null && (IsSet(train.routedForward, validClaim) || IsSet(train.routedBackward, validClaim));
+            return train != null && (IsSet(train.RoutedForward, validClaim) || IsSet(train.RoutedBackward, validClaim));
         }
 
         //================================================================================================//
@@ -527,7 +527,7 @@ namespace Orts.Simulation.Track
 
         public bool IsAvailable(Train train)    // using unrouted train
         {
-            return train != null && (IsAvailable(train.routedForward) || IsAvailable(train.routedBackward));
+            return train != null && (IsAvailable(train.RoutedForward) || IsAvailable(train.RoutedBackward));
         }
 
         //================================================================================================//
@@ -766,7 +766,7 @@ namespace Orts.Simulation.Track
             CircuitState.TrainClaimed.Remove(train);
             CircuitState.TrainPreReserved.Remove(train);
 
-            float distanceToClear = reqDistanceTravelledM + Length + train.Train.standardOverlapM;
+            float distanceToClear = reqDistanceTravelledM + Length + Train.StandardOverlapM;
 
             // add to clear list of train
 
@@ -780,12 +780,12 @@ namespace Orts.Simulation.Track
                     }
                     else
                     {
-                        distanceToClear = reqDistanceTravelledM + Length + train.Train.junctionOverlapM;
+                        distanceToClear = reqDistanceTravelledM + Length + Train.JunctionOverlapM;
                     }
                 }
                 else
                 {
-                    distanceToClear = reqDistanceTravelledM + Length + train.Train.standardOverlapM;
+                    distanceToClear = reqDistanceTravelledM + Length + Train.StandardOverlapM;
                 }
             }
 
@@ -797,7 +797,7 @@ namespace Orts.Simulation.Track
                 }
                 else
                 {
-                    distanceToClear = reqDistanceTravelledM + Length + train.Train.junctionOverlapM;
+                    distanceToClear = reqDistanceTravelledM + Length + Train.JunctionOverlapM;
                 }
             }
 
@@ -836,7 +836,7 @@ namespace Orts.Simulation.Track
                 distanceToClear = lastDistance.Value;
             }
 
-            train.Train.requiredActions.InsertAction(new Train.ClearSectionItem(distanceToClear, Index));
+            train.Train.requiredActions.InsertAction(new ClearSectionItem(distanceToClear, Index));
 
             // set deadlock trap if required
 
@@ -966,8 +966,8 @@ namespace Orts.Simulation.Track
             if (train == null)
                 throw new ArgumentNullException(nameof(train));
 
-            ClearOccupied(train.routedForward, resetEndSignal); // forward
-            ClearOccupied(train.routedBackward, resetEndSignal);// backward
+            ClearOccupied(train.RoutedForward, resetEndSignal); // forward
+            ClearOccupied(train.RoutedBackward, resetEndSignal);// backward
         }
 
         /// <summary>
@@ -995,8 +995,8 @@ namespace Orts.Simulation.Track
             if (train == null)
                 throw new ArgumentNullException(nameof(train));
 
-            ResetOccupied(train.routedForward); // forward
-            ResetOccupied(train.routedBackward);// backward
+            ResetOccupied(train.RoutedForward); // forward
+            ResetOccupied(train.RoutedBackward);// backward
         }
 
         //================================================================================================//
@@ -1036,8 +1036,8 @@ namespace Orts.Simulation.Track
             if (train == null)
                 throw new ArgumentNullException(nameof(train));
 
-            RemoveTrain(train.routedForward, resetEndSignal);
-            RemoveTrain(train.routedBackward, resetEndSignal);
+            RemoveTrain(train.RoutedForward, resetEndSignal);
+            RemoveTrain(train.RoutedBackward, resetEndSignal);
         }
 
         //================================================================================================//

@@ -259,7 +259,7 @@ namespace Orts.Simulation.Physics
                 SolveCouplerForceEquations();
             while (FixCouplerImpulseForceEquations());
 
-            MaximumCouplerForceN = 0;
+            maximumCouplerForceN = 0;
             for (int i = 0; i < Cars.Count - 1; i++)
             {
                 TrainCar car = Cars[i];
@@ -403,8 +403,8 @@ namespace Orts.Simulation.Physics
                 Cars[i + 1].TotalForceN -= car.CouplerForceU;
 
                 // Find max coupler force on the car - currently doesn't appear to be used anywhere
-                if (MaximumCouplerForceN < Math.Abs(car.CouplerForceU))
-                    MaximumCouplerForceN = Math.Abs(car.CouplerForceU);
+                if (maximumCouplerForceN < Math.Abs(car.CouplerForceU))
+                    maximumCouplerForceN = Math.Abs(car.CouplerForceU);
 
                 // Update coupler slack which acts as the  upper limit in slack calculations
                 // For the advanced coupler the slack limit is "dynamic", and depends upon the force applied to the coupler, and hence how far it will extend. 

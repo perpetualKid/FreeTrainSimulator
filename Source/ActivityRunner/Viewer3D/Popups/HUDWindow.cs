@@ -1292,7 +1292,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 }
                 TableAddLine(table);
 
-                if (train.TrainWindResistanceDependent) // Only show this information if wind resistance is selected
+                if (Train.TrainWindResistanceDependent) // Only show this information if wind resistance is selected
                 {
                     var status = new StringBuilder();
                     if (hudWindowColumnsActualPage > 0)

@@ -155,7 +155,7 @@ namespace Orts.MultiPlayer
             }
             if (player.con.Contains("tilted")) train.IsTilting = true;
             int direction = player.dir;
-            train.travelled = player.Travelled;
+            train.DistanceTravelled = player.Travelled;
             train.TrainMaxSpeedMpS = player.trainmaxspeed;
 
             if (MPManager.IsServer())

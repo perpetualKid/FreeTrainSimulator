@@ -44,13 +44,13 @@ namespace Orts.Simulation.AIs
     /// Used to manage all the action ref object.
     /// </summary>
 
-    public class AuxActionsContainer
+    internal class AuxActionsContainer
     {
         public List<AuxActionRef> SpecAuxActions = new List<AuxActionRef>();          // Actions To Do during activity, like WP with specific location
         protected List<KeyValuePair<System.Type, AuxActionRef>> GenFunctions = new List<KeyValuePair<Type, AuxActionRef>>();
 
-        public Train.DistanceTravelledActions genRequiredActions = new Train.DistanceTravelledActions(); // distance travelled Generic action list for AITrain
-        public Train.DistanceTravelledActions specRequiredActions = new Train.DistanceTravelledActions();
+        public DistanceTravelledActions genRequiredActions = new DistanceTravelledActions(); // distance travelled Generic action list for AITrain
+        public DistanceTravelledActions specRequiredActions = new DistanceTravelledActions();
 
        Train ThisTrain;
 
@@ -155,7 +155,7 @@ namespace Orts.Simulation.AIs
             // check for horn actions
             if (ThisTrain is AITrain && aiTrain.AuxActionsContainer.specRequiredActions.Count > 0)
             {
-                foreach (AITrain.DistanceTravelledItem specRequiredAction in aiTrain.AuxActionsContainer.specRequiredActions)
+                foreach (DistanceTravelledItem specRequiredAction in aiTrain.AuxActionsContainer.specRequiredActions)
                 {
                     if (specRequiredAction is AuxActionHornItem)
                     {
@@ -242,7 +242,7 @@ namespace Orts.Simulation.AIs
         {
             if (thisAction.CanRemove(ThisTrain))
             {
-                Train.DistanceTravelledItem thisItem = thisAction;
+                DistanceTravelledItem thisItem = thisAction;
                 specRequiredActions.Remove(thisItem);
             }
         }
@@ -252,7 +252,7 @@ namespace Orts.Simulation.AIs
             if (genRequiredActions.Count <= 0 || !(ThisTrain is AITrain))
                 return;
             AITrain aiTrain = ThisTrain as AITrain;
-            List<Train.DistanceTravelledItem> itemList = new List<Train.DistanceTravelledItem>();
+            List<DistanceTravelledItem> itemList = new List<DistanceTravelledItem>();
             foreach (var action in genRequiredActions)
             {
                 AIActionItem actionItem = action as AIActionItem; 
@@ -274,7 +274,7 @@ namespace Orts.Simulation.AIs
             if (specRequiredActions.Count <= 0 || !(ThisTrain is AITrain))
                 return MvtState;
             AITrain aiTrain = ThisTrain as AITrain;
-            List<Train.DistanceTravelledItem> itemList = new List<Train.DistanceTravelledItem>();
+            List<DistanceTravelledItem> itemList = new List<DistanceTravelledItem>();
             foreach (var action in specRequiredActions)
             {
                 AIActionItem actionItem = action as AIActionItem;
@@ -425,7 +425,7 @@ namespace Orts.Simulation.AIs
                                 if ((thisTrain.TrainType == TrainType.AiPlayerDriven || thisTrain.TrainType == TrainType.AiPlayerHosting) && thisTrain.requiredActions.Count > 0)
                                 {
                                     // check if action already inserted
-                                    foreach (Train.DistanceTravelledItem item in thisTrain.requiredActions)
+                                    foreach (DistanceTravelledItem item in thisTrain.requiredActions)
                                     {
                                         if (item is AuxActionWPItem)
                                         {
@@ -607,7 +607,7 @@ namespace Orts.Simulation.AIs
         /// </summary>
 
 
-        public virtual AIActionItem Handler(params object[] list)
+        internal virtual AIActionItem Handler(params object[] list)
         {
             AIActionItem info = null;
             if (!LinkedAuxAction || IsGeneric)
@@ -681,7 +681,7 @@ namespace Orts.Simulation.AIs
         }
 
         //public bool CheckGenActions(System.Type typeSource, float rearDist, float frontDist, WorldLocation location, uint trackNodeIndex)
-        public virtual AIActionItem CheckGenActions(in WorldLocation location, AITrain thisTrain, params object[] list)
+        internal virtual AIActionItem CheckGenActions(in WorldLocation location, AITrain thisTrain, params object[] list)
         {
             return null;
         }
@@ -718,7 +718,7 @@ namespace Orts.Simulation.AIs
     /// info used to figure out a Waiting Point along the route.
     /// </summary>
 
-    public class AIActionWPRef : AIAuxActionsRef
+    internal class AIActionWPRef : AIAuxActionsRef
     {
         public AuxActionWPItem keepIt = null;
 
@@ -759,7 +759,7 @@ namespace Orts.Simulation.AIs
             outf.Write(Delay);
         }
 
-        public override AIActionItem Handler(params object[] list)
+        internal override AIActionItem Handler(params object[] list)
         {
             AIActionItem info = null;
             if (!LinkedAuxAction || IsGeneric)
@@ -781,7 +781,7 @@ namespace Orts.Simulation.AIs
             return (AIActionItem)info;
         }
 
-        public override AIActionItem CheckGenActions(in WorldLocation location, AITrain thisTrain, params object[] list)
+        internal override AIActionItem CheckGenActions(in WorldLocation location, AITrain thisTrain, params object[] list)
         {
             AIActionItem newAction = null;
             int SpeedMps = (int)thisTrain.SpeedMpS;
@@ -958,7 +958,7 @@ namespace Orts.Simulation.AIs
         }
 
 
-        public override AIActionItem Handler(params object[] list)
+        internal override AIActionItem Handler(params object[] list)
         {
             AIActionItem info = null;
             if (!LinkedAuxAction || IsGeneric)
@@ -972,7 +972,7 @@ namespace Orts.Simulation.AIs
         }
 
         //public bool CheckGenActions(System.Type typeSource, float rearDist, float frontDist, WorldLocation location, uint trackNodeIndex)
-        public override AIActionItem CheckGenActions(in WorldLocation location, AITrain thisTrain, params object[] list)
+        internal override AIActionItem CheckGenActions(in WorldLocation location, AITrain thisTrain, params object[] list)
         {
             AIActionItem newAction = null;
             float rearDist = (float)list[0];
@@ -1057,7 +1057,7 @@ namespace Orts.Simulation.AIs
     /// An action to delegate the Signal management from a WP
     /// </summary>
 
-    public class AIActSigDelegateRef : AIAuxActionsRef
+    internal class AIActSigDelegateRef : AIAuxActionsRef
     {
         public bool IsAbsolute = false;
         public AIActionWPRef AssociatedWPAction;
@@ -1121,7 +1121,7 @@ namespace Orts.Simulation.AIs
             return false;
         }
 
-        public override AIActionItem Handler(params object[] list)
+        internal override AIActionItem Handler(params object[] list)
         {
             if (AssociatedItem != null)
                 return null;
@@ -1194,7 +1194,7 @@ namespace Orts.Simulation.AIs
     /// A specific AIActionItem used at run time to manage a specific Auxiliary Action
     /// </summary>
 
-    public class AuxActionItem : AIActionItem
+    internal class AuxActionItem : AIActionItem
     {
         public AuxActionRef ActionRef;
         public bool Triggered = false;
@@ -1294,7 +1294,7 @@ namespace Orts.Simulation.AIs
     /// A specific class used at run time to manage a Waiting Point Action
     /// </summary>
 
-    public class AuxActionWPItem : AuxActionItem
+    internal class AuxActionWPItem : AuxActionItem
     {
         int Delay;
         public int ActualDepart;
@@ -1464,7 +1464,7 @@ namespace Orts.Simulation.AIs
                     if (thisTrain is AITrain)
                     {
                         AITrain aiTrain = thisTrain as AITrain;
-                        float distanceToGoM = thisTrain.activityClearingDistanceM;
+                        float distanceToGoM = thisTrain.ActivityClearingDistanceM;
                         distanceToGoM = ActivateDistanceM - aiTrain.PresentPosition[Direction.Forward].DistanceTravelled;
                         float NextStopDistanceM = distanceToGoM;
                         if (distanceToGoM <= 0f)
@@ -1533,7 +1533,7 @@ namespace Orts.Simulation.AIs
     /// A specific class used at run time to manage a Horn Action
     /// </summary>
 
-    public class AuxActionHornItem : AuxActionItem
+    internal class AuxActionHornItem : AuxActionItem
     {
         int Delay;
         public int ActualDepart;
@@ -1668,7 +1668,7 @@ namespace Orts.Simulation.AIs
                 case AITrain.AI_MOVEMENT_STATE.BRAKING:
                     if (this.ActionRef.ActionType != AuxActionRef.AuxiliaryAction.SoundHorn)
                     {
-                        float distanceToGoM = thisTrain.activityClearingDistanceM;
+                        float distanceToGoM = thisTrain.ActivityClearingDistanceM;
                         distanceToGoM = ActivateDistanceM - thisTrain.PresentPosition[Direction.Forward].DistanceTravelled;
                         float NextStopDistanceM = distanceToGoM;
                         if (distanceToGoM < 0f)
@@ -1699,7 +1699,7 @@ namespace Orts.Simulation.AIs
     /// Used to postpone the signal clear after WP
     /// </summary>
 
-    public class AuxActSigDelegate : AuxActionItem
+    internal class AuxActSigDelegate : AuxActionItem
     {
         public int ActualDepart;
         public bool locked = true;
@@ -1731,7 +1731,7 @@ namespace Orts.Simulation.AIs
         {
             if (SignalReferenced != null)
             {
-                bool ret = SignalReferenced.RequestClearSignal(thisTrain.ValidRoute[0], thisTrain.routedForward, 0, false, null);
+                bool ret = SignalReferenced.RequestClearSignal(thisTrain.ValidRoute[0], thisTrain.RoutedForward, 0, false, null);
                 return ret;
             }
             return true;

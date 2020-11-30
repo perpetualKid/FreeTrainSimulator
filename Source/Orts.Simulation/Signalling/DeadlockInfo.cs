@@ -828,7 +828,7 @@ namespace Orts.Simulation.Signalling
                 for (int iElement = 1; iElement <= altPathInfo.LastUsefulSectionIndex; iElement++)
                 {
                     TrackCircuitSection thisSection = altPath[iElement].TrackCircuitSection;
-                    if (!thisSection.IsAvailable(train.routedForward))
+                    if (!thisSection.IsAvailable(train.RoutedForward))
                     {
                         pathAvail = false;
                         break;

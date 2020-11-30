@@ -1484,7 +1484,7 @@ namespace Orts.Simulation
                     return triggered;
                 }
             }
-            var trainFrontPosition = new Traveller(train.nextRouteReady && train.TCRoute.ActiveSubPath > 0 && train.TCRoute.ReversalInfo[train.TCRoute.ActiveSubPath - 1].Valid ?
+            var trainFrontPosition = new Traveller(train.NextRouteReady && train.TCRoute.ActiveSubPath > 0 && train.TCRoute.ReversalInfo[train.TCRoute.ActiveSubPath - 1].Valid ?
                 train.RearTDBTraveller : train.FrontTDBTraveller); // just after reversal the old train front position must be considered
             var distance = trainFrontPosition.DistanceTo(e.Location, e.RadiusM);
             if (distance == -1)

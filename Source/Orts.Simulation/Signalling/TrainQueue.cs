@@ -54,7 +54,7 @@ namespace Orts.Simulation.Signalling
         {
             if (thisTrain == null)
                 return (false);
-            return Contains(thisTrain.Train.routedForward) || Contains(thisTrain.Train.routedBackward);
+            return Contains(thisTrain.Train.RoutedForward) || Contains(thisTrain.Train.RoutedBackward);
         }
 
         public void Add(Train.TrainRouted item)

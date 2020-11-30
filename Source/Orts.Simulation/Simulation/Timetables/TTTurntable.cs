@@ -2329,11 +2329,11 @@ namespace Orts.Simulation.Timetables
 
             // clear approach route
             parentTrain.RemoveFromTrack();
-            foreach (Train.DistanceTravelledItem thisAction in parentTrain.requiredActions)
+            foreach (DistanceTravelledItem thisAction in parentTrain.requiredActions)
             {
-                if (thisAction is Train.ClearSectionItem)
+                if (thisAction is ClearSectionItem)
                 {
-                    Train.ClearSectionItem thisItem = thisAction as Train.ClearSectionItem;
+                    ClearSectionItem thisItem = thisAction as ClearSectionItem;
                     TrackCircuitSection thisSection = TrackCircuitSection.TrackCircuitList[thisItem.TrackSectionIndex];
                     thisSection.ClearOccupied(parentTrain, true);
                 }
@@ -2481,7 +2481,7 @@ namespace Orts.Simulation.Timetables
             clearingDistanceM = (parentTrain.Length / 2f) + (parentTurntable.Length / 2f) + parentPool.AdditionalTurntableDetails.TurntableReleaseClearanceM;
 
             // create action for clearing turntable
-            Train.ClearMovingTableAction newAction = new Train.ClearMovingTableAction(clearingDistanceM, originalTrainMaxSpeedMpS);
+            ClearMovingTableAction newAction = new ClearMovingTableAction(clearingDistanceM, originalTrainMaxSpeedMpS);
             parentTrain.requiredActions.InsertAction(newAction);
         }
 
@@ -2500,7 +2500,7 @@ namespace Orts.Simulation.Timetables
 
             // reset train speed
             parentTrain.TrainMaxSpeedMpS = originalTrainMaxSpeedMpS;
-            Train.ActivateSpeedLimit activeSpeeds = new Train.ActivateSpeedLimit(0.0f, originalSpeedLimitMpS, originalSpeedSignalMpS);
+            ActivateSpeedLimit activeSpeeds = new ActivateSpeedLimit(0.0f, originalSpeedLimitMpS, originalSpeedSignalMpS);
 
             if (parentTrain.TrainType == TrainType.Player)
             {

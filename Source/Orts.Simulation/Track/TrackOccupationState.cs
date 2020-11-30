@@ -47,7 +47,7 @@ namespace Orts.Simulation.Track
         {
             if (train == null) 
                 return (false);
-            return (ContainsKey(train.Train.routedForward) || ContainsKey(train.Train.routedBackward));
+            return (ContainsKey(train.Train.RoutedForward) || ContainsKey(train.Train.RoutedBackward));
         }
 
         //================================================================================================//
@@ -59,7 +59,7 @@ namespace Orts.Simulation.Track
         {
             if (train == null) 
                 return (false);
-            return (ContainsKey(train.routedForward) || ContainsKey(train.routedBackward));
+            return (ContainsKey(train.RoutedForward) || ContainsKey(train.RoutedBackward));
         }
 
         //================================================================================================//
@@ -71,8 +71,8 @@ namespace Orts.Simulation.Track
         {
             if (train != null)
             {
-                Remove(train.Train.routedForward);
-                Remove(train.Train.routedBackward);
+                Remove(train.Train.RoutedForward);
+                Remove(train.Train.RoutedBackward);
             }
         }
 

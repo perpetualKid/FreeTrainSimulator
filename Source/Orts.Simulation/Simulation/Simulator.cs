@@ -1463,8 +1463,8 @@ namespace Orts.Simulation
                 returnTrain = tempTrain as TTTrain;
                 returnTrain.AI.AutoGenTrains.Remove(tempTrain);
                 AutoGenDictionary.Remove(reqNumber);
-                returnTrain.routedBackward = new Physics.Train.TrainRouted(returnTrain, 1);
-                returnTrain.routedForward = new Physics.Train.TrainRouted(returnTrain, 0);
+                returnTrain.RoutedBackward = new Physics.Train.TrainRouted(returnTrain, 1);
+                returnTrain.RoutedForward = new Physics.Train.TrainRouted(returnTrain, 0);
             }
             return (returnTrain);
         }
@@ -1606,8 +1606,8 @@ namespace Orts.Simulation
                 train.RepositionRearTraveller();    // fix the rear traveller
             }
 
-            train.activityClearingDistanceM = train.Cars.Count < Physics.Train.standardTrainMinCarNo ? Physics.Train.shortClearingDistanceM : Physics.Train.standardClearingDistanceM;
-            train2.activityClearingDistanceM = train2.Cars.Count < Physics.Train.standardTrainMinCarNo ? Physics.Train.shortClearingDistanceM : Physics.Train.standardClearingDistanceM;
+            train.ActivityClearingDistanceM = train.Cars.Count < Physics.Train.StandardTrainMinCarNo ? Physics.Train.ShortClearingDistanceM : Physics.Train.StandardClearingDistanceM;
+            train2.ActivityClearingDistanceM = train2.Cars.Count < Physics.Train.StandardTrainMinCarNo ? Physics.Train.ShortClearingDistanceM : Physics.Train.StandardClearingDistanceM;
 
 
             train.UncoupledFrom = train2;
@@ -1747,7 +1747,7 @@ namespace Orts.Simulation
                             if (playerTrain.ValidRoute[0] != null && playerTrain.PresentPosition[Direction.Forward].RouteListIndex != -1 &&
                                 playerTrain.ValidRoute[0].Count > playerTrain.PresentPosition[Direction.Forward].RouteListIndex + 1)
                                 SignalEnvironment.BreakDownRoute(playerTrain.ValidRoute[0][playerTrain.PresentPosition[Direction.Forward].RouteListIndex + 1].TrackCircuitSection.Index,
-                                   playerTrain.routedForward);
+                                   playerTrain.RoutedForward);
                             TrainSwitcher.SuspendOldPlayer = false;
                         }
 
@@ -1780,7 +1780,7 @@ namespace Orts.Simulation
                     //                       selectedAsPlayer.CalculatePositionOfCars(0);  // fix the front traveller
                     //                       selectedAsPlayer.RepositionRearTraveller();    // fix the rear traveller
 
-                    selectedAsPlayer.activityClearingDistanceM = dyingTrain.activityClearingDistanceM;
+                    selectedAsPlayer.ActivityClearingDistanceM = dyingTrain.ActivityClearingDistanceM;
 
                     selectedAsPlayer.SpeedMpS = dyingTrain.SpeedMpS;
                     selectedAsPlayer.AITrainDirectionForward = dyingTrain.AITrainDirectionForward;
@@ -1856,10 +1856,10 @@ namespace Orts.Simulation
                         }
                         if (playerTrain.ValidRoute[0] != null && playerTrain.ValidRoute[0].Count > playerTrain.PresentPosition[Direction.Forward].RouteListIndex + 1)
                             SignalEnvironment.BreakDownRoute(playerTrain.ValidRoute[0][playerTrain.PresentPosition[Direction.Forward].RouteListIndex + 1].TrackCircuitSection.Index,
-                            playerTrain.routedForward);
+                            playerTrain.RoutedForward);
                         if (playerTrain.ValidRoute[1] != null && playerTrain.ValidRoute[1].Count > playerTrain.PresentPosition[Direction.Backward].RouteListIndex + 1)
                             SignalEnvironment.BreakDownRoute(playerTrain.ValidRoute[1][playerTrain.PresentPosition[Direction.Backward].RouteListIndex + 1].TrackCircuitSection.Index,
-                            playerTrain.routedBackward);
+                            playerTrain.RoutedBackward);
                         playerTrain.ControlMode = TrainControlMode.Undefined;
                         playerTrain.TrainType = TrainType.Static;
                         playerTrain.SpeedMpS = 0;
@@ -2400,5 +2400,10 @@ namespace Orts.Simulation
             }
         }
 
+        public void InitializeAiPlayerHosting()
+        {
+            Trains[0].LeadLocomotive = null;
+            Trains[0].LeadLocomotiveIndex = -1;
+        }
     } // Simulator
 }

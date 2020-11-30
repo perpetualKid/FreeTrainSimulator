@@ -116,7 +116,7 @@ namespace Orts.Simulation.Physics
                             signalFound = true;
                         }
 
-                        if (totalDistance > minCheckDistanceM) validLoop = false;
+                        if (totalDistance > MinCheckDistanceM) validLoop = false;
                     }
                 }
 
@@ -144,7 +144,7 @@ namespace Orts.Simulation.Physics
                             otherSignalFound = true;
                         }
 
-                        if (totalDistance > minCheckDistanceM) validLoop = false;
+                        if (totalDistance > MinCheckDistanceM) validLoop = false;
                     }
                 }
 

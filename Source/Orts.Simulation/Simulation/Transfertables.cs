@@ -381,7 +381,7 @@ namespace Orts.Simulation
             {
                 var train = TrainsOnMovingTable[0].Train;
                 if (train.ControlMode == TrainControlMode.TurnTable)
-                    train.ReenterTrackSections(MyTrackNodesIndex[ConnectedTrackEnd], MyTrVectorSectionsIndex[ConnectedTrackEnd], FinalFrontTravellerXNALocation, FinalRearTravellerXNALocation, direction);
+                    train.ReenterTrackSections(MyTrackNodesIndex[ConnectedTrackEnd], FinalFrontTravellerXNALocation, FinalRearTravellerXNALocation, direction);
             }
         }
 
