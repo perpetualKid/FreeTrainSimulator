@@ -343,12 +343,12 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         [Conditional("DEBUG_WINDOW_ZORDER")]
         internal void WriteWindowZOrder()
         {
-            Console.WriteLine();
-            Console.WriteLine();
-            Console.WriteLine("Windows: (bottom-to-top order, [V] = visible, [NI] = non-interactive)");
-            Console.WriteLine("  Visible: {0}", String.Join(", ", VisibleWindows.Select(w => w.GetType().Name).ToArray()));
-            Console.WriteLine("  All:     {0}", String.Join(", ", WindowsZOrder.Select(w => String.Format("{0}{1}{2}", w.GetType().Name, w.Interactive ? "" : "[NI]", w.Visible ? "[V]" : "")).ToArray()));
-            Console.WriteLine();
+            Trace.WriteLine(string.Empty);
+            Trace.WriteLine(string.Empty);
+            Trace.WriteLine("Windows: (bottom-to-top order, [V] = visible, [NI] = non-interactive)");
+            Trace.WriteLine("  Visible: {0}", String.Join(", ", VisibleWindows.Select(w => w.GetType().Name).ToArray()));
+            Trace.WriteLine("  All:     {0}", String.Join(", ", WindowsZOrder.Select(w => String.Format("{0}{1}{2}", w.GetType().Name, w.Interactive ? "" : "[NI]", w.Visible ? "[V]" : "")).ToArray()));
+            Trace.WriteLine(string.Empty);
         }
 
         //[CallOnThread("Loader")]

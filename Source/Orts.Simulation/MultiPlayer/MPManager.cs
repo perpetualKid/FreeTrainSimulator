@@ -658,7 +658,7 @@ namespace Orts.MultiPlayer
 			}
 			catch (Exception e)
 			{
-				System.Console.WriteLine(e + e.StackTrace); return;
+				Trace.WriteLine(e + e.StackTrace); return;
 			}
 			playersRemoved.Clear();
 
@@ -830,7 +830,7 @@ namespace Orts.MultiPlayer
 
         public TrainCar SubCar(string wagonFilePath, int length)
 		{
-			System.Console.WriteLine("Will substitute with your existing stocks\n.");
+			Trace.WriteLine("Will substitute with your existing stocks\n.");
             TrainCar car;
 			try
 			{
@@ -846,7 +846,7 @@ namespace Orts.MultiPlayer
 			}
 			catch (Exception error)
 			{
-				System.Console.WriteLine(error.Message + "Substitution failed, will ignore it\n.");
+				Trace.WriteLine(error.Message + "Substitution failed, will ignore it\n.");
 				car = null;
 			}
 			return car;

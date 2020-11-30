@@ -79,51 +79,51 @@ namespace Orts.ActivityRunner.Viewer3D
 #if DEBUG_RAW_INPUT
             for (Keys key = 0; key <= Keys.OemClear; key++)
                 if (lastKeyboardState[key] != keyboardState[key])
-                    Console.WriteLine("Keyboard {0} changed to {1}", key, keyboardState[key]);
+                    Trace.WriteLine("Keyboard {0} changed to {1}", key, keyboardState[key]);
             if (lastMouseState.LeftButton != mouseState.LeftButton)
-                Console.WriteLine("Mouse left button changed to {0}", mouseState.LeftButton);
+                Trace.WriteLine("Mouse left button changed to {0}", mouseState.LeftButton);
             if (lastMouseState.MiddleButton != mouseState.MiddleButton)
-                Console.WriteLine("Mouse middle button changed to {0}", mouseState.MiddleButton);
+                Trace.WriteLine("Mouse middle button changed to {0}", mouseState.MiddleButton);
             if (lastMouseState.RightButton != mouseState.RightButton)
-                Console.WriteLine("Mouse right button changed to {0}", mouseState.RightButton);
+                Trace.WriteLine("Mouse right button changed to {0}", mouseState.RightButton);
             if (lastMouseState.XButton1 != mouseState.XButton1)
-                Console.WriteLine("Mouse X1 button changed to {0}", mouseState.XButton1);
+                Trace.WriteLine("Mouse X1 button changed to {0}", mouseState.XButton1);
             if (lastMouseState.XButton2 != mouseState.XButton2)
-                Console.WriteLine("Mouse X2 button changed to {0}", mouseState.XButton2);
+                Trace.WriteLine("Mouse X2 button changed to {0}", mouseState.XButton2);
             if (lastMouseState.ScrollWheelValue != mouseState.ScrollWheelValue)
-                Console.WriteLine("Mouse scrollwheel changed by {0}", mouseState.ScrollWheelValue - lastMouseState.ScrollWheelValue);
+                Trace.WriteLine("Mouse scrollwheel changed by {0}", mouseState.ScrollWheelValue - lastMouseState.ScrollWheelValue);
 #endif
 #if DEBUG_INPUT
             var newKeys = GetPressedKeys();
             var oldKeys = GetPreviousPressedKeys();
             foreach (var newKey in newKeys)
                 if (!oldKeys.Contains(newKey))
-                    Console.WriteLine("Keyboard {0} pressed", newKey);
+                    Trace.WriteLine("Keyboard {0} pressed", newKey);
             foreach (var oldKey in oldKeys)
                 if (!newKeys.Contains(oldKey))
-                    Console.WriteLine("Keyboard {0} released", oldKey);
+                    Trace.WriteLine("Keyboard {0} released", oldKey);
             if (IsMouseLeftButtonPressed)
-                Console.WriteLine("Mouse left button pressed");
+                Trace.WriteLine("Mouse left button pressed");
             if (IsMouseLeftButtonReleased)
-                Console.WriteLine("Mouse left button released");
+                Trace.WriteLine("Mouse left button released");
             if (IsMouseMiddleButtonPressed)
-                Console.WriteLine("Mouse middle button pressed");
+                Trace.WriteLine("Mouse middle button pressed");
             if (IsMouseMiddleButtonReleased)
-                Console.WriteLine("Mouse middle button released");
+                Trace.WriteLine("Mouse middle button released");
             if (IsMouseRightButtonPressed)
-                Console.WriteLine("Mouse right button pressed");
+                Trace.WriteLine("Mouse right button pressed");
             if (IsMouseRightButtonReleased)
-                Console.WriteLine("Mouse right button released");
+                Trace.WriteLine("Mouse right button released");
             if (IsMouseWheelChanged)
-                Console.WriteLine("Mouse scrollwheel changed by {0}", MouseWheelChange);
+                Trace.WriteLine("Mouse scrollwheel changed by {0}", MouseWheelChange);
 #endif
 #if DEBUG_USER_INPUT
             foreach (UserCommand command in Enum.GetValues(typeof(UserCommand)))
             {
                 if (UserInput.IsPressed(command))
-                    Console.WriteLine("Pressed  {0} - {1}", command, InputSettings.Commands[(int)command]);
+                    Trace.WriteLine("Pressed  {0} - {1}", command, InputSettings.Commands[(int)command]);
                 if (UserInput.IsReleased(command))
-                    Console.WriteLine("Released {0} - {1}", command, InputSettings.Commands[(int)command]);
+                    Trace.WriteLine("Released {0} - {1}", command, InputSettings.Commands[(int)command]);
             }
 #endif
         }

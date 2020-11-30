@@ -100,7 +100,7 @@ namespace Orts.ActivityRunner.Viewer3D
             }
             HasLightCone = LightPrimitives.Any(lm => lm is LightConePrimitive);
 #if DEBUG_LIGHT_STATES
-            Console.WriteLine();
+            Trace.WriteLine();
 #endif
             UpdateActiveLightCone();
         }
@@ -123,17 +123,17 @@ namespace Orts.ActivityRunner.Viewer3D
 
 #if DEBUG_LIGHT_STATES
             if (ActiveLightCone != null)
-                Console.WriteLine("Old headlight: index = {0}, fade-in = {1:F1}, fade-out = {2:F1}, position = {3}, angle = {4:F1}, radius = {5:F1}", ActiveLightCone.Light.Index, ActiveLightCone.Light.FadeIn, ActiveLightCone.Light.FadeOut, ActiveLightCone.Light.States[0].Position, ActiveLightCone.Light.States[0].Angle, ActiveLightCone.Light.States[0].Radius);
+                Trace.WriteLine("Old headlight: index = {0}, fade-in = {1:F1}, fade-out = {2:F1}, position = {3}, angle = {4:F1}, radius = {5:F1}", ActiveLightCone.Light.Index, ActiveLightCone.Light.FadeIn, ActiveLightCone.Light.FadeOut, ActiveLightCone.Light.States[0].Position, ActiveLightCone.Light.States[0].Angle, ActiveLightCone.Light.States[0].Radius);
             else
-                Console.WriteLine("Old headlight: <none>");
+                Trace.WriteLine("Old headlight: <none>");
             if (newLightCone != null)
-                Console.WriteLine("New headlight: index = {0}, fade-in = {1:F1}, fade-out = {2:F1}, position = {3}, angle = {4:F1}, radius = {5:F1}", newLightCone.Light.Index, newLightCone.Light.FadeIn, newLightCone.Light.FadeOut, newLightCone.Light.States[0].Position, newLightCone.Light.States[0].Angle, newLightCone.Light.States[0].Radius);
+                Trace.WriteLine("New headlight: index = {0}, fade-in = {1:F1}, fade-out = {2:F1}, position = {3}, angle = {4:F1}, radius = {5:F1}", newLightCone.Light.Index, newLightCone.Light.FadeIn, newLightCone.Light.FadeOut, newLightCone.Light.States[0].Position, newLightCone.Light.States[0].Angle, newLightCone.Light.States[0].Radius);
             else
-                Console.WriteLine("New headlight: <none>");
+                Trace.WriteLine("New headlight: <none>");
             if ((ActiveLightCone != null) || (newLightCone != null))
             {
-                Console.WriteLine("Headlight changed from {0} to {1}, fade-in = {2:F1}, fade-out = {3:F1}", ActiveLightCone != null ? ActiveLightCone.Light.Index.ToString() : "<none>", newLightCone != null ? newLightCone.Light.Index.ToString() : "<none>", LightConeFadeIn, LightConeFadeOut);
-                Console.WriteLine();
+                Trace.WriteLine("Headlight changed from {0} to {1}, fade-in = {2:F1}, fade-out = {3:F1}", ActiveLightCone != null ? ActiveLightCone.Light.Index.ToString() : "<none>", newLightCone != null ? newLightCone.Light.Index.ToString() : "<none>", LightConeFadeIn, LightConeFadeOut);
+                Trace.WriteLine();
             }
 #endif
 
@@ -147,7 +147,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 foreach (var lightPrimitive in LightPrimitives)
                     lightPrimitive.UpdateState(this);
 #if DEBUG_LIGHT_STATES
-                Console.WriteLine();
+                Trace.WriteLine();
 #endif
                 UpdateActiveLightCone();
             }
@@ -275,9 +275,9 @@ namespace Orts.ActivityRunner.Viewer3D
                 CarCoupledRear = newCarCoupledRear;
 
 #if DEBUG_LIGHT_STATES
-                Console.WriteLine();
-                Console.WriteLine();
-                Console.WriteLine("LightViewer: {0} {1} {2:D}{3}:{4}{5}{6}{7}{8}{9}{10}{11}{12}{13}{14}",
+                Trace.WriteLine();
+                Trace.WriteLine();
+                Trace.WriteLine("LightViewer: {0} {1} {2:D}{3}:{4}{5}{6}{7}{8}{9}{10}{11}{12}{13}{14}",
                     Car.Train != null ? Car.Train.FrontTDBTraveller.WorldLocation : positionSource.WorldPosition.WorldLocation, Car.Train != null ? "train car" : "car", Car.Train != null ? Car.Train.Cars.IndexOf(Car) : 0, Car.Flipped ? " (flipped)" : "",
                     TrainHeadlight == 2 ? " HL=Bright" : TrainHeadlight == 1 ? " HL=Dim" : "",
                     CarIsReversed ? " Reversed" : "",
@@ -292,9 +292,9 @@ namespace Orts.ActivityRunner.Viewer3D
                     CarCoupledRear ? " CoupledRear" : "");
                 if (Car.Lights != null)
                 {
-                    Console.WriteLine();
-                    Console.WriteLine(PrimitiveStateLabel);
-                    Console.WriteLine(new String('=', PrimitiveStateLabel.Length));
+                    Trace.WriteLine();
+                    Trace.WriteLine(PrimitiveStateLabel);
+                    Trace.WriteLine(new String('=', PrimitiveStateLabel.Length));
                 }
 #endif
 
@@ -327,8 +327,8 @@ namespace Orts.ActivityRunner.Viewer3D
         protected void SetUpTransitions(Action<int, int, int> transitionHandler)
         {
 #if DEBUG_LIGHT_TRANSITIONS
-            Console.WriteLine();
-            Console.WriteLine("LightPrimitive transitions:");
+            Trace.WriteLine();
+            Trace.WriteLine("LightPrimitive transitions:");
 #endif
             if (Light.Cycle)
             {
@@ -343,7 +343,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     transitionHandler(i, i, (i + 1) % Light.States.Count);
             }
 #if DEBUG_LIGHT_TRANSITIONS
-            Console.WriteLine();
+            Trace.WriteLine();
 #endif
         }
 
@@ -450,7 +450,7 @@ namespace Orts.ActivityRunner.Viewer3D
             }
 
 #if DEBUG_LIGHT_STATES
-            Console.WriteLine(LightViewer.PrimitiveStateFormat, Light.Index, Enabled, Light.Type, Light.Headlight, Light.Unit, Light.Penalty, Light.Control, Light.Service, Light.TimeOfDay, Light.Weather, Light.Coupling);
+            Trace.WriteLine(LightViewer.PrimitiveStateFormat, Light.Index, Enabled, Light.Type, Light.Headlight, Light.Unit, Light.Penalty, Light.Control, Light.Service, Light.TimeOfDay, Light.Weather, Light.Coupling);
 #endif
         }
 
@@ -518,7 +518,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     var state2 = Light.States[stateIndex2];
 
 #if DEBUG_LIGHT_TRANSITIONS
-                    Console.WriteLine("    Transition {0} is from state {1} to state {2} over {3:F1}s", state, stateIndex1, stateIndex2, state1.Duration);
+                    Trace.WriteLine("    Transition {0} is from state {1} to state {2} over {3:F1}s", state, stateIndex1, stateIndex2, state1.Duration);
 #endif
 
                     // FIXME: Is conversion of "azimuth" to a normal right?
@@ -624,7 +624,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     var state2 = Light.States[stateIndex2];
 
 #if DEBUG_LIGHT_TRANSITIONS
-                    Console.WriteLine("    Transition {0} is from state {1} to state {2} over {3:F1}s", state, stateIndex1, stateIndex2, state1.Duration);
+                    Trace.WriteLine("    Transition {0} is from state {1} to state {2} over {3:F1}s", state, stateIndex1, stateIndex2, state1.Duration);
 #endif
 
                     Vector3 position1, position2, direction1, direction2;

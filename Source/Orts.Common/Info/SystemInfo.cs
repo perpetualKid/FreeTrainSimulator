@@ -32,16 +32,13 @@ namespace Orts.Common.Info
 {
     public static class SystemInfo
     {
-        public static async Task WriteSystemDetails(TextWriter output)
+        public static void WriteSystemDetails()
         {
-            if (null == output)
-                throw new ArgumentNullException(nameof(output));
-
             StringBuilder builder = new StringBuilder();
             builder.AppendLine($"{"Date/Time",-12}= {DateTime.Now} ({DateTime.UtcNow:u})");
             WriteEnvironment(builder);
             builder.AppendLine($"{"Runtime",-12}= {System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription} ({(Environment.Is64BitProcess ? "64" : "32")}bit)");
-            await output.WriteAsync(builder.ToString()).ConfigureAwait(false);
+            Trace.Write(builder.ToString());
         }
 
         private static void WriteEnvironment(StringBuilder output)

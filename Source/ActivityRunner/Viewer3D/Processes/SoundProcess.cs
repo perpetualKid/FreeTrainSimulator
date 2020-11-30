@@ -236,7 +236,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 SoundTime += (int)((viewer.RealTime - StartUpdateTime) * 1000);
                 if (viewer.RealTime - ConsoleWriteTime >= 15f)
                 {
-                    Console.WriteLine("SoundSourceBases (Null): {0} ({1}), SoundSources: {2}, Time: {3}ms",
+                    Trace.WriteLine("SoundSourceBases (Null): {0} ({1}), SoundSources: {2}, Time: {3}ms",
                         (int)(SoundSrcBaseCount/UpdateCounter), (int)(NullSoundSrcBaseCount/UpdateCounter), (int)(SoundSrcCount/UpdateCounter), (int)(SoundTime/UpdateCounter));
                     ConsoleWriteTime = viewer.RealTime;
                     SoundTime = 0;

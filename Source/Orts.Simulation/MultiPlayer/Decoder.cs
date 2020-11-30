@@ -41,7 +41,7 @@ namespace Orts.MultiPlayer
 		}
 		public string GetMsg()
 		{
-//			System.Console.WriteLine(msg);
+//			Trace.WriteLine(msg);
 			if (msg.Length < 1) return null;
 			int index = msg.IndexOf(':');
 			if (index < 0)
@@ -86,7 +86,7 @@ namespace Orts.MultiPlayer
 			}
 			catch (Exception)
 			{
-				//System.Console.WriteLine(msg);
+				//Trace.WriteLine(msg);
 				//msg = ""; //clear the messages
 				return null;
 			}

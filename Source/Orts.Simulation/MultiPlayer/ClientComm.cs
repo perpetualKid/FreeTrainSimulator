@@ -115,7 +115,7 @@ namespace Orts.MultiPlayer
 					info = decoder.GetMsg();
 					while (info != null)
 					{
-						//System.Console.WriteLine(info);
+						//Trace.WriteLine(info);
 						Message msg = Message.Decode(info);
 						if (Connected || msg is MSGRequired) msg.HandleMsg();
 						info = decoder.GetMsg();
@@ -135,7 +135,6 @@ namespace Orts.MultiPlayer
 				}
 				catch (Exception e)
 				{
-					System.Console.WriteLine(e.Message + e.StackTrace);
 					Trace.TraceWarning(e.Message + e.StackTrace);
 				}
 			}

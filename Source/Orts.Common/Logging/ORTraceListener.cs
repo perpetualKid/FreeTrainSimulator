@@ -97,15 +97,17 @@ namespace Orts.Common.Logging
             }
             else
             {
-                output.AppendLine();
 
                 // Only log a stack trace for critical and error levels.
                 if ((eventType < TraceEventType.Warning) && (TraceOutputOptions & TraceOptions.Callstack) != 0)
+                {
+                    output.AppendLine();
                     output.AppendLine(new StackTrace(true).ToString());
+                }
             }
 
             output.AppendLine();
-            writer.WriteAsync(output.ToString()).ConfigureAwait(false);
+            writer.Write(output.ToString());
             lastWrittenFormatted = true;
         }
 

@@ -166,10 +166,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         {
             while (State != null)
                 PopState();
-            if (Console.IsOutputRedirected)
-            {
-                Console.Out.Close();
-            }
         }
 
         internal void PushState(GameState state)

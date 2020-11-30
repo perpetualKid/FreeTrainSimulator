@@ -52,7 +52,7 @@ namespace Orts.ActivityRunner.Viewer3D
             : base(path, positionSource, flags)
         {
 #if DEBUG_SIGNAL_SHAPES
-            Console.WriteLine("{0} signal {1}:", Location.ToString(), mstsSignal.UID);
+            Trace.WriteLine("{0} signal {1}:", Location.ToString(), mstsSignal.UID);
             UID = mstsSignal.UID;
 #endif
             var signalShape = Path.GetFileName(path).ToUpper();
@@ -63,7 +63,7 @@ namespace Orts.ActivityRunner.Viewer3D
             }
             var mstsSignalShape = viewer.SIGCFG.SignalShapes[signalShape];
 #if DEBUG_SIGNAL_SHAPES
-            Console.WriteLine("  Shape={0} SubObjs={1,-2} {2}", Path.GetFileNameWithoutExtension(path).ToUpper(), mstsSignalShape.SignalSubObjs.Count, mstsSignalShape.Description);
+            Trace.WriteLine("  Shape={0} SubObjs={1,-2} {2}", Path.GetFileNameWithoutExtension(path).ToUpper(), mstsSignalShape.SignalSubObjs.Count, mstsSignalShape.Description);
 #endif
 
             // The matrix names are used as the sub-object names. The sub-object visibility comes from
@@ -104,9 +104,9 @@ namespace Orts.ActivityRunner.Viewer3D
 
 #if DEBUG_SIGNAL_SHAPES
             for (var i = 0; i < mstsSignalShape.SignalSubObjs.Count; i++)
-                Console.WriteLine("  SUBOBJ {1,-12} {0,-7} {2,3} {3,3} {4,2} {5,2} {6,-14} {8} ({7})", ((mstsSignal.SignalSubObj >> i) & 0x1) != 0 ? "VISIBLE" : "hidden", mstsSignalShape.SignalSubObjs[i].MatrixName, mstsSignalShape.SignalSubObjs[i].Optional ? "Opt" : "", mstsSignalShape.SignalSubObjs[i].Default ? "Def" : "", mstsSignalShape.SignalSubObjs[i].JunctionLink ? "JL" : "", mstsSignalShape.SignalSubObjs[i].BackFacing ? "BF" : "", mstsSignalShape.SignalSubObjs[i].SignalSubType == -1 ? "<none>" : MSTS.SignalShape.SignalSubObj.SignalSubTypes[mstsSignalShape.SignalSubObjs[i].SignalSubType], mstsSignalShape.SignalSubObjs[i].SignalSubSignalType, mstsSignalShape.SignalSubObjs[i].Description);
+                Trace.WriteLine("  SUBOBJ {1,-12} {0,-7} {2,3} {3,3} {4,2} {5,2} {6,-14} {8} ({7})", ((mstsSignal.SignalSubObj >> i) & 0x1) != 0 ? "VISIBLE" : "hidden", mstsSignalShape.SignalSubObjs[i].MatrixName, mstsSignalShape.SignalSubObjs[i].Optional ? "Opt" : "", mstsSignalShape.SignalSubObjs[i].Default ? "Def" : "", mstsSignalShape.SignalSubObjs[i].JunctionLink ? "JL" : "", mstsSignalShape.SignalSubObjs[i].BackFacing ? "BF" : "", mstsSignalShape.SignalSubObjs[i].SignalSubType == -1 ? "<none>" : MSTS.SignalShape.SignalSubObj.SignalSubTypes[mstsSignalShape.SignalSubObjs[i].SignalSubType], mstsSignalShape.SignalSubObjs[i].SignalSubSignalType, mstsSignalShape.SignalSubObjs[i].Description);
             for (var i = 0; i < SubObjVisible.Length; i++)
-                Console.WriteLine("  SUBOBJ {0,-2} {1,-7}", i, SubObjVisible[i] ? "VISIBLE" : "hidden");
+                Trace.WriteLine("  SUBOBJ {0,-2} {1,-7}", i, SubObjVisible[i] ? "VISIBLE" : "hidden");
 #endif
 
             if (mstsSignal.SignalUnits == null)
@@ -118,7 +118,7 @@ namespace Orts.ActivityRunner.Viewer3D
             for (var i = 0; i < mstsSignal.SignalUnits.Count; i++)
             {
 #if DEBUG_SIGNAL_SHAPES
-                Console.Write("  UNIT {0}: TrItem={1,-5} SubObj={2,-2}", i, mstsSignal.SignalUnits.Units[i].TrItem, mstsSignal.SignalUnits.Units[i].SubObj);
+                Trace.Write("  UNIT {0}: TrItem={1,-5} SubObj={2,-2}", i, mstsSignal.SignalUnits.Units[i].TrItem, mstsSignal.SignalUnits.Units[i].SubObj);
 #endif
                 // Find the simulation SignalObject for this shape.
                 var signalAndHead = viewer.Simulator.SignalEnvironment.FindByTrackItem(mstsSignal.SignalUnits[i].TrackItem);
@@ -145,7 +145,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     Trace.TraceWarning(error.Message);
                 }
 #if DEBUG_SIGNAL_SHAPES
-                Console.WriteLine();
+                Trace.WriteLine();
 #endif
             }
         }
@@ -302,7 +302,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     lightStates[i] = new SignalLightState(SignalTypeData.TransitionTime);
 
 #if DEBUG_SIGNAL_SHAPES
-                Console.Write("  HEAD type={0,-8} lights={1,-2} sem={2}", SignalTypeData.Type, SignalTypeData.Lights.Count, SignalTypeData.Semaphore);
+                Trace.Write("  HEAD type={0,-8} lights={1,-2} sem={2}", SignalTypeData.Type, SignalTypeData.Lights.Count, SignalTypeData.Semaphore);
 #endif
             }
             //[CallOnThread("Loader")]
@@ -321,7 +321,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 if (DisplayState != SignalHead.DrawState)
                 {
 #if DEBUG_SIGNAL_SHAPES
-                    Console.WriteLine("{5} {0} signal {1} unit {2} state: {3} --> {4}",
+                    Trace.WriteLine("{5} {0} signal {1} unit {2} state: {3} --> {4}",
                         SignalShape.Location, SignalShape.UID, Index, DisplayState,
                         SignalHead.draw_state, InfoDisplay.FormattedTime(Viewer.Simulator.ClockTime));
 #endif

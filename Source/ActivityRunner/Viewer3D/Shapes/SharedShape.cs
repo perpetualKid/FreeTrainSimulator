@@ -125,7 +125,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                 for (var j = 0; j < sFile.shape.light_model_cfgs[i].uv_ops.Count; ++j)
                     debugShapeHierarchy.AppendFormat("    UV OP {0,-2}: texture_address_mode={1,-2}\n", j, sFile.shape.light_model_cfgs[i].uv_ops[j].TexAddrMode);
             }
-            Console.Write(debugShapeHierarchy.ToString());
+            Trace.Write(debugShapeHierarchy.ToString());
 #endif
             LodControls = (from Formats.Msts.Models.LodControl lod in sFile.Shape.LodControls
                            select new LodControl(lod, textureFlags, sFile, this)).ToArray();
@@ -160,7 +160,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             public LodControl(Formats.Msts.Models.LodControl MSTSlod_control, Helpers.TextureFlags textureFlags, ShapeFile sFile, SharedShape sharedShape)
             {
 #if DEBUG_SHAPE_HIERARCHY
-                Console.WriteLine("  LOD control:");
+                Trace.WriteLine("  LOD control:");
 #endif
                 DistanceLevels = (from Formats.Msts.Models.DistanceLevel level in MSTSlod_control.DistanceLevels
                                   select new DistanceLevel(level, textureFlags, sFile, sharedShape)).ToArray();
@@ -184,7 +184,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             public DistanceLevel(Formats.Msts.Models.DistanceLevel MSTSdistance_level, Helpers.TextureFlags textureFlags, ShapeFile sFile, SharedShape sharedShape)
             {
 #if DEBUG_SHAPE_HIERARCHY
-                Console.WriteLine("    Distance level {0}: hierarchy={1}", MSTSdistance_level.distance_level_header.dlevel_selection, String.Join(" ", MSTSdistance_level.distance_level_header.hierarchy.Select(i => i.ToString()).ToArray()));
+                Trace.WriteLine("    Distance level {0}: hierarchy={1}", MSTSdistance_level.distance_level_header.dlevel_selection, String.Join(" ", MSTSdistance_level.distance_level_header.hierarchy.Select(i => i.ToString()).ToArray()));
 #endif
                 ViewingDistance = MSTSdistance_level.DistanceLevelHeader.DistanceLevelSelection;
                 // TODO, work out ViewShereRadius from all sub_object radius and centers.
@@ -425,7 +425,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 #endif
 
 #if DEBUG_SHAPE_HIERARCHY
-                Console.Write(debugShapeHierarchy.ToString());
+                Trace.Write(debugShapeHierarchy.ToString());
 #endif
             }
 

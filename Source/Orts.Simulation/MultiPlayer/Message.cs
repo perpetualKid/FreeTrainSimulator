@@ -81,7 +81,7 @@ namespace Orts.MultiPlayer
             else throw new Exception("Unknown Keyword" + key);
         }
 
-        public virtual void HandleMsg() { System.Console.WriteLine("test"); return; }
+        public virtual void HandleMsg() { Trace.WriteLine("test"); return; }
     }
 
 #region MSGMove
@@ -465,7 +465,7 @@ namespace Orts.MultiPlayer
                 }
                 else
                 {
-                    System.Console.WriteLine("Wrong version of protocol, will play in single mode, please update to version " + MPManager.Instance().version);
+                    Trace.WriteLine("Wrong version of protocol, will play in single mode, please update to version " + MPManager.Instance().version);
                     throw new MultiPlayerError();//client, close the connection
                 }
             }
@@ -534,7 +534,7 @@ namespace Orts.MultiPlayer
                 }
                 MPManager.OnlineTrains.AddPlayers(this, null);
 
-                //System.Console.WriteLine(this.ToString());
+                //Trace.WriteLine(this.ToString());
                 if (MPManager.IsServer())// && MPManager.Server.IsRemoteServer())
                 {
                     MPManager.BroadCast((new MSGOrgSwitch(user, MPManager.Instance().OriginalSwitchState)).ToString());
@@ -684,7 +684,7 @@ namespace Orts.MultiPlayer
 
             //client connected directly to the server, thus will send the game status to the player directly (avoiding using broadcast)
             MPManager.OnlineTrains.AddPlayers(this, p);
-            //System.Console.WriteLine(this.ToString());
+            //Trace.WriteLine(this.ToString());
             SendToPlayer(p, (new MSGOrgSwitch(user, MPManager.Instance().OriginalSwitchState)).ToString());
 
             MPManager.Instance().lastPlayerAddedTime = MPManager.Simulator.GameTime;
@@ -716,7 +716,7 @@ namespace Orts.MultiPlayer
                 SendToPlayer(op.Value, newPlayer);
             }
 
-            //System.Console.WriteLine(host.ToString() + MPManager.Simulator.OnlineTrains.AddAllPlayerTrain());
+            //Trace.WriteLine(host.ToString() + MPManager.Simulator.OnlineTrains.AddAllPlayerTrain());
 
         }
 
@@ -877,7 +877,7 @@ namespace Orts.MultiPlayer
 
         public override void HandleMsg()
         {
-            //System.Console.WriteLine(this.ToString());
+            //Trace.WriteLine(this.ToString());
             if (MPManager.IsServer()) //server got this message from Client
             {
                 //if a normal user, and the dispatcher does not want hand throw, just ignore it
@@ -937,7 +937,7 @@ namespace Orts.MultiPlayer
         public override string ToString()
         {
             string tmp = "RESETSIGNAL " + user;
-            //System.Console.WriteLine(tmp);
+            //Trace.WriteLine(tmp);
             return " " + tmp.Length + ": " + tmp;
         }
 
@@ -1223,7 +1223,7 @@ namespace Orts.MultiPlayer
 
         public MSGTrain(string m)
         {
-            //System.Console.WriteLine(m);
+            //Trace.WriteLine(m);
             int index = m.IndexOf(' '); int last = 0;
             TrainNum = int.Parse(m.Substring(0, index + 1));
             m = m.Remove(0, index + 1);
@@ -1270,7 +1270,7 @@ namespace Orts.MultiPlayer
             last = areas[areas.Length - 2].Length;
             name = areas[areas.Length - 2].Substring(index + 1, last - index - 1);
 
-            //System.Console.WriteLine(this.ToString());
+            //Trace.WriteLine(this.ToString());
 
         }
 
@@ -1299,7 +1299,7 @@ namespace Orts.MultiPlayer
         public override void HandleMsg() //only client will get message, thus will set states
         {
             if (MPManager.IsServer()) return; //server will ignore it
-            //System.Console.WriteLine(this.ToString());
+            //Trace.WriteLine(this.ToString());
             // construct train data
             Train train = null;
             train = new Train();
@@ -1322,7 +1322,7 @@ namespace Orts.MultiPlayer
                 }
                 catch (Exception error)
                 {
-                    System.Console.WriteLine(wagonFilePath + " " + error);
+                    Trace.WriteLine(wagonFilePath + " " + error);
                     car = MPManager.Instance().SubCar(wagonFilePath, lengths[i]);
                 }
                 if (car == null) continue;
@@ -1407,7 +1407,7 @@ namespace Orts.MultiPlayer
 
         public MSGUpdateTrain(string m)
         {
-            //System.Console.WriteLine(m);
+            //Trace.WriteLine(m);
             int index = m.IndexOf(' '); int last = 0;
             user = m.Substring(0, index + 1);
             m = m.Remove(0, index + 1);
@@ -1456,7 +1456,7 @@ namespace Orts.MultiPlayer
                 lengths[i] = int.Parse(carinfo[2]);
             }
 
-            //System.Console.WriteLine(this.ToString());
+            //Trace.WriteLine(this.ToString());
 
         }
         public MSGUpdateTrain(string u, Train t, int n)
@@ -1528,7 +1528,7 @@ namespace Orts.MultiPlayer
                     }
                     catch (Exception error)
                     {
-                        System.Console.WriteLine(wagonFilePath + " " + error);
+                        Trace.WriteLine(wagonFilePath + " " + error);
                         car = MPManager.Instance().SubCar(wagonFilePath, lengths[i]);
                     }
                     if (car == null) continue;
@@ -1566,7 +1566,7 @@ namespace Orts.MultiPlayer
                 }
                 catch (Exception error)
                 {
-                    System.Console.WriteLine(wagonFilePath + " " + error);
+                    Trace.WriteLine(wagonFilePath + " " + error);
                     car = MPManager.Instance().SubCar(wagonFilePath, lengths[i]);
                 }
                 if (car == null) continue;
@@ -1715,7 +1715,7 @@ namespace Orts.MultiPlayer
                 Trace.TraceInformation("You are the new dispatcher. Enjoy!");
                 if (MPManager.Simulator.Confirmer != null)
                     MPManager.Simulator.Confirmer.Information(MPManager.Catalog.GetString("You are the new dispatcher. Enjoy!"));
-                //System.Console.WriteLine(this.ToString());
+                //Trace.WriteLine(this.ToString());
             }
             else
             {
@@ -1748,7 +1748,7 @@ namespace Orts.MultiPlayer
         public override void HandleMsg()
         {
             //nothing to worry at this stage
-            //System.Console.WriteLine(this.ToString());
+            //Trace.WriteLine(this.ToString());
         }
     }
 #endregion MSGAlive
@@ -1829,7 +1829,7 @@ namespace Orts.MultiPlayer
         {
             if (MPManager.GetUserName() == user || user == "All")
             {
-                Console.WriteLine("{0}: {1}", level, msgx);
+                Trace.WriteLine($"{level}: {msgx}");
                 if (MPManager.Simulator.Confirmer != null && level == "Error")
                     MPManager.Simulator.Confirmer.Message(ConfirmLevel.Error, msgx);
 
@@ -1840,7 +1840,7 @@ namespace Orts.MultiPlayer
                 }
                 else if (level == "SameNameError" && !MPManager.IsServer())//someone with my name but I have been admitted into the game, will ignore it, otherwise, will quit
                 {
-                    Console.WriteLine(MPManager.OnlineTrains.Players.Count);
+                    Trace.WriteLine(MPManager.OnlineTrains.Players.Count);
 
                     if (MPManager.OnlineTrains.Players.Count < 1)
                     {
@@ -2769,7 +2769,7 @@ namespace Orts.MultiPlayer
 
         public MSGCouple(string m)
         {
-            //System.Console.WriteLine(m);
+            //Trace.WriteLine(m);
             int index = m.IndexOf(' '); int last = 0;
             TrainNum = int.Parse(m.Substring(0, index + 1));
             m = m.Remove(0, index + 1);
@@ -2820,7 +2820,7 @@ namespace Orts.MultiPlayer
                 flipped[i] = int.Parse(carinfo[1]);
             }
 
-            //System.Console.WriteLine(this.ToString());
+            //Trace.WriteLine(this.ToString());
 
         }
 
@@ -3022,7 +3022,7 @@ namespace Orts.MultiPlayer
                         if (s != null && (s.IsSignal || s.IsSpeedSignal) && s.SignalHeads != null)
                             foreach (var h in s.SignalHeads)
                             {
-                                //System.Console.WriteLine(h.TDBIndex);
+                                //Trace.WriteLine(h.TDBIndex);
                                 signals.Add(h.TDBIndex * 100000 + h.TrackItemIndex, h);
                             }
                     }
@@ -3072,7 +3072,7 @@ namespace Orts.MultiPlayer
                             if (s != null && (s.IsSignal || s.IsSpeedSignal) && s.SignalHeads != null)
                                 foreach (var h in s.SignalHeads)
                                 {
-                                    //System.Console.WriteLine(h.TDBIndex);
+                                    //Trace.WriteLine(h.TDBIndex);
                                     signals.Add(h.TDBIndex * 100000 + h.TrackItemIndex, h);
                                 }
                         }
@@ -3100,17 +3100,17 @@ namespace Orts.MultiPlayer
         {
             if (MPManager.Server != null) return; //server will ignore it
 
-            //if (signals.Count != readed/2-2) { System.Console.WriteLine("Error in synchronizing signals " + signals.Count + " " + readed); return; }
+            //if (signals.Count != readed/2-2) { Trace.WriteLine("Error in synchronizing signals " + signals.Count + " " + readed); return; }
             int i = 0;
             foreach (var t in signals)
             {
                 t.Value.SignalIndicationState = (SignalAspectState)(signalsStates[2 * i] - 1); //we added 1 when build the message, need to subtract it out
                 t.Value.DrawState = (int)(signalsStates[2 * i + 1] - 1);
                 //t.Value.draw_state = t.Value.def_draw_state(t.Value.state);
-                //System.Console.Write(msgx[i]-48);
+                //Trace.Write(msgx[i]-48);
                 i++;
             }
-            //System.Console.Write("\n");
+            //Trace.Write("\n");
 
         }
 
@@ -3335,7 +3335,7 @@ namespace Orts.MultiPlayer
                 //someone may send a message with 0Server, which is intended for the server
                 if (name.Trim() == MPManager.GetUserName() || (MPManager.IsServer() && name.Trim() == "0Server"))
                 {
-                    System.Console.WriteLine("MSG from " + sender + ":" + msgx);
+                    Trace.WriteLine("MSG from " + sender + ":" + msgx);
                     MPManager.Instance().lastSender = sender;
                     if (MPManager.Simulator.Confirmer != null) MPManager.Simulator.Confirmer.MSG(MPManager.Catalog.GetString(" From {0}: {1}", sender, msgx));
                     MPManager.Instance().OnMessageReceived(MPManager.Simulator.GameTime, sender + ": " + msgx);
@@ -3344,10 +3344,10 @@ namespace Orts.MultiPlayer
             }
             if (MPManager.IsServer())//server check if need to tell others.
             {
-                //System.Console.WriteLine(users);
+                //Trace.WriteLine(users);
                 if (users.Count() == 1 && users[0].Trim() == MPManager.GetUserName()) return;
                 if (users.Count() == 1 && users[0].Trim() == "0Server") return;
-                //System.Console.WriteLine(this.ToString());
+                //Trace.WriteLine(this.ToString());
                 MultiPlayer.MPManager.BroadCast(this.ToString());
             }
         }
@@ -3649,7 +3649,7 @@ namespace Orts.MultiPlayer
 
         public MSGFlip(string m)
         {
-            //System.Console.WriteLine(m);
+            //Trace.WriteLine(m);
             int index = m.IndexOf(' '); int last = 0;
             TrainNum = int.Parse(m.Substring(0, index + 1));
             m = m.Remove(0, index + 1);
@@ -3708,7 +3708,7 @@ namespace Orts.MultiPlayer
                 flipped[i] = int.Parse(carinfo[1]);
             }
 
-            //System.Console.WriteLine(this.ToString());
+            //Trace.WriteLine(this.ToString());
 
         }
 
@@ -3744,7 +3744,7 @@ namespace Orts.MultiPlayer
         public override void HandleMsg() //only client will get message, thus will set states
         {
             if (MPManager.IsServer()) return; //server will ignore it
-                                              //System.Console.WriteLine(this.ToString());
+                                              //Trace.WriteLine(this.ToString());
                                               // construct train data
             foreach (Train t in MPManager.Simulator.Trains)
             {

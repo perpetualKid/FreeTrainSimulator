@@ -78,7 +78,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         private string userName;
         private string code;
 
-        private static Viewer viewer { get { return Program.Viewer; } set { Program.Viewer = value; } }
+        private static Viewer Viewer { get { return Program.Viewer; } set { Program.Viewer = value; } }
         private static string logFileName;
         private LoadingPrimitive loading;
         private LoadingScreenPrimitive loadingScreen;
@@ -297,10 +297,10 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                     return;
             }
 
-            viewer = new Viewer(simulator, Game);
+            Viewer = new Viewer(simulator, Game);
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
-            Game.ReplaceState(new GameStateViewer3D(viewer));
+            Game.ReplaceState(new GameStateViewer3D(Viewer));
 #pragma warning restore CA2000 // Dispose objects before losing scope
         }
 
@@ -352,13 +352,15 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
 
                 if (File.Exists(logFileName))
                 {
-                    Console.Out.Flush();
+                    Trace.Flush();
+                    foreach (TraceListener listener in Trace.Listeners)
+                        listener.Flush();
                     File.Delete(logName);
                     File.Copy(logFileName, logName);
                 }
 
                 simulator.Save(outf);
-                viewer.Save(outf, fileStem);
+                Viewer.Save(outf, fileStem);
                 // Save multiplayer parameters
                 if (MPManager.IsMultiPlayer() && MPManager.IsServer())
                     MPManager.OnlineTrains.Save(outf);
@@ -368,7 +370,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             }
 
             //Debrief Eval
-            if (viewer.Settings.DebriefActivityEval)
+            if (Viewer.Settings.DebriefActivityEval)
             {
                 foreach (string file in Directory.EnumerateFiles(UserSettings.UserDataFolder, simulator.ActivityFileName + "*.dbfeval"))
                     File.Delete(file);//Delete all debrief eval files previously saved, for the same activity.//fileDbfEval
@@ -424,14 +426,14 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                     data = Args;
                     InitSimulator(settings);
                     simulator.Restore(inf, PathName, InitialTileX, InitialTileZ, Game.LoaderProcess.CancellationToken);
-                    viewer = new Viewer(simulator, Game);
+                    Viewer = new Viewer(simulator, Game);
                     if (Client != null || Server != null && ActivityType == ActivityType.Activity)
                         simulator.GetPathAndConsist();
                     if (Client != null)
                     {
                         Client.Send((new MSGPlayer(userName, code, simulator.conFileName, simulator.patFileName, simulator.Trains[0], 0, simulator.Settings.AvatarURL)).ToString());
                     }
-                    viewer.Restore(inf);
+                    Viewer.Restore(inf);
 
                     if (MPManager.IsMultiPlayer() && MPManager.IsServer())
                         MPManager.OnlineTrains.Restore(inf);
@@ -494,7 +496,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 simulator.Log.LoadLog(Path.ChangeExtension(saveFile, "replay"));
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
-                Game.ReplaceState(new GameStateViewer3D(viewer));
+                Game.ReplaceState(new GameStateViewer3D(Viewer));
 #pragma warning restore CA2000 // Dispose objects before losing scope
             }
         }
@@ -518,7 +520,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 (string PathName, float InitialTileX, float InitialTileZ, string[] _, ActivityType ActivityType) = GetSavedValues(inf);
                 InitSimulator(settings);
                 simulator.Start(Game.LoaderProcess.CancellationToken);
-                viewer = new Viewer(simulator, Game);
+                Viewer = new Viewer(simulator, Game);
             }
 
             // Load command log to replay
@@ -533,7 +535,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             CommandLog.ReportReplayCommands(simulator.ReplayCommandList);
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
-            Game.ReplaceState(new GameStateViewer3D(viewer));
+            Game.ReplaceState(new GameStateViewer3D(Viewer));
 #pragma warning restore CA2000 // Dispose objects before losing scope
         }
 
@@ -591,7 +593,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                     InitSimulator(settings);
                 }
                 simulator.Start(Game.LoaderProcess.CancellationToken);
-                viewer = new Viewer(simulator, Game);
+                Viewer = new Viewer(simulator, Game);
             }
             else
             {
@@ -605,8 +607,8 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                     actionType = ActionType.Resume;
                     InitSimulator(settings);
                     simulator.Restore(inf, PathName, InitialTileX, InitialTileZ, Game.LoaderProcess.CancellationToken);
-                    viewer = new Viewer(simulator, Game);
-                    viewer.Restore(inf);
+                    Viewer = new Viewer(simulator, Game);
+                    Viewer.Restore(inf);
                 }
             }
 
@@ -617,7 +619,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             CommandLog.ReportReplayCommands(simulator.ReplayCommandList);
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
-            Game.ReplaceState(new GameStateViewer3D(viewer));
+            Game.ReplaceState(new GameStateViewer3D(Viewer));
 #pragma warning restore CA2000 // Dispose objects before losing scope
         }
 
@@ -651,12 +653,12 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 actionType = ActionType.Test;
                 InitSimulator(settings);
                 simulator.Start(Game.LoaderProcess.CancellationToken);
-                viewer = new Viewer(simulator, Game);
+                Viewer = new Viewer(simulator, Game);
                 Game.ReplaceState(exitGameState);
 #pragma warning disable CA2000 // Dispose objects before losing scope
-                Game.PushState(new GameStateViewer3D(viewer));
+                Game.PushState(new GameStateViewer3D(Viewer));
 #pragma warning restore CA2000 // Dispose objects before losing scope
-                exitGameState.LoadTime = (DateTime.Now - startTime).TotalSeconds - viewer.RealTime;
+                exitGameState.LoadTime = (DateTime.Now - startTime).TotalSeconds - Viewer.RealTime;
                 exitGameState.Passed = true;
             }
 #pragma warning disable CA1031 // Do not catch general exception types
@@ -686,44 +688,49 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 // Ensure we start with an empty file.
                 if (!appendLog)
                     File.Delete(logFileName);
-                // Make Console.Out go to the log file AND the output stream.
-#pragma warning disable CA2000 // Dispose objects before losing scope
-                Console.SetOut(new FileTeeLogger(logFileName, Console.Out));
-#pragma warning restore CA2000 // Dispose objects before losing scope
-                // Make Console.Error go to the new Console.Out.
-                Console.SetError(Console.Out);
             }
 
+            StreamWriter writer = new StreamWriter(logFileName, true, Encoding.Default, 512)
+            {
+                AutoFlush = true
+            };
+
             // Captures Trace.Trace* calls and others and formats.
-            ORTraceListener traceListener = new ORTraceListener(Console.Out, !settings.Logging)
+            ORTraceListener traceListener = new ORTraceListener(writer, !settings.Logging)
             {
                 TraceOutputOptions = TraceOptions.Callstack
             };
-            // Trace.Listeners and Debug.Listeners are the same list.
             Trace.Listeners.Add(traceListener);
+            //Trace.Listeners.Add(new TextWriterTraceListener(writer));
             Trace.AutoFlush = true;
 
-            Console.WriteLine($"This is a log file for {RuntimeInfo.ProductName}. Please include this file in bug reports.");
-            Console.WriteLine(separatorLine);
+            if (Debugger.IsLogging())
+            {
+                Trace.Listeners.Add(new ConsoleTraceListener());
+
+            }
+
+            Trace.WriteLine($"This is a log file for {RuntimeInfo.ProductName}. Please include this file in bug reports.");
+            Trace.WriteLine(separatorLine);
             if (settings.Logging)
             {
-                SystemInfo.WriteSystemDetails(Console.Out).ConfigureAwait(false).GetAwaiter().GetResult();
-                Console.WriteLine(separatorLine);
-                Console.WriteLine($"{"Version",-12}= {VersionInfo.Version}");
-                Console.WriteLine($"{"Code Version",-12}= {VersionInfo.CodeVersion}");
+                SystemInfo.WriteSystemDetails();
+                Trace.WriteLine(separatorLine);
+                Trace.WriteLine($"{"Version",-12}= {VersionInfo.Version}");
+                Trace.WriteLine($"{"Code Version",-12}= {VersionInfo.CodeVersion}");
                 if (logFileName.Length > 0)
-                    Console.WriteLine($"{"Logfile",-12}= {logFileName.Replace(Environment.UserName, "********")}");
-                Console.WriteLine($"{"Executable",-12}= {Path.GetFileName(Application.ExecutablePath)}");
+                    Trace.WriteLine($"{"Logfile",-12}= {logFileName.Replace(Environment.UserName, "********")}");
+                Trace.WriteLine($"{"Executable",-12}= {Path.GetFileName(Application.ExecutablePath)}");
                 foreach (string arg in arguments)
-                    Console.WriteLine($"{"Argument",-12}= {arg}");
-                Console.WriteLine(separatorLine);
+                    Trace.WriteLine($"{"Argument",-12}= {arg}");
+                Trace.WriteLine(separatorLine);
                 settings.Log();
-                Console.WriteLine(separatorLine);
+                Trace.WriteLine(separatorLine);
             }
             else
             {
-                Console.WriteLine("Logging is disabled, only fatal errors will appear here.");
-                Console.WriteLine(separatorLine);
+                Trace.WriteLine("Logging is disabled, only fatal errors will appear here.");
+                Trace.WriteLine(separatorLine);
             }
         }
 
@@ -842,11 +849,11 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             long expected = loadingBytesExpected[loadingSampleCount - 1];
             long difference = bytes - expected;
 
-            Console.WriteLine($"Loader: Time       = {loadingTime:g} sec");
-            Console.WriteLine($"Loader: Expected   = {expected:N0} bytes");
-            Console.WriteLine($"Loader: Actual     = {bytes:N0} bytes");
-            Console.WriteLine($"Loader: Difference = {difference:N0} bytes ({(float)difference / expected:P1})");
-            Console.WriteLine();
+            Trace.WriteLine($"Loader: Time       = {loadingTime:g} sec");
+            Trace.WriteLine($"Loader: Expected   = {expected:N0} bytes");
+            Trace.WriteLine($"Loader: Actual     = {bytes:N0} bytes");
+            Trace.WriteLine($"Loader: Difference = {difference:N0} bytes ({(float)difference / expected:P1})");
+            Trace.WriteLine(string.Empty);
 
             // Smoothly move all expected values towards actual values, by 10% each run. First run will just copy actual values.
             for (int i = 0; i < loadingSampleCount; i++)
@@ -888,7 +895,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                     activityType = ActivityType.Explorer;
             }
 
-            Console.WriteLine($"{"Mode",-12}= {actionType} {activityType}");
+            Trace.WriteLine($"{"Mode",-12}= {actionType} {activityType}");
             TimeSpan startTime = TimeSpan.Zero;
             SeasonType season = SeasonType.Summer;
             WeatherType weather = WeatherType.Clear;
@@ -898,49 +905,49 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 case ActivityType.Activity:
                     if (!data.Any())
                         throw new InvalidCommandLineException("Mode 'activity' needs 1 argument: activity file.");
-                    Console.WriteLine($"{"Route",-12}= {GetRouteName(data[0])}");
-                    Console.WriteLine($"{"Activity",-12}= {GetActivityName(data[0])} ({data[0]})");
+                    Trace.WriteLine($"{"Route",-12}= {GetRouteName(data[0])}");
+                    Trace.WriteLine($"{"Activity",-12}= {GetActivityName(data[0])} ({data[0]})");
                     break;
 
                 case ActivityType.Explorer:
                 case ActivityType.ExploreActivity:
                     if (data.Length < 5)
                         throw new InvalidCommandLineException("Mode 'explorer' needs 5 arguments: path file, consist file, time (hh[:mm[:ss]]), season (Spring, Summer, Autumn, Winter), weather (Clear, Rain, Snow).");
-                    Console.WriteLine($"{"Route",-12}= {GetRouteName(data[0])}");
-                    Console.WriteLine($"{"Path",-12}= {GetPathName(data[0])} ({data[0]})");
-                    Console.WriteLine($"{"Consist",-12}= {GetConsistName(data[1])} ({data[1]})");
-                    Console.WriteLine($"{"Time",-12}= {(TimeSpan.TryParse(data[2], out startTime) ? startTime.ToString() : "Unknown")} ({data[2]})");
-                    Console.WriteLine($"{"Season",-12}= {(EnumExtension.GetValue(data[3], out season) ? season.ToString() : "Unknown")} ({data[3]})");
-                    Console.WriteLine($"{"Weather",-12}= {(EnumExtension.GetValue(data[4], out weather) ? weather.ToString() : "Unknown")} ({data[4]})");
+                    Trace.WriteLine($"{"Route",-12}= {GetRouteName(data[0])}");
+                    Trace.WriteLine($"{"Path",-12}= {GetPathName(data[0])} ({data[0]})");
+                    Trace.WriteLine($"{"Consist",-12}= {GetConsistName(data[1])} ({data[1]})");
+                    Trace.WriteLine($"{"Time",-12}= {(TimeSpan.TryParse(data[2], out startTime) ? startTime.ToString() : "Unknown")} ({data[2]})");
+                    Trace.WriteLine($"{"Season",-12}= {(EnumExtension.GetValue(data[3], out season) ? season.ToString() : "Unknown")} ({data[3]})");
+                    Trace.WriteLine($"{"Weather",-12}= {(EnumExtension.GetValue(data[4], out weather) ? weather.ToString() : "Unknown")} ({data[4]})");
                     break;
 
                 case ActivityType.TimeTable:
                     if (data.Length < 5)
                         throw new InvalidCommandLineException("Mode 'timetable' needs 5 arguments: timetable file, train name, day (Monday - Sunday), season (Spring, Summer, Autumn, Winter), weather (Clear, Rain, Snow), [optional] WeatherFile.");
-                    Console.WriteLine($"{"File",-12}= {data[0]}");
-                    Console.WriteLine($"{"Train",-12}= {data[1]}");
-                    Console.WriteLine($"{"Day",-12}= {data[2]}");
-                    Console.WriteLine($"{"Season",-12}= {(EnumExtension.GetValue(data[3], out season) ? season.ToString() : "Unknown")} ({data[3]})");
-                    Console.WriteLine($"{"Weather",-12}= {(EnumExtension.GetValue(data[4], out weather) ? weather.ToString() : "Unknown")} ({data[4]})");
+                    Trace.WriteLine($"{"File",-12}= {data[0]}");
+                    Trace.WriteLine($"{"Train",-12}= {data[1]}");
+                    Trace.WriteLine($"{"Day",-12}= {data[2]}");
+                    Trace.WriteLine($"{"Season",-12}= {(EnumExtension.GetValue(data[3], out season) ? season.ToString() : "Unknown")} ({data[3]})");
+                    Trace.WriteLine($"{"Weather",-12}= {(EnumExtension.GetValue(data[4], out weather) ? weather.ToString() : "Unknown")} ({data[4]})");
                     break;
 
                 default:
                     throw new InvalidCommandLineException($"Unexpected mode with {arguments.Length} argument(s)");
             }
 
-            Console.WriteLine(separatorLine);
+            Trace.WriteLine(separatorLine);
             if (settings.MultiplayerServer || settings.MultiplayerClient)
             {
                 if (settings.MultiplayerServer)
-                    Console.WriteLine("Multiplayer Server");
+                    Trace.WriteLine("Multiplayer Server");
                 else
-                    Console.WriteLine("Multiplayer Client");
+                    Trace.WriteLine("Multiplayer Client");
 
-                Console.WriteLine($"{"User",-12}= {settings.Multiplayer_User}");
+                Trace.WriteLine($"{"User",-12}= {settings.Multiplayer_User}");
                 if (settings.MultiplayerClient)
-                    Console.WriteLine($"{"Host",-12}= {settings.Multiplayer_Host}");
-                Console.WriteLine($"{"Port",-12}= {settings.Multiplayer_Port}");
-                Console.WriteLine(separatorLine);
+                    Trace.WriteLine($"{"Host",-12}= {settings.Multiplayer_Host}");
+                Trace.WriteLine($"{"Port",-12}= {settings.Multiplayer_Port}");
+                Trace.WriteLine(separatorLine);
             }
 
             switch (activityType)
@@ -995,7 +1002,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 catch (Exception error)
                 {
                     Trace.WriteLine(error);
-                    Console.WriteLine("Connection error - will play in single mode.");
+                    Trace.WriteLine("Connection error - will play in single mode.");
                     Server = null;
                 }
             }
@@ -1014,7 +1021,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 catch (Exception error)
                 {
                     Trace.WriteLine(error);
-                    Console.WriteLine("Connection error - will play in single mode.");
+                    Trace.WriteLine("Connection error - will play in single mode.");
                     Client = null;
                 }
             }

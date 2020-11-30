@@ -16,6 +16,7 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -63,7 +64,7 @@ namespace Orts.MultiPlayer
 				count++;
 				OnlinePlayer player = new OnlinePlayer(client, Server);
 				Server.Players.Add(player);
-				System.Console.WriteLine("New Player Joined");
+				Trace.WriteLine("New Player Joined");
 
 				//create a thread to handle communication
 				//with connected client

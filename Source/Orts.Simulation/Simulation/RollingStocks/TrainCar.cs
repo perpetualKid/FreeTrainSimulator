@@ -1940,12 +1940,12 @@ namespace Orts.Simulation.RollingStocks
         {
 
 #if DEBUG_WHEELS
-            Console.WriteLine(WagFilePath);
-            Console.WriteLine("  length {0,10:F4}", LengthM);
+            Trace.WriteLine(WagFilePath);
+            Trace.WriteLine("  length {0,10:F4}", LengthM);
             foreach (var w in WheelAxles)
-                Console.WriteLine("  axle:  bogie  {1,5:F0}  offset {0,10:F4}", w.OffsetM, w.BogieIndex);
+                Trace.WriteLine("  axle:  bogie  {1,5:F0}  offset {0,10:F4}", w.OffsetM, w.BogieIndex);
             foreach (var p in Parts)
-                Console.WriteLine("  part:  matrix {1,5:F0}  offset {0,10:F4}  weight {2,5:F0}", p.OffsetM, p.iMatrix, p.SumWgt);
+                Trace.WriteLine("  part:  matrix {1,5:F0}  offset {0,10:F4}  weight {2,5:F0}", p.OffsetM, p.iMatrix, p.SumWgt);
 #endif
             WheelHasBeenSet = true;
             // No parts means no bogies (always?), so make sure we've got Parts[0] for the car itself.
@@ -2046,13 +2046,13 @@ namespace Orts.Simulation.RollingStocks
 
 
 #if DEBUG_WHEELS
-            Console.WriteLine(WagFilePath);
-            Console.WriteLine("  length {0,10:F4}", LengthM);
-            Console.WriteLine("  articulated {0}/{1}", articulatedFront, articulatedRear);
+            Trace.WriteLine(WagFilePath);
+            Trace.WriteLine("  length {0,10:F4}", LengthM);
+            Trace.WriteLine("  articulated {0}/{1}", articulatedFront, articulatedRear);
             foreach (var w in WheelAxles)
-                Console.WriteLine("  axle:  bogie  {1,5:F0}  offset {0,10:F4}", w.OffsetM, w.BogieIndex);
+                Trace.WriteLine("  axle:  bogie  {1,5:F0}  offset {0,10:F4}", w.OffsetM, w.BogieIndex);
             foreach (var p in Parts)
-                Console.WriteLine("  part:  matrix {1,5:F0}  offset {0,10:F4}  weight {2,5:F0}", p.OffsetM, p.iMatrix, p.SumWgt);
+                Trace.WriteLine("  part:  matrix {1,5:F0}  offset {0,10:F4}  weight {2,5:F0}", p.OffsetM, p.iMatrix, p.SumWgt);
 #endif
             // Decided to control what is sent to SetUpWheelsArticulation()by using
             // WheelAxlesLoaded as a flag.  This way, wagons that have to be processed are included
@@ -2093,13 +2093,13 @@ namespace Orts.Simulation.RollingStocks
 
 
 #if DEBUG_WHEELS
-            Console.WriteLine(WagFilePath);
-            Console.WriteLine("  length {0,10:F4}", LengthM);
-            Console.WriteLine("  articulated {0}/{1}", articulatedFront, articulatedRear);
+            Trace.WriteLine(WagFilePath);
+            Trace.WriteLine("  length {0,10:F4}", LengthM);
+            Trace.WriteLine("  articulated {0}/{1}", articulatedFront, articulatedRear);
             foreach (var w in WheelAxles)
-                Console.WriteLine("  axle:  bogie  {1,5:F0}  offset {0,10:F4}", w.OffsetM, w.BogieIndex);
+                Trace.WriteLine("  axle:  bogie  {1,5:F0}  offset {0,10:F4}", w.OffsetM, w.BogieIndex);
             foreach (var p in Parts)
-                Console.WriteLine("  part:  matrix {1,5:F0}  offset {0,10:F4}  weight {2,5:F0}", p.OffsetM, p.iMatrix, p.SumWgt);
+                Trace.WriteLine("  part:  matrix {1,5:F0}  offset {0,10:F4}  weight {2,5:F0}", p.OffsetM, p.iMatrix, p.SumWgt);
 #endif
         } // end SetUpWheelsArticulation()
 

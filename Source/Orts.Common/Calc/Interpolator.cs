@@ -16,6 +16,7 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
+using System.Diagnostics;
 using System.IO;
 
 namespace Orts.Common.Calc
@@ -230,7 +231,7 @@ namespace Orts.Common.Calc
             {
                 double x = MinX() + i * dx;
                 double y = this[x];
-                Console.WriteLine($"{label} {x} {y}");
+                Trace.WriteLine($"{label} {x} {y}");
             }
         }
 

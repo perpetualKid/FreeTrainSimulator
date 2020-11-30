@@ -17,6 +17,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
@@ -191,7 +192,7 @@ namespace Orts.MultiPlayer
                 }
                 catch (Exception error)
                 {
-                    System.Console.WriteLine(error.Message);
+                    Trace.WriteLine(error.Message);
                     car = MPManager.Instance().SubCar(wagonFilePath, player.lengths[i]);
                 }
                 if (car == null) continue;

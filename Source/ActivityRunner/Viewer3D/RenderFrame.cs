@@ -554,9 +554,9 @@ namespace Orts.ActivityRunner.Viewer3D
             var logging = UserInput.IsPressed(UserCommand.DebugLogRenderFrame);
             if (logging)
             {
-                Console.WriteLine();
-                Console.WriteLine();
-                Console.WriteLine("Draw {");
+                Trace.WriteLine(string.Empty);
+                Trace.WriteLine(string.Empty);
+                Trace.WriteLine("Draw {");
             }
             if (dynamicShadows && (shadowMapCount > 0) && shadowMapMaterial != null)
                 DrawShadows(logging);
@@ -566,24 +566,25 @@ namespace Orts.ActivityRunner.Viewer3D
 
             if (logging)
             {
-                Console.WriteLine("}");
-                Console.WriteLine();
+                Trace.WriteLine("}");
+                Trace.WriteLine(string.Empty);
             }
         }
 
         void DrawShadows(bool logging )
         {
-            if (logging) Console.WriteLine("  DrawShadows {");
+            if (logging) Trace.WriteLine("  DrawShadows {");
             for (var shadowMapIndex = 0; shadowMapIndex < shadowMapCount; shadowMapIndex++)
                 DrawShadows(logging, shadowMapIndex);
             for (var shadowMapIndex = 0; shadowMapIndex < shadowMapCount; shadowMapIndex++)
                 game.RenderProcess.ShadowPrimitiveCount[shadowMapIndex] = renderShadowSceneryItems[shadowMapIndex].Count + renderShadowForestItems[shadowMapIndex].Count + renderShadowTerrainItems[shadowMapIndex].Count;
-            if (logging) Console.WriteLine("  }");
+            if (logging) Trace.WriteLine("  }");
         }
 
         void DrawShadows(bool logging, int shadowMapIndex)
         {
-            if (logging) Console.WriteLine("    {0} {{", shadowMapIndex);
+            if (logging) 
+                Trace.WriteLine($"    {shadowMapIndex} {{");
 
             // Prepare renderer for drawing the shadow map.
             game.GraphicsDevice.SetRenderTarget(shadowMapRenderTarget[shadowMapIndex]);
@@ -593,7 +594,7 @@ namespace Orts.ActivityRunner.Viewer3D
             shadowMapMaterial.SetState(ShadowMapMaterial.Mode.Normal);
 
             // Render non-terrain, non-forest shadow items first.
-            if (logging) Console.WriteLine("      {0,-5} * SceneryMaterial (normal)", renderShadowSceneryItems[shadowMapIndex].Count);
+            if (logging) Trace.WriteLine($"      {renderShadowSceneryItems[shadowMapIndex].Count,-5} * SceneryMaterial (normal)");
             //            shadowMapMaterial.Render(graphicsDevice, renderShadowSceneryItems[shadowMapIndex], ref shadowMapLightView[shadowMapIndex], ref shadowMapLightProjection[shadowMapIndex]);
             shadowMapMaterial.Render(renderShadowSceneryItems[shadowMapIndex], ref shadowMapLightView[shadowMapIndex], ref shadowMapLightProjection[shadowMapIndex], ref shadowMapLightViewProjection[shadowMapIndex]);
 
@@ -601,7 +602,7 @@ namespace Orts.ActivityRunner.Viewer3D
             shadowMapMaterial.SetState(ShadowMapMaterial.Mode.Forest);
 
             // Render forest shadow items next.
-            if (logging) Console.WriteLine("      {0,-5} * ForestMaterial (forest)", renderShadowForestItems[shadowMapIndex].Count);
+            if (logging) Trace.WriteLine($"      {renderShadowForestItems[shadowMapIndex].Count,-5} * ForestMaterial (forest)");
 //            shadowMapMaterial.Render(graphicsDevice, renderShadowForestItems[shadowMapIndex], ref shadowMapLightView[shadowMapIndex], ref shadowMapLightProjection[shadowMapIndex]);
             shadowMapMaterial.Render(renderShadowForestItems[shadowMapIndex], ref shadowMapLightView[shadowMapIndex], ref shadowMapLightProjection[shadowMapIndex], ref shadowMapLightViewProjection[shadowMapIndex]);
 
@@ -609,7 +610,7 @@ namespace Orts.ActivityRunner.Viewer3D
             shadowMapMaterial.SetState(ShadowMapMaterial.Mode.Normal);
 
             // Render terrain shadow items now, with their magic.
-            if (logging) Console.WriteLine("      {0,-5} * TerrainMaterial (normal)", renderShadowTerrainItems[shadowMapIndex].Count);
+            if (logging) Trace.WriteLine($"      {renderShadowTerrainItems[shadowMapIndex].Count,-5} * TerrainMaterial (normal)");
             game.GraphicsDevice.Indices = TerrainPrimitive.SharedPatchIndexBuffer;
 //            shadowMapMaterial.Render(graphicsDevice, renderShadowTerrainItems[shadowMapIndex], ref shadowMapLightView[shadowMapIndex], ref shadowMapLightProjection[shadowMapIndex]);
             shadowMapMaterial.Render(renderShadowTerrainItems[shadowMapIndex], ref shadowMapLightView[shadowMapIndex], ref shadowMapLightProjection[shadowMapIndex], ref shadowMapLightViewProjection[shadowMapIndex]);
@@ -618,7 +619,7 @@ namespace Orts.ActivityRunner.Viewer3D
             shadowMapMaterial.SetState(ShadowMapMaterial.Mode.Blocker);
 
             // Render terrain shadow items in blocking mode.
-            if (logging) Console.WriteLine("      {0,-5} * TerrainMaterial (blocker)", renderShadowTerrainItems[shadowMapIndex].Count);
+            if (logging) Trace.WriteLine($"      {renderShadowTerrainItems[shadowMapIndex].Count,-5} * TerrainMaterial (blocker)");
             //            shadowMapMaterial.Render(graphicsDevice, renderShadowTerrainItems[shadowMapIndex], ref shadowMapLightView[shadowMapIndex], ref shadowMapLightProjection[shadowMapIndex]);
             shadowMapMaterial.Render(renderShadowTerrainItems[shadowMapIndex], ref shadowMapLightView[shadowMapIndex], ref shadowMapLightProjection[shadowMapIndex], ref shadowMapLightViewProjection[shadowMapIndex]);
 
@@ -635,7 +636,7 @@ namespace Orts.ActivityRunner.Viewer3D
             else
                 shadowMap[shadowMapIndex] = shadowMapRenderTarget[shadowMapIndex];
 
-            if (logging) Console.WriteLine("    }");
+            if (logging) Trace.WriteLine("    }");
         }
 
         /// <summary>
@@ -647,21 +648,21 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             if (game.Settings.DistantMountains)
             {
-                if (logging) Console.WriteLine("  DrawSimple (Distant Mountains) {");
+                if (logging) Trace.WriteLine("  DrawSimple (Distant Mountains) {");
                 game.GraphicsDevice.Clear(ClearOptions.Target | ClearOptions.DepthBuffer | ClearOptions.Stencil, Color.Transparent, 1, 0);
                 DrawSequencesDistantMountains(logging);
-                if (logging) Console.WriteLine("  }");
-                if (logging) Console.WriteLine("  DrawSimple {");
+                if (logging) Trace.WriteLine("  }");
+                if (logging) Trace.WriteLine("  DrawSimple {");
                 game.GraphicsDevice.Clear(ClearOptions.DepthBuffer, Color.Transparent, 1, 0);
                 DrawSequences(logging);
-                if (logging) Console.WriteLine("  }");
+                if (logging) Trace.WriteLine("  }");
             }
             else
             {
-                if (logging) Console.WriteLine("  DrawSimple {");
+                if (logging) Trace.WriteLine("  DrawSimple {");
                 game.GraphicsDevice.Clear(ClearOptions.Target | ClearOptions.DepthBuffer | ClearOptions.Stencil, Color.Transparent, 1, 0);
                 DrawSequences(logging);
-                if (logging) Console.WriteLine("  }");
+                if (logging) Trace.WriteLine("  }");
             }
         }
 
@@ -676,7 +677,7 @@ namespace Orts.ActivityRunner.Viewer3D
             renderItemsSequence.Clear();
             for (var i = 0; i < (int)RenderPrimitiveSequence.Sentinel; i++)
             {
-                if (logging) Console.WriteLine("    {0} {{", (RenderPrimitiveSequence)i);
+                if (logging) Trace.WriteLine($"    {(RenderPrimitiveSequence)i} {{");
                 var sequence = renderItems[i];
                 foreach (var sequenceMaterial in sequence)
                 {
@@ -692,7 +693,7 @@ namespace Orts.ActivityRunner.Viewer3D
                             {
                                 if (renderItemsSequence.Count > 0)
                                 {
-                                    if (logging) Console.WriteLine("      {0,-5} * {1}", renderItemsSequence.Count, lastMaterial);
+                                    if (logging) Trace.WriteLine($"      {renderItemsSequence.Count,-5} * {lastMaterial}");
                                     lastMaterial.Render(renderItemsSequence, ref viewRef, ref projectionRef, ref cameraViewProjection);
                                     renderItemsSequence.Clear();
                                 }
@@ -706,7 +707,7 @@ namespace Orts.ActivityRunner.Viewer3D
                         }
                         if (renderItemsSequence.Count > 0)
                         {
-                            if (logging) Console.WriteLine("      {0,-5} * {1}", renderItemsSequence.Count, lastMaterial);
+                            if (logging) Trace.WriteLine($"      {renderItemsSequence.Count,-5} * {lastMaterial}");
                             lastMaterial.Render(renderItemsSequence, ref viewRef, ref projectionRef, ref cameraViewProjection);
                             renderItemsSequence.Clear();
                         }
@@ -721,12 +722,12 @@ namespace Orts.ActivityRunner.Viewer3D
                             continue;
                         // Opaque: single material, render in one go.
                         sequenceMaterial.Key.SetState(null);
-                        if (logging) Console.WriteLine("      {0,-5} * {1}", sequenceMaterial.Value.Count, sequenceMaterial.Key);
+                        if (logging) Trace.WriteLine($"      {sequenceMaterial.Value.Count,-5} * {sequenceMaterial.Key}");
                         sequenceMaterial.Key.Render(sequenceMaterial.Value, ref viewRef, ref projectionRef, ref cameraViewProjection);
                         sequenceMaterial.Key.ResetState();
                     }
                 }
-                if (logging) Console.WriteLine("    }");
+                if (logging) Trace.WriteLine("    }");
             }
 
             if (dynamicShadows && (shadowMapCount > 0) && sceneryShader != null)
@@ -743,7 +744,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             for (var i = 0; i < (int)RenderPrimitiveSequence.Sentinel; i++)
             {
-                if (logging) Console.WriteLine("    {0} {{", (RenderPrimitiveSequence)i);
+                if (logging) Trace.WriteLine($"    {(RenderPrimitiveSequence)i} {{");
                 var sequence = renderItems[i];
                 foreach (var sequenceMaterial in sequence)
                 {
@@ -753,12 +754,12 @@ namespace Orts.ActivityRunner.Viewer3D
                     {
                         // Opaque: single material, render in one go.
                         sequenceMaterial.Key.SetState(null);
-                        if (logging) Console.WriteLine("      {0,-5} * {1}", sequenceMaterial.Value.Count, sequenceMaterial.Key);
+                        if (logging) Trace.WriteLine($"      {sequenceMaterial.Value.Count,-5} * {sequenceMaterial.Key}");
                         sequenceMaterial.Key.Render(sequenceMaterial.Value, ref camera.XnaView, ref Camera.XnaDistantMountainProjection, ref mountainViewProjection);
                         sequenceMaterial.Key.ResetState();
                     }
                 }
-                if (logging) Console.WriteLine("    }");
+                if (logging) Trace.WriteLine("    }");
             }
         }
     }

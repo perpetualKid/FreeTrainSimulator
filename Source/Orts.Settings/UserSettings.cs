@@ -18,6 +18,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -491,7 +492,7 @@ namespace Orts.Settings
                         (value.Equals(GetDefaultValue(property.Name)) ? "" : "(user set)"));
                 }
 
-                Console.WriteLine($"{property.Name.Substring(0, Math.Min(30, property.Name.Length)),-30} = {source,-14} {value.ToString().Replace(Environment.UserName, "********")}");
+                Trace.WriteLine($"{property.Name.Substring(0, Math.Min(30, property.Name.Length)),-30} = {source,-14} {value.ToString().Replace(Environment.UserName, "********")}");
             }
 
             properties = null;

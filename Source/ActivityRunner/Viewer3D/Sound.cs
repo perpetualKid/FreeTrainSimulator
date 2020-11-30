@@ -1618,9 +1618,9 @@ namespace Orts.ActivityRunner.Viewer3D
                 Signaled = true;
 #if DEBUGSCR
                 if (SoundCommand is ORTSSoundPlayCommand && !string.IsNullOrEmpty((SoundCommand as ORTSSoundPlayCommand).Files[(SoundCommand as ORTSSoundPlayCommand).iFile]))
-                    Console.WriteLine("({0})DiscreteTrigger: {1}:{2}", SoundStream.ALSoundSource.SoundSourceID, TriggerID, (SoundCommand as ORTSSoundPlayCommand).Files[(SoundCommand as ORTSSoundPlayCommand).iFile]);
+                    Trace.WriteLine("({0})DiscreteTrigger: {1}:{2}", SoundStream.ALSoundSource.SoundSourceID, TriggerID, (SoundCommand as ORTSSoundPlayCommand).Files[(SoundCommand as ORTSSoundPlayCommand).iFile]);
                 else
-                    Console.WriteLine("({0})DiscreteTrigger: {1}", SoundStream.ALSoundSource.SoundSourceID, TriggerID);
+                    Trace.WriteLine("({0})DiscreteTrigger: {1}", SoundStream.ALSoundSource.SoundSourceID, TriggerID);
 #endif
             }
             // If the SoundSource is not active, should deactivate the SoundStream also
@@ -1670,7 +1670,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 }
                 UpdateTriggerDistance();
 #if DEBUGSCR
-                Console.WriteLine("({0})DistanceTravelledTrigger: Current:{1}, Next:{2}", SoundStream.ALSoundSource.SoundSourceID, car.DistanceM, triggerDistance);
+                Trace.WriteLine("({0})DistanceTravelledTrigger: Current:{1}, Next:{2}", SoundStream.ALSoundSource.SoundSourceID, car.DistanceM, triggerDistance);
 #endif
 
             }
@@ -1726,7 +1726,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 SoundStream.LastTriggered = this;
 #if DEBUGSCR
                 if (SoundCommand is ORTSSoundPlayCommand && !string.IsNullOrEmpty((SoundCommand as ORTSSoundPlayCommand).Files[(SoundCommand as ORTSSoundPlayCommand).iFile]))
-                    Console.WriteLine("({0})InitialTrigger: {1}", SoundStream.ALSoundSource.SoundSourceID, (SoundCommand as ORTSSoundPlayCommand).Files[(SoundCommand as ORTSSoundPlayCommand).iFile]);
+                    Trace.WriteLine("({0})InitialTrigger: {1}", SoundStream.ALSoundSource.SoundSourceID, (SoundCommand as ORTSSoundPlayCommand).Files[(SoundCommand as ORTSSoundPlayCommand).iFile]);
 #endif
             }
 
@@ -1879,22 +1879,22 @@ namespace Orts.ActivityRunner.Viewer3D
                 ORTSStartLoop sl = SoundCommand as ORTSStartLoop;
                 if (sl != null)
                 {
-                    Console.WriteLine("({0})StartLoop ({1} {2}): {3} ", SoundStream.ALSoundSource.SoundSourceID, SMS.Event.ToString(), SMS.Threshold.ToString(), sl.Files[sl.iFile]);
+                    Trace.WriteLine("({0})StartLoop ({1} {2}): {3} ", SoundStream.ALSoundSource.SoundSourceID, SMS.Event.ToString(), SMS.Threshold.ToString(), sl.Files[sl.iFile]);
                 }
                 ORTSStartLoopRelease slr = SoundCommand as ORTSStartLoopRelease;
                 if (slr != null)
                 {
-                    Console.WriteLine("({0})StartLoopRelease ({1} {2}): {3} ", SoundStream.ALSoundSource.SoundSourceID, SMS.Event.ToString(), SMS.Threshold.ToString(), slr.Files[slr.iFile]);
+                    Trace.WriteLine("({0})StartLoopRelease ({1} {2}): {3} ", SoundStream.ALSoundSource.SoundSourceID, SMS.Event.ToString(), SMS.Threshold.ToString(), slr.Files[slr.iFile]);
                 }
                 ORTSReleaseLoopRelease rlr = SoundCommand as ORTSReleaseLoopRelease;
                 if (rlr != null)
                 {
-                    Console.WriteLine("({0})ReleaseLoopRelease ({1} {2}) ", SoundStream.ALSoundSource.SoundSourceID, SMS.Event.ToString(), SMS.Threshold.ToString());
+                    Trace.WriteLine("({0})ReleaseLoopRelease ({1} {2}) ", SoundStream.ALSoundSource.SoundSourceID, SMS.Event.ToString(), SMS.Threshold.ToString());
                 }
                 ORTSReleaseLoopReleaseWithJump rlrwj = SoundCommand as ORTSReleaseLoopReleaseWithJump;
                 if (rlrwj != null)
                 {
-                    Console.WriteLine("({0})ReleaseLoopReleaseWithJump ({1} {2}) ", SoundStream.ALSoundSource.SoundSourceID, SMS.Event.ToString(), SMS.Threshold.ToString());
+                    Trace.WriteLine("({0})ReleaseLoopReleaseWithJump ({1} {2}) ", SoundStream.ALSoundSource.SoundSourceID, SMS.Event.ToString(), SMS.Threshold.ToString());
                 }
 #endif
             }

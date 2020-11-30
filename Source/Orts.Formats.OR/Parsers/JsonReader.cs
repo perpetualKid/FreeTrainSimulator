@@ -60,14 +60,14 @@ namespace Orts.Formats.OR.Parsers
             var basePosition = pathPositions.Count > 0 ? pathPositions.Peek() : 0;
 
 #if DEBUG_JSON_READER
-            Console.WriteLine();
-            Console.WriteLine($"JsonReader({_path.ToString()} ({string.Join(",", _pathPositions.Select(p => p.ToString()).ToArray())})).ReadBlock(): base={basePosition}");
+            Trace.WriteLine();
+            Trace.WriteLine($"JsonReader({_path.ToString()} ({string.Join(",", _pathPositions.Select(p => p.ToString()).ToArray())})).ReadBlock(): base={basePosition}");
 #endif
 
             while (reader.Read())
             {
 #if DEBUG_JSON_READER
-                Console.WriteLine($"JsonReader.ReadBlock({_path.ToString()} ({string.Join(",", _pathPositions.Select(p => p.ToString()).ToArray())})): token={_reader.TokenType} value={_reader.Value} type={_reader.ValueType}");
+                Trace.WriteLine($"JsonReader.ReadBlock({_path.ToString()} ({string.Join(",", _pathPositions.Select(p => p.ToString()).ToArray())})): token={_reader.TokenType} value={_reader.Value} type={_reader.ValueType}");
 #endif
                 switch (reader.TokenType)
                 {

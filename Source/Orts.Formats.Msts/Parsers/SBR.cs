@@ -75,7 +75,7 @@ namespace Orts.Formats.Msts.Parsers
             else if (headerString.StartsWith("\r\nSIMISA"))
             {
                 // ie us1rd2l1000r10d.s, we are going to allow this but warn
-                Console.Error.WriteLine("Improper header in " + fileName);
+                Trace.TraceError("Improper header in " + fileName);
                 fb.Read(buffer, 0, 4);
             }
             else if (!headerString.StartsWith("SIMISA@@"))

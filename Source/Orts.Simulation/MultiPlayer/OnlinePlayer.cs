@@ -18,6 +18,7 @@
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Net.Sockets;
 using System.Text;
@@ -135,7 +136,7 @@ namespace Orts.MultiPlayer
 					info = decoder.GetMsg();
 					while (info != null)
 					{
-						//System.Console.WriteLine(info);
+						//Trace.WriteLine(info);
 						Message msg = Message.Decode(info);
 						if (msg is MSGPlayer) ((MSGPlayer)msg).HandleMsg(this);
 						else msg.HandleMsg();
@@ -168,11 +169,11 @@ namespace Orts.MultiPlayer
 					}
 					else if (errorCount < 5) { errorCount++; }
 					else { firstErrorTick = nowTicks; errorCount = 0; }
-					//System.Console.WriteLine(e.Message + info);
+					//Trace.WriteLine(e.Message + info);
 				}
 			}
 
-			System.Console.WriteLine("{0} quit", this.Username);
+			Trace.WriteLine("{0} quit", this.Username);
 			if (MPManager.Simulator.Confirmer != null) MPManager.Simulator.Confirmer.Information(MPManager.Catalog.GetString("{0} quit.", this.Username));
 			Client.Close();
 			if (this.Train != null && this.status != Status.Removed) //remember the location of the train in case the player comes back later, if he is not removed by the dispatcher
