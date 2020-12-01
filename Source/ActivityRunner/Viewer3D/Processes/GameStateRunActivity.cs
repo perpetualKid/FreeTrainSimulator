@@ -707,7 +707,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             if (Debugger.IsLogging())
             {
                 Trace.Listeners.Add(new ConsoleTraceListener());
-
             }
 
             Trace.WriteLine($"This is a log file for {RuntimeInfo.ProductName}. Please include this file in bug reports.");
