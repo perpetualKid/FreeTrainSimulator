@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
+using System;
 using System.Collections.Generic;
 
 namespace Orts.Scripting.Api.Etcs
@@ -68,12 +69,15 @@ namespace Orts.Scripting.Api.Etcs
         /// </summary>
         public float? ReleaseSpeedMpS;
         /// <summary>
-        /// Visual indication for the driver to help him follow the braking curve
-        /// It is shown as a grey/white square at the top left corner of the DMI
-        /// Negative values are used for time to permitted speed (non standard)
-        /// With negative values, displays a yellow, orange or red square depending on supervision status
+        /// Visual indication for the driver to help him follow the braking curve with reduced adheasion conditions.
+        /// It is shown as a grey/white square at the top left corner of the DMI while in CSM.
         /// </summary>
         public float? TimeToIndicationS;
+        /// <summary>
+        /// Visual indication for the driver to help him follow the permitted speed curve.
+        /// It is shown as a yellow, orange or red square at the top left corner of the DMI while in TSM.
+        /// </summary>
+        public float? TimeToPermittedS;
         /// <summary>
         /// Current speed monitoring status, either ceiling speed, target speed or release speed
         /// </summary>
@@ -93,7 +97,7 @@ namespace Orts.Scripting.Api.Etcs
         /// First target must be current speed limit, with distance = 0
         /// It will also be used to draw the planning area speed profile (PASP)
         /// </summary>
-        public List<PlanningTarget> SpeedTargets = new List<PlanningTarget>();
+        public readonly List<PlanningTarget> SpeedTargets = new List<PlanningTarget>();
         /// <summary>
         /// Target with the closest distance to indication.
         /// Its speed limit will be shown in yellow in the planning area
@@ -109,11 +113,12 @@ namespace Orts.Scripting.Api.Etcs
         /// First gradient must be with distance = 0
         /// At the point where the gradient profile ends a target must be inserted with any value, to mark the end of the profile
         /// </summary>
-        public List<GradientProfileElement> GradientProfile = new List<GradientProfileElement>();
+        public readonly List<GradientProfileElement> GradientProfile = new List<GradientProfileElement>();
         /// <summary>
         /// Orders and announcements ahead to be displayed in the planning area
         /// </summary>
-        public List<PlanningTrackCondition> PlanningTrackConditions = new List<PlanningTrackCondition>();
+        public readonly List<PlanningTrackCondition> PlanningTrackConditions = new List<PlanningTrackCondition>();
+        public readonly List<TextMessage> TextMessages = new List<TextMessage>();
 
         /// <summary>
         /// Monitoring status of ETCS
@@ -133,134 +138,156 @@ namespace Orts.Scripting.Api.Etcs
             /// </summary>
             ReleaseSpeed
         }
-
+    }
+    /// <summary>
+    /// Controls supervision status of ETCS
+    /// </summary>
+    public enum SupervisionStatus
+    {
         /// <summary>
-        /// Controls supervision status of ETCS
+        /// Grey color. No speed restriction is ahead.
         /// </summary>
-        public enum SupervisionStatus
+        Normal,
+        /// <summary>
+        /// Yellow color. Next signal is restricted, driver should start decreasing speed.
+        /// </summary>
+        Indication,
+        /// <summary>
+        /// Orange color. The locomotive is over the permitted supervision limit.
+        /// </summary>
+        Overspeed,
+        /// <summary>
+        /// Orange color. Computer is close to apply brakes, audible warning is played.
+        /// </summary>
+        Warning,
+        /// <summary>
+        /// Red color. Train control system intervention speed. Computer has to apply full service or emergency brake to maintain speed restriction.
+        /// </summary>
+        Intervention
+    }
+
+    public enum Level
+    {
+        N0,
+        N1,
+        N2,
+        N3,
+        NTC
+    }
+    public enum Mode
+    {
+        FS,
+        LS,
+        OS,
+        SR,
+        SH,
+        UN,
+        PS,
+        SL,
+        SB,
+        TR,
+        PT,
+        SF,
+        IS,
+        NP,
+        NL,
+        SN,
+        RV
+    }
+
+    public enum TrackConditionType
+    {
+        Custom,
+        LowerPantograph,
+        RaisePantograph,
+        NeutralSectionAnnouncement,
+        EndOfNeutralSection,
+        NonStoppingArea,
+        RadioHole,
+        MagneticShoeInhibition,
+        EddyCurrentBrakeInhibition,
+        RegenerativeBrakeInhibition,
+        OpenAirIntake,
+        CloseAirIntake,
+        SoundHorn,
+        TractionSystemChange
+    }
+
+    public enum TractionSystem
+    {
+        NonFitted,
+        AC25kV,
+        AC15kV,
+        DC3000V,
+        DC1500V,
+        DC750V
+    }
+
+    public struct PlanningTrackCondition
+    {
+        public readonly TrackConditionType Type;
+        public float DistanceToTrainM;
+        public readonly bool YellowColour;
+        public TractionSystem? TractionSystem;
+
+        public PlanningTrackCondition(TrackConditionType type, bool isYellowColour, float distanceToTrainM)
         {
-            /// <summary>
-            /// Grey color. No speed restriction is ahead.
-            /// </summary>
-            Normal,
-            /// <summary>
-            /// Yellow color. Next signal is restricted, driver should start decreasing speed.
-            /// </summary>
-            Indication,
-            /// <summary>
-            /// Orange color. The locomotive is over the permitted supervision limit.
-            /// </summary>
-            Overspeed,
-            /// <summary>
-            /// Orange color. Computer is close to apply brakes, audible warning is played.
-            /// </summary>
-            Warning,
-            /// <summary>
-            /// Red color. Train control system intervention speed. Computer has to apply full service or emergency brake to maintain speed restriction.
-            /// </summary>
-            Intervention
+            DistanceToTrainM = distanceToTrainM;
+            Type = type;
+            YellowColour = isYellowColour;
+            TractionSystem = null;
         }
 
-        public enum Level
+        public PlanningTrackCondition(TractionSystem tractionSystem, bool isYellowColour, float distanceToTrainM)
         {
-            N0,
-            N1,
-            N2,
-            N3,
-            NTC
+            DistanceToTrainM = distanceToTrainM;
+            Type = TrackConditionType.TractionSystemChange;
+            YellowColour = isYellowColour;
+            TractionSystem = tractionSystem;
         }
-        public enum Mode
+    }
+
+    public struct PlanningTarget
+    {
+        public float DistanceToTrainM;
+        public readonly float TargetSpeedMpS;
+        public PlanningTarget(float distanceToTrainM, float targetSpeedMpS)
         {
-            FS,
-            LS,
-            OS,
-            SR,
-            SH,
-            UN,
-            PS,
-            SL,
-            SB,
-            TR,
-            PT,
-            SF,
-            IS,
-            NP,
-            NL,
-            SN,
-            RV
+            DistanceToTrainM = distanceToTrainM;
+            TargetSpeedMpS = targetSpeedMpS;
         }
-
-        public enum TrackConditionType
+    }
+    public struct GradientProfileElement
+    {
+        public float DistanceToTrainM;
+        public int GradientPerMille;
+        public GradientProfileElement(float distanceToTrainM, int gradientPerMille)
         {
-            Custom,
-            LowerPantograph,
-            RaisePantograph,
-            NeutralSectionAnnouncement,
-            EndOfNeutralSection,
-            NonStoppingArea,
-            RadioHole,
-            MagneticShoeInhibition,
-            EddyCurrentBrakeInhibition,
-            RegenerativeBrakeInhibition,
-            OpenAirIntake,
-            CloseAirIntake,
-            SoundHorn,
-            TractionSystemChange
+            DistanceToTrainM = distanceToTrainM;
+            GradientPerMille = gradientPerMille;
         }
+    }
 
-        public enum TractionSystem
+    public struct TextMessage : IEquatable<TextMessage>
+    {
+        public readonly string Text;
+        public readonly bool FirstGroup;
+        public float TimestampS;
+        public bool Acknowledgeable;
+        public bool Acknowledged;
+        public bool Displayed;
+        public TextMessage(string text, float timestampS, bool firstGroup = false, bool acknowledgeable = false)
         {
-            NonFitted,
-            AC25kV,
-            AC15kV,
-            DC3000V,
-            DC1500V,
-            DC750V
+            Text = text;
+            TimestampS = timestampS;
+            FirstGroup = firstGroup;
+            Acknowledgeable = acknowledgeable;
+            Acknowledged = false;
+            Displayed = false;
         }
-
-        public struct PlanningTrackCondition
+        public bool Equals(TextMessage o)
         {
-            public readonly TrackConditionType Type;
-            public float DistanceToTrainM;
-            public readonly bool YellowColour;
-            public TractionSystem? TractionSystem;
-
-            public PlanningTrackCondition(TrackConditionType type, bool isYellowColour, float distanceToTrainM)
-            {
-                DistanceToTrainM = distanceToTrainM;
-                Type = type;
-                YellowColour = isYellowColour;
-                TractionSystem = null;
-            }
-
-            public PlanningTrackCondition(TractionSystem tractionSystem, bool isYellowColour, float distanceToTrainM)
-            {
-                DistanceToTrainM = distanceToTrainM;
-                Type = TrackConditionType.TractionSystemChange;
-                YellowColour = isYellowColour;
-                TractionSystem = tractionSystem;
-            }
-        }
-
-        public struct PlanningTarget
-        {
-            public float DistanceToTrainM;
-            public readonly float TargetSpeedMpS;
-            public PlanningTarget(float distanceToTrainM, float targetSpeedMpS)
-            {
-                DistanceToTrainM = distanceToTrainM;
-                TargetSpeedMpS = targetSpeedMpS;
-            }
-        }
-        public struct GradientProfileElement
-        {
-            public float DistanceToTrainM;
-            public int GradientPerMille;
-            public GradientProfileElement(float distanceToTrainM, int gradientPerMille)
-            {
-                DistanceToTrainM = distanceToTrainM;
-                GradientPerMille = gradientPerMille;
-            }
+            return o.Text == Text && o.TimestampS == TimestampS;
         }
     }
 }

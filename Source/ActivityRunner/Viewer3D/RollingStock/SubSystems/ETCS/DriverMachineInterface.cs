@@ -40,6 +40,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
         public readonly CircularSpeedGauge CircularSpeedGauge;
         public readonly PlanningWindow PlanningWindow;
         public readonly DistanceArea DistanceArea;
+        public readonly MessageArea MessageArea;
         float PrevScale = 1;
 
         bool Active;
@@ -63,8 +64,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
         readonly Point SpeedAreaLocation;
         readonly Point PlanningLocation;
         readonly Point DistanceAreaLocation;
+        readonly Point MessageAreaLocation;
 
-        Texture2D ColorTexture;
+        public Texture2D ColorTexture { get; private set; }
 
         bool DisplayBackground = false;
 
@@ -117,6 +119,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
             PlanningLocation = new Point(334, IsSoftLayout ? 0 : 15);
             SpeedAreaLocation = new Point(54, IsSoftLayout ? 0 : 15);
             DistanceAreaLocation = new Point(0, IsSoftLayout ? 0 : 15);
+            MessageAreaLocation = new Point(54, IsSoftLayout ? 350 : 365);
 
             CircularSpeedGauge = new CircularSpeedGauge(
                    (int)control.ScaleRangeMax,
@@ -131,6 +134,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
                );
             PlanningWindow = new PlanningWindow(this, Viewer, PlanningLocation);
             DistanceArea = new DistanceArea(this, Viewer, DistanceAreaLocation);
+            MessageArea = new MessageArea(this, Viewer, MessageAreaLocation);
         }
 
         public void PrepareFrame()
@@ -141,6 +145,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
             CircularSpeedGauge.PrepareFrame(currentStatus);
             PlanningWindow.PrepareFrame(currentStatus);
             DistanceArea.PrepareFrame(currentStatus);
+            MessageArea.PrepareFrame(currentStatus);
         }
         public void SizeTo(float width, float height)
         {
@@ -152,6 +157,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
                 CircularSpeedGauge.SetFont();
                 PlanningWindow.SetFont();
                 DistanceArea.SetFont();
+                MessageArea.SetFont();
             }
         }
 
@@ -169,6 +175,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
             CircularSpeedGauge.Draw(spriteBatch, new Point(position.X + (int)(SpeedAreaLocation.X * Scale), position.Y + (int)(SpeedAreaLocation.Y * Scale)));
             PlanningWindow.Draw(spriteBatch, new Point(position.X + (int)(PlanningLocation.X * Scale), position.Y + (int)(PlanningLocation.Y * Scale)));
             DistanceArea.Draw(spriteBatch, new Point(position.X + (int)(DistanceAreaLocation.X * Scale), position.Y + (int)(DistanceAreaLocation.Y * Scale)));
+            //MessageArea.Draw(spriteBatch, new Point(position.X + (int)(MessageAreaLocation.X * Scale), position.Y + (int)(MessageAreaLocation.Y * Scale)));
         }
 
         internal void MouseClickedEvent(Point location)
@@ -227,6 +234,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
             if (PressedButton != null)
             {
                 PlanningWindow.HandleInput();
+                MessageArea.HandleInput();
                 PressedButton = null;
             }
         }
@@ -248,7 +256,27 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
     {
         protected readonly DriverMachineInterface DMI;
         public float Scale => DMI.Scale;
-        protected Texture2D ColorTexture;
+        protected Texture2D ColorTexture => DMI.ColorTexture;
+        public class TextPrimitive
+        {
+            public Point Position;
+            public Color Color;
+            public WindowTextFont Font;
+            public string Text;
+
+            public TextPrimitive(Point position, Color color, string text, WindowTextFont font)
+            {
+                Position = position;
+                Color = color;
+                Text = text;
+                Font = font;
+            }
+
+            public void Draw(SpriteBatch spriteBatch, Point position)
+            {
+                Font.Draw(spriteBatch, position, Text, Color);
+            }
+        }
         protected DMIWindow(DriverMachineInterface dmi)
         {
             DMI = dmi;
@@ -333,6 +361,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
             CabShaderControlView.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, null, DepthStencilState.Default, null, Shader);
         }
 
+
         private void MouseClickedEvent(UserCommandArgs userCommandArgs)
         {
             Point pointerLocation = (userCommandArgs as PointerCommandArgs).Position;
@@ -343,27 +372,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
         {
             Point pointerLocation = (userCommandArgs as PointerCommandArgs).Position;
             driverMachineInterface.MouseReleasedEvent(new Point((int)((pointerLocation.X - DrawPosition.X) / driverMachineInterface.Scale + 54), (int)((pointerLocation.Y - DrawPosition.Y) / driverMachineInterface.Scale + 15)));
-        }
-    }
-
-    internal class TextPrimitive
-    {
-        public Point Position;
-        public Color Color;
-        public WindowTextFont Font;
-        public string Text;
-
-        public TextPrimitive(Point position, Color color, string text, WindowTextFont font)
-        {
-            Position = position;
-            Color = color;
-            Text = text;
-            Font = font;
-        }
-
-        public void Draw(SpriteBatch spriteBatch, Point position)
-        {
-            Font.Draw(spriteBatch, position, Text, Color);
         }
     }
 }
