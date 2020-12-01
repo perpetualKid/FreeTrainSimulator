@@ -19,6 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 
 using GetText;
 
@@ -466,7 +467,7 @@ namespace Orts.Simulation
             if (Settings.EvaluationStationStops && ActivityRun != null)
             {
                 string stationLogFile = DeriveLogFile("Stops");
-                if (!String.IsNullOrEmpty(stationLogFile))
+                if (!string.IsNullOrEmpty(stationLogFile))
                 {
                     ActivityRun.StartStationLogging(stationLogFile);
                 }
@@ -1953,36 +1954,30 @@ namespace Orts.Simulation
 
         public string DeriveLogFile(string appendix)
         {
-            string logfilebase = String.Empty;
-            string logfilefull = String.Empty;
+            const int maxLogFiles = 2;
+            StringBuilder logfile = new StringBuilder();
 
-            if (!String.IsNullOrEmpty(ActivityFileName))
-            {
-                logfilebase = String.Copy(UserSettings.UserDataFolder);
-                logfilebase = String.Concat(logfilebase, "_", ActivityFileName);
-            }
-            else
-            {
-                logfilebase = String.Copy(UserSettings.UserDataFolder);
-                logfilebase = String.Concat(logfilebase, "_explorer");
-            }
+            logfile.Append(RouteName);
 
-            logfilebase = String.Concat(logfilebase, appendix);
-            logfilefull = String.Concat(logfilebase, ".csv");
+            logfile.Append(string.IsNullOrEmpty(ActivityFileName) ? "_explorer" : "_" + ActivityFileName);
 
-            bool logExists = File.Exists(logfilefull);
+            logfile.Append(appendix);
+
+            string logfileName = Path.Combine(UserSettings.UserDataFolder, Path.ChangeExtension(logfile.ToString(), "csv"));
+
             int logCount = 0;
 
-            while (logExists && logCount < 100)
+            while (File.Exists(logfileName) && logCount < maxLogFiles)
             {
+                logfileName = Path.Combine(UserSettings.UserDataFolder, Path.ChangeExtension($"{logfile}{logCount:00}", "csv"));
                 logCount++;
-                logfilefull = String.Concat(logfilebase, "_", logCount.ToString("00"), ".csv");
-                logExists = File.Exists(logfilefull);
             }
 
-            if (logExists) logfilefull = String.Empty;
-
-            return (logfilefull);
+            if (logCount >= maxLogFiles)
+            {
+                logfileName = string.Empty;
+            }
+            return logfileName;
         }
 
         /// <summary>

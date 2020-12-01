@@ -417,7 +417,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                         }
                         else if (transferValid)
                         {
-                            Message.Text = String.Copy(TransferMessage);
+                            Message.Text = TransferMessage;
                             Message.Color = Color.Orange;
                         }
                         else if (playerTimetableTrain.NeedTransfer)

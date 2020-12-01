@@ -1162,7 +1162,7 @@ namespace Orts.Simulation.AIs
                     }
                     if (lastTrain != null)
                     {
-                        thisTrain.CreateAhead = String.Copy(lastTrain.Name).ToLower();
+                        thisTrain.CreateAhead = lastTrain.Name.ToLower();
                     }
                 }
 

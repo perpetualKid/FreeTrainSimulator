@@ -5027,15 +5027,15 @@ namespace Orts.Simulation.AIs
                         break;
                 }
 
-                retString[7] = String.Copy(actString);
+                retString[7] = actString;
                 retString[8] = FormatStrings.FormatDistance(
                         nextActionInfo.ActivateDistanceM - PresentPosition[Direction.Forward].DistanceTravelled, metric);
 
             }
 
-            retString[4] = String.Copy(movString);
-            retString[5] = String.Copy(abString);
-            retString[11] = String.Copy(nameString);
+            retString[4] = movString;
+            retString[5] = abString;
+            retString[11] = nameString;
 
             return (retString);
         }

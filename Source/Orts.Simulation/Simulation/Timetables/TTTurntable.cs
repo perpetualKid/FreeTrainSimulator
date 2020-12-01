@@ -129,7 +129,7 @@ namespace Orts.Simulation.Timetables
                         {
                             lineindex++;
                             firstName = true;
-                            PoolName = String.Copy(inputLine[1].ToLower().Trim());
+                            PoolName = inputLine[1].ToLower().Trim();
                         }
                         break;
 
@@ -143,7 +143,7 @@ namespace Orts.Simulation.Timetables
                         }
                         else
                         {
-                            Worldfile = String.Copy(inputLine[1].ToLower().Trim());
+                            Worldfile = inputLine[1].ToLower().Trim();
                             lineindex++;
                         }
                         break;
@@ -204,7 +204,7 @@ namespace Orts.Simulation.Timetables
                                 AccessPathDetails thisAccess = new AccessPathDetails();
                                 thisAccess.AccessPath = new TrackCircuitPartialPathRoute(usedRoute);
                                 thisAccess.AccessTraveller = new Traveller(Simulatorref.TSectionDat, Simulatorref.TDB.TrackDB.TrackNodes, newPath);
-                                thisAccess.AccessPathName = String.Copy(accessPath);
+                                thisAccess.AccessPathName = accessPath;
                                 AdditionalTurntableDetails.AccessPaths.Add(thisAccess);
                             }
                             else
@@ -1158,7 +1158,7 @@ namespace Orts.Simulation.Timetables
                 {
                     foreach (var car in train.Cars)
                     {
-                        car.OrgConsist = String.Copy(train.ForcedConsistName);
+                        car.OrgConsist = train.ForcedConsistName;
                     }
                 }
 
@@ -1391,7 +1391,7 @@ namespace Orts.Simulation.Timetables
         public TimetableTurntableControl(TimetableTurntablePool thisPool, string thisPoolName, int turntableIndex, Simulator simulatorref, TTTrain train)
         {
             parentPool = thisPool;
-            poolName = string.Copy(thisPoolName);
+            poolName = thisPoolName;
             parentIndex = turntableIndex;
             parentTrain = train;
             parentTurntable = simulatorref.MovingTables[parentIndex] as Turntable;
