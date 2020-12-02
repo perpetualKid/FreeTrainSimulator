@@ -24,5 +24,8 @@
     <Description>Open Rails Train Simulator</Description>
     <Copyright>Copyright © 2020</Copyright>
     <NoWin32Manifest>true</NoWin32Manifest>
-    <NeutralLanguage>en</NeutralLanguage>  </PropertyGroup>
+    <NeutralLanguage>en</NeutralLanguage>
+    <TieredCompilation>true</TieredCompilation>
+    <NoWin32Manifest>true</NoWin32Manifest>
+  </PropertyGroup>
 </Project>
