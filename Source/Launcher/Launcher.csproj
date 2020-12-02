@@ -5,13 +5,6 @@
     <UseWindowsForms>true</UseWindowsForms>
     <Description>Open Rails Launcher</Description>
   </PropertyGroup>
-  <ItemGroup>
-	<PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0">
-	<IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-    <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-    <PackageReference Remove="Microsoft.NETCore.Targets" Version="3.1.0" PrivateAssets="all" />
-  </ItemGroup>  
    <PropertyGroup>
     <OutputPath>..\..\Program</OutputPath>
     <RootNamespace>Orts.Launcher</RootNamespace>
@@ -25,10 +18,4 @@
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
   </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Update="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="3.3.1">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-  </ItemGroup>
 </Project>

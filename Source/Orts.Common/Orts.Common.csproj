@@ -1,6 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
   <PropertyGroup>
-    <TargetFrameworks>net48;netcoreapp3.1</TargetFrameworks>
     <UseWindowsForms>true</UseWindowsForms>
     <AssemblyTitle>Open Rails Common Library</AssemblyTitle>
   </PropertyGroup>
@@ -20,12 +19,5 @@
     <Reference Include="PIEHid64Net">
       <HintPath>..\3rdPartyLibs\PIEHid64Net.dll</HintPath>
     </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Update="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="3.3.1">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Update="Microsoft.NETCore.Targets" Version="5.0.0" />
   </ItemGroup>
 </Project>

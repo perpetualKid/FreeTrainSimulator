@@ -1,10 +1,10 @@
 <Project>
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="3.0.0">
+    <PackageReference Update="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="3.3.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-  <PackageReference Include="Microsoft.NETCore.Targets" Version="3.1.0" PrivateAssets="all" />
+    <PackageReference Update="Microsoft.NETCore.Targets" Version="5.0.0" />
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -24,5 +24,10 @@
     <Description>Open Rails Train Simulator</Description>
     <Copyright>Copyright © 2020</Copyright>
     <NoWin32Manifest>true</NoWin32Manifest>
-    <NeutralLanguage>en</NeutralLanguage>  </PropertyGroup>
+    <TieredCompilation>true</TieredCompilation>
+    <NeutralLanguage>en</NeutralLanguage>  
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(MSBuildProjectName)'!='Launcher'">
+    <TargetFrameworks>net48;netcoreapp3.1</TargetFrameworks>
+  </PropertyGroup>
 </Project>
