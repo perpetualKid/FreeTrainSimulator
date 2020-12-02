@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFrameworks>net48;netcoreapp3.1</TargetFrameworks>
     <Description>Open Rails Activity Runner</Description>
     <UseWindowsForms>true</UseWindowsForms>
 	<GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
@@ -211,13 +210,6 @@
     <None Update="Content\Web\TrainDriving\index.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Update="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="3.3.1">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Update="Microsoft.NETCore.Targets" Version="5.0.0" />
   </ItemGroup>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Exec Command="if not exist $(TargetDir)Content\*.mgfx (&#xD;&#xA;cd %25temp%25&#xD;&#xA;dotnet new tool-manifest --force&#xD;&#xA;dotnet tool install dotnet-mgfxc&#xD;&#xA;FOR %25%25i IN ($(ProjectDir)Content\Shaders\*.fx) DO ( dotnet tool run mgfxc $(ProjectDir)Content\Shaders\%25%25~nxi $(TargetDir)Content\%25%25~ni.mgfx /Profile:DirectX_11))" />

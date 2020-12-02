@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFrameworks>net48;netcoreapp3.1</TargetFrameworks>
     <Description>Open Rails Updater</Description>
     <UseWindowsForms>true</UseWindowsForms>
 	<GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
@@ -27,12 +26,5 @@
     <ProjectReference Include="..\Orts.Common\Orts.Common.csproj" />
     <ProjectReference Include="..\Orts.Settings\Orts.Settings.csproj" />
     <ProjectReference Include="..\Orts.Updater\Orts.Updater.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Update="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="3.3.1">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Update="Microsoft.NETCore.Targets" Version="5.0.0" />
   </ItemGroup>
 </Project>
