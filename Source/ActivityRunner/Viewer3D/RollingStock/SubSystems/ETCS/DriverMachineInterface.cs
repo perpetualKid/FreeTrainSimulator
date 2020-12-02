@@ -70,6 +70,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
 
         bool DisplayBackground = false;
 
+        public bool Blinker2Hz;
+        public bool Blinker4Hz;
+        float BlinkerTime;
+
         /// <summary>
         /// True if the screen is sensitive
         /// </summary>
@@ -137,11 +141,17 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
             MessageArea = new MessageArea(this, Viewer, MessageAreaLocation);
         }
 
-        public void PrepareFrame()
+        public void PrepareFrame(float elapsedSeconds)
         {
             ETCSStatus currentStatus = Locomotive.TrainControlSystem.ETCSStatus;
             Active = currentStatus != null && currentStatus.DMIActive;
             if (!Active) return;
+
+            BlinkerTime += elapsedSeconds;
+            BlinkerTime -= (int)BlinkerTime;
+            Blinker2Hz = BlinkerTime < 0.5;
+            Blinker4Hz = BlinkerTime < 0.25 || (BlinkerTime > 0.5 && BlinkerTime < 0.75);
+
             CircularSpeedGauge.PrepareFrame(currentStatus);
             PlanningWindow.PrepareFrame(currentStatus);
             DistanceArea.PrepareFrame(currentStatus);
@@ -175,7 +185,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
             CircularSpeedGauge.Draw(spriteBatch, new Point(position.X + (int)(SpeedAreaLocation.X * Scale), position.Y + (int)(SpeedAreaLocation.Y * Scale)));
             PlanningWindow.Draw(spriteBatch, new Point(position.X + (int)(PlanningLocation.X * Scale), position.Y + (int)(PlanningLocation.Y * Scale)));
             DistanceArea.Draw(spriteBatch, new Point(position.X + (int)(DistanceAreaLocation.X * Scale), position.Y + (int)(DistanceAreaLocation.Y * Scale)));
-            //MessageArea.Draw(spriteBatch, new Point(position.X + (int)(MessageAreaLocation.X * Scale), position.Y + (int)(MessageAreaLocation.Y * Scale)));
+            MessageArea.Draw(spriteBatch, new Point(position.X + (int)(MessageAreaLocation.X * Scale), position.Y + (int)(MessageAreaLocation.Y * Scale)));
         }
 
         internal void MouseClickedEvent(Point location)
@@ -320,7 +330,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
         public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             base.PrepareFrame(frame, elapsedTime);
-            driverMachineInterface.PrepareFrame();
+            driverMachineInterface.PrepareFrame(elapsedTime.ClockSeconds);
             driverMachineInterface.SizeTo(DrawPosition.Width * 640 / 280, DrawPosition.Height * 480 / 300);
         }
 
@@ -330,7 +340,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
             int y = (int)((mousePoint.Y - DrawPosition.Y) / driverMachineInterface.Scale + 15);
             foreach (DriverMachineInterface.Button button in driverMachineInterface.SensitiveButtons)
             {
-                if (button.SensitiveArea.Contains(x, y)) 
+                if (button.SensitiveArea.Contains(x, y) && b.Enabled)
                     return true;
             }
             return false;

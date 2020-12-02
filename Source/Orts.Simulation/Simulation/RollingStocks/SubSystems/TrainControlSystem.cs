@@ -1020,7 +1020,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
 
             Activated = true;
         }
-
+        float lastdistance = 0;
         public override void Update()
         {
             UpdateInputs();
