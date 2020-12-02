@@ -103,27 +103,12 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
         public PlanningWindow(DriverMachineInterface dmi, Viewer viewer, Point planningLocation) : base(dmi)
         {
             Viewer = viewer;
-
-            SpeedIncreaseTexture = SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "ETCS", "PL_21.png"));
-            SpeedReductionTexture = SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "ETCS", "PL_22.png"));
-            YellowSpeedReductionTexture = SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "ETCS", "PL_23.png"));
-            for (int i=1; i<37; i++)
-            {
-                if (i == 21) i = 24;
-                Texture2D tex = SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "ETCS", $"PL_{i:D2}.png"));
-                TrackConditionTextureData.Add(i, tex);
-            }
-            ScaleUpTexture[0] = SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "ETCS", "NA_05.bmp"));
-            ScaleUpTexture[1] = SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "ETCS", "NA_03.bmp"));
-            ScaleDownTexture[0] = SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "ETCS", "NA_06.bmp"));
-            ScaleDownTexture[1] = SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "ETCS", "NA_04.bmp"));
-
             ButtonScaleUp = new Button(Viewer.Catalog.GetString("Scale Up"), true, new Rectangle(planningLocation.X, planningLocation.Y + 285, 40, 30));
             ButtonScaleDown = new Button(Viewer.Catalog.GetString("Scale Down"), true, new Rectangle(planningLocation.X, planningLocation.Y - 15, 40, 30));
             DMI.SensitiveButtons.Add(ButtonScaleUp);
             DMI.SensitiveButtons.Add(ButtonScaleDown);
 
-            SetFont();
+            ScaleChanged();
         }
 
         void ScaleUp()
@@ -456,11 +441,25 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
             if (DMI.PressedButton == ButtonScaleDown) ScaleDown();
             else if (DMI.PressedButton == ButtonScaleUp) ScaleUp();
         }
+        public void ScaleChanged()
+        {
+            SpeedIncreaseTexture = DMI.LoadTexture("PL_21.png");
+            SpeedReductionTexture = DMI.LoadTexture("PL_22.png");
+            YellowSpeedReductionTexture = DMI.LoadTexture("PL_23.png");
+            for (int i = 1; i < 37; i++)
+            {
+                if (i == 21) i = 24;
+                Texture2D tex = DMI.LoadTexture("PL_" + (i < 10 ? "0" : "") + i + ".png");
+                TrackConditionTextureData[i] = tex;
+            }
+            ScaleUpTexture[0] = DMI.LoadTexture("NA_05.bmp");
+            ScaleUpTexture[1] = DMI.LoadTexture("NA_03.bmp");
+            ScaleDownTexture[0] = DMI.LoadTexture("NA_06.bmp");
+            ScaleDownTexture[1] = DMI.LoadTexture("NA_04.bmp");
 
-        /// <summary>
-        /// Set new font heights to match the actual scale.
-        /// </summary>
-        public void SetFont()
+            SetFont();
+        }
+        void SetFont()
         {
             FontDistance = Viewer.WindowManager.TextManager.GetExact("Arial", GetScaledFontSize(FontHeightDistance), System.Drawing.FontStyle.Regular);
             FontTargetSpeed = Viewer.WindowManager.TextManager.GetExact("Arial", GetScaledFontSize(FontHeightTargetSpeed), System.Drawing.FontStyle.Regular);

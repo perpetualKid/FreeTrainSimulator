@@ -47,6 +47,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
 
         public bool ShowDistanceAndSpeedInformation;
         public float Scale { get; private set; }
+        public float MipMapScale { get; private set; }
         readonly int Height = 480;
         readonly int Width = 640;
 
@@ -141,6 +142,12 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
             MessageArea = new MessageArea(this, Viewer, MessageAreaLocation);
         }
 
+        public Texture2D LoadTexture(string name)
+        {
+            if (MipMapScale == 2) return SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "ETCS", "mipmap-2", name));
+            else return SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "ETCS", name));
+        }
+
         public void PrepareFrame(double elapsedSeconds)
         {
             ETCSStatus currentStatus = Locomotive.TrainControlSystem.ETCSStatus;
@@ -164,10 +171,12 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
             if (Math.Abs(1f - PrevScale / Scale) > 0.1f)
             {
                 PrevScale = Scale;
-                CircularSpeedGauge.SetFont();
-                PlanningWindow.SetFont();
-                DistanceArea.SetFont();
-                MessageArea.SetFont();
+                if (Scale < 0.5) MipMapScale = 2;
+                else MipMapScale = 1;
+                CircularSpeedGauge.ScaleChanged();
+                PlanningWindow.ScaleChanged();
+                DistanceArea.ScaleChanged();
+                MessageArea.ScaleChanged();
             }
         }
 
@@ -300,7 +309,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
         }
         public void DrawSymbol(SpriteBatch spriteBatch, Texture2D texture, Point origin, float x, float y)
         {
-            spriteBatch.Draw(texture, new Vector2(origin.X + x * Scale, origin.Y + y * Scale), null, Color.White, 0, Vector2.Zero, Scale, SpriteEffects.None, 0);
+            spriteBatch.Draw(texture, new Vector2(origin.X + x * Scale, origin.Y + y * Scale), null, Color.White, 0, Vector2.Zero, Scale * DMI.MipMapScale, SpriteEffects.None, 0);
         }
         /// <summary>
         /// Get scaled font size, increasing it if result is small

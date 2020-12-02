@@ -217,7 +217,12 @@ namespace Orts.Scripting.Api.Etcs
         OpenAirIntake,
         CloseAirIntake,
         SoundHorn,
-        TractionSystemChange
+        TractionSystemChange,
+        // Legacy conditions used in old DMIs
+        Tunnel,
+        Bridge,
+        Station,
+        EndOfTrack
     }
 
     public enum TractionSystem
