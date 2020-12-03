@@ -3086,6 +3086,7 @@ namespace Orts.Simulation.Signalling
             }
 
             bool found = false;
+            bool isNormal = SignalNormal();
             float distance = 0;
             TrackCircuitPartialPathRoute routePath = EnabledTrain.Train.ValidRoute[EnabledTrain.TrainRouteDirectionIndex];
             int actRouteIndex = routePath == null ? -1 : routePath.GetRouteIndex(EnabledTrain.Train.PresentPosition[EnabledTrain.Direction].TrackCircuitSectionIndex, 0);
@@ -3097,22 +3098,33 @@ namespace Orts.Simulation.Signalling
                 else
                     offset = TrackCircuitSection.TrackCircuitList[EnabledTrain.Train.PresentPosition[Direction.Backward].TrackCircuitSectionIndex].Length - EnabledTrain.Train.PresentPosition[Direction.Backward].Offset;
 
-                while (!found)
+                while (!found && actRouteIndex < routePath.Count)
                 {
-                    TrackCircuitRouteElement element = routePath[actRouteIndex];
-                    TrackCircuitSection section = element.TrackCircuitSection;
-                    distance += section.Length - offset;
-                    if (section.EndSignals[element.Direction] == this)
+                    TrackCircuitRouteElement routeElement = routePath[actRouteIndex];
+                    TrackCircuitSection section = routeElement.TrackCircuitSection;
+                    if (section.EndSignals[routeElement.Direction] == this)
                     {
+                        distance += section.Length - offset;
                         found = true;
                     }
-                    else
+                    else if (!isNormal)
                     {
+                        TrackCircuitSignalList signalList = section.CircuitItems.TrackCircuitSignals[routeElement.Direction][SignalHeads[0].OrtsSignalFunctionIndex];
+                        foreach (TrackCircuitSignalItem signal in signalList)
+                        {
+                            if (signal.Signal == this)
+                            {
+                                distance += signal.SignalLocation - offset;
+                                found = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (!found)
+                    {
+                        distance += section.Length - offset;
                         offset = 0;
-                        int setSection = section.ActivePins[element.OutPin[Location.NearEnd], (Location)element.OutPin[Location.FarEnd]].Link;
                         actRouteIndex++;
-                        if (actRouteIndex >= routePath.Count || setSection < 0)
-                            break;
                     }
                 }
             }
