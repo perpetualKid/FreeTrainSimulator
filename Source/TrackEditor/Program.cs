@@ -1,13 +1,17 @@
 ﻿using System;
 
-namespace TrackEditor
+using Orts.Common.Native;
+
+namespace Orts.TrackEditor
 {
     public static class Program
     {
         [STAThread]
-        static void Main()
+        private static void Main()
         {
-            using (var game = new Game1())
+            NativeMethods.SetProcessDpiAwareness(NativeMethods.PROCESS_DPI_AWARENESS.Process_Per_Monitor_DPI_Aware);
+
+            using (GameWindow game = new GameWindow())
                 game.Run();
         }
     }
