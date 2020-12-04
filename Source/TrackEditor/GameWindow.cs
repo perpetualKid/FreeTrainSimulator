@@ -170,8 +170,8 @@ namespace Orts.TrackEditor
 
         }
 
-        int updateTIme;
-        bool spacePressed;
+        private int updateTIme;
+        private bool spacePressed;
         protected override void Update(GameTime gameTime)
         {
             if (Keyboard.GetState().IsKeyDown(Microsoft.Xna.Framework.Input.Keys.Escape))
@@ -190,7 +190,7 @@ namespace Orts.TrackEditor
             if ((int)gameTime.TotalGameTime.TotalSeconds > updateTIme)
             {
                 updateTIme = (int)gameTime.TotalGameTime.TotalSeconds;
-                statusbar.toolStripStatusLabel1 .Text = $"{1 / gameTime.ElapsedGameTime.TotalSeconds:0.0}";
+                statusbar.toolStripStatusLabel1.Text = $"{1 / gameTime.ElapsedGameTime.TotalSeconds:0.0}";
 
             }
             // TODO: Add your update logic here
@@ -204,6 +204,7 @@ namespace Orts.TrackEditor
 
             spriteBatch.Begin();
             spriteBatch.Draw(BasicShapes.BasicTextures[BasicTextureType.Signal], new Vector2(0, 0), Color.White);
+            spriteBatch.Draw(BasicShapes.BasicHighlightTextures[BasicTextureType.Signal], new Vector2(100, 100), Color.White);
             spriteBatch.End();
 
             base.Draw(gameTime);

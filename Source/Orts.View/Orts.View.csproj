@@ -9,10 +9,10 @@
     <RootNamespace>Orts.View</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <None Remove="Resources\activeBroken.png" />
+    <None Remove="Resources\ActiveBrokenNode.png" />
     <None Remove="Resources\activeNode.png" />
-    <None Remove="Resources\activeNormal.png" />
-    <None Remove="Resources\activeTrack.png" />
+    <None Remove="Resources\ActiveNormalNode.png" />
+    <None Remove="Resources\ActiveTrackNode.png" />
     <None Remove="Resources\CarSpawner.png" />
     <None Remove="Resources\Hazard.png" />
     <None Remove="Resources\pathEnd.png" />
@@ -27,16 +27,16 @@
     <None Remove="Resources\Steamtrain.png" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\activeBroken.png">
+    <EmbeddedResource Include="Resources\ActiveBrokenNode.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </EmbeddedResource>
-    <EmbeddedResource Include="Resources\activeNode.png">
+    <EmbeddedResource Include="Resources\ActiveNode.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </EmbeddedResource>
-    <EmbeddedResource Include="Resources\activeNormal.png">
+    <EmbeddedResource Include="Resources\ActiveNormalNode.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </EmbeddedResource>
-    <EmbeddedResource Include="Resources\activeTrack.png">
+    <EmbeddedResource Include="Resources\ActiveTrackNode.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </EmbeddedResource>
     <EmbeddedResource Include="Resources\CarSpawner.png">
@@ -45,19 +45,19 @@
     <EmbeddedResource Include="Resources\Hazard.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </EmbeddedResource>
-    <EmbeddedResource Include="Resources\pathEnd.png">
+    <EmbeddedResource Include="Resources\PathEnd.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </EmbeddedResource>
-    <EmbeddedResource Include="Resources\pathNormal.png">
+    <EmbeddedResource Include="Resources\PathNormal.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </EmbeddedResource>
-    <EmbeddedResource Include="Resources\pathReverse.png">
+    <EmbeddedResource Include="Resources\PathReverse.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </EmbeddedResource>
-    <EmbeddedResource Include="Resources\pathStart.png">
+    <EmbeddedResource Include="Resources\PathStart.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </EmbeddedResource>
-    <EmbeddedResource Include="Resources\pathWait.png">
+    <EmbeddedResource Include="Resources\PathWait.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </EmbeddedResource>
     <EmbeddedResource Include="Resources\Pickup.png">
