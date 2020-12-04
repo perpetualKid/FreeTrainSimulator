@@ -350,8 +350,20 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 Script.DoesStartFromTerminalStation = () => DoesStartFromTerminalStation();
                 Script.IsColdStart = () => Locomotive.Train.ColdStart;
                 Script.GetTrackNodeOffset = () => Locomotive.Train.FrontTDBTraveller.TrackNodeLength - Locomotive.Train.FrontTDBTraveller.TrackNodeOffset;
-                Script.NextDivergingSwitchDistanceM = (value) => NextGenericSignalItem<float>(0, ref ItemDistance, value, TrainPathItemType.FacingSwitch);
-                Script.NextTrailingDivergingSwitchDistanceM = (value) => NextGenericSignalItem<float>(0, ref ItemDistance, value, TrainPathItemType.TrailingSwitch);
+                Script.NextDivergingSwitchDistanceM = (value) =>
+                {
+                    List<TrainPathItem> list = Locomotive.Train.PlayerTrainDivergingSwitches[Locomotive.Train.MUDirection == MidpointDirection.Reverse ? Direction.Backward : Direction.Forward, SwitchDirection.Facing];
+                    if (list == null || list.Count == 0 || list[0].DistanceToTrainM > value) 
+                        return float.MaxValue;
+                    return list[0].DistanceToTrainM;
+                };
+                Script.NextTrailingDivergingSwitchDistanceM = (value) =>
+                {
+                    List<TrainPathItem> list = Locomotive.Train.PlayerTrainDivergingSwitches[Locomotive.Train.MUDirection == MidpointDirection.Reverse ? Direction.Backward : Direction.Forward, SwitchDirection.Trailing];
+                    if (list == null || list.Count == 0 || list[0].DistanceToTrainM > value) 
+                        return float.MaxValue;
+                    return list[0].DistanceToTrainM;
+                };
                 Script.GetControlMode = () => (TrainControlMode)(int)Locomotive.Train.ControlMode;
                 Script.NextStationName = () => Locomotive.Train.StationStops != null && Locomotive.Train.StationStops.Count > 0 ? Locomotive.Train.StationStops[0].PlatformItem.Name : "";
                 Script.NextStationDistanceM = () => Locomotive.Train.StationStops != null && Locomotive.Train.StationStops.Count > 0 ? Locomotive.Train.StationStops[0].DistanceToTrainM : float.MaxValue;
@@ -553,8 +565,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems
 
             int index = dir == Direction.Forward ? Locomotive.Train.PresentPosition[dir].RouteListIndex :
                 Locomotive.Train.ValidRoute[(int)dir].GetRouteIndex(Locomotive.Train.PresentPosition[dir].TrackCircuitSectionIndex, 0);
-            int fn_type = OrSignalTypes.Instance.FunctionTypes.IndexOf(signalTypeName);
             if (index < 0)
+                return SignalFeatures.None;
+            int fn_type = OrSignalTypes.Instance.FunctionTypes.IndexOf(signalTypeName);
+            if (fn_type == -1) // check for not existing signal type
                 return SignalFeatures.None;
 
             TrainPathItem trainpathItem;
