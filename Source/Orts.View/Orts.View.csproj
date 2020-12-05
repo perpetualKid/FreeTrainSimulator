@@ -22,9 +22,9 @@
     <None Remove="Resources\pathWait.png" />
     <None Remove="Resources\Pickup.png" />
     <None Remove="Resources\Platform.png" />
+    <None Remove="Resources\Playertrain.png" />
     <None Remove="Resources\Signal.png" />
     <None Remove="Resources\Sound.png" />
-    <None Remove="Resources\Steamtrain.png" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\ActiveBrokenNode.png">
@@ -72,7 +72,7 @@
     <EmbeddedResource Include="Resources\Sound.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </EmbeddedResource>
-    <EmbeddedResource Include="Resources\Steamtrain.png">
+    <EmbeddedResource Include="Resources\PlayerTrain.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </EmbeddedResource>
   </ItemGroup>

@@ -200,11 +200,20 @@ namespace Orts.TrackEditor
 
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Microsoft.Xna.Framework.Color.CornflowerBlue);
+            GraphicsDevice.Clear(Color.CornflowerBlue);
 
             spriteBatch.Begin();
             spriteBatch.Draw(BasicShapes.BasicTextures[BasicTextureType.Signal], new Vector2(0, 0), Color.White);
             spriteBatch.Draw(BasicShapes.BasicHighlightTextures[BasicTextureType.Signal], new Vector2(100, 100), Color.White);
+            BasicShapes.DrawTexture(BasicTextureType.PlayerTrain, new Vector2(180, 180), 0, 1, Color.Green, false, false, true);
+            BasicShapes.DrawTexture(BasicTextureType.PlayerTrain, new Vector2(240, 180), 0, 1, Color.Green, true, false, false);
+            BasicShapes.DrawTexture(BasicTextureType.Ring, new Vector2(80, 220), 0, 0.5f, Color.Yellow, true, false, false);
+            BasicShapes.DrawTexture(BasicTextureType.Circle, new Vector2(80, 220), 0, 0.5f, Color.Red, true, false, false);
+            BasicShapes.DrawTexture(BasicTextureType.CrossedRing, new Vector2(240, 220), 0.5f, 1, Color.Yellow, true, false, false);
+            BasicShapes.DrawTexture(BasicTextureType.Disc, new Vector2(340, 220), 0, 1, Color.Red, true, false, false);
+
+            BasicShapes.DrawArc(3, Color.Green, new Vector2(330, 330), 120, 4.71238898, -180, 0);
+            BasicShapes.DrawDashedLine(2, Color.Aqua, new Vector2(330, 330), new Vector2(450, 330));
             spriteBatch.End();
 
             base.Draw(gameTime);

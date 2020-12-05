@@ -9,6 +9,10 @@ namespace Orts.View.Track.Shapes
     public enum BasicTextureType
     { 
         BlankPixel,
+        Circle, 
+        Disc,
+        Ring,
+        CrossedRing,
         // next ones are used to map Resources, hence names should match exactly (case insensitive) the resource file name
         ActiveBrokenNode,
         ActiveNode,
@@ -25,7 +29,7 @@ namespace Orts.View.Track.Shapes
         Platform,
         Signal,
         Sound,
-        Streamtrain,
+        PlayerTrain,
         //
     }
 }
