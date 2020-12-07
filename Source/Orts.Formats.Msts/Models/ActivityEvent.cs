@@ -209,7 +209,7 @@ namespace Orts.Formats.Msts.Models
                     else
                         Outcomes.Update(stf); }),
                 new STFReader.TokenProcessor("texttodisplayoncompletioniftriggered", ()=>{ TextToDisplayOnCompletionIfTriggered = stf.ReadStringBlock(""); }),
-                new STFReader.TokenProcessor("texttodisplayoncompletionifnotrriggered", ()=>{ TextToDisplayOnCompletionIfNotTriggered = stf.ReadStringBlock(""); }),
+                new STFReader.TokenProcessor("texttodisplayoncompletionifnotriggered", ()=>{ TextToDisplayOnCompletionIfNotTriggered = stf.ReadStringBlock(""); }),
                 new STFReader.TokenProcessor("name", ()=>{ Name = stf.ReadStringBlock(""); }),
                 new STFReader.TokenProcessor("wagon_list", ()=>{ WorkOrderWagons = new WorkOrderWagons(stf, Type); }),
                 new STFReader.TokenProcessor("sidingitem", ()=>{ SidingId = (uint)stf.ReadIntBlock(null); }),
@@ -245,7 +245,7 @@ namespace Orts.Formats.Msts.Models
                     else
                         Outcomes.Update(stf); }),
                 new STFReader.TokenProcessor("texttodisplayoncompletioniftriggered", ()=>{ TextToDisplayOnCompletionIfTriggered = stf.ReadStringBlock(""); }),
-                new STFReader.TokenProcessor("texttodisplayoncompletionifnotrriggered", ()=>{ TextToDisplayOnCompletionIfNotTriggered = stf.ReadStringBlock(""); }),
+                new STFReader.TokenProcessor("texttodisplayoncompletionifnotriggered", ()=>{ TextToDisplayOnCompletionIfNotTriggered = stf.ReadStringBlock(""); }),
                 new STFReader.TokenProcessor("name", ()=>{ Name = stf.ReadStringBlock(""); }),
                 new STFReader.TokenProcessor("time", ()=>{ Time = (int)stf.ReadFloatBlock(STFReader.Units.Time, null); }),
                 new STFReader.TokenProcessor("ortscontinue", ()=>{ OrtsContinue = stf.ReadIntBlock(0); }),
