@@ -7,6 +7,7 @@ using Microsoft.Xna.Framework.Input;
 
 using Orts.Common;
 using Orts.Common.Info;
+using Orts.View.DrawableComponents;
 using Orts.View.Track.Shapes;
 
 namespace Orts.TrackEditor
@@ -158,16 +159,19 @@ namespace Orts.TrackEditor
 
         protected override void Initialize()
         {
+            spriteBatch = new SpriteBatch(GraphicsDevice);
+            TextDrawShape.Initialize(this, spriteBatch);
             // TODO: Add your initialization logic here
             base.Initialize();
         }
 
         protected override void LoadContent()
         {
-            spriteBatch = new SpriteBatch(GraphicsDevice);
             // Create a new SpriteBatch, which can be used to draw textures.
             BasicShapes.LoadContent(GraphicsDevice, spriteBatch);
-
+            DigitalClockComponent clock = new DigitalClockComponent(this, spriteBatch, TimeType.RealWorldLocalTime, 
+                new System.Drawing.Font("Segoe UI", 14, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel), Color.White, new Vector2(200, 300), true);
+            Components.Add(clock);
         }
 
         private int updateTIme;
@@ -198,6 +202,8 @@ namespace Orts.TrackEditor
             base.Update(gameTime);
         }
 
+        private static System.Drawing.Font drawfont = new System.Drawing.Font("Segoe UI", (int)Math.Round(25.0), System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
+
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
@@ -214,6 +220,8 @@ namespace Orts.TrackEditor
 
             BasicShapes.DrawArc(3, Color.Green, new Vector2(330, 330), 120, 4.71238898, -180, 0);
             BasicShapes.DrawDashedLine(2, Color.Aqua, new Vector2(330, 330), new Vector2(450, 330));
+            TextDrawShape.DrawString(new Vector2(200, 450), Color.Red, "Test Message", drawfont);
+            TextDrawShape.DrawString(new Vector2(200, 500), Color.Lime, gameTime.TotalGameTime.TotalSeconds.ToString(), drawfont);
             spriteBatch.End();
 
             base.Draw(gameTime);

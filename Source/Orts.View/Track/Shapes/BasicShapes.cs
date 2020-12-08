@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
-using Microsoft.SqlServer.Server;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -20,7 +18,7 @@ namespace Orts.View.Track.Shapes
         public static EnumArray<Texture2D, BasicTextureType> BasicTextures { get; } = new EnumArray<Texture2D, BasicTextureType>();
         public static EnumArray<Texture2D, BasicTextureType> BasicHighlightTextures { get; } = new EnumArray<Texture2D, BasicTextureType>();
 
-        private static EnumArray<Vector2, BasicTextureType> textureOffsets { get; } = new EnumArray<Vector2, BasicTextureType>();
+        private static EnumArray<Vector2, BasicTextureType> textureOffsets = new EnumArray<Vector2, BasicTextureType>();
 
         private static GraphicsDevice graphicsDevice;
         private static SpriteBatch spriteBatch;
@@ -67,6 +65,7 @@ namespace Orts.View.Track.Shapes
             textureOffsets[BasicTextureType.CarSpawner] = Vector2.Zero;
 
             PrepareArcDrawing();
+
         }
 
         #region Drawing
@@ -212,19 +211,6 @@ namespace Orts.View.Track.Shapes
                         );
                 }
             }
-        }
-
-        /// <summary>
-        /// Draw a text string, aligned left
-        /// </summary>
-        /// <param name="point">Screen location to use as top-left corner</param>
-        /// <param name="color">Color of the text</param>
-        /// <param name="message">The string to print</param>
-        public static void DrawString(Vector2 point, Color color, string message)
-        {
-            // text is better readable when on integer locations
-            Point intPoint = new Point((int)Math.Round(point.X), (int)Math.Round(point.Y));
-//            spriteBatch.DrawString((spriteBatch, new Rectangle(), intPoint, message, LabelAlignment.Left, color);
         }
 
         #endregion
