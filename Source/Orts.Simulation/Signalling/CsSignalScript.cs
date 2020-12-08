@@ -30,6 +30,12 @@ namespace Orts.Simulation.Signalling
         public float? ApproachControlRequiredSpeed => signalHead.ApproachControlLimitSpeedMpS.Value;
         public SignalBlockState BlockState => SignalObject.BlockState();
         public bool RouteSet => signalHead.VerifyRouteSet() > 0;
+        public void AllowClearPartialRoute(bool allow) 
+        { 
+            SignalObject.AllowClearPartialRoute(allow ? 1 : 0); 
+        }
+
+        public int SignalNumClearAhead { get => SignalObject.SignalNumClearAheadActive; set => SignalObject.SetSignalNumClearAhead(value); }
 
         public int DefaultDrawState(SignalAspectState signalAspect)
         {
@@ -83,6 +89,16 @@ namespace Orts.Simulation.Signalling
             return SignalObject.NextNthSignalId(OrSignalTypes.Instance.FunctionTypes.FindIndex(i => StringComparer.OrdinalIgnoreCase.Equals(i, sigfn)), count + 1);
         }
 
+        public int OppositeSignalId(string sigfn)
+        {
+            return SignalObject.OppositeSignalId(SigFnIndex(sigfn));
+        }
+
+        public int RequiredNormalSignalId(string normalSubtype)
+        {
+            return SignalObject.FindRequiredNormalSignal(OrSignalTypes.Instance.NormalSubTypes.IndexOf(normalSubtype));
+        }
+
         public static string IdTextSignalAspect(int id, string sigfn, int headindex = 0)
         {
             if (id < 0 || id > Simulator.Instance.SignalEnvironment.Signals.Count) 
@@ -121,9 +137,14 @@ namespace Orts.Simulation.Signalling
             return signalHead.SignalEnabledById(id) > 0;
         }
 
-        public bool TrainHasCallOn(bool allowOnNonePlatform = true)
+        public bool TrainHasCallOn(bool allowOnNonePlatform = true, bool allowAdvancedSignal = false)
         {
-            return SignalObject.TrainHasCallOn(allowOnNonePlatform, true);
+            return SignalObject.TrainHasCallOn(allowOnNonePlatform, allowAdvancedSignal);
+        }
+
+        public bool TrainRequiresSignal(int signalId, float reqPositionM)
+        {
+            return SignalObject.RequiresNextSignal(signalId, (int)reqPositionM);
         }
 
         public bool ApproachControlPosition(float reqPositionM, bool forced = false)
