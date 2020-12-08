@@ -115,7 +115,7 @@ namespace Orts.Simulation.Signalling
 
                 if (csSignalScript != null)
                 {
-                    csSignalScript.SignalHead = this;
+                    csSignalScript.AttachToHead(this);
                     csSignalScript.Initialize();
                 }
 
@@ -167,9 +167,9 @@ namespace Orts.Simulation.Signalling
         ///  All methods link through to the main method set for signal objec
         /// </summary>
 
-        public void HandleSignalMessage()
+        public void HandleSignalMessage(int signalId, string message)
         {
-            //            csSignalScript?.HandleSignalMessage(SignalObject.thisRef, message)
+            csSignalScript?.HandleSignalMessage(signalId, message);
         }
 
         public SignalAspectState NextSignalMR(int signalType)
