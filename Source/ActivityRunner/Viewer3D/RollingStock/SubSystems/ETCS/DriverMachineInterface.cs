@@ -120,6 +120,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
             Viewer = viewer;
             Locomotive = locomotive;
             Scale = Math.Min(width / Width, height / Height);
+            if (Scale < 0.5) MipMapScale = 2;
+            else MipMapScale = 1;
 
             PlanningLocation = new Point(334, IsSoftLayout ? 0 : 15);
             SpeedAreaLocation = new Point(54, IsSoftLayout ? 0 : 15);
