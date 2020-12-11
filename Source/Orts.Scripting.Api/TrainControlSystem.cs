@@ -62,11 +62,6 @@ namespace Orts.Scripting.Api
         /// </summary>
         public Func<bool> DoesNextNormalSignalHaveTwoAspects;
         /// <summary>
-        /// Name of Head 0 of next normal signal.
-        /// int: position of signal in the signal sequence along the train route, starting from train front; 0 for first signal;
-        /// </summary>
-        public Func<int, string> NextNormalSignalMainHeadSignalType;
-        /// <summary>
         /// Aspect of the next DISTANCE signal.
         /// </summary>
         public Func<TrackMonitorSignalAspect> NextDistanceSignalAspect;
