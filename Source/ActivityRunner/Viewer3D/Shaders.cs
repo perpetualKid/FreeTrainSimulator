@@ -638,14 +638,16 @@ namespace Orts.ActivityRunner.Viewer3D
         readonly EffectParameter normalColor;
         readonly EffectParameter limitColor;
         readonly EffectParameter pointerColor;
+        readonly EffectParameter interventionColor;
         readonly EffectParameter backgroundColor;
         readonly EffectParameter imageTexture;
 
-        public void SetData(Vector4 angle, Color gaugeColor, Color needleColor)
+        public void SetData(Vector4 angle, Color gaugeColor, Color needleColor, Color overspeedColor)
         {
             limitAngle.SetValue(angle);
             limitColor.SetValue(gaugeColor.ToVector4());
             pointerColor.SetValue(needleColor.ToVector4());
+            interventionColor.SetValue(overspeedColor.ToVector4());
         }
 
         public DriverMachineInterfaceShader(GraphicsDevice graphicsDevice)
@@ -657,6 +659,7 @@ namespace Orts.ActivityRunner.Viewer3D
             backgroundColor = Parameters["BackgroundColor"];
             limitAngle = Parameters["LimitAngle"];
             imageTexture = Parameters["ImageTexture"];
+            interventionColor = Parameters["InterventionColor"];
         }
     }
 
