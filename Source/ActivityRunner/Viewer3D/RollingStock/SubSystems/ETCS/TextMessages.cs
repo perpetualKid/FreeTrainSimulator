@@ -17,9 +17,7 @@
 
 // This file is the responsibility of the 3D & Environment Team. 
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -27,14 +25,10 @@ using Microsoft.Xna.Framework.Graphics;
 using Orts.ActivityRunner.Viewer3D.Popups;
 using Orts.Scripting.Api.Etcs;
 
-using static Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs.DriverMachineInterface;
-
-namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
+namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
 {
-    public class MessageArea : DMIWindow
+    public class MessageArea : DMIButton
     {
-        readonly Viewer Viewer;
-
         const float FontHeightMessage = 12;
         const float FontHeightTimestamp = 10;
 
@@ -47,15 +41,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
         int CurrentPage = 0;
         int NumPages = 1;
 
-        readonly Button ButtonScrollUp;
-        readonly Button ButtonScrollDown;
-        readonly Button ButtonAcknowledgeMessage;
-
-        readonly Point AreaOrigin;
+        public readonly DMIButton ButtonScrollUp;
+        public readonly DMIButton ButtonScrollDown;
 
         readonly int MaxTextLines;
-
-        readonly int AreaHeight;
 
         readonly int RowHeight = 20;
 
@@ -66,28 +55,49 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
         TextMessage? AcknowledgingMessage;
 
         bool Visible = false;
-        public MessageArea(DriverMachineInterface dmi, Viewer viewer, Point position) : base(dmi)
+        public MessageArea(DriverMachineInterface dmi) : base(Viewer.Catalog.GetString("Acknowledge"), true, dmi, false)
         {
-            Viewer = viewer;
             MaxTextLines = dmi.IsSoftLayout ? 4 : 5;
-            AreaHeight = MaxTextLines * RowHeight;
-            AreaOrigin = position;
+            Height = MaxTextLines * RowHeight;
+            Width = 234;
 
             DisplayedTexts = new TextPrimitive[MaxTextLines];
             DisplayedTimes = new TextPrimitive[MaxTextLines];
 
-            ButtonScrollUp = new Button(Viewer.Catalog.GetString("Scroll Up"), true, new Rectangle(position.X + 234, position.Y, 46, AreaHeight / 2));
-            ButtonScrollDown = new Button(Viewer.Catalog.GetString("Scroll Down"), true, new Rectangle(position.X + 234, position.Y + AreaHeight / 2, 46, AreaHeight / 2));
-            ButtonAcknowledgeMessage = new Button(Viewer.Catalog.GetString("Acknowledge"), true, new Rectangle(position.X, position.Y, 234, AreaHeight));
-            DMI.SensitiveButtons.Add(ButtonScrollUp);
-            DMI.SensitiveButtons.Add(ButtonScrollDown);
-            DMI.SensitiveButtons.Add(ButtonAcknowledgeMessage);
-
+            ButtonScrollUp = new DMIIconButton("NA_13.bmp", "NA_15.bmp", Viewer.Catalog.GetString("Scroll Up"), true, () =>
+            {
+                if (CurrentPage < NumPages - 1)
+                {
+                    CurrentPage++;
+                    SetMessages();
+                }
+            }, 46, Height/2, dmi);
+            ButtonScrollDown = new DMIIconButton("NA_14.bmp", "NA_16.bmp", Viewer.Catalog.GetString("Scroll Down"), true, () =>
+            {
+                if (CurrentPage > 0)
+                {
+                    CurrentPage--;
+                    SetMessages();
+                }
+            }, 46, Height / 2, dmi);
+            PressedAction = () =>
+            {
+                if (AcknowledgingMessage != null)
+                {
+                    var ackmsg = AcknowledgingMessage.Value;
+                    ackmsg.Acknowledgeable = false;
+                    ackmsg.Acknowledged = true;
+                    int index = MessageList.IndexOf(ackmsg);
+                    if (index != -1) MessageList[index] = ackmsg;
+                    AcknowledgingMessage = null;
+                }
+            };
             ScaleChanged();
         }
         public override void Draw(SpriteBatch spriteBatch, Point position)
         {
             if (!Visible) return;
+            base.Draw(spriteBatch, position);
             foreach (var text in DisplayedTexts)
             {
                 if (text == null) continue;
@@ -102,16 +112,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
                 int y = position.Y + (int)(text.Position.Y * Scale);
                 text.Draw(spriteBatch, new Point(x, y));
             }
-            DrawSymbol(spriteBatch, ScrollUpTexture[ButtonScrollUp.Enabled ? 1 : 0], position, 234 + 7, DMI.IsSoftLayout ? 4 : 9);
-            DrawSymbol(spriteBatch, ScrollDownTexture[ButtonScrollDown.Enabled ? 1 : 0], position, 234 + 7, AreaHeight/2 + (DMI.IsSoftLayout ? 4 : 9));
-
-            if (AcknowledgingMessage.HasValue && DMI.Blinker4Hz)
-            {
-                spriteBatch.Draw(ColorTexture, ScaledRectangle(position, 0, 0, 234, 2), ColorYellow);
-                spriteBatch.Draw(ColorTexture, ScaledRectangle(position, 0, AreaHeight - 2, 234, 2), ColorYellow);
-                spriteBatch.Draw(ColorTexture, ScaledRectangle(position, 0, 0, 2, AreaHeight), ColorYellow);
-                spriteBatch.Draw(ColorTexture, ScaledRectangle(position, 232, 0, 2, AreaHeight), ColorYellow);
-            }
+            FlashingFrame = AcknowledgingMessage.HasValue;
         }
 
         int CompareMessages(TextMessage m1, TextMessage m2)
@@ -219,37 +220,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
 
             ButtonScrollDown.Enabled = CurrentPage < NumPages - 1;
             ButtonScrollUp.Enabled = CurrentPage > 0;
-            ButtonAcknowledgeMessage.Enabled = AcknowledgingMessage != null;
+            Enabled = AcknowledgingMessage != null;
         }
-        public void HandleInput()
-        {
-            if (DMI.PressedButton == ButtonScrollDown)
-            {
-                if (CurrentPage < NumPages - 1)
-                {
-                    CurrentPage++;
-                    SetMessages();
-                }
-            }
-            else if (DMI.PressedButton == ButtonScrollUp)
-            {
-                if (CurrentPage > 0)
-                {
-                    CurrentPage--;
-                    SetMessages();
-                }
-            }
-            else if (DMI.PressedButton == ButtonAcknowledgeMessage && AcknowledgingMessage != null)
-            {
-                var ackmsg = AcknowledgingMessage.Value;
-                ackmsg.Acknowledgeable = false;
-                ackmsg.Acknowledged = true;
-                int index = MessageList.IndexOf(ackmsg);
-                if (index != -1) MessageList[index] = ackmsg;
-                AcknowledgingMessage = null;
-            }
-        }
-        public void ScaleChanged()
+        public override void ScaleChanged()
         {
             ScrollUpTexture[0] = DMI.LoadTexture("NA_15.bmp");
             ScrollUpTexture[1] = DMI.LoadTexture("NA_13.bmp");
@@ -260,9 +233,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
         }
         void SetFont()
         {
-            FontTimestamp = Viewer.WindowManager.TextManager.GetExact("Arial", GetScaledFontSize(FontHeightTimestamp), System.Drawing.FontStyle.Regular);
-            FontMessage = Viewer.WindowManager.TextManager.GetExact("Arial", GetScaledFontSize(FontHeightMessage), System.Drawing.FontStyle.Regular);
-            FontMessageBold = Viewer.WindowManager.TextManager.GetExact("Arial", GetScaledFontSize(FontHeightMessage), System.Drawing.FontStyle.Bold);
+            FontTimestamp = GetFont(FontHeightTimestamp);
+            FontMessage = GetFont(FontHeightMessage);
+            FontMessageBold = GetFont(FontHeightMessage, true);
             SetMessages();
         }
     }
