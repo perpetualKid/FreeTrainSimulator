@@ -1379,7 +1379,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         {
                             CabViewDigitalRenderer cvdr;
                             if (viewer.Settings.CircularSpeedGauge && digital.ControlStyle == CabViewControlStyle.Needle)
-                                cvdr = new DriverMachineInterfaceRenderer(viewer, car, digital, _Shader);
+                                cvdr = new StandaloneCircularSpeedGaugeRenderer(viewer, car, digital, _Shader);
                             else
                                 cvdr = new CabViewDigitalRenderer(viewer, car, digital, _Shader);
                             cvdr.SortIndex = controlSortIndex;
@@ -1387,6 +1387,19 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                             if (!ControlMap.ContainsKey(key)) ControlMap.Add(key, cvdr);
                             count[(int)cvc.ControlType]++;
                             continue;
+                        }
+                        CabViewScreenControl screen = cvc as CabViewScreenControl;
+                        if (screen != null)
+                        {
+                            if (screen.ControlType == CabViewControlType.Orts_Etcs)
+                            {
+                                DriverMachineInterfaceRenderer cvr = new DriverMachineInterfaceRenderer(viewer, car, screen, _Shader);
+                                cvr.SortIndex = controlSortIndex;
+                                CabViewControlRenderersList[i].Add(cvr);
+                                if (!ControlMap.ContainsKey(key)) ControlMap.Add(key, cvr);
+                                count[(int)cvc.ControlType]++;
+                                continue;
+                            }
                         }
                     }
                 }
@@ -1477,7 +1490,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 {
                     CabViewDigitalRenderer cvdr;
                     if (viewer.Settings.CircularSpeedGauge && digital.ControlStyle == CabViewControlStyle.Needle)
-                        cvdr = new DriverMachineInterfaceRenderer(viewer, car, digital, _Shader);
+                        cvdr = new StandaloneCircularSpeedGaugeRenderer(viewer, car, digital, _Shader);
                     else
                         cvdr = new CabViewDigitalRenderer(viewer, car, digital, _Shader);
                     cvdr.SortIndex = controlSortIndex;
@@ -1485,6 +1498,19 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     if (!ControlMap.ContainsKey(key)) ControlMap.Add(key, cvdr);
                     count[(int)cvc.ControlType]++;
                     continue;
+                }
+                CabViewScreenControl screen = cvc as CabViewScreenControl;
+                if (screen != null)
+                {
+                    if (screen.ControlType == CabViewControlType.Orts_Etcs)
+                    {
+                        DriverMachineInterfaceRenderer cvr = new DriverMachineInterfaceRenderer(viewer, car, screen, _Shader);
+                        cvr.SortIndex = controlSortIndex;
+                        CabViewControlRenderersList[i].Add(cvr);
+                        if (!ControlMap.ContainsKey(key)) ControlMap.Add(key, cvr);
+                        count[(int)cvc.ControlType]++;
+                        continue;
+                    }
                 }
             }
             #endregion

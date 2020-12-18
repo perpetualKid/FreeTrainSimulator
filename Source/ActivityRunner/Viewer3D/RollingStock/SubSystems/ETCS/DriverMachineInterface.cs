@@ -27,6 +27,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Orts.ActivityRunner.Viewer3D.Popups;
 using Orts.Common;
 using Orts.Common.Input;
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Scripting.Api.Etcs;
 using Orts.Simulation.RollingStocks;
@@ -38,6 +39,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
     public class DriverMachineInterface
     {
         public readonly MSTSLocomotive Locomotive;
+        public readonly bool GaugeOnly;
         public readonly Viewer Viewer;
         public List<DMIWindow> Windows = new List<DMIWindow>();
         float PrevScale = 1;
@@ -88,8 +90,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
         public bool IsSoftLayout;
         public DMIWindow ActiveWindow;
         DMIButton ActiveButton;
-        public DriverMachineInterface(float height, float width, MSTSLocomotive locomotive, Viewer viewer, CabViewDigitalControl control)
+        public DriverMachineInterface(float height, float width, MSTSLocomotive locomotive, Viewer viewer, CabViewControl control)
         {
+            GaugeOnly = control is CabViewDigitalControl;
             Viewer = viewer;
             Locomotive = locomotive;
             Scale = Math.Min(width / Width, height / Height);
@@ -97,7 +100,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
             //else MipMapScale = 1;
 
             Shader = new DriverMachineInterfaceShader(viewer.RenderProcess.GraphicsDevice);
-            ETCSDefaultWindow = new ETCSDefaultWindow(this);
+            ETCSDefaultWindow = new ETCSDefaultWindow(this, control);
             ETCSDefaultWindow.Visible = true;
 
             AddToLayout(ETCSDefaultWindow, Point.Zero);
@@ -284,16 +287,36 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
         MessageArea MessageArea;
         TargetDistance TargetDistance;
         MenuBar MenuBar;
-        public ETCSDefaultWindow(DriverMachineInterface dmi) : base(dmi, 640, 480)
+        public ETCSDefaultWindow(DriverMachineInterface dmi, CabViewControl control) : base(dmi, 640, 480)
         {
-            CircularSpeedGauge = new CircularSpeedGauge(
-                   400,
-                   true,
-                   true,
-                   false,
-                   400,
-                   dmi
-               );
+            if (DMI.GaugeOnly)
+            {
+                var dig = control as CabViewDigitalControl;
+                CircularSpeedGauge = new CircularSpeedGauge(
+                (int)dig.ScaleRangeMax,
+                dig.ControlUnit == CabViewControlUnit.Km_Per_Hour,
+                true,
+                dig.ScaleRangeMax == 240 || dig.ScaleRangeMax == 260,
+                (int)dig.ScaleRangeMin,
+                DMI);
+                AddToLayout(CircularSpeedGauge, new Point(0, 0));
+                return;
+            }
+            {
+                var param = (control as CabViewScreenControl).CustomParameters;
+                int maxSpeed = 400;
+                if (param.ContainsKey("maxspeed")) int.TryParse(param["maxspeed"], out maxSpeed);
+                int maxVisibleSpeed = maxSpeed;
+                if (param.ContainsKey("maxvisiblespeed")) int.TryParse(param["maxvisiblespeed"], out maxVisibleSpeed);
+                CircularSpeedGauge = new CircularSpeedGauge(
+                       maxSpeed,
+                       control.ControlUnit != CabViewControlUnit.Miles_Per_Hour,
+                       param.ContainsKey("displayunits") && param["displayunits"]=="1",
+                       maxSpeed == 240 || maxSpeed == 260,
+                       maxVisibleSpeed,
+                       dmi
+                   );
+            }
             PlanningWindow = new PlanningWindow(dmi);
             TargetDistance = new TargetDistance(dmi);
             MessageArea = new MessageArea(dmi);
@@ -713,15 +736,48 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
             }
         }
     }
-    public class DriverMachineInterfaceRenderer : CabViewDigitalRenderer, ICabViewMouseControlRenderer
+
+    public class StandaloneCircularSpeedGaugeRenderer : CabViewDigitalRenderer
     {
         private readonly DriverMachineInterface driverMachineInterface;
         bool Zoomed = false;
-        public DriverMachineInterfaceRenderer(Viewer viewer, MSTSLocomotive locomotive, CabViewDigitalControl control, CabShader shader)
+
+        public StandaloneCircularSpeedGaugeRenderer(Viewer viewer, MSTSLocomotive locomotive, CabViewDigitalControl control, CabShader shader)
             : base(viewer, locomotive, control, shader)
         {
-            // Height is adjusted to keep compatibility with existing gauges
+            // Height is adjusted to keep compatibility
             driverMachineInterface = new DriverMachineInterface((int)(Control.Bounds.Width * 640 / 280), (int)(Control.Bounds.Height * 480 / 300), locomotive, viewer, control);
+        }
+
+        public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
+        {
+            base.PrepareFrame(frame, elapsedTime);
+            DrawPosition.Width = DrawPosition.Width * 640 / 280;
+            DrawPosition.Height = DrawPosition.Height * 480 / 300;
+            driverMachineInterface.SizeTo(DrawPosition.Width, DrawPosition.Height);
+            driverMachineInterface.ETCSDefaultWindow.BackgroundColor = Color.Transparent;
+            driverMachineInterface.PrepareFrame(elapsedTime.ClockSeconds);
+        }
+        public override void Draw()
+        {
+            driverMachineInterface.Draw(CabShaderControlView.SpriteBatch, new Point(DrawPosition.X, DrawPosition.Y));
+            CabShaderControlView.SpriteBatch.End();
+            CabShaderControlView.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, null, DepthStencilState.Default, null, Shader);
+        }
+    }
+
+    public class DriverMachineInterfaceRenderer : CabViewControlRenderer, ICabViewMouseControlRenderer
+    {
+        DriverMachineInterface driverMachineInterface;
+        bool Zoomed;
+        protected Rectangle DrawPosition;
+
+        public DriverMachineInterfaceRenderer(Viewer viewer, MSTSLocomotive locomotive, CabViewScreenControl control, CabShader shader)
+            : base(viewer, locomotive, control, shader)
+        {
+            Position.X = (float)Control.Bounds.X;
+            Position.Y = (float)Control.Bounds.Y;
+            driverMachineInterface = new DriverMachineInterface((int)Control.Bounds.Width, (int)Control.Bounds.Height, locomotive, viewer, control);
             viewer.UserCommandController.AddEvent(CommonUserCommand.PointerPressed, MouseClickedEvent);
             viewer.UserCommandController.AddEvent(CommonUserCommand.PointerReleased, MouseReleasedEvent);
         }
@@ -729,6 +785,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
         public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             base.PrepareFrame(frame, elapsedTime);
+            DrawPosition.X = (int)(Position.X * Viewer.CabWidthPixels / 640) - Viewer.CabXOffsetPixels + Viewer.CabXLetterboxPixels;
+            DrawPosition.Y = (int)(Position.Y * Viewer.CabHeightPixels / 480) + Viewer.CabYOffsetPixels + Viewer.CabYLetterboxPixels;
+            DrawPosition.Width = (int)(Control.Bounds.Width * Viewer.DisplaySize.X / 640);
+            DrawPosition.Height = (int)(Control.Bounds.Height * Viewer.DisplaySize.Y / 480);
             if (Zoomed)
             {
                 DrawPosition.Width = 640;
@@ -740,11 +800,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
             }
             else
             {
-                DrawPosition.Width = DrawPosition.Width * 640 / 280;
-                DrawPosition.Height = DrawPosition.Height * 480 / 300;
                 driverMachineInterface.SizeTo(DrawPosition.Width, DrawPosition.Height);
-                DrawPosition.X -= (int)(54 * driverMachineInterface.Scale);
-                DrawPosition.Y -= (int)(15 * driverMachineInterface.Scale);
                 driverMachineInterface.ETCSDefaultWindow.BackgroundColor = Color.Transparent;
             }
         }
