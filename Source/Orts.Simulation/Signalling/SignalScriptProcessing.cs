@@ -470,21 +470,25 @@ namespace Orts.Simulation.Signalling
 
                 // Check for CallOn
                 case SignalScripts.SCRExternalFunctions.TRAINHASCALLON:
+                    head.MainSignal.CallOnEnabled = true;
                     result = Convert.ToInt32(head.MainSignal.TrainHasCallOn(true, false));
                     break;
 
                 // Check for CallOn Restricted
                 case SignalScripts.SCRExternalFunctions.TRAINHASCALLON_RESTRICTED:
+                    head.MainSignal.CallOnEnabled = true;
                     result = Convert.ToInt32(head.MainSignal.TrainHasCallOn(false, false));
                     break;
 
                 // Check for CallOn
                 case SignalScripts.SCRExternalFunctions.TRAINHASCALLON_ADVANCED:
+                    head.MainSignal.CallOnEnabled = true;
                     result = Convert.ToInt32(head.MainSignal.TrainHasCallOn(true, true));
                     break;
 
                 // Check for CallOn Restricted
                 case SignalScripts.SCRExternalFunctions.TRAINHASCALLON_RESTRICTED_ADVANCED:
+                    head.MainSignal.CallOnEnabled = true;
                     result = Convert.ToInt32(head.MainSignal.TrainHasCallOn(false, true));
                     break;
 
