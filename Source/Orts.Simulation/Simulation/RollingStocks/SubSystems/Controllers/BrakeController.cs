@@ -108,6 +108,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
         public float ReleaseRatePSIpS { get; private set; }
         public float QuickReleaseRatePSIpS { get; private set; }
         public float OverchargeEliminationRatePSIpS { get; private set; }
+        public float SlowApplicationRatePSIpS { get; private set; }
         public float ApplyRatePSIpS { get; private set; }
         public float EmergencyRatePSIpS { get; private set; }
         public float FullServReductionPSI { get; private set; }
@@ -244,6 +245,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                     MinReductionPSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null);
                     break;
 
+                case "engine(ortstrainbrakescontrollerslowapplicationrate":
+                case "engine(ortsenginebrakescontrollerslowapplicationrate":
+                    SlowApplicationRatePSIpS = stf.ReadFloatBlock(STFReader.Units.PressureRateDefaultPSIpS, null);
+                    break;
+
                 case "engine(enginecontrollers(brake_train":
                 case "engine(enginecontrollers(brake_engine":
                 case "engine(enginecontrollers(brake_brakeman":
@@ -315,6 +321,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                 Script.ReleaseRateBarpS = () => (float)Rate.Pressure.FromPSIpS(ReleaseRatePSIpS);
                 Script.QuickReleaseRateBarpS = () => (float)Rate.Pressure.FromPSIpS(QuickReleaseRatePSIpS);
                 Script.OverchargeEliminationRateBarpS = () => (float)Rate.Pressure.FromPSIpS(OverchargeEliminationRatePSIpS);
+                Script.SlowApplicationRateBarpS = () => (float)Rate.Pressure.FromPSIpS(SlowApplicationRatePSIpS);
                 Script.ApplyRateBarpS = () => (float)Rate.Pressure.FromPSIpS(ApplyRatePSIpS);
                 Script.EmergencyRateBarpS = () => (float)Rate.Pressure.FromPSIpS(EmergencyRatePSIpS);
                 Script.FullServReductionBar = () => (float)Pressure.Atmospheric.FromPSI(FullServReductionPSI);

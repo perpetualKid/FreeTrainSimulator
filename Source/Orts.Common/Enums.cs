@@ -566,6 +566,8 @@ namespace Orts.Common
         EPOnly,                 // TrainBrakesControllerEPOnlyStart
         [Description("EP Full Service")]
         EPFullServ,             // TrainBrakesControllerEPFullServiceStart
+        [Description("Slow service")]
+        SlowService,            // TrainBrakesControllerSlowServiceStart
     }
 
     public enum TrainControlMode

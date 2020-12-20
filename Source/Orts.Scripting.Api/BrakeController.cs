@@ -46,6 +46,10 @@ namespace Orts.Scripting.Api
         /// </summary>
         public Func<float> OverchargeEliminationRateBarpS;
         /// <summary>
+        /// Slow application rate of the equalizing reservoir
+        /// </summary>
+        public Func<float> SlowApplicationRateBarpS;
+        /// <summary>
         /// Apply rate of the equalizing reservoir
         /// </summary>
         public Func<float> ApplyRateBarpS;
