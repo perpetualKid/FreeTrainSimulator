@@ -29,7 +29,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
         public readonly List<DMIButton> Buttons = new List<DMIButton>();
         public MenuBar(DriverMachineInterface dmi)
         {
-            var main = new DMITextButton("Main", "Main", true, () =>
+            /*var main = new DMITextButton("Main", "Main", true, () =>
             {
                 var buts = new List<DMIButton>();
                 buts.Add(new DMITextButton("Start", "Start", true, null, 153, 50, dmi));
@@ -80,10 +80,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
                     val.Name = "Maximum speed (km/h)";
                     val.Keyboard = new DMIKeyboard(DMIKeyboard.KeyboardType.Numeric);
                     fields.Add(val);
-                    /*val.Name = "Axle load category";
-                    keys = new List<string>();
-                    val.Keyboard = new DMIKeyboard(keys);
-                    fields.Add(val);*/
                     val.Name = "Airtight";
                     keys = new List<string>();
                     keys.Add("Yes");
@@ -158,7 +154,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
             Buttons.Add(ov);
             Buttons.Add(new DMITextButton("Data\nview", "Data view", true, null, 60, 50, dmi));
             Buttons.Add(new DMITextButton("Spec", "Special", true, null, 60, 50, dmi));
-            Buttons.Add(new DMIIconButton("SE_04.bmp", "SE_04.bmp", "Settings", true, null, 60, 50, dmi));
+            Buttons.Add(new DMIIconButton("SE_04.bmp", "SE_04.bmp", "Settings", true, null, 60, 50, dmi));*/
         }
     }
     public class MenuWindow : DMISubwindow
@@ -167,14 +163,26 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
         public MenuWindow(DMIMenuWindowDefinition definition, DriverMachineInterface dmi) : base(definition.WindowTitle, false, dmi)
         {
             int i = 0;
-            foreach(var button in definition.Buttons)
+            foreach (var buttondef in definition.Buttons)
             {
-                var textbut = new DMITextButton(button.Caption, button.Caption, true, null, 153, 50, dmi);
-                Buttons.Add(textbut);
-                AddToLayout(textbut, new Point(i%2 * 153, 50 + 50 * (i/2)));
+                DMIButton b;
+                if (buttondef is DMITextButtonDefinition)
+                {
+                    b = new DMITextButton((buttondef as DMITextButtonDefinition).Label, buttondef.ConfirmerCaption, buttondef.Enabled, () => { /* TODO */ }, 153, 50, dmi);
+                }
+                else if (buttondef is DMIIconButtonDefinition)
+                {
+                    b = new DMIIconButton((buttondef as DMIIconButtonDefinition).EnabledIconName, (buttondef as DMIIconButtonDefinition).DisabledIconName, buttondef.ConfirmerCaption, buttondef.Enabled, () => { /* TODO */ }, 153, 50, dmi);
+                }
+                else
+                {
+                    i++;
+                    continue;
+                }
+                Buttons.Add(b);
+                AddToLayout(b, new Point(i % 2 * 153, 50 + 50 * (i / 2)));
                 i++;
             }
-            Visible = true;
         }
         public MenuWindow(string title, List<DMIButton> buttons, DriverMachineInterface dmi) : base(title, false, dmi)
         {
