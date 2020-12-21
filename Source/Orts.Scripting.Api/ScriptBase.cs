@@ -21,6 +21,10 @@ namespace Orts.Scripting.Api
         /// Running total of distance travelled - always positive, updated by train physics.
         /// </summary>
         public Func<double> DistanceM;
+        /// Train's actual absolute speed.
+        /// </summary>
+        public Func<float> SpeedMpS;
+        /// <summary>
         /// <summary>
         /// Confirms a command done by the player with a pre-set message on the screen.
         /// </summary>

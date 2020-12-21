@@ -98,6 +98,10 @@ namespace Orts.Scripting.Api
         /// Sets the state of the brake pressure (1 = increasing, -1 = decreasing)
         /// </summary>
         public Action<float> SetUpdateValue;
+        /// <summary>
+        /// Sets the dynamic brake intervention value
+        /// </summary>
+        public Action<float> SetDynamicBrakeIntervention;
 
         /// <summary>
         /// Called once at initialization time.

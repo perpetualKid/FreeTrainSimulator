@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
+using System;
 using System.IO;
 using Orts.Common;
 using Orts.Common.Calc;
@@ -119,6 +120,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                 Script.ClockTime = () => (float)Simulator.ClockTime;
                 Script.GameTime = () => (float)Simulator.GameTime;
                 Script.DistanceM = () => Locomotive.DistanceM;
+                Script.SpeedMpS = () => Math.Abs(Locomotive.SpeedMpS);
                 Script.Confirm = Locomotive.Simulator.Confirmer.Confirm;
                 Script.Message = Locomotive.Simulator.Confirmer.Message;
                 Script.SignalEvent = Locomotive.SignalEvent;
