@@ -155,6 +155,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             QuickReleaseRatePSIpS = 10;
             OverchargeEliminationRatePSIpS = 0.036f;
             ApplyRatePSIpS = 2;
+            SlowApplicationRatePSIpS = 1;
             EmergencyRatePSIpS = 10;
             FullServReductionPSI = 26;
             MinReductionPSI = 6;
@@ -172,6 +173,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             QuickReleaseRatePSIpS = controller.QuickReleaseRatePSIpS;
             OverchargeEliminationRatePSIpS = controller.OverchargeEliminationRatePSIpS;
             ApplyRatePSIpS = controller.ApplyRatePSIpS;
+            SlowApplicationRatePSIpS = controller.SlowApplicationRatePSIpS;
             EmergencyRatePSIpS = controller.EmergencyRatePSIpS;
             FullServReductionPSI = controller.FullServReductionPSI;
             MinReductionPSI = controller.MinReductionPSI;
