@@ -53,8 +53,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
 
         List<TextMessage> MessageList;
         TextMessage? AcknowledgingMessage;
-
-        bool Visible = false;
         public MessageArea(DriverMachineInterface dmi) : base(Viewer.Catalog.GetString("Acknowledge"), true, dmi, false)
         {
             MaxTextLines = dmi.IsSoftLayout ? 4 : 5;
@@ -207,7 +205,12 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
         }
         public override void PrepareFrame(ETCSStatus status)
         {
-            Visible = status.ShowTextMessageArea;
+            if (Visible != status.ShowTextMessageArea)
+            {
+                Visible = status.ShowTextMessageArea;
+                ButtonScrollUp.Visible = Visible;
+                ButtonScrollDown.Visible = Visible;
+            }
             MessageList = status.TextMessages;
             if (!Visible) return;
             if (AcknowledgingMessage.HasValue)

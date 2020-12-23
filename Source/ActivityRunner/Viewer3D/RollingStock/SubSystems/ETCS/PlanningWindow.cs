@@ -100,6 +100,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
             ButtonScaleUp.ExtendedSensitiveArea = new Rectangle(0, 0, 0, 15);
             ButtonScaleUp.ShowButtonBorder = false;
             ButtonScaleDown.ShowButtonBorder = false;
+            ButtonScaleUp.Enabled = MaxViewingDistanceM > MinZoomDistanceM;
+            ButtonScaleDown.Enabled = MaxViewingDistanceM < MaxZoomDistanceM;
             ScaleChanged();
         }
 
@@ -418,11 +420,15 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
                 {
                     ButtonScaleUp.Enabled = MaxViewingDistanceM > MinZoomDistanceM;
                     ButtonScaleDown.Enabled = MaxViewingDistanceM < MaxZoomDistanceM;
+                    ButtonScaleUp.Visible = true;
+                    ButtonScaleDown.Visible = true;
                 }
                 else
                 {
                     ButtonScaleDown.Enabled = false;
                     ButtonScaleUp.Enabled = false;
+                    ButtonScaleUp.Visible = false;
+                    ButtonScaleDown.Visible = false;
                 }
             }
             if (Visible)
