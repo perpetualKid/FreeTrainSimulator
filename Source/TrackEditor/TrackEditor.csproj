@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <Description>Open Rails Track Editor</Description>
@@ -10,10 +10,13 @@
     <RootNamespace>Orts.TrackEditor</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="GetText.NET" Version="0.9.6" />
+    <PackageReference Include="GetText.NET.WindowsForms" Version="0.9.6" />
     <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.0.1641" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Orts.Common\Orts.Common.csproj" />
+    <ProjectReference Include="..\Orts.Models.Simplified\Orts.Models.Simplified.csproj" />
     <ProjectReference Include="..\Orts.View\Orts.View.csproj" />
   </ItemGroup>
 </Project>

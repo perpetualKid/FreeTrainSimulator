@@ -688,21 +688,22 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 // Ensure we start with an empty file.
                 if (!appendLog)
                     File.Delete(logFileName);
+
+
+                StreamWriter writer = new StreamWriter(logFileName, true, Encoding.Default, 512)
+                {
+                    AutoFlush = true
+                };
+
+                // Captures Trace.Trace* calls and others and formats.
+                ORTraceListener traceListener = new ORTraceListener(writer, !settings.Logging)
+                {
+                    TraceOutputOptions = TraceOptions.Callstack
+                };
+                Trace.Listeners.Add(traceListener);
+                //Trace.Listeners.Add(new TextWriterTraceListener(writer));
+                Trace.AutoFlush = true;
             }
-
-            StreamWriter writer = new StreamWriter(logFileName, true, Encoding.Default, 512)
-            {
-                AutoFlush = true
-            };
-
-            // Captures Trace.Trace* calls and others and formats.
-            ORTraceListener traceListener = new ORTraceListener(writer, !settings.Logging)
-            {
-                TraceOutputOptions = TraceOptions.Callstack
-            };
-            Trace.Listeners.Add(traceListener);
-            //Trace.Listeners.Add(new TextWriterTraceListener(writer));
-            Trace.AutoFlush = true;
 
             if (Debugger.IsLogging())
             {

@@ -1,4 +1,5 @@
-﻿using System.Windows.Forms;
+﻿using System;
+using System.Windows.Forms;
 
 namespace Orts.TrackEditor
 {
@@ -17,6 +18,11 @@ namespace Orts.TrackEditor
             if (disposing && (components != null))
             {
                 components.Dispose();
+                foreach (var item in Components)
+                {
+                    if (item is IDisposable disposable)
+                        disposable.Dispose();
+                }
             }
             graphicsDeviceManager?.Dispose();
             windowForm?.Dispose();
@@ -28,16 +34,23 @@ namespace Orts.TrackEditor
         {
             this.statusbar = new WinForms.Controls.StatusbarControl();
             this.statusbar.SuspendLayout();
+            this.mainmenu = new WinForms.Controls.MainMenuControl();
+            this.mainmenu.SuspendLayout();
             windowForm.SuspendLayout();
 
             this.statusbar.Dock = DockStyle.Bottom;
             windowForm.Controls.Add(this.statusbar);
             this.statusbar.ResumeLayout(false);
             this.statusbar.PerformLayout();
+            this.mainmenu.Dock = DockStyle.Top;
+            windowForm.Controls.Add(this.mainmenu);
+            this.mainmenu.ResumeLayout();
+            this.mainmenu.PerformLayout();
             windowForm.ResumeLayout(false);
             windowForm.PerformLayout();
         }
 
         private TrackEditor.WinForms.Controls.StatusbarControl statusbar;
+        private TrackEditor.WinForms.Controls.MainMenuControl mainmenu;
     }
 }

@@ -11,18 +11,20 @@ namespace Orts.View.DrawableComponents
 {
     public class TextDrawShape : ResourceGameComponent<Texture2D>
     {
-        private readonly SpriteBatch spriteBatch;
+        [ThreadStatic]
         private static TextDrawShape instance;
+        private readonly SpriteBatch spriteBatch;
 
-        private static readonly System.Drawing.Bitmap measureBitmap = new System.Drawing.Bitmap(1, 1);
-        private static readonly System.Drawing.Graphics measureGraphics = System.Drawing.Graphics.FromImage(measureBitmap);
+        private readonly System.Drawing.Bitmap measureBitmap = new System.Drawing.Bitmap(1, 1);
+        private readonly System.Drawing.Graphics measureGraphics;
 
-        private static readonly System.Drawing.Brush fontBrush = new System.Drawing.SolidBrush(System.Drawing.Color.White);
+        private readonly System.Drawing.Brush fontBrush = new System.Drawing.SolidBrush(System.Drawing.Color.White);
 
 
         private TextDrawShape(Game game, SpriteBatch spriteBatch) : base(game)
         {
             this.spriteBatch = spriteBatch;
+            measureGraphics = System.Drawing.Graphics.FromImage(measureBitmap);
         }
 
         public static void Initialize(Game game, SpriteBatch spriteBatch)
@@ -61,7 +63,7 @@ namespace Orts.View.DrawableComponents
         public static Texture2D DrawString(string message, System.Drawing.Font font)
         {
             // Measure the text with the already instantated measureGraphics object.
-            System.Drawing.Size measuredsize = measureGraphics.MeasureString(message, font).ToSize();
+            System.Drawing.Size measuredsize = instance.measureGraphics.MeasureString(message, font).ToSize();
 
             // Create the final bitmap
             using (System.Drawing.Bitmap bmpSurface = new System.Drawing.Bitmap(measuredsize.Width, measuredsize.Height))
@@ -75,7 +77,7 @@ namespace Orts.View.DrawableComponents
 
                     // Draw the text to the clean bitmap
                     g.Clear(System.Drawing.Color.Transparent);
-                    g.DrawString(message, font, fontBrush, System.Drawing.PointF.Empty);
+                    g.DrawString(message, font, instance.fontBrush, System.Drawing.PointF.Empty);
 
                     System.Drawing.Imaging.BitmapData bmd = bmpSurface.LockBits(new System.Drawing.Rectangle(0, 0, bmpSurface.Width, bmpSurface.Height),
                         System.Drawing.Imaging.ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
@@ -116,7 +118,7 @@ namespace Orts.View.DrawableComponents
 
                     // Draw the text to the clean bitmap
                     g.Clear(System.Drawing.Color.Transparent);
-                    g.DrawString(message, font, fontBrush, System.Drawing.PointF.Empty);
+                    g.DrawString(message, font, instance.fontBrush, System.Drawing.PointF.Empty);
 
                     System.Drawing.Imaging.BitmapData bmd = bmpSurface.LockBits(new System.Drawing.Rectangle(0, 0, bmpSurface.Width, bmpSurface.Height),
                         System.Drawing.Imaging.ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
@@ -139,7 +141,6 @@ namespace Orts.View.DrawableComponents
             unchecked // Overflow is fine, just wrap
             {
                 int hash = 17;
-                // Suitable nullity checks etc, of course :)
                 hash = hash * 23 + font?.GetHashCode() ?? 0;
                 hash = hash * 23 + message?.GetHashCode() ?? 0;
                 return hash;

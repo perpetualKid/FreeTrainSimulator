@@ -2,7 +2,6 @@
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 using Microsoft.Xna.Framework;
@@ -13,15 +12,11 @@ using Orts.View.Xna;
 
 namespace Orts.View.Track.Shapes
 {
-    public static class BasicShapes
+    public class BasicShapes
     {
-        public static EnumArray<Texture2D, BasicTextureType> BasicTextures { get; } = new EnumArray<Texture2D, BasicTextureType>();
-        public static EnumArray<Texture2D, BasicTextureType> BasicHighlightTextures { get; } = new EnumArray<Texture2D, BasicTextureType>();
-
-        private static EnumArray<Vector2, BasicTextureType> textureOffsets = new EnumArray<Vector2, BasicTextureType>();
-
-        private static GraphicsDevice graphicsDevice;
-        private static SpriteBatch spriteBatch;
+        private readonly EnumArray<Texture2D, BasicTextureType> basicTextures = new EnumArray<Texture2D, BasicTextureType>();
+        private readonly EnumArray<Texture2D, BasicTextureType> basicHighlightTextures = new EnumArray<Texture2D, BasicTextureType>();
+        private readonly EnumArray<Vector2, BasicTextureType> textureOffsets = new EnumArray<Vector2, BasicTextureType>();
 
         private const double minAngleDegree = 0.1f; // we do not care for angles smaller than 0.1 degrees
         private const double maxAngleDegree = 90; // allows for drawing up to 90 degree arcs
@@ -29,43 +24,60 @@ namespace Orts.View.Track.Shapes
         private static readonly double[] cosTable = new double[(int)(Math.Ceiling(maxAngleDegree / minAngleDegree) + 1)]; // table with precalculated Cosine values: cosTable[numberDrawn] = cos(numberDrawn * 0.1degrees)
         private static readonly double[] sinTable = new double[(int)(Math.Ceiling(maxAngleDegree / minAngleDegree) + 1)]; // similar
 
+        [ThreadStatic]
+        private static BasicShapes instance;
+        private readonly SpriteBatch spriteBatch;
+
+        static BasicShapes()
+        {
+            PrepareArcDrawing();
+        }
+
+        private BasicShapes(SpriteBatch spriteBatch)
+        {
+            this.spriteBatch = spriteBatch;
+        }
+
+        public static void Initialize(SpriteBatch spriteBatch)
+        {
+            if (null == instance)
+            {
+                instance = new BasicShapes(spriteBatch);
+            }
+        }
+
         /// <summary>
         /// Some initialization needed for actual drawing
         /// </summary>
         /// <param name="graphicsDevice">The graphics device used</param>
         /// <param name="spriteBatch">The spritebatch to use for drawing</param>
-        public static void LoadContent(GraphicsDevice graphicsDevice, SpriteBatch spriteBatch)
+        public static void LoadContent(GraphicsDevice graphicsDevice)
         {
             const int diameter = 64; // Needs to be power of two for mipmapping
-            BasicShapes.graphicsDevice = graphicsDevice;
-            BasicShapes.spriteBatch = spriteBatch;
-            BasicTextures[BasicTextureType.BlankPixel] = new Texture2D(graphicsDevice, 1, 1);
-            BasicTextures[BasicTextureType.BlankPixel].SetData(new[] { Color.White });
+            instance.basicTextures[BasicTextureType.BlankPixel] = new Texture2D(graphicsDevice, 1, 1);
+            instance.basicTextures[BasicTextureType.BlankPixel].SetData(new[] { Color.White });
 
-            BasicTextures[BasicTextureType.Circle] = CreateCircleTexture(graphicsDevice, diameter);
-            textureOffsets[BasicTextureType.Circle] = new Vector2(diameter / 2, diameter / 2);
+            instance.basicTextures[BasicTextureType.Circle] = CreateCircleTexture(graphicsDevice, diameter);
+            instance.textureOffsets[BasicTextureType.Circle] = new Vector2(diameter / 2, diameter / 2);
 
-            BasicTextures[BasicTextureType.Disc] = CreateDiscTexture(graphicsDevice, diameter);
-            textureOffsets[BasicTextureType.Disc] = new Vector2(diameter / 2, diameter / 2);
+            instance.basicTextures[BasicTextureType.Disc] = CreateDiscTexture(graphicsDevice, diameter);
+            instance.textureOffsets[BasicTextureType.Disc] = new Vector2(diameter / 2, diameter / 2);
 
-            BasicTextures[BasicTextureType.Ring] = CreateRingTexture(graphicsDevice, diameter);
-            textureOffsets[BasicTextureType.Ring] = new Vector2(diameter / 2, diameter / 2);
+            instance.basicTextures[BasicTextureType.Ring] = CreateRingTexture(graphicsDevice, diameter);
+            instance.textureOffsets[BasicTextureType.Ring] = new Vector2(diameter / 2, diameter / 2);
 
-            BasicTextures[BasicTextureType.CrossedRing] = CreateCrossedRingTexture(graphicsDevice, diameter);
-            textureOffsets[BasicTextureType.CrossedRing] = new Vector2(diameter / 2, diameter / 2);
+            instance.basicTextures[BasicTextureType.CrossedRing] = CreateCrossedRingTexture(graphicsDevice, diameter);
+            instance.textureOffsets[BasicTextureType.CrossedRing] = new Vector2(diameter / 2, diameter / 2);
 
             // textures modified from http://www.iconsdb.com
-            LoadTexturesFromResources();
+            instance.LoadTexturesFromResources(graphicsDevice);
             //correct center point offsets for non-centered images
-            textureOffsets[BasicTextureType.Signal] = new Vector2(29, 18);
-            textureOffsets[BasicTextureType.Sound] = new Vector2(5, 5);
-            textureOffsets[BasicTextureType.Platform] = new Vector2(31, 37);
-            textureOffsets[BasicTextureType.Hazard] = Vector2.Zero;
-            textureOffsets[BasicTextureType.Pickup] = Vector2.Zero;
-            textureOffsets[BasicTextureType.CarSpawner] = Vector2.Zero;
-
-            PrepareArcDrawing();
-
+            instance.textureOffsets[BasicTextureType.Signal] = new Vector2(29, 18);
+            instance.textureOffsets[BasicTextureType.Sound] = new Vector2(5, 5);
+            instance.textureOffsets[BasicTextureType.Platform] = new Vector2(31, 37);
+            instance.textureOffsets[BasicTextureType.Hazard] = Vector2.Zero;
+            instance.textureOffsets[BasicTextureType.Pickup] = Vector2.Zero;
+            instance.textureOffsets[BasicTextureType.CarSpawner] = Vector2.Zero;
         }
 
         #region Drawing
@@ -81,8 +93,7 @@ namespace Orts.View.Track.Shapes
         public static void DrawTexture(BasicTextureType texture, Vector2 point, double angle, float size, Color color, bool flipHorizontal, bool flipVertical, bool highlight)
         {
             SpriteEffects flipMode = (flipHorizontal ? SpriteEffects.FlipHorizontally : SpriteEffects.None) | (flipVertical ? SpriteEffects.FlipVertically : SpriteEffects.None);
-            float scaledSize = 1 / size;/// BasicTextures[texture].Width;
-                spriteBatch.Draw(highlight ? BasicHighlightTextures[texture] : BasicTextures[texture], point, null, color, (float)angle, textureOffsets[texture], new Vector2(scaledSize), flipMode, 0);
+            instance.spriteBatch.Draw(highlight ? instance.basicHighlightTextures[texture] : instance.basicTextures[texture], point, null, color, (float)angle, instance.textureOffsets[texture], new Vector2(size), flipMode, 0);
         }
 
         /// <summary>
@@ -97,7 +108,7 @@ namespace Orts.View.Track.Shapes
         {
             // offset to compensate for the width of the line
             Vector2 offset = new Vector2((float)(width * Math.Sin(angle) / 2.0), (float)(-width * Math.Cos(angle) / 2));
-            spriteBatch.Draw(BasicTextures[BasicTextureType.BlankPixel], point + offset, null, color, (float)angle, Vector2.Zero, new Vector2(length, width), SpriteEffects.None, 0);
+            instance.spriteBatch.Draw(instance.basicTextures[BasicTextureType.BlankPixel], point + offset, null, color, (float)angle, Vector2.Zero, new Vector2(length, width), SpriteEffects.None, 0);
         }
 
         /// <summary>
@@ -196,7 +207,7 @@ namespace Orts.View.Track.Shapes
                 point = center + centerToPointDirection * (float)(radius - sign * width / 2.0);  // correct for width of line
                 double length = radius * arcSteps * minAngleRad + 1; // the +1 to prevent white lines in between arc sections
 
-                spriteBatch.Draw(BasicTextures[BasicTextureType.BlankPixel], point, null, color, (float)angle, Vector2.Zero, new Vector2((float)length, width), SpriteEffects.None, 0);
+                instance.spriteBatch.Draw(instance.basicTextures[BasicTextureType.BlankPixel], point, null, color, (float)angle, Vector2.Zero, new Vector2((float)length, width), SpriteEffects.None, 0);
 
                 // prepare for next straight line
                 arcStepsRemaining -= arcSteps;
@@ -216,7 +227,7 @@ namespace Orts.View.Track.Shapes
         #endregion
 
         #region private implementations
-        private static void LoadTexturesFromResources()
+        private void LoadTexturesFromResources(GraphicsDevice graphicsDevice)
         {
             Assembly assembly = Assembly.GetExecutingAssembly();
             Parallel.ForEach(assembly.GetManifestResourceNames(), new ParallelOptions() { MaxDegreeOfParallelism = Environment.ProcessorCount }, resourceName =>
@@ -227,15 +238,15 @@ namespace Orts.View.Track.Shapes
                 using (Stream stream = assembly.GetManifestResourceStream(resourceName))
                 {
                     Texture2D texture = Texture2D.FromStream(graphicsDevice, stream);
-                    BasicTextures[textureValue] = PrepareColorScaledTexture(texture);
-                    BasicHighlightTextures[textureValue] = PrepareColorScaledTexture(texture, 0.8);
+                    basicTextures[textureValue] = PrepareColorScaledTexture(graphicsDevice, texture);
+                    basicHighlightTextures[textureValue] = PrepareColorScaledTexture(graphicsDevice, texture, 0.8);
                     textureOffsets[textureValue] = new Vector2(texture.Width / 2 - 1, texture.Height / 2 - 1);
                 }
             }
             );
         }
 
-        private static Texture2D PrepareColorScaledTexture(Texture2D texture, double range = 1)
+        private static Texture2D PrepareColorScaledTexture(GraphicsDevice graphicsDevice, Texture2D texture, double range = 1)
         {
             int pixelCount = texture.Width * texture.Height;
             Color[] pixels = new Color[pixelCount];

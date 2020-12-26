@@ -16,7 +16,7 @@ namespace Orts.View.Xna
         private protected Texture2D texture;
         private protected Font font;
 
-        protected static readonly Brush whiteBrush = new SolidBrush(Color.White);
+        private protected readonly Brush whiteBrush = new SolidBrush(Color.White);
 
         public DrawableTextComponent(Microsoft.Xna.Framework.Game game, Font font) :
             base(game)
@@ -78,6 +78,7 @@ namespace Orts.View.Xna
             if (disposing)
             {
                 texture?.Dispose();
+                whiteBrush?.Dispose();
             }
             base.Dispose(disposing);
         }

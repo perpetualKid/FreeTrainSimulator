@@ -1,14 +1,19 @@
 ﻿using System;
-using System.Windows.Forms;
+using System.Diagnostics;
+using System.Threading;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
+using NuGet.Versioning;
+
 using Orts.Common;
 using Orts.Common.Info;
+using Orts.Common.Input;
 using Orts.View.DrawableComponents;
 using Orts.View.Track.Shapes;
+using Orts.View.Xna;
 
 namespace Orts.TrackEditor
 {
@@ -23,23 +28,24 @@ namespace Orts.TrackEditor
     public partial class GameWindow : Game
     {
         private readonly GraphicsDeviceManager graphicsDeviceManager;
-        private readonly Form windowForm;
+        private readonly System.Windows.Forms.Form windowForm;
 
         private SpriteBatch spriteBatch;
 
         private bool syncing;
         private ScreenMode currentScreenMode;
-        private Screen currentScreen;
+        private System.Windows.Forms.Screen currentScreen;
         private Point windowPosition;
         private System.Drawing.Size windowSize;
         private Point clientRectangleOffset;
 
         private readonly System.Drawing.Size presetSize = new System.Drawing.Size(2000, 800); //TODO
+        private readonly ContentArea content;
 
-        public GameWindow()
+        public GameWindow(int instance)
         {
-            windowForm = (Form)Control.FromHandle(Window.Handle);
-            currentScreen = Screen.PrimaryScreen;
+            windowForm = (System.Windows.Forms.Form)System.Windows.Forms.Control.FromHandle(Window.Handle);
+            currentScreen = System.Windows.Forms.Screen.PrimaryScreen;
 
             InitializeComponent();
             graphicsDeviceManager = new GraphicsDeviceManager(this);
@@ -48,7 +54,8 @@ namespace Orts.TrackEditor
             IsMouseVisible = true;
 
             // Set title to show revision or build info.
-            Window.Title = $"{RuntimeInfo.ProductName} {VersionInfo.Version}";
+            Window.Title = $"{instance}";
+            //Window.Title = $"{RuntimeInfo.ProductName} {VersionInfo.Version}";
 #if DEBUG
             Window.Title += " (debug)";
 #endif
@@ -58,14 +65,14 @@ namespace Orts.TrackEditor
             Window.Title += " [.NET Classic]";
 #endif
 
+            content = new ContentArea();
             Window.AllowUserResizing = true;
 
-            //Window.ClientSizeChanged += WindowClientSizeChanged; // not using the GameForm event as it does not raise when Window is moved (ie to another screeen) using keyboard shortcut
+            //Window.ClientSizeChanged += Window_ClientSizeChanged; // not using the GameForm event as it does not raise when Window is moved (ie to another screeen) using keyboard shortcut
 
-            //IsFixedTimeStep = false;
             //graphicsDeviceManager.SynchronizeWithVerticalRetrace = false;
-            //TargetElapsedTime = TimeSpan.FromMilliseconds(10);
-            //windowForm.ClientSize = new Size(Window.ClientBounds.X / 2, Window.ClientBounds.X);
+            //IsFixedTimeStep = true;
+            //TargetElapsedTime = TimeSpan.FromMilliseconds(5);
             windowSize = presetSize;
             windowPosition = new Point(
                 currentScreen.WorkingArea.Left + (currentScreen.WorkingArea.Size.Width - windowSize.Width) / 2,
@@ -83,6 +90,7 @@ namespace Orts.TrackEditor
         #region window size/position handling
         private void WindowForm_ClientSizeChanged(object sender, EventArgs e)
         {
+            content.UpdateSize(Window.ClientBounds.Size);
             if (syncing)
                 return;
             if (currentScreenMode == ScreenMode.Windowed)
@@ -91,7 +99,7 @@ namespace Orts.TrackEditor
             if (currentScreenMode == ScreenMode.Windowed)
                 windowPosition = Window.Position;
             // if (fullscreen) gameWindow is moved to different screen we may need to refit for different screen resolution
-            Screen newScreen = Screen.FromControl(windowForm);
+            System.Windows.Forms.Screen newScreen = System.Windows.Forms.Screen.FromControl(windowForm);
             (newScreen, currentScreen) = (currentScreen, newScreen);
             if (newScreen.DeviceName != currentScreen.DeviceName && currentScreenMode != ScreenMode.Windowed)
             {
@@ -113,45 +121,46 @@ namespace Orts.TrackEditor
             e.GraphicsDeviceInformation.PresentationParameters.RenderTargetUsage = RenderTargetUsage.DiscardContents;
             e.GraphicsDeviceInformation.PresentationParameters.DepthStencilFormat = DepthFormat.Depth24Stencil8;
             e.GraphicsDeviceInformation.PresentationParameters.MultiSampleCount = 4;
-            e.GraphicsDeviceInformation.PresentationParameters.PresentationInterval = PresentInterval.Two;
+            //            e.GraphicsDeviceInformation.PresentationParameters.PresentationInterval = PresentInterval.Immediate;
         }
 
         private void SynchronizeGraphicsDeviceManager(ScreenMode targetMode)
         {
             syncing = true;
-            if (graphicsDeviceManager.IsFullScreen)
-                graphicsDeviceManager.ToggleFullScreen();
-            switch (targetMode)
-            {
-                case ScreenMode.Windowed:
-                    if (targetMode != currentScreenMode)
-                        Window.Position = windowPosition;
-                    windowForm.FormBorderStyle = FormBorderStyle.Sizable;
-                    windowForm.Size = presetSize;
-                    graphicsDeviceManager.PreferredBackBufferWidth = windowSize.Width;
-                    graphicsDeviceManager.PreferredBackBufferHeight = windowSize.Height;
-                    graphicsDeviceManager.ApplyChanges();
-                    statusbar.UpdateStatusbarVisibility(true);
-                    break;
-                case ScreenMode.WindowedFullscreen:
-                    graphicsDeviceManager.PreferredBackBufferWidth = currentScreen.WorkingArea.Width - clientRectangleOffset.X;
-                    graphicsDeviceManager.PreferredBackBufferHeight = currentScreen.WorkingArea.Height - clientRectangleOffset.Y;
-                    graphicsDeviceManager.ApplyChanges();
-                    windowForm.FormBorderStyle = FormBorderStyle.FixedSingle;
-                    Window.Position = new Point(currentScreen.WorkingArea.Location.X, currentScreen.WorkingArea.Location.Y);
-                    graphicsDeviceManager.ApplyChanges();
-                    statusbar.UpdateStatusbarVisibility(false);
-                    break;
-                case ScreenMode.BorderlessFullscreen:
-                    graphicsDeviceManager.PreferredBackBufferWidth = currentScreen.Bounds.Width;
-                    graphicsDeviceManager.PreferredBackBufferHeight = currentScreen.Bounds.Height;
-                    graphicsDeviceManager.ApplyChanges();
-                    windowForm.FormBorderStyle = FormBorderStyle.None;
-                    Window.Position = new Point(currentScreen.Bounds.X, currentScreen.Bounds.Y);
-                    graphicsDeviceManager.ApplyChanges();
-                    statusbar.UpdateStatusbarVisibility(false);
-                    break;
-            }
+            windowForm.Invoke((System.Windows.Forms.MethodInvoker)delegate {
+                if (graphicsDeviceManager.IsFullScreen)
+                    graphicsDeviceManager.ToggleFullScreen();
+                switch (targetMode)
+                {
+                    case ScreenMode.Windowed:
+                        if (targetMode != currentScreenMode)
+                            Window.Position = windowPosition;
+                        windowForm.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Sizable;
+                        windowForm.Size = presetSize;
+                        graphicsDeviceManager.PreferredBackBufferWidth = windowSize.Width;
+                        graphicsDeviceManager.PreferredBackBufferHeight = windowSize.Height;
+                        graphicsDeviceManager.ApplyChanges();
+                        statusbar.UpdateStatusbarVisibility(true);
+                        break;
+                    case ScreenMode.WindowedFullscreen:
+                        graphicsDeviceManager.PreferredBackBufferWidth = currentScreen.WorkingArea.Width - clientRectangleOffset.X;
+                        graphicsDeviceManager.PreferredBackBufferHeight = currentScreen.WorkingArea.Height - clientRectangleOffset.Y;
+                        windowForm.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+                        Window.Position = new Point(currentScreen.WorkingArea.Location.X, currentScreen.WorkingArea.Location.Y);
+                        graphicsDeviceManager.ApplyChanges();
+                        statusbar.UpdateStatusbarVisibility(false);
+                        break;
+                    case ScreenMode.BorderlessFullscreen:
+                        graphicsDeviceManager.PreferredBackBufferWidth = currentScreen.Bounds.Width;
+                        graphicsDeviceManager.PreferredBackBufferHeight = currentScreen.Bounds.Height;
+                        graphicsDeviceManager.ApplyChanges();
+                        windowForm.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
+                        Window.Position = new Point(currentScreen.Bounds.X, currentScreen.Bounds.Y);
+                        graphicsDeviceManager.ApplyChanges();
+                        statusbar.UpdateStatusbarVisibility(false);
+                        break;
+                }
+            });
             currentScreenMode = targetMode;
             syncing = false;
         }
@@ -160,61 +169,71 @@ namespace Orts.TrackEditor
         protected override void Initialize()
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
+            content.SpriteBatch = spriteBatch;
             TextDrawShape.Initialize(this, spriteBatch);
+            BasicShapes.Initialize(spriteBatch);
+            InputGameComponent inputComponent = new InputGameComponent(this);
+            Components.Add(inputComponent);
+            inputComponent.AddKeyEvent(Keys.F, KeyModifiers.None, InputGameComponent.KeyEventType.KeyPressed, () => new Thread(GameWindowThread).Start());
+            inputComponent.AddKeyEvent(Keys.Space, KeyModifiers.None, InputGameComponent.KeyEventType.KeyPressed, ChangeScreenMode);
+            inputComponent.AddKeyEvent(Keys.Q, KeyModifiers.None, InputGameComponent.KeyEventType.KeyPressed, CloseWindow);
             // TODO: Add your initialization logic here
             base.Initialize();
+        }
+
+        private static int instance = 1;
+        private static void GameWindowThread(object data)
+        {
+            using (GameWindow game = new GameWindow(instance++))
+                game.Run();
+
         }
 
         protected override void LoadContent()
         {
             // Create a new SpriteBatch, which can be used to draw textures.
-            BasicShapes.LoadContent(GraphicsDevice, spriteBatch);
-            DigitalClockComponent clock = new DigitalClockComponent(this, spriteBatch, TimeType.RealWorldLocalTime, 
+            BasicShapes.LoadContent(GraphicsDevice);
+            DigitalClockComponent clock = new DigitalClockComponent(this, spriteBatch, TimeType.RealWorldLocalTime,
                 new System.Drawing.Font("Segoe UI", 14, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel), Color.White, new Vector2(200, 300), true);
             Components.Add(clock);
         }
 
+        int updateCount;
         private int updateTIme;
-        private bool spacePressed;
         protected override void Update(GameTime gameTime)
         {
-            if (Keyboard.GetState().IsKeyDown(Microsoft.Xna.Framework.Input.Keys.Escape))
-                Exit();
 
-            if (Keyboard.GetState().IsKeyDown(Microsoft.Xna.Framework.Input.Keys.Space) && !spacePressed)
-            {
-                spacePressed = true;
-                SynchronizeGraphicsDeviceManager(currentScreenMode.Next());
-            }
-            if (Keyboard.GetState().IsKeyUp(Microsoft.Xna.Framework.Input.Keys.Space))
-            {
-                spacePressed = false;
-            }
+            //updateCount++;
+            //if ((int)gameTime.TotalGameTime.TotalSeconds > updateTIme)
+            //{
+            //    updateTIme = (int)gameTime.TotalGameTime.TotalSeconds;
+            //    Debug.WriteLine($"{1 / gameTime.ElapsedGameTime.TotalSeconds:0.0} - {updateCount}/{drawCount} - {Window.ClientBounds.Width}");
 
-            if ((int)gameTime.TotalGameTime.TotalSeconds > updateTIme)
-            {
-                updateTIme = (int)gameTime.TotalGameTime.TotalSeconds;
-                statusbar.toolStripStatusLabel1.Text = $"{1 / gameTime.ElapsedGameTime.TotalSeconds:0.0}";
-
-            }
+            //}
             // TODO: Add your update logic here
-
             base.Update(gameTime);
         }
 
         private static System.Drawing.Font drawfont = new System.Drawing.Font("Segoe UI", (int)Math.Round(25.0), System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
 
+        int drawCount;
+        int drawTime;
         protected override void Draw(GameTime gameTime)
         {
+            drawCount++;
+            if ((int)gameTime.TotalGameTime.TotalSeconds > drawTime)
+            {
+                drawTime = (int)gameTime.TotalGameTime.TotalSeconds;
+                statusbar.toolStripStatusLabel1.Text = $"{1 / gameTime.ElapsedGameTime.TotalSeconds:0.0}";
+
+            }
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
             spriteBatch.Begin();
-            spriteBatch.Draw(BasicShapes.BasicTextures[BasicTextureType.Signal], new Vector2(0, 0), Color.White);
-            spriteBatch.Draw(BasicShapes.BasicHighlightTextures[BasicTextureType.Signal], new Vector2(100, 100), Color.White);
             BasicShapes.DrawTexture(BasicTextureType.PlayerTrain, new Vector2(180, 180), 0, 1, Color.Green, false, false, true);
             BasicShapes.DrawTexture(BasicTextureType.PlayerTrain, new Vector2(240, 180), 0, 1, Color.Green, true, false, false);
             BasicShapes.DrawTexture(BasicTextureType.Ring, new Vector2(80, 220), 0, 0.5f, Color.Yellow, true, false, false);
-            BasicShapes.DrawTexture(BasicTextureType.Circle, new Vector2(80, 220), 0, 0.5f, Color.Red, true, false, false);
+            BasicShapes.DrawTexture(BasicTextureType.Circle, new Vector2(80, 220), 0, 0.2f, Color.Red, true, false, false);
             BasicShapes.DrawTexture(BasicTextureType.CrossedRing, new Vector2(240, 220), 0.5f, 1, Color.Yellow, true, false, false);
             BasicShapes.DrawTexture(BasicTextureType.Disc, new Vector2(340, 220), 0, 1, Color.Red, true, false, false);
 
@@ -222,6 +241,11 @@ namespace Orts.TrackEditor
             BasicShapes.DrawDashedLine(2, Color.Aqua, new Vector2(330, 330), new Vector2(450, 330));
             TextDrawShape.DrawString(new Vector2(200, 450), Color.Red, "Test Message", drawfont);
             TextDrawShape.DrawString(new Vector2(200, 500), Color.Lime, gameTime.TotalGameTime.TotalSeconds.ToString(), drawfont);
+
+            BasicShapes.DrawArc(5, Color.IndianRed, new Vector2(240, 220), 120, Math.PI, -270, 0);
+            BasicShapes.DrawLine(10, Color.DarkGoldenrod, new Vector2(100, 100), new Vector2(250, 250));
+            content.DrawLine(new Vector2(0, 100), new Vector2(300, 100), 5, Color.Black);
+            content.DrawVoid();
             spriteBatch.End();
 
             base.Draw(gameTime);
