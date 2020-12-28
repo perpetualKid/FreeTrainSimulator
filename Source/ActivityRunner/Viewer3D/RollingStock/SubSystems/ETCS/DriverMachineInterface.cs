@@ -97,6 +97,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
             Scale = Math.Min(width / Width, height / Height);
             /*if (Scale < 0.5) */MipMapScale = 2;
             //else MipMapScale = 1;
+            GaugeOnly = control is CabViewDigitalControl;
 
             Shader = new DriverMachineInterfaceShader(viewer.RenderProcess.GraphicsDevice);
             ETCSDefaultWindow = new ETCSDefaultWindow(this, control);
@@ -745,13 +746,11 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
         }
     }
 
-    public class DigitalDMIRenderer : CabViewDigitalRenderer, ICabViewMouseControlRenderer
+    public class CircularSpeedGaugeRenderer : CabViewDigitalRenderer
     {
         private readonly DriverMachineInterface driverMachineInterface;
-        bool Zoomed = false;
         bool mouseRightButtonPressed;
-
-        public DigitalDMIRenderer(Viewer viewer, MSTSLocomotive locomotive, CabViewDigitalControl control, CabShader shader)
+        public CircularSpeedGaugeRenderer(Viewer viewer, MSTSLocomotive locomotive, CabViewDigitalControl control, CabShader shader)
             : base(viewer, locomotive, control, shader)
         {
             // Height is adjusted to keep compatibility
@@ -765,8 +764,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
             base.PrepareFrame(frame, elapsedTime);
             DrawPosition.Width = DrawPosition.Width * 640 / 280;
             DrawPosition.Height = DrawPosition.Height * 480 / 300;
-            DrawPosition.X -= (int)(54 * driverMachineInterface.Scale);
-            DrawPosition.Y -= (int)(15 * driverMachineInterface.Scale);
             driverMachineInterface.SizeTo(DrawPosition.Width, DrawPosition.Height);
             driverMachineInterface.ETCSDefaultWindow.BackgroundColor = Color.Transparent;
             driverMachineInterface.PrepareFrame(elapsedTime.ClockSeconds);
@@ -776,35 +773,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
             driverMachineInterface.Draw(CabShaderControlView.SpriteBatch, new Point(DrawPosition.X, DrawPosition.Y));
             CabShaderControlView.SpriteBatch.End();
             CabShaderControlView.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, null, DepthStencilState.Default, null, Shader);
-        }
-        public bool IsMouseWithin(Point mousePoint)
-        {
-            int x = (int)((mousePoint.X - DrawPosition.X) / driverMachineInterface.Scale);
-            int y = (int)((mousePoint.Y - DrawPosition.Y) / driverMachineInterface.Scale);
-            if (mouseRightButtonPressed && new Rectangle(0, 0, 640, 480).Contains(x, y)) Zoomed = !Zoomed;
-            foreach (var area in driverMachineInterface.ActiveWindow.SubAreas)
-            {
-                if (!(area is DMIButton)) continue;
-                var b = (DMIButton)area;
-                if (b.SensitiveArea(driverMachineInterface.ActiveWindow.Position).Contains(x, y) && b.Enabled) return true;
-            }
-            return false;
-        }
-        public void HandleUserInput(GenericButtonEventType buttonEventType, Point position, Vector2 delta)
-        {
-            driverMachineInterface.HandleMouseInput(buttonEventType == GenericButtonEventType.Down, (int)((position.X - DrawPosition.X) / driverMachineInterface.Scale), (int)((position.Y - DrawPosition.Y) / driverMachineInterface.Scale));
-        }
-        public string GetControlName(Point mousePoint)
-        {
-            int x = (int)((mousePoint.X - DrawPosition.X) / driverMachineInterface.Scale);
-            int y = (int)((mousePoint.Y - DrawPosition.Y) / driverMachineInterface.Scale);
-            foreach (var area in driverMachineInterface.ActiveWindow.SubAreas)
-            {
-                if (!(area is DMIButton)) continue;
-                var b = (DMIButton)area;
-                if (b.SensitiveArea(driverMachineInterface.ActiveWindow.Position).Contains(x, y)) return b.DisplayName;
-            }
-            return "";
         }
 
         private void MouseRightButtonPressed(UserCommandArgs userCommandArgs)
