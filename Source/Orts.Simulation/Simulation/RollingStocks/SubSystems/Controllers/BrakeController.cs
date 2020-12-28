@@ -32,14 +32,17 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
         readonly MSTSLocomotive Locomotive;
         readonly Simulator Simulator;
 
-        public bool Activated;
-        string ScriptName = "MSTS";
+        private readonly bool activated;
+        private string scriptName = "MSTS";
         BrakeController Script;
-        public List<INotchController> Notches = new List<INotchController>();
+        public List<INotchController> Notches { get; } = new List<INotchController>();
 
-        private bool emergencyBrakingPushButton = false;
-        private bool tcsEmergencyBraking = false;
-        private bool tcsFullServiceBraking = false;
+        private bool emergencyBrakingPushButton;
+        private bool tcsEmergencyBraking;
+        private bool tcsFullServiceBraking;
+        private bool overchargeButtonPressed;
+        private bool quickReleaseButtonPressed;
+
         public bool EmergencyBraking
         {
             get
@@ -47,6 +50,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                 return emergencyBrakingPushButton || tcsEmergencyBraking || (Script.GetState() == ControllerState.Emergency);
             }
         }
+
         public bool EmergencyBrakingPushButton
         {
             get
@@ -66,6 +70,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                 emergencyBrakingPushButton = value;
             }
         }
+
         public bool TCSEmergencyBraking
         {
             get
@@ -85,6 +90,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                 tcsEmergencyBraking = value;
             }
         }
+
         public bool TCSFullServiceBraking
         {
             get
@@ -100,6 +106,46 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                 }
 
                 tcsFullServiceBraking = value;
+            }
+        }
+
+        public bool QuickReleaseButtonPressed
+        {
+            get
+            {
+                return quickReleaseButtonPressed;
+            }
+            set
+            {
+                if (Simulator.Confirmer != null)
+                {
+                    if (value && !quickReleaseButtonPressed)
+                        Simulator.Confirmer.Confirm(CabControl.QuickRelease, CabSetting.On);
+                    else if (!value && quickReleaseButtonPressed)
+                        Simulator.Confirmer.Confirm(CabControl.QuickRelease, CabSetting.Off);
+                }
+
+                quickReleaseButtonPressed = value;
+            }
+        }
+
+        public bool OverchargeButtonPressed
+        {
+            get
+            {
+                return overchargeButtonPressed;
+            }
+            set
+            {
+                if (Simulator.Confirmer != null)
+                {
+                    if (value && !overchargeButtonPressed)
+                        Simulator.Confirmer.Confirm(CabControl.Overcharge, CabSetting.On);
+                    else if (!value && overchargeButtonPressed)
+                        Simulator.Confirmer.Confirm(CabControl.Overcharge, CabSetting.Off);
+                }
+
+                overchargeButtonPressed = value;
             }
         }
 
@@ -135,7 +181,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             }
         }
 
-        float OldValue;
+        private float oldValue;
 
         public float CurrentValue { get; set; }
         public float MinimumValue { get; set; }
@@ -166,7 +212,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             Simulator = locomotive.Simulator;
             Locomotive = locomotive;
 
-            ScriptName = controller.ScriptName;
+            scriptName = controller.scriptName;
             MaxPressurePSI = controller.MaxPressurePSI;
             MaxOverchargePressurePSI = controller.MaxOverchargePressurePSI;
             ReleaseRatePSIpS = controller.ReleaseRatePSIpS;
@@ -281,7 +327,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                 case "engine(ortsenginebrakecontroller":
                     if (Locomotive.Train as AITrain == null)
                     {
-                        ScriptName = stf.ReadStringBlock(null);
+                        scriptName = stf.ReadStringBlock(null);
                     }
                     break;
             }
@@ -289,11 +335,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
 
         public void Initialize()
         {
-            if (!Activated)
+            if (!activated)
             {
-                if (ScriptName != null && ScriptName != "MSTS")
+                if (scriptName != null && scriptName != "MSTS")
                 {
-                    Script = Simulator.ScriptManager.Load(Path.Combine(Path.GetDirectoryName(Locomotive.WagFilePath), "Script"), ScriptName) as BrakeController;
+                    Script = Simulator.ScriptManager.Load(Path.Combine(Path.GetDirectoryName(Locomotive.WagFilePath), "Script"), scriptName) as BrakeController;
                 }
                 if (Script == null)
                 {
@@ -311,6 +357,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                 Script.EmergencyBrakingPushButton = () => EmergencyBrakingPushButton;
                 Script.TCSEmergencyBraking = () => TCSEmergencyBraking;
                 Script.TCSFullServiceBraking = () => TCSFullServiceBraking;
+                Script.QuickReleaseButtonPressed = () => QuickReleaseButtonPressed;
+                Script.OverchargeButtonPressed = () => OverchargeButtonPressed;
 
                 Script.MainReservoirPressureBar = () =>
                 {
@@ -449,10 +497,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             var oldNotch = CurrentNotch;
             SignalEvent(BrakeControllerEvent.SetCurrentValue, value);
 
-            var change = CurrentNotch > oldNotch || CurrentValue > OldValue + 0.1f || CurrentValue == 1 && OldValue < 1
-                ? 1 : CurrentNotch < oldNotch || CurrentValue < OldValue - 0.1f || CurrentValue == 0 && OldValue > 0 ? -1 : 0;
+            var change = CurrentNotch > oldNotch || CurrentValue > oldValue + 0.1f || CurrentValue == 1 && oldValue < 1
+                ? 1 : CurrentNotch < oldNotch || CurrentValue < oldValue - 0.1f || CurrentValue == 0 && oldValue > 0 ? -1 : 0;
             if (change != 0)
-                OldValue = CurrentValue;
+                oldValue = CurrentValue;
             return change;
         }
 

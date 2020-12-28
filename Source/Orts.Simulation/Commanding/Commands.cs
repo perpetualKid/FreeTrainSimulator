@@ -545,7 +545,53 @@ namespace Orts.Simulation.Commanding
     }
 
     [Serializable()]
-    public sealed class HandbrakeCommand : BooleanCommand
+    public sealed class QuickReleaseCommand : BooleanCommand
+    {
+        public static MSTSLocomotive Receiver { get; set; }
+
+        public QuickReleaseCommand(CommandLog log, bool toState)
+            : base(log, toState)
+        {
+            Redo();
+        }
+
+        public override void Redo()
+        {
+            Receiver.TrainBrakeController.QuickReleaseButtonPressed = targetState;
+            // Report();
+        }
+
+        public override string ToString()
+        {
+            return ToString(targetState ? "off" : "on");
+        }
+    }
+
+    [Serializable()]
+    public sealed class BrakeOverchargeCommand : BooleanCommand
+    {
+        public static MSTSLocomotive Receiver { get; set; }
+
+        public BrakeOverchargeCommand(CommandLog log, bool toState)
+            : base(log, toState)
+        {
+            Redo();
+        }
+
+        public override void Redo()
+        {
+            Receiver.TrainBrakeController.OverchargeButtonPressed = targetState;
+            // Report();
+        }
+
+        public override string ToString()
+        {
+            return ToString(targetState ? "off" : "on");
+        }
+    }
+
+    [Serializable()]
+    public sealed class HandbrakeCommand : BooleanCommand 
     {
         public static MSTSLocomotive Receiver { get; set; }
 

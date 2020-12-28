@@ -373,6 +373,9 @@ namespace Orts.Formats.Msts
         Orts_SecondDial,
         Orts_Signed_Traction_Braking,
         Orts_Signed_Traction_Total_Braking,
+        Orts_Bailoff,
+        Orts_QuickRelease,
+        Orts_Overcharge,
 
         // TCS Controls
         Orts_TCS1,

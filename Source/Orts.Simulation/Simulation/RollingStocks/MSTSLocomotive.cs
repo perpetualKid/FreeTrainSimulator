@@ -4446,6 +4446,21 @@ namespace Orts.Simulation.RollingStocks
                         data = (TrainBrakeController == null) ? 0.0f : TrainBrakeController.CurrentValue;
                         break;
                     }
+                case CabViewControlType.Orts_Bailoff:
+                    {
+                        data = BailOff ? 1 : 0;
+                        break;
+                    }
+                case CabViewControlType.Orts_QuickRelease:
+                    {
+                        data = (TrainBrakeController == null || !TrainBrakeController.QuickReleaseButtonPressed) ? 0 : 1;
+                        break;
+                    }
+                case CabViewControlType.Orts_Overcharge:
+                    {
+                        data = (TrainBrakeController == null || !TrainBrakeController.OverchargeButtonPressed) ? 0 : 1;
+                        break;
+                    }
                 case CabViewControlType.Friction_Braking:
                     {
                         data = (BrakeSystem == null) ? 0.0f : BrakeSystem.GetCylPressurePSI();

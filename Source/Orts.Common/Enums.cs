@@ -216,6 +216,8 @@ namespace Orts.Common
         Handbrake,
         Retainers,
         BrakeHose,
+        QuickRelease, 
+        Overcharge,
         // Cab Devices
         Sander,
         Alerter,

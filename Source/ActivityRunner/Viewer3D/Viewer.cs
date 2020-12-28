@@ -506,6 +506,8 @@ namespace Orts.ActivityRunner.Viewer3D
             EmergencyPushButtonCommand.Receiver = (MSTSLocomotive)PlayerLocomotive;
             HandbrakeCommand.Receiver = (MSTSLocomotive)PlayerLocomotive;
             BailOffCommand.Receiver = (MSTSLocomotive)PlayerLocomotive;
+            QuickReleaseCommand.Receiver = (MSTSLocomotive)PlayerLocomotive;
+            BrakeOverchargeCommand.Receiver = (MSTSLocomotive)PlayerLocomotive;
             RetainersCommand.Receiver = (MSTSLocomotive)PlayerLocomotive;
             BrakeHoseConnectCommand.Receiver = (MSTSLocomotive)PlayerLocomotive;
             ToggleWaterScoopCommand.Receiver = (MSTSLocomotive)PlayerLocomotive;
