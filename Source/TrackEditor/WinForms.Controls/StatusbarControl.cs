@@ -4,8 +4,11 @@ namespace Orts.TrackEditor.WinForms.Controls
 {
     public partial class StatusbarControl : UserControl
     {
-        public StatusbarControl()
+        private readonly GameWindow parent;
+
+        public StatusbarControl(GameWindow game)
         {
+            parent = game;
             InitializeComponent();
         }
 

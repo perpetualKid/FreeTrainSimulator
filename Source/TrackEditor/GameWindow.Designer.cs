@@ -32,20 +32,23 @@ namespace Orts.TrackEditor
 
         private void InitializeComponent()
         {
-            this.statusbar = new WinForms.Controls.StatusbarControl();
-            this.statusbar.SuspendLayout();
-            this.mainmenu = new WinForms.Controls.MainMenuControl();
-            this.mainmenu.SuspendLayout();
             windowForm.SuspendLayout();
+            this.mainmenu = new WinForms.Controls.MainMenuControl(this);
+            this.mainmenu.SuspendLayout();
+            windowForm.MainMenuStrip = mainmenu.Controls[0] as MenuStrip;
+            this.mainmenu.Dock = DockStyle.Top;
+            windowForm.Controls.Add(mainmenu.Controls[0]);
+            //windowForm.Controls.Add(mainmenu);
+            this.statusbar = new WinForms.Controls.StatusbarControl(this);
+            this.statusbar.SuspendLayout();
 
             this.statusbar.Dock = DockStyle.Bottom;
             windowForm.Controls.Add(this.statusbar);
-            this.statusbar.ResumeLayout(false);
-            this.statusbar.PerformLayout();
-            this.mainmenu.Dock = DockStyle.Top;
-            windowForm.Controls.Add(this.mainmenu);
+
             this.mainmenu.ResumeLayout();
             this.mainmenu.PerformLayout();
+            this.statusbar.ResumeLayout(false);
+            this.statusbar.PerformLayout();
             windowForm.ResumeLayout(false);
             windowForm.PerformLayout();
         }

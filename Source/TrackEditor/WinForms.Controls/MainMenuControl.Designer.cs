@@ -33,6 +33,11 @@ namespace Orts.TrackEditor.WinForms.Controls
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.openToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.saveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuItemRoutes = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuItemFolder = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
+            this.menuItemQuit = new System.Windows.Forms.ToolStripMenuItem();
             this.MainMenuStrip.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -43,7 +48,7 @@ namespace Orts.TrackEditor.WinForms.Controls
             this.fileToolStripMenuItem});
             this.MainMenuStrip.Location = new System.Drawing.Point(0, 0);
             this.MainMenuStrip.Name = "MainMenuStrip";
-            this.MainMenuStrip.Size = new System.Drawing.Size(1132, 28);
+            this.MainMenuStrip.Size = new System.Drawing.Size(1132, 30);
             this.MainMenuStrip.TabIndex = 0;
             this.MainMenuStrip.Text = "MenuStrip1";
             // 
@@ -51,9 +56,14 @@ namespace Orts.TrackEditor.WinForms.Controls
             // 
             this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.openToolStripMenuItem,
-            this.saveToolStripMenuItem});
+            this.saveToolStripMenuItem,
+            this.toolStripSeparator1,
+            this.menuItemFolder,
+            this.menuItemRoutes,
+            this.toolStripSeparator2,
+            this.menuItemQuit});
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
-            this.fileToolStripMenuItem.Size = new System.Drawing.Size(46, 24);
+            this.fileToolStripMenuItem.Size = new System.Drawing.Size(46, 26);
             this.fileToolStripMenuItem.Text = "File";
             // 
             // openToolStripMenuItem
@@ -66,8 +76,37 @@ namespace Orts.TrackEditor.WinForms.Controls
             // saveToolStripMenuItem
             // 
             this.saveToolStripMenuItem.Name = "saveToolStripMenuItem";
-            this.saveToolStripMenuItem.Size = new System.Drawing.Size(128, 26);
+            this.saveToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
             this.saveToolStripMenuItem.Text = "Save";
+            // 
+            // menuItemRoutes
+            // 
+            this.menuItemRoutes.Name = "menuItemRoutes";
+            this.menuItemRoutes.Size = new System.Drawing.Size(224, 26);
+            this.menuItemRoutes.Text = "Select Route";
+            // 
+            // menuItemFolder
+            // 
+            this.menuItemFolder.Name = "menuItemFolder";
+            this.menuItemFolder.Size = new System.Drawing.Size(224, 26);
+            this.menuItemFolder.Text = "Select Route Folder";
+            // 
+            // toolStripSeparator1
+            // 
+            this.toolStripSeparator1.Name = "toolStripSeparator1";
+            this.toolStripSeparator1.Size = new System.Drawing.Size(221, 6);
+            // 
+            // toolStripSeparator2
+            // 
+            this.toolStripSeparator2.Name = "toolStripSeparator2";
+            this.toolStripSeparator2.Size = new System.Drawing.Size(221, 6);
+            // 
+            // menuItemQuit
+            // 
+            this.menuItemQuit.Name = "menuItemQuit";
+            this.menuItemQuit.Size = new System.Drawing.Size(224, 26);
+            this.menuItemQuit.Text = "Quit (Q)";
+            this.menuItemQuit.Click += new System.EventHandler(this.MenuItemQuit_Click);
             // 
             // MainMenuControl
             // 
@@ -90,5 +129,10 @@ namespace Orts.TrackEditor.WinForms.Controls
         private System.Windows.Forms.ToolStripMenuItem fileToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem openToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem saveToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem menuItemRoutes;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
+        private System.Windows.Forms.ToolStripMenuItem menuItemFolder;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
+        private System.Windows.Forms.ToolStripMenuItem menuItemQuit;
     }
 }

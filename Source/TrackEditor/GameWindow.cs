@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -11,9 +14,14 @@ using NuGet.Versioning;
 using Orts.Common;
 using Orts.Common.Info;
 using Orts.Common.Input;
+using Orts.Settings;
+using Orts.View;
 using Orts.View.DrawableComponents;
 using Orts.View.Track.Shapes;
 using Orts.View.Xna;
+
+using SharpDX.Direct3D11;
+using SharpDX.WIC;
 
 namespace Orts.TrackEditor
 {
@@ -25,7 +33,7 @@ namespace Orts.TrackEditor
     }
 
 
-    public partial class GameWindow : Game
+    public partial class GameWindow : Game, IInputCapture
     {
         private readonly GraphicsDeviceManager graphicsDeviceManager;
         private readonly System.Windows.Forms.Form windowForm;
@@ -42,15 +50,20 @@ namespace Orts.TrackEditor
         private readonly System.Drawing.Size presetSize = new System.Drawing.Size(2000, 800); //TODO
         private readonly ContentArea content;
 
+        private readonly UserSettings settings;
+
         public GameWindow(int instance)
         {
+            IEnumerable<string> options = Environment.GetCommandLineArgs().Where(a => a.StartsWith("-", StringComparison.OrdinalIgnoreCase) || a.StartsWith("/", StringComparison.OrdinalIgnoreCase)).Select(a => a.Substring(1));
+            settings = new UserSettings(options);
+
             windowForm = (System.Windows.Forms.Form)System.Windows.Forms.Control.FromHandle(Window.Handle);
             currentScreen = System.Windows.Forms.Screen.PrimaryScreen;
 
             InitializeComponent();
             graphicsDeviceManager = new GraphicsDeviceManager(this);
             graphicsDeviceManager.PreparingDeviceSettings += GraphicsPreparingDeviceSettings;
-            graphicsDeviceManager.PreferMultiSampling = true;
+            graphicsDeviceManager.PreferMultiSampling = settings.MultisamplingCount > 0;
             IsMouseVisible = true;
 
             // Set title to show revision or build info.
@@ -84,7 +97,6 @@ namespace Orts.TrackEditor
 
             windowForm.LocationChanged += WindowForm_LocationChanged;
             windowForm.ClientSizeChanged += WindowForm_ClientSizeChanged;
-            graphicsDeviceManager.HardwareModeSwitch = false;
         }
 
         #region window size/position handling
@@ -120,8 +132,7 @@ namespace Orts.TrackEditor
         {
             e.GraphicsDeviceInformation.PresentationParameters.RenderTargetUsage = RenderTargetUsage.DiscardContents;
             e.GraphicsDeviceInformation.PresentationParameters.DepthStencilFormat = DepthFormat.Depth24Stencil8;
-            e.GraphicsDeviceInformation.PresentationParameters.MultiSampleCount = 4;
-            //            e.GraphicsDeviceInformation.PresentationParameters.PresentationInterval = PresentInterval.Immediate;
+            e.GraphicsDeviceInformation.PresentationParameters.MultiSampleCount = settings.MultisamplingCount;
         }
 
         private void SynchronizeGraphicsDeviceManager(ScreenMode targetMode)
@@ -166,8 +177,12 @@ namespace Orts.TrackEditor
         }
         #endregion
 
-        protected override void Initialize()
+        protected override async void Initialize()
         {
+            List<Task> initTasks = new List<Task>()
+            {
+                LoadFolders(),
+            };
             spriteBatch = new SpriteBatch(GraphicsDevice);
             content.SpriteBatch = spriteBatch;
             TextDrawShape.Initialize(this, spriteBatch);
@@ -177,8 +192,10 @@ namespace Orts.TrackEditor
             inputComponent.AddKeyEvent(Keys.F, KeyModifiers.None, InputGameComponent.KeyEventType.KeyPressed, () => new Thread(GameWindowThread).Start());
             inputComponent.AddKeyEvent(Keys.Space, KeyModifiers.None, InputGameComponent.KeyEventType.KeyPressed, ChangeScreenMode);
             inputComponent.AddKeyEvent(Keys.Q, KeyModifiers.None, InputGameComponent.KeyEventType.KeyPressed, CloseWindow);
+            inputComponent.AddKeyEvent(Keys.F4, KeyModifiers.Alt, InputGameComponent.KeyEventType.KeyPressed, ExitApplication);
             // TODO: Add your initialization logic here
             base.Initialize();
+            await Task.WhenAll(initTasks).ConfigureAwait(false);
         }
 
         private static int instance = 1;
@@ -214,41 +231,54 @@ namespace Orts.TrackEditor
             base.Update(gameTime);
         }
 
-        private static System.Drawing.Font drawfont = new System.Drawing.Font("Segoe UI", (int)Math.Round(25.0), System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
+        private System.Drawing.Font drawfont = new System.Drawing.Font("Segoe UI", (int)Math.Round(25.0), System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
 
         int drawCount;
         int drawTime;
+
+        public bool InputCaptured { get; internal set; }
+
         protected override void Draw(GameTime gameTime)
         {
-            drawCount++;
-            if ((int)gameTime.TotalGameTime.TotalSeconds > drawTime)
-            {
-                drawTime = (int)gameTime.TotalGameTime.TotalSeconds;
-                statusbar.toolStripStatusLabel1.Text = $"{1 / gameTime.ElapsedGameTime.TotalSeconds:0.0}";
+            //drawCount++;
+            //if ((int)gameTime.TotalGameTime.TotalSeconds > drawTime)
+            //{
+            //    drawTime = (int)gameTime.TotalGameTime.TotalSeconds;
+            //    statusbar.toolStripStatusLabel1.Text = $"{1 / gameTime.ElapsedGameTime.TotalSeconds:0.0}";
 
-            }
-            GraphicsDevice.Clear(Color.CornflowerBlue);
+            //}
+            //GraphicsDevice.Clear(Color.CornflowerBlue);
 
-            spriteBatch.Begin();
-            BasicShapes.DrawTexture(BasicTextureType.PlayerTrain, new Vector2(180, 180), 0, 1, Color.Green, false, false, true);
-            BasicShapes.DrawTexture(BasicTextureType.PlayerTrain, new Vector2(240, 180), 0, 1, Color.Green, true, false, false);
-            BasicShapes.DrawTexture(BasicTextureType.Ring, new Vector2(80, 220), 0, 0.5f, Color.Yellow, true, false, false);
-            BasicShapes.DrawTexture(BasicTextureType.Circle, new Vector2(80, 220), 0, 0.2f, Color.Red, true, false, false);
-            BasicShapes.DrawTexture(BasicTextureType.CrossedRing, new Vector2(240, 220), 0.5f, 1, Color.Yellow, true, false, false);
-            BasicShapes.DrawTexture(BasicTextureType.Disc, new Vector2(340, 220), 0, 1, Color.Red, true, false, false);
+            //spriteBatch.Begin();
+            //BasicShapes.DrawTexture(BasicTextureType.PlayerTrain, new Vector2(180, 180), 0, 1, Color.Green, false, false, true);
+            //BasicShapes.DrawTexture(BasicTextureType.PlayerTrain, new Vector2(240, 180), 0, 1, Color.Green, true, false, false);
+            //BasicShapes.DrawTexture(BasicTextureType.Ring, new Vector2(80, 220), 0, 0.5f, Color.Yellow, true, false, false);
+            //BasicShapes.DrawTexture(BasicTextureType.Circle, new Vector2(80, 220), 0, 0.2f, Color.Red, true, false, false);
+            //BasicShapes.DrawTexture(BasicTextureType.CrossedRing, new Vector2(240, 220), 0.5f, 1, Color.Yellow, true, false, false);
+            //BasicShapes.DrawTexture(BasicTextureType.Disc, new Vector2(340, 220), 0, 1, Color.Red, true, false, false);
 
-            BasicShapes.DrawArc(3, Color.Green, new Vector2(330, 330), 120, 4.71238898, -180, 0);
-            BasicShapes.DrawDashedLine(2, Color.Aqua, new Vector2(330, 330), new Vector2(450, 330));
-            TextDrawShape.DrawString(new Vector2(200, 450), Color.Red, "Test Message", drawfont);
-            TextDrawShape.DrawString(new Vector2(200, 500), Color.Lime, gameTime.TotalGameTime.TotalSeconds.ToString(), drawfont);
+            //BasicShapes.DrawArc(3, Color.Green, new Vector2(330, 330), 120, 4.71238898, -180, 0);
+            //BasicShapes.DrawDashedLine(2, Color.Aqua, new Vector2(330, 330), new Vector2(450, 330));
+            //TextDrawShape.DrawString(new Vector2(200, 450), Color.Red, "Test Message", drawfont);
+            //TextDrawShape.DrawString(new Vector2(200, 500), Color.Lime, gameTime.TotalGameTime.TotalSeconds.ToString(), drawfont);
 
-            BasicShapes.DrawArc(5, Color.IndianRed, new Vector2(240, 220), 120, Math.PI, -270, 0);
-            BasicShapes.DrawLine(10, Color.DarkGoldenrod, new Vector2(100, 100), new Vector2(250, 250));
-            content.DrawLine(new Vector2(0, 100), new Vector2(300, 100), 5, Color.Black);
-            content.DrawVoid();
-            spriteBatch.End();
+            //BasicShapes.DrawArc(5, Color.IndianRed, new Vector2(240, 220), 120, Math.PI, -270, 0);
+            //BasicShapes.DrawLine(10, Color.DarkGoldenrod, new Vector2(100, 100), new Vector2(250, 250));
+            //content.DrawLine(new Vector2(0, 100), new Vector2(300, 100), 5, Color.Black);
+            //content.DrawVoid();
+            //spriteBatch.End();
 
             base.Draw(gameTime);
+        }
+
+        public void DrawStatusMessage(string message)
+        {
+            BeginDraw();
+            GraphicsDevice.Clear(Color.GreenYellow);
+            spriteBatch.Begin();
+            TextDrawShape.DrawString(new Vector2(300, 450), Color.Red, message, drawfont);
+            spriteBatch.End();
+            EndDraw();
         }
     }
 }

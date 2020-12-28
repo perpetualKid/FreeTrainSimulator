@@ -44,6 +44,7 @@ namespace Orts.TrackEditor
         {
             BasicShapes.DrawLine(3, Color.Red, Translate(0 + 10, 0 + 10), Translate(bounds.Width - 10, bounds.Height - 10));
             BasicShapes.DrawLine(3, Color.Red, Translate(0 + 10, bounds.Height - 10), Translate(bounds.Width - 10, 0 + 10));
+            BasicShapes.DrawTexture(BasicTextureType.Signal, Translate(0 + 15, 0 + 15), MathHelper.ToRadians(-45), 0.5f, Color.White, false, false, false);
         }
 
         public void DrawLine(Vector2 start, Vector2 end, float width, Color color)

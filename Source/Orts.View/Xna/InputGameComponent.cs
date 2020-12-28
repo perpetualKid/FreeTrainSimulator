@@ -1,18 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
-using Orts.Common;
 using Orts.Common.Input;
-
-using SharpDX.Direct3D11;
 
 namespace Orts.View.Xna
 {
@@ -45,10 +38,11 @@ namespace Orts.View.Xna
         private Keys[] previousKeys = Array.Empty<Keys>();
         private readonly Dictionary<int, Action> keyEvents = new Dictionary<int, Action>();
 
+        private IInputCapture inputCapture;
+
         public InputGameComponent(Game game) : base(game)
         {
-            AddKeyEvent(Keys.G, KeyModifiers.Control | KeyModifiers.Alt, KeyEventType.KeyPressed, new Action(() => Debug.WriteLine("Key G + Control-Alt pressed")));
-            AddKeyEvent(Keys.PrintScreen, KeyModifiers.None, KeyEventType.KeyPressed, new Action(() => Debug.WriteLine("PrintScreen")));
+            inputCapture = game as IInputCapture;
         }
 
         public void AddKeyEvent(Keys key, KeyModifiers modifiers, KeyEventType keyEventType, Action action)
@@ -73,11 +67,10 @@ namespace Orts.View.Xna
 
         public override void Update(GameTime gameTime)
         {
-            if (!Game.IsActive)
+            if (!Game.IsActive || (inputCapture?.InputCaptured ?? false))
                 return;
             (currentState, previousState) = (previousState, currentState);
             currentState = Keyboard.GetState();
-         //   Debug.WriteLine($"{currentState}", Game.Window.Title);
 
             if (currentState == previousState && currentState.GetPressedKeyCount() == 0)
                 return;
