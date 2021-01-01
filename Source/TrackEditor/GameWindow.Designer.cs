@@ -37,8 +37,8 @@ namespace Orts.TrackEditor
             this.mainmenu.SuspendLayout();
             windowForm.MainMenuStrip = mainmenu.Controls[0] as MenuStrip;
             this.mainmenu.Dock = DockStyle.Top;
-            windowForm.Controls.Add(mainmenu.Controls[0]);
-            //windowForm.Controls.Add(mainmenu);
+            //windowForm.Controls.Add(mainmenu.Controls[0]);
+            windowForm.Controls.Add(mainmenu);
             this.statusbar = new WinForms.Controls.StatusbarControl(this);
             this.statusbar.SuspendLayout();
 
