@@ -4,6 +4,7 @@ using System.Linq;
 using System.Windows.Forms;
 
 using Orts.Models.Simplified;
+using Orts.View.Track;
 
 namespace Orts.TrackEditor.WinForms.Controls
 {
@@ -22,17 +23,14 @@ namespace Orts.TrackEditor.WinForms.Controls
 
         private void MainMenuStrip_MenuDeactivate(object sender, EventArgs e)
         {
-            System.Diagnostics.Debug.WriteLine("Deactivate");
             if (closingCancelled)
             {
                 closingCancelled = false;
-                System.Diagnostics.Debug.WriteLine("Skip");
 
             }
             else
             {
                 parent.InputCaptured = false;
-                System.Diagnostics.Debug.WriteLine("Release");
             }
         }
 
@@ -51,10 +49,27 @@ namespace Orts.TrackEditor.WinForms.Controls
             menuItemRoutes.DropDownItems.Clear();
             foreach (Route route in routes)
             {
-                ToolStripMenuItem routeItem = new ToolStripMenuItem(route.Name);
+                ToolStripMenuItem routeItem = new ToolStripMenuItem(route.Name)
+                {
+                    Tag = route,
+                };
+                routeItem.Click += RouteItem_Click;
                 menuItemRoutes.DropDownItems.Add(routeItem);
             }
             ResumeLayout();
+        }
+
+        private async void RouteItem_Click(object sender, EventArgs e)
+        {
+            if (sender is ToolStripDropDownItem menuItem && menuItem.Tag is Route route)
+            {
+                TrackData trackData = new TrackData(route.Path);
+                await trackData.LoadTrackData().ConfigureAwait(false);
+
+                TrackContent content = new TrackContent(trackData.TrackDB);
+                await content.Initialize().ConfigureAwait(false);
+                parent.ContentArea = new ContentArea(content);
+            }
         }
 
         internal void PopulateContentFolders(IEnumerable<Folder> folders)

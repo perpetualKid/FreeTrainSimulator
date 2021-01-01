@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,19 +8,13 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
-using NuGet.Versioning;
-
-using Orts.Common;
-using Orts.Common.Info;
 using Orts.Common.Input;
 using Orts.Settings;
 using Orts.View;
 using Orts.View.DrawableComponents;
+using Orts.View.Track;
 using Orts.View.Track.Shapes;
 using Orts.View.Xna;
-
-using SharpDX.Direct3D11;
-using SharpDX.WIC;
 
 namespace Orts.TrackEditor
 {
@@ -46,9 +39,20 @@ namespace Orts.TrackEditor
         private Point windowPosition;
         private System.Drawing.Size windowSize;
         private Point clientRectangleOffset;
+        private Point contentAreaOffset;
 
         private readonly System.Drawing.Size presetSize = new System.Drawing.Size(2000, 800); //TODO
-        private readonly ContentArea content;
+
+        private ContentArea contentArea;
+
+        internal ContentArea ContentArea
+        {
+            get => contentArea;
+            set => windowForm.Invoke((System.Windows.Forms.MethodInvoker)delegate {
+                value.UpdateSize(Window.ClientBounds.Size, contentAreaOffset);
+                contentArea = value;
+            });
+        }
 
         private readonly UserSettings settings;
 
@@ -78,7 +82,6 @@ namespace Orts.TrackEditor
             Window.Title += " [.NET Classic]";
 #endif
 
-            content = new ContentArea();
             Window.AllowUserResizing = true;
 
             //Window.ClientSizeChanged += Window_ClientSizeChanged; // not using the GameForm event as it does not raise when Window is moved (ie to another screeen) using keyboard shortcut
@@ -97,12 +100,14 @@ namespace Orts.TrackEditor
 
             windowForm.LocationChanged += WindowForm_LocationChanged;
             windowForm.ClientSizeChanged += WindowForm_ClientSizeChanged;
+
+            contentAreaOffset = new Point(mainmenu.Bounds.Height, statusbar.Bounds.Height);
         }
 
         #region window size/position handling
         private void WindowForm_ClientSizeChanged(object sender, EventArgs e)
         {
-            content.UpdateSize(Window.ClientBounds.Size);
+            ContentArea?.UpdateSize(Window.ClientBounds.Size, contentAreaOffset);
             if (syncing)
                 return;
             if (currentScreenMode == ScreenMode.Windowed)
@@ -184,9 +189,9 @@ namespace Orts.TrackEditor
                 LoadFolders(),
             };
             spriteBatch = new SpriteBatch(GraphicsDevice);
-            content.SpriteBatch = spriteBatch;
             TextDrawShape.Initialize(this, spriteBatch);
             BasicShapes.Initialize(spriteBatch);
+
             InputGameComponent inputComponent = new InputGameComponent(this);
             Components.Add(inputComponent);
             inputComponent.AddKeyEvent(Keys.F, KeyModifiers.None, InputGameComponent.KeyEventType.KeyPressed, () => new Thread(GameWindowThread).Start());
@@ -240,33 +245,32 @@ namespace Orts.TrackEditor
 
         protected override void Draw(GameTime gameTime)
         {
-            //drawCount++;
-            //if ((int)gameTime.TotalGameTime.TotalSeconds > drawTime)
-            //{
-            //    drawTime = (int)gameTime.TotalGameTime.TotalSeconds;
-            //    statusbar.toolStripStatusLabel1.Text = $"{1 / gameTime.ElapsedGameTime.TotalSeconds:0.0}";
+            drawCount++;
+            if ((int)gameTime.TotalGameTime.TotalSeconds > drawTime)
+            {
+                drawTime = (int)gameTime.TotalGameTime.TotalSeconds;
+                statusbar.toolStripStatusLabel1.Text = $"{1 / gameTime.ElapsedGameTime.TotalSeconds:0.0}";
 
-            //}
-            //GraphicsDevice.Clear(Color.CornflowerBlue);
+            }
+            GraphicsDevice.Clear(Color.CornflowerBlue);
 
-            //spriteBatch.Begin();
-            //BasicShapes.DrawTexture(BasicTextureType.PlayerTrain, new Vector2(180, 180), 0, 1, Color.Green, false, false, true);
-            //BasicShapes.DrawTexture(BasicTextureType.PlayerTrain, new Vector2(240, 180), 0, 1, Color.Green, true, false, false);
-            //BasicShapes.DrawTexture(BasicTextureType.Ring, new Vector2(80, 220), 0, 0.5f, Color.Yellow, true, false, false);
-            //BasicShapes.DrawTexture(BasicTextureType.Circle, new Vector2(80, 220), 0, 0.2f, Color.Red, true, false, false);
-            //BasicShapes.DrawTexture(BasicTextureType.CrossedRing, new Vector2(240, 220), 0.5f, 1, Color.Yellow, true, false, false);
-            //BasicShapes.DrawTexture(BasicTextureType.Disc, new Vector2(340, 220), 0, 1, Color.Red, true, false, false);
+            spriteBatch.Begin();
+            BasicShapes.DrawTexture(BasicTextureType.PlayerTrain, new Vector2(180, 180), 0, 1, Color.Green, false, false, true);
+            BasicShapes.DrawTexture(BasicTextureType.PlayerTrain, new Vector2(240, 180), 0, 1, Color.Green, true, false, false);
+            BasicShapes.DrawTexture(BasicTextureType.Ring, new Vector2(80, 220), 0, 0.5f, Color.Yellow, true, false, false);
+            BasicShapes.DrawTexture(BasicTextureType.Circle, new Vector2(80, 220), 0, 0.2f, Color.Red, true, false, false);
+            BasicShapes.DrawTexture(BasicTextureType.CrossedRing, new Vector2(240, 220), 0.5f, 1, Color.Yellow, true, false, false);
+            BasicShapes.DrawTexture(BasicTextureType.Disc, new Vector2(340, 220), 0, 1, Color.Red, true, false, false);
 
-            //BasicShapes.DrawArc(3, Color.Green, new Vector2(330, 330), 120, 4.71238898, -180, 0);
-            //BasicShapes.DrawDashedLine(2, Color.Aqua, new Vector2(330, 330), new Vector2(450, 330));
-            //TextDrawShape.DrawString(new Vector2(200, 450), Color.Red, "Test Message", drawfont);
-            //TextDrawShape.DrawString(new Vector2(200, 500), Color.Lime, gameTime.TotalGameTime.TotalSeconds.ToString(), drawfont);
+            BasicShapes.DrawArc(3, Color.Green, new Vector2(330, 330), 120, 4.71238898, -180, 0);
+            BasicShapes.DrawDashedLine(2, Color.Aqua, new Vector2(330, 330), new Vector2(450, 330));
+            TextDrawShape.DrawString(new Vector2(200, 450), Color.Red, "Test Message", drawfont);
+            TextDrawShape.DrawString(new Vector2(200, 500), Color.Lime, gameTime.TotalGameTime.TotalSeconds.ToString(), drawfont);
 
-            //BasicShapes.DrawArc(5, Color.IndianRed, new Vector2(240, 220), 120, Math.PI, -270, 0);
-            //BasicShapes.DrawLine(10, Color.DarkGoldenrod, new Vector2(100, 100), new Vector2(250, 250));
-            //content.DrawLine(new Vector2(0, 100), new Vector2(300, 100), 5, Color.Black);
-            //content.DrawVoid();
-            //spriteBatch.End();
+            BasicShapes.DrawArc(5, Color.IndianRed, new Vector2(240, 220), 120, Math.PI, -270, 0);
+            BasicShapes.DrawLine(10, Color.DarkGoldenrod, new Vector2(100, 100), new Vector2(250, 250));
+            ContentArea?.Draw();
+            spriteBatch.End();
 
             base.Draw(gameTime);
         }

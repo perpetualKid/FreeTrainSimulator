@@ -43,6 +43,7 @@ namespace Orts.TrackEditor
 
         public async Task<IEnumerable<Route>> FindRoutes(Folder routeFolder)
         {
+            _ = this;
             return (await Task.Run(() => Route.GetRoutes(routeFolder, System.Threading.CancellationToken.None)).ConfigureAwait(false)).OrderBy(r => r.ToString());
         }
 

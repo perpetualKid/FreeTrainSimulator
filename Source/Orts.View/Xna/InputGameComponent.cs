@@ -38,7 +38,7 @@ namespace Orts.View.Xna
         private Keys[] previousKeys = Array.Empty<Keys>();
         private readonly Dictionary<int, Action> keyEvents = new Dictionary<int, Action>();
 
-        private IInputCapture inputCapture;
+        private readonly IInputCapture inputCapture;
 
         public InputGameComponent(Game game) : base(game)
         {
