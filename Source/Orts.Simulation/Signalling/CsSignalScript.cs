@@ -99,6 +99,11 @@ namespace Orts.Simulation.Signalling
             return SignalObject.FindRequiredNormalSignal(OrSignalTypes.Instance.NormalSubTypes.IndexOf(normalSubtype));
         }
 
+        public bool IdSignalHasNormalSubtype(int id, string normalSubtype)
+        {
+            return signalHead.SignalHasNormalSubtypeById(id, OrSignalTypes.Instance.NormalSubTypes.IndexOf(normalSubtype)) == 1;
+        }
+
         public static string IdTextSignalAspect(int id, string sigfn, int headindex = 0)
         {
             if (id < 0 || id > Simulator.Instance.SignalEnvironment.Signals.Count) 
@@ -167,6 +172,11 @@ namespace Orts.Simulation.Signalling
             SignalObject.LockClaim();
         }
 
+        public SignalBlockState RouteClearedToSignal(int signalId, bool allowCallOn = false)
+        {
+            return SignalObject.RouteClearedToSignal(signalId, allowCallOn);
+        }
+
         internal void AttachToHead(SignalHead signalHead)
         {
             this.signalHead = signalHead;
@@ -191,79 +201,5 @@ namespace Orts.Simulation.Signalling
         /// <param name="message">Message sent to signal</param>
         /// <returns></returns>
         public virtual void HandleSignalMessage(int signalId, string message) { }
-    }
-
-
-    // The exchange of information is done through the TextSignalAspect property.
-    // The MSTS signal aspect is only used for TCS scripts that do not support TextSignalAspect.
-    public abstract class CsSignalScript1
-    {
-        // References
-        public SignalHead SignalHead { get; set; }
-        public Signal SignalObject => SignalHead.MainSignal;
-
-        // Aliases
-        public SignalAspectState MstsSignalAspect { get => SignalHead.SignalIndicationState; protected set => SignalHead.SignalIndicationState = value; }
-        public string TextSignalAspect { get => SignalHead.TextSignalAspect; protected set => SignalHead.TextSignalAspect = value; }
-        public int DrawState { get => SignalHead.DrawState; protected set => SignalHead.DrawState = value; }
-        public bool Enabled => SignalObject.Enabled;
-        public float? ApproachControlRequiredPosition => SignalHead.ApproachControlLimitPositionM.Value;
-        public float? ApproachControlRequiredSpeed => SignalHead.ApproachControlLimitSpeedMpS.Value;
-        public SignalBlockState BlockState => SignalObject.BlockState();
-        public bool RouteSet => SignalHead.VerifyRouteSet() > 0;
-        public int DefaultDrawState(SignalAspectState signalAspect)
-        {
-            return SignalHead.DefaultDrawState(signalAspect);
-        }
-
-        protected CsSignalScript1()
-        {
-        }
-
-        public abstract void Initialize();
-
-        public abstract void Update();
-
-        public Signal NextSignal(SignalFunction signalFunction)
-        {
-            return NextSignals(signalFunction, 1).FirstOrDefault();
-        }
-
-        public IReadOnlyCollection<Signal> NextSignals(SignalFunction signalFunction, uint number)
-        {
-            // Sanity check
-            if (number > 20)
-            {
-                number = 20;
-            }
-
-            List<Signal> signalObjects = new List<Signal>();
-            Signal nextSignalObject = SignalHead.MainSignal;
-
-            while (signalObjects.Count < number)
-            {
-                int nextSignal = nextSignalObject.NextSignalId((int)signalFunction);
-
-                // signal found : get state
-                if (nextSignal >= 0)
-                {
-                    nextSignalObject = Simulator.Instance.SignalEnvironment.Signals[nextSignal];
-                    signalObjects.Add(nextSignalObject);
-                }
-                else
-                {
-                    break;
-                }
-            }
-
-            return signalObjects;
-        }
-
-        public bool IsSignalFeatureEnabled(string signalFeature)
-        {
-            if (!EnumExtension.GetValue(signalFeature, out SignalSubType subType))
-                subType = SignalSubType.None;
-            return SignalHead.VerifySignalFeature((int)subType);
-        }
     }
 }
