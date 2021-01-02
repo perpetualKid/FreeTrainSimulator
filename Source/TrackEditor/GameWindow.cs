@@ -198,6 +198,10 @@ namespace Orts.TrackEditor
             inputComponent.AddKeyEvent(Keys.Space, KeyModifiers.None, InputGameComponent.KeyEventType.KeyPressed, ChangeScreenMode);
             inputComponent.AddKeyEvent(Keys.Q, KeyModifiers.None, InputGameComponent.KeyEventType.KeyPressed, CloseWindow);
             inputComponent.AddKeyEvent(Keys.F4, KeyModifiers.Alt, InputGameComponent.KeyEventType.KeyPressed, ExitApplication);
+            inputComponent.AddMouseEvent(InputGameComponent.MouseMovedEventType.MouseMoved, MouseMove);
+            inputComponent.AddMouseEvent(InputGameComponent.MouseWheelEventType.MouseWheelChanged, MouseWheel);
+            inputComponent.AddMouseEvent(InputGameComponent.MouseButtonEventType.LeftButtonReleased, MouseButtonUp);
+            inputComponent.AddMouseEvent(InputGameComponent.MouseButtonEventType.RightButtonDown, MouseButtonDown);
             // TODO: Add your initialization logic here
             base.Initialize();
             await Task.WhenAll(initTasks).ConfigureAwait(false);

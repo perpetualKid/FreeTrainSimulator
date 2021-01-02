@@ -29,6 +29,25 @@ namespace Orts.TrackEditor
                 Exit();
         }
 
+        public void MouseMove(Point position, Vector2 delta)
+        {
+        }
+
+        public void MouseWheel(int delta)
+        {
+            System.Diagnostics.Debug.WriteLine($"{Window.Title} - {delta}");
+        }
+
+        public void MouseButtonUp(Point position)
+        {
+            System.Diagnostics.Debug.WriteLine($"Up {Window.Title} - {position}");
+        }
+
+        public void MouseButtonDown(Point position)
+        {
+            System.Diagnostics.Debug.WriteLine($"Down {Window.Title} - {position}");
+        }
+
         public async Task LoadFolders()
         {
             try
