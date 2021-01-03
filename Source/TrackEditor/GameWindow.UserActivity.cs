@@ -33,9 +33,13 @@ namespace Orts.TrackEditor
         {
         }
 
-        public void MouseWheel(int delta)
+        public void MouseWheel(Point position, int delta)
         {
-            System.Diagnostics.Debug.WriteLine($"{Window.Title} - {delta}");
+            contentArea?.UpdateScaleAt(position.ToVector2(), System.Math.Sign(delta));
+        }
+        public void MouseDragging(Point position, Vector2 delta)
+        {
+            contentArea?.UpdatePosition(delta);
         }
 
         public void MouseButtonUp(Point position)

@@ -31,7 +31,7 @@ namespace Orts.View.Track
         {
             List<Task> initializer = new List<Task>
             {
-                Task.Run(async () => await InitializeTrackSegments())
+                Task.Run(async () => await InitializeTrackSegments().ConfigureAwait(false))
             };
 
             await Task.WhenAll(initializer).ConfigureAwait(false);

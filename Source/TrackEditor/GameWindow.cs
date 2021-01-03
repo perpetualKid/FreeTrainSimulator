@@ -202,6 +202,7 @@ namespace Orts.TrackEditor
             inputComponent.AddMouseEvent(InputGameComponent.MouseWheelEventType.MouseWheelChanged, MouseWheel);
             inputComponent.AddMouseEvent(InputGameComponent.MouseButtonEventType.LeftButtonReleased, MouseButtonUp);
             inputComponent.AddMouseEvent(InputGameComponent.MouseButtonEventType.RightButtonDown, MouseButtonDown);
+            inputComponent.AddMouseEvent(InputGameComponent.MouseMovedEventType.MouseMovedLeftButtonDown, MouseDragging);
             // TODO: Add your initialization logic here
             base.Initialize();
             await Task.WhenAll(initTasks).ConfigureAwait(false);

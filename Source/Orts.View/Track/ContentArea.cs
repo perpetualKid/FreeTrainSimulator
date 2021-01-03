@@ -14,11 +14,11 @@ namespace Orts.View.Track
         private Rectangle bounds;
         private double maxScale;
 
-        private TrackContent trackContent;
+        private readonly TrackContent trackContent;
 
         public double Scale { get; private set; }
 
-        public Vector2 Offset { get; private set; }
+        private double offsetX, offsetY;
 
         public Point WindowSize { get; private set; }
 
@@ -39,13 +39,26 @@ namespace Orts.View.Track
             ScaleToFit();
             CenterView();
         }
+        public void UpdateScaleAt(in Vector2 scaleAt, int steps)
+        {
+            double scale = Scale * Math.Pow((steps > 0 ? 1 / 0.9 : (steps < 0 ? 0.9 : 1)), Math.Abs(steps));
+            if (scale < maxScale || scale > 200)
+                return;
+            offsetX += scaleAt.X * (scale / Scale - 1.0) / scale;
+            offsetY += (WindowSize.Y - WindowOffset.Y - scaleAt.Y) * (scale / Scale - 1.0) / scale;
+            Scale = scale;
+        }
+
+        public void UpdatePosition(in Vector2 delta)
+        {
+            offsetX -= delta.X / Scale;
+            offsetY += delta.Y / Scale;
+        }
 
         private void CenterView()
         {
-            Offset = new Vector2(
-                (float)((bounds.Left + bounds.Right) / 2 - WindowSize.X / 2 / Scale),
-                (float)((bounds.Top + bounds.Bottom) / 2 - (WindowSize.Y - WindowOffset.X) / 2 / Scale));
-
+            offsetX = (bounds.Left + bounds.Right) / 2 - WindowSize.X / 2 / Scale;
+            offsetY = (bounds.Top + bounds.Bottom) / 2 - (WindowSize.Y - WindowOffset.X) / 2 / Scale;
         }
 
         private void ScaleToFit()
@@ -63,20 +76,20 @@ namespace Orts.View.Track
 
         private Vector2 Translate(in Vector2 world)
         {
-            return world * (float)Scale + Offset * (float)Scale;
+            return Translate(world.X, world.Y);
         }
 
         private Vector2 Translate(float x, float y)
         {
-            return new Vector2(x + Offset.X, y + Offset.Y) * (float)Scale;
+            return new Vector2((float)(x + offsetX * Scale), (float)(y + offsetY * Scale));
         }
 
         private Vector2 Translate(in WorldLocation worldLocation)
         {
             double x = worldLocation.TileX * WorldLocation.TileSize + worldLocation.Location.X;
             double y = worldLocation.TileZ * WorldLocation.TileSize + worldLocation.Location.Z;
-            return new Vector2((float)(Scale * (x - Offset.X)),
-                               (float)(WindowSize.Y - WindowOffset.Y - Scale * (y - Offset.Y)));
+            return new Vector2((float)(Scale * (x - offsetX)),
+                               (float)(WindowSize.Y - WindowOffset.Y - Scale * (y - offsetY)));
         }
 
         private void DrawTracks()

@@ -75,7 +75,7 @@ namespace Orts.View.Xna
         private MouseState previousMouseState;
         private readonly EnumArray<Action<Point, Vector2>, MouseMovedEventType> mouseMoveEvents = new EnumArray<Action<Point, Vector2>, MouseMovedEventType>();
         private readonly EnumArray<Action<Point>, MouseButtonEventType> mouseButtonEvents = new EnumArray<Action<Point>, MouseButtonEventType>();
-        private readonly EnumArray<Action<int>, MouseWheelEventType> mouseWheelEvents = new EnumArray<Action<int>, MouseWheelEventType>();
+        private readonly EnumArray<Action<Point, int>, MouseWheelEventType> mouseWheelEvents = new EnumArray<Action<Point, int>, MouseWheelEventType>();
 
         private readonly IInputCapture inputCapture;
 
@@ -144,7 +144,7 @@ namespace Orts.View.Xna
             mouseButtonEvents[mouseEventType] = null;
         }
 
-        public void AddMouseEvent(MouseWheelEventType mouseEventType, Action<int> action)
+        public void AddMouseEvent(MouseWheelEventType mouseEventType, Action<Point, int> action)
         {
             mouseWheelEvents[mouseEventType] = action;
         }
@@ -247,9 +247,9 @@ namespace Orts.View.Xna
 
                 int mouseWheelDelta;
                 if ((mouseWheelDelta = currentMouseState.ScrollWheelValue - previousMouseState.ScrollWheelValue) != 0)
-                    mouseWheelEvents[MouseWheelEventType.MouseWheelChanged]?.Invoke(mouseWheelDelta);
+                    mouseWheelEvents[MouseWheelEventType.MouseWheelChanged]?.Invoke(currentMouseState.Position, mouseWheelDelta);
                 if ((mouseWheelDelta = currentMouseState.HorizontalScrollWheelValue - previousMouseState.HorizontalScrollWheelValue) != 0)
-                    mouseWheelEvents[MouseWheelEventType.MouseHorizontalWheelChanged]?.Invoke(mouseWheelDelta);
+                    mouseWheelEvents[MouseWheelEventType.MouseHorizontalWheelChanged]?.Invoke(currentMouseState.Position, mouseWheelDelta);
 
                 void MouseButtonEvent(ButtonState currentButton, ButtonState previousButton, MouseButtonEventType down, MouseButtonEventType pressed, MouseButtonEventType released)
                 {
