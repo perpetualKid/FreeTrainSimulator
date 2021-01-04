@@ -2007,6 +2007,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                       else if (drawstate2 > 0) { sigHead.SignalIndicationState = SignalAspectState.Approach_2; }
                       else { sigHead.SignalIndicationState = SignalAspectState.Approach_3; }
                       sigHead.DrawState = sigHead.DefaultDrawState(sigHead.SignalIndicationState);
+					  sigHead.TextSignalAspect = "";
                   }
 				  break;
 			  case 3:

@@ -42,7 +42,7 @@ namespace Orts.Simulation.Signalling
         public float? ApproachControlLimitPositionM { get; private set; }
         public float? ApproachControlLimitSpeedMpS { get; private set; }
 
-        public string TextSignalAspect { get; internal set; } = string.Empty;
+        public string TextSignalAspect { get; set; } = string.Empty;
 
 
         //================================================================================================//
@@ -112,6 +112,8 @@ namespace Orts.Simulation.Signalling
                 SignalScriptProcessing.SignalScripts.Scripts.TryGetValue(SignalType, out signalScript);
 
                 csSignalScript = CsSignalScripts.TryGetScript(SignalType.Name);
+                if (csSignalScript == null)
+                    csSignalScript = CsSignalScripts.TryGetScript(SignalType.Script);
 
                 if (csSignalScript != null)
                 {
@@ -446,6 +448,7 @@ namespace Orts.Simulation.Signalling
         {
             SignalIndicationState = SignalType?.GetMostRestrictiveAspect() ?? SignalAspectState.Stop;
             DrawState = DefaultDrawState(SignalIndicationState);
+            TextSignalAspect = string.Empty;
         }
 
         //================================================================================================//
@@ -456,6 +459,7 @@ namespace Orts.Simulation.Signalling
         {
             SignalIndicationState = SignalType?.GetLeastRestrictiveAspect() ?? SignalAspectState.Clear_2;
             DefaultDrawState(SignalIndicationState);
+            TextSignalAspect = string.Empty;
         }
 
         //================================================================================================//

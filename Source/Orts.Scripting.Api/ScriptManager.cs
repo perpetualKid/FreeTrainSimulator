@@ -63,12 +63,15 @@ namespace Orts.Scripting.Api
             {
                 if (scripts.TryGetValue(path, out Assembly assembly))
                 {
-                    object scriptType = assembly.CreateInstance(typeName, true);
-                    if (null != scriptType)
-                        return scriptType;
+                    return assembly?.CreateInstance(typeName, true);
                 }
             }
-            catch(Exception exception) when (exception is BadImageFormatException || exception is FileLoadException || exception is FileNotFoundException || exception is MissingMethodException)
+            catch (Exception exception) when (exception is MissingMethodException)
+            {
+                Trace.TraceWarning($"Error when trying to load type {name}.", exception.Message);
+                return null;
+            }
+            catch (Exception exception) when (exception is BadImageFormatException || exception is FileLoadException || exception is FileNotFoundException)
             {
                 Trace.TraceWarning($"Error when trying to load type {name}. Regenerating assembly from script file {path}.", exception.Message);
             }
@@ -87,7 +90,6 @@ namespace Orts.Scripting.Api
                     catch (Exception exception) when (exception is InvalidDataException || exception is IOException)
                     {
                         Trace.TraceError($"Error loading script source from file {path}.", exception.Message);
-                        return null;
                     }
                 }
             }
@@ -102,8 +104,9 @@ namespace Orts.Scripting.Api
                 if (!emitResult.Success)
                 {
                     Trace.TraceWarning(string.Join(Environment.NewLine,
-                        new string[] { $"Skipped script {path} with errors:" }.Concat(
+                        new string[] { $"Skipped scripts in path {path} with errors:" }.Concat(
                         emitResult.Diagnostics.Select((x, i) => $"  {i + 1}. {x}"))));
+                    scripts.Add(path, null);
                     return null;
                 }
 

@@ -42,6 +42,11 @@ namespace Orts.Simulation.Signalling
             return signalHead.DefaultDrawState(signalAspect);
         }
 
+        public int GetDrawState(string name)
+        {
+            return signalHead.SignalType.DrawStates.ContainsKey(name) ? signalHead.SignalType.DrawStates[name].Index : -1;
+        }
+
         public int SignalId => SignalObject.Index;
 
         public float ClockTimeS => (float)Simulator.Instance.GameTime;
@@ -82,6 +87,11 @@ namespace Orts.Simulation.Signalling
             if (!EnumExtension.GetValue(signalFeature, out SignalSubType subType))
                 subType = SignalSubType.None;
             return signalHead.VerifySignalFeature((int)subType);
+        }
+
+        public bool HasHead(int requiredHeadIndex)
+        {
+            return SignalObject.HasHead(requiredHeadIndex) == 1;
         }
 
         public int NextSignalId(string sigfn, int count = 0)
