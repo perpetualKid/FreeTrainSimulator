@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 
+using Orts.Common;
 using Orts.Models.Simplified;
 using Orts.View.Track;
 
@@ -63,12 +64,21 @@ namespace Orts.TrackEditor.WinForms.Controls
         {
             if (sender is ToolStripDropDownItem menuItem && menuItem.Tag is Route route)
             {
-                TrackData trackData = new TrackData(route.Path);
-                await trackData.LoadTrackData().ConfigureAwait(false);
+                parent.StatusMessage = route.Name;
 
-                TrackContent content = new TrackContent(trackData.TrackDB);
+                TrackData trackData = new TrackData(route.Path);
+
+                bool? useMetricUnits = (parent.Settings.MeasurementUnit == MeasurementUnit.Metric || parent.Settings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric);
+                    if (parent.Settings.MeasurementUnit == MeasurementUnit.Route)
+                    useMetricUnits = null;
+
+                await trackData.LoadTrackData(useMetricUnits).ConfigureAwait(false);
+
+                TrackContent content = new TrackContent(trackData.TrackDB, trackData.UseMetricUnits);
                 await content.Initialize().ConfigureAwait(false);
-                parent.ContentArea = new ContentArea(content);
+                parent.ContentArea = new ContentArea(parent, content);
+                parent.StatusMessage = null;
+
             }
         }
 
@@ -106,8 +116,8 @@ namespace Orts.TrackEditor.WinForms.Controls
                 UncheckOtherFolderMenuItems(folderItem);
                 if (folderItem.Tag is Folder folder)
                 {
+                    parent.ContentArea = null;
                     PopulateRoutes(await parent.FindRoutes(folder).ConfigureAwait(true));
-                    parent.DrawStatusMessage(folder.Name);
                 }
             }
 

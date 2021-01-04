@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Linq;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using Orts.Common.Position;
 using Orts.Formats.Msts.Models;
+using Orts.View.DrawableComponents;
 using Orts.View.Track.Shapes;
 
 namespace Orts.View.Track
@@ -13,8 +15,9 @@ namespace Orts.View.Track
     {
         private Rectangle bounds;
         private double maxScale;
+        private Game game;
 
-        private readonly TrackContent trackContent;
+        public TrackContent TrackContent { get; }
 
         public double Scale { get; private set; }
 
@@ -26,10 +29,20 @@ namespace Orts.View.Track
 
         public SpriteBatch SpriteBatch { get; internal set; }
 
-        public ContentArea(TrackContent trackContent)
+        public ContentArea(Game game, TrackContent trackContent)
         {
-            this.trackContent = trackContent ?? throw new ArgumentNullException(nameof(trackContent));
+            this.game = game;
+            TrackContent = trackContent ?? throw new ArgumentNullException(nameof(trackContent));
             bounds = trackContent.Bounds;
+            game.Components.OfType<ScaleRulerComponent>().FirstOrDefault().Enable(this);
+        }
+
+        public void ResetSize(in Point windowSize, in Point offset)
+        {
+            WindowSize = windowSize;
+            WindowOffset = offset;
+            ScaleToFit();
+            CenterView();
         }
 
         public void UpdateSize(in Point windowSize, in Point offset)
@@ -37,8 +50,8 @@ namespace Orts.View.Track
             WindowSize = windowSize;
             WindowOffset = offset;
             ScaleToFit();
-            CenterView();
         }
+
         public void UpdateScaleAt(in Vector2 scaleAt, int steps)
         {
             double scale = Scale * Math.Pow((steps > 0 ? 1 / 0.9 : (steps < 0 ? 0.9 : 1)), Math.Abs(steps));
@@ -94,7 +107,7 @@ namespace Orts.View.Track
 
         private void DrawTracks()
         {
-            foreach (TrackNode trackNode in trackContent.TrackDB.TrackNodes)
+            foreach (TrackNode trackNode in TrackContent.TrackDB.TrackNodes)
             {
                 switch (trackNode)
                 {

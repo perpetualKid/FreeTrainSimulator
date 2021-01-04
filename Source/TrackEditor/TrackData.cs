@@ -22,18 +22,21 @@ namespace Orts.TrackEditor
 
         public SignalConfigurationFile SignalConfig { get; private set; }
 
+        public bool UseMetricUnits { get; private set; }
+
         public TrackData(string routePath)
         {
             this.routePath = routePath;
         }
 
-        internal async Task LoadTrackData()
+        internal async Task LoadTrackData(bool? useMetricUnits)
         {
             List<Task> loadTasks = new List<Task>();
 
             FolderStructure.ContentFolder.RouteFolder routeFolder = FolderStructure.Route(routePath);
             RouteFile routeFile = new RouteFile(routeFolder.TrackFileName);
             RouteName = routeFile.Route.Name;
+            UseMetricUnits = useMetricUnits.GetValueOrDefault(routeFile.Route.MilepostUnitsMetric);
 
             loadTasks.Add(Task.Run(() => TrackDB = new TrackDatabaseFile(routeFolder.TrackDatabaseFile(routeFile)).TrackDB));
             loadTasks.Add(Task.Run(() =>

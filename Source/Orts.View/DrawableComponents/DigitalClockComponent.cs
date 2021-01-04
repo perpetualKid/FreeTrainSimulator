@@ -26,12 +26,14 @@ namespace Orts.View.DrawableComponents
     /// </summary>
     public class DigitalClockComponent : QuickRepeatableDrawableTextComponent
     {
-        public Vector2 Position { get; private set; }
+        private Vector2 position;
+        private Vector2 offset;
 
         private readonly TimeType timeType;
         private readonly SpriteBatch spriteBatch;
         private Color color = Color.Black;
         private string formatMask = "hh\\:mm\\:ss";
+        private string previousTimestamp;
 
         public DigitalClockComponent(Game game, SpriteBatch spriteBatch, TimeType timeType, System.Drawing.Font font, Color color, Vector2 position, bool visibleImmediately) :
             base(game, font)
@@ -39,14 +41,26 @@ namespace Orts.View.DrawableComponents
             this.timeType = timeType;
             this.spriteBatch = spriteBatch;
             this.color = color;
-            Position = position;
+            this.position = position;
             if (!visibleImmediately)
             {
                 Enabled = false;
                 Visible = false;
             }
-            Position = new Vector2(400, 400);
+            if (position.X < 0 || position.Y < 0)
+            {
+                offset = position;
+#pragma warning disable CA1062 // Validate arguments of public methods
+                game.Window.ClientSizeChanged += Window_ClientSizeChanged;
+#pragma warning restore CA1062 // Validate arguments of public methods
+                Window_ClientSizeChanged(this, EventArgs.Empty);
+            }
             InitializeSize(TimeSpan.Zero.ToString(formatMask, CultureInfo.DefaultThreadCurrentUICulture));
+        }
+
+        private void Window_ClientSizeChanged(object sender, EventArgs e)
+        {
+            position = new Vector2(offset.X > 0 ? offset.X : Game.Window.ClientBounds.Width + offset.X, offset.Y > 0 ? offset.Y : Game.Window.ClientBounds.Height + offset.Y);
         }
 
         public string FormatMask
@@ -73,17 +87,27 @@ namespace Orts.View.DrawableComponents
                 case TimeType.RealWorldLocalTime:
                     timestamp = DateTime.Now.TimeOfDay.ToString(formatMask, CultureInfo.DefaultThreadCurrentUICulture); break;
             }
-            DrawString(timestamp);
+            if (timestamp != previousTimestamp)
+            {
+                DrawString(timestamp);
+                previousTimestamp = timestamp;
+            }
             base.Update(gameTime);
         }
 
         public override void Draw(GameTime gameTime)
         {
             spriteBatch.Begin();
-            spriteBatch.Draw(texture, Position, null, color, 0, Vector2.Zero, Vector2.One, SpriteEffects.None, 0);
+            spriteBatch.Draw(texture, position, null, color, 0, Vector2.Zero, Vector2.One, SpriteEffects.None, 0);
 
             base.Draw(gameTime);
             spriteBatch.End();
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            Game.Window.ClientSizeChanged -= Window_ClientSizeChanged;
+            base.Dispose(disposing);
         }
     }
 }

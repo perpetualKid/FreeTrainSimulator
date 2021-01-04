@@ -56,7 +56,7 @@ namespace Orts.TrackEditor
         {
             try
             {
-                IOrderedEnumerable<Folder> folders = (await Folder.GetFolders(settings.FolderSettings.Folders).ConfigureAwait(true)).OrderBy(f => f.Name);
+                IOrderedEnumerable<Folder> folders = (await Folder.GetFolders(Settings.FolderSettings.Folders).ConfigureAwait(true)).OrderBy(f => f.Name);
                 mainmenu.PopulateContentFolders(folders);
             }
             catch (TaskCanceledException)

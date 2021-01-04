@@ -15,7 +15,7 @@ namespace Orts.TrackEditor
             NativeMethods.SetProcessDpiAwareness(NativeMethods.PROCESS_DPI_AWARENESS.Process_Per_Monitor_DPI_Aware);
             Application.SetCompatibleTextRenderingDefault(false);
 
-            using (GameWindow game = new GameWindow(0))
+            using (GameWindow game = new GameWindow())
             {
                 if (Debugger.IsAttached)
                 {

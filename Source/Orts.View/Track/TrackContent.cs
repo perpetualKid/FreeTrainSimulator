@@ -17,14 +17,17 @@ namespace Orts.View.Track
 
         public TrackDB TrackDB { get; }
 
+        public bool UseMetricUnits { get; }
+
         public Rectangle Bounds { get; private set; }
         private readonly RoadTrackDB roadTrackDB;
         private readonly TrackSectionsFile trackSections;
         private readonly SignalConfigurationFile signalConfig;
 
-        public TrackContent(TrackDB trackDB)
+        public TrackContent(TrackDB trackDB, bool metricUnits)
         {
             TrackDB = trackDB;
+            UseMetricUnits = metricUnits;
         }
 
         public async Task Initialize()
@@ -68,16 +71,6 @@ namespace Orts.View.Track
                 {
                     case TrackEndNode trackEndNode:
                         TrackVectorNode connectedVectorNode = TrackDB.TrackNodes[trackEndNode.TrackPins[0].Link] as TrackVectorNode;
-                        //if (connectedVectorNode.TrackPins[0].Link == trackEndNode.Index)
-                        //{
-                        //    TrackSegments.Add(new TrackSegment(trackEndNode.UiD.Location, connectedVectorNode.TrackVectorSections[0].Location, null));
-                        //}
-                        //else if (connectedVectorNode.TrackPins.Last().Link == trackEndNode.Index)
-                        //{
-                        //    TrackSegments.Add(new TrackSegment(trackEndNode.UiD.Location, connectedVectorNode.TrackVectorSections.Last().Location, null));
-                        //}
-                        //else
-                        //    throw new ArgumentOutOfRangeException($"Unlinked track end node {trackEndNode.Index}");
                         UpdateBounds(trackEndNode.UiD.Location);
                         break;
                     case TrackVectorNode trackVectorNode:
@@ -89,7 +82,6 @@ namespace Orts.View.Track
                                 UpdateBounds(start);
                                 ref readonly WorldLocation end = ref trackVectorNode.TrackVectorSections[i + 1].Location;
                                 UpdateBounds(end);
-                                //TrackSegments.Add(new TrackSegment(start, end, trackVectorNode.TrackVectorSections[i].SectionIndex));
                             }
                         }
                         else
@@ -99,7 +91,6 @@ namespace Orts.View.Track
                             foreach (TrackPin pin in trackVectorNode.TrackPins)
                             {
                                 TrackNode connectedNode = TrackDB.TrackNodes[pin.Link];
-                                //TrackSegments.Add(new TrackSegment(section.Location, connectedNode.UiD.Location, null));
                                 UpdateBounds(section.Location);
                                 UpdateBounds(connectedNode.UiD.Location);
                             }
@@ -111,14 +102,11 @@ namespace Orts.View.Track
                             if (TrackDB.TrackNodes[pin.Link] is TrackVectorNode vectorNode && vectorNode.TrackVectorSections.Length > 0)
                             {
                                 TrackVectorSection item = pin.Direction == Common.TrackDirection.Reverse ? vectorNode.TrackVectorSections.First() : vectorNode.TrackVectorSections.Last();
-                                //if (WorldLocation.GetDistanceSquared(trackJunctionNode.UiD.Location, item.Location) >= 0.1)
-                                //    TrackSegments.Add(new TrackSegment(item.Location, trackJunctionNode.UiD.Location, item.SectionIndex));
                                 UpdateBounds(item.Location);
                                 UpdateBounds(trackJunctionNode.UiD.Location);
 
                             }
                         }
-                        //Switches.Add(new SwitchWidget(trackJunctionNode));
                         break;
                 }
             }
