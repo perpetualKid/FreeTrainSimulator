@@ -1140,7 +1140,7 @@ namespace Orts.Simulation
                     // First wagon is the player's loco and required, so issue a fatal error message
                     if (wagon == conFile.Train.Wagons[0])
                         Trace.TraceError("Player's locomotive {0} cannot be loaded in {1}", wagonFilePath, conFileName);
-                    Trace.TraceWarning("Ignored missing wagon {0} in consist {1}", wagonFilePath, conFileName);
+                    Trace.TraceWarning($"Ignored missing {(wagon.IsEngine ? "engine" : "wagon")} {wagonFilePath} in consist {conFileName}");
                     continue;
                 }
 
@@ -1321,7 +1321,7 @@ namespace Orts.Simulation
 
                         if (!File.Exists(wagonFilePath))
                         {
-                            Trace.TraceWarning("Ignored missing wagon {0} in activity definition {1}", wagonFilePath, activityObject.TrainSet.Name);
+                            Trace.TraceWarning($"Ignored missing {(wagon.IsEngine? "engine" : "wagon")} {wagonFilePath} in activity definition {activityObject.TrainSet.Name}");
                             continue;
                         }
 
