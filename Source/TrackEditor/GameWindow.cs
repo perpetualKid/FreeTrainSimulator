@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -45,6 +46,7 @@ namespace Orts.TrackEditor
         private Point contentAreaOffset;
         private Vector2 centerPoint;
 
+        private readonly Action onClientSizeChanged;
         private readonly System.Drawing.Size presetSize = new System.Drawing.Size(2000, 800); //TODO
 
         private ContentArea contentArea;
@@ -89,7 +91,7 @@ namespace Orts.TrackEditor
 
             Window.AllowUserResizing = true;
 
-            Window.ClientSizeChanged += Window_ClientSizeChanged; ; // not using the GameForm event as it does not raise when Window is moved (ie to another screeen) using keyboard shortcut
+            Window.ClientSizeChanged += Window_ClientSizeChanged; // not using the GameForm event as it does not raise when Window is moved (ie to another screeen) using keyboard shortcut
 
             //graphicsDeviceManager.SynchronizeWithVerticalRetrace = false;
             IsFixedTimeStep = false;
@@ -101,12 +103,17 @@ namespace Orts.TrackEditor
             clientRectangleOffset = new Point(windowForm.Width - windowForm.ClientRectangle.Width, windowForm.Height - windowForm.ClientRectangle.Height);
             Window.Position = windowPosition;
 
-            SynchronizeGraphicsDeviceManager(currentScreenMode);
+            SetScreenMode(currentScreenMode);
 
             windowForm.LocationChanged += WindowForm_LocationChanged;
             windowForm.ClientSizeChanged += WindowForm_ClientSizeChanged;
 
             contentAreaOffset = new Point(mainmenu.Bounds.Height, statusbar.Bounds.Height);
+
+            // using reflection to be able to trigger ClientSizeChanged event manually as this is not 
+            // reliably raised otherwise with the resize functionality below in SetScreenMode
+            MethodInfo m = Window.GetType().GetMethod("OnClientSizeChanged", BindingFlags.NonPublic | BindingFlags.Instance);
+            onClientSizeChanged = (Action)Delegate.CreateDelegate(typeof(Action), Window, m);
         }
 
         private void Window_ClientSizeChanged(object sender, EventArgs e)
@@ -130,7 +137,7 @@ namespace Orts.TrackEditor
             (newScreen, currentScreen) = (currentScreen, newScreen);
             if (newScreen.DeviceName != currentScreen.DeviceName && currentScreenMode != ScreenMode.Windowed)
             {
-                SynchronizeGraphicsDeviceManager(currentScreenMode);
+                SetScreenMode(currentScreenMode);
                 //reset Window position to center on new screen
                 windowPosition = new Point(
                     currentScreen.WorkingArea.Left + (currentScreen.WorkingArea.Size.Width - windowSize.Width) / 2,
@@ -150,7 +157,7 @@ namespace Orts.TrackEditor
             e.GraphicsDeviceInformation.PresentationParameters.MultiSampleCount = Settings.MultisamplingCount;
         }
 
-        private void SynchronizeGraphicsDeviceManager(ScreenMode targetMode)
+        private void SetScreenMode(ScreenMode targetMode)
         {
             syncing = true;
             windowForm.Invoke((System.Windows.Forms.MethodInvoker)delegate {
@@ -188,6 +195,7 @@ namespace Orts.TrackEditor
                 }
             });
             currentScreenMode = targetMode;
+            onClientSizeChanged?.Invoke();
             syncing = false;
         }
         #endregion
@@ -232,7 +240,7 @@ namespace Orts.TrackEditor
             DigitalClockComponent clock = new DigitalClockComponent(this, spriteBatch, TimeType.RealWorldLocalTime,
                 new System.Drawing.Font("Segoe UI", 14, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel), Color.White, new Vector2(200, -100), true);
             Components.Add(clock);
-            ScaleRulerComponent scaleRuler = new ScaleRulerComponent(this, spriteBatch, new System.Drawing.Font("Segoe UI", 14, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel), Color.Black, new Vector2(20, -55));
+            ScaleRulerComponent scaleRuler = new ScaleRulerComponent(this, spriteBatch, new System.Drawing.Font(System.Drawing.FontFamily.GenericSansSerif, 14, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel), Color.Black, new Vector2(20, -55));
             Components.Add(scaleRuler);
         }
 

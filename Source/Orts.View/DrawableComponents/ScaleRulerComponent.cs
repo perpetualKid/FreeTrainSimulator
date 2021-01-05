@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -14,11 +11,15 @@ using Orts.View.Track;
 
 namespace Orts.View.DrawableComponents
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public class ScaleRulerComponent : DrawableGameComponent
     {
         private Vector2 position;
         private Vector2 offset;
         private ContentArea content;
+        private double scale;
 
         private readonly SpriteBatch spriteBatch;
         private Color color;
@@ -116,6 +117,13 @@ namespace Orts.View.DrawableComponents
 
         public override void Update(GameTime gameTime)
         {
+            if (scale == content.Scale && texture != null)
+            {
+                base.Update(gameTime);
+                return;
+            }
+            scale = content.Scale;
+
             Point windowSize = content.WindowSize;
 
             //max size (length) of the ruler. if less than 50px available, don't draw
@@ -130,7 +138,7 @@ namespace Orts.View.DrawableComponents
             {
                 while ((int)metricRuler * content.Scale > maxLength && metricRuler != MetricRuler.m0_0)
                 {
-                    metricRuler = EnumExtension.Previous(metricRuler);
+                    metricRuler = metricRuler.Previous();
                 }
                 rulerLength = (int)((int)metricRuler * content.Scale);
                 string key = $"{metricRuler.GetDescription()}::{rulerLength}";
@@ -144,7 +152,7 @@ namespace Orts.View.DrawableComponents
             {
                 while (imperialRulerData[(int)imperialRuler] * content.Scale > maxLength && imperialRuler != ImperialRuler.i0_0)
                 {
-                    imperialRuler = EnumExtension.Previous(imperialRuler);
+                    imperialRuler = imperialRuler.Previous();
                 }
                 rulerLength = (int)(imperialRulerData[(int)imperialRuler] * content.Scale);
                 string key = $"{imperialRuler.GetDescription()}::{rulerLength}";
@@ -165,6 +173,22 @@ namespace Orts.View.DrawableComponents
 
             base.Draw(gameTime);
             spriteBatch.End();
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                foreach (Texture2D item in rulerTextures.Values)
+                {
+                    item?.Dispose();
+                }
+                rulerTextures.Clear();
+                fontBrush.Dispose();
+                rulerPen.Dispose();
+                texture?.Dispose();
+            }
+            base.Dispose(disposing);
         }
 
         private Texture2D DrawRulerTexture(int rulerLength, string startMarker, string endMarker)
@@ -190,7 +214,7 @@ namespace Orts.View.DrawableComponents
                     System.Drawing.SizeF textSize = g.MeasureString(startMarker, font);
                     g.DrawString(startMarker, font, fontBrush, 12 - textSize.Width / 2, markerLength * 2);
                     textSize = g.MeasureString(endMarker, font);
-                    g.DrawString(endMarker, font, fontBrush, padding + rulerLength - textSize.Width / 2, markerLength * 2);
+                    g.DrawString(endMarker, font, fontBrush, rulerLength + overSize - textSize.Width, markerLength * 2);
 
                     System.Drawing.Imaging.BitmapData bmd = bmpSurface.LockBits(new System.Drawing.Rectangle(0, 0, bmpSurface.Width, bmpSurface.Height),
                         System.Drawing.Imaging.ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);

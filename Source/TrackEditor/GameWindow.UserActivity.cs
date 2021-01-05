@@ -14,7 +14,7 @@ namespace Orts.TrackEditor
     {
         public void ChangeScreenMode()
         {
-            SynchronizeGraphicsDeviceManager(currentScreenMode.Next());
+            SetScreenMode(currentScreenMode.Next());
         }
 
         public void CloseWindow()
