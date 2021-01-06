@@ -1575,7 +1575,7 @@ namespace Orts.Simulation.RollingStocks
 
             ConfirmSteamLocomotiveTender(); // Confirms that a tender is connected to the steam locomotive
 
-            // Adjusts water and coal mass based upon values assigned to tender WAG file rather then those defined in ENG file.
+            // Adjusts water and coal mass based upon values assigned to the tender found in the WAG file rather then those defined in ENG file.
             if (WagonType == WagonTypes.Tender && TenderWeightInitialize && TenderWagonMaxCoalMassKG != 0 && TenderWagonMaxWaterMassKG != 0)
             {
 
@@ -1593,14 +1593,16 @@ namespace Orts.Simulation.RollingStocks
                 {
                     if (TendersSteamLocomotive.IsTenderRequired == 1)
                     {
-
                         TendersSteamLocomotive.MaxTenderCoalMassKG = TenderWagonMaxCoalMassKG;
 
-                        TendersSteamLocomotive.MaxLocoTenderWaterMassKG = TenderWagonMaxWaterMassKG;
+                        // Combined total water found by taking the current combined water (which may have extra water added via the auxiliary tender), and subtracting the 
+                        // amount of water defined in the ENG file, and adding the water defiend in the WAG file.
+                        float TempMaxCombinedWater = TendersSteamLocomotive.MaxTotalCombinedWaterVolumeUKG;
+                        TendersSteamLocomotive.MaxTotalCombinedWaterVolumeUKG = (float)((TempMaxCombinedWater - (Mass.Kilogram.ToLb(TendersSteamLocomotive.MaxLocoTenderWaterMassKG) / WaterLBpUKG)) + (Mass.Kilogram.ToLb(TenderWagonMaxWaterMassKG) / WaterLBpUKG));
 
                         if (Simulator.Settings.VerboseConfigurationMessages)
                         {
-                            Trace.TraceInformation("Fuel and Water Masses Initialized to Tender Values Specified  - Coal mass {0} kg, Water Mass {1} kg", TendersSteamLocomotive.MaxTenderCoalMassKG, TendersSteamLocomotive.MaxLocoTenderWaterMassKG);
+                            Trace.TraceInformation("Fuel and Water Masses adjusted to Tender Values Specified in WAG File - Coal mass {0} kg, Water Mass {1}", FormatStrings.FormatMass(TendersSteamLocomotive.MaxTenderCoalMassKG, IsMetric), FormatStrings.FormatFuelVolume(Size.LiquidVolume.FromGallonUK(TendersSteamLocomotive.MaxTotalCombinedWaterVolumeUKG), IsMetric, IsUK));
                         }
                     }
                 }
