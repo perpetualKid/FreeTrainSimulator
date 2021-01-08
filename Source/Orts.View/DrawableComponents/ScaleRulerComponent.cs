@@ -168,6 +168,8 @@ namespace Orts.View.DrawableComponents
 
         public override void Draw(GameTime gameTime)
         {
+            if (texture == null)
+                return;
             spriteBatch.Begin();
             spriteBatch.Draw(texture, position, null, color, 0, Vector2.Zero, Vector2.One, SpriteEffects.None, 0);
 
