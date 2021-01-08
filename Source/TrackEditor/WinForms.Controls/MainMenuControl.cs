@@ -65,6 +65,7 @@ namespace Orts.TrackEditor.WinForms.Controls
             if (sender is ToolStripDropDownItem menuItem && menuItem.Tag is Route route)
             {
                 parent.StatusMessage = route.Name;
+                parent.ContentArea = null;
 
                 TrackData trackData = new TrackData(route.Path);
 
@@ -74,7 +75,7 @@ namespace Orts.TrackEditor.WinForms.Controls
 
                 await trackData.LoadTrackData(useMetricUnits).ConfigureAwait(false);
 
-                TrackContent content = new TrackContent(trackData.TrackDB, trackData.UseMetricUnits);
+                TrackContent content = new TrackContent(trackData.TrackDB, trackData.TrackSections, trackData.UseMetricUnits);
                 await content.Initialize().ConfigureAwait(false);
                 parent.ContentArea = new ContentArea(parent, content);
                 parent.StatusMessage = null;

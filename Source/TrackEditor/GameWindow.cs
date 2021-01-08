@@ -55,7 +55,14 @@ namespace Orts.TrackEditor
         {
             get => contentArea;
             set => windowForm.Invoke((System.Windows.Forms.MethodInvoker)delegate {
-                value?.ResetSize(Window.ClientBounds.Size, contentAreaOffset);
+                if (value != null)
+                {
+                    value.SpriteBatch = spriteBatch;
+                    value.ResetSize(Window.ClientBounds.Size, contentAreaOffset);
+                    Components.Add(value);
+                }
+                else
+                    Components.Remove(contentArea);
                 contentArea = value;
             });
         }
@@ -268,24 +275,23 @@ namespace Orts.TrackEditor
             }
             GraphicsDevice.Clear(Color.BurlyWood);
 
-            spriteBatch.Begin();
-            if (contentArea != null)
+            spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, null, null, null);
+            if (contentArea == null)
             {
-                ContentArea.Draw();
-            }
-            else
-            {
-                BasicShapes.DrawTexture(BasicTextureType.PlayerTrain, new Vector2(180, 180), 0, 1, Color.Green, false, false, true);
-                BasicShapes.DrawTexture(BasicTextureType.PlayerTrain, new Vector2(240, 180), 0, 1, Color.Green, true, false, false);
-                BasicShapes.DrawTexture(BasicTextureType.Ring, new Vector2(80, 220), 0, 0.5f, Color.Yellow, true, false, false);
-                BasicShapes.DrawTexture(BasicTextureType.Circle, new Vector2(80, 220), 0, 0.2f, Color.Red, true, false, false);
-                BasicShapes.DrawTexture(BasicTextureType.CrossedRing, new Vector2(240, 220), 0.5f, 1, Color.Yellow, true, false, false);
-                BasicShapes.DrawTexture(BasicTextureType.Disc, new Vector2(340, 220), 0, 1, Color.Red, true, false, false);
+                BasicShapes.DrawTexture(BasicTextureType.Pickup, new Vector2(180, 180), 0, -1, Color.Green, false, false, true);
+                BasicShapes.DrawTexture(BasicTextureType.PlayerTrain, new Vector2(240, 180), 0, -3, Color.Blue, true, false, true);
+                BasicShapes.DrawTexture(BasicTextureType.Ring, new Vector2(80, 220), 0, -0.5f, Color.Yellow, true, false, false);
+                BasicShapes.DrawTexture(BasicTextureType.Circle, new Vector2(80, 220), 0, -0.2f, Color.Red, true, false, false);
+                BasicShapes.DrawTexture(BasicTextureType.RingCrossed, new Vector2(240, 220), 0.0f, -2, Color.Yellow, true, false, false);
+                BasicShapes.DrawTexture(BasicTextureType.Disc, new Vector2(340, 220), 0, -1, Color.Red, true, false, false);
 
-                BasicShapes.DrawArc(3, Color.Green, new Vector2(330, 330), 120, 4.71238898, -180, 0);
+                BasicShapes.DrawArc(3, Color.Green, new Vector2(330, 330), 120, 90 * Math.PI/180, 90, 0);
                 BasicShapes.DrawDashedLine(2, Color.Aqua, new Vector2(330, 330), new Vector2(450, 330));
                 TextDrawShape.DrawString(new Vector2(200, 450), Color.Red, "Test Message", drawfont);
                 TextDrawShape.DrawString(new Vector2(200, 500), Color.Lime, gameTime.TotalGameTime.TotalSeconds.ToString(), drawfont);
+
+                BasicShapes.DrawTexture(BasicTextureType.Disc, new Vector2(480, 180), 0, -2f, Color.Green, false, false, false);
+                BasicShapes.DrawTexture(BasicTextureType.Disc, new Vector2(640, 180), 0, -2f, Color.Green, true, false, true);
 
                 BasicShapes.DrawArc(5, Color.IndianRed, new Vector2(240, 220), 120, Math.PI, -270, 0);
                 BasicShapes.DrawLine(10, Color.DarkGoldenrod, new Vector2(100, 100), new Vector2(250, 250));

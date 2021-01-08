@@ -53,21 +53,8 @@ namespace Orts.View.Track.Shapes
         /// <param name="spriteBatch">The spritebatch to use for drawing</param>
         public static void LoadContent(GraphicsDevice graphicsDevice)
         {
-            const int diameter = 64; // Needs to be power of two for mipmapping
             instance.basicTextures[BasicTextureType.BlankPixel] = new Texture2D(graphicsDevice, 1, 1);
             instance.basicTextures[BasicTextureType.BlankPixel].SetData(new[] { Color.White });
-
-            instance.basicTextures[BasicTextureType.Circle] = CreateCircleTexture(graphicsDevice, diameter);
-            instance.textureOffsets[BasicTextureType.Circle] = new Vector2(diameter / 2, diameter / 2);
-
-            instance.basicTextures[BasicTextureType.Disc] = CreateDiscTexture(graphicsDevice, diameter);
-            instance.textureOffsets[BasicTextureType.Disc] = new Vector2(diameter / 2, diameter / 2);
-
-            instance.basicTextures[BasicTextureType.Ring] = CreateRingTexture(graphicsDevice, diameter);
-            instance.textureOffsets[BasicTextureType.Ring] = new Vector2(diameter / 2, diameter / 2);
-
-            instance.basicTextures[BasicTextureType.CrossedRing] = CreateCrossedRingTexture(graphicsDevice, diameter);
-            instance.textureOffsets[BasicTextureType.CrossedRing] = new Vector2(diameter / 2, diameter / 2);
 
             // textures modified from http://www.iconsdb.com
             instance.LoadTexturesFromResources(graphicsDevice);
@@ -92,8 +79,14 @@ namespace Orts.View.Track.Shapes
         /// <param name="flip">Whether the texture needs to be flipped (vertically)</param>
         public static void DrawTexture(BasicTextureType texture, Vector2 point, double angle, float size, Color color, bool flipHorizontal, bool flipVertical, bool highlight)
         {
+            Vector2 scaledSize;
+            if (size < 0)
+                scaledSize = new Vector2(-size);
+            else
+                scaledSize = new Vector2(size / instance.basicTextures[texture].Width);
+
             SpriteEffects flipMode = (flipHorizontal ? SpriteEffects.FlipHorizontally : SpriteEffects.None) | (flipVertical ? SpriteEffects.FlipVertically : SpriteEffects.None);
-            instance.spriteBatch.Draw(highlight ? instance.basicHighlightTextures[texture] : instance.basicTextures[texture], point, null, color, (float)angle, instance.textureOffsets[texture], new Vector2(size), flipMode, 0);
+            instance.spriteBatch.Draw(highlight ? instance.basicHighlightTextures[texture] : instance.basicTextures[texture], point, null, color, (float)angle, instance.textureOffsets[texture], scaledSize, flipMode, 0);
         }
 
         /// <summary>
@@ -165,7 +158,7 @@ namespace Orts.View.Track.Shapes
         public static void DrawArc(float width, Color color, Vector2 point, double radius, double angle, double arcDegrees, double arcDegreesOffset)
         {
             // Positive arcDegree means curving to the left, negative arcDegree means curving to the right
-            int sign = Math.Sign(arcDegrees);
+            int sign = - Math.Sign(arcDegrees);
             arcDegrees = Math.Abs(arcDegrees);
 
             // We will draw an arc as a succession of straight lines. We do this in a way that reduces the amount
@@ -240,7 +233,7 @@ namespace Orts.View.Track.Shapes
                     Texture2D texture = Texture2D.FromStream(graphicsDevice, stream);
                     basicTextures[textureValue] = PrepareColorScaledTexture(graphicsDevice, texture);
                     basicHighlightTextures[textureValue] = PrepareColorScaledTexture(graphicsDevice, texture, 0.8);
-                    textureOffsets[textureValue] = new Vector2(texture.Width / 2 - 1, texture.Height / 2 - 1);
+                    textureOffsets[textureValue] = new Vector2(texture.Width / 2, texture.Height / 2);
                 }
             }
             );
@@ -259,133 +252,6 @@ namespace Orts.View.Track.Shapes
             Texture2D outTexture = new Texture2D(graphicsDevice, texture.Width, texture.Height, false, SurfaceFormat.Color);
             outTexture.SetData(pixels);
             return outTexture;
-        }
-
-        /// <summary>
-        /// private method to create a texture2D containing a circle
-        /// </summary>
-        /// <param name="graphicsDevice"></param>
-        /// <param name="outerRadius">Outer radius (diameter) of the circle in pixels</param>
-        /// <returns>The white texture</returns>
-        private static Texture2D CreateCircleTexture(GraphicsDevice graphicsDevice, int outerRadius)
-        {
-            int radius = (outerRadius - 1) / 2;
-            int innerRadius = radius - 1;
-            Texture2D texture = new Texture2D(graphicsDevice, outerRadius, outerRadius, false, SurfaceFormat.Color);
-
-            Color[] data = new Color[outerRadius * outerRadius];
-
-            for (int x = -radius; x <= radius; x++)
-            {
-                for (int y = -radius; y <= radius; y++)
-                {
-                    int i = (x + radius) * outerRadius + (y + radius);
-                    int r2 = x * x + y * y;
-                    data[i] = (r2 <= radius * radius && r2 > innerRadius * innerRadius) ? Color.White : Color.Transparent;
-                }
-            }
-
-            texture.SetData(data);
-            return texture;
-        }
-
-        /// <summary>
-        /// private method to create a texture2D containing a disc (filled circle)
-        /// </summary>
-        /// <param name="graphicsDevice"></param>
-        /// <param name="outerRadius">Outer radius (diameter) of the circle in pixels</param>
-        /// <returns>The white texture</returns>
-        private static Texture2D CreateDiscTexture(GraphicsDevice graphicsDevice, int outerRadius)
-        {
-            int radius = (outerRadius - 1) / 2;
-            Texture2D texture = new Texture2D(graphicsDevice, outerRadius, outerRadius, false, SurfaceFormat.Color);
-
-            Color[] data = new Color[outerRadius * outerRadius];
-
-            for (int x = -radius; x <= radius; x++)
-            {
-                for (int y = -radius; y <= radius; y++)
-                {
-                    int i = (x + radius) * outerRadius + (y + radius);
-                    data[i] = (x * x + y * y <= radius * radius) ? Color.White : Color.Transparent;
-                }
-            }
-
-            texture.SetData(data);
-            return texture;
-        }
-
-        /// <summary>
-        /// private method to create a texture2D containing a ring (circle with thick border)
-        /// </summary>
-        /// <param name="graphicsDevice"></param>
-        /// <param name="outerRadius">Outer radius (diameter) of the circle in pixels</param>
-        /// <returns>The white texture</returns>
-        private static Texture2D CreateRingTexture(GraphicsDevice graphicsDevice, int outerRadius)
-        {
-            int radius = (outerRadius - 1) / 2;
-            int innerRadius = (2 * radius) / 3;
-            Texture2D texture = new Texture2D(graphicsDevice, outerRadius, outerRadius, false, SurfaceFormat.Color);
-
-            Color[] data = new Color[outerRadius * outerRadius];
-
-            for (int x = -radius; x <= radius; x++)
-            {
-                for (int y = -radius; y <= radius; y++)
-                {
-                    int i = (x + radius) * outerRadius + (y + radius);
-                    int r2 = x * x + y * y;
-                    data[i] = (r2 <= radius * radius && r2 > innerRadius * innerRadius) ? Color.White : Color.Transparent;
-                }
-            }
-
-            texture.SetData(data);
-            return texture;
-        }
-
-        /// <summary>
-        /// private method to create a texture2D containing a  (circle with thick border), with a cross in the middle
-        /// </summary>
-        /// <param name="graphicsDevice"></param>
-        /// <param name="outerRadius">Outer radius (diameter) of the circle in pixels</param>
-        /// <returns>The white texture</returns>
-        private static Texture2D CreateCrossedRingTexture(GraphicsDevice graphicsDevice, int outerRadius)
-        {
-            int radius = (outerRadius - 1) / 2;
-            int innerRadius = (3 * radius) / 4;
-            int crossWidth = 5;
-            Texture2D texture = new Texture2D(graphicsDevice, outerRadius, outerRadius, false, SurfaceFormat.Color);
-
-            Color[] data = new Color[outerRadius * outerRadius];
-
-            for (int x = -radius; x <= radius; x++)
-            {
-                for (int y = -radius; y <= radius; y++)
-                {
-                    int i = (x + radius) * outerRadius + (y + radius);
-                    data[i] = Color.Transparent; //default
-                    int r2 = x * x + y * y;
-                    if (r2 <= radius * radius)
-                    {
-                        if (r2 > innerRadius * innerRadius)
-                        {   //ring
-                            data[i] = Color.White;
-                        }
-                        if ((x - y) * (x - y) < crossWidth * crossWidth)
-                        {   //part of cross lower-left to upper-right
-                            data[i] = Color.White;
-                        }
-                        if ((x + y) * (x + y) < crossWidth * crossWidth)
-                        {   //part of cross lower-right to upper-left
-                            data[i] = Color.White;
-                        }
-                    }
-
-                }
-            }
-
-            texture.SetData(data);
-            return texture;
         }
 
         /// <summary>

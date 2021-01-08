@@ -19,14 +19,15 @@ namespace Orts.View.Track
 
         public bool UseMetricUnits { get; }
 
+        public TrackSectionsFile TrackSectionsFile { get; }
         public Rectangle Bounds { get; private set; }
         private readonly RoadTrackDB roadTrackDB;
-        private readonly TrackSectionsFile trackSections;
         private readonly SignalConfigurationFile signalConfig;
 
-        public TrackContent(TrackDB trackDB, bool metricUnits)
+        public TrackContent(TrackDB trackDB, TrackSectionsFile trackSections, bool metricUnits)
         {
             TrackDB = trackDB;
+            TrackSectionsFile = trackSections;
             UseMetricUnits = metricUnits;
         }
 

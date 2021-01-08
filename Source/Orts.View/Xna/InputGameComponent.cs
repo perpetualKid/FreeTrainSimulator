@@ -157,7 +157,11 @@ namespace Orts.View.Xna
         public override void Update(GameTime gameTime)
         {
             if (!Game.IsActive || (inputCapture?.InputCaptured ?? false))
+            {
+                currentKeyboardState = default;
+                currentMouseState = default;
                 return;
+            }
             (currentKeyboardState, previousKeyboardState) = (previousKeyboardState, currentKeyboardState);
             (currentMouseState, previousMouseState) = (previousMouseState, currentMouseState);
             currentKeyboardState = Keyboard.GetState();
@@ -233,7 +237,7 @@ namespace Orts.View.Xna
             #endregion
 
             #region mouse updates
-            if (currentMouseState != previousMouseState)
+            if (currentMouseState != previousMouseState && previousMouseState != default)
             {
                 if (currentMouseState.Position != previousMouseState.Position)
                 {
