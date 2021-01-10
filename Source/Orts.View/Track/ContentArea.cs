@@ -6,7 +6,6 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using Orts.Common.Position;
-using Orts.Formats.Msts.Models;
 using Orts.View.DrawableComponents;
 using Orts.View.Track.Shapes;
 using Orts.View.Track.Widgets;
@@ -29,14 +28,31 @@ namespace Orts.View.Track
 
         public Point WindowOffset { get; private set; }
 
-        public SpriteBatch SpriteBatch { get; set; }
+        private readonly SpriteBatch spriteBatch;
 
         public ContentArea(Game game, TrackContent trackContent) :
             base(game)
         {
             TrackContent = trackContent ?? throw new ArgumentNullException(nameof(trackContent));
             bounds = trackContent.Bounds;
-            Game.Components.OfType<ScaleRulerComponent>().FirstOrDefault().Enable(this);
+            spriteBatch = new SpriteBatch(GraphicsDevice);
+            Game.Components.OfType<ScaleRulerComponent>().FirstOrDefault()?.Enable(this);
+            Game.Components.OfType<InsetComponent>().FirstOrDefault()?.Enable(this);
+        }
+
+        protected override void OnEnabledChanged(object sender, EventArgs args)
+        {
+            if (Enabled)
+            {
+                Game.Components.OfType<ScaleRulerComponent>().FirstOrDefault()?.Enable(this);
+                Game.Components.OfType<InsetComponent>().FirstOrDefault()?.Enable(this);
+            }
+            else
+            {
+                Game.Components.OfType<ScaleRulerComponent>().FirstOrDefault()?.Disable();
+                Game.Components.OfType<InsetComponent>().FirstOrDefault()?.Disable();
+            }
+            base.OnEnabledChanged(sender, args);
         }
 
         public void ResetSize(in Point windowSize, in Point offset)
@@ -101,9 +117,9 @@ namespace Orts.View.Track
 
         public override void Draw(GameTime gameTime)
         {
-            SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied);
+            spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied);
             DrawTracks();
-            SpriteBatch.End();
+            spriteBatch.End();
             base.Draw(gameTime);
         }
 
@@ -164,20 +180,30 @@ namespace Orts.View.Track
             {
                 if (InsideScreenArea(in segment.Location, in segment.Vector))
                     if (segment.Curved)
-                        BasicShapes.DrawArc(WorldToScreenSize(segment.Width), Color.Black, WorldToScreenCoordinates(in segment.Location), WorldToScreenSize(segment.Length), segment.Direction, segment.Angle, 0);
+                        BasicShapes.DrawArc(WorldToScreenSize(segment.Width), Color.Black, WorldToScreenCoordinates(in segment.Location), WorldToScreenSize(segment.Length), segment.Direction, segment.Angle, 0, spriteBatch);
                     else
-                        BasicShapes.DrawLine(WorldToScreenSize(segment.Width), Color.Black, WorldToScreenCoordinates(in segment.Location), WorldToScreenSize(segment.Length), segment.Direction);
+                        BasicShapes.DrawLine(WorldToScreenSize(segment.Width), Color.Black, WorldToScreenCoordinates(in segment.Location), WorldToScreenSize(segment.Length), segment.Direction, spriteBatch);
             }
             foreach (TrackEndSegment endNode in TrackContent.TrackEndNodes)
             {
                 if (InsideScreenArea(in endNode.Location))
-                    BasicShapes.DrawLine(WorldToScreenSize(endNode.Width), Color.DarkOliveGreen, WorldToScreenCoordinates(in endNode.Location), WorldToScreenSize(TrackEndSegment.Length), endNode.Direction);
+                    BasicShapes.DrawLine(WorldToScreenSize(endNode.Width), Color.DarkOliveGreen, WorldToScreenCoordinates(in endNode.Location), WorldToScreenSize(TrackEndSegment.Length), endNode.Direction, spriteBatch);
             }
             foreach (JunctionNode junctionNode in TrackContent.JunctionNodes)
             {
                 if (InsideScreenArea(in junctionNode.Location))
-                    BasicShapes.DrawTexture(BasicTextureType.Disc, WorldToScreenCoordinates(in junctionNode.Location), 0, WorldToScreenSize(junctionNode.Width), Color.DarkRed, false, false, false);
+                    BasicShapes.DrawTexture(BasicTextureType.Disc, WorldToScreenCoordinates(in junctionNode.Location), 0, WorldToScreenSize(junctionNode.Width), Color.DarkRed, false, false, false, spriteBatch);
             }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                spriteBatch?.Dispose();
+
+            }
+            base.Dispose(disposing);
         }
     }
 }

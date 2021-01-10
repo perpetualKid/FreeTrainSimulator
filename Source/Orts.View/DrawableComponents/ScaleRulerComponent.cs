@@ -76,22 +76,20 @@ namespace Orts.View.DrawableComponents
             [Description("50mi")] i50_000 = 16,
         }
 
-        public ScaleRulerComponent(Game game, SpriteBatch spriteBatch, System.Drawing.Font font, Color color, Vector2 position) :
+        public ScaleRulerComponent(Game game, System.Drawing.Font font, Color color, Vector2 position) :
             base(game)
         {
             Enabled = false;
             Visible = false;
 
-            this.spriteBatch = spriteBatch;
+            spriteBatch = new SpriteBatch(game?.GraphicsDevice);
             this.color = color;
             this.position = position;
             this.font = font;
             if (position.X < 0 || position.Y < 0)
             {
                 offset = position;
-#pragma warning disable CA1062 // Validate arguments of public methods
                 game.Window.ClientSizeChanged += Window_ClientSizeChanged;
-#pragma warning restore CA1062 // Validate arguments of public methods
                 Window_ClientSizeChanged(this, EventArgs.Empty);
             }
         }
@@ -108,6 +106,7 @@ namespace Orts.View.DrawableComponents
             Enabled = false;
             Visible = false;
             content = null;
+            texture = null;
         }
 
         private void Window_ClientSizeChanged(object sender, EventArgs e)
@@ -173,8 +172,8 @@ namespace Orts.View.DrawableComponents
             spriteBatch.Begin();
             spriteBatch.Draw(texture, position, null, color, 0, Vector2.Zero, Vector2.One, SpriteEffects.None, 0);
 
-            base.Draw(gameTime);
             spriteBatch.End();
+            base.Draw(gameTime);
         }
 
         protected override void Dispose(bool disposing)
@@ -189,6 +188,7 @@ namespace Orts.View.DrawableComponents
                 fontBrush.Dispose();
                 rulerPen.Dispose();
                 texture?.Dispose();
+                spriteBatch?.Dispose();
             }
             base.Dispose(disposing);
         }

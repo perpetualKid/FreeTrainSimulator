@@ -35,11 +35,11 @@ namespace Orts.View.DrawableComponents
         private string formatMask = "hh\\:mm\\:ss";
         private string previousTimestamp;
 
-        public DigitalClockComponent(Game game, SpriteBatch spriteBatch, TimeType timeType, System.Drawing.Font font, Color color, Vector2 position, bool visibleImmediately) :
+        public DigitalClockComponent(Game game, TimeType timeType, System.Drawing.Font font, Color color, Vector2 position, bool visibleImmediately) :
             base(game, font)
         {
             this.timeType = timeType;
-            this.spriteBatch = spriteBatch;
+            spriteBatch = new SpriteBatch(game?.GraphicsDevice);
             this.color = color;
             this.position = position;
             if (!visibleImmediately)

@@ -55,13 +55,13 @@ namespace Orts.View.Track
             List<Task> renderItems = new List<Task>
             {
                 Task.Run(() => AddTrackSegments()),
-//                Task.Run(() => AddTrackItems()),
+                Task.Run(() => AddTrackItems(trackDB.TrackItems)),
             };
 
             await Task.WhenAll(renderItems).ConfigureAwait(false);
         }
 
-        private Task AddTrackSegments()
+        private void AddTrackSegments()
         {
             double minX = double.MaxValue, minY = double.MaxValue, maxX = double.MinValue, maxY = double.MinValue;
 
@@ -126,7 +126,15 @@ namespace Orts.View.Track
                 }
             }
             Bounds = new Rectangle((int)minX, (int)minY, (int)(maxX - minX + 1), (int)(maxY - minY + 1));
-            return Task.CompletedTask;
+        }
+
+        private void AddTrackItems(IEnumerable<TrackItem> trackItems)
+        {
+            foreach (TrackItem trackItem in trackItems)
+            {
+                switch (trackItem.TrackItemId)
+                { }
+            }
         }
     }
 }

@@ -77,7 +77,7 @@ namespace Orts.View.Track.Shapes
         /// <param name="size">Size of the texture in pixels</param>
         /// <param name="color">Color mask for the texture to draw (white will not affect the texture)</param>
         /// <param name="flip">Whether the texture needs to be flipped (vertically)</param>
-        public static void DrawTexture(BasicTextureType texture, Vector2 point, double angle, float size, Color color, bool flipHorizontal, bool flipVertical, bool highlight)
+        public static void DrawTexture(BasicTextureType texture, Vector2 point, double angle, float size, Color color, bool flipHorizontal, bool flipVertical, bool highlight, SpriteBatch spriteBatch = null)
         {
             Vector2 scaledSize;
             if (size < 0)
@@ -86,7 +86,7 @@ namespace Orts.View.Track.Shapes
                 scaledSize = new Vector2(size / instance.basicTextures[texture].Width);
 
             SpriteEffects flipMode = (flipHorizontal ? SpriteEffects.FlipHorizontally : SpriteEffects.None) | (flipVertical ? SpriteEffects.FlipVertically : SpriteEffects.None);
-            instance.spriteBatch.Draw(highlight ? instance.basicHighlightTextures[texture] : instance.basicTextures[texture], point, null, color, (float)angle, instance.textureOffsets[texture], scaledSize, flipMode, 0);
+            (spriteBatch ?? instance.spriteBatch).Draw(highlight ? instance.basicHighlightTextures[texture] : instance.basicTextures[texture], point, null, color, (float)angle, instance.textureOffsets[texture], scaledSize, flipMode, 0);
         }
 
         /// <summary>
@@ -97,11 +97,11 @@ namespace Orts.View.Track.Shapes
         /// <param name="point">Vector to the first point of the line</param>
         /// <param name="length">Length of the line</param>
         /// <param name="angle">Angle (in down from horizontal) of where the line is pointing</param>
-        public static void DrawLine(float width, Color color, Vector2 point, float length, double angle)
+        public static void DrawLine(float width, Color color, Vector2 point, float length, double angle, SpriteBatch spriteBatch = null)
         {
             // offset to compensate for the width of the line
             Vector2 offset = new Vector2((float)(width * Math.Sin(angle) / 2.0), (float)(-width * Math.Cos(angle) / 2));
-            instance.spriteBatch.Draw(instance.basicTextures[BasicTextureType.BlankPixel], point + offset, null, color, (float)angle, Vector2.Zero, new Vector2(length, width), SpriteEffects.None, 0);
+            (spriteBatch ?? instance.spriteBatch).Draw(instance.basicTextures[BasicTextureType.BlankPixel], point + offset, null, color, (float)angle, Vector2.Zero, new Vector2(length, width), SpriteEffects.None, 0);
         }
 
         /// <summary>
@@ -111,11 +111,11 @@ namespace Orts.View.Track.Shapes
         /// <param name="point1"> Vector to the first point of the line</param>
         /// <param name="point2"> Vector to the last point of the line</param>
         /// </summary>
-        public static void DrawLine(float width, Color color, Vector2 point1, Vector2 point2)
+        public static void DrawLine(float width, Color color, Vector2 point1, Vector2 point2, SpriteBatch spriteBatch = null)
         {
             double angle = Math.Atan2(point2.Y - point1.Y, point2.X - point1.X);
             float length = Vector2.Distance(point1, point2);
-            DrawLine(width, color, point1, length, angle);
+            DrawLine(width, color, point1, length, angle, spriteBatch);
         }
 
         /// <summary>
@@ -125,7 +125,7 @@ namespace Orts.View.Track.Shapes
         /// <param name="point1"> Vector to the first point of the line</param>
         /// <param name="point2"> Vector to the last point of the line</param>
         /// </summary>
-        public static void DrawDashedLine(float width, Color color, Vector2 point1, Vector2 point2)
+        public static void DrawDashedLine(float width, Color color, Vector2 point1, Vector2 point2, SpriteBatch spriteBatch = null)
         {
             double angle = Math.Atan2(point2.Y - point1.Y, point2.X - point1.X);
             float cosAngle = (float)Math.Cos(angle);
@@ -141,7 +141,7 @@ namespace Orts.View.Track.Shapes
             for (int i = 0; i < segments; i++)
             {
                 Vector2 segmentStartPoint = point1 + i * segmentOffset;
-                DrawLine(width, color, segmentStartPoint, lengthPerSegment, angle);
+                DrawLine(width, color, segmentStartPoint, lengthPerSegment, angle, spriteBatch);
             }
         }
 
@@ -155,7 +155,7 @@ namespace Orts.View.Track.Shapes
         /// <param name="angle">Angle (in down from horizontal) of where the line is pointing</param>
         /// <param name="arcDegrees">Number of degrees in the arc (360 would be full circle)</param>
         /// <param name="arcDegreesOffset">Instead of starting at 0 degrees in the circle, offset allows to start at a different position</param>
-        public static void DrawArc(float width, Color color, Vector2 point, double radius, double angle, double arcDegrees, double arcDegreesOffset)
+        public static void DrawArc(float width, Color color, Vector2 point, double radius, double angle, double arcDegrees, double arcDegreesOffset, SpriteBatch spriteBatch = null)
         {
             // Positive arcDegree means curving to the left, negative arcDegree means curving to the right
             int sign = - Math.Sign(arcDegrees);
@@ -200,7 +200,7 @@ namespace Orts.View.Track.Shapes
                 point = center + centerToPointDirection * (float)(radius - sign * width / 2.0);  // correct for width of line
                 double length = radius * arcSteps * minAngleRad + 1; // the +1 to prevent white lines in between arc sections
 
-                instance.spriteBatch.Draw(instance.basicTextures[BasicTextureType.BlankPixel], point, null, color, (float)angle, Vector2.Zero, new Vector2((float)length, width), SpriteEffects.None, 0);
+                (spriteBatch ?? instance.spriteBatch).Draw(instance.basicTextures[BasicTextureType.BlankPixel], point, null, color, (float)angle, Vector2.Zero, new Vector2((float)length, width), SpriteEffects.None, 0);
 
                 // prepare for next straight line
                 arcStepsRemaining -= arcSteps;

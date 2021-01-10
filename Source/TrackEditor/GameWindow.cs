@@ -57,12 +57,13 @@ namespace Orts.TrackEditor
             set => windowForm.Invoke((System.Windows.Forms.MethodInvoker)delegate {
                 if (value != null)
                 {
-                    value.SpriteBatch = spriteBatch;
                     value.ResetSize(Window.ClientBounds.Size, contentAreaOffset);
                     Components.Add(value);
                 }
                 else
                     Components.Remove(contentArea);
+                if (contentArea != null)
+                    contentArea.Enabled = false;
                 contentArea = value;
             });
         }
@@ -244,11 +245,12 @@ namespace Orts.TrackEditor
         {
             // Create a new SpriteBatch, which can be used to draw textures.
             BasicShapes.LoadContent(GraphicsDevice);
-            DigitalClockComponent clock = new DigitalClockComponent(this, spriteBatch, TimeType.RealWorldLocalTime,
+            DigitalClockComponent clock = new DigitalClockComponent(this, TimeType.RealWorldLocalTime,
                 new System.Drawing.Font("Segoe UI", 14, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel), Color.White, new Vector2(200, -100), true);
             Components.Add(clock);
-            ScaleRulerComponent scaleRuler = new ScaleRulerComponent(this, spriteBatch, new System.Drawing.Font(System.Drawing.FontFamily.GenericSansSerif, 14, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel), Color.Black, new Vector2(20, -55));
+            ScaleRulerComponent scaleRuler = new ScaleRulerComponent(this, new System.Drawing.Font(System.Drawing.FontFamily.GenericSansSerif, 14, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel), Color.Black, new Vector2(20, -55));
             Components.Add(scaleRuler);
+            Components.Add(new InsetComponent(this, Color.Black, new Vector2(-10, 30)));
         }
 
         protected override void Update(GameTime gameTime)
@@ -285,7 +287,7 @@ namespace Orts.TrackEditor
                 BasicShapes.DrawTexture(BasicTextureType.RingCrossed, new Vector2(240, 220), 0.0f, -2, Color.Yellow, true, false, false);
                 BasicShapes.DrawTexture(BasicTextureType.Disc, new Vector2(340, 220), 0, -1, Color.Red, true, false, false);
 
-                BasicShapes.DrawArc(3, Color.Green, new Vector2(330, 330), 120, 90 * Math.PI/180, 90, 0);
+                BasicShapes.DrawArc(3, Color.Green, new Vector2(330, 330), 120, 90 * Math.PI / 180, 90, 0);
                 BasicShapes.DrawDashedLine(2, Color.Aqua, new Vector2(330, 330), new Vector2(450, 330));
                 TextDrawShape.DrawString(new Vector2(200, 450), Color.Red, "Test Message", drawfont);
                 TextDrawShape.DrawString(new Vector2(200, 500), Color.Lime, gameTime.TotalGameTime.TotalSeconds.ToString(), drawfont);
