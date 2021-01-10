@@ -125,7 +125,7 @@ namespace Orts.TrackEditor
 
         private void Window_ClientSizeChanged(object sender, EventArgs e)
         {
-            ContentArea?.UpdateSize(Window.ClientBounds.Size, contentAreaOffset);
+            ContentArea?.UpdateSize(Window.ClientBounds.Size);
         }
 
         #region window size/position handling

@@ -1,0 +1,58 @@
+﻿
+using System;
+
+using Microsoft.Xna.Framework;
+
+using Orts.Common.Position;
+using Orts.Formats.Msts.Models;
+
+namespace Orts.View.Track.Widgets
+{
+    internal class TrackSegment: VectorWidget
+    {
+        internal readonly bool Curved;
+        
+        internal readonly float Direction;
+        internal readonly float Length;
+
+        internal readonly float Angle;
+
+        public TrackSegment(TrackVectorSection trackVectorSection, TrackSections sections)
+        {
+            TrackSection trackSection = sections.Get(trackVectorSection.SectionIndex);
+            ref readonly WorldLocation location = ref trackVectorSection.Location;
+
+            double cosA = Math.Cos(trackVectorSection.Direction.Y);
+            double sinA = Math.Sin(trackVectorSection.Direction.Y);
+
+            if (trackSection.Curved)
+            {
+                Angle = trackSection.Angle;
+                Length = trackSection.Radius;
+
+                double length = trackSection.Radius * Math.Abs(MathHelper.ToRadians(trackSection.Angle));
+
+                int sign = -Math.Sign(trackSection.Angle);
+                double angleRadians = -length / trackSection.Radius;
+                double cosArotated = Math.Cos(trackVectorSection.Direction.Y + sign * angleRadians);
+                double sinArotated = Math.Sin(trackVectorSection.Direction.Y + sign * angleRadians);
+                double deltaX = sign * trackSection.Radius * (cosA - cosArotated);
+                double deltaZ = sign * trackSection.Radius * (sinA - sinArotated);
+                base.vector = new PointD(location.TileX * WorldLocation.TileSize + location.Location.X - deltaX, location.TileZ * WorldLocation.TileSize + location.Location.Z + deltaZ);
+            }
+            else
+            {
+                Length = trackSection.Length;
+
+                // note, angle is 90 degrees off, and different sign. 
+                // So Delta X = cos(90-A)=sin(A); Delta Y,Z = sin(90-A) = cos(A)    
+                base.vector = new PointD(location.TileX * WorldLocation.TileSize + location.Location.X + sinA * Length, location.TileZ * WorldLocation.TileSize + location.Location.Z +cosA * Length);
+            }
+
+            base.location = PointD.FromWorldLocation(location);
+            Width = trackSection.Width;
+            Curved = trackSection.Curved;
+            Direction = trackVectorSection.Direction.Y - MathHelper.PiOver2;
+        }
+    }
+}

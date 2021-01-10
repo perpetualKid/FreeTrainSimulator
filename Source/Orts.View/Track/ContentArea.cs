@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -8,10 +9,11 @@ using Orts.Common.Position;
 using Orts.Formats.Msts.Models;
 using Orts.View.DrawableComponents;
 using Orts.View.Track.Shapes;
+using Orts.View.Track.Widgets;
 
 namespace Orts.View.Track
 {
-    public class ContentArea: DrawableGameComponent
+    public class ContentArea : DrawableGameComponent
     {
         private Rectangle bounds;
         private double maxScale;
@@ -21,6 +23,7 @@ namespace Orts.View.Track
         public double Scale { get; private set; }
 
         private double offsetX, offsetY;
+        private PointD topLeftArea, bottomRightArea;
 
         public Point WindowSize { get; private set; }
 
@@ -28,7 +31,7 @@ namespace Orts.View.Track
 
         public SpriteBatch SpriteBatch { get; set; }
 
-        public ContentArea(Game game, TrackContent trackContent):
+        public ContentArea(Game game, TrackContent trackContent) :
             base(game)
         {
             TrackContent = trackContent ?? throw new ArgumentNullException(nameof(trackContent));
@@ -42,13 +45,16 @@ namespace Orts.View.Track
             WindowOffset = offset;
             ScaleToFit();
             CenterView();
+            topLeftArea = ScreenToWorldCoordinates(Point.Zero);
+            bottomRightArea = ScreenToWorldCoordinates(WindowSize);
         }
 
-        public void UpdateSize(in Point windowSize, in Point offset)
+        public void UpdateSize(in Point windowSize)
         {
             WindowSize = windowSize;
-            WindowOffset = offset;
-            ScaleToFit();
+            CenterAround(new PointD((topLeftArea.X + bottomRightArea.X) / 2, (topLeftArea.Y + bottomRightArea.Y) / 2));
+            topLeftArea = ScreenToWorldCoordinates(Point.Zero);
+            bottomRightArea = ScreenToWorldCoordinates(WindowSize);
         }
 
         public void UpdateScaleAt(in Vector2 scaleAt, int steps)
@@ -59,12 +65,18 @@ namespace Orts.View.Track
             offsetX += scaleAt.X * (scale / Scale - 1.0) / scale;
             offsetY += (WindowSize.Y - WindowOffset.Y - scaleAt.Y) * (scale / Scale - 1.0) / scale;
             Scale = scale;
+
+            topLeftArea = ScreenToWorldCoordinates(Point.Zero);
+            bottomRightArea = ScreenToWorldCoordinates(WindowSize);
         }
 
         public void UpdatePosition(in Vector2 delta)
         {
             offsetX -= delta.X / Scale;
             offsetY += delta.Y / Scale;
+
+            topLeftArea = ScreenToWorldCoordinates(Point.Zero);
+            bottomRightArea = ScreenToWorldCoordinates(WindowSize);
         }
 
         private void CenterView()
@@ -73,10 +85,16 @@ namespace Orts.View.Track
             offsetY = (bounds.Top + bounds.Bottom) / 2 - (WindowSize.Y - WindowOffset.X) / 2 / Scale;
         }
 
+        private void CenterAround(in PointD centerPoint)
+        {
+            offsetX = centerPoint.X - WindowSize.X / 2 / Scale;
+            offsetY = centerPoint.Y - (WindowSize.Y - WindowOffset.X) / 2 / Scale;
+        }
+
         private void ScaleToFit()
         {
             double xScale = (double)WindowSize.X / bounds.Width;
-            double yScale = (double)(WindowSize.Y  - WindowOffset.X - WindowOffset.Y) / bounds.Height;
+            double yScale = (double)(WindowSize.Y - WindowOffset.X - WindowOffset.Y) / bounds.Height;
             Scale = Math.Min(xScale, yScale);
             maxScale = Scale * 0.75;
         }
@@ -99,6 +117,7 @@ namespace Orts.View.Track
             return new Vector2((float)(x + offsetX * Scale), (float)(y + offsetY * Scale));
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private Vector2 WorldToScreenCoordinates(in WorldLocation worldLocation)
         {
             double x = worldLocation.TileX * WorldLocation.TileSize + worldLocation.Location.X;
@@ -107,63 +126,57 @@ namespace Orts.View.Track
                                (float)(WindowSize.Y - WindowOffset.Y - Scale * (y - offsetY)));
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private PointD ScreenToWorldCoordinates(in Point screenLocation)
+        {
+            return new PointD(offsetX + screenLocation.X / Scale, offsetY + (WindowSize.Y - screenLocation.Y) / Scale);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private Vector2 WorldToScreenCoordinates(in PointD location)
+        {
+            return new Vector2((float)(Scale * (location.X - offsetX)),
+                               (float)(WindowSize.Y - WindowOffset.Y - Scale * (location.Y - offsetY)));
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private float WorldToScreenSize(double worldSize, int minScreenSize = 1)
         {
             return Math.Max((float)Math.Ceiling(worldSize * Scale), minScreenSize);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private bool InsideScreenArea(in PointD location)
+        {
+            return location.X > topLeftArea.X && location.X < bottomRightArea.X && location.Y < topLeftArea.Y && location.Y > bottomRightArea.Y;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private bool InsideScreenArea(in PointD start, in PointD end)
+        {
+            return !(start.X < topLeftArea.X && end.X < topLeftArea.X) || (start.X > topLeftArea.X && end.Y > topLeftArea.X) ||
+                (start.Y > topLeftArea.Y && end.Y > topLeftArea.Y) || (start.Y < bottomRightArea.Y && end.Y < bottomRightArea.Y);
+        }
+
         private void DrawTracks()
         {
-            foreach (TrackNode trackNode in TrackContent.TrackDB.TrackNodes)
+            foreach (TrackSegment segment in TrackContent.TrackSegments)
             {
-                switch (trackNode)
-                {
-                    case TrackVectorNode trackVectorNode:
-                        foreach (TrackVectorSection trackVectorSection in trackVectorNode.TrackVectorSections)
-                        {
-                            TrackSection trackSection = TrackContent.TrackSectionsFile.TrackSections.Get(trackVectorSection.SectionIndex);
-                            ref readonly WorldLocation start = ref trackVectorSection.Location;
-
-                            if (trackSection.Curved)
-                            {
-                                BasicShapes.DrawArc(WorldToScreenSize(trackSection.Width), Color.Black, WorldToScreenCoordinates(start), WorldToScreenSize(trackSection.Radius), trackVectorSection.Direction.Y - MathHelper.PiOver2, trackSection.Angle, 0);
-                            }
-                            else
-                            {
-                                BasicShapes.DrawLine(WorldToScreenSize(trackSection.Width), Color.Black, WorldToScreenCoordinates(start), WorldToScreenSize(trackSection.Length), trackVectorSection.Direction.Y - MathHelper.PiOver2);
-                            }
-                        }
-                        break;
-                    case TrackEndNode trackEndNode:
-                        float angle;
-                        int connectedVectorNodeIndex = trackEndNode.TrackPins[0].Link;
-                        if (!(TrackContent.TrackDB.TrackNodes[connectedVectorNodeIndex] is TrackVectorNode connectedVectorNode)) continue;
-
-                        if (connectedVectorNode.TrackPins[0].Link == trackNode.Index)
-                        {
-                            //find angle at beginning of vector node
-                            TrackVectorSection tvs = connectedVectorNode.TrackVectorSections[0];
-                            angle = tvs.Direction.Y;
-                        }
-                        else
-                        {
-                            //find angle at end of vector node
-                            TrackVectorSection tvs = connectedVectorNode.TrackVectorSections.Last();
-                            angle = tvs.Direction.Y;
-                            // try to get even better in case the last section is curved
-                                TrackSection section = TrackContent.TrackSectionsFile.TrackSections.Get(tvs.SectionIndex);
-                                if (section.Curved)
-                                {
-                                    angle += MathHelper.ToRadians(section.Angle);
-                                }
-                        }
-                        BasicShapes.DrawLine(WorldToScreenSize(3f), Color.DarkOliveGreen, WorldToScreenCoordinates(trackEndNode.UiD.Location), WorldToScreenSize(2f), angle - MathHelper.PiOver2);
-                        break;
-                    case TrackJunctionNode trackJunctionNode:
-                        BasicShapes.DrawTexture(BasicTextureType.Ring, WorldToScreenCoordinates(trackJunctionNode.UiD.Location), 0, WorldToScreenSize(3, 2), Color.GreenYellow, false, false, true);
-                        break;
-
-                }
+                if (InsideScreenArea(in segment.Location, in segment.Vector))
+                    if (segment.Curved)
+                        BasicShapes.DrawArc(WorldToScreenSize(segment.Width), Color.Black, WorldToScreenCoordinates(in segment.Location), WorldToScreenSize(segment.Length), segment.Direction, segment.Angle, 0);
+                    else
+                        BasicShapes.DrawLine(WorldToScreenSize(segment.Width), Color.Black, WorldToScreenCoordinates(in segment.Location), WorldToScreenSize(segment.Length), segment.Direction);
+            }
+            foreach (TrackEndSegment endNode in TrackContent.TrackEndNodes)
+            {
+                if (InsideScreenArea(in endNode.Location))
+                    BasicShapes.DrawLine(WorldToScreenSize(endNode.Width), Color.DarkOliveGreen, WorldToScreenCoordinates(in endNode.Location), WorldToScreenSize(TrackEndSegment.Length), endNode.Direction);
+            }
+            foreach (JunctionNode junctionNode in TrackContent.JunctionNodes)
+            {
+                if (InsideScreenArea(in junctionNode.Location))
+                    BasicShapes.DrawTexture(BasicTextureType.Disc, WorldToScreenCoordinates(in junctionNode.Location), 0, WorldToScreenSize(junctionNode.Width), Color.DarkRed, false, false, false);
             }
         }
     }

@@ -70,7 +70,7 @@ namespace Orts.TrackEditor.WinForms.Controls
                 TrackData trackData = new TrackData(route.Path);
 
                 bool? useMetricUnits = (parent.Settings.MeasurementUnit == MeasurementUnit.Metric || parent.Settings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric);
-                    if (parent.Settings.MeasurementUnit == MeasurementUnit.Route)
+                if (parent.Settings.MeasurementUnit == MeasurementUnit.Route)
                     useMetricUnits = null;
 
                 await trackData.LoadTrackData(useMetricUnits).ConfigureAwait(false);

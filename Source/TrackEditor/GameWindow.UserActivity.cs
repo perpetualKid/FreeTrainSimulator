@@ -37,6 +37,7 @@ namespace Orts.TrackEditor
         {
             contentArea?.UpdateScaleAt(position.ToVector2(), System.Math.Sign(delta));
         }
+
         public void MouseDragging(Point position, Vector2 delta)
         {
             contentArea?.UpdatePosition(delta);

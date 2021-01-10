@@ -5,29 +5,36 @@ using System.Text;
 using System.Threading.Tasks;
 
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Input;
 
 using Orts.Common.Position;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
+using Orts.View.Track.Widgets;
 
 namespace Orts.View.Track
 {
     public class TrackContent
     {
 
-        public TrackDB TrackDB { get; }
+        private TrackDB trackDB;
+        private TrackSectionsFile trackSectionsFile;
+
+        internal List<TrackSegment> TrackSegments { get; } = new List<TrackSegment>();
+        internal List<TrackEndSegment> TrackEndNodes { get; } = new List<TrackEndSegment>();
+        internal List<JunctionNode> JunctionNodes { get; } = new List<JunctionNode>();
+
 
         public bool UseMetricUnits { get; }
 
-        public TrackSectionsFile TrackSectionsFile { get; }
         public Rectangle Bounds { get; private set; }
         private readonly RoadTrackDB roadTrackDB;
         private readonly SignalConfigurationFile signalConfig;
 
         public TrackContent(TrackDB trackDB, TrackSectionsFile trackSections, bool metricUnits)
         {
-            TrackDB = trackDB;
-            TrackSectionsFile = trackSections;
+            this.trackDB = trackDB;
+            trackSectionsFile = trackSections;
             UseMetricUnits = metricUnits;
         }
 
@@ -39,7 +46,8 @@ namespace Orts.View.Track
             };
 
             await Task.WhenAll(initializer).ConfigureAwait(false);
-
+            trackDB = null;
+            trackSectionsFile = null;
         }
 
         private async Task InitializeTrackSegments()
@@ -66,15 +74,21 @@ namespace Orts.View.Track
                 maxY = Math.Max(maxY, location.TileZ * WorldLocation.TileSize + location.Location.Z);
             }
 
-            foreach (TrackNode trackNode in TrackDB.TrackNodes)
+            foreach (TrackNode trackNode in trackDB.TrackNodes)
             {
                 switch (trackNode)
                 {
                     case TrackEndNode trackEndNode:
-                        TrackVectorNode connectedVectorNode = TrackDB.TrackNodes[trackEndNode.TrackPins[0].Link] as TrackVectorNode;
-                        UpdateBounds(trackEndNode.UiD.Location);
+                        TrackVectorNode connectedVectorNode = trackDB.TrackNodes[trackEndNode.TrackPins[0].Link] as TrackVectorNode;
+                        TrackEndNodes.Add(new TrackEndSegment(trackEndNode, connectedVectorNode, trackSectionsFile.TrackSections));
+                        UpdateBounds(in trackEndNode.UiD.Location);
                         break;
                     case TrackVectorNode trackVectorNode:
+                        foreach (TrackVectorSection trackVectorSection in trackVectorNode.TrackVectorSections)
+                        {
+                            UpdateBounds(in trackVectorSection.Location);
+                            TrackSegments.Add(new TrackSegment(trackVectorSection, trackSectionsFile.TrackSections));
+                        }
                         if (trackVectorNode.TrackVectorSections.Length > 1)
                         {
                             for (int i = 0; i < trackVectorNode.TrackVectorSections.Length - 1; i++)
@@ -88,11 +102,11 @@ namespace Orts.View.Track
                         else
                         {
                             TrackVectorSection section = trackVectorNode.TrackVectorSections[0];
+                            UpdateBounds(section.Location);
 
                             foreach (TrackPin pin in trackVectorNode.TrackPins)
                             {
-                                TrackNode connectedNode = TrackDB.TrackNodes[pin.Link];
-                                UpdateBounds(section.Location);
+                                TrackNode connectedNode = trackDB.TrackNodes[pin.Link];
                                 UpdateBounds(connectedNode.UiD.Location);
                             }
                         }
@@ -100,14 +114,14 @@ namespace Orts.View.Track
                     case TrackJunctionNode trackJunctionNode:
                         foreach (TrackPin pin in trackJunctionNode.TrackPins)
                         {
-                            if (TrackDB.TrackNodes[pin.Link] is TrackVectorNode vectorNode && vectorNode.TrackVectorSections.Length > 0)
+                            if (trackDB.TrackNodes[pin.Link] is TrackVectorNode vectorNode && vectorNode.TrackVectorSections.Length > 0)
                             {
                                 TrackVectorSection item = pin.Direction == Common.TrackDirection.Reverse ? vectorNode.TrackVectorSections.First() : vectorNode.TrackVectorSections.Last();
                                 UpdateBounds(item.Location);
-                                UpdateBounds(trackJunctionNode.UiD.Location);
-
                             }
                         }
+                        UpdateBounds(trackJunctionNode.UiD.Location);
+                        JunctionNodes.Add(new JunctionNode(trackJunctionNode));
                         break;
                 }
             }
