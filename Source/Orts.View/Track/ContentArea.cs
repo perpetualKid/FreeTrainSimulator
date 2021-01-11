@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using Orts.Common.Position;
+using Orts.Common.Xna;
 using Orts.View.DrawableComponents;
 using Orts.View.Track.Shapes;
 using Orts.View.Track.Widgets;
@@ -22,7 +23,8 @@ namespace Orts.View.Track
         public double Scale { get; private set; }
 
         private double offsetX, offsetY;
-        private PointD topLeftArea, bottomRightArea;
+        internal PointD TopLeftArea { get; private set; }
+        internal PointD BottomRightArea { get; private set; }
 
         public Point WindowSize { get; private set; }
 
@@ -61,16 +63,16 @@ namespace Orts.View.Track
             WindowOffset = offset;
             ScaleToFit();
             CenterView();
-            topLeftArea = ScreenToWorldCoordinates(Point.Zero);
-            bottomRightArea = ScreenToWorldCoordinates(WindowSize);
+            TopLeftArea = ScreenToWorldCoordinates(Point.Zero);
+            BottomRightArea = ScreenToWorldCoordinates(WindowSize);
         }
 
         public void UpdateSize(in Point windowSize)
         {
             WindowSize = windowSize;
-            CenterAround(new PointD((topLeftArea.X + bottomRightArea.X) / 2, (topLeftArea.Y + bottomRightArea.Y) / 2));
-            topLeftArea = ScreenToWorldCoordinates(Point.Zero);
-            bottomRightArea = ScreenToWorldCoordinates(WindowSize);
+            CenterAround(new PointD((TopLeftArea.X + BottomRightArea.X) / 2, (TopLeftArea.Y + BottomRightArea.Y) / 2));
+            TopLeftArea = ScreenToWorldCoordinates(Point.Zero);
+            BottomRightArea = ScreenToWorldCoordinates(WindowSize);
         }
 
         public void UpdateScaleAt(in Vector2 scaleAt, int steps)
@@ -82,8 +84,8 @@ namespace Orts.View.Track
             offsetY += (WindowSize.Y - WindowOffset.Y - scaleAt.Y) * (scale / Scale - 1.0) / scale;
             Scale = scale;
 
-            topLeftArea = ScreenToWorldCoordinates(Point.Zero);
-            bottomRightArea = ScreenToWorldCoordinates(WindowSize);
+            TopLeftArea = ScreenToWorldCoordinates(Point.Zero);
+            BottomRightArea = ScreenToWorldCoordinates(WindowSize);
         }
 
         public void UpdatePosition(in Vector2 delta)
@@ -91,8 +93,30 @@ namespace Orts.View.Track
             offsetX -= delta.X / Scale;
             offsetY += delta.Y / Scale;
 
-            topLeftArea = ScreenToWorldCoordinates(Point.Zero);
-            bottomRightArea = ScreenToWorldCoordinates(WindowSize);
+            TopLeftArea = ScreenToWorldCoordinates(Point.Zero);
+            BottomRightArea = ScreenToWorldCoordinates(WindowSize);
+
+            if (TopLeftArea.X > bounds.Right)
+            {
+                offsetX = bounds.Right;
+            }
+            else if (BottomRightArea.X < bounds.Left)
+            {
+                offsetX = bounds.Left - (BottomRightArea.X - TopLeftArea.X);
+            }
+
+            if (BottomRightArea.Y > bounds.Bottom)
+            {
+                offsetY = bounds.Bottom;
+            }
+            else if (TopLeftArea.Y < bounds.Top)
+            {
+                offsetY = bounds.Top - (TopLeftArea.Y - BottomRightArea.Y);
+            }
+
+            TopLeftArea = ScreenToWorldCoordinates(Point.Zero);
+            BottomRightArea = ScreenToWorldCoordinates(WindowSize);
+
         }
 
         private void CenterView()
@@ -164,14 +188,14 @@ namespace Orts.View.Track
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool InsideScreenArea(in PointD location)
         {
-            return location.X > topLeftArea.X && location.X < bottomRightArea.X && location.Y < topLeftArea.Y && location.Y > bottomRightArea.Y;
+            return location.X > TopLeftArea.X && location.X < BottomRightArea.X && location.Y < TopLeftArea.Y && location.Y > BottomRightArea.Y;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool InsideScreenArea(in PointD start, in PointD end)
         {
-            return !(start.X < topLeftArea.X && end.X < topLeftArea.X) || (start.X > topLeftArea.X && end.Y > topLeftArea.X) ||
-                (start.Y > topLeftArea.Y && end.Y > topLeftArea.Y) || (start.Y < bottomRightArea.Y && end.Y < bottomRightArea.Y);
+            return !(start.X < TopLeftArea.X && end.X < TopLeftArea.X) || (start.X > TopLeftArea.X && end.Y > TopLeftArea.X) ||
+                (start.Y > TopLeftArea.Y && end.Y > TopLeftArea.Y) || (start.Y < BottomRightArea.Y && end.Y < BottomRightArea.Y);
         }
 
         private void DrawTracks()

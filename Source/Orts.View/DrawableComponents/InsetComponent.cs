@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
+using System.Runtime.InteropServices;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -12,14 +9,12 @@ using Orts.View.Track;
 using Orts.View.Track.Shapes;
 using Orts.View.Track.Widgets;
 
-using SharpDX.WIC;
-
 namespace Orts.View.DrawableComponents
 {
     public class InsetComponent : DrawableGameComponent
     {
         private Vector2 position;
-        private Vector2 offset;
+        private Vector2 positionOffset;
         private ContentArea content;
         private double scale;
         private double offsetX, offsetY;
@@ -41,21 +36,21 @@ namespace Orts.View.DrawableComponents
             size = new Point(game.GraphicsDevice.DisplayMode.Width / 15, game.GraphicsDevice.DisplayMode.Height / 15);
             if (position.X < 0 || position.Y < 0)
             {
-                offset = position;
-                game.Window.ClientSizeChanged += Window_ClientSizeChanged;
-                Window_ClientSizeChanged(this, EventArgs.Empty);
+                positionOffset = position;
             }
-            DrawOrder = 99;
+            game.Window.ClientSizeChanged += Window_ClientSizeChanged;
+            Window_ClientSizeChanged(this, EventArgs.Empty);
         }
 
-        public void Enable(ContentArea content)
+        internal void Enable(ContentArea content)
         {
             this.content = content;
+            DrawOrder = content.DrawOrder + 10;
             Enabled = true;
             Visible = true;
         }
 
-        public void Disable()
+        internal void Disable()
         {
             Enabled = false;
             Visible = false;
@@ -65,7 +60,15 @@ namespace Orts.View.DrawableComponents
 
         private void Window_ClientSizeChanged(object sender, EventArgs e)
         {
-            position = new Vector2(offset.X > 0 ? offset.X : Game.Window.ClientBounds.Width + offset.X - size.X, offset.Y > 0 ? offset.Y : Game.Window.ClientBounds.Height + offset.Y - size.Y);
+            size = new Point(Game.Window.ClientBounds.Size.X / 15, Game.Window.ClientBounds.Size.Y / 15);
+            if (texture != null && (size.X != texture.Width || size.Y != texture.Width))
+            {
+                Texture2D current = texture;
+                texture = null;
+                current.Dispose();
+            }
+            if (positionOffset.X < 0 || positionOffset.Y < 0)
+                position = new Vector2(positionOffset.X > 0 ? positionOffset.X : Game.Window.ClientBounds.Width + positionOffset.X - size.X, positionOffset.Y > 0 ? positionOffset.Y : Game.Window.ClientBounds.Height + positionOffset.Y - size.Y);
         }
 
         public override void Update(GameTime gameTime)
@@ -80,7 +83,8 @@ namespace Orts.View.DrawableComponents
             if (texture == null)
                 return;
             spriteBatch.Begin();
-            spriteBatch.Draw(texture, position, null, Color.White, 0, Vector2.Zero, Vector2.One, SpriteEffects.None, 0);
+            spriteBatch.Draw(texture, position, null, Color.White);
+            DrawClippingMarker();
             spriteBatch.End();
             base.Draw(gameTime);
         }
@@ -140,8 +144,24 @@ namespace Orts.View.DrawableComponents
             scale = Math.Min(xScale, yScale);
             offsetX = (content.TrackContent.Bounds.Left + content.TrackContent.Bounds.Right) / 2 - size.X / 2 / scale;
             offsetY = (content.TrackContent.Bounds.Top + content.TrackContent.Bounds.Bottom) / 2 - size.Y / 2 / scale;
-
         }
 
+        private void DrawClippingMarker()
+        {
+            double width = content.BottomRightArea.X - content.TopLeftArea.X;
+            double height = content.TopLeftArea.Y - content.BottomRightArea.Y;
+            float screenWidth = WorldToScreenSize(width);
+            float screenHeight = WorldToScreenSize(height);
+            //if (screenHeight > size.Y * 0.95 || screenWidth > size.X * 0.95)
+            //    return;
+            Vector2 clippingPosition = WorldToScreenCoordinates(content.TopLeftArea) + position;
+            BasicShapes.DrawLine(1f, Color.Red, clippingPosition, screenWidth, 0, spriteBatch);
+            BasicShapes.DrawLine(1f, Color.Red, clippingPosition + new Vector2(0, screenHeight), screenWidth, 0, spriteBatch);
+            BasicShapes.DrawLine(1f, Color.Red, clippingPosition, screenHeight, MathHelper.ToRadians(90), spriteBatch);
+            BasicShapes.DrawLine(1f, Color.Red, clippingPosition + new Vector2(screenWidth, 0), screenHeight, MathHelper.ToRadians(90), spriteBatch);
+            if (screenWidth < 10 || screenHeight < 10)
+                BasicShapes.DrawTexture(BasicTextureType.Circle, clippingPosition + new Vector2(screenWidth, screenHeight) / 2, 0, -0.5f, Color.Red, false, false, false, spriteBatch);
+
+        }
     }
 }

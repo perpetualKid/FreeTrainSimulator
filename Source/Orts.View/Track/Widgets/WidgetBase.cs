@@ -1,5 +1,7 @@
 ﻿using System.Numerics;
 
+using Microsoft.Xna.Framework;
+
 using Orts.Common.Position;
 
 namespace Orts.View.Track.Widgets
@@ -19,6 +21,17 @@ namespace Orts.View.Track.Widgets
         {
             return new PointD(location.TileX * WorldLocation.TileSize + location.Location.X, location.TileZ * WorldLocation.TileSize + location.Location.Z);
         }
+
+        public static implicit operator Point(PointD point)
+        {
+            return new Point((int)point.X, (int)point.Y);
+        }
+
+        public static implicit operator PointD(Point point)
+        {
+            return new PointD(point.X, point.Y);
+        }
+
     }
 
     internal class WidgetBase

@@ -94,14 +94,14 @@ namespace Orts.View.DrawableComponents
             }
         }
 
-        public void Enable(ContentArea content)
+        internal void Enable(ContentArea content)
         {
             this.content = content;
             Enabled = true;
             Visible = true;
         }
 
-        public void Disable()
+        internal void Disable()
         {
             Enabled = false;
             Visible = false;
