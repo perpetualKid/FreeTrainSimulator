@@ -61,6 +61,7 @@ namespace Orts.View.DrawableComponents
         private void Window_ClientSizeChanged(object sender, EventArgs e)
         {
             size = new Point(Game.Window.ClientBounds.Size.X / 15, Game.Window.ClientBounds.Size.Y / 15);
+            Enabled = Visible = size.X > 10 && size.Y > 10 && content != null;
             if (texture != null && (size.X != texture.Width || size.Y != texture.Width))
             {
                 Texture2D current = texture;
@@ -95,6 +96,7 @@ namespace Orts.View.DrawableComponents
             {
                 spriteBatch?.Dispose();
                 texture?.Dispose();
+                Game.Window.ClientSizeChanged -= Window_ClientSizeChanged;
             }
             base.Dispose(disposing);
         }

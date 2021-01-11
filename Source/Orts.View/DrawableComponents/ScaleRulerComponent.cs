@@ -17,7 +17,7 @@ namespace Orts.View.DrawableComponents
     public class ScaleRulerComponent : DrawableGameComponent
     {
         private Vector2 position;
-        private Vector2 offset;
+        private Vector2 positionOffset;
         private ContentArea content;
         private double scale;
 
@@ -86,12 +86,9 @@ namespace Orts.View.DrawableComponents
             this.color = color;
             this.position = position;
             this.font = font;
-            if (position.X < 0 || position.Y < 0)
-            {
-                offset = position;
-                game.Window.ClientSizeChanged += Window_ClientSizeChanged;
-                Window_ClientSizeChanged(this, EventArgs.Empty);
-            }
+            positionOffset = position;
+            game.Window.ClientSizeChanged += Window_ClientSizeChanged;
+            Window_ClientSizeChanged(this, EventArgs.Empty);
         }
 
         internal void Enable(ContentArea content)
@@ -111,7 +108,8 @@ namespace Orts.View.DrawableComponents
 
         private void Window_ClientSizeChanged(object sender, EventArgs e)
         {
-            position = new Vector2(offset.X > 0 ? offset.X : Game.Window.ClientBounds.Width + offset.X, offset.Y > 0 ? offset.Y : Game.Window.ClientBounds.Height + offset.Y);
+            if (null != texture && (positionOffset.X < 0 || positionOffset.Y < 0))
+                position = new Vector2(positionOffset.X > 0 ? positionOffset.X : Game.Window.ClientBounds.Width + positionOffset.X - texture.Width, positionOffset.Y > 0 ? positionOffset.Y : Game.Window.ClientBounds.Height + positionOffset.Y - texture.Height);
         }
 
         public override void Update(GameTime gameTime)
@@ -126,9 +124,12 @@ namespace Orts.View.DrawableComponents
             Point windowSize = content.WindowSize;
 
             //max size (length) of the ruler. if less than 50px available, don't draw
-            int maxLength = Math.Min(200, windowSize.X - (int)position.X * 2);
+            int maxLength = Math.Min(200, windowSize.X - Math.Abs((int)positionOffset.X * 2));
             if (maxLength < 50)
+            {
+                texture = null;
                 return;
+            }
 
             MetricRuler metricRuler = MetricRuler.m100_000;
             ImperialRuler imperialRuler = ImperialRuler.i50_000;
@@ -145,6 +146,7 @@ namespace Orts.View.DrawableComponents
                 {
                     texture = DrawRulerTexture(rulerLength, MetricRuler.m0_0.GetDescription(), metricRuler.GetDescription());
                     rulerTextures.Add(key, texture);
+                    Window_ClientSizeChanged(this, EventArgs.Empty);
                 }
             }
             else
@@ -161,6 +163,7 @@ namespace Orts.View.DrawableComponents
                     rulerTextures.Add(key, texture);
                 }
             }
+            Window_ClientSizeChanged(this, EventArgs.Empty);
 
             base.Update(gameTime);
         }
@@ -189,6 +192,7 @@ namespace Orts.View.DrawableComponents
                 rulerPen.Dispose();
                 texture?.Dispose();
                 spriteBatch?.Dispose();
+                Game.Window.ClientSizeChanged -= Window_ClientSizeChanged;
             }
             base.Dispose(disposing);
         }

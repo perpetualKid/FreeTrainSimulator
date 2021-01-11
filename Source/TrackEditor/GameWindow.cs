@@ -246,9 +246,9 @@ namespace Orts.TrackEditor
             // Create a new SpriteBatch, which can be used to draw textures.
             BasicShapes.LoadContent(GraphicsDevice);
             DigitalClockComponent clock = new DigitalClockComponent(this, TimeType.RealWorldLocalTime,
-                new System.Drawing.Font("Segoe UI", 14, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel), Color.White, new Vector2(200, -100), true);
+                new System.Drawing.Font("Segoe UI", 14, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel), Color.White, new Vector2(-200, -100), true);
             Components.Add(clock);
-            ScaleRulerComponent scaleRuler = new ScaleRulerComponent(this, new System.Drawing.Font(System.Drawing.FontFamily.GenericSansSerif, 14, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel), Color.Black, new Vector2(20, -55));
+            ScaleRulerComponent scaleRuler = new ScaleRulerComponent(this, new System.Drawing.Font(System.Drawing.FontFamily.GenericSansSerif, 14, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel), Color.Black, new Vector2(-20, -55));
             Components.Add(scaleRuler);
             Components.Add(new InsetComponent(this, Color.Black, new Vector2(-10, 30)));
         }

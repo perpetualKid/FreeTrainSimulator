@@ -27,7 +27,7 @@ namespace Orts.View.DrawableComponents
     public class DigitalClockComponent : QuickRepeatableDrawableTextComponent
     {
         private Vector2 position;
-        private Vector2 offset;
+        private Vector2 positionOffset;
 
         private readonly TimeType timeType;
         private readonly SpriteBatch spriteBatch;
@@ -49,18 +49,17 @@ namespace Orts.View.DrawableComponents
             }
             if (position.X < 0 || position.Y < 0)
             {
-                offset = position;
-#pragma warning disable CA1062 // Validate arguments of public methods
-                game.Window.ClientSizeChanged += Window_ClientSizeChanged;
-#pragma warning restore CA1062 // Validate arguments of public methods
-                Window_ClientSizeChanged(this, EventArgs.Empty);
+                positionOffset = position;
             }
             InitializeSize(TimeSpan.Zero.ToString(formatMask, CultureInfo.DefaultThreadCurrentUICulture));
+            game.Window.ClientSizeChanged += Window_ClientSizeChanged;
+            Window_ClientSizeChanged(this, EventArgs.Empty);
         }
 
         private void Window_ClientSizeChanged(object sender, EventArgs e)
         {
-            position = new Vector2(offset.X > 0 ? offset.X : Game.Window.ClientBounds.Width + offset.X, offset.Y > 0 ? offset.Y : Game.Window.ClientBounds.Height + offset.Y);
+            if (null != texture && (positionOffset.X < 0 || positionOffset.Y < 0))
+                position = new Vector2(positionOffset.X > 0 ? positionOffset.X : Game.Window.ClientBounds.Width + positionOffset.X - texture.Width, positionOffset.Y > 0 ? positionOffset.Y : Game.Window.ClientBounds.Height + positionOffset.Y - texture.Height);
         }
 
         public string FormatMask
@@ -106,7 +105,11 @@ namespace Orts.View.DrawableComponents
 
         protected override void Dispose(bool disposing)
         {
-            Game.Window.ClientSizeChanged -= Window_ClientSizeChanged;
+            if (disposing)
+            {
+                spriteBatch?.Dispose();
+                Game.Window.ClientSizeChanged -= Window_ClientSizeChanged;
+            }
             base.Dispose(disposing);
         }
     }
