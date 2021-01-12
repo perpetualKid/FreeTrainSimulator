@@ -8,24 +8,23 @@ using Microsoft.Xna.Framework.Graphics;
 
 using Orts.Common;
 using Orts.View.Track;
+using Orts.View.Xna;
 
 namespace Orts.View.DrawableComponents
 {
     /// <summary>
-    /// 
+    /// Draw a ruler on screen for current scale.
+    /// Ruler can be metric or imperial
     /// </summary>
-    public class ScaleRulerComponent : DrawableGameComponent
+    public class ScaleRulerComponent : TextureContentComponent
     {
-        private Vector2 position;
-        private Vector2 positionOffset;
         private ContentArea content;
         private double scale;
 
-        private readonly SpriteBatch spriteBatch;
-        private Color color;
-        private Texture2D texture;
         private readonly System.Drawing.Font font;
 
+        // const factors between metric and imperial system
+        // values per index relate to MetricRuler[index]
         private static readonly float[] imperialRulerData = new float[] { 0f, 0.9144f, 1.8288f, 4.572f, 9.144f, 18.288f, 45.72f, 91.44f, 182.88f, 356.76f, 731.52f, 1609.344f, 3218.688f, 8046.72f, 16093.44f, 32186.88f, 80467.2f };
         private const int markerLength = 3;
 
@@ -77,18 +76,12 @@ namespace Orts.View.DrawableComponents
         }
 
         public ScaleRulerComponent(Game game, System.Drawing.Font font, Color color, Vector2 position) :
-            base(game)
+            base(game, color, position)
         {
             Enabled = false;
             Visible = false;
 
-            spriteBatch = new SpriteBatch(game?.GraphicsDevice);
-            this.color = color;
-            this.position = position;
             this.font = font;
-            positionOffset = position;
-            game.Window.ClientSizeChanged += Window_ClientSizeChanged;
-            Window_ClientSizeChanged(this, EventArgs.Empty);
         }
 
         internal void Enable(ContentArea content)
@@ -104,12 +97,6 @@ namespace Orts.View.DrawableComponents
             Visible = false;
             content = null;
             texture = null;
-        }
-
-        private void Window_ClientSizeChanged(object sender, EventArgs e)
-        {
-            if (null != texture && (positionOffset.X < 0 || positionOffset.Y < 0))
-                position = new Vector2(positionOffset.X > 0 ? positionOffset.X : Game.Window.ClientBounds.Width + positionOffset.X - texture.Width, positionOffset.Y > 0 ? positionOffset.Y : Game.Window.ClientBounds.Height + positionOffset.Y - texture.Height);
         }
 
         public override void Update(GameTime gameTime)
@@ -146,7 +133,6 @@ namespace Orts.View.DrawableComponents
                 {
                     texture = DrawRulerTexture(rulerLength, MetricRuler.m0_0.GetDescription(), metricRuler.GetDescription());
                     rulerTextures.Add(key, texture);
-                    Window_ClientSizeChanged(this, EventArgs.Empty);
                 }
             }
             else
@@ -163,8 +149,8 @@ namespace Orts.View.DrawableComponents
                     rulerTextures.Add(key, texture);
                 }
             }
-            Window_ClientSizeChanged(this, EventArgs.Empty);
 
+            Window_ClientSizeChanged(this, EventArgs.Empty);
             base.Update(gameTime);
         }
 
@@ -190,9 +176,6 @@ namespace Orts.View.DrawableComponents
                 rulerTextures.Clear();
                 fontBrush.Dispose();
                 rulerPen.Dispose();
-                texture?.Dispose();
-                spriteBatch?.Dispose();
-                Game.Window.ClientSizeChanged -= Window_ClientSizeChanged;
             }
             base.Dispose(disposing);
         }

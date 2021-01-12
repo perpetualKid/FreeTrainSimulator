@@ -5,6 +5,11 @@ using Microsoft.Xna.Framework;
 
 namespace Orts.View.Xna
 {
+    /// <summary>
+    /// Abstract base class to host (updateable) resources which are expensive to create and 
+    /// want to be cached for a certain amount of time, but also get released if no longer used
+    /// </summary>
+    /// <typeparam name="T">The type of resource to be managed</typeparam>
     public abstract class ResourceGameComponent<T> : GameComponent
     {
         private TimeSpan sweepInterval = TimeSpan.FromSeconds(10);
@@ -49,6 +54,7 @@ namespace Orts.View.Xna
 
         protected override void Dispose(bool disposing)
         {
+            Enabled = false;
             if (disposing && disposableT)
             {
                 foreach (T value in currentResources.Values)

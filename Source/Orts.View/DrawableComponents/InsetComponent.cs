@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -8,37 +7,24 @@ using Microsoft.Xna.Framework.Graphics;
 using Orts.View.Track;
 using Orts.View.Track.Shapes;
 using Orts.View.Track.Widgets;
+using Orts.View.Xna;
 
 namespace Orts.View.DrawableComponents
 {
-    public class InsetComponent : DrawableGameComponent
+    public class InsetComponent : TextureContentComponent
     {
-        private Vector2 position;
-        private Vector2 positionOffset;
         private ContentArea content;
         private double scale;
         private double offsetX, offsetY;
         private Point size;
 
-        private readonly SpriteBatch spriteBatch;
-        private Color color;
-        private Texture2D texture;
-
         public InsetComponent(Game game, Color color, Vector2 position) :
-            base(game)
+            base(game, color, position)
         {
             Enabled = false;
             Visible = false;
 
-            spriteBatch = new SpriteBatch(game?.GraphicsDevice);
-            this.color = color;
-            this.position = position;
             size = new Point(game.GraphicsDevice.DisplayMode.Width / 15, game.GraphicsDevice.DisplayMode.Height / 15);
-            if (position.X < 0 || position.Y < 0)
-            {
-                positionOffset = position;
-            }
-            game.Window.ClientSizeChanged += Window_ClientSizeChanged;
             Window_ClientSizeChanged(this, EventArgs.Empty);
         }
 
@@ -58,7 +44,7 @@ namespace Orts.View.DrawableComponents
             texture = null;
         }
 
-        private void Window_ClientSizeChanged(object sender, EventArgs e)
+        private protected override void Window_ClientSizeChanged(object sender, EventArgs e)
         {
             size = new Point(Game.Window.ClientBounds.Size.X / 15, Game.Window.ClientBounds.Size.Y / 15);
             Enabled = Visible = size.X > 10 && size.Y > 10 && content != null;
@@ -88,17 +74,6 @@ namespace Orts.View.DrawableComponents
             DrawClippingMarker();
             spriteBatch.End();
             base.Draw(gameTime);
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                spriteBatch?.Dispose();
-                texture?.Dispose();
-                Game.Window.ClientSizeChanged -= Window_ClientSizeChanged;
-            }
-            base.Dispose(disposing);
         }
 
         private Texture2D DrawTrackInset()

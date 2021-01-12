@@ -2,6 +2,7 @@
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace Orts.View.Xna
@@ -11,15 +12,14 @@ namespace Orts.View.Xna
     /// The texture is kept and reused when updating the text
     /// This class should be used where text updates infrequently
     /// </summary>
-    public abstract class DrawableTextComponent : Microsoft.Xna.Framework.DrawableGameComponent
+    public abstract class DrawableTextComponent : TextureContentComponent
     {
-        private protected Texture2D texture;
         private protected Font font;
 
-        private protected readonly Brush whiteBrush = new SolidBrush(Color.White);
+        private protected readonly Brush whiteBrush = new SolidBrush(System.Drawing.Color.White);
 
-        public DrawableTextComponent(Microsoft.Xna.Framework.Game game, Font font) :
-            base(game)
+        public DrawableTextComponent(Microsoft.Xna.Framework.Game game, Font font, Microsoft.Xna.Framework.Color color, Vector2 position) :
+            base(game, color, position)
         {
             this.font = font;
         }
@@ -55,10 +55,10 @@ namespace Orts.View.Xna
                     g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.SingleBitPerPixelGridFit;
 
                     // Draw the text to the clean bitmap
-                    g.Clear(Color.Transparent);
+                    g.Clear(System.Drawing.Color.Transparent);
                     g.DrawString(text, font, whiteBrush, PointF.Empty);
 
-                    BitmapData bmd = bmpSurface.LockBits(new Rectangle(0, 0, bmpSurface.Width, bmpSurface.Height), ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
+                    BitmapData bmd = bmpSurface.LockBits(new System.Drawing.Rectangle(0, 0, bmpSurface.Width, bmpSurface.Height), ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
                     int bufferSize = bmd.Height * bmd.Stride;
                     //create data buffer 
                     byte[] bytes = new byte[bufferSize];
@@ -77,7 +77,6 @@ namespace Orts.View.Xna
         {
             if (disposing)
             {
-                texture?.Dispose();
                 whiteBrush?.Dispose();
             }
             base.Dispose(disposing);
@@ -95,8 +94,8 @@ namespace Orts.View.Xna
         private protected Bitmap bmpSurface;
         private protected Graphics g;
 
-        public QuickRepeatableDrawableTextComponent(Microsoft.Xna.Framework.Game game, Font font) :
-            base(game, font)
+        public QuickRepeatableDrawableTextComponent(Microsoft.Xna.Framework.Game game, Font font, Microsoft.Xna.Framework.Color color, Vector2 position) :
+            base(game, font, color, position)
         {
 
         }
@@ -119,10 +118,10 @@ namespace Orts.View.Xna
         protected override void DrawString(string text)
         {
             // Draw the text to the clean bitmap
-            g.Clear(Color.Transparent);
+            g.Clear(System.Drawing.Color.Transparent);
             g.DrawString(text, font, whiteBrush, PointF.Empty);
 
-            BitmapData bmd = bmpSurface.LockBits(new Rectangle(0, 0, bmpSurface.Width, bmpSurface.Height), ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
+            BitmapData bmd = bmpSurface.LockBits(new System.Drawing.Rectangle(0, 0, bmpSurface.Width, bmpSurface.Height), ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
             int bufferSize = bmd.Height * bmd.Stride;
             //create data buffer 
             byte[] bytes = new byte[bufferSize];
