@@ -472,7 +472,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             {
                 if (BrakeLine1PressurePSI < VacResPressurePSIA)
                 {
-                    Trace.TraceInformation("Loop VacRes - Carid {0}", Car.CarID);
                     float dp = (float)elapsedClockSeconds * MaxApplicationRatePSIpS * (NumBrakeCylinders * BrakeCylVolM3) / VacResVolM3;
                     float vr = VacResVolM3 / BrakePipeVolumeM3;
                     if (VacResPressurePSIA - dp < BrakeLine1PressurePSI + dp * vr)
