@@ -4,6 +4,8 @@ using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
+using Orts.View.Track;
+
 namespace Orts.View.Xna
 {
     /// <summary>
@@ -14,7 +16,7 @@ namespace Orts.View.Xna
     public abstract class TextureContentComponent: DrawableGameComponent
     {
         private protected Texture2D texture;
-
+        private protected ContentArea content;
         private protected Vector2 position;
         private protected Vector2 positionOffset;
 
@@ -38,6 +40,21 @@ namespace Orts.View.Xna
         {
             if (null != texture && (positionOffset.X < 0 || positionOffset.Y < 0))
                 position = new Vector2(positionOffset.X > 0 ? positionOffset.X : Game.Window.ClientBounds.Width + positionOffset.X - texture.Width, positionOffset.Y > 0 ? positionOffset.Y : Game.Window.ClientBounds.Height + positionOffset.Y - texture.Height);
+        }
+
+        internal protected virtual void Enable(ContentArea content)
+        {
+            this.content = content;
+            Enabled = true;
+            Visible = true;
+        }
+
+        internal protected virtual void Disable()
+        {
+            Enabled = false;
+            Visible = false;
+            content = null;
+            texture = null;
         }
 
         protected override void Dispose(bool disposing)

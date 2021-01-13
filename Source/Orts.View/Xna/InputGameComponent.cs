@@ -84,6 +84,9 @@ namespace Orts.View.Xna
             inputCapture = game as IInputCapture;
         }
 
+        public ref readonly KeyboardState KeyboardState => ref currentKeyboardState;
+        public ref readonly MouseState MouseState => ref currentMouseState;
+
         public void AddKeyEvent(Keys key, KeyModifiers modifiers, KeyEventType keyEventType, Action action)
         {
             int lookupCode;

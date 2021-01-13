@@ -6,13 +6,29 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using Orts.Common.Position;
-using Orts.Common.Xna;
 using Orts.View.DrawableComponents;
 using Orts.View.Track.Shapes;
 using Orts.View.Track.Widgets;
+using Orts.View.Xna;
 
 namespace Orts.View.Track
 {
+#pragma warning disable CA1815 // Override equals and operator equals on value types
+    public readonly struct ScreenDelta
+#pragma warning restore CA1815 // Override equals and operator equals on value types
+    {
+#pragma warning disable CA1051 // Do not declare visible instance fields
+        public readonly int TopOffset;
+        public readonly int BottomOffset;
+#pragma warning restore CA1051 // Do not declare visible instance fields
+
+        public ScreenDelta(int top, int bottom)
+        {
+            TopOffset = top;
+            BottomOffset = bottom;
+        }
+    }
+
     public class ContentArea : DrawableGameComponent
     {
         private Rectangle bounds;
@@ -28,7 +44,7 @@ namespace Orts.View.Track
 
         public Point WindowSize { get; private set; }
 
-        public Point WindowOffset { get; private set; }
+        private ScreenDelta screenDelta;
 
         private readonly SpriteBatch spriteBatch;
 
@@ -38,8 +54,10 @@ namespace Orts.View.Track
             TrackContent = trackContent ?? throw new ArgumentNullException(nameof(trackContent));
             bounds = trackContent.Bounds;
             spriteBatch = new SpriteBatch(GraphicsDevice);
-            Game.Components.OfType<ScaleRulerComponent>().FirstOrDefault()?.Enable(this);
-            Game.Components.OfType<InsetComponent>().FirstOrDefault()?.Enable(this);
+            foreach (TextureContentComponent component in Game.Components.OfType<TextureContentComponent>())
+            {
+                component.Enable(this);
+            }
         }
 
         protected override void OnEnabledChanged(object sender, EventArgs args)
@@ -57,10 +75,10 @@ namespace Orts.View.Track
             base.OnEnabledChanged(sender, args);
         }
 
-        public void ResetSize(in Point windowSize, in Point offset)
+        public void ResetSize(in Point windowSize, in ScreenDelta offset)
         {
             WindowSize = windowSize;
-            WindowOffset = offset;
+            screenDelta = offset;
             ScaleToFit();
             CenterView();
             TopLeftArea = ScreenToWorldCoordinates(Point.Zero);
@@ -81,7 +99,7 @@ namespace Orts.View.Track
             if (scale < maxScale || scale > 200)
                 return;
             offsetX += scaleAt.X * (scale / Scale - 1.0) / scale;
-            offsetY += (WindowSize.Y - WindowOffset.Y - scaleAt.Y) * (scale / Scale - 1.0) / scale;
+            offsetY += (WindowSize.Y - screenDelta.BottomOffset - scaleAt.Y) * (scale / Scale - 1.0) / scale;
             Scale = scale;
 
             TopLeftArea = ScreenToWorldCoordinates(Point.Zero);
@@ -122,19 +140,19 @@ namespace Orts.View.Track
         private void CenterView()
         {
             offsetX = (bounds.Left + bounds.Right) / 2 - WindowSize.X / 2 / Scale;
-            offsetY = (bounds.Top + bounds.Bottom) / 2 - (WindowSize.Y - WindowOffset.X) / 2 / Scale;
+            offsetY = (bounds.Top + bounds.Bottom) / 2 - (WindowSize.Y - screenDelta.TopOffset) / 2 / Scale;
         }
 
         private void CenterAround(in PointD centerPoint)
         {
             offsetX = centerPoint.X - WindowSize.X / 2 / Scale;
-            offsetY = centerPoint.Y - (WindowSize.Y - WindowOffset.X) / 2 / Scale;
+            offsetY = centerPoint.Y - (WindowSize.Y - screenDelta.TopOffset) / 2 / Scale;
         }
 
         private void ScaleToFit()
         {
             double xScale = (double)WindowSize.X / bounds.Width;
-            double yScale = (double)(WindowSize.Y - WindowOffset.X - WindowOffset.Y) / bounds.Height;
+            double yScale = (double)(WindowSize.Y - screenDelta.TopOffset - screenDelta.BottomOffset) / bounds.Height;
             Scale = Math.Min(xScale, yScale);
             maxScale = Scale * 0.75;
         }
@@ -163,24 +181,24 @@ namespace Orts.View.Track
             double x = worldLocation.TileX * WorldLocation.TileSize + worldLocation.Location.X;
             double y = worldLocation.TileZ * WorldLocation.TileSize + worldLocation.Location.Z;
             return new Vector2((float)(Scale * (x - offsetX)),
-                               (float)(WindowSize.Y - WindowOffset.Y - Scale * (y - offsetY)));
+                               (float)(WindowSize.Y - screenDelta.BottomOffset - Scale * (y - offsetY)));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private PointD ScreenToWorldCoordinates(in Point screenLocation)
+        internal PointD ScreenToWorldCoordinates(in Point screenLocation)
         {
             return new PointD(offsetX + screenLocation.X / Scale, offsetY + (WindowSize.Y - screenLocation.Y) / Scale);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private Vector2 WorldToScreenCoordinates(in PointD location)
+        internal Vector2 WorldToScreenCoordinates(in PointD location)
         {
             return new Vector2((float)(Scale * (location.X - offsetX)),
-                               (float)(WindowSize.Y - WindowOffset.Y - Scale * (location.Y - offsetY)));
+                               (float)(WindowSize.Y - screenDelta.BottomOffset - Scale * (location.Y - offsetY)));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private float WorldToScreenSize(double worldSize, int minScreenSize = 1)
+        internal float WorldToScreenSize(double worldSize, int minScreenSize = 1)
         {
             return Math.Max((float)Math.Ceiling(worldSize * Scale), minScreenSize);
         }

@@ -13,7 +13,6 @@ namespace Orts.View.DrawableComponents
 {
     public class InsetComponent : TextureContentComponent
     {
-        private ContentArea content;
         private double scale;
         private double offsetX, offsetY;
         private Point size;
@@ -28,20 +27,10 @@ namespace Orts.View.DrawableComponents
             Window_ClientSizeChanged(this, EventArgs.Empty);
         }
 
-        internal void Enable(ContentArea content)
+        internal protected override void Enable(ContentArea content)
         {
-            this.content = content;
             DrawOrder = content.DrawOrder + 10;
-            Enabled = true;
-            Visible = true;
-        }
-
-        internal void Disable()
-        {
-            Enabled = false;
-            Visible = false;
-            content = null;
-            texture = null;
+            base.Enable(content);
         }
 
         private protected override void Window_ClientSizeChanged(object sender, EventArgs e)

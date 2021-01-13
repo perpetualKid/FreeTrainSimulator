@@ -18,7 +18,6 @@ namespace Orts.View.DrawableComponents
     /// </summary>
     public class ScaleRulerComponent : TextureContentComponent
     {
-        private ContentArea content;
         private double scale;
 
         private readonly System.Drawing.Font font;
@@ -82,21 +81,6 @@ namespace Orts.View.DrawableComponents
             Visible = false;
 
             this.font = font;
-        }
-
-        internal void Enable(ContentArea content)
-        {
-            this.content = content;
-            Enabled = true;
-            Visible = true;
-        }
-
-        internal void Disable()
-        {
-            Enabled = false;
-            Visible = false;
-            content = null;
-            texture = null;
         }
 
         public override void Update(GameTime gameTime)
@@ -184,7 +168,7 @@ namespace Orts.View.DrawableComponents
         {
             const int overSize = 24;
             const int padding = overSize / 2;
-            using (System.Drawing.Bitmap bmpSurface = new System.Drawing.Bitmap(rulerLength + overSize, (int)font.GetHeight() + markerLength * 2))
+            using (System.Drawing.Bitmap bmpSurface = new System.Drawing.Bitmap(rulerLength + overSize, (int)font.GetHeight() + markerLength * 3))
             {
                 using (System.Drawing.Graphics g = System.Drawing.Graphics.FromImage(bmpSurface))
                 {

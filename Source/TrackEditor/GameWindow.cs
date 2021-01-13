@@ -43,7 +43,7 @@ namespace Orts.TrackEditor
         private Point windowPosition;
         private System.Drawing.Size windowSize;
         private Point clientRectangleOffset;
-        private Point contentAreaOffset;
+        private ScreenDelta contentAreaOffset;
         private Vector2 centerPoint;
 
         private readonly Action onClientSizeChanged;
@@ -116,7 +116,7 @@ namespace Orts.TrackEditor
             windowForm.LocationChanged += WindowForm_LocationChanged;
             windowForm.ClientSizeChanged += WindowForm_ClientSizeChanged;
 
-            contentAreaOffset = new Point(mainmenu.Bounds.Height, statusbar.Bounds.Height);
+            contentAreaOffset = new ScreenDelta(mainmenu.Bounds.Height, statusbar.Bounds.Height);
 
             // using reflection to be able to trigger ClientSizeChanged event manually as this is not 
             // reliably raised otherwise with the resize functionality below in SetScreenMode
@@ -251,6 +251,7 @@ namespace Orts.TrackEditor
             ScaleRulerComponent scaleRuler = new ScaleRulerComponent(this, new System.Drawing.Font(System.Drawing.FontFamily.GenericSansSerif, 14, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel), Color.Black, new Vector2(-20, -55));
             Components.Add(scaleRuler);
             Components.Add(new InsetComponent(this, Color.Black, new Vector2(-10, 30)));
+            Components.Add(new WorldCoordinatesComponent(this, new System.Drawing.Font(System.Drawing.FontFamily.GenericSansSerif, 20, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel), Color.Blue, new Vector2(40, 40)));
         }
 
         protected override void Update(GameTime gameTime)
