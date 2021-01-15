@@ -1015,7 +1015,27 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 var car = train.Cars[i];
                 if (car.BrakeSystem is VacuumSinglePipe)
                 {
-                    statusHeader.Add(string.Format("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}\t{11}\t{12}",
+                    if ((Viewer.PlayerLocomotive as MSTSLocomotive).NonAutoBrakePresent) // Straight brake system
+                    {
+                        statusHeader.Add(string.Format("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}\t{11}\t{12}",
+                        Viewer.Catalog.GetString("Car"),
+                        Viewer.Catalog.GetString("Type"),
+                        Viewer.Catalog.GetString("BrkCyl"),
+                        Viewer.Catalog.GetString("BrkPipe"),
+                        Viewer.Catalog.GetString(""),
+                        Viewer.Catalog.GetString(""),
+                        Viewer.Catalog.GetString(""),
+                        Viewer.Catalog.GetString(""),
+                        Viewer.Catalog.GetString(""),
+                        Viewer.Catalog.GetString(""),
+                        Viewer.Catalog.GetString("Handbrk"),
+                        Viewer.Catalog.GetString("Conn"),
+                        Viewer.Catalog.GetString("AnglCock")
+                                                                                                    ));
+                    }
+                    else // automatic vacuum brake system
+                    {
+                        statusHeader.Add(string.Format("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}\t{11}\t{12}",
                         //0
                         Viewer.Catalog.GetString("Car"),
                         //1
@@ -1046,6 +1066,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                         //Add new header data here, if addining additional column.
 
                         ));
+                    }
                 }
                 else if (car.BrakeSystem is ManualBraking)
                 {
