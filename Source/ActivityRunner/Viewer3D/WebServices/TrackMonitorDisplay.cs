@@ -226,7 +226,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             });
 
             // Always get train details to pass on to TrackMonitor.
-            TrainInfo thisInfo = viewer.PlayerTrain.GetTrainInfo();
+            Orts.Simulation.Physics.TrainInfo thisInfo = viewer.PlayerTrain.GetTrainInfo();
             Color speedColor = SpeedColor(thisInfo.Speed, thisInfo.AllowedSpeed);
             Color trackColor = TrackColor(thisInfo.Speed, thisInfo.AllowedSpeed);
 
@@ -429,7 +429,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
         /// Draw train position and upcoming track items on the ListLabel list.
         /// </summary>
         /// <param name="labels">The list of labels to modify.</param>
-        private static void DrawMPModeInfo(List<ListLabel> labels, TrainInfo trainInfo, bool useMetric)
+        private static void DrawMPModeInfo(List<ListLabel> labels, Orts.Simulation.Physics.TrainInfo trainInfo, bool useMetric)
         {
             int startObjectArea = AdditionalInfoHeight;
             int endObjectArea = MonitorHeight - (MonitorHeight - (int)Math.Ceiling(MonitorHeight / MonitorScale)) - AdditionalInfoHeight;
@@ -492,7 +492,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
         /// Draw train position and upcoming track items on the ListLabel list.
         /// </summary>
         /// <param name="labels">The list of labels to modify.</param>
-        private static void DrawAutoModeInfo(List<ListLabel> labels, TrainInfo trainInfo, bool useMetric)
+        private static void DrawAutoModeInfo(List<ListLabel> labels, Orts.Simulation.Physics.TrainInfo trainInfo, bool useMetric)
         {
             int startObjectArea = AdditionalInfoHeight;
             int endObjectArea = MonitorHeight - (MonitorHeight - (int)Math.Ceiling(MonitorHeight / MonitorScale)) - AdditionalInfoHeight - Positions.Train[4];
@@ -537,7 +537,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
         /// Draw train position and upcoming track items on the ListLabel list.
         /// </summary>
         /// <param name="labels">The list of labels to modify.</param>
-        private static void DrawManualModeInfo(List<ListLabel> labels, TrainInfo trainInfo, bool useMetric)
+        private static void DrawManualModeInfo(List<ListLabel> labels, Orts.Simulation.Physics.TrainInfo trainInfo, bool useMetric)
         {
             int startObjectArea = AdditionalInfoHeight;
             int endObjectArea = MonitorHeight - (MonitorHeight - (int)Math.Ceiling(MonitorHeight / MonitorScale)) - AdditionalInfoHeight;
@@ -588,7 +588,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             });
         }
 
-        private static void DrawEye(List<ListLabel> labels, TrainInfo trainInfo)
+        private static void DrawEye(List<ListLabel> labels, Orts.Simulation.Physics.TrainInfo trainInfo)
         {
             int position = trainInfo.CabOrientation == Direction.Forward ? 0 : MonitorHeight;
             int itemLocationWS = ItemLocationToRow(position, position);
