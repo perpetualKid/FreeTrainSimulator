@@ -689,7 +689,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 if (!appendLog)
                     File.Delete(logFileName);
 
-
                 StreamWriter writer = new StreamWriter(logFileName, true, Encoding.Default, 512)
                 {
                     AutoFlush = true
