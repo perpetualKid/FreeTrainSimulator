@@ -154,6 +154,7 @@ namespace Orts.Simulation.Signalling
 
         public bool TrainHasCallOn(bool allowOnNonePlatform = true, bool allowAdvancedSignal = false)
         {
+            SignalObject.CallOnEnabled = true;
             return SignalObject.TrainHasCallOn(allowOnNonePlatform, allowAdvancedSignal);
         }
 
