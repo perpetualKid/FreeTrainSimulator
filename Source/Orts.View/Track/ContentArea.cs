@@ -137,6 +137,26 @@ namespace Orts.View.Track
 
         }
 
+        private double previousScale;
+        private PointD previousTopLeft, previousBottomRight;
+        int supressCount;
+        
+        public override void Update(GameTime gameTime)
+        {
+            if (Scale == previousScale && TopLeftArea == previousTopLeft && BottomRightArea == previousBottomRight && supressCount-- > 0)
+            {
+                Game.SuppressDraw();
+            }
+            else
+            {
+                previousScale = Scale;
+                previousTopLeft = TopLeftArea;
+                previousBottomRight = BottomRightArea;
+                supressCount = 10;
+            }
+            base.Update(gameTime);
+        }
+
         private void CenterView()
         {
             offsetX = (bounds.Left + bounds.Right) / 2 - WindowSize.X / 2 / Scale;

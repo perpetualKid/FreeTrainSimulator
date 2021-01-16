@@ -102,7 +102,7 @@ namespace Orts.TrackEditor
             Window.ClientSizeChanged += Window_ClientSizeChanged; // not using the GameForm event as it does not raise when Window is moved (ie to another screeen) using keyboard shortcut
 
             //graphicsDeviceManager.SynchronizeWithVerticalRetrace = false;
-            IsFixedTimeStep = false;
+            //IsFixedTimeStep = false;
             //TargetElapsedTime = TimeSpan.FromMilliseconds(5);
             windowSize = presetSize;
             windowPosition = new Point(

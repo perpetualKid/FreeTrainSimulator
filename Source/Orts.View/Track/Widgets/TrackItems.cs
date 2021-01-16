@@ -14,6 +14,7 @@ using Orts.View.Track.Shapes;
 
 namespace Orts.View.Track.Widgets
 {
+    #region TrackItemBase
     internal abstract class TrackItemBase : PointWidget
     {
         [ThreadStatic]
@@ -30,8 +31,35 @@ namespace Orts.View.Track.Widgets
         {
             TrackItemBase.font = font;
         }
-    }
 
+        public static List<TrackItemBase> Create(IEnumerable<TrackItem> trackItems)
+        {
+            List<TrackItemBase> result = new List<TrackItemBase>();
+            Dictionary<uint, SidingTrackItem> sidingItems = new Dictionary<uint, SidingTrackItem>();
+
+            foreach (TrackItem trackItem in trackItems)
+            {
+                switch (trackItem)
+                {
+                    case SidingItem sidingItem:
+                        SidingTrackItem trackSidingItem = new SidingTrackItem(sidingItem);
+                        sidingItems.Add(trackSidingItem.Id, trackSidingItem);
+                        break;
+                    case PlatformItem platformItem:
+                        result.Add(new PlatformTrackItem(platformItem));
+                        break;
+                }
+            }
+
+
+            result.AddRange(SidingTrackItem.LinkSidingItems(sidingItems));
+
+            return result;
+        }
+    }
+    #endregion
+
+    #region SidingTrackItem
     internal class SidingTrackItem : TrackItemBase
     {
         private readonly string sidingName;
@@ -86,5 +114,26 @@ namespace Orts.View.Track.Widgets
             return result;
         }
     }
+    #endregion
+
+    #region PlatformTrackItem
+    internal class PlatformTrackItem : TrackItemBase
+    {
+        private readonly string platformName;
+
+        public PlatformTrackItem(PlatformItem source) : 
+            base(source)
+        {
+            platformName = source.ItemName;
+            Size = 9;
+        }
+
+        internal override void Draw(ContentArea contentArea)
+        {
+            BasicShapes.DrawTexture(BasicTextureType.Platform, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size), Color.White, false, false, false, contentArea.SpriteBatch);
+            TextDrawShape.DrawString(contentArea.WorldToScreenCoordinates(in location), Color.Blue, platformName, font, Vector2.One, TextAlignment.Left, SpriteEffects.None, contentArea.SpriteBatch);
+        }
+    }
+    #endregion
 
 }

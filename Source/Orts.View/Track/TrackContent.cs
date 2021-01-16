@@ -111,20 +111,7 @@ namespace Orts.View.Track
 
         private void AddTrackItems(IEnumerable<TrackItem> trackItems)
         {
-            Dictionary<uint, SidingTrackItem> sidingItems = new Dictionary<uint,SidingTrackItem>();
-            foreach (TrackItem trackItem in trackItems)
-            {
-                switch (trackItem)
-                {
-                    case SidingItem sidingItem:
-                        SidingTrackItem trackSidingItem = new SidingTrackItem(sidingItem);
-                        sidingItems.Add(trackSidingItem.Id, trackSidingItem); 
-                        break;
-                }
-            }
-
-
-            TrackItems.AddRange(SidingTrackItem.LinkSidingItems(sidingItems));
+            TrackItems.AddRange(TrackItemBase.Create(trackItems));
         }
     }
 }

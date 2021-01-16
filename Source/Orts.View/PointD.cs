@@ -1,10 +1,12 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System;
+
+using Microsoft.Xna.Framework;
 
 using Orts.Common.Position;
 
 namespace Orts.View
 {
-    internal readonly struct PointD
+    internal readonly struct PointD: IEquatable<PointD>
     {
         private static readonly PointD none = new PointD(0, 0);
 
@@ -23,6 +25,16 @@ namespace Orts.View
             return new PointD(location.TileX * WorldLocation.TileSize + location.Location.X, location.TileZ * WorldLocation.TileSize + location.Location.Z);
         }
 
+        public override bool Equals(object obj)
+        {
+            return obj is PointD point && Equals(point);
+        }
+
+        public bool Equals(PointD other)
+        {
+            return other.X == X && other.Y == Y;
+        }
+
         public static implicit operator Point(PointD point)
         {
             return new Point((int)point.X, (int)point.Y);
@@ -33,6 +45,20 @@ namespace Orts.View
             return new PointD(point.X, point.Y);
         }
 
+        public override int GetHashCode()
+        {
+            return X.GetHashCode() ^ Y.GetHashCode();
+        }
+
+        public static bool operator ==(PointD lhs, PointD rhs)
+        {
+            return lhs.Equals(rhs);
+        }
+
+        public static bool operator !=(PointD lhs, PointD rhs)
+        {
+            return !(lhs.Equals(rhs));
+        }
     }
 
 }
