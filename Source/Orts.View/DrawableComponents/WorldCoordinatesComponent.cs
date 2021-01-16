@@ -25,7 +25,6 @@ namespace Orts.View.DrawableComponents
             Visible = false;
             input = Game.Components.OfType<InputGameComponent>().First();
             this.font = font;
-            InitializeSize("01234567890123456789012345");
         }
 
         public override void Update(GameTime gameTime)
@@ -76,6 +75,12 @@ namespace Orts.View.DrawableComponents
 
             spriteBatch.End();
             base.Draw(gameTime);
+        }
+
+        protected internal override void Enable(ContentArea content)
+        {
+            InitializeSize("01234567890123456789012345");//about 25 chars needed for full lat/lon coordinates
+            base.Enable(content);
         }
     }
 }

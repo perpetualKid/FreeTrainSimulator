@@ -6,8 +6,6 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using Orts.Common.Position;
-using Orts.View.DrawableComponents;
-using Orts.View.Track.Shapes;
 using Orts.View.Track.Widgets;
 using Orts.View.Xna;
 
@@ -47,6 +45,10 @@ namespace Orts.View.Track
         private ScreenDelta screenDelta;
 
         private readonly SpriteBatch spriteBatch;
+        internal SpriteBatch SpriteBatch => spriteBatch;
+
+        private readonly FontManager fontManager;
+        private System.Drawing.Font currentFont;
 
         public ContentArea(Game game, TrackContent trackContent) :
             base(game)
@@ -58,19 +60,17 @@ namespace Orts.View.Track
             {
                 component.Enable(this);
             }
+            fontManager = FontManager.Instance("Segoe UI", System.Drawing.FontStyle.Regular);
         }
 
         protected override void OnEnabledChanged(object sender, EventArgs args)
         {
-            if (Enabled)
+            foreach (TextureContentComponent component in Game.Components.OfType<TextureContentComponent>())
             {
-                Game.Components.OfType<ScaleRulerComponent>().FirstOrDefault()?.Enable(this);
-                Game.Components.OfType<InsetComponent>().FirstOrDefault()?.Enable(this);
-            }
-            else
-            {
-                Game.Components.OfType<ScaleRulerComponent>().FirstOrDefault()?.Disable();
-                Game.Components.OfType<InsetComponent>().FirstOrDefault()?.Disable();
+                if (Enabled)
+                    component.Enable(this);
+                else
+                    component.Disable();
             }
             base.OnEnabledChanged(sender, args);
         }
@@ -204,37 +204,48 @@ namespace Orts.View.Track
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool InsideScreenArea(in PointD location)
+        private bool InsideScreenArea(PointWidget pointWidget)
         {
+            ref readonly PointD location = ref pointWidget.Location;
             return location.X > TopLeftArea.X && location.X < BottomRightArea.X && location.Y < TopLeftArea.Y && location.Y > BottomRightArea.Y;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool InsideScreenArea(in PointD start, in PointD end)
+        private bool InsideScreenArea(VectorWidget vectorWidget)
         {
-            return !(start.X < TopLeftArea.X && end.X < TopLeftArea.X) || (start.X > TopLeftArea.X && end.Y > TopLeftArea.X) ||
+            ref readonly PointD start = ref vectorWidget.Location;
+            ref readonly PointD end = ref vectorWidget.Vector;
+            bool outside = (start.X < TopLeftArea.X && end.X < TopLeftArea.X) || (start.X > BottomRightArea.X && end.X > BottomRightArea.X) ||
                 (start.Y > TopLeftArea.Y && end.Y > TopLeftArea.Y) || (start.Y < BottomRightArea.Y && end.Y < BottomRightArea.Y);
+            return !outside;
         }
 
         private void DrawTracks()
         {
+            int fontsize = MathHelper.Clamp((int)(25 * Scale), 1, 25);
+            if (fontsize != (currentFont?.Size ?? 0))
+                currentFont = fontManager[fontsize];
+            TrackItemBase.SetFont(currentFont);
+
             foreach (TrackSegment segment in TrackContent.TrackSegments)
             {
-                if (InsideScreenArea(in segment.Location, in segment.Vector))
-                    if (segment.Curved)
-                        BasicShapes.DrawArc(WorldToScreenSize(segment.Width), Color.Black, WorldToScreenCoordinates(in segment.Location), WorldToScreenSize(segment.Length), segment.Direction, segment.Angle, 0, spriteBatch);
-                    else
-                        BasicShapes.DrawLine(WorldToScreenSize(segment.Width), Color.Black, WorldToScreenCoordinates(in segment.Location), WorldToScreenSize(segment.Length), segment.Direction, spriteBatch);
+                if (InsideScreenArea(segment))
+                    segment.Draw(this);
             }
             foreach (TrackEndSegment endNode in TrackContent.TrackEndNodes)
             {
-                if (InsideScreenArea(in endNode.Location))
-                    BasicShapes.DrawLine(WorldToScreenSize(endNode.Width), Color.DarkOliveGreen, WorldToScreenCoordinates(in endNode.Location), WorldToScreenSize(TrackEndSegment.Length), endNode.Direction, spriteBatch);
+                if (InsideScreenArea(endNode))
+                    endNode.Draw(this);
             }
             foreach (JunctionNode junctionNode in TrackContent.JunctionNodes)
             {
-                if (InsideScreenArea(in junctionNode.Location))
-                    BasicShapes.DrawTexture(BasicTextureType.Disc, WorldToScreenCoordinates(in junctionNode.Location), 0, WorldToScreenSize(junctionNode.Width), Color.DarkRed, false, false, false, spriteBatch);
+                if (InsideScreenArea(junctionNode))
+                    junctionNode.Draw(this);
+            }
+            foreach (TrackItemBase trackItem in TrackContent.TrackItems)
+            {
+                if (InsideScreenArea(trackItem))
+                    trackItem.Draw(this);
             }
         }
 

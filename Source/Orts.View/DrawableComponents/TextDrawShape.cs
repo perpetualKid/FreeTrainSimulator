@@ -37,7 +37,7 @@ namespace Orts.View.DrawableComponents
         /// Draw a text message (string) with transparent background
         /// to support redraw, compiled textures are cached for a short while <seealso cref="SweepInterval"/>
         /// </summary>
-        public static void DrawString(Vector2 point, Color color, string message, System.Drawing.Font font, TextAlignment alignment = TextAlignment.Left, SpriteEffects effects = SpriteEffects.None)
+        public static void DrawString(Vector2 point, Color color, string message, System.Drawing.Font font, Vector2 scale, TextAlignment alignment = TextAlignment.Left, SpriteEffects effects = SpriteEffects.None, SpriteBatch spriteBatch = null)
         {
             int identifier = GetHashCode(font, message);
             if (!instance.currentResources.TryGetValue(identifier, out Texture2D texture))
@@ -61,7 +61,7 @@ namespace Orts.View.DrawableComponents
                     point -= new Vector2(texture.Width / 2, 0); break;
             }
 
-            instance.spriteBatch.Draw(texture, point, null, color, 0, Vector2.Zero, Vector2.One, effects, 0);
+             (spriteBatch ?? instance.spriteBatch).Draw(texture, point, null, color, 0, Vector2.Zero, scale, effects, 0);
         }
 
         /// <summary>

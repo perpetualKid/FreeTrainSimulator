@@ -290,8 +290,8 @@ namespace Orts.TrackEditor
 
                 BasicShapes.DrawArc(3, Color.Green, new Vector2(330, 330), 120, 90 * Math.PI / 180, 90, 0);
                 BasicShapes.DrawDashedLine(2, Color.Aqua, new Vector2(330, 330), new Vector2(450, 330));
-                TextDrawShape.DrawString(new Vector2(200, 450), Color.Red, "Test Message", drawfont);
-                TextDrawShape.DrawString(new Vector2(200, 500), Color.Lime, gameTime.TotalGameTime.TotalSeconds.ToString(), drawfont);
+                TextDrawShape.DrawString(new Vector2(200, 450), Color.Red, "Test Message", drawfont, Vector2.One);
+                TextDrawShape.DrawString(new Vector2(200, 500), Color.Lime, gameTime.TotalGameTime.TotalSeconds.ToString(), drawfont, Vector2.One);
 
                 BasicShapes.DrawTexture(BasicTextureType.Disc, new Vector2(480, 180), 0, -2f, Color.Green, false, false, false);
                 BasicShapes.DrawTexture(BasicTextureType.Disc, new Vector2(640, 180), 0, -2f, Color.Green, true, false, true);
@@ -300,7 +300,7 @@ namespace Orts.TrackEditor
                 BasicShapes.DrawLine(10, Color.DarkGoldenrod, new Vector2(100, 100), new Vector2(250, 250));
             }
             if (!string.IsNullOrEmpty(StatusMessage))
-                TextDrawShape.DrawString(centerPoint, Color.Red, StatusMessage, drawfont, TextAlignment.Center);
+                TextDrawShape.DrawString(centerPoint, Color.Red, StatusMessage, drawfont, Vector2.One, TextAlignment.Center);
 
             spriteBatch.End();
 

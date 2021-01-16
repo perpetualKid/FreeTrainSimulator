@@ -4,7 +4,6 @@ using System.Runtime.CompilerServices;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Orts.View.Track;
 using Orts.View.Track.Shapes;
 using Orts.View.Track.Widgets;
 using Orts.View.Xna;
@@ -25,12 +24,6 @@ namespace Orts.View.DrawableComponents
 
             size = new Point(game.GraphicsDevice.DisplayMode.Width / 15, game.GraphicsDevice.DisplayMode.Height / 15);
             Window_ClientSizeChanged(this, EventArgs.Empty);
-        }
-
-        internal protected override void Enable(ContentArea content)
-        {
-            DrawOrder = content.DrawOrder + 10;
-            base.Enable(content);
         }
 
         private protected override void Window_ClientSizeChanged(object sender, EventArgs e)
@@ -80,9 +73,9 @@ namespace Orts.View.DrawableComponents
             foreach (TrackSegment segment in content.TrackContent.TrackSegments)
             {
                 if (segment.Curved)
-                    BasicShapes.DrawArc(WorldToScreenSize(segment.Width), Color.Black, WorldToScreenCoordinates(in segment.Location), WorldToScreenSize(segment.Length), segment.Direction, segment.Angle, 0, spriteBatch);
+                    BasicShapes.DrawArc(WorldToScreenSize(segment.Size), Color.Black, WorldToScreenCoordinates(in segment.Location), WorldToScreenSize(segment.Length), segment.Direction, segment.Angle, 0, spriteBatch);
                 else
-                    BasicShapes.DrawLine(WorldToScreenSize(segment.Width), Color.Black, WorldToScreenCoordinates(in segment.Location), WorldToScreenSize(segment.Length), segment.Direction, spriteBatch);
+                    BasicShapes.DrawLine(WorldToScreenSize(segment.Size), Color.Black, WorldToScreenCoordinates(in segment.Location), WorldToScreenSize(segment.Length), segment.Direction, spriteBatch);
             }
 
             spriteBatch.End();

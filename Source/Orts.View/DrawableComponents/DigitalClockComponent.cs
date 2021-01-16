@@ -4,6 +4,7 @@ using System.Globalization;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
+using Orts.View.Track;
 using Orts.View.Xna;
 
 namespace Orts.View.DrawableComponents
@@ -71,8 +72,16 @@ namespace Orts.View.DrawableComponents
             base.Update(gameTime);
         }
 
+        protected internal override void Enable(ContentArea content)
+        {
+            InitializeSize(TimeSpan.Zero.ToString(formatMask, CultureInfo.DefaultThreadCurrentUICulture));
+            base.Enable(content);
+        }
+
         public override void Draw(GameTime gameTime)
         {
+            if (null == texture)
+                return;
             spriteBatch.Begin();
             spriteBatch.Draw(texture, position, null, color, 0, Vector2.Zero, Vector2.One, SpriteEffects.None, 0);
 

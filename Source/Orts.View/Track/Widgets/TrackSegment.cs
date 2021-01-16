@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework;
 
 using Orts.Common.Position;
 using Orts.Formats.Msts.Models;
+using Orts.View.Track.Shapes;
 
 namespace Orts.View.Track.Widgets
 {
@@ -17,9 +18,8 @@ namespace Orts.View.Track.Widgets
 
         internal readonly float Angle;
 
-        public TrackSegment(TrackVectorSection trackVectorSection, TrackSections sections)
+        public TrackSegment(TrackVectorSection trackVectorSection, TrackSection trackSection)
         {
-            TrackSection trackSection = sections.Get(trackVectorSection.SectionIndex);
             ref readonly WorldLocation location = ref trackVectorSection.Location;
 
             double cosA = Math.Cos(trackVectorSection.Direction.Y);
@@ -50,9 +50,17 @@ namespace Orts.View.Track.Widgets
             }
 
             base.location = PointD.FromWorldLocation(location);
-            Width = trackSection.Width;
+            Size = trackSection.Width;
             Curved = trackSection.Curved;
             Direction = trackVectorSection.Direction.Y - MathHelper.PiOver2;
+        }
+
+        internal override void Draw(ContentArea contentArea)
+        {
+            if (Curved)
+                BasicShapes.DrawArc(contentArea.WorldToScreenSize(Size), Color.Black, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Length), Direction, Angle, 0, contentArea.SpriteBatch);
+            else
+                BasicShapes.DrawLine(contentArea.WorldToScreenSize(Size), Color.Black, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Length), Direction, contentArea.SpriteBatch);
         }
     }
 }

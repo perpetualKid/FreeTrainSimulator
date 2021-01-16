@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework;
 
 using Orts.Common.Position;
 using Orts.Formats.Msts.Models;
+using Orts.View.Track.Shapes;
 
 namespace Orts.View.Track.Widgets
 {
@@ -19,7 +20,10 @@ namespace Orts.View.Track.Widgets
         {
             ref readonly WorldLocation location = ref trackEndNode.UiD.Location;
             base.location = PointD.FromWorldLocation(location);
+            Size = width;
 
+            if (null == connectedVectorNode)
+                return;
             if (connectedVectorNode.TrackPins[0].Link == trackEndNode.Index)
             {
                 //find angle at beginning of vector node
@@ -39,7 +43,11 @@ namespace Orts.View.Track.Widgets
                 }
             }
             Direction -= MathHelper.PiOver2;
-            Width = width;
+        }
+
+        internal override void Draw(ContentArea contentArea)
+        {
+            BasicShapes.DrawLine(contentArea.WorldToScreenSize(Size), Color.DarkOliveGreen, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Length), Direction, contentArea.SpriteBatch);
         }
     }
 }

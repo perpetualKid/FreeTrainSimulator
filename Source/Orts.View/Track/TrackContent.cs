@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Input;
 
 using Orts.Common.Position;
 using Orts.Formats.Msts.Files;
@@ -23,6 +21,8 @@ namespace Orts.View.Track
         internal List<TrackSegment> TrackSegments { get; } = new List<TrackSegment>();
         internal List<TrackEndSegment> TrackEndNodes { get; } = new List<TrackEndSegment>();
         internal List<JunctionNode> JunctionNodes { get; } = new List<JunctionNode>();
+
+        internal List<TrackItemBase> TrackItems { get; } = new List<TrackItemBase>();
 
 
         public bool UseMetricUnits { get; }
@@ -87,28 +87,9 @@ namespace Orts.View.Track
                         foreach (TrackVectorSection trackVectorSection in trackVectorNode.TrackVectorSections)
                         {
                             UpdateBounds(in trackVectorSection.Location);
-                            TrackSegments.Add(new TrackSegment(trackVectorSection, trackSectionsFile.TrackSections));
-                        }
-                        if (trackVectorNode.TrackVectorSections.Length > 1)
-                        {
-                            for (int i = 0; i < trackVectorNode.TrackVectorSections.Length - 1; i++)
-                            {
-                                ref readonly WorldLocation start = ref trackVectorNode.TrackVectorSections[i].Location;
-                                UpdateBounds(start);
-                                ref readonly WorldLocation end = ref trackVectorNode.TrackVectorSections[i + 1].Location;
-                                UpdateBounds(end);
-                            }
-                        }
-                        else
-                        {
-                            TrackVectorSection section = trackVectorNode.TrackVectorSections[0];
-                            UpdateBounds(section.Location);
-
-                            foreach (TrackPin pin in trackVectorNode.TrackPins)
-                            {
-                                TrackNode connectedNode = trackDB.TrackNodes[pin.Link];
-                                UpdateBounds(connectedNode.UiD.Location);
-                            }
+                            TrackSection trackSection = trackSectionsFile.TrackSections.Get(trackVectorSection.SectionIndex);
+                            if (trackSection != null)
+                                TrackSegments.Add(new TrackSegment(trackVectorSection, trackSection));
                         }
                         break;
                     case TrackJunctionNode trackJunctionNode:
@@ -130,11 +111,20 @@ namespace Orts.View.Track
 
         private void AddTrackItems(IEnumerable<TrackItem> trackItems)
         {
+            Dictionary<uint, SidingTrackItem> sidingItems = new Dictionary<uint,SidingTrackItem>();
             foreach (TrackItem trackItem in trackItems)
             {
-                switch (trackItem.TrackItemId)
-                { }
+                switch (trackItem)
+                {
+                    case SidingItem sidingItem:
+                        SidingTrackItem trackSidingItem = new SidingTrackItem(sidingItem);
+                        sidingItems.Add(trackSidingItem.Id, trackSidingItem); 
+                        break;
+                }
             }
+
+
+            TrackItems.AddRange(SidingTrackItem.LinkSidingItems(sidingItems));
         }
     }
 }

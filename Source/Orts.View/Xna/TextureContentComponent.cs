@@ -45,6 +45,7 @@ namespace Orts.View.Xna
         internal protected virtual void Enable(ContentArea content)
         {
             this.content = content;
+            DrawOrder = content?.DrawOrder + 10 ?? 99;
             Enabled = true;
             Visible = true;
         }
