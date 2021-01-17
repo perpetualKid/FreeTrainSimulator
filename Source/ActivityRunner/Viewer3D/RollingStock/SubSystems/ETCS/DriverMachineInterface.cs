@@ -95,8 +95,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
             Viewer = viewer;
             Locomotive = locomotive;
             Scale = Math.Min(width / Width, height / Height);
-            /*if (Scale < 0.5) */MipMapScale = 2;
-            //else MipMapScale = 1;
+            if (Scale < 0.5) MipMapScale = 2;
+            else MipMapScale = 1;
             GaugeOnly = control is CabViewDigitalControl;
 
             Shader = new DriverMachineInterfaceShader(viewer.RenderProcess.GraphicsDevice);
@@ -146,8 +146,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
             if (Math.Abs(1f - PrevScale / Scale) > 0.1f)
             {
                 PrevScale = Scale;
-                /*if (Scale < 0.5) */MipMapScale = 2;
-                /*else MipMapScale = 1;*/
+                if (Scale < 0.5) MipMapScale = 2;
+                else MipMapScale = 1;
                 foreach (var area in Windows)
                 {
                     area.ScaleChanged();
