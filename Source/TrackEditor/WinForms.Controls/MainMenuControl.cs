@@ -75,7 +75,7 @@ namespace Orts.TrackEditor.WinForms.Controls
 
                 await trackData.LoadTrackData(useMetricUnits).ConfigureAwait(false);
 
-                TrackContent content = new TrackContent(trackData.TrackDB, trackData.TrackSections, trackData.UseMetricUnits);
+                TrackContent content = new TrackContent(trackData.TrackDB, trackData.TrackSections, trackData.SignalConfig, trackData.UseMetricUnits);
                 await content.Initialize().ConfigureAwait(false);
                 parent.ContentArea = new ContentArea(parent, content);
                 parent.StatusMessage = null;

@@ -24,18 +24,18 @@ namespace Orts.View.Track
 
         internal List<TrackItemBase> TrackItems { get; } = new List<TrackItemBase>();
 
-
+        internal SignalConfigurationFile SignalConfigFile { get; }
         public bool UseMetricUnits { get; }
 
         public Rectangle Bounds { get; private set; }
         private readonly RoadTrackDB roadTrackDB;
-        private readonly SignalConfigurationFile signalConfig;
 
-        public TrackContent(TrackDB trackDB, TrackSectionsFile trackSections, bool metricUnits)
+        public TrackContent(TrackDB trackDB, TrackSectionsFile trackSections, SignalConfigurationFile signalConfig, bool metricUnits)
         {
             this.trackDB = trackDB;
             trackSectionsFile = trackSections;
             UseMetricUnits = metricUnits;
+            SignalConfigFile = signalConfig;
         }
 
         public async Task Initialize()
@@ -109,9 +109,9 @@ namespace Orts.View.Track
             Bounds = new Rectangle((int)minX, (int)minY, (int)(maxX - minX + 1), (int)(maxY - minY + 1));
         }
 
-        private void AddTrackItems(IEnumerable<TrackItem> trackItems)
+        private void AddTrackItems(TrackItem[] trackItems)
         {
-            TrackItems.AddRange(TrackItemBase.Create(trackItems));
+            TrackItems.AddRange(TrackItemBase.Create(trackItems, SignalConfigFile, trackDB));
         }
     }
 }

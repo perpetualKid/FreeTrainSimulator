@@ -12,6 +12,8 @@ namespace Orts.View.DrawableComponents
     public class TextDrawShape : ResourceGameComponent<Texture2D>
     {
         [ThreadStatic]
+        private static Texture2D empty;
+        [ThreadStatic]
         private static TextDrawShape instance;
         private readonly SpriteBatch spriteBatch;
 
@@ -23,12 +25,15 @@ namespace Orts.View.DrawableComponents
 
         private TextDrawShape(Game game, SpriteBatch spriteBatch) : base(game)
         {
+            empty = new Texture2D(game.GraphicsDevice, 1, 1);
             this.spriteBatch = spriteBatch;
             measureGraphics = System.Drawing.Graphics.FromImage(measureBitmap);
         }
 
         public static void Initialize(Game game, SpriteBatch spriteBatch)
         {
+            if (null == game)
+                throw new ArgumentNullException(nameof(game));
             if (null == instance)
                 instance = new TextDrawShape(game, spriteBatch);
         }
@@ -72,6 +77,8 @@ namespace Orts.View.DrawableComponents
         {
             // Measure the text with the already instantated measureGraphics object.
             System.Drawing.Size measuredsize = instance.measureGraphics.MeasureString(message, font).ToSize();
+            if (measuredsize.Width == 0 || measuredsize.Height == 0)
+                return empty;
 
             // Create the final bitmap
             using (System.Drawing.Bitmap bmpSurface = new System.Drawing.Bitmap(measuredsize.Width, measuredsize.Height))
