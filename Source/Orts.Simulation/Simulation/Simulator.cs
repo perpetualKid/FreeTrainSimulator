@@ -149,7 +149,7 @@ namespace Orts.Simulation
         private string timeTableFile;
         public float InitialTileX;
         public float InitialTileZ;
-        public HazzardManager HazzardManager;
+        public HazardManager HazzardManager;
         public FuelManager FuelManager;
         public bool InControl = true;//For multiplayer, a player may not control his/her own train (as helper)
         public TurntableFile TurntableFile;
@@ -368,7 +368,7 @@ namespace Orts.Simulation
             }
 
             Confirmer = new Confirmer(this, 1.5);
-            HazzardManager = new HazzardManager(this);
+            HazzardManager = new HazardManager(this);
             FuelManager = new FuelManager(this);
             ScriptManager = new ScriptManager();
             Log = new CommandLog(this);
