@@ -553,10 +553,10 @@ namespace Orts.Common
         Hold,                   // HoldStart
 
         // OR values
-        [Description("Straight Brake Apply On")] 
-        StraightApplyOn,      // TrainBrakesControllerStraightBrakingApplyOnStart
-        [Description("Straight Brake Apply Off")] 
-        StraightApplyOff,     // TrainBrakesControllerStraightBrakingApplyOffStart
+        [Description("Straight Brake Release On")]
+        StraightReleaseOn,      // TrainBrakesControllerStraightBrakingReleaseOnStart
+        [Description("Straight Brake Release Off")]
+        StraightReleaseOff,     // TrainBrakesControllerStraightBrakingReleaseOffStart
         [Description("Overcharge")]
         Overcharge,             // Overcharge
         [Description("Emergency Braking Push Button")]
