@@ -31,16 +31,16 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
      */
     public class MSTSBrakeController : BrakeController
     {
-        public MSTSNotchController NotchController;
+        public MSTSNotchController NotchController { get; private set; }
 
         /// <summary>
         /// Setting to workaround MSTS bug of not abling to set this function correctly in .eng file
         /// </summary>
-        public bool ForceControllerReleaseGraduated;
+        public bool ForceControllerReleaseGraduated { get; private set; }
         private bool brakeControllerInitialised; // flag to allow PreviousNotchPosition to be initially set.
         private INotchController previousNotchPosition;
 
-        bool EnforceMinimalReduction = false;
+        private bool EnforceMinimalReduction;
 
         public MSTSBrakeController()
         {
@@ -63,9 +63,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             NotchController.CurrentNotch = 0;
         }
 
-        public override float Update(double elapsedSeconds)
+        public override float Update(double elapsedClockSeconds)
         {
-            float value = NotchController.Update(elapsedSeconds);
+            float value = NotchController.Update(elapsedClockSeconds);
             SetCurrentValue(value);
             SetUpdateValue(NotchController.UpdateValue);
             return value;
@@ -108,18 +108,18 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                     if (OverchargeButtonPressed())
                         notchType = ControllerState.Overcharge;
                     else if (QuickReleaseButtonPressed())
-                    switch (notchType)
-                    {
-                        case ControllerState.Hold:
-                        case ControllerState.Lap:
-                        case ControllerState.MinimalReduction:
-                            if (EnforceMinimalReduction)
-                            pressureBar = DecreasePressure(pressureBar, MaxPressureBar() - MinReductionBar(), ApplyRateBarpS(), elapsedClockSeconds);
-                            break;
-                        default:
-                            EnforceMinimalReduction = false;
-                            break;
-                    }
+                        switch (notchType)
+                        {
+                            case ControllerState.Hold:
+                            case ControllerState.Lap:
+                            case ControllerState.MinimalReduction:
+                                if (EnforceMinimalReduction)
+                                    pressureBar = DecreasePressure(pressureBar, MaxPressureBar() - MinReductionBar(), ApplyRateBarpS(), elapsedClockSeconds);
+                                break;
+                            default:
+                                EnforceMinimalReduction = false;
+                                break;
+                        }
                     switch (notchType)
                     {
                         case ControllerState.Release:
@@ -141,11 +141,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                                 pressureBar = MaxPressureBar() - MinReductionBar();
                             pressureBar = DecreasePressure(pressureBar, MaxPressureBar() - FullServReductionBar(), SlowApplicationRateBarpS(), elapsedClockSeconds);
                             break;
-                       case ControllerState.StrBrkReleaseOn:
+                        case ControllerState.StraightReleaseOn:
                             // This position is an on position so pressure will be zero (reversed due to vacuum brake operation)
                             pressureBar = 0;
                             break;
-                        case ControllerState.StrBrkReleaseOff: //(reversed due to vacuum brake operation)
+                        case ControllerState.StraightReleaseOff: //(reversed due to vacuum brake operation)
                         case ControllerState.Apply:
                             pressureBar -= x * ApplyRateBarpS() * elapsedClockSeconds;
                             break;
