@@ -148,10 +148,9 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         static Texture2D MonitorTexture;
 
         WindowTextFont Font;
-
-        readonly Viewer Viewer;
-        private bool metric => Viewer.MilepostUnitsMetric;
-        private DisplayMode Mode { get; set; } = DisplayMode.All;
+        private readonly Viewer viewer;
+        private bool metric;
+        private DisplayMode mode = DisplayMode.All;
 
         /// <summary>
         /// Different information views for the Track Monitor.
@@ -267,8 +266,9 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 // TODO: This should happen on the loader thread.
                 TrackMonitorImages = SharedTextureManager.Get(owner.Viewer.RenderProcess.GraphicsDevice, System.IO.Path.Combine(owner.Viewer.ContentPath, "TrackMonitorImages.png"));
 
-            Viewer = owner.Viewer;
+            viewer = owner.Viewer;
             Font = owner.TextFontSmall;
+            metric = viewer.MilepostUnitsMetric;
 
             ScaleDesign(ref additionalInfoHeight);
             ScaleDesign(ref mainOffset);
@@ -303,16 +303,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         /// </summary>
         public void CycleMode()
         {
-            switch (Mode)
-            {
-                case DisplayMode.All:
-                default:
-                    Mode = DisplayMode.StaticOnly;
-                    break;
-                case DisplayMode.StaticOnly:
-                    Mode = DisplayMode.All;
-                    break;
-            }
+            mode = mode.Next();
         }
 
         void ScaleDesign(ref int variable)
@@ -765,7 +756,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             }
 
             bool showSpeeds;
-            switch (Mode)
+            switch (mode)
             {
                 case DisplayMode.All:
                 default:
@@ -801,7 +792,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         void drawSignalBackward(SpriteBatch spriteBatch, Point offset, int startObjectArea, int endObjectArea, int zeroPoint, float maxDistance, float distanceFactor, bool forward, TrainPathItem thisItem, bool signalShown)
         {
             TrackMonitorSignalAspect aspect;
-            switch (Mode)
+            switch (mode)
             {
                 case DisplayMode.All:
                 default:
@@ -986,7 +977,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             var newLabelPosition = lastLabelPosition;
 
             bool showSwitches;
-            switch (Mode)
+            switch (mode)
             {
                 case DisplayMode.All:
                 default:
