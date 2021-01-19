@@ -52,11 +52,18 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 
         public override void Update(double elapsedClockSeconds)
         {
+            // Two options are allowed for in this module -
+            // i) Straight Brake operation - lead BP pressure, and brkae cylinder pressure are calculated in this module. BP pressure is reversed compared to vacuum brake, as vacuum creation applies the brake cylinder.
+            // Some functions, such as brake pipe propagation are handled in the vacuum single pipe module, with some functions in the vacuum brake module disabled if the lead locomotive is straight braked.
+            // ii) Vacuum brake operation - some cars could operate as straight braked cars (ie non auto), or as auto depending upon what type of braking system the locomotive had. In this case cars required an auxiliary
+            // reservoir. OR senses this and if a straight braked car is coupled to a auto (vacuum braked) locomotive, and it has an auxilary reservoir fitted then it will use the vacuum single pipe module to manage 
+            // brakes. In this case relevant straight brake functions are disabled in this module.
+
             MSTSLocomotive lead = (MSTSLocomotive)Car.Train.LeadLocomotive;
 
             if (lead != null)
             {
-
+                // Adjust brake cylinder pressures as brake pipe varies
                 if (lead.CarBrakeSystemType == "straight_vacuum_single_pipe") // straight braked cars will have separate calculations done  
                 {
                     (Car as MSTSWagon).NonAutoBrakePresent = true; // Set flag to indicate that non auto brake is set in train
@@ -79,7 +86,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                         CylPressurePSIA += (float)dp;
                     }
 
-
+                    // Adjust braking force as brake cylinder pressure varies.
                     float f;
                     if (!Car.BrakesStuck)
                     {
@@ -107,18 +114,17 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                     }
 
 
+                    // Calculate train pipe pressure at lead locomotive.
 
                     float MaxVacuumPipeLevelPSI = lead.TrainBrakeController.MaxPressurePSI;
                     // Set value for large ejector to operate - in this instance as there is no small ejector, the whole brake pipe charging rate is used.
                     float LargeEjectorChargingRateInHgpS = lead.BrakePipeChargingRatePSIorInHgpS;
 
-                    // Calculate train pipe pressure at lead locomotive.
-
                     // Calculate adjustment times for varying lengths of trains
                     float AdjLargeEjectorChargingRateInHgpS;
                     if (lead.LargeSteamEjectorIsOn)
                     {
-                        AdjLargeEjectorChargingRateInHgpS = (float)(Size.Volume.FromFt3(200.0f) / Car.Train.TotalTrainBrakeCylinderVolumeM3) * LargeEjectorChargingRateInHgpS;
+                        AdjLargeEjectorChargingRateInHgpS = (float)(Size.Volume.FromFt3(200.0f) / Car.Train.TotalTrainBrakeSystemVolumeM3) * LargeEjectorChargingRateInHgpS;
                     }
                     else
                     {
@@ -156,7 +162,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                     lead.BrakeSystem.BrakeLine1PressurePSI = MathHelper.Clamp(lead.BrakeSystem.BrakeLine1PressurePSI, OneAtmospherePSI - MaxVacuumPipeLevelPSI, OneAtmospherePSI);
 
                 }
-
+                                 
                 if (lead.CarBrakeSystemType == "straight_vacuum_single_pipe" || ((lead.CarBrakeSystemType == "vacuum_single_pipe" || lead.CarBrakeSystemType == "vacuum_twin_pipe") && (Car as MSTSWagon).AuxiliaryReservoirPresent))
                 {
                     // update non calculated values using vacuum single pipe class
@@ -174,10 +180,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                 // display as a automatic vacuum brake
 
                 return new string[] {
-                "1VS",
+                "1V",
                 FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(CylPressurePSIA), Pressure.Unit.InHg, Pressure.Unit.InHg, true),
                 FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(BrakeLine1PressurePSI), Pressure.Unit.InHg, Pressure.Unit.InHg, true),
-                string.Empty,
+                FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(VacResPressureAdjPSIA()), Pressure.Unit.InHg, Pressure.Unit.InHg, true),
                 string.Empty,
                 string.Empty,
                 string.Empty,
