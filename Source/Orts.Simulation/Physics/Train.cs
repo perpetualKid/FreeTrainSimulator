@@ -10743,7 +10743,7 @@ namespace Orts.Simulation.Physics
                                 else if (PlayerTrainTunnels[dir].Count == 0 && (tunnel.End[sectionDirection] < 0 || tunnel.End[sectionDirection] > lengthOffset))
                                 {
                                     // Train is in tunnel, compute remaining length
-                                    float remainingLength = tunnel.LengthTotal - lengthOffset - (tunnelStartOffset < 0 ? tunnel.SectionStartOffset[sectionDirection] : tunnelStartOffset);
+                                    float remainingLength = tunnel.LengthTotal - lengthOffset + (tunnelStartOffset < 0 ? tunnel.SectionStartOffset[sectionDirection] : tunnelStartOffset);
                                     trainPathItem = new TrainPathItem(-1, (int)remainingLength, TrainPathItemType.Tunnel);
                                     PlayerTrainTunnels[dir].Add(trainPathItem);
                                 }
