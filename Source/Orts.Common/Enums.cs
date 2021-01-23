@@ -557,6 +557,15 @@ namespace Orts.Common
         StraightReleaseOn,      // TrainBrakesControllerStraightBrakingReleaseOnStart
         [Description("Straight Brake Release Off")]
         StraightReleaseOff,     // TrainBrakesControllerStraightBrakingReleaseOffStart
+        [Description("Straight Brake Release")]
+        StraightRelease,      // TrainBrakesControllerStraightBrakingReleaseStart
+        [Description("Straight Brake Lap")]
+        StraightLap,          // TrainBrakesControllerStraightBrakingLapStart
+        [Description("Straight Brake Apply")]
+        StraightApply,        // TrainBrakesControllerStraightBrakingApplyStart
+        [Description("Straight Brake Emergency")]
+        StraightEmergency,    // TrainBrakesControllerStraightBrakingEmergencyStart
+
         [Description("Overcharge")]
         Overcharge,             // Overcharge
         [Description("Emergency Braking Push Button")]

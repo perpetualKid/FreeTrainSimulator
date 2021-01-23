@@ -121,35 +121,74 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                     // Calculate train pipe pressure at lead locomotive.
 
                     float MaxVacuumPipeLevelPSI = lead.TrainBrakeController.MaxPressurePSI;
-                    // Set value for large ejector to operate - in this instance as there is no small ejector, the whole brake pipe charging rate is used.
-                    float LargeEjectorChargingRateInHgpS = lead.BrakePipeChargingRatePSIorInHgpS;
 
-                    // Calculate adjustment times for varying lengths of trains
-                    float AdjLargeEjectorChargingRateInHgpS;
-                    if (lead.LargeSteamEjectorIsOn)
+                    // Set value for large ejector to operate - it will depend upon whether the locomotive is a single or twin ejector unit.
+                    float LargeEjectorChargingRateInHgpS;
+                    if (lead.TrainBrakeController.TrainBrakeControllerState == ControllerState.StraightApply)
                     {
-                        AdjLargeEjectorChargingRateInHgpS = (float)(Size.Volume.FromFt3(200.0f) / Car.Train.TotalTrainBrakeSystemVolumeM3) * LargeEjectorChargingRateInHgpS;
+                        LargeEjectorChargingRateInHgpS = lead == null ? 10.0f : (lead.LargeEjectorBrakePipeChargingRatePSIorInHgpS);
                     }
                     else
                     {
-
-                        AdjLargeEjectorChargingRateInHgpS = 0;
+                        LargeEjectorChargingRateInHgpS = lead == null ? 10.0f : (lead.BrakePipeChargingRatePSIorInHgpS);
                     }
-                    float AdjBrakeServiceTimeFactorS = (float)(Size.Volume.FromFt3(200.0f) / Car.Train.TotalTrainBrakeSystemVolumeM3) * lead.BrakeServiceTimeFactorS;
-                    float AdjTrainPipeLeakLossPSI = (Car.Train.TotalTrainBrakeSystemVolumeM3 / (float)Size.Volume.FromFt3(200.0f)) * lead.TrainBrakePipeLeakPSIorInHgpS;
+                        
+                    float SmallEjectorChargingRateInHgpS = lead == null ? 10.0f : (lead.SmallEjectorBrakePipeChargingRatePSIorInHgpS); // Set value for small ejector to operate - fraction set in steam locomotive
+                    float TrainPipeLeakLossPSI = lead == null ? 0.0f : (lead.TrainBrakePipeLeakPSIorInHgpS);
+                    float AdjTrainPipeLeakLossPSI = 0.0f;
 
-                    // Only adjust lead pressure when lcoomotive car is processed, otherwise lead pressure will be "over adjusted"
+                    // Calculate adjustment times for varying lengths of trains
+                    float AdjLargeEjectorChargingRateInHgpS = 0.0f;
+                    float AdjSmallEjectorChargingRateInHgpS = 0.0f;
+
+                    AdjLargeEjectorChargingRateInHgpS = (float)(Size.Volume.FromFt3(200.0f) / Car.Train.TotalTrainBrakeSystemVolumeM3) * LargeEjectorChargingRateInHgpS;
+                    AdjSmallEjectorChargingRateInHgpS = (float)(Size.Volume.FromFt3(200.0f) / Car.Train.TotalTrainBrakeSystemVolumeM3) * SmallEjectorChargingRateInHgpS;
+
+                    float AdjBrakeServiceTimeFactorS = (float)(Size.Volume.FromFt3(200.0f) / Car.Train.TotalTrainBrakeSystemVolumeM3) * lead.BrakeServiceTimeFactorS;
+                    AdjTrainPipeLeakLossPSI = (float)(Car.Train.TotalTrainBrakeSystemVolumeM3 / Size.Volume.FromFt3(200.0f)) * lead.TrainBrakePipeLeakPSIorInHgpS;
+
+                    // Only adjust lead pressure when locomotive car is processed, otherwise lead pressure will be "over adjusted"
                     if (Car == lead)
                     {
-                        // Apply brakes - brakepipe has to have vacuum increased to max vacuum value (ie decrease psi), vacuum is created by large ejector control
-                        lead.BrakeSystem.BrakeLine1PressurePSI -= (float)elapsedClockSeconds * AdjLargeEjectorChargingRateInHgpS;
-                        if (lead.BrakeSystem.BrakeLine1PressurePSI < (OneAtmospherePSI - MaxVacuumPipeLevelPSI))
+
+                        if (lead.LargeEjectorFitted && lead.LargeSteamEjectorIsOn)
                         {
-                            lead.BrakeSystem.BrakeLine1PressurePSI = OneAtmospherePSI - MaxVacuumPipeLevelPSI;
+                            // Apply brakes - brakepipe has to have vacuum increased to max vacuum value (ie decrease psi), vacuum is created by large ejector control
+                        lead.BrakeSystem.BrakeLine1PressurePSI -= (float)elapsedClockSeconds * AdjLargeEjectorChargingRateInHgpS;
+                            if (lead.BrakeSystem.BrakeLine1PressurePSI < (OneAtmospherePSI - MaxVacuumPipeLevelPSI))
+                            {
+                                lead.BrakeSystem.BrakeLine1PressurePSI = OneAtmospherePSI - MaxVacuumPipeLevelPSI;
+                            }
                         }
 
+                        if (lead.TrainBrakeController.TrainBrakeControllerState == ControllerState.StraightApply)
+                        {
+
+                            // Apply brakes - brakepipe has to have vacuum increased to max vacuum value (ie decrease psi), vacuum is created by large ejector control
+                            lead.BrakeSystem.BrakeLine1PressurePSI -= (float)elapsedClockSeconds * AdjLargeEjectorChargingRateInHgpS;
+                            if (lead.BrakeSystem.BrakeLine1PressurePSI < (OneAtmospherePSI - MaxVacuumPipeLevelPSI))
+                            {
+                                lead.BrakeSystem.BrakeLine1PressurePSI = OneAtmospherePSI - MaxVacuumPipeLevelPSI;
+                            }
+
+                        }
+
+                        if (lead.TrainBrakeController.TrainBrakeControllerState == ControllerState.StraightEmergency)
+                        {
+
+                            // Apply brakes - brakepipe has to have vacuum increased to max vacuum value (ie decrease psi), vacuum is created by large ejector control
+                            lead.BrakeSystem.BrakeLine1PressurePSI -= (float)elapsedClockSeconds * (AdjLargeEjectorChargingRateInHgpS + AdjSmallEjectorChargingRateInHgpS);
+                            if (lead.BrakeSystem.BrakeLine1PressurePSI < (OneAtmospherePSI - MaxVacuumPipeLevelPSI))
+                            {
+                                lead.BrakeSystem.BrakeLine1PressurePSI = OneAtmospherePSI - MaxVacuumPipeLevelPSI;
+                            }
+
+                        }
+
+
+
                         // Release brakes - brakepipe has to have brake pipe decreased back to atmospheric pressure to apply brakes (ie psi increases).
-                        if (lead.TrainBrakeController.TrainBrakeControllerState == ControllerState.StraightReleaseOn)
+                        if (lead.TrainBrakeController.TrainBrakeControllerState == ControllerState.StraightReleaseOn || lead.TrainBrakeController.TrainBrakeControllerState == ControllerState.StraightRelease)
                         {
 
                             lead.BrakeSystem.BrakeLine1PressurePSI *= (float)(1 + elapsedClockSeconds / AdjBrakeServiceTimeFactorS); ;

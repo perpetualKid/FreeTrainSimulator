@@ -141,6 +141,12 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                                 pressureBar = MaxPressureBar() - MinReductionBar();
                             pressureBar = DecreasePressure(pressureBar, MaxPressureBar() - FullServReductionBar(), SlowApplicationRateBarpS(), elapsedClockSeconds);
                             break;
+                        case ControllerState.StraightLap:
+                        case ControllerState.StraightApply:
+                        case ControllerState.StraightEmergency:
+                            // Nothing is done in these positions, instead they are controlled by the steam ejector in straight brake module
+                            break;
+                        case ControllerState.StraightRelease:
                         case ControllerState.StraightReleaseOn:
                             // This position is an on position so pressure will be zero (reversed due to vacuum brake operation)
                             pressureBar = 0;
