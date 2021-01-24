@@ -151,26 +151,18 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                     if (Car == lead)
                     {
 
-                        if (lead.LargeEjectorFitted && lead.LargeSteamEjectorIsOn)
+                        // Hardy brake system
+                        if (lead.TrainBrakeController.TrainBrakeControllerState == ControllerState.StraightApply)
                         {
+
                             // Apply brakes - brakepipe has to have vacuum increased to max vacuum value (ie decrease psi), vacuum is created by large ejector control
                         lead.BrakeSystem.BrakeLine1PressurePSI -= (float)elapsedClockSeconds * AdjLargeEjectorChargingRateInHgpS;
                             if (lead.BrakeSystem.BrakeLine1PressurePSI < (OneAtmospherePSI - MaxVacuumPipeLevelPSI))
                             {
                                 lead.BrakeSystem.BrakeLine1PressurePSI = OneAtmospherePSI - MaxVacuumPipeLevelPSI;
                             }
-                        }
-
-                        if (lead.TrainBrakeController.TrainBrakeControllerState == ControllerState.StraightApply)
-                        {
-
-                            // Apply brakes - brakepipe has to have vacuum increased to max vacuum value (ie decrease psi), vacuum is created by large ejector control
-                            lead.BrakeSystem.BrakeLine1PressurePSI -= (float)elapsedClockSeconds * AdjLargeEjectorChargingRateInHgpS;
-                            if (lead.BrakeSystem.BrakeLine1PressurePSI < (OneAtmospherePSI - MaxVacuumPipeLevelPSI))
-                            {
-                                lead.BrakeSystem.BrakeLine1PressurePSI = OneAtmospherePSI - MaxVacuumPipeLevelPSI;
-                            }
-
+                            // turn ejector steon as required
+                            lead.LargeSteamEjectorIsOn = true;
                         }
 
                         if (lead.TrainBrakeController.TrainBrakeControllerState == ControllerState.StraightEmergency)
@@ -182,11 +174,29 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                             {
                                 lead.BrakeSystem.BrakeLine1PressurePSI = OneAtmospherePSI - MaxVacuumPipeLevelPSI;
                             }
+                            // turn ejectors on as required
+                            lead.LargeSteamEjectorIsOn = true;
+                            lead.SmallSteamEjectorIsOn = true;
+                        }
+
+                        if (lead.TrainBrakeController.TrainBrakeControllerState == ControllerState.StraightLap)
+                        {
+                            // turn ejectors off if not required
+                            lead.LargeSteamEjectorIsOn = false;
+                            lead.SmallSteamEjectorIsOn = false;
 
                         }
 
-
-
+                            // Eames type brake with separate release and ejector operating handles
+                            if (lead.LargeEjectorFitted && lead.LargeSteamEjectorIsOn)
+                        {
+                            // Apply brakes - brakepipe has to have vacuum increased to max vacuum value (ie decrease psi), vacuum is created by large ejector control
+                            lead.BrakeSystem.BrakeLine1PressurePSI -= (float)elapsedClockSeconds * AdjLargeEjectorChargingRateInHgpS;
+                            if (lead.BrakeSystem.BrakeLine1PressurePSI < (OneAtmospherePSI - MaxVacuumPipeLevelPSI))
+                            {
+                                lead.BrakeSystem.BrakeLine1PressurePSI = OneAtmospherePSI - MaxVacuumPipeLevelPSI;
+                            }
+                        }
                         // Release brakes - brakepipe has to have brake pipe decreased back to atmospheric pressure to apply brakes (ie psi increases).
                         if (lead.TrainBrakeController.TrainBrakeControllerState == ControllerState.StraightReleaseOn || lead.TrainBrakeController.TrainBrakeControllerState == ControllerState.StraightRelease)
                         {
