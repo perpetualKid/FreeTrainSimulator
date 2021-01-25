@@ -206,6 +206,11 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
                         case 206: return TrainEvent.GearPosition6;
                         case 207: return TrainEvent.GearPosition7;
                         case 208: return TrainEvent.GearPosition8;
+
+                        case 210: return TrainEvent.LargeEjectorOn;
+                        case 211: return TrainEvent.LargeEjectorOff;
+                        case 212: return TrainEvent.SmallEjectorOn;
+                        case 213: return TrainEvent.SmallEjectorOff;
                         //
                         default: return TrainEvent.None;
                     }

@@ -427,6 +427,11 @@ namespace Orts.Common
         GearPosition6,
         GearPosition7,
         GearPosition8,
+
+        LargeEjectorOn,
+        LargeEjectorOff,
+        SmallEjectorOn,
+        SmallEjectorOff,
     }
 
     public enum PowerSupplyEvent
