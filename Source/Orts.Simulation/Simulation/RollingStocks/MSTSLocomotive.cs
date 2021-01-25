@@ -1348,7 +1348,7 @@ namespace Orts.Simulation.RollingStocks
                     float TempMaxPressure = TrainBrakeController.MaxPressurePSI;
 
                     // Convert assumed inHg value to psi
-                    TrainBrakeController.MaxPressurePSI = Bar.ToPSI(Bar.FromInHg(TrainBrakeController.MaxPressurePSI));
+                    TrainBrakeController.MaxPressurePSI = (float)Pressure.Atmospheric.ToPSI(Pressure.Atmospheric.FromInHg(TrainBrakeController.MaxPressurePSI));
 
                     if (Simulator.Settings.VerboseConfigurationMessages)
                     {
