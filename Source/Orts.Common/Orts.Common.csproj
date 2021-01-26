@@ -11,6 +11,7 @@
     <PackageReference Include="System.Management" Version="5.0.0" />
     <PackageReference Include="GetText.NET" Version="0.9.7" />
     <PackageReference Include="NuGet.Versioning" Version="5.8.1" />
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="5.0.0" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="PIEHid32Net">
