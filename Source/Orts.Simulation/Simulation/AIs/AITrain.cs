@@ -3165,7 +3165,7 @@ namespace Orts.Simulation.AIs
                 for (int rWP = iWait; insertSigDelegate && signalIndex[iWait] != -1 && rWP >= 0; rWP--)
                 {
                     int[] currWP = TCRoute.WaitingPoints[rWP];
-                    if ((currWP[2] >= 60011 && currWP[2] <= 60020)
+                    if ((currWP[2] >= 60011 && currWP[2] <= 60021)
                         || currWP[1] != thisSection.Index || currWP[5] < (int)(thisSection.Length + distanceToEndOfWPSection - clearingDistanceM - 1)) break;
                     currWP[5] = (int)(thisSection.Length + distanceToEndOfWPSection - clearingDistanceM - 1);
                 }
@@ -3187,7 +3187,7 @@ namespace Orts.Simulation.AIs
                 TrackCircuitPartialPathRoute thisRoute = TCRoute.TCRouteSubpaths[waitingPoint[0]];
                 int routeIndex = thisRoute.GetRouteIndex(waitingPoint[1], 0);
                 int lastIndex = routeIndex;
-                if (!(waitingPoint[2] >= 60011 && waitingPoint[2] <= 60020))
+                if (!(waitingPoint[2] >= 60011 && waitingPoint[2] <= 60021))
                 {
                     if (iWait != TCRoute.WaitingPoints.Count - 1)
                     {
@@ -3197,7 +3197,7 @@ namespace Orts.Simulation.AIs
                             {
                                 break;
                             }
-                            else if (TCRoute.WaitingPoints[nextWP][2] >= 60011 && TCRoute.WaitingPoints[nextWP][2] <= 60020) continue;
+                            else if (TCRoute.WaitingPoints[nextWP][2] >= 60011 && TCRoute.WaitingPoints[nextWP][2] <= 60021) continue;
                             else
                             {
                                 insertSigDelegate = false;
@@ -3217,7 +3217,7 @@ namespace Orts.Simulation.AIs
                 TrackDirection direction = thisRoute[routeIndex].Direction;
                 if (!IsActualPlayerTrain)
                 {
-                    if (waitingPoint[2] >= 60011 && waitingPoint[2] <= 60020)
+                    if (waitingPoint[2] >= 60011 && waitingPoint[2] <= 60021)
                     {
                         AIActionHornRef action = new AIActionHornRef(this, waitingPoint[5], 0f, waitingPoint[0], lastIndex, thisRoute[lastIndex].TrackCircuitSection.Index, (int)direction);
                         action.SetDelay(waitingPoint[2] - 60010);

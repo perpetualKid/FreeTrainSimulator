@@ -64,12 +64,14 @@ namespace Orts.Formats.OR
     {
         public int Delay;
         public float RequiredDistance;
+        public int AmHornPhase = -1;
 
-        public AuxActionHorn(bool isGeneric, int delay = 2, float requiredDistance = 0) :
+        public AuxActionHorn(bool isGeneric, int amHornPhase = -1) :    //WorldLocation? location, float requiredSpeedMpS, , int endSignalIndex = -1, AUX_ACTION actionType = AUX_ACTION.SOUND_HORN, , float requiredDistance = 0) :
             base(AuxiliaryAction.SoundHorn, isGeneric)
         {
-            Delay = delay;
-            RequiredDistance = requiredDistance;
+            Delay = 2;
+            RequiredDistance = 9;
+            AmHornPhase = amHornPhase;
         }
     }
 }
