@@ -568,6 +568,8 @@ namespace Orts.Common
         StraightLap,          // TrainBrakesControllerStraightBrakingLapStart
         [Description("Straight Brake Apply")]
         StraightApply,        // TrainBrakesControllerStraightBrakingApplyStart
+        [Description("Straight Brake Apply All")]
+        StraightApplyAll,     // TrainBrakesControllerStraightBrakingApplyAllStart
         [Description("Straight Brake Emergency")]
         StraightEmergency,    // TrainBrakesControllerStraightBrakingEmergencyStart
 
