@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace Orts.Common
 {
@@ -16,12 +17,15 @@ namespace Orts.Common
             internal static readonly Dictionary<T, string> ValueToDescriptionMap;
             internal static string EnumDescription;
             internal static IDictionary<string, T> NameValuePairs;
+            internal static int Length;
+            internal static int SupportsReverse;
 
 #pragma warning disable CA1810 // Initialize reference type static fields inline
             static EnumCache()
 #pragma warning restore CA1810 // Initialize reference type static fields inline
             {
                 Values = new ReadOnlyCollection<T>((T[])Enum.GetValues(typeof(T)));
+                Length = Values.Count;
                 Names = new ReadOnlyCollection<string>(Enum.GetNames(typeof(T)));
                 ValueToDescriptionMap = new Dictionary<T, string>();
                 EnumDescription = typeof(T).GetCustomAttributes(typeof(DescriptionAttribute), false).
@@ -35,6 +39,12 @@ namespace Orts.Common
 
                 NameValuePairs = Names.Zip(Values, (k, v) => new { k, v })
                               .ToDictionary(x => x.k, x => x.v, StringComparer.OrdinalIgnoreCase);
+
+                if (Length == 2 && (int)(object)Values[0] == 0 && (int)(object)Values[1] == 1)      //Simple case having two values only (like Forward and Backward, values 0 and 1 only)
+                    SupportsReverse = 2;
+                else if (Length % 2 == 1 && (int)(object)Values[Length / 2] == 0) //odd number of items, like Backward, Neutral and Forward
+                    SupportsReverse = 1;
+
             }
 
             private static string GetDescription(T value)
@@ -88,7 +98,7 @@ namespace Orts.Common
         /// </summary>
         public static int GetLength<T>() where T : Enum
         {
-            return EnumCache<T>.Values.Count;
+            return EnumCache<T>.Length;
         }
 
         /// <summary>
@@ -104,7 +114,8 @@ namespace Orts.Common
         /// </summary>
         public static T Next<T>(this T item) where T : Enum
         {
-            return EnumCache<T>.Values[(EnumCache<T>.Values.IndexOf(item) + 1) % EnumCache<T>.Values.Count];
+            int next = (Unsafe.As<T, int>(ref item) + 1) % EnumCache<T>.Length;
+            return Unsafe.As<int, T>(ref next);
         }
 
         /// <summary>
@@ -112,7 +123,29 @@ namespace Orts.Common
         /// </summary>
         public static T Previous<T>(this T item) where T : Enum
         {
-            return EnumCache<T>.Values[(EnumCache<T>.Values.IndexOf(item) - 1 + EnumCache<T>.Values.Count) % EnumCache<T>.Values.Count];
+            int previous = (Unsafe.As<T, int>(ref item) - 1 + EnumCache<T>.Length) % EnumCache<T>.Length;
+            return Unsafe.As<int, T>(ref previous);
+
+        }
+
+        /// <summary>
+        /// Allows to reverse simple enums, 
+        /// i.e. Forward(0)<-->Backward(1)
+        /// or Backward(-1)<-->Forward(1) with Neutral (0) not being changed
+        /// </summary>
+        public static T Reverse<T>(this T item) where T : Enum
+        {
+            switch (EnumCache<T>.SupportsReverse)
+            {
+                case 1:
+                    int reverse = -Unsafe.As<T, int>(ref item);
+                    return Unsafe.As<int, T>(ref reverse);
+                case 2:
+                    int inverse = Unsafe.As<T, int>(ref item) > 0 ? 0 : 1;
+                    return Unsafe.As<int, T>(ref inverse);
+                default:
+                    throw new NotSupportedException();
+            }
         }
 
         /// <summary>
