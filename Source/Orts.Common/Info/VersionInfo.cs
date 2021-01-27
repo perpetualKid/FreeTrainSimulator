@@ -108,23 +108,9 @@ namespace Orts.Common.Info
                 if (NuGetVersion.TryParse(versionString, out NuGetVersion parsedVersion))
                     result.Add(parsedVersion);
             }
-            if (!string.IsNullOrEmpty(targetVersion))
-            {
-                if (!NuGetVersion.TryParse(targetVersion, out NuGetVersion target))
-                    throw new ArgumentException($"{targetVersion} is not a valid version for parameter {nameof(targetVersion)}");
-                //compare against the current version and the target version
-                selection = result.Where(
-                    (version) => VersionComparer.VersionRelease.Compare(version, CurrentVersion) > 0 &&
-                    VersionComparer.VersionRelease.Compare(version, target) <= 0);
-            }
-            else
-            {
-                //compare against the current version
-                selection = result.Where((version) => VersionComparer.VersionRelease.Compare(version, CurrentVersion) > 0);
-            }
 
             //filter the versions against the target channel
-            selection = selection.Where((version) =>
+            selection = result.Where((version) =>
             {
                 List<string> releaseLabels = null;
                 if (targetChannel == releaseChannelName)
@@ -140,6 +126,16 @@ namespace Orts.Common.Info
                 SemanticVersion other = new SemanticVersion(version.Major, version.Minor, version.Patch, releaseLabels, version.Metadata);
                 return VersionComparer.VersionRelease.Compare(version, other) >= 0;
             });
+            if (!string.IsNullOrEmpty(targetVersion))
+            {
+                if (!NuGetVersion.TryParse(targetVersion, out NuGetVersion target))
+                    throw new ArgumentException($"{targetVersion} is not a valid version for parameter {nameof(targetVersion)}");
+                //compare against the current version and the target version
+                selection = result.Where(
+                    (version) => VersionComparer.VersionRelease.Compare(version, CurrentVersion) > 0 &&
+                    VersionComparer.VersionRelease.Compare(version, target) <= 0);
+            }
+
             return selection.OrderByDescending((v) => v).ToList();
         }
 
