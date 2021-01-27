@@ -78,6 +78,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public Orts.ActivityRunner.Viewer3D.Processes.Game Game { get; private set; }
         public Simulator Simulator { get; private set; }
         public World World { get; private set; }
+        private SoundSource ViewerSounds { get; set; }
         /// <summary>
         /// Monotonically increasing time value (in seconds) for the game/viewer. Starts at 0 and only ever increases, at real-time.
         /// </summary>
@@ -401,6 +402,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             if (PlayerLocomotive == null) PlayerLocomotive = Simulator.InitialPlayerLocomotive();
             SelectedTrain = PlayerTrain;
+            PlayerTrain.InitializePlayerTrainData();
             if (PlayerTrain.TrainType == TrainType.AiPlayerHosting)
             {
                 Simulator.InitializeAiPlayerHosting();
@@ -445,6 +447,14 @@ namespace Orts.ActivityRunner.Viewer3D
 
             World = new World(this, Simulator.ClockTime);
 
+            ViewerSounds = new SoundSource(this, soundSource => new[]
+            {
+                new SoundStream(soundSource, soundStream => new[]
+                {
+                    new ORTSDiscreteTrigger(soundStream, TrainEvent.TakeScreenshot, ORTSSoundCommand.Precompiled(Path.Combine(ContentPath, "TakeScreenshot.wav"), soundStream)),
+                }),
+            });
+            SoundProcess.AddSoundSource(this, ViewerSounds);
             Simulator.Confirmer.PlayErrorSound += (s, e) =>
             {
                 if (World.GameSounds != null)
@@ -496,6 +506,8 @@ namespace Orts.ActivityRunner.Viewer3D
             EmergencyPushButtonCommand.Receiver = (MSTSLocomotive)PlayerLocomotive;
             HandbrakeCommand.Receiver = (MSTSLocomotive)PlayerLocomotive;
             BailOffCommand.Receiver = (MSTSLocomotive)PlayerLocomotive;
+            QuickReleaseCommand.Receiver = (MSTSLocomotive)PlayerLocomotive;
+            BrakeOverchargeCommand.Receiver = (MSTSLocomotive)PlayerLocomotive;
             RetainersCommand.Receiver = (MSTSLocomotive)PlayerLocomotive;
             BrakeHoseConnectCommand.Receiver = (MSTSLocomotive)PlayerLocomotive;
             ToggleWaterScoopCommand.Receiver = (MSTSLocomotive)PlayerLocomotive;
@@ -1784,7 +1796,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 // Hide MessageWindow
                 MessagesWindow.Visible = false;
                 // Audible confirmation that screenshot taken
-                if (World.GameSounds != null) World.GameSounds.HandleEvent(TrainEvent.ControlError);
+                ViewerSounds.HandleEvent(TrainEvent.TakeScreenshot);
             }
 
             // Use IsDown() not IsPressed() so users can take multiple screenshots as fast as possible by holding down the key.

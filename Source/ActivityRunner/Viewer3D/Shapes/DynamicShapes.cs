@@ -16,6 +16,8 @@ using Orts.Formats.Msts.Models;
 using Orts.Simulation;
 using Orts.Simulation.RollingStocks;
 
+using Hazard = Orts.Simulation.Hazard;
+
 namespace Orts.ActivityRunner.Viewer3D.Shapes
 {
     /// <summary>
@@ -701,7 +703,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
     public class HazardShape : PoseableShape
     {
         readonly HazardObject hazardObject;
-        readonly Hazzard hazard;
+        readonly Hazard hazard;
 
         private readonly int animationFrames;
         private double moved = 0f;
@@ -717,7 +719,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
         }
 
-        public HazardShape(string path, IWorldPosition positionSource, ShapeFlags shapeFlags, HazardObject hazardObject, Hazzard h)
+        public HazardShape(string path, IWorldPosition positionSource, ShapeFlags shapeFlags, HazardObject hazardObject, Hazard h)
             : base(path, positionSource, shapeFlags)
         {
             this.hazardObject = hazardObject;
@@ -740,15 +742,15 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             delayHazAnimation += elapsedTime.ClockSeconds;
             switch (hazard.state)
             {
-                case Hazzard.State.Idle1:
+                case Hazard.State.Idle1:
                     currentRange = hazard.HazFile.Hazard.IdleKey; break;
-                case Hazzard.State.Idle2:
+                case Hazard.State.Idle2:
                     currentRange = hazard.HazFile.Hazard.IdleKey2; break;
-                case Hazzard.State.LookLeft:
+                case Hazard.State.LookLeft:
                     currentRange = hazard.HazFile.Hazard.SurpriseKeyLeft; break;
-                case Hazzard.State.LookRight:
+                case Hazard.State.LookRight:
                     currentRange = hazard.HazFile.Hazard.SurpriseKeyRight; break;
-                case Hazzard.State.Scared:
+                case Hazard.State.Scared:
                 default:
                     currentRange = hazard.HazFile.Hazard.SuccessScarperKey;
                     if (moved < hazard.HazFile.Hazard.Distance)
@@ -763,15 +765,15 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                     else
                     {
                         moved = 0;
-                        hazard.state = Hazzard.State.Idle1;
+                        hazard.state = Hazard.State.Idle1;
                     }
                     break;
             }
 
             switch (hazard.state)
             {
-                case Hazzard.State.Idle1:
-                case Hazzard.State.Idle2:
+                case Hazard.State.Idle1:
+                case Hazard.State.Idle2:
                     if (delayHazAnimation > 5.0)
                     {
                         if (animationKey < currentRange.X)
@@ -787,14 +789,14 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                         }
                     }
                     break;
-                case Hazzard.State.LookLeft:
-                case Hazzard.State.LookRight:
+                case Hazard.State.LookLeft:
+                case Hazard.State.LookRight:
                     if (animationKey < currentRange.X)
                         animationKey = currentRange.X;
                     if (animationKey > currentRange.Y)
                         animationKey = currentRange.Y;
                     break;
-                case Hazzard.State.Scared:
+                case Hazard.State.Scared:
                     if (animationKey < currentRange.X)
                         animationKey = currentRange.X;
                     if (animationKey > currentRange.Y)

@@ -111,6 +111,8 @@ namespace Orts.Simulation.Signalling
         public int TrackCircuitNextIndex { get; private set; } = -1;    // Index of next TrackCircuit (NORMAL signals only)
         public TrackDirection TrackCircuitNextDirection { get; private set; } // Direction of next TrackCircuit 
 
+        public bool CallOnEnabled { get; internal set; }      // set if signal script file uses CallOn functionality
+
         internal static void Initialize(SignalEnvironment signals, TrackNode[] trackNodes, TrackItem[] trackItems)
         {
             signalEnvironment = signals;               // reference to overlaying Signal class
@@ -1782,6 +1784,10 @@ namespace Orts.Simulation.Signalling
             // build output route from input route
             TrackCircuitPartialPathRoute newRoute = new TrackCircuitPartialPathRoute(route);
 
+            // don't clear if enabled for another train
+            if (EnabledTrain != null && EnabledTrain != train)
+                return newRoute;
+
             // if signal has fixed route, use that else build route
             if (fixedRoute?.Count > 0)
             {
@@ -1832,40 +1838,51 @@ namespace Orts.Simulation.Signalling
             if (extendRoute && fullRoute)
             {
                 isPropagated = propagated;
-                int reqNumClearAhead;
-                if (SignalNumClearAheadMsts > -2)
-                {
-                    reqNumClearAhead = propagated ? signalNumClearAhead - signalNumberNormalHeads : SignalNumClearAheadMsts - signalNumberNormalHeads;
-                }
-                else
-                {
-                    if (SignalNumClearAheadActive == -1)
-                    {
-                        reqNumClearAhead = propagated ? signalNumClearAhead : 1;
-                    }
-                    else if (SignalNumClearAheadActive == 0)
-                    {
-                        reqNumClearAhead = 0;
-                    }
-                    else
-                    {
-                        reqNumClearAhead = isPropagated ? signalNumClearAhead - 1 : SignalNumClearAheadActive - 1;
-                    }
-                }
-
-                if (reqNumClearAhead > 0)
+                int ReqNumClearAhead = GetRequestNumberClearAheadExplorer(isPropagated, signalNumClearAhead);
+                if (ReqNumClearAhead > 0)
                 {
                     int nextSignalIndex = Signalfound[(int)SignalFunction.Normal];
                     if (nextSignalIndex >= 0)
                     {
                         Signal nextSignal = signalEnvironment.Signals[nextSignalIndex];
-                        newRoute = nextSignal.RequestClearSignalExplorer(newRoute, train, true, reqNumClearAhead);
+                        newRoute = nextSignal.RequestClearSignalExplorer(newRoute, train, true, ReqNumClearAhead);
                     }
                 }
             }
 
-            return newRoute;
+            return (newRoute);
         }
+
+        //================================================================================================//
+        /// <summary>
+        /// number of remaining signals to clear
+        /// </summary>
+        public int GetRequestNumberClearAheadExplorer(bool propagated, int signalNumClearAhead)
+        {
+            int requestNumberClearAhead;
+            if (SignalNumClearAheadMsts > -2)
+            {
+                requestNumberClearAhead = propagated ?  signalNumClearAhead - signalNumberNormalHeads : SignalNumClearAheadMsts - signalNumberNormalHeads;
+            }
+            else
+            {
+                if (SignalNumClearAheadActive == -1)
+                {
+                    requestNumberClearAhead = propagated ? signalNumClearAhead : 1;
+                }
+                else if (SignalNumClearAheadActive == 0)
+                {
+                    requestNumberClearAhead = 0;
+                }
+                else
+                {
+                    requestNumberClearAhead = isPropagated ? signalNumClearAhead - 1 : SignalNumClearAheadActive - 1;
+                }
+            }
+
+            return requestNumberClearAhead;
+        }
+
         //================================================================================================//
         /// <summary>
         /// request to clear signal
@@ -3071,6 +3088,7 @@ namespace Orts.Simulation.Signalling
             }
 
             bool found = false;
+            bool isNormal = SignalNormal();
             float distance = 0;
             TrackCircuitPartialPathRoute routePath = EnabledTrain.Train.ValidRoute[EnabledTrain.TrainRouteDirectionIndex];
             int actRouteIndex = routePath == null ? -1 : routePath.GetRouteIndex(EnabledTrain.Train.PresentPosition[EnabledTrain.Direction].TrackCircuitSectionIndex, 0);
@@ -3082,22 +3100,33 @@ namespace Orts.Simulation.Signalling
                 else
                     offset = TrackCircuitSection.TrackCircuitList[EnabledTrain.Train.PresentPosition[Direction.Backward].TrackCircuitSectionIndex].Length - EnabledTrain.Train.PresentPosition[Direction.Backward].Offset;
 
-                while (!found)
+                while (!found && actRouteIndex < routePath.Count)
                 {
-                    TrackCircuitRouteElement element = routePath[actRouteIndex];
-                    TrackCircuitSection section = element.TrackCircuitSection;
-                    distance += section.Length - offset;
-                    if (section.EndSignals[element.Direction] == this)
+                    TrackCircuitRouteElement routeElement = routePath[actRouteIndex];
+                    TrackCircuitSection section = routeElement.TrackCircuitSection;
+                    if (section.EndSignals[routeElement.Direction] == this)
                     {
+                        distance += section.Length - offset;
                         found = true;
                     }
-                    else
+                    else if (!isNormal)
                     {
+                        TrackCircuitSignalList signalList = section.CircuitItems.TrackCircuitSignals[routeElement.Direction][SignalHeads[0].OrtsSignalFunctionIndex];
+                        foreach (TrackCircuitSignalItem signal in signalList)
+                        {
+                            if (signal.Signal == this)
+                            {
+                                distance += signal.SignalLocation - offset;
+                                found = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (!found)
+                    {
+                        distance += section.Length - offset;
                         offset = 0;
-                        int setSection = section.ActivePins[element.OutPin[Location.NearEnd], (Location)element.OutPin[Location.FarEnd]].Link;
                         actRouteIndex++;
-                        if (actRouteIndex >= routePath.Count || setSection < 0)
-                            break;
                     }
                 }
             }
@@ -3549,6 +3578,8 @@ namespace Orts.Simulation.Signalling
             bool[] returnValue = new bool[2];
             SignalAspectState thisAspect = SignalLR(SignalFunction.Normal);
 
+            SetManualCallOn(false);
+
             // signal not enabled - set lock, reset if cleared (auto signal can clear without enabling)
             if (EnabledTrain == null || EnabledTrain.Train == null)
             {
@@ -3602,6 +3633,26 @@ namespace Orts.Simulation.Signalling
         public void DispatcherClearHoldSignal()
         {
             HoldState = SignalHoldState.None;
+        }
+
+        //================================================================================================//
+        /// <summary>
+        /// Set call on manually from dispatcher
+        /// </summary>
+        public void SetManualCallOn(bool state)
+        {
+            if (EnabledTrain != null)
+            {
+                if (state && CallOnEnabled)
+                {
+                    EnabledTrain.Train.AllowedCallOnSignal = this;
+                    DispatcherClearHoldSignal();
+                }
+                else if (EnabledTrain.Train.AllowedCallOnSignal == this)
+                {
+                    EnabledTrain.Train.AllowedCallOnSignal = null;
+                }
+            }
         }
 
         //================================================================================================//

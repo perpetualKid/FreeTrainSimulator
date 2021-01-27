@@ -181,7 +181,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             bool showRetainers = train.RetainerSetting != RetainerSetting.Exhaust;
             bool stretched = train.Cars.Count > 1 && train.CouplersPulled == train.Cars.Count - 1;
             bool bunched = !stretched && train.Cars.Count > 1 && train.CouplersPushed == train.Cars.Count - 1;
-            TrainInfo trainInfo = train.GetTrainInfo();
+            Orts.Simulation.Physics.TrainInfo trainInfo = train.GetTrainInfo();
 
             // First Block
             // Client and server may have a time difference.

@@ -407,14 +407,26 @@ the texts do not overlap. As a result, only the first object is always
 shown at the correct position, all other objects are as close to their 
 position as allowed by other objects closer to the train.
 
+Pressing ``<Shift+F4>`` toggles the Track Monitor's *immersive mode*. In this 
+mode, the window conceals upcoming signal aspects and upcoming signal speed 
+limits and does not display upcoming diverging switches. However, it retains 
+the locations of signals, mileposts, permanent speed limits, sidings, and 
+stations. This level of assistance reflects the route knowledge that a train 
+driver could be expected to know by memory.
+
 F6 Siding and Platform Names
 ----------------------------
 
-Hit the ``<F6>`` key to bring up the siding and platform names within a 
-region. These can be crowded so hitting ``<Shift+F6>`` will cycle 
-through showing platforms only, sidings only, and both.
+Hit the ``<F6>`` key to reveal labels naming the siding and platforms.
+Hit it again to hide them.
 
-Hitting ``<F6>`` again removes both siding and platform names.
+Items more distant will show more faded and platforms disappear altogether if more than 1km away from the user; 
+sidings disappear if more than 0.5km away.
+
+Use ``<Shift+F6>`` to cycle through platforms only (in yellow), sidings only (in orange), and both together.
+
+If the user is in Activity Mode or Timetable Mode, then a 4th step is added to the cycle and this step removes
+any labels not relevant to the activity or timetable.
 
 .. image:: images/driving-siding-names.png
 
@@ -749,6 +761,12 @@ When left- or right-clicking on a signal, a pop-up menu appears:
 
 Using the mouse, you can force the signal to Stop, Approach or Proceed. 
 Later you can return it to System Controlled mode.
+
+For signals using the TrainHasCallOn functions as described 
+:ref:`here <operation-callon-functions>`, an additional option labeled
+``Enable CallOn`` will appear in the pop-up menu. The use of this
+function allows a train to enter into an occupied platform if the
+dispatcher allows so.
 
 By left- or right-clicking on a switch, a small pop-up menu with the two 
 selections ``Main route`` and ``Side route`` appears. By clicking on them 

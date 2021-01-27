@@ -32,14 +32,17 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
         readonly MSTSLocomotive Locomotive;
         readonly Simulator Simulator;
 
-        public bool Activated;
-        string ScriptName = "MSTS";
+        private readonly bool activated;
+        private string scriptName = "MSTS";
         BrakeController Script;
-        public List<INotchController> Notches = new List<INotchController>();
+        public List<INotchController> Notches { get; } = new List<INotchController>();
 
-        private bool emergencyBrakingPushButton = false;
-        private bool tcsEmergencyBraking = false;
-        private bool tcsFullServiceBraking = false;
+        private bool emergencyBrakingPushButton;
+        private bool tcsEmergencyBraking;
+        private bool tcsFullServiceBraking;
+        private bool overchargeButtonPressed;
+        private bool quickReleaseButtonPressed;
+
         public bool EmergencyBraking
         {
             get
@@ -47,6 +50,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                 return emergencyBrakingPushButton || tcsEmergencyBraking || (Script.GetState() == ControllerState.Emergency);
             }
         }
+
         public bool EmergencyBrakingPushButton
         {
             get
@@ -66,6 +70,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                 emergencyBrakingPushButton = value;
             }
         }
+
         public bool TCSEmergencyBraking
         {
             get
@@ -85,6 +90,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                 tcsEmergencyBraking = value;
             }
         }
+
         public bool TCSFullServiceBraking
         {
             get
@@ -103,9 +109,52 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             }
         }
 
+        public bool QuickReleaseButtonPressed
+        {
+            get
+            {
+                return quickReleaseButtonPressed;
+            }
+            set
+            {
+                if (Simulator.Confirmer != null)
+                {
+                    if (value && !quickReleaseButtonPressed)
+                        Simulator.Confirmer.Confirm(CabControl.QuickRelease, CabSetting.On);
+                    else if (!value && quickReleaseButtonPressed)
+                        Simulator.Confirmer.Confirm(CabControl.QuickRelease, CabSetting.Off);
+                }
+
+                quickReleaseButtonPressed = value;
+            }
+        }
+
+        public bool OverchargeButtonPressed
+        {
+            get
+            {
+                return overchargeButtonPressed;
+            }
+            set
+            {
+                if (Simulator.Confirmer != null)
+                {
+                    if (value && !overchargeButtonPressed)
+                        Simulator.Confirmer.Confirm(CabControl.Overcharge, CabSetting.On);
+                    else if (!value && overchargeButtonPressed)
+                        Simulator.Confirmer.Confirm(CabControl.Overcharge, CabSetting.Off);
+                }
+
+                overchargeButtonPressed = value;
+            }
+        }
+
         public float MaxPressurePSI { get; set; }
+        public float MaxOverchargePressurePSI { get; private set; }
         public float ReleaseRatePSIpS { get; private set; }
         public float QuickReleaseRatePSIpS { get; private set; }
+        public float OverchargeEliminationRatePSIpS { get; private set; }
+        public float SlowApplicationRatePSIpS { get; private set; }
         public float ApplyRatePSIpS { get; private set; }
         public float EmergencyRatePSIpS { get; private set; }
         public float FullServReductionPSI { get; private set; }
@@ -125,11 +174,14 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
         {
             get
             {
-                return Notches.Count > 0 ? Notches[CurrentNotch].NotchStateType : ControllerState.Dummy;
+                if (Script is MSTSBrakeController)
+                    return Notches.Count > 0 ? Notches[CurrentNotch].NotchStateType : ControllerState.Dummy;
+                else
+                    return Script.GetState();
             }
         }
 
-        float OldValue;
+        private float oldValue;
 
         public float CurrentValue { get; set; }
         public float MinimumValue { get; set; }
@@ -144,9 +196,12 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             Locomotive = locomotive;
 
             MaxPressurePSI = 90;
+            MaxOverchargePressurePSI = 95;
             ReleaseRatePSIpS = 5;
             QuickReleaseRatePSIpS = 10;
+            OverchargeEliminationRatePSIpS = 0.036f;
             ApplyRatePSIpS = 2;
+            SlowApplicationRatePSIpS = 1;
             EmergencyRatePSIpS = 10;
             FullServReductionPSI = 26;
             MinReductionPSI = 6;
@@ -157,11 +212,14 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             Simulator = locomotive.Simulator;
             Locomotive = locomotive;
 
-            ScriptName = controller.ScriptName;
+            scriptName = controller.scriptName;
             MaxPressurePSI = controller.MaxPressurePSI;
+            MaxOverchargePressurePSI = controller.MaxOverchargePressurePSI;
             ReleaseRatePSIpS = controller.ReleaseRatePSIpS;
             QuickReleaseRatePSIpS = controller.QuickReleaseRatePSIpS;
+            OverchargeEliminationRatePSIpS = controller.OverchargeEliminationRatePSIpS;
             ApplyRatePSIpS = controller.ApplyRatePSIpS;
+            SlowApplicationRatePSIpS = controller.SlowApplicationRatePSIpS;
             EmergencyRatePSIpS = controller.EmergencyRatePSIpS;
             FullServReductionPSI = controller.FullServReductionPSI;
             MinReductionPSI = controller.MinReductionPSI;
@@ -197,6 +255,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                     MaxPressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null);
                     break;
 
+                case "engine(ortstrainbrakescontrollermaxoverchargepressure":
+                    MaxOverchargePressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null);
+                    break;
+
                 case "engine(trainbrakescontrollermaxreleaserate":
                 case "engine(enginebrakescontrollermaxreleaserate":    
                     ReleaseRatePSIpS = stf.ReadFloatBlock(STFReader.Units.PressureRateDefaultPSIpS, null);
@@ -205,6 +267,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                 case "engine(trainbrakescontrollermaxquickreleaserate":
                 case "engine(enginebrakescontrollermaxquickreleaserate":
                     QuickReleaseRatePSIpS = stf.ReadFloatBlock(STFReader.Units.PressureRateDefaultPSIpS, null);
+                    break;
+
+                case "engine(ortstrainbrakescontrolleroverchargeeliminationrate":
+                    OverchargeEliminationRatePSIpS = stf.ReadFloatBlock(STFReader.Units.PressureRateDefaultPSIpS, null);
                     break;
 
                 case "engine(trainbrakescontrollermaxapplicationrate":
@@ -225,6 +291,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                 case "engine(trainbrakescontrollerminpressurereduction":
                 case "engine(enginebrakescontrollerminpressurereduction":
                     MinReductionPSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null);
+                    break;
+
+                case "engine(ortstrainbrakescontrollerslowapplicationrate":
+                case "engine(ortsenginebrakescontrollerslowapplicationrate":
+                    SlowApplicationRatePSIpS = stf.ReadFloatBlock(STFReader.Units.PressureRateDefaultPSIpS, null);
                     break;
 
                 case "engine(enginecontrollers(brake_train":
@@ -256,7 +327,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                 case "engine(ortsenginebrakecontroller":
                     if (Locomotive.Train as AITrain == null)
                     {
-                        ScriptName = stf.ReadStringBlock(null);
+                        scriptName = stf.ReadStringBlock(null);
                     }
                     break;
             }
@@ -264,11 +335,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
 
         public void Initialize()
         {
-            if (!Activated)
+            if (!activated)
             {
-                if (ScriptName != null && ScriptName != "MSTS")
+                if (scriptName != null && scriptName != "MSTS")
                 {
-                    Script = Simulator.ScriptManager.Load(Path.Combine(Path.GetDirectoryName(Locomotive.WagFilePath), "Script"), ScriptName) as BrakeController;
+                    Script = Simulator.ScriptManager.Load(Path.Combine(Path.GetDirectoryName(Locomotive.WagFilePath), "Script"), scriptName) as BrakeController;
                 }
                 if (Script == null)
                 {
@@ -280,11 +351,14 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                 Script.ClockTime = () => (float)Simulator.ClockTime;
                 Script.GameTime = () => (float)Simulator.GameTime;
                 Script.DistanceM = () => Locomotive.DistanceM;
+                Script.SpeedMpS = () => Math.Abs(Locomotive.SpeedMpS);
 
                 // BrakeController
                 Script.EmergencyBrakingPushButton = () => EmergencyBrakingPushButton;
                 Script.TCSEmergencyBraking = () => TCSEmergencyBraking;
                 Script.TCSFullServiceBraking = () => TCSFullServiceBraking;
+                Script.QuickReleaseButtonPressed = () => QuickReleaseButtonPressed;
+                Script.OverchargeButtonPressed = () => OverchargeButtonPressed;
 
                 Script.MainReservoirPressureBar = () =>
                 {
@@ -294,8 +368,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                         return float.MaxValue;
                 };
                 Script.MaxPressureBar = () => (float)Pressure.Atmospheric.FromPSI(MaxPressurePSI);
+                Script.MaxOverchargePressureBar = () => (float)Pressure.Atmospheric.FromPSI(MaxOverchargePressurePSI);
                 Script.ReleaseRateBarpS = () => (float)Rate.Pressure.FromPSIpS(ReleaseRatePSIpS);
                 Script.QuickReleaseRateBarpS = () => (float)Rate.Pressure.FromPSIpS(QuickReleaseRatePSIpS);
+                Script.OverchargeEliminationRateBarpS = () => (float)Rate.Pressure.FromPSIpS(OverchargeEliminationRatePSIpS);
+                Script.SlowApplicationRateBarpS = () => (float)Rate.Pressure.FromPSIpS(SlowApplicationRatePSIpS);
                 Script.ApplyRateBarpS = () => (float)Rate.Pressure.FromPSIpS(ApplyRatePSIpS);
                 Script.EmergencyRateBarpS = () => (float)Rate.Pressure.FromPSIpS(EmergencyRatePSIpS);
                 Script.FullServReductionBar = () => (float)Pressure.Atmospheric.FromPSI(FullServReductionPSI);
@@ -309,6 +386,15 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
 
                 Script.SetCurrentValue = (value) => CurrentValue = value;
                 Script.SetUpdateValue = (value) => UpdateValue = value;
+
+                Script.SetDynamicBrakeIntervention = (value) =>
+                {
+                    // TODO: Set dynamic brake intervention instead of controller position
+                    // There are some issues that need to be identified and fixed before setting the intervention directly
+                    if (Locomotive.DynamicBrakeController == null) return;
+                    Locomotive.DynamicBrakeChangeActiveState(value > 0);
+                    Locomotive.DynamicBrakeController.SetValue(value);
+                };
 
                 Script.Initialize();
             }
@@ -411,10 +497,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             var oldNotch = CurrentNotch;
             SignalEvent(BrakeControllerEvent.SetCurrentValue, value);
 
-            var change = CurrentNotch > oldNotch || CurrentValue > OldValue + 0.1f || CurrentValue == 1 && OldValue < 1
-                ? 1 : CurrentNotch < oldNotch || CurrentValue < OldValue - 0.1f || CurrentValue == 0 && OldValue > 0 ? -1 : 0;
+            var change = CurrentNotch > oldNotch || CurrentValue > oldValue + 0.1f || CurrentValue == 1 && oldValue < 1
+                ? 1 : CurrentNotch < oldNotch || CurrentValue < oldValue - 0.1f || CurrentValue == 0 && oldValue > 0 ? -1 : 0;
             if (change != 0)
-                OldValue = CurrentValue;
+                oldValue = CurrentValue;
             return change;
         }
 

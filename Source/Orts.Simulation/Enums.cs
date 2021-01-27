@@ -38,7 +38,10 @@ namespace Orts.Simulation
         OutOfControl,
         WaitingPoint,
         Milepost,
-        FacingSwitch
+        FacingSwitch,
+        TrailingSwitch,
+        GenericSignal,
+        Tunnel,
     }
 
     public enum OutOfControlReason

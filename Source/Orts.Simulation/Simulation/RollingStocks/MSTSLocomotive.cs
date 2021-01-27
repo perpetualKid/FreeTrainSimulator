@@ -314,6 +314,7 @@ namespace Orts.Simulation.RollingStocks
         public float BrakeServiceTimeFactorS;
         public float BrakeEmergencyTimeFactorS;
         public float BrakePipeChargingRatePSIorInHgpS;
+        public float BrakePipeQuickChargingRatePSIpS;
         public Interpolator2D TractiveForceCurves;
         public Interpolator2D DynamicBrakeForceCurves;
         public float DynamicBrakeSpeed1MpS = (float)Speed.MeterPerSecond.FromKpH(5);
@@ -714,7 +715,14 @@ namespace Orts.Simulation.RollingStocks
             if (!(this is MSTSSteamLocomotive))
                 InitializeFromORTSSpecific(Path.Combine(cab3dBasePath, cvfFileName), extendedCVF);
 
-            return new CabView3D(cvfFile, CabViewpoints, extendedCVF, CabViewType.Front, noseAhead, shapeFilePath);
+            var cabViewAngle = CabViewpoints[0].StartDirection.Y;
+            var cabViewType = (cabViewAngle >= 90 && cabViewAngle <= 270) || (cabViewAngle <= -90 && cabViewAngle >= -270) ? CabViewType.Rear : CabViewType.Front;
+
+            // only one cabview, and it looks rear; insert a void one at first place to maintain fast indexing
+            if (CabViewpoints.Count == 1 && cabViewType == CabViewType.Rear)
+                CabViewpoints.Insert(0, new PassengerViewPoint());
+
+            return new CabView3D(cvfFile, CabViewpoints, extendedCVF, cabViewType, noseAhead, shapeFilePath);
         }
 
         /// <summary>
@@ -752,12 +760,15 @@ namespace Orts.Simulation.RollingStocks
                 case "engine(enginecontrollers(brake_dynamic": DynamicBrakeController.Parse(stf); break;
 
                 case "engine(trainbrakescontrollermaxsystempressure":
+                case "engine(ortstrainbrakescontrollermaxoverchargepressure":
                 case "engine(trainbrakescontrollermaxreleaserate":
                 case "engine(trainbrakescontrollermaxquickreleaserate":
+                case "engine(ortstrainbrakescontrolleroverchargeeliminationrate":
                 case "engine(trainbrakescontrollermaxapplicationrate":
                 case "engine(trainbrakescontrolleremergencyapplicationrate":
                 case "engine(trainbrakescontrollerfullservicepressuredrop":
                 case "engine(trainbrakescontrollerminpressurereduction":
+                case "engine(ortstrainbrakescontrollerslowapplicationrate":
                 case "engine(ortstrainbrakecontroller":
                 case "engine(enginecontrollers(brake_train":
                     TrainBrakeController.Parse(lowercasetoken, stf);
@@ -771,6 +782,7 @@ namespace Orts.Simulation.RollingStocks
                 case "engine(enginebrakescontrolleremergencyapplicationrate":
                 case "engine(enginebrakescontrollerfullservicepressuredrop":
                 case "engine(enginebrakescontrollerminpressurereduction":
+                case "engine(ortsenginebrakescontrollerslowapplicationrate":
                 case "engine(enginecontrollers(brake_engine":
                 case "engine(ortsenginebrakecontroller":
                     EngineBrakeController.Parse(lowercasetoken, stf);
@@ -807,6 +819,7 @@ namespace Orts.Simulation.RollingStocks
                 case "engine(ortsbrakeservicetimefactor": BrakeServiceTimeFactorS = stf.ReadFloatBlock(STFReader.Units.Time, null); break;
                 case "engine(ortsbrakeemergencytimefactor": BrakeEmergencyTimeFactorS = stf.ReadFloatBlock(STFReader.Units.Time, null); break;
                 case "engine(ortsbrakepipechargingrate": BrakePipeChargingRatePSIorInHgpS = stf.ReadFloatBlock(STFReader.Units.PressureRateDefaultPSIpS, null); break;
+                case "engine(ortsbrakepipequickchargingrate": BrakePipeQuickChargingRatePSIpS = stf.ReadFloatBlock(STFReader.Units.PressureRateDefaultPSIpS, null); break;
                 case "engine(ortsbrakepipedischargetimemult": BrakePipeDischargeTimeFactor = stf.ReadFloatBlock(STFReader.Units.None, null); break;
                 case "engine(ortsmaxtractiveforcecurves": TractiveForceCurves = stf.CreateInterpolator2D(false); TractiveForceCurves.CheckForNegativeValues(); break;
                 case "engine(ortstractioncharacteristics": TractiveForceCurves = stf.CreateInterpolator2D(true); break;
@@ -827,7 +840,8 @@ namespace Orts.Simulation.RollingStocks
                 case "engine(ortsdynamicbrakeshasautobailoff": DynamicBrakeAutoBailOff = stf.ReadBoolBlock(true); break;
                 case "engine(dynamicbrakesdelaytimebeforeengaging": DynamicBrakeDelayS = stf.ReadFloatBlock(STFReader.Units.Time, null); break;
                 case "engine(dynamicbrakesresistorcurrentlimit": DynamicBrakeMaxCurrentA = stf.ReadFloatBlock(STFReader.Units.Current, null); break;
-                case "engine(numwheels": LocoNumDrvWheels = stf.ReadFloatBlock(STFReader.Units.None, 4.0f); if (LocoNumDrvWheels < 1) STFException.TraceWarning(stf, "Engine:NumWheels is less than 1, parts of the simulation may not function correctly"); break;
+                case "engine(numwheels": MSTSLocoNumDrvWheels = stf.ReadFloatBlock(STFReader.Units.None, 4.0f); if (MSTSLocoNumDrvWheels < 1) STFException.TraceWarning(stf, "Engine:NumWheels is less than 1, parts of the simulation may not function correctly"); break;
+                case "engine(ortsnumberdriveaxles": LocoNumDrvAxles = stf.ReadIntBlock(null); if (LocoNumDrvAxles < 1) STFException.TraceWarning(stf, "Engine:ORTSNumberDriveAxles is less than 1, parts of the simulation may not function correctly"); break;
                 case "engine(antislip": AntiSlip = stf.ReadBoolBlock(false); break;
                 case "engine(ortsdrivewheelweight": InitialDrvWheelWeightKg = stf.ReadFloatBlock(STFReader.Units.Mass, null); break;
                 case "engine(engineoperatingprocedures": EngineOperatingProcedures = stf.ReadStringBlock(""); break;
@@ -944,7 +958,8 @@ namespace Orts.Simulation.RollingStocks
             DynamicBrakeDelayS = locoCopy.DynamicBrakeDelayS;
             MaxDynamicBrakeForceN = locoCopy.MaxDynamicBrakeForceN;
             HasSmoothStruc = locoCopy.HasSmoothStruc;
-            LocoNumDrvWheels = locoCopy.LocoNumDrvWheels;
+            LocoNumDrvAxles = locoCopy.LocoNumDrvAxles;
+            MSTSLocoNumDrvWheels = locoCopy.MSTSLocoNumDrvWheels;
             AntiSlip = locoCopy.AntiSlip;
             VacuumPumpFitted = locoCopy.VacuumPumpFitted;
             FastVacuumExhausterFitted = locoCopy.FastVacuumExhausterFitted;
@@ -1225,6 +1240,25 @@ namespace Orts.Simulation.RollingStocks
                 CurrentTrackSandBoxCapacityM3 = MaxTrackSandBoxCapacityM3;
             }
             
+            // Ensure Drive Axles is set with a default value if user doesn't supply an OR value in ENG file
+            if (LocoNumDrvAxles == 0)
+            {
+                if (MSTSLocoNumDrvWheels != 0 && MSTSLocoNumDrvWheels < 6)
+                {
+                    LocoNumDrvAxles = (int) MSTSLocoNumDrvWheels;
+                }
+                else
+                {
+                    LocoNumDrvAxles = 4; // Set 4 axles as default
+                }
+
+                if (Simulator.Settings.VerboseConfigurationMessages)
+                {
+                    Trace.TraceInformation("Number of Locomotive Drive Axles set to default value of {0}", LocoNumDrvAxles);
+                }
+            }
+               
+
             // Calculate minimum speed to pickup water
             const float Aconst = 2;
             WaterScoopMinSpeedMpS = (float)Size.Length.FromFt(Math.Sqrt(Aconst * GravitationalAccelerationFtpSpS * Size.Length.ToFt(WaterScoopFillElevationM)));
@@ -1242,6 +1276,8 @@ namespace Orts.Simulation.RollingStocks
                     BrakePipeChargingRatePSIorInHgpS = Simulator.Settings.BrakePipeChargingRate; // Air brakes
                 }
             }
+            // Initialise Brake Pipe Quick Charging Rate
+            if (BrakePipeQuickChargingRatePSIpS == 0) BrakePipeQuickChargingRatePSIpS = BrakePipeChargingRatePSIorInHgpS;
 
             // Initialise Exhauster Charging rate in diesel and electric locomotives. The equivalent ejector charging rates are set in the steam locomotive.
             if (this is MSTSDieselLocomotive || this is MSTSElectricLocomotive)
@@ -1305,35 +1341,49 @@ namespace Orts.Simulation.RollingStocks
 
             // Check TrainBrakesControllerMaxSystemPressure parameter for "correct" value 
             // This is only done for vacuum brakes as the UoM can be confusing - it defaults to psi due to way parameter is read, and if units are entered then a InHG value can be incorrectly converted.
-            if ((BrakeSystem is VacuumSinglePipe) && TrainBrakeController.MaxPressurePSI > 10 && TrainBrakeController.MaxPressurePSI < 15)
+            if ((BrakeSystem is VacuumSinglePipe))
             {
-                Trace.TraceInformation("TrainBrakeController.MaxPressurePSI being incorrectly read as {0} Inhg, - set to value of {1} InHg", TrainBrakeController.MaxPressurePSI, Pressure.Atmospheric.ToInHg(Pressure.Atmospheric.FromPSI(TrainBrakeController.MaxPressurePSI)));
-                TrainBrakeController.MaxPressurePSI = (float)Pressure.Atmospheric.ToInHg(Pressure.Atmospheric.FromPSI(TrainBrakeController.MaxPressurePSI));
+                if (TrainBrakeController.MaxPressurePSI == 21 || TrainBrakeController.MaxPressurePSI == 25) // If 21 or 25 has been entered assume that it is 21InHg or 25InHg, and convert it to the correct psi equivalent
+                {
+                    float TempMaxPressure = TrainBrakeController.MaxPressurePSI;
+
+                    // Convert assumed inHg value to psi
+                    TrainBrakeController.MaxPressurePSI = (float)Pressure.Atmospheric.ToPSI(Pressure.Atmospheric.FromInHg(TrainBrakeController.MaxPressurePSI));
+
+                    if (Simulator.Settings.VerboseConfigurationMessages)
+                    {
+                        Trace.TraceInformation("TrainBrakeController.MaxPressurePSI is assumed to be {0} Inhg, - confirmed as a value of {1} InHg", TempMaxPressure, Pressure.Atmospheric.ToInHg(Pressure.Atmospheric.FromPSI(TrainBrakeController.MaxPressurePSI)));
+                    }
+                    
+                }
+                else if (TrainBrakeController.MaxPressurePSI < 10 || TrainBrakeController.MaxPressurePSI > 13) // Outside an acceptable range, then convert to a fixed default
+                {
+                    if (Simulator.Settings.VerboseConfigurationMessages)
+                    {
+                        Trace.TraceInformation("TrainBrakeController.MaxPressurePSI being incorrectly read as {0} Inhg, - set to a default value of {1} InHg", TrainBrakeController.MaxPressurePSI, Pressure.Atmospheric.ToInHg(Pressure.Atmospheric.FromPSI(Pressure.Atmospheric.ToPSI(Pressure.Atmospheric.FromInHg(21.0f)))));
+                    }
+                    TrainBrakeController.MaxPressurePSI = (float)Pressure.Atmospheric.ToPSI(Pressure.Atmospheric.FromInHg(21.0f));
+                }
             }
 
-            // Check initialisation of brake cutoff values - set if zero values or are greater then atmospheric pressure as this will put them "out of range" in vacuum brakes class
-            if ((BrakeSystem is VacuumSinglePipe) && ( BrakeCutsPowerAtBrakePipePressurePSI == 0 || BrakeCutsPowerAtBrakePipePressurePSI > OneAtmospherePSI))
-            {
-                BrakeCutsPowerAtBrakePipePressurePSI = (float)Pressure.Atmospheric.ToPSI(Pressure.Atmospheric.FromInHg(12.5f)); // Power is cut @ 12.5 InHg
-
-                // TODO - set for verbose messaging option
-                Trace.TraceInformation("BrakeCutsPowerAtBrakePipePressure appears out of limits, and has been set to value of {0} InHg", BrakeCutsPowerAtBrakePipePressurePSI);
-            }
-
-            if ((BrakeSystem is VacuumSinglePipe) && ( BrakeRestoresPowerAtBrakePipePressurePSI == 0 || BrakeRestoresPowerAtBrakePipePressurePSI > OneAtmospherePSI))
-            {
-                BrakeRestoresPowerAtBrakePipePressurePSI = (float)Pressure.Atmospheric.ToPSI(Pressure.Atmospheric.FromInHg(15.0f)); // Power can be resotred once brake pipe rises above 15 InHg
-                
-                // TODO - set for verbose messaging option
-                Trace.TraceInformation("BrakeRestoresPowerAtBrakePipePressure appears out of limits, and has been set to value of {0} InHg", BrakeRestoresPowerAtBrakePipePressurePSI);
-            }
-
-            if (BrakeCutsPowerAtBrakePipePressurePSI > BrakeRestoresPowerAtBrakePipePressurePSI)
+            if (DoesBrakeCutPower && BrakeCutsPowerAtBrakePipePressurePSI > BrakeRestoresPowerAtBrakePipePressurePSI)
             {
                 BrakeCutsPowerAtBrakePipePressurePSI = BrakeRestoresPowerAtBrakePipePressurePSI - 1.0f;
-                // TODO - set for verbose messaging option
-                Trace.TraceInformation("BrakeCutsPowerAtBrakePipePressure is greater then BrakeRestoresPowerAtBrakePipePressurePSI, and has been set to value of {0} InHg", BrakeCutsPowerAtBrakePipePressurePSI);
 
+                if (Simulator.Settings.VerboseConfigurationMessages)
+                {
+                    Trace.TraceInformation("BrakeCutsPowerAtBrakePipePressure is greater then BrakeRestoresPowerAtBrakePipePressurePSI, and has been set to value of {0} InHg", Pressure.Atmospheric.ToInHg(Pressure.Atmospheric.FromPSI(BrakeCutsPowerAtBrakePipePressurePSI)));
+                }
+            }
+
+            if (DoesBrakeCutPower && (BrakeSystem is VacuumSinglePipe) && (BrakeRestoresPowerAtBrakePipePressurePSI == 0 || BrakeRestoresPowerAtBrakePipePressurePSI > OneAtmospherePSI))
+            {
+                BrakeRestoresPowerAtBrakePipePressurePSI = (float)Pressure.Atmospheric.ToPSI(Pressure.Atmospheric.FromInHg(15.0f)); // Power can be restored once brake pipe rises above 15 InHg
+
+                if (Simulator.Settings.VerboseConfigurationMessages)
+                {
+                    Trace.TraceInformation("BrakeRestoresPowerAtBrakePipePressure appears out of limits, and has been set to value of {0} InHg", Pressure.Atmospheric.ToInHg(Pressure.Atmospheric.FromPSI(BrakeRestoresPowerAtBrakePipePressurePSI)));
+                }
             }
 
             // Initialise Brake Time Factor
@@ -2186,7 +2236,7 @@ namespace Orts.Simulation.RollingStocks
         public void AdvancedAdhesion(double elapsedClockSeconds)
         {
 
-            if (LocoNumDrvWheels <= 0)
+            if (LocoNumDrvAxles <= 0)
             {
                 WheelSpeedMpS = AbsSpeedMpS;
                 return;
@@ -2253,13 +2303,13 @@ namespace Orts.Simulation.RollingStocks
         {
 
             // Check if the following few lines are required???
-            if (LocoNumDrvWheels <= 0)
+            if (LocoNumDrvAxles <= 0)
             {
                 WheelSpeedMpS = AbsSpeedMpS;
                 return;
             }
 
-            if (LocoNumDrvWheels <= 0)
+            if (LocoNumDrvAxles <= 0)
                 return;
 
             //Curtius-Kniffler computation
@@ -2794,7 +2844,7 @@ namespace Orts.Simulation.RollingStocks
 
         public void StartThrottleIncrease()
         {
-            if (DynamicBrakePercent >= 0 || !(DynamicBrakePercent == -1 && !DynamicBrake || DynamicBrakePercent >= 0 && DynamicBrake))
+            if (DynamicBrakeController != null && DynamicBrakeController.CurrentValue >= 0 && (DynamicBrakePercent >= 0 || !(DynamicBrakePercent == -1 && !DynamicBrake || DynamicBrakePercent >= 0 && DynamicBrake)))
             {
                 if (!(CombinedControlType == CombinedControl.ThrottleDynamic
                     || CombinedControlType == CombinedControl.ThrottleAir && TrainBrakeController.CurrentValue > 0))
@@ -4412,6 +4462,21 @@ namespace Orts.Simulation.RollingStocks
                 case CabViewControlType.Train_Brake:
                     {
                         data = (TrainBrakeController == null) ? 0.0f : TrainBrakeController.CurrentValue;
+                        break;
+                    }
+                case CabViewControlType.Orts_Bailoff:
+                    {
+                        data = BailOff ? 1 : 0;
+                        break;
+                    }
+                case CabViewControlType.Orts_QuickRelease:
+                    {
+                        data = (TrainBrakeController == null || !TrainBrakeController.QuickReleaseButtonPressed) ? 0 : 1;
+                        break;
+                    }
+                case CabViewControlType.Orts_Overcharge:
+                    {
+                        data = (TrainBrakeController == null || !TrainBrakeController.OverchargeButtonPressed) ? 0 : 1;
                         break;
                     }
                 case CabViewControlType.Friction_Braking:

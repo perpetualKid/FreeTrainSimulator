@@ -2458,7 +2458,7 @@ namespace Orts.Simulation.Timetables
 
                     if (!File.Exists(wagonFilePath))
                     {
-                        Trace.TraceWarning("Ignored missing wagon {0} in consist {1}", wagonFilePath, consistFile);
+                        Trace.TraceWarning($"Ignored missing {(wagon.IsEngine ? "engine" : "wagon")} {wagonFilePath} in consist {consistFile}");
                         continue;
                     }
 
@@ -3725,7 +3725,7 @@ namespace Orts.Simulation.Timetables
                         FormType = formType;
                         FormTrain = true;
 
-                        if (trainCommands.CommandQualifiers != null && formType == TTTrain.FormCommand.TerminationFormed)
+                        if (trainCommands.CommandQualifiers != null && (formType == TTTrain.FormCommand.TerminationFormed || formType == TTTrain.FormCommand.TerminationTriggered))
                         {
                             foreach (TTTrainCommands.TTTrainComQualifiers formedTrainQualifiers in trainCommands.CommandQualifiers)
                             {

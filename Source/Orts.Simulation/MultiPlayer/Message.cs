@@ -572,7 +572,7 @@ namespace Orts.MultiPlayer
                                     string wagonFilePath = MPManager.Simulator.BasePath + @"\trains\trainset\" + cars[i];
                                     if (!File.Exists(wagonFilePath))
                                     {
-                                        Trace.TraceWarning("Ignored missing wagon {0}", wagonFilePath);
+                                        Trace.TraceWarning($"Ignored missing rolling stock {wagonFilePath}");
                                         continue;
                                     }
 
@@ -3522,6 +3522,9 @@ namespace Orts.MultiPlayer
                         sigHead.SetLeastRestrictiveAspect();
                         sigHead.DrawState = sigHead.DefaultDrawState(sigHead.SignalIndicationState);
                     }
+                    break;
+                case 4:
+                    signal.SetManualCallOn(true);
                     break;
             }
         }

@@ -2047,6 +2047,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 case CabViewControlType.Orts_Circuit_Breaker_Driver_Opening_Order: new CircuitBreakerOpeningOrderButtonCommand(Viewer.Log, ChangedValue(UserInput.IsMouseLeftButtonPressed ? 1 : 0) > 0); break;
                 case CabViewControlType.Orts_Circuit_Breaker_Driver_Closing_Authorization: new CircuitBreakerClosingAuthorizationCommand(Viewer.Log, ChangedValue((Locomotive as MSTSElectricLocomotive).PowerSupply.CircuitBreaker.DriverClosingAuthorization ? 1 : 0) > 0); break;
                 case CabViewControlType.Emergency_Brake: if ((Locomotive.EmergencyButtonPressed ? 1 : 0) != ChangedValue(Locomotive.EmergencyButtonPressed ? 1 : 0)) new EmergencyPushButtonCommand(Viewer.Log); break;
+                case CabViewControlType.Orts_Bailoff: new BailOffCommand(Viewer.Log, ChangedValue(Locomotive.BailOff ? 1 : 0) > 0); break;
+                case CabViewControlType.Orts_QuickRelease: new QuickReleaseCommand(Viewer.Log, ChangedValue(Locomotive.TrainBrakeController.QuickReleaseButtonPressed ? 1 : 0) > 0); break;
+                case CabViewControlType.Orts_Overcharge: new BrakeOverchargeCommand(Viewer.Log, ChangedValue(Locomotive.TrainBrakeController.OverchargeButtonPressed ? 1 : 0) > 0); break;
                 case CabViewControlType.Reset: new AlerterCommand(Viewer.Log, ChangedValue(Locomotive.TrainControlSystem.AlerterButtonPressed ? 1 : 0) > 0); break;
                 case CabViewControlType.Cp_Handle: Locomotive.SetCombinedHandleValue(ChangedValue(Locomotive.GetCombinedHandleValue(true))); break;
  
@@ -2147,6 +2150,22 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 case CabViewControlType.Orts_TCS30:
                 case CabViewControlType.Orts_TCS31:
                 case CabViewControlType.Orts_TCS32:
+                case CabViewControlType.Orts_TCS33:
+                case CabViewControlType.Orts_TCS34:
+                case CabViewControlType.Orts_TCS35:
+                case CabViewControlType.Orts_TCS36:
+                case CabViewControlType.Orts_TCS37:
+                case CabViewControlType.Orts_TCS38:
+                case CabViewControlType.Orts_TCS39:
+                case CabViewControlType.Orts_TCS40:
+                case CabViewControlType.Orts_TCS41:
+                case CabViewControlType.Orts_TCS42:
+                case CabViewControlType.Orts_TCS43:
+                case CabViewControlType.Orts_TCS44:
+                case CabViewControlType.Orts_TCS45:
+                case CabViewControlType.Orts_TCS46:
+                case CabViewControlType.Orts_TCS47:
+                case CabViewControlType.Orts_TCS48:
                     int commandIndex = (int)Control.ControlType - (int)CabViewControlType.Orts_TCS1;
                     if (ChangedValue(1) > 0 ^ Locomotive.TrainControlSystem.TCSCommandButtonDown[commandIndex])
                         new TCSButtonCommand(Viewer.Log, !Locomotive.TrainControlSystem.TCSCommandButtonDown[commandIndex], commandIndex);

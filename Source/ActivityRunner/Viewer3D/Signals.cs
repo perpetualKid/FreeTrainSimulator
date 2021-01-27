@@ -413,6 +413,7 @@ namespace Orts.ActivityRunner.Viewer3D
             internal void Mark()
             {
                 SignalTypeData.Material.Mark();
+                SignalTypeData.GlowMaterial?.Mark();
             }
         }
 

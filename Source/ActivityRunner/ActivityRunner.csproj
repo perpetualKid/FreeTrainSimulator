@@ -147,6 +147,12 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <None Update="Content\Shaders\TakeScreenshot.wav">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Content\TakeScreenshot.wav">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Content\Web\APISample\index.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

@@ -222,9 +222,9 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
         #endregion
 
 
-        #region /API/TRACKMONITOR
-        [Route(HttpVerbs.Get, "/TRACKMONITOR")]
-        public TrainInfo TrackMonitor() => Viewer.PlayerTrain.GetTrainInfo();
+        #region /API/TRAININFO
+        [Route(HttpVerbs.Get, "/TRAININFO")]
+        public TrainInfo TrainInfo() => Viewer.GetWebTrainInfo();
         #endregion
 
 

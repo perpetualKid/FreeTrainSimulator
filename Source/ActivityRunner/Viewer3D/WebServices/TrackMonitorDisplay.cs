@@ -226,7 +226,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             });
 
             // Always get train details to pass on to TrackMonitor.
-            TrainInfo thisInfo = viewer.PlayerTrain.GetTrainInfo();
+            Orts.Simulation.Physics.TrainInfo thisInfo = viewer.PlayerTrain.GetTrainInfo();
             Color speedColor = SpeedColor(thisInfo.Speed, thisInfo.AllowedSpeed);
             Color trackColor = TrackColor(thisInfo.Speed, thisInfo.AllowedSpeed);
 
@@ -429,7 +429,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
         /// Draw train position and upcoming track items on the ListLabel list.
         /// </summary>
         /// <param name="labels">The list of labels to modify.</param>
-        private static void DrawMPModeInfo(List<ListLabel> labels, TrainInfo trainInfo, bool useMetric)
+        private static void DrawMPModeInfo(List<ListLabel> labels, Orts.Simulation.Physics.TrainInfo trainInfo, bool useMetric)
         {
             int startObjectArea = AdditionalInfoHeight;
             int endObjectArea = MonitorHeight - (MonitorHeight - (int)Math.Ceiling(MonitorHeight / MonitorScale)) - AdditionalInfoHeight;
@@ -492,7 +492,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
         /// Draw train position and upcoming track items on the ListLabel list.
         /// </summary>
         /// <param name="labels">The list of labels to modify.</param>
-        private static void DrawAutoModeInfo(List<ListLabel> labels, TrainInfo trainInfo, bool useMetric)
+        private static void DrawAutoModeInfo(List<ListLabel> labels, Orts.Simulation.Physics.TrainInfo trainInfo, bool useMetric)
         {
             int startObjectArea = AdditionalInfoHeight;
             int endObjectArea = MonitorHeight - (MonitorHeight - (int)Math.Ceiling(MonitorHeight / MonitorScale)) - AdditionalInfoHeight - Positions.Train[4];
@@ -537,7 +537,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
         /// Draw train position and upcoming track items on the ListLabel list.
         /// </summary>
         /// <param name="labels">The list of labels to modify.</param>
-        private static void DrawManualModeInfo(List<ListLabel> labels, TrainInfo trainInfo, bool useMetric)
+        private static void DrawManualModeInfo(List<ListLabel> labels, Orts.Simulation.Physics.TrainInfo trainInfo, bool useMetric)
         {
             int startObjectArea = AdditionalInfoHeight;
             int endObjectArea = MonitorHeight - (MonitorHeight - (int)Math.Ceiling(MonitorHeight / MonitorScale)) - AdditionalInfoHeight;
@@ -588,7 +588,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             });
         }
 
-        private static void DrawEye(List<ListLabel> labels, TrainInfo trainInfo)
+        private static void DrawEye(List<ListLabel> labels, Orts.Simulation.Physics.TrainInfo trainInfo)
         {
             int position = trainInfo.CabOrientation == Direction.Forward ? 0 : MonitorHeight;
             int itemLocationWS = ItemLocationToRow(position, position);
@@ -923,7 +923,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
 
             public override ListLabel TransformLabel(ListLabel dataCol)
             {
-                dataCol.FirstCol = Item.Miles;
+                dataCol.FirstCol = $"{Item.Miles}";
                 return dataCol;
             }
         }
@@ -986,21 +986,27 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             });
         }
 
-        private static void ChangeLabelAt(List<ListLabel> labels, int index, Func<ListLabel, ListLabel> modifier)
+        private static void ChangeLabelAt(IList<ListLabel> labels, int index, Func<ListLabel, ListLabel> modifier)
         {
-            ListLabel label = labels.Count > index ? labels[index] : new ListLabel();
-            label = modifier(label);
-            CheckLabel(ref label);
-            while (labels.Count < index)
+            index = Math.Max(index, 0); // Fix invalid row indices.
+            if (index <= labels.Count)
             {
-                ListLabel empty = new ListLabel();
-                CheckLabel(ref empty);
-                labels.Add(empty);
-            }
-            if (labels.Count == index)
-                labels.Add(label);
-            else
+                var label = modifier(labels[index]);
+                CheckLabel(ref label);
                 labels[index] = label;
+            }
+            else
+            {
+                while (labels.Count < index)
+                {
+                    ListLabel empty = new ListLabel();
+                    CheckLabel(ref empty);
+                    labels.Add(empty);
+                }
+                var label = modifier(new ListLabel());
+                CheckLabel(ref label);
+                labels.Add(label);
+            }
         }
 
         /// <summary>

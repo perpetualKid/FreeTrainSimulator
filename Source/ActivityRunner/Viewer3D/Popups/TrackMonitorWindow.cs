@@ -47,6 +47,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         {
         }
 
+        public override void TabAction() => Monitor.CycleMode();
+
         protected override ControlLayout Layout(ControlLayout layout)
         {
             var vbox = base.Layout(layout).AddLayoutVertical();
@@ -146,9 +148,25 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         static Texture2D MonitorTexture;
 
         WindowTextFont Font;
+        private readonly Viewer viewer;
+        private bool metric;
+        private DisplayMode mode = DisplayMode.All;
 
-        bool metric;
-     
+        /// <summary>
+        /// Different information views for the Track Monitor.
+        /// </summary>
+        public enum DisplayMode
+        {
+            /// <summary>
+            /// Display all track and routing features.
+            /// </summary>
+            All,
+            /// <summary>
+            /// Show only the static features that a train driver would know by memory.
+            /// </summary>
+            StaticOnly,
+        }
+
         public static int DbfEvalOverSpeed;//Debrief eval
         bool istrackColorRed = false;//Debrief eval
         public static Double DbfEvalOverSpeedTimeS = 0;//Debrief eval
@@ -248,9 +266,9 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 // TODO: This should happen on the loader thread.
                 TrackMonitorImages = SharedTextureManager.Get(owner.Viewer.RenderProcess.GraphicsDevice, System.IO.Path.Combine(owner.Viewer.ContentPath, "TrackMonitorImages.png"));
 
-            metric = owner.Viewer.MilepostUnitsMetric;
-
+            viewer = owner.Viewer;
             Font = owner.TextFontSmall;
+            metric = viewer.MilepostUnitsMetric;
 
             ScaleDesign(ref additionalInfoHeight);
             ScaleDesign(ref mainOffset);
@@ -278,6 +296,14 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             ScaleDesign(ref leftSwitchPosition);
             ScaleDesign(ref rightSwitchPosition);
             ScaleDesign(ref invalidReversalPosition);
+        }
+
+        /// <summary>
+        /// Change the Track Monitor display mode.
+        /// </summary>
+        public void CycleMode()
+        {
+            mode = mode.Next();
         }
 
         void ScaleDesign(ref int variable)
@@ -729,9 +755,21 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 borderSignalShown = true;
             }
 
+            bool showSpeeds;
+            switch (mode)
+            {
+                case DisplayMode.All:
+                default:
+                    showSpeeds = true;
+                    break;
+                case DisplayMode.StaticOnly:
+                    showSpeeds = false;
+                    break;
+            }
+
             if (displayRequired)
             {
-                if (thisItem.SignalState != TrackMonitorSignalAspect.Stop && thisItem.AllowedSpeedMpS > 0)
+                if (showSpeeds && thisItem.SignalState != TrackMonitorSignalAspect.Stop && thisItem.AllowedSpeedMpS > 0)
                 {
                     var labelPoint = new Point(offset.X + speedTextOffset, offset.Y + itemLocation + textOffset[forward ? 0 : 1]);
                     var speedString = FormatStrings.FormatSpeedLimitNoUoM(thisItem.AllowedSpeedMpS, metric);
@@ -753,7 +791,18 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         // draw signal information
         void drawSignalBackward(SpriteBatch spriteBatch, Point offset, int startObjectArea, int endObjectArea, int zeroPoint, float maxDistance, float distanceFactor, bool forward, TrainPathItem thisItem, bool signalShown)
         {
-            var displayItem = SignalMarkers[thisItem.SignalState];
+            TrackMonitorSignalAspect aspect;
+            switch (mode)
+            {
+                case DisplayMode.All:
+                default:
+                    aspect = thisItem.SignalState;
+                    break;
+                case DisplayMode.StaticOnly:
+                    aspect = TrackMonitorSignalAspect.None;
+                    break;
+            }
+            var displayItem = SignalMarkers[aspect];
  
             var displayRequired = false;
             var itemLocation = 0;
@@ -913,7 +962,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 var itemLocation = forward ? zeroPoint - itemOffset : zeroPoint + itemOffset;
                 newLabelPosition = forward ? Math.Min(itemLocation, lastLabelPosition - textSpacing) : Math.Max(itemLocation, lastLabelPosition + textSpacing);
                 var labelPoint = new Point(offset.X + milepostTextOffset, offset.Y + newLabelPosition + textOffset[forward ? 0 : 1]);
-                var milepostString = thisItem.Miles;
+                var milepostString = $"{thisItem.Miles}";
                 Font.Draw(spriteBatch, labelPoint, milepostString, Color.White);
 
             }
@@ -927,7 +976,19 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             var displayItem = thisItem.SwitchDivertsRight ? rightArrowSprite : leftArrowSprite;
             var newLabelPosition = lastLabelPosition;
 
-            if (thisItem.DistanceToTrainM < (maxDistance - textSpacing / distanceFactor))
+            bool showSwitches;
+            switch (mode)
+            {
+                case DisplayMode.All:
+                default:
+                    showSwitches = true;
+                    break;
+                case DisplayMode.StaticOnly:
+                    showSwitches = false;
+                    break;
+            }
+
+            if (showSwitches && thisItem.DistanceToTrainM < (maxDistance - textSpacing / distanceFactor))
             {
                 var itemOffset = Convert.ToInt32(thisItem.DistanceToTrainM * distanceFactor);
                 var itemLocation = forward ? zeroPoint - itemOffset : zeroPoint + itemOffset;

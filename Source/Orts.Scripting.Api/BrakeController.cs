@@ -22,6 +22,14 @@ namespace Orts.Scripting.Api
         /// </summary>
         public Func<bool> TCSFullServiceBraking;
         /// <summary>
+        /// True if the driver has pressed the Quick Release button
+        /// </summary>
+        public Func<bool> QuickReleaseButtonPressed;
+        /// <summary>
+        /// True if the driver has pressed the Overcharge button
+        /// </summary>
+        public Func<bool> OverchargeButtonPressed;
+        /// <summary>
         /// Main reservoir pressure
         /// </summary>
         public Func<float> MainReservoirPressureBar;
@@ -30,6 +38,10 @@ namespace Orts.Scripting.Api
         /// </summary>
         public Func<float> MaxPressureBar;
         /// <summary>
+        /// Maximum pressure in the brake pipes when they are overcharged
+        /// </summary>
+        public Func<float> MaxOverchargePressureBar;
+        /// <summary>
         /// Release rate of the equalizing reservoir
         /// </summary>
         public Func<float> ReleaseRateBarpS;
@@ -37,6 +49,14 @@ namespace Orts.Scripting.Api
         /// Quick release rate of the equalizing reservoir
         /// </summary>
         public Func<float> QuickReleaseRateBarpS;
+        /// <summary>
+        /// Pressure decrease rate of equalizing reservoir when eliminating overcharge
+        /// </summary>
+        public Func<float> OverchargeEliminationRateBarpS;
+        /// <summary>
+        /// Slow application rate of the equalizing reservoir
+        /// </summary>
+        public Func<float> SlowApplicationRateBarpS;
         /// <summary>
         /// Apply rate of the equalizing reservoir
         /// </summary>
@@ -86,6 +106,10 @@ namespace Orts.Scripting.Api
         /// Sets the state of the brake pressure (1 = increasing, -1 = decreasing)
         /// </summary>
         public Action<float> SetUpdateValue;
+        /// <summary>
+        /// Sets the dynamic brake intervention value
+        /// </summary>
+        public Action<float> SetDynamicBrakeIntervention;
 
         /// <summary>
         /// Called once at initialization time.

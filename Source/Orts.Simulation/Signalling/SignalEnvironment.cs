@@ -1832,7 +1832,7 @@ namespace Orts.Simulation.Signalling
 
             float clearedDistanceM = 0.0f;
             EndAuthorityType endAuthority = EndAuthorityType.NoPathReserved;
-            float maxDistance = Math.Max(train.Train.AllowedMaxSpeedMpS * Train.MaxTimeS, Train.MinCheckDistanceM);
+            float maxDistance = train.Train.MaxDistanceCheckedAhead;
 
             int lastReserved = train.Train.LastReservedSection[train.TrainRouteDirectionIndex];
             int endListIndex = -1;
@@ -2105,8 +2105,7 @@ namespace Orts.Simulation.Signalling
                                 furthestRouteCleared = true;
                             }
 
-                            if (clearedDistanceM > Train.MinCheckDistanceM &&
-                                            clearedDistanceM > (train.Train.AllowedMaxSpeedMpS * Train.MaxTimeS))
+                            if (clearedDistanceM > (train.Train.MaxDistanceCheckedAhead))
                             {
                                 endAuthority = EndAuthorityType.MaxDistance;
                                 furthestRouteCleared = true;

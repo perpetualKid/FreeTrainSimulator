@@ -168,7 +168,8 @@ namespace Orts.Formats.OR.Files
                     if (parts[0].Equals("#briefing", StringComparison.OrdinalIgnoreCase))
                     {
                         briefingFound = true;
-                        Briefing = parts[1];
+                        // Newlines "\n" cannot be emdedded in CSV files, so HTML breaks "<br>" are used instead.
+                        Briefing = parts[1].Replace("<br>", "\n");
                         foreach (TrainInformation train in Trains)
                             train.Briefing = parts[train.Column].Replace("<br>", "\n");
                     }

@@ -12,14 +12,14 @@ namespace Orts.Simulation.Physics
     /// <\summary>
     public class TrainInfo
     {
-        public TrainControlMode ControlMode { get; }            // present control mode 
-        public float Speed { get; }                             // present speed
-        public float ProjectedSpeed { get; }                    // projected speed
-        public float AllowedSpeed { get; }                      // max allowed speed
-        public float Gradient { get; }                          // Gradient %
-        public Direction Direction { get; }                     // present direction (0=forward, 1=backward)
-        public Direction CabOrientation { get; }                // present cab orientation (0=forward, 1=backward)
-        public bool PathDefined { get; }                        // train is on defined path (valid in Manual mode only)
+        public TrainControlMode ControlMode { get; private set; }            // present control mode 
+        public float Speed { get; private set; }                             // present speed
+        public float ProjectedSpeed { get; private set; }                    // projected speed
+        public float AllowedSpeed { get; private set; }                      // max allowed speed
+        public float Gradient { get; private set; }                          // Gradient %
+        public Direction Direction { get; private set; }                     // present direction (0=forward, 1=backward)
+        public Direction CabOrientation { get; private set; }                // present cab orientation (0=forward, 1=backward)
+        public bool PathDefined { get; private set; }                        // train is on defined path (valid in Manual mode only)
         public List<TrainPathItem> ObjectInfoForward { get; } // forward objects
         public List<TrainPathItem> ObjectInfoBackward { get; }// backward objects
 
@@ -54,6 +54,20 @@ namespace Orts.Simulation.Physics
             Gradient = gradient;
             CabOrientation = cabOrientation;
             PathDefined = onPath;
+        }
+
+        public void Clear()
+        {
+            ControlMode = TrainControlMode.Undefined;
+            Speed = 0;
+            ProjectedSpeed = 0;
+            AllowedSpeed = 0;
+            Gradient = 0;
+            Direction = 0;
+            CabOrientation = 0;
+            PathDefined = false;
+            ObjectInfoForward.Clear();
+            ObjectInfoBackward.Clear();
         }
     }
 }

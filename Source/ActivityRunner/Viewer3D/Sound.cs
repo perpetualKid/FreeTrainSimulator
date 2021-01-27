@@ -658,6 +658,18 @@ namespace Orts.ActivityRunner.Viewer3D
         }
 
         /// <summary>
+        /// Construct a SoundSource that has no specific location and a set of programmatically defined <see cref="SoundStream"/>s.
+        /// </summary>
+        /// <param name="viewer">The <see cref="Viewer"/> to attach this SoundSource to.</param>
+        /// <param name="makeStreams">A generator function to create the attached SoundStreams.</param>
+        public SoundSource(Viewer viewer, Func<SoundSource, IEnumerable<SoundStream>> makeStreams)
+        {
+            IsUnattenuated = true;
+            Initialize(viewer);
+            SoundStreams.AddRange(makeStreams(this));
+        }
+
+        /// <summary>
         /// Stop the streams, free up OpenAL sound source IDs and try to unload wave data from memory
         /// </summary>
         public override void Uninitialize()
@@ -810,6 +822,18 @@ namespace Orts.ActivityRunner.Viewer3D
                 // initialization of the only one sound stream
                 SoundStreams.Add(new SoundStream(WavFileName, eventSource, this)); 
             }
+        }
+
+        private void Initialize(Viewer viewer)
+        {
+            Viewer = viewer;
+            WorldLocation = WorldLocation.None;
+
+            ActivationConditions = new SoundActivationCondition(OrtsActivitySoundFileType.Everywhere, ActivationType.Activate);
+            DeactivationConditions = new SoundActivationCondition(OrtsActivitySoundFileType.Everywhere, ActivationType.Deactivate);
+
+            Volume = 1.0f;
+            SetRolloffFactor();
         }
 
         private void SetRolloffFactor()
@@ -1262,6 +1286,20 @@ namespace Orts.ActivityRunner.Viewer3D
         }
 
         /// <summary>
+        /// Create a sound stream with an arbitrary set of triggers.
+        /// </summary>
+        /// <param name="soundSource">The parent sound source.</param>
+        /// <param name="makeTriggers">A generator function to create the triggers.</param>
+        public SoundStream(SoundSource soundSource, Func<SoundStream, IEnumerable<ORTSTrigger>> makeTriggers)
+        {
+            SoundSource = soundSource;
+            Volume = 1.0f;
+
+            ALSoundSource = new ALSoundSource(soundSource.IsEnvSound, soundSource.RolloffFactor);
+            Triggers.AddRange(makeTriggers(this));
+        }
+
+        /// <summary>
         /// Update OpenAL sound source position, then calls the main <see cref="Update()"/> function
         /// Position is relative to camera tile's center
         /// </summary>
@@ -1568,6 +1606,19 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             TriggerID = SoundEvent.From(eventSound, smsData.TriggerId);
             SoundCommand = ORTSSoundCommand.FromMSTS(smsData.SoundCommand, soundStream);
+            SoundStream = soundStream;
+        }
+
+        /// <summary>
+        /// Construct a discrete sound trigger with an arbitrary event trigger and sound command.
+        /// </summary>
+        /// <param name="soundStream">The parent sound stream.</param>
+        /// <param name="triggerID">The trigger to activate this event.</param>
+        /// <param name="soundCommand">The command to run when activated.</param>
+        public ORTSDiscreteTrigger(SoundStream soundStream, TrainEvent triggerID, ORTSSoundCommand soundCommand)
+        {
+            TriggerID = triggerID;
+            SoundCommand = soundCommand;
             SoundStream = soundStream;
         }
 
