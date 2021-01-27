@@ -96,7 +96,7 @@ namespace Orts.Common.Info
         /// filtered to allow only targetChannel or higher prereleases and releases
         /// The result is sorted in descending order to get the most appropriate version first
         /// </summary>
-        internal static List<NuGetVersion> SelectSuitableVersions(List<string> availableVersions, string targetVersion, string targetChannel)
+        internal static IOrderedEnumerable<NuGetVersion> SelectSuitableVersions(IReadOnlyCollection<string> availableVersions, string targetVersion, string targetChannel)
         {
             if (availableVersions == null)
                 throw new ArgumentNullException(nameof(availableVersions));
@@ -136,12 +136,12 @@ namespace Orts.Common.Info
                     VersionComparer.VersionRelease.Compare(version, target) <= 0);
             }
 
-            return selection.OrderByDescending((v) => v).ToList();
+            return selection.OrderByDescending((v) => v);
         }
 
-        public static string SelectSuitableVersion(List<string> availableVersions, string targetChannel, string targetVersion = "")
+        public static string SelectSuitableVersion(IReadOnlyCollection<string> availableVersions, string targetChannel, string targetVersion = "")
         {
-            List<NuGetVersion> versions = SelectSuitableVersions(availableVersions, targetVersion, targetChannel);
+            IOrderedEnumerable<NuGetVersion> versions = SelectSuitableVersions(availableVersions, targetVersion, targetChannel);
             return versions?.FirstOrDefault()?.ToNormalizedString();
         }
 

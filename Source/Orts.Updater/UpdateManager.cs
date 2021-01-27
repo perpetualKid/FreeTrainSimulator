@@ -77,8 +77,8 @@ namespace Orts.Updater
             // Administrator. Weird cases (like no permissions on the directory for anyone) are not handled.
             if (!CheckUpdateWrites())
             {
-                var identity = WindowsIdentity.GetCurrent();
-                var principal = new WindowsPrincipal(identity);
+                WindowsIdentity identity = WindowsIdentity.GetCurrent();
+                WindowsPrincipal principal = new WindowsPrincipal(identity);
                 UpdaterNeedsElevation = !principal.IsInRole(WindowsBuiltInRole.Administrator);
             }
         }
@@ -155,7 +155,7 @@ namespace Orts.Updater
 
         public string GetBestAvailableVersion(string targetVersion = "", string targetChannel = "")
         {
-            List<string> availableVersions = channels.Channels.Select(channel => channel.NormalizedVersion).ToList();
+            IReadOnlyCollection<string> availableVersions = channels.Channels.Select(channel => channel.NormalizedVersion).ToList();
 
             return VersionInfo.SelectSuitableVersion(availableVersions, string.IsNullOrEmpty(targetChannel) ? settings.UpdateChannel : targetChannel, targetVersion);
         }
@@ -171,7 +171,7 @@ namespace Orts.Updater
         public async Task ApplyUpdateAsync(ChannelInfo target, CancellationToken token)
         {
             if (null == target || null == target.DownloadUrl)
-                throw new ApplicationException("No suitable update available");
+                throw new InvalidOperationException("No suitable update available");
 
             TriggerApplyProgressChanged(6);
             CheckUpdateWrites();
@@ -198,7 +198,7 @@ namespace Orts.Updater
                 TriggerApplyProgressChanged(100);
             }
             else
-                throw new ApplicationException("The update package is in an unexpected state.");
+                throw new InvalidOperationException("The update package is in an unexpected state.");
         }
 
         private void TriggerApplyProgressChanged(int progressPercentage)
@@ -210,7 +210,7 @@ namespace Orts.Updater
         {
             try
             {
-                Directory.CreateDirectory(PathUpdateTest)?.Delete(true);
+                Directory.CreateDirectory(PathUpdateTest).Delete(true);
                 return true;
             }
             catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)
