@@ -17,7 +17,6 @@
 
 
 using System;
-using Orts.Common;
 using System.Collections.Generic;
 
 using Microsoft.Xna.Framework;
@@ -71,7 +70,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                 if (lead.CarBrakeSystemType == "straight_vacuum_single_pipe") 
                 {
                     (Car as MSTSWagon).NonAutoBrakePresent = true; // Set flag to indicate that non auto brake is set in train
-                    bool skiploop = false;
+                    bool skiploop;
 
                     // In hardy brake system, BC on tender and locomotive is not changed in the StrBrkApply brake position
                     if ((Car.WagonType == MSTSWagon.WagonTypes.Engine || Car.WagonType == MSTSWagon.WagonTypes.Tender) && (lead.TrainBrakeController.TrainBrakeControllerState == ControllerState.StraightApply))
@@ -157,26 +156,22 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                     float LargeEjectorChargingRateInHgpS;
                     if (lead.TrainBrakeController.TrainBrakeControllerState == ControllerState.StraightApply)
                     {
-                        LargeEjectorChargingRateInHgpS = lead == null ? 10.0f : (lead.LargeEjectorBrakePipeChargingRatePSIorInHgpS);
+                        LargeEjectorChargingRateInHgpS = lead.LargeEjectorBrakePipeChargingRatePSIorInHgpS;
                     }
                     else
                     {
-                        LargeEjectorChargingRateInHgpS = lead == null ? 10.0f : (lead.BrakePipeChargingRatePSIorInHgpS);
+                        LargeEjectorChargingRateInHgpS = lead.BrakePipeChargingRatePSIorInHgpS;
                     }
                         
-                    float SmallEjectorChargingRateInHgpS = lead == null ? 10.0f : (lead.SmallEjectorBrakePipeChargingRatePSIorInHgpS); // Set value for small ejector to operate - fraction set in steam locomotive
-                    float TrainPipeLeakLossPSI = lead == null ? 0.0f : (lead.TrainBrakePipeLeakPSIorInHgpS);
-                    float AdjTrainPipeLeakLossPSI = 0.0f;
+                    float SmallEjectorChargingRateInHgpS = lead.SmallEjectorBrakePipeChargingRatePSIorInHgpS; // Set value for small ejector to operate - fraction set in steam locomotive
 
                     // Calculate adjustment times for varying lengths of trains
-                    float AdjLargeEjectorChargingRateInHgpS = 0.0f;
-                    float AdjSmallEjectorChargingRateInHgpS = 0.0f;
 
-                    AdjLargeEjectorChargingRateInHgpS = (float)(Size.Volume.FromFt3(200.0f) / Car.Train.TotalTrainBrakeSystemVolumeM3) * LargeEjectorChargingRateInHgpS;
-                    AdjSmallEjectorChargingRateInHgpS = (float)(Size.Volume.FromFt3(200.0f) / Car.Train.TotalTrainBrakeSystemVolumeM3) * SmallEjectorChargingRateInHgpS;
+                    float AdjLargeEjectorChargingRateInHgpS = (float)(Size.Volume.FromFt3(200.0f) / Car.Train.TotalTrainBrakeSystemVolumeM3) * LargeEjectorChargingRateInHgpS;
+                    float AdjSmallEjectorChargingRateInHgpS = (float)(Size.Volume.FromFt3(200.0f) / Car.Train.TotalTrainBrakeSystemVolumeM3) * SmallEjectorChargingRateInHgpS;
 
                     float AdjBrakeServiceTimeFactorS = (float)(Size.Volume.FromFt3(200.0f) / Car.Train.TotalTrainBrakeSystemVolumeM3) * lead.BrakeServiceTimeFactorS;
-                    AdjTrainPipeLeakLossPSI = (float)(Car.Train.TotalTrainBrakeSystemVolumeM3 / Size.Volume.FromFt3(200.0f)) * lead.TrainBrakePipeLeakPSIorInHgpS;
+                    float AdjTrainPipeLeakLossPSI = (float)(Car.Train.TotalTrainBrakeSystemVolumeM3 / Size.Volume.FromFt3(200.0f)) * lead.TrainBrakePipeLeakPSIorInHgpS;
 
                     // Only adjust lead pressure when locomotive car is processed, otherwise lead pressure will be "over adjusted"
                     if (Car == lead)

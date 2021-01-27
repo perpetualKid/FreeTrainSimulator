@@ -1110,6 +1110,7 @@ namespace Orts.Formats.Msts.Parsers
                     case "": 
                     case "psi/s": return (1.0, 0);  // <CJComment> Factors to be revised when non-metric internal units removed. </CJComment>
                     case "inhg/s": return (Pressure.Atmospheric.ToPSI(Pressure.Atmospheric.FromInHg(1)), 0);
+                    case "cmhg/s": return (Pressure.Atmospheric.ToPSI(Pressure.Atmospheric.FromCmHg(1)), 0);
                     case "bar/s": return (Rate.Pressure.ToPSIpS(1), 0);
                     case "kpa/s": return (Pressure.Standard.ToPSI(1), 0);
                 }
@@ -1119,6 +1120,7 @@ namespace Orts.Formats.Msts.Parsers
                     case "": return (Pressure.Atmospheric.ToPSI(Pressure.Atmospheric.FromInHg(1)), 0);
                     case "psi/s": return (1.0, 0);  // <CJComment> Factors to be revised when non-metric internal units removed. </CJComment>
                     case "inhg/s": return (Pressure.Atmospheric.ToPSI(Pressure.Atmospheric.FromInHg(1)), 0);
+                    case "cmhg/s": return (Pressure.Atmospheric.ToPSI(Pressure.Atmospheric.FromCmHg(1)), 0);
                     case "bar/s": return (Rate.Pressure.ToPSIpS(1), 0);
                     case "kpa/s": return (Pressure.Standard.ToPSI(1), 0);
                 }
