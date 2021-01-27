@@ -25,7 +25,6 @@ namespace Orts.Common
 #pragma warning restore CA1810 // Initialize reference type static fields inline
             {
                 Values = new ReadOnlyCollection<T>((T[])Enum.GetValues(typeof(T)));
-                Length = Values.Count;
                 Names = new ReadOnlyCollection<string>(Enum.GetNames(typeof(T)));
                 ValueToDescriptionMap = new Dictionary<T, string>();
                 EnumDescription = typeof(T).GetCustomAttributes(typeof(DescriptionAttribute), false).
@@ -40,11 +39,14 @@ namespace Orts.Common
                 NameValuePairs = Names.Zip(Values, (k, v) => new { k, v })
                               .ToDictionary(x => x.k, x => x.v, StringComparer.OrdinalIgnoreCase);
 
-                if (Length == 2 && (int)(object)Values[0] == 0 && (int)(object)Values[1] == 1)      //Simple case having two values only (like Forward and Backward, values 0 and 1 only)
-                    SupportsReverse = 2;
-                else if (Length % 2 == 1 && (int)(object)Values[Length / 2] == 0) //odd number of items, like Backward, Neutral and Forward
-                    SupportsReverse = 1;
-
+                Length = Values.Count;
+                if (typeof(int).IsAssignableFrom(Enum.GetUnderlyingType(typeof(T))))
+                {
+                    if (Length == 2 && (int)(object)Values[0] == 0 && (int)(object)Values[1] == 1)      //Simple case having two values only (like Forward and Backward, values 0 and 1 only)
+                        SupportsReverse = 2;
+                    else if (Length % 2 == 1 && (int)(object)Values[Length / 2] == 0) //odd number of items, like Backward, Neutral and Forward
+                        SupportsReverse = 1;
+                }
             }
 
             private static string GetDescription(T value)
@@ -125,7 +127,6 @@ namespace Orts.Common
         {
             int previous = (Unsafe.As<T, int>(ref item) - 1 + EnumCache<T>.Length) % EnumCache<T>.Length;
             return Unsafe.As<int, T>(ref previous);
-
         }
 
         /// <summary>
