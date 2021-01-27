@@ -616,7 +616,7 @@ namespace Orts.Simulation.Timetables
                         for (int iElement = newPool.StoragePath.Count - 1; iElement >= 0; iElement--)
                         {
                             TrackCircuitRouteElement thisElement = newPool.StoragePath[iElement];
-                            thisElement.Direction = thisElement.Direction.Next();
+                            thisElement.Direction = thisElement.Direction.Reverse();
                             newRoute.Add(thisElement);
                         }
                         newPool.StoragePath = new TrackCircuitPartialPathRoute(newRoute);
@@ -843,7 +843,7 @@ namespace Orts.Simulation.Timetables
                             if (newRoute.GetRouteIndex(accessPath[iElement].TrackCircuitSection.Index, 0) < 0)
                             {
                                 TrackCircuitRouteElement newElement = new TrackCircuitRouteElement(accessPath[iElement]);
-                                newElement.Direction = newElement.Direction.Next();
+                                newElement.Direction = newElement.Direction.Reverse();
                                 newRoute.Add(newElement);
                             }
                         }
@@ -853,7 +853,7 @@ namespace Orts.Simulation.Timetables
                             if (newRoute.GetRouteIndex(thisStorage.StoragePath[iElement].TrackCircuitSection.Index, 0) < 0)
                             {
                                 TrackCircuitRouteElement newElement = new TrackCircuitRouteElement(thisStorage.StoragePath[iElement]);
-                                newElement.Direction = newElement.Direction.Next();
+                                newElement.Direction = newElement.Direction.Reverse();
                                 newRoute.Add(newElement);
                             }
                         }

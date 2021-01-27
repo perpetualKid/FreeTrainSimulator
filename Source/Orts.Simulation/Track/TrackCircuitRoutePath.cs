@@ -85,7 +85,7 @@ namespace Orts.Simulation.Track
                         {
                             if (jn.TrackPins[iPin].Link == prevTNode)
                             {
-                                jnDir = jn.TrackPins[iPin].Direction.Next();
+                                jnDir = jn.TrackPins[iPin].Direction.Reverse();
                             }
                         }
                     }
@@ -223,7 +223,7 @@ namespace Orts.Simulation.Track
                             sublist++;
                             thisSubpath = new TrackCircuitPartialPathRoute();
                             TCRouteSubpaths.Add(thisSubpath);
-                            currentDir = currentDir.Next();
+                            currentDir = currentDir.Reverse();
                             reversal--;        // reset reverse point
                         }
                         continue;          // process this node again in reverse direction
@@ -291,7 +291,7 @@ namespace Orts.Simulation.Track
                         float reverseOffset = 0;
                         int sectionIndex = -1;
                         TrackDirection validDir = currentDir;
-                        if (reversal % 2 == 1) validDir = validDir.Next();
+                        if (reversal % 2 == 1) validDir = validDir.Reverse();
                         if (validDir == TrackDirection.Ahead)
                         {
                             reverseOffset = -offset;
@@ -323,7 +323,7 @@ namespace Orts.Simulation.Track
                     else if (nextPathNode.Type == AIPathNodeType.Stop)
                     {
                         TrackDirection validDir = currentDir;
-                        if (reversal % 2 == 1) validDir = validDir.Next();
+                        if (reversal % 2 == 1) validDir = validDir.Reverse();
                         offset = GetOffsetToPathNode(aiPath, validDir, nextPathNode);
                         int[] waitingPoint = new int[6];
                         waitingPoint[0] = sublist + reversal;
@@ -383,7 +383,7 @@ namespace Orts.Simulation.Track
                     sublist++;
                     thisSubpath = new TrackCircuitPartialPathRoute();
                     TCRouteSubpaths.Add(thisSubpath);
-                    currentDir = currentDir.Next();
+                    currentDir = currentDir.Reverse();
                     reversal--;        // reset reverse point
                 }
             }
@@ -1713,7 +1713,7 @@ namespace Orts.Simulation.Track
                     if (startAdding)
                     {
                         TrackCircuitRouteElement newElement = new TrackCircuitRouteElement(routeElement);
-                        newElement.Direction = newElement.Direction.Next();
+                        newElement.Direction = newElement.Direction.Reverse();
                         TCRouteSubpaths[0].Insert(0, newElement);
                         addedSections++;
                     }
@@ -1721,7 +1721,7 @@ namespace Orts.Simulation.Track
                     {
                         startAdding = true;
                         TrackCircuitRouteElement newElement = new TrackCircuitRouteElement(routeElement);
-                        newElement.Direction = newElement.Direction.Next();
+                        newElement.Direction = newElement.Direction.Reverse();
                         TCRouteSubpaths[0].Insert(0, newElement);
                         addedSections++;
                     }
@@ -1824,7 +1824,7 @@ namespace Orts.Simulation.Track
                     if (startAdding)
                     {
                         TrackCircuitRouteElement newElement = new TrackCircuitRouteElement(routeElement);
-                        newElement.Direction = newElement.Direction.Next();
+                        newElement.Direction = newElement.Direction.Reverse();
                         TCRouteSubpaths[TCRouteSubpaths.Count - 1].Add(newElement);
                         addedSections++;
                     }
@@ -1832,7 +1832,7 @@ namespace Orts.Simulation.Track
                     {
                         startAdding = true;
                         TrackCircuitRouteElement newElement = new TrackCircuitRouteElement(routeElement);
-                        newElement.Direction = newElement.Direction.Next();
+                        newElement.Direction = newElement.Direction.Reverse();
                         TCRouteSubpaths[TCRouteSubpaths.Count - 1].Add(newElement);
                         addedSections++;
                     }

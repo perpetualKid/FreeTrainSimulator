@@ -1287,7 +1287,7 @@ namespace Orts.Simulation.Timetables
                             if (newRoute.GetRouteIndex(accessPath[iElement].TrackCircuitSection.Index, 0) < 0)
                             {
                                 TrackCircuitRouteElement newElement = new TrackCircuitRouteElement(accessPath[iElement]);
-                                newElement.Direction = newElement.Direction.Next();
+                                newElement.Direction = newElement.Direction.Reverse();
                                 newRoute.Add(newElement);
                             }
                         }

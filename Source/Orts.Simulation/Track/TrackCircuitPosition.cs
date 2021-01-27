@@ -42,7 +42,7 @@ namespace Orts.Simulation.Track
                 throw new ArgumentNullException(nameof(source));
 
             TrackCircuitSectionIndex = source.TrackCircuitSectionIndex;
-            Direction = reverse ? source.Direction.Next() : source.Direction;
+            Direction = reverse ? source.Direction.Reverse() : source.Direction;
             Offset = source.Offset;
             RouteListIndex = source.RouteListIndex;
             TrackNode = source.TrackNode;
@@ -203,7 +203,7 @@ namespace Orts.Simulation.Track
                 throw new ArgumentNullException(nameof(route));
 
             RouteListIndex = route.GetRouteIndex(TrackCircuitSectionIndex, 0);
-            Direction = RouteListIndex >= 0 ? route[RouteListIndex].Direction : Direction = Direction.Next();
+            Direction = RouteListIndex >= 0 ? route[RouteListIndex].Direction : Direction = Direction.Reverse();
 
             TrackCircuitSection section = TrackCircuitSection.TrackCircuitList[TrackCircuitSectionIndex];
             if (oldDirection != Direction)

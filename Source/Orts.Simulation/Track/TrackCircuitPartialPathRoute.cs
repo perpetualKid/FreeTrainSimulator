@@ -501,7 +501,7 @@ namespace Orts.Simulation.Track
                 TrackCircuitRouteElement routeElement = this[i];
                 TrackCircuitSection section = routeElement.TrackCircuitSection;
 
-                TrackCircuitRouteElement newElement = new TrackCircuitRouteElement(section, routeElement.Direction.Next(), lastSectionIndex);
+                TrackCircuitRouteElement newElement = new TrackCircuitRouteElement(section, routeElement.Direction.Reverse(), lastSectionIndex);
 
                 // reset outpin for JUNCTION
                 // if trailing, pin[0] = 0, pin[1] = 0

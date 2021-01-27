@@ -926,7 +926,7 @@ namespace Orts.Simulation.Timetables
             for (int iIndex = lastSubpath.Count - 1; iIndex >= 0 && lastSectionIndex < 0; iIndex--)
             {
                 TrackCircuitSection thisSection = lastSubpath[iIndex].TrackCircuitSection;
-                TrackDirection reqEndSignal = ReqLastSignalStop == LastSignalStop.Last ? lastSubpath[iIndex].Direction : lastSubpath[iIndex].Direction.Next();
+                TrackDirection reqEndSignal = ReqLastSignalStop == LastSignalStop.Last ? lastSubpath[iIndex].Direction : lastSubpath[iIndex].Direction.Reverse();
 
                 if (thisSection.EndSignals[reqEndSignal] != null)
                 {
@@ -1783,7 +1783,7 @@ namespace Orts.Simulation.Timetables
                 int reversalIndex = thisReversal.SignalUsed ? thisReversal.LastSignalIndex : thisReversal.LastDivergeIndex;
                 if (reversalIndex >= 0 && reversalIndex <= lastRouteIndex) // reversal point is this section or earlier
                 {
-                    useDirection = useDirection.Next();
+                    useDirection = useDirection.Reverse();
                     inDirection = false;
                 }
             }
@@ -3485,7 +3485,7 @@ namespace Orts.Simulation.Timetables
                         }
 
                         // create temp route and set as valid route
-                        TrackDirection newDirection = PresentPosition[Direction.Forward].Direction.Next();
+                        TrackDirection newDirection = PresentPosition[Direction.Forward].Direction.Reverse();
                         TrackCircuitPartialPathRoute tempRoute = SignalEnvironment.BuildTempRoute(this, PresentPosition[Direction.Forward].TrackCircuitSectionIndex, 0.0f, newDirection, distanceToTrain, true, true, false);
 
                         // set reverse positions
@@ -7943,7 +7943,7 @@ namespace Orts.Simulation.Timetables
             {
                 lastElement = thisElement;
                 TrackCircuitSection thisSection = thisElement.TrackCircuitSection;
-                TrackDirection direction = sameDirection ? thisElement.Direction : thisElement.Direction.Next();
+                TrackDirection direction = sameDirection ? thisElement.Direction : thisElement.Direction.Reverse();
 
                 blockstate = thisSection.GetSectionState(RoutedForward, (int)direction, blockstate, thisRoute, -1);
                 if (blockstate > InternalBlockstate.Reservable)
@@ -8694,7 +8694,7 @@ namespace Orts.Simulation.Timetables
                             intermediateSignal = true;
                             distanceToNextSignal = distanceToNextSignal < 0 ? length : distanceToNextSignal;
                         }
-                        if (thisSection.EndSignals[direction.Next()] != null) // check in other direction
+                        if (thisSection.EndSignals[direction.Reverse()] != null) // check in other direction
                         {
                             intermediateSignal = true;
                             distanceToNextSignal = distanceToNextSignal < 0 ? length - thisSection.Length : distanceToNextSignal; // signal is at start of section
@@ -9339,7 +9339,7 @@ namespace Orts.Simulation.Timetables
                             }
 
                             // create temp route and set as valid route
-                            TrackDirection newDirection = PresentPosition[Direction.Forward].Direction.Next();
+                            TrackDirection newDirection = PresentPosition[Direction.Forward].Direction.Reverse();
                             TrackCircuitPartialPathRoute tempRoute = SignalEnvironment.BuildTempRoute(this, PresentPosition[Direction.Forward].TrackCircuitSectionIndex, 0.0f, newDirection, distanceToTrain, true, true, false);
 
                             // set reverse positions

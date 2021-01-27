@@ -162,7 +162,7 @@ namespace Orts.Common
         /// </summary>
         public static T Max<T>() where T : Enum
         {
-            return EnumCache<T>.Values[EnumCache<T>.Values.Count - 1];
+            return EnumCache<T>.Values[EnumCache<T>.Length - 1];
         }
 
     }

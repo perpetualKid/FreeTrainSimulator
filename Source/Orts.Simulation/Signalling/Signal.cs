@@ -1436,7 +1436,7 @@ namespace Orts.Simulation.Signalling
         public int SONextSignalOpposite(int signalType)
         {
             int trackCircuit = TrackCircuitIndex;
-            TrackDirection direction = TrackCircuitDirection.Next();    // reverse direction
+            TrackDirection direction = TrackCircuitDirection.Reverse();    // reverse direction
             int signalFound = -1;
 
             TrackCircuitSection section = TrackCircuitSection.TrackCircuitList[trackCircuit];
