@@ -617,7 +617,7 @@ namespace Orts.Menu
         {
             await updateManager.RefreshUpdateInfo(UpdateCheckFrequency.Always).ConfigureAwait(true);
 
-            comboBoxUpdateChannels.DataSourceFromList(updateManager.GetChannels(), (channel) => catalog.GetString(channel));
+            comboBoxUpdateChannels.DataSourceFromList(updateManager.GetChannels().OrderByDescending((s) => s), (channel) => catalog.GetString(channel));
             comboBoxUpdateChannels.SelectedIndex = comboBoxUpdateChannels.FindStringExact(settings.UpdateChannel);
         }
 
