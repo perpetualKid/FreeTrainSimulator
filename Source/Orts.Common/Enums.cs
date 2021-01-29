@@ -411,6 +411,9 @@ namespace Orts.Common
         BoilerBlowdownOn,
         BoilerBlowdownOff,
 
+        WaterScoopRaiseLower,
+        WaterScoopBroken,
+
         SteamGearLeverToggle,
         AIFiremanSoundOn,
         AIFiremanSoundOff,

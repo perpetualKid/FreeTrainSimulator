@@ -185,6 +185,9 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
                         case 175: return TrainEvent.BoilerBlowdownOn;
                         case 176: return TrainEvent.BoilerBlowdownOff;
 
+                        case 177: return TrainEvent.WaterScoopRaiseLower;
+                        case 178: return TrainEvent.WaterScoopBroken;
+
                         case 181: return TrainEvent.GenericEvent1;
                         case 182: return TrainEvent.GenericEvent2;
                         case 183: return TrainEvent.GenericEvent3;
