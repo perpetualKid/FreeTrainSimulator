@@ -146,6 +146,9 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
                         case 142: return TrainEvent.BrakePipePressureDecrease;
                         case 143: return TrainEvent.BrakePipePressureStoppedChanging;
 
+                        case 145: return TrainEvent.WaterScoopRaiseLower;
+                        case 146: return TrainEvent.WaterScoopBroken;
+
                         case 147: return TrainEvent.SteamGearLeverToggle;
                         case 148: return TrainEvent.AIFiremanSoundOn;
                         case 149: return TrainEvent.AIFiremanSoundOff;
@@ -184,9 +187,6 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
 
                         case 175: return TrainEvent.BoilerBlowdownOn;
                         case 176: return TrainEvent.BoilerBlowdownOff;
-
-                        case 177: return TrainEvent.WaterScoopRaiseLower;
-                        case 178: return TrainEvent.WaterScoopBroken;
 
                         case 181: return TrainEvent.GenericEvent1;
                         case 182: return TrainEvent.GenericEvent2;
