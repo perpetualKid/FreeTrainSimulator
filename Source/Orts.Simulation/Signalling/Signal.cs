@@ -33,6 +33,8 @@ using Orts.Simulation.MultiPlayer;
 using Orts.Simulation.Physics;
 using Orts.Simulation.Track;
 
+using SharpDX.MediaFoundation;
+
 namespace Orts.Simulation.Signalling
 {
     //================================================================================================//
@@ -1321,6 +1323,17 @@ namespace Orts.Simulation.Signalling
             else
             {
                 section = TrackCircuitSection.TrackCircuitList[trackCircuit];
+                if (!SignalNormal())
+                {
+                    foreach (var item in section.CircuitItems.TrackCircuitSignals[direction][reqtype])
+{
+                        if (item.Signal.TrackCircuitOffset > TrackCircuitOffset)
+                        {
+                            signalFound = item.Signal.Index;
+                            break;
+                        }
+                    }
+                }
                 sectionSet = EnabledTrain != null && section.IsSet(EnabledTrain, false);
 
                 if (sectionSet)
