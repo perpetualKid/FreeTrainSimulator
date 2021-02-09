@@ -28,17 +28,18 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 {
     public class StraightVacuumSinglePipe : VacuumSinglePipe
     {
+        private bool trainBrakeIncrease;
+        private bool trainBrakeDecrease;
+        private bool brakePipeIncrease;
+        private bool brakePipeDecrease;
+        private bool brakeTriggerMatch;
+        private bool soundTriggerEnable;
+
         public StraightVacuumSinglePipe(TrainCar car)
             : base(car)
         {
 
         }
-
-        bool TrainBrakeIncrease = false;
-        bool TrainBrakeDecrease = false;
-
-        bool BrakePipeIncrease = false;
-        bool BrakePipeDecrease = false;
 
         public override void Initialize(bool handbrakeOn, float maxVacuumInHg, float fullServVacuumInHg, bool immediateRelease)
         {
@@ -153,55 +154,72 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                         Car.BrakeForceN = f * Car.BrakeShoeCoefficientFrictionAdjFactor; // In advanced adhesion model brake shoe coefficient varies with speed, in simple odel constant force applied as per value in WAG file, will vary with wheel skid.
                     }
 
-
                     // If wagons are not attached to the locomotive, then set wagon BC pressure to same as locomotive in the Train brake line
                     if (!Car.Train.WagonsAttached && (Car.WagonType == MSTSWagon.WagonTypes.Engine || Car.WagonType == MSTSWagon.WagonTypes.Tender))
                     {
                         Car.Train.HUDWagonBrakeCylinderPSI = CylPressurePSIA;
                     }
 
+                    // This next section sets a flag to disble the brake cylinder sound trigger if the locomotive/tender bc is not matching the brake pipe. This will only happen on the twin ejector model
+                    // which allows the locomotive/tender brake cylinder to not operate if in the Apply token.
+                    if (Car.WagonType == MSTSWagon.WagonTypes.Engine || Car.WagonType == MSTSWagon.WagonTypes.Tender)
+                    {
+                        if (lead.TrainBrakeController.TrainBrakeControllerState == ControllerState.StraightApply)
+                        {
+                            brakeTriggerMatch = true;
+                        }
+                        else if (lead.TrainBrakeController.TrainBrakeControllerState == ControllerState.StraightLap && brakeTriggerMatch)
+                        {
+                            soundTriggerEnable = false; // disable sound trigger once brake moved back to lap position
+
+                        }
+                        else if ((lead.TrainBrakeController.TrainBrakeControllerState == ControllerState.StraightRelease && brakeTriggerMatch && Math.Abs(CylPressurePSIA - BrakeLine1PressurePSI) < 0.05) || lead.TrainBrakeController.TrainBrakeControllerState == ControllerState.StraightEmergency)
+                        {
+                            brakeTriggerMatch = false;
+                            soundTriggerEnable = true; // enable sound trigger when in release position, and when BP pressure is the same as brake cylinder pressure.
+                        }
+
+                    }
+
                     // sound trigger checking runs every 4th update, to avoid the problems caused by the jumping BrakeLine1PressurePSI value, and also saves cpu time :)
                     if (SoundTriggerCounter >= 4)
                     {
                         SoundTriggerCounter = 0;
-                        
-                        if (Math.Abs(CylPressurePSIA - prevCylPressurePSIA) > 0.005)
-                        {
-                        //    Trace.TraceInformation("CylPress: Current {0} prev {1}", CylPressurePSIA, prevCylPressurePSIA);
 
-                            if (!TrainBrakePressureChanging)
+                        if (soundTriggerEnable)
+                        {
+                            if (Math.Abs(CylPressurePSIA - prevCylPressurePSIA) > 0.005)
                             {
-                                
-                                if (CylPressurePSIA < prevCylPressurePSIA)  // Brake cylinder vacuum increases as pressure in pipe decreases
+                                if (!TrainBrakePressureChanging)
                                 {
+
+                                    if (CylPressurePSIA < prevCylPressurePSIA)  // Brake cylinder vacuum increases as pressure in pipe decreases
+                                    {
                                     Car.SignalEvent(TrainEvent.TrainBrakePressureIncrease);
-                                    TrainBrakePressureChanging = true;
-                                    TrainBrakeIncrease = true;
-                                 //   Trace.TraceInformation("Increase");
-                                }
-                                else if (CylPressurePSIA > prevCylPressurePSIA)
+                                        TrainBrakePressureChanging = true;
+                                        trainBrakeIncrease = true;
+                                    }
+                                    else if (CylPressurePSIA > prevCylPressurePSIA)
 
-                                {
+                                    {
                                     Car.SignalEvent(TrainEvent.TrainBrakePressureDecrease);
-                                    TrainBrakePressureChanging = true;
-                                    TrainBrakeDecrease = true;
-                                //    Trace.TraceInformation("Decrease");
+                                        TrainBrakePressureChanging = true;
+                                        trainBrakeDecrease = true;
+                                    }
                                 }
+
                             }
-
-                        }
-                        else if (TrainBrakePressureChanging)
-                        {
-                          //  Trace.TraceInformation("Sound Reset");
+                            else if (TrainBrakePressureChanging)
+                            {
                             Car.SignalEvent(TrainEvent.TrainBrakePressureStoppedChanging);
-                            TrainBrakePressureChanging = false;
-                            TrainBrakeDecrease = false;
-                            TrainBrakeIncrease = false;
+                                TrainBrakePressureChanging = false;
+                                trainBrakeDecrease = false;
+                                trainBrakeIncrease = false;
+                            }
+                            prevCylPressurePSIA = CylPressurePSIA;
                         }
-                        prevCylPressurePSIA = CylPressurePSIA;
 
-
-                        if (Math.Abs(BrakeLine1PressurePSI - prevBrakePipePressurePSI) > 0.005) /*BrakeLine1PressurePSI > prevBrakePipePressurePSI*/
+                        if (Math.Abs(BrakeLine1PressurePSI - prevBrakePipePressurePSI) > 0.005) 
                         {
                             if (!BrakePipePressureChanging)
                             {
@@ -209,13 +227,13 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                                 {
                                     Car.SignalEvent(TrainEvent.BrakePipePressureIncrease);
                                     BrakePipePressureChanging = true;
-                                    BrakePipeIncrease = true;
+                                    brakePipeIncrease = true;
                                 }
                                 else if (BrakeLine1PressurePSI > prevBrakePipePressurePSI)
                                 {
                                     Car.SignalEvent(TrainEvent.BrakePipePressureDecrease);
                                     BrakePipePressureChanging = true;
-                                    BrakePipeDecrease = true;
+                                    brakePipeDecrease = true;
                                 }
                             }
 
@@ -224,10 +242,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                         {
                             Car.SignalEvent(TrainEvent.BrakePipePressureStoppedChanging);
                             BrakePipePressureChanging = false;
-                            BrakePipeDecrease = false;
-                            BrakePipeIncrease = false;
-                        }                  
+                            brakePipeDecrease = false;
+                            brakePipeIncrease = false;
+                        }
                         prevBrakePipePressurePSI = BrakeLine1PressurePSI;
+
                     }
                     SoundTriggerCounter++;
 
@@ -425,10 +444,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                 HandbrakePercent > 0 ? $"{HandbrakePercent:F0}%" : string.Empty,
                 FrontBrakeHoseConnected? "I" : "T",
                 $"A{(AngleCockAOpen? "+" : "-")} B{(AngleCockBOpen? "+" : "-")}",
-                string.Format("TBI {0} TBD {1}",TrainBrakeIncrease? "y" : "n", TrainBrakeDecrease? "y" : "n"),
+                $"TBI {(trainBrakeIncrease? "y" : "n")} TBD {(trainBrakeDecrease? "y" : "n")}",
                 string.Empty,
                 string.Empty,
-                string.Format("BPI {0} BPD {1}",BrakePipeIncrease? "y" : "n", BrakePipeDecrease? "y" : "n"),
+                $"BPI {(brakePipeIncrease? "y" : "n")} BPD {(brakePipeDecrease? "y" : "n")}",
                 };
             }
         }
