@@ -7,15 +7,16 @@ using Orts.View.Track.Shapes;
 
 namespace Orts.View.Track.Widgets
 {
-    internal class JunctionNode: PointWidget
+    internal class JunctionSegment: PointWidget
     {
         private const int diameter = 3;
 
-        public JunctionNode(TrackJunctionNode junctionNode)
+        public JunctionSegment(TrackJunctionNode junctionNode)
         {
             Size = diameter;
             ref readonly WorldLocation location = ref junctionNode.UiD.Location;
             base.location = PointD.FromWorldLocation(location);
+            base.tile = new Tile(location.TileX, location.TileZ);
         }
 
         internal override void Draw(ContentArea contentArea)

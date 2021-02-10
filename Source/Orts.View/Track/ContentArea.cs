@@ -40,6 +40,9 @@ namespace Orts.View.Track
         internal PointD TopLeftArea { get; private set; }
         internal PointD BottomRightArea { get; private set; }
 
+        private Tile bottomLeft;
+        private Tile topRight;
+
         public Point WindowSize { get; private set; }
 
         private ScreenDelta screenDelta;
@@ -83,6 +86,10 @@ namespace Orts.View.Track
             CenterView();
             TopLeftArea = ScreenToWorldCoordinates(Point.Zero);
             BottomRightArea = ScreenToWorldCoordinates(WindowSize);
+
+            bottomLeft = new Tile((int)Math.Round((int)(TopLeftArea.X / 1024) / 2.0, MidpointRounding.AwayFromZero), (int)Math.Round((int)(BottomRightArea.Y / 1024) / 2.0, MidpointRounding.AwayFromZero));
+            topRight = new Tile((int)Math.Round((int)(BottomRightArea.X / 1024) / 2.0, MidpointRounding.AwayFromZero), (int)Math.Round((int)(TopLeftArea.Y / 1024) / 2.0, MidpointRounding.AwayFromZero));
+
         }
 
         public void UpdateSize(in Point windowSize)
@@ -91,6 +98,9 @@ namespace Orts.View.Track
             CenterAround(new PointD((TopLeftArea.X + BottomRightArea.X) / 2, (TopLeftArea.Y + BottomRightArea.Y) / 2));
             TopLeftArea = ScreenToWorldCoordinates(Point.Zero);
             BottomRightArea = ScreenToWorldCoordinates(WindowSize);
+
+            bottomLeft = new Tile((int)Math.Round((int)(TopLeftArea.X / 1024) / 2.0, MidpointRounding.AwayFromZero), (int)Math.Round((int)(BottomRightArea.Y / 1024) / 2.0, MidpointRounding.AwayFromZero));
+            topRight = new Tile((int)Math.Round((int)(BottomRightArea.X / 1024) / 2.0, MidpointRounding.AwayFromZero), (int)Math.Round((int)(TopLeftArea.Y / 1024) / 2.0, MidpointRounding.AwayFromZero));
         }
 
         public void UpdateScaleAt(in Vector2 scaleAt, int steps)
@@ -104,6 +114,9 @@ namespace Orts.View.Track
 
             TopLeftArea = ScreenToWorldCoordinates(Point.Zero);
             BottomRightArea = ScreenToWorldCoordinates(WindowSize);
+
+            bottomLeft = new Tile((int)Math.Round((int)(TopLeftArea.X / 1024) / 2.0, MidpointRounding.AwayFromZero), (int)Math.Round((int)(BottomRightArea.Y / 1024) / 2.0, MidpointRounding.AwayFromZero));
+            topRight = new Tile((int)Math.Round((int)(BottomRightArea.X / 1024) / 2.0, MidpointRounding.AwayFromZero), (int)Math.Round((int)(TopLeftArea.Y / 1024) / 2.0, MidpointRounding.AwayFromZero));
         }
 
         public void UpdatePosition(in Vector2 delta)
@@ -134,6 +147,9 @@ namespace Orts.View.Track
 
             TopLeftArea = ScreenToWorldCoordinates(Point.Zero);
             BottomRightArea = ScreenToWorldCoordinates(WindowSize);
+
+            bottomLeft = new Tile((int)Math.Round((int)(TopLeftArea.X / 1024) / 2.0, MidpointRounding.AwayFromZero), (int)Math.Round((int)(BottomRightArea.Y / 1024) / 2.0, MidpointRounding.AwayFromZero));
+            topRight = new Tile((int)Math.Round((int)(BottomRightArea.X / 1024) / 2.0, MidpointRounding.AwayFromZero), (int)Math.Round((int)(TopLeftArea.Y / 1024) / 2.0, MidpointRounding.AwayFromZero));
 
         }
 
@@ -247,22 +263,22 @@ namespace Orts.View.Track
                 currentFont = fontManager[fontsize];
             TrackItemBase.SetFont(currentFont);
 
-            foreach (TrackSegment segment in TrackContent.TrackSegments)
+            foreach (TrackSegment segment in TrackContent.TrackSegments.BoundingBox(bottomLeft, topRight))
             {
                 if (InsideScreenArea(segment))
                     segment.Draw(this);
             }
-            foreach (TrackEndSegment endNode in TrackContent.TrackEndNodes)
+            foreach (TrackEndSegment endNode in TrackContent.TrackEndSegments.BoundingBox(bottomLeft, topRight))
             {
                 if (InsideScreenArea(endNode))
                     endNode.Draw(this);
             }
-            foreach (JunctionNode junctionNode in TrackContent.JunctionNodes)
+            foreach (JunctionSegment junctionNode in TrackContent.JunctionSegments.BoundingBox(bottomLeft, topRight))
             {
                 if (InsideScreenArea(junctionNode))
                     junctionNode.Draw(this);
             }
-            foreach (TrackItemBase trackItem in TrackContent.TrackItems)
+            foreach (TrackItemBase trackItem in TrackContent.TrackItems.BoundingBox(bottomLeft, topRight))
             {
                 if (InsideScreenArea(trackItem))
                     trackItem.Draw(this);

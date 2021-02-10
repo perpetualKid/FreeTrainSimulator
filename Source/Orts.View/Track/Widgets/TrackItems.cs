@@ -28,6 +28,7 @@ namespace Orts.View.Track.Widgets
             Size = 3;
             ref readonly WorldLocation location = ref source.Location;
             base.location = PointD.FromWorldLocation(location);
+            base.tile = new Tile(location.TileX, location.TileZ);
         }
 
         internal static void SetFont(System.Drawing.Font font)

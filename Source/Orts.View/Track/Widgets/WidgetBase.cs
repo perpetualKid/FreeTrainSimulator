@@ -1,13 +1,23 @@
-﻿namespace Orts.View.Track.Widgets
+﻿using Microsoft.Xna.Framework;
+
+using Orts.Common.Position;
+
+using SharpDX.Direct3D11;
+
+namespace Orts.View.Track.Widgets
 {
     internal abstract class WidgetBase
     {
         internal float Size;
     }
 
-    internal abstract class PointWidget: WidgetBase
+    internal abstract class PointWidget: WidgetBase, ITileCoordinate<Tile>
     {
         private protected PointD location;
+
+        private protected Tile tile;
+
+        public ref readonly Tile Tile => ref tile;
 
         internal ref readonly PointD Location => ref location;
 

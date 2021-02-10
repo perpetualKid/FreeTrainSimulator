@@ -50,6 +50,7 @@ namespace Orts.View.Track.Widgets
             }
 
             base.location = PointD.FromWorldLocation(location);
+            base.tile = new Tile(location.TileX, location.TileZ);
             Size = trackSection.Width;
             Curved = trackSection.Curved;
             Direction = trackVectorSection.Direction.Y - MathHelper.PiOver2;

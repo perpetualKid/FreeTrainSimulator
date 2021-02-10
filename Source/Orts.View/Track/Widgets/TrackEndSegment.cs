@@ -20,6 +20,7 @@ namespace Orts.View.Track.Widgets
         {
             ref readonly WorldLocation location = ref trackEndNode.UiD.Location;
             base.location = PointD.FromWorldLocation(location);
+            base.tile = new Tile(location.TileX, location.TileZ);
             Size = width;
 
             if (null == connectedVectorNode)

@@ -18,11 +18,12 @@ namespace Orts.View.Track
         private TrackDB trackDB;
         private TrackSectionsFile trackSectionsFile;
 
-        internal List<TrackSegment> TrackSegments { get; } = new List<TrackSegment>();
-        internal List<TrackEndSegment> TrackEndNodes { get; } = new List<TrackEndSegment>();
-        internal List<JunctionNode> JunctionNodes { get; } = new List<JunctionNode>();
+        internal TileIndexedList<TrackSegment, Tile> TrackSegments { get; private set; }
 
-        internal List<TrackItemBase> TrackItems { get; } = new List<TrackItemBase>();
+        internal TileIndexedList<TrackEndSegment, Tile> TrackEndSegments { get; private set; }
+        internal TileIndexedList<JunctionSegment, Tile> JunctionSegments { get; private set; }
+
+        internal TileIndexedList<TrackItemBase, Tile> TrackItems { get; private set; }
 
         internal SignalConfigurationFile SignalConfigFile { get; }
         public bool UseMetricUnits { get; }
@@ -74,13 +75,17 @@ namespace Orts.View.Track
                 maxY = Math.Max(maxY, location.TileZ * WorldLocation.TileSize + location.Location.Z);
             }
 
+            List<TrackSegment> trackSegments = new List<TrackSegment>();
+            List<TrackEndSegment> endSegments = new List<TrackEndSegment>();
+            List<JunctionSegment> junctionSegments = new List<JunctionSegment>();
+
             foreach (TrackNode trackNode in trackDB.TrackNodes)
             {
                 switch (trackNode)
                 {
                     case TrackEndNode trackEndNode:
                         TrackVectorNode connectedVectorNode = trackDB.TrackNodes[trackEndNode.TrackPins[0].Link] as TrackVectorNode;
-                        TrackEndNodes.Add(new TrackEndSegment(trackEndNode, connectedVectorNode, trackSectionsFile.TrackSections));
+                        endSegments.Add(new TrackEndSegment(trackEndNode, connectedVectorNode, trackSectionsFile.TrackSections));
                         UpdateBounds(in trackEndNode.UiD.Location);
                         break;
                     case TrackVectorNode trackVectorNode:
@@ -89,7 +94,7 @@ namespace Orts.View.Track
                             UpdateBounds(in trackVectorSection.Location);
                             TrackSection trackSection = trackSectionsFile.TrackSections.Get(trackVectorSection.SectionIndex);
                             if (trackSection != null)
-                                TrackSegments.Add(new TrackSegment(trackVectorSection, trackSection));
+                                trackSegments.Add(new TrackSegment(trackVectorSection, trackSection));
                         }
                         break;
                     case TrackJunctionNode trackJunctionNode:
@@ -102,16 +107,20 @@ namespace Orts.View.Track
                             }
                         }
                         UpdateBounds(trackJunctionNode.UiD.Location);
-                        JunctionNodes.Add(new JunctionNode(trackJunctionNode));
+                        junctionSegments.Add(new JunctionSegment(trackJunctionNode));
                         break;
                 }
             }
             Bounds = new Rectangle((int)minX, (int)minY, (int)(maxX - minX + 1), (int)(maxY - minY + 1));
+
+            TrackSegments = new TileIndexedList<TrackSegment, Tile>(trackSegments);
+            JunctionSegments = new TileIndexedList<JunctionSegment, Tile>(junctionSegments);
+            TrackEndSegments = new TileIndexedList<TrackEndSegment, Tile>(endSegments);
         }
 
         private void AddTrackItems(TrackItem[] trackItems)
         {
-            TrackItems.AddRange(TrackItemBase.Create(trackItems, SignalConfigFile, trackDB));
+            TrackItems = new TileIndexedList<TrackItemBase, Tile>(TrackItemBase.Create(trackItems, SignalConfigFile, trackDB));
         }
     }
 }
