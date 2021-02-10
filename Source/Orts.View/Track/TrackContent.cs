@@ -120,7 +120,7 @@ namespace Orts.View.Track
 
         private void AddTrackItems(TrackItem[] trackItems)
         {
-            TrackItems = new TileIndexedList<TrackItemBase, Tile>(TrackItemBase.Create(trackItems, SignalConfigFile, trackDB));
+            TrackItems = new TileIndexedList<TrackItemBase, Tile>(TrackItemBase.Create(trackItems, SignalConfigFile, trackDB, trackSectionsFile));
         }
     }
 }

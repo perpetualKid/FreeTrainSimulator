@@ -36,7 +36,7 @@ namespace Orts.View.Track.Widgets
             TrackItemBase.font = font;
         }
 
-        public static List<TrackItemBase> Create(TrackItem[] trackItems, SignalConfigurationFile signalConfig, TrackDB trackDb)
+        public static List<TrackItemBase> Create(TrackItem[] trackItems, SignalConfigurationFile signalConfig, TrackDB trackDb, TrackSectionsFile trackSectionsFile)
         {
             List<TrackItemBase> result = new List<TrackItemBase>();
             Dictionary<uint, SidingTrackItem> sidingItems = new Dictionary<uint, SidingTrackItem>();
@@ -80,7 +80,7 @@ namespace Orts.View.Track.Widgets
                         result.Add(new SoundRegionTrackItem(soundRegionItem));
                         break;
                     case SignalItem signalItem:
-                        result.Add(new SignalTrackItem(signalItem, signalConfig, trackDb, trackItemNodes));
+                        result.Add(new SignalTrackItem(signalItem, signalConfig, trackDb, trackItemNodes, trackSectionsFile));
                         break;
                 }
             }
@@ -257,7 +257,7 @@ namespace Orts.View.Track.Widgets
         private readonly float angle;
         private readonly bool normal = true;
 
-        public SignalTrackItem(SignalItem source, SignalConfigurationFile signalConfig, TrackDB trackDb, TrackVectorNode[] trackItemNodes) : base(source)
+        public SignalTrackItem(SignalItem source, SignalConfigurationFile signalConfig, TrackDB trackDb, TrackVectorNode[] trackItemNodes, TrackSectionsFile trackSectionsFile) : base(source)
         {
             Size = 7f;
             if (signalConfig.SignalTypes.ContainsKey(source.SignalType))
@@ -266,21 +266,49 @@ namespace Orts.View.Track.Widgets
             }
 
             TrackVectorNode current = trackItemNodes[source.TrackItemId];
-            //ref readonly WorldLocation nodeLocation = ref current.UiD.Location;
-            //    Vector2 directionVector = new Vector2((float)(nodeLocation.TileX * WorldLocation.TileSize + nodeLocation.Location.X), (float)(nodeLocation.TileZ * WorldLocation.TileSize + nodeLocation.Location.Z));
-            angle = current?.TrackVectorSections[0].Direction.Y ?? 0;
-            //Vector2 v1 = new Vector2(Location.X, Location.Y);
-            //Vector2 v3 = v1 - directionVector;
-            //v3.Normalize();
-            //directionVector = v1 - Vector2.Multiply(v3, signal.direction == 0 ? 2f : -2f);//shift signal along the dir for 2m, so signals for both directions will not be overlapped
-            //Location = new PointF(directionVector.X, directionVector.Y);
-            //directionVector = v1 - Vector2.Multiply(v3, signal.direction == 0 ? 12f : -12f);
-            //direction = new PointF(directionVector.X, directionVector.Y);
+            double distance = double.MaxValue;
+            TrackVectorSection closestSection = null;
+            foreach (TrackVectorSection trackVectorSection in current?.TrackVectorSections ?? Enumerable.Empty<TrackVectorSection>())
+            {
+                double currentDistance;
+                if ((currentDistance = WorldLocation.GetDistanceSquared2D(trackVectorSection.Location, source.Location)) < distance)
+                {
+                    distance = currentDistance;
+                    closestSection = trackVectorSection;
+                }
+                TrackSection trackSection = trackSectionsFile.TrackSections.Get(trackVectorSection.SectionIndex);
+                WorldLocation end;
 
-            //Traveller signalTraveller = new Traveller(tsectionDat, trackDB.TrackNodes, tn, WorldLocation, (Traveller.TravellerDirection)source.Direction);
-            //this.angle = signalTraveller.RotY;
-            //                angle = source.SignalDirections
-            // Shift signal a little bit to be able to distinguish backfacing from normal facing
+                double cosA = Math.Cos(trackVectorSection.Direction.Y);
+                double sinA = Math.Sin(trackVectorSection.Direction.Y);
+
+                if (trackSection.Curved)
+                {
+                    double length = trackSection.Radius * Math.Abs(MathHelper.ToRadians(trackSection.Angle));
+
+                    int sign = -Math.Sign(trackSection.Angle);
+                    double angleRadians = -length / trackSection.Radius;
+                    double cosArotated = Math.Cos(trackVectorSection.Direction.Y + sign * angleRadians);
+                    double sinArotated = Math.Sin(trackVectorSection.Direction.Y + sign * angleRadians);
+                    double deltaX = sign * trackSection.Radius * (cosA - cosArotated);
+                    double deltaZ = sign * trackSection.Radius * (sinA - sinArotated);
+
+                    end = new WorldLocation(trackVectorSection.Location.TileX, trackVectorSection.Location.TileZ, (float)(trackVectorSection.Location.Location.X - deltaX), 0, (float)(trackVectorSection.Location.Location.Z + deltaZ));
+                }
+                else
+                {
+                    end = new WorldLocation(trackVectorSection.Location.TileX, trackVectorSection.Location.TileZ, (float)(trackVectorSection.Location.Location.X +sinA  * trackSection.Length), 0, (float)(trackVectorSection.Location.Location.Z +cosA * trackSection.Length));
+                }
+                if ((currentDistance = WorldLocation.GetDistanceSquared2D(end, source.Location)) < distance)
+                {
+                    distance = currentDistance;
+                    closestSection = trackVectorSection;
+                }
+            }
+
+            angle = closestSection?.Direction.Y ?? 0;
+            angle = MathHelper.WrapAngle(angle + (source.Direction == Common.TrackDirection.Reverse ? MathHelper.TwoPi : MathHelper.Pi));
+
             Vector3 shiftedLocation = source.Location.Location +
                     0.0001f * new Vector3((float)Math.Cos(angle), 0f, -(float)Math.Sin(angle));
                 WorldLocation location = new WorldLocation(source.Location.TileX, source.Location.TileZ, shiftedLocation);
