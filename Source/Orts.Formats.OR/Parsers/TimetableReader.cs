@@ -62,5 +62,19 @@ namespace Orts.Formats.OR.Parsers
                 } while (readLine != null);
             }
         }
+
+        /// <summary>
+        /// Remove leading and trailing whitespace which is difficult to see in a spreadsheet and may confuse the timetable author.
+        /// </summary>
+        /// <param name="readLine"></param>
+        /// <param name="separator"></param>
+        /// <returns></returns>
+        private string[] TrimElements(string readLine, string separator)
+        {
+            var lineElements = readLine.Split(separator[0]);
+            for (var i = 0; i < lineElements.Count(); i++)
+                lineElements[i] = lineElements[i].Trim();
+            return lineElements;
+        }
     }
 }
