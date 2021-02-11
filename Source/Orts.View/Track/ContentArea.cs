@@ -176,13 +176,13 @@ namespace Orts.View.Track
         private void CenterView()
         {
             offsetX = (bounds.Left + bounds.Right) / 2 - WindowSize.X / 2 / Scale;
-            offsetY = (bounds.Top + bounds.Bottom) / 2 - (WindowSize.Y - screenDelta.TopOffset) / 2 / Scale;
+            offsetY = (bounds.Top + bounds.Bottom) / 2 - (WindowSize.Y) / 2 / Scale;
         }
 
         private void CenterAround(in PointD centerPoint)
         {
             offsetX = centerPoint.X - WindowSize.X / 2 / Scale;
-            offsetY = centerPoint.Y - (WindowSize.Y - screenDelta.TopOffset) / 2 / Scale;
+            offsetY = centerPoint.Y - (WindowSize.Y) / 2 / Scale;
         }
 
         private void ScaleToFit()
@@ -212,7 +212,7 @@ namespace Orts.View.Track
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private Vector2 WorldToScreenCoordinates(in WorldLocation worldLocation)
+        internal Vector2 WorldToScreenCoordinates(in WorldLocation worldLocation)
         {
             double x = worldLocation.TileX * WorldLocation.TileSize + worldLocation.Location.X;
             double y = worldLocation.TileZ * WorldLocation.TileSize + worldLocation.Location.Z;

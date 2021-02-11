@@ -68,15 +68,6 @@ namespace Orts.View.Track
         {
             double minX = double.MaxValue, minY = double.MaxValue, maxX = double.MinValue, maxY = double.MinValue;
 
-            /// update bounds 
-            void UpdateBounds(in WorldLocation location)
-            {
-                minX = Math.Min(minX, location.TileX * WorldLocation.TileSize + location.Location.X);
-                minY = Math.Min(minY, location.TileZ * WorldLocation.TileSize + location.Location.Z);
-                maxX = Math.Max(maxX, location.TileX * WorldLocation.TileSize + location.Location.X);
-                maxY = Math.Max(maxY, location.TileZ * WorldLocation.TileSize + location.Location.Z);
-            }
-
             List<TrackSegment> trackSegments = new List<TrackSegment>();
             List<TrackEndSegment> endSegments = new List<TrackEndSegment>();
             List<JunctionSegment> junctionSegments = new List<JunctionSegment>();
@@ -88,12 +79,10 @@ namespace Orts.View.Track
                     case TrackEndNode trackEndNode:
                         TrackVectorNode connectedVectorNode = trackDB.TrackNodes[trackEndNode.TrackPins[0].Link] as TrackVectorNode;
                         endSegments.Add(new TrackEndSegment(trackEndNode, connectedVectorNode, trackSectionsFile.TrackSections));
-                        UpdateBounds(in trackEndNode.UiD.Location);
                         break;
                     case TrackVectorNode trackVectorNode:
                         foreach (TrackVectorSection trackVectorSection in trackVectorNode.TrackVectorSections)
                         {
-                            UpdateBounds(in trackVectorSection.Location);
                             TrackSection trackSection = trackSectionsFile.TrackSections.Get(trackVectorSection.SectionIndex);
                             if (trackSection != null)
                                 trackSegments.Add(new TrackSegment(trackVectorSection, trackSection));
@@ -105,25 +94,45 @@ namespace Orts.View.Track
                             if (trackDB.TrackNodes[pin.Link] is TrackVectorNode vectorNode && vectorNode.TrackVectorSections.Length > 0)
                             {
                                 TrackVectorSection item = pin.Direction == Common.TrackDirection.Reverse ? vectorNode.TrackVectorSections.First() : vectorNode.TrackVectorSections.Last();
-                                UpdateBounds(item.Location);
                             }
                         }
-                        UpdateBounds(trackJunctionNode.UiD.Location);
                         junctionSegments.Add(new JunctionSegment(trackJunctionNode));
                         break;
                 }
             }
-            Bounds = new Rectangle((int)minX, (int)minY, (int)(maxX - minX + 1), (int)(maxY - minY + 1));
+            //            Bounds = new Rectangle((int)minX, (int)minY, (int)(maxX - minX + 1), (int)(maxY - minY + 1));
 
             TrackSegments = new TileIndexedList<TrackSegment, Tile>(trackSegments);
             JunctionSegments = new TileIndexedList<JunctionSegment, Tile>(junctionSegments);
             TrackEndSegments = new TileIndexedList<TrackEndSegment, Tile>(endSegments);
-            List<GridTile> gridTiles = new List<GridTile>();
-            foreach (ITile tile in trackSegments.Select(d => d.Tile as ITile).Distinct())
+            Tiles = new TileIndexedList<GridTile, Tile>(trackSegments.Select(d => d.Tile as ITile).Distinct().Select(t => new GridTile(t)));
+
+            if (Tiles.Count == 1)
             {
-                gridTiles.Add(new GridTile(tile));
+                foreach (TrackEndSegment trackEndSegment in TrackEndSegments)
+                {
+                    minX = Math.Min(minX, trackEndSegment.Location.X);
+                    minY = Math.Min(minY, trackEndSegment.Location.Y);
+                    maxX = Math.Max(maxX, trackEndSegment.Location.X);
+                    maxY = Math.Max(maxY, trackEndSegment.Location.Y);
+                }
             }
-            Tiles = new TileIndexedList<GridTile, Tile>(gridTiles);
+            else
+            {
+                foreach (GridTile tile in Tiles)
+                {
+                    minX = Math.Min(minX, tile.Tile.X);
+                    minY = Math.Min(minY, tile.Tile.Z);
+                    maxX = Math.Max(maxX, tile.Tile.X);
+                    maxY = Math.Max(maxY, tile.Tile.Z);
+                }
+                minX = minX * WorldLocation.TileSize - WorldLocation.TileSize / 2;
+                maxX = maxX * WorldLocation.TileSize + WorldLocation.TileSize / 2;
+                minY = minY * WorldLocation.TileSize - WorldLocation.TileSize / 2;
+                maxY = maxY * WorldLocation.TileSize + WorldLocation.TileSize / 2;
+            }
+            Bounds = new Rectangle((int)minX, (int)minY, (int)(maxX - minX), (int)(maxY - minY));
+
         }
 
         private void AddTrackItems(TrackItem[] trackItems)

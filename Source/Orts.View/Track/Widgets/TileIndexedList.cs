@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -6,11 +7,15 @@ using Orts.Common.Position;
 
 namespace Orts.View.Track.Widgets
 {
-    internal class TileIndexedList<ITileCoordinate, T> : IEnumerable<ITileCoordinate<T>> where T: struct, ITile
+    internal class TileIndexedList<ITileCoordinate, T> :  IEnumerable<ITileCoordinate<T>> where T: struct, ITile
     {
         private readonly SortedList<ITile, List<ITileCoordinate<T>>> tiles;
         private readonly List<ITile> sortedIndexes;
 
+        public int Count => sortedIndexes.Count;
+
+        public IList<ITileCoordinate<T>> this[int index] { get => tiles[sortedIndexes[index]]; set => throw new InvalidOperationException(); }
+        
         public TileIndexedList(IEnumerable<ITileCoordinate<T>> data)
         {
             tiles = new SortedList<ITile, List<ITileCoordinate<T>>>(data.GroupBy(d => d.Tile as ITile).ToDictionary(g => g.Key, g => g.ToList()));
@@ -34,6 +39,9 @@ namespace Orts.View.Track.Widgets
 
         public IEnumerable<ITileCoordinate<T>> BoundingBox(ITile bottomLeft, ITile topRight)
         {
+            if (bottomLeft.CompareTo(topRight) > 0)
+                throw new ArgumentOutOfRangeException($"{nameof(bottomLeft)} can not be larger than {nameof(topRight)}");
+
             int tileLookupIndex = FindNearestIndex(bottomLeft);
             if (tileLookupIndex > 0)
                 tileLookupIndex--;
@@ -74,6 +82,5 @@ namespace Orts.View.Track.Widgets
             }
             return keyIndex;
         }
-
     }
 }

@@ -116,7 +116,8 @@ namespace Orts.TrackEditor
             windowForm.LocationChanged += WindowForm_LocationChanged;
             windowForm.ClientSizeChanged += WindowForm_ClientSizeChanged;
 
-            contentAreaOffset = new ScreenDelta(mainmenu.Bounds.Height, statusbar.Bounds.Height);
+            //contentAreaOffset = new ScreenDelta(statusbar.Bounds.Height, mainmenu.Bounds.Height);
+            contentAreaOffset = new ScreenDelta(60, 0);
 
             // using reflection to be able to trigger ClientSizeChanged event manually as this is not 
             // reliably raised otherwise with the resize functionality below in SetScreenMode
