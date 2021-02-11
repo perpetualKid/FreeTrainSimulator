@@ -7,7 +7,6 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using Orts.Common;
-using Orts.View.Track;
 using Orts.View.Xna;
 
 namespace Orts.View.DrawableComponents

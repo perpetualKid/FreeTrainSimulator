@@ -156,7 +156,7 @@ namespace Orts.View.Track
         private double previousScale;
         private PointD previousTopLeft, previousBottomRight;
         int supressCount;
-        
+
         public override void Update(GameTime gameTime)
         {
             if (Scale == previousScale && TopLeftArea == previousTopLeft && BottomRightArea == previousBottomRight && supressCount-- > 0)
@@ -283,6 +283,11 @@ namespace Orts.View.Track
                 if (InsideScreenArea(trackItem))
                     trackItem.Draw(this);
             }
+            foreach (GridTile tile in TrackContent.Tiles.BoundingBox(bottomLeft, topRight))
+            {
+                tile.Draw(this);
+            }
+
         }
 
         protected override void Dispose(bool disposing)

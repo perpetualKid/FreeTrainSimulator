@@ -25,6 +25,8 @@ namespace Orts.View.Track
 
         internal TileIndexedList<TrackItemBase, Tile> TrackItems { get; private set; }
 
+        internal TileIndexedList<GridTile, Tile> Tiles { get; private set; }
+
         internal SignalConfigurationFile SignalConfigFile { get; }
         public bool UseMetricUnits { get; }
 
@@ -116,6 +118,12 @@ namespace Orts.View.Track
             TrackSegments = new TileIndexedList<TrackSegment, Tile>(trackSegments);
             JunctionSegments = new TileIndexedList<JunctionSegment, Tile>(junctionSegments);
             TrackEndSegments = new TileIndexedList<TrackEndSegment, Tile>(endSegments);
+            List<GridTile> gridTiles = new List<GridTile>();
+            foreach (ITile tile in trackSegments.Select(d => d.Tile as ITile).Distinct())
+            {
+                gridTiles.Add(new GridTile(tile));
+            }
+            Tiles = new TileIndexedList<GridTile, Tile>(gridTiles);
         }
 
         private void AddTrackItems(TrackItem[] trackItems)
