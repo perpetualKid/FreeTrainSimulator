@@ -109,27 +109,32 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                         notchType = ControllerState.Overcharge;
                     else if (QuickReleaseButtonPressed())
                         notchType = ControllerState.FullQuickRelease;
+                    if (notchType == ControllerState.Hold || notchType == ControllerState.Lap || notchType == ControllerState.MinimalReduction)
+                    {
+                        if (EnforceMinimalReduction)
+                            pressureBar = DecreasePressure(pressureBar, MaxPressureBar() - MinReductionBar(), ApplyRateBarpS(), elapsedClockSeconds);
+                    }
+                    else
+                    {
+                        EnforceMinimalReduction = false;
+                    }
                     switch (notchType)
                     {
                         case ControllerState.Release:
-                            EnforceMinimalReduction = false;
                             pressureBar = IncreasePressure(pressureBar, MaxPressureBar(), ReleaseRateBarpS(), elapsedClockSeconds);
                             pressureBar = DecreasePressure(pressureBar, MaxPressureBar(), OverchargeEliminationRateBarpS(), elapsedClockSeconds);
                             epState = -1;
                             break;
                         case ControllerState.FullQuickRelease:
-                            EnforceMinimalReduction = false;
                             pressureBar = IncreasePressure(pressureBar, MaxPressureBar(), QuickReleaseRateBarpS(), elapsedClockSeconds);
                             pressureBar = DecreasePressure(pressureBar, MaxPressureBar(), OverchargeEliminationRateBarpS(), elapsedClockSeconds);
                             epState = -1;
                             break;
                         case ControllerState.Overcharge:
-                            EnforceMinimalReduction = false;
                             pressureBar = IncreasePressure(pressureBar, Math.Min(MaxOverchargePressureBar(), MainReservoirPressureBar()), QuickReleaseRateBarpS(), elapsedClockSeconds);
                             epState = -1;
                             break;
                         case ControllerState.SlowService:
-                            EnforceMinimalReduction = true;
                             if (pressureBar > MaxPressureBar() - MinReductionBar())
                                 pressureBar = MaxPressureBar() - MinReductionBar();
                             pressureBar = DecreasePressure(pressureBar, MaxPressureBar() - FullServReductionBar(), SlowApplicationRateBarpS(), elapsedClockSeconds);
@@ -185,16 +190,13 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                         case ControllerState.GSelfLapH:
                         case ControllerState.Suppression:
                         case ControllerState.GSelfLap:
-                            x = MaxPressureBar() - MinReductionBar() * (1 - x) - FullServReductionBar() * x;
                             EnforceMinimalReduction = true;
-                            if (pressureBar > MaxPressureBar() - MinReductionBar())
-                                pressureBar = MaxPressureBar() - MinReductionBar();
+                            x = MaxPressureBar() - MinReductionBar() * (1 - x) - FullServReductionBar() * x;
                             pressureBar = DecreasePressure(pressureBar, x, ApplyRateBarpS(), elapsedClockSeconds);
                             if (ForceControllerReleaseGraduated || notch.NotchStateType == ControllerState.GSelfLap)
                                 pressureBar = IncreasePressure(pressureBar, x, ReleaseRateBarpS(), elapsedClockSeconds);
                             break;
                         case ControllerState.Emergency:
-                            EnforceMinimalReduction = true;
                             pressureBar -= EmergencyRateBarpS() * elapsedClockSeconds;
                             epState = 1;
                             break;
@@ -209,9 +211,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                     previousNotchPosition = NotchController.GetCurrentNotch();
                 }
             }
-
-            if (EnforceMinimalReduction)
-                pressureBar = DecreasePressure(pressureBar, MaxPressureBar() - MinReductionBar(), ApplyRateBarpS(), elapsedClockSeconds);
 
             if (pressureBar < 0)
                 pressureBar = 0;
