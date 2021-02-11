@@ -67,9 +67,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             // reservoir. OR senses this and if a straight braked car is coupled to a auto (vacuum braked) locomotive, and it has an auxilary reservoir fitted then it will use the vacuum single pipe module to manage 
             // brakes. In this case relevant straight brake functions are disabled in this module.
 
-            MSTSLocomotive lead = (MSTSLocomotive)Car.Train.LeadLocomotive;
-
-            if (lead != null)
+            if (Car.Train.LeadLocomotive is MSTSLocomotive lead)
             {
                 // Adjust brake cylinder pressures as brake pipe varies
                 // straight braked cars will have separate calculations done, if locomotive is not straight braked, then revert car to vacuum single pipe  
