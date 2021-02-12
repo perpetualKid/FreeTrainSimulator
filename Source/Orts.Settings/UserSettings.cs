@@ -384,6 +384,8 @@ namespace Orts.Settings
 
         public RailDriverSettings RailDriver { get; private set; }
 
+        public TrackViewerSettings TrackViewer { get; private set; }
+
         public UserSettings() :
             this(Array.Empty<string>())
         { }
@@ -403,11 +405,12 @@ namespace Orts.Settings
             FolderSettings = new FolderSettings(options, store);
             Input = new InputSettings(options, store);
             RailDriver = new RailDriverSettings(options, store);
+            TrackViewer = new TrackViewerSettings(options, store);
         }
 
         public override object GetDefaultValue(string name)
         {
-            var property = GetProperty(name);
+            PropertyInfo property = GetProperty(name);
 
             if (customDefaultValues.ContainsKey(property.Name))
                 return customDefaultValues[property.Name];
@@ -415,13 +418,13 @@ namespace Orts.Settings
             if (property.GetCustomAttributes(typeof(DefaultAttribute), false).Length > 0)
                 return (property.GetCustomAttributes(typeof(DefaultAttribute), false)[0] as DefaultAttribute).Value;
 
-            throw new InvalidDataException(String.Format("UserSetting {0} has no default value.", property.Name));
+            throw new InvalidDataException($"UserSetting {property.Name} has no default value.");
         }
 
         protected override PropertyInfo[] GetProperties()
         {
             if (properties == null)
-                properties = base.GetProperties().Where(pi => !new string[] { "FolderSettings", "Input", "RailDriver" }.Contains(pi.Name)).ToArray();
+                properties = base.GetProperties().Where(pi => !new string[] { "FolderSettings", "Input", "RailDriver", TrackViewerSettings.SettingLiteral }.Contains(pi.Name)).ToArray();
             return properties;
         }
 
@@ -437,19 +440,20 @@ namespace Orts.Settings
 
         protected override void Load(bool allowUserSettings, NameValueCollection optionalValues)
         {
-            foreach (var property in GetProperties())
+            foreach (PropertyInfo property in GetProperties())
                 LoadSetting(allowUserSettings, optionalValues, property.Name);
             properties = null;
         }
 
         public override void Save()
         {
-            foreach (var property in GetProperties())
+            foreach (PropertyInfo property in GetProperties())
                 Save(property.Name);
 
             FolderSettings.Save();
             Input.Save();
             RailDriver.Save();
+            TrackViewer.Save();
             properties = null;
         }
 
@@ -463,32 +467,32 @@ namespace Orts.Settings
 
         public override void Reset()
         {
-            foreach (var property in GetProperties())
+            foreach (PropertyInfo property in GetProperties())
                 Reset(property.Name);
         }
 
         public void Log()
         {
-            foreach (var property in GetProperties().OrderBy(p => p.Name))
+            foreach (PropertyInfo property in GetProperties().OrderBy(p => p.Name))
             {
                 dynamic value = property.GetValue(this, null);
                 string source = string.Empty;
 
                 if (property.PropertyType == typeof(int[]))  //int array
                 {
-                    source = (optionalSettings.Contains(property.Name.ToLowerInvariant()) ? "(command-line)" :
+                    source = (optionalSettings.Contains(property.Name) ? "(command-line)" :
                         (((value as int[]).SequenceEqual(GetDefaultValue(property.Name) as int[]))) ? "" : "(user set)");
                     value = string.Join(", ", (int[])value);
                 }
                 else if (property.PropertyType == typeof(string[]))  //string array
                 {
-                    source = (optionalSettings.Contains(property.Name.ToLowerInvariant()) ? "(command-line)" :
+                    source = (optionalSettings.Contains(property.Name) ? "(command-line)" :
                         (((value as string[]).SequenceEqual(GetDefaultValue(property.Name) as string[]))) ? "" : "(user set)");
                     value = string.Join(", ", (string[])value);
                 }
                 else
                 {
-                    source = (optionalSettings.Contains(property.Name.ToLowerInvariant()) ? "(command-line)" :
+                    source = (optionalSettings.Contains(property.Name) ? "(command-line)" :
                         (value.Equals(GetDefaultValue(property.Name)) ? "" : "(user set)"));
                 }
 

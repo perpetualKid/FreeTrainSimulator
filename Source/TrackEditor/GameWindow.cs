@@ -46,7 +46,7 @@ namespace Orts.TrackEditor
         private Vector2 centerPoint;
 
         private readonly Action onClientSizeChanged;
-        private readonly System.Drawing.Size presetSize = new System.Drawing.Size(2000, 800); //TODO
+        private readonly System.Drawing.Size presetSize = new System.Drawing.Size(1200, 800); //TODO
 
         private ContentArea contentArea;
 
@@ -78,6 +78,8 @@ namespace Orts.TrackEditor
             frameRate = new SmoothedData();
             windowForm = (System.Windows.Forms.Form)System.Windows.Forms.Control.FromHandle(Window.Handle);
             currentScreen = System.Windows.Forms.Screen.PrimaryScreen;
+
+            presetSize = new System.Drawing.Size(Settings.TrackViewer.WindowSize[0], Settings.TrackViewer.WindowSize[1]);
 
             InitializeComponent();
             graphicsDeviceManager = new GraphicsDeviceManager(this);
@@ -119,6 +121,13 @@ namespace Orts.TrackEditor
             // reliably raised otherwise with the resize functionality below in SetScreenMode
             MethodInfo m = Window.GetType().GetMethod("OnClientSizeChanged", BindingFlags.NonPublic | BindingFlags.Instance);
             onClientSizeChanged = (Action)Delegate.CreateDelegate(typeof(Action), Window, m);
+
+            Exiting += GameWindow_Exiting;
+        }
+
+        private void GameWindow_Exiting(object sender, EventArgs e)
+        {
+            SaveSettings();
         }
 
         private void Window_ClientSizeChanged(object sender, EventArgs e)
@@ -153,6 +162,13 @@ namespace Orts.TrackEditor
         private void WindowForm_LocationChanged(object sender, EventArgs e)
         {
             WindowForm_ClientSizeChanged(sender, e);
+        }
+
+        private void SaveSettings()
+        {
+            Settings.TrackViewer.WindowSize[0] = windowSize.Width;
+            Settings.TrackViewer.WindowSize[1] = windowSize.Height;
+            Settings.TrackViewer.Save();
         }
 
         private void GraphicsPreparingDeviceSettings(object sender, PreparingDeviceSettingsEventArgs e)

@@ -62,59 +62,57 @@ namespace Orts.ActivityRunner.Viewer3D
             if (railDriverInstance.Enabled)
             {
                 settings = game.Settings.RailDriver;
-                byte cutOff = settings.CalibrationSettings[(int)RailDriverCalibrationSetting.CutOffDelta];
+                byte cutOff = settings.CalibrationSettings[RailDriverCalibrationSetting.CutOffDelta];
 
-                byte[] calibrationSettings = settings.CalibrationSettings;
-
-                if (Convert.ToBoolean(calibrationSettings[(int)RailDriverCalibrationSetting.ReverseReverser]))
-                    reverser = (calibrationSettings[(byte)RailDriverCalibrationSetting.ReverserFullForward], calibrationSettings[(byte)RailDriverCalibrationSetting.ReverserNeutral], calibrationSettings[(byte)RailDriverCalibrationSetting.ReverserFullReversed]);
+                if (Convert.ToBoolean(settings.CalibrationSettings[RailDriverCalibrationSetting.ReverseReverser]))
+                    reverser = (settings.CalibrationSettings[RailDriverCalibrationSetting.ReverserFullForward], settings.CalibrationSettings[RailDriverCalibrationSetting.ReverserNeutral], settings.CalibrationSettings[RailDriverCalibrationSetting.ReverserFullReversed]);
                 else
-                    reverser = (calibrationSettings[(byte)RailDriverCalibrationSetting.ReverserFullReversed], calibrationSettings[(byte)RailDriverCalibrationSetting.ReverserNeutral], calibrationSettings[(byte)RailDriverCalibrationSetting.ReverserFullForward]);
+                    reverser = (settings.CalibrationSettings[RailDriverCalibrationSetting.ReverserFullReversed], settings.CalibrationSettings[RailDriverCalibrationSetting.ReverserNeutral], settings.CalibrationSettings[RailDriverCalibrationSetting.ReverserFullForward]);
                 reverser = UpdateCutOff(reverser, cutOff);
 
-                if (Convert.ToBoolean(calibrationSettings[(int)RailDriverCalibrationSetting.FullRangeThrottle]))
+                if (Convert.ToBoolean(settings.CalibrationSettings[RailDriverCalibrationSetting.FullRangeThrottle]))
                 {
-                    if (Convert.ToBoolean(calibrationSettings[(int)RailDriverCalibrationSetting.ReverseThrottle]))
-                        throttle = (calibrationSettings[(byte)RailDriverCalibrationSetting.DynamicBrake], calibrationSettings[(byte)RailDriverCalibrationSetting.ThrottleFull]);
+                    if (Convert.ToBoolean(settings.CalibrationSettings[RailDriverCalibrationSetting.ReverseThrottle]))
+                        throttle = (settings.CalibrationSettings[RailDriverCalibrationSetting.DynamicBrake], settings.CalibrationSettings[RailDriverCalibrationSetting.ThrottleFull]);
                     else
-                        throttle = (calibrationSettings[(byte)RailDriverCalibrationSetting.ThrottleFull], calibrationSettings[(byte)RailDriverCalibrationSetting.DynamicBrake]);
+                        throttle = (settings.CalibrationSettings[RailDriverCalibrationSetting.ThrottleFull], settings.CalibrationSettings[RailDriverCalibrationSetting.DynamicBrake]);
                     fullRangeThrottle = true;
                 }
                 else
                 {
-                    if (Convert.ToBoolean(calibrationSettings[(int)RailDriverCalibrationSetting.ReverseThrottle]))
+                    if (Convert.ToBoolean(settings.CalibrationSettings[RailDriverCalibrationSetting.ReverseThrottle]))
                     {
-                        throttle = (calibrationSettings[(byte)RailDriverCalibrationSetting.DynamicBrake], calibrationSettings[(byte)RailDriverCalibrationSetting.DynamicBrakeSetup]);
-                        dynamicBrake = (calibrationSettings[(byte)RailDriverCalibrationSetting.DynamicBrakeSetup], calibrationSettings[(byte)RailDriverCalibrationSetting.ThrottleIdle], calibrationSettings[(byte)RailDriverCalibrationSetting.ThrottleFull]);
+                        throttle = (settings.CalibrationSettings[RailDriverCalibrationSetting.DynamicBrake], settings.CalibrationSettings[RailDriverCalibrationSetting.DynamicBrakeSetup]);
+                        dynamicBrake = (settings.CalibrationSettings[RailDriverCalibrationSetting.DynamicBrakeSetup], settings.CalibrationSettings[RailDriverCalibrationSetting.ThrottleIdle], settings.CalibrationSettings[RailDriverCalibrationSetting.ThrottleFull]);
                     }
                     else
                     {
-                        throttle = (calibrationSettings[(byte)RailDriverCalibrationSetting.ThrottleIdle], calibrationSettings[(byte)RailDriverCalibrationSetting.ThrottleFull]);
-                        dynamicBrake = (calibrationSettings[(byte)RailDriverCalibrationSetting.ThrottleIdle], calibrationSettings[(byte)RailDriverCalibrationSetting.DynamicBrakeSetup], calibrationSettings[(byte)RailDriverCalibrationSetting.DynamicBrake]);
+                        throttle = (settings.CalibrationSettings[RailDriverCalibrationSetting.ThrottleIdle], settings.CalibrationSettings[RailDriverCalibrationSetting.ThrottleFull]);
+                        dynamicBrake = (settings.CalibrationSettings[RailDriverCalibrationSetting.ThrottleIdle], settings.CalibrationSettings[RailDriverCalibrationSetting.DynamicBrakeSetup], settings.CalibrationSettings[RailDriverCalibrationSetting.DynamicBrake]);
                     }
                 }
                 throttle = UpdateCutOff(throttle, cutOff);
                 dynamicBrake = UpdateCutOff(dynamicBrake, cutOff);
 
-                if (Convert.ToBoolean(calibrationSettings[(int)RailDriverCalibrationSetting.ReverseAutoBrake]))
-                    autoBrake = (calibrationSettings[(byte)RailDriverCalibrationSetting.AutoBrakeFull], calibrationSettings[(byte)RailDriverCalibrationSetting.AutoBrakeRelease]);
+                if (Convert.ToBoolean(settings.CalibrationSettings[RailDriverCalibrationSetting.ReverseAutoBrake]))
+                    autoBrake = (settings.CalibrationSettings[RailDriverCalibrationSetting.AutoBrakeFull], settings.CalibrationSettings[RailDriverCalibrationSetting.AutoBrakeRelease]);
                 else
-                    autoBrake = (calibrationSettings[(byte)RailDriverCalibrationSetting.AutoBrakeRelease], calibrationSettings[(byte)RailDriverCalibrationSetting.AutoBrakeFull]);
-                if (Convert.ToBoolean(calibrationSettings[(int)RailDriverCalibrationSetting.ReverseIndependentBrake]))
-                    independentBrake = (calibrationSettings[(byte)RailDriverCalibrationSetting.IndependentBrakeFull], calibrationSettings[(byte)RailDriverCalibrationSetting.IndependentBrakeRelease]);
+                    autoBrake = (settings.CalibrationSettings[RailDriverCalibrationSetting.AutoBrakeRelease], settings.CalibrationSettings[RailDriverCalibrationSetting.AutoBrakeFull]);
+                if (Convert.ToBoolean(settings.CalibrationSettings[RailDriverCalibrationSetting.ReverseIndependentBrake]))
+                    independentBrake = (settings.CalibrationSettings[RailDriverCalibrationSetting.IndependentBrakeFull], settings.CalibrationSettings[RailDriverCalibrationSetting.IndependentBrakeRelease]);
                 else
-                    independentBrake = (calibrationSettings[(byte)RailDriverCalibrationSetting.IndependentBrakeRelease], calibrationSettings[(byte)RailDriverCalibrationSetting.IndependentBrakeFull]);
+                    independentBrake = (settings.CalibrationSettings[RailDriverCalibrationSetting.IndependentBrakeRelease], settings.CalibrationSettings[RailDriverCalibrationSetting.IndependentBrakeFull]);
                 autoBrake = UpdateCutOff(autoBrake, cutOff);
                 independentBrake = UpdateCutOff(independentBrake, cutOff);
 
-                emergencyBrake = (calibrationSettings[(byte)RailDriverCalibrationSetting.AutoBrakeFull], calibrationSettings[(byte)RailDriverCalibrationSetting.EmergencyBrake]);
+                emergencyBrake = (settings.CalibrationSettings[RailDriverCalibrationSetting.AutoBrakeFull], settings.CalibrationSettings[RailDriverCalibrationSetting.EmergencyBrake]);
                 emergencyBrake = UpdateCutOff(emergencyBrake, cutOff);
 
-                wipers = (calibrationSettings[(byte)RailDriverCalibrationSetting.Rotary1Position1], calibrationSettings[(byte)RailDriverCalibrationSetting.Rotary1Position2], calibrationSettings[(byte)RailDriverCalibrationSetting.Rotary1Position3]);
-                headlight = (calibrationSettings[(byte)RailDriverCalibrationSetting.Rotary2Position1], calibrationSettings[(byte)RailDriverCalibrationSetting.Rotary2Position2], calibrationSettings[(byte)RailDriverCalibrationSetting.Rotary2Position3]);
+                wipers = (settings.CalibrationSettings[RailDriverCalibrationSetting.Rotary1Position1], settings.CalibrationSettings[RailDriverCalibrationSetting.Rotary1Position2], settings.CalibrationSettings[RailDriverCalibrationSetting.Rotary1Position3]);
+                headlight = (settings.CalibrationSettings[RailDriverCalibrationSetting.Rotary2Position1], settings.CalibrationSettings[RailDriverCalibrationSetting.Rotary2Position2], settings.CalibrationSettings[RailDriverCalibrationSetting.Rotary2Position3]);
 
-                bailoffDisengaged = (calibrationSettings[(byte)RailDriverCalibrationSetting.BailOffDisengagedRelease], calibrationSettings[(byte)RailDriverCalibrationSetting.BailOffDisengagedFull]);
-                bailoffEngaged = (calibrationSettings[(byte)RailDriverCalibrationSetting.BailOffEngagedRelease], calibrationSettings[(byte)RailDriverCalibrationSetting.BailOffEngagedFull]);
+                bailoffDisengaged = (settings.CalibrationSettings[RailDriverCalibrationSetting.BailOffDisengagedRelease], settings.CalibrationSettings[RailDriverCalibrationSetting.BailOffDisengagedFull]);
+                bailoffEngaged = (settings.CalibrationSettings[RailDriverCalibrationSetting.BailOffEngagedRelease], settings.CalibrationSettings[RailDriverCalibrationSetting.BailOffEngagedFull]);
                 bailoffDisengaged = UpdateCutOff(bailoffDisengaged, cutOff);
                 bailoffEngaged = UpdateCutOff(bailoffEngaged, cutOff);
 
@@ -279,7 +277,7 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             if (!(Active || (railDriverInstance.Enabled && command == UserCommand.GameExternalCabController)))
                 return false;
-            byte raildriverCommand = settings.UserCommands[(int)command];
+            byte raildriverCommand = settings.UserCommands[command];
             if (raildriverCommand == byte.MaxValue)
                 return false;
             if (command == UserCommand.GamePauseMenu || raildriverCommand != 0)
@@ -294,7 +292,7 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             if (!Active)
                 return false;
-            byte raildriverCommand = settings.UserCommands[(int)command];
+            byte raildriverCommand = settings.UserCommands[command];
             if (raildriverCommand == byte.MaxValue)
                 return false;
             if (command == UserCommand.GamePauseMenu || raildriverCommand != 0)
@@ -309,7 +307,7 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             if (!Active)
                 return false;
-            byte raildriverCommand = settings.UserCommands[(int)command];
+            byte raildriverCommand = settings.UserCommands[command];
             if (raildriverCommand == byte.MaxValue)
                 return false;
             if (command == UserCommand.GamePauseMenu || raildriverCommand != 0)
