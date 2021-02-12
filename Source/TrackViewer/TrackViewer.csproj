@@ -1,13 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <Description>Open Rails Track Editor</Description>
+    <Description>Open Rails Track Viewer</Description>
     <UseWindowsForms>true</UseWindowsForms>
   </PropertyGroup>
   <PropertyGroup>
     <OutputPath>..\..\Program</OutputPath>
     <ApplicationIcon>..\Orts.ico</ApplicationIcon>
-    <RootNamespace>Orts.TrackEditor</RootNamespace>
+    <RootNamespace>Orts.TrackViewer</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="GetText.NET" Version="0.9.7" />

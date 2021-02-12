@@ -19,7 +19,7 @@ using Orts.View.Track;
 using Orts.View.Track.Shapes;
 using Orts.View.Xna;
 
-namespace Orts.TrackEditor
+namespace Orts.TrackViewer
 {
     public enum ScreenMode
     {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows.Forms;
 
-namespace Orts.TrackEditor
+namespace Orts.TrackViewer
 {
     public partial class GameWindow
     {
@@ -53,7 +53,7 @@ namespace Orts.TrackEditor
             windowForm.PerformLayout();
         }
 
-        private TrackEditor.WinForms.Controls.StatusbarControl statusbar;
-        private TrackEditor.WinForms.Controls.MainMenuControl mainmenu;
+        private TrackViewer.WinForms.Controls.StatusbarControl statusbar;
+        private TrackViewer.WinForms.Controls.MainMenuControl mainmenu;
     }
 }

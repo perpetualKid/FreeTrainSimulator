@@ -1,5 +1,5 @@
 ﻿
-namespace Orts.TrackEditor.WinForms.Controls
+namespace Orts.TrackViewer.WinForms.Controls
 {
     partial class MainMenuControl
     {

@@ -5,7 +5,7 @@ using System.Windows.Forms;
 
 using Orts.Common.Native;
 
-namespace Orts.TrackEditor
+namespace Orts.TrackViewer
 {
     public static class Program
     {

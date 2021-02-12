@@ -6,7 +6,7 @@ using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 
-namespace Orts.TrackEditor
+namespace Orts.TrackViewer
 {
     public class TrackData
     {

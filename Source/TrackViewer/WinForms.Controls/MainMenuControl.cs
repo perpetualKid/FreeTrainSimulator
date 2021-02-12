@@ -7,7 +7,7 @@ using Orts.Common;
 using Orts.Models.Simplified;
 using Orts.View.Track;
 
-namespace Orts.TrackEditor.WinForms.Controls
+namespace Orts.TrackViewer.WinForms.Controls
 {
     public partial class MainMenuControl : UserControl
     {
