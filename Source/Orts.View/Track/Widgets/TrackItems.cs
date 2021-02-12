@@ -112,7 +112,7 @@ namespace Orts.View.Track.Widgets
         {
             BasicShapes.DrawTexture(BasicTextureType.Disc, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size), Color.CornflowerBlue, false, false, false, contentArea.SpriteBatch);
             if (drawName)
-                TextDrawShape.DrawString(contentArea.WorldToScreenCoordinates(in location), Color.Red, sidingName, font, Vector2.One, TextAlignment.Left, SpriteEffects.None, contentArea.SpriteBatch);
+                TextDrawShape.DrawString(contentArea.WorldToScreenCoordinates(in location), Color.Red, sidingName, font, Vector2.One, TextHorizontalAlignment.Left, TextVerticalAlignment.Top, SpriteEffects.None, contentArea.SpriteBatch);
         }
 
         /// <summary>
@@ -165,7 +165,7 @@ namespace Orts.View.Track.Widgets
         internal override void Draw(ContentArea contentArea)
         {
             BasicShapes.DrawTexture(BasicTextureType.Platform, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size), Color.White, false, false, false, contentArea.SpriteBatch);
-            TextDrawShape.DrawString(contentArea.WorldToScreenCoordinates(in location), Color.Blue, platformName, font, Vector2.One, TextAlignment.Left, SpriteEffects.None, contentArea.SpriteBatch);
+            TextDrawShape.DrawString(contentArea.WorldToScreenCoordinates(in location), Color.Blue, platformName, font, Vector2.One, TextHorizontalAlignment.Left, TextVerticalAlignment.Top, SpriteEffects.None, contentArea.SpriteBatch);
         }
     }
     #endregion
@@ -186,7 +186,7 @@ namespace Orts.View.Track.Widgets
         {
             // TODO 20210117 show more of the SpeedPostItem properties (direction, number/dot)
             BasicShapes.DrawTexture(BasicTextureType.Disc, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size), Color.Orange, false, false, false, contentArea.SpriteBatch);
-            TextDrawShape.DrawString(contentArea.WorldToScreenCoordinates(in location), Color.Blue, distance, font, Vector2.One, TextAlignment.Left, SpriteEffects.None, contentArea.SpriteBatch);
+            TextDrawShape.DrawString(contentArea.WorldToScreenCoordinates(in location), Color.Blue, distance, font, Vector2.One, TextHorizontalAlignment.Center, TextVerticalAlignment.Center, SpriteEffects.None, contentArea.SpriteBatch);
         }
     }
     #endregion

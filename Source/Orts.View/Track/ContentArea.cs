@@ -11,22 +11,6 @@ using Orts.View.Xna;
 
 namespace Orts.View.Track
 {
-#pragma warning disable CA1815 // Override equals and operator equals on value types
-    public readonly struct ScreenDelta
-#pragma warning restore CA1815 // Override equals and operator equals on value types
-    {
-#pragma warning disable CA1051 // Do not declare visible instance fields
-        public readonly int TopOffset;
-        public readonly int BottomOffset;
-#pragma warning restore CA1051 // Do not declare visible instance fields
-
-        public ScreenDelta(int top, int bottom)
-        {
-            TopOffset = top;
-            BottomOffset = bottom;
-        }
-    }
-
     public class ContentArea : DrawableGameComponent
     {
         private Rectangle bounds;
@@ -45,7 +29,7 @@ namespace Orts.View.Track
 
         public Point WindowSize { get; private set; }
 
-        private ScreenDelta screenDelta;
+        private int screenHeightDelta;  // to account for Menubar/Statusbar height when calculating initial scale and center view
 
         private readonly SpriteBatch spriteBatch;
         internal SpriteBatch SpriteBatch => spriteBatch;
@@ -78,10 +62,10 @@ namespace Orts.View.Track
             base.OnEnabledChanged(sender, args);
         }
 
-        public void ResetSize(in Point windowSize, in ScreenDelta offset)
+        public void ResetSize(in Point windowSize, int screenDelta)
         {
             WindowSize = windowSize;
-            screenDelta = offset;
+            screenHeightDelta = screenDelta;
             ScaleToFit();
             CenterView();
             TopLeftArea = ScreenToWorldCoordinates(Point.Zero);
@@ -109,7 +93,7 @@ namespace Orts.View.Track
             if (scale < maxScale || scale > 200)
                 return;
             offsetX += scaleAt.X * (scale / Scale - 1.0) / scale;
-            offsetY += (WindowSize.Y - screenDelta.BottomOffset - scaleAt.Y) * (scale / Scale - 1.0) / scale;
+            offsetY += (WindowSize.Y - scaleAt.Y) * (scale / Scale - 1.0) / scale;
             Scale = scale;
 
             TopLeftArea = ScreenToWorldCoordinates(Point.Zero);
@@ -188,7 +172,7 @@ namespace Orts.View.Track
         private void ScaleToFit()
         {
             double xScale = (double)WindowSize.X / bounds.Width;
-            double yScale = (double)(WindowSize.Y - screenDelta.TopOffset - screenDelta.BottomOffset) / bounds.Height;
+            double yScale = (double)(WindowSize.Y - screenHeightDelta) / bounds.Height;
             Scale = Math.Min(xScale, yScale);
             maxScale = Scale * 0.75;
         }
@@ -217,7 +201,7 @@ namespace Orts.View.Track
             double x = worldLocation.TileX * WorldLocation.TileSize + worldLocation.Location.X;
             double y = worldLocation.TileZ * WorldLocation.TileSize + worldLocation.Location.Z;
             return new Vector2((float)(Scale * (x - offsetX)),
-                               (float)(WindowSize.Y - screenDelta.BottomOffset - Scale * (y - offsetY)));
+                               (float)(WindowSize.Y - Scale * (y - offsetY)));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -230,7 +214,7 @@ namespace Orts.View.Track
         internal Vector2 WorldToScreenCoordinates(in PointD location)
         {
             return new Vector2((float)(Scale * (location.X - offsetX)),
-                               (float)(WindowSize.Y - screenDelta.BottomOffset - Scale * (location.Y - offsetY)));
+                               (float)(WindowSize.Y - Scale * (location.Y - offsetY)));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

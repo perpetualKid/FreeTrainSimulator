@@ -43,7 +43,6 @@ namespace Orts.TrackEditor
         private Point windowPosition;
         private System.Drawing.Size windowSize;
         private Point clientRectangleOffset;
-        private ScreenDelta contentAreaOffset;
         private Vector2 centerPoint;
 
         private readonly Action onClientSizeChanged;
@@ -57,7 +56,7 @@ namespace Orts.TrackEditor
             set => windowForm.Invoke((System.Windows.Forms.MethodInvoker)delegate {
                 if (value != null)
                 {
-                    value.ResetSize(Window.ClientBounds.Size, contentAreaOffset);
+                    value.ResetSize(Window.ClientBounds.Size, 60);
                     Components.Add(value);
                 }
                 else
@@ -115,9 +114,6 @@ namespace Orts.TrackEditor
 
             windowForm.LocationChanged += WindowForm_LocationChanged;
             windowForm.ClientSizeChanged += WindowForm_ClientSizeChanged;
-
-            //contentAreaOffset = new ScreenDelta(statusbar.Bounds.Height, mainmenu.Bounds.Height);
-            contentAreaOffset = new ScreenDelta(60, 0);
 
             // using reflection to be able to trigger ClientSizeChanged event manually as this is not 
             // reliably raised otherwise with the resize functionality below in SetScreenMode
@@ -301,7 +297,7 @@ namespace Orts.TrackEditor
                 BasicShapes.DrawLine(10, Color.DarkGoldenrod, new Vector2(100, 100), new Vector2(250, 250));
             }
             if (!string.IsNullOrEmpty(StatusMessage))
-                TextDrawShape.DrawString(centerPoint, Color.Red, StatusMessage, drawfont, Vector2.One, TextAlignment.Center);
+                TextDrawShape.DrawString(centerPoint, Color.Red, StatusMessage, drawfont, Vector2.One, TextHorizontalAlignment.Center);
 
             spriteBatch.End();
 
