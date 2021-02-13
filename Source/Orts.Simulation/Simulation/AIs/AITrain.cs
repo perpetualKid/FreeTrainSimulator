@@ -71,7 +71,7 @@ namespace Orts.Simulation.AIs
 
         public float doorOpenDelay = -1f;
         public float doorCloseAdvance = -1f;
-        public AILevelCrossingHornPattern LevelCrossingHornPattern { get; }
+        public AILevelCrossingHornPattern LevelCrossingHornPattern { get; set; }
 
         public float PathLength;
 
@@ -107,7 +107,7 @@ namespace Orts.Simulation.AIs
         /// Constructor
         /// </summary>
 
-        public AITrain(Services sd, AI ai, AIPath path, float efficiency, string name, ServiceTraffics trafficService, float maxVelocityA, AILevelCrossingHornPattern hornPattern)
+        public AITrain(Services sd, AI ai, AIPath path, float efficiency, string name, ServiceTraffics trafficService, float maxVelocityA)
             : base()
         {
             ServiceDefinition = sd;
@@ -124,7 +124,6 @@ namespace Orts.Simulation.AIs
             Name = name;
             base.trafficService = trafficService;
             MaxVelocityA = maxVelocityA;
-            LevelCrossingHornPattern = hornPattern;
             // <CSComment> TODO: as Cars.Count is always = 0 at this point, activityClearingDistanceM is set to the short distance also for long trains
             // However as no one complained about AI train SPADs it may be considered to consolidate short distance for all trains</CSComment>
             if (Cars.Count < StandardTrainMinCarNo) ActivityClearingDistanceM = ShortClearingDistanceM;
@@ -337,6 +336,9 @@ namespace Orts.Simulation.AIs
 
             if (!IsActualPlayerTrain)
                 CheckDeadlock(ValidRoute[0], Number);
+
+            // Set up horn blow at crossings if required
+            LevelCrossingHornPattern = Simulator.Instance.Activity.Activity.AIBlowsHornAtLevelCrossings ? AILevelCrossingHornPattern.CreateInstance(Simulator.Instance.Activity.Activity.AILevelCrossingHornPattern) : null;
 
             // set initial position and state
 
@@ -3228,7 +3230,7 @@ namespace Orts.Simulation.AIs
                         switch (durationS)
                         {
                             case 11:
-                                hornPattern = AILevelCrossingHornPattern.CreateInstance(LevelCrossingHornPattern.US);
+                                hornPattern = AILevelCrossingHornPattern.CreateInstance(Orts.Common.LevelCrossingHornPattern.US);
                                 break;
                             default:
                                 hornPattern = LevelCrossingHornPattern;

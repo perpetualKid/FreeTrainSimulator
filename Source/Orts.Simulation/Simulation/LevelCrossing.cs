@@ -183,7 +183,7 @@ namespace Orts.Simulation
                 if (train is AITrain aiTrain && (aiTrain.LevelCrossingHornPattern?.ShouldActivate(crossing.CrossingGroup, absSpeedMpS, Math.Min(frontDist, Math.Abs(rearDist))) ?? false))
                 {
                     //  Add generic actions if needed
-                    aiTrain.AuxActionsContain.CheckGenActions(this.GetType(), crossing.Location, rearDist, frontDist, crossing.TrackIndex, aiTrain.LevelCrossingHornPattern);
+                    aiTrain.AuxActionsContainer.CheckGenActions(this.GetType(), crossing.Location, rearDist, frontDist, crossing.TrackIndex, aiTrain.LevelCrossingHornPattern);
                 }
 
                 // The tests below is to allow the crossings operate like the crossings under MSTS

@@ -80,11 +80,9 @@ namespace Orts.Simulation.AIs
 #endif
             if (simulator.Activity != null && simulator.Activity.Activity.Traffic != null)
             {
-                var activityFile = simulator.Activity.Tr_Activity.Tr_Activity_File;
-                var hornPattern = activityFile.AIBlowsHornAtLevelCrossings ? AILevelCrossingHornPattern.CreateInstance(activityFile.AILevelCrossingHornPattern) : null;
                 foreach (var sd in simulator.Activity.Activity.Traffic.Services)
                 {
-                    AITrain train = CreateAITrain(sd, activityFile.Traffic_Definition.TrafficFile.TrafficDefinition, hornPattern, simulator.TimetableMode);
+                    AITrain train = CreateAITrain(sd, simulator.Activity.Activity.Traffic.TrafficFile.TrafficDefinition, simulator.TimetableMode);
                     if (cancellation.IsCancellationRequested) // ping loader watchdog
                         return;
                 }
@@ -808,7 +806,7 @@ namespace Orts.Simulation.AIs
         /// <summary>
         /// Creates an AI train
         /// </summary>
-        private AITrain CreateAITrain(Services sd, ServiceTraffic trd, AILevelCrossingHornPattern hornPattern, bool isTimetableMode)
+        private AITrain CreateAITrain(Services sd, ServiceTraffic trd, bool isTimetableMode)
         {
             // set up a new AI train
             // first extract the service definition from the activity file
@@ -827,7 +825,7 @@ namespace Orts.Simulation.AIs
                 }
             }
             ServiceFile srvFile = new ServiceFile(Simulator.RoutePath + @"\SERVICES\" + sd.Name + ".SRV");  // read service file
-            AITrain train = CreateAITrainDetail(sd, trfDef, srvFile, hornPattern, isTimetableMode, false);
+            AITrain train = CreateAITrainDetail(sd, trfDef, srvFile, isTimetableMode, false);
             if (train != null)
             {
                 // insert in start list
@@ -843,7 +841,7 @@ namespace Orts.Simulation.AIs
         /// Moves the models down 1000M to make them invisible.
         /// called also in case of autopilot mode
         /// </summary>
-        public AITrain CreateAITrainDetail(Services sd, ServiceTraffics trfDef, ServiceFile srvFile, bool isTimetableMode,  AILevelCrossingHornPattern hornPattern, bool isInitialPlayerTrain)
+        public AITrain CreateAITrainDetail(Services sd, ServiceTraffics trfDef, ServiceFile srvFile, bool isTimetableMode, bool isInitialPlayerTrain)
         {
             // read consist file
 
@@ -865,7 +863,7 @@ namespace Orts.Simulation.AIs
             float maxVelocityA = conFile.Train.MaxVelocity.A;
             // sd.Name is the name of the service file.
             // srvFile.Name points to the name of the service within the Name() category such as Name ( "Eastbound Freight Train" ) in the service file.
-            AITrain train = new AITrain(sd, this, aiPath, srvFile.Efficiency, srvFile.Name, trfDef, maxVelocityA, hornPattern);
+            AITrain train = new AITrain(sd, this, aiPath, srvFile.Efficiency, srvFile.Name, trfDef, maxVelocityA);
             Simulator.TrainDictionary.Add(train.Number, train);
 
             if (!Simulator.NameDictionary.ContainsKey(train.Name.ToLower()))
