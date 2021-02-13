@@ -792,4 +792,22 @@ namespace Orts.Common
         AllTrackItems = Sidings | SidingNames | Platforms | PlatformNames | PlatformStations | SpeedPosts | MilePosts | Signals | OtherSignals | Hazards | Pickups | SoundRegions,
         All = AllTracks | AllRoads | AllTrackItems | Grid
     }
+
+    /// <summary>
+    /// A type of horn pattern used by AI trains at level crossings.
+    /// </summary>
+    public enum LevelCrossingHornPattern
+    {
+        /// <summary>
+        /// A single blast just before the crossing.
+        /// </summary>
+#pragma warning disable CA1720 // Identifier contains type name
+        Single,
+#pragma warning restore CA1720 // Identifier contains type name
+
+        /// <summary>
+        /// A long-long-short-long pattern used in the United States and Canada.
+        /// </summary>
+        US,
+    }
 }

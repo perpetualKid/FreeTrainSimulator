@@ -1,14 +1,18 @@
-﻿using Orts.Formats.Msts.Models;
+﻿using System;
+
+using Orts.Common;
+using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
 
 namespace Orts.Formats.OR.Models
 {
     public class ORActivity
     {
-        public int AIHornAtCrossings = -1;
+        public bool AIBlowsHornAtLevelCrossings { get; private set; }
+        public LevelCrossingHornPattern AILevelCrossingHornPattern { get; private set; } = LevelCrossingHornPattern.Single;
 
         // Override values for activity creators
-        public bool IsActivityOverride { get; private set; } = false;
+        public bool IsActivityOverride { get; private set; }
 
         public ActivityEvents Events { get; private set; }
 
@@ -58,8 +62,6 @@ namespace Orts.Formats.OR.Models
         {
             stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
-                new STFReader.TokenProcessor("ortsaihornatcrossings", ()=>{ AIHornAtCrossings = stf.ReadIntBlock(AIHornAtCrossings); }),
-
                 // General TAB
                 new STFReader.TokenProcessor("ortsgraduatedbrakerelease", ()=>{ Options.GraduatedBrakeRelease = stf.ReadIntBlock(Options.GraduatedBrakeRelease); IsActivityOverride = true; }),
                 new STFReader.TokenProcessor("ortsviewdispatchwindow", ()=>{ Options.ViewDispatcherWindow = stf.ReadIntBlock(Options.ViewDispatcherWindow); IsActivityOverride = true; }),
@@ -100,6 +102,8 @@ namespace Orts.Formats.OR.Models
                 {
                     Events.UpdateORActivtyData (stf);
                 }),
+                new STFReader.TokenProcessor("ortsaihornatcrossings", () => { AIBlowsHornAtLevelCrossings = stf.ReadIntBlock(Convert.ToInt32(AIBlowsHornAtLevelCrossings)) > 0; }),
+                new STFReader.TokenProcessor("ortsaicrossinghornpattern", () =>{if (EnumExtension.GetValue(stf.ReadStringBlock(""), out LevelCrossingHornPattern value)) AILevelCrossingHornPattern = value; })
             });
         }
     }

@@ -71,6 +71,7 @@ namespace Orts.Simulation.AIs
 
         public float doorOpenDelay = -1f;
         public float doorCloseAdvance = -1f;
+        public AILevelCrossingHornPattern LevelCrossingHornPattern { get; }
 
         public float PathLength;
 
@@ -106,7 +107,7 @@ namespace Orts.Simulation.AIs
         /// Constructor
         /// </summary>
 
-        public AITrain(Services sd, AI ai, AIPath path, float efficiency, string name, ServiceTraffics trafficService, float maxVelocityA)
+        public AITrain(Services sd, AI ai, AIPath path, float efficiency, string name, ServiceTraffics trafficService, float maxVelocityA, AILevelCrossingHornPattern hornPattern)
             : base()
         {
             ServiceDefinition = sd;
@@ -123,6 +124,7 @@ namespace Orts.Simulation.AIs
             Name = name;
             base.trafficService = trafficService;
             MaxVelocityA = maxVelocityA;
+            LevelCrossingHornPattern = hornPattern;
             // <CSComment> TODO: as Cars.Count is always = 0 at this point, activityClearingDistanceM is set to the short distance also for long trains
             // However as no one complained about AI train SPADs it may be considered to consolidate short distance for all trains</CSComment>
             if (Cars.Count < StandardTrainMinCarNo) ActivityClearingDistanceM = ShortClearingDistanceM;
@@ -206,6 +208,7 @@ namespace Orts.Simulation.AIs
                     ToggleDoors(!frontIsFront, true);
                 }
             }
+            LevelCrossingHornPattern = AILevelCrossingHornPattern.Restore(inf);
             int serviceListCount = inf.ReadInt32();
             if (serviceListCount > 0) RestoreServiceDefinition(inf, serviceListCount);
 
@@ -277,6 +280,7 @@ namespace Orts.Simulation.AIs
             outf.Write(UncondAttach);
             outf.Write(doorCloseAdvance);
             outf.Write(doorOpenDelay);
+            LevelCrossingHornPattern.Save(outf);
             if (ServiceDefinition != null) ServiceDefinition.Save(outf);
             else outf.Write(-1);
         }
@@ -3219,8 +3223,18 @@ namespace Orts.Simulation.AIs
                 {
                     if (waitingPoint[2] >= 60011 && waitingPoint[2] <= 60021)
                     {
-                        AIActionHornRef action = new AIActionHornRef(this, waitingPoint[5], 0f, waitingPoint[0], lastIndex, thisRoute[lastIndex].TrackCircuitSection.Index, (int)direction);
-                        action.SetDelay(waitingPoint[2] - 60010);
+                        var durationS = waitingPoint[2] - 60010;
+                        AILevelCrossingHornPattern hornPattern;
+                        switch (durationS)
+                        {
+                            case 11:
+                                hornPattern = AILevelCrossingHornPattern.CreateInstance(LevelCrossingHornPattern.US);
+                                break;
+                            default:
+                                hornPattern = LevelCrossingHornPattern;
+                                break;
+                        }
+                        AIActionHornRef action = new AIActionHornRef(this, waitingPoint[5], 0f, waitingPoint[0], lastIndex, thisRoute[lastIndex].TrackCircuitSection.Index, (int)direction, durationS, hornPattern);
                         AuxActionsContainer.Add(action);
                     }
                     else
@@ -5470,6 +5484,153 @@ namespace Orts.Simulation.AIs
             }
         }
 
+    }
+
+
+    /// <summary>
+    /// Abstract class for a programmatic horn pattern sounded by the AI at level crossings.
+    /// </summary>
+    public abstract class AILevelCrossingHornPattern
+    {
+        /// <summary>
+        /// Determines whether or not to create an <see cref="AIActionHornRef"/> based on the states of the train and the approaching level crossing.
+        /// </summary>
+        /// <param name="crossing">The level crossing group.</param>
+        /// <param name="absoluteSpeedMpS">The absolute value of the current speed of the train.</param>
+        /// <param name="distanceToCrossingM">The closest distance between the train (front or rear) and the level crossing (either end).</param>
+        /// <returns></returns>
+        public abstract bool ShouldActivate(LevelCrossing crossing, float absoluteSpeedMpS, float distanceToCrossingM);
+
+        /// <summary>
+        /// Sound the horn pattern using the provided locomotive. Called by <see cref="AuxActionHornItem"/>.
+        /// </summary>
+        /// <param name="locomotive">The locomotive to manipulate.</param>
+        /// <param name="durationS">The duration ("delay") set for this horn event, if set.</param>
+        /// <returns>On each iteration, set the locomotive's controls, then yield the clock time until the next step.</returns>
+        public abstract IEnumerator<int> Execute(MSTSLocomotive locomotive, int? durationS);
+
+        /// <summary>
+        /// Get the horn pattern that corresponds to a <see cref="LevelCrossingHornPattern"/> value.
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public static AILevelCrossingHornPattern CreateInstance(LevelCrossingHornPattern type)
+        {
+            switch (type)
+            {
+                case LevelCrossingHornPattern.Single:
+                    return new AILevelCrossingSingleHorn();
+                case LevelCrossingHornPattern.US:
+                    return new AILevelCrossingAmericanHorn();
+                default:
+                    throw new ArgumentException();
+            }
+        }
+
+        /// <summary>
+        /// Save type (not state) information to a save file.
+        /// </summary>
+        /// <param name="outf"></param>
+        public void Save(BinaryWriter outf)
+        {
+            LevelCrossingHornPattern type;
+            if (this is AILevelCrossingSingleHorn)
+                type = LevelCrossingHornPattern.Single;
+            else if (this is AILevelCrossingAmericanHorn)
+                type = LevelCrossingHornPattern.US;
+            else
+                throw new ArgumentException();
+            outf.Write((int)type);
+        }
+
+        /// <summary>
+        /// Restore type (not state) information from a save file.
+        /// </summary>
+        /// <param name="inf"></param>
+        /// <returns></returns>
+        public static AILevelCrossingHornPattern Restore(BinaryReader inf)
+            => CreateInstance((LevelCrossingHornPattern)inf.ReadInt32());
+    }
+
+
+    /// <summary>
+    /// Sound a single blast just before reaching the level crossing, with a slightly randomized duration, and stop the bell after 30 seconds if triggered.
+    /// </summary>
+    public class AILevelCrossingSingleHorn : AILevelCrossingHornPattern
+    {
+        /// <summary>
+        /// Sound the horn within 6s of the crossing.
+        /// </summary>
+        public override bool ShouldActivate(LevelCrossing crossing, float absoluteSpeedMpS, float distanceToCrossingM)
+            => distanceToCrossingM / absoluteSpeedMpS < 6f;
+
+        public override IEnumerator<int> Execute(MSTSLocomotive locomotive, int? durationS)
+        {
+            if (!durationS.HasValue)
+            {
+                // Sound the horn for a pseudorandom period of seconds between 2 and 5.
+                durationS = (DateTime.Now.Millisecond % 10) / 3 + 2;
+            }
+
+            locomotive.ManualHorn = true;
+            yield return durationS.Value;
+
+            locomotive.ManualHorn = false;
+
+            if (locomotive.DoesHornTriggerBell)
+            {
+                yield return 30 - durationS.Value;
+                locomotive.BellState = MSTSLocomotive.SoundState.Stopped;
+            }
+        }
+    }
+
+
+    /// <summary>
+    /// Sound the long-long-short-long pattern used in the United States and Canada, and stop the bell after 30 seconds if triggered.
+    /// </summary>
+    public class AILevelCrossingAmericanHorn : AILevelCrossingHornPattern
+    {
+        /// <summary>
+        /// Sound the horn within 19s of crossing to accomodate the full sequence.
+        /// </summary>
+        public override bool ShouldActivate(LevelCrossing crossing, float absoluteSpeedMpS, float distanceToCrossingM)
+            => distanceToCrossingM / absoluteSpeedMpS < 19f;
+
+        /// <summary>
+        /// This pattern ignores the supplied duration.
+        /// </summary>
+        public override IEnumerator<int> Execute(MSTSLocomotive locomotive, int? durationS)
+        {
+            locomotive.ManualHorn = true;
+            yield return 3;
+
+            locomotive.ManualHorn = false;
+            yield return 2;
+
+            locomotive.ManualHorn = true;
+            yield return 3;
+
+            locomotive.ManualHorn = false;
+            yield return 2;
+
+            locomotive.ManualHorn = true;
+            yield return 0;
+
+            locomotive.ManualHorn = false;
+            yield return 1;
+
+            locomotive.ManualHorn = true;
+            yield return 8;
+
+            locomotive.ManualHorn = false;
+
+            if (locomotive.DoesHornTriggerBell)
+            {
+                yield return 11;
+                locomotive.BellState = MSTSLocomotive.SoundState.Stopped;
+            }
+        }
     }
 
 

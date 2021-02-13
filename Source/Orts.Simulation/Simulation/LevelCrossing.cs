@@ -17,7 +17,6 @@
 
 // This file is the responsibility of the 3D & Environment Team. 
 
-using Orts.Formats.OR;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -96,7 +95,6 @@ namespace Orts.Simulation
             var absSpeedMpS = Math.Abs(speedMpS);
             var maxSpeedMpS = train.AllowedMaxSpeedMpS;
             var minCrossingActivationSpeed = 5.0f;  //5.0MpS is equalivalent to 11.1mph.  This is the estimated min speed that MSTS uses to activate the gates when in range.
-            var amHornTotalSequenceDuration = 19.0f; // Centered around last long horn blow
             
 
             bool validTrain = false;
@@ -120,9 +118,7 @@ namespace Orts.Simulation
                 var totalMaxDist = predictedDist + maxPredictedDist + minimumDist + 1;
 
                 var reqDist = 0f; // actual used distance
-                var hornReqDist = 0f; // used distance for horn blow
                 var adjustDist = 0f;
-                var amHornReqDist = amHornTotalSequenceDuration * (maxSpeedMpS + absSpeedMpS) / 2; // used distance for American horn blow
 
 
                 //  The first 2 tests are critical for STATIC CONSISTS, but at the same time should be mandatory since there should always be checks for any null situation.
@@ -151,14 +147,12 @@ namespace Orts.Simulation
                 {
                     validTrain = true;
                     reqDist = totalDist;
-                    hornReqDist = Math.Min(totalDist, 80.0f);
                 }
 
                 else if ((train.TrainType != TrainType.Static) && WorldLocation.Within(crossing.Location, train.FrontTDBTraveller.WorldLocation, totalMaxDist) || WorldLocation.Within(crossing.Location, train.RearTDBTraveller.WorldLocation, totalMaxDist))
                 {
                     validTrain = true;
                     reqDist = totalMaxDist;
-                    hornReqDist = Math.Min(totalMaxDist, 80.0f);
                 }
 
                 if ((train.TrainType == TrainType.Static) && !validStaticConsist && !crossing.StaticConsists.Contains(train))
@@ -186,39 +180,26 @@ namespace Orts.Simulation
 
                 var rearDist = -frontDist - train.Length;
 
-                if (train is AITrain && train.TrainType != TrainType.AiPlayerDriven && (train.ReservedTrackLengthM <= 0 || frontDist < train.ReservedTrackLengthM))
+                if (train is AITrain aiTrain && (aiTrain.LevelCrossingHornPattern?.ShouldActivate(crossing.CrossingGroup, absSpeedMpS, Math.Min(frontDist, Math.Abs(rearDist))) ?? false))
                 {
-                    if (Simulator.Activity?.Activity.AIHornAtCrossings == 1)
-                    {
-                        if (frontDist <= hornReqDist && rearDist <= minimumDist)
-                        {
-                            //  Add generic actions if needed
-                    ((AITrain)train).AuxActionsContainer.CheckGenActions(this.GetType(), crossing.Location, rearDist, frontDist, crossing.TrackIndex);
-                        }
-                    }
-                    else if (Simulator.Activity?.Activity.AIHornAtCrossings == 2)
-                    {
-                        if (frontDist <= amHornReqDist && rearDist <= minimumDist)
-                        {
-                            ((AITrain)train).AuxActionsContainer.CheckGenActions(this.GetType(), crossing.Location, rearDist, frontDist, crossing.TrackIndex);
-                        }
-                    }
+                    //  Add generic actions if needed
+                    aiTrain.AuxActionsContain.CheckGenActions(this.GetType(), crossing.Location, rearDist, frontDist, crossing.TrackIndex, aiTrain.LevelCrossingHornPattern);
                 }
 
-                    // The tests below is to allow the crossings operate like the crossings under MSTS
-                    // Tests as follows
-                    // Train speed is 0.  This was the initial issue that was found under one the MSTS activities.  Activity should start without gates being activated.
-                    // There are 2 tests for train speed between 0 and 5.0MpS(11.1mph).  Covering forward movement and reverse movement.  
-                    // The last 2 tests is for testing trains running at line speed, forward or reverse.
+                // The tests below is to allow the crossings operate like the crossings under MSTS
+                // Tests as follows
+                // Train speed is 0.  This was the initial issue that was found under one the MSTS activities.  Activity should start without gates being activated.
+                // There are 2 tests for train speed between 0 and 5.0MpS(11.1mph).  Covering forward movement and reverse movement.  
+                // The last 2 tests is for testing trains running at line speed, forward or reverse.
 
-                    // The crossing only becomes active if the train has been added to the list such as crossing.AddTrain(train).
-                    // Note: With the conditions below, OR's crossings operates like the crossings in MSTS, with exception to the simulation of the timout below.
+                // The crossing only becomes active if the train has been added to the list such as crossing.AddTrain(train).
+                // Note: With the conditions below, OR's crossings operates like the crossings in MSTS, with exception to the simulation of the timout below.
 
-                    // MSTS did not simulate a timeout, I introduced a simple timout using speedMpS.
+                // MSTS did not simulate a timeout, I introduced a simple timout using speedMpS.
 
-                    // Depending upon future development in this area, it would probably be best to have the current operation in its own class followed by any new region specific operations. 
+                // Depending upon future development in this area, it would probably be best to have the current operation in its own class followed by any new region specific operations. 
 
-                    // Recognizing static consists at crossings.
+                // Recognizing static consists at crossings.
                 if ((train.TrainType == TrainType.Static) && validStaticConsist)
                 {
                     // This process is to raise the crossing gates if a loose consist rolls through the crossing.
