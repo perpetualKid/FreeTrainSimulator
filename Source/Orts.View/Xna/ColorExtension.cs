@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Drawing.Drawing2D;
+using System.Linq;
 
 using Microsoft.Xna.Framework;
 
@@ -6,6 +9,12 @@ namespace Orts.View.Xna
 {
     public static class ColorExtension
     {
+        private static readonly Dictionary<string, Color> colorCodes =
+            typeof(Color).GetProperties()
+            .Where(prop => prop.PropertyType == typeof(Color)).ToDictionary(c => c.Name, c => (Color)c.GetValue(null, null), StringComparer.OrdinalIgnoreCase);
+
+        public static Dictionary<string, Color> ColorCodes => colorCodes;
+
         public static Color HighlightColor(in this Color color, double range)
         {
             if (range == 1)
@@ -17,6 +26,32 @@ namespace Orts.View.Xna
             double l = systemColor.GetBrightness();
             l *= range;
             return FromHSLA(h, s, l, color.A / 255.0);
+        }
+
+        // return a color which is complement, i.e. to use as Foreground/Background combination
+        public static Color ComplementColor(in this Color color)
+        {
+            return new Color(255, color.A - color.R, color.A - color.G, color.A - color.B);
+        }
+
+        public static System.Drawing.Color ToSystemDrawingColor(in this Color color)
+        {
+            return System.Drawing.Color.FromArgb(color.A, color.R, color.G, color.B);
+        }
+
+        public static Color FromName(string name)
+        {
+            if (!colorCodes.TryGetValue(name, out Color color))
+                return Color.Transparent;
+            return color;
+        }
+
+        /// <summary>
+        /// returns a System.Drawing.Color which is complement, i.e. to use as Foreground/Background combination
+        /// </summary>
+        public static System.Drawing.Color ToComplementSystemDrawingColor(in this Color color)
+        {
+            return System.Drawing.Color.FromArgb(255, color.A - color.R, color.A - color.G, color.A - color.B);
         }
 
         // Given H,S,L,A in range of 0-1

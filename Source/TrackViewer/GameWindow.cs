@@ -9,6 +9,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
+using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Common.Info;
 using Orts.Common.Input;
@@ -46,7 +47,6 @@ namespace Orts.TrackViewer
         private Vector2 centerPoint;
 
         private readonly Action onClientSizeChanged;
-        private readonly System.Drawing.Size presetSize = new System.Drawing.Size(1200, 800); //TODO
 
         private ContentArea contentArea;
 
@@ -71,15 +71,22 @@ namespace Orts.TrackViewer
 
         internal UserSettings Settings { get; }
 
+        private Color BackgroundColor;
+        internal string backgroundColor;
+
+        #region preferences
+        private readonly EnumArray<string, ColorPreference> colorPreferences = new EnumArray<string, ColorPreference>();
+
+        #endregion
+
         public GameWindow()
         {
             IEnumerable<string> options = Environment.GetCommandLineArgs().Where(a => a.StartsWith("-", StringComparison.OrdinalIgnoreCase) || a.StartsWith("/", StringComparison.OrdinalIgnoreCase)).Select(a => a.Substring(1));
             Settings = new UserSettings(options);
+            LoadSettings();
             frameRate = new SmoothedData();
             windowForm = (System.Windows.Forms.Form)System.Windows.Forms.Control.FromHandle(Window.Handle);
             currentScreen = System.Windows.Forms.Screen.PrimaryScreen;
-
-            presetSize = new System.Drawing.Size(Settings.TrackViewer.WindowSize[0], Settings.TrackViewer.WindowSize[1]);
 
             InitializeComponent();
             graphicsDeviceManager = new GraphicsDeviceManager(this);
@@ -105,7 +112,6 @@ namespace Orts.TrackViewer
             //graphicsDeviceManager.SynchronizeWithVerticalRetrace = false;
             //IsFixedTimeStep = false;
             //TargetElapsedTime = TimeSpan.FromMilliseconds(5);
-            windowSize = presetSize;
             windowPosition = new Point(
                 currentScreen.WorkingArea.Left + (currentScreen.WorkingArea.Size.Width - windowSize.Width) / 2,
                 currentScreen.WorkingArea.Top + (currentScreen.WorkingArea.Size.Height - windowSize.Height) / 2);
@@ -164,10 +170,33 @@ namespace Orts.TrackViewer
             WindowForm_ClientSizeChanged(sender, e);
         }
 
+        public void UpdateColorPreference(ColorPreference preference, string colorName)
+        {
+            colorPreferences[preference] = colorName;
+            switch (preference)
+            {
+                case ColorPreference.Background: 
+                    backgroundColor = colorName;
+                    BackgroundColor = ColorExtension.FromName(colorName);
+                    break;
+
+            }
+        }
+
+        private void LoadSettings()
+        {
+            windowSize = new System.Drawing.Size(Settings.TrackViewer.WindowSize[0], Settings.TrackViewer.WindowSize[1]);
+
+            colorPreferences[ColorPreference.Background] = Settings.TrackViewer.ColorBackground;
+            BackgroundColor = ColorExtension.FromName(colorPreferences[ColorPreference.Background]);
+
+        }
+
         private void SaveSettings()
         {
             Settings.TrackViewer.WindowSize[0] = windowSize.Width;
             Settings.TrackViewer.WindowSize[1] = windowSize.Height;
+            Settings.TrackViewer.ColorBackground = colorPreferences[ColorPreference.Background];
             Settings.TrackViewer.Save();
         }
 
@@ -190,7 +219,7 @@ namespace Orts.TrackViewer
                         if (targetMode != currentScreenMode)
                             Window.Position = windowPosition;
                         windowForm.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Sizable;
-                        windowForm.Size = presetSize;
+                        windowForm.Size = windowSize;
                         graphicsDeviceManager.PreferredBackBufferWidth = windowSize.Width;
                         graphicsDeviceManager.PreferredBackBufferHeight = windowSize.Height;
                         graphicsDeviceManager.ApplyChanges();
@@ -289,7 +318,7 @@ namespace Orts.TrackViewer
                 statusbar.toolStripStatusLabel1.Text = $"{1 / gameTime.ElapsedGameTime.TotalSeconds:0.0} - {frameRate.SmoothedValue:0.0}";
 
             }
-            GraphicsDevice.Clear(Color.BurlyWood);
+            GraphicsDevice.Clear(BackgroundColor);
 
             spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, null, null, null);
             if (contentArea == null)

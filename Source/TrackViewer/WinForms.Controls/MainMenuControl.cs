@@ -13,13 +13,24 @@ namespace Orts.TrackViewer.WinForms.Controls
     {
         private readonly GameWindow parent;
 
-        public MainMenuControl(GameWindow game)
+        internal MainMenuControl(GameWindow game)
         {
             parent = game;
             InitializeComponent();
             MainMenuStrip.MenuActivate += MainMenuStrip_MenuActivate;
             MainMenuStrip.MenuDeactivate += MainMenuStrip_MenuDeactivate;
             menuItemFolder.DropDown.Closing += FolderDropDown_Closing;
+
+            backgroundColorComboBoxMenuItem.DisplayXnaColors(game.Settings.TrackViewer.ColorBackground, ColorPreference.Background);
+            backgroundColorComboBoxMenuItem.SelectedIndexChanged += BackgroundColorComboBoxMenuItem_SelectedIndexChanged;
+        }
+
+        private void BackgroundColorComboBoxMenuItem_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (sender is ToolStripComboBox comboBox)
+            {
+                parent.UpdateColorPreference((ColorPreference)comboBox.Tag, comboBox.SelectedItem as string);
+            }
         }
 
         private void MainMenuStrip_MenuDeactivate(object sender, EventArgs e)

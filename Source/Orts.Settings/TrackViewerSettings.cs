@@ -24,6 +24,8 @@ namespace Orts.Settings
         public int[] WindowSize { get; set; }
 #pragma warning restore CA1819 // Properties should not return arrays
         #endregion
+        [Default("CadetBlue")]
+        public string ColorBackground { get; set; }
 
 
         public override object GetDefaultValue(string name)
