@@ -109,29 +109,37 @@ namespace Orts.Common.Info
                     result.Add(parsedVersion);
             }
 
-            //filter the versions against the target channel
-            selection = result.Where((version) =>
+            if (Channel.Equals(targetChannel, StringComparison.OrdinalIgnoreCase))
             {
-                List<string> releaseLabels = null;
-                if (targetChannel == releaseChannelName)
-                    return (!version.IsPrerelease);
-                else
+                //filter the versions against the target channel
+                selection = result.Where(version => VersionComparer.VersionRelease.Compare(version, CurrentVersion) > 0);
+            }
+            else
+            {
+                //filter the versions against the target channel
+                selection = result.Where((version) =>
                 {
-                    if (version.IsPrerelease)
+                    List<string> releaseLabels = null;
+                    if (targetChannel == releaseChannelName)
+                        return (!version.IsPrerelease);
+                    else
                     {
-                        releaseLabels = version.ReleaseLabels.ToList();
-                        releaseLabels[0] = targetChannel;
+                        if (version.IsPrerelease)
+                        {
+                            releaseLabels = version.ReleaseLabels.ToList();
+                            releaseLabels[0] = targetChannel;
+                        }
                     }
-                }
-                SemanticVersion other = new SemanticVersion(version.Major, version.Minor, version.Patch, releaseLabels, version.Metadata);
-                return VersionComparer.VersionRelease.Compare(version, other) >= 0;
-            });
+                    SemanticVersion other = new SemanticVersion(version.Major, version.Minor, version.Patch, releaseLabels, version.Metadata);
+                    return VersionComparer.VersionRelease.Compare(version, other) >= 0;
+                });
+            }
             if (!string.IsNullOrEmpty(targetVersion))
             {
                 if (!NuGetVersion.TryParse(targetVersion, out NuGetVersion target))
                     throw new ArgumentException($"{targetVersion} is not a valid version for parameter {nameof(targetVersion)}");
                 //compare against the current version and the target version
-                selection = result.Where(
+                selection = selection.Where(
                     (version) => VersionComparer.VersionRelease.Compare(version, CurrentVersion) > 0 &&
                     VersionComparer.VersionRelease.Compare(version, target) <= 0);
             }
