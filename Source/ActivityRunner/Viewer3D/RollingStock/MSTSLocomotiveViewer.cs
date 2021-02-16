@@ -1393,7 +1393,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         {
                             if (screen.ControlType == CabViewControlType.Orts_Etcs)
                             {
-                                DriverMachineInterfaceRenderer cvr = new DriverMachineInterfaceRenderer(viewer, car, screen, _Shader);
+                                var cvr = new DriverMachineInterfaceRenderer(viewer, car, screen, _Shader);
                                 cvr.SortIndex = controlSortIndex;
                                 CabViewControlRenderersList[i].Add(cvr);
                                 if (!ControlMap.ContainsKey(key)) ControlMap.Add(key, cvr);
@@ -1504,7 +1504,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 {
                     if (screen.ControlType == CabViewControlType.Orts_Etcs)
                     {
-                        DriverMachineInterfaceRenderer cvr = new DriverMachineInterfaceRenderer(viewer, car, screen, _Shader);
+                        var cvr = new DriverMachineInterfaceRenderer(viewer, car, screen, _Shader);
                         cvr.SortIndex = controlSortIndex;
                         CabViewControlRenderersList[i].Add(cvr);
                         if (!ControlMap.ContainsKey(key)) ControlMap.Add(key, cvr);

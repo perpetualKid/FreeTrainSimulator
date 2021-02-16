@@ -798,7 +798,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
         {
             Position.X = (float)Control.Bounds.X;
             Position.Y = (float)Control.Bounds.Y;
-            driverMachineInterface = new DriverMachineInterface((int)Control.Bounds.Width, (int)Control.Bounds.Height, locomotive, viewer, control);
+            driverMachineInterface = new DriverMachineInterface((int)Control.Bounds.Height, (int)Control.Bounds.Width, locomotive, viewer, control);
             viewer.UserCommandController.AddEvent(CommonUserCommand.PointerPressed, MouseClickedEvent);
             viewer.UserCommandController.AddEvent(CommonUserCommand.PointerReleased, MouseReleasedEvent);
             viewer.UserCommandController.AddEvent(CommonUserCommand.AlternatePointerPressed, MouseRightButtonPressed);
@@ -808,10 +808,12 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
         public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             base.PrepareFrame(frame, elapsedTime);
-            DrawPosition.X = (int)(Position.X * Viewer.CabWidthPixels / 640) - Viewer.CabXOffsetPixels + Viewer.CabXLetterboxPixels;
-            DrawPosition.Y = (int)(Position.Y * Viewer.CabHeightPixels / 480) + Viewer.CabYOffsetPixels + Viewer.CabYLetterboxPixels;
-            DrawPosition.Width = (int)(Control.Bounds.Width * Viewer.DisplaySize.X / 640);
-            DrawPosition.Height = (int)(Control.Bounds.Height * Viewer.DisplaySize.Y / 480);
+            var xScale = Viewer.CabWidthPixels / 640f;
+            var yScale = Viewer.CabHeightPixels / 480f;
+            DrawPosition.X = (int)(Position.X * xScale) - Viewer.CabXOffsetPixels + Viewer.CabXLetterboxPixels;
+            DrawPosition.Y = (int)(Position.Y * yScale) + Viewer.CabYOffsetPixels + Viewer.CabYLetterboxPixels;
+            DrawPosition.Width = (int)(Control.Bounds.Width * xScale);
+            DrawPosition.Height = (int)(Control.Bounds.Height * yScale);
             if (Zoomed)
             {
                 DrawPosition.Width = 640;
@@ -832,7 +834,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
         {
             int x = (int)((mousePoint.X - DrawPosition.X) / driverMachineInterface.Scale);
             int y = (int)((mousePoint.Y - DrawPosition.Y) / driverMachineInterface.Scale);
-//TODO            if (UserInput.IsMouseRightButtonPressed && new Rectangle(0, 0, 640, 480).Contains(x, y)) Zoomed = !Zoomed;
+            if (mouseRightButtonPressed && new Rectangle(0, 0, 640, 480).Contains(x, y)) Zoomed = !Zoomed;
             foreach (var area in driverMachineInterface.ActiveWindow.SubAreas)
             {
                 if (!(area is DMIButton)) continue;
