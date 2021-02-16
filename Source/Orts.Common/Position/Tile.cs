@@ -4,7 +4,7 @@ namespace Orts.Common.Position
 {
     public readonly struct Tile : ITile, IEquatable<Tile>
     {
-        private static readonly Tile zero = new Tile();
+        private static readonly Tile zero;
 
         public static ref readonly Tile Zero => ref zero;
 

@@ -52,7 +52,7 @@ namespace Orts.View.DrawableComponents
             if (texture == null)
                 return;
             spriteBatch.Begin();
-            spriteBatch.Draw(texture, position, null, Color.White);
+            spriteBatch.Draw(texture, position, null, color);
             DrawClippingMarker();
             spriteBatch.End();
             base.Draw(gameTime);
@@ -63,7 +63,7 @@ namespace Orts.View.DrawableComponents
             UpdateWindowSize();
             RenderTarget2D renderTarget = new RenderTarget2D(GraphicsDevice, size.X, size.Y);
             GraphicsDevice.SetRenderTarget(renderTarget);
-            GraphicsDevice.Clear(Color.BurlyWood);
+            GraphicsDevice.Clear(Color.White);
             spriteBatch.Begin();
             BasicShapes.DrawLine(1, color, Vector2.One, size.X - 1, 0, spriteBatch);
             BasicShapes.DrawLine(1, color, new Vector2(1, size.Y), size.X - 1, 0, spriteBatch);

@@ -22,14 +22,6 @@ using Orts.View.Xna;
 
 namespace Orts.TrackViewer
 {
-    public enum ScreenMode
-    {
-        Windowed,
-        WindowedFullscreen,
-        BorderlessFullscreen,
-    }
-
-
     public partial class GameWindow : Game, IInputCapture
     {
         private readonly GraphicsDeviceManager graphicsDeviceManager;
@@ -178,6 +170,7 @@ namespace Orts.TrackViewer
                 case ColorPreference.Background: 
                     backgroundColor = colorName;
                     BackgroundColor = ColorExtension.FromName(colorName);
+                    Components.OfType<InsetComponent>().FirstOrDefault()?.UpdateColor(BackgroundColor);
                     break;
 
             }
@@ -292,7 +285,7 @@ namespace Orts.TrackViewer
             Components.Add(clock);
             ScaleRulerComponent scaleRuler = new ScaleRulerComponent(this, new System.Drawing.Font(System.Drawing.FontFamily.GenericSansSerif, 14, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel), Color.Black, new Vector2(-20, -55));
             Components.Add(scaleRuler);
-            Components.Add(new InsetComponent(this, Color.Black, new Vector2(-10, 30)));
+            Components.Add(new InsetComponent(this, BackgroundColor, new Vector2(-10, 30)));
             Components.Add(new WorldCoordinatesComponent(this, new System.Drawing.Font(System.Drawing.FontFamily.GenericSansSerif, 20, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel), Color.Blue, new Vector2(40, 40)));
         }
 

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Orts.View
+﻿namespace Orts.View
 {
     public enum TextHorizontalAlignment
     {
@@ -18,6 +12,13 @@ namespace Orts.View
         Top = 0,
         Center = 1,
         Bottom = 2,
+    }
+
+    public enum ScreenMode
+    {
+        Windowed,
+        WindowedFullscreen,
+        BorderlessFullscreen,
     }
 
 }

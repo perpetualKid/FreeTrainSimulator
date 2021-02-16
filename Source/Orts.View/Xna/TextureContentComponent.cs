@@ -68,5 +68,10 @@ namespace Orts.View.Xna
             }
             base.Dispose(disposing);
         }
+
+        public void UpdateColor(Color color)
+        {
+            this.color = color;
+        }
     }
 }
