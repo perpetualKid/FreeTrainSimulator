@@ -50,6 +50,7 @@ namespace Orts.TrackViewer
                 {
                     value.ResetSize(Window.ClientBounds.Size, 60);
                     Components.Add(value);
+                    value.Enabled = true;
                 }
                 else
                     Components.Remove(contentArea);

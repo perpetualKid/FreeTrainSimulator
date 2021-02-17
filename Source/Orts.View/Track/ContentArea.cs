@@ -37,17 +37,21 @@ namespace Orts.View.Track
         private readonly FontManager fontManager;
         private System.Drawing.Font currentFont;
 
+        private double previousScale;
+        private PointD previousTopLeft, previousBottomRight;
+        private int supressCount;
+
+        private InputGameComponent inputComponent;
+
         public ContentArea(Game game, TrackContent trackContent) :
             base(game)
         {
+            Enabled = false;
             TrackContent = trackContent ?? throw new ArgumentNullException(nameof(trackContent));
             bounds = trackContent.Bounds;
             spriteBatch = new SpriteBatch(GraphicsDevice);
-            foreach (TextureContentComponent component in Game.Components.OfType<TextureContentComponent>())
-            {
-                component.Enable(this);
-            }
             fontManager = FontManager.Instance("Segoe UI", System.Drawing.FontStyle.Regular);
+            inputComponent = game.Components.OfType<InputGameComponent>().First();
         }
 
         protected override void OnEnabledChanged(object sender, EventArgs args)
@@ -136,10 +140,6 @@ namespace Orts.View.Track
             topRight = new Tile((int)Math.Round((int)(BottomRightArea.X / 1024) / 2.0, MidpointRounding.AwayFromZero), (int)Math.Round((int)(TopLeftArea.Y / 1024) / 2.0, MidpointRounding.AwayFromZero));
 
         }
-
-        private double previousScale;
-        private PointD previousTopLeft, previousBottomRight;
-        int supressCount;
 
         public override void Update(GameTime gameTime)
         {
