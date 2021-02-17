@@ -207,7 +207,9 @@ namespace Orts.Simulation.AIs
                     ToggleDoors(!frontIsFront, true);
                 }
             }
-            LevelCrossingHornPattern = AILevelCrossingHornPattern.Restore(inf);
+            var doesLevelCrossingPatternExist = inf.ReadInt32();
+            if (doesLevelCrossingPatternExist == 0)
+                LevelCrossingHornPattern = AILevelCrossingHornPattern.Restore(inf);
             int serviceListCount = inf.ReadInt32();
             if (serviceListCount > 0) RestoreServiceDefinition(inf, serviceListCount);
 
@@ -279,7 +281,12 @@ namespace Orts.Simulation.AIs
             outf.Write(UncondAttach);
             outf.Write(doorCloseAdvance);
             outf.Write(doorOpenDelay);
-            LevelCrossingHornPattern.Save(outf);
+            if (LevelCrossingHornPattern != null)
+            {
+                outf.Write(0);
+                LevelCrossingHornPattern.Save(outf);
+            }
+            else outf.Write(-1);
             if (ServiceDefinition != null) ServiceDefinition.Save(outf);
             else outf.Write(-1);
         }
