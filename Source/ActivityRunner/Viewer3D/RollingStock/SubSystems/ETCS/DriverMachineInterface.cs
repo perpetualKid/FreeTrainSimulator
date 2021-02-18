@@ -796,9 +796,15 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
         public DriverMachineInterfaceRenderer(Viewer viewer, MSTSLocomotive locomotive, CabViewScreenControl control, CabShader shader)
             : base(viewer, locomotive, control, shader)
         {
-            Position.X = (float)Control.Bounds.X;
-            Position.Y = (float)Control.Bounds.Y;
-            driverMachineInterface = new DriverMachineInterface((int)Control.Bounds.Height, (int)Control.Bounds.Width, locomotive, viewer, control);
+            Position.X = Control.Bounds.X;
+            Position.Y = Control.Bounds.Y;
+            if (Control.Bounds.Height == 102 && Control.Bounds.Width == 136)
+            {
+                // TODO Hack for ETR400 cab, which was built with a bugged size calculation of digital displays
+                //Control.Bounds.Height *= 0.75f;
+                //Control.Bounds.Width *= 0.75f;
+            }
+            driverMachineInterface = new DriverMachineInterface(Control.Bounds.Height, Control.Bounds.Width, locomotive, viewer, control);
             viewer.UserCommandController.AddEvent(CommonUserCommand.PointerPressed, MouseClickedEvent);
             viewer.UserCommandController.AddEvent(CommonUserCommand.PointerReleased, MouseReleasedEvent);
             viewer.UserCommandController.AddEvent(CommonUserCommand.AlternatePointerPressed, MouseRightButtonPressed);
