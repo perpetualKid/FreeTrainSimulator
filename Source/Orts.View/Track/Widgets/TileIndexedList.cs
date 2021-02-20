@@ -66,9 +66,50 @@ namespace Orts.View.Track.Widgets
             while (key != end && tileLookupIndex < sortedIndexes.Count);
         }
 
+        public IEnumerable<ITileCoordinate<T>> FindNearest(PointD position, ITile bottomLeft, ITile topRight)
+        {
+            Tile current = new Tile(Tile.TileFromAbs(position.X), Tile.TileFromAbs(position.Y));
+            ITile key = sortedIndexes[FindNearestIndex(current)];
+            double minDistance = double.MaxValue; ;
+            if (current != key)
+            {
+                int tileDistance = Math.Abs(current.X - key.X) + Math.Abs(current.Z - key.Z);
+                ITile tileMin = new Tile(current.X - tileDistance, current.Z - tileDistance);
+                if (tileMin.CompareTo(bottomLeft) < 0)
+                    tileMin = bottomLeft;
+                ITile tileMax = new Tile(current.X + tileDistance, current.Z + tileDistance);
+                if (tileMax.CompareTo(topRight) > 0)
+                    tileMax = topRight;
+                int tileMaxIndex = FindNearestIndex(tileMax);
+                for (int i = FindNearestIndexFloor(tileMin); i < tileMaxIndex; i++)
+                {
+                    double currentDistance;
+                    if ((currentDistance = position.DistanceSquared(PointD.TileCenter(sortedIndexes[i]))) < minDistance)
+                    {
+                        minDistance = currentDistance;
+                        key = sortedIndexes[i];
+                    }
+                }
+            }
+
+            return tiles[key];
+        }
+
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
+        }
+
+        private int FindNearestIndexFloor(ITile possibleKey)
+        {
+            int keyIndex = sortedIndexes.BinarySearch(possibleKey);
+            if (keyIndex < 0)
+            {
+                keyIndex = ~keyIndex;
+                if (keyIndex > 0)
+                    keyIndex--;
+            }
+            return keyIndex;
         }
 
         private int FindNearestIndex(ITile possibleKey)

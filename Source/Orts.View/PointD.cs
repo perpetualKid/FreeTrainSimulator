@@ -25,6 +25,21 @@ namespace Orts.View
             return new PointD(location.TileX * WorldLocation.TileSize + location.Location.X, location.TileZ * WorldLocation.TileSize + location.Location.Z);
         }
 
+        internal static PointD TileCenter(in ITile tile)
+        {
+            return new PointD(tile.X * Tile.TileSize, tile.Z * Tile.TileSize);
+        }
+
+        public double Distance(in PointD other)
+        {
+            return Math.Sqrt((X - other.X) * (X - other.X) + (Y - other.Y) * (Y - other.Y));
+        }
+
+        public double DistanceSquared(in PointD other)
+        {
+            return (X - other.X) * (X - other.X) + (Y - other.Y) * (Y - other.Y);
+        }
+
         public override bool Equals(object obj)
         {
             return obj is PointD point && Equals(point);

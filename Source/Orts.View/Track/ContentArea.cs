@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 
 using Orts.Common.Position;
 using Orts.View.Track.Widgets;
@@ -41,7 +42,9 @@ namespace Orts.View.Track
         private PointD previousTopLeft, previousBottomRight;
         private int supressCount;
 
+#pragma warning disable CA2213 // Disposable fields should be disposed
         private InputGameComponent inputComponent;
+#pragma warning restore CA2213 // Disposable fields should be disposed
 
         public ContentArea(Game game, TrackContent trackContent) :
             base(game)
@@ -52,6 +55,18 @@ namespace Orts.View.Track
             spriteBatch = new SpriteBatch(GraphicsDevice);
             fontManager = FontManager.Instance("Segoe UI", System.Drawing.FontStyle.Regular);
             inputComponent = game.Components.OfType<InputGameComponent>().First();
+            inputComponent.AddMouseEvent(InputGameComponent.MouseMovedEventType.MouseMoved, MouseMove);
+        }
+
+        private GridTile nearest;
+        public void MouseMove(Point position, Vector2 delta)
+        {
+            PointD worldPosition = ScreenToWorldCoordinates(position);
+            System.Collections.Generic.IEnumerable<ITileCoordinate<Tile>> result = TrackContent.Tiles.FindNearest(worldPosition, bottomLeft, topRight);
+            if (result.First() != nearest)
+            {
+                nearest = result.First() as GridTile;
+            }
         }
 
         protected override void OnEnabledChanged(object sender, EventArgs args)
@@ -75,9 +90,8 @@ namespace Orts.View.Track
             TopLeftArea = ScreenToWorldCoordinates(Point.Zero);
             BottomRightArea = ScreenToWorldCoordinates(WindowSize);
 
-            bottomLeft = new Tile((int)Math.Round((int)(TopLeftArea.X / 1024) / 2.0, MidpointRounding.AwayFromZero), (int)Math.Round((int)(BottomRightArea.Y / 1024) / 2.0, MidpointRounding.AwayFromZero));
-            topRight = new Tile((int)Math.Round((int)(BottomRightArea.X / 1024) / 2.0, MidpointRounding.AwayFromZero), (int)Math.Round((int)(TopLeftArea.Y / 1024) / 2.0, MidpointRounding.AwayFromZero));
-
+            bottomLeft = new Tile(Tile.TileFromAbs(TopLeftArea.X), Tile.TileFromAbs(BottomRightArea.Y));
+            topRight = new Tile(Tile.TileFromAbs(BottomRightArea.X), Tile.TileFromAbs(TopLeftArea.Y));
         }
 
         public void UpdateSize(in Point windowSize)
@@ -87,8 +101,8 @@ namespace Orts.View.Track
             TopLeftArea = ScreenToWorldCoordinates(Point.Zero);
             BottomRightArea = ScreenToWorldCoordinates(WindowSize);
 
-            bottomLeft = new Tile((int)Math.Round((int)(TopLeftArea.X / 1024) / 2.0, MidpointRounding.AwayFromZero), (int)Math.Round((int)(BottomRightArea.Y / 1024) / 2.0, MidpointRounding.AwayFromZero));
-            topRight = new Tile((int)Math.Round((int)(BottomRightArea.X / 1024) / 2.0, MidpointRounding.AwayFromZero), (int)Math.Round((int)(TopLeftArea.Y / 1024) / 2.0, MidpointRounding.AwayFromZero));
+            bottomLeft = new Tile(Tile.TileFromAbs(TopLeftArea.X), Tile.TileFromAbs(BottomRightArea.Y));
+            topRight = new Tile(Tile.TileFromAbs(BottomRightArea.X), Tile.TileFromAbs(TopLeftArea.Y));
         }
 
         public void UpdateScaleAt(in Vector2 scaleAt, int steps)
@@ -103,8 +117,8 @@ namespace Orts.View.Track
             TopLeftArea = ScreenToWorldCoordinates(Point.Zero);
             BottomRightArea = ScreenToWorldCoordinates(WindowSize);
 
-            bottomLeft = new Tile((int)Math.Round((int)(TopLeftArea.X / 1024) / 2.0, MidpointRounding.AwayFromZero), (int)Math.Round((int)(BottomRightArea.Y / 1024) / 2.0, MidpointRounding.AwayFromZero));
-            topRight = new Tile((int)Math.Round((int)(BottomRightArea.X / 1024) / 2.0, MidpointRounding.AwayFromZero), (int)Math.Round((int)(TopLeftArea.Y / 1024) / 2.0, MidpointRounding.AwayFromZero));
+            bottomLeft = new Tile(Tile.TileFromAbs(TopLeftArea.X), Tile.TileFromAbs(BottomRightArea.Y));
+            topRight = new Tile(Tile.TileFromAbs(BottomRightArea.X), Tile.TileFromAbs(TopLeftArea.Y));
         }
 
         public void UpdatePosition(in Vector2 delta)
@@ -136,9 +150,8 @@ namespace Orts.View.Track
             TopLeftArea = ScreenToWorldCoordinates(Point.Zero);
             BottomRightArea = ScreenToWorldCoordinates(WindowSize);
 
-            bottomLeft = new Tile((int)Math.Round((int)(TopLeftArea.X / 1024) / 2.0, MidpointRounding.AwayFromZero), (int)Math.Round((int)(BottomRightArea.Y / 1024) / 2.0, MidpointRounding.AwayFromZero));
-            topRight = new Tile((int)Math.Round((int)(BottomRightArea.X / 1024) / 2.0, MidpointRounding.AwayFromZero), (int)Math.Round((int)(TopLeftArea.Y / 1024) / 2.0, MidpointRounding.AwayFromZero));
-
+            bottomLeft = new Tile(Tile.TileFromAbs(TopLeftArea.X), Tile.TileFromAbs(BottomRightArea.Y));
+            topRight = new Tile(Tile.TileFromAbs(BottomRightArea.X), Tile.TileFromAbs(TopLeftArea.Y));
         }
 
         public override void Update(GameTime gameTime)
@@ -271,7 +284,7 @@ namespace Orts.View.Track
             {
                 tile.Draw(this);
             }
-
+            nearest?.DrawHighlight(this);
         }
 
         protected override void Dispose(bool disposing)
@@ -279,6 +292,8 @@ namespace Orts.View.Track
             if (disposing)
             {
                 spriteBatch?.Dispose();
+                inputComponent.RemoveMouseEvent(InputGameComponent.MouseMovedEventType.MouseMoved, MouseMove);
+                inputComponent = null;
 
             }
             base.Dispose(disposing);

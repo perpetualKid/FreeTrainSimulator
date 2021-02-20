@@ -1,20 +1,25 @@
 ﻿
+using System;
+
 using Microsoft.Xna.Framework;
 
 using Orts.Common.Position;
 using Orts.View.Track.Shapes;
+using Orts.View.Xna;
 
 namespace Orts.View.Track.Widgets
 {
-    internal class GridTile : ITileCoordinate<Tile>
+    internal class GridTile: PointWidget, ITileCoordinate<Tile>
     {
-        private readonly Tile tile;
         private readonly PointD lowerLeft;
         private readonly PointD upperLeft;
         private readonly PointD lowerRight;
         private readonly PointD upperRight;
 
-        public ref readonly Tile Tile => ref tile;
+        [ThreadStatic]
+        private static readonly Color color = Color.Black;
+        [ThreadStatic]
+        private static readonly Color colorHighlight = ColorExtension.ComplementColor(color);
 
         public GridTile(ITile tile)
         {
@@ -27,16 +32,24 @@ namespace Orts.View.Track.Widgets
             upperLeft = PointD.FromWorldLocation(new WorldLocation(this.tile.X, this.tile.Z, -1024, 0, 1024));
             lowerRight = PointD.FromWorldLocation(new WorldLocation(this.tile.X, this.tile.Z, 1024, 0, -1024));
             upperRight = PointD.FromWorldLocation(new WorldLocation(this.tile.X, this.tile.Z, 1024, 0, 1024));
+            location = lowerLeft;
 
         }
 
-        internal void Draw(ContentArea contentArea)
+        internal override void Draw(ContentArea contentArea)
+        {            
+            BasicShapes.DrawLine(1, color, contentArea.WorldToScreenCoordinates(lowerLeft), contentArea.WorldToScreenCoordinates(lowerRight), contentArea.SpriteBatch);
+            BasicShapes.DrawLine(1, color, contentArea.WorldToScreenCoordinates(lowerRight), contentArea.WorldToScreenCoordinates(upperRight), contentArea.SpriteBatch);
+            BasicShapes.DrawLine(1, color, contentArea.WorldToScreenCoordinates(lowerLeft), contentArea.WorldToScreenCoordinates(upperLeft), contentArea.SpriteBatch);
+            BasicShapes.DrawLine(1, color, contentArea.WorldToScreenCoordinates(upperLeft), contentArea.WorldToScreenCoordinates(upperRight), contentArea.SpriteBatch);
+        }
+
+        internal override void DrawHighlight(ContentArea contentArea)
         {
-            BasicShapes.DrawLine(1, Color.Black, contentArea.WorldToScreenCoordinates(lowerLeft), contentArea.WorldToScreenCoordinates(lowerRight), contentArea.SpriteBatch);
-            BasicShapes.DrawLine(1, Color.Black, contentArea.WorldToScreenCoordinates(lowerRight), contentArea.WorldToScreenCoordinates(upperRight), contentArea.SpriteBatch);
-            BasicShapes.DrawLine(1, Color.Black, contentArea.WorldToScreenCoordinates(lowerLeft), contentArea.WorldToScreenCoordinates(upperLeft), contentArea.SpriteBatch);
-            BasicShapes.DrawLine(1, Color.Black, contentArea.WorldToScreenCoordinates(upperLeft), contentArea.WorldToScreenCoordinates(upperRight), contentArea.SpriteBatch);
+            BasicShapes.DrawLine(1, colorHighlight, contentArea.WorldToScreenCoordinates(lowerLeft), contentArea.WorldToScreenCoordinates(lowerRight), contentArea.SpriteBatch);
+            BasicShapes.DrawLine(1, colorHighlight, contentArea.WorldToScreenCoordinates(lowerRight), contentArea.WorldToScreenCoordinates(upperRight), contentArea.SpriteBatch);
+            BasicShapes.DrawLine(1, colorHighlight, contentArea.WorldToScreenCoordinates(lowerLeft), contentArea.WorldToScreenCoordinates(upperLeft), contentArea.SpriteBatch);
+            BasicShapes.DrawLine(1, colorHighlight, contentArea.WorldToScreenCoordinates(upperLeft), contentArea.WorldToScreenCoordinates(upperRight), contentArea.SpriteBatch);
         }
-
     }
 }

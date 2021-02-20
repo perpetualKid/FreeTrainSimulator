@@ -43,7 +43,7 @@ namespace Orts.View.Xna
         }
 
         public enum MouseButtonEventType
-        { 
+        {
             LeftButtonPressed,
             LeftButtonDown,
             LeftButtonReleased,
@@ -61,6 +61,11 @@ namespace Orts.View.Xna
             XButton2Released,
         }
 
+        public delegate void MouseMoveEvent(Point position, Vector2 delta);
+        public delegate void MouseButtonEvent(Point position);
+        public delegate void MouseWheelEvent(Point position, int delta);
+        public delegate void KeyEvent();
+
         private const int keyPressShift = 8;
         private const int keyDownShift = 13;
         private const int keyUpShift = 17;
@@ -69,13 +74,13 @@ namespace Orts.View.Xna
         private KeyboardState previousKeyboardState;
         private KeyModifiers previousModifiers;
         private Keys[] previousKeys = Array.Empty<Keys>();
-        private readonly Dictionary<int, Action> keyEvents = new Dictionary<int, Action>();
+        private readonly Dictionary<int, KeyEvent> keyEvents = new Dictionary<int, KeyEvent>();
 
         private MouseState currentMouseState;
         private MouseState previousMouseState;
-        private readonly EnumArray<Action<Point, Vector2>, MouseMovedEventType> mouseMoveEvents = new EnumArray<Action<Point, Vector2>, MouseMovedEventType>();
-        private readonly EnumArray<Action<Point>, MouseButtonEventType> mouseButtonEvents = new EnumArray<Action<Point>, MouseButtonEventType>();
-        private readonly EnumArray<Action<Point, int>, MouseWheelEventType> mouseWheelEvents = new EnumArray<Action<Point, int>, MouseWheelEventType>();
+        private readonly EnumArray<MouseMoveEvent, MouseMovedEventType> mouseMoveEvents = new EnumArray<MouseMoveEvent, MouseMovedEventType>();
+        private readonly EnumArray<MouseButtonEvent, MouseButtonEventType> mouseButtonEvents = new EnumArray<MouseButtonEvent, MouseButtonEventType>();
+        private readonly EnumArray<MouseWheelEvent, MouseWheelEventType> mouseWheelEvents = new EnumArray<MouseWheelEvent, MouseWheelEventType>();
 
         private readonly IInputCapture inputCapture;
 
@@ -87,7 +92,7 @@ namespace Orts.View.Xna
         public ref readonly KeyboardState KeyboardState => ref currentKeyboardState;
         public ref readonly MouseState MouseState => ref currentMouseState;
 
-        public void AddKeyEvent(Keys key, KeyModifiers modifiers, KeyEventType keyEventType, Action action)
+        public void AddKeyEvent(Keys key, KeyModifiers modifiers, KeyEventType keyEventType, KeyEvent eventHandler)
         {
             int lookupCode;
             switch (keyEventType)
@@ -104,10 +109,13 @@ namespace Orts.View.Xna
                 default:
                     throw new NotSupportedException();
             }
-            keyEvents.Add(lookupCode, action);
+            if (keyEvents.TryGetValue(lookupCode, out KeyEvent keyEvent))
+                keyEvent += eventHandler;
+            else
+                keyEvents[lookupCode] = eventHandler;
         }
 
-        public void RemoveKeyEvent(Keys key, KeyModifiers modifiers, KeyEventType keyEventType)
+        public void RemoveKeyEvent(Keys key, KeyModifiers modifiers, KeyEventType keyEventType, KeyEvent eventHandler)
         {
             int lookupCode;
             switch (keyEventType)
@@ -124,37 +132,38 @@ namespace Orts.View.Xna
                 default:
                     throw new NotSupportedException();
             }
-            keyEvents.Remove(lookupCode);
+            if (keyEvents.TryGetValue(lookupCode, out KeyEvent keyEvent))
+                keyEvent -= eventHandler;
         }
 
-        public void AddMouseEvent(MouseMovedEventType mouseEventType, Action<Point, Vector2> action)
+        public void AddMouseEvent(MouseMovedEventType mouseEventType, MouseMoveEvent eventHandler)
         {
-            mouseMoveEvents[mouseEventType] = action;
+            mouseMoveEvents[mouseEventType] += eventHandler;
         }
 
-        public void RemoveMouseEvent(MouseMovedEventType mouseEventType)
+        public void RemoveMouseEvent(MouseMovedEventType mouseEventType, MouseMoveEvent eventHandler)
         {
-            mouseMoveEvents[mouseEventType] = null;
+            mouseMoveEvents[mouseEventType] -= eventHandler;
         }
 
-        public void AddMouseEvent(MouseButtonEventType mouseEventType, Action<Point> action)
+        public void AddMouseEvent(MouseButtonEventType mouseEventType, MouseButtonEvent eventHandler)
         {
-            mouseButtonEvents[mouseEventType] = action;
+            mouseButtonEvents[mouseEventType] += eventHandler;
         }
 
-        public void RemoveMouseEvent(MouseButtonEventType mouseEventType)
+        public void RemoveMouseEvent(MouseButtonEventType mouseEventType, MouseButtonEvent eventHandler)
         {
-            mouseButtonEvents[mouseEventType] = null;
+            mouseButtonEvents[mouseEventType] -= eventHandler;
         }
 
-        public void AddMouseEvent(MouseWheelEventType mouseEventType, Action<Point, int> action)
+        public void AddMouseEvent(MouseWheelEventType mouseEventType, MouseWheelEvent eventHandler)
         {
-            mouseWheelEvents[mouseEventType] = action;
+            mouseWheelEvents[mouseEventType] += eventHandler;
         }
 
-        public void RemoveMouseEvent(MouseWheelEventType mouseEventType)
+        public void RemoveMouseEvent(MouseWheelEventType mouseEventType, MouseWheelEvent eventHandler)
         {
-            mouseWheelEvents[mouseEventType] = null;
+            mouseWheelEvents[mouseEventType] -= eventHandler;
         }
 
         public override void Update(GameTime gameTime)
@@ -193,27 +202,27 @@ namespace Orts.View.Xna
                     {
                         // Key (still) down
                         int lookup = (int)key << keyDownShift ^ (int)modifiers;
-                        if (keyEvents.TryGetValue(lookup, out Action action))
+                        if (keyEvents.TryGetValue(lookup, out KeyEvent eventHandler))
                         {
-                            action.Invoke();
+                            eventHandler.Invoke();
                         }
                     }
                     if (previousKeyboardState.IsKeyDown(key) && (modifiers != previousModifiers))
                     {
                         // Key Up, state may have changed due to a modifier changed
                         int lookup = (int)key << keyUpShift ^ (int)modifiers;
-                        if (keyEvents.TryGetValue(lookup, out Action action))
+                        if (keyEvents.TryGetValue(lookup, out KeyEvent eventHandler))
                         {
-                            action.Invoke();
+                            eventHandler.Invoke();
                         }
                     }
                     if (!previousKeyboardState.IsKeyDown(key) || (modifiers != previousModifiers))
                     {
                         //Key just pressed
                         int lookup = (int)key << keyPressShift ^ (int)modifiers;
-                        if (keyEvents.TryGetValue(lookup, out Action action))
+                        if (keyEvents.TryGetValue(lookup, out KeyEvent eventHandler))
                         {
-                            action.Invoke();
+                            eventHandler.Invoke();
                         }
                     }
                     int previousIndex = Array.IndexOf(previousKeys, key);//not  great, but considering this is mostly very few (<5) acceptable
@@ -229,9 +238,9 @@ namespace Orts.View.Xna
                         continue;
                     // Key Up, not in current set of Keys Downs
                     int lookup = (int)key << keyUpShift ^ (int)modifiers;
-                    if (keyEvents.TryGetValue(lookup, out Action action))
+                    if (keyEvents.TryGetValue(lookup, out KeyEvent eventHandler))
                     {
-                        action.Invoke();
+                        eventHandler.Invoke();
                     }
                 }
                 previousModifiers = modifiers;
@@ -245,11 +254,17 @@ namespace Orts.View.Xna
                 if (currentMouseState.Position != previousMouseState.Position)
                 {
                     if (currentMouseState.LeftButton == ButtonState.Pressed)
+                    {
                         mouseMoveEvents[MouseMovedEventType.MouseMovedLeftButtonDown]?.Invoke(currentMouseState.Position, (currentMouseState.Position - previousMouseState.Position).ToVector2());
+                    }
                     else if (currentMouseState.LeftButton == ButtonState.Pressed)
+                    {
                         mouseMoveEvents[MouseMovedEventType.MouseMovedRightButtonDown]?.Invoke(currentMouseState.Position, (currentMouseState.Position - previousMouseState.Position).ToVector2());
+                    }
                     else
+                    {
                         mouseMoveEvents[MouseMovedEventType.MouseMoved]?.Invoke(currentMouseState.Position, (currentMouseState.Position - previousMouseState.Position).ToVector2());
+                    }
                 }
 
                 int mouseWheelDelta;

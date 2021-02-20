@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 
 namespace Orts.Common.Position
 {
     public readonly struct Tile : ITile, IEquatable<Tile>
     {
+        public const int TileSize = 2048;
+
         private static readonly Tile zero;
 
         public static ref readonly Tile Zero => ref zero;
@@ -72,5 +75,10 @@ namespace Orts.Common.Position
 
         public static bool operator >=(in Tile left, in ITile right) => left.CompareTo(right) >= 0;
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static short TileFromAbs(double value)
+        {
+            return (short)Math.Round((int)(value / 1024) / 2.0, MidpointRounding.AwayFromZero);
+        }
     }
 }

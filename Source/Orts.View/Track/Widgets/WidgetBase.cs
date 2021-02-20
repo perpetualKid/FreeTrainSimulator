@@ -22,6 +22,8 @@ namespace Orts.View.Track.Widgets
         internal ref readonly PointD Location => ref location;
 
         internal abstract void Draw(ContentArea contentArea);
+
+        internal virtual void DrawHighlight(ContentArea contentArea) { }
     }
 
     internal abstract class VectorWidget : PointWidget
