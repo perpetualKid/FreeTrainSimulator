@@ -191,6 +191,15 @@ namespace Orts.TrackViewer
             Settings.TrackViewer.WindowSize[0] = windowSize.Width;
             Settings.TrackViewer.WindowSize[1] = windowSize.Height;
             Settings.TrackViewer.ColorBackground = colorPreferences[ColorPreference.Background];
+            string[] routeSelection = null;
+            if (selectedFolder != null)
+            {
+                if (selectedRoute != null)
+                    routeSelection = new string[] { selectedFolder.Name, selectedRoute.Name };
+                else
+                    routeSelection = new string[] { selectedFolder.Name };
+            }
+            Settings.TrackViewer.RouteSelection = routeSelection;
             Settings.TrackViewer.Save();
         }
 
@@ -268,6 +277,7 @@ namespace Orts.TrackViewer
             // TODO: Add your initialization logic here
             base.Initialize();
             await Task.WhenAll(initTasks).ConfigureAwait(false);
+            await PreSelectRoute(Settings.TrackViewer.RouteSelection).ConfigureAwait(false);
         }
 
         private static void GameWindowThread(object data)

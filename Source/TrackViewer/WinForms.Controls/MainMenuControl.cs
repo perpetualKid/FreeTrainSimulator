@@ -57,40 +57,27 @@ namespace Orts.TrackViewer.WinForms.Controls
 
         internal void PopulateRoutes(IEnumerable<Route> routes)
         {
-            SuspendLayout();
-            menuItemRoutes.DropDownItems.Clear();
-            foreach (Route route in routes)
-            {
-                ToolStripMenuItem routeItem = new ToolStripMenuItem(route.Name)
+            Invoke((MethodInvoker)delegate {
+                SuspendLayout();
+                menuItemRoutes.DropDownItems.Clear();
+                foreach (Route route in routes)
                 {
-                    Tag = route,
-                };
-                routeItem.Click += RouteItem_Click;
-                menuItemRoutes.DropDownItems.Add(routeItem);
-            }
-            ResumeLayout();
+                    ToolStripMenuItem routeItem = new ToolStripMenuItem(route.Name)
+                    {
+                        Tag = route,
+                    };
+                    routeItem.Click += RouteItem_Click;
+                    menuItemRoutes.DropDownItems.Add(routeItem);
+                }
+                ResumeLayout();
+            });
         }
 
         private async void RouteItem_Click(object sender, EventArgs e)
         {
             if (sender is ToolStripDropDownItem menuItem && menuItem.Tag is Route route)
             {
-                parent.StatusMessage = route.Name;
-                parent.ContentArea = null;
-
-                TrackData trackData = new TrackData(route.Path);
-
-                bool? useMetricUnits = (parent.Settings.MeasurementUnit == MeasurementUnit.Metric || parent.Settings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric);
-                if (parent.Settings.MeasurementUnit == MeasurementUnit.Route)
-                    useMetricUnits = null;
-
-                await trackData.LoadTrackData(useMetricUnits).ConfigureAwait(false);
-
-                TrackContent content = new TrackContent(trackData.TrackDB, trackData.TrackSections, trackData.SignalConfig, trackData.UseMetricUnits);
-                await content.Initialize().ConfigureAwait(false);
-                parent.ContentArea = new ContentArea(parent, content);
-                parent.StatusMessage = null;
-
+                await parent.LoadRoute(route).ConfigureAwait(false);
             }
         }
 
@@ -110,7 +97,7 @@ namespace Orts.TrackViewer.WinForms.Controls
             ResumeLayout();
         }
 
-        bool closingCancelled;
+        private bool closingCancelled;
         private void FolderDropDown_Closing(object sender, ToolStripDropDownClosingEventArgs e)
         {
             //if (e.CloseReason == ToolStripDropDownCloseReason.ItemClicked)
@@ -132,8 +119,19 @@ namespace Orts.TrackViewer.WinForms.Controls
                     PopulateRoutes(await parent.FindRoutes(folder).ConfigureAwait(true));
                 }
             }
+        }
 
-
+        internal Folder SelectContentFolder(string folderName)
+        {
+            foreach (ToolStripMenuItem item in menuItemFolder.DropDownItems)
+            {
+                if (item.Text.Equals(folderName, StringComparison.OrdinalIgnoreCase))
+                {
+                    FolderItem_Click(item, EventArgs.Empty);
+                    return item.Tag as Folder;
+                }
+            }
+            return null;
         }
 
         private static void UncheckOtherFolderMenuItems(ToolStripMenuItem selectedMenuItem)

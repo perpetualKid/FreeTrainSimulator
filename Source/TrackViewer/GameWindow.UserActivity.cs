@@ -53,23 +53,5 @@ namespace Orts.TrackViewer
             System.Diagnostics.Debug.WriteLine($"Down {Window.Title} - {position}");
         }
 
-        public async Task LoadFolders()
-        {
-            try
-            {
-                IOrderedEnumerable<Folder> folders = (await Folder.GetFolders(Settings.FolderSettings.Folders).ConfigureAwait(true)).OrderBy(f => f.Name);
-                mainmenu.PopulateContentFolders(folders);
-            }
-            catch (TaskCanceledException)
-            {
-            }
-        }
-
-        public async Task<IEnumerable<Route>> FindRoutes(Folder routeFolder)
-        {
-            _ = this;
-            return (await Task.Run(() => Route.GetRoutes(routeFolder, System.Threading.CancellationToken.None)).ConfigureAwait(false)).OrderBy(r => r.ToString());
-        }
-
     }
 }

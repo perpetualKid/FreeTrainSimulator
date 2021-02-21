@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
@@ -19,14 +20,17 @@ namespace Orts.Settings
         }
 
         #region TrackViewer Settings
-        [Default(new[] { 1200, 800 })]
 #pragma warning disable CA1819 // Properties should not return arrays
+        [Default(new[] { 1200, 800 })]
         public int[] WindowSize { get; set; }
-#pragma warning restore CA1819 // Properties should not return arrays
-        #endregion
         [Default("CadetBlue")]
         public string ColorBackground { get; set; }
-
+        [Default(new string[0])]
+        public string[] RouteSelection { get; set; }
+        [Default(false)]
+        public bool LoadRouteOnStart { get; set; }
+#pragma warning restore CA1819 // Properties should not return arrays
+        #endregion
 
         public override object GetDefaultValue(string name)
         {

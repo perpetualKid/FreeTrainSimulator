@@ -24,6 +24,7 @@ namespace Orts.TrackViewer
                         disposable.Dispose();
                 }
             }
+            loadRoutesSemaphore.Dispose();
             graphicsDeviceManager?.Dispose();
             windowForm?.Dispose();
             spriteBatch?.Dispose();
