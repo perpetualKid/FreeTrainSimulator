@@ -32,6 +32,7 @@ using Orts.Simulation.RollingStocks;
 using Orts.Simulation.Signalling;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Color = System.Drawing.Color;
 
 using Color = System.Drawing.Color;
 
