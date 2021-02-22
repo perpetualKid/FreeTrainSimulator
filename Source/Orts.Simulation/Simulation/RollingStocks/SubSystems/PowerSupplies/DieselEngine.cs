@@ -1,4 +1,4 @@
-﻿// COPYRIGHT 2013, 2014 by the Open Rails project.
+// COPYRIGHT 2013, 2014 by the Open Rails project.
 // 
 // This file is part of Open Rails.
 // 
@@ -308,7 +308,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             }
         }
 
-        public float MotiveForceN
+        public float TractiveForceN
         {
             get
             {
@@ -316,7 +316,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                 foreach (DieselEngine de in DEList)
                 {
                     if(de.GearBox != null)
-                        temp += (de.DemandedThrottlePercent * 0.01f * de.GearBox.MotiveForceN);
+                        temp += (de.DemandedThrottlePercent * 0.01f * de.GearBox.TractiveForceN);
                 }
                 return temp;
             }

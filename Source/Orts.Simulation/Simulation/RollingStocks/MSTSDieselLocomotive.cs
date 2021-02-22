@@ -1,4 +1,4 @@
-﻿// COPYRIGHT 2009, 2010, 2011, 2012, 2013 by the Open Rails project.
+// COPYRIGHT 2009, 2010, 2011, 2012, 2013 by the Open Rails project.
 // 
 // This file is part of Open Rails.
 // 
@@ -570,7 +570,7 @@ namespace Orts.Simulation.RollingStocks
         /// <summary>
         /// This function updates periodically the locomotive's motive force.
         /// </summary>
-        protected override void UpdateMotiveForce(double elapsedClockSeconds, float t, float AbsSpeedMpS, float AbsWheelSpeedMpS)
+        protected override void UpdateTractiveForce(double elapsedClockSeconds, float t, float AbsSpeedMpS, float AbsWheelSpeedMpS)
         {
             // This section calculates the motive force of the locomotive as follows:
             // Basic configuration (no TF table) - uses P = F /speed  relationship - requires power and force parameters to be set in the ENG file. 
@@ -623,23 +623,23 @@ namespace Orts.Simulation.RollingStocks
 
                     if (DieselEngines.HasGearBox)
                     {
-                        MotiveForceN = DieselEngines.MotiveForceN;
+                        TractiveForceN = DieselEngines.TractiveForceN; 
                     }
                     else
                     {
                         if (maxForceN * AbsSpeedMpS > maxPowerW)
                             maxForceN = maxPowerW / AbsSpeedMpS;
 
-                        MotiveForceN = maxForceN;
+                        TractiveForceN = maxForceN;
                         // Motive force will be produced until power reaches zero, some locomotives had a overspeed monitor set at the maximum design speed
                     }
                 }
                 else
                 {
                     // Tractive force is read from Table using the apparent throttle setting, and then reduced by the number of engines running (power ratio)
-                    MotiveForceN = (float)TractiveForceCurves.Get(LocomotiveApparentThrottleSetting, AbsSpeedMpS) * DieselEngineFractionPower * (1 - PowerReduction);
-                    if (MotiveForceN < 0 && !TractiveForceCurves.HasNegativeValues)
-                        MotiveForceN = 0;
+                    TractiveForceN = (float)TractiveForceCurves.Get(LocomotiveApparentThrottleSetting, AbsSpeedMpS) * DieselEngineFractionPower * (1 - PowerReduction);
+                    if (TractiveForceN < 0 && !TractiveForceCurves.HasNegativeValues)
+                        TractiveForceN = 0;
                 }
 
                 DieselFlowLps = DieselEngines.DieselFlowLps;
@@ -663,11 +663,11 @@ namespace Orts.Simulation.RollingStocks
 
             if (MaxForceN > 0 && MaxContinuousForceN > 0 && PowerReduction < 1)
             {
-                MotiveForceN *= 1 - (MaxForceN - MaxContinuousForceN) / (MaxForceN * MaxContinuousForceN) * AverageForceN * (1 - PowerReduction);
+                TractiveForceN *= 1 - (MaxForceN - MaxContinuousForceN) / (MaxForceN * MaxContinuousForceN) * AverageForceN * (1 - PowerReduction);
                 float w = (float)(ContinuousForceTimeFactor - elapsedClockSeconds) / ContinuousForceTimeFactor;
                 if (w < 0)
                     w = 0;
-                AverageForceN = w * AverageForceN + (1 - w) * MotiveForceN;
+                AverageForceN = w * AverageForceN + (1 - w) * TractiveForceN;
             }
         }
 

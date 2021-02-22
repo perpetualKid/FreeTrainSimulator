@@ -1,4 +1,4 @@
-﻿// COPYRIGHT 2009, 2010, 2011, 2012, 2013, 2014, 2015 by the Open Rails project.
+// COPYRIGHT 2009, 2010, 2011, 2012, 2013, 2014, 2015 by the Open Rails project.
 // 
 // This file is part of Open Rails.
 // 
@@ -2011,7 +2011,7 @@ namespace Orts.Simulation.RollingStocks
             UpdateBoiler(elapsedClockSeconds);
             UpdateCylinders(elapsedClockSeconds, throttle, cutoff, absSpeedMpS);
             UpdateMotion(elapsedClockSeconds, cutoff, absSpeedMpS);
-            UpdateMotiveForce(elapsedClockSeconds, 0, 0, 0);
+            UpdateTractiveForce(elapsedClockSeconds, 0, 0, 0);
             UpdateAuxiliaries(elapsedClockSeconds, absSpeedMpS);
             #endregion
 
@@ -4594,7 +4594,7 @@ namespace Orts.Simulation.RollingStocks
 
         }
 
-        protected override void UpdateMotiveForce(double elapsedClockSeconds, float t, float AbsSpeedMpS, float AbsWheelSpeedMpS)
+        protected override void UpdateTractiveForce(double elapsedClockSeconds, float t, float AbsSpeedMpS, float AbsWheelSpeedMpS)
         {
             // Pass force and power information to MSTSLocomotive file by overriding corresponding method there
 

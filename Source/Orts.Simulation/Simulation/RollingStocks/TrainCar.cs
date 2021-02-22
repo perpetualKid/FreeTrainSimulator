@@ -1,4 +1,4 @@
-﻿// COPYRIGHT 2009, 2010, 2011, 2012, 2013, 2014, 2015 by the Open Rails project.
+// COPYRIGHT 2009, 2010, 2011, 2012, 2013, 2014, 2015 by the Open Rails project.
 // 
 // This file is part of Open Rails.
 // 
@@ -462,7 +462,8 @@ namespace Orts.Simulation.RollingStocks
         public float PreviousSteamBrakeCylinderPressurePSI;
 
         // TrainCar.Update() must set these variables
-        public float MotiveForceN;   // ie motor power in Newtons  - signed relative to direction of car - 
+        public float MotiveForceN;   // ie motor power in Newtons  - signed relative to direction of car -
+        public float TractiveForceN;
         public SmoothedData MotiveForceSmoothedN = new SmoothedData(0.5f);
         public float PrevMotiveForceN;
         // Gravity forces have negative values on rising grade. 
