@@ -75,7 +75,7 @@ namespace Orts.TrackViewer
                 {
                     Route route = routes?.Where(r => r.Name.Equals(selection[1], StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
                     if (null != route)
-                    await LoadRoute(route).ConfigureAwait(false);
+                        await LoadRoute(route).ConfigureAwait(false);
                 }
             }
         }

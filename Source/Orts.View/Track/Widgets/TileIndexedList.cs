@@ -37,24 +37,31 @@ namespace Orts.View.Track.Widgets
             }
         }
 
+        public IEnumerable<ITileCoordinate<T>> this[ITile tile]
+        {
+            get
+            {
+                foreach (ITileCoordinate<T> item in tiles[tile])
+                    yield return item;
+            }
+        }
+
         public IEnumerable<ITileCoordinate<T>> BoundingBox(ITile bottomLeft, ITile topRight)
         {
             if (bottomLeft.CompareTo(topRight) > 0)
                 throw new ArgumentOutOfRangeException($"{nameof(bottomLeft)} can not be larger than {nameof(topRight)}");
 
-            int tileLookupIndex = FindNearestIndex(bottomLeft);
-            if (tileLookupIndex > 0)
-                tileLookupIndex--;
-            ITile key;
+            int tileLookupIndex = FindNearestIndexFloor(bottomLeft);
+            ITile end = sortedIndexes[FindNearestIndexCeiling(topRight)];
 
-            ITile end = sortedIndexes[FindNearestIndex(topRight)];
+            ITile key;
 
             do
             {
                 key = sortedIndexes[tileLookupIndex];
                 while (key.Z > topRight.Z && tileLookupIndex < sortedIndexes.Count-1)
                 {
-                    tileLookupIndex = FindNearestIndex(new Tile(key.X + 1, bottomLeft.Z));
+                    tileLookupIndex = FindNearestIndexCeiling(new Tile(key.X + 1, bottomLeft.Z));
                     key = sortedIndexes[tileLookupIndex];
                 }
 
@@ -69,7 +76,7 @@ namespace Orts.View.Track.Widgets
         public IEnumerable<ITileCoordinate<T>> FindNearest(PointD position, ITile bottomLeft, ITile topRight)
         {
             Tile current = new Tile(Tile.TileFromAbs(position.X), Tile.TileFromAbs(position.Y));
-            ITile key = sortedIndexes[FindNearestIndex(current)];
+            ITile key = sortedIndexes[FindNearestIndexCeiling(current)];
             double minDistance = double.MaxValue; ;
             if (current != key)
             {
@@ -80,7 +87,7 @@ namespace Orts.View.Track.Widgets
                 ITile tileMax = new Tile(current.X + tileDistance, current.Z + tileDistance);
                 if (tileMax.CompareTo(topRight) > 0)
                     tileMax = topRight;
-                int tileMaxIndex = FindNearestIndex(tileMax);
+                int tileMaxIndex = FindNearestIndexCeiling(tileMax);
                 for (int i = FindNearestIndexFloor(tileMin); i < tileMaxIndex; i++)
                 {
                     double currentDistance;
@@ -112,7 +119,7 @@ namespace Orts.View.Track.Widgets
             return keyIndex;
         }
 
-        private int FindNearestIndex(ITile possibleKey)
+        private int FindNearestIndexCeiling(ITile possibleKey)
         {
             int keyIndex = sortedIndexes.BinarySearch(possibleKey);
             if (keyIndex < 0)

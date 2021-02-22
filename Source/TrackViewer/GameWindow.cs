@@ -323,7 +323,7 @@ namespace Orts.TrackViewer
 
             }
             GraphicsDevice.Clear(BackgroundColor);
-
+            statusbar.toolStripStatusLabel2.Text = contentArea?.Scale.ToString() ?? string.Empty;
             spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, null, null, null);
             if (contentArea == null)
             {

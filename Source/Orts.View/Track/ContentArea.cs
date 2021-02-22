@@ -59,6 +59,8 @@ namespace Orts.View.Track
         }
 
         private GridTile nearest;
+        private TrackItemBase nearestTrackItem;
+
         public void MouseMove(Point position, Vector2 delta)
         {
             PointD worldPosition = ScreenToWorldCoordinates(position);
@@ -66,6 +68,16 @@ namespace Orts.View.Track
             if (result.First() != nearest)
             {
                 nearest = result.First() as GridTile;
+            }
+            double distance = double.MaxValue;
+            foreach (TrackItemBase trackItem in TrackContent.TrackItems[nearest.Tile])
+            {
+                double itemDistance = trackItem.Location.DistanceSquared(worldPosition);
+                if (itemDistance < distance)
+                {
+                    nearestTrackItem = trackItem;
+                    distance = itemDistance;
+                }
             }
         }
 
@@ -284,7 +296,8 @@ namespace Orts.View.Track
             {
                 tile.Draw(this);
             }
-            nearest?.DrawHighlight(this);
+            nearest?.Draw(this, true);
+            nearestTrackItem?.Draw(this, true);
         }
 
         protected override void Dispose(bool disposing)

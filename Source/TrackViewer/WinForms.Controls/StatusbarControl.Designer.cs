@@ -29,10 +29,10 @@ namespace Orts.TrackViewer.WinForms.Controls
         /// </summary>
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(StatusbarControl));
             this.StatusStrip = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
-            this.toolStripSplitButton1 = new System.Windows.Forms.ToolStripSplitButton();
+            this.toolStripProgressBar1 = new System.Windows.Forms.ToolStripProgressBar();
+            this.toolStripStatusLabel2 = new System.Windows.Forms.ToolStripStatusLabel();
             this.StatusStrip.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -42,12 +42,14 @@ namespace Orts.TrackViewer.WinForms.Controls
             this.StatusStrip.ImageScalingSize = new System.Drawing.Size(20, 20);
             this.StatusStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripStatusLabel1,
-            this.toolStripSplitButton1});
+            this.toolStripProgressBar1,
+            this.toolStripStatusLabel2});
             this.StatusStrip.Location = new System.Drawing.Point(0, 132);
             this.StatusStrip.Name = "StatusStrip";
             this.StatusStrip.Size = new System.Drawing.Size(1270, 26);
             this.StatusStrip.TabIndex = 0;
             this.StatusStrip.Text = "statusStrip1";
+            this.StatusStrip.ItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.StatusStrip_ItemClicked);
             // 
             // toolStripStatusLabel1
             // 
@@ -55,15 +57,16 @@ namespace Orts.TrackViewer.WinForms.Controls
             this.toolStripStatusLabel1.Size = new System.Drawing.Size(151, 20);
             this.toolStripStatusLabel1.Text = "toolStripStatusLabel1";
             // 
-            // toolStripSplitButton1
+            // toolStripProgressBar1
             // 
-            this.toolStripSplitButton1.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.toolStripSplitButton1.Image = ((System.Drawing.Image)(resources.GetObject("toolStripSplitButton1.Image")));
-            this.toolStripSplitButton1.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.toolStripSplitButton1.Margin = new System.Windows.Forms.Padding(-1);
-            this.toolStripSplitButton1.Name = "toolStripSplitButton1";
-            this.toolStripSplitButton1.Size = new System.Drawing.Size(39, 28);
-            this.toolStripSplitButton1.Text = "toolStripSplitButton1";
+            this.toolStripProgressBar1.Name = "toolStripProgressBar1";
+            this.toolStripProgressBar1.Size = new System.Drawing.Size(100, 18);
+            // 
+            // toolStripStatusLabel2
+            // 
+            this.toolStripStatusLabel2.Name = "toolStripStatusLabel2";
+            this.toolStripStatusLabel2.Size = new System.Drawing.Size(151, 20);
+            this.toolStripStatusLabel2.Text = "toolStripStatusLabel2";
             // 
             // StatusbarControl
             // 
@@ -86,6 +89,7 @@ namespace Orts.TrackViewer.WinForms.Controls
 
         private System.Windows.Forms.StatusStrip StatusStrip;
         internal System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel1;
-        private System.Windows.Forms.ToolStripSplitButton toolStripSplitButton1;
+        private System.Windows.Forms.ToolStripProgressBar toolStripProgressBar1;
+        internal System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel2;
     }
 }

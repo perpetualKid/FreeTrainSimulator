@@ -46,7 +46,7 @@ namespace Orts.View.Track.Widgets
             Direction -= MathHelper.PiOver2;
         }
 
-        internal override void Draw(ContentArea contentArea)
+        internal override void Draw(ContentArea contentArea, bool highlight = false)
         {
             BasicShapes.DrawLine(contentArea.WorldToScreenSize(Size), Color.DarkOliveGreen, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Length), Direction, contentArea.SpriteBatch);
         }

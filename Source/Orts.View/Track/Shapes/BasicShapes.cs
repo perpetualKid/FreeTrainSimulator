@@ -232,7 +232,7 @@ namespace Orts.View.Track.Shapes
                 {
                     Texture2D texture = Texture2D.FromStream(graphicsDevice, stream);
                     basicTextures[textureValue] = PrepareColorScaledTexture(graphicsDevice, texture);
-                    basicHighlightTextures[textureValue] = PrepareColorScaledTexture(graphicsDevice, texture, 0.8);
+                    basicHighlightTextures[textureValue] = PrepareColorScaledTexture(graphicsDevice, texture, 0.5);
                     textureOffsets[textureValue] = new Vector2(texture.Width / 2, texture.Height / 2);
                 }
             }

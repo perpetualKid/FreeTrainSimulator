@@ -56,7 +56,7 @@ namespace Orts.View.Track.Widgets
             Direction = trackVectorSection.Direction.Y - MathHelper.PiOver2;
         }
 
-        internal override void Draw(ContentArea contentArea)
+        internal override void Draw(ContentArea contentArea, bool highlight = false)
         {
             if (Curved)
                 BasicShapes.DrawArc(contentArea.WorldToScreenSize(Size), Color.Black, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Length), Direction, Angle, 0, contentArea.SpriteBatch);

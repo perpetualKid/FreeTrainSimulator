@@ -17,5 +17,9 @@ namespace Orts.TrackViewer.WinForms.Controls
             StatusStrip.SizingGrip = show;
         }
 
+        private void StatusStrip_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
+        {
+
+        }
     }
 }

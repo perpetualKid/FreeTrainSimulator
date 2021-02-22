@@ -19,7 +19,7 @@ namespace Orts.View.Track.Widgets
             base.tile = new Tile(location.TileX, location.TileZ);
         }
 
-        internal override void Draw(ContentArea contentArea)
+        internal override void Draw(ContentArea contentArea, bool highlight = false)
         {
             BasicShapes.DrawTexture(BasicTextureType.Disc, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size), Color.DarkRed, false, false, false, contentArea.SpriteBatch);
         }

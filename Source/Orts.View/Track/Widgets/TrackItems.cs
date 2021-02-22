@@ -108,9 +108,9 @@ namespace Orts.View.Track.Widgets
             linkedId = source.LinkedSidingId;
         }
 
-        internal override void Draw(ContentArea contentArea)
+        internal override void Draw(ContentArea contentArea, bool highlight = false)
         {
-            BasicShapes.DrawTexture(BasicTextureType.Disc, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size), Color.CornflowerBlue, false, false, false, contentArea.SpriteBatch);
+            BasicShapes.DrawTexture(BasicTextureType.Disc, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size), Color.CornflowerBlue, false, false, highlight, contentArea.SpriteBatch);
             if (drawName)
                 TextDrawShape.DrawString(contentArea.WorldToScreenCoordinates(in location), Color.Red, sidingName, font, Vector2.One, TextHorizontalAlignment.Left, TextVerticalAlignment.Top, SpriteEffects.None, contentArea.SpriteBatch);
         }
@@ -162,9 +162,9 @@ namespace Orts.View.Track.Widgets
             Size = 9;
         }
 
-        internal override void Draw(ContentArea contentArea)
+        internal override void Draw(ContentArea contentArea, bool highlight = false)
         {
-            BasicShapes.DrawTexture(BasicTextureType.Platform, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size), Color.White, false, false, false, contentArea.SpriteBatch);
+            BasicShapes.DrawTexture(BasicTextureType.Platform, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size), Color.White, false, false, highlight, contentArea.SpriteBatch);
             TextDrawShape.DrawString(contentArea.WorldToScreenCoordinates(in location), Color.Blue, platformName, font, Vector2.One, TextHorizontalAlignment.Left, TextVerticalAlignment.Top, SpriteEffects.None, contentArea.SpriteBatch);
         }
     }
@@ -182,10 +182,10 @@ namespace Orts.View.Track.Widgets
             milePost = source.IsMilePost;
         }
 
-        internal override void Draw(ContentArea contentArea)
+        internal override void Draw(ContentArea contentArea, bool highlight = false)
         {
             // TODO 20210117 show more of the SpeedPostItem properties (direction, number/dot)
-            BasicShapes.DrawTexture(BasicTextureType.Disc, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size), Color.Orange, false, false, false, contentArea.SpriteBatch);
+            BasicShapes.DrawTexture(BasicTextureType.Disc, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size), Color.Orange, false, false, highlight, contentArea.SpriteBatch);
             TextDrawShape.DrawString(contentArea.WorldToScreenCoordinates(in location), Color.Blue, distance, font, Vector2.One, TextHorizontalAlignment.Center, TextVerticalAlignment.Center, SpriteEffects.None, contentArea.SpriteBatch);
         }
     }
@@ -199,9 +199,9 @@ namespace Orts.View.Track.Widgets
             Size = 9f;
         }
 
-        internal override void Draw(ContentArea contentArea)
+        internal override void Draw(ContentArea contentArea, bool highlight = false)
         {
-            BasicShapes.DrawTexture(BasicTextureType.Hazard, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size), Color.White, false, false, false, contentArea.SpriteBatch);
+            BasicShapes.DrawTexture(BasicTextureType.Hazard, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size), Color.White, false, false, highlight, contentArea.SpriteBatch);
         }
     }
     #endregion
@@ -214,9 +214,9 @@ namespace Orts.View.Track.Widgets
             Size = 9f;
         }
 
-        internal override void Draw(ContentArea contentArea)
+        internal override void Draw(ContentArea contentArea, bool highlight = false)
         {
-            BasicShapes.DrawTexture(BasicTextureType.Pickup, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size), Color.White, false, false, false, contentArea.SpriteBatch);
+            BasicShapes.DrawTexture(BasicTextureType.Pickup, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size), Color.White, false, false, highlight, contentArea.SpriteBatch);
         }
     }
     #endregion
@@ -229,9 +229,9 @@ namespace Orts.View.Track.Widgets
             Size = 6f;
         }
 
-        internal override void Draw(ContentArea contentArea)
+        internal override void Draw(ContentArea contentArea, bool highlight = false)
         {
-            BasicShapes.DrawTexture(BasicTextureType.Disc, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size), Color.Purple, false, false, false, contentArea.SpriteBatch);
+            BasicShapes.DrawTexture(BasicTextureType.Disc, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size), Color.Purple, false, false, highlight, contentArea.SpriteBatch);
         }
     }
     #endregion
@@ -244,9 +244,9 @@ namespace Orts.View.Track.Widgets
             Size = 5f;
         }
 
-        internal override void Draw(ContentArea contentArea)
+        internal override void Draw(ContentArea contentArea, bool highlight = false)
         {
-            BasicShapes.DrawTexture(BasicTextureType.Sound, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size), Color.White, false, false, false, contentArea.SpriteBatch);
+            BasicShapes.DrawTexture(BasicTextureType.Sound, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size), Color.White, false, false, highlight, contentArea.SpriteBatch);
         }
     }
     #endregion
@@ -316,9 +316,9 @@ namespace Orts.View.Track.Widgets
 
         }
 
-        internal override void Draw(ContentArea contentArea)
+        internal override void Draw(ContentArea contentArea, bool highlight = false)
         {
-            BasicShapes.DrawTexture(BasicTextureType.Signal, contentArea.WorldToScreenCoordinates(in Location), angle, contentArea.WorldToScreenSize(Size), Color.White, false, false, false, contentArea.SpriteBatch);
+            BasicShapes.DrawTexture(BasicTextureType.Signal, contentArea.WorldToScreenCoordinates(in Location), angle, contentArea.WorldToScreenSize(Size), Color.White, false, false, highlight, contentArea.SpriteBatch);
         }
     }
     #endregion
