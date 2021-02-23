@@ -57,7 +57,7 @@ namespace Orts.TrackViewer
 
             await trackData.LoadTrackData(useMetricUnits).ConfigureAwait(false);
 
-            TrackContent content = new TrackContent(trackData.TrackDB, trackData.TrackSections, trackData.SignalConfig, trackData.UseMetricUnits);
+            TrackContent content = new TrackContent(trackData.TrackDB, trackData.RoadTrackDB, trackData.TrackSections, trackData.SignalConfig, trackData.UseMetricUnits);
             await content.Initialize().ConfigureAwait(false);
             ContentArea = new ContentArea(this, content);
             StatusMessage = null;

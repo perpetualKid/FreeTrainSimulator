@@ -64,21 +64,7 @@ namespace Orts.View.Track
         public void MouseMove(Point position, Vector2 delta)
         {
             PointD worldPosition = ScreenToWorldCoordinates(position);
-            System.Collections.Generic.IEnumerable<ITileCoordinate<Tile>> result = TrackContent.Tiles.FindNearest(worldPosition, bottomLeft, topRight);
-            if (result.First() != nearest)
-            {
-                nearest = result.First() as GridTile;
-            }
-            double distance = double.MaxValue;
-            foreach (TrackItemBase trackItem in TrackContent.TrackItems[nearest.Tile])
-            {
-                double itemDistance = trackItem.Location.DistanceSquared(worldPosition);
-                if (itemDistance < distance)
-                {
-                    nearestTrackItem = trackItem;
-                    distance = itemDistance;
-                }
-            }
+            FindNearestItems(worldPosition);
         }
 
         protected override void OnEnabledChanged(object sender, EventArgs args)
@@ -91,6 +77,29 @@ namespace Orts.View.Track
                     component.Disable();
             }
             base.OnEnabledChanged(sender, args);
+        }
+
+        private void FindNearestItems(PointD position)
+        {
+            System.Collections.Generic.IEnumerable<ITileCoordinate<Tile>> result = TrackContent.Tiles.FindNearest(position, bottomLeft, topRight);
+            if (result.First() != nearest)
+            {
+                nearest = result.First() as GridTile;
+            }
+            if (Scale < 1)
+            {
+                return;
+            }
+                double distance = double.MaxValue;
+            foreach (TrackItemBase trackItem in TrackContent.TrackItems[nearest.Tile])
+            {
+                double itemDistance = trackItem.Location.DistanceSquared(position);
+                if (itemDistance < distance)
+                {
+                    nearestTrackItem = trackItem;
+                    distance = itemDistance;
+                }
+            }
         }
 
         public void ResetSize(in Point windowSize, int screenDelta)
@@ -210,16 +219,6 @@ namespace Orts.View.Track
             base.Draw(gameTime);
         }
 
-        private Vector2 Translate(in Vector2 world)
-        {
-            return Translate(world.X, world.Y);
-        }
-
-        private Vector2 Translate(float x, float y)
-        {
-            return new Vector2((float)(x + offsetX * Scale), (float)(y + offsetY * Scale));
-        }
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal Vector2 WorldToScreenCoordinates(in WorldLocation worldLocation)
         {
@@ -295,6 +294,16 @@ namespace Orts.View.Track
             foreach (GridTile tile in TrackContent.Tiles.BoundingBox(bottomLeft, topRight))
             {
                 tile.Draw(this);
+            }
+            foreach (TrackSegment segment in TrackContent.RoadSegments.BoundingBox(bottomLeft, topRight))
+            {
+                if (InsideScreenArea(segment))
+                    segment.Draw(this);
+            }
+            foreach (TrackEndSegment endNode in TrackContent.RoadEndSegments.BoundingBox(bottomLeft, topRight))
+            {
+                if (InsideScreenArea(endNode))
+                    endNode.Draw(this);
             }
             nearest?.Draw(this, true);
             nearestTrackItem?.Draw(this, true);
