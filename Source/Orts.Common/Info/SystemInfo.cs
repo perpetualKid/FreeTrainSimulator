@@ -36,7 +36,14 @@ namespace Orts.Common.Info
         {
             StringBuilder builder = new StringBuilder();
             builder.AppendLine($"{"Date/Time",-12}= {DateTime.Now} ({DateTime.UtcNow:u})");
-            WriteEnvironment(builder);
+            try
+            {
+                WriteEnvironment(builder);
+            }
+            catch(Exception ex) when (ex is TypeInitializationException || ex is System.ComponentModel.Win32Exception)
+            {
+                builder.Append("Hardware information not available on this platform.");
+            }
             builder.AppendLine($"{"Runtime",-12}= {System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription} ({(Environment.Is64BitProcess ? "64" : "32")}bit)");
             Trace.Write(builder.ToString());
         }
