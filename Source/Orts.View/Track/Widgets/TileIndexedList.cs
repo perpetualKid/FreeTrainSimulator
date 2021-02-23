@@ -5,9 +5,11 @@ using System.Linq;
 
 using Orts.Common.Position;
 
+using SharpDX.DirectWrite;
+
 namespace Orts.View.Track.Widgets
 {
-    internal class TileIndexedList<ITileCoordinate, T> :  IEnumerable<ITileCoordinate<T>> where T: struct, ITile
+    internal class TileIndexedList<ITileCoordinate, T> : IEnumerable<ITileCoordinate<T>> where T : struct, ITile
     {
         private readonly SortedList<ITile, List<ITileCoordinate<T>>> tiles;
         private readonly List<ITile> sortedIndexes;
@@ -15,7 +17,7 @@ namespace Orts.View.Track.Widgets
         public int Count => sortedIndexes.Count;
 
         public IList<ITileCoordinate<T>> this[int index] { get => tiles[sortedIndexes[index]]; set => throw new InvalidOperationException(); }
-        
+
         public TileIndexedList(IEnumerable<ITileCoordinate<T>> data)
         {
             tiles = new SortedList<ITile, List<ITileCoordinate<T>>>(data.GroupBy(d => d.Tile as ITile).ToDictionary(g => g.Key, g => g.ToList()));
@@ -41,6 +43,8 @@ namespace Orts.View.Track.Widgets
         {
             get
             {
+                if (!tiles.ContainsKey(tile))
+                    yield break;
                 foreach (ITileCoordinate<T> item in tiles[tile])
                     yield return item;
             }
@@ -54,23 +58,37 @@ namespace Orts.View.Track.Widgets
             int tileLookupIndex = FindNearestIndexFloor(bottomLeft);
             ITile end = sortedIndexes[FindNearestIndexCeiling(topRight)];
 
-            ITile key;
+            ITile key = sortedIndexes[tileLookupIndex];
 
-            do
+            while (key.Z < bottomLeft.Z && key.CompareTo(end) < 0)
             {
+                tileLookupIndex = FindNearestIndexFloor(new Tile(key.X, bottomLeft.Z));
                 key = sortedIndexes[tileLookupIndex];
-                while (key.Z > topRight.Z && tileLookupIndex < sortedIndexes.Count-1)
-                {
-                    tileLookupIndex = FindNearestIndexCeiling(new Tile(key.X + 1, bottomLeft.Z));
-                    key = sortedIndexes[tileLookupIndex];
-                }
 
+                if (key.CompareTo(end) > 0)
+                    yield break;
+            }
+
+            while (key.CompareTo(end) <=0)//(key.Z > topRight.Z && tileLookupIndex < sortedIndexes.Count - 1)
+            {
                 foreach (ITileCoordinate<T> item in tiles[key])
                     yield return item;
 
                 tileLookupIndex++;
+                if (tileLookupIndex >= sortedIndexes.Count)
+                    yield break;
+                key = sortedIndexes[tileLookupIndex];
+
+                while (key.Z < bottomLeft.Z && key.CompareTo(end) < 0)
+                {
+                    tileLookupIndex = FindNearestIndexFloor(new Tile(key.X, bottomLeft.Z));
+                    key = sortedIndexes[tileLookupIndex];
+
+                    if (key.CompareTo(end) > 0)
+                        yield break;
+                }
+
             }
-            while (key != end && tileLookupIndex < sortedIndexes.Count);
         }
 
         public IEnumerable<ITileCoordinate<T>> FindNearest(PointD position, ITile bottomLeft, ITile topRight)
@@ -113,8 +131,8 @@ namespace Orts.View.Track.Widgets
             if (keyIndex < 0)
             {
                 keyIndex = ~keyIndex;
-                if (keyIndex > 0)
-                    keyIndex--;
+                if (keyIndex == sortedIndexes.Count)
+                    keyIndex = sortedIndexes.Count - 1;
             }
             return keyIndex;
         }
@@ -125,8 +143,8 @@ namespace Orts.View.Track.Widgets
             if (keyIndex < 0)
             {
                 keyIndex = ~keyIndex;
-                if (keyIndex == sortedIndexes.Count)
-                    keyIndex = sortedIndexes.Count - 1;
+                if (keyIndex > 0)
+                    keyIndex--;
             }
             return keyIndex;
         }

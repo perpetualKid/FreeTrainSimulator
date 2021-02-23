@@ -131,7 +131,12 @@ namespace Orts.View.Track
             RoadSegments = new TileIndexedList<TrackSegment, Tile>(roadSegments);
             RoadEndSegments = new TileIndexedList<TrackEndSegment, Tile>(roadEndSegments);
 
-            Tiles = new TileIndexedList<GridTile, Tile>(TrackSegments.Select(d => d.Tile as ITile).Distinct().Concat(RoadSegments.Select(d => d.Tile as ITile).Distinct()).Select(t => new GridTile(t)));
+            Tiles = new TileIndexedList<GridTile, Tile>(
+                TrackSegments.Select(d => d.Tile as ITile).Distinct()
+                .Union(TrackEndSegments.Select(d => d.Tile as ITile).Distinct())
+                .Union(RoadSegments.Select(d => d.Tile as ITile).Distinct())
+                .Union(RoadEndSegments.Select(d => d.Tile as ITile).Distinct())
+                .Select(t => new GridTile(t)));
 
             if (Tiles.Count == 1)
             {
