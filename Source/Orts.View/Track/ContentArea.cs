@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing.Imaging;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
@@ -6,7 +7,9 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
+using Orts.Common;
 using Orts.Common.Position;
+using Orts.View.DrawableComponents;
 using Orts.View.Track.Widgets;
 using Orts.View.Xna;
 
@@ -46,9 +49,14 @@ namespace Orts.View.Track
         private InputGameComponent inputComponent;
 #pragma warning restore CA2213 // Disposable fields should be disposed
 
-        public ContentArea(Game game, TrackContent trackContent) :
+        public ContentArea(Game game, TrackContent trackContent, EnumArray<string, ColorSetting> colorPreferences) :
             base(game)
         {
+            if (null == game)
+                throw new ArgumentNullException(nameof(game));
+            if (null == colorPreferences)
+                throw new ArgumentNullException(nameof(colorPreferences));
+
             Enabled = false;
             TrackContent = trackContent ?? throw new ArgumentNullException(nameof(trackContent));
             bounds = trackContent.Bounds;
@@ -56,6 +64,11 @@ namespace Orts.View.Track
             fontManager = FontManager.Instance("Segoe UI", System.Drawing.FontStyle.Regular);
             inputComponent = game.Components.OfType<InputGameComponent>().First();
             inputComponent.AddMouseEvent(InputGameComponent.MouseMovedEventType.MouseMoved, MouseMove);
+
+            foreach (ColorSetting setting in EnumExtension.GetValues<ColorSetting>())
+            {
+                UpdateColor(setting, ColorExtension.FromName(colorPreferences[setting]));
+            }
         }
 
         private GridTile nearest;
@@ -90,7 +103,7 @@ namespace Orts.View.Track
             {
                 return;
             }
-                double distance = double.MaxValue;
+            double distance = double.MaxValue;
             foreach (TrackItemBase trackItem in TrackContent.TrackItems[nearest.Tile])
             {
                 double itemDistance = trackItem.Location.DistanceSquared(position);
@@ -189,6 +202,22 @@ namespace Orts.View.Track
                 supressCount = 10;
             }
             base.Update(gameTime);
+        }
+
+        public void UpdateColor(ColorSetting setting, Color color)
+        {
+            switch (setting)
+            {
+                case ColorSetting.Background:
+                    Game.Components.OfType<InsetComponent>().FirstOrDefault()?.UpdateColor(color);
+                    break;
+                case ColorSetting.RailTrack:
+                    TrackSegment.UpdateColor(color);
+                    break;
+                case ColorSetting.RoadTrack:
+                    RoadTrackSegment.UpdateColor(color);
+                    break;
+            }
         }
 
         private void CenterView()

@@ -18,10 +18,17 @@ namespace Orts.View.Track.Widgets
 
         internal readonly float Angle;
 
+        [ThreadStatic]
+        private static Color color;
+
+        public static void UpdateColor(Color color)
+        {
+            TrackSegment.color = color;
+        }
+
         public TrackSegment(TrackVectorSection trackVectorSection, TrackSection trackSection)
         {
             ref readonly WorldLocation location = ref trackVectorSection.Location;
-
             double cosA = Math.Cos(trackVectorSection.Direction.Y);
             double sinA = Math.Sin(trackVectorSection.Direction.Y);
 
@@ -59,9 +66,32 @@ namespace Orts.View.Track.Widgets
         internal override void Draw(ContentArea contentArea, bool highlight = false)
         {
             if (Curved)
-                BasicShapes.DrawArc(contentArea.WorldToScreenSize(Size), Color.Black, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Length), Direction, Angle, 0, contentArea.SpriteBatch);
+                BasicShapes.DrawArc(contentArea.WorldToScreenSize(Size), color, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Length), Direction, Angle, 0, contentArea.SpriteBatch);
             else
-                BasicShapes.DrawLine(contentArea.WorldToScreenSize(Size), Color.Black, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Length), Direction, contentArea.SpriteBatch);
+                BasicShapes.DrawLine(contentArea.WorldToScreenSize(Size), color, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Length), Direction, contentArea.SpriteBatch);
+        }
+    }
+
+    internal class RoadTrackSegment : TrackSegment
+    {
+        [ThreadStatic]
+        private static Color color;
+
+        public static void UpdateColor(Color color)
+        {
+            RoadTrackSegment.color = color;
+        }
+
+        public RoadTrackSegment(TrackVectorSection trackVectorSection, TrackSection trackSection) : base(trackVectorSection, trackSection)
+        {
+        }
+
+        internal override void Draw(ContentArea contentArea, bool highlight = false)
+        {
+            if (Curved)
+                BasicShapes.DrawArc(contentArea.WorldToScreenSize(Size), color, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Length), Direction, Angle, 0, contentArea.SpriteBatch);
+            else
+                BasicShapes.DrawLine(contentArea.WorldToScreenSize(Size), color, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Length), Direction, contentArea.SpriteBatch);
         }
     }
 }

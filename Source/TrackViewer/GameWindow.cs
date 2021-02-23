@@ -68,7 +68,7 @@ namespace Orts.TrackViewer
         internal string backgroundColor;
 
         #region preferences
-        private readonly EnumArray<string, ColorPreference> colorPreferences = new EnumArray<string, ColorPreference>();
+        private readonly EnumArray<string, ColorSetting> colorPreferences = new EnumArray<string, ColorSetting>();
 
         #endregion
 
@@ -163,17 +163,16 @@ namespace Orts.TrackViewer
             WindowForm_ClientSizeChanged(sender, e);
         }
 
-        public void UpdateColorPreference(ColorPreference preference, string colorName)
+        public void UpdateColorPreference(ColorSetting setting, string colorName)
         {
-            colorPreferences[preference] = colorName;
-            switch (preference)
+            colorPreferences[setting] = colorName;
+            contentArea.UpdateColor(setting, ColorExtension.FromName(colorName));
+            switch (setting)
             {
-                case ColorPreference.Background: 
+                case ColorSetting.Background: 
                     backgroundColor = colorName;
                     BackgroundColor = ColorExtension.FromName(colorName);
-                    Components.OfType<InsetComponent>().FirstOrDefault()?.UpdateColor(BackgroundColor);
                     break;
-
             }
         }
 
@@ -181,8 +180,10 @@ namespace Orts.TrackViewer
         {
             windowSize = new System.Drawing.Size(Settings.TrackViewer.WindowSize[0], Settings.TrackViewer.WindowSize[1]);
 
-            colorPreferences[ColorPreference.Background] = Settings.TrackViewer.ColorBackground;
-            BackgroundColor = ColorExtension.FromName(colorPreferences[ColorPreference.Background]);
+            colorPreferences[ColorSetting.Background] = Settings.TrackViewer.ColorBackground;
+            colorPreferences[ColorSetting.RailTrack] = Settings.TrackViewer.ColorRailTrack;
+            colorPreferences[ColorSetting.RoadTrack] = Settings.TrackViewer.ColorRoadTrack;
+            BackgroundColor = ColorExtension.FromName(colorPreferences[ColorSetting.Background]);
 
         }
 
@@ -190,7 +191,10 @@ namespace Orts.TrackViewer
         {
             Settings.TrackViewer.WindowSize[0] = windowSize.Width;
             Settings.TrackViewer.WindowSize[1] = windowSize.Height;
-            Settings.TrackViewer.ColorBackground = colorPreferences[ColorPreference.Background];
+            Settings.TrackViewer.ColorBackground = colorPreferences[ColorSetting.Background];
+            Settings.TrackViewer.ColorRailTrack = colorPreferences[ColorSetting.RailTrack];
+            Settings.TrackViewer.ColorRoadTrack = colorPreferences[ColorSetting.RoadTrack];
+
             string[] routeSelection = null;
             if (selectedFolder != null)
             {

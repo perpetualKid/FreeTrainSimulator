@@ -9,6 +9,8 @@ namespace Orts.View.Track.Widgets
     internal abstract class WidgetBase
     {
         internal float Size;
+
+        internal protected Color Color { get; protected set; }
     }
 
     internal abstract class PointWidget: WidgetBase, ITileCoordinate<Tile>

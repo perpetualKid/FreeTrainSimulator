@@ -25,6 +25,10 @@ namespace Orts.Settings
         public int[] WindowSize { get; set; }
         [Default("CadetBlue")]
         public string ColorBackground { get; set; }
+        [Default("Black")]
+        public string ColorRailTrack { get; set; }
+        [Default("Gray")]
+        public string ColorRoadTrack { get; set; }
         [Default(new string[0])]
         public string[] RouteSelection { get; set; }
         [Default(false)]

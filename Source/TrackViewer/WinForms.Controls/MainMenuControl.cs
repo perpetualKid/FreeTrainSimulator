@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 
-using Orts.Common;
 using Orts.Models.Simplified;
-using Orts.View.Track;
+using Orts.View;
 
 namespace Orts.TrackViewer.WinForms.Controls
 {
@@ -21,15 +20,20 @@ namespace Orts.TrackViewer.WinForms.Controls
             MainMenuStrip.MenuDeactivate += MainMenuStrip_MenuDeactivate;
             menuItemFolder.DropDown.Closing += FolderDropDown_Closing;
 
-            backgroundColorComboBoxMenuItem.DisplayXnaColors(game.Settings.TrackViewer.ColorBackground, ColorPreference.Background);
+            loadAtStartupMenuItem.Checked = game.Settings.TrackViewer.LoadRouteOnStart;
+            backgroundColorComboBoxMenuItem.DisplayXnaColors(game.Settings.TrackViewer.ColorBackground, ColorSetting.Background);
             backgroundColorComboBoxMenuItem.SelectedIndexChanged += BackgroundColorComboBoxMenuItem_SelectedIndexChanged;
+            railTrackColorComboBoxMenuItem.DisplayXnaColors(game.Settings.TrackViewer.ColorRailTrack, ColorSetting.RailTrack);
+            railTrackColorComboBoxMenuItem.SelectedIndexChanged += BackgroundColorComboBoxMenuItem_SelectedIndexChanged;
+            roadTrackColorComboBoxMenuItem.DisplayXnaColors(game.Settings.TrackViewer.ColorRoadTrack, ColorSetting.RoadTrack);
+            roadTrackColorComboBoxMenuItem.SelectedIndexChanged += BackgroundColorComboBoxMenuItem_SelectedIndexChanged;
         }
 
         private void BackgroundColorComboBoxMenuItem_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (sender is ToolStripComboBox comboBox)
             {
-                parent.UpdateColorPreference((ColorPreference)comboBox.Tag, comboBox.SelectedItem as string);
+                parent.UpdateColorPreference((ColorSetting)comboBox.Tag, comboBox.SelectedItem as string);
             }
         }
 
@@ -49,10 +53,6 @@ namespace Orts.TrackViewer.WinForms.Controls
         private void MainMenuStrip_MenuActivate(object sender, EventArgs e)
         {
             parent.InputCaptured = true;
-        }
-
-        private void OpenToolStripMenuItem_Click(object sender, EventArgs e)
-        {
         }
 
         internal void PopulateRoutes(IEnumerable<Route> routes)
@@ -149,6 +149,11 @@ namespace Orts.TrackViewer.WinForms.Controls
         private void MenuItemQuit_Click(object sender, EventArgs e)
         {
             parent.CloseWindow();
+        }
+
+        private void LoadAtStartupMenuItem_Click(object sender, EventArgs e)
+        {
+            parent.Settings.TrackViewer.LoadRouteOnStart = loadAtStartupMenuItem.Checked;
         }
     }
 }

@@ -1,9 +1,9 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Windows.Forms;
 
 using Microsoft.Xna.Framework;
 
+using Orts.View;
 using Orts.View.Xna;
 
 namespace Orts.TrackViewer.WinForms.Controls
@@ -15,7 +15,7 @@ namespace Orts.TrackViewer.WinForms.Controls
 
         private static readonly object[] sortedColors = ColorExtension.ColorCodes.OrderByDescending(kvp => (kvp.Value.R << 8) + (kvp.Value.G << 8) + kvp.Value.B).Select(c => c.Key).Cast<object>().ToArray();
 
-        internal static void DisplayXnaColors(this ToolStripComboBox comboBox, string defaultColor, ColorPreference preference)
+        internal static void DisplayXnaColors(this ToolStripComboBox comboBox, string defaultColor, ColorSetting setting)
         {
             // Make the ComboBox owner-drawn.
             comboBox.ComboBox.DrawMode = DrawMode.OwnerDrawVariable;
@@ -26,7 +26,7 @@ namespace Orts.TrackViewer.WinForms.Controls
             //cbo.MeasureItem += cboDrawImageAndText_MeasureItem;
             comboBox.ComboBox.DrawItem += ComboBox_DrawItem;
             comboBox.SelectedItem = defaultColor;
-            comboBox.Tag = preference;
+            comboBox.Tag = setting;
         }
 
         private static void ComboBox_DrawItem(object sender, DrawItemEventArgs e)

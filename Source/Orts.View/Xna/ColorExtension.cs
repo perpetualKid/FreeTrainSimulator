@@ -41,7 +41,7 @@ namespace Orts.View.Xna
 
         public static Color FromName(string name)
         {
-            if (!colorCodes.TryGetValue(name, out Color color))
+            if (string.IsNullOrEmpty(name) || !colorCodes.TryGetValue(name, out Color color))
                 return Color.Transparent;
             return color;
         }

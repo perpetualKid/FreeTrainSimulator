@@ -21,4 +21,10 @@
         BorderlessFullscreen,
     }
 
+    public enum ColorSetting
+    {
+        Background,
+        RailTrack,
+        RoadTrack,
+    }
 }

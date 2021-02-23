@@ -24,7 +24,7 @@ namespace Orts.View.Track
         internal TileIndexedList<JunctionSegment, Tile> JunctionSegments { get; private set; }
         internal TileIndexedList<TrackItemBase, Tile> TrackItems { get; private set; }
         internal TileIndexedList<GridTile, Tile> Tiles { get; private set; }
-        internal TileIndexedList<TrackSegment, Tile> RoadSegments { get; private set; }
+        internal TileIndexedList<RoadTrackSegment, Tile> RoadSegments { get; private set; }
         internal TileIndexedList<TrackEndSegment, Tile> RoadEndSegments { get; private set; }
 
         internal SignalConfigurationFile SignalConfigFile { get; }
@@ -121,14 +121,14 @@ namespace Orts.View.Track
                         {
                             TrackSection trackSection = trackSectionsFile.TrackSections.Get(trackVectorSection.SectionIndex);
                             if (trackSection != null)
-                                roadSegments.Add(new TrackSegment(trackVectorSection, trackSection));
+                                roadSegments.Add(new RoadTrackSegment(trackVectorSection, trackSection));
                         }
                         break;
                 }
 
             }
 
-            RoadSegments = new TileIndexedList<TrackSegment, Tile>(roadSegments);
+            RoadSegments = new TileIndexedList<RoadTrackSegment, Tile>(roadSegments);
             RoadEndSegments = new TileIndexedList<TrackEndSegment, Tile>(roadEndSegments);
 
             Tiles = new TileIndexedList<GridTile, Tile>(

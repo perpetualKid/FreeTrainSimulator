@@ -23,7 +23,7 @@ namespace Orts.View.Track.Widgets
             tiles = new SortedList<ITile, List<ITileCoordinate<T>>>(data.GroupBy(d => d.Tile as ITile).ToDictionary(g => g.Key, g => g.ToList()));
             sortedIndexes = tiles.Keys.ToList();
 
-            if (Tile.Zero == sortedIndexes[0] || Tile.Zero == sortedIndexes[sortedIndexes.Count - 1])
+            if (sortedIndexes.Count < 0 && (Tile.Zero == sortedIndexes[0] || Tile.Zero == sortedIndexes[sortedIndexes.Count - 1]))
             {
                 sortedIndexes.Remove(Tile.Zero);
                 tiles.Remove(Tile.Zero);
@@ -69,7 +69,7 @@ namespace Orts.View.Track.Widgets
                     yield break;
             }
 
-            while (key.CompareTo(end) <=0)//(key.Z > topRight.Z && tileLookupIndex < sortedIndexes.Count - 1)
+            while (key.CompareTo(end) <=0)
             {
                 foreach (ITileCoordinate<T> item in tiles[key])
                     yield return item;
@@ -87,7 +87,6 @@ namespace Orts.View.Track.Widgets
                     if (key.CompareTo(end) > 0)
                         yield break;
                 }
-
             }
         }
 
