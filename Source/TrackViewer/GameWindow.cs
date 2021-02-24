@@ -1,9 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+
+using GetText;
+using GetText.WindowsForms;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -72,6 +76,10 @@ namespace Orts.TrackViewer
 
         #endregion
 
+        private Catalog catalog;
+        private Catalog commonCatalog;
+        private readonly ObjectPropertiesStore store = new ObjectPropertiesStore();
+
         public GameWindow()
         {
             IEnumerable<string> options = Environment.GetCommandLineArgs().Where(a => a.StartsWith("-", StringComparison.OrdinalIgnoreCase) || a.StartsWith("/", StringComparison.OrdinalIgnoreCase)).Select(a => a.Substring(1));
@@ -122,6 +130,8 @@ namespace Orts.TrackViewer
             onClientSizeChanged = (Action)Delegate.CreateDelegate(typeof(Action), Window, m);
 
             Exiting += GameWindow_Exiting;
+
+            LoadLanguage();
         }
 
         private void GameWindow_Exiting(object sender, EventArgs e)
@@ -163,10 +173,10 @@ namespace Orts.TrackViewer
             WindowForm_ClientSizeChanged(sender, e);
         }
 
-        public void UpdateColorPreference(ColorSetting setting, string colorName)
+        internal void UpdateColorPreference(ColorSetting setting, string colorName)
         {
             colorPreferences[setting] = colorName;
-            contentArea.UpdateColor(setting, ColorExtension.FromName(colorName));
+            contentArea?.UpdateColor(setting, ColorExtension.FromName(colorName));
             switch (setting)
             {
                 case ColorSetting.Background: 
@@ -174,6 +184,12 @@ namespace Orts.TrackViewer
                     BackgroundColor = ColorExtension.FromName(colorName);
                     break;
             }
+        }
+
+        internal void UpdateLanguagePreference(string language)
+        {
+            Settings.Language = language;
+            LoadLanguage();
         }
 
         private void LoadSettings()
@@ -205,6 +221,30 @@ namespace Orts.TrackViewer
             }
             Settings.TrackViewer.RouteSelection = routeSelection;
             Settings.TrackViewer.Save();
+        }
+
+        private void LoadLanguage()
+        {
+            Localizer.Revert(windowForm, store);
+
+            if (!string.IsNullOrEmpty(Settings.Language))
+            {
+                try
+                {
+                    CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(Settings.Language);
+                }
+                catch (CultureNotFoundException exception)
+                {
+                    System.Diagnostics.Trace.WriteLine(exception.Message);
+                }
+            }
+            else
+            {
+                CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InstalledUICulture;
+            }
+            catalog = new Catalog("TrackViewer", RuntimeInfo.LocalesFolder);
+            commonCatalog = new Catalog("Orts.Common", RuntimeInfo.LocalesFolder);
+            Localizer.Localize(windowForm, catalog, store);
         }
 
         private void GraphicsPreparingDeviceSettings(object sender, PreparingDeviceSettingsEventArgs e)
@@ -288,7 +328,6 @@ namespace Orts.TrackViewer
         {
             using (GameWindow game = new GameWindow())
                 game.Run();
-
         }
 
         protected override void LoadContent()
@@ -329,26 +368,26 @@ namespace Orts.TrackViewer
             GraphicsDevice.Clear(BackgroundColor);
             statusbar.toolStripStatusLabel2.Text = contentArea?.Scale.ToString() ?? string.Empty;
             spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, null, null, null);
-            if (contentArea == null)
-            {
-                BasicShapes.DrawTexture(BasicTextureType.Pickup, new Vector2(180, 180), 0, -1, Color.Green, false, false, true);
-                BasicShapes.DrawTexture(BasicTextureType.PlayerTrain, new Vector2(240, 180), 0, -3, Color.Blue, true, false, true);
-                BasicShapes.DrawTexture(BasicTextureType.Ring, new Vector2(80, 220), 0, -0.5f, Color.Yellow, true, false, false);
-                BasicShapes.DrawTexture(BasicTextureType.Circle, new Vector2(80, 220), 0, -0.2f, Color.Red, true, false, false);
-                BasicShapes.DrawTexture(BasicTextureType.RingCrossed, new Vector2(240, 220), 0.0f, -2, Color.Yellow, true, false, false);
-                BasicShapes.DrawTexture(BasicTextureType.Disc, new Vector2(340, 220), 0, -1, Color.Red, true, false, false);
+            //if (contentArea == null)
+            //{
+            //    BasicShapes.DrawTexture(BasicTextureType.Pickup, new Vector2(180, 180), 0, -1, Color.Green, false, false, true);
+            //    BasicShapes.DrawTexture(BasicTextureType.PlayerTrain, new Vector2(240, 180), 0, -3, Color.Blue, true, false, true);
+            //    BasicShapes.DrawTexture(BasicTextureType.Ring, new Vector2(80, 220), 0, -0.5f, Color.Yellow, true, false, false);
+            //    BasicShapes.DrawTexture(BasicTextureType.Circle, new Vector2(80, 220), 0, -0.2f, Color.Red, true, false, false);
+            //    BasicShapes.DrawTexture(BasicTextureType.RingCrossed, new Vector2(240, 220), 0.0f, -2, Color.Yellow, true, false, false);
+            //    BasicShapes.DrawTexture(BasicTextureType.Disc, new Vector2(340, 220), 0, -1, Color.Red, true, false, false);
 
-                BasicShapes.DrawArc(3, Color.Green, new Vector2(330, 330), 120, 90 * Math.PI / 180, 90, 0);
-                BasicShapes.DrawDashedLine(2, Color.Aqua, new Vector2(330, 330), new Vector2(450, 330));
-                TextDrawShape.DrawString(new Vector2(200, 450), Color.Red, "Test Message", drawfont, Vector2.One);
-                TextDrawShape.DrawString(new Vector2(200, 500), Color.Lime, gameTime.TotalGameTime.TotalSeconds.ToString(), drawfont, Vector2.One);
+            //    BasicShapes.DrawArc(3, Color.Green, new Vector2(330, 330), 120, 90 * Math.PI / 180, 90, 0);
+            //    BasicShapes.DrawDashedLine(2, Color.Aqua, new Vector2(330, 330), new Vector2(450, 330));
+            //    TextDrawShape.DrawString(new Vector2(200, 450), Color.Red, "Test Message", drawfont, Vector2.One);
+            //    TextDrawShape.DrawString(new Vector2(200, 500), Color.Lime, gameTime.TotalGameTime.TotalSeconds.ToString(), drawfont, Vector2.One);
 
-                BasicShapes.DrawTexture(BasicTextureType.Disc, new Vector2(480, 180), 0, -2f, Color.Green, false, false, false);
-                BasicShapes.DrawTexture(BasicTextureType.Disc, new Vector2(640, 180), 0, -2f, Color.Green, true, false, true);
+            //    BasicShapes.DrawTexture(BasicTextureType.Disc, new Vector2(480, 180), 0, -2f, Color.Green, false, false, false);
+            //    BasicShapes.DrawTexture(BasicTextureType.Disc, new Vector2(640, 180), 0, -2f, Color.Green, true, false, true);
 
-                BasicShapes.DrawArc(5, Color.IndianRed, new Vector2(240, 220), 120, Math.PI, -270, 0);
-                BasicShapes.DrawLine(10, Color.DarkGoldenrod, new Vector2(100, 100), new Vector2(250, 250));
-            }
+            //    BasicShapes.DrawArc(5, Color.IndianRed, new Vector2(240, 220), 120, Math.PI, -270, 0);
+            //    BasicShapes.DrawLine(10, Color.DarkGoldenrod, new Vector2(100, 100), new Vector2(250, 250));
+            //}
             if (!string.IsNullOrEmpty(StatusMessage))
                 TextDrawShape.DrawString(centerPoint, Color.Red, StatusMessage, drawfont, Vector2.One, TextHorizontalAlignment.Center);
 

@@ -16,9 +16,7 @@ namespace Orts.View.Track.Widgets
         private readonly PointD lowerRight;
         private readonly PointD upperRight;
 
-        [ThreadStatic]
         private static readonly Color color = Color.Black;
-        [ThreadStatic]
         private static readonly Color colorHighlight = ColorExtension.ComplementColor(color);
 
         public GridTile(ITile tile)

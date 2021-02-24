@@ -53,6 +53,8 @@ namespace Orts.TrackViewer.WinForms.Controls
             this.railTrackColorComboBoxMenuItem = new System.Windows.Forms.ToolStripComboBox();
             this.roadTrackColorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.roadTrackColorComboBoxMenuItem = new System.Windows.Forms.ToolStripComboBox();
+            this.selectLanguageMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.languageSelectionComboBoxMenuItem = new System.Windows.Forms.ToolStripComboBox();
             this.MainMenuStrip.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -65,7 +67,7 @@ namespace Orts.TrackViewer.WinForms.Controls
             this.preferencesToolStripMenuItem});
             this.MainMenuStrip.Location = new System.Drawing.Point(0, 0);
             this.MainMenuStrip.Name = "MainMenuStrip";
-            this.MainMenuStrip.Size = new System.Drawing.Size(1132, 28);
+            this.MainMenuStrip.Size = new System.Drawing.Size(1132, 30);
             this.MainMenuStrip.TabIndex = 0;
             this.MainMenuStrip.Text = "MenuStrip1";
             // 
@@ -80,7 +82,7 @@ namespace Orts.TrackViewer.WinForms.Controls
             this.toolStripSeparator2,
             this.menuItemQuit});
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
-            this.fileToolStripMenuItem.Size = new System.Drawing.Size(46, 24);
+            this.fileToolStripMenuItem.Size = new System.Drawing.Size(46, 26);
             this.fileToolStripMenuItem.Text = "File";
             // 
             // openToolStripMenuItem
@@ -129,7 +131,7 @@ namespace Orts.TrackViewer.WinForms.Controls
             this.viewToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.trackItemsToolStripMenuItem});
             this.viewToolStripMenuItem.Name = "viewToolStripMenuItem";
-            this.viewToolStripMenuItem.Size = new System.Drawing.Size(55, 24);
+            this.viewToolStripMenuItem.Size = new System.Drawing.Size(55, 26);
             this.viewToolStripMenuItem.Text = "View";
             // 
             // trackItemsToolStripMenuItem
@@ -140,43 +142,44 @@ namespace Orts.TrackViewer.WinForms.Controls
             this.junctionNodesToolStripMenuItem,
             this.crossverNodesToolStripMenuItem});
             this.trackItemsToolStripMenuItem.Name = "trackItemsToolStripMenuItem";
-            this.trackItemsToolStripMenuItem.Size = new System.Drawing.Size(166, 26);
+            this.trackItemsToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
             this.trackItemsToolStripMenuItem.Text = "Track Items";
             // 
             // trackSegmentsToolStripMenuItem
             // 
             this.trackSegmentsToolStripMenuItem.Name = "trackSegmentsToolStripMenuItem";
-            this.trackSegmentsToolStripMenuItem.Size = new System.Drawing.Size(195, 26);
+            this.trackSegmentsToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
             this.trackSegmentsToolStripMenuItem.Text = "Track Segments";
             // 
             // endNodesToolStripMenuItem
             // 
             this.endNodesToolStripMenuItem.Name = "endNodesToolStripMenuItem";
-            this.endNodesToolStripMenuItem.Size = new System.Drawing.Size(195, 26);
+            this.endNodesToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
             this.endNodesToolStripMenuItem.Text = "End Nodes";
             // 
             // junctionNodesToolStripMenuItem
             // 
             this.junctionNodesToolStripMenuItem.Name = "junctionNodesToolStripMenuItem";
-            this.junctionNodesToolStripMenuItem.Size = new System.Drawing.Size(195, 26);
+            this.junctionNodesToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
             this.junctionNodesToolStripMenuItem.Text = "Junction Nodes";
             // 
             // crossverNodesToolStripMenuItem
             // 
             this.crossverNodesToolStripMenuItem.Name = "crossverNodesToolStripMenuItem";
-            this.crossverNodesToolStripMenuItem.Size = new System.Drawing.Size(195, 26);
+            this.crossverNodesToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
             this.crossverNodesToolStripMenuItem.Text = "Crossver Nodes";
             // 
             // preferencesToolStripMenuItem
             // 
             this.preferencesToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.loadAtStartupMenuItem,
+            this.selectLanguageMenuItem,
             this.toolStripSeparator3,
             this.backgroundColorToolStripMenuItem,
             this.railTrackColorToolStripMenuItem,
             this.roadTrackColorToolStripMenuItem});
             this.preferencesToolStripMenuItem.Name = "preferencesToolStripMenuItem";
-            this.preferencesToolStripMenuItem.Size = new System.Drawing.Size(99, 24);
+            this.preferencesToolStripMenuItem.Size = new System.Drawing.Size(99, 26);
             this.preferencesToolStripMenuItem.Text = "Preferences";
             // 
             // loadAtStartupMenuItem
@@ -237,6 +240,20 @@ namespace Orts.TrackViewer.WinForms.Controls
             this.roadTrackColorComboBoxMenuItem.Name = "roadTrackColorComboBoxMenuItem";
             this.roadTrackColorComboBoxMenuItem.Size = new System.Drawing.Size(224, 28);
             // 
+            // selectLanguageMenuItem
+            // 
+            this.selectLanguageMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.languageSelectionComboBoxMenuItem});
+            this.selectLanguageMenuItem.Name = "selectLanguageMenuItem";
+            this.selectLanguageMenuItem.Size = new System.Drawing.Size(224, 26);
+            this.selectLanguageMenuItem.Text = "Select Language";
+            // 
+            // languageSelectionComboBoxMenuItem
+            // 
+            this.languageSelectionComboBoxMenuItem.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.languageSelectionComboBoxMenuItem.Name = "languageSelectionComboBoxMenuItem";
+            this.languageSelectionComboBoxMenuItem.Size = new System.Drawing.Size(224, 28);
+            // 
             // MainMenuControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
@@ -278,5 +295,7 @@ namespace Orts.TrackViewer.WinForms.Controls
         private System.Windows.Forms.ToolStripComboBox railTrackColorComboBoxMenuItem;
         private System.Windows.Forms.ToolStripMenuItem roadTrackColorToolStripMenuItem;
         private System.Windows.Forms.ToolStripComboBox roadTrackColorComboBoxMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem selectLanguageMenuItem;
+        private System.Windows.Forms.ToolStripComboBox languageSelectionComboBoxMenuItem;
     }
 }

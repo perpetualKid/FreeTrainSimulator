@@ -1,0 +1,94 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: TrackViewer\n"
+"POT-Creation-Date: 2021-02-24 08:49:32+0100\n"
+"PO-Revision-Date: 2021-02-24 09:42+0100\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 2.4.1\n"
+"Last-Translator: \n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Language: de\n"
+
+#: .\WinForms.Controls\MainMenuControl.Designer.cs:201
+msgid "Background Color"
+msgstr "Farbe Hintergrund"
+
+#: .\WinForms.Controls\MainMenuControl.Designer.cs:156
+msgid "End Nodes"
+msgstr ""
+
+#: .\WinForms.Controls\MainMenuControl.Designer.cs:70
+msgid "MenuStrip1"
+msgstr ""
+
+#: .\WinForms.Controls\MainMenuControl.Designer.cs:168
+msgid "Crossver Nodes"
+msgstr ""
+
+#: .\WinForms.Controls\MainMenuControl.Designer.cs:180
+msgid "Preferences"
+msgstr ""
+
+#: .\WinForms.Controls\MainMenuControl.Designer.cs:231
+msgid "Road Track Color"
+msgstr "Farbe Strassenverlauf"
+
+#: .\WinForms.Controls\MainMenuControl.Designer.cs:133
+msgid "View"
+msgstr ""
+
+#: .\WinForms.Controls\MainMenuControl.Designer.cs:90
+msgid "Open"
+msgstr ""
+
+#: .\GameWindow.cs:325
+#, csharp-format
+msgid "{0:0.0} - {1:0.0}"
+msgstr ""
+
+#: .\WinForms.Controls\MainMenuControl.Designer.cs:124
+msgid "Quit (Q)"
+msgstr "Beenden (Q)"
+
+#: .\WinForms.Controls\MainMenuControl.Designer.cs:187
+msgid "Load Route on Start"
+msgstr "Route beim Start laden"
+
+#: .\WinForms.Controls\MainMenuControl.Designer.cs:107
+msgid "Select Route Folder"
+msgstr ""
+
+#: .\WinForms.Controls\MainMenuControl.Designer.cs:162
+msgid "Junction Nodes"
+msgstr ""
+
+#: .\WinForms.Controls\MainMenuControl.Designer.cs:96
+msgid "Save"
+msgstr ""
+
+#: .\WinForms.Controls\StatusbarControl.Designer.cs:51
+msgid "statusStrip1"
+msgstr ""
+
+#: .\WinForms.Controls\MainMenuControl.Designer.cs:113
+msgid "Select Route"
+msgstr ""
+
+#: .\WinForms.Controls\MainMenuControl.Designer.cs:84
+msgid "File"
+msgstr ""
+
+#: .\WinForms.Controls\MainMenuControl.Designer.cs:150
+msgid "Track Segments"
+msgstr ""
+
+#: .\WinForms.Controls\MainMenuControl.Designer.cs:144
+msgid "Track Items"
+msgstr ""
+
+#: .\WinForms.Controls\MainMenuControl.Designer.cs:216
+msgid "Rail Track Color"
+msgstr "Farbe Schienenverlauf"

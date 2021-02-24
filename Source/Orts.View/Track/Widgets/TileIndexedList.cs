@@ -23,7 +23,7 @@ namespace Orts.View.Track.Widgets
             tiles = new SortedList<ITile, List<ITileCoordinate<T>>>(data.GroupBy(d => d.Tile as ITile).ToDictionary(g => g.Key, g => g.ToList()));
             sortedIndexes = tiles.Keys.ToList();
 
-            if (sortedIndexes.Count < 0 && (Tile.Zero == sortedIndexes[0] || Tile.Zero == sortedIndexes[sortedIndexes.Count - 1]))
+            if (sortedIndexes.Count > 0 && (Tile.Zero == sortedIndexes[0] || Tile.Zero == sortedIndexes[sortedIndexes.Count - 1]))
             {
                 sortedIndexes.Remove(Tile.Zero);
                 tiles.Remove(Tile.Zero);
@@ -54,6 +54,9 @@ namespace Orts.View.Track.Widgets
         {
             if (bottomLeft.CompareTo(topRight) > 0)
                 throw new ArgumentOutOfRangeException($"{nameof(bottomLeft)} can not be larger than {nameof(topRight)}");
+
+            if (sortedIndexes.Count == 0)
+                yield break;
 
             int tileLookupIndex = FindNearestIndexFloor(bottomLeft);
             ITile end = sortedIndexes[FindNearestIndexCeiling(topRight)];

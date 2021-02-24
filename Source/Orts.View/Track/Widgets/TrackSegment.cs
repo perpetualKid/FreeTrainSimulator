@@ -18,7 +18,6 @@ namespace Orts.View.Track.Widgets
 
         internal readonly float Angle;
 
-        [ThreadStatic]
         private static Color color;
 
         public static void UpdateColor(Color color)
@@ -74,10 +73,9 @@ namespace Orts.View.Track.Widgets
 
     internal class RoadTrackSegment : TrackSegment
     {
-        [ThreadStatic]
         private static Color color;
 
-        public static void UpdateColor(Color color)
+        public static new void UpdateColor(Color color)
         {
             RoadTrackSegment.color = color;
         }

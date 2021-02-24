@@ -20,7 +20,6 @@ namespace Orts.View.Track.Widgets
     #region TrackItemBase
     internal abstract class TrackItemBase : PointWidget
     {
-        [ThreadStatic]
         private protected static System.Drawing.Font font;
 
         public TrackItemBase(TrackItem source)

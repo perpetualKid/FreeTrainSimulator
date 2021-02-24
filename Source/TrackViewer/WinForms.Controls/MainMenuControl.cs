@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 
+using Orts.Common.Info;
 using Orts.Models.Simplified;
 using Orts.View;
 
@@ -27,6 +30,47 @@ namespace Orts.TrackViewer.WinForms.Controls
             railTrackColorComboBoxMenuItem.SelectedIndexChanged += BackgroundColorComboBoxMenuItem_SelectedIndexChanged;
             roadTrackColorComboBoxMenuItem.DisplayXnaColors(game.Settings.TrackViewer.ColorRoadTrack, ColorSetting.RoadTrack);
             roadTrackColorComboBoxMenuItem.SelectedIndexChanged += BackgroundColorComboBoxMenuItem_SelectedIndexChanged;
+
+            LoadLanguage(languageSelectionComboBoxMenuItem.ComboBox);
+            languageSelectionComboBoxMenuItem.SelectedIndexChanged += LanguageSelectionComboBoxMenuItem_SelectedIndexChanged;
+        }
+
+        private void LanguageSelectionComboBoxMenuItem_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            var item = languageSelectionComboBoxMenuItem.SelectedItem;
+            languageSelectionComboBoxMenuItem.SelectedIndexChanged -= LanguageSelectionComboBoxMenuItem_SelectedIndexChanged;
+            parent.UpdateLanguagePreference(languageSelectionComboBoxMenuItem.ComboBox.SelectedValue as string);
+            languageSelectionComboBoxMenuItem.SelectedItem = item;
+            languageSelectionComboBoxMenuItem.SelectedIndexChanged += LanguageSelectionComboBoxMenuItem_SelectedIndexChanged;
+        }
+
+        private void LoadLanguage(ComboBox combobox)
+        {
+            // Collect all the available language codes by searching for
+            // localisation files, but always include English (base language).
+            List<string> languageCodes = new List<string> { "en" };
+            if (Directory.Exists(RuntimeInfo.LocalesFolder))
+                foreach (string path in Directory.EnumerateDirectories(RuntimeInfo.LocalesFolder))
+                    if (Directory.EnumerateFiles(path, "*.mo").Any())
+                    {
+                        try
+                        {
+                            string languageCode = System.IO.Path.GetFileName(path);
+                            CultureInfo.GetCultureInfo(languageCode);
+                            languageCodes.Add(languageCode);
+                        }
+                        catch (CultureNotFoundException) { }
+                    }
+            // Turn the list of codes in to a list of code + name pairs for
+            // displaying in the dropdown list.
+            languageCodes.Add(string.Empty);
+            languageCodes.Sort();
+            //combobox.Items.AddRange(languageCodes.ToArray());
+            combobox.BindingContext = this.BindingContext;
+            combobox.DataSourceFromList(languageCodes, (language) => string.IsNullOrEmpty(language) ? "System" : CultureInfo.GetCultureInfo(language).NativeName);
+            combobox.SelectedValue = parent.Settings.Language;
+            if (combobox.SelectedValue == null)
+                combobox.SelectedIndex = 0;
         }
 
         private void BackgroundColorComboBoxMenuItem_SelectedIndexChanged(object sender, EventArgs e)
