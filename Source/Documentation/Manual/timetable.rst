@@ -2253,10 +2253,8 @@ event. Concretely, a weather file follows the format:
         "Changes": [
             {
                 "Type": "<type>",
-                "<property>": <value>,
-                ...
-            },
-            ...
+                "<property>": "<value>"
+            }
         ]
     }
 
