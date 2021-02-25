@@ -7,6 +7,8 @@ trigger:
     exclude: # file paths which will not trigger a build
     - Build/*
     - README.md
+    - SUPPORT.md
+    - CONTRIBUTING.md
 # no PR triggers
 pr: none
 
