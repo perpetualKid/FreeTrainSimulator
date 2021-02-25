@@ -6,8 +6,8 @@ The master branch is kept in mostly sync with [OpenRails Source Code](https://gi
 ## Download
 [![GitHub All Releases](https://img.shields.io/github/downloads/perpetualKid/orts-mg/total)](https://github.com/perpetualKid/ORTS-MG/releases/)
 
-If you came here just to download the software, please see the [Releases]https://github.com/perpetualKid/ORTS-MG/releases) section to download a recent version of the software. Simply unzip the download folder and start OpenRails.exe. 
-Once started, please be aware there may be updates available immediately, as the release page only has major release packages, while minor updates are only available through the Auto-Updater, or announced in our ['News' Section in the wiki](https://github.com/perpetualKid/ORTS-MG/wiki#news) 
+If you came here just to download the software, please see the [Releases](https://github.com/perpetualKid/ORTS-MG/releases) section to download a recent version of the software. Simply unzip the download folder and start OpenRails.exe. 
+Once started, please be aware there may be updates available immediately, as the release page only has major release packages, while minor updates are only available through the Auto-Updater, or announced in our [News](https://github.com/perpetualKid/ORTS-MG/wiki#news) section in the wiki.
 
 ## Contributing
 If you are interested in more information, documentation and news regarding recent updates, please check the [Wiki](https://github.com/perpetualKid/ORTS-MG/wiki).
@@ -39,6 +39,3 @@ If you are on an older or unsupported OS version, you may need to download and i
 |Release Candidate|[![Build Status](https://dev.azure.com/perpetualKid/ORTS-MG/_apis/build/status/Build/ORTS-MG%20Master%20RC)](https://dev.azure.com/perpetualKid/ORTS-MG/_build?definitionId=1)|
 |Weekly Dev Builds|[![Build Status](https://dev.azure.com/perpetualKid/ORTS-MG/_apis/build/status/Build/Scheduled%20Dev%20Build)](https://dev.azure.com/perpetualKid/ORTS-MG/_build?definitionId=15)|
 |Continuous Integration Builds|[![Build Status](https://dev.azure.com/perpetualKid/ORTS-MG/_apis/build/status/Build/CI%20Builds)](https://dev.azure.com/perpetualKid/ORTS-MG/_build?definitionId=11)|
-
-"Ultimate" version for MonoGame 3.8 and RailDriver<br> 
-[Release Download ORTS-MG 1.3.1-572 RD](https://github.com/perpetualKid/ORTS-MG/releases/tag/1.3.1-572-7ce91a8bd)
