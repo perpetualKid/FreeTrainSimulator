@@ -770,9 +770,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
         }
         public override void Draw()
         {
-            driverMachineInterface.Draw(CabShaderControlView.SpriteBatch, new Point(DrawPosition.X, DrawPosition.Y));
-            CabShaderControlView.SpriteBatch.End();
-            CabShaderControlView.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, null, DepthStencilState.Default, null, Shader);
+            driverMachineInterface.Draw(ControlView.SpriteBatch, new Point(DrawPosition.X, DrawPosition.Y));
+            ControlView.SpriteBatch.End();
+            ControlView.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, null, DepthStencilState.Default, null, Shader);
         }
 
         private void MouseRightButtonPressed(UserCommandArgs userCommandArgs)
@@ -870,9 +870,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
 
         public override void Draw()
         {
-            driverMachineInterface.Draw(CabShaderControlView.SpriteBatch, new Point(DrawPosition.X, DrawPosition.Y));
-            CabShaderControlView.SpriteBatch.End();
-            CabShaderControlView.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, null, DepthStencilState.Default, null, Shader);
+            driverMachineInterface.Draw(ControlView.SpriteBatch, new Point(DrawPosition.X, DrawPosition.Y));
+            ControlView.SpriteBatch.End();
+            ControlView.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, null, DepthStencilState.Default, null, Shader);
         }
 
 
