@@ -56,6 +56,16 @@ namespace Orts.Common.Calc
             size = other.size;
         }
 
+        /// <summary>
+        /// creates a new Interpolator instance where the x and y arrays are swapped to allow lookups the other way around
+        /// </summary>
+        /// <param name="source"></param>
+        /// <returns></returns>
+        public static Interpolator InverseInterpolator(Interpolator source)
+        {
+            return new Interpolator(source.yArray, source.xArray);
+        }
+
 #pragma warning disable CA1043 // Use Integral Or String Argument For Indexers
         public double this[double x]
 #pragma warning restore CA1043 // Use Integral Or String Argument For Indexers
