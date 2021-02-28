@@ -1,4 +1,4 @@
-﻿// COPYRIGHT 2010, 2011, 2012, 2013, 2014, 2015 by the Open Rails project.
+// COPYRIGHT 2010, 2011, 2012, 2013, 2014, 2015 by the Open Rails project.
 // 
 // This file is part of Open Rails.
 // 
@@ -2007,6 +2007,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                       else if (drawstate2 > 0) { sigHead.SignalIndicationState = SignalAspectState.Approach_2; }
                       else { sigHead.SignalIndicationState = SignalAspectState.Approach_3; }
                       sigHead.DrawState = sigHead.DefaultDrawState(sigHead.SignalIndicationState);
+                      // Clear the text aspect so as not to leave C# scripted signals in an inconsistent state.
 					  sigHead.TextSignalAspect = "";
                   }
 				  break;
