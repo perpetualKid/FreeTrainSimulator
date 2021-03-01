@@ -6,7 +6,7 @@ using Orts.Common.Position;
 
 namespace Orts.View
 {
-    internal readonly struct PointD: IEquatable<PointD>
+    internal readonly struct PointD : IEquatable<PointD>
     {
         private static readonly PointD none = new PointD(0, 0);
 
@@ -74,6 +74,60 @@ namespace Orts.View
         {
             return !(lhs.Equals(rhs));
         }
+
+        public double DotProduct(PointD other)
+        {
+            return X * other.X + Y * other.Y;
+        }
+
+        public static PointD operator +(in PointD left, in PointD right)
+        {
+            return new PointD(left.X + right.X, left.Y + right.Y);
+        }
+
+        public static PointD operator -(in PointD left, in PointD right)
+        {
+            return new PointD(left.X - right.X, left.Y - right.Y);
+        }
+
+        public static PointD operator *(in PointD source, double scalar)
+        {
+            return new PointD(source.X * scalar, source.Y * scalar);
+        }
+
+        public double DistanceToLineSegmentSquared(in PointD start, in PointD end)
+        {
+            // Compute length of line segment (squared) and handle special case of coincident points
+            double segmentLengthSquared = start.DistanceSquared(end);
+            if (segmentLengthSquared < double.Epsilon)  // start and end are considered same
+            {
+                return DistanceSquared(start);
+            }
+
+            // Use the magic formula to compute the "projection" of this point on the infinite line
+            PointD lineSegment = end - start;
+            double t = (this - start).DotProduct(lineSegment) / segmentLengthSquared;
+
+            PointD closest;
+            // Handle the two cases where the projection is not on the line segment, and the case where 
+            //  the projection is on the segment
+            if (t <= 0)
+                closest = start;
+            else if (t >= 1)
+                closest = end;
+            else
+                closest = start + (lineSegment * t);
+            return DistanceSquared(closest);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public static double DistanceToLineSegmentSquared(in PointD start, in PointD end, in PointD source)
+        {
+            return source.DistanceToLineSegmentSquared(start, end);
+        }
+
     }
 
 }
