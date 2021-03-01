@@ -31,7 +31,7 @@ namespace Orts.View.Xna
         // return a color which is complement, i.e. to use as Foreground/Background combination
         public static Color ComplementColor(in this Color color)
         {
-            return new Color(255, color.A - color.R, color.A - color.G, color.A - color.B);
+            return new Color(255 - color.R, 255 - color.G, 255- color.B, 255);
         }
 
         public static System.Drawing.Color ToSystemDrawingColor(in this Color color)
