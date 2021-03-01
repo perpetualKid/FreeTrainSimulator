@@ -51,7 +51,7 @@ namespace Orts.TrackViewer.WinForms.Controls
             List<string> languageCodes = new List<string> { "en" };
             if (Directory.Exists(RuntimeInfo.LocalesFolder))
                 foreach (string path in Directory.EnumerateDirectories(RuntimeInfo.LocalesFolder))
-                    if (Directory.EnumerateFiles(path, "*.mo").Any())
+                    if (Directory.EnumerateFiles(path, "TrackViewer.mo").Any())
                     {
                         try
                         {
