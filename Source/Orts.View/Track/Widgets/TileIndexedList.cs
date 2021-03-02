@@ -5,8 +5,6 @@ using System.Linq;
 
 using Orts.Common.Position;
 
-using SharpDX.DirectWrite;
-
 namespace Orts.View.Track.Widgets
 {
     internal class TileIndexedList<ITileCoordinate, T> : IEnumerable<ITileCoordinate<T>> where T : struct, ITile
@@ -20,7 +18,21 @@ namespace Orts.View.Track.Widgets
 
         public TileIndexedList(IEnumerable<ITileCoordinate<T>> data)
         {
-            tiles = new SortedList<ITile, List<ITileCoordinate<T>>>(data.GroupBy(d => d.Tile as ITile).ToDictionary(g => g.Key, g => g.ToList()));
+            if (data is IEnumerable<ITileCoordinateVector<T>> vectorData)
+            {
+                IEnumerable<ITileCoordinateVector<T>> singleTile = vectorData.Where(d => d.Tile.Equals(d.OtherTile));
+                IEnumerable<ITileCoordinateVector<T>> multiTile = vectorData.Where(d => !d.Tile.Equals(d.OtherTile));
+
+                tiles = new SortedList<ITile, List<ITileCoordinate<T>>>(
+                    singleTile.Select(d => new { Segment = d, Tile = d.Tile as ITile }).
+                    Concat(multiTile.Select(d => new { Segment = d, Tile = d.Tile as ITile })).
+                    Concat(multiTile.Select(d => new { Segment = d, Tile = d.OtherTile as ITile })).GroupBy(d => d.Tile).
+                    ToDictionary(g => g.Key, g => g.Select(f => f.Segment).Cast<ITileCoordinate<T>>().ToList()));
+            }
+            else
+            {
+                tiles = new SortedList<ITile, List<ITileCoordinate<T>>>(data.GroupBy(d => d.Tile as ITile).ToDictionary(g => g.Key, g => g.ToList()));
+            }
             sortedIndexes = tiles.Keys.ToList();
 
             if (sortedIndexes.Count > 0 && (Tile.Zero == sortedIndexes[0] || Tile.Zero == sortedIndexes[sortedIndexes.Count - 1]))
