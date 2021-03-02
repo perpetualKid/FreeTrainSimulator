@@ -27,4 +27,12 @@
         RailTrack,
         RoadTrack,
     }
+
+    public enum ColorVariation
+    { 
+        None, 
+        Highlight,
+        Complement, 
+        ComplementHighlight,
+    }
 }
