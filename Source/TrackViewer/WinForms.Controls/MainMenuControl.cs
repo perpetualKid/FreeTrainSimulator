@@ -37,7 +37,7 @@ namespace Orts.TrackViewer.WinForms.Controls
 
         private void LanguageSelectionComboBoxMenuItem_SelectedIndexChanged(object sender, EventArgs e)
         {
-            var item = languageSelectionComboBoxMenuItem.SelectedItem;
+            object item = languageSelectionComboBoxMenuItem.SelectedItem;
             languageSelectionComboBoxMenuItem.SelectedIndexChanged -= LanguageSelectionComboBoxMenuItem_SelectedIndexChanged;
             parent.UpdateLanguagePreference(languageSelectionComboBoxMenuItem.ComboBox.SelectedValue as string);
             languageSelectionComboBoxMenuItem.SelectedItem = item;
@@ -66,7 +66,7 @@ namespace Orts.TrackViewer.WinForms.Controls
             languageCodes.Add(string.Empty);
             languageCodes.Sort();
             //combobox.Items.AddRange(languageCodes.ToArray());
-            combobox.BindingContext = this.BindingContext;
+            combobox.BindingContext = BindingContext;
             combobox.DataSourceFromList(languageCodes, (language) => string.IsNullOrEmpty(language) ? "System" : CultureInfo.GetCultureInfo(language).NativeName);
             combobox.SelectedValue = parent.Settings.Language;
             if (combobox.SelectedValue == null)

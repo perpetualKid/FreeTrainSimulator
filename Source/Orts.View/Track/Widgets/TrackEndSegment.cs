@@ -2,6 +2,7 @@
 
 using Microsoft.Xna.Framework;
 
+using Orts.Common;
 using Orts.Common.Position;
 using Orts.Formats.Msts.Models;
 using Orts.View.Track.Shapes;
@@ -20,7 +21,7 @@ namespace Orts.View.Track.Widgets
         {
             ref readonly WorldLocation location = ref trackEndNode.UiD.Location;
             base.location = PointD.FromWorldLocation(location);
-            base.tile = new Tile(location.TileX, location.TileZ);
+            tile = new Tile(location.TileX, location.TileZ);
             Size = width;
 
             if (null == connectedVectorNode)
@@ -38,7 +39,7 @@ namespace Orts.View.Track.Widgets
                 Direction = tvs.Direction.Y;
                 // try to get even better in case the last section is curved
                 TrackSection section = sections.Get(tvs.SectionIndex);
-                if (section.Curved)
+                if (section != null && section.Curved)
                 {
                     Direction += MathHelper.ToRadians(section.Angle);
                 }
@@ -46,9 +47,10 @@ namespace Orts.View.Track.Widgets
             Direction -= MathHelper.PiOver2;
         }
 
-        internal override void Draw(ContentArea contentArea, bool highlight = false)
+        internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None)
         {
-            BasicShapes.DrawLine(contentArea.WorldToScreenSize(Size), Color.DarkOliveGreen, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Length), Direction, contentArea.SpriteBatch);
+            Color drawColor = GetColor<TrackEndSegment>(colorVariation);
+            BasicShapes.DrawLine(contentArea.WorldToScreenSize(Size), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Length), Direction, contentArea.SpriteBatch);
         }
     }
 }

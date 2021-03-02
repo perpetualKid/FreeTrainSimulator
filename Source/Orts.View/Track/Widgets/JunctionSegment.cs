@@ -19,9 +19,9 @@ namespace Orts.View.Track.Widgets
             base.tile = new Tile(location.TileX, location.TileZ);
         }
 
-        internal override void Draw(ContentArea contentArea, bool highlight = false)
+        internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None)
         {
-            BasicShapes.DrawTexture(BasicTextureType.Disc, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size), Color.DarkRed, false, false, false, contentArea.SpriteBatch);
+            BasicShapes.DrawTexture(BasicTextureType.Disc, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size), Color.DarkRed, false, false, colorVariation != ColorVariation.None, contentArea.SpriteBatch);
         }
     }
 }

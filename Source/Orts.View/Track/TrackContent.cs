@@ -26,6 +26,8 @@ namespace Orts.View.Track
         internal TileIndexedList<GridTile, Tile> Tiles { get; private set; }
         internal TileIndexedList<RoadTrackSegment, Tile> RoadSegments { get; private set; }
         internal TileIndexedList<TrackEndSegment, Tile> RoadEndSegments { get; private set; }
+        internal Dictionary<uint, List<TrackSegment>> TrackNodeSegments { get; private set; }
+        internal Dictionary<uint, List<TrackSegment>> RoadTrackNodeSegments { get; private set; }
 
         internal SignalConfigurationFile SignalConfigFile { get; }
         public bool UseMetricUnits { get; }
@@ -56,13 +58,8 @@ namespace Orts.View.Track
 
         private async Task InitializeTrackSegments()
         {
-            List<Task> renderItems = new List<Task>
-            {
-                Task.Run(() => AddTrackSegments()),
-                Task.Run(() => AddTrackItems(trackDB.TrackItems)),
-            };
-
-            await Task.WhenAll(renderItems).ConfigureAwait(false);
+            await Task.Run(() => AddTrackSegments()).ConfigureAwait(false);
+            await Task.Run(() => AddTrackItems()).ConfigureAwait(false);
         }
 
         private void AddTrackSegments()
@@ -74,7 +71,6 @@ namespace Orts.View.Track
             List<JunctionSegment> junctionSegments = new List<JunctionSegment>();
             List<TrackSegment> roadSegments = new List<TrackSegment>();
             List<TrackEndSegment> roadEndSegments = new List<TrackEndSegment>();
-
             foreach (TrackNode trackNode in trackDB.TrackNodes ?? Enumerable.Empty<TrackNode>())
             {
                 switch (trackNode)
@@ -88,7 +84,7 @@ namespace Orts.View.Track
                         {
                             TrackSection trackSection = trackSectionsFile.TrackSections.Get(trackVectorSection.SectionIndex);
                             if (trackSection != null)
-                                trackSegments.Add(new TrackSegment(trackVectorSection, trackSection));
+                                trackSegments.Add(new TrackSegment(trackVectorSection, trackSection, trackVectorNode.Index));
                         }
                         break;
                     case TrackJunctionNode trackJunctionNode:
@@ -107,6 +103,7 @@ namespace Orts.View.Track
             TrackSegments = new TileIndexedList<TrackSegment, Tile>(trackSegments);
             JunctionSegments = new TileIndexedList<JunctionSegment, Tile>(junctionSegments);
             TrackEndSegments = new TileIndexedList<TrackEndSegment, Tile>(endSegments);
+            TrackNodeSegments = trackSegments.GroupBy(t => t.TrackNodeIndex).ToDictionary(i => i.Key, i => i.ToList());
 
             foreach (TrackNode trackNode in roadTrackDB.TrackNodes ?? Enumerable.Empty<TrackNode>())
             {
@@ -121,15 +118,15 @@ namespace Orts.View.Track
                         {
                             TrackSection trackSection = trackSectionsFile.TrackSections.Get(trackVectorSection.SectionIndex);
                             if (trackSection != null)
-                                roadSegments.Add(new RoadTrackSegment(trackVectorSection, trackSection));
+                                roadSegments.Add(new RoadTrackSegment(trackVectorSection, trackSection, trackVectorNode.Index));
                         }
                         break;
                 }
-
             }
 
             RoadSegments = new TileIndexedList<RoadTrackSegment, Tile>(roadSegments);
             RoadEndSegments = new TileIndexedList<TrackEndSegment, Tile>(roadEndSegments);
+            RoadTrackNodeSegments = roadSegments.GroupBy(t => t.TrackNodeIndex).ToDictionary(i => i.Key, i => i.ToList());
 
             Tiles = new TileIndexedList<GridTile, Tile>(
                 TrackSegments.Select(d => d.Tile as ITile).Distinct()
@@ -150,11 +147,11 @@ namespace Orts.View.Track
             }
             else
             {
+                minX = Math.Min(minX, Tiles[0][0].Tile.X);
+                maxX = Math.Max(maxX, Tiles[Tiles.Count - 1][0].Tile.X);
                 foreach (GridTile tile in Tiles)
                 {
-                    minX = Math.Min(minX, tile.Tile.X);
                     minY = Math.Min(minY, tile.Tile.Z);
-                    maxX = Math.Max(maxX, tile.Tile.X);
                     maxY = Math.Max(maxY, tile.Tile.Z);
                 }
                 minX = minX * WorldLocation.TileSize - WorldLocation.TileSize / 2;
@@ -166,9 +163,9 @@ namespace Orts.View.Track
 
         }
 
-        private void AddTrackItems(TrackItem[] trackItems)
+        private void AddTrackItems()
         {
-            TrackItems = new TileIndexedList<TrackItemBase, Tile>(TrackItemBase.Create(trackItems, SignalConfigFile, trackDB, trackSectionsFile));
+            TrackItems = new TileIndexedList<TrackItemBase, Tile>(TrackItemBase.Create(trackDB.TrackItems, SignalConfigFile, trackDB, TrackNodeSegments));
         }
     }
 }

@@ -73,6 +73,7 @@ namespace Orts.View.Track
 
         private GridTile nearest;
         private TrackItemBase nearestTrackItem;
+        private TrackSegment nearestSegment;
 
         public void MouseMove(Point position, Vector2 delta)
         {
@@ -110,6 +111,16 @@ namespace Orts.View.Track
                 if (itemDistance < distance)
                 {
                     nearestTrackItem = trackItem;
+                    distance = itemDistance;
+                }
+            }
+            distance = double.MaxValue;
+            foreach (TrackSegment trackSegment in TrackContent.TrackSegments[nearest.Tile])
+            {
+                double itemDistance = position.DistanceToLineSegmentSquared(trackSegment.Location, trackSegment.Vector);
+                if (itemDistance < distance)
+                {
+                    nearestSegment = trackSegment;
                     distance = itemDistance;
                 }
             }
@@ -212,10 +223,10 @@ namespace Orts.View.Track
                     Game.Components.OfType<InsetComponent>().FirstOrDefault()?.UpdateColor(color);
                     break;
                 case ColorSetting.RailTrack:
-                    TrackSegment.UpdateColor(color);
+                    PointWidget.UpdateColor<TrackSegment>(color);
                     break;
                 case ColorSetting.RoadTrack:
-                    RoadTrackSegment.UpdateColor(color);
+                    PointWidget.UpdateColor<RoadTrackSegment>(color);
                     break;
             }
         }
@@ -334,8 +345,16 @@ namespace Orts.View.Track
                 if (InsideScreenArea(endNode))
                     endNode.Draw(this);
             }
-            nearest?.Draw(this, true);
-            nearestTrackItem?.Draw(this, true);
+            nearest?.Draw(this, ColorVariation.Complement);
+            nearestTrackItem?.Draw(this, ColorVariation.Highlight);
+            if (nearestSegment != null)
+            {
+                foreach (TrackSegment segment in TrackContent.TrackNodeSegments[nearestSegment.TrackNodeIndex])
+                {
+                    segment.Draw(this, ColorVariation.ComplementHighlight);
+                }
+                nearestSegment.Draw(this, ColorVariation.Complement);
+            }
         }
 
         protected override void Dispose(bool disposing)

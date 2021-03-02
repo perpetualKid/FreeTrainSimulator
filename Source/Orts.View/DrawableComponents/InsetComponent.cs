@@ -15,6 +15,8 @@ namespace Orts.View.DrawableComponents
         private double scale;
         private double offsetX, offsetY;
         private Point size;
+        private const int borderSize = 2;
+        private Color borderColor;
 
         public InsetComponent(Game game, Color color, Vector2 position) :
             base(game, color, position)
@@ -24,6 +26,7 @@ namespace Orts.View.DrawableComponents
 
             size = new Point(game.GraphicsDevice.DisplayMode.Width / 15, game.GraphicsDevice.DisplayMode.Height / 15);
             Window_ClientSizeChanged(this, EventArgs.Empty);
+            borderColor = color.HighlightColor(0.6);
         }
 
         private protected override void Window_ClientSizeChanged(object sender, EventArgs e)
@@ -38,6 +41,12 @@ namespace Orts.View.DrawableComponents
             }
             if (positionOffset.X < 0 || positionOffset.Y < 0)
                 position = new Vector2(positionOffset.X > 0 ? positionOffset.X : Game.Window.ClientBounds.Width + positionOffset.X - size.X, positionOffset.Y > 0 ? positionOffset.Y : Game.Window.ClientBounds.Height + positionOffset.Y - size.Y);
+        }
+
+        public override void UpdateColor(Color color)
+        {
+            base.UpdateColor(color);
+            borderColor = color.HighlightColor(0.6);
         }
 
         public override void Update(GameTime gameTime)
@@ -65,10 +74,10 @@ namespace Orts.View.DrawableComponents
             GraphicsDevice.SetRenderTarget(renderTarget);
             GraphicsDevice.Clear(Color.White);
             spriteBatch.Begin();
-            BasicShapes.DrawLine(1, color, Vector2.One, size.X - 1, 0, spriteBatch);
-            BasicShapes.DrawLine(1, color, new Vector2(1, size.Y), size.X - 1, 0, spriteBatch);
-            BasicShapes.DrawLine(1, color, Vector2.One, size.Y, MathHelper.ToRadians(90), spriteBatch);
-            BasicShapes.DrawLine(1, color, new Vector2(size.X, 1), size.Y, MathHelper.ToRadians(90), spriteBatch);
+            BasicShapes.DrawLine(borderSize, borderColor, new Vector2(borderSize, borderSize), size.X - borderSize - borderSize, 0, spriteBatch);
+            BasicShapes.DrawLine(borderSize, borderColor, new Vector2(borderSize, size.Y - borderSize), size.X - borderSize - borderSize, 0, spriteBatch);
+            BasicShapes.DrawLine(borderSize, borderColor, new Vector2(borderSize, borderSize), size.Y - borderSize - borderSize, MathHelper.ToRadians(90), spriteBatch);
+            BasicShapes.DrawLine(borderSize, borderColor, new Vector2(size.X - borderSize, borderSize), size.Y - borderSize - borderSize, MathHelper.ToRadians(90), spriteBatch);
 
             foreach (TrackSegment segment in content.TrackContent.TrackSegments)
             {
