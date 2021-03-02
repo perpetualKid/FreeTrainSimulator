@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 using Orts.Common;
 
@@ -7,7 +7,7 @@ namespace Orts.Scripting.Api.PowerSupply
     /// <summary>
     /// Circuit breaker for electric locomotives
     /// </summary>
-    public abstract class CircuitBreaker : ScriptBase
+    public abstract class CircuitBreaker : TrainScriptBase
     {
         /// <summary>
         /// Current state of the circuit breaker

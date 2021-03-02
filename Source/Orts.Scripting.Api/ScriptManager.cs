@@ -24,14 +24,16 @@ namespace Orts.Scripting.Api
             MetadataReference.CreateFromFile(typeof(Trace).GetTypeInfo().Assembly.Location),
             MetadataReference.CreateFromFile("Orts.Common.dll"),
             MetadataReference.CreateFromFile("Orts.Formats.Msts.dll"),
-            MetadataReference.CreateFromFile("Orts.Format.OR.dll"),
+            MetadataReference.CreateFromFile("Orts.Formats.OR.dll"),
             MetadataReference.CreateFromFile("Orts.Settings.dll"),
             MetadataReference.CreateFromFile("Orts.Scripting.Api.dll"),
+            MetadataReference.CreateFromFile("Orts.Simulation.dll"),
             MetadataReference.CreateFromFile(Path.Combine(runtimeDirectory, "mscorlib.dll")),
             MetadataReference.CreateFromFile(Path.Combine(runtimeDirectory, "System.Runtime.dll")),
             MetadataReference.CreateFromFile(Path.Combine(runtimeDirectory, "System.Core.dll")),
             MetadataReference.CreateFromFile(Path.Combine(runtimeDirectory, "System.Runtime.InteropServices.RuntimeInformation.dll")),
             MetadataReference.CreateFromFile(Path.Combine(runtimeDirectory, "System.Collections.dll")),
+            MetadataReference.CreateFromFile(Path.Combine(runtimeDirectory, "System.Linq.dll")),
 #if NETCOREAPP
             MetadataReference.CreateFromFile(Path.Combine(runtimeDirectory, "netstandard.dll")),
             MetadataReference.CreateFromFile(Path.Combine(runtimeDirectory, "System.Private.CoreLib.dll"))
@@ -120,7 +122,6 @@ namespace Orts.Scripting.Api
                     object scriptType = scriptAssembly.CreateInstance(typeName, true);
                     if (null != scriptType)
                         return scriptType;
-                    Trace.TraceWarning($"Missing script type {typeName} from scripts in {path}. Script will be ignored.");
                 }
                 catch (Exception exception) when (exception is BadImageFormatException || exception is FileLoadException || exception is FileNotFoundException || exception is MissingMethodException)
                 {

@@ -1,16 +1,16 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 
 using Orts.Common;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
+using Orts.Scripting.Api;
 
 namespace Orts.Simulation.Signalling
 {
+    // TODO 20210506 this should be in Orts.Scripting really! Would need deep refactoring though
     // The exchange of information is done through the TextSignalAspect property.
     // The MSTS signal aspect is only used for TCS scripts that do not support TextSignalAspect..
-    public abstract class CsSignalScript
+    public abstract class CsSignalScript : ScriptBase
     {
         // References and shortcuts. Must be private to not expose them through the API
         private SignalHead signalHead;
@@ -105,30 +105,7 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         public string SignalTypeName => signalHead.SignalType.Name;
 
-        /// <summary>
-        /// Current time in seconds
-        /// </summary>
-        public float ClockTimeS => (float)Simulator.Instance.GameTime;
 
-        /// <summary>
-        /// Represents a timer which can be started and stopped several times, with a configurable trigger value
-        /// </summary>
-        public class Timer
-        {
-            float EndValue;
-            protected Func<float> CurrentValue { get; }
-            public Timer(CsSignalScript script)
-            {
-                CurrentValue = () => script.ClockTimeS;
-            }
-            public float AlarmValue { get; private set; }
-            public float RemainingValue => EndValue - CurrentValue();
-            public bool Started { get; private set; }
-            public void Setup(float alarmValue) { AlarmValue = alarmValue; }
-            public void Start() { EndValue = CurrentValue() + AlarmValue; Started = true; }
-            public void Stop() { Started = false; }
-            public bool Triggered => Started && CurrentValue() >= EndValue;
-        }
 
         protected CsSignalScript()
         {
@@ -370,6 +347,20 @@ namespace Orts.Simulation.Signalling
         internal void AttachToHead(SignalHead signalHead)
         {
             this.signalHead = signalHead;
+
+            // Build AbstractScriptClass API functions
+            ClockTime = () => (float)Simulator.Instance.ClockTime;
+            GameTime = () => (float)Simulator.Instance.GameTime;
+        }
+
+        protected void SetSharedVariable(int index, int value)
+        {
+            signalHead.MainSignal.StoreLocalVariable(index, value);
+        }
+
+        protected int GetSharedVariable(int index)
+        {
+            return signalHead.MainSignal.SignalLocalVariable(index);
         }
 
         // Functions to be implemented in script

@@ -7,7 +7,7 @@ using Orts.Common;
 
 namespace Orts.Scripting.Api
 {
-    public abstract class BrakeController : ScriptBase
+    public abstract class BrakeController : TrainScriptBase
     {
         /// <summary>
         /// True if the driver has asked for an emergency braking (push button)

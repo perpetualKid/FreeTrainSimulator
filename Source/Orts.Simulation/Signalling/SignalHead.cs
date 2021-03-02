@@ -112,7 +112,7 @@ namespace Orts.Simulation.Signalling
                 SignalScriptProcessing.SignalScripts.Scripts.TryGetValue(SignalType, out signalScript);
 
                 csSignalScript = CsSignalScripts.TryGetScript(SignalType.Name);
-                if (csSignalScript == null)
+                if (csSignalScript == null && !string.IsNullOrEmpty(SignalType.Script))
                     csSignalScript = CsSignalScripts.TryGetScript(SignalType.Script);
 
                 if (csSignalScript != null)

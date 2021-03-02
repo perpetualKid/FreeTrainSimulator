@@ -16,8 +16,7 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
-using System.Collections.Generic;
-using System.IO;
+
 using Orts.Common;
 using Orts.Scripting.Api;
 
@@ -25,7 +24,7 @@ namespace Orts.Scripting.Script
 {
     public class PBL2BrakeController : BrakeController
     {
-        enum State
+        private enum State
         {
             Overcharge,
             OverchargeElimination,
@@ -57,7 +56,7 @@ namespace Orts.Scripting.Script
         private bool release;
         private bool apply;
 
-        private double regulatorPressureBar = 0.0;
+        private double regulatorPressureBar;
 
         public PBL2BrakeController()
         {
@@ -282,10 +281,9 @@ namespace Orts.Scripting.Script
                     break;
 
                 case BrakeControllerEvent.SetCurrentPercent:
-                    if (value != null)
+                    if (value.HasValue)
                     {
-                        float percent = value ?? 0F;
-                        percent *= 100;
+                        float percent = value.Value * 100;
 
                         if (percent < 40)
                         {
@@ -306,10 +304,9 @@ namespace Orts.Scripting.Script
                     break;
 
                 case BrakeControllerEvent.SetCurrentValue:
-                    if (value != null)
+                    if (value.HasValue)
                     {
-                        float newValue = value ?? 0F;
-                        SetValue(newValue);
+                        SetValue(value.Value);
                     }
                     break;
             }

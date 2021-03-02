@@ -5,7 +5,7 @@ using Orts.Common;
 
 namespace Orts.Scripting.Api
 {
-    public abstract class TrainControlSystem : ScriptBase
+    public abstract class TrainControlSystem : TrainScriptBase
     {
         public bool Activated { get; set; }
 
