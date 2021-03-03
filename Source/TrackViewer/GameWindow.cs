@@ -55,9 +55,13 @@ namespace Orts.TrackViewer
                     value.ResetSize(Window.ClientBounds.Size, 60);
                     Components.Add(value);
                     value.Enabled = true;
+                    Window.Title = windowTitle + catalog.GetString($" Route: {value.RouteName}");
                 }
                 else
+                {
                     Components.Remove(contentArea);
+                    Window.Title = windowTitle;
+                }
                 if (contentArea != null)
                     contentArea.Enabled = false;
                 contentArea = value;
@@ -79,7 +83,8 @@ namespace Orts.TrackViewer
         private Catalog catalog;
         private Catalog commonCatalog;
         private readonly ObjectPropertiesStore store = new ObjectPropertiesStore();
-
+        private readonly string windowTitle
+;
         public GameWindow()
         {
             IEnumerable<string> options = Environment.GetCommandLineArgs().Where(a => a.StartsWith("-", StringComparison.OrdinalIgnoreCase) || a.StartsWith("/", StringComparison.OrdinalIgnoreCase)).Select(a => a.Substring(1));
@@ -96,16 +101,17 @@ namespace Orts.TrackViewer
             IsMouseVisible = true;
 
             // Set title to show revision or build info.
-            Window.Title = $"{RuntimeInfo.ProductName} {VersionInfo.Version}";
+            windowTitle = $"{RuntimeInfo.ProductName} {VersionInfo.Version}";
 #if DEBUG
-            Window.Title += " (debug)";
+            windowTitle += " (debug)";
 #endif
 #if NETCOREAPP
-            Window.Title += " [.NET Core]";
+            windowTitle += " [.NET Core]";
 #elif NETFRAMEWORK
-            Window.Title += " [.NET Classic]";
+            windowTitle += " [.NET Classic]";
 #endif
 
+            Window.Title = windowTitle;
             Window.AllowUserResizing = true;
 
             Window.ClientSizeChanged += Window_ClientSizeChanged; // not using the GameForm event as it does not raise when Window is moved (ie to another screeen) using keyboard shortcut
@@ -203,6 +209,7 @@ namespace Orts.TrackViewer
             colorPreferences[ColorSetting.RailTrackCrossing] = Settings.TrackViewer.ColorRailTrackCrossing;
             colorPreferences[ColorSetting.RailLevelCrossing] = Settings.TrackViewer.ColorRailLevelCrossing;
             colorPreferences[ColorSetting.RoadTrack] = Settings.TrackViewer.ColorRoadTrack;
+            colorPreferences[ColorSetting.RoadTrackEnd] = Settings.TrackViewer.ColorRoadTrackEnd;
             colorPreferences[ColorSetting.RoadLevelCrossing] = Settings.TrackViewer.ColorRoadLevelCrossing;
             colorPreferences[ColorSetting.RoadCarSpawner] = Settings.TrackViewer.ColorRoadCarSpawner;
             colorPreferences[ColorSetting.SignalItem] = Settings.TrackViewer.ColorSignalItem;
@@ -228,6 +235,7 @@ namespace Orts.TrackViewer
             Settings.TrackViewer.ColorRailTrackCrossing = colorPreferences[ColorSetting.RailTrackCrossing];
             Settings.TrackViewer.ColorRailLevelCrossing = colorPreferences[ColorSetting.RailLevelCrossing];
             Settings.TrackViewer.ColorRoadTrack = colorPreferences[ColorSetting.RoadTrack];
+            Settings.TrackViewer.ColorRoadTrackEnd = colorPreferences[ColorSetting.RoadTrackEnd];
             Settings.TrackViewer.ColorRoadLevelCrossing = colorPreferences[ColorSetting.RoadLevelCrossing];
             Settings.TrackViewer.ColorRoadCarSpawner = colorPreferences[ColorSetting.RoadCarSpawner];
             Settings.TrackViewer.ColorSignalItem = colorPreferences[ColorSetting.SignalItem];

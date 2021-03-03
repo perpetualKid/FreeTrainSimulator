@@ -42,8 +42,11 @@ namespace Orts.Settings
         [Default("Crimson")]
         public string ColorRailLevelCrossing { get; set; }
 
-        [Default("Green")] 
+        [Default("Olive")] 
         public string ColorRoadTrack { get; set; }
+
+        [Default("ForestGreen")]
+        public string ColorRoadTrackEnd { get; set; }
 
         [Default("DeepPink")]
         public string ColorRoadLevelCrossing { get; set; }

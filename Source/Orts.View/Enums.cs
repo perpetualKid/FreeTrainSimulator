@@ -30,6 +30,7 @@
         RailTrackCrossing,
         RailLevelCrossing,
         RoadTrack,
+        RoadTrackEnd,
         RoadLevelCrossing,
         RoadCarSpawner,
         SignalItem,

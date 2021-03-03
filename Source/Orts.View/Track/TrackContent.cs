@@ -25,7 +25,7 @@ namespace Orts.View.Track
         internal TileIndexedList<TrackItemBase, Tile> TrackItems { get; private set; }
         internal TileIndexedList<GridTile, Tile> Tiles { get; private set; }
         internal TileIndexedList<RoadTrackSegment, Tile> RoadSegments { get; private set; }
-        internal TileIndexedList<TrackEndSegment, Tile> RoadEndSegments { get; private set; }
+        internal TileIndexedList<RoadTrackEndSegment, Tile> RoadEndSegments { get; private set; }
         internal Dictionary<uint, List<TrackSegment>> TrackNodeSegments { get; private set; }
         internal Dictionary<uint, List<TrackSegment>> RoadTrackNodeSegments { get; private set; }
 
@@ -111,7 +111,7 @@ namespace Orts.View.Track
                 {
                     case TrackEndNode trackEndNode:
                         TrackVectorNode connectedVectorNode = roadTrackDB.TrackNodes[trackEndNode.TrackPins[0].Link] as TrackVectorNode;
-                        roadEndSegments.Add(new TrackEndSegment(trackEndNode, connectedVectorNode, trackSectionsFile.TrackSections));
+                        roadEndSegments.Add(new RoadTrackEndSegment(trackEndNode, connectedVectorNode, trackSectionsFile.TrackSections));
                         break;
                     case TrackVectorNode trackVectorNode:
                         foreach (TrackVectorSection trackVectorSection in trackVectorNode.TrackVectorSections)
@@ -125,7 +125,7 @@ namespace Orts.View.Track
             }
 
             RoadSegments = new TileIndexedList<RoadTrackSegment, Tile>(roadSegments);
-            RoadEndSegments = new TileIndexedList<TrackEndSegment, Tile>(roadEndSegments);
+            RoadEndSegments = new TileIndexedList<RoadTrackEndSegment, Tile>(roadEndSegments);
             RoadTrackNodeSegments = roadSegments.GroupBy(t => t.TrackNodeIndex).ToDictionary(i => i.Key, i => i.ToList());
 
             Tiles = new TileIndexedList<GridTile, Tile>(

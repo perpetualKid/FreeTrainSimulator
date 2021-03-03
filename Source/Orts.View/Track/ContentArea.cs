@@ -1,15 +1,12 @@
 ﻿using System;
-using System.Drawing.Imaging;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
 
 using Orts.Common;
 using Orts.Common.Position;
-using Orts.Formats.Msts.Models;
 using Orts.View.DrawableComponents;
 using Orts.View.Track.Widgets;
 using Orts.View.Xna;
@@ -34,6 +31,8 @@ namespace Orts.View.Track
 
         public Point WindowSize { get; private set; }
 
+        public string RouteName { get; }
+
         private int screenHeightDelta;  // to account for Menubar/Statusbar height when calculating initial scale and center view
 
         private readonly SpriteBatch spriteBatch;
@@ -50,7 +49,7 @@ namespace Orts.View.Track
         private InputGameComponent inputComponent;
 #pragma warning restore CA2213 // Disposable fields should be disposed
 
-        public ContentArea(Game game, TrackContent trackContent, EnumArray<string, ColorSetting> colorPreferences) :
+        public ContentArea(Game game, string routeName, TrackContent trackContent, EnumArray<string, ColorSetting> colorPreferences) :
             base(game)
         {
             if (null == game)
@@ -59,6 +58,7 @@ namespace Orts.View.Track
                 throw new ArgumentNullException(nameof(colorPreferences));
 
             Enabled = false;
+            RouteName = routeName;
             TrackContent = trackContent ?? throw new ArgumentNullException(nameof(trackContent));
             bounds = trackContent.Bounds;
             spriteBatch = new SpriteBatch(GraphicsDevice);
@@ -235,11 +235,14 @@ namespace Orts.View.Track
                 case ColorSetting.RailTrackCrossing:
                     PointWidget.UpdateColor<CrossOverTrackItem>(color);
                     break;
+                case ColorSetting.RailLevelCrossing:
+                    PointWidget.UpdateColor<LevelCrossingTrackItem>(color);
+                    break;
                 case ColorSetting.RoadTrack:
                     PointWidget.UpdateColor<RoadTrackSegment>(color);
                     break;
-                case ColorSetting.RailLevelCrossing:
-                    PointWidget.UpdateColor<LevelCrossingTrackItem>(color);
+                case ColorSetting.RoadTrackEnd:
+                    PointWidget.UpdateColor<RoadTrackEndSegment>(color);
                     break;
                 case ColorSetting.PlatformItem:
                     PointWidget.UpdateColor<PlatformTrackItem>(color);

@@ -39,6 +39,8 @@ namespace Orts.TrackViewer.WinForms.Controls
 
             roadTrackColorComboBoxMenuItem.DisplayXnaColors(game.Settings.TrackViewer.ColorRoadTrack, ColorSetting.RoadTrack);
             roadTrackColorComboBoxMenuItem.SelectedIndexChanged += BackgroundColorComboBoxMenuItem_SelectedIndexChanged;
+            roadTrackEndColorToolStripComboBoxMenuItem.DisplayXnaColors(game.Settings.TrackViewer.ColorRoadTrackEnd, ColorSetting.RoadTrackEnd);
+            roadTrackEndColorToolStripComboBoxMenuItem.SelectedIndexChanged += BackgroundColorComboBoxMenuItem_SelectedIndexChanged;
 
             platformColorToolStripComboBoxMenuItem.DisplayXnaColors(game.Settings.TrackViewer.ColorPlatformItem, ColorSetting.PlatformItem);
             platformColorToolStripComboBoxMenuItem.SelectedIndexChanged += BackgroundColorComboBoxMenuItem_SelectedIndexChanged;

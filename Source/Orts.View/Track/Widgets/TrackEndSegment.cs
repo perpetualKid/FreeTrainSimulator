@@ -2,7 +2,6 @@
 
 using Microsoft.Xna.Framework;
 
-using Orts.Common;
 using Orts.Common.Position;
 using Orts.Formats.Msts.Models;
 using Orts.View.Track.Shapes;
@@ -12,8 +11,7 @@ namespace Orts.View.Track.Widgets
     internal class TrackEndSegment: PointWidget
     {
         private const int width = 3;
-
-        internal const int Length = 2;
+        protected const int Length = 2;
 
         internal readonly float Direction;
 
@@ -50,6 +48,20 @@ namespace Orts.View.Track.Widgets
         internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None)
         {
             Color drawColor = GetColor<TrackEndSegment>(colorVariation);
+            BasicShapes.DrawLine(contentArea.WorldToScreenSize(Size), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Length), Direction, contentArea.SpriteBatch);
+        }
+    }
+
+    internal class RoadTrackEndSegment : TrackEndSegment
+    {
+        public RoadTrackEndSegment(TrackEndNode trackEndNode, TrackVectorNode connectedVectorNode, TrackSections sections) : 
+            base(trackEndNode, connectedVectorNode, sections)
+        {
+        }
+
+        internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None)
+        {
+            Color drawColor = GetColor<RoadTrackEndSegment>(colorVariation);
             BasicShapes.DrawLine(contentArea.WorldToScreenSize(Size), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Length), Direction, contentArea.SpriteBatch);
         }
     }
