@@ -8,6 +8,7 @@ using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
+using Orts.Common;
 using Orts.Common.Position;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
@@ -75,11 +76,17 @@ namespace Orts.View.Track.Widgets
                     case LevelCrossingItem levelCrossingItem:
                         result.Add(new LevelCrossingTrackItem(levelCrossingItem));
                         break;
+                    case RoadLevelCrossingItem roadLevelCrossingItem: // road level crossings are not really useful and no route seems to contain them, but we'll just treat them as LevelCrossings
+                        result.Add(new LevelCrossingTrackItem(roadLevelCrossingItem));
+                        break;
                     case SoundRegionItem soundRegionItem:
                         result.Add(new SoundRegionTrackItem(soundRegionItem));
                         break;
                     case SignalItem signalItem:
                         result.Add(new SignalTrackItem(signalItem, signalConfig, trackItemNodes, trackNodeSegments));
+                        break;
+                    case CrossoverItem crossOverItem:
+                        result.Add(new CrossOverTrackItem(crossOverItem));
                         break;
                 }
             }
@@ -92,6 +99,22 @@ namespace Orts.View.Track.Widgets
     }
     #endregion
 
+    #region CrossOverTrackItem
+    internal class CrossOverTrackItem : TrackItemBase
+    {
+        public CrossOverTrackItem(CrossoverItem source) : base(source)
+        {
+            Size = 5f;
+        }
+
+        internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None)
+        {
+            Color drawColor = GetColor<CrossOverTrackItem>(colorVariation);
+            BasicShapes.DrawTexture(BasicTextureType.Ring, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size), drawColor, contentArea.SpriteBatch);
+        }
+    }
+
+    #endregion
     #region SidingTrackItem
     internal class SidingTrackItem : TrackItemBase
     {
@@ -105,13 +128,16 @@ namespace Orts.View.Track.Widgets
             sidingName = source.ItemName;
             Id = source.TrackItemId;
             linkedId = source.LinkedSidingId;
+            Size = 5f;
         }
 
         internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None)
         {
-            BasicShapes.DrawTexture(BasicTextureType.Disc, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size), Color.CornflowerBlue, false, false, colorVariation != ColorVariation.None, contentArea.SpriteBatch);
+            Color fontColor = GetColor<SidingTrackItem>(colorVariation);
+            Color drawColor = GetColor<SidingTrackItem>(colorVariation.Next().Next());
+            BasicShapes.DrawTexture(BasicTextureType.Disc, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size), drawColor, contentArea.SpriteBatch);
             if (drawName)
-                TextDrawShape.DrawString(contentArea.WorldToScreenCoordinates(in location), Color.Red, sidingName, font, Vector2.One, TextHorizontalAlignment.Left, TextVerticalAlignment.Top, SpriteEffects.None, contentArea.SpriteBatch);
+                TextDrawShape.DrawString(contentArea.WorldToScreenCoordinates(in location), fontColor, sidingName, font, Vector2.One, TextHorizontalAlignment.Left, TextVerticalAlignment.Top, SpriteEffects.None, contentArea.SpriteBatch);
         }
 
         /// <summary>
@@ -154,17 +180,18 @@ namespace Orts.View.Track.Widgets
     {
         private readonly string platformName;
 
-        public PlatformTrackItem(PlatformItem source) : 
+        public PlatformTrackItem(PlatformItem source) :
             base(source)
         {
             platformName = source.ItemName;
-            Size = 9;
+            Size = 9f;
         }
 
         internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None)
         {
-            BasicShapes.DrawTexture(BasicTextureType.Platform, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size), Color.White, false, false, colorVariation != ColorVariation.None, contentArea.SpriteBatch);
-            TextDrawShape.DrawString(contentArea.WorldToScreenCoordinates(in location), Color.Blue, platformName, font, Vector2.One, TextHorizontalAlignment.Left, TextVerticalAlignment.Top, SpriteEffects.None, contentArea.SpriteBatch);
+            Color fontColor = GetColor<PlatformTrackItem>(colorVariation);
+            BasicShapes.DrawTexture(BasicTextureType.Platform, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size), false, false, colorVariation != ColorVariation.None, contentArea.SpriteBatch);
+            TextDrawShape.DrawString(contentArea.WorldToScreenCoordinates(in location), fontColor, platformName, font, Vector2.One, TextHorizontalAlignment.Left, TextVerticalAlignment.Top, SpriteEffects.None, contentArea.SpriteBatch);
         }
     }
     #endregion
@@ -179,13 +206,16 @@ namespace Orts.View.Track.Widgets
         {
             distance = source.Distance.ToString(CultureInfo.CurrentCulture);
             milePost = source.IsMilePost;
+            Size = 5f;
         }
 
         internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None)
         {
+            Color fontColor = GetColor<SpeedPostTrackItem>(colorVariation);
+            Color drawColor = GetColor<SpeedPostTrackItem>(colorVariation.Next().Next());
             // TODO 20210117 show more of the SpeedPostItem properties (direction, number/dot)
-            BasicShapes.DrawTexture(BasicTextureType.Disc, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size), Color.Orange, false, false, colorVariation != ColorVariation.None, contentArea.SpriteBatch);
-            TextDrawShape.DrawString(contentArea.WorldToScreenCoordinates(in location), Color.Blue, distance, font, Vector2.One, TextHorizontalAlignment.Center, TextVerticalAlignment.Center, SpriteEffects.None, contentArea.SpriteBatch);
+            BasicShapes.DrawTexture(BasicTextureType.Disc, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size), drawColor, contentArea.SpriteBatch);
+            TextDrawShape.DrawString(contentArea.WorldToScreenCoordinates(in location), fontColor, distance, font, Vector2.One, TextHorizontalAlignment.Center, TextVerticalAlignment.Center, SpriteEffects.None, contentArea.SpriteBatch);
         }
     }
     #endregion
@@ -200,7 +230,7 @@ namespace Orts.View.Track.Widgets
 
         internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None)
         {
-            BasicShapes.DrawTexture(BasicTextureType.Hazard, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size), Color.White, false, false, colorVariation != ColorVariation.None, contentArea.SpriteBatch);
+            BasicShapes.DrawTexture(BasicTextureType.Hazard, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size), false, false, colorVariation != ColorVariation.None, contentArea.SpriteBatch);
         }
     }
     #endregion
@@ -215,7 +245,7 @@ namespace Orts.View.Track.Widgets
 
         internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None)
         {
-            BasicShapes.DrawTexture(BasicTextureType.Pickup, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size), Color.White, false, false, colorVariation != ColorVariation.None, contentArea.SpriteBatch);
+            BasicShapes.DrawTexture(BasicTextureType.Pickup, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size), false, false, colorVariation != ColorVariation.None, contentArea.SpriteBatch);
         }
     }
     #endregion
@@ -225,12 +255,17 @@ namespace Orts.View.Track.Widgets
     {
         public LevelCrossingTrackItem(LevelCrossingItem source) : base(source)
         {
-            Size = 6f;
+            Size = 5f;
+        }
+
+        public LevelCrossingTrackItem(RoadLevelCrossingItem source) : base(source)
+        {
+            Size = 5f;
         }
 
         internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None)
         {
-            BasicShapes.DrawTexture(BasicTextureType.Disc, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size), Color.Purple, false, false, colorVariation != ColorVariation.None, contentArea.SpriteBatch);
+            BasicShapes.DrawTexture(BasicTextureType.LevelCrossing, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size), false, false, colorVariation != ColorVariation.None, contentArea.SpriteBatch);
         }
     }
     #endregion
@@ -245,7 +280,7 @@ namespace Orts.View.Track.Widgets
 
         internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None)
         {
-            BasicShapes.DrawTexture(BasicTextureType.Sound, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size), Color.White, false, false, colorVariation != ColorVariation.None, contentArea.SpriteBatch);
+            BasicShapes.DrawTexture(BasicTextureType.Sound, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size), false, false, colorVariation != ColorVariation.None, contentArea.SpriteBatch);
         }
     }
     #endregion
@@ -288,14 +323,14 @@ namespace Orts.View.Track.Widgets
 
             Vector3 shiftedLocation = source.Location.Location +
                     0.1f * new Vector3((float)Math.Cos(angle), 0f, -(float)Math.Sin(angle));
-                WorldLocation location = new WorldLocation(source.Location.TileX, source.Location.TileZ, shiftedLocation);
+            WorldLocation location = new WorldLocation(source.Location.TileX, source.Location.TileZ, shiftedLocation);
             base.location = PointD.FromWorldLocation(location);
 
         }
 
         internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None)
         {
-            BasicShapes.DrawTexture(BasicTextureType.Signal, contentArea.WorldToScreenCoordinates(in Location), angle, contentArea.WorldToScreenSize(Size), Color.White, false, false, colorVariation != ColorVariation.None, contentArea.SpriteBatch);
+            BasicShapes.DrawTexture(BasicTextureType.Signal, contentArea.WorldToScreenCoordinates(in Location), angle, contentArea.WorldToScreenSize(Size), false, false, colorVariation != ColorVariation.None, contentArea.SpriteBatch);
         }
     }
     #endregion

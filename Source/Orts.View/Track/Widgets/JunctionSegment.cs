@@ -21,7 +21,8 @@ namespace Orts.View.Track.Widgets
 
         internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None)
         {
-            BasicShapes.DrawTexture(BasicTextureType.Disc, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size), Color.DarkRed, false, false, colorVariation != ColorVariation.None, contentArea.SpriteBatch);
+            Color drawColor = GetColor<JunctionSegment>(colorVariation);
+            BasicShapes.DrawTexture(BasicTextureType.Disc, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size), drawColor, contentArea.SpriteBatch);
         }
     }
 }

@@ -9,6 +9,7 @@ using Microsoft.Xna.Framework.Input;
 
 using Orts.Common;
 using Orts.Common.Position;
+using Orts.Formats.Msts.Models;
 using Orts.View.DrawableComponents;
 using Orts.View.Track.Widgets;
 using Orts.View.Xna;
@@ -225,8 +226,29 @@ namespace Orts.View.Track
                 case ColorSetting.RailTrack:
                     PointWidget.UpdateColor<TrackSegment>(color);
                     break;
+                case ColorSetting.RailTrackEnd:
+                    PointWidget.UpdateColor<TrackEndSegment>(color);
+                    break;
+                case ColorSetting.RailTrackJunction:
+                    PointWidget.UpdateColor<JunctionSegment>(color);
+                    break;
+                case ColorSetting.RailTrackCrossing:
+                    PointWidget.UpdateColor<CrossOverTrackItem>(color);
+                    break;
                 case ColorSetting.RoadTrack:
                     PointWidget.UpdateColor<RoadTrackSegment>(color);
+                    break;
+                case ColorSetting.RailLevelCrossing:
+                    PointWidget.UpdateColor<LevelCrossingTrackItem>(color);
+                    break;
+                case ColorSetting.PlatformItem:
+                    PointWidget.UpdateColor<PlatformTrackItem>(color);
+                    break;
+                case ColorSetting.SidingItem:
+                    PointWidget.UpdateColor<SidingTrackItem>(color);
+                    break;
+                case ColorSetting.SpeedPostItem:
+                    PointWidget.UpdateColor<SpeedPostTrackItem>(color);
                     break;
             }
         }

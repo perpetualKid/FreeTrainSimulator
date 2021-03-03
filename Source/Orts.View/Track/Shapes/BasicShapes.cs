@@ -77,7 +77,7 @@ namespace Orts.View.Track.Shapes
         /// <param name="size">Size of the texture in pixels</param>
         /// <param name="color">Color mask for the texture to draw (white will not affect the texture)</param>
         /// <param name="flip">Whether the texture needs to be flipped (vertically)</param>
-        public static void DrawTexture(BasicTextureType texture, Vector2 point, double angle, float size, Color color, bool flipHorizontal, bool flipVertical, bool highlight, SpriteBatch spriteBatch = null)
+        public static void DrawTexture(BasicTextureType texture, Vector2 point, double angle, float size, bool flipHorizontal, bool flipVertical, bool highlight, SpriteBatch spriteBatch = null)
         {
             Vector2 scaledSize;
             if (size < 0)
@@ -86,7 +86,27 @@ namespace Orts.View.Track.Shapes
                 scaledSize = new Vector2(size / instance.basicTextures[texture].Width);
 
             SpriteEffects flipMode = (flipHorizontal ? SpriteEffects.FlipHorizontally : SpriteEffects.None) | (flipVertical ? SpriteEffects.FlipVertically : SpriteEffects.None);
-            (spriteBatch ?? instance.spriteBatch).Draw(highlight ? instance.basicHighlightTextures[texture] : instance.basicTextures[texture], point, null, color, (float)angle, instance.textureOffsets[texture], scaledSize, flipMode, 0);
+            (spriteBatch ?? instance.spriteBatch).Draw(highlight ? instance.basicHighlightTextures[texture] : instance.basicTextures[texture], point, null, Color.White, (float)angle, instance.textureOffsets[texture], scaledSize, flipMode, 0);
+        }
+
+        /// <summary>
+        /// Draw one of the (predefined) textures at the given location with the given angle
+        /// </summary>
+        /// <param name="point">Location where to draw</param>
+        /// <param name="texture">name by which the texture is internally known</param>
+        /// <param name="angle">Angle used to rotate the texture</param>
+        /// <param name="size">Size of the texture in pixels</param>
+        /// <param name="color">Color mask for the texture to draw (white will not affect the texture)</param>
+        /// <param name="flip">Whether the texture needs to be flipped (vertically)</param>
+        public static void DrawTexture(BasicTextureType texture, Vector2 point, double angle, float size, Color color, SpriteBatch spriteBatch = null)
+        {
+            Vector2 scaledSize;
+            if (size < 0)
+                scaledSize = new Vector2(-size);
+            else
+                scaledSize = new Vector2(size / instance.basicTextures[texture].Width);
+
+            (spriteBatch ?? instance.spriteBatch).Draw(instance.basicTextures[texture], point, null, color, (float)angle, instance.textureOffsets[texture], scaledSize, SpriteEffects.None, 0);
         }
 
         /// <summary>

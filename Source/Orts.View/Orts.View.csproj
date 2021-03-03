@@ -17,6 +17,7 @@
     <None Remove="Resources\Circle.png" />
     <None Remove="Resources\Disc.png" />
     <None Remove="Resources\Hazard.png" />
+    <None Remove="Resources\LevelCrossing.png" />
     <None Remove="Resources\pathEnd.png" />
     <None Remove="Resources\pathNormal.png" />
     <None Remove="Resources\pathReverse.png" />
@@ -51,6 +52,7 @@
     <EmbeddedResource Include="Resources\Hazard.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </EmbeddedResource>
+    <EmbeddedResource Include="Resources\LevelCrossing.png" />
     <EmbeddedResource Include="Resources\PathEnd.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </EmbeddedResource>

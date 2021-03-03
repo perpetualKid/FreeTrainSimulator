@@ -25,7 +25,21 @@
     {
         Background,
         RailTrack,
+        RailTrackEnd,
+        RailTrackJunction,
+        RailTrackCrossing,
+        RailLevelCrossing,
         RoadTrack,
+        RoadLevelCrossing,
+        RoadCarSpawner,
+        SignalItem,
+        PlatformItem,
+        SidingItem,
+        SpeedPostItem,
+        HazardItem,
+        PickupItem,
+        SoundRegionItem,
+        LevelCrossing,
     }
 
     public enum ColorVariation

@@ -128,7 +128,7 @@ namespace Orts.View.DrawableComponents
             BasicShapes.DrawLine(1f, Color.Red, clippingPosition, screenHeight, MathHelper.ToRadians(90), spriteBatch);
             BasicShapes.DrawLine(1f, Color.Red, clippingPosition + new Vector2(screenWidth, 0), screenHeight, MathHelper.ToRadians(90), spriteBatch);
             if (screenWidth < 10 || screenHeight < 10)
-                BasicShapes.DrawTexture(BasicTextureType.Circle, clippingPosition + new Vector2(screenWidth, screenHeight) / 2, 0, -0.5f, Color.Red, false, false, false, spriteBatch);
+                BasicShapes.DrawTexture(BasicTextureType.Circle, clippingPosition + new Vector2(screenWidth, screenHeight) / 2, 0, -0.5f, Color.Red, spriteBatch);
 
         }
     }

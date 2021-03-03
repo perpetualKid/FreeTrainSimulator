@@ -30,6 +30,7 @@ namespace Orts.View.Track.Shapes
         Signal,
         Sound,
         PlayerTrain,
+        LevelCrossing,
         //
     }
 }

@@ -28,8 +28,24 @@ namespace Orts.TrackViewer.WinForms.Controls
             backgroundColorComboBoxMenuItem.SelectedIndexChanged += BackgroundColorComboBoxMenuItem_SelectedIndexChanged;
             railTrackColorComboBoxMenuItem.DisplayXnaColors(game.Settings.TrackViewer.ColorRailTrack, ColorSetting.RailTrack);
             railTrackColorComboBoxMenuItem.SelectedIndexChanged += BackgroundColorComboBoxMenuItem_SelectedIndexChanged;
+            railEndColorComboBoxMenuItem.DisplayXnaColors(game.Settings.TrackViewer.ColorRailTrackEnd, ColorSetting.RailTrackEnd);
+            railEndColorComboBoxMenuItem.SelectedIndexChanged += BackgroundColorComboBoxMenuItem_SelectedIndexChanged;
+            railJunctionColorComboBoxMenuItem.DisplayXnaColors(game.Settings.TrackViewer.ColorRailTrackJunction, ColorSetting.RailTrackJunction);
+            railJunctionColorComboBoxMenuItem.SelectedIndexChanged += BackgroundColorComboBoxMenuItem_SelectedIndexChanged;
+            railCrossingColorToolStripComboBoxMenuItem.DisplayXnaColors(game.Settings.TrackViewer.ColorRailTrackCrossing, ColorSetting.RailTrackCrossing);
+            railCrossingColorToolStripComboBoxMenuItem.SelectedIndexChanged += BackgroundColorComboBoxMenuItem_SelectedIndexChanged;
+            railLevelCrossingColorToolStripComboBoxMenuItem.DisplayXnaColors(game.Settings.TrackViewer.ColorRailLevelCrossing, ColorSetting.RailLevelCrossing);
+            railLevelCrossingColorToolStripComboBoxMenuItem.SelectedIndexChanged += BackgroundColorComboBoxMenuItem_SelectedIndexChanged;
+
             roadTrackColorComboBoxMenuItem.DisplayXnaColors(game.Settings.TrackViewer.ColorRoadTrack, ColorSetting.RoadTrack);
             roadTrackColorComboBoxMenuItem.SelectedIndexChanged += BackgroundColorComboBoxMenuItem_SelectedIndexChanged;
+
+            platformColorToolStripComboBoxMenuItem.DisplayXnaColors(game.Settings.TrackViewer.ColorPlatformItem, ColorSetting.PlatformItem);
+            platformColorToolStripComboBoxMenuItem.SelectedIndexChanged += BackgroundColorComboBoxMenuItem_SelectedIndexChanged;
+            sidingColorToolStripComboBoxMenuItem.DisplayXnaColors(game.Settings.TrackViewer.ColorSidingItem, ColorSetting.SidingItem);
+            sidingColorToolStripComboBoxMenuItem.SelectedIndexChanged += BackgroundColorComboBoxMenuItem_SelectedIndexChanged;
+            speedpostColorToolStripComboBoxMenuItem.DisplayXnaColors(game.Settings.TrackViewer.ColorSpeedpostItem, ColorSetting.SpeedPostItem);
+            speedpostColorToolStripComboBoxMenuItem.SelectedIndexChanged += BackgroundColorComboBoxMenuItem_SelectedIndexChanged;
 
             LoadLanguage(languageSelectionComboBoxMenuItem.ComboBox);
             languageSelectionComboBoxMenuItem.SelectedIndexChanged += LanguageSelectionComboBoxMenuItem_SelectedIndexChanged;

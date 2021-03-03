@@ -198,7 +198,20 @@ namespace Orts.TrackViewer
 
             colorPreferences[ColorSetting.Background] = Settings.TrackViewer.ColorBackground;
             colorPreferences[ColorSetting.RailTrack] = Settings.TrackViewer.ColorRailTrack;
+            colorPreferences[ColorSetting.RailTrackEnd] = Settings.TrackViewer.ColorRailTrackEnd;
+            colorPreferences[ColorSetting.RailTrackJunction] = Settings.TrackViewer.ColorRailTrackJunction;
+            colorPreferences[ColorSetting.RailTrackCrossing] = Settings.TrackViewer.ColorRailTrackCrossing;
+            colorPreferences[ColorSetting.RailLevelCrossing] = Settings.TrackViewer.ColorRailLevelCrossing;
             colorPreferences[ColorSetting.RoadTrack] = Settings.TrackViewer.ColorRoadTrack;
+            colorPreferences[ColorSetting.RoadLevelCrossing] = Settings.TrackViewer.ColorRoadLevelCrossing;
+            colorPreferences[ColorSetting.RoadCarSpawner] = Settings.TrackViewer.ColorRoadCarSpawner;
+            colorPreferences[ColorSetting.SignalItem] = Settings.TrackViewer.ColorSignalItem;
+            colorPreferences[ColorSetting.PlatformItem] = Settings.TrackViewer.ColorPlatformItem;
+            colorPreferences[ColorSetting.SidingItem] = Settings.TrackViewer.ColorSidingItem;
+            colorPreferences[ColorSetting.SpeedPostItem] = Settings.TrackViewer.ColorSpeedpostItem;
+            colorPreferences[ColorSetting.HazardItem] = Settings.TrackViewer.ColorHazardItem;
+            colorPreferences[ColorSetting.PickupItem] = Settings.TrackViewer.ColorPickupItem;
+            colorPreferences[ColorSetting.SoundRegionItem] = Settings.TrackViewer.ColorSoundRegionItem;
             BackgroundColor = ColorExtension.FromName(colorPreferences[ColorSetting.Background]);
 
         }
@@ -207,9 +220,23 @@ namespace Orts.TrackViewer
         {
             Settings.TrackViewer.WindowSize[0] = windowSize.Width;
             Settings.TrackViewer.WindowSize[1] = windowSize.Height;
+
             Settings.TrackViewer.ColorBackground = colorPreferences[ColorSetting.Background];
             Settings.TrackViewer.ColorRailTrack = colorPreferences[ColorSetting.RailTrack];
+            Settings.TrackViewer.ColorRailTrackEnd = colorPreferences[ColorSetting.RailTrackEnd];
+            Settings.TrackViewer.ColorRailTrackJunction = colorPreferences[ColorSetting.RailTrackJunction];
+            Settings.TrackViewer.ColorRailTrackCrossing = colorPreferences[ColorSetting.RailTrackCrossing];
+            Settings.TrackViewer.ColorRailLevelCrossing = colorPreferences[ColorSetting.RailLevelCrossing];
             Settings.TrackViewer.ColorRoadTrack = colorPreferences[ColorSetting.RoadTrack];
+            Settings.TrackViewer.ColorRoadLevelCrossing = colorPreferences[ColorSetting.RoadLevelCrossing];
+            Settings.TrackViewer.ColorRoadCarSpawner = colorPreferences[ColorSetting.RoadCarSpawner];
+            Settings.TrackViewer.ColorSignalItem = colorPreferences[ColorSetting.SignalItem];
+            Settings.TrackViewer.ColorPlatformItem = colorPreferences[ColorSetting.PlatformItem];
+            Settings.TrackViewer.ColorSidingItem = colorPreferences[ColorSetting.SidingItem];
+            Settings.TrackViewer.ColorSpeedpostItem = colorPreferences[ColorSetting.SpeedPostItem];
+            Settings.TrackViewer.ColorHazardItem = colorPreferences[ColorSetting.HazardItem];
+            Settings.TrackViewer.ColorPickupItem = colorPreferences[ColorSetting.PickupItem];
+            Settings.TrackViewer.ColorSoundRegionItem = colorPreferences[ColorSetting.SoundRegionItem];
 
             string[] routeSelection = null;
             if (selectedFolder != null)
