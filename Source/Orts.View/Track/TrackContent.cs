@@ -165,7 +165,7 @@ namespace Orts.View.Track
 
         private void AddTrackItems()
         {
-            TrackItems = new TileIndexedList<TrackItemBase, Tile>(TrackItemBase.Create(trackDB.TrackItems, SignalConfigFile, trackDB, TrackNodeSegments));
+            TrackItems = new TileIndexedList<TrackItemBase, Tile>(TrackItemBase.Create(trackDB.TrackItems, SignalConfigFile, trackDB, TrackNodeSegments).Concat(TrackItemBase.Create(roadTrackDB.TrItemTable)));
         }
     }
 }

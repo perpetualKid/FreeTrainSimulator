@@ -36,6 +36,63 @@ namespace Orts.View.Track.Widgets
             TrackItemBase.font = font;
         }
 
+        public static List<TrackItemBase> Create(TrackItem[] trackItems)
+        {
+            List<TrackItemBase> result = new List<TrackItemBase>();
+            Dictionary<uint, SidingTrackItem> sidingItems = new Dictionary<uint, SidingTrackItem>();
+
+            foreach (TrackItem trackItem in trackItems)
+            {
+                switch (trackItem)
+                {
+                    //case SidingItem sidingItem:
+                    //    SidingTrackItem trackSidingItem = new SidingTrackItem(sidingItem);
+                    //    sidingItems.Add(trackSidingItem.Id, trackSidingItem);
+                    //    break;
+                    //case PlatformItem platformItem:
+                    //    result.Add(new PlatformTrackItem(platformItem));
+                    //    break;
+                    //case SpeedPostItem speedPostItem:
+                    //    result.Add(new SpeedPostTrackItem(speedPostItem));
+                    //    break;
+                    //case HazardItem hazardItem:
+                    //    result.Add(new HazardTrackItem(hazardItem));
+                    //    break;
+                    //case PickupItem pickupItem:
+                    //    result.Add(new PickupTrackItem(pickupItem));
+                    //    break;
+                    //case LevelCrossingItem levelCrossingItem:
+                    //    result.Add(new LevelCrossingTrackItem(levelCrossingItem));
+                    //    break;
+                    //case RoadLevelCrossingItem roadLevelCrossingItem: // road level crossings are not really useful and no route seems to contain them, but we'll just treat them as LevelCrossings
+                    //    result.Add(new LevelCrossingTrackItem(roadLevelCrossingItem));
+                    //    break;
+                    //case SoundRegionItem soundRegionItem:
+                    //    result.Add(new SoundRegionTrackItem(soundRegionItem));
+                    //    break;
+                    //case SignalItem signalItem:
+                    //    result.Add(new SignalTrackItem(signalItem, signalConfig, trackItemNodes, trackNodeSegments));
+                    //    break;
+                    //case CrossoverItem crossOverItem:
+                    //    result.Add(new CrossOverTrackItem(crossOverItem));
+                    //    break;
+                    case RoadCarSpawner carSpawner:
+                        result.Add(new CarSpawnerTrackItem(carSpawner));
+                        break;
+                    case EmptyItem emptyItem:
+                        result.Add(new EmptyTrackItem(emptyItem));
+                        break;
+                    default:
+                        Trace.TraceWarning($"{trackItem.GetType().Name} not supported for Road Track Items");
+                        break;
+                }
+            }
+
+            result.AddRange(SidingTrackItem.LinkSidingItems(sidingItems));
+
+            return result;
+        }
+
         public static List<TrackItemBase> Create(TrackItem[] trackItems, SignalConfigurationFile signalConfig, TrackDB trackDb, Dictionary<uint, List<TrackSegment>> trackNodeSegments)
         {
             List<TrackItemBase> result = new List<TrackItemBase>();
@@ -88,9 +145,17 @@ namespace Orts.View.Track.Widgets
                     case CrossoverItem crossOverItem:
                         result.Add(new CrossOverTrackItem(crossOverItem));
                         break;
+                    case RoadCarSpawner carSpawner:
+                        result.Add(new CarSpawnerTrackItem(carSpawner));
+                        break;
+                    case EmptyItem emptyItem:
+                        result.Add(new EmptyTrackItem(emptyItem));
+                        break;
+                    default:
+                        Trace.TraceWarning($"{trackItem.GetType().Name} not supported for Track Items");
+                        break;
                 }
             }
-
 
             result.AddRange(SidingTrackItem.LinkSidingItems(sidingItems));
 
@@ -115,6 +180,40 @@ namespace Orts.View.Track.Widgets
     }
 
     #endregion
+
+    #region CarSpawnerTrackItem
+    internal class CarSpawnerTrackItem : TrackItemBase
+    {
+        public CarSpawnerTrackItem(RoadCarSpawner source) : base(source)
+        {
+            Size = 5f;
+        }
+
+        internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None)
+        {
+            BasicShapes.DrawTexture(BasicTextureType.CarSpawner, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size), false, false, colorVariation != ColorVariation.None, contentArea.SpriteBatch);
+        }
+    }
+
+    #endregion
+
+    #region EmptyTrackItem
+    internal class EmptyTrackItem : TrackItemBase
+    {
+        public EmptyTrackItem(EmptyItem source) : base(source)
+        {
+            Size = 5f;
+        }
+
+        internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None)
+        {
+            Color drawColor = Color.Red;
+            BasicShapes.DrawTexture(BasicTextureType.RingCrossed, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size), drawColor, contentArea.SpriteBatch);
+        }
+    }
+
+    #endregion
+
     #region SidingTrackItem
     internal class SidingTrackItem : TrackItemBase
     {
@@ -184,7 +283,7 @@ namespace Orts.View.Track.Widgets
             base(source)
         {
             platformName = source.ItemName;
-            Size = 9f;
+            Size = 7f;
         }
 
         internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None)
