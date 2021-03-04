@@ -3237,10 +3237,10 @@ namespace Orts.Simulation.AIs
                         switch (durationS)
                         {
                             case 11:
-                                hornPattern = AILevelCrossingHornPattern.CreateInstance(Orts.Common.LevelCrossingHornPattern.US);
+                                hornPattern = AILevelCrossingHornPattern.CreateInstance(Common.LevelCrossingHornPattern.US);
                                 break;
                             default:
-                                hornPattern = LevelCrossingHornPattern;
+                                hornPattern = AILevelCrossingHornPattern.CreateInstance(Common.LevelCrossingHornPattern.Single);
                                 break;
                         }
                         AIActionHornRef action = new AIActionHornRef(this, waitingPoint[5], 0f, waitingPoint[0], lastIndex, thisRoute[lastIndex].TrackCircuitSection.Index, (int)direction, durationS, hornPattern);
