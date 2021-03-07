@@ -176,6 +176,14 @@ namespace Orts.Formats.Msts.Models
         {
             return ($"{Bounds.X},{Bounds.Y}\t{Bounds.Width}x{Bounds.Height}\t{ControlStyle}\t{ControlType}");
         }
+
+        protected virtual float ParseRotation(STFReader stf)
+        {
+            stf.MustMatch("(");
+            var rotation = -MathHelper.ToRadians((float)stf.ReadDouble(0));
+            stf.SkipRestOfBlock();
+            return rotation;
+        }
     }
     #endregion
 
@@ -244,7 +252,8 @@ namespace Orts.Formats.Msts.Models
         public Color[] NegativeColors { get; private set; } = new Color[1];
         public float NegativeTrigger { get; private set; }
         public Color DecreaseColor { get; private set; }
-
+        public float Rotation { get; private set; }
+        
         public CabViewGaugeControl() { }
 
         public CabViewGaugeControl(STFReader stf, string basePath)
@@ -282,7 +291,8 @@ namespace Orts.Formats.Msts.Models
                         stf.ParseBlock(new STFReader.TokenProcessor[] {
                             new STFReader.TokenProcessor("controlcolour", ()=>{ DecreaseColor = ParseControlColor(stf); }) });
                     }
-                })
+                }),
+                new STFReader.TokenProcessor("ortsangle", () =>{ Rotation = ParseRotation(stf); })
             });
         }
     }
@@ -327,7 +337,7 @@ namespace Orts.Formats.Msts.Models
         public float FontSize { get; protected set; }
         public int FontStyle { get; protected set; }
         public string FontFamily { get; protected set; } = "";
-        public float Rotation { get; private set; }
+        public float Rotation { get; protected set; }
 
         public CabViewDigitalControl()
         {
@@ -371,7 +381,7 @@ namespace Orts.Formats.Msts.Models
                     }
                 }),
                 new STFReader.TokenProcessor("ortsfont", ()=>{ParseFont(stf); }),
-                new STFReader.TokenProcessor("ortsangle", () => { ParseRotation(stf); }),
+                new STFReader.TokenProcessor("ortsangle", () => { Rotation = ParseRotation(stf); }),
             });
         }
 
@@ -411,14 +421,6 @@ namespace Orts.Formats.Msts.Models
             FontFamily = stf.ReadString() ?? string.Empty;
             stf.SkipRestOfBlock();
         }
-
-        protected virtual void ParseRotation(STFReader stf)
-        {
-            stf.MustMatch("(");
-            Rotation = -MathHelper.ToRadians((float)stf.ReadDouble(0)); // To radians
-            stf.SkipRestOfBlock();
-        }
-
     }
 
     public class CabViewDigitalClockControl : CabViewDigitalControl
@@ -437,7 +439,7 @@ namespace Orts.Formats.Msts.Models
                 new STFReader.TokenProcessor("accuracy", ()=>{ ParseAccuracy(stf); }),
                 new STFReader.TokenProcessor("controlcolour", ()=>{ PositiveColors[0] = ParseControlColor(stf); }),
                 new STFReader.TokenProcessor("ortsfont", ()=>{ParseFont(stf); }),
-                new STFReader.TokenProcessor("ortsangle", () => { ParseRotation(stf); })
+                new STFReader.TokenProcessor("ortsangle", () => { Rotation = ParseRotation(stf); })
             });
         }
     }

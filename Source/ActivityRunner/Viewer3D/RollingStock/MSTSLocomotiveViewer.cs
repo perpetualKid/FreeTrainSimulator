@@ -1727,6 +1727,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         Rectangle DestinationRectangle = new Rectangle();
         //      bool LoadMeterPositive = true;
         Color DrawColor;
+        float DrawRotation;
         Double Num;
         bool IsFire;
 
@@ -1818,20 +1819,21 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 {
                     if (Gauge.Orientation == 0)
                     {
-                        destX = (int)(xratio * (Control.Bounds.X + (zeropos < xpos ? zeropos : xpos)));
+                        destX = (int)(xratio * (Control.Bounds.X)) + (int)(xratio * (zeropos < xpos ? zeropos : xpos));
                         destY = (int)(yratio * Control.Bounds.Y);
-                        destW = (int)(xratio * (xpos > zeropos ? xpos - zeropos : zeropos - xpos));
+                        destY = (int)(yratio * (Control.Bounds.Y) - (int)(yratio * (Gauge.Direction == 0 && zeropos > xpos ? (zeropos - xpos) * Math.Sin(DrawRotation) : 0)));
+                        destW = ((int)(xratio * xpos) - (int)(xratio * zeropos)) * (xpos >= zeropos ? 1 : -1);
                         destH = (int)(yratio * ypos);
                     }
                     else
                     {
-                        destX = (int)(xratio * Control.Bounds.X);
+                        destX = (int)(xratio * Control.Bounds.X) +(int)(xratio * (Gauge.Direction == 0 && ypos > zeropos ? (ypos - zeropos) * Math.Sin(DrawRotation) : 0));
                         if (Gauge.Direction != 1 && !IsFire)
-                            destY = (int)(yratio * (Control.Bounds.X + (zeropos > ypos ? zeropos : 2 * zeropos - ypos)));
+                            destY = (int)(yratio * (Control.Bounds.Y + zeropos)) + (ypos > zeropos ? (int)(yratio * (zeropos - ypos)) : 0);
                         else
                             destY = (int)(yratio * (Control.Bounds.Y + (zeropos < ypos ? zeropos : ypos)));
                         destW = (int)(xratio * xpos);
-                        destH = (int)(yratio * (ypos > zeropos ? ypos - zeropos : zeropos - ypos));
+                        destH = ((int)(yratio * (ypos - zeropos))) * (ypos > zeropos ? 1 : -1);
                     }
                 }
                 else
@@ -1839,9 +1841,16 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     var topY = Control.Bounds.Y;  // top of visible column. +ve Y is downwards
                     if (Gauge.Direction != 0)  // column grows from bottom or from right
                     {
-                        destX = (int)(xratio * (Control.Bounds.X + Gauge.Bounds.Width - xpos));
                         if (Gauge.Orientation != 0)
+                        {
                             topY += (int)(Gauge.Bounds.Height * (1 - percent));
+                            destX = (int)(xratio * (Control.Bounds.X + Gauge.Bounds.Width - xpos + ypos * Math.Sin(DrawRotation)));
+                        }
+                        else
+                        {
+                            topY -= (int)(xpos * Math.Sin(DrawRotation));
+                            destX = (int)(xratio * (Control.Bounds.X + Gauge.Bounds.Width - xpos));
+                        }
                     }
                     else
                     {
@@ -1855,19 +1864,32 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             else // pointer gauge using texture
             {
                 var topY = Control.Bounds.Y;  // top of visible column. +ve Y is downwards
+                // even if there is a rotation, we leave the X position unaltered (for small angles Cos(alpha) = 1)
                 if (Gauge.Orientation == 0) // gauge horizontal
                 {
+
                     if (Gauge.Direction != 0)  // column grows from right
-                        destX = (int)(xratio * (Control.Bounds.X + Gauge.Bounds.Width - 0.5 * Gauge.Area.Width - xpos));
+                    {
+                        destX = (int)(xratio * (Control.Bounds.X + Gauge.Area.Width - 0.5 * Gauge.Area.Width - xpos));
+                        topY -= (int)(xpos * Math.Sin(DrawRotation));
+                    }
                     else
+                    {
                         destX = (int)(xratio * (Control.Bounds.X - 0.5 * Gauge.Area.Width + xpos));
+                        topY += (int)(xpos * Math.Sin(DrawRotation));
+                    }
                 }
                 else // gauge vertical
                 {
+                    // even if there is a rotation, we leave the Y position unaltered (for small angles Cos(alpha) = 1)
                     topY += (int)(ypos - 0.5 * Gauge.Area.Height);
-                    destX = (int)(xratio * Control.Bounds.X);
-                    if (Gauge.Direction != 0)  // column grows from bottom
-                        topY += (int)(Gauge.Bounds.Height - 2 * ypos);
+                    if (Gauge.Direction == 0)
+                        destX = (int)(xratio * (Control.Bounds.X - ypos * Math.Sin(DrawRotation)));
+                    else  // column grows from bottom
+                    {
+                        topY += (int)(Gauge.Area.Height - 2 * ypos);
+                        destX = (int)(xratio * (Control.Bounds.X + ypos * Math.Sin(DrawRotation)));
+                    }
                 }
                 destY = (int)(yratio * topY);
                 destW = (int)(xratio * Gauge.Area.Width);
@@ -1908,6 +1930,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             DestinationRectangle.Y = destY;
             DestinationRectangle.Width = destW;
             DestinationRectangle.Height = destH;
+            DrawRotation = Gauge.Rotation;
         }
 
         public override void Draw()
@@ -1916,7 +1939,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             {
                 Shader.SetTextureData(DestinationRectangle.Left, DestinationRectangle.Top, DestinationRectangle.Width, DestinationRectangle.Height);
             }
-            CabShaderControlView.SpriteBatch.Draw(Texture, DestinationRectangle, SourceRectangle, DrawColor);
+            CabShaderControlView.SpriteBatch.Draw(Texture, DestinationRectangle, SourceRectangle, DrawColor, DrawRotation, Vector2.Zero, SpriteEffects.None, 0);
         }
     }
 
