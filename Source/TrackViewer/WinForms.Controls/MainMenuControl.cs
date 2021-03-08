@@ -24,7 +24,7 @@ namespace Orts.TrackViewer.WinForms.Controls
             MainMenuStrip.MenuDeactivate += MainMenuStrip_MenuDeactivate;
             menuItemFolder.DropDown.Closing += FolderDropDown_Closing;
 
-            loadAtStartupMenuItem.Checked = game.Settings.TrackViewer.LoadRouteOnStart;
+            restoreLastViewMenuItem.Checked = game.Settings.TrackViewer.RestoreLastView;
             SetupColorComboBoxMenuItem(backgroundColorComboBoxMenuItem, game.Settings.TrackViewer.ColorBackground, ColorSetting.Background);
             SetupColorComboBoxMenuItem(railTrackColorComboBoxMenuItem, game.Settings.TrackViewer.ColorRailTrack, ColorSetting.RailTrack);
             SetupColorComboBoxMenuItem(railEndColorComboBoxMenuItem, game.Settings.TrackViewer.ColorRailTrackEnd, ColorSetting.RailTrackEnd);
@@ -80,12 +80,32 @@ namespace Orts.TrackViewer.WinForms.Controls
             menuItem.Tag = setting;
             menuItem.Checked = (parent.Settings.TrackViewer.ViewSettings & setting) == setting;
             menuItem.Click += VisibilitySettingToolStripMenuItem_Click;
+            if (menuItem.OwnerItem is ToolStripMenuItem parentItem)
+                SetupVisibilityParentMenuItem(parentItem);
+        }
+
+        private static void SetupVisibilityParentMenuItem(ToolStripMenuItem menuItem)
+        {
+            foreach (ToolStripMenuItem item in menuItem.DropDownItems)
+            {
+                if (!item.Checked)
+                {
+                    menuItem.Checked = false;
+                    return;
+                }
+            }
+            menuItem.Checked = true;
         }
 
         private void VisibilitySettingToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (sender is ToolStripMenuItem menuItem)
+            {
                 parent.UpdateItemVisibilityPreference((TrackViewerViewSettings)menuItem.Tag, menuItem.Checked);
+                if (menuItem.OwnerItem is ToolStripMenuItem parentItem)
+                    SetupVisibilityParentMenuItem(parentItem);
+            }
+
         }
 
         private void LanguageSelectionComboBoxMenuItem_SelectedIndexChanged(object sender, EventArgs e)
@@ -212,7 +232,7 @@ namespace Orts.TrackViewer.WinForms.Controls
                 UncheckOtherFolderMenuItems(folderItem);
                 if (folderItem.Tag is Folder folder)
                 {
-                    parent.ContentArea = null;
+                    parent.UnloadRoute();
                     PopulateRoutes(await parent.FindRoutes(folder).ConfigureAwait(true));
                 }
             }
@@ -250,7 +270,7 @@ namespace Orts.TrackViewer.WinForms.Controls
 
         private void LoadAtStartupMenuItem_Click(object sender, EventArgs e)
         {
-            parent.Settings.TrackViewer.LoadRouteOnStart = loadAtStartupMenuItem.Checked;
+            parent.Settings.TrackViewer.RestoreLastView = restoreLastViewMenuItem.Checked;
         }
 
         private void VisibilitySettingParentToolStripMenuItem_Click(object sender, EventArgs e)
@@ -260,7 +280,7 @@ namespace Orts.TrackViewer.WinForms.Controls
                 foreach (ToolStripMenuItem item in menuItem.DropDownItems)
                 {
                     item.Checked = menuItem.Checked;
-                    VisibilitySettingToolStripMenuItem_Click(item, EventArgs.Empty);
+                    parent.UpdateItemVisibilityPreference((TrackViewerViewSettings)item.Tag, item.Checked);
                 }
 
             }

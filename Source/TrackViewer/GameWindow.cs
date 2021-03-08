@@ -252,7 +252,11 @@ namespace Orts.TrackViewer
             Settings.TrackViewer.ColorPickupItem = colorPreferences[ColorSetting.PickupItem];
             Settings.TrackViewer.ColorSoundRegionItem = colorPreferences[ColorSetting.SoundRegionItem];
             Settings.TrackViewer.ViewSettings = viewSettings;
-
+            if (null != contentArea)
+            {
+                string[] location = new string[] { $"{contentArea.CenterX}", $"{contentArea.CenterY}", $"{contentArea.Scale}" };
+                Settings.TrackViewer.LastLocation = location;
+                    }
             string[] routeSelection = null;
             if (selectedFolder != null)
             {
@@ -364,6 +368,7 @@ namespace Orts.TrackViewer
             base.Initialize();
             await Task.WhenAll(initTasks).ConfigureAwait(false);
             await PreSelectRoute(Settings.TrackViewer.RouteSelection).ConfigureAwait(false);
+            ContentArea?.PresetPosition(Settings.TrackViewer.LastLocation);
         }
 
         private static void GameWindowThread(object data)

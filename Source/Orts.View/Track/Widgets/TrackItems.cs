@@ -41,7 +41,7 @@ namespace Orts.View.Track.Widgets
             List<TrackItemBase> result = new List<TrackItemBase>();
             Dictionary<uint, SidingTrackItem> sidingItems = new Dictionary<uint, SidingTrackItem>();
 
-            foreach (TrackItem trackItem in trackItems)
+            foreach (TrackItem trackItem in trackItems ?? Enumerable.Empty<TrackItem>())
             {
                 switch (trackItem)
                 {
@@ -325,8 +325,18 @@ namespace Orts.View.Track.Widgets
 
         internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None)
         {
-            Color fontColor = GetColor<SpeedPostTrackItem>(colorVariation);
-            Color drawColor = GetColor<SpeedPostTrackItem>(colorVariation.Next().Next());
+            Color fontColor;
+            Color drawColor;
+            if (milePost)
+            {
+                fontColor = GetColor<SpeedPostTrackItem>(colorVariation.Next());
+                drawColor = GetColor<SpeedPostTrackItem>(colorVariation);
+            }
+            else
+            {
+                fontColor = GetColor<SpeedPostTrackItem>(colorVariation);
+                drawColor = GetColor<SpeedPostTrackItem>(colorVariation.Next().Next());
+            }
             // TODO 20210117 show more of the SpeedPostItem properties (direction, number/dot)
             BasicShapes.DrawTexture(BasicTextureType.Disc, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size), drawColor, contentArea.SpriteBatch);
             TextDrawShape.DrawString(contentArea.WorldToScreenCoordinates(in location), fontColor, distance, font, Vector2.One, TextHorizontalAlignment.Center, TextVerticalAlignment.Center, SpriteEffects.None, contentArea.SpriteBatch);

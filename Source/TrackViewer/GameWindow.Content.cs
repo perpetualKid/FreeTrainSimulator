@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -47,7 +48,7 @@ namespace Orts.TrackViewer
         internal async Task LoadRoute(Route route)
         {
             StatusMessage = route.Name;
-            ContentArea = null;
+            UnloadRoute();
 
             TrackData trackData = new TrackData(route.Path);
 
@@ -71,13 +72,19 @@ namespace Orts.TrackViewer
                 Folder folder = mainmenu.SelectContentFolder(selection[0]);
                 await FindRoutes(folder).ConfigureAwait(false);
 
-                if (selection.Length > 1 && Settings.TrackViewer.LoadRouteOnStart)
+                if (selection.Length > 1 && Settings.TrackViewer.RestoreLastView)
                 {
                     Route route = routes?.Where(r => r.Name.Equals(selection[1], StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
                     if (null != route)
                         await LoadRoute(route).ConfigureAwait(false);
                 }
             }
+        }
+
+        internal void UnloadRoute()
+        {
+            ContentArea = null;
+            selectedRoute = null;
         }
 
     }

@@ -23,6 +23,9 @@ namespace Orts.View.Track
 
         public double Scale { get; private set; }
 
+        public double CenterX => (BottomRightArea.X - TopLeftArea.X) / 2 + TopLeftArea.X;
+        public double CenterY => (TopLeftArea.Y - BottomRightArea.Y) / 2 + BottomRightArea.Y;
+
         private double offsetX, offsetY;
         internal PointD TopLeftArea { get; private set; }
         internal PointD BottomRightArea { get; private set; }
@@ -131,6 +134,17 @@ namespace Orts.View.Track
                     distance = itemDistance;
                 }
             }
+            distance = double.MaxValue;
+            foreach (RoadSegment trackSegment in TrackContent.RoadSegments[nearestGridTile.Tile])
+            {
+                double itemDistance = position.DistanceToLineSegmentSquared(trackSegment.Location, trackSegment.Vector);
+                if (itemDistance < distance)
+                {
+                    nearesRoadSegment = trackSegment;
+                    distance = itemDistance;
+                }
+            }
+
         }
 
         public void ResetSize(in Point windowSize, int screenDelta)
@@ -139,22 +153,24 @@ namespace Orts.View.Track
             screenHeightDelta = screenDelta;
             ScaleToFit();
             CenterView();
-            TopLeftArea = ScreenToWorldCoordinates(Point.Zero);
-            BottomRightArea = ScreenToWorldCoordinates(WindowSize);
+        }
 
-            bottomLeft = new Tile(Tile.TileFromAbs(TopLeftArea.X), Tile.TileFromAbs(BottomRightArea.Y));
-            topRight = new Tile(Tile.TileFromAbs(BottomRightArea.X), Tile.TileFromAbs(TopLeftArea.Y));
+        public void PresetPosition(string[] locationDetails)
+        {
+            if (locationDetails == null || locationDetails.Length != 3)
+                return;
+            if (double.TryParse(locationDetails[0], out double lon) && double.TryParse(locationDetails[1], out double lat) && double.TryParse(locationDetails[2], out double scale))
+            {
+                Scale = scale;
+                CenterAround(new PointD(lon, lat));
+            }
+            supressCount = 0;
         }
 
         public void UpdateSize(in Point windowSize)
         {
             WindowSize = windowSize;
             CenterAround(new PointD((TopLeftArea.X + BottomRightArea.X) / 2, (TopLeftArea.Y + BottomRightArea.Y) / 2));
-            TopLeftArea = ScreenToWorldCoordinates(Point.Zero);
-            BottomRightArea = ScreenToWorldCoordinates(WindowSize);
-
-            bottomLeft = new Tile(Tile.TileFromAbs(TopLeftArea.X), Tile.TileFromAbs(BottomRightArea.Y));
-            topRight = new Tile(Tile.TileFromAbs(BottomRightArea.X), Tile.TileFromAbs(TopLeftArea.Y));
         }
 
         public void UpdateScaleAt(in Vector2 scaleAt, int steps)
@@ -166,12 +182,9 @@ namespace Orts.View.Track
             offsetY += (WindowSize.Y - scaleAt.Y) * (scale / Scale - 1.0) / scale;
             Scale = scale;
 
-            TopLeftArea = ScreenToWorldCoordinates(Point.Zero);
-            BottomRightArea = ScreenToWorldCoordinates(WindowSize);
-
-            bottomLeft = new Tile(Tile.TileFromAbs(TopLeftArea.X), Tile.TileFromAbs(BottomRightArea.Y));
-            topRight = new Tile(Tile.TileFromAbs(BottomRightArea.X), Tile.TileFromAbs(TopLeftArea.Y));
+            SetBounds();
         }
+
 
         public void UpdatePosition(in Vector2 delta)
         {
@@ -198,12 +211,7 @@ namespace Orts.View.Track
             {
                 offsetY = bounds.Top - (TopLeftArea.Y - BottomRightArea.Y);
             }
-
-            TopLeftArea = ScreenToWorldCoordinates(Point.Zero);
-            BottomRightArea = ScreenToWorldCoordinates(WindowSize);
-
-            bottomLeft = new Tile(Tile.TileFromAbs(TopLeftArea.X), Tile.TileFromAbs(BottomRightArea.Y));
-            topRight = new Tile(Tile.TileFromAbs(BottomRightArea.X), Tile.TileFromAbs(TopLeftArea.Y));
+            SetBounds();
         }
 
         public override void Update(GameTime gameTime)
@@ -267,16 +275,27 @@ namespace Orts.View.Track
             this.viewSettings = viewSettings;
         }
 
+        private void SetBounds()
+        {
+            TopLeftArea = ScreenToWorldCoordinates(Point.Zero);
+            BottomRightArea = ScreenToWorldCoordinates(WindowSize);
+
+            bottomLeft = new Tile(Tile.TileFromAbs(TopLeftArea.X), Tile.TileFromAbs(BottomRightArea.Y));
+            topRight = new Tile(Tile.TileFromAbs(BottomRightArea.X), Tile.TileFromAbs(TopLeftArea.Y));
+        }
+
         private void CenterView()
         {
             offsetX = (bounds.Left + bounds.Right) / 2 - WindowSize.X / 2 / Scale;
             offsetY = (bounds.Top + bounds.Bottom) / 2 - (WindowSize.Y) / 2 / Scale;
+            SetBounds();
         }
 
         private void CenterAround(in PointD centerPoint)
         {
             offsetX = centerPoint.X - WindowSize.X / 2 / Scale;
             offsetY = centerPoint.Y - (WindowSize.Y) / 2 / Scale;
+            SetBounds();
         }
 
         private void ScaleToFit()

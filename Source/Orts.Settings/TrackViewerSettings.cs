@@ -81,9 +81,12 @@ namespace Orts.Settings
 
         [Default(new string[0])]
         public string[] RouteSelection { get; set; }
-        
+
+        [Default(new string[0])]
+        public string[] LastLocation { get; set; }
+
         [Default(false)] 
-        public bool LoadRouteOnStart { get; set; }
+        public bool RestoreLastView { get; set; }
 
         [Default(TrackViewerViewSettings.All)]
         public TrackViewerViewSettings ViewSettings { get; set; }
