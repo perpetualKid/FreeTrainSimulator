@@ -11,6 +11,8 @@ using Orts.Common.Position;
 using Orts.Common.Xna;
 using Orts.Simulation;
 
+using SharpDX.Direct3D9;
+
 namespace Orts.ActivityRunner.Viewer3D.Shapes
 {
     public class TurntableShape : PoseableShape
@@ -70,23 +72,24 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
         public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
+            double nextKey;
             if (Turntable.GoToTarget || Turntable.GoToAutoTarget)
             {
-                animationKey = (Turntable.TargetY / Math.PI * 1800.0 + 3600) % 3600.0;
+                nextKey = Turntable.TargetY / MathHelper.TwoPi * SharedShape.Animations[0].FrameCount;
             }
-
-            else if (Turntable.Counterclockwise)
+            else
             {
-                animationKey += SharedShape.Animations[0].FrameRate * elapsedTime.ClockSeconds;
+                double moveFrames;
+                if (Turntable.Counterclockwise)
+                    moveFrames = SharedShape.Animations[0].FrameRate * elapsedTime.ClockSeconds;
+                else if (Turntable.Clockwise)
+                    moveFrames = -SharedShape.Animations[0].FrameRate * elapsedTime.ClockSeconds;
+                else
+                    moveFrames = 0;
+                nextKey = animationKey + moveFrames;
             }
-            else if (Turntable.Clockwise)
-            {
-                animationKey -= SharedShape.Animations[0].FrameRate * elapsedTime.ClockSeconds;
-            }
-            while (animationKey > SharedShape.Animations[0].FrameCount) animationKey -= SharedShape.Animations[0].FrameCount;
-            while (animationKey < 0) animationKey += SharedShape.Animations[0].FrameCount;
-
-            Turntable.YAngle = (float)MathHelperD.WrapAngle(animationKey / 1800.0 * Math.PI);
+            animationKey = nextKey % SharedShape.Animations[0].FrameCount;
+            Turntable.YAngle = MathHelper.WrapAngle((float)(nextKey / SharedShape.Animations[0].FrameCount * MathHelper.TwoPi));
 
             if ((Turntable.Clockwise || Turntable.Counterclockwise || Turntable.AutoClockwise || Turntable.AutoCounterclockwise) && !Rotating)
             {
