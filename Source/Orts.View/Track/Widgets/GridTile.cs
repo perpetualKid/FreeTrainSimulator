@@ -1,11 +1,8 @@
 ﻿
-using System;
-
 using Microsoft.Xna.Framework;
 
 using Orts.Common.Position;
 using Orts.View.Track.Shapes;
-using Orts.View.Xna;
 
 namespace Orts.View.Track.Widgets
 {

@@ -71,15 +71,15 @@ namespace Orts.View.Track.Widgets
         }
     }
 
-    internal class RoadTrackSegment : TrackSegment
+    internal class RoadSegment : TrackSegment
     {
-        public RoadTrackSegment(TrackVectorSection trackVectorSection, TrackSection trackSection, uint trackNodeIndex) : base(trackVectorSection, trackSection, trackNodeIndex)
+        public RoadSegment(TrackVectorSection trackVectorSection, TrackSection trackSection, uint trackNodeIndex) : base(trackVectorSection, trackSection, trackNodeIndex)
         {
         }
 
         internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None)
         {
-            Color drawColor = GetColor<RoadTrackSegment>(colorVariation);
+            Color drawColor = GetColor<RoadSegment>(colorVariation);
             if (Curved)
                 BasicShapes.DrawArc(contentArea.WorldToScreenSize(Size), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Length), Direction, Angle, 0, contentArea.SpriteBatch);
             else

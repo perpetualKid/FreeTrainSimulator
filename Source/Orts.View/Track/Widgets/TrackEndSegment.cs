@@ -52,16 +52,16 @@ namespace Orts.View.Track.Widgets
         }
     }
 
-    internal class RoadTrackEndSegment : TrackEndSegment
+    internal class RoadEndSegment : TrackEndSegment
     {
-        public RoadTrackEndSegment(TrackEndNode trackEndNode, TrackVectorNode connectedVectorNode, TrackSections sections) : 
+        public RoadEndSegment(TrackEndNode trackEndNode, TrackVectorNode connectedVectorNode, TrackSections sections) : 
             base(trackEndNode, connectedVectorNode, sections)
         {
         }
 
         internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None)
         {
-            Color drawColor = GetColor<RoadTrackEndSegment>(colorVariation);
+            Color drawColor = GetColor<RoadEndSegment>(colorVariation);
             BasicShapes.DrawLine(contentArea.WorldToScreenSize(Size), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Length), Direction, contentArea.SpriteBatch);
         }
     }

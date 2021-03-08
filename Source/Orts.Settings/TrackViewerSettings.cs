@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 
+using Orts.Common;
 using Orts.Settings.Store;
 
 namespace Orts.Settings
@@ -83,6 +84,9 @@ namespace Orts.Settings
         
         [Default(false)] 
         public bool LoadRouteOnStart { get; set; }
+
+        [Default(TrackViewerViewSettings.All)]
+        public TrackViewerViewSettings ViewSettings { get; set; }
 #pragma warning restore CA1819 // Properties should not return arrays
         #endregion
 

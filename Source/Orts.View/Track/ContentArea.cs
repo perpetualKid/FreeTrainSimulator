@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
@@ -44,12 +45,20 @@ namespace Orts.View.Track
         private double previousScale;
         private PointD previousTopLeft, previousBottomRight;
         private int supressCount;
+        private TrackViewerViewSettings viewSettings;
 
 #pragma warning disable CA2213 // Disposable fields should be disposed
         private InputGameComponent inputComponent;
 #pragma warning restore CA2213 // Disposable fields should be disposed
 
-        public ContentArea(Game game, string routeName, TrackContent trackContent, EnumArray<string, ColorSetting> colorPreferences) :
+        #region nearest items
+        private GridTile nearestGridTile;
+        private TrackItemBase nearestTrackItem;
+        private TrackSegment nearestTrackSegment;
+        private RoadSegment nearesRoadSegment;
+        #endregion
+
+        public ContentArea(Game game, string routeName, TrackContent trackContent, EnumArray<string, ColorSetting> colorPreferences, TrackViewerViewSettings viewSettings) :
             base(game)
         {
             if (null == game)
@@ -70,11 +79,8 @@ namespace Orts.View.Track
             {
                 UpdateColor(setting, ColorExtension.FromName(colorPreferences[setting]));
             }
+            this.viewSettings = viewSettings;
         }
-
-        private GridTile nearest;
-        private TrackItemBase nearestTrackItem;
-        private TrackSegment nearestSegment;
 
         public void MouseMove(Point position, Vector2 delta)
         {
@@ -96,17 +102,17 @@ namespace Orts.View.Track
 
         private void FindNearestItems(PointD position)
         {
-            System.Collections.Generic.IEnumerable<ITileCoordinate<Tile>> result = TrackContent.Tiles.FindNearest(position, bottomLeft, topRight);
-            if (result.First() != nearest)
+            IEnumerable<ITileCoordinate<Tile>> result = TrackContent.Tiles.FindNearest(position, bottomLeft, topRight);
+            if (result.First() != nearestGridTile)
             {
-                nearest = result.First() as GridTile;
+                nearestGridTile = result.First() as GridTile;
             }
             if (Scale < 1)
             {
                 return;
             }
             double distance = double.MaxValue;
-            foreach (TrackItemBase trackItem in TrackContent.TrackItems[nearest.Tile])
+            foreach (TrackItemBase trackItem in TrackContent.TrackItems[nearestGridTile.Tile])
             {
                 double itemDistance = trackItem.Location.DistanceSquared(position);
                 if (itemDistance < distance)
@@ -116,12 +122,12 @@ namespace Orts.View.Track
                 }
             }
             distance = double.MaxValue;
-            foreach (TrackSegment trackSegment in TrackContent.TrackSegments[nearest.Tile])
+            foreach (TrackSegment trackSegment in TrackContent.TrackSegments[nearestGridTile.Tile])
             {
                 double itemDistance = position.DistanceToLineSegmentSquared(trackSegment.Location, trackSegment.Vector);
                 if (itemDistance < distance)
                 {
-                    nearestSegment = trackSegment;
+                    nearestTrackSegment = trackSegment;
                     distance = itemDistance;
                 }
             }
@@ -239,10 +245,10 @@ namespace Orts.View.Track
                     PointWidget.UpdateColor<LevelCrossingTrackItem>(color);
                     break;
                 case ColorSetting.RoadTrack:
-                    PointWidget.UpdateColor<RoadTrackSegment>(color);
+                    PointWidget.UpdateColor<RoadSegment>(color);
                     break;
                 case ColorSetting.RoadTrackEnd:
-                    PointWidget.UpdateColor<RoadTrackEndSegment>(color);
+                    PointWidget.UpdateColor<RoadEndSegment>(color);
                     break;
                 case ColorSetting.PlatformItem:
                     PointWidget.UpdateColor<PlatformTrackItem>(color);
@@ -254,6 +260,11 @@ namespace Orts.View.Track
                     PointWidget.UpdateColor<SpeedPostTrackItem>(color);
                     break;
             }
+        }
+
+        public void UpdateItemVisiblity(TrackViewerViewSettings viewSettings)
+        {
+            this.viewSettings = viewSettings;
         }
 
         private void CenterView()
@@ -279,7 +290,7 @@ namespace Orts.View.Track
         public override void Draw(GameTime gameTime)
         {
             spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied);
-            DrawTracks();
+            DrawContent();
             spriteBatch.End();
             base.Draw(gameTime);
         }
@@ -329,57 +340,84 @@ namespace Orts.View.Track
             return !outside;
         }
 
-        private void DrawTracks()
+        private void DrawContent()
         {
             int fontsize = MathHelper.Clamp((int)(25 * Scale), 1, 25);
             if (fontsize != (currentFont?.Size ?? 0))
                 currentFont = fontManager[fontsize];
             TrackItemBase.SetFont(currentFont);
 
-            foreach (TrackSegment segment in TrackContent.TrackSegments.BoundingBox(bottomLeft, topRight))
+            if ((viewSettings & TrackViewerViewSettings.Grid) == TrackViewerViewSettings.Grid)
             {
-                if (InsideScreenArea(segment))
-                    segment.Draw(this);
+                foreach (GridTile tile in TrackContent.Tiles.BoundingBox(bottomLeft, topRight))
+                {
+                    tile.Draw(this);
+                }
+                nearestGridTile?.Draw(this, ColorVariation.Complement);
             }
-            foreach (TrackEndSegment endNode in TrackContent.TrackEndSegments.BoundingBox(bottomLeft, topRight))
+            if ((viewSettings & TrackViewerViewSettings.Tracks) == TrackViewerViewSettings.Tracks)
             {
-                if (InsideScreenArea(endNode))
-                    endNode.Draw(this);
+                foreach (TrackSegment segment in TrackContent.TrackSegments.BoundingBox(bottomLeft, topRight))
+                {
+                    if (InsideScreenArea(segment))
+                        segment.Draw(this);
+                }
+                if (nearestTrackSegment != null)
+                {
+                    foreach (TrackSegment segment in TrackContent.TrackNodeSegments[nearestTrackSegment.TrackNodeIndex])
+                    {
+                        segment.Draw(this, ColorVariation.ComplementHighlight);
+                    }
+                    nearestTrackSegment.Draw(this, ColorVariation.Complement);
+                }
             }
-            foreach (JunctionSegment junctionNode in TrackContent.JunctionSegments.BoundingBox(bottomLeft, topRight))
+            if ((viewSettings & TrackViewerViewSettings.EndsNodes) == TrackViewerViewSettings.EndsNodes)
             {
-                if (InsideScreenArea(junctionNode))
-                    junctionNode.Draw(this);
+                foreach (TrackEndSegment endNode in TrackContent.TrackEndSegments.BoundingBox(bottomLeft, topRight))
+                {
+                    if (InsideScreenArea(endNode))
+                        endNode.Draw(this);
+                }
+            }
+            if ((viewSettings & TrackViewerViewSettings.JunctionNodes) == TrackViewerViewSettings.JunctionNodes)
+            {
+                foreach (JunctionSegment junctionNode in TrackContent.JunctionSegments.BoundingBox(bottomLeft, topRight))
+                {
+                    if (InsideScreenArea(junctionNode))
+                        junctionNode.Draw(this);
+                }
+            }
+            if ((viewSettings & TrackViewerViewSettings.Roads) == TrackViewerViewSettings.Roads)
+            {
+                foreach (RoadSegment segment in TrackContent.RoadSegments.BoundingBox(bottomLeft, topRight))
+                {
+                    if (InsideScreenArea(segment))
+                        segment.Draw(this);
+                }
+                if (nearesRoadSegment != null)
+                {
+                    foreach (RoadSegment segment in TrackContent.RoadTrackNodeSegments[nearesRoadSegment.TrackNodeIndex])
+                    {
+                        segment.Draw(this, ColorVariation.ComplementHighlight);
+                    }
+                    nearesRoadSegment.Draw(this, ColorVariation.Complement);
+                }
+            }
+            if ((viewSettings & TrackViewerViewSettings.RoadEndNodes) == TrackViewerViewSettings.RoadEndNodes)
+            {
+                foreach (RoadEndSegment endNode in TrackContent.RoadEndSegments.BoundingBox(bottomLeft, topRight))
+                {
+                    if (InsideScreenArea(endNode))
+                        endNode.Draw(this);
+                }
             }
             foreach (TrackItemBase trackItem in TrackContent.TrackItems.BoundingBox(bottomLeft, topRight))
             {
-                if (InsideScreenArea(trackItem))
+                if (trackItem.ShouldDraw(viewSettings) && InsideScreenArea(trackItem))
                     trackItem.Draw(this);
             }
-            foreach (GridTile tile in TrackContent.Tiles.BoundingBox(bottomLeft, topRight))
-            {
-                tile.Draw(this);
-            }
-            foreach (TrackSegment segment in TrackContent.RoadSegments.BoundingBox(bottomLeft, topRight))
-            {
-                if (InsideScreenArea(segment))
-                    segment.Draw(this);
-            }
-            foreach (TrackEndSegment endNode in TrackContent.RoadEndSegments.BoundingBox(bottomLeft, topRight))
-            {
-                if (InsideScreenArea(endNode))
-                    endNode.Draw(this);
-            }
-            nearest?.Draw(this, ColorVariation.Complement);
-            nearestTrackItem?.Draw(this, ColorVariation.Highlight);
-            if (nearestSegment != null)
-            {
-                foreach (TrackSegment segment in TrackContent.TrackNodeSegments[nearestSegment.TrackNodeIndex])
-                {
-                    segment.Draw(this, ColorVariation.ComplementHighlight);
-                }
-                nearestSegment.Draw(this, ColorVariation.Complement);
-            }
+            if (nearestTrackItem?.ShouldDraw(viewSettings) ?? false)
+                nearestTrackItem.Draw(this, ColorVariation.Highlight);
         }
 
         protected override void Dispose(bool disposing)

@@ -45,37 +45,9 @@ namespace Orts.View.Track.Widgets
             {
                 switch (trackItem)
                 {
-                    //case SidingItem sidingItem:
-                    //    SidingTrackItem trackSidingItem = new SidingTrackItem(sidingItem);
-                    //    sidingItems.Add(trackSidingItem.Id, trackSidingItem);
-                    //    break;
-                    //case PlatformItem platformItem:
-                    //    result.Add(new PlatformTrackItem(platformItem));
-                    //    break;
-                    //case SpeedPostItem speedPostItem:
-                    //    result.Add(new SpeedPostTrackItem(speedPostItem));
-                    //    break;
-                    //case HazardItem hazardItem:
-                    //    result.Add(new HazardTrackItem(hazardItem));
-                    //    break;
-                    //case PickupItem pickupItem:
-                    //    result.Add(new PickupTrackItem(pickupItem));
-                    //    break;
-                    //case LevelCrossingItem levelCrossingItem:
-                    //    result.Add(new LevelCrossingTrackItem(levelCrossingItem));
-                    //    break;
-                    //case RoadLevelCrossingItem roadLevelCrossingItem: // road level crossings are not really useful and no route seems to contain them, but we'll just treat them as LevelCrossings
-                    //    result.Add(new LevelCrossingTrackItem(roadLevelCrossingItem));
-                    //    break;
-                    //case SoundRegionItem soundRegionItem:
-                    //    result.Add(new SoundRegionTrackItem(soundRegionItem));
-                    //    break;
-                    //case SignalItem signalItem:
-                    //    result.Add(new SignalTrackItem(signalItem, signalConfig, trackItemNodes, trackNodeSegments));
-                    //    break;
-                    //case CrossoverItem crossOverItem:
-                    //    result.Add(new CrossOverTrackItem(crossOverItem));
-                    //    break;
+                    case RoadLevelCrossingItem roadLevelCrossingItem:
+                        result.Add(new LevelCrossingTrackItem(roadLevelCrossingItem));
+                        break;
                     case RoadCarSpawner carSpawner:
                         result.Add(new CarSpawnerTrackItem(carSpawner));
                         break;
@@ -161,6 +133,11 @@ namespace Orts.View.Track.Widgets
 
             return result;
         }
+
+        internal virtual bool ShouldDraw(TrackViewerViewSettings setting)
+        {
+            return true;
+        }
     }
     #endregion
 
@@ -177,6 +154,12 @@ namespace Orts.View.Track.Widgets
             Color drawColor = GetColor<CrossOverTrackItem>(colorVariation);
             BasicShapes.DrawTexture(BasicTextureType.Ring, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size), drawColor, contentArea.SpriteBatch);
         }
+
+        internal override bool ShouldDraw(TrackViewerViewSettings setting)
+        {
+            return (setting & TrackViewerViewSettings.CrossOvers) == TrackViewerViewSettings.CrossOvers;
+        }
+
     }
 
     #endregion
@@ -192,6 +175,11 @@ namespace Orts.View.Track.Widgets
         internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None)
         {
             BasicShapes.DrawTexture(BasicTextureType.CarSpawner, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size), false, false, colorVariation != ColorVariation.None, contentArea.SpriteBatch);
+        }
+
+        internal override bool ShouldDraw(TrackViewerViewSettings setting)
+        {
+            return (setting & TrackViewerViewSettings.CarSpawners) == TrackViewerViewSettings.CarSpawners;
         }
     }
 
@@ -210,6 +198,12 @@ namespace Orts.View.Track.Widgets
             Color drawColor = Color.Red;
             BasicShapes.DrawTexture(BasicTextureType.RingCrossed, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size), drawColor, contentArea.SpriteBatch);
         }
+
+        internal override bool ShouldDraw(TrackViewerViewSettings setting)
+        {
+            return false;
+        }
+
     }
 
     #endregion
@@ -221,6 +215,7 @@ namespace Orts.View.Track.Widgets
         internal readonly uint Id;
         private readonly uint linkedId;
         private bool drawName;
+        private bool shouldDrawName;
 
         public SidingTrackItem(SidingItem source) : base(source)
         {
@@ -235,8 +230,14 @@ namespace Orts.View.Track.Widgets
             Color fontColor = GetColor<SidingTrackItem>(colorVariation);
             Color drawColor = GetColor<SidingTrackItem>(colorVariation.Next().Next());
             BasicShapes.DrawTexture(BasicTextureType.Disc, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size), drawColor, contentArea.SpriteBatch);
-            if (drawName)
+            if (drawName && shouldDrawName)
                 TextDrawShape.DrawString(contentArea.WorldToScreenCoordinates(in location), fontColor, sidingName, font, Vector2.One, TextHorizontalAlignment.Left, TextVerticalAlignment.Top, SpriteEffects.None, contentArea.SpriteBatch);
+        }
+
+        internal override bool ShouldDraw(TrackViewerViewSettings setting)
+        {
+            shouldDrawName = (setting & TrackViewerViewSettings.SidingNames) == TrackViewerViewSettings.SidingNames;
+            return (setting & TrackViewerViewSettings.Sidings) == TrackViewerViewSettings.Sidings;
         }
 
         /// <summary>
@@ -278,11 +279,15 @@ namespace Orts.View.Track.Widgets
     internal class PlatformTrackItem : TrackItemBase
     {
         private readonly string platformName;
+        private readonly string stationName;
+        private bool shouldDrawName;
+        private bool shouldDrawStationName;
 
         public PlatformTrackItem(PlatformItem source) :
             base(source)
         {
             platformName = source.ItemName;
+            stationName = source.Station;
             Size = 7f;
         }
 
@@ -290,7 +295,17 @@ namespace Orts.View.Track.Widgets
         {
             Color fontColor = GetColor<PlatformTrackItem>(colorVariation);
             BasicShapes.DrawTexture(BasicTextureType.Platform, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size), false, false, colorVariation != ColorVariation.None, contentArea.SpriteBatch);
-            TextDrawShape.DrawString(contentArea.WorldToScreenCoordinates(in location), fontColor, platformName, font, Vector2.One, TextHorizontalAlignment.Left, TextVerticalAlignment.Top, SpriteEffects.None, contentArea.SpriteBatch);
+            if (shouldDrawName)
+                TextDrawShape.DrawString(contentArea.WorldToScreenCoordinates(in location), fontColor, platformName, font, Vector2.One, TextHorizontalAlignment.Left, TextVerticalAlignment.Top, SpriteEffects.None, contentArea.SpriteBatch);
+            if (shouldDrawStationName)
+                TextDrawShape.DrawString(contentArea.WorldToScreenCoordinates(in location), fontColor, stationName, font, Vector2.One, TextHorizontalAlignment.Left, TextVerticalAlignment.Bottom, SpriteEffects.None, contentArea.SpriteBatch);
+        }
+
+        internal override bool ShouldDraw(TrackViewerViewSettings setting)
+        {
+            shouldDrawName = (setting & TrackViewerViewSettings.PlatformNames) == TrackViewerViewSettings.PlatformNames;
+            shouldDrawStationName = (setting & TrackViewerViewSettings.PlatformStations) == TrackViewerViewSettings.PlatformStations;
+            return (setting & TrackViewerViewSettings.Platforms) == TrackViewerViewSettings.Platforms;
         }
     }
     #endregion
@@ -316,6 +331,12 @@ namespace Orts.View.Track.Widgets
             BasicShapes.DrawTexture(BasicTextureType.Disc, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size), drawColor, contentArea.SpriteBatch);
             TextDrawShape.DrawString(contentArea.WorldToScreenCoordinates(in location), fontColor, distance, font, Vector2.One, TextHorizontalAlignment.Center, TextVerticalAlignment.Center, SpriteEffects.None, contentArea.SpriteBatch);
         }
+
+        internal override bool ShouldDraw(TrackViewerViewSettings setting)
+        {
+            return milePost ? (setting & TrackViewerViewSettings.MilePosts) == TrackViewerViewSettings.MilePosts : (setting & TrackViewerViewSettings.SpeedPosts) == TrackViewerViewSettings.SpeedPosts;
+        }
+
     }
     #endregion
 
@@ -324,12 +345,17 @@ namespace Orts.View.Track.Widgets
     {
         public HazardTrackItem(HazardItem source) : base(source)
         {
-            Size = 9f;
+            Size = 7f;
         }
 
         internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None)
         {
             BasicShapes.DrawTexture(BasicTextureType.Hazard, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size), false, false, colorVariation != ColorVariation.None, contentArea.SpriteBatch);
+        }
+
+        internal override bool ShouldDraw(TrackViewerViewSettings setting)
+        {
+            return (setting & TrackViewerViewSettings.Hazards) == TrackViewerViewSettings.Hazards;
         }
     }
     #endregion
@@ -339,12 +365,17 @@ namespace Orts.View.Track.Widgets
     {
         public PickupTrackItem(PickupItem source) : base(source)
         {
-            Size = 9f;
+            Size = 7f;
         }
 
         internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None)
         {
             BasicShapes.DrawTexture(BasicTextureType.Pickup, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size), false, false, colorVariation != ColorVariation.None, contentArea.SpriteBatch);
+        }
+
+        internal override bool ShouldDraw(TrackViewerViewSettings setting)
+        {
+            return (setting & TrackViewerViewSettings.Pickups) == TrackViewerViewSettings.Pickups;
         }
     }
     #endregion
@@ -352,6 +383,8 @@ namespace Orts.View.Track.Widgets
     #region LevelCrossingTrackItem
     internal class LevelCrossingTrackItem : TrackItemBase
     {
+        private readonly bool roadLevelCrossing;
+         
         public LevelCrossingTrackItem(LevelCrossingItem source) : base(source)
         {
             Size = 5f;
@@ -359,6 +392,7 @@ namespace Orts.View.Track.Widgets
 
         public LevelCrossingTrackItem(RoadLevelCrossingItem source) : base(source)
         {
+            roadLevelCrossing = true;
             Size = 5f;
         }
 
@@ -366,6 +400,12 @@ namespace Orts.View.Track.Widgets
         {
             BasicShapes.DrawTexture(BasicTextureType.LevelCrossing, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size), false, false, colorVariation != ColorVariation.None, contentArea.SpriteBatch);
         }
+
+        internal override bool ShouldDraw(TrackViewerViewSettings setting)
+        {
+            return roadLevelCrossing ? (setting & TrackViewerViewSettings.RoadCrossings) == TrackViewerViewSettings.RoadCrossings : (setting & TrackViewerViewSettings.LevelCrossings) == TrackViewerViewSettings.LevelCrossings;
+        }
+
     }
     #endregion
 
@@ -381,6 +421,12 @@ namespace Orts.View.Track.Widgets
         {
             BasicShapes.DrawTexture(BasicTextureType.Sound, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size), false, false, colorVariation != ColorVariation.None, contentArea.SpriteBatch);
         }
+
+        internal override bool ShouldDraw(TrackViewerViewSettings setting)
+        {
+            return (setting & TrackViewerViewSettings.SoundRegions) == TrackViewerViewSettings.SoundRegions;
+        }
+
     }
     #endregion
 
@@ -397,7 +443,6 @@ namespace Orts.View.Track.Widgets
             {
                 normal = signalConfig.SignalTypes[source.SignalType].FunctionType == SignalFunction.Normal;
             }
-
 
             PointD sourcelocation = PointD.FromWorldLocation(source.Location);
             double closest = double.MaxValue;
@@ -430,6 +475,11 @@ namespace Orts.View.Track.Widgets
         internal override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None)
         {
             BasicShapes.DrawTexture(BasicTextureType.Signal, contentArea.WorldToScreenCoordinates(in Location), angle, contentArea.WorldToScreenSize(Size), false, false, colorVariation != ColorVariation.None, contentArea.SpriteBatch);
+        }
+
+        internal override bool ShouldDraw(TrackViewerViewSettings setting)
+        {
+            return normal ? (setting & TrackViewerViewSettings.Signals) == TrackViewerViewSettings.Signals : (setting & TrackViewerViewSettings.OtherSignals) == TrackViewerViewSettings.OtherSignals;
         }
     }
     #endregion

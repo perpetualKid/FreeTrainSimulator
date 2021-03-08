@@ -59,7 +59,7 @@ namespace Orts.TrackViewer
 
             TrackContent content = new TrackContent(trackData.TrackDB, trackData.RoadTrackDB, trackData.TrackSections, trackData.SignalConfig, trackData.UseMetricUnits);
             await content.Initialize().ConfigureAwait(false);
-            ContentArea = new ContentArea(this, route.Name, content, colorPreferences);
+            ContentArea = new ContentArea(this, route.Name, content, colorPreferences, viewSettings);
             StatusMessage = null;
             selectedRoute = route;
         }

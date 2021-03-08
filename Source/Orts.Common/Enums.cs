@@ -79,7 +79,7 @@ namespace Orts.Common
     }
 
     //Time, Train Speed, Max Speed, Signal Aspect, Elevation, Direction, Distance Travelled, Control Mode, Throttle, Brake, Dyn Brake, Gear
-    [Flags]
+    [ Flags]
     public enum EvaluationLogContents
     {
         [Description("None")] None = 0,
@@ -131,7 +131,7 @@ namespace Orts.Common
     }
 
     public enum SwitchDirection
-    { 
+    {
         Facing,
         Trailing,
     }
@@ -216,7 +216,7 @@ namespace Orts.Common
         Handbrake,
         Retainers,
         BrakeHose,
-        QuickRelease, 
+        QuickRelease,
         Overcharge,
         // Cab Devices
         Sander,
@@ -733,5 +733,38 @@ namespace Orts.Common
         [Description("Easy")] Easy = 0,
         [Description("Medium")] Medium,
         [Description("Hard")] Hard
+    }
+
+    [Flags]
+    public enum TrackViewerViewSettings
+    {
+        None            = 0x0,
+        Tracks          = 0x1 << 0,
+        EndsNodes       = 0x1 << 1,
+        JunctionNodes   = 0x1 << 2,
+        LevelCrossings  = 0x1 << 3,
+        CrossOvers      = 0x1 << 4,
+        Roads           = 0x1 << 5,
+        RoadEndNodes    = 0x1 << 6,
+        RoadCrossings   = 0x1 << 7,
+        CarSpawners     = 0x1 << 8,
+        Sidings         = 0x1 << 9,
+        SidingNames     = 0x1 << 10,
+        Platforms       = 0x1 << 11,
+        PlatformNames   = 0x1 << 12,
+        PlatformStations = 0x1 << 13,
+        SpeedPosts      = 0x1 << 14,
+        MilePosts       = 0x1 << 15,
+        Signals         = 0x1 << 16,
+        OtherSignals    = 0x1 << 17,
+        Hazards         = 0x1 << 18,
+        Pickups         = 0x1 << 19,
+        SoundRegions    = 0x1 << 20,
+        Grid            = 0x1 << 21,
+
+        AllTracks = Tracks | EndsNodes | JunctionNodes | LevelCrossings | CrossOvers,
+        AllRoads = Roads | RoadEndNodes | RoadCrossings | CarSpawners,
+        AllTrackItems = Sidings | SidingNames | Platforms | PlatformNames | PlatformStations | SpeedPosts | MilePosts | Signals | OtherSignals | Hazards | Pickups | SoundRegions,
+        All = AllTracks | AllRoads | AllTrackItems | Grid
     }
 }

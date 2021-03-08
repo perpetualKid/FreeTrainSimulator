@@ -77,6 +77,7 @@ namespace Orts.TrackViewer
 
         #region preferences
         private readonly EnumArray<string, ColorSetting> colorPreferences = new EnumArray<string, ColorSetting>();
+        private TrackViewerViewSettings viewSettings;
 
         #endregion
 
@@ -183,13 +184,17 @@ namespace Orts.TrackViewer
         {
             colorPreferences[setting] = colorName;
             contentArea?.UpdateColor(setting, ColorExtension.FromName(colorName));
-            switch (setting)
+            if (setting == ColorSetting.Background)
             {
-                case ColorSetting.Background: 
-                    backgroundColor = colorName;
-                    BackgroundColor = ColorExtension.FromName(colorName);
-                    break;
+                backgroundColor = colorName;
+                BackgroundColor = ColorExtension.FromName(colorName);
             }
+        }
+
+        internal void UpdateItemVisibilityPreference(TrackViewerViewSettings setting, bool enabled)
+        {
+            viewSettings = enabled ? viewSettings | setting : viewSettings & ~setting;
+            contentArea?.UpdateItemVisiblity(viewSettings);
         }
 
         internal void UpdateLanguagePreference(string language)
@@ -220,6 +225,7 @@ namespace Orts.TrackViewer
             colorPreferences[ColorSetting.PickupItem] = Settings.TrackViewer.ColorPickupItem;
             colorPreferences[ColorSetting.SoundRegionItem] = Settings.TrackViewer.ColorSoundRegionItem;
             BackgroundColor = ColorExtension.FromName(colorPreferences[ColorSetting.Background]);
+            viewSettings = Settings.TrackViewer.ViewSettings;
 
         }
 
@@ -245,6 +251,7 @@ namespace Orts.TrackViewer
             Settings.TrackViewer.ColorHazardItem = colorPreferences[ColorSetting.HazardItem];
             Settings.TrackViewer.ColorPickupItem = colorPreferences[ColorSetting.PickupItem];
             Settings.TrackViewer.ColorSoundRegionItem = colorPreferences[ColorSetting.SoundRegionItem];
+            Settings.TrackViewer.ViewSettings = viewSettings;
 
             string[] routeSelection = null;
             if (selectedFolder != null)
