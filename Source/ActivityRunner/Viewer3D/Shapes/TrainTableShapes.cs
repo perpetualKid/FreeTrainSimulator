@@ -89,6 +89,8 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                 nextKey = animationKey + moveFrames;
             }
             animationKey = nextKey % SharedShape.Animations[0].FrameCount;
+            if (animationKey < 0)
+                animationKey += SharedShape.Animations[0].FrameCount;
             Turntable.YAngle = MathHelper.WrapAngle((float)(nextKey / SharedShape.Animations[0].FrameCount * MathHelper.TwoPi));
 
             if ((Turntable.Clockwise || Turntable.Counterclockwise || Turntable.AutoClockwise || Turntable.AutoCounterclockwise) && !Rotating)
