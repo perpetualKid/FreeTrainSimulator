@@ -406,7 +406,7 @@ namespace Orts.Simulation.Signalling
         {
 
             //  Determine the number of signals in the track Objects list
-            int signalCount = trackItems.Where(item => item is SignalItem || (item is SpeedPostItem speedPost && speedPost.IsLimit)).Count();
+            int signalCount = (trackItems ?? Enumerable.Empty<TrackItem>()).Where(item => item is SignalItem || (item is SpeedPostItem speedPost && speedPost.IsLimit)).Count();
 
             // set general items and create sections
             Signals = new List<Signal>(signalCount);
