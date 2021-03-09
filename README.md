@@ -19,12 +19,12 @@ To report bugs or other issues, use the [Issue Tracker](https://github.com/perpe
 Anyone is welcome to contribute, and this is not limited to programmers writing code. There are many areas which would benefit from a wide range of skills, experience or purely passion, such as improvements to visual designs, documentation and translations, support with project management and feature planning, software architecture and design, or research for new technologies and frameworks. Check the contribution guidelines for further details, submit change proposals through [pull requests](https://github.com/perpetualKid/ORTS-MG/pulls), or introduce your thoughts for contribution in a [Discussion](https://github.com/perpetualKid/ORTS-MG/discussions).
 
 
-## Installatiion Requirements
+## Installation Requirements
 
-Assuming you are running on Windows 10 with recent patch status (version 1809 or higher), there are no separate downloads needed, as pre-requisites such as DirectX and .NET Framework 4.8 are already part of the OS. This also applies to fully patched Windows 7 SP1. You will need to have an DirectX 11.0 compatible graphics adapter (GPU).
+Assuming you are running on Windows 10 with recent patch status (version 1809 or higher), there are no separate downloads needed, all pre-requisites such as DirectX and .NET Framework 4.8 are already part of the OS. Same also applies to fully patched Windows 7 SP1. You will need to have an DirectX 11.0 compatible graphics adapter (GPU).
 
 *****
-As of [February 2021 and version 1.3.6-ci.9](https://github.com/perpetualKid/ORTS-MG/wiki#2021-02-15-version-136-ci9), we are preparing to move to .NET Core 3.1 framrework, and the launcher will show a message about that. While current versions still are available for .NET framework 4.8, please [install .NET Core 3.1](https://dotnet.microsoft.com/download/dotnet/3.1/runtime) to support future upgrades     
+As of [February 2021 and version 1.3.6-ci.9](https://github.com/perpetualKid/ORTS-MG/wiki#2021-02-15-version-136-ci9), we are preparing to move to .NET Core 3.1 framrework, and the launcher will show a message about that. While current versions still are available for .NET framework 4.8, please [install .NET Core 3.1](https://dotnet.microsoft.com/download/dotnet/3.1/runtime) to support future upgrades.     
 *****
 
 If you are on an older or unsupported OS version, you may need to download and install some prerequisites manually:
