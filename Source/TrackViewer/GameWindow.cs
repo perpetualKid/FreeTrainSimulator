@@ -55,7 +55,7 @@ namespace Orts.TrackViewer
                     value.ResetSize(Window.ClientBounds.Size, 60);
                     Components.Add(value);
                     value.Enabled = true;
-                    Window.Title = windowTitle + catalog.GetString($" Route: {value.RouteName}");
+                    Window.Title = windowTitle + Catalog.GetString($" Route: {value.RouteName}");
                 }
                 else
                 {
@@ -81,8 +81,8 @@ namespace Orts.TrackViewer
 
         #endregion
 
-        private Catalog catalog;
-        private Catalog commonCatalog;
+        internal Catalog Catalog { get; private set; }
+        internal Catalog CommonCatalog { get; private set; }
         private readonly ObjectPropertiesStore store = new ObjectPropertiesStore();
         private readonly string windowTitle
 ;
@@ -288,9 +288,9 @@ namespace Orts.TrackViewer
             {
                 CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InstalledUICulture;
             }
-            catalog = new Catalog("TrackViewer", RuntimeInfo.LocalesFolder);
-            commonCatalog = new Catalog("Orts.Common", RuntimeInfo.LocalesFolder);
-            Localizer.Localize(windowForm, catalog, store);
+            Catalog = new Catalog("TrackViewer", RuntimeInfo.LocalesFolder);
+            CommonCatalog = new Catalog("Orts.Common", RuntimeInfo.LocalesFolder);
+            Localizer.Localize(windowForm, Catalog, store);
         }
 
         private void GraphicsPreparingDeviceSettings(object sender, PreparingDeviceSettingsEventArgs e)

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Windows.Forms;
 
 using Orts.Common;
@@ -284,6 +285,28 @@ namespace Orts.TrackViewer.WinForms.Controls
                 }
 
             }
+        }
+
+        private void DocumentationToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            string website = "https://github.com/perpetualKid/ORTS-MG/wiki";
+            StringBuilder documentation = new StringBuilder();
+            documentation.AppendLine(parent.Catalog.GetString($"Documentation for {RuntimeInfo.ApplicationName} is available online at:"));
+            documentation.AppendLine(website);
+            documentation.AppendLine();
+            documentation.AppendLine(parent.Catalog.GetString("Do you want to go to the website?"));
+            documentation.AppendLine();
+            DialogResult result = MessageBox.Show(documentation.ToString(), $"{RuntimeInfo.ApplicationName}", MessageBoxButtons.OKCancel);
+            if (result == DialogResult.OK)
+            {
+                SystemInfo.OpenBrowser(website);
+            }
+
+        }
+
+        private void AboutToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show($"{RuntimeInfo.ApplicationName} {VersionInfo.FullVersion}", $"{RuntimeInfo.ApplicationName}");
         }
     }
 }
