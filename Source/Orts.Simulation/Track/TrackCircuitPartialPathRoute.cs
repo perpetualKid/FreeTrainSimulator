@@ -154,7 +154,7 @@ namespace Orts.Simulation.Track
 
         private void ReIndex()
         {
-            items = list.Select((i, Index) => (i.TrackCircuitSection.Index, Index)).ToDictionary(pair => pair.Item1, pair => pair.Item2);
+            items = list.Where(i => i.TrackCircuitSection.Index > -1).Select((i, Index) => (i.TrackCircuitSection.Index, Index)).ToDictionary(pair => pair.Item1, pair => pair.Item2);
         }
 
         /// <summary>
@@ -280,7 +280,7 @@ namespace Orts.Simulation.Track
         {
             if(routeDirections == null)
             {
-                routeDirections = list.ToDictionary(item => item.TrackCircuitSection.Index, item => item.Direction);
+                routeDirections = list.Where(i => i.TrackCircuitSection.Index > -1).ToDictionary(item => item.TrackCircuitSection.Index, item => item.Direction);
             }
             return routeDirections;
         }

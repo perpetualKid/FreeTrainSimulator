@@ -27,8 +27,8 @@ namespace Orts.Simulation.Track
         public int ActiveSubPath { get; set; }
         public int ActiveAlternativePath { get; set; }
         public List<int[]> WaitingPoints { get; } = new List<int[]>(); // [0] = sublist in which WP is placed; 
-                                                              // [1] = WP section; [2] = WP wait time (delta); [3] = WP depart time;
-                                                              // [4] = hold signal
+                                                                       // [1] = WP section; [2] = WP wait time (delta); [3] = WP depart time;
+                                                                       // [4] = hold signal
         public List<TrackCircuitReversalInfo> ReversalInfo { get; } = new List<TrackCircuitReversalInfo>();
         public List<RoughReversalInfo> RoughReversalInfos { get; } = new List<RoughReversalInfo>();
         public List<int> LoopEnd { get; } = new List<int>();
@@ -770,7 +770,7 @@ namespace Orts.Simulation.Track
                 prevDivergeSectorIndex = reversalInfo.Valid ? reversalInfo.FirstDivergeIndex : -1;
             }
             ReversalInfo.Add(new TrackCircuitReversalInfo());  // add invalid item to make up the numbers (equals no. subpaths)
-                                                     // Insert data for end route offset
+                                                               // Insert data for end route offset
             ReversalInfo[ReversalInfo.Count - 1].ReverseReversalOffset = RoughReversalInfos[RoughReversalInfos.Count - 1].ReverseReversalOffset;
             ReversalInfo[ReversalInfo.Count - 1].ReversalIndex = RoughReversalInfos[RoughReversalInfos.Count - 1].SubPathIndex;
             ReversalInfo[ReversalInfo.Count - 1].ReversalSectionIndex = RoughReversalInfos[RoughReversalInfos.Count - 1].ReversalSectionIndex;
@@ -783,7 +783,7 @@ namespace Orts.Simulation.Track
             if (Simulator.Instance.Settings.UseLocationPassingPaths)
             {
                 ProcessAlternativePathLocationDef(alternativeRoutes, aiPath, trainNumber);
-                if (trainNumber >= 0) 
+                if (trainNumber >= 0)
                     SearchPassingPaths(trainNumber, thisTrainLength);
             }
             else
@@ -1623,13 +1623,11 @@ namespace Orts.Simulation.Track
 
                     // create dummy reversal lists
                     // shift waiting points and reversal lists
-
-                    TrackCircuitReversalInfo dummyReversal = new TrackCircuitReversalInfo(null, -1, null,
-                        partialRoute[partialRoute.Count - 1].TrackCircuitSection.Length, partialRoute.Count - 1, partialRoute[partialRoute.Count - 1].TrackCircuitSection.Index)
+                    TrackCircuitReversalInfo dummyReversal = new TrackCircuitReversalInfo()
                     {
-                        //ReversalSectionIndex = partialRoute[partialRoute.Count - 1].TrackCircuitSection.Index,
-                        //ReversalIndex = partialRoute.Count - 1
-                        //ReverseReversalOffset = partialRoute[partialRoute.Count - 1].TrackCircuitSection.Length;
+                        ReversalSectionIndex = partialRoute[partialRoute.Count - 1].TrackCircuitSection.Index,
+                        ReversalIndex = partialRoute.Count - 1,
+                        ReverseReversalOffset = partialRoute[partialRoute.Count - 1].TrackCircuitSection.Length
                     };
 
                     ReversalInfo.Insert(i, dummyReversal);
