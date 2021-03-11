@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 using Orts.Common;
 using Orts.Simulation.AIs;
@@ -290,7 +291,7 @@ namespace Orts.Simulation.Physics
                 if (otherTrain.Number != number && otherTrain.TrainType != TrainType.Static)
                 {
                     TrackCircuitPartialPathRoute otherRoute = otherTrain.ValidRoute[0];
-                    Dictionary<int, TrackDirection> otherRouteDict = otherRoute.ConvertRoute();
+                    ILookup<int, TrackDirection> otherRouteDict = otherRoute.ConvertRoute();
 
                     for (int i = 0; i < route.Count; i++)
                     {
@@ -300,9 +301,9 @@ namespace Orts.Simulation.Physics
 
                         if (section.CircuitType != TrackCircuitType.Crossover)
                         {
-                            if (otherRouteDict.ContainsKey(section.Index))
+                            if (otherRouteDict.Contains(section.Index))
                             {
-                                TrackDirection otherTrainDirection = otherRouteDict[section.Index];
+                                TrackDirection otherTrainDirection = otherRouteDict[section.Index].First();
                                 //<CSComment> Right part of OR clause refers to initial placement with trains back-to-back and running away one from the other</CSComment>
                                 if (otherTrainDirection == sectionDirection ||
                                     (PresentPosition[Direction.Backward].TrackCircuitSectionIndex == otherTrain.PresentPosition[Direction.Backward].TrackCircuitSectionIndex && section.Index == PresentPosition[Direction.Backward].TrackCircuitSectionIndex &&
