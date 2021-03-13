@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -38,14 +39,32 @@ namespace Orts.TrackViewer
             RouteName = routeFile.Route.Name;
             UseMetricUnits = useMetricUnits.GetValueOrDefault(routeFile.Route.MilepostUnitsMetric);
 
-            loadTasks.Add(Task.Run(() => TrackDB = new TrackDatabaseFile(routeFolder.TrackDatabaseFile(routeFile)).TrackDB));
+            loadTasks.Add(Task.Run(() =>
+            {
+                string tdbFile = routeFolder.TrackDatabaseFile(routeFile);
+                if (!File.Exists(tdbFile))
+                {
+                    Trace.TraceError($"Track Database File not found in {tdbFile}");
+                    return;
+                }
+                TrackDB = new TrackDatabaseFile(tdbFile).TrackDB;
+            }));
             loadTasks.Add(Task.Run(() =>
             {
                 TrackSections = new TrackSectionsFile(routeFolder.TrackSectionFile);
                 if (File.Exists(routeFolder.RouteTrackSectionFile))
                     TrackSections.AddRouteTSectionDatFile(routeFolder.RouteTrackSectionFile);
             }));
-            loadTasks.Add(Task.Run(() => RoadTrackDB = new RoadDatabaseFile(routeFolder.RoadTrackDatabaseFile(routeFile)).RoadTrackDB));
+            loadTasks.Add(Task.Run(() =>
+            {
+                string rdbFile = routeFolder.RoadTrackDatabaseFile(routeFile);
+                if (!File.Exists(rdbFile))
+                {
+                    Trace.TraceError($"Road Database File not found in {rdbFile}");
+                    return;
+                }
+                RoadTrackDB = new RoadDatabaseFile(rdbFile).RoadTrackDB;
+            }));
             loadTasks.Add(Task.Run(() => SignalConfig = new SignalConfigurationFile(routeFolder.SignalConfigurationFile, routeFolder.ORSignalConfigFile)));
 
             await Task.WhenAll(loadTasks).ConfigureAwait(false);

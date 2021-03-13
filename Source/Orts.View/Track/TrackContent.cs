@@ -71,7 +71,7 @@ namespace Orts.View.Track
             List<JunctionSegment> junctionSegments = new List<JunctionSegment>();
             List<TrackSegment> roadSegments = new List<TrackSegment>();
             List<TrackEndSegment> roadEndSegments = new List<TrackEndSegment>();
-            foreach (TrackNode trackNode in trackDB.TrackNodes ?? Enumerable.Empty<TrackNode>())
+            foreach (TrackNode trackNode in trackDB?.TrackNodes ?? Enumerable.Empty<TrackNode>())
             {
                 switch (trackNode)
                 {
@@ -105,7 +105,7 @@ namespace Orts.View.Track
             TrackEndSegments = new TileIndexedList<TrackEndSegment, Tile>(endSegments);
             TrackNodeSegments = trackSegments.GroupBy(t => t.TrackNodeIndex).ToDictionary(i => i.Key, i => i.ToList());
 
-            foreach (TrackNode trackNode in roadTrackDB.TrackNodes ?? Enumerable.Empty<TrackNode>())
+            foreach (TrackNode trackNode in roadTrackDB?.TrackNodes ?? Enumerable.Empty<TrackNode>())
             {
                 switch (trackNode)
                 {
@@ -165,7 +165,7 @@ namespace Orts.View.Track
 
         private void AddTrackItems()
         {
-            TrackItems = new TileIndexedList<TrackItemBase, Tile>(TrackItemBase.Create(trackDB.TrackItems, SignalConfigFile, trackDB, TrackNodeSegments).Concat(TrackItemBase.Create(roadTrackDB.TrItemTable)));
+            TrackItems = new TileIndexedList<TrackItemBase, Tile>(TrackItemBase.Create(trackDB?.TrackItems, SignalConfigFile, trackDB, TrackNodeSegments).Concat(TrackItemBase.Create(roadTrackDB?.TrItemTable)));
         }
     }
 }

@@ -39,6 +39,8 @@ namespace Orts.View.Track.Widgets
         public static List<TrackItemBase> Create(TrackItem[] trackItems)
         {
             List<TrackItemBase> result = new List<TrackItemBase>();
+            if (trackItems == null)
+                return result;
             Dictionary<uint, SidingTrackItem> sidingItems = new Dictionary<uint, SidingTrackItem>();
 
             foreach (TrackItem trackItem in trackItems ?? Enumerable.Empty<TrackItem>())
@@ -68,6 +70,8 @@ namespace Orts.View.Track.Widgets
         public static List<TrackItemBase> Create(TrackItem[] trackItems, SignalConfigurationFile signalConfig, TrackDB trackDb, Dictionary<uint, List<TrackSegment>> trackNodeSegments)
         {
             List<TrackItemBase> result = new List<TrackItemBase>();
+            if (trackItems == null)
+                return result;
             Dictionary<uint, SidingTrackItem> sidingItems = new Dictionary<uint, SidingTrackItem>();
 
             TrackVectorNode[] trackItemNodes = new TrackVectorNode[trackItems.Length];

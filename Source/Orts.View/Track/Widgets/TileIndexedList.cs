@@ -65,7 +65,7 @@ namespace Orts.View.Track.Widgets
         public IEnumerable<ITileCoordinate<T>> BoundingBox(ITile bottomLeft, ITile topRight)
         {
             if (bottomLeft.CompareTo(topRight) > 0)
-                throw new ArgumentOutOfRangeException($"{nameof(bottomLeft)} can not be larger than {nameof(topRight)}");
+                throw new ArgumentOutOfRangeException(nameof(bottomLeft), $"{nameof(bottomLeft)} can not be larger than {nameof(topRight)}");
 
             if (sortedIndexes.Count == 0)
                 yield break;

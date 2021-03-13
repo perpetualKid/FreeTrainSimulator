@@ -185,6 +185,10 @@ namespace Orts.View.Track
             SetBounds();
         }
 
+        public void UpdateScale(int steps)
+        {
+            UpdateScaleAt( new Vector2(WindowSize.X / 2, WindowSize.Y / 2), steps);
+        }
 
         public void UpdatePosition(in Vector2 delta)
         {

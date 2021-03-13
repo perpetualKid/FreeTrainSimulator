@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing.Text;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
@@ -64,7 +63,7 @@ namespace Orts.View.Xna
         public delegate void MouseMoveEvent(Point position, Vector2 delta);
         public delegate void MouseButtonEvent(Point position);
         public delegate void MouseWheelEvent(Point position, int delta);
-        public delegate void KeyEvent();
+        public delegate void KeyEvent(Keys key, KeyModifiers modifiers);
 
         private const int keyPressShift = 8;
         private const int keyDownShift = 13;
@@ -109,8 +108,8 @@ namespace Orts.View.Xna
                 default:
                     throw new NotSupportedException();
             }
-            if (keyEvents.TryGetValue(lookupCode, out KeyEvent keyEvent))
-                keyEvent += eventHandler;
+            if (keyEvents.ContainsKey(lookupCode))
+                keyEvents[lookupCode] += eventHandler;
             else
                 keyEvents[lookupCode] = eventHandler;
         }
@@ -132,8 +131,8 @@ namespace Orts.View.Xna
                 default:
                     throw new NotSupportedException();
             }
-            if (keyEvents.TryGetValue(lookupCode, out KeyEvent keyEvent))
-                keyEvent -= eventHandler;
+            if (keyEvents.ContainsKey(lookupCode))
+                keyEvents[lookupCode] -= eventHandler;
         }
 
         public void AddMouseEvent(MouseMovedEventType mouseEventType, MouseMoveEvent eventHandler)
@@ -197,14 +196,13 @@ namespace Orts.View.Xna
                     //if (key == Keys.LeftShift || key == Keys.RightShift || key == Keys.LeftControl || key == Keys.RightControl || key == Keys.LeftAlt || key == Keys.RightAlt)
                     if ((int)key > 159 && (int)key < 166)
                         continue;
-                    Debug.WriteLine($"{key} - {modifiers}", Game.Window.Title);
                     if (previousKeyboardState.IsKeyDown(key) && (modifiers == previousModifiers))
                     {
                         // Key (still) down
                         int lookup = (int)key << keyDownShift ^ (int)modifiers;
                         if (keyEvents.TryGetValue(lookup, out KeyEvent eventHandler))
                         {
-                            eventHandler.Invoke();
+                            eventHandler.Invoke(key, modifiers);
                         }
                     }
                     if (previousKeyboardState.IsKeyDown(key) && (modifiers != previousModifiers))
@@ -213,7 +211,7 @@ namespace Orts.View.Xna
                         int lookup = (int)key << keyUpShift ^ (int)modifiers;
                         if (keyEvents.TryGetValue(lookup, out KeyEvent eventHandler))
                         {
-                            eventHandler.Invoke();
+                            eventHandler.Invoke(key, modifiers);
                         }
                     }
                     if (!previousKeyboardState.IsKeyDown(key) || (modifiers != previousModifiers))
@@ -222,7 +220,7 @@ namespace Orts.View.Xna
                         int lookup = (int)key << keyPressShift ^ (int)modifiers;
                         if (keyEvents.TryGetValue(lookup, out KeyEvent eventHandler))
                         {
-                            eventHandler.Invoke();
+                            eventHandler.Invoke(key, modifiers);
                         }
                     }
                     int previousIndex = Array.IndexOf(previousKeys, key);//not  great, but considering this is mostly very few (<5) acceptable
@@ -240,7 +238,7 @@ namespace Orts.View.Xna
                     int lookup = (int)key << keyUpShift ^ (int)modifiers;
                     if (keyEvents.TryGetValue(lookup, out KeyEvent eventHandler))
                     {
-                        eventHandler.Invoke();
+                        eventHandler.Invoke(key, modifiers);
                     }
                 }
                 previousModifiers = modifiers;

@@ -355,17 +355,31 @@ namespace Orts.TrackViewer
 
             InputGameComponent inputComponent = new InputGameComponent(this);
             Components.Add(inputComponent);
-            inputComponent.AddKeyEvent(Keys.F, KeyModifiers.None, InputGameComponent.KeyEventType.KeyPressed, () => new Thread(GameWindowThread).Start());
-            inputComponent.AddKeyEvent(Keys.Space, KeyModifiers.None, InputGameComponent.KeyEventType.KeyPressed, ChangeScreenMode);
+            inputComponent.AddKeyEvent(Keys.F, KeyModifiers.None, InputGameComponent.KeyEventType.KeyPressed, (keys, modifiers) => new Thread(GameWindowThread).Start());
+            inputComponent.AddKeyEvent(Keys.Enter, KeyModifiers.Shift, InputGameComponent.KeyEventType.KeyPressed, ChangeScreenMode);
             inputComponent.AddKeyEvent(Keys.Q, KeyModifiers.None, InputGameComponent.KeyEventType.KeyPressed, CloseWindow);
             inputComponent.AddKeyEvent(Keys.F4, KeyModifiers.Alt, InputGameComponent.KeyEventType.KeyPressed, ExitApplication);
+            inputComponent.AddKeyEvent(Keys.Left, KeyModifiers.None, InputGameComponent.KeyEventType.KeyDown, MoveByKey);
+            inputComponent.AddKeyEvent(Keys.Right, KeyModifiers.None, InputGameComponent.KeyEventType.KeyDown, MoveByKey);
+            inputComponent.AddKeyEvent(Keys.Up, KeyModifiers.None, InputGameComponent.KeyEventType.KeyDown, MoveByKey);
+            inputComponent.AddKeyEvent(Keys.Down, KeyModifiers.None, InputGameComponent.KeyEventType.KeyDown, MoveByKey);
+            inputComponent.AddKeyEvent(Keys.Left, KeyModifiers.Control, InputGameComponent.KeyEventType.KeyDown, MoveByKey);
+            inputComponent.AddKeyEvent(Keys.Right, KeyModifiers.Control, InputGameComponent.KeyEventType.KeyDown, MoveByKey);
+            inputComponent.AddKeyEvent(Keys.Up, KeyModifiers.Control, InputGameComponent.KeyEventType.KeyDown, MoveByKey);
+            inputComponent.AddKeyEvent(Keys.Down, KeyModifiers.Control, InputGameComponent.KeyEventType.KeyDown, MoveByKey);
+            inputComponent.AddKeyEvent(Keys.OemPlus, KeyModifiers.None, InputGameComponent.KeyEventType.KeyDown, ZoomIn);
+            inputComponent.AddKeyEvent(Keys.PageUp, KeyModifiers.None, InputGameComponent.KeyEventType.KeyDown, ZoomIn);
+            inputComponent.AddKeyEvent(Keys.OemMinus, KeyModifiers.None, InputGameComponent.KeyEventType.KeyDown, ZoomOut);
+            inputComponent.AddKeyEvent(Keys.PageDown, KeyModifiers.None, InputGameComponent.KeyEventType.KeyDown, ZoomOut);
+            inputComponent.AddKeyEvent(Keys.R, KeyModifiers.None, InputGameComponent.KeyEventType.KeyPressed, ResetZoomAndLocation);
             inputComponent.AddMouseEvent(InputGameComponent.MouseMovedEventType.MouseMoved, MouseMove);
             inputComponent.AddMouseEvent(InputGameComponent.MouseWheelEventType.MouseWheelChanged, MouseWheel);
             inputComponent.AddMouseEvent(InputGameComponent.MouseButtonEventType.LeftButtonReleased, MouseButtonUp);
             inputComponent.AddMouseEvent(InputGameComponent.MouseButtonEventType.RightButtonDown, MouseButtonDown);
             inputComponent.AddMouseEvent(InputGameComponent.MouseMovedEventType.MouseMovedLeftButtonDown, MouseDragging);
-            // TODO: Add your initialization logic here
+
             base.Initialize();
+
             await Task.WhenAll(initTasks).ConfigureAwait(false);
             await PreSelectRoute(Settings.TrackViewer.RouteSelection).ConfigureAwait(false);
             ContentArea?.PresetPosition(Settings.TrackViewer.LastLocation);

@@ -1,29 +1,38 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System;
 using System.Windows.Forms;
 
 using Microsoft.Xna.Framework;
 
 using Orts.Common;
-using Orts.Models.Simplified;
+using Orts.Common.Input;
+
+using Keys = Microsoft.Xna.Framework.Input.Keys;
 
 namespace Orts.TrackViewer
 {
     public partial class GameWindow : Game
     {
-        public void ChangeScreenMode()
+        private static readonly Vector2 moveLeft = new Vector2(1, 0);
+        private static readonly Vector2 moveRight = new Vector2(-1, 0);
+        private static readonly Vector2 moveUp = new Vector2(0, 1);
+        private static readonly Vector2 moveDown = new Vector2(0, -1);
+        private static readonly Vector2 moveLeftQuick = new Vector2(10, 0);
+        private static readonly Vector2 moveRightQuick = new Vector2(-10, 0);
+        private static readonly Vector2 moveUpQuick = new Vector2(0, 10);
+        private static readonly Vector2 moveDownQuick = new Vector2(0, -10);
+        
+        public void ChangeScreenMode(Keys key, KeyModifiers modifiers)
         {
             SetScreenMode(currentScreenMode.Next());
         }
 
-        public void CloseWindow()
+        public void CloseWindow(Keys key, KeyModifiers modifiers)
         {
             if (MessageBox.Show("Title", "Text", MessageBoxButtons.OKCancel) == DialogResult.OK)
                 windowForm.Close();
         }
 
-        public void ExitApplication()
+        public void ExitApplication(Keys key, KeyModifiers modifiers)
         {
             if (MessageBox.Show("Title", "Text", MessageBoxButtons.OKCancel) == DialogResult.OK)
                 Exit();
@@ -53,5 +62,48 @@ namespace Orts.TrackViewer
             System.Diagnostics.Debug.WriteLine($"Down {Window.Title} - {position}");
         }
 
+        private void MoveByKey(Keys key, KeyModifiers modifiers)
+        {
+            switch (key)
+            {
+                case Keys.Left:
+                    contentArea?.UpdatePosition((modifiers & KeyModifiers.Control) == KeyModifiers.Control ? moveLeftQuick : moveLeft);
+                    break;
+                case Keys.Right:
+                    contentArea?.UpdatePosition((modifiers & KeyModifiers.Control) == KeyModifiers.Control ? moveRightQuick : moveRight);
+                    break;
+                case Keys.Up:
+                    contentArea?.UpdatePosition((modifiers & KeyModifiers.Control) == KeyModifiers.Control ? moveUpQuick : moveUp);
+                    break;
+                case Keys.Down:
+                    contentArea?.UpdatePosition((modifiers & KeyModifiers.Control) == KeyModifiers.Control ? moveDownQuick : moveDown);
+                    break;
+            }
+        }
+
+        DateTime nextUpdate;
+
+        private void ZoomIn(Keys key, KeyModifiers modifiers)
+        {
+            if (DateTime.UtcNow > nextUpdate)
+            {
+                contentArea?.UpdateScale(1);
+                nextUpdate = DateTime.UtcNow.AddMilliseconds(30);
+            }
+        }
+
+        private void ZoomOut(Keys key, KeyModifiers modifiers)
+        {
+            if (DateTime.UtcNow > nextUpdate)
+            {
+                contentArea?.UpdateScale(-1);
+                nextUpdate = DateTime.UtcNow.AddMilliseconds(30);
+            }
+        }
+
+        private void ResetZoomAndLocation(Keys key, KeyModifiers modifiers)
+        {
+            contentArea?.ResetSize(Window.ClientBounds.Size, 60);
+        }
     }
 }
