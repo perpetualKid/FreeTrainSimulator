@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -17,6 +19,8 @@ using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Common.Info;
 using Orts.Common.Input;
+using Orts.Common.Logging;
+using Orts.Models.Simplified;
 using Orts.Settings;
 using Orts.View;
 using Orts.View.DrawableComponents;
@@ -72,6 +76,8 @@ namespace Orts.TrackViewer
 
         internal UserSettings Settings { get; }
 
+        internal string LogFileName { get; }
+
         private Color BackgroundColor;
         internal string backgroundColor;
 
@@ -90,6 +96,14 @@ namespace Orts.TrackViewer
         {
             IEnumerable<string> options = Environment.GetCommandLineArgs().Where(a => a.StartsWith("-", StringComparison.OrdinalIgnoreCase) || a.StartsWith("/", StringComparison.OrdinalIgnoreCase)).Select(a => a.Substring(1));
             Settings = new UserSettings(options);
+
+            if (Settings.Logging)
+            {
+                LogFileName = System.IO.Path.Combine(Settings.LoggingPath, LoggingUtil.CustomizeLogFileName(Settings.TrackViewer.LogFilename));
+                LoggingUtil.InitLogging(LogFileName, Settings.LogErrorsOnly, false);
+                Settings.TrackViewer.Log();
+                Trace.WriteLine(LoggingUtil.SeparatorLine);
+            }
             LoadSettings();
             frameRate = new SmoothedData();
             windowForm = (System.Windows.Forms.Form)System.Windows.Forms.Control.FromHandle(Window.Handle);
@@ -137,8 +151,8 @@ namespace Orts.TrackViewer
             onClientSizeChanged = (Action)Delegate.CreateDelegate(typeof(Action), Window, m);
 
             Exiting += GameWindow_Exiting;
-
             LoadLanguage();
+
         }
 
         private void GameWindow_Exiting(object sender, EventArgs e)
@@ -358,7 +372,7 @@ namespace Orts.TrackViewer
             inputComponent.AddKeyEvent(Keys.F, KeyModifiers.None, InputGameComponent.KeyEventType.KeyPressed, (keys, modifiers) => new Thread(GameWindowThread).Start());
             inputComponent.AddKeyEvent(Keys.Enter, KeyModifiers.Shift, InputGameComponent.KeyEventType.KeyPressed, ChangeScreenMode);
             inputComponent.AddKeyEvent(Keys.Q, KeyModifiers.None, InputGameComponent.KeyEventType.KeyPressed, CloseWindow);
-            inputComponent.AddKeyEvent(Keys.F4, KeyModifiers.Alt, InputGameComponent.KeyEventType.KeyPressed, ExitApplication);
+            //inputComponent.AddKeyEvent(Keys.F4, KeyModifiers.Alt, InputGameComponent.KeyEventType.KeyPressed, ExitApplication);
             inputComponent.AddKeyEvent(Keys.Left, KeyModifiers.None, InputGameComponent.KeyEventType.KeyDown, MoveByKey);
             inputComponent.AddKeyEvent(Keys.Right, KeyModifiers.None, InputGameComponent.KeyEventType.KeyDown, MoveByKey);
             inputComponent.AddKeyEvent(Keys.Up, KeyModifiers.None, InputGameComponent.KeyEventType.KeyDown, MoveByKey);

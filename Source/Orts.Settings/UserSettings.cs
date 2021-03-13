@@ -74,6 +74,8 @@ namespace Orts.Settings
         [Default(true)]
         public bool Logging { get; set; }
         [Default(false)]
+        public bool LogErrorsOnly { get; set; }
+        [Default(false)]
         public bool DebriefActivityEval { get; set; }
         [Default(false)]
         public bool DebriefTTActivityEval { get; set; }
@@ -469,37 +471,6 @@ namespace Orts.Settings
         {
             foreach (PropertyInfo property in GetProperties())
                 Reset(property.Name);
-        }
-
-        public void Log()
-        {
-            foreach (PropertyInfo property in GetProperties().OrderBy(p => p.Name))
-            {
-                dynamic value = property.GetValue(this, null);
-                string source = string.Empty;
-
-                if (property.PropertyType == typeof(int[]))  //int array
-                {
-                    source = (optionalSettings.Contains(property.Name) ? "(command-line)" :
-                        (((value as int[]).SequenceEqual(GetDefaultValue(property.Name) as int[]))) ? "" : "(user set)");
-                    value = string.Join(", ", (int[])value);
-                }
-                else if (property.PropertyType == typeof(string[]))  //string array
-                {
-                    source = (optionalSettings.Contains(property.Name) ? "(command-line)" :
-                        (((value as string[]).SequenceEqual(GetDefaultValue(property.Name) as string[]))) ? "" : "(user set)");
-                    value = string.Join(", ", (string[])value);
-                }
-                else
-                {
-                    source = (optionalSettings.Contains(property.Name) ? "(command-line)" :
-                        (value.Equals(GetDefaultValue(property.Name)) ? "" : "(user set)"));
-                }
-
-                Trace.WriteLine($"{property.Name.Substring(0, Math.Min(30, property.Name.Length)),-30} = {source,-14} {value.ToString().Replace(Environment.UserName, "********")}");
-            }
-
-            properties = null;
         }
     }
 }

@@ -64,7 +64,8 @@ namespace Orts.View.Xna
             {
                 spriteBatch?.Dispose();
                 texture?.Dispose();
-                Game.Window.ClientSizeChanged -= Window_ClientSizeChanged;
+                if (null != Game.Window)
+                    Game.Window.ClientSizeChanged -= Window_ClientSizeChanged;
             }
             base.Dispose(disposing);
         }

@@ -4,6 +4,7 @@ using System.Windows.Forms;
 using Microsoft.Xna.Framework;
 
 using Orts.Common;
+using Orts.Common.Info;
 using Orts.Common.Input;
 
 using Keys = Microsoft.Xna.Framework.Input.Keys;
@@ -28,13 +29,12 @@ namespace Orts.TrackViewer
 
         public void CloseWindow(Keys key, KeyModifiers modifiers)
         {
-            if (MessageBox.Show("Title", "Text", MessageBoxButtons.OKCancel) == DialogResult.OK)
-                windowForm.Close();
+            ExitApplication();
         }
 
-        public void ExitApplication(Keys key, KeyModifiers modifiers)
+        internal void ExitApplication()
         {
-            if (MessageBox.Show("Title", "Text", MessageBoxButtons.OKCancel) == DialogResult.OK)
+            if (MessageBox.Show(Catalog.GetString($"Do you want to quit {RuntimeInfo.ApplicationName} now?"), Catalog.GetString("Quit"), MessageBoxButtons.OKCancel) == DialogResult.OK)
                 Exit();
         }
 
@@ -81,8 +81,7 @@ namespace Orts.TrackViewer
             }
         }
 
-        DateTime nextUpdate;
-
+        private DateTime nextUpdate;
         private void ZoomIn(Keys key, KeyModifiers modifiers)
         {
             if (DateTime.UtcNow > nextUpdate)

@@ -90,6 +90,10 @@ namespace Orts.Settings
 
         [Default(TrackViewerViewSettings.All)]
         public TrackViewerViewSettings ViewSettings { get; set; }
+
+        [Default("{Application} Log.txt")]
+        public string LogFilename { get; set; }
+
 #pragma warning restore CA1819 // Properties should not return arrays
         #endregion
 
