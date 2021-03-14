@@ -43,7 +43,7 @@ namespace Orts.View.Track.Widgets
                 return result;
             Dictionary<uint, SidingTrackItem> sidingItems = new Dictionary<uint, SidingTrackItem>();
 
-            foreach (TrackItem trackItem in trackItems ?? Enumerable.Empty<TrackItem>())
+            foreach (TrackItem trackItem in trackItems)
             {
                 switch (trackItem)
                 {

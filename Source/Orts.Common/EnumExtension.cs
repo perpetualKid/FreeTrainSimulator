@@ -19,6 +19,9 @@ namespace Orts.Common
             internal static IDictionary<string, T> NameValuePairs;
             internal static int Length;
             internal static int SupportsReverse;
+            internal static bool ConsecutiveValues = true;
+            internal static IDictionary<T, int> ValueLookup;
+            internal static int Offset;
 
 #pragma warning disable CA1810 // Initialize reference type static fields inline
             static EnumCache()
@@ -31,7 +34,7 @@ namespace Orts.Common
                     Cast<DescriptionAttribute>().
                     Select(x => x.Description).
                     FirstOrDefault();
-                foreach (T value in Values)//(T[])Enum.GetValues(typeof(T)))
+                foreach (T value in Values)
                 {
                     ValueToDescriptionMap[value] = GetDescription(value);
                 }
@@ -46,6 +49,22 @@ namespace Orts.Common
                         SupportsReverse = 2;
                     else if (Length % 2 == 1 && (int)(object)Values[Length / 2] == 0) //odd number of items, like Backward, Neutral and Forward
                         SupportsReverse = 1;
+
+                    SortedSet<T> sortedValues = new SortedSet<T>(Values);
+                    for (int i = 0; i < sortedValues.Count - 1; i++)
+                    {
+                        T refItem = sortedValues.ElementAt(i);
+                        T nextItem = sortedValues.ElementAt(i + 1);
+                        if (Unsafe.As<T, int>(ref refItem) + 1 != Unsafe.As<T, int>(ref nextItem))
+                        {
+                            ConsecutiveValues = false;
+                            break;
+                        }
+                    }
+                    T offsetItem = sortedValues.FirstOrDefault();
+                    Offset = Unsafe.As<T, int>(ref offsetItem);
+
+                    ValueLookup = Values.Select((i, index) => (i, index)).ToDictionary(pair => pair.i, pair => pair.index);
                 }
             }
 
@@ -116,8 +135,16 @@ namespace Orts.Common
         /// </summary>
         public static T Next<T>(this T item) where T : Enum
         {
-            int next = (Unsafe.As<T, int>(ref item) + 1) % EnumCache<T>.Length;
-            return Unsafe.As<int, T>(ref next);
+            if (EnumCache<T>.ConsecutiveValues)
+            {
+                int next = ((Unsafe.As<T, int>(ref item) + 1 - EnumCache<T>.Offset) % EnumCache<T>.Length) + EnumCache<T>.Offset;
+                return Unsafe.As<int, T>(ref next);
+            }
+            else
+            {
+                int next = (EnumCache<T>.ValueLookup[item] + 1) % EnumCache<T>.Length;
+                return EnumCache<T>.Values[next];
+            }
         }
 
         /// <summary>
@@ -125,8 +152,16 @@ namespace Orts.Common
         /// </summary>
         public static T Previous<T>(this T item) where T : Enum
         {
-            int previous = (Unsafe.As<T, int>(ref item) - 1 + EnumCache<T>.Length) % EnumCache<T>.Length;
-            return Unsafe.As<int, T>(ref previous);
+            if (EnumCache<T>.ConsecutiveValues)
+            {
+                int next = ((Unsafe.As<T, int>(ref item) - 1 - EnumCache<T>.Offset) % EnumCache<T>.Length) + EnumCache<T>.Offset;
+                return Unsafe.As<int, T>(ref next);
+            }
+            else
+            {
+                int next = (EnumCache<T>.ValueLookup[item] - 1) % EnumCache<T>.Length;
+                return EnumCache<T>.Values[next];
+            }
         }
 
         /// <summary>
