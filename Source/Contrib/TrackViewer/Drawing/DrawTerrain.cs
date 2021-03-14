@@ -64,6 +64,8 @@ using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 
+using Tile = Orts.ActivityRunner.Viewer3D.Tile;
+
 namespace ORTS.TrackViewer.Drawing
 {
     /// <summary>

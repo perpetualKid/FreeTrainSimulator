@@ -9,6 +9,8 @@ using System.Linq;
 
 using Microsoft.Win32;
 
+using Orts.Formats.Msts.Files;
+
 namespace Orts.Formats.Msts
 {
     public static class FolderStructure
@@ -19,13 +21,19 @@ namespace Orts.Formats.Msts
             public class RouteFolder
             {
 #pragma warning restore CA1034 // Nested types should not be visible
+
+                private const string OR = "OpenRails";
+                private const string tsection = "tsection.dat";
+
                 private readonly string routeName;
                 private readonly string routeFolder;
+                private readonly ContentFolder parent;
 
-                internal RouteFolder(string route, string folder)
+                internal RouteFolder(string route, ContentFolder parent)
                 {
                     routeName = route;
-                    routeFolder = Path.Combine(folder, routeName);
+                    this.parent = parent;
+                    routeFolder = Path.Combine(parent.RoutesFolder, routeName);
                 }
 
                 public bool IsValid => !string.IsNullOrEmpty(TrackFileName);
@@ -34,7 +42,7 @@ namespace Orts.Formats.Msts
 
                 public string ActivitiesFolder => Path.Combine(routeFolder, "ACTIVITIES");
 
-                public string OrActivitiesFolder => Path.Combine(routeFolder, "ACTIVITIES", "OpenRails");
+                public string OrActivitiesFolder => Path.Combine(routeFolder, "ACTIVITIES", OR);
 
                 public string WeatherFolder => Path.Combine(routeFolder, "WeatherFiles");
 
@@ -47,6 +55,22 @@ namespace Orts.Formats.Msts
                 public string SoundsFolder => Path.Combine(routeFolder, "SOUND");
                 
                 public string WorldFolder => Path.Combine(routeFolder, "WORLD");
+
+                public string TrackDatabaseFile(RouteFile route)
+                {
+                    if (route == null)
+                        throw new ArgumentNullException(nameof(route));
+
+                    return Path.Combine(routeFolder, route.Route.FileName + ".tdb");
+                }
+
+                public string RoadTrackDatabaseFile(RouteFile route)
+                {
+                    if (route == null)
+                        throw new ArgumentNullException(nameof(route));
+
+                    return Path.Combine(routeFolder, route.Route.FileName + ".rdb");
+                }
 
                 public string ServiceFile(string serviceName)
                 {
@@ -68,6 +92,37 @@ namespace Orts.Formats.Msts
                     return Path.Combine(SoundsFolder, soundName);
                 }
 
+                public string TrackSectionFile
+                {
+                    get 
+                    {
+                        string tsectionFile;
+                        if (File.Exists(tsectionFile = Path.Combine(routeFolder, OR, tsection)))
+                            return tsectionFile;
+                        else if (File.Exists(tsectionFile = Path.Combine(routeFolder, "GLOBAL", tsection)))
+                            return tsectionFile;
+                        else
+                            return Path.Combine(parent.Folder, "GLOBAL", tsection);
+                    }
+                }
+
+                public string RouteTrackSectionFile => Path.Combine(routeFolder, tsection);
+
+                public string SignalConfigurationFile
+                {
+                    get
+                    {
+                        string signalConfig;
+                        if (File.Exists(signalConfig = Path.Combine(routeFolder, OR, "sigcfg.dat")))
+                        {
+                            ORSignalConfigFile = true;
+                            return signalConfig;
+                        }
+                        return Path.Combine(routeFolder, "sigcfg.dat");
+                    }
+                }
+
+                public bool ORSignalConfigFile { get; private set; }
             }
 
             private readonly ConcurrentDictionary<string, RouteFolder> routeFolders = new ConcurrentDictionary<string, RouteFolder>(StringComparer.OrdinalIgnoreCase);
@@ -104,7 +159,7 @@ namespace Orts.Formats.Msts
             {
                 if (!routeFolders.TryGetValue(route, out RouteFolder result))
                 {
-                    routeFolders.TryAdd(route, new RouteFolder(route, RoutesFolder));
+                    routeFolders.TryAdd(route, new RouteFolder(route, this));
                     result = routeFolders[route];
                 }
                 return result;

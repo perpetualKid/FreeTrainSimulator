@@ -53,17 +53,17 @@ namespace Orts.Settings
 
         protected override void Load(bool allowUserSettings, NameValueCollection optionalValues)
         {
-            foreach (var name in SettingStore.GetSettingNames())
+            foreach (string name in SettingStore.GetSettingNames())
                 LoadSetting(allowUserSettings, optionalValues, name);
             properties = null;
         }
 
         public override void Save()
         {
-            foreach (var name in SettingStore.GetSettingNames())
+            foreach (string name in SettingStore.GetSettingNames())
                 if (!Folders.ContainsKey(name))
                     Reset(name);
-            foreach (var name in Folders.Keys)
+            foreach (string name in Folders.Keys)
                 SaveSetting(name);
             properties = null;
         }

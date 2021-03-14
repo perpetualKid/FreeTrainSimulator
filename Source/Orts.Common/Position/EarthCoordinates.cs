@@ -30,12 +30,13 @@
 //   
 
 using Microsoft.Xna.Framework;
+
 using System;
 
 namespace Orts.Common.Position
 {
     public static class EarthCoordinates
-    {      
+    {
         private const int earthRadius = 6370997; // Average radius of the earth, meters
         private const double epsilon = 0.0000000001; // Error factor (arbitrary)
         private static readonly double[] centralMeridians = new double[12]
@@ -85,9 +86,26 @@ namespace Orts.Common.Position
         /// Entry point to this series of methods
         /// Gets Longitude, Latitude from Goode X, Y
         /// </summary>        
+        public static (double latitude, double longitude) ConvertWTC(in WorldLocation location)
+        {
+            // Decimal degrees is assumed
+            int gsamp = (location.TileX - wt_ew_offset);  // Gsamp is Goode world tile x
+            int gline = (wt_ns_offset - location.TileZ);  // Gline is Goode world tile Y
+            int y = (ul_y - ((gline - 1) * (int)WorldPosition.TileSize) + (int)location.Location.X);   // Actual Goode X
+            int x = (ul_x + ((gsamp - 1) * (int)WorldPosition.TileSize) + (int)location.Location.X);   // Actual Goode Y
+
+            // Return error code: 1 = success; -1 = math error; -2 = XY is in interrupted area of projection
+            // Return latitude and longitude by reference
+            return Goode_Inverse(x, y);
+        }
+
+        /// <summary>
+        /// Entry point to this series of methods
+        /// Gets Longitude, Latitude from Goode X, Y
+        /// </summary>        
         public static int ConvertWTC(int worldTileLongitude, int worldTileLatitude, in Vector3 tileLocation, out double latitude, out double longitude)
         {
-           // Decimal degrees is assumed
+            // Decimal degrees is assumed
             int gsamp = (worldTileLongitude - wt_ew_offset);  // Gsamp is Goode world tile x
             int gline = (wt_ns_offset - worldTileLatitude);  // Gline is Goode world tile Y
             int y = (ul_y - ((gline - 1) * (int)WorldPosition.TileSize) + (int)tileLocation.Z);   // Actual Goode X
@@ -155,7 +173,7 @@ namespace Orts.Common.Position
             switch (region)
             {
                 case 1:
-                case 3: 
+                case 3:
                 case 4:
                 case 5:
                 case 8:
@@ -258,6 +276,110 @@ namespace Orts.Common.Position
             } // switch
 
             return 1; // Success
+        }
+
+        /// <summary>
+        /// Convert Goode XY coordinates to latitude and longitude
+        /// </summary>        
+        private static (double latitude, double longitude) Goode_Inverse(double gx, double gy)
+        {
+            // Goode Homolosine inverse equations
+            // Mapping GX, GY to Lat, Lon
+            // GX and GY must be offset in order to be in raw Goode coordinates.
+            // This may alter lon and lat values.
+
+            (double latitude, double longitude) result = default;
+
+            int region;
+
+            // Inverse equations
+            if (gy >= earthRadius * 0.710987989993)             // On or above 40 44' 11.8"
+            {
+                if (gx <= earthRadius * -0.698131700798)        // To the left of -40
+                    region = 0;
+                else
+                    region = 2;
+            }
+            else if (gy >= 0)                                   // Between 0.0 and 40 44' 11.8"
+            {
+                if (gx <= earthRadius * -0.698131700798)        // To the left of -40
+                    region = 1;
+                else
+                    region = 3;
+            }
+            else if (gy >= earthRadius * -0.710987989993)       // Between 0.0 and -40 44' 11.8"
+            {
+                if (gx <= earthRadius * -1.74532925199)         // Between -180 and -100
+                    region = 4;
+                else if (gx <= earthRadius * -0.349065850399)   // Between -100 and -20
+                    region = 5;
+                else if (gx <= earthRadius * 1.3962634016)      // Between -20 and 80
+                    region = 8;
+                else                                            // Between 80 and 180
+                    region = 9;
+            }
+            else
+            {
+                if (gx <= earthRadius * -1.74532925199)
+                    region = 6;                                  // Between -180 and -100
+                else if (gx <= earthRadius * -0.349065850399)
+                    region = 5;                                  // Between -100 and -20
+                else if (gx <= earthRadius * 1.3962634016)
+                    region = 10;                                 // Between -20 and 80
+                else
+                    region = 11;                                 // Between 80 and 180
+            }
+
+            gx -= falseEast[region];
+
+            switch (region)
+            {
+                case 1:
+                case 3:
+                case 4:
+                case 5:
+                case 8:
+                case 9:
+                    result.latitude = gy / earthRadius;
+                    if (Math.Abs(result.latitude) > MathHelper.PiOver2)
+                    {
+                        // Return error: math error
+                        return default;
+                    }
+                    double temp = Math.Abs(result.latitude) - MathHelper.PiOver2;
+                    if (Math.Abs(temp) > epsilon)
+                    {
+                        temp = centralMeridians[region] + gx / (earthRadius * Math.Cos(result.latitude));
+                        result.longitude = Adjust_Lon(temp);
+                    }
+                    else
+                        result.longitude = centralMeridians[region];
+                    break;
+                default:
+                    double arg = (gy + 0.0528035274542 * earthRadius * Math.Sign(gy)) / (1.4142135623731 * earthRadius);
+                    if (Math.Abs(arg) > 1)
+                    {
+                        // Return error: in interrupred area
+                        return default;
+                    }
+                    double theta = Math.Asin(arg);
+                    result.longitude = centralMeridians[region] + (gx / (0.900316316158 * earthRadius * Math.Cos(theta)));
+                    if (result.longitude < -MathHelper.Pi)
+                    {
+                        // Return error: in interrupred area
+                        return default;
+                    }
+                    arg = (2 * theta + Math.Sin(2 * theta)) / MathHelper.Pi;
+                    if (Math.Abs(arg) > 1)
+                    {
+                        // Return error: in interrupred area
+                        return default;
+                    }
+                    result.latitude = Math.Asin(arg);
+                    break;
+            } // switch
+
+            return result;
         }
 
         /// <summary>
