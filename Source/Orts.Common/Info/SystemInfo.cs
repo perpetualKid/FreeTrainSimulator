@@ -162,6 +162,11 @@ namespace Orts.Common.Info
             return output.ToString();
         }
 
+        public static void OpenBrowser(Uri url)
+        {
+            OpenBrowser(url?.ToString());
+        }
+
         public static void OpenBrowser(string url)
         {
             //https://stackoverflow.com/questions/4580263/how-to-open-in-default-browser-in-c-sharp
