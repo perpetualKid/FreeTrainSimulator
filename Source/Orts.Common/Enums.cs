@@ -31,13 +31,15 @@ namespace Orts.Common
     [Description("Rotation")]
     public enum Rotation
     {
-        CounterClockwise = -1,
-        None = 0,
-        Clockwise = 1,
+        [Description("CounterClockwise")] CounterClockwise = -1,
+        [Description("None")]None = 0,
+        [Description("Clockwise")]Clockwise = 1,
     }
 
     [Description("Separator")]
+#pragma warning disable CA1008 // Enums should have zero value
     public enum SeparatorChar
+#pragma warning restore CA1008 // Enums should have zero value
     {
         [Description("Comma")] Comma = ',',
         [Description("Semicolon")] Semicolon = ';',
