@@ -671,65 +671,12 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
 
         private void InitLogging(bool appendLog = false)
         {
-            UserSettings settings = Game.Settings;
-            if (settings.Logging && (settings.LoggingPath.Length > 0) && Directory.Exists(settings.LoggingPath))
+            if (Game.Settings.Logging)
             {
-                //TODO Implement proper filename customization
-                //var fileName = settings.LoggingFilename;
-                //try
-                //{
-                //    fileName = String.Format(fileName, Application.ProductName, VersionInfo.VersionOrBuild, VersionInfo.Version, VersionInfo.Build, DateTime.Now);
-                //}
-                //catch { }
-                //foreach (var ch in Path.GetInvalidFileNameChars())
-                //    fileName = fileName.Replace(ch, '.');
-
-                logFileName = Path.Combine(settings.LoggingPath, settings.LoggingFilename);
-                // Ensure we start with an empty file.
-                if (!appendLog)
-                    File.Delete(logFileName);
-
-                StreamWriter writer = new StreamWriter(logFileName, true, Encoding.Default, 512)
-                {
-                    AutoFlush = true
-                };
-
-                // Captures Trace.Trace* calls and others and formats.
-                ORTraceListener traceListener = new ORTraceListener(writer, !settings.Logging)
-                {
-                    TraceOutputOptions = TraceOptions.Callstack
-                };
-                Trace.Listeners.Add(traceListener);
-                //Trace.Listeners.Add(new TextWriterTraceListener(writer));
-                Trace.AutoFlush = true;
-            }
-
-            if (Debugger.IsLogging())
-            {
-                Trace.Listeners.Add(new ConsoleTraceListener());
-            }
-
-            Trace.WriteLine($"This is a log file for {RuntimeInfo.ProductName}. Please include this file in bug reports.");
-            Trace.WriteLine(separatorLine);
-            if (settings.Logging)
-            {
-                SystemInfo.WriteSystemDetails();
-                Trace.WriteLine(separatorLine);
-                Trace.WriteLine($"{"Version",-12}= {VersionInfo.Version}");
-                Trace.WriteLine($"{"Code Version",-12}= {VersionInfo.CodeVersion}");
-                if (logFileName.Length > 0)
-                    Trace.WriteLine($"{"Logfile",-12}= {logFileName.Replace(Environment.UserName, "********")}");
-                Trace.WriteLine($"{"Executable",-12}= {Path.GetFileName(Application.ExecutablePath)}");
-                foreach (string arg in arguments)
-                    Trace.WriteLine($"{"Argument",-12}= {arg}");
-                Trace.WriteLine(separatorLine);
-                settings.Log();
-                Trace.WriteLine(separatorLine);
-            }
-            else
-            {
-                Trace.WriteLine("Logging is disabled, only fatal errors will appear here.");
-                Trace.WriteLine(separatorLine);
+                logFileName = Path.Combine(Game.Settings.LoggingPath, LoggingUtil.CustomizeLogFileName(Game.Settings.LoggingFilename));
+                LoggingUtil.InitLogging(logFileName, Game.Settings.LogErrorsOnly, appendLog);
+                Game.Settings.Log();
+                Trace.WriteLine(LoggingUtil.SeparatorLine);
             }
         }
 
