@@ -4,6 +4,7 @@ using System.IO;
 using System.Windows.Forms;
 
 using Orts.Common.Info;
+using Orts.Common.Logging;
 using Orts.Common.Native;
 
 namespace Orts.TrackViewer
@@ -42,18 +43,18 @@ namespace Orts.TrackViewer
                         {
                             MessageBox.Show($"A fatal error has occured and {RuntimeInfo.ApplicationFolder} cannot continue.\n\n" +
                                     $"    {errorSummary}\n\n" +
-                                    $"This error may be due to bad data or a bug. You can help improve {RuntimeInfo.ApplicationFolder} by reporting this error in our bug tracker at https://github.com/perpetualKid/ORTS-MG/issues. Since Logging is currently disable, please enable Logging in the Option Menu, run {RuntimeInfo.ApplicationFolder} again and watch for the log file produced.\n\n",
+                                    $"This error may be due to bad data or a bug. You can help improve {RuntimeInfo.ApplicationFolder} by reporting this error in our bug tracker at {LoggingUtil.BugTrackerUrl}. Since Logging is currently disable, please enable Logging in the Option Menu, run {RuntimeInfo.ApplicationFolder} again and watch for the log file produced.\n\n",
                                     $"{RuntimeInfo.ApplicationName} {VersionInfo.Version}", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         }
                         else
                         {
                             DialogResult openTracker = MessageBox.Show($"A fatal error has occured and {RuntimeInfo.ApplicationFolder} cannot continue.\n\n" +
                                     $"    {errorSummary}\n\n" +
-                                    $"This error may be due to bad data or a bug. You can help improve {RuntimeInfo.ApplicationFolder} by reporting this error in our bug tracker at https://github.com/perpetualKid/ORTS-MG/issues and attaching the log file {logFile}.\n\n" +
+                                    $"This error may be due to bad data or a bug. You can help improve {RuntimeInfo.ApplicationFolder} by reporting this error in our bug tracker at {LoggingUtil.BugTrackerUrl} and attaching the log file {logFile}.\n\n" +
                                     ">>> Click OK to report this error on the GitHub bug tracker <<<",
                                     $"{RuntimeInfo.ApplicationName} {VersionInfo.Version}", MessageBoxButtons.OKCancel, MessageBoxIcon.Error);
                             if (openTracker == DialogResult.OK)
-                                SystemInfo.OpenBrowser("https://github.com/perpetualKid/ORTS-MG/issues");
+                                SystemInfo.OpenBrowser(LoggingUtil.BugTrackerUrl);
                         }
 
                     }
