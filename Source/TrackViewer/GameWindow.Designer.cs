@@ -15,19 +15,24 @@ namespace Orts.TrackViewer
         /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
         protected override void Dispose(bool disposing)
         {
-            if (disposing && (components != null))
+            if (disposing)
             {
-                components.Dispose();
+                if (components != null)
+                {
+                    components.Dispose();
+                }
                 foreach (var item in Components)
                 {
                     if (item is IDisposable disposable)
                         disposable.Dispose();
                 }
+
+                ctsRouteLoading?.Dispose();
+                loadRoutesSemaphore.Dispose();
+                graphicsDeviceManager?.Dispose();
+                windowForm?.Dispose();
+                spriteBatch?.Dispose();
             }
-            loadRoutesSemaphore.Dispose();
-            graphicsDeviceManager?.Dispose();
-            windowForm?.Dispose();
-            spriteBatch?.Dispose();
             base.Dispose(disposing);
         }
 

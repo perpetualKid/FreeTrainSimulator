@@ -448,7 +448,7 @@ namespace Orts.View.Track
             if (disposing)
             {
                 spriteBatch?.Dispose();
-                inputComponent.RemoveMouseEvent(InputGameComponent.MouseMovedEventType.MouseMoved, MouseMove);
+                inputComponent?.RemoveMouseEvent(InputGameComponent.MouseMovedEventType.MouseMoved, MouseMove);
                 inputComponent = null;
 
             }

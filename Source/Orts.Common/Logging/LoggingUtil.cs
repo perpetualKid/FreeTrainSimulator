@@ -16,6 +16,8 @@ namespace Orts.Common.Logging
     {
         public static readonly string SeparatorLine = new string('-', 80);
 
+        public const string BugTrackerUrl = "https://github.com/perpetualKid/ORTS-MG/issues";
+
         static LoggingUtil()
         {
             if (Debugger.IsLogging())
@@ -57,21 +59,28 @@ namespace Orts.Common.Logging
                 if (!appendLog)
                     File.Delete(logFileName);
             }
-            catch(Exception ex) when (ex is UnauthorizedAccessException || ex is ArgumentException || ex is IOException || ex is DirectoryNotFoundException)
-            { 
+            catch (Exception ex) when (ex is UnauthorizedAccessException || ex is ArgumentException || ex is IOException || ex is DirectoryNotFoundException)
+            {
             }
 
-            StreamWriter writer = new StreamWriter(logFileName, true, Encoding.Default, 512)
+            try
             {
-                AutoFlush = true
-            };
 
-            // Captures Trace.Trace* calls and others and formats.
-            ORTraceListener traceListener = new ORTraceListener(writer, errorsOnly)
+                StreamWriter writer = new StreamWriter(logFileName, true, Encoding.Default, 512)
+                {
+                    AutoFlush = true
+                };
+
+                // Captures Trace.Trace* calls and others and formats.
+                ORTraceListener traceListener = new ORTraceListener(writer, errorsOnly)
+                {
+                    TraceOutputOptions = TraceOptions.Callstack
+                };
+                Trace.Listeners.Add(traceListener);
+            }
+            catch (Exception ex) when (ex is UnauthorizedAccessException || ex is ArgumentException || ex is IOException || ex is DirectoryNotFoundException)
             {
-                TraceOutputOptions = TraceOptions.Callstack
-            };
-            Trace.Listeners.Add(traceListener);
+            }
             Trace.WriteLine($"This is a log file for {RuntimeInfo.ProductName} {Path.GetFileNameWithoutExtension(Assembly.GetEntryAssembly().Location)}. Please include this file in bug reports.");
             Trace.WriteLine(SeparatorLine);
             if (errorsOnly)

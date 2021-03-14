@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -20,7 +19,6 @@ using Orts.Common.Calc;
 using Orts.Common.Info;
 using Orts.Common.Input;
 using Orts.Common.Logging;
-using Orts.Models.Simplified;
 using Orts.Settings;
 using Orts.View;
 using Orts.View.DrawableComponents;
@@ -150,14 +148,16 @@ namespace Orts.TrackViewer
             MethodInfo m = Window.GetType().GetMethod("OnClientSizeChanged", BindingFlags.NonPublic | BindingFlags.Instance);
             onClientSizeChanged = (Action)Delegate.CreateDelegate(typeof(Action), Window, m);
 
-            Exiting += GameWindow_Exiting;
+            windowForm.FormClosing += WindowForm_FormClosing;
             LoadLanguage();
 
         }
 
-        private void GameWindow_Exiting(object sender, EventArgs e)
+        private void WindowForm_FormClosing(object sender, System.Windows.Forms.FormClosingEventArgs e)
         {
             SaveSettings();
+            if (null != ctsRouteLoading && !ctsRouteLoading.IsCancellationRequested)
+                ctsRouteLoading.Cancel();
         }
 
         private void Window_ClientSizeChanged(object sender, EventArgs e)

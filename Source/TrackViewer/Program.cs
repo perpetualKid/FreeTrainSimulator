@@ -20,7 +20,6 @@ namespace Orts.TrackViewer
 
 #endif
             Application.SetCompatibleTextRenderingDefault(false);
-
             using (GameWindow game = new GameWindow())
             {
                 if (Debugger.IsAttached)

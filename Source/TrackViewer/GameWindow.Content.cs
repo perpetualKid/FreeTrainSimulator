@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,6 +18,7 @@ namespace Orts.TrackViewer
         private Route selectedRoute;
         private IEnumerable<Route> routes;
         private readonly SemaphoreSlim loadRoutesSemaphore = new SemaphoreSlim(1);
+        private CancellationTokenSource ctsRouteLoading;
 
         internal async Task LoadFolders()
         {
@@ -50,13 +50,23 @@ namespace Orts.TrackViewer
             StatusMessage = route.Name;
             UnloadRoute();
 
+            lock (routes)
+            {
+                if (ctsRouteLoading != null && !ctsRouteLoading.IsCancellationRequested)
+                    ctsRouteLoading.Cancel();
+                ctsRouteLoading = ResetCancellationTokenSource(ctsRouteLoading);
+            }
+
+            CancellationToken token = ctsRouteLoading.Token;
             TrackData trackData = new TrackData(route.Path);
 
             bool? useMetricUnits = (Settings.MeasurementUnit == MeasurementUnit.Metric || Settings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric);
             if (Settings.MeasurementUnit == MeasurementUnit.Route)
                 useMetricUnits = null;
 
-            await trackData.LoadTrackData(useMetricUnits).ConfigureAwait(false);
+            await trackData.LoadTrackData(useMetricUnits, token).ConfigureAwait(false);
+            if (token.IsCancellationRequested)
+                return;
 
             TrackContent content = new TrackContent(trackData.TrackDB, trackData.RoadTrackDB, trackData.TrackSections, trackData.SignalConfig, trackData.UseMetricUnits);
             await content.Initialize().ConfigureAwait(false);
@@ -85,6 +95,16 @@ namespace Orts.TrackViewer
         {
             ContentArea = null;
             selectedRoute = null;
+        }
+
+        private static CancellationTokenSource ResetCancellationTokenSource(CancellationTokenSource cts)
+        {
+            if (cts != null)
+            {
+                cts.Dispose();
+            }
+            // Create a new cancellation token source so that can cancel all the tokens again 
+            return new CancellationTokenSource();
         }
 
     }

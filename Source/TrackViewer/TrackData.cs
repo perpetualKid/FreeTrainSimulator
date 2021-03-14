@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Orts.Formats.Msts;
@@ -30,7 +31,7 @@ namespace Orts.TrackViewer
             this.routePath = routePath;
         }
 
-        internal async Task LoadTrackData(bool? useMetricUnits)
+        internal async Task LoadTrackData(bool? useMetricUnits, CancellationToken cancellationToken)
         {
             List<Task> loadTasks = new List<Task>();
 
@@ -48,13 +49,13 @@ namespace Orts.TrackViewer
                     return;
                 }
                 TrackDB = new TrackDatabaseFile(tdbFile).TrackDB;
-            }));
+            }, cancellationToken));
             loadTasks.Add(Task.Run(() =>
             {
                 TrackSections = new TrackSectionsFile(routeFolder.TrackSectionFile);
                 if (File.Exists(routeFolder.RouteTrackSectionFile))
                     TrackSections.AddRouteTSectionDatFile(routeFolder.RouteTrackSectionFile);
-            }));
+            }, cancellationToken));
             loadTasks.Add(Task.Run(() =>
             {
                 string rdbFile = routeFolder.RoadTrackDatabaseFile(routeFile);
@@ -64,8 +65,8 @@ namespace Orts.TrackViewer
                     return;
                 }
                 RoadTrackDB = new RoadDatabaseFile(rdbFile).RoadTrackDB;
-            }));
-            loadTasks.Add(Task.Run(() => SignalConfig = new SignalConfigurationFile(routeFolder.SignalConfigurationFile, routeFolder.ORSignalConfigFile)));
+            }, cancellationToken));
+            loadTasks.Add(Task.Run(() => SignalConfig = new SignalConfigurationFile(routeFolder.SignalConfigurationFile, routeFolder.ORSignalConfigFile), cancellationToken));
 
             await Task.WhenAll(loadTasks).ConfigureAwait(false);
         }
