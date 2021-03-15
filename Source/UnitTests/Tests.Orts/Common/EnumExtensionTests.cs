@@ -27,54 +27,54 @@ namespace Tests.Orts.Common
         [TestMethod]
         public void SimpleIndexEnumNextTest()
         {
-            SimpleIndexedEnum simpleIndexedEnum = SimpleIndexedEnum.One;
+            SimpleIndexedEnum expected = SimpleIndexedEnum.One;
 
-            SimpleIndexedEnum result = simpleIndexedEnum.Next();
+            SimpleIndexedEnum result = expected.Next();
             Assert.AreEqual(SimpleIndexedEnum.Two, result);
         }
 
         [TestMethod]
         public void SimpleIndexEnumDoubleNextTest()
         {
-            SimpleIndexedEnum simpleIndexedEnum = SimpleIndexedEnum.One;
+            SimpleIndexedEnum expected = SimpleIndexedEnum.One;
 
-            SimpleIndexedEnum result = simpleIndexedEnum.Next().Next();
+            SimpleIndexedEnum result = expected.Next().Next();
             Assert.AreEqual(SimpleIndexedEnum.Three, result);
         }
 
         [TestMethod]
         public void SimpleIndexEnumCarryOverForwardTest()
         {
-            SimpleIndexedEnum simpleIndexedEnum = SimpleIndexedEnum.Four;
+            SimpleIndexedEnum expected = SimpleIndexedEnum.Four;
 
-            SimpleIndexedEnum result = simpleIndexedEnum.Next();
+            SimpleIndexedEnum result = expected.Next();
             Assert.AreEqual(SimpleIndexedEnum.Null, result);
         }
 
         [TestMethod]
         public void SimpleIndexEnumPreviousTest()
         {
-            SimpleIndexedEnum simpleIndexedEnum = SimpleIndexedEnum.Three;
+            SimpleIndexedEnum expected = SimpleIndexedEnum.Three;
 
-            SimpleIndexedEnum result = simpleIndexedEnum.Previous();
+            SimpleIndexedEnum result = expected.Previous();
             Assert.AreEqual(SimpleIndexedEnum.Two, result);
         }
 
         [TestMethod]
         public void SimpleIndexEnumDoublePreviousTest()
         {
-            SimpleIndexedEnum simpleIndexedEnum = SimpleIndexedEnum.Three;
+            SimpleIndexedEnum expected = SimpleIndexedEnum.Three;
 
-            SimpleIndexedEnum result = simpleIndexedEnum.Previous().Previous();
+            SimpleIndexedEnum result = expected.Previous().Previous();
             Assert.AreEqual(SimpleIndexedEnum.One, result);
         }
 
         [TestMethod]
         public void SimpleIndexEnumCarryOverBackwardTest()
         {
-            SimpleIndexedEnum simpleIndexedEnum = SimpleIndexedEnum.Null;
+            SimpleIndexedEnum expected = SimpleIndexedEnum.Null;
 
-            SimpleIndexedEnum result = simpleIndexedEnum.Previous();
+            SimpleIndexedEnum result = expected.Previous();
             Assert.AreEqual(SimpleIndexedEnum.Four, result);
         }
 
@@ -106,54 +106,54 @@ namespace Tests.Orts.Common
         [TestMethod]
         public void SimpleIndexedEnumPositiveOffsetNextTest()
         {
-            SimpleIndexedEnumPositiveOffset simpleIndexedEnum = SimpleIndexedEnumPositiveOffset.One;
+            SimpleIndexedEnumPositiveOffset expected = SimpleIndexedEnumPositiveOffset.One;
 
-            SimpleIndexedEnumPositiveOffset result = simpleIndexedEnum.Next();
+            SimpleIndexedEnumPositiveOffset result = expected.Next();
             Assert.AreEqual(SimpleIndexedEnumPositiveOffset.Two, result);
         }
 
         [TestMethod]
         public void SimpleIndexedEnumPositiveOffsetDoubleNextTest()
         {
-            SimpleIndexedEnumPositiveOffset simpleIndexedEnum = SimpleIndexedEnumPositiveOffset.One;
+            SimpleIndexedEnumPositiveOffset expected = SimpleIndexedEnumPositiveOffset.One;
 
-            SimpleIndexedEnumPositiveOffset result = simpleIndexedEnum.Next().Next();
+            SimpleIndexedEnumPositiveOffset result = expected.Next().Next();
             Assert.AreEqual(SimpleIndexedEnumPositiveOffset.Three, result);
         }
 
         [TestMethod]
         public void SimpleIndexedEnumPositiveOffsetCarryOverForwardTest()
         {
-            SimpleIndexedEnumPositiveOffset simpleIndexedEnum = SimpleIndexedEnumPositiveOffset.Four;
+            SimpleIndexedEnumPositiveOffset expected = SimpleIndexedEnumPositiveOffset.Four;
 
-            SimpleIndexedEnumPositiveOffset result = simpleIndexedEnum.Next();
+            SimpleIndexedEnumPositiveOffset result = expected.Next();
             Assert.AreEqual(SimpleIndexedEnumPositiveOffset.Null, result);
         }
 
         [TestMethod]
         public void SimpleIndexedEnumPositiveOffsetPreviousTest()
         {
-            SimpleIndexedEnumPositiveOffset simpleIndexedEnum = SimpleIndexedEnumPositiveOffset.Three;
+            SimpleIndexedEnumPositiveOffset expected = SimpleIndexedEnumPositiveOffset.Three;
 
-            SimpleIndexedEnumPositiveOffset result = simpleIndexedEnum.Previous();
+            SimpleIndexedEnumPositiveOffset result = expected.Previous();
             Assert.AreEqual(SimpleIndexedEnumPositiveOffset.Two, result);
         }
 
         [TestMethod]
         public void SimpleIndexedEnumPositiveOffsetDoublePreviousTest()
         {
-            SimpleIndexedEnumPositiveOffset simpleIndexedEnum = SimpleIndexedEnumPositiveOffset.Three;
+            SimpleIndexedEnumPositiveOffset expected = SimpleIndexedEnumPositiveOffset.Three;
 
-            SimpleIndexedEnumPositiveOffset result = simpleIndexedEnum.Previous().Previous();
+            SimpleIndexedEnumPositiveOffset result = expected.Previous().Previous();
             Assert.AreEqual(SimpleIndexedEnumPositiveOffset.One, result);
         }
 
         [TestMethod]
         public void SimpleIndexedEnumPositiveOffsetCarryOverBackwardTest()
         {
-            SimpleIndexedEnumPositiveOffset simpleIndexedEnum = SimpleIndexedEnumPositiveOffset.Null;
+            SimpleIndexedEnumPositiveOffset expected = SimpleIndexedEnumPositiveOffset.Null;
 
-            SimpleIndexedEnumPositiveOffset result = simpleIndexedEnum.Previous();
+            SimpleIndexedEnumPositiveOffset result = expected.Previous();
             Assert.AreEqual(SimpleIndexedEnumPositiveOffset.Four, result);
         }
 
@@ -185,54 +185,54 @@ namespace Tests.Orts.Common
         [TestMethod]
         public void SimpleIndexedEnumNegativeOffsetNextTest()
         {
-            SimpleIndexedEnumNegativeOffset simpleIndexedEnum = SimpleIndexedEnumNegativeOffset.One;
+            SimpleIndexedEnumNegativeOffset expected = SimpleIndexedEnumNegativeOffset.One;
 
-            SimpleIndexedEnumNegativeOffset result = simpleIndexedEnum.Next();
+            SimpleIndexedEnumNegativeOffset result = expected.Next();
             Assert.AreEqual(SimpleIndexedEnumNegativeOffset.Two, result);
         }
 
         [TestMethod]
         public void SimpleIndexedEnumNegativeOffsetDoubleNextTest()
         {
-            SimpleIndexedEnumNegativeOffset simpleIndexedEnum = SimpleIndexedEnumNegativeOffset.One;
+            SimpleIndexedEnumNegativeOffset expected = SimpleIndexedEnumNegativeOffset.One;
 
-            SimpleIndexedEnumNegativeOffset result = simpleIndexedEnum.Next().Next();
+            SimpleIndexedEnumNegativeOffset result = expected.Next().Next();
             Assert.AreEqual(SimpleIndexedEnumNegativeOffset.Three, result);
         }
 
         [TestMethod]
         public void SimpleIndexedEnumNegativeOffsetCarryOverForwardTest()
         {
-            SimpleIndexedEnumNegativeOffset simpleIndexedEnum = SimpleIndexedEnumNegativeOffset.Four;
+            SimpleIndexedEnumNegativeOffset expected = SimpleIndexedEnumNegativeOffset.Four;
 
-            SimpleIndexedEnumNegativeOffset result = simpleIndexedEnum.Next();
+            SimpleIndexedEnumNegativeOffset result = expected.Next();
             Assert.AreEqual(SimpleIndexedEnumNegativeOffset.Null, result);
         }
 
         [TestMethod]
         public void SimpleIndexedEnumNegativeOffsetPreviousTest()
         {
-            SimpleIndexedEnumNegativeOffset simpleIndexedEnum = SimpleIndexedEnumNegativeOffset.Four;
+            SimpleIndexedEnumNegativeOffset expected = SimpleIndexedEnumNegativeOffset.Four;
 
-            SimpleIndexedEnumNegativeOffset result = simpleIndexedEnum.Previous();
+            SimpleIndexedEnumNegativeOffset result = expected.Previous();
             Assert.AreEqual(SimpleIndexedEnumNegativeOffset.Three, result);
         }
 
         [TestMethod]
         public void SimpleIndexedEnumNegativeOffsetDoublePreviousTest()
         {
-            SimpleIndexedEnumNegativeOffset simpleIndexedEnum = SimpleIndexedEnumNegativeOffset.Four;
+            SimpleIndexedEnumNegativeOffset expected = SimpleIndexedEnumNegativeOffset.Four;
 
-            SimpleIndexedEnumNegativeOffset result = simpleIndexedEnum.Previous().Previous();
+            SimpleIndexedEnumNegativeOffset result = expected.Previous().Previous();
             Assert.AreEqual(SimpleIndexedEnumNegativeOffset.Two, result);
         }
 
         [TestMethod]
         public void SimpleIndexedEnumNegativeOffsetCarryOverBackwardTest()
         {
-            SimpleIndexedEnumNegativeOffset simpleIndexedEnum = SimpleIndexedEnumNegativeOffset.Null;
+            SimpleIndexedEnumNegativeOffset expected = SimpleIndexedEnumNegativeOffset.Null;
 
-            SimpleIndexedEnumNegativeOffset result = simpleIndexedEnum.Previous();
+            SimpleIndexedEnumNegativeOffset result = expected.Previous();
             Assert.AreEqual(SimpleIndexedEnumNegativeOffset.Four, result);
         }
 
@@ -265,54 +265,54 @@ namespace Tests.Orts.Common
         [TestMethod]
         public void SparseEnumNegativeOffsetNextTest()
         {
-            SparseEnumNegativeOffset simpleIndexedEnum = SparseEnumNegativeOffset.One;
+            SparseEnumNegativeOffset expected = SparseEnumNegativeOffset.One;
 
-            SparseEnumNegativeOffset result = simpleIndexedEnum.Next();
+            SparseEnumNegativeOffset result = expected.Next();
             Assert.AreEqual(SparseEnumNegativeOffset.Two, result);
         }
 
         [TestMethod]
         public void SparseEnumNegativeOffsetDoubleNextTest()
         {
-            SparseEnumNegativeOffset simpleIndexedEnum = SparseEnumNegativeOffset.One;
+            SparseEnumNegativeOffset expected = SparseEnumNegativeOffset.One;
 
-            SparseEnumNegativeOffset result = simpleIndexedEnum.Next().Next();
+            SparseEnumNegativeOffset result = expected.Next().Next();
             Assert.AreEqual(SparseEnumNegativeOffset.Three, result);
         }
 
         [TestMethod]
         public void SparseEnumNegativeOffsetCarryOverForwardTest()
         {
-            SparseEnumNegativeOffset simpleIndexedEnum = SparseEnumNegativeOffset.Four;
+            SparseEnumNegativeOffset expected = SparseEnumNegativeOffset.Four;
 
-            SparseEnumNegativeOffset result = simpleIndexedEnum.Next();
+            SparseEnumNegativeOffset result = expected.Next();
             Assert.AreEqual(SparseEnumNegativeOffset.Null, result);
         }
 
         [TestMethod]
         public void SparseEnumNegativeOffsetPreviousTest()
         {
-            SparseEnumNegativeOffset simpleIndexedEnum = SparseEnumNegativeOffset.Three;
+            SparseEnumNegativeOffset expected = SparseEnumNegativeOffset.Three;
 
-            SparseEnumNegativeOffset result = simpleIndexedEnum.Previous();
+            SparseEnumNegativeOffset result = expected.Previous();
             Assert.AreEqual(SparseEnumNegativeOffset.Two, result);
         }
 
         [TestMethod]
         public void SparseEnumNegativeOffsetDoublePreviousTest()
         {
-            SparseEnumNegativeOffset simpleIndexedEnum = SparseEnumNegativeOffset.Three;
+            SparseEnumNegativeOffset expected = SparseEnumNegativeOffset.Three;
 
-            SparseEnumNegativeOffset result = simpleIndexedEnum.Previous().Previous();
+            SparseEnumNegativeOffset result = expected.Previous().Previous();
             Assert.AreEqual(SparseEnumNegativeOffset.One, result);
         }
 
         [TestMethod]
         public void SparseEnumNegativeOffsetCarryOverBackwardTest()
         {
-            SparseEnumNegativeOffset simpleIndexedEnum = SparseEnumNegativeOffset.Null;
+            SparseEnumNegativeOffset expected = SparseEnumNegativeOffset.Null;
 
-            SparseEnumNegativeOffset result = simpleIndexedEnum.Previous();
+            SparseEnumNegativeOffset result = expected.Previous();
             Assert.AreEqual(SparseEnumNegativeOffset.Four, result);
         }
 

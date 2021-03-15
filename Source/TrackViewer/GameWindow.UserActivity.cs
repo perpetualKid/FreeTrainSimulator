@@ -32,10 +32,17 @@ namespace Orts.TrackViewer
             ExitApplication();
         }
 
-        internal void ExitApplication()
+        internal bool ExitApplication()
         {
             if (MessageBox.Show(Catalog.GetString($"Do you want to quit {RuntimeInfo.ApplicationName} now?"), Catalog.GetString("Quit"), MessageBoxButtons.OKCancel) == DialogResult.OK)
+            {
+                SaveSettings();
+                if (null != ctsRouteLoading && !ctsRouteLoading.IsCancellationRequested)
+                    ctsRouteLoading.Cancel();
                 Exit();
+                return true;
+            }
+            return false;
         }
 
         public void MouseMove(Point position, Vector2 delta)

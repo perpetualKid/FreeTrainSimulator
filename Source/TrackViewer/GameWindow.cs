@@ -155,17 +155,16 @@ namespace Orts.TrackViewer
 
         private void WindowForm_FormClosing(object sender, System.Windows.Forms.FormClosingEventArgs e)
         {
-            SaveSettings();
-            if (null != ctsRouteLoading && !ctsRouteLoading.IsCancellationRequested)
-                ctsRouteLoading.Cancel();
+            if (!ExitApplication())
+                e.Cancel = true;
         }
 
+        #region window size/position handling
         private void Window_ClientSizeChanged(object sender, EventArgs e)
         {
             ContentArea?.UpdateSize(Window.ClientBounds.Size);
         }
 
-        #region window size/position handling
         private void WindowForm_ClientSizeChanged(object sender, EventArgs e)
         {
             centerPoint = new Vector2(Window.ClientBounds.Size.X / 2, Window.ClientBounds.Size.Y / 2);
