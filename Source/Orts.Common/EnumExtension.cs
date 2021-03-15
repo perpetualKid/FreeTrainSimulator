@@ -154,12 +154,12 @@ namespace Orts.Common
         {
             if (EnumCache<T>.ConsecutiveValues)
             {
-                int next = ((Unsafe.As<T, int>(ref item) - 1 - EnumCache<T>.Offset) % EnumCache<T>.Length) + EnumCache<T>.Offset;
+                int next = ((Unsafe.As<T, int>(ref item) + EnumCache<T>.Length - 1 - EnumCache<T>.Offset) % EnumCache<T>.Length) + EnumCache<T>.Offset;
                 return Unsafe.As<int, T>(ref next);
             }
             else
             {
-                int next = (EnumCache<T>.ValueLookup[item] - 1) % EnumCache<T>.Length;
+                int next = (EnumCache<T>.ValueLookup[item] + EnumCache<T>.Length - 1) % EnumCache<T>.Length;
                 return EnumCache<T>.Values[next];
             }
         }
@@ -189,7 +189,14 @@ namespace Orts.Common
         /// </summary>
         public static T Min<T>() where T : Enum
         {
-            return EnumCache<T>.Values[0];
+            if (EnumCache<T>.Offset < 0)
+            {
+                return EnumCache<T>.Values.Min(); 
+            }
+            else
+            {
+                return EnumCache<T>.Values[0];
+            }
         }
 
         /// <summary>
@@ -197,7 +204,14 @@ namespace Orts.Common
         /// </summary>
         public static T Max<T>() where T : Enum
         {
-            return EnumCache<T>.Values[EnumCache<T>.Length - 1];
+            if (EnumCache<T>.Offset < 0)
+            {
+                return EnumCache<T>.Values.Max();
+            }
+            else
+            {
+                return EnumCache<T>.Values[EnumCache<T>.Length - 1];
+            }
         }
 
     }

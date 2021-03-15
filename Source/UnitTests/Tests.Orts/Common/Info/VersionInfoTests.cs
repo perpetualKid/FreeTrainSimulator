@@ -7,7 +7,7 @@ using NuGet.Versioning;
 
 using Orts.Common.Info;
 
-namespace Tests.Orts.Common
+namespace Tests.Orts.Common.Info
 {
     [TestClass]
     public class VersionInfoTests
