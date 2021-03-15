@@ -3,8 +3,7 @@
     <OutputType>Exe</OutputType>
     <UseWindowsForms>true</UseWindowsForms>
     <Description>Open Rails Data Collector (Contributed)</Description>
-  </PropertyGroup>
-  <PropertyGroup>
+    <AssemblyTitle>Open Rails Data Collector (Contributed)</AssemblyTitle>
     <OutputPath>..\..\..\Program</OutputPath>
     <RootNamespace>Orts.DataCollector</RootNamespace>
     <AssemblyName>Contrib.DataCollector</AssemblyName>

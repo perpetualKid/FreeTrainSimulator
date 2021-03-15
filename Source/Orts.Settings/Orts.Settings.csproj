@@ -2,8 +2,7 @@
   <PropertyGroup>
     <UseWindowsForms>true</UseWindowsForms>
     <Description>Open Rails Settings Library</Description>
-  </PropertyGroup>
-  <PropertyGroup>
+    <AssemblyTitle>Open Rails Settings Library</AssemblyTitle>
     <OutputPath>..\..\Program</OutputPath>
   </PropertyGroup>
   <ItemGroup>

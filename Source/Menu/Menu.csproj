@@ -4,8 +4,7 @@
     <UseWindowsForms>true</UseWindowsForms>
     <Description>Open Rails Menu</Description>
     <GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
-  </PropertyGroup>
-  <PropertyGroup>
+    <AssemblyTitle>Open Rails Menu</AssemblyTitle>
     <OutputPath>..\..\Program</OutputPath>
     <ApplicationIcon>..\Orts.ico</ApplicationIcon>
     <RootNamespace>Orts.Menu</RootNamespace>

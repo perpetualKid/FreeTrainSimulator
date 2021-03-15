@@ -2,10 +2,9 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <Description>Open Rails Track Viewer (Contributed)</Description>
+    <AssemblyTitle>Open Rails Track Viewer (Contributed)</AssemblyTitle>
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
-  </PropertyGroup>
-  <PropertyGroup>
     <OutputPath>..\..\..\Program</OutputPath>
     <RootNamespace>ORTS.TrackViewer</RootNamespace>
     <ApplicationIcon>..\..\Orts.ico</ApplicationIcon>

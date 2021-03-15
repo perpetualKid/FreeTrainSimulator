@@ -3,9 +3,8 @@
     <OutputType>WinExe</OutputType>
     <Description>Open Rails Updater</Description>
     <UseWindowsForms>true</UseWindowsForms>
-	<GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
-  </PropertyGroup>
-  <PropertyGroup>
+    <AssemblyTitle>Open Rails Updater</AssemblyTitle>
+    <GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
     <OutputPath>..\..\Program</OutputPath>
     <RootNamespace>Orts.Updater</RootNamespace>
     <ApplicationIcon>..\Orts.ico</ApplicationIcon>

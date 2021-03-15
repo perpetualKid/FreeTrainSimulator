@@ -1,9 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
   <PropertyGroup>
     <UseWindowsForms>true</UseWindowsForms>
+    <Description>Open Rails Common Library</Description>
     <AssemblyTitle>Open Rails Common Library</AssemblyTitle>
-  </PropertyGroup>
-  <PropertyGroup>
     <OutputPath>..\..\Program</OutputPath>
   </PropertyGroup>
   <ItemGroup>

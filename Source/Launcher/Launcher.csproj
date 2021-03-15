@@ -4,8 +4,7 @@
     <TargetFramework>net20</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
     <Description>Open Rails Launcher</Description>
-  </PropertyGroup>
-   <PropertyGroup>
+    <AssemblyTitle>Open Rails Launcher</AssemblyTitle>
     <OutputPath>..\..\Program</OutputPath>
     <RootNamespace>Orts.Launcher</RootNamespace>
     <AssemblyName>OpenRails</AssemblyName>

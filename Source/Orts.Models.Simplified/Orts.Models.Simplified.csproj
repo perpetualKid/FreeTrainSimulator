@@ -1,8 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <Description>Open Rails Simplified Models Library</Description>
-  </PropertyGroup>
-  <PropertyGroup>
+    <AssemblyTitle>Open Rails Simplified Models Library</AssemblyTitle>
     <OutputPath>..\..\Program</OutputPath>
     <AssemblyName>Orts.Models.Simplified</AssemblyName>
     <RootNamespace>Orts.Models.Simplified</RootNamespace>

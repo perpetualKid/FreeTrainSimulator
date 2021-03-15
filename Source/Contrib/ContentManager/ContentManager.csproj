@@ -3,9 +3,8 @@
     <OutputType>WinExe</OutputType>
     <UseWindowsForms>true</UseWindowsForms>
     <Description>Open Rails Content Manager (Contributed)</Description>
-	<GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
-  </PropertyGroup>
-  <PropertyGroup>
+    <AssemblyTitle>Open Rails Content Manager (Contributed)</AssemblyTitle>
+    <GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
     <OutputPath>..\..\..\Program</OutputPath>
     <RootNamespace>Orts.ContentManager</RootNamespace>
     <AssemblyName>Contrib.ContentManager</AssemblyName>

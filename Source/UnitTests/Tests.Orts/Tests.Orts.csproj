@@ -2,6 +2,7 @@
   <PropertyGroup>
     <IsPackable>false</IsPackable>
     <Description>Open Rails Unit Tests</Description>
+    <AssemblyTitle>Open Rails Unit Tests</AssemblyTitle>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.0.1641" />

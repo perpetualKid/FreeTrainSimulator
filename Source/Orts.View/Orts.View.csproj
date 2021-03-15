@@ -1,9 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <Description>Open Rails View Library</Description>
+    <AssemblyTitle>Open Rails View Library</AssemblyTitle>
     <GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
-  </PropertyGroup>
-  <PropertyGroup>
     <OutputPath>..\..\Program</OutputPath>
     <AssemblyName>Orts.View</AssemblyName>
     <RootNamespace>Orts.View</RootNamespace>
