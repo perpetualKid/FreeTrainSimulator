@@ -64,11 +64,6 @@ namespace Orts.ContentManager
         {
             InitializeComponent();
 
-            // Windows 2000 and XP should use 8.25pt Tahoma, while Windows
-            // Vista and later should use 9pt "Segoe UI". We'll use the
-            // Message Box font to allow for user-customizations, though.
-            Font = SystemFonts.MessageBoxFont;
-
             settings = new UserSettings(new string[0]);
             contentManager = new ContentManager(settings.FolderSettings);
 

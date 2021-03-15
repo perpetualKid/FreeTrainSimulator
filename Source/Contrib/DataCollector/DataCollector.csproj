@@ -1,13 +1,14 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <UseWindowsForms>true</UseWindowsForms>
     <Description>Open Rails Data Collector (Contributed)</Description>
     <AssemblyTitle>Open Rails Data Collector (Contributed)</AssemblyTitle>
     <OutputPath>..\..\..\Program</OutputPath>
     <RootNamespace>Orts.DataCollector</RootNamespace>
     <AssemblyName>Contrib.DataCollector</AssemblyName>
     <ApplicationIcon>..\..\Orts.ico</ApplicationIcon>
+    <UserSecretsId>c0363cc3-5713-4c49-b730-bac0eddcf103</UserSecretsId>
+    <NoWin32Manifest>true</NoWin32Manifest>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Orts.Common\Orts.Common.csproj" />

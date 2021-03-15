@@ -34,20 +34,23 @@
             // 
             // progressBarUpdater
             // 
-            this.progressBarUpdater.Location = new System.Drawing.Point(12, 12);
+            this.progressBarUpdater.Location = new System.Drawing.Point(16, 19);
+            this.progressBarUpdater.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.progressBarUpdater.Name = "progressBarUpdater";
-            this.progressBarUpdater.Size = new System.Drawing.Size(260, 23);
+            this.progressBarUpdater.Size = new System.Drawing.Size(347, 35);
             this.progressBarUpdater.TabIndex = 0;
             this.progressBarUpdater.UseWaitCursor = true;
             // 
             // UpdaterProgress
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(284, 47);
+            this.ClientSize = new System.Drawing.Size(379, 72);
             this.Controls.Add(this.progressBarUpdater);
+            this.Font = new System.Drawing.Font("Segoe UI", 9F);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "UpdaterProgress";

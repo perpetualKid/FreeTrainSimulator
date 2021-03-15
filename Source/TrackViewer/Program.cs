@@ -15,10 +15,9 @@ namespace Orts.TrackViewer
         private static void Main()
         {
 #if NETCOREAPP
-            Application.SetHighDpiMode(HighDpiMode.SystemAware);
+            Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
 #else
             NativeMethods.SetProcessDpiAwareness(NativeMethods.PROCESS_DPI_AWARENESS.Process_Per_Monitor_DPI_Aware);
-
 #endif
             Application.SetCompatibleTextRenderingDefault(false);
             using (GameWindow game = new GameWindow())
