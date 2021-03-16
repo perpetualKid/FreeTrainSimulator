@@ -175,10 +175,8 @@ namespace Orts.Simulation.Track
                 if (items.Contains(sectionIndex))
                 {
                     foreach (int item in items[sectionIndex])
-                    {
                         if (item >= startIndex)
                             return item;
-                    }
                 }
             }
             return -1;
@@ -204,7 +202,7 @@ namespace Orts.Simulation.Track
                 if (items.Contains(sectionIndex))
                 {
                     foreach(int item in items[sectionIndex])
-                        if (item <= startIndex)
+                        if (item < startIndex)
                             return item;
                 }
             }
