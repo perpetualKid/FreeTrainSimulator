@@ -22,7 +22,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -1586,7 +1585,11 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
     {
         protected readonly Viewer Viewer;
         protected readonly MSTSLocomotive Locomotive;
-        protected readonly CabViewControl Control;
+
+        //CJ
+        //protected readonly CabViewControl Control;
+        public readonly CabViewControl Control;
+
         protected readonly CabShader Shader;
         protected readonly int ShaderKey = 1;
         protected readonly CabSpriteBatchMaterial CabShaderControlView;

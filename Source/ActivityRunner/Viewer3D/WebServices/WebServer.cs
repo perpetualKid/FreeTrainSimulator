@@ -22,6 +22,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -35,6 +36,8 @@ using Microsoft.Xna.Framework;
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+
+using Orts.ActivityRunner.Viewer3D.RollingStock;
 
 namespace Orts.ActivityRunner.Viewer3D.WebServices
 {
@@ -50,7 +53,10 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
         /// <param name="url">The URL prefix to listen on.</param>
         /// <param name="path">The root directory to serve static files from.</param>
         /// <returns>The EmbedIO web server instance.</returns>
-        public static EmbedIO.WebServer CreateWebServer(string url, string path) => CreateWebServer(new string[] { url }, path);
+        public static EmbedIO.WebServer CreateWebServer(string url, string path)
+        {
+            return CreateWebServer(new string[] { url }, path);
+        }
 
         /// <summary>
         /// Create a web server with multiple listening addresses.
@@ -77,13 +83,13 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
         /// </remarks>
         private static async Task SerializationCallback(IHttpContext context, object data)
         {
-            using (var text = context.OpenResponseText(new UTF8Encoding()))
+            using (TextWriter text = context.OpenResponseText(new UTF8Encoding()))
             {
                 await text.WriteAsync(JsonConvert.SerializeObject(data, new JsonSerializerSettings()
                 {
                     Formatting = Formatting.Indented,
                     ContractResolver = new XnaFriendlyResolver()
-                }));
+                })).ConfigureAwait(false);
             }
         }
 
@@ -234,6 +240,35 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
         #region /API/TRAINDRIVINGDISPLAY
         [Route(HttpVerbs.Get, "/TRAINDRIVINGDISPLAY")]
         public IEnumerable<TrainDrivingDisplay.ListLabel> TrainDrivingDisplay([QueryField] bool normalText) => viewer.TrainDrivingDisplayList(normalText);
+        #endregion
+
+
+        #region /API/CABCONTROLS
+        public class ControlValue
+        {
+            public string TypeName;
+            public double MinValue;
+            public double MaxValue;
+            public double RangeFraction;
+        }
+
+        [Route(HttpVerbs.Get, "/CABCONTROLS")]
+        public IEnumerable<ControlValue> CabControls()
+        {
+            MSTSLocomotiveViewer locomotiveViewer = viewer.PlayerLocomotiveViewer as MSTSLocomotiveViewer;
+            List<ControlValue> controlValueList = new List<ControlValue>();
+            foreach (CabViewControlRenderer controlRenderer in locomotiveViewer.CabRenderer.ControlMap.Values)
+            {
+                controlValueList.Add(new ControlValue
+                {
+                    TypeName = controlRenderer.GetControlType().ToString(),
+                    MinValue = controlRenderer.Control.ScaleRangeMin,
+                    MaxValue = controlRenderer.Control.ScaleRangeMax,
+                    RangeFraction = controlRenderer.GetRangeFraction()
+                });
+            }
+            return controlValueList;
+        }
         #endregion
     }
 }
