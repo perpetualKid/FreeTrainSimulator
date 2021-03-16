@@ -293,7 +293,8 @@ namespace Orts.TrackViewer.WinForms.Controls
             documentation.AppendLine(parent.Catalog.GetString($"Documentation for {RuntimeInfo.ApplicationName} is available online at:"));
             documentation.AppendLine(RuntimeInfo.WikiUri.ToString());
             documentation.AppendLine();
-            documentation.AppendLine(parent.Catalog.GetString("Do you want to visit the website now (open the page in standard web browser)?"));
+            documentation.AppendLine(parent.Catalog.GetString("Do you want to visit the website now?"));
+            documentation.AppendLine(parent.Catalog.GetString("This will open the page in standard web browser."));
             documentation.AppendLine();
             DialogResult result = MessageBox.Show(documentation.ToString(), $"{RuntimeInfo.ApplicationName}", MessageBoxButtons.YesNo);
             if (result == DialogResult.Yes)
