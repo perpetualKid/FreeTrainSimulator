@@ -13,6 +13,8 @@ namespace Orts.Common.Info
 
         public static readonly string ProductName = VersionInfo.ProductName();
 
+        public static readonly Uri WikiUri = new Uri("https://github.com/perpetualKid/ORTS-MG/wiki");
+
         public static string ApplicationName => FileVersionInfo.GetVersionInfo(Assembly.GetCallingAssembly().Location).FileDescription;
 
         /// <summary>

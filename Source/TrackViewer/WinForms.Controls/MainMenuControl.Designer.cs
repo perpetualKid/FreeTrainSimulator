@@ -91,8 +91,10 @@ namespace Orts.TrackViewer.WinForms.Controls
             this.speedpostColorToolStripComboBoxMenuItem = new System.Windows.Forms.ToolStripComboBox();
             this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.documentationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator5 = new System.Windows.Forms.ToolStripSeparator();
+            this.takeScreenshotToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.MainMenuStrip.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -125,41 +127,43 @@ namespace Orts.TrackViewer.WinForms.Controls
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(218, 6);
+            this.toolStripSeparator1.Size = new System.Drawing.Size(221, 6);
             // 
             // menuItemFolder
             // 
             this.menuItemFolder.Name = "menuItemFolder";
-            this.menuItemFolder.Size = new System.Drawing.Size(221, 26);
+            this.menuItemFolder.Size = new System.Drawing.Size(224, 26);
             this.menuItemFolder.Text = "Select Route Folder";
             // 
             // menuItemRoutes
             // 
             this.menuItemRoutes.Name = "menuItemRoutes";
-            this.menuItemRoutes.Size = new System.Drawing.Size(221, 26);
+            this.menuItemRoutes.Size = new System.Drawing.Size(224, 26);
             this.menuItemRoutes.Text = "Select Route";
             // 
             // toolStripSeparator2
             // 
             this.toolStripSeparator2.Name = "toolStripSeparator2";
-            this.toolStripSeparator2.Size = new System.Drawing.Size(218, 6);
+            this.toolStripSeparator2.Size = new System.Drawing.Size(221, 6);
             // 
             // menuItemQuit
             // 
             this.menuItemQuit.Name = "menuItemQuit";
-            this.menuItemQuit.Size = new System.Drawing.Size(221, 26);
+            this.menuItemQuit.Size = new System.Drawing.Size(224, 26);
             this.menuItemQuit.Text = "Quit (Q)";
             this.menuItemQuit.Click += new System.EventHandler(this.MenuItemQuit_Click);
             // 
             // viewToolStripMenuItem
             // 
             this.viewToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.takeScreenshotToolStripMenuItem,
+            this.toolStripSeparator5,
             this.viewTrackItemsToolStripMenuItem,
             this.viewRoadItemsToolStripMenuItem,
             this.viewInteractivesToolStripMenuItem,
             this.tileGidVisibleToolStripMenuItem});
             this.viewToolStripMenuItem.Name = "viewToolStripMenuItem";
-            this.viewToolStripMenuItem.Size = new System.Drawing.Size(55, 24);
+            this.viewToolStripMenuItem.Size = new System.Drawing.Size(55, 26);
             this.viewToolStripMenuItem.Text = "View";
             // 
             // viewTrackItemsToolStripMenuItem
@@ -180,35 +184,35 @@ namespace Orts.TrackViewer.WinForms.Controls
             // 
             this.trackSegmentsVisibleToolStripMenuItem.CheckOnClick = true;
             this.trackSegmentsVisibleToolStripMenuItem.Name = "trackSegmentsVisibleToolStripMenuItem";
-            this.trackSegmentsVisibleToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
+            this.trackSegmentsVisibleToolStripMenuItem.Size = new System.Drawing.Size(195, 26);
             this.trackSegmentsVisibleToolStripMenuItem.Text = "Track Segments";
             // 
             // trackEndNodesVisibleToolStripMenuItem
             // 
             this.trackEndNodesVisibleToolStripMenuItem.CheckOnClick = true;
             this.trackEndNodesVisibleToolStripMenuItem.Name = "trackEndNodesVisibleToolStripMenuItem";
-            this.trackEndNodesVisibleToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
+            this.trackEndNodesVisibleToolStripMenuItem.Size = new System.Drawing.Size(195, 26);
             this.trackEndNodesVisibleToolStripMenuItem.Text = "End Nodes";
             // 
             // trackJunctionNodesVisibleToolStripMenuItem
             // 
             this.trackJunctionNodesVisibleToolStripMenuItem.CheckOnClick = true;
             this.trackJunctionNodesVisibleToolStripMenuItem.Name = "trackJunctionNodesVisibleToolStripMenuItem";
-            this.trackJunctionNodesVisibleToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
+            this.trackJunctionNodesVisibleToolStripMenuItem.Size = new System.Drawing.Size(195, 26);
             this.trackJunctionNodesVisibleToolStripMenuItem.Text = "Junction Nodes";
             // 
             // trackCrossverNodesVisibleToolStripMenuItem
             // 
             this.trackCrossverNodesVisibleToolStripMenuItem.CheckOnClick = true;
             this.trackCrossverNodesVisibleToolStripMenuItem.Name = "trackCrossverNodesVisibleToolStripMenuItem";
-            this.trackCrossverNodesVisibleToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
+            this.trackCrossverNodesVisibleToolStripMenuItem.Size = new System.Drawing.Size(195, 26);
             this.trackCrossverNodesVisibleToolStripMenuItem.Text = "Crossver Nodes";
             // 
             // trackLevelCrossingsVisibleToolStripMenuItem
             // 
             this.trackLevelCrossingsVisibleToolStripMenuItem.CheckOnClick = true;
             this.trackLevelCrossingsVisibleToolStripMenuItem.Name = "trackLevelCrossingsVisibleToolStripMenuItem";
-            this.trackLevelCrossingsVisibleToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
+            this.trackLevelCrossingsVisibleToolStripMenuItem.Size = new System.Drawing.Size(195, 26);
             this.trackLevelCrossingsVisibleToolStripMenuItem.Text = "Level Crossings";
             // 
             // viewRoadItemsToolStripMenuItem
@@ -589,15 +593,8 @@ namespace Orts.TrackViewer.WinForms.Controls
             this.documentationToolStripMenuItem,
             this.aboutToolStripMenuItem});
             this.helpToolStripMenuItem.Name = "helpToolStripMenuItem";
-            this.helpToolStripMenuItem.Size = new System.Drawing.Size(55, 26);
+            this.helpToolStripMenuItem.Size = new System.Drawing.Size(55, 24);
             this.helpToolStripMenuItem.Text = "Help";
-            // 
-            // aboutToolStripMenuItem
-            // 
-            this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
-            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
-            this.aboutToolStripMenuItem.Text = "About";
-            this.aboutToolStripMenuItem.Click += new System.EventHandler(this.AboutToolStripMenuItem_Click);
             // 
             // documentationToolStripMenuItem
             // 
@@ -606,14 +603,35 @@ namespace Orts.TrackViewer.WinForms.Controls
             this.documentationToolStripMenuItem.Text = "Documentation";
             this.documentationToolStripMenuItem.Click += new System.EventHandler(this.DocumentationToolStripMenuItem_Click);
             // 
+            // aboutToolStripMenuItem
+            // 
+            this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
+            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
+            this.aboutToolStripMenuItem.Text = "About";
+            this.aboutToolStripMenuItem.Click += new System.EventHandler(this.AboutToolStripMenuItem_Click);
+            // 
+            // toolStripSeparator5
+            // 
+            this.toolStripSeparator5.Name = "toolStripSeparator5";
+            this.toolStripSeparator5.Size = new System.Drawing.Size(246, 6);
+            // 
+            // takeScreenshotToolStripMenuItem
+            // 
+            this.takeScreenshotToolStripMenuItem.Name = "takeScreenshotToolStripMenuItem";
+            this.takeScreenshotToolStripMenuItem.Size = new System.Drawing.Size(249, 26);
+            this.takeScreenshotToolStripMenuItem.Text = "Take Screenshot (PrtScr)";
+            this.takeScreenshotToolStripMenuItem.Click += new System.EventHandler(this.TakeScreenshotToolStripMenuItem_Click);
+            // 
             // MainMenuControl
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoSize = true;
             this.Controls.Add(this.MainMenuStrip);
+            this.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.Name = "MainMenuControl";
-            this.Size = new System.Drawing.Size(1132, 273);
+            this.Size = new System.Drawing.Size(1132, 341);
             this.MainMenuStrip.ResumeLayout(false);
             this.MainMenuStrip.PerformLayout();
             this.ResumeLayout(false);
@@ -687,5 +705,7 @@ namespace Orts.TrackViewer.WinForms.Controls
         private System.Windows.Forms.ToolStripMenuItem helpToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem documentationToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem takeScreenshotToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator5;
     }
 }

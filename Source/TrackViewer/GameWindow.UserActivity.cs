@@ -1,7 +1,9 @@
 ﻿using System;
+using System.IO;
 using System.Windows.Forms;
 
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 using Orts.Common;
 using Orts.Common.Info;
@@ -111,5 +113,36 @@ namespace Orts.TrackViewer
         {
             contentArea?.ResetSize(Window.ClientBounds.Size, 60);
         }
+
+        private void PrintScreen(Keys key, KeyModifiers modifiers)
+        {
+            PrintScreen();
+        }
+
+        internal void PrintScreen()
+        {
+            using (SaveFileDialog dialog = new SaveFileDialog())
+            {
+                dialog.DefaultExt = "png";
+                dialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
+                dialog.Filter = $"{Catalog.GetString("Image files (*.png)")}|*.png";
+                if (dialog.ShowDialog() == DialogResult.OK)
+                {
+                    byte[] backBuffer = new byte[graphicsDeviceManager.PreferredBackBufferWidth * graphicsDeviceManager.PreferredBackBufferHeight * 4];
+                    GraphicsDevice graphicsDevice = graphicsDeviceManager.GraphicsDevice;
+                    graphicsDevice.GetBackBufferData(backBuffer);
+                    using (RenderTarget2D screenshot = new RenderTarget2D(graphicsDevice, graphicsDeviceManager.PreferredBackBufferWidth, graphicsDeviceManager.PreferredBackBufferHeight, false, graphicsDevice.PresentationParameters.BackBufferFormat, DepthFormat.None))
+                    {
+                        graphicsDevice.GetBackBufferData(backBuffer);
+                        screenshot.SetData(backBuffer);
+                        using (FileStream stream = File.OpenWrite(dialog.FileName))
+                        {
+                            screenshot.SaveAsPng(stream, graphicsDeviceManager.PreferredBackBufferWidth, graphicsDeviceManager.PreferredBackBufferHeight);
+                        }
+                    }
+                }
+            }
+        }
+
     }
 }

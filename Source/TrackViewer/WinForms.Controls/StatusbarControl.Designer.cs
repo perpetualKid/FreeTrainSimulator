@@ -44,9 +44,9 @@ namespace Orts.TrackViewer.WinForms.Controls
             this.toolStripStatusLabel1,
             this.toolStripProgressBar1,
             this.toolStripStatusLabel2});
-            this.StatusStrip.Location = new System.Drawing.Point(0, 132);
+            this.StatusStrip.Location = new System.Drawing.Point(0, 168);
             this.StatusStrip.Name = "StatusStrip";
-            this.StatusStrip.Size = new System.Drawing.Size(1270, 26);
+            this.StatusStrip.Size = new System.Drawing.Size(1270, 30);
             this.StatusStrip.TabIndex = 0;
             this.StatusStrip.Text = "statusStrip1";
             this.StatusStrip.ItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.StatusStrip_ItemClicked);
@@ -54,30 +54,31 @@ namespace Orts.TrackViewer.WinForms.Controls
             // toolStripStatusLabel1
             // 
             this.toolStripStatusLabel1.Name = "toolStripStatusLabel1";
-            this.toolStripStatusLabel1.Size = new System.Drawing.Size(151, 20);
+            this.toolStripStatusLabel1.Size = new System.Drawing.Size(151, 24);
             this.toolStripStatusLabel1.Text = "toolStripStatusLabel1";
             // 
             // toolStripProgressBar1
             // 
             this.toolStripProgressBar1.Name = "toolStripProgressBar1";
-            this.toolStripProgressBar1.Size = new System.Drawing.Size(100, 18);
+            this.toolStripProgressBar1.Size = new System.Drawing.Size(100, 22);
             // 
             // toolStripStatusLabel2
             // 
             this.toolStripStatusLabel2.Name = "toolStripStatusLabel2";
-            this.toolStripStatusLabel2.Size = new System.Drawing.Size(151, 20);
+            this.toolStripStatusLabel2.Size = new System.Drawing.Size(151, 24);
             this.toolStripStatusLabel2.Text = "toolStripStatusLabel2";
             // 
             // StatusbarControl
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoSize = true;
             this.BackColor = System.Drawing.SystemColors.Control;
             this.Controls.Add(this.StatusStrip);
+            this.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Margin = new System.Windows.Forms.Padding(0);
             this.Name = "StatusbarControl";
-            this.Size = new System.Drawing.Size(1270, 158);
+            this.Size = new System.Drawing.Size(1270, 198);
             this.StatusStrip.ResumeLayout(false);
             this.StatusStrip.PerformLayout();
             this.ResumeLayout(false);

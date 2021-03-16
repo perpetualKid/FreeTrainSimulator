@@ -289,17 +289,16 @@ namespace Orts.TrackViewer.WinForms.Controls
 
         private void DocumentationToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            string website = "https://github.com/perpetualKid/ORTS-MG/wiki";
             StringBuilder documentation = new StringBuilder();
             documentation.AppendLine(parent.Catalog.GetString($"Documentation for {RuntimeInfo.ApplicationName} is available online at:"));
-            documentation.AppendLine(website);
+            documentation.AppendLine(RuntimeInfo.WikiUri.ToString());
             documentation.AppendLine();
-            documentation.AppendLine(parent.Catalog.GetString("Do you want to go to the website?"));
+            documentation.AppendLine(parent.Catalog.GetString("Do you want to visit the website now (open the page in standard web browser)?"));
             documentation.AppendLine();
-            DialogResult result = MessageBox.Show(documentation.ToString(), $"{RuntimeInfo.ApplicationName}", MessageBoxButtons.OKCancel);
-            if (result == DialogResult.OK)
+            DialogResult result = MessageBox.Show(documentation.ToString(), $"{RuntimeInfo.ApplicationName}", MessageBoxButtons.YesNo);
+            if (result == DialogResult.Yes)
             {
-                SystemInfo.OpenBrowser(website);
+                SystemInfo.OpenBrowser(RuntimeInfo.WikiUri);
             }
 
         }
@@ -307,6 +306,11 @@ namespace Orts.TrackViewer.WinForms.Controls
         private void AboutToolStripMenuItem_Click(object sender, EventArgs e)
         {
             MessageBox.Show($"{RuntimeInfo.ApplicationName} {VersionInfo.FullVersion}", $"{RuntimeInfo.ApplicationName}");
+        }
+
+        private void TakeScreenshotToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            parent.PrintScreen();
         }
     }
 }
