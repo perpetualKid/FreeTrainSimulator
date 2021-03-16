@@ -130,7 +130,6 @@ namespace Orts.TrackViewer
                 {
                     byte[] backBuffer = new byte[graphicsDeviceManager.PreferredBackBufferWidth * graphicsDeviceManager.PreferredBackBufferHeight * 4];
                     GraphicsDevice graphicsDevice = graphicsDeviceManager.GraphicsDevice;
-                    graphicsDevice.GetBackBufferData(backBuffer);
                     using (RenderTarget2D screenshot = new RenderTarget2D(graphicsDevice, graphicsDeviceManager.PreferredBackBufferWidth, graphicsDeviceManager.PreferredBackBufferHeight, false, graphicsDevice.PresentationParameters.BackBufferFormat, DepthFormat.None))
                     {
                         graphicsDevice.GetBackBufferData(backBuffer);

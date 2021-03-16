@@ -55,6 +55,7 @@ using Orts.Viewer3D.Popups;
 using Orts.Scripting.Api;
 using Orts.Common.Info;
 using Orts.Simulation.Signalling;
+using System.Threading.Tasks;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -1816,50 +1817,33 @@ namespace Orts.ActivityRunner.Viewer3D
             }
         }
 
-        //[CallOnThread("Render")]
-        void SaveScreenshotToFile(GraphicsDevice graphicsDevice, string fileName, bool silent)
+        private void SaveScreenshotToFile(GraphicsDevice graphicsDevice, string fileName, bool silent)
         {
             if (graphicsDevice.GraphicsProfile != GraphicsProfile.HiDef)
                 return;
 
             int w = graphicsDevice.PresentationParameters.BackBufferWidth;
             int h = graphicsDevice.PresentationParameters.BackBufferHeight;
-            int[] backBuffer = new int[w * h];
 
-
-            graphicsDevice.GetBackBufferData(backBuffer);
-            //copy into a texture 
-            Texture2D screenshot = new Texture2D(graphicsDevice, w, h, false, graphicsDevice.PresentationParameters.BackBufferFormat);
-            screenshot.SetData(backBuffer);
-            new Thread(() =>
+            Task.Run(() =>
             {
-                try
+                byte[] backBuffer = new byte[w * h * 4];
+                using (RenderTarget2D screenshot = new RenderTarget2D(graphicsDevice, w, h, false, graphicsDevice.PresentationParameters.BackBufferFormat, DepthFormat.None))
                 {
-                    // Unfortunately, the back buffer includes an alpha channel. Although saving this might seem okay,
-                    // it actually ruins the picture - nothing in the back buffer is seen on-screen according to its
-                    // alpha, it's only used for blending (if at all). We'll remove the alpha here.
-                    var data = new uint[screenshot.Width * screenshot.Height];
-                    screenshot.GetData(data);
-                    for (var i = 0; i < data.Length; i++)
-                        data[i] |= 0xFF000000;
-                    screenshot.SetData(data);
-
-                    // Now save the modified image.
-                    using (var stream = File.OpenWrite(fileName))
+                    graphicsDevice.GetBackBufferData(backBuffer);
+                    screenshot.SetData(backBuffer);
+                    using (FileStream stream = File.OpenWrite(fileName))
                     {
                         screenshot.SaveAsPng(stream, w, h);
                     }
-                    screenshot.Dispose();
 
                     if (!silent)
-                        MessagesWindow.AddMessage(String.Format("Saving screenshot to '{0}'.", fileName), 10);
-
+                        MessagesWindow.AddMessage($"Saving screenshot to '{fileName}'.", 10);
                     Visibility = VisibilityState.Visible;
                     // Reveal MessageWindow
                     MessagesWindow.Visible = true;
                 }
-                catch { }
-            }).Start();
+            });
         }
     }
 }
