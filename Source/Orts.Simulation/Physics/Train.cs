@@ -3047,7 +3047,7 @@ namespace Orts.Simulation.Physics
 
                 SignalItemInfo prevObject = firstObject;
 
-                foreach (SignalItemInfo nextObject in SignalObjectItems)
+                foreach (SignalItemInfo nextObject in SignalObjectItems.Skip(1))
                 {
                     nextObject.DistanceToTrain = prevObject.DistanceToTrain + nextObject.DistanceToObject;
                     lastDistance = nextObject.DistanceToTrain;
