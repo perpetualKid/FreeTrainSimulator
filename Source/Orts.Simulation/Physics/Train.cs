@@ -9121,11 +9121,14 @@ namespace Orts.Simulation.Physics
             if (trafficService == null)
                 return;   // no traffic definition
 
+            int beginActiveSubroute = 0;
+            int activeSubrouteNodeIndex = 0;
+
             // loop through traffic points
 
             foreach (ServiceTrafficItem serviceTraffic in trafficService)
             {
-                bool validStop = CreateStationStop(serviceTraffic.PlatformStartID, serviceTraffic.ArrivalTime, serviceTraffic.DepartTime, clearingDistanceM, 0, 0);
+                bool validStop = CreateStationStop(serviceTraffic.PlatformStartID, serviceTraffic.ArrivalTime, serviceTraffic.DepartTime, clearingDistanceM, ref beginActiveSubroute, ref activeSubrouteNodeIndex);
                 if (!validStop)
                 {
                     Trace.TraceInformation($"Train {Number} Service {Name}: cannot find platform {serviceTraffic.PlatformStartID}");
@@ -9136,7 +9139,7 @@ namespace Orts.Simulation.Physics
         /// <summary>
         /// Create station stop list
         /// <\summary>
-        private bool CreateStationStop(int platformStartID, int arrivalTime, int departTime, float clearingDistanceM, int beginActiveSubroute, int activeSubrouteNodeIndex)
+        private bool CreateStationStop(int platformStartID, int arrivalTime, int departTime, float clearingDistanceM, ref int beginActiveSubroute, ref int activeSubrouteNodeIndex)
         {
             int activeSubroute = beginActiveSubroute;
             bool terminalStation = false;
