@@ -3,6 +3,7 @@ trigger:
     exclude:
     - master
     - Merge*
+    - Dispatcher*
   paths:
     exclude: # file paths which will not trigger a build
     - Build/*

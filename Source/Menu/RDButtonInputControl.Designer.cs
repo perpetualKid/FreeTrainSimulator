@@ -43,7 +43,7 @@ namespace Orts.Menu
             this.buttonOK.Dock = System.Windows.Forms.DockStyle.Right;
             this.buttonOK.Location = new System.Drawing.Point(131, 0);
             this.buttonOK.Name = "buttonOK";
-            this.buttonOK.Size = new System.Drawing.Size(23, 23);
+            this.buttonOK.Size = new System.Drawing.Size(23, 28);
             this.buttonOK.TabIndex = 3;
             this.buttonOK.Text = "✔";
             this.toolTip1.SetToolTip(this.buttonOK, "Accept changes");
@@ -54,7 +54,7 @@ namespace Orts.Menu
             this.buttonCancel.Dock = System.Windows.Forms.DockStyle.Right;
             this.buttonCancel.Location = new System.Drawing.Point(154, 0);
             this.buttonCancel.Name = "buttonCancel";
-            this.buttonCancel.Size = new System.Drawing.Size(23, 23);
+            this.buttonCancel.Size = new System.Drawing.Size(23, 28);
             this.buttonCancel.TabIndex = 2;
             this.buttonCancel.Text = "✘";
             this.toolTip1.SetToolTip(this.buttonCancel, "Cancel changes");
@@ -66,7 +66,7 @@ namespace Orts.Menu
             this.textBox.Location = new System.Drawing.Point(0, 0);
             this.textBox.Name = "textBox";
             this.textBox.ReadOnly = true;
-            this.textBox.Size = new System.Drawing.Size(131, 20);
+            this.textBox.Size = new System.Drawing.Size(131, 27);
             this.textBox.TabIndex = 0;
             this.toolTip1.SetToolTip(this.textBox, "Press any RailDriver button to Assign. Press Backspace to remove an assignment.");
             this.textBox.Enter += new System.EventHandler(this.TextBox_Enter);
@@ -79,7 +79,7 @@ namespace Orts.Menu
             this.buttonDefault.Dock = System.Windows.Forms.DockStyle.Right;
             this.buttonDefault.Location = new System.Drawing.Point(177, 0);
             this.buttonDefault.Name = "buttonDefault";
-            this.buttonDefault.Size = new System.Drawing.Size(23, 23);
+            this.buttonDefault.Size = new System.Drawing.Size(23, 28);
             this.buttonDefault.TabIndex = 1;
             this.buttonDefault.Text = "↺";
             this.toolTip1.SetToolTip(this.buttonDefault, "Reset to default");
@@ -92,9 +92,10 @@ namespace Orts.Menu
             this.Controls.Add(this.buttonOK);
             this.Controls.Add(this.buttonCancel);
             this.Controls.Add(this.buttonDefault);
+            this.Font = new System.Drawing.Font("Segoe UI", 9F);
             this.Margin = new System.Windows.Forms.Padding(1);
             this.Name = "RDButtonInputControl";
-            this.Size = new System.Drawing.Size(200, 23);
+            this.Size = new System.Drawing.Size(200, 28);
             this.ResumeLayout(false);
             this.PerformLayout();
 

@@ -56,26 +56,44 @@ namespace Orts.Launcher
 
             List<DependencyHint> missingDependencies = new List<DependencyHint>();
 
+            bool coreFx = CheckCoreFx(missingDependencies, true);
             bool netFx = CheckNetFx(missingDependencies);
-            bool coreFx = CheckCoreFx(missingDependencies, preferCoreFx);
-            CheckDXRuntime(missingDependencies);
 
-            if (missingDependencies.Count > 0)
+            if (!coreFx)
             {
                 StringBuilder builder = new StringBuilder();
                 foreach (DependencyHint item in missingDependencies)
                     builder.AppendLine(item.Name);
 
-                if (MessageBox.Show($"{Application.ProductName} requires the following:\n\n{builder}" +
-                    "\nWhen you click OK, we will guide you to download the required software.\n" +
-                    (missingDependencies.Count > 1 ? "If there are multiple items missing, you need to repeat this process until all dependencies are resolved.\n" : string.Empty) +
-                    "Click Cancel to quit.",
-                    Application.ProductName, MessageBoxButtons.OKCancel) == DialogResult.OK)
+                if (netFx)
                 {
-                    DownloadDependency(missingDependencies[0]);
+                    if (MessageBox.Show($"Please read: \n\n{Application.ProductName} will move to {missingDependencies[0].Name} in near future. \n\n" +
+                        $"You can continue using {Application.ProductName} on .NET Framework 4.8 for the time being. However at some point soon you will not be able to upgrade to newer version of {Application.ProductName}.\n\n" +
+                        $"When you installed {missingDependencies[0].Name}, no further action is needed and it will be used immediately.\n\n\n" + 
+                        "When you click OK, we will guide you to download the required software. Click Cancel to continue.",
+                        $"***Please Read***   {Application.ProductName}   ***Please Read***", MessageBoxButtons.OKCancel) == DialogResult.OK)
+                    {
+                        DownloadDependency(missingDependencies[0]);
+                    }
                 }
-                return;
+                else
+                {
+                    if (MessageBox.Show($"{Application.ProductName} requires the following:\n\n{builder}" +
+                        "\nWhen you click OK, we will guide you to download the required software.\n" +
+                        (missingDependencies.Count > 1 ? "If there are multiple items missing, you need to repeat this process until all dependencies are resolved.\n" : string.Empty) +
+                        "Click Cancel to quit.",
+                        Application.ProductName, MessageBoxButtons.OKCancel) == DialogResult.OK)
+                    {
+                        DownloadDependency(missingDependencies[0]);
+                    }
+                    return;
+                }
             }
+            //2021-02-13 Removed as DirectX9 download is no longer available
+            //CheckDXRuntime(missingDependencies);
+
+            //2021-02-13 Prefer CoreFX if installed, even  if no user preference
+            preferCoreFx |= coreFx;
 
             // Check for any missing components.
             string path = Path.GetDirectoryName(Application.ExecutablePath);
@@ -126,13 +144,13 @@ namespace Orts.Launcher
                 if ((SafeReadKey(RK, "Install", 0) == 1) && (SafeReadKey(RK, "Release", 0) >= 528040))  //https://docs.microsoft.com/en-us/dotnet/framework/migration-guide/how-to-determine-which-versions-are-installed#find-net-framework-versions-45-and-later-with-code
                     return true;
 
-            missingDependencies.Add(new DependencyHint()
-            {
-                Name = ("Microsoft .NET Framework 4.8 or later"),
-                Text = "Please go to\n https://dotnet.microsoft.com/download/dotnet-framework/net48 \nto download the installation package " +
-                "for Microsoft .NET Framework 4.8 and install the software.",
-                Url = "https://dotnet.microsoft.com/download/dotnet-framework/net48"
-            });
+            //missingDependencies.Add(new DependencyHint()
+            //{
+            //    Name = ("Microsoft .NET Framework 4.8 or later"),
+            //    Text = "Please go to\n https://dotnet.microsoft.com/download/dotnet-framework/net48 \nto download the installation package " +
+            //    "for Microsoft .NET Framework 4.8 and install the software.",
+            //    Url = "https://dotnet.microsoft.com/download/dotnet-framework/net48"
+            //});
             return false;
         }
 

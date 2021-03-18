@@ -19,6 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 
@@ -36,13 +37,13 @@ namespace Orts.Settings
 	public abstract class SettingsBase
     {
         /// <summary>The store of the settings</summary>
-        protected internal SettingsStore SettingStore { get; private set; }
+        internal protected SettingsStore SettingStore { get; private set; }
 
-        protected readonly StringCollection optionalSettings = new StringCollection();
+        private protected readonly SortedSet<string> optionalSettings = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
 
         #region reflection cache
-        protected PropertyInfo[] properties;
-        protected List<string> doNotSaveProperties;
+        private protected PropertyInfo[] properties;
+        private protected List<string> doNotSaveProperties;
         #endregion
 
         private protected static readonly ICatalog commonCatalog = FormatStrings.Catalog;
@@ -102,13 +103,44 @@ namespace Orts.Settings
         /// </summary>
         public abstract void Reset();
 
+        public virtual void Log()
+        {
+            foreach (PropertyInfo property in GetProperties().OrderBy(p => p.Name))
+            {
+                dynamic value = property.GetValue(this, null);
+                string source = string.Empty;
+
+                if (property.PropertyType == typeof(int[]))  //int array
+                {
+                    source = optionalSettings.Contains(property.Name) ? "(command-line)" :
+                        (((value as int[]).SequenceEqual(GetDefaultValue(property.Name) as int[]))) ? "" : "(user set)";
+                    value = string.Join(", ", (int[])value);
+                }
+                else if (property.PropertyType == typeof(string[]))  //string array
+                {
+                    source = optionalSettings.Contains(property.Name) ? "(command-line)" :
+                        (((value as string[]).SequenceEqual(GetDefaultValue(property.Name) as string[]))) ? "" : "(user set)";
+                    value = string.Join(", ", (string[])value);
+                }
+                else
+                {
+                    source = optionalSettings.Contains(property.Name) ? "(command-line)" :
+                        (value.Equals(GetDefaultValue(property.Name)) ? "" : "(user set)");
+                }
+
+                Trace.WriteLine($"{property.Name.Substring(0, Math.Min(30, property.Name.Length)),-30} = {source,-14} {value.ToString().Replace(Environment.UserName, "********")}");
+            }
+
+            properties = null;
+        }
+
         /// <summary>
         /// Load settings from the options
         /// </summary>
         /// <param name="options">overrideable user options</param>
-		protected void LoadSettings(IEnumerable<string> options)
+        protected void LoadSettings(IEnumerable<string> options)
         {
-            NameValueCollection cmdOptions = new NameValueCollection();
+            NameValueCollection cmdOptions = new NameValueCollection(StringComparer.OrdinalIgnoreCase);
             bool allowUserSettings = true;
 
             if (null != options)
@@ -117,13 +149,12 @@ namespace Orts.Settings
                 allowUserSettings = !options.Contains("skip-user-settings", StringComparer.OrdinalIgnoreCase);
 
                 // Pull apart the command-line options so we can find them by setting name.
-
                 foreach (string option in options)
                 {
-                    var kvp = option.Split(new[] { '=', ':' }, 2);
+                    string[] kvp = option.Split(new[] { '=', ':' }, 2);
 
-                    string k = kvp[0].ToLowerInvariant();
-                    string v = kvp.Length > 1 ? kvp[1].ToLowerInvariant() : "yes";
+                    string k = kvp[0];
+                    string v = kvp.Length > 1 ? kvp[1] : "yes";
                     cmdOptions[k] = v;
                 }
             }
@@ -132,6 +163,9 @@ namespace Orts.Settings
 
         protected void LoadSetting(bool allowUserSettings, NameValueCollection options, string name)
         {
+            if (null == options)
+                throw new ArgumentNullException(nameof(options));
+
             // Get the default value.
             dynamic defValue = GetDefaultValue(name);
 
@@ -139,7 +173,7 @@ namespace Orts.Settings
             dynamic value = allowUserSettings ? SettingStore.GetSettingValue(name, defValue) : defValue;
 
             // Read in the command-line option, if it exists into optValue.
-            string optValueString = options[name.ToLowerInvariant()];
+            string optValueString = options[name];
             dynamic optValue = null;
 
             if (!string.IsNullOrEmpty(optValueString))
@@ -147,7 +181,7 @@ namespace Orts.Settings
                 switch (defValue)
                 {
                     case bool b:
-                        optValue = new[] { "true", "yes", "on", "1" }.Contains(optValueString.ToLowerInvariant().Trim());
+                        optValue = new[] { "true", "yes", "on", "1" }.Contains(optValueString.Trim(), StringComparer.OrdinalIgnoreCase);
                         break;
                     case int i:
                         if (int.TryParse(optValueString, out i))
@@ -157,7 +191,7 @@ namespace Orts.Settings
                         optValue = optValueString.Split(',').Select(content => content.Trim()).ToArray();
                         break;
                     case int[] iA:
-                        optValue = optValueString.Split(',').Select(content => int.Parse(content.Trim())).ToArray();
+                        optValue = optValueString.Split(',').Select(content => int.Parse(content.Trim(), CultureInfo.InvariantCulture)).ToArray();
                         break;
                     default:
                         optValue = optValueString;
@@ -167,7 +201,7 @@ namespace Orts.Settings
 
             if (null != optValue)
             {
-                optionalSettings.Add(name.ToLowerInvariant());
+                optionalSettings.Add(name);
                 value = optValue;
             }
 
@@ -192,7 +226,7 @@ namespace Orts.Settings
             // - or SaveDefaults is true
             // - and this is not overriden from optionalSettings
 
-            if (optionalSettings.Contains(name.ToLowerInvariant()))
+            if (optionalSettings.Contains(name))
                 return;
 
             dynamic defaultValue = GetDefaultValue(name);

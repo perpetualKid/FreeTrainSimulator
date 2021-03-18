@@ -46,9 +46,10 @@
             // 
             this.buttonOK.DialogResult = System.Windows.Forms.DialogResult.OK;
             this.buttonOK.Dock = System.Windows.Forms.DockStyle.Right;
-            this.buttonOK.Location = new System.Drawing.Point(131, 0);
+            this.buttonOK.Location = new System.Drawing.Point(174, 0);
+            this.buttonOK.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.buttonOK.Name = "buttonOK";
-            this.buttonOK.Size = new System.Drawing.Size(23, 23);
+            this.buttonOK.Size = new System.Drawing.Size(31, 28);
             this.buttonOK.TabIndex = 3;
             this.buttonOK.Text = "✔";
             this.toolTip1.SetToolTip(this.buttonOK, "Accept changes");
@@ -57,9 +58,10 @@
             // 
             this.buttonCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
             this.buttonCancel.Dock = System.Windows.Forms.DockStyle.Right;
-            this.buttonCancel.Location = new System.Drawing.Point(154, 0);
+            this.buttonCancel.Location = new System.Drawing.Point(205, 0);
+            this.buttonCancel.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.buttonCancel.Name = "buttonCancel";
-            this.buttonCancel.Size = new System.Drawing.Size(23, 23);
+            this.buttonCancel.Size = new System.Drawing.Size(31, 28);
             this.buttonCancel.TabIndex = 2;
             this.buttonCancel.Text = "✘";
             this.toolTip1.SetToolTip(this.buttonCancel, "Cancel changes");
@@ -68,9 +70,10 @@
             // 
             this.textBox.Dock = System.Windows.Forms.DockStyle.Fill;
             this.textBox.Location = new System.Drawing.Point(0, 0);
+            this.textBox.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.textBox.Name = "textBox";
             this.textBox.ReadOnly = true;
-            this.textBox.Size = new System.Drawing.Size(131, 20);
+            this.textBox.Size = new System.Drawing.Size(174, 27);
             this.textBox.TabIndex = 0;
             this.toolTip1.SetToolTip(this.textBox, "Press any key");
             // 
@@ -79,9 +82,10 @@
             this.buttonDefault.BackColor = System.Drawing.SystemColors.ControlLight;
             this.buttonDefault.DialogResult = System.Windows.Forms.DialogResult.Ignore;
             this.buttonDefault.Dock = System.Windows.Forms.DockStyle.Right;
-            this.buttonDefault.Location = new System.Drawing.Point(177, 0);
+            this.buttonDefault.Location = new System.Drawing.Point(236, 0);
+            this.buttonDefault.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.buttonDefault.Name = "buttonDefault";
-            this.buttonDefault.Size = new System.Drawing.Size(23, 23);
+            this.buttonDefault.Size = new System.Drawing.Size(31, 28);
             this.buttonDefault.TabIndex = 1;
             this.buttonDefault.Text = "↺";
             this.toolTip1.SetToolTip(this.buttonDefault, "Reset to default");
@@ -89,15 +93,16 @@
             // 
             // KeyInputEditControl
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(200, 23);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Inherit;
+            this.ClientSize = new System.Drawing.Size(267, 28);
             this.ControlBox = false;
             this.Controls.Add(this.textBox);
             this.Controls.Add(this.buttonOK);
             this.Controls.Add(this.buttonCancel);
             this.Controls.Add(this.buttonDefault);
+            this.Font = new System.Drawing.Font("Segoe UI", 9F);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
+            this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "KeyInputEditControl";

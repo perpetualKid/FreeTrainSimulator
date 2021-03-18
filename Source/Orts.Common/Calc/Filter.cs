@@ -136,6 +136,7 @@ namespace Orts.Common.Calc
             aCoef = new double[2];
             bCoef = new double[2];
 
+            cuttoffFreqRadpS = cutoffFrequency;
             FilterType = type;
 
             switch (type)

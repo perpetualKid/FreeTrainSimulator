@@ -33,9 +33,10 @@
             // 
             // bViewSavePacksFolder
             // 
-            this.bViewSavePacksFolder.Location = new System.Drawing.Point(324, 12);
+            this.bViewSavePacksFolder.Location = new System.Drawing.Point(432, 15);
+            this.bViewSavePacksFolder.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.bViewSavePacksFolder.Name = "bViewSavePacksFolder";
-            this.bViewSavePacksFolder.Size = new System.Drawing.Size(150, 23);
+            this.bViewSavePacksFolder.Size = new System.Drawing.Size(200, 28);
             this.bViewSavePacksFolder.TabIndex = 1;
             this.bViewSavePacksFolder.Text = "Open Save Packs folder";
             this.bViewSavePacksFolder.UseVisualStyleBackColor = true;
@@ -43,9 +44,10 @@
             // 
             // bExport
             // 
-            this.bExport.Location = new System.Drawing.Point(168, 12);
+            this.bExport.Location = new System.Drawing.Point(224, 15);
+            this.bExport.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.bExport.Name = "bExport";
-            this.bExport.Size = new System.Drawing.Size(150, 23);
+            this.bExport.Size = new System.Drawing.Size(200, 28);
             this.bExport.TabIndex = 0;
             this.bExport.Text = "Export to Save Pack";
             this.bExport.UseVisualStyleBackColor = true;
@@ -53,9 +55,10 @@
             // 
             // bImportSave
             // 
-            this.bImportSave.Location = new System.Drawing.Point(12, 12);
+            this.bImportSave.Location = new System.Drawing.Point(16, 15);
+            this.bImportSave.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.bImportSave.Name = "bImportSave";
-            this.bImportSave.Size = new System.Drawing.Size(150, 23);
+            this.bImportSave.Size = new System.Drawing.Size(200, 28);
             this.bImportSave.TabIndex = 0;
             this.bImportSave.Text = "Import Save Pack";
             this.bImportSave.UseVisualStyleBackColor = true;
@@ -70,23 +73,26 @@
             this.textBoxSavePacks.BackColor = System.Drawing.SystemColors.Window;
             this.textBoxSavePacks.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.textBoxSavePacks.ForeColor = System.Drawing.SystemColors.WindowText;
-            this.textBoxSavePacks.Location = new System.Drawing.Point(12, 41);
+            this.textBoxSavePacks.Location = new System.Drawing.Point(16, 50);
+            this.textBoxSavePacks.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.textBoxSavePacks.Multiline = true;
             this.textBoxSavePacks.Name = "textBoxSavePacks";
             this.textBoxSavePacks.ReadOnly = true;
-            this.textBoxSavePacks.Size = new System.Drawing.Size(462, 219);
+            this.textBoxSavePacks.Size = new System.Drawing.Size(615, 269);
             this.textBoxSavePacks.TabIndex = 4;
             // 
             // ImportExportSaveForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(486, 272);
+            this.ClientSize = new System.Drawing.Size(648, 335);
             this.Controls.Add(this.textBoxSavePacks);
             this.Controls.Add(this.bViewSavePacksFolder);
             this.Controls.Add(this.bImportSave);
             this.Controls.Add(this.bExport);
+            this.Font = new System.Drawing.Font("Segoe UI", 9F);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
+            this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "ImportExportSaveForm";

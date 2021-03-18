@@ -1575,11 +1575,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             // Set defaults for Torque table if it is not set.
             if (((initLevel & SettingsFlags.DieselTorqueTab) == 0) && ((initLevel & SettingsFlags.DieselPowerTab) == SettingsFlags.DieselPowerTab))
             {
-                double[] rpm = new double[DieselPowerTab.GetSize()];
-                double[] torque = new double[DieselPowerTab.GetSize()];
-                for (int i = 0; i < DieselPowerTab.GetSize(); i++)
+                double[] rpm = new double[DieselPowerTab.Size];
+                double[] torque = new double[DieselPowerTab.Size];
+                for (int i = 0; i < DieselPowerTab.Size; i++)
                 {
-                    rpm[i] = IdleRPM + i * (MaxRPM - IdleRPM) / DieselPowerTab.GetSize();
+                    rpm[i] = IdleRPM + i * (MaxRPM - IdleRPM) / DieselPowerTab.Size;
                     torque[i] = DieselPowerTab[rpm[i]] / (rpm[i] * 2 * Math.PI / 60.0);
                 }
                 if (DieselEngineConfigured)
@@ -1601,11 +1601,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             // Set defaults for Power table if it is not set.
             if (((initLevel & SettingsFlags.DieselTorqueTab) == SettingsFlags.DieselTorqueTab) && ((initLevel & SettingsFlags.DieselPowerTab) == 0))
             {
-                double[] rpm = new double[DieselPowerTab.GetSize()];
-                double[] power = new double[DieselPowerTab.GetSize()];
-                for (int i = 0; i < DieselPowerTab.GetSize(); i++)
+                double[] rpm = new double[DieselPowerTab.Size];
+                double[] power = new double[DieselPowerTab.Size];
+                for (int i = 0; i < DieselPowerTab.Size; i++)
                 {
-                    rpm[i] = IdleRPM + i * (MaxRPM - IdleRPM) / DieselPowerTab.GetSize();
+                    rpm[i] = IdleRPM + i * (MaxRPM - IdleRPM) / DieselPowerTab.Size;
                     power[i] = DieselPowerTab[rpm[i]] * rpm[i] * 2 * Math.PI / 60.0;
                 }
                 if (DieselEngineConfigured)

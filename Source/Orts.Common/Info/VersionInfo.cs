@@ -96,7 +96,7 @@ namespace Orts.Common.Info
         /// filtered to allow only targetChannel or higher prereleases and releases
         /// The result is sorted in descending order to get the most appropriate version first
         /// </summary>
-        internal static List<NuGetVersion> SelectSuitableVersions(List<string> availableVersions, string targetVersion, string targetChannel)
+        internal static IOrderedEnumerable<NuGetVersion> SelectSuitableVersions(IReadOnlyCollection<string> availableVersions, string targetVersion, string targetChannel)
         {
             if (availableVersions == null)
                 throw new ArgumentNullException(nameof(availableVersions));
@@ -108,44 +108,48 @@ namespace Orts.Common.Info
                 if (NuGetVersion.TryParse(versionString, out NuGetVersion parsedVersion))
                     result.Add(parsedVersion);
             }
+
+            if (Channel.Equals(targetChannel, StringComparison.OrdinalIgnoreCase))
+            {
+                //filter the versions against the target channel
+                selection = result.Where(version => VersionComparer.VersionRelease.Compare(version, CurrentVersion) > 0);
+            }
+            else
+            {
+                //filter the versions against the target channel
+                selection = result.Where((version) =>
+                {
+                    List<string> releaseLabels = null;
+                    if (targetChannel == releaseChannelName)
+                        return (!version.IsPrerelease);
+                    else
+                    {
+                        if (version.IsPrerelease)
+                        {
+                            releaseLabels = version.ReleaseLabels.ToList();
+                            releaseLabels[0] = targetChannel;
+                        }
+                    }
+                    SemanticVersion other = new SemanticVersion(version.Major, version.Minor, version.Patch, releaseLabels, version.Metadata);
+                    return VersionComparer.VersionRelease.Compare(version, other) >= 0;
+                });
+            }
             if (!string.IsNullOrEmpty(targetVersion))
             {
                 if (!NuGetVersion.TryParse(targetVersion, out NuGetVersion target))
                     throw new ArgumentException($"{targetVersion} is not a valid version for parameter {nameof(targetVersion)}");
                 //compare against the current version and the target version
-                selection = result.Where(
+                selection = selection.Where(
                     (version) => VersionComparer.VersionRelease.Compare(version, CurrentVersion) > 0 &&
                     VersionComparer.VersionRelease.Compare(version, target) <= 0);
             }
-            else
-            {
-                //compare against the current version
-                selection = result.Where((version) => VersionComparer.VersionRelease.Compare(version, CurrentVersion) > 0);
-            }
 
-            //filter the versions against the target channel
-            selection = selection.Where((version) =>
-            {
-                List<string> releaseLabels = null;
-                if (targetChannel == releaseChannelName)
-                    return (!version.IsPrerelease);
-                else
-                {
-                    if (version.IsPrerelease)
-                    {
-                        releaseLabels = version.ReleaseLabels.ToList();
-                        releaseLabels[0] = targetChannel;
-                    }
-                }
-                SemanticVersion other = new SemanticVersion(version.Major, version.Minor, version.Patch, releaseLabels, version.Metadata);
-                return VersionComparer.VersionRelease.Compare(version, other) >= 0;
-            });
-            return selection.OrderByDescending((v) => v).ToList();
+            return selection.OrderByDescending((v) => v);
         }
 
-        public static string SelectSuitableVersion(List<string> availableVersions, string targetChannel, string targetVersion = "")
+        public static string SelectSuitableVersion(IReadOnlyCollection<string> availableVersions, string targetChannel, string targetVersion = "")
         {
-            List<NuGetVersion> versions = SelectSuitableVersions(availableVersions, targetVersion, targetChannel);
+            IOrderedEnumerable<NuGetVersion> versions = SelectSuitableVersions(availableVersions, targetVersion, targetChannel);
             return versions?.FirstOrDefault()?.ToNormalizedString();
         }
 

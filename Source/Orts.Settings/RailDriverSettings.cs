@@ -48,20 +48,11 @@ namespace Orts.Settings
 
     public class RailDriverSettings : SettingsBase
     {
-        private static readonly byte[] DefaultCalibrationSettings;
-        private static readonly Dictionary<UserCommand, byte> DefaultUserCommands;
-
-        private bool default0WhileSaving;
-
-        public readonly byte[] UserCommands = new byte[EnumExtension.GetLength<UserCommand>()];
-
-        public readonly byte[] CalibrationSettings;
-
-        static RailDriverSettings()
-        {
-            //default calibration settings from another developer's PC, they are as good as random numbers...
-            DefaultCalibrationSettings = new byte[] { 225, 116, 60, 229, 176, 42, 119, 216, 79, 58, 213, 179, 30, 209, 109, 121, 73, 135, 180, 86, 145, 189, 0, 0, 0, 0, 0, 1 };
-            DefaultUserCommands = new Dictionary<UserCommand, byte>
+        //default calibration settings from another developer's PC, they are as good as random numbers...
+        private static readonly EnumArray<byte, RailDriverCalibrationSetting> DefaultCalibrationSettings =
+            new EnumArray<byte, RailDriverCalibrationSetting>(new byte[] { 225, 116, 60, 229, 176, 42, 119, 216, 79, 58, 213, 179, 30, 209, 109, 121, 73, 135, 180, 86, 145, 189, 0, 0, 0, 0, 0, 1 });
+        private static readonly Dictionary<UserCommand, byte> DefaultUserCommands = 
+            new Dictionary<UserCommand, byte>
             {
 
                 // top row of blue buttons left to right
@@ -115,15 +106,17 @@ namespace Orts.Settings
                 { UserCommand.ControlBellToggle, 41 },
                 { UserCommand.ControlHorn, 42 }
             };
-            //DefaultUserCommands.Add(UserCommand.ControlHorn, 43);
+        //DefaultUserCommands.Add(UserCommand.ControlHorn, 43);
 
-        }
+        private bool default0WhileSaving;
 
-        public RailDriverSettings(IEnumerable<string> options, SettingsStore store) : 
+        public EnumArray<byte, UserCommand> UserCommands { get; } = new EnumArray<byte, UserCommand>();
+
+        public EnumArray<byte, RailDriverCalibrationSetting> CalibrationSettings { get; } = new EnumArray<byte, RailDriverCalibrationSetting>();
+
+        internal RailDriverSettings(IEnumerable<string> options, SettingsStore store) :
             base(SettingsStore.GetSettingsStore(store.StoreType, store.Location, "RailDriver"))
         {
-            CalibrationSettings = new byte[DefaultCalibrationSettings.Length];
-
             LoadSettings(options);
         }
 
@@ -131,7 +124,7 @@ namespace Orts.Settings
         {
             if (EnumExtension.GetValue(name, out RailDriverCalibrationSetting calibrationSetting))
             {
-                return default0WhileSaving ? 0 : DefaultCalibrationSettings[(int)calibrationSetting];
+                return default0WhileSaving ? 0 : DefaultCalibrationSettings[calibrationSetting];
             }
             else if (EnumExtension.GetValue(name, out UserCommand userCommand))
             {
@@ -162,7 +155,7 @@ namespace Orts.Settings
             foreach (RailDriverCalibrationSetting setting in EnumExtension.GetValues<RailDriverCalibrationSetting>())
                 SaveSetting(setting.ToString());
 
-            foreach(UserCommand command in EnumExtension.GetValues<UserCommand>())
+            foreach (UserCommand command in EnumExtension.GetValues<UserCommand>())
                 SaveSetting(command.ToString());
 
             default0WhileSaving = false;
@@ -173,11 +166,11 @@ namespace Orts.Settings
         {
             if (EnumExtension.GetValue(name, out RailDriverCalibrationSetting calibrationSetting))
             {
-                return CalibrationSettings[(int)calibrationSetting];
+                return CalibrationSettings[calibrationSetting];
             }
             else if (EnumExtension.GetValue(name, out UserCommand userCommand))
             {
-                return UserCommands[(int)userCommand];
+                return UserCommands[userCommand];
             }
             else
                 throw new ArgumentOutOfRangeException($"Enum parameter {nameof(name)} not within expected range of either {nameof(RailDriverCalibrationSetting)} or {nameof(UserCommands)}");
@@ -187,7 +180,7 @@ namespace Orts.Settings
         {
             foreach (RailDriverCalibrationSetting setting in EnumExtension.GetValues<RailDriverCalibrationSetting>())
                 LoadSetting(allowUserSettings, optionalValues, setting.ToString());
-            foreach (var command in EnumExtension.GetValues<UserCommand>())
+            foreach (UserCommand command in EnumExtension.GetValues<UserCommand>())
                 LoadSetting(allowUserSettings, optionalValues, command.ToString());
             properties = null;
         }
@@ -198,17 +191,17 @@ namespace Orts.Settings
             {
                 if (!byte.TryParse(value?.ToString(), out byte result))
                     result = 0;
-                CalibrationSettings[(int)calibrationSetting] = result;
+                CalibrationSettings[calibrationSetting] = result;
             }
             else if (EnumExtension.GetValue(name, out UserCommand userCommand))
             {
-                UserCommands[(int)userCommand] = (byte)value;
+                UserCommands[userCommand] = (byte)value;
             }
             else
                 throw new ArgumentOutOfRangeException($"Enum parameter {nameof(name)} not within expected range of either {nameof(RailDriverCalibrationSetting)} or {nameof(UserCommands)}");
         }
 
-        public string CheckForErrors(byte[] buttonSettings)
+        public static string CheckForErrors(byte[] buttonSettings)
         {
             StringBuilder errors = new StringBuilder();
 
@@ -218,12 +211,12 @@ namespace Orts.Settings
                 Where(g => g.Count() > 1).
                 OrderBy(g => g.Key);
 
-            foreach(var duplicate in duplicates)
+            foreach (var duplicate in duplicates)
             {
                 errors.Append(catalog.GetString("Button {0} is assigned to \r\n\t", duplicate.Key));
                 foreach (var buttonMapping in duplicate)
                 {
-                   errors.Append($"\"{catalog.GetString(((UserCommand)buttonMapping.Index).GetDescription())}\" and ");
+                    errors.Append($"\"{catalog.GetString(((UserCommand)buttonMapping.Index).GetDescription())}\" and ");
                 }
                 errors.Remove(errors.Length - 5, 5);
                 errors.AppendLine();
@@ -238,7 +231,7 @@ namespace Orts.Settings
                 Where(button => button.Button < 255).
                 OrderBy(button => button.Button);
 
-            using (var writer = new StreamWriter(File.OpenWrite(filePath)))
+            using (StreamWriter writer = new StreamWriter(File.OpenWrite(filePath)))
             {
                 writer.WriteLine("{0,-40}{1,-40}", "Command", "Button");
                 writer.WriteLine(new string('=', 40 * 2));

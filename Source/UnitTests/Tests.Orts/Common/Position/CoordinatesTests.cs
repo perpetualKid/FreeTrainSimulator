@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Orts.Common.Position;
 using Orts.Common.Xna;
 
-namespace Tests.Orts.Common
+namespace Tests.Orts.Common.Position
 {
     [TestClass]
     public class CoordinatesTests
@@ -94,12 +94,10 @@ namespace Tests.Orts.Common
                 WorldLocation.Save(location1, writer);
                 writer.BaseStream.Position = 0;
                 using (BinaryReader reader = new BinaryReader(writer.BaseStream))
-                {
                     location2 = WorldLocation.Restore(reader);
-                }
             }
 
-            Assert.IsTrue(WorldLocation.Equals(location1, location2));
+            Assert.IsTrue(Equals(location1, location2));
         }
 
         [TestMethod]
@@ -132,7 +130,7 @@ namespace Tests.Orts.Common
             Assert.AreEqual(2, position.TileZ);
             Assert.AreEqual(-22, position.Location.Z);
 
-            position = new WorldPosition(0, 0, MatrixExtension.SetTranslation(Microsoft.Xna.Framework.Matrix .Identity, 3834, 0, -4118)).Normalize();
+            position = new WorldPosition(0, 0, MatrixExtension.SetTranslation(Microsoft.Xna.Framework.Matrix.Identity, 3834, 0, -4118)).Normalize();
 
             Assert.AreEqual(2, position.TileX);
             Assert.AreEqual(-262, position.Location.X);

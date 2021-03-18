@@ -1199,7 +1199,7 @@ namespace Orts.Simulation.Track
                     foreach (Location link in EnumExtension.GetValues<Location>())
                     {
                         int activeLink = Pins[direction, link].Link;
-                        TrackDirection activeDirection = Pins[direction, link].Direction.Next();
+                        TrackDirection activeDirection = Pins[direction, link].Direction.Reverse();
                         ActivePins[direction, link] = ActivePins[direction, link].FromLink(-1);
 
                         TrackCircuitSection linkSection = TrackCircuitList[activeLink];
@@ -1290,7 +1290,7 @@ namespace Orts.Simulation.Track
                                 switchEnd = location;  // required exit
                         }
                         // allow if switch not active (both links dealligned)
-                        if (switchEnd < 0 || (ActivePins[reqPinIndex, switchEnd].Link < 0 && ActivePins[reqPinIndex, switchEnd.Next()].Link >= 0)) // no free exit available or switch misaligned
+                        if (switchEnd < 0 || (ActivePins[reqPinIndex, switchEnd].Link < 0 && ActivePins[reqPinIndex, switchEnd.Reverse()].Link >= 0)) // no free exit available or switch misaligned
                         {
                             localBlockstate = InternalBlockstate.Blocked;
                             stateSet = true;
@@ -1594,11 +1594,11 @@ namespace Orts.Simulation.Track
 
             if (CircuitType == TrackCircuitType.Crossover)
             {
-                if (Pins[direction.Next(), Location.NearEnd].Link == lastIndex)
+                if (Pins[direction.Reverse(), Location.NearEnd].Link == lastIndex)
                 {
                     return ActivePins[direction, Location.NearEnd];
                 }
-                else if (Pins[direction.Next(), Location.FarEnd].Link == lastIndex)
+                else if (Pins[direction.Reverse(), Location.FarEnd].Link == lastIndex)
                 {
                     return ActivePins[direction, Location.FarEnd];
                 }
@@ -1730,7 +1730,7 @@ namespace Orts.Simulation.Track
                 }
 
                 // test train behind of front end
-                TrackDirection revDirection = train.PresentPosition[Direction.Forward].Direction.Next();
+                TrackDirection revDirection = train.PresentPosition[Direction.Forward].Direction.Reverse();
                 if (train.PresentPosition[Direction.Forward].TrackCircuitSectionIndex == Index)
                 {
                     float offsetFromEnd = Length - (trainLength + offsetFromStart);
@@ -1974,7 +1974,7 @@ namespace Orts.Simulation.Track
             // update pins on adjacent sections
 
             int refLinkIndex = targetSection.Pins[TrackDirection.Reverse, Location.NearEnd].Link;
-            TrackDirection refLinkDirIndex = targetSection.Pins[TrackDirection.Reverse, Location.NearEnd].Direction.Next();
+            TrackDirection refLinkDirIndex = targetSection.Pins[TrackDirection.Reverse, Location.NearEnd].Direction.Reverse();
             TrackCircuitSection refLink = TrackCircuitList[refLinkIndex];
             if (refLink.Pins[refLinkDirIndex, Location.NearEnd].Link == sourceSectionIndex)
             {
@@ -2150,7 +2150,7 @@ namespace Orts.Simulation.Track
             {
                 CircuitType = TrackCircuitType.EndOfTrack
             };
-            endSection.Pins[section.Pins[direction, pin].Direction.Next(), Location.NearEnd] = new TrackPin(node, direction.Next());
+            endSection.Pins[section.Pins[direction, pin].Direction.Reverse(), Location.NearEnd] = new TrackPin(node, direction.Reverse());
 
             section.Pins[direction, pin] = section.Pins[direction, pin].FromLink(endNode);
 

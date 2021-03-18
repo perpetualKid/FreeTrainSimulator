@@ -3,9 +3,8 @@
     <OutputType>WinExe</OutputType>
     <Description>Open Rails Activity Runner</Description>
     <UseWindowsForms>true</UseWindowsForms>
-	<GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
-  </PropertyGroup>
-  <PropertyGroup>
+    <AssemblyTitle>Open Rails Activity Runner</AssemblyTitle>
+    <GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
     <OutputPath>..\..\Program</OutputPath>
     <ApplicationIcon>..\Orts.ico</ApplicationIcon>
     <RootNamespace>Orts.ActivityRunner</RootNamespace>
@@ -123,8 +122,8 @@
   <ItemGroup>
     <PackageReference Include="EmbedIO" Version="3.4.3" />
     <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.0.1641" />
-    <PackageReference Include="GetText.NET" Version="0.9.7" />
-    <PackageReference Include="GetText.NET.WindowsForms" Version="0.9.7" />
+    <PackageReference Include="GetText.NET" Version="0.9.9" />
+    <PackageReference Include="GetText.NET.WindowsForms" Version="0.9.9" />
 	<PackageReference Include="System.Resources.Extensions" Version="5.0.0" />
   </ItemGroup>
   <ItemGroup>

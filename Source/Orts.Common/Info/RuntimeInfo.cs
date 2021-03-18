@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 
 namespace Orts.Common.Info
 {
@@ -10,6 +12,10 @@ namespace Orts.Common.Info
         public const string ActivityRunnerExecutable = "activityrunner.exe";
 
         public static readonly string ProductName = VersionInfo.ProductName();
+
+        public static readonly Uri WikiUri = new Uri("https://github.com/perpetualKid/ORTS-MG/wiki");
+
+        public static string ApplicationName => FileVersionInfo.GetVersionInfo(Assembly.GetCallingAssembly().Location).FileDescription;
 
         /// <summary>
         /// returns the current application base directory, i.e. Program\netcoreapp3.1

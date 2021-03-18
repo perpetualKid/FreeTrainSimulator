@@ -125,7 +125,7 @@ namespace Orts.Formats.Msts.Parsers
 
                     foreach (Interpolator checkMe in ilist)
                     {
-                        if (checkMe.GetSize() != numOfRows)
+                        if (checkMe.Size != numOfRows)
                         {
                             STFException.TraceWarning(stf, "Interpolator has found a mismatch between num of rows declared and num of rows given.");
                             errorFound = true;

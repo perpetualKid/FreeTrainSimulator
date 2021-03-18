@@ -1686,7 +1686,7 @@ namespace Orts.Simulation.RollingStocks
                     }
 
                     //Force to display
-                    FilteredMotiveForceN = (float)CurrentFilter.Filter(MotiveForceN, elapsedClockSeconds);
+                     FilteredMotiveForceN = (float)CurrentFilter.Filter(MotiveForceN, elapsedClockSeconds);
                     break;
                 default:
                     break;

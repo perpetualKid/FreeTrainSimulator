@@ -1,8 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <Description>Open Rails Scripting API Library</Description>
-  </PropertyGroup>
-  <PropertyGroup>
+    <AssemblyTitle>Open Rails Scripting API Library</AssemblyTitle>
     <OutputPath>..\..\Program</OutputPath>
   </PropertyGroup>
   <ItemGroup>

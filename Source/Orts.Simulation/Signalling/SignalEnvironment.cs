@@ -406,7 +406,7 @@ namespace Orts.Simulation.Signalling
         {
 
             //  Determine the number of signals in the track Objects list
-            int signalCount = trackItems.Where(item => item is SignalItem || (item is SpeedPostItem speedPost && speedPost.IsLimit)).Count();
+            int signalCount = (trackItems ?? Enumerable.Empty<TrackItem>()).Where(item => item is SignalItem || (item is SpeedPostItem speedPost && speedPost.IsLimit)).Count();
 
             // set general items and create sections
             Signals = new List<Signal>(signalCount);
@@ -743,7 +743,7 @@ namespace Orts.Simulation.Signalling
             float delta_float = MathHelper.WrapAngle((float)delta_angle);
             if (Math.Abs(delta_float) < (Math.PI / 2))
             {
-                signal.TrackDirection = ((TrackDirection)(int)signal.TdbTraveller.Direction).Next();
+                signal.TrackDirection = ((TrackDirection)(int)signal.TdbTraveller.Direction).Reverse();
             }
             else
             {
@@ -1310,7 +1310,7 @@ namespace Orts.Simulation.Signalling
                         {
                             TrackCircuitSignalItem trackCircuitItem = new TrackCircuitSignalItem(signal, signalDistance);
 
-                            TrackDirection direction = signal.TrackDirection.Next();
+                            TrackDirection direction = signal.TrackDirection.Reverse();
                             TrackCircuitSignalList signalList = circuit.CircuitItems.TrackCircuitSignals[direction][i];
 
                             // if signal is SPEED type, insert in speedpost list
@@ -1356,7 +1356,7 @@ namespace Orts.Simulation.Signalling
 
                         TrackCircuitSignalItem trackCircuitItem = new TrackCircuitSignalItem(speedpost, speedpostDistance);
 
-                        TrackDirection direction = speedpost.TrackDirection.Next();
+                        TrackDirection direction = speedpost.TrackDirection.Reverse();
                         TrackCircuitSignalList signalList = circuit.CircuitItems.TrackCircuitSpeedPosts[direction];
 
                         if (direction == TrackDirection.Ahead)
@@ -1601,7 +1601,7 @@ namespace Orts.Simulation.Signalling
                 foreach (Location pinLocation in EnumExtension.GetValues<Location>())
                 {
                     int linkedNode = section.Pins[direction, pinLocation].Link;
-                    TrackDirection linkedDirection = section.Pins[direction, pinLocation].Direction.Next();
+                    TrackDirection linkedDirection = section.Pins[direction, pinLocation].Direction.Reverse();
 
                     if (linkedNode > 0)
                     {
@@ -1704,7 +1704,7 @@ namespace Orts.Simulation.Signalling
                         }
                         else if (nextSection?.CircuitType == TrackCircuitType.Junction)
                         {
-                            TrackDirection nextDirection = section.Pins[direction, pinLocation].Direction.Next();
+                            TrackDirection nextDirection = section.Pins[direction, pinLocation].Direction.Reverse();
                             if (nextSection.Pins[nextDirection, Location.FarEnd].Link > 0)
                             {
                                 section.ActivePins[direction, pinLocation] = section.ActivePins[direction, pinLocation].FromLink(-1);
@@ -2199,7 +2199,7 @@ namespace Orts.Simulation.Signalling
             {
                 TrackCircuitRouteElement nextElement = routePart[lastRouteIndex + 1];
                 TrackDirection reqDirection = nextElement.Direction;
-                TrackDirection revDirection = nextElement.Direction.Next();
+                TrackDirection revDirection = nextElement.Direction.Reverse();
 
                 section = nextElement.TrackCircuitSection;
 
@@ -2465,10 +2465,10 @@ namespace Orts.Simulation.Signalling
 
                 // set length, pin index and opp direction
 
-                TrackDirection oppDirection = curDirection.Next();
+                TrackDirection oppDirection = curDirection.Reverse();
 
                 TrackDirection outPinDirection = forward ? curDirection : oppDirection;
-                TrackDirection inPinDirection = outPinDirection.Next();
+                TrackDirection inPinDirection = outPinDirection.Reverse();
 
                 // check all conditions and objects as required
 
@@ -2647,7 +2647,7 @@ namespace Orts.Simulation.Signalling
                         // switchable end of switch is always pin direction 1
                         if (nextSection.CircuitType == TrackCircuitType.Junction)
                         {
-                            TrackDirection nextPinDirection = nextDirection.Next();
+                            TrackDirection nextPinDirection = nextDirection.Reverse();
                             int nextPinIndex = nextSection.Pins[nextPinDirection, Location.NearEnd].Link == thisIndex ? 0 : 1;
                             if (nextPinDirection == TrackDirection.Reverse && nextSection.JunctionLastRoute != nextPinIndex)
                             {
@@ -2676,8 +2676,8 @@ namespace Orts.Simulation.Signalling
                     lastIndex = thisIndex;
                     thisIndex = nextIndex;
                     section = TrackCircuitSection.TrackCircuitList[thisIndex];
-                    curDirection = forward ? nextDirection : nextDirection.Next();
-                    oppDirection = curDirection.Next();
+                    curDirection = forward ? nextDirection : nextDirection.Reverse();
+                    oppDirection = curDirection.Reverse();
 
                     if (searchBackwardSignal && section.EndSignals[oppDirection] != null)
                     {
@@ -2846,7 +2846,7 @@ namespace Orts.Simulation.Signalling
                     platformDetails.PlatformReference[refIndex] = index;
                     platformDetails.NodeOffset[refIndex] = platform.SData1;
                     platformDetails.TrackCircuitOffset[refIndex, TrackDirection.Reverse] = platform.SData1 - section.OffsetLength[Location.FarEnd];
-                    platformDetails.TrackCircuitOffset[refIndex.Next(), TrackDirection.Ahead] = section.Length - platformDetails.TrackCircuitOffset[refIndex, TrackDirection.Reverse];
+                    platformDetails.TrackCircuitOffset[refIndex.Reverse(), TrackDirection.Ahead] = section.Length - platformDetails.TrackCircuitOffset[refIndex, TrackDirection.Reverse];
                     if (platform.Flags1.Equals("ffff0000", StringComparison.OrdinalIgnoreCase))
                         platformDetails.PlatformFrontUiD = index;        // used to define 
                 }

@@ -2,9 +2,9 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <UseWindowsForms>true</UseWindowsForms>
+    <DisableWinExeOutputInference>true</DisableWinExeOutputInference>
     <Description>Open Rails Content Checker (Contributed)</Description>
-  </PropertyGroup>
-  <PropertyGroup>
+    <AssemblyTitle>Open Rails Content Checker (Contributed)</AssemblyTitle>
     <OutputPath>..\..\..\Program</OutputPath>
     <RootNamespace>Orts.ContentChecker</RootNamespace>
     <AssemblyName>Contrib.ContentChecker</AssemblyName>

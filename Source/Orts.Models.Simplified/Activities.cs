@@ -155,6 +155,8 @@ namespace Orts.Models.Simplified
                     ActionBlock<Activity> actionBlock = new ActionBlock<Activity>
                         (async activity =>
                         {
+                            if (activity == null)
+                                return;
                             try
                             {
                                 await addItem.WaitAsync(token).ConfigureAwait(false);

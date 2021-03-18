@@ -1,8 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <Description>Open Rails MSTS Formats Library</Description>
-  </PropertyGroup>
-  <PropertyGroup>
+    <AssemblyTitle>Open Rails MSTS Formats Library</AssemblyTitle>
     <OutputPath>..\..\Program</OutputPath>
   </PropertyGroup>
   <ItemGroup>

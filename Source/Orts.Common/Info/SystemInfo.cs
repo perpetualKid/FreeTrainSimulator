@@ -20,6 +20,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Management;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -36,7 +37,14 @@ namespace Orts.Common.Info
         {
             StringBuilder builder = new StringBuilder();
             builder.AppendLine($"{"Date/Time",-12}= {DateTime.Now} ({DateTime.UtcNow:u})");
-            WriteEnvironment(builder);
+            try
+            {
+                WriteEnvironment(builder);
+            }
+            catch(Exception ex) when (ex is TypeInitializationException || ex is System.ComponentModel.Win32Exception)
+            {
+                builder.Append("Hardware information not available on this platform.");
+            }
             builder.AppendLine($"{"Runtime",-12}= {System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription} ({(Environment.Is64BitProcess ? "64" : "32")}bit)");
             Trace.Write(builder.ToString());
         }
@@ -153,5 +161,28 @@ namespace Orts.Common.Info
             }
             return output.ToString();
         }
+
+        public static void OpenBrowser(Uri url)
+        {
+            OpenBrowser(url?.ToString());
+        }
+
+        public static void OpenBrowser(string url)
+        {
+            //https://stackoverflow.com/questions/4580263/how-to-open-in-default-browser-in-c-sharp
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                Process.Start(new ProcessStartInfo { FileName = url, UseShellExecute = true });
+            }
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                Process.Start("xdg-open", url);
+            }
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                Process.Start("open", url);
+            }
+        }
+
     }
 }

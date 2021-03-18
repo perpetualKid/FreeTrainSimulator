@@ -3047,7 +3047,7 @@ namespace Orts.Simulation.Physics
 
                 SignalItemInfo prevObject = firstObject;
 
-                foreach (SignalItemInfo nextObject in SignalObjectItems)
+                foreach (SignalItemInfo nextObject in SignalObjectItems.Skip(1))
                 {
                     nextObject.DistanceToTrain = prevObject.DistanceToTrain + nextObject.DistanceToObject;
                     lastDistance = nextObject.DistanceToTrain;
@@ -4770,7 +4770,7 @@ namespace Orts.Simulation.Physics
                     TrackCircuitPosition overlapPosition = new TrackCircuitPosition(PresentPosition[Direction.Backward]);
                     TrackCircuitSection section = TrackCircuitSection.TrackCircuitList[overlapPosition.TrackCircuitSectionIndex];
                     overlapPosition.Offset = section.Length - (PresentPosition[Direction.Backward].Offset + RearPositionOverlap);  // reverse offset because of reversed direction
-                    overlapPosition.Direction = overlapPosition.Direction.Next(); // looking backwards, so reverse direction
+                    overlapPosition.Direction = overlapPosition.Direction.Reverse(); // looking backwards, so reverse direction
 
                     TrackCircuitSection rearSection = TrackCircuitSection.TrackCircuitList[rearSignalObject.TrackCircuitNextIndex];
                     if (!IsAheadOfTrain(rearSection, 0.0f, overlapPosition))
@@ -4792,7 +4792,7 @@ namespace Orts.Simulation.Physics
                 {
                     TrackCircuitSection section = TrackCircuitSection.TrackCircuitList[PresentPosition[Direction.Backward].TrackCircuitSectionIndex];
                     float clearPath = section.Length - PresentPosition[Direction.Backward].Offset;   // looking other direction //
-                    TrackDirection direction = PresentPosition[Direction.Backward].Direction.Next();
+                    TrackDirection direction = PresentPosition[Direction.Backward].Direction.Reverse();
 
                     while (clearPath < RearPositionOverlap && !outOfControl && rearSignalObject == null)
                     {
@@ -4802,7 +4802,7 @@ namespace Orts.Simulation.Physics
                         }
                         else
                         {
-                            TrackDirection pinLink = direction.Next();
+                            TrackDirection pinLink = direction.Reverse();
 
                             // TODO : check required junction and crossover path
 
@@ -5675,7 +5675,7 @@ namespace Orts.Simulation.Physics
                 for (int i = manualTrainRoute.Count - 1; i >= 0; i--)
                 {
                     TrackCircuitRouteElement routeElement = manualTrainRoute[i];
-                    routeElement.Direction = routeElement.Direction.Next();
+                    routeElement.Direction = routeElement.Direction.Reverse();
                     tempRoute.Add(routeElement);
                 }
                 float reverseOffset = TrackCircuitSection.TrackCircuitList[PresentPosition[Direction.Forward].TrackCircuitSectionIndex].Length - PresentPosition[Direction.Forward].Offset;
@@ -5935,7 +5935,7 @@ namespace Orts.Simulation.Physics
             {
                 routeElement = newRoute[0];
                 section = routeElement.TrackCircuitSection;
-                reqDirection = forward ? routeElement.Direction : (routeElement.Direction).Next();
+                reqDirection = forward ? routeElement.Direction : (routeElement.Direction).Reverse();
                 offsetM = direction == 0 ? requiredPosition.Offset : section.Length - requiredPosition.Offset;
 
                 Dictionary<Train, float> firstTrainInfo = section.TestTrainAhead(this, offsetM, reqDirection);
@@ -5983,7 +5983,7 @@ namespace Orts.Simulation.Physics
                     // if last section ends with signal, set authority to signal
                     routeElement = newRoute[lastValidSectionIndex];
                     section = routeElement.TrackCircuitSection;
-                    reqDirection = forward ? routeElement.Direction : routeElement.Direction.Next();
+                    reqDirection = forward ? routeElement.Direction : routeElement.Direction.Reverse();
                     // last section ends with signal
                     if (section.EndSignals[reqDirection] != null)
                     {
@@ -6028,7 +6028,7 @@ namespace Orts.Simulation.Physics
                             if (nextSection != null)
                             {
                                 int oppositeDirection = forward ? (nextElement.Direction == 0 ? 1 : 0) : (nextElement.Direction == 0 ? 0 : 1);
-                                reqDirection = forward ? nextElement.Direction : (nextElement.Direction).Next();
+                                reqDirection = forward ? nextElement.Direction : (nextElement.Direction).Reverse();
 
                                 bool oppositeTrain = nextSection.CircuitState.Occupied(oppositeDirection, false);
 
@@ -6230,7 +6230,7 @@ namespace Orts.Simulation.Physics
                 {
                     if (lastSection.CircuitType == TrackCircuitType.Crossover)
                     {
-                        TrackDirection outPinIndex = curDirection.Next();
+                        TrackDirection outPinIndex = curDirection.Reverse();
                         if (lastSection.Pins[curDirection, Location.NearEnd].Link == nextSectionIndex)
                         {
                             nextSectionIndex = lastSection.Pins[outPinIndex, Location.NearEnd].Link;
@@ -6737,7 +6737,7 @@ namespace Orts.Simulation.Physics
                 for (int i = manualTrainRoute.Count - 1; i >= 0; i--)
                 {
                     TrackCircuitRouteElement routeElement = manualTrainRoute[i];
-                    routeElement.Direction = routeElement.Direction.Next();
+                    routeElement.Direction = routeElement.Direction.Reverse();
                     tempRoute.Add(routeElement);
                 }
                 float reverseOffset = TrackCircuitSection.TrackCircuitList[PresentPosition[Direction.Forward].TrackCircuitSectionIndex].Length - PresentPosition[Direction.Forward].Offset;
@@ -6958,7 +6958,7 @@ namespace Orts.Simulation.Physics
             {
                 routeElement = newRoute[0];
                 section = routeElement.TrackCircuitSection;
-                reqDirection = forward ? routeElement.Direction : routeElement.Direction.Next();
+                reqDirection = forward ? routeElement.Direction : routeElement.Direction.Reverse();
                 offsetM = direction == 0 ? requiredPosition.Offset : section.Length - requiredPosition.Offset;
 
                 Dictionary<Train, float> firstTrainInfo = section.TestTrainAhead(this, offsetM, reqDirection);
@@ -6998,7 +6998,7 @@ namespace Orts.Simulation.Physics
                     // if last section ends with signal, set authority to signal
                     routeElement = newRoute[lastValidSectionIndex];
                     section = routeElement.TrackCircuitSection;
-                    reqDirection = forward ? routeElement.Direction : routeElement.Direction.Next();
+                    reqDirection = forward ? routeElement.Direction : routeElement.Direction.Reverse();
                     // last section ends with signal
                     if (section.EndSignals[reqDirection] != null)
                     {
@@ -7040,8 +7040,8 @@ namespace Orts.Simulation.Physics
 
                             if (nextSection != null)
                             {
-                                TrackDirection oppositeDirection = forward ? nextElement.Direction.Next() : nextElement.Direction;
-                                reqDirection = forward ? nextElement.Direction : nextElement.Direction.Next();
+                                TrackDirection oppositeDirection = forward ? nextElement.Direction.Reverse() : nextElement.Direction;
+                                reqDirection = forward ? nextElement.Direction : nextElement.Direction.Reverse();
 
                                 bool oppositeTrain = nextSection.CircuitState.Occupied((int)oppositeDirection, false);
 
@@ -7249,7 +7249,7 @@ namespace Orts.Simulation.Physics
                 {
                     if (lastSection.CircuitType == TrackCircuitType.Crossover)
                     {
-                        TrackDirection outPinIndex = curDirection.Next();
+                        TrackDirection outPinIndex = curDirection.Reverse();
                         if (lastSection.Pins[curDirection, Location.NearEnd].Link == nextSectionIndex)
                         {
                             nextSectionIndex = lastSection.Pins[outPinIndex, Location.NearEnd].Link;
@@ -9121,11 +9121,14 @@ namespace Orts.Simulation.Physics
             if (trafficService == null)
                 return;   // no traffic definition
 
+            int beginActiveSubroute = 0;
+            int activeSubrouteNodeIndex = 0;
+
             // loop through traffic points
 
             foreach (ServiceTrafficItem serviceTraffic in trafficService)
             {
-                bool validStop = CreateStationStop(serviceTraffic.PlatformStartID, serviceTraffic.ArrivalTime, serviceTraffic.DepartTime, clearingDistanceM, 0, 0);
+                bool validStop = CreateStationStop(serviceTraffic.PlatformStartID, serviceTraffic.ArrivalTime, serviceTraffic.DepartTime, clearingDistanceM, ref beginActiveSubroute, ref activeSubrouteNodeIndex);
                 if (!validStop)
                 {
                     Trace.TraceInformation($"Train {Number} Service {Name}: cannot find platform {serviceTraffic.PlatformStartID}");
@@ -9136,7 +9139,7 @@ namespace Orts.Simulation.Physics
         /// <summary>
         /// Create station stop list
         /// <\summary>
-        private bool CreateStationStop(int platformStartID, int arrivalTime, int departTime, float clearingDistanceM, int beginActiveSubroute, int activeSubrouteNodeIndex)
+        private bool CreateStationStop(int platformStartID, int arrivalTime, int departTime, float clearingDistanceM, ref int beginActiveSubroute, ref int activeSubrouteNodeIndex)
         {
             int activeSubroute = beginActiveSubroute;
             bool terminalStation = false;
@@ -9299,7 +9302,7 @@ namespace Orts.Simulation.Physics
                                     else
                                     {
                                         int addRouteIndex = route.GetRouteIndex(otherSectionIndex, 0);
-                                        float addOffset = otherPlatform.TrackCircuitOffset[Location.FarEnd, routeElement.Direction.Next()];
+                                        float addOffset = otherPlatform.TrackCircuitOffset[Location.FarEnd, routeElement.Direction.Reverse()];
                                         // offset of begin in other direction is length of available track
 
                                         if (lastRouteIndex > 0)
@@ -9404,7 +9407,7 @@ namespace Orts.Simulation.Physics
                         (CheckVicinityOfPlatformToReversalPoint(platform.TrackCircuitOffset[Location.FarEnd, routeElement.Direction], activeSubrouteNodeIndex, activeSubroute) || simulator.TimetableMode)
                         && !(reversalIndex == lastRouteIndex && thisReversal.ReverseReversalOffset - 50.0 > platform.TrackCircuitOffset[Location.FarEnd, routeElement.Direction])) // reversal point is this section or earlier
                     {
-                        useDirection = useDirection.Next();
+                        useDirection = useDirection.Reverse();
                         inDirection = false;
                     }
                 }
@@ -9449,7 +9452,7 @@ namespace Orts.Simulation.Physics
                     else
                     // end of train is beyond signal
                     {
-                        TrackDirection oldUseDirection = useDirection.Next();
+                        TrackDirection oldUseDirection = useDirection.Reverse();
                         if (platform.EndSignals[oldUseDirection] >= 0 && terminalStation && deltaLength <= 0 && !simulator.TimetableMode)
                         {
                             // check also the back of train after reverse
@@ -10707,8 +10710,8 @@ namespace Orts.Simulation.Physics
                         else if (section.Pins[sectionDirection, Location.FarEnd].Link == -1)
                         {
                             // trailing
-                            if ((section.Pins[sectionDirection.Next(), Location.NearEnd].Link == routeElement.TrackCircuitSection.Index && section.JunctionDefaultRoute == 0) ||
-                                (section.Pins[sectionDirection.Next(), Location.NearEnd].Link == routeElement.TrackCircuitSection.Index && section.JunctionDefaultRoute > 0))
+                            if ((section.Pins[sectionDirection.Reverse(), Location.NearEnd].Link == routeElement.TrackCircuitSection.Index && section.JunctionDefaultRoute == 0) ||
+                                (section.Pins[sectionDirection.Reverse(), Location.NearEnd].Link == routeElement.TrackCircuitSection.Index && section.JunctionDefaultRoute > 0))
                             {
                                 // trailing diverging
                                 float junctionAngle = junctionNode.GetAngle(simulator.TSectionDat);
@@ -10725,7 +10728,7 @@ namespace Orts.Simulation.Physics
                         foreach (TrackCircuitMilepost milepostItem in section.CircuitItems.TrackCircuitMileposts)
                         {
                             Milepost milepost = milepostItem.Milepost;
-                            float distanceToTrainM = milepostItem.MilepostLocation[(Location)sectionDirection.Next()] + sectionDistanceToTrainM;
+                            float distanceToTrainM = milepostItem.MilepostLocation[(Location)sectionDirection.Reverse()] + sectionDistanceToTrainM;
                             if (distanceToTrainM < maxDistanceM)
                             {
                                 if (!(distanceToTrainM - prevMilepostDistance < 50 && milepost.Value == prevMilepostValue) && distanceToTrainM > 0 && distanceToTrainM < maxDistanceM)
@@ -11659,7 +11662,7 @@ namespace Orts.Simulation.Physics
                                     else
                                     {
                                         int addRouteIndex = route.GetRouteIndex(otherSectionIndex, 0);
-                                        float addOffset = otherPlatform.TrackCircuitOffset[Location.FarEnd, routeElement.Direction.Next()];
+                                        float addOffset = otherPlatform.TrackCircuitOffset[Location.FarEnd, routeElement.Direction.Reverse()];
                                         // offset of begin in other direction is length of available track
 
                                         if (lastRouteIndex > 0)
@@ -11740,7 +11743,7 @@ namespace Orts.Simulation.Physics
                     int reversalIndex = reversal.SignalUsed ? reversal.LastSignalIndex : reversal.LastDivergeIndex;
                     if (reversalIndex >= 0 && reversalIndex <= lastRouteIndex) // reversal point is this section or earlier
                     {
-                        useDirection = useDirection.Next();
+                        useDirection = useDirection.Reverse();
                         inDirection = false;
                     }
                 }

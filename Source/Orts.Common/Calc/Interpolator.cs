@@ -235,13 +235,7 @@ namespace Orts.Common.Calc
             }
         }
 
-        public int GetSize()
-        {
-            if (xArray.Length == yArray.Length)
-                return size;
-            else
-                return -1;
-        }
+        public int Size => (xArray.Length == yArray.Length) ? size : -1;
 
         public bool CheckForConsistentIncrease(double step)
         {
@@ -359,7 +353,7 @@ namespace Orts.Common.Calc
         {
             for (int i = 0; i < size; i++)
             {
-                int size = yArray[i].GetSize();
+                int size = yArray[i].Size;
                 for (int j = 0; j < size; j++)
                 {
                     if (yArray[i].CheckForNegativeValue())

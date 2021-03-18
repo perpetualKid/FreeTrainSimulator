@@ -535,8 +535,7 @@ namespace Orts.Formats.Msts.Models
                         }
 
                         // This is a protection against GP40 locomotives that erroneously have positions pointing beyond frame count limit.
-                        if (canFill && Positions.Count > 1 && Positions.Count < FramesCount &&
-                        Positions[Positions.Count-1] >= FramesCount && Positions[0] == 0)
+                        if (canFill && Positions.Count > 1 && Positions.Count < FramesCount && Positions[Positions.Count-1] >= FramesCount && Positions[0] == 0)
                         {
                             STFException.TraceInformation(stf, "Some NumPositions entries refer to non-exisiting frames, trying to renumber");
 

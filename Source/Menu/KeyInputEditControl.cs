@@ -52,11 +52,6 @@ namespace Orts.Menu
 
             InitializeComponent();
 
-            // Windows 2000 and XP should use 8.25pt Tahoma, while Windows
-            // Vista and later should use 9pt "Segoe UI". We'll use the
-            // Message Box font to allow for user-customizations, though.
-            Font = SystemFonts.MessageBoxFont;
-
             // Use a lambda here so we can capture the 'control' variable
             // only for as long as needed to set our location/size.
             Load += (object sender, EventArgs e) =>

@@ -131,11 +131,6 @@ namespace Orts.Menu
         {
             InitializeComponent();
 
-            // Windows 2000 and XP should use 8.25pt Tahoma, while Windows
-            // Vista and later should use 9pt "Segoe UI". We'll use the
-            // Message Box font to allow for user-customizations, though.
-            Font = SystemFonts.MessageBoxFont;
-
             // Set title to show revision or build info.
             Text = $"{RuntimeInfo.ProductName} {VersionInfo.Version}";
 #if DEBUG
@@ -579,24 +574,7 @@ namespace Orts.Menu
 
         private void LinkLabelChangeLog_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            OpenBrowser(linkLabelChangeLog.Tag as string);
-        }
-
-        private static void OpenBrowser(string url)
-        {
-            //https://stackoverflow.com/questions/4580263/how-to-open-in-default-browser-in-c-sharp
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                Process.Start(new ProcessStartInfo { FileName = url, UseShellExecute = true });
-            }
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            {
-                Process.Start("xdg-open", url);
-            }
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                Process.Start("open", url);
-            }
+            SystemInfo.OpenBrowser(linkLabelChangeLog.Tag as string);
         }
 
         private void ButtonTools_Click(object sender, EventArgs e)

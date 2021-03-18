@@ -1,0 +1,97 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>Open Rails View Library</Description>
+    <AssemblyTitle>Open Rails View Library</AssemblyTitle>
+    <GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
+    <OutputPath>..\..\Program</OutputPath>
+    <AssemblyName>Orts.View</AssemblyName>
+    <RootNamespace>Orts.View</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Remove="Resources\ActiveBrokenNode.png" />
+    <None Remove="Resources\activeNode.png" />
+    <None Remove="Resources\ActiveNormalNode.png" />
+    <None Remove="Resources\ActiveTrackNode.png" />
+    <None Remove="Resources\CarSpawner.png" />
+    <None Remove="Resources\Circle.png" />
+    <None Remove="Resources\Disc.png" />
+    <None Remove="Resources\Hazard.png" />
+    <None Remove="Resources\LevelCrossing.png" />
+    <None Remove="Resources\pathEnd.png" />
+    <None Remove="Resources\pathNormal.png" />
+    <None Remove="Resources\pathReverse.png" />
+    <None Remove="Resources\pathStart.png" />
+    <None Remove="Resources\pathWait.png" />
+    <None Remove="Resources\Pickup.png" />
+    <None Remove="Resources\Platform.png" />
+    <None Remove="Resources\Playertrain.png" />
+    <None Remove="Resources\Ring.png" />
+    <None Remove="Resources\RingCrossed.png" />
+    <None Remove="Resources\Signal.png" />
+    <None Remove="Resources\Sound.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\ActiveBrokenNode.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\ActiveNode.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\ActiveNormalNode.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\ActiveTrackNode.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\CarSpawner.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Circle.png" />
+    <EmbeddedResource Include="Resources\Disc.png" />
+    <EmbeddedResource Include="Resources\Hazard.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\LevelCrossing.png" />
+    <EmbeddedResource Include="Resources\PathEnd.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\PathNormal.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\PathReverse.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\PathStart.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\PathWait.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Pickup.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Platform.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Ring.png" />
+    <EmbeddedResource Include="Resources\RingCrossed.png" />
+    <EmbeddedResource Include="Resources\Signal.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Sound.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\PlayerTrain.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.0.1641" />
+    <ProjectReference Include="..\Orts.Common\Orts.Common.csproj" />
+    <ProjectReference Include="..\Orts.Formats.Msts\Orts.Formats.Msts.csproj" />
+    <ProjectReference Include="..\Orts.Formats.OR\Orts.Formats.OR.csproj" />
+    <PackageReference Include="GetText.NET" Version="0.9.9" />
+    <PackageReference Include="System.Resources.Extensions" Version="5.0.0" />
+  </ItemGroup>
+
+</Project>

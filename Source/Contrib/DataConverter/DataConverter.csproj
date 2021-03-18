@@ -2,8 +2,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <Description>Open Rails Data Converter (Contributed)</Description>
-  </PropertyGroup>
-  <PropertyGroup>
+    <AssemblyTitle>Open Rails Data Converter (Contributed)</AssemblyTitle>
     <OutputPath>..\..\..\Program</OutputPath>
     <RootNamespace>Orts.DataConverter</RootNamespace>
     <AssemblyName>Contrib.DataConverter</AssemblyName>

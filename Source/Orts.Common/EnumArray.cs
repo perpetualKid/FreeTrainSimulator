@@ -1,14 +1,16 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace Orts.Common
 {
     /// <summary>An array indexed by an Enum</summary>
     /// <typeparam name="T">Type stored in array</typeparam>
     /// <typeparam name="TEnum">Indexer Enum type</typeparam>
+#pragma warning disable CA1710 // Identifiers should have correct suffix
     public class EnumArray<T, TEnum> : IEnumerable, IEnumerable<T> where TEnum : Enum
+#pragma warning restore CA1710 // Identifiers should have correct suffix
     {
         private readonly T[] array;
         private readonly int lowBound;
@@ -17,8 +19,10 @@ namespace Orts.Common
         {
             if (!typeof(int).IsAssignableFrom(Enum.GetUnderlyingType(typeof(TEnum))))
                 throw new ArgumentException(nameof(TEnum));
-            lowBound = (int)(object)EnumExtension.Min<TEnum>();
-            int highBound = (int)(object)EnumExtension.Max<TEnum>();
+            TEnum dimension = EnumExtension.Min<TEnum>();
+            lowBound = Unsafe.As<TEnum, int>(ref dimension);
+            dimension = EnumExtension.Max<TEnum>();
+            int highBound = Unsafe.As<TEnum, int>(ref dimension);
             array = new T[1 + highBound - lowBound];
         }
 
@@ -50,7 +54,7 @@ namespace Orts.Common
             if (source == null)
                 throw new ArgumentNullException(nameof(source));
             if (source.Length != array.Length)
-                throw new IndexOutOfRangeException($"Source array needs to be same size as number of enum values of {typeof(TEnum)}");
+                throw new ArgumentOutOfRangeException($"Source array needs to be same size as number of enum values of {typeof(TEnum)}");
             Array.Copy(source, array, source.Length);
         }
 
@@ -69,8 +73,8 @@ namespace Orts.Common
 
         public T this[TEnum key]
         {
-            get => array[(int)(object)(key) - lowBound]; //TODO 20201015 use unsafe  array[Unsafe.As<TEnum, int>(ref key)];
-            set => array[(int)(object)(key) - lowBound] = value;
+            get => array[Unsafe.As<TEnum, int>(ref key) - lowBound];
+            set => array[Unsafe.As<TEnum, int>(ref key) - lowBound] = value;
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -100,10 +104,14 @@ namespace Orts.Common
                 throw new ArgumentException(nameof(TDimension1));
             if (!typeof(int).IsAssignableFrom(Enum.GetUnderlyingType(typeof(TDimension2))))
                 throw new ArgumentException(nameof(TDimension2));
-            lowBoundX = (int)(object)EnumExtension.Min<TDimension1>();
-            lowBoundY = (int)(object)EnumExtension.Min<TDimension2>();
-            int highBoundX = (int)(object)EnumExtension.Max<TDimension1>();
-            int highBoundY = (int)(object)EnumExtension.Max<TDimension2>();
+            TDimension1 dimension1 = EnumExtension.Min<TDimension1>();
+            lowBoundX = Unsafe.As<TDimension1, int>(ref dimension1);
+            TDimension2 dimension2 = EnumExtension.Min<TDimension2>();
+            lowBoundY = Unsafe.As<TDimension2, int>(ref dimension2);
+            dimension1 = EnumExtension.Max<TDimension1>();
+            dimension2 = EnumExtension.Max<TDimension2>();
+            int highBoundX = Unsafe.As<TDimension1, int>(ref dimension1);
+            int highBoundY = Unsafe.As<TDimension2, int>(ref dimension2);
             array = new T[1 + highBoundX - lowBoundX, 1 + highBoundY - lowBoundY];
         }
 
@@ -145,8 +153,8 @@ namespace Orts.Common
 
         public T this[TDimension1 x, TDimension2 y]
         {
-            get => array[(int)(object)(x) - lowBoundX, (int)(object)(y) - lowBoundY]; //TODO 20201015 use unsafe  array[Unsafe.As<TEnum, int>(ref key)];
-            set => array[(int)(object)(x) - lowBoundX, (int)(object)(y) - lowBoundY] = value;
+            get => array[Unsafe.As<TDimension1, int>(ref x) - lowBoundX, Unsafe.As<TDimension2, int>(ref y) - lowBoundY];
+            set => array[Unsafe.As<TDimension1, int>(ref x) - lowBoundX, Unsafe.As<TDimension2, int>(ref y) - lowBoundY] = value;
         }
 #pragma warning restore CA1814 // Prefer jagged arrays over multidimensional
     }

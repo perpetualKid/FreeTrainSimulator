@@ -65,7 +65,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 try
                 {
                     Texture2D texture;
-                    if (Path.GetExtension(path) == ".dds")
+                    if (Path.GetExtension(path).Equals(".dds", StringComparison.OrdinalIgnoreCase))
                     {
                         if (File.Exists(path))
                         {
@@ -84,7 +84,7 @@ namespace Orts.ActivityRunner.Viewer3D
                             else texture = defaultTexture;
                         }
                     }
-                    else if (Path.GetExtension(path) == ".ace")
+                    else if (Path.GetExtension(path).Equals(".ace", StringComparison.OrdinalIgnoreCase))
                     {
                         var alternativeTexture = Path.ChangeExtension(path, ".dds");
                         

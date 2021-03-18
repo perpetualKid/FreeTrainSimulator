@@ -16,8 +16,8 @@ namespace Orts.Simulation.Track
     public class TrackCircuitPartialPathRoute : IList<TrackCircuitRouteElement>
     {
         private readonly List<TrackCircuitRouteElement> list;
-        private Dictionary<int, int> items;
-        private Dictionary<int, TrackDirection> routeDirections;
+        private ILookup<int, int> items;
+        private ILookup<int, TrackDirection> routeDirections;
 
         #region interface implementation
         public int Count => list.Count;
@@ -154,7 +154,7 @@ namespace Orts.Simulation.Track
 
         private void ReIndex()
         {
-            items = list.Select((i, Index) => (i.TrackCircuitSection.Index, Index)).ToDictionary(pair => pair.Item1, pair => pair.Item2);
+            items = list.Select((i, Index) => (i.TrackCircuitSection.Index, Index)).ToLookup(pair => pair.Item1, pair => pair.Item2);
         }
 
         /// <summary>
@@ -172,9 +172,11 @@ namespace Orts.Simulation.Track
                 {
                     ReIndex();
                 }
-                if (items.TryGetValue(sectionIndex, out int index) && index >= startIndex)
+                if (items.Contains(sectionIndex))
                 {
-                    return index;
+                    foreach (int item in items[sectionIndex])
+                        if (item >= startIndex)
+                            return item;
                 }
             }
             return -1;
@@ -197,9 +199,11 @@ namespace Orts.Simulation.Track
                 {
                     ReIndex();
                 }
-                if (items.TryGetValue(sectionIndex, out int index) && index < startIndex)
+                if (items.Contains(sectionIndex))
                 {
-                    return index;
+                    foreach(int item in items[sectionIndex])
+                        if (item < startIndex)
+                            return item;
                 }
             }
             return -1;
@@ -276,11 +280,11 @@ namespace Orts.Simulation.Track
         //
         // Converts list of elements to dictionary
         //
-        public Dictionary<int, TrackDirection> ConvertRoute()
+        public ILookup<int, TrackDirection> ConvertRoute()
         {
             if(routeDirections == null)
             {
-                routeDirections = list.ToDictionary(item => item.TrackCircuitSection.Index, item => item.Direction);
+                routeDirections = list.ToLookup(item => item.TrackCircuitSection.Index, item => item.Direction);
             }
             return routeDirections;
         }
@@ -299,7 +303,7 @@ namespace Orts.Simulation.Track
             {
                 if (items == null)
                     ReIndex();
-                return items.ContainsKey(routeElement.TrackCircuitSection.Index);
+                return items.Contains(routeElement.TrackCircuitSection.Index);
             }
             return false;
         }
@@ -501,7 +505,7 @@ namespace Orts.Simulation.Track
                 TrackCircuitRouteElement routeElement = this[i];
                 TrackCircuitSection section = routeElement.TrackCircuitSection;
 
-                TrackCircuitRouteElement newElement = new TrackCircuitRouteElement(section, routeElement.Direction.Next(), lastSectionIndex);
+                TrackCircuitRouteElement newElement = new TrackCircuitRouteElement(section, routeElement.Direction.Reverse(), lastSectionIndex);
 
                 // reset outpin for JUNCTION
                 // if trailing, pin[0] = 0, pin[1] = 0

@@ -82,7 +82,7 @@ namespace Orts.Simulation.Signalling
             TrainSubpathIndex = new Dictionary<int, Dictionary<int, int>>();
             nextTrainSubpathIndex = 0;
 
-            Simulator.Instance.SignalEnvironment.DeadlockInfoList.Add(Simulator.Instance.SignalEnvironment.deadlockIndex++, this);
+            Simulator.Instance.SignalEnvironment.DeadlockInfoList.Add(deadlockIndex = Simulator.Instance.SignalEnvironment.deadlockIndex++, this);
         }
 
         //================================================================================================//

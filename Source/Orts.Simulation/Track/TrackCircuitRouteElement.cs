@@ -78,7 +78,7 @@ namespace Orts.Simulation.Track
 
             if (section.CircuitType == TrackCircuitType.Crossover)
             {
-                TrackDirection inPinLink = direction.Next();
+                TrackDirection inPinLink = direction.Reverse();
                 OutPin[Location.FarEnd] = (section.Pins[inPinLink, Location.NearEnd].Link == lastSectionIndex) ? TrackDirection.Ahead : TrackDirection.Reverse;
             }
 

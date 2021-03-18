@@ -1,8 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <Description>Open Rails Simulation Library</Description>
-  </PropertyGroup>
-  <PropertyGroup>
+    <AssemblyTitle>Open Rails Simulation Library</AssemblyTitle>
     <OutputPath>..\..\Program</OutputPath>
   </PropertyGroup>
   <ItemGroup>
@@ -14,6 +13,6 @@
     <ProjectReference Include="..\Orts.Formats.OR\Orts.Formats.OR.csproj" />
     <ProjectReference Include="..\Orts.Scripting.Api\Orts.Scripting.Api.csproj" />
     <ProjectReference Include="..\Orts.Settings\Orts.Settings.csproj" />
-    <PackageReference Include="GetText.NET" Version="0.9.7" />
+    <PackageReference Include="GetText.NET" Version="0.9.9" />
   </ItemGroup>
 </Project>

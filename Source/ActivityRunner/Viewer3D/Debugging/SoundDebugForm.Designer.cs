@@ -55,6 +55,19 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             this.groupBoxInactiveSounds = new System.Windows.Forms.GroupBox();
             this.splitContainer2 = new System.Windows.Forms.SplitContainer();
             this.groupBoxCache = new System.Windows.Forms.GroupBox();
+            this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
+            this.textBox1 = new System.Windows.Forms.TextBox();
+            this.textBox2 = new System.Windows.Forms.TextBox();
+            this.textBox3 = new System.Windows.Forms.TextBox();
+            this.label7 = new System.Windows.Forms.Label();
+            this.textBox4 = new System.Windows.Forms.TextBox();
+            this.alSources = new System.Windows.Forms.TextBox();
+            this.label8 = new System.Windows.Forms.Label();
+            this.waves = new System.Windows.Forms.TextBox();
+            this.label9 = new System.Windows.Forms.Label();
+            this.label10 = new System.Windows.Forms.Label();
+            this.label11 = new System.Windows.Forms.Label();
+            this.label12 = new System.Windows.Forms.Label();
             this.groupBoxSelectedSound = new System.Windows.Forms.GroupBox();
             this.sound3D = new System.Windows.Forms.CheckBox();
             this.tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
@@ -70,39 +83,29 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             this.label2 = new System.Windows.Forms.Label();
             this.label5 = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
-            this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
-            this.textBox1 = new System.Windows.Forms.TextBox();
-            this.textBox2 = new System.Windows.Forms.TextBox();
-            this.textBox3 = new System.Windows.Forms.TextBox();
-            this.label7 = new System.Windows.Forms.Label();
-            this.textBox4 = new System.Windows.Forms.TextBox();
-            this.alSources = new System.Windows.Forms.TextBox();
-            this.label8 = new System.Windows.Forms.Label();
-            this.waves = new System.Windows.Forms.TextBox();
-            this.label9 = new System.Windows.Forms.Label();
-            this.label10 = new System.Windows.Forms.Label();
-            this.label11 = new System.Windows.Forms.Label();
-            this.label12 = new System.Windows.Forms.Label();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
             this.splitContainer1.SuspendLayout();
             this.groupBoxActiveSounds.SuspendLayout();
             this.groupBoxInactiveSounds.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).BeginInit();
             this.splitContainer2.Panel1.SuspendLayout();
             this.splitContainer2.Panel2.SuspendLayout();
             this.splitContainer2.SuspendLayout();
             this.groupBoxCache.SuspendLayout();
+            this.tableLayoutPanel1.SuspendLayout();
             this.groupBoxSelectedSound.SuspendLayout();
             this.tableLayoutPanel2.SuspendLayout();
-            this.tableLayoutPanel1.SuspendLayout();
             this.SuspendLayout();
             // 
             // inactiveSoundList
             // 
             this.inactiveSoundList.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.inactiveSoundList.Location = new System.Drawing.Point(3, 16);
+            this.inactiveSoundList.Location = new System.Drawing.Point(4, 24);
+            this.inactiveSoundList.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.inactiveSoundList.Name = "inactiveSoundList";
-            this.inactiveSoundList.Size = new System.Drawing.Size(276, 264);
+            this.inactiveSoundList.Size = new System.Drawing.Size(416, 320);
             this.inactiveSoundList.TabIndex = 0;
             this.inactiveSoundList.KeyDown += new System.Windows.Forms.KeyEventHandler(this.inactiveSoundList_KeyDown);
             this.inactiveSoundList.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.inactiveSoundList_KeyPress);
@@ -110,9 +113,10 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             // activeSoundList
             // 
             this.activeSoundList.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.activeSoundList.Location = new System.Drawing.Point(3, 16);
+            this.activeSoundList.Location = new System.Drawing.Point(4, 24);
+            this.activeSoundList.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.activeSoundList.Name = "activeSoundList";
-            this.activeSoundList.Size = new System.Drawing.Size(276, 494);
+            this.activeSoundList.Size = new System.Drawing.Size(416, 602);
             this.activeSoundList.TabIndex = 0;
             this.activeSoundList.KeyDown += new System.Windows.Forms.KeyEventHandler(this.activeSoundList_KeyDown);
             this.activeSoundList.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.activeSoundList_KeyPress);
@@ -121,29 +125,33 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             // 
             this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.splitContainer1.Location = new System.Drawing.Point(0, 0);
+            this.splitContainer1.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.splitContainer1.Name = "splitContainer1";
             this.splitContainer1.Orientation = System.Windows.Forms.Orientation.Horizontal;
             // 
             // splitContainer1.Panel1
             // 
             this.splitContainer1.Panel1.Controls.Add(this.groupBoxActiveSounds);
-            this.splitContainer1.Panel1.Padding = new System.Windows.Forms.Padding(3);
+            this.splitContainer1.Panel1.Padding = new System.Windows.Forms.Padding(4, 4, 4, 4);
             // 
             // splitContainer1.Panel2
             // 
             this.splitContainer1.Panel2.Controls.Add(this.groupBoxInactiveSounds);
-            this.splitContainer1.Panel2.Padding = new System.Windows.Forms.Padding(3);
-            this.splitContainer1.Size = new System.Drawing.Size(288, 812);
-            this.splitContainer1.SplitterDistance = 519;
+            this.splitContainer1.Panel2.Padding = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.splitContainer1.Size = new System.Drawing.Size(432, 999);
+            this.splitContainer1.SplitterDistance = 638;
+            this.splitContainer1.SplitterWidth = 5;
             this.splitContainer1.TabIndex = 5;
             // 
             // groupBoxActiveSounds
             // 
             this.groupBoxActiveSounds.Controls.Add(this.activeSoundList);
             this.groupBoxActiveSounds.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.groupBoxActiveSounds.Location = new System.Drawing.Point(3, 3);
+            this.groupBoxActiveSounds.Location = new System.Drawing.Point(4, 4);
+            this.groupBoxActiveSounds.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.groupBoxActiveSounds.Name = "groupBoxActiveSounds";
-            this.groupBoxActiveSounds.Size = new System.Drawing.Size(282, 513);
+            this.groupBoxActiveSounds.Padding = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.groupBoxActiveSounds.Size = new System.Drawing.Size(424, 630);
             this.groupBoxActiveSounds.TabIndex = 5;
             this.groupBoxActiveSounds.TabStop = false;
             this.groupBoxActiveSounds.Text = "Active sounds";
@@ -152,9 +160,11 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             // 
             this.groupBoxInactiveSounds.Controls.Add(this.inactiveSoundList);
             this.groupBoxInactiveSounds.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.groupBoxInactiveSounds.Location = new System.Drawing.Point(3, 3);
+            this.groupBoxInactiveSounds.Location = new System.Drawing.Point(4, 4);
+            this.groupBoxInactiveSounds.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.groupBoxInactiveSounds.Name = "groupBoxInactiveSounds";
-            this.groupBoxInactiveSounds.Size = new System.Drawing.Size(282, 283);
+            this.groupBoxInactiveSounds.Padding = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.groupBoxInactiveSounds.Size = new System.Drawing.Size(424, 348);
             this.groupBoxInactiveSounds.TabIndex = 4;
             this.groupBoxInactiveSounds.TabStop = false;
             this.groupBoxInactiveSounds.Text = "Inactive sounds";
@@ -165,205 +175,40 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             this.splitContainer2.FixedPanel = System.Windows.Forms.FixedPanel.Panel1;
             this.splitContainer2.IsSplitterFixed = true;
             this.splitContainer2.Location = new System.Drawing.Point(0, 0);
+            this.splitContainer2.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.splitContainer2.Name = "splitContainer2";
             // 
             // splitContainer2.Panel1
             // 
             this.splitContainer2.Panel1.Controls.Add(this.groupBoxCache);
             this.splitContainer2.Panel1.Controls.Add(this.groupBoxSelectedSound);
-            this.splitContainer2.Panel1.Padding = new System.Windows.Forms.Padding(3);
+            this.splitContainer2.Panel1.Padding = new System.Windows.Forms.Padding(4, 4, 4, 4);
             // 
             // splitContainer2.Panel2
             // 
             this.splitContainer2.Panel2.Controls.Add(this.splitContainer1);
-            this.splitContainer2.Size = new System.Drawing.Size(434, 812);
+            this.splitContainer2.Size = new System.Drawing.Size(579, 999);
             this.splitContainer2.SplitterDistance = 142;
+            this.splitContainer2.SplitterWidth = 5;
             this.splitContainer2.TabIndex = 6;
             // 
             // groupBoxCache
             // 
             this.groupBoxCache.Controls.Add(this.tableLayoutPanel1);
             this.groupBoxCache.Dock = System.Windows.Forms.DockStyle.Top;
-            this.groupBoxCache.Location = new System.Drawing.Point(3, 196);
+            this.groupBoxCache.Location = new System.Drawing.Point(4, 242);
+            this.groupBoxCache.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.groupBoxCache.Name = "groupBoxCache";
-            this.groupBoxCache.Size = new System.Drawing.Size(136, 173);
+            this.groupBoxCache.Padding = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.groupBoxCache.Size = new System.Drawing.Size(134, 213);
             this.groupBoxCache.TabIndex = 8;
             this.groupBoxCache.TabStop = false;
             this.groupBoxCache.Text = "Sound cache";
             // 
-            // groupBoxSelectedSound
-            // 
-            this.groupBoxSelectedSound.Controls.Add(this.sound3D);
-            this.groupBoxSelectedSound.Controls.Add(this.tableLayoutPanel2);
-            this.groupBoxSelectedSound.Dock = System.Windows.Forms.DockStyle.Top;
-            this.groupBoxSelectedSound.Location = new System.Drawing.Point(3, 3);
-            this.groupBoxSelectedSound.Name = "groupBoxSelectedSound";
-            this.groupBoxSelectedSound.Size = new System.Drawing.Size(136, 193);
-            this.groupBoxSelectedSound.TabIndex = 0;
-            this.groupBoxSelectedSound.TabStop = false;
-            this.groupBoxSelectedSound.Text = "Selected sound";
-            // 
-            // sound3D
-            // 
-            this.sound3D.AutoSize = true;
-            this.sound3D.Dock = System.Windows.Forms.DockStyle.Top;
-            this.sound3D.Enabled = false;
-            this.sound3D.Location = new System.Drawing.Point(3, 167);
-            this.sound3D.Name = "sound3D";
-            this.sound3D.Padding = new System.Windows.Forms.Padding(3);
-            this.sound3D.Size = new System.Drawing.Size(130, 23);
-            this.sound3D.TabIndex = 0;
-            this.sound3D.Text = "3D";
-            // 
-            // tableLayoutPanel2
-            // 
-            this.tableLayoutPanel2.ColumnCount = 2;
-            this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 70F));
-            this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.tableLayoutPanel2.Controls.Add(this.smsVolume, 1, 5);
-            this.tableLayoutPanel2.Controls.Add(this.distance, 0, 4);
-            this.tableLayoutPanel2.Controls.Add(this.variable3, 1, 3);
-            this.tableLayoutPanel2.Controls.Add(this.label1, 0, 0);
-            this.tableLayoutPanel2.Controls.Add(this.variable2, 1, 2);
-            this.tableLayoutPanel2.Controls.Add(this.variable1, 1, 1);
-            this.tableLayoutPanel2.Controls.Add(this.label3, 0, 2);
-            this.tableLayoutPanel2.Controls.Add(this.speed, 1, 0);
-            this.tableLayoutPanel2.Controls.Add(this.label4, 0, 3);
-            this.tableLayoutPanel2.Controls.Add(this.label2, 0, 1);
-            this.tableLayoutPanel2.Controls.Add(this.label5, 0, 4);
-            this.tableLayoutPanel2.Controls.Add(this.label6, 0, 5);
-            this.tableLayoutPanel2.Dock = System.Windows.Forms.DockStyle.Top;
-            this.tableLayoutPanel2.Location = new System.Drawing.Point(3, 16);
-            this.tableLayoutPanel2.Name = "tableLayoutPanel2";
-            this.tableLayoutPanel2.RowCount = 6;
-            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 16.66667F));
-            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 16.66667F));
-            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 16.66667F));
-            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 16.66667F));
-            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 16.66667F));
-            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 16.66667F));
-            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
-            this.tableLayoutPanel2.Size = new System.Drawing.Size(130, 151);
-            this.tableLayoutPanel2.TabIndex = 8;
-            // 
-            // smsVolume
-            // 
-            this.smsVolume.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.smsVolume.Location = new System.Drawing.Point(73, 128);
-            this.smsVolume.Name = "smsVolume";
-            this.smsVolume.ReadOnly = true;
-            this.smsVolume.Size = new System.Drawing.Size(54, 20);
-            this.smsVolume.TabIndex = 5;
-            // 
-            // distance
-            // 
-            this.distance.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.distance.Location = new System.Drawing.Point(73, 103);
-            this.distance.Name = "distance";
-            this.distance.ReadOnly = true;
-            this.distance.Size = new System.Drawing.Size(54, 20);
-            this.distance.TabIndex = 4;
-            // 
-            // variable3
-            // 
-            this.variable3.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.variable3.Location = new System.Drawing.Point(73, 78);
-            this.variable3.Name = "variable3";
-            this.variable3.ReadOnly = true;
-            this.variable3.Size = new System.Drawing.Size(54, 20);
-            this.variable3.TabIndex = 3;
-            // 
-            // label1
-            // 
-            this.label1.Anchor = System.Windows.Forms.AnchorStyles.Left;
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(3, 6);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(38, 13);
-            this.label1.TabIndex = 1;
-            this.label1.Text = "Speed";
-            // 
-            // variable2
-            // 
-            this.variable2.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.variable2.Location = new System.Drawing.Point(73, 53);
-            this.variable2.Name = "variable2";
-            this.variable2.ReadOnly = true;
-            this.variable2.Size = new System.Drawing.Size(54, 20);
-            this.variable2.TabIndex = 2;
-            // 
-            // variable1
-            // 
-            this.variable1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.variable1.Location = new System.Drawing.Point(73, 28);
-            this.variable1.Name = "variable1";
-            this.variable1.ReadOnly = true;
-            this.variable1.Size = new System.Drawing.Size(54, 20);
-            this.variable1.TabIndex = 1;
-            // 
-            // label3
-            // 
-            this.label3.Anchor = System.Windows.Forms.AnchorStyles.Left;
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(3, 56);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(54, 13);
-            this.label3.TabIndex = 3;
-            this.label3.Text = "Variable 2";
-            // 
-            // speed
-            // 
-            this.speed.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.speed.Location = new System.Drawing.Point(73, 3);
-            this.speed.Name = "speed";
-            this.speed.ReadOnly = true;
-            this.speed.Size = new System.Drawing.Size(54, 20);
-            this.speed.TabIndex = 0;
-            // 
-            // label4
-            // 
-            this.label4.Anchor = System.Windows.Forms.AnchorStyles.Left;
-            this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(3, 81);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(54, 13);
-            this.label4.TabIndex = 4;
-            this.label4.Text = "Variable 3";
-            // 
-            // label2
-            // 
-            this.label2.Anchor = System.Windows.Forms.AnchorStyles.Left;
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(3, 31);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(54, 13);
-            this.label2.TabIndex = 2;
-            this.label2.Text = "Variable 1";
-            // 
-            // label5
-            // 
-            this.label5.Anchor = System.Windows.Forms.AnchorStyles.Left;
-            this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(3, 106);
-            this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(49, 13);
-            this.label5.TabIndex = 4;
-            this.label5.Text = "Distance";
-            // 
-            // label6
-            // 
-            this.label6.Anchor = System.Windows.Forms.AnchorStyles.Left;
-            this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(3, 131);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(42, 13);
-            this.label6.TabIndex = 4;
-            this.label6.Text = "Volume";
-            // 
             // tableLayoutPanel1
             // 
             this.tableLayoutPanel1.ColumnCount = 2;
-            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 70F));
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 93F));
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
             this.tableLayoutPanel1.Controls.Add(this.textBox1, 1, 5);
             this.tableLayoutPanel1.Controls.Add(this.textBox2, 0, 4);
@@ -378,7 +223,8 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             this.tableLayoutPanel1.Controls.Add(this.label11, 0, 4);
             this.tableLayoutPanel1.Controls.Add(this.label12, 0, 5);
             this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Top;
-            this.tableLayoutPanel1.Location = new System.Drawing.Point(3, 16);
+            this.tableLayoutPanel1.Location = new System.Drawing.Point(4, 24);
+            this.tableLayoutPanel1.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
             this.tableLayoutPanel1.RowCount = 6;
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 16.66667F));
@@ -387,99 +233,109 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 16.66667F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 16.66667F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 16.66667F));
-            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
-            this.tableLayoutPanel1.Size = new System.Drawing.Size(130, 151);
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(126, 186);
             this.tableLayoutPanel1.TabIndex = 10;
             // 
             // textBox1
             // 
             this.textBox1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.textBox1.Location = new System.Drawing.Point(73, 128);
+            this.textBox1.Location = new System.Drawing.Point(97, 154);
+            this.textBox1.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.textBox1.Name = "textBox1";
             this.textBox1.ReadOnly = true;
-            this.textBox1.Size = new System.Drawing.Size(54, 20);
+            this.textBox1.Size = new System.Drawing.Size(25, 27);
             this.textBox1.TabIndex = 5;
             // 
             // textBox2
             // 
             this.textBox2.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.textBox2.Location = new System.Drawing.Point(73, 103);
+            this.textBox2.Location = new System.Drawing.Point(97, 124);
+            this.textBox2.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.textBox2.Name = "textBox2";
             this.textBox2.ReadOnly = true;
-            this.textBox2.Size = new System.Drawing.Size(54, 20);
+            this.textBox2.Size = new System.Drawing.Size(25, 27);
             this.textBox2.TabIndex = 4;
             // 
             // textBox3
             // 
             this.textBox3.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.textBox3.Location = new System.Drawing.Point(73, 78);
+            this.textBox3.Location = new System.Drawing.Point(97, 94);
+            this.textBox3.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.textBox3.Name = "textBox3";
             this.textBox3.ReadOnly = true;
-            this.textBox3.Size = new System.Drawing.Size(54, 20);
+            this.textBox3.Size = new System.Drawing.Size(25, 27);
             this.textBox3.TabIndex = 3;
             // 
             // label7
             // 
             this.label7.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(3, 6);
+            this.label7.Location = new System.Drawing.Point(4, 5);
+            this.label7.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(61, 13);
+            this.label7.Size = new System.Drawing.Size(77, 20);
             this.label7.TabIndex = 1;
             this.label7.Text = "WavCache";
             // 
             // textBox4
             // 
             this.textBox4.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.textBox4.Location = new System.Drawing.Point(73, 53);
+            this.textBox4.Location = new System.Drawing.Point(97, 64);
+            this.textBox4.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.textBox4.Name = "textBox4";
             this.textBox4.ReadOnly = true;
-            this.textBox4.Size = new System.Drawing.Size(54, 20);
+            this.textBox4.Size = new System.Drawing.Size(25, 27);
             this.textBox4.TabIndex = 2;
             // 
             // alSources
             // 
             this.alSources.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.alSources.Location = new System.Drawing.Point(73, 28);
+            this.alSources.Location = new System.Drawing.Point(97, 34);
+            this.alSources.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.alSources.Name = "alSources";
             this.alSources.ReadOnly = true;
-            this.alSources.Size = new System.Drawing.Size(54, 20);
+            this.alSources.Size = new System.Drawing.Size(25, 27);
             this.alSources.TabIndex = 1;
             // 
             // label8
             // 
             this.label8.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(3, 56);
+            this.label8.Location = new System.Drawing.Point(4, 65);
+            this.label8.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(0, 13);
+            this.label8.Size = new System.Drawing.Size(0, 20);
             this.label8.TabIndex = 3;
             // 
             // waves
             // 
             this.waves.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.waves.Location = new System.Drawing.Point(73, 3);
+            this.waves.Location = new System.Drawing.Point(97, 4);
+            this.waves.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.waves.Name = "waves";
             this.waves.ReadOnly = true;
-            this.waves.Size = new System.Drawing.Size(54, 20);
+            this.waves.Size = new System.Drawing.Size(25, 27);
             this.waves.TabIndex = 0;
             // 
             // label9
             // 
             this.label9.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.label9.AutoSize = true;
-            this.label9.Location = new System.Drawing.Point(3, 81);
+            this.label9.Location = new System.Drawing.Point(4, 95);
+            this.label9.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label9.Name = "label9";
-            this.label9.Size = new System.Drawing.Size(0, 13);
+            this.label9.Size = new System.Drawing.Size(0, 20);
             this.label9.TabIndex = 4;
             // 
             // label10
             // 
             this.label10.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.label10.AutoSize = true;
-            this.label10.Location = new System.Drawing.Point(3, 31);
+            this.label10.Location = new System.Drawing.Point(4, 35);
+            this.label10.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label10.Name = "label10";
-            this.label10.Size = new System.Drawing.Size(62, 13);
+            this.label10.Size = new System.Drawing.Size(81, 20);
             this.label10.TabIndex = 2;
             this.label10.Text = "AL Sources";
             // 
@@ -487,46 +343,237 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             // 
             this.label11.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.label11.AutoSize = true;
-            this.label11.Location = new System.Drawing.Point(3, 106);
+            this.label11.Location = new System.Drawing.Point(4, 125);
+            this.label11.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label11.Name = "label11";
-            this.label11.Size = new System.Drawing.Size(0, 13);
+            this.label11.Size = new System.Drawing.Size(0, 20);
             this.label11.TabIndex = 4;
             // 
             // label12
             // 
             this.label12.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.label12.AutoSize = true;
-            this.label12.Location = new System.Drawing.Point(3, 131);
+            this.label12.Location = new System.Drawing.Point(4, 158);
+            this.label12.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label12.Name = "label12";
-            this.label12.Size = new System.Drawing.Size(0, 13);
+            this.label12.Size = new System.Drawing.Size(0, 20);
             this.label12.TabIndex = 4;
+            // 
+            // groupBoxSelectedSound
+            // 
+            this.groupBoxSelectedSound.Controls.Add(this.sound3D);
+            this.groupBoxSelectedSound.Controls.Add(this.tableLayoutPanel2);
+            this.groupBoxSelectedSound.Dock = System.Windows.Forms.DockStyle.Top;
+            this.groupBoxSelectedSound.Location = new System.Drawing.Point(4, 4);
+            this.groupBoxSelectedSound.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.groupBoxSelectedSound.Name = "groupBoxSelectedSound";
+            this.groupBoxSelectedSound.Padding = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.groupBoxSelectedSound.Size = new System.Drawing.Size(134, 238);
+            this.groupBoxSelectedSound.TabIndex = 0;
+            this.groupBoxSelectedSound.TabStop = false;
+            this.groupBoxSelectedSound.Text = "Selected sound";
+            // 
+            // sound3D
+            // 
+            this.sound3D.AutoSize = true;
+            this.sound3D.Dock = System.Windows.Forms.DockStyle.Top;
+            this.sound3D.Enabled = false;
+            this.sound3D.Location = new System.Drawing.Point(4, 210);
+            this.sound3D.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.sound3D.Name = "sound3D";
+            this.sound3D.Padding = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.sound3D.Size = new System.Drawing.Size(126, 32);
+            this.sound3D.TabIndex = 0;
+            this.sound3D.Text = "3D";
+            // 
+            // tableLayoutPanel2
+            // 
+            this.tableLayoutPanel2.ColumnCount = 2;
+            this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 93F));
+            this.tableLayoutPanel2.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.tableLayoutPanel2.Controls.Add(this.smsVolume, 1, 5);
+            this.tableLayoutPanel2.Controls.Add(this.distance, 0, 4);
+            this.tableLayoutPanel2.Controls.Add(this.variable3, 1, 3);
+            this.tableLayoutPanel2.Controls.Add(this.label1, 0, 0);
+            this.tableLayoutPanel2.Controls.Add(this.variable2, 1, 2);
+            this.tableLayoutPanel2.Controls.Add(this.variable1, 1, 1);
+            this.tableLayoutPanel2.Controls.Add(this.label3, 0, 2);
+            this.tableLayoutPanel2.Controls.Add(this.speed, 1, 0);
+            this.tableLayoutPanel2.Controls.Add(this.label4, 0, 3);
+            this.tableLayoutPanel2.Controls.Add(this.label2, 0, 1);
+            this.tableLayoutPanel2.Controls.Add(this.label5, 0, 4);
+            this.tableLayoutPanel2.Controls.Add(this.label6, 0, 5);
+            this.tableLayoutPanel2.Dock = System.Windows.Forms.DockStyle.Top;
+            this.tableLayoutPanel2.Location = new System.Drawing.Point(4, 24);
+            this.tableLayoutPanel2.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.tableLayoutPanel2.Name = "tableLayoutPanel2";
+            this.tableLayoutPanel2.RowCount = 6;
+            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 16.66667F));
+            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 16.66667F));
+            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 16.66667F));
+            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 16.66667F));
+            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 16.66667F));
+            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 16.66667F));
+            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
+            this.tableLayoutPanel2.Size = new System.Drawing.Size(126, 186);
+            this.tableLayoutPanel2.TabIndex = 8;
+            // 
+            // smsVolume
+            // 
+            this.smsVolume.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.smsVolume.Location = new System.Drawing.Point(97, 154);
+            this.smsVolume.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.smsVolume.Name = "smsVolume";
+            this.smsVolume.ReadOnly = true;
+            this.smsVolume.Size = new System.Drawing.Size(25, 27);
+            this.smsVolume.TabIndex = 5;
+            // 
+            // distance
+            // 
+            this.distance.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.distance.Location = new System.Drawing.Point(97, 124);
+            this.distance.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.distance.Name = "distance";
+            this.distance.ReadOnly = true;
+            this.distance.Size = new System.Drawing.Size(25, 27);
+            this.distance.TabIndex = 4;
+            // 
+            // variable3
+            // 
+            this.variable3.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.variable3.Location = new System.Drawing.Point(97, 94);
+            this.variable3.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.variable3.Name = "variable3";
+            this.variable3.ReadOnly = true;
+            this.variable3.Size = new System.Drawing.Size(25, 27);
+            this.variable3.TabIndex = 3;
+            // 
+            // label1
+            // 
+            this.label1.Anchor = System.Windows.Forms.AnchorStyles.Left;
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(4, 5);
+            this.label1.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(51, 20);
+            this.label1.TabIndex = 1;
+            this.label1.Text = "Speed";
+            // 
+            // variable2
+            // 
+            this.variable2.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.variable2.Location = new System.Drawing.Point(97, 64);
+            this.variable2.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.variable2.Name = "variable2";
+            this.variable2.ReadOnly = true;
+            this.variable2.Size = new System.Drawing.Size(25, 27);
+            this.variable2.TabIndex = 2;
+            // 
+            // variable1
+            // 
+            this.variable1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.variable1.Location = new System.Drawing.Point(97, 34);
+            this.variable1.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.variable1.Name = "variable1";
+            this.variable1.ReadOnly = true;
+            this.variable1.Size = new System.Drawing.Size(25, 27);
+            this.variable1.TabIndex = 1;
+            // 
+            // label3
+            // 
+            this.label3.Anchor = System.Windows.Forms.AnchorStyles.Left;
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(4, 65);
+            this.label3.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(75, 20);
+            this.label3.TabIndex = 3;
+            this.label3.Text = "Variable 2";
+            // 
+            // speed
+            // 
+            this.speed.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.speed.Location = new System.Drawing.Point(97, 4);
+            this.speed.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.speed.Name = "speed";
+            this.speed.ReadOnly = true;
+            this.speed.Size = new System.Drawing.Size(25, 27);
+            this.speed.TabIndex = 0;
+            // 
+            // label4
+            // 
+            this.label4.Anchor = System.Windows.Forms.AnchorStyles.Left;
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(4, 95);
+            this.label4.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(75, 20);
+            this.label4.TabIndex = 4;
+            this.label4.Text = "Variable 3";
+            // 
+            // label2
+            // 
+            this.label2.Anchor = System.Windows.Forms.AnchorStyles.Left;
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(4, 35);
+            this.label2.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(75, 20);
+            this.label2.TabIndex = 2;
+            this.label2.Text = "Variable 1";
+            // 
+            // label5
+            // 
+            this.label5.Anchor = System.Windows.Forms.AnchorStyles.Left;
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(4, 125);
+            this.label5.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(66, 20);
+            this.label5.TabIndex = 4;
+            this.label5.Text = "Distance";
+            // 
+            // label6
+            // 
+            this.label6.Anchor = System.Windows.Forms.AnchorStyles.Left;
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(4, 158);
+            this.label6.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(59, 20);
+            this.label6.TabIndex = 4;
+            this.label6.Text = "Volume";
             // 
             // SoundDebugForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(434, 812);
+            this.ClientSize = new System.Drawing.Size(579, 999);
             this.Controls.Add(this.splitContainer2);
+            this.Font = new System.Drawing.Font("Segoe UI", 9F);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.Name = "SoundDebugForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
             this.Text = "Sound Debug";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.SoundDebugForm_FormClosing);
             this.splitContainer1.Panel1.ResumeLayout(false);
             this.splitContainer1.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
             this.splitContainer1.ResumeLayout(false);
             this.groupBoxActiveSounds.ResumeLayout(false);
             this.groupBoxInactiveSounds.ResumeLayout(false);
             this.splitContainer2.Panel1.ResumeLayout(false);
             this.splitContainer2.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).EndInit();
             this.splitContainer2.ResumeLayout(false);
             this.groupBoxCache.ResumeLayout(false);
+            this.tableLayoutPanel1.ResumeLayout(false);
+            this.tableLayoutPanel1.PerformLayout();
             this.groupBoxSelectedSound.ResumeLayout(false);
             this.groupBoxSelectedSound.PerformLayout();
             this.tableLayoutPanel2.ResumeLayout(false);
             this.tableLayoutPanel2.PerformLayout();
-            this.tableLayoutPanel1.ResumeLayout(false);
-            this.tableLayoutPanel1.PerformLayout();
             this.ResumeLayout(false);
 
         }
