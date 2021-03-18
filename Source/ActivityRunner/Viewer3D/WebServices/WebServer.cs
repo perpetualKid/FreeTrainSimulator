@@ -244,30 +244,10 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
 
 
         #region /API/CABCONTROLS
-        public class ControlValue
-        {
-            public string TypeName;
-            public double MinValue;
-            public double MaxValue;
-            public double RangeFraction;
-        }
-
         [Route(HttpVerbs.Get, "/CABCONTROLS")]
-        public IEnumerable<ControlValue> CabControls()
+        public IEnumerable<MSTSLocomotiveViewer.ControlValue> CabControls()
         {
-            MSTSLocomotiveViewer locomotiveViewer = viewer.PlayerLocomotiveViewer as MSTSLocomotiveViewer;
-            List<ControlValue> controlValueList = new List<ControlValue>();
-            foreach (CabViewControlRenderer controlRenderer in locomotiveViewer.CabRenderer.ControlMap.Values)
-            {
-                controlValueList.Add(new ControlValue
-                {
-                    TypeName = controlRenderer.GetControlType().ToString(),
-                    MinValue = controlRenderer.Control.ScaleRangeMin,
-                    MaxValue = controlRenderer.Control.ScaleRangeMax,
-                    RangeFraction = controlRenderer.GetRangeFraction()
-                });
-            }
-            return controlValueList;
+            return ((MSTSLocomotiveViewer)viewer.PlayerLocomotiveViewer).GetControlValueList();
         }
         #endregion
     }

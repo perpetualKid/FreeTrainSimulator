@@ -914,6 +914,29 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             else controller.StopDecrease();
         }
         #endregion
+
+        public class ControlValue
+        {
+            public string TypeName;
+            public double MinValue;
+            public double MaxValue;
+            public double RangeFraction;
+        }
+
+        public List<ControlValue> GetControlValueList()
+        {
+            List<ControlValue> controlValueList = new List<ControlValue>();
+            foreach (CabViewControlRenderer controlRenderer in CabRenderer.ControlMap.Values)
+            {
+                controlValueList.Add(new ControlValue
+                    { TypeName = controlRenderer.GetControlType().ToString()
+                    , MinValue = controlRenderer.Control.ScaleRangeMin
+                    , MaxValue = controlRenderer.Control.ScaleRangeMax
+                    , RangeFraction = controlRenderer.GetRangeFraction()
+                    });
+            }
+            return controlValueList;
+        }
     } // Class LocomotiveViewer
 
     // By GeorgeS
@@ -1585,11 +1608,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
     {
         protected readonly Viewer Viewer;
         protected readonly MSTSLocomotive Locomotive;
-
-        //CJ
-        //protected readonly CabViewControl Control;
-        public readonly CabViewControl Control;
-
+        protected internal readonly CabViewControl Control;
         protected readonly CabShader Shader;
         protected readonly int ShaderKey = 1;
         protected readonly CabSpriteBatchMaterial CabShaderControlView;
