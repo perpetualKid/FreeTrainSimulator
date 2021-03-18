@@ -159,6 +159,15 @@
     <None Update="Content\Web\APISample\index.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Content\Web\CabControls\index.css">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Content\Web\CabControls\index.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Content\Web\CabControls\index.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Content\Web\HUD\index.css">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
