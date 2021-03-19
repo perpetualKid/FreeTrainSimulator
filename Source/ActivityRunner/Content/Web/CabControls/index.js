@@ -36,26 +36,56 @@ function ApiCabControls() {
 			var jso = JSON.parse(hr.responseText);
 			if (jso != null) // Can happen using IEv11
 			{
-				let data = "<tr><th>Control</th><th>Minimum</th><th>Value</th><th>Maximum</th></tr>";
-				for(let i = 0; i < jso.length; i++) {
-					let control = jso[i];
-					data += "<tr>";
-					let value4 = control.TypeName.toLowerCase().split("_").join(" ");
-					let value3 = value4.split(" ");
-					for (let i = 0; i < value3.length; i++) {
-						value3[i] = value3[i][0].toUpperCase() + value3[i].substr(1);
-					}
-					value = value3.join(" ");
-					data += "<td>" + value + "</td>";
-					value = (typeof control.MinValue === 'undefined') ? "-" : control.MinValue;
-					data += "<td>" + value + "</td>";
-					value = control.RangeFraction * (control.MaxValue - control.MinValue) + control.MinValue;
-					data += "<td>" + value.toPrecision(2) + "</td>";
-					data += "<td>" + control.MaxValue + "</td>";
-					data += "</tr>";
-				}
-				markup.innerHTML = data;
+				markup.innerHTML = prepareData(jso);
 			}
 		}
 	}
+}
+
+function prepareData(jso)
+{
+	let data = "";
+	for(let i = 0; i < jso.length; i++) {
+		let control = jso[i];
+		data += "<tr>";
+
+		// Replace "_" with " "
+		let typeName = control.TypeName.split("_").join(" ");
+		// Capitalise each word
+		let words = typeName.toLowerCase().split(" ");
+		for (let i = 0; i < words.length; i++) {
+			words[i] = words[i][0].toUpperCase() + words[i].substr(1);
+		}
+		let value = words.join(" ");
+
+		data += "<td>" + value + "</td>";
+		
+		let range = control.MaxValue - control.MinValue;
+		data += "<td>" + control.MinValue + "</td>";
+		value = control.RangeFraction * (range) + control.MinValue;
+		let decimalPlaces = 4;
+		if (range > 0.01)
+			decimalPlaces -= 1;
+		if (range > 0.1)
+			decimalPlaces -= 1;
+		if (range > 1)
+			decimalPlaces -= 1;
+		if (range > 10)
+			decimalPlaces -= 1;
+		// if (range > 100)
+		// 	decimalPlaces -= 1;
+		if (range == 0)
+			value = "-";
+		else
+			value = value.toFixed(decimalPlaces);
+		let scale = 0;
+		if (value != "-")
+			scale = control.RangeFraction * 100;
+		if (scale > 100)
+			scale = 100;
+		data += "<td><div class='gauge' width=" + scale + ">" + value + "</div></td>";
+		data += "<td>" + control.MaxValue + "</td>";
+		data += "</tr>";
+	}
+	return data;
 }
