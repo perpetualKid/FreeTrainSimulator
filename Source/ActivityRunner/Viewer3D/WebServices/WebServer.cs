@@ -256,5 +256,13 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             return ((MSTSLocomotiveViewer)viewer.PlayerLocomotiveViewer).GetWebControlValueList();
         }
         #endregion
+
+        #region /API/TIME
+        [Route(HttpVerbs.Get, "/TIME")]
+        public double Time()
+        {
+            return viewer.Simulator.ClockTime;
+        }
+        #endregion
     }
 }
