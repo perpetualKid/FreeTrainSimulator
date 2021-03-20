@@ -5,4 +5,4 @@ pr: none
 jobs:
 - template: azure-pipelines_MG.Core.template.yml
   parameters:
-    channelName: "release"
+    channelName: "Release"
