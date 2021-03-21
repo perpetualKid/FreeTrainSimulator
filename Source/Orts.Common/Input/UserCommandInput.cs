@@ -188,7 +188,10 @@ namespace Orts.Common.Input
         {
         }
 
-        protected Keys Key => VirtualKey == Keys.None ? ScanCodeKeyUtils.GetScanCodeKeys(ScanCode) : VirtualKey;
+        public Keys Key => VirtualKey == Keys.None ? ScanCodeKeyUtils.GetScanCodeKeys(ScanCode) : VirtualKey;
+
+        public KeyModifiers Modifiers => (Alt ? KeyModifiers.Alt : KeyModifiers.None) | (Control ? KeyModifiers.Control : KeyModifiers.None) | (Shift ? KeyModifiers.Shift : KeyModifiers.None);
+
 
         protected static bool IsKeyMatching(KeyboardState keyboardState, Keys key)
         {

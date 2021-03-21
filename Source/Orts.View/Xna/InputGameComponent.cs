@@ -208,7 +208,7 @@ namespace Orts.View.Xna
                     if (previousKeyboardState.IsKeyDown(key) && (modifiers != previousModifiers))
                     {
                         // Key Up, state may have changed due to a modifier changed
-                        int lookup = (int)key << keyUpShift ^ (int)modifiers;
+                        int lookup = (int)key << keyUpShift ^ (int)previousModifiers;
                         if (keyEvents.TryGetValue(lookup, out KeyEvent eventHandler))
                         {
                             eventHandler.Invoke(key, modifiers);
@@ -235,7 +235,7 @@ namespace Orts.View.Xna
                     if ((int)key > 159 && (int)key < 166)
                         continue;
                     // Key Up, not in current set of Keys Downs
-                    int lookup = (int)key << keyUpShift ^ (int)modifiers;
+                    int lookup = (int)key << keyUpShift ^ (int)previousModifiers;
                     if (keyEvents.TryGetValue(lookup, out KeyEvent eventHandler))
                     {
                         eventHandler.Invoke(key, modifiers);

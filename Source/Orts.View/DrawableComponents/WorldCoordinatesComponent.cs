@@ -23,7 +23,7 @@ namespace Orts.View.DrawableComponents
         {
             Enabled = false;
             Visible = false;
-            input = Game.Components.OfType<InputGameComponent>().First();
+            input = Game.Components.OfType<InputGameComponent>().Single();
             this.font = font;
         }
 

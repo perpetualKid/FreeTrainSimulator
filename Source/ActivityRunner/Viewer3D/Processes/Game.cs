@@ -29,6 +29,7 @@ using Orts.Common;
 using Orts.Common.Info;
 using Orts.Common.Logging;
 using Orts.Settings;
+using Orts.View.Xna;
 
 namespace Orts.ActivityRunner.Viewer3D.Processes
 {
@@ -160,6 +161,14 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             SoundProcess.Stop();
             // WebServerProcess.Stop(); Again
             WebServerProcess.Stop();
+        }
+
+        protected override void Initialize()
+        {
+            base.Initialize();
+            InputGameComponent inputComponent = new InputGameComponent(this);
+            Components.Add(inputComponent);
+
         }
 
         private void Game_Exiting(object sender, EventArgs e)

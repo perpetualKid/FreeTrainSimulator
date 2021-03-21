@@ -132,6 +132,7 @@
     <ProjectReference Include="..\Orts.Formats.OR\Orts.Formats.OR.csproj" />
     <ProjectReference Include="..\Orts.Settings\Orts.Settings.csproj" />
     <ProjectReference Include="..\Orts.Simulation\Orts.Simulation.csproj" />
+    <ProjectReference Include="..\Orts.View\Orts.View.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Native\x64\" />

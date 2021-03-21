@@ -75,7 +75,7 @@ namespace Orts.View.Track
             bounds = trackContent.Bounds;
             spriteBatch = new SpriteBatch(GraphicsDevice);
             fontManager = FontManager.Instance("Segoe UI", System.Drawing.FontStyle.Regular);
-            inputComponent = game.Components.OfType<InputGameComponent>().First();
+            inputComponent = game.Components.OfType<InputGameComponent>().Single();
             inputComponent.AddMouseEvent(InputGameComponent.MouseMovedEventType.MouseMoved, MouseMove);
 
             foreach (ColorSetting setting in EnumExtension.GetValues<ColorSetting>())

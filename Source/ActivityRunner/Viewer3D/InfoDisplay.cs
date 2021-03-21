@@ -40,6 +40,7 @@ using Orts.Common.Info;
 using Orts.Common.Input;
 using Orts.Common.Logging;
 using Orts.Simulation.RollingStocks;
+using Orts.View.Xna;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -70,24 +71,23 @@ namespace Orts.ActivityRunner.Viewer3D
 
             if (viewer.Settings.DataLogger)
                 DataLoggerStart();
-        }
 
-        internal void Terminate()
-        {
-            if (viewer.Settings.DataLogger)
-                DataLoggerStop();
-        }
-
-        public void HandleUserInput(in ElapsedTime elapsedTime)
-        {
-            if (UserInput.IsPressed(UserCommand.DebugLogger))
+            InputGameComponent inputComponent = viewer.Game.Components.OfType<InputGameComponent>().Single();
+            UserCommandKeyInput inputKey = viewer.Game.Settings.Input.Commands[(int)UserCommand.DebugLogger] as UserCommandKeyInput;
+            inputComponent.AddKeyEvent(inputKey.Key, inputKey.Modifiers, InputGameComponent.KeyEventType.KeyPressed, (a, b) =>
             {
                 viewer.Settings.DataLogger = !viewer.Settings.DataLogger;
                 if (viewer.Settings.DataLogger)
                     DataLoggerStart();
                 else
                     DataLoggerStop();
-            }
+            });
+        }
+
+        internal void Terminate()
+        {
+            if (viewer.Settings.DataLogger)
+                DataLoggerStop();
         }
 
         private void RecordSteamPerformance()
