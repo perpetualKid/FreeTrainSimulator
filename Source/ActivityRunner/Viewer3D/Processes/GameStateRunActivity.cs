@@ -106,7 +106,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             options = optionsList.ToArray();
         }
 
-        internal override void Update(RenderFrame frame, double totalRealSeconds)
+        internal override void Update(RenderFrame frame, double totalRealSeconds, GameTime gameTime)
         {
             UpdateLoading();
 
@@ -126,7 +126,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 frame.AddPrimitive(loadingBar.Material, loadingBar, RenderPrimitiveGroup.Overlay, ref loadingMatrix);
             }
 
-            base.Update(frame, totalRealSeconds);
+            base.Update(frame, totalRealSeconds, gameTime);
         }
 
         internal override void Load()

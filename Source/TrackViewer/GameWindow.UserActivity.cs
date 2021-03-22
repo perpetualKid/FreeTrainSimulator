@@ -24,12 +24,12 @@ namespace Orts.TrackViewer
         private static readonly Vector2 moveUpQuick = new Vector2(0, 10);
         private static readonly Vector2 moveDownQuick = new Vector2(0, -10);
         
-        public void ChangeScreenMode(Keys key, KeyModifiers modifiers)
+        public void ChangeScreenMode(Keys key, KeyModifiers modifiers, GameTime gameTime)
         {
             SetScreenMode(currentScreenMode.Next());
         }
 
-        public void CloseWindow(Keys key, KeyModifiers modifiers)
+        public void CloseWindow(Keys key, KeyModifiers modifiers, GameTime gameTime)
         {
             ExitApplication();
         }
@@ -53,7 +53,7 @@ namespace Orts.TrackViewer
 
         public void MouseWheel(Point position, int delta)
         {
-            contentArea?.UpdateScaleAt(position.ToVector2(), System.Math.Sign(delta));
+            contentArea?.UpdateScaleAt(position.ToVector2(), Math.Sign(delta));
         }
 
         public void MouseDragging(Point position, Vector2 delta)
@@ -71,7 +71,7 @@ namespace Orts.TrackViewer
             System.Diagnostics.Debug.WriteLine($"Down {Window.Title} - {position}");
         }
 
-        private void MoveByKey(Keys key, KeyModifiers modifiers)
+        private void MoveByKey(Keys key, KeyModifiers modifiers, GameTime gameTime)
         {
             switch (key)
             {
@@ -91,7 +91,7 @@ namespace Orts.TrackViewer
         }
 
         private DateTime nextUpdate;
-        private void ZoomIn(Keys key, KeyModifiers modifiers)
+        private void ZoomIn(Keys key, KeyModifiers modifiers, GameTime gameTime)
         {
             if (DateTime.UtcNow > nextUpdate)
             {
@@ -100,7 +100,7 @@ namespace Orts.TrackViewer
             }
         }
 
-        private void ZoomOut(Keys key, KeyModifiers modifiers)
+        private void ZoomOut(Keys key, KeyModifiers modifiers, GameTime gameTime)
         {
             if (DateTime.UtcNow > nextUpdate)
             {
@@ -109,12 +109,12 @@ namespace Orts.TrackViewer
             }
         }
 
-        private void ResetZoomAndLocation(Keys key, KeyModifiers modifiers)
+        private void ResetZoomAndLocation(Keys key, KeyModifiers modifiers, GameTime gameTime)
         {
             contentArea?.ResetSize(Window.ClientBounds.Size, 60);
         }
 
-        private void PrintScreen(Keys key, KeyModifiers modifiers)
+        private void PrintScreen(Keys key, KeyModifiers modifiers, GameTime gameTime)
         {
             PrintScreen();
         }

@@ -133,7 +133,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                         component.Update(gameTime);
                 if (Game.State != null)
                 {
-                    Game.State.Update(CurrentFrame, gameTime.TotalGameTime.TotalSeconds);
+                    Game.State.Update(CurrentFrame, gameTime.TotalGameTime.TotalSeconds, gameTime);
                     CurrentFrame.Sort();
                 }
             }

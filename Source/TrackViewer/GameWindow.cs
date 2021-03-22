@@ -368,7 +368,7 @@ namespace Orts.TrackViewer
 
             InputGameComponent inputComponent = new InputGameComponent(this);
             Components.Add(inputComponent);
-            inputComponent.AddKeyEvent(Keys.F, KeyModifiers.None, InputGameComponent.KeyEventType.KeyPressed, (keys, modifiers) => new Thread(GameWindowThread).Start());
+            inputComponent.AddKeyEvent(Keys.F, KeyModifiers.None, InputGameComponent.KeyEventType.KeyPressed, (keys, modifiers, gameTime) => new Thread(GameWindowThread).Start());
             inputComponent.AddKeyEvent(Keys.Enter, KeyModifiers.Shift, InputGameComponent.KeyEventType.KeyPressed, ChangeScreenMode);
             inputComponent.AddKeyEvent(Keys.Q, KeyModifiers.None, InputGameComponent.KeyEventType.KeyPressed, CloseWindow);
             inputComponent.AddKeyEvent(Keys.Left, KeyModifiers.None, InputGameComponent.KeyEventType.KeyDown, MoveByKey);

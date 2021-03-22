@@ -62,7 +62,7 @@ namespace Orts.View.Xna
         public delegate void MouseMoveEvent(Point position, Vector2 delta);
         public delegate void MouseButtonEvent(Point position);
         public delegate void MouseWheelEvent(Point position, int delta);
-        public delegate void KeyEvent(Keys key, KeyModifiers modifiers);
+        public delegate void KeyEvent(Keys key, KeyModifiers modifiers, GameTime gameTime);
 
         private const int keyPressShift = 8;
         private const int keyDownShift = 13;
@@ -203,7 +203,7 @@ namespace Orts.View.Xna
                         int lookup = (int)key << keyDownShift ^ (int)currentModifiers;
                         if (keyEvents.TryGetValue(lookup, out KeyEvent eventHandler))
                         {
-                            eventHandler.Invoke(key, currentModifiers);
+                            eventHandler.Invoke(key, currentModifiers, gameTime);
                         }
                     }
                     if (previousKeyboardState.IsKeyDown(key) && (currentModifiers != previousModifiers))
@@ -212,7 +212,7 @@ namespace Orts.View.Xna
                         int lookup = (int)key << keyUpShift ^ (int)previousModifiers;
                         if (keyEvents.TryGetValue(lookup, out KeyEvent eventHandler))
                         {
-                            eventHandler.Invoke(key, previousModifiers);
+                            eventHandler.Invoke(key, previousModifiers, gameTime);
                         }
                     }
                     if (!previousKeyboardState.IsKeyDown(key) || (currentModifiers != previousModifiers))
@@ -221,7 +221,7 @@ namespace Orts.View.Xna
                         int lookup = (int)key << keyPressShift ^ (int)currentModifiers;
                         if (keyEvents.TryGetValue(lookup, out KeyEvent eventHandler))
                         {
-                            eventHandler.Invoke(key, currentModifiers);
+                            eventHandler.Invoke(key, currentModifiers, gameTime);
                         }
                     }
                     int previousIndex = Array.IndexOf(previousKeys, key);//not  great, but considering this is mostly very few (<5) acceptable
@@ -239,7 +239,7 @@ namespace Orts.View.Xna
                     int lookup = (int)key << keyUpShift ^ (int)previousModifiers;
                     if (keyEvents.TryGetValue(lookup, out KeyEvent eventHandler))
                     {
-                        eventHandler.Invoke(key, previousModifiers);
+                        eventHandler.Invoke(key, previousModifiers, gameTime);
                     }
                 }
                 previousKeys = currentKeys;
