@@ -71,6 +71,7 @@ namespace Orts.View.Xna
         private KeyboardState currentKeyboardState;
         private KeyboardState previousKeyboardState;
         private KeyModifiers previousModifiers;
+        private KeyModifiers currentModifiers;
         private Keys[] previousKeys = Array.Empty<Keys>();
         private readonly Dictionary<int, KeyEvent> keyEvents = new Dictionary<int, KeyEvent>();
 
@@ -174,6 +175,7 @@ namespace Orts.View.Xna
             }
             (currentKeyboardState, previousKeyboardState) = (previousKeyboardState, currentKeyboardState);
             (currentMouseState, previousMouseState) = (previousMouseState, currentMouseState);
+            (currentModifiers, previousModifiers) = (previousModifiers, currentModifiers);
             currentKeyboardState = Keyboard.GetState();
             currentMouseState = Mouse.GetState(Game.Window);
 
@@ -181,13 +183,13 @@ namespace Orts.View.Xna
             #region keyboard update
             if (currentKeyboardState != previousKeyboardState || currentKeyboardState.GetPressedKeyCount() != 0)
             {
-                KeyModifiers modifiers = KeyModifiers.None;
+                currentModifiers = KeyModifiers.None;
                 if (currentKeyboardState.IsKeyDown(Keys.LeftShift) || currentKeyboardState.IsKeyDown(Keys.RightShift))
-                    modifiers |= KeyModifiers.Shift;
+                    currentModifiers |= KeyModifiers.Shift;
                 if (currentKeyboardState.IsKeyDown(Keys.LeftControl) || currentKeyboardState.IsKeyDown(Keys.RightControl))
-                    modifiers |= KeyModifiers.Control;
+                    currentModifiers |= KeyModifiers.Control;
                 if (currentKeyboardState.IsKeyDown(Keys.LeftAlt) || currentKeyboardState.IsKeyDown(Keys.LeftAlt))
-                    modifiers |= KeyModifiers.Alt;
+                    currentModifiers |= KeyModifiers.Alt;
 
                 Keys[] currentKeys = currentKeyboardState.GetPressedKeys();
                 foreach (Keys key in currentKeys)
@@ -195,31 +197,31 @@ namespace Orts.View.Xna
                     //if (key == Keys.LeftShift || key == Keys.RightShift || key == Keys.LeftControl || key == Keys.RightControl || key == Keys.LeftAlt || key == Keys.RightAlt)
                     if ((int)key > 159 && (int)key < 166)
                         continue;
-                    if (previousKeyboardState.IsKeyDown(key) && (modifiers == previousModifiers))
+                    if (previousKeyboardState.IsKeyDown(key) && (currentModifiers == previousModifiers))
                     {
                         // Key (still) down
-                        int lookup = (int)key << keyDownShift ^ (int)modifiers;
+                        int lookup = (int)key << keyDownShift ^ (int)currentModifiers;
                         if (keyEvents.TryGetValue(lookup, out KeyEvent eventHandler))
                         {
-                            eventHandler.Invoke(key, modifiers);
+                            eventHandler.Invoke(key, currentModifiers);
                         }
                     }
-                    if (previousKeyboardState.IsKeyDown(key) && (modifiers != previousModifiers))
+                    if (previousKeyboardState.IsKeyDown(key) && (currentModifiers != previousModifiers))
                     {
                         // Key Up, state may have changed due to a modifier changed
                         int lookup = (int)key << keyUpShift ^ (int)previousModifiers;
                         if (keyEvents.TryGetValue(lookup, out KeyEvent eventHandler))
                         {
-                            eventHandler.Invoke(key, modifiers);
+                            eventHandler.Invoke(key, previousModifiers);
                         }
                     }
-                    if (!previousKeyboardState.IsKeyDown(key) || (modifiers != previousModifiers))
+                    if (!previousKeyboardState.IsKeyDown(key) || (currentModifiers != previousModifiers))
                     {
                         //Key just pressed
-                        int lookup = (int)key << keyPressShift ^ (int)modifiers;
+                        int lookup = (int)key << keyPressShift ^ (int)currentModifiers;
                         if (keyEvents.TryGetValue(lookup, out KeyEvent eventHandler))
                         {
-                            eventHandler.Invoke(key, modifiers);
+                            eventHandler.Invoke(key, currentModifiers);
                         }
                     }
                     int previousIndex = Array.IndexOf(previousKeys, key);//not  great, but considering this is mostly very few (<5) acceptable
@@ -237,10 +239,9 @@ namespace Orts.View.Xna
                     int lookup = (int)key << keyUpShift ^ (int)previousModifiers;
                     if (keyEvents.TryGetValue(lookup, out KeyEvent eventHandler))
                     {
-                        eventHandler.Invoke(key, modifiers);
+                        eventHandler.Invoke(key, previousModifiers);
                     }
                 }
-                previousModifiers = modifiers;
                 previousKeys = currentKeys;
             }
             #endregion
@@ -307,5 +308,26 @@ namespace Orts.View.Xna
             base.Update(gameTime);
         }
 
+        public bool KeyState(Keys key, KeyModifiers modifiers, KeyEventType keyEventType)
+        {
+            switch (keyEventType)
+            {
+                case KeyEventType.KeyDown:
+                    if (currentKeyboardState.IsKeyDown(key) && modifiers == currentModifiers && previousModifiers == currentModifiers == previousKeyboardState.IsKeyDown(key))
+                        return true;
+                    break;
+                case KeyEventType.KeyPressed:
+                    if (currentKeyboardState.IsKeyDown(key) && modifiers == currentModifiers && (previousModifiers != currentModifiers || !previousKeyboardState.IsKeyDown(key)))
+                        return true;
+                    break;
+                case KeyEventType.KeyReleased:
+                    if ((!currentKeyboardState.IsKeyDown(key) || previousModifiers != currentModifiers) && (previousModifiers == modifiers && previousKeyboardState.IsKeyDown(key)))
+                        return true;
+                        break;
+                default:
+                    throw new NotSupportedException();
+            }
+            return false;
+        }
     }
 }
