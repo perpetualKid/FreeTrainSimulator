@@ -17,6 +17,8 @@
 
 // This file is the responsibility of the 3D & Environment Team. 
 
+using Microsoft.Xna.Framework;
+
 using Orts.ActivityRunner.Processes;
 using Orts.Common;
 using System;
@@ -32,6 +34,8 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         readonly Game Game;
         readonly Thread Thread;
         readonly WatchdogToken WatchdogToken;
+
+        public GameComponentCollection GameComponents { get; } = new GameComponentCollection();
 
         public UpdaterProcess(Game game)
         {
@@ -81,15 +85,15 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             }
         }
 
-        RenderFrame CurrentFrame;
-        double TotalRealSeconds;
+        private RenderFrame CurrentFrame;
+        private GameTime gameTime;
 
         //[CallOnThread("Render")]
-        internal void StartUpdate(RenderFrame frame, double totalRealSeconds)
+        internal void StartUpdate(RenderFrame frame, GameTime gameTime)
         {
             Debug.Assert(State.Finished);
             CurrentFrame = frame;
-            TotalRealSeconds = totalRealSeconds;
+            this.gameTime = gameTime;
             State.SignalStart();
         }
 
@@ -124,9 +128,12 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             {
                 WatchdogToken.Ping();
                 CurrentFrame.Clear();
+                foreach (GameComponent component in GameComponents)
+                    if (component.Enabled)
+                        component.Update(gameTime);
                 if (Game.State != null)
                 {
-                    Game.State.Update(CurrentFrame, TotalRealSeconds);
+                    Game.State.Update(CurrentFrame, gameTime.TotalGameTime.TotalSeconds);
                     CurrentFrame.Sort();
                 }
             }

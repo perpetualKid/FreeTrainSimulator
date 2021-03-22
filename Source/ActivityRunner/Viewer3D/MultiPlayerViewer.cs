@@ -43,7 +43,7 @@ namespace Orts.ActivityRunner.Viewer3D
             if (null == game)
                 throw new ArgumentNullException(nameof(game));
 
-            InputGameComponent inputComponent = game.Components.OfType<InputGameComponent>().Single();
+            InputGameComponent inputComponent = game.UpdaterProcess.GameComponents.OfType<InputGameComponent>().Single();
 
             //In Multiplayer, I maybe the helper, but I can request to be the controller
             // Horn and bell are managed by UpdateHornAndBell in MSTSLocomotive.cs

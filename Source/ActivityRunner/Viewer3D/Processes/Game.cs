@@ -167,7 +167,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         {
             base.Initialize();
             InputGameComponent inputComponent = new InputGameComponent(this);
-            Components.Add(inputComponent);
+            UpdaterProcess.GameComponents.Add(inputComponent);
 
         }
 

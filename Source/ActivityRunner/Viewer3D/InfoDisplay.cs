@@ -72,7 +72,7 @@ namespace Orts.ActivityRunner.Viewer3D
             if (viewer.Settings.DataLogger)
                 DataLoggerStart();
 
-            InputGameComponent inputComponent = viewer.Game.Components.OfType<InputGameComponent>().Single();
+            InputGameComponent inputComponent = viewer.UpdaterProcess.GameComponents.OfType<InputGameComponent>().Single();
             UserCommandKeyInput inputKey = viewer.Game.Settings.Input.Commands[(int)UserCommand.DebugLogger] as UserCommandKeyInput;
             inputComponent.AddKeyEvent(inputKey.Key, inputKey.Modifiers, InputGameComponent.KeyEventType.KeyPressed, (a, b) =>
             {

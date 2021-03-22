@@ -484,7 +484,7 @@ namespace Orts.ActivityRunner.Viewer3D
             // MUST be after loading is done! (Or we try and load shapes on the main thread.)
             PlayerLocomotiveViewer = World.Trains.GetViewer(PlayerLocomotive);
 
-            InputGameComponent inputComponent = Game.Components.OfType<InputGameComponent>().Single();
+            InputGameComponent inputComponent = UpdaterProcess.GameComponents.OfType<InputGameComponent>().Single();
 
             UserCommandModifierInput windowTabCommandInput = Game.Settings.Input.Commands[(int)UserCommand.DisplayNextWindowTab] as UserCommandModifierInput;
 
