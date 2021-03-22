@@ -914,29 +914,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             else controller.StopDecrease();
         }
         #endregion
-
-        public class ControlValue
-        {
-            public string TypeName;
-            public double MinValue;
-            public double MaxValue;
-            public double RangeFraction;
-        }
-
-        public List<ControlValue> GetControlValueList()
-        {
-            List<ControlValue> controlValueList = new List<ControlValue>();
-            foreach (CabViewControlRenderer controlRenderer in CabRenderer.ControlMap.Values)
-            {
-                controlValueList.Add(new ControlValue
-                    { TypeName = controlRenderer.GetControlType().ToString()
-                    , MinValue = controlRenderer.Control.ScaleRangeMin
-                    , MaxValue = controlRenderer.Control.ScaleRangeMax
-                    , RangeFraction = controlRenderer.GetRangeFraction()
-                    });
-            }
-            return controlValueList;
-        }
     } // Class LocomotiveViewer
 
     // By GeorgeS

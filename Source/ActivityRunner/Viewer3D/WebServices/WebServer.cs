@@ -251,7 +251,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
 
         #region /API/CABCONTROLS
         [Route(HttpVerbs.Get, "/CABCONTROLS")]
-        public IEnumerable<MSTSLocomotiveViewer.ControlValue> CabControls()
+        public IEnumerable<ControlValue> CabControls()
         {
             return ((MSTSLocomotiveViewer)viewer.PlayerLocomotiveViewer).GetControlValueList();
         }
