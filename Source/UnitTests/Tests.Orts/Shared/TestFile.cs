@@ -12,21 +12,16 @@ namespace Tests.Orts.Shared
         public TestFile(string contents)
         {
             FileName = Path.GetTempFileName();
-            using (var writer = new StreamWriter(FileName))
+            using (StreamWriter writer = new StreamWriter(FileName))
             {
                 writer.Write(contents);
             }
         }
 
-        public void Cleanup()
+        public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
-        }
-
-        void IDisposable.Dispose()
-        {
-            Cleanup();
         }
 
         ~TestFile()
