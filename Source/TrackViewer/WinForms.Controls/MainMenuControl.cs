@@ -160,7 +160,6 @@ namespace Orts.TrackViewer.WinForms.Controls
             if (closingCancelled)
             {
                 closingCancelled = false;
-
             }
             else
             {
@@ -170,7 +169,10 @@ namespace Orts.TrackViewer.WinForms.Controls
 
         private void MainMenuStrip_MenuActivate(object sender, EventArgs e)
         {
-            parent.InputCaptured = true;
+            if (ModifierKeys.HasFlag(Keys.Alt))
+                MainMenuStrip.Enabled = false;
+            else
+                parent.InputCaptured = true;
         }
 
         internal void PopulateRoutes(IEnumerable<Route> routes)
@@ -312,6 +314,12 @@ namespace Orts.TrackViewer.WinForms.Controls
         private void TakeScreenshotToolStripMenuItem_Click(object sender, EventArgs e)
         {
             parent.PrintScreen();
+        }
+
+        private void MainMenuStrip_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Menu)
+                MainMenuStrip.Enabled = true;
         }
     }
 }
