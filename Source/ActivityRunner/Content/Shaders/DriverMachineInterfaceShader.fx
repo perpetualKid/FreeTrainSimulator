@@ -77,12 +77,12 @@ float4 PSCircularSpeedGauge(PIXEL_INPUT In) : COLOR0
 
 	if (radius < radiusNeedleCenter)
 		returnColor = PointerColor;
-    else if (radius > radiusOutside)
+	else if (radius > radiusOutside)
 		returnColor = origColor;
 	else if (radius < radiusLimitPointer)
 		returnColor = origColor;
 	else
-    {
+	{
 		float angle = atan(-dist.x / dist.y);
 		if (dist.y < 0)
 		{

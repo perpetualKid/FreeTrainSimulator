@@ -29,7 +29,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
         public readonly List<DMIButton> Buttons = new List<DMIButton>();
         public MenuBar(DriverMachineInterface dmi)
         {
-            /*var main = new DMITextButton("Main", "Main", true, () =>
+            /* Default menus disabled. Interface with TCS to be defined in the future
+            var main = new DMITextButton("Main", "Main", true, () =>
             {
                 var buts = new List<DMIButton>();
                 buts.Add(new DMITextButton("Start", "Start", true, null, 153, 50, dmi));
@@ -201,6 +202,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
         public override void PrepareFrame(ETCSStatus status)
         {
             base.PrepareFrame(status);
+            /*
             if (status.ActiveSubwindow is DMIMenuWindowDefinition && status.ActiveSubwindow.WindowTitle == WindowTitle)
             {
                 DMIMenuWindowDefinition menu = (DMIMenuWindowDefinition)status.ActiveSubwindow;
@@ -209,6 +211,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
                     Buttons[i].Enabled = menu.Buttons[i].Enabled;
                 }
             }
+            */
         }
     }
 }
