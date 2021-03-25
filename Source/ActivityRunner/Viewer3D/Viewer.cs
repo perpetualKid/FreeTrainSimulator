@@ -696,13 +696,10 @@ namespace Orts.ActivityRunner.Viewer3D
                     if (((string)videoController["Description"] == adapterDescription) && (videoController["AdapterRAM"] != null))
                         adapterMemory = (uint)videoController["AdapterRAM"];
             }
-            catch (ManagementException error)
+            catch (Exception error)
             {
                 Trace.WriteLine(error);
-            }
-            catch (UnauthorizedAccessException error)
-            {
-                Trace.WriteLine(error);
+                adapterMemory = 0;
             }
         }
 

@@ -51,7 +51,8 @@ jobs:
     channel: $[lower(variables['channelTemp'])]
     buildNumber: $[counter(format('{0}-{1}', variables['channel'], variables['versionFromCode']), 0)]
     ${{if eq( parameters.channelName, 'Release' )}}: 
-      versionSuffix: '+$(Build.SourceBranchName)-$(Build.SourceVersion)'
+#      versionSuffix: '+$(Build.SourceBranchName)-$(Build.SourceVersion)'
+      versionSuffix: ''
       buildVersion: '$(versionFromCode)'
     ${{if ne( parameters.channelName, 'Release' )}}: 
       versionSuffix: '$(channel).$(buildNumber)+$(Build.SourceBranchName)-$(Build.SourceVersion)'
