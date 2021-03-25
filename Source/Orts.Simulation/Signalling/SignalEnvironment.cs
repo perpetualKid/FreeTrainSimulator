@@ -167,8 +167,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// Overlay constructor for restore after saved game
         /// </summary>
-        public SignalEnvironment(SignalConfigurationFile sigcfg, BinaryReader inf, CancellationToken token)
-            : this(sigcfg, false, token)
+        public void Restore(BinaryReader inf)
         {
             if (null == inf)
                 throw new ArgumentNullException(nameof(inf));
