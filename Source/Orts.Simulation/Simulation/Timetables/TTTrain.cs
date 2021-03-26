@@ -959,15 +959,15 @@ namespace Orts.Simulation.Timetables
             int altPlatformIndex = -1;
 
             // get station platform list
-            if (signalRef.StationXRefList.ContainsKey(orgStop.PlatformItem.Name))
+            if (Simulator.Instance.SignalEnvironment.StationXRefList.ContainsKey(orgStop.PlatformItem.Name))
             {
-                List<int> XRefKeys = signalRef.StationXRefList[orgStop.PlatformItem.Name];
+                List<int> XRefKeys = Simulator.Instance.SignalEnvironment.StationXRefList[orgStop.PlatformItem.Name];
 
                 // search through all available platforms
                 for (int platformIndex = 0; platformIndex <= XRefKeys.Count - 1 && altPlatformIndex < 0; platformIndex++)
                 {
                     int platformXRefIndex = XRefKeys[platformIndex];
-                    PlatformDetails altPlatform = signalRef.PlatformDetailsList[platformXRefIndex];
+                    PlatformDetails altPlatform = Simulator.Instance.SignalEnvironment.PlatformDetailsList[platformXRefIndex];
 
                     // check if section is in new route
                     for (int iSectionIndex = 0; iSectionIndex <= altPlatform.TCSectionIndex.Count - 1 && altPlatformIndex < 0; iSectionIndex++)
@@ -983,7 +983,7 @@ namespace Orts.Simulation.Timetables
                 // section found in new route - set new station details using old details
                 if (altPlatformIndex > 0)
                 {
-                    StationStop newStop = CalculateStationStop(signalRef.PlatformDetailsList[altPlatformIndex].PlatformReference[Location.NearEnd],
+                    StationStop newStop = CalculateStationStop(Simulator.Instance.SignalEnvironment.PlatformDetailsList[altPlatformIndex].PlatformReference[Location.NearEnd],
                         orgStop.ArrivalTime, orgStop.DepartTime, clearingDistanceM, minStopDistanceM,
                         orgStop.Terminal, orgStop.ActualMinStopTime, orgStop.KeepClearFront, orgStop.KeepClearRear, orgStop.ForcePosition, 
                         orgStop.CloseupSignal, orgStop.Closeup, orgStop.RestrictPlatformToSignal, orgStop.ExtendPlatformToSignal, orgStop.EndStop);
@@ -1263,13 +1263,13 @@ namespace Orts.Simulation.Timetables
 
             // get platform details
 
-            if (!signalRef.PlatformXRefList.TryGetValue(platformStartID, out platformIndex))
+            if (!Simulator.Instance.SignalEnvironment.PlatformXRefList.TryGetValue(platformStartID, out platformIndex))
             {
                 return (null); // station not found
             }
             else
             {
-                PlatformDetails thisPlatform = signalRef.PlatformDetailsList[platformIndex];
+                PlatformDetails thisPlatform = Simulator.Instance.SignalEnvironment.PlatformDetailsList[platformIndex];
                 int sectionIndex = thisPlatform.TCSectionIndex[0];
                 int routeIndex = thisRoute.GetRouteIndex(sectionIndex, 0);
 
@@ -1623,7 +1623,7 @@ namespace Orts.Simulation.Timetables
                         {
                             if (nextIndex != platformIndex)
                             {
-                                PlatformDetails otherPlatform = signalRef.PlatformDetailsList[nextIndex];
+                                PlatformDetails otherPlatform = Simulator.Instance.SignalEnvironment.PlatformDetailsList[nextIndex];
                                 if (String.Compare(otherPlatform.Name, thisPlatform.Name) == 0)
                                 {
                                     int otherSectionIndex = thisElement.Direction == 0 ?
@@ -1674,7 +1674,7 @@ namespace Orts.Simulation.Timetables
 
                         foreach (int otherPlatformIndex in nextSection.PlatformIndices)
                         {
-                            PlatformDetails otherPlatform = signalRef.PlatformDetailsList[otherPlatformIndex];
+                            PlatformDetails otherPlatform = Simulator.Instance.SignalEnvironment.PlatformDetailsList[otherPlatformIndex];
                             if (String.Compare(otherPlatform.Name, thisPlatform.Name) == 0)
                             {
                                 fullLength = otherPlatform.Length + distance;
@@ -3134,7 +3134,7 @@ namespace Orts.Simulation.Timetables
                                     int nextSignalIndex = NextSignalObject[0].Signalfound[(int)SignalFunction.Normal];
                                     if (nextSignalIndex >= 0)
                                     {
-                                        NextSignalObject[0] = signalRef.Signals[nextSignalIndex];
+                                        NextSignalObject[0] = Simulator.Instance.SignalEnvironment.Signals[nextSignalIndex];
 
                                         int reqSectionIndex = NextSignalObject[0].TrackCircuitIndex;
                                         float endOffset = NextSignalObject[0].TrackCircuitOffset;
@@ -3371,7 +3371,7 @@ namespace Orts.Simulation.Timetables
                      thisStation.HoldSignal)
                 {
                     HoldingSignals.Remove(thisStation.ExitSignal);
-                    var nextSignal = signalRef.Signals[thisStation.ExitSignal];
+                    var nextSignal = Simulator.Instance.SignalEnvironment.Signals[thisStation.ExitSignal];
 
                     if (nextSignal.EnabledTrain != null && nextSignal.EnabledTrain.Train == this)
                     {
@@ -3534,7 +3534,7 @@ namespace Orts.Simulation.Timetables
             if (thisStation.ExitSignal >= 0 && thisStation.HoldSignal)
             {
                 HoldingSignals.Remove(thisStation.ExitSignal);
-                var nextSignal = signalRef.Signals[thisStation.ExitSignal];
+                var nextSignal = Simulator.Instance.SignalEnvironment.Signals[thisStation.ExitSignal];
 
                 // only request signal if in signal mode (train may be in node control)
                 if (ControlMode == TrainControlMode.AutoSignal)
@@ -5904,7 +5904,7 @@ namespace Orts.Simulation.Timetables
 
                     if (routeSection.PlatformIndices.Count > 0)
                     {
-                        PlatformDetails thisPlatform = signalRef.PlatformDetailsList[routeSection.PlatformIndices[0]];
+                        PlatformDetails thisPlatform = Simulator.Instance.SignalEnvironment.PlatformDetailsList[routeSection.PlatformIndices[0]];
                         if (StationStops.Count > 0) // train has stops
                         {
                             if (String.Compare(StationStops[0].PlatformItem.Name, thisPlatform.Name) == 0)
@@ -5956,7 +5956,7 @@ namespace Orts.Simulation.Timetables
                             routeSection = thisRoute[iSection].TrackCircuitSection;
                             if (routeSection.PlatformIndices.Count > 0)
                             {
-                                PlatformDetails thisPlatform = signalRef.PlatformDetailsList[routeSection.PlatformIndices[0]];
+                                PlatformDetails thisPlatform = Simulator.Instance.SignalEnvironment.PlatformDetailsList[routeSection.PlatformIndices[0]];
                                 if (StationStops.Count > 0) // train has stops
                                 {
                                     if (String.Compare(StationStops[0].PlatformItem.Name, thisPlatform.Name) == 0)
@@ -6057,7 +6057,7 @@ namespace Orts.Simulation.Timetables
                     {
                         foreach (int thisPlatform in thisSection.PlatformIndices)
                         {
-                            foreach (int platformReference in signalRef.PlatformDetailsList[thisPlatform].PlatformReference)
+                            foreach (int platformReference in Simulator.Instance.SignalEnvironment.PlatformDetailsList[thisPlatform].PlatformReference)
                             {
                                 if (PickUpStatic.Contains(platformReference))
                                 {
@@ -8355,7 +8355,7 @@ namespace Orts.Simulation.Timetables
                     TrackCircuitSection thisSection = ValidRoute[0][iRouteIndex].TrackCircuitSection;
                     foreach (int thisPlatform in thisSection.PlatformIndices)
                     {
-                        foreach (int platformReference in signalRef.PlatformDetailsList[thisPlatform].PlatformReference)
+                        foreach (int platformReference in Simulator.Instance.SignalEnvironment.PlatformDetailsList[thisPlatform].PlatformReference)
                         {
                             if (PickUpStatic.Contains(platformReference))
                             {
@@ -9426,7 +9426,7 @@ namespace Orts.Simulation.Timetables
 
                             if (ControlMode == TrainControlMode.AutoSignal)
                             {
-                                Signal nextSignal = signalRef.Signals[StationStops[0].ExitSignal];
+                                Signal nextSignal = Simulator.Instance.SignalEnvironment.Signals[StationStops[0].ExitSignal];
                                 nextSignal.RequestClearSignal(ValidRoute[0], RoutedForward, 0, false, null);
                             }
                         }
@@ -9677,7 +9677,7 @@ namespace Orts.Simulation.Timetables
 
                     if (ControlMode == TrainControlMode.AutoSignal)
                     {
-                        Signal nextSignal = signalRef.Signals[thisStation.ExitSignal];
+                        Signal nextSignal = Simulator.Instance.SignalEnvironment.Signals[thisStation.ExitSignal];
                         nextSignal.RequestClearSignal(ValidRoute[0], RoutedForward, 0, false, null);
                     }
                 }
@@ -9916,7 +9916,7 @@ namespace Orts.Simulation.Timetables
                     Forms = -1;
 
                     // remove all existing deadlock path references
-                    signalRef.RemoveDeadlockPathReferences(0);
+                    Simulator.Instance.SignalEnvironment.RemoveDeadlockPathReferences(0);
 
                     // set details for new train from existing train
                     TrackCircuitSection[] occupiedSections = new TrackCircuitSection[OccupiedTrack.Count];
@@ -9992,7 +9992,7 @@ namespace Orts.Simulation.Timetables
                     }
 
                     // reallocate deadlock path references for new train
-                    signalRef.ReallocateDeadlockPathReferences(nextTrainNumber, 0);
+                    Simulator.Instance.SignalEnvironment.ReallocateDeadlockPathReferences(nextTrainNumber, 0);
 
                     bool foundPlayerLocomotive = false;
                     TrainCar newPlayerLocomotive = null;
