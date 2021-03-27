@@ -147,6 +147,7 @@ namespace Orts.Simulation.Track
             if (null == inf)
                 throw new ArgumentNullException(nameof(inf));
 
+            TrackCircuitSectionIndex = inf.ReadInt32();
             Direction = (TrackDirection)inf.ReadInt32();
             Offset = inf.ReadSingle();
             RouteListIndex = inf.ReadInt32();
