@@ -23,7 +23,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Management;
-using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 using GetText;
@@ -38,6 +38,7 @@ using Orts.ActivityRunner.Viewer3D.RollingStock;
 using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Common;
 using Orts.Common.Calc;
+using Orts.Common.Info;
 using Orts.Common.Input;
 using Orts.Common.Position;
 using Orts.Common.Xna;
@@ -51,11 +52,8 @@ using Orts.Simulation.AIs;
 using Orts.Simulation.Commanding;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
-using Orts.Viewer3D.Popups;
-using Orts.Scripting.Api;
-using Orts.Common.Info;
 using Orts.Simulation.Signalling;
-using System.Threading.Tasks;
+using Orts.Viewer3D.Popups;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -217,7 +215,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public Camera SuspendedCamera { get; private set; }
 
-//        UserInputRailDriver RailDriver;
+        //        UserInputRailDriver RailDriver;
 
         public static double DbfEvalAutoPilotTimeS = 0;//Debrief eval
         public static double DbfEvalIniAutoPilotTimeS = 0;//Debrief eval  
@@ -477,8 +475,8 @@ namespace Orts.ActivityRunner.Viewer3D
             World.LoadPrep();
             if (Simulator.Settings.ConditionalLoadOfDayOrNightTextures) // We need to compute sun height only in this case
             {
-            MaterialManager.LoadPrep();
-            LoadMemoryThreshold = (long)HUDWindow.GetVirtualAddressLimit() - 512; // * 1024 * 1024; <-- this seemed wrong as the virtual address limit is already given in bytes
+                MaterialManager.LoadPrep();
+                LoadMemoryThreshold = (long)HUDWindow.GetVirtualAddressLimit() - 512; // * 1024 * 1024; <-- this seemed wrong as the virtual address limit is already given in bytes
             }
             Load();
 
@@ -672,7 +670,7 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 cabTextureInverseRatio = (float)cabTexture.Height / cabTexture.Width;
                 // if square cab texture files with dimension of at least 1024 pixels are used, they are considered as stretched 4 : 3 ones
-                if (cabTextureInverseRatio == 1 && cabTexture.Width >= 1024) cabTextureInverseRatio = 0.75f; 
+                if (cabTextureInverseRatio == 1 && cabTexture.Width >= 1024) cabTextureInverseRatio = 0.75f;
             }
             return cabTextureInverseRatio;
         }
@@ -887,7 +885,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 if (ComposeMessageWindow == null) ComposeMessageWindow = new ComposeMessage(WindowManager);
                 ComposeMessageWindow.InitMessage();
             }
-            if (MPManager.IsMultiPlayer()) MultiPlayerWindow.Visible = TrainDrivingWindow.Visible? true : false;
+            if (MPManager.IsMultiPlayer()) MultiPlayerWindow.Visible = TrainDrivingWindow.Visible ? true : false;
             if (!MPManager.IsMultiPlayer() && UserInput.IsPressed(UserCommand.GamePauseMenu)) { QuitWindow.Visible = Simulator.Paused = !QuitWindow.Visible; }
             if (MPManager.IsMultiPlayer() && UserInput.IsPressed(UserCommand.GamePauseMenu)) { if (Simulator.Confirmer != null) Simulator.Confirmer.Information(Viewer.Catalog.GetString("In MP, use Alt-F4 to quit directly")); }
 
@@ -914,11 +912,11 @@ namespace Orts.ActivityRunner.Viewer3D
             if (UserInput.IsPressed(UserCommand.DisplayTrainDrivingWindow)) if (UserInput.IsDown(UserCommand.DisplayNextWindowTab)) TrainDrivingWindow.TabAction(); else TrainDrivingWindow.Visible = !TrainDrivingWindow.Visible;
 
             if (UserInput.IsPressed(UserCommand.DisplayHUD)) if (UserInput.IsDown(UserCommand.DisplayNextWindowTab)) HUDWindow.TabAction();
-            else
-            {
-                HUDWindow.Visible = !HUDWindow.Visible;
-                if (!HUDWindow.Visible) HUDScrollWindow.Visible = false;
-            }
+                else
+                {
+                    HUDWindow.Visible = !HUDWindow.Visible;
+                    if (!HUDWindow.Visible) HUDScrollWindow.Visible = false;
+                }
             if (UserInput.IsPressed(UserCommand.DisplayStationLabels))
             {
                 if (UserInput.IsDown(UserCommand.DisplayNextWindowTab)) OSDLocations.TabAction(); else OSDLocations.Visible = !OSDLocations.Visible;
@@ -1138,11 +1136,11 @@ namespace Orts.ActivityRunner.Viewer3D
                     WorldLocation wos;
                     if (Program.DebugViewer.switchPickedItem?.Item != null)
                     {
-                            wos = Program.DebugViewer.switchPickedItem.Item.UiD.Location.ChangeElevation(8); 
+                        wos = Program.DebugViewer.switchPickedItem.Item.UiD.Location.ChangeElevation(8);
                     }
                     else
                     {
-                            wos = Program.DebugViewer.signalPickedItem.Item.Location.ChangeElevation(8);
+                        wos = Program.DebugViewer.signalPickedItem.Item.Location.ChangeElevation(8);
                     }
                     if (FreeRoamCameraList.Count == 0)
                     {
@@ -1195,7 +1193,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 {
                     var success = ((AITrain)PlayerLocomotive.Train).SwitchToPlayerControl();
                     if (success)
-                    {   
+                    {
                         Simulator.Confirmer.Message(ConfirmLevel.Information, Viewer.Catalog.GetString("Switched to player control"));
                         DbfEvalAutoPilot = false;//Debrief eval
                     }
@@ -1217,8 +1215,8 @@ namespace Orts.ActivityRunner.Viewer3D
                 }
             }
 
-            if (DbfEvalAutoPilot && (Simulator.ClockTime - DbfEvalIniAutoPilotTimeS) > 1.0000 )
-            {              
+            if (DbfEvalAutoPilot && (Simulator.ClockTime - DbfEvalIniAutoPilotTimeS) > 1.0000)
+            {
                 DbfEvalAutoPilotTimeS = DbfEvalAutoPilotTimeS + (Simulator.ClockTime - DbfEvalIniAutoPilotTimeS);//Debrief eval
                 train.DbfEvalValueChanged = true;
                 DbfEvalIniAutoPilotTimeS = Simulator.ClockTime;//Debrief eval
@@ -1344,7 +1342,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             // explore 2D cabview controls
 
-            if (Camera is CabCamera && (PlayerLocomotiveViewer as MSTSLocomotiveViewer)._hasCabRenderer && MouseChangingControl == null && 
+            if (Camera is CabCamera && (PlayerLocomotiveViewer as MSTSLocomotiveViewer)._hasCabRenderer && MouseChangingControl == null &&
                 RenderProcess.IsMouseVisible)
             {
                 if (!UserInput.IsMouseLeftButtonPressed)
@@ -1406,7 +1404,7 @@ namespace Orts.ActivityRunner.Viewer3D
                                     startingPoint = result;
                                 }
                                 MatrixExtension.Multiply(in startingPoint, in trainCarShape.WorldPosition.XNAMatrix, out Matrix matrix);
-                                var matrixWorldLocation = new WorldLocation(trainCarShape.WorldPosition.WorldLocation.TileX, trainCarShape.WorldPosition.WorldLocation.TileZ, 
+                                var matrixWorldLocation = new WorldLocation(trainCarShape.WorldPosition.WorldLocation.TileX, trainCarShape.WorldPosition.WorldLocation.TileZ,
                                 matrix.Translation.X, matrix.Translation.Y, -matrix.Translation.Z);
                                 Vector3 xnaCenter = Camera.XnaLocation(matrixWorldLocation);
                                 float d = xnaCenter.LineSegmentDistanceSquare(NearPoint, FarPoint);
@@ -1466,7 +1464,7 @@ namespace Orts.ActivityRunner.Viewer3D
                                     startingPoint = result;
                                 }
                                 MatrixExtension.Multiply(in startingPoint, in trainCarShape.WorldPosition.XNAMatrix, out Matrix matrix);
-                                var matrixWorldLocation = new WorldLocation(trainCarShape.WorldPosition.WorldLocation.TileX, trainCarShape.WorldPosition.WorldLocation.TileZ, 
+                                var matrixWorldLocation = new WorldLocation(trainCarShape.WorldPosition.WorldLocation.TileX, trainCarShape.WorldPosition.WorldLocation.TileZ,
                                     matrix.Translation.X, matrix.Translation.Y, -matrix.Translation.Z);
                                 Vector3 xnaCenter = Camera.XnaLocation(matrixWorldLocation);
                                 float d = xnaCenter.LineSegmentDistanceSquare(NearPoint, FarPoint);
@@ -1514,7 +1512,7 @@ namespace Orts.ActivityRunner.Viewer3D
             // Diesel and electric locos have a Reverser lever and,
             // in the neutral position, direction == N
             return car.Direction == MidpointDirection.N
-                // Steam locos never have direction == N, so check for setting close to zero.
+            // Steam locos never have direction == N, so check for setting close to zero.
             || Math.Abs(car.Train.MUReverserPercent) <= 1;
         }
         /// <summary>
@@ -1785,7 +1783,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 if (!Directory.Exists(Settings.ScreenshotPath))
                     Directory.CreateDirectory(Settings.ScreenshotPath);
                 var fileName = Path.Combine(Settings.ScreenshotPath, System.Windows.Forms.Application.ProductName + " " + DateTime.Now.ToString("yyyy-MM-dd hh-mm-ss")) + ".png";
-                SaveScreenshotToFile(Game.GraphicsDevice, fileName, false);
+                SaveScreenshotToFile(Game.GraphicsDevice, fileName, false, false);
                 SaveScreenshot = false; // cancel trigger
             }
             if (SaveScreenshot)
@@ -1809,38 +1807,51 @@ namespace Orts.ActivityRunner.Viewer3D
             if (SaveActivityThumbnail)
             {
                 SaveActivityThumbnail = false;
-                SaveScreenshotToFile(Game.GraphicsDevice, Path.Combine(UserSettings.UserDataFolder, SaveActivityFileStem + ".png"), true);
+                SaveScreenshotToFile(Game.GraphicsDevice, Path.Combine(UserSettings.UserDataFolder, SaveActivityFileStem + ".png"), true, true);
                 MessagesWindow.AddMessage(Catalog.GetString("Game saved"), 5);
             }
         }
 
-        private void SaveScreenshotToFile(GraphicsDevice graphicsDevice, string fileName, bool silent)
+        private void SaveScreenshotToFile(GraphicsDevice graphicsDevice, string fileName, bool silent, bool thumbnail)
         {
             if (graphicsDevice.GraphicsProfile != GraphicsProfile.HiDef)
                 return;
 
-            int w = graphicsDevice.PresentationParameters.BackBufferWidth;
-            int h = graphicsDevice.PresentationParameters.BackBufferHeight;
+            int width = graphicsDevice.PresentationParameters.BackBufferWidth;
+            int heigh = graphicsDevice.PresentationParameters.BackBufferHeight;
+
+            byte[] backBuffer = new byte[width * heigh * 4];
+            graphicsDevice.GetBackBufferData(backBuffer);
 
             Task.Run(() =>
             {
-                byte[] backBuffer = new byte[w * h * 4];
-                using (RenderTarget2D screenshot = new RenderTarget2D(graphicsDevice, w, h, false, graphicsDevice.PresentationParameters.BackBufferFormat, DepthFormat.None))
+                for (int i = 0; i < backBuffer.Length; i += 4)
                 {
-                    graphicsDevice.GetBackBufferData(backBuffer);
-                    screenshot.SetData(backBuffer);
-                    using (FileStream stream = File.OpenWrite(fileName))
-                    {
-                        screenshot.SaveAsPng(stream, w, h);
-                    }
+                    (backBuffer[i + 0], backBuffer[i + 2], backBuffer[i + 3]) = (backBuffer[i + 2], backBuffer[i + 0], 0xFF);
+                }
 
-                    if (!silent)
-                        MessagesWindow.AddMessage($"Saving screenshot to '{fileName}'.", 10);
-                    Visibility = VisibilityState.Visible;
-                    // Reveal MessageWindow
-                    MessagesWindow.Visible = true;
+                using (System.Drawing.Bitmap bitmap = new System.Drawing.Bitmap(width, heigh, System.Drawing.Imaging.PixelFormat.Format32bppArgb))
+                {
+                    System.Drawing.Imaging.BitmapData bmData = bitmap.LockBits(new System.Drawing.Rectangle(0, 0, width, heigh), System.Drawing.Imaging.ImageLockMode.ReadWrite, bitmap.PixelFormat);
+                    System.Runtime.InteropServices.Marshal.Copy(backBuffer, 0, bmData.Scan0, 4 * width * heigh);
+                    bitmap.UnlockBits(bmData);
+                    if (thumbnail)
+                    {
+                        float scale = Math.Min(bitmap.Width / 640f, bitmap.Height / 480);
+                        using (System.Drawing.Bitmap resize = new System.Drawing.Bitmap(bitmap, new System.Drawing.Size((int)(bitmap.Width / scale), (int)(bitmap.Height / scale))))
+                            resize.Save(fileName, System.Drawing.Imaging.ImageFormat.Png);
+                    }
+                    else
+                    {
+                        bitmap.Save(fileName, System.Drawing.Imaging.ImageFormat.Png);
+                    }
                 }
             });
+            if (!silent)
+                MessagesWindow.AddMessage($"Saving screenshot to '{fileName}'.", 10);
+            Visibility = VisibilityState.Visible;
+            // Reveal MessageWindow
+            MessagesWindow.Visible = true;
         }
     }
 }
