@@ -1,4 +1,4 @@
-﻿// COPYRIGHT 2009, 2010, 2011, 2012, 2013, 2014, 2015 by the Open Rails project.
+// COPYRIGHT 2009, 2010, 2011, 2012, 2013, 2014, 2015 by the Open Rails project.
 // 
 // This file is part of Open Rails.
 // 
@@ -240,6 +240,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             Viewer.UserCommandController.AddEvent(AnalogUserCommand.BailOff, BailOffHandleCommand);
             Viewer.UserCommandController.AddEvent(AnalogUserCommand.Emergency, EmergencyHandleCommand);
             Viewer.UserCommandController.AddEvent(AnalogUserCommand.CabActivity, AlerterResetCommand);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlBattery, KeyEventType.KeyPressed, ToggleBatteryCommand);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlPowerKey, KeyEventType.KeyPressed, TogglePowerKeyCommand);
+
             base.RegisterUserCommandHandling();
         }
 
@@ -328,6 +331,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             Viewer.UserCommandController.RemoveEvent(AnalogUserCommand.BailOff, BailOffHandleCommand);
             Viewer.UserCommandController.RemoveEvent(AnalogUserCommand.Emergency, EmergencyHandleCommand);
             Viewer.UserCommandController.AddEvent(AnalogUserCommand.CabActivity, AlerterResetCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlBattery, KeyEventType.KeyPressed, ToggleBatteryCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlPowerKey, KeyEventType.KeyPressed, TogglePowerKeyCommand);
+
             base.UnregisterUserCommandHandling();
         }
 
@@ -486,6 +492,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         {
             Locomotive.AlerterReset();
         }
+
+        private void ToggleBatteryCommand() => _ = new ToggleBatteryCommand(Viewer.Log);
+        private void TogglePowerKeyCommand() => _ = new TogglePowerKeyCommand(Viewer.Log);
+
 #pragma warning restore IDE0022 // Use block body for methods
         #endregion
 
@@ -2135,6 +2145,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 case CabViewControlType.Orts_LeftDoor:
                 case CabViewControlType.Orts_RightDoor:
                 case CabViewControlType.Orts_Mirros:
+                case CabViewControlType.Orts_Battery:
+                case CabViewControlType.Orts_PowerKey:
                     index = (int)data;
                     break;
 
@@ -2374,6 +2386,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                          != UpdateCommandValue(Locomotive.GetCabFlipped() ? (Locomotive.DoorLeftOpen ? 1 : 0) : Locomotive.DoorRightOpen ? 1 : 0, buttonEventType, delta)) _ = new ToggleDoorsRightCommand(Viewer.Log); break;
                 case CabViewControlType.Orts_Mirros:
                     if ((Locomotive.MirrorOpen ? 1 : 0) != UpdateCommandValue(Locomotive.MirrorOpen ? 1 : 0, buttonEventType, delta)) _ = new ToggleMirrorsCommand(Viewer.Log); break;
+                case CabViewControlType.Orts_Battery:
+                    if ((Locomotive.Battery ? 1 : 0) != UpdateCommandValue(Locomotive.Battery ? 1 : 0, buttonEventType, delta)) _ = new ToggleBatteryCommand(Viewer.Log); break;
+                case CabViewControlType.Orts_PowerKey:
+                    if ((Locomotive.PowerKey ? 1 : 0) != UpdateCommandValue(Locomotive.PowerKey ? 1 : 0, buttonEventType, delta)) _ = new TogglePowerKeyCommand(Viewer.Log); break;
                 // Train Control System controls
                 case CabViewControlType.Orts_TCS1:
                 case CabViewControlType.Orts_TCS2:

@@ -1,4 +1,4 @@
-﻿// COPYRIGHT 2012, 2013 by the Open Rails project.
+// COPYRIGHT 2012, 2013 by the Open Rails project.
 // 
 // This file is part of Open Rails.
 // 
@@ -15,10 +15,10 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using Orts.Common;
 using System;
-using System.ComponentModel;
 using System.Diagnostics;
+
+using Orts.Common;
 
 namespace Orts.Simulation
 {
@@ -131,6 +131,8 @@ namespace Orts.Simulation
                 , new string [] { GetString("Wipers"), GetString("off"), null, GetString("on") } 
                 , new string [] { GetString("Cab"), null, null, GetParticularString("Cab", "change"), null, null, GetString("changing is not available"), GetString("changing disabled. Close throttle, set reverser to neutral, stop train then re-try.") } 
                 , new string [] { GetString("Odometer"), null, null, GetParticularString("Odometer", "reset"), GetParticularString("Odometer", "counting down"), GetParticularString("Odometer", "counting up") }
+                , new string [] { GetString("Battery"), GetString("off"), null, GetString("on") }
+                , new string [] { GetString("PowerKey"), GetString("off"), null, GetString("on")}
                 // Train Devices
                 , new string [] { GetString("Doors Left"), GetString("close"), null, GetString("open") } 
                 , new string [] { GetString("Doors Right"), GetString("close"), null, GetString("open") } 

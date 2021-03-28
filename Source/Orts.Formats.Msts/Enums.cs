@@ -376,6 +376,8 @@ namespace Orts.Formats.Msts
         Orts_Bailoff,
         Orts_QuickRelease,
         Orts_Overcharge,
+        Orts_Battery,
+        Orts_PowerKey,
 
         // TCS Controls
         Orts_TCS1,

@@ -204,6 +204,8 @@ namespace Orts.Common.Input
         [Description("Control AI Fire On")] ControlAIFireOn,
         [Description("Control AI Fire Off")] ControlAIFireOff,
         [Description("Control AI Fire Reset")] ControlAIFireReset,
+        [Description("Control Battery")] ControlBattery,
+        [Description("Control PowerKey")] ControlPowerKey,
     }
 
     /// <summary>

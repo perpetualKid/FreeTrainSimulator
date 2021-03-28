@@ -231,6 +231,8 @@ namespace Orts.Common
         Wipers,
         ChangeCab,
         Odometer,
+        Battery,
+        PowerKey,
         // Train Devices
         DoorsLeft,
         DoorsRight,
@@ -254,6 +256,8 @@ namespace Orts.Common
     public enum TrainEvent
     {
         None,
+        BatteryOff,
+        BatteryOn,
         BellOff,
         BellOn,
         BlowerChange,
@@ -335,6 +339,8 @@ namespace Orts.Common
         PermissionDenied,
         PermissionGranted,
         PermissionToDepart,
+        PowerKeyOff,
+        PowerKeyOn,
         ResetWheelSlip,
         ReverserChange,
         ReverserToForwardBackward,

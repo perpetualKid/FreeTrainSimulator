@@ -51,10 +51,10 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
                         case 20: return TrainEvent.DynamicBrakeChange;
                         case 21: return TrainEvent.EngineBrakePressureIncrease; // Event 21 is defined in sound files but never used in MSTS.
                         case 22: return TrainEvent.EngineBrakePressureDecrease; // Event 22 is defined in sound files but never used in MSTS.
-						// Event 23 is unused in MSTS.
-						// Event 24 is unused in MSTS.
-						// MSTSBin codes (documented at http://mstsbin.uktrainsim.com/)
-						case 23: return TrainEvent.EnginePowerOn;
+                                                                                // Event 23 is unused in MSTS.
+                                                                                // Event 24 is unused in MSTS.
+                                                                                // MSTSBin codes (documented at http://mstsbin.uktrainsim.com/)
+                        case 23: return TrainEvent.EnginePowerOn;
                         case 24: return TrainEvent.EnginePowerOff;
                         // Event 25 is possibly a vigilance reset in MSTS sound files but is never used.
                         // Event 26 is a sander toggle in MSTS sound files but is never used.
@@ -187,6 +187,12 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
 
                         case 175: return TrainEvent.BoilerBlowdownOn;
                         case 176: return TrainEvent.BoilerBlowdownOff;
+
+                        case 177: return TrainEvent.BatteryOn;
+                        case 178: return TrainEvent.BatteryOff;
+
+                        case 179: return TrainEvent.PowerKeyOn;
+                        case 180: return TrainEvent.PowerKeyOff;
 
                         case 181: return TrainEvent.GenericEvent1;
                         case 182: return TrainEvent.GenericEvent2;

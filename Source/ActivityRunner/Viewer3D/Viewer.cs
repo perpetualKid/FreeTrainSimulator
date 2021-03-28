@@ -1,4 +1,4 @@
-﻿// COPYRIGHT 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017 by the Open Rails project.
+// COPYRIGHT 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017 by the Open Rails project.
 //
 // This file is part of Open Rails.
 //
@@ -1048,6 +1048,8 @@ namespace Orts.ActivityRunner.Viewer3D
             ToggleHelpersEngineCommand.Receiver = (MSTSLocomotive)PlayerLocomotive;
             TCSButtonCommand.Receiver = ((MSTSLocomotive)PlayerLocomotive).TrainControlSystem;
             TCSSwitchCommand.Receiver = ((MSTSLocomotive)PlayerLocomotive).TrainControlSystem;
+            ToggleBatteryCommand.Receiver = (MSTSLocomotive)PlayerLocomotive;
+            TogglePowerKeyCommand.Receiver = (MSTSLocomotive)PlayerLocomotive;
         }
 
         public void ChangeToPreviousFreeRoamCamera()

@@ -179,6 +179,7 @@ namespace Orts.Settings
             commands[UserCommand.ControlAIFireReset] = new UserCommandKeyInput(0x23, KeyModifiers.Control | KeyModifiers.Alt);
             commands[UserCommand.ControlAlerter] = new UserCommandKeyInput(0x2C);
             commands[UserCommand.ControlBailOff] = new UserCommandKeyInput(0x35);
+            commands[UserCommand.ControlBattery] = new UserCommandKeyInput(0x30, KeyModifiers.Control);
             commands[UserCommand.ControlBell] = new UserCommandKeyInput(0x30);
             commands[UserCommand.ControlBellToggle] = new UserCommandKeyInput(0x30, KeyModifiers.Shift);
             commands[UserCommand.ControlBlowerDecrease] = new UserCommandKeyInput(0x31, KeyModifiers.Shift);
@@ -241,6 +242,7 @@ namespace Orts.Settings
             commands[UserCommand.ControlPantograph2] = new UserCommandKeyInput(0x19, KeyModifiers.Shift);
             commands[UserCommand.ControlPantograph3] = new UserCommandKeyInput(0x19, KeyModifiers.Control);
             commands[UserCommand.ControlPantograph4] = new UserCommandKeyInput(0x19, KeyModifiers.Shift | KeyModifiers.Control);
+            commands[UserCommand.ControlPowerKey] = new UserCommandKeyInput(0x25, KeyModifiers.Control);
             commands[UserCommand.ControlOdoMeterShowHide] = new UserCommandKeyInput(0x2C, KeyModifiers.Shift);
             commands[UserCommand.ControlOdoMeterReset] = new UserCommandKeyInput(0x2C, KeyModifiers.Control);
             commands[UserCommand.ControlOdoMeterDirection] = new UserCommandKeyInput(0x2C, KeyModifiers.Control | KeyModifiers.Shift);
