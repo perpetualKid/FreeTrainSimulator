@@ -24,7 +24,7 @@ namespace Orts.TrackViewer
         {
             try
             {
-                IOrderedEnumerable<Folder> folders = (await Folder.GetFolders(Settings.FolderSettings.Folders).ConfigureAwait(true)).OrderBy(f => f.Name);
+                IOrderedEnumerable<Folder> folders = (await Folder.GetFolders(Settings.UserSettings.FolderSettings.Folders).ConfigureAwait(true)).OrderBy(f => f.Name);
                 mainmenu.PopulateContentFolders(folders);
             }
             catch (TaskCanceledException)
@@ -60,8 +60,8 @@ namespace Orts.TrackViewer
             CancellationToken token = ctsRouteLoading.Token;
             TrackData trackData = new TrackData(route.Path);
 
-            bool? useMetricUnits = (Settings.MeasurementUnit == MeasurementUnit.Metric || Settings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric);
-            if (Settings.MeasurementUnit == MeasurementUnit.Route)
+            bool? useMetricUnits = (Settings.UserSettings.MeasurementUnit == MeasurementUnit.Metric || Settings.UserSettings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric);
+            if (Settings.UserSettings.MeasurementUnit == MeasurementUnit.Route)
                 useMetricUnits = null;
 
             await trackData.LoadTrackData(useMetricUnits, token).ConfigureAwait(false);
@@ -82,7 +82,7 @@ namespace Orts.TrackViewer
                 Folder folder = mainmenu.SelectContentFolder(selection[0]);
                 await FindRoutes(folder).ConfigureAwait(false);
 
-                if (selection.Length > 1 && Settings.TrackViewer.RestoreLastView)
+                if (selection.Length > 1 && Settings.RestoreLastView)
                 {
                     Route route = routes?.Where(r => r.Name.Equals(selection[1], StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
                     if (null != route)

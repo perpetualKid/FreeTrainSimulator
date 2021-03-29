@@ -132,7 +132,7 @@ namespace Orts.ActivityRunner.Viewer3D
             if (!MPManager.IsClient())
             {
                 keyInput = viewer.Game.Settings.Input.Commands[(int)UserCommand.DebugWeatherChange] as UserCommandKeyInput;
-                inputComponent.AddKeyEvent(keyInput.Key, keyInput.Modifiers, InputGameComponent.KeyEventType.KeyPressed, (a, b, c) =>
+                inputComponent.AddKeyEvent(keyInput.Key, keyInput.Modifiers, KeyEventType.KeyPressed, (a, b, c) =>
                 {
                     Viewer.Simulator.WeatherType = Viewer.Simulator.WeatherType.Next();
                     // block dynamic weather change after a manual weather change operation
@@ -149,7 +149,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
                 // Overcast ranges from 0 (completely clear) to 1 (completely overcast).
                 keyInput = viewer.Game.Settings.Input.Commands[(int)UserCommand.DebugOvercastIncrease] as UserCommandKeyInput;
-                inputComponent.AddKeyEvent(keyInput.Key, keyInput.Modifiers, InputGameComponent.KeyEventType.KeyDown, (a, b, gameTime) =>
+                inputComponent.AddKeyEvent(keyInput.Key, keyInput.Modifiers, KeyEventType.KeyDown, (a, b, gameTime) =>
                 {
                     Weather.OvercastFactor = (float)MathHelperD.Clamp(Weather.OvercastFactor + gameTime.ElapsedGameTime.TotalSeconds / 10, 0, 1);
                     weatherChangeOn = false;
@@ -157,7 +157,7 @@ namespace Orts.ActivityRunner.Viewer3D
                         dynamicWeather.ORTSOvercast = -1;
                 });
                 keyInput = viewer.Game.Settings.Input.Commands[(int)UserCommand.DebugOvercastDecrease] as UserCommandKeyInput;
-                inputComponent.AddKeyEvent(keyInput.Key, keyInput.Modifiers, InputGameComponent.KeyEventType.KeyDown, (a, b, gameTime) =>
+                inputComponent.AddKeyEvent(keyInput.Key, keyInput.Modifiers, KeyEventType.KeyDown, (a, b, gameTime) =>
                 {
                     Weather.OvercastFactor = (float)MathHelperD.Clamp(Weather.OvercastFactor - gameTime.ElapsedGameTime.TotalSeconds / 10, 0, 1);
                     weatherChangeOn = false;
@@ -168,7 +168,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 // 16bit uses PrecipitationViewer.MaxIntensityPPSPM2_16
                 // 0xFFFF represents 65535 which is the max for 16bit devices.
                 keyInput = viewer.Game.Settings.Input.Commands[(int)UserCommand.DebugPrecipitationIncrease] as UserCommandKeyInput;
-                inputComponent.AddKeyEvent(keyInput.Key, keyInput.Modifiers, InputGameComponent.KeyEventType.KeyDown, (a, b, gameTime) =>
+                inputComponent.AddKeyEvent(keyInput.Key, keyInput.Modifiers, KeyEventType.KeyDown, (a, b, gameTime) =>
                 {
                     if (Viewer.Simulator.WeatherType == WeatherType.Clear)
                     {
@@ -192,7 +192,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     UpdateVolume();
                 });
                 keyInput = viewer.Game.Settings.Input.Commands[(int)UserCommand.DebugPrecipitationDecrease] as UserCommandKeyInput;
-                inputComponent.AddKeyEvent(keyInput.Key, keyInput.Modifiers, InputGameComponent.KeyEventType.KeyDown, (a, b, gameTime) =>
+                inputComponent.AddKeyEvent(keyInput.Key, keyInput.Modifiers, KeyEventType.KeyDown, (a, b, gameTime) =>
                 {
                     Weather.PricipitationIntensityPPSPM2 = MathHelper.Clamp(Weather.PricipitationIntensityPPSPM2 / 1.05f, PrecipitationViewer.MinIntensityPPSPM2,
                         Viewer.RenderProcess.GraphicsDevice.GraphicsProfile == GraphicsProfile.HiDef ? PrecipitationViewer.MaxIntensityPPSPM2 : PrecipitationViewer.MaxIntensityPPSPM2_16);
@@ -213,7 +213,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 });
                 // Change in precipitation liquidity, passing from rain to snow and vice-versa
                 keyInput = viewer.Game.Settings.Input.Commands[(int)UserCommand.DebugPrecipitationLiquidityIncrease] as UserCommandKeyInput;
-                inputComponent.AddKeyEvent(keyInput.Key, keyInput.Modifiers, InputGameComponent.KeyEventType.KeyDown, (a, b, gameTime) =>
+                inputComponent.AddKeyEvent(keyInput.Key, keyInput.Modifiers, KeyEventType.KeyDown, (a, b, gameTime) =>
                 {
                     Weather.PrecipitationLiquidity = MathHelper.Clamp(Weather.PrecipitationLiquidity + 0.01f, 0, 1);
                     weatherChangeOn = false;
@@ -229,7 +229,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     UpdateVolume();
                 });
                 keyInput = viewer.Game.Settings.Input.Commands[(int)UserCommand.DebugPrecipitationLiquidityDecrease] as UserCommandKeyInput;
-                inputComponent.AddKeyEvent(keyInput.Key, keyInput.Modifiers, InputGameComponent.KeyEventType.KeyDown, (a, b, gameTime) =>
+                inputComponent.AddKeyEvent(keyInput.Key, keyInput.Modifiers, KeyEventType.KeyDown, (a, b, gameTime) =>
                 {
                     Weather.PrecipitationLiquidity = MathHelper.Clamp(Weather.PrecipitationLiquidity - 0.01f, 0, 1);
                     weatherChangeOn = false;
@@ -245,7 +245,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 });
                 //    // Fog ranges from 10m (can't see anything) to 100km (clear arctic conditions).
                 keyInput = viewer.Game.Settings.Input.Commands[(int)UserCommand.DebugFogIncrease] as UserCommandKeyInput;
-                inputComponent.AddKeyEvent(keyInput.Key, keyInput.Modifiers, InputGameComponent.KeyEventType.KeyDown, (a, b, gameTime) =>
+                inputComponent.AddKeyEvent(keyInput.Key, keyInput.Modifiers, KeyEventType.KeyDown, (a, b, gameTime) =>
                 {
                     Weather.FogDistance = (float)MathHelperD.Clamp(Weather.FogDistance - gameTime.ElapsedGameTime.TotalSeconds * Weather.FogDistance, 10, 100000);
                     weatherChangeOn = false;
@@ -253,7 +253,7 @@ namespace Orts.ActivityRunner.Viewer3D
                         dynamicWeather.ORTSFog = -1;
                 });
                 keyInput = viewer.Game.Settings.Input.Commands[(int)UserCommand.DebugFogDecrease] as UserCommandKeyInput;
-                inputComponent.AddKeyEvent(keyInput.Key, keyInput.Modifiers, InputGameComponent.KeyEventType.KeyDown, (a, b, gameTime) =>
+                inputComponent.AddKeyEvent(keyInput.Key, keyInput.Modifiers, KeyEventType.KeyDown, (a, b, gameTime) =>
                 {
                     Weather.FogDistance = (float)MathHelperD.Clamp(Weather.FogDistance + gameTime.ElapsedGameTime.TotalSeconds * Weather.FogDistance, 10, 100000);
                     if (dynamicWeather != null)
@@ -266,26 +266,26 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 // Shift the clock forwards or backwards at 1h-per-second.
                 keyInput = viewer.Game.Settings.Input.Commands[(int)UserCommand.DebugClockForwards] as UserCommandKeyInput;
-                inputComponent.AddKeyEvent(keyInput.Key, keyInput.Modifiers, InputGameComponent.KeyEventType.KeyDown, (a, b, gameTime) => Viewer.Simulator.ClockTime += gameTime.ElapsedGameTime.TotalSeconds * 3600);
+                inputComponent.AddKeyEvent(keyInput.Key, keyInput.Modifiers, KeyEventType.KeyDown, (a, b, gameTime) => Viewer.Simulator.ClockTime += gameTime.ElapsedGameTime.TotalSeconds * 3600);
                 keyInput = viewer.Game.Settings.Input.Commands[(int)UserCommand.DebugClockBackwards] as UserCommandKeyInput;
-                inputComponent.AddKeyEvent(keyInput.Key, keyInput.Modifiers, InputGameComponent.KeyEventType.KeyDown, (a, b, gameTime) => Viewer.Simulator.ClockTime -= gameTime.ElapsedGameTime.TotalSeconds * 3600);
+                inputComponent.AddKeyEvent(keyInput.Key, keyInput.Modifiers, KeyEventType.KeyDown, (a, b, gameTime) => Viewer.Simulator.ClockTime -= gameTime.ElapsedGameTime.TotalSeconds * 3600);
             }
 
             // If we're a multiplayer server, send out the new overcastFactor, pricipitationIntensity and fogDistance to all clients.
             if (MPManager.IsServer())
             {
                 keyInput = viewer.Game.Settings.Input.Commands[(int)UserCommand.DebugOvercastIncrease] as UserCommandKeyInput;
-                inputComponent.AddKeyEvent(keyInput.Key, keyInput.Modifiers, InputGameComponent.KeyEventType.KeyReleased, SendMultiPlayerWeatherChangeNotification);
+                inputComponent.AddKeyEvent(keyInput.Key, keyInput.Modifiers, KeyEventType.KeyReleased, SendMultiPlayerWeatherChangeNotification);
                 keyInput = viewer.Game.Settings.Input.Commands[(int)UserCommand.DebugOvercastDecrease] as UserCommandKeyInput;
-                inputComponent.AddKeyEvent(keyInput.Key, keyInput.Modifiers, InputGameComponent.KeyEventType.KeyReleased, SendMultiPlayerWeatherChangeNotification);
+                inputComponent.AddKeyEvent(keyInput.Key, keyInput.Modifiers, KeyEventType.KeyReleased, SendMultiPlayerWeatherChangeNotification);
                 keyInput = viewer.Game.Settings.Input.Commands[(int)UserCommand.DebugPrecipitationIncrease] as UserCommandKeyInput;
-                inputComponent.AddKeyEvent(keyInput.Key, keyInput.Modifiers, InputGameComponent.KeyEventType.KeyReleased, SendMultiPlayerWeatherChangeNotification);
+                inputComponent.AddKeyEvent(keyInput.Key, keyInput.Modifiers, KeyEventType.KeyReleased, SendMultiPlayerWeatherChangeNotification);
                 keyInput = viewer.Game.Settings.Input.Commands[(int)UserCommand.DebugPrecipitationDecrease] as UserCommandKeyInput;
-                inputComponent.AddKeyEvent(keyInput.Key, keyInput.Modifiers, InputGameComponent.KeyEventType.KeyReleased, SendMultiPlayerWeatherChangeNotification);
+                inputComponent.AddKeyEvent(keyInput.Key, keyInput.Modifiers, KeyEventType.KeyReleased, SendMultiPlayerWeatherChangeNotification);
                 keyInput = viewer.Game.Settings.Input.Commands[(int)UserCommand.DebugFogIncrease] as UserCommandKeyInput;
-                inputComponent.AddKeyEvent(keyInput.Key, keyInput.Modifiers, InputGameComponent.KeyEventType.KeyReleased, SendMultiPlayerWeatherChangeNotification);
+                inputComponent.AddKeyEvent(keyInput.Key, keyInput.Modifiers, KeyEventType.KeyReleased, SendMultiPlayerWeatherChangeNotification);
                 keyInput = viewer.Game.Settings.Input.Commands[(int)UserCommand.DebugFogDecrease] as UserCommandKeyInput;
-                inputComponent.AddKeyEvent(keyInput.Key, keyInput.Modifiers, InputGameComponent.KeyEventType.KeyReleased, SendMultiPlayerWeatherChangeNotification);
+                inputComponent.AddKeyEvent(keyInput.Key, keyInput.Modifiers, KeyEventType.KeyReleased, SendMultiPlayerWeatherChangeNotification);
             }
 
         }

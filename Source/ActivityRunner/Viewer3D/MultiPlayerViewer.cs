@@ -48,34 +48,34 @@ namespace Orts.ActivityRunner.Viewer3D
             //In Multiplayer, I maybe the helper, but I can request to be the controller
             // Horn and bell are managed by UpdateHornAndBell in MSTSLocomotive.cs
             UserCommandKeyInput inputKey = game.Settings.Input.Commands[(int)UserCommand.GameRequestControl] as UserCommandKeyInput;
-            inputComponent.AddKeyEvent(inputKey.Key, inputKey.Modifiers, InputGameComponent.KeyEventType.KeyPressed, (a, b, c) => MPManager.RequestControl());
+            inputComponent.AddKeyEvent(inputKey.Key, inputKey.Modifiers, KeyEventType.KeyPressed, (a, b, c) => MPManager.RequestControl());
 
             inputKey = game.Settings.Input.Commands[(int)UserCommand.ControlPantograph1] as UserCommandKeyInput;
-            inputComponent.AddKeyEvent(inputKey.Key, inputKey.Modifiers, InputGameComponent.KeyEventType.KeyPressed, (a, b, c) => MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "PANTO1", (++panto2) % 2).ToString()));
+            inputComponent.AddKeyEvent(inputKey.Key, inputKey.Modifiers, KeyEventType.KeyPressed, (a, b, c) => MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "PANTO1", (++panto2) % 2).ToString()));
 
             inputKey = game.Settings.Input.Commands[(int)UserCommand.ControlPantograph2] as UserCommandKeyInput;
-            inputComponent.AddKeyEvent(inputKey.Key, inputKey.Modifiers, InputGameComponent.KeyEventType.KeyPressed, (a, b, c) => MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "PANTO2", (++panto1) % 2).ToString()));
+            inputComponent.AddKeyEvent(inputKey.Key, inputKey.Modifiers, KeyEventType.KeyPressed, (a, b, c) => MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "PANTO2", (++panto1) % 2).ToString()));
 
             inputKey = game.Settings.Input.Commands[(int)UserCommand.ControlPantograph3] as UserCommandKeyInput;
-            inputComponent.AddKeyEvent(inputKey.Key, inputKey.Modifiers, InputGameComponent.KeyEventType.KeyPressed, (a, b, c) => MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "PANTO3", (++panto4) % 2).ToString()));
+            inputComponent.AddKeyEvent(inputKey.Key, inputKey.Modifiers, KeyEventType.KeyPressed, (a, b, c) => MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "PANTO3", (++panto4) % 2).ToString()));
 
             inputKey = game.Settings.Input.Commands[(int)UserCommand.ControlPantograph4] as UserCommandKeyInput;
-            inputComponent.AddKeyEvent(inputKey.Key, inputKey.Modifiers, InputGameComponent.KeyEventType.KeyPressed, (a, b, c) => MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "PANTO4", (++panto3) % 2).ToString()));
+            inputComponent.AddKeyEvent(inputKey.Key, inputKey.Modifiers, KeyEventType.KeyPressed, (a, b, c) => MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "PANTO4", (++panto3) % 2).ToString()));
 
             inputKey = game.Settings.Input.Commands[(int)UserCommand.ControlWiper] as UserCommandKeyInput;
-            inputComponent.AddKeyEvent(inputKey.Key, inputKey.Modifiers, InputGameComponent.KeyEventType.KeyPressed, (a, b, c) => MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "WIPER", (++wiper) % 2).ToString()));
+            inputComponent.AddKeyEvent(inputKey.Key, inputKey.Modifiers, KeyEventType.KeyPressed, (a, b, c) => MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "WIPER", (++wiper) % 2).ToString()));
 
             inputKey = game.Settings.Input.Commands[(int)UserCommand.ControlDoorLeft] as UserCommandKeyInput;
-            inputComponent.AddKeyEvent(inputKey.Key, inputKey.Modifiers, InputGameComponent.KeyEventType.KeyPressed, (a, b, c) => MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "DOORL", (++doorLeft) % 2).ToString()));
+            inputComponent.AddKeyEvent(inputKey.Key, inputKey.Modifiers, KeyEventType.KeyPressed, (a, b, c) => MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "DOORL", (++doorLeft) % 2).ToString()));
 
             inputKey = game.Settings.Input.Commands[(int)UserCommand.ControlDoorRight] as UserCommandKeyInput;
-            inputComponent.AddKeyEvent(inputKey.Key, inputKey.Modifiers, InputGameComponent.KeyEventType.KeyPressed, (a, b, c) => MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "DOORR", (++doorRight) % 2).ToString()));
+            inputComponent.AddKeyEvent(inputKey.Key, inputKey.Modifiers, KeyEventType.KeyPressed, (a, b, c) => MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "DOORR", (++doorRight) % 2).ToString()));
 
             inputKey = game.Settings.Input.Commands[(int)UserCommand.ControlMirror] as UserCommandKeyInput;
-            inputComponent.AddKeyEvent(inputKey.Key, inputKey.Modifiers, InputGameComponent.KeyEventType.KeyPressed, (a, b, c) => MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "MIRRORS", (++mirrors) % 2).ToString()));
+            inputComponent.AddKeyEvent(inputKey.Key, inputKey.Modifiers, KeyEventType.KeyPressed, (a, b, c) => MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "MIRRORS", (++mirrors) % 2).ToString()));
 
             inputKey = game.Settings.Input.Commands[(int)UserCommand.ControlHeadlightIncrease] as UserCommandKeyInput;
-            inputComponent.AddKeyEvent(inputKey.Key, inputKey.Modifiers, InputGameComponent.KeyEventType.KeyPressed, (a, b, c) => 
+            inputComponent.AddKeyEvent(inputKey.Key, inputKey.Modifiers, KeyEventType.KeyPressed, (a, b, c) => 
             {
                 headlight++; 
                 if (headlight >= 3) 
@@ -84,7 +84,7 @@ namespace Orts.ActivityRunner.Viewer3D
             });
 
             inputKey = game.Settings.Input.Commands[(int)UserCommand.ControlHeadlightDecrease] as UserCommandKeyInput;
-            inputComponent.AddKeyEvent(inputKey.Key, inputKey.Modifiers, InputGameComponent.KeyEventType.KeyPressed, (a, b, c) =>
+            inputComponent.AddKeyEvent(inputKey.Key, inputKey.Modifiers, KeyEventType.KeyPressed, (a, b, c) =>
             {
                 headlight--; 
                 if (headlight < 0) 

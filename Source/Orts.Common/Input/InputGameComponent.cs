@@ -4,28 +4,10 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
-using Orts.Common;
-using Orts.Common.Input;
-
-namespace Orts.View.Xna
+namespace Orts.Common.Input
 {
     public class InputGameComponent : GameComponent
     {
-        public enum KeyEventType
-        {
-            /// <summary>
-            /// Key just pressed down
-            /// </summary>
-            KeyPressed = keyPressShift,
-            /// <summary>
-            /// Key held down
-            /// </summary>
-            KeyDown = keyDownShift,
-            /// <summary>
-            /// Key released
-            /// </summary>
-            KeyReleased = keyUpShift,
-        }
 
         public enum MouseMovedEventType
         {
@@ -64,9 +46,9 @@ namespace Orts.View.Xna
         public delegate void MouseWheelEvent(Point position, int delta);
         public delegate void KeyEvent(Keys key, KeyModifiers modifiers, GameTime gameTime);
 
-        private const int keyPressShift = 8;
-        private const int keyDownShift = 13;
-        private const int keyUpShift = 17;
+        internal const int KeyPressShift = 8;
+        internal const int KeyDownShift = 13;
+        internal const int KeyUpShift = 17;
 
         private KeyboardState currentKeyboardState;
         private KeyboardState previousKeyboardState;
@@ -97,13 +79,13 @@ namespace Orts.View.Xna
             switch (keyEventType)
             {
                 case KeyEventType.KeyDown:
-                    lookupCode = (int)key << keyDownShift ^ (int)modifiers;
+                    lookupCode = (int)key << KeyDownShift ^ (int)modifiers;
                     break;
                 case KeyEventType.KeyPressed:
-                    lookupCode = (int)key << keyPressShift ^ (int)modifiers;
+                    lookupCode = (int)key << KeyPressShift ^ (int)modifiers;
                     break;
                 case KeyEventType.KeyReleased:
-                    lookupCode = (int)key << keyUpShift ^ (int)modifiers;
+                    lookupCode = (int)key << KeyUpShift ^ (int)modifiers;
                     break;
                 default:
                     throw new NotSupportedException();
@@ -120,13 +102,13 @@ namespace Orts.View.Xna
             switch (keyEventType)
             {
                 case KeyEventType.KeyDown:
-                    lookupCode = (int)key << keyDownShift ^ (int)modifiers;
+                    lookupCode = (int)key << KeyDownShift ^ (int)modifiers;
                     break;
                 case KeyEventType.KeyPressed:
-                    lookupCode = (int)key << keyPressShift ^ (int)modifiers;
+                    lookupCode = (int)key << KeyPressShift ^ (int)modifiers;
                     break;
                 case KeyEventType.KeyReleased:
-                    lookupCode = (int)key << keyUpShift ^ (int)modifiers;
+                    lookupCode = (int)key << KeyUpShift ^ (int)modifiers;
                     break;
                 default:
                     throw new NotSupportedException();
@@ -200,7 +182,7 @@ namespace Orts.View.Xna
                     if (previousKeyboardState.IsKeyDown(key) && (currentModifiers == previousModifiers))
                     {
                         // Key (still) down
-                        int lookup = (int)key << keyDownShift ^ (int)currentModifiers;
+                        int lookup = (int)key << KeyDownShift ^ (int)currentModifiers;
                         if (keyEvents.TryGetValue(lookup, out KeyEvent eventHandler))
                         {
                             eventHandler.Invoke(key, currentModifiers, gameTime);
@@ -209,7 +191,7 @@ namespace Orts.View.Xna
                     if (previousKeyboardState.IsKeyDown(key) && (currentModifiers != previousModifiers))
                     {
                         // Key Up, state may have changed due to a modifier changed
-                        int lookup = (int)key << keyUpShift ^ (int)previousModifiers;
+                        int lookup = (int)key << KeyUpShift ^ (int)previousModifiers;
                         if (keyEvents.TryGetValue(lookup, out KeyEvent eventHandler))
                         {
                             eventHandler.Invoke(key, previousModifiers, gameTime);
@@ -218,7 +200,7 @@ namespace Orts.View.Xna
                     if (!previousKeyboardState.IsKeyDown(key) || (currentModifiers != previousModifiers))
                     {
                         //Key just pressed
-                        int lookup = (int)key << keyPressShift ^ (int)currentModifiers;
+                        int lookup = (int)key << KeyPressShift ^ (int)currentModifiers;
                         if (keyEvents.TryGetValue(lookup, out KeyEvent eventHandler))
                         {
                             eventHandler.Invoke(key, currentModifiers, gameTime);
@@ -236,7 +218,7 @@ namespace Orts.View.Xna
                     if ((int)key > 159 && (int)key < 166)
                         continue;
                     // Key Up, not in current set of Keys Downs
-                    int lookup = (int)key << keyUpShift ^ (int)previousModifiers;
+                    int lookup = (int)key << KeyUpShift ^ (int)previousModifiers;
                     if (keyEvents.TryGetValue(lookup, out KeyEvent eventHandler))
                     {
                         eventHandler.Invoke(key, previousModifiers, gameTime);

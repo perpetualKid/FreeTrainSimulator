@@ -4,21 +4,53 @@ using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Windows.Forms;
 
 using Orts.Common;
+using Orts.Settings;
 using Orts.Settings.Store;
 
-namespace Orts.Settings
+namespace Orts.TrackViewer
 {
     public class TrackViewerSettings : SettingsBase
     {
         internal const string SettingLiteral = "TrackViewer";
 
+        private static readonly StoreType SettingsStoreType;
+        private static readonly string Location;
+
+        private PropertyInfo[] properties;
+
+        static TrackViewerSettings()
+        {
+            if (File.Exists(Location = Path.Combine(Path.GetDirectoryName(Application.ExecutablePath), EnumExtension.GetDescription(StoreType.Json))))
+            {
+                SettingsStoreType = StoreType.Json;
+            }
+            if (File.Exists(Location = Path.Combine(Path.GetDirectoryName(Application.ExecutablePath), EnumExtension.GetDescription(StoreType.Ini))))
+            {
+                SettingsStoreType = StoreType.Ini;
+            }
+            else
+            {
+                SettingsStoreType = StoreType.Registry;
+                Location = EnumExtension.GetDescription(StoreType.Registry);
+            }
+        }
+
+        public TrackViewerSettings(IEnumerable<string> options) :
+            this(options, SettingsStore.GetSettingsStore(SettingsStoreType, Location, null))
+        {
+        }
+
         internal TrackViewerSettings(IEnumerable<string> options, SettingsStore store) :
             base(SettingsStore.GetSettingsStore(store.StoreType, store.Location, SettingLiteral))
         {
             LoadSettings(options);
+            UserSettings = new UserSettings(options, store);
         }
+
+        public UserSettings UserSettings { get; private set; }
 
         #region TrackViewer Settings
 #pragma warning disable CA1819 // Properties should not return arrays
@@ -104,6 +136,13 @@ namespace Orts.Settings
             return property.GetCustomAttributes<DefaultAttribute>(false).FirstOrDefault()?.Value ?? throw new InvalidDataException($"TrackViewer setting {property.Name} has no default value.");
         }
 
+        protected override PropertyInfo[] GetProperties()
+        {
+            if (properties == null)
+                properties = base.GetProperties().Where(pi => !new string[] { "UserSettings" }.Contains(pi.Name)).ToArray();
+            return properties;
+        }
+
         public override void Reset()
         {
             foreach (PropertyInfo property in GetProperties())
@@ -125,12 +164,18 @@ namespace Orts.Settings
         {
             foreach (PropertyInfo property in GetProperties())
                 LoadSetting(allowUserSettings, optionalValues, property.Name);
-            properties = null;
+            ResetCachedProperties();
         }
 
         protected override void SetValue(string name, object value)
         {
             GetProperty(name).SetValue(this, value, null);
+        }
+
+        protected override void ResetCachedProperties()
+        {
+            properties = null;
+            base.ResetCachedProperties();
         }
     }
 }

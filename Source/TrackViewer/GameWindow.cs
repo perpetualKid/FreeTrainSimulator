@@ -12,19 +12,20 @@ using GetText.WindowsForms;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
 
 using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Common.Info;
 using Orts.Common.Input;
 using Orts.Common.Logging;
-using Orts.Settings;
+using Orts.TrackViewer.Control;
 using Orts.View;
 using Orts.View.DrawableComponents;
 using Orts.View.Track;
 using Orts.View.Track.Shapes;
 using Orts.View.Xna;
+
+using UserCommand = Orts.TrackViewer.Control.UserCommand;
 
 namespace Orts.TrackViewer
 {
@@ -72,7 +73,7 @@ namespace Orts.TrackViewer
 
         internal string StatusMessage { get; set; }
 
-        internal UserSettings Settings { get; }
+        internal TrackViewerSettings Settings { get; }
 
         internal string LogFileName { get; }
 
@@ -93,13 +94,13 @@ namespace Orts.TrackViewer
         public GameWindow()
         {
             IEnumerable<string> options = Environment.GetCommandLineArgs().Where(a => a.StartsWith("-", StringComparison.OrdinalIgnoreCase) || a.StartsWith("/", StringComparison.OrdinalIgnoreCase)).Select(a => a.Substring(1));
-            Settings = new UserSettings(options);
+            Settings = new TrackViewerSettings(options);
 
-            if (Settings.Logging)
+            if (Settings.UserSettings.Logging)
             {
-                LogFileName = System.IO.Path.Combine(Settings.LoggingPath, LoggingUtil.CustomizeLogFileName(Settings.TrackViewer.LogFilename));
-                LoggingUtil.InitLogging(LogFileName, Settings.LogErrorsOnly, false);
-                Settings.TrackViewer.Log();
+                LogFileName = System.IO.Path.Combine(Settings.UserSettings.LoggingPath, LoggingUtil.CustomizeLogFileName(Settings.LogFilename));
+                LoggingUtil.InitLogging(LogFileName, Settings.UserSettings.LogErrorsOnly, false);
+                Settings.Log();
                 Trace.WriteLine(LoggingUtil.SeparatorLine);
             }
             LoadSettings();
@@ -110,7 +111,7 @@ namespace Orts.TrackViewer
             InitializeComponent();
             graphicsDeviceManager = new GraphicsDeviceManager(this);
             graphicsDeviceManager.PreparingDeviceSettings += GraphicsPreparingDeviceSettings;
-            graphicsDeviceManager.PreferMultiSampling = Settings.MultisamplingCount > 0;
+            graphicsDeviceManager.PreferMultiSampling = Settings.UserSettings.MultisamplingCount > 0;
             IsMouseVisible = true;
 
             // Set title to show revision or build info.
@@ -212,63 +213,63 @@ namespace Orts.TrackViewer
 
         internal void UpdateLanguagePreference(string language)
         {
-            Settings.Language = language;
+            Settings.UserSettings.Language = language;
             LoadLanguage();
         }
 
         private void LoadSettings()
         {
-            windowSize = new System.Drawing.Size(Settings.TrackViewer.WindowSize[0], Settings.TrackViewer.WindowSize[1]);
+            windowSize = new System.Drawing.Size(Settings.WindowSize[0], Settings.WindowSize[1]);
 
-            colorPreferences[ColorSetting.Background] = Settings.TrackViewer.ColorBackground;
-            colorPreferences[ColorSetting.RailTrack] = Settings.TrackViewer.ColorRailTrack;
-            colorPreferences[ColorSetting.RailTrackEnd] = Settings.TrackViewer.ColorRailTrackEnd;
-            colorPreferences[ColorSetting.RailTrackJunction] = Settings.TrackViewer.ColorRailTrackJunction;
-            colorPreferences[ColorSetting.RailTrackCrossing] = Settings.TrackViewer.ColorRailTrackCrossing;
-            colorPreferences[ColorSetting.RailLevelCrossing] = Settings.TrackViewer.ColorRailLevelCrossing;
-            colorPreferences[ColorSetting.RoadTrack] = Settings.TrackViewer.ColorRoadTrack;
-            colorPreferences[ColorSetting.RoadTrackEnd] = Settings.TrackViewer.ColorRoadTrackEnd;
-            colorPreferences[ColorSetting.RoadLevelCrossing] = Settings.TrackViewer.ColorRoadLevelCrossing;
-            colorPreferences[ColorSetting.RoadCarSpawner] = Settings.TrackViewer.ColorRoadCarSpawner;
-            colorPreferences[ColorSetting.SignalItem] = Settings.TrackViewer.ColorSignalItem;
-            colorPreferences[ColorSetting.PlatformItem] = Settings.TrackViewer.ColorPlatformItem;
-            colorPreferences[ColorSetting.SidingItem] = Settings.TrackViewer.ColorSidingItem;
-            colorPreferences[ColorSetting.SpeedPostItem] = Settings.TrackViewer.ColorSpeedpostItem;
-            colorPreferences[ColorSetting.HazardItem] = Settings.TrackViewer.ColorHazardItem;
-            colorPreferences[ColorSetting.PickupItem] = Settings.TrackViewer.ColorPickupItem;
-            colorPreferences[ColorSetting.SoundRegionItem] = Settings.TrackViewer.ColorSoundRegionItem;
+            colorPreferences[ColorSetting.Background] = Settings.ColorBackground;
+            colorPreferences[ColorSetting.RailTrack] = Settings.ColorRailTrack;
+            colorPreferences[ColorSetting.RailTrackEnd] = Settings.ColorRailTrackEnd;
+            colorPreferences[ColorSetting.RailTrackJunction] = Settings.ColorRailTrackJunction;
+            colorPreferences[ColorSetting.RailTrackCrossing] = Settings.ColorRailTrackCrossing;
+            colorPreferences[ColorSetting.RailLevelCrossing] = Settings.ColorRailLevelCrossing;
+            colorPreferences[ColorSetting.RoadTrack] = Settings.ColorRoadTrack;
+            colorPreferences[ColorSetting.RoadTrackEnd] = Settings.ColorRoadTrackEnd;
+            colorPreferences[ColorSetting.RoadLevelCrossing] = Settings.ColorRoadLevelCrossing;
+            colorPreferences[ColorSetting.RoadCarSpawner] = Settings.ColorRoadCarSpawner;
+            colorPreferences[ColorSetting.SignalItem] = Settings.ColorSignalItem;
+            colorPreferences[ColorSetting.PlatformItem] = Settings.ColorPlatformItem;
+            colorPreferences[ColorSetting.SidingItem] = Settings.ColorSidingItem;
+            colorPreferences[ColorSetting.SpeedPostItem] = Settings.ColorSpeedpostItem;
+            colorPreferences[ColorSetting.HazardItem] = Settings.ColorHazardItem;
+            colorPreferences[ColorSetting.PickupItem] = Settings.ColorPickupItem;
+            colorPreferences[ColorSetting.SoundRegionItem] = Settings.ColorSoundRegionItem;
             BackgroundColor = ColorExtension.FromName(colorPreferences[ColorSetting.Background]);
-            viewSettings = Settings.TrackViewer.ViewSettings;
+            viewSettings = Settings.ViewSettings;
 
         }
 
         private void SaveSettings()
         {
-            Settings.TrackViewer.WindowSize[0] = windowSize.Width;
-            Settings.TrackViewer.WindowSize[1] = windowSize.Height;
+            Settings.WindowSize[0] = windowSize.Width;
+            Settings.WindowSize[1] = windowSize.Height;
 
-            Settings.TrackViewer.ColorBackground = colorPreferences[ColorSetting.Background];
-            Settings.TrackViewer.ColorRailTrack = colorPreferences[ColorSetting.RailTrack];
-            Settings.TrackViewer.ColorRailTrackEnd = colorPreferences[ColorSetting.RailTrackEnd];
-            Settings.TrackViewer.ColorRailTrackJunction = colorPreferences[ColorSetting.RailTrackJunction];
-            Settings.TrackViewer.ColorRailTrackCrossing = colorPreferences[ColorSetting.RailTrackCrossing];
-            Settings.TrackViewer.ColorRailLevelCrossing = colorPreferences[ColorSetting.RailLevelCrossing];
-            Settings.TrackViewer.ColorRoadTrack = colorPreferences[ColorSetting.RoadTrack];
-            Settings.TrackViewer.ColorRoadTrackEnd = colorPreferences[ColorSetting.RoadTrackEnd];
-            Settings.TrackViewer.ColorRoadLevelCrossing = colorPreferences[ColorSetting.RoadLevelCrossing];
-            Settings.TrackViewer.ColorRoadCarSpawner = colorPreferences[ColorSetting.RoadCarSpawner];
-            Settings.TrackViewer.ColorSignalItem = colorPreferences[ColorSetting.SignalItem];
-            Settings.TrackViewer.ColorPlatformItem = colorPreferences[ColorSetting.PlatformItem];
-            Settings.TrackViewer.ColorSidingItem = colorPreferences[ColorSetting.SidingItem];
-            Settings.TrackViewer.ColorSpeedpostItem = colorPreferences[ColorSetting.SpeedPostItem];
-            Settings.TrackViewer.ColorHazardItem = colorPreferences[ColorSetting.HazardItem];
-            Settings.TrackViewer.ColorPickupItem = colorPreferences[ColorSetting.PickupItem];
-            Settings.TrackViewer.ColorSoundRegionItem = colorPreferences[ColorSetting.SoundRegionItem];
-            Settings.TrackViewer.ViewSettings = viewSettings;
+            Settings.ColorBackground = colorPreferences[ColorSetting.Background];
+            Settings.ColorRailTrack = colorPreferences[ColorSetting.RailTrack];
+            Settings.ColorRailTrackEnd = colorPreferences[ColorSetting.RailTrackEnd];
+            Settings.ColorRailTrackJunction = colorPreferences[ColorSetting.RailTrackJunction];
+            Settings.ColorRailTrackCrossing = colorPreferences[ColorSetting.RailTrackCrossing];
+            Settings.ColorRailLevelCrossing = colorPreferences[ColorSetting.RailLevelCrossing];
+            Settings.ColorRoadTrack = colorPreferences[ColorSetting.RoadTrack];
+            Settings.ColorRoadTrackEnd = colorPreferences[ColorSetting.RoadTrackEnd];
+            Settings.ColorRoadLevelCrossing = colorPreferences[ColorSetting.RoadLevelCrossing];
+            Settings.ColorRoadCarSpawner = colorPreferences[ColorSetting.RoadCarSpawner];
+            Settings.ColorSignalItem = colorPreferences[ColorSetting.SignalItem];
+            Settings.ColorPlatformItem = colorPreferences[ColorSetting.PlatformItem];
+            Settings.ColorSidingItem = colorPreferences[ColorSetting.SidingItem];
+            Settings.ColorSpeedpostItem = colorPreferences[ColorSetting.SpeedPostItem];
+            Settings.ColorHazardItem = colorPreferences[ColorSetting.HazardItem];
+            Settings.ColorPickupItem = colorPreferences[ColorSetting.PickupItem];
+            Settings.ColorSoundRegionItem = colorPreferences[ColorSetting.SoundRegionItem];
+            Settings.ViewSettings = viewSettings;
             if (null != contentArea)
             {
                 string[] location = new string[] { $"{contentArea.CenterX}", $"{contentArea.CenterY}", $"{contentArea.Scale}" };
-                Settings.TrackViewer.LastLocation = location;
+                Settings.LastLocation = location;
                     }
             string[] routeSelection = null;
             if (selectedFolder != null)
@@ -278,19 +279,19 @@ namespace Orts.TrackViewer
                 else
                     routeSelection = new string[] { selectedFolder.Name };
             }
-            Settings.TrackViewer.RouteSelection = routeSelection;
-            Settings.TrackViewer.Save();
+            Settings.RouteSelection = routeSelection;
+            Settings.Save();
         }
 
         private void LoadLanguage()
         {
             Localizer.Revert(windowForm, store);
 
-            if (!string.IsNullOrEmpty(Settings.Language))
+            if (!string.IsNullOrEmpty(Settings.UserSettings.Language))
             {
                 try
                 {
-                    CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(Settings.Language);
+                    CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(Settings.UserSettings.Language);
                 }
                 catch (CultureNotFoundException exception)
                 {
@@ -310,7 +311,7 @@ namespace Orts.TrackViewer
         {
             e.GraphicsDeviceInformation.PresentationParameters.RenderTargetUsage = RenderTargetUsage.DiscardContents;
             e.GraphicsDeviceInformation.PresentationParameters.DepthStencilFormat = DepthFormat.Depth24Stencil8;
-            e.GraphicsDeviceInformation.PresentationParameters.MultiSampleCount = Settings.MultisamplingCount;
+            e.GraphicsDeviceInformation.PresentationParameters.MultiSampleCount = Settings.UserSettings.MultisamplingCount;
         }
 
         private void SetScreenMode(ScreenMode targetMode)
@@ -362,42 +363,46 @@ namespace Orts.TrackViewer
             {
                 LoadFolders(),
             };
+            InputSettings.Initialize();
+
             spriteBatch = new SpriteBatch(GraphicsDevice);
             TextDrawShape.Initialize(this, spriteBatch);
             BasicShapes.Initialize(spriteBatch);
 
-            InputGameComponent inputComponent = new InputGameComponent(this);
-            Components.Add(inputComponent);
-            inputComponent.AddKeyEvent(Keys.F, KeyModifiers.None, InputGameComponent.KeyEventType.KeyPressed, (keys, modifiers, gameTime) => new Thread(GameWindowThread).Start());
-            inputComponent.AddKeyEvent(Keys.Enter, KeyModifiers.Alt, InputGameComponent.KeyEventType.KeyPressed, ChangeScreenMode);
-            inputComponent.AddKeyEvent(Keys.Q, KeyModifiers.None, InputGameComponent.KeyEventType.KeyPressed, CloseWindow);
-            inputComponent.AddKeyEvent(Keys.Left, KeyModifiers.None, InputGameComponent.KeyEventType.KeyDown, MoveByKey);
-            inputComponent.AddKeyEvent(Keys.Right, KeyModifiers.None, InputGameComponent.KeyEventType.KeyDown, MoveByKey);
-            inputComponent.AddKeyEvent(Keys.Up, KeyModifiers.None, InputGameComponent.KeyEventType.KeyDown, MoveByKey);
-            inputComponent.AddKeyEvent(Keys.Down, KeyModifiers.None, InputGameComponent.KeyEventType.KeyDown, MoveByKey);
-            inputComponent.AddKeyEvent(Keys.Left, KeyModifiers.Control, InputGameComponent.KeyEventType.KeyDown, MoveByKey);
-            inputComponent.AddKeyEvent(Keys.Right, KeyModifiers.Control, InputGameComponent.KeyEventType.KeyDown, MoveByKey);
-            inputComponent.AddKeyEvent(Keys.Up, KeyModifiers.Control, InputGameComponent.KeyEventType.KeyDown, MoveByKey);
-            inputComponent.AddKeyEvent(Keys.Down, KeyModifiers.Control, InputGameComponent.KeyEventType.KeyDown, MoveByKey);
-            inputComponent.AddKeyEvent(Keys.OemPlus, KeyModifiers.None, InputGameComponent.KeyEventType.KeyDown, ZoomIn);
-            inputComponent.AddKeyEvent(Keys.PageUp, KeyModifiers.None, InputGameComponent.KeyEventType.KeyDown, ZoomIn);
-            inputComponent.AddKeyEvent(Keys.OemMinus, KeyModifiers.None, InputGameComponent.KeyEventType.KeyDown, ZoomOut);
-            inputComponent.AddKeyEvent(Keys.PageDown, KeyModifiers.None, InputGameComponent.KeyEventType.KeyDown, ZoomOut);
-            inputComponent.AddKeyEvent(Keys.R, KeyModifiers.None, InputGameComponent.KeyEventType.KeyPressed, ResetZoomAndLocation);
-            inputComponent.AddKeyEvent(Keys.PrintScreen, KeyModifiers.None, InputGameComponent.KeyEventType.KeyPressed, PrintScreen);
-            inputComponent.AddMouseEvent(InputGameComponent.MouseMovedEventType.MouseMoved, MouseMove);
-            inputComponent.AddMouseEvent(InputGameComponent.MouseWheelEventType.MouseWheelChanged, MouseWheel);
-            inputComponent.AddMouseEvent(InputGameComponent.MouseButtonEventType.LeftButtonReleased, MouseButtonUp);
-            inputComponent.AddMouseEvent(InputGameComponent.MouseButtonEventType.RightButtonDown, MouseButtonDown);
-            inputComponent.AddMouseEvent(InputGameComponent.MouseMovedEventType.MouseMovedLeftButtonDown, MouseDragging);
+            UserCommandController<UserCommand> userCommandController = new UserCommandController<UserCommand>();
+
+            KeyboardInputGameComponent keyboardInputGameComponent = new KeyboardInputGameComponent(this);
+            Components.Add(keyboardInputGameComponent);
+            KeyboardInputHandler<UserCommand> keyboardInput = new KeyboardInputHandler<UserCommand>();
+            keyboardInput.Initialize(InputSettings.UserCommands, keyboardInputGameComponent, userCommandController);
+
+            MouseInputGameComponent mouseInputGameComponent = new MouseInputGameComponent(this);
+            Components.Add(mouseInputGameComponent);
+            MouseInputHandler<UserCommand> mouseInput = new MouseInputHandler<UserCommand>();
+            mouseInput.Initialize(mouseInputGameComponent, keyboardInputGameComponent, userCommandController);
+
+            userCommandController.AddEvent(UserCommand.PrintScreen, PrintScreen);
+            userCommandController.AddEvent(UserCommand.ChangeScreenMode, ChangeScreenMode);
+            userCommandController.AddEvent(UserCommand.QuitGame, CloseWindow);
+            userCommandController.AddEvent(UserCommand.MoveLeft, MoveByKeyLeft);
+            userCommandController.AddEvent(UserCommand.MoveRight, MoveByKeyRight);
+            userCommandController.AddEvent(UserCommand.MoveUp, MoveByKeyUp);
+            userCommandController.AddEvent(UserCommand.MoveDown, MoveByKeyDown);
+            userCommandController.AddEvent(UserCommand.NewInstance, () => new Thread(GameWindowThread).Start());
+            userCommandController.AddEvent(UserCommand.ZoomIn, ZoomIn);
+            userCommandController.AddEvent(UserCommand.ZoomOut, ZoomOut);
+            userCommandController.AddEvent(UserCommand.ResetZoomAndLocation, ResetZoomAndLocation);
+
+
+            userCommandController.AddEvent(CommonUserCommand.PointerDragged, MouseDragging);
+            userCommandController.AddEvent(CommonUserCommand.ZoomChanged, MouseWheel);
 
             base.Initialize();
 
             await Task.WhenAll(initTasks).ConfigureAwait(false);
-            await PreSelectRoute(Settings.TrackViewer.RouteSelection).ConfigureAwait(false);
-            ContentArea?.PresetPosition(Settings.TrackViewer.LastLocation);
+            await PreSelectRoute(Settings.RouteSelection).ConfigureAwait(false);
+            ContentArea?.PresetPosition(Settings.LastLocation);
         }
-
         private static void GameWindowThread(object data)
         {
             using (GameWindow game = new GameWindow())

@@ -27,6 +27,7 @@ using System.Windows.Forms;
 
 using Orts.Common;
 using Orts.Common.Info;
+using Orts.Common.Input;
 using Orts.Common.Logging;
 using Orts.Settings;
 using Orts.View.Xna;
