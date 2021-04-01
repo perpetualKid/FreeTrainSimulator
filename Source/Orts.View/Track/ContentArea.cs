@@ -177,7 +177,7 @@ namespace Orts.View.Track
 
         public void UpdateScaleAt(in Point scaleAt, int steps)
         {
-            double scale = Scale * Math.Pow((steps > 0 ? 1 / 0.9 : (steps < 0 ? 0.9 : 1)), Math.Abs(steps));
+            double scale = Scale * Math.Pow((steps > 0 ? 1 / 0.95 : (steps < 0 ? 0.95 : 1)), Math.Abs(steps));
             if (scale < maxScale || scale > 200)
                 return;
             offsetX += scaleAt.X * (scale / Scale - 1.0) / scale;

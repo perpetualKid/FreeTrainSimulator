@@ -164,14 +164,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             WebServerProcess.Stop();
         }
 
-        protected override void Initialize()
-        {
-            base.Initialize();
-            InputGameComponent inputComponent = new InputGameComponent(this);
-            UpdaterProcess.GameComponents.Add(inputComponent);
-
-        }
-
         private void Game_Exiting(object sender, EventArgs e)
         {
             while (State != null)

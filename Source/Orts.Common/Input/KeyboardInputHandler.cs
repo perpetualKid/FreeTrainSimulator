@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 using Microsoft.Xna.Framework;
 
@@ -7,8 +8,8 @@ namespace Orts.Common.Input
 {
     public class KeyboardInputHandler<T> where T : Enum
     {
-        private readonly Dictionary<int, T> userCommands = new Dictionary<int, T>();
-        private readonly Dictionary<int, (T, KeyModifiers)> modifyableUserCommands = new Dictionary<int, (T, KeyModifiers)>();
+        private ILookup<int, T> userCommandsLookup;
+        private ILookup<int, (T, KeyModifiers)> modifyableCommandsLookup;
         private UserCommandController<T> userCommandController;
 
         public void Initialize(EnumArray<UserCommandInput, T> userCommands, KeyboardInputGameComponent inputGameComponent, UserCommandController<T> userCommandController)
@@ -21,37 +22,51 @@ namespace Orts.Common.Input
 
             this.userCommandController = userCommandController ?? throw new ArgumentNullException(nameof(userCommandController));
 
-            foreach (T command in EnumExtension.GetValues<T>())
+            userCommandsLookup = EnumExtension.GetValues<T>().Where(command => userCommands[command] is UserCommandKeyInput).SelectMany(command =>
             {
-                if (userCommands[command] is UserCommandKeyInput input)
+                List<(int keyEventCode, T command)> result = new List<(int, T)>();
+                UserCommandKeyInput keyInput = userCommands[command] as UserCommandKeyInput;
+                if (Enum.IsDefined(typeof(KeyEventType), keyInput.KeyEventType))
+                    result.Add((KeyboardInputGameComponent.KeyEventCode(keyInput.Key, keyInput.Modifiers, keyInput.KeyEventType), command));
+                else
                 {
-                    this.userCommands.Add(KeyboardInputGameComponent.KeyEventCode(input.Key, input.Modifiers, input.KeyEventType), command);
-                    if (input is UserCommandModifiableKeyInput modifiableKeyInput)
-                    {
-                        if (modifiableKeyInput.IgnoreShift)
-                            modifyableUserCommands.Add(KeyboardInputGameComponent.KeyEventCode(input.Key, input.Modifiers | KeyModifiers.Shift, input.KeyEventType), (command, input.Modifiers));
-                        if (modifiableKeyInput.IgnoreControl)
-                            modifyableUserCommands.Add(KeyboardInputGameComponent.KeyEventCode(input.Key, input.Modifiers | KeyModifiers.Control, input.KeyEventType), (command, input.Modifiers));
-                        if (modifiableKeyInput.IgnoreAlt)
-                            modifyableUserCommands.Add(KeyboardInputGameComponent.KeyEventCode(input.Key, input.Modifiers | KeyModifiers.Alt, input.KeyEventType), (command, input.Modifiers));
-                    }
+                    if ((keyInput.KeyEventType & KeyEventType.KeyPressed) == KeyEventType.KeyPressed)
+                        result.Add((KeyboardInputGameComponent.KeyEventCode(keyInput.Key, keyInput.Modifiers, KeyEventType.KeyPressed), command));
+                    if ((keyInput.KeyEventType & KeyEventType.KeyReleased) == KeyEventType.KeyReleased)
+                        result.Add((KeyboardInputGameComponent.KeyEventCode(keyInput.Key, keyInput.Modifiers, KeyEventType.KeyReleased), command));
+                    if ((keyInput.KeyEventType & KeyEventType.KeyDown) == KeyEventType.KeyDown)
+                        result.Add((KeyboardInputGameComponent.KeyEventCode(keyInput.Key, keyInput.Modifiers, KeyEventType.KeyDown), command));
                 }
-            }
+                return result;
+            }).ToLookup(i => i.keyEventCode, c => c.command);
+
+            modifyableCommandsLookup = EnumExtension.GetValues<T>().Where(command => userCommands[command] is UserCommandModifiableKeyInput).SelectMany(command =>
+            {
+                UserCommandModifiableKeyInput keyInput = userCommands[command] as UserCommandModifiableKeyInput;
+                List<(int keyEventCode, T command, KeyModifiers modifiers)> result = new List<(int, T, KeyModifiers)>();
+                if (keyInput.IgnoreShift)
+                    result.Add((KeyboardInputGameComponent.KeyEventCode(keyInput.Key, keyInput.Modifiers | KeyModifiers.Shift, keyInput.KeyEventType), command, keyInput.Modifiers));
+                if (keyInput.IgnoreControl)
+                    result.Add((KeyboardInputGameComponent.KeyEventCode(keyInput.Key, keyInput.Modifiers | KeyModifiers.Control, keyInput.KeyEventType), command, keyInput.Modifiers));
+                if (keyInput.IgnoreAlt)
+                    result.Add((KeyboardInputGameComponent.KeyEventCode(keyInput.Key, keyInput.Modifiers | KeyModifiers.Alt, keyInput.KeyEventType), command, keyInput.Modifiers));
+                return result;
+
+            }).ToLookup(i => i.keyEventCode, c => (c.command, c.modifiers));
 
             inputGameComponent.AddInputHandler(Trigger);
 
         }
 
-        public void Trigger(int eventCode, GameTime gameTime, KeyModifiers modifiers)
+        public void Trigger(int eventCode, GameTime gameTime, KeyEventType eventType, KeyModifiers modifiers)
         {
-            if (userCommands.TryGetValue(eventCode, out T userCommand))
-            {
-                userCommandController.Trigger(userCommand, gameTime);
-            }
-            else if (modifyableUserCommands.TryGetValue(eventCode, out (T T, KeyModifiers KeyModifiers) modifyableUserCommand))
+            foreach (T command in userCommandsLookup[eventCode])
+                userCommandController.Trigger(command, new KeyCommandArgs() { KeyEventType = eventType }, gameTime);
+
+            foreach ((T T, KeyModifiers KeyModifiers) modifyableUserCommand in modifyableCommandsLookup[eventCode])
             {
                 KeyModifiers additionalModifiers = modifyableUserCommand.KeyModifiers ^ modifiers;
-                userCommandController.Trigger(modifyableUserCommand.T, gameTime, additionalModifiers);
+                userCommandController.Trigger(modifyableUserCommand.T, new ModifiableKeyCommandArgs() { KeyEventType = eventType, AddtionalModifiers = additionalModifiers }, gameTime) ;
             }
         }
     }

@@ -54,13 +54,13 @@ namespace Orts.Common.Input
             }
         }
 
-        private readonly EnumArray<Action<GameTime, KeyModifiers>, T> configurableUserCommands = new EnumArray<Action<GameTime, KeyModifiers>, T>();
+        private readonly EnumArray<Action<UserCommandArgs, GameTime>, T> configurableUserCommands = new EnumArray<Action<UserCommandArgs, GameTime>, T>();
 
         private readonly EnumArray<Action<UserCommandArgs, GameTime, KeyModifiers>, CommonUserCommand> commonUserCommandsArgs = new EnumArray<Action<UserCommandArgs, GameTime, KeyModifiers>, CommonUserCommand>();
 
-        internal void Trigger(T command, GameTime gameTime, KeyModifiers modifier = KeyModifiers.None)
+        internal void Trigger(T command, UserCommandArgs commandArgs, GameTime gameTime)
         {
-            configurableUserCommands[command]?.Invoke(gameTime, modifier);
+            configurableUserCommands[command]?.Invoke(commandArgs, gameTime);
         }
 
         internal void Trigger(CommonUserCommand command, UserCommandArgs commandArgs, GameTime gameTime, KeyModifiers modifier = KeyModifiers.None)
@@ -69,49 +69,49 @@ namespace Orts.Common.Input
         }
 
         #region user-defined (key) events
-        public void AddEvent(T userCommand, Action<GameTime, KeyModifiers> action)
+        public void AddEvent(T userCommand, Action<UserCommandArgs, GameTime> action)
         {
             configurableUserCommands[userCommand] += action;
         }
 
         public void AddEvent(T userCommand, Action action)
         {
-            Action<GameTime, KeyModifiers> command = DelegateConverter.ConvertDelegate<Action, Action<GameTime, KeyModifiers>>(action);
+            Action<UserCommandArgs, GameTime> command = DelegateConverter.ConvertDelegate<Action, Action<UserCommandArgs, GameTime>>(action);
             configurableUserCommands[userCommand] += command;
         }
 
         public void AddEvent(T userCommand, Action<GameTime> action)
         {
-            Action<GameTime, KeyModifiers> command = DelegateConverter.ConvertDelegate<Action<GameTime>, Action<GameTime, KeyModifiers>>(action);
+            Action<UserCommandArgs, GameTime> command = DelegateConverter.ConvertDelegate<Action<GameTime>, Action<UserCommandArgs, GameTime>>(action, new int[] { 1 });
             configurableUserCommands[userCommand] += command;
         }
 
-        public void AddEvent(T userCommand, Action<KeyModifiers> action)
+        public void AddEvent(T userCommand, Action<UserCommandArgs> action)
         {
-            Action<GameTime, KeyModifiers> command = DelegateConverter.ConvertDelegate<Action<KeyModifiers>, Action<GameTime, KeyModifiers>>(action, new int[] { 1 });
+            Action<UserCommandArgs, GameTime> command = DelegateConverter.ConvertDelegate<Action<UserCommandArgs>, Action<UserCommandArgs, GameTime>>(action);
             configurableUserCommands[userCommand] += command;
         }
 
-        public void RemoveEvent(T userCommand, Action<GameTime, KeyModifiers> action)
+        public void RemoveEvent(T userCommand, Action<UserCommandArgs, GameTime> action)
         {
             configurableUserCommands[userCommand] -= action;
         }
 
         public void RemoveEvent(T userCommand, Action action)
         {
-            Action<GameTime, KeyModifiers> command = DelegateConverter.ConvertDelegate<Action, Action<GameTime, KeyModifiers>>(action);
+            Action<UserCommandArgs, GameTime> command = DelegateConverter.ConvertDelegate<Action, Action<UserCommandArgs, GameTime>>(action);
             configurableUserCommands[userCommand] -= command;
         }
 
         public void RemoveEvent(T userCommand, Action<GameTime> action)
         {
-            Action<GameTime, KeyModifiers> command = DelegateConverter.ConvertDelegate<Action<GameTime>, Action<GameTime, KeyModifiers>>(action);
+            Action<UserCommandArgs, GameTime> command = DelegateConverter.ConvertDelegate<Action<GameTime>, Action<UserCommandArgs, GameTime>>(action, new int[] { 1 });
             configurableUserCommands[userCommand] -= command;
         }
 
-        public void RemoveEvent(T userCommand, Action<KeyModifiers> action)
+        public void RemoveEvent(T userCommand, Action<UserCommandArgs> action)
         {
-            Action<GameTime, KeyModifiers> command = DelegateConverter.ConvertDelegate<Action<KeyModifiers>, Action<GameTime, KeyModifiers>>(action, new int[] { 1 });
+            Action<UserCommandArgs, GameTime> command = DelegateConverter.ConvertDelegate<Action<UserCommandArgs>, Action<UserCommandArgs, GameTime>>(action);
             configurableUserCommands[userCommand] -= command;
         }
         #endregion
@@ -134,7 +134,7 @@ namespace Orts.Common.Input
             commonUserCommandsArgs[userCommand] += command;
         }
 
-        public void removeEvent(CommonUserCommand userCommand, Action<UserCommandArgs, GameTime, KeyModifiers> action)
+        public void RemoveEvent(CommonUserCommand userCommand, Action<UserCommandArgs, GameTime, KeyModifiers> action)
         {
             commonUserCommandsArgs[userCommand] -= action;
         }

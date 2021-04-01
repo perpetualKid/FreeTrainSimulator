@@ -393,7 +393,6 @@ namespace Orts.TrackViewer
             userCommandController.AddEvent(UserCommand.ZoomOut, ZoomOut);
             userCommandController.AddEvent(UserCommand.ResetZoomAndLocation, ResetZoomAndLocation);
 
-
             userCommandController.AddEvent(CommonUserCommand.PointerDragged, MouseDragging);
             userCommandController.AddEvent(CommonUserCommand.ZoomChanged, MouseWheel);
 

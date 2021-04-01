@@ -9,8 +9,6 @@ using Orts.Common;
 using Orts.Common.Info;
 using Orts.Common.Input;
 
-using Keys = Microsoft.Xna.Framework.Input.Keys;
-
 namespace Orts.TrackViewer
 {
     public partial class GameWindow : Game
@@ -43,11 +41,6 @@ namespace Orts.TrackViewer
             return false;
         }
 
-        public void MouseWheel(Point position, int delta)
-        {
-            contentArea?.UpdateScaleAt(position, Math.Sign(delta));
-        }
-
         public void MouseDragging(UserCommandArgs userCommandArgs)
         {
             if (userCommandArgs is PointerMoveCommandArgs mouseMoveCommandArgs)
@@ -64,33 +57,36 @@ namespace Orts.TrackViewer
             }
         }
 
-        private void MoveByKeyLeft(KeyModifiers modifiers)
+        private void MoveByKeyLeft(UserCommandArgs commandArgs)
         {
-            contentArea?.UpdatePosition(moveLeft * MovementAmplifier(modifiers));
+            contentArea?.UpdatePosition(moveLeft * MovementAmplifier(commandArgs));
         }
 
-        private void MoveByKeyRight(KeyModifiers modifiers)
+        private void MoveByKeyRight(UserCommandArgs commandArgs)
         {
-            contentArea?.UpdatePosition(moveRight * MovementAmplifier(modifiers));
+            contentArea?.UpdatePosition(moveRight * MovementAmplifier(commandArgs));
         }
 
-        private void MoveByKeyUp(KeyModifiers modifiers)
+        private void MoveByKeyUp(UserCommandArgs commandArgs)
         {
-            contentArea?.UpdatePosition(moveUp * MovementAmplifier(modifiers));
+            contentArea?.UpdatePosition(moveUp * MovementAmplifier(commandArgs));
         }
 
-        private void MoveByKeyDown(KeyModifiers modifiers)
+        private void MoveByKeyDown(UserCommandArgs commandArgs)
         {
-            contentArea?.UpdatePosition(moveDown * MovementAmplifier(modifiers));
+            contentArea?.UpdatePosition(moveDown * MovementAmplifier(commandArgs));
         }
 
-        private static float MovementAmplifier(KeyModifiers modifiers)
+        private static float MovementAmplifier(UserCommandArgs commandArgs)
         {
             float amplifier = 5;
-            if ((modifiers & KeyModifiers.Control) == KeyModifiers.Control)
-                amplifier = 1;
-            else if ((modifiers & KeyModifiers.Shift) == KeyModifiers.Shift)
-                amplifier = 10;
+            if (commandArgs is ModifiableKeyCommandArgs modifiableKeyCommand)
+            {
+                if ((modifiableKeyCommand.AddtionalModifiers & KeyModifiers.Control) == KeyModifiers.Control)
+                    amplifier = 1;
+                else if ((modifiableKeyCommand.AddtionalModifiers & KeyModifiers.Shift) == KeyModifiers.Shift)
+                    amplifier = 10;
+            }
             return amplifier;
         }
 
@@ -104,21 +100,35 @@ namespace Orts.TrackViewer
             return amplifier;
         }
 
-        private DateTime nextUpdate;
-        private void ZoomIn(KeyModifiers modifiers)
+        private static int ZoomAmplifier(UserCommandArgs commandArgs)
         {
-            if (DateTime.UtcNow > nextUpdate)
+            int amplifier = 3;
+            if (commandArgs is ModifiableKeyCommandArgs modifiableKeyCommand)
             {
-                contentArea?.UpdateScale(1);
-                nextUpdate = DateTime.UtcNow.AddMilliseconds(30);
+                if ((modifiableKeyCommand.AddtionalModifiers & KeyModifiers.Control) == KeyModifiers.Control)
+                    amplifier = 1;
+                else if ((modifiableKeyCommand.AddtionalModifiers & KeyModifiers.Shift) == KeyModifiers.Shift)
+                    amplifier = 5;
             }
+            return amplifier;
         }
 
-        private void ZoomOut(KeyModifiers modifiers)
+        private void ZoomIn(UserCommandArgs commandArgs)
+        {
+            Zoom(ZoomAmplifier(commandArgs));
+        }
+
+        private void ZoomOut(UserCommandArgs commandArgs)
+        {
+            Zoom(-ZoomAmplifier(commandArgs));
+        }
+
+        private DateTime nextUpdate;
+        private void Zoom(int steps)
         {
             if (DateTime.UtcNow > nextUpdate)
             {
-                contentArea?.UpdateScale(-1);
+                contentArea?.UpdateScale(steps);
                 nextUpdate = DateTime.UtcNow.AddMilliseconds(30);
             }
         }

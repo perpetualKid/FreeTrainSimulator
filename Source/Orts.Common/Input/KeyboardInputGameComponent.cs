@@ -23,7 +23,7 @@ namespace Orts.Common.Input
 
         private readonly IInputCapture inputCapture;
 
-        private Action<int, GameTime, KeyModifiers> inputActionHandler;
+        private Action<int, GameTime, KeyEventType, KeyModifiers> inputActionHandler;
 
         public KeyboardInputGameComponent(Game game) : base(game)
         {
@@ -49,7 +49,7 @@ namespace Orts.Common.Input
             }
         }
 
-        public void AddInputHandler(Action<int, GameTime, KeyModifiers> inputAction)
+        public void AddInputHandler(Action<int, GameTime, KeyEventType, KeyModifiers> inputAction)
         {
             inputActionHandler += inputAction;
         }
@@ -102,19 +102,19 @@ namespace Orts.Common.Input
                     {
                         // Key (still) down
                         int lookup = (int)key << KeyDownShift ^ (int)currentModifiers;
-                        inputActionHandler.Invoke(lookup, gameTime, currentModifiers);
+                        inputActionHandler?.Invoke(lookup, gameTime, KeyEventType.KeyDown, currentModifiers);
                     }
                     if (previousKeyboardState.IsKeyDown(key) && (currentModifiers != previousModifiers))
                     {
                         // Key Up, state may have changed due to a modifier changed
                         int lookup = (int)key << KeyUpShift ^ (int)previousModifiers;
-                        inputActionHandler.Invoke(lookup, gameTime, previousModifiers);
+                        inputActionHandler?.Invoke(lookup, gameTime, KeyEventType.KeyReleased, previousModifiers);
                     }
                     if (!previousKeyboardState.IsKeyDown(key) || (currentModifiers != previousModifiers))
                     {
                         //Key just pressed
                         int lookup = (int)key << KeyPressShift ^ (int)currentModifiers;
-                        inputActionHandler.Invoke(lookup, gameTime, currentModifiers);
+                        inputActionHandler?.Invoke(lookup, gameTime, KeyEventType.KeyPressed, currentModifiers);
                     }
                     int previousIndex = Array.IndexOf(previousKeys, key);//not  great, but considering this is mostly very few (<5) acceptable
                     if (previousIndex > -1)
@@ -129,7 +129,7 @@ namespace Orts.Common.Input
                         continue;
                     // Key Up, not in current set of Keys Downs
                     int lookup = (int)key << KeyUpShift ^ (int)previousModifiers;
-                    inputActionHandler.Invoke(lookup, gameTime, previousModifiers);
+                    inputActionHandler?.Invoke(lookup, gameTime, KeyEventType.KeyReleased, previousModifiers);
                 }
                 previousKeys = currentKeys;
             }

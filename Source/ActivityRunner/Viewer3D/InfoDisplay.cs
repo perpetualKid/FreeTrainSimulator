@@ -72,9 +72,7 @@ namespace Orts.ActivityRunner.Viewer3D
             if (viewer.Settings.DataLogger)
                 DataLoggerStart();
 
-            InputGameComponent inputComponent = viewer.UpdaterProcess.GameComponents.OfType<InputGameComponent>().Single();
-            UserCommandKeyInput inputKey = viewer.Game.Settings.Input.Commands[(int)UserCommand.DebugLogger] as UserCommandKeyInput;
-            inputComponent.AddKeyEvent(inputKey.Key, inputKey.Modifiers, KeyEventType.KeyPressed, (a, b, c) =>
+            viewer.UserCommandController.AddEvent(UserCommand.DebugLogger, () =>
             {
                 viewer.Settings.DataLogger = !viewer.Settings.DataLogger;
                 if (viewer.Settings.DataLogger)

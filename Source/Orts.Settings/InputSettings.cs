@@ -55,29 +55,35 @@ namespace Orts.Settings
 
         public static readonly UserCommandInput[] DefaultCommands = new UserCommandInput[Enum.GetNames(typeof(UserCommand)).Length];
         public readonly UserCommandInput[] Commands = new UserCommandInput[Enum.GetNames(typeof(UserCommand)).Length];
+        public EnumArray<UserCommandInput, UserCommand> UserCommands { get; } = new EnumArray<UserCommandInput, UserCommand>();
+
+        public KeyModifiers WindowTabCommandModifier { get; }
 
         static InputSettings()
         {
             InitializeCommands(DefaultCommands);
         }
 
-        public InputSettings(IEnumerable<string> options, SettingsStore store) : 
+        public InputSettings(IEnumerable<string> options, SettingsStore store) :
             base(SettingsStore.GetSettingsStore(store.StoreType, store.Location, "Keyboard"))
         {
             InitializeCommands(Commands);
             LoadSettings(options);
+
+            for (int i = 0; i < Commands.Length; i++)
+            {
+                UserCommands[(UserCommand)i] = Commands[i];
+            }
+            UserCommandModifierInput userCommandModifier = UserCommands[UserCommand.DisplayNextWindowTab] as UserCommandModifierInput;
+            WindowTabCommandModifier = (userCommandModifier.Alt ? KeyModifiers.Alt : KeyModifiers.None) | (userCommandModifier.Control ? KeyModifiers.Control : KeyModifiers.None) | (userCommandModifier.Shift ? KeyModifiers.Shift : KeyModifiers.None);
+
         }
 
-        UserCommand GetCommand(string name)
+        private static UserCommand GetCommand(string name)
         {
             if (!EnumExtension.GetValue(name, out UserCommand result))
-                throw new ArgumentOutOfRangeException();
+                throw new ArgumentOutOfRangeException(nameof(name));
             return result;
-        }
-
-        UserCommand[] GetCommands()
-        {
-            return EnumExtension.GetValues<UserCommand>().ToArray();
         }
 
         public override object GetDefaultValue(string name)
@@ -116,7 +122,7 @@ namespace Orts.Settings
         }
 
         #region Default Input Settings
-        static void InitializeCommands(UserCommandInput[] Commands)
+        private static void InitializeCommands(UserCommandInput[] Commands)
         {
             // All UserCommandModifierInput commands go here.
             Commands[(int)UserCommand.GameSwitchWithMouse] = new UserCommandModifierInput(KeyModifiers.Alt);
@@ -248,26 +254,26 @@ namespace Orts.Settings
             Commands[(int)UserCommand.ControlTrainBrakeDecrease] = new UserCommandKeyInput(0x27);
             Commands[(int)UserCommand.ControlTrainBrakeIncrease] = new UserCommandKeyInput(0x28);
             Commands[(int)UserCommand.ControlTrainBrakeZero] = new UserCommandKeyInput(0x27, KeyModifiers.Control);
-            Commands[(int)UserCommand.ControlTurntableClockwise] = new UserCommandKeyInput(0x2E, KeyModifiers.Alt);
-            Commands[(int)UserCommand.ControlTurntableCounterclockwise] = new UserCommandKeyInput(0x2E, KeyModifiers.Control);
+            Commands[(int)UserCommand.ControlTurntableClockwise] = new UserCommandKeyInput(0x2E, KeyModifiers.Alt, KeyEventType.KeyPressed | KeyEventType.KeyReleased);
+            Commands[(int)UserCommand.ControlTurntableCounterclockwise] = new UserCommandKeyInput(0x2E, KeyModifiers.Control, KeyEventType.KeyPressed | KeyEventType.KeyReleased);
             Commands[(int)UserCommand.ControlWaterScoop] = new UserCommandKeyInput(0x15);
             Commands[(int)UserCommand.ControlWiper] = new UserCommandKeyInput(0x2F);
 
-            Commands[(int)UserCommand.DebugClockBackwards] = new UserCommandKeyInput(0x0C);
-            Commands[(int)UserCommand.DebugClockForwards] = new UserCommandKeyInput(0x0D);
+            Commands[(int)UserCommand.DebugClockBackwards] = new UserCommandKeyInput(0x0C, KeyEventType.KeyDown);
+            Commands[(int)UserCommand.DebugClockForwards] = new UserCommandKeyInput(0x0D, KeyEventType.KeyDown);
             Commands[(int)UserCommand.DebugDumpKeymap] = new UserCommandKeyInput(0x3B, KeyModifiers.Alt);
-            Commands[(int)UserCommand.DebugFogDecrease] = new UserCommandKeyInput(0x0C, KeyModifiers.Shift);
-            Commands[(int)UserCommand.DebugFogIncrease] = new UserCommandKeyInput(0x0D, KeyModifiers.Shift);
+            Commands[(int)UserCommand.DebugFogDecrease] = new UserCommandKeyInput(0x0C, KeyModifiers.Shift, KeyEventType.KeyDown | KeyEventType.KeyReleased);
+            Commands[(int)UserCommand.DebugFogIncrease] = new UserCommandKeyInput(0x0D, KeyModifiers.Shift, KeyEventType.KeyDown | KeyEventType.KeyReleased);
             Commands[(int)UserCommand.DebugLockShadows] = new UserCommandKeyInput(0x1F, KeyModifiers.Control | KeyModifiers.Alt);
             Commands[(int)UserCommand.DebugLogger] = new UserCommandKeyInput(0x58);
             Commands[(int)UserCommand.DebugLogRenderFrame] = new UserCommandKeyInput(0x58, KeyModifiers.Alt);
-            Commands[(int)UserCommand.DebugOvercastDecrease] = new UserCommandKeyInput(0x0C, KeyModifiers.Control);
-            Commands[(int)UserCommand.DebugOvercastIncrease] = new UserCommandKeyInput(0x0D, KeyModifiers.Control);
+            Commands[(int)UserCommand.DebugOvercastDecrease] = new UserCommandKeyInput(0x0C, KeyModifiers.Control, KeyEventType.KeyDown | KeyEventType.KeyReleased);
+            Commands[(int)UserCommand.DebugOvercastIncrease] = new UserCommandKeyInput(0x0D, KeyModifiers.Control, KeyEventType.KeyDown | KeyEventType.KeyReleased);
             Commands[(int)UserCommand.DebugPhysicsForm] = new UserCommandKeyInput(0x3D, KeyModifiers.Alt);
-            Commands[(int)UserCommand.DebugPrecipitationDecrease] = new UserCommandKeyInput(0x0C, KeyModifiers.Alt);
-            Commands[(int)UserCommand.DebugPrecipitationIncrease] = new UserCommandKeyInput(0x0D, KeyModifiers.Alt);
-            Commands[(int)UserCommand.DebugPrecipitationLiquidityDecrease] = new UserCommandKeyInput(0x0C, KeyModifiers.Control | KeyModifiers.Alt);
-            Commands[(int)UserCommand.DebugPrecipitationLiquidityIncrease] = new UserCommandKeyInput(0x0D, KeyModifiers.Control | KeyModifiers.Alt);
+            Commands[(int)UserCommand.DebugPrecipitationDecrease] = new UserCommandKeyInput(0x0C, KeyModifiers.Alt, KeyEventType.KeyDown | KeyEventType.KeyReleased);
+            Commands[(int)UserCommand.DebugPrecipitationIncrease] = new UserCommandKeyInput(0x0D, KeyModifiers.Alt, KeyEventType.KeyDown | KeyEventType.KeyReleased);
+            Commands[(int)UserCommand.DebugPrecipitationLiquidityDecrease] = new UserCommandKeyInput(0x0C, KeyModifiers.Control | KeyModifiers.Alt, KeyEventType.KeyDown | KeyEventType.KeyReleased);
+            Commands[(int)UserCommand.DebugPrecipitationLiquidityIncrease] = new UserCommandKeyInput(0x0D, KeyModifiers.Control | KeyModifiers.Alt, KeyEventType.KeyDown | KeyEventType.KeyReleased);
             Commands[(int)UserCommand.DebugResetWheelSlip] = new UserCommandKeyInput(0x2D, KeyModifiers.Alt);
             Commands[(int)UserCommand.DebugSignalling] = new UserCommandKeyInput(0x57, KeyModifiers.Control | KeyModifiers.Alt);
             Commands[(int)UserCommand.DebugSoundForm] = new UserCommandKeyInput(0x1F, KeyModifiers.Alt);
@@ -320,13 +326,13 @@ namespace Orts.Settings
         public string CheckForErrors()
         {
             // Make sure all modifiable input commands are synchronized first.
-            foreach (var command in Commands)
+            foreach (UserCommandInput command in Commands)
                 (command as UserCommandModifiableKeyInput)?.SynchronizeCombine();
 
             StringBuilder errors = new StringBuilder();
 
             // Check for commands which both require a particular modifier, and ignore it.
-            foreach (var command in EnumExtension.GetValues<UserCommand>())
+            foreach (UserCommand command in EnumExtension.GetValues<UserCommand>())
             {
                 if (Commands[(int)command] is UserCommandModifiableKeyInput modInput)
                 {
@@ -344,31 +350,30 @@ namespace Orts.Settings
             UserCommand lastCommand = EnumExtension.GetValues<UserCommand>().Max();
             for (UserCommand command1 = firstCommand; command1 <= lastCommand; command1++)
             {
-                var input1 = Commands[(int)command1];
+                UserCommandInput input1 = Commands[(int)command1];
 
                 // Modifier inputs don't matter as they don't represent any key.
                 if (input1 is UserCommandModifierInput)
                     continue;
 
-                for (var command2 = command1 + 1; command2 <= lastCommand; command2++)
+                for (UserCommand command2 = command1 + 1; command2 <= lastCommand; command2++)
                 {
-                    var input2 = Commands[(int)command2];
+                    UserCommandInput input2 = Commands[(int)command2];
 
                     // Modifier inputs don't matter as they don't represent any key.
                     if (input2 is UserCommandModifierInput)
                         continue;
 
                     // Ignore problems when both inputs are on defaults. (This protects the user somewhat but leaves developers in the dark.)
-                    //if (input1.PersistentDescriptor == InputSettings.DefaultCommands[(int)command1].PersistentDescriptor && input2.PersistentDescriptor == InputSettings.DefaultCommands[(int)command2].PersistentDescriptor)
                     if (input1.UniqueDescriptor == DefaultCommands[(int)command1].UniqueDescriptor &&
                     input2.UniqueDescriptor == DefaultCommands[(int)command2].UniqueDescriptor)
                         continue;
 
-                    var unique1 = input1.GetUniqueInputs();
-                    var unique2 = input2.GetUniqueInputs();
-                    var sharedUnique = unique1.Where(id => unique2.Contains(id));
-                    foreach (var uniqueInput in sharedUnique)
-                        errors.AppendLine(catalog.GetString("{0} and {1} both match {2}", commonCatalog.GetString(command1.GetDescription()), 
+                    IEnumerable<string> unique1 = input1.GetUniqueInputs();
+                    IEnumerable<string> unique2 = input2.GetUniqueInputs();
+                    IEnumerable<string> sharedUnique = unique1.Where(id => unique2.Contains(id));
+                    foreach (string uniqueInput in sharedUnique)
+                        errors.AppendLine(catalog.GetString("{0} and {1} both match {2}", commonCatalog.GetString(command1.GetDescription()),
                             commonCatalog.GetString(command2.GetDescription()), KeyboardMap.GetPrettyUniqueInput(uniqueInput)));
                 }
             }

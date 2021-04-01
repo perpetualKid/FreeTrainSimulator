@@ -38,56 +38,35 @@ namespace Orts.ActivityRunner.Viewer3D
         private static int doorRight;
         private static int mirrors;
 
-        public static void RegisterInputEvents(Game game)
+        public static void RegisterInputEvents(Viewer viewer)
         {
-            if (null == game)
-                throw new ArgumentNullException(nameof(game));
-
-            InputGameComponent inputComponent = game.UpdaterProcess.GameComponents.OfType<InputGameComponent>().Single();
+            if (null == viewer)
+                throw new ArgumentNullException(nameof(viewer));
 
             //In Multiplayer, I maybe the helper, but I can request to be the controller
             // Horn and bell are managed by UpdateHornAndBell in MSTSLocomotive.cs
-            UserCommandKeyInput inputKey = game.Settings.Input.Commands[(int)UserCommand.GameRequestControl] as UserCommandKeyInput;
-            inputComponent.AddKeyEvent(inputKey.Key, inputKey.Modifiers, KeyEventType.KeyPressed, (a, b, c) => MPManager.RequestControl());
+            viewer.UserCommandController.AddEvent(UserCommand.GameRequestControl, MPManager.RequestControl);
+            viewer.UserCommandController.AddEvent(UserCommand.ControlPantograph1, () => MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "PANTO1", (++panto1) % 2).ToString()));
+            viewer.UserCommandController.AddEvent(UserCommand.ControlPantograph2, () => MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "PANTO2", (++panto2) % 2).ToString()));
+            viewer.UserCommandController.AddEvent(UserCommand.ControlPantograph3, () => MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "PANTO3", (++panto3) % 2).ToString()));
+            viewer.UserCommandController.AddEvent(UserCommand.ControlPantograph4, () => MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "PANTO4", (++panto4) % 2).ToString()));
+            viewer.UserCommandController.AddEvent(UserCommand.ControlWiper, () => MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "WIPER", (++wiper) % 2).ToString()));
+            viewer.UserCommandController.AddEvent(UserCommand.ControlDoorLeft, () => MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "DOORL", (++doorLeft) % 2).ToString()));
+            viewer.UserCommandController.AddEvent(UserCommand.ControlDoorRight, () => MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "DOORR", (++doorRight) % 2).ToString()));
+            viewer.UserCommandController.AddEvent(UserCommand.ControlMirror, () => MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "MIRRORS", (++mirrors) % 2).ToString()));
 
-            inputKey = game.Settings.Input.Commands[(int)UserCommand.ControlPantograph1] as UserCommandKeyInput;
-            inputComponent.AddKeyEvent(inputKey.Key, inputKey.Modifiers, KeyEventType.KeyPressed, (a, b, c) => MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "PANTO1", (++panto2) % 2).ToString()));
-
-            inputKey = game.Settings.Input.Commands[(int)UserCommand.ControlPantograph2] as UserCommandKeyInput;
-            inputComponent.AddKeyEvent(inputKey.Key, inputKey.Modifiers, KeyEventType.KeyPressed, (a, b, c) => MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "PANTO2", (++panto1) % 2).ToString()));
-
-            inputKey = game.Settings.Input.Commands[(int)UserCommand.ControlPantograph3] as UserCommandKeyInput;
-            inputComponent.AddKeyEvent(inputKey.Key, inputKey.Modifiers, KeyEventType.KeyPressed, (a, b, c) => MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "PANTO3", (++panto4) % 2).ToString()));
-
-            inputKey = game.Settings.Input.Commands[(int)UserCommand.ControlPantograph4] as UserCommandKeyInput;
-            inputComponent.AddKeyEvent(inputKey.Key, inputKey.Modifiers, KeyEventType.KeyPressed, (a, b, c) => MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "PANTO4", (++panto3) % 2).ToString()));
-
-            inputKey = game.Settings.Input.Commands[(int)UserCommand.ControlWiper] as UserCommandKeyInput;
-            inputComponent.AddKeyEvent(inputKey.Key, inputKey.Modifiers, KeyEventType.KeyPressed, (a, b, c) => MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "WIPER", (++wiper) % 2).ToString()));
-
-            inputKey = game.Settings.Input.Commands[(int)UserCommand.ControlDoorLeft] as UserCommandKeyInput;
-            inputComponent.AddKeyEvent(inputKey.Key, inputKey.Modifiers, KeyEventType.KeyPressed, (a, b, c) => MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "DOORL", (++doorLeft) % 2).ToString()));
-
-            inputKey = game.Settings.Input.Commands[(int)UserCommand.ControlDoorRight] as UserCommandKeyInput;
-            inputComponent.AddKeyEvent(inputKey.Key, inputKey.Modifiers, KeyEventType.KeyPressed, (a, b, c) => MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "DOORR", (++doorRight) % 2).ToString()));
-
-            inputKey = game.Settings.Input.Commands[(int)UserCommand.ControlMirror] as UserCommandKeyInput;
-            inputComponent.AddKeyEvent(inputKey.Key, inputKey.Modifiers, KeyEventType.KeyPressed, (a, b, c) => MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "MIRRORS", (++mirrors) % 2).ToString()));
-
-            inputKey = game.Settings.Input.Commands[(int)UserCommand.ControlHeadlightIncrease] as UserCommandKeyInput;
-            inputComponent.AddKeyEvent(inputKey.Key, inputKey.Modifiers, KeyEventType.KeyPressed, (a, b, c) => 
+            viewer.UserCommandController.AddEvent(UserCommand.ControlHeadlightIncrease, () =>
             {
-                headlight++; 
-                if (headlight >= 3) 
+                headlight++;
+                if (headlight >= 3)
                     headlight = 2;
                 MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "HEADLIGHT", headlight).ToString());
             });
 
-            inputKey = game.Settings.Input.Commands[(int)UserCommand.ControlHeadlightDecrease] as UserCommandKeyInput;
-            inputComponent.AddKeyEvent(inputKey.Key, inputKey.Modifiers, KeyEventType.KeyPressed, (a, b, c) =>
+            viewer.UserCommandController.AddEvent(UserCommand.ControlHeadlightDecrease, () =>
             {
-                headlight--; 
-                if (headlight < 0) 
+                headlight--;
+                if (headlight < 0)
                     headlight = 0;
                 MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "HEADLIGHT", headlight).ToString());
             });

@@ -1,21 +1,23 @@
 ﻿namespace Orts.Common.Input
 {
 #pragma warning disable CA1008 // Enums should have zero value
+#pragma warning disable CA1027 // Mark enums with FlagsAttribute
     public enum KeyEventType
+#pragma warning restore CA1027 // Mark enums with FlagsAttribute
 #pragma warning restore CA1008 // Enums should have zero value
     {
         /// <summary>
         /// Key just pressed down
         /// </summary>
-        KeyPressed = InputGameComponent.KeyPressShift,
+        KeyPressed = 1,
         /// <summary>
         /// Key held down
         /// </summary>
-        KeyDown = InputGameComponent.KeyDownShift,
+        KeyDown = 2,
         /// <summary>
         /// Key released
         /// </summary>
-        KeyReleased = InputGameComponent.KeyUpShift,
+        KeyReleased = 4,
     }
 
     public enum MouseMovedEventType
