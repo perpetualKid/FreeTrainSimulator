@@ -58,6 +58,8 @@ namespace Orts.Settings
         public EnumArray<UserCommandInput, UserCommand> UserCommands { get; } = new EnumArray<UserCommandInput, UserCommand>();
 
         public KeyModifiers WindowTabCommandModifier { get; }
+        public KeyModifiers CameraMoveFastModifier { get; }
+        public KeyModifiers CameraMoveSlowModifier { get; }
 
         static InputSettings()
         {
@@ -77,6 +79,10 @@ namespace Orts.Settings
             UserCommandModifierInput userCommandModifier = UserCommands[UserCommand.DisplayNextWindowTab] as UserCommandModifierInput;
             WindowTabCommandModifier = (userCommandModifier.Alt ? KeyModifiers.Alt : KeyModifiers.None) | (userCommandModifier.Control ? KeyModifiers.Control : KeyModifiers.None) | (userCommandModifier.Shift ? KeyModifiers.Shift : KeyModifiers.None);
 
+            userCommandModifier = UserCommands[UserCommand.CameraMoveFast] as UserCommandModifierInput;
+            CameraMoveFastModifier = (userCommandModifier.Alt ? KeyModifiers.Alt : KeyModifiers.None) | (userCommandModifier.Control ? KeyModifiers.Control : KeyModifiers.None) | (userCommandModifier.Shift ? KeyModifiers.Shift : KeyModifiers.None);
+            userCommandModifier = UserCommands[UserCommand.CameraMoveSlow] as UserCommandModifierInput;
+            CameraMoveSlowModifier = (userCommandModifier.Alt ? KeyModifiers.Alt : KeyModifiers.None) | (userCommandModifier.Control ? KeyModifiers.Control : KeyModifiers.None) | (userCommandModifier.Shift ? KeyModifiers.Shift : KeyModifiers.None);
         }
 
         private static UserCommand GetCommand(string name)
@@ -149,27 +155,27 @@ namespace Orts.Settings
             Commands[(int)UserCommand.CameraJumpSeeSwitch] = new UserCommandKeyInput(0x22, KeyModifiers.Control | KeyModifiers.Alt);
             Commands[(int)UserCommand.CameraOutsideFront] = new UserCommandKeyInput(0x03);
             Commands[(int)UserCommand.CameraOutsideRear] = new UserCommandKeyInput(0x04);
-            Commands[(int)UserCommand.CameraPanDown] = new UserCommandModifiableKeyInput(0x50, Commands[(int)UserCommand.CameraMoveFast], Commands[(int)UserCommand.CameraMoveSlow]);
-            Commands[(int)UserCommand.CameraPanLeft] = new UserCommandModifiableKeyInput(0x4B, Commands[(int)UserCommand.CameraMoveFast], Commands[(int)UserCommand.CameraMoveSlow]);
-            Commands[(int)UserCommand.CameraPanRight] = new UserCommandModifiableKeyInput(0x4D, Commands[(int)UserCommand.CameraMoveFast], Commands[(int)UserCommand.CameraMoveSlow]);
-            Commands[(int)UserCommand.CameraPanUp] = new UserCommandModifiableKeyInput(0x48, Commands[(int)UserCommand.CameraMoveFast], Commands[(int)UserCommand.CameraMoveSlow]);
+            Commands[(int)UserCommand.CameraPanDown] = new UserCommandModifiableKeyInput(0x50, KeyEventType.KeyPressed | KeyEventType.KeyDown | KeyEventType.KeyReleased, Commands[(int)UserCommand.CameraMoveFast], Commands[(int)UserCommand.CameraMoveSlow]);
+            Commands[(int)UserCommand.CameraPanLeft] = new UserCommandModifiableKeyInput(0x4B, KeyEventType.KeyPressed | KeyEventType.KeyDown | KeyEventType.KeyReleased, Commands[(int)UserCommand.CameraMoveFast], Commands[(int)UserCommand.CameraMoveSlow]);
+            Commands[(int)UserCommand.CameraPanRight] = new UserCommandModifiableKeyInput(0x4D, KeyEventType.KeyPressed | KeyEventType.KeyDown | KeyEventType.KeyReleased, Commands[(int)UserCommand.CameraMoveFast], Commands[(int)UserCommand.CameraMoveSlow]);
+            Commands[(int)UserCommand.CameraPanUp] = new UserCommandModifiableKeyInput(0x48, KeyEventType.KeyPressed | KeyEventType.KeyDown | KeyEventType.KeyReleased, Commands[(int)UserCommand.CameraMoveFast], Commands[(int)UserCommand.CameraMoveSlow]);
             Commands[(int)UserCommand.CameraPassenger] = new UserCommandKeyInput(0x06);
             Commands[(int)UserCommand.CameraPreviousFree] = new UserCommandKeyInput(0x09, KeyModifiers.Shift);
             Commands[(int)UserCommand.CameraReset] = new UserCommandKeyInput(0x09, KeyModifiers.Control);
-            Commands[(int)UserCommand.CameraRotateDown] = new UserCommandModifiableKeyInput(0x50, KeyModifiers.Alt, Commands[(int)UserCommand.CameraMoveFast], Commands[(int)UserCommand.CameraMoveSlow]);
-            Commands[(int)UserCommand.CameraRotateLeft] = new UserCommandModifiableKeyInput(0x4B, KeyModifiers.Alt, Commands[(int)UserCommand.CameraMoveFast], Commands[(int)UserCommand.CameraMoveSlow]);
-            Commands[(int)UserCommand.CameraRotateRight] = new UserCommandModifiableKeyInput(0x4D, KeyModifiers.Alt, Commands[(int)UserCommand.CameraMoveFast], Commands[(int)UserCommand.CameraMoveSlow]);
-            Commands[(int)UserCommand.CameraRotateUp] = new UserCommandModifiableKeyInput(0x48, KeyModifiers.Alt, Commands[(int)UserCommand.CameraMoveFast], Commands[(int)UserCommand.CameraMoveSlow]);
-            Commands[(int)UserCommand.CameraScrollLeft] = new UserCommandModifiableKeyInput(0x4B, KeyModifiers.Alt);
-            Commands[(int)UserCommand.CameraScrollRight] = new UserCommandModifiableKeyInput(0x4D, KeyModifiers.Alt);
+            Commands[(int)UserCommand.CameraRotateDown] = new UserCommandModifiableKeyInput(0x50, KeyModifiers.Alt, KeyEventType.KeyPressed | KeyEventType.KeyDown | KeyEventType.KeyReleased, Commands[(int)UserCommand.CameraMoveFast], Commands[(int)UserCommand.CameraMoveSlow]);
+            Commands[(int)UserCommand.CameraRotateLeft] = new UserCommandModifiableKeyInput(0x4B, KeyModifiers.Alt, KeyEventType.KeyPressed | KeyEventType.KeyDown | KeyEventType.KeyReleased, Commands[(int)UserCommand.CameraMoveFast], Commands[(int)UserCommand.CameraMoveSlow]);
+            Commands[(int)UserCommand.CameraRotateRight] = new UserCommandModifiableKeyInput(0x4D, KeyModifiers.Alt, KeyEventType.KeyPressed | KeyEventType.KeyDown | KeyEventType.KeyReleased, Commands[(int)UserCommand.CameraMoveFast], Commands[(int)UserCommand.CameraMoveSlow]);
+            Commands[(int)UserCommand.CameraRotateUp] = new UserCommandModifiableKeyInput(0x48, KeyModifiers.Alt, KeyEventType.KeyPressed | KeyEventType.KeyDown | KeyEventType.KeyReleased, Commands[(int)UserCommand.CameraMoveFast], Commands[(int)UserCommand.CameraMoveSlow]);
+            Commands[(int)UserCommand.CameraScrollLeft] = new UserCommandModifiableKeyInput(0x4B, KeyModifiers.Alt, KeyEventType.KeyDown);
+            Commands[(int)UserCommand.CameraScrollRight] = new UserCommandModifiableKeyInput(0x4D, KeyModifiers.Alt, KeyEventType.KeyDown);
             Commands[(int)UserCommand.CameraChangePassengerViewPoint] = new UserCommandKeyInput(0x06, KeyModifiers.Shift);
             Commands[(int)UserCommand.CameraToggleLetterboxCab] = new UserCommandKeyInput(0x02, KeyModifiers.Control);
             Commands[(int)UserCommand.CameraToggleShowCab] = new UserCommandKeyInput(0x02, KeyModifiers.Shift);
             Commands[(int)UserCommand.CameraTrackside] = new UserCommandKeyInput(0x05); ;
             Commands[(int)UserCommand.CameraSpecialTracksidePoint] = new UserCommandKeyInput(0x05, KeyModifiers.Shift);
             Commands[(int)UserCommand.CameraVibrate] = new UserCommandKeyInput(0x2F, KeyModifiers.Control);
-            Commands[(int)UserCommand.CameraZoomIn] = new UserCommandModifiableKeyInput(0x49, Commands[(int)UserCommand.CameraMoveFast], Commands[(int)UserCommand.CameraMoveSlow]);
-            Commands[(int)UserCommand.CameraZoomOut] = new UserCommandModifiableKeyInput(0x51, Commands[(int)UserCommand.CameraMoveFast], Commands[(int)UserCommand.CameraMoveSlow]);
+            Commands[(int)UserCommand.CameraZoomIn] = new UserCommandModifiableKeyInput(0x49, KeyEventType.KeyPressed | KeyEventType.KeyDown | KeyEventType.KeyReleased, Commands[(int)UserCommand.CameraMoveFast], Commands[(int)UserCommand.CameraMoveSlow]);
+            Commands[(int)UserCommand.CameraZoomOut] = new UserCommandModifiableKeyInput(0x51, KeyEventType.KeyPressed | KeyEventType.KeyDown | KeyEventType.KeyReleased, Commands[(int)UserCommand.CameraMoveFast], Commands[(int)UserCommand.CameraMoveSlow]);
 
             Commands[(int)UserCommand.ControlAIFireOn] = new UserCommandKeyInput(0x23, KeyModifiers.Alt);
             Commands[(int)UserCommand.ControlAIFireOff] = new UserCommandKeyInput(0x23, KeyModifiers.Control);

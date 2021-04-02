@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+
 using Microsoft.Xna.Framework.Input;
+
 using Orts.Common.Native;
 
 namespace Orts.Common.Input
@@ -77,9 +79,9 @@ namespace Orts.Common.Input
         public static (bool Shift, bool Control, bool Alt, int ScanCode, int VirtualKey) DecomposeUniqueDescriptor(int uniqueDescriptor)
         {
             byte[] bytes = BitConverter.GetBytes(uniqueDescriptor);
-            return (((KeyModifiers)bytes[0] & KeyModifiers.Shift) != 0, 
-                ((KeyModifiers)bytes[0] & KeyModifiers.Control) != 0, 
-                ((KeyModifiers)bytes[0] & KeyModifiers.Alt) != 0, 
+            return (((KeyModifiers)bytes[0] & KeyModifiers.Shift) != 0,
+                ((KeyModifiers)bytes[0] & KeyModifiers.Control) != 0,
+                ((KeyModifiers)bytes[0] & KeyModifiers.Alt) != 0,
                 bytes[1], bytes[2]);
         }
 
@@ -108,7 +110,7 @@ namespace Orts.Common.Input
         public bool Control => (modifiers & KeyModifiers.Control) != 0;
         public bool Alt => (modifiers & KeyModifiers.Alt) != 0;
 
-        public UserCommandModifierInput(KeyModifiers modifiers):
+        public UserCommandModifierInput(KeyModifiers modifiers) :
             base(0, 0, modifiers)
         {
         }
@@ -170,23 +172,23 @@ namespace Orts.Common.Input
             KeyEventType = keyEventType;
         }
 
-        public UserCommandKeyInput(int scancode, KeyEventType keyEventType = KeyEventType.KeyPressed)
-        : this(scancode, KeyModifiers.None, keyEventType)
+        public UserCommandKeyInput(int scancode, KeyEventType keyEventType = KeyEventType.KeyPressed) :
+            this(scancode, KeyModifiers.None, keyEventType)
         {
         }
 
-        public UserCommandKeyInput(Keys virtualKey, KeyEventType keyEventType = KeyEventType.KeyPressed)
-        : this(virtualKey, KeyModifiers.None, keyEventType)
+        public UserCommandKeyInput(Keys virtualKey, KeyEventType keyEventType = KeyEventType.KeyPressed) :
+            this(virtualKey, KeyModifiers.None, keyEventType)
         {
         }
 
-        public UserCommandKeyInput(int scancode, KeyModifiers modifiers, KeyEventType keyEventType = KeyEventType.KeyPressed)
-        : this(scancode, Keys.None, modifiers, keyEventType)
+        public UserCommandKeyInput(int scancode, KeyModifiers modifiers, KeyEventType keyEventType = KeyEventType.KeyPressed) :
+            this(scancode, Keys.None, modifiers, keyEventType)
         {
         }
 
-        public UserCommandKeyInput(Keys virtualKey, KeyModifiers modifiers, KeyEventType keyEventType = KeyEventType.KeyPressed)
-        : this(0, virtualKey, modifiers, keyEventType)
+        public UserCommandKeyInput(Keys virtualKey, KeyModifiers modifiers, KeyEventType keyEventType = KeyEventType.KeyPressed) :
+            this(0, virtualKey, modifiers, keyEventType)
         {
         }
 
@@ -232,7 +234,7 @@ namespace Orts.Common.Input
 
         public override string ToString()
         {
-            return  $"{toStringPrefix[(int)modifiers]}{(modifiers == KeyModifiers.None ? string.Empty : " + ")}{(VirtualKey == Keys.None ? ScanCodeKeyUtils.GetScanCodeKeyName(ScanCode) : VirtualKey.ToString())}";
+            return $"{toStringPrefix[(int)modifiers]}{(modifiers == KeyModifiers.None ? string.Empty : " + ")}{(VirtualKey == Keys.None ? ScanCodeKeyUtils.GetScanCodeKeyName(ScanCode) : VirtualKey.ToString())}";
         }
     }
 
@@ -249,38 +251,47 @@ namespace Orts.Common.Input
 
         private readonly IEnumerable<UserCommandModifierInput> combine;
 
-        private UserCommandModifiableKeyInput(int scanCode, Keys virtualKey, KeyModifiers modifiers, KeyEventType keyEventType, IEnumerable<UserCommandInput> combine)
-            : base(scanCode, virtualKey, modifiers, keyEventType)
+        private UserCommandModifiableKeyInput(int scanCode, Keys virtualKey, KeyModifiers modifiers, KeyEventType keyEventType, IEnumerable<UserCommandInput> combine) :
+            base(scanCode, virtualKey, modifiers, keyEventType)
         {
             this.combine = combine.Cast<UserCommandModifierInput>();
             SynchronizeCombine();
         }
 
-        public UserCommandModifiableKeyInput(int scanCode, KeyModifiers modifiers, params UserCommandInput[] combine)
-            : this(scanCode, Keys.None, modifiers, KeyEventType.KeyPressed, combine)
+        public UserCommandModifiableKeyInput(int scanCode, KeyModifiers modifiers, params UserCommandInput[] combine) :
+            this(scanCode, Keys.None, modifiers, KeyEventType.KeyPressed, combine)
         {
         }
 
-        public UserCommandModifiableKeyInput(Keys key, KeyModifiers modifiers, params UserCommandInput[] combine)
-            : this(0, key, modifiers, KeyEventType.KeyPressed, combine)
+        public UserCommandModifiableKeyInput(Keys key, KeyModifiers modifiers, params UserCommandInput[] combine) :
+            this(0, key, modifiers, KeyEventType.KeyPressed, combine)
         {
         }
 
-        public UserCommandModifiableKeyInput(int scanCode, params UserCommandInput[] combine)
-            : this(scanCode, KeyModifiers.None, combine)
+        public UserCommandModifiableKeyInput(int scanCode, params UserCommandInput[] combine) :
+            this(scanCode, KeyModifiers.None, combine)
         {
         }
 
-        public UserCommandModifiableKeyInput(Keys key, params UserCommandInput[] combine)
-            : this(key, KeyModifiers.None, combine)
+        public UserCommandModifiableKeyInput(Keys key, params UserCommandInput[] combine) :
+            this(key, KeyModifiers.None, combine)
         {
         }
 
-        public UserCommandModifiableKeyInput(Keys key, KeyModifiers modifiers, KeyEventType keyEventType, params UserCommandInput[] combine)
-            : this(0, key, modifiers, keyEventType, combine)
+        public UserCommandModifiableKeyInput(Keys key, KeyModifiers modifiers, KeyEventType keyEventType, params UserCommandInput[] combine) :
+            this(0, key, modifiers, keyEventType, combine)
         {
         }
 
+        public UserCommandModifiableKeyInput(int scanCode, KeyEventType keyEventType, params UserCommandInput[] combine) :
+            this(scanCode, Keys.None, KeyModifiers.None, keyEventType, combine)
+        {
+        }
+
+        public UserCommandModifiableKeyInput(int scanCode, KeyModifiers modifiers, KeyEventType keyEventType, params UserCommandInput[] combine) :
+            this(scanCode, Keys.None, modifiers, keyEventType, combine)
+        {
+        }
 
         public override int UniqueDescriptor
         {
@@ -336,7 +347,7 @@ namespace Orts.Common.Input
         public void SynchronizeCombine()
         {
             ignoreModifiers = combine.Any(c => c.Shift) ? ignoreModifiers | KeyModifiers.Shift : ignoreModifiers & ~KeyModifiers.Shift;
-            ignoreModifiers = combine.Any(c => c.Control ) ? ignoreModifiers | KeyModifiers.Control : ignoreModifiers & ~KeyModifiers.Control;
+            ignoreModifiers = combine.Any(c => c.Control) ? ignoreModifiers | KeyModifiers.Control : ignoreModifiers & ~KeyModifiers.Control;
             ignoreModifiers = combine.Any(c => c.Alt) ? ignoreModifiers | KeyModifiers.Alt : ignoreModifiers & ~KeyModifiers.Alt;
             uniqueIdentifier |= ((byte)ignoreModifiers << 24);
         }

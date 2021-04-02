@@ -44,12 +44,19 @@ namespace Orts.Common.Input
             {
                 UserCommandModifiableKeyInput keyInput = userCommands[command] as UserCommandModifiableKeyInput;
                 List<(int keyEventCode, T command, KeyModifiers modifiers)> result = new List<(int, T, KeyModifiers)>();
-                if (keyInput.IgnoreShift)
-                    result.Add((KeyboardInputGameComponent.KeyEventCode(keyInput.Key, keyInput.Modifiers | KeyModifiers.Shift, keyInput.KeyEventType), command, keyInput.Modifiers));
-                if (keyInput.IgnoreControl)
-                    result.Add((KeyboardInputGameComponent.KeyEventCode(keyInput.Key, keyInput.Modifiers | KeyModifiers.Control, keyInput.KeyEventType), command, keyInput.Modifiers));
-                if (keyInput.IgnoreAlt)
-                    result.Add((KeyboardInputGameComponent.KeyEventCode(keyInput.Key, keyInput.Modifiers | KeyModifiers.Alt, keyInput.KeyEventType), command, keyInput.Modifiers));
+
+                foreach (KeyEventType keyEventType in EnumExtension.GetValues<KeyEventType>())
+                {
+                    if ((keyInput.KeyEventType & keyEventType) == keyEventType)
+                    {
+                        if (keyInput.IgnoreShift)
+                            result.Add((KeyboardInputGameComponent.KeyEventCode(keyInput.Key, keyInput.Modifiers | KeyModifiers.Shift, keyEventType), command, keyInput.Modifiers));
+                        if (keyInput.IgnoreControl)
+                            result.Add((KeyboardInputGameComponent.KeyEventCode(keyInput.Key, keyInput.Modifiers | KeyModifiers.Control, keyEventType), command, keyInput.Modifiers));
+                        if (keyInput.IgnoreAlt)
+                            result.Add((KeyboardInputGameComponent.KeyEventCode(keyInput.Key, keyInput.Modifiers | KeyModifiers.Alt, keyEventType), command, keyInput.Modifiers));
+                    }
+                }
                 return result;
 
             }).ToLookup(i => i.keyEventCode, c => (c.command, c.modifiers));

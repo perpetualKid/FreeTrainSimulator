@@ -71,9 +71,9 @@ namespace Orts.Common.Input
                 TouchCollection touchState;
                 if (isTouchEnabled && (touchState = TouchPanel.GetState(Game.Window).GetState()).Count > 0 && touchState[0].State != TouchLocationState.Released)
                 {
-                    if (touchState[0].TryGetPreviousLocation(out TouchLocation prev))
+                    if (touchState[0].TryGetPreviousLocation(out TouchLocation previousTouchState))
                     {
-                        mouseMoveEvents[MouseMovedEventType.MouseMovedLeftButtonDown]?.Invoke(currentMouseState.Position, (currentMouseState.Position - previousMouseState.Position).ToVector2(), gameTime);
+                        mouseMoveEvents[MouseMovedEventType.MouseMovedLeftButtonDown]?.Invoke(currentMouseState.Position, (touchState[0].Position - previousTouchState.Position), gameTime);
                     }
                 }
                 else if (currentMouseState.Position != previousMouseState.Position)

@@ -264,6 +264,8 @@ namespace Orts.ActivityRunner.Viewer3D
             LoaderProcess = game.LoaderProcess;
             SoundProcess = game.SoundProcess;
 
+            UserCommandController = new UserCommandController<UserCommand>();
+
             WellKnownCameras = new List<Camera>();
             WellKnownCameras.Add(CabCamera = new CabCamera(this));
             WellKnownCameras.Add(FrontCamera = new TrackingCamera(this, TrackingCamera.AttachedTo.Front));
@@ -399,8 +401,6 @@ namespace Orts.ActivityRunner.Viewer3D
         internal void Initialize()
         {
             #region Input Command Controller
-            UserCommandController = new UserCommandController<UserCommand>();
-
             KeyboardInputGameComponent keyboardInputGameComponent = new KeyboardInputGameComponent(Game);
             Game.Components.Add(keyboardInputGameComponent);
             KeyboardInputHandler<UserCommand> keyboardInput = new KeyboardInputHandler<UserCommand>();

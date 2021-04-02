@@ -40,6 +40,103 @@ namespace Orts.ActivityRunner.Viewer3D
 {
     public abstract class Camera
     {
+        #region Camera event Handling setup
+        private sealed class CameraEventHandler
+        {
+            private readonly Viewer viewer;
+            private static CameraEventHandler instance;
+
+            private CameraEventHandler(Viewer viewer)
+            {
+                this.viewer = viewer;
+                viewer.UserCommandController.AddEvent(UserCommand.CameraZoomIn, ZoomIn);
+                viewer.UserCommandController.AddEvent(UserCommand.CameraZoomOut, ZoomOut);
+                viewer.UserCommandController.AddEvent(UserCommand.CameraToggleLetterboxCab, ToggleLetterboxCab);
+                viewer.UserCommandController.AddEvent(UserCommand.CameraChangePassengerViewPoint, ChangePassengerViewPoint);
+                viewer.UserCommandController.AddEvent(UserCommand.CameraScrollLeft, (UserCommandArgs commandArgs, GameTime gameTime) => Scroll(false, gameTime));
+                viewer.UserCommandController.AddEvent(UserCommand.CameraScrollRight, (UserCommandArgs commandArgs, GameTime gameTime) => Scroll(true, gameTime));
+                viewer.UserCommandController.AddEvent(UserCommand.CameraRotateLeft, RotateLeft);
+                viewer.UserCommandController.AddEvent(UserCommand.CameraRotateRight, RotateRight);
+                viewer.UserCommandController.AddEvent(UserCommand.CameraRotateUp, RotateUp);
+                viewer.UserCommandController.AddEvent(UserCommand.CameraRotateDown, RotateDown);
+                viewer.UserCommandController.AddEvent(UserCommand.CameraPanLeft, PanLeft);
+                viewer.UserCommandController.AddEvent(UserCommand.CameraPanRight, PanRight);
+                viewer.UserCommandController.AddEvent(UserCommand.CameraPanUp, PanUp);
+                viewer.UserCommandController.AddEvent(UserCommand.CameraPanDown, PanDown);
+                viewer.UserCommandController.AddEvent(UserCommand.CameraCarNext, CarNext);
+                viewer.UserCommandController.AddEvent(UserCommand.CameraCarPrevious, CarPrevious);
+                viewer.UserCommandController.AddEvent(UserCommand.CameraCarFirst, CarFirst);
+                viewer.UserCommandController.AddEvent(UserCommand.CameraCarLast, CarLast);
+                viewer.UserCommandController.AddEvent(UserCommand.CameraBrowseBackwards, BrowseBackwards);
+                viewer.UserCommandController.AddEvent(UserCommand.CameraBrowseForwards, BrowseForwards);
+            }
+
+            internal static void Initialize(Viewer viewer)
+            {
+                if (null == instance)
+                {
+                    instance = new CameraEventHandler(viewer);
+                }
+            }
+
+#pragma warning disable IDE0022 // Use block body for methods
+            private void ZoomIn(UserCommandArgs commandArgs, GameTime gameTime) => viewer.Camera.Zoom(1, commandArgs, gameTime);
+
+            private void ZoomOut(UserCommandArgs commandArgs, GameTime gameTime) => viewer.Camera.Zoom(1, commandArgs, gameTime);
+
+            private void RotateRight(UserCommandArgs commandArgs, GameTime gameTime) => viewer.Camera.RotateHorizontally(1, commandArgs, gameTime);
+
+            private void RotateLeft(UserCommandArgs commandArgs, GameTime gameTime) => viewer.Camera.RotateHorizontally(-1, commandArgs, gameTime);
+
+            private void RotateUp(UserCommandArgs commandArgs, GameTime gameTime) => viewer.Camera.RotateVertically(1, commandArgs, gameTime);
+
+            private void RotateDown(UserCommandArgs commandArgs, GameTime gameTime) => viewer.Camera.RotateVertically(-1, commandArgs, gameTime);
+
+            private void PanRight(UserCommandArgs commandArgs, GameTime gameTime) => viewer.Camera.PanHorizontally(1, commandArgs, gameTime);
+
+            private void PanLeft(UserCommandArgs commandArgs, GameTime gameTime) => viewer.Camera.PanHorizontally(-1, commandArgs, gameTime);
+
+            private void PanUp(UserCommandArgs commandArgs, GameTime gameTime) => viewer.Camera.PanVertically(1, commandArgs, gameTime);
+
+            private void PanDown(UserCommandArgs commandArgs, GameTime gameTime) => viewer.Camera.PanVertically(-1, commandArgs, gameTime);
+
+            private void ToggleLetterboxCab() => viewer.Camera.ToggleLetterboxCab();
+
+            private void ChangePassengerViewPoint() => viewer.Camera.ChangePassengerViewPoint();
+
+            private void CarNext() => viewer.Camera.CarNext();
+
+            private void CarPrevious() => viewer.Camera.CarPrevious();
+
+            private void CarFirst() => viewer.Camera.CarFirst();
+
+            private void CarLast() => viewer.Camera.CarLast();
+
+            private void BrowseBackwards() => viewer.Camera.BrowseBackwards();
+
+            private void BrowseForwards() => viewer.Camera.BrowseForwards();
+
+            private void Scroll(bool right, GameTime gameTime) => viewer.Camera.Scroll(right, gameTime);
+#pragma warning restore IDE0022 // Use block body for methods
+        }
+
+        private protected virtual void Zoom(int zoomSign, UserCommandArgs commandArgs, GameTime gameTime) { }
+        private protected virtual void RotateHorizontally(int rotateSign, UserCommandArgs commandArgs, GameTime gameTime) { }
+        private protected virtual void RotateVertically(int rotateSign, UserCommandArgs commandArgs, GameTime gameTime) { }
+        private protected virtual void PanHorizontally(int panSign, UserCommandArgs commandArgs, GameTime gameTime) { }
+        private protected virtual void PanVertically(int panSign, UserCommandArgs commandArgs, GameTime gameTime) { }
+        private protected virtual void Scroll(bool right, GameTime gameTime) { }
+        private protected virtual void ToggleLetterboxCab() { }
+        private protected virtual void ChangePassengerViewPoint() { }
+        private protected virtual void CarNext() { }
+        private protected virtual void CarPrevious() { }
+        private protected virtual void CarFirst() { }
+        private protected virtual void CarLast() { }
+        private protected virtual void BrowseBackwards() { }
+        private protected virtual void BrowseForwards() { }
+
+
+        #endregion
         protected double CommandStartTime;
 
         // 2.1 sets the limit at just under a right angle as get unwanted swivel at the full right angle.
@@ -56,8 +153,8 @@ namespace Orts.ActivityRunner.Viewer3D
         protected int MouseScrollValue;
         protected internal float FieldOfView;
 
-        protected Matrix xnaView;
-        public ref Matrix XnaView => ref xnaView; 
+        private Matrix xnaView;
+        public ref Matrix XnaView => ref xnaView;
 
         private Matrix projection;
         private static Matrix skyProjection;
@@ -96,6 +193,7 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             Viewer = viewer;
             FieldOfView = Viewer.Settings.ViewingFOV;
+            CameraEventHandler.Initialize(viewer);
         }
 
         protected Camera(Viewer viewer, Camera previousCamera) // maintain visual continuity
@@ -256,6 +354,19 @@ namespace Orts.ActivityRunner.Viewer3D
             return true;
         }
 
+        private protected static float GetSpeed(GameTime gameTime, UserCommandArgs userCommandArgs, Viewer viewer)
+        {
+            double speed = 5 * gameTime.ElapsedGameTime.TotalSeconds;
+            if (userCommandArgs is ModifiableKeyCommandArgs modifiableKeyCommandArgs)
+            {
+                if (modifiableKeyCommandArgs.AddtionalModifiers.HasFlag(viewer.Settings.Input.CameraMoveFastModifier))
+                    speed *= SpeedFactorFastSlow;
+                else if (modifiableKeyCommandArgs.AddtionalModifiers.HasFlag(viewer.Settings.Input.CameraMoveSlowModifier))
+                    speed /= SpeedFactorFastSlow;
+            }
+            return (float)speed;
+        }
+
         protected static float GetSpeed(in ElapsedTime elapsedTime)
         {
             var speed = 5 * elapsedTime.RealSeconds;
@@ -406,8 +517,6 @@ namespace Orts.ActivityRunner.Viewer3D
         public float? YTargetRadians;
         public float? ZTargetRadians;
         public double EndTime;
-
-        protected float axisZSpeedBoost = 1.0f;
 
         protected RotatingCamera(Viewer viewer)
             : base(viewer)
@@ -618,81 +727,119 @@ namespace Orts.ActivityRunner.Viewer3D
             // Intentionally do nothing at all.
         }
 
-        public override void HandleUserInput(in ElapsedTime elapsedTime)
+        private protected override void Zoom(int zoomSign, UserCommandArgs commandArgs, GameTime gameTime)
         {
-            if (UserInput.IsDown(UserCommand.CameraZoomIn) || UserInput.IsDown(UserCommand.CameraZoomOut))
+            if (commandArgs is KeyCommandArgs keyCommandArgs)
             {
-                var elevation = Viewer.Tiles.GetElevation(cameraLocation);
-                if (cameraLocation.Location.Y < elevation)
-                    axisZSpeedBoost = 1;
-                else
+                switch (keyCommandArgs.KeyEventType)
                 {
-                    cameraLocation = cameraLocation.SetElevation(MathHelper.Min(cameraLocation.Location.Y, elevation + maxCameraHeight));
-                    float cameraRelativeHeight = cameraLocation.Location.Y - elevation;
-                    axisZSpeedBoost = ((cameraRelativeHeight / maxCameraHeight) * 50) + 1;
+                    case KeyEventType.KeyDown:
+                        float speed = GetSpeed(gameTime, commandArgs, Viewer);
+                        ZoomIn(zoomSign * speed * ZoomFactor);
+                        break;
+                    case KeyEventType.KeyPressed:
+                        Viewer.CheckReplaying();
+                        CommandStartTime = Viewer.Simulator.ClockTime;
+                        break;
+                    case KeyEventType.KeyReleased:
+                        _ = new CameraZCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, ZRadians);
+                        break;
                 }
             }
+        }
 
+        private protected override void RotateHorizontally(int rotateSign, UserCommandArgs commandArgs, GameTime gameTime)
+        {
+            if (commandArgs is KeyCommandArgs keyCommandArgs)
+            {
+                switch (keyCommandArgs.KeyEventType)
+                {
+                    case KeyEventType.KeyDown:
+                        float speed = GetSpeed(gameTime, commandArgs, Viewer) * SpeedAdjustmentForRotation;
+                        RotateRight(rotateSign * speed);
+                        break;
+                    case KeyEventType.KeyPressed:
+                        Viewer.CheckReplaying();
+                        CommandStartTime = Viewer.Simulator.ClockTime;
+                        break;
+                    case KeyEventType.KeyReleased:
+                        _ = new CameraRotateLeftRightCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, RotationYRadians);
+                        break;
+                }
+            }
+        }
+
+        private protected override void RotateVertically(int rotateSign, UserCommandArgs commandArgs, GameTime gameTime)
+        {
+            if (commandArgs is KeyCommandArgs keyCommandArgs)
+            {
+                switch (keyCommandArgs.KeyEventType)
+                {
+                    case KeyEventType.KeyDown:
+                        float speed = GetSpeed(gameTime, commandArgs, Viewer) * SpeedAdjustmentForRotation;
+                        RotateDown(-rotateSign * speed);
+                        break;
+                    case KeyEventType.KeyPressed:
+                        Viewer.CheckReplaying();
+                        CommandStartTime = Viewer.Simulator.ClockTime;
+                        break;
+                    case KeyEventType.KeyReleased:
+                        _ = new CameraRotateUpDownCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, RotationXRadians);
+                        break;
+                }
+            }
+        }
+
+        private protected override void PanHorizontally(int panSign, UserCommandArgs commandArgs, GameTime gameTime)
+        {
+            if (commandArgs is KeyCommandArgs keyCommandArgs)
+            {
+                switch (keyCommandArgs.KeyEventType)
+                {
+                    case KeyEventType.KeyDown:
+                        float speed = GetSpeed(gameTime, commandArgs, Viewer);
+                        PanRight(panSign * speed);
+                        break;
+                    case KeyEventType.KeyPressed:
+                        Viewer.CheckReplaying();
+                        CommandStartTime = Viewer.Simulator.ClockTime;
+                        break;
+                    case KeyEventType.KeyReleased:
+                        _ = new CameraXCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, XRadians);
+                        break;
+                }
+            }
+        }
+
+        private protected override void PanVertically(int panSign, UserCommandArgs commandArgs, GameTime gameTime)
+        {
+            if (commandArgs is KeyCommandArgs keyCommandArgs)
+            {
+                switch (keyCommandArgs.KeyEventType)
+                {
+                    case KeyEventType.KeyDown:
+                        float speed = GetSpeed(gameTime, commandArgs, Viewer);
+                        PanUp(panSign * speed);
+                        break;
+                    case KeyEventType.KeyPressed:
+                        Viewer.CheckReplaying();
+                        CommandStartTime = Viewer.Simulator.ClockTime;
+                        break;
+                    case KeyEventType.KeyReleased:
+                        _ = new CameraYCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, YRadians);
+                        break;
+                }
+            }
+        }
+
+        public override void HandleUserInput(in ElapsedTime elapsedTime)
+        {
             var speed = GetSpeed(elapsedTime);
 
             // Pan and zoom camera
-            if (UserInput.IsDown(UserCommand.CameraPanRight)) PanRight(speed);
-            if (UserInput.IsDown(UserCommand.CameraPanLeft)) PanRight(-speed);
-            if (UserInput.IsDown(UserCommand.CameraPanUp)) PanUp(speed);
-            if (UserInput.IsDown(UserCommand.CameraPanDown)) PanUp(-speed);
-            if (UserInput.IsDown(UserCommand.CameraZoomIn)) ZoomIn(speed * ZoomFactor);
-            if (UserInput.IsDown(UserCommand.CameraZoomOut)) ZoomIn(-speed * ZoomFactor);
             ZoomByMouseWheel(speed);
 
-            if (UserInput.IsPressed(UserCommand.CameraPanRight) || UserInput.IsPressed(UserCommand.CameraPanLeft))
-            {
-                Viewer.CheckReplaying();
-                CommandStartTime = Viewer.Simulator.ClockTime;
-            }
-            if (UserInput.IsReleased(UserCommand.CameraPanRight) || UserInput.IsReleased(UserCommand.CameraPanLeft))
-                new CameraXCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, XRadians);
-
-            if (UserInput.IsPressed(UserCommand.CameraPanUp) || UserInput.IsPressed(UserCommand.CameraPanDown))
-            {
-                Viewer.CheckReplaying();
-                CommandStartTime = Viewer.Simulator.ClockTime;
-            }
-            if (UserInput.IsReleased(UserCommand.CameraPanUp) || UserInput.IsReleased(UserCommand.CameraPanDown))
-                new CameraYCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, YRadians);
-
-            if (UserInput.IsPressed(UserCommand.CameraZoomIn) || UserInput.IsPressed(UserCommand.CameraZoomOut))
-            {
-                Viewer.CheckReplaying();
-                CommandStartTime = Viewer.Simulator.ClockTime;
-            }
-            if (UserInput.IsReleased(UserCommand.CameraZoomIn) || UserInput.IsReleased(UserCommand.CameraZoomOut))
-                new CameraZCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, ZRadians);
-
-            speed *= SpeedAdjustmentForRotation;
             RotateByMouse();
-
-            // Rotate camera
-            if (UserInput.IsDown(UserCommand.CameraRotateUp)) RotateDown(-speed);
-            if (UserInput.IsDown(UserCommand.CameraRotateDown)) RotateDown(speed);
-            if (UserInput.IsDown(UserCommand.CameraRotateLeft)) RotateRight(-speed);
-            if (UserInput.IsDown(UserCommand.CameraRotateRight)) RotateRight(speed);
-
-            // Support for replaying camera rotation movements
-            if (UserInput.IsPressed(UserCommand.CameraRotateUp) || UserInput.IsPressed(UserCommand.CameraRotateDown))
-            {
-                Viewer.CheckReplaying();
-                CommandStartTime = Viewer.Simulator.ClockTime;
-            }
-            if (UserInput.IsReleased(UserCommand.CameraRotateUp) || UserInput.IsReleased(UserCommand.CameraRotateDown))
-                new CameraRotateUpDownCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, RotationXRadians);
-
-            if (UserInput.IsPressed(UserCommand.CameraRotateLeft) || UserInput.IsPressed(UserCommand.CameraRotateRight))
-            {
-                Viewer.CheckReplaying();
-                CommandStartTime = Viewer.Simulator.ClockTime;
-            }
-            if (UserInput.IsReleased(UserCommand.CameraRotateLeft) || UserInput.IsReleased(UserCommand.CameraRotateRight))
-                new CameraRotateLeftRightCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, RotationYRadians);
         }
 
         public override void Update(in ElapsedTime elapsedTime)
@@ -808,7 +955,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 if (carIndex < Viewer.SelectedTrain.Cars.Count)
                     attachedCar = Viewer.SelectedTrain.Cars[carIndex];
                 else if (Viewer.SelectedTrain.Cars.Count > 0)
-                    attachedCar = Viewer.SelectedTrain.Cars[Viewer.SelectedTrain.Cars.Count -1];
+                    attachedCar = Viewer.SelectedTrain.Cars[Viewer.SelectedTrain.Cars.Count - 1];
             }
             attachedLocation.X = inf.ReadSingle();
             attachedLocation.Y = inf.ReadSingle();
@@ -841,18 +988,6 @@ namespace Orts.ActivityRunner.Viewer3D
         protected virtual bool IsCameraFlipped()
         {
             return false;
-        }
-
-        protected void MoveCar()
-        {
-            if (UserInput.IsPressed(UserCommand.CameraCarNext))
-                new NextCarCommand(Viewer.Log);
-            else if (UserInput.IsPressed(UserCommand.CameraCarPrevious))
-                new PreviousCarCommand(Viewer.Log);
-            else if (UserInput.IsPressed(UserCommand.CameraCarFirst))
-                new FirstCarCommand(Viewer.Log);
-            else if (UserInput.IsPressed(UserCommand.CameraCarLast))
-                new LastCarCommand(Viewer.Log);
         }
 
         public virtual void NextCar()
@@ -924,7 +1059,7 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             if (attachedCar != null)
             {
-                Vector3 source = IsCameraFlipped() ? new Vector3(-attachedLocation.X, attachedLocation.Y, attachedLocation.Z) : 
+                Vector3 source = IsCameraFlipped() ? new Vector3(-attachedLocation.X, attachedLocation.Y, attachedLocation.Z) :
                     new Vector3(attachedLocation.X, attachedLocation.Y, -attachedLocation.Z);
                 Vector3.Transform(source, attachedCar.WorldPosition.XNAMatrix).Deconstruct(out float x, out float y, out float z);
                 cameraLocation = new WorldLocation(attachedCar.WorldPosition.TileX, attachedCar.WorldPosition.TileZ, x, y, -z);
@@ -951,8 +1086,8 @@ namespace Orts.ActivityRunner.Viewer3D
         public float? PositionXTargetRadians;
         public float? PositionYTargetRadians;
 
-        protected bool BrowseBackwards;
-        protected bool BrowseForwards;
+        protected bool browseBackwards;
+        protected bool browseForwards;
         const float BrowseSpeedMpS = 4;
         protected float ZDistanceM; // used to browse train;
         protected Traveller browsedTraveller;
@@ -988,8 +1123,8 @@ namespace Orts.ActivityRunner.Viewer3D
             outf.Write(PositionXRadians);
             outf.Write(PositionYRadians);
             outf.Write(BrowseMode);
-            outf.Write(BrowseForwards);
-            outf.Write(BrowseBackwards);
+            outf.Write(browseForwards);
+            outf.Write(browseBackwards);
             outf.Write(ZDistanceM);
         }
 
@@ -1000,8 +1135,8 @@ namespace Orts.ActivityRunner.Viewer3D
             PositionXRadians = inf.ReadSingle();
             PositionYRadians = inf.ReadSingle();
             BrowseMode = inf.ReadBoolean();
-            BrowseForwards = inf.ReadBoolean();
-            BrowseBackwards = inf.ReadBoolean();
+            browseForwards = inf.ReadBoolean();
+            browseBackwards = inf.ReadBoolean();
             ZDistanceM = inf.ReadSingle();
             if (attachedCar != null && attachedCar.Train == Viewer.SelectedTrain)
             {
@@ -1034,7 +1169,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         protected override void OnActivate(bool sameCamera)
         {
-            BrowseMode = BrowseForwards = BrowseBackwards = false;
+            BrowseMode = browseForwards = browseBackwards = false;
             if (attachedCar == null || attachedCar.Train != Viewer.SelectedTrain)
             {
                 if (Front)
@@ -1064,78 +1199,148 @@ namespace Orts.ActivityRunner.Viewer3D
             return BrowseMode ? false : attachedCar.Flipped;
         }
 
+        private protected override void Zoom(int zoomSign, UserCommandArgs commandArgs, GameTime gameTime)
+        {
+            if (commandArgs is KeyCommandArgs keyCommandArgs)
+            {
+                switch (keyCommandArgs.KeyEventType)
+                {
+                    case KeyEventType.KeyDown:
+                        float speed = GetSpeed(gameTime, commandArgs, Viewer);
+                        ZoomIn(zoomSign * speed * ZoomFactor);
+                        break;
+                    case KeyEventType.KeyPressed:
+                        Viewer.CheckReplaying();
+                        CommandStartTime = Viewer.Simulator.ClockTime;
+                        break;
+                    case KeyEventType.KeyReleased:
+                        _ = new TrackingCameraZCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, PositionDistance);
+                        break;
+                }
+            }
+        }
+
+        private protected override void RotateHorizontally(int rotateSign, UserCommandArgs commandArgs, GameTime gameTime)
+        {
+            if (commandArgs is KeyCommandArgs keyCommandArgs)
+            {
+                switch (keyCommandArgs.KeyEventType)
+                {
+                    case KeyEventType.KeyDown:
+                        float speed = GetSpeed(gameTime, commandArgs, Viewer) * SpeedAdjustmentForRotation;
+                        RotateRight(rotateSign * speed);
+                        break;
+                    case KeyEventType.KeyPressed:
+                        Viewer.CheckReplaying();
+                        CommandStartTime = Viewer.Simulator.ClockTime;
+                        break;
+                    case KeyEventType.KeyReleased:
+                        _ = new CameraRotateLeftRightCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, RotationYRadians);
+                        break;
+                }
+            }
+        }
+
+        private protected override void RotateVertically(int rotateSign, UserCommandArgs commandArgs, GameTime gameTime)
+        {
+            if (commandArgs is KeyCommandArgs keyCommandArgs)
+            {
+                switch (keyCommandArgs.KeyEventType)
+                {
+                    case KeyEventType.KeyDown:
+                        float speed = GetSpeed(gameTime, commandArgs, Viewer) * SpeedAdjustmentForRotation;
+                        RotateDown(-rotateSign * speed);
+                        break;
+                    case KeyEventType.KeyPressed:
+                        Viewer.CheckReplaying();
+                        CommandStartTime = Viewer.Simulator.ClockTime;
+                        break;
+                    case KeyEventType.KeyReleased:
+                        _ = new CameraRotateUpDownCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, RotationXRadians);
+                        break;
+                }
+            }
+        }
+
+        private protected override void PanHorizontally(int panSign, UserCommandArgs commandArgs, GameTime gameTime)
+        {
+            if (commandArgs is KeyCommandArgs keyCommandArgs)
+            {
+                switch (keyCommandArgs.KeyEventType)
+                {
+                    case KeyEventType.KeyDown:
+                        float speed = GetSpeed(gameTime, commandArgs, Viewer) * SpeedAdjustmentForRotation;
+                        PanRight(panSign * speed);
+                        break;
+                    case KeyEventType.KeyPressed:
+                        Viewer.CheckReplaying();
+                        CommandStartTime = Viewer.Simulator.ClockTime;
+                        break;
+                    case KeyEventType.KeyReleased:
+                        _ = new TrackingCameraXCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, PositionXRadians);
+                        break;
+                }
+            }
+        }
+
+        private protected override void PanVertically(int panSign, UserCommandArgs commandArgs, GameTime gameTime)
+        {
+            if (commandArgs is KeyCommandArgs keyCommandArgs)
+            {
+                switch (keyCommandArgs.KeyEventType)
+                {
+                    case KeyEventType.KeyDown:
+                        float speed = GetSpeed(gameTime, commandArgs, Viewer) * SpeedAdjustmentForRotation;
+                        PanUp(panSign * speed);
+                        break;
+                    case KeyEventType.KeyPressed:
+                        Viewer.CheckReplaying();
+                        CommandStartTime = Viewer.Simulator.ClockTime;
+                        break;
+                    case KeyEventType.KeyReleased:
+                        _ = new TrackingCameraYCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, PositionYRadians);
+                        break;
+                }
+            }
+        }
+
+        private protected override void CarFirst()
+        {
+            _ = new FirstCarCommand(Viewer.Log);
+        }
+
+        private protected override void CarLast()
+        {
+            _ = new LastCarCommand(Viewer.Log);
+        }
+
+        private protected override void CarPrevious()
+        {
+            _ = new PreviousCarCommand(Viewer.Log);
+        }
+
+        private protected override void CarNext()
+        {
+            _ = new NextCarCommand(Viewer.Log);
+        }
+
+        private protected override void BrowseForwards()
+        {
+            _=new ToggleBrowseForwardsCommand(Viewer.Log);
+        }
+
+        private protected override void BrowseBackwards()
+        {
+            _=new ToggleBrowseBackwardsCommand(Viewer.Log);
+        }
+
         public override void HandleUserInput(in ElapsedTime elapsedTime)
         {
-            MoveCar();
-
             var speed = GetSpeed(elapsedTime);
 
-            if (UserInput.IsDown(UserCommand.CameraZoomOut)) ZoomIn(speed * ZoomFactor);
-            if (UserInput.IsDown(UserCommand.CameraZoomIn)) ZoomIn(-speed * ZoomFactor);
             ZoomByMouseWheel(speed);
 
-            if (UserInput.IsPressed(UserCommand.CameraZoomOut) || UserInput.IsPressed(UserCommand.CameraZoomIn))
-            {
-                Viewer.CheckReplaying();
-                CommandStartTime = Viewer.Simulator.ClockTime;
-            }
-            if (UserInput.IsReleased(UserCommand.CameraZoomOut) || UserInput.IsReleased(UserCommand.CameraZoomIn))
-                new TrackingCameraZCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, PositionDistance);
-
-            speed = GetSpeed(elapsedTime) * SpeedAdjustmentForRotation;
-
-            // Pan camera
-            if (UserInput.IsDown(UserCommand.CameraPanUp)) PanUp(speed);
-            if (UserInput.IsDown(UserCommand.CameraPanDown)) PanUp(-speed);
-            if (UserInput.IsDown(UserCommand.CameraPanLeft)) PanRight(speed);
-            if (UserInput.IsDown(UserCommand.CameraPanRight)) PanRight(-speed);
-
-            // Support for replaying camera pan movements
-            if (UserInput.IsPressed(UserCommand.CameraPanUp) || UserInput.IsPressed(UserCommand.CameraPanDown))
-            {
-                Viewer.CheckReplaying();
-                CommandStartTime = Viewer.Simulator.ClockTime;
-            }
-            if (UserInput.IsReleased(UserCommand.CameraPanUp) || UserInput.IsReleased(UserCommand.CameraPanDown))
-                new TrackingCameraXCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, PositionXRadians);
-
-            if (UserInput.IsPressed(UserCommand.CameraPanLeft) || UserInput.IsPressed(UserCommand.CameraPanRight))
-            {
-                Viewer.CheckReplaying();
-                CommandStartTime = Viewer.Simulator.ClockTime;
-            }
-            if (UserInput.IsReleased(UserCommand.CameraPanLeft) || UserInput.IsReleased(UserCommand.CameraPanRight))
-                new TrackingCameraYCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, PositionYRadians);
-
             RotateByMouse();
-
-            // Rotate camera
-            if (UserInput.IsDown(UserCommand.CameraRotateUp)) RotateDown(-speed);
-            if (UserInput.IsDown(UserCommand.CameraRotateDown)) RotateDown(speed);
-            if (UserInput.IsDown(UserCommand.CameraRotateLeft)) RotateRight(-speed);
-            if (UserInput.IsDown(UserCommand.CameraRotateRight)) RotateRight(speed);
-
-            // Support for replaying camera rotation movements
-            if (UserInput.IsPressed(UserCommand.CameraRotateUp) || UserInput.IsPressed(UserCommand.CameraRotateDown))
-            {
-                Viewer.CheckReplaying();
-                CommandStartTime = Viewer.Simulator.ClockTime;
-            }
-            if (UserInput.IsReleased(UserCommand.CameraRotateUp) || UserInput.IsReleased(UserCommand.CameraRotateDown))
-                new CameraRotateUpDownCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, RotationXRadians);
-
-            if (UserInput.IsPressed(UserCommand.CameraRotateLeft) || UserInput.IsPressed(UserCommand.CameraRotateRight))
-            {
-                Viewer.CheckReplaying();
-                CommandStartTime = Viewer.Simulator.ClockTime;
-            }
-            if (UserInput.IsReleased(UserCommand.CameraRotateLeft) || UserInput.IsReleased(UserCommand.CameraRotateRight))
-                new CameraRotateLeftRightCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, RotationYRadians);
-
-            if (UserInput.IsPressed(UserCommand.CameraBrowseBackwards))
-                new ToggleBrowseBackwardsCommand(Viewer.Log);
-            if (UserInput.IsPressed(UserCommand.CameraBrowseForwards))
-                new ToggleBrowseForwardsCommand(Viewer.Log);
         }
 
         public override void Update(in ElapsedTime elapsedTime)
@@ -1202,7 +1407,7 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 UpdateTrainBrowsing(elapsedTime);
                 attachedLocation.Z += BrowseDistance * (Front ? 1 : -1);
-                LookedAtPosition = new WorldPosition(browsedTraveller.TileX, browsedTraveller.TileZ, 
+                LookedAtPosition = new WorldPosition(browsedTraveller.TileX, browsedTraveller.TileZ,
                     Matrix.CreateFromYawPitchRoll(-browsedTraveller.RotY, 0, 0)).SetTranslation(browsedTraveller.X, browsedTraveller.Y, -browsedTraveller.Z);
             }
             else if (attachedCar != null)
@@ -1216,15 +1421,15 @@ namespace Orts.ActivityRunner.Viewer3D
         protected void UpdateTrainBrowsing(in ElapsedTime elapsedTime)
         {
             var trainCars = GetCameraCars();
-            if (BrowseBackwards)
+            if (browseBackwards)
             {
                 var ZIncrM = -BrowseSpeedMpS * elapsedTime.ClockSeconds;
                 ZDistanceM += (float)ZIncrM;
-                if (-ZDistanceM >= attachedCar.Train.Length - (trainCars.First().CarLengthM  + trainCars.Last().CarLengthM) * 0.5f)
+                if (-ZDistanceM >= attachedCar.Train.Length - (trainCars.First().CarLengthM + trainCars.Last().CarLengthM) * 0.5f)
                 {
                     ZIncrM = -attachedCar.Train.Length + (trainCars.First().CarLengthM + trainCars.Last().CarLengthM) * 0.5f - (ZDistanceM - ZIncrM);
                     ZDistanceM = -attachedCar.Train.Length + (trainCars.First().CarLengthM + trainCars.Last().CarLengthM) * 0.5f;
-                    BrowseBackwards = false;
+                    browseBackwards = false;
                 }
                 else if (ZDistanceM < LowWagonOffsetLimit)
                 {
@@ -1234,7 +1439,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 }
                 browsedTraveller.Move(elapsedTime.ClockSeconds * attachedCar.Train.SpeedMpS + ZIncrM);
             }
-            else if (BrowseForwards)
+            else if (browseForwards)
             {
                 var ZIncrM = BrowseSpeedMpS * elapsedTime.ClockSeconds;
                 ZDistanceM += (float)ZIncrM;
@@ -1242,7 +1447,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 {
                     ZIncrM = ZIncrM - ZDistanceM;
                     ZDistanceM = 0;
-                    BrowseForwards = false;
+                    browseForwards = false;
                 }
                 else if (ZDistanceM > HighWagonOffsetLimit)
                 {
@@ -1255,7 +1460,7 @@ namespace Orts.ActivityRunner.Viewer3D
             else browsedTraveller.Move(elapsedTime.ClockSeconds * attachedCar.Train.SpeedMpS);
         }
 
-        protected void ComputeCarOffsets( TrackingCamera camera)
+        protected void ComputeCarOffsets(TrackingCamera camera)
         {
             var trainCars = camera.GetCameraCars();
             camera.HighWagonOffsetLimit = trainCars.First().CarLengthM * 0.5f;
@@ -1334,7 +1539,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             // adjust and swap data for camera browsing
 
-            newCamera.BrowseForwards = newCamera.BrowseBackwards = false;
+            newCamera.browseForwards = newCamera.browseBackwards = false;
             var trainCars = newCamera.GetCameraCars();
             newCamera.ZDistanceM = -newCamera.attachedCar.Train.Length + (trainCars.First().CarLengthM + trainCars.Last().CarLengthM) * 0.5f - oldCamera.ZDistanceM;
             ComputeCarOffsets(newCamera);
@@ -1344,8 +1549,8 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public override void NextCar()
         {
-            BrowseBackwards = false;
-            BrowseForwards = false;
+            browseBackwards = false;
+            browseForwards = false;
             BrowseMode = false;
             var trainCars = GetCameraCars();
             var wasFirstCar = attachedCar == trainCars.First();
@@ -1356,13 +1561,13 @@ namespace Orts.ActivityRunner.Viewer3D
                 HighWagonOffsetLimit += attachedCar.CarLengthM;
                 ZDistanceM = LowWagonOffsetLimit + attachedCar.CarLengthM * 0.5f;
             }
- //           LookedAtPosition = new WorldPosition(attachedCar.WorldPosition);
+            //           LookedAtPosition = new WorldPosition(attachedCar.WorldPosition);
         }
 
         public override void PreviousCar()
         {
-            BrowseBackwards = false;
-            BrowseForwards = false;
+            browseBackwards = false;
+            browseForwards = false;
             BrowseMode = false;
             var trainCars = GetCameraCars();
             var wasLastCar = attachedCar == trainCars.Last();
@@ -1373,108 +1578,185 @@ namespace Orts.ActivityRunner.Viewer3D
                 LowWagonOffsetLimit -= attachedCar.CarLengthM;
                 ZDistanceM = LowWagonOffsetLimit + attachedCar.CarLengthM * 0.5f;
             }
- //           LookedAtPosition = new WorldPosition(attachedCar.WorldPosition);
+            //           LookedAtPosition = new WorldPosition(attachedCar.WorldPosition);
         }
 
         public override void FirstCar()
         {
-            BrowseBackwards = false;
-            BrowseForwards = false;
+            browseBackwards = false;
+            browseForwards = false;
             BrowseMode = false;
             base.FirstCar();
             ZDistanceM = 0;
             HighWagonOffsetLimit = attachedCar.CarLengthM * 0.5f;
             LowWagonOffsetLimit = -attachedCar.CarLengthM * 0.5f;
-//            LookedAtPosition = new WorldPosition(attachedCar.WorldPosition);
+            //            LookedAtPosition = new WorldPosition(attachedCar.WorldPosition);
         }
 
         public override void LastCar()
         {
-            BrowseBackwards = false;
-            BrowseForwards = false;
+            browseBackwards = false;
+            browseForwards = false;
             BrowseMode = false;
             base.LastCar();
             var trainCars = GetCameraCars();
             ZDistanceM = -attachedCar.Train.Length + (trainCars.First().CarLengthM + trainCars.Last().CarLengthM) * 0.5f;
             LowWagonOffsetLimit = -attachedCar.Train.Length + trainCars.First().CarLengthM * 0.5f;
             HighWagonOffsetLimit = LowWagonOffsetLimit + attachedCar.CarLengthM;
-//            LookedAtPosition = new WorldPosition(attachedCar.WorldPosition);
+            //            LookedAtPosition = new WorldPosition(attachedCar.WorldPosition);
         }
 
         public void ToggleBrowseBackwards()
         {
-            BrowseBackwards = !BrowseBackwards;
-            if (BrowseBackwards)
+            browseBackwards = !browseBackwards;
+            if (browseBackwards)
             {
                 if (!BrowseMode)
                 {
-//                    LookedAtPosition = new WorldPosition(attachedCar.WorldPosition);
+                    //                    LookedAtPosition = new WorldPosition(attachedCar.WorldPosition);
                     browsedTraveller = new Traveller(attachedCar.Train.FrontTDBTraveller);
                     browsedTraveller.Move(-attachedCar.CarLengthM * 0.5f + ZDistanceM);
                     BrowseDistance = attachedCar.CarLengthM * 0.5f;
                     BrowseMode = true;
                 }
             }
-            BrowseForwards = false;
+            browseForwards = false;
         }
 
         public void ToggleBrowseForwards()
         {
-            BrowseForwards = !BrowseForwards;
-            if (BrowseForwards)
+            browseForwards = !browseForwards;
+            if (browseForwards)
             {
                 if (!BrowseMode)
                 {
-//                    LookedAtPosition = new WorldPosition(attachedCar.WorldPosition);
+                    //                    LookedAtPosition = new WorldPosition(attachedCar.WorldPosition);
                     browsedTraveller = new Traveller(attachedCar.Train.RearTDBTraveller);
                     var trainCars = GetCameraCars();
                     browsedTraveller.Move((attachedCar.CarLengthM - trainCars.First().CarLengthM - trainCars.Last().CarLengthM) * 0.5f + attachedCar.Train.Length + ZDistanceM);
                     BrowseDistance = attachedCar.CarLengthM * 0.5f;
                     BrowseMode = true;
                 }
-            }          
-            BrowseBackwards = false;
+            }
+            browseBackwards = false;
         }
     }
-    
+
     public abstract class NonTrackingCamera : AttachedCamera
     {
-        public NonTrackingCamera(Viewer viewer)
+        protected NonTrackingCamera(Viewer viewer)
             : base(viewer)
         {
         }
 
+        private protected override void RotateHorizontally(int rotateSign, UserCommandArgs commandArgs, GameTime gameTime)
+        {
+            if (commandArgs is KeyCommandArgs keyCommandArgs)
+            {
+                switch (keyCommandArgs.KeyEventType)
+                {
+                    case KeyEventType.KeyDown:
+                        float speed = GetSpeed(gameTime, commandArgs, Viewer) * SpeedAdjustmentForRotation;
+                        RotateRight(rotateSign * speed);
+                        break;
+                    case KeyEventType.KeyPressed:
+                        CommandStartTime = Viewer.Simulator.ClockTime;
+                        break;
+                    case KeyEventType.KeyReleased:
+                        _ = new CameraRotateLeftRightCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, RotationYRadians);
+                        break;
+                }
+            }
+        }
+
+        private protected override void RotateVertically(int rotateSign, UserCommandArgs commandArgs, GameTime gameTime)
+        {
+            if (commandArgs is KeyCommandArgs keyCommandArgs)
+            {
+                switch (keyCommandArgs.KeyEventType)
+                {
+                    case KeyEventType.KeyDown:
+                        float speed = GetSpeed(gameTime, commandArgs, Viewer) * SpeedAdjustmentForRotation;
+                        RotateDown(-rotateSign * speed);
+                        break;
+                    case KeyEventType.KeyPressed:
+                        CommandStartTime = Viewer.Simulator.ClockTime;
+                        break;
+                    case KeyEventType.KeyReleased:
+                        _ = new CameraRotateUpDownCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, RotationXRadians);
+                        break;
+                }
+            }
+        }
+
+        private protected override void PanHorizontally(int panSign, UserCommandArgs commandArgs, GameTime gameTime)
+        {
+            if (commandArgs is KeyCommandArgs keyCommandArgs)
+            {
+                switch (keyCommandArgs.KeyEventType)
+                {
+                    case KeyEventType.KeyDown:
+                        float speed = GetSpeed(gameTime, commandArgs, Viewer) * SpeedAdjustmentForRotation;
+                        RotateRight(panSign * speed);
+                        break;
+                    case KeyEventType.KeyPressed:
+                        CommandStartTime = Viewer.Simulator.ClockTime;
+                        break;
+                    case KeyEventType.KeyReleased:
+                        _ = new CameraRotateLeftRightCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, RotationYRadians);
+                        break;
+                }
+            }
+        }
+
+        private protected override void PanVertically(int panSign, UserCommandArgs commandArgs, GameTime gameTime)
+        {
+            if (commandArgs is KeyCommandArgs keyCommandArgs)
+            {
+                switch (keyCommandArgs.KeyEventType)
+                {
+                    case KeyEventType.KeyDown:
+                        float speed = GetSpeed(gameTime, commandArgs, Viewer) * SpeedAdjustmentForRotation;
+                        RotateDown(-panSign * speed);
+                        break;
+                    case KeyEventType.KeyPressed:
+                        CommandStartTime = Viewer.Simulator.ClockTime;
+                        break;
+                    case KeyEventType.KeyReleased:
+                        _ = new CameraRotateUpDownCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, RotationXRadians);
+                        break;
+                }
+            }
+        }
+
+        private protected override void CarFirst()
+        {
+            _ = new FirstCarCommand(Viewer.Log);
+        }
+
+        private protected override void CarLast()
+        {
+            _ = new LastCarCommand(Viewer.Log);
+        }
+
+        private protected override void CarPrevious()
+        {
+            _ = new PreviousCarCommand(Viewer.Log);
+        }
+
+        private protected override void CarNext()
+        {
+            _ = new NextCarCommand(Viewer.Log);
+        }
+
         public override void HandleUserInput(in ElapsedTime elapsedTime)
         {
-            MoveCar();
-
             RotateByMouse();
 
             var speed = GetSpeed(elapsedTime) * SpeedAdjustmentForRotation;
 
-            // Rotate camera
-            if (UserInput.IsDown(UserCommand.CameraRotateUp) || UserInput.IsDown(UserCommand.CameraPanUp)) RotateDown(-speed);
-            if (UserInput.IsDown(UserCommand.CameraRotateDown) || UserInput.IsDown(UserCommand.CameraPanDown)) RotateDown(speed);
-            if (UserInput.IsDown(UserCommand.CameraRotateLeft) || UserInput.IsDown(UserCommand.CameraPanLeft)) RotateRight(-speed);
-            if (UserInput.IsDown(UserCommand.CameraRotateRight) || UserInput.IsDown(UserCommand.CameraPanRight)) RotateRight(speed);
-
             // Zoom
             ZoomByMouseWheel(speed);
-
-            // Support for replaying camera rotation movements
-            if (UserInput.IsPressed(UserCommand.CameraRotateUp) || UserInput.IsPressed(UserCommand.CameraRotateDown)
-                || UserInput.IsPressed(UserCommand.CameraPanUp) || UserInput.IsPressed(UserCommand.CameraPanDown))
-                CommandStartTime = Viewer.Simulator.ClockTime;
-            if (UserInput.IsReleased(UserCommand.CameraRotateUp) || UserInput.IsReleased(UserCommand.CameraRotateDown)
-                || UserInput.IsReleased(UserCommand.CameraPanUp) || UserInput.IsReleased(UserCommand.CameraPanDown))
-                new CameraRotateUpDownCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, RotationXRadians);
-
-            if (UserInput.IsPressed(UserCommand.CameraRotateLeft) || UserInput.IsPressed(UserCommand.CameraRotateRight)
-                || UserInput.IsPressed(UserCommand.CameraPanLeft) || UserInput.IsPressed(UserCommand.CameraPanRight))
-                CommandStartTime = Viewer.Simulator.ClockTime;
-            if (UserInput.IsReleased(UserCommand.CameraRotateLeft) || UserInput.IsReleased(UserCommand.CameraRotateRight)
-                || UserInput.IsReleased(UserCommand.CameraPanLeft) || UserInput.IsReleased(UserCommand.CameraPanRight))
-                new CameraRotateLeftRightCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, RotationYRadians);
         }
     }
 
@@ -1564,77 +1846,126 @@ namespace Orts.ActivityRunner.Viewer3D
             SetCameraCar(attachedCar);
         }
 
+        private protected override void Zoom(int zoomSign, UserCommandArgs commandArgs, GameTime gameTime)
+        {
+            // Move camera
+            if (commandArgs is KeyCommandArgs keyCommandArgs && keyCommandArgs.KeyEventType == KeyEventType.KeyDown)
+            {
+                float z = zoomSign * GetSpeed(gameTime, commandArgs, Viewer) * 5;
+                MoveCameraXYZ(0, 0, z);
+            }
+        }
+
+        private protected override void RotateHorizontally(int rotateSign, UserCommandArgs commandArgs, GameTime gameTime)
+        {
+            if (commandArgs is KeyCommandArgs keyCommandArgs)
+            {
+                float x = rotateSign * GetSpeed(gameTime, commandArgs, Viewer) * SpeedAdjustmentForRotation * 2;
+                switch (keyCommandArgs.KeyEventType)
+                {
+                    case KeyEventType.KeyDown:
+                        MoveCameraXYZ(x, 0, 0);
+                        break;
+                    case KeyEventType.KeyPressed:
+                        CommandStartTime = Viewer.Simulator.ClockTime;
+                        break;
+                    case KeyEventType.KeyReleased:
+                        _ = new CameraMoveXYZCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, x, 0, 0);
+                        break;
+                }
+            }
+        }
+
+        private protected override void RotateVertically(int rotateSign, UserCommandArgs commandArgs, GameTime gameTime)
+        {
+            if (commandArgs is KeyCommandArgs keyCommandArgs)
+            {
+                float y = rotateSign * GetSpeed(gameTime, commandArgs, Viewer) * SpeedAdjustmentForRotation / 2;
+                switch (keyCommandArgs.KeyEventType)
+                {
+                    case KeyEventType.KeyDown:
+                        MoveCameraXYZ(0, y, 0);
+                        break;
+                    case KeyEventType.KeyPressed:
+                        CommandStartTime = Viewer.Simulator.ClockTime;
+                        break;
+                    case KeyEventType.KeyReleased:
+                        _ = new CameraMoveXYZCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, 0, y, 0);
+                        break;
+                }
+            }
+        }
+
+        private protected override void PanHorizontally(int panSign, UserCommandArgs commandArgs, GameTime gameTime)
+        {
+            if (commandArgs is KeyCommandArgs keyCommandArgs)
+            {
+                switch (keyCommandArgs.KeyEventType)
+                {
+                    case KeyEventType.KeyDown:
+                        float speed = GetSpeed(gameTime, commandArgs, Viewer) * SpeedAdjustmentForRotation;
+                        RotateRight(panSign * speed);
+                        break;
+                    case KeyEventType.KeyPressed:
+                        CommandStartTime = Viewer.Simulator.ClockTime;
+                        break;
+                    case KeyEventType.KeyReleased:
+                        _ = new CameraRotateLeftRightCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, RotationYRadians);
+                        break;
+                }
+            }
+        }
+
+        private protected override void PanVertically(int panSign, UserCommandArgs commandArgs, GameTime gameTime)
+        {
+            if (commandArgs is KeyCommandArgs keyCommandArgs)
+            {
+                switch (keyCommandArgs.KeyEventType)
+                {
+                    case KeyEventType.KeyDown:
+                        float speed = GetSpeed(gameTime, commandArgs, Viewer) * SpeedAdjustmentForRotation;
+                        RotateDown(-panSign * speed);
+                        break;
+                    case KeyEventType.KeyPressed:
+                        CommandStartTime = Viewer.Simulator.ClockTime;
+                        break;
+                    case KeyEventType.KeyReleased:
+                        _ = new CameraRotateUpDownCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, RotationXRadians);
+                        break;
+                }
+            }
+        }
+
+        private protected override void CarFirst()
+        {
+            _ = new FirstCarCommand(Viewer.Log);
+        }
+
+        private protected override void CarLast()
+        {
+            _ = new LastCarCommand(Viewer.Log);
+        }
+
+        private protected override void CarPrevious()
+        {
+            _ = new PreviousCarCommand(Viewer.Log);
+        }
+
+        private protected override void CarNext()
+        {
+            _ = new NextCarCommand(Viewer.Log);
+        }
+
         public override void HandleUserInput(in ElapsedTime elapsedTime)
         {
-            MoveCar();
-
             RotateByMouse();
 
-            var speed = GetSpeed(elapsedTime) * SpeedAdjustmentForRotation;
+            float speed = GetSpeed(elapsedTime) * SpeedAdjustmentForRotation;
 
-            // Rotate camera
-            if (UserInput.IsDown(UserCommand.CameraPanUp)) RotateDown(-speed);
-            if (UserInput.IsDown(UserCommand.CameraPanDown)) RotateDown(speed);
-            if (UserInput.IsDown(UserCommand.CameraPanLeft)) RotateRight(-speed);
-            if (UserInput.IsDown(UserCommand.CameraPanRight)) RotateRight(speed);
-            float x = 0.0f, y = 0.0f, z = 0.0f;
-
-            // Move camera
-            if (UserInput.IsDown(UserCommand.CameraZoomIn))
-            {
-                z = speed * 5;
-                MoveCameraXYZ(0, 0, z);
-
-            }
-            if (UserInput.IsDown(UserCommand.CameraZoomOut))
-            {
-                z = speed * -5;
-                MoveCameraXYZ(0, 0, z);
-            }
-            // Move camera
-            if (UserInput.IsDown(UserCommand.CameraRotateUp))
-            {
-                y = speed / 2;
-                MoveCameraXYZ(0, y, 0);
-
-            }
-            if (UserInput.IsDown(UserCommand.CameraRotateDown))
-            {
-                y = -speed / 2;
-                MoveCameraXYZ(0, y, 0);
-            }
-            if (UserInput.IsDown(UserCommand.CameraRotateLeft))
-            {
-                x = speed * -2;
-                MoveCameraXYZ(x, 0, 0);
-            }
-            if (UserInput.IsDown(UserCommand.CameraRotateRight))
-            {
-                x = speed * 2;
-                MoveCameraXYZ(x, 0, 0);
-            }
             // Zoom
             ZoomByMouseWheel(speed);
-
-            // Support for replaying camera rotation movements
-            if (UserInput.IsPressed(UserCommand.CameraPanUp) || UserInput.IsPressed(UserCommand.CameraPanDown))
-                CommandStartTime = Viewer.Simulator.ClockTime;
-            if (UserInput.IsReleased(UserCommand.CameraPanUp) || UserInput.IsReleased(UserCommand.CameraPanDown))
-                new CameraRotateUpDownCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, RotationXRadians);
-
-            if (UserInput.IsPressed(UserCommand.CameraPanLeft) || UserInput.IsPressed(UserCommand.CameraPanRight))
-                CommandStartTime = Viewer.Simulator.ClockTime;
-            if (UserInput.IsReleased(UserCommand.CameraPanLeft) || UserInput.IsReleased(UserCommand.CameraPanRight))
-                new CameraRotateLeftRightCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, RotationYRadians);
-
-            if (UserInput.IsPressed(UserCommand.CameraRotateUp) || UserInput.IsPressed(UserCommand.CameraRotateDown)
-                || UserInput.IsPressed(UserCommand.CameraRotateLeft) || UserInput.IsPressed(UserCommand.CameraRotateRight))
-                CommandStartTime = Viewer.Simulator.ClockTime;
-            if (UserInput.IsPressed(UserCommand.CameraRotateUp) || UserInput.IsPressed(UserCommand.CameraRotateDown)
-                || UserInput.IsPressed(UserCommand.CameraRotateLeft) || UserInput.IsPressed(UserCommand.CameraRotateRight))
-                new CameraMoveXYZCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, x, y, z);
-
         }
+
         public void MoveCameraXYZ(float x, float y, float z)
         {
             if (PrevCabWasRear)
@@ -1755,7 +2086,7 @@ namespace Orts.ActivityRunner.Viewer3D
             }
         }
 
-        protected void ResetViewPoint (TrainCar car)
+        protected void ResetViewPoint(TrainCar car)
         {
             prevcar = car.CarID;
             prevViewPoint = ActViewPoint;
@@ -1770,13 +2101,11 @@ namespace Orts.ActivityRunner.Viewer3D
             StartViewPointRotationYRadians = viewPointRotationYRadians;
         }
 
-        public override void HandleUserInput(in ElapsedTime elapsedTime)
+        private protected override void ChangePassengerViewPoint()
         {
-            base.HandleUserInput(elapsedTime);
-            if (UserInput.IsPressed(UserCommand.CameraChangePassengerViewPoint))
-                new CameraChangePassengerViewPointCommand(Viewer.Log);
+            _ = new CameraChangePassengerViewPointCommand(Viewer.Log);
         }
-        
+
         public void SwitchSideCameraCar(TrainCar car)
         {
             attachedLocation.X = -attachedLocation.X;
@@ -2006,13 +2335,13 @@ namespace Orts.ActivityRunner.Viewer3D
             else if (Viewer.Settings.Cab2DStretch == 0 && Viewer.CabExceedsDisplayHorizontally <= 0)
             {
                 // We must modify FOV to get correct lookout
-                    FieldOfView = MathHelper.ToDegrees((float)(2 * Math.Atan((float)Viewer.DisplaySize.Y / Viewer.DisplaySize.X / Viewer.CabTextureInverseRatio * Math.Tan(MathHelper.ToRadians(Viewer.Settings.ViewingFOV / 2)))));
-                    RotationRatio = (float)(0.962314f * 2 * Math.Tan(MathHelper.ToRadians(FieldOfView / 2)) / Viewer.DisplaySize.Y);
+                FieldOfView = MathHelper.ToDegrees((float)(2 * Math.Atan((float)Viewer.DisplaySize.Y / Viewer.DisplaySize.X / Viewer.CabTextureInverseRatio * Math.Tan(MathHelper.ToRadians(Viewer.Settings.ViewingFOV / 2)))));
+                RotationRatio = (float)(0.962314f * 2 * Math.Tan(MathHelper.ToRadians(FieldOfView / 2)) / Viewer.DisplaySize.Y);
             }
             else if (Viewer.CabExceedsDisplayHorizontally > 0)
             {
-                    var halfFOVHorizontalRadians = (float)(Math.Atan((float)Viewer.DisplaySize.X / Viewer.DisplaySize.Y * Math.Tan(MathHelper.ToRadians(Viewer.Settings.ViewingFOV / 2))));
-                    RotationRatioHorizontal = (float)(0.962314f * 2 * Viewer.DisplaySize.X / Viewer.DisplaySize.Y * Math.Tan(MathHelper.ToRadians(Viewer.Settings.ViewingFOV / 2)) / Viewer.DisplaySize.X);
+                var halfFOVHorizontalRadians = (float)(Math.Atan((float)Viewer.DisplaySize.X / Viewer.DisplaySize.Y * Math.Tan(MathHelper.ToRadians(Viewer.Settings.ViewingFOV / 2))));
+                RotationRatioHorizontal = (float)(0.962314f * 2 * Viewer.DisplaySize.X / Viewer.DisplaySize.Y * Math.Tan(MathHelper.ToRadians(Viewer.Settings.ViewingFOV / 2)) / Viewer.DisplaySize.X);
             }
             InitialiseRotation(attachedCar);
         }
@@ -2113,7 +2442,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// and pans the image left/right to reveal details at the sides of the cab.
         /// The external view also moves sidewards by a similar amount.
         /// </summary>
-        void ScrollRight (bool right, float speed)
+        void ScrollRight(bool right, float speed)
         {
             int min = 0;
             int max = Viewer.CabWidthPixels - Viewer.DisplaySize.X - 2 * Viewer.CabXLetterboxPixels; // -ve value
@@ -2159,29 +2488,31 @@ namespace Orts.ActivityRunner.Viewer3D
             RotationYRadians = MathHelper.ToRadians(viewpoints[sideLocation].StartDirection.Y) - RotationRatioHorizontal * (-Viewer.CabXOffsetPixels + Viewer.CabExceedsDisplayHorizontally / 2); ;
         }
 
-        public override void HandleUserInput(in ElapsedTime elapsedTime)
+        private protected override void ToggleLetterboxCab()
         {
+            Viewer.Settings.Letterbox2DCab = !Viewer.Settings.Letterbox2DCab;
+            Viewer.AdjustCabHeight(Viewer.DisplaySize.X, Viewer.DisplaySize.Y);
+            if (attachedCar != null)
+                Initialize();
+        }
 
-            var speed = 500 * (float)elapsedTime.RealSeconds; // Independent of framerate
+        private protected override void Scroll(bool right, GameTime gameTime)
+        {
+            ScrollRight(right, (float)(500 * gameTime.ElapsedGameTime.TotalSeconds));
+        }
 
-            if (UserInput.IsPressed(UserCommand.CameraPanLeft))
-                ShiftView(+1);
-            if (UserInput.IsPressed(UserCommand.CameraPanRight))
-                ShiftView(-1);
-            if (UserInput.IsDown(UserCommand.CameraPanUp))
-                PanUp(true, speed);
-            if (UserInput.IsDown(UserCommand.CameraPanDown))
-                PanUp(false, speed);
-            if (UserInput.IsDown(UserCommand.CameraScrollRight))
-                ScrollRight(true, speed);
-            if (UserInput.IsDown(UserCommand.CameraScrollLeft))
-                ScrollRight(false, speed);
-            if (UserInput.IsPressed(UserCommand.CameraToggleLetterboxCab))
+        private protected override void PanHorizontally(int panSign, UserCommandArgs commandArgs, GameTime gameTime)
+        {
+            if (commandArgs is KeyCommandArgs keyCommandArgs && keyCommandArgs.KeyEventType == KeyEventType.KeyPressed)
+                ShiftView(-panSign);
+        }
+
+        private protected override void PanVertically(int panSign, UserCommandArgs commandArgs, GameTime gameTime)
+        {
+            if (commandArgs is KeyCommandArgs keyCommandArgs && keyCommandArgs.KeyEventType == KeyEventType.KeyDown)
             {
-                Viewer.Settings.Letterbox2DCab = !Viewer.Settings.Letterbox2DCab;
-                Viewer.AdjustCabHeight(Viewer.DisplaySize.X, Viewer.DisplaySize.Y);
-                if (attachedCar != null)
-                    Initialize();
+                float speed = (float)(500 * gameTime.ElapsedGameTime.TotalSeconds); // Independent of framerate
+                PanUp(panSign > 0, speed);
             }
         }
     }
@@ -2226,7 +2557,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public override void Reset()
         {
             base.Reset();
-            cameraLocation  = cameraLocation.ChangeElevation(-CameraAltitudeOffset);
+            cameraLocation = cameraLocation.ChangeElevation(-CameraAltitudeOffset);
             CameraAltitudeOffset = 0;
         }
 
@@ -2247,42 +2578,70 @@ namespace Orts.ActivityRunner.Viewer3D
             base.OnActivate(sameCamera);
         }
 
-        public override void HandleUserInput(in ElapsedTime elapsedTime)
+        private protected override void Zoom(int zoomSign, UserCommandArgs commandArgs, GameTime gameTime)
         {
-            RotationYRadians = -XnaView.MatrixToYAngle();
-            var speed = GetSpeed(elapsedTime);
-
-            if (UserInput.IsDown(UserCommand.CameraPanUp))
+            if (commandArgs is KeyCommandArgs keyCommandArgs && keyCommandArgs.KeyEventType == KeyEventType.KeyDown)
             {
+                ZoomIn(zoomSign * GetSpeed(gameTime, commandArgs, Viewer) * 2);
+            }
+        }
+
+        private protected override void PanHorizontally(int panSign, UserCommandArgs commandArgs, GameTime gameTime)
+        {
+            if (commandArgs is KeyCommandArgs keyCommandArgs && keyCommandArgs.KeyEventType == KeyEventType.KeyDown)
+            {
+                float speed = GetSpeed(gameTime, commandArgs, Viewer);
+                PanRight(panSign * speed);
+            }
+        }
+
+        private protected override void PanVertically(int panSign, UserCommandArgs commandArgs, GameTime gameTime)
+        {
+            if (commandArgs is KeyCommandArgs keyCommandArgs && keyCommandArgs.KeyEventType == KeyEventType.KeyDown)
+            {
+                float speed = panSign * GetSpeed(gameTime, commandArgs, Viewer);
+                RotationYRadians = -XnaView.MatrixToYAngle();
+
                 CameraAltitudeOffset += speed;
                 cameraLocation = cameraLocation.ChangeElevation(speed);
-            }
-            if (UserInput.IsDown(UserCommand.CameraPanDown))
-            {
-                CameraAltitudeOffset -= speed;
-                cameraLocation = cameraLocation.ChangeElevation(-speed);
-                if (CameraAltitudeOffset < 0)
+
+                if (panSign < 0 && CameraAltitudeOffset < 0)
                 {
                     cameraLocation = cameraLocation.ChangeElevation(-CameraAltitudeOffset);
                     CameraAltitudeOffset = 0;
                 }
+
             }
-            if (UserInput.IsDown(UserCommand.CameraPanRight)) PanRight(speed);
-            if (UserInput.IsDown(UserCommand.CameraPanLeft)) PanRight(-speed);
-            if (UserInput.IsDown(UserCommand.CameraZoomIn)) ZoomIn(speed * 2);
-            if (UserInput.IsDown(UserCommand.CameraZoomOut)) ZoomIn(-speed * 2);
+        }
+
+        private protected override void CarFirst()
+        {
+            attachedCar = Viewer.SelectedTrain.Cars.First();
+        }
+
+        private protected override void CarLast()
+        {
+            attachedCar = Viewer.SelectedTrain.Cars.Last();
+        }
+
+        private protected override void CarPrevious()
+        {
+            List<TrainCar> trainCars = Viewer.SelectedTrain.Cars;
+            attachedCar = attachedCar == trainCars.Last() ? attachedCar : trainCars[trainCars.IndexOf(attachedCar) + 1];
+        }
+
+        private protected override void CarNext()
+        {
+            List<TrainCar> trainCars = Viewer.SelectedTrain.Cars;
+            attachedCar = attachedCar == trainCars.First() ? attachedCar : trainCars[trainCars.IndexOf(attachedCar) - 1];
+        }
+
+
+        public override void HandleUserInput(in ElapsedTime elapsedTime)
+        {
+            var speed = GetSpeed(elapsedTime);
 
             ZoomByMouseWheel(speed);
-
-            var trainCars = Viewer.SelectedTrain.Cars;
-            if (UserInput.IsPressed(UserCommand.CameraCarNext))
-                attachedCar = attachedCar == trainCars.First() ? attachedCar : trainCars[trainCars.IndexOf(attachedCar) - 1];
-            else if (UserInput.IsPressed(UserCommand.CameraCarPrevious))
-                attachedCar = attachedCar == trainCars.Last() ? attachedCar : trainCars[trainCars.IndexOf(attachedCar) + 1];
-            else if (UserInput.IsPressed(UserCommand.CameraCarFirst))
-                attachedCar = trainCars.First();
-            else if (UserInput.IsPressed(UserCommand.CameraCarLast))
-                attachedCar = trainCars.Last();
         }
 
         public override void Update(in ElapsedTime elapsedTime)
@@ -2323,7 +2682,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         }
 
-        protected Train PrepUpdate (out bool trainForwards)
+        protected Train PrepUpdate(out bool trainForwards)
         {
             var train = attachedCar.Train;
 
@@ -2434,7 +2793,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 trainClose = distance < (SpecialPointFound ? MaximumSpecialPointDistance * 0.8f : MaximumDistance);
                 if (!trainClose && SpecialPointFound && NearRoadCar != null) trainClose = distance < MaximumSpecialPointDistance * 1.5f;
             }
- 
+
             // Otherwise, let's check out every car and remember which is the first one close enough for next time.
             if (!trainClose)
             {
@@ -2540,7 +2899,7 @@ namespace Orts.ActivityRunner.Viewer3D
                                     // shortTrav is used to state directions, to correctly identify in which direction (left or right) to move
                                     //the camera from center of track to the platform at its side
                                     Traveller shortTrav;
-                                    if (!(Viewer.Simulator.TDB.TrackDB.TrackItems[thisPlatform.PlatformFrontUiD] is PlatformItem platformItem)) 
+                                    if (!(Viewer.Simulator.TDB.TrackDB.TrackItems[thisPlatform.PlatformFrontUiD] is PlatformItem platformItem))
                                         continue;
                                     shortTrav = new Traveller(Viewer.Simulator.TSectionDat, Viewer.Simulator.TDB.TrackDB.TrackNodes, platformItem.Location, Traveller.TravellerDirection.Forward);
                                     var distanceToViewingPoint1 = shortTrav.DistanceTo(tdb.WorldLocation, thisPlatform.Length);
@@ -2560,7 +2919,7 @@ namespace Orts.ActivityRunner.Viewer3D
                                         (((thisPlatform.PlatformSide & PlatformDetails.PlatformSides.Right) == PlatformDetails.PlatformSides.Right) ? 1 : -1);
                                     float deltaZ = -(PlatformOffsetM + Viewer.Simulator.SuperElevationGauge / 2) * (float)Math.Sin(shortTrav.RotY) *
                                         (((thisPlatform.PlatformSide & PlatformDetails.PlatformSides.Right) == PlatformDetails.PlatformSides.Right) ? 1 : -1);
-                                    TrackCameraLocation = new WorldLocation(tdb.WorldLocation.TileX, tdb.WorldLocation.TileZ, 
+                                    TrackCameraLocation = new WorldLocation(tdb.WorldLocation.TileX, tdb.WorldLocation.TileZ,
                                         tdb.WorldLocation.Location.X + deltaX, tdb.WorldLocation.Location.Y, tdb.WorldLocation.Location.Z + deltaZ);
                                     break;
                                 }
@@ -2603,7 +2962,7 @@ namespace Orts.ActivityRunner.Viewer3D
                             else
                             {
                                 // select first car in direction of movement
-                                testTrainCar = trainForwards ? train.FirstCar : train.LastCar ;
+                                testTrainCar = trainForwards ? train.FirstCar : train.LastCar;
                             }
                             if (Math.Abs(visibleCar.FrontTraveller.WorldLocation.Location.Y - testTrainCar.WorldPosition.WorldLocation.Location.Y) < 30.0f)
                             {
@@ -2657,7 +3016,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 {
                     tdb = trainForwards ? new Traveller(train.FrontTDBTraveller) : new Traveller(train.RearTDBTraveller, Traveller.TravellerDirection.Backward); // return to standard
                     TrackCameraLocation = GoToNewLocation(ref tdb, train, trainForwards);
-                 }
+                }
 
                 if (TrackCameraLocation != WorldLocation.None && !trainClose)
                 {
