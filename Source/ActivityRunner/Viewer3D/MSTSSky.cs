@@ -42,7 +42,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public const int skySides = 24;
         public static int skyHeight;
         public const short skyLevels = 4;
-        public static bool IsNight = false;       
+        public static bool IsNight = false;
         public static float mstsskyTileu;
         public static float mstsskyTilev;
         public static float mstscloudTileu;
@@ -120,8 +120,72 @@ namespace Orts.ActivityRunner.Viewer3D
             // Default wind speed and direction
             mstsskywindSpeed = 5.0f; // m/s (approx 11 mph)
             mstsskywindDirection = 4.7f; // radians (approx 270 deg, i.e. westerly)
+
+            // The following keyboard commands are used for viewing sky and weather effects in "demo" mode.
+            // Control- and Control+ for overcast, Shift- and Shift+ for fog and - and + for time.
+
+            // Don't let multiplayer clients adjust the weather.
+            if (!MPManager.IsClient())
+            {
+                // Overcast ranges from 0 (completely clear) to 1 (completely overcast).
+                viewer.UserCommandController.AddEvent(UserCommand.DebugOvercastIncrease, (UserCommandArgs userCommandArgs, GameTime gameTIme) =>
+                {
+                    if (userCommandArgs is KeyCommandArgs keyCommandArgs && keyCommandArgs.KeyEventType == KeyEventType.KeyDown)
+                        mstsskyovercastFactor = (float)MathHelperD.Clamp(mstsskyovercastFactor + gameTIme.ElapsedGameTime.TotalSeconds / 10, 0, 1);
+                });
+                viewer.UserCommandController.AddEvent(UserCommand.DebugOvercastDecrease, (UserCommandArgs userCommandArgs, GameTime gameTIme) =>
+                {
+                    if (userCommandArgs is KeyCommandArgs keyCommandArgs && keyCommandArgs.KeyEventType == KeyEventType.KeyDown)
+                        mstsskyovercastFactor = (float)MathHelperD.Clamp(mstsskyovercastFactor - gameTIme.ElapsedGameTime.TotalSeconds / 10, 0, 1);
+                });
+                // Fog ranges from 10m (can't see anything) to 100km (clear arctic conditions).
+                viewer.UserCommandController.AddEvent(UserCommand.DebugFogIncrease, (UserCommandArgs userCommandArgs, GameTime gameTIme) =>
+                {
+                    if (userCommandArgs is KeyCommandArgs keyCommandArgs && keyCommandArgs.KeyEventType == KeyEventType.KeyDown)
+                        mstsskyfogDistance = (float)MathHelperD.Clamp(mstsskyfogDistance - gameTIme.ElapsedGameTime.TotalSeconds * mstsskyfogDistance, 10, 100000);
+                });
+                viewer.UserCommandController.AddEvent(UserCommand.DebugFogDecrease, (UserCommandArgs userCommandArgs, GameTime gameTIme) =>
+                {
+                    if (userCommandArgs is KeyCommandArgs keyCommandArgs && keyCommandArgs.KeyEventType == KeyEventType.KeyDown)
+                        mstsskyfogDistance = (float)MathHelperD.Clamp(mstsskyfogDistance + gameTIme.ElapsedGameTime.TotalSeconds * mstsskyfogDistance, 10, 100000);
+                });
+            }
+            // Don't let clock shift if multiplayer.
+            if (!MPManager.IsMultiPlayer())
+            {
+                // Shift the clock forwards or backwards at 1h-per-second.
+                viewer.UserCommandController.AddEvent(UserCommand.DebugClockForwards, (UserCommandArgs userCommandArgs, GameTime gameTIme) =>
+                {
+                    if (userCommandArgs is KeyCommandArgs keyCommandArgs && keyCommandArgs.KeyEventType == KeyEventType.KeyDown)
+                        MSTSSkyViewer.Simulator.ClockTime += gameTIme.ElapsedGameTime.TotalSeconds * 3600;
+                });
+                viewer.UserCommandController.AddEvent(UserCommand.DebugClockBackwards, (UserCommandArgs userCommandArgs, GameTime gameTIme) =>
+                {
+                    if (userCommandArgs is KeyCommandArgs keyCommandArgs && keyCommandArgs.KeyEventType == KeyEventType.KeyDown)
+                        MSTSSkyViewer.Simulator.ClockTime -= gameTIme.ElapsedGameTime.TotalSeconds * 3600;
+                });
+            }
+            // Server needs to notify clients of weather changes.
+            if (MPManager.IsServer())
+            {
+                viewer.UserCommandController.AddEvent(UserCommand.DebugOvercastIncrease, SendMultiPlayerSkyChangeNotification);
+                viewer.UserCommandController.AddEvent(UserCommand.DebugOvercastDecrease, SendMultiPlayerSkyChangeNotification);
+                viewer.UserCommandController.AddEvent(UserCommand.DebugFogIncrease, SendMultiPlayerSkyChangeNotification);
+                viewer.UserCommandController.AddEvent(UserCommand.DebugFogDecrease, SendMultiPlayerSkyChangeNotification);
+            }
+
+
         }
         #endregion
+
+        private void SendMultiPlayerSkyChangeNotification(UserCommandArgs userCommandArgs)
+        {
+            if (userCommandArgs is KeyCommandArgs keyCommandArgs && keyCommandArgs.KeyEventType == KeyEventType.KeyReleased)
+            {
+                MPManager.Instance().SetEnvInfo(mstsskyovercastFactor, mstsskyfogDistance);
+                MPManager.Notify(new MSGWeather(-1, mstsskyovercastFactor, -1, mstsskyfogDistance).ToString());
+            }
+        }
 
         /// <summary>
         /// Used to update information affecting the SkyMesh
@@ -182,38 +246,6 @@ namespace Orts.ActivityRunner.Viewer3D
                     manager.weatherChanged = false;
                     manager.overcastFactor = -1;
                     manager.fogDistance = -1;
-                }
-            }
-
-            ////////////////////// T E M P O R A R Y ///////////////////////////
-
-            // The following keyboard commands are used for viewing sky and weather effects in "demo" mode.
-            // Control- and Control+ for overcast, Shift- and Shift+ for fog and - and + for time.
-
-            // Don't let multiplayer clients adjust the weather.
-            if (!MPManager.IsClient())
-            {
-                // Overcast ranges from 0 (completely clear) to 1 (completely overcast).
-                if (UserInput.IsDown(UserCommand.DebugOvercastIncrease)) mstsskyovercastFactor = (float)MathHelperD.Clamp(mstsskyovercastFactor + elapsedTime.RealSeconds / 10, 0, 1);
-                if (UserInput.IsDown(UserCommand.DebugOvercastDecrease)) mstsskyovercastFactor = (float)MathHelperD.Clamp(mstsskyovercastFactor - elapsedTime.RealSeconds / 10, 0, 1);
-                // Fog ranges from 10m (can't see anything) to 100km (clear arctic conditions).
-                if (UserInput.IsDown(UserCommand.DebugFogIncrease)) mstsskyfogDistance = (float)MathHelperD.Clamp(mstsskyfogDistance - elapsedTime.RealSeconds * mstsskyfogDistance, 10, 100000);
-                if (UserInput.IsDown(UserCommand.DebugFogDecrease)) mstsskyfogDistance = (float)MathHelperD.Clamp(mstsskyfogDistance + elapsedTime.RealSeconds * mstsskyfogDistance, 10, 100000);
-            }
-            // Don't let clock shift if multiplayer.
-            if (!MPManager.IsMultiPlayer())
-            {
-                // Shift the clock forwards or backwards at 1h-per-second.
-                if (UserInput.IsDown(UserCommand.DebugClockForwards)) MSTSSkyViewer.Simulator.ClockTime += elapsedTime.RealSeconds * 3600;
-                if (UserInput.IsDown(UserCommand.DebugClockBackwards)) MSTSSkyViewer.Simulator.ClockTime -= elapsedTime.RealSeconds * 3600;
-            }
-            // Server needs to notify clients of weather changes.
-            if (MPManager.IsServer())
-            {
-                if (UserInput.IsReleased(UserCommand.DebugOvercastIncrease) || UserInput.IsReleased(UserCommand.DebugOvercastDecrease) || UserInput.IsReleased(UserCommand.DebugFogIncrease) || UserInput.IsReleased(UserCommand.DebugFogDecrease))
-                {
-                    manager.SetEnvInfo(mstsskyovercastFactor, mstsskyfogDistance);
-                    MPManager.Notify(new MSGWeather(-1, mstsskyovercastFactor, -1, mstsskyfogDistance).ToString());
                 }
             }
 
@@ -307,7 +339,7 @@ namespace Orts.ActivityRunner.Viewer3D
         private static int mstsskySides = MSTSSkyConstants.skySides;
         public int mstscloudDomeRadiusDiff = 600;
         // skyLevels: Used for iterating vertically through the "levels" of the hemisphere polygon
-        private static int mstsskyLevels =  MSTSSkyConstants.skyLevels;
+        private static int mstsskyLevels = MSTSSkyConstants.skyLevels;
         private static float mstsskytextureu = MSTSSkyConstants.mstsskyTileu;
         private static float mstsskytexturev = MSTSSkyConstants.mstsskyTilev;
         private static float mstscloudtextureu = MSTSSkyConstants.mstscloudTileu;
@@ -385,9 +417,9 @@ namespace Orts.ActivityRunner.Viewer3D
 
                     // UV coordinates - top overlay
                     float uvRadius;
-                    uvRadius = (0.5f - (float)(0.5f * (i - 1)) / mstsskyLevels );
+                    uvRadius = (0.5f - (float)(0.5f * (i - 1)) / mstsskyLevels);
                     float uv_u = tile_u * (0.5f - ((float)Math.Cos(MathHelper.ToRadians((360 / mstsskySides) * (mstsskySides - j))) * uvRadius));
-                    float uv_v = tile_v * (0.5f - ((float)Math.Sin(MathHelper.ToRadians((360 / mstsskySides) * (mstsskySides - j))) * uvRadius ));
+                    float uv_v = tile_v * (0.5f - ((float)Math.Sin(MathHelper.ToRadians((360 / mstsskySides) * (mstsskySides - j))) * uvRadius));
 
                     // Store the position, texture coordinates and normal (normalized position vector) for the current vertex
                     vertexList[vertexIndex].Position = new Vector3(x, y, z);
@@ -531,7 +563,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public MSTSSkyMaterial(Viewer viewer)
             : base(viewer, null)
         {
-            shader = Viewer.MaterialManager.SkyShader;            
+            shader = Viewer.MaterialManager.SkyShader;
             // TODO: This should happen on the loader thread. 
             if (viewer.ENVFile.SkyLayers != null)
             {
@@ -544,13 +576,13 @@ namespace Orts.ActivityRunner.Viewer3D
                 {
                     mstsSkyTextureNames[i] = Viewer.Simulator.RoutePath + @"\envfiles\textures\" + mstsskytexture[i].TextureName;
                     mstsSkyTextures.Add(AceFile.Texture2DFromFile(graphicsDevice, mstsSkyTextureNames[i]));
-                    if( i == 0 )
+                    if (i == 0)
                     {
                         mstsDayTexture = mstsSkyTextures[i];
                         mstsskytexturex = mstsskytexture[i].TileX;
                         mstsskytexturey = mstsskytexture[i].TileY;
                     }
-                    else if(mstsskytexture[i].Fadein_Begin_Time != null)
+                    else if (mstsskytexture[i].Fadein_Begin_Time != null)
                     {
                         mstsSkyStarTexture = mstsSkyTextures[i];
                         mstsskytexturex = mstsskytexture[i].TileX;

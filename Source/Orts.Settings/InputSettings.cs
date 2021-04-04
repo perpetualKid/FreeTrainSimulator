@@ -181,7 +181,7 @@ namespace Orts.Settings
             Commands[(int)UserCommand.ControlAIFireOff] = new UserCommandKeyInput(0x23, KeyModifiers.Control);
             Commands[(int)UserCommand.ControlAIFireReset] = new UserCommandKeyInput(0x23, KeyModifiers.Control | KeyModifiers.Alt);
             Commands[(int)UserCommand.ControlAlerter] = new UserCommandKeyInput(0x2C);
-            Commands[(int)UserCommand.ControlBackwards] = new UserCommandKeyInput(0x1F);
+            Commands[(int)UserCommand.ControlBackwards] = new UserCommandKeyInput(0x1F, KeyEventType.KeyPressed | KeyEventType.KeyDown | KeyEventType.KeyReleased);
             Commands[(int)UserCommand.ControlBailOff] = new UserCommandKeyInput(0x35);
             Commands[(int)UserCommand.ControlBell] = new UserCommandKeyInput(0x30);
             Commands[(int)UserCommand.ControlBellToggle] = new UserCommandKeyInput(0x30, KeyModifiers.Shift);
@@ -221,7 +221,7 @@ namespace Orts.Settings
             Commands[(int)UserCommand.ControlFiring] = new UserCommandKeyInput(0x21, KeyModifiers.Control);
             Commands[(int)UserCommand.ControlFiringRateDecrease] = new UserCommandKeyInput(0x13, KeyModifiers.Shift);
             Commands[(int)UserCommand.ControlFiringRateIncrease] = new UserCommandKeyInput(0x13);
-            Commands[(int)UserCommand.ControlForwards] = new UserCommandKeyInput(0x11);
+            Commands[(int)UserCommand.ControlForwards] = new UserCommandKeyInput(0x11, KeyEventType.KeyPressed | KeyEventType.KeyDown | KeyEventType.KeyReleased);
             Commands[(int)UserCommand.ControlGearDown] = new UserCommandKeyInput(0x12, KeyModifiers.Shift);
             Commands[(int)UserCommand.ControlGearUp] = new UserCommandKeyInput(0x12);
             Commands[(int)UserCommand.ControlGeneric1] = new UserCommandKeyInput(0x33, KeyModifiers.Control);
