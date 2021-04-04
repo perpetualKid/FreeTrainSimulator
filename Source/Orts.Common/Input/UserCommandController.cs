@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 
@@ -54,6 +55,7 @@ namespace Orts.Common.Input
             }
         }
 
+        private readonly Dictionary<Delegate, Action<UserCommandArgs, GameTime>> sourceActions = new Dictionary<Delegate, Action<UserCommandArgs, GameTime>>();
         private readonly EnumArray<Action<UserCommandArgs, GameTime>, T> configurableUserCommands = new EnumArray<Action<UserCommandArgs, GameTime>, T>();
 
         private readonly EnumArray<Action<UserCommandArgs, GameTime, KeyModifiers>, CommonUserCommand> commonUserCommandsArgs = new EnumArray<Action<UserCommandArgs, GameTime, KeyModifiers>, CommonUserCommand>();
@@ -74,22 +76,34 @@ namespace Orts.Common.Input
             configurableUserCommands[userCommand] += action;
         }
 
-        public void AddEvent(T userCommand, Action action)
+        public void AddEvent(T userCommand, Action action, bool enableUnsubscribe = false)
         {
             Action<UserCommandArgs, GameTime> command = DelegateConverter.ConvertDelegate<Action, Action<UserCommandArgs, GameTime>>(action);
             configurableUserCommands[userCommand] += command;
+            if (enableUnsubscribe)
+            {
+                sourceActions.Add(action, command);
+            }
         }
 
-        public void AddEvent(T userCommand, Action<GameTime> action)
+        public void AddEvent(T userCommand, Action<GameTime> action, bool enableUnsubscribe = false)
         {
             Action<UserCommandArgs, GameTime> command = DelegateConverter.ConvertDelegate<Action<GameTime>, Action<UserCommandArgs, GameTime>>(action, new int[] { 1 });
             configurableUserCommands[userCommand] += command;
+            if (enableUnsubscribe)
+            {
+                sourceActions.Add(action, command);
+            }
         }
 
-        public void AddEvent(T userCommand, Action<UserCommandArgs> action)
+        public void AddEvent(T userCommand, Action<UserCommandArgs> action, bool enableUnsubscribe = false)
         {
             Action<UserCommandArgs, GameTime> command = DelegateConverter.ConvertDelegate<Action<UserCommandArgs>, Action<UserCommandArgs, GameTime>>(action);
             configurableUserCommands[userCommand] += command;
+            if (enableUnsubscribe)
+            {
+                sourceActions.Add(action, command);
+            }
         }
 
         public void RemoveEvent(T userCommand, Action<UserCommandArgs, GameTime> action)
@@ -99,20 +113,20 @@ namespace Orts.Common.Input
 
         public void RemoveEvent(T userCommand, Action action)
         {
-            Action<UserCommandArgs, GameTime> command = DelegateConverter.ConvertDelegate<Action, Action<UserCommandArgs, GameTime>>(action);
-            configurableUserCommands[userCommand] -= command;
+            if (sourceActions.TryGetValue(action, out Action<UserCommandArgs, GameTime> command))
+                configurableUserCommands[userCommand] -= command;
         }
 
         public void RemoveEvent(T userCommand, Action<GameTime> action)
         {
-            Action<UserCommandArgs, GameTime> command = DelegateConverter.ConvertDelegate<Action<GameTime>, Action<UserCommandArgs, GameTime>>(action, new int[] { 1 });
-            configurableUserCommands[userCommand] -= command;
+            if (sourceActions.TryGetValue(action, out Action<UserCommandArgs, GameTime> command))
+                configurableUserCommands[userCommand] -= command;
         }
 
         public void RemoveEvent(T userCommand, Action<UserCommandArgs> action)
         {
-            Action<UserCommandArgs, GameTime> command = DelegateConverter.ConvertDelegate<Action<UserCommandArgs>, Action<UserCommandArgs, GameTime>>(action);
-            configurableUserCommands[userCommand] -= command;
+            if (sourceActions.TryGetValue(action, out Action<UserCommandArgs, GameTime> command))
+                configurableUserCommands[userCommand] -= command;
         }
         #endregion
 
