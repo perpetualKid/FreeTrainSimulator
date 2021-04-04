@@ -238,16 +238,16 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             // Second block
             // Direction
             {
-                UserCommand? reverserCommand = GetPressedKey(UserCommand.ControlBackwards, UserCommand.ControlForwards);
+                UserCommand? reverserCommand = GetPressedKey(UserCommand.ControlReverserBackward, UserCommand.ControlReverserForward);
                 string reverserKey;
                 bool moving = Math.Abs(trainCar.SpeedMpS) > 1;
                 bool nonSteamEnd = trainCar.EngineType != TrainCar.EngineTypes.Steam && trainCar.Direction == MidpointDirection.N && (trainCar.ThrottlePercent >= 1 || moving);
                 bool steamEnd = locomotive is MSTSSteamLocomotive steamLocomotive2 && steamLocomotive2.CutoffController.MaximumValue == Math.Abs(train.MUReverserPercent / 100);
                 if (reverserCommand != null && (nonSteamEnd || steamEnd))
                     reverserKey = Symbols.End + ColorCode[Color.Yellow];
-                else if (reverserCommand == UserCommand.ControlBackwards)
+                else if (reverserCommand == UserCommand.ControlReverserBackward)
                     reverserKey = Symbols.ArrowDown + ColorCode[Color.Yellow];
-                else if (reverserCommand == UserCommand.ControlForwards)
+                else if (reverserCommand == UserCommand.ControlReverserForward)
                     reverserKey = Symbols.ArrowUp + ColorCode[Color.Yellow];
                 else
                     reverserKey = "";

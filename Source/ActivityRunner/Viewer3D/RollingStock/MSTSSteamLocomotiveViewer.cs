@@ -139,8 +139,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
         public override void InitializeUserInputCommands()
         {
-            UserInputCommands.Add(UserCommand.ControlForwards, new Action[] { () => SteamLocomotive.StopReverseIncrease(), () => ReverserControlForwards() });
-            UserInputCommands.Add(UserCommand.ControlBackwards, new Action[] { () => SteamLocomotive.StopReverseDecrease(), () => ReverserControlBackwards() });
+            UserInputCommands.Add(UserCommand.ControlReverserForward, new Action[] { () => SteamLocomotive.StopReverseIncrease(), () => ReverserControlForwards() });
+            UserInputCommands.Add(UserCommand.ControlReverserBackward, new Action[] { () => SteamLocomotive.StopReverseDecrease(), () => ReverserControlBackwards() });
             UserInputCommands.Add(UserCommand.ControlInjector1Increase, new Action[] { () => SteamLocomotive.StopInjector1Increase(), () => SteamLocomotive.StartInjector1Increase(null) });
             UserInputCommands.Add(UserCommand.ControlInjector1Decrease, new Action[] { () => SteamLocomotive.StopInjector1Decrease(), () => SteamLocomotive.StartInjector1Decrease(null) });
             UserInputCommands.Add(UserCommand.ControlInjector2Increase, new Action[] { () => SteamLocomotive.StopInjector2Increase(), () => SteamLocomotive.StartInjector2Increase(null) });

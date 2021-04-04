@@ -880,30 +880,33 @@ namespace Orts.ActivityRunner.Viewer3D
                     }
                 });
             }
-            UserCommandController.AddEvent(UserCommand.GameAutopilotMode, () =>
+            UserCommandController.AddEvent(UserCommand.GameAutopilotMode, (UserCommandArgs userCommandArgs) =>
             {
-                switch (PlayerLocomotive.Train.TrainType)
+                if (userCommandArgs is KeyCommandArgs keyCommandArgs && keyCommandArgs.KeyEventType == KeyEventType.KeyPressed)
                 {
-                    case TrainType.AiPlayerHosting:
-                        if (((AITrain)PlayerLocomotive.Train).SwitchToPlayerControl())
-                        {
-                            Simulator.Confirmer.Message(ConfirmLevel.Information, Catalog.GetString("Switched to player control"));
-                            DbfEvalAutoPilot = false;//Debrief eval
-                        }
-                        break;
-                    case TrainType.AiPlayerDriven:
-                        if (PlayerLocomotive.Train.ControlMode == TrainControlMode.Manual)
-                            Simulator.Confirmer.Message(ConfirmLevel.Warning, Catalog.GetString("You can't switch from manual to autopilot mode"));
-                        else
-                        {
-                            if (((AITrain)PlayerLocomotive.Train).SwitchToAutopilotControl())
+                    switch (PlayerLocomotive.Train.TrainType)
+                    {
+                        case TrainType.AiPlayerHosting:
+                            if (((AITrain)PlayerLocomotive.Train).SwitchToPlayerControl())
                             {
-                                Simulator.Confirmer.Message(ConfirmLevel.Information, Catalog.GetString("Switched to autopilot"));
-                                DbfEvalIniAutoPilotTimeS = Simulator.ClockTime;//Debrief eval
-                                DbfEvalAutoPilot = true;//Debrief eval
+                                Simulator.Confirmer.Message(ConfirmLevel.Information, Catalog.GetString("Switched to player control"));
+                                DbfEvalAutoPilot = false;//Debrief eval
                             }
-                        }
-                        break;
+                            break;
+                        case TrainType.AiPlayerDriven:
+                            if (PlayerLocomotive.Train.ControlMode == TrainControlMode.Manual)
+                                Simulator.Confirmer.Message(ConfirmLevel.Warning, Catalog.GetString("You can't switch from manual to autopilot mode"));
+                            else
+                            {
+                                if (((AITrain)PlayerLocomotive.Train).SwitchToAutopilotControl())
+                                {
+                                    Simulator.Confirmer.Message(ConfirmLevel.Information, Catalog.GetString("Switched to autopilot"));
+                                    DbfEvalIniAutoPilotTimeS = Simulator.ClockTime;//Debrief eval
+                                    DbfEvalAutoPilot = true;//Debrief eval
+                                }
+                            }
+                            break;
+                    }
                 }
             });
             UserCommandController.AddEvent(UserCommand.GameScreenshot, () =>

@@ -55,7 +55,7 @@ namespace Orts.Common.Input
             }
         }
 
-        private readonly Dictionary<Delegate, Action<UserCommandArgs, GameTime>> sourceActions = new Dictionary<Delegate, Action<UserCommandArgs, GameTime>>();
+        private readonly Dictionary<Delegate, List<Action<UserCommandArgs, GameTime>>> sourceActions = new Dictionary<Delegate, List<Action<UserCommandArgs, GameTime>>>();
         private readonly EnumArray<Action<UserCommandArgs, GameTime>, T> configurableUserCommands = new EnumArray<Action<UserCommandArgs, GameTime>, T>();
 
         private readonly EnumArray<Action<UserCommandArgs, GameTime, KeyModifiers>, CommonUserCommand> commonUserCommandsArgs = new EnumArray<Action<UserCommandArgs, GameTime, KeyModifiers>, CommonUserCommand>();
@@ -82,7 +82,10 @@ namespace Orts.Common.Input
             configurableUserCommands[userCommand] += command;
             if (enableUnsubscribe)
             {
-                sourceActions.Add(action, command);
+                if (!sourceActions.ContainsKey(action))
+                    sourceActions.Add(action, new List<Action<UserCommandArgs, GameTime>>() { command });
+                else
+                    sourceActions[action].Add(command);
             }
         }
 
@@ -92,7 +95,10 @@ namespace Orts.Common.Input
             configurableUserCommands[userCommand] += command;
             if (enableUnsubscribe)
             {
-                sourceActions.Add(action, command);
+                if (!sourceActions.ContainsKey(action))
+                    sourceActions.Add(action, new List<Action<UserCommandArgs, GameTime>>() { command });
+                else
+                    sourceActions[action].Add(command);
             }
         }
 
@@ -102,7 +108,10 @@ namespace Orts.Common.Input
             configurableUserCommands[userCommand] += command;
             if (enableUnsubscribe)
             {
-                sourceActions.Add(action, command);
+                if (!sourceActions.ContainsKey(action))
+                    sourceActions.Add(action, new List<Action<UserCommandArgs, GameTime>>() { command });
+                else
+                    sourceActions[action].Add(command);
             }
         }
 
@@ -113,20 +122,29 @@ namespace Orts.Common.Input
 
         public void RemoveEvent(T userCommand, Action action)
         {
-            if (sourceActions.TryGetValue(action, out Action<UserCommandArgs, GameTime> command))
-                configurableUserCommands[userCommand] -= command;
+            if (sourceActions.TryGetValue(action, out List<Action<UserCommandArgs, GameTime>> commandList) && commandList.Count > 0)
+            {
+                configurableUserCommands[userCommand] -= commandList[0];
+                commandList.RemoveAt(0);
+            }
         }
 
         public void RemoveEvent(T userCommand, Action<GameTime> action)
         {
-            if (sourceActions.TryGetValue(action, out Action<UserCommandArgs, GameTime> command))
-                configurableUserCommands[userCommand] -= command;
+            if (sourceActions.TryGetValue(action, out List<Action<UserCommandArgs, GameTime>> commandList) && commandList.Count > 0)
+            {
+                configurableUserCommands[userCommand] -= commandList[0];
+                commandList.RemoveAt(0);
+            }
         }
 
         public void RemoveEvent(T userCommand, Action<UserCommandArgs> action)
         {
-            if (sourceActions.TryGetValue(action, out Action<UserCommandArgs, GameTime> command))
-                configurableUserCommands[userCommand] -= command;
+            if (sourceActions.TryGetValue(action, out List<Action<UserCommandArgs, GameTime>> commandList) && commandList.Count > 0)
+            {
+                configurableUserCommands[userCommand] -= commandList[0];
+                commandList.RemoveAt(0);
+            }
         }
         #endregion
 

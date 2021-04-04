@@ -137,10 +137,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         public override void InitializeUserInputCommands()
         {
             // Steam locomotives handle these differently, and might have set them already
-            if (!UserInputCommands.ContainsKey(UserCommand.ControlForwards))
-                UserInputCommands.Add(UserCommand.ControlForwards, new Action[] { Noop, () => ReverserControlForwards() });
-            if (!UserInputCommands.ContainsKey(UserCommand.ControlBackwards))
-                UserInputCommands.Add(UserCommand.ControlBackwards, new Action[] { Noop, () => ReverserControlBackwards() });
+            if (!UserInputCommands.ContainsKey(UserCommand.ControlReverserForward))
+                UserInputCommands.Add(UserCommand.ControlReverserForward, new Action[] { Noop, () => ReverserControlForwards() });
+            if (!UserInputCommands.ContainsKey(UserCommand.ControlReverserBackward))
+                UserInputCommands.Add(UserCommand.ControlReverserBackward, new Action[] { Noop, () => ReverserControlBackwards() });
 
             UserInputCommands.Add(UserCommand.ControlThrottleIncrease, new Action[] { () => Locomotive.StopThrottleIncrease(), () => Locomotive.StartThrottleIncrease() });
             UserInputCommands.Add(UserCommand.ControlThrottleDecrease, new Action[] { () => Locomotive.StopThrottleDecrease(), () => Locomotive.StartThrottleDecrease() });
