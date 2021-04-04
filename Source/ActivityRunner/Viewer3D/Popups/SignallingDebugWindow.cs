@@ -1,4 +1,4 @@
-﻿// COPYRIGHT 2011, 2012, 2013, 2014, 2015 by the Open Rails project.
+// COPYRIGHT 2011, 2012, 2013, 2014, 2015 by the Open Rails project.
 // 
 // This file is part of Open Rails.
 // 
@@ -221,11 +221,14 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             }
                             else if (signalObj != null)
                             {
+                                string aspects = string.Join(" / ", signalObj.Signal.SignalHeads.Select(
+                                    x => x.SignalIndicationState.ToString() + (x.TextSignalAspect.Length > 0 ? $" ({x.TextSignalAspect})" : string.Empty)
+                                    ));
                                 primitives.Add(new DispatcherLabel(currentPosition.WorldLocation,
                                            GetAspect(signalObj.Signal) == DebugWindowSignalAspect.Stop ? Color.Red :
                                                GetAspect(signalObj.Signal) == DebugWindowSignalAspect.Warning ? Color.Yellow :
                                                Color.Green,
-                                           String.Format("Signal ({0})", signalObj.Signal.SignalLR(SignalFunction.Normal)),
+                                           $"Signal {signalObj.Signal.Index} ({aspects})",
                                            Owner.TextFontDefaultOutlined));
                             }
 
