@@ -2433,6 +2433,18 @@ namespace Orts.ActivityRunner.Viewer3D
             float speed = (float)(500 * gameTime.ElapsedGameTime.TotalSeconds); // Independent of framerate
             PanUp(panSign > 0, speed);
         }
+
+        private protected override void RotateHorizontally(int rotateSign, UserCommandArgs commandArgs, GameTime gameTime)
+        {
+        }
+
+        private protected override void RotateVertically(int rotateSign, UserCommandArgs commandArgs, GameTime gameTime)
+        {
+        }
+
+        private protected override void PanHorizontally(int panSign, UserCommandArgs commandArgs, GameTime gameTime)
+        {
+        }
     }
 
     public class TracksideCamera : LookAtCamera
