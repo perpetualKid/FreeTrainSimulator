@@ -9080,6 +9080,8 @@ namespace Orts.Simulation.Physics
             if (IncorporatedTrainNo >= 0)
             {
                 Train incorporatedTrain = simulator.TrainDictionary[IncorporatedTrainNo];
+                incorporatedTrain.PresentPosition[Direction.Forward].RouteListIndex = incorporatedTrain.ValidRoute[0].GetRouteIndex(PresentPosition[Direction.Forward].TrackCircuitSectionIndex, 0);
+                incorporatedTrain.PresentPosition[Direction.Backward].RouteListIndex = incorporatedTrain.ValidRoute[0].GetRouteIndex(PresentPosition[Direction.Backward].TrackCircuitSectionIndex, 0);
                 if (incorporatedTrain.PresentPosition[Direction.Forward].RouteListIndex == -1 && incorporatedTrain.PresentPosition[Direction.Backward].RouteListIndex == -1
                     || incorporatedTrain.PresentPosition[Direction.Forward].RouteListIndex >= incorporatedTrain.ValidRoute[0].Count - 2
                     || incorporatedTrain.PresentPosition[Direction.Backward].RouteListIndex >= incorporatedTrain.ValidRoute[0].Count - 2)
@@ -9090,14 +9092,12 @@ namespace Orts.Simulation.Physics
         //
         // Goes to next active subpath
         //
-        internal void IncrementSubpath(Train train)
+        internal static void IncrementSubpath(Train train)
         {
             if (train.TCRoute.ActiveSubPath < train.TCRoute.TCRouteSubpaths.Count - 1)
             {
                 train.TCRoute.ActiveSubPath++;
                 train.ValidRoute[0] = train.TCRoute.TCRouteSubpaths[train.TCRoute.ActiveSubPath];
-                train.PresentPosition[Direction.Forward].RouteListIndex = train.ValidRoute[0].GetRouteIndex(PresentPosition[Direction.Forward].TrackCircuitSectionIndex, 0);
-                train.PresentPosition[Direction.Backward].RouteListIndex = train.ValidRoute[0].GetRouteIndex(PresentPosition[Direction.Backward].TrackCircuitSectionIndex, 0);
             }
         }
 
