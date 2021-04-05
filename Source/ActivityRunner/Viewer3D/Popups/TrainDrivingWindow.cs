@@ -185,190 +185,156 @@ namespace Orts.Viewer3D.Popups
             base.VisibilityChanged();
             if (Visible)
             {
-                Owner.Viewer.UserCommandController.AddEvent(UserCommand.ControlReverserForward, DirectionCommandForward, true);
-                Owner.Viewer.UserCommandController.AddEvent(UserCommand.ControlReverserBackward, DirectionCommandBackward, true);
-                Owner.Viewer.UserCommandController.AddEvent(UserCommand.ControlThrottleIncrease, ThrottleCommandIncrease, true);
-                Owner.Viewer.UserCommandController.AddEvent(UserCommand.ControlThrottleDecrease, ThrottleCommandDecrease, true);
-                Owner.Viewer.UserCommandController.AddEvent(UserCommand.ControlCylinderCocks, CylinderCocksCommand, true);
-                Owner.Viewer.UserCommandController.AddEvent(UserCommand.ControlSander, SanderCommand, true);
-                Owner.Viewer.UserCommandController.AddEvent(UserCommand.ControlSanderToggle, SanderCommand, true);
-                Owner.Viewer.UserCommandController.AddEvent(UserCommand.ControlTrainBrakeIncrease, TrainBrakeCommandIncrease, true);
-                Owner.Viewer.UserCommandController.AddEvent(UserCommand.ControlTrainBrakeDecrease, TrainBrakeCommandDecrease, true);
-                Owner.Viewer.UserCommandController.AddEvent(UserCommand.ControlEngineBrakeIncrease, EngineBrakeCommandIncrease, true);
-                Owner.Viewer.UserCommandController.AddEvent(UserCommand.ControlEngineBrakeDecrease, EngineBrakeCommandDecrease, true);
-                Owner.Viewer.UserCommandController.AddEvent(UserCommand.ControlDynamicBrakeIncrease, DynamicBrakeCommandIncrease, true);
-                Owner.Viewer.UserCommandController.AddEvent(UserCommand.ControlDynamicBrakeDecrease, DynamicBrakeCommandDecrease, true);
-                Owner.Viewer.UserCommandController.AddEvent(UserCommand.ControlGearUp, GearCommandUp, true);
-                Owner.Viewer.UserCommandController.AddEvent(UserCommand.ControlGearDown, GearCommandDown, true);
-                Owner.Viewer.UserCommandController.AddEvent(UserCommand.ControlGearUp, GearCommandUp, true);
-                Owner.Viewer.UserCommandController.AddEvent(UserCommand.ControlGearDown, GearCommandDown, true);
-                Owner.Viewer.UserCommandController.AddEvent(UserCommand.ControlPantograph1, SetPantographCommand, true);
-                Owner.Viewer.UserCommandController.AddEvent(UserCommand.ControlPantograph2, SetPantographCommand, true);
-                Owner.Viewer.UserCommandController.AddEvent(UserCommand.ControlPantograph3, SetPantographCommand, true);
-                Owner.Viewer.UserCommandController.AddEvent(UserCommand.ControlPantograph4, SetPantographCommand, true);
-                Owner.Viewer.UserCommandController.AddEvent(UserCommand.GameAutopilotMode, SetAutoPilotCommand, true);
-                Owner.Viewer.UserCommandController.AddEvent(UserCommand.ControlFiring, SetFiringCommand, true);
+                Owner.Viewer.UserCommandController.AddEvent(UserCommand.ControlReverserForward, KeyEventType.KeyDown, DirectionCommandForward, true);
+                Owner.Viewer.UserCommandController.AddEvent(UserCommand.ControlReverserBackward, KeyEventType.KeyDown, DirectionCommandBackward, true);
+                Owner.Viewer.UserCommandController.AddEvent(UserCommand.ControlThrottleIncrease, KeyEventType.KeyDown, ThrottleCommandIncrease, true);
+                Owner.Viewer.UserCommandController.AddEvent(UserCommand.ControlThrottleDecrease, KeyEventType.KeyDown, ThrottleCommandDecrease, true);
+                Owner.Viewer.UserCommandController.AddEvent(UserCommand.ControlCylinderCocks, KeyEventType.KeyDown, CylinderCocksCommand, true);
+                Owner.Viewer.UserCommandController.AddEvent(UserCommand.ControlSander, KeyEventType.KeyDown, SanderCommand, true);
+                Owner.Viewer.UserCommandController.AddEvent(UserCommand.ControlSanderToggle, KeyEventType.KeyDown, SanderCommand, true);
+                Owner.Viewer.UserCommandController.AddEvent(UserCommand.ControlTrainBrakeIncrease, KeyEventType.KeyDown, TrainBrakeCommandIncrease, true);
+                Owner.Viewer.UserCommandController.AddEvent(UserCommand.ControlTrainBrakeDecrease, KeyEventType.KeyDown, TrainBrakeCommandDecrease, true);
+                Owner.Viewer.UserCommandController.AddEvent(UserCommand.ControlEngineBrakeIncrease, KeyEventType.KeyDown, EngineBrakeCommandIncrease, true);
+                Owner.Viewer.UserCommandController.AddEvent(UserCommand.ControlEngineBrakeDecrease, KeyEventType.KeyDown, EngineBrakeCommandDecrease, true);
+                Owner.Viewer.UserCommandController.AddEvent(UserCommand.ControlDynamicBrakeIncrease, KeyEventType.KeyDown, DynamicBrakeCommandIncrease, true);
+                Owner.Viewer.UserCommandController.AddEvent(UserCommand.ControlDynamicBrakeDecrease, KeyEventType.KeyDown, DynamicBrakeCommandDecrease, true);
+                Owner.Viewer.UserCommandController.AddEvent(UserCommand.ControlGearUp, KeyEventType.KeyDown, GearCommandUp, true);
+                Owner.Viewer.UserCommandController.AddEvent(UserCommand.ControlGearDown, KeyEventType.KeyDown, GearCommandDown, true);
+                Owner.Viewer.UserCommandController.AddEvent(UserCommand.ControlGearUp, KeyEventType.KeyDown, GearCommandUp, true);
+                Owner.Viewer.UserCommandController.AddEvent(UserCommand.ControlGearDown, KeyEventType.KeyDown, GearCommandDown, true);
+                Owner.Viewer.UserCommandController.AddEvent(UserCommand.ControlPantograph1, KeyEventType.KeyDown, PantographCommand, true);
+                Owner.Viewer.UserCommandController.AddEvent(UserCommand.ControlPantograph2, KeyEventType.KeyDown, PantographCommand, true);
+                Owner.Viewer.UserCommandController.AddEvent(UserCommand.ControlPantograph3, KeyEventType.KeyDown, PantographCommand, true);
+                Owner.Viewer.UserCommandController.AddEvent(UserCommand.ControlPantograph4, KeyEventType.KeyDown, PantographCommand, true);
+                Owner.Viewer.UserCommandController.AddEvent(UserCommand.GameAutopilotMode, KeyEventType.KeyDown, AutoPilotCommand, true);
+                Owner.Viewer.UserCommandController.AddEvent(UserCommand.ControlFiring, KeyEventType.KeyDown, FiringCommand, true);
             }
             else
             {
-                Owner.Viewer.UserCommandController.RemoveEvent(UserCommand.ControlReverserForward, DirectionCommandForward);
-                Owner.Viewer.UserCommandController.RemoveEvent(UserCommand.ControlReverserBackward, DirectionCommandBackward);
-                Owner.Viewer.UserCommandController.RemoveEvent(UserCommand.ControlThrottleIncrease, ThrottleCommandIncrease);
-                Owner.Viewer.UserCommandController.RemoveEvent(UserCommand.ControlThrottleDecrease, ThrottleCommandDecrease);
-                Owner.Viewer.UserCommandController.RemoveEvent(UserCommand.ControlCylinderCocks, CylinderCocksCommand);
-                Owner.Viewer.UserCommandController.RemoveEvent(UserCommand.ControlSander, SanderCommand);
-                Owner.Viewer.UserCommandController.RemoveEvent(UserCommand.ControlSanderToggle, SanderCommand);
-                Owner.Viewer.UserCommandController.RemoveEvent(UserCommand.ControlTrainBrakeIncrease, TrainBrakeCommandIncrease);
-                Owner.Viewer.UserCommandController.RemoveEvent(UserCommand.ControlTrainBrakeDecrease, TrainBrakeCommandDecrease);
-                Owner.Viewer.UserCommandController.RemoveEvent(UserCommand.ControlEngineBrakeIncrease, EngineBrakeCommandIncrease);
-                Owner.Viewer.UserCommandController.RemoveEvent(UserCommand.ControlEngineBrakeDecrease, EngineBrakeCommandDecrease);
-                Owner.Viewer.UserCommandController.RemoveEvent(UserCommand.ControlDynamicBrakeIncrease, DynamicBrakeCommandIncrease);
-                Owner.Viewer.UserCommandController.RemoveEvent(UserCommand.ControlDynamicBrakeDecrease, DynamicBrakeCommandDecrease);
-                Owner.Viewer.UserCommandController.RemoveEvent(UserCommand.ControlGearUp, GearCommandUp);
-                Owner.Viewer.UserCommandController.RemoveEvent(UserCommand.ControlGearDown, GearCommandDown);
-                Owner.Viewer.UserCommandController.RemoveEvent(UserCommand.ControlPantograph1, SetPantographCommand);
-                Owner.Viewer.UserCommandController.RemoveEvent(UserCommand.ControlPantograph2, SetPantographCommand);
-                Owner.Viewer.UserCommandController.RemoveEvent(UserCommand.ControlPantograph3, SetPantographCommand);
-                Owner.Viewer.UserCommandController.RemoveEvent(UserCommand.ControlPantograph4, SetPantographCommand);
-                Owner.Viewer.UserCommandController.RemoveEvent(UserCommand.GameAutopilotMode, SetAutoPilotCommand);
-                Owner.Viewer.UserCommandController.RemoveEvent(UserCommand.ControlFiring, SetFiringCommand);
+                Owner.Viewer.UserCommandController.RemoveEvent(UserCommand.ControlReverserForward, KeyEventType.KeyDown, DirectionCommandForward);
+                Owner.Viewer.UserCommandController.RemoveEvent(UserCommand.ControlReverserBackward, KeyEventType.KeyDown, DirectionCommandBackward);
+                Owner.Viewer.UserCommandController.RemoveEvent(UserCommand.ControlThrottleIncrease, KeyEventType.KeyDown, ThrottleCommandIncrease);
+                Owner.Viewer.UserCommandController.RemoveEvent(UserCommand.ControlThrottleDecrease, KeyEventType.KeyDown, ThrottleCommandDecrease);
+                Owner.Viewer.UserCommandController.RemoveEvent(UserCommand.ControlCylinderCocks, KeyEventType.KeyDown, CylinderCocksCommand);
+                Owner.Viewer.UserCommandController.RemoveEvent(UserCommand.ControlSander, KeyEventType.KeyDown, SanderCommand);
+                Owner.Viewer.UserCommandController.RemoveEvent(UserCommand.ControlSanderToggle, KeyEventType.KeyDown, SanderCommand);
+                Owner.Viewer.UserCommandController.RemoveEvent(UserCommand.ControlTrainBrakeIncrease, KeyEventType.KeyDown, TrainBrakeCommandIncrease);
+                Owner.Viewer.UserCommandController.RemoveEvent(UserCommand.ControlTrainBrakeDecrease, KeyEventType.KeyDown, TrainBrakeCommandDecrease);
+                Owner.Viewer.UserCommandController.RemoveEvent(UserCommand.ControlEngineBrakeIncrease, KeyEventType.KeyDown, EngineBrakeCommandIncrease);
+                Owner.Viewer.UserCommandController.RemoveEvent(UserCommand.ControlEngineBrakeDecrease, KeyEventType.KeyDown, EngineBrakeCommandDecrease);
+                Owner.Viewer.UserCommandController.RemoveEvent(UserCommand.ControlDynamicBrakeIncrease, KeyEventType.KeyDown, DynamicBrakeCommandIncrease);
+                Owner.Viewer.UserCommandController.RemoveEvent(UserCommand.ControlDynamicBrakeDecrease, KeyEventType.KeyDown, DynamicBrakeCommandDecrease);
+                Owner.Viewer.UserCommandController.RemoveEvent(UserCommand.ControlGearUp, KeyEventType.KeyDown, GearCommandUp);
+                Owner.Viewer.UserCommandController.RemoveEvent(UserCommand.ControlGearDown, KeyEventType.KeyDown, GearCommandDown);
+                Owner.Viewer.UserCommandController.RemoveEvent(UserCommand.ControlPantograph1, KeyEventType.KeyDown, PantographCommand);
+                Owner.Viewer.UserCommandController.RemoveEvent(UserCommand.ControlPantograph2, KeyEventType.KeyDown, PantographCommand);
+                Owner.Viewer.UserCommandController.RemoveEvent(UserCommand.ControlPantograph3, KeyEventType.KeyDown, PantographCommand);
+                Owner.Viewer.UserCommandController.RemoveEvent(UserCommand.ControlPantograph4, KeyEventType.KeyDown, PantographCommand);
+                Owner.Viewer.UserCommandController.RemoveEvent(UserCommand.GameAutopilotMode, KeyEventType.KeyDown, AutoPilotCommand);
+                Owner.Viewer.UserCommandController.RemoveEvent(UserCommand.ControlFiring, KeyEventType.KeyDown, FiringCommand);
             }
         }
 
-        //we need to keep a delegate reference to be able to unsubscribe
+        //we need to keep a delegate reference to be able to unsubscribe, so those are just forwarders
 #pragma warning disable IDE0022 // Use block body for methods
-        private void DirectionCommandForward(UserCommandArgs userCommandArgs) => DirectionCommand(userCommandArgs, Direction.Forward);
-        private void DirectionCommandBackward(UserCommandArgs userCommandArgs) => DirectionCommand(userCommandArgs, Direction.Backward);
-        private void ThrottleCommandIncrease(UserCommandArgs userCommandArgs) => ThrottleCommand(userCommandArgs, true);
-        private void ThrottleCommandDecrease(UserCommandArgs userCommandArgs) => ThrottleCommand(userCommandArgs, false);
-        private void TrainBrakeCommandIncrease(UserCommandArgs userCommandArgs) => TrainBrakeCommand(userCommandArgs, true);
-        private void TrainBrakeCommandDecrease(UserCommandArgs userCommandArgs) => TrainBrakeCommand(userCommandArgs, false);
-        private void EngineBrakeCommandIncrease(UserCommandArgs userCommandArgs) => EngineBrakeCommand(userCommandArgs, true);
-        private void EngineBrakeCommandDecrease(UserCommandArgs userCommandArgs) => EngineBrakeCommand(userCommandArgs, false);
-        private void DynamicBrakeCommandIncrease(UserCommandArgs userCommandArgs) => DynamicBrakeCommand(userCommandArgs, true);
-        private void DynamicBrakeCommandDecrease(UserCommandArgs userCommandArgs) => DynamicBrakeCommand(userCommandArgs, false);
-        private void GearCommandDown(UserCommandArgs userCommandArgs) => GearCommand(userCommandArgs, true);
-        private void GearCommandUp(UserCommandArgs userCommandArgs) => GearCommand(userCommandArgs, false);
-        private void SetPantographCommand(UserCommandArgs userCommandArgs) => PantographCommand(userCommandArgs);
-        private void SetAutoPilotCommand(UserCommandArgs userCommandArgs) => AutoPilotCommand(userCommandArgs);
-        private void SetFiringCommand(UserCommandArgs userCommandArgs) => FiringCommand(userCommandArgs);
-
+        private void DirectionCommandForward() => DirectionCommand(Direction.Forward);
+        private void DirectionCommandBackward() => DirectionCommand(Direction.Backward);
+        private void ThrottleCommandIncrease() => ThrottleCommand(true);
+        private void ThrottleCommandDecrease() => ThrottleCommand(false);
+        private void TrainBrakeCommandIncrease(UserCommandArgs userCommandArgs) => TrainBrakeCommand(true);
+        private void TrainBrakeCommandDecrease(UserCommandArgs userCommandArgs) => TrainBrakeCommand(false);
+        private void EngineBrakeCommandIncrease(UserCommandArgs userCommandArgs) => EngineBrakeCommand(true);
+        private void EngineBrakeCommandDecrease(UserCommandArgs userCommandArgs) => EngineBrakeCommand(false);
+        private void DynamicBrakeCommandIncrease(UserCommandArgs userCommandArgs) => DynamicBrakeCommand(true);
+        private void DynamicBrakeCommandDecrease(UserCommandArgs userCommandArgs) => DynamicBrakeCommand(false);
+        private void GearCommandDown(UserCommandArgs userCommandArgs) => GearCommand(true);
+        private void GearCommandUp(UserCommandArgs userCommandArgs) => GearCommand(false);
 #pragma warning restore IDE0022 // Use block body for methods
 
-        private void DirectionCommand(UserCommandArgs userCommandArgs, Direction direction)
+        private void DirectionCommand(Direction direction)
         {
-            if (userCommandArgs is KeyCommandArgs keyCommandArgs && keyCommandArgs.KeyEventType == KeyEventType.KeyDown)
+            if ((Owner.Viewer.PlayerLocomotive.EngineType != TrainCar.EngineTypes.Steam &&
+                (Owner.Viewer.PlayerLocomotive.Direction != MidpointDirection.Forward
+                || Owner.Viewer.PlayerLocomotive.Direction != MidpointDirection.Reverse)
+                && (Owner.Viewer.PlayerLocomotive.ThrottlePercent >= 1
+                || Math.Abs(Owner.Viewer.PlayerLocomotive.SpeedMpS) > 1))
+                || (Owner.Viewer.PlayerLocomotive.EngineType == TrainCar.EngineTypes.Steam &&
+                Owner.Viewer.PlayerLocomotive is MSTSSteamLocomotive mstsSteamLocomotive && mstsSteamLocomotive.CutoffController.MaximumValue == Math.Abs(Owner.Viewer.PlayerLocomotive.Train.MUReverserPercent / 100))
+                )
             {
-                if ((Owner.Viewer.PlayerLocomotive.EngineType != TrainCar.EngineTypes.Steam &&
-                    (Owner.Viewer.PlayerLocomotive.Direction != MidpointDirection.Forward
-                    || Owner.Viewer.PlayerLocomotive.Direction != MidpointDirection.Reverse)
-                    && (Owner.Viewer.PlayerLocomotive.ThrottlePercent >= 1
-                    || Math.Abs(Owner.Viewer.PlayerLocomotive.SpeedMpS) > 1))
-                    || (Owner.Viewer.PlayerLocomotive.EngineType == TrainCar.EngineTypes.Steam &&
-                    Owner.Viewer.PlayerLocomotive is MSTSSteamLocomotive mstsSteamLocomotive && mstsSteamLocomotive.CutoffController.MaximumValue == Math.Abs(Owner.Viewer.PlayerLocomotive.Train.MUReverserPercent / 100))
-                    )
-                {
-                    directionKeyInput = end;
-                }
-                else
-                {
-                    directionKeyInput = direction == Direction.Forward ? arrowUp : arrowDown;
-                }
+                directionKeyInput = end;
+            }
+            else
+            {
+                directionKeyInput = direction == Direction.Forward ? arrowUp : arrowDown;
             }
         }
 
-        private void ThrottleCommand(UserCommandArgs userCommandArgs, bool increase)
+        private void ThrottleCommand(bool increase)
         {
-            if (userCommandArgs is KeyCommandArgs keyCommandArgs && keyCommandArgs.KeyEventType == KeyEventType.KeyDown)
+            throttleIncreaseDown = increase;
+            throttleDecreaseDown = !increase;
+            if (Owner.Viewer.PlayerLocomotive.DynamicBrakePercent < 1 &&
+                (increase && (Owner.Viewer.PlayerLocomotive as MSTSLocomotive).ThrottleController.MaximumValue == Owner.Viewer.PlayerLocomotive.ThrottlePercent / 100)
+                || (!increase && Owner.Viewer.PlayerLocomotive.ThrottlePercent == 0))
             {
-                throttleIncreaseDown = increase;
-                throttleDecreaseDown = !increase;
-                if (Owner.Viewer.PlayerLocomotive.DynamicBrakePercent < 1 &&
-                    (increase && (Owner.Viewer.PlayerLocomotive as MSTSLocomotive).ThrottleController.MaximumValue == Owner.Viewer.PlayerLocomotive.ThrottlePercent / 100)
-                    || (!increase && Owner.Viewer.PlayerLocomotive.ThrottlePercent == 0))
-                {
-                    throttleKeyInput = end;
-                }
-                else if (Owner.Viewer.PlayerLocomotive.DynamicBrakePercent > -1)
-                {
-                    throttleKeyInput = endLower;
-                }
-                else
-                {
-                    throttleKeyInput = increase ? arrowUp : arrowDown;
-                }
+                throttleKeyInput = end;
+            }
+            else if (Owner.Viewer.PlayerLocomotive.DynamicBrakePercent > -1)
+            {
+                throttleKeyInput = endLower;
+            }
+            else
+            {
+                throttleKeyInput = increase ? arrowUp : arrowDown;
             }
         }
 
-        private void CylinderCocksCommand(UserCommandArgs userCommandArgs)
+        private void CylinderCocksCommand()
         {
-            if (userCommandArgs is KeyCommandArgs keyCommandArgs && keyCommandArgs.KeyEventType == KeyEventType.KeyDown && Owner.Viewer.PlayerLocomotive is MSTSSteamLocomotive)
+            if (Owner.Viewer.PlayerLocomotive is MSTSSteamLocomotive)
                 cylinderCocksInput = arrowToRight;
         }
 
-        private void SanderCommand(UserCommandArgs userCommandArgs)
+        private void SanderCommand()
         {
-            if (userCommandArgs is KeyCommandArgs keyCommandArgs && keyCommandArgs.KeyEventType == KeyEventType.KeyDown)
-            {
-                sanderInput = arrowDown;
-            }
+            sanderInput = arrowDown;
         }
 
-        private void TrainBrakeCommand(UserCommandArgs userCommandArgs, bool increase)
+        private void TrainBrakeCommand(bool increase)
         {
-            if (userCommandArgs is KeyCommandArgs keyCommandArgs && keyCommandArgs.KeyEventType == KeyEventType.KeyDown)
-            {
-                trainBrakeInput = increase ? arrowUp : arrowDown;
-            }
+            trainBrakeInput = increase ? arrowUp : arrowDown;
         }
 
-        private void EngineBrakeCommand(UserCommandArgs userCommandArgs, bool increase)
+        private void EngineBrakeCommand(bool increase)
         {
-            if (userCommandArgs is KeyCommandArgs keyCommandArgs && keyCommandArgs.KeyEventType == KeyEventType.KeyDown)
-            {
-                engineBrakeInput = increase ? arrowUp : arrowDown;
-            }
+            engineBrakeInput = increase ? arrowUp : arrowDown;
         }
 
-        private void DynamicBrakeCommand(UserCommandArgs userCommandArgs, bool increase)
+        private void DynamicBrakeCommand(bool increase)
         {
-            if (userCommandArgs is KeyCommandArgs keyCommandArgs && keyCommandArgs.KeyEventType == KeyEventType.KeyDown)
-            {
-                dynamicBrakeIncreaseDown = increase;
-                dynamicBrakeDecreaseDown = !increase;
-            }
+            dynamicBrakeIncreaseDown = increase;
+            dynamicBrakeDecreaseDown = !increase;
         }
 
-        private void GearCommand(UserCommandArgs userCommandArgs, bool down)
+        private void GearCommand(bool down)
         {
-            if (userCommandArgs is KeyCommandArgs keyCommandArgs && keyCommandArgs.KeyEventType == KeyEventType.KeyDown)
-            {
-                gearKeyInput = down ? arrowDown : arrowUp;
-            }
+            gearKeyInput = down ? arrowDown : arrowUp;
         }
 
-        private void PantographCommand(UserCommandArgs userCommandArgs)
+        private void PantographCommand()
         {
-            if (userCommandArgs is KeyCommandArgs keyCommandArgs && keyCommandArgs.KeyEventType == KeyEventType.KeyDown)
-            {
-                pantographKeyDown = true;
-            }
+            pantographKeyDown = true;
         }
 
-        private void AutoPilotCommand(UserCommandArgs userCommandArgs)
+        private void AutoPilotCommand()
         {
-            if (userCommandArgs is KeyCommandArgs keyCommandArgs && keyCommandArgs.KeyEventType == KeyEventType.KeyDown)
-            {
-                autoPilotKeyDown = true;
-            }
+            autoPilotKeyDown = true;
         }
 
-        private void FiringCommand(UserCommandArgs userCommandArgs)
+        private void FiringCommand()
         {
-            if (userCommandArgs is KeyCommandArgs keyCommandArgs && keyCommandArgs.KeyEventType == KeyEventType.KeyDown)
-            {
-                firingKeyDown = true;
-            }
+            firingKeyDown = true;
         }
 
         protected internal override void Save(BinaryWriter outf)
@@ -937,11 +903,11 @@ namespace Orts.Viewer3D.Popups
                             var bandUpper = steamloco.PreviousBoilerHeatOutBTUpS * 1.025f; // find upper bandwidth point
                             var bandLower = steamloco.PreviousBoilerHeatOutBTUpS * 0.975f; // find lower bandwidth point - gives a total 5% bandwidth
 
-                            if (steamloco.BoilerHeatInBTUpS > bandLower && steamloco.BoilerHeatInBTUpS < bandUpper) 
+                            if (steamloco.BoilerHeatInBTUpS > bandLower && steamloco.BoilerHeatInBTUpS < bandUpper)
                                 HeatColor = smallDiamond.ToString() + "!??";
-                            else if (steamloco.BoilerHeatInBTUpS < bandLower) 
+                            else if (steamloco.BoilerHeatInBTUpS < bandLower)
                                 HeatColor = smallArrowDown.ToString() + "$??"; // Color.Cyan
-                            else if (steamloco.BoilerHeatInBTUpS > bandUpper) 
+                            else if (steamloco.BoilerHeatInBTUpS > bandUpper)
                                 HeatColor = smallArrowUp.ToString() + "!!?"; // Color.Orange
 
                             InfoToLabel(string.Empty, Viewer.Catalog.GetString("Boiler pressure"), Viewer.Catalog.GetString(parts[1]), HeatColor, false);

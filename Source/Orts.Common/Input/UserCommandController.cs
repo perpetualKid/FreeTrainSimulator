@@ -56,13 +56,14 @@ namespace Orts.Common.Input
         }
 
         private readonly Dictionary<Delegate, List<Action<UserCommandArgs, GameTime>>> sourceActions = new Dictionary<Delegate, List<Action<UserCommandArgs, GameTime>>>();
-        private readonly EnumArray<Action<UserCommandArgs, GameTime>, T> configurableUserCommands = new EnumArray<Action<UserCommandArgs, GameTime>, T>();
+
+        private readonly EnumArray2D<Action<UserCommandArgs, GameTime>, T, KeyEventType> configurableUserCommands = new EnumArray2D<Action<UserCommandArgs, GameTime>, T, KeyEventType>();
 
         private readonly EnumArray<Action<UserCommandArgs, GameTime, KeyModifiers>, CommonUserCommand> commonUserCommandsArgs = new EnumArray<Action<UserCommandArgs, GameTime, KeyModifiers>, CommonUserCommand>();
 
-        internal void Trigger(T command, UserCommandArgs commandArgs, GameTime gameTime)
+        internal void Trigger(T command, KeyEventType keyEventType, UserCommandArgs commandArgs, GameTime gameTime)
         {
-            configurableUserCommands[command]?.Invoke(commandArgs, gameTime);
+            configurableUserCommands[command, keyEventType]?.Invoke(commandArgs, gameTime);
         }
 
         internal void Trigger(CommonUserCommand command, UserCommandArgs commandArgs, GameTime gameTime, KeyModifiers modifier = KeyModifiers.None)
@@ -71,15 +72,15 @@ namespace Orts.Common.Input
         }
 
         #region user-defined (key) events
-        public void AddEvent(T userCommand, Action<UserCommandArgs, GameTime> action)
+        public void AddEvent(T userCommand, KeyEventType keyEventType, Action<UserCommandArgs, GameTime> action)
         {
-            configurableUserCommands[userCommand] += action;
+            configurableUserCommands[userCommand, keyEventType] += action;
         }
 
-        public void AddEvent(T userCommand, Action action, bool enableUnsubscribe = false)
+        public void AddEvent(T userCommand, KeyEventType keyEventType, Action action, bool enableUnsubscribe = false)
         {
             Action<UserCommandArgs, GameTime> command = DelegateConverter.ConvertDelegate<Action, Action<UserCommandArgs, GameTime>>(action);
-            configurableUserCommands[userCommand] += command;
+            configurableUserCommands[userCommand, keyEventType] += command;
             if (enableUnsubscribe)
             {
                 if (!sourceActions.ContainsKey(action))
@@ -89,10 +90,10 @@ namespace Orts.Common.Input
             }
         }
 
-        public void AddEvent(T userCommand, Action<GameTime> action, bool enableUnsubscribe = false)
+        public void AddEvent(T userCommand, KeyEventType keyEventType, Action<GameTime> action, bool enableUnsubscribe = false)
         {
             Action<UserCommandArgs, GameTime> command = DelegateConverter.ConvertDelegate<Action<GameTime>, Action<UserCommandArgs, GameTime>>(action, new int[] { 1 });
-            configurableUserCommands[userCommand] += command;
+            configurableUserCommands[userCommand, keyEventType] += command;
             if (enableUnsubscribe)
             {
                 if (!sourceActions.ContainsKey(action))
@@ -102,10 +103,10 @@ namespace Orts.Common.Input
             }
         }
 
-        public void AddEvent(T userCommand, Action<UserCommandArgs> action, bool enableUnsubscribe = false)
+        public void AddEvent(T userCommand, KeyEventType keyEventType, Action<UserCommandArgs> action, bool enableUnsubscribe = false)
         {
             Action<UserCommandArgs, GameTime> command = DelegateConverter.ConvertDelegate<Action<UserCommandArgs>, Action<UserCommandArgs, GameTime>>(action);
-            configurableUserCommands[userCommand] += command;
+            configurableUserCommands[userCommand, keyEventType] += command;
             if (enableUnsubscribe)
             {
                 if (!sourceActions.ContainsKey(action))
@@ -115,37 +116,38 @@ namespace Orts.Common.Input
             }
         }
 
-        public void RemoveEvent(T userCommand, Action<UserCommandArgs, GameTime> action)
+        public void RemoveEvent(T userCommand, KeyEventType keyEventType, Action<UserCommandArgs, GameTime> action)
         {
-            configurableUserCommands[userCommand] -= action;
+            configurableUserCommands[userCommand, keyEventType] -= action;
         }
 
-        public void RemoveEvent(T userCommand, Action action)
+        public void RemoveEvent(T userCommand, KeyEventType keyEventType, Action action)
         {
             if (sourceActions.TryGetValue(action, out List<Action<UserCommandArgs, GameTime>> commandList) && commandList.Count > 0)
             {
-                configurableUserCommands[userCommand] -= commandList[0];
+                configurableUserCommands[userCommand, keyEventType] -= commandList[0];
                 commandList.RemoveAt(0);
             }
         }
 
-        public void RemoveEvent(T userCommand, Action<GameTime> action)
+        public void RemoveEvent(T userCommand, KeyEventType keyEventType, Action<GameTime> action)
         {
             if (sourceActions.TryGetValue(action, out List<Action<UserCommandArgs, GameTime>> commandList) && commandList.Count > 0)
             {
-                configurableUserCommands[userCommand] -= commandList[0];
+                configurableUserCommands[userCommand, keyEventType] -= commandList[0];
                 commandList.RemoveAt(0);
             }
         }
 
-        public void RemoveEvent(T userCommand, Action<UserCommandArgs> action)
+        public void RemoveEvent(T userCommand, KeyEventType keyEventType, Action<UserCommandArgs> action)
         {
             if (sourceActions.TryGetValue(action, out List<Action<UserCommandArgs, GameTime>> commandList) && commandList.Count > 0)
             {
-                configurableUserCommands[userCommand] -= commandList[0];
+                configurableUserCommands[userCommand, keyEventType] -= commandList[0];
                 commandList.RemoveAt(0);
             }
         }
+
         #endregion
 
         #region Generic events

@@ -72,7 +72,7 @@ namespace Orts.ActivityRunner.Viewer3D
             if (viewer.Settings.DataLogger)
                 DataLoggerStart();
 
-            viewer.UserCommandController.AddEvent(UserCommand.DebugLogger, () =>
+            viewer.UserCommandController.AddEvent(UserCommand.DebugLogger, KeyEventType.KeyPressed, () =>
             {
                 viewer.Settings.DataLogger = !viewer.Settings.DataLogger;
                 if (viewer.Settings.DataLogger)

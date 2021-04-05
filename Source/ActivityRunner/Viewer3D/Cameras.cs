@@ -49,26 +49,51 @@ namespace Orts.ActivityRunner.Viewer3D
             private CameraEventHandler(Viewer viewer)
             {
                 this.viewer = viewer;
-                viewer.UserCommandController.AddEvent(UserCommand.CameraZoomIn, ZoomIn);
-                viewer.UserCommandController.AddEvent(UserCommand.CameraZoomOut, ZoomOut);
-                viewer.UserCommandController.AddEvent(UserCommand.CameraToggleLetterboxCab, ToggleLetterboxCab);
-                viewer.UserCommandController.AddEvent(UserCommand.CameraChangePassengerViewPoint, ChangePassengerViewPoint);
-                viewer.UserCommandController.AddEvent(UserCommand.CameraScrollLeft, (UserCommandArgs commandArgs, GameTime gameTime) => Scroll(false, gameTime));
-                viewer.UserCommandController.AddEvent(UserCommand.CameraScrollRight, (UserCommandArgs commandArgs, GameTime gameTime) => Scroll(true, gameTime));
-                viewer.UserCommandController.AddEvent(UserCommand.CameraRotateLeft, RotateLeft);
-                viewer.UserCommandController.AddEvent(UserCommand.CameraRotateRight, RotateRight);
-                viewer.UserCommandController.AddEvent(UserCommand.CameraRotateUp, RotateUp);
-                viewer.UserCommandController.AddEvent(UserCommand.CameraRotateDown, RotateDown);
-                viewer.UserCommandController.AddEvent(UserCommand.CameraPanLeft, PanLeft);
-                viewer.UserCommandController.AddEvent(UserCommand.CameraPanRight, PanRight);
-                viewer.UserCommandController.AddEvent(UserCommand.CameraPanUp, PanUp);
-                viewer.UserCommandController.AddEvent(UserCommand.CameraPanDown, PanDown);
-                viewer.UserCommandController.AddEvent(UserCommand.CameraCarNext, CarNext);
-                viewer.UserCommandController.AddEvent(UserCommand.CameraCarPrevious, CarPrevious);
-                viewer.UserCommandController.AddEvent(UserCommand.CameraCarFirst, CarFirst);
-                viewer.UserCommandController.AddEvent(UserCommand.CameraCarLast, CarLast);
-                viewer.UserCommandController.AddEvent(UserCommand.CameraBrowseBackwards, BrowseBackwards);
-                viewer.UserCommandController.AddEvent(UserCommand.CameraBrowseForwards, BrowseForwards);
+                viewer.UserCommandController.AddEvent(UserCommand.CameraZoomIn, KeyEventType.KeyDown, (UserCommandArgs commandArgs, GameTime gameTime) => viewer.Camera.Zoom(1, commandArgs, gameTime));
+                viewer.UserCommandController.AddEvent(UserCommand.CameraZoomOut, KeyEventType.KeyDown, (UserCommandArgs commandArgs, GameTime gameTime) => viewer.Camera.Zoom(-1, commandArgs, gameTime));
+                viewer.UserCommandController.AddEvent(UserCommand.CameraZoomIn, KeyEventType.KeyPressed, () => viewer.Camera.ZoomCommandStart());
+                viewer.UserCommandController.AddEvent(UserCommand.CameraZoomOut, KeyEventType.KeyPressed, () => viewer.Camera.ZoomCommandStart());
+                viewer.UserCommandController.AddEvent(UserCommand.CameraZoomIn, KeyEventType.KeyReleased, () => viewer.Camera.ZoomCommandEnd());
+                viewer.UserCommandController.AddEvent(UserCommand.CameraZoomOut, KeyEventType.KeyReleased, () => viewer.Camera.ZoomCommandEnd());
+                viewer.UserCommandController.AddEvent(UserCommand.CameraToggleLetterboxCab, KeyEventType.KeyPressed, () => viewer.Camera.ToggleLetterboxCab());
+                viewer.UserCommandController.AddEvent(UserCommand.CameraChangePassengerViewPoint, KeyEventType.KeyPressed, () => viewer.Camera.ChangePassengerViewPoint());
+                viewer.UserCommandController.AddEvent(UserCommand.CameraScrollLeft, KeyEventType.KeyDown, (GameTime gameTime) => viewer.Camera.Scroll(false, gameTime));
+                viewer.UserCommandController.AddEvent(UserCommand.CameraScrollRight, KeyEventType.KeyDown, (GameTime gameTime) => viewer.Camera.Scroll(true, gameTime));
+
+                viewer.UserCommandController.AddEvent(UserCommand.CameraRotateRight, KeyEventType.KeyDown, (UserCommandArgs commandArgs, GameTime gameTime) => viewer.Camera.RotateHorizontally(1, commandArgs, gameTime));
+                viewer.UserCommandController.AddEvent(UserCommand.CameraRotateLeft, KeyEventType.KeyDown, (UserCommandArgs commandArgs, GameTime gameTime) => viewer.Camera.RotateHorizontally(-1, commandArgs, gameTime));
+                viewer.UserCommandController.AddEvent(UserCommand.CameraRotateUp, KeyEventType.KeyDown, (UserCommandArgs commandArgs, GameTime gameTime) => viewer.Camera.RotateVertically(1, commandArgs, gameTime));
+                viewer.UserCommandController.AddEvent(UserCommand.CameraRotateDown, KeyEventType.KeyDown, (UserCommandArgs commandArgs, GameTime gameTime) => viewer.Camera.RotateVertically(-1, commandArgs, gameTime));
+                viewer.UserCommandController.AddEvent(UserCommand.CameraRotateRight, KeyEventType.KeyPressed, () => viewer.Camera.RotateHorizontallyCommandStart());
+                viewer.UserCommandController.AddEvent(UserCommand.CameraRotateLeft, KeyEventType.KeyPressed, () => viewer.Camera.RotateHorizontallyCommandStart());
+                viewer.UserCommandController.AddEvent(UserCommand.CameraRotateUp, KeyEventType.KeyPressed, () => viewer.Camera.RotateVerticallyCommandStart());
+                viewer.UserCommandController.AddEvent(UserCommand.CameraRotateDown, KeyEventType.KeyPressed, () => viewer.Camera.RotateVerticallyCommandStart());
+                viewer.UserCommandController.AddEvent(UserCommand.CameraRotateRight, KeyEventType.KeyReleased, () => viewer.Camera.RotateHorizontallyCommandEnd());
+                viewer.UserCommandController.AddEvent(UserCommand.CameraRotateLeft, KeyEventType.KeyReleased, () => viewer.Camera.RotateHorizontallyCommandEnd());
+                viewer.UserCommandController.AddEvent(UserCommand.CameraRotateUp, KeyEventType.KeyReleased, () => viewer.Camera.RotateVerticallyCommandEnd());
+                viewer.UserCommandController.AddEvent(UserCommand.CameraRotateDown, KeyEventType.KeyReleased, () => viewer.Camera.RotateVerticallyCommandEnd());
+
+                viewer.UserCommandController.AddEvent(UserCommand.CameraPanRight, KeyEventType.KeyDown, (UserCommandArgs commandArgs, GameTime gameTime) => viewer.Camera.PanHorizontally(1, commandArgs, gameTime));
+                viewer.UserCommandController.AddEvent(UserCommand.CameraPanLeft, KeyEventType.KeyDown, (UserCommandArgs commandArgs, GameTime gameTime) => viewer.Camera.PanHorizontally(-1, commandArgs, gameTime));
+                viewer.UserCommandController.AddEvent(UserCommand.CameraPanUp, KeyEventType.KeyDown, (UserCommandArgs commandArgs, GameTime gameTime) => viewer.Camera.PanVertically(1, commandArgs, gameTime));
+                viewer.UserCommandController.AddEvent(UserCommand.CameraPanDown, KeyEventType.KeyDown, (UserCommandArgs commandArgs, GameTime gameTime) => viewer.Camera.PanVertically(-1, commandArgs, gameTime));
+                viewer.UserCommandController.AddEvent(UserCommand.CameraPanRight, KeyEventType.KeyPressed, () => viewer.Camera.PanHorizontallyCommandStart());
+                viewer.UserCommandController.AddEvent(UserCommand.CameraPanLeft, KeyEventType.KeyPressed, () => viewer.Camera.PanHorizontallyCommandStart());
+                viewer.UserCommandController.AddEvent(UserCommand.CameraPanRight, KeyEventType.KeyPressed, () => viewer.Camera.SwitchCabView(1));
+                viewer.UserCommandController.AddEvent(UserCommand.CameraPanLeft, KeyEventType.KeyPressed, () => viewer.Camera.SwitchCabView(-1));
+                viewer.UserCommandController.AddEvent(UserCommand.CameraPanUp, KeyEventType.KeyPressed, () => viewer.Camera.PanVerticallyCommandStart());
+                viewer.UserCommandController.AddEvent(UserCommand.CameraPanDown, KeyEventType.KeyPressed, () => viewer.Camera.PanVerticallyCommandStart());
+                viewer.UserCommandController.AddEvent(UserCommand.CameraPanRight, KeyEventType.KeyReleased, () => viewer.Camera.PanHorizontallyCommandEnd());
+                viewer.UserCommandController.AddEvent(UserCommand.CameraPanLeft, KeyEventType.KeyReleased, () => viewer.Camera.PanHorizontallyCommandEnd());
+                viewer.UserCommandController.AddEvent(UserCommand.CameraPanUp, KeyEventType.KeyReleased, () => viewer.Camera.PanVerticallyCommandEnd());
+                viewer.UserCommandController.AddEvent(UserCommand.CameraPanDown, KeyEventType.KeyReleased, () => viewer.Camera.PanVerticallyCommandEnd());
+
+                viewer.UserCommandController.AddEvent(UserCommand.CameraCarNext, KeyEventType.KeyPressed, () => viewer.Camera.CarNext());
+                viewer.UserCommandController.AddEvent(UserCommand.CameraCarPrevious, KeyEventType.KeyPressed, () => viewer.Camera.CarPrevious());
+                viewer.UserCommandController.AddEvent(UserCommand.CameraCarFirst, KeyEventType.KeyPressed, () => viewer.Camera.CarFirst());
+                viewer.UserCommandController.AddEvent(UserCommand.CameraCarLast, KeyEventType.KeyPressed, () => viewer.Camera.CarLast());
+                viewer.UserCommandController.AddEvent(UserCommand.CameraBrowseBackwards, KeyEventType.KeyPressed, () => viewer.Camera.BrowseBackwards());
+                viewer.UserCommandController.AddEvent(UserCommand.CameraBrowseForwards, KeyEventType.KeyPressed, () => viewer.Camera.BrowseForwards());
             }
 
             internal static void Initialize(Viewer viewer)
@@ -78,53 +103,24 @@ namespace Orts.ActivityRunner.Viewer3D
                     instance = new CameraEventHandler(viewer);
                 }
             }
-
-#pragma warning disable IDE0022 // Use block body for methods
-            private void ZoomIn(UserCommandArgs commandArgs, GameTime gameTime) => viewer.Camera.Zoom(1, commandArgs, gameTime);
-
-            private void ZoomOut(UserCommandArgs commandArgs, GameTime gameTime) => viewer.Camera.Zoom(1, commandArgs, gameTime);
-
-            private void RotateRight(UserCommandArgs commandArgs, GameTime gameTime) => viewer.Camera.RotateHorizontally(1, commandArgs, gameTime);
-
-            private void RotateLeft(UserCommandArgs commandArgs, GameTime gameTime) => viewer.Camera.RotateHorizontally(-1, commandArgs, gameTime);
-
-            private void RotateUp(UserCommandArgs commandArgs, GameTime gameTime) => viewer.Camera.RotateVertically(1, commandArgs, gameTime);
-
-            private void RotateDown(UserCommandArgs commandArgs, GameTime gameTime) => viewer.Camera.RotateVertically(-1, commandArgs, gameTime);
-
-            private void PanRight(UserCommandArgs commandArgs, GameTime gameTime) => viewer.Camera.PanHorizontally(1, commandArgs, gameTime);
-
-            private void PanLeft(UserCommandArgs commandArgs, GameTime gameTime) => viewer.Camera.PanHorizontally(-1, commandArgs, gameTime);
-
-            private void PanUp(UserCommandArgs commandArgs, GameTime gameTime) => viewer.Camera.PanVertically(1, commandArgs, gameTime);
-
-            private void PanDown(UserCommandArgs commandArgs, GameTime gameTime) => viewer.Camera.PanVertically(-1, commandArgs, gameTime);
-
-            private void ToggleLetterboxCab() => viewer.Camera.ToggleLetterboxCab();
-
-            private void ChangePassengerViewPoint() => viewer.Camera.ChangePassengerViewPoint();
-
-            private void CarNext() => viewer.Camera.CarNext();
-
-            private void CarPrevious() => viewer.Camera.CarPrevious();
-
-            private void CarFirst() => viewer.Camera.CarFirst();
-
-            private void CarLast() => viewer.Camera.CarLast();
-
-            private void BrowseBackwards() => viewer.Camera.BrowseBackwards();
-
-            private void BrowseForwards() => viewer.Camera.BrowseForwards();
-
-            private void Scroll(bool right, GameTime gameTime) => viewer.Camera.Scroll(right, gameTime);
-#pragma warning restore IDE0022 // Use block body for methods
         }
 
+        private protected virtual void ZoomCommandStart() { }
+        private protected virtual void ZoomCommandEnd() { }
         private protected virtual void Zoom(int zoomSign, UserCommandArgs commandArgs, GameTime gameTime) { }
+        private protected virtual void RotateHorizontallyCommandStart() { }
+        private protected virtual void RotateHorizontallyCommandEnd() { }
         private protected virtual void RotateHorizontally(int rotateSign, UserCommandArgs commandArgs, GameTime gameTime) { }
+        private protected virtual void RotateVerticallyCommandStart() { }
+        private protected virtual void RotateVerticallyCommandEnd() { }
         private protected virtual void RotateVertically(int rotateSign, UserCommandArgs commandArgs, GameTime gameTime) { }
+        private protected virtual void PanHorizontallyCommandStart() { }
+        private protected virtual void PanHorizontallyCommandEnd() { }
         private protected virtual void PanHorizontally(int panSign, UserCommandArgs commandArgs, GameTime gameTime) { }
+        private protected virtual void PanVerticallyCommandStart() { }
+        private protected virtual void PanVerticallyCommandEnd() { }
         private protected virtual void PanVertically(int panSign, UserCommandArgs commandArgs, GameTime gameTime) { }
+        private protected virtual void SwitchCabView(int direction) { }
         private protected virtual void Scroll(bool right, GameTime gameTime) { }
         private protected virtual void ToggleLetterboxCab() { }
         private protected virtual void ChangePassengerViewPoint() { }
@@ -359,9 +355,9 @@ namespace Orts.ActivityRunner.Viewer3D
             double speed = 5 * gameTime.ElapsedGameTime.TotalSeconds;
             if (userCommandArgs is ModifiableKeyCommandArgs modifiableKeyCommandArgs)
             {
-                if (modifiableKeyCommandArgs.AddtionalModifiers.HasFlag(viewer.Settings.Input.CameraMoveFastModifier))
+                if (modifiableKeyCommandArgs.AdditionalModifiers.HasFlag(viewer.Settings.Input.CameraMoveFastModifier))
                     speed *= SpeedFactorFastSlow;
-                else if (modifiableKeyCommandArgs.AddtionalModifiers.HasFlag(viewer.Settings.Input.CameraMoveSlowModifier))
+                else if (modifiableKeyCommandArgs.AdditionalModifiers.HasFlag(viewer.Settings.Input.CameraMoveSlowModifier))
                     speed /= SpeedFactorFastSlow;
             }
             return (float)speed;
@@ -727,109 +723,89 @@ namespace Orts.ActivityRunner.Viewer3D
             // Intentionally do nothing at all.
         }
 
+        private protected override void ZoomCommandStart()
+        {
+            Viewer.CheckReplaying();
+            CommandStartTime = Viewer.Simulator.ClockTime;
+        }
+
+        private protected override void ZoomCommandEnd()
+        {
+            _ = new CameraZCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, ZRadians);
+        }
+
         private protected override void Zoom(int zoomSign, UserCommandArgs commandArgs, GameTime gameTime)
         {
-            if (commandArgs is KeyCommandArgs keyCommandArgs)
-            {
-                switch (keyCommandArgs.KeyEventType)
-                {
-                    case KeyEventType.KeyDown:
-                        float speed = GetSpeed(gameTime, commandArgs, Viewer);
-                        ZoomIn(zoomSign * speed * ZoomFactor);
-                        break;
-                    case KeyEventType.KeyPressed:
-                        Viewer.CheckReplaying();
-                        CommandStartTime = Viewer.Simulator.ClockTime;
-                        break;
-                    case KeyEventType.KeyReleased:
-                        _ = new CameraZCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, ZRadians);
-                        break;
-                }
-            }
+            float speed = GetSpeed(gameTime, commandArgs, Viewer);
+            ZoomIn(zoomSign * speed * ZoomFactor);
+        }
+
+        private protected override void RotateHorizontallyCommandStart()
+        {
+            Viewer.CheckReplaying();
+            CommandStartTime = Viewer.Simulator.ClockTime;
+        }
+
+        private protected override void RotateHorizontallyCommandEnd()
+        {
+            _ = new CameraRotateLeftRightCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, RotationYRadians);
         }
 
         private protected override void RotateHorizontally(int rotateSign, UserCommandArgs commandArgs, GameTime gameTime)
         {
-            if (commandArgs is KeyCommandArgs keyCommandArgs)
-            {
-                switch (keyCommandArgs.KeyEventType)
-                {
-                    case KeyEventType.KeyDown:
-                        float speed = GetSpeed(gameTime, commandArgs, Viewer) * SpeedAdjustmentForRotation;
-                        RotateRight(rotateSign * speed);
-                        break;
-                    case KeyEventType.KeyPressed:
-                        Viewer.CheckReplaying();
-                        CommandStartTime = Viewer.Simulator.ClockTime;
-                        break;
-                    case KeyEventType.KeyReleased:
-                        _ = new CameraRotateLeftRightCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, RotationYRadians);
-                        break;
-                }
-            }
+            float speed = GetSpeed(gameTime, commandArgs, Viewer) * SpeedAdjustmentForRotation;
+            RotateRight(rotateSign * speed);
+        }
+
+        private protected override void RotateVerticallyCommandStart()
+        {
+            Viewer.CheckReplaying();
+            CommandStartTime = Viewer.Simulator.ClockTime;
+        }
+
+        private protected override void RotateVerticallyCommandEnd()
+        {
+            _ = new CameraRotateUpDownCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, RotationXRadians);
         }
 
         private protected override void RotateVertically(int rotateSign, UserCommandArgs commandArgs, GameTime gameTime)
         {
-            if (commandArgs is KeyCommandArgs keyCommandArgs)
-            {
-                switch (keyCommandArgs.KeyEventType)
-                {
-                    case KeyEventType.KeyDown:
-                        float speed = GetSpeed(gameTime, commandArgs, Viewer) * SpeedAdjustmentForRotation;
-                        RotateDown(-rotateSign * speed);
-                        break;
-                    case KeyEventType.KeyPressed:
-                        Viewer.CheckReplaying();
-                        CommandStartTime = Viewer.Simulator.ClockTime;
-                        break;
-                    case KeyEventType.KeyReleased:
-                        _ = new CameraRotateUpDownCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, RotationXRadians);
-                        break;
-                }
-            }
+            float speed = GetSpeed(gameTime, commandArgs, Viewer) * SpeedAdjustmentForRotation;
+            RotateDown(-rotateSign * speed);
+        }
+
+        private protected override void PanHorizontallyCommandStart()
+        {
+            Viewer.CheckReplaying();
+            CommandStartTime = Viewer.Simulator.ClockTime;
+        }
+
+        private protected override void PanHorizontallyCommandEnd()
+        {
+            _ = new CameraXCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, XRadians);
         }
 
         private protected override void PanHorizontally(int panSign, UserCommandArgs commandArgs, GameTime gameTime)
         {
-            if (commandArgs is KeyCommandArgs keyCommandArgs)
-            {
-                switch (keyCommandArgs.KeyEventType)
-                {
-                    case KeyEventType.KeyDown:
-                        float speed = GetSpeed(gameTime, commandArgs, Viewer);
-                        PanRight(panSign * speed);
-                        break;
-                    case KeyEventType.KeyPressed:
-                        Viewer.CheckReplaying();
-                        CommandStartTime = Viewer.Simulator.ClockTime;
-                        break;
-                    case KeyEventType.KeyReleased:
-                        _ = new CameraXCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, XRadians);
-                        break;
-                }
-            }
+            float speed = GetSpeed(gameTime, commandArgs, Viewer);
+            PanRight(panSign * speed);
+        }
+
+        private protected override void PanVerticallyCommandStart()
+        {
+            Viewer.CheckReplaying();
+            CommandStartTime = Viewer.Simulator.ClockTime;
+        }
+
+        private protected override void PanVerticallyCommandEnd()
+        {
+            _ = new CameraYCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, YRadians);
         }
 
         private protected override void PanVertically(int panSign, UserCommandArgs commandArgs, GameTime gameTime)
         {
-            if (commandArgs is KeyCommandArgs keyCommandArgs)
-            {
-                switch (keyCommandArgs.KeyEventType)
-                {
-                    case KeyEventType.KeyDown:
-                        float speed = GetSpeed(gameTime, commandArgs, Viewer);
-                        PanUp(panSign * speed);
-                        break;
-                    case KeyEventType.KeyPressed:
-                        Viewer.CheckReplaying();
-                        CommandStartTime = Viewer.Simulator.ClockTime;
-                        break;
-                    case KeyEventType.KeyReleased:
-                        _ = new CameraYCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, YRadians);
-                        break;
-                }
-            }
+            float speed = GetSpeed(gameTime, commandArgs, Viewer);
+            PanUp(panSign * speed);
         }
 
         public override void HandleUserInput(in ElapsedTime elapsedTime)
@@ -1199,109 +1175,89 @@ namespace Orts.ActivityRunner.Viewer3D
             return BrowseMode ? false : attachedCar.Flipped;
         }
 
+        private protected override void ZoomCommandStart()
+        {
+            Viewer.CheckReplaying();
+            CommandStartTime = Viewer.Simulator.ClockTime;
+        }
+
+        private protected override void ZoomCommandEnd()
+        {
+            _ = new TrackingCameraZCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, PositionDistance);
+        }
+
         private protected override void Zoom(int zoomSign, UserCommandArgs commandArgs, GameTime gameTime)
         {
-            if (commandArgs is KeyCommandArgs keyCommandArgs)
-            {
-                switch (keyCommandArgs.KeyEventType)
-                {
-                    case KeyEventType.KeyDown:
-                        float speed = GetSpeed(gameTime, commandArgs, Viewer);
-                        ZoomIn(zoomSign * speed * ZoomFactor);
-                        break;
-                    case KeyEventType.KeyPressed:
-                        Viewer.CheckReplaying();
-                        CommandStartTime = Viewer.Simulator.ClockTime;
-                        break;
-                    case KeyEventType.KeyReleased:
-                        _ = new TrackingCameraZCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, PositionDistance);
-                        break;
-                }
-            }
+            float speed = GetSpeed(gameTime, commandArgs, Viewer);
+            ZoomIn(zoomSign * speed * ZoomFactor);
+        }
+
+        private protected override void RotateHorizontallyCommandStart()
+        {
+            Viewer.CheckReplaying();
+            CommandStartTime = Viewer.Simulator.ClockTime;
+        }
+
+        private protected override void RotateHorizontallyCommandEnd()
+        {
+            _ = new CameraRotateLeftRightCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, RotationYRadians);
         }
 
         private protected override void RotateHorizontally(int rotateSign, UserCommandArgs commandArgs, GameTime gameTime)
         {
-            if (commandArgs is KeyCommandArgs keyCommandArgs)
-            {
-                switch (keyCommandArgs.KeyEventType)
-                {
-                    case KeyEventType.KeyDown:
-                        float speed = GetSpeed(gameTime, commandArgs, Viewer) * SpeedAdjustmentForRotation;
-                        RotateRight(rotateSign * speed);
-                        break;
-                    case KeyEventType.KeyPressed:
-                        Viewer.CheckReplaying();
-                        CommandStartTime = Viewer.Simulator.ClockTime;
-                        break;
-                    case KeyEventType.KeyReleased:
-                        _ = new CameraRotateLeftRightCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, RotationYRadians);
-                        break;
-                }
-            }
+            float speed = GetSpeed(gameTime, commandArgs, Viewer) * SpeedAdjustmentForRotation;
+            RotateRight(rotateSign * speed);
+        }
+
+        private protected override void RotateVerticallyCommandStart()
+        {
+            Viewer.CheckReplaying();
+            CommandStartTime = Viewer.Simulator.ClockTime;
+        }
+
+        private protected override void RotateVerticallyCommandEnd()
+        {
+            _ = new CameraRotateUpDownCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, RotationXRadians);
         }
 
         private protected override void RotateVertically(int rotateSign, UserCommandArgs commandArgs, GameTime gameTime)
         {
-            if (commandArgs is KeyCommandArgs keyCommandArgs)
-            {
-                switch (keyCommandArgs.KeyEventType)
-                {
-                    case KeyEventType.KeyDown:
-                        float speed = GetSpeed(gameTime, commandArgs, Viewer) * SpeedAdjustmentForRotation;
-                        RotateDown(-rotateSign * speed);
-                        break;
-                    case KeyEventType.KeyPressed:
-                        Viewer.CheckReplaying();
-                        CommandStartTime = Viewer.Simulator.ClockTime;
-                        break;
-                    case KeyEventType.KeyReleased:
-                        _ = new CameraRotateUpDownCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, RotationXRadians);
-                        break;
-                }
-            }
+            float speed = GetSpeed(gameTime, commandArgs, Viewer) * SpeedAdjustmentForRotation;
+            RotateDown(-rotateSign * speed);
+        }
+
+        private protected override void PanHorizontallyCommandStart()
+        {
+            Viewer.CheckReplaying();
+            CommandStartTime = Viewer.Simulator.ClockTime;
+        }
+
+        private protected override void PanHorizontallyCommandEnd()
+        {
+            _ = new TrackingCameraXCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, PositionXRadians);
         }
 
         private protected override void PanHorizontally(int panSign, UserCommandArgs commandArgs, GameTime gameTime)
         {
-            if (commandArgs is KeyCommandArgs keyCommandArgs)
-            {
-                switch (keyCommandArgs.KeyEventType)
-                {
-                    case KeyEventType.KeyDown:
-                        float speed = GetSpeed(gameTime, commandArgs, Viewer) * SpeedAdjustmentForRotation;
-                        PanRight(panSign * speed);
-                        break;
-                    case KeyEventType.KeyPressed:
-                        Viewer.CheckReplaying();
-                        CommandStartTime = Viewer.Simulator.ClockTime;
-                        break;
-                    case KeyEventType.KeyReleased:
-                        _ = new TrackingCameraXCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, PositionXRadians);
-                        break;
-                }
-            }
+            float speed = GetSpeed(gameTime, commandArgs, Viewer) * SpeedAdjustmentForRotation;
+            PanRight(panSign * speed);
+        }
+
+        private protected override void PanVerticallyCommandStart()
+        {
+            Viewer.CheckReplaying();
+            CommandStartTime = Viewer.Simulator.ClockTime;
+        }
+
+        private protected override void PanVerticallyCommandEnd()
+        {
+            _ = new TrackingCameraYCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, PositionYRadians);
         }
 
         private protected override void PanVertically(int panSign, UserCommandArgs commandArgs, GameTime gameTime)
         {
-            if (commandArgs is KeyCommandArgs keyCommandArgs)
-            {
-                switch (keyCommandArgs.KeyEventType)
-                {
-                    case KeyEventType.KeyDown:
-                        float speed = GetSpeed(gameTime, commandArgs, Viewer) * SpeedAdjustmentForRotation;
-                        PanUp(panSign * speed);
-                        break;
-                    case KeyEventType.KeyPressed:
-                        Viewer.CheckReplaying();
-                        CommandStartTime = Viewer.Simulator.ClockTime;
-                        break;
-                    case KeyEventType.KeyReleased:
-                        _ = new TrackingCameraYCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, PositionYRadians);
-                        break;
-                }
-            }
+            float speed = GetSpeed(gameTime, commandArgs, Viewer) * SpeedAdjustmentForRotation;
+            PanUp(panSign * speed);
         }
 
         private protected override void CarFirst()
@@ -1326,12 +1282,12 @@ namespace Orts.ActivityRunner.Viewer3D
 
         private protected override void BrowseForwards()
         {
-            _=new ToggleBrowseForwardsCommand(Viewer.Log);
+            _ = new ToggleBrowseForwardsCommand(Viewer.Log);
         }
 
         private protected override void BrowseBackwards()
         {
-            _=new ToggleBrowseBackwardsCommand(Viewer.Log);
+            _ = new ToggleBrowseBackwardsCommand(Viewer.Log);
         }
 
         public override void HandleUserInput(in ElapsedTime elapsedTime)
@@ -1649,84 +1605,68 @@ namespace Orts.ActivityRunner.Viewer3D
         {
         }
 
+        private protected override void RotateHorizontallyCommandStart()
+        {
+            CommandStartTime = Viewer.Simulator.ClockTime;
+        }
+
+        private protected override void RotateHorizontallyCommandEnd()
+        {
+            _ = new CameraRotateLeftRightCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, RotationYRadians);
+        }
+
         private protected override void RotateHorizontally(int rotateSign, UserCommandArgs commandArgs, GameTime gameTime)
         {
-            if (commandArgs is KeyCommandArgs keyCommandArgs)
-            {
-                switch (keyCommandArgs.KeyEventType)
-                {
-                    case KeyEventType.KeyDown:
-                        float speed = GetSpeed(gameTime, commandArgs, Viewer) * SpeedAdjustmentForRotation;
-                        RotateRight(rotateSign * speed);
-                        break;
-                    case KeyEventType.KeyPressed:
-                        CommandStartTime = Viewer.Simulator.ClockTime;
-                        break;
-                    case KeyEventType.KeyReleased:
-                        _ = new CameraRotateLeftRightCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, RotationYRadians);
-                        break;
-                }
-            }
+            float speed = GetSpeed(gameTime, commandArgs, Viewer) * SpeedAdjustmentForRotation;
+            RotateRight(rotateSign * speed);
+        }
+
+        private protected override void RotateVerticallyCommandStart()
+        {
+            CommandStartTime = Viewer.Simulator.ClockTime;
+        }
+
+        private protected override void RotateVerticallyCommandEnd()
+        {
+            _ = new CameraRotateUpDownCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, RotationXRadians);
         }
 
         private protected override void RotateVertically(int rotateSign, UserCommandArgs commandArgs, GameTime gameTime)
         {
-            if (commandArgs is KeyCommandArgs keyCommandArgs)
-            {
-                switch (keyCommandArgs.KeyEventType)
-                {
-                    case KeyEventType.KeyDown:
-                        float speed = GetSpeed(gameTime, commandArgs, Viewer) * SpeedAdjustmentForRotation;
-                        RotateDown(-rotateSign * speed);
-                        break;
-                    case KeyEventType.KeyPressed:
-                        CommandStartTime = Viewer.Simulator.ClockTime;
-                        break;
-                    case KeyEventType.KeyReleased:
-                        _ = new CameraRotateUpDownCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, RotationXRadians);
-                        break;
-                }
-            }
+            float speed = GetSpeed(gameTime, commandArgs, Viewer) * SpeedAdjustmentForRotation;
+            RotateDown(-rotateSign * speed);
+        }
+
+        private protected override void PanHorizontallyCommandStart()
+        {
+            CommandStartTime = Viewer.Simulator.ClockTime;
+        }
+
+        private protected override void PanHorizontallyCommandEnd()
+        {
+            _ = new CameraRotateLeftRightCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, RotationYRadians);
         }
 
         private protected override void PanHorizontally(int panSign, UserCommandArgs commandArgs, GameTime gameTime)
         {
-            if (commandArgs is KeyCommandArgs keyCommandArgs)
-            {
-                switch (keyCommandArgs.KeyEventType)
-                {
-                    case KeyEventType.KeyDown:
-                        float speed = GetSpeed(gameTime, commandArgs, Viewer) * SpeedAdjustmentForRotation;
-                        RotateRight(panSign * speed);
-                        break;
-                    case KeyEventType.KeyPressed:
-                        CommandStartTime = Viewer.Simulator.ClockTime;
-                        break;
-                    case KeyEventType.KeyReleased:
-                        _ = new CameraRotateLeftRightCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, RotationYRadians);
-                        break;
-                }
-            }
+            float speed = GetSpeed(gameTime, commandArgs, Viewer) * SpeedAdjustmentForRotation;
+            RotateRight(panSign * speed);
+        }
+
+        private protected override void PanVerticallyCommandStart()
+        {
+            CommandStartTime = Viewer.Simulator.ClockTime;
+        }
+
+        private protected override void PanVerticallyCommandEnd()
+        {
+            _ = new CameraRotateUpDownCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, RotationXRadians);
         }
 
         private protected override void PanVertically(int panSign, UserCommandArgs commandArgs, GameTime gameTime)
         {
-            if (commandArgs is KeyCommandArgs keyCommandArgs)
-            {
-                switch (keyCommandArgs.KeyEventType)
-                {
-                    case KeyEventType.KeyDown:
-                        float speed = GetSpeed(gameTime, commandArgs, Viewer) * SpeedAdjustmentForRotation;
-                        RotateDown(-panSign * speed);
-                        break;
-                    case KeyEventType.KeyPressed:
-                        CommandStartTime = Viewer.Simulator.ClockTime;
-                        break;
-                    case KeyEventType.KeyReleased:
-                        _ = new CameraRotateUpDownCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, RotationXRadians);
-                        break;
-                }
-            }
+            float speed = GetSpeed(gameTime, commandArgs, Viewer) * SpeedAdjustmentForRotation;
+            RotateDown(-panSign * speed);
         }
 
         private protected override void CarFirst()
@@ -1822,6 +1762,7 @@ namespace Orts.ActivityRunner.Viewer3D
         protected int ActViewPoint = 0;
         protected int prevViewPoint = -1;
         protected bool PrevCabWasRear = false;
+        private float x, y, z;
 
         /// <summary>
         /// A camera can use this method to handle any preparation when being activated.
@@ -1849,91 +1790,72 @@ namespace Orts.ActivityRunner.Viewer3D
         private protected override void Zoom(int zoomSign, UserCommandArgs commandArgs, GameTime gameTime)
         {
             // Move camera
-            if (commandArgs is KeyCommandArgs keyCommandArgs && keyCommandArgs.KeyEventType == KeyEventType.KeyDown)
-            {
-                float z = zoomSign * GetSpeed(gameTime, commandArgs, Viewer) * 5;
-                MoveCameraXYZ(0, 0, z);
-            }
+            z = zoomSign * GetSpeed(gameTime, commandArgs, Viewer) * 5;
+            MoveCameraXYZ(0, 0, z);
+        }
+
+        private protected override void RotateHorizontallyCommandStart()
+        {
+            CommandStartTime = Viewer.Simulator.ClockTime;
+        }
+
+        private protected override void RotateHorizontallyCommandEnd()
+        {
+            _ = new CameraMoveXYZCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, x, 0, 0);
         }
 
         private protected override void RotateHorizontally(int rotateSign, UserCommandArgs commandArgs, GameTime gameTime)
         {
-            if (commandArgs is KeyCommandArgs keyCommandArgs)
-            {
-                float x = rotateSign * GetSpeed(gameTime, commandArgs, Viewer) * SpeedAdjustmentForRotation * 2;
-                switch (keyCommandArgs.KeyEventType)
-                {
-                    case KeyEventType.KeyDown:
-                        MoveCameraXYZ(x, 0, 0);
-                        break;
-                    case KeyEventType.KeyPressed:
-                        CommandStartTime = Viewer.Simulator.ClockTime;
-                        break;
-                    case KeyEventType.KeyReleased:
-                        _ = new CameraMoveXYZCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, x, 0, 0);
-                        break;
-                }
-            }
+            x = rotateSign * GetSpeed(gameTime, commandArgs, Viewer) * SpeedAdjustmentForRotation * 2;
+            MoveCameraXYZ(x, 0, 0);
+        }
+
+        private protected override void RotateVerticallyCommandStart()
+        {
+            CommandStartTime = Viewer.Simulator.ClockTime;
+        }
+
+        private protected override void RotateVerticallyCommandEnd()
+        {
+            _ = new CameraMoveXYZCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, 0, y, 0);
         }
 
         private protected override void RotateVertically(int rotateSign, UserCommandArgs commandArgs, GameTime gameTime)
         {
-            if (commandArgs is KeyCommandArgs keyCommandArgs)
-            {
-                float y = rotateSign * GetSpeed(gameTime, commandArgs, Viewer) * SpeedAdjustmentForRotation / 2;
-                switch (keyCommandArgs.KeyEventType)
-                {
-                    case KeyEventType.KeyDown:
-                        MoveCameraXYZ(0, y, 0);
-                        break;
-                    case KeyEventType.KeyPressed:
-                        CommandStartTime = Viewer.Simulator.ClockTime;
-                        break;
-                    case KeyEventType.KeyReleased:
-                        _ = new CameraMoveXYZCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, 0, y, 0);
-                        break;
-                }
-            }
+            y = rotateSign * GetSpeed(gameTime, commandArgs, Viewer) * SpeedAdjustmentForRotation / 2;
+            MoveCameraXYZ(0, y, 0);
+        }
+
+        private protected override void PanHorizontallyCommandStart()
+        {
+            CommandStartTime = Viewer.Simulator.ClockTime;
+        }
+
+        private protected override void PanHorizontallyCommandEnd()
+        {
+            _ = new CameraRotateLeftRightCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, RotationYRadians);
         }
 
         private protected override void PanHorizontally(int panSign, UserCommandArgs commandArgs, GameTime gameTime)
         {
-            if (commandArgs is KeyCommandArgs keyCommandArgs)
-            {
-                switch (keyCommandArgs.KeyEventType)
-                {
-                    case KeyEventType.KeyDown:
-                        float speed = GetSpeed(gameTime, commandArgs, Viewer) * SpeedAdjustmentForRotation;
-                        RotateRight(panSign * speed);
-                        break;
-                    case KeyEventType.KeyPressed:
-                        CommandStartTime = Viewer.Simulator.ClockTime;
-                        break;
-                    case KeyEventType.KeyReleased:
-                        _ = new CameraRotateLeftRightCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, RotationYRadians);
-                        break;
-                }
-            }
+            float speed = GetSpeed(gameTime, commandArgs, Viewer) * SpeedAdjustmentForRotation;
+            RotateRight(panSign * speed);
+        }
+
+        private protected override void PanVerticallyCommandStart()
+        {
+            CommandStartTime = Viewer.Simulator.ClockTime;
+        }
+
+        private protected override void PanVerticallyCommandEnd()
+        {
+            _ = new CameraRotateUpDownCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, RotationXRadians);
         }
 
         private protected override void PanVertically(int panSign, UserCommandArgs commandArgs, GameTime gameTime)
         {
-            if (commandArgs is KeyCommandArgs keyCommandArgs)
-            {
-                switch (keyCommandArgs.KeyEventType)
-                {
-                    case KeyEventType.KeyDown:
-                        float speed = GetSpeed(gameTime, commandArgs, Viewer) * SpeedAdjustmentForRotation;
-                        RotateDown(-panSign * speed);
-                        break;
-                    case KeyEventType.KeyPressed:
-                        CommandStartTime = Viewer.Simulator.ClockTime;
-                        break;
-                    case KeyEventType.KeyReleased:
-                        _ = new CameraRotateUpDownCommand(Viewer.Log, CommandStartTime, Viewer.Simulator.ClockTime, RotationXRadians);
-                        break;
-                }
-            }
+            float speed = GetSpeed(gameTime, commandArgs, Viewer) * SpeedAdjustmentForRotation;
+            RotateDown(-panSign * speed);
         }
 
         private protected override void CarFirst()
@@ -2501,19 +2423,15 @@ namespace Orts.ActivityRunner.Viewer3D
             ScrollRight(right, (float)(500 * gameTime.ElapsedGameTime.TotalSeconds));
         }
 
-        private protected override void PanHorizontally(int panSign, UserCommandArgs commandArgs, GameTime gameTime)
+        private protected override void SwitchCabView(int direction)
         {
-            if (commandArgs is KeyCommandArgs keyCommandArgs && keyCommandArgs.KeyEventType == KeyEventType.KeyPressed)
-                ShiftView(-panSign);
+            ShiftView(-direction);
         }
 
         private protected override void PanVertically(int panSign, UserCommandArgs commandArgs, GameTime gameTime)
         {
-            if (commandArgs is KeyCommandArgs keyCommandArgs && keyCommandArgs.KeyEventType == KeyEventType.KeyDown)
-            {
-                float speed = (float)(500 * gameTime.ElapsedGameTime.TotalSeconds); // Independent of framerate
-                PanUp(panSign > 0, speed);
-            }
+            float speed = (float)(500 * gameTime.ElapsedGameTime.TotalSeconds); // Independent of framerate
+            PanUp(panSign > 0, speed);
         }
     }
 
@@ -2580,37 +2498,27 @@ namespace Orts.ActivityRunner.Viewer3D
 
         private protected override void Zoom(int zoomSign, UserCommandArgs commandArgs, GameTime gameTime)
         {
-            if (commandArgs is KeyCommandArgs keyCommandArgs && keyCommandArgs.KeyEventType == KeyEventType.KeyDown)
-            {
-                ZoomIn(zoomSign * GetSpeed(gameTime, commandArgs, Viewer) * 2);
-            }
+            ZoomIn(zoomSign * GetSpeed(gameTime, commandArgs, Viewer) * 2);
         }
 
         private protected override void PanHorizontally(int panSign, UserCommandArgs commandArgs, GameTime gameTime)
         {
-            if (commandArgs is KeyCommandArgs keyCommandArgs && keyCommandArgs.KeyEventType == KeyEventType.KeyDown)
-            {
-                float speed = GetSpeed(gameTime, commandArgs, Viewer);
-                PanRight(panSign * speed);
-            }
+            float speed = GetSpeed(gameTime, commandArgs, Viewer);
+            PanRight(panSign * speed);
         }
 
         private protected override void PanVertically(int panSign, UserCommandArgs commandArgs, GameTime gameTime)
         {
-            if (commandArgs is KeyCommandArgs keyCommandArgs && keyCommandArgs.KeyEventType == KeyEventType.KeyDown)
+            float speed = panSign * GetSpeed(gameTime, commandArgs, Viewer);
+            RotationYRadians = -XnaView.MatrixToYAngle();
+
+            CameraAltitudeOffset += speed;
+            cameraLocation = cameraLocation.ChangeElevation(speed);
+
+            if (panSign < 0 && CameraAltitudeOffset < 0)
             {
-                float speed = panSign * GetSpeed(gameTime, commandArgs, Viewer);
-                RotationYRadians = -XnaView.MatrixToYAngle();
-
-                CameraAltitudeOffset += speed;
-                cameraLocation = cameraLocation.ChangeElevation(speed);
-
-                if (panSign < 0 && CameraAltitudeOffset < 0)
-                {
-                    cameraLocation = cameraLocation.ChangeElevation(-CameraAltitudeOffset);
-                    CameraAltitudeOffset = 0;
-                }
-
+                cameraLocation = cameraLocation.ChangeElevation(-CameraAltitudeOffset);
+                CameraAltitudeOffset = 0;
             }
         }
 

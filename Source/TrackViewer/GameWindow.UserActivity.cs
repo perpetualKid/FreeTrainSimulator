@@ -82,9 +82,9 @@ namespace Orts.TrackViewer
             float amplifier = 5;
             if (commandArgs is ModifiableKeyCommandArgs modifiableKeyCommand)
             {
-                if ((modifiableKeyCommand.AddtionalModifiers & KeyModifiers.Control) == KeyModifiers.Control)
+                if ((modifiableKeyCommand.AdditionalModifiers & KeyModifiers.Control) == KeyModifiers.Control)
                     amplifier = 1;
-                else if ((modifiableKeyCommand.AddtionalModifiers & KeyModifiers.Shift) == KeyModifiers.Shift)
+                else if ((modifiableKeyCommand.AdditionalModifiers & KeyModifiers.Shift) == KeyModifiers.Shift)
                     amplifier = 10;
             }
             return amplifier;
@@ -105,9 +105,9 @@ namespace Orts.TrackViewer
             int amplifier = 3;
             if (commandArgs is ModifiableKeyCommandArgs modifiableKeyCommand)
             {
-                if ((modifiableKeyCommand.AddtionalModifiers & KeyModifiers.Control) == KeyModifiers.Control)
+                if ((modifiableKeyCommand.AdditionalModifiers & KeyModifiers.Control) == KeyModifiers.Control)
                     amplifier = 1;
-                else if ((modifiableKeyCommand.AddtionalModifiers & KeyModifiers.Shift) == KeyModifiers.Shift)
+                else if ((modifiableKeyCommand.AdditionalModifiers & KeyModifiers.Shift) == KeyModifiers.Shift)
                     amplifier = 5;
             }
             return amplifier;

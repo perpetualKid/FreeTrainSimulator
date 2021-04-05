@@ -20,13 +20,12 @@ namespace Orts.TrackViewer.Control
             UserCommands[UserCommand.ChangeScreenMode] = new UserCommandKeyInput(Keys.Enter, KeyModifiers.Alt);
             UserCommands[UserCommand.QuitGame] = new UserCommandKeyInput(Keys.Q, KeyModifiers.None);
             UserCommands[UserCommand.ResetZoomAndLocation] = new UserCommandKeyInput(Keys.R, KeyModifiers.None);
-            UserCommands[UserCommand.MoveLeft] = new UserCommandModifiableKeyInput(Keys.Left, KeyModifiers.None, KeyEventType.KeyDown, moveFast, moveSlow);
-            UserCommands[UserCommand.MoveRight] = new UserCommandModifiableKeyInput(Keys.Right, KeyModifiers.None, KeyEventType.KeyDown, moveFast, moveSlow);
-            UserCommands[UserCommand.MoveUp] = new UserCommandModifiableKeyInput(Keys.Up, KeyModifiers.None, KeyEventType.KeyDown, moveFast, moveSlow);
-            UserCommands[UserCommand.MoveDown] = new UserCommandModifiableKeyInput(Keys.Down, KeyModifiers.None, KeyEventType.KeyDown, moveFast, moveSlow);
-            UserCommands[UserCommand.MoveDown] = new UserCommandModifiableKeyInput(Keys.Down, KeyModifiers.None, KeyEventType.KeyDown, moveFast, moveSlow);
-            UserCommands[UserCommand.ZoomIn] = new UserCommandModifiableKeyInput(Keys.PageUp, KeyModifiers.None, KeyEventType.KeyDown, moveFast, moveSlow);
-            UserCommands[UserCommand.ZoomOut] = new UserCommandModifiableKeyInput(Keys.PageDown, KeyModifiers.None, KeyEventType.KeyDown, moveFast, moveSlow);
+            UserCommands[UserCommand.MoveLeft] = new UserCommandModifiableKeyInput(Keys.Left, KeyModifiers.None, moveFast, moveSlow);
+            UserCommands[UserCommand.MoveRight] = new UserCommandModifiableKeyInput(Keys.Right, KeyModifiers.None, moveFast, moveSlow);
+            UserCommands[UserCommand.MoveUp] = new UserCommandModifiableKeyInput(Keys.Up, KeyModifiers.None, moveFast, moveSlow);
+            UserCommands[UserCommand.MoveDown] = new UserCommandModifiableKeyInput(Keys.Down, KeyModifiers.None, moveFast, moveSlow);
+            UserCommands[UserCommand.ZoomIn] = new UserCommandModifiableKeyInput(Keys.PageUp, KeyModifiers.None, moveFast, moveSlow);
+            UserCommands[UserCommand.ZoomOut] = new UserCommandModifiableKeyInput(Keys.PageDown, KeyModifiers.None, moveFast, moveSlow);
         }
     }
 }

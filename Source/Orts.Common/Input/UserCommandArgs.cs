@@ -4,7 +4,8 @@ using Microsoft.Xna.Framework;
 namespace Orts.Common.Input
 {
     public class UserCommandArgs
-    { 
+    {
+        public static UserCommandArgs Empty { get; } = new UserCommandArgs();
     }
 
     public class PointerCommandArgs : UserCommandArgs
@@ -22,14 +23,9 @@ namespace Orts.Common.Input
         public int Delta { get; internal set; }
     }
 
-    public class KeyCommandArgs : UserCommandArgs
-    { 
-        public KeyEventType KeyEventType { get; internal set; }
-    }
-
-    public class ModifiableKeyCommandArgs : KeyCommandArgs
+    public class ModifiableKeyCommandArgs : UserCommandArgs
     {
-        public KeyModifiers AddtionalModifiers { get; internal set; }
+        public KeyModifiers AdditionalModifiers { get; internal set; }
     }
 
 }

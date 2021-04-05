@@ -2601,23 +2601,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         public override void InitializeUserInputCommands() { }
 
         /// <summary>
-        /// A keyboard or mouse click has occurred. Read the UserInput
-        /// structure to determine what was pressed.
-        /// </summary>
-        public override void HandleUserInput(in ElapsedTime elapsedTime)
-        {
-            bool KeyPressed = false;
-            if (UserInput.IsDown(UserCommand.CameraPanDown)) KeyPressed = true;
-            if (UserInput.IsDown(UserCommand.CameraPanUp)) KeyPressed = true;
-            if (UserInput.IsDown(UserCommand.CameraPanLeft)) KeyPressed = true;
-            if (UserInput.IsDown(UserCommand.CameraPanRight)) KeyPressed = true;
-            if (KeyPressed == true)
-            {
-                //	foreach (var p in DigitParts) p.Value.RecomputeLocation();
-            }
-        }
-
-        /// <summary>
         /// We are about to display a video frame.  Calculate positions for 
         /// animated objects, and add their primitives to the RenderFrame list.
         /// </summary>
@@ -2672,6 +2655,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         internal override void Mark()
         {
             // TODO: This is likely wrong; we should mark textures, shapes and other graphical resources here.
+        }
+
+        public override void HandleUserInput(in ElapsedTime elapsedTime)
+        {
         }
     } // Class ThreeDimentionCabViewer
 

@@ -45,17 +45,17 @@ namespace Orts.ActivityRunner.Viewer3D
 
             //In Multiplayer, I maybe the helper, but I can request to be the controller
             // Horn and bell are managed by UpdateHornAndBell in MSTSLocomotive.cs
-            viewer.UserCommandController.AddEvent(UserCommand.GameRequestControl, MPManager.RequestControl);
-            viewer.UserCommandController.AddEvent(UserCommand.ControlPantograph1, () => MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "PANTO1", (++panto1) % 2).ToString()));
-            viewer.UserCommandController.AddEvent(UserCommand.ControlPantograph2, () => MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "PANTO2", (++panto2) % 2).ToString()));
-            viewer.UserCommandController.AddEvent(UserCommand.ControlPantograph3, () => MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "PANTO3", (++panto3) % 2).ToString()));
-            viewer.UserCommandController.AddEvent(UserCommand.ControlPantograph4, () => MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "PANTO4", (++panto4) % 2).ToString()));
-            viewer.UserCommandController.AddEvent(UserCommand.ControlWiper, () => MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "WIPER", (++wiper) % 2).ToString()));
-            viewer.UserCommandController.AddEvent(UserCommand.ControlDoorLeft, () => MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "DOORL", (++doorLeft) % 2).ToString()));
-            viewer.UserCommandController.AddEvent(UserCommand.ControlDoorRight, () => MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "DOORR", (++doorRight) % 2).ToString()));
-            viewer.UserCommandController.AddEvent(UserCommand.ControlMirror, () => MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "MIRRORS", (++mirrors) % 2).ToString()));
+            viewer.UserCommandController.AddEvent(UserCommand.GameRequestControl, KeyEventType.KeyPressed, MPManager.RequestControl);
+            viewer.UserCommandController.AddEvent(UserCommand.ControlPantograph1, KeyEventType.KeyPressed, () => MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "PANTO1", (++panto1) % 2).ToString()));
+            viewer.UserCommandController.AddEvent(UserCommand.ControlPantograph2, KeyEventType.KeyPressed, () => MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "PANTO2", (++panto2) % 2).ToString()));
+            viewer.UserCommandController.AddEvent(UserCommand.ControlPantograph3, KeyEventType.KeyPressed, () => MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "PANTO3", (++panto3) % 2).ToString()));
+            viewer.UserCommandController.AddEvent(UserCommand.ControlPantograph4, KeyEventType.KeyPressed, () => MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "PANTO4", (++panto4) % 2).ToString()));
+            viewer.UserCommandController.AddEvent(UserCommand.ControlWiper, KeyEventType.KeyPressed, () => MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "WIPER", (++wiper) % 2).ToString()));
+            viewer.UserCommandController.AddEvent(UserCommand.ControlDoorLeft, KeyEventType.KeyPressed, () => MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "DOORL", (++doorLeft) % 2).ToString()));
+            viewer.UserCommandController.AddEvent(UserCommand.ControlDoorRight, KeyEventType.KeyPressed, () => MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "DOORR", (++doorRight) % 2).ToString()));
+            viewer.UserCommandController.AddEvent(UserCommand.ControlMirror, KeyEventType.KeyPressed, () => MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "MIRRORS", (++mirrors) % 2).ToString()));
 
-            viewer.UserCommandController.AddEvent(UserCommand.ControlHeadlightIncrease, () =>
+            viewer.UserCommandController.AddEvent(UserCommand.ControlHeadlightIncrease, KeyEventType.KeyPressed, () =>
             {
                 headlight++;
                 if (headlight >= 3)
@@ -63,7 +63,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "HEADLIGHT", headlight).ToString());
             });
 
-            viewer.UserCommandController.AddEvent(UserCommand.ControlHeadlightDecrease, () =>
+            viewer.UserCommandController.AddEvent(UserCommand.ControlHeadlightDecrease, KeyEventType.KeyPressed, () =>
             {
                 headlight--;
                 if (headlight < 0)

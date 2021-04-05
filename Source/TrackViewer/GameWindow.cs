@@ -381,17 +381,17 @@ namespace Orts.TrackViewer
             MouseInputHandler<UserCommand> mouseInput = new MouseInputHandler<UserCommand>();
             mouseInput.Initialize(mouseInputGameComponent, keyboardInputGameComponent, userCommandController);
 
-            userCommandController.AddEvent(UserCommand.PrintScreen, PrintScreen);
-            userCommandController.AddEvent(UserCommand.ChangeScreenMode, ChangeScreenMode);
-            userCommandController.AddEvent(UserCommand.QuitGame, CloseWindow);
-            userCommandController.AddEvent(UserCommand.MoveLeft, MoveByKeyLeft);
-            userCommandController.AddEvent(UserCommand.MoveRight, MoveByKeyRight);
-            userCommandController.AddEvent(UserCommand.MoveUp, MoveByKeyUp);
-            userCommandController.AddEvent(UserCommand.MoveDown, MoveByKeyDown);
-            userCommandController.AddEvent(UserCommand.NewInstance, () => new Thread(GameWindowThread).Start());
-            userCommandController.AddEvent(UserCommand.ZoomIn, ZoomIn);
-            userCommandController.AddEvent(UserCommand.ZoomOut, ZoomOut);
-            userCommandController.AddEvent(UserCommand.ResetZoomAndLocation, ResetZoomAndLocation);
+            userCommandController.AddEvent(UserCommand.PrintScreen, KeyEventType.KeyPressed, PrintScreen);
+            userCommandController.AddEvent(UserCommand.ChangeScreenMode, KeyEventType.KeyPressed, ChangeScreenMode);
+            userCommandController.AddEvent(UserCommand.QuitGame, KeyEventType.KeyPressed, CloseWindow);
+            userCommandController.AddEvent(UserCommand.MoveLeft, KeyEventType.KeyDown, MoveByKeyLeft);
+            userCommandController.AddEvent(UserCommand.MoveRight, KeyEventType.KeyDown, MoveByKeyRight);
+            userCommandController.AddEvent(UserCommand.MoveUp, KeyEventType.KeyDown, MoveByKeyUp);
+            userCommandController.AddEvent(UserCommand.MoveDown, KeyEventType.KeyDown, MoveByKeyDown);
+            userCommandController.AddEvent(UserCommand.NewInstance,KeyEventType.KeyPressed, () => new Thread(GameWindowThread).Start());
+            userCommandController.AddEvent(UserCommand.ZoomIn, KeyEventType.KeyDown, ZoomIn);
+            userCommandController.AddEvent(UserCommand.ZoomOut, KeyEventType.KeyDown, ZoomOut);
+            userCommandController.AddEvent(UserCommand.ResetZoomAndLocation, KeyEventType.KeyPressed, ResetZoomAndLocation);
 
             userCommandController.AddEvent(CommonUserCommand.PointerDragged, MouseDragging);
             userCommandController.AddEvent(CommonUserCommand.ZoomChanged, MouseWheel);

@@ -22,20 +22,14 @@ namespace Orts.Common.Input
 
             this.userCommandController = userCommandController ?? throw new ArgumentNullException(nameof(userCommandController));
 
+
             userCommandsLookup = EnumExtension.GetValues<T>().Where(command => userCommands[command] is UserCommandKeyInput).SelectMany(command =>
             {
                 List<(int keyEventCode, T command)> result = new List<(int, T)>();
                 UserCommandKeyInput keyInput = userCommands[command] as UserCommandKeyInput;
-                if (Enum.IsDefined(typeof(KeyEventType), keyInput.KeyEventType))
-                    result.Add((KeyboardInputGameComponent.KeyEventCode(keyInput.Key, keyInput.Modifiers, keyInput.KeyEventType), command));
-                else
+                foreach (KeyEventType keyEventType in EnumExtension.GetValues<KeyEventType>())
                 {
-                    if ((keyInput.KeyEventType & KeyEventType.KeyPressed) == KeyEventType.KeyPressed)
-                        result.Add((KeyboardInputGameComponent.KeyEventCode(keyInput.Key, keyInput.Modifiers, KeyEventType.KeyPressed), command));
-                    if ((keyInput.KeyEventType & KeyEventType.KeyReleased) == KeyEventType.KeyReleased)
-                        result.Add((KeyboardInputGameComponent.KeyEventCode(keyInput.Key, keyInput.Modifiers, KeyEventType.KeyReleased), command));
-                    if ((keyInput.KeyEventType & KeyEventType.KeyDown) == KeyEventType.KeyDown)
-                        result.Add((KeyboardInputGameComponent.KeyEventCode(keyInput.Key, keyInput.Modifiers, KeyEventType.KeyDown), command));
+                    result.Add((KeyboardInputGameComponent.KeyEventCode(keyInput.Key, keyInput.Modifiers, keyEventType), command));
                 }
                 return result;
             }).ToLookup(i => i.keyEventCode, c => c.command);
@@ -47,15 +41,12 @@ namespace Orts.Common.Input
 
                 foreach (KeyEventType keyEventType in EnumExtension.GetValues<KeyEventType>())
                 {
-                    if ((keyInput.KeyEventType & keyEventType) == keyEventType)
-                    {
-                        if (keyInput.IgnoreShift)
-                            result.Add((KeyboardInputGameComponent.KeyEventCode(keyInput.Key, keyInput.Modifiers | KeyModifiers.Shift, keyEventType), command, keyInput.Modifiers));
-                        if (keyInput.IgnoreControl)
-                            result.Add((KeyboardInputGameComponent.KeyEventCode(keyInput.Key, keyInput.Modifiers | KeyModifiers.Control, keyEventType), command, keyInput.Modifiers));
-                        if (keyInput.IgnoreAlt)
-                            result.Add((KeyboardInputGameComponent.KeyEventCode(keyInput.Key, keyInput.Modifiers | KeyModifiers.Alt, keyEventType), command, keyInput.Modifiers));
-                    }
+                    if (keyInput.IgnoreShift)
+                        result.Add((KeyboardInputGameComponent.KeyEventCode(keyInput.Key, keyInput.Modifiers | KeyModifiers.Shift, keyEventType), command, keyInput.Modifiers));
+                    if (keyInput.IgnoreControl)
+                        result.Add((KeyboardInputGameComponent.KeyEventCode(keyInput.Key, keyInput.Modifiers | KeyModifiers.Control, keyEventType), command, keyInput.Modifiers));
+                    if (keyInput.IgnoreAlt)
+                        result.Add((KeyboardInputGameComponent.KeyEventCode(keyInput.Key, keyInput.Modifiers | KeyModifiers.Alt, keyEventType), command, keyInput.Modifiers));
                 }
                 return result;
 
@@ -68,13 +59,14 @@ namespace Orts.Common.Input
         public void Trigger(int eventCode, GameTime gameTime, KeyEventType eventType, KeyModifiers modifiers)
         {
             foreach (T command in userCommandsLookup[eventCode])
-                userCommandController.Trigger(command, new KeyCommandArgs() { KeyEventType = eventType }, gameTime);
+                userCommandController.Trigger(command, eventType, UserCommandArgs.Empty, gameTime);
 
-            foreach ((T T, KeyModifiers KeyModifiers) modifyableUserCommand in modifyableCommandsLookup[eventCode])
+            foreach ((T Command, KeyModifiers KeyModifiers) modifyableUserCommand in modifyableCommandsLookup[eventCode])
             {
                 KeyModifiers additionalModifiers = modifyableUserCommand.KeyModifiers ^ modifiers;
-                userCommandController.Trigger(modifyableUserCommand.T, new ModifiableKeyCommandArgs() { KeyEventType = eventType, AddtionalModifiers = additionalModifiers }, gameTime) ;
+                userCommandController.Trigger(modifyableUserCommand.Command, eventType, new ModifiableKeyCommandArgs() { AdditionalModifiers = additionalModifiers }, gameTime);
             }
+
         }
     }
 }

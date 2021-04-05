@@ -130,7 +130,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             if (!MPManager.IsClient())
             {
-                viewer.UserCommandController.AddEvent(UserCommand.DebugWeatherChange, () =>
+                viewer.UserCommandController.AddEvent(UserCommand.DebugWeatherChange, KeyEventType.KeyPressed, () =>
                 {
                     this.viewer.Simulator.WeatherType = this.viewer.Simulator.WeatherType.Next();
                     // block dynamic weather change after a manual weather change operation
@@ -146,164 +146,137 @@ namespace Orts.ActivityRunner.Viewer3D
                 });
 
                 // Overcast ranges from 0 (completely clear) to 1 (completely overcast).
-                viewer.UserCommandController.AddEvent(UserCommand.DebugOvercastIncrease, (UserCommandArgs userCommandArgs, GameTime gameTime) =>
+                viewer.UserCommandController.AddEvent(UserCommand.DebugOvercastIncrease, KeyEventType.KeyDown, (GameTime gameTime) =>
                 {
-                    if (userCommandArgs is KeyCommandArgs keyCommandArgs && keyCommandArgs.KeyEventType == KeyEventType.KeyDown)
-                    {
-                        weather.OvercastFactor = (float)MathHelperD.Clamp(weather.OvercastFactor + gameTime.ElapsedGameTime.TotalSeconds / 10, 0, 1);
-                        weatherChangeOn = false;
-                        if (dynamicWeather != null)
-                            dynamicWeather.ORTSOvercast = -1;
-                    }
+                    weather.OvercastFactor = (float)MathHelperD.Clamp(weather.OvercastFactor + gameTime.ElapsedGameTime.TotalSeconds / 10, 0, 1);
+                    weatherChangeOn = false;
+                    if (dynamicWeather != null)
+                        dynamicWeather.ORTSOvercast = -1;
                 });
-                viewer.UserCommandController.AddEvent(UserCommand.DebugOvercastDecrease, (UserCommandArgs userCommandArgs, GameTime gameTime) =>
+                viewer.UserCommandController.AddEvent(UserCommand.DebugOvercastDecrease, KeyEventType.KeyDown, (GameTime gameTime) =>
                 {
-                    if (userCommandArgs is KeyCommandArgs keyCommandArgs && keyCommandArgs.KeyEventType == KeyEventType.KeyDown)
-                    {
-                        weather.OvercastFactor = (float)MathHelperD.Clamp(weather.OvercastFactor - gameTime.ElapsedGameTime.TotalSeconds / 10, 0, 1);
-                        weatherChangeOn = false;
-                        if (dynamicWeather != null) dynamicWeather.ORTSOvercast = -1;
-                    }
+                    weather.OvercastFactor = (float)MathHelperD.Clamp(weather.OvercastFactor - gameTime.ElapsedGameTime.TotalSeconds / 10, 0, 1);
+                    weatherChangeOn = false;
+                    if (dynamicWeather != null) dynamicWeather.ORTSOvercast = -1;
                 });
 
                 // Pricipitation ranges from 0 to max PrecipitationViewer.MaxIntensityPPSPM2 if 32bit.
                 // 16bit uses PrecipitationViewer.MaxIntensityPPSPM2_16
                 // 0xFFFF represents 65535 which is the max for 16bit devices.
-                viewer.UserCommandController.AddEvent(UserCommand.DebugPrecipitationIncrease, (UserCommandArgs userCommandArgs, GameTime gameTime) =>
+                viewer.UserCommandController.AddEvent(UserCommand.DebugPrecipitationIncrease, KeyEventType.KeyDown, () =>
                 {
-                    if (userCommandArgs is KeyCommandArgs keyCommandArgs && keyCommandArgs.KeyEventType == KeyEventType.KeyDown)
+                    if (this.viewer.Simulator.WeatherType == WeatherType.Clear)
                     {
-                        if (this.viewer.Simulator.WeatherType == WeatherType.Clear)
-                        {
-                            this.viewer.SoundProcess.RemoveSoundSources(this);
-                            if (weather.PrecipitationLiquidity > DynamicWeather.RainSnowLiquidityThreshold)
-                            {
-                                this.viewer.Simulator.WeatherType = WeatherType.Rain;
-                                this.viewer.SoundProcess.AddSoundSources(this, RainSound);
-                            }
-                            else
-                            {
-                                this.viewer.Simulator.WeatherType = WeatherType.Snow;
-                                this.viewer.SoundProcess.AddSoundSources(this, SnowSound);
-                            }
-                        }
-                        weather.PricipitationIntensityPPSPM2 = MathHelper.Clamp(weather.PricipitationIntensityPPSPM2 * 1.05f, PrecipitationViewer.MinIntensityPPSPM2 + 0.0000001f,
-                                this.viewer.RenderProcess.GraphicsDevice.GraphicsProfile == GraphicsProfile.HiDef ? PrecipitationViewer.MaxIntensityPPSPM2 : PrecipitationViewer.MaxIntensityPPSPM2_16);
-                        weatherChangeOn = false;
-                        if (dynamicWeather != null)
-                            dynamicWeather.ORTSPrecipitationIntensity = -1;
-                        UpdateVolume();
-                    }
-                });
-                viewer.UserCommandController.AddEvent(UserCommand.DebugPrecipitationDecrease, (UserCommandArgs userCommandArgs, GameTime gameTime) =>
-                {
-                    if (userCommandArgs is KeyCommandArgs keyCommandArgs && keyCommandArgs.KeyEventType == KeyEventType.KeyDown)
-                    {
-                        weather.PricipitationIntensityPPSPM2 = MathHelper.Clamp(weather.PricipitationIntensityPPSPM2 / 1.05f, PrecipitationViewer.MinIntensityPPSPM2,
-                            this.viewer.RenderProcess.GraphicsDevice.GraphicsProfile == GraphicsProfile.HiDef ? PrecipitationViewer.MaxIntensityPPSPM2 : PrecipitationViewer.MaxIntensityPPSPM2_16);
-                        if (weather.PricipitationIntensityPPSPM2 < PrecipitationViewer.MinIntensityPPSPM2 + 0.00001f)
-                        {
-                            weather.PricipitationIntensityPPSPM2 = 0;
-                            if (this.viewer.Simulator.WeatherType != WeatherType.Clear)
-                            {
-                                this.viewer.SoundProcess.RemoveSoundSources(this);
-                                this.viewer.Simulator.WeatherType = WeatherType.Clear;
-                                this.viewer.SoundProcess.AddSoundSources(this, ClearSound);
-                            }
-                        }
-                        weatherChangeOn = false;
-                        if (dynamicWeather != null)
-                            dynamicWeather.ORTSPrecipitationIntensity = -1;
-                        UpdateVolume();
-                    }
-                });
-                // Change in precipitation liquidity, passing from rain to snow and vice-versa
-                viewer.UserCommandController.AddEvent(UserCommand.DebugPrecipitationLiquidityIncrease, (UserCommandArgs userCommandArgs, GameTime gameTime) =>
-                {
-                    if (userCommandArgs is KeyCommandArgs keyCommandArgs && keyCommandArgs.KeyEventType == KeyEventType.KeyDown)
-                    {
-                        weather.PrecipitationLiquidity = MathHelper.Clamp(weather.PrecipitationLiquidity + 0.01f, 0, 1);
-                        weatherChangeOn = false;
-                        if (dynamicWeather != null)
-                            dynamicWeather.ORTSPrecipitationLiquidity = -1;
-                        if (weather.PrecipitationLiquidity > DynamicWeather.RainSnowLiquidityThreshold && this.viewer.Simulator.WeatherType != WeatherType.Rain && weather.PricipitationIntensityPPSPM2 > 0)
+                        this.viewer.SoundProcess.RemoveSoundSources(this);
+                        if (weather.PrecipitationLiquidity > DynamicWeather.RainSnowLiquidityThreshold)
                         {
                             this.viewer.Simulator.WeatherType = WeatherType.Rain;
-                            this.viewer.SoundProcess.RemoveSoundSources(this);
                             this.viewer.SoundProcess.AddSoundSources(this, RainSound);
-
                         }
-                        UpdateVolume();
-                    }
-                });
-                viewer.UserCommandController.AddEvent(UserCommand.DebugPrecipitationLiquidityDecrease, (UserCommandArgs userCommandArgs, GameTime gameTime) =>
-                {
-                    if (userCommandArgs is KeyCommandArgs keyCommandArgs && keyCommandArgs.KeyEventType == KeyEventType.KeyDown)
-                    {
-                        weather.PrecipitationLiquidity = MathHelper.Clamp(weather.PrecipitationLiquidity - 0.01f, 0, 1);
-                        weatherChangeOn = false;
-                        if (dynamicWeather != null) dynamicWeather.ORTSPrecipitationLiquidity = -1;
-                        if (weather.PrecipitationLiquidity <= DynamicWeather.RainSnowLiquidityThreshold && this.viewer.Simulator.WeatherType != WeatherType.Snow
-                            && weather.PricipitationIntensityPPSPM2 > 0)
+                        else
                         {
                             this.viewer.Simulator.WeatherType = WeatherType.Snow;
-                            this.viewer.SoundProcess.RemoveSoundSources(this);
                             this.viewer.SoundProcess.AddSoundSources(this, SnowSound);
                         }
-                        UpdateVolume();
                     }
+                    weather.PricipitationIntensityPPSPM2 = MathHelper.Clamp(weather.PricipitationIntensityPPSPM2 * 1.05f, PrecipitationViewer.MinIntensityPPSPM2 + 0.0000001f,
+                            this.viewer.RenderProcess.GraphicsDevice.GraphicsProfile == GraphicsProfile.HiDef ? PrecipitationViewer.MaxIntensityPPSPM2 : PrecipitationViewer.MaxIntensityPPSPM2_16);
+                    weatherChangeOn = false;
+                    if (dynamicWeather != null)
+                        dynamicWeather.ORTSPrecipitationIntensity = -1;
+                    UpdateVolume();
+                });
+                viewer.UserCommandController.AddEvent(UserCommand.DebugPrecipitationDecrease, KeyEventType.KeyDown, () =>
+                {
+                    weather.PricipitationIntensityPPSPM2 = MathHelper.Clamp(weather.PricipitationIntensityPPSPM2 / 1.05f, PrecipitationViewer.MinIntensityPPSPM2,
+                        this.viewer.RenderProcess.GraphicsDevice.GraphicsProfile == GraphicsProfile.HiDef ? PrecipitationViewer.MaxIntensityPPSPM2 : PrecipitationViewer.MaxIntensityPPSPM2_16);
+                    if (weather.PricipitationIntensityPPSPM2 < PrecipitationViewer.MinIntensityPPSPM2 + 0.00001f)
+                    {
+                        weather.PricipitationIntensityPPSPM2 = 0;
+                        if (this.viewer.Simulator.WeatherType != WeatherType.Clear)
+                        {
+                            this.viewer.SoundProcess.RemoveSoundSources(this);
+                            this.viewer.Simulator.WeatherType = WeatherType.Clear;
+                            this.viewer.SoundProcess.AddSoundSources(this, ClearSound);
+                        }
+                    }
+                    weatherChangeOn = false;
+                    if (dynamicWeather != null)
+                        dynamicWeather.ORTSPrecipitationIntensity = -1;
+                    UpdateVolume();
+                });
+                // Change in precipitation liquidity, passing from rain to snow and vice-versa
+                viewer.UserCommandController.AddEvent(UserCommand.DebugPrecipitationLiquidityIncrease, KeyEventType.KeyDown, () =>
+                {
+                    weather.PrecipitationLiquidity = MathHelper.Clamp(weather.PrecipitationLiquidity + 0.01f, 0, 1);
+                    weatherChangeOn = false;
+                    if (dynamicWeather != null)
+                        dynamicWeather.ORTSPrecipitationLiquidity = -1;
+                    if (weather.PrecipitationLiquidity > DynamicWeather.RainSnowLiquidityThreshold && this.viewer.Simulator.WeatherType != WeatherType.Rain && weather.PricipitationIntensityPPSPM2 > 0)
+                    {
+                        this.viewer.Simulator.WeatherType = WeatherType.Rain;
+                        this.viewer.SoundProcess.RemoveSoundSources(this);
+                        this.viewer.SoundProcess.AddSoundSources(this, RainSound);
+
+                    }
+                    UpdateVolume();
+                });
+                viewer.UserCommandController.AddEvent(UserCommand.DebugPrecipitationLiquidityDecrease, KeyEventType.KeyDown, () =>
+                {
+                    weather.PrecipitationLiquidity = MathHelper.Clamp(weather.PrecipitationLiquidity - 0.01f, 0, 1);
+                    weatherChangeOn = false;
+                    if (dynamicWeather != null) dynamicWeather.ORTSPrecipitationLiquidity = -1;
+                    if (weather.PrecipitationLiquidity <= DynamicWeather.RainSnowLiquidityThreshold && this.viewer.Simulator.WeatherType != WeatherType.Snow
+                        && weather.PricipitationIntensityPPSPM2 > 0)
+                    {
+                        this.viewer.Simulator.WeatherType = WeatherType.Snow;
+                        this.viewer.SoundProcess.RemoveSoundSources(this);
+                        this.viewer.SoundProcess.AddSoundSources(this, SnowSound);
+                    }
+                    UpdateVolume();
                 });
                 //    // Fog ranges from 10m (can't see anything) to 100km (clear arctic conditions).
-                viewer.UserCommandController.AddEvent(UserCommand.DebugFogIncrease, (UserCommandArgs userCommandArgs, GameTime gameTime) =>
+                viewer.UserCommandController.AddEvent(UserCommand.DebugFogIncrease, KeyEventType.KeyDown, (GameTime gameTime) =>
                 {
-                    if (userCommandArgs is KeyCommandArgs keyCommandArgs && keyCommandArgs.KeyEventType == KeyEventType.KeyDown)
-                    {
-                        weather.FogDistance = (float)MathHelperD.Clamp(weather.FogDistance - gameTime.ElapsedGameTime.TotalSeconds * weather.FogDistance, 10, 100000);
-                        weatherChangeOn = false;
-                        if (dynamicWeather != null)
-                            dynamicWeather.ORTSFog = -1;
-                    }
+                    weather.FogDistance = (float)MathHelperD.Clamp(weather.FogDistance - gameTime.ElapsedGameTime.TotalSeconds * weather.FogDistance, 10, 100000);
+                    weatherChangeOn = false;
+                    if (dynamicWeather != null)
+                        dynamicWeather.ORTSFog = -1;
                 });
-                viewer.UserCommandController.AddEvent(UserCommand.DebugFogDecrease, (UserCommandArgs userCommandArgs, GameTime gameTime) =>
+                viewer.UserCommandController.AddEvent(UserCommand.DebugFogDecrease, KeyEventType.KeyDown, (GameTime gameTime) =>
                 {
-                    if (userCommandArgs is KeyCommandArgs keyCommandArgs && keyCommandArgs.KeyEventType == KeyEventType.KeyDown)
-                    {
-                        weather.FogDistance = (float)MathHelperD.Clamp(weather.FogDistance + gameTime.ElapsedGameTime.TotalSeconds * weather.FogDistance, 10, 100000);
-                        if (dynamicWeather != null)
-                            dynamicWeather.ORTSFog = -1;
-                        weatherChangeOn = false;
-                    }
+                    weather.FogDistance = (float)MathHelperD.Clamp(weather.FogDistance + gameTime.ElapsedGameTime.TotalSeconds * weather.FogDistance, 10, 100000);
+                    if (dynamicWeather != null)
+                        dynamicWeather.ORTSFog = -1;
+                    weatherChangeOn = false;
                 });
             }
 
             if (!MPManager.IsMultiPlayer())
             {
                 // Shift the clock forwards or backwards at 1h-per-second.
-                viewer.UserCommandController.AddEvent(UserCommand.DebugClockForwards, (GameTime gameTime) => this.viewer.Simulator.ClockTime += gameTime.ElapsedGameTime.TotalSeconds * 3600);
-                viewer.UserCommandController.AddEvent(UserCommand.DebugClockBackwards, (GameTime gameTime) => this.viewer.Simulator.ClockTime -= gameTime.ElapsedGameTime.TotalSeconds * 3600);
+                viewer.UserCommandController.AddEvent(UserCommand.DebugClockForwards, KeyEventType.KeyDown, (GameTime gameTime) => this.viewer.Simulator.ClockTime += gameTime.ElapsedGameTime.TotalSeconds * 3600);
+                viewer.UserCommandController.AddEvent(UserCommand.DebugClockBackwards, KeyEventType.KeyDown, (GameTime gameTime) => this.viewer.Simulator.ClockTime -= gameTime.ElapsedGameTime.TotalSeconds * 3600);
             }
 
             // If we're a multiplayer server, send out the new overcastFactor, pricipitationIntensity and fogDistance to all clients.
             if (MPManager.IsServer())
             {
-                viewer.UserCommandController.AddEvent(UserCommand.DebugOvercastIncrease, SendMultiPlayerWeatherChangeNotification);
-                viewer.UserCommandController.AddEvent(UserCommand.DebugOvercastDecrease, SendMultiPlayerWeatherChangeNotification);
-                viewer.UserCommandController.AddEvent(UserCommand.DebugPrecipitationIncrease, SendMultiPlayerWeatherChangeNotification);
-                viewer.UserCommandController.AddEvent(UserCommand.DebugPrecipitationDecrease, SendMultiPlayerWeatherChangeNotification);
-                viewer.UserCommandController.AddEvent(UserCommand.DebugPrecipitationLiquidityIncrease, SendMultiPlayerWeatherChangeNotification);
-                viewer.UserCommandController.AddEvent(UserCommand.DebugPrecipitationLiquidityDecrease, SendMultiPlayerWeatherChangeNotification);
-                viewer.UserCommandController.AddEvent(UserCommand.DebugFogIncrease, SendMultiPlayerWeatherChangeNotification);
-                viewer.UserCommandController.AddEvent(UserCommand.DebugFogDecrease, SendMultiPlayerWeatherChangeNotification);
+                viewer.UserCommandController.AddEvent(UserCommand.DebugOvercastIncrease, KeyEventType.KeyReleased, SendMultiPlayerWeatherChangeNotification);
+                viewer.UserCommandController.AddEvent(UserCommand.DebugOvercastDecrease, KeyEventType.KeyReleased, SendMultiPlayerWeatherChangeNotification);
+                viewer.UserCommandController.AddEvent(UserCommand.DebugPrecipitationIncrease, KeyEventType.KeyReleased, SendMultiPlayerWeatherChangeNotification);
+                viewer.UserCommandController.AddEvent(UserCommand.DebugPrecipitationDecrease, KeyEventType.KeyReleased, SendMultiPlayerWeatherChangeNotification);
+                viewer.UserCommandController.AddEvent(UserCommand.DebugPrecipitationLiquidityIncrease, KeyEventType.KeyReleased, SendMultiPlayerWeatherChangeNotification);
+                viewer.UserCommandController.AddEvent(UserCommand.DebugPrecipitationLiquidityDecrease, KeyEventType.KeyReleased, SendMultiPlayerWeatherChangeNotification);
+                viewer.UserCommandController.AddEvent(UserCommand.DebugFogIncrease, KeyEventType.KeyReleased, SendMultiPlayerWeatherChangeNotification);
+                viewer.UserCommandController.AddEvent(UserCommand.DebugFogDecrease, KeyEventType.KeyReleased, SendMultiPlayerWeatherChangeNotification);
             }
         }
 
-        private void SendMultiPlayerWeatherChangeNotification(UserCommandArgs userCommandArgs)
+        private void SendMultiPlayerWeatherChangeNotification()
         {
-            if (userCommandArgs is KeyCommandArgs keyCommandArgs && keyCommandArgs.KeyEventType == KeyEventType.KeyReleased)
-            {
-                MPManager.Instance().SetEnvInfo(weather.OvercastFactor, weather.FogDistance);
-                MPManager.Notify((new MSGWeather(-1, weather.OvercastFactor, weather.PricipitationIntensityPPSPM2, weather.FogDistance)).ToString());
-            }
+            MPManager.Instance().SetEnvInfo(weather.OvercastFactor, weather.FogDistance);
+            MPManager.Notify((new MSGWeather(-1, weather.OvercastFactor, weather.PricipitationIntensityPPSPM2, weather.FogDistance)).ToString());
         }
 
         public virtual void SaveWeatherParameters(BinaryWriter outf)

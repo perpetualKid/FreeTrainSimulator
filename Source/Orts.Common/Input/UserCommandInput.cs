@@ -161,34 +161,32 @@ namespace Orts.Common.Input
         public bool Shift => (modifiers & KeyModifiers.Shift) != 0;
         public bool Control => (modifiers & KeyModifiers.Control) != 0;
         public bool Alt => (modifiers & KeyModifiers.Alt) != 0;
-        public KeyEventType KeyEventType { get; private set; } = KeyEventType.KeyPressed;
 
-        protected UserCommandKeyInput(int scanCode, Keys virtualKey, KeyModifiers modifiers, KeyEventType keyEventType) :
+        protected UserCommandKeyInput(int scanCode, Keys virtualKey, KeyModifiers modifiers) :
             base(scanCode, virtualKey, modifiers)
         {
             Debug.Assert((scanCode >= 1 && scanCode <= 127) || (virtualKey != Keys.None), "Scan code for keyboard input is outside the allowed range of 1-127.");
             ScanCode = scanCode;
             VirtualKey = virtualKey;
-            KeyEventType = keyEventType;
         }
 
-        public UserCommandKeyInput(int scancode, KeyEventType keyEventType = KeyEventType.KeyPressed) :
-            this(scancode, KeyModifiers.None, keyEventType)
+        public UserCommandKeyInput(int scancode) :
+            this(scancode, KeyModifiers.None)
         {
         }
 
-        public UserCommandKeyInput(Keys virtualKey, KeyEventType keyEventType = KeyEventType.KeyPressed) :
-            this(virtualKey, KeyModifiers.None, keyEventType)
+        public UserCommandKeyInput(Keys virtualKey) :
+            this(virtualKey, KeyModifiers.None)
         {
         }
 
-        public UserCommandKeyInput(int scancode, KeyModifiers modifiers, KeyEventType keyEventType = KeyEventType.KeyPressed) :
-            this(scancode, Keys.None, modifiers, keyEventType)
+        public UserCommandKeyInput(int scancode, KeyModifiers modifiers) :
+            this(scancode, Keys.None, modifiers)
         {
         }
 
-        public UserCommandKeyInput(Keys virtualKey, KeyModifiers modifiers, KeyEventType keyEventType = KeyEventType.KeyPressed) :
-            this(0, virtualKey, modifiers, keyEventType)
+        public UserCommandKeyInput(Keys virtualKey, KeyModifiers modifiers) :
+            this(0, virtualKey, modifiers)
         {
         }
 
@@ -251,20 +249,20 @@ namespace Orts.Common.Input
 
         private readonly IEnumerable<UserCommandModifierInput> combine;
 
-        private UserCommandModifiableKeyInput(int scanCode, Keys virtualKey, KeyModifiers modifiers, KeyEventType keyEventType, IEnumerable<UserCommandInput> combine) :
-            base(scanCode, virtualKey, modifiers, keyEventType)
+        private UserCommandModifiableKeyInput(int scanCode, Keys virtualKey, KeyModifiers modifiers, IEnumerable<UserCommandInput> combine) :
+            base(scanCode, virtualKey, modifiers)
         {
             this.combine = combine.Cast<UserCommandModifierInput>();
             SynchronizeCombine();
         }
 
         public UserCommandModifiableKeyInput(int scanCode, KeyModifiers modifiers, params UserCommandInput[] combine) :
-            this(scanCode, Keys.None, modifiers, KeyEventType.KeyPressed, combine)
+            this(scanCode, Keys.None, modifiers, combine)
         {
         }
 
         public UserCommandModifiableKeyInput(Keys key, KeyModifiers modifiers, params UserCommandInput[] combine) :
-            this(0, key, modifiers, KeyEventType.KeyPressed, combine)
+            this(0, key, modifiers, combine)
         {
         }
 
@@ -275,21 +273,6 @@ namespace Orts.Common.Input
 
         public UserCommandModifiableKeyInput(Keys key, params UserCommandInput[] combine) :
             this(key, KeyModifiers.None, combine)
-        {
-        }
-
-        public UserCommandModifiableKeyInput(Keys key, KeyModifiers modifiers, KeyEventType keyEventType, params UserCommandInput[] combine) :
-            this(0, key, modifiers, keyEventType, combine)
-        {
-        }
-
-        public UserCommandModifiableKeyInput(int scanCode, KeyEventType keyEventType, params UserCommandInput[] combine) :
-            this(scanCode, Keys.None, KeyModifiers.None, keyEventType, combine)
-        {
-        }
-
-        public UserCommandModifiableKeyInput(int scanCode, KeyModifiers modifiers, KeyEventType keyEventType, params UserCommandInput[] combine) :
-            this(scanCode, Keys.None, modifiers, keyEventType, combine)
         {
         }
 

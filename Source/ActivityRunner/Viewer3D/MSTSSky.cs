@@ -128,63 +128,52 @@ namespace Orts.ActivityRunner.Viewer3D
             if (!MPManager.IsClient())
             {
                 // Overcast ranges from 0 (completely clear) to 1 (completely overcast).
-                viewer.UserCommandController.AddEvent(UserCommand.DebugOvercastIncrease, (UserCommandArgs userCommandArgs, GameTime gameTIme) =>
+                viewer.UserCommandController.AddEvent(UserCommand.DebugOvercastIncrease, KeyEventType.KeyDown, (GameTime gameTIme) =>
                 {
-                    if (userCommandArgs is KeyCommandArgs keyCommandArgs && keyCommandArgs.KeyEventType == KeyEventType.KeyDown)
-                        mstsskyovercastFactor = (float)MathHelperD.Clamp(mstsskyovercastFactor + gameTIme.ElapsedGameTime.TotalSeconds / 10, 0, 1);
+                    mstsskyovercastFactor = (float)MathHelperD.Clamp(mstsskyovercastFactor + gameTIme.ElapsedGameTime.TotalSeconds / 10, 0, 1);
                 });
-                viewer.UserCommandController.AddEvent(UserCommand.DebugOvercastDecrease, (UserCommandArgs userCommandArgs, GameTime gameTIme) =>
+                viewer.UserCommandController.AddEvent(UserCommand.DebugOvercastDecrease, KeyEventType.KeyDown, (GameTime gameTIme) =>
                 {
-                    if (userCommandArgs is KeyCommandArgs keyCommandArgs && keyCommandArgs.KeyEventType == KeyEventType.KeyDown)
-                        mstsskyovercastFactor = (float)MathHelperD.Clamp(mstsskyovercastFactor - gameTIme.ElapsedGameTime.TotalSeconds / 10, 0, 1);
+                    mstsskyovercastFactor = (float)MathHelperD.Clamp(mstsskyovercastFactor - gameTIme.ElapsedGameTime.TotalSeconds / 10, 0, 1);
                 });
                 // Fog ranges from 10m (can't see anything) to 100km (clear arctic conditions).
-                viewer.UserCommandController.AddEvent(UserCommand.DebugFogIncrease, (UserCommandArgs userCommandArgs, GameTime gameTIme) =>
+                viewer.UserCommandController.AddEvent(UserCommand.DebugFogIncrease, KeyEventType.KeyDown, (GameTime gameTIme) =>
                 {
-                    if (userCommandArgs is KeyCommandArgs keyCommandArgs && keyCommandArgs.KeyEventType == KeyEventType.KeyDown)
-                        mstsskyfogDistance = (float)MathHelperD.Clamp(mstsskyfogDistance - gameTIme.ElapsedGameTime.TotalSeconds * mstsskyfogDistance, 10, 100000);
+                    mstsskyfogDistance = (float)MathHelperD.Clamp(mstsskyfogDistance - gameTIme.ElapsedGameTime.TotalSeconds * mstsskyfogDistance, 10, 100000);
                 });
-                viewer.UserCommandController.AddEvent(UserCommand.DebugFogDecrease, (UserCommandArgs userCommandArgs, GameTime gameTIme) =>
+                viewer.UserCommandController.AddEvent(UserCommand.DebugFogDecrease, KeyEventType.KeyDown, (GameTime gameTIme) =>
                 {
-                    if (userCommandArgs is KeyCommandArgs keyCommandArgs && keyCommandArgs.KeyEventType == KeyEventType.KeyDown)
-                        mstsskyfogDistance = (float)MathHelperD.Clamp(mstsskyfogDistance + gameTIme.ElapsedGameTime.TotalSeconds * mstsskyfogDistance, 10, 100000);
+                    mstsskyfogDistance = (float)MathHelperD.Clamp(mstsskyfogDistance + gameTIme.ElapsedGameTime.TotalSeconds * mstsskyfogDistance, 10, 100000);
                 });
             }
             // Don't let clock shift if multiplayer.
             if (!MPManager.IsMultiPlayer())
             {
                 // Shift the clock forwards or backwards at 1h-per-second.
-                viewer.UserCommandController.AddEvent(UserCommand.DebugClockForwards, (UserCommandArgs userCommandArgs, GameTime gameTIme) =>
+                viewer.UserCommandController.AddEvent(UserCommand.DebugClockForwards, KeyEventType.KeyDown, (GameTime gameTIme) =>
                 {
-                    if (userCommandArgs is KeyCommandArgs keyCommandArgs && keyCommandArgs.KeyEventType == KeyEventType.KeyDown)
-                        MSTSSkyViewer.Simulator.ClockTime += gameTIme.ElapsedGameTime.TotalSeconds * 3600;
+                    MSTSSkyViewer.Simulator.ClockTime += gameTIme.ElapsedGameTime.TotalSeconds * 3600;
                 });
-                viewer.UserCommandController.AddEvent(UserCommand.DebugClockBackwards, (UserCommandArgs userCommandArgs, GameTime gameTIme) =>
+                viewer.UserCommandController.AddEvent(UserCommand.DebugClockBackwards, KeyEventType.KeyDown, (GameTime gameTIme) =>
                 {
-                    if (userCommandArgs is KeyCommandArgs keyCommandArgs && keyCommandArgs.KeyEventType == KeyEventType.KeyDown)
-                        MSTSSkyViewer.Simulator.ClockTime -= gameTIme.ElapsedGameTime.TotalSeconds * 3600;
+                    MSTSSkyViewer.Simulator.ClockTime -= gameTIme.ElapsedGameTime.TotalSeconds * 3600;
                 });
             }
             // Server needs to notify clients of weather changes.
             if (MPManager.IsServer())
             {
-                viewer.UserCommandController.AddEvent(UserCommand.DebugOvercastIncrease, SendMultiPlayerSkyChangeNotification);
-                viewer.UserCommandController.AddEvent(UserCommand.DebugOvercastDecrease, SendMultiPlayerSkyChangeNotification);
-                viewer.UserCommandController.AddEvent(UserCommand.DebugFogIncrease, SendMultiPlayerSkyChangeNotification);
-                viewer.UserCommandController.AddEvent(UserCommand.DebugFogDecrease, SendMultiPlayerSkyChangeNotification);
+                viewer.UserCommandController.AddEvent(UserCommand.DebugOvercastIncrease, KeyEventType.KeyReleased, SendMultiPlayerSkyChangeNotification);
+                viewer.UserCommandController.AddEvent(UserCommand.DebugOvercastDecrease, KeyEventType.KeyReleased, SendMultiPlayerSkyChangeNotification);
+                viewer.UserCommandController.AddEvent(UserCommand.DebugFogIncrease, KeyEventType.KeyReleased, SendMultiPlayerSkyChangeNotification);
+                viewer.UserCommandController.AddEvent(UserCommand.DebugFogDecrease, KeyEventType.KeyReleased, SendMultiPlayerSkyChangeNotification);
             }
-
-
         }
         #endregion
 
-        private void SendMultiPlayerSkyChangeNotification(UserCommandArgs userCommandArgs)
+        private void SendMultiPlayerSkyChangeNotification()
         {
-            if (userCommandArgs is KeyCommandArgs keyCommandArgs && keyCommandArgs.KeyEventType == KeyEventType.KeyReleased)
-            {
-                MPManager.Instance().SetEnvInfo(mstsskyovercastFactor, mstsskyfogDistance);
-                MPManager.Notify(new MSGWeather(-1, mstsskyovercastFactor, -1, mstsskyfogDistance).ToString());
-            }
+            MPManager.Instance().SetEnvInfo(mstsskyovercastFactor, mstsskyfogDistance);
+            MPManager.Notify(new MSGWeather(-1, mstsskyovercastFactor, -1, mstsskyfogDistance).ToString());
         }
 
         /// <summary>
