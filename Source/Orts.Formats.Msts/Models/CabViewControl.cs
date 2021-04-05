@@ -8,6 +8,8 @@ using Microsoft.Xna.Framework;
 using Orts.Common;
 using Orts.Formats.Msts.Parsers;
 
+using SharpDX.Direct3D9;
+
 namespace Orts.Formats.Msts.Models
 {
     public class CabViewControls : List<CabViewControl>
@@ -31,7 +33,8 @@ namespace Orts.Formats.Msts.Models
                 new STFReader.TokenProcessor("firebox", ()=>{ Add(new CabViewFireboxControl(stf, basePath)); }),
                 new STFReader.TokenProcessor("dialclock", ()=>{ ProcessDialClock(stf, basePath);  }),
                 new STFReader.TokenProcessor("digitalclock", ()=>{ Add(new CabViewDigitalClockControl(stf, basePath)); }),
-                new STFReader.TokenProcessor("screendisplay", ()=>{ Add(new CabViewScreenControl(stf, basePath)); })
+                new STFReader.TokenProcessor("screendisplay", ()=>{ Add(new CabViewScreenControl(stf, basePath)); }),
+                new STFReader.TokenProcessor("ortsanimateddisplay", ()=>{ Add(new CabViewAnimatedDisplayControl(stf, basePath)); })
             });
 
             if (count != Count)
@@ -848,6 +851,53 @@ namespace Orts.Formats.Msts.Models
             {
                 CustomParameters[stf.ReadString().ToLower()] = stf.ReadString().ToLower();
             }
+        }
+    }
+
+    public class CabViewAnimatedDisplayControl : CabViewFramedControl
+    {
+        public List<double> MSStyles = new List<double>();
+        public float CycleTimeS;
+
+        public CabViewAnimatedDisplayControl(STFReader stf, string basepath)
+        {
+
+            stf.MustMatch("(");
+            stf.ParseBlock(new STFReader.TokenProcessor[] {
+                new STFReader.TokenProcessor("type", ()=>{ ParseType(stf); }),
+                new STFReader.TokenProcessor("position", ()=>{ ParsePosition(stf);  }),
+                new STFReader.TokenProcessor("scalerange", ()=>{ ParseScaleRange(stf); }),
+                new STFReader.TokenProcessor("graphic", ()=>{ ParseGraphic(stf, basepath); }),
+                new STFReader.TokenProcessor("units", ()=>{ ParseUnits(stf); }),
+                new STFReader.TokenProcessor("ortscycletime", ()=>{
+                    CycleTimeS = stf.ReadFloatBlock(STFReader.Units.Time, null); }),
+                new STFReader.TokenProcessor("states", ()=>{
+                    stf.MustMatch("(");
+                    FramesCount = stf.ReadInt(null);
+                    FramesX = stf.ReadInt(null);
+                    FramesY = stf.ReadInt(null);
+                    stf.ParseBlock(new STFReader.TokenProcessor[] {
+                        new STFReader.TokenProcessor("state", ()=>{
+                            stf.MustMatch("(");
+                            stf.ParseBlock( new STFReader.TokenProcessor[] {
+                                new STFReader.TokenProcessor("style", ()=>{ MSStyles.Add(ParseNumStyle(stf));
+                                }),
+                                new STFReader.TokenProcessor("switchval", ()=>{ Values.Add(stf.ReadFloatBlock(STFReader.Units.None, null))
+                                ; }),
+                        });}),
+                    });
+                    if (Values.Count > 0) ScaleRangeMax = Values.Last();
+                    for (int i = Values.Count; i < FramesCount; i++)
+                        Values.Add(-10000);
+                }),
+            });
+        }
+        protected int ParseNumStyle(STFReader stf)
+        {
+            stf.MustMatch("(");
+            var style = stf.ReadInt(0);
+            stf.SkipRestOfBlock();
+            return style;
         }
     }
     #endregion
