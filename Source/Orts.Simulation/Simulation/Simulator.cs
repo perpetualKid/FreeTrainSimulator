@@ -518,7 +518,8 @@ namespace Orts.Simulation
             InitialTileZ = initialTileZ;
             PoolHolder = new Poolholder(inf, this);
 
-            SignalEnvironment = new SignalEnvironment(SIGCFG, inf, System.Threading.CancellationToken.None);
+            SignalEnvironment = new SignalEnvironment(SIGCFG, false, System.Threading.CancellationToken.None);
+            SignalEnvironment.Restore(inf);
 
             RestoreTrains(inf);
             LevelCrossings = new LevelCrossings(this);

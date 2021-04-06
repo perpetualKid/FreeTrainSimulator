@@ -22,20 +22,22 @@ namespace Tests.Orts.Shared
 {
     public class DynamicPrecisionEqualityComparer : IEqualityComparer<double>
     {
-        public static readonly IEqualityComparer<double> Float = new DynamicPrecisionEqualityComparer(6);
-        public static readonly IEqualityComparer<double> Double = new DynamicPrecisionEqualityComparer(14);
+#pragma warning disable CA1720 // Identifier contains type name
+        public static IEqualityComparer<double> Float { get; } = new DynamicPrecisionEqualityComparer(6);
+        public static IEqualityComparer<double> Double { get; } = new DynamicPrecisionEqualityComparer(14);
+#pragma warning restore CA1720 // Identifier contains type name
 
-        readonly int DynamicPrecision;
+        private readonly int DynamicPrecision;
 
-        DynamicPrecisionEqualityComparer(int dynamicPrecision)
+        private DynamicPrecisionEqualityComparer(int dynamicPrecision)
         {
             DynamicPrecision = dynamicPrecision;
         }
 
-        static double DynamicRound(double value, int dynamicPrecision)
+        private static double DynamicRound(double value, int dynamicPrecision)
         {
             // Note: This doesn't do the right thing for values which have more digits left of the decimal point than dynamicPrecision.
-            var precision = (int)(dynamicPrecision - Math.Log10(value));
+            int precision = (int)(dynamicPrecision - Math.Log10(value));
             return Math.Round(value, precision < 0 ? 0 : precision > 15 ? 15 : precision);
         }
 

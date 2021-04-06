@@ -17,12 +17,14 @@
 
 using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.Text.RegularExpressions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Tests.Orts.Shared
 {
     public delegate void RunCode();
+
     /// <summary>
     /// This class can be used to test for Trace.TraceWarning() calls.
     /// Instead of having the warnings go to the output window, they are captured by this class.
@@ -33,17 +35,17 @@ namespace Tests.Orts.Shared
     /// AssertWarnings.ExpectWarning: the code that is given to this method will be executed and will be tested for indeed giving a warning.
     ///     use this as: AssertWarnings.ExpectWarning( () => {code_to_execute;});
     /// </summary>
-    class AssertWarnings : TraceListener
+    internal class AssertWarnings : TraceListener
     {
-        static AssertWarnings Listener = new AssertWarnings();
+        private static readonly AssertWarnings listener = new AssertWarnings();
 
-        static void Initialize()
+        private static void Initialize()
         {
             // Prevent warnings from going to MsTest.
             // We assume that MSTest takes control back for the next unit test (meaning that the listener will be removed again for the next test).
             Trace.Listeners.Clear();
             // We now intercept the trace warnings with our own listener.
-            Trace.Listeners.Add(Listener);
+            Trace.Listeners.Add(listener);
         }
 
         /// <summary>
@@ -52,7 +54,7 @@ namespace Tests.Orts.Shared
         public static void NotExpected()
         {
             Initialize();
-            Listener.Set(false);
+            listener.Set(false);
         }
 
         /// <summary>
@@ -61,7 +63,7 @@ namespace Tests.Orts.Shared
         public static void Expected()
         {
             Initialize();
-            Listener.Set(true);
+            listener.Set(true);
         }
 
         /// <summary>
@@ -72,33 +74,33 @@ namespace Tests.Orts.Shared
         public static void Matching(string pattern, RunCode code)
         {
             Initialize();
-            Listener.InternalMatching(pattern, code);
+            listener.InternalMatching(pattern, code);
         }
 
-        bool WarningExpected;
-        bool WarningOccurred;
-        string LastWarning;
+        private bool warningExpected;
+        private bool warningOccurred;
+        private string lastWarning;
 
-        AssertWarnings()
+        private AssertWarnings()
         {
         }
 
-        void Set(bool expected)
+        private void Set(bool expected)
         {
-            WarningExpected = expected;
-            WarningOccurred = false;
-            LastWarning = null;
+            warningExpected = expected;
+            warningOccurred = false;
+            lastWarning = null;
         }
 
-        void InternalMatching(string pattern, RunCode callback)
+        private void InternalMatching(string pattern, RunCode callback)
         {
             Set(true);
-            LastWarning = null;
+            lastWarning = null;
             callback.Invoke();
-            Assert.IsTrue(WarningOccurred, "Expected a warning, but did not get it");
-            if (WarningOccurred && pattern != null)
+            Assert.IsTrue(warningOccurred, "Expected a warning, but did not get it");
+            if (warningOccurred && pattern != null)
             {
-                Assert.IsTrue(Regex.IsMatch(LastWarning, pattern), LastWarning + " does not match pattern " + pattern);
+                Assert.IsTrue(Regex.IsMatch(lastWarning, pattern), lastWarning + " does not match pattern " + pattern);
             }
             Set(false);
         }
@@ -123,23 +125,23 @@ namespace Tests.Orts.Shared
 
         public override void TraceEvent(TraceEventCache eventCache, string source, TraceEventType eventType, int id)
         {
-            LastWarning = "";
-            Assert.IsTrue(WarningExpected, "Unexpected warning");
-            WarningOccurred = true;
+            lastWarning = "";
+            Assert.IsTrue(warningExpected, "Unexpected warning");
+            warningOccurred = true;
         }
 
         public override void TraceEvent(TraceEventCache eventCache, string source, TraceEventType eventType, int id, string message)
         {
-            LastWarning = message;
-            Assert.IsTrue(WarningExpected, "Unexpected warning: " + LastWarning);
-            WarningOccurred = true;
+            lastWarning = message;
+            Assert.IsTrue(warningExpected, "Unexpected warning: " + lastWarning);
+            warningOccurred = true;
         }
 
         public override void TraceEvent(TraceEventCache eventCache, string source, TraceEventType eventType, int id, string format, params object[] args)
         {
-            LastWarning = string.Format(format, args);
-            Assert.IsTrue(WarningExpected, "Unexpected warning: " + LastWarning);
-            WarningOccurred = true;
+            lastWarning = string.Format(CultureInfo.CurrentCulture, format, args);
+            Assert.IsTrue(warningExpected, $"Unexpected warning: {lastWarning}");
+            warningOccurred = true;
         }
     }
 }

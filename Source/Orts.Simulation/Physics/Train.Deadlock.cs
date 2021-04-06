@@ -283,7 +283,7 @@ namespace Orts.Simulation.Physics
             foreach (Train otherTrain in simulator.Trains)
             {
                 // check if not AI_Static
-                if (signalRef.UseLocationPassingPaths && otherTrain.GetAiMovementState() == AiMovementState.Static)
+                if (Simulator.Instance.SignalEnvironment.UseLocationPassingPaths && otherTrain.GetAiMovementState() == AiMovementState.Static)
                 {
                     continue;
                 }
@@ -313,7 +313,7 @@ namespace Orts.Simulation.Physics
                                 }
                                 else
                                 {
-                                    if (signalRef.UseLocationPassingPaths) //new style location based logic
+                                    if (Simulator.Instance.SignalEnvironment.UseLocationPassingPaths) //new style location based logic
                                     {
                                         if (CheckRealDeadlockLocationBased(route, otherRoute, ref i))
                                         {
@@ -554,7 +554,7 @@ namespace Orts.Simulation.Physics
                         validPassLocation = true;
 
                         // get allocated paths for this train
-                        DeadlockInfo deadlockInfo = signalRef.DeadlockInfoList[section.DeadlockReference];
+                        DeadlockInfo deadlockInfo = Simulator.Instance.SignalEnvironment.DeadlockInfoList[section.DeadlockReference];
 
                         // get allocated paths for this train - if none yet set, create references
                         int trainReferenceIndex = deadlockInfo.GetTrainAndSubpathIndex(Number, TCRoute.ActiveSubPath);

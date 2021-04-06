@@ -1659,7 +1659,7 @@ namespace Orts.Simulation.AIs
                      thisStation.HoldSignal)
                 {
                     HoldingSignals.Remove(thisStation.ExitSignal);
-                    var nextSignal = signalRef.Signals[thisStation.ExitSignal];
+                    var nextSignal = Simulator.Instance.SignalEnvironment.Signals[thisStation.ExitSignal];
 
                     if (nextSignal.EnabledTrain != null && nextSignal.EnabledTrain.Train == this)
                     {
@@ -1700,10 +1700,10 @@ namespace Orts.Simulation.AIs
 
             // first, check state of signal
 
-            if (thisStation.ExitSignal >= 0 && (thisStation.HoldSignal || signalRef.Signals[thisStation.ExitSignal].HoldState == SignalHoldState.StationStop))
+            if (thisStation.ExitSignal >= 0 && (thisStation.HoldSignal || Simulator.Instance.SignalEnvironment.Signals[thisStation.ExitSignal].HoldState == SignalHoldState.StationStop))
             {
                 if (HoldingSignals.Contains(thisStation.ExitSignal)) HoldingSignals.Remove(thisStation.ExitSignal);
-                var nextSignal = signalRef.Signals[thisStation.ExitSignal];
+                var nextSignal = Simulator.Instance.SignalEnvironment.Signals[thisStation.ExitSignal];
 
                 // only request signal if in signal mode (train may be in node control)
                 if (ControlMode == TrainControlMode.AutoSignal)
@@ -3239,7 +3239,7 @@ namespace Orts.Simulation.AIs
                         if (insertSigDelegate && (waitingPoint[2] != 60002) && signalIndex[iWait] > -1)
                         {
                             AIActSigDelegateRef delegateAction = new AIActSigDelegateRef(this, waitingPoint[5], 0f, waitingPoint[0], lastIndex, thisRoute[lastIndex].TrackCircuitSection.Index, (int)direction, action);
-                            signalRef.Signals[signalIndex[iWait]].LockForTrain(this.Number, waitingPoint[0]);
+                            Simulator.Instance.SignalEnvironment.Signals[signalIndex[iWait]].LockForTrain(this.Number, waitingPoint[0]);
                             delegateAction.SetEndSignalIndex(signalIndex[iWait]);
 
                             if (randomizedDelay >= 30000 && randomizedDelay < 40000)
@@ -3248,7 +3248,7 @@ namespace Orts.Simulation.AIs
                                 delegateAction.IsAbsolute = true;
                             }
                             else delegateAction.Delay = 0;
-                            delegateAction.SetSignalObject(signalRef.Signals[signalIndex[iWait]]);
+                            delegateAction.SetSignalObject(Simulator.Instance.SignalEnvironment.Signals[signalIndex[iWait]]);
 
                             AuxActionsContainer.Add(delegateAction);
                         }
@@ -3265,11 +3265,11 @@ namespace Orts.Simulation.AIs
                     action.SetDelay( (randomizedDelay >= 30000 && randomizedDelay < 40000)? randomizedDelay : 0);
                     AuxActionsContainer.Add(action);
                     AIActSigDelegateRef delegateAction = new AIActSigDelegateRef(this, waitingPoint[5], 0f, waitingPoint[0], lastIndex, thisRoute[lastIndex].TrackCircuitSection.Index, (int)direction, action);
-                    signalRef.Signals[signalIndex[iWait]].LockForTrain(this.Number, waitingPoint[0]);
+                    Simulator.Instance.SignalEnvironment.Signals[signalIndex[iWait]].LockForTrain(this.Number, waitingPoint[0]);
                     delegateAction.SetEndSignalIndex(signalIndex[iWait]);
                     delegateAction.Delay = randomizedDelay;
                     if (randomizedDelay >= 30000 && randomizedDelay < 40000) delegateAction.IsAbsolute = true;
-                    delegateAction.SetSignalObject(signalRef.Signals[signalIndex[iWait]]);
+                    delegateAction.SetSignalObject(Simulator.Instance.SignalEnvironment.Signals[signalIndex[iWait]]);
 
                     AuxActionsContainer.Add(delegateAction);
                 }
@@ -5325,7 +5325,7 @@ namespace Orts.Simulation.AIs
 
                             if (ControlMode == TrainControlMode.AutoSignal)
                             {
-                                Signal nextSignal = signalRef.Signals[StationStops[0].ExitSignal];
+                                Signal nextSignal = Simulator.Instance.SignalEnvironment.Signals[StationStops[0].ExitSignal];
                                 nextSignal.RequestClearSignal(ValidRoute[0], RoutedForward, 0, false, null);
                             }
                             StationStops[0].ExitSignal = -1;

@@ -318,7 +318,6 @@ namespace Orts.Simulation.Physics
         private protected string evaluationLogFile;                 // required datalog file
 
         private protected static readonly Simulator simulator = Simulator.Instance;                 // reference to the simulator
-        private protected static readonly SignalEnvironment signalRef = simulator.SignalEnvironment;// reference to main Signals class, shortcut only
         private protected static readonly char Separator = (char)simulator.Settings.DataLoggerSeparator;
 
         #region steam and heating
@@ -2476,7 +2475,7 @@ namespace Orts.Simulation.Physics
             }
             if (SignalObjIndex >= 0)
             {
-                Signal signalObject = signalRef.Signals[SignalObjIndex];
+                Signal signalObject = Simulator.Instance.SignalEnvironment.Signals[SignalObjIndex];
 
                 //the following is added by CSantucci, applying also to manual mode what Jtang implemented for activity mode: after passing a manually forced signal,
                 // system will take back control of the signal
@@ -2502,7 +2501,7 @@ namespace Orts.Simulation.Physics
             }
             if (SignalObjIndex >= 0)
             {
-                Signal signalObject = signalRef.Signals[SignalObjIndex];
+                Signal signalObject = Simulator.Instance.SignalEnvironment.Signals[SignalObjIndex];
 
                 //the following is added by CSantucci, applying also to explorer mode what Jtang implemented for activity mode: after passing a manually forced signal,
                 // system will take back control of the signal
@@ -2595,7 +2594,7 @@ namespace Orts.Simulation.Physics
         /// initialize signal array
         internal void InitializeSignals(bool existingSpeedLimits)
         {
-            Debug.Assert(signalRef != null, "Cannot InitializeSignals() without Simulator.Signals.");
+            Debug.Assert(Simulator.Instance.SignalEnvironment != null, "Cannot InitializeSignals() without Simulator.Signals.");
 
             // to initialize, use direction 0 only
             // preset indices
@@ -2621,7 +2620,7 @@ namespace Orts.Simulation.Physics
 
                 if (speedpostList.Count > 0)
                 {
-                    Signal speedpost = signalRef.Signals[speedpostList[0]];
+                    Signal speedpost = Simulator.Instance.SignalEnvironment.Signals[speedpostList[0]];
                     SpeedInfo speedInfo = speedpost.SpeedLimit(SignalFunction.Speed);
 
                     AllowedMaxSpeedMpS = Math.Min(AllowedMaxSpeedMpS, IsFreight ? speedInfo.FreightSpeed : speedInfo.PassengerSpeed);
@@ -2645,7 +2644,7 @@ namespace Orts.Simulation.Physics
 
                     if (speedpostList.Count > 0)
                     {
-                        Signal speedpost = signalRef.Signals[speedpostList[0]];
+                        Signal speedpost = Simulator.Instance.SignalEnvironment.Signals[speedpostList[0]];
                         SpeedInfo speedInfo = speedpost.SpeedLimit(SignalFunction.Speed);
                         float distanceFromFront = Length - speedpost.DistanceTo(RearTDBTraveller);
                         if (distanceFromFront >= 0)
@@ -2694,7 +2693,7 @@ namespace Orts.Simulation.Physics
             float distanceToLastObject = 9E29f;  // set to overlarge value
             SignalAspectState nextAspect = SignalAspectState.Unknown;
 
-            SignalItemInfo firstObject = signalRef.GetNextObjectInRoute(RoutedForward, ValidRoute[0],
+            SignalItemInfo firstObject = Simulator.Instance.SignalEnvironment.GetNextObjectInRoute(RoutedForward, ValidRoute[0],
                 PresentPosition[Direction.Forward].RouteListIndex, PresentPosition[Direction.Forward].Offset, -1,
                 SignalItemType.Any);
 
@@ -2749,7 +2748,7 @@ namespace Orts.Simulation.Physics
                     }
                 }
 
-                nextObject = signalRef.GetNextObjectInRoute(RoutedForward, ValidRoute[0],
+                nextObject = Simulator.Instance.SignalEnvironment.GetNextObjectInRoute(RoutedForward, ValidRoute[0],
                 nextIndex, offset, -1, SignalItemType.Any);
 
                 returnState = nextObject.State;
@@ -2814,7 +2813,7 @@ namespace Orts.Simulation.Physics
             }
             else
             {
-                SignalItemInfo firstSignalObject = signalRef.GetNextObjectInRoute(RoutedForward, ValidRoute[0],
+                SignalItemInfo firstSignalObject = Simulator.Instance.SignalEnvironment.GetNextObjectInRoute(RoutedForward, ValidRoute[0],
                     PresentPosition[Direction.Forward].RouteListIndex, PresentPosition[Direction.Forward].Offset, -1,
                     SignalItemType.Signal);
 
@@ -2966,7 +2965,7 @@ namespace Orts.Simulation.Physics
 
                     while (!noMoreNewSignals)
                     {
-                        SignalItemInfo newObjectItem = signalRef.GetNextObjectInRoute(RoutedForward, ValidRoute[0],
+                        SignalItemInfo newObjectItem = Simulator.Instance.SignalEnvironment.GetNextObjectInRoute(RoutedForward, ValidRoute[0],
                            routeIndex, offset, -1, SignalItemType.Signal);
 
                         returnState = newObjectItem.State;
@@ -3007,7 +3006,7 @@ namespace Orts.Simulation.Physics
             // if no objects left on list, find first object whatever the distance
             if (SignalObjectItems.Count <= 0)
             {
-                firstObject = signalRef.GetNextObjectInRoute(RoutedForward, ValidRoute[0],
+                firstObject = Simulator.Instance.SignalEnvironment.GetNextObjectInRoute(RoutedForward, ValidRoute[0],
                       PresentPosition[Direction.Forward].RouteListIndex, PresentPosition[Direction.Forward].Offset, -1,
                       SignalItemType.Any);
 
@@ -3110,7 +3109,7 @@ namespace Orts.Simulation.Physics
                         offset = reqOffset;
                     }
 
-                    SignalItemInfo nextObject = signalRef.GetNextObjectInRoute(RoutedForward, ValidRoute[0], lastIndex, offset, -1, SignalItemType.Any);
+                    SignalItemInfo nextObject = Simulator.Instance.SignalEnvironment.GetNextObjectInRoute(RoutedForward, ValidRoute[0], lastIndex, offset, -1, SignalItemType.Any);
 
                     returnState = nextObject.State;
 
@@ -3177,7 +3176,7 @@ namespace Orts.Simulation.Physics
             // get state and details
             if (nextSignalIndex < 0)
             {
-                SignalItemInfo firstSignalObject = signalRef.GetNextObjectInRoute(RoutedForward, ValidRoute[0],
+                SignalItemInfo firstSignalObject = Simulator.Instance.SignalEnvironment.GetNextObjectInRoute(RoutedForward, ValidRoute[0],
                         PresentPosition[Direction.Forward].RouteListIndex, PresentPosition[Direction.Forward].Offset, -1,
                         SignalItemType.Signal);
 
@@ -4692,7 +4691,7 @@ namespace Orts.Simulation.Physics
                         int nextSignalIndex = NextSignalObject[direction].Signalfound[(int)SignalFunction.Normal];
                         if (nextSignalIndex >= 0)
                         {
-                            NextSignalObject[direction] = signalRef.Signals[nextSignalIndex];
+                            NextSignalObject[direction] = Simulator.Instance.SignalEnvironment.Signals[nextSignalIndex];
 
                             int reqSectionIndex = NextSignalObject[direction].TrackCircuitIndex;
                             float endOffset = NextSignalObject[direction].TrackCircuitOffset;
@@ -4710,7 +4709,7 @@ namespace Orts.Simulation.Physics
                         int nextSignalIndex = NextSignalObject[direction].Signalfound[(int)SignalFunction.Normal];
                         if (nextSignalIndex >= 0)
                         {
-                            NextSignalObject[direction] = signalRef.Signals[nextSignalIndex];
+                            NextSignalObject[direction] = Simulator.Instance.SignalEnvironment.Signals[nextSignalIndex];
 
                             int reqSectionIndex = NextSignalObject[direction].TrackCircuitIndex;
                             float endOffset = NextSignalObject[direction].TrackCircuitOffset;
@@ -5060,7 +5059,7 @@ namespace Orts.Simulation.Physics
                         // clear rest of route to avoid accidental signal activation
                         if (nextRouteIndex >= 0)
                         {
-                            signalRef.BreakDownRouteList(ValidRoute[0], nextRouteIndex, RoutedForward);
+                            Simulator.Instance.SignalEnvironment.BreakDownRouteList(ValidRoute[0], nextRouteIndex, RoutedForward);
                             ValidRoute[0].RemoveRange(nextRouteIndex, ValidRoute[0].Count - nextRouteIndex);
                         }
                     }
@@ -5068,7 +5067,7 @@ namespace Orts.Simulation.Physics
                     if (PresentPosition[Direction.Forward].RouteListIndex >= 0 && PresentPosition[Direction.Forward].RouteListIndex < ValidRoute[0].Count - 1) // not at end of route
                     {
                         int nextRouteIndex = PresentPosition[Direction.Forward].RouteListIndex + 1;
-                        signalRef.BreakDownRouteList(ValidRoute[0], nextRouteIndex, RoutedForward);
+                        Simulator.Instance.SignalEnvironment.BreakDownRouteList(ValidRoute[0], nextRouteIndex, RoutedForward);
                         ValidRoute[0].RemoveRange(nextRouteIndex, ValidRoute[0].Count - nextRouteIndex);
                     }
                 }
@@ -5076,7 +5075,7 @@ namespace Orts.Simulation.Physics
                 int nextIndex = PresentPosition[Direction.Forward].RouteListIndex + 1;
                 if (nextIndex <= (ValidRoute[0].Count - 1))
                 {
-                    signalRef.BreakDownRoute(ValidRoute[0][nextIndex].TrackCircuitSection.Index, RoutedForward);
+                    Simulator.Instance.SignalEnvironment.BreakDownRoute(ValidRoute[0][nextIndex].TrackCircuitSection.Index, RoutedForward);
                 }
 
                 // clear any remaining deadlocks
@@ -5316,7 +5315,7 @@ namespace Orts.Simulation.Physics
 
             if (signalObjectIndex >= 0)
             {
-                Signal signalObject = signalRef.Signals[signalObjectIndex];
+                Signal signalObject = Simulator.Instance.SignalEnvironment.Signals[signalObjectIndex];
 
                 //the following is added by JTang, passing a hold signal, will take back control by the system
                 if (signalObject.HoldState == SignalHoldState.ManualPass || signalObject.HoldState == SignalHoldState.ManualApproach)
@@ -5354,11 +5353,11 @@ namespace Orts.Simulation.Physics
             // if next signal not enabled, also send request (can happen after choosing passing path)
             if (signalObjectIndex >= 0)
             {
-                Signal signal = signalRef.Signals[signalObjectIndex];
+                Signal signal = Simulator.Instance.SignalEnvironment.Signals[signalObjectIndex];
                 int nextSignalIndex = signal.Signalfound[(int)SignalFunction.Normal];
                 if (nextSignalIndex >= 0)
                 {
-                    Signal nextSignal = signalRef.Signals[nextSignalIndex];
+                    Signal nextSignal = Simulator.Instance.SignalEnvironment.Signals[nextSignalIndex];
                     nextSignal.RequestClearSignal(ValidRoute[0], RoutedForward, 0, false, null);
                 }
             }
@@ -5585,7 +5584,7 @@ namespace Orts.Simulation.Physics
             }
             // perform node update - forward only
 
-            signalRef.RequestClearNode(RoutedForward, ValidRoute[0]);
+            Simulator.Instance.SignalEnvironment.RequestClearNode(RoutedForward, ValidRoute[0]);
         }
 
         /// <summary>
@@ -5685,7 +5684,7 @@ namespace Orts.Simulation.Physics
             // reset signal
             if (signalObjectIndex >= 0)
             {
-                Signal signal = signalRef.Signals[signalObjectIndex];
+                Signal signal = Simulator.Instance.SignalEnvironment.Signals[signalObjectIndex];
                 signal.OverridePermission = SignalPermission.Denied;
                 //the following is added by JTang, passing a hold signal, will take back control by the system
                 if (signal.HoldState == SignalHoldState.ManualPass || signal.HoldState == SignalHoldState.ManualApproach)
@@ -5767,7 +5766,7 @@ namespace Orts.Simulation.Physics
 
                 if (requiredRoute != null && requiredRoute.Count > 0)  // if route defined, then breakdown route
                 {
-                    signalRef.BreakDownRouteList(requiredRoute, 0, routedTrain);
+                    Simulator.Instance.SignalEnvironment.BreakDownRouteList(requiredRoute, 0, routedTrain);
                     requiredRoute.Clear();
                 }
 
@@ -6266,7 +6265,7 @@ namespace Orts.Simulation.Physics
                 if (!reqSwitch.CircuitState.Occupied() && reqSwitch.CircuitState.TrainReserved == null && reqSwitch.CircuitState.SignalReserved < 0)
                 {
                     reqSwitch.JunctionSetManual = reqSwitch.JunctionLastRoute == 0 ? 1 : 0;
-                    signalRef.SetSwitch(reqSwitch.OriginalIndex, reqSwitch.JunctionSetManual, reqSwitch);
+                    Simulator.Instance.SignalEnvironment.SetSwitch(reqSwitch.OriginalIndex, reqSwitch.JunctionSetManual, reqSwitch);
                     switchSet = true;
                 }
                 // check if switch reserved by this train - if so, dealign and breakdown route
@@ -6274,14 +6273,14 @@ namespace Orts.Simulation.Physics
                 {
                     int reqRouteIndex = reqSwitch.CircuitState.TrainReserved.TrainRouteDirectionIndex;
                     int routeIndex = ValidRoute[reqRouteIndex].GetRouteIndex(reqSwitch.Index, 0);
-                    signalRef.BreakDownRouteList(ValidRoute[reqRouteIndex], routeIndex, reqSwitch.CircuitState.TrainReserved);
+                    Simulator.Instance.SignalEnvironment.BreakDownRouteList(ValidRoute[reqRouteIndex], routeIndex, reqSwitch.CircuitState.TrainReserved);
                     if (routeIndex >= 0 && ValidRoute[reqRouteIndex].Count > routeIndex)
                         ValidRoute[reqRouteIndex].RemoveRange(routeIndex, ValidRoute[reqRouteIndex].Count - routeIndex);
                     else
                         Trace.TraceWarning($"Switch index {reqSwitch.Index} could not be found in ValidRoute[{reqRouteIndex}]; routeDirectionIndex = {routeDirectionIndex}");
                     reqSwitch.DeAlignSwitchPins();
                     reqSwitch.JunctionSetManual = reqSwitch.JunctionLastRoute == 0 ? 1 : 0;
-                    signalRef.SetSwitch(reqSwitch.OriginalIndex, reqSwitch.JunctionSetManual, reqSwitch);
+                    Simulator.Instance.SignalEnvironment.SetSwitch(reqSwitch.OriginalIndex, reqSwitch.JunctionSetManual, reqSwitch);
                     switchSet = true;
                 }
 
@@ -6364,7 +6363,7 @@ namespace Orts.Simulation.Physics
             }
 
             // breakdown and clear route
-            signalRef.BreakDownRouteList(selectedRoute, 0, trainRouted);
+            Simulator.Instance.SignalEnvironment.BreakDownRouteList(selectedRoute, 0, trainRouted);
             selectedRoute.Clear();
 
             // restore required position (is cleared by route breakdown)
@@ -6372,7 +6371,7 @@ namespace Orts.Simulation.Physics
 
             // set switch
             switchSection.DeAlignSwitchPins();
-            signalRef.SetSwitch(switchSection.OriginalIndex, switchSection.JunctionSetManual, switchSection);
+            Simulator.Instance.SignalEnvironment.SetSwitch(switchSection.OriginalIndex, switchSection.JunctionSetManual, switchSection);
 
             // reset indication for misaligned switch
             misalignedSwitch[direction, TrackDirection.Ahead] = -1;
@@ -6431,7 +6430,7 @@ namespace Orts.Simulation.Physics
 
             if (foundSpeedLimit.Count > 0)
             {
-                Signal speedLimit = signalRef.Signals[Math.Abs(foundSpeedLimit[0])];
+                Signal speedLimit = Simulator.Instance.SignalEnvironment.Signals[Math.Abs(foundSpeedLimit[0])];
                 SpeedInfo speedInfo = speedLimit.SpeedLimit(SignalFunction.Speed);
                 float speedMpS = IsFreight ? speedInfo.FreightSpeed : speedInfo.PassengerSpeed;
 
@@ -6463,7 +6462,7 @@ namespace Orts.Simulation.Physics
 
             if (foundSpeedLimit.Count > 0)
             {
-                Signal signal = signalRef.Signals[Math.Abs(foundSpeedLimit[0])];
+                Signal signal = Simulator.Instance.SignalEnvironment.Signals[Math.Abs(foundSpeedLimit[0])];
                 if (signal.IsSignal)
                 {
                     // if signal is now just behind train - set speed as signal speed limit, do not reenter in list
@@ -6513,7 +6512,7 @@ namespace Orts.Simulation.Physics
             bool limitAlongTrain = true;
             while (foundSpeedLimit.Count > 0 && limitAlongTrain)
             {
-                Signal signal = signalRef.Signals[Math.Abs(foundSpeedLimit[0])];
+                Signal signal = Simulator.Instance.SignalEnvironment.Signals[Math.Abs(foundSpeedLimit[0])];
 
                 // check if not beyond end of train
                 float speedLimitDistance = TrackCircuitSection.GetDistanceBetweenObjects(routeElement.TrackCircuitSection.Index, reverseOffset, routeElement.Direction,
@@ -6593,7 +6592,7 @@ namespace Orts.Simulation.Physics
             // check if signal passed posed a speed limit lower than present limit
             if (passedSignalIndex >= 0)
             {
-                Signal passedSignal = signalRef.Signals[passedSignalIndex];
+                Signal passedSignal = Simulator.Instance.SignalEnvironment.Signals[passedSignalIndex];
                 SpeedInfo speedInfo = passedSignal.SignalSpeed(SignalFunction.Normal);
 
                 if (speedInfo != null)
@@ -6748,7 +6747,7 @@ namespace Orts.Simulation.Physics
 
             if (signalObjectIndex >= 0)
             {
-                Signal signal = signalRef.Signals[signalObjectIndex];
+                Signal signal = Simulator.Instance.SignalEnvironment.Signals[signalObjectIndex];
                 signal.OverridePermission = SignalPermission.Denied;
 
                 signal.ResetSignalEnabled();
@@ -6796,7 +6795,7 @@ namespace Orts.Simulation.Physics
             {
                 if (requiredRoute != null && requiredRoute.Count > 0)  // if route defined, then breakdown route
                 {
-                    signalRef.BreakDownRouteList(requiredRoute, 0, trainRouted);
+                    Simulator.Instance.SignalEnvironment.BreakDownRouteList(requiredRoute, 0, trainRouted);
                     requiredRoute.Clear();
                 }
 
@@ -7066,7 +7065,7 @@ namespace Orts.Simulation.Physics
                     // remove invalid sections from route
                     if (lastValidSectionIndex < newRoute.Count - 1)
                     {
-                        signalRef.BreakDownRouteList(newRoute, lastValidSectionIndex + 1, trainRouted);
+                        Simulator.Instance.SignalEnvironment.BreakDownRouteList(newRoute, lastValidSectionIndex + 1, trainRouted);
                         newRoute.RemoveRange(lastValidSectionIndex + 1, newRoute.Count - lastValidSectionIndex - 1);
                     }
                 }
@@ -7081,7 +7080,7 @@ namespace Orts.Simulation.Physics
                     // If we are far away from the first signal, there is no point in clearing it until we get closer.
                     if (unclearedSignal && signalIndex < newRoute.Count)
                     {
-                        Signal reqSignal = signalRef.Signals[nextUnclearSignalIndex];
+                        Signal reqSignal = Simulator.Instance.SignalEnvironment.Signals[nextUnclearSignalIndex];
                         bool firstSignalPassed = false;
                         int numCleared = 0;
                         totalLengthM = 0;
@@ -7109,7 +7108,7 @@ namespace Orts.Simulation.Physics
                                     firstSignalPassed = true;
                                     if (signal == reqSignal)
                                     {
-                                        signalRef.BreakDownRouteList(newRoute, i + 1, trainRouted);
+                                        Simulator.Instance.SignalEnvironment.BreakDownRouteList(newRoute, i + 1, trainRouted);
                                         newRoute.RemoveRange(i + 1, newRoute.Count - i - 1);
                                         newRoute = signal.RequestClearSignalExplorer(newRoute, trainRouted, false, 0);
                                         break;
@@ -7120,7 +7119,7 @@ namespace Orts.Simulation.Physics
                                 {
                                     if (signal == reqSignal)
                                     {
-                                        signalRef.BreakDownRouteList(newRoute, i + 1, trainRouted);
+                                        Simulator.Instance.SignalEnvironment.BreakDownRouteList(newRoute, i + 1, trainRouted);
                                         newRoute.RemoveRange(i + 1, newRoute.Count - i - 1);
                                         newRoute = signal.RequestClearSignalExplorer(newRoute, trainRouted, true, numCleared);
                                         break;
@@ -7285,7 +7284,7 @@ namespace Orts.Simulation.Physics
                 if (!reqSwitch.CircuitState.Occupied() && reqSwitch.CircuitState.TrainReserved == null && reqSwitch.CircuitState.SignalReserved < 0)
                 {
                     reqSwitch.JunctionSetManual = reqSwitch.JunctionLastRoute == 0 ? 1 : 0;
-                    signalRef.SetSwitch(reqSwitch.OriginalIndex, reqSwitch.JunctionSetManual, reqSwitch);
+                    Simulator.Instance.SignalEnvironment.SetSwitch(reqSwitch.OriginalIndex, reqSwitch.JunctionSetManual, reqSwitch);
                     switchSet = true;
                 }
                 // check if switch reserved by this train - if so, dealign
@@ -7293,7 +7292,7 @@ namespace Orts.Simulation.Physics
                 {
                     reqSwitch.DeAlignSwitchPins();
                     reqSwitch.JunctionSetManual = reqSwitch.JunctionLastRoute == 0 ? 1 : 0;
-                    signalRef.SetSwitch(reqSwitch.OriginalIndex, reqSwitch.JunctionSetManual, reqSwitch);
+                    Simulator.Instance.SignalEnvironment.SetSwitch(reqSwitch.OriginalIndex, reqSwitch.JunctionSetManual, reqSwitch);
                     switchSet = true;
                 }
 
@@ -7393,7 +7392,7 @@ namespace Orts.Simulation.Physics
                 // leading, train may still own switch
                 {
 
-                    signalRef.BreakDownRouteList(selectedRoute, lastIndex + 1, trainRouted);
+                    Simulator.Instance.SignalEnvironment.BreakDownRouteList(selectedRoute, lastIndex + 1, trainRouted);
                     selectedRoute.RemoveRange(lastIndex + 1, selectedRoute.Count - lastIndex - 1);
 
                     // restore required position (is cleared by route breakdown)
@@ -7401,7 +7400,7 @@ namespace Orts.Simulation.Physics
 
                     // set switch
                     switchSection.DeAlignSwitchPins();
-                    signalRef.SetSwitch(switchSection.OriginalIndex, switchSection.JunctionSetManual, switchSection);
+                    Simulator.Instance.SignalEnvironment.SetSwitch(switchSection.OriginalIndex, switchSection.JunctionSetManual, switchSection);
 
                     // build new route - use signal request
                     selectedRoute = firstSignal.RequestClearSignalExplorer(selectedRoute, trainRouted, false, 0);
@@ -7410,7 +7409,7 @@ namespace Orts.Simulation.Physics
                 else
                 {
                     // trailing, train must not own switch any more
-                    signalRef.BreakDownRouteList(selectedRoute, junctionIndex, trainRouted);
+                    Simulator.Instance.SignalEnvironment.BreakDownRouteList(selectedRoute, junctionIndex, trainRouted);
                     selectedRoute.RemoveRange(junctionIndex, selectedRoute.Count - junctionIndex);
 
                     // restore required position (is cleared by route breakdown)
@@ -7418,13 +7417,13 @@ namespace Orts.Simulation.Physics
 
                     // set switch
                     switchSection.DeAlignSwitchPins();
-                    signalRef.SetSwitch(switchSection.OriginalIndex, switchSection.JunctionSetManual, switchSection);
+                    Simulator.Instance.SignalEnvironment.SetSwitch(switchSection.OriginalIndex, switchSection.JunctionSetManual, switchSection);
                 }
             }
             // no signal is found - build route using full update process
             else
             {
-                signalRef.BreakDownRouteList(selectedRoute, 0, trainRouted);
+                Simulator.Instance.SignalEnvironment.BreakDownRouteList(selectedRoute, 0, trainRouted);
                 selectedRoute.Clear();
                 manualTrainRoute = SignalEnvironment.BuildTempRoute(this, PresentPosition[Direction.Backward].TrackCircuitSectionIndex, PresentPosition[Direction.Backward].Offset,
                     PresentPosition[Direction.Backward].Direction, Length, false, true, false);
@@ -7448,7 +7447,7 @@ namespace Orts.Simulation.Physics
             if (ValidRoute[0] != null)
             {
                 int listIndex = PresentPosition[Direction.Forward].RouteListIndex;
-                signalRef.BreakDownRouteList(ValidRoute[0], listIndex, RoutedForward);
+                Simulator.Instance.SignalEnvironment.BreakDownRouteList(ValidRoute[0], listIndex, RoutedForward);
                 ClearDeadlocks();
             }
 
@@ -7458,7 +7457,7 @@ namespace Orts.Simulation.Physics
             if (ValidRoute[1] != null)
             {
                 int listIndex = PresentPosition[Direction.Backward].RouteListIndex;
-                signalRef.BreakDownRouteList(ValidRoute[1], listIndex, RoutedBackward);
+                Simulator.Instance.SignalEnvironment.BreakDownRouteList(ValidRoute[1], listIndex, RoutedBackward);
             }
             ValidRoute[1] = null;
             LastReservedSection[1] = -1;
@@ -7520,7 +7519,7 @@ namespace Orts.Simulation.Physics
             TrackCircuitSection section = ValidRoute[0][firstSectionIndex].TrackCircuitSection;
             TrackDirection direction = ValidRoute[0][firstSectionIndex].Direction;
 
-            for (int i = 0; i < signalRef.OrtsSignalTypeCount; i++)
+            for (int i = 0; i < Simulator.Instance.SignalEnvironment.OrtsSignalTypeCount; i++)
             {
                 TrackCircuitSignalList signalList = section.CircuitItems.TrackCircuitSignals[direction][i];
                 foreach (TrackCircuitSignalItem signalItem in signalList)
@@ -7538,7 +7537,7 @@ namespace Orts.Simulation.Physics
                 section = ValidRoute[0][firstSectionIndex].TrackCircuitSection;
                 direction = ValidRoute[0][firstSectionIndex].Direction;
 
-                for (int i = 0; i < signalRef.OrtsSignalTypeCount; i++)
+                for (int i = 0; i < Simulator.Instance.SignalEnvironment.OrtsSignalTypeCount; i++)
                 {
                     TrackCircuitSignalList signalList = section.CircuitItems.TrackCircuitSignals[direction][i];
                     foreach (TrackCircuitSignalItem signalItem in signalList)
@@ -7586,7 +7585,7 @@ namespace Orts.Simulation.Physics
                 // section is not on route - give warning and break down route, following active links and resetting reservation
                 if (endListIndex < 0)
                 {
-                    signalRef.BreakDownRoute(sectionIndex, RoutedForward);
+                    Simulator.Instance.SignalEnvironment.BreakDownRoute(sectionIndex, RoutedForward);
                     activeSectionIndex = -1;
                 }
 
@@ -7611,7 +7610,7 @@ namespace Orts.Simulation.Physics
             // new request or not beyond max distance
             if (activeSectionIndex < 0 || EndAuthorityTypes[0] != EndAuthorityType.MaxDistance)
             {
-                signalRef.RequestClearNode(RoutedForward, ValidRoute[0]);
+                Simulator.Instance.SignalEnvironment.RequestClearNode(RoutedForward, ValidRoute[0]);
             }
         }
 
@@ -7688,7 +7687,7 @@ namespace Orts.Simulation.Physics
             if (ValidRoute[0] != null)
             {
                 int listIndex = PresentPosition[Direction.Forward].RouteListIndex;
-                signalRef.BreakDownRouteList(ValidRoute[0], listIndex, RoutedForward);
+                Simulator.Instance.SignalEnvironment.BreakDownRouteList(ValidRoute[0], listIndex, RoutedForward);
                 ClearDeadlocks();
             }
 
@@ -7698,7 +7697,7 @@ namespace Orts.Simulation.Physics
             if (ValidRoute[1] != null)
             {
                 int listIndex = PresentPosition[Direction.Backward].RouteListIndex;
-                signalRef.BreakDownRouteList(ValidRoute[1], listIndex, RoutedBackward);
+                Simulator.Instance.SignalEnvironment.BreakDownRouteList(ValidRoute[1], listIndex, RoutedBackward);
             }
             ValidRoute[1] = null;
             LastReservedSection[1] = -1;
@@ -7751,8 +7750,8 @@ namespace Orts.Simulation.Physics
             }
 
             // breakdown present routes, forward and backward
-            signalRef.BreakDownRouteList(ValidRoute[0], 0, RoutedForward);
-            signalRef.BreakDownRouteList(ValidRoute[1], 0, RoutedBackward);
+            Simulator.Instance.SignalEnvironment.BreakDownRouteList(ValidRoute[0], 0, RoutedForward);
+            Simulator.Instance.SignalEnvironment.BreakDownRouteList(ValidRoute[1], 0, RoutedBackward);
 
             // clear occupied sections
             for (int i = OccupiedTrack.Count - 1; i >= 0; i--)
@@ -7808,7 +7807,7 @@ namespace Orts.Simulation.Physics
             if (ValidRoute[0] != null)
             {
                 int listIndex = PresentPosition[Direction.Forward].RouteListIndex;
-                signalRef.BreakDownRouteList(ValidRoute[0], listIndex, RoutedForward);
+                Simulator.Instance.SignalEnvironment.BreakDownRouteList(ValidRoute[0], listIndex, RoutedForward);
                 ClearDeadlocks();
             }
 
@@ -7818,7 +7817,7 @@ namespace Orts.Simulation.Physics
             if (ValidRoute[1] != null)
             {
                 int listIndex = PresentPosition[Direction.Backward].RouteListIndex;
-                signalRef.BreakDownRouteList(ValidRoute[1], listIndex, RoutedBackward);
+                Simulator.Instance.SignalEnvironment.BreakDownRouteList(ValidRoute[1], listIndex, RoutedBackward);
             }
             ValidRoute[1] = null;
             LastReservedSection[1] = -1;
@@ -8005,7 +8004,7 @@ namespace Orts.Simulation.Physics
                     if (NextSignalObject[(int)direction]?.SignalLR(SignalFunction.Normal) != SignalAspectState.Stop)
                     {
                         int routeIndex = ValidRoute[(int)direction].GetRouteIndex(NextSignalObject[(int)direction].TrackCircuitNextIndex, PresentPosition[direction].RouteListIndex);
-                        signalRef.BreakDownRouteList(ValidRoute[(int)direction], routeIndex, RoutedForward);
+                        Simulator.Instance.SignalEnvironment.BreakDownRouteList(ValidRoute[(int)direction], routeIndex, RoutedForward);
                         ValidRoute[(int)direction].RemoveRange(routeIndex, ValidRoute[(int)direction].Count - routeIndex);
 
                         NextSignalObject[(int)direction].ResetSignal(true);
@@ -8089,7 +8088,7 @@ namespace Orts.Simulation.Physics
                     int routeIndexBeforeSignal = NextSignalObject[0].TrainRouteIndex - 1;
                     NextSignalObject[0].ResetSignal(true);
                     if (routeIndexBeforeSignal >= 0)
-                        signalRef.BreakDownRoute(ValidRoute[0][routeIndexBeforeSignal].TrackCircuitSection.Index, RoutedForward);
+                        Simulator.Instance.SignalEnvironment.BreakDownRoute(ValidRoute[0][routeIndexBeforeSignal].TrackCircuitSection.Index, RoutedForward);
                 }
                 if (NextSignalObject[1]?.EnabledTrain == RoutedBackward)
                 {
@@ -8098,7 +8097,7 @@ namespace Orts.Simulation.Physics
             }
             else if (ControlMode == TrainControlMode.AutoNode)
             {
-                signalRef.BreakDownRoute(LastReservedSection[0], RoutedForward);
+                Simulator.Instance.SignalEnvironment.BreakDownRoute(LastReservedSection[0], RoutedForward);
             }
 
             // TODO : clear routes for MANUAL
@@ -8188,7 +8187,7 @@ namespace Orts.Simulation.Physics
                     int routeIndexBeforeSignal = NextSignalObject[0].TrainRouteIndex - 1;
                     NextSignalObject[0].ResetSignal(true);
                     if (routeIndexBeforeSignal >= 0)
-                        signalRef.BreakDownRoute(ValidRoute[0][routeIndexBeforeSignal].TrackCircuitSection.Index, RoutedForward);
+                        Simulator.Instance.SignalEnvironment.BreakDownRoute(ValidRoute[0][routeIndexBeforeSignal].TrackCircuitSection.Index, RoutedForward);
                 }
                 if (NextSignalObject[1]?.EnabledTrain == RoutedBackward)
                 {
@@ -8197,7 +8196,7 @@ namespace Orts.Simulation.Physics
             }
             else if (ControlMode == TrainControlMode.AutoNode)
             {
-                signalRef.BreakDownRoute(LastReservedSection[0], RoutedForward);
+                Simulator.Instance.SignalEnvironment.BreakDownRoute(LastReservedSection[0], RoutedForward);
             }
         }
 
@@ -8725,7 +8724,7 @@ namespace Orts.Simulation.Physics
             }
             else
             {
-                signalRef.RequestClearNode(RoutedForward, ValidRoute[0]);
+                Simulator.Instance.SignalEnvironment.RequestClearNode(RoutedForward, ValidRoute[0]);
             }
         }
 
@@ -8903,12 +8902,12 @@ namespace Orts.Simulation.Physics
                 }
                 if (ValidRoute[0] != null && ValidRoute[0].Count > 0)
                 {
-                    signalRef.BreakDownRouteList(ValidRoute[0], 0, RoutedForward);
+                    Simulator.Instance.SignalEnvironment.BreakDownRouteList(ValidRoute[0], 0, RoutedForward);
                     ValidRoute[0].Clear();
                 }
                 if (ValidRoute[1] != null && ValidRoute[1].Count > 0)
                 {
-                    signalRef.BreakDownRouteList(ValidRoute[1], 0, RoutedBackward);
+                    Simulator.Instance.SignalEnvironment.BreakDownRouteList(ValidRoute[1], 0, RoutedBackward);
                     ValidRoute[1].Clear();
                 }
                 requiredActions.Clear();
@@ -9061,7 +9060,7 @@ namespace Orts.Simulation.Physics
                     break;
                 default:
                     CheckDeadlock(ValidRoute[0], Number);
-                    signalRef.RequestClearNode(RoutedForward, ValidRoute[0]);
+                    Simulator.Instance.SignalEnvironment.RequestClearNode(RoutedForward, ValidRoute[0]);
                     break;
             }
         }
@@ -9148,9 +9147,9 @@ namespace Orts.Simulation.Physics
 
             // get platform details
 
-            if (signalRef.PlatformXRefList.TryGetValue(platformStartID, out int platformIndex))
+            if (Simulator.Instance.SignalEnvironment.PlatformXRefList.TryGetValue(platformStartID, out int platformIndex))
             {
-                PlatformDetails platform = signalRef.PlatformDetailsList[platformIndex];
+                PlatformDetails platform = Simulator.Instance.SignalEnvironment.PlatformDetailsList[platformIndex];
                 int sectionIndex = platform.TCSectionIndex[0];
                 int routeIndex = route.GetRouteIndex(sectionIndex, activeSubrouteNodeIndex);
                 // No backwards!
@@ -9285,7 +9284,7 @@ namespace Orts.Simulation.Physics
                         {
                             if (nextIndex != platformIndex)
                             {
-                                PlatformDetails otherPlatform = signalRef.PlatformDetailsList[nextIndex];
+                                PlatformDetails otherPlatform = Simulator.Instance.SignalEnvironment.PlatformDetailsList[nextIndex];
                                 if (string.Compare(otherPlatform.Name, platform.Name, StringComparison.OrdinalIgnoreCase) == 0)
                                 {
                                     int otherSectionIndex = routeElement.Direction == 0 ?
@@ -9332,7 +9331,7 @@ namespace Orts.Simulation.Physics
 
                         foreach (int otherPlatformIndex in nextSection.PlatformIndices)
                         {
-                            PlatformDetails otherPlatform = signalRef.PlatformDetailsList[otherPlatformIndex];
+                            PlatformDetails otherPlatform = Simulator.Instance.SignalEnvironment.PlatformDetailsList[otherPlatformIndex];
                             if (string.Compare(otherPlatform.Name, platform.Name, StringComparison.OrdinalIgnoreCase) == 0)
                             {
                                 fullLength = otherPlatform.Length + distance;
@@ -9784,7 +9783,7 @@ namespace Orts.Simulation.Physics
 
                     if (ControlMode == TrainControlMode.AutoSignal)
                     {
-                        Signal nextSignal = signalRef.Signals[station.ExitSignal];
+                        Signal nextSignal = Simulator.Instance.SignalEnvironment.Signals[station.ExitSignal];
                         nextSignal.RequestClearSignal(ValidRoute[0], RoutedForward, 0, false, null);
                     }
                 }
@@ -11521,15 +11520,15 @@ namespace Orts.Simulation.Physics
             int altPlatformIndex = -1;
 
             // get station platform list
-            if (signalRef.StationXRefList.ContainsKey(orgStop.PlatformItem.Name))
+            if (Simulator.Instance.SignalEnvironment.StationXRefList.ContainsKey(orgStop.PlatformItem.Name))
             {
-                List<int> XRefKeys = signalRef.StationXRefList[orgStop.PlatformItem.Name];
+                List<int> XRefKeys = Simulator.Instance.SignalEnvironment.StationXRefList[orgStop.PlatformItem.Name];
 
                 // search through all available platforms
                 for (int platformIndex = 0; platformIndex <= XRefKeys.Count - 1 && altPlatformIndex < 0; platformIndex++)
                 {
                     int platformXRefIndex = XRefKeys[platformIndex];
-                    PlatformDetails altPlatform = signalRef.PlatformDetailsList[platformXRefIndex];
+                    PlatformDetails altPlatform = Simulator.Instance.SignalEnvironment.PlatformDetailsList[platformXRefIndex];
 
                     // check if section is in new route
                     for (int iSectionIndex = 0; iSectionIndex <= altPlatform.TCSectionIndex.Count - 1 && altPlatformIndex < 0; iSectionIndex++)
@@ -11544,7 +11543,7 @@ namespace Orts.Simulation.Physics
                 // section found in new route - set new station details using old details
                 if (altPlatformIndex > 0)
                 {
-                    StationStop newStop = CalculateStationStop(signalRef.PlatformDetailsList[altPlatformIndex].PlatformReference[Location.NearEnd],
+                    StationStop newStop = CalculateStationStop(Simulator.Instance.SignalEnvironment.PlatformDetailsList[altPlatformIndex].PlatformReference[Location.NearEnd],
                         orgStop.ArrivalTime, orgStop.DepartTime, 15.0f);
 
                     return newStop;
@@ -11565,13 +11564,13 @@ namespace Orts.Simulation.Physics
 
             // get platform details
 
-            if (!signalRef.PlatformXRefList.TryGetValue(platformStartID, out int platformIndex))
+            if (!Simulator.Instance.SignalEnvironment.PlatformXRefList.TryGetValue(platformStartID, out int platformIndex))
             {
                 return (null); // station not found
             }
             else
             {
-                PlatformDetails platform = signalRef.PlatformDetailsList[platformIndex];
+                PlatformDetails platform = Simulator.Instance.SignalEnvironment.PlatformDetailsList[platformIndex];
                 int sectionIndex = platform.TCSectionIndex[0];
                 int routeIndex = route.GetRouteIndex(sectionIndex, 0);
 
@@ -11647,7 +11646,7 @@ namespace Orts.Simulation.Physics
                         {
                             if (i != platformIndex)
                             {
-                                PlatformDetails otherPlatform = signalRef.PlatformDetailsList[i];
+                                PlatformDetails otherPlatform = Simulator.Instance.SignalEnvironment.PlatformDetailsList[i];
                                 if (string.Compare(otherPlatform.Name, platform.Name, StringComparison.OrdinalIgnoreCase) == 0)
                                 {
                                     int otherSectionIndex = routeElement.Direction == 0 ? otherPlatform.TCSectionIndex[0] : otherPlatform.TCSectionIndex[platform.TCSectionIndex.Count - 1];
@@ -11692,7 +11691,7 @@ namespace Orts.Simulation.Physics
 
                         foreach (int otherPlatformIndex in nextSection.PlatformIndices)
                         {
-                            PlatformDetails otherPlatform = signalRef.PlatformDetailsList[otherPlatformIndex];
+                            PlatformDetails otherPlatform = Simulator.Instance.SignalEnvironment.PlatformDetailsList[otherPlatformIndex];
                             if (string.Compare(otherPlatform.Name, platform.Name, StringComparison.OrdinalIgnoreCase) == 0)
                             {
                                 fullLength = otherPlatform.Length + distance;
@@ -12422,7 +12421,7 @@ namespace Orts.Simulation.Physics
             if (ValidRoute[0] != null)
             {
                 int listIndex = PresentPosition[Direction.Forward].RouteListIndex;
-                signalRef.BreakDownRouteList(ValidRoute[0], listIndex, RoutedForward);
+                Simulator.Instance.SignalEnvironment.BreakDownRouteList(ValidRoute[0], listIndex, RoutedForward);
                 ClearDeadlocks();
             }
 
@@ -12432,7 +12431,7 @@ namespace Orts.Simulation.Physics
             if (ValidRoute[1] != null)
             {
                 int listIndex = PresentPosition[Direction.Backward].RouteListIndex;
-                signalRef.BreakDownRouteList(ValidRoute[1], listIndex, RoutedBackward);
+                Simulator.Instance.SignalEnvironment.BreakDownRouteList(ValidRoute[1], listIndex, RoutedBackward);
             }
             ValidRoute[1] = null;
             LastReservedSection[1] = -1;
@@ -12447,7 +12446,7 @@ namespace Orts.Simulation.Physics
             if (ValidRoute[0] != null)
             {
                 int listIndex = PresentPosition[Direction.Forward].RouteListIndex;
-                signalRef.BreakDownRouteList(ValidRoute[0], listIndex, RoutedForward);
+                Simulator.Instance.SignalEnvironment.BreakDownRouteList(ValidRoute[0], listIndex, RoutedForward);
                 ClearDeadlocks();
             }
 

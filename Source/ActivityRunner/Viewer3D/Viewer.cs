@@ -1116,13 +1116,10 @@ namespace Orts.ActivityRunner.Viewer3D
                     if (((string)videoController["Description"] == adapterDescription) && (videoController["AdapterRAM"] != null))
                         adapterMemory = (uint)videoController["AdapterRAM"];
             }
-            catch (ManagementException error)
+            catch (Exception error)
             {
                 Trace.WriteLine(error);
-            }
-            catch (UnauthorizedAccessException error)
-            {
-                Trace.WriteLine(error);
+                adapterMemory = 0;
             }
         }
 
@@ -1831,7 +1828,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 if (!Directory.Exists(Settings.ScreenshotPath))
                     Directory.CreateDirectory(Settings.ScreenshotPath);
                 var fileName = Path.Combine(Settings.ScreenshotPath, System.Windows.Forms.Application.ProductName + " " + DateTime.Now.ToString("yyyy-MM-dd hh-mm-ss")) + ".png";
-                SaveScreenshotToFile(Game.GraphicsDevice, fileName, false);
+                SaveScreenshotToFile(Game.GraphicsDevice, fileName, false, false);
                 SaveScreenshot = false; // cancel trigger
             }
             if (SaveScreenshot)
@@ -1855,38 +1852,51 @@ namespace Orts.ActivityRunner.Viewer3D
             if (SaveActivityThumbnail)
             {
                 SaveActivityThumbnail = false;
-                SaveScreenshotToFile(Game.GraphicsDevice, Path.Combine(UserSettings.UserDataFolder, SaveActivityFileStem + ".png"), true);
+                SaveScreenshotToFile(Game.GraphicsDevice, Path.Combine(UserSettings.UserDataFolder, SaveActivityFileStem + ".png"), true, true);
                 MessagesWindow.AddMessage(Catalog.GetString("Game saved"), 5);
             }
         }
 
-        private void SaveScreenshotToFile(GraphicsDevice graphicsDevice, string fileName, bool silent)
+        private void SaveScreenshotToFile(GraphicsDevice graphicsDevice, string fileName, bool silent, bool thumbnail)
         {
             if (graphicsDevice.GraphicsProfile != GraphicsProfile.HiDef)
                 return;
 
-            int w = graphicsDevice.PresentationParameters.BackBufferWidth;
-            int h = graphicsDevice.PresentationParameters.BackBufferHeight;
+            int width = graphicsDevice.PresentationParameters.BackBufferWidth;
+            int heigh = graphicsDevice.PresentationParameters.BackBufferHeight;
+
+            byte[] backBuffer = new byte[width * heigh * 4];
+            graphicsDevice.GetBackBufferData(backBuffer);
 
             Task.Run(() =>
             {
-                byte[] backBuffer = new byte[w * h * 4];
-                using (RenderTarget2D screenshot = new RenderTarget2D(graphicsDevice, w, h, false, graphicsDevice.PresentationParameters.BackBufferFormat, DepthFormat.None))
+                for (int i = 0; i < backBuffer.Length; i += 4)
                 {
-                    graphicsDevice.GetBackBufferData(backBuffer);
-                    screenshot.SetData(backBuffer);
-                    using (FileStream stream = File.OpenWrite(fileName))
-                    {
-                        screenshot.SaveAsPng(stream, w, h);
-                    }
+                    (backBuffer[i + 0], backBuffer[i + 2], backBuffer[i + 3]) = (backBuffer[i + 2], backBuffer[i + 0], 0xFF);
+                }
 
-                    if (!silent)
-                        MessagesWindow.AddMessage($"Saving screenshot to '{fileName}'.", 10);
-                    Visibility = VisibilityState.Visible;
-                    // Reveal MessageWindow
-                    MessagesWindow.Visible = true;
+                using (System.Drawing.Bitmap bitmap = new System.Drawing.Bitmap(width, heigh, System.Drawing.Imaging.PixelFormat.Format32bppArgb))
+                {
+                    System.Drawing.Imaging.BitmapData bmData = bitmap.LockBits(new System.Drawing.Rectangle(0, 0, width, heigh), System.Drawing.Imaging.ImageLockMode.ReadWrite, bitmap.PixelFormat);
+                    System.Runtime.InteropServices.Marshal.Copy(backBuffer, 0, bmData.Scan0, 4 * width * heigh);
+                    bitmap.UnlockBits(bmData);
+                    if (thumbnail)
+                    {
+                        float scale = Math.Min(bitmap.Width / 640f, bitmap.Height / 480);
+                        using (System.Drawing.Bitmap resize = new System.Drawing.Bitmap(bitmap, new System.Drawing.Size((int)(bitmap.Width / scale), (int)(bitmap.Height / scale))))
+                            resize.Save(fileName, System.Drawing.Imaging.ImageFormat.Png);
+                    }
+                    else
+                    {
+                        bitmap.Save(fileName, System.Drawing.Imaging.ImageFormat.Png);
+                    }
                 }
             });
+            if (!silent)
+                MessagesWindow.AddMessage($"Saving screenshot to '{fileName}'.", 10);
+            Visibility = VisibilityState.Visible;
+            // Reveal MessageWindow
+            MessagesWindow.Visible = true;
         }
     }
 }

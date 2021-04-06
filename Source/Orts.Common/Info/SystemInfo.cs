@@ -63,7 +63,7 @@ namespace Orts.Common.Info
                     }
                 }
             }
-            catch (ManagementException error)
+            catch (Exception error)
             {
                 Trace.WriteLine(error);
             }
@@ -77,7 +77,7 @@ namespace Orts.Common.Info
                     }
                 }
             }
-            catch (ManagementException error)
+            catch (Exception error)
             {
                 Trace.WriteLine(error);
             }
@@ -92,10 +92,10 @@ namespace Orts.Common.Info
                     }
                 }
             }
-            catch (ManagementException error)
+            catch (Exception error)
             {
                 Trace.WriteLine(error);
-            }
+            } 
 
             foreach (Screen screen in Screen.AllScreens)
             {
@@ -112,7 +112,7 @@ namespace Orts.Common.Info
                     }
                 }
             }
-            catch (ManagementException error)
+            catch (Exception error)
             {
                 Trace.WriteLine(error);
             }
@@ -129,7 +129,7 @@ namespace Orts.Common.Info
                     }
                 }
             }
-            catch (ManagementException error)
+            catch (Exception error)
             {
                 Trace.WriteLine(error);
             }
@@ -143,7 +143,7 @@ namespace Orts.Common.Info
                     }
                 }
             }
-            catch (ManagementException error)
+            catch (Exception error)
             {
                 Trace.WriteLine(error);
             }
