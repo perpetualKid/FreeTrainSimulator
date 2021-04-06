@@ -9074,18 +9074,17 @@ namespace Orts.Simulation.Physics
 
         // Checks if it has to go to next active subpath
         //
-        internal void TryIncrementSubpath()
+        private void TryIncrementSubpath()
         {
-            // active subpath must be incremented in parallel in incorporated train if present; not if such train is at beginning of subpath
+            // active subpath must be incremented in parallel in incorporated train if present; not just after incorporation
             if (IncorporatedTrainNo >= 0)
             {
                 Train incorporatedTrain = simulator.TrainDictionary[IncorporatedTrainNo];
-                incorporatedTrain.PresentPosition[Direction.Forward].RouteListIndex = incorporatedTrain.ValidRoute[0].GetRouteIndex(PresentPosition[Direction.Forward].TrackCircuitSectionIndex, 0);
-                incorporatedTrain.PresentPosition[Direction.Backward].RouteListIndex = incorporatedTrain.ValidRoute[0].GetRouteIndex(PresentPosition[Direction.Backward].TrackCircuitSectionIndex, 0);
-                if (incorporatedTrain.PresentPosition[Direction.Forward].RouteListIndex == -1 && incorporatedTrain.PresentPosition[Direction.Backward].RouteListIndex == -1
-                    || incorporatedTrain.PresentPosition[Direction.Forward].RouteListIndex >= incorporatedTrain.ValidRoute[0].Count - 2
-                    || incorporatedTrain.PresentPosition[Direction.Backward].RouteListIndex >= incorporatedTrain.ValidRoute[0].Count - 2)
+                if (incorporatedTrain.PresentPosition[Direction.Forward].TrackCircuitSectionIndex != PresentPosition[Direction.Backward].TrackCircuitSectionIndex && 
+                    incorporatedTrain.PresentPosition[Direction.Backward].TrackCircuitSectionIndex != PresentPosition[Direction.Backward].TrackCircuitSectionIndex)
                     IncrementSubpath(incorporatedTrain);
+                incorporatedTrain.PresentPosition[Direction.Forward].TrackCircuitSectionIndex = -1;
+                incorporatedTrain.PresentPosition[Direction.Backward].TrackCircuitSectionIndex = -1;
             }
         }
 
