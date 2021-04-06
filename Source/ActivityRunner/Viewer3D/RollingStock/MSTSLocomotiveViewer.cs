@@ -200,6 +200,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 }
             });
             base.InitializeUserInputCommands();
+            Viewer.UserCommandController.AddEvent(UserCommand.CameraToggleShowCab, KeyEventType.KeyPressed, () => Locomotive.ShowCab = !Locomotive.ShowCab);
         }
 
         /// <summary>
@@ -208,8 +209,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         /// </summary>
         public override void HandleUserInput(in ElapsedTime elapsedTime)
         {
-            if (UserInput.IsPressed(UserCommand.CameraToggleShowCab))
-                Locomotive.ShowCab = !Locomotive.ShowCab;
+            //if (UserInput.IsPressed(UserCommand.CameraToggleShowCab))
+            //    Locomotive.ShowCab = !Locomotive.ShowCab;
 
             // By Matej Pacha
             if (UserInput.IsPressed(UserCommand.DebugResetWheelSlip)) { Locomotive.Train.SignalEvent(TrainEvent.ResetWheelSlip); }

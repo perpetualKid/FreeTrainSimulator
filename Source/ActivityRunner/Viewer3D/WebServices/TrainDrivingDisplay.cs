@@ -31,6 +31,36 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
 {
     public static class TrainDrivingDisplay
     {
+        private static bool reverserBackwardDown;
+        private static bool reverserForwardDown;
+        private static bool throttleIncrease;
+        private static bool throttleDecrease;
+        private static bool trainBrakeIncrease;
+        private static bool trainBrakeDecrease;
+        private static bool gearUp;
+        private static bool gearDown;
+        private static bool pantographKey;
+
+        private static Viewer viewer;
+
+        public static void Initialize(Viewer viewer)
+        {
+            TrainDrivingDisplay.viewer = viewer ?? throw new ArgumentNullException(nameof(viewer));
+
+            viewer.UserCommandController.AddEvent(UserCommand.ControlReverserBackward, KeyEventType.KeyDown, () => reverserBackwardDown = true);
+            viewer.UserCommandController.AddEvent(UserCommand.ControlReverserForward, KeyEventType.KeyDown, () => reverserForwardDown = true);
+            viewer.UserCommandController.AddEvent(UserCommand.ControlThrottleIncrease, KeyEventType.KeyDown, () => throttleIncrease = true);
+            viewer.UserCommandController.AddEvent(UserCommand.ControlThrottleDecrease, KeyEventType.KeyDown, () => throttleDecrease = true);
+            viewer.UserCommandController.AddEvent(UserCommand.ControlTrainBrakeIncrease, KeyEventType.KeyDown, () => trainBrakeIncrease = true);
+            viewer.UserCommandController.AddEvent(UserCommand.ControlTrainBrakeDecrease, KeyEventType.KeyDown, () => trainBrakeDecrease = true);
+            viewer.UserCommandController.AddEvent(UserCommand.ControlGearUp, KeyEventType.KeyDown, () => gearUp = true);
+            viewer.UserCommandController.AddEvent(UserCommand.ControlGearDown, KeyEventType.KeyDown, () => gearDown = true);
+            viewer.UserCommandController.AddEvent(UserCommand.ControlPantograph1, KeyEventType.KeyDown, () => pantographKey = true);
+            viewer.UserCommandController.AddEvent(UserCommand.ControlPantograph2, KeyEventType.KeyDown, () => pantographKey = true);
+            viewer.UserCommandController.AddEvent(UserCommand.ControlPantograph3, KeyEventType.KeyDown, () => pantographKey = true);
+            viewer.UserCommandController.AddEvent(UserCommand.ControlPantograph4, KeyEventType.KeyDown, () => pantographKey = true);
+        }
+
         /// <summary>
         /// A Train Driving row with data fields.
         /// </summary>
@@ -238,17 +268,26 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             // Second block
             // Direction
             {
-                UserCommand? reverserCommand = GetPressedKey(UserCommand.ControlReverserBackward, UserCommand.ControlReverserForward);
                 string reverserKey;
                 bool moving = Math.Abs(trainCar.SpeedMpS) > 1;
                 bool nonSteamEnd = trainCar.EngineType != TrainCar.EngineTypes.Steam && trainCar.Direction == MidpointDirection.N && (trainCar.ThrottlePercent >= 1 || moving);
                 bool steamEnd = locomotive is MSTSSteamLocomotive steamLocomotive2 && steamLocomotive2.CutoffController.MaximumValue == Math.Abs(train.MUReverserPercent / 100);
-                if (reverserCommand != null && (nonSteamEnd || steamEnd))
-                    reverserKey = Symbols.End + ColorCode[Color.Yellow];
-                else if (reverserCommand == UserCommand.ControlReverserBackward)
-                    reverserKey = Symbols.ArrowDown + ColorCode[Color.Yellow];
-                else if (reverserCommand == UserCommand.ControlReverserForward)
-                    reverserKey = Symbols.ArrowUp + ColorCode[Color.Yellow];
+                if (reverserForwardDown)
+                {
+                    if (nonSteamEnd || steamEnd)
+                        reverserKey = Symbols.End + ColorCode[Color.Yellow];
+                    else
+                        reverserKey = Symbols.ArrowUp + ColorCode[Color.Yellow];
+                    reverserForwardDown = false;
+                }
+                else if (reverserBackwardDown)
+                {
+                    if (nonSteamEnd || steamEnd)
+                        reverserKey = Symbols.End + ColorCode[Color.Yellow];
+                    else
+                        reverserKey = Symbols.ArrowDown + ColorCode[Color.Yellow];
+                    reverserBackwardDown = false;
+                }
                 else
                     reverserKey = "";
 
@@ -256,7 +295,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
                 AddLabel(new ListLabel
                 {
                     FirstCol = Viewer.Catalog.GetString(locomotive.EngineType == TrainCar.EngineTypes.Steam ? "Reverser" : "Direction"),
-                LastCol = $"{reverserIndicator}{FormatStrings.Catalog.GetParticularString("Reverser", locomotive.Direction.GetDescription())}",
+                    LastCol = $"{reverserIndicator}{FormatStrings.Catalog.GetParticularString("Reverser", locomotive.Direction.GetDescription())}",
                     KeyPressed = reverserKey,
                     SymbolCol = reverserKey,
                 });
@@ -264,18 +303,25 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
 
             // Throttle
             {
-                UserCommand? throttleCommand = GetPressedKey(UserCommand.ControlThrottleDecrease, UserCommand.ControlThrottleIncrease);
                 string throttleKey;
-                bool upperLimit = throttleCommand == UserCommand.ControlThrottleIncrease && locomotive.ThrottleController.MaximumValue == trainCar.ThrottlePercent / 100;
-                bool lowerLimit = throttleCommand == UserCommand.ControlThrottleDecrease && trainCar.ThrottlePercent == 0;
-                if (locomotive.DynamicBrakePercent < 1 && (upperLimit || lowerLimit))
-                    throttleKey = Symbols.End + ColorCode[Color.Yellow];
-                else if (locomotive.DynamicBrakePercent > -1)
+                if (locomotive.DynamicBrakePercent > -1)
                     throttleKey = Symbols.EndLower + ColorCode[Color.Yellow];
-                else if (throttleCommand == UserCommand.ControlThrottleIncrease)
-                    throttleKey = Symbols.ArrowUp + ColorCode[Color.Yellow];
-                else if (throttleCommand == UserCommand.ControlThrottleDecrease)
-                    throttleKey = Symbols.ArrowDown + ColorCode[Color.Yellow];
+                else if (throttleIncrease)
+                {
+                    if (locomotive.DynamicBrakePercent < 1 && locomotive.ThrottleController.MaximumValue == trainCar.ThrottlePercent / 100)
+                        throttleKey = Symbols.End + ColorCode[Color.Yellow];
+                    else
+                        throttleKey = Symbols.ArrowUp + ColorCode[Color.Yellow];
+                    throttleIncrease = false;
+                }
+                else if (throttleDecrease)
+                {
+                    if (locomotive.DynamicBrakePercent < 1 && trainCar.ThrottlePercent == 0)
+                        throttleKey = Symbols.End + ColorCode[Color.Yellow];
+                    else
+                        throttleKey = Symbols.ArrowDown + ColorCode[Color.Yellow];
+                    throttleDecrease = false;
+                }
                 else
                     throttleKey = "";
 
@@ -347,18 +393,19 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             if (trainBrakeStatus.Contains(Viewer.Catalog.GetString("EQ")))
             {
                 string brakeKey;
-                switch (GetPressedKey(UserCommand.ControlTrainBrakeDecrease, UserCommand.ControlTrainBrakeIncrease))
+                if (trainBrakeIncrease)
                 {
-                    case UserCommand.ControlTrainBrakeDecrease:
-                        brakeKey = Symbols.ArrowDown + ColorCode[Color.Yellow];
-                        break;
-                    case UserCommand.ControlTrainBrakeIncrease:
-                        brakeKey = Symbols.ArrowUp + ColorCode[Color.Yellow];
-                        break;
-                    default:
-                        brakeKey = "";
-                        break;
+                    brakeKey = Symbols.ArrowUp + ColorCode[Color.Yellow];
+                    trainBrakeIncrease = false;
                 }
+                else if (trainBrakeDecrease)
+                {
+                    brakeKey = Symbols.ArrowDown + ColorCode[Color.Yellow];
+                    trainBrakeDecrease = false;
+                }
+                else
+                    brakeKey = "";
+
                 brakeInfoValue = trainBrakeStatus.Substring(0, trainBrakeStatus.IndexOf(Viewer.Catalog.GetString("EQ"))).TrimEnd();
                 AddLabel(new ListLabel
                 {
@@ -544,24 +591,24 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
                         AddLabel(new ListLabel
                         {
                             FirstCol = keyPart.EndsWith("?") || keyPart.EndsWith("!") ? Viewer.Catalog.GetString(keyPart.Substring(0, keyPart.Length - 3)) : Viewer.Catalog.GetString(keyPart),
-                            LastCol = valuePart.Length > 1 ? Viewer.Catalog.GetString(valuePart.Replace(" ", string.Empty )) : "",
+                            LastCol = valuePart.Length > 1 ? Viewer.Catalog.GetString(valuePart.Replace(" ", string.Empty)) : "",
                         });
                     }
                     else if (keyPart.StartsWith(Viewer.Catalog.GetString("Gear")))
                     {
                         string gearKey;
-                        switch (GetPressedKey(UserCommand.ControlGearDown, UserCommand.ControlGearUp))
+                        if (gearUp)
                         {
-                            case UserCommand.ControlGearDown:
-                                gearKey = Symbols.ArrowDown + ColorCode[Color.Yellow];
-                                break;
-                            case UserCommand.ControlGearUp:
-                                gearKey = Symbols.ArrowUp + ColorCode[Color.Yellow];
-                                break;
-                            default:
-                                gearKey = "";
-                                break;
+                            gearKey = Symbols.ArrowUp + ColorCode[Color.Yellow];
+                            gearUp = false;
                         }
+                        else if (gearDown)
+                        {
+                            gearKey = Symbols.ArrowDown + ColorCode[Color.Yellow];
+                            gearDown = false;
+                        }
+                        else
+                            gearKey = "";
 
                         AddLabel(new ListLabel
                         {
@@ -574,16 +621,14 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
                     else if (parts.Contains(Viewer.Catalog.GetString("Pantographs")))
                     {
                         string pantoKey;
-                        switch (GetPressedKey(UserCommand.ControlPantograph1))
+                        if (pantographKey)
                         {
-                            case UserCommand.ControlPantograph1:
-                                string arrow = parts[1].StartsWith(Viewer.Catalog.GetString("Up")) ? Symbols.ArrowUp : Symbols.ArrowDown;
-                                pantoKey = arrow + ColorCode[Color.Yellow];
-                                break;
-                            default:
-                                pantoKey = "";
-                                break;
+                            string arrow = parts[1].StartsWith(Viewer.Catalog.GetString("Up")) ? Symbols.ArrowUp : Symbols.ArrowDown;
+                            pantoKey = arrow + ColorCode[Color.Yellow];
+                            pantographKey = false;
                         }
+                        else
+                            pantoKey = "";
 
                         AddLabel(new ListLabel
                         {
@@ -726,9 +771,5 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
         }
 
         private static string Round(float x) => $"{Math.Round(x):F0}";
-
-        private static UserCommand? GetPressedKey(params UserCommand[] keysToTest) => keysToTest
-            .Where((UserCommand key) => UserInput.IsDown(key))
-            .FirstOrDefault();
     }
 }
