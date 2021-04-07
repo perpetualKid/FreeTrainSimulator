@@ -265,14 +265,14 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                         {
                             StationPreviousName.Text = playerTimetableTrain.PreviousStop.PlatformItem.Name;
                             TimeSpan arrival = TimeSpan.FromSeconds(playerTimetableTrain.PreviousStop.ArrivalTime);
-                            StationPreviousArriveScheduled.Text = arrival.ToString("HH:mm:ss", CultureInfo.InvariantCulture);
+                            StationPreviousArriveScheduled.Text = arrival.ToString("hh\\:mm\\:ss", CultureInfo.InvariantCulture);
                             if (playerTimetableTrain.PreviousStop.ActualArrival >= 0)
                             {
                                 TimeSpan actualArrival = TimeSpan.FromSeconds(playerTimetableTrain.PreviousStop.ActualArrival);
-                                StationPreviousArriveActual.Text = actualArrival.ToString("HH:mm:ss", CultureInfo.InvariantCulture);
+                                StationPreviousArriveActual.Text = actualArrival.ToString("hh\\:mm\\:ss", CultureInfo.InvariantCulture);
                                 StationPreviousArriveActual.Color = actualArrival < arrival ? Color.LightGreen : Color.LightSalmon;
                                 TimeSpan actualDeparture = TimeSpan.FromSeconds(playerTimetableTrain.PreviousStop.ActualDepart);
-                                StationPreviousDepartActual.Text = actualDeparture.ToString("HH:mm:ss", CultureInfo.InvariantCulture);
+                                StationPreviousDepartActual.Text = actualDeparture.ToString("hh\\:mm\\:ss", CultureInfo.InvariantCulture);
                                 StationPreviousDepartActual.Color = actualDeparture > arrival ? Color.LightGreen : Color.LightSalmon;
                             }
                             else
@@ -281,7 +281,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                 StationPreviousArriveActual.Color = Color.LightSalmon;
                                 StationPreviousDepartActual.Text = "";
                             }
-                            StationPreviousDepartScheduled.Text = TimeSpan.FromSeconds(playerTimetableTrain.PreviousStop.DepartTime).ToString("HH:mm:ss", CultureInfo.InvariantCulture);
+                            StationPreviousDepartScheduled.Text = TimeSpan.FromSeconds(playerTimetableTrain.PreviousStop.DepartTime).ToString("hh\\:mm\\:ss", CultureInfo.InvariantCulture);
                             StationPreviousDistance.Text = "";
                         }
 
@@ -305,11 +305,11 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                         {
                             TimeSpan arrival = TimeSpan.FromSeconds(playerTimetableTrain.StationStops[0].ArrivalTime);
                             StationCurrentName.Text = playerTimetableTrain.StationStops[0].PlatformItem.Name;
-                            StationCurrentArriveScheduled.Text = arrival.ToString("HH:mm:ss", CultureInfo.InvariantCulture);
+                            StationCurrentArriveScheduled.Text = arrival.ToString("hh\\:mm\\:ss", CultureInfo.InvariantCulture);
                             if (playerTimetableTrain.StationStops[0].ActualArrival >= 0)
                             {
                                 TimeSpan actualArrival = TimeSpan.FromSeconds(playerTimetableTrain.StationStops[0].ActualArrival);
-                                StationCurrentArriveActual.Text = actualArrival.ToString("HH:mm:ss", CultureInfo.InvariantCulture);
+                                StationCurrentArriveActual.Text = actualArrival.ToString("hh\\:mm\\:ss", CultureInfo.InvariantCulture);
                                 StationCurrentArriveActual.Color = actualArrival < arrival ? Color.LightGreen : Color.LightSalmon;
 
                             }
@@ -317,7 +317,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             {
                                 StationCurrentArriveActual.Text = "";
                             }
-                            StationCurrentDepartScheduled.Text = TimeSpan.FromSeconds(playerTimetableTrain.StationStops[0].DepartTime).ToString("HH:mm:ss", CultureInfo.InvariantCulture);
+                            StationCurrentDepartScheduled.Text = TimeSpan.FromSeconds(playerTimetableTrain.StationStops[0].DepartTime).ToString("hh\\:mm\\:ss", CultureInfo.InvariantCulture);
                             StationCurrentDistance.Text = FormatStrings.FormatDistanceDisplay(playerTimetableTrain.StationStops[0].DistanceToTrainM, metric);
                             Message.Text = playerTimetableTrain.DisplayMessage;
                             Message.Color = playerTimetableTrain.DisplayColor;
@@ -325,8 +325,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             if (playerTimetableTrain.StationStops.Count >= 2)
                             {
                                 StationNextName.Text = playerTimetableTrain.StationStops[1].PlatformItem.Name;
-                                StationNextArriveScheduled.Text = TimeSpan.FromSeconds(playerTimetableTrain.StationStops[1].ArrivalTime).ToString("HH:mm:ss", CultureInfo.InvariantCulture);
-                                StationNextDepartScheduled.Text = TimeSpan.FromSeconds(playerTimetableTrain.StationStops[1].DepartTime).ToString("HH:mm:ss", CultureInfo.InvariantCulture);
+                                StationNextArriveScheduled.Text = TimeSpan.FromSeconds(playerTimetableTrain.StationStops[1].ArrivalTime).ToString("hh\\:mm\\:ss", CultureInfo.InvariantCulture);
+                                StationNextDepartScheduled.Text = TimeSpan.FromSeconds(playerTimetableTrain.StationStops[1].DepartTime).ToString("hh\\:mm\\:ss", CultureInfo.InvariantCulture);
                                 StationNextDistance.Text = "";
                             }
                             else
@@ -484,14 +484,14 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                         {
                             StationPreviousName.Text = playerTrain.PreviousStop.PlatformItem.Name;
                             TimeSpan arrival = TimeSpan.FromSeconds(playerTrain.PreviousStop.ArrivalTime);
-                            StationPreviousArriveScheduled.Text = arrival.ToString("HH:mm:ss", CultureInfo.InvariantCulture);
+                            StationPreviousArriveScheduled.Text = arrival.ToString("hh\\:mm\\:ss", CultureInfo.InvariantCulture);
                             if (playerTrain.PreviousStop.ActualArrival >= 0)
                             {
                                 TimeSpan actualArrival = TimeSpan.FromSeconds(playerTrain.PreviousStop.ActualArrival);
-                                StationPreviousArriveActual.Text = actualArrival.ToString("HH:mm:ss", CultureInfo.InvariantCulture);
+                                StationPreviousArriveActual.Text = actualArrival.ToString("hh\\:mm\\:ss", CultureInfo.InvariantCulture);
                                 StationPreviousArriveActual.Color = actualArrival < arrival ? Color.LightGreen : Color.LightSalmon;
                                 TimeSpan actualDeparture = TimeSpan.FromSeconds(playerTrain.PreviousStop.ActualDepart);
-                                StationPreviousDepartActual.Text = actualDeparture.ToString("HH:mm:ss", CultureInfo.InvariantCulture);
+                                StationPreviousDepartActual.Text = actualDeparture.ToString("hh\\:mm\\:ss", CultureInfo.InvariantCulture);
                                 StationPreviousDepartActual.Color = actualDeparture > arrival ? Color.LightGreen : Color.LightSalmon;
                             }
                             else
@@ -500,7 +500,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                 StationPreviousArriveActual.Color = Color.LightSalmon;
                                 StationPreviousDepartActual.Text = "";
                             }
-                            StationPreviousDepartScheduled.Text = TimeSpan.FromSeconds(playerTrain.PreviousStop.DepartTime).ToString("HH:mm:ss", CultureInfo.InvariantCulture);
+                            StationPreviousDepartScheduled.Text = TimeSpan.FromSeconds(playerTrain.PreviousStop.DepartTime).ToString("hh\\:mm\\:ss", CultureInfo.InvariantCulture);
                             StationPreviousDistance.Text = "";
                         }
 
@@ -523,11 +523,11 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                         {
                             StationCurrentName.Text = playerTrain.StationStops[0].PlatformItem.Name;
                             TimeSpan arrival = TimeSpan.FromSeconds(playerTrain.StationStops[0].ArrivalTime);
-                            StationCurrentArriveScheduled.Text = arrival.ToString("HH:mm:ss", CultureInfo.InvariantCulture);
+                            StationCurrentArriveScheduled.Text = arrival.ToString("hh\\:mm\\:ss", CultureInfo.InvariantCulture);
                             if (playerTrain.StationStops[0].ActualArrival >= 0)
                             {
                                 TimeSpan actualArrival = TimeSpan.FromSeconds(playerTrain.StationStops[0].ActualArrival);
-                                StationCurrentArriveActual.Text = actualArrival.ToString("HH:mm:ss", CultureInfo.InvariantCulture);
+                                StationCurrentArriveActual.Text = actualArrival.ToString("hh\\:mm\\:ss", CultureInfo.InvariantCulture);
                                 StationCurrentArriveActual.Color = actualArrival < arrival ? Color.LightGreen : Color.LightSalmon;
 
                             }
@@ -535,7 +535,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             {
                                 StationCurrentArriveActual.Text = "";
                             }
-                            StationCurrentDepartScheduled.Text = TimeSpan.FromSeconds(playerTrain.StationStops[0].DepartTime).ToString("HH:mm:ss", CultureInfo.InvariantCulture);
+                            StationCurrentDepartScheduled.Text = TimeSpan.FromSeconds(playerTrain.StationStops[0].DepartTime).ToString("hh\\:mm\\:ss", CultureInfo.InvariantCulture);
                             StationCurrentDistance.Text = FormatStrings.FormatDistanceDisplay(playerTrain.StationStops[0].DistanceToTrainM, metric);
                             Message.Text = playerTrain.DisplayMessage;
                             Message.Color = playerTrain.DisplayColor;
@@ -543,8 +543,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             if (playerTrain.StationStops.Count >= 2)
                             {
                                 StationNextName.Text = playerTrain.StationStops[1].PlatformItem.Name;
-                                StationNextArriveScheduled.Text = TimeSpan.FromSeconds(playerTrain.StationStops[1].ArrivalTime).ToString("HH:mm:ss", CultureInfo.InvariantCulture);
-                                StationNextDepartScheduled.Text = TimeSpan.FromSeconds(playerTrain.StationStops[1].DepartTime).ToString("HH:mm:ss", CultureInfo.InvariantCulture);
+                                StationNextArriveScheduled.Text = TimeSpan.FromSeconds(playerTrain.StationStops[1].ArrivalTime).ToString("hh\\:mm\\:ss", CultureInfo.InvariantCulture);
+                                StationNextDepartScheduled.Text = TimeSpan.FromSeconds(playerTrain.StationStops[1].DepartTime).ToString("hh\\:mm\\:ss", CultureInfo.InvariantCulture);
                                 StationNextDistance.Text = "";
                             }
                             else
