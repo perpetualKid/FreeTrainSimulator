@@ -136,14 +136,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
         public override void InitializeUserInputCommands()
         {
-            // Steam locomotives handle these differently, and might have set them already
-            if (!UserInputCommands.ContainsKey(UserCommand.ControlReverserForward))
-                UserInputCommands.Add(UserCommand.ControlReverserForward, new Action[] { Noop, () => ReverserControlForwards() });
-            if (!UserInputCommands.ContainsKey(UserCommand.ControlReverserBackward))
-                UserInputCommands.Add(UserCommand.ControlReverserBackward, new Action[] { Noop, () => ReverserControlBackwards() });
-
-            UserInputCommands.Add(UserCommand.ControlThrottleIncrease, new Action[] { () => Locomotive.StopThrottleIncrease(), () => Locomotive.StartThrottleIncrease() });
-            UserInputCommands.Add(UserCommand.ControlThrottleDecrease, new Action[] { () => Locomotive.StopThrottleDecrease(), () => Locomotive.StartThrottleDecrease() });
+            //UserInputCommands.Add(UserCommand.ControlThrottleIncrease, new Action[] { () => Locomotive.StopThrottleIncrease(), () => Locomotive.StartThrottleIncrease() });
+            //UserInputCommands.Add(UserCommand.ControlThrottleDecrease, new Action[] { () => Locomotive.StopThrottleDecrease(), () => Locomotive.StartThrottleDecrease() });
             UserInputCommands.Add(UserCommand.ControlThrottleZero, new Action[] { Noop, () => Locomotive.ThrottleToZero() });
             UserInputCommands.Add(UserCommand.ControlGearUp, new Action[] { () => StopGearBoxIncrease(), () => StartGearBoxIncrease() });
             UserInputCommands.Add(UserCommand.ControlGearDown, new Action[] { () => StopGearBoxDecrease(), () => StartGearBoxDecrease() });
@@ -200,7 +194,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 }
             });
             base.InitializeUserInputCommands();
-            //Viewer.UserCommandController.AddEvent(UserCommand.CameraToggleShowCab, KeyEventType.KeyPressed, () => Locomotive.ShowCab = !Locomotive.ShowCab);
         }
 
         /// <summary>
@@ -209,47 +202,39 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         /// </summary>
         public override void HandleUserInput(in ElapsedTime elapsedTime)
         {
-            if (UserInput.IsPressed(UserCommand.CameraToggleShowCab))
-            {
-                Locomotive.ShowCab = !Locomotive.ShowCab;
-            }
-            // By Matej Pacha
-            if (UserInput.IsPressed(UserCommand.DebugResetWheelSlip)) { Locomotive.Train.SignalEvent(TrainEvent.ResetWheelSlip); }
-            if (UserInput.IsPressed(UserCommand.DebugToggleAdvancedAdhesion)) { Locomotive.Train.SignalEvent(TrainEvent.ResetWheelSlip); Locomotive.Simulator.UseAdvancedAdhesion = !Locomotive.Simulator.UseAdvancedAdhesion; }
-
             if (UserInput.Raildriver.Active)
             {
-                    Locomotive.AlerterReset();
+                Locomotive.AlerterReset();
 
-                    Locomotive.SetThrottlePercentWithSound(UserInput.Raildriver.ThrottlePercent);
-                    Locomotive.SetTrainBrakePercent(UserInput.Raildriver.TrainBrakePercent);
-                    Locomotive.SetEngineBrakePercent(UserInput.Raildriver.EngineBrakePercent);
-                    //    Locomotive.SetBrakemanBrakePercent(UserInput.Raildriver.BrakemanBrakePercent); // For Raildriver control not complete for this value?
-                    Locomotive.SetBailOff(UserInput.Raildriver.BailOff);
-                    if (Locomotive.CombinedControlType != MSTSLocomotive.CombinedControl.ThrottleAir)
-                        Locomotive.SetDynamicBrakePercentWithSound(UserInput.Raildriver.DynamicBrakePercent);
-                    if (UserInput.Raildriver.DirectionPercent > 50)
-                        Locomotive.SetDirection(MidpointDirection.Forward);
-                    else if (UserInput.Raildriver.DirectionPercent < -50)
-                        Locomotive.SetDirection(MidpointDirection.Reverse);
-                    else
-                        Locomotive.SetDirection(MidpointDirection.N);
-                        Locomotive.SetEmergency(UserInput.Raildriver.Emergency);
-                    if (UserInput.Raildriver.Wipers == 1 && Locomotive.Wiper)
-                        Locomotive.SignalEvent(TrainEvent.WiperOff);
-                    else if (UserInput.Raildriver.Wipers != 1 && !Locomotive.Wiper)
-                        Locomotive.SignalEvent(TrainEvent.WiperOn);
-                    // changing Headlight more than one step at a time doesn't work for some reason
-                    if (Locomotive.Headlight < UserInput.Raildriver.Lights - 1)
-                    {
-                        Locomotive.Headlight++;
-                        Locomotive.SignalEvent(TrainEvent.LightSwitchToggle);
-                    }
-                    if (Locomotive.Headlight > UserInput.Raildriver.Lights - 1)
-                    {
-                        Locomotive.Headlight--;
-                        Locomotive.SignalEvent(TrainEvent.LightSwitchToggle);
-                    }
+                Locomotive.SetThrottlePercentWithSound(UserInput.Raildriver.ThrottlePercent);
+                Locomotive.SetTrainBrakePercent(UserInput.Raildriver.TrainBrakePercent);
+                Locomotive.SetEngineBrakePercent(UserInput.Raildriver.EngineBrakePercent);
+                //    Locomotive.SetBrakemanBrakePercent(UserInput.Raildriver.BrakemanBrakePercent); // For Raildriver control not complete for this value?
+                Locomotive.SetBailOff(UserInput.Raildriver.BailOff);
+                if (Locomotive.CombinedControlType != MSTSLocomotive.CombinedControl.ThrottleAir)
+                    Locomotive.SetDynamicBrakePercentWithSound(UserInput.Raildriver.DynamicBrakePercent);
+                if (UserInput.Raildriver.DirectionPercent > 50)
+                    Locomotive.SetDirection(MidpointDirection.Forward);
+                else if (UserInput.Raildriver.DirectionPercent < -50)
+                    Locomotive.SetDirection(MidpointDirection.Reverse);
+                else
+                    Locomotive.SetDirection(MidpointDirection.N);
+                Locomotive.SetEmergency(UserInput.Raildriver.Emergency);
+                if (UserInput.Raildriver.Wipers == 1 && Locomotive.Wiper)
+                    Locomotive.SignalEvent(TrainEvent.WiperOff);
+                else if (UserInput.Raildriver.Wipers != 1 && !Locomotive.Wiper)
+                    Locomotive.SignalEvent(TrainEvent.WiperOn);
+                // changing Headlight more than one step at a time doesn't work for some reason
+                if (Locomotive.Headlight < UserInput.Raildriver.Lights - 1)
+                {
+                    Locomotive.Headlight++;
+                    Locomotive.SignalEvent(TrainEvent.LightSwitchToggle);
+                }
+                if (Locomotive.Headlight > UserInput.Raildriver.Lights - 1)
+                {
+                    Locomotive.Headlight--;
+                    Locomotive.SignalEvent(TrainEvent.LightSwitchToggle);
+                }
             }
 
             foreach (var command in UserInputCommands.Keys)
@@ -274,6 +259,71 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     if (lemergencybuttonpressed && !Locomotive.EmergencyButtonPressed) lemergencybuttonpressed = false;
                 }
             }
+        }
+
+        public override void RegisterUserCommandHandling()
+        {
+            Viewer.UserCommandController.AddEvent(UserCommand.CameraToggleShowCab, KeyEventType.KeyPressed, ShowCabCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.DebugResetWheelSlip, KeyEventType.KeyPressed, DebugResetWheelSlipCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.DebugToggleAdvancedAdhesion, KeyEventType.KeyPressed, DebugToggleAdvancedAdhesionCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlReverserForward, KeyEventType.KeyPressed, ReverserControlForwards, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlReverserBackward, KeyEventType.KeyPressed, ReverserControlBackwards, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlThrottleIncrease, KeyEventType.KeyPressed, StartThrottleIncreaseCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlThrottleDecrease, KeyEventType.KeyPressed, StartThrottleDecreaseCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlThrottleIncrease, KeyEventType.KeyReleased, StopThrottleIncreaseCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlThrottleDecrease, KeyEventType.KeyReleased, StopThrottleDecreaseCommand, true);
+
+            base.RegisterUserCommandHandling();
+        }
+
+        public override void UnregisterUserCommandHandling()
+        {
+            Viewer.UserCommandController.RemoveEvent(UserCommand.CameraToggleShowCab, KeyEventType.KeyPressed, ShowCabCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.DebugResetWheelSlip, KeyEventType.KeyPressed, DebugResetWheelSlipCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.DebugToggleAdvancedAdhesion, KeyEventType.KeyPressed, DebugToggleAdvancedAdhesionCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlReverserForward, KeyEventType.KeyPressed, ReverserControlForwards);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlReverserBackward, KeyEventType.KeyPressed, ReverserControlBackwards);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlThrottleIncrease, KeyEventType.KeyPressed, StartThrottleIncreaseCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlThrottleDecrease, KeyEventType.KeyPressed, StartThrottleDecreaseCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlThrottleIncrease, KeyEventType.KeyReleased, StopThrottleIncreaseCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlThrottleDecrease, KeyEventType.KeyReleased, StopThrottleDecreaseCommand);
+
+            base.UnregisterUserCommandHandling();
+        }
+
+        private void ShowCabCommand()
+        {
+            Locomotive.ShowCab = !Locomotive.ShowCab;
+        }
+
+        private void DebugResetWheelSlipCommand()
+        {
+            Locomotive.Train.SignalEvent(TrainEvent.ResetWheelSlip);
+        }
+
+        private void DebugToggleAdvancedAdhesionCommand()
+        {
+            Locomotive.Train.SignalEvent(TrainEvent.ResetWheelSlip); Locomotive.Simulator.UseAdvancedAdhesion = !Locomotive.Simulator.UseAdvancedAdhesion;
+        }
+
+        private void StartThrottleIncreaseCommand()
+        {
+            Locomotive.StartThrottleIncrease();
+        }
+
+        private void StopThrottleIncreaseCommand()
+        {
+            Locomotive.StopThrottleIncrease();
+        }
+
+        private void StartThrottleDecreaseCommand()
+        {
+            Locomotive.StartThrottleDecrease();
+        }
+
+        private void StopThrottleDecreaseCommand()
+        {
+            Locomotive.StopThrottleDecrease();
         }
 
         /// <summary>
@@ -351,7 +401,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             if (Locomotive.TrainControlSystem != null && Locomotive.TrainControlSystem.Sounds.Count > 0)
                 foreach (var script in Locomotive.TrainControlSystem.Sounds.Keys)
                 {
-                         Viewer.SoundProcess.RemoveSoundSources(script);
+                    Viewer.SoundProcess.RemoveSoundSources(script);
                 }
             base.Unload();
         }
@@ -420,7 +470,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         {
                             foreach (var pickup in worldFile.PickupList)
                             {
-                                if ((wagon.FreightAnimations != null && (wagon.FreightAnimations.FreightType == pickup.PickupType || 
+                                if ((wagon.FreightAnimations != null && (wagon.FreightAnimations.FreightType == pickup.PickupType ||
                                     wagon.FreightAnimations.FreightType == PickupType.None) &&
                                     intake.Type == pickup.PickupType)
                                  || (intake.Type == pickup.PickupType && intake.Type > PickupType.FreightSand && (wagon.WagonType == TrainCar.WagonTypes.Tender || wagon is MSTSLocomotive)))
@@ -488,11 +538,11 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         public void ImmediateRefill()
         {
             var loco = this.Locomotive;
-            
+
             if (loco == null)
                 return;
-            
-            foreach(var car in loco.Train.Cars)
+
+            foreach (var car in loco.Train.Cars)
             {
                 // There is no need to check for the tender.  The MSTSSteamLocomotive is the primary key in the refueling process when using immediate refueling.
                 // Electric locomotives may have steam heat boilers fitted, and they can refill these
@@ -527,7 +577,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             if (distanceToPickupM > match.IntakePoint.WidthM / 2)
             {
                 Viewer.Simulator.Confirmer.Message(ConfirmLevel.None, Viewer.Catalog.GetString("Refill: Distance to {0} supply is {1}.",
-                    Viewer.Catalog.GetString(match.Pickup.PickupType.GetDescription()), Viewer.Catalog.GetPluralString("{0} meter", "{0} meters", (long)(distanceToPickupM+1f))));
+                    Viewer.Catalog.GetString(match.Pickup.PickupType.GetDescription()), Viewer.Catalog.GetPluralString("{0} meter", "{0} meters", (long)(distanceToPickupM + 1f))));
                 return;
             }
             if (distanceToPickupM <= match.IntakePoint.WidthM / 2)
@@ -551,18 +601,18 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     FormatStrings.FormatSpeedLimit(match.Pickup.SpeedRange.UpperLimit, Viewer.MilepostUnitsMetric)));
                 return;
             }
-            if (match.Wagon is MSTSDieselLocomotive || match.Wagon is MSTSSteamLocomotive || match.Wagon is MSTSElectricLocomotive ||  (match.Wagon.WagonType == TrainCar.WagonTypes.Tender && match.SteamLocomotiveWithTender != null))
+            if (match.Wagon is MSTSDieselLocomotive || match.Wagon is MSTSSteamLocomotive || match.Wagon is MSTSElectricLocomotive || (match.Wagon.WagonType == TrainCar.WagonTypes.Tender && match.SteamLocomotiveWithTender != null))
             {
                 // Note: The tender contains the intake information, but the steam locomotive includes the controller information that is needed for the refueling process.
 
                 float fraction = 0;
 
                 // classical MSTS Freightanim, handled as usual
-                if(match.SteamLocomotiveWithTender != null)
+                if (match.SteamLocomotiveWithTender != null)
                     fraction = match.SteamLocomotiveWithTender.GetFilledFraction(match.Pickup.PickupType);
                 else
                     fraction = match.Wagon.GetFilledFraction(match.Pickup.PickupType);
-                                
+
                 if (fraction > 0.99)
                 {
                     Viewer.Simulator.Confirmer.Message(ConfirmLevel.None, Viewer.Catalog.GetString("Refill: {0} supply now replenished.",
@@ -1631,7 +1681,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     if (Gauge.Direction != 0)  // column grows from right
                         destX = (int)(xratio * (Control.Bounds.X + Gauge.Bounds.Width - 0.5 * Gauge.Area.Width - xpos));
                     else
-                        destX = (int)(xratio * (Control.Bounds.X- 0.5 * Gauge.Area.Width + xpos));
+                        destX = (int)(xratio * (Control.Bounds.X - 0.5 * Gauge.Area.Width + xpos));
                 }
                 else // gauge vertical
                 {
@@ -2054,8 +2104,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 case CabViewControlType.Orts_Overcharge: new BrakeOverchargeCommand(Viewer.Log, ChangedValue(Locomotive.TrainBrakeController.OverchargeButtonPressed ? 1 : 0) > 0); break;
                 case CabViewControlType.Reset: new AlerterCommand(Viewer.Log, ChangedValue(Locomotive.TrainControlSystem.AlerterButtonPressed ? 1 : 0) > 0); break;
                 case CabViewControlType.Cp_Handle: Locomotive.SetCombinedHandleValue(ChangedValue(Locomotive.GetCombinedHandleValue(true))); break;
- 
-             // Steam locomotives only:
+
+                // Steam locomotives only:
                 case CabViewControlType.CutOff: (Locomotive as MSTSSteamLocomotive).SetCutoffValue(ChangedValue((Locomotive as MSTSSteamLocomotive).CutoffController.IntermediateValue)); break;
                 case CabViewControlType.Blower: (Locomotive as MSTSSteamLocomotive).SetBlowerValue(ChangedValue((Locomotive as MSTSSteamLocomotive).BlowerController.IntermediateValue)); break;
                 case CabViewControlType.Dampers_Front: (Locomotive as MSTSSteamLocomotive).SetDamperValue(ChangedValue((Locomotive as MSTSSteamLocomotive).DamperController.IntermediateValue)); break;
@@ -2559,7 +2609,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                                 break;
                         }
                     }
-    
+
                     key = 1000 * (int)type + order;
                     if (style != null && style is CabViewDigitalRenderer)//digits?
                     {
@@ -2662,6 +2712,15 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         public override void HandleUserInput(in ElapsedTime elapsedTime)
         {
         }
+
+        public override void RegisterUserCommandHandling()
+        {
+        }
+
+        public override void UnregisterUserCommandHandling()
+        {
+        }
+
     } // Class ThreeDimentionCabViewer
 
     public class ThreeDimCabDigit

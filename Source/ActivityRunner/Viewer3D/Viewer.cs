@@ -135,7 +135,18 @@ namespace Orts.ActivityRunner.Viewer3D
 
         List<Camera> WellKnownCameras; // Providing Camera save functionality by GeorgeS
 
-        public TrainCarViewer PlayerLocomotiveViewer { get; private set; }  // we are controlling this loco, or null if we aren't controlling any
+        private TrainCarViewer playerLocomotiveViewer;
+
+        public TrainCarViewer PlayerLocomotiveViewer 
+        { 
+            get => playerLocomotiveViewer;
+            private set
+            {
+                playerLocomotiveViewer?.UnregisterUserCommandHandling();
+                playerLocomotiveViewer = value;
+                playerLocomotiveViewer?.RegisterUserCommandHandling();
+            }
+        }  // we are controlling this loco, or null if we aren't controlling any
         MouseState originalMouseState;      // Current mouse coordinates.
 
         // This is the train we are controlling

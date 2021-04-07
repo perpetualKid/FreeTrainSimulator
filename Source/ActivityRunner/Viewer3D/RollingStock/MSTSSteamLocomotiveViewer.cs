@@ -217,6 +217,23 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 #endif
         }
 
+        public override void RegisterUserCommandHandling()
+        {
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlReverserForward, KeyEventType.KeyPressed, ReverserControlForwards, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlReverserBackward, KeyEventType.KeyPressed, ReverserControlBackwards, true);
+            base.RegisterUserCommandHandling();
+            // Steam locomotives handle these differently, so we remove the base class handling
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlReverserForward, KeyEventType.KeyPressed, base.ReverserControlForwards);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlReverserBackward, KeyEventType.KeyPressed, base.ReverserControlBackwards);
+        }
+
+        public override void UnregisterUserCommandHandling()
+        {
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlReverserForward, KeyEventType.KeyPressed, ReverserControlForwards);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlReverserBackward, KeyEventType.KeyPressed, ReverserControlBackwards);
+            base.UnregisterUserCommandHandling();
+        }
+
         /// <summary>
         /// We are about to display a video frame.  Calculate positions for 
         /// animated objects, and add their primitives to the RenderFrame list.

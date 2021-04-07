@@ -259,6 +259,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                     }
                     // Make sure we quit after handling an error.
                     Game.Exit();
+                    Environment.Exit(-1);
                 }
             }
             UninitLoading();

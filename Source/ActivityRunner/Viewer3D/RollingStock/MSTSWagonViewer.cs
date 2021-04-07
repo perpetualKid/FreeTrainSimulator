@@ -536,13 +536,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
         public override void InitializeUserInputCommands()
         {
-            UserInputCommands.Add(UserCommand.ControlPantograph1, new Action[] { Noop, () => new PantographCommand(Viewer.Log, 1, !MSTSWagon.Pantographs[1].CommandUp) });
-            UserInputCommands.Add(UserCommand.ControlPantograph2, new Action[] { Noop, () => new PantographCommand(Viewer.Log, 2, !MSTSWagon.Pantographs[2].CommandUp) });
-            if (MSTSWagon.Pantographs.List.Count > 2) UserInputCommands.Add(UserCommand.ControlPantograph3, new Action[] { Noop, () => new PantographCommand(Viewer.Log, 3, !MSTSWagon.Pantographs[3].CommandUp) });
-            if (MSTSWagon.Pantographs.List.Count > 3) UserInputCommands.Add(UserCommand.ControlPantograph4, new Action[] { Noop, () => new PantographCommand(Viewer.Log, 4, !MSTSWagon.Pantographs[4].CommandUp) });
-            UserInputCommands.Add(UserCommand.ControlDoorLeft, new Action[] { Noop, () => new ToggleDoorsLeftCommand(Viewer.Log) });
-            UserInputCommands.Add(UserCommand.ControlDoorRight, new Action[] { Noop, () => new ToggleDoorsRightCommand(Viewer.Log) });
-            UserInputCommands.Add(UserCommand.ControlMirror, new Action[] { Noop, () => new ToggleMirrorsCommand(Viewer.Log) });
         }
 
         public override void HandleUserInput(in ElapsedTime elapsedTime)
@@ -552,6 +545,66 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 else if (UserInput.IsReleased(command)) UserInputCommands[command][0]();
         }
 
+        public override void RegisterUserCommandHandling()
+        {
+            if (MSTSWagon.Pantographs.List.Count > 0)
+                Viewer.UserCommandController.AddEvent(UserCommand.ControlPantograph1, KeyEventType.KeyPressed, Pantograph1Command, true);
+            if (MSTSWagon.Pantographs.List.Count > 1)
+                Viewer.UserCommandController.AddEvent(UserCommand.ControlPantograph2, KeyEventType.KeyPressed, Pantograph2Command, true);
+            if (MSTSWagon.Pantographs.List.Count > 2)
+                Viewer.UserCommandController.AddEvent(UserCommand.ControlPantograph3, KeyEventType.KeyPressed, Pantograph3Command, true);
+            if (MSTSWagon.Pantographs.List.Count > 3)
+                Viewer.UserCommandController.AddEvent(UserCommand.ControlPantograph4, KeyEventType.KeyPressed, Pantograph4Command, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlDoorLeft, KeyEventType.KeyPressed, ToggleDoorsLeftCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlDoorRight, KeyEventType.KeyPressed, ToggleDoorsRightCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlMirror, KeyEventType.KeyPressed, ToggleMirrorsCommand, true);
+        }
+
+        public override void UnregisterUserCommandHandling()
+        {
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlPantograph1, KeyEventType.KeyPressed, Pantograph1Command);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlPantograph2, KeyEventType.KeyPressed, Pantograph2Command);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlPantograph3, KeyEventType.KeyPressed, Pantograph1Command);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlPantograph4, KeyEventType.KeyPressed, Pantograph2Command);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlDoorLeft, KeyEventType.KeyPressed, ToggleDoorsLeftCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlDoorRight, KeyEventType.KeyPressed, ToggleDoorsRightCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlMirror, KeyEventType.KeyPressed, ToggleMirrorsCommand);
+        }
+
+        private void Pantograph1Command()
+        {
+            _ = new PantographCommand(Viewer.Log, 1, !MSTSWagon.Pantographs[1].CommandUp);
+        }
+
+        private void Pantograph2Command()
+        {
+            _ = new PantographCommand(Viewer.Log, 2, !MSTSWagon.Pantographs[2].CommandUp);
+        }
+
+        private void Pantograph3Command()
+        {
+            _ = new PantographCommand(Viewer.Log, 3, !MSTSWagon.Pantographs[3].CommandUp);
+        }
+
+        private void Pantograph4Command()
+        {
+            _ = new PantographCommand(Viewer.Log, 4, !MSTSWagon.Pantographs[4].CommandUp);
+        }
+
+        private void ToggleDoorsLeftCommand()
+        {
+            _ = new ToggleDoorsLeftCommand(Viewer.Log);
+        }
+
+        private void ToggleDoorsRightCommand()
+        {
+            _ = new ToggleDoorsRightCommand(Viewer.Log);
+        }
+
+        private void ToggleMirrorsCommand()
+        {
+            _ = new ToggleMirrorsCommand(Viewer.Log);
+        }
         /// <summary>
         /// Called at the full frame rate
         /// elapsedTime is time since last frame
