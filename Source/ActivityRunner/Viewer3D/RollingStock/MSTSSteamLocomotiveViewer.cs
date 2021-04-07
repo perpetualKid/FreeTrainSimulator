@@ -112,18 +112,18 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         {
             SteamLocomotive.StartReverseDecrease(null);
         }
-        
+
         /// <summary>
         /// Overrides the base method as steam locomotives have only rudimentary gear boxes. 
         /// </summary>
         protected override void StartGearBoxIncrease()
         {
             SteamLocomotive.SteamStartGearBoxIncrease();
-        }        
-                
+        }
+
         protected override void StopGearBoxIncrease()
         {
-           SteamLocomotive.SteamStopGearBoxIncrease();
+            SteamLocomotive.SteamStopGearBoxIncrease();
         }
 
         protected override void StartGearBoxDecrease()
@@ -135,36 +135,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         {
             SteamLocomotive.SteamStopGearBoxDecrease();
         }
-                
-
-        public override void InitializeUserInputCommands()
-        {
-            UserInputCommands.Add(UserCommand.ControlReverserForward, new Action[] { () => SteamLocomotive.StopReverseIncrease(), () => ReverserControlForwards() });
-            UserInputCommands.Add(UserCommand.ControlReverserBackward, new Action[] { () => SteamLocomotive.StopReverseDecrease(), () => ReverserControlBackwards() });
-            UserInputCommands.Add(UserCommand.ControlInjector1Increase, new Action[] { () => SteamLocomotive.StopInjector1Increase(), () => SteamLocomotive.StartInjector1Increase(null) });
-            UserInputCommands.Add(UserCommand.ControlInjector1Decrease, new Action[] { () => SteamLocomotive.StopInjector1Decrease(), () => SteamLocomotive.StartInjector1Decrease(null) });
-            UserInputCommands.Add(UserCommand.ControlInjector2Increase, new Action[] { () => SteamLocomotive.StopInjector2Increase(), () => SteamLocomotive.StartInjector2Increase(null) });
-            UserInputCommands.Add(UserCommand.ControlInjector2Decrease, new Action[] { () => SteamLocomotive.StopInjector2Decrease(), () => SteamLocomotive.StartInjector2Decrease(null) });
-            UserInputCommands.Add(UserCommand.ControlInjector1, new Action[] { Noop, () => new ToggleInjectorCommand(Viewer.Log, 1) });
-            UserInputCommands.Add(UserCommand.ControlInjector2, new Action[] { Noop, () => new ToggleInjectorCommand(Viewer.Log, 2) });
-            UserInputCommands.Add(UserCommand.ControlBlowerIncrease, new Action[] { () => SteamLocomotive.StopBlowerIncrease(), () => SteamLocomotive.StartBlowerIncrease(null) });
-            UserInputCommands.Add(UserCommand.ControlBlowerDecrease, new Action[] { () => SteamLocomotive.StopBlowerDecrease(), () => SteamLocomotive.StartBlowerDecrease(null) });
-            UserInputCommands.Add(UserCommand.ControlDamperIncrease, new Action[] { () => SteamLocomotive.StopDamperIncrease(), () => SteamLocomotive.StartDamperIncrease(null) });
-            UserInputCommands.Add(UserCommand.ControlDamperDecrease, new Action[] { () => SteamLocomotive.StopDamperDecrease(), () => SteamLocomotive.StartDamperDecrease(null) });
-            UserInputCommands.Add(UserCommand.ControlFireboxOpen, new Action[] { () => SteamLocomotive.StopFireboxDoorIncrease(), () => SteamLocomotive.StartFireboxDoorIncrease(null) });
-            UserInputCommands.Add(UserCommand.ControlFireboxClose, new Action[] { () => SteamLocomotive.StopFireboxDoorDecrease(), () => SteamLocomotive.StartFireboxDoorDecrease(null) });
-            UserInputCommands.Add(UserCommand.ControlFiringRateIncrease, new Action[] { () => SteamLocomotive.StopFiringRateIncrease(), () => SteamLocomotive.StartFiringRateIncrease(null) });
-            UserInputCommands.Add(UserCommand.ControlFiringRateDecrease, new Action[] { () => SteamLocomotive.StopFiringRateDecrease(), () => SteamLocomotive.StartFiringRateDecrease(null) });
-            UserInputCommands.Add(UserCommand.ControlFireShovelFull, new Action[] { Noop, () => new FireShovelfullCommand(Viewer.Log) });
-            UserInputCommands.Add(UserCommand.ControlBlowdownValve, new Action[] { Noop, () => new ToggleBlowdownValveCommand(Viewer.Log) });
-            UserInputCommands.Add(UserCommand.ControlCylinderCocks, new Action[] { Noop, () => new ToggleCylinderCocksCommand(Viewer.Log) });
-            UserInputCommands.Add(UserCommand.ControlCylinderCompound, new Action[] { Noop, () => new ToggleCylinderCompoundCommand(Viewer.Log) });
-            UserInputCommands.Add(UserCommand.ControlSmallEjectorIncrease, new Action[] { () => SteamLocomotive.StopSmallEjectorIncrease(), () => SteamLocomotive.StartSmallEjectorIncrease(null) });
-            UserInputCommands.Add(UserCommand.ControlSmallEjectorDecrease, new Action[] { () => SteamLocomotive.StopSmallEjectorDecrease(), () => SteamLocomotive.StartSmallEjectorDecrease(null) });
-            UserInputCommands.Add(UserCommand.ControlLargeEjectorIncrease, new Action[] { () => SteamLocomotive.StopLargeEjectorIncrease(), () => SteamLocomotive.StartLargeEjectorIncrease(null) });
-            UserInputCommands.Add(UserCommand.ControlLargeEjectorDecrease, new Action[] { () => SteamLocomotive.StopLargeEjectorDecrease(), () => SteamLocomotive.StartLargeEjectorDecrease(null) });
-            base.InitializeUserInputCommands();
-        }
 
         /// <summary>
         /// A keyboard or mouse click has occured. Read the UserInput
@@ -172,55 +142,60 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         /// </summary>
         public override void HandleUserInput(in ElapsedTime elapsedTime)
         {
-            // Keeping separated, since it is not a real engine control. (Probably wrong classification?)
-            if (UserInput.IsPressed(UserCommand.ControlFiring)) new ToggleManualFiringCommand(Viewer.Log);
-
-            // Keeping separated, since it is not a real engine control. (Probably wrong classification?)
-            if (UserInput.IsPressed(UserCommand.ControlAIFireOn)) new AIFireOnCommand(Viewer.Log);
-
-            // Keeping separated, since it is not a real engine control. (Probably wrong classification?)
-            if (UserInput.IsPressed(UserCommand.ControlAIFireOff)) new AIFireOffCommand(Viewer.Log);
-
-            // Keeping separated, since it is not a real engine control. (Probably wrong classification?)
-            if (UserInput.IsPressed(UserCommand.ControlAIFireReset)) new AIFireResetCommand(Viewer.Log);
 
             if (UserInput.Raildriver.Active)
                 SteamLocomotive.SetCutoffPercent(UserInput.Raildriver.DirectionPercent);
 
             base.HandleUserInput(elapsedTime);
-
-#if DEBUG_DUMP_STEAM_POWER_CURVE
-            // For power curve tests
-            if (Viewer.Settings.DataLogger
-                && !Viewer.Settings.DataLogPerformanceeous
-                && !Viewer.Settings.DataLogPhysics
-                && !Viewer.Settings.DataLogMisc)
-            {
-                var loco = SteamLocomotive;
-                // If we're using more steam than the boiler can make ...
-                if (loco.PreviousTotalSteamUsageLBpS > loco.EvaporationLBpS)
-                {
-                    // Reduce the cut-off gradually as far as 15%
-                    if (loco.CutoffController.CurrentValue > 0.15)
-                    {
-                        float? target = MathHelper.Clamp(loco.CutoffController.CurrentValue - 0.01f, 0.15f, 0.75f);
-                        loco.StartReverseDecrease(target);
-                    }
-                    else
-                    {
-                        // Reduce the throttle also
-                        float? target = SteamLocomotive.ThrottleController.CurrentValue - 0.01f;
-                        loco.StartThrottleDecrease(target);
-                    }
-                }
-            }
-#endif
         }
 
         public override void RegisterUserCommandHandling()
         {
             Viewer.UserCommandController.AddEvent(UserCommand.ControlReverserForward, KeyEventType.KeyPressed, ReverserControlForwards, true);
             Viewer.UserCommandController.AddEvent(UserCommand.ControlReverserBackward, KeyEventType.KeyPressed, ReverserControlBackwards, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlFiring, KeyEventType.KeyPressed, ToggleManualFiringCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlAIFireOn, KeyEventType.KeyPressed, AIFireOnCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlAIFireOff, KeyEventType.KeyPressed, AIFireOffCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlAIFireReset, KeyEventType.KeyPressed, AIFireResetCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlInjector1Increase, KeyEventType.KeyPressed, SteamLocomotive.StartInjector1Increase, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlInjector1Increase, KeyEventType.KeyReleased, SteamLocomotive.StopInjector1Increase, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlInjector1Decrease, KeyEventType.KeyPressed, SteamLocomotive.StartInjector1Decrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlInjector1Decrease, KeyEventType.KeyReleased, SteamLocomotive.StopInjector1Decrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlInjector2Increase, KeyEventType.KeyPressed, SteamLocomotive.StartInjector2Increase, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlInjector2Increase, KeyEventType.KeyReleased, SteamLocomotive.StopInjector2Increase, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlInjector2Decrease, KeyEventType.KeyPressed, SteamLocomotive.StartInjector2Decrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlInjector2Decrease, KeyEventType.KeyReleased, SteamLocomotive.StopInjector2Decrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlInjector1, KeyEventType.KeyPressed, ToggleInjector1Command, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlInjector2, KeyEventType.KeyPressed, ToggleInjector2Command, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlBlowerIncrease, KeyEventType.KeyPressed, SteamLocomotive.StartBlowerIncrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlBlowerIncrease, KeyEventType.KeyReleased, SteamLocomotive.StopBlowerIncrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlBlowerDecrease, KeyEventType.KeyPressed, SteamLocomotive.StartBlowerDecrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlBlowerDecrease, KeyEventType.KeyReleased, SteamLocomotive.StopBlowerDecrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlDamperIncrease, KeyEventType.KeyPressed, SteamLocomotive.StartDamperIncrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlDamperIncrease, KeyEventType.KeyReleased, SteamLocomotive.StopDamperIncrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlDamperDecrease, KeyEventType.KeyPressed, SteamLocomotive.StartDamperDecrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlDamperDecrease, KeyEventType.KeyReleased, SteamLocomotive.StopDamperDecrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlFireboxOpen, KeyEventType.KeyPressed, SteamLocomotive.StartFireboxDoorIncrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlFireboxOpen, KeyEventType.KeyReleased, SteamLocomotive.StopFireboxDoorIncrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlFireboxClose, KeyEventType.KeyPressed, SteamLocomotive.StartBlowerDecrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlFireboxClose, KeyEventType.KeyReleased, SteamLocomotive.StartFireboxDoorDecrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlFiringRateIncrease, KeyEventType.KeyPressed, SteamLocomotive.StartFiringRateIncrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlFiringRateIncrease, KeyEventType.KeyReleased, SteamLocomotive.StopFiringRateIncrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlFiringRateDecrease, KeyEventType.KeyPressed, SteamLocomotive.StartFiringRateDecrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlFiringRateDecrease, KeyEventType.KeyReleased, SteamLocomotive.StopFiringRateDecrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlFireShovelFull, KeyEventType.KeyPressed, FireShovelfullCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlBlowdownValve, KeyEventType.KeyPressed, ToggleBlowdownValveCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlCylinderCocks, KeyEventType.KeyPressed, ToggleCylinderCocksCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlCylinderCompound, KeyEventType.KeyPressed, ToggleCylinderCompoundCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlSmallEjectorIncrease, KeyEventType.KeyPressed, SteamLocomotive.StartSmallEjectorIncrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlSmallEjectorIncrease, KeyEventType.KeyReleased, SteamLocomotive.StopSmallEjectorIncrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlSmallEjectorDecrease, KeyEventType.KeyPressed, SteamLocomotive.StartSmallEjectorDecrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlSmallEjectorDecrease, KeyEventType.KeyReleased, SteamLocomotive.StopSmallEjectorDecrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlLargeEjectorIncrease, KeyEventType.KeyPressed, SteamLocomotive.StartLargeEjectorIncrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlLargeEjectorIncrease, KeyEventType.KeyReleased, SteamLocomotive.StopLargeEjectorIncrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlLargeEjectorDecrease, KeyEventType.KeyPressed, SteamLocomotive.StartLargeEjectorDecrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlLargeEjectorDecrease, KeyEventType.KeyReleased, SteamLocomotive.StopLargeEjectorDecrease, true);
+
             base.RegisterUserCommandHandling();
             // Steam locomotives handle these differently, so we remove the base class handling
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlReverserForward, KeyEventType.KeyPressed, base.ReverserControlForwards);
@@ -231,7 +206,99 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         {
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlReverserForward, KeyEventType.KeyPressed, ReverserControlForwards);
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlReverserBackward, KeyEventType.KeyPressed, ReverserControlBackwards);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlFiring, KeyEventType.KeyPressed, ToggleManualFiringCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlAIFireOn, KeyEventType.KeyPressed, AIFireOnCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlAIFireOff, KeyEventType.KeyPressed, AIFireOffCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlAIFireReset, KeyEventType.KeyPressed, AIFireResetCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlInjector1Increase, KeyEventType.KeyPressed, SteamLocomotive.StartInjector1Increase);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlInjector1Increase, KeyEventType.KeyReleased, SteamLocomotive.StopInjector1Increase);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlInjector1Decrease, KeyEventType.KeyPressed, SteamLocomotive.StartInjector1Decrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlInjector1Decrease, KeyEventType.KeyReleased, SteamLocomotive.StopInjector1Decrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlInjector2Increase, KeyEventType.KeyPressed, SteamLocomotive.StartInjector2Increase);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlInjector2Increase, KeyEventType.KeyReleased, SteamLocomotive.StopInjector2Increase);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlInjector2Decrease, KeyEventType.KeyPressed, SteamLocomotive.StartInjector2Decrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlInjector2Decrease, KeyEventType.KeyReleased, SteamLocomotive.StopInjector2Decrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlInjector1, KeyEventType.KeyPressed, ToggleInjector1Command);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlInjector2, KeyEventType.KeyPressed, ToggleInjector2Command);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlBlowerIncrease, KeyEventType.KeyPressed, SteamLocomotive.StartBlowerIncrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlBlowerIncrease, KeyEventType.KeyReleased, SteamLocomotive.StopBlowerIncrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlBlowerDecrease, KeyEventType.KeyPressed, SteamLocomotive.StartBlowerDecrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlBlowerDecrease, KeyEventType.KeyReleased, SteamLocomotive.StopBlowerDecrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlDamperIncrease, KeyEventType.KeyPressed, SteamLocomotive.StartDamperIncrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlDamperIncrease, KeyEventType.KeyReleased, SteamLocomotive.StopDamperIncrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlDamperDecrease, KeyEventType.KeyPressed, SteamLocomotive.StartDamperDecrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlDamperDecrease, KeyEventType.KeyReleased, SteamLocomotive.StopDamperDecrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlFireboxOpen, KeyEventType.KeyPressed, SteamLocomotive.StartFireboxDoorIncrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlFireboxOpen, KeyEventType.KeyReleased, SteamLocomotive.StopFireboxDoorIncrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlFireboxClose, KeyEventType.KeyPressed, SteamLocomotive.StartBlowerDecrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlFireboxClose, KeyEventType.KeyReleased, SteamLocomotive.StartFireboxDoorDecrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlFiringRateIncrease, KeyEventType.KeyPressed, SteamLocomotive.StartFiringRateIncrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlFiringRateIncrease, KeyEventType.KeyReleased, SteamLocomotive.StopFiringRateIncrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlFiringRateDecrease, KeyEventType.KeyPressed, SteamLocomotive.StartFiringRateDecrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlFiringRateDecrease, KeyEventType.KeyReleased, SteamLocomotive.StopFiringRateDecrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlFireShovelFull, KeyEventType.KeyPressed, FireShovelfullCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlBlowdownValve, KeyEventType.KeyPressed, ToggleBlowdownValveCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlCylinderCocks, KeyEventType.KeyPressed, ToggleCylinderCocksCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlCylinderCompound, KeyEventType.KeyPressed, ToggleCylinderCompoundCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlSmallEjectorIncrease, KeyEventType.KeyPressed, SteamLocomotive.StartSmallEjectorIncrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlSmallEjectorIncrease, KeyEventType.KeyReleased, SteamLocomotive.StopSmallEjectorIncrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlSmallEjectorDecrease, KeyEventType.KeyPressed, SteamLocomotive.StartSmallEjectorDecrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlSmallEjectorDecrease, KeyEventType.KeyReleased, SteamLocomotive.StopSmallEjectorDecrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlLargeEjectorIncrease, KeyEventType.KeyPressed, SteamLocomotive.StartLargeEjectorIncrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlLargeEjectorIncrease, KeyEventType.KeyReleased, SteamLocomotive.StopLargeEjectorIncrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlLargeEjectorDecrease, KeyEventType.KeyPressed, SteamLocomotive.StartLargeEjectorDecrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlLargeEjectorDecrease, KeyEventType.KeyReleased, SteamLocomotive.StopLargeEjectorDecrease);
+
             base.UnregisterUserCommandHandling();
+        }
+
+        private void FireShovelfullCommand()
+        {
+            _ = new FireShovelfullCommand(Viewer.Log);
+        }
+
+        private void ToggleBlowdownValveCommand()
+        {
+            _ = new ToggleBlowdownValveCommand(Viewer.Log);
+        }
+
+        private void ToggleCylinderCocksCommand()
+        {
+            _ = new ToggleCylinderCocksCommand(Viewer.Log);
+        }
+
+        private void ToggleCylinderCompoundCommand()
+        {
+            _ = new ToggleCylinderCompoundCommand(Viewer.Log);
+        }
+        private void ToggleInjector1Command()
+        {
+            _ = new ToggleInjectorCommand(Viewer.Log, 1);
+        }
+
+        private void ToggleInjector2Command()
+        {
+            _ = new ToggleInjectorCommand(Viewer.Log, 2);
+        }
+
+        private void ToggleManualFiringCommand()
+        {
+            _ = new ToggleManualFiringCommand(Viewer.Log);
+        }
+
+        private void AIFireOnCommand()
+        {
+            _ = new AIFireOnCommand(Viewer.Log);
+        }
+
+        private void AIFireOffCommand()
+        {
+            _ = new AIFireOffCommand(Viewer.Log);
+        }
+
+        private void AIFireResetCommand()
+        {
+            _ = new AIFireResetCommand(Viewer.Log);
         }
 
         /// <summary>
@@ -245,21 +312,21 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             foreach (var drawer in Cylinders)
                 drawer.SetOutput(car.Cylinders1SteamVelocityMpS, car.Cylinders1SteamVolumeM3pS, car.Cylinder1ParticleDurationS);
 
-             foreach (var drawer in Cylinders2)
+            foreach (var drawer in Cylinders2)
                 drawer.SetOutput(car.Cylinders2SteamVelocityMpS, car.Cylinders2SteamVolumeM3pS, car.Cylinder2ParticleDurationS);
 
             foreach (var drawer in Blowdown)
                 drawer.SetOutput(car.BlowdownSteamVelocityMpS, car.BlowdownSteamVolumeM3pS, car.BlowdownParticleDurationS);
-            
+
             // TODO: Drainpipe - Not used in either MSTS or OR - currently disabled by zero values set in SteamLocomotive file
-             foreach (var drawer in Drainpipe)
+            foreach (var drawer in Drainpipe)
                 drawer.SetOutput(car.DrainpipeSteamVelocityMpS, car.DrainpipeSteamVolumeM3pS, car.DrainpipeParticleDurationS);
 
-             foreach (var drawer in Injectors1)
+            foreach (var drawer in Injectors1)
                 drawer.SetOutput(car.Injector1SteamVelocityMpS, car.Injector1SteamVolumeM3pS, car.Injector1ParticleDurationS);
 
-             foreach (var drawer in Injectors2)
-                 drawer.SetOutput(car.Injector2SteamVelocityMpS, car.Injector2SteamVolumeM3pS, car.Injector2ParticleDurationS);
+            foreach (var drawer in Injectors2)
+                drawer.SetOutput(car.Injector2SteamVelocityMpS, car.Injector2SteamVolumeM3pS, car.Injector2ParticleDurationS);
 
             foreach (var drawer in SmallEjector)
                 drawer.SetOutput(car.SmallEjectorSteamVelocityMpS, car.SmallEjectorSteamVolumeM3pS, car.SmallEjectorParticleDurationS);
@@ -268,11 +335,11 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 drawer.SetOutput(car.LargeEjectorSteamVelocityMpS, car.LargeEjectorSteamVolumeM3pS, car.LargeEjectorParticleDurationS);
 
             foreach (var drawer in Compressor)
-                drawer.SetOutput(car.CompressorSteamVelocityMpS, car.CompressorSteamVolumeM3pS, car.CompressorParticleDurationS );
+                drawer.SetOutput(car.CompressorSteamVelocityMpS, car.CompressorSteamVolumeM3pS, car.CompressorParticleDurationS);
 
             foreach (var drawer in Generator)
                 drawer.SetOutput(car.GeneratorSteamVelocityMpS, car.GeneratorSteamVolumeM3pS, car.GeneratorParticleDurationS);
-            
+
             foreach (var drawer in SafetyValves)
                 drawer.SetOutput(car.SafetyValvesSteamVelocityMpS, car.SafetyValvesSteamVolumeM3pS, car.SafetyValvesParticleDurationS);
 

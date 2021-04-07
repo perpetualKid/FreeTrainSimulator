@@ -43,12 +43,10 @@ namespace Orts.ActivityRunner.Viewer3D
         #region Camera event Handling setup
         private sealed class CameraEventHandler
         {
-            private readonly Viewer viewer;
             private static CameraEventHandler instance;
 
             private CameraEventHandler(Viewer viewer)
             {
-                this.viewer = viewer;
                 viewer.UserCommandController.AddEvent(UserCommand.CameraZoomIn, KeyEventType.KeyDown, (UserCommandArgs commandArgs, GameTime gameTime) => viewer.Camera.Zoom(1, commandArgs, gameTime));
                 viewer.UserCommandController.AddEvent(UserCommand.CameraZoomOut, KeyEventType.KeyDown, (UserCommandArgs commandArgs, GameTime gameTime) => viewer.Camera.Zoom(-1, commandArgs, gameTime));
                 viewer.UserCommandController.AddEvent(UserCommand.CameraZoomIn, KeyEventType.KeyPressed, () => viewer.Camera.ZoomCommandStart());

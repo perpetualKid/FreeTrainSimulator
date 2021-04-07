@@ -39,8 +39,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             if (electricLocomotive.Train != null && (car.Train.TrainType == TrainType.Ai ||
                 ((car.Train.TrainType == TrainType.Player || car.Train.TrainType == TrainType.AiPlayerDriven || car.Train.TrainType == TrainType.AiPlayerHosting) &&
                 (car.Train.MUDirection != MidpointDirection.N && electricLocomotive.PowerOn))))
-                // following reactivates the sound triggers related to certain states
-                // for pantos the sound trigger related to the raised panto must be reactivated, else SignalEvent() would raise also another panto
+            // following reactivates the sound triggers related to certain states
+            // for pantos the sound trigger related to the raised panto must be reactivated, else SignalEvent() would raise also another panto
             {
                 int iPanto = 0;
                 foreach (Pantograph panto in electricLocomotive.Pantographs.List)
@@ -64,27 +64,52 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             }
         }
 
-        /// <summary>
-        /// A keyboard or mouse click has occured. Read the UserInput
-        /// structure to determine what was pressed.
-        /// </summary>
-        public override void HandleUserInput(in ElapsedTime elapsedTime)
+        public override void RegisterUserCommandHandling()
         {
-            base.HandleUserInput(elapsedTime);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlCircuitBreakerClosingOrder, KeyEventType.KeyPressed, CircuitBreakerClosingOrderOnButtonCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlCircuitBreakerClosingOrder, KeyEventType.KeyReleased, CircuitBreakerClosingOrderOffButtonCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlCircuitBreakerOpeningOrder, KeyEventType.KeyPressed, CircuitBreakerOpeningOrderOnButtonCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlCircuitBreakerOpeningOrder, KeyEventType.KeyReleased, CircuitBreakerOpeningOrderOffButtonCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlCircuitBreakerClosingAuthorization, KeyEventType.KeyPressed, CircuitBreakerClosingAuthorizationCommand, true);
+
+            base.RegisterUserCommandHandling();
         }
 
-        public override void InitializeUserInputCommands()
+        public override void UnregisterUserCommandHandling()
         {
-            UserInputCommands.Add(UserCommand.ControlCircuitBreakerClosingOrder, new Action[] {
-                () => new CircuitBreakerClosingOrderButtonCommand(Viewer.Log, false),
-                () => {
-                    new CircuitBreakerClosingOrderCommand(Viewer.Log, !electricLocomotive.PowerSupply.CircuitBreaker.DriverClosingOrder);
-                    new CircuitBreakerClosingOrderButtonCommand(Viewer.Log, true);
-                }
-            });
-            UserInputCommands.Add(UserCommand.ControlCircuitBreakerOpeningOrder, new Action[] { () => new CircuitBreakerOpeningOrderButtonCommand(Viewer.Log, false), () => new CircuitBreakerOpeningOrderButtonCommand(Viewer.Log, true)});
-            UserInputCommands.Add(UserCommand.ControlCircuitBreakerClosingAuthorization, new Action[] { Noop, () => new CircuitBreakerClosingAuthorizationCommand(Viewer.Log, !electricLocomotive.PowerSupply.CircuitBreaker.DriverClosingAuthorization) });
-            base.InitializeUserInputCommands();
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlCircuitBreakerClosingOrder, KeyEventType.KeyPressed, CircuitBreakerClosingOrderOnButtonCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlCircuitBreakerClosingOrder, KeyEventType.KeyReleased, CircuitBreakerClosingOrderOffButtonCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlCircuitBreakerOpeningOrder, KeyEventType.KeyPressed, CircuitBreakerOpeningOrderOnButtonCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlCircuitBreakerOpeningOrder, KeyEventType.KeyReleased, CircuitBreakerOpeningOrderOffButtonCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlCircuitBreakerClosingAuthorization, KeyEventType.KeyPressed, CircuitBreakerClosingAuthorizationCommand);
+
+            base.UnregisterUserCommandHandling();
+        }
+
+        private void CircuitBreakerClosingOrderOffButtonCommand()
+        {
+            _ = new CircuitBreakerClosingOrderButtonCommand(Viewer.Log, false);
+        }
+
+        private void CircuitBreakerClosingOrderOnButtonCommand()
+        {
+            _ = new CircuitBreakerClosingOrderCommand(Viewer.Log, !electricLocomotive.PowerSupply.CircuitBreaker.DriverClosingOrder);
+            _ = new CircuitBreakerClosingOrderButtonCommand(Viewer.Log, true);
+        }
+
+        private void CircuitBreakerOpeningOrderOffButtonCommand()
+        {
+            _ = new CircuitBreakerOpeningOrderButtonCommand(Viewer.Log, false);
+        }
+
+        private void CircuitBreakerOpeningOrderOnButtonCommand()
+        {
+            _ = new CircuitBreakerOpeningOrderButtonCommand(Viewer.Log, true);
+        }
+
+        private void CircuitBreakerClosingAuthorizationCommand()
+        {
+            _ = new CircuitBreakerClosingAuthorizationCommand(Viewer.Log, !electricLocomotive.PowerSupply.CircuitBreaker.DriverClosingAuthorization);
         }
 
         /// <summary>

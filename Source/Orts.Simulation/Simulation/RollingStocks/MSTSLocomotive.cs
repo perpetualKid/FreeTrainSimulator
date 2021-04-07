@@ -2913,7 +2913,11 @@ namespace Orts.Simulation.RollingStocks
 
         //Steam Heat Controller
 
-#region Steam heating controller
+        #region Steam heating controller
+        public void StartSteamHeatIncrease()
+        {
+            StartSteamHeatIncrease(null);
+        }
 
         public void StartSteamHeatIncrease(float? target)
         {
@@ -2928,6 +2932,11 @@ namespace Orts.Simulation.RollingStocks
         {
             SteamHeatController.StopIncrease();
             new ContinuousSteamHeatCommand(Simulator.Log, 1, true, SteamHeatController.CurrentValue, SteamHeatController.CommandStartTime);
+        }
+
+        public void StartSteamHeatDecrease()
+        {
+            StartSteamHeatDecrease(null);
         }
 
         public void StartSteamHeatDecrease(float? target)
@@ -3249,9 +3258,14 @@ namespace Orts.Simulation.RollingStocks
             if (oldValue != controller.CurrentValue)
                 Simulator.Confirmer.ConfirmWithPerCent(CabControl.GearBox, CabSetting.Decrease, GearBoxController.CurrentNotch);
         }
-#endregion
+        #endregion
 
-#region TrainBrakeController
+        #region TrainBrakeController
+        public void StartTrainBrakeIncrease()
+        {
+            StartTrainBrakeIncrease(null);
+        }
+
         public void StartTrainBrakeIncrease(float? target)
         {
             if (CombinedControlType == CombinedControl.ThrottleAir)
@@ -3269,6 +3283,16 @@ namespace Orts.Simulation.RollingStocks
             AlerterReset(TCSEvent.TrainBrakeChanged);
             TrainBrakeController.StopIncrease();
             new TrainBrakeCommand(Simulator.Log, true, TrainBrakeController.CurrentValue, TrainBrakeController.CommandStartTime);
+        }
+
+        public void StartTrainBrakeZero()
+        {
+            StartTrainBrakeDecrease(0, true);
+        }
+
+        public void StartTrainBrakeDecrease()
+        {
+            StartTrainBrakeDecrease(null);
         }
 
         public void StartTrainBrakeDecrease(float? target, bool toZero = false)
@@ -3360,9 +3384,14 @@ namespace Orts.Simulation.RollingStocks
             if (TrainBrakeController.IsValid())
                 TrainBrakeController.SetPercent(percent);
         }
-#endregion
+        #endregion
 
-#region EngineBrakeController
+        #region EngineBrakeController
+        public void StartEngineBrakeIncrease()
+        {
+            StartEngineBrakeIncrease(null);
+        }
+
         public void StartEngineBrakeIncrease(float? target)
         {
             AlerterReset(TCSEvent.EngineBrakeChanged);
@@ -3385,6 +3414,11 @@ namespace Orts.Simulation.RollingStocks
             AlerterReset(TCSEvent.EngineBrakeChanged);
             EngineBrakeController.StopIncrease();
             new EngineBrakeCommand(Simulator.Log, true, EngineBrakeController.CurrentValue, EngineBrakeController.CommandStartTime);
+        }
+
+        public void StartEngineBrakeDecrease()
+        {
+            StartEngineBrakeDecrease(null);
         }
 
         public void StartEngineBrakeDecrease(float? target)
@@ -3490,9 +3524,13 @@ namespace Orts.Simulation.RollingStocks
                 }
             }
         }
-#endregion
+        #endregion
 
         #region BrakemanBrakeController
+        public void StartBrakemanBrakeIncrease()
+        {
+            StartBrakemanBrakeIncrease(null);
+        }
 
         public void StartBrakemanBrakeIncrease(float? target)
         {
@@ -3516,6 +3554,11 @@ namespace Orts.Simulation.RollingStocks
          //   AlerterReset(TCSEvent.BrakemanBrakeChanged);
             BrakemanBrakeController.StopIncrease();
             new BrakemanBrakeCommand(Simulator.Log, true, BrakemanBrakeController.CurrentValue, BrakemanBrakeController.CommandStartTime);
+        }
+
+        public void StartBrakemanBrakeDecrease()
+        {
+            StartBrakemanBrakeDecrease(null);
         }
 
         public void StartBrakemanBrakeDecrease(float? target)
@@ -3590,10 +3633,15 @@ namespace Orts.Simulation.RollingStocks
             return string.Format("{0}", BrakemanBrakeController.GetStatus());
         }
 
-    #endregion
+        #endregion
 
-    #region DynamicBrakeController
-    public void StartDynamicBrakeIncrease(float? target)
+        #region DynamicBrakeController
+        public void StartDynamicBrakeIncrease()
+        {
+            StartDynamicBrakeIncrease(null);
+        }
+
+        public void StartDynamicBrakeIncrease(float? target)
         {
             AlerterReset(TCSEvent.DynamicBrakeChanged);
             if (!CanUseDynamicBrake())
@@ -3623,6 +3671,11 @@ namespace Orts.Simulation.RollingStocks
                 DynamicBrakeController.StopIncrease();
                 new DynamicBrakeCommand(Simulator.Log, true, DynamicBrakeController.CurrentValue, DynamicBrakeController.CommandStartTime);
             }
+        }
+
+        public void StartDynamicBrakeDecrease()
+        {
+            StartDynamicBrakeDecrease(null);
         }
 
         public void StartDynamicBrakeDecrease(float? target)

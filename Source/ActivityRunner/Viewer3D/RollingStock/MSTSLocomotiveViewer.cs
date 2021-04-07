@@ -22,6 +22,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -134,68 +135,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             new ReverserCommand(Viewer.Log, false);    // No harm in trying to engage Reverse when already engaged.
         }
 
-        public override void InitializeUserInputCommands()
-        {
-            //UserInputCommands.Add(UserCommand.ControlThrottleIncrease, new Action[] { () => Locomotive.StopThrottleIncrease(), () => Locomotive.StartThrottleIncrease() });
-            //UserInputCommands.Add(UserCommand.ControlThrottleDecrease, new Action[] { () => Locomotive.StopThrottleDecrease(), () => Locomotive.StartThrottleDecrease() });
-            UserInputCommands.Add(UserCommand.ControlThrottleZero, new Action[] { Noop, () => Locomotive.ThrottleToZero() });
-            UserInputCommands.Add(UserCommand.ControlGearUp, new Action[] { () => StopGearBoxIncrease(), () => StartGearBoxIncrease() });
-            UserInputCommands.Add(UserCommand.ControlGearDown, new Action[] { () => StopGearBoxDecrease(), () => StartGearBoxDecrease() });
-            UserInputCommands.Add(UserCommand.ControlTrainBrakeIncrease, new Action[] { () => Locomotive.StopTrainBrakeIncrease(), () => Locomotive.StartTrainBrakeIncrease(null) });
-            UserInputCommands.Add(UserCommand.ControlTrainBrakeDecrease, new Action[] { () => Locomotive.StopTrainBrakeDecrease(), () => Locomotive.StartTrainBrakeDecrease(null) });
-            UserInputCommands.Add(UserCommand.ControlTrainBrakeZero, new Action[] { Noop, () => Locomotive.StartTrainBrakeDecrease(0, true) });
-            UserInputCommands.Add(UserCommand.ControlEngineBrakeIncrease, new Action[] { () => Locomotive.StopEngineBrakeIncrease(), () => Locomotive.StartEngineBrakeIncrease(null) });
-            UserInputCommands.Add(UserCommand.ControlEngineBrakeDecrease, new Action[] { () => Locomotive.StopEngineBrakeDecrease(), () => Locomotive.StartEngineBrakeDecrease(null) });
-            UserInputCommands.Add(UserCommand.ControlBrakemanBrakeIncrease, new Action[] { () => Locomotive.StopBrakemanBrakeIncrease(), () => Locomotive.StartBrakemanBrakeIncrease(null) });
-            UserInputCommands.Add(UserCommand.ControlBrakemanBrakeDecrease, new Action[] { () => Locomotive.StopBrakemanBrakeDecrease(), () => Locomotive.StartBrakemanBrakeDecrease(null) });
-            UserInputCommands.Add(UserCommand.ControlDynamicBrakeIncrease, new Action[] { () => Locomotive.StopDynamicBrakeIncrease(), () => Locomotive.StartDynamicBrakeIncrease(null) });
-            UserInputCommands.Add(UserCommand.ControlDynamicBrakeDecrease, new Action[] { () => Locomotive.StopDynamicBrakeDecrease(), () => Locomotive.StartDynamicBrakeDecrease(null) });
-            UserInputCommands.Add(UserCommand.ControlSteamHeatIncrease, new Action[] { () => Locomotive.StopSteamHeatIncrease(), () => Locomotive.StartSteamHeatIncrease(null) });
-            UserInputCommands.Add(UserCommand.ControlSteamHeatDecrease, new Action[] { () => Locomotive.StopSteamHeatDecrease(), () => Locomotive.StartSteamHeatDecrease(null) });
-            UserInputCommands.Add(UserCommand.ControlBailOff, new Action[] { () => new BailOffCommand(Viewer.Log, false), () => new BailOffCommand(Viewer.Log, true) });
-            UserInputCommands.Add(UserCommand.ControlInitializeBrakes, new Action[] { Noop, () => new InitializeBrakesCommand(Viewer.Log) });
-            UserInputCommands.Add(UserCommand.ControlHandbrakeNone, new Action[] { Noop, () => new HandbrakeCommand(Viewer.Log, false) });
-            UserInputCommands.Add(UserCommand.ControlHandbrakeFull, new Action[] { Noop, () => new HandbrakeCommand(Viewer.Log, true) });
-            UserInputCommands.Add(UserCommand.ControlRetainersOff, new Action[] { Noop, () => new RetainersCommand(Viewer.Log, false) });
-            UserInputCommands.Add(UserCommand.ControlRetainersOn, new Action[] { Noop, () => new RetainersCommand(Viewer.Log, true) });
-            UserInputCommands.Add(UserCommand.ControlBrakeHoseConnect, new Action[] { Noop, () => new BrakeHoseConnectCommand(Viewer.Log, true) });
-            UserInputCommands.Add(UserCommand.ControlBrakeHoseDisconnect, new Action[] { Noop, () => new BrakeHoseConnectCommand(Viewer.Log, false) });
-            UserInputCommands.Add(UserCommand.ControlEmergencyPushButton, new Action[] { Noop, () => new EmergencyPushButtonCommand(Viewer.Log) });
-            UserInputCommands.Add(UserCommand.ControlSander, new Action[] { () => new SanderCommand(Viewer.Log, false), () => new SanderCommand(Viewer.Log, true) });
-            UserInputCommands.Add(UserCommand.ControlSanderToggle, new Action[] { Noop, () => new SanderCommand(Viewer.Log, !Locomotive.Sander) });
-            UserInputCommands.Add(UserCommand.ControlWiper, new Action[] { Noop, () => new WipersCommand(Viewer.Log, !Locomotive.Wiper) });
-            UserInputCommands.Add(UserCommand.ControlHorn, new Action[] { () => new HornCommand(Viewer.Log, false), () => new HornCommand(Viewer.Log, true) });
-            UserInputCommands.Add(UserCommand.ControlBell, new Action[] { () => new BellCommand(Viewer.Log, false), () => new BellCommand(Viewer.Log, true) });
-            UserInputCommands.Add(UserCommand.ControlBellToggle, new Action[] { Noop, () => new BellCommand(Viewer.Log, !Locomotive.Bell) });
-            UserInputCommands.Add(UserCommand.ControlAlerter, new Action[] { () => new AlerterCommand(Viewer.Log, false), () => new AlerterCommand(Viewer.Log, true) });
-            UserInputCommands.Add(UserCommand.ControlHeadlightIncrease, new Action[] { Noop, () => new HeadlightCommand(Viewer.Log, true) });
-            UserInputCommands.Add(UserCommand.ControlHeadlightDecrease, new Action[] { Noop, () => new HeadlightCommand(Viewer.Log, false) });
-            UserInputCommands.Add(UserCommand.ControlLight, new Action[] { Noop, () => new ToggleCabLightCommand(Viewer.Log) });
-            UserInputCommands.Add(UserCommand.ControlRefill, new Action[] { () => StopRefillingOrUnloading(Viewer.Log), () => AttemptToRefillOrUnload() });
-            UserInputCommands.Add(UserCommand.ControlImmediateRefill, new Action[] { () => StopImmediateRefilling(Viewer.Log), () => ImmediateRefill() });
-            UserInputCommands.Add(UserCommand.ControlWaterScoop, new Action[] { Noop, () => new ToggleWaterScoopCommand(Viewer.Log) });
-            UserInputCommands.Add(UserCommand.ControlOdoMeterShowHide, new Action[] { Noop, () => new ToggleOdometerCommand(Viewer.Log) });
-            UserInputCommands.Add(UserCommand.ControlOdoMeterReset, new Action[] { Noop, () => new ResetOdometerCommand(Viewer.Log) });
-            UserInputCommands.Add(UserCommand.ControlOdoMeterDirection, new Action[] { Noop, () => new ToggleOdometerDirectionCommand(Viewer.Log) });
-            UserInputCommands.Add(UserCommand.ControlCabRadio, new Action[] { Noop, () => new CabRadioCommand(Viewer.Log, !Locomotive.CabRadioOn) });
-            UserInputCommands.Add(UserCommand.ControlDieselHelper, new Action[] { Noop, () => new ToggleHelpersEngineCommand(Viewer.Log) });
-            UserInputCommands.Add(UserCommand.ControlGeneric1, new Action[] {
-                () => new TCSButtonCommand(Viewer.Log, false, 0),
-                () => {
-                    new TCSButtonCommand(Viewer.Log, true, 0);
-                    new TCSSwitchCommand(Viewer.Log, !Locomotive.TrainControlSystem.TCSCommandSwitchOn[0], 0);
-                }
-            });
-            UserInputCommands.Add(UserCommand.ControlGeneric2, new Action[] {
-                () => new TCSButtonCommand(Viewer.Log, false, 1),
-                () => {
-                    new TCSButtonCommand(Viewer.Log, true, 1);
-                    new TCSSwitchCommand(Viewer.Log, !Locomotive.TrainControlSystem.TCSCommandSwitchOn[1], 1);
-                }
-            });
-            base.InitializeUserInputCommands();
-        }
-
         /// <summary>
         /// A keyboard or mouse click has occurred. Read the UserInput
         /// structure to determine what was pressed.
@@ -237,28 +176,19 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 }
             }
 
-            foreach (var command in UserInputCommands.Keys)
+            //Debrief eval
+            if (!lemergencybuttonpressed && Locomotive.EmergencyButtonPressed && Locomotive.IsPlayerTrain)
             {
-                if (UserInput.IsPressed(command))
-                {
-                    UserInputCommands[command][1]();
-                    //Debrief eval
-                    if (!lemergencybuttonpressed && Locomotive.EmergencyButtonPressed && Locomotive.IsPlayerTrain)
-                    {
-                        var train = Program.Viewer.PlayerLocomotive.Train;
-                        if (Math.Abs(Locomotive.SpeedMpS) == 0) DbfEvalEBPBstopped++;
-                        if (Math.Abs(Locomotive.SpeedMpS) > 0) DbfEvalEBPBmoving++;
-                        lemergencybuttonpressed = true;
-                        train.DbfEvalValueChanged = true;//Debrief eval
-                    }
-                }
-                else if (UserInput.IsReleased(command))
-                {
-                    UserInputCommands[command][0]();
-                    //Debrief eval
-                    if (lemergencybuttonpressed && !Locomotive.EmergencyButtonPressed) lemergencybuttonpressed = false;
-                }
+                var train = Program.Viewer.PlayerLocomotive.Train;
+                if (Math.Abs(Locomotive.SpeedMpS) == 0)
+                    DbfEvalEBPBstopped++;
+                if (Math.Abs(Locomotive.SpeedMpS) > 0)
+                    DbfEvalEBPBmoving++;
+                lemergencybuttonpressed = true;
+                train.DbfEvalValueChanged = true;//Debrief eval
             }
+            //Debrief eval
+            if (lemergencybuttonpressed && !Locomotive.EmergencyButtonPressed) lemergencybuttonpressed = false;
         }
 
         public override void RegisterUserCommandHandling()
@@ -268,10 +198,74 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             Viewer.UserCommandController.AddEvent(UserCommand.DebugToggleAdvancedAdhesion, KeyEventType.KeyPressed, DebugToggleAdvancedAdhesionCommand, true);
             Viewer.UserCommandController.AddEvent(UserCommand.ControlReverserForward, KeyEventType.KeyPressed, ReverserControlForwards, true);
             Viewer.UserCommandController.AddEvent(UserCommand.ControlReverserBackward, KeyEventType.KeyPressed, ReverserControlBackwards, true);
-            Viewer.UserCommandController.AddEvent(UserCommand.ControlThrottleIncrease, KeyEventType.KeyPressed, StartThrottleIncreaseCommand, true);
-            Viewer.UserCommandController.AddEvent(UserCommand.ControlThrottleDecrease, KeyEventType.KeyPressed, StartThrottleDecreaseCommand, true);
-            Viewer.UserCommandController.AddEvent(UserCommand.ControlThrottleIncrease, KeyEventType.KeyReleased, StopThrottleIncreaseCommand, true);
-            Viewer.UserCommandController.AddEvent(UserCommand.ControlThrottleDecrease, KeyEventType.KeyReleased, StopThrottleDecreaseCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlThrottleIncrease, KeyEventType.KeyPressed, Locomotive.StartThrottleIncrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlThrottleDecrease, KeyEventType.KeyPressed, Locomotive.StartThrottleDecrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlThrottleIncrease, KeyEventType.KeyReleased, Locomotive.StopThrottleIncrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlThrottleDecrease, KeyEventType.KeyReleased, Locomotive.StopThrottleDecrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlThrottleZero, KeyEventType.KeyPressed, Locomotive.ThrottleToZero, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlTrainBrakeIncrease, KeyEventType.KeyPressed, Locomotive.StartTrainBrakeIncrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlTrainBrakeDecrease, KeyEventType.KeyPressed, Locomotive.StartTrainBrakeDecrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlTrainBrakeIncrease, KeyEventType.KeyReleased, Locomotive.StopTrainBrakeIncrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlTrainBrakeDecrease, KeyEventType.KeyReleased, Locomotive.StopTrainBrakeDecrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlTrainBrakeZero, KeyEventType.KeyPressed, Locomotive.StartTrainBrakeZero, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlEngineBrakeIncrease, KeyEventType.KeyPressed, Locomotive.StartEngineBrakeIncrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlEngineBrakeDecrease, KeyEventType.KeyPressed, Locomotive.StartEngineBrakeDecrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlEngineBrakeIncrease, KeyEventType.KeyReleased, Locomotive.StopEngineBrakeIncrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlEngineBrakeDecrease, KeyEventType.KeyReleased, Locomotive.StopEngineBrakeDecrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlBrakemanBrakeIncrease, KeyEventType.KeyPressed, Locomotive.StartBrakemanBrakeIncrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlBrakemanBrakeDecrease, KeyEventType.KeyPressed, Locomotive.StartBrakemanBrakeDecrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlBrakemanBrakeIncrease, KeyEventType.KeyReleased, Locomotive.StopBrakemanBrakeIncrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlBrakemanBrakeDecrease, KeyEventType.KeyReleased, Locomotive.StopBrakemanBrakeDecrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlDynamicBrakeIncrease, KeyEventType.KeyPressed, Locomotive.StartDynamicBrakeIncrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlDynamicBrakeDecrease, KeyEventType.KeyPressed, Locomotive.StartDynamicBrakeDecrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlDynamicBrakeIncrease, KeyEventType.KeyReleased, Locomotive.StopDynamicBrakeIncrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlDynamicBrakeDecrease, KeyEventType.KeyReleased, Locomotive.StopDynamicBrakeDecrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlGearUp, KeyEventType.KeyPressed, StartGearBoxIncrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlGearDown, KeyEventType.KeyPressed, StartGearBoxDecrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlGearUp, KeyEventType.KeyReleased, StopGearBoxIncrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlGearDown, KeyEventType.KeyReleased, StopGearBoxDecrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlSteamHeatIncrease, KeyEventType.KeyPressed, Locomotive.StartSteamHeatIncrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlSteamHeatDecrease, KeyEventType.KeyPressed, Locomotive.StartSteamHeatDecrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlSteamHeatIncrease, KeyEventType.KeyReleased, Locomotive.StopSteamHeatIncrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlSteamHeatDecrease, KeyEventType.KeyReleased, Locomotive.StopSteamHeatDecrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlBailOff, KeyEventType.KeyPressed, BailOffOnCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlBailOff, KeyEventType.KeyReleased, BailOffOffCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlInitializeBrakes, KeyEventType.KeyPressed, InitializeBrakesCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlHandbrakeNone, KeyEventType.KeyPressed, HandbrakeNoneCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlHandbrakeFull, KeyEventType.KeyPressed, HandbrakeFullCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlRetainersOff, KeyEventType.KeyPressed, RetainersOffCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlRetainersOn, KeyEventType.KeyPressed, RetainersOnCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlBrakeHoseConnect, KeyEventType.KeyPressed, BrakeHoseConnectCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlBrakeHoseDisconnect, KeyEventType.KeyPressed, BrakeHoseDisconnectCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlEmergencyPushButton, KeyEventType.KeyPressed, EmergencyPushButtonCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlSander, KeyEventType.KeyPressed, SanderOnCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlSander, KeyEventType.KeyReleased, SanderOffCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlSanderToggle, KeyEventType.KeyPressed, SanderToogleCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlWiper, KeyEventType.KeyPressed, WiperCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlHorn, KeyEventType.KeyPressed, HornOnCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlHorn, KeyEventType.KeyReleased, HornOffCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlBell, KeyEventType.KeyPressed, BellOnCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlBell, KeyEventType.KeyReleased, BellOffCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlBellToggle, KeyEventType.KeyPressed, BellToggleCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlAlerter, KeyEventType.KeyPressed, AlerterOnCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlAlerter, KeyEventType.KeyReleased, AlerterOffCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlHeadlightIncrease, KeyEventType.KeyPressed, HeadlightIncreaseCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlHeadlightDecrease, KeyEventType.KeyPressed, HeadlightDecreaseCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlLight, KeyEventType.KeyPressed, ToggleCabLightCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlRefill, KeyEventType.KeyPressed, AttemptToRefillOrUnload, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlRefill, KeyEventType.KeyReleased, StopRefillingOrUnloading, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlImmediateRefill, KeyEventType.KeyPressed, ImmediateRefill, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlImmediateRefill, KeyEventType.KeyReleased, StopImmediateRefilling, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlWaterScoop, KeyEventType.KeyPressed, ToggleWaterScoopCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlOdoMeterShowHide, KeyEventType.KeyPressed, ResetOdometerCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlOdoMeterReset, KeyEventType.KeyPressed, ResetOdometerCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlOdoMeterDirection, KeyEventType.KeyPressed, ToggleOdometerDirectionCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlCabRadio, KeyEventType.KeyPressed, CabRadioCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlDieselHelper, KeyEventType.KeyPressed, ToggleHelpersEngineCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlGeneric1, KeyEventType.KeyPressed, GenericCommand1On, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlGeneric1, KeyEventType.KeyReleased, GenericCommand1Off, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlGeneric2, KeyEventType.KeyPressed, GenericCommand2On, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlGeneric2, KeyEventType.KeyReleased, GenericCommand2Off, true);
 
             base.RegisterUserCommandHandling();
         }
@@ -283,48 +277,139 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             Viewer.UserCommandController.RemoveEvent(UserCommand.DebugToggleAdvancedAdhesion, KeyEventType.KeyPressed, DebugToggleAdvancedAdhesionCommand);
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlReverserForward, KeyEventType.KeyPressed, ReverserControlForwards);
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlReverserBackward, KeyEventType.KeyPressed, ReverserControlBackwards);
-            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlThrottleIncrease, KeyEventType.KeyPressed, StartThrottleIncreaseCommand);
-            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlThrottleDecrease, KeyEventType.KeyPressed, StartThrottleDecreaseCommand);
-            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlThrottleIncrease, KeyEventType.KeyReleased, StopThrottleIncreaseCommand);
-            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlThrottleDecrease, KeyEventType.KeyReleased, StopThrottleDecreaseCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlThrottleIncrease, KeyEventType.KeyPressed, Locomotive.StartThrottleIncrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlThrottleDecrease, KeyEventType.KeyPressed, Locomotive.StartThrottleDecrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlThrottleIncrease, KeyEventType.KeyReleased, Locomotive.StopThrottleIncrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlThrottleDecrease, KeyEventType.KeyReleased, Locomotive.StopThrottleDecrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlThrottleZero, KeyEventType.KeyPressed, Locomotive.ThrottleToZero);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlTrainBrakeIncrease, KeyEventType.KeyPressed, Locomotive.StartTrainBrakeIncrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlTrainBrakeDecrease, KeyEventType.KeyPressed, Locomotive.StartTrainBrakeDecrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlTrainBrakeIncrease, KeyEventType.KeyReleased, Locomotive.StopTrainBrakeIncrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlTrainBrakeDecrease, KeyEventType.KeyReleased, Locomotive.StopTrainBrakeDecrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlTrainBrakeZero, KeyEventType.KeyPressed, Locomotive.StartTrainBrakeZero);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlEngineBrakeIncrease, KeyEventType.KeyPressed, Locomotive.StartEngineBrakeIncrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlEngineBrakeDecrease, KeyEventType.KeyPressed, Locomotive.StartEngineBrakeDecrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlEngineBrakeIncrease, KeyEventType.KeyReleased, Locomotive.StopEngineBrakeIncrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlEngineBrakeDecrease, KeyEventType.KeyReleased, Locomotive.StopEngineBrakeDecrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlBrakemanBrakeIncrease, KeyEventType.KeyPressed, Locomotive.StartBrakemanBrakeIncrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlBrakemanBrakeDecrease, KeyEventType.KeyPressed, Locomotive.StartBrakemanBrakeDecrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlBrakemanBrakeIncrease, KeyEventType.KeyReleased, Locomotive.StopBrakemanBrakeIncrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlBrakemanBrakeDecrease, KeyEventType.KeyReleased, Locomotive.StopBrakemanBrakeDecrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlDynamicBrakeIncrease, KeyEventType.KeyPressed, Locomotive.StartDynamicBrakeIncrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlDynamicBrakeDecrease, KeyEventType.KeyPressed, Locomotive.StartDynamicBrakeDecrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlDynamicBrakeIncrease, KeyEventType.KeyReleased, Locomotive.StopDynamicBrakeIncrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlDynamicBrakeDecrease, KeyEventType.KeyReleased, Locomotive.StopDynamicBrakeDecrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlGearUp, KeyEventType.KeyPressed, StartGearBoxIncrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlGearDown, KeyEventType.KeyPressed, StartGearBoxDecrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlGearUp, KeyEventType.KeyReleased, StopGearBoxIncrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlGearDown, KeyEventType.KeyReleased, StopGearBoxDecrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlSteamHeatIncrease, KeyEventType.KeyPressed, Locomotive.StartSteamHeatIncrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlSteamHeatDecrease, KeyEventType.KeyPressed, Locomotive.StartSteamHeatDecrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlSteamHeatIncrease, KeyEventType.KeyReleased, Locomotive.StopSteamHeatIncrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlSteamHeatDecrease, KeyEventType.KeyReleased, Locomotive.StopSteamHeatDecrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlBailOff, KeyEventType.KeyPressed, BailOffOnCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlBailOff, KeyEventType.KeyReleased, BailOffOffCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlInitializeBrakes, KeyEventType.KeyPressed, InitializeBrakesCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlHandbrakeNone, KeyEventType.KeyPressed, HandbrakeNoneCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlHandbrakeFull, KeyEventType.KeyPressed, HandbrakeFullCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlRetainersOff, KeyEventType.KeyPressed, RetainersOffCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlRetainersOn, KeyEventType.KeyPressed, RetainersOnCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlBrakeHoseConnect, KeyEventType.KeyPressed, BrakeHoseConnectCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlBrakeHoseDisconnect, KeyEventType.KeyPressed, BrakeHoseDisconnectCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlEmergencyPushButton, KeyEventType.KeyPressed, EmergencyPushButtonCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlSander, KeyEventType.KeyPressed, SanderOnCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlSander, KeyEventType.KeyReleased, SanderOffCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlSanderToggle, KeyEventType.KeyPressed, SanderToogleCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlWiper, KeyEventType.KeyPressed, WiperCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlHorn, KeyEventType.KeyPressed, HornOnCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlHorn, KeyEventType.KeyReleased, HornOffCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlBell, KeyEventType.KeyPressed, BellOnCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlBell, KeyEventType.KeyReleased, BellOffCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlBellToggle, KeyEventType.KeyPressed, BellToggleCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlAlerter, KeyEventType.KeyPressed, AlerterOnCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlAlerter, KeyEventType.KeyReleased, AlerterOffCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlHeadlightIncrease, KeyEventType.KeyPressed, HeadlightIncreaseCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlHeadlightDecrease, KeyEventType.KeyPressed, HeadlightDecreaseCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlLight, KeyEventType.KeyPressed, ToggleCabLightCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlRefill, KeyEventType.KeyPressed, AttemptToRefillOrUnload);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlRefill, KeyEventType.KeyReleased, StopRefillingOrUnloading);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlImmediateRefill, KeyEventType.KeyPressed, ImmediateRefill);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlImmediateRefill, KeyEventType.KeyReleased, StopImmediateRefilling);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlWaterScoop, KeyEventType.KeyPressed, ToggleWaterScoopCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlOdoMeterShowHide, KeyEventType.KeyPressed, ResetOdometerCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlOdoMeterReset, KeyEventType.KeyPressed, ResetOdometerCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlOdoMeterDirection, KeyEventType.KeyPressed, ToggleOdometerDirectionCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlCabRadio, KeyEventType.KeyPressed, CabRadioCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlDieselHelper, KeyEventType.KeyPressed, ToggleHelpersEngineCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlGeneric1, KeyEventType.KeyPressed, GenericCommand1On);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlGeneric1, KeyEventType.KeyReleased, GenericCommand1Off);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlGeneric2, KeyEventType.KeyPressed, GenericCommand2On);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlGeneric2, KeyEventType.KeyReleased, GenericCommand2Off);
 
             base.UnregisterUserCommandHandling();
         }
 
-        private void ShowCabCommand()
-        {
-            Locomotive.ShowCab = !Locomotive.ShowCab;
-        }
-
-        private void DebugResetWheelSlipCommand()
-        {
-            Locomotive.Train.SignalEvent(TrainEvent.ResetWheelSlip);
-        }
-
+        #region private event handlers
+        // To be able to attach and detach from UserCommandController we need some actual instance
+        // therefore can't use anonymous lambda
+#pragma warning disable IDE0022 // Use block body for methods
+        private void ShowCabCommand() => Locomotive.ShowCab = !Locomotive.ShowCab;
+        private void DebugResetWheelSlipCommand() => Locomotive.Train.SignalEvent(TrainEvent.ResetWheelSlip);
         private void DebugToggleAdvancedAdhesionCommand()
         {
-            Locomotive.Train.SignalEvent(TrainEvent.ResetWheelSlip); Locomotive.Simulator.UseAdvancedAdhesion = !Locomotive.Simulator.UseAdvancedAdhesion;
+            Locomotive.Train.SignalEvent(TrainEvent.ResetWheelSlip);
+            Locomotive.Simulator.UseAdvancedAdhesion = !Locomotive.Simulator.UseAdvancedAdhesion;
         }
-
-        private void StartThrottleIncreaseCommand()
+        private void BailOffOnCommand() => _ = new BailOffCommand(Viewer.Log, true);
+        private void BailOffOffCommand() => _ = new BailOffCommand(Viewer.Log, false);
+        private void InitializeBrakesCommand() => _ = new InitializeBrakesCommand(Viewer.Log);
+        private void HandbrakeNoneCommand() => _ = new HandbrakeCommand(Viewer.Log, false);
+        private void HandbrakeFullCommand() => _ = new HandbrakeCommand(Viewer.Log, true);
+        private void RetainersOffCommand() => _ = new RetainersCommand(Viewer.Log, false);
+        private void RetainersOnCommand() => _ = new RetainersCommand(Viewer.Log, true);
+        private void BrakeHoseConnectCommand() => _ = new BrakeHoseConnectCommand(Viewer.Log, true);
+        private void BrakeHoseDisconnectCommand() => _ = new BrakeHoseConnectCommand(Viewer.Log, false);
+        private void EmergencyPushButtonCommand() => _ = new EmergencyPushButtonCommand(Viewer.Log);
+        private void SanderOnCommand() => _ = new SanderCommand(Viewer.Log, true);
+        private void SanderOffCommand() => _ = new SanderCommand(Viewer.Log, false);
+        private void SanderToogleCommand() => _ = new SanderCommand(Viewer.Log, !Locomotive.Sander);
+        private void WiperCommand() => _ = new WipersCommand(Viewer.Log, !Locomotive.Wiper);
+        private void HornOnCommand() => _ = new HornCommand(Viewer.Log, true);
+        private void HornOffCommand() => _ = new HornCommand(Viewer.Log, false);
+        private void BellOnCommand() => _ = new BellCommand(Viewer.Log, true);
+        private void BellOffCommand() => _ = new BellCommand(Viewer.Log, false);
+        private void BellToggleCommand() => _ = new BellCommand(Viewer.Log, !Locomotive.Bell);
+        private void AlerterOnCommand() => _ = new AlerterCommand(Viewer.Log, true);
+        private void AlerterOffCommand() => _ = new AlerterCommand(Viewer.Log, false);
+        private void HeadlightIncreaseCommand() => _ = new HeadlightCommand(Viewer.Log, true);
+        private void HeadlightDecreaseCommand() => _ = new HeadlightCommand(Viewer.Log, false);
+        private void ToggleCabLightCommand() => _ = new ToggleCabLightCommand(Viewer.Log);
+        private void ToggleWaterScoopCommand() => _ = new ToggleWaterScoopCommand(Viewer.Log);
+        private void ToggleOdometerCommand() => _ = new ToggleOdometerCommand(Viewer.Log);
+        private void ResetOdometerCommand() => _ = new ResetOdometerCommand(Viewer.Log);
+        private void ToggleOdometerDirectionCommand() => _ = new ToggleOdometerDirectionCommand(Viewer.Log);
+        private void CabRadioCommand() => _ = new CabRadioCommand(Viewer.Log, !Locomotive.CabRadioOn);
+        private void ToggleHelpersEngineCommand() => _ = new ToggleHelpersEngineCommand(Viewer.Log);
+        private void GenericCommand1On()
         {
-            Locomotive.StartThrottleIncrease();
+            _ = new TCSButtonCommand(Viewer.Log, true, 0);
+            _ = new TCSSwitchCommand(Viewer.Log, !Locomotive.TrainControlSystem.TCSCommandSwitchOn[0], 0);
         }
-
-        private void StopThrottleIncreaseCommand()
+        private void GenericCommand1Off()
         {
-            Locomotive.StopThrottleIncrease();
+            _ = new TCSButtonCommand(Viewer.Log, false, 0);
         }
-
-        private void StartThrottleDecreaseCommand()
+        private void GenericCommand2On()
         {
-            Locomotive.StartThrottleDecrease();
+            _ = new TCSButtonCommand(Viewer.Log, true, 1);
+            _ = new TCSSwitchCommand(Viewer.Log, !Locomotive.TrainControlSystem.TCSCommandSwitchOn[1], 1);
         }
-
-        private void StopThrottleDecreaseCommand()
+        private void GenericCommand2Off()
         {
-            Locomotive.StopThrottleDecrease();
+            _ = new TCSButtonCommand(Viewer.Log, false, 1);
         }
+#pragma warning restore IDE0022 // Use block body for methods
+        #endregion
 
         /// <summary>
         /// We are about to display a video frame.  Calculate positions for 
@@ -716,15 +801,15 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         /// <summary>
         // Immediate refueling process is different from the process of refueling individual locomotives.
         /// </summary> 
-        public void StopImmediateRefilling(CommandLog log)
+        public void StopImmediateRefilling()
         {
-            new ImmediateRefillCommand(log);  // for Replay to use
+            new ImmediateRefillCommand(Viewer.Log);  // for Replay to use
         }
 
         /// <summary>
         /// Ends a continuous increase in controlled value.
         /// </summary>
-        public void StopRefillingOrUnloading(CommandLog log)
+        public void StopRefillingOrUnloading()
         {
             if (MatchedWagonAndPickup == null)
                 return;
@@ -745,7 +830,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 match.Wagon.UnloadingPartsOpen = false;
             }
 
-            new RefillCommand(log, controller.CurrentValue, controller.CommandStartTime);  // for Replay to use
+            new RefillCommand(Viewer.Log, controller.CurrentValue, controller.CommandStartTime);  // for Replay to use
             if (controller.UpdateValue >= 0)
                 controller.StopIncrease();
             else controller.StopDecrease();
@@ -1218,7 +1303,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             var i = 0;
 
             var controlSortIndex = 1;  // Controls are drawn atop the cabview and in order they appear in the CVF file.
-            // This allows the segments of moving-scale meters to be hidden by covers (e.g. TGV-A)
+                                       // This allows the segments of moving-scale meters to be hidden by covers (e.g. TGV-A)
             CabViewControlRenderersList.Add(new List<CabViewControlRenderer>());
             foreach (CabViewControl cvc in CVFFile.CabViewControls)
             {
@@ -2534,7 +2619,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         public Dictionary<int, AnimatedPartMultiState> AnimateParts = null;
         Dictionary<int, ThreeDimCabGaugeNative> Gauges = null;
         Dictionary<int, AnimatedPart> OnDemandAnimateParts = null; //like external wipers, and other parts that will be switched on by mouse in the future
-        //Dictionary<int, DigitalDisplay> DigitParts = null;
+                                                                   //Dictionary<int, DigitalDisplay> DigitParts = null;
         Dictionary<int, ThreeDimCabDigit> DigitParts3D = null;
         AnimatedPart ExternalWipers = null; // setting to zero to prevent a warning. Probably this will be used later. TODO
         protected MSTSLocomotive MSTSLocomotive { get { return (MSTSLocomotive)Car; } }
@@ -2626,7 +2711,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         }
                         else
                         {//for pointer animation
-                            //if there is a part already, will insert this into it, otherwise, create a new
+                         //if there is a part already, will insert this into it, otherwise, create a new
                             if (!AnimateParts.ContainsKey(key))
                             {
                                 tmpPart = new AnimatedPartMultiState(TrainCarShape, type, key);
@@ -2754,9 +2839,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             TrainCarShape = trainCarShape;
             XNAMatrix = TrainCarShape.SharedShape.Matrices[iMatrix];
             var maxVertex = 32;// every face has max 5 digits, each has 2 triangles
-            //Material = viewer.MaterialManager.Load("Scenery", Helpers.GetRouteTextureFile(viewer.Simulator, Helpers.TextureFlags.None, texture), (int)(SceneryMaterialOptions.None | SceneryMaterialOptions.AlphaBlendingBlend), 0);
+                               //Material = viewer.MaterialManager.Load("Scenery", Helpers.GetRouteTextureFile(viewer.Simulator, Helpers.TextureFlags.None, texture), (int)(SceneryMaterialOptions.None | SceneryMaterialOptions.AlphaBlendingBlend), 0);
             Material = FindMaterial(false);//determine normal material
-            // Create and populate a new ShapePrimitive
+                                           // Create and populate a new ShapePrimitive
             NumVertices = NumIndices = 0;
 
             VertexList = new VertexPositionNormalTexture[maxVertex];
@@ -3013,7 +3098,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             XNAMatrix = TrainCarShape.SharedShape.Matrices[iMatrix];
             CabViewGaugeControl gauge = CVFR.GetGauge();
             var maxVertex = 4;// a rectangle
-            //Material = viewer.MaterialManager.Load("Scenery", Helpers.GetRouteTextureFile(viewer.Simulator, Helpers.TextureFlags.None, texture), (int)(SceneryMaterialOptions.None | SceneryMaterialOptions.AlphaBlendingBlend), 0);
+                              //Material = viewer.MaterialManager.Load("Scenery", Helpers.GetRouteTextureFile(viewer.Simulator, Helpers.TextureFlags.None, texture), (int)(SceneryMaterialOptions.None | SceneryMaterialOptions.AlphaBlendingBlend), 0);
 
             // Create and populate a new ShapePrimitive
             NumVertices = NumIndices = 0;

@@ -65,23 +65,36 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             }
         }
 
-
-        /// <summary>
-        /// A keyboard or mouse click has occured. Read the UserInput
-        /// structure to determine what was pressed.
-        /// </summary>
-        public override void HandleUserInput(in ElapsedTime elapsedTime)
+        public override void RegisterUserCommandHandling()
         {
-            base.HandleUserInput(elapsedTime);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlVacuumExhausterPressed, KeyEventType.KeyPressed, VacuumExhausterOnCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlVacuumExhausterPressed, KeyEventType.KeyReleased, VacuumExhausterOffCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlDieselPlayer, KeyEventType.KeyPressed, TogglePlayerEngineCommand, true);
+            base.RegisterUserCommandHandling();
         }
 
-        public override void InitializeUserInputCommands()
+        public override void UnregisterUserCommandHandling()
         {
-            UserInputCommands.Add(UserCommand.ControlVacuumExhausterPressed, new Action[] { () => new VacuumExhausterCommand(Viewer.Log, false), () => new VacuumExhausterCommand(Viewer.Log, true) });
-            UserInputCommands.Add(UserCommand.ControlDieselPlayer, new Action[] { Noop, () => new TogglePlayerEngineCommand(Viewer.Log) });
-            base.InitializeUserInputCommands();
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlVacuumExhausterPressed, KeyEventType.KeyPressed, VacuumExhausterOnCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlVacuumExhausterPressed, KeyEventType.KeyReleased, VacuumExhausterOffCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlDieselPlayer, KeyEventType.KeyPressed, TogglePlayerEngineCommand);
+            base.UnregisterUserCommandHandling();
         }
 
+        private void VacuumExhausterOnCommand()
+        {
+            _ = new VacuumExhausterCommand(Viewer.Log, true);
+        }
+
+        private void VacuumExhausterOffCommand()
+        {
+            _ = new VacuumExhausterCommand(Viewer.Log, false);
+        }
+
+        private void TogglePlayerEngineCommand()
+        {
+            _ = new TogglePlayerEngineCommand(Viewer.Log);
+        }
 
         /// <summary>
         /// We are about to display a video frame.  Calculate positions for 
