@@ -402,12 +402,12 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             #region Input Command Controller
             KeyboardInputGameComponent keyboardInputGameComponent = new KeyboardInputGameComponent(Game);
-            Game.Components.Add(keyboardInputGameComponent);
+            UpdaterProcess.GameComponents.Add(keyboardInputGameComponent);
             KeyboardInputHandler<UserCommand> keyboardInput = new KeyboardInputHandler<UserCommand>();
             keyboardInput.Initialize(Settings.Input.UserCommands, keyboardInputGameComponent, UserCommandController);
 
             MouseInputGameComponent mouseInputGameComponent = new MouseInputGameComponent(Game);
-            Game.Components.Add(mouseInputGameComponent);
+            UpdaterProcess.GameComponents.Add(mouseInputGameComponent);
             MouseInputHandler<UserCommand> mouseInput = new MouseInputHandler<UserCommand>();
             mouseInput.Initialize(mouseInputGameComponent, keyboardInputGameComponent, UserCommandController);
 

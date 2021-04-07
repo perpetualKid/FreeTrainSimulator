@@ -21,6 +21,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
@@ -234,7 +235,17 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             Exit();
             // Show the user that it's all gone horribly wrong.
             if (Settings.ShowErrorDialogs)
-                MessageBox.Show(error.ToString(), $"{Application.ProductName}  {VersionInfo.Version}");
+            {
+                string errorSummary = error.GetType().FullName + ": " + error.Message;
+                string logFile = Path.Combine(Settings.LoggingPath, Settings.LoggingFilename);
+                DialogResult openTracker = MessageBox.Show($"A fatal error has occured and {RuntimeInfo.ProductName} cannot continue.\n\n" +
+                        $"    {errorSummary}\n\n" +
+                        $"This error may be due to bad data or a bug. You can help improve {RuntimeInfo.ProductName} by reporting this error in our bug tracker at https://github.com/perpetualKid/ORTS-MG/issues and attaching the log file {logFile}.\n\n" +
+                        ">>> Click OK to report this error on the GitHub bug tracker <<<",
+                        $"{RuntimeInfo.ProductName} {VersionInfo.Version}", MessageBoxButtons.OKCancel, MessageBoxIcon.Error);
+                if (openTracker == DialogResult.OK)
+                    Process.Start(new ProcessStartInfo("https://github.com/perpetualKid/ORTS-MG/issues") { UseShellExecute = true });
+            }
         }
     }
 }

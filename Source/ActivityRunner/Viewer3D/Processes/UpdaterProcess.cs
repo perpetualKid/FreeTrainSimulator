@@ -91,7 +91,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         //[CallOnThread("Render")]
         internal void StartUpdate(RenderFrame frame, GameTime gameTime)
         {
-            Debug.Assert(State.Finished);
             CurrentFrame = frame;
             this.gameTime = gameTime;
             State.SignalStart();
