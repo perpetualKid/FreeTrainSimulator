@@ -64,7 +64,8 @@ namespace Orts.ActivityRunner.Viewer3D
         // User setups.
         public UserSettings Settings { get; private set; }
 
-        public UserCommandController<UserCommand> UserCommandController { get; private set; }
+        public UserCommandController<UserCommand> UserCommandController { get; }
+
         // Multi-threaded processes
         public LoaderProcess LoaderProcess { get; private set; }
         public UpdaterProcess UpdaterProcess { get; private set; }
@@ -236,7 +237,6 @@ namespace Orts.ActivityRunner.Viewer3D
 
         private bool lockShadows;
         private bool logRenderFrame;
-
 
         /// <summary>
         /// Finds time of last entry to set ReplayEndsAt and provide the Replay started message.
@@ -468,7 +468,7 @@ namespace Orts.ActivityRunner.Viewer3D
             CompassWindow = new CompassWindow(WindowManager);
             TracksDebugWindow = new TracksDebugWindow(WindowManager);
             SignallingDebugWindow = new SignallingDebugWindow(WindowManager);
-            ComposeMessageWindow = new ComposeMessage(WindowManager);
+            ComposeMessageWindow = new ComposeMessage(WindowManager, keyboardInput, Game);
             TrainListWindow = new TrainListWindow(WindowManager);
             TTDetachWindow = new TTDetachWindow(WindowManager);
             WindowManager.Initialize();
@@ -674,8 +674,6 @@ namespace Orts.ActivityRunner.Viewer3D
             });
             UserCommandController.AddEvent(UserCommand.GameMultiPlayerTexting, KeyEventType.KeyPressed, () =>
             {
-                if (ComposeMessageWindow == null)
-                    ComposeMessageWindow = new ComposeMessage(WindowManager);
                 ComposeMessageWindow.InitMessage();
             });
             UserCommandController.AddEvent(UserCommand.GameChangeCab, KeyEventType.KeyPressed, () =>
@@ -1150,11 +1148,6 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             RealTime += elapsedRealTime;
             var elapsedTime = new ElapsedTime(Simulator.GetElapsedClockSeconds(elapsedRealTime), elapsedRealTime);
-
-            if (ComposeMessageWindow.Visible == true)
-            {
-                ComposeMessageWindow.AppendMessage(UserInput.GetPressedKeys(), UserInput.GetPreviousPressedKeys());
-            }
 
             HandleUserInput(elapsedTime);
             // We need to do it also here, because passing from manual to auto a ReverseFormation may be needed

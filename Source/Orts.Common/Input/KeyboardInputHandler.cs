@@ -11,6 +11,7 @@ namespace Orts.Common.Input
         private ILookup<int, T> userCommandsLookup;
         private ILookup<int, (T, KeyModifiers)> modifyableCommandsLookup;
         private UserCommandController<T> userCommandController;
+        private bool suspended;
 
         public void Initialize(EnumArray<UserCommandInput, T> userCommands, KeyboardInputGameComponent inputGameComponent, UserCommandController<T> userCommandController)
         {
@@ -56,8 +57,21 @@ namespace Orts.Common.Input
 
         }
 
+        public void SuspendForOverlayInput()
+        {
+            suspended = true;
+        }
+
+        public void ResumeFromOverlayInput()
+        {
+            suspended = false;
+        }
+
         public void Trigger(int eventCode, GameTime gameTime, KeyEventType eventType, KeyModifiers modifiers)
         {
+            if (suspended)
+                return;
+
             foreach (T command in userCommandsLookup[eventCode])
                 userCommandController.Trigger(command, eventType, UserCommandArgs.Empty, gameTime);
 
