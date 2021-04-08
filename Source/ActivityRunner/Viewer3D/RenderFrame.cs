@@ -245,6 +245,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         private readonly int shadowMapCount;
         private readonly bool dynamicShadows;
+        private bool logRenderFrame;
 
         public RenderFrame(Game game)
         {
@@ -353,14 +354,12 @@ namespace Orts.ActivityRunner.Viewer3D
             renderItemComparer.Update(cameraLocation);
         }
 
-        static bool LockShadows;
         //[CallOnThread("Updater")]
-        public void PrepareFrame(in ElapsedTime elapsedTime)
+        public void PrepareFrame(in ElapsedTime elapsedTime, bool lockShadows, bool logRenderFrame)
         {
-            if (UserInput.IsPressed(UserCommand.DebugLockShadows))
-                LockShadows = !LockShadows;
+            this.logRenderFrame = logRenderFrame;
 
-            if (dynamicShadows && (shadowMapCount > 0) && !LockShadows)
+            if (dynamicShadows && (shadowMapCount > 0) && !lockShadows)
             {
                 Vector3 normalizedSolarDirection = solarDirection;
                 normalizedSolarDirection.Normalize();
@@ -551,23 +550,23 @@ namespace Orts.ActivityRunner.Viewer3D
         //[CallOnThread("Render")]
         public void Draw()
         {
-            var logging = UserInput.IsPressed(UserCommand.DebugLogRenderFrame);
-            if (logging)
+            if (logRenderFrame)
             {
                 Trace.WriteLine(string.Empty);
                 Trace.WriteLine(string.Empty);
                 Trace.WriteLine("Draw {");
             }
             if (dynamicShadows && (shadowMapCount > 0) && shadowMapMaterial != null)
-                DrawShadows(logging);
-            DrawSimple(logging);
+                DrawShadows(logRenderFrame);
+            DrawSimple(logRenderFrame);
             for (var i = 0; i < (int)RenderPrimitiveSequence.Sentinel; i++)
                 game.RenderProcess.PrimitiveCount[i] = renderItems[i].Values.Sum(l => l.Count);
 
-            if (logging)
+            if (logRenderFrame)
             {
                 Trace.WriteLine("}");
                 Trace.WriteLine(string.Empty);
+                logRenderFrame = false;
             }
         }
 

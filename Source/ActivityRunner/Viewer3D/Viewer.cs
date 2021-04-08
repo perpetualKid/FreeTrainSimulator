@@ -234,6 +234,10 @@ namespace Orts.ActivityRunner.Viewer3D
         public static double DbfEvalIniAutoPilotTimeS = 0;//Debrief eval  
         public bool DbfEvalAutoPilot = false;//DebriefEval
 
+        private bool lockShadows;
+        private bool logRenderFrame;
+
+
         /// <summary>
         /// Finds time of last entry to set ReplayEndsAt and provide the Replay started message.
         /// </summary>
@@ -917,6 +921,8 @@ namespace Orts.ActivityRunner.Viewer3D
                 MultiPlayerViewer.RegisterInputEvents(this);
             }
 
+            UserCommandController.AddEvent(UserCommand.DebugLockShadows, KeyEventType.KeyPressed, () => lockShadows = !lockShadows);
+            UserCommandController.AddEvent(UserCommand.DebugLogRenderFrame, KeyEventType.KeyPressed, () => logRenderFrame = true);
             SetCommandReceivers();
             InitReplay();
         }
@@ -1258,13 +1264,14 @@ namespace Orts.ActivityRunner.Viewer3D
 
             frame.PrepareFrame(this);
             Camera.PrepareFrame(frame, elapsedTime);
-            frame.PrepareFrame(elapsedTime);
+            frame.PrepareFrame(elapsedTime, lockShadows, logRenderFrame);
             World.PrepareFrame(frame, elapsedTime);
             InfoDisplay.PrepareFrame(frame, elapsedTime);
             // TODO: This is not correct. The ActivityWindow's PrepareFrame is already called by the WindowManager!
             if (Simulator.ActivityRun != null) ActivityWindow.PrepareFrame(elapsedTime, true);
 
             WindowManager.PrepareFrame(frame, elapsedTime);
+            logRenderFrame = false;
         }
 
         private void LoadDefectCarSound(TrainCar car, string filename)
