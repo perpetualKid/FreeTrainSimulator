@@ -221,8 +221,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             }
                             else if (signalObj != null)
                             {
-                                string aspects = string.Join(" / ", signalObj.Signal.SignalHeads.Select(
-                                    x => x.SignalIndicationState.ToString() + (x.TextSignalAspect.Length > 0 ? $" ({x.TextSignalAspect})" : string.Empty)
+                                var aspects = string.Join(" / ", signalObj.Signal.SignalHeads.Select(
+                                    head => $"{head.SignalIndicationState}" + (head.TextSignalAspect.Length > 0 ? $" ({head.TextSignalAspect})" : string.Empty)
                                     ));
                                 primitives.Add(new DispatcherLabel(currentPosition.WorldLocation,
                                            GetAspect(signalObj.Signal) == DebugWindowSignalAspect.Stop ? Color.Red :
