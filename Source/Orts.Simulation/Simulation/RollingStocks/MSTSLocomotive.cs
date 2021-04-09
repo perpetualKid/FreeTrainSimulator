@@ -4925,6 +4925,9 @@ namespace Orts.Simulation.RollingStocks
                 case CabViewControlType.Orts_PowerKey:
                     data = PowerKey ? 1 : 0;
                     break;
+                case CabViewControlType.Orts_2DExternalWipers:
+                    data = Wiper ? 1 : 0;
+                    break;
                 case CabViewControlType.Orts_HourDial:
                     float hour = (float)(Simulator.ClockTime / 3600) % 12;
                     if (hour < 0)

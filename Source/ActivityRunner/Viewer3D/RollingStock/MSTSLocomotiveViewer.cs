@@ -2004,7 +2004,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
     /// </summary>
     public class CabViewDiscreteRenderer : CabViewControlRenderer, ICabViewMouseControlRenderer
     {
-        protected readonly CabViewFramedControl ControlDiscrete;
+        readonly CabViewFramedControl ControlDiscrete;
         readonly Rectangle SourceRectangle;
         Rectangle DestinationRectangle = new Rectangle();
         public readonly float CVCFlashTimeOn = 0.75f;
@@ -2038,6 +2038,12 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 if ((mS.Styles.Count > index) && (mS.Styles[index] == 1) && (CumulativeTime > CVCFlashTimeOn))
                     return;
             }
+
+            PrepareFrameForIndex(frame, elapsedTime, index);
+        }
+
+        protected void PrepareFrameForIndex(RenderFrame frame, ElapsedTime elapsedTime, int index)
+        {
             var dark = Viewer.MaterialManager.sunDirection.Y <= -0.085f || Viewer.Camera.IsUnderground;
 
             Texture = CABTextureManager.GetTextureByIndexes(Control.AceFile, index, dark, Locomotive.CabLightOn, out IsNightTexture, HasCabLightDirectory);
@@ -2069,7 +2075,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         /// Determines the index of the Texture to be drawn
         /// </summary>
         /// <returns>index of the Texture</returns>
-        public virtual int GetDrawIndex()
+        public int GetDrawIndex()
         {
             var data = Locomotive.GetDataOf(Control);
 
@@ -2541,59 +2547,42 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
     /// </summary>
     public class CabViewAnimationsRenderer : CabViewDiscreteRenderer
     {
-        double CumulativeTime;
-        CabViewAnimatedDisplayControl ControlAnimated;
-        float HalfCycleTimeS;
-        bool wiperOn = false;
+        private double CumulativeTime;
+        private readonly float CycleTimeS;
+        private bool AnimationOn = false;
 
-        public CabViewAnimationsRenderer(Viewer viewer, MSTSLocomotive locomotive, CabViewFramedControl control, CabShader shader)
+        public CabViewAnimationsRenderer(Viewer viewer, MSTSLocomotive locomotive, CabViewAnimatedDisplayControl control, CabShader shader)
             : base(viewer, locomotive, control, shader)
         {
-            ControlAnimated = (CabViewAnimatedDisplayControl)ControlDiscrete;
-            HalfCycleTimeS = ControlAnimated.CycleTimeS * 0.5f;
-            wiperOn = Locomotive.Wiper;
+            CycleTimeS = control.CycleTimeS;
         }
 
         public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
-            if (Locomotive.Wiper) wiperOn = true;
-            if (wiperOn)
+            var animate = Locomotive.GetDataOf(Control) != 0;
+            if (animate)
+                AnimationOn = true;
+
+            int index;
+            var halfCycleS = CycleTimeS / 2f;
+            if (AnimationOn)
             {
                 CumulativeTime += elapsedTime.ClockSeconds;
-                if (CumulativeTime > ControlAnimated.CycleTimeS && !Locomotive.Wiper)
-                    wiperOn = false;
-                while (CumulativeTime > ControlAnimated.CycleTimeS)
-                    CumulativeTime -= ControlAnimated.CycleTimeS;
+                if (CumulativeTime > CycleTimeS && !animate)
+                    AnimationOn = false;
+                CumulativeTime %= CycleTimeS;
+
+                if (CumulativeTime < halfCycleS)
+                    index = PercentToIndex((float)(CumulativeTime / halfCycleS));
+                else
+                    index = PercentToIndex((float)(CycleTimeS - CumulativeTime) / halfCycleS);
             }
-            base.PrepareFrame(frame, elapsedTime);
-        }
-
-
-        public override int GetDrawIndex()
-        {
-            var data = Locomotive.GetDataOf(Control);
-
-            var index = 0;
-            switch (ControlDiscrete.ControlType)
+            else
             {
-                case CabViewControlType.Orts_2DExternalWipers:
-                    if (wiperOn)
-                    {
-                        if (CumulativeTime < HalfCycleTimeS)
-                            index = PercentToIndex((float)(CumulativeTime / HalfCycleTimeS));
-                        else
-                            index = PercentToIndex((float)(ControlAnimated.CycleTimeS - CumulativeTime) / HalfCycleTimeS);
-                    }
-                    break;
+                index = 0;
             }
-            // If it is a control with NumPositions and NumValues, the index becomes the reference to the Positions entry, which in turn is the frame index within the .ace file
-            if (ControlDiscrete is CabViewDiscreteControl && !(ControlDiscrete is CabViewSignalControl) && (ControlDiscrete as CabViewDiscreteControl).Positions.Count > index &&
-                (ControlDiscrete as CabViewDiscreteControl).Positions.Count == ControlDiscrete.Values.Count && index >= 0)
-                index = (ControlDiscrete as CabViewDiscreteControl).Positions[index];
 
-            if (index >= ControlDiscrete.FramesCount) index = ControlDiscrete.FramesCount - 1;
-            if (index < 0) index = 0;
-            return index;
+            PrepareFrameForIndex(frame, elapsedTime, index);
         }
     }
 
