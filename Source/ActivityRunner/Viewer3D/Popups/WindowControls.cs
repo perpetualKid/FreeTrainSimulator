@@ -662,6 +662,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 else if (e.MousePosition.X > Position.Left + 2 * TextHeight + thumbOffset)
                     // Mouse down occured on right gutter.
                     SetScrollPosition(scrollPosition + 100);
+                capturedForDragging = true;
                 return true;
             }
             return false;

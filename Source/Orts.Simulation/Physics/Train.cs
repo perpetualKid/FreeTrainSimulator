@@ -502,8 +502,8 @@ namespace Orts.Simulation.Physics
                 TCRoute = new TrackCircuitRoutePath(source.TCRoute);
             }
 
-            ValidRoute[0] = new TrackCircuitPartialPathRoute(source.ValidRoute[0]);
-            ValidRoute[1] = new TrackCircuitPartialPathRoute(source.ValidRoute[1]);
+            ValidRoute[0] = source.ValidRoute[0] != null ? new TrackCircuitPartialPathRoute(source.ValidRoute[0]) : null;
+            ValidRoute[1] = source.ValidRoute[1] != null ? new TrackCircuitPartialPathRoute(source.ValidRoute[1]) : null;
 
             DistanceTravelledM = source.DistanceTravelledM;
 

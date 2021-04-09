@@ -45,12 +45,12 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 			else heightForLabels = (vbox.RemainingHeight - 2 * ControlLayout.SeparatorSize) / 2;
             var spacing = (heightForLabels - Owner.TextFontDefault.Height) / 2;
             vbox.AddSpace(0, spacing);
-            vbox.Add(buttonQuit = new Label(vbox.RemainingWidth, Owner.TextFontDefault.Height, Viewer.Catalog.GetString("Quit {1} ({0})", Owner.Viewer.Settings.Input.Commands[(int)UserCommand.GameQuit], Application.ProductName), LabelAlignment.Center));
+            vbox.Add(buttonQuit = new Label(vbox.RemainingWidth, Owner.TextFontDefault.Height, Viewer.Catalog.GetString("Quit {1} ({0})", Owner.Viewer.Settings.Input.UserCommands[UserCommand.GameQuit], Application.ProductName), LabelAlignment.Center));
             vbox.AddSpace(0, spacing);
             vbox.AddHorizontalSeparator();
 			if (!Orts.MultiPlayer.MPManager.IsMultiPlayer())
 			{
-                buttonSave = new Label(vbox.RemainingWidth, Owner.TextFontDefault.Height, Viewer.Catalog.GetString("Save your game ({0})", Owner.Viewer.Settings.Input.Commands[(int)UserCommand.GameSave]), LabelAlignment.Center);
+                buttonSave = new Label(vbox.RemainingWidth, Owner.TextFontDefault.Height, Viewer.Catalog.GetString("Save your game ({0})", Owner.Viewer.Settings.Input.UserCommands[UserCommand.GameSave]), LabelAlignment.Center);
 				vbox.AddSpace(0, spacing);
 				vbox.Add(buttonSave);
 				vbox.AddSpace(0, spacing);
@@ -58,7 +58,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 				buttonSave.Click += new Action<Control, Point>(buttonSave_Click);
 			}
             vbox.AddSpace(0, spacing);
-            vbox.Add(buttonContinue = new Label(vbox.RemainingWidth, Owner.TextFontDefault.Height, Viewer.Catalog.GetString("Continue playing ({0})", Owner.Viewer.Settings.Input.Commands[(int)UserCommand.GamePauseMenu]), LabelAlignment.Center));
+            vbox.Add(buttonContinue = new Label(vbox.RemainingWidth, Owner.TextFontDefault.Height, Viewer.Catalog.GetString("Continue playing ({0})", Owner.Viewer.Settings.Input.UserCommands[UserCommand.GamePauseMenu]), LabelAlignment.Center));
             buttonQuit.Click += new Action<Control, Point>(buttonQuit_Click);
             buttonContinue.Click += new Action<Control, Point>(buttonContinue_Click);
             return vbox;

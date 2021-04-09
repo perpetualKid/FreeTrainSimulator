@@ -35,6 +35,26 @@ namespace Orts.Settings.Util
 
         public static int MapWidth => KeyboardLayout[0].Length;
 
+        // These should be placed in order of priority - the first found match is used.
+        private static readonly List<KeyValuePair<string, Color>> prefixesToColors = new List<KeyValuePair<string, Color>>()
+        {
+            new KeyValuePair<string, Color>("ControlReverser", Color.DarkGreen),
+            new KeyValuePair<string, Color>("ControlThrottle", Color.DarkGreen),
+            new KeyValuePair<string, Color>("ControlTrainBrake", Color.DarkRed),
+            new KeyValuePair<string, Color>("ControlEngineBrake", Color.DarkRed),
+            new KeyValuePair<string, Color>("ControlBrakemanBrake", Color.DarkRed),
+            new KeyValuePair<string, Color>("ControlDynamicBrake", Color.DarkRed),
+            new KeyValuePair<string, Color>("ControlBrakeHose", Color.DarkRed),
+            new KeyValuePair<string, Color>("ControlEmergency", Color.DarkRed),
+            new KeyValuePair<string, Color>("ControlBailOff", Color.DarkRed),
+            new KeyValuePair<string, Color>("ControlInitializeBrakes", Color.DarkRed),
+            new KeyValuePair<string, Color>("Control", Color.DarkBlue),
+            new KeyValuePair<string, Color>("Camera", Color.Orange),
+            new KeyValuePair<string, Color>("Display", Color.DarkGoldenrod),
+            //new KeyValuePair<string, Color>("Game", Color.Blue),
+            new KeyValuePair<string, Color>("", Color.Gray),
+        };
+
         public static void DrawKeyboardMap(Action<Rectangle> drawRow, Action<Rectangle, int, string> drawKey)
         {
             for (int y = 0; y < KeyboardLayout.Length; y++)
@@ -63,35 +83,13 @@ namespace Orts.Settings.Util
             }
         }
 
-        public static Color GetScanCodeColor(this InputSettings input, int scanCode)
+        public static Color GetScanCodeColor(IEnumerable<UserCommand> commands)
         {
-            if (null == input)
-                throw new ArgumentNullException(nameof(input));
-
-            // These should be placed in order of priority - the first found match is used.
-            List<KeyValuePair<string, Color>> prefixesToColors = new List<KeyValuePair<string, Color>>()
-            {
-                new KeyValuePair<string, Color>("ControlReverser", Color.DarkGreen),
-                new KeyValuePair<string, Color>("ControlThrottle", Color.DarkGreen),
-                new KeyValuePair<string, Color>("ControlTrainBrake", Color.DarkRed),
-                new KeyValuePair<string, Color>("ControlEngineBrake", Color.DarkRed),
-                new KeyValuePair<string, Color>("ControlBrakemanBrake", Color.DarkRed),
-                new KeyValuePair<string, Color>("ControlDynamicBrake", Color.DarkRed),
-                new KeyValuePair<string, Color>("ControlBrakeHose", Color.DarkRed),
-                new KeyValuePair<string, Color>("ControlEmergency", Color.DarkRed),
-                new KeyValuePair<string, Color>("ControlBailOff", Color.DarkRed),
-                new KeyValuePair<string, Color>("ControlInitializeBrakes", Color.DarkRed),
-                new KeyValuePair<string, Color>("Control", Color.DarkBlue),
-                new KeyValuePair<string, Color>("Camera", Color.Orange),
-                new KeyValuePair<string, Color>("Display", Color.DarkGoldenrod),
-                //new KeyValuePair<string, Color>("Game", Color.Blue),
-                new KeyValuePair<string, Color>("", Color.Gray),
-            };
-
+            IEnumerable<string> commandNames = commands.Select(c => c.ToString());
             foreach (KeyValuePair<string, Color> prefixToColor in prefixesToColors)
-                foreach (UserCommand command in GetScanCodeCommands(scanCode, input.Commands))
-                    if (command.ToString().StartsWith(prefixToColor.Key, StringComparison.OrdinalIgnoreCase))
-                        return prefixToColor.Value;
+                foreach (string commandName in commandNames)
+                    if (commandName.StartsWith(prefixToColor.Key, StringComparison.OrdinalIgnoreCase))
+                    return prefixToColor.Value;
 
             return Color.Transparent;
         }
@@ -106,7 +104,7 @@ namespace Orts.Settings.Util
                 writer.WriteLine("{0,-40}{1,-40}{2}", "Command", "Key", "Unique Inputs");
                 writer.WriteLine(new string('=', 40 * 3));
                 foreach (UserCommand command in EnumExtension.GetValues<UserCommand>())
-                    writer.WriteLine("{0,-40}{1,-40}{2}", command.GetDescription(), input.Commands[(int)command], string.Join(", ", input.Commands[(int)command].GetUniqueInputs().OrderBy(s => s).ToArray()));
+                    writer.WriteLine("{0,-40}{1,-40}{2}", command.GetDescription(), input.UserCommands[command], string.Join(", ", input.UserCommands[command].GetUniqueInputs().OrderBy(s => s).ToArray()));
             }
         }
 
@@ -125,10 +123,10 @@ namespace Orts.Settings.Util
             {
                 DrawKeyboardMap(null, (keyBox, keyScanCode, keyName) =>
                 {
-                    IEnumerable<UserCommand> keyCommands = GetScanCodeCommands(keyScanCode, input.Commands);
+                    IEnumerable<UserCommand> keyCommands = GetScanCodeCommands(keyScanCode, input.UserCommands);
                     string keyCommandNames = string.Join("\n", keyCommands.Select(c => string.Join(" ", c.GetDescription().Split(' ').Skip(1))));
 
-                    Color keyColor = input.GetScanCodeColor(keyScanCode);
+                    Color keyColor = GetScanCodeColor(keyCommands);
                     System.Drawing.Brush keyTextColor = System.Drawing.Brushes.Black;
                     if (keyColor == Color.Transparent)
                     {
@@ -178,11 +176,9 @@ namespace Orts.Settings.Util
             return string.Join(" + ", parts);
         }
 
-        private static IEnumerable<UserCommand> GetScanCodeCommands(int scanCode, IList<UserCommandInput> commands)
+        public static IEnumerable<UserCommand> GetScanCodeCommands(int scanCode, EnumArray<UserCommandInput, UserCommand> commands)
         {
-            return EnumExtension.GetValues<UserCommand>().Where(uc => ((commands[(int)uc] as UserCommandKeyInput)?.ScanCode == scanCode));
+            return EnumExtension.GetValues<UserCommand>().Where(uc => ((commands[uc] as UserCommandKeyInput)?.ScanCode == scanCode));
         }
-
-
     }
 }

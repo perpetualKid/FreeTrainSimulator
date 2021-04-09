@@ -89,19 +89,19 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 }, 
                 (keyBox, keyScanCode, keyName) =>
                 {
-                    var color = KeyboardMap.GetScanCodeColor(Owner.Viewer.Settings.Input, keyScanCode);
+                    var color = KeyboardMap.GetScanCodeColor(KeyboardMap.GetScanCodeCommands(keyScanCode, Owner.Viewer.Settings.Input.UserCommands));
                     if (color == Color.Transparent)
                         color = Color.Black;
 
                     KeyboardMap.Scale(ref keyBox, keyWidth, keyHeight);
                     scrollbox.Add(new Key(keyBox.Left - scrollbox.CurrentLeft, keyBox.Top - scrollbox.CurrentTop, keyBox.Width - 1, keyBox.Height - 1, keyName, color));
                 });
-                foreach (UserCommand command in Enum.GetValues(typeof(UserCommand)))
+                foreach (UserCommand command in EnumExtension.GetValues<UserCommand>())
                 {
                     var line = scrollbox.AddLayoutHorizontalLineOfText();
                     var width = line.RemainingWidth / 2;
                     line.Add(new Label(width, line.RemainingHeight, Viewer.Catalog.GetString(command.GetDescription())));
-                    line.Add(new Label(width, line.RemainingHeight, Owner.Viewer.Settings.Input.Commands[(int)command].ToString()));
+                    line.Add(new Label(width, line.RemainingHeight, Owner.Viewer.Settings.Input.UserCommands[command].ToString()));
                 }
             }));
             if (owner.Viewer.Simulator.Activity != null)

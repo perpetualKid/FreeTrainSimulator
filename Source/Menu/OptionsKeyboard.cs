@@ -22,7 +22,7 @@ namespace Orts.Menu
             int columnWidth = (panelKeys.ClientSize.Width - 20) / 2;
 
             Label tempLabel = new Label();
-            KeyInputControl tempKIC = new KeyInputControl(settings.Input.Commands[(int)UserCommand.GameQuit], InputSettings.DefaultCommands[(int)UserCommand.GameQuit]);
+            KeyInputControl tempKIC = new KeyInputControl(settings.Input.UserCommands[UserCommand.GameQuit], InputSettings.DefaultCommands[UserCommand.GameQuit]);
             int rowTop = Math.Max(tempLabel.Margin.Top, tempKIC.Margin.Top);
             int rowHeight = tempKIC.Height;
             int rowSpacing = rowHeight + tempKIC.Margin.Vertical;
@@ -70,7 +70,7 @@ namespace Orts.Menu
                 };
                 panel.Controls.Add(label);
 
-                KeyInputControl keyInputControl = new KeyInputControl(settings.Input.Commands[(int)command], InputSettings.DefaultCommands[(int)command])
+                KeyInputControl keyInputControl = new KeyInputControl(settings.Input.UserCommands[command], InputSettings.DefaultCommands[command])
                 {
                     Location = new Point(columnWidth + tempKIC.Margin.Left, rowTop + rowSpacing * i),
                     Size = new Size(columnWidth - tempKIC.Margin.Horizontal, rowHeight),

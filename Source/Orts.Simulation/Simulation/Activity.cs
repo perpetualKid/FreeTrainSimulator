@@ -133,7 +133,7 @@ namespace Orts.Simulation
             }
 
             // Compile list of freight events, if any, from the parsed ACT file.
-            foreach (var i in actFile?.Activity?.Events?.AsEnumerable())
+            foreach (var i in actFile?.Activity?.Events ?? Enumerable.Empty<ActivityEvent>())
             {
                 if (i is ActionActivityEvent)
                 {
