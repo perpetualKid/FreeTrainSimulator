@@ -104,7 +104,7 @@ namespace Orts.Simulation.Track
         // Constructor from existing subpath
         public TrackCircuitPartialPathRoute(TrackCircuitPartialPathRoute source)
         {
-            list = new List<TrackCircuitRouteElement>(source?.list);
+            list = new List<TrackCircuitRouteElement>(source?.list ?? Enumerable.Empty<TrackCircuitRouteElement>());
         }
 
         // Constructor from part of existing subpath
