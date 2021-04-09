@@ -78,8 +78,11 @@
 
     public enum CommonUserCommand
     {
+        PointerPressed,
+        PointerDown,
+        PointerReleased,
         PointerMoved,
         PointerDragged,
-        ZoomChanged,
+        ScrollChanged,
     }
 }

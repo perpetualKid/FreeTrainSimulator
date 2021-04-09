@@ -17,10 +17,27 @@ namespace Orts.Common.Input
             this.userCommandController = userCommandController ?? throw new ArgumentNullException(nameof(userCommandController));
             this.keyboardInputGameComponent = keyboardInputGameComponent;
 
+            mouseInputGameComponent.AddMouseEvent(MouseButtonEventType.LeftButtonPressed, LeftMouseButtonPressedEvent);
+            mouseInputGameComponent.AddMouseEvent(MouseButtonEventType.LeftButtonDown, LeftMouseButtonDownEvent);
+            mouseInputGameComponent.AddMouseEvent(MouseButtonEventType.LeftButtonReleased, LeftMouseButtonReleasedEvent);
             mouseInputGameComponent.AddMouseEvent(MouseMovedEventType.MouseMovedLeftButtonDown, MouseDraggedEvent);
             mouseInputGameComponent.AddMouseEvent(MouseWheelEventType.MouseWheelChanged, MouseWheelEvent);
         }
 
+        private void LeftMouseButtonPressedEvent(Point position, GameTime gameTime)
+        {
+            userCommandController.Trigger(CommonUserCommand.PointerPressed, new PointerCommandArgs() { Position = position }, gameTime, keyboardInputGameComponent?.KeyModifiers ?? KeyModifiers.None);
+        }
+
+        private void LeftMouseButtonDownEvent(Point position, GameTime gameTime)
+        {
+            userCommandController.Trigger(CommonUserCommand.PointerDown, new PointerCommandArgs() { Position = position }, gameTime, keyboardInputGameComponent?.KeyModifiers ?? KeyModifiers.None);
+        }
+
+        private void LeftMouseButtonReleasedEvent(Point position, GameTime gameTime)
+        {
+            userCommandController.Trigger(CommonUserCommand.PointerReleased, new PointerCommandArgs() { Position = position }, gameTime, keyboardInputGameComponent?.KeyModifiers ?? KeyModifiers.None);
+        }
 
         private void MouseDraggedEvent(Point position, Vector2 delta, GameTime gameTime)
         {
@@ -29,7 +46,7 @@ namespace Orts.Common.Input
 
         private void MouseWheelEvent(Point position, int delta, GameTime gameTime)
         {
-            userCommandController.Trigger(CommonUserCommand.ZoomChanged, new ZoomCommandArgs() { Delta = delta, Position = position }, gameTime, keyboardInputGameComponent?.KeyModifiers ?? KeyModifiers.None);
+            userCommandController.Trigger(CommonUserCommand.ScrollChanged, new ScrollCommandArgs() { Delta = delta, Position = position }, gameTime, keyboardInputGameComponent?.KeyModifiers ?? KeyModifiers.None);
         }
     }
 }

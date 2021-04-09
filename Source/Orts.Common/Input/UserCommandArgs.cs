@@ -18,7 +18,7 @@ namespace Orts.Common.Input
         public Vector2 Delta { get; internal set; }
     }
 
-    public class ZoomCommandArgs : PointerCommandArgs
+    public class ScrollCommandArgs : PointerCommandArgs
     { 
         public int Delta { get; internal set; }
     }

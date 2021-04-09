@@ -8,7 +8,7 @@ namespace Orts.Common.Input
     public class MouseInputGameComponent : GameComponent
     {
         public delegate void MouseMoveEvent(Point position, Vector2 delta, GameTime gameTime);
-        public delegate void MouseButtonEvent(Point position);
+        public delegate void MouseButtonEvent(Point position, GameTime gameTime);
         public delegate void MouseWheelEvent(Point position, int delta, GameTime gameTime);
 
         private MouseState currentMouseState;
@@ -103,12 +103,12 @@ namespace Orts.Common.Input
                     if (currentButton == ButtonState.Pressed)
                     {
                         if (previousButton == ButtonState.Pressed)
-                            mouseButtonEvents[down]?.Invoke(currentMouseState.Position);
+                            mouseButtonEvents[down]?.Invoke(currentMouseState.Position, gameTime);
                         else
-                            mouseButtonEvents[pressed]?.Invoke(currentMouseState.Position);
+                            mouseButtonEvents[pressed]?.Invoke(currentMouseState.Position, gameTime);
                     }
                     else if (previousButton == ButtonState.Pressed)
-                        mouseButtonEvents[released]?.Invoke(currentMouseState.Position);
+                        mouseButtonEvents[released]?.Invoke(currentMouseState.Position, gameTime);
                 }
 
                 MouseButtonEvent(currentMouseState.LeftButton, previousMouseState.LeftButton, MouseButtonEventType.LeftButtonDown, MouseButtonEventType.LeftButtonPressed, MouseButtonEventType.LeftButtonReleased);
@@ -120,15 +120,15 @@ namespace Orts.Common.Input
             else
             {
                 if (currentMouseState.LeftButton == ButtonState.Pressed)
-                    mouseButtonEvents[MouseButtonEventType.LeftButtonDown]?.Invoke(currentMouseState.Position);
+                    mouseButtonEvents[MouseButtonEventType.LeftButtonDown]?.Invoke(currentMouseState.Position, gameTime);
                 if (currentMouseState.RightButton == ButtonState.Pressed)
-                    mouseButtonEvents[MouseButtonEventType.RightButtonDown]?.Invoke(currentMouseState.Position);
+                    mouseButtonEvents[MouseButtonEventType.RightButtonDown]?.Invoke(currentMouseState.Position, gameTime);
                 if (currentMouseState.MiddleButton == ButtonState.Pressed)
-                    mouseButtonEvents[MouseButtonEventType.MiddleButtonDown]?.Invoke(currentMouseState.Position);
+                    mouseButtonEvents[MouseButtonEventType.MiddleButtonDown]?.Invoke(currentMouseState.Position, gameTime);
                 if (currentMouseState.XButton1 == ButtonState.Pressed)
-                    mouseButtonEvents[MouseButtonEventType.XButton1Down]?.Invoke(currentMouseState.Position);
+                    mouseButtonEvents[MouseButtonEventType.XButton1Down]?.Invoke(currentMouseState.Position, gameTime);
                 if (currentMouseState.XButton2 == ButtonState.Pressed)
-                    mouseButtonEvents[MouseButtonEventType.XButton2Down]?.Invoke(currentMouseState.Position);
+                    mouseButtonEvents[MouseButtonEventType.XButton2Down]?.Invoke(currentMouseState.Position, gameTime);
             }
 
             base.Update(gameTime);

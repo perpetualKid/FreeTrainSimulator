@@ -1304,8 +1304,6 @@ namespace Orts.ActivityRunner.Viewer3D
             if (PlayerLocomotiveViewer != null)
                 PlayerLocomotiveViewer.HandleUserInput(elapsedTime);
 
-            WindowManager.HandleUserInput(elapsedTime);
-
             if (MPManager.IsMultiPlayer())
                 MultiPlayerWindow.Visible = TrainDrivingWindow.Visible;
 

@@ -51,7 +51,7 @@ namespace Orts.TrackViewer
 
         public void MouseWheel(UserCommandArgs userCommandArgs, KeyModifiers modifiers)
         {
-            if (userCommandArgs is ZoomCommandArgs mouseWheelCommandArgs)
+            if (userCommandArgs is ScrollCommandArgs mouseWheelCommandArgs)
             {
                 contentArea?.UpdateScaleAt(mouseWheelCommandArgs.Position, Math.Sign(mouseWheelCommandArgs.Delta) * ZoomAmplifier(modifiers));
             }

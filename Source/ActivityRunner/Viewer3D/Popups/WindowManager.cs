@@ -17,25 +17,24 @@
 
 // This file is the responsibility of the 3D & Environment Team. 
 
-// Add DEBUG_WINDOW_ZORDER to project defines to record window visibility and z-order changes.
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Orts.ActivityRunner.Viewer3D.Shapes;
+
 using Orts.Common;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
+using Orts.Common.Input;
 
 namespace Orts.ActivityRunner.Viewer3D.Popups
 {
     public class WindowManager : RenderPrimitive
-	{
-		public static Texture2D WhiteTexture;
-		public static Texture2D ScrollbarTexture;
-		public static Texture2D LabelShadowTexture;
+    {
+        public static Texture2D WhiteTexture;
+        public static Texture2D ScrollbarTexture;
+        public static Texture2D LabelShadowTexture;
         public static Texture2D NoticeTexture;
         public static Texture2D PauseTexture;
 
@@ -49,7 +48,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             spriteBatch.Draw(FlushTexture, Vector2.Zero, Color.Black);
         }
 
-		public readonly Viewer Viewer;
+        public readonly Viewer Viewer;
         public readonly WindowTextManager TextManager;
         public readonly WindowTextFont TextFontDefault;
         public readonly WindowTextFont TextFontDefaultBold;
@@ -70,13 +69,14 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         SpriteBatch SpriteBatch;
         Matrix Identity = Matrix.Identity;
         Matrix XNAView = Matrix.Identity;
-		Matrix XNAProjection = Matrix.Identity;
+        Matrix XNAProjection = Matrix.Identity;
         internal Point ScreenSize = new Point(10000, 10000); // Arbitrary but necessary.
         RenderTarget2D Screen;
 
         public WindowManager(Viewer viewer)
         {
-            Viewer = viewer;
+            Viewer = viewer ?? throw new ArgumentNullException(nameof(viewer));
+
             WindowManagerMaterial = new BasicBlendedMaterial(viewer, "WindowManager");
             PopupWindowMaterial = (PopupWindowMaterial)Viewer.MaterialManager.Load("PopupWindow");
             TextManager = new WindowTextManager();
@@ -149,6 +149,65 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 PauseTexture = new Texture2D(Viewer.RenderProcess.GraphicsDevice, size, size * 2, false, SurfaceFormat.Color);
                 PauseTexture.SetData(data);
             }
+
+            viewer.UserCommandController.AddEvent(CommonUserCommand.PointerPressed, MouseClickedEvent);
+            viewer.UserCommandController.AddEvent(CommonUserCommand.PointerDown, MouseDownEvent);
+            viewer.UserCommandController.AddEvent(CommonUserCommand.PointerReleased, MouseReleasedEvent);
+            viewer.UserCommandController.AddEvent(CommonUserCommand.PointerDragged, MouseMovedEvent);
+            viewer.UserCommandController.AddEvent(CommonUserCommand.ScrollChanged, WindowScrollEvent);
+        }
+
+        private void MouseMovedEvent(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)
+        {
+            if (userCommandArgs is PointerMoveCommandArgs moveCommandArgs)
+            {
+                if (null == mouseActiveWindow)
+                    mouseActiveWindow = VisibleWindows.LastOrDefault(w => w.Interactive && w.Location.Contains(moveCommandArgs.Position));
+                mouseActiveWindow?.MouseDrag(moveCommandArgs.Position, moveCommandArgs.Delta);
+            }
+        }
+
+        private void WindowScrollEvent(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)
+        {
+            if (userCommandArgs is ScrollCommandArgs scrollCommandArgs)
+            {
+                mouseActiveWindow = VisibleWindows.LastOrDefault(w => w.Interactive && w.Location.Contains(scrollCommandArgs.Position));
+                if (mouseActiveWindow != null)
+                    mouseActiveWindow.MouseScroll(scrollCommandArgs.Position, scrollCommandArgs.Delta);
+            }
+        }
+
+        private void MouseDownEvent(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)
+        {
+            if (userCommandArgs is PointerCommandArgs pointerCommandArgs)
+            {
+                mouseDownPosition = pointerCommandArgs.Position;
+                mouseActiveWindow = VisibleWindows.LastOrDefault(w => w.Interactive && w.Location.Contains(pointerCommandArgs.Position));
+                mouseActiveWindow?.MouseDown(pointerCommandArgs.Position);
+            }
+        }
+
+        private void MouseClickedEvent(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)
+        {
+            if (userCommandArgs is PointerCommandArgs pointerCommandArgs)
+            {
+                mouseDownPosition = pointerCommandArgs.Position;
+                mouseActiveWindow = VisibleWindows.LastOrDefault(w => w.Interactive && w.Location.Contains(pointerCommandArgs.Position));
+                if ((mouseActiveWindow != null) && (mouseActiveWindow != WindowsZOrder.Last()))
+                    BringWindowToTop(mouseActiveWindow);
+
+                mouseActiveWindow?.MousePressed(pointerCommandArgs.Position);
+            }
+        }
+
+        private void MouseReleasedEvent(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)
+        {
+            if (userCommandArgs is PointerCommandArgs pointerCommandArgs)
+            {
+                mouseActiveWindow = VisibleWindows.LastOrDefault(w => w.Interactive && w.Location.Contains(pointerCommandArgs.Position));
+                mouseActiveWindow?.MouseReleased(pointerCommandArgs.Position);
+            }
+            mouseActiveWindow = null;
         }
 
         public void Initialize()
@@ -180,17 +239,17 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 window.Restore(inf);
         }
 
-		//[CallOnThread("Updater")]
-		public void ScreenChanged()
-		{
-			var oldScreenSize = ScreenSize;
-			ScreenSize = Viewer.DisplaySize;
+        //[CallOnThread("Updater")]
+        public void ScreenChanged()
+        {
+            var oldScreenSize = ScreenSize;
+            ScreenSize = Viewer.DisplaySize;
 
-			// Buffer for screen texture, also same size as viewport and using the backbuffer format.
-			if (Viewer.Settings.WindowGlass)
-			{
-				if (Screen != null)
-					Screen.Dispose();
+            // Buffer for screen texture, also same size as viewport and using the backbuffer format.
+            if (Viewer.Settings.WindowGlass)
+            {
+                if (Screen != null)
+                    Screen.Dispose();
                 Screen = new RenderTarget2D(Viewer.RenderProcess.GraphicsDevice, ScreenSize.X, ScreenSize.Y, false, Viewer.RenderProcess.GraphicsDevice.PresentationParameters.BackBufferFormat, DepthFormat.Depth24Stencil8);
             }
 
@@ -201,10 +260,10 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     window.MoveTo((ScreenSize.X - window.Location.Width) * window.Location.X / (oldScreenSize.X - window.Location.Width), (ScreenSize.Y - window.Location.Height) * window.Location.Y / (oldScreenSize.Y - window.Location.Height));
                 window.ScreenChanged();
             }
-		}
+        }
 
         double LastPrepareRealTime;
-        //[CallOnThread("Updater")]
+
         public void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             var updateFull = false;
@@ -222,31 +281,31 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
         //[CallOnThread("Render")]
         public override void Draw()
-		{
-			// Nothing visible? Nothing more to do!
-			if (!VisibleWindows.Any())
-				return;
+        {
+            // Nothing visible? Nothing more to do!
+            if (!VisibleWindows.Any())
+                return;
 
-			// Construct a view where (0, 0) is the top-left and (width, height) is
-			// bottom-right, so that popups can act more like normal window things.
-			XNAView = Matrix.CreateTranslation(-ScreenSize.X / 2, -ScreenSize.Y / 2, 0) *
-				Matrix.CreateTranslation(-0.5f, -0.5f, 0) *
-				Matrix.CreateScale(1, -1, 1);
-			// Project into a flat view of the same size as the viewport.
-			XNAProjection = Matrix.CreateOrthographic(ScreenSize.X, ScreenSize.Y, 0, 100);
+            // Construct a view where (0, 0) is the top-left and (width, height) is
+            // bottom-right, so that popups can act more like normal window things.
+            XNAView = Matrix.CreateTranslation(-ScreenSize.X / 2, -ScreenSize.Y / 2, 0) *
+                Matrix.CreateTranslation(-0.5f, -0.5f, 0) *
+                Matrix.CreateScale(1, -1, 1);
+            // Project into a flat view of the same size as the viewport.
+            XNAProjection = Matrix.CreateOrthographic(ScreenSize.X, ScreenSize.Y, 0, 100);
 
-			foreach (var window in VisibleWindows)
-			{
-				var xnaWorld = window.XNAWorld;
+            foreach (var window in VisibleWindows)
+            {
+                var xnaWorld = window.XNAWorld;
 
                 // FIXME: MonoGame cannot read backbuffer
                 //if (Screen != null)
                 //    graphicsDevice.ResolveBackBuffer(Screen);
 
                 PopupWindowMaterial.SetState(Screen);
-                RenderItem item = new RenderItem(null, window, Matrix.Identity, ShapeFlags.None);
-                PopupWindowMaterial.Render(new List<RenderItem>() { item }, ref xnaWorld, ref XNAView, ref XNAProjection);
-//                PopupWindowMaterial.Render(window, ref xnaWorld, ref XNAView, ref XNAProjection);
+                //RenderItem item = new RenderItem(null, window, Matrix.Identity, ShapeFlags.None);
+                //                PopupWindowMaterial.Render(new List<RenderItem>() { item }, ref xnaWorld, ref XNAView, ref XNAProjection);
+                PopupWindowMaterial.Render(window, ref xnaWorld, ref XNAView, ref XNAProjection);
                 PopupWindowMaterial.ResetState();
 
                 SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.NonPremultiplied, null, null, null, null);
@@ -260,108 +319,50 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         }
 
         internal void Add(Window window)
-		{
-			Windows.Add(window);
+        {
+            Windows.Add(window);
             WindowsZOrder = Windows.Concat(new[] { window }).ToArray();
         }
 
-		public bool HasVisiblePopupWindows()
-		{
+        public bool HasVisiblePopupWindows()
+        {
             return WindowsZOrder.Any(w => w.Visible);
-		}
-
-		public IEnumerable<Window> VisibleWindows
-		{
-			get
-			{
-                return WindowsZOrder.Where(w => w.Visible);
-			}
-		}
-
-		public const int DragMinimumDistance = 2;
-
-		Point mouseDownPosition;
-		public Point MouseDownPosition { get { return mouseDownPosition; } }
-
-		Window mouseActiveWindow;
-		public Window MouseActiveWindow { get { return mouseActiveWindow; } }
-
-		double LastUpdateRealTime;
-		//[CallOnThread("Updater")]
-        public void HandleUserInput(in ElapsedTime elapsedTime)
-        {
-			if (UserInput.IsMouseLeftButtonPressed)
-			{
-				mouseDownPosition = new Point(UserInput.MouseX, UserInput.MouseY);
-                mouseActiveWindow = VisibleWindows.LastOrDefault(w => w.Interactive && w.Location.Contains(mouseDownPosition));
-                if ((mouseActiveWindow != null) && (mouseActiveWindow != WindowsZOrder.Last()))
-                    BringWindowToTop(mouseActiveWindow);
-			}
-
-            if (UserInput.IsMouseWheelChanged)
-            {
-                mouseActiveWindow = VisibleWindows.LastOrDefault(w => w.Interactive && w.Location.Contains(mouseDownPosition));
-                
-                if (mouseActiveWindow != null)
-                    mouseActiveWindow.HandleUserInput();
-            }
-
-            if (mouseActiveWindow != null)
-			{
-				if (UserInput.IsMouseLeftButtonPressed)
-					mouseActiveWindow.MouseDown();
-				else if (UserInput.IsMouseLeftButtonReleased)
-					mouseActiveWindow.MouseUp();
-
-				if (UserInput.IsMouseMoved)
-					mouseActiveWindow.MouseMove();
-
-                if (Viewer.RealTime - LastUpdateRealTime >= 0.1)
-				{
-					LastUpdateRealTime = Viewer.RealTime;
-					mouseActiveWindow.HandleUserInput();
-				}
-
-				if (UserInput.IsMouseLeftButtonReleased)
-					mouseActiveWindow = null;
-            }
-		}
-
-        public void BringWindowToTop(Window mouseActiveWindow)
-        {
-            WindowsZOrder = WindowsZOrder.Where(w => w != mouseActiveWindow).Concat(new[] { mouseActiveWindow }).ToArray();
-            UpdateTopMost();
-            WriteWindowZOrder();
         }
 
-        void UpdateTopMost()
+        public IEnumerable<Window> VisibleWindows
+        {
+            get
+            {
+                return WindowsZOrder.Where(w => w.Visible);
+            }
+        }
+
+        private Point mouseDownPosition;
+        public Point MouseDownPosition { get { return mouseDownPosition; } }
+
+        private Window mouseActiveWindow;
+
+        public void BringWindowToTop(Window window)
+        {
+            WindowsZOrder = WindowsZOrder.Where(w => w != window).Concat(new[] { window }).ToArray();
+            UpdateTopMost();
+        }
+
+        private void UpdateTopMost()
         {
             // Make sure all top-most windows sit above all normal windows.
             WindowsZOrder = WindowsZOrder.Where(w => !w.TopMost).Concat(WindowsZOrder.Where(w => w.TopMost)).ToArray();
         }
 
-        [Conditional("DEBUG_WINDOW_ZORDER")]
-        internal void WriteWindowZOrder()
-        {
-            Trace.WriteLine(string.Empty);
-            Trace.WriteLine(string.Empty);
-            Trace.WriteLine("Windows: (bottom-to-top order, [V] = visible, [NI] = non-interactive)");
-            Trace.WriteLine("  Visible: {0}", String.Join(", ", VisibleWindows.Select(w => w.GetType().Name).ToArray()));
-            Trace.WriteLine("  All:     {0}", String.Join(", ", WindowsZOrder.Select(w => String.Format("{0}{1}{2}", w.GetType().Name, w.Interactive ? "" : "[NI]", w.Visible ? "[V]" : "")).ToArray()));
-            Trace.WriteLine(string.Empty);
-        }
-
-        //[CallOnThread("Loader")]
         public void Mark()
         {
             WindowManagerMaterial.Mark();
             PopupWindowMaterial.Mark();
             Label3DMaterial.Mark();
-			foreach (var window in Windows)
+            foreach (Window window in Windows)
                 window.Mark();
         }
 
-        //[CallOnThread("Loader")]
         public void Load()
         {
             TextManager.Load(Viewer.RenderProcess.GraphicsDevice);

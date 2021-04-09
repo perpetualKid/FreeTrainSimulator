@@ -19,7 +19,9 @@
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+
 using Orts.Common;
+
 using System;
 using System.IO;
 using System.Reflection;
@@ -96,11 +98,12 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         protected virtual void VisibilityChanged()
         {
             if (Visible)
+            {
                 Owner.BringWindowToTop(this);
-            else
-                Owner.WriteWindowZOrder();
-            if (Visible && (WindowLayout != null))
-                PrepareFrame(ElapsedTime.Zero, true);
+
+                if (WindowLayout != null)
+                    PrepareFrame(ElapsedTime.Zero, true);
+            }
         }
 
         protected virtual void LocationChanged()
@@ -236,35 +239,35 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 var vertexData = new[] {
 					//  0  1  2  3
 					new VertexPositionTexture(new Vector3(0 * location.Width + 00, 0 * location.Height + 00, 0), new Vector2(0.00f / 2, 0.00f)),
-					new VertexPositionTexture(new Vector3(0 * location.Width + gp, 0 * location.Height + 00, 0), new Vector2(0.25f / 2, 0.00f)),
-					new VertexPositionTexture(new Vector3(1 * location.Width - gp, 0 * location.Height + 00, 0), new Vector2(0.75f / 2, 0.00f)),
-					new VertexPositionTexture(new Vector3(1 * location.Width - 00, 0 * location.Height + 00, 0), new Vector2(1.00f / 2, 0.00f)),
+                    new VertexPositionTexture(new Vector3(0 * location.Width + gp, 0 * location.Height + 00, 0), new Vector2(0.25f / 2, 0.00f)),
+                    new VertexPositionTexture(new Vector3(1 * location.Width - gp, 0 * location.Height + 00, 0), new Vector2(0.75f / 2, 0.00f)),
+                    new VertexPositionTexture(new Vector3(1 * location.Width - 00, 0 * location.Height + 00, 0), new Vector2(1.00f / 2, 0.00f)),
 					//  4  5  6  7
 					new VertexPositionTexture(new Vector3(0 * location.Width + 00, 0 * location.Height + gp, 0), new Vector2(0.00f / 2, 0.25f)),
-					new VertexPositionTexture(new Vector3(0 * location.Width + gp, 0 * location.Height + gp, 0), new Vector2(0.25f / 2, 0.25f)),
-					new VertexPositionTexture(new Vector3(1 * location.Width - gp, 0 * location.Height + gp, 0), new Vector2(0.75f / 2, 0.25f)),
-					new VertexPositionTexture(new Vector3(1 * location.Width - 00, 0 * location.Height + gp, 0), new Vector2(1.00f / 2, 0.25f)),
+                    new VertexPositionTexture(new Vector3(0 * location.Width + gp, 0 * location.Height + gp, 0), new Vector2(0.25f / 2, 0.25f)),
+                    new VertexPositionTexture(new Vector3(1 * location.Width - gp, 0 * location.Height + gp, 0), new Vector2(0.75f / 2, 0.25f)),
+                    new VertexPositionTexture(new Vector3(1 * location.Width - 00, 0 * location.Height + gp, 0), new Vector2(1.00f / 2, 0.25f)),
 					//  8  9 10 11
 					new VertexPositionTexture(new Vector3(0 * location.Width + 00, 1 * location.Height - gp, 0), new Vector2(0.00f / 2, 0.75f)),
-					new VertexPositionTexture(new Vector3(0 * location.Width + gp, 1 * location.Height - gp, 0), new Vector2(0.25f / 2, 0.75f)),
-					new VertexPositionTexture(new Vector3(1 * location.Width - gp, 1 * location.Height - gp, 0), new Vector2(0.75f / 2, 0.75f)),
-					new VertexPositionTexture(new Vector3(1 * location.Width - 00, 1 * location.Height - gp, 0), new Vector2(1.00f / 2, 0.75f)),
+                    new VertexPositionTexture(new Vector3(0 * location.Width + gp, 1 * location.Height - gp, 0), new Vector2(0.25f / 2, 0.75f)),
+                    new VertexPositionTexture(new Vector3(1 * location.Width - gp, 1 * location.Height - gp, 0), new Vector2(0.75f / 2, 0.75f)),
+                    new VertexPositionTexture(new Vector3(1 * location.Width - 00, 1 * location.Height - gp, 0), new Vector2(1.00f / 2, 0.75f)),
 					// 12 13 14 15
 					new VertexPositionTexture(new Vector3(0 * location.Width + 00, 1 * location.Height - 00, 0), new Vector2(0.00f / 2, 1.00f)),
-					new VertexPositionTexture(new Vector3(0 * location.Width + gp, 1 * location.Height - 00, 0), new Vector2(0.25f / 2, 1.00f)),
-					new VertexPositionTexture(new Vector3(1 * location.Width - gp, 1 * location.Height - 00, 0), new Vector2(0.75f / 2, 1.00f)),
-					new VertexPositionTexture(new Vector3(1 * location.Width - 00, 1 * location.Height - 00, 0), new Vector2(1.00f / 2, 1.00f)),
-				};
+                    new VertexPositionTexture(new Vector3(0 * location.Width + gp, 1 * location.Height - 00, 0), new Vector2(0.25f / 2, 1.00f)),
+                    new VertexPositionTexture(new Vector3(1 * location.Width - gp, 1 * location.Height - 00, 0), new Vector2(0.75f / 2, 1.00f)),
+                    new VertexPositionTexture(new Vector3(1 * location.Width - 00, 1 * location.Height - 00, 0), new Vector2(1.00f / 2, 1.00f)),
+                };
                 WindowVertexBuffer = new VertexBuffer(graphicsDevice, typeof(VertexPositionTexture), vertexData.Length, BufferUsage.WriteOnly);
                 WindowVertexBuffer.SetData(vertexData);
             }
             if (WindowIndexBuffer == null)
             {
                 var indexData = new short[] {
-					0, 4, 1, 5, 2, 6, 3, 7,
-					11, 6, 10, 5, 9, 4, 8,
-					12, 9, 13, 10, 14, 11, 15,
-				};
+                    0, 4, 1, 5, 2, 6, 3, 7,
+                    11, 6, 10, 5, 9, 4, 8,
+                    12, 9, 13, 10, 14, 11, 15,
+                };
                 WindowIndexBuffer = new IndexBuffer(graphicsDevice, typeof(short), indexData.Length, BufferUsage.WriteOnly);
                 WindowIndexBuffer.SetData(indexData);
             }
@@ -274,35 +277,38 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleStrip, 0, 0, 20);
         }
 
-        //[CallOnThread("Updater")]
         public virtual void PrepareFrame(in ElapsedTime elapsedTime, bool updateFull)
         {
         }
 
-        //[CallOnThread("Render")]
         public virtual void Draw(SpriteBatch spriteBatch)
         {
             WindowLayout.Draw(spriteBatch, Location.Location);
         }
 
-        public void MouseDown()
+        public void MousePressed(Point position)
         {
-            WindowLayout.HandleMouseDown(new WindowMouseEvent(Owner, this));
+            WindowLayout.HandleMousePressed(new WindowMouseEvent(this, position, true));
         }
 
-        public void MouseUp()
+        public void MouseDown(Point position)
         {
-            WindowLayout.HandleMouseUp(new WindowMouseEvent(Owner, this));
+            WindowLayout.HandleMouseDown(new WindowMouseEvent(this, position, true));
         }
 
-        public void MouseMove()
+        public void MouseReleased(Point position)
         {
-            WindowLayout.HandleMouseMove(new WindowMouseEvent(Owner, this));
+            WindowLayout.HandleMouseReleased(new WindowMouseEvent(this, position, false));
         }
 
-        public void HandleUserInput()
+        public void MouseDrag(Point position, Vector2 delta)
         {
-            WindowLayout.HandleUserInput(new WindowMouseEvent(Owner, this));
+            WindowLayout.HandleMouseMove(new WindowMouseEvent(this, position, delta));
+        }
+
+        public void MouseScroll(Point position, int delta)
+        {
+            WindowLayout.HandleMouseScroll(new WindowMouseEvent(this, position, delta));
         }
 
         public virtual void Mark()
@@ -312,23 +318,36 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
     public class WindowMouseEvent
     {
-        public readonly Point MousePosition;
-        public readonly Point MouseDownPosition;
-        public readonly Point MouseScreenPosition;
-        public readonly Point MouseDownScreenPosition;
+        public Point MousePosition { get; }
+        public int MouseWheelDelta { get; }
+        public Point Movement { get; }
+        public bool ButtonDown { get; }
 
-        public WindowMouseEvent(WindowManager windowManager, Window window)
+        public WindowMouseEvent(Window window, Point mouseLocation, int mouseWheelDelta)
         {
-            MousePosition = new Point(UserInput.MouseX - window.Location.X, UserInput.MouseY - window.Location.Y);
-            MouseDownPosition = new Point(windowManager.MouseDownPosition.X - window.Location.X, windowManager.MouseDownPosition.Y - window.Location.Y);
-            MouseScreenPosition = new Point(UserInput.MouseX, UserInput.MouseY);
-            MouseDownScreenPosition = windowManager.MouseDownPosition;
+            MousePosition = mouseLocation - window.Location.Location;
+            MouseWheelDelta = mouseWheelDelta;
+        }
+
+        public WindowMouseEvent(Window window, Point mouseLocation, bool buttonDown)
+        {
+            MousePosition = mouseLocation - window.Location.Location;
+            ButtonDown = buttonDown;
+        }
+
+        public WindowMouseEvent(Window window, Point mouseLocation, Vector2 delta)
+        {
+            MousePosition = mouseLocation - window.Location.Location;
+            Movement = delta.ToPoint();
+            ButtonDown = true;
         }
     }
 
-    class WindowControlLayout : ControlLayout
+    internal class WindowControlLayout : ControlLayout
     {
         public readonly Window Window;
+
+        private bool capturedForDragging;
 
         public WindowControlLayout(Window window, int width, int height)
             : base(0, 0, width, height)
@@ -336,17 +355,12 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             Window = window;
         }
 
-        static readonly Point DragInvalid = new Point(-1, -1);
-        Point DragWindowOffset;
-        bool Dragging;
-
-        internal override bool HandleMouseDown(WindowMouseEvent e)
+        internal override bool HandleMousePressed(WindowMouseEvent e)
         {
-            DragWindowOffset = DragInvalid;
-         
-            if (base.HandleMouseDown(e))
+            if (base.HandleMousePressed(e))
                 return true;
 
+            capturedForDragging = true;
             // prevent from dragging when clicking on vertical scrollbar
             if (MathHelper.Distance(base.RemainingWidth, e.MousePosition.X) < 20)
                 return false;
@@ -355,16 +369,14 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             if (MathHelper.Distance(base.RemainingHeight, e.MousePosition.Y) < 20)
                 return false;
 
-            DragWindowOffset = new Point(e.MouseDownScreenPosition.X - Window.Location.X, e.MouseDownScreenPosition.Y - Window.Location.Y);
             return true;
         }
 
-        internal override bool HandleMouseUp(WindowMouseEvent e)
+        internal override bool HandleMouseReleased(WindowMouseEvent e)
         {
-            if (base.HandleMouseUp(e))
+            if (base.HandleMouseReleased(e))
                 return true;
-            if (Dragging)
-                Dragging = false;
+            capturedForDragging = false;
             return true;
         }
 
@@ -372,16 +384,15 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         {
             if (base.HandleMouseMove(e))
                 return true;
-            if (UserInput.IsMouseLeftButtonDown && !Dragging && (DragWindowOffset != DragInvalid) && ((MathHelper.Distance(e.MouseScreenPosition.X, e.MouseDownScreenPosition.X) > WindowManager.DragMinimumDistance) || (MathHelper.Distance(e.MouseScreenPosition.Y, e.MouseDownScreenPosition.Y) > WindowManager.DragMinimumDistance)))
-                Dragging = true;
-            else if (UserInput.IsMouseLeftButtonDown && Dragging)
-                Window.MoveTo(e.MouseScreenPosition.X - DragWindowOffset.X, e.MouseScreenPosition.Y - DragWindowOffset.Y);
+
+            if (capturedForDragging)
+                Window.MoveTo(Window.Location.X + e.Movement.X, Window.Location.Y + e.Movement.Y);
             return true;
         }
 
-        internal override bool HandleUserInput(WindowMouseEvent e)
+        internal override bool HandleMouseScroll(WindowMouseEvent e)
         {
-            if (base.HandleUserInput(e))
+            if (base.HandleMouseScroll(e))
                 return true;
             return true;
         }
