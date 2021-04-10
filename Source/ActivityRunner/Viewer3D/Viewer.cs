@@ -944,7 +944,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     {
                         TryUncoupleAt(nearPoint);
                     }
-                    if ((modifiers & KeyModifiers.Alt) == KeyModifiers.Alt)
+                    if (modifiers.HasFlag(Settings.Input.GameSwitchWithMouseModifier))
                     {
                         TryThrowSwitchAt(nearPoint, farPoint);
                     }
@@ -1374,28 +1374,6 @@ namespace Orts.ActivityRunner.Viewer3D
                     CameraActivate();
                 }
             }
-
-            //if (!Simulator.Paused && UserInput.IsDown(UserCommand.GameSwitchWithMouse))
-            //{
-            //    forceMouseVisible = true;
-            //    if (UserInput.IsMouseLeftButtonPressed)
-            //    {
-            //        TryThrowSwitchAt();
-            //    }
-            //}
-            //else if (!Simulator.Paused && UserInput.IsDown(UserCommand.GameUncoupleWithMouse))
-            //{
-            //    ForceMouseVisible = true;
-            //    if (UserInput.IsMouseLeftButtonPressed)
-            //    {
-            //        TryUncoupleAt();
-            //    }
-            //}
-            //else
-            //{
-            //    ForceMouseVisible = false;
-            //}
-
             // reset cursor type when needed
 
             if (!(Camera is CabCamera) && !(Camera is ThreeDimCabCamera) && actualCursor != Cursors.Default) actualCursor = Cursors.Default;

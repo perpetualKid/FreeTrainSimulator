@@ -20,6 +20,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
+using Orts.Common.Input;
 using Orts.Viewer3D.Popups;
 
 using System;
@@ -28,11 +29,24 @@ using System.Linq;
 
 namespace Orts.ActivityRunner.Viewer3D.Popups
 {
+    public class MouseClickEventArgs: EventArgs
+    { 
+        public Point Position { get; }
+        public KeyModifiers KeyModifiers { get; }
+
+        public MouseClickEventArgs(Point position, KeyModifiers keyModifiers)
+        {
+            Position = position;
+            KeyModifiers = keyModifiers;
+        }
+
+    }
     public abstract class Control
     {
         public Rectangle Position;
-        public object Tag;
+        public object Tag { get; set; }
         public event Action<Control, Point> Click;
+        public event EventHandler<MouseClickEventArgs> OnClick;
 
         protected Control(int x, int y, int width, int height)
         {
@@ -85,6 +99,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         internal virtual void MouseClick(WindowMouseEvent e)
         {
             Click?.Invoke(this, e.MousePosition - Position.Location);
+            OnClick?.Invoke(this, new MouseClickEventArgs(e.MousePosition - Position.Location, e.KeyModifiers)); 
         }
     }
 

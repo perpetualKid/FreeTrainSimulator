@@ -21,6 +21,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using Orts.Common;
+using Orts.Common.Input;
 
 using System;
 using System.IO;
@@ -286,29 +287,29 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             WindowLayout.Draw(spriteBatch, Location.Location);
         }
 
-        public void MousePressed(Point position)
+        public void MousePressed(Point position, KeyModifiers keyModifiers)
         {
-            WindowLayout.HandleMousePressed(new WindowMouseEvent(this, position, true));
+            WindowLayout.HandleMousePressed(new WindowMouseEvent(this, position, true, keyModifiers));
         }
 
-        public void MouseDown(Point position)
+        public void MouseDown(Point position, KeyModifiers keyModifiers)
         {
-            WindowLayout.HandleMouseDown(new WindowMouseEvent(this, position, true));
+            WindowLayout.HandleMouseDown(new WindowMouseEvent(this, position, true, keyModifiers));
         }
 
-        public void MouseReleased(Point position)
+        public void MouseReleased(Point position, KeyModifiers keyModifiers)
         {
-            WindowLayout.HandleMouseReleased(new WindowMouseEvent(this, position, false));
+            WindowLayout.HandleMouseReleased(new WindowMouseEvent(this, position, false, keyModifiers));
         }
 
-        public void MouseDrag(Point position, Vector2 delta)
+        public void MouseDrag(Point position, Vector2 delta, KeyModifiers keyModifiers)
         {
-            WindowLayout.HandleMouseMove(new WindowMouseEvent(this, position, delta));
+            WindowLayout.HandleMouseMove(new WindowMouseEvent(this, position, delta, keyModifiers));
         }
 
-        public void MouseScroll(Point position, int delta)
+        public void MouseScroll(Point position, int delta, KeyModifiers keyModifiers)
         {
-            WindowLayout.HandleMouseScroll(new WindowMouseEvent(this, position, delta));
+            WindowLayout.HandleMouseScroll(new WindowMouseEvent(this, position, delta, keyModifiers));
         }
 
         public virtual void Mark()
@@ -322,24 +323,28 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         public int MouseWheelDelta { get; }
         public Point Movement { get; }
         public bool ButtonDown { get; }
+        public KeyModifiers KeyModifiers { get; }
 
-        public WindowMouseEvent(Window window, Point mouseLocation, int mouseWheelDelta)
+        public WindowMouseEvent(Window window, Point mouseLocation, int mouseWheelDelta, KeyModifiers modifiers)
         {
-            MousePosition = mouseLocation - window.Location.Location;
+            MousePosition = mouseLocation - window?.Location.Location ?? throw new ArgumentNullException(nameof(window));
             MouseWheelDelta = mouseWheelDelta;
+            KeyModifiers = modifiers;
         }
 
-        public WindowMouseEvent(Window window, Point mouseLocation, bool buttonDown)
+        public WindowMouseEvent(Window window, Point mouseLocation, bool buttonDown, KeyModifiers modifiers)
         {
-            MousePosition = mouseLocation - window.Location.Location;
+            MousePosition = mouseLocation - window?.Location.Location ?? throw new ArgumentNullException(nameof(window));
             ButtonDown = buttonDown;
+            KeyModifiers = modifiers;
         }
 
-        public WindowMouseEvent(Window window, Point mouseLocation, Vector2 delta)
+        public WindowMouseEvent(Window window, Point mouseLocation, Vector2 delta, KeyModifiers modifiers)
         {
-            MousePosition = mouseLocation - window.Location.Location;
+            MousePosition = mouseLocation - window?.Location.Location ?? throw new ArgumentNullException(nameof(window));
             Movement = delta.ToPoint();
             ButtonDown = true;
+            KeyModifiers = modifiers;
         }
     }
 

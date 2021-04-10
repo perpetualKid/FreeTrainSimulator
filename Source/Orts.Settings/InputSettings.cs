@@ -59,14 +59,15 @@ namespace Orts.Settings
         public KeyModifiers WindowTabCommandModifier { get; }
         public KeyModifiers CameraMoveFastModifier { get; }
         public KeyModifiers CameraMoveSlowModifier { get; }
-
+        public KeyModifiers GameSuspendOldPlayerModifier { get; }
+        public KeyModifiers GameSwitchWithMouseModifier { get; }
         static InputSettings()
         {
             InitializeCommands(DefaultCommands);
         }
 
         public InputSettings(IEnumerable<string> options, SettingsStore store) :
-            base(SettingsStore.GetSettingsStore(store.StoreType, store.Location, "Keyboard"))
+            base(SettingsStore.GetSettingsStore(store?.StoreType ?? StoreType.Registry, store.Location, "Keyboard"))
         {
             InitializeCommands(UserCommands);
             LoadSettings(options);
@@ -78,6 +79,10 @@ namespace Orts.Settings
             CameraMoveFastModifier = (userCommandModifier.Alt ? KeyModifiers.Alt : KeyModifiers.None) | (userCommandModifier.Control ? KeyModifiers.Control : KeyModifiers.None) | (userCommandModifier.Shift ? KeyModifiers.Shift : KeyModifiers.None);
             userCommandModifier = UserCommands[UserCommand.CameraMoveSlow] as UserCommandModifierInput;
             CameraMoveSlowModifier = (userCommandModifier.Alt ? KeyModifiers.Alt : KeyModifiers.None) | (userCommandModifier.Control ? KeyModifiers.Control : KeyModifiers.None) | (userCommandModifier.Shift ? KeyModifiers.Shift : KeyModifiers.None);
+            userCommandModifier = UserCommands[UserCommand.GameSuspendOldPlayer] as UserCommandModifierInput;
+            GameSuspendOldPlayerModifier = (userCommandModifier.Alt ? KeyModifiers.Alt : KeyModifiers.None) | (userCommandModifier.Control ? KeyModifiers.Control : KeyModifiers.None) | (userCommandModifier.Shift ? KeyModifiers.Shift : KeyModifiers.None);
+            userCommandModifier = UserCommands[UserCommand.GameSwitchWithMouse] as UserCommandModifierInput;
+            GameSwitchWithMouseModifier = (userCommandModifier.Alt ? KeyModifiers.Alt : KeyModifiers.None) | (userCommandModifier.Control ? KeyModifiers.Control : KeyModifiers.None) | (userCommandModifier.Shift ? KeyModifiers.Shift : KeyModifiers.None);
         }
 
         private static UserCommand GetCommand(string name)

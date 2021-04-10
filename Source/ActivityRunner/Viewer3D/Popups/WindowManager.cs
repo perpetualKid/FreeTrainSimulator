@@ -163,7 +163,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             {
                 if (null == mouseActiveWindow)
                     mouseActiveWindow = VisibleWindows.LastOrDefault(w => w.Interactive && w.Location.Contains(moveCommandArgs.Position));
-                mouseActiveWindow?.MouseDrag(moveCommandArgs.Position, moveCommandArgs.Delta);
+                mouseActiveWindow?.MouseDrag(moveCommandArgs.Position, moveCommandArgs.Delta, keyModifiers);
             }
         }
 
@@ -173,7 +173,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             {
                 mouseActiveWindow = VisibleWindows.LastOrDefault(w => w.Interactive && w.Location.Contains(scrollCommandArgs.Position));
                 if (mouseActiveWindow != null)
-                    mouseActiveWindow.MouseScroll(scrollCommandArgs.Position, scrollCommandArgs.Delta);
+                    mouseActiveWindow.MouseScroll(scrollCommandArgs.Position, scrollCommandArgs.Delta, keyModifiers);
             }
         }
 
@@ -183,7 +183,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             {
                 mouseDownPosition = pointerCommandArgs.Position;
                 mouseActiveWindow = VisibleWindows.LastOrDefault(w => w.Interactive && w.Location.Contains(pointerCommandArgs.Position));
-                mouseActiveWindow?.MouseDown(pointerCommandArgs.Position);
+                mouseActiveWindow?.MouseDown(pointerCommandArgs.Position, keyModifiers);
             }
         }
 
@@ -196,7 +196,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 if ((mouseActiveWindow != null) && (mouseActiveWindow != WindowsZOrder.Last()))
                     BringWindowToTop(mouseActiveWindow);
 
-                mouseActiveWindow?.MousePressed(pointerCommandArgs.Position);
+                mouseActiveWindow?.MousePressed(pointerCommandArgs.Position, keyModifiers);
             }
         }
 
@@ -205,7 +205,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             if (userCommandArgs is PointerCommandArgs pointerCommandArgs)
             {
                 mouseActiveWindow = VisibleWindows.LastOrDefault(w => w.Interactive && w.Location.Contains(pointerCommandArgs.Position));
-                mouseActiveWindow?.MouseReleased(pointerCommandArgs.Position);
+                mouseActiveWindow?.MouseReleased(pointerCommandArgs.Position, keyModifiers);
             }
             mouseActiveWindow = null;
         }

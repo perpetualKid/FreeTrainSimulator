@@ -77,13 +77,17 @@ namespace Orts.Common.Input
                 currentKeyboardState = default;
                 return;
             }
-            (currentKeyboardState, previousKeyboardState) = (previousKeyboardState, currentKeyboardState);
-            (currentModifiers, previousModifiers) = (previousModifiers, currentModifiers);
-            currentKeyboardState = Keyboard.GetState();
+
+            KeyboardState newState = Keyboard.GetState();
 
             #region keyboard update
-            if (currentKeyboardState != previousKeyboardState || currentKeyboardState.GetPressedKeyCount() != 0)
+            //if (currentKeyboardState != previousKeyboardState || currentKeyboardState.GetPressedKeyCount() != 0)
+            if (currentKeyboardState != newState || newState.GetPressedKeyCount() != 0)
             {
+                (currentKeyboardState, previousKeyboardState) = (previousKeyboardState, currentKeyboardState);
+                (currentModifiers, previousModifiers) = (previousModifiers, currentModifiers);
+                currentKeyboardState = newState;
+
                 currentModifiers = KeyModifiers.None;
                 if (currentKeyboardState.IsKeyDown(Keys.LeftShift) || currentKeyboardState.IsKeyDown(Keys.RightShift))
                     currentModifiers |= KeyModifiers.Shift;
@@ -153,7 +157,7 @@ namespace Orts.Common.Input
                 case KeyEventType.KeyReleased:
                     if ((!currentKeyboardState.IsKeyDown(key) || previousModifiers != currentModifiers) && (previousModifiers == modifiers && previousKeyboardState.IsKeyDown(key)))
                         return true;
-                        break;
+                    break;
                 default:
                     throw new NotSupportedException();
             }
