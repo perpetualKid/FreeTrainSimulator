@@ -92,6 +92,10 @@ namespace Orts.ActivityRunner.Viewer3D
                 viewer.UserCommandController.AddEvent(UserCommand.CameraCarLast, KeyEventType.KeyPressed, () => viewer.Camera.CarLast());
                 viewer.UserCommandController.AddEvent(UserCommand.CameraBrowseBackwards, KeyEventType.KeyPressed, () => viewer.Camera.BrowseBackwards());
                 viewer.UserCommandController.AddEvent(UserCommand.CameraBrowseForwards, KeyEventType.KeyPressed, () => viewer.Camera.BrowseForwards());
+                viewer.UserCommandController.AddEvent(CommonUserCommand.VerticalScrollChanged, (UserCommandArgs commandArgs, GameTime gameTime, KeyModifiers modifiers) => viewer.Camera.ZoomByMouseCommmand(commandArgs, gameTime, modifiers));
+                viewer.UserCommandController.AddEvent(CommonUserCommand.AlternatePointerDragged, (UserCommandArgs commandArgs, GameTime gameTime, KeyModifiers modifiers) => viewer.Camera.RotateByMouseCommmand(commandArgs, gameTime, modifiers));
+                viewer.UserCommandController.AddEvent(CommonUserCommand.AlternatePointerPressed, (UserCommandArgs commandArgs, GameTime gameTime, KeyModifiers modifiers) => viewer.Camera.RotateByMouseCommmandStart());
+                viewer.UserCommandController.AddEvent(CommonUserCommand.AlternatePointerReleased, (UserCommandArgs commandArgs, GameTime gameTime, KeyModifiers modifiers) => viewer.Camera.RotateByMouseCommmandEnd());
             }
 
             internal static void Initialize(Viewer viewer)
@@ -106,6 +110,7 @@ namespace Orts.ActivityRunner.Viewer3D
         private protected virtual void ZoomCommandStart() { }
         private protected virtual void ZoomCommandEnd() { }
         private protected virtual void Zoom(int zoomSign, UserCommandArgs commandArgs, GameTime gameTime) { }
+        private protected virtual void ZoomByMouseCommmand(UserCommandArgs commandArgs, GameTime gameTime, KeyModifiers modifiers) { }
         private protected virtual void RotateHorizontallyCommandStart() { }
         private protected virtual void RotateHorizontallyCommandEnd() { }
         private protected virtual void RotateHorizontally(int rotateSign, UserCommandArgs commandArgs, GameTime gameTime) { }
@@ -128,6 +133,9 @@ namespace Orts.ActivityRunner.Viewer3D
         private protected virtual void CarLast() { }
         private protected virtual void BrowseBackwards() { }
         private protected virtual void BrowseForwards() { }
+        private protected virtual void RotateByMouseCommmand(UserCommandArgs commandArgs, GameTime gameTime, KeyModifiers modifiers) { }
+        private protected virtual void RotateByMouseCommmandStart() { }
+        private protected virtual void RotateByMouseCommmandEnd() { }
 
 
         #endregion
@@ -245,14 +253,6 @@ namespace Orts.ActivityRunner.Viewer3D
         }
 
         /// <summary>
-        /// A camera can use this method to respond to user input.
-        /// </summary>
-        /// <param name="elapsedTime"></param>
-        public virtual void HandleUserInput(in ElapsedTime elapsedTime)
-        {
-        }
-
-        /// <summary>
         /// A camera can use this method to update any calculated data that may have changed.
         /// </summary>
         /// <param name="elapsedTime"></param>
@@ -361,14 +361,18 @@ namespace Orts.ActivityRunner.Viewer3D
             return (float)speed;
         }
 
-        protected static float GetSpeed(in ElapsedTime elapsedTime)
+        private protected static float GetSpeed(GameTime gameTime, UserCommandArgs userCommandArgs, KeyModifiers modifiers, Viewer viewer)
         {
-            var speed = 5 * elapsedTime.RealSeconds;
-            if (UserInput.IsDown(UserCommand.CameraMoveFast))
-                speed *= SpeedFactorFastSlow;
-            if (UserInput.IsDown(UserCommand.CameraMoveSlow))
-                speed /= SpeedFactorFastSlow;
-            return (float)speed;
+            if (userCommandArgs is ScrollCommandArgs scrollCommandArgs)
+            {
+                double speed = 5 * gameTime.ElapsedGameTime.TotalSeconds;
+                if (modifiers.HasFlag(viewer.Settings.Input.CameraMoveFastModifier))
+                    speed *= SpeedFactorFastSlow;
+                else if (modifiers.HasFlag(viewer.Settings.Input.CameraMoveSlowModifier))
+                    speed /= SpeedFactorFastSlow;
+                return (float)speed * scrollCommandArgs.Delta;
+            }
+            return 0;
         }
 
         protected virtual void ZoomIn(float speed)
@@ -376,15 +380,14 @@ namespace Orts.ActivityRunner.Viewer3D
         }
 
         // TODO: Add a way to record this zoom operation for Replay.
-        protected void ZoomByMouseWheel(float speed)
+        private protected void ZoomByMouse(UserCommandArgs commandArgs, GameTime gameTime, KeyModifiers modifiers, float speedAdjustmentFactor = 1)
         {
             // Will not zoom-in-out when help windows is up.
-            // TODO: Property input processing through WindowManager.
-            if (UserInput.IsMouseWheelChanged && !Viewer.HelpWindow.Visible)
-            {
-                var fieldOfView = MathHelper.Clamp(FieldOfView - speed * UserInput.MouseWheelChange / 10, 1, 135);
-                new FieldOfViewCommand(Viewer.Log, fieldOfView);
-            }
+            if (Viewer.HelpWindow.Visible)
+                return;
+
+            float fieldOfView = MathHelper.Clamp(FieldOfView - GetSpeed(gameTime, commandArgs, modifiers, Viewer) * speedAdjustmentFactor / 10, 1, 135);
+            _ = new FieldOfViewCommand(Viewer.Log, fieldOfView);
         }
 
         /// <summary>
@@ -558,35 +561,35 @@ namespace Orts.ActivityRunner.Viewer3D
             return Matrix.CreateLookAt(XnaLocation(cameraLocation), lookAtPosition, Vector3.Up);
         }
 
-        protected static float GetMouseDelta(int mouseMovementPixels)
+        private protected static float GetMouseDelta(float delta, GameTime gameTime, KeyModifiers keyModifiers, Viewer viewer)
         {
             // Ignore CameraMoveFast as that is too fast to be useful
-            var delta = 0.01f;
-            if (UserInput.IsDown(UserCommand.CameraMoveSlow))
+            delta *=  0.005f;
+            if (keyModifiers.HasFlag(viewer.Settings.Input.CameraMoveSlowModifier))
                 delta *= 0.1f;
-            return delta * mouseMovementPixels;
+            return delta;
         }
 
-        protected virtual void RotateByMouse()
+        private protected virtual void RotateByMouse(UserCommandArgs commandArgs, GameTime gameTime, KeyModifiers modifiers)
         {
-            if (UserInput.IsMouseRightButtonDown)
-            {
-                // Mouse movement doesn't use 'var speed' because the MouseMove 
-                // parameters are already scaled down with increasing frame rates, 
-                RotationXRadians += GetMouseDelta(UserInput.MouseMoveY);
-                RotationYRadians += GetMouseDelta(UserInput.MouseMoveX);
-            }
-            // Support for replaying mouse movements
-            if (UserInput.IsMouseRightButtonPressed)
-            {
-                Viewer.CheckReplaying();
-                CommandStartTime = Viewer.Simulator.ClockTime;
-            }
-            if (UserInput.IsMouseRightButtonReleased)
-            {
-                var commandEndTime = Viewer.Simulator.ClockTime;
-                new CameraMouseRotateCommand(Viewer.Log, CommandStartTime, commandEndTime, RotationXRadians, RotationYRadians);
-            }
+            PointerMoveCommandArgs pointerMoveCommandArgs = commandArgs as PointerMoveCommandArgs;
+
+            // Mouse movement doesn't use 'var speed' because the MouseMove 
+            // parameters are already scaled down with increasing frame rates, 
+            RotationXRadians += GetMouseDelta(pointerMoveCommandArgs.Delta.Y, gameTime, modifiers, Viewer);
+            RotationYRadians += GetMouseDelta(pointerMoveCommandArgs.Delta.X, gameTime, modifiers, Viewer);
+        }
+
+        private protected override void RotateByMouseCommmandStart()
+        {
+            Viewer.CheckReplaying();
+            CommandStartTime = Viewer.Simulator.ClockTime;
+        }
+
+        private protected override void RotateByMouseCommmandEnd()
+        {
+            var commandEndTime = Viewer.Simulator.ClockTime;
+            _ = new CameraMouseRotateCommand(Viewer.Log, CommandStartTime, commandEndTime, RotationXRadians, RotationYRadians);
         }
 
         protected void UpdateRotation(in ElapsedTime elapsedTime)
@@ -806,14 +809,14 @@ namespace Orts.ActivityRunner.Viewer3D
             PanUp(panSign * speed);
         }
 
-        public override void HandleUserInput(in ElapsedTime elapsedTime)
+        private protected override void ZoomByMouseCommmand(UserCommandArgs commandArgs, GameTime gameTime, KeyModifiers modifiers)
         {
-            var speed = GetSpeed(elapsedTime);
+            ZoomByMouse(commandArgs, gameTime, modifiers);
+        }
 
-            // Pan and zoom camera
-            ZoomByMouseWheel(speed);
-
-            RotateByMouse();
+        private protected override void RotateByMouseCommmand(UserCommandArgs commandArgs, GameTime gameTime, KeyModifiers modifiers)
+        {
+            RotateByMouse(commandArgs, gameTime, modifiers);
         }
 
         public override void Update(in ElapsedTime elapsedTime)
@@ -1288,13 +1291,14 @@ namespace Orts.ActivityRunner.Viewer3D
             _ = new ToggleBrowseBackwardsCommand(Viewer.Log);
         }
 
-        public override void HandleUserInput(in ElapsedTime elapsedTime)
+        private protected override void ZoomByMouseCommmand(UserCommandArgs commandArgs, GameTime gameTime, KeyModifiers modifiers)
         {
-            var speed = GetSpeed(elapsedTime);
+            ZoomByMouse(commandArgs, gameTime, modifiers);
+        }
 
-            ZoomByMouseWheel(speed);
-
-            RotateByMouse();
+        private protected override void RotateByMouseCommmand(UserCommandArgs commandArgs, GameTime gameTime, KeyModifiers modifiers)
+        {
+            base.RotateByMouse(commandArgs, gameTime, modifiers);
         }
 
         public override void Update(in ElapsedTime elapsedTime)
@@ -1687,14 +1691,14 @@ namespace Orts.ActivityRunner.Viewer3D
             _ = new NextCarCommand(Viewer.Log);
         }
 
-        public override void HandleUserInput(in ElapsedTime elapsedTime)
+        private protected override void ZoomByMouseCommmand(UserCommandArgs commandArgs, GameTime gameTime, KeyModifiers modifiers)
         {
-            RotateByMouse();
+            ZoomByMouse(commandArgs, gameTime, modifiers);
+        }
 
-            var speed = GetSpeed(elapsedTime) * SpeedAdjustmentForRotation;
-
-            // Zoom
-            ZoomByMouseWheel(speed);
+        private protected override void RotateByMouseCommmand(UserCommandArgs commandArgs, GameTime gameTime, KeyModifiers modifiers)
+        {
+            RotateByMouse(commandArgs, gameTime, modifiers);
         }
     }
 
@@ -1738,7 +1742,6 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             LastCar();
         }
-
     }
 
     public class InsideThreeDimCamera : NonTrackingCamera
@@ -1876,14 +1879,9 @@ namespace Orts.ActivityRunner.Viewer3D
             _ = new NextCarCommand(Viewer.Log);
         }
 
-        public override void HandleUserInput(in ElapsedTime elapsedTime)
+        private protected override void ZoomByMouseCommmand(UserCommandArgs commandArgs, GameTime gameTime, KeyModifiers modifiers)
         {
-            RotateByMouse();
-
-            float speed = GetSpeed(elapsedTime) * SpeedAdjustmentForRotation;
-
-            // Zoom
-            ZoomByMouseWheel(speed);
+            ZoomByMouse(commandArgs, gameTime, modifiers, SpeedAdjustmentForRotation);
         }
 
         public void MoveCameraXYZ(float x, float y, float z)
@@ -1923,18 +1921,14 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <summary>
         /// Remembers angle of camera to apply when user returns to this type of car.
         /// </summary>
-        /// <param name="speed"></param>
-        protected override void RotateByMouse()
+        private protected override void RotateByMouseCommmandEnd()
         {
-            base.RotateByMouse();
-            if (UserInput.IsMouseRightButtonReleased)
-            {
-                viewPointRotationXRadians = RotationXRadians;
-                viewPointRotationYRadians = RotationYRadians;
-            }
+            base.RotateByMouseCommmandEnd();
+            viewPointRotationXRadians = RotationXRadians;
+            viewPointRotationYRadians = RotationYRadians;
         }
 
-        protected internal override void Save(BinaryWriter outf)
+        internal protected override void Save(BinaryWriter outf)
         {
             base.Save(outf);
             outf.Write(ActViewPoint);
@@ -1947,7 +1941,7 @@ namespace Orts.ActivityRunner.Viewer3D
             outf.Write(StartViewPointRotationYRadians);
         }
 
-        protected internal override void Restore(BinaryReader inf)
+        internal protected override void Restore(BinaryReader inf)
         {
             base.Restore(inf);
             ActViewPoint = inf.ReadInt32();
@@ -2443,6 +2437,10 @@ namespace Orts.ActivityRunner.Viewer3D
         private protected override void PanHorizontally(int panSign, UserCommandArgs commandArgs, GameTime gameTime)
         {
         }
+
+        private protected override void RotateByMouseCommmand(UserCommandArgs commandArgs, GameTime gameTime, KeyModifiers modifiers)
+        {
+        }
     }
 
     public class TracksideCamera : LookAtCamera
@@ -2554,12 +2552,9 @@ namespace Orts.ActivityRunner.Viewer3D
             attachedCar = attachedCar == trainCars.First() ? attachedCar : trainCars[trainCars.IndexOf(attachedCar) - 1];
         }
 
-
-        public override void HandleUserInput(in ElapsedTime elapsedTime)
+        private protected override void ZoomByMouseCommmand(UserCommandArgs commandArgs, GameTime gameTime, KeyModifiers modifiers)
         {
-            var speed = GetSpeed(elapsedTime);
-
-            ZoomByMouseWheel(speed);
+            ZoomByMouse(commandArgs, gameTime, modifiers);
         }
 
         public override void Update(in ElapsedTime elapsedTime)

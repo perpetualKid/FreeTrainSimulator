@@ -154,7 +154,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             viewer.UserCommandController.AddEvent(CommonUserCommand.PointerDown, MouseDownEvent);
             viewer.UserCommandController.AddEvent(CommonUserCommand.PointerReleased, MouseReleasedEvent);
             viewer.UserCommandController.AddEvent(CommonUserCommand.PointerDragged, MouseMovedEvent);
-            viewer.UserCommandController.AddEvent(CommonUserCommand.ScrollChanged, WindowScrollEvent);
+            viewer.UserCommandController.AddEvent(CommonUserCommand.VerticalScrollChanged, WindowScrollEvent);
         }
 
         private void MouseMovedEvent(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)

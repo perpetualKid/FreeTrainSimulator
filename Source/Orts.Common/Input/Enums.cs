@@ -78,11 +78,16 @@
 
     public enum CommonUserCommand
     {
+        PointerMoved,
         PointerPressed,
         PointerDown,
         PointerReleased,
-        PointerMoved,
         PointerDragged,
-        ScrollChanged,
+        AlternatePointerPressed,
+        AlternatePointerDown,
+        AlternatePointerReleased,
+        AlternatePointerDragged,
+        VerticalScrollChanged,
+        HorizontalScrollChanged,
     }
 }

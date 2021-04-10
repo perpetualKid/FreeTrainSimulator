@@ -1332,8 +1332,6 @@ namespace Orts.ActivityRunner.Viewer3D
                 FarPoint = DefaultViewport.Unproject(farsource, Camera.XnaProjection, Camera.XnaView, world);
             }
 
-            Camera.HandleUserInput(elapsedTime);
-
             if (PlayerLocomotiveViewer != null)
                 PlayerLocomotiveViewer.HandleUserInput(elapsedTime);
 
