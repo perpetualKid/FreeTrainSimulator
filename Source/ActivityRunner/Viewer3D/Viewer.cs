@@ -138,8 +138,8 @@ namespace Orts.ActivityRunner.Viewer3D
 
         private TrainCarViewer playerLocomotiveViewer;
 
-        public TrainCarViewer PlayerLocomotiveViewer 
-        { 
+        public TrainCarViewer PlayerLocomotiveViewer
+        {
             get => playerLocomotiveViewer;
             private set
             {
@@ -166,9 +166,9 @@ namespace Orts.ActivityRunner.Viewer3D
                 Camera.Activate();
         }
 
-        bool ForceMouseVisible;
-        double MouseVisibleTillRealTime;
-        public Cursor ActualCursor = Cursors.Default;
+        private bool forceMouseVisible;
+        private double mouseVisibleTillRealTime;
+        private Cursor actualCursor = Cursors.Default;
         public static Viewport DefaultViewport;
 
         CabViewDiscreteRenderer MouseChangingControl;
@@ -237,6 +237,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         private bool lockShadows;
         private bool logRenderFrame;
+        private bool uncoupleWithMouseActive;
 
         /// <summary>
         /// Finds time of last entry to set ReplayEndsAt and provide the Replay started message.
@@ -427,6 +428,7 @@ namespace Orts.ActivityRunner.Viewer3D
             mouseInput.Initialize(mouseInputGameComponent, keyboardInputGameComponent, UserCommandController);
 
             #endregion
+
             UpdateAdapterInformation(Game.GraphicsDevice.Adapter);
             DefaultViewport = Game.GraphicsDevice.Viewport;
 
@@ -537,11 +539,11 @@ namespace Orts.ActivityRunner.Viewer3D
                     Simulator.GameSpeed /= 1.5f;
                     Simulator.Confirmer.ConfirmWithPerCent(CabControl.SimulationSpeed, CabSetting.Decrease, Simulator.GameSpeed * 100);
                 });
-            UserCommandController.AddEvent(UserCommand.DebugSpeedReset, KeyEventType.KeyPressed, () =>
-            {
-                Simulator.GameSpeed = 1;
-                Simulator.Confirmer.ConfirmWithPerCent(CabControl.SimulationSpeed, CabSetting.Off, Simulator.GameSpeed * 100);
-            });
+                UserCommandController.AddEvent(UserCommand.DebugSpeedReset, KeyEventType.KeyPressed, () =>
+                {
+                    Simulator.GameSpeed = 1;
+                    Simulator.Confirmer.ConfirmWithPerCent(CabControl.SimulationSpeed, CabSetting.Off, Simulator.GameSpeed * 100);
+                });
             }
             UserCommandController.AddEvent(UserCommand.DisplayHUD, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
@@ -924,6 +926,34 @@ namespace Orts.ActivityRunner.Viewer3D
 
             UserCommandController.AddEvent(UserCommand.DebugLockShadows, KeyEventType.KeyPressed, () => lockShadows = !lockShadows);
             UserCommandController.AddEvent(UserCommand.DebugLogRenderFrame, KeyEventType.KeyPressed, () => logRenderFrame = true);
+            UserCommandController.AddEvent(UserCommand.GameUncoupleWithMouse, KeyEventType.KeyDown, () => { uncoupleWithMouseActive = true; forceMouseVisible = true; });
+            UserCommandController.AddEvent(UserCommand.GameUncoupleWithMouse, KeyEventType.KeyReleased, () => { uncoupleWithMouseActive = false; forceMouseVisible = false; });
+
+            UserCommandController.AddEvent(CommonUserCommand.PointerDown, (UserCommandArgs userCommandArgs, GameTime gameTime, KeyModifiers modifiers) =>
+            {
+                PointerCommandArgs pointerCommandArgs = userCommandArgs as PointerCommandArgs;
+                Vector3 nearsource = new Vector3(pointerCommandArgs.Position.X, pointerCommandArgs.Position.Y, 0f);
+                Vector3 farsource = new Vector3(pointerCommandArgs.Position.X, pointerCommandArgs.Position.Y, 1f);
+                Matrix world = Matrix.CreateTranslation(0, 0, 0);
+                Vector3 nearPoint = DefaultViewport.Unproject(nearsource, Camera.XnaProjection, Camera.XnaView, world);
+                Vector3 farPoint = DefaultViewport.Unproject(farsource, Camera.XnaProjection, Camera.XnaView, world);
+                forceMouseVisible = true;
+                if (!Simulator.Paused)
+                {
+                    if (uncoupleWithMouseActive)
+                    {
+                        TryUncoupleAt(nearPoint);
+                    }
+                    if ((modifiers & KeyModifiers.Alt) == KeyModifiers.Alt)
+                    {
+                        TryThrowSwitchAt(nearPoint, farPoint);
+                    }
+                }
+            });
+            UserCommandController.AddEvent(CommonUserCommand.PointerReleased, (UserCommandArgs, GameTime) =>
+            {
+                forceMouseVisible = false;
+            });
             SetCommandReceivers();
             InitReplay();
         }
@@ -1345,30 +1375,30 @@ namespace Orts.ActivityRunner.Viewer3D
                 }
             }
 
-            if (!Simulator.Paused && UserInput.IsDown(UserCommand.GameSwitchWithMouse))
-            {
-                ForceMouseVisible = true;
-                if (UserInput.IsMouseLeftButtonPressed)
-                {
-                    TryThrowSwitchAt();
-                }
-            }
-            else if (!Simulator.Paused && UserInput.IsDown(UserCommand.GameUncoupleWithMouse))
-            {
-                ForceMouseVisible = true;
-                if (UserInput.IsMouseLeftButtonPressed)
-                {
-                    TryUncoupleAt();
-                }
-            }
-            else
-            {
-                ForceMouseVisible = false;
-            }
+            //if (!Simulator.Paused && UserInput.IsDown(UserCommand.GameSwitchWithMouse))
+            //{
+            //    forceMouseVisible = true;
+            //    if (UserInput.IsMouseLeftButtonPressed)
+            //    {
+            //        TryThrowSwitchAt();
+            //    }
+            //}
+            //else if (!Simulator.Paused && UserInput.IsDown(UserCommand.GameUncoupleWithMouse))
+            //{
+            //    ForceMouseVisible = true;
+            //    if (UserInput.IsMouseLeftButtonPressed)
+            //    {
+            //        TryUncoupleAt();
+            //    }
+            //}
+            //else
+            //{
+            //    ForceMouseVisible = false;
+            //}
 
             // reset cursor type when needed
 
-            if (!(Camera is CabCamera) && !(Camera is ThreeDimCabCamera) && ActualCursor != Cursors.Default) ActualCursor = Cursors.Default;
+            if (!(Camera is CabCamera) && !(Camera is ThreeDimCabCamera) && actualCursor != Cursors.Default) actualCursor = Cursors.Default;
 
             // Mouse control for 2D cab
 
@@ -1419,8 +1449,8 @@ namespace Orts.ActivityRunner.Viewer3D
                         Simulator.Confirmer.Message(ConfirmLevel.None,
                             (PlayerLocomotive as MSTSLocomotive).TrainControlSystem.GetDisplayString(MousePickedControl.GetControlType().ToString()));
                     }
-                    if (MousePickedControl != null) ActualCursor = Cursors.Hand;
-                    else if (ActualCursor == Cursors.Hand) ActualCursor = Cursors.Default;
+                    if (MousePickedControl != null) actualCursor = Cursors.Hand;
+                    else if (actualCursor == Cursors.Hand) actualCursor = Cursors.Default;
                     OldMousePickedControl = MousePickedControl;
                     MousePickedControl = null;
                 }
@@ -1542,11 +1572,11 @@ namespace Orts.ActivityRunner.Viewer3D
                     }
                     if (MousePickedControl != null)
                     {
-                        ActualCursor = Cursors.Hand;
+                        actualCursor = Cursors.Hand;
                     }
-                    else if (ActualCursor == Cursors.Hand)
+                    else if (actualCursor == Cursors.Hand)
                     {
-                        ActualCursor = Cursors.Default;
+                        actualCursor = Cursors.Default;
                     }
                     OldMousePickedControl = MousePickedControl;
                     MousePickedControl = null;
@@ -1557,11 +1587,11 @@ namespace Orts.ActivityRunner.Viewer3D
 
             if (currentMouseState.X != originalMouseState.X ||
                 currentMouseState.Y != originalMouseState.Y)
-                MouseVisibleTillRealTime = RealTime + 1;
+                mouseVisibleTillRealTime = RealTime + 1;
 
-            RenderProcess.IsMouseVisible = ForceMouseVisible || RealTime < MouseVisibleTillRealTime;
+            RenderProcess.IsMouseVisible = forceMouseVisible || RealTime < mouseVisibleTillRealTime;
             originalMouseState = currentMouseState;
-            RenderProcess.ActualCursor = ActualCursor;
+            RenderProcess.ActualCursor = actualCursor;
         }
 
         static bool IsReverserInNeutral(TrainCar car)
@@ -1686,7 +1716,8 @@ namespace Orts.ActivityRunner.Viewer3D
         }
 
         private int trainCount;
-        void RandomSelectTrain()
+
+        private void RandomSelectTrain()
         {
             try
             {
@@ -1719,12 +1750,12 @@ namespace Orts.ActivityRunner.Viewer3D
         /// The user has left-clicked with U pressed.
         /// If the mouse was over a coupler, then uncouple the car.
         /// </summary>
-        void TryUncoupleAt()
+        private void TryUncoupleAt(Vector3 nearPoint)
         {
             // Create a ray from the near clip plane to the far clip plane.
-            Vector3 direction = FarPoint - NearPoint;
+            Vector3 direction = FarPoint - nearPoint;
             direction.Normalize();
-            Ray pickRay = new Ray(NearPoint, direction);
+            Ray pickRay = new Ray(nearPoint, direction);
 
             // check each car
             Traveller traveller = new Traveller(PlayerTrain.FrontTDBTraveller, Traveller.TravellerDirection.Backward);
@@ -1740,7 +1771,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
                 if (null != pickRay.Intersects(boundingSphere))
                 {
-                    new UncoupleCommand(Log, carNo);
+                    _ = new UncoupleCommand(Log, carNo);
                     break;
                 }
                 traveller.Move(d);
@@ -1753,19 +1784,19 @@ namespace Orts.ActivityRunner.Viewer3D
         /// If the mouse was over a switch, then toggle the switch.
         /// No action if toggling blocks the player loco's path.
         /// </summary>
-        void TryThrowSwitchAt()
+        private void TryThrowSwitchAt(Vector3 nearPoint, Vector3 farPoint)
         {
             TrackNode bestTn = null;
             float bestD = 10;
             // check each switch
-            for (int j = 0; j < Simulator.TDB.TrackDB.TrackNodes.Count(); j++)
+            for (int j = 0; j < Simulator.TDB.TrackDB.TrackNodes.Length; j++)
             {
                 TrackNode tn = Simulator.TDB.TrackDB.TrackNodes[j];
                 if (tn is TrackJunctionNode)
                 {
 
                     Vector3 xnaCenter = Camera.XnaLocation(tn.UiD.Location);
-                    float d = xnaCenter.LineSegmentDistanceSquare(NearPoint, FarPoint);
+                    float d = xnaCenter.LineSegmentDistanceSquare(nearPoint, farPoint);
 
                     if (bestD > d)
                     {
@@ -1776,7 +1807,7 @@ namespace Orts.ActivityRunner.Viewer3D
             }
             if (bestTn != null)
             {
-                new ToggleAnySwitchCommand(Log, bestTn.TrackCircuitCrossReferences[0].Index);
+                _ = new ToggleAnySwitchCommand(Log, bestTn.TrackCircuitCrossReferences[0].Index);
             }
         }
 

@@ -147,12 +147,12 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         }
     }
 
-    class TrainLabel : Label
+    internal class TrainLabel : Label
     {
-        readonly Viewer Viewer;
-        readonly Train PickedTrainFromList;
+        private readonly Viewer Viewer;
+        private readonly Train PickedTrainFromList;
 
-        public TrainLabel(int width, int height, Viewer viewer, Train train, String trainName, LabelAlignment alignment)
+        public TrainLabel(int width, int height, Viewer viewer, Train train, string trainName, LabelAlignment alignment)
             : base(width, height, trainName, alignment)
         {
             Viewer = viewer;
@@ -160,7 +160,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             Click += new Action<Control, Point>(TrainListLabel_Click);
         }
 
-        void TrainListLabel_Click(Control arg1, Point arg2)
+        private void TrainListLabel_Click(Control arg1, Point arg2)
         {
             if (PickedTrainFromList != null && PickedTrainFromList.ControlMode == TrainControlMode.TurnTable)
             {
