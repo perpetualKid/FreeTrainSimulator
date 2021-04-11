@@ -1024,13 +1024,8 @@ namespace Orts.Viewer3D.Popups
         {
             base.PrepareFrame(elapsedTime, updateFull);
 
-            var MovingCurrentWindow = UserInput.IsMouseLeftButtonDown &&
-                   UserInput.MouseX >= Location.X && UserInput.MouseX <= Location.X + Location.Width &&
-                   UserInput.MouseY >= Location.Y && UserInput.MouseY <= Location.Y + Location.Height ?
-                   true : false;
-
             // Avoid to updateFull when the window is moving
-            if (!MovingCurrentWindow & updateFull)
+            if (!dragged & updateFull)
             {
                 UpdateData();
 

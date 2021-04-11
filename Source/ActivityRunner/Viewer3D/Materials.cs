@@ -1159,12 +1159,12 @@ namespace Orts.ActivityRunner.Viewer3D
             graphicsDevice.DepthStencilState = DepthStencilState.None;
         }
 
-        public void Render(RenderPrimitive renderPrimitive, ref Matrix worldMatrix, ref Matrix viewMatrix, ref Matrix projectionMatrix)
+        public void Render(RenderPrimitive renderPrimitive, in Matrix worldMatrix, ref Matrix viewMatrix, ref Matrix projectionMatrix)
         {
             MatrixExtension.Multiply(in worldMatrix, in viewMatrix, out Matrix result);
             MatrixExtension.Multiply(in result, in projectionMatrix, out Matrix wvp);
 //            Matrix wvp = worldMatrix * viewMatrix * projectionMatrix;
-            shader.SetMatrix(ref worldMatrix, ref wvp);
+            shader.SetMatrix(in worldMatrix, ref wvp);
 
             for (int j = 0; j < shaderPasses.Count; j++)
             {
@@ -1178,7 +1178,7 @@ namespace Orts.ActivityRunner.Viewer3D
             MatrixExtension.Multiply(in view, in projection, out Matrix result);
             MatrixExtension.Multiply(in result, in viewProjection, out Matrix wvp);
             //            Matrix wvp = worldMatrix * viewMatrix * projectionMatrix;
-            shader.SetMatrix(ref view, ref wvp);
+            shader.SetMatrix(in view, ref wvp);
 
             for (int j = 0; j < shaderPasses.Count; j++)
             {

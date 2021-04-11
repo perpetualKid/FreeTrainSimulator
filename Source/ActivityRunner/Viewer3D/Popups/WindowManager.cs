@@ -153,11 +153,11 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             viewer.UserCommandController.AddEvent(CommonUserCommand.PointerPressed, MouseClickedEvent);
             viewer.UserCommandController.AddEvent(CommonUserCommand.PointerDown, MouseDownEvent);
             viewer.UserCommandController.AddEvent(CommonUserCommand.PointerReleased, MouseReleasedEvent);
-            viewer.UserCommandController.AddEvent(CommonUserCommand.PointerDragged, MouseMovedEvent);
+            viewer.UserCommandController.AddEvent(CommonUserCommand.PointerDragged, MouseDraggingEvent);
             viewer.UserCommandController.AddEvent(CommonUserCommand.VerticalScrollChanged, WindowScrollEvent);
         }
 
-        private void MouseMovedEvent(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)
+        private void MouseDraggingEvent(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)
         {
             if (userCommandArgs is PointerMoveCommandArgs moveCommandArgs)
             {
@@ -296,7 +296,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
             foreach (var window in VisibleWindows)
             {
-                var xnaWorld = window.XNAWorld;
+                ref readonly Matrix xnaWorld = ref window.XNAWorld;
 
                 // FIXME: MonoGame cannot read backbuffer
                 //if (Screen != null)
@@ -305,7 +305,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 PopupWindowMaterial.SetState(Screen);
                 //RenderItem item = new RenderItem(null, window, Matrix.Identity, ShapeFlags.None);
                 //                PopupWindowMaterial.Render(new List<RenderItem>() { item }, ref xnaWorld, ref XNAView, ref XNAProjection);
-                PopupWindowMaterial.Render(window, ref xnaWorld, ref XNAView, ref XNAProjection);
+                PopupWindowMaterial.Render(window, in xnaWorld, ref XNAView, ref XNAProjection);
                 PopupWindowMaterial.ResetState();
 
                 SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.NonPremultiplied, null, null, null, null);

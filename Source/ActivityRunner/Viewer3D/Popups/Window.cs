@@ -29,66 +29,69 @@ using System.Reflection;
 
 namespace Orts.ActivityRunner.Viewer3D.Popups
 {
-    public abstract class Window : RenderPrimitive
+    public abstract class Window : RenderPrimitive, IDisposable
     {
-        const int BaseFontSize = 16; // DO NOT CHANGE without also changing the graphics for the windows.
+        private const int BaseFontSize = 16; // DO NOT CHANGE without also changing the graphics for the windows.
 
-        public static readonly Point DecorationOffset = new Point(4, 4 + BaseFontSize + 5);
-        public static readonly Point DecorationSize = new Point(4 + 4, 4 + BaseFontSize + 5 + 4);
-        public Matrix XNAWorld;
+        public static Point DecorationOffset { get; } = new Point(4, 4 + BaseFontSize + 5);
+        public static Point DecorationSize { get; } = new Point(4 + 4, 4 + BaseFontSize + 5 + 4);
+        private Matrix xnaWorld;
+        public ref readonly Matrix XNAWorld => ref xnaWorld;
 
-        protected WindowManager Owner;
+        protected WindowManager Owner { get; }
+        protected bool dragged;
+        private bool visible;
+        private Rectangle location;
+        private readonly string caption;
+        private readonly PropertyInfo settingsProperty;
+        private ControlLayout windowLayout;
+        private VertexBuffer windowVertexBuffer;
+        private IndexBuffer windowIndexBuffer;
+        private bool disposedValue;
 
-        bool visible;
-        Rectangle location;
-
-        readonly string Caption;
-        readonly PropertyInfo SettingsProperty;
-        ControlLayout WindowLayout;
-        VertexDeclaration WindowVertexDeclaration;
-        VertexBuffer WindowVertexBuffer;
-        IndexBuffer WindowIndexBuffer;
-
-        public Window(WindowManager owner, int width, int height, string caption)
+        protected Window(WindowManager owner, int width, int height, string caption)
         {
-            Owner = owner;
+            Owner = owner ?? throw new ArgumentNullException(nameof(owner));
             // We need to correct the window height for the ACTUAL font size, so that the title bar is shown correctly.
             location = new Rectangle(0, 0, width, height - BaseFontSize + owner.TextFontDefault.Height);
 
-            SettingsProperty = Owner.Viewer.Settings.GetType().GetProperty("WindowPosition_" + GetType().Name.Replace("Window", ""));
-            if (SettingsProperty != null)
+            settingsProperty = Owner.Viewer.Settings.GetType().GetProperty("WindowPosition_" + GetType().Name.Replace("Window", ""));
+            if (settingsProperty != null)
             {
-                var value = SettingsProperty.GetValue(Owner.Viewer.Settings, null) as int[];
-                if ((value != null) && (value.Length >= 2))
+                int[] value = settingsProperty.GetValue(Owner.Viewer.Settings, null) as int[];
+                if (value?.Length >= 2)
                 {
                     location.X = (int)Math.Round((float)value[0] * (Owner.ScreenSize.X - location.Width) / 100);
                     location.Y = (int)Math.Round((float)value[1] * (Owner.ScreenSize.Y - location.Height) / 100);
                 }
             }
 
-            Caption = caption;
+            this.caption = caption;
             Owner.Add(this);
         }
 
-        protected internal virtual void Initialize()
+        internal protected virtual void Initialize()
         {
             VisibilityChanged();
             LocationChanged();
             SizeChanged();
         }
 
-        protected internal virtual void Save(BinaryWriter outf)
+        internal protected virtual void Save(BinaryWriter outf)
         {
+            if (null == outf)
+                throw new ArgumentNullException(nameof(outf));
+
             outf.Write(visible);
             outf.Write((float)location.X / (Owner.ScreenSize.X - location.Width));
             outf.Write((float)location.Y / (Owner.ScreenSize.Y - location.Height));
         }
 
-        protected internal virtual void Restore(BinaryReader inf)
+        internal protected virtual void Restore(BinaryReader inf)
         {
-            visible = inf.ReadBoolean();
-            var x = location.X;
-            var y = location.Y;
+            visible = inf?.ReadBoolean() ?? throw new ArgumentNullException(nameof(inf));
+            int x = location.X;
+            int y = location.Y;
             location.X = (int)(inf.ReadSingle() * (Owner.ScreenSize.X - location.Width));
             location.Y = (int)(inf.ReadSingle() * (Owner.ScreenSize.Y - location.Height));
             // This is needed to move the window background to the correct position
@@ -102,26 +105,26 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             {
                 Owner.BringWindowToTop(this);
 
-                if (WindowLayout != null)
+                if (windowLayout != null)
                     PrepareFrame(ElapsedTime.Zero, true);
             }
         }
 
         protected virtual void LocationChanged()
         {
-            if (SettingsProperty != null)
+            if (settingsProperty != null)
             {
-                SettingsProperty.SetValue(Owner.Viewer.Settings, new[] { (int)Math.Round(100f * location.X / (Owner.ScreenSize.X - location.Width)), (int)Math.Round(100f * location.Y / (Owner.ScreenSize.Y - location.Height)) }, null);
-                Owner.Viewer.Settings.Save(SettingsProperty.Name);
+                settingsProperty.SetValue(Owner.Viewer.Settings, new[] { (int)Math.Round(100f * location.X / (Owner.ScreenSize.X - location.Width)), (int)Math.Round(100f * location.Y / (Owner.ScreenSize.Y - location.Height)) }, null);
+                Owner.Viewer.Settings.Save(settingsProperty.Name);
             }
 
-            XNAWorld = Matrix.CreateWorld(new Vector3(location.X, location.Y, 0), -Vector3.UnitZ, Vector3.UnitY);
+            xnaWorld = Matrix.CreateWorld(new Vector3(location.X, location.Y, 0), -Vector3.UnitZ, Vector3.UnitY);
         }
 
         protected virtual void SizeChanged()
         {
             Layout();
-            WindowVertexBuffer = null;
+            windowVertexBuffer = null;
         }
 
         internal virtual void ActiveChanged()
@@ -134,10 +137,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
         public bool Visible
         {
-            get
-            {
-                return visible;
-            }
+            get => visible;
             set
             {
                 if (visible != value)
@@ -148,29 +148,11 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             }
         }
 
-        public virtual bool Interactive
-        {
-            get
-            {
-                return true;
-            }
-        }
+        public virtual bool Interactive => true;
 
-        public virtual bool TopMost
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public virtual bool TopMost => false;
 
-        public Rectangle Location
-        {
-            get
-            {
-                return location;
-            }
-        }
+        public Rectangle Location => location;
 
         public virtual void TabAction()
         {
@@ -205,21 +187,23 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             }
         }
 
-        protected internal void Layout()
+        internal protected void Layout()
         {
-            var windowLayout = new WindowControlLayout(this, location.Width, location.Height);
-            windowLayout.TextHeight = Owner.TextFontDefault.Height;
+            WindowControlLayout windowLayout = new WindowControlLayout(this, location.Width, location.Height)
+            {
+                TextHeight = Owner.TextFontDefault.Height
+            };
             if (Owner.ScreenSize != Point.Zero)
                 Layout(windowLayout);
             windowLayout.Initialize(Owner);
-            WindowLayout = windowLayout;
+            this.windowLayout = windowLayout;
         }
 
         protected virtual ControlLayout Layout(ControlLayout layout)
         {
             // Pad window by 4px, add caption and space between to content area.
-            var content = layout.AddLayoutOffset(4, 4, 4, 4).AddLayoutVertical();
-            content.Add(new Label(content.RemainingWidth, Owner.TextFontDefault.Height, Caption, LabelAlignment.Center));
+            ControlLayoutVertical content = layout?.AddLayoutOffset(4, 4, 4, 4).AddLayoutVertical() ?? throw new ArgumentNullException(nameof(layout));
+            content.Add(new Label(content.RemainingWidth, Owner.TextFontDefault.Height, caption, LabelAlignment.Center));
             content.AddSpace(0, 5);
             return content;
         }
@@ -233,11 +217,11 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
         public override void Draw()
         {
-            if (WindowVertexBuffer == null)
+            if (windowVertexBuffer == null)
             {
                 // Edges/corners are 32px (1/4th image size).
-                var gp = 32 - BaseFontSize + Owner.TextFontDefault.Height;
-                var vertexData = new[] {
+                int gp = 32 - BaseFontSize + Owner.TextFontDefault.Height;
+                VertexPositionTexture[] vertexData = new[] {
 					//  0  1  2  3
 					new VertexPositionTexture(new Vector3(0 * location.Width + 00, 0 * location.Height + 00, 0), new Vector2(0.00f / 2, 0.00f)),
                     new VertexPositionTexture(new Vector3(0 * location.Width + gp, 0 * location.Height + 00, 0), new Vector2(0.25f / 2, 0.00f)),
@@ -259,22 +243,22 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     new VertexPositionTexture(new Vector3(1 * location.Width - gp, 1 * location.Height - 00, 0), new Vector2(0.75f / 2, 1.00f)),
                     new VertexPositionTexture(new Vector3(1 * location.Width - 00, 1 * location.Height - 00, 0), new Vector2(1.00f / 2, 1.00f)),
                 };
-                WindowVertexBuffer = new VertexBuffer(graphicsDevice, typeof(VertexPositionTexture), vertexData.Length, BufferUsage.WriteOnly);
-                WindowVertexBuffer.SetData(vertexData);
+                windowVertexBuffer = new VertexBuffer(graphicsDevice, typeof(VertexPositionTexture), vertexData.Length, BufferUsage.WriteOnly);
+                windowVertexBuffer.SetData(vertexData);
             }
-            if (WindowIndexBuffer == null)
+            if (windowIndexBuffer == null)
             {
-                var indexData = new short[] {
+                short[] indexData = new short[] {
                     0, 4, 1, 5, 2, 6, 3, 7,
                     11, 6, 10, 5, 9, 4, 8,
                     12, 9, 13, 10, 14, 11, 15,
                 };
-                WindowIndexBuffer = new IndexBuffer(graphicsDevice, typeof(short), indexData.Length, BufferUsage.WriteOnly);
-                WindowIndexBuffer.SetData(indexData);
+                windowIndexBuffer = new IndexBuffer(graphicsDevice, typeof(short), indexData.Length, BufferUsage.WriteOnly);
+                windowIndexBuffer.SetData(indexData);
             }
 
-            graphicsDevice.SetVertexBuffer(WindowVertexBuffer);
-            graphicsDevice.Indices = WindowIndexBuffer;
+            graphicsDevice.SetVertexBuffer(windowVertexBuffer);
+            graphicsDevice.Indices = windowIndexBuffer;
             graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleStrip, 0, 0, 20);
         }
 
@@ -284,36 +268,66 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
         public virtual void Draw(SpriteBatch spriteBatch)
         {
-            WindowLayout.Draw(spriteBatch, Location.Location);
+            windowLayout.Draw(spriteBatch, Location.Location);
         }
 
         public void MousePressed(Point position, KeyModifiers keyModifiers)
         {
-            WindowLayout.HandleMousePressed(new WindowMouseEvent(this, position, true, keyModifiers));
+            windowLayout.HandleMousePressed(new WindowMouseEvent(this, position, true, keyModifiers));
         }
 
         public void MouseDown(Point position, KeyModifiers keyModifiers)
         {
-            WindowLayout.HandleMouseDown(new WindowMouseEvent(this, position, true, keyModifiers));
+            windowLayout.HandleMouseDown(new WindowMouseEvent(this, position, true, keyModifiers));
         }
 
         public void MouseReleased(Point position, KeyModifiers keyModifiers)
         {
-            WindowLayout.HandleMouseReleased(new WindowMouseEvent(this, position, false, keyModifiers));
+            windowLayout.HandleMouseReleased(new WindowMouseEvent(this, position, false, keyModifiers));
+            dragged = false;
         }
 
         public void MouseDrag(Point position, Vector2 delta, KeyModifiers keyModifiers)
         {
-            WindowLayout.HandleMouseMove(new WindowMouseEvent(this, position, delta, keyModifiers));
+            dragged = true;
+            windowLayout.HandleMouseMove(new WindowMouseEvent(this, position, delta, keyModifiers));
         }
 
         public void MouseScroll(Point position, int delta, KeyModifiers keyModifiers)
         {
-            WindowLayout.HandleMouseScroll(new WindowMouseEvent(this, position, delta, keyModifiers));
+            windowLayout.HandleMouseScroll(new WindowMouseEvent(this, position, delta, keyModifiers));
         }
 
         public virtual void Mark()
         {
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    windowVertexBuffer?.Dispose();
+                    windowIndexBuffer?.Dispose();
+                }
+
+                disposedValue = true;
+            }
+        }
+
+        // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
+        // ~Window()
+        // {
+        //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+        //     Dispose(disposing: false);
+        // }
+
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 

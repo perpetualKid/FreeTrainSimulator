@@ -1241,11 +1241,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
             base.PrepareFrame(elapsedTime, updateFull);
 
-            var MovingCurrentWindow = UserInput.IsMouseLeftButtonDown &&
-               UserInput.MouseX >= Location.X && UserInput.MouseX <= Location.X + Location.Width &&
-               UserInput.MouseY >= Location.Y && UserInput.MouseY <= Location.Y + Location.Height ?
-               true : false;
-
             if (updateFull && (Tabs[ActiveTab].Tab == Tab.ActivityTimetable | Tabs[ActiveTab].Tab == Tab.ActivityEvaluation) && Owner.Viewer.Simulator.ActivityRun != null)
             {
                 if (LastActivityTask != Owner.Viewer.Simulator.ActivityRun.Current || StoppedAt != GetStoppedAt(LastActivityTask))
@@ -1255,7 +1250,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     Layout();
                 }
             }
-            else if (!MovingCurrentWindow && updateFull && (Tabs[ActiveTab].Tab == Tab.ActivityWorkOrders | Tabs[ActiveTab].Tab == Tab.ActivityEvaluation) && Owner.Viewer.Simulator.ActivityRun != null)
+            else if (!dragged && updateFull && (Tabs[ActiveTab].Tab == Tab.ActivityWorkOrders | Tabs[ActiveTab].Tab == Tab.ActivityEvaluation) && Owner.Viewer.Simulator.ActivityRun != null)
             {
                 if (Owner.Viewer.Simulator.ActivityRun.EventList != null)
                 {
@@ -1267,7 +1262,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     }
                 }
             }
-            else if (!MovingCurrentWindow && Tabs[ActiveTab].Tab == Tab.ActivityEvaluation && Owner.Viewer.Simulator.ActivityRun != null && !dbfevalActivityEnded)//Debrief Eval
+            else if (!dragged && Tabs[ActiveTab].Tab == Tab.ActivityEvaluation && Owner.Viewer.Simulator.ActivityRun != null && !dbfevalActivityEnded)//Debrief Eval
             {
 
                 var train = Program.Viewer.PlayerLocomotive.Train;//Debrief Eval
