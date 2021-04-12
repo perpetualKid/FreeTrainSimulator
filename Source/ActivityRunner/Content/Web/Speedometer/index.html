@@ -1,0 +1,75 @@
+﻿<!DOCTYPE HTML>
+<!--
+COPYRIGHT 2009, 2010, 2011, 2012, 2013, 2014 by the Open Rails project.
+
+This file is part of Open Rails.
+
+Open Rails is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Open Rails is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- adds zooming for mobiles -->
+  <title>Primary Display</title>
+  <link rel="shortcut icon" type="image/png" href="/or_logo.png"><!-- This icon appears in the page's tab and its bookmark. -->
+  <link rel="stylesheet" type="text/css" href="/index.css"><!-- share styles with home page -->
+  <link rel="stylesheet" type="text/css" href="index.css">
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
+  <script src="https://cdn.rawgit.com/Mikhus/canvas-gauges/gh-pages/download/2.1.7/all/gauge.min.js"></script> 
+</head>
+<body id="body" onload="setInterval (ApiTrackMonitor, 500)">
+    <canvas data-type="radial-gauge"
+    data-width="700"
+    data-height="700"
+    data-units="km/h"
+    data-min-value="0"
+    data-max-value="500"
+    data-major-ticks="0,50,100,150,200,250,300,350,400,450,500"
+    data-minor-ticks="5"
+    data-stroke-ticks="true"
+    data-color-plate="#000"
+    data-color-numbers="#fff"
+    data-color-units="#fff"
+    data-color-major-ticks="#fff"
+    data-color-minor-ticks="#fff"
+    data-border-shadow-width="0"
+    data-highlights="[]"
+    data-borders="true"
+    data-needle-type="line"
+    data-needle-width="5"
+    data-needle-circle-size="20"
+    data-color-needle-end="#fff"
+    data-needle-shadow="false"
+    data-animation="true"
+    data-animation-duration="500"
+    data-animation-rule="linear"
+    data-color-needle="#fff"
+    data-value-box="false"
+    id="speedometer"
+    ></canvas>
+<div style="display: none">
+  <div id ="trackmonitordiv" >
+    <div id="trackmonitorheader"></div>
+    <table class="border" style="background-color:black;" id="TrackMonitor"></table>
+    <br/>
+  </div>
+
+  <div id="traindrivingdiv" >
+    <div id="traindrivingheader"></div>
+    <table class="border" style="background-color:black;" id="TrainDriving"></table>
+  </div>
+</div>
+  <script src="index.js"></script> 
+</body>
+</html>
