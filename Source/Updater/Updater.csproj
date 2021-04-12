@@ -12,7 +12,7 @@
   <ItemGroup>
     <PackageReference Include="GetText.NET" Version="0.9.9" />
     <PackageReference Include="GetText.NET.WindowsForms" Version="0.9.9" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="System.IO.Compression" Version="4.3.0" />
     <PackageReference Include="System.Security.Cryptography.Pkcs" Version="5.0.1" />
     <PackageReference Include="System.IO.FileSystem" Version="4.3.0" />
