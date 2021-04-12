@@ -32,6 +32,9 @@ If you are on an older or unsupported OS version, you may need to download and i
 - [.NET Framework 4.8](https://dotnet.microsoft.com/download/dotnet-framework/net48)
 - [.NET Core 3.1](https://dotnet.microsoft.com/download/dotnet/3.1/runtime)
 - [DirectX End-User Runtime Web Installer ](https://www.microsoft.com/en-us/download/details.aspx?id=35&nowin10)
+
+To install on Linux, please see the [wiki](https://github.com/perpetualKid/ORTS-MG/wiki/Linux-Wine)
+
 ## Build Information
 
 |Release Type|Build Status|
