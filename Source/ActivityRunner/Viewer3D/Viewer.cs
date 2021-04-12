@@ -945,6 +945,10 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 forceMouseVisible = false;
             });
+            UserCommandController.AddEvent(CommonUserCommand.PointerMoved, (UserCommandArgs, GameTime) =>
+            {
+                mouseVisibleTillRealTime = RealTime + 1;
+            });
             SetCommandReceivers();
             InitReplay();
 
@@ -1359,20 +1363,12 @@ namespace Orts.ActivityRunner.Viewer3D
                     CameraActivate();
                 }
             }
-            // reset cursor type when needed
 
-            if (!(Camera is CabCamera) && !(Camera is CabCamera3D) && actualCursor != Cursors.Default) 
+            // reset cursor type when needed
+            if (!(Camera is CabCamera) && !(Camera is CabCamera3D) && actualCursor != Cursors.Default)
                 actualCursor = Cursors.Default;
 
-            MouseState currentMouseState = Mouse.GetState();
-
-            if (currentMouseState.X != originalMouseState.X ||
-                currentMouseState.Y != originalMouseState.Y)
-                mouseVisibleTillRealTime = RealTime + 1;
-
             RenderProcess.IsMouseVisible = forceMouseVisible || RealTime < mouseVisibleTillRealTime;
-            originalMouseState = currentMouseState;
-            //RenderProcess.ActualCursor = actualCursor;
         }
 
         static bool IsReverserInNeutral(TrainCar car)
