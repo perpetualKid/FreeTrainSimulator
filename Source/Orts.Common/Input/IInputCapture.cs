@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Orts.View
+namespace Orts.Common.Input
 {
     public interface IInputCapture
     {

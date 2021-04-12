@@ -414,21 +414,16 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         {
             base.PrepareFrame(elapsedTime, updateFull);
 
-            var MovingCurrentWindow = UserInput.IsMouseLeftButtonDown &&
-                   UserInput.MouseX >= Location.X && UserInput.MouseX <= Location.X + Location.Width &&
-                   UserInput.MouseY >= Location.Y && UserInput.MouseY <= Location.Y + Location.Height ?
-                   true : false;
-
-            if (!MovingCurrentWindow & updateFull)
+            if (!dragged & updateFull)
             {
                 UpdateData();
 
                 // Ctrl + F (FiringIsManual)
-                if (ResizeWindow || LinesCount != ListToLabel.Count())
+                if (ResizeWindow || LinesCount != ListToLabel.Count)
                 {
                     ResizeWindow = false;
                     UpdateWindowSize();
-                    LinesCount = ListToLabel.Count();
+                    LinesCount = ListToLabel.Count;
                 }
 
                 //Update Layout

@@ -356,7 +356,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
          pictureBox1.Image = new Bitmap(pictureBox1.Width, pictureBox1.Height);
 		 imageList1 = new ImageList();
-		 this.AvatarView.View = View.LargeIcon;
+		 this.AvatarView.View = System.Windows.Forms.View.LargeIcon;
 		 imageList1.ImageSize = new Size(64, 64);
 		 this.AvatarView.LargeImageList = this.imageList1;
 
@@ -467,7 +467,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 		  var i = 0;
 		  if (!simulator.Settings.ShowAvatar)
 		  {
-			  this.AvatarView.View = View.List;
+			  this.AvatarView.View = System.Windows.Forms.View.List;
 			  foreach (var pair in avatarList)
 			  {
 				  if (pair.Key != username) continue;
@@ -491,7 +491,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 		  }
 		  else
 		  {
-			  this.AvatarView.View = View.LargeIcon;
+			  this.AvatarView.View = System.Windows.Forms.View.LargeIcon;
 			  AvatarView.LargeImageList = imageList1;
 			  foreach (var pair in avatarList)
 			  {

@@ -18,43 +18,45 @@
 // This file is the responsibility of the 3D & Environment Team. 
 
 using System;
+using System.Linq;
+
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using Orts.Simulation.AIs;
-using Orts.Simulation.Physics;
+
 using Orts.Common;
 using Orts.Common.Input;
 using Orts.Simulation;
+using Orts.Simulation.AIs;
+using Orts.Simulation.Physics;
 
 namespace Orts.ActivityRunner.Viewer3D.Popups
 {
     public class TrainListWindow : Window
     {
         public TrainListWindow(WindowManager owner)
-            : base(owner, Window.DecorationSize.X + owner.TextFontDefault.Height * 20, Window.DecorationSize.Y + owner.TextFontDefault.Height * 30, Viewer.Catalog.GetString("Train List"))
+            : base(owner, DecorationSize.X + (owner?.TextFontDefault.Height ?? throw new ArgumentNullException(nameof(owner))) * 20, DecorationSize.Y + owner.TextFontDefault.Height * 30, Viewer.Catalog.GetString("Train List"))
         {
         }
 
         protected override ControlLayout Layout(ControlLayout layout)
         {
-            var vbox = base.Layout(layout).AddLayoutVertical();
+            ControlLayoutVertical vbox = base.Layout(layout).AddLayoutVertical();
             if (Owner.Viewer.Simulator.Activity != null || Owner.Viewer.Simulator.TimetableMode)
             {
-                var colWidth = (vbox.RemainingWidth - vbox.TextHeight * 2) / 5;
-                {
-                    var line = vbox.AddLayoutHorizontalLineOfText();
-                    line.Add(new Label(colWidth, line.RemainingHeight, Viewer.Catalog.GetString("Number")));
-                    line.Add(new Label(colWidth * 3, line.RemainingHeight, Viewer.Catalog.GetString("Service Name"), LabelAlignment.Left));
-                    line.Add(new Label(colWidth, line.RemainingHeight, Viewer.Catalog.GetString("Viewed"), LabelAlignment.Right));
-                }
+                int colWidth = (vbox.RemainingWidth - vbox.TextHeight * 2) / 5;
+
+                ControlLayoutHorizontal line = vbox.AddLayoutHorizontalLineOfText();
+                line.Add(new Label(colWidth, line.RemainingHeight, Viewer.Catalog.GetString("Number")));
+                line.Add(new Label(colWidth * 3, line.RemainingHeight, Viewer.Catalog.GetString("Service Name"), LabelAlignment.Left));
+                line.Add(new Label(colWidth, line.RemainingHeight, Viewer.Catalog.GetString("Viewed"), LabelAlignment.Right));
+
                 vbox.AddHorizontalSeparator();
-                var scrollbox = vbox.AddLayoutScrollboxVertical(vbox.RemainingWidth);
-                var train0 = Owner.Viewer.Simulator.Trains.Find(item => item.IsActualPlayerTrain);
+                ControlLayout scrollbox = vbox.AddLayoutScrollboxVertical(vbox.RemainingWidth);
+                Train train0 = Owner.Viewer.Simulator.Trains.Find(item => item.IsActualPlayerTrain);
                 if (train0 != null)
                 {
                     TrainLabel number, name, viewed;
-                    var line = scrollbox.AddLayoutHorizontalLineOfText();
-                    line.Add(number = new TrainLabel(colWidth, line.RemainingHeight, Owner.Viewer, train0, train0.Number.ToString(), LabelAlignment.Left));
+                    line = scrollbox.AddLayoutHorizontalLineOfText();
+                    line.Add(number = new TrainLabel(colWidth, line.RemainingHeight, Owner.Viewer, train0, $"{train0.Number}", LabelAlignment.Left));
                     line.Add(name = new TrainLabel(colWidth * 4 - Owner.TextFontDefault.Height, line.RemainingHeight, Owner.Viewer, train0, train0.Name, LabelAlignment.Left));
                     if (train0 == Owner.Viewer.SelectedTrain)
                     {
@@ -64,7 +66,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     if (Owner.Viewer.Simulator.IsAutopilotMode)
                     {
                         number.Color = train0.IsPlayable ? Color.LightGreen : Color.White;
-                        name.Color = train0.IsPlayable ? Color.LightGreen : Color.White;
+                        name.Color = number.Color;
                     }
                     if (train0 is AITrain && (train0 as AITrain).MovementState == AiMovementState.Suspended)
                     {
@@ -78,31 +80,31 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     }
 
                 }
-                foreach (var thisTrain in Owner.Viewer.Simulator.AI.AITrains)
+                foreach (AITrain train in Owner.Viewer.Simulator.AI.AITrains)
                 {
-                    if (thisTrain.MovementState != AiMovementState.Static && thisTrain.TrainType != TrainType.Player
-                        && ! (thisTrain.TrainType == TrainType.AiIncorporated && !thisTrain.IncorporatingTrain.IsPathless))
+                    if (train.MovementState != AiMovementState.Static && train.TrainType != TrainType.Player
+                        && !(train.TrainType == TrainType.AiIncorporated && !train.IncorporatingTrain.IsPathless))
                     {
-                        var line = scrollbox.AddLayoutHorizontalLineOfText();
+                        line = scrollbox.AddLayoutHorizontalLineOfText();
                         TrainLabel number, name, viewed;
-                        line.Add(number = new TrainLabel(colWidth, line.RemainingHeight, Owner.Viewer, thisTrain, thisTrain.Number.ToString(), LabelAlignment.Left));
-                        line.Add(name = new TrainLabel(colWidth * 4 - Owner.TextFontDefault.Height, line.RemainingHeight, Owner.Viewer, thisTrain, thisTrain.Name, LabelAlignment.Left));
-                        if (thisTrain == Owner.Viewer.SelectedTrain)
+                        line.Add(number = new TrainLabel(colWidth, line.RemainingHeight, Owner.Viewer, train, $"{train.Number}", LabelAlignment.Left));
+                        line.Add(name = new TrainLabel(colWidth * 4 - Owner.TextFontDefault.Height, line.RemainingHeight, Owner.Viewer, train, train.Name, LabelAlignment.Left));
+                        if (train == Owner.Viewer.SelectedTrain)
                         {
-                            line.Add(viewed = new TrainLabel(Owner.TextFontDefault.Height, line.RemainingHeight, Owner.Viewer, thisTrain, "*", LabelAlignment.Right));
+                            line.Add(viewed = new TrainLabel(Owner.TextFontDefault.Height, line.RemainingHeight, Owner.Viewer, train, "*", LabelAlignment.Right));
                             viewed.Color = Color.Red;
                         }
                         if (Owner.Viewer.Simulator.IsAutopilotMode)
                         {
-                            number.Color = thisTrain.IsPlayable ? Color.LightGreen : Color.White;
-                            name.Color = thisTrain.IsPlayable ? Color.LightGreen : Color.White;
+                            number.Color = train.IsPlayable ? Color.LightGreen : Color.White;
+                            name.Color = number.Color;
                         }
-                        if (thisTrain.MovementState == AiMovementState.Suspended)
+                        if (train.MovementState == AiMovementState.Suspended)
                         {
                             number.Color = Color.Orange;
                             name.Color = Color.Orange;
                         }
-                        if (thisTrain.IsActualPlayerTrain)
+                        if (train.IsActualPlayerTrain)
                         {
                             number.Color = Color.Red;
                             name.Color = Color.Red;
@@ -113,22 +115,19 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 // Now list static trains with loco and cab
                 if (Owner.Viewer.Simulator.IsAutopilotMode)
                 {
-                    foreach (var thisTrain in Owner.Viewer.Simulator.Trains)
+                    foreach (Train train in Owner.Viewer.Simulator.Trains.Where(t => t.TrainType == TrainType.Static && t.IsPlayable))
                     {
-                        if (thisTrain.TrainType == TrainType.Static && thisTrain.IsPlayable)
+                        line = scrollbox.AddLayoutHorizontalLineOfText();
+                        TrainLabel number, name, viewed;
+                        line.Add(number = new TrainLabel(colWidth, line.RemainingHeight, Owner.Viewer, train, $"{train.Number}", LabelAlignment.Left));
+                        line.Add(name = new TrainLabel(colWidth * 4 - Owner.TextFontDefault.Height, line.RemainingHeight, Owner.Viewer, train, train.Name, LabelAlignment.Left));
+                        if (train == Owner.Viewer.SelectedTrain)
                         {
-                            var line = scrollbox.AddLayoutHorizontalLineOfText();
-                            TrainLabel number, name, viewed;
-                            line.Add(number = new TrainLabel(colWidth, line.RemainingHeight, Owner.Viewer, thisTrain, thisTrain.Number.ToString(), LabelAlignment.Left));
-                            line.Add(name = new TrainLabel(colWidth * 4 - Owner.TextFontDefault.Height, line.RemainingHeight, Owner.Viewer, thisTrain, thisTrain.Name, LabelAlignment.Left));
-                            if (thisTrain == Owner.Viewer.SelectedTrain)
-                            {
-                                line.Add(viewed = new TrainLabel(Owner.TextFontDefault.Height, line.RemainingHeight, Owner.Viewer, thisTrain, "*", LabelAlignment.Right));
-                                viewed.Color = Color.Red;
-                            }
-                            number.Color = Color.Yellow;
-                            name.Color = Color.Yellow;
-                         }
+                            line.Add(viewed = new TrainLabel(Owner.TextFontDefault.Height, line.RemainingHeight, Owner.Viewer, train, "*", LabelAlignment.Right));
+                            viewed.Color = Color.Red;
+                        }
+                        number.Color = Color.Yellow;
+                        name.Color = Color.Yellow;
                     }
                 }
             }
@@ -147,27 +146,27 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         }
     }
 
-    class TrainLabel : Label
+    internal class TrainLabel : Label
     {
-        readonly Viewer Viewer;
-        readonly Train PickedTrainFromList;
+        private readonly Viewer Viewer;
+        private readonly Train PickedTrainFromList;
 
-        public TrainLabel(int width, int height, Viewer viewer, Train train, String trainName, LabelAlignment alignment)
+        public TrainLabel(int width, int height, Viewer viewer, Train train, string trainName, LabelAlignment alignment)
             : base(width, height, trainName, alignment)
         {
             Viewer = viewer;
             PickedTrainFromList = train;
-            Click += new Action<Control, Point>(TrainListLabel_Click);
+            OnClick += TrainLabel_OnClick;
         }
 
-        void TrainListLabel_Click(Control arg1, Point arg2)
+        private void TrainLabel_OnClick(object sender, MouseClickEventArgs e)
         {
-            if (PickedTrainFromList != null && PickedTrainFromList.ControlMode == TrainControlMode.TurnTable)
+            if (PickedTrainFromList?.ControlMode == TrainControlMode.TurnTable)
             {
                 Viewer.Simulator.Confirmer.Information(Viewer.Catalog.GetString("Train in turntable not aligned to a track can't be selected"));
                 return;
             }
-            if (PickedTrainFromList != null && Viewer.PlayerLocomotive != null && Viewer.PlayerLocomotive.Train != null && Viewer.PlayerLocomotive.Train.ControlMode == TrainControlMode.TurnTable)
+            if (PickedTrainFromList != null && Viewer?.PlayerLocomotive?.Train?.ControlMode == TrainControlMode.TurnTable)
             {
                 Viewer.Simulator.Confirmer.Information(Viewer.Catalog.GetString("Player train can't be switched when in turntable not aligned to a track"));
                 return;
@@ -180,11 +179,11 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 Viewer.Simulator.TrainSwitcher.ClickedTrainFromList = true;
 
             }
-            if (PickedTrainFromList != null && (PickedTrainFromList == Viewer.SelectedTrain || (PickedTrainFromList.TrainType == TrainType.AiIncorporated && 
+            if (PickedTrainFromList != null && (PickedTrainFromList == Viewer.SelectedTrain || (PickedTrainFromList.TrainType == TrainType.AiIncorporated &&
                 (PickedTrainFromList as AITrain).IncorporatingTrain.IsPathless && (PickedTrainFromList as AITrain).IncorporatingTrain == Viewer.SelectedTrain)) && !PickedTrainFromList.IsActualPlayerTrain &&
                 Viewer.Simulator.IsAutopilotMode && PickedTrainFromList.IsPlayable)
             {
-                if (UserInput.IsDown(UserCommand.GameSuspendOldPlayer))
+                if (e.KeyModifiers.HasFlag(Viewer.Settings.Input.GameSuspendOldPlayerModifier))
                     Viewer.Simulator.TrainSwitcher.SuspendOldPlayer = true;
                 //Ask for change of driven train
                 Viewer.Simulator.TrainSwitcher.SelectedAsPlayer = PickedTrainFromList;
@@ -199,4 +198,4 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             }
         }
     }
- }
+}

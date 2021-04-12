@@ -19,6 +19,8 @@
 
 using System;
 
+using Microsoft.Xna.Framework;
+
 using Orts.ActivityRunner.Viewer3D.Debugging;
 using Orts.MultiPlayer;
 using Orts.Simulation;
@@ -80,7 +82,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             Viewer.EndRender(frame);
         }
 
-        internal override void Update(RenderFrame frame, double totalRealSeconds)
+        internal override void Update(RenderFrame frame, double totalRealSeconds, GameTime gameTime)
         {
             // Every 250ms, check for new things to load and kick off the loader.
             if (lastLoadRealTime + 0.25 < totalRealSeconds && Game.LoaderProcess.Finished)

@@ -25,20 +25,20 @@ namespace Orts.TrackViewer.WinForms.Controls
             MainMenuStrip.MenuDeactivate += MainMenuStrip_MenuDeactivate;
             menuItemFolder.DropDown.Closing += FolderDropDown_Closing;
 
-            restoreLastViewMenuItem.Checked = game.Settings.TrackViewer.RestoreLastView;
-            SetupColorComboBoxMenuItem(backgroundColorComboBoxMenuItem, game.Settings.TrackViewer.ColorBackground, ColorSetting.Background);
-            SetupColorComboBoxMenuItem(railTrackColorComboBoxMenuItem, game.Settings.TrackViewer.ColorRailTrack, ColorSetting.RailTrack);
-            SetupColorComboBoxMenuItem(railEndColorComboBoxMenuItem, game.Settings.TrackViewer.ColorRailTrackEnd, ColorSetting.RailTrackEnd);
-            SetupColorComboBoxMenuItem(railJunctionColorComboBoxMenuItem, game.Settings.TrackViewer.ColorRailTrackJunction, ColorSetting.RailTrackJunction);
-            SetupColorComboBoxMenuItem(railCrossingColorToolStripComboBoxMenuItem, game.Settings.TrackViewer.ColorRailTrackCrossing, ColorSetting.RailTrackCrossing);
-            SetupColorComboBoxMenuItem(railLevelCrossingColorToolStripComboBoxMenuItem, game.Settings.TrackViewer.ColorRailLevelCrossing, ColorSetting.RailLevelCrossing);
+            restoreLastViewMenuItem.Checked = game.Settings.RestoreLastView;
+            SetupColorComboBoxMenuItem(backgroundColorComboBoxMenuItem, game.Settings.ColorBackground, ColorSetting.Background);
+            SetupColorComboBoxMenuItem(railTrackColorComboBoxMenuItem, game.Settings.ColorRailTrack, ColorSetting.RailTrack);
+            SetupColorComboBoxMenuItem(railEndColorComboBoxMenuItem, game.Settings.ColorRailTrackEnd, ColorSetting.RailTrackEnd);
+            SetupColorComboBoxMenuItem(railJunctionColorComboBoxMenuItem, game.Settings.ColorRailTrackJunction, ColorSetting.RailTrackJunction);
+            SetupColorComboBoxMenuItem(railCrossingColorToolStripComboBoxMenuItem, game.Settings.ColorRailTrackCrossing, ColorSetting.RailTrackCrossing);
+            SetupColorComboBoxMenuItem(railLevelCrossingColorToolStripComboBoxMenuItem, game.Settings.ColorRailLevelCrossing, ColorSetting.RailLevelCrossing);
 
-            SetupColorComboBoxMenuItem(roadTrackColorComboBoxMenuItem, game.Settings.TrackViewer.ColorRoadTrack, ColorSetting.RoadTrack);
-            SetupColorComboBoxMenuItem(roadTrackEndColorToolStripComboBoxMenuItem, game.Settings.TrackViewer.ColorRoadTrackEnd, ColorSetting.RoadTrackEnd);
+            SetupColorComboBoxMenuItem(roadTrackColorComboBoxMenuItem, game.Settings.ColorRoadTrack, ColorSetting.RoadTrack);
+            SetupColorComboBoxMenuItem(roadTrackEndColorToolStripComboBoxMenuItem, game.Settings.ColorRoadTrackEnd, ColorSetting.RoadTrackEnd);
 
-            SetupColorComboBoxMenuItem(platformColorToolStripComboBoxMenuItem, game.Settings.TrackViewer.ColorPlatformItem, ColorSetting.PlatformItem);
-            SetupColorComboBoxMenuItem(sidingColorToolStripComboBoxMenuItem, game.Settings.TrackViewer.ColorSidingItem, ColorSetting.SidingItem);
-            SetupColorComboBoxMenuItem(speedpostColorToolStripComboBoxMenuItem, game.Settings.TrackViewer.ColorSpeedpostItem, ColorSetting.SpeedPostItem);
+            SetupColorComboBoxMenuItem(platformColorToolStripComboBoxMenuItem, game.Settings.ColorPlatformItem, ColorSetting.PlatformItem);
+            SetupColorComboBoxMenuItem(sidingColorToolStripComboBoxMenuItem, game.Settings.ColorSidingItem, ColorSetting.SidingItem);
+            SetupColorComboBoxMenuItem(speedpostColorToolStripComboBoxMenuItem, game.Settings.ColorSpeedpostItem, ColorSetting.SpeedPostItem);
 
             SetupVisibilityMenuItem(trackSegmentsVisibleToolStripMenuItem, TrackViewerViewSettings.Tracks);
             SetupVisibilityMenuItem(trackEndNodesVisibleToolStripMenuItem, TrackViewerViewSettings.EndsNodes);
@@ -79,7 +79,7 @@ namespace Orts.TrackViewer.WinForms.Controls
         private void SetupVisibilityMenuItem(ToolStripMenuItem menuItem, TrackViewerViewSettings setting)
         {
             menuItem.Tag = setting;
-            menuItem.Checked = (parent.Settings.TrackViewer.ViewSettings & setting) == setting;
+            menuItem.Checked = (parent.Settings.ViewSettings & setting) == setting;
             menuItem.Click += VisibilitySettingToolStripMenuItem_Click;
             if (menuItem.OwnerItem is ToolStripMenuItem parentItem)
                 SetupVisibilityParentMenuItem(parentItem);
@@ -142,7 +142,7 @@ namespace Orts.TrackViewer.WinForms.Controls
             //combobox.Items.AddRange(languageCodes.ToArray());
             combobox.BindingContext = BindingContext;
             combobox.DataSourceFromList(languageCodes, (language) => string.IsNullOrEmpty(language) ? "System" : CultureInfo.GetCultureInfo(language).NativeName);
-            combobox.SelectedValue = parent.Settings.Language;
+            combobox.SelectedValue = parent.Settings.UserSettings.Language;
             if (combobox.SelectedValue == null)
                 combobox.SelectedIndex = 0;
         }
@@ -160,7 +160,6 @@ namespace Orts.TrackViewer.WinForms.Controls
             if (closingCancelled)
             {
                 closingCancelled = false;
-
             }
             else
             {
@@ -170,7 +169,10 @@ namespace Orts.TrackViewer.WinForms.Controls
 
         private void MainMenuStrip_MenuActivate(object sender, EventArgs e)
         {
-            parent.InputCaptured = true;
+            if (ModifierKeys.HasFlag(Keys.Alt))
+                MainMenuStrip.Enabled = false;
+            else
+                parent.InputCaptured = true;
         }
 
         internal void PopulateRoutes(IEnumerable<Route> routes)
@@ -271,7 +273,7 @@ namespace Orts.TrackViewer.WinForms.Controls
 
         private void LoadAtStartupMenuItem_Click(object sender, EventArgs e)
         {
-            parent.Settings.TrackViewer.RestoreLastView = restoreLastViewMenuItem.Checked;
+            parent.Settings.RestoreLastView = restoreLastViewMenuItem.Checked;
         }
 
         private void VisibilitySettingParentToolStripMenuItem_Click(object sender, EventArgs e)
@@ -312,6 +314,12 @@ namespace Orts.TrackViewer.WinForms.Controls
         private void TakeScreenshotToolStripMenuItem_Click(object sender, EventArgs e)
         {
             parent.PrintScreen();
+        }
+
+        private void MainMenuStrip_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Menu)
+                MainMenuStrip.Enabled = true;
         }
     }
 }

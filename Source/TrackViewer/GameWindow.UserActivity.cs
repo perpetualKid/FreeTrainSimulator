@@ -9,8 +9,6 @@ using Orts.Common;
 using Orts.Common.Info;
 using Orts.Common.Input;
 
-using Keys = Microsoft.Xna.Framework.Input.Keys;
-
 namespace Orts.TrackViewer
 {
     public partial class GameWindow : Game
@@ -19,17 +17,13 @@ namespace Orts.TrackViewer
         private static readonly Vector2 moveRight = new Vector2(-1, 0);
         private static readonly Vector2 moveUp = new Vector2(0, 1);
         private static readonly Vector2 moveDown = new Vector2(0, -1);
-        private static readonly Vector2 moveLeftQuick = new Vector2(10, 0);
-        private static readonly Vector2 moveRightQuick = new Vector2(-10, 0);
-        private static readonly Vector2 moveUpQuick = new Vector2(0, 10);
-        private static readonly Vector2 moveDownQuick = new Vector2(0, -10);
-        
-        public void ChangeScreenMode(Keys key, KeyModifiers modifiers)
+
+        public void ChangeScreenMode()
         {
             SetScreenMode(currentScreenMode.Next());
         }
 
-        public void CloseWindow(Keys key, KeyModifiers modifiers)
+        public void CloseWindow()
         {
             ExitApplication();
         }
@@ -47,76 +41,101 @@ namespace Orts.TrackViewer
             return false;
         }
 
-        public void MouseMove(Point position, Vector2 delta)
+        public void MouseDragging(UserCommandArgs userCommandArgs)
         {
-        }
-
-        public void MouseWheel(Point position, int delta)
-        {
-            contentArea?.UpdateScaleAt(position.ToVector2(), System.Math.Sign(delta));
-        }
-
-        public void MouseDragging(Point position, Vector2 delta)
-        {
-            contentArea?.UpdatePosition(delta);
-        }
-
-        public void MouseButtonUp(Point position)
-        {
-            System.Diagnostics.Debug.WriteLine($"Up {Window.Title} - {position}");
-        }
-
-        public void MouseButtonDown(Point position)
-        {
-            System.Diagnostics.Debug.WriteLine($"Down {Window.Title} - {position}");
-        }
-
-        private void MoveByKey(Keys key, KeyModifiers modifiers)
-        {
-            switch (key)
+            if (userCommandArgs is PointerMoveCommandArgs mouseMoveCommandArgs)
             {
-                case Keys.Left:
-                    contentArea?.UpdatePosition((modifiers & KeyModifiers.Control) == KeyModifiers.Control ? moveLeftQuick : moveLeft);
-                    break;
-                case Keys.Right:
-                    contentArea?.UpdatePosition((modifiers & KeyModifiers.Control) == KeyModifiers.Control ? moveRightQuick : moveRight);
-                    break;
-                case Keys.Up:
-                    contentArea?.UpdatePosition((modifiers & KeyModifiers.Control) == KeyModifiers.Control ? moveUpQuick : moveUp);
-                    break;
-                case Keys.Down:
-                    contentArea?.UpdatePosition((modifiers & KeyModifiers.Control) == KeyModifiers.Control ? moveDownQuick : moveDown);
-                    break;
+                contentArea?.UpdatePosition(mouseMoveCommandArgs.Delta);
             }
+        }
+
+        public void MouseWheel(UserCommandArgs userCommandArgs, KeyModifiers modifiers)
+        {
+            if (userCommandArgs is ScrollCommandArgs mouseWheelCommandArgs)
+            {
+                contentArea?.UpdateScaleAt(mouseWheelCommandArgs.Position, Math.Sign(mouseWheelCommandArgs.Delta) * ZoomAmplifier(modifiers));
+            }
+        }
+
+        private void MoveByKeyLeft(UserCommandArgs commandArgs)
+        {
+            contentArea?.UpdatePosition(moveLeft * MovementAmplifier(commandArgs));
+        }
+
+        private void MoveByKeyRight(UserCommandArgs commandArgs)
+        {
+            contentArea?.UpdatePosition(moveRight * MovementAmplifier(commandArgs));
+        }
+
+        private void MoveByKeyUp(UserCommandArgs commandArgs)
+        {
+            contentArea?.UpdatePosition(moveUp * MovementAmplifier(commandArgs));
+        }
+
+        private void MoveByKeyDown(UserCommandArgs commandArgs)
+        {
+            contentArea?.UpdatePosition(moveDown * MovementAmplifier(commandArgs));
+        }
+
+        private static float MovementAmplifier(UserCommandArgs commandArgs)
+        {
+            float amplifier = 5;
+            if (commandArgs is ModifiableKeyCommandArgs modifiableKeyCommand)
+            {
+                if ((modifiableKeyCommand.AdditionalModifiers & KeyModifiers.Control) == KeyModifiers.Control)
+                    amplifier = 1;
+                else if ((modifiableKeyCommand.AdditionalModifiers & KeyModifiers.Shift) == KeyModifiers.Shift)
+                    amplifier = 10;
+            }
+            return amplifier;
+        }
+
+        private static int ZoomAmplifier(KeyModifiers modifiers)
+        {
+            int amplifier = 3;
+            if ((modifiers & KeyModifiers.Control) == KeyModifiers.Control)
+                amplifier = 1;
+            else if ((modifiers & KeyModifiers.Shift) == KeyModifiers.Shift)
+                amplifier = 5;
+            return amplifier;
+        }
+
+        private static int ZoomAmplifier(UserCommandArgs commandArgs)
+        {
+            int amplifier = 3;
+            if (commandArgs is ModifiableKeyCommandArgs modifiableKeyCommand)
+            {
+                if ((modifiableKeyCommand.AdditionalModifiers & KeyModifiers.Control) == KeyModifiers.Control)
+                    amplifier = 1;
+                else if ((modifiableKeyCommand.AdditionalModifiers & KeyModifiers.Shift) == KeyModifiers.Shift)
+                    amplifier = 5;
+            }
+            return amplifier;
+        }
+
+        private void ZoomIn(UserCommandArgs commandArgs)
+        {
+            Zoom(ZoomAmplifier(commandArgs));
+        }
+
+        private void ZoomOut(UserCommandArgs commandArgs)
+        {
+            Zoom(-ZoomAmplifier(commandArgs));
         }
 
         private DateTime nextUpdate;
-        private void ZoomIn(Keys key, KeyModifiers modifiers)
+        private void Zoom(int steps)
         {
             if (DateTime.UtcNow > nextUpdate)
             {
-                contentArea?.UpdateScale(1);
+                contentArea?.UpdateScale(steps);
                 nextUpdate = DateTime.UtcNow.AddMilliseconds(30);
             }
         }
 
-        private void ZoomOut(Keys key, KeyModifiers modifiers)
-        {
-            if (DateTime.UtcNow > nextUpdate)
-            {
-                contentArea?.UpdateScale(-1);
-                nextUpdate = DateTime.UtcNow.AddMilliseconds(30);
-            }
-        }
-
-        private void ResetZoomAndLocation(Keys key, KeyModifiers modifiers)
+        private void ResetZoomAndLocation()
         {
             contentArea?.ResetSize(Window.ClientBounds.Size, 60);
-        }
-
-        private void PrintScreen(Keys key, KeyModifiers modifiers)
-        {
-            PrintScreen();
         }
 
         internal void PrintScreen()

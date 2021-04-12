@@ -117,8 +117,8 @@ namespace Orts.Common.Input
         [Description("Camera Browse Backwards")] CameraBrowseBackwards,
         [Description("Camera Browse Forwards")] CameraBrowseForwards,
 
-        [Description("Control Forwards")] ControlForwards,
-        [Description("Control Backwards")] ControlBackwards,
+        [Description("Control Forwards")] ControlReverserForward,
+        [Description("Control Backwards")] ControlReverserBackward,
         [Description("Control Throttle Increase")] ControlThrottleIncrease,
         [Description("Control Throttle Decrease")] ControlThrottleDecrease,
         [Description("Control Throttle Zero")] ControlThrottleZero,

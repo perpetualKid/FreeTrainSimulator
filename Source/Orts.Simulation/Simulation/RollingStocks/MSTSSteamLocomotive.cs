@@ -333,7 +333,7 @@ namespace Orts.Simulation.RollingStocks
         float BoilerSurfaceAreaFt2;
         float FractionBoilerAreaInsulated;
         float BoilerHeatRadiationLossBTU; // Heat loss of boiler (hourly value)
-               
+
         #region Additional steam properties
         const float SpecificHeatCoalKJpKGpK = 1.26f; // specific heat of coal - kJ/kg/K
         const float SteamVaporSpecVolumeAt100DegC1BarM3pKG = 1.696f;
@@ -790,8 +790,9 @@ namespace Orts.Simulation.RollingStocks
                 case "engine(ortscylinderportopening": CylinderPortOpeningFactor = stf.ReadFloatBlock(STFReader.Units.None, null); break;
                 case "engine(boilervolume": BoilerVolumeFT3 = stf.ReadFloatBlock(STFReader.Units.VolumeDefaultFT3, null); break;
                 case "engine(maxboilerpressure": MaxBoilerPressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null); break;
-                case "engine(ortsmaxsuperheattemperature": MaxSuperheatRefTempF = stf.ReadFloatBlock(STFReader.Units.None, null);break;  // New input and conversion units to be added for temperature
-                case "engine(ortsmaxindicatedhorsepower": MaxIndicatedHorsePowerHP = stf.ReadFloatBlock(STFReader.Units.Power, null);
+                case "engine(ortsmaxsuperheattemperature": MaxSuperheatRefTempF = stf.ReadFloatBlock(STFReader.Units.None, null); break;  // New input and conversion units to be added for temperature
+                case "engine(ortsmaxindicatedhorsepower":
+                    MaxIndicatedHorsePowerHP = stf.ReadFloatBlock(STFReader.Units.Power, null);
                     MaxIndicatedHorsePowerHP = (float)Dynamics.Power.ToHp(MaxIndicatedHorsePowerHP);  // Convert input to HP for use internally in this module
                     break;
                 case "engine(vacuumbrakeslargeejectorusagerate": EjectorLargeSteamConsumptionLbpS = (float)Frequency.Periodic.FromHours(stf.ReadFloatBlock(STFReader.Units.MassRateDefaultLBpH, null)); break;
@@ -1099,7 +1100,7 @@ namespace Orts.Simulation.RollingStocks
                 ConnectingRodWeightLb = 600.0f * reductionfactor;  // Weignt of connecting rod
                 ConnectingRodBalanceWeightLb = 300.0f * reductionfactor; // Balance weight for connecting rods
             }
-            else if (MassKG < Mass.Kilogram.FromTonsUS(20)) 
+            else if (MassKG < Mass.Kilogram.FromTonsUS(20))
             {
                 const float reductionfactor = 0.3f;
                 ReciprocatingWeightLb = 580.0f * reductionfactor;  // Weight of reciprocating parts of the rod driving gears
@@ -1762,7 +1763,7 @@ namespace Orts.Simulation.RollingStocks
             MaxBoilerOutputHP = MaxBoilerOutputLBpH / SteamperIHPh; // Calculate boiler output power
 
             // if MaxIHP is set in ENG file, and is a geared (mainly selectable model) locomotive then retain a copy of the original value
-            if (MaxIndicatedHorsePowerHP != 0) 
+            if (MaxIndicatedHorsePowerHP != 0)
             {
                 RetainedGearedMaxMaxIndicatedHorsePowerHP = MaxIndicatedHorsePowerHP;
             }
@@ -1783,7 +1784,7 @@ namespace Orts.Simulation.RollingStocks
                     ISBoilerLimited = false;
                 }
             }
-                       
+
             DisplayMaxIndicatedHorsePowerHP = MaxIndicatedHorsePowerHP;
 
             // If DrvWheelWeight is not in ENG file, then calculate from Factor of Adhesion(FoA) = DrvWheelWeight / Start (Max) Tractive Effort, assume FoA = 4.2
@@ -1902,7 +1903,7 @@ namespace Orts.Simulation.RollingStocks
                 Trace.TraceInformation("Steam Locomotive Type - {0}", SteamLocoType);
 
                 Trace.TraceInformation("**************** General ****************");
-                Trace.TraceInformation("WheelRadius {0:N2} ft, NumWheels {1}, DriveWheelWeight {2:N1} t-uk", Size.Length.ToFt(DriverWheelRadiusM),  LocoNumDrvAxles, Mass.Kilogram.ToTonsUK(DrvWheelWeightKg));
+                Trace.TraceInformation("WheelRadius {0:N2} ft, NumWheels {1}, DriveWheelWeight {2:N1} t-uk", Size.Length.ToFt(DriverWheelRadiusM), LocoNumDrvAxles, Mass.Kilogram.ToTonsUK(DrvWheelWeightKg));
 
                 Trace.TraceInformation("**************** Boiler ****************");
                 Trace.TraceInformation("Boiler Volume {0:N1} cu ft, Evap Area {1:N1} sq ft, Superheat Area {2:N1} sq ft, Max Superheat Temp {3:N1} F, Max Boiler Pressure {4:N1} psi", BoilerVolumeFT3, Size.Area.ToFt2(EvaporationAreaM2), Size.Area.ToFt2(SuperheatAreaM2), MaxSuperheatRefTempF, MaxBoilerPressurePSI);
@@ -1920,7 +1921,7 @@ namespace Orts.Simulation.RollingStocks
 
             }
             RestoredGame = true; // Set flag for restored game indication
-#endregion
+            #endregion
         }
 
         /// <summary>
@@ -3146,10 +3147,10 @@ namespace Orts.Simulation.RollingStocks
             // This section calculates heat radiation loss from the boiler. This section is based upon the description provided in "The Thermal Insulation of the Steam Locomotive" (Paper 501) published in the
             // which was published in the March 1, 1951 Journal of the Institution of Locomotive Engineers.
             // In basic terms,  Heat loss = Kc * A * dT, where Kc = heat transfer coefficient, A = heat transfer area, and dT = difference in temperature, ie (Boiler Temp - Ambient Temp)
-            
+
             // Calculate the temp differential
             float TemperatureDifferentialF = 0;
-            
+
             TemperatureDifferentialF = (float)(Temperature.Kelvin.ToF(BoilerWaterTempK) - CarOutsideTempC);
 
             // As locomotive moves, the Kc value will increase as more heat loss occurs with greater speed.
@@ -3176,21 +3177,21 @@ namespace Orts.Simulation.RollingStocks
             {
                 KcMovementFraction = KcMaxSpeed / KcMinSpeed; // Calculate constant fraction over 20m/s
             }
-            
+
             //            Trace.TraceInformation("Fraction - {0} Speed {1} MinSpeed {2} Actual {3}", KcMovementFraction, absSpeedMpS, KcMinSpeed, KcActualSpeed);
-            
+
             // Calculate radiation loss - has two elements, insulated and uninsulated
             float UninsulatedBoilerHeatRadiationLossBTU = BoilerSurfaceAreaFt2 * (1.0f - FractionBoilerAreaInsulated) * KcMovementFraction * KcUninsulation * TemperatureDifferentialF;
             float InsulatedBoilerHeatRadiationLossBTU = BoilerSurfaceAreaFt2 * FractionBoilerAreaInsulated * KcMovementFraction * KcInsulation * TemperatureDifferentialF;
             BoilerHeatRadiationLossBTU = UninsulatedBoilerHeatRadiationLossBTU + InsulatedBoilerHeatRadiationLossBTU;
-            
+
             //            Trace.TraceInformation("Heat Loss - {0} Area {1} TempDiff {2} Speed {3} MoveFraction {4}", BoilerHeatRadiationLossBTU, BoilerSurfaceAreaFt2, TemperatureDifferentialF, absSpeedMpS, KcMovementFraction);
-            
+
             // Temporary calculation to maintain smoke stack and minimum coal feed in AI firing - could be changed
             RadiationSteamLossLBpS = (float)(Frequency.Periodic.FromHours(BoilerHeatRadiationLossBTU) / (BoilerSteamHeatBTUpLB - BoilerWaterHeatBTUpLB));
-            
-                     //   Trace.TraceInformation("RadLoss {0}", RadiationSteamLossLBpS);
-            
+
+            //   Trace.TraceInformation("RadLoss {0}", RadiationSteamLossLBpS);
+
             BoilerHeatBTU -= (float)(elapsedClockSeconds * Frequency.Periodic.FromHours(BoilerHeatRadiationLossBTU));
             BoilerHeatOutBTUpS += (float)Frequency.Periodic.FromHours(BoilerHeatRadiationLossBTU);
 
@@ -3456,9 +3457,9 @@ namespace Orts.Simulation.RollingStocks
 
                     if (HasSuperheater) // If locomotive is superheated then cutoff pressure drop will be different.
                     {
-                    double DrvWheelRevpM = Frequency.Periodic.ToMinutes(DrvWheelRevRpS);
-                    LPCutoffPressureDropRatio = (float)((1.0f - ((1 / SuperheatCutoffPressureFactor) * Math.Sqrt(Frequency.Periodic.ToMinutes(DrvWheelRevRpS)))));
-                    CutoffPressureDropRatio = (float)((1.0f - ((1 / SuperheatCutoffPressureFactor) * Math.Sqrt(Frequency.Periodic.ToMinutes(DrvWheelRevRpS)))));
+                        double DrvWheelRevpM = Frequency.Periodic.ToMinutes(DrvWheelRevRpS);
+                        LPCutoffPressureDropRatio = (float)((1.0f - ((1 / SuperheatCutoffPressureFactor) * Math.Sqrt(Frequency.Periodic.ToMinutes(DrvWheelRevRpS)))));
+                        CutoffPressureDropRatio = (float)((1.0f - ((1 / SuperheatCutoffPressureFactor) * Math.Sqrt(Frequency.Periodic.ToMinutes(DrvWheelRevRpS)))));
                     }
 
                     // (b) - Cutoff Pressure (For LP equates to point h)
@@ -3616,7 +3617,7 @@ namespace Orts.Simulation.RollingStocks
                     // Mean Pressure
                     float MeanPressure_de_AtmPSI = ((Pressure_d_AtmPSI + Pressure_e_AtmPSI) / 2.0f);
                     // Calculate volume between d-e
-                    float CylinderLength_de_In = (float)Size.Length.ToIn(CylinderStrokeM) * ((HPCylinderVolumeFactor + HPCylinderClearancePC) - HPCylinderVolumePoint_k_post); 
+                    float CylinderLength_de_In = (float)Size.Length.ToIn(CylinderStrokeM) * ((HPCylinderVolumeFactor + HPCylinderClearancePC) - HPCylinderVolumePoint_k_post);
                     // Calculate work - d-e
                     CylinderWork_de_InLbs = MeanPressure_de_AtmPSI * CylinderLength_de_In;
 
@@ -4447,7 +4448,7 @@ namespace Orts.Simulation.RollingStocks
 
                 // HP Cylinder
 
-                double HPTractiveEffortLbsF = (NumCylinders / 2.0f) * MotiveForceGearRatio * ( (HPCylinderMEPPSI * CylinderEfficiencyRate) * Size.Length.ToIn(CylinderDiameterM) * Size.Length.ToIn(CylinderDiameterM) * Size.Length.ToIn(CylinderStrokeM) / (2.0f * Size.Length.ToIn(DriverWheelRadiusM)));
+                double HPTractiveEffortLbsF = (NumCylinders / 2.0f) * MotiveForceGearRatio * ((HPCylinderMEPPSI * CylinderEfficiencyRate) * Size.Length.ToIn(CylinderDiameterM) * Size.Length.ToIn(CylinderDiameterM) * Size.Length.ToIn(CylinderStrokeM) / (2.0f * Size.Length.ToIn(DriverWheelRadiusM)));
 
                 // LP Cylinder
 
@@ -4459,8 +4460,8 @@ namespace Orts.Simulation.RollingStocks
                 // Calculate IHP
                 // IHP = (MEP x Speed (mph)) / 375.0) - this is per cylinder
 
-                    HPIndicatedHorsePowerHP = (float)(HPTractiveEffortLbsF * Frequency.Periodic.ToHours(Size.Length.ToMi(absSpeedMpS))) / 375.0f;
-                    LPIndicatedHorsePowerHP = (float)(LPTractiveEffortLbsF * Frequency.Periodic.ToHours(Size.Length.ToMi(absSpeedMpS))) / 375.0f;
+                HPIndicatedHorsePowerHP = (float)(HPTractiveEffortLbsF * Frequency.Periodic.ToHours(Size.Length.ToMi(absSpeedMpS))) / 375.0f;
+                LPIndicatedHorsePowerHP = (float)(LPTractiveEffortLbsF * Frequency.Periodic.ToHours(Size.Length.ToMi(absSpeedMpS))) / 375.0f;
 
                 float WheelRevs = (float)Frequency.Periodic.ToMinutes(DrvWheelRevRpS);
                 IndicatedHorsePowerHP = HPIndicatedHorsePowerHP + LPIndicatedHorsePowerHP;
@@ -4479,11 +4480,11 @@ namespace Orts.Simulation.RollingStocks
                 }
 
                 TractiveEffortLbsF = (float)((NumCylinders / 2.0f) * (Size.Length.ToIn(CylinderDiameterM) * Size.Length.ToIn(CylinderDiameterM) * Size.Length.ToIn(CylinderStrokeM) / (2.0f * Size.Length.ToIn(DriverWheelRadiusM))) * (MeanEffectivePressurePSI * CylinderEfficiencyRate) * MotiveForceGearRatio);
-                
+
                 // Force tractive effort to zero if throttle is closed, or if a geared steam locomotive in neutral gear. MEP calculation is not allowing it to go to zero
                 if (throttle < 0.001 || (SteamEngineType == SteamEngineTypes.Geared && SteamGearPosition == 0))
                 {
-                    TractiveEffortLbsF = 0.0f; 
+                    TractiveEffortLbsF = 0.0f;
                 }
                 TractiveEffortLbsF = MathHelper.Clamp(TractiveEffortLbsF, 0, TractiveEffortLbsF);
                 DisplayTractiveEffortLbsF = TractiveEffortLbsF;
@@ -4491,7 +4492,7 @@ namespace Orts.Simulation.RollingStocks
                 // Calculate IHP
                 // IHP = (MEP x CylStroke(ft) x cylArea(sq in) x No Strokes (/min)) / 33000) - this is per cylinder
 
-                IndicatedHorsePowerHP = (float)(TractiveEffortLbsF * Frequency.Periodic.ToHours(Size.Length.ToMi(absSpeedMpS)))/ 375.0f;
+                IndicatedHorsePowerHP = (float)(TractiveEffortLbsF * Frequency.Periodic.ToHours(Size.Length.ToMi(absSpeedMpS))) / 375.0f;
                 IndicatedHorsePowerHP = MathHelper.Clamp(IndicatedHorsePowerHP, 0, IndicatedHorsePowerHP);
             }
 
@@ -4616,7 +4617,7 @@ namespace Orts.Simulation.RollingStocks
 
             if (IndicatedHorsePowerHP >= MaxIndicatedHorsePowerHP)
             {
-                    MotiveForceN = (float)Dynamics.Force.FromLbf((MaxIndicatedHorsePowerHP * 375.0f) / Frequency.Periodic.ToHours(Size.Length.ToMi(SpeedMpS)));
+                MotiveForceN = (float)Dynamics.Force.FromLbf((MaxIndicatedHorsePowerHP * 375.0f) / Frequency.Periodic.ToHours(Size.Length.ToMi(SpeedMpS)));
                 IndicatedHorsePowerHP = MaxIndicatedHorsePowerHP; // Set IHP to maximum value
                 IsCritTELimit = true; // Flag if limiting TE
             }
@@ -4652,14 +4653,14 @@ namespace Orts.Simulation.RollingStocks
                 {
                     if (!CylinderCompoundOn) // Bypass Valve closed - in Compound Mode
                     {
-                    StartPistonForceLeftLbf = (float)Size.Area.ToIn2(Size.Area.FromFt2(CylinderPistonAreaFt2)) * HPCompPressure_a_AtmPSI; // Piston force is equal to pressure in piston and piston area
+                        StartPistonForceLeftLbf = (float)Size.Area.ToIn2(Size.Area.FromFt2(CylinderPistonAreaFt2)) * HPCompPressure_a_AtmPSI; // Piston force is equal to pressure in piston and piston area
                         SlipInitialPressureAtmPSI = HPCompPressure_a_AtmPSI;
                         SlipCutoffPressureAtmPSI = HPCompPressure_b_AtmPSI;
                         SlipCylinderReleasePressureAtmPSI = HPCompPressure_f_AtmPSI;
                     }
                     else  // Simple mode
                     {
-                    StartPistonForceLeftLbf = (float)Size.Area.ToIn2(Size.Area.FromFt2(LPCylinderPistonAreaFt2)) * LPPressure_a_AtmPSI; // Piston force is equal to pressure in piston and piston area
+                        StartPistonForceLeftLbf = (float)Size.Area.ToIn2(Size.Area.FromFt2(LPCylinderPistonAreaFt2)) * LPPressure_a_AtmPSI; // Piston force is equal to pressure in piston and piston area
                         SlipInitialPressureAtmPSI = LPPressure_a_AtmPSI;
                         SlipCutoffPressureAtmPSI = LPPressure_b_AtmPSI;
                         SlipCylinderReleasePressureAtmPSI = LPPressure_c_AtmPSI;
@@ -4667,7 +4668,7 @@ namespace Orts.Simulation.RollingStocks
                 }
                 else // simple locomotive
                 {
-                StartPistonForceLeftLbf = (float)Size.Area.ToIn2(Size.Area.FromFt2(CylinderPistonAreaFt2)) * Pressure_a_AtmPSI; // Piston force is equal to pressure in piston and piston area
+                    StartPistonForceLeftLbf = (float)Size.Area.ToIn2(Size.Area.FromFt2(CylinderPistonAreaFt2)) * Pressure_a_AtmPSI; // Piston force is equal to pressure in piston and piston area
                     SlipInitialPressureAtmPSI = Pressure_a_AtmPSI;
                     SlipCutoffPressureAtmPSI = Pressure_b_AtmPSI;
                     SlipCylinderReleasePressureAtmPSI = Pressure_c_AtmPSI;
@@ -4771,28 +4772,28 @@ namespace Orts.Simulation.RollingStocks
                 }
 
                 // Calculate piston force for the relevant cylinder cranking positions
-            StartPistonForceLeftLbf = (float)Size.Area.ToIn2(Size.Area.FromFt2(CylinderPistonAreaFt2)) * CrankLeftCylinderPressure;
-            StartPistonForceMiddleLbf = (float)Size.Area.ToIn2(Size.Area.FromFt2(CylinderPistonAreaFt2)) * CrankMiddleCylinderPressure;
-            StartPistonForceRightLbf = (float)Size.Area.ToIn2(Size.Area.FromFt2(CylinderPistonAreaFt2)) * CrankRightCylinderPressure;
+                StartPistonForceLeftLbf = (float)Size.Area.ToIn2(Size.Area.FromFt2(CylinderPistonAreaFt2)) * CrankLeftCylinderPressure;
+                StartPistonForceMiddleLbf = (float)Size.Area.ToIn2(Size.Area.FromFt2(CylinderPistonAreaFt2)) * CrankMiddleCylinderPressure;
+                StartPistonForceRightLbf = (float)Size.Area.ToIn2(Size.Area.FromFt2(CylinderPistonAreaFt2)) * CrankRightCylinderPressure;
 
-            SpeedPistonForceLeftLbf = (float)Size.Area.ToIn2(Size.Area.FromFt2(CylinderPistonAreaFt2)) * CrankLeftCylinderPressure;
-            SpeedPistonForceMiddleLbf = (float)Size.Area.ToIn2(Size.Area.FromFt2(CylinderPistonAreaFt2)) * CrankMiddleCylinderPressure;
-            SpeedPistonForceRightLbf = (float)Size.Area.ToIn2(Size.Area.FromFt2(CylinderPistonAreaFt2)) * CrankRightCylinderPressure;
+                SpeedPistonForceLeftLbf = (float)Size.Area.ToIn2(Size.Area.FromFt2(CylinderPistonAreaFt2)) * CrankLeftCylinderPressure;
+                SpeedPistonForceMiddleLbf = (float)Size.Area.ToIn2(Size.Area.FromFt2(CylinderPistonAreaFt2)) * CrankMiddleCylinderPressure;
+                SpeedPistonForceRightLbf = (float)Size.Area.ToIn2(Size.Area.FromFt2(CylinderPistonAreaFt2)) * CrankRightCylinderPressure;
 
                 // Calculate the inertia of the reciprocating weights and the connecting rod
                 double ReciprocatingInertiaFactorLeft = -1.603f * (Math.Cos(StartCrankAngleLeft)) + ((CrankRadiusFt / ConnectRodLengthFt) * (Math.Cos(2.0f * StartCrankAngleLeft)));
-            double ReciprocatingInertiaForceLeft = ReciprocatingInertiaFactorLeft * ReciprocatingWeightLb * Size.Length.ToIn(CylinderStrokeM) * ((Speed.MeterPerSecond.ToMpH(absSpeedMpS) * Speed.MeterPerSecond.ToMpH(absSpeedMpS)) / (Size.Length.ToIn(DrvWheelDiaM) * Size.Length.ToIn(DrvWheelDiaM)));
+                double ReciprocatingInertiaForceLeft = ReciprocatingInertiaFactorLeft * ReciprocatingWeightLb * Size.Length.ToIn(CylinderStrokeM) * ((Speed.MeterPerSecond.ToMpH(absSpeedMpS) * Speed.MeterPerSecond.ToMpH(absSpeedMpS)) / (Size.Length.ToIn(DrvWheelDiaM) * Size.Length.ToIn(DrvWheelDiaM)));
                 double ReciprocatingInertiaFactorMiddle = -1.603f * (Math.Cos(StartCrankAngleMiddle)) + ((CrankRadiusFt / ConnectRodLengthFt) * (Math.Cos(2.0f * StartCrankAngleMiddle)));
-            double ReciprocatingInertiaForceMiddle = ReciprocatingInertiaFactorMiddle * ReciprocatingWeightLb * Size.Length.ToIn(CylinderStrokeM) * ((Speed.MeterPerSecond.ToMpH(absSpeedMpS) * Speed.MeterPerSecond.ToMpH(absSpeedMpS)) / (Size.Length.ToIn(DrvWheelDiaM) * Size.Length.ToIn(DrvWheelDiaM)));
+                double ReciprocatingInertiaForceMiddle = ReciprocatingInertiaFactorMiddle * ReciprocatingWeightLb * Size.Length.ToIn(CylinderStrokeM) * ((Speed.MeterPerSecond.ToMpH(absSpeedMpS) * Speed.MeterPerSecond.ToMpH(absSpeedMpS)) / (Size.Length.ToIn(DrvWheelDiaM) * Size.Length.ToIn(DrvWheelDiaM)));
                 double ReciprocatingInertiaFactorRight = -1.603f * (Math.Cos(StartCrankAngleRight)) + ((CrankRadiusFt / ConnectRodLengthFt) * (Math.Cos(2.0f * StartCrankAngleRight)));
-            double ReciprocatingInertiaForceRight = ReciprocatingInertiaFactorRight * ReciprocatingWeightLb * Size.Length.ToIn(CylinderStrokeM) * ((Speed.MeterPerSecond.ToMpH(absSpeedMpS) * Speed.MeterPerSecond.ToMpH(absSpeedMpS)) / (Size.Length.ToIn(DrvWheelDiaM) * Size.Length.ToIn(DrvWheelDiaM)));
+                double ReciprocatingInertiaForceRight = ReciprocatingInertiaFactorRight * ReciprocatingWeightLb * Size.Length.ToIn(CylinderStrokeM) * ((Speed.MeterPerSecond.ToMpH(absSpeedMpS) * Speed.MeterPerSecond.ToMpH(absSpeedMpS)) / (Size.Length.ToIn(DrvWheelDiaM) * Size.Length.ToIn(DrvWheelDiaM)));
 
                 double ConnectRodInertiaFactorLeft = -1.603f * (Math.Cos(StartCrankAngleLeft)) + (((CrankRadiusFt * RodCoGFt) / (ConnectRodLengthFt * ConnectRodLengthFt)) * (Math.Cos(2.0f * StartCrankAngleLeft)));
-            double ConnectRodInertiaForceLeft = ConnectRodInertiaFactorLeft * ConnectingRodWeightLb * Size.Length.ToIn(CylinderStrokeM) * ((Speed.MeterPerSecond.ToMpH(absSpeedMpS) * Speed.MeterPerSecond.ToMpH(absSpeedMpS)) / (Size.Length.ToIn(DrvWheelDiaM) * Size.Length.ToIn(DrvWheelDiaM)));
+                double ConnectRodInertiaForceLeft = ConnectRodInertiaFactorLeft * ConnectingRodWeightLb * Size.Length.ToIn(CylinderStrokeM) * ((Speed.MeterPerSecond.ToMpH(absSpeedMpS) * Speed.MeterPerSecond.ToMpH(absSpeedMpS)) / (Size.Length.ToIn(DrvWheelDiaM) * Size.Length.ToIn(DrvWheelDiaM)));
                 double ConnectRodInertiaFactorMiddle = -1.603f * (Math.Cos(StartCrankAngleMiddle)) + (((CrankRadiusFt * RodCoGFt) / (ConnectRodLengthFt * ConnectRodLengthFt)) * (Math.Cos(2.0f * StartCrankAngleMiddle)));
-            double ConnectRodInertiaForceMiddle = ConnectRodInertiaFactorMiddle * ConnectingRodWeightLb * Size.Length.ToIn(CylinderStrokeM) * ((Speed.MeterPerSecond.ToMpH(absSpeedMpS) * Speed.MeterPerSecond.ToMpH(absSpeedMpS)) / (Size.Length.ToIn(DrvWheelDiaM) * Size.Length.ToIn(DrvWheelDiaM)));
+                double ConnectRodInertiaForceMiddle = ConnectRodInertiaFactorMiddle * ConnectingRodWeightLb * Size.Length.ToIn(CylinderStrokeM) * ((Speed.MeterPerSecond.ToMpH(absSpeedMpS) * Speed.MeterPerSecond.ToMpH(absSpeedMpS)) / (Size.Length.ToIn(DrvWheelDiaM) * Size.Length.ToIn(DrvWheelDiaM)));
                 double ConnectRodInertiaFactorRight = -1.603f * (Math.Cos(StartCrankAngleRight)) + (((CrankRadiusFt * RodCoGFt) / (ConnectRodLengthFt * ConnectRodLengthFt)) * (Math.Cos(2.0f * StartCrankAngleRight)));
-            double ConnectRodInertiaForceRight = ConnectRodInertiaFactorRight * ConnectingRodWeightLb * Size.Length.ToIn(CylinderStrokeM) * ((Speed.MeterPerSecond.ToMpH(absSpeedMpS) * Speed.MeterPerSecond.ToMpH(absSpeedMpS)) / (Size.Length.ToIn(DrvWheelDiaM) * Size.Length.ToIn(DrvWheelDiaM)));
+                double ConnectRodInertiaForceRight = ConnectRodInertiaFactorRight * ConnectingRodWeightLb * Size.Length.ToIn(CylinderStrokeM) * ((Speed.MeterPerSecond.ToMpH(absSpeedMpS) * Speed.MeterPerSecond.ToMpH(absSpeedMpS)) / (Size.Length.ToIn(DrvWheelDiaM) * Size.Length.ToIn(DrvWheelDiaM)));
 
                 if (cutoff == 0 || throttle == 0)
                 {
@@ -4865,27 +4866,27 @@ namespace Orts.Simulation.RollingStocks
                 SpeedVerticalThrustForceRight = SpeedTangentialCrankWheelForceRightLbf * SpeedVerticalThrustFactorRight;
 
                 // Calculate Excess Balance
-            double ExcessBalanceWeightLb = (ConnectingRodWeightLb + ReciprocatingWeightLb) - ConnectingRodBalanceWeightLb -(Mass.Kilogram.ToLb(MassKG) / ExcessBalanceFactor);
-            ExcessBalanceForceLeft = (float)(-1.603f * ExcessBalanceWeightLb * Size.Length.ToIn(CylinderStrokeM) * Math.Sin(SpeedCrankAngleLeft) * ((Speed.MeterPerSecond.ToMpH(absSpeedMpS) * Speed.MeterPerSecond.ToMpH(absSpeedMpS)) / (Size.Length.ToIn(DrvWheelDiaM) * Size.Length.ToIn(DrvWheelDiaM))));
-            ExcessBalanceForceMiddle = (float)(-1.603f * ExcessBalanceWeightLb * Size.Length.ToIn(CylinderStrokeM) * Math.Sin(SpeedCrankAngleMiddle) * ((Speed.MeterPerSecond.ToMpH(absSpeedMpS) * Speed.MeterPerSecond.ToMpH(absSpeedMpS)) / (Size.Length.ToIn(DrvWheelDiaM) * Size.Length.ToIn(DrvWheelDiaM))));
-            ExcessBalanceForceRight = (float)(-1.603f * ExcessBalanceWeightLb * Size.Length.ToIn(CylinderStrokeM) * Math.Sin(SpeedCrankAngleRight) * ((Speed.MeterPerSecond.ToMpH(absSpeedMpS) * Speed.MeterPerSecond.ToMpH(absSpeedMpS)) / (Size.Length.ToIn(DrvWheelDiaM) * Size.Length.ToIn(DrvWheelDiaM))));
+                double ExcessBalanceWeightLb = (ConnectingRodWeightLb + ReciprocatingWeightLb) - ConnectingRodBalanceWeightLb - (Mass.Kilogram.ToLb(MassKG) / ExcessBalanceFactor);
+                ExcessBalanceForceLeft = (float)(-1.603f * ExcessBalanceWeightLb * Size.Length.ToIn(CylinderStrokeM) * Math.Sin(SpeedCrankAngleLeft) * ((Speed.MeterPerSecond.ToMpH(absSpeedMpS) * Speed.MeterPerSecond.ToMpH(absSpeedMpS)) / (Size.Length.ToIn(DrvWheelDiaM) * Size.Length.ToIn(DrvWheelDiaM))));
+                ExcessBalanceForceMiddle = (float)(-1.603f * ExcessBalanceWeightLb * Size.Length.ToIn(CylinderStrokeM) * Math.Sin(SpeedCrankAngleMiddle) * ((Speed.MeterPerSecond.ToMpH(absSpeedMpS) * Speed.MeterPerSecond.ToMpH(absSpeedMpS)) / (Size.Length.ToIn(DrvWheelDiaM) * Size.Length.ToIn(DrvWheelDiaM))));
+                ExcessBalanceForceRight = (float)(-1.603f * ExcessBalanceWeightLb * Size.Length.ToIn(CylinderStrokeM) * Math.Sin(SpeedCrankAngleRight) * ((Speed.MeterPerSecond.ToMpH(absSpeedMpS) * Speed.MeterPerSecond.ToMpH(absSpeedMpS)) / (Size.Length.ToIn(DrvWheelDiaM) * Size.Length.ToIn(DrvWheelDiaM))));
 
                 if (NumCylinders == 2)
                 {
                     ExcessBalanceForceMiddle = 0.0f;
                 }
 
-        //    SpeedStaticWheelFrictionForceLbf = (Mass.Kilogram.ToLb(DrvWheelWeightKg) + (SpeedVerticalThrustForceLeft + ExcessBalanceForceLeft) + (SpeedVerticalThrustForceMiddle + ExcessBalanceForceMiddle) + (SpeedVerticalThrustForceRight + ExcessBalanceForceRight)) * Train.LocomotiveCoefficientFriction;
+                //    SpeedStaticWheelFrictionForceLbf = (Mass.Kilogram.ToLb(DrvWheelWeightKg) + (SpeedVerticalThrustForceLeft + ExcessBalanceForceLeft) + (SpeedVerticalThrustForceMiddle + ExcessBalanceForceMiddle) + (SpeedVerticalThrustForceRight + ExcessBalanceForceRight)) * Train.LocomotiveCoefficientFriction;
 
-            SpeedStaticWheelFrictionForceLbf = (float)(Mass.Kilogram.ToLb(DrvWheelWeightKg) + (SpeedVerticalThrustForceLeft + ExcessBalanceForceLeft) + (SpeedVerticalThrustForceMiddle + ExcessBalanceForceMiddle) + (SpeedVerticalThrustForceRight + ExcessBalanceForceRight)) * 0.33f;
+                SpeedStaticWheelFrictionForceLbf = (float)(Mass.Kilogram.ToLb(DrvWheelWeightKg) + (SpeedVerticalThrustForceLeft + ExcessBalanceForceLeft) + (SpeedVerticalThrustForceMiddle + ExcessBalanceForceMiddle) + (SpeedVerticalThrustForceRight + ExcessBalanceForceRight)) * 0.33f;
                 // Calculate internal resistance - IR = 3.8 * diameter of cylinder^2 * stroke * dia of drivers (all in inches)
-            double InternalResistance = 3.8f * Size.Length.ToIn(CylinderDiameterM) * Size.Length.ToIn(CylinderDiameterM) * Size.Length.ToIn(CylinderStrokeM) / (Size.Length.ToIn(DrvWheelDiaM));
+                double InternalResistance = 3.8f * Size.Length.ToIn(CylinderDiameterM) * Size.Length.ToIn(CylinderDiameterM) * Size.Length.ToIn(CylinderStrokeM) / (Size.Length.ToIn(DrvWheelDiaM));
 
                 // To convert the force at the crank to the force at wheel tread = Crank Force * Cylinder Stroke / Diameter of Drive Wheel (inches) - internal friction should be deducted from this as well.
-            StartTangentialWheelTreadForceLbf = (float)((StartTangentialCrankWheelForceLbf * Size.Length.ToIn(CylinderStrokeM) / (Size.Length.ToIn(DrvWheelDiaM))) - InternalResistance);
+                StartTangentialWheelTreadForceLbf = (float)((StartTangentialCrankWheelForceLbf * Size.Length.ToIn(CylinderStrokeM) / (Size.Length.ToIn(DrvWheelDiaM))) - InternalResistance);
                 StartTangentialWheelTreadForceLbf = MathHelper.Clamp(StartTangentialWheelTreadForceLbf, 0, StartTangentialWheelTreadForceLbf);  // Make sure force does not go negative
 
-            SpeedTangentialWheelTreadForceLbf = (float)((SpeedTotalTangCrankWheelForceLbf * Size.Length.ToIn(CylinderStrokeM) / (Size.Length.ToIn(DrvWheelDiaM))) - InternalResistance);
+                SpeedTangentialWheelTreadForceLbf = (float)((SpeedTotalTangCrankWheelForceLbf * Size.Length.ToIn(CylinderStrokeM) / (Size.Length.ToIn(DrvWheelDiaM))) - InternalResistance);
                 SpeedTangentialWheelTreadForceLbf = MathHelper.Clamp(SpeedTangentialWheelTreadForceLbf, 0, SpeedTangentialWheelTreadForceLbf);  // Make sure force does not go negative
 
                 // Determine weather conditions and friction coeff
@@ -4900,11 +4901,11 @@ namespace Orts.Simulation.RollingStocks
 
                 if (Direction == MidpointDirection.Forward)
                 {
-                StartStaticWheelFrictionForceLbf = (float)(Mass.Kilogram.ToLb(DrvWheelWeightKg) + StartVerticalThrustForceLeft + StartVerticalThrustForceRight + StartVerticalThrustForceMiddle) * Train.LocomotiveCoefficientFriction;
+                    StartStaticWheelFrictionForceLbf = (float)(Mass.Kilogram.ToLb(DrvWheelWeightKg) + StartVerticalThrustForceLeft + StartVerticalThrustForceRight + StartVerticalThrustForceMiddle) * Train.LocomotiveCoefficientFriction;
                 }
                 else
                 {
-                StartStaticWheelFrictionForceLbf = (float)(Mass.Kilogram.ToLb(DrvWheelWeightKg) - StartVerticalThrustForceLeft - StartVerticalThrustForceMiddle - StartVerticalThrustForceRight) * Train.LocomotiveCoefficientFriction;
+                    StartStaticWheelFrictionForceLbf = (float)(Mass.Kilogram.ToLb(DrvWheelWeightKg) - StartVerticalThrustForceLeft - StartVerticalThrustForceMiddle - StartVerticalThrustForceRight) * Train.LocomotiveCoefficientFriction;
                 }
 
                 // Transition between Starting slip calculations, and slip at speed. Incremental values applied between 1 and 10mph.
@@ -5142,7 +5143,7 @@ namespace Orts.Simulation.RollingStocks
 
                 SmallEjectorFeedFraction = MathHelper.Clamp(SmallEjectorFeedFraction, 0.0f, 1.0f); // Keep within bounds
                 SmallEjectorBrakePipeChargingRatePSIorInHgpS = SmallEjectorFeedFraction * BrakePipeChargingRatePSIorInHgpS; // Rate used in the vacuum brakes
-                
+
                 /// <summary>
                 /// Update large ejector vacuum rate and steam usage.
                 /// </summary>
@@ -5796,8 +5797,8 @@ namespace Orts.Simulation.RollingStocks
                     Train.CarSteamHeatOn = true; // turn on steam effects on wagons
 
                     // Calculate impact of steam heat usage on locomotive
-                        BoilerMassLB -= (float)elapsedClockSeconds * CalculatedCarHeaterSteamUsageLBpS;
-                        BoilerHeatBTU -= (float)elapsedClockSeconds * CalculatedCarHeaterSteamUsageLBpS * (BoilerSteamHeatBTUpLB - BoilerWaterHeatBTUpLB); // Heat loss due to steam heat usage
+                    BoilerMassLB -= (float)elapsedClockSeconds * CalculatedCarHeaterSteamUsageLBpS;
+                    BoilerHeatBTU -= (float)elapsedClockSeconds * CalculatedCarHeaterSteamUsageLBpS * (BoilerSteamHeatBTUpLB - BoilerWaterHeatBTUpLB); // Heat loss due to steam heat usage
                     TotalSteamUsageLBpS += CalculatedCarHeaterSteamUsageLBpS;
                     BoilerHeatOutBTUpS += CalculatedCarHeaterSteamUsageLBpS * (BoilerSteamHeatBTUpLB - BoilerWaterHeatBTUpLB); // Heat loss due to safety valve                
 
@@ -6877,6 +6878,11 @@ namespace Orts.Simulation.RollingStocks
 
         #region Small Ejector controller
 
+        public void StartSmallEjectorIncrease()
+        {
+            StartSmallEjectorIncrease(null);
+        }
+
         public void StartSmallEjectorIncrease(float? target)
         {
             SmallEjectorController.CommandStartTime = Simulator.ClockTime;
@@ -6890,6 +6896,11 @@ namespace Orts.Simulation.RollingStocks
         {
             SmallEjectorController.StopIncrease();
             new ContinuousSmallEjectorCommand(Simulator.Log, 1, true, SmallEjectorController.CurrentValue, SmallEjectorController.CommandStartTime);
+        }
+
+        public void StartSmallEjectorDecrease()
+        {
+            StartSmallEjectorDecrease(null);
         }
 
         public void StartSmallEjectorDecrease(float? target)
@@ -6944,11 +6955,16 @@ namespace Orts.Simulation.RollingStocks
 
         #region Large Ejector controller
 
+        public void StartLargeEjectorIncrease()
+        {
+            StartLargeEjectorIncrease(null);
+        }
+
         public void StartLargeEjectorIncrease(float? target)
         {
             LargeEjectorController.CommandStartTime = Simulator.ClockTime;
             if (IsPlayerTrain)
-                Simulator.Confirmer.ConfirmWithPerCent(CabControl.LargeEjector, CabSetting.Increase, LargeEjectorController.CurrentValue* 100);
+                Simulator.Confirmer.ConfirmWithPerCent(CabControl.LargeEjector, CabSetting.Increase, LargeEjectorController.CurrentValue * 100);
             LargeEjectorController.StartIncrease(target);
             SignalEvent(TrainEvent.LargeEjectorChange);
         }
@@ -6959,10 +6975,15 @@ namespace Orts.Simulation.RollingStocks
             new ContinuousLargeEjectorCommand(Simulator.Log, 1, true, LargeEjectorController.CurrentValue, LargeEjectorController.CommandStartTime);
         }
 
+        public void StartLargeEjectorDecrease()
+        {
+            StartLargeEjectorDecrease(null);
+        }
+
         public void StartLargeEjectorDecrease(float? target)
         {
             if (IsPlayerTrain)
-                Simulator.Confirmer.ConfirmWithPerCent(CabControl.LargeEjector, CabSetting.Decrease, LargeEjectorController.CurrentValue* 100);
+                Simulator.Confirmer.ConfirmWithPerCent(CabControl.LargeEjector, CabSetting.Decrease, LargeEjectorController.CurrentValue * 100);
             LargeEjectorController.StartDecrease(target);
             SignalEvent(TrainEvent.LargeEjectorChange);
         }
@@ -6985,7 +7006,7 @@ namespace Orts.Simulation.RollingStocks
             }
             else
             {
-                if (target<LargeEjectorController.CurrentValue)
+                if (target < LargeEjectorController.CurrentValue)
                 {
                     StartLargeEjectorDecrease(target);
                 }
@@ -7002,7 +7023,7 @@ namespace Orts.Simulation.RollingStocks
                 new ContinuousLargeEjectorCommand(Simulator.Log, 1, change > 0, controller.CurrentValue, Simulator.GameTime);
             }
             if (oldValue != controller.IntermediateValue)
-                Simulator.Confirmer.UpdateWithPerCent(CabControl.LargeEjector, oldValue<controller.IntermediateValue? CabSetting.Increase : CabSetting.Decrease, controller.CurrentValue* 100);
+                Simulator.Confirmer.UpdateWithPerCent(CabControl.LargeEjector, oldValue < controller.IntermediateValue ? CabSetting.Increase : CabSetting.Decrease, controller.CurrentValue * 100);
         }
 
         #endregion
@@ -7083,6 +7104,11 @@ namespace Orts.Simulation.RollingStocks
             Direction = Train.MUReverserPercent >= 0 ? MidpointDirection.Forward : MidpointDirection.Reverse;
         }
 
+        public void StartInjector1Increase()
+        {
+            StartInjector1Increase(null);
+        }
+
         public void StartInjector1Increase(float? target)
         {
             Injector1Controller.CommandStartTime = Simulator.ClockTime;
@@ -7095,6 +7121,11 @@ namespace Orts.Simulation.RollingStocks
         {
             Injector1Controller.StopIncrease();
             new ContinuousInjectorCommand(Simulator.Log, 1, true, Injector1Controller.CurrentValue, Injector1Controller.CommandStartTime);
+        }
+
+        public void StartInjector1Decrease()
+        {
+            StartInjector1Decrease(null);
         }
 
         public void StartInjector1Decrease(float? target)
@@ -7142,6 +7173,11 @@ namespace Orts.Simulation.RollingStocks
                 Simulator.Confirmer.UpdateWithPerCent(CabControl.Injector1, oldValue < controller.IntermediateValue ? CabSetting.Increase : CabSetting.Decrease, controller.CurrentValue * 100);
         }
 
+        public void StartInjector2Increase()
+        {
+            StartInjector2Increase(null);
+        }
+
         public void StartInjector2Increase(float? target)
         {
             Injector2Controller.CommandStartTime = Simulator.ClockTime;
@@ -7154,6 +7190,11 @@ namespace Orts.Simulation.RollingStocks
         {
             Injector2Controller.StopIncrease();
             new ContinuousInjectorCommand(Simulator.Log, 2, true, Injector2Controller.CurrentValue, Injector2Controller.CommandStartTime);
+        }
+
+        public void StartInjector2Decrease()
+        {
+            StartInjector2Decrease(null);
         }
 
         public void StartInjector2Decrease(float? target)
@@ -7201,6 +7242,11 @@ namespace Orts.Simulation.RollingStocks
                 Simulator.Confirmer.UpdateWithPerCent(CabControl.Injector2, oldValue < controller.IntermediateValue ? CabSetting.Increase : CabSetting.Decrease, controller.CurrentValue * 100);
         }
 
+        public void StartBlowerIncrease()
+        {
+            StartBlowerIncrease(null);
+        }
+
         public void StartBlowerIncrease(float? target)
         {
             BlowerController.CommandStartTime = Simulator.ClockTime;
@@ -7209,12 +7255,19 @@ namespace Orts.Simulation.RollingStocks
             BlowerController.StartIncrease(target);
             SignalEvent(TrainEvent.BlowerChange);
         }
+
         public void StopBlowerIncrease()
         {
             BlowerController.StopIncrease();
             if (IsPlayerTrain)
                 new ContinuousBlowerCommand(Simulator.Log, true, BlowerController.CurrentValue, BlowerController.CommandStartTime);
         }
+
+        public void StartBlowerDecrease()
+        {
+            StartBlowerDecrease(null);
+        }
+
         public void StartBlowerDecrease(float? target)
         {
             BlowerController.CommandStartTime = Simulator.ClockTime;
@@ -7223,6 +7276,7 @@ namespace Orts.Simulation.RollingStocks
             BlowerController.StartDecrease(target);
             SignalEvent(TrainEvent.BlowerChange);
         }
+
         public void StopBlowerDecrease()
         {
             BlowerController.StopDecrease();
@@ -7262,6 +7316,11 @@ namespace Orts.Simulation.RollingStocks
                 Simulator.Confirmer.UpdateWithPerCent(CabControl.Blower, oldValue < controller.IntermediateValue ? CabSetting.Increase : CabSetting.Decrease, controller.CurrentValue * 100);
         }
 
+        public void StartDamperIncrease()
+        {
+            StartDamperIncrease(null);
+        }
+
         public void StartDamperIncrease(float? target)
         {
             DamperController.CommandStartTime = Simulator.ClockTime;
@@ -7270,12 +7329,19 @@ namespace Orts.Simulation.RollingStocks
             DamperController.StartIncrease(target);
             SignalEvent(TrainEvent.DamperChange);
         }
+
         public void StopDamperIncrease()
         {
             DamperController.StopIncrease();
             if (IsPlayerTrain)
                 new ContinuousDamperCommand(Simulator.Log, true, DamperController.CurrentValue, DamperController.CommandStartTime);
         }
+
+        public void StartDamperDecrease()
+        {
+            StartDamperDecrease(null);
+        }
+
         public void StartDamperDecrease(float? target)
         {
             DamperController.CommandStartTime = Simulator.ClockTime;
@@ -7284,6 +7350,7 @@ namespace Orts.Simulation.RollingStocks
             DamperController.StartDecrease(target);
             SignalEvent(TrainEvent.DamperChange);
         }
+
         public void StopDamperDecrease()
         {
             DamperController.StopDecrease();
@@ -7323,6 +7390,11 @@ namespace Orts.Simulation.RollingStocks
                 Simulator.Confirmer.UpdateWithPerCent(CabControl.Damper, oldValue < controller.IntermediateValue ? CabSetting.Increase : CabSetting.Decrease, controller.CurrentValue * 100);
         }
 
+        public void StartFireboxDoorIncrease()
+        {
+            StartFireboxDoorIncrease(null);
+        }
+
         public void StartFireboxDoorIncrease(float? target)
         {
             FireboxDoorController.CommandStartTime = Simulator.ClockTime;
@@ -7331,12 +7403,19 @@ namespace Orts.Simulation.RollingStocks
             FireboxDoorController.StartIncrease(target);
             SignalEvent(TrainEvent.FireboxDoorChange);
         }
+
         public void StopFireboxDoorIncrease()
         {
             FireboxDoorController.StopIncrease();
             if (IsPlayerTrain)
                 new ContinuousFireboxDoorCommand(Simulator.Log, true, FireboxDoorController.CurrentValue, FireboxDoorController.CommandStartTime);
         }
+
+        public void StartFireboxDoorDecrease()
+        {
+            StartFireboxDoorDecrease(null);
+        }
+
         public void StartFireboxDoorDecrease(float? target)
         {
             FireboxDoorController.CommandStartTime = Simulator.ClockTime;
@@ -7384,6 +7463,11 @@ namespace Orts.Simulation.RollingStocks
                 Simulator.Confirmer.UpdateWithPerCent(CabControl.FireboxDoor, oldValue < controller.IntermediateValue ? CabSetting.Increase : CabSetting.Decrease, controller.CurrentValue * 100);
         }
 
+        public void StartFiringRateIncrease()
+        {
+            StartFiringRateIncrease(null);
+        }
+
         public void StartFiringRateIncrease(float? target)
         {
             FiringRateController.CommandStartTime = Simulator.ClockTime;
@@ -7391,12 +7475,19 @@ namespace Orts.Simulation.RollingStocks
                 Simulator.Confirmer.ConfirmWithPerCent(CabControl.FiringRate, FiringRateController.CurrentValue * 100);
             FiringRateController.StartIncrease(target);
         }
+
         public void StopFiringRateIncrease()
         {
             FiringRateController.StopIncrease();
             if (IsPlayerTrain)
                 new ContinuousFiringRateCommand(Simulator.Log, true, FiringRateController.CurrentValue, FiringRateController.CommandStartTime);
         }
+
+        public void StartFiringRateDecrease()
+        {
+            StartFiringRateDecrease(null);
+        }
+
         public void StartFiringRateDecrease(float? target)
         {
             FiringRateController.CommandStartTime = Simulator.ClockTime;
@@ -7404,6 +7495,7 @@ namespace Orts.Simulation.RollingStocks
                 Simulator.Confirmer.ConfirmWithPerCent(CabControl.FiringRate, FiringRateController.CurrentValue * 100);
             FiringRateController.StartDecrease(target);
         }
+
         public void StopFiringRateDecrease()
         {
             FiringRateController.StopDecrease();
@@ -7438,7 +7530,7 @@ namespace Orts.Simulation.RollingStocks
             SmokeColor.Update(1, 0);
         }
 
-public void ToggleCylinderCocks()
+        public void ToggleCylinderCocks()
         {
             CylinderCocksAreOpen = !CylinderCocksAreOpen;
             SignalEvent(TrainEvent.CylinderCocksToggle);
@@ -7507,10 +7599,10 @@ public void ToggleCylinderCocks()
                 SignalEvent(TrainEvent.BoilerBlowdownOff);
 
             if (IsPlayerTrain)
-                Simulator.Confirmer.Confirm(CabControl.BlowdownValve, BlowdownValveOpen? CabSetting.On : CabSetting.Off);
+                Simulator.Confirmer.Confirm(CabControl.BlowdownValve, BlowdownValveOpen ? CabSetting.On : CabSetting.Off);
         }
 
-    public void ToggleManualFiring()
+        public void ToggleManualFiring()
         {
             FiringIsManual = !FiringIsManual;
             if (FiringIsManual)
@@ -7562,7 +7654,7 @@ public void ToggleCylinderCocks()
             if (matchPickup.PickupType == PickupType.FuelCoal && MaxTenderCoalMassKG != 0)
                 FuelController.SetStepSize(matchPickup.Capacity.FeedRateKGpS / MSTSNotchController.StandardBoost / MaxTenderCoalMassKG);
             else if (matchPickup.PickupType == PickupType.FuelWater && MaxLocoTenderWaterMassKG != 0)
-                WaterController.SetStepSize(matchPickup.Capacity.FeedRateKGpS / MSTSNotchController.StandardBoost / MaxLocoTenderWaterMassKG); 
+                WaterController.SetStepSize(matchPickup.Capacity.FeedRateKGpS / MSTSNotchController.StandardBoost / MaxLocoTenderWaterMassKG);
         }
 
         /// <summary>

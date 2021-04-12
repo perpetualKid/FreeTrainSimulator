@@ -270,6 +270,11 @@ namespace Orts.Settings
             return properties;
         }
 
+        protected virtual void ResetCachedProperties()
+        {
+            properties = null;
+        }
+
         protected bool AllowPropertySaving(string propertyName)
         {
             if (null == doNotSaveProperties)

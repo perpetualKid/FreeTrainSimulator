@@ -41,6 +41,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
         public abstract void InitializeUserInputCommands();
 
+        public abstract void RegisterUserCommandHandling();
+
+        public abstract void UnregisterUserCommandHandling();
+
         /// <summary>
         /// Called at the full frame rate
         /// elapsedTime is time since last frame

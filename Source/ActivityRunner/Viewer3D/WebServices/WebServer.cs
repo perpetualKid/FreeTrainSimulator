@@ -20,19 +20,21 @@
 //      Based on an idea by Dan Reynolds (HighAspect) - 2017-12-21
 // ===========================================================================================
 
-using EmbedIO;
-using EmbedIO.Routing;
-using EmbedIO.WebApi;
-using Microsoft.Xna.Framework;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
-using Orts.Simulation.Physics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+
+using EmbedIO;
+using EmbedIO.Routing;
+using EmbedIO.WebApi;
+
+using Microsoft.Xna.Framework;
+
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace Orts.ActivityRunner.Viewer3D.WebServices
 {
@@ -110,11 +112,12 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
         /// <summary>
         /// The Viewer to serve train data from.
         /// </summary>
-        private readonly Viewer Viewer;
+        private readonly Viewer viewer;
 
         public OrtsApiController(Viewer viewer)
         {
-            Viewer = viewer;
+            this.viewer = viewer;
+            WebServices.TrainDrivingDisplay.Initialize(viewer);
         }
 
 
@@ -197,7 +200,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
 
         private HudApiTable ApiHUD_ProcessTable(int pageNo)
         {
-            Popups.HUDWindow.TableData hudTable = Viewer.HUDWindow.PrepareTable(pageNo);
+            Popups.HUDWindow.TableData hudTable = viewer.HUDWindow.PrepareTable(pageNo);
             int nRows = hudTable.Cells.GetLength(0);
             int nCols = hudTable.Cells.GetLength(1);
             IEnumerable<string> GetValues()
@@ -218,19 +221,19 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
 
         #region /API/TRACKMONITORDISPLAY
         [Route(HttpVerbs.Get, "/TRACKMONITORDISPLAY")]
-        public IEnumerable<TrackMonitorDisplay.ListLabel> TrackMonitorDisplayList() => Viewer.TrackMonitorDisplayList();
+        public IEnumerable<TrackMonitorDisplay.ListLabel> TrackMonitorDisplayList() => viewer.TrackMonitorDisplayList();
         #endregion
 
 
         #region /API/TRAININFO
         [Route(HttpVerbs.Get, "/TRAININFO")]
-        public TrainInfo TrainInfo() => Viewer.GetWebTrainInfo();
+        public TrainInfo TrainInfo() => viewer.GetWebTrainInfo();
         #endregion
 
 
         #region /API/TRAINDRIVINGDISPLAY
         [Route(HttpVerbs.Get, "/TRAINDRIVINGDISPLAY")]
-        public IEnumerable<TrainDrivingDisplay.ListLabel> TrainDrivingDisplay([QueryField] bool normalText) => Viewer.TrainDrivingDisplayList(normalText);
+        public IEnumerable<TrainDrivingDisplay.ListLabel> TrainDrivingDisplay([QueryField] bool normalText) => viewer.TrainDrivingDisplayList(normalText);
         #endregion
     }
 }

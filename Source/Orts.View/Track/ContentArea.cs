@@ -7,6 +7,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using Orts.Common;
+using Orts.Common.Input;
 using Orts.Common.Position;
 using Orts.View.DrawableComponents;
 using Orts.View.Track.Widgets;
@@ -18,6 +19,7 @@ namespace Orts.View.Track
     {
         private Rectangle bounds;
         private double maxScale;
+        private static readonly Point PointOverTwo = new Point(2, 2);
 
         public TrackContent TrackContent { get; }
 
@@ -51,7 +53,7 @@ namespace Orts.View.Track
         private TrackViewerViewSettings viewSettings;
 
 #pragma warning disable CA2213 // Disposable fields should be disposed
-        private InputGameComponent inputComponent;
+        private MouseInputGameComponent inputComponent;
 #pragma warning restore CA2213 // Disposable fields should be disposed
 
         #region nearest items
@@ -75,8 +77,8 @@ namespace Orts.View.Track
             bounds = trackContent.Bounds;
             spriteBatch = new SpriteBatch(GraphicsDevice);
             fontManager = FontManager.Instance("Segoe UI", System.Drawing.FontStyle.Regular);
-            inputComponent = game.Components.OfType<InputGameComponent>().First();
-            inputComponent.AddMouseEvent(InputGameComponent.MouseMovedEventType.MouseMoved, MouseMove);
+            inputComponent = game.Components.OfType<MouseInputGameComponent>().Single();
+            inputComponent.AddMouseEvent(MouseMovedEventType.MouseMoved, MouseMove);
 
             foreach (ColorSetting setting in EnumExtension.GetValues<ColorSetting>())
             {
@@ -85,7 +87,7 @@ namespace Orts.View.Track
             this.viewSettings = viewSettings;
         }
 
-        public void MouseMove(Point position, Vector2 delta)
+        public void MouseMove(Point position, Vector2 delta, GameTime gameTime)
         {
             PointD worldPosition = ScreenToWorldCoordinates(position);
             FindNearestItems(worldPosition);
@@ -173,9 +175,9 @@ namespace Orts.View.Track
             CenterAround(new PointD((TopLeftArea.X + BottomRightArea.X) / 2, (TopLeftArea.Y + BottomRightArea.Y) / 2));
         }
 
-        public void UpdateScaleAt(in Vector2 scaleAt, int steps)
+        public void UpdateScaleAt(in Point scaleAt, int steps)
         {
-            double scale = Scale * Math.Pow((steps > 0 ? 1 / 0.9 : (steps < 0 ? 0.9 : 1)), Math.Abs(steps));
+            double scale = Scale * Math.Pow((steps > 0 ? 1 / 0.95 : (steps < 0 ? 0.95 : 1)), Math.Abs(steps));
             if (scale < maxScale || scale > 200)
                 return;
             offsetX += scaleAt.X * (scale / Scale - 1.0) / scale;
@@ -187,7 +189,7 @@ namespace Orts.View.Track
 
         public void UpdateScale(int steps)
         {
-            UpdateScaleAt( new Vector2(WindowSize.X / 2, WindowSize.Y / 2), steps);
+            UpdateScaleAt( WindowSize / PointOverTwo, steps);
         }
 
         public void UpdatePosition(in Vector2 delta)
@@ -448,7 +450,7 @@ namespace Orts.View.Track
             if (disposing)
             {
                 spriteBatch?.Dispose();
-                inputComponent?.RemoveMouseEvent(InputGameComponent.MouseMovedEventType.MouseMoved, MouseMove);
+                inputComponent?.RemoveMouseEvent(MouseMovedEventType.MouseMoved, MouseMove);
                 inputComponent = null;
 
             }

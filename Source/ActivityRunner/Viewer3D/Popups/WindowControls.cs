@@ -19,29 +19,38 @@
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+
+using Orts.Common.Input;
 using Orts.Viewer3D.Popups;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace Orts.ActivityRunner.Viewer3D.Popups
 {
+    public class MouseClickEventArgs: EventArgs
+    { 
+        public Point Position { get; }
+        public KeyModifiers KeyModifiers { get; }
+
+        public MouseClickEventArgs(Point position, KeyModifiers keyModifiers)
+        {
+            Position = position;
+            KeyModifiers = keyModifiers;
+        }
+
+    }
     public abstract class Control
     {
         public Rectangle Position;
-        public object Tag;
+        public object Tag { get; set; }
         public event Action<Control, Point> Click;
+        public event EventHandler<MouseClickEventArgs> OnClick;
 
         protected Control(int x, int y, int width, int height)
         {
             Position = new Rectangle(x, y, width, height);
-        }
-
-        protected void OnClick(Point mouseControlLocation)
-        {
-            var click = Click;
-            if (click != null)
-                click(this, mouseControlLocation);
         }
 
         public virtual void Initialize(WindowManager windowManager)
@@ -50,18 +59,28 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
         internal abstract void Draw(SpriteBatch spriteBatch, Point offset);
 
-        internal virtual bool HandleMouseDown(WindowMouseEvent e)
+        internal virtual bool HandleMousePressed(WindowMouseEvent e)
         {
             return false;
         }
 
-        internal virtual bool HandleMouseUp(WindowMouseEvent e)
+        internal virtual bool HandleMouseReleased(WindowMouseEvent e)
         {
             MouseClick(e);
             return false;
         }
 
+        internal virtual bool HandleMouseDown(WindowMouseEvent e)
+        {
+            return false;
+        }
+
         internal virtual bool HandleMouseMove(WindowMouseEvent e)
+        {
+            return false;
+        }
+
+        internal virtual bool HandleMouseScroll(WindowMouseEvent e)
         {
             return false;
         }
@@ -79,7 +98,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
         internal virtual void MouseClick(WindowMouseEvent e)
         {
-            OnClick(new Point(e.MouseDownPosition.X - Position.X, e.MouseDownPosition.Y - Position.Y));
+            Click?.Invoke(this, e.MousePosition - Position.Location);
+            OnClick?.Invoke(this, new MouseClickEventArgs(e.MousePosition - Position.Location, e.KeyModifiers)); 
         }
     }
 
@@ -478,36 +498,44 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 control.Draw(spriteBatch, offset);
         }
 
+        internal override bool HandleMousePressed(WindowMouseEvent e)
+        {
+            foreach (var control in controls.Where(c => c.Position.Contains(e.MousePosition)))
+                if (control.HandleMousePressed(e))
+                    return true;
+            return base.HandleMousePressed(e);
+        }
+
         internal override bool HandleMouseDown(WindowMouseEvent e)
         {
-            foreach (var control in controls.Where(c => c.Position.Contains(e.MouseDownPosition)))
+            foreach (var control in controls.Where(c => c.Position.Contains(e.MousePosition)))
                 if (control.HandleMouseDown(e))
                     return true;
             return base.HandleMouseDown(e);
         }
 
-        internal override bool HandleMouseUp(WindowMouseEvent e)
+        internal override bool HandleMouseReleased(WindowMouseEvent e)
         {
-            foreach (var control in controls.Where(c => c.Position.Contains(e.MouseDownPosition)))
-                if (control.HandleMouseUp(e))
+            foreach (var control in controls.Where(c => c.Position.Contains(e.MousePosition)))
+                if (control.HandleMouseReleased(e))
                     return true;
-            return base.HandleMouseUp(e);
+            return base.HandleMouseReleased(e);
         }
 
         internal override bool HandleMouseMove(WindowMouseEvent e)
         {
-            foreach (var control in controls.Where(c => c.Position.Contains(e.MouseDownPosition)))
+            foreach (var control in controls.Where(c => c.Position.Contains(e.MousePosition)))
                 if (control.HandleMouseMove(e))
                     return true;
             return base.HandleMouseMove(e);
         }
 
-        internal override bool HandleUserInput(WindowMouseEvent e)
+        internal override bool HandleMouseScroll(WindowMouseEvent e)
         {
-            foreach (var control in controls.Where(c => c.Position.Contains(e.MouseDownPosition)))
-                if (control.HandleUserInput(e))
+            foreach (var control in controls.Where(c => c.Position.Contains(e.MousePosition)))
+                if (control.HandleMouseScroll(e))
                     return true;
-            return base.HandleUserInput(e);
+            return base.HandleMouseScroll(e);
         }
 
         internal override void MoveBy(int x, int y)
@@ -533,21 +561,9 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         {
         }
 
-        public override int RemainingWidth
-        {
-            get
-            {
-                return base.RemainingWidth - CurrentLeft;
-            }
-        }
+        public override int RemainingWidth => base.RemainingWidth - CurrentLeft;
 
-        public override int CurrentLeft
-        {
-            get
-            {
-                return controls.Count > 0 ? controls.Max(c => c.Position.Right) - Position.Left : 0;
-            }
-        }
+        public override int CurrentLeft => controls.Count > 0 ? controls.Max(c => c.Position.Right) - Position.Left : 0;
     }
 
     public class ControlLayoutVertical : ControlLayout
@@ -557,27 +573,15 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         {
         }
 
-        public override int RemainingHeight
-        {
-            get
-            {
-                return base.RemainingHeight - CurrentTop;
-            }
-        }
+        public override int RemainingHeight => base.RemainingHeight - CurrentTop;
 
-        public override int CurrentTop
-        {
-            get
-            {
-                return controls.Count > 0 ? controls.Max(c => c.Position.Bottom) - Position.Top : 0;
-            }
-        }
+        public override int CurrentTop => controls.Count > 0 ? controls.Max(c => c.Position.Bottom) - Position.Top : 0;
     }
 
-    public abstract class ControlLayoutScrollbox : ControlLayout
+    public abstract class ControlLayoutScrollbox : ControlLayout, IDisposable
     {
-        public ControlLayout Client;
-        protected int ScrollPosition;
+        public ControlLayout Client { get; protected set; }
+        protected int scrollPosition { get; set; }
 
         protected ControlLayoutScrollbox(int width, int height)
             : base(0, 0, width, height)
@@ -591,18 +595,35 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         public abstract void SetScrollPosition(int position);
 
         internal RasterizerState ScissorTestEnable = new RasterizerState { ScissorTestEnable = true };
+        private bool disposedValue;
 
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    ScissorTestEnable.Dispose();
+                }
+                disposedValue = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
     }
 
     public class ControlLayoutScrollboxHorizontal : ControlLayoutScrollbox
     {
+        private bool capturedForDragging;
+
         internal ControlLayoutScrollboxHorizontal(int width, int height)
             : base(width, height)
         {
         }
-
-        bool Dragging;
-        float DragThumbOffset;
 
         internal override void Initialize()
         {
@@ -611,7 +632,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
         internal override void Draw(SpriteBatch spriteBatch, Point offset)
         {
-            var thumbOffset = (int)((float)(Position.Width - 3 * TextHeight) * (float)ScrollPosition / (float)ScrollSize);
+            int thumbOffset = (Position.Width - 3 * TextHeight) * scrollPosition / ScrollSize;
 
             // Left button
             spriteBatch.Draw(WindowManager.ScrollbarTexture, new Rectangle(offset.X + Position.X, offset.Y + Position.Y + Position.Height - TextHeight, TextHeight, TextHeight), new Rectangle(0, 0, 16, 16), Color.White);
@@ -626,7 +647,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
             // Draw contents inside a scissor rectangle (so they're clipped to the client area).
             WindowManager.Flush(spriteBatch);
-            var oldScissorRectangle = spriteBatch.GraphicsDevice.ScissorRectangle;
+            Rectangle oldScissorRectangle = spriteBatch.GraphicsDevice.ScissorRectangle;
             spriteBatch.GraphicsDevice.ScissorRectangle = new Rectangle(offset.X + Position.X, offset.Y + Position.Y, Position.Width, Position.Height - TextHeight);
             spriteBatch.GraphicsDevice.RasterizerState = ScissorTestEnable;
             base.Draw(spriteBatch, offset);
@@ -635,97 +656,79 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             spriteBatch.GraphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
         }
 
-        internal override bool HandleUserInput(WindowMouseEvent e)
+        private bool HandleMouseButton(WindowMouseEvent e)
         {
-            if (UserInput.IsMouseLeftButtonDown)
+            Client.Position.Width = Client.CurrentLeft;
+
+            if (e.MousePosition.Y > Position.Bottom - TextHeight)
             {
-                Client.Position.Width = Client.CurrentLeft;
-                if (e.MouseDownPosition.Y > Position.Bottom - TextHeight)
-                {
-                    var thumbOffset = (int)((float)(Position.Width - 3 * TextHeight) * (float)ScrollPosition / (float)ScrollSize);
+                int thumbOffset = (Position.Width - 3 * TextHeight) * scrollPosition / ScrollSize;
 
-                    // Mouse down occured within the scrollbar.
-                    if (!Dragging && e.MouseDownPosition.X < Position.Left + TextHeight)
-                        // Mouse down occured on left button.
-                        SetScrollPosition(ScrollPosition - 10);
-                    else if (!Dragging && e.MouseDownPosition.X < Position.Left + TextHeight + thumbOffset)
-                        // Mouse down occured on left gutter.
-                        SetScrollPosition(ScrollPosition - 100);
-                    else if (!Dragging && e.MouseDownPosition.X > Position.Right - TextHeight)
-                        // Mouse down occured on right button.
-                        SetScrollPosition(ScrollPosition + 10);
-                    else if (!Dragging && e.MouseDownPosition.X > Position.Left + 2 * TextHeight + thumbOffset)
-                        // Mouse down occured on right gutter.
-                        SetScrollPosition(ScrollPosition + 100);
-                    else if (e.MouseDownPosition.X > Position.Left + TextHeight + thumbOffset && e.MouseDownPosition.X < Position.Left + 2 * TextHeight + thumbOffset && !Dragging)
-                    {
-                        // Mouse down occured on the thumb
-                        Dragging = true;
-                        DragThumbOffset = e.MousePosition.X - (Position.Left + TextHeight + thumbOffset);
-                    }
-
-                    return true;
-                }
+                // Mouse down occured within the scrollbar.
+                if (e.MousePosition.X < Position.Left + TextHeight)
+                    // Mouse down occured on left button.
+                    SetScrollPosition(scrollPosition - 10);
+                else if (e.MousePosition.X < Position.Left + TextHeight + thumbOffset)
+                    // Mouse down occured on left gutter.
+                    SetScrollPosition(scrollPosition - 100);
+                else if (e.MousePosition.X > Position.Right - TextHeight)
+                    // Mouse down occured on right button.
+                    SetScrollPosition(scrollPosition + 10);
+                else if (e.MousePosition.X > Position.Left + 2 * TextHeight + thumbOffset)
+                    // Mouse down occured on right gutter.
+                    SetScrollPosition(scrollPosition + 100);
+                capturedForDragging = true;
+                return true;
             }
-            return base.HandleUserInput(e);
+            return false;
+        }
+
+        internal override bool HandleMousePressed(WindowMouseEvent e)
+        {
+            return HandleMouseButton(e) || base.HandleMousePressed(e);
+        }
+
+        internal override bool HandleMouseDown(WindowMouseEvent e)
+        {
+            return HandleMouseButton(e) || base.HandleMouseDown(e);
         }
 
         internal override bool HandleMouseMove(WindowMouseEvent e)
         {
-            if (UserInput.IsMouseLeftButtonDown && Dragging && UserInput.MouseMovedLeft)
+            if (capturedForDragging)
             {
-                SetScrollPosition(ScrollPosition - (int)(DragThumbOffset * UserInput.MouseSpeedX));
+                SetScrollPosition(scrollPosition + e.Movement.X);
+                return true;
             }
-
-            if (UserInput.IsMouseLeftButtonDown && Dragging && UserInput.MouseMovedRight)
-            {
-                SetScrollPosition(ScrollPosition + (int)(DragThumbOffset * UserInput.MouseSpeedX));
-            }
-
             return base.HandleMouseMove(e);
         }
 
-        internal override bool HandleMouseUp(WindowMouseEvent e)
+        internal override bool HandleMouseReleased(WindowMouseEvent e)
         {
-            if (Dragging)
-                Dragging = false;
-
-            return base.HandleMouseUp(e);
+            capturedForDragging = false;
+            return base.HandleMouseReleased(e);
         }
 
-        public override int RemainingHeight
-        {
-            get
-            {
-                return base.RemainingHeight - TextHeight;
-            }
-        }
+        public override int RemainingHeight => base.RemainingHeight - TextHeight;
 
-        public override int ScrollSize
-        {
-            get
-            {
-                return Client.CurrentLeft - Position.Width;
-            }
-        }
+        public override int ScrollSize => Client.CurrentLeft - Position.Width;
 
         public override void SetScrollPosition(int position)
         {
             position = Math.Max(0, Math.Min(Math.Max(0, ScrollSize), position));
-            Client.MoveBy(ScrollPosition - position, 0);
-            ScrollPosition = position;
+            Client.MoveBy(scrollPosition - position, 0);
+            scrollPosition = position;
         }
     }
 
     public class ControlLayoutScrollboxVertical : ControlLayoutScrollbox
     {
+        private bool capturedForDragging;
+
         internal ControlLayoutScrollboxVertical(int width, int height)
             : base(width, height)
         {
         }
-
-        float DragThumbOffset;
-        bool Dragging;
 
         internal override void Initialize()
         {
@@ -734,8 +737,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
         internal override void Draw(SpriteBatch spriteBatch, Point offset)
         {
-            var thumbOffset = (int)((float)(Position.Height - 3 * TextHeight) * (float)ScrollPosition / (float)ScrollSize);
-            var rotateOrigin = new Vector2(0, 16);
+            int thumbOffset = (Position.Height - 3 * TextHeight) * scrollPosition / ScrollSize;
+            Vector2 rotateOrigin = new Vector2(0, 16);
 
             // Top button
             spriteBatch.Draw(WindowManager.ScrollbarTexture, new Rectangle(offset.X + Position.X + Position.Width - TextHeight, offset.Y + Position.Y, TextHeight, TextHeight), new Rectangle(0, 0, 16, 16), Color.White, (float)Math.PI / 2, rotateOrigin, SpriteEffects.None, 0);
@@ -750,7 +753,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
             // Draw contents inside a scissor rectangle (so they're clipped to the client area).
             WindowManager.Flush(spriteBatch);
-            var oldScissorRectangle = spriteBatch.GraphicsDevice.ScissorRectangle;
+            Rectangle oldScissorRectangle = spriteBatch.GraphicsDevice.ScissorRectangle;
             spriteBatch.GraphicsDevice.ScissorRectangle = new Rectangle(offset.X + Position.X, offset.Y + Position.Y, Position.Width - TextHeight, Position.Height);
             spriteBatch.GraphicsDevice.RasterizerState = ScissorTestEnable;
             base.Draw(spriteBatch, offset);
@@ -759,89 +762,78 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             spriteBatch.GraphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
         }
 
-        internal override bool HandleUserInput(WindowMouseEvent e)
+        private bool HandleMouseButton(WindowMouseEvent e)
         {
-            if (UserInput.IsMouseLeftButtonDown)
+            Client.Position.Height = Client.CurrentTop;
+
+            if (e.MousePosition.X > Position.Right - TextHeight)
             {
-                Client.Position.Height = Client.CurrentTop;
-                
-                if (e.MouseDownPosition.X > Position.Right - TextHeight)
-                {
-                    var thumbOffset = (int)((float)(Position.Height - 3 * TextHeight) * (float)ScrollPosition / (float)ScrollSize);
+                int thumbOffset = (Position.Height - 3 * TextHeight) * scrollPosition / ScrollSize;
 
-                    // Mouse down occured within the scrollbar.
-                    if (!Dragging && e.MouseDownPosition.Y < Position.Top + TextHeight)
-                        // Mouse down occured on top button.
-                        SetScrollPosition(ScrollPosition - 10);
-                    else if (!Dragging && e.MouseDownPosition.Y < Position.Top + TextHeight + thumbOffset)
-                        // Mouse down occured on top gutter.
-                        SetScrollPosition(ScrollPosition - 100);
-                    else if (!Dragging && e.MouseDownPosition.Y > Position.Bottom - TextHeight)
-                        // Mouse down occured on bottom button.
-                        SetScrollPosition(ScrollPosition + 10);
-                    else if (!Dragging && e.MouseDownPosition.Y > Position.Top + 2 * TextHeight + thumbOffset)
-                        // Mouse down occured on bottom gutter.
-                        SetScrollPosition(ScrollPosition + 100);
-                    else if (e.MouseDownPosition.Y > Position.Top + TextHeight + thumbOffset && e.MouseDownPosition.Y < Position.Top + 2 * TextHeight + thumbOffset && !Dragging)
-                    {
-                        Dragging = true;
-                        DragThumbOffset = e.MousePosition.Y - (Position.Top + TextHeight + thumbOffset);
-                    }
-
-                    return true;
-                }
+                // Mouse down occured within the scrollbar.
+                if (e.MousePosition.Y < Position.Top + TextHeight)
+                    // Mouse down occured on top button.
+                    SetScrollPosition(scrollPosition - 10);
+                else if (e.MousePosition.Y < Position.Top + TextHeight + thumbOffset)
+                    // Mouse down occured on top gutter.
+                    SetScrollPosition(scrollPosition - 100);
+                else if (e.MousePosition.Y > Position.Bottom - TextHeight)
+                    // Mouse down occured on bottom button.
+                    SetScrollPosition(scrollPosition + 10);
+                else if (e.MousePosition.Y > Position.Top + 2 * TextHeight + thumbOffset)
+                    // Mouse down occured on bottom gutter.
+                    SetScrollPosition(scrollPosition + 100);
+                capturedForDragging = true;
+                return true;
             }
+            return false;
+        }
 
-            if (UserInput.IsMouseWheelChanged)
-                SetScrollPosition(ScrollPosition - UserInput.MouseWheelChange);
+        internal override bool HandleMouseDown(WindowMouseEvent e)
+        {
+            return HandleMouseButton(e) || base.HandleMouseDown(e);
+        }
 
-            return base.HandleUserInput(e);
+        internal override bool HandleMousePressed(WindowMouseEvent e)
+        {
+            return HandleMouseButton(e) || base.HandleMousePressed(e);
+        }
+
+        internal override bool HandleMouseScroll(WindowMouseEvent e)
+        {
+            if (e.MouseWheelDelta != 0)
+            {
+                SetScrollPosition(scrollPosition - e.MouseWheelDelta);
+                return true;
+            }
+            return base.HandleMouseScroll(e);
         }
 
         internal override bool HandleMouseMove(WindowMouseEvent e)
         {
-            if (UserInput.IsMouseLeftButtonDown && Dragging && UserInput.MouseMovedUp)
+            if (capturedForDragging)
             {
-                SetScrollPosition(ScrollPosition - (int)(DragThumbOffset * UserInput.MouseSpeedY));
+                SetScrollPosition(scrollPosition + e.Movement.Y);
+                return true;
             }
-
-            if (UserInput.IsMouseLeftButtonDown && Dragging && UserInput.MouseMovedDown)
-            {
-                SetScrollPosition(ScrollPosition + (int)(DragThumbOffset * UserInput.MouseSpeedY));
-            }
-
             return base.HandleMouseMove(e);
         }
 
-        internal override bool HandleMouseUp(WindowMouseEvent e)
+        internal override bool HandleMouseReleased(WindowMouseEvent e)
         {
-            if (Dragging)
-                Dragging = false;               
-
-            return base.HandleMouseUp(e);
+            capturedForDragging = false;
+            return base.HandleMouseReleased(e);
         }
 
-        public override int RemainingWidth
-        {
-            get
-            {
-                return base.RemainingWidth - TextHeight;
-            }
-        }
+        public override int RemainingWidth => base.RemainingWidth - TextHeight;
 
-        public override int ScrollSize
-        {
-            get
-            {
-                return Client.CurrentTop - Position.Height;
-            }
-        }
+        public override int ScrollSize => Client.CurrentTop - Position.Height;
 
         public override void SetScrollPosition(int position)
         {
             position = Math.Max(0, Math.Min(Math.Max(0, ScrollSize), position));
-            Client.MoveBy(0, ScrollPosition - position);
-            ScrollPosition = position;
+            Client.MoveBy(0, scrollPosition - position);
+            scrollPosition = position;
         }
     }
 }

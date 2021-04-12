@@ -99,7 +99,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         public MSTSWagonViewer(Viewer viewer, MSTSWagon car)
             : base(viewer, car)
         {
-            
+
             string steamTexture = viewer.Simulator.BasePath + @"\GLOBAL\TEXTURES\smokemain.ace";
             string dieselTexture = viewer.Simulator.BasePath + @"\GLOBAL\TEXTURES\dieselsmoke.ace";
 
@@ -134,7 +134,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 // Exhaust for HEP/Power Generator
                 if (emitter.Key.ToLowerInvariant() == "wagongeneratorfx")
                     WagonGenerator.AddRange(emitter.Value);
-                
+
                 foreach (var drawer in WagonGenerator)
                 {
                     drawer.Initialize(dieselTexture);
@@ -192,17 +192,17 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 // Forward motion
                 if (emitter.Key.ToLowerInvariant() == "waterscoopfx")
                     WaterScoop.AddRange(emitter.Value);
-                
+
                 foreach (var drawer in WaterScoop)
                 {
                     drawer.Initialize(steamTexture);
                 }
-                
+
                 // Reverse motion
-                
+
                 if (emitter.Key.ToLowerInvariant() == "waterscoopreversefx")
                     WaterScoopReverse.AddRange(emitter.Value);
-                
+
                 foreach (var drawer in WaterScoopReverse)
                 {
                     drawer.Initialize(steamTexture);
@@ -211,11 +211,11 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 // Water overflow when tender is over full during water trough filling (use steam effects for the time being) 
 
                 if (emitter.Key.ToLowerInvariant() == "tenderwateroverflowfx")
-                   TenderWaterOverflow.AddRange(emitter.Value);
-                
+                    TenderWaterOverflow.AddRange(emitter.Value);
+
                 foreach (var drawer in TenderWaterOverflow)
                 {
-                   drawer.Initialize(steamTexture);
+                    drawer.Initialize(steamTexture);
                 }
 
                 if (emitter.Key.ToLowerInvariant() == "steambrakefx")
@@ -237,7 +237,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             // This insection initialises the MSTS style freight animation - can either be for a coal load, which will adjust with usage, or a static animation, such as additional shape.
             if (car.FreightShapeFileName != null)
             {
-                
+
                 car.HasFreightAnim = true;
                 FreightShape = new AnimatedShape(wagonFolderSlash + car.FreightShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
 
@@ -536,21 +536,47 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
         public override void InitializeUserInputCommands()
         {
-            UserInputCommands.Add(UserCommand.ControlPantograph1, new Action[] { Noop, () => new PantographCommand(Viewer.Log, 1, !MSTSWagon.Pantographs[1].CommandUp) });
-            UserInputCommands.Add(UserCommand.ControlPantograph2, new Action[] { Noop, () => new PantographCommand(Viewer.Log, 2, !MSTSWagon.Pantographs[2].CommandUp) });
-            if (MSTSWagon.Pantographs.List.Count > 2) UserInputCommands.Add(UserCommand.ControlPantograph3, new Action[] { Noop, () => new PantographCommand(Viewer.Log, 3, !MSTSWagon.Pantographs[3].CommandUp) });
-            if (MSTSWagon.Pantographs.List.Count > 3) UserInputCommands.Add(UserCommand.ControlPantograph4, new Action[] { Noop, () => new PantographCommand(Viewer.Log, 4, !MSTSWagon.Pantographs[4].CommandUp) });
-            UserInputCommands.Add(UserCommand.ControlDoorLeft, new Action[] { Noop, () => new ToggleDoorsLeftCommand(Viewer.Log) });
-            UserInputCommands.Add(UserCommand.ControlDoorRight, new Action[] { Noop, () => new ToggleDoorsRightCommand(Viewer.Log) });
-            UserInputCommands.Add(UserCommand.ControlMirror, new Action[] { Noop, () => new ToggleMirrorsCommand(Viewer.Log) });
         }
 
         public override void HandleUserInput(in ElapsedTime elapsedTime)
         {
-            foreach (var command in UserInputCommands.Keys)
-                if (UserInput.IsPressed(command)) UserInputCommands[command][1]();
-                else if (UserInput.IsReleased(command)) UserInputCommands[command][0]();
         }
+
+        public override void RegisterUserCommandHandling()
+        {
+            if (MSTSWagon.Pantographs.List.Count > 0)
+                Viewer.UserCommandController.AddEvent(UserCommand.ControlPantograph1, KeyEventType.KeyPressed, Pantograph1Command, true);
+            if (MSTSWagon.Pantographs.List.Count > 1)
+                Viewer.UserCommandController.AddEvent(UserCommand.ControlPantograph2, KeyEventType.KeyPressed, Pantograph2Command, true);
+            if (MSTSWagon.Pantographs.List.Count > 2)
+                Viewer.UserCommandController.AddEvent(UserCommand.ControlPantograph3, KeyEventType.KeyPressed, Pantograph3Command, true);
+            if (MSTSWagon.Pantographs.List.Count > 3)
+                Viewer.UserCommandController.AddEvent(UserCommand.ControlPantograph4, KeyEventType.KeyPressed, Pantograph4Command, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlDoorLeft, KeyEventType.KeyPressed, ToggleDoorsLeftCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlDoorRight, KeyEventType.KeyPressed, ToggleDoorsRightCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlMirror, KeyEventType.KeyPressed, ToggleMirrorsCommand, true);
+        }
+
+        public override void UnregisterUserCommandHandling()
+        {
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlPantograph1, KeyEventType.KeyPressed, Pantograph1Command);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlPantograph2, KeyEventType.KeyPressed, Pantograph2Command);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlPantograph3, KeyEventType.KeyPressed, Pantograph1Command);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlPantograph4, KeyEventType.KeyPressed, Pantograph2Command);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlDoorLeft, KeyEventType.KeyPressed, ToggleDoorsLeftCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlDoorRight, KeyEventType.KeyPressed, ToggleDoorsRightCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlMirror, KeyEventType.KeyPressed, ToggleMirrorsCommand);
+        }
+
+#pragma warning disable IDE0022 // Use block body for methods
+        private void Pantograph1Command() => _ = new PantographCommand(Viewer.Log, 1, !MSTSWagon.Pantographs[1].CommandUp);
+        private void Pantograph2Command() => _ = new PantographCommand(Viewer.Log, 2, !MSTSWagon.Pantographs[2].CommandUp);
+        private void Pantograph3Command() => _ = new PantographCommand(Viewer.Log, 3, !MSTSWagon.Pantographs[3].CommandUp);
+        private void Pantograph4Command() => _ = new PantographCommand(Viewer.Log, 4, !MSTSWagon.Pantographs[4].CommandUp);
+        private void ToggleDoorsLeftCommand() => _ = new ToggleDoorsLeftCommand(Viewer.Log);
+        private void ToggleDoorsRightCommand() => _ = new ToggleDoorsRightCommand(Viewer.Log);
+        private void ToggleMirrorsCommand() => _ = new ToggleMirrorsCommand(Viewer.Log);
+#pragma warning restore IDE0022 // Use block body for methods
 
         /// <summary>
         /// Called at the full frame rate
@@ -714,16 +740,16 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
             // Wheel rotation (animation) - for non-drive wheels in steam locomotives and all wheels in other stock
             if (WheelPartIndexes.Count > 0)
-             {
+            {
                 var wheelCircumferenceM = MathHelper.TwoPi * AnimationWheelRadiusM;
                 var rotationalDistanceR = MathHelper.TwoPi * distanceTravelledM / wheelCircumferenceM;  // in radians
                 WheelRotationR = MathHelper.WrapAngle(WheelRotationR - rotationalDistanceR);
                 var wheelRotationMatrix = Matrix.CreateRotationX(WheelRotationR);
                 foreach (var iMatrix in WheelPartIndexes)
-                 {
+                {
                     TrainCarShape.XNAMatrices[iMatrix] = wheelRotationMatrix * TrainCarShape.SharedShape.Matrices[iMatrix];
-                 }
-              }
+                }
+            }
 
 #if DEBUG_WHEEL_ANIMATION
 
@@ -865,8 +891,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             // To disable coal load variation and insert a static (crew) shape on the tender breech, one of the conditions indicated above
             if (FreightShape != null && !(Viewer.Camera.AttachedCar == this.MSTSWagon && Viewer.Camera.Style == Camera.Styles.ThreeDimCab))
             {
-                    bool SteamAnimShape = false;
-                    float FuelControllerLevel = 0.0f;
+                bool SteamAnimShape = false;
+                float FuelControllerLevel = 0.0f;
 
                 // For coal load variation on locomotives determine the current fuel level - and whether locomotive is a tender or tank type locomotive.
                 if (MSTSWagon.WagonType == TrainCar.WagonTypes.Tender || MSTSWagon is MSTSSteamLocomotive)
@@ -889,7 +915,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         {
                             FuelControllerLevel = NonTenderSteamLocomotive.FuelController.CurrentValue;
                             SteamAnimShape = true;
-                        } 
+                        }
                     }
                 }
                 Orts.Common.Position.WorldPosition freightLocation = Car.WorldPosition;
@@ -1017,9 +1043,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         {
             if (filename == null)
                 return;
-            string smsFilePath = Path.GetFullPath(Path.Combine(wagonFolderSlash,"sound",filename));
+            string smsFilePath = Path.GetFullPath(Path.Combine(wagonFolderSlash, "sound", filename));
             if (!File.Exists(smsFilePath))
-                smsFilePath = Path.GetFullPath(Path.Combine(Viewer.Simulator.BasePath,"sound",filename));
+                smsFilePath = Path.GetFullPath(Path.Combine(Viewer.Simulator.BasePath, "sound", filename));
             if (!File.Exists(smsFilePath))
             {
                 Trace.TraceWarning("Cannot find {1} car sound file {0}", filename, wagonFolderSlash);

@@ -19,6 +19,8 @@
 
 using System;
 
+using Microsoft.Xna.Framework;
+
 namespace Orts.ActivityRunner.Viewer3D.Processes
 {
     /// <summary>
@@ -54,7 +56,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         /// <param name="frame">The new <see cref="RenderFrame"/> that needs populating.</param>
         /// <param name="totalRealSeconds">The total number of real-world seconds which have elapsed since the game was started.</param>
         //[CallOnThread("Updater")]
-        internal virtual void Update(RenderFrame frame, double totalRealSeconds)
+        internal virtual void Update(RenderFrame frame, double totalRealSeconds, GameTime gameTime)
         {
             // By default, every update tries to trigger a load.
             if (Game.LoaderProcess.Finished)

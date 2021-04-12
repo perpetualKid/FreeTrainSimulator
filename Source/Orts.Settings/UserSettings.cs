@@ -386,8 +386,6 @@ namespace Orts.Settings
 
         public RailDriverSettings RailDriver { get; private set; }
 
-        public TrackViewerSettings TrackViewer { get; private set; }
-
         public UserSettings() :
             this(Array.Empty<string>())
         { }
@@ -407,7 +405,6 @@ namespace Orts.Settings
             FolderSettings = new FolderSettings(options, store);
             Input = new InputSettings(options, store);
             RailDriver = new RailDriverSettings(options, store);
-            TrackViewer = new TrackViewerSettings(options, store);
         }
 
         public override object GetDefaultValue(string name)
@@ -426,7 +423,7 @@ namespace Orts.Settings
         protected override PropertyInfo[] GetProperties()
         {
             if (properties == null)
-                properties = base.GetProperties().Where(pi => !new string[] { "FolderSettings", "Input", "RailDriver", TrackViewerSettings.SettingLiteral }.Contains(pi.Name)).ToArray();
+                properties = base.GetProperties().Where(pi => !new string[] { "FolderSettings", "Input", "RailDriver" }.Contains(pi.Name)).ToArray();
             return properties;
         }
 
@@ -455,7 +452,6 @@ namespace Orts.Settings
             FolderSettings.Save();
             Input.Save();
             RailDriver.Save();
-            TrackViewer.Save();
             properties = null;
         }
 

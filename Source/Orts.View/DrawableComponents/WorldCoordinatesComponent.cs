@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
+using Orts.Common.Input;
 using Orts.Common.Position;
 using Orts.View.Track;
 using Orts.View.Xna;
@@ -14,7 +15,7 @@ namespace Orts.View.DrawableComponents
 {
     public class WorldCoordinatesComponent: QuickRepeatableDrawableTextComponent
     {
-        private readonly InputGameComponent input;
+        private readonly MouseInputGameComponent input;
         private MouseState lastMouseState;
         private const double piRad = 180 / Math.PI;
 
@@ -23,7 +24,7 @@ namespace Orts.View.DrawableComponents
         {
             Enabled = false;
             Visible = false;
-            input = Game.Components.OfType<InputGameComponent>().First();
+            input = Game.Components.OfType<MouseInputGameComponent>().Single();
             this.font = font;
         }
 
@@ -77,7 +78,7 @@ namespace Orts.View.DrawableComponents
             base.Draw(gameTime);
         }
 
-        protected internal override void Enable(ContentArea content)
+        internal protected override void Enable(ContentArea content)
         {
             InitializeSize("01234567890123456789012345");//about 25 chars needed for full lat/lon coordinates
             base.Enable(content);

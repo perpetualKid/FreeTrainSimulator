@@ -104,7 +104,7 @@ namespace Orts.Simulation.Track
         // Constructor from existing subpath
         public TrackCircuitPartialPathRoute(TrackCircuitPartialPathRoute source)
         {
-            list = new List<TrackCircuitRouteElement>(source?.list ?? Enumerable.Empty<TrackCircuitRouteElement>());
+            list = (source?.list == null) ? new List<TrackCircuitRouteElement>() : new List<TrackCircuitRouteElement>(source.list);
         }
 
         // Constructor from part of existing subpath
@@ -201,7 +201,7 @@ namespace Orts.Simulation.Track
                 }
                 if (items.Contains(sectionIndex))
                 {
-                    foreach(int item in items[sectionIndex])
+                    foreach (int item in items[sectionIndex])
                         if (item < startIndex)
                             return item;
                 }
@@ -282,7 +282,7 @@ namespace Orts.Simulation.Track
         //
         public ILookup<int, TrackDirection> ConvertRoute()
         {
-            if(routeDirections == null)
+            if (routeDirections == null)
             {
                 routeDirections = list.ToLookup(item => item.TrackCircuitSection.Index, item => item.Direction);
             }

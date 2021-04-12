@@ -133,7 +133,7 @@ namespace Orts.ActivityRunner.Viewer3D
             if (ComposingMessage == true) return false;
             if (Raildriver.IsPressed(command))
                 return true;
-            var setting = inputSettings.Commands[(int)command];
+            var setting = inputSettings.UserCommands[command];
             return setting.IsKeyDown(keyboardState) && !setting.IsKeyDown(lastKeyboardState);
         }
 
@@ -142,7 +142,7 @@ namespace Orts.ActivityRunner.Viewer3D
             if (ComposingMessage == true) return false;
             if (Raildriver.IsReleased(command))
                 return true;
-            var setting = inputSettings.Commands[(int)command];
+            var setting = inputSettings.UserCommands[command];
             return !setting.IsKeyDown(keyboardState) && setting.IsKeyDown(lastKeyboardState);
         }
 
@@ -151,7 +151,7 @@ namespace Orts.ActivityRunner.Viewer3D
             if (ComposingMessage == true) return false;
             if (Raildriver.IsDown(command))
                 return true;
-            var setting = inputSettings.Commands[(int)command];
+            var setting = inputSettings.UserCommands[command];
             return setting.IsKeyDown(keyboardState);
         }
 
