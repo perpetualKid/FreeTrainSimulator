@@ -253,9 +253,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             {
                 game.UpdaterProcess.WaitTillFinished();
 
-                // Must be done in XNA Game thread.
-                UserInput.Update(game.IsActive);
-
                 // Swap frames and start the next update (non-threaded updater does the whole update).
                 SwapFrames(ref CurrentFrame, ref NextFrame);
                 game.UpdaterProcess.StartUpdate(NextFrame, gameTime);

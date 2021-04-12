@@ -90,4 +90,12 @@
         VerticalScrollChanged,
         HorizontalScrollChanged,
     }
+
+    public enum GenericButtonEventType
+    { 
+        None,
+        Pressed,
+        Down,
+        Released,
+    }
 }

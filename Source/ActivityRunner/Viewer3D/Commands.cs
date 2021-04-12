@@ -717,9 +717,9 @@ namespace Orts.ActivityRunner.Viewer3D
 
 		public override void Redo()
 		{
-			if (Receiver.Camera is ThreeDimCabCamera)
+			if (Receiver.Camera is CabCamera3D)
 			{
-				var c = Receiver.Camera as ThreeDimCabCamera;
+				var c = Receiver.Camera as CabCamera3D;
 				c.MoveCameraXYZ(X, Y, Z);
 				c.EndTime = EndTime;
 			}

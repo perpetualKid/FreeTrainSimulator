@@ -22,9 +22,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Windows.Forms;
 
 using Microsoft.Xna.Framework;
 
+using Orts.ActivityRunner.Viewer3D.RollingStock;
 using Orts.Common;
 using Orts.Common.Input;
 using Orts.Common.Position;
@@ -96,6 +98,10 @@ namespace Orts.ActivityRunner.Viewer3D
                 viewer.UserCommandController.AddEvent(CommonUserCommand.AlternatePointerDragged, (UserCommandArgs commandArgs, GameTime gameTime, KeyModifiers modifiers) => viewer.Camera.RotateByMouseCommmand(commandArgs, gameTime, modifiers));
                 viewer.UserCommandController.AddEvent(CommonUserCommand.AlternatePointerPressed, (UserCommandArgs commandArgs, GameTime gameTime, KeyModifiers modifiers) => viewer.Camera.RotateByMouseCommmandStart());
                 viewer.UserCommandController.AddEvent(CommonUserCommand.AlternatePointerReleased, (UserCommandArgs commandArgs, GameTime gameTime, KeyModifiers modifiers) => viewer.Camera.RotateByMouseCommmandEnd());
+                viewer.UserCommandController.AddEvent(CommonUserCommand.PointerPressed, (UserCommandArgs commandArgs, GameTime gameTime, KeyModifiers modifiers) => viewer.Camera.CabControlClickCommand(commandArgs, modifiers));
+                viewer.UserCommandController.AddEvent(CommonUserCommand.PointerReleased, (UserCommandArgs commandArgs, GameTime gameTime, KeyModifiers modifiers) => viewer.Camera.CabControlReleaseCommand(commandArgs, modifiers));
+                viewer.UserCommandController.AddEvent(CommonUserCommand.PointerMoved, (UserCommandArgs commandArgs, GameTime gameTime, KeyModifiers modifiers) => viewer.Camera.CabControlPointerMovedCommand(commandArgs, modifiers));
+                viewer.UserCommandController.AddEvent(CommonUserCommand.PointerDragged, (UserCommandArgs commandArgs, GameTime gameTime, KeyModifiers modifiers) => viewer.Camera.CabControlDraggedCommand(commandArgs, modifiers));
             }
 
             internal static void Initialize(Viewer viewer)
@@ -137,6 +143,10 @@ namespace Orts.ActivityRunner.Viewer3D
         private protected virtual void RotateByMouseCommmandStart() { }
         private protected virtual void RotateByMouseCommmandEnd() { }
 
+        private protected virtual void CabControlClickCommand(UserCommandArgs commandArgs, KeyModifiers modifiers) { }
+        private protected virtual void CabControlReleaseCommand(UserCommandArgs commandArgs, KeyModifiers modifiers) { }
+        private protected virtual void CabControlPointerMovedCommand(UserCommandArgs commandArgs, KeyModifiers modifiers) { }
+        private protected virtual void CabControlDraggedCommand(UserCommandArgs commandArgs, KeyModifiers modifiers) { }
 
         #endregion
         protected double CommandStartTime;
@@ -397,7 +407,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <returns></returns>
         public Vector3 XnaLocation(in WorldLocation worldLocation)
         {
-            var xnaVector = worldLocation.Location;
+            Vector3 xnaVector = worldLocation.Location;
             xnaVector.X += 2048 * (worldLocation.TileX - cameraLocation.TileX);
             xnaVector.Z += 2048 * (worldLocation.TileZ - cameraLocation.TileZ);
             xnaVector.Z *= -1;
@@ -564,7 +574,7 @@ namespace Orts.ActivityRunner.Viewer3D
         private protected static float GetMouseDelta(float delta, GameTime gameTime, KeyModifiers keyModifiers, Viewer viewer)
         {
             // Ignore CameraMoveFast as that is too fast to be useful
-            delta *=  0.005f;
+            delta *= 0.005f;
             if (keyModifiers.HasFlag(viewer.Settings.Input.CameraMoveSlowModifier))
                 delta *= 0.1f;
             return delta;
@@ -1744,11 +1754,11 @@ namespace Orts.ActivityRunner.Viewer3D
         }
     }
 
-    public class InsideThreeDimCamera : NonTrackingCamera
+    public class InsideCamera3D : NonTrackingCamera
     {
         public override float NearPlane { get { return 0.1f; } }
 
-        public InsideThreeDimCamera(Viewer viewer)
+        public InsideCamera3D(Viewer viewer)
             : base(viewer)
         {
         }
@@ -1968,7 +1978,7 @@ namespace Orts.ActivityRunner.Viewer3D
         }
     }
 
-    public class PassengerCamera : InsideThreeDimCamera
+    public class PassengerCamera : InsideCamera3D
     {
         public override Styles Style { get { return Styles.Passenger; } }
         public override bool IsAvailable { get { return Viewer.SelectedTrain != null && Viewer.SelectedTrain.Cars.Any(c => c.PassengerViewpoints.Count > 0); } }
@@ -2034,22 +2044,19 @@ namespace Orts.ActivityRunner.Viewer3D
         }
     }
 
-    public class ThreeDimCabCamera : InsideThreeDimCamera
+    public class CabCamera3D : InsideCamera3D
     {
+        private CabViewDiscreteRenderer selectedControl;
+        private CabViewDiscreteRenderer pointedControl;
+
         public override Styles Style { get { return Styles.ThreeDimCab; } }
         public bool Enabled { get; set; }
-        public override bool IsAvailable
-        {
-            get
-            {
-                return Viewer.SelectedTrain != null && Viewer.SelectedTrain.IsActualPlayerTrain &&
+        public override bool IsAvailable => Viewer.SelectedTrain != null && Viewer.SelectedTrain.IsActualPlayerTrain &&
                     Viewer.PlayerLocomotive != null && Viewer.PlayerLocomotive.CabViewpoints != null &&
                     (Viewer.PlayerLocomotive.HasFront3DCab || Viewer.PlayerLocomotive.HasRear3DCab);
-            }
-        }
-        public override string Name { get { return Viewer.Catalog.GetString("3D Cab"); } }
+        public override string Name => Viewer.Catalog.GetString("3D Cab");
 
-        public ThreeDimCabCamera(Viewer viewer)
+        public CabCamera3D(Viewer viewer)
             : base(viewer)
         {
         }
@@ -2133,6 +2140,94 @@ namespace Orts.ActivityRunner.Viewer3D
                 return attachedCar.WorldPosition.Location.Y + TerrainAltitudeMargin < elevationAtCameraTarget || attachedCar.CarTunnelData.LengthMOfTunnelAheadFront > 0;
             }
         }
+
+        private CabViewDiscreteRenderer FindNearestControl(Point position, MSTSLocomotiveViewer mstsLocomotiveViewer, float maxDelta)
+        {
+            CabViewDiscreteRenderer result = null;
+            Vector3 nearsource = new Vector3(position.X, position.Y, 0f);
+            Vector3 farsource = new Vector3(position.X, position.Y, 1f);
+            Matrix world = Matrix.CreateTranslation(0, 0, 0);
+            Vector3 nearPoint = Viewer.DefaultViewport.Unproject(nearsource, XnaProjection, XnaView, world);
+            Vector3 farPoint = Viewer.DefaultViewport.Unproject(farsource, XnaProjection, XnaView, world);
+
+            Shapes.PoseableShape trainCarShape = mstsLocomotiveViewer.CabViewer3D.TrainCarShape;
+            Dictionary<int, AnimatedPartMultiState> animatedParts = mstsLocomotiveViewer.CabViewer3D.AnimateParts;
+            Dictionary<int, CabViewControlRenderer> controlMap = mstsLocomotiveViewer.CabRenderer3D.ControlMap;
+            float bestDistance = maxDelta;  // squared click range
+            foreach (KeyValuePair<int, AnimatedPartMultiState> animatedPart in animatedParts)
+            {
+                if (controlMap.TryGetValue(animatedPart.Value.Key, out CabViewControlRenderer cabRenderer) && cabRenderer is CabViewDiscreteRenderer)
+                {
+                    foreach (int i in animatedPart.Value.MatrixIndexes)
+                    {
+                        Matrix startingPoint = Matrix.Identity;
+                        int j = i;
+                        while (j >= 0 && j < trainCarShape.Hierarchy.Length && trainCarShape.Hierarchy[j] != -1)
+                        {
+                            startingPoint = MatrixExtension.Multiply(in startingPoint, in trainCarShape.XNAMatrices[j]);
+                            j = trainCarShape.Hierarchy[j];
+                        }
+                        MatrixExtension.Multiply(in startingPoint, in trainCarShape.WorldPosition.XNAMatrix, out Matrix matrix);
+                        WorldLocation matrixWorldLocation = new WorldLocation(trainCarShape.WorldPosition.WorldLocation.TileX, trainCarShape.WorldPosition.WorldLocation.TileZ,
+                            matrix.Translation.X, matrix.Translation.Y, -matrix.Translation.Z);
+                        Vector3 xnaCenter = XnaLocation(matrixWorldLocation);
+                        float distance = xnaCenter.LineSegmentDistanceSquare(nearPoint, farPoint);
+
+                        if (bestDistance > distance)
+                        {
+                            result = cabRenderer as CabViewDiscreteRenderer;
+                            bestDistance = distance;
+                        }
+                    }
+                }
+            }
+            return result;
+        }
+
+        private protected override void CabControlClickCommand(UserCommandArgs commandArgs, KeyModifiers modifiers)
+        {
+            PointerCommandArgs pointerCommandArgs = commandArgs as PointerCommandArgs;
+
+            if (Viewer.PlayerLocomotiveViewer is MSTSLocomotiveViewer mstsLocomotiveViewer && mstsLocomotiveViewer.Has3DCabRenderer)
+            {
+                selectedControl = pointedControl ?? FindNearestControl(pointerCommandArgs.Position, mstsLocomotiveViewer, 0.015f); ;
+                selectedControl?.HandleUserInput(GenericButtonEventType.Pressed, pointerCommandArgs.Position, Vector2.Zero);
+            }
+        }
+
+        private protected override void CabControlReleaseCommand(UserCommandArgs commandArgs, KeyModifiers modifiers)
+        {
+            selectedControl?.HandleUserInput(GenericButtonEventType.Released, (commandArgs as PointerCommandArgs).Position, Vector2.Zero);
+            selectedControl = null;
+        }
+
+        private protected override void CabControlDraggedCommand(UserCommandArgs commandArgs, KeyModifiers modifiers)
+        {
+            selectedControl?.HandleUserInput(GenericButtonEventType.Down, (commandArgs as PointerCommandArgs).Position, (commandArgs as PointerMoveCommandArgs).Delta);
+        }
+
+        private protected override void CabControlPointerMovedCommand(UserCommandArgs commandArgs, KeyModifiers modifiers)
+        {
+            PointerCommandArgs pointerCommandArgs = commandArgs as PointerCommandArgs;
+
+            if (Viewer.PlayerLocomotiveViewer is MSTSLocomotiveViewer mstsLocomotiveViewer && mstsLocomotiveViewer.Has3DCabRenderer)
+            {
+                CabViewDiscreteRenderer control = pointedControl;
+                pointedControl = FindNearestControl(pointerCommandArgs.Position, mstsLocomotiveViewer, 0.01f);
+
+                if (pointedControl != null)
+                {
+                    if (pointedControl != control)
+                        // say what control you have here
+                        Viewer.Simulator.Confirmer.Message(ConfirmLevel.None, (Viewer.PlayerLocomotive as MSTSLocomotive).TrainControlSystem.GetDisplayString(pointedControl.GetControlType().ToString()));
+                    Viewer.RenderProcess.ActualCursor = Cursors.Hand;
+                }
+                else
+                {
+                    Viewer.RenderProcess.ActualCursor = Cursors.Default;
+                }
+            }
+        }
     }
 
     public class HeadOutCamera : NonTrackingCamera
@@ -2183,8 +2278,10 @@ namespace Orts.ActivityRunner.Viewer3D
 
     public class CabCamera : NonTrackingCamera
     {
-        protected int sideLocation;
-        public int SideLocation { get { return sideLocation; } }
+        private CabViewDiscreteRenderer selectedControl;
+        private CabViewDiscreteRenderer pointedControl;
+
+        public int SideLocation { get; protected set; }
 
         public override Styles Style { get { return Styles.Cab; } }
         // Cab camera is only possible on the player train.
@@ -2216,13 +2313,13 @@ namespace Orts.ActivityRunner.Viewer3D
         protected internal override void Save(BinaryWriter outf)
         {
             base.Save(outf);
-            outf.Write(sideLocation);
+            outf.Write(SideLocation);
         }
 
         protected internal override void Restore(BinaryReader inf)
         {
             base.Restore(inf);
-            sideLocation = inf.ReadInt32();
+            SideLocation = inf.ReadInt32();
         }
 
         public override void Reset()
@@ -2286,7 +2383,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 var viewpoints = (loco.UsingRearCab)
                 ? loco.CabViewList[(int)CabViewType.Rear].ViewPointList
                 : loco.CabViewList[(int)CabViewType.Front].ViewPointList;
-                attachedLocation = viewpoints[sideLocation].Location;
+                attachedLocation = viewpoints[SideLocation].Location;
             }
             InitialiseRotation(attachedCar);
         }
@@ -2303,16 +2400,16 @@ namespace Orts.ActivityRunner.Viewer3D
             ? loco.CabViewList[(int)CabViewType.Rear].ViewPointList
             : loco.CabViewList[(int)CabViewType.Front].ViewPointList;
 
-            sideLocation += index;
+            SideLocation += index;
 
             var count = (loco.UsingRearCab)
                 ? loco.CabViewList[(int)CabViewType.Rear].ViewPointList.Count
                 : loco.CabViewList[(int)CabViewType.Front].ViewPointList.Count;
             // Wrap around
-            if (sideLocation < 0)
-                sideLocation = count - 1;
-            else if (sideLocation >= count)
-                sideLocation = 0;
+            if (SideLocation < 0)
+                SideLocation = count - 1;
+            else if (SideLocation >= count)
+                SideLocation = 0;
 
             SetCameraCar(attachedCar);
         }
@@ -2398,8 +2495,8 @@ namespace Orts.ActivityRunner.Viewer3D
             ? loco.CabViewList[(int)CabViewType.Rear].ViewPointList
             : loco.CabViewList[(int)CabViewType.Front].ViewPointList;
 
-            RotationXRadians = MathHelper.ToRadians(viewpoints[sideLocation].StartDirection.X) - RotationRatio * (Viewer.CabYOffsetPixels + Viewer.CabExceedsDisplay / 2);
-            RotationYRadians = MathHelper.ToRadians(viewpoints[sideLocation].StartDirection.Y) - RotationRatioHorizontal * (-Viewer.CabXOffsetPixels + Viewer.CabExceedsDisplayHorizontally / 2); ;
+            RotationXRadians = MathHelper.ToRadians(viewpoints[SideLocation].StartDirection.X) - RotationRatio * (Viewer.CabYOffsetPixels + Viewer.CabExceedsDisplay / 2);
+            RotationYRadians = MathHelper.ToRadians(viewpoints[SideLocation].StartDirection.Y) - RotationRatioHorizontal * (-Viewer.CabXOffsetPixels + Viewer.CabExceedsDisplayHorizontally / 2); ;
         }
 
         private protected override void ToggleLetterboxCab()
@@ -2440,6 +2537,50 @@ namespace Orts.ActivityRunner.Viewer3D
 
         private protected override void RotateByMouseCommmand(UserCommandArgs commandArgs, GameTime gameTime, KeyModifiers modifiers)
         {
+        }
+
+        private protected override void CabControlClickCommand(UserCommandArgs commandArgs, KeyModifiers modifiers)
+        {
+            PointerCommandArgs pointerCommandArgs = commandArgs as PointerCommandArgs;
+
+            if (Viewer.PlayerLocomotiveViewer is MSTSLocomotiveViewer mstsLocomotiveViewer && mstsLocomotiveViewer.HasCabRenderer)
+            {
+                selectedControl = pointedControl ?? mstsLocomotiveViewer.CabRenderer.ControlMap.Values.OfType<CabViewDiscreteRenderer>().Where(c => c.IsMouseWithin(pointerCommandArgs.Position)).FirstOrDefault();
+                selectedControl?.HandleUserInput(GenericButtonEventType.Pressed, pointerCommandArgs.Position, Vector2.Zero);
+            }
+        }
+
+        private protected override void CabControlReleaseCommand(UserCommandArgs commandArgs, KeyModifiers modifiers)
+        {
+            selectedControl?.HandleUserInput(GenericButtonEventType.Released, (commandArgs as PointerCommandArgs).Position, Vector2.Zero);
+            selectedControl = null;
+        }
+
+        private protected override void CabControlDraggedCommand(UserCommandArgs commandArgs, KeyModifiers modifiers)
+        {
+            selectedControl?.HandleUserInput(GenericButtonEventType.Down, (commandArgs as PointerCommandArgs).Position, (commandArgs as PointerMoveCommandArgs).Delta);
+        }
+
+        private protected override void CabControlPointerMovedCommand(UserCommandArgs commandArgs, KeyModifiers modifiers)
+        {
+            PointerCommandArgs pointerCommandArgs = commandArgs as PointerCommandArgs;
+
+            if (Viewer.PlayerLocomotiveViewer is MSTSLocomotiveViewer mstsLocomotiveViewer && mstsLocomotiveViewer.HasCabRenderer)
+            {
+                CabViewDiscreteRenderer control = pointedControl;
+                pointedControl = mstsLocomotiveViewer.CabRenderer.ControlMap.Values.OfType<CabViewDiscreteRenderer>().Where(c => c.IsMouseWithin(pointerCommandArgs.Position)).FirstOrDefault();
+                if (pointedControl != null)
+                {
+                    if (pointedControl != control)
+                        // say what control you have here
+                        Viewer.Simulator.Confirmer.Message(ConfirmLevel.None, (Viewer.PlayerLocomotive as MSTSLocomotive).TrainControlSystem.GetDisplayString(pointedControl.GetControlType().ToString()));
+                    Viewer.RenderProcess.ActualCursor = Cursors.Hand;
+                }
+                else
+                {
+                    Viewer.RenderProcess.ActualCursor = Cursors.Default;
+                }
+            }
         }
     }
 

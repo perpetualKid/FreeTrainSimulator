@@ -17,6 +17,7 @@ namespace Orts.Common.Input
             this.userCommandController = userCommandController ?? throw new ArgumentNullException(nameof(userCommandController));
             this.keyboardInputGameComponent = keyboardInputGameComponent;
 
+            mouseInputGameComponent.AddMouseEvent(MouseMovedEventType.MouseMoved, MouseMovedEvent);
             mouseInputGameComponent.AddMouseEvent(MouseButtonEventType.LeftButtonPressed, LeftMouseButtonPressedEvent);
             mouseInputGameComponent.AddMouseEvent(MouseButtonEventType.LeftButtonDown, LeftMouseButtonDownEvent);
             mouseInputGameComponent.AddMouseEvent(MouseButtonEventType.LeftButtonReleased, LeftMouseButtonReleasedEvent);
@@ -26,6 +27,11 @@ namespace Orts.Common.Input
             mouseInputGameComponent.AddMouseEvent(MouseButtonEventType.RightButtonReleased, RightMouseButtonReleasedEvent);
             mouseInputGameComponent.AddMouseEvent(MouseMovedEventType.MouseMovedRightButtonDown, MouseRightDraggedEvent);
             mouseInputGameComponent.AddMouseEvent(MouseWheelEventType.MouseWheelChanged, MouseWheelEvent);
+        }
+
+        private void MouseMovedEvent(Point position, Vector2 delta, GameTime gameTime)
+        {
+            userCommandController.Trigger(CommonUserCommand.PointerMoved, new PointerMoveCommandArgs() { Delta = delta, Position = position }, gameTime, keyboardInputGameComponent?.KeyModifiers ?? KeyModifiers.None);
         }
 
         private void LeftMouseButtonPressedEvent(Point position, GameTime gameTime)
