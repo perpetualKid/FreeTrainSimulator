@@ -2,7 +2,9 @@
 
 namespace Orts.Common.Input
 {
+#pragma warning disable CA1708 // Identifiers should differ by more than case
     public enum RailDriverDisplaySign
+#pragma warning restore CA1708 // Identifiers should differ by more than case
     {
         Blank = 0x0,
         Digit0 = 0x3f,
@@ -47,6 +49,10 @@ namespace Orts.Common.Input
             (byte)RailDriverDisplaySign.Digit4 | (byte)RailDriverDisplaySign.Dot, (byte)RailDriverDisplaySign.Digit5 | (byte)RailDriverDisplaySign.Dot,
             (byte)RailDriverDisplaySign.Digit6 | (byte)RailDriverDisplaySign.Dot, (byte)RailDriverDisplaySign.Digit7 | (byte)RailDriverDisplaySign.Dot,
             (byte)RailDriverDisplaySign.Digit8 | (byte)RailDriverDisplaySign.Dot, (byte)RailDriverDisplaySign.Digit9 | (byte)RailDriverDisplaySign.Dot};
+
+        //default calibration settings from another developer's PC, they are as good as random numbers...
+        public static readonly EnumArray<byte, RailDriverCalibrationSetting> DefaultCalibrationSettings =
+            new EnumArray<byte, RailDriverCalibrationSetting>(new byte[] { 225, 116, 60, 229, 176, 42, 119, 216, 79, 58, 213, 179, 30, 209, 109, 121, 73, 135, 180, 86, 145, 189, 0, 0, 0, 0, 0, 1 });
 
         public abstract int WriteBufferSize { get; }
 

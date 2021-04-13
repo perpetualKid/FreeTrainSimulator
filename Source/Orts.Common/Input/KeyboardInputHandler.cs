@@ -67,7 +67,7 @@ namespace Orts.Common.Input
             suspended = false;
         }
 
-        public void Trigger(int eventCode, GameTime gameTime, KeyEventType eventType, KeyModifiers modifiers)
+        private void Trigger(int eventCode, GameTime gameTime, KeyEventType eventType, KeyModifiers modifiers)
         {
             if (suspended)
                 return;

@@ -10,9 +10,9 @@ namespace Orts.Common.Input
     {
         public delegate void KeyEvent(Keys key, KeyModifiers modifiers, GameTime gameTime);
 
-        internal const int KeyPressShift = 8;
-        internal const int KeyDownShift = 13;
-        internal const int KeyUpShift = 17;
+        private const int KeyPressShift = 8;
+        private const int KeyDownShift = 13;
+        private const int KeyUpShift = 17;
 
         private KeyboardState currentKeyboardState;
         private KeyboardState previousKeyboardState;

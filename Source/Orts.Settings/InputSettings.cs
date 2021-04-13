@@ -21,12 +21,9 @@ using System.Collections.Specialized;
 using System.Linq;
 using System.Text;
 
-using GetText;
-
 using Microsoft.Xna.Framework.Input;
 
 using Orts.Common;
-using Orts.Common.Info;
 using Orts.Common.Input;
 using Orts.Settings.Store;
 using Orts.Settings.Util;

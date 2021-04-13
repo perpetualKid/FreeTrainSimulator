@@ -418,6 +418,9 @@ namespace Orts.ActivityRunner.Viewer3D
             MouseInputHandler<UserCommand> mouseInput = new MouseInputHandler<UserCommand>();
             mouseInput.Initialize(mouseInputGameComponent, keyboardInputGameComponent, UserCommandController);
 
+            RailDriverInputGameComponent railDriverInputGameComponent = new RailDriverInputGameComponent(Game, Settings.RailDriver.CalibrationSettings);
+            RailDriverInputHandler<UserCommand> railDriverInput = new RailDriverInputHandler<UserCommand>();
+            railDriverInput.Initialize(Settings.Input.UserCommands, Settings.RailDriver.UserCommands, railDriverInputGameComponent, UserCommandController);
             #endregion
 
             UpdateAdapterInformation(Game.GraphicsDevice.Adapter);
@@ -955,7 +958,7 @@ namespace Orts.ActivityRunner.Viewer3D
             //only add here at the end, so they do not fire during load process already
             UpdaterProcess.GameComponents.Add(keyboardInputGameComponent);
             UpdaterProcess.GameComponents.Add(mouseInputGameComponent);
-
+            UpdaterProcess.GameComponents.Add(railDriverInputGameComponent);
         }
 
         /// <summary>
