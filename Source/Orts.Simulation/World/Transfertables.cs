@@ -31,6 +31,8 @@ using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.World;
 
+using SharpDX.MediaFoundation;
+
 namespace Orts.Simulation
 {
     /// <summary>
@@ -40,14 +42,16 @@ namespace Orts.Simulation
     {
         private readonly List<float> offsets = new List<float>();
 
-        public float Width { get; private set; }
+        public float Span { get; private set; } // horizontal or vertical
+        public bool VerticalTransfer { get; set; }
+        public float CenterOffsetComponent { get; set; }
 
         // Dynamic data
         public MidpointDirection MotionDirection { get; private set; }
 
-        public float XPos { get; set; } // X Position of animated part, to be compared with X positions of endpoints
+        public float OffsetPos { get; set; } // Offset Position of animated part, to be compared with offset positions of endpoints
         public bool Connected { get; private set; } = true; // Transfertable is connected to a track
-        public float TargetX { get; private set; } //final target for Viewer;
+        public float TargetOffset { get; private set; } //final target for Viewer;
 
         private int connectedTarget = -1; // index of trackend connected
         private bool saveConnected = true; // Transfertable is connected to a track
@@ -66,9 +70,11 @@ namespace Orts.Simulation
                 new STFReader.TokenProcessor("uid", ()=>{ UID = stf.ReadIntBlock(-1); }),
                 new STFReader.TokenProcessor("animation", ()=>{ animation = stf.ReadStringBlock(null);
                                                                 Animations.Add(animation);}),
+                new STFReader.TokenProcessor("verticaltransfer", ()=>{ VerticalTransfer = stf.ReadBoolBlock(false);}),
                 new STFReader.TokenProcessor("length", ()=>{ Length = stf.ReadFloatBlock(STFReader.Units.None , null);}),
                 new STFReader.TokenProcessor("xoffset", ()=>{ offset.X = stf.ReadFloatBlock(STFReader.Units.None , null);}),
                 new STFReader.TokenProcessor("zoffset", ()=>{ offset.Z = -stf.ReadFloatBlock(STFReader.Units.None , null);}),
+                new STFReader.TokenProcessor("yoffset", ()=>{ offset.Y = stf.ReadFloatBlock(STFReader.Units.None , null);}),
                 new STFReader.TokenProcessor("trackshapeindex", ()=>
                 {
                     TrackShapeIndex = stf.ReadIntBlock(-1);
@@ -85,11 +91,11 @@ namespace Orts.Simulation
         {
             base.Save(outf);
             outf.Write((int)MotionDirection);
-            outf.Write(XPos);
+            outf.Write(OffsetPos);
             outf.Write(Connected);
             outf.Write(saveConnected);
             outf.Write(connectedTarget);
-            outf.Write(TargetX);
+            outf.Write(TargetOffset);
         }
 
 
@@ -101,11 +107,11 @@ namespace Orts.Simulation
         {
             base.Restore(inf, simulator);
             MotionDirection = (MidpointDirection)inf.ReadInt32();
-            XPos = inf.ReadSingle();
+            OffsetPos = inf.ReadSingle();
             Connected = inf.ReadBoolean();
             saveConnected = inf.ReadBoolean();
             connectedTarget = inf.ReadInt32();
-            TargetX = inf.ReadSingle();
+            TargetOffset = inf.ReadSingle();
         }
 
         protected void InitializeOffsetsAndTrackNodes()
@@ -117,8 +123,8 @@ namespace Orts.Simulation
             trackVectorSectionsIndex = new int[trackNodesIndex.Length];
             int i = 0;
             foreach (SectionIndex sectionIdx in trackShape.SectionIndices)
-            {
-                offsets.Add(sectionIdx.Offset.X);
+{
+                offsets.Add(VerticalTransfer ? sectionIdx.Offset.Y : sectionIdx.Offset.X);
                 trackNodesIndex[i] = -1;
                 trackVectorSectionsIndex[i] = -1;
                 i++;
@@ -143,9 +149,16 @@ namespace Orts.Simulation
                     }
                 }
             }
-            XPos = offset.X;
-            // Compute width of transfer table
-            Width = trackShape.SectionIndices[^1].Offset.X - trackShape.SectionIndices[0].Offset.X;
+            if (VerticalTransfer)
+            {
+                OffsetPos = CenterOffsetComponent = CenterOffset.Y;
+                Span = trackShape.SectionIndices[^1].Offset.Y - trackShape.SectionIndices[0].Offset.Y;
+            }
+            else
+            {
+                OffsetPos = CenterOffsetComponent = CenterOffset.X;
+                Span = trackShape.SectionIndices[^1].Offset.X - trackShape.SectionIndices[0].Offset.X;
+            }
         }
 
         /// <summary>
@@ -175,7 +188,7 @@ namespace Orts.Simulation
                     {
                         if (trackNodesIndex[i] != -1 && trackVectorSectionsIndex[i] != -1)
                         {
-                            float offsetDiff = offsets[i] - XPos;
+                            float offsetDiff = offsets[i] - OffsetPos;
                             if (offsetDiff < offsetTarget && offsetDiff >= 0)
                             {
                                 connectedTarget = i;
@@ -196,7 +209,7 @@ namespace Orts.Simulation
                     {
                         if (trackNodesIndex[i] != -1 && trackVectorSectionsIndex[i] != -1)
                         {
-                            float offsetDiff = offsets[i] - XPos;
+                            float offsetDiff = offsets[i] - OffsetPos;
                             if (offsetDiff > offsetTarget && offsetDiff <= 0)
                             {
                                 connectedTarget = i;
@@ -271,7 +284,10 @@ namespace Orts.Simulation
         public void ComputeCenter(in WorldPosition worldPosition)
         {
             Vector3 movingCenterOffset = CenterOffset;
-            movingCenterOffset.X = XPos;
+            if (VerticalTransfer)
+                movingCenterOffset.Y = OffsetPos;
+            else
+                movingCenterOffset.X = OffsetPos;
             VectorExtension.Transform(movingCenterOffset, worldPosition.XNAMatrix, out Vector3 originCoordinates);
             position = worldPosition.SetTranslation(originCoordinates.X, originCoordinates.Y, originCoordinates.Z);
         }
@@ -317,14 +333,14 @@ namespace Orts.Simulation
                     Connected = false;
                     if (connectedTarget != -1)
                     {
-                        if (Math.Abs(offsets[connectedTarget] - XPos) < 0.005)
+                        if (Math.Abs(offsets[connectedTarget] - OffsetPos) < 0.005)
                         {
                             Connected = true;
                             MotionDirection = MidpointDirection.N;
                             ConnectedTrackEnd = connectedTarget;
                             Simulator.Instance.Confirmer.Information(Simulator.Catalog.GetString("Transfertable connected"));
                             GoToTarget = true;
-                            TargetX = offsets[connectedTarget];
+                            TargetOffset = offsets[connectedTarget];
                         }
                     }
                 }

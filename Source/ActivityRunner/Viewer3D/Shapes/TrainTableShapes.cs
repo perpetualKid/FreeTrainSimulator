@@ -133,7 +133,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             : base(path, positionSource, flags)
         {
             Transfertable = transfertable;
-            animationKey = (Transfertable.XPos - Transfertable.CenterOffset.X) / Transfertable.Width * SharedShape.Animations[0].FrameCount;
+            animationKey = (Transfertable.OffsetPos - Transfertable.CenterOffsetComponent) / Transfertable.Span * SharedShape.Animations[0].FrameCount;
             for (var imatrix = 0; imatrix < SharedShape.Matrices.Length; ++imatrix)
             {
                 if (SharedShape.MatrixNames[imatrix].Equals(transfertable.Animations[0], StringComparison.OrdinalIgnoreCase))
@@ -171,7 +171,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
         {
             if (Transfertable.GoToTarget)
             {
-                animationKey = (Transfertable.TargetX - Transfertable.CenterOffset.X) / Transfertable.Width * SharedShape.Animations[0].FrameCount;
+                animationKey = (Transfertable.TargetOffset - Transfertable.CenterOffset.X) / Transfertable.Span * SharedShape.Animations[0].FrameCount;
             }
 
             else if (Transfertable.MotionDirection == MidpointDirection.Forward)
@@ -185,7 +185,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             if (animationKey > SharedShape.Animations[0].FrameCount) animationKey = SharedShape.Animations[0].FrameCount;
             if (animationKey < 0) animationKey = 0;
 
-            Transfertable.XPos = (float)animationKey / SharedShape.Animations[0].FrameCount * Transfertable.Width + Transfertable.CenterOffset.X;
+            Transfertable.OffsetPos = (float)animationKey / SharedShape.Animations[0].FrameCount * Transfertable.Span + Transfertable.CenterOffset.X;
 
             if (Transfertable.MotionDirection != MidpointDirection.N && !Translating)
             {
