@@ -61,14 +61,14 @@ namespace Orts.Settings
                 { UserCommand.ControlGearUp, 34 },
                 { UserCommand.ControlGearDown, 35 },
                 { UserCommand.ControlEmergencyPushButton, 36 },
-                //DefaultUserCommands.Add(UserCommand.ControlEmergencyPushButton, 37);
+                //{ UserCommand.ControlEmergencyPushButton, 37 },   //can't map the same command to different buttons
                 { UserCommand.ControlAlerter, 38 },
                 { UserCommand.ControlSander, 39 },
                 { UserCommand.ControlPantograph1, 40 },
                 { UserCommand.ControlBellToggle, 41 },
-                { UserCommand.ControlHorn, 42 }
+                { UserCommand.ControlHorn, 42 },
+                //{ UserCommand.ControlHorn, 43 },                  //can't map the same command to different buttons
             };
-        //DefaultUserCommands.Add(UserCommand.ControlHorn, 43);
 
         private bool default0WhileSaving;
 

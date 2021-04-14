@@ -58,9 +58,8 @@ namespace Orts.Common.Input
         private readonly Dictionary<Delegate, List<Action<UserCommandArgs, GameTime>>> sourceActions = new Dictionary<Delegate, List<Action<UserCommandArgs, GameTime>>>();
 
         private readonly EnumArray2D<Action<UserCommandArgs, GameTime>, T, KeyEventType> configurableUserCommands = new EnumArray2D<Action<UserCommandArgs, GameTime>, T, KeyEventType>();
-
         private readonly EnumArray<Action<UserCommandArgs, GameTime, KeyModifiers>, CommonUserCommand> commonUserCommandsArgs = new EnumArray<Action<UserCommandArgs, GameTime, KeyModifiers>, CommonUserCommand>();
-
+        private readonly EnumArray<Action<UserCommandArgs, GameTime>, AnalogUserCommand> analogUserCommandsArgs = new EnumArray<Action<UserCommandArgs, GameTime>, AnalogUserCommand>();
         private readonly EnumArray<Action<ControllerCommandArgs>, CommandControllerInput> controllerInputCommand = new EnumArray<Action<ControllerCommandArgs>, CommandControllerInput>();
 
         internal void Trigger(T command, KeyEventType keyEventType, UserCommandArgs commandArgs, GameTime gameTime)
@@ -71,6 +70,11 @@ namespace Orts.Common.Input
         internal void Trigger(CommonUserCommand command, UserCommandArgs commandArgs, GameTime gameTime, KeyModifiers modifier = KeyModifiers.None)
         {
             commonUserCommandsArgs[command]?.Invoke(commandArgs, gameTime, modifier);
+        }
+
+        internal void Trigger(AnalogUserCommand command, UserCommandArgs commandArgs, GameTime gameTime)
+        {
+            analogUserCommandsArgs[command]?.Invoke(commandArgs, gameTime);
         }
 
         #region user-defined (key) events
@@ -186,6 +190,19 @@ namespace Orts.Common.Input
             Action<UserCommandArgs, GameTime, KeyModifiers> command = DelegateConverter.ConvertDelegate<Action<UserCommandArgs, KeyModifiers>, Action<UserCommandArgs, GameTime, KeyModifiers>>(action, new int[] { 0, 2 });
             commonUserCommandsArgs[userCommand] -= command;
         }
+        #endregion
+
+        #region analog command events (levers, switches or user handles such as RailDriver input)
+        public void AddEvent(AnalogUserCommand command, Action<UserCommandArgs, GameTime> action)
+        {
+            analogUserCommandsArgs[command] += action;
+        }
+
+        public void RemoveEvent(AnalogUserCommand command, Action<UserCommandArgs, GameTime> action)
+        {
+            analogUserCommandsArgs[command] -= action;
+        }
+
         #endregion
 
         #region Controller command input

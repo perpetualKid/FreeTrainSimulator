@@ -30,5 +30,9 @@ namespace Orts.Common.Input
         public KeyModifiers AdditionalModifiers { get; internal set; }
     }
 
+    public class UserCommandArgs<T> : UserCommandArgs
+    { 
+        public T Value { get; internal set; }
+    }
 }
 

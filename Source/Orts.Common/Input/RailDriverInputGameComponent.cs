@@ -1,9 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 
 using Microsoft.Xna.Framework;
 
@@ -15,18 +10,22 @@ namespace Orts.Common.Input
         private const int KeyDownShift = 13;
         private const int KeyUpShift = 17;
 
+        // assume the Emergency Stop Commands are never remapped
+        private const byte EmergencyStopCommandUp = 36;
+        private const byte EmergencyStopCommandDown = 37;
+
         private byte[] readBuffer;
         private byte[] readBufferHistory;
 
         private readonly RailDriverBase railDriverInstance;
 
-        private float DirectionPercent;      // -100 (reverse) to 100 (forward)
-        private float ThrottlePercent;       // 0 to 100
-        private float DynamicBrakePercent;   // 0 to 100 if active otherwise less than 0
-        private float TrainBrakePercent;     // 0 (release) to 100 (CS), does not include emergency
-        private float EngineBrakePercent;    // 0 to 100
-        private bool BailOff;                // true when bail off pressed
-        private bool Emergency;              // true when train brake handle in emergency or E-stop button pressed
+        private float directionPercent;      // -100 (reverse) to 100 (forward)
+        private float throttlePercent;       // 0 to 100
+        private float dynamicBrakePercent;   // 0 to 100 if active otherwise less than 0
+        private float trainBrakePercent;     // 0 (release) to 100 (CS), does not include emergency
+        private float engineBrakePercent;    // 0 to 100
+        private bool bailOff;                // true when bail off pressed
+        private bool emergency;              // true when train brake handle in emergency or E-stop button pressed
         private int Wipers;                  // wiper rotary, 1 off, 2 slow, 3 full
         private int Lights;                  // lights rotary, 1 off, 2 dim, 3 full
 
@@ -35,6 +34,7 @@ namespace Orts.Common.Input
         private readonly bool fullRangeThrottle;
 
         private Action<int, GameTime, KeyEventType> keyActionHandler;
+        private Action<RailDriverHandleEventType, GameTime, UserCommandArgs> handleActionHandler;
 
         public bool Active { get; private set; }
 
@@ -125,6 +125,11 @@ namespace Orts.Common.Input
             keyActionHandler += inputAction;
         }
 
+        public void AddInputHandler(Action<RailDriverHandleEventType, GameTime, UserCommandArgs> inputAction)
+        {
+            handleActionHandler += inputAction;
+        }
+
         public static int KeyEventCode(byte command, KeyEventType keyEventType)
         {
             switch (keyEventType)
@@ -151,25 +156,57 @@ namespace Orts.Common.Input
 
             if (0 == railDriverInstance.ReadCurrentData(ref readBuffer))
             {
-                DirectionPercent = Percentage(readBuffer[1], reverser);
-                ThrottlePercent = Percentage(readBuffer[2], throttle);
+                // direction
+                float handle = directionPercent;
+                directionPercent = Percentage(readBuffer[1], reverser);
+                if (directionPercent != handle)
+                    handleActionHandler?.Invoke(RailDriverHandleEventType.Direction, gameTime, new UserCommandArgs<float>() { Value = directionPercent });
+                // throttle
+                handle = throttlePercent;
+                throttlePercent = Percentage(readBuffer[2], throttle);
+                if (throttlePercent != handle)
+                    handleActionHandler?.Invoke(RailDriverHandleEventType.Throttle, gameTime, new UserCommandArgs<float>() { Value = throttlePercent });
+                // dyanmic brake
                 if (!fullRangeThrottle)
-                    DynamicBrakePercent = Percentage(readBuffer[2], dynamicBrake);
-                TrainBrakePercent = Percentage(readBuffer[3], autoBrake);
-                EngineBrakePercent = Percentage(readBuffer[4], independentBrake);
-                float a = .01f * EngineBrakePercent;
+                {
+                    handle = dynamicBrakePercent;
+                    dynamicBrakePercent = Percentage(readBuffer[2], dynamicBrake);
+                    if (dynamicBrakePercent != handle)
+                        handleActionHandler?.Invoke(RailDriverHandleEventType.DynamicBrake, gameTime, new UserCommandArgs<float>() { Value = dynamicBrakePercent });
+                }
+                // train brake
+                handle = trainBrakePercent;
+                trainBrakePercent = Percentage(readBuffer[3], autoBrake);
+                if (trainBrakePercent != handle)
+                    handleActionHandler?.Invoke(RailDriverHandleEventType.TrainBrake, gameTime, new UserCommandArgs<float>() { Value = trainBrakePercent });
+                //engine brake
+                handle = engineBrakePercent;
+                engineBrakePercent = Percentage(readBuffer[4], independentBrake);
+                if (engineBrakePercent != handle)
+                    handleActionHandler?.Invoke(RailDriverHandleEventType.EngineBrake, gameTime, new UserCommandArgs<float>() { Value = engineBrakePercent });
+                float a = .01f * engineBrakePercent;
                 float calOff = (1 - a) * bailoffDisengaged.Item1 + a * bailoffDisengaged.Item2;
                 float calOn = (1 - a) * bailoffEngaged.Item1 + a * bailoffEngaged.Item2;
-                BailOff = Percentage(readBuffer[5], calOff, calOn) > 80;
+                bool buttonPress = bailOff;
+                bailOff = Percentage(readBuffer[5], calOff, calOn) > 80;
+                if (bailOff != buttonPress)
+                    handleActionHandler?.Invoke(RailDriverHandleEventType.BailOff, gameTime, new UserCommandArgs<bool>() { Value = bailOff });
 
-                if (TrainBrakePercent >= 100)
-                    Emergency = Percentage(readBuffer[3], emergencyBrake) > 50;
-
-                Wipers = (int)(.01 * Percentage(readBuffer[6], wipers) + 2.5);
-                Lights = (int)(.01 * Percentage(readBuffer[7], headlight) + 2.5);
-
+                buttonPress = emergency;
+                emergency = (trainBrakePercent >= 100) && Percentage(readBuffer[3], emergencyBrake) > 50;
+                if (emergency != buttonPress)
+                    handleActionHandler?.Invoke(RailDriverHandleEventType.Emergency, gameTime, new UserCommandArgs<bool>() { Value = emergency });
                 //if (IsPressed(EmergencyStopCommandUp) || IsPressed(EmergencyStopCommandDown))
                 //    Emergency = true;
+
+                int rotaryInput = Wipers;
+                Wipers = (int)(.01 * Percentage(readBuffer[6], wipers) + 2.5);
+                if (Wipers != rotaryInput)
+                    handleActionHandler?.Invoke(RailDriverHandleEventType.Wipers, gameTime, new UserCommandArgs<int>() { Value = Wipers });
+                rotaryInput = Lights;
+                Lights = (int)(.01 * Percentage(readBuffer[7], headlight) + 2.5);
+                if (Lights != rotaryInput)
+                    handleActionHandler?.Invoke(RailDriverHandleEventType.Lights, gameTime, new UserCommandArgs<int>() { Value = Lights });
 
                 for (byte command = 0; command < 48; command++)
                 {
@@ -218,6 +255,7 @@ namespace Orts.Common.Input
                 if (Active)
                 {
                     railDriverInstance.SetLeds(0x39, 0x09, 0x0F);
+                    InitializeSync();
                 }
                 else
                 {
@@ -226,6 +264,13 @@ namespace Orts.Common.Input
             }
         }
 
+        private void InitializeSync()
+        {
+            GameTime gameTime = new GameTime();
+            Update(gameTime);
+            handleActionHandler?.Invoke(RailDriverHandleEventType.Wipers, gameTime, new UserCommandArgs<int>() { Value = Wipers });
+            handleActionHandler?.Invoke(RailDriverHandleEventType.Lights, gameTime, new UserCommandArgs<int>() { Value = Lights });
+        }
 
         private static float Percentage(float x, float x0, float x100)
         {

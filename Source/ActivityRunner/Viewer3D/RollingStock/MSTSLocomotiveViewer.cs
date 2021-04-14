@@ -145,35 +145,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             {
                 Locomotive.AlerterReset();
 
-                Locomotive.SetThrottlePercentWithSound(UserInput.Raildriver.ThrottlePercent);
-                Locomotive.SetTrainBrakePercent(UserInput.Raildriver.TrainBrakePercent);
-                Locomotive.SetEngineBrakePercent(UserInput.Raildriver.EngineBrakePercent);
-                //    Locomotive.SetBrakemanBrakePercent(UserInput.Raildriver.BrakemanBrakePercent); // For Raildriver control not complete for this value?
-                Locomotive.SetBailOff(UserInput.Raildriver.BailOff);
-                if (Locomotive.CombinedControlType != MSTSLocomotive.CombinedControl.ThrottleAir)
-                    Locomotive.SetDynamicBrakePercentWithSound(UserInput.Raildriver.DynamicBrakePercent);
-                if (UserInput.Raildriver.DirectionPercent > 50)
-                    Locomotive.SetDirection(MidpointDirection.Forward);
-                else if (UserInput.Raildriver.DirectionPercent < -50)
-                    Locomotive.SetDirection(MidpointDirection.Reverse);
-                else
-                    Locomotive.SetDirection(MidpointDirection.N);
-                Locomotive.SetEmergency(UserInput.Raildriver.Emergency);
-                if (UserInput.Raildriver.Wipers == 1 && Locomotive.Wiper)
-                    Locomotive.SignalEvent(TrainEvent.WiperOff);
-                else if (UserInput.Raildriver.Wipers != 1 && !Locomotive.Wiper)
-                    Locomotive.SignalEvent(TrainEvent.WiperOn);
-                // changing Headlight more than one step at a time doesn't work for some reason
-                if (Locomotive.Headlight < UserInput.Raildriver.Lights - 1)
-                {
-                    Locomotive.Headlight++;
-                    Locomotive.SignalEvent(TrainEvent.LightSwitchToggle);
-                }
-                if (Locomotive.Headlight > UserInput.Raildriver.Lights - 1)
-                {
-                    Locomotive.Headlight--;
-                    Locomotive.SignalEvent(TrainEvent.LightSwitchToggle);
-                }
             }
 
             //Debrief eval
@@ -266,7 +237,15 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             Viewer.UserCommandController.AddEvent(UserCommand.ControlGeneric1, KeyEventType.KeyReleased, GenericCommand1Off, true);
             Viewer.UserCommandController.AddEvent(UserCommand.ControlGeneric2, KeyEventType.KeyPressed, GenericCommand2On, true);
             Viewer.UserCommandController.AddEvent(UserCommand.ControlGeneric2, KeyEventType.KeyReleased, GenericCommand2Off, true);
-
+            Viewer.UserCommandController.AddEvent(AnalogUserCommand.Light, LightSwitchCommand);
+            Viewer.UserCommandController.AddEvent(AnalogUserCommand.Wiper, WiperSwitchCommand);
+            Viewer.UserCommandController.AddEvent(AnalogUserCommand.Direction, DirectionHandleCommand);
+            Viewer.UserCommandController.AddEvent(AnalogUserCommand.Throttle, ThrottleHandleCommand);
+            Viewer.UserCommandController.AddEvent(AnalogUserCommand.DynamicBrake, DynamicBrakeHandleCommand);
+            Viewer.UserCommandController.AddEvent(AnalogUserCommand.TrainBrake, TrainBrakeHandleCommand);
+            Viewer.UserCommandController.AddEvent(AnalogUserCommand.EngineBrake, EngineBrakeHandleCommand);
+            Viewer.UserCommandController.AddEvent(AnalogUserCommand.BailOff, BailOffHandleCommand);
+            Viewer.UserCommandController.AddEvent(AnalogUserCommand.Emergency, EmergencyHandleCommand);
             base.RegisterUserCommandHandling();
         }
 
@@ -345,7 +324,15 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlGeneric1, KeyEventType.KeyReleased, GenericCommand1Off);
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlGeneric2, KeyEventType.KeyPressed, GenericCommand2On);
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlGeneric2, KeyEventType.KeyReleased, GenericCommand2Off);
-
+            Viewer.UserCommandController.RemoveEvent(AnalogUserCommand.Light, LightSwitchCommand);
+            Viewer.UserCommandController.RemoveEvent(AnalogUserCommand.Wiper, WiperSwitchCommand);
+            Viewer.UserCommandController.RemoveEvent(AnalogUserCommand.Direction, DirectionHandleCommand);
+            Viewer.UserCommandController.RemoveEvent(AnalogUserCommand.Throttle, ThrottleHandleCommand);
+            Viewer.UserCommandController.RemoveEvent(AnalogUserCommand.DynamicBrake, DynamicBrakeHandleCommand);
+            Viewer.UserCommandController.RemoveEvent(AnalogUserCommand.TrainBrake, TrainBrakeHandleCommand);
+            Viewer.UserCommandController.RemoveEvent(AnalogUserCommand.EngineBrake, EngineBrakeHandleCommand);
+            Viewer.UserCommandController.RemoveEvent(AnalogUserCommand.BailOff, BailOffHandleCommand);
+            Viewer.UserCommandController.RemoveEvent(AnalogUserCommand.Emergency, EmergencyHandleCommand);
             base.UnregisterUserCommandHandling();
         }
 
@@ -408,6 +395,98 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         {
             _ = new TCSButtonCommand(Viewer.Log, false, 1);
         }
+
+        private void LightSwitchCommand(UserCommandArgs commandArgs, GameTime gameTime)
+        {
+            if (commandArgs is UserCommandArgs<int> switchCommandArgs)
+            {
+                // changing Headlight more than one step at a time doesn't work for some reason
+                if (Locomotive.Headlight < switchCommandArgs.Value - 1)
+                {
+                    Locomotive.Headlight++;
+                    Locomotive.SignalEvent(TrainEvent.LightSwitchToggle);
+                }
+                if (Locomotive.Headlight > switchCommandArgs.Value - 1)
+                {
+                    Locomotive.Headlight--;
+                    Locomotive.SignalEvent(TrainEvent.LightSwitchToggle);
+                }
+            }
+        }
+
+        private void WiperSwitchCommand(UserCommandArgs commandArgs, GameTime gameTime)
+        {
+            if (commandArgs is UserCommandArgs<int> switchCommandArgs)
+            {
+                if (switchCommandArgs.Value == 1 && Locomotive.Wiper)
+                    Locomotive.SignalEvent(TrainEvent.WiperOff);
+                else if (switchCommandArgs.Value != 1 && !Locomotive.Wiper)
+                    Locomotive.SignalEvent(TrainEvent.WiperOn);
+            }
+        }
+
+        private void DirectionHandleCommand(UserCommandArgs commandArgs, GameTime gameTime)
+        {
+            if (commandArgs is UserCommandArgs<float> handleCommandArgs)
+            {
+                if (handleCommandArgs.Value > 50)
+                    Locomotive.SetDirection(MidpointDirection.Forward);
+                else if (handleCommandArgs.Value < -50)
+                    Locomotive.SetDirection(MidpointDirection.Reverse);
+                else
+                    Locomotive.SetDirection(MidpointDirection.N);
+            }
+        }
+
+        private void ThrottleHandleCommand(UserCommandArgs commandArgs, GameTime gameTime)
+        {
+            if (commandArgs is UserCommandArgs<float> handleCommandArgs)
+            {
+                Locomotive.SetThrottlePercentWithSound(handleCommandArgs.Value);
+            }
+        }
+
+        private void DynamicBrakeHandleCommand(UserCommandArgs commandArgs, GameTime gameTime)
+        {
+            if (commandArgs is UserCommandArgs<float> handleCommandArgs)
+            {
+                if (Locomotive.CombinedControlType != MSTSLocomotive.CombinedControl.ThrottleAir)
+                    Locomotive.SetDynamicBrakePercentWithSound(handleCommandArgs.Value);
+            }
+        }
+
+        private void TrainBrakeHandleCommand(UserCommandArgs commandArgs, GameTime gameTime)
+        {
+            if (commandArgs is UserCommandArgs<float> handleCommandArgs)
+            {
+                Locomotive.SetTrainBrakePercent(handleCommandArgs.Value);
+            }
+        }
+
+        private void EngineBrakeHandleCommand(UserCommandArgs commandArgs, GameTime gameTime)
+        {
+            if (commandArgs is UserCommandArgs<float> handleCommandArgs)
+            {
+                Locomotive.SetEngineBrakePercent(handleCommandArgs.Value);
+            }
+        }
+
+        private void BailOffHandleCommand(UserCommandArgs commandArgs, GameTime gameTime)
+        {
+            if (commandArgs is UserCommandArgs<bool> handleCommandArgs)
+            {
+                Locomotive.SetBailOff(handleCommandArgs.Value);
+            }
+        }
+
+        private void EmergencyHandleCommand(UserCommandArgs commandArgs, GameTime gameTime)
+        {
+            if (commandArgs is UserCommandArgs<bool> handleCommandArgs)
+            {
+                Locomotive.SetEmergency(handleCommandArgs.Value);
+            }
+        }
+
 #pragma warning restore IDE0022 // Use block body for methods
         #endregion
 

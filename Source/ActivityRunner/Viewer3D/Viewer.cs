@@ -420,7 +420,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             RailDriverInputGameComponent railDriverInputGameComponent = new RailDriverInputGameComponent(Game, Settings.RailDriver.CalibrationSettings);
             RailDriverInputHandler<UserCommand> railDriverInput = new RailDriverInputHandler<UserCommand>();
-            railDriverInput.Initialize(Settings.Input.UserCommands, Settings.RailDriver.UserCommands, railDriverInputGameComponent, UserCommandController);
+            railDriverInput.Initialize(Settings.RailDriver.UserCommands, railDriverInputGameComponent, UserCommandController);
             #endregion
 
             UpdateAdapterInformation(Game.GraphicsDevice.Adapter);

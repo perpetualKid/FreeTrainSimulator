@@ -91,6 +91,20 @@ namespace Orts.Common.Input
         HorizontalScrollChanged,
     }
 
+    public enum AnalogUserCommand
+    { 
+        None,
+        Wiper,
+        Light,
+        Direction,
+        Throttle,
+        DynamicBrake,
+        TrainBrake,
+        EngineBrake,
+        BailOff,
+        Emergency,
+    }
+
     public enum GenericButtonEventType
     { 
         None,
@@ -103,6 +117,19 @@ namespace Orts.Common.Input
     {
         Activate,
         Speed,
+    }
+
+    public enum RailDriverHandleEventType
+    { 
+        Direction, 
+        Throttle,
+        DynamicBrake,
+        TrainBrake, 
+        EngineBrake,
+        BailOff,
+        Wipers,
+        Lights,
+        Emergency,
     }
 
     public enum RailDriverCalibrationSetting
