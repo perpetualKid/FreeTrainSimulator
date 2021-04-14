@@ -3,7 +3,9 @@ using Microsoft.Xna.Framework;
 
 namespace Orts.Common.Input
 {
+#pragma warning disable CA1052 // Static holder types should be Static or NotInheritable
     public class UserCommandArgs
+#pragma warning restore CA1052 // Static holder types should be Static or NotInheritable
     {
         public static UserCommandArgs Empty { get; } = new UserCommandArgs();
     }

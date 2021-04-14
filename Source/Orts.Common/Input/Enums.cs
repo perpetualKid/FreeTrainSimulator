@@ -99,6 +99,12 @@ namespace Orts.Common.Input
         Released,
     }
 
+    public enum CommandControllerInput
+    {
+        Activate,
+        Speed,
+    }
+
     public enum RailDriverCalibrationSetting
     {
         [Description("Reverser Neutral")] ReverserNeutral,

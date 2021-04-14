@@ -17,42 +17,47 @@
 
 // This file is the responsibility of the 3D & Environment Team. 
 
-using Microsoft.Xna.Framework;
-
-using Orts.ActivityRunner.Processes;
-using Orts.Common;
 using System;
 using System.Diagnostics;
 using System.Threading;
+
+using Microsoft.Xna.Framework;
+
+using Orts.ActivityRunner.Processes;
 
 namespace Orts.ActivityRunner.Viewer3D.Processes
 {
     public class UpdaterProcess
     {
-        public readonly Profiler Profiler = new Profiler("Updater");
-        readonly ProcessState State = new ProcessState("Updater");
-        readonly Game Game;
-        readonly Thread Thread;
-        readonly WatchdogToken WatchdogToken;
+        public Profiler Profiler { get; } = new Profiler("Updater");
+
+        private readonly ProcessState State = new ProcessState("Updater");
+        private readonly Game game;
+        private readonly Thread thread;
+        private readonly WatchdogToken watchdogToken;
 
         public GameComponentCollection GameComponents { get; } = new GameComponentCollection();
+        private RenderFrame CurrentFrame;
+        private GameTime gameTime;
 
         public UpdaterProcess(Game game)
         {
-            Game = game;
-            Thread = new Thread(UpdaterThread);
-            WatchdogToken = new WatchdogToken(Thread);
+            this.game = game;
+            thread = new Thread(UpdaterThread);
+            watchdogToken = new WatchdogToken(thread);
         }
 
         public void Start()
         {
-            Game.WatchdogProcess.Register(WatchdogToken);
-            Thread.Start();
+            game.WatchdogProcess.Register(watchdogToken);
+            thread.Start();
         }
 
         public void Stop()
         {
-            Game.WatchdogProcess.Unregister(WatchdogToken);
+            foreach (GameComponent component in GameComponents)
+                component.Enabled = false;
+            game.WatchdogProcess.Unregister(watchdogToken);
             State.SignalTerminate();
         }
 
@@ -61,10 +66,10 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             State.WaitTillFinished();
         }
 
-        void UpdaterThread()
+        private void UpdaterThread()
         {
             Profiler.SetThread();
-            Game.SetThreadLanguage();
+            game.SetThreadLanguage();
 
             while (true)
             {
@@ -85,9 +90,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             }
         }
 
-        private RenderFrame CurrentFrame;
-        private GameTime gameTime;
-
         //[CallOnThread("Render")]
         internal void StartUpdate(RenderFrame frame, GameTime gameTime)
         {
@@ -96,7 +98,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             State.SignalStart();
         }
 
-        bool DoUpdate()
+        private bool DoUpdate()
         {
             if (Debugger.IsAttached)
             {
@@ -112,7 +114,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 {
                     // Unblock anyone waiting for us, report error and die.
                     State.SignalTerminate();
-                    Game.ProcessReportError(error);
+                    game.ProcessReportError(error);
                     return false;
                 }
             }
@@ -125,14 +127,14 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             Profiler.Start();
             try
             {
-                WatchdogToken.Ping();
+                watchdogToken.Ping();
                 CurrentFrame.Clear();
                 foreach (GameComponent component in GameComponents)
                     if (component.Enabled)
                         component.Update(gameTime);
-                if (Game.State != null)
+                if (game.State != null)
                 {
-                    Game.State.Update(CurrentFrame, gameTime.TotalGameTime.TotalSeconds, gameTime);
+                    game.State.Update(CurrentFrame, gameTime.TotalGameTime.TotalSeconds, gameTime);
                     CurrentFrame.Sort();
                 }
             }

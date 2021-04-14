@@ -36,6 +36,8 @@ namespace Orts.Common.Input
 
         private Action<int, GameTime, KeyEventType> keyActionHandler;
 
+        public bool Active { get; private set; }
+
         public RailDriverInputGameComponent(Game game, EnumArray<byte, RailDriverCalibrationSetting> calibrationSettings) : base(game)
         {
             railDriverInstance = RailDriverBase.GetInstance();
@@ -110,6 +112,11 @@ namespace Orts.Common.Input
         {
             if (!railDriverInstance.Enabled)
                 Enabled = false;
+            if (!Enabled)
+            {
+                railDriverInstance?.ClearDisplay();
+                railDriverInstance?.Shutdown();
+            }
             base.OnEnabledChanged(sender, args);
         }
 
@@ -135,7 +142,7 @@ namespace Orts.Common.Input
 
         public override void Update(GameTime gameTime)
         {
-            if (!Game.IsActive)
+            if (!Game.IsActive || !Active)
             {
                 return;
             }
@@ -191,6 +198,34 @@ namespace Orts.Common.Input
             }
             base.Update(gameTime);
         }
+
+        /// <summary>
+        /// Updates speed display on RailDriver LED
+        /// </summary>
+        /// <param name="speed"></param>
+        internal void ShowSpeed(double speed)
+        {
+            if (Active)
+                railDriverInstance?.SetLedsNumeric(Math.Abs(speed));
+        }
+
+        public void Activate()
+        {
+            if (Enabled)
+            {
+                Active = !Active;
+                railDriverInstance.EnableSpeaker(Active);
+                if (Active)
+                {
+                    railDriverInstance.SetLeds(0x39, 0x09, 0x0F);
+                }
+                else
+                {
+                    railDriverInstance.SetLeds(RailDriverDisplaySign.Hyphen, RailDriverDisplaySign.Hyphen, RailDriverDisplaySign.Hyphen);
+                }
+            }
+        }
+
 
         private static float Percentage(float x, float x0, float x100)
         {

@@ -61,6 +61,8 @@ namespace Orts.Common.Input
 
         private readonly EnumArray<Action<UserCommandArgs, GameTime, KeyModifiers>, CommonUserCommand> commonUserCommandsArgs = new EnumArray<Action<UserCommandArgs, GameTime, KeyModifiers>, CommonUserCommand>();
 
+        private readonly EnumArray<Action<ControllerCommandArgs>, CommandControllerInput> controllerInputCommand = new EnumArray<Action<ControllerCommandArgs>, CommandControllerInput>();
+
         internal void Trigger(T command, KeyEventType keyEventType, UserCommandArgs commandArgs, GameTime gameTime)
         {
             configurableUserCommands[command, keyEventType]?.Invoke(commandArgs, gameTime);
@@ -183,6 +185,28 @@ namespace Orts.Common.Input
         {
             Action<UserCommandArgs, GameTime, KeyModifiers> command = DelegateConverter.ConvertDelegate<Action<UserCommandArgs, KeyModifiers>, Action<UserCommandArgs, GameTime, KeyModifiers>>(action, new int[] { 0, 2 });
             commonUserCommandsArgs[userCommand] -= command;
+        }
+        #endregion
+
+        #region Controller command input
+        public void Send<TCommandType>(CommandControllerInput command, TCommandType value)
+        {
+            controllerInputCommand[command]?.Invoke(new ControllerCommandArgs<TCommandType>() { Value = value });
+        }
+
+        public void Send(CommandControllerInput command)
+        {
+            controllerInputCommand[command]?.Invoke(ControllerCommandArgs.Empty);
+        }
+
+        public void AddControllerInputEvent(CommandControllerInput command, Action<ControllerCommandArgs> action)
+        {
+            controllerInputCommand[command] += action;
+        }
+
+        public void RemoveControllerInputEvent(CommandControllerInput command, Action<ControllerCommandArgs> action)
+        {
+            controllerInputCommand[command] -= action;
         }
         #endregion
     }

@@ -205,6 +205,7 @@ namespace Orts.Common.Input
             {
                 device = null;
                 System.Diagnostics.Trace.WriteLine(error);
+                throw;
             }
         }
 
@@ -258,6 +259,7 @@ namespace Orts.Common.Input
             {
                 device = null;
                 System.Diagnostics.Trace.WriteLine(error);
+                throw;
             }
         }
 

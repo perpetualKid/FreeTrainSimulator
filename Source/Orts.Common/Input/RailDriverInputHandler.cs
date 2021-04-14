@@ -10,14 +10,12 @@ namespace Orts.Common.Input
     {
         private UserCommandController<T> userCommandController;
         private ILookup<int, T> userCommandsLookup;
-
+        RailDriverInputGameComponent inputGameComponent;
 
         public void Initialize(EnumArray<UserCommandInput, T> allUserCommands, EnumArray<byte, T> userCommands, RailDriverInputGameComponent inputGameComponent, UserCommandController<T> userCommandController)
         {
-            if (null == inputGameComponent)
-                throw new ArgumentNullException(nameof(inputGameComponent));
-
             this.userCommandController = userCommandController ?? throw new ArgumentNullException(nameof(userCommandController));
+            this.inputGameComponent = inputGameComponent ?? throw new ArgumentNullException(nameof(inputGameComponent));
 
             userCommandsLookup = EnumExtension.GetValues<T>().Where(command => userCommands[command] < byte.MaxValue).SelectMany(command =>
             {
@@ -30,6 +28,8 @@ namespace Orts.Common.Input
                 return result;
             }).ToLookup(i => i.keyEventCode, c => c.command);
 
+            userCommandController.AddControllerInputEvent(CommandControllerInput.Speed, ShowSpeedValue);
+            userCommandController.AddControllerInputEvent(CommandControllerInput.Activate, Activate);
             inputGameComponent.AddInputHandler(Trigger);
         }
 
@@ -38,5 +38,19 @@ namespace Orts.Common.Input
             foreach (T command in userCommandsLookup[eventCode])
                 userCommandController.Trigger(command, eventType, UserCommandArgs.Empty, gameTime);
         }
+
+        private void ShowSpeedValue(ControllerCommandArgs controllerCommandArgs)
+        {
+            if (controllerCommandArgs is ControllerCommandArgs<double> speedArgs)
+            {
+                inputGameComponent.ShowSpeed(speedArgs.Value);
+            }
+        }
+
+        private void Activate(ControllerCommandArgs controllerCommandArgs)
+        {
+            inputGameComponent.Activate();
+        }
+
     }
 }

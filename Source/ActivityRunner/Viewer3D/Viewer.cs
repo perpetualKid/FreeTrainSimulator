@@ -796,7 +796,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     _ = new UseHeadOutBackCameraCommand(Log);
                 }
             });
-            UserCommandController.AddEvent(UserCommand.GameExternalCabController, KeyEventType.KeyPressed, UserInput.Raildriver.Activate);
+            UserCommandController.AddEvent(UserCommand.GameExternalCabController, KeyEventType.KeyPressed, () => UserCommandController.Send(CommandControllerInput.Activate));
             UserCommandController.AddEvent(UserCommand.GameSwitchAhead, KeyEventType.KeyPressed, () =>
             {
                 if (PlayerTrain.ControlMode == TrainControlMode.Manual || PlayerTrain.ControlMode == TrainControlMode.Explorer)
@@ -1206,7 +1206,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 MPManager.Instance().Update(Simulator.GameTime);
             }
 
-            UserInput.Raildriver.ShowSpeed(Speed.MeterPerSecond.FromMpS(PlayerLocomotive.SpeedMpS, PlayerLocomotive.IsMetric));
+            UserCommandController.Send(CommandControllerInput.Speed, Speed.MeterPerSecond.FromMpS(PlayerLocomotive.SpeedMpS, PlayerLocomotive.IsMetric));
 
             // This has to be done also for stopped trains
             var cars = World.Trains.Cars;
@@ -1492,7 +1492,6 @@ namespace Orts.ActivityRunner.Viewer3D
         internal void Terminate()
         {
             InfoDisplay.Terminate();
-            UserInput.Raildriver.Shutdown();
         }
 
         private int trainCount;
