@@ -125,7 +125,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
 
             RenderPrimitive.SetGraphicsDevice(game.GraphicsDevice);
 
-            UserInput.Initialize(game);
             gameForm.LocationChanged += GameForm_LocationChanged;
         }
 
