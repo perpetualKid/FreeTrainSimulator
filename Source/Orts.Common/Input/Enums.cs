@@ -103,6 +103,7 @@ namespace Orts.Common.Input
         EngineBrake,
         BailOff,
         Emergency,
+        CabActivity,
     }
 
     public enum GenericButtonEventType
@@ -130,6 +131,7 @@ namespace Orts.Common.Input
         Wipers,
         Lights,
         Emergency,
+        CabActivity,
     }
 
     public enum RailDriverCalibrationSetting

@@ -136,19 +136,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             SteamLocomotive.SteamStopGearBoxDecrease();
         }
 
-        /// <summary>
-        /// A keyboard or mouse click has occured. Read the UserInput
-        /// structure to determine what was pressed.
-        /// </summary>
-        public override void HandleUserInput(in ElapsedTime elapsedTime)
-        {
-
-            if (UserInput.Raildriver.Active)
-                SteamLocomotive.SetCutoffPercent(UserInput.Raildriver.DirectionPercent);
-
-            base.HandleUserInput(elapsedTime);
-        }
-
         public override void RegisterUserCommandHandling()
         {
             Viewer.UserCommandController.AddEvent(UserCommand.ControlReverserForward, KeyEventType.KeyPressed, ReverserControlForwards, true);
@@ -301,6 +288,14 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             _ = new AIFireResetCommand(Viewer.Log);
         }
 
+        private protected override void DirectionHandleCommand(UserCommandArgs commandArgs, GameTime gameTime)
+        {
+            if (commandArgs is UserCommandArgs<float> handleCommandArgs)
+            {
+                SteamLocomotive.SetCutoffPercent(handleCommandArgs.Value);
+            }
+            base.DirectionHandleCommand(commandArgs, gameTime);
+        }
         /// <summary>
         /// We are about to display a video frame.  Calculate positions for 
         /// animated objects, and add their primitives to the RenderFrame list.

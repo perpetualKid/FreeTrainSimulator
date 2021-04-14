@@ -53,6 +53,8 @@ namespace Orts.Common.Input
                 case RailDriverHandleEventType.EngineBrake: command = AnalogUserCommand.EngineBrake; break;
                 case RailDriverHandleEventType.BailOff: command = AnalogUserCommand.BailOff; break;
                 case RailDriverHandleEventType.Emergency: command = AnalogUserCommand.Emergency; break;
+                case RailDriverHandleEventType.CabActivity: command = AnalogUserCommand.CabActivity; break;
+
             }
             userCommandController.Trigger(command, commandArgs, gameTime);
         }

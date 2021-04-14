@@ -141,12 +141,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         /// </summary>
         public override void HandleUserInput(in ElapsedTime elapsedTime)
         {
-            if (UserInput.Raildriver.Active)
-            {
-                Locomotive.AlerterReset();
-
-            }
-
             //Debrief eval
             if (!lemergencybuttonpressed && Locomotive.EmergencyButtonPressed && Locomotive.IsPlayerTrain)
             {
@@ -246,6 +240,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             Viewer.UserCommandController.AddEvent(AnalogUserCommand.EngineBrake, EngineBrakeHandleCommand);
             Viewer.UserCommandController.AddEvent(AnalogUserCommand.BailOff, BailOffHandleCommand);
             Viewer.UserCommandController.AddEvent(AnalogUserCommand.Emergency, EmergencyHandleCommand);
+            Viewer.UserCommandController.AddEvent(AnalogUserCommand.CabActivity, AlerterResetCommand);
             base.RegisterUserCommandHandling();
         }
 
@@ -333,6 +328,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             Viewer.UserCommandController.RemoveEvent(AnalogUserCommand.EngineBrake, EngineBrakeHandleCommand);
             Viewer.UserCommandController.RemoveEvent(AnalogUserCommand.BailOff, BailOffHandleCommand);
             Viewer.UserCommandController.RemoveEvent(AnalogUserCommand.Emergency, EmergencyHandleCommand);
+            Viewer.UserCommandController.AddEvent(AnalogUserCommand.CabActivity, AlerterResetCommand);
             base.UnregisterUserCommandHandling();
         }
 
@@ -425,7 +421,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             }
         }
 
-        private void DirectionHandleCommand(UserCommandArgs commandArgs, GameTime gameTime)
+        private protected virtual void DirectionHandleCommand(UserCommandArgs commandArgs, GameTime gameTime)
         {
             if (commandArgs is UserCommandArgs<float> handleCommandArgs)
             {
@@ -487,6 +483,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             }
         }
 
+        private void AlerterResetCommand(UserCommandArgs commandArgs, GameTime gameTime)
+        {
+            Locomotive.AlerterReset();
+        }
 #pragma warning restore IDE0022 // Use block body for methods
         #endregion
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 
 using Microsoft.Xna.Framework;
 
@@ -112,7 +113,7 @@ namespace Orts.Common.Input
         {
             if (!railDriverInstance.Enabled)
                 Enabled = false;
-            if (!Enabled)
+            if (!Enabled && railDriverInstance.Enabled)
             {
                 railDriverInstance?.ClearDisplay();
                 railDriverInstance?.Shutdown();
@@ -184,6 +185,7 @@ namespace Orts.Common.Input
                 engineBrakePercent = Percentage(readBuffer[4], independentBrake);
                 if (engineBrakePercent != handle)
                     handleActionHandler?.Invoke(RailDriverHandleEventType.EngineBrake, gameTime, new UserCommandArgs<float>() { Value = engineBrakePercent });
+                //bail-off
                 float a = .01f * engineBrakePercent;
                 float calOff = (1 - a) * bailoffDisengaged.Item1 + a * bailoffDisengaged.Item2;
                 float calOn = (1 - a) * bailoffEngaged.Item1 + a * bailoffEngaged.Item2;
@@ -191,13 +193,11 @@ namespace Orts.Common.Input
                 bailOff = Percentage(readBuffer[5], calOff, calOn) > 80;
                 if (bailOff != buttonPress)
                     handleActionHandler?.Invoke(RailDriverHandleEventType.BailOff, gameTime, new UserCommandArgs<bool>() { Value = bailOff });
-
+                // emergency brake
                 buttonPress = emergency;
                 emergency = (trainBrakePercent >= 100) && Percentage(readBuffer[3], emergencyBrake) > 50;
                 if (emergency != buttonPress)
                     handleActionHandler?.Invoke(RailDriverHandleEventType.Emergency, gameTime, new UserCommandArgs<bool>() { Value = emergency });
-                //if (IsPressed(EmergencyStopCommandUp) || IsPressed(EmergencyStopCommandDown))
-                //    Emergency = true;
 
                 int rotaryInput = Wipers;
                 Wipers = (int)(.01 * Percentage(readBuffer[6], wipers) + 2.5);
@@ -207,6 +207,9 @@ namespace Orts.Common.Input
                 Lights = (int)(.01 * Percentage(readBuffer[7], headlight) + 2.5);
                 if (Lights != rotaryInput)
                     handleActionHandler?.Invoke(RailDriverHandleEventType.Lights, gameTime, new UserCommandArgs<int>() { Value = Lights });
+                // Cab activity - any cab lever or handle changes, so there is user activity. Only consider first 8 bytes (cab controls) but misses the cab buttons
+                if (BitConverter.ToUInt64(readBuffer, 0) != BitConverter.ToUInt64(readBufferHistory, 0))
+                    handleActionHandler?.Invoke(RailDriverHandleEventType.CabActivity, gameTime, UserCommandArgs.Empty);
 
                 for (byte command = 0; command < 48; command++)
                 {
