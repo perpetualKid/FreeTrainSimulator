@@ -1,4 +1,4 @@
-﻿// COPYRIGHT 2009, 2010, 2011, 2012, 2013 by the Open Rails project.
+// COPYRIGHT 2009, 2010, 2011, 2012, 2013 by the Open Rails project.
 // 
 // This file is part of Open Rails.
 // 
@@ -28,6 +28,7 @@
  */
 
 using Orts.Simulation.RollingStocks.SubSystems.Controllers;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
@@ -232,7 +233,7 @@ namespace Orts.Simulation.RollingStocks
             else
             {
                 float dV2;
-                dV2 = TractiveForceN / MaxForceN * 100f - Variable2;
+                dV2 = Math.Abs(TractiveForceN) / MaxForceN * 100f - Variable2;
                 float max = 2f;
                 if (dV2 > max) dV2 = max;
                 else if (dV2 < -max) dV2 = -max;
