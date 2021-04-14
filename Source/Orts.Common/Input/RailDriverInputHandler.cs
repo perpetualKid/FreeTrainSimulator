@@ -12,10 +12,75 @@ namespace Orts.Common.Input
         private ILookup<int, T> userCommandsLookup;
         private RailDriverInputGameComponent inputGameComponent;
 
+        // assume the Emergency Stop Commands are never remapped
+        private const byte EmergencyStopCommandUp = 36;
+        private const byte EmergencyStopCommandDown = 37;
+
+        private const byte HornCommandUp = 42;
+        private const byte HornCommandDown = 43;
+
         public void Initialize(EnumArray<byte, T> userCommands, RailDriverInputGameComponent inputGameComponent, UserCommandController<T> userCommandController)
         {
+            if (null == userCommands)
+                throw new ArgumentNullException(nameof(userCommands));
+
             this.userCommandController = userCommandController ?? throw new ArgumentNullException(nameof(userCommandController));
             this.inputGameComponent = inputGameComponent ?? throw new ArgumentNullException(nameof(inputGameComponent));
+
+            (T Command, byte CommandValue, bool AvailableForMapping) emergencyCommand = (default, byte.MaxValue, false);
+            (T Command, byte CommandValue, bool AvailableForMapping) hornCommand = (default, byte.MaxValue, false);
+            foreach (T command in EnumExtension.GetValues<T>())
+            {
+                byte commandByte = userCommands[command];
+                switch (commandByte)
+                {
+                    case EmergencyStopCommandUp:
+                    case EmergencyStopCommandDown:
+                        if (emergencyCommand.CommandValue == byte.MaxValue)
+                        {
+                            emergencyCommand.Command = command;
+                            emergencyCommand.CommandValue = commandByte;
+                            emergencyCommand.AvailableForMapping = true;
+                        }
+                        else 
+                        {
+                            emergencyCommand.AvailableForMapping = false;
+                        }
+                        break;
+                    case HornCommandUp:
+                    case HornCommandDown:
+                        if (hornCommand.CommandValue == byte.MaxValue)
+                        {
+                            hornCommand.Command = command;
+                            hornCommand.CommandValue = commandByte;
+                            hornCommand.AvailableForMapping = true;
+                        }
+                        else
+                        {
+                            hornCommand.AvailableForMapping = false;
+                        }
+                        break;
+                }
+            }
+            // doing some magic here to assign one Command to two different buttons. This is only avaialble for Emergency and Horn buttons on RailDriver
+
+            List<(int keyEventCode, T command)> additionalCommands = new List<(int, T)>();
+            if (emergencyCommand.AvailableForMapping)
+            {
+                byte command = emergencyCommand.CommandValue == EmergencyStopCommandUp ? EmergencyStopCommandDown : EmergencyStopCommandUp;
+                foreach (KeyEventType keyEventType in EnumExtension.GetValues<KeyEventType>())
+                {
+                    additionalCommands.Add((RailDriverInputGameComponent.KeyEventCode(command, keyEventType), emergencyCommand.Command));
+                }
+            }
+            if (hornCommand.AvailableForMapping)
+            {
+                byte command = hornCommand.CommandValue == HornCommandUp ? HornCommandDown : HornCommandUp;
+                foreach (KeyEventType keyEventType in EnumExtension.GetValues<KeyEventType>())
+                {
+                    additionalCommands.Add((RailDriverInputGameComponent.KeyEventCode(command, keyEventType), hornCommand.Command));
+                }
+            }
 
             userCommandsLookup = EnumExtension.GetValues<T>().Where(command => userCommands[command] < byte.MaxValue).SelectMany(command =>
             {
@@ -25,7 +90,7 @@ namespace Orts.Common.Input
                     result.Add((RailDriverInputGameComponent.KeyEventCode(userCommands[command], keyEventType), command));
                 }
                 return result;
-            }).ToLookup(i => i.keyEventCode, c => c.command);
+            }).Concat(additionalCommands).ToLookup(i => i.keyEventCode, c => c.command);
 
             userCommandController.AddControllerInputEvent(CommandControllerInput.Speed, ShowSpeedValue);
             userCommandController.AddControllerInputEvent(CommandControllerInput.Activate, Activate);
@@ -54,7 +119,6 @@ namespace Orts.Common.Input
                 case RailDriverHandleEventType.BailOff: command = AnalogUserCommand.BailOff; break;
                 case RailDriverHandleEventType.Emergency: command = AnalogUserCommand.Emergency; break;
                 case RailDriverHandleEventType.CabActivity: command = AnalogUserCommand.CabActivity; break;
-
             }
             userCommandController.Trigger(command, commandArgs, gameTime);
         }

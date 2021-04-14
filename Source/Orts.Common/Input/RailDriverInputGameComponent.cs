@@ -11,10 +11,6 @@ namespace Orts.Common.Input
         private const int KeyDownShift = 13;
         private const int KeyUpShift = 17;
 
-        // assume the Emergency Stop Commands are never remapped
-        private const byte EmergencyStopCommandUp = 36;
-        private const byte EmergencyStopCommandDown = 37;
-
         private byte[] readBuffer;
         private byte[] readBufferHistory;
 

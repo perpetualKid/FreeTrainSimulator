@@ -23,7 +23,6 @@ namespace Orts.Common.Input
 
             this.userCommandController = userCommandController ?? throw new ArgumentNullException(nameof(userCommandController));
 
-
             userCommandsLookup = EnumExtension.GetValues<T>().Where(command => userCommands[command] is UserCommandKeyInput).SelectMany(command =>
             {
                 List<(int keyEventCode, T command)> result = new List<(int, T)>();
