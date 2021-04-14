@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2020-09-17 08:26:04+0200\n"
-"PO-Revision-Date: 2020-09-17 08:26:05+0200\n"
+"Project-Id-Version: Menu\n"
+"POT-Creation-Date: 2021-04-14 22:55:13+0200\n"
+"PO-Revision-Date: 2021-04-14 22:55:14+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -10,995 +10,16 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: GetText.NET Extractor\n"
 
-#: ..\..\Menu\Options.Designer.cs:1295
-#: ..\..\Menu\Options.Designer.cs:1358
-msgid ""
-"Generate a listing of your keyboard assignments.  \r\n"
-"The output is placed on your desktop."
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:1009
-msgid "World object density"
-msgstr ""
-
-#: ..\..\Menu\OptionsRailDriver.cs:186
-msgid "Click to change this button"
-msgstr ""
-
-#: ..\..\Menu\MainForm.Designer.cs:549
-msgid "Heading to:"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:343
-msgid "Control confirmations"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:2584
-msgid "Minimum length (m)"
-msgstr ""
-
-#: ..\..\Menu\MainForm.cs:574
-#, csharp-format
-msgid ""
-"The update failed due to an error:\n"
-"\n"
-"{0} {1}"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:1294
-#: ..\..\Menu\Options.Designer.cs:1357
-msgid "Export"
-msgstr ""
-
-#: ..\..\Menu\TestingForm.Designer.cs:193
-msgid "ToTest"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:486
-msgid "Pressure unit"
-msgstr ""
-
-#: ..\..\Menu\MainForm.cs:1332
-msgid "Activity Briefing"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:353
-msgid "Dispatcher window"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:1975
-msgid "Currently available Version in this channel:"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:1934
-msgid "Updater"
-msgstr ""
-
-#: ..\..\Menu\Options.cs:273
-msgid ""
-"Continue with conflicting button assignments?\n"
-"\n"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:2433
-msgid "Default is 130%"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:476
-msgid "Other units"
-msgstr ""
-
-#: ..\..\Menu\MainForm.Designer.cs:454
-msgid "Activity:"
-msgstr ""
-
-#: ..\..\Menu\KeyInputEditControl.Designer.cs:75
-msgid "Press any key"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:1965
-msgid "Best Available Version including other channels:"
-msgstr ""
-
-#: ..\..\Menu\Options.cs:464
-msgid "Disabled"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:745
-msgid "MultiSampling (Anti-Aliasing):"
-msgstr ""
-
-#: ..\..\Menu\ResumeForm.Designer.cs:193
-msgid "Import/ export"
-msgstr ""
-
-#: ..\..\Menu\ResumeForm.cs:199
-msgid ""
-"To prevent crashes and unexpected behaviour, Open Rails invalidates games "
-"saved from older versions if they fail to restore.\n"
-"{0} of {1} saves for this route are no longer valid."
-msgstr ""
-
-#: ..\..\Menu\ResumeForm.Designer.cs:387
-msgid "Time"
-msgstr ""
-
-#: ..\..\Menu\Options.cs:475
-#, csharp-format
-msgid "No detail (-{0}%)"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:975
-msgid "Viewing vertical FOV"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:2417
-msgid "Default is 10%"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:2404
-msgid "Level:"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:682
-msgid "Video"
-msgstr ""
-
-#: ..\..\Menu\MainForm.Designer.cs:266
-msgid "Server"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:1593
-msgid "Log performance data"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:2053
-msgid "Minimum update channel (quality bar)"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:1053
-msgid "Glass on in-game windows"
-msgstr ""
-
-#: ..\..\Menu\ResumeForm.Designer.cs:405
-msgid "Tile"
-msgstr ""
-
-#: ..\..\Menu\MainForm.Designer.cs:368
-msgid "Documents ▼"
-msgstr ""
-
-#: ..\..\Menu\MainForm.Designer.cs:675
-#: ..\..\Menu\MainForm.Designer.cs:821
-msgid "Season:"
-msgstr ""
-
-#: ..\..\Menu\MainForm.Designer.cs:147
-#: ..\..\Menu\Options.Designer.cs:2686
-msgid "Options"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:1658
-msgid "Evaluation"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:1720
-msgid "Log train speed"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:1268
-msgid "Advanced adhesion model"
-msgstr ""
-
-#: ..\..\Menu\Options.cs:269
-msgid ""
-"Continue with conflicting key assignments?\n"
-"\n"
-msgstr ""
-
-#: ..\..\Menu\MainForm.Designer.cs:853
-msgid "Timetable set:"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:2546
-msgid "Gauge (mm)"
-msgstr ""
-
-#: ..\..\Menu\ImportExportSaveForm.Designer.cs:40
-msgid "Open Save Packs folder"
-msgstr ""
-
-#: ..\..\Menu\MainForm.Designer.cs:774
-msgid "Day:"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:631
-msgid "Sound detail level"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:1308
-msgid "Load the factory default key assignments."
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:942
-msgid "XXX"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:796
-msgid "100%"
-msgstr ""
-
-#: ..\..\Menu\TestingForm.Designer.cs:86
-msgid "Summary"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:734
-msgid "0x"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:414
-msgid "Port Number"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:1455
-msgid "Full Range Throttle"
-msgstr ""
-
-#: ..\..\Menu\MainForm.cs:1356
-#, csharp-format
-msgid "Consist: {0}"
-msgstr ""
-
-#: ..\..\Menu\ResumeForm.Designer.cs:362
-msgid "File"
-msgstr ""
-
-#: ..\..\Menu\MainForm.cs:310
-#, csharp-format
-msgid "Update to {0}"
-msgstr ""
-
-#: ..\..\Menu\MainForm.Designer.cs:108
-msgid "Start"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:1210
-msgid "Wind dependent resistance"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:588
-msgid "% external sound heard internally"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:1456
-msgid "Use the full range of the Throttle Lever. There will be no Auto Brake!"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:1104
-msgid "Simulation"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:723
-msgid "Use native screen resolution for fullscreen"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:1902
-#: ..\..\Menu\ResumeForm.Designer.cs:379
-msgid "Path"
-msgstr ""
-
-#: ..\..\Menu\TestingForm.Designer.cs:53
-msgid "Test all"
-msgstr ""
-
-#: ..\..\Menu\MainForm.cs:1353
-#, csharp-format
-msgid "Train: {0}"
-msgstr ""
-
-#: ..\..\Menu\MainForm.Designer.cs:572
-msgid "Duration:"
-msgstr ""
-
-#: ..\..\Menu\MainForm.Designer.cs:231
-msgid "User name:"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:2524
-msgid "Automatically tune settings to keep performance level"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:1150
-msgid "Forced red at station stops"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:2455
-msgid "ETCS circular speed gauge"
-msgstr ""
-
-#: ..\..\Menu\MainForm.cs:1345
-#, csharp-format
-msgid "Timetable set: {0}"
-msgstr ""
-
-#: ..\..\Menu\Options.cs:479
-#, csharp-format
-msgid "Default detail (+{0}%)"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:2465
-msgid "Signal light glow"
-msgstr ""
-
-#: ..\..\Menu\MainForm.Designer.cs:380
-msgid "Mode:"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:2325
-msgid "Level of detail bias:"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:1170
-msgid "Simple Control and Physics"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:1603
-msgid "Start logging with the simulation start"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:1633
-msgid "Log Steam performance data"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:1614
-msgid "Separator"
-msgstr ""
-
-#: ..\..\Menu\ResumeForm.cs:470
-#: ..\..\Menu\ResumeForm.cs:485
-#, csharp-format
-msgid "Find location for file {0}"
-msgstr ""
-
-#: ..\..\Menu\ResumeForm.cs:211
-#, csharp-format
-msgid ""
-"Restoring from a save made by version {0} of {1} may be incompatible with "
-"current version {2}. Please do not report any problems that may result.\n"
-"\n"
-"Continue?"
-msgstr ""
-
-#: ..\..\Menu\ResumeForm.Designer.cs:132
-msgid "Resume"
-msgstr ""
-
-#: ..\..\Menu\ResumeForm.Designer.cs:181
-msgid "Delete all invalid saves"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:2305
-msgid "Adhesion factor random change:"
-msgstr ""
-
-#: ..\..\Menu\ImportExportSaveForm.cs:60
-msgid "All files"
-msgstr ""
-
-#: ..\..\Menu\TestingForm.Designer.cs:151
-msgid "Details"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:1816
-msgid "Path:"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:2376
-msgid "Default is 0%"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:1807
-msgid "Name:"
-msgstr ""
-
-#: ..\..\Menu\MainForm.cs:1331
-#, csharp-format
-msgid "Activity: {0}"
-msgstr ""
-
-#: ..\..\Menu\Options.cs:445
-msgid "Hard"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:1678
-msgid "Interval (sec)"
-msgstr ""
-
-#: ..\..\Menu\ImportExportSaveForm.cs:60
-msgid "Save Packs"
-msgstr ""
-
-#: ..\..\Menu\Options.cs:441
-msgid "MSTS Compatible"
-msgstr ""
-
-#: ..\..\Menu\ResumeForm.cs:527
-#, csharp-format
-msgid "Could not change file location from {0} to {1}."
-msgstr ""
-
-#: ..\..\Menu\ResumeForm.cs:383
-#, csharp-format
-msgid "{0} invalid saves have been deleted."
-msgstr ""
-
-#: ..\..\Menu\MainForm.cs:1336
-#: ..\..\Menu\MainForm.cs:1364
-#, csharp-format
-msgid "Path: {0}"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:2315
-msgid "Adhesion factor correction:"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:455
-msgid "Speed control"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:1759
-#: ..\..\Menu\ResumeForm.Designer.cs:144
-msgid "Delete"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:834
-msgid "Vertical sync"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:2150
-msgid "Activity randomization"
-msgstr ""
-
-#: ..\..\Menu\MainForm.Designer.cs:401
-msgid "Timetable"
-msgstr ""
-
-#: ..\..\Menu\KeyInputEditControl.Designer.cs:65
-#: ..\..\Menu\RDButtonInputControl.Designer.cs:60
-msgid "Cancel changes"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:1777
-msgid "Installation profile"
-msgstr ""
-
-#: ..\..\Menu\ResumeForm.Designer.cs:257
-msgid "Replay from previous save"
-msgstr ""
-
-#: ..\..\Menu\MainForm.cs:551
-msgid ""
-"User name must be 4-10 characters (chars, digits, _) long, cannot contain "
-"space, ', " or - and must not start with a digit."
-msgstr ""
-
-#: ..\..\Menu\ResumeForm.Designer.cs:295
-msgid "Pause seconds before end:"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:806
-msgid "Model instancing"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:2105
-msgid "Experimental"
-msgstr ""
-
-#: ..\..\Menu\ResumeForm.cs:124
-msgid "Explore in Activity Mode"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:893
-msgid "Distant mountains"
-msgstr ""
-
-#: ..\..\Menu\TestingForm.Designer.cs:224
+#: ..\..\Menu\TestingForm.Designer.cs:185
 msgid "Route"
 msgstr ""
 
-#: ..\..\Menu\MainForm.Designer.cs:709
-msgid "Weather File:"
-msgstr ""
-
-#: ..\..\Menu\MainForm.Designer.cs:751
-msgid "Timetable:"
-msgstr ""
-
-#: ..\..\Menu\TestingForm.Designer.cs:271
-msgid "Load Time"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:1500
-msgid "Reverse Reverser Direction"
-msgstr ""
-
-#: ..\..\Menu\MainForm.cs:1327
-#: ..\..\Menu\MainForm.cs:1359
-#, csharp-format
-msgid "Locomotive: {0}"
-msgstr ""
-
-#: ..\..\Menu\MainForm.cs:564
-#, csharp-format
-msgid ""
-"The update check failed due to an error:\n"
-"\n"
-"{0} {1}"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:1393
-msgid "Calibrate the lever position reading"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:1478
-msgid "Reverse Auto Brake Direction"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:2649
-msgid "0: no elevation, 1: 9cm max; 10: 18cm max"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:1623
-msgid "Log physics data"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:1561
-msgid "Speed units"
-msgstr ""
-
-#: ..\..\Menu\ResumeForm.Designer.cs:371
-msgid "Saved At"
-msgstr ""
-
-#: ..\..\Menu\TestingForm.Designer.cs:214
-msgid "DefaultSort"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:514
-msgid "Language"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:1258
-msgid "Break couplers"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:559
-msgid "Audio"
-msgstr ""
-
-#: ..\..\Menu\Options.cs:447
-msgid "Very Hard"
-msgstr ""
-
-#: ..\..\Menu\ResumeForm.cs:201
-#, csharp-format
-msgid "{0} of {1} saves for this route are no longer valid."
-msgstr ""
-
-#: ..\..\Menu\OptionsKeyboard.cs:124
-#: ..\..\Menu\OptionsRailDriver.cs:265
-msgid "No errors found."
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:311
-msgid "Graduated release air brakes"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:1573
-msgid ""
-"Use data logger to record your simulation data (in-game command: F12).\r\n"
-"Please remember that the size of the dump file grows with the simulation "
-"time!"
-msgstr ""
-
-#: ..\..\Menu\MainForm.Designer.cs:299
-msgid "Resume MP"
-msgstr ""
-
-#: ..\..\Menu\ImportExportSaveForm.cs:108
-msgid ""
-"\r\n"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:465
-msgid "Disable TCS scripts"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:621
-msgid "% sound volume"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:869
-#: ..\..\Menu\Options.Designer.cs:2510
-msgid "Distance to see mountains"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:2659
-msgid "Super-elevation"
-msgstr ""
-
-#: ..\..\Menu\MainForm.cs:1337
-#, csharp-format
-msgid "Starting at: {0}"
-msgstr ""
-
-#: ..\..\Menu\MainForm.Designer.cs:442
-msgid "Debrief evaluation:"
-msgstr ""
-
-#: ..\..\Menu\ImportExportSaveForm.cs:109
-#, csharp-format
-msgid "Save Pack folder contains {0} save pack:"
-msgid_plural "Save Pack folder contains {0} save packs:"
-msgstr[0] ""
-msgstr[1] ""
-
-#: ..\..\Menu\Options.Designer.cs:332
-msgid "Alerter in cab"
-msgstr ""
-
-#: ..\..\Menu\MainForm.Designer.cs:391
-#: ..\..\Menu\TestingForm.Designer.cs:232
-msgid "Activity"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:404
-msgid "General"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:1139
-msgid "Open/close doors in AI trains"
-msgstr ""
-
-#: ..\..\Menu\ResumeForm.cs:124
-#: ..\..\Menu\ResumeForm.cs:184
-msgid "Explore Route"
-msgstr ""
-
-#: ..\..\Menu\ImportExportSaveForm.cs:82
-#, csharp-format
-msgid "Save Pack '{0}' exported successfully."
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:2535
-msgid "Extend object maximum viewing distance to horizon"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:1220
-msgid "Override non-electrified route line-voltage"
-msgstr ""
-
-#: ..\..\Menu\Options.cs:415
-#, csharp-format
-msgid ""
-"{0:F0}° vertical FOV is the same as:\n"
-"{1:F0}° horizontal FOV on 4:3\n"
-"{2:F0}° horizontal FOV on 16:9"
-msgstr ""
-
-#: ..\..\Menu\ResumeForm.Designer.cs:157
-msgid "Undelete"
-msgstr ""
-
-#: ..\..\Menu\ResumeForm.Designer.cs:158
-#: ..\..\Menu\ResumeForm.Designer.cs:194
-msgid "Restores all saves deleted in this session."
-msgstr ""
-
-#: ..\..\Menu\TestingForm.Designer.cs:250
-msgid "Passed"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:1944
-msgid ""
-"The best available version from any channel equal or higher the current "
-"quality selection will be installed. \r\n"
-"That is, if you chose "RC"(release candidate) channel, updates which are RC, "
-"or higher (typically final releases) will be considered (CI < Dev < RC < "
-"Release)."
-msgstr ""
-
-#: ..\..\Menu\MainForm.Designer.cs:477
-msgid "Locomotive:"
-msgstr ""
-
-#: ..\..\Menu\TestingForm.Designer.cs:282
-msgid "FPS"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:1467
-msgid "Reverse Independent Brake Direction"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:905
-msgid "Viewing distance (m)"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:701
-msgid "Window"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:1180
-msgid "Curve dependent speed limit"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:2268
-msgid "Precipitation box height (m)"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:776
-msgid "Double overhead wires"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:2486
-msgid "Target frame rate"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:1736
-msgid "Content"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:1128
+#: ..\..\Menu\Options.Designer.cs:1174
 msgid "Location-linked passing path processing"
 msgstr ""
 
-#: ..\..\Menu\OptionsRailDriver.cs:272
-msgid ""
-"A listing of all Raildriver button assignments has been placed here:\n"
-"\n"
-msgstr ""
-
-#: ..\..\Menu\MainForm.cs:1321
-#, csharp-format
-msgid "Route: {0}"
-msgstr ""
-
-#: ..\..\Menu\ImportExportSaveForm.Designer.cs:94
-msgid "Import and export saved games"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:543
-msgid "Retainer valve on all cars"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:988
-msgid ""
-"0 to clip cab view, 100 to stretch it. For cab views that match the display, "
-"use 100."
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:2361
-msgid "Show shape warnings"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:2668
-msgid "Load DDS textures in preference to ACE"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:2012
-msgid "Always"
-msgstr ""
-
-#: ..\..\Menu\KeyInputEditControl.Designer.cs:108
-msgid "EditKey"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:2130
-#: ..\..\Menu\Options.Designer.cs:2174
-msgid ""
-"0: no randomization, 1: moderate, 2: significant; 3: high (may be "
-"unrealistic)"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:999
-msgid "% cab 2D stretch"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:1749
-msgid ""
-"Installation profiles tell Open Rails where to look for game content. Add "
-"each full and mini-route MSTS installation."
-msgstr ""
-
-#: ..\..\Menu\MainForm.Designer.cs:312
-msgid "Singleplayer"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:1530
-msgid "Data logger"
-msgstr ""
-
-#: ..\..\Menu\MainForm.Designer.cs:120
-#: ..\..\Menu\MainForm.Designer.cs:929
-msgid "Open Rails"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:1404
-msgid ""
-"Show a legend of RailDriver board with button and lever description. Press "
-"cancel to close again."
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:1160
-msgid "Steam locomotive hot start"
-msgstr ""
-
-#: ..\..\Menu\MainForm.Designer.cs:322
-msgid "Installation profile:"
-msgstr ""
-
-#: ..\..\Menu\Options.cs:464
-#, csharp-format
-msgid "{0}x"
-msgstr ""
-
-#: ..\..\Menu\MainForm.Designer.cs:653
-msgid "Difficulty:"
-msgstr ""
-
-#: ..\..\Menu\TestingForm.Designer.cs:64
-msgid "Test"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:1347
-msgid "RailDriver"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:2635
-msgid ""
-"Experimental features that may slow down the game, use at your own risk."
-msgstr ""
-
-#: ..\..\Menu\Options.cs:477
-#, csharp-format
-msgid "Less detail (-{0}%)"
-msgstr ""
-
-#: ..\..\Menu\MainForm.cs:1349
-#, csharp-format
-msgid "Timetable: {0}"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:1583
-msgid "Log miscellaneous data"
-msgstr ""
-
-#: ..\..\Menu\MainForm.cs:1353
-#, csharp-format
-msgid "Start time: {0}"
-msgstr ""
-
-#: ..\..\Menu\KeyInputEditControl.Designer.cs:64
-#: ..\..\Menu\RDButtonInputControl.Designer.cs:59
-msgid "✘"
-msgstr ""
-
-#: ..\..\Menu\KeyInputEditControl.Designer.cs:86
-#: ..\..\Menu\RDButtonInputControl.Designer.cs:84
-msgid "↺"
-msgstr ""
-
-#: ..\..\Menu\ImportExportSaveForm.cs:111
-msgid ""
-"\r\n"
-"    "
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:2386
-msgid "Load day/night textures only when needed"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:322
-#: ..\..\Menu\TestingForm.Designer.cs:75
-msgid "Cancel"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:1319
-#: ..\..\Menu\Options.Designer.cs:1369
-msgid "Check"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:606
-msgid "Sound Volume 0-100"
-msgstr ""
-
-#: ..\..\Menu\MainForm.Designer.cs:157
-msgid "Resume/ Replay..."
-msgstr ""
-
-#: ..\..\Menu\KeyInputEditControl.Designer.cs:87
-#: ..\..\Menu\RDButtonInputControl.Designer.cs:85
-msgid "Reset to default"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:445
-msgid "Enable WebServer"
-msgstr ""
-
-#: ..\..\Menu\Options.cs:459
-#: ..\..\Menu\Options.cs:426
-#: ..\..\Menu\Options.cs:427
-#: ..\..\Menu\Options.cs:420
-#, csharp-format
-msgid "{0}%"
-msgstr ""
-
-#: ..\..\Menu\OptionsKeyboard.cs:96
-msgid "Click to change this key"
-msgstr ""
-
-#: ..\..\Menu\ResumeForm.Designer.cs:448
-msgid "Saved Games"
-msgstr ""
-
-#: ..\..\Menu\ImportExportSaveForm.Designer.cs:50
-msgid "Export to Save Pack"
-msgstr ""
-
-#: ..\..\Menu\MainForm.Designer.cs:630
-#: ..\..\Menu\MainForm.Designer.cs:798
-msgid "Weather:"
-msgstr ""
-
-#: ..\..\Menu\Options.cs:464
-#, csharp-format
-msgid "Disabled{0}x"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:2608
-msgid "Shortest curve to have elevation"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:1307
-#: ..\..\Menu\Options.Designer.cs:1380
-msgid "Defaults"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:2231
-msgid "Precipitation box width (m)"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:1786
-msgid "Change..."
-msgstr ""
-
-#: ..\..\Menu\MainForm.Designer.cs:138
-msgid "Logging"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:1687
-msgid "Log station stops"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:1118
-msgid "Activity Options"
-msgstr ""
-
-#: ..\..\Menu\MainForm.cs:1338
-#, csharp-format
-msgid "Heading to: {0}"
-msgstr ""
-
-#: ..\..\Menu\MainForm.cs:723
-msgid ":"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:2444
-msgid "Adhesion proportional to rain/snow/fog"
-msgstr ""
-
-#: ..\..\Menu\TestingForm.Designer.cs:163
-msgid "Override user settings when running tests"
+#: ..\..\Menu\Options.Designer.cs:1220
+msgid "Simple Control and Physics"
 msgstr ""
 
 #: ..\..\Menu\OptionsKeyboard.cs:115
@@ -1007,97 +28,516 @@ msgid ""
 "\n"
 msgstr ""
 
-#: ..\..\Menu\MainForm.Designer.cs:289
-msgid "Start MP"
+#: ..\..\Menu\Options.Designer.cs:349
+msgid "Control confirmations"
 msgstr ""
 
-#: ..\..\Menu\Options.Designer.cs:1370
 #: ..\..\Menu\Options.Designer.cs:1381
-msgid "Load the factory default button assignments."
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:883
-msgid "Fast Fullscreen Alt-Tab"
-msgstr ""
-
-#: ..\..\Menu\ResumeForm.Designer.cs:145
-msgid "Deletes the currently selected save or saves."
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:1320
 msgid "Check for incorrect key assignments."
 msgstr ""
 
-#: ..\..\Menu\Options.Designer.cs:533
-msgid "Also in external views"
+#: ..\..\Menu\Options.Designer.cs:2414
+msgid "Adhesion factor random change:"
 msgstr ""
 
-#: ..\..\Menu\Options.Designer.cs:1063
-msgid ""
-"Window size or FullScreen resolution (type WIDTH x HEIGHT for custom size)"
+#: ..\..\Menu\MainForm.Designer.cs:667
+#: ..\..\Menu\MainForm.Designer.cs:843
+msgid "Weather:"
 msgstr ""
 
-#: ..\..\Menu\Options.Designer.cs:787
-msgid "Ambient daylight brightness:"
+#: ..\..\Menu\KeyInputEditControl.Designer.cs:55
+#: ..\..\Menu\RDButtonInputControl.Designer.cs:49
+msgid "Accept changes"
 msgstr ""
 
-#: ..\..\Menu\Options.Designer.cs:1082
-msgid "Overhead wire"
+#: ..\..\Menu\ResumeForm.Designer.cs:237
+#: ..\..\Menu\ResumeForm.Designer.cs:273
+msgid "Restores all saves deleted in this session."
 msgstr ""
 
-#: ..\..\Menu\MainForm.Designer.cs:220
-msgid "Host/port:"
+#: ..\..\Menu\MainForm.Designer.cs:750
+msgid "Weather File:"
 msgstr ""
 
-#: ..\..\Menu\ResumeForm.Designer.cs:211
-msgid "Invalid saves"
+#: ..\..\Menu\Options.Designer.cs:1901
+msgid "Name:"
 msgstr ""
 
-#: ..\..\Menu\MainForm.Designer.cs:582
-msgid "Time:"
+#: ..\..\Menu\Options.Designer.cs:608
+msgid "% external sound heard internally"
 msgstr ""
 
-#: ..\..\Menu\Options.Designer.cs:1392
-msgid "Calibration"
+#: ..\..\Menu\Options.Designer.cs:837
+msgid "Model instancing"
 msgstr ""
 
-#: ..\..\Menu\OptionsRailDriver.cs:247
-msgid "Remove all custom button assignments?"
+#: ..\..\Menu\Options.Designer.cs:2338
+msgid "Precipitation box width (m)"
 msgstr ""
 
-#: ..\..\Menu\Options.Designer.cs:2183
-msgid "Correct questionable braking parameters"
+#: ..\..\Menu\TestingForm.Designer.cs:280
+msgid "Override user settings when running tests"
 msgstr ""
 
-#: ..\..\Menu\Options.Designer.cs:1190
-msgid "Curve dependent resistance"
+#: ..\..\Menu\MainForm.Designer.cs:543
+msgid "Consist:"
 msgstr ""
 
-#: ..\..\Menu\Options.Designer.cs:1403
+#: ..\..\Menu\Options.Designer.cs:578
+msgid "Audio"
+msgstr ""
+
+#: ..\..\Menu\MainForm.Designer.cs:390
+msgid "Documents ▼"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:1673
+msgid "Log performance data"
+msgstr ""
+
+#: ..\..\Menu\ImportExportSaveForm.cs:77
+#, csharp-format
+msgid "Save Pack '{0}' exported successfully."
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:2030
+msgid "Updater"
+msgstr ""
+
+#: ..\..\Menu\TestingForm.Designer.cs:174
+msgid "DefaultSort"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:2112
+msgid "Always"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:1564
+msgid "Reverse Throttle Direction"
+msgstr ""
+
+#: ..\..\Menu\OptionsKeyboard.cs:124
+#: ..\..\Menu\OptionsRailDriver.cs:265
+msgid "No errors found."
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:1470
 msgid "Legend"
 msgstr ""
 
-#: ..\..\Menu\Options.Designer.cs:822
-msgid "Default is 100%"
+#: ..\..\Menu\KeyInputEditControl.Designer.cs:90
+#: ..\..\Menu\RDButtonInputControl.Designer.cs:84
+msgid "↺"
 msgstr ""
 
-#: ..\..\Menu\ResumeForm.Designer.cs:413
+#: ..\..\Menu\ResumeForm.Designer.cs:347
+msgid "Replay from start"
+msgstr ""
+
+#: ..\..\Menu\MainForm.cs:1330
+#, csharp-format
+msgid "Timetable: {0}"
+msgstr ""
+
+#: ..\..\Menu\MainForm.Designer.cs:794
+msgid "Timetable:"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:413
+msgid "General"
+msgstr ""
+
+#: ..\..\Menu\TestingForm.Designer.cs:162
+msgid "ActivityFilePath"
+msgstr ""
+
+#: ..\..\Menu\MainForm.Designer.cs:340
+msgid "Installation profile:"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:1410
+msgid "RailDriver"
+msgstr ""
+
+#: ..\..\Menu\MainForm.Designer.cs:468
+msgid "Debrief evaluation:"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:337
+msgid "Alerter in cab"
+msgstr ""
+
+#: ..\..\Menu\Options.cs:626
+#: ..\..\Menu\Options.cs:627
+#: ..\..\Menu\Options.Designer.cs:2052
+#: ..\..\Menu\Options.Designer.cs:2091
+msgid "n/a"
+msgstr ""
+
+#: ..\..\Menu\Options.cs:442
+msgid "Easy"
+msgstr ""
+
+#: ..\..\Menu\ResumeForm.Designer.cs:173
 msgid "Valid"
 msgstr ""
 
-#: ..\..\Menu\TestingForm.Designer.cs:240
-msgid "Tested"
+#: ..\..\Menu\Options.cs:440
+msgid "Very easy"
 msgstr ""
 
-#: ..\..\Menu\Options.Designer.cs:2140
+#: ..\..\Menu\Options.Designer.cs:1576
+msgid "Reverse Reverser Direction"
+msgstr ""
+
+#: ..\..\Menu\MainForm.Designer.cs:818
+msgid "Day:"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:1186
+msgid "Open/close doors in AI trains"
+msgstr ""
+
+#: ..\..\Menu\Options.cs:446
+msgid "Normal"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:1036
+msgid "% cab 2D stretch"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:1113
+msgid "Dynamic shadows"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:1471
+msgid ""
+"Show a legend of RailDriver board with button and lever description. Press "
+"cancel to close again."
+msgstr ""
+
+#: ..\..\Menu\Options.cs:276
+msgid ""
+"Continue with conflicting button assignments?\n"
+"\n"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:360
+msgid "Dispatcher window"
+msgstr ""
+
+#: ..\..\Menu\ResumeForm.cs:465
+#: ..\..\Menu\ResumeForm.cs:480
+#, csharp-format
+msgid "Find location for file {0}"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:2593
+msgid "MSTS environments"
+msgstr ""
+
+#: ..\..\Menu\MainForm.Designer.cs:922
+#: ..\..\Menu\TestingForm.Designer.cs:327
+msgid "Testing"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:2157
+msgid "Minimum update channel (quality bar)"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:1354
+#: ..\..\Menu\Options.Designer.cs:1422
+msgid ""
+"Generate a listing of your keyboard assignments.  \r\n"
+"The output is placed on your desktop."
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:1743
+msgid "Evaluation"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:2062
+msgid "Best Available Version including other channels:"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:1025
+msgid ""
+"0 to clip cab view, 100 to stretch it. For cab views that match the display, "
+"use 100."
+msgstr ""
+
+#: ..\..\Menu\Options.cs:478
+#, csharp-format
+msgid "No detail (-{0}%)"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:1342
+msgid "Keyboard"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:1209
+msgid "Steam locomotive hot start"
+msgstr ""
+
+#: ..\..\Menu\KeyInputEditControl.Designer.cs:66
+#: ..\..\Menu\RDButtonInputControl.Designer.cs:59
+msgid "✘"
+msgstr ""
+
+#: ..\..\Menu\ResumeForm.Designer.cs:361
+msgid "Pause replay at end"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:1264
+msgid "Wind dependent resistance"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:2643
+msgid "Automatically tune settings to keep performance level"
+msgstr ""
+
+#: ..\..\Menu\ResumeForm.Designer.cs:374
+msgid "Pause seconds before end:"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:1837
+msgid ""
+"Installation profiles tell Open Rails where to look for game content. Add "
+"each full and mini-route MSTS installation."
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:1325
+msgid "Advanced adhesion model"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:2728
+msgid "Shortest curve to have elevation"
+msgstr ""
+
+#: ..\..\Menu\MainForm.Designer.cs:141
+msgid "Logging"
+msgstr ""
+
+#: ..\..\Menu\MainForm.cs:1341
+#, csharp-format
+msgid "Consist: {0}"
+msgstr ""
+
+#: ..\..\Menu\KeyInputEditControl.Designer.cs:91
+#: ..\..\Menu\RDButtonInputControl.Designer.cs:85
+msgid "Reset to default"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:1716
+msgid "Log Steam performance data"
+msgstr ""
+
+#: ..\..\Menu\ImportExportSaveForm.cs:104
+#, csharp-format
+msgid "Save Pack folder contains {0} save pack:"
+msgid_plural "Save Pack folder contains {0} save packs:"
+msgstr[0] ""
+msgstr[1] ""
+
+#: ..\..\Menu\MainForm.cs:701
+msgid ":"
+msgstr ""
+
+#: ..\..\Menu\OptionsRailDriver.cs:272
+msgid ""
+"A listing of all Raildriver button assignments has been placed here:\n"
+"\n"
+msgstr ""
+
+#: ..\..\Menu\KeyInputEditControl.Designer.cs:67
+#: ..\..\Menu\RDButtonInputControl.Designer.cs:60
+msgid "Cancel changes"
+msgstr ""
+
+#: ..\..\Menu\MainForm.Designer.cs:480
+msgid "Activity:"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:2101
+msgid "Q"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:901
+#: ..\..\Menu\Options.Designer.cs:2628
+msgid "Distance to see mountains"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:479
+msgid "Disable TCS scripts"
+msgstr ""
+
+#: ..\..\Menu\Options.cs:486
+#, csharp-format
+msgid "All detail (+{0}%)"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:750
+msgid "Use native screen resolution for fullscreen"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:2498
+msgid "Load day/night textures only when needed"
+msgstr ""
+
+#: ..\..\Menu\MainForm.Designer.cs:772
+msgid "Train:"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:2604
+msgid "Target frame rate"
+msgstr ""
+
+#: ..\..\Menu\ResumeForm.cs:119
+#: ..\..\Menu\ResumeForm.cs:179
+msgid "Explore Route"
+msgstr ""
+
+#: ..\..\Menu\ResumeForm.cs:378
+#, csharp-format
+msgid "{0} invalid saves have been deleted."
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:1824
+msgid "Content"
+msgstr ""
+
+#: ..\..\Menu\Options.cs:480
+#, csharp-format
+msgid "Less detail (-{0}%)"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:1380
+#: ..\..\Menu\Options.Designer.cs:1434
+msgid "Check"
+msgstr ""
+
+#: ..\..\Menu\MainForm.cs:1316
+#, csharp-format
+msgid "Starting at: {0}"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:530
+msgid "Language"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:1093
+msgid "Glass on in-game windows"
+msgstr ""
+
+#: ..\..\Menu\MainForm.Designer.cs:604
+msgid "Duration:"
+msgstr ""
+
+#: ..\..\Menu\ResumeForm.cs:206
+#, csharp-format
+msgid ""
+"Restoring from a save made by version {0} of {1} may be incompatible with "
+"current version {2}. Please do not report any problems that may result.\n"
+"\n"
+"Continue?"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:1868
+msgid "Installation profile"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:652
+msgid "Sound detail level"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:1639
+msgid "Speed units"
+msgstr ""
+
+#: ..\..\Menu\ResumeForm.cs:195
+msgid ""
+"To prevent crashes and unexpected behaviour, Open Rails invalidates games "
+"saved from older versions if they fail to restore.\n"
+msgstr ""
+
+#: ..\..\Menu\MainForm.Designer.cs:229
+msgid "Host/port:"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:817
+msgid "Ambient daylight brightness:"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:2245
 msgid "Activity weather randomization"
 msgstr ""
 
-#: ..\..\Menu\ResumeForm.Designer.cs:422
-msgid "Eval"
+#: ..\..\Menu\MainForm.cs:1306
+#: ..\..\Menu\MainForm.cs:1344
+#, csharp-format
+msgid "Locomotive: {0}"
 msgstr ""
 
-#: ..\..\Menu\ResumeForm.cs:219
+#: ..\..\Menu\ResumeForm.cs:196
+#, csharp-format
+msgid "{0} of {1} saves for this route are no longer valid."
+msgstr ""
+
+#: ..\..\Menu\MainForm.Designer.cs:172
+msgid "Tools ▼"
+msgstr ""
+
+#: ..\..\Menu\ResumeForm.Designer.cs:260
+msgid "Delete all invalid saves"
+msgstr ""
+
+#: ..\..\Menu\MainForm.cs:1335
+#: ..\..\Menu\MainForm.cs:1337
+#, csharp-format
+msgid "Train: {0}"
+msgstr ""
+
+#: ..\..\Menu\Options.cs:272
+msgid ""
+"Continue with conflicting key assignments?\n"
+"\n"
+msgstr ""
+
+#: ..\..\Menu\Options.cs:484
+#, csharp-format
+msgid "More detail (+{0}%)"
+msgstr ""
+
+#: ..\..\Menu\MainForm.Designer.cs:402
+msgid "Mode:"
+msgstr ""
+
+#: ..\..\Menu\Options.cs:467
+#, csharp-format
+msgid "{0}x"
+msgstr ""
+
+#: ..\..\Menu\MainForm.Designer.cs:315
+msgid "Resume MP"
+msgstr ""
+
+#: ..\..\Menu\ImportExportSaveForm.Designer.cs:100
+msgid "Import and export saved games"
+msgstr ""
+
+#: ..\..\Menu\TestingForm.Designer.cs:267
+msgid "Details"
+msgstr ""
+
+#: ..\..\Menu\ResumeForm.Designer.cs:224
+msgid "Deletes the currently selected save or saves."
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:1991
+msgid "Name"
+msgstr ""
+
+#: ..\..\Menu\ResumeForm.cs:214
 msgid ""
 "The selected file contains Debrief Eval data.\n"
 "But Debrief Evaluation checkbox (Main menu) is unchecked.\n"
@@ -1106,173 +546,612 @@ msgid ""
 "Continue?"
 msgstr ""
 
-#: ..\..\Menu\Options.Designer.cs:2194
-msgid "Precipitation box length (m)"
-msgstr ""
-
-#: ..\..\Menu\Options.cs:481
+#: ..\..\Menu\Options.cs:418
 #, csharp-format
-msgid "More detail (+{0}%)"
+msgid ""
+"{0:F0}° vertical FOV is the same as:\n"
+"{1:F0}° horizontal FOV on 4:3\n"
+"{2:F0}° horizontal FOV on 16:9"
 msgstr ""
 
-#: ..\..\Menu\Options.Designer.cs:766
+#: ..\..\Menu\Options.Designer.cs:2516
+msgid "Level:"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:1367
+#: ..\..\Menu\Options.Designer.cs:1446
+msgid "Defaults"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:1727
+msgid "Verbose ENG/WAG configuration messages"
+msgstr ""
+
+#: ..\..\Menu\TestingForm.Designer.cs:291
+msgid "Clear sort"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:550
+msgid "Also in external views"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:977
+msgid "XXX"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:795
 msgid "Shadow for all shapes"
 msgstr ""
 
-#: ..\..\Menu\Options.Designer.cs:302
-msgid "Brake pipe charging rate (PSI/s)"
+#: ..\..\Menu\Options.Designer.cs:593
+msgid ""
+"Min 0 Max 100. Higher: louder sound\r\n"
+"\r\n"
 msgstr ""
 
-#: ..\..\Menu\Options.Designer.cs:1072
-msgid "Dynamic shadows"
+#: ..\..\Menu\Options.Designer.cs:826
+msgid "100%"
 msgstr ""
 
-#: ..\..\Menu\Options.Designer.cs:2044
-msgid "Update Check"
+#: ..\..\Menu\Options.Designer.cs:1540
+msgid "Reverse Independent Brake Direction"
 msgstr ""
 
-#: ..\..\Menu\ImportExportSaveForm.cs:71
+#: ..\..\Menu\Options.Designer.cs:1147
+msgid "Simulation"
+msgstr ""
+
+#: ..\..\Menu\Options.cs:452
+msgid "Good luck!"
+msgstr ""
+
+#: ..\..\Menu\Options.cs:482
 #, csharp-format
-msgid "Save Pack '{0}' imported successfully."
+msgid "Default detail (+{0}%)"
 msgstr ""
 
-#: ..\..\Menu\Options.cs:437
-msgid "Very easy"
+#: ..\..\Menu\Options.Designer.cs:1242
+msgid "Curve dependent resistance"
 msgstr ""
 
-#: ..\..\Menu\Options.Designer.cs:1200
-msgid "Tunnel dependent resistance"
+#: ..\..\Menu\MainForm.Designer.cs:122
+#: ..\..\Menu\MainForm.Designer.cs:981
+msgid "Open Rails"
 msgstr ""
 
-#: ..\..\Menu\Options.Designer.cs:845
-msgid "Viewing distance (km)"
+#: ..\..\Menu\MainForm.Designer.cs:109
+msgid "Start"
 msgstr ""
 
-#: ..\..\Menu\MainForm.Designer.cs:891
-msgid "What's new?"
+#: ..\..\Menu\MainForm.Designer.cs:162
+msgid "Resume/ Replay..."
 msgstr ""
 
-#: ..\..\Menu\Options.Designer.cs:1284
-msgid "Keyboard"
+#: ..\..\Menu\Options.Designer.cs:853
+msgid "Default is 100%"
 msgstr ""
 
-#: ..\..\Menu\Options.Designer.cs:2116
-#: ..\..\Menu\Options.Designer.cs:2160
-#: ..\..\Menu\Options.Designer.cs:2623
-msgid "Level"
+#: ..\..\Menu\MainForm.Designer.cs:270
+#: ..\..\Menu\ResumeForm.cs:124
+msgid "Multiplayer"
 msgstr ""
 
-#: ..\..\Menu\MainForm.Designer.cs:278
-msgid "Client"
+#: ..\..\Menu\Options.Designer.cs:468
+msgid "Speed control"
 msgstr ""
 
-#: ..\..\Menu\MainForm.Designer.cs:873
-#: ..\..\Menu\TestingForm.Designer.cs:304
-msgid "Testing"
+#: ..\..\Menu\Options.Designer.cs:561
+msgid "Retainer valve on all cars"
 msgstr ""
 
-#: ..\..\Menu\ImportExportSaveForm.Designer.cs:60
-msgid "Import Save Pack"
+#: ..\..\Menu\Options.Designer.cs:1911
+msgid "Path:"
 msgstr ""
 
-#: ..\..\Menu\Options.Designer.cs:1835
-msgid "Add..."
+#: ..\..\Menu\Options.Designer.cs:939
+msgid "Viewing distance (m)"
 msgstr ""
 
-#: ..\..\Menu\MainForm.Designer.cs:525
-msgid "Starting at:"
-msgstr ""
-
-#: ..\..\Menu\Options.cs:623
-#: ..\..\Menu\Options.cs:624
-#: ..\..\Menu\Options.Designer.cs:1954
-#: ..\..\Menu\Options.Designer.cs:1991
-msgid "n/a"
-msgstr ""
-
-#: ..\..\Menu\Options.Designer.cs:1489
-msgid "Reverse Throttle Direction"
-msgstr ""
-
-#: ..\..\Menu\MainForm.Designer.cs:730
-msgid "Train:"
+#: ..\..\Menu\MainForm.Designer.cs:330
+msgid "Singleplayer"
 msgstr ""
 
 #: ..\..\Menu\OptionsKeyboard.cs:104
 msgid "Remove all custom key assignments?"
 msgstr ""
 
-#: ..\..\Menu\MainForm.Designer.cs:514
-msgid "Consist:"
+#: ..\..\Menu\Options.Designer.cs:314
+msgid "Graduated release air brakes"
 msgstr ""
 
-#: ..\..\Menu\TestingForm.Designer.cs:203
-msgid "ActivityFilePath"
+#: ..\..\Menu\Options.Designer.cs:1662
+msgid "Log miscellaneous data"
 msgstr ""
 
-#: ..\..\Menu\Options.Designer.cs:1643
-msgid "Verbose ENG/WAG configuration messages"
+#: ..\..\Menu\MainForm.Designer.cs:414
+#: ..\..\Menu\TestingForm.Designer.cs:194
+msgid "Activity"
 msgstr ""
 
-#: ..\..\Menu\Options.Designer.cs:2475
-msgid "MSTS environments"
+#: ..\..\Menu\Options.cs:462
+#: ..\..\Menu\Options.cs:429
+#: ..\..\Menu\Options.cs:430
+#: ..\..\Menu\Options.cs:423
+#, csharp-format
+msgid "{0}%"
 msgstr ""
 
-#: ..\..\Menu\ResumeForm.Designer.cs:282
-msgid "Pause replay at end"
+#: ..\..\Menu\Options.Designer.cs:1103
+msgid ""
+"Window size or FullScreen resolution (type WIDTH x HEIGHT for custom size)"
 msgstr ""
 
-#: ..\..\Menu\Options.Designer.cs:1445
-msgid "Reverse Levers"
+#: ..\..\Menu\Options.cs:444
+msgid "MSTS Compatible"
 msgstr ""
 
-#: ..\..\Menu\MainForm.Designer.cs:258
-#: ..\..\Menu\ResumeForm.cs:129
-msgid "Multiplayer"
+#: ..\..\Menu\Options.Designer.cs:916
+msgid "Fast Fullscreen Alt-Tab"
 msgstr ""
 
-#: ..\..\Menu\Options.Designer.cs:268
-msgid "OK"
+#: ..\..\Menu\ImportExportSaveForm.cs:55
+msgid "All files"
 msgstr ""
 
-#: ..\..\Menu\MainForm.cs:301
-msgid "Update check failed"
+#: ..\..\Menu\MainForm.cs:1324
+#, csharp-format
+msgid "Timetable set: {0}"
 msgstr ""
 
-#: ..\..\Menu\Options.Designer.cs:1231
+#: ..\..\Menu\Options.cs:467
+#, csharp-format
+msgid "Disabled"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:490
+msgid "Other units"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:1286
 msgid "Adhesion moving average filter size"
 msgstr ""
 
-#: ..\..\Menu\Options.cs:483
+#: ..\..\Menu\Options.Designer.cs:1684
+msgid "Start logging with the simulation start"
+msgstr ""
+
+#: ..\..\Menu\MainForm.cs:559
 #, csharp-format
-msgid "All detail (+{0}%)"
+msgid ""
+"The update check failed due to an error:\n"
+"\n"
+"{0} {1}"
 msgstr ""
 
-#: ..\..\Menu\ResumeForm.Designer.cs:397
-msgid "Distance"
+#: ..\..\Menu\ResumeForm.Designer.cs:211
+msgid "Resume"
 msgstr ""
 
-#: ..\..\Menu\KeyInputEditControl.Designer.cs:54
-#: ..\..\Menu\RDButtonInputControl.Designer.cs:49
-msgid "Accept changes"
+#: ..\..\Menu\Options.Designer.cs:457
+msgid "Enable WebServer"
 msgstr ""
 
-#: ..\..\Menu\TestingForm.Designer.cs:260
-msgid "Errors"
+#: ..\..\Menu\Options.Designer.cs:1695
+msgid "Separator"
 msgstr ""
 
-#: ..\..\Menu\ResumeForm.cs:200
+#: ..\..\Menu\Options.Designer.cs:2300
+msgid "Precipitation box length (m)"
+msgstr ""
+
+#: ..\..\Menu\MainForm.cs:546
+msgid ""
+"User name must be 4-10 characters (chars, digits, _) long, cannot contain "
+"space, ', \" or - and must not start with a digit."
+msgstr ""
+
+#: ..\..\Menu\MainForm.Designer.cs:504
+msgid "Locomotive:"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:2376
+msgid "Precipitation box height (m)"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:2666
+msgid "Gauge (mm)"
+msgstr ""
+
+#: ..\..\Menu\Options.cs:448
+msgid "Hard"
+msgstr ""
+
+#: ..\..\Menu\MainForm.Designer.cs:292
+msgid "Client"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:2547
+msgid "Default is 130%"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:2000
+#: ..\..\Menu\ResumeForm.Designer.cs:135
+msgid "Path"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:2072
+msgid "Currently available Version in this channel:"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:2582
+msgid "Signal light glow"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:1763
+msgid "Interval (sec)"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:1705
+msgid "Log physics data"
+msgstr ""
+
+#: ..\..\Menu\ResumeForm.Designer.cs:290
+msgid "Invalid saves"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:806
+msgid "Double overhead wires"
+msgstr ""
+
+#: ..\..\Menu\ResumeForm.Designer.cs:236
+msgid "Undelete"
+msgstr ""
+
+#: ..\..\Menu\ResumeForm.Designer.cs:183
+msgid "Eval"
+msgstr ""
+
+#: ..\..\Menu\TestingForm.Designer.cs:214
+msgid "Passed"
+msgstr ""
+
+#: ..\..\Menu\ResumeForm.Designer.cs:144
+msgid "Time"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:739
+msgid "FullScreen"
+msgstr ""
+
+#: ..\..\Menu\OptionsKeyboard.cs:96
+msgid "Click to change this key"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:2559
+msgid "Adhesion proportional to rain/snow/fog"
+msgstr ""
+
+#: ..\..\Menu\MainForm.Designer.cs:615
+msgid "Time:"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:2655
+msgid "Extend object maximum viewing distance to horizon"
+msgstr ""
+
+#: ..\..\Menu\TestingForm.Designer.cs:237
+msgid "Load Time"
+msgstr ""
+
+#: ..\..\Menu\MainForm.Designer.cs:716
+#: ..\..\Menu\MainForm.Designer.cs:867
+msgid "Season:"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:1231
+msgid "Curve dependent speed limit"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:627
+msgid "Sound Volume 0-100"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:1275
+msgid "Override non-electrified route line-voltage"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:877
+msgid "Viewing distance (km)"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:1878
+msgid "Change..."
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:1528
+msgid "Use the full range of the Throttle Lever. There will be no Auto Brake!"
+msgstr ""
+
+#: ..\..\Menu\MainForm.Designer.cs:941
+msgid "What's new?"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:1011
+msgid "Viewing vertical FOV"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:2471
+msgid "Show shape warnings"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:772
+msgid "MultiSampling (Anti-Aliasing):"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:304
+msgid "Brake pipe charging rate (PSI/s)"
+msgstr ""
+
+#: ..\..\Menu\MainForm.cs:1335
+#: ..\..\Menu\MainForm.cs:1337
+#, csharp-format
+msgid "Start time: {0}"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:2704
+msgid "Minimum length (m)"
+msgstr ""
+
+#: ..\..\Menu\ResumeForm.cs:194
 msgid ""
 "To prevent crashes and unexpected behaviour, Open Rails invalidates games "
 "saved from older versions if they fail to restore.\n"
+"{0} of {1} saves for this route are no longer valid."
 msgstr ""
 
-#: ..\..\Menu\MainForm.Designer.cs:166
-msgid "Tools ▼"
+#: ..\..\Menu\MainForm.Designer.cs:425
+msgid "Timetable"
 msgstr ""
 
-#: ..\..\Menu\Options.Designer.cs:713
-msgid "FullScreen"
+#: ..\..\Menu\Options.Designer.cs:2210
+msgid "Experimental"
+msgstr ""
+
+#: ..\..\Menu\MainForm.Designer.cs:692
+msgid "Difficulty:"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:1353
+#: ..\..\Menu\Options.Designer.cs:1421
+msgid "Export"
+msgstr ""
+
+#: ..\..\Menu\TestingForm.Designer.cs:249
+msgid "FPS"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:2221
+#: ..\..\Menu\Options.Designer.cs:2265
+#: ..\..\Menu\Options.Designer.cs:2743
+msgid "Level"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:1124
+msgid "Overhead wire"
+msgstr ""
+
+#: ..\..\Menu\MainForm.Designer.cs:240
+msgid "User name:"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:1807
+msgid "Log train speed"
+msgstr ""
+
+#: ..\..\Menu\MainForm.cs:1317
+#, csharp-format
+msgid "Heading to: {0}"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:2571
+msgid "ETCS circular speed gauge"
+msgstr ""
+
+#: ..\..\Menu\ResumeForm.Designer.cs:336
+msgid "Replay from previous save"
+msgstr ""
+
+#: ..\..\Menu\ImportExportSaveForm.Designer.cs:63
+msgid "Import Save Pack"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:1608
+msgid "Data logger"
+msgstr ""
+
+#: ..\..\Menu\TestingForm.Designer.cs:151
+msgid "ToTest"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:866
+msgid "Vertical sync"
+msgstr ""
+
+#: ..\..\Menu\TestingForm.Designer.cs:66
+msgid "Test"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:269
+msgid "OK"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:2424
+msgid "Adhesion factor correction:"
+msgstr ""
+
+#: ..\..\Menu\KeyInputEditControl.Designer.cs:78
+msgid "Press any key"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:2789
+msgid "Load DDS textures in preference to ACE"
+msgstr ""
+
+#: ..\..\Menu\ImportExportSaveForm.Designer.cs:52
+msgid "Export to Save Pack"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:424
+msgid "Port Number"
+msgstr ""
+
+#: ..\..\Menu\Options.cs:450
+msgid "Very Hard"
+msgstr ""
+
+#: ..\..\Menu\OptionsRailDriver.cs:186
+msgid "Click to change this button"
+msgstr ""
+
+#: ..\..\Menu\KeyInputEditControl.Designer.cs:113
+msgid "EditKey"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:2289
+msgid "Correct questionable braking parameters"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:2040
+msgid ""
+"The best available version from any channel equal or higher the current "
+"quality selection will be installed. \r\n"
+"That is, if you chose \"RC\"(release candidate) channel, updates which are "
+"RC, or higher (typically final releases) will be considered (CI < Dev < RC < "
+"Release)."
+msgstr ""
+
+#: ..\..\Menu\ResumeForm.Designer.cs:116
+msgid "File"
+msgstr ""
+
+#: ..\..\Menu\MainForm.cs:1311
+msgid "Activity Briefing"
+msgstr ""
+
+#: ..\..\Menu\ResumeForm.Designer.cs:451
+msgid "Saved Games"
+msgstr ""
+
+#: ..\..\Menu\ResumeForm.Designer.cs:155
+msgid "Distance"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:1435
+#: ..\..\Menu\Options.Designer.cs:1447
+msgid "Load the factory default button assignments."
+msgstr ""
+
+#: ..\..\Menu\MainForm.Designer.cs:304
+msgid "Start MP"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:1253
+msgid "Tunnel dependent resistance"
+msgstr ""
+
+#: ..\..\Menu\MainForm.Designer.cs:209
+msgid "Route:"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:726
+msgid "Window"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:642
+msgid "% sound volume"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:705
+msgid "Video"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:2487
+msgid "Default is 0%"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:1527
+msgid "Full Range Throttle"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:1163
+msgid "Activity Options"
+msgstr ""
+
+#: ..\..\Menu\MainForm.Designer.cs:151
+#: ..\..\Menu\Options.Designer.cs:2810
+msgid "Options"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:1651
+msgid ""
+"Use data logger to record your simulation data (in-game command: F12).\r\n"
+"Please remember that the size of the dump file grows with the simulation "
+"time!"
+msgstr ""
+
+#: ..\..\Menu\MainForm.Designer.cs:579
+msgid "Heading to:"
+msgstr ""
+
+#: ..\..\Menu\ResumeForm.cs:522
+#, csharp-format
+msgid "Could not change file location from {0} to {1}."
+msgstr ""
+
+#: ..\..\Menu\ImportExportSaveForm.cs:55
+msgid "Save Packs"
+msgstr ""
+
+#: ..\..\Menu\MainForm.Designer.cs:901
+msgid "Timetable set:"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:1046
+msgid "World object density"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:927
+msgid "Distant mountains"
+msgstr ""
+
+#: ..\..\Menu\ImportExportSaveForm.Designer.cs:41
+msgid "Open Save Packs folder"
+msgstr ""
+
+#: ..\..\Menu\MainForm.cs:1315
+#: ..\..\Menu\MainForm.cs:1349
+#, csharp-format
+msgid "Path: {0}"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:1458
+msgid "Calibration"
+msgstr ""
+
+#: ..\..\Menu\ResumeForm.Designer.cs:164
+msgid "Tile"
+msgstr ""
+
+#: ..\..\Menu\MainForm.Designer.cs:554
+msgid "Starting at:"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:2530
+msgid "Default is 10%"
+msgstr ""
+
+#: ..\..\Menu\TestingForm.Designer.cs:225
+msgid "Errors"
 msgstr ""
 
 #: ..\..\Menu\RDButtonInputControl.Designer.cs:71
@@ -1281,46 +1160,158 @@ msgid ""
 "assignment."
 msgstr ""
 
-#: ..\..\Menu\Options.cs:439
-msgid "Easy"
-msgstr ""
-
-#: ..\..\Menu\Options.cs:519
-msgid "Select an installation profile (MSTS folder) to add:"
-msgstr ""
-
-#: ..\..\Menu\TestingForm.Designer.cs:173
-msgid "Clear sort"
-msgstr ""
-
-#: ..\..\Menu\KeyInputEditControl.Designer.cs:53
+#: ..\..\Menu\KeyInputEditControl.Designer.cs:54
 #: ..\..\Menu\RDButtonInputControl.Designer.cs:48
 msgid "✔"
 msgstr ""
 
-#: ..\..\Menu\Options.Designer.cs:1894
-msgid "Name"
+#: ..\..\Menu\Options.Designer.cs:500
+msgid "Pressure unit"
 msgstr ""
 
-#: ..\..\Menu\ResumeForm.Designer.cs:268
-msgid "Replay from start"
+#: ..\..\Menu\Options.Designer.cs:2434
+msgid "Level of detail bias:"
 msgstr ""
 
-#: ..\..\Menu\Options.cs:443
-msgid "Normal"
+#: ..\..\Menu\ImportExportSaveForm.cs:66
+#, csharp-format
+msgid "Save Pack '{0}' imported successfully."
 msgstr ""
 
-#: ..\..\Menu\Options.cs:449
-msgid "Good luck!"
+#: ..\..\Menu\Options.Designer.cs:761
+msgid "0x"
 msgstr ""
 
-#: ..\..\Menu\MainForm.Designer.cs:201
-msgid "Route:"
+#: ..\..\Menu\Options.Designer.cs:326
+#: ..\..\Menu\TestingForm.Designer.cs:78
+msgid "Cancel"
 msgstr ""
 
-#: ..\..\Menu\Options.Designer.cs:573
+#: ..\..\Menu\Options.Designer.cs:1552
+msgid "Reverse Auto Brake Direction"
+msgstr ""
+
+#: ..\..\Menu\MainForm.Designer.cs:279
+msgid "Server"
+msgstr ""
+
+#: ..\..\Menu\ResumeForm.Designer.cs:126
+msgid "Saved At"
+msgstr ""
+
+#: ..\..\Menu\ResumeForm.Designer.cs:272
+msgid "Import/ export"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:1198
+msgid "Forced red at station stops"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:1516
+msgid "Reverse Levers"
+msgstr ""
+
+#: ..\..\Menu\TestingForm.Designer.cs:54
+msgid "Test all"
+msgstr ""
+
+#: ..\..\Menu\MainForm.cs:1310
+#, csharp-format
+msgid "Activity: {0}"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:2779
+msgid "Super-elevation"
+msgstr ""
+
+#: ..\..\Menu\OptionsRailDriver.cs:247
+msgid "Remove all custom button assignments?"
+msgstr ""
+
+#: ..\..\Menu\MainForm.cs:305
+#, csharp-format
+msgid "Update to {0}"
+msgstr ""
+
+#: ..\..\Menu\ResumeForm.cs:119
+msgid "Explore in Activity Mode"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:1848
+#: ..\..\Menu\ResumeForm.Designer.cs:223
+msgid "Delete"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:2235
+#: ..\..\Menu\Options.Designer.cs:2279
 msgid ""
-"Min 0 Max 100. Higher: louder sound\r\n"
-"\r\n"
+"0: no randomization, 1: moderate, 2: significant; 3: high (may be "
+"unrealistic)"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:2255
+msgid "Activity randomization"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:2147
+msgid "Update Check"
+msgstr ""
+
+#: ..\..\Menu\Options.cs:522
+msgid "Select an installation profile (MSTS folder) to add:"
+msgstr ""
+
+#: ..\..\Menu\TestingForm.Designer.cs:203
+msgid "Tested"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:1773
+msgid "Log station stops"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:1932
+msgid "Add..."
+msgstr ""
+
+#: ..\..\Menu\TestingForm.Designer.cs:90
+msgid "Summary"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:2755
+msgid ""
+"Experimental features that may slow down the game, use at your own risk."
+msgstr ""
+
+#: ..\..\Menu\MainForm.cs:296
+msgid "Update check failed"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:2769
+msgid "0: no elevation, 1: 9cm max; 10: 18cm max"
+msgstr ""
+
+#: ..\..\Menu\MainForm.cs:1300
+#, csharp-format
+msgid "Route: {0}"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:1368
+msgid "Load the factory default key assignments."
+msgstr ""
+
+#: ..\..\Menu\MainForm.cs:569
+#, csharp-format
+msgid ""
+"The update failed due to an error:\n"
+"\n"
+"{0} {1}"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:1314
+msgid "Break couplers"
+msgstr ""
+
+#: ..\..\Menu\Options.Designer.cs:1459
+msgid "Calibrate the lever position reading"
 msgstr ""
 

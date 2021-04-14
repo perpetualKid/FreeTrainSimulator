@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2020-09-17 08:26:10+0200\n"
-"PO-Revision-Date: 2020-09-17 08:26:11+0200\n"
+"Project-Id-Version: Orts.Models.Simplified\n"
+"POT-Creation-Date: 2021-04-14 22:55:18+0200\n"
+"PO-Revision-Date: 2021-04-14 22:55:19+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -10,13 +10,15 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: GetText.NET Extractor\n"
 
-#: ..\..\Orts.Models.Simplified\Paths.cs:180
-#, csharp-format
-msgid "Heading to: {0}"
+#: ..\..\Orts.Models.Simplified\Locomotives.cs:11
+msgid "- Any Locomotive -"
 msgstr ""
 
-#: ..\..\Orts.Models.Simplified\Activities.cs:59
-msgid "+ Explore in Activity Mode +"
+#: ..\..\Orts.Models.Simplified\Consists.cs:33
+#: ..\..\Orts.Models.Simplified\Consists.cs:64
+#: ..\..\Orts.Models.Simplified\Locomotives.cs:38
+#: ..\..\Orts.Models.Simplified\Paths.cs:95
+msgid "missing:"
 msgstr ""
 
 #: ..\..\Orts.Models.Simplified\SavePoints.cs:56
@@ -27,36 +29,17 @@ msgid ""
 "\n"
 msgstr ""
 
-#: ..\..\Orts.Models.Simplified\Consists.cs:33
-#: ..\..\Orts.Models.Simplified\Consists.cs:64
-#: ..\..\Orts.Models.Simplified\Locomotives.cs:38
-#: ..\..\Orts.Models.Simplified\Paths.cs:95
-msgid "missing:"
-msgstr ""
-
 #: ..\..\Orts.Models.Simplified\Paths.cs:180
 #, csharp-format
 msgid "Start at: {0}"
 msgstr ""
 
-#: ..\..\Orts.Models.Simplified\Locomotives.cs:11
-msgid "- Any Locomotive -"
+#: ..\..\Orts.Models.Simplified\Paths.cs:180
+#, csharp-format
+msgid "Heading to: {0}"
 msgstr ""
 
-#: ..\..\Orts.Models.Simplified\Activities.cs:55
-msgid "- Explore Route -"
-msgstr ""
-
-#: ..\..\Orts.Models.Simplified\Activities.cs:117
-#: ..\..\Orts.Models.Simplified\Consists.cs:83
-#: ..\..\Orts.Models.Simplified\Locomotives.cs:33
-#: ..\..\Orts.Models.Simplified\Paths.cs:84
-#: ..\..\Orts.Models.Simplified\Routes.cs:54
-#: ..\..\Orts.Models.Simplified\Timetables.cs:72
-msgid "load error:"
-msgstr ""
-
-#: ..\..\Orts.Models.Simplified\Activities.cs:82
+#: ..\..\Orts.Models.Simplified\Activities.cs:79
 #: ..\..\Orts.Models.Simplified\Consists.cs:48
 #: ..\..\Orts.Models.Simplified\Locomotives.cs:48
 #: ..\..\Orts.Models.Simplified\Paths.cs:87
@@ -66,7 +49,24 @@ msgstr ""
 msgid "unnamed:"
 msgstr ""
 
-#: ..\..\Orts.Models.Simplified\Activities.cs:108
+#: ..\..\Orts.Models.Simplified\Activities.cs:114
+#: ..\..\Orts.Models.Simplified\Consists.cs:83
+#: ..\..\Orts.Models.Simplified\Locomotives.cs:33
+#: ..\..\Orts.Models.Simplified\Paths.cs:84
+#: ..\..\Orts.Models.Simplified\Routes.cs:54
+#: ..\..\Orts.Models.Simplified\Timetables.cs:73
+msgid "load error:"
+msgstr ""
+
+#: ..\..\Orts.Models.Simplified\Activities.cs:52
+msgid "- Explore Route -"
+msgstr ""
+
+#: ..\..\Orts.Models.Simplified\Activities.cs:105
 msgid "Not same route:"
+msgstr ""
+
+#: ..\..\Orts.Models.Simplified\Activities.cs:56
+msgid "+ Explore in Activity Mode +"
 msgstr ""
 
