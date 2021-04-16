@@ -1,4 +1,4 @@
-# OpenRails "Ultimate" Train Simulator
+# OpenRails "Ultimate" Train Simulator  [![Join the chat at https://gitter.im/ORTS-MG/community](https://badges.gitter.im/ORTS-MG/community.svg)](https://gitter.im/ORTS-MG/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 This is a fork of [OpenRails](http://www.openrails.org), including [Monogame patch](http://www.elvastower.com/forums/index.php?/topic/30924-going-beyond-the-4-gb-of-memory/page__view__findpost__p__237281) and many other improvements and performance tweaks. 
 The master branch is kept in mostly sync with [OpenRails Source Code](https://github.com/openrails/openrails)
@@ -41,4 +41,4 @@ To install on Linux, please see the [wiki](https://github.com/perpetualKid/ORTS-
 |------------|------------|
 |Release Candidate|[![Build Status](https://dev.azure.com/perpetualKid/ORTS-MG/_apis/build/status/Build/ORTS-MG%20Master%20RC)](https://dev.azure.com/perpetualKid/ORTS-MG/_build?definitionId=1)|
 |Weekly Dev Builds|[![Build Status](https://dev.azure.com/perpetualKid/ORTS-MG/_apis/build/status/Build/Scheduled%20Dev%20Build)](https://dev.azure.com/perpetualKid/ORTS-MG/_build?definitionId=15)|
-|Continuous Integration Builds|[![Build Status](https://dev.azure.com/perpetualKid/ORTS-MG/_apis/build/status/Build/CI%20Builds)](https://dev.azure.com/perpetualKid/ORTS-MG/_build?definitionId=11) [![Join the chat at https://gitter.im/ORTS-MG/community](https://badges.gitter.im/ORTS-MG/community.svg)](https://gitter.im/ORTS-MG/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)|
+|Continuous Integration Builds|[![Build Status](https://dev.azure.com/perpetualKid/ORTS-MG/_apis/build/status/Build/CI%20Builds)](https://dev.azure.com/perpetualKid/ORTS-MG/_build?definitionId=11)|
