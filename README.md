@@ -41,4 +41,4 @@ To install on Linux, please see the [wiki](https://github.com/perpetualKid/ORTS-
 |------------|------------|
 |Release Candidate|[![Build Status](https://dev.azure.com/perpetualKid/ORTS-MG/_apis/build/status/Build/ORTS-MG%20Master%20RC)](https://dev.azure.com/perpetualKid/ORTS-MG/_build?definitionId=1)|
 |Weekly Dev Builds|[![Build Status](https://dev.azure.com/perpetualKid/ORTS-MG/_apis/build/status/Build/Scheduled%20Dev%20Build)](https://dev.azure.com/perpetualKid/ORTS-MG/_build?definitionId=15)|
-|Continuous Integration Builds|[![Build Status](https://dev.azure.com/perpetualKid/ORTS-MG/_apis/build/status/Build/CI%20Builds)](https://dev.azure.com/perpetualKid/ORTS-MG/_build?definitionId=11)|
+|Continuous Integration Builds|[![Build Status](https://dev.azure.com/perpetualKid/ORTS-MG/_apis/build/status/Build/CI%20Builds)](https://dev.azure.com/perpetualKid/ORTS-MG/_build?definitionId=11) [![Join the chat at https://gitter.im/ORTS-MG/community](https://badges.gitter.im/ORTS-MG/community.svg)](https://gitter.im/ORTS-MG/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)|
