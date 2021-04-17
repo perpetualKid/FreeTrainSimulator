@@ -37,7 +37,7 @@ steps:
     custom: tool
     arguments: install --tool-path . nbgv
 
-- script: nbgv cloud -a
+- script: nbgv cloud -a -p ".\source"
   displayName: Set NBGV Variables
 
 - task: Bash@3
