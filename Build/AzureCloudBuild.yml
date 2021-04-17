@@ -1,0 +1,104 @@
+# .NET Desktop
+# Build and run tests for .NET Desktop or Windows classic desktop solutions.
+# Add steps that publish symbols, save build artifacts, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/apps/windows/dot-net
+
+trigger:
+- '*' 
+
+pool:
+  vmImage: 'windows-latest'
+
+variables:
+  solution: 'Source/Orts.sln'
+  buildPlatform: 'Any CPU'
+  buildConfiguration: 'Release'
+
+steps:
+- task: NuGetToolInstaller@1
+  displayName: Installing Nuget tools
+
+- task: NuGetCommand@2
+  displayName: Restore Nuget Packages for Solution
+  inputs:
+    restoreSolution: '$(solution)'
+
+- task: DotNetCoreCLI@2
+  displayName: Prepare DotNet tool install
+  inputs:
+    command: 'custom'
+    custom: 'new'
+    arguments: 'tool-manifest'
+
+- task: DotNetCoreCLI@2  
+  displayName: Install NBGV tool
+  inputs:
+    command: custom
+    custom: tool
+    arguments: install --tool-path . nbgv
+
+- script: nbgv cloud -a
+  displayName: Set NBGV Variables
+
+- task: Bash@3
+  displayName: List all Environment Variables
+  inputs:
+    targetType: 'inline'
+    script: 'env | sort'
+  
+- task: MSBuild@1
+  displayName: Building the solution
+  inputs:
+    solution: '$(solution)'
+    msbuildArchitecture: 'x64'
+    platform: '$(buildPlatform)'
+    configuration: '$(buildConfiguration)'
+
+- task: VSTest@2
+  condition: ne(variables['Build.SourceBranch'], 'refs/heads/main')
+  displayName: Testing the solution
+  inputs:
+    platform: '$(buildPlatform)'
+    configuration: '$(buildConfiguration)'
+
+- task: PublishPipelineArtifact@1
+  displayName: Publishing build artifacts
+  inputs:
+    targetPath: './Program/'
+    publishLocation: 'pipeline'
+
+- task: DotNetCoreCLI@2
+  displayName: Instaling GetText Extractor
+  inputs:
+    command: 'custom'
+    custom: 'tool'
+    arguments: 'install gettext.net.extractor'
+
+- task: NuGetCommand@2
+  displayName: Packaging to Nuget Package GetText Extractor
+  inputs:
+    command: 'pack'
+    packagesToPack: 'source/ORTS-MG-Package.nuspec'
+    versioningScheme: 'byEnvVar'
+    versionEnvVar: 'NBGV_NUGETPACKAGEVERSION'
+#    command: 'custom'
+#    arguments: 'test temp something'
+
+
+#- task: DotNetCoreCLI@2
+#  inputs:
+#    command: 'custom'
+#    custom: 'tool'
+#    arguments: 'install sleet'
+
+- task: PowerShell@2
+  env:
+    connectionstring: $(connection)
+  displayName: Uploading the package to a feed
+  condition: xor(eq(variables['Build.SourceBranch'], 'refs/heads/main'), ne(variables['NBGV_PRERELEASEVERSION'], ''))
+  inputs:
+    targetType: 'inline'
+    script: |
+      dotnet tool install sleet
+      Write-Host ${env:connectionstring}
+      dotnet sleet push .\..\a --config none -p SLEET_FEED_TYPE=azure -p SLEET_FEED_CONTAINER=sleetsource -p SLEET_FEED_CONNECTIONSTRING=${env:connectionstring}

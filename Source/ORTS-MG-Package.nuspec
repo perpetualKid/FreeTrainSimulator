@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>ORTS-MG</id>
+    <version>1.0.0</version>
+    <title>Open Rails Ultimate</title>
+    <authors>perpetualKid</authors>
+    <owners>ORTS-MG team</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <icon>Program\Orts.png</icon>
+    <description>OpenRails Train Simulator clone on .NET Core, using MonoGame and including native RailDriver support</description>
+  </metadata>
+  <files>
+    <file src=".\..\Program\**\*.*" target="Program\" />
+    <file src="Orts.png" target="Program\" />
+  </files>
+</package>
