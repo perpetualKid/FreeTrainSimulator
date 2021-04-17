@@ -4,11 +4,12 @@
     <id>ORTS-MG</id>
     <version>1.0.0</version>
     <title>Open Rails Ultimate</title>
-    <authors>perpetualKid</authors>
-    <owners>ORTS-MG team</owners>
+    <authors>perpetualKid,ORTS-MG-team</authors>
+	<license type="expression">GPL-3.0-or-later</license>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <projectUrl>https://github.com/perpetualKid/ORTS-MG</projectUrl>
     <icon>Program\Orts.png</icon>
-    <description>OpenRails Train Simulator clone on .NET Core, using MonoGame and including native RailDriver support</description>
+    <description>OpenRails Train Simulator fork on .NET Core 64bit, using MonoGame and including native RailDriver support</description>
   </metadata>
   <files>
     <file src=".\..\Program\**\*.*" target="Program\" />
