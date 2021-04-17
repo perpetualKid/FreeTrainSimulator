@@ -45,7 +45,8 @@ steps:
     custom: tool
     arguments: install --tool-path . nbgv
 
-- script: .\..\nbgv cloud -a #need to run in the correct folder as version.json is not in root
+#need to run in the correct folder as version.json is not in root
+- script: .\..\nbgv cloud -a
   workingDirectory: .\source
   displayName: Set NBGV Variables
 
