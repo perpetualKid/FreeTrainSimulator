@@ -93,7 +93,7 @@ steps:
 
 - task: PowerShell@2
   env:
-    connectionstring: $(connection)
+    connectionstring: $(feedconnection)
   displayName: Uploading the package to a feed
   condition: xor(eq(variables['Build.SourceBranch'], 'refs/heads/main'), ne(variables['NBGV_PRERELEASEVERSION'], ''))
   inputs:
