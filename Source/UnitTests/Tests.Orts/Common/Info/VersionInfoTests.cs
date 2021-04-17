@@ -23,7 +23,7 @@ namespace Tests.Orts.Common.Info
             //VersionInfo.CodeVersion: "LocalBuild"
 
             Assert.AreEqual(FileVersionInfo.GetVersionInfo(Assembly.GetAssembly(typeof(VersionInfo)).Location).ProductVersion, VersionInfo.FullVersion);
-            Assert.AreEqual(FileVersionInfo.GetVersionInfo(Assembly.GetAssembly(typeof(VersionInfo)).Location).FileVersion, VersionInfo.FileVersion);
+//            Assert.AreEqual(FileVersionInfo.GetVersionInfo(Assembly.GetAssembly(typeof(VersionInfo)).Location).FileVersion, VersionInfo.FileVersion);
 
             Assert.IsTrue(VersionInfo.FullVersion.IndexOf('+') >= 5);    // there should be a + sign for product metadata
             Assert.IsFalse(string.IsNullOrEmpty(VersionInfo.Channel));
