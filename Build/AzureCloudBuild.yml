@@ -4,7 +4,15 @@
 # https://docs.microsoft.com/azure/devops/pipelines/apps/windows/dot-net
 
 trigger:
-- '*' 
+  branches:
+    include:
+    - '*' 
+  paths:
+    exclude: # file paths which will not trigger a build
+    - Build/*
+    - README.md
+    - SUPPORT.md
+    - CONTRIBUTING.md
 
 pool:
   vmImage: 'windows-latest'
@@ -12,7 +20,7 @@ pool:
 variables:
   solution: 'Source/Orts.sln'
   buildPlatform: 'Any CPU'
-  buildConfiguration: 'Release'
+  buildConfiguration: 'Release' #changes to Debug below if this is a prerelease version 
 
 steps:
 - task: NuGetToolInstaller@1
@@ -37,9 +45,7 @@ steps:
     custom: tool
     arguments: install --tool-path . nbgv
 
-#- script: nbgv cloud -a -p ".\source"
-#  displayName: Set NBGV Variables
-- script: .\nbgv cloud -a
+- script: .\..\nbgv cloud -a #need to run in the correct folder as version.json is not in root
   workingDirectory: .\source
   displayName: Set NBGV Variables
 
@@ -48,7 +54,15 @@ steps:
   inputs:
     targetType: 'inline'
     script: 'env | sort'
-  
+
+- task: PowerShell@2
+  displayName: Set build configuration
+  inputs:
+    targetType: 'inline'
+    script: |
+      if ($env:NBGV_PRERELEASEVERSION -ne $null) {
+        Write-Host '##vso[task.setvariable variable=buildConfiguration]Debug'}
+
 - task: MSBuild@1
   displayName: Building the solution
   inputs:
@@ -71,7 +85,7 @@ steps:
     publishLocation: 'pipeline'
 
 - task: DotNetCoreCLI@2
-  displayName: Instaling GetText Extractor
+  displayName: Installing GetText Extractor
   inputs:
     command: 'custom'
     custom: 'tool'
@@ -84,15 +98,6 @@ steps:
     packagesToPack: 'source/ORTS-MG-Package.nuspec'
     versioningScheme: 'byEnvVar'
     versionEnvVar: 'NBGV_NUGETPACKAGEVERSION'
-#    command: 'custom'
-#    arguments: 'test temp something'
-
-
-#- task: DotNetCoreCLI@2
-#  inputs:
-#    command: 'custom'
-#    custom: 'tool'
-#    arguments: 'install sleet'
 
 - task: PowerShell@2
   env:
@@ -102,6 +107,9 @@ steps:
   inputs:
     targetType: 'inline'
     script: |
+      $feed = 'releases'
+      if ($env:Build.Reason -eq 'PullRequest' -or $env:Build.Reason -eq 'Manual' -or $env:NBGV_PUBLICRELEASE -eq $false) {
+        $feed='builds'}
       dotnet tool install sleet
-      Write-Host ${env:connectionstring}
-      dotnet sleet push .\..\a --config none -p SLEET_FEED_TYPE=azure -p SLEET_FEED_CONTAINER=sleetsource -p SLEET_FEED_CONNECTIONSTRING=${env:connectionstring}
+      dotnet sleet push .\..\a --config none -p SLEET_FEED_TYPE=azure -p SLEET_FEED_CONTAINER=$feed -p SLEET_FEED_CONNECTIONSTRING=${env:connectionstring}
+
