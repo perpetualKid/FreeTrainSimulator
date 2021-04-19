@@ -19,7 +19,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Drawing;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
@@ -124,16 +123,8 @@ namespace Orts.Updater
 
             try
             {
-                string targetChannelName = Enumerable.FirstOrDefault(Environment.GetCommandLineArgs(), a => a.StartsWith(UpdateManager.ChannelCommandLine, StringComparison.OrdinalIgnoreCase));
-                targetChannelName = targetChannelName?.Substring(UpdateManager.ChannelCommandLine.Length);
                 string targetVersion = Enumerable.FirstOrDefault(Environment.GetCommandLineArgs(), a => a.StartsWith(UpdateManager.VersionCommandLine, StringComparison.OrdinalIgnoreCase));
-                targetVersion = targetVersion?.Substring(UpdateManager.ChannelCommandLine.Length);
-
-                await updateManager.RefreshUpdateInfo(Common.UpdateCheckFrequency.Always).ConfigureAwait(false);
-
-                string suitableVersion = updateManager.GetBestAvailableVersion(targetVersion, targetChannelName);
-
-                ChannelInfo channelInfo = updateManager.GetChannelInfoByVersion(suitableVersion);
+                targetVersion = targetVersion?.Substring(UpdateManager.VersionCommandLine.Length);
 
                 Invoke((Action)(() =>
                 {
@@ -141,8 +132,7 @@ namespace Orts.Updater
                 }));
                 Application.DoEvents();
 
-                await updateManager.ApplyUpdateAsync(channelInfo, cts.Token).ConfigureAwait(false);
-                //                await RelaunchApplicationAsync().ConfigureAwait(false);
+                await updateManager.ApplyUpdateAsync(targetVersion, cts.Token).ConfigureAwait(false);
             }
             catch (Exception exception)
             {
@@ -159,6 +149,7 @@ namespace Orts.Updater
             }
             finally
             {
+                updateManager.Dispose();
                 cts.Dispose();
                 Application.Exit();
             }

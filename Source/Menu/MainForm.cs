@@ -163,6 +163,7 @@ namespace Orts.Menu
                 ctsPathLoading?.Dispose(); ;
                 ctsTimeTableLoading?.Dispose();
                 elevationIcon?.Dispose();
+                updateManager?.Dispose();
             }
             base.Dispose(disposing);
         }
@@ -290,23 +291,21 @@ namespace Orts.Menu
 
         private async Task CheckForUpdateAsync()
         {
-            await updateManager.RefreshUpdateInfo((UpdateCheckFrequency)settings.UpdateCheckFrequency).ConfigureAwait(true);
+            string availableUpdate = await updateManager.GetBestAvailableVersionString(false).ConfigureAwait(true);
             if (updateManager.LastCheckError != null)
             {
                 linkLabelUpdate.Text = catalog.GetString("Update check failed");
                 linkLabelUpdate.Visible = true;
+                linkLabelUpdate.Tag = null;
             }
             else
             {
-                string version = updateManager.GetBestAvailableVersion(string.Empty, settings.UpdateChannel);
-                if (null != version)
+                if (null != availableUpdate)
                 {
-                    ChannelInfo channel = updateManager.GetChannelInfoByVersion(version);
-                    linkLabelUpdate.Text = catalog.GetString($"Update to {version}");
+                    linkLabelUpdate.Text = catalog.GetString($"Update to {availableUpdate}");
+                    linkLabelUpdate.Tag = availableUpdate;
                     linkLabelUpdate.Visible = true;
                     linkLabelUpdate.Image = updateManager.UpdaterNeedsElevation ? elevationIcon : null;
-                    linkLabelChangeLog.Visible = true;
-                    linkLabelChangeLog.Tag = channel.LogUrl.ToString();
                     linkLabelUpdate.AutoSize = true;
                     linkLabelUpdate.Left = panelDetails.Right - linkLabelUpdate.Width - elevationIcon.Width;
                     linkLabelUpdate.AutoSize = false;
@@ -315,7 +314,6 @@ namespace Orts.Menu
                 else
                 {
                     linkLabelUpdate.Visible = false;
-                    linkLabelChangeLog.Visible = false;
                 }
             }
         }
@@ -562,7 +560,7 @@ namespace Orts.Menu
 
             try
             {
-                await updateManager.RunUpdateProcess().ConfigureAwait(true);
+                await updateManager.RunUpdateProcess(linkLabelUpdate.Tag as string).ConfigureAwait(true);
             }
             catch (Exception exception)
             {
@@ -570,11 +568,6 @@ namespace Orts.Menu
                 return;
                 throw;
             }
-        }
-
-        private void LinkLabelChangeLog_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
-        {
-            SystemInfo.OpenBrowser(linkLabelChangeLog.Tag as string);
         }
 
         private void ButtonTools_Click(object sender, EventArgs e)

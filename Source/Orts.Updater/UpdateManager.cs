@@ -20,28 +20,34 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
-using System.Net.Http;
-using System.Security.Cryptography;
 using System.Security.Principal;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
 using Newtonsoft.Json;
 
+using NuGet.Common;
+using NuGet.Packaging;
+using NuGet.Packaging.Core;
+using NuGet.Protocol;
+using NuGet.Protocol.Core.Types;
+using NuGet.Versioning;
+
 using Orts.Common;
 using Orts.Common.Info;
 using Orts.Settings;
 
+using VersionInfo = Orts.Common.Info.VersionInfo;
+
 namespace Orts.Updater
 {
-    public class UpdateManager
+    public class UpdateManager: IDisposable
     {
-        private const string versionFile = "version.json";
+        private const string versionFile = "updates.json";
 
-        public const string ChannelCommandLine = "/CHANNEL=";
+        private const string developerBuildsUrl = "https://orts.blob.core.windows.net/builds/index.json"; //TODO 20210418 this may be somewhere in configuration instead hard coded
+
         public const string VersionCommandLine = "/VERSION=";
         public const string WaitProcessIdCommandLine = "/WAITPID=";
         public const string RelaunchCommandLine = "/RELAUNCH=";
@@ -55,7 +61,6 @@ namespace Orts.Updater
         private static string PathUpdateStage => Path.Combine(RuntimeInfo.ApplicationFolder, "UpdateStage");
         private static string PathDocumentation => Path.Combine(RuntimeInfo.ApplicationFolder, "Documentation");
         private static string PathUpdateDocumentation => Path.Combine(PathUpdateStage, "Documentation");
-        private static string FileUpdateStage => Path.Combine(PathUpdateStage, "Update.zip");
         private static string FileSettings => Path.Combine(RuntimeInfo.ApplicationFolder, "OpenRails.ini");
         private static string FileUpdater => Path.Combine(RuntimeInfo.ApplicationFolder, "Updater.exe");
 
@@ -63,16 +68,14 @@ namespace Orts.Updater
         public Exception LastCheckError { get; private set; }
         public bool UpdaterNeedsElevation { get; private set; }
 
-        private UpdateChannels channels;
         private readonly UserSettings settings;
-
-        private static string UserAgent => $"{RuntimeInfo.ProductName}/{VersionInfo.Version}";
+        private readonly SemaphoreSlim updateVersions = new SemaphoreSlim(1);
+        private bool disposedValue;
 
         public UpdateManager(UserSettings settings)
         {
             this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
 
-            channels = ResolveUpdateChannels();
             // Check for elevation to update; elevation is needed if the update writes failed and the user is NOT an
             // Administrator. Weird cases (like no permissions on the directory for anyone) are not handled.
             if (!CheckUpdateWrites())
@@ -83,46 +86,87 @@ namespace Orts.Updater
             }
         }
 
-        public IEnumerable<string> GetChannels()
-        {
-            return channels.Channels.Select(channel => channel.Name);
-        }
-
-        public ChannelInfo GetChannelByName(string channelName)
-        {
-            return channels.Channels.FirstOrDefault(channel => channel.Name.Equals(channelName, StringComparison.OrdinalIgnoreCase));
-        }
-
-        public ChannelInfo GetChannelInfoByVersion(string normalizedVersion)
-        {
-            return channels.Channels.FirstOrDefault(channel => channel.NormalizedVersion.Equals(normalizedVersion, StringComparison.OrdinalIgnoreCase));
-        }
-
         public static string VersionFile { get; } = Path.Combine(RuntimeInfo.ConfigFolder, versionFile);
 
-        public async Task RefreshUpdateInfo(UpdateCheckFrequency frequency)
+        public async Task<IEnumerable<NuGetVersion>> RefreshUpdateInfo(UpdateCheckFrequency frequency)
         {
             if (!CheckUpdateNeeded(frequency))
-                return;
+                return CachedUpdateVersions();
 
+            await updateVersions.WaitAsync().ConfigureAwait(false);
             LastCheckError = null;
-            using (HttpClient client = new HttpClient())
-            {
-                client.DefaultRequestHeaders.Add("Cache-Control", "no-cache");
-                client.DefaultRequestHeaders.UserAgent.TryParseAdd(UserAgent);
-                UriBuilder uriBuilder = new UriBuilder(settings.UpdateSource + versionFile);
+            ILogger logger = NullLogger.Instance;
+            CancellationToken cancellationToken = CancellationToken.None;
 
+            using (SourceCacheContext cache = new SourceCacheContext
+            {
+                DirectDownload = true,
+                NoCache = true
+            })
+            {
                 try
                 {
-                    string versions = await client.GetStringAsync(uriBuilder.Uri).ConfigureAwait(false);
+                    SourceRepository repository = Repository.Factory.GetCoreV3(settings.UpdateSource);
+                    FindPackageByIdResource resource = await repository.GetResourceAsync<FindPackageByIdResource>().ConfigureAwait(false);
+                    IEnumerable<NuGetVersion> result = await resource.GetAllVersionsAsync(VersionInfo.PackageId, cache, logger, cancellationToken).ConfigureAwait(false);
+                    string versions = result.ToJson(Formatting.Indented);
                     File.WriteAllText(VersionFile, versions);
-                    channels = ResolveUpdateChannels();
+                    return result;
                 }
-                catch (HttpRequestException httpException)
+                catch (NuGetProtocolException exception)
                 {
-                    Trace.WriteLine(httpException);
-                    LastCheckError = httpException;
+                    Trace.WriteLine(exception);
+                    LastCheckError = exception;
                 }
+                catch (IOException)
+                { }
+                finally
+                {
+                    updateVersions.Release();
+                }
+            }
+            return Enumerable.Empty<NuGetVersion>();
+        }
+
+        public static IEnumerable<NuGetVersion> CachedUpdateVersions()
+        {
+            try
+            {
+                if (File.Exists(VersionFile))
+                {
+                    using (StreamReader reader = File.OpenText(VersionFile))
+                    {
+                        return reader.ReadToEnd().FromJson<IEnumerable<NuGetVersion>>();
+                    }
+                }
+            }
+            catch (JsonSerializationException)
+            {
+                try
+                {
+                    File.Delete(VersionFile);
+                }
+                catch (IOException) { }
+            }
+            catch (IOException) { }
+            return Enumerable.Empty<NuGetVersion>();
+        }
+
+        public void SetUpdateChannel(bool prereleases, bool developerBuilds)
+        {
+            if (developerBuilds)
+            {
+                settings.UpdateSource = developerBuildsUrl;
+                settings.Save(nameof(settings.UpdateSource));
+                settings.UpdatePreReleases = true;
+                settings.Save(nameof(settings.UpdatePreReleases));
+            }
+            else
+            {
+                settings.UpdateSource = (string)settings.GetDefaultValue(nameof(settings.UpdateSource));
+                settings.Save(nameof(settings.UpdateSource));
+                settings.UpdatePreReleases = prereleases;
+                settings.Save(nameof(settings.UpdatePreReleases));
             }
         }
 
@@ -140,38 +184,37 @@ namespace Orts.Updater
             }
         }
 
-        private static UpdateChannels ResolveUpdateChannels()
+        public async Task<string> GetBestAvailableVersionString(bool refresh)
         {
-            if (File.Exists(VersionFile))
-            {
-                using (StreamReader reader = File.OpenText(VersionFile))
-                {
-                    JsonSerializer serializer = new JsonSerializer();
-                    return (UpdateChannels)serializer.Deserialize(reader, typeof(UpdateChannels));
-                }
-            }
-            return UpdateChannels.Empty;
+            return (await GetBestAvailableVersion(refresh).ConfigureAwait(false))?.ToString();
         }
 
-        public string GetBestAvailableVersion(string targetVersion = "", string targetChannel = "")
+        public async Task<NuGetVersion> GetBestAvailableVersion(bool refresh)
         {
-            IReadOnlyCollection<string> availableVersions = channels.Channels.Select(channel => channel.NormalizedVersion).ToList();
+            IEnumerable<NuGetVersion> availableVersions = await RefreshUpdateInfo(refresh ? UpdateCheckFrequency.Always : (UpdateCheckFrequency)settings.UpdateCheckFrequency).ConfigureAwait(false);
 
-            return VersionInfo.SelectSuitableVersion(availableVersions, string.IsNullOrEmpty(targetChannel) ? settings.UpdateChannel : targetChannel, targetVersion);
+            return VersionInfo.GetBestAvailableVersion(availableVersions, settings.UpdatePreReleases);
         }
 
-        public Task RunUpdateProcess()
+        public Task RunUpdateProcess(string targetVersion)
         {
-            Task updateTask = RunProcess(new ProcessStartInfo(FileUpdater, $"{ChannelCommandLine}{settings.UpdateChannel} " +
+            Task updateTask = RunProcess(new ProcessStartInfo(FileUpdater, $"{VersionCommandLine}\"{targetVersion}\" " +
                 $"{WaitProcessIdCommandLine}{Process.GetCurrentProcess().Id} {RelaunchCommandLine}1 {ElevationCommandLine}{(UpdaterNeedsElevation ? "1" : "0")}"));
             Environment.Exit(0);
             return updateTask;
         }
 
-        public async Task ApplyUpdateAsync(ChannelInfo target, CancellationToken token)
+        public async Task ApplyUpdateAsync(string targetVersionString, CancellationToken token)
         {
-            if (null == target || null == target.DownloadUrl)
-                throw new InvalidOperationException("No suitable update available");
+            NuGetVersion targetVersion;
+            if (string.IsNullOrEmpty(targetVersionString))
+                targetVersion = await GetBestAvailableVersion(true).ConfigureAwait(false);
+            else
+                _ = NuGetVersion.TryParse(targetVersionString, out targetVersion);
+
+            if (null == targetVersion)
+                throw new InvalidOperationException("No suitable update version found nor given in commandline." + Environment.NewLine + Environment.NewLine +
+                    "This may be caused by missing connectivity to check with the online update repository.");
 
             TriggerApplyProgressChanged(6);
             CheckUpdateWrites();
@@ -180,16 +223,10 @@ namespace Orts.Updater
             await CleanDirectoriesAsync(token).ConfigureAwait(false);
             TriggerApplyProgressChanged(9);
 
-            await DownloadUpdateAsync(9, 48, target.DownloadUrl, token).ConfigureAwait(false);
-            TriggerApplyProgressChanged(57);
+            await DownloadAndExpandUpdateAsync(targetVersion, token).ConfigureAwait(false);
+            TriggerApplyProgressChanged(90);
 
-            await VerifyUpdateAsync(target.Hash).ConfigureAwait(false);
-            TriggerApplyProgressChanged(62);
-
-            await ExtractUpdate(62, 30).ConfigureAwait(false);
-            TriggerApplyProgressChanged(92);
-
-            if (await UpdateIsReadyAync().ConfigureAwait(false))
+            if (await UpdateIsReadyAync($"{VersionInfo.PackageId}.{targetVersion}").ConfigureAwait(false))
             {
                 await CopyUpdateFileAsync().ConfigureAwait(false);
                 TriggerApplyProgressChanged(98);
@@ -266,122 +303,56 @@ namespace Orts.Updater
             }
             if (token.IsCancellationRequested)
                 return Task.FromCanceled(token);
-            try { Directory.Delete(path); }
+            try { Directory.Delete(path, true); }
             catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)
             { Trace.TraceWarning($"{path} :: {ex.Message}"); };
             return Task.CompletedTask;
         }
 
-        private async Task DownloadUpdateAsync(int progressMin, int progressLength, Uri downloadUrl, CancellationToken token)
+        private async Task DownloadAndExpandUpdateAsync(NuGetVersion targetVersion, CancellationToken token)
         {
+            int progressMin = 10;
+            int progressLength = 60;
             DirectoryInfo stagingDirectory = Directory.CreateDirectory(PathUpdateStage);
             stagingDirectory.Attributes |= FileAttributes.Hidden;
 
-            using (HttpClient httpClient = new HttpClient())
+            SourceRepository repository = Repository.Factory.GetCoreV3(settings.UpdateSource);
+            FindPackageByIdResource resource = await repository.GetResourceAsync<FindPackageByIdResource>(token).ConfigureAwait(false);
+            using (SourceCacheContext cacheContext = new SourceCacheContext { DirectDownload = true, NoCache = true })
             {
-                httpClient.DefaultRequestHeaders.UserAgent.TryParseAdd(UserAgent);
-                HttpResponseMessage response = await httpClient.GetAsync(downloadUrl, HttpCompletionOption.ResponseHeadersRead, token).ConfigureAwait(false);
-                response.EnsureSuccessStatusCode();
-                long progressPercent = response.Content.Headers.ContentLength.GetValueOrDefault() / 100;
-                using (Stream contentStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false),
-                    fileStream = new FileStream(FileUpdateStage, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None, 8192, true))
+                using (ProgressMemoryStream packageStream = new ProgressMemoryStream())
                 {
-                    byte[] buffer = new byte[8192];
-                    int bytesRead;
-
-                    int percentage = 0;
-                    do
+                    packageStream.ProgressChanged += (object sender, ProgressChangedEventArgs e) =>
                     {
-                        bytesRead = await contentStream.ReadAsync(buffer, 0, buffer.Length, token).ConfigureAwait(false);
-                        await fileStream.WriteAsync(buffer, 0, bytesRead, token).ConfigureAwait(false);
-
-                        if (fileStream.Length / progressPercent > percentage)
-                        {
-                            TriggerApplyProgressChanged(progressMin + progressLength * ++percentage / 100);
-                        }
-                    }
-                    while (bytesRead != 0);
-                    await fileStream.FlushAsync(token).ConfigureAwait(false);
-                }
-            }
-            TriggerApplyProgressChanged(progressMin + progressLength);
-        }
-
-        private Task ExtractUpdate(int progressMin, int progressLength)
-        {
-            using (FileStream fileStream = new FileStream(FileUpdateStage, FileMode.Open, FileAccess.Read))
-            {
-                using (ZipArchive zipFile = new ZipArchive(fileStream))
-                {
-                    // Note that this will give us a good DirectoryInfo even if destinationDirectoryName exists:
-                    DirectoryInfo directoryInfo = Directory.CreateDirectory(PathUpdateStage);
-                    string destinationDirectoryFullPath = directoryInfo.FullName;
-                    int count = 0;
-
-                    foreach (ZipArchiveEntry entry in zipFile.Entries)
+                        TriggerApplyProgressChanged(progressMin + progressLength * e.ProgressPercentage / 100);
+                    };
+                    Task<bool> downloadTask = resource.CopyNupkgToStreamAsync(VersionInfo.PackageId, targetVersion, packageStream, cacheContext, NullLogger.Instance, token);
+                    packageStream.ExpectedLength = await repository.PackageSize(new PackageIdentity(VersionInfo.PackageId, targetVersion), token).ConfigureAwait(false);
+                    if (await downloadTask.ConfigureAwait(false))
                     {
-                        count++;
-                        string fileDestinationPath = Path.GetFullPath(Path.Combine(destinationDirectoryFullPath, entry.FullName));
-
-                        if (!fileDestinationPath.StartsWith(destinationDirectoryFullPath, StringComparison.OrdinalIgnoreCase))
-                            throw new IOException("File is extracting to a destination outside of the folder specified.");
-
-                        TriggerApplyProgressChanged(progressMin + progressLength * count / zipFile.Entries.Count);
-
-                        if (Path.GetFileName(fileDestinationPath).Length == 0)
-                        {
-                            // Directory
-                            if (entry.Length != 0)
-                                throw new IOException("Directory entry with data.");
-                            Directory.CreateDirectory(fileDestinationPath);
-                        }
-                        else
-                        {
-                            // File
-                            // Create containing directory
-                            Directory.CreateDirectory(Path.GetDirectoryName(fileDestinationPath));
-                            entry.ExtractToFile(fileDestinationPath);
-                        }
+                        TriggerApplyProgressChanged(progressMin + progressLength);
+                        packageStream.Position = 0;
+                        progressMin = 70;
+                        progressLength = 20;
+                        PackagePathResolver packagePathResolver = new PackagePathResolver(Path.GetFullPath(PathUpdateStage));
+                        PackageExtractionContext extractionContext = new PackageExtractionContext(PackageSaveMode.Files, XmlDocFileSaveMode.Skip, null, NullLogger.Instance);
+                        IEnumerable<string> files = await PackageExtractor.ExtractPackageAsync(settings.UpdateSource, packageStream, packagePathResolver, extractionContext, token).ConfigureAwait(false);
                     }
                 }
             }
-            File.Delete(FileUpdateStage);
-            TriggerApplyProgressChanged(progressMin + progressLength);
-            return Task.CompletedTask;
         }
 
-        private static async Task<bool> UpdateIsReadyAync()
+        private static async Task<bool> UpdateIsReadyAync(string versionFolder)
         {
-            if (Directory.Exists(Path.Combine(PathUpdateStage, "Program")) && !File.Exists(Path.Combine(PathUpdateStage, RuntimeInfo.LauncherExecutable)))
+            if (Directory.Exists(Path.Combine(PathUpdateStage, versionFolder, "Program")) && !File.Exists(Path.Combine(PathUpdateStage, versionFolder, RuntimeInfo.LauncherExecutable)))
             {
                 //looks like the archive contains the root folder as well, so we move everything one level up
-                await MoveDirectoryFiles(Path.Combine(PathUpdateStage, "Program"), PathUpdateStage, true).ConfigureAwait(false);
+                await MoveDirectoryFiles(Path.Combine(PathUpdateStage, versionFolder, "Program"), PathUpdateStage, true).ConfigureAwait(false);
+                Directory.Delete(Path.Combine(PathUpdateStage, versionFolder), true);
             }
 
-            // The staging directory must exist, contain OpenRails.exe (be ready) and NOT contain the update zip.
-            return await Task.FromResult(Directory.Exists(PathUpdateStage)
-                && File.Exists(Path.Combine(PathUpdateStage, RuntimeInfo.LauncherExecutable))
-                && !File.Exists(FileUpdateStage)).ConfigureAwait(false);
-        }
-
-        private static Task VerifyUpdateAsync(string targetHash)
-        {
-            using (SHA256 hashProvider = SHA256.Create())
-            {
-                using (FileStream file = new FileStream(FileUpdateStage, FileMode.Open, FileAccess.Read))
-                {
-                    byte[] hash = hashProvider.ComputeHash(file);
-                    StringBuilder builder = new StringBuilder(64);
-                    foreach (byte item in hash)
-                    {
-                        builder.Append($"{item:x2}");
-                    }
-
-                    if (!string.IsNullOrEmpty(targetHash) && !string.Equals(targetHash, builder.ToString(), StringComparison.OrdinalIgnoreCase))
-                        throw new InvalidDataException("Could not confirm download integrity for downloaded package");
-                }
-            }
-            return Task.CompletedTask;
+            // The staging directory must exist, contain OpenRails.exe (be ready).
+            return await Task.FromResult(Directory.Exists(PathUpdateStage) && File.Exists(Path.Combine(PathUpdateStage, RuntimeInfo.LauncherExecutable))).ConfigureAwait(false);
         }
 
         private static async Task CopyUpdateFileAsync()
@@ -465,8 +436,11 @@ namespace Orts.Updater
                          MoveDirectoryFiles(directory.FullName, Path.Combine(destDirName, directory.Name), recursive, excludedFolders, excludedFiles);
                      });
             }
-
-            try { source.Delete(); }
+            try
+            {
+                if (!source.EnumerateFileSystemInfos().Any())
+                    source.Delete();
+            }
             catch (Exception ex) when (ex is UnauthorizedAccessException || ex is IOException || ex is DirectoryNotFoundException)
             {
                 Trace.TraceWarning($"{sourceDirName} :: {ex.Message} {ex.InnerException?.Message}");
@@ -507,6 +481,28 @@ namespace Orts.Updater
             };
             process.Start();
             return tcs.Task;
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    updateVersions?.Dispose();
+                }
+
+                // TODO: free unmanaged resources (unmanaged objects) and override finalizer
+                // TODO: set large fields to null
+                disposedValue = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 }
