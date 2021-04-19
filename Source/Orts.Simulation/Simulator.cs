@@ -38,7 +38,6 @@ using Orts.Formats.OR.Models;
 using Orts.MultiPlayer;
 using Orts.Scripting.Api;
 using Orts.Settings;
-using Orts.Simulation.Activities;
 using Orts.Simulation.AIs;
 using Orts.Simulation.Commanding;
 using Orts.Simulation.Physics;
@@ -47,8 +46,6 @@ using Orts.Simulation.Signalling;
 using Orts.Simulation.Timetables;
 using Orts.Simulation.Track;
 using Orts.Simulation.World;
-
-using SharpDX.Direct2D1;
 
 using Activity = Orts.Simulation.Activities.Activity;
 

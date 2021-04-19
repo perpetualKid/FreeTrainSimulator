@@ -31,8 +31,6 @@ using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.World;
 
-using SharpDX.MediaFoundation;
-
 namespace Orts.Simulation
 {
     /// <summary>
@@ -41,9 +39,9 @@ namespace Orts.Simulation
     public class TransferTable : MovingTable
     {
         private readonly List<float> offsets = new List<float>();
+        private bool verticalTransfer;
 
         public float Span { get; private set; } // horizontal or vertical
-        public bool VerticalTransfer { get; set; }
         public float CenterOffsetComponent { get; set; }
 
         // Dynamic data
@@ -70,7 +68,7 @@ namespace Orts.Simulation
                 new STFReader.TokenProcessor("uid", ()=>{ UID = stf.ReadIntBlock(-1); }),
                 new STFReader.TokenProcessor("animation", ()=>{ animation = stf.ReadStringBlock(null);
                                                                 Animations.Add(animation);}),
-                new STFReader.TokenProcessor("verticaltransfer", ()=>{ VerticalTransfer = stf.ReadBoolBlock(false);}),
+                new STFReader.TokenProcessor("verticaltransfer", ()=>{ verticalTransfer = stf.ReadBoolBlock(false);}),
                 new STFReader.TokenProcessor("length", ()=>{ Length = stf.ReadFloatBlock(STFReader.Units.None , null);}),
                 new STFReader.TokenProcessor("xoffset", ()=>{ offset.X = stf.ReadFloatBlock(STFReader.Units.None , null);}),
                 new STFReader.TokenProcessor("zoffset", ()=>{ offset.Z = -stf.ReadFloatBlock(STFReader.Units.None , null);}),
@@ -124,7 +122,7 @@ namespace Orts.Simulation
             int i = 0;
             foreach (SectionIndex sectionIdx in trackShape.SectionIndices)
 {
-                offsets.Add(VerticalTransfer ? sectionIdx.Offset.Y : sectionIdx.Offset.X);
+                offsets.Add(verticalTransfer ? sectionIdx.Offset.Y : sectionIdx.Offset.X);
                 trackNodesIndex[i] = -1;
                 trackVectorSectionsIndex[i] = -1;
                 i++;
@@ -149,7 +147,7 @@ namespace Orts.Simulation
                     }
                 }
             }
-            if (VerticalTransfer)
+            if (verticalTransfer)
             {
                 OffsetPos = CenterOffsetComponent = CenterOffset.Y;
                 Span = trackShape.SectionIndices[^1].Offset.Y - trackShape.SectionIndices[0].Offset.Y;
@@ -284,7 +282,7 @@ namespace Orts.Simulation
         public void ComputeCenter(in WorldPosition worldPosition)
         {
             Vector3 movingCenterOffset = CenterOffset;
-            if (VerticalTransfer)
+            if (verticalTransfer)
                 movingCenterOffset.Y = OffsetPos;
             else
                 movingCenterOffset.X = OffsetPos;

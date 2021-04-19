@@ -32,8 +32,6 @@ using Orts.Formats.Msts.Models;
 using Orts.Simulation.AIs;
 using Orts.Simulation.Physics;
 
-using SharpDX.Direct2D1;
-
 namespace Orts.Simulation.Activities
 {
 

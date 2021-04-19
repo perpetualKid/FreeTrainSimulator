@@ -8,8 +8,6 @@ using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 using Orts.MultiPlayer;
 
-using SharpDX.Direct3D11;
-
 namespace Orts.Simulation.Signalling
 {
     //================================================================================================//
