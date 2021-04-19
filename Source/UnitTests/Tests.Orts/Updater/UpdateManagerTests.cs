@@ -35,10 +35,8 @@ namespace Tests.Orts.Updater
 
             Assert.IsFalse(UpdateManager.CheckUpdateNeeded(UpdateCheckFrequency.Monthly));
 
-            string versionFilePath = Path.Combine(RuntimeInfo.ConfigFolder, "version.json");
-
-            using (File.Create(versionFilePath)) { }
-            File.SetLastWriteTime(versionFilePath, DateTime.Now.AddDays(-20));
+            using (File.Create(UpdateManager.VersionFile)) { }
+            File.SetLastWriteTime(UpdateManager.VersionFile, DateTime.Now.AddDays(-20));
 
             Assert.IsTrue(UpdateManager.CheckUpdateNeeded(UpdateCheckFrequency.Daily));
             Assert.IsTrue(UpdateManager.CheckUpdateNeeded(UpdateCheckFrequency.Weekly));
