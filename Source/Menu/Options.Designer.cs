@@ -17,7 +17,6 @@
         {
             this.components = new System.ComponentModel.Container();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(OptionsForm));
             this.buttonOK = new System.Windows.Forms.Button();
             this.numericBrakePipeChargingRate = new System.Windows.Forms.NumericUpDown();
             this.label4 = new System.Windows.Forms.Label();
@@ -151,18 +150,21 @@
             this.pathDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.bindingSourceContent = new System.Windows.Forms.BindingSource(this.components);
             this.tabPageUpdater = new System.Windows.Forms.TabPage();
-            this.label32 = new System.Windows.Forms.Label();
-            this.labelBestVersion = new System.Windows.Forms.Label();
-            this.labelBestVersionDesc = new System.Windows.Forms.Label();
-            this.labelChannelVersionDesc = new System.Windows.Forms.Label();
-            this.labelChannelDescription = new System.Windows.Forms.Label();
-            this.labelChannelVersion = new System.Windows.Forms.Label();
-            this.buttonUpdatesRefresh = new System.Windows.Forms.Button();
+            this.buttonUpdaterExecute = new System.Windows.Forms.Button();
+            this.groupBoxUpdateFrequency = new System.Windows.Forms.GroupBox();
             this.labelUpdaterFrequency = new System.Windows.Forms.Label();
             this.trackBarUpdaterFrequency = new System.Windows.Forms.TrackBar();
-            this.comboBoxUpdateChannels = new System.Windows.Forms.ComboBox();
-            this.label31 = new System.Windows.Forms.Label();
+            this.labelCurrentVersion = new System.Windows.Forms.Label();
+            this.labelCurrentVersionDesc = new System.Windows.Forms.Label();
+            this.groupBoxUpdates = new System.Windows.Forms.GroupBox();
+            this.label32 = new System.Windows.Forms.Label();
             this.label30 = new System.Windows.Forms.Label();
+            this.labelPublicReleaseDesc = new System.Windows.Forms.Label();
+            this.rbDeveloperPrereleases = new System.Windows.Forms.RadioButton();
+            this.rbPublicPrereleases = new System.Windows.Forms.RadioButton();
+            this.rbPublicReleases = new System.Windows.Forms.RadioButton();
+            this.labelAvailableVersionDesc = new System.Windows.Forms.Label();
+            this.labelAvailableVersion = new System.Windows.Forms.Label();
             this.tabPageExperimental = new System.Windows.Forms.TabPage();
             this.label27 = new System.Windows.Forms.Label();
             this.numericActWeatherRandomizationLevel = new System.Windows.Forms.NumericUpDown();
@@ -242,7 +244,9 @@
             ((System.ComponentModel.ISupportInitialize)(this.dataGridViewContent)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.bindingSourceContent)).BeginInit();
             this.tabPageUpdater.SuspendLayout();
+            this.groupBoxUpdateFrequency.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.trackBarUpdaterFrequency)).BeginInit();
+            this.groupBoxUpdates.SuspendLayout();
             this.tabPageExperimental.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericActWeatherRandomizationLevel)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericActRandomizationLevel)).BeginInit();
@@ -753,10 +757,10 @@
             // 
             // labelMSAACount
             // 
-            this.labelMSAACount.Location = new System.Drawing.Point(612, 190);
+            this.labelMSAACount.Location = new System.Drawing.Point(632, 190);
             this.labelMSAACount.Margin = new System.Windows.Forms.Padding(4);
             this.labelMSAACount.Name = "labelMSAACount";
-            this.labelMSAACount.Size = new System.Drawing.Size(172, 16);
+            this.labelMSAACount.Size = new System.Drawing.Size(152, 16);
             this.labelMSAACount.TabIndex = 28;
             this.labelMSAACount.Text = "0x";
             this.labelMSAACount.TextAlign = System.Drawing.ContentAlignment.TopRight;
@@ -2009,18 +2013,13 @@
             // 
             // tabPageUpdater
             // 
-            this.tabPageUpdater.Controls.Add(this.label32);
-            this.tabPageUpdater.Controls.Add(this.labelBestVersion);
-            this.tabPageUpdater.Controls.Add(this.labelBestVersionDesc);
-            this.tabPageUpdater.Controls.Add(this.labelChannelVersionDesc);
-            this.tabPageUpdater.Controls.Add(this.labelChannelDescription);
-            this.tabPageUpdater.Controls.Add(this.labelChannelVersion);
-            this.tabPageUpdater.Controls.Add(this.buttonUpdatesRefresh);
-            this.tabPageUpdater.Controls.Add(this.labelUpdaterFrequency);
-            this.tabPageUpdater.Controls.Add(this.trackBarUpdaterFrequency);
-            this.tabPageUpdater.Controls.Add(this.comboBoxUpdateChannels);
-            this.tabPageUpdater.Controls.Add(this.label31);
-            this.tabPageUpdater.Controls.Add(this.label30);
+            this.tabPageUpdater.Controls.Add(this.buttonUpdaterExecute);
+            this.tabPageUpdater.Controls.Add(this.groupBoxUpdateFrequency);
+            this.tabPageUpdater.Controls.Add(this.labelCurrentVersion);
+            this.tabPageUpdater.Controls.Add(this.labelCurrentVersionDesc);
+            this.tabPageUpdater.Controls.Add(this.groupBoxUpdates);
+            this.tabPageUpdater.Controls.Add(this.labelAvailableVersionDesc);
+            this.tabPageUpdater.Controls.Add(this.labelAvailableVersion);
             this.tabPageUpdater.Location = new System.Drawing.Point(4, 29);
             this.tabPageUpdater.Margin = new System.Windows.Forms.Padding(4);
             this.tabPageUpdater.Name = "tabPageUpdater";
@@ -2030,85 +2029,38 @@
             this.tabPageUpdater.Text = "Updater";
             this.tabPageUpdater.UseVisualStyleBackColor = true;
             // 
-            // label32
+            // buttonUpdaterExecute
             // 
-            this.label32.Location = new System.Drawing.Point(12, 288);
-            this.label32.Margin = new System.Windows.Forms.Padding(4);
-            this.label32.Name = "label32";
-            this.label32.Size = new System.Drawing.Size(783, 82);
-            this.label32.TabIndex = 36;
-            this.label32.Text = "The best available version from any channel equal or higher the current quality selection will be installed. \r\n" +
-            "That is, if you chose \"RC\"(release candidate) channel, updates which are RC, or higher (typically final releases) will be considered (CI < Dev < RC < Release).";
+            this.buttonUpdaterExecute.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.buttonUpdaterExecute.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.buttonUpdaterExecute.Location = new System.Drawing.Point(667, 397);
+            this.buttonUpdaterExecute.Margin = new System.Windows.Forms.Padding(4);
+            this.buttonUpdaterExecute.Name = "buttonUpdaterExecute";
+            this.buttonUpdaterExecute.Size = new System.Drawing.Size(100, 28);
+            this.buttonUpdaterExecute.TabIndex = 41;
+            this.buttonUpdaterExecute.Text = "Update";
+            this.buttonUpdaterExecute.UseVisualStyleBackColor = true;
+            this.buttonUpdaterExecute.Visible = false;
+            this.buttonUpdaterExecute.Click += new System.EventHandler(this.ButtonUpdaterExecute_Click);
             // 
-            // labelBestVersion
+            // groupBoxUpdateFrequency
             // 
-            this.labelBestVersion.AutoSize = true;
-            this.labelBestVersion.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
-            this.labelBestVersion.Location = new System.Drawing.Point(455, 254);
-            this.labelBestVersion.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.labelBestVersion.Name = "labelBestVersion";
-            this.labelBestVersion.Size = new System.Drawing.Size(33, 20);
-            this.labelBestVersion.TabIndex = 35;
-            this.labelBestVersion.Text = "n/a";
-            // 
-            // labelBestVersionDesc
-            // 
-            this.labelBestVersionDesc.AutoSize = true;
-            this.labelBestVersionDesc.Location = new System.Drawing.Point(12, 254);
-            this.labelBestVersionDesc.Margin = new System.Windows.Forms.Padding(4);
-            this.labelBestVersionDesc.Name = "labelBestVersionDesc";
-            this.labelBestVersionDesc.Size = new System.Drawing.Size(323, 20);
-            this.labelBestVersionDesc.TabIndex = 34;
-            this.labelBestVersionDesc.Text = "Best Available Version including other channels:";
-            // 
-            // labelChannelVersionDesc
-            // 
-            this.labelChannelVersionDesc.AutoSize = true;
-            this.labelChannelVersionDesc.Location = new System.Drawing.Point(12, 210);
-            this.labelChannelVersionDesc.Margin = new System.Windows.Forms.Padding(4);
-            this.labelChannelVersionDesc.Name = "labelChannelVersionDesc";
-            this.labelChannelVersionDesc.Size = new System.Drawing.Size(285, 20);
-            this.labelChannelVersionDesc.TabIndex = 33;
-            this.labelChannelVersionDesc.Text = "Currently available Version in this channel:";
-            // 
-            // labelChannelDescription
-            // 
-            this.labelChannelDescription.Location = new System.Drawing.Point(336, 55);
-            this.labelChannelDescription.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.labelChannelDescription.Name = "labelChannelDescription";
-            this.labelChannelDescription.Size = new System.Drawing.Size(459, 142);
-            this.labelChannelDescription.TabIndex = 31;
-            // 
-            // labelChannelVersion
-            // 
-            this.labelChannelVersion.AutoSize = true;
-            this.labelChannelVersion.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
-            this.labelChannelVersion.Location = new System.Drawing.Point(455, 210);
-            this.labelChannelVersion.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.labelChannelVersion.Name = "labelChannelVersion";
-            this.labelChannelVersion.Size = new System.Drawing.Size(33, 20);
-            this.labelChannelVersion.TabIndex = 33;
-            this.labelChannelVersion.Text = "n/a";
-            // 
-            // buttonUpdatesRefresh
-            // 
-            this.buttonUpdatesRefresh.Font = new System.Drawing.Font("Wingdings 3", 12F);
-            this.buttonUpdatesRefresh.Location = new System.Drawing.Point(273, 58);
-            this.buttonUpdatesRefresh.Margin = new System.Windows.Forms.Padding(4);
-            this.buttonUpdatesRefresh.Name = "buttonUpdatesRefresh";
-            this.buttonUpdatesRefresh.Size = new System.Drawing.Size(31, 28);
-            this.buttonUpdatesRefresh.TabIndex = 30;
-            this.buttonUpdatesRefresh.Text = "Q";
-            this.buttonUpdatesRefresh.UseVisualStyleBackColor = true;
-            this.buttonUpdatesRefresh.Click += new System.EventHandler(this.ButtonUpdatesRefresh_Click);
+            this.groupBoxUpdateFrequency.Controls.Add(this.labelUpdaterFrequency);
+            this.groupBoxUpdateFrequency.Controls.Add(this.trackBarUpdaterFrequency);
+            this.groupBoxUpdateFrequency.Location = new System.Drawing.Point(7, 287);
+            this.groupBoxUpdateFrequency.Name = "groupBoxUpdateFrequency";
+            this.groupBoxUpdateFrequency.Size = new System.Drawing.Size(791, 100);
+            this.groupBoxUpdateFrequency.TabIndex = 40;
+            this.groupBoxUpdateFrequency.TabStop = false;
+            this.groupBoxUpdateFrequency.Text = "Update Check Frequency";
             // 
             // labelUpdaterFrequency
             // 
-            this.labelUpdaterFrequency.Location = new System.Drawing.Point(12, 159);
+            this.labelUpdaterFrequency.Location = new System.Drawing.Point(6, 68);
             this.labelUpdaterFrequency.Margin = new System.Windows.Forms.Padding(4);
             this.labelUpdaterFrequency.Name = "labelUpdaterFrequency";
-            this.labelUpdaterFrequency.Size = new System.Drawing.Size(292, 25);
-            this.labelUpdaterFrequency.TabIndex = 29;
+            this.labelUpdaterFrequency.Size = new System.Drawing.Size(778, 25);
+            this.labelUpdaterFrequency.TabIndex = 31;
             this.labelUpdaterFrequency.Text = "Always";
             this.labelUpdaterFrequency.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
@@ -2116,45 +2068,130 @@
             // 
             this.trackBarUpdaterFrequency.BackColor = System.Drawing.SystemColors.Window;
             this.trackBarUpdaterFrequency.LargeChange = 1;
-            this.trackBarUpdaterFrequency.Location = new System.Drawing.Point(16, 121);
+            this.trackBarUpdaterFrequency.Location = new System.Drawing.Point(6, 30);
             this.trackBarUpdaterFrequency.Margin = new System.Windows.Forms.Padding(4);
             this.trackBarUpdaterFrequency.Maximum = 4;
             this.trackBarUpdaterFrequency.Minimum = -1;
             this.trackBarUpdaterFrequency.Name = "trackBarUpdaterFrequency";
-            this.trackBarUpdaterFrequency.Size = new System.Drawing.Size(288, 56);
-            this.trackBarUpdaterFrequency.TabIndex = 4;
+            this.trackBarUpdaterFrequency.Size = new System.Drawing.Size(778, 56);
+            this.trackBarUpdaterFrequency.TabIndex = 30;
             this.trackBarUpdaterFrequency.Scroll += new System.EventHandler(this.TrackBarUpdaterFrequency_Scroll);
             // 
-            // comboBoxUpdateChannels
+            // labelCurrentVersion
             // 
-            this.comboBoxUpdateChannels.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.comboBoxUpdateChannels.FormattingEnabled = true;
-            this.comboBoxUpdateChannels.Location = new System.Drawing.Point(16, 58);
-            this.comboBoxUpdateChannels.Margin = new System.Windows.Forms.Padding(4);
-            this.comboBoxUpdateChannels.Name = "comboBoxUpdateChannels";
-            this.comboBoxUpdateChannels.Size = new System.Drawing.Size(248, 28);
-            this.comboBoxUpdateChannels.TabIndex = 3;
-            this.comboBoxUpdateChannels.SelectedIndexChanged += new System.EventHandler(this.ComboBoxUpdateChannels_SelectedIndexChanged);
+            this.labelCurrentVersion.AutoSize = true;
+            this.labelCurrentVersion.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            this.labelCurrentVersion.Location = new System.Drawing.Point(381, 429);
+            this.labelCurrentVersion.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.labelCurrentVersion.Name = "labelCurrentVersion";
+            this.labelCurrentVersion.Size = new System.Drawing.Size(33, 20);
+            this.labelCurrentVersion.TabIndex = 39;
+            this.labelCurrentVersion.Text = "n/a";
             // 
-            // label31
+            // labelCurrentVersionDesc
             // 
-            this.label31.AutoSize = true;
-            this.label31.Location = new System.Drawing.Point(12, 101);
-            this.label31.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.label31.Name = "label31";
-            this.label31.Size = new System.Drawing.Size(101, 20);
-            this.label31.TabIndex = 2;
-            this.label31.Text = "Update Check";
+            this.labelCurrentVersionDesc.AutoSize = true;
+            this.labelCurrentVersionDesc.Location = new System.Drawing.Point(7, 430);
+            this.labelCurrentVersionDesc.Margin = new System.Windows.Forms.Padding(4);
+            this.labelCurrentVersionDesc.Name = "labelCurrentVersionDesc";
+            this.labelCurrentVersionDesc.Size = new System.Drawing.Size(112, 20);
+            this.labelCurrentVersionDesc.TabIndex = 38;
+            this.labelCurrentVersionDesc.Text = "Current Version:";
+            // 
+            // groupBoxUpdates
+            // 
+            this.groupBoxUpdates.Controls.Add(this.label32);
+            this.groupBoxUpdates.Controls.Add(this.label30);
+            this.groupBoxUpdates.Controls.Add(this.labelPublicReleaseDesc);
+            this.groupBoxUpdates.Controls.Add(this.rbDeveloperPrereleases);
+            this.groupBoxUpdates.Controls.Add(this.rbPublicPrereleases);
+            this.groupBoxUpdates.Controls.Add(this.rbPublicReleases);
+            this.groupBoxUpdates.Location = new System.Drawing.Point(7, 7);
+            this.groupBoxUpdates.Name = "groupBoxUpdates";
+            this.groupBoxUpdates.Size = new System.Drawing.Size(791, 267);
+            this.groupBoxUpdates.TabIndex = 37;
+            this.groupBoxUpdates.TabStop = false;
+            this.groupBoxUpdates.Text = "Update mode";
+            // 
+            // label32
+            // 
+            this.label32.Location = new System.Drawing.Point(26, 214);
+            this.label32.Name = "label32";
+            this.label32.Size = new System.Drawing.Size(765, 50);
+            this.label32.TabIndex = 5;
+            this.label32.Text = "Continously integrated updates from development process. These versions may conta" +
+    "in serious defect, and not all features shows here may be merged into public rel" +
+    "eases.\r\n";
             // 
             // label30
             // 
-            this.label30.AutoSize = true;
-            this.label30.Location = new System.Drawing.Point(12, 37);
-            this.label30.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label30.Location = new System.Drawing.Point(26, 134);
             this.label30.Name = "label30";
-            this.label30.Size = new System.Drawing.Size(263, 20);
-            this.label30.TabIndex = 1;
-            this.label30.Text = "Minimum update channel (quality bar)";
+            this.label30.Size = new System.Drawing.Size(765, 50);
+            this.label30.TabIndex = 4;
+            this.label30.Text = "Early access versions for testing in a wider community.";
+            // 
+            // labelPublicReleaseDesc
+            // 
+            this.labelPublicReleaseDesc.Location = new System.Drawing.Point(26, 54);
+            this.labelPublicReleaseDesc.Name = "labelPublicReleaseDesc";
+            this.labelPublicReleaseDesc.Size = new System.Drawing.Size(765, 50);
+            this.labelPublicReleaseDesc.TabIndex = 3;
+            this.labelPublicReleaseDesc.Text = "Recommended for general use. Stabilized versions and final feature implementation" +
+    "s.";
+            // 
+            // rbDeveloperPrereleases
+            // 
+            this.rbDeveloperPrereleases.AutoSize = true;
+            this.rbDeveloperPrereleases.Location = new System.Drawing.Point(6, 187);
+            this.rbDeveloperPrereleases.Name = "rbDeveloperPrereleases";
+            this.rbDeveloperPrereleases.Size = new System.Drawing.Size(186, 24);
+            this.rbDeveloperPrereleases.TabIndex = 2;
+            this.rbDeveloperPrereleases.Text = "Developer Test releases";
+            this.rbDeveloperPrereleases.UseVisualStyleBackColor = true;
+            // 
+            // rbPublicPrereleases
+            // 
+            this.rbPublicPrereleases.AutoSize = true;
+            this.rbPublicPrereleases.Location = new System.Drawing.Point(6, 107);
+            this.rbPublicPrereleases.Name = "rbPublicPrereleases";
+            this.rbPublicPrereleases.Size = new System.Drawing.Size(159, 24);
+            this.rbPublicPrereleases.TabIndex = 1;
+            this.rbPublicPrereleases.Text = "Public pre-Releases";
+            this.rbPublicPrereleases.UseVisualStyleBackColor = true;
+            // 
+            // rbPublicReleases
+            // 
+            this.rbPublicReleases.AutoSize = true;
+            this.rbPublicReleases.Checked = true;
+            this.rbPublicReleases.Location = new System.Drawing.Point(6, 27);
+            this.rbPublicReleases.Name = "rbPublicReleases";
+            this.rbPublicReleases.Size = new System.Drawing.Size(131, 24);
+            this.rbPublicReleases.TabIndex = 0;
+            this.rbPublicReleases.TabStop = true;
+            this.rbPublicReleases.Text = "Public Releases";
+            this.rbPublicReleases.UseVisualStyleBackColor = true;
+            // 
+            // labelAvailableVersionDesc
+            // 
+            this.labelAvailableVersionDesc.AutoSize = true;
+            this.labelAvailableVersionDesc.Location = new System.Drawing.Point(7, 401);
+            this.labelAvailableVersionDesc.Margin = new System.Windows.Forms.Padding(4);
+            this.labelAvailableVersionDesc.Name = "labelAvailableVersionDesc";
+            this.labelAvailableVersionDesc.Size = new System.Drawing.Size(213, 20);
+            this.labelAvailableVersionDesc.TabIndex = 33;
+            this.labelAvailableVersionDesc.Text = "Available Update in this mode:";
+            // 
+            // labelAvailableVersion
+            // 
+            this.labelAvailableVersion.AutoSize = true;
+            this.labelAvailableVersion.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            this.labelAvailableVersion.Location = new System.Drawing.Point(381, 401);
+            this.labelAvailableVersion.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.labelAvailableVersion.Name = "labelAvailableVersion";
+            this.labelAvailableVersion.Size = new System.Drawing.Size(33, 20);
+            this.labelAvailableVersion.TabIndex = 33;
+            this.labelAvailableVersion.Text = "n/a";
             // 
             // tabPageExperimental
             // 
@@ -2855,7 +2892,11 @@
             ((System.ComponentModel.ISupportInitialize)(this.bindingSourceContent)).EndInit();
             this.tabPageUpdater.ResumeLayout(false);
             this.tabPageUpdater.PerformLayout();
+            this.groupBoxUpdateFrequency.ResumeLayout(false);
+            this.groupBoxUpdateFrequency.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.trackBarUpdaterFrequency)).EndInit();
+            this.groupBoxUpdates.ResumeLayout(false);
+            this.groupBoxUpdates.PerformLayout();
             this.tabPageExperimental.ResumeLayout(false);
             this.tabPageExperimental.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericActWeatherRandomizationLevel)).EndInit();
@@ -3054,17 +3095,20 @@
         private System.Windows.Forms.RadioButton radioButtonWindow;
         private System.Windows.Forms.RadioButton radioButtonFullScreen;
         private System.Windows.Forms.Panel panel1;
-        private System.Windows.Forms.TrackBar trackBarUpdaterFrequency;
-        private System.Windows.Forms.ComboBox comboBoxUpdateChannels;
-        private System.Windows.Forms.Label label31;
-        private System.Windows.Forms.Label label30;
-        private System.Windows.Forms.Label labelUpdaterFrequency;
-        private System.Windows.Forms.Button buttonUpdatesRefresh;
-        private System.Windows.Forms.Label labelChannelDescription;
-        private System.Windows.Forms.Label labelChannelVersion;
-        private System.Windows.Forms.Label labelBestVersionDesc;
-        private System.Windows.Forms.Label labelChannelVersionDesc;
+        private System.Windows.Forms.Label labelAvailableVersion;
+        private System.Windows.Forms.Label labelAvailableVersionDesc;
+        private System.Windows.Forms.GroupBox groupBoxUpdates;
+        private System.Windows.Forms.RadioButton rbDeveloperPrereleases;
+        private System.Windows.Forms.RadioButton rbPublicPrereleases;
+        private System.Windows.Forms.RadioButton rbPublicReleases;
+        private System.Windows.Forms.Label labelCurrentVersionDesc;
+        private System.Windows.Forms.Label labelCurrentVersion;
         private System.Windows.Forms.Label label32;
-        private System.Windows.Forms.Label labelBestVersion;
+        private System.Windows.Forms.Label label30;
+        private System.Windows.Forms.Label labelPublicReleaseDesc;
+        private System.Windows.Forms.GroupBox groupBoxUpdateFrequency;
+        private System.Windows.Forms.Label labelUpdaterFrequency;
+        private System.Windows.Forms.TrackBar trackBarUpdaterFrequency;
+        private System.Windows.Forms.Button buttonUpdaterExecute;
     }
 }

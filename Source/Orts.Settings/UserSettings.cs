@@ -219,12 +219,12 @@ namespace Orts.Settings
 
         // Updater settings
         #region update settings
-        [Default((int)Orts.Common.UpdateCheckFrequency.Always)]
+        [Default((int)Common.UpdateCheckFrequency.Always)]
         public int UpdateCheckFrequency { get; set; }
-        [Default("rc")]
-        public string UpdateChannel { get; set; }
-        [Default("https://ultimaterails.blob.core.windows.net/builds/")]
+        [Default("https://orts.blob.core.windows.net/releases/index.json")]
         public string UpdateSource { get; set; }
+        [Default(false)]
+        public bool UpdatePreReleases { get; set; }
         #endregion
 
 

@@ -13,13 +13,7 @@
     <PackageReference Include="GetText.NET" Version="0.9.9" />
     <PackageReference Include="GetText.NET.WindowsForms" Version="0.9.9" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="System.IO.Compression" Version="4.3.0" />
-    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="5.0.1" />
-    <PackageReference Include="System.IO.FileSystem" Version="4.3.0" />
-    <PackageReference Include="System.IO.FileSystem.Primitives" Version="4.3.0" />
-    <PackageReference Include="System.Net.NameResolution" Version="4.3.0" />
-    <PackageReference Include="System.Net.Primitives" Version="4.3.1" />
-	<PackageReference Include="System.Resources.Extensions" Version="5.0.0" />
+    <PackageReference Include="System.Resources.Extensions" Version="5.0.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Orts.Common\Orts.Common.csproj" />

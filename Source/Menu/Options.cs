@@ -22,6 +22,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Windows.Forms;
 
 using GetText;
@@ -189,7 +190,7 @@ namespace Orts.Menu
 
             for (int i = 0; i < checkListDataLogTSContents.Items.Count; i++)
             {
-                checkListDataLogTSContents.SetItemChecked(i, settings.EvaluationContent.HasFlag((EvaluationLogContents)(1<<i)));
+                checkListDataLogTSContents.SetItemChecked(i, settings.EvaluationContent.HasFlag((EvaluationLogContents)(1 << i)));
             }
             checkDataLogStationStops.Checked = this.settings.EvaluationStationStops;
 
@@ -206,15 +207,15 @@ namespace Orts.Menu
 
             // Updater tab
             trackBarUpdaterFrequency.Value = this.settings.UpdateCheckFrequency;
-            TrackBarUpdaterFrequency_Scroll(this, null);
+            labelUpdaterFrequency.Text = catalog.GetString(((UpdateCheckFrequency)trackBarUpdaterFrequency.Value).GetDescription());
+            labelCurrentVersion.Text = VersionInfo.FullVersion;
+            if (updateManager.UpdaterNeedsElevation)
+            {
+                using (Icon icon = new Icon(SystemIcons.Shield, SystemInformation.SmallIconSize))
+                    buttonUpdaterExecute.Image = icon.ToBitmap();
+            }
 
-            buttonUpdatesRefresh.Font = new Font("Wingdings 3", 14);
-            buttonUpdatesRefresh.Text = char.ConvertFromUtf32(81);
-            buttonUpdatesRefresh.Width = 23;
-            buttonUpdatesRefresh.Height = 23;
-
-            comboBoxUpdateChannels.DataSourceFromList(updateManager.GetChannels().OrderByDescending((s) => s), (channel) => catalog.GetString(channel));
-            comboBoxUpdateChannels.SelectedIndex = comboBoxUpdateChannels.FindStringExact(this.settings.UpdateChannel);
+            PresetUpdateSelections();
 
             // Experimental tab
             numericUseSuperElevation.Value = this.settings.UseSuperElevation;
@@ -369,7 +370,6 @@ namespace Orts.Menu
 
             // Updater tab
 
-            settings.UpdateChannel = (comboBoxUpdateChannels.SelectedItem as ComboBoxItem<string>)?.Key ?? string.Empty;
             settings.UpdateCheckFrequency = trackBarUpdaterFrequency.Value;
 
             // Experimental tab
@@ -604,34 +604,59 @@ namespace Orts.Menu
             labelPerformanceTunerTarget.Enabled = checkPerformanceTuner.Checked;
         }
 
-        private void TrackBarUpdaterFrequency_Scroll(object sender, EventArgs e)
+        private async void TrackBarUpdaterFrequency_Scroll(object sender, EventArgs e)
         {
             labelUpdaterFrequency.Text = catalog.GetString(((UpdateCheckFrequency)trackBarUpdaterFrequency.Value).GetDescription());
+            settings.UpdateCheckFrequency = trackBarUpdaterFrequency.Value;
+            string updateAvailable = await updateManager.GetBestAvailableVersionString(false).ConfigureAwait(true);
+            labelAvailableVersion.Text = updateAvailable ?? "n/a";
+            buttonUpdaterExecute.Visible = !string.IsNullOrEmpty(updateAvailable);
         }
 
-        private async void ButtonUpdatesRefresh_Click(object sender, EventArgs e)
+        private async void PresetUpdateSelections()
         {
-            await updateManager.RefreshUpdateInfo(UpdateCheckFrequency.Always).ConfigureAwait(true);
-
-            comboBoxUpdateChannels.DataSourceFromList(updateManager.GetChannels().OrderByDescending((s) => s), (channel) => catalog.GetString(channel));
-            comboBoxUpdateChannels.SelectedIndex = comboBoxUpdateChannels.FindStringExact(settings.UpdateChannel);
-        }
-
-        private void ComboBoxUpdateChannels_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (comboBoxUpdateChannels.SelectedIndex != -1 &&
-                EnumExtension.GetValue(((ComboBoxItem<string>)comboBoxUpdateChannels.SelectedItem).Key, out UpdateChannel channel))
+            if (string.Compare(settings.UpdateSource, settings.GetDefaultValue(nameof(settings.UpdateSource)) as string, StringComparison.OrdinalIgnoreCase) != 0)
             {
-                labelChannelDescription.Text = catalog.GetString(channel.GetDescription());
-                labelChannelVersion.Text = updateManager.GetChannelByName(channel.ToString())?.NormalizedVersion ?? "n/a";
-                labelBestVersion.Text = updateManager.GetBestAvailableVersion(string.Empty, channel.ToString()) ?? "n/a";
+                rbDeveloperPrereleases.Checked = true;
+            }
+            else if (settings.UpdatePreReleases)
+            {
+                rbPublicPrereleases.Checked = true;
             }
             else
             {
-                labelChannelDescription.Text = string.Empty;
+                rbPublicReleases.Checked = true;
             }
+            string updateAvailable = await updateManager.GetBestAvailableVersionString(false).ConfigureAwait(true);
+            labelAvailableVersion.Text = updateAvailable ?? "n/a";
+            buttonUpdaterExecute.Visible = !string.IsNullOrEmpty(updateAvailable);
+            rbDeveloperPrereleases.CheckedChanged += UpdaterSelection_CheckedChanged;
+            rbPublicPrereleases.CheckedChanged += UpdaterSelection_CheckedChanged;
+            rbPublicReleases.CheckedChanged += UpdaterSelection_CheckedChanged;
         }
 
+        private async void UpdaterSelection_CheckedChanged(object sender, EventArgs e)
+        {
+            updateManager.SetUpdateChannel(rbPublicPrereleases.Checked, rbDeveloperPrereleases.Checked);
+            if (sender == rbDeveloperPrereleases && rbDeveloperPrereleases.Checked)
+            {
+                if (MessageBox.Show("While we encourage users to support us in testing new versions and features, " + Environment.NewLine +
+                    "be aware that development versions may contain serious bugs, regressions or may not be optimized for performance." + Environment.NewLine + Environment.NewLine +
+                    "Please confirm that you want to use development code versions. Otherwise we recommend using public prerelease versions, which may run more stable and contain less defects.", 
+                    "Confirm Developer Releases", MessageBoxButtons.OKCancel, MessageBoxIcon.Information) == DialogResult.Cancel)
+                {
+                    rbPublicPrereleases.Checked = true;
+                }
+            }
+            string updateAvailable = await updateManager.GetBestAvailableVersionString(true).ConfigureAwait(true);
+            labelAvailableVersion.Text = updateAvailable ?? "n/a";
+            buttonUpdaterExecute.Visible = !string.IsNullOrEmpty(updateAvailable);
+        }
+
+        private async void ButtonUpdaterExecute_Click(object sender, EventArgs e)
+        {
+            await updateManager.RunUpdateProcess(labelAvailableVersion.Text).ConfigureAwait(false);
+        }
     }
 
     public class ContentFolder

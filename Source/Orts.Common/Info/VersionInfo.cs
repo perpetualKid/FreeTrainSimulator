@@ -31,6 +31,7 @@ namespace Orts.Common.Info
     /// </summary>
     public static class VersionInfo
     {
+        public const string PackageId = "ORTS-MG";
         private const string releaseChannelName = "release";
 
         public static readonly NuGetVersion CurrentVersion = GetVersion();
@@ -91,66 +92,9 @@ namespace Orts.Common.Info
             return CurrentVersion.CompareTo(result);
         }
 
-        /// <summary>
-        /// Searchs the list of availableVersions for all upgrade options against the current version, 
-        /// filtered to allow only targetChannel or higher prereleases and releases
-        /// The result is sorted in descending order to get the most appropriate version first
-        /// </summary>
-        internal static IOrderedEnumerable<NuGetVersion> SelectSuitableVersions(IReadOnlyCollection<string> availableVersions, string targetVersion, string targetChannel)
+        public static NuGetVersion GetBestAvailableVersion(IEnumerable<NuGetVersion> availableVersions, bool includePrerelease)
         {
-            if (availableVersions == null)
-                throw new ArgumentNullException(nameof(availableVersions));
-
-            List<NuGetVersion> result = new List<NuGetVersion>();
-            IEnumerable<NuGetVersion> selection;
-            foreach (string versionString in availableVersions)
-            {
-                if (NuGetVersion.TryParse(versionString, out NuGetVersion parsedVersion))
-                    result.Add(parsedVersion);
-            }
-
-            if (Channel.Equals(targetChannel, StringComparison.OrdinalIgnoreCase))
-            {
-                //filter the versions against the target channel
-                selection = result.Where(version => VersionComparer.VersionRelease.Compare(version, CurrentVersion) > 0);
-            }
-            else
-            {
-                //filter the versions against the target channel
-                selection = result.Where((version) =>
-                {
-                    List<string> releaseLabels = null;
-                    if (targetChannel == releaseChannelName)
-                        return (!version.IsPrerelease);
-                    else
-                    {
-                        if (version.IsPrerelease)
-                        {
-                            releaseLabels = version.ReleaseLabels.ToList();
-                            releaseLabels[0] = targetChannel;
-                        }
-                    }
-                    SemanticVersion other = new SemanticVersion(version.Major, version.Minor, version.Patch, releaseLabels, version.Metadata);
-                    return VersionComparer.VersionRelease.Compare(version, other) >= 0;
-                });
-            }
-            if (!string.IsNullOrEmpty(targetVersion))
-            {
-                if (!NuGetVersion.TryParse(targetVersion, out NuGetVersion target))
-                    throw new ArgumentException($"{targetVersion} is not a valid version for parameter {nameof(targetVersion)}");
-                //compare against the current version and the target version
-                selection = selection.Where(
-                    (version) => VersionComparer.VersionRelease.Compare(version, CurrentVersion) > 0 &&
-                    VersionComparer.VersionRelease.Compare(version, target) <= 0);
-            }
-
-            return selection.OrderByDescending((v) => v);
-        }
-
-        public static string SelectSuitableVersion(IReadOnlyCollection<string> availableVersions, string targetChannel, string targetVersion = "")
-        {
-            IOrderedEnumerable<NuGetVersion> versions = SelectSuitableVersions(availableVersions, targetVersion, targetChannel);
-            return versions?.FirstOrDefault()?.ToNormalizedString();
+            return availableVersions.Where(v => includePrerelease || !v.IsPrerelease).OrderByDescending(v => v, VersionComparer.VersionReleaseMetadata).FirstOrDefault(v => v != null && v != GetVersion());
         }
 
         internal static string ProductName()

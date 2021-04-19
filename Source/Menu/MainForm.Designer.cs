@@ -87,7 +87,6 @@ namespace Orts.Menu
             this.linkLabelUpdate = new System.Windows.Forms.LinkLabel();
             this.testingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.contextMenuStripTools = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.linkLabelChangeLog = new System.Windows.Forms.LinkLabel();
             this.contextMenuStripDocuments = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.groupBox1.SuspendLayout();
             this.groupBox3.SuspendLayout();
@@ -904,11 +903,12 @@ namespace Orts.Menu
             // linkLabelUpdate
             // 
             this.linkLabelUpdate.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.linkLabelUpdate.AutoSize = true;
             this.linkLabelUpdate.ImageAlign = System.Drawing.ContentAlignment.TopLeft;
-            this.linkLabelUpdate.Location = new System.Drawing.Point(769, 11);
+            this.linkLabelUpdate.Location = new System.Drawing.Point(1115, 13);
             this.linkLabelUpdate.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.linkLabelUpdate.Name = "linkLabelUpdate";
-            this.linkLabelUpdate.Size = new System.Drawing.Size(353, 20);
+            this.linkLabelUpdate.Size = new System.Drawing.Size(0, 20);
             this.linkLabelUpdate.TabIndex = 37;
             this.linkLabelUpdate.TextAlign = System.Drawing.ContentAlignment.TopRight;
             this.linkLabelUpdate.UseMnemonic = false;
@@ -930,19 +930,6 @@ namespace Orts.Menu
             this.contextMenuStripTools.Name = "contextMenuStrip1";
             this.contextMenuStripTools.Size = new System.Drawing.Size(126, 28);
             // 
-            // linkLabelChangeLog
-            // 
-            this.linkLabelChangeLog.Location = new System.Drawing.Point(399, 11);
-            this.linkLabelChangeLog.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.linkLabelChangeLog.Name = "linkLabelChangeLog";
-            this.linkLabelChangeLog.Size = new System.Drawing.Size(363, 20);
-            this.linkLabelChangeLog.TabIndex = 39;
-            this.linkLabelChangeLog.TabStop = true;
-            this.linkLabelChangeLog.Text = "What\'s new?";
-            this.linkLabelChangeLog.UseMnemonic = false;
-            this.linkLabelChangeLog.Visible = false;
-            this.linkLabelChangeLog.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.LinkLabelChangeLog_LinkClicked);
-            // 
             // contextMenuStripDocuments
             // 
             this.contextMenuStripDocuments.ImageScalingSize = new System.Drawing.Size(20, 20);
@@ -954,7 +941,6 @@ namespace Orts.Menu
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1139, 674);
-            this.Controls.Add(this.linkLabelChangeLog);
             this.Controls.Add(this.panelModeTimetable);
             this.Controls.Add(this.panelModeActivity);
             this.Controls.Add(this.radioButtonModeTimetable);
@@ -1058,7 +1044,6 @@ namespace Orts.Menu
         private System.Windows.Forms.LinkLabel linkLabelUpdate;
         private System.Windows.Forms.ToolStripMenuItem testingToolStripMenuItem;
         private System.Windows.Forms.ContextMenuStrip contextMenuStripTools;
-        private System.Windows.Forms.LinkLabel linkLabelChangeLog;
         private System.Windows.Forms.Button buttonDocuments;
         private System.Windows.Forms.ContextMenuStrip contextMenuStripDocuments;
         private System.Windows.Forms.Button buttonResumeMP;
