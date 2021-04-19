@@ -32,9 +32,11 @@ namespace Orts.Common.Info
     public static class VersionInfo
     {
         public const string PackageId = "ORTS-MG";
-        private const string releaseChannelName = "release";
 
         public static readonly NuGetVersion CurrentVersion = GetVersion();
+
+        private static readonly NuGetVersion packageVersion = new NuGetVersion(CurrentVersion.Major, CurrentVersion.Minor, CurrentVersion.Patch, CurrentVersion.Revision, CurrentVersion.ReleaseLabels.Concat(new string[] { "g" + CurrentVersion.Metadata }), string.Empty);
+
         //VersionInfo.FullVersion: "1.3.2-alpha.4+LocalBuild"
         //VersionInfo.Version: "1.3.2-alpha.4"
         //VersionInfo.FileVersion: "1.3.2.0"
@@ -94,7 +96,7 @@ namespace Orts.Common.Info
 
         public static NuGetVersion GetBestAvailableVersion(IEnumerable<NuGetVersion> availableVersions, bool includePrerelease)
         {
-            return availableVersions.Where(v => includePrerelease || !v.IsPrerelease).OrderByDescending(v => v, VersionComparer.VersionReleaseMetadata).FirstOrDefault(v => v != null && v != GetVersion());
+            return availableVersions.Where(v => includePrerelease || !v.IsPrerelease).OrderByDescending(v => v, VersionComparer.VersionReleaseMetadata).FirstOrDefault(v => v != null && v != packageVersion);
         }
 
         internal static string ProductName()
