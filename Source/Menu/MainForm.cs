@@ -291,7 +291,7 @@ namespace Orts.Menu
 
         private async Task CheckForUpdateAsync()
         {
-            string availableUpdate = await updateManager.GetBestAvailableVersionString(false).ConfigureAwait(true);
+            string availableVersion = await updateManager.GetBestAvailableVersionString(false).ConfigureAwait(true);
             if (updateManager.LastCheckError != null)
             {
                 linkLabelUpdate.Text = catalog.GetString("Update check failed");
@@ -300,10 +300,10 @@ namespace Orts.Menu
             }
             else
             {
-                if (null != availableUpdate)
+                if (!string.IsNullOrEmpty(availableVersion))
                 {
-                    linkLabelUpdate.Text = catalog.GetString($"Update to {availableUpdate?.Replace(".g", "+")}");
-                    linkLabelUpdate.Tag = availableUpdate;
+                    linkLabelUpdate.Text = catalog.GetString($"Update to {UpdateManager.NormalizedPackageVersion(availableVersion)}");
+                    linkLabelUpdate.Tag = availableVersion;
                     linkLabelUpdate.Visible = true;
                     linkLabelUpdate.Image = updateManager.UpdaterNeedsElevation ? elevationIcon : null;
                     linkLabelUpdate.AutoSize = true;

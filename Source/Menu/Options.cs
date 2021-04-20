@@ -208,7 +208,7 @@ namespace Orts.Menu
             // Updater tab
             trackBarUpdaterFrequency.Value = this.settings.UpdateCheckFrequency;
             labelUpdaterFrequency.Text = catalog.GetString(((UpdateCheckFrequency)trackBarUpdaterFrequency.Value).GetDescription());
-            labelCurrentVersion.Text = VersionInfo.FullVersion;
+            labelCurrentVersion.Text = VersionInfo.Version;
             if (updateManager.UpdaterNeedsElevation)
             {
                 using (Icon icon = new Icon(SystemIcons.Shield, SystemInformation.SmallIconSize))
@@ -608,9 +608,10 @@ namespace Orts.Menu
         {
             labelUpdaterFrequency.Text = catalog.GetString(((UpdateCheckFrequency)trackBarUpdaterFrequency.Value).GetDescription());
             settings.UpdateCheckFrequency = trackBarUpdaterFrequency.Value;
-            string updateAvailable = await updateManager.GetBestAvailableVersionString(false).ConfigureAwait(true);
-            labelAvailableVersion.Text = updateAvailable?.Replace(".g", "+") ?? "n/a";
-            buttonUpdaterExecute.Visible = !string.IsNullOrEmpty(updateAvailable);
+            string availableVersion = await updateManager.GetBestAvailableVersionString(false).ConfigureAwait(true);
+            labelAvailableVersion.Text = UpdateManager.NormalizedPackageVersion(availableVersion) ?? "n/a";
+            buttonUpdaterExecute.Tag = availableVersion;
+            buttonUpdaterExecute.Visible = !string.IsNullOrEmpty(availableVersion);
         }
 
         private async void PresetUpdateSelections()
@@ -627,9 +628,10 @@ namespace Orts.Menu
             {
                 rbPublicReleases.Checked = true;
             }
-            string updateAvailable = await updateManager.GetBestAvailableVersionString(false).ConfigureAwait(true);
-            labelAvailableVersion.Text = updateAvailable?.Replace(".g", "+") ?? "n/a";
-            buttonUpdaterExecute.Visible = !string.IsNullOrEmpty(updateAvailable);
+            string availableVersion = await updateManager.GetBestAvailableVersionString(false).ConfigureAwait(true);
+            labelAvailableVersion.Text = UpdateManager.NormalizedPackageVersion(availableVersion) ?? "n/a";
+            buttonUpdaterExecute.Tag = availableVersion;
+            buttonUpdaterExecute.Visible = !string.IsNullOrEmpty(availableVersion);
             rbDeveloperPrereleases.CheckedChanged += UpdaterSelection_CheckedChanged;
             rbPublicPrereleases.CheckedChanged += UpdaterSelection_CheckedChanged;
             rbPublicReleases.CheckedChanged += UpdaterSelection_CheckedChanged;
@@ -648,14 +650,15 @@ namespace Orts.Menu
                     rbPublicPrereleases.Checked = true;
                 }
             }
-            string updateAvailable = await updateManager.GetBestAvailableVersionString(true).ConfigureAwait(true);
-            labelAvailableVersion.Text = updateAvailable?.Replace(".g", "+") ?? "n/a";
-            buttonUpdaterExecute.Visible = !string.IsNullOrEmpty(updateAvailable);
+            string availableVersion = await updateManager.GetBestAvailableVersionString(false).ConfigureAwait(true);
+            labelAvailableVersion.Text = UpdateManager.NormalizedPackageVersion(availableVersion) ?? "n/a";
+            buttonUpdaterExecute.Tag = availableVersion;
+            buttonUpdaterExecute.Visible = !string.IsNullOrEmpty(availableVersion);
         }
 
         private async void ButtonUpdaterExecute_Click(object sender, EventArgs e)
         {
-            await updateManager.RunUpdateProcess(labelAvailableVersion.Text).ConfigureAwait(false);
+            await updateManager.RunUpdateProcess(buttonUpdaterExecute.Tag as string).ConfigureAwait(false);
         }
     }
 

@@ -22,6 +22,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security.Principal;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -45,6 +46,7 @@ namespace Orts.Updater
     public class UpdateManager: IDisposable
     {
         private const string versionFile = "updates.json";
+        private static readonly Regex removeCommitData = new Regex(".(g[a-z0-9]{8}$)", RegexOptions.Compiled);
 
         private const string developerBuildsUrl = "https://orts.blob.core.windows.net/builds/index.json"; //TODO 20210418 this may be somewhere in configuration instead hard coded
 
@@ -187,6 +189,13 @@ namespace Orts.Updater
         public async Task<string> GetBestAvailableVersionString(bool refresh)
         {
             return (await GetBestAvailableVersion(refresh).ConfigureAwait(false))?.ToString();
+        }
+
+        public static string NormalizedPackageVersion(string packageVersion)
+        {
+            if (packageVersion == null)
+                return packageVersion;
+            return removeCommitData.Replace(packageVersion, string.Empty);
         }
 
         public async Task<NuGetVersion> GetBestAvailableVersion(bool refresh)

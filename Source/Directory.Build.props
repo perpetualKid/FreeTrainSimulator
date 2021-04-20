@@ -10,6 +10,13 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
   </ItemGroup>
+  <Target Name="AddNuGetPackageVersionToThisAssembly"
+        DependsOnTargets="GetBuildVersion"
+        BeforeTargets="GenerateAssemblyVersionInfo">
+    <ItemGroup>
+      <AdditionalThisAssemblyFields Include="NuGetPackageVersion" String="$(NuGetPackageVersion)" />
+    </ItemGroup>
+  </Target>
   <PropertyGroup>
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <AnalysisLevel>latest</AnalysisLevel>
