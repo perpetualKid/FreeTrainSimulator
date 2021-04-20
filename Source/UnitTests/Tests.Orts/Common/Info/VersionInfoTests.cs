@@ -1,8 +1,10 @@
 ﻿using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+using NuGet.Common;
 using NuGet.Versioning;
 
 using Orts.Common.Info;
@@ -23,7 +25,6 @@ namespace Tests.Orts.Common.Info
             //VersionInfo.CodeVersion: "LocalBuild"
 
             Assert.AreEqual(FileVersionInfo.GetVersionInfo(Assembly.GetAssembly(typeof(VersionInfo)).Location).ProductVersion, VersionInfo.FullVersion);
-//            Assert.AreEqual(FileVersionInfo.GetVersionInfo(Assembly.GetAssembly(typeof(VersionInfo)).Location).FileVersion, VersionInfo.FileVersion);
 
             Assert.IsTrue(VersionInfo.FullVersion.IndexOf('+') >= 5);    // there should be a + sign for product metadata
             Assert.IsFalse(string.IsNullOrEmpty(VersionInfo.Channel));
@@ -38,6 +39,35 @@ namespace Tests.Orts.Common.Info
             Assert.AreEqual(1, VersionInfo.Compare(MinVersion().ToNormalizedString()));
             Assert.AreEqual(0, VersionInfo.Compare(VersionInfo.CurrentVersion.ToNormalizedString()));
             Assert.AreEqual(-1, VersionInfo.Compare(NextVersion().ToNormalizedString()));
+#pragma warning disable CS0436 // Type conflicts with imported type
+            Assert.AreEqual(ThisAssembly.AssemblyInformationalVersion, VersionInfo.FullVersion);
+#pragma warning restore CS0436 // Type conflicts with imported type
+        }
+
+        [TestMethod()]
+        public void AvailableVersionCompareCurrentTest()
+        {
+            NuGetVersion currentVersion = new NuGetVersion(
+                VersionInfo.CurrentVersion.Major,
+                VersionInfo.CurrentVersion.Minor,
+                VersionInfo.CurrentVersion.Patch,
+                VersionInfo.CurrentVersion.Revision,
+                VersionInfo.CurrentVersion.ReleaseLabels.Concat(new string[] { "g" + VersionInfo.CurrentVersion.Metadata }), string.Empty);
+            Assert.IsNull(VersionInfo.GetBestAvailableVersion(new NuGetVersion[] { currentVersion }, true));
+        }
+
+        [TestMethod()]
+        public void AvailableVersionCompareNextTest()
+        {
+            NuGetVersion currentVersion = new NuGetVersion(
+                VersionInfo.CurrentVersion.Major,
+                VersionInfo.CurrentVersion.Minor,
+                VersionInfo.CurrentVersion.Patch,
+                VersionInfo.CurrentVersion.Revision + 1,
+                VersionInfo.CurrentVersion.ReleaseLabels.Concat(new string[] { "g" + VersionInfo.CurrentVersion.Metadata }), string.Empty);
+            NuGetVersion available = VersionInfo.GetBestAvailableVersion(new NuGetVersion[] { currentVersion }, true);
+            Assert.IsNotNull(available);
+            Assert.AreEqual(-1, VersionInfo.Compare(available.ToFullString()));
         }
 
         private static NuGetVersion MinVersion()

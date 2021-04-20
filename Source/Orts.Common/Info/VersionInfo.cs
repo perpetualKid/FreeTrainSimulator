@@ -35,45 +35,44 @@ namespace Orts.Common.Info
 
         public static readonly NuGetVersion CurrentVersion = GetVersion();
 
+        // this is a hack to map (prerelease) assembly version to Nuget Package Version
+        // AssemblyInformationalVersion: 1.3.21-dev.6+631091b0
+        // NuGetPackageVersion:          1.3.21-dev.6.g631091b0
         private static readonly NuGetVersion packageVersion = new NuGetVersion(CurrentVersion.Major, CurrentVersion.Minor, CurrentVersion.Patch, CurrentVersion.Revision, CurrentVersion.ReleaseLabels.Concat(new string[] { "g" + CurrentVersion.Metadata }), string.Empty);
 
-        //VersionInfo.FullVersion: "1.3.2-alpha.4+LocalBuild"
-        //VersionInfo.Version: "1.3.2-alpha.4"
-        //VersionInfo.FileVersion: "1.3.2.0"
-        //VersionInfo.Channel: "alpha"
-        //VersionInfo.Build: "4"
-        //VersionInfo.Revision: "LocalBuild"
+        //VersionInfo.FullVersion: "1.3.21-dev.6+631091b0"
+        //VersionInfo.Version: "1.3.21-dev.6"
+        //VersionInfo.FileVersion: "1.3.21.0"
+        //VersionInfo.Channel: "dev"
+        //VersionInfo.Build: "6"
+        //VersionInfo.CodeVersion: "631091b0"
 
         /// <summary>
-        /// "1.3.2-alpha.4+LocalBuild" returns FullVersion: "1.3.2-alpha.4+LocalBuild"
+        /// "1.3.21-dev.6+631091b0" returns FullVersion: "1.3.21-dev.6+631091b0"
         /// </summary>
         public static string FullVersion => CurrentVersion.ToFullString();
 
         /// <summary>
-        /// "1.3.2-alpha.4+LocalBuild" returns Version: "1.3.2-alpha.4"
+        /// "1.3.21-dev.6+631091b0" returns Version: "1.3.21-dev.6"
         /// </summary>
         public static string Version => CurrentVersion.ToNormalizedString();
 
         /// <summary>
-        /// "1.3.2-alpha.4+LocalBuild" returns FileVersion: "1.3.2.0"
-        /// </summary>
-        public static string FileVersion => CurrentVersion.Version.ToString();
-
-        /// <summary>
-        /// <para/>"1.3.2-alpha.4+LocalBuild" returns Channel: "alpha"
-        /// <para/>"1.3.2+LocalBuild" returns Channel: "release"
+        /// "1.3.21-dev.6+631091b0" returns Channel: "dev"
+        /// "1.3.21-rc.2" returns Channel: "rc"
+        /// "1.3.21" returns Channel: "release"
         /// </summary>
         public static string Channel => CurrentVersion.IsPrerelease ? CurrentVersion.ReleaseLabels?.ToArray()[0] : "release";
 
         /// <summary>
-        /// <para/>"1.3.2-alpha.4+LocalBuild" returns Build: "4"
-        /// <para/>"1.3.2+LocalBuild" returns Build: "0"
-        /// <para/>"1.3.2.4+LocalBuild" returns Build: "4"
+        /// "1.3.21-dev.6+631091b0" returns Build: 6
+        /// "1.3.21-rc.2" returns Build: 2
+        /// "1.3.21" returns Build: 0
         /// </summary>
         public static string Build => CurrentVersion.IsPrerelease ? CurrentVersion.ReleaseLabels?.ToArray()[1] : $"{CurrentVersion.Revision}";
 
         /// <summary>
-        /// "1.3.2-alpha.4+LocalBuild" returns Revision: "LocalBuild"
+        /// "1.3.21-dev.6+631091b0" returns CodeVersion: 631091b0
         /// </summary>
         public static string CodeVersion => CurrentVersion.Metadata;
 
@@ -96,7 +95,7 @@ namespace Orts.Common.Info
 
         public static NuGetVersion GetBestAvailableVersion(IEnumerable<NuGetVersion> availableVersions, bool includePrerelease)
         {
-            return availableVersions.Where(v => includePrerelease || !v.IsPrerelease).OrderByDescending(v => v, VersionComparer.VersionReleaseMetadata).FirstOrDefault(v => v != null && v != packageVersion);
+            return availableVersions.Where(v => includePrerelease || !v.IsPrerelease).OrderByDescending(v => v, VersionComparer.VersionReleaseMetadata).Take(1).Where(v => v != null && v != packageVersion).FirstOrDefault();
         }
 
         internal static string ProductName()

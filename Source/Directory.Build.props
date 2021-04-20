@@ -34,7 +34,7 @@
     <Copyright>Copyright © 2020</Copyright>
     <NoWin32Manifest>true</NoWin32Manifest>
     <TieredCompilation>true</TieredCompilation>
-    <NeutralLanguage>en</NeutralLanguage>  
+    <NeutralLanguage>en</NeutralLanguage>
   </PropertyGroup>
   <PropertyGroup Condition="'$(MSBuildProjectName)'!='Launcher'">
     <TargetFrameworks>net48;netcoreapp3.1</TargetFrameworks>
