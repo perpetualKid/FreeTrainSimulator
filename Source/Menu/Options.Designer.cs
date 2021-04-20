@@ -713,10 +713,10 @@
             // 
             this.panel1.Controls.Add(this.radioButtonWindow);
             this.panel1.Controls.Add(this.radioButtonFullScreen);
-            this.panel1.Location = new System.Drawing.Point(420, 97);
+            this.panel1.Location = new System.Drawing.Point(420, 112);
             this.panel1.Margin = new System.Windows.Forms.Padding(4);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(376, 28);
+            this.panel1.Size = new System.Drawing.Size(376, 33);
             this.panel1.TabIndex = 32;
             // 
             // radioButtonWindow
@@ -746,7 +746,7 @@
             // checkBoxFullScreenNativeResolution
             // 
             this.checkBoxFullScreenNativeResolution.AutoSize = true;
-            this.checkBoxFullScreenNativeResolution.Location = new System.Drawing.Point(420, 69);
+            this.checkBoxFullScreenNativeResolution.Location = new System.Drawing.Point(420, 84);
             this.checkBoxFullScreenNativeResolution.Margin = new System.Windows.Forms.Padding(4);
             this.checkBoxFullScreenNativeResolution.Name = "checkBoxFullScreenNativeResolution";
             this.checkBoxFullScreenNativeResolution.Size = new System.Drawing.Size(305, 24);
@@ -757,7 +757,7 @@
             // 
             // labelMSAACount
             // 
-            this.labelMSAACount.Location = new System.Drawing.Point(632, 190);
+            this.labelMSAACount.Location = new System.Drawing.Point(632, 205);
             this.labelMSAACount.Margin = new System.Windows.Forms.Padding(4);
             this.labelMSAACount.Name = "labelMSAACount";
             this.labelMSAACount.Size = new System.Drawing.Size(152, 16);
@@ -768,7 +768,7 @@
             // label28
             // 
             this.label28.AutoSize = true;
-            this.label28.Location = new System.Drawing.Point(416, 190);
+            this.label28.Location = new System.Drawing.Point(416, 205);
             this.label28.Margin = new System.Windows.Forms.Padding(4);
             this.label28.Name = "label28";
             this.label28.Size = new System.Drawing.Size(209, 20);
@@ -780,7 +780,7 @@
             this.trackbarMultiSampling.AutoSize = false;
             this.trackbarMultiSampling.BackColor = System.Drawing.SystemColors.Window;
             this.trackbarMultiSampling.LargeChange = 2;
-            this.trackbarMultiSampling.Location = new System.Drawing.Point(420, 213);
+            this.trackbarMultiSampling.Location = new System.Drawing.Point(420, 228);
             this.trackbarMultiSampling.Margin = new System.Windows.Forms.Padding(4);
             this.trackbarMultiSampling.Maximum = 5;
             this.trackbarMultiSampling.Name = "trackbarMultiSampling";
@@ -862,7 +862,7 @@
             // checkVerticalSync
             // 
             this.checkVerticalSync.AutoSize = true;
-            this.checkVerticalSync.Location = new System.Drawing.Point(420, 161);
+            this.checkVerticalSync.Location = new System.Drawing.Point(420, 176);
             this.checkVerticalSync.Margin = new System.Windows.Forms.Padding(4);
             this.checkVerticalSync.Name = "checkVerticalSync";
             this.checkVerticalSync.Size = new System.Drawing.Size(112, 24);
@@ -912,7 +912,7 @@
             // checkFastFullScreenAltTab
             // 
             this.checkFastFullScreenAltTab.AutoSize = true;
-            this.checkFastFullScreenAltTab.Location = new System.Drawing.Point(420, 133);
+            this.checkFastFullScreenAltTab.Location = new System.Drawing.Point(420, 148);
             this.checkFastFullScreenAltTab.Margin = new System.Windows.Forms.Padding(4);
             this.checkFastFullScreenAltTab.Name = "checkFastFullScreenAltTab";
             this.checkFastFullScreenAltTab.Size = new System.Drawing.Size(177, 24);
@@ -1102,7 +1102,7 @@
             this.label3.Location = new System.Drawing.Point(589, 9);
             this.label3.Margin = new System.Windows.Forms.Padding(4);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(205, 53);
+            this.label3.Size = new System.Drawing.Size(205, 67);
             this.label3.TabIndex = 19;
             this.label3.Text = "Window size or FullScreen resolution (type WIDTH x HEIGHT for custom size)";
             // 

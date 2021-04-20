@@ -609,7 +609,7 @@ namespace Orts.Menu
             labelUpdaterFrequency.Text = catalog.GetString(((UpdateCheckFrequency)trackBarUpdaterFrequency.Value).GetDescription());
             settings.UpdateCheckFrequency = trackBarUpdaterFrequency.Value;
             string updateAvailable = await updateManager.GetBestAvailableVersionString(false).ConfigureAwait(true);
-            labelAvailableVersion.Text = updateAvailable ?? "n/a";
+            labelAvailableVersion.Text = updateAvailable?.Replace(".g", "+") ?? "n/a";
             buttonUpdaterExecute.Visible = !string.IsNullOrEmpty(updateAvailable);
         }
 
@@ -628,7 +628,7 @@ namespace Orts.Menu
                 rbPublicReleases.Checked = true;
             }
             string updateAvailable = await updateManager.GetBestAvailableVersionString(false).ConfigureAwait(true);
-            labelAvailableVersion.Text = updateAvailable ?? "n/a";
+            labelAvailableVersion.Text = updateAvailable?.Replace(".g", "+") ?? "n/a";
             buttonUpdaterExecute.Visible = !string.IsNullOrEmpty(updateAvailable);
             rbDeveloperPrereleases.CheckedChanged += UpdaterSelection_CheckedChanged;
             rbPublicPrereleases.CheckedChanged += UpdaterSelection_CheckedChanged;
@@ -649,7 +649,7 @@ namespace Orts.Menu
                 }
             }
             string updateAvailable = await updateManager.GetBestAvailableVersionString(true).ConfigureAwait(true);
-            labelAvailableVersion.Text = updateAvailable ?? "n/a";
+            labelAvailableVersion.Text = updateAvailable?.Replace(".g", "+") ?? "n/a";
             buttonUpdaterExecute.Visible = !string.IsNullOrEmpty(updateAvailable);
         }
 

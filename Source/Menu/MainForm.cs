@@ -302,7 +302,7 @@ namespace Orts.Menu
             {
                 if (null != availableUpdate)
                 {
-                    linkLabelUpdate.Text = catalog.GetString($"Update to {availableUpdate}");
+                    linkLabelUpdate.Text = catalog.GetString($"Update to {availableUpdate?.Replace(".g", "+")}");
                     linkLabelUpdate.Tag = availableUpdate;
                     linkLabelUpdate.Visible = true;
                     linkLabelUpdate.Image = updateManager.UpdaterNeedsElevation ? elevationIcon : null;
