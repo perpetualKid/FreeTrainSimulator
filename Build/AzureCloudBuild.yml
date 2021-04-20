@@ -61,7 +61,7 @@ steps:
   inputs:
     targetType: 'inline'
     script: |
-      if ($env:NBGV_PRERELEASEVERSION -ne $null) {
+      if ($env:NBGV_PUBLICRELEASE -eq $false) {
         Write-Host '##vso[task.setvariable variable=buildConfiguration]Debug'}
 
 - task: MSBuild@1
@@ -79,6 +79,12 @@ steps:
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
 
+- task: CmdLine@2
+  displayName: Collecting language files
+  inputs:
+    script: |
+      call ./Source/Locales/Collect-Languages.bat 
+
 - task: PublishPipelineArtifact@1
   displayName: Publishing build artifacts
   inputs:
@@ -93,7 +99,7 @@ steps:
     arguments: 'install gettext.net.extractor'
 
 - task: NuGetCommand@2
-  displayName: Packaging to Nuget Package GetText Extractor
+  displayName: Packaging to Nuget Package
   inputs:
     command: 'pack'
     packagesToPack: 'source/ORTS-MG-Package.nuspec'
