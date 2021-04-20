@@ -459,7 +459,7 @@ namespace Orts.Menu
             this.checkDebriefActivityEval.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.checkDebriefActivityEval.AutoSize = true;
             this.checkDebriefActivityEval.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.checkDebriefActivityEval.Location = new System.Drawing.Point(218, 2);
+            this.checkDebriefActivityEval.Location = new System.Drawing.Point(218, 0);
             this.checkDebriefActivityEval.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.checkDebriefActivityEval.Name = "checkDebriefActivityEval";
             this.checkDebriefActivityEval.Size = new System.Drawing.Size(157, 24);

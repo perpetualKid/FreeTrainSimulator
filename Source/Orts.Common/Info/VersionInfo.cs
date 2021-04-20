@@ -38,7 +38,13 @@ namespace Orts.Common.Info
         // this is a hack to map (prerelease) assembly version to Nuget Package Version
         // AssemblyInformationalVersion: 1.3.21-dev.6+631091b0
         // NuGetPackageVersion:          1.3.21-dev.6.g631091b0
-        private static readonly NuGetVersion packageVersion = new NuGetVersion(CurrentVersion.Major, CurrentVersion.Minor, CurrentVersion.Patch, CurrentVersion.Revision, CurrentVersion.ReleaseLabels.Concat(new string[] { "g" + CurrentVersion.Metadata }), string.Empty);
+        private static readonly NuGetVersion packageVersion = new NuGetVersion(
+            CurrentVersion.Major, 
+            CurrentVersion.Minor, 
+            CurrentVersion.Patch, 
+            CurrentVersion.Revision, 
+            ThisAssembly.IsPublicRelease ? CurrentVersion.ReleaseLabels :
+            CurrentVersion.ReleaseLabels.Concat(new string[] { "g" + CurrentVersion.Metadata }), string.Empty);
 
         //VersionInfo.FullVersion: "1.3.21-dev.6+631091b0"
         //VersionInfo.Version: "1.3.21-dev.6"
@@ -95,7 +101,11 @@ namespace Orts.Common.Info
 
         public static NuGetVersion GetBestAvailableVersion(IEnumerable<NuGetVersion> availableVersions, bool includePrerelease)
         {
-            return availableVersions.Where(v => includePrerelease || !v.IsPrerelease).OrderByDescending(v => v, VersionComparer.VersionReleaseMetadata).Take(1).Where(v => v != null && v != packageVersion).FirstOrDefault();
+            return availableVersions.Where(v => includePrerelease || !v.IsPrerelease).
+                OrderByDescending(v => v, VersionComparer.VersionReleaseMetadata).
+                Take(1).
+                Where(v => VersionComparer.VersionRelease.Compare(v, packageVersion) != 0).
+                FirstOrDefault();
         }
 
         internal static string ProductName()
