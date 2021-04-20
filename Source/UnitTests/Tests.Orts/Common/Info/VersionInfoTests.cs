@@ -52,6 +52,9 @@ namespace Tests.Orts.Common.Info
                 VersionInfo.CurrentVersion.Minor,
                 VersionInfo.CurrentVersion.Patch,
                 VersionInfo.CurrentVersion.Revision,
+#pragma warning disable CS0436 // Type conflicts with imported type
+                ThisAssembly.IsPublicRelease ? VersionInfo.CurrentVersion.ReleaseLabels :
+#pragma warning restore CS0436 // Type conflicts with imported type
                 VersionInfo.CurrentVersion.ReleaseLabels.Concat(new string[] { "g" + VersionInfo.CurrentVersion.Metadata }), string.Empty);
             Assert.IsNull(VersionInfo.GetBestAvailableVersion(new NuGetVersion[] { currentVersion }, true));
         }
@@ -64,6 +67,9 @@ namespace Tests.Orts.Common.Info
                 VersionInfo.CurrentVersion.Minor,
                 VersionInfo.CurrentVersion.Patch,
                 VersionInfo.CurrentVersion.Revision + 1,
+#pragma warning disable CS0436 // Type conflicts with imported type
+                ThisAssembly.IsPublicRelease ? VersionInfo.CurrentVersion.ReleaseLabels :
+#pragma warning restore CS0436 // Type conflicts with imported type
                 VersionInfo.CurrentVersion.ReleaseLabels.Concat(new string[] { "g" + VersionInfo.CurrentVersion.Metadata }), string.Empty);
             NuGetVersion available = VersionInfo.GetBestAvailableVersion(new NuGetVersion[] { currentVersion }, true);
             Assert.IsNotNull(available);
