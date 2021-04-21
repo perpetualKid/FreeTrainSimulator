@@ -110,7 +110,7 @@ steps:
   env:
     connectionstring: $(feedconnection)
   displayName: Uploading the package to a feed
-  condition: xor(eq(variables['Build.SourceBranch'], 'refs/heads/main'), and(ne(variables['NBGV_PRERELEASEVERSION'], ''), or(eq(variables['NBGV_PUBLICRELEASE'], 'true'), eq(variables['Build.SourceBranch'], 'refs/heads/development'))))
+  condition: and(succeeded(), xor(eq(variables['Build.SourceBranch'], 'refs/heads/main'), and(ne(variables['NBGV_PRERELEASEVERSION'], ''), or(eq(variables['NBGV_PUBLICRELEASE'], 'true'), eq(variables['Build.SourceBranch'], 'refs/heads/development')))))
   inputs:
     targetType: 'inline'
     script: |
