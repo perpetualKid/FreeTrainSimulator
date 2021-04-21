@@ -31,6 +31,7 @@ using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Scripting.Api.Etcs;
 using Orts.Simulation.RollingStocks;
+using System.Linq;
 
 using static Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs.DriverMachineInterface;
 
@@ -41,9 +42,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
         public readonly MSTSLocomotive Locomotive;
         public readonly bool GaugeOnly;
         public readonly Viewer Viewer;
-        public List<DMIWindow> Windows = new List<DMIWindow>();
+        public IList<DMIWindow> Windows = new List<DMIWindow>();
         float PrevScale = 1;
-        public ETCSStatus ETCSStatus;
+        public ETCSStatus ETCSStatus { get; private set; }
 
         bool Active;
         public float Scale { get; private set; }
@@ -72,8 +73,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
 
         public Texture2D ColorTexture { get; private set; }
 
-        public bool Blinker2Hz;
-        public bool Blinker4Hz;
+        public bool Blinker2Hz { get; private set; }
+        public bool Blinker4Hz { get; private set; }
         float BlinkerTime;
 
         public float CurrentTime => (float)Viewer.Simulator.ClockTime;
@@ -119,8 +120,12 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
         }
         public Texture2D LoadTexture(string name)
         {
-            if (MipMapScale == 2) return SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "ETCS", "mipmap-2", name));
-            else return SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, "ETCS", name));
+            string path;
+            if (MipMapScale == 2)
+                path = System.IO.Path.Combine(Viewer.ContentPath, "ETCS", "mipmap-2", name);
+            else
+                path = System.IO.Path.Combine(Viewer.ContentPath, "ETCS", name);
+            return SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, path);
         }
         public void PrepareFrame(double elapsedSeconds)
         {
