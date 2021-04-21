@@ -1856,6 +1856,7 @@ namespace Tests.Orts.Formats.Msts.Parsers
         [TestMethod]
         public void EncodingAscii()
         {
+            AssertWarnings.Expected();
             using (STFReader reader = new STFReader(new MemoryStream(Encoding.ASCII.GetBytes("TheBlock()")), "", Encoding.ASCII, false))
             {
                 reader.MustMatch("TheBlock");
@@ -1865,6 +1866,7 @@ namespace Tests.Orts.Formats.Msts.Parsers
         [TestMethod]
         public void EncodingUtf16()
         {
+            AssertWarnings.Expected();
             using (STFReader reader = new STFReader(new MemoryStream(Encoding.Unicode.GetBytes("TheBlock()")), "", Encoding.Unicode, false))
             {
                 reader.MustMatch("TheBlock");
