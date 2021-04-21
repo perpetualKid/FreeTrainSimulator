@@ -2421,7 +2421,7 @@ namespace Orts.Simulation.RollingStocks
                     }
                     ScoopIsBroken = true;
                     RefillingFromTrough = false;
-                    SignalEvent(Event.WaterScoopBroken);
+                    SignalEvent(TrainEvent.WaterScoopBroken);
                     return;
                 }
                 else if (!IsOverTrough())
@@ -2478,7 +2478,7 @@ namespace Orts.Simulation.RollingStocks
                     if ( !WaterScoopSoundOn)
                     {
                         WaterScoopSoundOn = true;
-                        SignalEvent(Event.WaterScoopDown);
+                        SignalEvent(TrainEvent.WaterScoopDown);
                     }
                 }
 
@@ -3002,7 +3002,7 @@ namespace Orts.Simulation.RollingStocks
             if (Simulator.PlayerLocomotive == this)
             {
                 WaterScoopDown = !WaterScoopDown;
-                SignalEvent(TrainEvent.WaterScoopLower);
+                SignalEvent(TrainEvent.WaterScoopRaiseLower);
                 if (WaterScoopDown)
                 {
                     IsWaterScoopDown = true; // Set flag to potentially fill from water trough
