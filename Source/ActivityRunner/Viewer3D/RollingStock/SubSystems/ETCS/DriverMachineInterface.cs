@@ -904,99 +904,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
         }
     }
 
-    /// <summary>
-    /// Wrapper class for DriverMachineInterface, to display it as UI window control.
-    /// </summary>
-    /*public class DriverMachineInterfaceControl : Control
-    {
-        private readonly DriverMachineInterface driverMachineInterface;
 
-        public DriverMachineInterfaceControl(int width, int height, WindowManager owner)
-            : base(0, 0, width, height)
-        {
-            driverMachineInterface = new DriverMachineInterface(width, height, owner.Viewer.PlayerLocomotive as MSTSLocomotive, owner.Viewer);
-            driverMachineInterface.DisplayBackground = true;
-        }
 
-        /// <summary>
-        /// Resize control to fit into a new rectangle, by keeping aspect ratio.
-        /// </summary>
-        /// <param name="width">The new width of the control</param>
-        /// <param name="height">The new height of the control</param>
-        public void SizeTo(int width, int height)
-        {
-            Position.Width = width;
-            Position.Height = height;
-            driverMachineInterface.SizeTo(width, height);
-        }
 
-        public void PrepareFrame(double elapsedSeconds)
-        {
-            driverMachineInterface.PrepareFrame(elapsedSeconds);
-        }
-        public bool IsMouseWithin(WindowMouseEvent e)
-        {
-            int x = (int)((e.MousePosition.X - Position.X - 8) / driverMachineInterface.Scale);
-            int y = (int)((e.MousePosition.Y - Position.Y) / driverMachineInterface.Scale);
-            foreach (DMIButton b in DMI.ActiveWindow.SubAreas)
-            {
-                if (b.SensitiveArea.Contains(x, y) && b.Enabled) return true;
-            }
-            return false;
-        }
 
-        private bool HandleUserInput(WindowMouseEvent e)
-        {
-            int x = (int)((e.MousePosition.X - Position.X - 8) / driverMachineInterface.Scale);
-            int y = (int)((e.MousePosition.Y - Position.Y) / driverMachineInterface.Scale);
-            driverMachineInterface.HandleMouseInput(e.ButtonDown, x, y);
-            return IsMouseWithin(e);
-        }
 
-        internal override bool HandleMouseDown(WindowMouseEvent e)
-        {
-            return HandleUserInput(e);
-        }
-
-        internal override bool HandleMouseReleased(WindowMouseEvent e)
-        {
-            return HandleUserInput(e);
-        }
-
-        internal override bool HandleMouseMove(WindowMouseEvent e)
-        {
-            return HandleUserInput(e);
-        }
-
-        internal override void Draw(SpriteBatch spriteBatch, Point position)
-        {
-            position.X += 8;
-            position.Y += 25;
-            driverMachineInterface.Draw(spriteBatch, position);
-            spriteBatch.End();
-            spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, null, DepthStencilState.Default, null, null);
-        }
-    }
-
-    public class DriverMachineInterfaceWindow : Window
-    {
-        DriverMachineInterfaceControl Control;
-        public DriverMachineInterfaceWindow(WindowManager owner)
-            : base(owner, 400, 300, Viewer.Catalog.GetString("ERTMS/ETCS Driver Machine Interface"))
-        {
-        }
-
-        protected override ControlLayout Layout(ControlLayout layout)
-        {
-            var vbox = base.Layout(layout).AddLayoutVertical();
-            vbox.Add(Control = new DriverMachineInterfaceControl(vbox.RemainingWidth, vbox.RemainingHeight, Owner));
-            return vbox;
-        }
-
-        public override void PrepareFrame(in ElapsedTime elapsedTime, bool updateFull)
-        {
-            base.PrepareFrame(elapsedTime, updateFull);
-            Control?.PrepareFrame(elapsedTime.ClockSeconds);
-        }
-    }*/
 }
