@@ -37,8 +37,8 @@ To install on Linux, please see the [wiki](https://github.com/perpetualKid/ORTS-
 
 ## Build Information
 
-|Release Type|Build Status|
-|------------|------------|
-|Release Candidate|[![Build Status](https://dev.azure.com/perpetualKid/ORTS-MG/_apis/build/status/Build/ORTS-MG%20Master%20RC)](https://dev.azure.com/perpetualKid/ORTS-MG/_build?definitionId=1)|
-|Weekly Dev Builds|[![Build Status](https://dev.azure.com/perpetualKid/ORTS-MG/_apis/build/status/Build/Scheduled%20Dev%20Build)](https://dev.azure.com/perpetualKid/ORTS-MG/_build?definitionId=15)|
-|Continuous Integration Builds|[![Build Status](https://dev.azure.com/perpetualKid/ORTS-MG/_apis/build/status/Build/CI%20Builds)](https://dev.azure.com/perpetualKid/ORTS-MG/_build?definitionId=11)|
+|Release Type|Build Status|Build Version|
+|------------|------------|-------------|
+|Release|[![Build Status](https://dev.azure.com/perpetualKid/ORTS-MG/_apis/build/status/Build/Azure%20Cloud%20Build?branchName=development)](https://dev.azure.com/perpetualKid/ORTS-MG/_build/latest?definitionId=17&branchName=main)|![Release Build](https://img.shields.io/endpoint?url=https://orts.blob.core.windows.net/releases/badges/v/orts-mg.json)|
+|Release Candidate|[![Build Status](https://dev.azure.com/perpetualKid/ORTS-MG/_apis/build/status/Build/Azure%20Cloud%20Build?branchName=development)](https://dev.azure.com/perpetualKid/ORTS-MG/_build/latest?definitionId=17&branchName=release/*)|![Release Build](https://img.shields.io/endpoint?url=https://orts.blob.core.windows.net/releases/badges/vpre/orts-mg.json)|
+|Developer Builds|[![Build Status](https://dev.azure.com/perpetualKid/ORTS-MG/_apis/build/status/Build/Azure%20Cloud%20Build?branchName=development)](https://dev.azure.com/perpetualKid/ORTS-MG/_build/latest?definitionId=17&branchName=development)|![Release Build](https://img.shields.io/endpoint?url=https://orts.blob.core.windows.net/builds/badges/vpre/orts-mg.json)|
