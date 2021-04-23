@@ -36,7 +36,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
         /// <summary>
         /// Setting to workaround MSTS bug of not abling to set this function correctly in .eng file
         /// </summary>
-        public bool ForceControllerReleaseGraduated { get; private set; }
+        public bool ForceControllerReleaseGraduated { get; set; }
         private bool brakeControllerInitialised; // flag to allow PreviousNotchPosition to be initially set.
         private INotchController previousNotchPosition;
 
