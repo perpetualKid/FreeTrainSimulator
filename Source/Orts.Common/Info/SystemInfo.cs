@@ -17,12 +17,10 @@
 
 using System;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Management;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 using Microsoft.Xna.Framework.Graphics;
@@ -33,6 +31,33 @@ namespace Orts.Common.Info
 {
     public static class SystemInfo
     {
+        private static string gpuInformation;
+
+        public static string GraphicAdapterMemoryInformation => gpuInformation;
+
+        public static string SetGraphicAdapterInformation(string adapterName)
+        {
+            if (gpuInformation == null)
+            {
+                try
+                {
+                    using (ManagementObjectSearcher objectSearcher = new ManagementObjectSearcher($"Select DeviceID, Description, AdapterRAM, AdapterDACType from Win32_VideoController where description=\"{adapterName}\""))
+                    {
+                        foreach (ManagementBaseObject display in objectSearcher.Get())
+                        {
+                            gpuInformation = $"{(uint)display["AdapterRAM"] / 1024f / 1024:F0} MB {display["AdapterDACType"]} RAM";
+                            break;
+                        }
+                    }
+                }
+                catch (Exception ex) when (ex is TypeInitializationException || ex is System.ComponentModel.Win32Exception)
+                {
+                    gpuInformation = "n/a";
+                }
+            }
+            return gpuInformation;
+        }
+
         public static void WriteSystemDetails()
         {
             StringBuilder builder = new StringBuilder();
@@ -41,11 +66,11 @@ namespace Orts.Common.Info
             {
                 WriteEnvironment(builder);
             }
-            catch(Exception ex) when (ex is TypeInitializationException || ex is System.ComponentModel.Win32Exception)
+            catch (Exception ex) when (ex is TypeInitializationException || ex is System.ComponentModel.Win32Exception)
             {
                 builder.Append("Hardware information not available on this platform.");
             }
-            builder.AppendLine($"{"Runtime",-12}= {System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription} ({(Environment.Is64BitProcess ? "64" : "32")}bit)");
+            builder.AppendLine($"{"Runtime",-12}= {RuntimeInformation.FrameworkDescription} ({(Environment.Is64BitProcess ? "64" : "32")}bit)");
             Trace.Write(builder.ToString());
         }
 
@@ -63,7 +88,7 @@ namespace Orts.Common.Info
                     }
                 }
             }
-            catch (Exception error)
+            catch (ManagementException error)
             {
                 Trace.WriteLine(error);
             }
@@ -77,7 +102,7 @@ namespace Orts.Common.Info
                     }
                 }
             }
-            catch (Exception error)
+            catch (ManagementException error)
             {
                 Trace.WriteLine(error);
             }
@@ -92,10 +117,10 @@ namespace Orts.Common.Info
                     }
                 }
             }
-            catch (Exception error)
+            catch (ManagementException error)
             {
                 Trace.WriteLine(error);
-            } 
+            }
 
             foreach (Screen screen in Screen.AllScreens)
             {
@@ -112,7 +137,7 @@ namespace Orts.Common.Info
                     }
                 }
             }
-            catch (Exception error)
+            catch (ManagementException error)
             {
                 Trace.WriteLine(error);
             }
@@ -129,7 +154,7 @@ namespace Orts.Common.Info
                     }
                 }
             }
-            catch (Exception error)
+            catch (ManagementException error)
             {
                 Trace.WriteLine(error);
             }
@@ -143,7 +168,7 @@ namespace Orts.Common.Info
                     }
                 }
             }
-            catch (Exception error)
+            catch (ManagementException error)
             {
                 Trace.WriteLine(error);
             }
