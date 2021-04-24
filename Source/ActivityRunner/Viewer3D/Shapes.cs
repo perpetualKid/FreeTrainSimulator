@@ -106,7 +106,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// which define the maximum sizes of the vertex and index buffers, respectively.
         /// </remarks>
         public MutableShapePrimitive(GraphicsDevice graphicsDevice, Material material, int maxVertices, int maxIndices, int[] hierarchy, int hierarchyIndex)
-           : base(material, new SharedShape.VertexBufferSet(new VertexPositionNormalTexture[maxVertices], graphicsDevice), new List<ushort>(maxIndices), graphicsDevice, hierarchy, hierarchyIndex)
+           : base(material, new SharedShape.VertexBufferSet(new VertexPositionNormalTexture[maxVertices], graphicsDevice), new ushort[maxIndices].ToList(), graphicsDevice, hierarchy, hierarchyIndex)
         { 
         }
 
