@@ -265,7 +265,7 @@ namespace Orts.Simulation.RollingStocks
             {
                 if (value != _SmallEjectorSoundOn)
                 {
-                    SignalEvent(value? Event.SmallEjectorOn : Event.SmallEjectorOff);
+                    SignalEvent(value? TrainEvent.SmallEjectorOn : TrainEvent.SmallEjectorOff);
                     _SmallEjectorSoundOn = value;
                 }
             }
@@ -279,7 +279,7 @@ namespace Orts.Simulation.RollingStocks
             {
                 if (value != _LargeEjectorSoundOn)
                 {
-                    SignalEvent(value? Event.LargeEjectorOn : Event.LargeEjectorOff);
+                    SignalEvent(value? TrainEvent.LargeEjectorOn : TrainEvent.LargeEjectorOff);
                     _LargeEjectorSoundOn = value;
                 }
             }
