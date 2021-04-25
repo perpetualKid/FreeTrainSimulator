@@ -140,6 +140,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         {
             Viewer.UserCommandController.AddEvent(UserCommand.ControlReverserForward, KeyEventType.KeyPressed, ReverserControlForwards, true);
             Viewer.UserCommandController.AddEvent(UserCommand.ControlReverserBackward, KeyEventType.KeyPressed, ReverserControlBackwards, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlReverserForward, KeyEventType.KeyReleased, SteamLocomotive.StopReverseIncrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlReverserBackward, KeyEventType.KeyReleased, SteamLocomotive.StopReverseDecrease, true);
             Viewer.UserCommandController.AddEvent(UserCommand.ControlFiring, KeyEventType.KeyPressed, ToggleManualFiringCommand, true);
             Viewer.UserCommandController.AddEvent(UserCommand.ControlAIFireOn, KeyEventType.KeyPressed, AIFireOnCommand, true);
             Viewer.UserCommandController.AddEvent(UserCommand.ControlAIFireOff, KeyEventType.KeyPressed, AIFireOffCommand, true);
@@ -193,6 +195,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         {
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlReverserForward, KeyEventType.KeyPressed, ReverserControlForwards);
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlReverserBackward, KeyEventType.KeyPressed, ReverserControlBackwards);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlReverserForward, KeyEventType.KeyReleased, SteamLocomotive.StopReverseIncrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlReverserBackward, KeyEventType.KeyReleased, SteamLocomotive.StopReverseDecrease);
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlFiring, KeyEventType.KeyPressed, ToggleManualFiringCommand);
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlAIFireOn, KeyEventType.KeyPressed, AIFireOnCommand);
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlAIFireOff, KeyEventType.KeyPressed, AIFireOffCommand);
