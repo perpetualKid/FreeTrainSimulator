@@ -72,5 +72,14 @@ namespace Orts.Scripting.Api.PowerSupply
             SignalEventToTractionCutOffRelay(evt);
             SignalEventToDieselEngines(evt);
         }
+
+        public override void HandleEventFromLeadLocomotive(PowerSupplyEvent evt)
+        {
+            base.HandleEventFromLeadLocomotive(evt);
+
+            // By default, send the event to every component
+            SignalEventToTractionCutOffRelay(evt);
+            SignalEventToDieselEngines(evt);
+        }
     }
 }

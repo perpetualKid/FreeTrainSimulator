@@ -129,5 +129,14 @@ namespace Orts.Scripting.Api.PowerSupply
             // By default, send the event to every component
             SignalEventToOtherTrainVehiclesWithId(evt, id);
         }
+
+        public override void HandleEventFromLeadLocomotive(PowerSupplyEvent evt)
+        {
+            base.HandleEventFromLeadLocomotive(evt);
+
+            // By default, send the event to every component
+            SignalEventToElectricTrainSupplySwitch(evt);
+            SignalEventToTcs(evt);
+        }
     }
 }

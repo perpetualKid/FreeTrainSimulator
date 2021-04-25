@@ -74,5 +74,16 @@ namespace Orts.Scripting.Api.PowerSupply
             // By default, send the event to every component
             SignalEventToPantograph(evt, id);
         }
+        public virtual void HandleEventFromLeadLocomotive(PowerSupplyEvent evt)
+        {
+            // By default, send the event to every component
+            SignalEventToBatterySwitch(evt);
+        }
+
+        public virtual void HandleEventFromLeadLocomotive(PowerSupplyEvent evt, int id)
+        {
+            // By default, send the event to every component
+            SignalEventToPantograph(evt, id);
+        }
     }
 }
