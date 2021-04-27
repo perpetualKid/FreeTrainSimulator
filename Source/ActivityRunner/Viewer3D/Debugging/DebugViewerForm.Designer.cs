@@ -72,7 +72,7 @@
             // pictureBox1
             // 
             this.pictureBox1.Location = new System.Drawing.Point(4, 161);
-            this.pictureBox1.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.pictureBox1.Margin = new System.Windows.Forms.Padding(4);
             this.pictureBox1.Name = "pictureBox1";
             this.pictureBox1.Size = new System.Drawing.Size(1005, 770);
             this.pictureBox1.TabIndex = 0;
@@ -86,7 +86,7 @@
             this.refreshButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.refreshButton.Font = new System.Drawing.Font("Segoe UI Semibold", 10.2F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.refreshButton.Location = new System.Drawing.Point(1091, 129);
-            this.refreshButton.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.refreshButton.Margin = new System.Windows.Forms.Padding(4);
             this.refreshButton.Name = "refreshButton";
             this.refreshButton.Size = new System.Drawing.Size(124, 28);
             this.refreshButton.TabIndex = 1;
@@ -104,7 +104,7 @@
             0,
             0});
             this.windowSizeUpDown.Location = new System.Drawing.Point(1076, 6);
-            this.windowSizeUpDown.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.windowSizeUpDown.Margin = new System.Windows.Forms.Padding(4);
             this.windowSizeUpDown.Maximum = new decimal(new int[] {
             200000,
             0,
@@ -142,7 +142,7 @@
             this.AvatarView.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.AvatarView.HideSelection = false;
             this.AvatarView.Location = new System.Drawing.Point(1039, 197);
-            this.AvatarView.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.AvatarView.Margin = new System.Windows.Forms.Padding(4);
             this.AvatarView.Name = "AvatarView";
             this.AvatarView.Size = new System.Drawing.Size(160, 734);
             this.AvatarView.TabIndex = 14;
@@ -168,7 +168,7 @@
             this.chkAllowUserSwitch.Checked = true;
             this.chkAllowUserSwitch.CheckState = System.Windows.Forms.CheckState.Checked;
             this.chkAllowUserSwitch.Location = new System.Drawing.Point(937, 60);
-            this.chkAllowUserSwitch.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.chkAllowUserSwitch.Margin = new System.Windows.Forms.Padding(4);
             this.chkAllowUserSwitch.Name = "chkAllowUserSwitch";
             this.chkAllowUserSwitch.Size = new System.Drawing.Size(110, 24);
             this.chkAllowUserSwitch.TabIndex = 16;
@@ -183,7 +183,7 @@
             this.chkShowAvatars.Checked = true;
             this.chkShowAvatars.CheckState = System.Windows.Forms.CheckState.Checked;
             this.chkShowAvatars.Location = new System.Drawing.Point(940, 38);
-            this.chkShowAvatars.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.chkShowAvatars.Margin = new System.Windows.Forms.Padding(4);
             this.chkShowAvatars.Name = "chkShowAvatars";
             this.chkShowAvatars.Size = new System.Drawing.Size(120, 24);
             this.chkShowAvatars.TabIndex = 17;
@@ -196,7 +196,7 @@
             this.MSG.Enabled = false;
             this.MSG.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.MSG.Location = new System.Drawing.Point(1, 4);
-            this.MSG.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.MSG.Margin = new System.Windows.Forms.Padding(4);
             this.MSG.Name = "MSG";
             this.MSG.Size = new System.Drawing.Size(776, 30);
             this.MSG.TabIndex = 18;
@@ -278,7 +278,7 @@
             this.chkDrawPath.Checked = true;
             this.chkDrawPath.CheckState = System.Windows.Forms.CheckState.Checked;
             this.chkDrawPath.Location = new System.Drawing.Point(1072, 39);
-            this.chkDrawPath.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.chkDrawPath.Margin = new System.Windows.Forms.Padding(4);
             this.chkDrawPath.Name = "chkDrawPath";
             this.chkDrawPath.Size = new System.Drawing.Size(98, 24);
             this.chkDrawPath.TabIndex = 24;
@@ -294,7 +294,7 @@
             this.boxSetSignal.FormattingEnabled = true;
             this.boxSetSignal.ItemHeight = 25;
             this.boxSetSignal.Location = new System.Drawing.Point(279, 252);
-            this.boxSetSignal.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.boxSetSignal.Margin = new System.Windows.Forms.Padding(4);
             this.boxSetSignal.MinimumSize = new System.Drawing.Size(213, 123);
             this.boxSetSignal.Name = "boxSetSignal";
             this.boxSetSignal.Size = new System.Drawing.Size(219, 100);
@@ -313,7 +313,7 @@
             "To Main Route",
             "To Side Route"});
             this.boxSetSwitch.Location = new System.Drawing.Point(531, 252);
-            this.boxSetSwitch.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.boxSetSwitch.Margin = new System.Windows.Forms.Padding(4);
             this.boxSetSwitch.MinimumSize = new System.Drawing.Size(160, 62);
             this.boxSetSwitch.Name = "boxSetSwitch";
             this.boxSetSwitch.Size = new System.Drawing.Size(167, 50);
@@ -328,7 +328,7 @@
             this.chkPickSignals.Checked = true;
             this.chkPickSignals.CheckState = System.Windows.Forms.CheckState.Checked;
             this.chkPickSignals.Location = new System.Drawing.Point(1075, 60);
-            this.chkPickSignals.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.chkPickSignals.Margin = new System.Windows.Forms.Padding(4);
             this.chkPickSignals.Name = "chkPickSignals";
             this.chkPickSignals.Size = new System.Drawing.Size(108, 24);
             this.chkPickSignals.TabIndex = 27;
@@ -342,7 +342,7 @@
             this.chkPickSwitches.Checked = true;
             this.chkPickSwitches.CheckState = System.Windows.Forms.CheckState.Checked;
             this.chkPickSwitches.Location = new System.Drawing.Point(1073, 81);
-            this.chkPickSwitches.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.chkPickSwitches.Margin = new System.Windows.Forms.Padding(4);
             this.chkPickSwitches.Name = "chkPickSwitches";
             this.chkPickSwitches.Size = new System.Drawing.Size(118, 24);
             this.chkPickSwitches.TabIndex = 28;
@@ -356,7 +356,7 @@
             this.chkAllowNew.Checked = true;
             this.chkAllowNew.CheckState = System.Windows.Forms.CheckState.Checked;
             this.chkAllowNew.Location = new System.Drawing.Point(943, 15);
-            this.chkAllowNew.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.chkAllowNew.Margin = new System.Windows.Forms.Padding(4);
             this.chkAllowNew.Name = "chkAllowNew";
             this.chkAllowNew.Size = new System.Drawing.Size(86, 24);
             this.chkAllowNew.TabIndex = 29;
@@ -370,7 +370,7 @@
             this.messages.FormattingEnabled = true;
             this.messages.ItemHeight = 24;
             this.messages.Location = new System.Drawing.Point(1, 47);
-            this.messages.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.messages.Margin = new System.Windows.Forms.Padding(4);
             this.messages.Name = "messages";
             this.messages.Size = new System.Drawing.Size(776, 52);
             this.messages.TabIndex = 22;
@@ -405,7 +405,7 @@
             this.btnFollow.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.btnFollow.Font = new System.Drawing.Font("Segoe UI Semibold", 10.2F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnFollow.Location = new System.Drawing.Point(1127, 164);
-            this.btnFollow.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.btnFollow.Margin = new System.Windows.Forms.Padding(4);
             this.btnFollow.Name = "btnFollow";
             this.btnFollow.Size = new System.Drawing.Size(80, 28);
             this.btnFollow.TabIndex = 32;
@@ -420,7 +420,7 @@
             this.chkBoxPenalty.Checked = true;
             this.chkBoxPenalty.CheckState = System.Windows.Forms.CheckState.Checked;
             this.chkBoxPenalty.Location = new System.Drawing.Point(943, 81);
-            this.chkBoxPenalty.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.chkBoxPenalty.Margin = new System.Windows.Forms.Padding(4);
             this.chkBoxPenalty.Name = "chkBoxPenalty";
             this.chkBoxPenalty.Size = new System.Drawing.Size(78, 24);
             this.chkBoxPenalty.TabIndex = 33;
@@ -435,7 +435,7 @@
             this.chkPreferGreen.Checked = true;
             this.chkPreferGreen.CheckState = System.Windows.Forms.CheckState.Checked;
             this.chkPreferGreen.Location = new System.Drawing.Point(945, 102);
-            this.chkPreferGreen.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.chkPreferGreen.Margin = new System.Windows.Forms.Padding(4);
             this.chkPreferGreen.Name = "chkPreferGreen";
             this.chkPreferGreen.Size = new System.Drawing.Size(113, 24);
             this.chkPreferGreen.TabIndex = 34;
@@ -449,7 +449,7 @@
             this.btnSeeInGame.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.btnSeeInGame.Font = new System.Drawing.Font("Segoe UI", 9F);
             this.btnSeeInGame.Location = new System.Drawing.Point(1091, 100);
-            this.btnSeeInGame.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.btnSeeInGame.Margin = new System.Windows.Forms.Padding(4);
             this.btnSeeInGame.Name = "btnSeeInGame";
             this.btnSeeInGame.Size = new System.Drawing.Size(124, 28);
             this.btnSeeInGame.TabIndex = 35;
@@ -459,8 +459,8 @@
             // 
             // DispatchViewer
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.AutoScaleDimensions = new System.Drawing.SizeF(120F, 120F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.AutoScroll = true;
             this.ClientSize = new System.Drawing.Size(1231, 945);
             this.Controls.Add(this.btnSeeInGame);
@@ -491,7 +491,7 @@
             this.Controls.Add(this.refreshButton);
             this.Controls.Add(this.pictureBox1);
             this.Font = new System.Drawing.Font("Segoe UI", 9F);
-            this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.Margin = new System.Windows.Forms.Padding(4);
             this.Name = "DispatchViewer";
             this.Text = "DispatchViewer";
             this.Leave += new System.EventHandler(this.DispatcherLeave);
