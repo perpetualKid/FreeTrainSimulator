@@ -29,8 +29,6 @@ using Orts.Common.Native;
 using Orts.Settings;
 using Orts.Simulation;
 
-using static System.Net.Mime.MediaTypeNames;
-
 namespace Orts.ActivityRunner
 {
     internal static class Program
