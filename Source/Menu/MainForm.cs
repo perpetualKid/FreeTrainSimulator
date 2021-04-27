@@ -195,14 +195,14 @@ namespace Orts.Menu
                 comboBoxTimetableSeason.DataSourceFromEnum<SeasonType>(commonCatalog);
                 comboBoxTimetableWeather.DataSourceFromEnum<WeatherType>(commonCatalog);
                 comboBoxTimetableDay.DataSourceFromList<int>(Enumerable.Range(0, 7), (day) => CultureInfo.CurrentUICulture.DateTimeFormat.DayNames[day]);
-
-                initialized = true;
             }
 
             ShowEnvironment();
             ShowTimetableEnvironment();
 
             await Task.WhenAll(initTasks).ConfigureAwait(true);
+            initialized = true;
+
         }
 
         private static IEnumerable<ToolStripItem> LoadTools()
