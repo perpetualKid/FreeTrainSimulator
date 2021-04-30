@@ -181,6 +181,7 @@ namespace Orts.Menu
                 LoadFolderListAsync()
             };
 
+            linkLabelUpdate.Visible = false;
             LoadOptions();
             LoadLanguage();
 

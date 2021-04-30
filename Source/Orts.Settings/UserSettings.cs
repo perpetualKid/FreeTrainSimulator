@@ -135,7 +135,7 @@ namespace Orts.Settings
         public bool DynamicShadows { get; set; }
         [Default(false)]
         public bool ShadowAllShapes { get; set; }
-        [Default(false)]
+        [Default(true)]
         public bool FastFullScreenAltTab { get; set; }
         [Default(false)]
         public bool WindowGlass { get; set; }
@@ -143,7 +143,7 @@ namespace Orts.Settings
         public bool ModelInstancing { get; set; }
         [Default(true)]
         public bool Wire { get; set; }
-        [Default(false)]
+        [Default(true)]
         public bool VerticalSync { get; set; }
         [Default(true)]
         public bool EnableMultisampling { get; set; }
