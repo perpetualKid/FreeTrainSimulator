@@ -157,6 +157,10 @@ namespace Orts.Formats.Msts.Models
                             new STFReader.TokenProcessor("controlcolour", ()=>{ colors.Add(ParseControlColor(stf));}),
                             new STFReader.TokenProcessor("switchval", () => { trigger = ParseSwitchVal(stf); }) });
             }
+            else
+            {
+                colors.Add(default);
+            }
             return (colors.ToArray(), trigger);
         }
 
