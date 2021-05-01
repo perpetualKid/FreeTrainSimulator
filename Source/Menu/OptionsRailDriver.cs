@@ -13,7 +13,7 @@ namespace Orts.Menu
 {
     public partial class OptionsForm : Form
     {
-        private RailDriver instance;
+        private RailDriverDevice instance;
         private Form railDriverLegend;
         private RailDriverCalibrationSetting currentCalibrationStep = RailDriverCalibrationSetting.CutOffDelta;
 
@@ -164,7 +164,7 @@ namespace Orts.Menu
 
         private void InitializeRailDriverSettings()
         {
-            instance = RailDriver.Instance;
+            instance = RailDriverDevice.Instance;
 //#if !DEBUG
             if (!instance.Enabled)
             {
