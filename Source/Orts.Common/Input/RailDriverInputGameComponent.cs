@@ -14,7 +14,7 @@ namespace Orts.Common.Input
         private byte[] readBuffer;
         private byte[] readBufferHistory;
 
-        private readonly RailDriverBase railDriverInstance;
+        private readonly RailDriverDevice railDriverInstance;
 
         private float directionPercent;      // -100 (reverse) to 100 (forward)
         private float throttlePercent;       // 0 to 100
@@ -37,13 +37,13 @@ namespace Orts.Common.Input
 
         public RailDriverInputGameComponent(Game game, EnumArray<byte, RailDriverCalibrationSetting> calibrationSettings) : base(game)
         {
-            railDriverInstance = RailDriverBase.GetInstance();
+            railDriverInstance = RailDriverDevice.Instance;
             Enabled = railDriverInstance.Enabled;
             readBuffer = railDriverInstance.GetReadBuffer();
             readBufferHistory = railDriverInstance.GetReadBuffer();
 
             if (null == calibrationSettings)
-                calibrationSettings = RailDriverBase.DefaultCalibrationSettings;
+                calibrationSettings = RailDriverDevice.DefaultCalibrationSettings;
 
             if (Enabled)
             {
