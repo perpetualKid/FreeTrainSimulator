@@ -118,12 +118,15 @@ namespace Orts.Common.Input
         /// <param name="led3"></param>
         public void SetLeds(byte led1, byte led2, byte led3)
         {
-            writeBuffer.Initialize();
-            writeBuffer[1] = 134;
-            writeBuffer[2] = led3;
-            writeBuffer[3] = led2;
-            writeBuffer[4] = led1;
-            device?.WriteData(writeBuffer);
+            if (device != null)
+            {
+                writeBuffer.Initialize();
+                writeBuffer[1] = 134;
+                writeBuffer[2] = led3;
+                writeBuffer[3] = led2;
+                writeBuffer[4] = led1;
+                device.WriteData(writeBuffer);
+            }
         }
 
         /// <summary>
@@ -134,12 +137,15 @@ namespace Orts.Common.Input
         /// <param name="led3"></param>
         public void SetLeds(RailDriverDisplaySign led1, RailDriverDisplaySign led2, RailDriverDisplaySign led3)
         {
-            writeBuffer.Initialize();
-            writeBuffer[1] = 134;
-            writeBuffer[2] = (byte)led3;
-            writeBuffer[3] = (byte)led2;
-            writeBuffer[4] = (byte)led1;
-            device?.WriteData(writeBuffer);
+            if (device != null)
+            {
+                writeBuffer.Initialize();
+                writeBuffer[1] = 134;
+                writeBuffer[2] = (byte)led3;
+                writeBuffer[3] = (byte)led2;
+                writeBuffer[4] = (byte)led1;
+                device.WriteData(writeBuffer);
+            }
         }
 
         /// <summary>
@@ -185,10 +191,13 @@ namespace Orts.Common.Input
         /// <param name="on"></param>
         public void EnableSpeaker(bool state)
         {
-            writeBuffer.Initialize();
-            writeBuffer[1] = 133;
-            writeBuffer[7] = (byte)(state ? 1 : 0);
-            device?.WriteData(writeBuffer);
+            if (device != null)
+            {
+                writeBuffer.Initialize();
+                writeBuffer[1] = 133;
+                writeBuffer[7] = (byte)(state ? 1 : 0);
+                device.WriteData(writeBuffer);
+            }
         }
 
 

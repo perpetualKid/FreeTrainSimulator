@@ -35,13 +35,13 @@ namespace Orts.Menu
         public byte UserButton { get; private set; }
         public byte DefaultButton { get; private set; }
 
-        private static RailDriver railDriver;
+        private static RailDriverDevice railDriver;
         private static byte[] readBuffer;
         private static readonly byte[] buttonData = new byte[8];
 
         private static bool edit;
 
-        internal RDButtonInputControl(byte userButton, byte defaultButton, RailDriver railDriver)
+        internal RDButtonInputControl(byte userButton, byte defaultButton, RailDriverDevice railDriver)
         {
             InitializeComponent();
             if (RDButtonInputControl.railDriver == null)
