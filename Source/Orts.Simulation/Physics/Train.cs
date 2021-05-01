@@ -9301,7 +9301,7 @@ namespace Orts.Simulation.Physics
                                 {
                                     int otherSectionIndex = routeElement.Direction == 0 ?
                                         otherPlatform.TCSectionIndex[0] :
-                                        otherPlatform.TCSectionIndex[platform.TCSectionIndex.Count - 1];
+                                        otherPlatform.TCSectionIndex[otherPlatform.TCSectionIndex.Count - 1];
                                     if (otherSectionIndex == beginSectionIndex)
                                     {
                                         if (otherPlatform.TrackCircuitOffset[Location.NearEnd, routeElement.Direction] < actualBegin)
