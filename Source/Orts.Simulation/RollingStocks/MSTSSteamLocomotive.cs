@@ -81,6 +81,7 @@ using Orts.Simulation.Commanding;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS;
 using Orts.Simulation.RollingStocks.SubSystems.Controllers;
+using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
 
 namespace Orts.Simulation.RollingStocks
 {
@@ -733,6 +734,8 @@ namespace Orts.Simulation.RollingStocks
         public MSTSSteamLocomotive(Simulator simulator, string wagFile)
             : base(simulator, wagFile)
         {
+            PowerSupply = new SteamPowerSupply(this);
+
             RefillTenderWithCoal();
             RefillTenderWithWater();
         }
@@ -866,6 +869,14 @@ namespace Orts.Simulation.RollingStocks
                     string typeString2 = stf.ReadString();
                     IsFixGeared = String.Compare(typeString2, "Fixed") == 0;
                     IsSelectGeared = String.Compare(typeString2, "Select") == 0;
+                    break;
+
+                case "engine(ortsbattery(mode":
+                case "engine(ortsbattery(delay":
+                case "engine(ortsmasterkey(mode":
+                case "engine(ortsmasterkey(delayoff":
+                case "engine(ortsmasterkey(headlightcontrol":
+                    LocomotivePowerSupply.Parse(lowercasetoken, stf);
                     break;
                 case "engine(enginecontrollers(waterscoop": HasWaterScoop = true; break;
 

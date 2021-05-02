@@ -17,9 +17,11 @@
 
 using System.IO;
 
+using Orts.Formats.Msts.Parsers;
+
 namespace Orts.Simulation.RollingStocks.SubSystems
 {
-    public interface ISubSystem<T>
+    public interface ISubSystem<T> where T : ISubSystem<T>
     {
         void Copy(T other);
         void Initialize();
@@ -27,5 +29,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         void Save(BinaryWriter outf);
         void Restore(BinaryReader inf);
         void Update(double elapsedClockSeconds);
+    }
+
+    public interface IParsable
+    {
+        void Parse(string lowercasetoken, STFReader stf);
     }
 }

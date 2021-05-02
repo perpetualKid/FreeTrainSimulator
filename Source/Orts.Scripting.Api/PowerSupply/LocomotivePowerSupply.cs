@@ -54,6 +54,10 @@ namespace Orts.Scripting.Api.PowerSupply
         /// True if the electric train supply is switched on
         /// </summary>
         public Func<bool> ElectricTrainSupplySwitchOn;
+        /// <summary>
+        /// True if the locomotive is not fitted with electric train supply
+        /// </summary>
+        public Func<bool> ElectricTrainSupplyUnfitted;
 
         /// <summary>
         /// Sets the current state of the main power supply (power from the pantograph or the generator)

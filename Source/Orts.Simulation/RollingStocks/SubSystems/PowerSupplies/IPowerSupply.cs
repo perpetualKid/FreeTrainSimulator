@@ -19,7 +19,7 @@ using Orts.Common;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 {
-    public interface IPowerSupply
+    public interface IPowerSupply : ISubSystem<IPowerSupply>, IParsable
     {
         BatterySwitch BatterySwitch { get; }
 

@@ -126,6 +126,14 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             }
         }
 
+        public void Copy(IPowerSupply other)
+        {
+            if (other is ScriptedLocomotivePowerSupply scriptedOther)
+            {
+                Copy(scriptedOther);
+            }
+        }
+
         public void Copy(ScriptedLocomotivePowerSupply other)
         {
             BatterySwitch.Copy(other.BatterySwitch);
@@ -276,6 +284,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             AbstractScript.BatterySwitchOn = () => BatterySwitch.On;
             AbstractScript.MasterKeyOn = () => MasterKey.On;
             AbstractScript.ElectricTrainSupplySwitchOn = () => ElectricTrainSupplySwitch.On;
+            AbstractScript.ElectricTrainSupplyUnfitted = () => ElectricTrainSupplySwitch.Mode == ElectricTrainSupplySwitch.ModeType.Unfitted;
 
             // AbstractPowerSupply setters
             AbstractScript.SetCurrentMainPowerSupplyState = (value) => MainPowerSupplyState = value;

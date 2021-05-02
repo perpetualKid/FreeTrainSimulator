@@ -26,8 +26,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-using GetText;
-
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -931,22 +929,42 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             {
                 IPowerSupply powerSupply = car.PowerSupply;
                 ILocomotivePowerSupply locomotivePowerSupply = powerSupply as ILocomotivePowerSupply;
-                IPassengerCarPowerSupply passengerCarPowerSupply = powerSupply as IPassengerCarPowerSupply;
 
                 string pantographState = string.Empty;
                 string dieselEngineState = string.Empty;
                 string circuitBreakerState = string.Empty;
                 string tractionCutOffRelayState = string.Empty;
+                string mainPowerSupplyState = string.Empty;
+                string auxiliaryPowerSupplyState = string.Empty;
+                string electricTrainSupplyState = string.Empty;
+                string electricTrainSupplyCableState = string.Empty;
+                string electricTrainSupplyPower = string.Empty;
 
                 if (powerSupply is ScriptedElectricPowerSupply electricPowerSupply)
                 {
                     pantographState = (car as MSTSWagon).Pantographs.State.GetLocalizedDescription();
                     circuitBreakerState = electricPowerSupply.CircuitBreaker.State.GetLocalizedDescription();
+                    mainPowerSupplyState = locomotivePowerSupply.MainPowerSupplyState.GetLocalizedDescription();
+                    auxiliaryPowerSupplyState = locomotivePowerSupply.AuxiliaryPowerSupplyState.GetLocalizedDescription();
+                    if (locomotivePowerSupply.ElectricTrainSupplyState != PowerSupplyState.Unavailable)
+                    {
+                        electricTrainSupplyState = car.PowerSupply.ElectricTrainSupplyState.GetLocalizedDescription();
+                        electricTrainSupplyCableState = car.PowerSupply.FrontElectricTrainSupplyCableConnected ? Viewer.Catalog.GetString("connected") : Viewer.Catalog.GetString("disconnected");
+                        electricTrainSupplyPower = FormatStrings.FormatPower(locomotivePowerSupply.ElectricTrainSupplyPowerW, true, false, false);
+                    }
                 }
                 else if (powerSupply is ScriptedDieselPowerSupply dieselPowerSupply)
                 {
                     dieselEngineState = (car as MSTSDieselLocomotive).DieselEngines.State.GetLocalizedDescription();
                     tractionCutOffRelayState = dieselPowerSupply.TractionCutOffRelay.State.GetLocalizedDescription();
+                    mainPowerSupplyState = locomotivePowerSupply.MainPowerSupplyState.GetLocalizedDescription();
+                    auxiliaryPowerSupplyState = locomotivePowerSupply.AuxiliaryPowerSupplyState.GetLocalizedDescription();
+                    if (locomotivePowerSupply.ElectricTrainSupplyState != PowerSupplyState.Unavailable)
+                    {
+                        electricTrainSupplyState = car.PowerSupply.ElectricTrainSupplyState.GetLocalizedDescription();
+                        electricTrainSupplyCableState = car.PowerSupply.FrontElectricTrainSupplyCableConnected ? Viewer.Catalog.GetString("connected") : Viewer.Catalog.GetString("disconnected");
+                        electricTrainSupplyPower = FormatStrings.FormatPower(locomotivePowerSupply.ElectricTrainSupplyPowerW, true, false, false);
+                    }
                 }
                 else if (powerSupply is ScriptedDualModePowerSupply dualModePowerSupply)
                 {
@@ -954,9 +972,27 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     // TODO with DualModeLocomotive : dieselEngineState = Viewer.Catalog.GetParticularString("Engine", GetStringAttribute.GetPrettyName((car as MSTSDualModeLocomotive).DieselEngines.State));
                     circuitBreakerState = dualModePowerSupply.CircuitBreaker.State.GetLocalizedDescription();
                     tractionCutOffRelayState = dualModePowerSupply.TractionCutOffRelay.State.GetLocalizedDescription();
+                    mainPowerSupplyState = locomotivePowerSupply.MainPowerSupplyState.GetLocalizedDescription();
+                    auxiliaryPowerSupplyState = locomotivePowerSupply.AuxiliaryPowerSupplyState.GetLocalizedDescription();
+                    if (locomotivePowerSupply.ElectricTrainSupplyState != PowerSupplyState.Unavailable)
+                    {
+                        electricTrainSupplyState = car.PowerSupply.ElectricTrainSupplyState.GetLocalizedDescription();
+                        electricTrainSupplyCableState = car.PowerSupply.FrontElectricTrainSupplyCableConnected ? Viewer.Catalog.GetString("connected") : Viewer.Catalog.GetString("disconnected");
+                        electricTrainSupplyPower = FormatStrings.FormatPower(locomotivePowerSupply.ElectricTrainSupplyPowerW, true, false, false);
+                    }
                 }
+                else if (powerSupply is IPassengerCarPowerSupply passengerCarPowerSupply)
+                {
+                    if (passengerCarPowerSupply.ElectricTrainSupplyState != PowerSupplyState.Unavailable)
+                    {
+                        electricTrainSupplyState = car.PowerSupply.ElectricTrainSupplyState.GetLocalizedDescription();
+                        electricTrainSupplyCableState = car.PowerSupply.FrontElectricTrainSupplyCableConnected ? Viewer.Catalog.GetString("connected") : Viewer.Catalog.GetString("disconnected");
+                        electricTrainSupplyPower = FormatStrings.FormatPower(passengerCarPowerSupply.ElectricTrainSupplyPowerW, true, false, false);
+                    }
+                }
+            // If power supply is steam power supply, do nothing.
 
-                TableAddLine(table);
+            TableAddLine(table);
                 TableSetCells(table, 0,
                     car.CarID,
                     car.WagonType.ToString(),
@@ -964,14 +1000,14 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     dieselEngineState,
                     circuitBreakerState,
                     tractionCutOffRelayState,
-                    locomotivePowerSupply != null ? locomotivePowerSupply.MainPowerSupplyState.GetLocalizedDescription() : string.Empty,
-                    locomotivePowerSupply != null ? locomotivePowerSupply.AuxiliaryPowerSupplyState.GetLocalizedDescription() : string.Empty,
+                    mainPowerSupplyState,
+                    auxiliaryPowerSupplyState,
                     car.PowerSupply.BatteryState.GetLocalizedDescription(),
                     car.PowerSupply.LowVoltagePowerSupplyState.GetLocalizedDescription(),
                     locomotivePowerSupply != null ? locomotivePowerSupply.CabPowerSupplyState.GetLocalizedDescription() : string.Empty,
-                    car.PowerSupply.ElectricTrainSupplyState.GetLocalizedDescription(),
-                    car.PowerSupply.FrontElectricTrainSupplyCableConnected ? Viewer.Catalog.GetString("connected") : Viewer.Catalog.GetString("disconnected"),
-                    locomotivePowerSupply != null ? FormatStrings.FormatPower(locomotivePowerSupply.ElectricTrainSupplyPowerW, true, false, false) : (passengerCarPowerSupply != null ? FormatStrings.FormatPower(passengerCarPowerSupply.ElectricTrainSupplyPowerW, true, false, false) : string.Empty)
+                    electricTrainSupplyState,
+                    electricTrainSupplyCableState,
+                    electricTrainSupplyPower
                     );
             }
         }
