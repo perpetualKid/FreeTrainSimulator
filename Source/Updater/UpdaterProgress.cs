@@ -36,11 +36,14 @@ namespace Orts.Updater
     public partial class UpdaterProgress : Form
     {
         private readonly UserSettings settings;
-        private readonly ICatalog catalog = new Catalog("Updater", RuntimeInfo.LocalesFolder);
+        private readonly ICatalog catalog;
 
         public UpdaterProgress()
         {
             InitializeComponent();
+
+            CatalogManager.SetCatalogDomainPattern(CatalogDomainPattern.AssemblyName, null, RuntimeInfo.LocalesFolder);
+            catalog = CatalogManager.Catalog;
 
             settings = new UserSettings();
             LoadLanguage();

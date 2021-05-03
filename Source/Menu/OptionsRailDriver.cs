@@ -4,6 +4,8 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
+using GetText;
+
 using Orts.Common;
 using Orts.Common.Info;
 using Orts.Common.Input;
@@ -105,9 +107,10 @@ namespace Orts.Menu
             string previousCategory = "";
             int i = 0;
 
+            ICatalog userCommandCatalog = CatalogManager<UserCommand>.Catalog;
             foreach (UserCommand command in EnumExtension.GetValues<UserCommand>())
             {
-                string name = commonCatalog.GetString(command.GetDescription());
+                string name = userCommandCatalog.GetString(command.GetDescription());
                 string category, description;
                 int index = name.IndexOf(' ');
                 if (index == -1)

@@ -47,7 +47,7 @@ namespace Orts.Settings
         #endregion
 
         private protected static readonly ICatalog commonCatalog = FormatStrings.Catalog;
-        private protected static readonly ICatalog catalog = new Catalog("Orts.Settings", RuntimeInfo.LocalesFolder);
+        private protected static readonly ICatalog catalog = CatalogManager.Catalog;
 
         /// <summary>
         /// Constructor

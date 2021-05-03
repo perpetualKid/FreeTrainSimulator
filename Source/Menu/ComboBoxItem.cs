@@ -50,12 +50,12 @@ namespace Orts.Menu
         /// Display members are the enum value description attributes
         /// Value Members are the enum value
         /// </summary>
-        public static void DataSourceFromEnum<T>(this ComboBox comboBox, ICatalog catalog) where T : Enum
+        public static void DataSourceFromEnum<T>(this ComboBox comboBox) where T : Enum
         {
             if (comboBox == null)
                 throw new ArgumentNullException(nameof(comboBox));
 
-            comboBox.DataSource = FromEnum<T>(catalog);
+            comboBox.DataSource = FromEnum<T>();
             ComboBoxItem<T>.SetDataSourceMembers(comboBox);
         }
 
@@ -64,31 +64,31 @@ namespace Orts.Menu
         /// Display members are the enum value description attributes
         /// Value Members are the int values of the enums
         /// </summary>
-        public static void DataSourceFromEnumIndex<T>(this ComboBox comboBox, ICatalog catalog) where T : Enum
+        public static void DataSourceFromEnumIndex<T>(this ComboBox comboBox) where T : Enum
         {
             if (comboBox == null)
                 throw new ArgumentNullException(nameof(comboBox));
 
-            comboBox.DataSource = FromEnumValue<T>(catalog);
+            comboBox.DataSource = FromEnumValue<T>();
             ComboBoxItem<T>.SetDataSourceMembers(comboBox);
 
         }
 
-        private static IList<ComboBoxItem<T>> FromEnum<T>(ICatalog catalog) where T : Enum
+        private static IList<ComboBoxItem<T>> FromEnum<T>() where T : Enum
         {
             string context = EnumExtension.EnumDescription<T>();
             return (from data in EnumExtension.GetValues<T>()
                     select new ComboBoxItem<T>(data, 
-                    string.IsNullOrEmpty(context) ? catalog.GetString(data.GetDescription()) : catalog.GetParticularString(context, data.GetDescription()))).ToList();
+                    string.IsNullOrEmpty(context) ? CatalogManager<T>.Catalog.GetString(data.GetDescription()) : CatalogManager<T>.Catalog.GetParticularString(context, data.GetDescription()))).ToList();
         }
 
-        private static IList<ComboBoxItem<int>> FromEnumValue<E>(ICatalog catalog) where E : Enum
+        private static IList<ComboBoxItem<int>> FromEnumValue<T>() where T : Enum
         {
-            string context = EnumExtension.EnumDescription<E>();
-            return (from data in EnumExtension.GetValues<E>()
+            string context = EnumExtension.EnumDescription<T>();
+            return (from data in EnumExtension.GetValues<T>()
                     select new ComboBoxItem<int>(
                         Convert.ToInt32(data, System.Globalization.CultureInfo.InvariantCulture),
-                        string.IsNullOrEmpty(context) ? catalog.GetString(data.GetDescription()) : catalog.GetParticularString(context, data.GetDescription()))).ToList();
+                        string.IsNullOrEmpty(context) ? CatalogManager<T>.Catalog.GetString(data.GetDescription()) : CatalogManager<T>.Catalog.GetParticularString(context, data.GetDescription()))).ToList();
         }
 
         /// <summary>

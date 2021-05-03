@@ -48,13 +48,13 @@ namespace Orts.Menu
         private readonly string summaryFilePath = Path.Combine(UserSettings.UserDataFolder, "TestingSummary.csv");
         private readonly string logFilePath = Path.Combine(UserSettings.UserDataFolder, "TestingLog.txt");
 
-        public TestingForm(UserSettings settings, string runActivity, ICatalog catalog)
+        public TestingForm(UserSettings settings, string runActivity)
         {
             InitializeComponent();  // Needed so that setting StartPosition = CenterParent is respected.
 
             gridTestActivities.GetType().InvokeMember("DoubleBuffered", BindingFlags.SetProperty | BindingFlags.Instance | BindingFlags.NonPublic, null, gridTestActivities, new object[] { true }, CultureInfo.InvariantCulture);
 
-            Localizer.Localize(this, catalog);
+            Localizer.Localize(this, CatalogManager.Catalog);
 
             this.runActivity = runActivity;
             this.settings = settings;

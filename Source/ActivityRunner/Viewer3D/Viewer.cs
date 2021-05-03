@@ -261,9 +261,11 @@ namespace Orts.ActivityRunner.Viewer3D
         //[CallOnThread("Loader")]
         public Viewer(Simulator simulator, Processes.Game game)
         {
-            Catalog = new Catalog("ActivityRunner", RuntimeInfo.LocalesFolder);
+            CatalogManager.SetCatalogDomainPattern(CatalogDomainPattern.AssemblyName, null, RuntimeInfo.LocalesFolder);
+            Catalog = CatalogManager.Catalog;
+
             Random = new Random();
-            Simulator = simulator;
+            Simulator = simulator ?? throw new ArgumentNullException(nameof(simulator));
             Game = game;
             Settings = simulator.Settings;
 

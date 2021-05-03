@@ -174,7 +174,7 @@ namespace Orts.MultiPlayer
 		{
             if (localUser == null)
             {
-                Catalog = new Catalog("Orts.Simulation", RuntimeInfo.LocalesFolder);
+                Catalog = CatalogManager.Catalog;
                 Random = new Random();
                 localUser = new MPManager();
             }
