@@ -118,9 +118,18 @@ namespace Orts.Models.Simplified
 
         internal static Activity FromPathShallow(string filePath)
         {
-            ActivityFile activityFile = new ActivityFile(filePath);
+            try
+            {
+                ActivityFile activityFile = new ActivityFile(filePath);
 
-            return new Activity(string.Empty, filePath, activityFile, null, null);
+                return new Activity(string.Empty, filePath, activityFile, null, null);
+            }
+#pragma warning disable CA1031 // Do not catch general exception types
+            catch
+#pragma warning restore CA1031 // Do not catch general exception types
+            {
+                return null;
+                    }
         }
 
         public override string ToString()

@@ -75,7 +75,7 @@ namespace Orts.Models.Simplified
                     (activityInput =>
                     {
                         Activity activity = Simplified.Activity.FromPathShallow(activityInput.activity);
-                        return new TestActivity(activityInput.folder, activityInput.route, activity);
+                        return activity != null ? new TestActivity(activityInput.folder, activityInput.route, activity) : null;
                     },
                     new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = Environment.ProcessorCount, CancellationToken = token });
 
