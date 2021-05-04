@@ -340,6 +340,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                 if (scriptName != null && scriptName != "MSTS")
                 {
                     Script = Simulator.ScriptManager.Load(Path.Combine(Path.GetDirectoryName(Locomotive.WagFilePath), "Script"), scriptName) as BrakeController;
+                    if (null == Script)
+                        Script = Simulator.ScriptManager.LoadRoslyn(Path.Combine(Path.GetDirectoryName(Locomotive.WagFilePath), "Script"), scriptName) as BrakeController;
                 }
                 if (Script == null)
                 {
