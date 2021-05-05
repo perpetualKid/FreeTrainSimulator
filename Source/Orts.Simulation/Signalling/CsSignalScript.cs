@@ -238,17 +238,6 @@ namespace Orts.Simulation.Signalling
             return signalObjects;
         }
 
-        public IEnumerable<string> GetThisSignalTextAspects(SignalFunction signalFunction)
-        {
-            return SignalHead.MainSignal.GetAllTextSignalAspects(signalFunction);
-        }
-
-        public IEnumerable<string> GetNextSignalTextAspects(SignalFunction signalFunction)
-        {
-            Signal nextSignal = NextSignal(signalFunction);
-            return nextSignal?.GetAllTextSignalAspects(signalFunction) ?? Enumerable.Empty<string>();
-        }
-
         public bool IsSignalFeatureEnabled(string signalFeature)
         {
             if (!EnumExtension.GetValue(signalFeature, out SignalSubType subType))

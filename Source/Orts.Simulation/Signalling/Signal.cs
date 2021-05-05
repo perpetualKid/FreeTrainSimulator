@@ -3635,13 +3635,6 @@ namespace Orts.Simulation.Signalling
             HoldState = SignalHoldState.None;
         }
 
-        public IEnumerable<string> GetAllTextSignalAspects(SignalFunction signalFunction)
-        {
-            return SignalHeads
-                    .FindAll(x => x.OrtsSignalFunctionIndex == (int)signalFunction && !string.IsNullOrEmpty(x.TextSignalAspect))
-                    .Select(x => x.TextSignalAspect)
-                    .ToList();
-        }
         //================================================================================================//
         /// <summary>
         /// Set call on manually from dispatcher
