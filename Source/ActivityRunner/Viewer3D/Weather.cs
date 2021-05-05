@@ -655,7 +655,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     {
                         fogDistanceIncreasing = true;
                         fogChangeRate = -fogChangeRate;
-                        ORTSFog = weatherControl.weather.FogDistance;
+                        if (fogTimer > 0) ORTSFog = weatherControl.weather.FogDistance;
                     }
                     wChangeOn = true;
                 }
