@@ -143,7 +143,7 @@
             0,
             0});
             this.windowSizeUpDown.Name = "windowSizeUpDown";
-            this.windowSizeUpDown.Size = new System.Drawing.Size(79, 23);
+            this.windowSizeUpDown.Size = new System.Drawing.Size(79, 27);
             this.windowSizeUpDown.TabIndex = 6;
             this.windowSizeUpDown.Value = new decimal(new int[] {
             5000,
@@ -159,7 +159,7 @@
             this.resLabel.Font = new System.Drawing.Font("Tahoma", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.resLabel.Location = new System.Drawing.Point(887, 35);
             this.resLabel.Name = "resLabel";
-            this.resLabel.Size = new System.Drawing.Size(19, 16);
+            this.resLabel.Size = new System.Drawing.Size(26, 21);
             this.resLabel.TabIndex = 8;
             this.resLabel.Text = "m";
             // 
@@ -192,9 +192,9 @@
             this.chkAllowUserSwitch.AutoSize = true;
             this.chkAllowUserSwitch.Checked = true;
             this.chkAllowUserSwitch.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkAllowUserSwitch.Location = new System.Drawing.Point(681, 71);
+            this.chkAllowUserSwitch.Location = new System.Drawing.Point(661, 71);
             this.chkAllowUserSwitch.Name = "chkAllowUserSwitch";
-            this.chkAllowUserSwitch.Size = new System.Drawing.Size(83, 17);
+            this.chkAllowUserSwitch.Size = new System.Drawing.Size(103, 21);
             this.chkAllowUserSwitch.TabIndex = 16;
             this.chkAllowUserSwitch.Text = "Auto Switch";
             this.chkAllowUserSwitch.UseVisualStyleBackColor = true;
@@ -206,9 +206,9 @@
             this.chkShowAvatars.AutoSize = true;
             this.chkShowAvatars.Checked = true;
             this.chkShowAvatars.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkShowAvatars.Location = new System.Drawing.Point(681, 53);
+            this.chkShowAvatars.Location = new System.Drawing.Point(657, 53);
             this.chkShowAvatars.Name = "chkShowAvatars";
-            this.chkShowAvatars.Size = new System.Drawing.Size(92, 17);
+            this.chkShowAvatars.Size = new System.Drawing.Size(116, 21);
             this.chkShowAvatars.TabIndex = 17;
             this.chkShowAvatars.Text = "Show Avatars";
             this.chkShowAvatars.UseVisualStyleBackColor = true;
@@ -220,7 +220,7 @@
             this.MSG.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.MSG.Location = new System.Drawing.Point(1, 38);
             this.MSG.Name = "MSG";
-            this.MSG.Size = new System.Drawing.Size(560, 26);
+            this.MSG.Size = new System.Drawing.Size(560, 30);
             this.MSG.TabIndex = 18;
             this.MSG.WordWrap = false;
             this.MSG.Enter += new System.EventHandler(this.MSGEnter);
@@ -277,7 +277,7 @@
             this.label1.AutoSize = true;
             this.label1.Location = new System.Drawing.Point(770, 35);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(26, 13);
+            this.label1.Size = new System.Drawing.Size(33, 17);
             this.label1.TabIndex = 7;
             this.label1.Text = "Res";
             // 
@@ -302,9 +302,9 @@
             this.chkDrawPath.AutoSize = true;
             this.chkDrawPath.Checked = true;
             this.chkDrawPath.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkDrawPath.Location = new System.Drawing.Point(803, 58);
+            this.chkDrawPath.Location = new System.Drawing.Point(781, 57);
             this.chkDrawPath.Name = "chkDrawPath";
-            this.chkDrawPath.Size = new System.Drawing.Size(76, 17);
+            this.chkDrawPath.Size = new System.Drawing.Size(95, 21);
             this.chkDrawPath.TabIndex = 24;
             this.chkDrawPath.Text = "Draw Path";
             this.chkDrawPath.UseVisualStyleBackColor = true;
@@ -316,7 +316,7 @@
             this.boxSetSignal.Enabled = false;
             this.boxSetSignal.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.boxSetSignal.FormattingEnabled = true;
-            this.boxSetSignal.ItemHeight = 20;
+            this.boxSetSignal.ItemHeight = 25;
             this.boxSetSignal.Location = new System.Drawing.Point(209, 205);
             this.boxSetSignal.MinimumSize = new System.Drawing.Size(160, 100);
             this.boxSetSignal.Name = "boxSetSignal";
@@ -331,14 +331,14 @@
             this.boxSetSwitch.Enabled = false;
             this.boxSetSwitch.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.boxSetSwitch.FormattingEnabled = true;
-            this.boxSetSwitch.ItemHeight = 20;
+            this.boxSetSwitch.ItemHeight = 25;
             this.boxSetSwitch.Items.AddRange(new object[] {
             "To Main Route",
             "To Side Route"});
             this.boxSetSwitch.Location = new System.Drawing.Point(398, 205);
             this.boxSetSwitch.MinimumSize = new System.Drawing.Size(120, 50);
             this.boxSetSwitch.Name = "boxSetSwitch";
-            this.boxSetSwitch.Size = new System.Drawing.Size(125, 40);
+            this.boxSetSwitch.Size = new System.Drawing.Size(125, 50);
             this.boxSetSwitch.TabIndex = 26;
             this.boxSetSwitch.Visible = false;
             this.boxSetSwitch.SelectedIndexChanged += new System.EventHandler(this.boxSetSwitchChosen);
@@ -349,9 +349,9 @@
             this.chkPickSignals.AutoSize = true;
             this.chkPickSignals.Checked = true;
             this.chkPickSignals.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkPickSignals.Location = new System.Drawing.Point(803, 75);
+            this.chkPickSignals.Location = new System.Drawing.Point(781, 75);
             this.chkPickSignals.Name = "chkPickSignals";
-            this.chkPickSignals.Size = new System.Drawing.Size(84, 17);
+            this.chkPickSignals.Size = new System.Drawing.Size(106, 21);
             this.chkPickSignals.TabIndex = 27;
             this.chkPickSignals.Text = "Pick Signals";
             this.chkPickSignals.UseVisualStyleBackColor = true;
@@ -362,9 +362,9 @@
             this.chkPickSwitches.AutoSize = true;
             this.chkPickSwitches.Checked = true;
             this.chkPickSwitches.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkPickSwitches.Location = new System.Drawing.Point(803, 92);
+            this.chkPickSwitches.Location = new System.Drawing.Point(781, 93);
             this.chkPickSwitches.Name = "chkPickSwitches";
-            this.chkPickSwitches.Size = new System.Drawing.Size(93, 17);
+            this.chkPickSwitches.Size = new System.Drawing.Size(115, 21);
             this.chkPickSwitches.TabIndex = 28;
             this.chkPickSwitches.Text = "Pick Switches";
             this.chkPickSwitches.UseVisualStyleBackColor = true;
@@ -375,9 +375,9 @@
             this.chkAllowNew.AutoSize = true;
             this.chkAllowNew.Checked = true;
             this.chkAllowNew.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkAllowNew.Location = new System.Drawing.Point(681, 34);
+            this.chkAllowNew.Location = new System.Drawing.Point(663, 34);
             this.chkAllowNew.Name = "chkAllowNew";
-            this.chkAllowNew.Size = new System.Drawing.Size(67, 17);
+            this.chkAllowNew.Size = new System.Drawing.Size(85, 21);
             this.chkAllowNew.TabIndex = 29;
             this.chkAllowNew.Text = "Can Join";
             this.chkAllowNew.UseVisualStyleBackColor = true;
@@ -387,10 +387,10 @@
             // 
             this.messages.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.messages.FormattingEnabled = true;
-            this.messages.ItemHeight = 18;
+            this.messages.ItemHeight = 24;
             this.messages.Location = new System.Drawing.Point(1, 68);
             this.messages.Name = "messages";
-            this.messages.Size = new System.Drawing.Size(560, 58);
+            this.messages.Size = new System.Drawing.Size(560, 52);
             this.messages.TabIndex = 22;
             this.messages.SelectedIndexChanged += new System.EventHandler(this.msgSelectedChanged);
             // 
@@ -436,9 +436,9 @@
             this.chkBoxPenalty.AutoSize = true;
             this.chkBoxPenalty.Checked = true;
             this.chkBoxPenalty.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkBoxPenalty.Location = new System.Drawing.Point(681, 107);
+            this.chkBoxPenalty.Location = new System.Drawing.Point(665, 107);
             this.chkBoxPenalty.Name = "chkBoxPenalty";
-            this.chkBoxPenalty.Size = new System.Drawing.Size(61, 17);
+            this.chkBoxPenalty.Size = new System.Drawing.Size(77, 21);
             this.chkBoxPenalty.TabIndex = 33;
             this.chkBoxPenalty.Text = "Penalty";
             this.chkBoxPenalty.UseVisualStyleBackColor = true;
@@ -450,9 +450,9 @@
             this.chkPreferGreen.AutoSize = true;
             this.chkPreferGreen.Checked = true;
             this.chkPreferGreen.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkPreferGreen.Location = new System.Drawing.Point(681, 89);
+            this.chkPreferGreen.Location = new System.Drawing.Point(654, 89);
             this.chkPreferGreen.Name = "chkPreferGreen";
-            this.chkPreferGreen.Size = new System.Drawing.Size(86, 17);
+            this.chkPreferGreen.Size = new System.Drawing.Size(113, 21);
             this.chkPreferGreen.TabIndex = 34;
             this.chkPreferGreen.Text = "Prefer Green";
             this.chkPreferGreen.UseVisualStyleBackColor = true;
@@ -477,7 +477,7 @@
             this.lblSimulationTimeText.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblSimulationTimeText.Location = new System.Drawing.Point(5, 34);
             this.lblSimulationTimeText.Name = "lblSimulationTimeText";
-            this.lblSimulationTimeText.Size = new System.Drawing.Size(104, 16);
+            this.lblSimulationTimeText.Size = new System.Drawing.Size(129, 20);
             this.lblSimulationTimeText.TabIndex = 36;
             this.lblSimulationTimeText.Text = "Simulation Time";
             this.lblSimulationTimeText.Visible = false;
@@ -488,7 +488,7 @@
             this.lblSimulationTime.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblSimulationTime.Location = new System.Drawing.Point(115, 34);
             this.lblSimulationTime.Name = "lblSimulationTime";
-            this.lblSimulationTime.Size = new System.Drawing.Size(101, 16);
+            this.lblSimulationTime.Size = new System.Drawing.Size(124, 20);
             this.lblSimulationTime.TabIndex = 37;
             this.lblSimulationTime.Text = "SimulationTime";
             this.lblSimulationTime.Visible = false;
@@ -500,7 +500,7 @@
             this.lblShow.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblShow.Location = new System.Drawing.Point(780, 180);
             this.lblShow.Name = "lblShow";
-            this.lblShow.Size = new System.Drawing.Size(41, 15);
+            this.lblShow.Size = new System.Drawing.Size(50, 18);
             this.lblShow.TabIndex = 38;
             this.lblShow.Text = "Show:";
             this.lblShow.Visible = false;
@@ -510,9 +510,9 @@
             this.cbShowPlatformLabels.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.cbShowPlatformLabels.AutoSize = true;
             this.cbShowPlatformLabels.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.cbShowPlatformLabels.Location = new System.Drawing.Point(780, 220);
+            this.cbShowPlatformLabels.Location = new System.Drawing.Point(769, 220);
             this.cbShowPlatformLabels.Name = "cbShowPlatformLabels";
-            this.cbShowPlatformLabels.Size = new System.Drawing.Size(108, 19);
+            this.cbShowPlatformLabels.Size = new System.Drawing.Size(128, 22);
             this.cbShowPlatformLabels.TabIndex = 39;
             this.cbShowPlatformLabels.Text = "Platform labels";
             this.cbShowPlatformLabels.UseVisualStyleBackColor = true;
@@ -523,9 +523,9 @@
             this.cbShowSidings.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.cbShowSidings.AutoSize = true;
             this.cbShowSidings.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.cbShowSidings.Location = new System.Drawing.Point(780, 240);
+            this.cbShowSidings.Location = new System.Drawing.Point(769, 240);
             this.cbShowSidings.Name = "cbShowSidings";
-            this.cbShowSidings.Size = new System.Drawing.Size(97, 19);
+            this.cbShowSidings.Size = new System.Drawing.Size(112, 22);
             this.cbShowSidings.TabIndex = 40;
             this.cbShowSidings.Text = "Siding labels";
             this.cbShowSidings.UseVisualStyleBackColor = true;
@@ -536,9 +536,9 @@
             this.cbShowSignals.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.cbShowSignals.AutoSize = true;
             this.cbShowSignals.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.cbShowSignals.Location = new System.Drawing.Point(780, 280);
+            this.cbShowSignals.Location = new System.Drawing.Point(769, 280);
             this.cbShowSignals.Name = "cbShowSignals";
-            this.cbShowSignals.Size = new System.Drawing.Size(67, 19);
+            this.cbShowSignals.Size = new System.Drawing.Size(78, 22);
             this.cbShowSignals.TabIndex = 41;
             this.cbShowSignals.Text = "Signals";
             this.cbShowSignals.UseVisualStyleBackColor = true;
@@ -549,9 +549,9 @@
             this.cbShowSignalState.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.cbShowSignalState.AutoSize = true;
             this.cbShowSignalState.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.cbShowSignalState.Location = new System.Drawing.Point(802, 300);
+            this.cbShowSignalState.Location = new System.Drawing.Point(786, 300);
             this.cbShowSignalState.Name = "cbShowSignalState";
-            this.cbShowSignalState.Size = new System.Drawing.Size(90, 19);
+            this.cbShowSignalState.Size = new System.Drawing.Size(106, 22);
             this.cbShowSignalState.TabIndex = 42;
             this.cbShowSignalState.Text = "Signal state";
             this.cbShowSignalState.UseVisualStyleBackColor = true;
@@ -591,7 +591,7 @@
             this.rbShowActiveTrainLabels.Checked = true;
             this.rbShowActiveTrainLabels.Location = new System.Drawing.Point(13, 22);
             this.rbShowActiveTrainLabels.Name = "rbShowActiveTrainLabels";
-            this.rbShowActiveTrainLabels.Size = new System.Drawing.Size(81, 19);
+            this.rbShowActiveTrainLabels.Size = new System.Drawing.Size(99, 22);
             this.rbShowActiveTrainLabels.TabIndex = 1;
             this.rbShowActiveTrainLabels.TabStop = true;
             this.rbShowActiveTrainLabels.Text = "Active only";
@@ -603,7 +603,7 @@
             this.rbShowAllTrainLabels.AutoSize = true;
             this.rbShowAllTrainLabels.Location = new System.Drawing.Point(13, 44);
             this.rbShowAllTrainLabels.Name = "rbShowAllTrainLabels";
-            this.rbShowAllTrainLabels.Size = new System.Drawing.Size(38, 19);
+            this.rbShowAllTrainLabels.Size = new System.Drawing.Size(44, 22);
             this.rbShowAllTrainLabels.TabIndex = 0;
             this.rbShowAllTrainLabels.Text = "All";
             this.rbShowAllTrainLabels.UseVisualStyleBackColor = true;
@@ -625,7 +625,7 @@
             0,
             -2147483648});
             this.nudDaylightOffsetHrs.Name = "nudDaylightOffsetHrs";
-            this.nudDaylightOffsetHrs.Size = new System.Drawing.Size(40, 21);
+            this.nudDaylightOffsetHrs.Size = new System.Drawing.Size(40, 24);
             this.nudDaylightOffsetHrs.TabIndex = 44;
             this.nudDaylightOffsetHrs.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.nudDaylightOffsetHrs.Visible = false;
@@ -638,7 +638,7 @@
             this.lblDayLightOffsetHrs.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblDayLightOffsetHrs.Location = new System.Drawing.Point(779, 534);
             this.lblDayLightOffsetHrs.Name = "lblDayLightOffsetHrs";
-            this.lblDayLightOffsetHrs.Size = new System.Drawing.Size(111, 15);
+            this.lblDayLightOffsetHrs.Size = new System.Drawing.Size(136, 18);
             this.lblDayLightOffsetHrs.TabIndex = 45;
             this.lblDayLightOffsetHrs.Text = "Daylight offset (hrs)";
             this.lblDayLightOffsetHrs.Visible = false;
@@ -666,9 +666,9 @@
             this.cbShowSwitches.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.cbShowSwitches.AutoSize = true;
             this.cbShowSwitches.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.cbShowSwitches.Location = new System.Drawing.Point(780, 260);
+            this.cbShowSwitches.Location = new System.Drawing.Point(769, 260);
             this.cbShowSwitches.Name = "cbShowSwitches";
-            this.cbShowSwitches.Size = new System.Drawing.Size(75, 19);
+            this.cbShowSwitches.Size = new System.Drawing.Size(90, 22);
             this.cbShowSwitches.TabIndex = 47;
             this.cbShowSwitches.Text = "Switches";
             this.cbShowSwitches.UseVisualStyleBackColor = true;
@@ -692,9 +692,9 @@
             this.cbShowTrainLabels.Checked = true;
             this.cbShowTrainLabels.CheckState = System.Windows.Forms.CheckState.Checked;
             this.cbShowTrainLabels.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.cbShowTrainLabels.Location = new System.Drawing.Point(790, 395);
+            this.cbShowTrainLabels.Location = new System.Drawing.Point(780, 395);
             this.cbShowTrainLabels.Name = "cbShowTrainLabels";
-            this.cbShowTrainLabels.Size = new System.Drawing.Size(60, 19);
+            this.cbShowTrainLabels.Size = new System.Drawing.Size(70, 22);
             this.cbShowTrainLabels.TabIndex = 50;
             this.cbShowTrainLabels.Text = "Name";
             this.cbShowTrainLabels.UseVisualStyleBackColor = true;
@@ -714,10 +714,10 @@
             // tDispatch
             // 
             this.tDispatch.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.tDispatch.Location = new System.Drawing.Point(4, 22);
+            this.tDispatch.Location = new System.Drawing.Point(4, 25);
             this.tDispatch.Name = "tDispatch";
             this.tDispatch.Padding = new System.Windows.Forms.Padding(3);
-            this.tDispatch.Size = new System.Drawing.Size(915, 6);
+            this.tDispatch.Size = new System.Drawing.Size(915, 3);
             this.tDispatch.TabIndex = 0;
             this.tDispatch.Text = "Dispatch";
             this.tDispatch.UseVisualStyleBackColor = true;
@@ -725,10 +725,10 @@
             // tTimetable
             // 
             this.tTimetable.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.tTimetable.Location = new System.Drawing.Point(4, 22);
+            this.tTimetable.Location = new System.Drawing.Point(4, 25);
             this.tTimetable.Name = "tTimetable";
             this.tTimetable.Padding = new System.Windows.Forms.Padding(3);
-            this.tTimetable.Size = new System.Drawing.Size(915, 6);
+            this.tTimetable.Size = new System.Drawing.Size(915, 3);
             this.tTimetable.TabIndex = 1;
             this.tTimetable.Text = "Timetable";
             this.tTimetable.UseVisualStyleBackColor = true;
@@ -738,9 +738,9 @@
             this.cbShowTrainState.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.cbShowTrainState.AutoSize = true;
             this.cbShowTrainState.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.cbShowTrainState.Location = new System.Drawing.Point(802, 415);
+            this.cbShowTrainState.Location = new System.Drawing.Point(792, 415);
             this.cbShowTrainState.Name = "cbShowTrainState";
-            this.cbShowTrainState.Size = new System.Drawing.Size(54, 19);
+            this.cbShowTrainState.Size = new System.Drawing.Size(64, 22);
             this.cbShowTrainState.TabIndex = 52;
             this.cbShowTrainState.Text = "State";
             this.cbShowTrainState.UseVisualStyleBackColor = true;
@@ -786,9 +786,9 @@
             this.cbShowPlatforms.Checked = true;
             this.cbShowPlatforms.CheckState = System.Windows.Forms.CheckState.Checked;
             this.cbShowPlatforms.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.cbShowPlatforms.Location = new System.Drawing.Point(780, 200);
+            this.cbShowPlatforms.Location = new System.Drawing.Point(769, 200);
             this.cbShowPlatforms.Name = "cbShowPlatforms";
-            this.cbShowPlatforms.Size = new System.Drawing.Size(78, 19);
+            this.cbShowPlatforms.Size = new System.Drawing.Size(94, 22);
             this.cbShowPlatforms.TabIndex = 56;
             this.cbShowPlatforms.Text = "Platforms";
             this.cbShowPlatforms.UseVisualStyleBackColor = true;
@@ -796,7 +796,7 @@
             // 
             // DispatchViewer
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(120F, 120F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.AutoScroll = true;
             this.ClientSize = new System.Drawing.Size(923, 768);
@@ -847,6 +847,7 @@
             this.Controls.Add(this.refreshButton);
             this.Controls.Add(this.pbCanvas);
             this.Controls.Add(this.tWindow);
+            this.Margin = new System.Windows.Forms.Padding(60, 28, 60, 28);
             this.Name = "DispatchViewer";
             this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Show;
             this.Text = "Map Window";
