@@ -47,7 +47,7 @@
             // 
             this.buttonTestAll.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.buttonTestAll.Location = new System.Drawing.Point(16, 543);
-            this.buttonTestAll.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.buttonTestAll.Margin = new System.Windows.Forms.Padding(4);
             this.buttonTestAll.Name = "buttonTestAll";
             this.buttonTestAll.Size = new System.Drawing.Size(100, 28);
             this.buttonTestAll.TabIndex = 1;
@@ -59,7 +59,7 @@
             // 
             this.buttonTest.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.buttonTest.Location = new System.Drawing.Point(124, 543);
-            this.buttonTest.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.buttonTest.Margin = new System.Windows.Forms.Padding(4);
             this.buttonTest.Name = "buttonTest";
             this.buttonTest.Size = new System.Drawing.Size(100, 28);
             this.buttonTest.TabIndex = 2;
@@ -71,7 +71,7 @@
             // 
             this.buttonCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.buttonCancel.Location = new System.Drawing.Point(232, 543);
-            this.buttonCancel.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.buttonCancel.Margin = new System.Windows.Forms.Padding(4);
             this.buttonCancel.Name = "buttonCancel";
             this.buttonCancel.Size = new System.Drawing.Size(100, 28);
             this.buttonCancel.TabIndex = 3;
@@ -83,7 +83,7 @@
             // 
             this.buttonSummary.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.buttonSummary.Location = new System.Drawing.Point(875, 543);
-            this.buttonSummary.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.buttonSummary.Margin = new System.Windows.Forms.Padding(4);
             this.buttonSummary.Name = "buttonSummary";
             this.buttonSummary.Size = new System.Drawing.Size(100, 28);
             this.buttonSummary.TabIndex = 6;
@@ -134,7 +134,7 @@
             this.gridTestActivities.DefaultCellStyle = dataGridViewCellStyle4;
             this.gridTestActivities.Dock = System.Windows.Forms.DockStyle.Fill;
             this.gridTestActivities.Location = new System.Drawing.Point(0, 0);
-            this.gridTestActivities.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.gridTestActivities.Margin = new System.Windows.Forms.Padding(4);
             this.gridTestActivities.Name = "gridTestActivities";
             this.gridTestActivities.ReadOnly = true;
             this.gridTestActivities.RowHeadersVisible = false;
@@ -260,7 +260,7 @@
             // 
             this.buttonDetails.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.buttonDetails.Location = new System.Drawing.Point(983, 543);
-            this.buttonDetails.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.buttonDetails.Margin = new System.Windows.Forms.Padding(4);
             this.buttonDetails.Name = "buttonDetails";
             this.buttonDetails.Size = new System.Drawing.Size(100, 28);
             this.buttonDetails.TabIndex = 7;
@@ -273,7 +273,7 @@
             this.checkBoxOverride.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.checkBoxOverride.Location = new System.Drawing.Point(340, 543);
-            this.checkBoxOverride.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.checkBoxOverride.Margin = new System.Windows.Forms.Padding(4);
             this.checkBoxOverride.Name = "checkBoxOverride";
             this.checkBoxOverride.Size = new System.Drawing.Size(419, 28);
             this.checkBoxOverride.TabIndex = 4;
@@ -284,7 +284,7 @@
             // 
             this.buttonNoSort.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.buttonNoSort.Location = new System.Drawing.Point(767, 543);
-            this.buttonNoSort.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.buttonNoSort.Margin = new System.Windows.Forms.Padding(4);
             this.buttonNoSort.Name = "buttonNoSort";
             this.buttonNoSort.Size = new System.Drawing.Size(100, 28);
             this.buttonNoSort.TabIndex = 5;
@@ -300,15 +300,15 @@
             this.panelTests.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.panelTests.Controls.Add(this.gridTestActivities);
             this.panelTests.Location = new System.Drawing.Point(16, 15);
-            this.panelTests.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.panelTests.Margin = new System.Windows.Forms.Padding(4);
             this.panelTests.Name = "panelTests";
             this.panelTests.Size = new System.Drawing.Size(1066, 520);
             this.panelTests.TabIndex = 13;
             // 
             // TestingForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.AutoScaleDimensions = new System.Drawing.SizeF(120F, 120F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.ClientSize = new System.Drawing.Size(1099, 586);
             this.Controls.Add(this.panelTests);
             this.Controls.Add(this.buttonNoSort);
@@ -320,7 +320,7 @@
             this.Controls.Add(this.buttonTestAll);
             this.Font = new System.Drawing.Font("Segoe UI", 9F);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.Margin = new System.Windows.Forms.Padding(4);
             this.MinimizeBox = false;
             this.Name = "TestingForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;

@@ -22,7 +22,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Management;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -262,9 +261,11 @@ namespace Orts.ActivityRunner.Viewer3D
         //[CallOnThread("Loader")]
         public Viewer(Simulator simulator, Processes.Game game)
         {
-            Catalog = new Catalog("ActivityRunner", RuntimeInfo.LocalesFolder);
+            CatalogManager.SetCatalogDomainPattern(CatalogDomainPattern.AssemblyName, null, RuntimeInfo.LocalesFolder);
+            Catalog = CatalogManager.Catalog;
+
             Random = new Random();
-            Simulator = simulator;
+            Simulator = simulator ?? throw new ArgumentNullException(nameof(simulator));
             Game = game;
             Settings = simulator.Settings;
 
@@ -423,7 +424,6 @@ namespace Orts.ActivityRunner.Viewer3D
             railDriverInput.Initialize(Settings.RailDriver.UserCommands, railDriverInputGameComponent, UserCommandController);
             #endregion
 
-            UpdateAdapterInformation(Game.GraphicsDevice.Adapter);
             DefaultViewport = Game.GraphicsDevice.Viewport;
 
             if (PlayerLocomotive == null) PlayerLocomotive = Simulator.InitialPlayerLocomotive();
@@ -1147,31 +1147,6 @@ namespace Orts.ActivityRunner.Viewer3D
                 if (cabTextureInverseRatio == 1 && cabTexture.Width >= 1024) cabTextureInverseRatio = 0.75f;
             }
             return cabTextureInverseRatio;
-        }
-
-        string adapterDescription;
-        public string AdapterDescription { get { return adapterDescription; } }
-
-        uint adapterMemory;
-        public uint AdapterMemory { get { return adapterMemory; } }
-
-        internal void UpdateAdapterInformation(GraphicsAdapter graphicsAdapter)
-        {
-            adapterDescription = GraphicsAdapter.DefaultAdapter.Description;
-            try
-            {
-                // Note that we might find multiple adapters with the same
-                // description; however, the chance of such adapters not having
-                // the same amount of video memory is very slim.
-                foreach (ManagementObject videoController in new ManagementClass("Win32_VideoController").GetInstances())
-                    if (((string)videoController["Description"] == adapterDescription) && (videoController["AdapterRAM"] != null))
-                        adapterMemory = (uint)videoController["AdapterRAM"];
-            }
-            catch (Exception error)
-            {
-                Trace.WriteLine(error);
-                adapterMemory = 0;
-            }
         }
 
         public void Load()

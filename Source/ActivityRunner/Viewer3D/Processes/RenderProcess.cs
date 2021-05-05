@@ -22,6 +22,8 @@ using Microsoft.Xna.Framework.Graphics;
 using Orts.ActivityRunner.Processes;
 using Orts.Common;
 using Orts.Common.Calc;
+using Orts.Common.Info;
+
 using System;
 using System.Diagnostics;
 using System.Windows.Forms;
@@ -124,6 +126,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             RenderPrimitive.SetGraphicsDevice(game.GraphicsDevice);
 
             gameForm.LocationChanged += GameForm_LocationChanged;
+            SystemInfo.SetGraphicAdapterInformation(GraphicsDeviceManager.GraphicsDevice.Adapter.Description);
         }
 
         private void GameForm_LocationChanged(object sender, EventArgs e)

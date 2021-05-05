@@ -42,17 +42,15 @@ namespace Orts.Menu
         private readonly UpdateManager updateManager;
 
         private readonly ICatalog catalog;
-        private readonly ICatalog commonCatalog;
 
-        public OptionsForm(UserSettings settings, UpdateManager updateManager, ICatalog catalog, ICatalog commonCatalog, bool initialContentSetup)
+        public OptionsForm(UserSettings settings, UpdateManager updateManager, bool initialContentSetup)
         {
             InitializeComponent();
             Localizer.Localize(this, catalog);
 
             this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
             this.updateManager = updateManager ?? throw new ArgumentNullException(nameof(updateManager));
-            this.catalog = catalog ?? throw new ArgumentNullException(nameof(catalog));
-            this.commonCatalog = commonCatalog ?? throw new ArgumentNullException(nameof(catalog));
+            this.catalog = CatalogManager.Catalog;
 
             // Collect all the available language codes by searching for
             // localisation files, but always include English (base language).
@@ -78,8 +76,8 @@ namespace Orts.Menu
             if (comboLanguage.SelectedValue == null)
                 comboLanguage.SelectedIndex = 0;
 
-            comboBoxOtherUnits.DataSourceFromEnum<MeasurementUnit>(commonCatalog);
-            comboPressureUnit.DataSourceFromEnum<PressureUnit>(commonCatalog);
+            comboBoxOtherUnits.DataSourceFromEnum<MeasurementUnit>();
+            comboPressureUnit.DataSourceFromEnum<PressureUnit>();
 
             AdhesionLevelValue.Font = new Font(Font, FontStyle.Bold);
 
@@ -163,10 +161,10 @@ namespace Orts.Menu
             //InitializeRailDriverSettings());
 
             // DataLogger tab
-            comboDataLoggerSeparator.DataSourceFromEnum<SeparatorChar>(commonCatalog);
+            comboDataLoggerSeparator.DataSourceFromEnum<SeparatorChar>();
             comboDataLoggerSeparator.SelectedValue = settings.DataLoggerSeparator;
 
-            comboDataLogSpeedUnits.DataSourceFromEnum<SpeedUnit>(commonCatalog);
+            comboDataLogSpeedUnits.DataSourceFromEnum<SpeedUnit>();
             comboDataLogSpeedUnits.SelectedValue = settings.DataLogSpeedUnits;
 
             checkDataLogger.Checked = this.settings.DataLogger;
@@ -186,7 +184,7 @@ namespace Orts.Menu
             string context = EnumExtension.EnumDescription<EvaluationLogContents>();
             checkListDataLogTSContents.Items.AddRange(EnumExtension.GetValues<EvaluationLogContents>().
                 Where(content => content != EvaluationLogContents.None).
-                Select(content => commonCatalog.GetParticularString(context, content.GetDescription())).ToArray());
+                Select(content => CatalogManager<EvaluationLogContents>.Catalog.GetParticularString(context, content.GetDescription())).ToArray());
 
             for (int i = 0; i < checkListDataLogTSContents.Items.Count; i++)
             {

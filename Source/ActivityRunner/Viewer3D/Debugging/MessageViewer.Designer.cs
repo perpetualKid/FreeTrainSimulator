@@ -39,7 +39,7 @@
             // 
             this.clearAll.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.clearAll.Location = new System.Drawing.Point(16, 15);
-            this.clearAll.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.clearAll.Margin = new System.Windows.Forms.Padding(4);
             this.clearAll.Name = "clearAll";
             this.clearAll.Size = new System.Drawing.Size(147, 32);
             this.clearAll.TabIndex = 2;
@@ -51,7 +51,7 @@
             // 
             this.replySelected.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.replySelected.Location = new System.Drawing.Point(451, 15);
-            this.replySelected.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.replySelected.Margin = new System.Windows.Forms.Padding(4);
             this.replySelected.Name = "replySelected";
             this.replySelected.Size = new System.Drawing.Size(157, 32);
             this.replySelected.TabIndex = 4;
@@ -65,7 +65,7 @@
             this.messages.FormattingEnabled = true;
             this.messages.ItemHeight = 25;
             this.messages.Location = new System.Drawing.Point(19, 96);
-            this.messages.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.messages.Margin = new System.Windows.Forms.Padding(4);
             this.messages.Name = "messages";
             this.messages.Size = new System.Drawing.Size(691, 204);
             this.messages.TabIndex = 3;
@@ -75,7 +75,7 @@
             this.MSG.Enabled = false;
             this.MSG.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.MSG.Location = new System.Drawing.Point(19, 54);
-            this.MSG.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.MSG.Margin = new System.Windows.Forms.Padding(4);
             this.MSG.Name = "MSG";
             this.MSG.Size = new System.Drawing.Size(691, 34);
             this.MSG.TabIndex = 19;
@@ -85,7 +85,7 @@
             // 
             this.compose.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.compose.Location = new System.Drawing.Point(232, 15);
-            this.compose.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.compose.Margin = new System.Windows.Forms.Padding(4);
             this.compose.Name = "compose";
             this.compose.Size = new System.Drawing.Size(157, 32);
             this.compose.TabIndex = 20;
@@ -95,8 +95,8 @@
             // 
             // MessageViewer
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.AutoScaleDimensions = new System.Drawing.SizeF(120F, 120F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.ClientSize = new System.Drawing.Size(716, 327);
             this.Controls.Add(this.compose);
             this.Controls.Add(this.MSG);
@@ -104,7 +104,7 @@
             this.Controls.Add(this.messages);
             this.Controls.Add(this.clearAll);
             this.Font = new System.Drawing.Font("Segoe UI", 9F);
-            this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.Margin = new System.Windows.Forms.Padding(4);
             this.Name = "MessageViewer";
             this.Text = "MessageViewer";
             this.ResumeLayout(false);

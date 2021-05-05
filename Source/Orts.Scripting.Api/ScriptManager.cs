@@ -1,90 +1,126 @@
 ﻿using System;
-using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text;
-using Microsoft.CSharp;
+
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Orts.Scripting.Api
 {
     public class ScriptManager
     {
         private readonly Dictionary<string, Assembly> scripts = new Dictionary<string, Assembly>();
-        private static readonly CSharpCodeProvider compiler = new CSharpCodeProvider();
 
-        static CompilerParameters GetCompilerParameters()
+        private static readonly string runtimeDirectory = System.Runtime.InteropServices.RuntimeEnvironment.GetRuntimeDirectory();
+
+        private static readonly MetadataReference[] CompilerParameters = new MetadataReference[]
         {
-            var cp = new CompilerParameters()
-            {
-                GenerateInMemory = true,
-                IncludeDebugInformation = Debugger.IsAttached,
-                
-            };
-            cp.ReferencedAssemblies.Add("System.dll");
-            cp.ReferencedAssemblies.Add("System.Core.dll");
-            cp.ReferencedAssemblies.Add("Orts.Common.dll");
-            cp.ReferencedAssemblies.Add("Orts.Scripting.Api.dll");
-            return cp;
-        }
+            MetadataReference.CreateFromFile(typeof(Trace).GetTypeInfo().Assembly.Location),
+            MetadataReference.CreateFromFile("Orts.Common.dll"),
+            MetadataReference.CreateFromFile("Orts.Settings.dll"),
+            MetadataReference.CreateFromFile("Orts.Scripting.Api.dll"),
+            MetadataReference.CreateFromFile(Path.Combine(runtimeDirectory, "mscorlib.dll")),
+            MetadataReference.CreateFromFile(Path.Combine(runtimeDirectory, "System.Runtime.dll")),
+            MetadataReference.CreateFromFile(Path.Combine(runtimeDirectory, "System.Core.dll")),
+            MetadataReference.CreateFromFile(Path.Combine(runtimeDirectory, "System.Runtime.InteropServices.RuntimeInformation.dll")),
+            MetadataReference.CreateFromFile(Path.Combine(runtimeDirectory, "System.Collections.dll")),
+#if NETCOREAPP
+            MetadataReference.CreateFromFile(Path.Combine(runtimeDirectory, "netstandard.dll")),
+            MetadataReference.CreateFromFile(Path.Combine(runtimeDirectory, "System.Private.CoreLib.dll"))
+#endif
+        };
+
+        private static readonly IEnumerable<string> DefaultNamespaces = new[]
+        {
+                "System",
+                "System.IO",
+                "System.Linq",
+                "System.Text",
+                "System.Collections.Generic"
+   };
+
+        private static readonly CSharpCompilationOptions DefaultCompilationOptions =
+            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).
+            WithOverflowChecks(true).WithOptimizationLevel(Debugger.IsAttached ? OptimizationLevel.Debug : OptimizationLevel.Release).
+            WithUsings(DefaultNamespaces);
 
         public object Load(string path, string name)
         {
             if (string.IsNullOrEmpty(path) || string.IsNullOrEmpty(name))
                 return null;
 
-            if (Path.GetExtension(name) != ".cs")
-                name += ".cs";
-
-            path = Path.Combine(path, name);
-
-            string type = $"Orts.Scripting.Script.{Path.GetFileNameWithoutExtension(path)}";
-
-            if (scripts.ContainsKey(path))
-                return scripts[path].CreateInstance(type, true);
+            string typeName = $"Orts.Scripting.Script.{Path.GetFileNameWithoutExtension(name)}";
 
             try
             {
-                var compilerResults = compiler.CompileAssemblyFromFile(GetCompilerParameters(), path);
-                if (!compilerResults.Errors.HasErrors)
+                if (scripts.TryGetValue(path, out Assembly assembly))
                 {
-                    Assembly script = compilerResults.CompiledAssembly;
-                    scripts.Add(path, script);
-                    return script.CreateInstance(type, true);
+                    object scriptType = assembly.CreateInstance(typeName, true);
+                    if (null != scriptType)
+                        return scriptType;
                 }
-                else
+            }
+            catch(Exception exception) when (exception is BadImageFormatException || exception is FileLoadException || exception is FileNotFoundException || exception is MissingMethodException)
+            {
+                Trace.TraceWarning($"Error when trying to load type {name}. Regenerating assembly from script file {path}.", exception.Message);
+            }
+
+            List<SyntaxTree> sourceFiles = new List<SyntaxTree>();
+
+            foreach (string fileName in Directory.EnumerateFiles(path, "*.cs"))
+            {
+                using (FileStream file = new FileStream(fileName, FileMode.Open))
                 {
-                    StringBuilder errorString = new StringBuilder();
-                    errorString.AppendFormat("Skipped script {0} with error:", path);
-                    errorString.Append(Environment.NewLine);
-                    foreach (CompilerError error in compilerResults.Errors)
+                    try
                     {
-                        errorString.AppendFormat($"   {error.ErrorText}, line: {error.Line}, column: {error.Column}");
-                        errorString.Append(Environment.NewLine);
+                        SourceText sourceText = SourceText.From(file, Encoding.UTF8);
+                        sourceFiles.Add(SyntaxFactory.ParseSyntaxTree(sourceText, CSharpParseOptions.Default, file.Name));
                     }
-                    Trace.TraceWarning(errorString.ToString());
+                    catch (Exception exception) when (exception is InvalidDataException || exception is IOException)
+                    {
+                        Trace.TraceError($"Error loading script source from file {path}.", exception.Message);
+                        return null;
+                    }
+                }
+            }
+
+            EmitResult emitResult = null;
+            CSharpCompilation compilation = CSharpCompilation.Create(name, sourceFiles, CompilerParameters, DefaultCompilationOptions);
+
+            using (MemoryStream assemblyBytes = new MemoryStream(), symbolBytes = Debugger.IsAttached ? new MemoryStream() : null)
+            {
+                emitResult = compilation.Emit(assemblyBytes, symbolBytes);
+
+                if (!emitResult.Success)
+                {
+                    Trace.TraceWarning(string.Join(Environment.NewLine,
+                        new string[] { $"Skipped script {path} with errors:" }.Concat(
+                        emitResult.Diagnostics.Select((x, i) => $"  {i + 1}. {x}"))));
                     return null;
                 }
+
+                try
+                {
+                    Assembly scriptAssembly = Assembly.Load(assemblyBytes.ToArray(), symbolBytes?.ToArray());
+                    scripts.Add(path, scriptAssembly);
+                    object scriptType = scriptAssembly.CreateInstance(typeName, true);
+                    if (null != scriptType)
+                        return scriptType;
+                    Trace.TraceWarning($"Missing script type {typeName} from scripts in {path}. Script will be ignored.");
+                }
+                catch (Exception exception) when (exception is BadImageFormatException || exception is FileLoadException || exception is FileNotFoundException || exception is MissingMethodException)
+                {
+                    Trace.TraceWarning($"Error when trying to load type {name}.", exception.Message);
+                }
             }
-            catch (InvalidDataException error)
-            {
-                Trace.TraceWarning("Skipped script {0} with error: {1}", path, error.Message);
-                return null;
-            }
-            catch (Exception error)
-            {
-                if (File.Exists(path))
-                    Trace.WriteLine(new FileLoadException(path, error));
-                else
-                    Trace.TraceWarning("Ignored missing script file {0}", path);
-                return null;
-            }
+            return null;
         }
 
-        public string GetStatus()
-        {
-            return ($"{scripts.Keys.Count:F0} scripts");
-        }
     }
 }

@@ -88,10 +88,9 @@ namespace Orts.Menu
 
         private readonly ICatalog catalog;
 
-        internal ResumeForm(UserSettings settings, Route route, MainForm.UserAction mainFormAction, Activity activity, TimetableInfo timeTable,
-            IEnumerable<Route> mainRoutes, ICatalog catalog)
+        internal ResumeForm(UserSettings settings, Route route, MainForm.UserAction mainFormAction, Activity activity, TimetableInfo timeTable, IEnumerable<Route> mainRoutes)
         {
-            this.catalog = catalog;
+            this.catalog = CatalogManager.Catalog;
             globalRoutes = mainRoutes;
             SelectedAction = mainFormAction;
             multiplayer = SelectedAction == MainForm.UserAction.MultiplayerClient || SelectedAction == MainForm.UserAction.MultiplayerServer;

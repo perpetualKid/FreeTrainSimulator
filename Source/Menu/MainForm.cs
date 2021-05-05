@@ -123,7 +123,6 @@ namespace Orts.Menu
         #endregion
 
         private ICatalog catalog;
-        private ICatalog commonCatalog;
         private readonly ObjectPropertiesStore store = new ObjectPropertiesStore();
 
         #region Main Form
@@ -145,6 +144,8 @@ namespace Orts.Menu
             UpdateEnabled();
             using (Icon icon = new Icon(SystemIcons.Shield, SystemInformation.SmallIconSize))
                 elevationIcon = icon.ToBitmap();
+
+            CatalogManager.SetCatalogDomainPattern(CatalogDomainPattern.AssemblyName, null, RuntimeInfo.LocalesFolder);
         }
 
         /// <summary>
@@ -181,6 +182,7 @@ namespace Orts.Menu
                 LoadFolderListAsync()
             };
 
+            linkLabelUpdate.Visible = false;
             LoadOptions();
             LoadLanguage();
 
@@ -189,20 +191,20 @@ namespace Orts.Menu
                 initTasks.Add(CheckForUpdateAsync());
                 LoadToolsAndDocuments();
 
-                comboBoxStartSeason.DataSourceFromEnum<SeasonType>(commonCatalog);
-                comboBoxStartWeather.DataSourceFromEnum<WeatherType>(commonCatalog);
-                comboBoxDifficulty.DataSourceFromEnum<Difficulty>(commonCatalog);
-                comboBoxTimetableSeason.DataSourceFromEnum<SeasonType>(commonCatalog);
-                comboBoxTimetableWeather.DataSourceFromEnum<WeatherType>(commonCatalog);
+                comboBoxStartSeason.DataSourceFromEnum<SeasonType>();
+                comboBoxStartWeather.DataSourceFromEnum<WeatherType>();
+                comboBoxDifficulty.DataSourceFromEnum<Difficulty>();
+                comboBoxTimetableSeason.DataSourceFromEnum<SeasonType>();
+                comboBoxTimetableWeather.DataSourceFromEnum<WeatherType>();
                 comboBoxTimetableDay.DataSourceFromList<int>(Enumerable.Range(0, 7), (day) => CultureInfo.CurrentUICulture.DateTimeFormat.DayNames[day]);
-
-                initialized = true;
             }
 
             ShowEnvironment();
             ShowTimetableEnvironment();
 
             await Task.WhenAll(initTasks).ConfigureAwait(true);
+            initialized = true;
+
         }
 
         private static IEnumerable<ToolStripItem> LoadTools()
@@ -321,6 +323,7 @@ namespace Orts.Menu
         private void LoadLanguage()
         {
             Localizer.Revert(this, store);
+            CatalogManager.Reset();
 
             if (!string.IsNullOrEmpty(settings.Language))
             {
@@ -337,8 +340,7 @@ namespace Orts.Menu
             {
                 CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InstalledUICulture;
             }
-            catalog = new Catalog("Menu", RuntimeInfo.LocalesFolder);
-            commonCatalog = new Catalog("Orts.Common", RuntimeInfo.LocalesFolder);
+            catalog = CatalogManager.Catalog;
             Localizer.Localize(this, catalog, store);
         }
         #endregion
@@ -582,7 +584,7 @@ namespace Orts.Menu
 
         private void TestingToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            using (TestingForm form = new TestingForm(settings, RuntimeInfo.ActivityRunnerExecutable, catalog))
+            using (TestingForm form = new TestingForm(settings, RuntimeInfo.ActivityRunnerExecutable))
             {
                 form.ShowDialog(this);
             }
@@ -592,7 +594,7 @@ namespace Orts.Menu
         {
             SaveOptions();
 
-            using (OptionsForm form = new OptionsForm(settings, updateManager, catalog, commonCatalog, false))
+            using (OptionsForm form = new OptionsForm(settings, updateManager, false))
             {
                 switch (form.ShowDialog(this))
                 {
@@ -658,7 +660,7 @@ namespace Orts.Menu
                 return;
             }
 
-            using (ResumeForm form = new ResumeForm(settings, SelectedRoute, SelectedAction, SelectedActivity, SelectedTimetableSet, routes, catalog))
+            using (ResumeForm form = new ResumeForm(settings, SelectedRoute, SelectedAction, SelectedActivity, SelectedTimetableSet, routes))
             {
                 if (form.ShowDialog(this) == DialogResult.OK)
                 {
@@ -781,7 +783,7 @@ namespace Orts.Menu
 
             if (!initialized && !folders.Any())
             {
-                using (OptionsForm form = new OptionsForm(settings, updateManager, catalog, commonCatalog, true))
+                using (OptionsForm form = new OptionsForm(settings, updateManager, true))
                 {
                     switch (form.ShowDialog(this))
                     {

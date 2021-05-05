@@ -103,7 +103,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             // 
             this.inactiveSoundList.Dock = System.Windows.Forms.DockStyle.Fill;
             this.inactiveSoundList.Location = new System.Drawing.Point(4, 24);
-            this.inactiveSoundList.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.inactiveSoundList.Margin = new System.Windows.Forms.Padding(4);
             this.inactiveSoundList.Name = "inactiveSoundList";
             this.inactiveSoundList.Size = new System.Drawing.Size(416, 320);
             this.inactiveSoundList.TabIndex = 0;
@@ -114,7 +114,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             // 
             this.activeSoundList.Dock = System.Windows.Forms.DockStyle.Fill;
             this.activeSoundList.Location = new System.Drawing.Point(4, 24);
-            this.activeSoundList.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.activeSoundList.Margin = new System.Windows.Forms.Padding(4);
             this.activeSoundList.Name = "activeSoundList";
             this.activeSoundList.Size = new System.Drawing.Size(416, 602);
             this.activeSoundList.TabIndex = 0;
@@ -125,19 +125,19 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             // 
             this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.splitContainer1.Location = new System.Drawing.Point(0, 0);
-            this.splitContainer1.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.splitContainer1.Margin = new System.Windows.Forms.Padding(4);
             this.splitContainer1.Name = "splitContainer1";
             this.splitContainer1.Orientation = System.Windows.Forms.Orientation.Horizontal;
             // 
             // splitContainer1.Panel1
             // 
             this.splitContainer1.Panel1.Controls.Add(this.groupBoxActiveSounds);
-            this.splitContainer1.Panel1.Padding = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.splitContainer1.Panel1.Padding = new System.Windows.Forms.Padding(4);
             // 
             // splitContainer1.Panel2
             // 
             this.splitContainer1.Panel2.Controls.Add(this.groupBoxInactiveSounds);
-            this.splitContainer1.Panel2.Padding = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.splitContainer1.Panel2.Padding = new System.Windows.Forms.Padding(4);
             this.splitContainer1.Size = new System.Drawing.Size(432, 999);
             this.splitContainer1.SplitterDistance = 638;
             this.splitContainer1.SplitterWidth = 5;
@@ -148,9 +148,9 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             this.groupBoxActiveSounds.Controls.Add(this.activeSoundList);
             this.groupBoxActiveSounds.Dock = System.Windows.Forms.DockStyle.Fill;
             this.groupBoxActiveSounds.Location = new System.Drawing.Point(4, 4);
-            this.groupBoxActiveSounds.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.groupBoxActiveSounds.Margin = new System.Windows.Forms.Padding(4);
             this.groupBoxActiveSounds.Name = "groupBoxActiveSounds";
-            this.groupBoxActiveSounds.Padding = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.groupBoxActiveSounds.Padding = new System.Windows.Forms.Padding(4);
             this.groupBoxActiveSounds.Size = new System.Drawing.Size(424, 630);
             this.groupBoxActiveSounds.TabIndex = 5;
             this.groupBoxActiveSounds.TabStop = false;
@@ -161,9 +161,9 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             this.groupBoxInactiveSounds.Controls.Add(this.inactiveSoundList);
             this.groupBoxInactiveSounds.Dock = System.Windows.Forms.DockStyle.Fill;
             this.groupBoxInactiveSounds.Location = new System.Drawing.Point(4, 4);
-            this.groupBoxInactiveSounds.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.groupBoxInactiveSounds.Margin = new System.Windows.Forms.Padding(4);
             this.groupBoxInactiveSounds.Name = "groupBoxInactiveSounds";
-            this.groupBoxInactiveSounds.Padding = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.groupBoxInactiveSounds.Padding = new System.Windows.Forms.Padding(4);
             this.groupBoxInactiveSounds.Size = new System.Drawing.Size(424, 348);
             this.groupBoxInactiveSounds.TabIndex = 4;
             this.groupBoxInactiveSounds.TabStop = false;
@@ -175,14 +175,14 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             this.splitContainer2.FixedPanel = System.Windows.Forms.FixedPanel.Panel1;
             this.splitContainer2.IsSplitterFixed = true;
             this.splitContainer2.Location = new System.Drawing.Point(0, 0);
-            this.splitContainer2.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.splitContainer2.Margin = new System.Windows.Forms.Padding(4);
             this.splitContainer2.Name = "splitContainer2";
             // 
             // splitContainer2.Panel1
             // 
             this.splitContainer2.Panel1.Controls.Add(this.groupBoxCache);
             this.splitContainer2.Panel1.Controls.Add(this.groupBoxSelectedSound);
-            this.splitContainer2.Panel1.Padding = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.splitContainer2.Panel1.Padding = new System.Windows.Forms.Padding(4);
             // 
             // splitContainer2.Panel2
             // 
@@ -197,9 +197,9 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             this.groupBoxCache.Controls.Add(this.tableLayoutPanel1);
             this.groupBoxCache.Dock = System.Windows.Forms.DockStyle.Top;
             this.groupBoxCache.Location = new System.Drawing.Point(4, 242);
-            this.groupBoxCache.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.groupBoxCache.Margin = new System.Windows.Forms.Padding(4);
             this.groupBoxCache.Name = "groupBoxCache";
-            this.groupBoxCache.Padding = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.groupBoxCache.Padding = new System.Windows.Forms.Padding(4);
             this.groupBoxCache.Size = new System.Drawing.Size(134, 213);
             this.groupBoxCache.TabIndex = 8;
             this.groupBoxCache.TabStop = false;
@@ -224,7 +224,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             this.tableLayoutPanel1.Controls.Add(this.label12, 0, 5);
             this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Top;
             this.tableLayoutPanel1.Location = new System.Drawing.Point(4, 24);
-            this.tableLayoutPanel1.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.tableLayoutPanel1.Margin = new System.Windows.Forms.Padding(4);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
             this.tableLayoutPanel1.RowCount = 6;
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 16.66667F));
@@ -241,7 +241,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             // 
             this.textBox1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.textBox1.Location = new System.Drawing.Point(97, 154);
-            this.textBox1.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.textBox1.Margin = new System.Windows.Forms.Padding(4);
             this.textBox1.Name = "textBox1";
             this.textBox1.ReadOnly = true;
             this.textBox1.Size = new System.Drawing.Size(25, 27);
@@ -251,7 +251,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             // 
             this.textBox2.Dock = System.Windows.Forms.DockStyle.Fill;
             this.textBox2.Location = new System.Drawing.Point(97, 124);
-            this.textBox2.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.textBox2.Margin = new System.Windows.Forms.Padding(4);
             this.textBox2.Name = "textBox2";
             this.textBox2.ReadOnly = true;
             this.textBox2.Size = new System.Drawing.Size(25, 27);
@@ -261,7 +261,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             // 
             this.textBox3.Dock = System.Windows.Forms.DockStyle.Fill;
             this.textBox3.Location = new System.Drawing.Point(97, 94);
-            this.textBox3.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.textBox3.Margin = new System.Windows.Forms.Padding(4);
             this.textBox3.Name = "textBox3";
             this.textBox3.ReadOnly = true;
             this.textBox3.Size = new System.Drawing.Size(25, 27);
@@ -282,7 +282,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             // 
             this.textBox4.Dock = System.Windows.Forms.DockStyle.Fill;
             this.textBox4.Location = new System.Drawing.Point(97, 64);
-            this.textBox4.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.textBox4.Margin = new System.Windows.Forms.Padding(4);
             this.textBox4.Name = "textBox4";
             this.textBox4.ReadOnly = true;
             this.textBox4.Size = new System.Drawing.Size(25, 27);
@@ -292,7 +292,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             // 
             this.alSources.Dock = System.Windows.Forms.DockStyle.Fill;
             this.alSources.Location = new System.Drawing.Point(97, 34);
-            this.alSources.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.alSources.Margin = new System.Windows.Forms.Padding(4);
             this.alSources.Name = "alSources";
             this.alSources.ReadOnly = true;
             this.alSources.Size = new System.Drawing.Size(25, 27);
@@ -312,7 +312,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             // 
             this.waves.Dock = System.Windows.Forms.DockStyle.Fill;
             this.waves.Location = new System.Drawing.Point(97, 4);
-            this.waves.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.waves.Margin = new System.Windows.Forms.Padding(4);
             this.waves.Name = "waves";
             this.waves.ReadOnly = true;
             this.waves.Size = new System.Drawing.Size(25, 27);
@@ -365,9 +365,9 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             this.groupBoxSelectedSound.Controls.Add(this.tableLayoutPanel2);
             this.groupBoxSelectedSound.Dock = System.Windows.Forms.DockStyle.Top;
             this.groupBoxSelectedSound.Location = new System.Drawing.Point(4, 4);
-            this.groupBoxSelectedSound.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.groupBoxSelectedSound.Margin = new System.Windows.Forms.Padding(4);
             this.groupBoxSelectedSound.Name = "groupBoxSelectedSound";
-            this.groupBoxSelectedSound.Padding = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.groupBoxSelectedSound.Padding = new System.Windows.Forms.Padding(4);
             this.groupBoxSelectedSound.Size = new System.Drawing.Size(134, 238);
             this.groupBoxSelectedSound.TabIndex = 0;
             this.groupBoxSelectedSound.TabStop = false;
@@ -379,9 +379,9 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             this.sound3D.Dock = System.Windows.Forms.DockStyle.Top;
             this.sound3D.Enabled = false;
             this.sound3D.Location = new System.Drawing.Point(4, 210);
-            this.sound3D.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.sound3D.Margin = new System.Windows.Forms.Padding(4);
             this.sound3D.Name = "sound3D";
-            this.sound3D.Padding = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.sound3D.Padding = new System.Windows.Forms.Padding(4);
             this.sound3D.Size = new System.Drawing.Size(126, 32);
             this.sound3D.TabIndex = 0;
             this.sound3D.Text = "3D";
@@ -405,7 +405,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             this.tableLayoutPanel2.Controls.Add(this.label6, 0, 5);
             this.tableLayoutPanel2.Dock = System.Windows.Forms.DockStyle.Top;
             this.tableLayoutPanel2.Location = new System.Drawing.Point(4, 24);
-            this.tableLayoutPanel2.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.tableLayoutPanel2.Margin = new System.Windows.Forms.Padding(4);
             this.tableLayoutPanel2.Name = "tableLayoutPanel2";
             this.tableLayoutPanel2.RowCount = 6;
             this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 16.66667F));
@@ -422,7 +422,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             // 
             this.smsVolume.Dock = System.Windows.Forms.DockStyle.Fill;
             this.smsVolume.Location = new System.Drawing.Point(97, 154);
-            this.smsVolume.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.smsVolume.Margin = new System.Windows.Forms.Padding(4);
             this.smsVolume.Name = "smsVolume";
             this.smsVolume.ReadOnly = true;
             this.smsVolume.Size = new System.Drawing.Size(25, 27);
@@ -432,7 +432,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             // 
             this.distance.Dock = System.Windows.Forms.DockStyle.Fill;
             this.distance.Location = new System.Drawing.Point(97, 124);
-            this.distance.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.distance.Margin = new System.Windows.Forms.Padding(4);
             this.distance.Name = "distance";
             this.distance.ReadOnly = true;
             this.distance.Size = new System.Drawing.Size(25, 27);
@@ -442,7 +442,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             // 
             this.variable3.Dock = System.Windows.Forms.DockStyle.Fill;
             this.variable3.Location = new System.Drawing.Point(97, 94);
-            this.variable3.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.variable3.Margin = new System.Windows.Forms.Padding(4);
             this.variable3.Name = "variable3";
             this.variable3.ReadOnly = true;
             this.variable3.Size = new System.Drawing.Size(25, 27);
@@ -463,7 +463,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             // 
             this.variable2.Dock = System.Windows.Forms.DockStyle.Fill;
             this.variable2.Location = new System.Drawing.Point(97, 64);
-            this.variable2.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.variable2.Margin = new System.Windows.Forms.Padding(4);
             this.variable2.Name = "variable2";
             this.variable2.ReadOnly = true;
             this.variable2.Size = new System.Drawing.Size(25, 27);
@@ -473,7 +473,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             // 
             this.variable1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.variable1.Location = new System.Drawing.Point(97, 34);
-            this.variable1.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.variable1.Margin = new System.Windows.Forms.Padding(4);
             this.variable1.Name = "variable1";
             this.variable1.ReadOnly = true;
             this.variable1.Size = new System.Drawing.Size(25, 27);
@@ -494,7 +494,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             // 
             this.speed.Dock = System.Windows.Forms.DockStyle.Fill;
             this.speed.Location = new System.Drawing.Point(97, 4);
-            this.speed.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.speed.Margin = new System.Windows.Forms.Padding(4);
             this.speed.Name = "speed";
             this.speed.ReadOnly = true;
             this.speed.Size = new System.Drawing.Size(25, 27);
@@ -546,13 +546,13 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             // 
             // SoundDebugForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.AutoScaleDimensions = new System.Drawing.SizeF(120F, 120F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.ClientSize = new System.Drawing.Size(579, 999);
             this.Controls.Add(this.splitContainer2);
             this.Font = new System.Drawing.Font("Segoe UI", 9F);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.Margin = new System.Windows.Forms.Padding(4);
             this.Name = "SoundDebugForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
             this.Text = "Sound Debug";

@@ -19,6 +19,8 @@ using System;
 using System.Diagnostics;
 using System.Windows.Forms;
 
+using Orts.Common.Native;
+
 namespace Orts.Updater
 {
     internal static class Program
@@ -30,7 +32,9 @@ namespace Orts.Updater
         private static void Main()
         {
 #if NETCOREAPP
-            Application.SetHighDpiMode(HighDpiMode.SystemAware);
+            Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
+#else
+            NativeMethods.SetProcessDpiAwareness(NativeMethods.PROCESS_DPI_AWARENESS.Process_Per_Monitor_DPI_Aware);
 #endif
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);

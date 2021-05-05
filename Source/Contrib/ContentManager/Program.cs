@@ -20,6 +20,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 
+using Orts.Common.Native;
+
 namespace Orts.ContentManager
 {
     static class Program
@@ -30,6 +32,11 @@ namespace Orts.ContentManager
         [STAThread]
         static void Main()
         {
+#if NETCOREAPP
+            Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
+#else
+            NativeMethods.SetProcessDpiAwareness(NativeMethods.PROCESS_DPI_AWARENESS.Process_Per_Monitor_DPI_Aware);
+#endif
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new ContentManagerGUI());

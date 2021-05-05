@@ -87,7 +87,6 @@ namespace Orts.TrackViewer
         #endregion
 
         internal Catalog Catalog { get; private set; }
-        internal Catalog CommonCatalog { get; private set; }
         private readonly ObjectPropertiesStore store = new ObjectPropertiesStore();
         private readonly string windowTitle
 ;
@@ -95,6 +94,8 @@ namespace Orts.TrackViewer
         {
             IEnumerable<string> options = Environment.GetCommandLineArgs().Where(a => a.StartsWith("-", StringComparison.OrdinalIgnoreCase) || a.StartsWith("/", StringComparison.OrdinalIgnoreCase)).Select(a => a.Substring(1));
             Settings = new TrackViewerSettings(options);
+
+            CatalogManager.SetCatalogDomainPattern(CatalogDomainPattern.AssemblyName, null, RuntimeInfo.LocalesFolder);
 
             if (Settings.UserSettings.Logging)
             {
@@ -286,6 +287,7 @@ namespace Orts.TrackViewer
         private void LoadLanguage()
         {
             Localizer.Revert(windowForm, store);
+            CatalogManager.Reset();
 
             if (!string.IsNullOrEmpty(Settings.UserSettings.Language))
             {
@@ -302,8 +304,7 @@ namespace Orts.TrackViewer
             {
                 CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InstalledUICulture;
             }
-            Catalog = new Catalog("TrackViewer", RuntimeInfo.LocalesFolder);
-            CommonCatalog = new Catalog("Orts.Common", RuntimeInfo.LocalesFolder);
+            Catalog = CatalogManager.Catalog;
             Localizer.Localize(windowForm, Catalog, store);
         }
 

@@ -86,7 +86,7 @@ namespace Orts.Settings
         {
             if (EnumExtension.GetValue(name, out RailDriverCalibrationSetting calibrationSetting))
             {
-                return default0WhileSaving ? 0 : RailDriverBase.DefaultCalibrationSettings[calibrationSetting];
+                return default0WhileSaving ? 0 : RailDriverDevice.DefaultCalibrationSettings[calibrationSetting];
             }
             else if (EnumExtension.GetValue(name, out UserCommand userCommand))
             {
