@@ -13,7 +13,7 @@ namespace Orts.Simulation.Signalling
     public abstract class CsSignalScript
     {
         // References and shortcuts. Must be private to not expose them through the API
-        private SignalHead signalHead { get; set; }
+        private SignalHead signalHead;
         private Signal SignalObject => signalHead.MainSignal;
 
         private static int SigFnIndex(string sigFn)
