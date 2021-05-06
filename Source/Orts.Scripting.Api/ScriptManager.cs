@@ -57,6 +57,9 @@ namespace Orts.Scripting.Api
             if (string.IsNullOrEmpty(path) || string.IsNullOrEmpty(name))
                 return null;
 
+            if (!Directory.Exists(path))
+                return null;
+
             string typeName = $"Orts.Scripting.Script.{Path.GetFileNameWithoutExtension(name)}";
 
             try
