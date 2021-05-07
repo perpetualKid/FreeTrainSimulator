@@ -7,6 +7,9 @@ using Orts.Common;
 
 namespace Orts.Scripting.Api
 {
+    /// <summary>
+    /// Base class for all scripts. Contains information about the simulation.
+    /// </summary>
     public abstract class ScriptBase
     {
         /// <summary>
@@ -17,6 +20,14 @@ namespace Orts.Scripting.Api
         /// Clock value (in seconds) for the simulation. Starts with a value = 0.
         /// </summary>
         public Func<double> GameTime;
+    }
+
+    /// <summary>
+    /// Base class for scripts related to train subsystems.
+    /// Provides train specific features such as speed and travelled distance.
+    /// </summary>
+    public abstract class TrainScriptBase: ScriptBase
+    { 
         /// <summary>
         /// Running total of distance travelled - always positive, updated by train physics.
         /// </summary>

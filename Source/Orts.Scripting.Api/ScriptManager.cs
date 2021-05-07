@@ -23,13 +23,17 @@ namespace Orts.Scripting.Api
         {
             MetadataReference.CreateFromFile(typeof(Trace).GetTypeInfo().Assembly.Location),
             MetadataReference.CreateFromFile("Orts.Common.dll"),
+            MetadataReference.CreateFromFile("Orts.Formats.Msts.dll"),
+            MetadataReference.CreateFromFile("Orts.Formats.OR.dll"),
             MetadataReference.CreateFromFile("Orts.Settings.dll"),
             MetadataReference.CreateFromFile("Orts.Scripting.Api.dll"),
+            MetadataReference.CreateFromFile("Orts.Simulation.dll"),
             MetadataReference.CreateFromFile(Path.Combine(runtimeDirectory, "mscorlib.dll")),
             MetadataReference.CreateFromFile(Path.Combine(runtimeDirectory, "System.Runtime.dll")),
             MetadataReference.CreateFromFile(Path.Combine(runtimeDirectory, "System.Core.dll")),
             MetadataReference.CreateFromFile(Path.Combine(runtimeDirectory, "System.Runtime.InteropServices.RuntimeInformation.dll")),
             MetadataReference.CreateFromFile(Path.Combine(runtimeDirectory, "System.Collections.dll")),
+            MetadataReference.CreateFromFile(Path.Combine(runtimeDirectory, "System.Linq.dll")),
 #if NETCOREAPP
             MetadataReference.CreateFromFile(Path.Combine(runtimeDirectory, "netstandard.dll")),
             MetadataReference.CreateFromFile(Path.Combine(runtimeDirectory, "System.Private.CoreLib.dll"))
@@ -55,18 +59,24 @@ namespace Orts.Scripting.Api
             if (string.IsNullOrEmpty(path) || string.IsNullOrEmpty(name))
                 return null;
 
+            if (!Directory.Exists(path))
+                return null;
+
             string typeName = $"Orts.Scripting.Script.{Path.GetFileNameWithoutExtension(name)}";
 
             try
             {
                 if (scripts.TryGetValue(path, out Assembly assembly))
                 {
-                    object scriptType = assembly.CreateInstance(typeName, true);
-                    if (null != scriptType)
-                        return scriptType;
+                    return assembly?.CreateInstance(typeName, true);
                 }
             }
-            catch(Exception exception) when (exception is BadImageFormatException || exception is FileLoadException || exception is FileNotFoundException || exception is MissingMethodException)
+            catch (Exception exception) when (exception is MissingMethodException)
+            {
+                Trace.TraceWarning($"Error when trying to load type {name}.", exception.Message);
+                return null;
+            }
+            catch (Exception exception) when (exception is BadImageFormatException || exception is FileLoadException || exception is FileNotFoundException)
             {
                 Trace.TraceWarning($"Error when trying to load type {name}. Regenerating assembly from script file {path}.", exception.Message);
             }
@@ -85,7 +95,6 @@ namespace Orts.Scripting.Api
                     catch (Exception exception) when (exception is InvalidDataException || exception is IOException)
                     {
                         Trace.TraceError($"Error loading script source from file {path}.", exception.Message);
-                        return null;
                     }
                 }
             }
@@ -100,8 +109,9 @@ namespace Orts.Scripting.Api
                 if (!emitResult.Success)
                 {
                     Trace.TraceWarning(string.Join(Environment.NewLine,
-                        new string[] { $"Skipped script {path} with errors:" }.Concat(
+                        new string[] { $"Skipped scripts in path {path} with errors:" }.Concat(
                         emitResult.Diagnostics.Select((x, i) => $"  {i + 1}. {x}"))));
+                    scripts.Add(path, null);
                     return null;
                 }
 
@@ -112,7 +122,6 @@ namespace Orts.Scripting.Api
                     object scriptType = scriptAssembly.CreateInstance(typeName, true);
                     if (null != scriptType)
                         return scriptType;
-                    Trace.TraceWarning($"Missing script type {typeName} from scripts in {path}. Script will be ignored.");
                 }
                 catch (Exception exception) when (exception is BadImageFormatException || exception is FileLoadException || exception is FileNotFoundException || exception is MissingMethodException)
                 {

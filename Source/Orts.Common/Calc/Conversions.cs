@@ -553,6 +553,10 @@ namespace Orts.Common.Calc
             public static double FromInHg(double inchesMercury) { return inchesMercury * 0.03386389; }
             /// <summary>Convert from bar to Inches Mercury</summary>
             public static double ToInHg(double bar) { return bar * (1.0 / 0.03386389); }
+            /// <summary>Convert from cm Mercury to bar</summary>
+            public static double FromCmHg(double inchesMercury) { return inchesMercury * 0.0133322387415; }
+            /// <summary>Convert from bar to cm Mercury</summary>
+            public static double ToCmHg(double bar) { return bar * (1.0 / 0.0133322387415); }
             /// <summary>Convert from mass-force per square metres to bar</summary>
             public static double FromKgfpCm2(double f) { return f * (1.0 / 1.0197); }
             /// <summary>Convert from bar to mass-force per square metres</summary>

@@ -96,7 +96,7 @@ namespace Orts.Menu
             checkAlerterExternal.Checked = this.settings.Alerter && !this.settings.AlerterDisableExternal;
             checkSpeedControl.Checked = this.settings.SpeedControl;
             checkConfirmations.Checked = !this.settings.SuppressConfirmations;
-            checkViewDispatcher.Checked = this.settings.ViewDispatcher;
+            checkViewMapWindow.Checked = this.settings.ViewDispatcher;
             checkRetainers.Checked = this.settings.RetainersOnAllCars;
             checkGraduatedRelease.Checked = this.settings.GraduatedRelease;
             numericBrakePipeChargingRate.Value = this.settings.BrakePipeChargingRate;
@@ -284,7 +284,7 @@ namespace Orts.Menu
             settings.AlerterDisableExternal = !checkAlerterExternal.Checked;
             settings.SpeedControl = checkSpeedControl.Checked;
             settings.SuppressConfirmations = !checkConfirmations.Checked;
-            settings.ViewDispatcher = checkViewDispatcher.Checked;
+            settings.ViewDispatcher = checkViewMapWindow.Checked;
             settings.RetainersOnAllCars = checkRetainers.Checked;
             settings.GraduatedRelease = checkGraduatedRelease.Checked;
             settings.BrakePipeChargingRate = (int)numericBrakePipeChargingRate.Value;

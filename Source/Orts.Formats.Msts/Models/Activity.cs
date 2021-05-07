@@ -20,7 +20,8 @@ namespace Orts.Formats.Msts.Models
         public Traffic Traffic { get; private set; }
         public PlatformPassengersWaiting PlatformWaitingPassengers { get; private set; }
         public RestrictedSpeedZones ActivityRestrictedSpeedZones { get; private set; }
-        public int AIHornAtCrossings { get; private set; } = -1;
+        public bool AIBlowsHornAtLevelCrossings { get; private set; }
+        public LevelCrossingHornPattern AILevelCrossingHornPattern { get; private set; } = LevelCrossingHornPattern.Single;
 
         public class ActivityHeader     //this redirection has no functional advantage, only grouping to improve clarity in development
         {
@@ -98,13 +99,14 @@ namespace Orts.Formats.Msts.Models
                 new STFReader.TokenProcessor("player_service_definition",()=>{ PlayerServices = new PlayerServices(stf); }),
                 new STFReader.TokenProcessor("nextserviceuid",()=>{ NextServiceUiD = stf.ReadIntBlock(null); }),
                 new STFReader.TokenProcessor("nextactivityobjectuid",()=>{ NextActivityObjectUiD = stf.ReadIntBlock(null); }),
-                new STFReader.TokenProcessor("ortsaihornatcrossings", ()=>{ AIHornAtCrossings = stf.ReadIntBlock(AIHornAtCrossings); }),
                 new STFReader.TokenProcessor("events",()=>{ Events = new ActivityEvents(stf); }),
                 new STFReader.TokenProcessor("traffic_definition",()=>{ Traffic = new Traffic(stf); }),
                 new STFReader.TokenProcessor("activityobjects",()=>{ ActivityObjects = new ActivityObjects(stf); }),
                 new STFReader.TokenProcessor("platformnumpassengerswaiting",()=>{ PlatformWaitingPassengers = new PlatformPassengersWaiting(stf); }),  // 35 files. To test, use EUROPE1\ACTIVITIES\aftstorm.act
                 new STFReader.TokenProcessor("activityfailedsignals",()=>{ FailedSignals = new FailedSignals(stf); }),
                 new STFReader.TokenProcessor("activityrestrictedspeedzones",()=>{ ActivityRestrictedSpeedZones = new RestrictedSpeedZones(stf); }),   // 27 files. To test, use EUROPE1\ACTIVITIES\lclsrvce.act
+                new STFReader.TokenProcessor("ortsaihornatcrossings", () => { AIBlowsHornAtLevelCrossings = stf.ReadIntBlock(Convert.ToInt32(AIBlowsHornAtLevelCrossings)) > 0; }),
+                new STFReader.TokenProcessor("ortsaicrossinghornpattern", () =>{if (EnumExtension.GetValue(stf.ReadStringBlock(""), out LevelCrossingHornPattern value)) AILevelCrossingHornPattern = value; })
             });
         }
 

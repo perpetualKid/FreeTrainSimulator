@@ -411,6 +411,9 @@ namespace Orts.Common
         BoilerBlowdownOn,
         BoilerBlowdownOff,
 
+        WaterScoopRaiseLower,
+        WaterScoopBroken,
+
         SteamGearLeverToggle,
         AIFiremanSoundOn,
         AIFiremanSoundOff,
@@ -424,6 +427,11 @@ namespace Orts.Common
         GearPosition6,
         GearPosition7,
         GearPosition8,
+
+        LargeEjectorOn,
+        LargeEjectorOff,
+        SmallEjectorOn,
+        SmallEjectorOff,
     }
 
     public enum PowerSupplyEvent
@@ -550,6 +558,21 @@ namespace Orts.Common
         Hold,                   // HoldStart
 
         // OR values
+        [Description("Straight Brake Release On")]
+        StraightReleaseOn,      // TrainBrakesControllerStraightBrakingReleaseOnStart
+        [Description("Straight Brake Release Off")]
+        StraightReleaseOff,     // TrainBrakesControllerStraightBrakingReleaseOffStart
+        [Description("Straight Brake Release")]
+        StraightRelease,      // TrainBrakesControllerStraightBrakingReleaseStart
+        [Description("Straight Brake Lap")]
+        StraightLap,          // TrainBrakesControllerStraightBrakingLapStart
+        [Description("Straight Brake Apply")]
+        StraightApply,        // TrainBrakesControllerStraightBrakingApplyStart
+        [Description("Straight Brake Apply All")]
+        StraightApplyAll,     // TrainBrakesControllerStraightBrakingApplyAllStart
+        [Description("Straight Brake Emergency")]
+        StraightEmergency,    // TrainBrakesControllerStraightBrakingEmergencyStart
+
         [Description("Overcharge")]
         Overcharge,             // Overcharge
         [Description("Emergency Braking Push Button")]
@@ -768,5 +791,23 @@ namespace Orts.Common
         AllRoads = Roads | RoadEndNodes | RoadCrossings | CarSpawners,
         AllTrackItems = Sidings | SidingNames | Platforms | PlatformNames | PlatformStations | SpeedPosts | MilePosts | Signals | OtherSignals | Hazards | Pickups | SoundRegions,
         All = AllTracks | AllRoads | AllTrackItems | Grid
+    }
+
+    /// <summary>
+    /// A type of horn pattern used by AI trains at level crossings.
+    /// </summary>
+    public enum LevelCrossingHornPattern
+    {
+        /// <summary>
+        /// A single blast just before the crossing.
+        /// </summary>
+#pragma warning disable CA1720 // Identifier contains type name
+        Single,
+#pragma warning restore CA1720 // Identifier contains type name
+
+        /// <summary>
+        /// A long-long-short-long pattern used in the United States and Canada.
+        /// </summary>
+        US,
     }
 }

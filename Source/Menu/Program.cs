@@ -20,7 +20,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Windows.Forms;
 
-using Orts.Common;
 using Orts.Common.Info;
 using Orts.Common.Native;
 using Orts.Models.Simplified;
@@ -152,16 +151,27 @@ namespace Orts.Menu
                             break;
                     }
 
-                    ProcessStartInfo processStartInfo = new ProcessStartInfo
+                    string joinedParameters = string.Join(" ", parameters);
+                    if ((Control.ModifierKeys & Keys.Alt) == Keys.Alt)
                     {
-                        FileName = RuntimeInfo.ActivityRunnerExecutable,
-                        Arguments = string.Join(" ", parameters),
-                        WindowStyle = ProcessWindowStyle.Normal,
-                        WorkingDirectory = Application.StartupPath
-                    };
-
-                    Process process = Process.Start(processStartInfo);
-                    process.WaitForExit();
+                        Clipboard.SetText(joinedParameters);
+                        MessageBox.Show(
+                            "Activity arguments have been copied to the clipboard:" + Environment.NewLine + Environment.NewLine +
+                            $"{joinedParameters}" + Environment.NewLine + Environment.NewLine +
+                            "This is a debugging aid. If you wanted to start the simulator instead, select Start without holding down the Alt key.", "Command Line Arguments");
+                    }
+                    else
+                    {
+                        ProcessStartInfo processStartInfo = new ProcessStartInfo
+                        {
+                            FileName = RuntimeInfo.ActivityRunnerExecutable,
+                            Arguments = string.Join(" ", parameters),
+                            WindowStyle = ProcessWindowStyle.Normal,
+                            WorkingDirectory = Application.StartupPath
+                        };
+                        Process process = Process.Start(processStartInfo);
+                        process.WaitForExit();
+                    }
                 }
             }
         }

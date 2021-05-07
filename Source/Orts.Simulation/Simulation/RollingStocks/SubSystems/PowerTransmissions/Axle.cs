@@ -1,4 +1,4 @@
-﻿// COPYRIGHT 2011 by the Open Rails project.
+// COPYRIGHT 2011 by the Open Rails project.
 // 
 // This file is part of Open Rails.
 // 
@@ -19,6 +19,7 @@ using Orts.Common;
 using Orts.Common.Calc;
 using System;
 using System.IO;
+using System.Diagnostics;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
 {
@@ -453,7 +454,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
         {
             get
             {
-                return SlipSpeedMpS / WheelSlipThresholdMpS * 100.0f;
+                var temp = SlipSpeedMpS / WheelSlipThresholdMpS * 100.0f;
+                if (float.IsNaN(temp)) temp = 0;//avoid NaN on HuD display when first starting OR
+                return temp;
             }
         }
 

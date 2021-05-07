@@ -53,9 +53,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             LoadGeometry(Viewer.RenderProcess.GraphicsDevice, tile, out PrimitiveCount, out IndexBuffer, out VertexBuffer);
             
-            DummyVertexBuffer = new VertexBuffer(Viewer.RenderProcess.GraphicsDevice, DummyVertexDeclaration, 1, BufferUsage.WriteOnly);
-            DummyVertexBuffer.SetData(new Matrix[] { Matrix.Identity });
-            VertexBufferBindings = new[] { new VertexBufferBinding(VertexBuffer), new VertexBufferBinding(DummyVertexBuffer) };
+            VertexBufferBindings = new[] { new VertexBufferBinding(VertexBuffer), new VertexBufferBinding(GetDummyVertexBuffer(viewer.RenderProcess.GraphicsDevice)) };
         }
 
         //[CallOnThread("Updater")]

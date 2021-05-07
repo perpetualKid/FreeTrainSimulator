@@ -1,4 +1,4 @@
-﻿// COPYRIGHT 2013, 2014 by the Open Rails project.
+// COPYRIGHT 2013, 2014 by the Open Rails project.
 // 
 // This file is part of Open Rails.
 // 
@@ -556,6 +556,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             float distanceM = float.MaxValue;
             float speedLimitMpS = -1f;
             float altitudeOrLengthM = float.MinValue;
+            string textAspect = "";
 
             Direction dir = Locomotive.Train.MUDirection == MidpointDirection.Reverse ? Direction.Backward : Direction.Forward;
 
@@ -589,6 +590,14 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 {
                     aspect = SignalEnvironment.TranslateToTCSAspect(trainpathItem.Signal.SignalLR(fn_type));
                 }
+                foreach (SignalHead head in trainpathItem.Signal.SignalHeads)
+                {
+                    if (head.OrtsSignalFunctionIndex == fn_type)
+                    {
+                        textAspect = head.TextSignalAspect;
+                        break;
+                    }
+                }
             }
             else if (type == TrainPathItemType.Speedpost)
             {
@@ -596,7 +605,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 distanceM = trainpathItem.DistanceToTrainM;
                 speedLimitMpS = trainpathItem.AllowedSpeedMpS;
             }
-            return new SignalFeatures(mainHeadSignalTypeName, aspect, distanceM, speedLimitMpS, altitudeOrLengthM);
+            return new SignalFeatures(mainHeadSignalTypeName, aspect, distanceM, speedLimitMpS, altitudeOrLengthM, textAspect);
         }
 
         private bool DoesNextNormalSignalHaveRepeaterHead()

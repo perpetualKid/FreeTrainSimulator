@@ -52,6 +52,13 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                 case "runningstart": NotchStateType = ControllerState.Running; break;
                 case "selflapstart": NotchStateType = ControllerState.SelfLap; break;
                 case "holdstart": NotchStateType = ControllerState.Hold; break;
+                case "straightbrakingreleaseonstart": NotchStateType = ControllerState.StraightReleaseOn; break;
+                case "straightbrakingreleaseoffstart": NotchStateType = ControllerState.StraightReleaseOff; break;
+                case "straightbrakingreleasestart": NotchStateType = ControllerState.StraightRelease; break;
+                case "straightbrakinglapstart": NotchStateType = ControllerState.StraightLap; break;
+                case "straightbrakingapplystart": NotchStateType = ControllerState.StraightApply; break;
+                case "straightbrakingapplyallstart": NotchStateType = ControllerState.StraightApplyAll; break;
+                case "straightbrakingemergencystart": NotchStateType = ControllerState.StraightEmergency; break;
                 case "holdlappedstart": NotchStateType = ControllerState.Lap; break;
                 case "neutralhandleoffstart": NotchStateType = ControllerState.Neutral; break;
                 case "graduatedselflaplimitedstart": NotchStateType = ControllerState.GSelfLap; break;

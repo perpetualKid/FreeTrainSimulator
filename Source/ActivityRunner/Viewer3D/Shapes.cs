@@ -50,7 +50,7 @@ namespace Orts.ActivityRunner.Viewer3D
         protected internal int MinVertexIndex;
         protected internal int NumVerticies;
         protected internal int PrimitiveCount;
-        protected internal VertexBufferBinding[] VertexBufferBindings;
+        private readonly VertexBufferBinding[] VertexBufferBindings;
 
         public ShapePrimitive()
         {
@@ -67,10 +67,7 @@ namespace Orts.ActivityRunner.Viewer3D
             Hierarchy = hierarchy;
             HierarchyIndex = hierarchyIndex;
 
-            DummyVertexBuffer = new VertexBuffer(graphicsDevice, DummyVertexDeclaration, 1, BufferUsage.WriteOnly);
-            DummyVertexBuffer.SetData(DummyVertexData);
-            VertexBufferBindings = new[] { new VertexBufferBinding(VertexBuffer), new VertexBufferBinding(DummyVertexBuffer) };
-
+            VertexBufferBindings = new[] { new VertexBufferBinding(VertexBuffer), new VertexBufferBinding(GetDummyVertexBuffer(graphicsDevice)) };
         }
 
         public ShapePrimitive(Material material, SharedShape.VertexBufferSet vertexBufferSet, List<ushort> indexData, GraphicsDevice graphicsDevice, int[] hierarchy, int hierarchyIndex)
@@ -87,7 +84,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 // TODO consider sorting by Vertex set so we can reduce the number of SetSources required.
                 graphicsDevice.SetVertexBuffers(VertexBufferBindings);
                 graphicsDevice.Indices = IndexBuffer;
-//                graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, MinVertexIndex, NumVerticies, 0, PrimitiveCount);
+                //                graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, MinVertexIndex, NumVerticies, 0, PrimitiveCount);
                 graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, PrimitiveCount);
             }
         }
@@ -96,6 +93,34 @@ namespace Orts.ActivityRunner.Viewer3D
         public virtual void Mark()
         {
             Material.Mark();
+        }
+    }
+
+    /// <summary>
+    /// A <c>ShapePrimitive</c> that permits manipulation of the vertex and index buffers to change geometry efficiently.
+    /// </summary>
+    public class MutableShapePrimitive: ShapePrimitive
+    {
+        /// <remarks>
+        /// Buffers cannot be expanded, so take care to properly set <paramref name="maxVertices"/> and <paramref name="maxIndices"/>,
+        /// which define the maximum sizes of the vertex and index buffers, respectively.
+        /// </remarks>
+        public MutableShapePrimitive(GraphicsDevice graphicsDevice, Material material, int maxVertices, int maxIndices, int[] hierarchy, int hierarchyIndex)
+           : base(material, new SharedShape.VertexBufferSet(new VertexPositionNormalTexture[maxVertices], graphicsDevice), new ushort[maxIndices].ToList(), graphicsDevice, hierarchy, hierarchyIndex)
+        { 
+        }
+
+        public void SetVertexData(VertexPositionNormalTexture[] data, int minVertexIndex, int numVertices, int primitiveCount)
+        {
+            VertexBuffer.SetData(data);
+            MinVertexIndex = minVertexIndex;
+            NumVerticies = numVertices;
+            PrimitiveCount = primitiveCount;
+        }
+
+        public void SetIndexData(short[] data)
+        {
+            IndexBuffer.SetData(data);
         }
     }
 
@@ -133,7 +158,7 @@ namespace Orts.ActivityRunner.Viewer3D
         protected VertexDeclaration InstanceDeclaration;
         protected int InstanceBufferStride;
         protected int InstanceCount;
-        protected VertexBufferBinding[] VertexBufferBindings;
+        private readonly VertexBufferBinding[] VertexBufferBindings;
 
         internal ShapePrimitiveInstances(GraphicsDevice graphicsDevice, ShapePrimitive shapePrimitive, Matrix[] positions, int subObjectIndex)
         {

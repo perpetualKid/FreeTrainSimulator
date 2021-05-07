@@ -33,7 +33,7 @@ namespace Orts.Scripting.Api
 
     public class Odometer : Counter
     {
-        public Odometer(ScriptBase script)
+        public Odometer(TrainScriptBase script)
         {
             CurrentValue = script.DistanceM;
         }

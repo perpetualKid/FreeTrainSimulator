@@ -24,7 +24,7 @@
             this.buttonCancel = new System.Windows.Forms.Button();
             this.checkAlerter = new System.Windows.Forms.CheckBox();
             this.checkConfirmations = new System.Windows.Forms.CheckBox();
-            this.checkViewDispatcher = new System.Windows.Forms.CheckBox();
+            this.checkViewMapWindow = new System.Windows.Forms.CheckBox();
             this.tabOptions = new System.Windows.Forms.TabControl();
             this.tabPageGeneral = new System.Windows.Forms.TabPage();
             this.label29 = new System.Windows.Forms.Label();
@@ -347,15 +347,14 @@
             this.checkConfirmations.Text = "Control confirmations";
             this.checkConfirmations.UseVisualStyleBackColor = true;
             // 
-            // checkViewDispatcher
+            // checkViewMapWindow
             // 
-            this.checkViewDispatcher.AutoSize = true;
-            this.checkViewDispatcher.Location = new System.Drawing.Point(6, 74);
-            this.checkViewDispatcher.Name = "checkViewDispatcher";
-            this.checkViewDispatcher.Size = new System.Drawing.Size(127, 19);
-            this.checkViewDispatcher.TabIndex = 2;
-            this.checkViewDispatcher.Text = "Dispatcher window";
-            this.checkViewDispatcher.UseVisualStyleBackColor = true;
+            this.checkViewMapWindow.AutoSize = true;
+            this.checkViewMapWindow.Location = new System.Drawing.Point(6, 74);
+            this.checkViewMapWindow.Size = new System.Drawing.Size(127, 19);
+            this.checkViewMapWindow.TabIndex = 2;
+            this.checkViewMapWindow.Text = "Map window";
+            this.checkViewMapWindow.UseVisualStyleBackColor = true;
             // 
             // tabOptions
             // 
@@ -392,7 +391,7 @@
             this.tabPageGeneral.Controls.Add(this.comboPressureUnit);
             this.tabPageGeneral.Controls.Add(this.labelLanguage);
             this.tabPageGeneral.Controls.Add(this.comboLanguage);
-            this.tabPageGeneral.Controls.Add(this.checkViewDispatcher);
+            this.tabPageGeneral.Controls.Add(this.checkViewMapWindow);
             this.tabPageGeneral.Controls.Add(this.checkConfirmations);
             this.tabPageGeneral.Controls.Add(this.checkAlerterExternal);
             this.tabPageGeneral.Controls.Add(this.checkAlerter);
@@ -2812,7 +2811,7 @@
         private System.Windows.Forms.Button buttonCancel;
         private System.Windows.Forms.CheckBox checkAlerter;
         private System.Windows.Forms.CheckBox checkConfirmations;
-		private System.Windows.Forms.CheckBox checkViewDispatcher;
+		private System.Windows.Forms.CheckBox checkViewMapWindow;
         private System.Windows.Forms.TabControl tabOptions;
         private System.Windows.Forms.TabPage tabPageGeneral;
         private System.Windows.Forms.TabPage tabPageKeyboard;

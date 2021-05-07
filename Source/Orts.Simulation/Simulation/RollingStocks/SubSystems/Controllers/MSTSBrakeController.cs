@@ -16,6 +16,7 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
+
 using Orts.Common;
 using Orts.Scripting.Api;
 
@@ -28,16 +29,18 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
      * has specific methods to update brake status.
      * 
      */
-    public class MSTSBrakeController: BrakeController
+    public class MSTSBrakeController : BrakeController
     {
-        public MSTSNotchController NotchController;
+        public MSTSNotchController NotchController { get; private set; }
 
         /// <summary>
         /// Setting to workaround MSTS bug of not abling to set this function correctly in .eng file
         /// </summary>
-        public bool ForceControllerReleaseGraduated;
+        public bool ForceControllerReleaseGraduated { get; set; }
         private bool brakeControllerInitialised; // flag to allow PreviousNotchPosition to be initially set.
         private INotchController previousNotchPosition;
+
+        private bool EnforceMinimalReduction;
 
         public MSTSBrakeController()
         {
@@ -60,9 +63,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             NotchController.CurrentNotch = 0;
         }
 
-        public override float Update(double elapsedSeconds)
+        public override float Update(double elapsedClockSeconds)
         {
-            float value = NotchController.Update(elapsedSeconds);
+            float value = NotchController.Update(elapsedClockSeconds);
             SetCurrentValue(value);
             SetUpdateValue(NotchController.UpdateValue);
             return value;
@@ -102,10 +105,21 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                     epState = 0;
                     double x = NotchController.GetNotchFraction();
                     ControllerState notchType = notch.NotchStateType;
-                    if (OverchargeButtonPressed()) 
+                    if (OverchargeButtonPressed())
                         notchType = ControllerState.Overcharge;
-                    else if (QuickReleaseButtonPressed()) 
-                        notchType = ControllerState.FullQuickRelease;
+                    else if (QuickReleaseButtonPressed())
+                        switch (notchType)
+                        {
+                            case ControllerState.Hold:
+                            case ControllerState.Lap:
+                            case ControllerState.MinimalReduction:
+                                if (EnforceMinimalReduction)
+                                    pressureBar = DecreasePressure(pressureBar, MaxPressureBar() - MinReductionBar(), ApplyRateBarpS(), elapsedClockSeconds);
+                                break;
+                            default:
+                                EnforceMinimalReduction = false;
+                                break;
+                        }
                     switch (notchType)
                     {
                         case ControllerState.Release:
@@ -123,24 +137,37 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                             epState = -1;
                             break;
                         case ControllerState.SlowService:
-                            if (pressureBar > MaxPressureBar() - MinReductionBar()) 
+                            if (pressureBar > MaxPressureBar() - MinReductionBar())
                                 pressureBar = MaxPressureBar() - MinReductionBar();
                             pressureBar = DecreasePressure(pressureBar, MaxPressureBar() - FullServReductionBar(), SlowApplicationRateBarpS(), elapsedClockSeconds);
                             break;
+                        case ControllerState.StraightLap:
+                        case ControllerState.StraightApply:
+                        case ControllerState.StraightApplyAll:
+                        case ControllerState.StraightEmergency:
+                            // Nothing is done in these positions, instead they are controlled by the steam ejector in straight brake module
+                            break;
+                        case ControllerState.StraightRelease:
+                        case ControllerState.StraightReleaseOn:
+                            // This position is an on position so pressure will be zero (reversed due to vacuum brake operation)
+                            pressureBar = 0;
+                            break;
+                        case ControllerState.StraightReleaseOff: //(reversed due to vacuum brake operation)
                         case ControllerState.Apply:
                             pressureBar -= x * ApplyRateBarpS() * elapsedClockSeconds;
                             break;
                         case ControllerState.FullServ:
                             epState = x;
-                            if (pressureBar > MaxPressureBar() - MinReductionBar()) 
+                            EnforceMinimalReduction = true;
+                            if (pressureBar > MaxPressureBar() - MinReductionBar())
                                 pressureBar = MaxPressureBar() - MinReductionBar();
-                            pressureBar = DecreasePressure(pressureBar, MaxPressureBar()-FullServReductionBar(), ApplyRateBarpS(), elapsedClockSeconds);
+                            pressureBar = DecreasePressure(pressureBar, MaxPressureBar() - FullServReductionBar(), ApplyRateBarpS(), elapsedClockSeconds);
                             break;
                         case ControllerState.Lap:
                             // Lap position applies min service reduction when first selected, and previous contoller position was Running, then no change in pressure occurs 
-                            if (previousNotchPosition.NotchStateType == ControllerState.Running) 
+                            if (previousNotchPosition.NotchStateType == ControllerState.Running)
                             {
-                                pressureBar -= MinReductionBar();
+                                EnforceMinimalReduction = true;
                                 epState = -1;
                             }
                             break;
@@ -148,7 +175,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                             // Lap position applies min service reduction when first selected, and previous contoller position was Running or Release, then no change in pressure occurs                             
                             if (previousNotchPosition.NotchStateType == ControllerState.Running || previousNotchPosition.NotchStateType == ControllerState.Release || previousNotchPosition.NotchStateType == ControllerState.FullQuickRelease)
                             {
-                                pressureBar -= MinReductionBar();
+                                EnforceMinimalReduction = true;
                                 epState = -1;
                             }
                             break;
@@ -165,8 +192,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                             epState = x;
                             if (notch.NotchStateType == ControllerState.EPApply || notch.NotchStateType == ControllerState.ContServ)
                             {
+                                EnforceMinimalReduction = true;
                                 x = MaxPressureBar() - MinReductionBar() * (1 - x) - FullServReductionBar() * x;
-                                if (pressureBar > MaxPressureBar() - MinReductionBar()) 
+                                if (pressureBar > MaxPressureBar() - MinReductionBar())
                                     pressureBar = MaxPressureBar() - MinReductionBar();
                                 pressureBar = DecreasePressure(pressureBar, x, ApplyRateBarpS(), elapsedClockSeconds);
                                 if (ForceControllerReleaseGraduated || notch.NotchStateType == ControllerState.EPApply)
@@ -176,9 +204,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                         case ControllerState.GSelfLapH:
                         case ControllerState.Suppression:
                         case ControllerState.GSelfLap:
+                            EnforceMinimalReduction = true;
                             x = MaxPressureBar() - MinReductionBar() * (1 - x) - FullServReductionBar() * x;
-                            if (pressureBar > MaxPressureBar() - MinReductionBar()) 
-                                pressureBar = MaxPressureBar() - MinReductionBar();
                             pressureBar = DecreasePressure(pressureBar, x, ApplyRateBarpS(), elapsedClockSeconds);
                             if (ForceControllerReleaseGraduated || notch.NotchStateType == ControllerState.GSelfLap)
                                 pressureBar = IncreasePressure(pressureBar, x, ReleaseRateBarpS(), elapsedClockSeconds);
@@ -213,7 +240,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                 pressureBar = (MaxPressureBar() - FullServReductionBar()) * CurrentValue();
             }
             else
-            {                
+            {
                 double x = NotchController.GetNotchFraction();
                 switch (notch.NotchStateType)
                 {
@@ -233,7 +260,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                         break;
                     case ControllerState.ManualBraking:
                     case ControllerState.VacContServ:
-                    // Continuous service positions for vacuum brakes - allows brake to be adjusted up and down continuously between the ON and OFF position
+                        // Continuous service positions for vacuum brakes - allows brake to be adjusted up and down continuously between the ON and OFF position
                         pressureBar = (1 - x) * MaxPressureBar();
                         break;
                     case ControllerState.BrakeNotch:
@@ -297,7 +324,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                 case BrakeControllerEvent.SetCurrentPercent:
                     if (value != null)
                     {
-                        float newValue = value ?? 0F;
+                        float newValue = value.Value;
                         NotchController.SetPercent(newValue);
                     }
                     break;
@@ -305,7 +332,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                 case BrakeControllerEvent.SetCurrentValue:
                     if (value != null)
                     {
-                        float newValue = value ?? 0F;
+                        float newValue = value.Value;
                         NotchController.SetValue(newValue);
                     }
                     break;

@@ -87,7 +87,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     else if (Path.GetExtension(path).Equals(".ace", StringComparison.OrdinalIgnoreCase))
                     {
                         var alternativeTexture = Path.ChangeExtension(path, ".dds");
-                        
+
                         if (Viewer.Settings.PreferDDSTexture && File.Exists(alternativeTexture))
                         {
                             DDSLib.DDSFromFile(alternativeTexture, GraphicsDevice, true, out texture);
@@ -105,7 +105,8 @@ namespace Orts.ActivityRunner.Viewer3D
                                 {
                                     texture = AceFile.Texture2DFromFile(GraphicsDevice, parentPath);
                                 }
-                                else {
+                                else
+                                {
                                     if (required)
                                         Trace.TraceWarning("Missing texture {0} replaced with default texture", path);
                                     return defaultTexture;
@@ -170,7 +171,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 return SharedMaterialManager.MissingTexture;
             }
         }
-        
+
         public void Mark()
         {
             TextureMarks = new Dictionary<string, bool>(Textures.Count);
@@ -201,8 +202,8 @@ namespace Orts.ActivityRunner.Viewer3D
     public class SharedMaterialManager
     {
         readonly Viewer Viewer;
-        Dictionary<string, Material> Materials = new Dictionary<string, Material>();
-        Dictionary<string, bool> MaterialMarks = new Dictionary<string, bool>();
+        IDictionary<(string, string, int, float, Effect), Material> Materials = new Dictionary<(string, string, int, float, Effect), Material>();
+        IDictionary<(string, string, int, float, Effect), bool> MaterialMarks = new Dictionary<(string, string, int, float, Effect), bool>();
 
         public readonly LightConeShader LightConeShader;
         public readonly LightGlowShader LightGlowShader;
@@ -230,7 +231,7 @@ namespace Orts.ActivityRunner.Viewer3D
             PopupWindowShader = new PopupWindowShader(viewer, viewer.RenderProcess.GraphicsDevice);
             PrecipitationShader = new PrecipitationShader(viewer.RenderProcess.GraphicsDevice);
             SceneryShader = new SceneryShader(viewer.RenderProcess.GraphicsDevice);
-            var microtexPath = Path.Combine(viewer.Simulator.RoutePath,"TERRTEX", "microtex.ace");
+            var microtexPath = Path.Combine(viewer.Simulator.RoutePath, "TERRTEX", "microtex.ace");
             if (File.Exists(microtexPath))
             {
                 try
@@ -266,34 +267,12 @@ namespace Orts.ActivityRunner.Viewer3D
 
         }
 
-        public Material Load(string materialName)
+        public Material Load(string materialName, string textureName = null, int options = 0, float mipMapBias = 0f, Effect effect = null)
         {
-            return Load(materialName, null, 0, 0, 0, null);
-        }
-
-        public Material Load(string materialName, string textureName)
-        {
-            return Load(materialName, textureName, 0, 0, 0, null);
-        }
-
-        public Material Load(string materialName, string textureName, int options)
-        {
-            return Load(materialName, textureName, options, 0, 0, null);
-        }
-
-        public Material Load(string materialName, string textureName, int options, float mipMapBias)
-        {
-            return Load(materialName, textureName, options, 0, 0, null);
-        }
-
-        public Material Load(string materialName, string textureName, int options, float mipMapBias, int cabShaderKey, CabShader cabShader)
-        {
-
             if (textureName != null)
                 textureName = textureName.ToLower();
 
-            var materialKey = String.Format("{0}:{1}:{2}:{3}:{4}", materialName, textureName, options, mipMapBias, cabShaderKey);
-
+            var materialKey = (materialName, textureName, options, mipMapBias, effect);
             if (!Materials.ContainsKey(materialKey))
             {
                 switch (materialName)
@@ -344,10 +323,10 @@ namespace Orts.ActivityRunner.Viewer3D
                         Materials[materialKey] = new MSTSSkyMaterial(Viewer);
                         break;
                     case "SpriteBatch":
-                        Materials[materialKey] = new SpriteBatchMaterial(Viewer);
+                        Materials[materialKey] = new SpriteBatchMaterial(Viewer, effect);
                         break;
                     case "CabSpriteBatch":
-                        Materials[materialKey] = new CabSpriteBatchMaterial(Viewer, cabShader);
+                        Materials[materialKey] = new CabSpriteBatchMaterial(Viewer, effect as CabShader);
                         break;
                     case "Terrain":
                         Materials[materialKey] = new TerrainMaterial(Viewer, textureName, SharedMaterialManager.MissingTexture);
@@ -373,72 +352,75 @@ namespace Orts.ActivityRunner.Viewer3D
             return Materials[materialKey];
         }
 
-       public bool LoadNightTextures()
+        public bool LoadNightTextures()
         {
             int count = 0;
-            foreach (KeyValuePair<string, Material> materialPair in Materials)
+            foreach (SceneryMaterial material in from material in Materials.Values
+                                                 where material is SceneryMaterial
+                                                 select material)
             {
-                 if (materialPair.Value is SceneryMaterial)
+                if (material.LoadNightTexture())
+                    count++;
+                if (count >= 20)
                 {
-                    var material = materialPair.Value as SceneryMaterial;
-                    if (material.LoadNightTexture()) count++;
-                     if (count >= 20)
-                     {
-                         count = 0;
-                         // retest if there is enough free memory left;
-                         var remainingMemorySpace = Viewer.LoadMemoryThreshold - Viewer.HUDWindow.GetWorkingSetSize();
-                         if (remainingMemorySpace < 0)
-                         { 
-                             return false; // too bad, no more space, other night textures won't be loaded
-                         }
-                     }
+                    count = 0;
+                    // retest if there is enough free memory left;
+                    var remainingMemorySpace = Viewer.LoadMemoryThreshold - Viewer.HUDWindow.GetWorkingSetSize();
+                    if (remainingMemorySpace < 0)
+                    {
+                        return false; // too bad, no more space, other night textures won't be loaded
+                    }
                 }
             }
             return true;
-         }
+        }
 
-       public bool LoadDayTextures()
-       {
-           int count = 0;
-           foreach (KeyValuePair<string, Material> materialPair in Materials)
-           {
-               if (materialPair.Value is SceneryMaterial)
-               {
-                   var material = materialPair.Value as SceneryMaterial;
-                   if (material.LoadDayTexture()) count++;
-                   if (count >= 20)
-                   {
-                       count = 0;
-                       // retest if there is enough free memory left;
-                       var remainingMemorySpace = Viewer.LoadMemoryThreshold - Viewer.HUDWindow.GetWorkingSetSize();
-                       if (remainingMemorySpace < 0)
-                       {
-                           return false; // too bad, no more space, other night textures won't be loaded
-                       }
-                   }
-               }
-           }
-           return true;
-       }
+        public bool LoadDayTextures()
+        {
+            int count = 0;
+            foreach (SceneryMaterial material in from material in Materials.Values
+                                                 where material is SceneryMaterial
+                                                 select material)
+            {
+                if (material.LoadDayTexture())
+                    count++;
+                if (count >= 20)
+                {
+                    count = 0;
+                    // retest if there is enough free memory left;
+                    var remainingMemorySpace = Viewer.LoadMemoryThreshold - Viewer.HUDWindow.GetWorkingSetSize();
+                    if (remainingMemorySpace < 0)
+                    {
+                        return false; // too bad, no more space, other night textures won't be loaded
+                    }
+                }
+            }
+            return true;
+        }
 
         public void Mark()
         {
-            MaterialMarks = new Dictionary<string, bool>(Materials.Count);
+            MaterialMarks.Clear();
             foreach (var path in Materials.Keys)
                 MaterialMarks.Add(path, false);
         }
 
         public void Mark(Material material)
         {
-            if (Materials.ContainsValue(material))
-                MaterialMarks[Materials.First(kvp => kvp.Value == material).Key] = true;
+            foreach (var path in from kvp in Materials
+                                 where kvp.Value == material
+                                 select kvp.Key)
+            {
+                MaterialMarks[path] = true;
+                break;
+            }
         }
 
         public void Sweep()
         {
             foreach (var path in MaterialMarks.Where(kvp => !kvp.Value).Select(kvp => kvp.Key))
                 Materials.Remove(path);
-		}
+        }
 
         public void LoadPrep()
         {
@@ -471,13 +453,13 @@ namespace Orts.ActivityRunner.Viewer3D
         float distance = 1000;
         internal void UpdateShaders()
         {
-            if(Viewer.Settings.UseMSTSEnv == false)
+            if (Viewer.Settings.UseMSTSEnv == false)
                 sunDirection = Viewer.World.Sky.solarDirection;
             else
                 sunDirection = Viewer.World.MSTSSky.mstsskysolarDirection;
 
             SceneryShader.SetLightVector_ZFar(sunDirection, Viewer.Settings.ViewingDistance);
-            
+
             // Headlight illumination
             if (Viewer.PlayerLocomotiveViewer != null
                 && Viewer.PlayerLocomotiveViewer.lightDrawer != null
@@ -516,13 +498,13 @@ namespace Orts.ActivityRunner.Viewer3D
                     else if (sunDirection.Y >= 0.15)
                     {
                         clampValue = 0.5f; // at daytime min headlight
-                        distance = lightDrawer.LightConeDistance*0.1f; // and min distance
+                        distance = lightDrawer.LightConeDistance * 0.1f; // and min distance
 
                     }
                     else
                     {
                         clampValue = 1 - 2.5f * (sunDirection.Y + 0.05f); // in the meantime interpolate
-                        distance = lightDrawer.LightConeDistance*(1-4.5f*(sunDirection.Y + 0.05f)); //ditto
+                        distance = lightDrawer.LightConeDistance * (1 - 4.5f * (sunDirection.Y + 0.05f)); //ditto
                     }
                     SceneryShader.SetHeadlight(ref lightDrawer.LightConePosition, ref lightDrawer.LightConeDirection, distance, lightDrawer.LightConeMinDotProduct, (float)(Viewer.Simulator.GameTime - fadeStartTimer), fadeDuration, clampValue, ref lightDrawer.LightConeColor);
                 }
@@ -561,7 +543,7 @@ namespace Orts.ActivityRunner.Viewer3D
             this.key = key;
         }
 
-        protected Material(GraphicsDevice device): this (null, null)
+        protected Material(GraphicsDevice device) : this(null, null)
         {
             graphicsDevice = device;
         }
@@ -582,7 +564,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public virtual bool GetBlending() { return false; }
 
         public virtual Texture2D GetShadowTexture() { return null; }
-        
+
         public SamplerState SamplerState = SamplerState.LinearWrap;
 
         public int KeyLengthRemainder() //used as a "pseudorandom" number
@@ -643,15 +625,25 @@ namespace Orts.ActivityRunner.Viewer3D
     {
         public readonly SpriteBatch SpriteBatch;
 
-        public SpriteBatchMaterial(Viewer viewer)
+        private readonly BlendState BlendState = BlendState.NonPremultiplied;
+        private readonly Effect Effect;
+
+        public SpriteBatchMaterial(Viewer viewer, Effect effect = null)
             : base(viewer, null)
         {
             SpriteBatch = new SpriteBatch(graphicsDevice);
+            Effect = effect;
+        }
+
+        public SpriteBatchMaterial(Viewer viewer, BlendState blendState, Effect effect = null)
+            : this(viewer, effect: effect)
+        {
+            BlendState = blendState;
         }
 
         public override void SetState(Material previousMaterial)
         {
-            SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied);
+            SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState, null, null, null, Effect);
         }
 
         public override void ResetState()
@@ -721,6 +713,7 @@ namespace Orts.ActivityRunner.Viewer3D
         TextureAddressModeWrap = 0x000,
         TextureAddressModeMirror = 0x200,
         TextureAddressModeClamp = 0x400,
+        TextureAddressModeBorder = 0x600,
         TextureAddressModeMask = 0x600,
         // Night texture
         NightTexture = 0x800,
@@ -996,9 +989,9 @@ namespace Orts.ActivityRunner.Viewer3D
             //    return nightTexture;
 
             //return dayTexture;
-            if (nightTextureEnabled && ((undergroundTextureEnabled && Viewer.MaterialManager.sunDirection.Y < -0.085f || Viewer.Camera.IsUnderground) 
+            if (nightTextureEnabled && ((undergroundTextureEnabled && Viewer.MaterialManager.sunDirection.Y < -0.085f || Viewer.Camera.IsUnderground)
                 || Viewer.MaterialManager.sunDirection.Y < 0.0f - timeOffset))
-                    return nightTexture;
+                return nightTexture;
             return dayTexture;
         }
 
@@ -1149,7 +1142,7 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             shader.CurrentTechnique = shader.Techniques[screen == null ? 0 : 1]; //screen == null ? shader.Techniques["PopupWindow"] : shader.Techniques["PopupWindowGlass"];
             shaderPasses = shader.CurrentTechnique.Passes;
-            
+
             // FIXME: MonoGame cannot read backbuffer contents
             //shader.Screen = screen;
             shader.GlassColor = Color.Black;
@@ -1163,7 +1156,7 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             MatrixExtension.Multiply(in worldMatrix, in viewMatrix, out Matrix result);
             MatrixExtension.Multiply(in result, in projectionMatrix, out Matrix wvp);
-//            Matrix wvp = worldMatrix * viewMatrix * projectionMatrix;
+            //            Matrix wvp = worldMatrix * viewMatrix * projectionMatrix;
             shader.SetMatrix(in worldMatrix, ref wvp);
 
             for (int j = 0; j < shaderPasses.Count; j++)
@@ -1262,7 +1255,7 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 basicEffect = new BasicEffect(graphicsDevice);
                 basicEffect.Alpha = a;
-                basicEffect.DiffuseColor = new Vector3(r , g , b );
+                basicEffect.DiffuseColor = new Vector3(r, g, b);
                 basicEffect.SpecularColor = new Vector3(0.25f, 0.25f, 0.25f);
                 basicEffect.SpecularPower = 5.0f;
                 basicEffect.AmbientLightColor = new Vector3(0.2f, 0.2f, 0.2f);
@@ -1317,9 +1310,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public override void SetState(Material previousMaterial)
         {
-            var scaling = (float)graphicsDevice.PresentationParameters.BackBufferHeight / Viewer.RenderProcess.GraphicsDeviceManager.PreferredBackBufferHeight;
-            Vector3 screenScaling = new Vector3(scaling);
-            SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.NonPremultiplied, null, null, null, null, Matrix.CreateScale(scaling));
+            SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.NonPremultiplied);
             SpriteBatch.GraphicsDevice.DepthStencilState = DepthStencilState.Default;
         }
 

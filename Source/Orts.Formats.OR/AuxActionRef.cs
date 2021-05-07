@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
+using Orts.Common;
 
 namespace Orts.Formats.OR
 {
@@ -64,12 +65,14 @@ namespace Orts.Formats.OR
     {
         public int Delay;
         public float RequiredDistance;
+        public LevelCrossingHornPattern Pattern { get; private set; }
 
-        public AuxActionHorn(bool isGeneric, int delay = 2, float requiredDistance = 0) :
+        public AuxActionHorn(bool isGeneric, int delay = 2, float requiredDistance = 0, LevelCrossingHornPattern hornPattern = LevelCrossingHornPattern.Single) :    
             base(AuxiliaryAction.SoundHorn, isGeneric)
         {
             Delay = delay;
             RequiredDistance = requiredDistance;
+            Pattern = hornPattern;
         }
     }
 }

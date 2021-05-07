@@ -4,6 +4,8 @@
 Further Open Rails Rolling Stock Features
 *****************************************
 
+For a full list of parameters, see :ref:`Developing OR Content - Parameters and Tokens<parameters_and_tokens>`
+
 Train Engine Lights
 ===================
 
@@ -606,6 +608,7 @@ forward and backward, and should have a final fadeoff for best result.
 
 C# engine scripting
 ===================
+.. _features-scripting-csharp:
 
 To simulate especially complex behavior, Open Rails provides a C# scripting 
 interface for a number of systems on the player locomotive. Like the Open Rails 

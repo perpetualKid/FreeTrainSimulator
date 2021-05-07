@@ -82,8 +82,7 @@ namespace Orts.Simulation.AIs
             {
                 foreach (var sd in simulator.Activity.Activity.Traffic.Services)
                 {
-                    AITrain train = CreateAITrain(sd,
-                    simulator.Activity.Activity.Traffic.TrafficFile.TrafficDefinition, simulator.TimetableMode);
+                    AITrain train = CreateAITrain(sd, simulator.Activity.Activity.Traffic.TrafficFile.TrafficDefinition, simulator.TimetableMode);
                     if (cancellation.IsCancellationRequested) // ping loader watchdog
                         return;
                 }

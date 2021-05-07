@@ -32,9 +32,9 @@ sometimes use a view other than the cabview to follow the train, and
 therefore will not see the alerter warning, selecting the related option
 *Also in external views* enables the alerter in those views as well.
 
-.. _options-dispatcher:
+.. _options-map-window:
 
-Dispatcher window
+Map window
 -----------------
 
 It is suggested to always select this option. When this option is selected,
@@ -45,7 +45,7 @@ option :ref:`Fast fullscreen Alt+Tab <options-fullscreen>`.
 
 Through this window you can monitor train movements and also influence
 them, by setting signals and switches. A complete description of the
-dispatcher window can be found :ref:`here <driving-dispatcher>`.
+dispatcher tab can be found :ref:`here <driving-dispatcher>`.
 
 .. image:: images/options-dispatcher.png
 
@@ -252,11 +252,13 @@ Fast full-screen Alt+Tab
 
 When this option is selected, and OR is running full-screen, pressing
 Alt+Tab leaves OR full-screen and running, and allows the
-:ref:`Dispatcher Window <driving-dispatcher>` to be shown in front of it. If this option is not selected, OR is
-minimized. The Dispatcher Window :ref:`option <options-dispatcher>` must also be selected and the
-Dispatcher Window started with Ctrl+9 to display the Dispatcher Window.
-Each successive press of Alt+Tab will toggle between the Dispatcher window
+:ref:`Dispatcher Window <driving-dispatcher>` to be shown in front of it. 
+If this option is not selected, OR is minimized. 
+Each successive press of Alt+Tab will toggle between the map window
 and the OR window.
+
+Note: To display the Map Window, the :ref:`Map window option <options-map-window>` 
+must also be selected and the Map Window started with Ctrl+9.
 
 Glass on in-game windows
 ------------------------
@@ -516,6 +518,19 @@ meet.
     found under :ref:`Location-Linked Passing Path Processing <operation-locationpath>`
     in the chapter  *Open Rails Train Operation*.
 
+Simple control and physics
+--------------------------
+
+This is an option which players can set to simplify either the train controls or physics. 
+This feature is intended for players who want to focus on "running" trains and don't want to be bothered 
+by complex controls or prototypical physics which may require some additional expertise to operate.
+
+Initally this option affects only trains that use vacuum braking but other controls may be added in future versions.
+
+With vacuum braking, it is sometimes necessary to operate two different controls to apply and release the brakes. 
+With "Simple control and physics" checked, the player is able to operate the brakes just with the brake valve 
+and doesn't need to consider the steam ejector separately.
+
 .. _options-keyboard:
 
 Keyboard Options
@@ -723,6 +738,8 @@ checked (only for single-pipe brake system):
   ``AirBrakesAirCompressorPowerRating`` (if this generates a value greater
   than 0.5 psi/s) instead of using a default value.
 
+For a full list of parameters, see :ref:`Developing OR Content - Parameters and Tokens<parameters_and_tokens>`
+
 .. _options-act-randomization:
 
 Activity randomization
@@ -829,5 +846,4 @@ The reason for defining a square around your train is to minimize the moments wh
 is approaching the edge of the precipitation box.  Worst case is to save the activity,
 exit and re-enter the activity since doing this will set your train back in the middle of the
 precipitation box.
-
 

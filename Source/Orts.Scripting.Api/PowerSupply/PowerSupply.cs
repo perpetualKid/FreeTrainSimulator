@@ -3,7 +3,7 @@ using Orts.Common;
 
 namespace Orts.Scripting.Api.PowerSupply
 {
-    public abstract class PowerSupply : ScriptBase
+    public abstract class PowerSupply : TrainScriptBase
     {
         /// <summary>
         /// Current state of the power supply

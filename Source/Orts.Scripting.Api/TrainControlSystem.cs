@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.IO;
 
 using Orts.Common;
 
 namespace Orts.Scripting.Api
 {
-    public abstract class TrainControlSystem : ScriptBase
+    public abstract class TrainControlSystem : TrainScriptBase
     {
         public bool Activated { get; set; }
 
@@ -505,14 +505,16 @@ namespace Orts.Scripting.Api
         public float Distance { get; }
         public float SpeedLimit { get; }
         public float Altitude { get; }
+        public string TextAspect { get; }
 
-        public SignalFeatures(string mainHeadSignalTypeName, TrackMonitorSignalAspect aspect, float distance, float speedLimit, float altitude)
+        public SignalFeatures(string mainHeadSignalTypeName, TrackMonitorSignalAspect aspect, float distance, float speedLimit, float altitude, string textAspect = "")
         {
             MainHeadSignalTypeName = mainHeadSignalTypeName;
             Aspect = aspect;
             Distance = distance;
             SpeedLimit = speedLimit;
             Altitude = altitude;
+            TextAspect = textAspect;
         }
     }
 

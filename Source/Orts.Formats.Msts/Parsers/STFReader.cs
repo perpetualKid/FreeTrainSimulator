@@ -793,7 +793,7 @@ namespace Orts.Formats.Msts.Parsers
             /// </summary>
             Resistance = 1 << 18,
 
-            /// <summary>Valid Units: psi, bar, inhg, kpa
+            /// <summary>Valid Units: psi, bar, inhg, cmhg, kpa
             /// <para>Scaled to pounds per square inch.</para>
             /// </summary>
             PressureDefaultPSI = 1 << 19,
@@ -1092,6 +1092,7 @@ namespace Orts.Formats.Msts.Parsers
                     case "psi": return (1.0, 0);  // <CJComment> Factors to be revised when non-metric internal units removed. </CJComment>
                     case "bar": return (Pressure.Atmospheric.ToPSI(1), 0);
                     case "inhg": return (Pressure.Atmospheric.ToPSI(Pressure.Atmospheric.FromInHg(1)), 0);
+                    case "cmhg": return (Pressure.Atmospheric.ToPSI(Pressure.Atmospheric.FromCmHg(1)), 0);
                     case "kpa": return (Pressure.Standard.ToPSI(1), 0);
                 }
             if ((validUnits & Units.PressureDefaultInHg) > 0)
@@ -1109,6 +1110,7 @@ namespace Orts.Formats.Msts.Parsers
                     case "": 
                     case "psi/s": return (1.0, 0);  // <CJComment> Factors to be revised when non-metric internal units removed. </CJComment>
                     case "inhg/s": return (Pressure.Atmospheric.ToPSI(Pressure.Atmospheric.FromInHg(1)), 0);
+                    case "cmhg/s": return (Pressure.Atmospheric.ToPSI(Pressure.Atmospheric.FromCmHg(1)), 0);
                     case "bar/s": return (Rate.Pressure.ToPSIpS(1), 0);
                     case "kpa/s": return (Pressure.Standard.ToPSI(1), 0);
                 }
@@ -1118,6 +1120,7 @@ namespace Orts.Formats.Msts.Parsers
                     case "": return (Pressure.Atmospheric.ToPSI(Pressure.Atmospheric.FromInHg(1)), 0);
                     case "psi/s": return (1.0, 0);  // <CJComment> Factors to be revised when non-metric internal units removed. </CJComment>
                     case "inhg/s": return (Pressure.Atmospheric.ToPSI(Pressure.Atmospheric.FromInHg(1)), 0);
+                    case "cmhg/s": return (Pressure.Atmospheric.ToPSI(Pressure.Atmospheric.FromCmHg(1)), 0);
                     case "bar/s": return (Rate.Pressure.ToPSIpS(1), 0);
                     case "kpa/s": return (Pressure.Standard.ToPSI(1), 0);
                 }
