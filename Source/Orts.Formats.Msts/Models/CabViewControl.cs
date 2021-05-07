@@ -60,7 +60,7 @@ namespace Orts.Formats.Msts.Models
         public ref readonly Rectangle Bounds => ref bounds;
 
         public float ScaleRangeMin { get; protected set; }
-        public float ScaleRangeMax { get; protected set; }
+        public float ScaleRangeMax { get; protected set; } = 1.0f;
         public float PreviousValue { get; protected set; }
 
         public string AceFile { get; protected set; } = string.Empty;
