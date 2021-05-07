@@ -16,7 +16,8 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(OptionsForm));
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
             this.buttonOK = new System.Windows.Forms.Button();
             this.numericBrakePipeChargingRate = new System.Windows.Forms.NumericUpDown();
             this.label4 = new System.Windows.Forms.Label();
@@ -27,14 +28,26 @@
             this.checkViewMapWindow = new System.Windows.Forms.CheckBox();
             this.tabOptions = new System.Windows.Forms.TabControl();
             this.tabPageGeneral = new System.Windows.Forms.TabPage();
+            this.pbEnableWebServer = new System.Windows.Forms.PictureBox();
+            this.pbDisableTcsScripts = new System.Windows.Forms.PictureBox();
+            this.pbOtherUnits = new System.Windows.Forms.PictureBox();
+            this.pbPressureUnit = new System.Windows.Forms.PictureBox();
+            this.pbLanguage = new System.Windows.Forms.PictureBox();
+            this.pbBrakePipeChargingRate = new System.Windows.Forms.PictureBox();
+            this.pbGraduatedRelease = new System.Windows.Forms.PictureBox();
+            this.pbRetainers = new System.Windows.Forms.PictureBox();
+            this.pbMapWindow = new System.Windows.Forms.PictureBox();
+            this.pbControlConfirmations = new System.Windows.Forms.PictureBox();
+            this.pbAlerter = new System.Windows.Forms.PictureBox();
+            this.pbOverspeedMonitor = new System.Windows.Forms.PictureBox();
             this.label29 = new System.Windows.Forms.Label();
             this.numericWebServerPort = new System.Windows.Forms.NumericUpDown();
             this.checkEnableWebServer = new System.Windows.Forms.CheckBox();
-            this.checkSpeedControl = new System.Windows.Forms.CheckBox();
+            this.checkSpeedMonitor = new System.Windows.Forms.CheckBox();
             this.checkDisableTCSScripts = new System.Windows.Forms.CheckBox();
             this.labelOtherUnits = new System.Windows.Forms.Label();
             this.labelPressureUnit = new System.Windows.Forms.Label();
-            this.comboBoxOtherUnits = new System.Windows.Forms.ComboBox();
+            this.comboOtherUnits = new System.Windows.Forms.ComboBox();
             this.comboPressureUnit = new System.Windows.Forms.ComboBox();
             this.labelLanguage = new System.Windows.Forms.Label();
             this.comboLanguage = new System.Windows.Forms.ComboBox();
@@ -146,6 +159,9 @@
             this.buttonContentAdd = new System.Windows.Forms.Button();
             this.panelContent = new System.Windows.Forms.Panel();
             this.dataGridViewContent = new System.Windows.Forms.DataGridView();
+            this.nameDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.pathDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.bindingSourceContent = new System.Windows.Forms.BindingSource(this.components);
             this.tabPageUpdater = new System.Windows.Forms.TabPage();
             this.buttonUpdaterExecute = new System.Windows.Forms.Button();
             this.groupBoxUpdateFrequency = new System.Windows.Forms.GroupBox();
@@ -207,12 +223,21 @@
             this.checkPreferDDSTexture = new System.Windows.Forms.CheckBox();
             this.label5 = new System.Windows.Forms.Label();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
-            this.nameDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.pathDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.bindingSourceContent = new System.Windows.Forms.BindingSource(this.components);
             ((System.ComponentModel.ISupportInitialize)(this.numericBrakePipeChargingRate)).BeginInit();
             this.tabOptions.SuspendLayout();
             this.tabPageGeneral.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pbEnableWebServer)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pbDisableTcsScripts)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pbOtherUnits)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pbPressureUnit)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pbLanguage)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pbBrakePipeChargingRate)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pbGraduatedRelease)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pbRetainers)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pbMapWindow)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pbControlConfirmations)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pbAlerter)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pbOverspeedMonitor)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericWebServerPort)).BeginInit();
             this.tabPageAudio.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericExternalSoundPassThruPercent)).BeginInit();
@@ -242,6 +267,7 @@
             this.groupBoxContent.SuspendLayout();
             this.panelContent.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridViewContent)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.bindingSourceContent)).BeginInit();
             this.tabPageUpdater.SuspendLayout();
             this.groupBoxUpdateFrequency.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.trackBarUpdaterFrequency)).BeginInit();
@@ -259,7 +285,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.numericSuperElevationGauge)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericSuperElevationMinLen)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUseSuperElevation)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.bindingSourceContent)).BeginInit();
             this.SuspendLayout();
             // 
             // buttonOK
@@ -275,7 +300,7 @@
             // 
             // numericBrakePipeChargingRate
             // 
-            this.numericBrakePipeChargingRate.Location = new System.Drawing.Point(6, 168);
+            this.numericBrakePipeChargingRate.Location = new System.Drawing.Point(31, 168);
             this.numericBrakePipeChargingRate.Maximum = new decimal(new int[] {
             1000,
             0,
@@ -298,8 +323,8 @@
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(70, 170);
-            this.label4.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.label4.Location = new System.Drawing.Point(95, 170);
+            this.label4.Margin = new System.Windows.Forms.Padding(3);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(172, 15);
             this.label4.TabIndex = 8;
@@ -308,7 +333,7 @@
             // checkGraduatedRelease
             // 
             this.checkGraduatedRelease.AutoSize = true;
-            this.checkGraduatedRelease.Location = new System.Drawing.Point(6, 142);
+            this.checkGraduatedRelease.Location = new System.Drawing.Point(31, 142);
             this.checkGraduatedRelease.Name = "checkGraduatedRelease";
             this.checkGraduatedRelease.Size = new System.Drawing.Size(173, 19);
             this.checkGraduatedRelease.TabIndex = 6;
@@ -329,7 +354,7 @@
             // checkAlerter
             // 
             this.checkAlerter.AutoSize = true;
-            this.checkAlerter.Location = new System.Drawing.Point(6, 6);
+            this.checkAlerter.Location = new System.Drawing.Point(31, 6);
             this.checkAlerter.Name = "checkAlerter";
             this.checkAlerter.Size = new System.Drawing.Size(96, 19);
             this.checkAlerter.TabIndex = 0;
@@ -340,7 +365,7 @@
             // checkConfirmations
             // 
             this.checkConfirmations.AutoSize = true;
-            this.checkConfirmations.Location = new System.Drawing.Point(6, 51);
+            this.checkConfirmations.Location = new System.Drawing.Point(31, 51);
             this.checkConfirmations.Name = "checkConfirmations";
             this.checkConfirmations.Size = new System.Drawing.Size(143, 19);
             this.checkConfirmations.TabIndex = 4;
@@ -350,8 +375,9 @@
             // checkViewMapWindow
             // 
             this.checkViewMapWindow.AutoSize = true;
-            this.checkViewMapWindow.Location = new System.Drawing.Point(6, 74);
-            this.checkViewMapWindow.Size = new System.Drawing.Size(127, 19);
+            this.checkViewMapWindow.Location = new System.Drawing.Point(31, 74);
+            this.checkViewMapWindow.Name = "checkViewMapWindow";
+            this.checkViewMapWindow.Size = new System.Drawing.Size(95, 19);
             this.checkViewMapWindow.TabIndex = 2;
             this.checkViewMapWindow.Text = "Map window";
             this.checkViewMapWindow.UseVisualStyleBackColor = true;
@@ -380,14 +406,26 @@
             // 
             // tabPageGeneral
             // 
+            this.tabPageGeneral.Controls.Add(this.pbEnableWebServer);
+            this.tabPageGeneral.Controls.Add(this.pbDisableTcsScripts);
+            this.tabPageGeneral.Controls.Add(this.pbOtherUnits);
+            this.tabPageGeneral.Controls.Add(this.pbPressureUnit);
+            this.tabPageGeneral.Controls.Add(this.pbLanguage);
+            this.tabPageGeneral.Controls.Add(this.pbBrakePipeChargingRate);
+            this.tabPageGeneral.Controls.Add(this.pbGraduatedRelease);
+            this.tabPageGeneral.Controls.Add(this.pbRetainers);
+            this.tabPageGeneral.Controls.Add(this.pbMapWindow);
+            this.tabPageGeneral.Controls.Add(this.pbControlConfirmations);
+            this.tabPageGeneral.Controls.Add(this.pbAlerter);
+            this.tabPageGeneral.Controls.Add(this.pbOverspeedMonitor);
             this.tabPageGeneral.Controls.Add(this.label29);
             this.tabPageGeneral.Controls.Add(this.numericWebServerPort);
             this.tabPageGeneral.Controls.Add(this.checkEnableWebServer);
-            this.tabPageGeneral.Controls.Add(this.checkSpeedControl);
+            this.tabPageGeneral.Controls.Add(this.checkSpeedMonitor);
             this.tabPageGeneral.Controls.Add(this.checkDisableTCSScripts);
             this.tabPageGeneral.Controls.Add(this.labelOtherUnits);
             this.tabPageGeneral.Controls.Add(this.labelPressureUnit);
-            this.tabPageGeneral.Controls.Add(this.comboBoxOtherUnits);
+            this.tabPageGeneral.Controls.Add(this.comboOtherUnits);
             this.tabPageGeneral.Controls.Add(this.comboPressureUnit);
             this.tabPageGeneral.Controls.Add(this.labelLanguage);
             this.tabPageGeneral.Controls.Add(this.comboLanguage);
@@ -401,16 +439,172 @@
             this.tabPageGeneral.Controls.Add(this.label4);
             this.tabPageGeneral.Location = new System.Drawing.Point(4, 24);
             this.tabPageGeneral.Name = "tabPageGeneral";
-            this.tabPageGeneral.Padding = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.tabPageGeneral.Padding = new System.Windows.Forms.Padding(3);
             this.tabPageGeneral.Size = new System.Drawing.Size(642, 394);
             this.tabPageGeneral.TabIndex = 0;
             this.tabPageGeneral.Text = "General";
             this.tabPageGeneral.UseVisualStyleBackColor = true;
             // 
+            // pbEnableWebServer
+            // 
+            this.pbEnableWebServer.Image = ((System.Drawing.Image)(resources.GetObject("pbEnableWebServer.Image")));
+            this.pbEnableWebServer.InitialImage = ((System.Drawing.Image)(resources.GetObject("pbEnableWebServer.InitialImage")));
+            this.pbEnableWebServer.Location = new System.Drawing.Point(7, 298);
+            this.pbEnableWebServer.Name = "pbEnableWebServer";
+            this.pbEnableWebServer.Size = new System.Drawing.Size(18, 18);
+            this.pbEnableWebServer.TabIndex = 42;
+            this.pbEnableWebServer.TabStop = false;
+            this.pbEnableWebServer.Click += new System.EventHandler(this.HelpIcon_Click);
+            this.pbEnableWebServer.MouseEnter += new System.EventHandler(this.HelpIcon_MouseEnter);
+            this.pbEnableWebServer.MouseLeave += new System.EventHandler(this.HelpIcon_MouseLeave);
+            // 
+            // pbDisableTcsScripts
+            // 
+            this.pbDisableTcsScripts.Image = ((System.Drawing.Image)(resources.GetObject("pbDisableTcsScripts.Image")));
+            this.pbDisableTcsScripts.InitialImage = ((System.Drawing.Image)(resources.GetObject("pbDisableTcsScripts.InitialImage")));
+            this.pbDisableTcsScripts.Location = new System.Drawing.Point(7, 274);
+            this.pbDisableTcsScripts.Name = "pbDisableTcsScripts";
+            this.pbDisableTcsScripts.Size = new System.Drawing.Size(18, 18);
+            this.pbDisableTcsScripts.TabIndex = 41;
+            this.pbDisableTcsScripts.TabStop = false;
+            this.pbDisableTcsScripts.Click += new System.EventHandler(this.HelpIcon_Click);
+            this.pbDisableTcsScripts.MouseEnter += new System.EventHandler(this.HelpIcon_MouseEnter);
+            this.pbDisableTcsScripts.MouseLeave += new System.EventHandler(this.HelpIcon_MouseLeave);
+            // 
+            // pbOtherUnits
+            // 
+            this.pbOtherUnits.Image = ((System.Drawing.Image)(resources.GetObject("pbOtherUnits.Image")));
+            this.pbOtherUnits.InitialImage = ((System.Drawing.Image)(resources.GetObject("pbOtherUnits.InitialImage")));
+            this.pbOtherUnits.Location = new System.Drawing.Point(7, 250);
+            this.pbOtherUnits.Name = "pbOtherUnits";
+            this.pbOtherUnits.Size = new System.Drawing.Size(18, 18);
+            this.pbOtherUnits.TabIndex = 40;
+            this.pbOtherUnits.TabStop = false;
+            this.pbOtherUnits.Click += new System.EventHandler(this.HelpIcon_Click);
+            this.pbOtherUnits.MouseEnter += new System.EventHandler(this.HelpIcon_MouseEnter);
+            this.pbOtherUnits.MouseLeave += new System.EventHandler(this.HelpIcon_MouseLeave);
+            // 
+            // pbPressureUnit
+            // 
+            this.pbPressureUnit.Image = ((System.Drawing.Image)(resources.GetObject("pbPressureUnit.Image")));
+            this.pbPressureUnit.InitialImage = ((System.Drawing.Image)(resources.GetObject("pbPressureUnit.InitialImage")));
+            this.pbPressureUnit.Location = new System.Drawing.Point(7, 223);
+            this.pbPressureUnit.Name = "pbPressureUnit";
+            this.pbPressureUnit.Size = new System.Drawing.Size(18, 18);
+            this.pbPressureUnit.TabIndex = 39;
+            this.pbPressureUnit.TabStop = false;
+            this.pbPressureUnit.Click += new System.EventHandler(this.HelpIcon_Click);
+            this.pbPressureUnit.MouseEnter += new System.EventHandler(this.HelpIcon_MouseEnter);
+            this.pbPressureUnit.MouseLeave += new System.EventHandler(this.HelpIcon_MouseLeave);
+            // 
+            // pbLanguage
+            // 
+            this.pbLanguage.Image = ((System.Drawing.Image)(resources.GetObject("pbLanguage.Image")));
+            this.pbLanguage.InitialImage = ((System.Drawing.Image)(resources.GetObject("pbLanguage.InitialImage")));
+            this.pbLanguage.Location = new System.Drawing.Point(7, 197);
+            this.pbLanguage.Name = "pbLanguage";
+            this.pbLanguage.Size = new System.Drawing.Size(18, 18);
+            this.pbLanguage.TabIndex = 38;
+            this.pbLanguage.TabStop = false;
+            this.pbLanguage.Click += new System.EventHandler(this.HelpIcon_Click);
+            this.pbLanguage.MouseEnter += new System.EventHandler(this.HelpIcon_MouseEnter);
+            this.pbLanguage.MouseLeave += new System.EventHandler(this.HelpIcon_MouseLeave);
+            // 
+            // pbBrakePipeChargingRate
+            // 
+            this.pbBrakePipeChargingRate.Image = ((System.Drawing.Image)(resources.GetObject("pbBrakePipeChargingRate.Image")));
+            this.pbBrakePipeChargingRate.InitialImage = ((System.Drawing.Image)(resources.GetObject("pbBrakePipeChargingRate.InitialImage")));
+            this.pbBrakePipeChargingRate.Location = new System.Drawing.Point(7, 170);
+            this.pbBrakePipeChargingRate.Name = "pbBrakePipeChargingRate";
+            this.pbBrakePipeChargingRate.Size = new System.Drawing.Size(18, 18);
+            this.pbBrakePipeChargingRate.TabIndex = 37;
+            this.pbBrakePipeChargingRate.TabStop = false;
+            this.pbBrakePipeChargingRate.Click += new System.EventHandler(this.HelpIcon_Click);
+            this.pbBrakePipeChargingRate.MouseEnter += new System.EventHandler(this.HelpIcon_MouseEnter);
+            this.pbBrakePipeChargingRate.MouseLeave += new System.EventHandler(this.HelpIcon_MouseLeave);
+            // 
+            // pbGraduatedRelease
+            // 
+            this.pbGraduatedRelease.Image = ((System.Drawing.Image)(resources.GetObject("pbGraduatedRelease.Image")));
+            this.pbGraduatedRelease.InitialImage = ((System.Drawing.Image)(resources.GetObject("pbGraduatedRelease.InitialImage")));
+            this.pbGraduatedRelease.Location = new System.Drawing.Point(7, 142);
+            this.pbGraduatedRelease.Name = "pbGraduatedRelease";
+            this.pbGraduatedRelease.Size = new System.Drawing.Size(18, 18);
+            this.pbGraduatedRelease.TabIndex = 36;
+            this.pbGraduatedRelease.TabStop = false;
+            this.pbGraduatedRelease.Click += new System.EventHandler(this.HelpIcon_Click);
+            this.pbGraduatedRelease.MouseEnter += new System.EventHandler(this.HelpIcon_MouseEnter);
+            this.pbGraduatedRelease.MouseLeave += new System.EventHandler(this.HelpIcon_MouseLeave);
+            // 
+            // pbRetainers
+            // 
+            this.pbRetainers.Image = ((System.Drawing.Image)(resources.GetObject("pbRetainers.Image")));
+            this.pbRetainers.InitialImage = ((System.Drawing.Image)(resources.GetObject("pbRetainers.InitialImage")));
+            this.pbRetainers.Location = new System.Drawing.Point(7, 118);
+            this.pbRetainers.Name = "pbRetainers";
+            this.pbRetainers.Size = new System.Drawing.Size(18, 18);
+            this.pbRetainers.TabIndex = 35;
+            this.pbRetainers.TabStop = false;
+            this.pbRetainers.Click += new System.EventHandler(this.HelpIcon_Click);
+            this.pbRetainers.MouseEnter += new System.EventHandler(this.HelpIcon_MouseEnter);
+            this.pbRetainers.MouseLeave += new System.EventHandler(this.HelpIcon_MouseLeave);
+            // 
+            // pbMapWindow
+            // 
+            this.pbMapWindow.Image = ((System.Drawing.Image)(resources.GetObject("pbMapWindow.Image")));
+            this.pbMapWindow.InitialImage = ((System.Drawing.Image)(resources.GetObject("pbMapWindow.InitialImage")));
+            this.pbMapWindow.Location = new System.Drawing.Point(7, 74);
+            this.pbMapWindow.Name = "pbMapWindow";
+            this.pbMapWindow.Size = new System.Drawing.Size(18, 18);
+            this.pbMapWindow.TabIndex = 34;
+            this.pbMapWindow.TabStop = false;
+            this.pbMapWindow.Click += new System.EventHandler(this.HelpIcon_Click);
+            this.pbMapWindow.MouseEnter += new System.EventHandler(this.HelpIcon_MouseEnter);
+            this.pbMapWindow.MouseLeave += new System.EventHandler(this.HelpIcon_MouseLeave);
+            // 
+            // pbControlConfirmations
+            // 
+            this.pbControlConfirmations.Image = ((System.Drawing.Image)(resources.GetObject("pbControlConfirmations.Image")));
+            this.pbControlConfirmations.InitialImage = ((System.Drawing.Image)(resources.GetObject("pbControlConfirmations.InitialImage")));
+            this.pbControlConfirmations.Location = new System.Drawing.Point(7, 51);
+            this.pbControlConfirmations.Name = "pbControlConfirmations";
+            this.pbControlConfirmations.Size = new System.Drawing.Size(18, 18);
+            this.pbControlConfirmations.TabIndex = 33;
+            this.pbControlConfirmations.TabStop = false;
+            this.pbControlConfirmations.Click += new System.EventHandler(this.HelpIcon_Click);
+            this.pbControlConfirmations.MouseEnter += new System.EventHandler(this.HelpIcon_MouseEnter);
+            this.pbControlConfirmations.MouseLeave += new System.EventHandler(this.HelpIcon_MouseLeave);
+            // 
+            // pbAlerter
+            // 
+            this.pbAlerter.Image = ((System.Drawing.Image)(resources.GetObject("pbAlerter.Image")));
+            this.pbAlerter.InitialImage = ((System.Drawing.Image)(resources.GetObject("pbAlerter.InitialImage")));
+            this.pbAlerter.Location = new System.Drawing.Point(7, 6);
+            this.pbAlerter.Name = "pbAlerter";
+            this.pbAlerter.Size = new System.Drawing.Size(18, 18);
+            this.pbAlerter.TabIndex = 32;
+            this.pbAlerter.TabStop = false;
+            this.pbAlerter.Click += new System.EventHandler(this.HelpIcon_Click);
+            this.pbAlerter.MouseEnter += new System.EventHandler(this.HelpIcon_MouseEnter);
+            this.pbAlerter.MouseLeave += new System.EventHandler(this.HelpIcon_MouseLeave);
+            // 
+            // pbOverspeedMonitor
+            // 
+            this.pbOverspeedMonitor.Image = ((System.Drawing.Image)(resources.GetObject("pbOverspeedMonitor.Image")));
+            this.pbOverspeedMonitor.InitialImage = ((System.Drawing.Image)(resources.GetObject("pbOverspeedMonitor.InitialImage")));
+            this.pbOverspeedMonitor.Location = new System.Drawing.Point(321, 6);
+            this.pbOverspeedMonitor.Name = "pbOverspeedMonitor";
+            this.pbOverspeedMonitor.Size = new System.Drawing.Size(18, 18);
+            this.pbOverspeedMonitor.TabIndex = 31;
+            this.pbOverspeedMonitor.TabStop = false;
+            this.pbOverspeedMonitor.Click += new System.EventHandler(this.HelpIcon_Click);
+            this.pbOverspeedMonitor.MouseEnter += new System.EventHandler(this.HelpIcon_MouseEnter);
+            this.pbOverspeedMonitor.MouseLeave += new System.EventHandler(this.HelpIcon_MouseLeave);
+            // 
             // label29
             // 
             this.label29.AutoSize = true;
-            this.label29.Location = new System.Drawing.Point(87, 322);
+            this.label29.Location = new System.Drawing.Point(112, 322);
             this.label29.Name = "label29";
             this.label29.Size = new System.Drawing.Size(76, 15);
             this.label29.TabIndex = 17;
@@ -418,7 +612,7 @@
             // 
             // numericWebServerPort
             // 
-            this.numericWebServerPort.Location = new System.Drawing.Point(6, 320);
+            this.numericWebServerPort.Location = new System.Drawing.Point(31, 320);
             this.numericWebServerPort.Maximum = new decimal(new int[] {
             65534,
             0,
@@ -441,27 +635,29 @@
             // checkEnableWebServer
             // 
             this.checkEnableWebServer.AutoSize = true;
-            this.checkEnableWebServer.Location = new System.Drawing.Point(6, 298);
+            this.checkEnableWebServer.Location = new System.Drawing.Point(31, 298);
             this.checkEnableWebServer.Name = "checkEnableWebServer";
             this.checkEnableWebServer.Size = new System.Drawing.Size(120, 19);
             this.checkEnableWebServer.TabIndex = 15;
             this.checkEnableWebServer.Text = "Enable WebServer";
             this.checkEnableWebServer.UseVisualStyleBackColor = true;
             // 
-            // checkSpeedControl
+            // checkSpeedMonitor
             // 
-            this.checkSpeedControl.AutoSize = true;
-            this.checkSpeedControl.Location = new System.Drawing.Point(324, 6);
-            this.checkSpeedControl.Name = "checkSpeedControl";
-            this.checkSpeedControl.Size = new System.Drawing.Size(99, 19);
-            this.checkSpeedControl.TabIndex = 14;
-            this.checkSpeedControl.Text = "Speed control";
-            this.checkSpeedControl.UseVisualStyleBackColor = true;
+            this.checkSpeedMonitor.AutoSize = true;
+            this.checkSpeedMonitor.Location = new System.Drawing.Point(345, 6);
+            this.checkSpeedMonitor.Name = "checkSpeedMonitor";
+            this.checkSpeedMonitor.Size = new System.Drawing.Size(99, 19);
+            this.checkSpeedMonitor.TabIndex = 14;
+            this.checkSpeedMonitor.Text = "Speed control";
+            this.checkSpeedMonitor.UseVisualStyleBackColor = true;
+            this.checkSpeedMonitor.MouseEnter += new System.EventHandler(this.HelpIcon_MouseEnter);
+            this.checkSpeedMonitor.MouseLeave += new System.EventHandler(this.HelpIcon_MouseLeave);
             // 
             // checkDisableTCSScripts
             // 
             this.checkDisableTCSScripts.AutoSize = true;
-            this.checkDisableTCSScripts.Location = new System.Drawing.Point(6, 274);
+            this.checkDisableTCSScripts.Location = new System.Drawing.Point(31, 274);
             this.checkDisableTCSScripts.Name = "checkDisableTCSScripts";
             this.checkDisableTCSScripts.Size = new System.Drawing.Size(123, 19);
             this.checkDisableTCSScripts.TabIndex = 13;
@@ -471,8 +667,8 @@
             // labelOtherUnits
             // 
             this.labelOtherUnits.AutoSize = true;
-            this.labelOtherUnits.Location = new System.Drawing.Point(142, 250);
-            this.labelOtherUnits.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.labelOtherUnits.Location = new System.Drawing.Point(167, 250);
+            this.labelOtherUnits.Margin = new System.Windows.Forms.Padding(3);
             this.labelOtherUnits.Name = "labelOtherUnits";
             this.labelOtherUnits.Size = new System.Drawing.Size(66, 15);
             this.labelOtherUnits.TabIndex = 9;
@@ -481,27 +677,27 @@
             // labelPressureUnit
             // 
             this.labelPressureUnit.AutoSize = true;
-            this.labelPressureUnit.Location = new System.Drawing.Point(142, 223);
-            this.labelPressureUnit.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.labelPressureUnit.Location = new System.Drawing.Point(167, 223);
+            this.labelPressureUnit.Margin = new System.Windows.Forms.Padding(3);
             this.labelPressureUnit.Name = "labelPressureUnit";
             this.labelPressureUnit.Size = new System.Drawing.Size(75, 15);
             this.labelPressureUnit.TabIndex = 12;
             this.labelPressureUnit.Text = "Pressure unit";
             // 
-            // comboBoxOtherUnits
+            // comboOtherUnits
             // 
-            this.comboBoxOtherUnits.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.comboBoxOtherUnits.FormattingEnabled = true;
-            this.comboBoxOtherUnits.Location = new System.Drawing.Point(6, 247);
-            this.comboBoxOtherUnits.Name = "comboBoxOtherUnits";
-            this.comboBoxOtherUnits.Size = new System.Drawing.Size(129, 23);
-            this.comboBoxOtherUnits.TabIndex = 8;
+            this.comboOtherUnits.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboOtherUnits.FormattingEnabled = true;
+            this.comboOtherUnits.Location = new System.Drawing.Point(31, 247);
+            this.comboOtherUnits.Name = "comboOtherUnits";
+            this.comboOtherUnits.Size = new System.Drawing.Size(129, 23);
+            this.comboOtherUnits.TabIndex = 8;
             // 
             // comboPressureUnit
             // 
             this.comboPressureUnit.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboPressureUnit.FormattingEnabled = true;
-            this.comboPressureUnit.Location = new System.Drawing.Point(6, 221);
+            this.comboPressureUnit.Location = new System.Drawing.Point(31, 221);
             this.comboPressureUnit.Name = "comboPressureUnit";
             this.comboPressureUnit.Size = new System.Drawing.Size(129, 23);
             this.comboPressureUnit.TabIndex = 11;
@@ -509,8 +705,8 @@
             // labelLanguage
             // 
             this.labelLanguage.AutoSize = true;
-            this.labelLanguage.Location = new System.Drawing.Point(142, 197);
-            this.labelLanguage.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.labelLanguage.Location = new System.Drawing.Point(167, 197);
+            this.labelLanguage.Margin = new System.Windows.Forms.Padding(3);
             this.labelLanguage.Name = "labelLanguage";
             this.labelLanguage.Size = new System.Drawing.Size(59, 15);
             this.labelLanguage.TabIndex = 10;
@@ -520,7 +716,7 @@
             // 
             this.comboLanguage.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboLanguage.FormattingEnabled = true;
-            this.comboLanguage.Location = new System.Drawing.Point(6, 194);
+            this.comboLanguage.Location = new System.Drawing.Point(31, 194);
             this.comboLanguage.Name = "comboLanguage";
             this.comboLanguage.Size = new System.Drawing.Size(129, 23);
             this.comboLanguage.TabIndex = 9;
@@ -528,7 +724,7 @@
             // checkAlerterExternal
             // 
             this.checkAlerterExternal.AutoSize = true;
-            this.checkAlerterExternal.Location = new System.Drawing.Point(28, 29);
+            this.checkAlerterExternal.Location = new System.Drawing.Point(53, 29);
             this.checkAlerterExternal.Margin = new System.Windows.Forms.Padding(25, 3, 3, 3);
             this.checkAlerterExternal.Name = "checkAlerterExternal";
             this.checkAlerterExternal.Size = new System.Drawing.Size(139, 19);
@@ -539,7 +735,7 @@
             // checkRetainers
             // 
             this.checkRetainers.AutoSize = true;
-            this.checkRetainers.Location = new System.Drawing.Point(6, 119);
+            this.checkRetainers.Location = new System.Drawing.Point(31, 119);
             this.checkRetainers.Name = "checkRetainers";
             this.checkRetainers.Size = new System.Drawing.Size(155, 19);
             this.checkRetainers.TabIndex = 5;
@@ -556,7 +752,7 @@
             this.tabPageAudio.Controls.Add(this.numericSoundDetailLevel);
             this.tabPageAudio.Location = new System.Drawing.Point(4, 24);
             this.tabPageAudio.Name = "tabPageAudio";
-            this.tabPageAudio.Padding = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.tabPageAudio.Padding = new System.Windows.Forms.Padding(3);
             this.tabPageAudio.Size = new System.Drawing.Size(642, 394);
             this.tabPageAudio.TabIndex = 5;
             this.tabPageAudio.Text = "Audio";
@@ -584,7 +780,7 @@
             // 
             this.label11.AutoSize = true;
             this.label11.Location = new System.Drawing.Point(70, 82);
-            this.label11.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.label11.Margin = new System.Windows.Forms.Padding(3);
             this.label11.Name = "label11";
             this.label11.Size = new System.Drawing.Size(183, 15);
             this.label11.TabIndex = 6;
@@ -617,7 +813,7 @@
             // 
             this.soundVolumeLabel.AutoSize = true;
             this.soundVolumeLabel.Location = new System.Drawing.Point(70, 30);
-            this.soundVolumeLabel.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.soundVolumeLabel.Margin = new System.Windows.Forms.Padding(3);
             this.soundVolumeLabel.Name = "soundVolumeLabel";
             this.soundVolumeLabel.Size = new System.Drawing.Size(96, 15);
             this.soundVolumeLabel.TabIndex = 2;
@@ -627,7 +823,7 @@
             // 
             this.label2.AutoSize = true;
             this.label2.Location = new System.Drawing.Point(70, 56);
-            this.label2.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.label2.Margin = new System.Windows.Forms.Padding(3);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(100, 15);
             this.label2.TabIndex = 4;
@@ -679,7 +875,7 @@
             this.tabPageVideo.Controls.Add(this.checkWire);
             this.tabPageVideo.Location = new System.Drawing.Point(4, 24);
             this.tabPageVideo.Name = "tabPageVideo";
-            this.tabPageVideo.Padding = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.tabPageVideo.Padding = new System.Windows.Forms.Padding(3);
             this.tabPageVideo.Size = new System.Drawing.Size(642, 394);
             this.tabPageVideo.TabIndex = 4;
             this.tabPageVideo.Text = "Video";
@@ -730,7 +926,7 @@
             // labelMSAACount
             // 
             this.labelMSAACount.Location = new System.Drawing.Point(506, 164);
-            this.labelMSAACount.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.labelMSAACount.Margin = new System.Windows.Forms.Padding(3);
             this.labelMSAACount.Name = "labelMSAACount";
             this.labelMSAACount.Size = new System.Drawing.Size(122, 13);
             this.labelMSAACount.TabIndex = 28;
@@ -741,7 +937,7 @@
             // 
             this.label28.AutoSize = true;
             this.label28.Location = new System.Drawing.Point(333, 164);
-            this.label28.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.label28.Margin = new System.Windows.Forms.Padding(3);
             this.label28.Name = "label28";
             this.label28.Size = new System.Drawing.Size(168, 15);
             this.label28.TabIndex = 27;
@@ -783,7 +979,7 @@
             // 
             this.label15.AutoSize = true;
             this.label15.Location = new System.Drawing.Point(3, 320);
-            this.label15.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.label15.Margin = new System.Windows.Forms.Padding(3);
             this.label15.Name = "label15";
             this.label15.Size = new System.Drawing.Size(160, 15);
             this.label15.TabIndex = 20;
@@ -792,7 +988,7 @@
             // labelDayAmbientLight
             // 
             this.labelDayAmbientLight.Location = new System.Drawing.Point(157, 320);
-            this.labelDayAmbientLight.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.labelDayAmbientLight.Margin = new System.Windows.Forms.Padding(3);
             this.labelDayAmbientLight.Name = "labelDayAmbientLight";
             this.labelDayAmbientLight.Size = new System.Drawing.Size(158, 13);
             this.labelDayAmbientLight.TabIndex = 22;
@@ -841,7 +1037,7 @@
             // 
             this.labelDistantMountainsViewingDistance.AutoSize = true;
             this.labelDistantMountainsViewingDistance.Location = new System.Drawing.Point(92, 245);
-            this.labelDistantMountainsViewingDistance.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.labelDistantMountainsViewingDistance.Margin = new System.Windows.Forms.Padding(3);
             this.labelDistantMountainsViewingDistance.Name = "labelDistantMountainsViewingDistance";
             this.labelDistantMountainsViewingDistance.Size = new System.Drawing.Size(124, 15);
             this.labelDistantMountainsViewingDistance.TabIndex = 12;
@@ -901,7 +1097,7 @@
             // 
             this.label14.AutoSize = true;
             this.label14.Location = new System.Drawing.Point(70, 197);
-            this.label14.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.label14.Margin = new System.Windows.Forms.Padding(3);
             this.label14.Name = "label14";
             this.label14.Size = new System.Drawing.Size(118, 15);
             this.label14.TabIndex = 9;
@@ -938,7 +1134,7 @@
             // 
             this.labelFOVHelp.AutoSize = true;
             this.labelFOVHelp.Location = new System.Drawing.Point(324, 270);
-            this.labelFOVHelp.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.labelFOVHelp.Margin = new System.Windows.Forms.Padding(3);
             this.labelFOVHelp.Name = "labelFOVHelp";
             this.labelFOVHelp.Size = new System.Drawing.Size(28, 15);
             this.labelFOVHelp.TabIndex = 15;
@@ -971,7 +1167,7 @@
             // 
             this.label10.AutoSize = true;
             this.label10.Location = new System.Drawing.Point(70, 270);
-            this.label10.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.label10.Margin = new System.Windows.Forms.Padding(3);
             this.label10.Name = "label10";
             this.label10.Size = new System.Drawing.Size(115, 15);
             this.label10.TabIndex = 14;
@@ -995,7 +1191,7 @@
             // 
             this.labelCab2DStretch.AutoSize = true;
             this.labelCab2DStretch.Location = new System.Drawing.Point(70, 171);
-            this.labelCab2DStretch.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.labelCab2DStretch.Margin = new System.Windows.Forms.Padding(3);
             this.labelCab2DStretch.Name = "labelCab2DStretch";
             this.labelCab2DStretch.Size = new System.Drawing.Size(95, 15);
             this.labelCab2DStretch.TabIndex = 7;
@@ -1005,7 +1201,7 @@
             // 
             this.label1.AutoSize = true;
             this.label1.Location = new System.Drawing.Point(70, 296);
-            this.label1.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.label1.Margin = new System.Windows.Forms.Padding(3);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(116, 15);
             this.label1.TabIndex = 17;
@@ -1059,7 +1255,7 @@
             // label3
             // 
             this.label3.Location = new System.Drawing.Point(471, 7);
-            this.label3.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.label3.Margin = new System.Windows.Forms.Padding(3);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(164, 54);
             this.label3.TabIndex = 19;
@@ -1101,7 +1297,7 @@
             this.tabPageSimulation.Controls.Add(this.checkUseAdvancedAdhesion);
             this.tabPageSimulation.Location = new System.Drawing.Point(4, 24);
             this.tabPageSimulation.Name = "tabPageSimulation";
-            this.tabPageSimulation.Padding = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.tabPageSimulation.Padding = new System.Windows.Forms.Padding(3);
             this.tabPageSimulation.Size = new System.Drawing.Size(642, 394);
             this.tabPageSimulation.TabIndex = 2;
             this.tabPageSimulation.Text = "Simulation";
@@ -1227,7 +1423,7 @@
             // 
             this.labelAdhesionMovingAverageFilterSize.AutoSize = true;
             this.labelAdhesionMovingAverageFilterSize.Location = new System.Drawing.Point(92, 30);
-            this.labelAdhesionMovingAverageFilterSize.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.labelAdhesionMovingAverageFilterSize.Margin = new System.Windows.Forms.Padding(3);
             this.labelAdhesionMovingAverageFilterSize.Name = "labelAdhesionMovingAverageFilterSize";
             this.labelAdhesionMovingAverageFilterSize.Size = new System.Drawing.Size(194, 15);
             this.labelAdhesionMovingAverageFilterSize.TabIndex = 2;
@@ -1281,7 +1477,7 @@
             this.tabPageKeyboard.Controls.Add(this.panelKeys);
             this.tabPageKeyboard.Location = new System.Drawing.Point(4, 24);
             this.tabPageKeyboard.Name = "tabPageKeyboard";
-            this.tabPageKeyboard.Padding = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.tabPageKeyboard.Padding = new System.Windows.Forms.Padding(3);
             this.tabPageKeyboard.Size = new System.Drawing.Size(642, 394);
             this.tabPageKeyboard.TabIndex = 1;
             this.tabPageKeyboard.Text = "Keyboard";
@@ -1527,7 +1723,7 @@
             this.tabPageDataLogger.Controls.Add(this.checkVerboseConfigurationMessages);
             this.tabPageDataLogger.Location = new System.Drawing.Point(4, 24);
             this.tabPageDataLogger.Name = "tabPageDataLogger";
-            this.tabPageDataLogger.Padding = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.tabPageDataLogger.Padding = new System.Windows.Forms.Padding(3);
             this.tabPageDataLogger.Size = new System.Drawing.Size(642, 394);
             this.tabPageDataLogger.TabIndex = 6;
             this.tabPageDataLogger.Text = "Data logger";
@@ -1557,7 +1753,7 @@
             // 
             this.label19.AutoSize = true;
             this.label19.Location = new System.Drawing.Point(140, 69);
-            this.label19.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.label19.Margin = new System.Windows.Forms.Padding(3);
             this.label19.Name = "label19";
             this.label19.Size = new System.Drawing.Size(68, 15);
             this.label19.TabIndex = 4;
@@ -1568,7 +1764,7 @@
             this.label18.AutoSize = true;
             this.label18.ForeColor = System.Drawing.SystemColors.Highlight;
             this.label18.Location = new System.Drawing.Point(6, 6);
-            this.label18.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.label18.Margin = new System.Windows.Forms.Padding(3);
             this.label18.MaximumSize = new System.Drawing.Size(630, 0);
             this.label18.Name = "label18";
             this.label18.Size = new System.Drawing.Size(422, 30);
@@ -1610,7 +1806,7 @@
             // 
             this.label17.AutoSize = true;
             this.label17.Location = new System.Drawing.Point(140, 44);
-            this.label17.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.label17.Margin = new System.Windows.Forms.Padding(3);
             this.label17.Name = "label17";
             this.label17.Size = new System.Drawing.Size(57, 15);
             this.label17.TabIndex = 2;
@@ -1655,7 +1851,7 @@
             this.tabPageEvaluate.Controls.Add(this.checkDataLogTrainSpeed);
             this.tabPageEvaluate.Location = new System.Drawing.Point(4, 24);
             this.tabPageEvaluate.Name = "tabPageEvaluate";
-            this.tabPageEvaluate.Padding = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.tabPageEvaluate.Padding = new System.Windows.Forms.Padding(3);
             this.tabPageEvaluate.Size = new System.Drawing.Size(642, 394);
             this.tabPageEvaluate.TabIndex = 7;
             this.tabPageEvaluate.Text = "Evaluation";
@@ -1674,7 +1870,7 @@
             // 
             this.labelDataLogTSInterval.AutoSize = true;
             this.labelDataLogTSInterval.Location = new System.Drawing.Point(92, 30);
-            this.labelDataLogTSInterval.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.labelDataLogTSInterval.Margin = new System.Windows.Forms.Padding(3);
             this.labelDataLogTSInterval.Name = "labelDataLogTSInterval";
             this.labelDataLogTSInterval.Size = new System.Drawing.Size(74, 15);
             this.labelDataLogTSInterval.TabIndex = 2;
@@ -1733,7 +1929,7 @@
             this.tabPageContent.Controls.Add(this.panelContent);
             this.tabPageContent.Location = new System.Drawing.Point(4, 24);
             this.tabPageContent.Name = "tabPageContent";
-            this.tabPageContent.Padding = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.tabPageContent.Padding = new System.Windows.Forms.Padding(3);
             this.tabPageContent.Size = new System.Drawing.Size(642, 394);
             this.tabPageContent.TabIndex = 9;
             this.tabPageContent.Text = "Content";
@@ -1744,7 +1940,7 @@
             this.labelContent.AutoSize = true;
             this.labelContent.ForeColor = System.Drawing.SystemColors.Highlight;
             this.labelContent.Location = new System.Drawing.Point(6, 6);
-            this.labelContent.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.labelContent.Margin = new System.Windows.Forms.Padding(3);
             this.labelContent.MaximumSize = new System.Drawing.Size(630, 0);
             this.labelContent.Name = "labelContent";
             this.labelContent.Size = new System.Drawing.Size(610, 15);
@@ -1862,14 +2058,14 @@
             this.dataGridViewContent.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.dataGridViewContent.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.None;
             this.dataGridViewContent.ColumnHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.None;
-            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle1.Font = new System.Drawing.Font("Segoe UI", 9F);
-            dataGridViewCellStyle1.ForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dataGridViewContent.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle2.Font = new System.Drawing.Font("Segoe UI", 9F);
+            dataGridViewCellStyle2.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dataGridViewContent.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle2;
             this.dataGridViewContent.ColumnHeadersHeight = 29;
             this.dataGridViewContent.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
             this.dataGridViewContent.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
@@ -1889,6 +2085,28 @@
             this.dataGridViewContent.TabIndex = 0;
             this.dataGridViewContent.SelectionChanged += new System.EventHandler(this.DataGridViewContent_SelectionChanged);
             // 
+            // nameDataGridViewTextBoxColumn
+            // 
+            this.nameDataGridViewTextBoxColumn.DataPropertyName = "Name";
+            this.nameDataGridViewTextBoxColumn.HeaderText = "Name";
+            this.nameDataGridViewTextBoxColumn.MinimumWidth = 6;
+            this.nameDataGridViewTextBoxColumn.Name = "nameDataGridViewTextBoxColumn";
+            this.nameDataGridViewTextBoxColumn.ReadOnly = true;
+            this.nameDataGridViewTextBoxColumn.Width = 64;
+            // 
+            // pathDataGridViewTextBoxColumn
+            // 
+            this.pathDataGridViewTextBoxColumn.DataPropertyName = "Path";
+            this.pathDataGridViewTextBoxColumn.HeaderText = "Path";
+            this.pathDataGridViewTextBoxColumn.MinimumWidth = 6;
+            this.pathDataGridViewTextBoxColumn.Name = "pathDataGridViewTextBoxColumn";
+            this.pathDataGridViewTextBoxColumn.ReadOnly = true;
+            this.pathDataGridViewTextBoxColumn.Width = 56;
+            // 
+            // bindingSourceContent
+            // 
+            this.bindingSourceContent.DataSource = typeof(Orts.Menu.ContentFolder);
+            // 
             // tabPageUpdater
             // 
             this.tabPageUpdater.Controls.Add(this.buttonUpdaterExecute);
@@ -1900,7 +2118,7 @@
             this.tabPageUpdater.Controls.Add(this.labelAvailableVersion);
             this.tabPageUpdater.Location = new System.Drawing.Point(4, 24);
             this.tabPageUpdater.Name = "tabPageUpdater";
-            this.tabPageUpdater.Padding = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.tabPageUpdater.Padding = new System.Windows.Forms.Padding(3);
             this.tabPageUpdater.Size = new System.Drawing.Size(642, 394);
             this.tabPageUpdater.TabIndex = 8;
             this.tabPageUpdater.Text = "Updater";
@@ -1935,7 +2153,7 @@
             // labelUpdaterFrequency
             // 
             this.labelUpdaterFrequency.Location = new System.Drawing.Point(5, 54);
-            this.labelUpdaterFrequency.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.labelUpdaterFrequency.Margin = new System.Windows.Forms.Padding(3);
             this.labelUpdaterFrequency.Name = "labelUpdaterFrequency";
             this.labelUpdaterFrequency.Size = new System.Drawing.Size(622, 20);
             this.labelUpdaterFrequency.TabIndex = 31;
@@ -1968,7 +2186,7 @@
             // 
             this.labelCurrentVersionDesc.AutoSize = true;
             this.labelCurrentVersionDesc.Location = new System.Drawing.Point(6, 344);
-            this.labelCurrentVersionDesc.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.labelCurrentVersionDesc.Margin = new System.Windows.Forms.Padding(3);
             this.labelCurrentVersionDesc.Name = "labelCurrentVersionDesc";
             this.labelCurrentVersionDesc.Size = new System.Drawing.Size(91, 15);
             this.labelCurrentVersionDesc.TabIndex = 38;
@@ -2060,7 +2278,7 @@
             // 
             this.labelAvailableVersionDesc.AutoSize = true;
             this.labelAvailableVersionDesc.Location = new System.Drawing.Point(6, 321);
-            this.labelAvailableVersionDesc.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.labelAvailableVersionDesc.Margin = new System.Windows.Forms.Padding(3);
             this.labelAvailableVersionDesc.Name = "labelAvailableVersionDesc";
             this.labelAvailableVersionDesc.Size = new System.Drawing.Size(168, 15);
             this.labelAvailableVersionDesc.TabIndex = 33;
@@ -2123,7 +2341,7 @@
             this.tabPageExperimental.Controls.Add(this.label5);
             this.tabPageExperimental.Location = new System.Drawing.Point(4, 24);
             this.tabPageExperimental.Name = "tabPageExperimental";
-            this.tabPageExperimental.Padding = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.tabPageExperimental.Padding = new System.Windows.Forms.Padding(3);
             this.tabPageExperimental.Size = new System.Drawing.Size(642, 394);
             this.tabPageExperimental.TabIndex = 3;
             this.tabPageExperimental.Text = "Experimental";
@@ -2133,7 +2351,7 @@
             // 
             this.label27.AutoSize = true;
             this.label27.Location = new System.Drawing.Point(561, 117);
-            this.label27.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.label27.Margin = new System.Windows.Forms.Padding(3);
             this.label27.Name = "label27";
             this.label27.Size = new System.Drawing.Size(34, 15);
             this.label27.TabIndex = 51;
@@ -2157,7 +2375,7 @@
             // 
             this.label26.AutoSize = true;
             this.label26.Location = new System.Drawing.Point(467, 94);
-            this.label26.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.label26.Margin = new System.Windows.Forms.Padding(3);
             this.label26.Name = "label26";
             this.label26.Size = new System.Drawing.Size(172, 15);
             this.label26.TabIndex = 49;
@@ -2167,7 +2385,7 @@
             // 
             this.label13.AutoSize = true;
             this.label13.Location = new System.Drawing.Point(321, 94);
-            this.label13.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.label13.Margin = new System.Windows.Forms.Padding(3);
             this.label13.Name = "label13";
             this.label13.Size = new System.Drawing.Size(127, 15);
             this.label13.TabIndex = 48;
@@ -2177,7 +2395,7 @@
             // 
             this.label12.AutoSize = true;
             this.label12.Location = new System.Drawing.Point(410, 117);
-            this.label12.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.label12.Margin = new System.Windows.Forms.Padding(3);
             this.label12.Name = "label12";
             this.label12.Size = new System.Drawing.Size(34, 15);
             this.label12.TabIndex = 47;
@@ -2211,7 +2429,7 @@
             // 
             this.label25.AutoSize = true;
             this.label25.Location = new System.Drawing.Point(74, 358);
-            this.label25.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.label25.Margin = new System.Windows.Forms.Padding(3);
             this.label25.Name = "label25";
             this.label25.Size = new System.Drawing.Size(156, 15);
             this.label25.TabIndex = 42;
@@ -2248,7 +2466,7 @@
             // 
             this.label24.AutoSize = true;
             this.label24.Location = new System.Drawing.Point(74, 332);
-            this.label24.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.label24.Margin = new System.Windows.Forms.Padding(3);
             this.label24.Name = "label24";
             this.label24.Size = new System.Drawing.Size(152, 15);
             this.label24.TabIndex = 40;
@@ -2285,7 +2503,7 @@
             // 
             this.label23.AutoSize = true;
             this.label23.Location = new System.Drawing.Point(74, 306);
-            this.label23.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.label23.Margin = new System.Windows.Forms.Padding(3);
             this.label23.Name = "label23";
             this.label23.Size = new System.Drawing.Size(156, 15);
             this.label23.TabIndex = 38;
@@ -2322,7 +2540,7 @@
             // 
             this.label16.AutoSize = true;
             this.label16.Location = new System.Drawing.Point(321, 304);
-            this.label16.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.label16.Margin = new System.Windows.Forms.Padding(3);
             this.label16.Name = "label16";
             this.label16.Size = new System.Drawing.Size(181, 15);
             this.label16.TabIndex = 30;
@@ -2332,7 +2550,7 @@
             // 
             this.label9.AutoSize = true;
             this.label9.Location = new System.Drawing.Point(321, 254);
-            this.label9.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.label9.Margin = new System.Windows.Forms.Padding(3);
             this.label9.Name = "label9";
             this.label9.Size = new System.Drawing.Size(151, 15);
             this.label9.TabIndex = 26;
@@ -2342,7 +2560,7 @@
             // 
             this.label21.AutoSize = true;
             this.label21.Location = new System.Drawing.Point(6, 254);
-            this.label21.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.label21.Margin = new System.Windows.Forms.Padding(3);
             this.label21.Name = "label21";
             this.label21.Size = new System.Drawing.Size(107, 15);
             this.label21.TabIndex = 14;
@@ -2351,7 +2569,7 @@
             // AdhesionFactorChangeValueLabel
             // 
             this.AdhesionFactorChangeValueLabel.Location = new System.Drawing.Point(321, 304);
-            this.AdhesionFactorChangeValueLabel.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.AdhesionFactorChangeValueLabel.Margin = new System.Windows.Forms.Padding(3);
             this.AdhesionFactorChangeValueLabel.Name = "AdhesionFactorChangeValueLabel";
             this.AdhesionFactorChangeValueLabel.Size = new System.Drawing.Size(311, 13);
             this.AdhesionFactorChangeValueLabel.TabIndex = 31;
@@ -2360,7 +2578,7 @@
             // AdhesionFactorValueLabel
             // 
             this.AdhesionFactorValueLabel.Location = new System.Drawing.Point(321, 254);
-            this.AdhesionFactorValueLabel.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.AdhesionFactorValueLabel.Margin = new System.Windows.Forms.Padding(3);
             this.AdhesionFactorValueLabel.Name = "AdhesionFactorValueLabel";
             this.AdhesionFactorValueLabel.Size = new System.Drawing.Size(311, 13);
             this.AdhesionFactorValueLabel.TabIndex = 27;
@@ -2369,7 +2587,7 @@
             // labelLODBias
             // 
             this.labelLODBias.Location = new System.Drawing.Point(6, 254);
-            this.labelLODBias.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.labelLODBias.Margin = new System.Windows.Forms.Padding(3);
             this.labelLODBias.Name = "labelLODBias";
             this.labelLODBias.Size = new System.Drawing.Size(311, 13);
             this.labelLODBias.TabIndex = 15;
@@ -2413,7 +2631,7 @@
             // AdhesionLevelValue
             // 
             this.AdhesionLevelValue.Location = new System.Drawing.Point(381, 354);
-            this.AdhesionLevelValue.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.AdhesionLevelValue.Margin = new System.Windows.Forms.Padding(3);
             this.AdhesionLevelValue.Name = "AdhesionLevelValue";
             this.AdhesionLevelValue.Size = new System.Drawing.Size(252, 13);
             this.AdhesionLevelValue.TabIndex = 34;
@@ -2421,7 +2639,7 @@
             // AdhesionLevelLabel
             // 
             this.AdhesionLevelLabel.Location = new System.Drawing.Point(321, 354);
-            this.AdhesionLevelLabel.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.AdhesionLevelLabel.Margin = new System.Windows.Forms.Padding(3);
             this.AdhesionLevelLabel.Name = "AdhesionLevelLabel";
             this.AdhesionLevelLabel.Size = new System.Drawing.Size(54, 13);
             this.AdhesionLevelLabel.TabIndex = 33;
@@ -2503,7 +2721,7 @@
             // 
             this.labelPerformanceTunerTarget.AutoSize = true;
             this.labelPerformanceTunerTarget.Location = new System.Drawing.Point(92, 142);
-            this.labelPerformanceTunerTarget.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.labelPerformanceTunerTarget.Margin = new System.Windows.Forms.Padding(3);
             this.labelPerformanceTunerTarget.Name = "labelPerformanceTunerTarget";
             this.labelPerformanceTunerTarget.Size = new System.Drawing.Size(96, 15);
             this.labelPerformanceTunerTarget.TabIndex = 10;
@@ -2563,7 +2781,7 @@
             // 
             this.label8.AutoSize = true;
             this.label8.Location = new System.Drawing.Point(92, 94);
-            this.label8.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.label8.Margin = new System.Windows.Forms.Padding(3);
             this.label8.Name = "label8";
             this.label8.Size = new System.Drawing.Size(74, 15);
             this.label8.TabIndex = 7;
@@ -2601,7 +2819,7 @@
             // 
             this.label7.AutoSize = true;
             this.label7.Location = new System.Drawing.Point(92, 69);
-            this.label7.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.label7.Margin = new System.Windows.Forms.Padding(3);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(119, 15);
             this.label7.TabIndex = 5;
@@ -2640,7 +2858,7 @@
             // 
             this.label6.AutoSize = true;
             this.label6.Location = new System.Drawing.Point(92, 43);
-            this.label6.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.label6.Margin = new System.Windows.Forms.Padding(3);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(34, 15);
             this.label6.TabIndex = 3;
@@ -2664,7 +2882,7 @@
             // 
             this.ElevationText.AutoSize = true;
             this.ElevationText.Location = new System.Drawing.Point(6, 22);
-            this.ElevationText.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.ElevationText.Margin = new System.Windows.Forms.Padding(3);
             this.ElevationText.Name = "ElevationText";
             this.ElevationText.Size = new System.Drawing.Size(90, 15);
             this.ElevationText.TabIndex = 1;
@@ -2685,34 +2903,12 @@
             this.label5.AutoSize = true;
             this.label5.ForeColor = System.Drawing.SystemColors.Highlight;
             this.label5.Location = new System.Drawing.Point(6, 6);
-            this.label5.Margin = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.label5.Margin = new System.Windows.Forms.Padding(3);
             this.label5.MaximumSize = new System.Drawing.Size(630, 0);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(398, 15);
             this.label5.TabIndex = 0;
             this.label5.Text = "Experimental features that may slow down the game, use at your own risk.";
-            // 
-            // nameDataGridViewTextBoxColumn
-            // 
-            this.nameDataGridViewTextBoxColumn.DataPropertyName = "Name";
-            this.nameDataGridViewTextBoxColumn.HeaderText = "Name";
-            this.nameDataGridViewTextBoxColumn.MinimumWidth = 6;
-            this.nameDataGridViewTextBoxColumn.Name = "nameDataGridViewTextBoxColumn";
-            this.nameDataGridViewTextBoxColumn.ReadOnly = true;
-            this.nameDataGridViewTextBoxColumn.Width = 64;
-            // 
-            // pathDataGridViewTextBoxColumn
-            // 
-            this.pathDataGridViewTextBoxColumn.DataPropertyName = "Path";
-            this.pathDataGridViewTextBoxColumn.HeaderText = "Path";
-            this.pathDataGridViewTextBoxColumn.MinimumWidth = 6;
-            this.pathDataGridViewTextBoxColumn.Name = "pathDataGridViewTextBoxColumn";
-            this.pathDataGridViewTextBoxColumn.ReadOnly = true;
-            this.pathDataGridViewTextBoxColumn.Width = 56;
-            // 
-            // bindingSourceContent
-            // 
-            this.bindingSourceContent.DataSource = typeof(Orts.Menu.ContentFolder);
             // 
             // OptionsForm
             // 
@@ -2737,6 +2933,18 @@
             this.tabOptions.ResumeLayout(false);
             this.tabPageGeneral.ResumeLayout(false);
             this.tabPageGeneral.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pbEnableWebServer)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pbDisableTcsScripts)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pbOtherUnits)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pbPressureUnit)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pbLanguage)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pbBrakePipeChargingRate)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pbGraduatedRelease)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pbRetainers)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pbMapWindow)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pbControlConfirmations)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pbAlerter)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pbOverspeedMonitor)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericWebServerPort)).EndInit();
             this.tabPageAudio.ResumeLayout(false);
             this.tabPageAudio.PerformLayout();
@@ -2776,6 +2984,7 @@
             this.groupBoxContent.PerformLayout();
             this.panelContent.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.dataGridViewContent)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.bindingSourceContent)).EndInit();
             this.tabPageUpdater.ResumeLayout(false);
             this.tabPageUpdater.PerformLayout();
             this.groupBoxUpdateFrequency.ResumeLayout(false);
@@ -2797,7 +3006,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.numericSuperElevationGauge)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericSuperElevationMinLen)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUseSuperElevation)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.bindingSourceContent)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -2916,7 +3124,7 @@
         private System.Windows.Forms.Label label21;
         private System.Windows.Forms.TrackBar trackLODBias;
         private System.Windows.Forms.Label labelOtherUnits;
-        private System.Windows.Forms.ComboBox comboBoxOtherUnits;
+        private System.Windows.Forms.ComboBox comboOtherUnits;
         private System.Windows.Forms.TabPage tabPageContent;
         private System.Windows.Forms.Panel panelContent;
         private System.Windows.Forms.DataGridView dataGridViewContent;
@@ -2942,7 +3150,7 @@
         private System.Windows.Forms.Label label25;
         private System.Windows.Forms.NumericUpDown precipitationBoxLength;
         private System.Windows.Forms.CheckBox checkCorrectQuestionableBrakingParams;
-        private System.Windows.Forms.CheckBox checkSpeedControl;
+        private System.Windows.Forms.CheckBox checkSpeedMonitor;
         private System.Windows.Forms.NumericUpDown numericExternalSoundPassThruPercent;
         private System.Windows.Forms.Label label11;
         private System.Windows.Forms.CheckBox checkDoubleWire;
@@ -2997,5 +3205,17 @@
         private System.Windows.Forms.Label labelUpdaterFrequency;
         private System.Windows.Forms.TrackBar trackBarUpdaterFrequency;
         private System.Windows.Forms.Button buttonUpdaterExecute;
+        private System.Windows.Forms.PictureBox pbOverspeedMonitor;
+        private System.Windows.Forms.PictureBox pbEnableWebServer;
+        private System.Windows.Forms.PictureBox pbDisableTcsScripts;
+        private System.Windows.Forms.PictureBox pbOtherUnits;
+        private System.Windows.Forms.PictureBox pbPressureUnit;
+        private System.Windows.Forms.PictureBox pbLanguage;
+        private System.Windows.Forms.PictureBox pbBrakePipeChargingRate;
+        private System.Windows.Forms.PictureBox pbGraduatedRelease;
+        private System.Windows.Forms.PictureBox pbRetainers;
+        private System.Windows.Forms.PictureBox pbMapWindow;
+        private System.Windows.Forms.PictureBox pbControlConfirmations;
+        private System.Windows.Forms.PictureBox pbAlerter;
     }
 }

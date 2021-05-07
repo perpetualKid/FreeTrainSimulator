@@ -42,15 +42,20 @@ namespace Orts.Menu
         private readonly UpdateManager updateManager;
 
         private readonly ICatalog catalog;
+        private readonly IDictionary<Control, HelpIconHover> helpIconMap = new Dictionary<Control, HelpIconHover>();
+
+        private const string baseUrl = "https://open-rails.readthedocs.io/en/latest";
 
         public OptionsForm(UserSettings settings, UpdateManager updateManager, bool initialContentSetup)
         {
             InitializeComponent();
+            catalog = CatalogManager.Catalog;
             Localizer.Localize(this, catalog);
 
             this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
             this.updateManager = updateManager ?? throw new ArgumentNullException(nameof(updateManager));
-            this.catalog = CatalogManager.Catalog;
+
+            InitializeHelpIcons();
 
             // Collect all the available language codes by searching for
             // localisation files, but always include English (base language).
@@ -76,7 +81,7 @@ namespace Orts.Menu
             if (comboLanguage.SelectedValue == null)
                 comboLanguage.SelectedIndex = 0;
 
-            comboBoxOtherUnits.DataSourceFromEnum<MeasurementUnit>();
+            comboOtherUnits.DataSourceFromEnum<MeasurementUnit>();
             comboPressureUnit.DataSourceFromEnum<PressureUnit>();
 
             AdhesionLevelValue.Font = new Font(Font, FontStyle.Bold);
@@ -94,7 +99,7 @@ namespace Orts.Menu
             checkAlerter.Checked = this.settings.Alerter;
             checkAlerterExternal.Enabled = this.settings.Alerter;
             checkAlerterExternal.Checked = this.settings.Alerter && !this.settings.AlerterDisableExternal;
-            checkSpeedControl.Checked = this.settings.SpeedControl;
+            checkSpeedMonitor.Checked = this.settings.SpeedControl;
             checkConfirmations.Checked = !this.settings.SuppressConfirmations;
             checkViewMapWindow.Checked = this.settings.ViewDispatcher;
             checkRetainers.Checked = this.settings.RetainersOnAllCars;
@@ -102,7 +107,7 @@ namespace Orts.Menu
             numericBrakePipeChargingRate.Value = this.settings.BrakePipeChargingRate;
             comboLanguage.Text = this.settings.Language;
             comboPressureUnit.SelectedValue = this.settings.PressureUnit;
-            comboBoxOtherUnits.SelectedValue = settings.MeasurementUnit;
+            comboOtherUnits.SelectedValue = settings.MeasurementUnit;
             checkDisableTCSScripts.Checked = this.settings.DisableTCSScripts;
             checkEnableWebServer.Checked = this.settings.WebServer;
             numericWebServerPort.Value = this.settings.WebServerPort;
@@ -282,7 +287,7 @@ namespace Orts.Menu
             // General tab
             settings.Alerter = checkAlerter.Checked;
             settings.AlerterDisableExternal = !checkAlerterExternal.Checked;
-            settings.SpeedControl = checkSpeedControl.Checked;
+            settings.SpeedControl = checkSpeedMonitor.Checked;
             settings.SuppressConfirmations = !checkConfirmations.Checked;
             settings.ViewDispatcher = checkViewMapWindow.Checked;
             settings.RetainersOnAllCars = checkRetainers.Checked;
@@ -290,7 +295,7 @@ namespace Orts.Menu
             settings.BrakePipeChargingRate = (int)numericBrakePipeChargingRate.Value;
             settings.Language = comboLanguage.SelectedValue.ToString();
             settings.PressureUnit = (PressureUnit)comboPressureUnit.SelectedValue;
-            settings.MeasurementUnit = (MeasurementUnit)comboBoxOtherUnits.SelectedValue;
+            settings.MeasurementUnit = (MeasurementUnit)comboOtherUnits.SelectedValue;
             settings.DisableTCSScripts = checkDisableTCSScripts.Checked;
             settings.WebServer = checkEnableWebServer.Checked;
 
@@ -642,7 +647,7 @@ namespace Orts.Menu
             {
                 if (MessageBox.Show("While we encourage users to support us in testing new versions and features, " + Environment.NewLine +
                     "be aware that development versions may contain serious bugs, regressions or may not be optimized for performance." + Environment.NewLine + Environment.NewLine +
-                    "Please confirm that you want to use development code versions. Otherwise we recommend using public prerelease versions, which may run more stable and contain less defects.", 
+                    "Please confirm that you want to use development code versions. Otherwise we recommend using public prerelease versions, which may run more stable and contain less defects.",
                     "Confirm Developer Releases", MessageBoxButtons.OKCancel, MessageBoxIcon.Information) == DialogResult.Cancel)
                 {
                     rbPublicPrereleases.Checked = true;
@@ -658,6 +663,100 @@ namespace Orts.Menu
         {
             await updateManager.RunUpdateProcess(buttonUpdaterExecute.Tag as string).ConfigureAwait(false);
         }
+
+        #region Help for General Options
+        /// <summary>
+        /// Allows multiple controls to change a single help icon with their hover events.
+        /// </summary>
+        private class HelpIconHover
+        {
+            private readonly PictureBox icon;
+            private int hoverCount;
+
+            public HelpIconHover(PictureBox pb)
+            {
+                icon = pb;
+            }
+
+            public void Enter()
+            {
+                hoverCount++;
+                SetImage();
+            }
+
+            public void Leave()
+            {
+                hoverCount--;
+                SetImage();
+            }
+
+            private void SetImage()
+            {
+                icon.Image = hoverCount > 0 ? Properties.Resources.InfoHover : Properties.Resources.Info;
+            }
+        }
+
+        private void InitializeHelpIcons()
+        {
+            // static mapping of picture boxes to controls
+            (PictureBox, Control[], string)[] helpIconControls = new (PictureBox, Control[], string)[]
+            {
+                (pbAlerter, new[] { checkAlerter }, "/options.html#alerter-in-cab"),
+                (pbControlConfirmations, new[] { checkConfirmations }, "/options.html#control-confirmations"),
+                (pbMapWindow, new[] { checkViewMapWindow }, "/options.html#dispatcher-window"),
+                (pbRetainers, new[] { checkRetainers }, "/options.html#retainer-valve-on-all-cars"),
+                (pbGraduatedRelease, new[] { checkGraduatedRelease }, "/options.html#graduated-release-air-brakes"),
+                (pbBrakePipeChargingRate, new[] { numericBrakePipeChargingRate }, "/options.html#brake-pipe-charging-rate"),
+                (pbLanguage, new Control[] { labelLanguage, comboLanguage }, "/options.html#language"),
+                (pbPressureUnit, new Control[] { labelPressureUnit, comboPressureUnit }, "/options.html#pressure-unit"),
+                (pbOtherUnits, new Control[] { labelOtherUnits, comboOtherUnits }, "/options.html#other-units"),
+                (pbDisableTcsScripts, new[] { checkDisableTCSScripts }, "/options.html#disable-tcs-scripts"),
+                (pbEnableWebServer, new[] { checkEnableWebServer }, "/options.html#enable-web-server"),
+                (pbOverspeedMonitor, new[] { checkSpeedMonitor }, "/options.html#overspeed-monitor"),
+            };
+            foreach ((PictureBox pb, Control[] controls, string url) in helpIconControls)
+            {
+                pb.Tag = url;
+                HelpIconHover hover = new HelpIconHover(pb);
+                helpIconMap[pb] = hover;
+                foreach (Control control in controls)
+                    helpIconMap[control] = hover;
+            }
+        }
+
+        /// <summary>
+        /// Loads a relevant page from the manual maintained.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void HelpIcon_Click(object sender, EventArgs _)
+        {
+            if (sender is PictureBox pictureBox)
+            {
+#pragma warning disable CA2234 // Pass system uri objects instead of strings
+                SystemInfo.OpenBrowser(baseUrl + pictureBox.Tag);
+#pragma warning restore CA2234 // Pass system uri objects instead of strings
+            }
+        }
+
+        /// <summary>
+        /// Highlight the Help Icon if the user mouses over the icon or its control.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="_"></param>
+        private void HelpIcon_MouseEnter(object sender, EventArgs _)
+        {
+            if (sender is Control control && helpIconMap.TryGetValue(control, out HelpIconHover hover))
+                hover.Enter();
+        }
+
+        private void HelpIcon_MouseLeave(object sender, EventArgs _)
+        {
+            if (sender is Control control && helpIconMap.TryGetValue(control, out HelpIconHover hover))
+                hover.Leave();
+        }
+        #endregion
+
     }
 
     public class ContentFolder
