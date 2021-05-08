@@ -24,5 +24,6 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Remove="Microsoft.NETCore.Targets" Version="3.1.0" PrivateAssets="all" />
+    <PackageReference Remove="Microsoft.CodeAnalysis.CSharp" Version="3.9.0" PrivateAssets="all" />
   </ItemGroup>
 </Project>
