@@ -46,4 +46,7 @@
   <PropertyGroup Condition="'$(MSBuildProjectName)'!='Launcher'">
     <TargetFrameworks>net48;netcoreapp3.1</TargetFrameworks>
   </PropertyGroup>
+  <PropertyGroup>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+  </PropertyGroup>
 </Project>
