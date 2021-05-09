@@ -717,7 +717,7 @@ namespace Orts.Viewer3D.Popups
             // Second block
             // Direction
             InfoToLabel(directionKeyInput, Owner.Viewer.PlayerLocomotive.EngineType == TrainCar.EngineTypes.Steam ? Viewer.Catalog.GetString("Reverser") : Viewer.Catalog.GetString("Direction"),
-                (ShowMUReverser ? $"{Math.Abs(PlayerTrain.MUReverserPercent):0}% " : string.Empty) + FormatStrings.Catalog.GetParticularString("Reverser", Owner.Viewer.PlayerLocomotive.Direction.GetDescription()), "", false);
+                (ShowMUReverser ? $"{Math.Abs(PlayerTrain.MUReverserPercent):0}% " : string.Empty) + Owner.Viewer.PlayerLocomotive.Direction.GetLocalizedDescription(), "", false);
 
             // Throttle
             InfoToLabel(throttleKeyInput, Owner.Viewer.PlayerLocomotive is MSTSSteamLocomotive ? Viewer.Catalog.GetString("Regulator") : Viewer.Catalog.GetString("Throttle"),
@@ -828,7 +828,7 @@ namespace Orts.Viewer3D.Popups
             }
 
             if (ShowRetainers)
-                InfoToLabel(string.Empty, Viewer.Catalog.GetString("Retainers"), (PlayerTrain.RetainerPercent + " " + Viewer.Catalog.GetString(PlayerTrain.RetainerSetting.GetDescription())), "", false);
+                InfoToLabel(string.Empty, Viewer.Catalog.GetString("Retainers"), (PlayerTrain.RetainerPercent + " " + PlayerTrain.RetainerSetting.GetLocalizedDescription()), "", false);
 
             if ((Owner.Viewer.PlayerLocomotive as MSTSLocomotive).EngineBrakeFitted) // ideally this test should be using "engineBrakeStatus != null", but this currently does not work, as a controller is defined by default
             {

@@ -6,6 +6,8 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
+using GetText;
+
 namespace Orts.Common
 {
     public static class EnumExtension
@@ -15,13 +17,16 @@ namespace Orts.Common
             internal static readonly IList<string> Names;
             internal static readonly IList<T> Values;
             internal static readonly Dictionary<T, string> ValueToDescriptionMap;
-            internal static string EnumDescription;
-            internal static IDictionary<string, T> NameValuePairs;
-            internal static int Length;
-            internal static int SupportsReverse;
-            internal static bool ConsecutiveValues = true;
-            internal static IDictionary<T, int> ValueLookup;
-            internal static int Offset;
+            internal static readonly string EnumDescription;
+            internal static readonly IDictionary<string, T> NameValuePairs;
+            internal static readonly int Length;
+            internal static readonly int SupportsReverse;
+#pragma warning disable CA1802 // Use literals where appropriate
+            internal static readonly bool ConsecutiveValues = true;
+#pragma warning restore CA1802 // Use literals where appropriate
+            internal static readonly IDictionary<T, int> ValueLookup;
+            internal static readonly int Offset;
+            internal static Catalog Catalog;
 
 #pragma warning disable CA1810 // Initialize reference type static fields inline
             static EnumCache()
@@ -96,6 +101,38 @@ namespace Orts.Common
         public static string EnumDescription<T>() where T : Enum
         {
             return EnumCache<T>.EnumDescription;
+        }
+
+        /// <summary>
+        /// returns the Description attribute for the particular enum value
+        /// </summary>
+        public static string GetLocalizedDescription<T>(this T item) where T : Enum
+        {
+            if (EnumCache<T>.Catalog == null)
+                EnumCache<T>.Catalog = CatalogManager<T>.Catalog;
+
+            if (EnumCache<T>.ValueToDescriptionMap.TryGetValue(item, out string description))
+            {
+                string context;
+                if (string.IsNullOrEmpty(context = EnumCache<T>.EnumDescription))
+                    return EnumCache<T>.Catalog.GetString(description);
+                else
+                    return EnumCache<T>.Catalog.GetParticularString(context, description);
+            }
+            throw new ArgumentOutOfRangeException(nameof(item));
+        }
+
+        /// <summary>
+        /// returns the Description attribute for the enum type
+        /// </summary>
+        public static string GetLocalizedEnumDescription<T>() where T : Enum
+        {
+            if (string.IsNullOrEmpty(EnumCache<T>.EnumDescription))
+                return null;
+            if (EnumCache<T>.Catalog == null)
+                EnumCache<T>.Catalog = CatalogManager<T>.Catalog;
+
+            return EnumCache<T>.Catalog.GetString(EnumCache<T>.EnumDescription);
         }
 
         /// <summary>

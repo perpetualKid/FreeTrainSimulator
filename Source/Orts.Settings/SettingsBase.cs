@@ -46,7 +46,6 @@ namespace Orts.Settings
         private protected List<string> doNotSaveProperties;
         #endregion
 
-        private protected static readonly ICatalog commonCatalog = FormatStrings.Catalog;
         private protected static readonly ICatalog catalog = CatalogManager.Catalog;
 
         /// <summary>

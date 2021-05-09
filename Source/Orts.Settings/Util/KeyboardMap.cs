@@ -104,7 +104,7 @@ namespace Orts.Settings.Util
                 writer.WriteLine("{0,-40}{1,-40}{2}", "Command", "Key", "Unique Inputs");
                 writer.WriteLine(new string('=', 40 * 3));
                 foreach (UserCommand command in EnumExtension.GetValues<UserCommand>())
-                    writer.WriteLine("{0,-40}{1,-40}{2}", command.GetDescription(), input.UserCommands[command], string.Join(", ", input.UserCommands[command].GetUniqueInputs().OrderBy(s => s).ToArray()));
+                    writer.WriteLine("{0,-40}{1,-40}{2}", command.GetLocalizedDescription(), input.UserCommands[command], string.Join(", ", input.UserCommands[command].GetUniqueInputs().OrderBy(s => s).ToArray()));
             }
         }
 
@@ -124,7 +124,7 @@ namespace Orts.Settings.Util
                 DrawKeyboardMap(null, (keyBox, keyScanCode, keyName) =>
                 {
                     IEnumerable<UserCommand> keyCommands = GetScanCodeCommands(keyScanCode, input.UserCommands);
-                    string keyCommandNames = string.Join("\n", keyCommands.Select(c => string.Join(" ", c.GetDescription().Split(' ').Skip(1))));
+                    string keyCommandNames = string.Join("\n", keyCommands.Select(c => string.Join(" ", c.GetLocalizedDescription().Split(' ').Skip(1))));
 
                     Color keyColor = GetScanCodeColor(keyCommands);
                     System.Drawing.Brush keyTextColor = System.Drawing.Brushes.Black;

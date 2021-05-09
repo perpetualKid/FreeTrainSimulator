@@ -6,7 +6,7 @@ namespace Orts.Models.Simplified
 {
     public abstract class ContentBase
     {
-        internal static ICatalog catalog = new Catalog("Orts.Models.Simplified", RuntimeInfo.LocalesFolder);
+        internal static readonly ICatalog catalog = CatalogManager.Catalog;
 
         protected const string Unknown = "unknown";
     }

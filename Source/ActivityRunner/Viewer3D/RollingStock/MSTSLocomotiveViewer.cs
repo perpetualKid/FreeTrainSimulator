@@ -750,7 +750,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             if (distanceToPickupM > match.IntakePoint.WidthM / 2)
             {
                 Viewer.Simulator.Confirmer.Message(ConfirmLevel.None, Viewer.Catalog.GetString("Refill: Distance to {0} supply is {1}.",
-                    Viewer.Catalog.GetString(match.Pickup.PickupType.GetDescription()), Viewer.Catalog.GetPluralString("{0} meter", "{0} meters", (long)(distanceToPickupM + 1f))));
+                    match.Pickup.PickupType.GetLocalizedDescription(), Viewer.Catalog.GetPluralString("{0} meter", "{0} meters", (long)(distanceToPickupM + 1f))));
                 return;
             }
             if (distanceToPickupM <= match.IntakePoint.WidthM / 2)
@@ -758,7 +758,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             if (loco.SpeedMpS != 0 && match.Pickup.SpeedRange.UpperLimit == 0f)
             {
                 Viewer.Simulator.Confirmer.Message(ConfirmLevel.None, Viewer.Catalog.GetString("Refill: Loco must be stationary to refill {0}.",
-                    Viewer.Catalog.GetString(match.Pickup.PickupType.GetDescription())));
+                    match.Pickup.PickupType.GetLocalizedDescription()));
                 return;
             }
             if (loco.SpeedMpS < match.Pickup.SpeedRange.LowerLimit)
@@ -789,7 +789,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 if (fraction > 0.99)
                 {
                     Viewer.Simulator.Confirmer.Message(ConfirmLevel.None, Viewer.Catalog.GetString("Refill: {0} supply now replenished.",
-                        Viewer.Catalog.GetString(match.Pickup.PickupType.GetDescription())));
+                        match.Pickup.PickupType.GetLocalizedDescription()));
                     return;
                 }
                 else
@@ -810,13 +810,13 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 if (fraction > 0.99 && match.Pickup.Capacity.FeedRateKGpS >= 0)
                 {
                     Viewer.Simulator.Confirmer.Message(ConfirmLevel.None, Viewer.Catalog.GetString("Refill: {0} supply now replenished.",
-                        Viewer.Catalog.GetString(match.Pickup.PickupType.GetDescription())));
+                        match.Pickup.PickupType.GetLocalizedDescription()));
                     return;
                 }
                 else if (fraction < 0.01 && match.Pickup.Capacity.FeedRateKGpS < 0)
                 {
                     Viewer.Simulator.Confirmer.Message(ConfirmLevel.None, Viewer.Catalog.GetString("Unload: {0} fuel or freight now unloaded.",
-                        Viewer.Catalog.GetString(match.Pickup.PickupType.GetDescription())));
+                        match.Pickup.PickupType.GetLocalizedDescription()));
                     return;
                 }
                 else

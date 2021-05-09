@@ -39,6 +39,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
+using GetText;
+
 using Microsoft.Xna.Framework;
 
 using Orts.Common;
@@ -1505,7 +1507,7 @@ namespace Orts.Simulation.RollingStocks
             return String.Format("{0}\t{2}\t{1}\t{3}\t{4:F0}%\t{5}\t\t{6}\t{7}\t",
                 CarID,
                 Flipped ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No"),
-                FormatStrings.Catalog.GetParticularString("Reverser", Direction.GetDescription()),
+                Direction.GetLocalizedDescription(),
                 AcceptMUSignals ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No"),
                 ThrottlePercent,
                 String.Format("{0}", FormatStrings.FormatSpeedDisplay(SpeedMpS, IsMetric)),

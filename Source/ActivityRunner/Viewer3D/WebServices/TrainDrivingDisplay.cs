@@ -295,7 +295,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
                 AddLabel(new ListLabel
                 {
                     FirstCol = Viewer.Catalog.GetString(locomotive.EngineType == TrainCar.EngineTypes.Steam ? "Reverser" : "Direction"),
-                    LastCol = $"{reverserIndicator}{FormatStrings.Catalog.GetParticularString("Reverser", locomotive.Direction.GetDescription())}",
+                    LastCol = $"{reverserIndicator}{locomotive.Direction.GetLocalizedDescription()}",
                     KeyPressed = reverserKey,
                     SymbolCol = reverserKey,
                 });
@@ -506,7 +506,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
                 AddLabel(new ListLabel
                 {
                     FirstCol = Viewer.Catalog.GetString("Retainers"),
-                    LastCol = $"{train.RetainerPercent} {Viewer.Catalog.GetString(train.RetainerSetting.GetDescription())}",
+                    LastCol = $"{train.RetainerPercent} {train.RetainerSetting.GetLocalizedDescription()}",
                 });
             }
 

@@ -470,25 +470,25 @@ namespace Orts.Simulation.RollingStocks
             var status = new StringBuilder();
             status.AppendFormat("{0} = ", Simulator.Catalog.GetString("Pantographs"));
             foreach (var pantograph in Pantographs.List)
-                status.AppendFormat("{0} ", Simulator.Catalog.GetParticularString("Pantograph", pantograph.State.GetDescription()));
+                status.AppendFormat("{0} ", pantograph.State.GetLocalizedDescription());
             status.AppendLine();
             status.AppendFormat("{0} = {1}",
                 Simulator.Catalog.GetString("Circuit breaker"),
-                Simulator.Catalog.GetParticularString("CircuitBreaker", PowerSupply.CircuitBreaker.State.GetDescription()));
+                PowerSupply.CircuitBreaker.State.GetLocalizedDescription());
             status.AppendLine();
             status.AppendFormat("{0} = {1}",
                 Simulator.Catalog.GetParticularString("PowerSupply", "Power"),
-                Simulator.Catalog.GetParticularString("PowerSupply", PowerSupply.State.GetDescription()));
+                PowerSupply.State.GetLocalizedDescription());
             return status.ToString();
         }
 
         public override string GetDebugStatus()
         {
             var status = new StringBuilder(base.GetDebugStatus());
-            status.AppendFormat("\t{0}\t\t", Simulator.Catalog.GetParticularString("CircuitBreaker", PowerSupply.CircuitBreaker.State.GetDescription()));
+            status.AppendFormat("\t{0}\t\t", PowerSupply.CircuitBreaker.State.GetLocalizedDescription());
             status.AppendFormat("{0}\t", PowerSupply.CircuitBreaker.TCSClosingAuthorization ? Simulator.Catalog.GetString("OK") : Simulator.Catalog.GetString("NOT OK"));
             status.AppendFormat("{0}\t", PowerSupply.CircuitBreaker.DriverClosingAuthorization ? Simulator.Catalog.GetString("OK") : Simulator.Catalog.GetString("NOT OK"));
-            status.AppendFormat("\t{0}\t\t{1}\n", Simulator.Catalog.GetString("Auxiliary power"), Simulator.Catalog.GetParticularString("PowerSupply", PowerSupply.AuxiliaryState.GetDescription()));
+            status.AppendFormat("\t{0}\t\t{1}\n", Simulator.Catalog.GetString("Auxiliary power"), PowerSupply.AuxiliaryState.GetLocalizedDescription());
 
             if (IsSteamHeatFitted && Train.PassengerCarsNumber > 0 && this.IsLeadLocomotive() && Train.CarSteamHeatOn)
             {

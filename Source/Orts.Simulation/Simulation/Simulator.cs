@@ -267,7 +267,8 @@ namespace Orts.Simulation
         public Simulator(UserSettings settings, string activityPath, bool useOpenRailsDirectory)
         {
             Instance = this;
-            Catalog = new Catalog("Orts.Simulation", RuntimeInfo.LocalesFolder);
+            CatalogManager.SetCatalogDomainPattern(CatalogDomainPattern.AssemblyName, null, RuntimeInfo.LocalesFolder);
+            Catalog = CatalogManager.Catalog;
 
             Random = new Random();
 

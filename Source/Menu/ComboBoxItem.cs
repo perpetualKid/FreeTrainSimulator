@@ -76,19 +76,12 @@ namespace Orts.Menu
 
         private static IList<ComboBoxItem<T>> FromEnum<T>() where T : Enum
         {
-            string context = EnumExtension.EnumDescription<T>();
-            return (from data in EnumExtension.GetValues<T>()
-                    select new ComboBoxItem<T>(data, 
-                    string.IsNullOrEmpty(context) ? CatalogManager<T>.Catalog.GetString(data.GetDescription()) : CatalogManager<T>.Catalog.GetParticularString(context, data.GetDescription()))).ToList();
+            return EnumExtension.GetValues<T>().Select(data => new ComboBoxItem<T>(data, data.GetLocalizedDescription())).ToList();
         }
 
         private static IList<ComboBoxItem<int>> FromEnumValue<T>() where T : Enum
         {
-            string context = EnumExtension.EnumDescription<T>();
-            return (from data in EnumExtension.GetValues<T>()
-                    select new ComboBoxItem<int>(
-                        Convert.ToInt32(data, System.Globalization.CultureInfo.InvariantCulture),
-                        string.IsNullOrEmpty(context) ? CatalogManager<T>.Catalog.GetString(data.GetDescription()) : CatalogManager<T>.Catalog.GetParticularString(context, data.GetDescription()))).ToList();
+            return EnumExtension.GetValues<T>().Select(data => new ComboBoxItem<int>(Convert.ToInt32(data, System.Globalization.CultureInfo.InvariantCulture),data.GetLocalizedDescription())).ToList();
         }
 
         /// <summary>
@@ -97,8 +90,7 @@ namespace Orts.Menu
         /// </summary>
         private static IList<ComboBoxItem<T>> FromEnumCustomLookup<E, T>(Func<E, T> keyLookup, Func<E, string> valueLookup) where E : Enum
         {
-            return (from data in EnumExtension.GetValues<E>()
-                    select new ComboBoxItem<T>(keyLookup(data), valueLookup(data))).ToList();
+            return EnumExtension.GetValues<E>().Select(data => new ComboBoxItem<T>(keyLookup(data), valueLookup(data))).ToList();
         }
 
         /// <summary>
@@ -109,8 +101,7 @@ namespace Orts.Menu
         {
             try
             {
-                return (from item in source
-                        select new ComboBoxItem<T>(item, lookup(item))).ToList();
+                return source.Select(item => new ComboBoxItem<T>(item, lookup(item))).ToList();
             }
             catch (ArgumentException)
             {

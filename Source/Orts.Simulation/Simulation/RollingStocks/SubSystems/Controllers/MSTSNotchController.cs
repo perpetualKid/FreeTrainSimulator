@@ -495,9 +495,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             if (Notches.Count == 0)
                 return string.Format("{0:F0}%", 100 * CurrentValue);
             INotchController notch = Notches[CurrentNotch];
-            //TODO translation via (static?) Catalog
-            //also if NotchStateType == ControllerState.Running, need to use GetParticularString using ControllerState enum description attribute for context
-            string name = EnumExtension.GetDescription(notch.NotchStateType);
+            string name = notch.NotchStateType.GetLocalizedDescription();
             if (!notch.Smooth && notch.NotchStateType == ControllerState.Dummy)
                 return string.Format("{0:F0}%", 100 * CurrentValue);
             if (!notch.Smooth)

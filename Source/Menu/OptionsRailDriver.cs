@@ -77,7 +77,7 @@ namespace Orts.Menu
                     {
                         e.Graphics.DrawRectangle(penLine, startingPoints[(int)currentCalibrationStep, 0], startingPoints[(int)currentCalibrationStep, 1], 60, 40);
                         e.Graphics.DrawLine(penArrow, 10, 10, startingPoints[(int)currentCalibrationStep, 0] - 5, startingPoints[(int)currentCalibrationStep, 1] + 20);
-                        e.Graphics.DrawString(currentCalibrationStep.GetDescription(), new Font("Arial", 14), new SolidBrush(Color.Red), 80, 225);
+                        e.Graphics.DrawString(currentCalibrationStep.GetLocalizedDescription(), new Font("Arial", 14), new SolidBrush(Color.Red), 80, 225);
                     }
                 };
             }
@@ -107,10 +107,9 @@ namespace Orts.Menu
             string previousCategory = "";
             int i = 0;
 
-            ICatalog userCommandCatalog = CatalogManager<UserCommand>.Catalog;
             foreach (UserCommand command in EnumExtension.GetValues<UserCommand>())
             {
-                string name = userCommandCatalog.GetString(command.GetDescription());
+                string name = command.GetLocalizedDescription();
                 string category, description;
                 int index = name.IndexOf(' ');
                 if (index == -1)
@@ -202,7 +201,7 @@ namespace Orts.Menu
             {
                 currentCalibrationStep = nextStep;
                 railDriverLegend.Invalidate(true);  //enforce redraw legend to show guidance
-                result = MessageBox.Show(railDriverLegend, $"Now calibrating \"{currentCalibrationStep.GetDescription()}\". Move the Lever as indicated through guidance. \r\n\r\nClick OK to read the position and continue. Click Cancel anytime to abort the calibration process.", "RailDriver Calibration", MessageBoxButtons.OKCancel);
+                result = MessageBox.Show(railDriverLegend, $"Now calibrating \"{currentCalibrationStep.GetLocalizedDescription()}\". Move the Lever as indicated through guidance. \r\n\r\nClick OK to read the position and continue. Click Cancel anytime to abort the calibration process.", "RailDriver Calibration", MessageBoxButtons.OKCancel);
                 // Read Setting
                 if (result == DialogResult.OK)
                 {

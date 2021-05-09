@@ -100,7 +100,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 {
                     var line = scrollbox.AddLayoutHorizontalLineOfText();
                     var width = line.RemainingWidth / 2;
-                    line.Add(new Label(width, line.RemainingHeight, Viewer.Catalog.GetString(command.GetDescription())));
+                    line.Add(new Label(width, line.RemainingHeight, command.GetLocalizedDescription()));
                     line.Add(new Label(width, line.RemainingHeight, Owner.Viewer.Settings.Input.UserCommands[command].ToString()));
                 }
             }));

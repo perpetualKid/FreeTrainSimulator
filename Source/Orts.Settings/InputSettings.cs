@@ -21,6 +21,8 @@ using System.Collections.Specialized;
 using System.Linq;
 using System.Text;
 
+using GetText;
+
 using Microsoft.Xna.Framework.Input;
 
 using Orts.Common;
@@ -342,11 +344,11 @@ namespace Orts.Settings
                 if (UserCommands[command] is UserCommandModifiableKeyInput modInput)
                 {
                     if (modInput.Shift && modInput.IgnoreShift)
-                        errors.AppendLine(catalog.GetString("{0} requires and is modified by Shift", commonCatalog.GetString(command.GetDescription())));
+                        errors.AppendLine(catalog.GetString("{0} requires and is modified by Shift", command.GetLocalizedDescription()));
                     if (modInput.Control && modInput.IgnoreControl)
-                        errors.AppendLine(catalog.GetString("{0} requires and is modified by Control", commonCatalog.GetString(command.GetDescription())));
+                        errors.AppendLine(catalog.GetString("{0} requires and is modified by Control", command.GetLocalizedDescription()));
                     if (modInput.Alt && modInput.IgnoreAlt)
-                        errors.AppendLine(catalog.GetString("{0} requires and is modified by Alt", commonCatalog.GetString(command.GetDescription())));
+                        errors.AppendLine(catalog.GetString("{0} requires and is modified by Alt", command.GetLocalizedDescription()));
                 }
             }
 
@@ -378,8 +380,7 @@ namespace Orts.Settings
                     IEnumerable<string> unique2 = input2.GetUniqueInputs();
                     IEnumerable<string> sharedUnique = unique1.Where(id => unique2.Contains(id));
                     foreach (string uniqueInput in sharedUnique)
-                        errors.AppendLine(catalog.GetString("{0} and {1} both match {2}", commonCatalog.GetString(command1.GetDescription()),
-                            commonCatalog.GetString(command2.GetDescription()), KeyboardMap.GetPrettyUniqueInput(uniqueInput)));
+                        errors.AppendLine(catalog.GetString("{0} and {1} both match {2}", command1.GetLocalizedDescription(), command2.GetLocalizedDescription(), KeyboardMap.GetPrettyUniqueInput(uniqueInput)));
                 }
             }
 

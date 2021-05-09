@@ -275,24 +275,24 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             AddLabel(new ListLabel
             {
                 FirstCol = viewer.PlayerLocomotive.EngineType == TrainCar.EngineTypes.Steam ? Viewer.Catalog.GetString("Reverser") : Viewer.Catalog.GetString("Direction"),
-                TrackCol = (showMUReverser ? $"{Math.Abs(playerTrain.MUReverserPercent):0}% " : "") + FormatStrings.Catalog.GetParticularString("Reverser", viewer.PlayerLocomotive.Direction.GetDescription()),
+                TrackCol = (showMUReverser ? $"{Math.Abs(playerTrain.MUReverserPercent):0}% " : "") + viewer.PlayerLocomotive.Direction.GetLocalizedDescription(),
             });
 
             // Present cab orientation (0=forward, 1=backward)
             AddLabel(new ListLabel
             {
                 FirstCol = Viewer.Catalog.GetString("Cab ORIEN"),
-                TrackCol = Viewer.Catalog.GetString(thisInfo.CabOrientation.GetDescription()),
+                TrackCol = thisInfo.CabOrientation.GetLocalizedDescription(),
             });
 
             // Control mode
             string controlIndicator;
             if (thisInfo.ControlMode == TrainControlMode.AutoNode)
-                controlIndicator = FindAuthorityInfo(thisInfo.ObjectInfoForward, Viewer.Catalog.GetString(thisInfo.ControlMode.GetDescription()));
+                controlIndicator = FindAuthorityInfo(thisInfo.ObjectInfoForward, thisInfo.ControlMode.GetLocalizedDescription());
             else if (thisInfo.ControlMode == TrainControlMode.OutOfControl)
-                controlIndicator = $"{Viewer.Catalog.GetString(thisInfo.ControlMode.GetDescription())}: {thisInfo.ObjectInfoForward.First().OutOfControlReason.GetDescription()}";
+                controlIndicator = $"{thisInfo.ControlMode.GetLocalizedDescription()}: {thisInfo.ObjectInfoForward.First().OutOfControlReason.GetLocalizedDescription()}";
             else
-                controlIndicator = Viewer.Catalog.GetString(thisInfo.ControlMode.GetDescription());
+                controlIndicator = thisInfo.ControlMode.GetLocalizedDescription();
             AddSeparator();
             AddLabel(new ListLabel
             {
@@ -404,7 +404,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
         private static string FindAuthorityInfo(IEnumerable<TrainPathItem> objects, string controlText)
         {
             TrainPathItem authInfo = objects.SingleOrDefault((info) => info.ItemType == TrainPathItemType.Authority);
-            return authInfo == null ? controlText : $"{controlText} : {authInfo.AuthorityType.GetDescription()}";
+            return authInfo == null ? controlText : $"{controlText} : {authInfo.AuthorityType.GetLocalizedDescription()}";
         }
 
         /// <summary>

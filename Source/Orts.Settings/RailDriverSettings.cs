@@ -5,6 +5,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
+using GetText;
+
 using Orts.Common;
 using Orts.Common.Input;
 using Orts.Settings.Store;
@@ -178,7 +180,7 @@ namespace Orts.Settings
                 errors.Append(catalog.GetString("Button {0} is assigned to \r\n\t", duplicate.Key));
                 foreach (var buttonMapping in duplicate)
                 {
-                    errors.Append($"\"{catalog.GetString(((UserCommand)buttonMapping.Index).GetDescription())}\" and ");
+                    errors.Append(catalog.GetString($"\"{((UserCommand)buttonMapping.Index).GetLocalizedDescription()}\" and "));
                 }
                 errors.Remove(errors.Length - 5, 5);
                 errors.AppendLine();
@@ -198,7 +200,7 @@ namespace Orts.Settings
                 writer.WriteLine("{0,-40}{1,-40}", "Command", "Button");
                 writer.WriteLine(new string('=', 40 * 2));
                 foreach (var buttonMapping in buttonMappings)
-                    writer.WriteLine("{0,-40}{1,-40}", catalog.GetString(((UserCommand)buttonMapping.Index).GetDescription()), buttonMapping.Button);
+                    writer.WriteLine("{0,-40}{1,-40}", ((UserCommand)buttonMapping.Index).GetLocalizedDescription(), buttonMapping.Button);
             }
         }
 

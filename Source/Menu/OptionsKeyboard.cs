@@ -31,10 +31,9 @@ namespace Orts.Menu
 
             string previousCategory = "";
             int i = 0;
-            ICatalog userCommandCatalog = CatalogManager<UserCommand>.Catalog;
             foreach (UserCommand command in EnumExtension.GetValues<UserCommand>())
             {
-                string name = userCommandCatalog.GetString(command.GetDescription());
+                string name = command.GetLocalizedDescription();
                 string category, description;
                 int index = name.IndexOf(' ');
                 if (index == -1)

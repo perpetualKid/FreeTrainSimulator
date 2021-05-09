@@ -100,14 +100,14 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 SpeedProjected.Text = FormatStrings.FormatSpeedDisplay(Math.Abs(thisInfo.ProjectedSpeed), Owner.Viewer.MilepostUnitsMetric);
                 SpeedAllowed.Text = FormatStrings.FormatSpeedLimit(thisInfo.AllowedSpeed, Owner.Viewer.MilepostUnitsMetric);
 
-                var ControlText = Viewer.Catalog.GetString(thisInfo.ControlMode.GetDescription());
+                var ControlText = thisInfo.ControlMode.GetLocalizedDescription();
                 if (thisInfo.ControlMode == TrainControlMode.AutoNode)
                 {
                     ControlText = FindAuthorityInfo(thisInfo.ObjectInfoForward, ControlText);
                 }
                 else if (thisInfo.ControlMode == TrainControlMode.OutOfControl)
                 {
-                    ControlText += thisInfo.ObjectInfoForward[0].OutOfControlReason.GetDescription();
+                    ControlText += thisInfo.ObjectInfoForward[0].OutOfControlReason.GetLocalizedDescription();
                 }
                 ControlMode.Text = ControlText;
                 if (-thisInfo.Gradient < -0.00015)
@@ -132,8 +132,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             {
                 if (thisInfo.ItemType == TrainPathItemType.Authority)
                 {
-                    // TODO: Concatenating strings is bad for localization.
-                    return ControlText + " : " + thisInfo.AuthorityType.GetDescription();
+                    return ControlText + " : " + thisInfo.AuthorityType.GetLocalizedDescription();
                 }
             }
 

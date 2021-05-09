@@ -19,6 +19,7 @@ using Orts.Common.Info;
 using Orts.Common.Input;
 using Orts.Common.Logging;
 using Orts.TrackViewer.Control;
+using Orts.TrackViewer.Settings;
 using Orts.View;
 using Orts.View.DrawableComponents;
 using Orts.View.Track;

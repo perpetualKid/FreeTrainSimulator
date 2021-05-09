@@ -517,7 +517,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             if (Script != null)
             {
                 //ToDo translation via catalog
-                string state = EnumExtension.GetDescription(Script.GetState());
+                string state = Script.GetState().GetLocalizedDescription();
                 string fraction = GetStateFractionScripted();
 
                 if (String.IsNullOrEmpty(state) && String.IsNullOrEmpty(fraction))

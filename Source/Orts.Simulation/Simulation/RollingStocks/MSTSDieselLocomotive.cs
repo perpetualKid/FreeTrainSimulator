@@ -779,8 +779,7 @@ namespace Orts.Simulation.RollingStocks
         public override string GetStatus()
         {
             var status = new StringBuilder();
-            status.AppendFormat("{0} = {1}\n", Simulator.Catalog.GetString("Engine"),
-                Simulator.Catalog.GetParticularString("Engine", DieselEngines[0].EngineStatus.GetDescription()));
+            status.AppendFormat("{0} = {1}\n", Simulator.Catalog.GetString("Engine"), DieselEngines[0].EngineStatus.GetLocalizedDescription());
 
             if (DieselEngines.HasGearBox)
                 status.AppendFormat("{0} = {1}\n", Simulator.Catalog.GetString("Gear"), DieselEngines[0].GearBox.CurrentGearIndex < 0

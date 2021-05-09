@@ -2,14 +2,14 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RunActivity\n"
 "POT-Creation-Date: 2020-09-17 08:25:56+0200\n"
-"PO-Revision-Date: 2020-09-17 14:17+0200\n"
+"PO-Revision-Date: 2021-05-09 06:17+0200\n"
 "Last-Translator: Markus Gelbmann <gelbmann.markus@gmail.com>\n"
 "Language-Team: Open Rails Dev Team\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 2.4.1\n"
+"X-Generator: Poedit 2.4.3\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:108
@@ -2800,7 +2800,7 @@ msgstr "HandBre"
 #: ..\..\ActivityRunner\Viewer3D\Popups\TrainDrivingWindow.cs:589
 #: ..\..\ActivityRunner\Viewer3D\WebServices\TrainDrivingDisplay.cs:108
 msgid "Throttle"
-msgstr "Regler"
+msgstr "Gashebel"
 
 #: ..\..\ActivityRunner\Viewer3D\Popups\HUDWindow.cs:1685
 #, csharp-format

@@ -186,10 +186,9 @@ namespace Orts.Menu
             checkListDataLogTSContents.Enabled = checkDataLogTrainSpeed.Checked;
             numericDataLogTSInterval.Value = this.settings.EvaluationInterval;
 
-            string context = EnumExtension.EnumDescription<EvaluationLogContents>();
             checkListDataLogTSContents.Items.AddRange(EnumExtension.GetValues<EvaluationLogContents>().
                 Where(content => content != EvaluationLogContents.None).
-                Select(content => CatalogManager<EvaluationLogContents>.Catalog.GetParticularString(context, content.GetDescription())).ToArray());
+                Select(content => content.GetLocalizedDescription()).ToArray());
 
             for (int i = 0; i < checkListDataLogTSContents.Items.Count; i++)
             {
@@ -210,7 +209,7 @@ namespace Orts.Menu
 
             // Updater tab
             trackBarUpdaterFrequency.Value = this.settings.UpdateCheckFrequency;
-            labelUpdaterFrequency.Text = catalog.GetString(((UpdateCheckFrequency)trackBarUpdaterFrequency.Value).GetDescription());
+            labelUpdaterFrequency.Text = ((UpdateCheckFrequency)trackBarUpdaterFrequency.Value).GetLocalizedDescription();
             labelCurrentVersion.Text = VersionInfo.Version;
             if (updateManager.UpdaterNeedsElevation)
             {
@@ -609,7 +608,7 @@ namespace Orts.Menu
 
         private async void TrackBarUpdaterFrequency_Scroll(object sender, EventArgs e)
         {
-            labelUpdaterFrequency.Text = catalog.GetString(((UpdateCheckFrequency)trackBarUpdaterFrequency.Value).GetDescription());
+            labelUpdaterFrequency.Text = ((UpdateCheckFrequency)trackBarUpdaterFrequency.Value).GetLocalizedDescription();
             settings.UpdateCheckFrequency = trackBarUpdaterFrequency.Value;
             string availableVersion = await updateManager.GetBestAvailableVersionString(false).ConfigureAwait(true);
             labelAvailableVersion.Text = UpdateManager.NormalizedPackageVersion(availableVersion) ?? "n/a";

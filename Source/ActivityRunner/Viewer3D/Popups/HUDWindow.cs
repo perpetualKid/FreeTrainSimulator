@@ -25,6 +25,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
+using GetText;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -460,12 +462,12 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
             TableAddLabelValue(table, Viewer.Catalog.GetString("Speed"), FormatStrings.FormatSpeedDisplay(Viewer.PlayerLocomotive.SpeedMpS, Viewer.PlayerLocomotive.IsMetric));
             TableAddLabelValue(table, Viewer.Catalog.GetString("Gradient"), "{0:F1}%", -Viewer.PlayerLocomotive.CurrentElevationPercent);
-            TableAddLabelValue(table, Viewer.Catalog.GetString("Direction"), showMUReverser ? "{1:F0} {0}" : "{0}", FormatStrings.Catalog.GetParticularString(EnumExtension.EnumDescription<MidpointDirection>(), Viewer.PlayerLocomotive.Direction.GetDescription()), Math.Abs(playerTrain.MUReverserPercent));
+            TableAddLabelValue(table, Viewer.Catalog.GetString("Direction"), showMUReverser ? "{1:F0} {0}" : "{0}", Viewer.PlayerLocomotive.Direction.GetLocalizedDescription(), Math.Abs(playerTrain.MUReverserPercent));
             TableAddLabelValue(table, Viewer.PlayerLocomotive is MSTSSteamLocomotive ? Viewer.Catalog.GetString("Regulator") : Viewer.Catalog.GetString("Throttle"), "{0:F0}%", Viewer.PlayerLocomotive.ThrottlePercent);
             if ((Viewer.PlayerLocomotive as MSTSLocomotive).TrainBrakeFitted)
                 TableAddLabelValue(table, Viewer.Catalog.GetString("Train brake"), "{0}", Viewer.PlayerLocomotive.GetTrainBrakeStatus());
             if (showRetainers)
-                TableAddLabelValue(table, Viewer.Catalog.GetString("Retainers"), "{0}% {1}", playerTrain.RetainerPercent, Viewer.Catalog.GetString(playerTrain.RetainerSetting.GetDescription()));
+                TableAddLabelValue(table, Viewer.Catalog.GetString("Retainers"), "{0}% {1}", playerTrain.RetainerPercent, playerTrain.RetainerSetting.GetLocalizedDescription());
             if ((Viewer.PlayerLocomotive as MSTSLocomotive).EngineBrakeFitted) // ideally this test should be using "engineBrakeStatus != null", but this currently does not work, as a controller is defined by default
                 TableAddLabelValue(table, Viewer.Catalog.GetString("Engine brake"), "{0}", engineBrakeStatus);
             if ((Viewer.PlayerLocomotive as MSTSLocomotive).BrakemanBrakeFitted)
@@ -687,7 +689,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 //3
                 Viewer.Catalog.GetString("Dynamic brake"),
                 //4
-                FormatStrings.Catalog.GetParticularString("Reverser", train.MUDirection.GetDescription()),
+                train.MUDirection.GetLocalizedDescription(),
                 //5
                 train.MUReverserPercent,
                 //6

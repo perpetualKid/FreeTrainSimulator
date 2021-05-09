@@ -32,50 +32,50 @@ namespace Orts.Common
     /// </summary>
     public static class FormatStrings
     {
-        public static ICatalog Catalog { get; } = new Catalog("Orts.Common", RuntimeInfo.LocalesFolder);
+        private static readonly ICatalog catalog = CatalogManager.Catalog;
 
 #pragma warning disable IDE1006 // Naming Styles
-        public static string m { get; } = Catalog.GetString("m");
-        public static string km { get; } = Catalog.GetString("km");
-        public static string mm { get; } = Catalog.GetString("mm");
-        public static string mi { get; } = Catalog.GetString("mi");
-        public static string ft { get; } = Catalog.GetString("ft");
-        public static string yd { get; } = Catalog.GetString("yd");
-        public static string m2 { get; } = Catalog.GetString("m²");
-        public static string ft2 { get; } = Catalog.GetString("ft²");
-        public static string m3 { get; } = Catalog.GetString("m³");
-        public static string ft3 { get; } = Catalog.GetString("ft³");
-        public static string kmph { get; } = Catalog.GetString("km/h");
-        public static string mph { get; } = Catalog.GetString("mph");
-        public static string kpa { get; } = Catalog.GetString("kPa");
-        public static string bar { get; } = Catalog.GetString("bar");
-        public static string psi { get; } = Catalog.GetString("psi");
-        public static string inhg { get; } = Catalog.GetString("inHg");
-        public static string kgfpcm2 { get; } = Catalog.GetString("kgf/cm²");
-        public static string kg { get; } = Catalog.GetString("kg");
-        public static string t { get; } = Catalog.GetString("t");
-        public static string tonUK { get; } = Catalog.GetString("t-uk");
-        public static string tonUS { get; } = Catalog.GetString("t-us");
-        public static string lb { get; } = Catalog.GetString("lb");
-        public static string s { get; } = Catalog.GetString("s");
-        public static string min { get; } = Catalog.GetString("min");
-        public static string h { get; } = Catalog.GetString("h");
-        public static string l { get; } = Catalog.GetString("L");
-        public static string galUK { get; } = Catalog.GetString("g-uk");
-        public static string galUS { get; } = Catalog.GetString("g-us");
-        public static string rpm { get; } = Catalog.GetString("rpm");
-        public static string kW { get; } = Catalog.GetString("kW");
-        public static string hp { get; } = Catalog.GetString("hp"); // mechanical (or brake) horsepower
-        public static string bhp { get; } = Catalog.GetString("bhp"); // boiler horsepower
-        public static string kJ { get; } = Catalog.GetString("kJ");
-        public static string MJ { get; } = Catalog.GetString("MJ");
-        public static string btu { get; } = Catalog.GetString("BTU");
-        public static string c { get; } = Catalog.GetString("°C");
-        public static string f { get; } = Catalog.GetString("°F");
-        public static string n { get; } = Catalog.GetString("N");
-        public static string kN { get; } = Catalog.GetString("kN");
-        public static string lbf { get; } = Catalog.GetString("lbf");
-        public static string klbf { get; } = Catalog.GetString("klbf");
+        public static string m { get; } = catalog.GetString("m");
+        public static string km { get; } = catalog.GetString("km");
+        public static string mm { get; } = catalog.GetString("mm");
+        public static string mi { get; } = catalog.GetString("mi");
+        public static string ft { get; } = catalog.GetString("ft");
+        public static string yd { get; } = catalog.GetString("yd");
+        public static string m2 { get; } = catalog.GetString("m²");
+        public static string ft2 { get; } = catalog.GetString("ft²");
+        public static string m3 { get; } = catalog.GetString("m³");
+        public static string ft3 { get; } = catalog.GetString("ft³");
+        public static string kmph { get; } = catalog.GetString("km/h");
+        public static string mph { get; } = catalog.GetString("mph");
+        public static string kpa { get; } = catalog.GetString("kPa");
+        public static string bar { get; } = catalog.GetString("bar");
+        public static string psi { get; } = catalog.GetString("psi");
+        public static string inhg { get; } = catalog.GetString("inHg");
+        public static string kgfpcm2 { get; } = catalog.GetString("kgf/cm²");
+        public static string kg { get; } = catalog.GetString("kg");
+        public static string t { get; } = catalog.GetString("t");
+        public static string tonUK { get; } = catalog.GetString("t-uk");
+        public static string tonUS { get; } = catalog.GetString("t-us");
+        public static string lb { get; } = catalog.GetString("lb");
+        public static string s { get; } = catalog.GetString("s");
+        public static string min { get; } = catalog.GetString("min");
+        public static string h { get; } = catalog.GetString("h");
+        public static string l { get; } = catalog.GetString("L");
+        public static string galUK { get; } = catalog.GetString("g-uk");
+        public static string galUS { get; } = catalog.GetString("g-us");
+        public static string rpm { get; } = catalog.GetString("rpm");
+        public static string kW { get; } = catalog.GetString("kW");
+        public static string hp { get; } = catalog.GetString("hp"); // mechanical (or brake) horsepower
+        public static string bhp { get; } = catalog.GetString("bhp"); // boiler horsepower
+        public static string kJ { get; } = catalog.GetString("kJ");
+        public static string MJ { get; } = catalog.GetString("MJ");
+        public static string btu { get; } = catalog.GetString("BTU");
+        public static string c { get; } = catalog.GetString("°C");
+        public static string f { get; } = catalog.GetString("°F");
+        public static string n { get; } = catalog.GetString("N");
+        public static string kN { get; } = catalog.GetString("kN");
+        public static string lbf { get; } = catalog.GetString("lbf");
+        public static string klbf { get; } = catalog.GetString("klbf");
 #pragma warning restore IDE1006 // Naming Styles
 
         /// <summary>

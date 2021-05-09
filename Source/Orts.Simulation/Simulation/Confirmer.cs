@@ -270,7 +270,7 @@ namespace Orts.Simulation
 			var duration = DefaultDurationS;
 			if (level >= ConfirmLevel.Warning) duration *= 2;
 			if (level >= ConfirmLevel.Message) duration *= 5;
-            DisplayMessage?.Invoke(this, new DisplayMessageEventArgs($"{control}/{level}", string.Format(format, ConfirmText[(int)control][0], Simulator.Catalog.GetString(level.GetDescription()), message), duration));
+            DisplayMessage?.Invoke(this, new DisplayMessageEventArgs($"{control}/{level}", string.Format(format, ConfirmText[(int)control][0], level.GetLocalizedDescription(), message), duration));
         }
     }
 }
