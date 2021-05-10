@@ -1631,7 +1631,7 @@ namespace Orts.Simulation.RollingStocks
             if (DynamicBrakePercent > 0 && DynamicBrakeForceCurves != null && AbsSpeedMpS > 0)
             {
                 float f = (float)DynamicBrakeForceCurves.Get(.01f * DynamicBrakePercent, AbsTractionSpeedMpS);
-                if (f > 0 && LocomotivePowerSupply.MainPowerSupplyOn)
+                if (f > 0 && LocomotivePowerSupply.DynamicBrakeAvailable)
                 {
                     DynamicBrakeForceN = f * (1 - PowerReduction);
                     MotiveForceN -= (SpeedMpS > 0 ? 1 : SpeedMpS < 0 ? -1 : Direction == MidpointDirection.Reverse ? -1 : 1) * DynamicBrakeForceN;
