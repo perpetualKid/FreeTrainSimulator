@@ -871,6 +871,8 @@ namespace Orts.Formats.Msts.Models
                 new STFReader.TokenProcessor("graphic", ()=>{ ParseGraphic(stf, basepath); }),
                 new STFReader.TokenProcessor("units", ()=>{ ParseUnits(stf); }),
                 new STFReader.TokenProcessor("parameters", ()=>{ ParseCustomParameters(stf); }),
+                new STFReader.TokenProcessor("disablediflowvoltagepowersupplyoff", ()=>{ ParseDisabledIfLowVoltagePowerSupplyOff(stf); }),
+                new STFReader.TokenProcessor("disabledifcabpowersupplyoff", ()=>{ ParseDisabledIfCabPowerSupplyOff(stf); }),
             });
         }
         private protected void ParseCustomParameters(STFReader stf)
