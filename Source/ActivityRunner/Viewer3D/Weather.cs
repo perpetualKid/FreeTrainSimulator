@@ -532,8 +532,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 {
                     dynamicWeather = new DynamicWeather();
                 }
-                var weatherChange = Simulator.Instance.ActivityRun.triggeredEventWrapper.ParsedObject.WeatherChange != null ?
-                    Simulator.Instance.ActivityRun.triggeredEventWrapper.ParsedObject.WeatherChange : Simulator.Instance.ActivityRun.triggeredEventWrapper.ParsedObject.Outcomes.WeatherChange;
+                OrtsWeatherChange weatherChange = Simulator.Instance.ActivityRun.triggeredEventWrapper.ParsedObject.WeatherChange ?? Simulator.Instance.ActivityRun.triggeredEventWrapper.ParsedObject.Outcomes.WeatherChange;
                 dynamicWeather.WeatherChange_Init(weatherChange, this);
                 Simulator.Instance.ActivityRun.triggeredEventWrapper = null;
             }
