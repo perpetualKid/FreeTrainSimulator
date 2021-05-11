@@ -28,6 +28,7 @@ namespace Orts.Simulation.Signalling
         //TODO 20201128 convert to SpeedItemType
         public int LimitedSpeedReduction { get; internal set; } // No Speed Reduction or is Temporary Speed Reduction
                                                                 // for signals: if = 1 no speed reduction; for speedposts: if = 0 standard; = 1 start of temp speedreduction post; = 2 end of temp speed reduction post
+        public bool SpeedWarning { get; internal set; }
 
 
         //================================================================================================//
@@ -35,13 +36,14 @@ namespace Orts.Simulation.Signalling
         /// Constructor
         /// </summary>
 
-        public SpeedInfo(float passenger, float freight, bool asap, bool reset, int limitedSpeedReduction)
+        public SpeedInfo(float passenger, float freight, bool asap, bool reset, int limitedSpeedReduction, bool speedWarning)
         {
             PassengerSpeed = passenger;
             FreightSpeed = freight;
             Flag = asap;
             Reset = reset;
             LimitedSpeedReduction = limitedSpeedReduction;
+            SpeedWarning = speedWarning;
         }
 
         public SpeedInfo(SpeedInfo source)
@@ -58,6 +60,7 @@ namespace Orts.Simulation.Signalling
                 Flag = source.Flag;
                 Reset = source.Reset;
                 LimitedSpeedReduction = source.LimitedSpeedReduction;
+                SpeedWarning = source.SpeedWarning;
             }
         }
     }

@@ -100,6 +100,12 @@ namespace Orts.Scripting.Api
         /// </summary>
         public Func<string, int, float, SignalFeatures> NextGenericSignalFeatures;
         /// <summary>
+        /// Features of next speed post
+        /// int: position of speed post in the speed post sequence along the train route, starting from train front; 0 for first speed post;
+        /// float: max testing distance
+        /// </summary>
+        public Func<int, float, SpeedPostFeatures> NextSpeedPostFeatures;
+        /// <summary>
         /// Next normal signal has a repeater head
         /// </summary>
         public Func<bool> DoesNextNormalSignalHaveRepeaterHead;
@@ -533,6 +539,29 @@ namespace Orts.Scripting.Api
             SpeedLimit = speedLimit;
             Altitude = altitude;
             TextAspect = textAspect;
+        }
+    }
+
+#pragma warning disable CA1815 // Override equals and operator equals on value types
+    public readonly struct SpeedPostFeatures
+#pragma warning restore CA1815 // Override equals and operator equals on value types
+    {
+        private static readonly SpeedPostFeatures none = new SpeedPostFeatures(string.Empty, false, float.MaxValue, -1f, float.MinValue);
+        public static ref readonly SpeedPostFeatures None => ref none;
+
+        public readonly string SpeedPostTypeName { get; }
+        public readonly bool IsWarning { get; }
+        public readonly float DistanceM { get; }
+        public readonly float SpeedLimitMpS { get; }
+        public readonly float AltitudeM { get; }
+
+        public SpeedPostFeatures(string speedPostTypeName, bool isWarning, float distanceM, float speedLimitMpS, float altitudeM)
+        {
+            SpeedPostTypeName = speedPostTypeName;
+            IsWarning = isWarning;
+            DistanceM = distanceM;
+            SpeedLimitMpS = speedLimitMpS;
+            AltitudeM = altitudeM;
         }
     }
 

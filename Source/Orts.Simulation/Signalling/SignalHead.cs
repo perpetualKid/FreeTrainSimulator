@@ -84,7 +84,7 @@ namespace Orts.Simulation.Signalling
 
             float passSpeed = speedItem.IsPassenger ? (float)speedMpS : -1;
             float freightSpeed = speedItem.IsFreight ? (float)speedMpS : -1;
-            SpeedInfoSet[SignalIndicationState] = new SpeedInfo(passSpeed, freightSpeed, false, false, speedItem is TempSpeedPostItem ? (speedMpS == 999f ? 2 : 1) : 0); ;
+            SpeedInfoSet[SignalIndicationState] = new SpeedInfo(passSpeed, freightSpeed, false, false, speedItem is TempSpeedPostItem ? (speedMpS == 999f ? 2 : 1) : 0, speedItem.IsWarning);
         }
 
         internal void ResetMain(Signal signal)
@@ -122,7 +122,7 @@ namespace Orts.Simulation.Signalling
                 // set signal speeds
                 foreach (SignalAspect aspect in SignalType.Aspects)
                 {
-                    SpeedInfoSet[aspect.Aspect] = new SpeedInfo(aspect.SpeedLimit, aspect.SpeedLimit, aspect.Asap, aspect.Reset, aspect.NoSpeedReduction ? 1 : 0);
+                    SpeedInfoSet[aspect.Aspect] = new SpeedInfo(aspect.SpeedLimit, aspect.SpeedLimit, aspect.Asap, aspect.Reset, aspect.NoSpeedReduction ? 1 : 0, false);
                 }
 
                 // set normal subtype

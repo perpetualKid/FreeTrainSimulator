@@ -20,6 +20,7 @@ namespace Orts.Simulation.Physics
         public EndAuthorityType AuthorityType { get; }
         public TrackMonitorSignalAspect SignalState { get; }
         public float AllowedSpeedMpS { get; }
+        public bool IsWarning { get; }
         public float DistanceToTrainM { get; }
         public bool Enabled { get; }
         public int StationPlatformLength { get; }
@@ -38,6 +39,7 @@ namespace Orts.Simulation.Physics
         //
         // if ItemType == SPEEDPOST :
         //      AllowedSpeedMpS
+        //      IsWarning
         //      DistanceToTrainM
         //
         // if ItemType == STATION :
@@ -75,14 +77,16 @@ namespace Orts.Simulation.Physics
         }
 
         // Constructor for Speedpost
-        public TrainPathItem(float speed, float distance, SpeedItemType speedItemType = SpeedItemType.Standard)
+        public TrainPathItem(float speed, bool warning, float distance, Signal signal, SpeedItemType speedItemType = SpeedItemType.Standard)
         {
             ItemType = TrainPathItemType.Speedpost;
             AuthorityType = EndAuthorityType.NoPathReserved;
             SignalState = TrackMonitorSignalAspect.Clear2;
             AllowedSpeedMpS = speed;
+            IsWarning = warning;
             DistanceToTrainM = distance;
             SpeedObjectType = speedItemType;
+            Signal = signal;
         }
 
         // Constructor for Station or Tunnel

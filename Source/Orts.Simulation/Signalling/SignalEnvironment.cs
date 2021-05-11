@@ -54,13 +54,14 @@ namespace Orts.Simulation.Signalling
         // local data
         //================================================================================================//
 
-        private Simulator simulator;
-
         /// Gets an array of all the SignalObjects.
         public List<Signal> Signals { get; private set; }
 
         private readonly TrackDB trackDB;
-        private TrackSectionsFile tsectiondat;
+        private readonly TrackSectionsFile tsectiondat;
+
+        private List<SpeedPostWorldObject> speedPostWorldList = new List<SpeedPostWorldObject>();
+        private Dictionary<int, int> speedPostRefList = new Dictionary<int, int>();
 
         public int OrtsSignalTypeCount { get; private set; }
 
@@ -306,6 +307,7 @@ namespace Orts.Simulation.Signalling
             List<TokenID> Tokens = new List<TokenID>
             {
                 TokenID.Signal,
+                TokenID.Speedpost,
                 TokenID.Platform
             };
 
@@ -344,6 +346,18 @@ namespace Orts.Simulation.Signalling
                                 {
                                     if (!signalWorldLookup.TryAdd(reference.Key, signalWorldInfo))
                                         Trace.TraceWarning($"Key {reference.Key} already exists for SignalWorldInfo");
+                                }
+                            }
+                            else if (worldObject is SpeedPostObject speedPostObj)
+                            {
+                                speedPostWorldList.Add(new SpeedPostWorldObject(speedPostObj));
+                                int thisSpeedPostId = speedPostWorldList.Count - 1;
+                                foreach (int trItemId in speedPostObj.TrackItemIds.TrackDbItems)
+                                {
+                                    if (!speedPostRefList.ContainsKey(trItemId))
+                                    {
+                                        speedPostRefList.Add(trItemId, thisSpeedPostId);
+                                    }
                                 }
                             }
                             else if (worldObject is PlatformObject platformObject)
@@ -406,7 +420,7 @@ namespace Orts.Simulation.Signalling
         {
 
             //  Determine the number of signals in the track Objects list
-            int signalCount = (trackItems ?? Enumerable.Empty<TrackItem>()).Where(item => item is SignalItem || (item is SpeedPostItem speedPost && speedPost.IsLimit)).Count();
+            int signalCount = (trackItems ?? Enumerable.Empty<TrackItem>()).Where(item => item is SignalItem || (item is SpeedPostItem speedPost && !speedPost.IsMilePost)).Count();
 
             // set general items and create sections
             Signals = new List<Signal>(signalCount);
@@ -604,13 +618,13 @@ namespace Orts.Simulation.Signalling
                         // Track Item is speedpost - check if really limit
                         else if (trackItems[tdbRef] is SpeedPostItem speedItem)
                         {
-                            if (speedItem.IsLimit)
+                            if (!speedItem.IsMilePost)
                             {
                                 AddSpeed(index, i, speedItem, tdbRef, tsectiondat, tdbfile);
                                 speedItem.SignalObject = Signals.Count - 1;
 
                             }
-                            else if (speedItem.IsMilePost)
+                            else
                             {
                                 speedItem.SignalObject = AddMilepost(speedItem, tdbRef);
                             }
@@ -791,14 +805,29 @@ namespace Orts.Simulation.Signalling
             // loop through all signal and all heads
             foreach (Signal signal in Signals)
             {
-                foreach (SignalHead head in signal.SignalHeads)
+                if (signal.IsSignal)
                 {
-                    // get reference using TDB index from head
-                    if (signalWorldLookup.TryGetValue(Convert.ToUInt32(head.TDBIndex), out SignalWorldInfo result))
-                        signal.WorldObject = result;
+                    foreach (SignalHead head in signal.SignalHeads)
+                    {
+                        // get reference using TDB index from head
+                        if (signalWorldLookup.TryGetValue(Convert.ToUInt32(head.TDBIndex), out SignalWorldInfo result))
+                            signal.WorldObject = result;
+                    }
+                }
+                else
+                {
+                    SignalHead head = signal.SignalHeads[0];
+
+                    if (speedPostRefList.TryGetValue(head.TDBIndex, out int speedPostIndex))
+                    {
+                        if (signal.SpeedPostWorldObject == null)
+                        {
+                            signal.SpeedPostWorldObject = speedPostWorldList[speedPostIndex];
+                        }
+                        speedPostRefList.Remove(head.TDBIndex);
+                    }
                 }
             }
-
         }//AddWorldInfo
 
         //================================================================================================//

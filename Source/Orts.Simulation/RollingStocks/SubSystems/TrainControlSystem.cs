@@ -1,4 +1,4 @@
-// COPYRIGHT 2013, 2014 by the Open Rails project.
+// COPYRIGHT 2021 by the Open Rails project.
 // 
 // This file is part of Open Rails.
 // 
@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 
 using Orts.Common;
 using Orts.Common.Calc;
@@ -286,6 +287,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 Script.NextGenericSignalDistanceM = (string type) =>
                     NextGenericSignalItem<float>(0, ref ItemDistance, GenericItemDistance, TrainPathItemType.Signal, type);
                 Script.NextGenericSignalFeatures = (arg1, arg2, arg3) => NextGenericSignalFeatures(arg1, arg2, arg3, TrainPathItemType.Signal);
+                Script.NextSpeedPostFeatures = (arg1, arg2) => NextSpeedPostFeatures(arg1, arg2);
                 Script.DoesNextNormalSignalHaveRepeaterHead = () => DoesNextNormalSignalHaveRepeaterHead();
                 Script.CurrentPostSpeedLimitMpS = () => Locomotive.Train.AllowedMaxSpeedLimitMpS;
                 Script.NextPostSpeedLimitMpS = (value) => NextGenericSignalItem<float>(value, ref ItemSpeedLimit, float.MaxValue, TrainPathItemType.Speedpost);
@@ -627,11 +629,54 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             }
             else if (type == TrainPathItemType.Speedpost)
             {
+                var playerTrainSpeedpostList = Locomotive.Train.PlayerTrainSpeedposts[dir].Where(x => !x.IsWarning).ToList();
+                if (itemSequenceIndex > playerTrainSpeedpostList.Count - 1)
+                    return SignalFeatures.None;
+                var trainSpeedpost = playerTrainSpeedpostList[itemSequenceIndex];
+                if (trainSpeedpost.DistanceToTrainM > maxDistanceM)
+                    return SignalFeatures.None;
+
                 // All OK, we can retrieve the data for the required speedpost;
                 distanceM = trainpathItem.DistanceToTrainM;
                 speedLimitMpS = trainpathItem.AllowedSpeedMpS;
             }
             return new SignalFeatures(mainHeadSignalTypeName, aspect, distanceM, speedLimitMpS, altitudeOrLengthM, textAspect);
+        }
+
+        private SpeedPostFeatures NextSpeedPostFeatures(int itemSequenceIndex, float maxDistanceM)
+        {
+            var speedPostTypeName = "";
+            var isWarning = false;
+            var distanceM = float.MaxValue;
+            var speedLimitMpS = -1f;
+            var altitudeM = float.MinValue;
+
+            Direction dir = Locomotive.Train.MUDirection == MidpointDirection.Reverse ? Direction.Backward : Direction.Forward;
+
+            if (Locomotive.Train.ValidRoute[(int)dir] == null || dir == Direction.Backward && Locomotive.Train.PresentPosition[dir].TrackCircuitSectionIndex < 0)
+                return SpeedPostFeatures.None;
+
+            int index = dir == 0 ? Locomotive.Train.PresentPosition[dir].RouteListIndex :
+                Locomotive.Train.ValidRoute[(int)dir].GetRouteIndex(Locomotive.Train.PresentPosition[dir].TrackCircuitSectionIndex, 0);
+            if (index < 0)
+                return SpeedPostFeatures.None;
+
+            var playerTrainSpeedpostList = Locomotive.Train.PlayerTrainSpeedposts[dir];
+            if (itemSequenceIndex > playerTrainSpeedpostList.Count - 1)
+                return SpeedPostFeatures.None; // no n-th speedpost available
+            var trainSpeedpost = playerTrainSpeedpostList[itemSequenceIndex];
+            if (trainSpeedpost.DistanceToTrainM > maxDistanceM)
+                return SpeedPostFeatures.None; // the requested speedpost is too distant
+
+            // All OK, we can retrieve the data for the required speedpost;
+            speedPostTypeName = Path.GetFileNameWithoutExtension(trainSpeedpost.Signal.SpeedPostWorldObject?.SpeedPostFileName);
+            isWarning = trainSpeedpost.IsWarning;
+            distanceM = trainSpeedpost.DistanceToTrainM;
+            speedLimitMpS = trainSpeedpost.AllowedSpeedMpS;
+            altitudeM = trainSpeedpost.Signal.TdbTraveller.Y;
+
+            return new SpeedPostFeatures(speedPostTypeName: speedPostTypeName, isWarning: isWarning, distanceM: distanceM, speedLimitMpS: speedLimitMpS,
+                altitudeM: altitudeM);
         }
 
         private bool DoesNextNormalSignalHaveRepeaterHead()

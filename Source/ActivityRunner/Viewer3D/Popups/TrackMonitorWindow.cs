@@ -1,4 +1,4 @@
-﻿// COPYRIGHT 2010, 2011, 2012, 2013, 2014, 2015 by the Open Rails project.
+// COPYRIGHT 2010, 2011, 2012, 2013, 2014, 2015 by the Open Rails project.
 // 
 // This file is part of Open Rails.
 // 
@@ -846,7 +846,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
                 var labelPoint = new Point(offset.X + speedTextOffset, offset.Y + newLabelPosition + textOffset[forward ? 0 : 1]);
                 var speedString = FormatStrings.FormatSpeedLimitNoUoM(allowedSpeed, metric);
-                Font.Draw(spriteBatch, labelPoint, speedString, thisItem.SpeedObjectType == SpeedItemType.Standard ? Color.White :
+                Font.Draw(spriteBatch, labelPoint, speedString, thisItem.SpeedObjectType == SpeedItemType.Standard ? (thisItem.IsWarning ? Color.Yellow : Color.White) :
                     (thisItem.SpeedObjectType == SpeedItemType.TemporaryRestrictionStart ? Color.Red : Color.LightGreen));
 
                 if (itemOffset < firstLabelPosition && !firstLabelShown)

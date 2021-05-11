@@ -51,6 +51,7 @@ namespace Orts.Simulation.Signalling
         private static SignalEnvironment signalEnvironment; //back reference to the signal environment
 
         internal SignalWorldInfo WorldObject { get; set; }                // Signal World Object information
+        internal SpeedPostWorldObject SpeedPostWorldObject { get; set; } // Speed Post World Object information
 
         private int? nextSwitchIndex;                       // index of first switch in path
 
@@ -901,14 +902,14 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         internal SpeedInfo SpeedLimit(SignalFunction signalType)
         {
-            SpeedInfo setSpeed = new SpeedInfo(9E9f, 9E9f, false, false, 0);
+            SpeedInfo setSpeed = new SpeedInfo(9E9f, 9E9f, false, false, 0, false);
 
             foreach (SignalHead sigHead in SignalHeads)
             {
                 if (sigHead.SignalFunction == signalType)
                 {
                     SpeedInfo speed = sigHead.SpeedInfoSet[sigHead.SignalIndicationState];
-                    if (speed != null)
+                    if (speed != null && !speed.SpeedWarning)
                     {
                         if (speed.PassengerSpeed > 0 && speed.PassengerSpeed < setSpeed.PassengerSpeed)
                         {

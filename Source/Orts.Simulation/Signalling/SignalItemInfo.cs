@@ -88,7 +88,7 @@ namespace Orts.Simulation.Signalling
                 DistanceToTrain = inf.ReadSingle(),
                 DistanceToObject = inf.ReadSingle(),
             };
-            result.SpeedInfo = new SpeedInfo(inf.ReadSingle(), inf.ReadSingle(), inf.ReadBoolean(), false, 0);
+            result.SpeedInfo = new SpeedInfo(inf.ReadSingle(), inf.ReadSingle(), inf.ReadBoolean(), false, 0, false);
             result.ActualSpeed = inf.ReadSingle();
 
             result.Processed = inf.ReadBoolean();
