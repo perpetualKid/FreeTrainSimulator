@@ -770,7 +770,7 @@ namespace Orts.Simulation.RollingStocks
             {
                 _AccelerationMpSS = (_SpeedMpS - _PrevSpeedMpS) / (float)elapsedClockSeconds;
 
-                if (Simulator.UseAdvancedAdhesion)
+                if (Simulator.UseAdvancedAdhesion && !Simulator.Settings.SimpleControlPhysics)
                     _AccelerationMpSS = (float)AccelerationFilter.Filter(_AccelerationMpSS, elapsedClockSeconds);
 
                 _PrevSpeedMpS = _SpeedMpS;
@@ -841,8 +841,8 @@ namespace Orts.Simulation.RollingStocks
         public virtual void UpdateBrakeSlideCalculation()
         {
 
-            // Only apply slide, and advanced brake friction, if advanced adhesion is selected, and it is a Player train
-            if (Simulator.UseAdvancedAdhesion && IsPlayerTrain)
+            // Only apply slide, and advanced brake friction, if advanced adhesion is selected, simplecontrolphysics is not set, and it is a Player train
+            if (Simulator.UseAdvancedAdhesion && !Simulator.Settings.SimpleControlPhysics && IsPlayerTrain)
             {
 
                 // Get user defined brake shoe coefficient if defined in WAG file

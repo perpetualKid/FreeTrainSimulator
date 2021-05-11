@@ -1567,8 +1567,8 @@ namespace Orts.Simulation.Timetables
                             parentTrain.SpeedSettings.movingtableSpeedMpS.Value;
 
                         originalTrainMaxSpeedMpS = parentTrain.TrainMaxSpeedMpS;
-                        originalSpeedSignalMpS = parentTrain.allowedMaxSpeedSignalMpS;
-                        originalSpeedLimitMpS = parentTrain.allowedMaxSpeedLimitMpS;
+                        originalSpeedSignalMpS = parentTrain.AllowedMaxSpeedSignalMpS;
+                        originalSpeedLimitMpS = parentTrain.AllowedMaxSpeedLimitMpS;
                         parentTrain.TrainMaxSpeedMpS = reqTrainSpeed;
                         parentTrain.AllowedMaxSpeedMpS = Math.Min(parentTrain.AllowedMaxSpeedMpS, parentTrain.TrainMaxSpeedMpS);
 
@@ -1601,8 +1601,8 @@ namespace Orts.Simulation.Timetables
                             parentTrain.SpeedSettings.movingtableSpeedMpS.Value;
 
                         originalTrainMaxSpeedMpS = parentTrain.TrainMaxSpeedMpS;
-                        originalSpeedSignalMpS = parentTrain.allowedMaxSpeedSignalMpS;
-                        originalSpeedLimitMpS = parentTrain.allowedMaxSpeedLimitMpS;
+                        originalSpeedSignalMpS = parentTrain.AllowedMaxSpeedSignalMpS;
+                        originalSpeedLimitMpS = parentTrain.AllowedMaxSpeedLimitMpS;
                         parentTrain.TrainMaxSpeedMpS = reqTrainSpeed;
                         parentTrain.AllowedMaxSpeedMpS = Math.Min(parentTrain.AllowedMaxSpeedMpS, parentTrain.TrainMaxSpeedMpS);
                     }
@@ -1736,8 +1736,8 @@ namespace Orts.Simulation.Timetables
                             parentTrain.SpeedSettings.movingtableSpeedMpS.Value;
 
                         originalTrainMaxSpeedMpS = parentTrain.TrainMaxSpeedMpS;
-                        originalSpeedSignalMpS = parentTrain.allowedMaxSpeedSignalMpS;
-                        originalSpeedLimitMpS = parentTrain.allowedMaxSpeedLimitMpS;
+                        originalSpeedSignalMpS = parentTrain.AllowedMaxSpeedSignalMpS;
+                        originalSpeedLimitMpS = parentTrain.AllowedMaxSpeedLimitMpS;
                         parentTrain.TrainMaxSpeedMpS = reqTrainSpeed;
                         parentTrain.AllowedMaxSpeedMpS = Math.Min(parentTrain.AllowedMaxSpeedMpS, parentTrain.TrainMaxSpeedMpS);
 
@@ -1780,8 +1780,8 @@ namespace Orts.Simulation.Timetables
                             parentTrain.SpeedSettings.movingtableSpeedMpS.Value;
 
                         originalTrainMaxSpeedMpS = parentTrain.TrainMaxSpeedMpS;
-                        originalSpeedSignalMpS = parentTrain.allowedMaxSpeedSignalMpS;
-                        originalSpeedLimitMpS = parentTrain.allowedMaxSpeedLimitMpS;
+                        originalSpeedSignalMpS = parentTrain.AllowedMaxSpeedSignalMpS;
+                        originalSpeedLimitMpS = parentTrain.AllowedMaxSpeedLimitMpS;
                         parentTrain.TrainMaxSpeedMpS = reqTrainSpeed;
                         parentTrain.AllowedMaxSpeedMpS = Math.Min(parentTrain.AllowedMaxSpeedMpS, parentTrain.TrainMaxSpeedMpS);
 

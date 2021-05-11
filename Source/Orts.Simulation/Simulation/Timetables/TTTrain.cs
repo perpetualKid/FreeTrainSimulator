@@ -2263,8 +2263,8 @@ namespace Orts.Simulation.Timetables
                     TrainMaxSpeedMpS = otherTrain.TrainMaxSpeedMpS;
                 }
                 AllowedMaxSpeedMpS = otherTrain.AllowedMaxSpeedMpS;
-                allowedMaxSpeedSignalMpS = otherTrain.allowedMaxSpeedSignalMpS;
-                allowedMaxSpeedLimitMpS = otherTrain.allowedMaxSpeedLimitMpS;
+                AllowedMaxSpeedSignalMpS = otherTrain.AllowedMaxSpeedSignalMpS;
+                AllowedMaxSpeedLimitMpS = otherTrain.AllowedMaxSpeedLimitMpS;
 
                 FrontTDBTraveller = new Traveller(otherTrain.FrontTDBTraveller);
                 RearTDBTraveller = new Traveller(otherTrain.RearTDBTraveller);

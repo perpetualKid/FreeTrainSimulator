@@ -1,4 +1,4 @@
-﻿// COPYRIGHT 2009, 2010, 2011, 2012, 2013 by the Open Rails project.
+// COPYRIGHT 2009, 2010, 2011, 2012, 2013 by the Open Rails project.
 // 
 // This file is part of Open Rails.
 // 
@@ -3368,7 +3368,7 @@ namespace Orts.Simulation.RollingStocks
         }
         public override float GetCouplerZeroLengthM()
         {
-            if (IsPlayerTrain && Simulator.UseAdvancedAdhesion && IsAdvancedCoupler)
+            if (IsPlayerTrain && Simulator.UseAdvancedAdhesion && !Simulator.Settings.SimpleControlPhysics && IsAdvancedCoupler)
             {
                 float zerolength;
                 if (Coupler != null)
