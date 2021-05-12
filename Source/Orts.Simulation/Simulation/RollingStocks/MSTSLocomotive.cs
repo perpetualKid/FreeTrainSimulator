@@ -427,6 +427,7 @@ namespace Orts.Simulation.RollingStocks
         public Axle LocomotiveAxle;
         public IIRFilter CurrentFilter;
         public IIRFilter AdhesionFilter;
+        public float SaveAdhesionFilter;
 
         public float FilteredMotiveForceN;
 
@@ -1112,6 +1113,7 @@ namespace Orts.Simulation.RollingStocks
             outf.Write(ScoopIsBroken);
             outf.Write(IsWaterScoopDown);
             outf.Write(CurrentTrackSandBoxCapacityM3);
+            outf.Write(SaveAdhesionFilter);
 
             base.Save(outf);
 
@@ -1139,7 +1141,7 @@ namespace Orts.Simulation.RollingStocks
             VacuumExhausterIsOn = inf.ReadBoolean();
             TrainBrakePipeLeakPSIorInHgpS = inf.ReadSingle();
             AverageForceN = inf.ReadSingle();
-            LocomotiveAxle.Reset(Simulator.GameTime, inf.ReadSingle());
+            float axleSpeedMpS = inf.ReadSingle();
             CabLightOn = inf.ReadBoolean();
             UsingRearCab = inf.ReadBoolean();
             CalculatedCarHeaterSteamUsageLBpS = inf.ReadSingle();
@@ -1157,12 +1159,17 @@ namespace Orts.Simulation.RollingStocks
             IsWaterScoopDown = inf.ReadBoolean();
             CurrentTrackSandBoxCapacityM3 = inf.ReadSingle();
 
-            AdhesionFilter.Reset(0.5f);
+            SaveAdhesionFilter = inf.ReadSingle();
+            
+            AdhesionFilter.Reset(SaveAdhesionFilter);
 
             base.Restore(inf);
 
             TrainControlSystem.Restore(inf);
             LocomotiveAxle = new Axle(inf);
+            MoveParamsToAxle();
+            LocomotiveAxle.FilterMovingAverage.Initialize(AverageForceN);
+            LocomotiveAxle.Reset(Simulator.GameTime, axleSpeedMpS);
         }
 
         public bool IsLeadLocomotive()
@@ -2799,7 +2806,8 @@ namespace Orts.Simulation.RollingStocks
             // Set adhesion conditions for diesel, electric or steam geared locomotives
             if (elapsedClockSeconds > 0)
             {
-                LocomotiveAxle.AdhesionConditions = AdhesionMultiplier * (float)AdhesionFilter.Filter(BaseFrictionCoefficientFactor + AdhesionRandom, elapsedClockSeconds);
+                SaveAdhesionFilter = (float)AdhesionFilter.Filter(BaseFrictionCoefficientFactor + AdhesionRandom, elapsedClockSeconds);
+                LocomotiveAxle.AdhesionConditions = AdhesionMultiplier * SaveAdhesionFilter;
                 LocomotiveAxle.AdhesionConditions = MathHelper.Clamp(LocomotiveAxle.AdhesionConditions, 0.05f, 2.5f); // Avoids NaNs in axle speed computing
             }
 
