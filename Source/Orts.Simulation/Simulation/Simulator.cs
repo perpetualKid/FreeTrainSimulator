@@ -653,7 +653,6 @@ namespace Orts.Simulation
         /// elapsedClockSeconds represents the time since the last call to Simulator.Update
         /// Executes in the UpdaterProcess thread.
         /// </summary>
-        //[CallOnThread("Updater")]
         public void Update(double elapsedClockSeconds)
         {
             // Advance the times.

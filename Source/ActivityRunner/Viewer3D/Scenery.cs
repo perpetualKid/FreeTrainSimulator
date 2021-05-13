@@ -78,7 +78,6 @@ namespace Orts.ActivityRunner.Viewer3D
             Viewer = viewer;
         }
 
-        //[CallOnThread("Loader")]
         public void Load()
         {
             var cancellation = Viewer.LoaderProcess.CancellationToken;
@@ -160,7 +159,6 @@ namespace Orts.ActivityRunner.Viewer3D
             }
         }
 
-        //[CallOnThread("Loader")]
         internal void Mark()
         {
             var worldFiles = WorldFiles;
@@ -168,13 +166,11 @@ namespace Orts.ActivityRunner.Viewer3D
                 tile.Mark();
         }
 
-        //[CallOnThread("Updater")]
         public float GetBoundingBoxTop(in WorldLocation location, float blockSize)
         {
             return GetBoundingBoxTop(location.TileX, location.TileZ, location.Location.X, location.Location.Z, blockSize);
         }
 
-        //[CallOnThread("Updater")]
         public float GetBoundingBoxTop(int tileX, int tileZ, float x, float z, float blockSize)
         {
             // Normalize the coordinates to the right tile.
@@ -192,7 +188,6 @@ namespace Orts.ActivityRunner.Viewer3D
             return worldFile.GetBoundingBoxTop(x, z, blockSize);
         }
 
-        //[CallOnThread("Updater")]
         public void Update(in ElapsedTime elapsedTime)
         {
             var worldFiles = WorldFiles;
@@ -200,14 +195,12 @@ namespace Orts.ActivityRunner.Viewer3D
                 worldFile.Update(elapsedTime);
         }
 
-        //[CallOnThread("Updater")]
         public void LoadPrep()
         {
             VisibleTileX = Viewer.Camera.TileX;
             VisibleTileZ = Viewer.Camera.TileZ;
         }
 
-        //[CallOnThread("Updater")]
         public void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             var worldFiles = WorldFiles;
@@ -232,12 +225,10 @@ namespace Orts.ActivityRunner.Viewer3D
         }
     }
 
-    //[CallOnThread("Loader")]
     public class WorldFile
     {
         const int MinimumInstanceCount = 5;
 
-        // Dynamic track objects in the world file
         public struct DyntrackParams
         {
             public int isCurved;
@@ -573,7 +564,6 @@ namespace Orts.ActivityRunner.Viewer3D
             return ClockType.Unknown;
         }
 
-        //[CallOnThread("Loader")]
         public void Unload()
         {
             foreach (var obj in sceneryObjects)
@@ -581,7 +571,6 @@ namespace Orts.ActivityRunner.Viewer3D
             if (Viewer.World.Sounds != null) Viewer.World.Sounds.RemoveByTile(TileX, TileZ);
         }
 
-        //[CallOnThread("Loader")]
         internal void Mark()
         {
             foreach (var shape in sceneryObjects)
@@ -592,7 +581,6 @@ namespace Orts.ActivityRunner.Viewer3D
                 forest.Mark();
         }
 
-        //[CallOnThread("Updater")]
         public float GetBoundingBoxTop(float x, float z, float blockSize)
         {
             var location = new Vector3(x, float.MinValue, -z);
@@ -608,14 +596,12 @@ namespace Orts.ActivityRunner.Viewer3D
             return location.Y;
         }
 
-        //[CallOnThread("Updater")]
         public void Update(in ElapsedTime elapsedTime)
         {
             foreach (var spawner in carSpawners)
                 spawner.Update(elapsedTime);
         }
 
-        //[CallOnThread("Updater")]
         public void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             foreach (var shape in sceneryObjects)

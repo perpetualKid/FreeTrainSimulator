@@ -35,7 +35,6 @@ using Orts.Formats.Msts.Models;
 namespace Orts.ActivityRunner.Viewer3D
 {
     [DebuggerDisplay("Count = {TerrainTiles.Count}")]
-    //[CallOnThread("Loader")]
     public class TerrainViewer
     {
         readonly Viewer Viewer;
@@ -49,7 +48,6 @@ namespace Orts.ActivityRunner.Viewer3D
         int VisibleTileX;
         int VisibleTileZ;
 
-        //[CallOnThread("Render")]
         public TerrainViewer(Viewer viewer)
         {
             Viewer = viewer;
@@ -102,14 +100,12 @@ namespace Orts.ActivityRunner.Viewer3D
             }
         }
 
-        //[CallOnThread("Updater")]
         public void LoadPrep()
         {
             VisibleTileX = Viewer.Camera.TileX;
             VisibleTileZ = Viewer.Camera.TileZ;
         }
 
-        //[CallOnThread("Updater")]
         public void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             var tiles = TerrainTiles;
@@ -124,7 +120,6 @@ namespace Orts.ActivityRunner.Viewer3D
                 tile.Mark();
         }
 
-        //[CallOnThread("Updater")]
         public string GetStatus()
         {
             return Viewer.Catalog.GetPluralString("{0:F0} tile", "{0:F0} tiles", TerrainTiles.Count);
@@ -132,7 +127,6 @@ namespace Orts.ActivityRunner.Viewer3D
     }
 
     [DebuggerDisplay("TileX = {TileX}, TileZ = {TileZ}, Size = {Size}")]
-    //[CallOnThread("Loader")]
     public class TerrainTile
     {
         public readonly int TileX, TileZ, Size, PatchCount;
@@ -163,7 +157,6 @@ namespace Orts.ActivityRunner.Viewer3D
                 WaterTile = new WaterPrimitive(viewer, tile);
         }
 
-        //[CallOnThread("Updater")]
         public void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             if (WaterTile != null)
@@ -175,7 +168,6 @@ namespace Orts.ActivityRunner.Viewer3D
                         TerrainPatches[x, z].PrepareFrame(frame);
         }
 
-        //[CallOnThread("Loader")]
         internal void Mark()
         {
             if (WaterTile != null)
@@ -189,7 +181,6 @@ namespace Orts.ActivityRunner.Viewer3D
     }
 
     [DebuggerDisplay("TileX = {TileX}, TileZ = {TileZ}, Size = {Size}, PatchX = {PatchX}, PatchZ = {PatchZ}")]
-    //[CallOnThread("Loader")]
     public class TerrainPrimitive : RenderPrimitive
     {
         readonly Viewer Viewer;
@@ -251,7 +242,6 @@ namespace Orts.ActivityRunner.Viewer3D
             VertexBufferBindings = new[] { new VertexBufferBinding(PatchVertexBuffer), new VertexBufferBinding(GetDummyVertexBuffer(viewer.RenderProcess.GraphicsDevice)) };
         }
 
-        //[CallOnThread("Updater")]
         public void PrepareFrame(RenderFrame frame)
         {
             var dTileX = TileX - Viewer.Camera.TileX;
@@ -452,7 +442,6 @@ namespace Orts.ActivityRunner.Viewer3D
             return result;
         }
 
-        //[CallOnThread("Loader")]
         internal void Mark()
         {
             PatchMaterial.Mark();

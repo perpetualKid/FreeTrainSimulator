@@ -306,7 +306,6 @@ namespace Orts.ActivityRunner.Viewer3D
             mstsskylongitude = 0;
         }
 
-        //[CallOnThread("Loader")]
         internal void Mark()
         {
             MSTSSkyMaterial.Mark();

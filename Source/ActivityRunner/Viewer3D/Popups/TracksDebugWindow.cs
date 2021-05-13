@@ -30,7 +30,6 @@ using Orts.Simulation;
 
 namespace Orts.ActivityRunner.Viewer3D.Popups
 {
-    //[CallOnThread("Updater")]
     public class TracksDebugWindow : LayeredWindow
     {
         const float DisplayDistance = 1000;

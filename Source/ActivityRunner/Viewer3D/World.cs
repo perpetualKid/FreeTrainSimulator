@@ -49,7 +49,6 @@ namespace Orts.ActivityRunner.Viewer3D
         int VisibleTileZ;
         bool PerformanceTune;
 
-        //[CallOnThread("Render")]
         public World(Viewer viewer, double gameTime)
         {
             Viewer = viewer;
@@ -87,7 +86,6 @@ namespace Orts.ActivityRunner.Viewer3D
             }
         }
 
-        //[CallOnThread("Loader")]
         public void Load()
         {
             Terrain.Load();
@@ -117,7 +115,6 @@ namespace Orts.ActivityRunner.Viewer3D
             }
         }
 
-        //[CallOnThread("Updater")]
         public void Update(in ElapsedTime elapsedTime)
         {
             if (PerformanceTune && Viewer.RenderProcess.IsActive)
@@ -172,7 +169,6 @@ namespace Orts.ActivityRunner.Viewer3D
             Scenery.Update(elapsedTime);
         }
 
-        //[CallOnThread("Updater")]
         public void LoadPrep()
         {
             Terrain.LoadPrep();
@@ -184,7 +180,6 @@ namespace Orts.ActivityRunner.Viewer3D
             PerformanceTune = Viewer.Settings.PerformanceTuner;
         }
 
-        //[CallOnThread("Updater")]
         public void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             if (Viewer.Settings.UseMSTSEnv)

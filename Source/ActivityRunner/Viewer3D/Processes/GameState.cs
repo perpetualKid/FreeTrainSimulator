@@ -36,7 +36,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         /// Called just before a frame is drawn.
         /// </summary>
         /// <param name="frame">The <see cref="RenderFrame"/> containing everything to be drawn.</param>
-        //[CallOnThread("Render")]
         internal virtual void BeginRender(RenderFrame frame)
         {
         }
@@ -45,7 +44,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         /// Called just after a frame is drawn.
         /// </summary>
         /// <param name="frame">The <see cref="RenderFrame"/> containing everything that was drawn.</param>
-        //[CallOnThread("Render")]
         internal virtual void EndRender(RenderFrame frame)
         {
         }
@@ -55,7 +53,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         /// </summary>
         /// <param name="frame">The new <see cref="RenderFrame"/> that needs populating.</param>
         /// <param name="totalRealSeconds">The total number of real-world seconds which have elapsed since the game was started.</param>
-        //[CallOnThread("Updater")]
         internal virtual void Update(RenderFrame frame, double totalRealSeconds, GameTime gameTime)
         {
             // By default, every update tries to trigger a load.
@@ -66,7 +63,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         /// <summary>
         /// Called to load new content as and when necessary.
         /// </summary>
-        //[CallOnThread("Loader")]
         internal virtual void Load()
         {
         }

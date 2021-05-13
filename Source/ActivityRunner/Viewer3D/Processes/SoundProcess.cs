@@ -101,7 +101,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             }
         }
 
-        //[CallOnThread("Sound")]
         bool DoSound()
         {
             if (Debugger.IsAttached)
@@ -125,7 +124,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             return true;
         }
 
-        //[CallOnThread("Sound")]
         void Sound()
         {
             Profiler.Start();

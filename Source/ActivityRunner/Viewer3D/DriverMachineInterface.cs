@@ -525,7 +525,6 @@ namespace Orts.ActivityRunner.Viewer3D
         public readonly CircularSpeedGauge CircularSpeedGauge;
         float PrevScale = 1;
 
-        //[CallOnThread("Loader")]
         public CabViewCircularSpeedGaugeRenderer(Viewer viewer, MSTSLocomotive locomotive, CabViewDigitalControl control, CabShader shader)
             : base(viewer, locomotive, control, shader)
         {

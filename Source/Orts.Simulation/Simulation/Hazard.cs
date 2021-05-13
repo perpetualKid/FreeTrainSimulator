@@ -55,7 +55,6 @@ namespace Orts.Simulation
 					.ToDictionary(_ => _.Key, _ => _.Value);
 		}
 
-		//[CallOnThread("Loader")]
 		public Hazard AddHazzardIntoGame(int itemID, string hazFileName)
 		{
 			try
@@ -103,7 +102,6 @@ namespace Orts.Simulation
 			catch { };
 		}
 
-		//[CallOnThread("Updater")]
 		public void Update(double elapsedClockSeconds)
 		{
 			var playerLocation = Simulator.PlayerLocomotive.WorldPosition.WorldLocation;

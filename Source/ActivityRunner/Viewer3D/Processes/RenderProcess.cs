@@ -30,7 +30,6 @@ using System.Windows.Forms;
 
 namespace Orts.ActivityRunner.Viewer3D.Processes
 {
-    //[CallOnThread("Render")]
     public class RenderProcess
     {
         private enum ScreenMode
@@ -384,7 +383,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             frame2 = temp;
         }
 
-        //[CallOnThread("Updater")]
         public void ToggleFullScreen()
         {
             toggleScreenRequested = true;

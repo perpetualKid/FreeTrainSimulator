@@ -210,7 +210,6 @@ namespace Orts.ActivityRunner.Viewer3D
             longitude = 0;
         }
 
-        //[CallOnThread("Loader")]
         internal void Mark()
         {
             Material.Mark();

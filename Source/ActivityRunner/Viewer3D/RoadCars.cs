@@ -92,7 +92,6 @@ namespace Orts.ActivityRunner.Viewer3D
             Crossings = sortedLevelCrossings.Select(slc => new Crossing(slc.Value, slc.Key, float.NaN)).ToList();
         }
 
-        //[CallOnThread("Updater")]
         public void Update(in ElapsedTime elapsedTime)
         {
             var cars = Cars;
@@ -271,7 +270,6 @@ namespace Orts.ActivityRunner.Viewer3D
             IgnoreXRotation = viewer.Simulator.CarSpawnerLists[CarSpawnerListIdx].IgnoreXRotation;
         }
 
-        //[CallOnThread("Updater")]
         public void Update(in ElapsedTime elapsedTime)
         {
             var crossings = Spawner.Crossings;
@@ -351,7 +349,6 @@ namespace Orts.ActivityRunner.Viewer3D
             Viewer = viewer;
         }
 
-        //[CallOnThread("Loader")]
         public void Load()
         {
             var cancellation = Viewer.LoaderProcess.CancellationToken;
@@ -373,7 +370,6 @@ namespace Orts.ActivityRunner.Viewer3D
             }
         }
 
-        //[CallOnThread("Updater")]
         public void LoadPrep()
         {
             // TODO: Maybe optimise this with some serial numbers?
@@ -385,20 +381,17 @@ namespace Orts.ActivityRunner.Viewer3D
             VisibleCars = newVisibleCars;
         }
 
-        //[CallOnThread("Updater")]
         public void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             foreach (var car in Cars.Values)
                 car.PrepareFrame(frame, elapsedTime);
         }
 
-        //[CallOnThread("Loader")]
         RoadCarPrimitive LoadCar(RoadCar car)
         {
             return new RoadCarPrimitive(Viewer, car);
         }
 
-        //[CallOnThread("Loader")]
         internal void Mark()
         {
             var cars = Cars;
@@ -418,7 +411,6 @@ namespace Orts.ActivityRunner.Viewer3D
             CarShape = new RoadCarShape(viewer.Simulator.CarSpawnerLists[Car.CarSpawnerListIdx][car.Type].Name, car);
         }
 
-        //[CallOnThread("Updater")]
         public void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             //// TODO: Add 0.1f to Y to put wheels above road. Matching MSTS?
@@ -440,7 +432,6 @@ namespace Orts.ActivityRunner.Viewer3D
             CarShape.PrepareFrame(frame, elapsedTime);
         }
 
-        //[CallOnThread("Loader")]
         internal void Mark()
         {
             CarShape.Mark();

@@ -38,7 +38,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
     /// <summary>
     /// Provides the foundation for running the game.
     /// </summary>
-    //[CallOnThread("Render")]
     public class Game : Microsoft.Xna.Framework.Game
     {
         /// <summary>
@@ -185,7 +184,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             Trace.TraceInformation("Game.PopState()  {0}", String.Join(" | ", States.Select(s => s.GetType().Name).ToArray()));
         }
 
-        //[CallOnThread("Loader")]
         internal void ReplaceState(GameState state)
         {
             if (State != null)
@@ -201,10 +199,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         /// <summary>
         /// Updates the calling thread's <see cref="Thread.CurrentUICulture"/> to match the <see cref="Game"/>'s <see cref="Settings"/>.
         /// </summary>
-        //[CallOnThread("Render")]
-        //[CallOnThread("Updater")]
-        //[CallOnThread("Loader")]
-        //[CallOnThread("Watchdog")]
         public void SetThreadLanguage()
         {
             if (Settings.Language.Length > 0)
@@ -221,10 +215,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         /// Reports an <see cref="Exception"/> to the log file and/or user, exiting the game in the process.
         /// </summary>
         /// <param name="error">The <see cref="Exception"/> to report.</param>
-        //[CallOnThread("Render")]
-        //[CallOnThread("Updater")]
-        //[CallOnThread("Loader")]
-        //[CallOnThread("Sound")]
         public void ProcessReportError(Exception error)
         {
             // Turn off the watchdog since we're going down.

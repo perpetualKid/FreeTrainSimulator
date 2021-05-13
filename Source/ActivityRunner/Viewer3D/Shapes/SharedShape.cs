@@ -634,7 +634,6 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             return LodControls[0].DistanceLevels[0].SubObjects[0].ShapePrimitives[0].Hierarchy[iNode];
         }
 
-        //[CallOnThread("Loader")]
         internal void Mark()
         {
             viewer.ShapeManager.Mark(this);

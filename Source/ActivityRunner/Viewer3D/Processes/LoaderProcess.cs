@@ -119,7 +119,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             }
         }
 
-        //[CallOnThread("Updater")]
         internal void StartLoad()
         {
             Debug.Assert(State.Finished);
@@ -150,7 +149,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             return true;
         }
 
-        //[CallOnThread("Loader")]
         public void Load()
         {
             Profiler.Start();

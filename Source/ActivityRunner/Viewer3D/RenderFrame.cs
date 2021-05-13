@@ -364,7 +364,6 @@ namespace Orts.ActivityRunner.Viewer3D
             renderItemComparer.Update(cameraLocation);
         }
 
-        //[CallOnThread("Updater")]
         public void PrepareFrame(in ElapsedTime elapsedTime, bool lockShadows, bool logRenderFrame)
         {
             this.logRenderFrame = logRenderFrame;
@@ -431,7 +430,6 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <param name="group"></param>
         /// <param name="xnaMatrix"></param>
         /// <param name="flags"></param>
-        //[CallOnThread("Updater")]
         public void AddAutoPrimitive(Vector3 mstsLocation, float objectRadius, float objectViewingDistance, Material material, RenderPrimitive primitive, RenderPrimitiveGroup group, ref Matrix xnaMatrix, ShapeFlags flags)
         {
             if (float.IsPositiveInfinity(objectViewingDistance) || (camera != null && camera.InRange(mstsLocation, objectRadius, objectViewingDistance)))
@@ -482,7 +480,6 @@ namespace Orts.ActivityRunner.Viewer3D
                 primitive.ZBias = 1;
         }
 
-        //[CallOnThread("Updater")]
         void AddShadowPrimitive(int shadowMapIndex, Material material, RenderPrimitive primitive, ref Matrix xnaMatrix, ShapeFlags flags)
         {
             if (material is SceneryMaterial)
@@ -495,7 +492,6 @@ namespace Orts.ActivityRunner.Viewer3D
                 Debug.Fail("Only scenery, forest and terrain materials allowed in shadow map.");
         }
 
-        //[CallOnThread("Updater")]
         public void Sort()
         {
             //System.Threading.Tasks.Parallel.For(0, renderItems.Length, (i) =>
@@ -557,7 +553,6 @@ namespace Orts.ActivityRunner.Viewer3D
             return RenderPrimitive.SequenceForOpaque[(int)group];
         }
 
-        //[CallOnThread("Render")]
         public void Draw()
         {
             if (logRenderFrame)

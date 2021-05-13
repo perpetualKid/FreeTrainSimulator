@@ -258,7 +258,6 @@ namespace Orts.ActivityRunner.Viewer3D
         /// </summary>
         /// <param name="simulator">The <see cref="Simulator"/> with which the viewer runs.</param>
         /// <param name="game">The <see cref="Game"/> with which the viewer runs.</param>
-        //[CallOnThread("Loader")]
         public Viewer(Simulator simulator, Processes.Game game)
         {
             CatalogManager.SetCatalogDomainPattern(CatalogDomainPattern.AssemblyName, null, RuntimeInfo.LocalesFolder);
@@ -342,7 +341,6 @@ namespace Orts.ActivityRunner.Viewer3D
             Initialize();
         }
 
-        //[CallOnThread("Updater")]
         public void Save(BinaryWriter outf, string fileStem)
         {
             outf.Write(Simulator.Trains.IndexOf(PlayerTrain));
@@ -366,7 +364,6 @@ namespace Orts.ActivityRunner.Viewer3D
             World.WeatherControl.SaveWeatherParameters(outf);
         }
 
-        //[CallOnThread("Render")]
         public void Restore(BinaryReader inf)
         {
             Train playerTrain = Simulator.Trains[inf.ReadInt32()];
@@ -407,7 +404,6 @@ namespace Orts.ActivityRunner.Viewer3D
         /// to load any static graphics content, background
         /// processes haven't started yet.
         /// </summary>
-        //[CallOnThread("Loader")]
         internal void Initialize()
         {
             #region Input Command Controller
@@ -1459,13 +1455,11 @@ namespace Orts.ActivityRunner.Viewer3D
             return activeMovingTable;
         }
 
-        //[CallOnThread("Loader")]
         public void Mark()
         {
             WindowManager.Mark();
         }
 
-        //[CallOnThread("Render")]
         internal void Terminate()
         {
             InfoDisplay.Terminate();

@@ -90,7 +90,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             }
         }
 
-        //[CallOnThread("Render")]
         internal void StartUpdate(RenderFrame frame, GameTime gameTime)
         {
             CurrentFrame = frame;
@@ -121,7 +120,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             return true;
         }
 
-        //[CallOnThread("Updater")]
         public void Update()
         {
             Profiler.Start();

@@ -34,7 +34,6 @@ using System.Linq;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
-    //[CallOnThread("Loader")]
     public class SharedTextureManager
     {
         readonly Viewer Viewer;
@@ -191,14 +190,12 @@ namespace Orts.ActivityRunner.Viewer3D
                 Textures.Remove(path);
         }
 
-        //[CallOnThread("Updater")]
         public string GetStatus()
         {
             return Viewer.Catalog.GetPluralString("{0:F0} texture", "{0:F0} textures", Textures.Keys.Count);
         }
     }
 
-    //[CallOnThread("Loader")]
     public class SharedMaterialManager
     {
         readonly Viewer Viewer;
@@ -220,7 +217,6 @@ namespace Orts.ActivityRunner.Viewer3D
         public static Texture2D DefaultSnowTexture;
         public static Texture2D DefaultDMSnowTexture;
 
-        //[CallOnThread("Render")]
         public SharedMaterialManager(Viewer viewer)
         {
             Viewer = viewer;
@@ -437,7 +433,6 @@ namespace Orts.ActivityRunner.Viewer3D
         }
 
 
-        //[CallOnThread("Updater")]
         public string GetStatus()
         {
             return Viewer.Catalog.GetPluralString("{0:F0} material", "{0:F0} materials", Materials.Keys.Count);
@@ -574,7 +569,6 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public Camera CurrentCamera { get { return Viewer.Camera; } }
 
-        //[CallOnThread("Loader")]
         public virtual void Mark()
         {
             Viewer.MaterialManager.Mark(this);

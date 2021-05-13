@@ -1203,7 +1203,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             return retval;
         }
 
-        //[CallOnThread("Loader")]
         public static void Mark(Viewer viewer)
         {
             foreach (var texture in DayTextures.Values)
@@ -1246,7 +1245,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         private bool HasCabLightDirectory = false;
         public Dictionary<int, CabViewControlRenderer> ControlMap;
 
-        //[CallOnThread("Loader")]
         public CabRenderer(Viewer viewer, MSTSLocomotive car)
         {
             //Sequence = RenderPrimitiveSequence.CabView;
@@ -1646,7 +1644,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             return Control.ControlStyle;
         }
 
-        //[CallOnThread("Updater")]
         public virtual void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             frame.AddPrimitive(CabShaderControlView, this, RenderPrimitiveGroup.Cab, ref Matrix);
@@ -2503,7 +2500,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         Color DrawColor;
         float DrawRotation;
 
-        //[CallOnThread("Loader")]
         public CabViewDigitalRenderer(Viewer viewer, MSTSLocomotive car, CabViewDigitalControl digital, CabShader shader)
             : base(viewer, car, digital, shader)
         {

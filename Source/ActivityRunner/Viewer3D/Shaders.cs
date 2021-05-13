@@ -31,7 +31,6 @@ using Orts.Simulation;
 namespace Orts.ActivityRunner.Viewer3D
 {
 
-    //[CallOnThread("Render")]
     public class SceneryShader : BaseShader
     {
         readonly EffectParameter world;
@@ -224,7 +223,6 @@ namespace Orts.ActivityRunner.Viewer3D
         }
     }
 
-    //[CallOnThread("Render")]
     public class ShadowMapShader : BaseShader
     {
         readonly EffectParameter worldViewProjection;
@@ -267,7 +265,6 @@ namespace Orts.ActivityRunner.Viewer3D
         }
     }
 
-    //[CallOnThread("Render")]
     public class SkyShader : BaseShader
     {
         readonly EffectParameter worldViewProjection;
@@ -433,7 +430,6 @@ namespace Orts.ActivityRunner.Viewer3D
         }
     }
 
-    //[CallOnThread("Render")]
     public class ParticleEmitterShader : BaseShader
     {
         EffectParameter emitSize;
@@ -495,7 +491,6 @@ namespace Orts.ActivityRunner.Viewer3D
         }
     }
 
-    //[CallOnThread("Render")]
     public class LightGlowShader : BaseShader
     {
         readonly EffectParameter worldViewProjection;
@@ -523,7 +518,6 @@ namespace Orts.ActivityRunner.Viewer3D
         }
     }
 
-    //[CallOnThread("Render")]
     public class LightConeShader : BaseShader
     {
         EffectParameter worldViewProjection;
@@ -547,7 +541,6 @@ namespace Orts.ActivityRunner.Viewer3D
         }
     }
 
-    //[CallOnThread("Render")]
     public class PopupWindowShader : BaseShader
     {
         readonly EffectParameter world;
@@ -589,7 +582,6 @@ namespace Orts.ActivityRunner.Viewer3D
         }
     }
 
-    //[CallOnThread("Render")]
     public class CabShader : BaseShader
     {
         readonly EffectParameter nightColorModifier;
@@ -640,7 +632,6 @@ namespace Orts.ActivityRunner.Viewer3D
         }
     }
 
-    //[CallOnThread("Render")]
     public class DriverMachineInterfaceShader : BaseShader
     {
         readonly EffectParameter limitAngle;
@@ -669,7 +660,6 @@ namespace Orts.ActivityRunner.Viewer3D
         }
     }
 
-    //[CallOnThread("Render")]
     public class DebugShader : BaseShader
     {
         readonly EffectParameter worldViewProjection;

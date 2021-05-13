@@ -225,21 +225,18 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             }
         }
 
-        //[CallOnThread("Updater")]
         public void Save(BinaryWriter outf)
         {
             foreach (var window in Windows)
                 window.Save(outf);
         }
 
-        //[CallOnThread("Render")]
         public void Restore(BinaryReader inf)
         {
             foreach (var window in Windows)
                 window.Restore(inf);
         }
 
-        //[CallOnThread("Updater")]
         public void ScreenChanged()
         {
             var oldScreenSize = ScreenSize;
@@ -279,7 +276,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             frame.AddPrimitive(WindowManagerMaterial, this, RenderPrimitiveGroup.Overlay, ref Identity);
         }
 
-        //[CallOnThread("Render")]
         public override void Draw()
         {
             // Nothing visible? Nothing more to do!

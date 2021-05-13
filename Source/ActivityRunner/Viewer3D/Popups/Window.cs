@@ -208,7 +208,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             return content;
         }
 
-        //[CallOnThread("Updater")]
         public virtual void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime, bool updateFull)
         {
             if (Visible)

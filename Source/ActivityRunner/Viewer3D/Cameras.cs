@@ -218,14 +218,12 @@ namespace Orts.ActivityRunner.Viewer3D
             }
         }
 
-        //[CallOnThread("Updater")]
         protected internal virtual void Save(BinaryWriter output)
         {
             WorldLocation.Save(cameraLocation, output);
             output.Write(FieldOfView);
         }
 
-        //[CallOnThread("Render")]
         protected internal virtual void Restore(BinaryReader input)
         {
             cameraLocation = WorldLocation.Restore(input);
