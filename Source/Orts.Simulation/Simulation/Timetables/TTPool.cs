@@ -25,10 +25,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
+using System.Threading;
 
 using Orts.Common;
-using Orts.Common.Threading;
 using Orts.Formats.OR.Parsers;
 using Orts.Simulation.AIs;
 using Orts.Simulation.Physics;
@@ -49,16 +48,16 @@ namespace Orts.Simulation.Timetables
         /// <summary>
         /// loader for timetable mode
         /// </summary>
-        public Poolholder (Simulator simulatorref, string fileName, CancellationToken cancellation)
+        public Poolholder(Simulator simulatorref, string fileName, CancellationToken cancellationToken)
         {
             // process pools
             PoolInfo TTPool = new PoolInfo(simulatorref);
-            Pools = TTPool.ProcessPools(fileName, cancellation);
+            Pools = TTPool.ProcessPools(fileName, cancellationToken);
 
             // process turntables
             TurntableInfo TTTurntable = new TurntableInfo(simulatorref);
             Dictionary<string, TimetableTurntablePool> TTTurntables = new Dictionary<string, TimetableTurntablePool>();
-            TTTurntables = TTTurntable.ProcessTurntables(fileName, cancellation);
+            TTTurntables = TTTurntable.ProcessTurntables(fileName, cancellationToken);
 
             // add turntables to poolholder
             foreach (KeyValuePair<string, TimetableTurntablePool> thisTTTurntable in TTTurntables)

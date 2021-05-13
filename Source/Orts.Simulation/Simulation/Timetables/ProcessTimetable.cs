@@ -28,9 +28,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
+
 using Orts.Common;
 using Orts.Common.Calc;
-using Orts.Common.Threading;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.OR.Files;
@@ -96,7 +97,7 @@ namespace Orts.Simulation.Timetables
         /// </summary>
         /// <param name="arguments"></param>
         /// <returns>List of extracted Trains</returns>
-        public List<TTTrain> ProcessTimetable(string fileName, string train, CancellationToken cancellation)
+        public List<TTTrain> ProcessTimetable(string fileName, string train, CancellationToken cancellationToken)
         {
             TTTrain reqPlayerTrain;
 
@@ -130,7 +131,7 @@ namespace Orts.Simulation.Timetables
 
             Trace.Write(" TTROUTES:" + Paths.Count.ToString() + " ");
 
-            loadPathNoFailure = PreProcessRoutes(cancellation);
+            loadPathNoFailure = PreProcessRoutes(cancellationToken);
 
             Trace.Write(" TTTRAINS:" + trainInfoList.Count.ToString() + " ");
 

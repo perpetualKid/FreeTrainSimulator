@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using System.Threading;
 
 using GetText;
 
@@ -28,7 +29,6 @@ using Microsoft.Xna.Framework;
 using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Common.Info;
-using Orts.Common.Threading;
 using Orts.Common.Xna;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
@@ -42,7 +42,6 @@ using Orts.Simulation.AIs;
 using Orts.Simulation.Commanding;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
-using Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS;
 using Orts.Simulation.Signalling;
 using Orts.Simulation.Timetables;
 using Orts.Simulation.Track;
@@ -442,9 +441,9 @@ namespace Orts.Simulation
             UserWeatherFile = weatherFile;
         }
 
-        public void Start(CancellationToken cancellation)
+        public void Start(CancellationToken cancellationToken)
         {
-            SignalEnvironment = new SignalEnvironment(SIGCFG, Settings.UseLocationPassingPaths, System.Threading.CancellationToken.None);
+            SignalEnvironment = new SignalEnvironment(SIGCFG, Settings.UseLocationPassingPaths, cancellationToken);
             TurntableFile = new TurntableFile(RoutePath + @"\openrails\turntables.dat", RoutePath + @"\shapes\", MovingTables, this);
             LevelCrossings = new LevelCrossings(this);
             FuelManager = new FuelManager(this);
@@ -456,10 +455,10 @@ namespace Orts.Simulation
             switch (IsAutopilotMode)
             {
                 case true:
-                    playerTrain = InitializeAPTrains(cancellation);
+                    playerTrain = InitializeAPTrains(cancellationToken);
                     break;
                 default:
-                    playerTrain = InitializeTrains(cancellation);
+                    playerTrain = InitializeTrains(cancellationToken);
                     break;
             }
             MPManager.Instance().RememberOriginalSwitchState();
@@ -475,7 +474,7 @@ namespace Orts.Simulation
             }
         }
 
-        public void StartTimetable(CancellationToken cancellation)
+        public void StartTimetable(CancellationToken cancellationToken)
         {
             TimetableMode = true;
             SignalEnvironment = new SignalEnvironment(SIGCFG, true, System.Threading.CancellationToken.None);
@@ -483,15 +482,15 @@ namespace Orts.Simulation
             LevelCrossings = new LevelCrossings(this);
             FuelManager = new FuelManager(this);
             Trains = new TrainList(this);
-            PoolHolder = new Poolholder(this, timeTableFile, cancellation);
+            PoolHolder = new Poolholder(this, timeTableFile, cancellationToken);
 
             TimetableInfo TTinfo = new TimetableInfo(this);
 
             TTTrain playerTTTrain = null;
-            List<TTTrain> allTrains = TTinfo.ProcessTimetable(timeTableFile, PathName, cancellation);
+            List<TTTrain> allTrains = TTinfo.ProcessTimetable(timeTableFile, PathName, cancellationToken);
             playerTTTrain = allTrains[0];
 
-            AI = new AI(this, allTrains, ref ClockTime, playerTTTrain.FormedOf, playerTTTrain.FormedOfType, playerTTTrain, cancellation);
+            AI = new AI(this, allTrains, ref ClockTime, playerTTTrain.FormedOf, playerTTTrain.FormedOfType, playerTTTrain, cancellationToken);
 
             if (playerTTTrain != null)
             {
@@ -564,11 +563,11 @@ namespace Orts.Simulation
             Orts.Simulation.Activity.Save(outf, ActivityRun);
         }
 
-        Train InitializeTrains(CancellationToken cancellation)
+        Train InitializeTrains(CancellationToken cancellationToken)
         {
             Train playerTrain = InitializePlayerTrain();
             InitializeStaticConsists();
-            AI = new AI(this, cancellation, ClockTime);
+            AI = new AI(this, cancellationToken, ClockTime);
             if (playerTrain != null)
             {
                 var validPosition = playerTrain.PostInit();
@@ -578,11 +577,11 @@ namespace Orts.Simulation
             return (playerTrain);
         }
 
-        AITrain InitializeAPTrains(CancellationToken cancellation)
+        AITrain InitializeAPTrains(CancellationToken cancellationToken)
         {
             AITrain playerTrain = InitializeAPPlayerTrain();
             InitializeStaticConsists();
-            AI = new AI(this, cancellation, ClockTime);
+            AI = new AI(this, cancellationToken, ClockTime);
             playerTrain.AI = AI;
             if (playerTrain != null)
             {

@@ -17,55 +17,43 @@
 
 // This file is the responsibility of the 3D & Environment Team. 
 
-using Orts.ActivityRunner.Processes;
-using Orts.Common;
 using System;
 using System.Diagnostics;
 using System.Threading;
-using CancellationToken = Orts.Common.Threading.CancellationToken;
-using CancellationTokenSource = Orts.Common.Threading.CancellationTokenSource;
+
+using Orts.ActivityRunner.Processes;
 
 
 namespace Orts.ActivityRunner.Viewer3D.Processes
 {
-    public class LoaderProcess
+    public class LoaderProcess : IDisposable
     {
-        public readonly Profiler Profiler = new Profiler("Loader");
-        readonly ProcessState State = new ProcessState("Loader");
-        readonly Game Game;
-        readonly Thread Thread;
-        readonly WatchdogToken WatchdogToken;
-        readonly Orts.Common.Threading.CancellationTokenSource CancellationTokenSource;
+        public Profiler Profiler { get; } = new Profiler("Loader");
+        private readonly ProcessState processState = new ProcessState("Loader");
+        private readonly Game game;
+        private readonly Thread thread;
+        private readonly CancellationTokenSource cancellationTokenSource;
+        private bool disposedValue;
 
         public LoaderProcess(Game game)
         {
-            Game = game;
-            Thread = new Thread(LoaderThread);
-            WatchdogToken = new WatchdogToken(Thread);
-            WatchdogToken.SpecialDispensationFactor = 6;
-            CancellationTokenSource = new Orts.Common.Threading.CancellationTokenSource(WatchdogToken.Ping);
+            this.game = game;
+            thread = new Thread(LoaderThread);
+            cancellationTokenSource = new CancellationTokenSource();
         }
 
         public void Start()
         {
-            Game.WatchdogProcess.Register(WatchdogToken);
-            Thread.Start();
+            thread.Start();
         }
 
         public void Stop()
         {
-            Game.WatchdogProcess.Unregister(WatchdogToken);
-            CancellationTokenSource.Cancel();
-            State.SignalTerminate();
+            cancellationTokenSource.Cancel();
+            processState.SignalTerminate();
         }
 
-        public bool Finished
-        {
-            get
-            {
-                return State.Finished;
-            }
-        }
+        public bool Finished => processState.Finished;
 
         /// <summary>
         /// Returns a token (copyable object) which can be queried for the cancellation (termination) of the loader.
@@ -76,35 +64,29 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         /// as it is cancelled (<see cref="CancellationToken.IsCancellationRequested"/>).
         /// </para>
         /// <para>
-        /// Reading <see cref="CancellationToken.IsCancellationRequested"/> causes the <see cref="WatchdogToken"/> to
-        /// be pinged, informing the <see cref="WatchdogProcess"/> that the loader is still responsive. Therefore the
-        /// remarks about the <see cref="WatchdogToken.Ping()"/> method apply to the token regarding when it should
+        /// Reading <see cref="CancellationToken.IsCancellationRequested"/> causes the WatchdogToken to
+        /// be pinged, informing the WatchdogProcess that the loader is still responsive. Therefore the
+        /// remarks about the WatchdogToken.Ping() method apply to the token regarding when it should
         /// and should not be used.
         /// </para>
         /// </remarks>
-        public Orts.Common.Threading.CancellationToken CancellationToken
-        {
-            get
-            {
-                return CancellationTokenSource.Token;
-            }
-        }
+        public CancellationToken CancellationToken => cancellationTokenSource.Token;
 
         public void WaitTillFinished()
         {
-            State.WaitTillFinished();
+            processState.WaitTillFinished();
         }
 
-        void LoaderThread()
+        private void LoaderThread()
         {
             Profiler.SetThread();
-            Game.SetThreadLanguage();
+            game.SetThreadLanguage();
 
             while (true)
             {
                 // Wait for a new Update() command
-                State.WaitTillStarted();
-                if (State.Terminated)
+                processState.WaitTillStarted();
+                if (processState.Terminated)
                     break;
                 try
                 {
@@ -114,18 +96,18 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 finally
                 {
                     // Signal finished so RenderProcess can start drawing
-                    State.SignalFinish();
+                    processState.SignalFinish();
                 }
             }
         }
 
         internal void StartLoad()
         {
-            Debug.Assert(State.Finished);
-            State.SignalStart();
+            Debug.Assert(processState.Finished);
+            processState.SignalStart();
         }
 
-        bool DoLoad()
+        private bool DoLoad()
         {
             if (Debugger.IsAttached)
             {
@@ -140,9 +122,9 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 catch (Exception error)
                 {
                     // Unblock anyone waiting for us, report error and die.
-                    CancellationTokenSource.Cancel();
-                    State.SignalTerminate();
-                    Game.ProcessReportError(error);
+                    cancellationTokenSource.Cancel();
+                    processState.SignalTerminate();
+                    game.ProcessReportError(error);
                     return false;
                 }
             }
@@ -154,13 +136,32 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             Profiler.Start();
             try
             {
-                WatchdogToken.Ping();
-                Game.State.Load();
+                game.State.Load();
             }
             finally
             {
                 Profiler.Stop();
             }
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    cancellationTokenSource?.Cancel();
+                    cancellationTokenSource?.Dispose();
+                }
+                disposedValue = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 }

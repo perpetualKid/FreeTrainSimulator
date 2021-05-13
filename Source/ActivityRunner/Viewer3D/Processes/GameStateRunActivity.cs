@@ -205,8 +205,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 catch (Exception error)
 #pragma warning restore CA1031 // Do not catch general exception types
                 {
-                    // Turn off the watchdog since we're going down.
-                    Game.WatchdogProcess.Stop();
                     Trace.WriteLine(new FatalException(error));
                     if (settings.ShowErrorDialogs)
                     {

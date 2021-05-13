@@ -51,7 +51,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         private readonly Game game;
         private readonly Form gameForm;
         private readonly System.Drawing.Size gameWindowSize;
-        private readonly WatchdogToken watchdogToken;
         private System.Drawing.Point gameWindowOrigin;
         private Screen currentScreen;
         private ScreenMode currentScreenMode;
@@ -83,8 +82,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         {
             this.game = game;
             gameForm = (Form)Control.FromHandle(game.Window.Handle);
-
-            watchdogToken = new WatchdogToken(System.Threading.Thread.CurrentThread);
 
             Profiler = new Profiler("Render");
             Profiler.SetThread();
@@ -153,8 +150,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
 
         internal void Start()
         {
-            game.WatchdogProcess.Register(watchdogToken);
-
             DisplaySize = GraphicsDevice.Viewport.Bounds.Size;
 
             if (game.Settings.ShadowMapDistance == 0)
@@ -311,10 +306,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 return;
 
             Profiler.Start();
-            watchdogToken.Ping();
-
-            //// Sort-of hack to allow the NVIDIA PerfHud to display correctly.
-            //GraphicsDevice.DepthStencilState = DepthStencilState.Default;
 
             CurrentFrame.IsScreenChanged = (DisplaySize.X != GraphicsDevice.Viewport.Width) || (DisplaySize.Y != GraphicsDevice.Viewport.Height);
             if (CurrentFrame.IsScreenChanged)
@@ -373,7 +364,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
 
         internal void Stop()
         {
-            game.WatchdogProcess.Unregister(watchdogToken);
         }
 
         static void SwapFrames(ref RenderFrame frame1, ref RenderFrame frame2)

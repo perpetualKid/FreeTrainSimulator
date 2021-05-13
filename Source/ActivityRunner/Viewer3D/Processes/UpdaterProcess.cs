@@ -34,7 +34,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         private readonly ProcessState State = new ProcessState("Updater");
         private readonly Game game;
         private readonly Thread thread;
-        private readonly WatchdogToken watchdogToken;
 
         public GameComponentCollection GameComponents { get; } = new GameComponentCollection();
         private RenderFrame CurrentFrame;
@@ -44,12 +43,10 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         {
             this.game = game;
             thread = new Thread(UpdaterThread);
-            watchdogToken = new WatchdogToken(thread);
         }
 
         public void Start()
         {
-            game.WatchdogProcess.Register(watchdogToken);
             thread.Start();
         }
 
@@ -57,7 +54,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         {
             foreach (GameComponent component in GameComponents)
                 component.Enabled = false;
-            game.WatchdogProcess.Unregister(watchdogToken);
             State.SignalTerminate();
         }
 
@@ -125,7 +121,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             Profiler.Start();
             try
             {
-                watchdogToken.Ping();
                 CurrentFrame.Clear();
                 foreach (GameComponent component in GameComponents)
                     if (component.Enabled)

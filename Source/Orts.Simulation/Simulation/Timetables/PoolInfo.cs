@@ -22,7 +22,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using Orts.Common.Threading;
+using System.Threading;
+
 using Orts.Formats.OR.Parsers;
 
 namespace Orts.Simulation.Timetables
@@ -52,7 +53,7 @@ namespace Orts.Simulation.Timetables
         /// <param name="arguments"></param>
         /// <param name="cancellation"></param>
         /// <returns></returns>
-        public Dictionary<string, TimetablePool> ProcessPools(string fileName, CancellationToken cancellation)
+        public Dictionary<string, TimetablePool> ProcessPools(string fileName, CancellationToken cancellationToken)
         {
             Dictionary<string, TimetablePool> pools = new Dictionary<string, TimetablePool>();
             List<string> filenames;

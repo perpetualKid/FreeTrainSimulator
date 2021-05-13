@@ -33,10 +33,10 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
 
 using Orts.Common;
 using Orts.Common.Calc;
-using Orts.Common.Threading;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 using Orts.MultiPlayer;
@@ -66,7 +66,7 @@ namespace Orts.Simulation.AIs
         /// Creates a queue of AI trains in the order they should appear.
         /// At the moment AI trains are also created off scene so the rendering code will know about them.
         /// </summary>
-        public AI(Simulator simulator, CancellationToken cancellation, double activityStartTime)
+        public AI(Simulator simulator, CancellationToken cancellationToken, double activityStartTime)
         {
             Simulator = simulator;
 #if WITH_PATH_DEBUG
@@ -83,13 +83,13 @@ namespace Orts.Simulation.AIs
                 foreach (var sd in simulator.Activity.Activity.Traffic.Services)
                 {
                     AITrain train = CreateAITrain(sd, simulator.Activity.Activity.Traffic.TrafficFile.TrafficDefinition, simulator.TimetableMode);
-                    if (cancellation.IsCancellationRequested) // ping loader watchdog
+                    if (cancellationToken.IsCancellationRequested) // ping loader watchdog
                         return;
                 }
             }
 
             // prerun trains
-            PrerunAI(cancellation);
+            PrerunAI(cancellationToken);
 
             clockTime = Simulator.ClockTime;
             localTime = false;

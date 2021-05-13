@@ -51,11 +51,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         public string ContentPath { get; private set; }
 
         /// <summary>
-        /// Exposes access to the <see cref="WatchdogProcess"/> for the game.
-        /// </summary>
-        public WatchdogProcess WatchdogProcess { get; private set; }
-
-        /// <summary>
         /// Exposes access to the <see cref="RenderProcess"/> for the game.
         /// </summary>
         public RenderProcess RenderProcess { get; private set; }
@@ -70,8 +65,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         /// </summary>
         public LoaderProcess LoaderProcess { get; private set; }
 
-
-
         /// <summary>
         /// Exposes access to the <see cref="SoundProcess"/> for the game.
         /// </summary>
@@ -85,9 +78,9 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         /// <summary>
         /// Gets the current <see cref="GameState"/>, if there is one, or <c>null</c>.
         /// </summary>
-        public GameState State { get { return States.Count > 0 ? States.Peek() : null; } }
+        public GameState State => gameStates.Count > 0 ? gameStates.Peek() : null;
 
-        Stack<GameState> States;
+        private readonly Stack<GameState> gameStates;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Game"/> based on the specified <see cref="UserSettings"/>.
@@ -98,13 +91,12 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             Settings = settings;
             ContentPath = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(System.Windows.Forms.Application.ExecutablePath), "Content");
             Exiting += new System.EventHandler<System.EventArgs>(Game_Exiting);
-            WatchdogProcess = new WatchdogProcess(this);
             RenderProcess = new RenderProcess(this);
             UpdaterProcess = new UpdaterProcess(this);
             LoaderProcess = new LoaderProcess(this);
             SoundProcess = new SoundProcess(this);
             WebServerProcess = new WebServerProcess(this);
-            States = new Stack<GameState>();
+            gameStates = new Stack<GameState>();
         }
 
         protected override void BeginRun()
@@ -115,9 +107,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             LoaderProcess.Start();
             UpdaterProcess.Start();
             RenderProcess.Start();
-#if !DEBUG
-            WatchdogProcess.Start();
-#endif
             base.BeginRun();
         }
 
@@ -155,7 +144,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         protected override void EndRun()
         {
             base.EndRun();
-            WatchdogProcess.Stop();
             RenderProcess.Stop();
             UpdaterProcess.Stop();
             LoaderProcess.Stop();
@@ -173,15 +161,15 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         internal void PushState(GameState state)
         {
             state.Game = this;
-            States.Push(state);
-            Trace.TraceInformation("Game.PushState({0})  {1}", state.GetType().Name, String.Join(" | ", States.Select(s => s.GetType().Name).ToArray()));
+            gameStates.Push(state);
+            Trace.TraceInformation("Game.PushState({0})  {1}", state.GetType().Name, String.Join(" | ", gameStates.Select(s => s.GetType().Name).ToArray()));
         }
 
         internal void PopState()
         {
             State.Dispose();
-            States.Pop();
-            Trace.TraceInformation("Game.PopState()  {0}", String.Join(" | ", States.Select(s => s.GetType().Name).ToArray()));
+            gameStates.Pop();
+            Trace.TraceInformation("Game.PopState()  {0}", String.Join(" | ", gameStates.Select(s => s.GetType().Name).ToArray()));
         }
 
         internal void ReplaceState(GameState state)
@@ -189,11 +177,11 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             if (State != null)
             {
                 State.Dispose();
-                States.Pop();
+                gameStates.Pop();
             }
             state.Game = this;
-            States.Push(state);
-            Trace.TraceInformation("Game.ReplaceState({0})  {1}", state.GetType().Name, String.Join(" | ", States.Select(s => s.GetType().Name).ToArray()));
+            gameStates.Push(state);
+            Trace.TraceInformation("Game.ReplaceState({0})  {1}", state.GetType().Name, String.Join(" | ", gameStates.Select(s => s.GetType().Name).ToArray()));
         }
 
         /// <summary>
@@ -217,8 +205,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         /// <param name="error">The <see cref="Exception"/> to report.</param>
         public void ProcessReportError(Exception error)
         {
-            // Turn off the watchdog since we're going down.
-            WatchdogProcess.Stop();
             // Log the error first in case we're burning.
             Trace.WriteLine(new FatalException(error));
             // Stop the world!
@@ -226,7 +212,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             // Show the user that it's all gone horribly wrong.
             if (Settings.ShowErrorDialogs)
             {
-                string errorSummary = error.GetType().FullName + ": " + error.Message;
+                string errorSummary = error?.GetType().FullName + ": " + error.Message;
                 string logFile = Path.Combine(Settings.LoggingPath, Settings.LoggingFilename);
                 DialogResult openTracker = MessageBox.Show($"A fatal error has occured and {RuntimeInfo.ProductName} cannot continue.\n\n" +
                         $"    {errorSummary}\n\n" +

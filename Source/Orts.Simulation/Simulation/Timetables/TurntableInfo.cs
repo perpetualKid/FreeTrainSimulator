@@ -22,6 +22,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
+
 using Orts.Formats.OR.Parsers;
 
 namespace Orts.Simulation.Timetables
@@ -49,7 +51,7 @@ namespace Orts.Simulation.Timetables
         /// <param name="arguments"></param>
         /// <param name="cancellation"></param>
         /// <returns></returns>
-        public Dictionary<string, TimetableTurntablePool> ProcessTurntables(string fileName, Common.Threading.CancellationToken cancellation)
+        public Dictionary<string, TimetableTurntablePool> ProcessTurntables(string fileName, CancellationToken cancellationToken)
         {
             Dictionary<string, TimetableTurntablePool> turntables = new Dictionary<string, TimetableTurntablePool>();
             List<string> filenames;

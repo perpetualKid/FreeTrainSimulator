@@ -36,7 +36,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         readonly ProcessState State = new ProcessState("Sound");
         readonly Game Game;
         readonly Thread Thread;
-        readonly WatchdogToken WatchdogToken;
 
         // THREAD SAFETY:
         //   All accesses must be done in local variables. No modifications to the objects are allowed except by
@@ -63,7 +62,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         {
             Game = game;
             Thread = new Thread(SoundThread);
-            WatchdogToken = new WatchdogToken(Thread);
             ORTSActSoundSourceList = new ORTSActSoundSources();
         }
 
@@ -71,7 +69,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         {
             if (Game.Settings.SoundDetailLevel > 0)
             {
-                Game.WatchdogProcess.Register(WatchdogToken);
                 Thread.Start();
             }
         }
@@ -80,7 +77,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         {
             if (Game.Settings.SoundDetailLevel > 0)
             {
-                Game.WatchdogProcess.Unregister(WatchdogToken);
                 State.SignalTerminate();
             }
         }
@@ -129,8 +125,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             Profiler.Start();
             try
             {
-                WatchdogToken.Ping();
-
                 var viewer = Game.RenderProcess.Viewer;
                 if (viewer == null)
                     return;
