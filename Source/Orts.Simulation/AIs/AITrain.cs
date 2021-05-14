@@ -1,4 +1,4 @@
-﻿// COPYRIGHT 2013 by the Open Rails project.
+// COPYRIGHT 2013 by the Open Rails project.
 // 
 // This file is part of Open Rails.
 // 
@@ -43,6 +43,7 @@ using Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS;
 using Orts.Simulation.Signalling;
 using Orts.Simulation.Track;
 using Orts.Simulation.World;
+using System.Linq;
 
 namespace Orts.Simulation.AIs
 {
@@ -922,7 +923,7 @@ namespace Orts.Simulation.AIs
             float validSpeed = AllowedMaxSpeedMpS;
             List<SignalItemInfo> processedList = new List<SignalItemInfo>();
 
-            foreach (SignalItemInfo thisInfo in SignalObjectItems)
+            foreach (SignalItemInfo thisInfo in SignalObjectItems.Where(item => !item.SpeedInfo.SpeedWarning))
             {
 
                 // check speedlimit

@@ -645,12 +645,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems
 
         private SpeedPostFeatures NextSpeedPostFeatures(int itemSequenceIndex, float maxDistanceM)
         {
-            var speedPostTypeName = "";
-            var isWarning = false;
-            var distanceM = float.MaxValue;
-            var speedLimitMpS = -1f;
-            var altitudeM = float.MinValue;
-
             Direction dir = Locomotive.Train.MUDirection == MidpointDirection.Reverse ? Direction.Backward : Direction.Forward;
 
             if (Locomotive.Train.ValidRoute[(int)dir] == null || dir == Direction.Backward && Locomotive.Train.PresentPosition[dir].TrackCircuitSectionIndex < 0)
@@ -669,12 +663,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 return SpeedPostFeatures.None; // the requested speedpost is too distant
 
             // All OK, we can retrieve the data for the required speedpost;
-            speedPostTypeName = Path.GetFileNameWithoutExtension(trainSpeedpost.Signal.SpeedPostWorldObject?.SpeedPostFileName);
-            isWarning = trainSpeedpost.IsWarning;
-            distanceM = trainSpeedpost.DistanceToTrainM;
-            speedLimitMpS = trainSpeedpost.AllowedSpeedMpS;
-            altitudeM = trainSpeedpost.Signal.TdbTraveller.Y;
-
+            string speedPostTypeName = Path.GetFileNameWithoutExtension(trainSpeedpost.Signal.SpeedPostWorldObject?.SpeedPostFileName);
+            bool isWarning = trainSpeedpost.IsWarning;
+            float distanceM = trainSpeedpost.DistanceToTrainM;
+            float speedLimitMpS = trainSpeedpost.AllowedSpeedMpS;
+            float altitudeM = trainSpeedpost.Signal.TdbTraveller.Y;
             return new SpeedPostFeatures(speedPostTypeName: speedPostTypeName, isWarning: isWarning, distanceM: distanceM, speedLimitMpS: speedLimitMpS,
                 altitudeM: altitudeM);
         }

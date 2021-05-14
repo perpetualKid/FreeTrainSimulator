@@ -2740,7 +2740,10 @@ namespace Orts.Simulation.Physics
                 // if object is speed, set max allowed speed as distance travelled action
                 while (firstObject.DistanceToTrain < 0.0f && SignalObjectItems.Count > 0)
                 {
-                    float temp1MaxSpeedMpS = IsFreight ? firstObject.SpeedInfo.FreightSpeed : firstObject.SpeedInfo.PassengerSpeed;
+                    // If the object is a signal or a speed limit execution
+                    if (firstObject.SignalDetails.IsSignal || !firstObject.SpeedInfo.SpeedWarning)
+                    {
+                        float temp1MaxSpeedMpS = IsFreight ? firstObject.SpeedInfo.FreightSpeed : firstObject.SpeedInfo.PassengerSpeed;
                     if (firstObject.SignalDetails.IsSignal)
                     {
                         allowedAbsoluteMaxSpeedSignalMpS = temp1MaxSpeedMpS == -1 ? (float)simulator.Route.SpeedLimit : temp1MaxSpeedMpS;
@@ -2755,75 +2758,76 @@ namespace Orts.Simulation.Physics
                         allowedAbsoluteMaxSpeedSignalMpS = allowedAbsoluteMaxSpeedLimitMpS;
                     }
 
-                    if (firstObject.ActualSpeed > 0)
-                    {
-                        if (firstObject.ActualSpeed <= AllowedMaxSpeedMpS)
+                        if (firstObject.ActualSpeed > 0)
                         {
-                            AllowedMaxSpeedMpS = firstObject.ActualSpeed;
-                            float tempMaxSpeedMps = AllowedMaxSpeedMpS;
-                            if (!simulator.TimetableMode)
+                            if (firstObject.ActualSpeed <= AllowedMaxSpeedMpS)
                             {
-                                tempMaxSpeedMps = IsFreight ? firstObject.SpeedInfo.FreightSpeed : firstObject.SpeedInfo.PassengerSpeed;
-                                if (tempMaxSpeedMps == -1f)
-                                    tempMaxSpeedMps = AllowedMaxSpeedMpS;
-                            }
+                                AllowedMaxSpeedMpS = firstObject.ActualSpeed;
+                                float tempMaxSpeedMps = AllowedMaxSpeedMpS;
+                                if (!simulator.TimetableMode)
+                                {
+                                    tempMaxSpeedMps = IsFreight ? firstObject.SpeedInfo.FreightSpeed : firstObject.SpeedInfo.PassengerSpeed;
+                                    if (tempMaxSpeedMps == -1f)
+                                        tempMaxSpeedMps = AllowedMaxSpeedMpS;
+                                }
 
 
-                            if (firstObject.SignalDetails.IsSignal)
-                            {
-                                AllowedMaxSpeedSignalMpS = tempMaxSpeedMps;
-                            }
-                            else if (firstObject.SpeedInfo.LimitedSpeedReduction == 0)
-                            {
-                                AllowedMaxSpeedLimitMpS = tempMaxSpeedMps;
+                                if (firstObject.SignalDetails.IsSignal)
+                                {
+                                    AllowedMaxSpeedSignalMpS = tempMaxSpeedMps;
+                                }
+                                else if (firstObject.SpeedInfo.LimitedSpeedReduction == 0)
+                                {
+                                    AllowedMaxSpeedLimitMpS = tempMaxSpeedMps;
+                                }
+                                else
+                                {
+                                    allowedMaxTempSpeedLimitMpS = tempMaxSpeedMps;
+                                }
+                                requiredActions.UpdatePendingSpeedlimits(AllowedMaxSpeedMpS);  // update any older pending speed limits
                             }
                             else
                             {
-                                allowedMaxTempSpeedLimitMpS = tempMaxSpeedMps;
-                            }
-                            requiredActions.UpdatePendingSpeedlimits(AllowedMaxSpeedMpS);  // update any older pending speed limits
-                        }
-                        else
-                        {
-                            ActivateSpeedLimit speedLimit;
-                            float reqDistance = DistanceTravelledM + Length;
-                            if (firstObject.SignalDetails.IsSignal)
-                            {
-                                speedLimit = new ActivateSpeedLimit(reqDistance, -1f, firstObject.ActualSpeed);
-                            }
-                            else if (simulator.TimetableMode || !firstObject.SpeedInfo.Reset)
-                            {
-                                speedLimit = new ActivateSpeedLimit(reqDistance,
-                                    firstObject.SpeedInfo.LimitedSpeedReduction == 0 ? firstObject.ActualSpeed : -1, -1f,
-                                    firstObject.SpeedInfo.LimitedSpeedReduction == 0 ? -1 : firstObject.ActualSpeed);
-                            }
-                            else
-                            {
-                                speedLimit = new ActivateSpeedLimit(reqDistance, firstObject.ActualSpeed, firstObject.ActualSpeed);
-                            }
+                                ActivateSpeedLimit speedLimit;
+                                float reqDistance = DistanceTravelledM + Length;
+                                if (firstObject.SignalDetails.IsSignal)
+                                {
+                                    speedLimit = new ActivateSpeedLimit(reqDistance, -1f, firstObject.ActualSpeed);
+                                }
+                                else if (simulator.TimetableMode || !firstObject.SpeedInfo.Reset)
+                                {
+                                    speedLimit = new ActivateSpeedLimit(reqDistance,
+                                        firstObject.SpeedInfo.LimitedSpeedReduction == 0 ? firstObject.ActualSpeed : -1, -1f,
+                                        firstObject.SpeedInfo.LimitedSpeedReduction == 0 ? -1 : firstObject.ActualSpeed);
+                                }
+                                else
+                                {
+                                    speedLimit = new ActivateSpeedLimit(reqDistance, firstObject.ActualSpeed, firstObject.ActualSpeed);
+                                }
 
-                            requiredActions.InsertAction(speedLimit);
-                            requiredActions.UpdatePendingSpeedlimits(firstObject.ActualSpeed);  // update any older pending speed limits
-                        }
-                    }
-                    else if (!simulator.TimetableMode)
-                    {
-                        float tempMaxSpeedMps = IsFreight ? firstObject.SpeedInfo.FreightSpeed : firstObject.SpeedInfo.PassengerSpeed;
-                        if (tempMaxSpeedMps >= 0)
-                        {
-                            if (firstObject.SignalDetails.IsSignal)
-                            {
-                                AllowedMaxSpeedSignalMpS = tempMaxSpeedMps;
-                            }
-                            else
-                            {
-                                if (firstObject.SpeedInfo.LimitedSpeedReduction == 0) AllowedMaxSpeedLimitMpS = tempMaxSpeedMps;
-                                else allowedMaxTempSpeedLimitMpS = tempMaxSpeedMps;
+                                requiredActions.InsertAction(speedLimit);
+                                requiredActions.UpdatePendingSpeedlimits(firstObject.ActualSpeed);  // update any older pending speed limits
                             }
                         }
-                        else if (firstObject.SignalDetails.IsSignal)
+                        else if (!simulator.TimetableMode)
                         {
-                            AllowedMaxSpeedSignalMpS = allowedAbsoluteMaxSpeedSignalMpS;
+                            float tempMaxSpeedMps = IsFreight ? firstObject.SpeedInfo.FreightSpeed : firstObject.SpeedInfo.PassengerSpeed;
+                            if (tempMaxSpeedMps >= 0)
+                            {
+                                if (firstObject.SignalDetails.IsSignal)
+                                {
+                                    AllowedMaxSpeedSignalMpS = tempMaxSpeedMps;
+                                }
+                                else
+                                {
+                                    if (firstObject.SpeedInfo.LimitedSpeedReduction == 0) AllowedMaxSpeedLimitMpS = tempMaxSpeedMps;
+                                    else allowedMaxTempSpeedLimitMpS = tempMaxSpeedMps;
+                                }
+                            }
+                            else if (firstObject.SignalDetails.IsSignal)
+                            {
+                                AllowedMaxSpeedSignalMpS = allowedAbsoluteMaxSpeedSignalMpS;
+                            }
                         }
                     }
 
