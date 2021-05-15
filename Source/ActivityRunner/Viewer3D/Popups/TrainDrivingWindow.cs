@@ -33,7 +33,7 @@ using Orts.Simulation;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems.Brakes;
 
-namespace Orts.Viewer3D.Popups
+namespace Orts.ActivityRunner.Viewer3D.Popups
 {
     public class TrainDrivingWindow : Window
     {

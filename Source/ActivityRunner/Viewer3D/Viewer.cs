@@ -52,7 +52,6 @@ using Orts.Simulation.Commanding;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.Signalling;
-using Orts.Viewer3D.Popups;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
