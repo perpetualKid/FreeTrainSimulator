@@ -31,6 +31,11 @@ namespace Orts.Updater
                 {
                     RegistrationResourceV3 registrationResource = await sourceRepository.GetResourceAsync<RegistrationResourceV3>(cancellationToken).ConfigureAwait(false);
                     JObject packageMetadata = await registrationResource.GetPackageMetadata(packageIdentity, cache, NullLogger.Instance, cancellationToken).ConfigureAwait(false);
+
+                    if (null == packageMetadata)
+                    {
+                        throw new PackageNotFoundProtocolException(packageIdentity);
+                    }
                     string catalogItemUrl = packageMetadata.Value<string>("@id");
 
                     HttpSourceResource httpSourceResource = await sourceRepository.GetResourceAsync<HttpSourceResource>(cancellationToken).ConfigureAwait(false);

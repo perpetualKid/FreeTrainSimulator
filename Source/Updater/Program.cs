@@ -32,9 +32,9 @@ namespace Orts.Updater
         private static void Main()
         {
 #if NETCOREAPP
-            Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
+            Application.SetHighDpiMode(HighDpiMode.DpiUnaware);
 #else
-            NativeMethods.SetProcessDpiAwareness(NativeMethods.PROCESS_DPI_AWARENESS.Process_Per_Monitor_DPI_Aware);
+            NativeMethods.SetProcessDpiAwareness(NativeMethods.PROCESS_DPI_AWARENESS.Process_DPI_Unaware);
 #endif
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
