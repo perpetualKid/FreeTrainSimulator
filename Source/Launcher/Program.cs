@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Windows.Forms;
 
+[assembly: CLSCompliant(true)]
 namespace Orts.Launcher
 {
     internal struct DependencyHint
@@ -70,7 +71,7 @@ namespace Orts.Launcher
                     {
                         try
                         {
-                            File.Create(preferencesFile);
+                            using (File.Create(preferencesFile)) { }
                         }
                         catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)
                         { }
