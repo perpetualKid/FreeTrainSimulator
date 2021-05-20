@@ -501,7 +501,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             if (!notch.Smooth)
                 return name;
             if (!string.IsNullOrEmpty(name))
-                return $"{name} {100 * GetNotchFraction():F0}%");
+                return $"{name} {100 * GetNotchFraction():F0}%";
             return $"{100 * GetNotchFraction():F0}%";
         }
 

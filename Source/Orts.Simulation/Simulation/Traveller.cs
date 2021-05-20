@@ -18,6 +18,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 
@@ -197,7 +198,7 @@ namespace Orts.Simulation
 
             if (candidates.Count == 0)
             {
-                throw new InvalidDataException(String.Format("{0} could not be found in the track database.", location));
+                throw new InvalidDataException($"{location} could not be found in the track database.");
             }
 
             // find the best one.
@@ -241,7 +242,7 @@ namespace Orts.Simulation
             if (!InitTrackNode(startTrackNodeIndex, tvs.Location))
             {
                 if (TrackSections.MissingTrackSectionWarnings == 0)
-                    throw new InvalidDataException(String.Format("Track node {0} could not be found in the track database.", startTrackNode.UiD));
+                    throw new InvalidDataException($"Track node {startTrackNode.UiD} could not be found in the track database.");
                 else
                 {
                     throw new MissingTrackNodeException();
@@ -273,7 +274,7 @@ namespace Orts.Simulation
                 if (!InitTrackNode(startTrackNodeIndex, tvs.Location))
                 {
                     if (TrackSections.MissingTrackSectionWarnings == 0)
-                        throw new InvalidDataException(String.Format("Track node {0} could not be found in the track database.", startTrackNode.UiD));
+                        throw new InvalidDataException($"Track node {startTrackNode.UiD} could not be found in the track database.");
                     else
                     {
                         throw new MissingTrackNodeException();
@@ -1226,7 +1227,7 @@ namespace Orts.Simulation
 
         public override string ToString()
         {
-            return String.Format("{{TN={0} TS={1} O={2:F6}}}", TrackNodeIndex, TrackVectorSectionIndex, trackOffset);
+            return $"{{TN={TrackNodeIndex} TS={TrackVectorSectionIndex} O={trackOffset:F6}}}";
         }
 
         /// <summary>
@@ -1298,7 +1299,7 @@ namespace Orts.Simulation
     public class TravellerInvalidDataException : Exception
     {
         public TravellerInvalidDataException(string format, params object[] args)
-            : base(String.Format(format, args))
+            : base(string.Format(CultureInfo.CurrentCulture, format, args))
         {
         }
     }
@@ -1314,7 +1315,7 @@ namespace Orts.Simulation
         public readonly float ErrorLimit;
 
         protected TravellerInitializationException(Exception innerException, int tileX, int tileZ, float x, float y, float z, TrackVectorSection tvs, float errorLimit, string format, params object[] args)
-            : base(String.Format(format, args), innerException)
+            : base(string.Format(CultureInfo.CurrentCulture, format, args), innerException)
         {
             TileX = tileX;
             TileZ = tileZ;

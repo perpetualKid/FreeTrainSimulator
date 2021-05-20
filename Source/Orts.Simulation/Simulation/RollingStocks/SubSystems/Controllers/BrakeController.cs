@@ -520,17 +520,17 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                 string state = Script.GetState().GetLocalizedDescription();
                 string fraction = GetStateFractionScripted();
 
-                if (String.IsNullOrEmpty(state) && String.IsNullOrEmpty(fraction))
-                    return String.Empty;
-                else if (!String.IsNullOrEmpty(state) && String.IsNullOrEmpty(fraction))
+                if (string.IsNullOrEmpty(state) && string.IsNullOrEmpty(fraction))
+                    return string.Empty;
+                else if (!string.IsNullOrEmpty(state) && string.IsNullOrEmpty(fraction))
                     return state;
-                else if (String.IsNullOrEmpty(state) && !String.IsNullOrEmpty(fraction))
+                else if (string.IsNullOrEmpty(state) && !string.IsNullOrEmpty(fraction))
                     return fraction;
                 else
-                    return $"{state} {fraction}");
+                    return $"{state} {fraction}";
             }
             else
-                return String.Empty;
+                return string.Empty;
         }
 
         public string GetStateFractionScripted()
