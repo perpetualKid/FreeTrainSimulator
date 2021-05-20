@@ -109,8 +109,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 
         public override string GetStatus(Dictionary<BrakeSystemComponent, Pressure.Unit> units) // Status for last car in Main HUD
         {
-            return string.Format(Simulator.Catalog.GetString(" BP {0}"), 
-                FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(BrakeLine1PressurePSI), Pressure.Unit.InHg, Pressure.Unit.InHg, false));
+            return Simulator.Catalog.GetString($" BP {FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(BrakeLine1PressurePSI), Pressure.Unit.InHg, Pressure.Unit.InHg, false)}");
         }
 
         public override string GetFullStatus(BrakeSystem lastCarBrakeSystem, Dictionary<BrakeSystemComponent, Pressure.Unit> units)  // Status for Main HUD view (calls above as well)
@@ -128,21 +127,19 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 
                 float DisplayEqualReservoirPressurePSIorInHg = (ValveFraction * (OneAtmospherePSI - (OneAtmospherePSI - MaxVacuumPipeLevelPSI))) + (OneAtmospherePSI - MaxVacuumPipeLevelPSI);
 
-                s = string.Format(Simulator.Catalog.GetString(" EQ {0}"), 
-                    FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(DisplayEqualReservoirPressurePSIorInHg), Pressure.Unit.InHg, Pressure.Unit.InHg, true));
-                s += string.Format(Simulator.Catalog.GetString(" V {0}"), FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(BrakeLine1PressurePSI), Pressure.Unit.InHg, Pressure.Unit.InHg, true));
+                s = Simulator.Catalog.GetString($" EQ {FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(DisplayEqualReservoirPressurePSIorInHg), Pressure.Unit.InHg, Pressure.Unit.InHg, true)}");
+                s += Simulator.Catalog.GetString($" V {FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(BrakeLine1PressurePSI), Pressure.Unit.InHg, Pressure.Unit.InHg, true)}");
             }
             else // No EQ reservoir by default
             {
-                s = string.Format(Simulator.Catalog.GetString(" Lead BP {0}"), 
-                    FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(BrakeLine1PressurePSI), Pressure.Unit.InHg, Pressure.Unit.InHg, true));
+                s = Simulator.Catalog.GetString($" Lead BP {FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(BrakeLine1PressurePSI), Pressure.Unit.InHg, Pressure.Unit.InHg, true)}");
             }
 
             //            string s = string.Format(" V {0}", FormatStrings.FormatPressure(Car.Train.EqualReservoirPressurePSIorInHg, Pressure.Units.InHg, Pressure.Units.InHg, true));
             if (lastCarBrakeSystem != null && lastCarBrakeSystem != this)
                 s += Simulator.Catalog.GetString(" EOT ") + lastCarBrakeSystem.GetStatus(units);
             if (HandbrakePercent > 0)
-                s += string.Format(Simulator.Catalog.GetString(" Handbrake {0:F0}%"), HandbrakePercent);
+                s += Simulator.Catalog.GetString($" Handbrake {HandbrakePercent:F0}%");
             return s;
         }
 
@@ -152,7 +149,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             {
                 return new string[] {
                 "S",
-                string.Format("{0:F0}", FormatStrings.FormatPressure(SteamBrakeCylinderPressurePSI, Pressure.Unit.PSI,  Pressure.Unit.PSI, true)),
+                $"{FormatStrings.FormatPressure(SteamBrakeCylinderPressurePSI, Pressure.Unit.PSI,  Pressure.Unit.PSI, true):F0}",
                 string.Empty,
                 string.Empty,
                 string.Empty,
@@ -160,9 +157,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                 string.Empty,
                 string.Empty,
                 string.Empty, // Spacer because the state above needs 2 columns.
-                (Car as MSTSWagon).HandBrakePresent ? string.Format("{0:F0}%", HandbrakePercent) : string.Empty,
+                (Car as MSTSWagon).HandBrakePresent ? $"{HandbrakePercent:F0}%" : string.Empty,
                 FrontBrakeHoseConnected ? "I" : "T",
-                string.Format("A{0} B{1}", AngleCockAOpen ? "+" : "-", AngleCockBOpen ? "+" : "-"),
+                $"A{(AngleCockAOpen ? "+" : "-")} B{(AngleCockBOpen ? "+" : "-")}",
                 };
             }
             else
@@ -178,9 +175,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                 string.Empty,
                 string.Empty,
                 string.Empty,
-                HandbrakePercent > 0 ? string.Format("{0:F0}%", HandbrakePercent) : string.Empty,
+                HandbrakePercent > 0 ? $"{HandbrakePercent:F0}%" : string.Empty,
                 FrontBrakeHoseConnected ? "I" : "T",
-                string.Format("A{0} B{1}", AngleCockAOpen ? "+" : "-", AngleCockBOpen ? "+" : "-"),
+                $"A{(AngleCockAOpen ? "+" : "-")} B{(AngleCockBOpen ? "+" : "-")}"),
                 };
             }
         }

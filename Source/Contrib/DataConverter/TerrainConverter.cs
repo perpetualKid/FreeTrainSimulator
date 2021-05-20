@@ -239,7 +239,7 @@ namespace Orts.DataConverter
 
                     foreach (var output in conversion.Output)
                     {
-                        var fileName = Path.ChangeExtension(output, string.Format("{0:00}-{1:00}.dae", x, z));
+                        var fileName = Path.ChangeExtension(output, $"{x:00}-{z:00}.dae");
                         colladaDocument.Save(fileName);
                     }
                 }
@@ -323,13 +323,13 @@ namespace Orts.DataConverter
                     var se = (x + 1) + stride * (z + 1);
                     if ((z & 1) == (x & 1))
                     {
-                        output.Add(string.Format("{0} {1} {2}", nw, se, sw));
-                        output.Add(string.Format("{0} {1} {2}", nw, ne, se));
+                        output.Add($"{nw} {se} {sw}");
+                        output.Add($"{nw} {ne} {se}");
                     }
                     else
                     {
-                        output.Add(string.Format("{0} {1} {2}", ne, se, sw));
-                        output.Add(string.Format("{0} {1} {2}", nw, ne, sw));
+                        output.Add($"{ne} {se} {sw}");
+                        output.Add($"{nw} {ne} {sw}");
                     }
                 }
             }

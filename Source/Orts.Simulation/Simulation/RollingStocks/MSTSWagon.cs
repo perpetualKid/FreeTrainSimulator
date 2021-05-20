@@ -955,7 +955,7 @@ namespace Orts.Simulation.RollingStocks
                     InitialCentreOfGravityM.Z = stf.ReadFloat(STFReader.Units.Distance, null);
                     if (Math.Abs(InitialCentreOfGravityM.Z) > 1)
                     {
-                        STFException.TraceWarning(stf, string.Format("Ignored CentreOfGravity Z value {0} outside range -1 to +1", InitialCentreOfGravityM.Z));
+                        STFException.TraceWarning(stf, $"Ignored CentreOfGravity Z value {InitialCentreOfGravityM.Z} outside range -1 to +1");
                         InitialCentreOfGravityM.Z = 0;
                     }
                     stf.SkipRestOfBlock();

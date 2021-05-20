@@ -631,7 +631,7 @@ namespace ORTS.TrackViewer.Drawing
                 //The message delegate has quite some overhead, so print it only so often to keep the user informed
                 if (loadedAceFilesCounter % 100 == 0)
                 {
-                    messageDelegate(String.Format(TrackViewer.catalog.GetString("Loading terrain ace-files {0}-{1} (scaled down with a factor {2})"), loadedAceFilesCounter, loadedAceFilesCounter + 99, CurrentScaleFactor));
+                    messageDelegate(TrackViewer.catalog.GetString($"Loading terrain ace-files {loadedAceFilesCounter}-{loadedAceFilesCounter + 99} (scaled down with a factor {CurrentScaleFactor})"));
                 }
                 loadedAceFilesCounter++;
                 var originalTexture = AceFile.Texture2DFromFile(this.device, path);
@@ -657,7 +657,7 @@ namespace ORTS.TrackViewer.Drawing
             if (CurrentScaleFactor <= oldScaleFactor) { return; }
 
             //We need to rescale all already loaded ace files
-            messageDelegate(String.Format(TrackViewer.catalog.GetString("Rescaling previously loaded ace-files")));
+            messageDelegate(TrackViewer.catalog.GetString("Rescaling previously loaded ace-files"));
             foreach (string filename in this.Keys)
             {
                 this[filename].ReduceToFactor(newScaleFactor);
@@ -860,8 +860,7 @@ namespace ORTS.TrackViewer.Drawing
             int patchIndexZ = (int)((snappedLocation.Location.Z + 1024) / totalSize * this.textureNames.GetLength(1));
             patchIndexZ = this.textureNames.GetLength(1) - patchIndexZ - 1;
 
-            return String.Format(System.Globalization.CultureInfo.CurrentCulture,
-                "({1}, {2}) for {3}x{3} tile: {0}", textureNames[patchIndexX, patchIndexZ], patchIndexX, patchIndexZ, this.TileSize);
+            return $"({patchIndexX}, {patchIndexZ}) for {this.TileSize}x{this.TileSize} tile: {textureNames[patchIndexX, patchIndexZ]}";
         }
 
         static Dictionary<int, TileHelper.Zoom> zoomFromInt = new Dictionary<int, TileHelper.Zoom> {

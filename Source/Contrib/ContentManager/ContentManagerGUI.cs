@@ -197,7 +197,7 @@ namespace Orts.ContentManager
             while (linkMatch.Success)
             {
                 richTextBoxContent.Select(linkMatch.Index, linkMatch.Length);
-                richTextBoxContent.SelectedRtf = String.Format(@"{{\rtf{{{0}{{\v{{\u1.{0}\u1.{1}}}\v0}}}}}}", linkMatch.Groups[1].Value, linkMatch.Groups[2].Value);
+                richTextBoxContent.SelectedRtf = $@"{{\rtf{{{linkMatch.Groups[1].Value}{{\v{{\u1.{linkMatch.Groups[1].Value}\u1.{linkMatch.Groups[2].Value}}}\v0}}}}}}";
                 richTextBoxContent.Select(linkMatch.Index, linkMatch.Groups[1].Value.Length * 2 + linkMatch.Groups[2].Value.Length + 2);
                 SendMessage(richTextBoxContent.Handle, EmSetCharFormat, (IntPtr)ScfSelection, ref rtfLink);
                 linkMatch = contentLink.Match(richTextBoxContent.Text);

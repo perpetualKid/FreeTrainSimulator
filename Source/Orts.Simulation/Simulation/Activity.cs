@@ -1255,7 +1255,7 @@ namespace Orts.Simulation
                     ChangeWagonIdList = new List<string>();
                     foreach (var item in e.WorkOrderWagons)
                     {
-                        ChangeWagonIdList.Add(String.Format("{0} - {1}", ((int)item.UiD & 0xFFFF0000) >> 16, (int)item.UiD & 0x0000FFFF)); // form the .CarID
+                        ChangeWagonIdList.Add($"{((int)item.UiD & 0xFFFF0000) >> 16} - {(int)item.UiD & 0x0000FFFF}"); // form the .CarID
                     }
                 }
             }

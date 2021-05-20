@@ -17,6 +17,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Globalization;
 
 using Orts.Common;
 
@@ -215,7 +216,7 @@ namespace Orts.Simulation
 
         public void Message(CabControl control, string format, params object[] args)
         {
-            Message(control, ConfirmLevel.None, String.Format(format, args));
+            Message(control, ConfirmLevel.None, string.Format(CultureInfo.CurrentCulture, format, args));
         }
 
         public void Warning(CabControl control, CabSetting setting)
@@ -270,7 +271,7 @@ namespace Orts.Simulation
 			var duration = DefaultDurationS;
 			if (level >= ConfirmLevel.Warning) duration *= 2;
 			if (level >= ConfirmLevel.Message) duration *= 5;
-            DisplayMessage?.Invoke(this, new DisplayMessageEventArgs($"{control}/{level}", string.Format(format, ConfirmText[(int)control][0], level.GetLocalizedDescription(), message), duration));
+            DisplayMessage?.Invoke(this, new DisplayMessageEventArgs($"{control}/{level}", string.Format(CultureInfo.CurrentCulture, format, ConfirmText[(int)control][0], level.GetLocalizedDescription(), message), duration));
         }
     }
 }

@@ -3588,16 +3588,16 @@ namespace Orts.Simulation.RollingStocks
                     if (SteamEngineBrakeFitted)
                     {
                         const float percentageConversion = 100;
-                        return string.Format("{0} {1}%", EngineBrakeController.GetStatus(), percentageConversion * EngineBrakeController.CurrentValue);  // Display for steam brake
+                        return $"{EngineBrakeController.GetStatus()} {percentageConversion * EngineBrakeController.CurrentValue}%";  // Display for steam brake
                     }
                     else
                     {
-                        return string.Format("{0} BC {1}", EngineBrakeController.GetStatus(), FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(Train.HUDLocomotiveBrakeCylinderPSI), Pressure.Unit.InHg, Pressure.Unit.InHg, true));
+                        return $"{EngineBrakeController.GetStatus()} BC {FormatStrings.FormatPressure(Pressure.Vacuum.FromPressure(Train.HUDLocomotiveBrakeCylinderPSI), Pressure.Unit.InHg, Pressure.Unit.InHg, true)}";
                     }
                 }
                 else
                 {
-                    return string.Format("{0} BC {1} {2}", EngineBrakeController.GetStatus(), FormatStrings.FormatPressure(Train.HUDLocomotiveBrakeCylinderPSI, Pressure.Unit.PSI, MainPressureUnit, true), BailOff ? " BailOff" : "");
+                    return $"{EngineBrakeController.GetStatus()} BC {FormatStrings.FormatPressure(Train.HUDLocomotiveBrakeCylinderPSI, Pressure.Unit.PSI, MainPressureUnit, true)} {(BailOff ? " BailOff" : "")}";
                 }
 
                 // Fraction not found so display BC                
@@ -3606,11 +3606,11 @@ namespace Orts.Simulation.RollingStocks
             {
                 if ((BrakeSystem is VacuumSinglePipe))
                 {
-                    return string.Format("{0}", EngineBrakeController.GetStatus());  // Fraction found so don't display BC
+                    return $"{EngineBrakeController.GetStatus()}";  // Fraction found so don't display BC
                 }
                 else
                 {
-                    return string.Format("{0}{1}", EngineBrakeController.GetStatus(), BailOff ? " BailOff" : "");  // Fraction found so don't display BC
+                    return $"{EngineBrakeController.GetStatus()}{(BailOff ? " BailOff" : "")}";  // Fraction found so don't display BC
                 }
             }
         }
@@ -3720,7 +3720,7 @@ namespace Orts.Simulation.RollingStocks
         {
             if (BrakemanBrakeController == null)
                 return null;
-            return string.Format("{0}", BrakemanBrakeController.GetStatus());
+            return $"{BrakemanBrakeController.GetStatus()}";
         }
 
         #endregion
@@ -3891,8 +3891,8 @@ namespace Orts.Simulation.RollingStocks
             if (DynamicBrakePercent < 0)
                 return string.Empty;
             if (TrainControlSystem.FullDynamicBrakingOrder)
-                return string.Format("{0:F0}%", DynamicBrakePercent);
-            return string.Format("{0}", DynamicBrakeController.GetStatus());
+                return $"{DynamicBrakePercent:F0}%";
+            return $"{DynamicBrakeController.GetStatus()}";
         }
         #endregion
 

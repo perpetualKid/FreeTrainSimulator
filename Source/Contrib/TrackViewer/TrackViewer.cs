@@ -735,20 +735,20 @@ namespace ORTS.TrackViewer
                         break;
 
                     default:
-                        MessageBox.Show(string.Format(catalog.GetString("Route cannot be loaded.\nExtension {0} is not supported"), extension));
+                        MessageBox.Show(catalog.GetString($"Route cannot be loaded.\nExtension {extension} is not supported"));
                         return;
                 }
             }
             else
             {
                 //Obviously, this should only happen when ran on the command line, not when a file is opened using
-                MessageBox.Show(string.Format(catalog.GetString("Route cannot be loaded.\n{0} does not exist"), givenPathOrFile));
+                MessageBox.Show(catalog.GetString($"Route cannot be loaded.\n{givenPathOrFile} does not exist"));
                 return;
             }
 
             string installFolder = System.IO.Directory.GetParent(System.IO.Directory.GetParent(routeFolder).ToString()).ToString();
             if (!SetSelectedInstallFolder(installFolder)) {
-                MessageBox.Show(string.Format(catalog.GetString("Route cannot be loaded.\nWhile trying to open {0} the folder {1} was inferred as (MSTS or similar) install folder but does not contain expected files"), givenPathOrFile, installFolder));
+                MessageBox.Show(catalog.GetString($"Route cannot be loaded.\nWhile trying to open {givenPathOrFile} the folder {installFolder} was inferred as (MSTS or similar) install folder but does not contain expected files"));
                 return;
             }
 
@@ -763,7 +763,7 @@ namespace ORTS.TrackViewer
                     if (!givenFileIsPat) { return; }
                     foreach (Path availablePath in Paths)
                     {
-                        if (availablePath.FilePath.ToUpper() == givenPathOrFile.ToUpper())
+                        if (availablePath.FilePath.ToUpperInvariant() == givenPathOrFile.ToUpperInvariant())
                         {
                             SetPath(availablePath);
                             menuControl.InitUserSettings();
@@ -773,7 +773,7 @@ namespace ORTS.TrackViewer
                 }
             }
 
-            MessageBox.Show(string.Format(catalog.GetString("Route cannot be loaded.\n{0} somehow could not be translated into a loadable route"), givenPathOrFile));
+            MessageBox.Show(catalog.GetString($"Route cannot be loaded.\n{givenPathOrFile} somehow could not be translated into a loadable route"));
         }
 
         /// <summary>
