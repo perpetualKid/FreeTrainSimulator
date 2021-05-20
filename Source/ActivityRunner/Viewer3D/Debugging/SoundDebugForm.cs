@@ -215,7 +215,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         private void AddToForm(SoundSource ss)
         {
 
-            var nodeString = String.Format("{0}: {1} ", ss.Car != null ? ss.Car.UiD.ToString() : "-", ss.SMSFileName);
+            var nodeString = ss.Car!= null ? $"{ss.Car.UiD}: {ss.SMSFileName} " : $"-: {ss.SMSFileName} ";
             var nodeKey = nodeString + ss.GetHashCode().ToString();
 
             if (ss.Active)
@@ -246,12 +246,12 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                 var playingData = soundStream.ALSoundSource.GetPlayingData();
                 if (playingData[0] != "-1")
                     activeSS++;
-                var streamString = String.Format("{0} {1} (cue: {2}) {3}", playingData);
-                var streamKey = streamString + soundStream.GetHashCode().ToString();
+                var streamString = string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0} {1} (cue: {2}) {3}", playingData);
+                var streamKey = $"{streamString}{soundStream.GetHashCode()}";
                 node.Nodes.Add(streamKey, streamString);
                 node.Nodes[streamKey].Tag = soundStream;
             }
-            node.Text = string.Format("{0}({1}{2}", node.Text.Split('(')[0], activeSS, @"@");
+            node.Text = $"{node.Text.Split('(')[0]}({activeSS}@";
 
         }
 
@@ -262,7 +262,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                 if (nodes[i].Nodes.Count == 0)
                     nodes[i].Remove();
                 else
-                    nodes[i].Text = String.Format("{0}{1})", nodes[i].Text.Split('/')[0], nodes[i].Nodes.Count);
+                    nodes[i].Text = $"{nodes[i].Text.Split('/')[0]}{nodes[i].Nodes.Count})";
             }
         }
 

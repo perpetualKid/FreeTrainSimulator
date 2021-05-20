@@ -20,6 +20,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 
@@ -2557,17 +2558,17 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     if (hour == 0)
                         hour = 12;
                 }
-                DrawText = String.Format(digital.Accuracy > 0 ? "{0:D2}:{1:D2}:{2:D2}" : "{0:D2}:{1:D2}", hour, minute, seconds);
+                DrawText = digital.Accuracy > 0 ? $"{hour:D2}:{minute:D2}:{seconds:D2}" : $"{hour:D2}:{minute:D2}";
                 DrawColor = digital.PositiveColors[0];
             }
             else if (digital.PreviousValue != 0 && digital.PreviousValue > Num && digital.DecreaseColor.A != 0)
             {
-                DrawText = String.Format(Format, Math.Abs(Num));
+                DrawText = string.Format(CultureInfo.CurrentCulture, Format, Math.Abs(Num));
                 DrawColor = new Color(digital.DecreaseColor.R, digital.DecreaseColor.G, digital.DecreaseColor.B, digital.DecreaseColor.A);
             }
             else if (Num < 0 && digital.NegativeColors[0].A != 0)
             {
-                DrawText = String.Format(Format, Math.Abs(Num));
+                DrawText = string.Format(CultureInfo.CurrentCulture, Format, Math.Abs(Num));
                 if ((digital.NegativeColors.Length >= 2) && (Num < digital.NegativeTrigger))
                     DrawColor = digital.NegativeColors[1];
                 else
@@ -2575,7 +2576,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             }
             else if (digital.PositiveColors[0].A != 0)
             {
-                DrawText = String.Format(Format, Num);
+                DrawText = string.Format(CultureInfo.CurrentCulture, Format, Num);
                 if ((digital.PositiveColors.Length >= 2) && (Num > digital.PositiveTrigger))
                     DrawColor = digital.PositiveColors[1];
                 else
@@ -2583,7 +2584,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             }
             else
             {
-                DrawText = String.Format(Format, Num);
+                DrawText = string.Format(CultureInfo.CurrentCulture, Format, Num);
                 DrawColor = Color.White;
             }
             //          <CSComment> Now speedometer is handled like the other digitals
@@ -2629,17 +2630,17 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         if (hour == 0)
                             hour = 12;
                     }
-                    displayedText = String.Format(digital.Accuracy > 0 ? "{0:D2}:{1:D2}:{2:D2}" : "{0:D2}:{1:D2}", hour, minute, seconds);
+                    displayedText = digital.Accuracy > 0 ? $"{hour:D2}:{minute:D2}:{seconds:D2}" : $"{hour:D2}:{minute:D2}";
                     DrawColor = digital.PositiveColors[0];
                 }
                 else if (digital.PreviousValue != 0 && digital.PreviousValue > Num && digital.DecreaseColor.A != 0)
                 {
-                    displayedText = String.Format(Format, Math.Abs(Num));
+                    displayedText = string.Format(CultureInfo.CurrentCulture, Format, Math.Abs(Num));
                     DrawColor = new Color(digital.DecreaseColor.R, digital.DecreaseColor.G, digital.DecreaseColor.B, digital.DecreaseColor.A);
                 }
                 else if (Num < 0 && digital.NegativeColors[0].A != 0)
                 {
-                    displayedText = String.Format(Format, Math.Abs(Num));
+                    displayedText = string.Format(CultureInfo.CurrentCulture, Format, Math.Abs(Num));
                     if ((digital.NegativeColors.Length >= 2) && (Num < digital.NegativeTrigger))
                         DrawColor = digital.NegativeColors[1];
                     else
@@ -2647,14 +2648,14 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 }
                 else if (digital.PositiveColors[0].A != 0)
                 {
-                    displayedText = String.Format(Format, Num);
+                    displayedText = string.Format(CultureInfo.CurrentCulture, Format, Num);
                     if ((digital.PositiveColors.Length >= 2) && (Num > digital.PositiveTrigger))
                         DrawColor = digital.PositiveColors[1];
                     else DrawColor = digital.PositiveColors[0];
                 }
                 else
                 {
-                    displayedText = String.Format(Format, Num);
+                    displayedText = string.Format(CultureInfo.CurrentCulture, Format, Num);
                     DrawColor = Color.White;
                 }
                 // <CSComment> Speedometer is now managed like the other digitals
@@ -2705,27 +2706,27 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         if (hour == 0)
                             hour = 12;
                     }
-                    displayedText = String.Format(digital.Accuracy > 0 ? "{0:D2}:{1:D2}:{2:D2}" : "{0:D2}:{1:D2}", hour, minute, seconds) + displayedText;
+                    displayedText = (digital.Accuracy > 0 ? $"{hour:D2}:{minute:D2}:{seconds:D2}" : $"{hour:D2}:{minute:D2}") + displayedText;
                 }
                 else if (digital.PreviousValue != 0 && digital.PreviousValue > Num && digital.DecreaseColor.A != 0)
                 {
-                    displayedText = String.Format(Format, Math.Abs(Num));
+                    displayedText = string.Format(CultureInfo.CurrentCulture, Format, Math.Abs(Num));
                 }
                 else if (Num < 0 && digital.NegativeColors[0].A != 0)
                 {
-                    displayedText = String.Format(Format, Math.Abs(Num));
+                    displayedText = string.Format(CultureInfo.CurrentCulture, Format, Math.Abs(Num));
                     if ((digital.NegativeColors.Length >= 2) && (Num < digital.NegativeTrigger))
                         Alert = true;
                 }
                 else if (digital.PositiveColors[0].A != 0)
                 {
-                    displayedText = String.Format(Format, Num);
+                    displayedText = string.Format(CultureInfo.CurrentCulture, Format, Num);
                     if ((digital.PositiveColors.Length >= 2) && (Num > digital.PositiveTrigger))
                         Alert = true;
                 }
                 else
                 {
-                    displayedText = String.Format(Format, Num);
+                    displayedText = string.Format(CultureInfo.CurrentCulture, Format, Num);
                 }
                 // <CSComment> Speedometer is now managed like the other digitals
 

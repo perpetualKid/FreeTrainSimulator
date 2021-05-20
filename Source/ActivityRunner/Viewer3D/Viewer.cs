@@ -244,10 +244,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     double lastTime = Simulator.ReplayCommandList[lastEntry].Time;
                     Log.ReplayEndsAt = lastTime;
                     double duration = lastTime - Simulator.ClockTime;
-                    MessagesWindow.AddMessage(String.Format("Replay started: ending at {0} after {1}",
-                        FormatStrings.FormatApproximateTime(lastTime),
-                        FormatStrings.FormatTime(duration)),
-                        3.0);
+                    MessagesWindow.AddMessage($"Replay started: ending at {FormatStrings.FormatApproximateTime(lastTime)} after {FormatStrings.FormatTime(duration)}", 3.0);
                 }
             }
         }

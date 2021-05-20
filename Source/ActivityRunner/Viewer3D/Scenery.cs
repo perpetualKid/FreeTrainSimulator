@@ -487,7 +487,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 }
                 catch (Exception error)
                 {
-                    Trace.WriteLine(new FileLoadException(String.Format("{0} scenery object {1} failed to load", worldMatrix, worldObject.UiD), error));
+                    Trace.WriteLine(new FileLoadException($"{worldMatrix} scenery object {worldObject.UiD} failed to load", error));
                 }
             }
 
@@ -501,7 +501,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     {
                         if (Viewer.SpeedpostDatFile == null)
                         {
-                            Trace.TraceWarning(String.Format("{0} missing; speed posts for temporary speed restrictions in tile {1} {2} will not be visible.", Viewer.Simulator.RoutePath + @"\speedpost.dat", TileX, TileZ));
+                            Trace.TraceWarning($"{Viewer.Simulator.RoutePath}\\speedpost.dat missing; speed posts for temporary speed restrictions in tile {TileX} {TileZ} will not be visible.");
                             break;
                         }
                         else

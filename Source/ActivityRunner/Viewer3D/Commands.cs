@@ -29,7 +29,8 @@ namespace Orts.ActivityRunner.Viewer3D
     public abstract class ActivityCommand : PausedCommand
         {
         public static ActivityWindow Receiver { get; set; }
-        string EventNameLabel;
+
+        private readonly string EventNameLabel;
 
         public ActivityCommand( CommandLog log, string eventNameLabel, double pauseDurationS )
             : base(log, pauseDurationS)
@@ -40,7 +41,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public override string ToString()
         {
-            return String.Format("{0} Event: {1} ", base.ToString(), EventNameLabel);
+            return $"{base.ToString()} Event: {EventNameLabel} ";
         }
     }
 
@@ -520,14 +521,14 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public override string ToString()
         {
-            return base.ToString() + " - " + String.Format( "{0}", FormatStrings.FormatPreciseTime( EndTime ) );
+            return $"{base.ToString()} - {FormatStrings.FormatPreciseTime(EndTime)}";
         }
     }
 
     [Serializable()]
     public sealed class CameraRotateUpDownCommand : MoveCameraCommand
     {
-        float RotationXRadians;
+        private readonly float RotationXRadians;
 
         public CameraRotateUpDownCommand( CommandLog log, double startTime, double endTime, float rx )
             : base(log, startTime, endTime)
@@ -549,7 +550,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public override string ToString()
         {
-            return base.ToString() + String.Format( ", {0}", RotationXRadians );
+            return $"{base.ToString()} , {RotationXRadians}";
         }
     }
 
@@ -578,7 +579,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public override string ToString()
         {
-            return base.ToString() + String.Format( ", {0}", RotationYRadians );
+            return $"{base.ToString()} , {RotationYRadians}";
         }
     }
 
@@ -613,7 +614,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public override string ToString()
         {
-            return base.ToString() + String.Format( ", {0} {1} {2}", EndTime, RotationXRadians, RotationYRadians );
+            return $"{base.ToString()}, {EndTime} {RotationXRadians} {RotationYRadians}";
         }
     }
 
@@ -642,7 +643,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public override string ToString()
         {
-            return base.ToString() + String.Format( ", {0}", XRadians );
+            return $"{base.ToString()}, {XRadians}";
         }
     }
 
@@ -671,7 +672,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public override string ToString()
         {
-            return base.ToString() + String.Format( ", {0}", YRadians );
+            return $"{base.ToString()}, {YRadians}";
         }
     }
 
@@ -699,7 +700,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public override string ToString()
         {
-            return base.ToString() + String.Format( ", {0}", ZRadians );
+            return $"{base.ToString()}, {ZRadians}";
         }
     }
 
@@ -728,7 +729,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
 		public override string ToString()
 		{
-			return base.ToString() + String.Format(", {0}", X);
+			return $"{base.ToString()}, {X}";
 		}
 	}
 
@@ -757,7 +758,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public override string ToString()
         {
-            return base.ToString() + String.Format( ", {0}", PositionXRadians );
+            return $"{base.ToString()}, {PositionXRadians}";
         }
     }
 
@@ -786,7 +787,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public override string ToString()
         {
-            return base.ToString() + String.Format( ", {0}", PositionYRadians );
+            return $"{base.ToString()}, {PositionYRadians}";
         }
     }
 
@@ -815,7 +816,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public override string ToString()
         {
-            return base.ToString() + String.Format( ", {0}", PositionDistanceMetres );
+            return $"{base.ToString()}, {PositionDistanceMetres}";
         }
     }
 

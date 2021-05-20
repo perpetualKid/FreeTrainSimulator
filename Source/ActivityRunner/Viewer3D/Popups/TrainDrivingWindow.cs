@@ -699,14 +699,14 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 if (-ThisInfo.Gradient < -0.00015)
                 {
                     var c = '\u2198';
-                    Gradient = String.Format("{0:F1}%{1}", -ThisInfo.Gradient, c) + "$$$";
+                    Gradient = $"{-ThisInfo.Gradient:F1}%{c}$$$";
                 }
                 else if (-ThisInfo.Gradient > 0.00015)
                 {
                     var c = '\u2197';
-                    Gradient = String.Format("{0:F1}%{1}", -ThisInfo.Gradient, c) + "???";
+                    Gradient = $"{-ThisInfo.Gradient:F1}%{c}???";
                 }
-                else Gradient = String.Format("{0:F1}%", -ThisInfo.Gradient);
+                else Gradient = $"{-ThisInfo.Gradient:F1}%";
 
                 InfoToLabel(string.Empty, Viewer.Catalog.GetString("Gradient"), Gradient, "", false);
             }
@@ -985,11 +985,14 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 var color = Math.Abs(Owner.Viewer.PlayerLocomotive.SpeedMpS) > 0.1f ? "!!!" : "???";
                 var status = "";
                 if ((Owner.Viewer.PlayerLocomotive as MSTSWagon).DoorLeftOpen)
-                    status += Viewer.Catalog.GetString((Owner.Viewer.PlayerLocomotive as MSTSLocomotive).GetCabFlipped() ? Viewer.Catalog.GetString("Right") : Viewer.Catalog.GetString("Left"));
+                    status += (Owner.Viewer.PlayerLocomotive as MSTSLocomotive).GetCabFlipped() ? Viewer.Catalog.GetString("Right") : Viewer.Catalog.GetString("Left");
                 if ((Owner.Viewer.PlayerLocomotive as MSTSWagon).DoorRightOpen)
-                    status += string.Format(status == "" ? "{0}" : " {0}", Viewer.Catalog.GetString((Owner.Viewer.PlayerLocomotive as MSTSLocomotive).GetCabFlipped() ? Viewer.Catalog.GetString("Left") : Viewer.Catalog.GetString("Right")));
-                status += color;
-
+                {
+                    if (status.Length > 0)
+                        status += " ";
+                    status += (Owner.Viewer.PlayerLocomotive as MSTSLocomotive).GetCabFlipped() ? Viewer.Catalog.GetString("Left") : Viewer.Catalog.GetString("Right");
+                    status += color;
+                }
                 InfoToLabel(" ", Viewer.Catalog.GetString("Doors open"), status, "", false);
             }
             else

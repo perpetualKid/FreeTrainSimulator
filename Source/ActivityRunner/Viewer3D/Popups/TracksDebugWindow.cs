@@ -116,7 +116,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                 var trItem = rdb.RoadTrackDB.TrItemTable[trItemID];
                                 currentPosition = new Traveller(tSectionDat, rdb.RoadTrackDB.TrackNodes, trackNode);
                                 currentPosition.Move(trItem.SData1);
-                                primitives.Add(new DispatcherLabel(currentPosition.WorldLocation, Color.LightSalmon, String.Format("{0} {1} {2}", trItem.TrackItemId, trItem.GetType().Name.Replace("Item", string.Empty), trItem.ItemName), Owner.TextFontDefaultOutlined));
+                                primitives.Add(new DispatcherLabel(currentPosition.WorldLocation, Color.LightSalmon, $"{trItem.TrackItemId} {trItem.GetType().Name.Replace("Item", string.Empty)} {trItem.ItemName}", Owner.TextFontDefaultOutlined));
                             }
                         }
                     }

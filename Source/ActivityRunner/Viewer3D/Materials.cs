@@ -547,7 +547,7 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             if (string.IsNullOrEmpty(key))
                 return GetType().Name;
-            return string.Format("{0}({1})", GetType().Name, key);
+            return $"{GetType().Name}({key})";
         }
 
         public virtual void SetState(Material previousMaterial) { }
@@ -739,7 +739,7 @@ namespace Orts.ActivityRunner.Viewer3D
         private static readonly Dictionary<float, SamplerState>[] samplerStates = new Dictionary<float, SamplerState>[4]; //Length of TextureAddressMode Values
 
         public SceneryMaterial(Viewer viewer, string texturePath, SceneryMaterialOptions options, float mipMapBias)
-            : base(viewer, string.Format("{0}:{1:X}:{2}", texturePath, options, mipMapBias))
+            : base(viewer, $"{texturePath}:{options:X}:{mipMapBias}")
         {
             this.options = options;
             this.SamplerState = GetShadowTextureAddressMode(mipMapBias, options);

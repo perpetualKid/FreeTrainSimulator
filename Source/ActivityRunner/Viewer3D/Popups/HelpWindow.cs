@@ -640,7 +640,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                 Directory.CreateDirectory(dbfevalDataFolder);
 
                             //.DbfEval.txt
-                            filename = String.Format("{0}{1:yyyyMMdd.HHmm}.DbfEval.txt", filename, DateTime.Now);
+                            filename = $"{filename}{DateTime.Now:yyyyMMdd.HHmm}.DbfEval.txt";
 
                             string logFileName = Path.Combine(dbfevalDataFolder, filename);
                             //Ensure we start with an empty file.

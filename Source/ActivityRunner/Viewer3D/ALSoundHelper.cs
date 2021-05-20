@@ -1238,17 +1238,14 @@ namespace Orts.ActivityRunner.Viewer3D
 
             if (SoundQueue[QueueTail % QUEUELENGHT].PlayState != PlayState.NOP)
             {
-                retval[3] = String.Format("{0} {1}{2}", 
-                    SoundQueue[QueueTail % QUEUELENGHT].PlayState,
-                    SoundQueue[QueueTail % QUEUELENGHT].PlayMode,
-                    SoundQueue[QueueTail % QUEUELENGHT].SoftLoopPoints && SoundQueue[QueueTail % QUEUELENGHT].PlayMode == PlayMode.LoopRelease ? "Soft" : "");
+                retval[3] = $"{SoundQueue[QueueTail % QUEUELENGHT].PlayState} {SoundQueue[QueueTail % QUEUELENGHT].PlayMode}{(SoundQueue[QueueTail % QUEUELENGHT].SoftLoopPoints && SoundQueue[QueueTail % QUEUELENGHT].PlayMode == PlayMode.LoopRelease ? "Soft" : "")}";
             }
             else
             {
-                retval[3] = String.Format("Stopped {0}", SoundQueue[QueueTail % QUEUELENGHT].PlayMode);
+                retval[3] = $"Stopped {SoundQueue[QueueTail % QUEUELENGHT].PlayMode}";
             }
 
-            retval[3] += " " + (QueueHeader - QueueTail).ToString();
+            retval[3] += $" {QueueHeader - QueueTail}";
 
             return retval;
         }

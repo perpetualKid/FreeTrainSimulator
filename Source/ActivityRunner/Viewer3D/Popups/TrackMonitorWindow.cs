@@ -113,13 +113,13 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 if (-thisInfo.Gradient < -0.00015)
                 {
                     var c = '\u2198';
-                    Gradient.Text = String.Format("|  {0:F1}%{1} ", -thisInfo.Gradient, c);
+                    Gradient.Text = $"|  {-thisInfo.Gradient:F1}%{c} ";
                     Gradient.Color = Color.LightSkyBlue;
                 }
                 else if (-thisInfo.Gradient > 0.00015)
                 {
                     var c = '\u2197';
-                    Gradient.Text = String.Format("|  {0:F1}%{1} ", -thisInfo.Gradient, c);
+                    Gradient.Text = $"|  {-thisInfo.Gradient:F1}%{c} ";
                     Gradient.Color = Color.Yellow;
                 }
                 else Gradient.Text = "";

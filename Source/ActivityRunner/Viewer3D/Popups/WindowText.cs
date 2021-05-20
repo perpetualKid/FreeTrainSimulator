@@ -113,7 +113,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         public WindowTextFont GetExact(string fontFamily, float sizeInPt, FontStyle style, int outlineSize)
         {
             var fonts = Fonts;
-            var key = String.Format("{0}:{1:F}:{2}:{3}", fontFamily, sizeInPt, style, outlineSize);
+            var key = $"{fontFamily}:{sizeInPt:F}:{style}:{outlineSize}";
             if (!fonts.ContainsKey(key))
             {
                 fonts = new Dictionary<string, WindowTextFont>(fonts);
@@ -466,7 +466,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                         else
                         {
                             // This is a bit of a cheat, but is used when the chosen font does not have the character itself but it will render anyway (e.g. through font fallback).
-                            AbcWidths[i] = new Vector3(0, System.Windows.Forms.TextRenderer.MeasureText(String.Format(" {0} ", Characters[i]), Font, System.Drawing.Size.Empty, Flags).Width - System.Windows.Forms.TextRenderer.MeasureText("  ", Font, System.Drawing.Size.Empty, Flags).Width, 0);
+                            AbcWidths[i] = new Vector3(0, System.Windows.Forms.TextRenderer.MeasureText($" {Characters[i]} ", Font, System.Drawing.Size.Empty, Flags).Width - System.Windows.Forms.TextRenderer.MeasureText("  ", Font, System.Drawing.Size.Empty, Flags).Width, 0);
                         }
                         Boxes[i] = new Rectangle(x, y, (int)(Math.Max(0, AbcWidths[i].X) + AbcWidths[i].Y + Math.Max(0, AbcWidths[i].Z) + 2 * OutlineSize), height + 2 * OutlineSize);
                         x += Boxes[i].Width + BoxSpacing;
