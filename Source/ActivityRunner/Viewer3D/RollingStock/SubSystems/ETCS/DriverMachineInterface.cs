@@ -147,7 +147,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
             Active = currentStatus != null && currentStatus.DMIActive;
             if (!Active) return;
 
-            BlinkerTime += elapsedSeconds;
+            BlinkerTime += (float)elapsedSeconds;
             BlinkerTime -= (int)BlinkerTime;
             Blinker2Hz = BlinkerTime < 0.5;
             Blinker4Hz = BlinkerTime < 0.25 || (BlinkerTime > 0.5 && BlinkerTime < 0.75);
