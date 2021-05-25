@@ -141,7 +141,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
             MessageArea = new MessageArea(this, Viewer, MessageAreaLocation);
         }
 
-        public void PrepareFrame(float elapsedSeconds)
+        public void PrepareFrame(double elapsedSeconds)
         {
             ETCSStatus currentStatus = Locomotive.TrainControlSystem.ETCSStatus;
             Active = currentStatus != null && currentStatus.DMIActive;
@@ -340,7 +340,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.Subsystems.Etcs
             int y = (int)((mousePoint.Y - DrawPosition.Y) / driverMachineInterface.Scale + 15);
             foreach (DriverMachineInterface.Button button in driverMachineInterface.SensitiveButtons)
             {
-                if (button.SensitiveArea.Contains(x, y) && b.Enabled)
+                if (button.SensitiveArea.Contains(x, y) && button.Enabled)
                     return true;
             }
             return false;
