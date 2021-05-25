@@ -28,10 +28,10 @@
     <Content Include="Content\*.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Content\ETCS\*.png">
+    <Content Include="Content\ETCS\**\*.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Content\ETCS\*.bmp">
+    <Content Include="Content\ETCS\**\*.bmp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Copying.txt">
