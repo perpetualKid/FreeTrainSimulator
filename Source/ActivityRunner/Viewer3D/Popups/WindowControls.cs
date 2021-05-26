@@ -84,11 +84,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             return false;
         }
 
-        internal virtual bool HandleUserInput(WindowMouseEvent e)
-        {
-            return false;
-        }
-
         internal virtual void MoveBy(int x, int y)
         {
             Position.X += x;

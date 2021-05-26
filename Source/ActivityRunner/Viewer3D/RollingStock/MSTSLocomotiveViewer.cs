@@ -29,6 +29,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 using Orts.ActivityRunner.Viewer3D.Common;
 using Orts.ActivityRunner.Viewer3D.Popups;
+using Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs;
 using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Common;
 using Orts.Common.Calc;
@@ -1379,7 +1380,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         {
                             CabViewDigitalRenderer cvdr;
                             if (viewer.Settings.CircularSpeedGauge && digital.ControlStyle == CabViewControlStyle.Needle)
-                                cvdr = new CabViewCircularSpeedGaugeRenderer(viewer, car, digital, _Shader);
+                                cvdr = new CircularSpeedGaugeRenderer(viewer, car, digital, _Shader);
                             else
                                 cvdr = new CabViewDigitalRenderer(viewer, car, digital, _Shader);
                             cvdr.SortIndex = controlSortIndex;
@@ -1387,6 +1388,19 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                             if (!ControlMap.ContainsKey(key)) ControlMap.Add(key, cvdr);
                             count[(int)cvc.ControlType]++;
                             continue;
+                        }
+                        CabViewScreenControl screen = cvc as CabViewScreenControl;
+                        if (screen != null)
+                        {
+                            if (screen.ControlType == CabViewControlType.Orts_Etcs)
+                            {
+                                var cvr = new DriverMachineInterfaceRenderer(viewer, car, screen, _Shader);
+                                cvr.SortIndex = controlSortIndex;
+                                CabViewControlRenderersList[i].Add(cvr);
+                                if (!ControlMap.ContainsKey(key)) ControlMap.Add(key, cvr);
+                                count[(int)cvc.ControlType]++;
+                                continue;
+                            }
                         }
                     }
                 }
@@ -1477,7 +1491,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 {
                     CabViewDigitalRenderer cvdr;
                     if (viewer.Settings.CircularSpeedGauge && digital.ControlStyle == CabViewControlStyle.Needle)
-                        cvdr = new CabViewCircularSpeedGaugeRenderer(viewer, car, digital, _Shader);
+                        cvdr = new CircularSpeedGaugeRenderer(viewer, car, digital, _Shader);
                     else
                         cvdr = new CabViewDigitalRenderer(viewer, car, digital, _Shader);
                     cvdr.SortIndex = controlSortIndex;
@@ -1485,6 +1499,19 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     if (!ControlMap.ContainsKey(key)) ControlMap.Add(key, cvdr);
                     count[(int)cvc.ControlType]++;
                     continue;
+                }
+                CabViewScreenControl screen = cvc as CabViewScreenControl;
+                if (screen != null)
+                {
+                    if (screen.ControlType == CabViewControlType.Orts_Etcs)
+                    {
+                        var cvr = new DriverMachineInterfaceRenderer(viewer, car, screen, _Shader);
+                        cvr.SortIndex = controlSortIndex;
+                        CabViewControlRenderersList[i].Add(cvr);
+                        if (!ControlMap.ContainsKey(key)) ControlMap.Add(key, cvr);
+                        count[(int)cvc.ControlType]++;
+                        continue;
+                    }
                 }
             }
             #endregion
@@ -1597,7 +1624,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         protected internal readonly CabViewControl Control;
         protected readonly CabShader Shader;
         protected readonly int ShaderKey = 1;
-        protected readonly CabSpriteBatchMaterial CabShaderControlView;
+        protected readonly CabSpriteBatchMaterial ControlView;
 
         protected Vector2 Position;
         protected Texture2D Texture;
@@ -1613,7 +1640,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             Control = control;
             Shader = shader;
 
-            CabShaderControlView = (CabSpriteBatchMaterial)viewer.MaterialManager.Load("CabSpriteBatch", null, 0, 0, Shader);
+            ControlView = (CabSpriteBatchMaterial)viewer.MaterialManager.Load("CabSpriteBatch", null, 0, 0, Shader);
 
             HasCabLightDirectory = CABTextureManager.LoadTextures(Viewer, Control.AceFile);
         }
@@ -1647,13 +1674,24 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
         public virtual void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
-            frame.AddPrimitive(CabShaderControlView, this, RenderPrimitiveGroup.Cab, ref Matrix);
+            frame.AddPrimitive(ControlView, this, RenderPrimitiveGroup.Cab, ref Matrix);
         }
 
         internal void Mark()
         {
             Viewer.TextureManager.Mark(Texture);
         }
+    }
+
+    /// <summary>
+    /// Interface for mouse controllable CabViewControls
+    /// </summary>
+    public interface ICabViewMouseControlRenderer
+    {
+        bool IsMouseWithin(Point mousePoint);
+        void HandleUserInput(GenericButtonEventType buttonEventType, Point position, Vector2 delta);
+        string GetControlName(Point mousePoint);
+
     }
 
     /// <summary>
@@ -1718,7 +1756,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             {
                 Shader.SetTextureData(Position.X, Position.Y, Texture.Width * ScaleToScreen, Texture.Height * ScaleToScreen);
             }
-            CabShaderControlView.SpriteBatch.Draw(Texture, Position, null, Color.White, Rotation, Origin, ScaleToScreen, SpriteEffects.None, 0);
+            ControlView.SpriteBatch.Draw(Texture, Position, null, Color.White, Rotation, Origin, ScaleToScreen, SpriteEffects.None, 0);
         }
     }
 
@@ -1947,14 +1985,14 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             {
                 Shader.SetTextureData(DestinationRectangle.Left, DestinationRectangle.Top, DestinationRectangle.Width, DestinationRectangle.Height);
             }
-            CabShaderControlView.SpriteBatch.Draw(Texture, DestinationRectangle, SourceRectangle, DrawColor, DrawRotation, Vector2.Zero, SpriteEffects.None, 0);
+            ControlView.SpriteBatch.Draw(Texture, DestinationRectangle, SourceRectangle, DrawColor, DrawRotation, Vector2.Zero, SpriteEffects.None, 0);
         }
     }
 
     /// <summary>
     /// Discrete renderer for Lever, Twostate, Tristate, Multistate, Signal
     /// </summary>
-    public class CabViewDiscreteRenderer : CabViewControlRenderer
+    public class CabViewDiscreteRenderer : CabViewControlRenderer, ICabViewMouseControlRenderer
     {
         readonly CabViewFramedControl ControlDiscrete;
         readonly Rectangle SourceRectangle;
@@ -2014,7 +2052,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             {
                 Shader.SetTextureData(DestinationRectangle.Left, DestinationRectangle.Top, DestinationRectangle.Width, DestinationRectangle.Height);
             }
-            CabShaderControlView.SpriteBatch.Draw(Texture, DestinationRectangle, SourceRectangle, Color.White);
+            ControlView.SpriteBatch.Draw(Texture, DestinationRectangle, SourceRectangle, Color.White);
         }
 
         /// <summary>
@@ -2233,6 +2271,11 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             }
         }
 
+        public string GetControlName(Point mousePoint)
+        {
+            return Locomotive.TrainControlSystem.GetDisplayString(GetControlType().ToString());
+        }
+
         /// <summary>
         /// Handles cabview mouse events, and changes the corresponding locomotive control values.
         /// </summary>
@@ -2347,16 +2390,16 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         {
                             if (car == Viewer.Simulator.PlayerLocomotive && dieselLoco.DieselEngines.Count > 1)
                             {
-                                if ((dieselLoco.DieselEngines[1].EngineStatus == Orts.Simulation.RollingStocks.SubSystems.PowerSupplies.DieselEngine.Status.Running ||
-                                            dieselLoco.DieselEngines[1].EngineStatus == Orts.Simulation.RollingStocks.SubSystems.PowerSupplies.DieselEngine.Status.Stopped) &&
+                                if ((dieselLoco.DieselEngines[1].EngineStatus == Simulation.RollingStocks.SubSystems.PowerSupplies.DieselEngine.Status.Running ||
+                                            dieselLoco.DieselEngines[1].EngineStatus == Simulation.RollingStocks.SubSystems.PowerSupplies.DieselEngine.Status.Stopped) &&
                                             UpdateCommandValue(1, buttonEventType, delta) == 0)
                                     _ = new ToggleHelpersEngineCommand(Viewer.Log);
                                 break;
                             }
                             else if (car != Viewer.Simulator.PlayerLocomotive)
                             {
-                                if ((dieselLoco.DieselEngines[0].EngineStatus == Orts.Simulation.RollingStocks.SubSystems.PowerSupplies.DieselEngine.Status.Running ||
-                                            dieselLoco.DieselEngines[0].EngineStatus == Orts.Simulation.RollingStocks.SubSystems.PowerSupplies.DieselEngine.Status.Stopped) &&
+                                if ((dieselLoco.DieselEngines[0].EngineStatus == Simulation.RollingStocks.SubSystems.PowerSupplies.DieselEngine.Status.Running ||
+                                            dieselLoco.DieselEngines[0].EngineStatus == Simulation.RollingStocks.SubSystems.PowerSupplies.DieselEngine.Status.Stopped) &&
                                             UpdateCommandValue(1, buttonEventType, delta) == 0)
                                     _ = new ToggleHelpersEngineCommand(Viewer.Log);
                                 break;
@@ -2594,7 +2637,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
         public override void Draw()
         {
-            DrawFont.Draw(CabShaderControlView.SpriteBatch, DrawPosition, Point.Zero, DrawRotation, DrawText, Alignment, DrawColor, Color.Black);
+            DrawFont.Draw(ControlView.SpriteBatch, DrawPosition, Point.Zero, DrawRotation, DrawText, Alignment, DrawColor, Color.Black);
         }
 
         public string GetDigits(out Color DrawColor)

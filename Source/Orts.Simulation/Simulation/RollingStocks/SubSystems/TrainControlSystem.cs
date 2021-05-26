@@ -18,21 +18,23 @@
 // Define this to log the wheel configurations on cars as they are loaded.
 //#define DEBUG_WHEELS
 
-using Orts.Simulation.Signalling;
-using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Diagnostics;
+using System.IO;
 
 using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Formats.Msts;
+using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
 using Orts.Scripting.Api;
+using Orts.Scripting.Api.Etcs;
 using Orts.Simulation.Physics;
-using Orts.Formats.Msts.Models;
-using Orts.Simulation.Track;
+using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
+using Orts.Simulation.Signalling;
+
+using static Orts.Scripting.Api.Etcs.ETCSStatus;
 
 namespace Orts.Simulation.RollingStocks.SubSystems
 {
@@ -114,9 +116,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         public bool PenaltyApplication { get; set; }
         public float CurrentSpeedLimitMpS { get; set; }
         public float NextSpeedLimitMpS { get; set; }
-        public float InterventionSpeedLimitMpS { get; set; }
         public TrackMonitorSignalAspect CabSignalAspect { get; set; }
-        public MonitoringStatus MonitoringStatus { get; set; }
 
         public bool Activated = false;
         public bool CustomTCSScript = false;
@@ -155,6 +155,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         string SoundFileName;
         string ParametersFileName;
         TrainControlSystem Script;
+
+        public Scripting.Api.Etcs.ETCSStatus ETCSStatus { get { return Script?.ETCSStatus; } }
 
         public Dictionary<TrainControlSystem, string> Sounds = new Dictionary<TrainControlSystem, string>();
 
@@ -451,10 +453,37 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 Script.SetVigilanceEmergencyDisplay = (value) => this.VigilanceEmergency = value;
                 Script.SetOverspeedWarningDisplay = (value) => this.OverspeedWarning = value;
                 Script.SetPenaltyApplicationDisplay = (value) => this.PenaltyApplication = value;
-                Script.SetMonitoringStatus = (value) => this.MonitoringStatus = value;
-                Script.SetCurrentSpeedLimitMpS = (value) => this.CurrentSpeedLimitMpS = value;
-                Script.SetNextSpeedLimitMpS = (value) => this.NextSpeedLimitMpS = value;
-                Script.SetInterventionSpeedLimitMpS = (value) => this.InterventionSpeedLimitMpS = value;
+                Script.SetMonitoringStatus = (value) =>
+                {
+                    switch (value)
+                    {
+                        case MonitoringStatus.Normal:
+                        case MonitoringStatus.Indication:
+                            ETCSStatus.CurrentMonitor = Monitor.CeilingSpeed;
+                            ETCSStatus.CurrentSupervisionStatus = SupervisionStatus.Normal;
+                            break;
+                        case MonitoringStatus.Overspeed:
+                            ETCSStatus.CurrentMonitor = Monitor.TargetSpeed;
+                            ETCSStatus.CurrentSupervisionStatus = SupervisionStatus.Indication;
+                            break;
+                        case MonitoringStatus.Warning:
+                            ETCSStatus.CurrentSupervisionStatus = SupervisionStatus.Overspeed;
+                            break;
+                        case MonitoringStatus.Intervention:
+                            ETCSStatus.CurrentSupervisionStatus = SupervisionStatus.Intervention;
+                            break;
+                    }
+                };
+                Script.SetCurrentSpeedLimitMpS = (value) =>
+                {
+                    this.CurrentSpeedLimitMpS = value;
+                    ETCSStatus.AllowedSpeedMpS = value;
+                };
+                Script.SetNextSpeedLimitMpS = (value) => {
+                    this.NextSpeedLimitMpS = value;
+                    ETCSStatus.TargetSpeedMpS = value;
+                };
+                Script.SetInterventionSpeedLimitMpS = (value) => Script.ETCSStatus.InterventionSpeedMpS = value;
                 Script.SetNextSignalAspect = (value) => this.CabSignalAspect = (TrackMonitorSignalAspect)value;
                 Script.SetCabDisplayControl = (arg1, arg2) => CabDisplayControls[arg1] = arg2;
                 Script.SetCustomizedTCSControlString = (value) =>
@@ -987,9 +1016,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 OverspeedPenaltyTimer.Setup(OverspeedMonitor.PenaltyTimeS);
             }
 
+            ETCSStatus.DMIActive = ETCSStatus.PlanningAreaShown = true;
+
             Activated = true;
         }
-
         public override void Update()
         {
             UpdateInputs();
@@ -1052,24 +1082,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems
 
                 SetPenaltyApplicationDisplay(IsBrakeEmergency() || IsBrakeFullService());
 
-                // Update monitoring status
-                if (SpeedMpS() > CurrentSpeedLimitMpS)
-                {
-                    if (OverspeedMonitor != null && (OverspeedMonitor.AppliesEmergencyBrake || OverspeedMonitor.AppliesFullBrake))
-                        Status = MonitoringStatus.Intervention;
-                    else
-                        Status = MonitoringStatus.Warning;
-                }
-                else if (NextSpeedLimitMpS < CurrentSpeedLimitMpS && SpeedMpS() > NextSpeedLimitMpS)
-                {
-                    if (Deceleration(SpeedMpS(), NextSpeedLimitMpS, NextSignalDistanceM(0)) > 0.7f)
-                        Status = MonitoringStatus.Overspeed;
-                    else
-                        Status = MonitoringStatus.Indication;
-                }
-                else
-                    Status = MonitoringStatus.Normal;
-                SetMonitoringStatus(Status);
+                UpdateMonitoringStatus();
+                UpdateETCSPlanning();
             }
         }
 
@@ -1082,10 +1096,63 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 CurrentSpeedLimitMpS = TrainSpeedLimitMpS();
 
             // TODO: NextSignalSpeedLimitMpS(0) should return 0 if the signal is at stop; cause seems to be updateSpeedInfo() within Train.cs
-            NextSpeedLimitMpS = NextSignalAspect(0) != TrackMonitorSignalAspect.Stop ? (NextSignalSpeedLimitMpS(0) > 0 && NextSignalSpeedLimitMpS(0) < TrainSpeedLimitMpS() ? NextSignalSpeedLimitMpS(0) : TrainSpeedLimitMpS()) : 0;
+            NextSpeedLimitMpS = NextSignalAspect(0) != TrackMonitorSignalAspect.Stop ? (NextSignalSpeedLimitMpS(0) > 0 && NextSignalSpeedLimitMpS(0) < TrainSpeedLimitMpS() ? NextSignalSpeedLimitMpS(0) : TrainSpeedLimitMpS() ) : 0;
 
             SetCurrentSpeedLimitMpS(CurrentSpeedLimitMpS);
             SetNextSpeedLimitMpS(NextSpeedLimitMpS);
+        }
+
+        private void UpdateMonitoringStatus()
+        {
+            if (SpeedMpS() > CurrentSpeedLimitMpS)
+            {
+                if (OverspeedMonitor != null && (OverspeedMonitor.AppliesEmergencyBrake || OverspeedMonitor.AppliesFullBrake))
+                    Status = MonitoringStatus.Intervention;
+                else
+                    Status = MonitoringStatus.Warning;
+            }
+            else if (NextSpeedLimitMpS < CurrentSpeedLimitMpS && SpeedMpS() > NextSpeedLimitMpS)
+            {
+                if (Deceleration(SpeedMpS(), NextSpeedLimitMpS, NextSignalDistanceM(0)) > 0.7f)
+                    Status = MonitoringStatus.Overspeed;
+                else
+                    Status = MonitoringStatus.Indication;
+            }
+            else
+                Status = MonitoringStatus.Normal;
+            SetMonitoringStatus(Status);
+        }
+
+        // Provide basic functionality for ETCS DMI planning area
+        private void UpdateETCSPlanning()
+        {
+            float maxDistanceAheadM = 0;
+            ETCSStatus.SpeedTargets.Clear();
+            ETCSStatus.SpeedTargets.Add(new PlanningTarget(0, CurrentSpeedLimitMpS));
+            for (int i=0; i<5; i++)
+            {
+                maxDistanceAheadM = NextSignalDistanceM(i);
+                if (NextSignalAspect(i) == TrackMonitorSignalAspect.Stop || NextSignalAspect(i) == TrackMonitorSignalAspect.None) break;
+                float speedLimMpS = NextSignalSpeedLimitMpS(i); 
+                if (speedLimMpS >= 0) ETCSStatus.SpeedTargets.Add(new PlanningTarget(maxDistanceAheadM, speedLimMpS));
+            }
+            float prevDist = 0;
+            float prevSpeed = 0;
+            for (int i=0; i<10; i++)
+            {
+                float distanceM = NextPostDistanceM(i);
+                if (distanceM >= maxDistanceAheadM) break;
+                float speed = NextPostSpeedLimitMpS(i);
+                if (speed == prevSpeed || distanceM - prevDist < 10) continue;
+                ETCSStatus.SpeedTargets.Add(new PlanningTarget(distanceM, speed));
+                prevDist = distanceM;
+                prevSpeed = speed;
+            }
+            ETCSStatus.SpeedTargets.Sort((x, y) => x.DistanceToTrainM.CompareTo(y.DistanceToTrainM));
+            ETCSStatus.SpeedTargets.Add(new PlanningTarget(maxDistanceAheadM, 0)); 
+            ETCSStatus.GradientProfile.Clear();
+            ETCSStatus.GradientProfile.Add(new GradientProfileElement(0, (int)(CurrentGradientPercent() * 10)));
+            ETCSStatus.GradientProfile.Add(new GradientProfileElement(maxDistanceAheadM, 0)); // End of profile
         }
 
         public override void HandleEvent(TCSEvent evt, string message)
