@@ -3917,6 +3917,13 @@ namespace Orts.Simulation.RollingStocks
             LocomotivePowerSupply.HandleEvent(toState ? PowerSupplyEvent.QuickPowerOn : PowerSupplyEvent.QuickPowerOff);
         }
 
+        public override void SignalEvent(TCSEvent evt)
+        {
+            TrainControlSystem.HandleEvent(evt);
+
+            base.SignalEvent(evt);
+        }
+
         internal void ToggleMUCommand(bool ToState)
         {
             AcceptMUSignals = ToState;
@@ -4050,12 +4057,6 @@ namespace Orts.Simulation.RollingStocks
         public override bool GetCabFlipped()
         {
             return UsingRearCab;
-        }
-
-        public void SetEmergency(bool emergency)
-        {
-            if (this.Train != null && this.Train.TrainType == TrainType.Remote) return; //not apply emergency for remote trains.
-            TrainControlSystem.SetEmergency(emergency);
         }
 
         public void AlerterReset()

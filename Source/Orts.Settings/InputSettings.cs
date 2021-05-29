@@ -323,6 +323,7 @@ namespace Orts.Settings
             commands[UserCommand.GamePause] = new UserCommandKeyInput(Keys.Pause);
             commands[UserCommand.GamePauseMenu] = new UserCommandKeyInput(0x01);
             commands[UserCommand.GameQuit] = new UserCommandKeyInput(0x3E, KeyModifiers.Alt);
+            commands[UserCommand.GameResetOutOfControlMode] = new UserCommandKeyInput(0x0E, KeyModifiers.Shift);
             commands[UserCommand.GameRequestControl] = new UserCommandKeyInput(0x12, KeyModifiers.Alt);
             commands[UserCommand.GameResetSignalBackward] = new UserCommandKeyInput(0x0F, KeyModifiers.Control | KeyModifiers.Shift);
             commands[UserCommand.GameResetSignalForward] = new UserCommandKeyInput(0x0F, KeyModifiers.Control);

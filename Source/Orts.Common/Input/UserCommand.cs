@@ -29,6 +29,7 @@ namespace Orts.Common.Input
         [Description("Game Multi Player Dispatcher")] GameMultiPlayerDispatcher,
         [Description("Game Multi Player Texting")] GameMultiPlayerTexting,
         [Description("Game Switch Manual Mode")] GameSwitchManualMode,
+        [Description("Game Reset Out Of Control Mode")] GameResetOutOfControlMode,
         [Description("Game Clear Signal Forward")] GameClearSignalForward,
         [Description("Game Clear Signal Backward")] GameClearSignalBackward,
         [Description("Game Reset Signal Forward")] GameResetSignalForward,

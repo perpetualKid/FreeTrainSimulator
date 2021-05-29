@@ -709,6 +709,18 @@ namespace Orts.Common
     public enum TCSEvent
     {
         /// <summary>
+        /// Emergency braking requested by simulator (train is out of control).
+        /// </summary>
+        EmergencyBrakingRequestedBySimulator,
+        /// <summary>
+        /// Emergency braking released by simulator.
+        /// </summary>
+        EmergencyBrakingReleasedBySimulator,
+        /// <summary>
+        /// Manual reset of the train's out of control mode.
+        /// </summary>
+        ManualResetOutOfControlMode,
+        /// <summary>
         /// Reset request by pressing the alerter button.
         /// </summary>
         AlerterPressed,

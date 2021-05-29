@@ -1681,6 +1681,7 @@ namespace Orts.Simulation.RollingStocks
         /// </summary>
         /// <param name="evt"></param>
         public virtual void SignalEvent(TrainEvent evt) { }
+        public virtual void SignalEvent(TCSEvent evt) { }
         public virtual void SignalEvent(PowerSupplyEvent evt) { }
         public virtual void SignalEvent(PowerSupplyEvent evt, int id) { }
 
