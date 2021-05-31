@@ -1760,10 +1760,10 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 TableSetCells(table, 3, Enumerable.Range(0, RenderProcess.ShadowMapCount).Select(i => Viewer.Catalog.GetString($"{RenderProcess.ShadowMapDistance[i]}/{RenderProcess.ShadowMapDiameter[i]}")).ToArray());
                 TableSetCell(table, 3 + RenderProcess.ShadowMapCount, Viewer.Catalog.GetString("({0}x{0})", Viewer.Settings.ShadowMapResolution));
                 TableAddLine(table, Viewer.Catalog.GetString("Shadow maps"));
-                TableSetCells(table, 3, Viewer.RenderProcess.ShadowPrimitivePerFrame.Select(p => p.ToString("F0")).ToArray());
+                TableSetCells(table, 3, Viewer.RenderProcess.ShadowPrimitivePerFrame.Select(p => $"{p:F0}").ToArray());
                 TableAddLabelValue(table, Viewer.Catalog.GetString("Shadow primitives"), Viewer.Catalog.GetString("{0:F0}", Viewer.RenderProcess.ShadowPrimitivePerFrame.Sum()));
             }
-            TableSetCells(table, 3, Viewer.RenderProcess.PrimitivePerFrame.Select(p => $"p:F0").ToArray());
+            TableSetCells(table, 3, Viewer.RenderProcess.PrimitivePerFrame.Select(p => $"{p:F0}").ToArray());
             TableAddLabelValue(table, Viewer.Catalog.GetString("Render primitives"), Viewer.Catalog.GetString("{0:F0}", Viewer.RenderProcess.PrimitivePerFrame.Sum()));
             TableAddLabelValue(table, Viewer.Catalog.GetString("Render process"), Viewer.Catalog.GetString("{0:F0}% ({1:F0}% {2})", Viewer.RenderProcess.Profiler.Wall.SmoothedValue, Viewer.RenderProcess.Profiler.Wait.SmoothedValue, Viewer.Catalog.GetString("wait")));
             TableAddLabelValue(table, Viewer.Catalog.GetString("Updater process"), Viewer.Catalog.GetString("{0:F0}% ({1:F0}% {2})", Viewer.UpdaterProcess.Profiler.Wall.SmoothedValue, Viewer.UpdaterProcess.Profiler.Wait.SmoothedValue, Viewer.Catalog.GetString("wait")));
