@@ -1004,7 +1004,7 @@ namespace Orts.Simulation.RollingStocks
                     string typeString2 = stf.ReadString();
                     IsRollerBearing = String.Compare(typeString2, "Roller") == 0;
                     IsLowTorqueRollerBearing = String.Compare(typeString2, "Low") == 0;
-                    IsFrictionBearing = eString.Compare(typeString2, "Friction") == 0;
+                    IsFrictionBearing = String.Compare(typeString2, "Friction") == 0;
                     IsGreaseFrictionBearing = String.Compare(typeString2, "Grease") == 0;
                     break;
                 case "wagon(friction":
