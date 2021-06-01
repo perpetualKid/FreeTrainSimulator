@@ -26,7 +26,7 @@ namespace ORTS.TrackViewer.Drawing
     /// </summary>
     public class DrawLongitudeLatitude
     {
-        Vector2 lowerLeft;
+        private Vector2 lowerLeft;
 
         /// <summary>
         /// Constructor

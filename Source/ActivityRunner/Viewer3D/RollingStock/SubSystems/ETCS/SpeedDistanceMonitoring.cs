@@ -37,64 +37,60 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
     public class CircularSpeedGauge : DMIArea
     {
         // These constants are from ETCS specification
-        readonly float NoGaugeAngle = MathHelper.ToRadians(-150); // Special angle when gauge must not be shown
-        readonly float StartAngle = MathHelper.ToRadians(-144);
-        readonly float EndAngle = MathHelper.ToRadians(144);
-        readonly float MidAngle = MathHelper.ToRadians(48);
-        const float MidSpeedKMpH = 200;
-        const float MidSpeedMpH = 124.2f;
-        const int RadiusOutside = 125;
-        const int LineFull = 25;
-        const int LineHalf = 15;
-        const float FontHeightDial = 16;
-        const float FontHeightReleaseSpeed = 17;
-        const float FontHeightCurrentSpeed = 18;
+        private readonly float NoGaugeAngle = MathHelper.ToRadians(-150); // Special angle when gauge must not be shown
+        private readonly float StartAngle = MathHelper.ToRadians(-144);
+        private readonly float EndAngle = MathHelper.ToRadians(144);
+        private readonly float MidAngle = MathHelper.ToRadians(48);
+        private const float MidSpeedKMpH = 200;
+        private const float MidSpeedMpH = 124.2f;
+        private const int RadiusOutside = 125;
+        private const int LineFull = 25;
+        private const int LineHalf = 15;
+        private const float FontHeightDial = 16;
+        private const float FontHeightReleaseSpeed = 17;
+        private const float FontHeightCurrentSpeed = 18;
+        private const int LineQuarter = 11;
+        private const int RadiusText = 99;
+        private readonly int[] CurrentSpeedPosition = new int[] { 150, 135, 120, 137 }; // x 10^0, x 10^1, x 10^2, y
+        private readonly Point ReleaseSpeedPosition = new Point(26 - 6, 274 - 8);
+        private readonly int[] UnitCenterPosition = new int[] { 140, 204 };
 
-        const int LineQuarter = 11;
-        const int RadiusText = 99;
-        readonly int[] CurrentSpeedPosition = new int[] { 150, 135, 120, 137 }; // x 10^0, x 10^1, x 10^2, y
-        readonly Point ReleaseSpeedPosition = new Point(26 - 6, 274 - 8);
-        readonly int[] UnitCenterPosition = new int[] { 140, 204 };
         // 240 and 260 are non-standard scales by ETA, but national railways often use one of these instead of 250
-        readonly int[] StandardScalesKMpH = new int[] { 140, 180, 240, 250, 260, 400 };
-        readonly int[] StandardScalesMpH = new int[] { 87, 111, 155, 248 };
-
-        const string UnitMetricString = "km/h";
-        const string UnitImperialString = "mph";
+        private readonly int[] StandardScalesKMpH = new int[] { 140, 180, 240, 250, 260, 400 };
+        private readonly int[] StandardScalesMpH = new int[] { 87, 111, 155, 248 };
+        private const string UnitMetricString = "km/h";
+        private const string UnitImperialString = "mph";
 
         // Some national railways specify the unit (km/h or mph) is to be shown on dial, in contrast to ETA.
-        bool UnitVisible;
-        bool UnitMetric;
+        private bool UnitVisible;
+        private bool UnitMetric;
+
         // Some national railways specify quarter lines at 5 km/h are to be visible on 240 and 260 km/h dials.
-        bool DialQuarterLines;
+        private bool DialQuarterLines;
+
         // Some national railways specify the scale lines and numbers above a certain limit not to be visible
-        int MaxVisibleScale;
-        int[] StandardScales;
-
-        float MidSpeed;
-        string Unit;
-
-        Color GaugeColor;
-        Color NeedleColor;
-        Color SpeedColor;
-        static Color[] NeedleTextureData;
-
-        Texture2D NeedleTexture;
-
-        bool Active; // Trying to fix thread safety issue in SetRange() with this
-        int MaxSpeed;
-        int SourceMaxSpeed;
-        int SpeedText;
-        float CurrentSpeedAngle;
-        readonly TextPrimitive ReleaseSpeed;
-        readonly TextPrimitive[] CurrentSpeed;
-        List<TextPrimitive> DialSpeeds;
-        List<Vector4> DialLineCoords;
-        Func<double, double> SpeedFromMpS;
-
-        WindowTextFont FontDialSpeeds;
-        WindowTextFont FontReleaseSpeed;
-        WindowTextFont FontCurrentSpeed;
+        private int MaxVisibleScale;
+        private int[] StandardScales;
+        private float MidSpeed;
+        private string Unit;
+        private Color GaugeColor;
+        private Color NeedleColor;
+        private Color SpeedColor;
+        private static Color[] NeedleTextureData;
+        private Texture2D NeedleTexture;
+        private bool Active; // Trying to fix thread safety issue in SetRange() with this
+        private int MaxSpeed;
+        private int SourceMaxSpeed;
+        private int SpeedText;
+        private float CurrentSpeedAngle;
+        private readonly TextPrimitive ReleaseSpeed;
+        private readonly TextPrimitive[] CurrentSpeed;
+        private List<TextPrimitive> DialSpeeds;
+        private List<Vector4> DialLineCoords;
+        private Func<double, double> SpeedFromMpS;
+        private WindowTextFont FontDialSpeeds;
+        private WindowTextFont FontReleaseSpeed;
+        private WindowTextFont FontCurrentSpeed;
 
         public CircularSpeedGauge(int maxSpeed, bool unitMetric, bool unitVisible, bool dialQuarterLines, int maxVisibleScale, DriverMachineInterface dmi) : base(dmi, 280, 300)
         {
@@ -154,7 +150,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
         {
             SetFont();
         }
-        void SetFont()
+
+        private void SetFont()
         {
             FontDialSpeeds = GetFont(FontHeightDial, true);
             FontReleaseSpeed = GetFont(FontHeightReleaseSpeed);
@@ -445,9 +442,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
     }
     public class TTIandLSSMArea : DMIArea
     {
-        int TTIWidth;
-        Color TTIColor;
-        const int T_dispTTI = 14;
+        private int TTIWidth;
+        private Color TTIColor;
+        private const int T_dispTTI = 14;
         public TTIandLSSMArea(DriverMachineInterface dmi) : base(dmi, 54, 54)
         {
 
@@ -502,14 +499,14 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
     }
     public class TargetDistance : DMIArea
     {
-        readonly int[] DistanceLinePositionsY = { -1, 6, 13, 22, 32, 45, 59, 79, 105, 152, 185 };
-        readonly int[] DistanceLinePositionsX = { 12, 16, 16, 16, 16, 12, 16, 16, 16, 16, 12 };
-        bool DisplayDistanceText;
-        bool DisplayDistanceBar;
-        Vector4 DistanceBar;
-        TextPrimitive TargetDistanceText;
-        WindowTextFont TargetDistanceFont;
-        readonly float FontHeightTargetDistance = 10;
+        private readonly int[] DistanceLinePositionsY = { -1, 6, 13, 22, 32, 45, 59, 79, 105, 152, 185 };
+        private readonly int[] DistanceLinePositionsX = { 12, 16, 16, 16, 16, 12, 16, 16, 16, 16, 12 };
+        private bool DisplayDistanceText;
+        private bool DisplayDistanceBar;
+        private Vector4 DistanceBar;
+        private TextPrimitive TargetDistanceText;
+        private WindowTextFont TargetDistanceFont;
+        private readonly float FontHeightTargetDistance = 10;
         public TargetDistance(DriverMachineInterface dmi) : base(dmi, 54, 221)
         {
             ScaleChanged();
@@ -563,7 +560,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
         {
             SetFont();
         }
-        void SetFont()
+
+        private void SetFont()
         {
             TargetDistanceFont = GetFont(FontHeightTargetDistance);
         }

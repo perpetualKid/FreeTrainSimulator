@@ -25,7 +25,7 @@ namespace Orts.ContentChecker
     /// </summary>
     internal class TSectionLoader : Loader
     {
-        TrackSectionsFile globalTsection;
+        private TrackSectionsFile globalTsection;
 
         /// <summary>
         /// default constructor when not enough information is available

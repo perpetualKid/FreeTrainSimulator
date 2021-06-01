@@ -120,19 +120,16 @@ namespace Orts.Simulation.RollingStocks.SubSystems
 
         public bool Activated = false;
         public bool CustomTCSScript = false;
-
-        readonly MSTSLocomotive Locomotive;
-        readonly Simulator Simulator;
-
-        float ItemSpeedLimit;
-        TrackMonitorSignalAspect ItemAspect;
-        float ItemDistance;
-        string MainHeadSignalTypeName;
-
-        MonitoringDevice VigilanceMonitor;
-        MonitoringDevice OverspeedMonitor;
-        MonitoringDevice EmergencyStopMonitor;
-        MonitoringDevice AWSMonitor;
+        private readonly MSTSLocomotive Locomotive;
+        private readonly Simulator Simulator;
+        private float ItemSpeedLimit;
+        private TrackMonitorSignalAspect ItemAspect;
+        private float ItemDistance;
+        private string MainHeadSignalTypeName;
+        private MonitoringDevice VigilanceMonitor;
+        private MonitoringDevice OverspeedMonitor;
+        private MonitoringDevice EmergencyStopMonitor;
+        private MonitoringDevice AWSMonitor;
 
         public bool AlerterButtonPressed { get; private set; }
         public bool PowerAuthorization { get; private set; }
@@ -150,18 +147,16 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         public string[] CustomizedCabviewControlNames = new string[TCSCabviewControlCount];
         // TODO : Delete this when SetCustomizedTCSControlString is deleted
         protected int NextCabviewControlNameToEdit = 0;
-
-        string ScriptName;
-        string SoundFileName;
-        string ParametersFileName;
-        TrainControlSystem Script;
+        private string ScriptName;
+        private string SoundFileName;
+        private string ParametersFileName;
+        private TrainControlSystem Script;
 
         public Scripting.Api.Etcs.ETCSStatus ETCSStatus { get { return Script?.ETCSStatus; } }
 
         public Dictionary<TrainControlSystem, string> Sounds = new Dictionary<TrainControlSystem, string>();
-
-        const float GravityMpS2 = 9.80665f;
-        const float GenericItemDistance = 400.0f;
+        private const float GravityMpS2 = 9.80665f;
+        private const float GenericItemDistance = 400.0f;
 
         public ScriptedTrainControlSystem() { }
 
@@ -968,21 +963,18 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             }
         }
 
-        Timer VigilanceAlarmTimer;
-        Timer VigilanceEmergencyTimer;
-        Timer VigilancePenaltyTimer;
-        Timer OverspeedEmergencyTimer;
-        Timer OverspeedPenaltyTimer;
-
-        MonitorState VigilanceMonitorState;
-        MonitorState OverspeedMonitorState;
-        bool ExternalEmergency;
-
-        float VigilanceAlarmTimeoutS;
-        float CurrentSpeedLimitMpS;
-        float NextSpeedLimitMpS;
-
-        MonitoringStatus Status;
+        private Timer VigilanceAlarmTimer;
+        private Timer VigilanceEmergencyTimer;
+        private Timer VigilancePenaltyTimer;
+        private Timer OverspeedEmergencyTimer;
+        private Timer OverspeedPenaltyTimer;
+        private MonitorState VigilanceMonitorState;
+        private MonitorState OverspeedMonitorState;
+        private bool ExternalEmergency;
+        private float VigilanceAlarmTimeoutS;
+        private float CurrentSpeedLimitMpS;
+        private float NextSpeedLimitMpS;
+        private MonitoringStatus Status;
 
         public ScriptedTrainControlSystem.MonitoringDevice VigilanceMonitor;
         public ScriptedTrainControlSystem.MonitoringDevice OverspeedMonitor;
@@ -1200,7 +1192,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             ExternalEmergency = emergency;
         }
 
-        void UpdateVigilance()
+        private void UpdateVigilance()
         {
             switch (VigilanceMonitorState)
             {
@@ -1286,7 +1278,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             SetVigilanceEmergencyDisplay(VigilanceMonitorState == MonitorState.Emergency);
         }
 
-        void UpdateSpeedControl()
+        private void UpdateSpeedControl()
         {
             var interventionSpeedMpS = CurrentSpeedLimitMpS + Speed.MeterPerSecond.FromKpH(5.0f); // Default margin : 5 km/h
 

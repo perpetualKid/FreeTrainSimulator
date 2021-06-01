@@ -48,10 +48,9 @@ namespace Orts.Simulation
         // be replaced with French and other languages.
         //
         //                      control, off/reset/initialize, neutral, on/apply/switch, decrease, increase, warn
-        readonly string[][] ConfirmText; 
-
-        readonly Simulator Simulator;
-        readonly double DefaultDurationS;
+        private readonly string[][] ConfirmText;
+        private readonly Simulator Simulator;
+        private readonly double DefaultDurationS;
 
         public event System.EventHandler PlayErrorSound;
         public event EventHandler<DisplayMessageEventArgs> DisplayMessage;
@@ -255,7 +254,7 @@ namespace Orts.Simulation
 
         #endregion
 
-        void Message(CabControl control, ConfirmLevel level, string message)
+        private void Message(CabControl control, ConfirmLevel level, string message)
         {
             // User can suppress levels None and Information but not Warning, Error and MSGs.
             // Cab control confirmations have level None.

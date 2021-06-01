@@ -29,7 +29,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 {
     public partial class SoundDebugForm : Form
     {
-        Viewer Viewer;
+        private Viewer Viewer;
 
         private Timer UITimer;
         private double lastUpdateTime = 0;
@@ -57,7 +57,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             UITimer.Start();
         }
 
-        void UITimer_Tick(object sender, EventArgs e)
+        private void UITimer_Tick(object sender, EventArgs e)
         {
             Visible = Viewer.SoundDebugFormEnabled;
             if (!Visible || Viewer.RenderProcess.Viewer.RealTime - lastUpdateTime < 0.5 ) return;
@@ -69,7 +69,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         /// <summary>
         /// Updates the form content. Warning: Creates garbage - Not any more I hope  - Dennis
         /// </summary>
-        void UpdateContent()
+        private void UpdateContent()
         {
             var soundSources = Viewer.SoundProcess.SoundSources;
 
@@ -272,22 +272,22 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             Viewer.SoundDebugFormEnabled = false;
         }
 
-        private void activeSoundList_KeyDown(object sender, KeyEventArgs e)
+        private void ActiveSoundList_KeyDown(object sender, KeyEventArgs e)
         {
             e.Handled = true;
         }
 
-        private void activeSoundList_KeyPress(object sender, KeyPressEventArgs e)
+        private void ActiveSoundList_KeyPress(object sender, KeyPressEventArgs e)
         {
             e.Handled = true;
         }
 
-        private void inactiveSoundList_KeyDown(object sender, KeyEventArgs e)
+        private void InactiveSoundList_KeyDown(object sender, KeyEventArgs e)
         {
             e.Handled = true;
         }
 
-        private void inactiveSoundList_KeyPress(object sender, KeyPressEventArgs e)
+        private void InactiveSoundList_KeyPress(object sender, KeyPressEventArgs e)
         {
             e.Handled = true;
         }

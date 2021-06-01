@@ -49,12 +49,12 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
     {
         public class AlphanumericButton : DMIButton
         {
-            string Number;
-            string Letters;
-            TextPrimitive NumberText;
-            TextPrimitive LettersText;
-            readonly int FontHeightNumber = 16;
-            readonly int FontHeightLetters = 10;
+            private string Number;
+            private string Letters;
+            private TextPrimitive NumberText;
+            private TextPrimitive LettersText;
+            private readonly int FontHeightNumber = 16;
+            private readonly int FontHeightLetters = 10;
             public AlphanumericButton(string num, string letters, DataEntryField field) : base(num + " "+ letters, false, () => field.HandleKeyPress(num+ letters), 102, 50, field.DMI, true)
             {
                 Number = num+" ";
@@ -80,7 +80,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
                 base.ScaleChanged();
                 SetText();
             }
-            void SetText()
+
+            private void SetText()
             {
                 var f1 = GetFont(FontHeightNumber);
                 var f2 = GetFont(FontHeightLetters);
@@ -157,9 +158,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
         public readonly DataEntryWindow DataEntryWindow;
         public Keyboard Keyboard;
         public string AcceptedValue { get; private set; }
-        string KeyboardValue;
-        string CurrentValue;
-        string PreviousValue;
+
+        private string KeyboardValue;
+        private string CurrentValue;
+        private string PreviousValue;
         public bool Selected { get; private set; }
         public bool Accepted { get; private set; }
         public bool TechnicalRangeInvalid;
@@ -172,16 +174,16 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
         public readonly FieldDataArea DataArea;
         public DMIArea.TextPrimitive LabelEchoText;
         public DMIArea.TextPrimitive DataEchoText;
-        int Index;
+        private int Index;
         public readonly string Name;
-        DMIDataEntryValue Field;
-        int CursorIndex;
-        float LastKeypress;
+        private DMIDataEntryValue Field;
+        private int CursorIndex;
+        private float LastKeypress;
         public class FieldLabelArea : DMIArea
         {
-            TextPrimitive Label;
-            readonly int FontHeightDataField = 12;
-            string Name;
+            private TextPrimitive Label;
+            private readonly int FontHeightDataField = 12;
+            private string Name;
             public FieldLabelArea(string name, DriverMachineInterface dmi) : base(dmi, 204, 50)
             {
                 Name = name;
@@ -206,7 +208,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
                 base.ScaleChanged();
                 SetText();
             }
-            void SetText()
+
+            private void SetText()
             {
                 var font = GetFont(FontHeightDataField);
                 var size = (int)(font.MeasureString(Name) / Scale);
@@ -215,11 +218,11 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
         }
         public class FieldDataArea : DMIButton
         {
-            TextPrimitive Data;
-            readonly int FontHeightDataField = 12;
+            private TextPrimitive Data;
+            private readonly int FontHeightDataField = 12;
             public bool CursorVisible;
-            Rectangle Cursor;
-            int CursorIndex;
+            private Rectangle Cursor;
+            private int CursorIndex;
             public FieldDataArea(string name, bool hasLabel, DriverMachineInterface dmi) : base(name, true, null, hasLabel ? 102 : 306, 50, dmi)
             {
                 Data = new TextPrimitive(new Point(10, (Height - FontHeightDataField) / 2), Color.Transparent, "", null);
@@ -272,7 +275,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
                 }
                 Cursor = new Rectangle(10 + (int)length, (Height + FontHeightDataField) / 2 + 3, (int)charlength, 1);
             }
-            void SetFont()
+
+            private void SetFont()
             {
                 Data.Font = GetFont(FontHeightDataField);
             }
@@ -349,7 +353,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
                 }
             }
         }
-        void UpdateText()
+
+        private void UpdateText()
         {
             DataArea.BackgroundColor = Selected ? ColorMediumGrey : ColorDarkGrey;
             DataArea.SetText(CurrentValue, Selected ? Color.Black : (Accepted ? Color.White : ColorGrey));
@@ -441,23 +446,26 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
     }
     public class DataEntryWindow : DMISubwindow
     {
-        string Title;
-        int NumPages => (Fields.Count - 1) / 4 + 1;
-        int CurrentPage => ActiveField/4;
+        private string Title;
+
+        private int NumPages => (Fields.Count - 1) / 4 + 1;
+
+        private int CurrentPage => ActiveField/4;
         public int ActiveField;
         public readonly List<DataEntryField> Fields = new List<DataEntryField>();
-        DMIButton[] KeyboardButtons = new DMIButton[12];
-        DMIButton NextButton;
-        DMIButton PrevButton;
+        private DMIButton[] KeyboardButtons = new DMIButton[12];
+        private DMIButton NextButton;
+        private DMIButton PrevButton;
         public readonly DMIYesButton YesButton;
-        DMITextLabel DataEntryCompleteLabel;
+        private DMITextLabel DataEntryCompleteLabel;
         public readonly DMIDataEntryDefinition Definition;
         public WindowTextFont LabelFont { get; private set; }
-        readonly int FontHeightLabel = 12;
+
+        private readonly int FontHeightLabel = 12;
         public class DMIYesButton : DMIButton
         {
-            TextPrimitive Yes;
-            readonly int FontHeightYes = 12;
+            private TextPrimitive Yes;
+            private readonly int FontHeightYes = 12;
             public DMIYesButton(DriverMachineInterface dmi) : base(Viewer.Catalog.GetString("Yes"), true, null, 330, 40, dmi, false)
             {
                 SetText();
@@ -480,7 +488,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
                 base.ScaleChanged();
                 SetText();
             }
-            void SetText()
+
+            private void SetText()
             {
                 var font = GetFont(FontHeightYes);
                 string text = Viewer.Catalog.GetString("Yes");

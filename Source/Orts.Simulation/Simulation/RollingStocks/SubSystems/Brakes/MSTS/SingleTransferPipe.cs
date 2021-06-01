@@ -25,8 +25,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 {
     public class SingleTransferPipe : AirSinglePipe
     {
-
-        readonly static float OneAtmospherePSI = (float)Pressure.Atmospheric.ToPSI(1);
+        private static readonly float OneAtmospherePSI = (float)Pressure.Atmospheric.ToPSI(1);
 
         public SingleTransferPipe(TrainCar car)
             : base(car)

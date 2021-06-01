@@ -47,35 +47,32 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         private const string arrowToRight = "\u25BA???"; // ►
         private const char smallDiamond = '\u25C6'; // ●
         private const string marker = "???";
-
-        bool DynBrakeSetup = false;
-        bool ResizeWindow = false;
-        bool UpdateDataEnded = false;
-        double StartTime;
-        int FirstColIndex = 0;//first string that does not fit
-        int FirstColLenght = 0;
-        int FirstColOverFlow = 0;
-        int LastColLenght = 0;
-        int LastColOverFlow = 0;
-        int LinesCount = 0;
+        private bool DynBrakeSetup = false;
+        private bool ResizeWindow = false;
+        private bool UpdateDataEnded = false;
+        private double StartTime;
+        private int FirstColIndex = 0;//first string that does not fit
+        private int FirstColLenght = 0;
+        private int FirstColOverFlow = 0;
+        private int LastColLenght = 0;
+        private int LastColOverFlow = 0;
+        private int LinesCount = 0;
 
         public bool StandardHUD = true;// Standard text
 
-        int WindowHeightMin = 0;
-        int WindowHeightMax = 0;
-        int WindowWidthMin = 0;
-        int WindowWidthMax = 0;
-
-        char expandWindow;
-        string Gradient;
+        private int WindowHeightMin = 0;
+        private int WindowHeightMax = 0;
+        private int WindowWidthMin = 0;
+        private int WindowWidthMax = 0;
+        private char expandWindow;
+        private string Gradient;
         public int OffSetX = 0;
-        const int TextSize = 15;
+        private const int TextSize = 15;
         public int keyPresLenght;
-
-        Label indicator;
-        LabelMono indicatorMono;
-        Label ExpandWindow;
-        Label LabelFontToBold;
+        private Label indicator;
+        private LabelMono indicatorMono;
+        private Label ExpandWindow;
+        private Label LabelFontToBold;
         public static bool MonoFont;
         public static bool FontToBold;
 
@@ -108,7 +105,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         private readonly List<ListLabel> ListToLabel = new List<ListLabel>();
 
         // Change text color
-        readonly Dictionary<string, Color> ColorCode = new Dictionary<string, Color>
+        private readonly Dictionary<string, Color> ColorCode = new Dictionary<string, Color>
         {
             { "!!!", Color.OrangeRed },
             { "!!?", Color.Orange },
@@ -120,8 +117,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             { "$$$", Color.LightSkyBlue},
             { "$??", Color.Cyan}
         };
-
-        readonly Dictionary<string, string> FirstColToAbbreviated = new Dictionary<string, string>()
+        private readonly Dictionary<string, string> FirstColToAbbreviated = new Dictionary<string, string>()
         {
             {Viewer.Catalog.GetString("Autopilot"), Viewer.Catalog.GetString("AUTO")},
             {Viewer.Catalog.GetString("Boiler pressure"), Viewer.Catalog.GetString("PRES")},
@@ -154,8 +150,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             {Viewer.Catalog.GetString("Train brake"), Viewer.Catalog.GetString("BTRN")},
             {Viewer.Catalog.GetString("Wheel"), Viewer.Catalog.GetString("WHEL")},
         };
-
-        readonly Dictionary<string, string> LastColToAbbreviated = new Dictionary<string, string>()
+        private readonly Dictionary<string, string> LastColToAbbreviated = new Dictionary<string, string>()
         {
             { Viewer.Catalog.GetString("apply Service"), Viewer.Catalog.GetString("Apply")},
             {Viewer.Catalog.GetString("Apply Quick"), Viewer.Catalog.GetString("ApplQ")},
@@ -337,7 +332,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             firingKeyDown = true;
         }
 
-        protected internal override void Save(BinaryWriter outf)
+        internal protected override void Save(BinaryWriter outf)
         {
             base.Save(outf);
             outf.Write(StandardHUD);
@@ -347,7 +342,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             outf.Write(Location.Height);
         }
 
-        protected internal override void Restore(BinaryReader inf)
+        internal protected override void Restore(BinaryReader inf)
         {
             base.Restore(inf);
             Rectangle LocationRestore;
@@ -362,7 +357,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             MoveTo(LocationRestore.X, LocationRestore.Y);
         }
 
-        protected internal override void Initialize()
+        internal protected override void Initialize()
         {
             base.Initialize();
             // Reset window size
@@ -494,12 +489,12 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             return vbox;
         }
 
-        void FontToBold_Click(Control arg1, Point arg2)
+        private void FontToBold_Click(Control arg1, Point arg2)
         {
             FontToBold = FontToBold ? false : true;
         }
 
-        void ExpandWindow_Click(Control arg1, Point arg2)
+        private void ExpandWindow_Click(Control arg1, Point arg2)
         {
             StandardHUD = StandardHUD ? false : true;
             //UpdateData();

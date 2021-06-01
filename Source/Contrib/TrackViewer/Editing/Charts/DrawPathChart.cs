@@ -226,7 +226,7 @@ namespace ORTS.TrackViewer.Editing.Charts
     }
     #endregion
 
-    interface ISubChart
+    internal interface ISubChart
     {
         void Draw(double zoomPercentageStart, double zoomPercentageStop, Canvas drawingCanvas, Canvas legendCanvas);
     }
@@ -312,7 +312,7 @@ namespace ORTS.TrackViewer.Editing.Charts
         /// </summary>
         /// <param name="drawingCanvas">The WPF canvas to draw upon</param>
         /// <param name="legendCanvas">The WPF canvas to draw the legend upon</param>
-        abstract protected void DrawSubChart(Canvas drawingCanvas, Canvas legendCanvas);
+        protected abstract void DrawSubChart(Canvas drawingCanvas, Canvas legendCanvas);
 
         #region General drawing routines
         /// <summary>

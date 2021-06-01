@@ -21,13 +21,13 @@ using System.Windows.Forms;
 
 namespace ORTS.TrackViewer
 {
-    static class Program
+    internal static class Program
     {
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
         [STAThread]  // Needed for Windows Presentation Foundation (used for the menu)
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
             FileStream tvLogFile = File.Create("TrackViewerLog.txt");

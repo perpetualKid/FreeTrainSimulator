@@ -43,14 +43,15 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
         public readonly bool GaugeOnly;
         public readonly Viewer Viewer;
         public IList<DMIWindow> Windows = new List<DMIWindow>();
-        float PrevScale = 1;
+        private float PrevScale = 1;
         public ETCSStatus ETCSStatus { get; private set; }
 
-        bool Active;
+        private bool Active;
         public float Scale { get; private set; }
         public float MipMapScale { get; private set; }
-        readonly int Height = 480;
-        readonly int Width = 640;
+
+        private readonly int Height = 480;
+        private readonly int Width = 640;
 
         public readonly ETCSDefaultWindow ETCSDefaultWindow;
 
@@ -75,7 +76,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
 
         public bool Blinker2Hz { get; private set; }
         public bool Blinker4Hz { get; private set; }
-        float BlinkerTime;
+
+        private float BlinkerTime;
 
         public float CurrentTime => (float)Viewer.Simulator.ClockTime;
 
@@ -90,7 +92,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
         /// </summary>
         public bool IsSoftLayout;
         public DMIWindow ActiveWindow;
-        DMIButton ActiveButton;
+        private DMIButton ActiveButton;
         public DriverMachineInterface(float height, float width, MSTSLocomotive locomotive, Viewer viewer, CabViewControl control)
         {
             Viewer = viewer;
@@ -287,12 +289,12 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
     }
     public class ETCSDefaultWindow : DMIWindow
     {
-        CircularSpeedGauge CircularSpeedGauge;
-        PlanningWindow PlanningWindow;
-        MessageArea MessageArea;
-        TargetDistance TargetDistance;
-        TTIandLSSMArea TTIandLSSMArea;
-        MenuBar MenuBar;
+        private CircularSpeedGauge CircularSpeedGauge;
+        private PlanningWindow PlanningWindow;
+        private MessageArea MessageArea;
+        private TargetDistance TargetDistance;
+        private TTIandLSSMArea TTIandLSSMArea;
+        private MenuBar MenuBar;
         public ETCSDefaultWindow(DriverMachineInterface dmi, CabViewControl control) : base(dmi, 640, 480)
         {
             if (control is CabViewDigitalControl)
@@ -553,9 +555,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
     public class DMISubwindow : DMIWindow
     {
         public string WindowTitle { get; private set; }
-        TextPrimitive WindowTitleText;
-        WindowTextFont WindowTitleFont;
-        readonly int FontHeightWindowTitle = 12;
+
+        private TextPrimitive WindowTitleText;
+        private WindowTextFont WindowTitleFont;
+        private readonly int FontHeightWindowTitle = 12;
         protected readonly DMIIconButton CloseButton;
         public DMISubwindow(string title, bool fullScreen, DriverMachineInterface dmi) : base(dmi, fullScreen ? 640 : 306, 450)
         {
@@ -572,7 +575,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
             base.ScaleChanged();
             SetFont();
         }
-        void SetFont()
+
+        private void SetFont()
         {
             WindowTitleFont = GetFont(FontHeightWindowTitle);
             SetTitle(WindowTitle);
@@ -626,10 +630,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
     }
     public class DMITextButton : DMIButton
     {
-        string[] Caption;
-        WindowTextFont CaptionFont;
-        int FontHeightButton = 12;
-        TextPrimitive[] CaptionText;
+        private string[] Caption;
+        private WindowTextFont CaptionFont;
+        private int FontHeightButton = 12;
+        private TextPrimitive[] CaptionText;
         public DMITextButton(string caption, string displayName, bool upType, Action pressedAction, int width, int height, DriverMachineInterface dmi, int fontHeight = 12) :
             base(displayName, upType, pressedAction, width, height, dmi, true)
         {
@@ -640,7 +644,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
             SetFont();
             SetText();
         }
-        void SetText()
+
+        private void SetText()
         {
             for (int i=0; i<Caption.Length; i++)
             {
@@ -654,7 +659,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
             SetFont();
             SetText();
         }
-        void SetFont()
+
+        private void SetFont()
         {
             CaptionFont = GetFont(FontHeightButton);
         }
@@ -677,10 +683,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
     }
     public class DMIIconButton : DMIButton
     {
-        readonly string DisabledSymbol;
-        readonly string EnabledSymbol;
-        TexturePrimitive DisabledTexture;
-        TexturePrimitive EnabledTexture;
+        private readonly string DisabledSymbol;
+        private readonly string EnabledSymbol;
+        private TexturePrimitive DisabledTexture;
+        private TexturePrimitive EnabledTexture;
         public DMIIconButton(string enabledSymbol, string disabledSymbol, string displayName, bool upType , Action pressedAction, int width, int height, DriverMachineInterface dmi) :
             base(displayName, upType, pressedAction, width, height, dmi, true)
         {
@@ -688,7 +694,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
             EnabledSymbol = enabledSymbol;
             SetIcon();
         }
-        void SetIcon()
+
+        private void SetIcon()
         {
             Texture2D tex1 = DMI.LoadTexture(EnabledSymbol);
             Texture2D tex2 = DMI.LoadTexture(DisabledSymbol);
@@ -709,10 +716,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
     }
     public class DMITextLabel : DMIArea
     {
-        string[] Caption;
-        WindowTextFont CaptionFont;
-        int FontHeightButton = 12;
-        TextPrimitive[] CaptionText;
+        private string[] Caption;
+        private WindowTextFont CaptionFont;
+        private int FontHeightButton = 12;
+        private TextPrimitive[] CaptionText;
         public DMITextLabel(string caption, int width, int height, DriverMachineInterface dmi) :
             base(dmi, width, height)
         {
@@ -721,7 +728,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
             SetFont();
             SetText();
         }
-        void SetText()
+
+        private void SetText()
         {
             for (int i = 0; i < Caption.Length; i++)
             {
@@ -735,7 +743,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
             SetFont();
             SetText();
         }
-        void SetFont()
+
+        private void SetFont()
         {
             CaptionFont = GetFont(FontHeightButton);
         }
@@ -754,7 +763,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
     public class CircularSpeedGaugeRenderer : CabViewDigitalRenderer
     {
         private readonly DriverMachineInterface driverMachineInterface;
-        bool mouseRightButtonPressed;
+        private bool mouseRightButtonPressed;
         public CircularSpeedGaugeRenderer(Viewer viewer, MSTSLocomotive locomotive, CabViewDigitalControl control, CabShader shader)
             : base(viewer, locomotive, control, shader)
         {
@@ -793,10 +802,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
 
     public class DriverMachineInterfaceRenderer : CabViewControlRenderer, ICabViewMouseControlRenderer
     {
-        DriverMachineInterface driverMachineInterface;
-        bool Zoomed;
+        private DriverMachineInterface driverMachineInterface;
+        private bool Zoomed;
         protected Rectangle DrawPosition;
-        bool mouseRightButtonPressed;
+        private bool mouseRightButtonPressed;
 
         public DriverMachineInterfaceRenderer(Viewer viewer, MSTSLocomotive locomotive, CabViewScreenControl control, CabShader shader)
             : base(viewer, locomotive, control, shader)

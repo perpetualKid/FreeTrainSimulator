@@ -187,7 +187,7 @@ namespace Orts.ContentChecker
         /// </summary>
         /// <param name="file">The name of the file that needs to be loaded</param>
         /// <returns>The most appropriate subclass to load this file</returns>
-        static Loader GetRawLoader(string file)
+        private static Loader GetRawLoader(string file)
         {
 #pragma warning disable CA1308 // Normalize strings to uppercase
             string fileName = Path.GetFileName(file).ToLowerInvariant();

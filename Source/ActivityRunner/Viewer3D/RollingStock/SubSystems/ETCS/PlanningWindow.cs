@@ -37,29 +37,26 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
         /// <summary>
         /// Target with the lowest distance to indication. It will be shown in yellow
         /// </summary>
-        PlanningTarget? IndicationMarkerTarget;
+        private PlanningTarget? IndicationMarkerTarget;
+
         /// <summary>
         /// Distance to the point where the TSM or RSM monitors will be activated. It is shown as a yellow line.
         /// </summary>
-        float? IndicationMarkerDistanceM;
-
-        int MaxViewingDistanceM = 8000;
-        const int MaxZoomDistanceM = 32000;
-        const int MinZoomDistanceM = 1000;
+        private float? IndicationMarkerDistanceM;
+        private int MaxViewingDistanceM = 8000;
+        private const int MaxZoomDistanceM = 32000;
+        private const int MinZoomDistanceM = 1000;
 
         public readonly DMIButton ButtonScaleDown;
         public readonly DMIButton ButtonScaleUp;
+        private Texture2D SpeedReductionTexture;
+        private Texture2D YellowSpeedReductionTexture;
+        private Texture2D SpeedIncreaseTexture;
+        private readonly Dictionary<int, Texture2D> TrackConditionTextureData = new Dictionary<int, Texture2D>();
+        private List<Rectangle> PASPRectangles = new List<Rectangle>();
+        private Dictionary<Point, bool> GradientRectangles = new Dictionary<Point, bool>();
 
-        Texture2D SpeedReductionTexture;
-        Texture2D YellowSpeedReductionTexture;
-        Texture2D SpeedIncreaseTexture;
-
-        readonly Dictionary<int, Texture2D> TrackConditionTextureData = new Dictionary<int, Texture2D>();
-
-        List<Rectangle> PASPRectangles = new List<Rectangle>();
-        Dictionary<Point, bool> GradientRectangles = new Dictionary<Point, bool>();
-
-        struct LocatedTexture
+        private struct LocatedTexture
         {
             public readonly Texture2D Texture;
             public readonly Point Position;
@@ -74,23 +71,21 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
                 Position = new Point(x, y);
             }
         }
-        List<LocatedTexture> TrackConditionTextures = new List<LocatedTexture>();
-        List<LocatedTexture> SpeedTargetTextures = new List<LocatedTexture>();
 
-        List<TextPrimitive> DistanceScaleText = new List<TextPrimitive>();
-        List<TextPrimitive> SpeedTargetText = new List<TextPrimitive>();
-        List<TextPrimitive> GradientText = new List<TextPrimitive>();
-        WindowTextFont FontDistance;
-        WindowTextFont FontTargetSpeed;
-        WindowTextFont FontGradient;
-        const float FontHeightDistance = 10;
-        const float FontHeightTargetSpeed = 10;
-        const float FontHeightGradient = 10;
-
-        readonly int[] LinePositions = { 283, 250, 206, 182, 164, 150, 107, 64, 21 };
-        readonly int[] LineDistances = { 0, 25, 50, 75, 100, 125, 250, 500, 1000 };
-
-        readonly int[] TrackConditionPositions = { 43, 68, 93 };
+        private List<LocatedTexture> TrackConditionTextures = new List<LocatedTexture>();
+        private List<LocatedTexture> SpeedTargetTextures = new List<LocatedTexture>();
+        private List<TextPrimitive> DistanceScaleText = new List<TextPrimitive>();
+        private List<TextPrimitive> SpeedTargetText = new List<TextPrimitive>();
+        private List<TextPrimitive> GradientText = new List<TextPrimitive>();
+        private WindowTextFont FontDistance;
+        private WindowTextFont FontTargetSpeed;
+        private WindowTextFont FontGradient;
+        private const float FontHeightDistance = 10;
+        private const float FontHeightTargetSpeed = 10;
+        private const float FontHeightGradient = 10;
+        private readonly int[] LinePositions = { 283, 250, 206, 182, 164, 150, 107, 64, 21 };
+        private readonly int[] LineDistances = { 0, 25, 50, 75, 100, 125, 250, 500, 1000 };
+        private readonly int[] TrackConditionPositions = { 43, 68, 93 };
 
         public PlanningWindow(DriverMachineInterface dmi) : base(dmi, 246, 300)
         {
@@ -105,7 +100,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
             ScaleChanged();
         }
 
-        void ScaleUp()
+        private void ScaleUp()
         {
             if (MaxViewingDistanceM > MinZoomDistanceM)
             {
@@ -115,7 +110,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
             }
             if (MaxViewingDistanceM <= MinZoomDistanceM) ButtonScaleUp.Enabled = false;
         }
-        void ScaleDown()
+
+        private void ScaleDown()
         {
             if (MaxViewingDistanceM < MaxZoomDistanceM)
             {
@@ -189,7 +185,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
             }
         }
 
-        void CreateGradient(List<GradientProfileElement> GradientProfile)
+        private void CreateGradient(List<GradientProfileElement> GradientProfile)
         {
             var gradientText = new List<TextPrimitive>();
             var gradientRectangles = new Dictionary<Point, bool>();
@@ -225,7 +221,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
             GradientRectangles = gradientRectangles;
         }
 
-        void CreatePASP(List<PlanningTarget> SpeedTargets)
+        private void CreatePASP(List<PlanningTarget> SpeedTargets)
         {
             List<Rectangle> paspRectangles = new List<Rectangle>();
             if (SpeedTargets.Count == 0) goto Exit;
@@ -261,8 +257,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
             PASPRectangles = paspRectangles;
         }
 
-
-        bool CheckTargetOverlap(PlanningTarget cur, PlanningTarget chk)
+        private bool CheckTargetOverlap(PlanningTarget cur, PlanningTarget chk)
         {
             int a = GetPlanningHeight(cur.DistanceToTrainM);
             int b = GetPlanningHeight(chk.DistanceToTrainM);
@@ -275,7 +270,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
             return cur.TargetSpeedMpS > chk.TargetSpeedMpS;
         }
 
-        void CreateTargetSpeeds(List<PlanningTarget> speedTargets)
+        private void CreateTargetSpeeds(List<PlanningTarget> speedTargets)
         {
             var speedTargetText = new List<TextPrimitive>(speedTargets.Count);
             var speedTargetTextures = new List<LocatedTexture>(speedTargets.Count);
@@ -316,7 +311,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
             SpeedTargetTextures = speedTargetTextures;
         }
 
-        void CreateTrackConditions(List<PlanningTrackCondition> trackConditions)
+        private void CreateTrackConditions(List<PlanningTrackCondition> trackConditions)
         {
             var trackConditionTextures = new List<LocatedTexture>(trackConditions.Count);
             int[] prevObject = { LinePositions[0] + 10, LinePositions[0] + 10, LinePositions[0] + 10 };
@@ -459,7 +454,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
 
             SetFont();
         }
-        void SetFont()
+
+        private void SetFont()
         {
             FontDistance = GetFont(FontHeightDistance);
             FontTargetSpeed = GetFont(FontHeightTargetSpeed);
@@ -471,7 +467,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
         /// <summary>
         /// Set the font text according to planning distance scale
         /// </summary>
-        void SetDistanceText()
+        private void SetDistanceText()
         {
             var distanceScaleText = new List<TextPrimitive>(DistanceScaleText.Count);
             for (int i = 0; i < 9; i++)

@@ -167,7 +167,8 @@ namespace Orts.ActivityRunner.Viewer3D
     public sealed class UncoupleCommand : Command
     {
         public static Viewer Receiver { get; set; }
-        int CarPosition;    // 0 for head of train
+
+        private int CarPosition;    // 0 for head of train
 
         public UncoupleCommand( CommandLog log, int carPosition ) 
             : base(log)
@@ -557,7 +558,7 @@ namespace Orts.ActivityRunner.Viewer3D
     [Serializable()]
     public sealed class CameraRotateLeftRightCommand : MoveCameraCommand
     {
-        float RotationYRadians;
+        private float RotationYRadians;
 
         public CameraRotateLeftRightCommand( CommandLog log, double startTime, double endTime, float ry )
             : base(log, startTime, endTime)
@@ -589,8 +590,8 @@ namespace Orts.ActivityRunner.Viewer3D
     [Serializable()]
     public sealed class CameraMouseRotateCommand : MoveCameraCommand
     {
-        float RotationXRadians;
-        float RotationYRadians;
+        private float RotationXRadians;
+        private float RotationYRadians;
 
         public CameraMouseRotateCommand( CommandLog log, double startTime, double endTime, float rx, float ry )
             : base(log, startTime, endTime)
@@ -621,7 +622,7 @@ namespace Orts.ActivityRunner.Viewer3D
     [Serializable()]
     public sealed class CameraXCommand : MoveCameraCommand
     {
-        float XRadians;
+        private float XRadians;
 
         public CameraXCommand( CommandLog log, double startTime, double endTime, float xr )
             : base(log, startTime, endTime)
@@ -650,7 +651,7 @@ namespace Orts.ActivityRunner.Viewer3D
     [Serializable()]
     public sealed class CameraYCommand : MoveCameraCommand
     {
-        float YRadians;
+        private float YRadians;
 
         public CameraYCommand( CommandLog log, double startTime, double endTime, float yr )
             : base(log, startTime, endTime)
@@ -679,7 +680,7 @@ namespace Orts.ActivityRunner.Viewer3D
     [Serializable()]
     public sealed class CameraZCommand : MoveCameraCommand
     {
-        float ZRadians;
+        private float ZRadians;
 
         public CameraZCommand( CommandLog log, double startTime, double endTime, float zr )
             : base(log, startTime, endTime)
@@ -707,7 +708,7 @@ namespace Orts.ActivityRunner.Viewer3D
 	[Serializable()]
 	public sealed class CameraMoveXYZCommand : MoveCameraCommand
 	{
-		float X, Y, Z;
+        private float X, Y, Z;
 
         public CameraMoveXYZCommand(CommandLog log, double startTime, double endTime, float xr, float yr, float zr)
 			: base(log, startTime, endTime)
@@ -736,7 +737,7 @@ namespace Orts.ActivityRunner.Viewer3D
 	[Serializable()]
     public sealed class TrackingCameraXCommand : MoveCameraCommand
     {
-        float PositionXRadians;
+        private float PositionXRadians;
 
         public TrackingCameraXCommand( CommandLog log, double startTime, double endTime, float rx )
             : base(log, startTime, endTime)
@@ -765,7 +766,7 @@ namespace Orts.ActivityRunner.Viewer3D
     [Serializable()]
     public sealed class TrackingCameraYCommand : MoveCameraCommand
     {
-        float PositionYRadians;
+        private float PositionYRadians;
 
         public TrackingCameraYCommand( CommandLog log, double startTime, double endTime, float ry )
             : base(log, startTime, endTime)
@@ -794,7 +795,7 @@ namespace Orts.ActivityRunner.Viewer3D
     [Serializable()]
     public sealed class TrackingCameraZCommand : MoveCameraCommand
     {
-        float PositionDistanceMetres;
+        private float PositionDistanceMetres;
 
         public TrackingCameraZCommand( CommandLog log, double startTime, double endTime, float d )
             : base(log, startTime, endTime)
@@ -907,7 +908,7 @@ namespace Orts.ActivityRunner.Viewer3D
     [Serializable]
     public sealed class FieldOfViewCommand : UseCameraCommand
     {
-        float FieldOfView;
+        private float FieldOfView;
 
         public FieldOfViewCommand(CommandLog log, float fieldOfView)
             : base(log)
