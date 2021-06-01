@@ -19,8 +19,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Windows.Forms;
 
-using Orts.Common.Native;
-
 namespace ORTS.TrackViewer
 {
     static class Program
@@ -31,11 +29,7 @@ namespace ORTS.TrackViewer
         [STAThread]  // Needed for Windows Presentation Foundation (used for the menu)
         static void Main(string[] args)
         {
-#if NETCOREAPP
             Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
-#else
-            NativeMethods.SetProcessDpiAwareness(NativeMethods.PROCESS_DPI_AWARENESS.Process_Per_Monitor_DPI_Aware);
-#endif
             FileStream tvLogFile = File.Create("TrackViewerLog.txt");
             TextWriterTraceListener TVtraceListener = new TextWriterTraceListener(tvLogFile);
             Trace.Listeners.Add(TVtraceListener);

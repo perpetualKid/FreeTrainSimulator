@@ -16,11 +16,7 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Windows.Forms;
-
-using Orts.Common.Native;
 
 // TODO 20210531
 // https://github.com/perpetualKid/ORTS-MG/issues/89
@@ -41,11 +37,7 @@ namespace Orts.ContentManager
         [STAThread]
         static void Main()
         {
-#if NETCOREAPP
             Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
-#else
-            NativeMethods.SetProcessDpiAwareness(NativeMethods.PROCESS_DPI_AWARENESS.Process_Per_Monitor_DPI_Aware);
-#endif
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new ContentManagerGUI());

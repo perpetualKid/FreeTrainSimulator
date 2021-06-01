@@ -121,12 +121,6 @@ namespace Orts.TrackViewer
 #if DEBUG
             windowTitle += " (debug)";
 #endif
-#if NETCOREAPP
-            windowTitle += " [.NET Core]";
-#elif NETFRAMEWORK
-            windowTitle += " [.NET Classic]";
-#endif
-
             Window.Title = windowTitle;
             Window.AllowUserResizing = true;
 
