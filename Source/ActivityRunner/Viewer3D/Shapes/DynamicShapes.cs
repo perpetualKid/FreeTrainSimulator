@@ -706,7 +706,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
         private readonly Hazard hazard;
 
         private readonly int animationFrames;
-        private double moved = 0f;
+        private double moved;
         private double animationKey;
         private double delayHazAnimation;
 

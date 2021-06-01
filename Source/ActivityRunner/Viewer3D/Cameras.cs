@@ -157,7 +157,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         protected readonly Viewer Viewer;
 
-        protected WorldLocation cameraLocation = new WorldLocation();
+        protected WorldLocation cameraLocation;
         public int TileX { get { return cameraLocation.TileX; } }
         public int TileZ { get { return cameraLocation.TileZ; } }
         public Vector3 Location { get { return cameraLocation.Location; } }
@@ -472,7 +472,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
     public abstract class LookAtCamera : RotatingCamera
     {
-        protected WorldLocation targetLocation = new WorldLocation();
+        protected WorldLocation targetLocation;
         public WorldLocation TargetWorldLocation { get { return targetLocation; } }
 
         public override bool IsUnderground
@@ -1079,7 +1079,7 @@ namespace Orts.ActivityRunner.Viewer3D
         protected float ZDistanceM; // used to browse train;
         protected Traveller browsedTraveller;
         protected float BrowseDistance = 20;
-        public bool BrowseMode = false;
+        public bool BrowseMode;
         protected float LowWagonOffsetLimit;
         protected float HighWagonOffsetLimit;
 
@@ -1770,15 +1770,15 @@ namespace Orts.ActivityRunner.Viewer3D
         }
 
         protected Vector3 viewPointLocation;
-        protected float viewPointRotationXRadians = 0;
-        protected float viewPointRotationYRadians = 0;
+        protected float viewPointRotationXRadians;
+        protected float viewPointRotationYRadians;
         protected Vector3 StartViewPointLocation;
-        protected float StartViewPointRotationXRadians = 0;
-        protected float StartViewPointRotationYRadians = 0;
+        protected float StartViewPointRotationXRadians;
+        protected float StartViewPointRotationYRadians;
         protected string prevcar = "";
-        protected int ActViewPoint = 0;
+        protected int ActViewPoint;
         protected int prevViewPoint = -1;
-        protected bool PrevCabWasRear = false;
+        protected bool PrevCabWasRear;
         private float x, y, z;
 
         /// <summary>
@@ -2800,9 +2800,9 @@ namespace Orts.ActivityRunner.Viewer3D
     {
         private const int MaximumSpecialPointDistance = 300;
         private const float PlatformOffsetM = 3.3f;
-        protected bool SpecialPointFound = false;
+        protected bool SpecialPointFound;
         private const float CheckIntervalM = 50f; // every 50 meters it is checked wheter there is a near special point
-        protected float DistanceRunM = 0f; // distance run since last check interval
+        protected float DistanceRunM; // distance run since last check interval
         protected bool FirstUpdateLoop = true; // first update loop
 
         private const float MaxDistFromRoadCarM = 200.0f; // maximum distance of train traveller to spawned roadcar

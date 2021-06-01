@@ -47,26 +47,26 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         private const string arrowToRight = "\u25BA???"; // ►
         private const char smallDiamond = '\u25C6'; // ●
         private const string marker = "???";
-        private bool DynBrakeSetup = false;
-        private bool ResizeWindow = false;
-        private bool UpdateDataEnded = false;
+        private bool DynBrakeSetup;
+        private bool ResizeWindow;
+        private bool UpdateDataEnded;
         private double StartTime;
-        private int FirstColIndex = 0;//first string that does not fit
-        private int FirstColLenght = 0;
-        private int FirstColOverFlow = 0;
-        private int LastColLenght = 0;
-        private int LastColOverFlow = 0;
-        private int LinesCount = 0;
+        private int FirstColIndex;//first string that does not fit
+        private int FirstColLenght;
+        private int FirstColOverFlow;
+        private int LastColLenght;
+        private int LastColOverFlow;
+        private int LinesCount;
 
         public bool StandardHUD = true;// Standard text
 
-        private int WindowHeightMin = 0;
-        private int WindowHeightMax = 0;
-        private int WindowWidthMin = 0;
-        private int WindowWidthMax = 0;
+        private int WindowHeightMin;
+        private int WindowHeightMax;
+        private int WindowWidthMin;
+        private int WindowWidthMax;
         private char expandWindow;
         private string Gradient;
-        public int OffSetX = 0;
+        public int OffSetX;
         private const int TextSize = 15;
         public int keyPresLenght;
         private Label indicator;

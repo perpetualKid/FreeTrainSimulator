@@ -159,7 +159,7 @@ namespace Orts.Formats.Msts.Parsers
         public abstract void ThrowException(string message);
 
         #region IDisposable Support
-        private bool disposedValue = false; // To detect redundant calls
+        private bool disposedValue; // To detect redundant calls
 
         protected virtual void Dispose(bool disposing)
         {

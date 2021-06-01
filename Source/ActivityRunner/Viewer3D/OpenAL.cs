@@ -700,7 +700,7 @@ namespace Orts.ActivityRunner.Viewer3D
         // General info about current wave file
         public bool isKnownType;
         public WAVEFORMATEXTENSIBLE wfEXT;
-        public WAVEFORMATTYPE wtType = new WAVEFORMATTYPE();
+        public WAVEFORMATTYPE wtType;
 
         public uint ulDataSize;
         public uint ulDataOffset;

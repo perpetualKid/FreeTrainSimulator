@@ -25,7 +25,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
         public Animations Animations;
         public LodControl[] LodControls;
         public bool HasNightSubObj;
-        public int RootSubObjectIndex = 0;
+        public int RootSubObjectIndex;
         public string SoundFileName = "";
         public float BellAnimationFPS = 8;
 

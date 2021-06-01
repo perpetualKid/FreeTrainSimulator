@@ -99,7 +99,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 	  /// <summary>
 	  /// contains the last position of the mouse
 	  /// </summary>
-	  private System.Drawing.Point LastCursorPosition = new System.Drawing.Point();
+	  private System.Drawing.Point LastCursorPosition;
 		public Pen redPen = new Pen(Color.Red);
 		public Pen greenPen = new Pen(Color.Green);
 		public Pen orangePen = new Pen(Color.Orange);
@@ -433,7 +433,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 		  }*/
 	  }
 
-        private int LostCount = 0;//how many players in the lost list (quit)
+        private int LostCount;//how many players in the lost list (quit)
 	  public void CheckAvatar()
 	  {
 		  if (!MultiPlayer.MPManager.IsMultiPlayer() || MultiPlayer.MPManager.OnlineTrains == null || MultiPlayer.MPManager.OnlineTrains.Players == null) return;

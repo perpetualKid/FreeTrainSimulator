@@ -42,7 +42,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public const int skySides = 24;
         public static int skyHeight;
         public const short skyLevels = 4;
-        public static bool IsNight = false;
+        public static bool IsNight;
         public static float mstsskyTileu;
         public static float mstsskyTilev;
         public static float mstscloudTileu;
@@ -84,7 +84,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public float mstsskyovercastFactor;
         // Fog distance
         public float mstsskyfogDistance;
-        public bool isNight = false;
+        public bool isNight;
 
         public List<string> SkyLayers = new List<string>();
 

@@ -146,7 +146,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// If needs active management or can be left to OpenAL to deal with sound properties
         /// </summary>
         public bool NeedsFrequentUpdate;
-        public bool TrackSound = false;
+        public bool TrackSound;
 
         public abstract void Dispose();
     }
@@ -165,9 +165,9 @@ namespace Orts.ActivityRunner.Viewer3D
         private float prevDist = -1; // initial distance to sond region backward
         private float initDist = -1; // initial distance run when last ttype selected
         private int initTrackSection = -1; // track section when last ttype selected
-        private MSTSWagon initCar = null; // initial leading car (to accommodate in case of change of direction)
-        private bool CarOnSwitch = false;
-        private bool CarOnCurve = false;
+        private MSTSWagon initCar; // initial leading car (to accommodate in case of change of direction)
+        private bool CarOnSwitch;
+        private bool CarOnCurve;
 
 
         public TrackSoundSource(MSTSWagon car, Viewer viewer)
@@ -560,7 +560,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <summary>
         /// Used for InGame sounds and activity sounds of type "Overall"
         /// </summary>
-        public bool IsUnattenuated = false;
+        public bool IsUnattenuated;
         /// <summary>
         /// Used for Horns
         /// </summary>

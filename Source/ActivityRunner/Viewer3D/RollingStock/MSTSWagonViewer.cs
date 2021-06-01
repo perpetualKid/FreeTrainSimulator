@@ -91,8 +91,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         private List<ParticleEmitterViewer> WagonGenerator = new List<ParticleEmitterViewer>();
         private List<ParticleEmitterViewer> DieselLocoGenerator = new List<ParticleEmitterViewer>();
         private bool HasFirstPanto;
-        private int numBogie1, numBogie2, numBogie, bogie1Axles, bogie2Axles = 0;
-        private int bogieMatrix1, bogieMatrix2 = 0;
+        private int numBogie1, numBogie2, numBogie, bogie1Axles, bogie2Axles;
+        private int bogieMatrix1, bogieMatrix2;
         private FreightAnimationsViewer FreightAnimations;
 
         public MSTSWagonViewer(Viewer viewer, MSTSWagon car)

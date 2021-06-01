@@ -3446,7 +3446,7 @@ namespace Orts.Parsers.Msts
             if (UpcomingTokenFromSource.IsBlockEnd)
             {
                 STFException.TraceWarning(UpcomingTokenFromSource,
-                    String.Format(System.Globalization.CultureInfo.CurrentCulture,
+                    eString.Format(System.Globalization.CultureInfo.CurrentCulture,
                                     "When expecting a {0}, we found a ) marker. Using the default {1}", description, defaultValue));
                 return defaultValue.GetValueOrDefault(default(T));
             }

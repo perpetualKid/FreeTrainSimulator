@@ -55,7 +55,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             public float TriggerOnOverspeedMpS;                 // OverspeedMonitor only
             public bool TriggerOnTrackOverspeed;                // OverspeedMonitor only
             public float TriggerOnTrackOverspeedMarginMpS = 4;  // OverspeedMonitor only
-            public bool ResetOnDirectionNeutral = false;
+            public bool ResetOnDirectionNeutral ;
             public bool ResetOnZeroSpeed = true;
             public bool ResetOnResetButton;                     // OverspeedMonitor only
 
@@ -118,8 +118,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         public float NextSpeedLimitMpS { get; set; }
         public TrackMonitorSignalAspect CabSignalAspect { get; set; }
 
-        public bool Activated = false;
-        public bool CustomTCSScript = false;
+        public bool Activated;
+        public bool CustomTCSScript;
         private readonly MSTSLocomotive Locomotive;
         private readonly Simulator Simulator;
         private float ItemSpeedLimit;
@@ -146,7 +146,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         // List of customized control strings;
         public string[] CustomizedCabviewControlNames = new string[TCSCabviewControlCount];
         // TODO : Delete this when SetCustomizedTCSControlString is deleted
-        protected int NextCabviewControlNameToEdit = 0;
+        protected int NextCabviewControlNameToEdit;
         private string ScriptName;
         private string SoundFileName;
         private string ParametersFileName;
@@ -198,8 +198,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         }
 
         //Debrief Eval
-        public static int DbfevalFullBrakeAbove16kmh = 0;
-        public bool ldbfevalfullbrakeabove16kmh = false;
+        public static int DbfevalFullBrakeAbove16kmh;
+        public bool ldbfevalfullbrakeabove16kmh;
 
         public void Initialize()
         {

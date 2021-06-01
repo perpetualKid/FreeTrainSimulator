@@ -75,10 +75,10 @@ namespace Orts.Simulation.RollingStocks
         public bool MirrorOpen;
         public bool UnloadingPartsOpen;
         public bool WaitForAnimationReady; // delay counter to start loading/unliading is on;
-        public bool IsRollerBearing = false; // Has roller bearings
-        public bool IsLowTorqueRollerBearing = false; // Has low torque roller bearings
-        public bool IsFrictionBearing = false; //Has oil based friction (or solid bearings)
-        public bool IsGreaseFrictionBearing = false; // Has grease based friction (or solid bearings)
+        public bool IsRollerBearing; // Has roller bearings
+        public bool IsLowTorqueRollerBearing; // Has low torque roller bearings
+        public bool IsFrictionBearing; //Has oil based friction (or solid bearings)
+        public bool IsGreaseFrictionBearing; // Has grease based friction (or solid bearings)
         public bool IsStandStill = true;  // Used for MSTS type friction
         public bool IsDavisFriction = true; // Default to new Davis type friction
         public bool IsBelowMergeSpeed = true; // set indicator for low speed operation as per given speed
@@ -197,7 +197,7 @@ namespace Orts.Simulation.RollingStocks
         public float HeatingSteamBoilerDurationS;
         public float HeatingSteamBoilerVolumeM3pS;
         public Color HeatingSteamBoilerSteadyColor = Color.LightSlateGray;
-        public bool HeatingBoilerSet = false;
+        public bool HeatingBoilerSet;
 
         // Wagon Smoke
         public float WagonSmokeVolumeM3pS;
@@ -206,7 +206,7 @@ namespace Orts.Simulation.RollingStocks
         private float InitialWagonSmokeDurationS = 1.0f;
         public float WagonSmokeVelocityMpS = 15.0f;
         public Color WagonSmokeSteadyColor = Color.Gray;
-        private float TrueCouplerCount = 0;
+        private float TrueCouplerCount;
         private int CouplerCountLocation;
 
         // Bearing Hot Box Smoke
@@ -1004,7 +1004,7 @@ namespace Orts.Simulation.RollingStocks
                     string typeString2 = stf.ReadString();
                     IsRollerBearing = String.Compare(typeString2, "Roller") == 0;
                     IsLowTorqueRollerBearing = String.Compare(typeString2, "Low") == 0;
-                    IsFrictionBearing = String.Compare(typeString2, "Friction") == 0;
+                    IsFrictionBearing = eString.Compare(typeString2, "Friction") == 0;
                     IsGreaseFrictionBearing = String.Compare(typeString2, "Grease") == 0;
                     break;
                 case "wagon(friction":
@@ -3811,11 +3811,11 @@ namespace Orts.Simulation.RollingStocks
     /// </summary>
     public class IntakePoint
     {
-        public float OffsetM = 0f;   // distance forward? from the centre of the vehicle as defined by LengthM/2.
+        public float OffsetM;   // distance forward? from the centre of the vehicle as defined by LengthM/2.
         public float WidthM = 10f;   // of the filling point. Is the maximum positioning error allowed equal to this or half this value? 
         public PickupType Type;          // 'freightgrain', 'freightcoal', 'freightgravel', 'freightsand', 'fuelcoal', 'fuelwater', 'fueldiesel', 'fuelwood', freightgeneral, freightlivestock, specialmail
         public float? DistanceFromFrontOfTrainM;
-        public FreightAnimationContinuous LinkedFreightAnim = null;
+        public FreightAnimationContinuous LinkedFreightAnim;
 
         public IntakePoint()
         {

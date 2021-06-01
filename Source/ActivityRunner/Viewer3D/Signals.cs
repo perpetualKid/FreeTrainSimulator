@@ -555,7 +555,7 @@ namespace Orts.ActivityRunner.Viewer3D
     internal class SignalLightState
     {
         private readonly float transitionTime; // Transition time in seconds.
-        private double intensity = 0;
+        private double intensity;
         private bool firstUpdate = true;
 
         public SignalLightState(float transitionTime)

@@ -53,7 +53,7 @@ namespace ORTS.TrackViewer.Drawing.Labels
         /// <summary>The MSTS location where the mouse started during dragging</summary>
         private WorldLocation draggingStartLocation;
         /// <summary>Are we currently dragging?</summary>
-        private bool dragging = false;   // draggingLabelToReplace is not nullable, so we cannot use that
+        private bool dragging;   // draggingLabelToReplace is not nullable, so we cannot use that
         #endregion
 
         #region Constructor

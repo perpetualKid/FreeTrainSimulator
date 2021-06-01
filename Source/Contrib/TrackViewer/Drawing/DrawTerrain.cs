@@ -588,7 +588,7 @@ namespace ORTS.TrackViewer.Drawing
     {
         public int CurrentScaleFactor { get; private set; } = 1;
 
-        private int loadedAceFilesCounter = 0;
+        private int loadedAceFilesCounter;
         private HashSet<string> unloadableTerrainTextures;
         private string terrtexPath;
         private MessageDelegate messageDelegate;

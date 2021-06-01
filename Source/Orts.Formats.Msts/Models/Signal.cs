@@ -158,11 +158,11 @@ namespace Orts.Formats.Msts.Models
         public ApproachControlLimits ApproachControlDetails { get; private set; }
 
         /// <summary> Glow value for daytime (optional).</summary>
-        public float? DayGlow = null;
+        public float? DayGlow;
         /// <summary> Glow value for nighttime (optional).</summary>
-        public float? NightGlow = null;
+        public float? NightGlow;
         /// <summary> Lights switched off or on during daytime (default : on) (optional).</summary>
-        public bool DayLight = true;
+        public bool DayLight;
 
         /// <summary>
         /// Common initialization part for constructors

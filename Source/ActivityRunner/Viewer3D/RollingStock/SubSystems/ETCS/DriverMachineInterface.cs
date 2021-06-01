@@ -70,7 +70,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
         public static readonly Color ColorShadow = new Color(8, 24, 57);
 
         // Some DMIs use black for the background and white for borders, instead of blue scale
-        public readonly bool BlackWhiteTheme = false;
+        public readonly bool BlackWhiteTheme;
 
         public Texture2D ColorTexture { get; private set; }
 
@@ -602,7 +602,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
     {
         public Rectangle SensitiveArea(Point WindowPosition) => new Rectangle(WindowPosition.X + Position.X - ExtendedSensitiveArea.X, WindowPosition.Y + Position.Y - ExtendedSensitiveArea.Y, Width + ExtendedSensitiveArea.Width + ExtendedSensitiveArea.X, Height + ExtendedSensitiveArea.Height + ExtendedSensitiveArea.Y);
         public Rectangle ExtendedSensitiveArea;
-        public Action PressedAction = null;
+        public Action PressedAction;
         public string ConfirmerCaption;
         public readonly string DisplayName;
         public bool Enabled;

@@ -107,18 +107,18 @@ namespace Orts.Simulation.RollingStocks
         }
 
         // simulation parameters
-        public bool ManualHorn = false;
-        public bool TCSHorn = false;
-        public bool Horn = false;
-        protected bool PreviousHorn = false;
+        public bool ManualHorn;
+        public bool TCSHorn;
+        public bool Horn;
+        protected bool PreviousHorn;
 
-        public bool ManualBell = false;
+        public bool ManualBell;
         public SoundState BellState = SoundState.Stopped;
-        public bool Bell = false;
-        protected bool PreviousBell = false;
+        public bool Bell;
+        protected bool PreviousBell;
 
-        public bool VacuumExhausterPressed = false;
-        public bool FastVacuumExhausterFitted = false;
+        public bool VacuumExhausterPressed;
+        public bool FastVacuumExhausterFitted;
 
         public bool AlerterSnd;
         public bool VigilanceMonitor;
@@ -129,7 +129,7 @@ namespace Orts.Simulation.RollingStocks
         public float MaxPowerW;
         public float MaxForceN;
         public float AbsTractionSpeedMpS;
-        public float MaxCurrentA = 0;
+        public float MaxCurrentA;
         public float MaxSpeedMpS = 1e3f;
         public float UnloadingSpeedMpS;
         public float MainResPressurePSI = 130;
@@ -149,10 +149,10 @@ namespace Orts.Simulation.RollingStocks
         public bool PowerKey;
 
         // Water trough filling
-        public bool HasWaterScoop = false; // indicates whether loco + tender have a water scoop or not
+        public bool HasWaterScoop; // indicates whether loco + tender have a water scoop or not
         public float ScoopMaxPickupSpeedMpS = 200.0f; // Maximum scoop pickup speed - used in steam locomotive viewer
-        public bool ScoopIsBroken = false; // becomes broken if activated where there is no trough
-        public bool RefillingFromTrough = false; // refilling from through is ongoing
+        public bool ScoopIsBroken; // becomes broken if activated where there is no trough
+        public bool RefillingFromTrough; // refilling from through is ongoing
         public float WaterScoopFillElevationM; // height water has to be raised to fill tender
         public float WaterScoopDepthM; // depth that water scoop goes into trough (pan)
         public float WaterScoopWidthM; // width of water scoop
@@ -161,17 +161,17 @@ namespace Orts.Simulation.RollingStocks
         public float WaterScoopedQuantityLpS; // Amount of water scooped up by water scoop per second
         public float WaterScoopInputAmountL; // Water scooped in elapsed time
         public float WaterScoopMinSpeedMpS; // Minimum speed for water pickup
-        public bool IsWaterScoopDown = false;
+        public bool IsWaterScoopDown;
         public bool WaterScoopDown;
         public const float GravitationalAccelerationFtpSpS = 32.26f;
         public float TenderWaterLevelFraction;
         public float WaterScoopTotalWaterL;
-        private bool WaterScoopOverTroughFlag = false;
-        private bool WaterScoopNotFittedFlag = false;
-        private bool WaterScoopSlowSpeedFlag = false;
-        private bool WaterScoopDirectionFlag = false;
-        public bool IsWaterScoopPlayerLocomotive = false;
-        private bool WaterScoopSoundOn = false;
+        private bool WaterScoopOverTroughFlag;
+        private bool WaterScoopNotFittedFlag;
+        private bool WaterScoopSlowSpeedFlag;
+        private bool WaterScoopDirectionFlag;
+        public bool IsWaterScoopPlayerLocomotive;
+        private bool WaterScoopSoundOn;
         public float MaxTotalCombinedWaterVolumeUKG;
         public MSTSNotchController WaterController = new MSTSNotchController(0, 1, 0.01f);
         public float CombinedTenderWaterVolumeUKG          // Decreased by running injectors and increased by refilling
@@ -195,8 +195,8 @@ namespace Orts.Simulation.RollingStocks
         // Steam heating Flags
         public bool IsSteamInitial = true;        // To initialise steam heat
         public bool IsSteamHeatFirstTime = true;  // Flag for first pass at steam heating.
-        public bool IsSteamHeatFitted = false;    // Is steam heating fitted to locomotive
-        public float CurrentSteamHeatPressurePSI = 0.0f;   // Current pressure in steam heat system
+        public bool IsSteamHeatFitted;    // Is steam heating fitted to locomotive
+        public float CurrentSteamHeatPressurePSI;   // Current pressure in steam heat system
 
         public string LocomotiveName; // Name of locomotive from ENG file
 
@@ -205,7 +205,7 @@ namespace Orts.Simulation.RollingStocks
         public Interpolator SteamHeatPressureToTemperaturePSItoF;
         public Interpolator SteamDensityPSItoLBpFT3;   // saturated steam density given pressure
         public Interpolator SteamHeatPSItoBTUpLB;      // total heat in saturated steam given pressure
-        public bool IsSteamHeatingBoilerFitted = false;   // Flag to indicate when steam heat boiler van is fitted
+        public bool IsSteamHeatingBoilerFitted;   // Flag to indicate when steam heat boiler van is fitted
         public float CalculatedCarHeaterSteamUsageLBpS;
 
 #if DEBUG_ADHESION
@@ -221,7 +221,7 @@ namespace Orts.Simulation.RollingStocks
         public float SteamStaticWheelForce;
         public float SteamTangentialWheelForce;
         public float SteamDrvWheelWeightLbs;  // Weight on each drive axle
-        public float PreviousThrottleSetting = 0.0f;  // Holds the value of the previous throttle setting for calculating the correct antislip speed
+        public float PreviousThrottleSetting;  // Holds the value of the previous throttle setting for calculating the correct antislip speed
 
         // parameters for Track Sander based upon compressor air and abrasive table for 1/2" sand blasting nozzle @ 50psi
         public float MaxTrackSandBoxCapacityM3 = (float)Size.Volume.FromFt3(40.0f);  // Capacity of sandbox - assume 40.0 cu ft
@@ -232,34 +232,34 @@ namespace Orts.Simulation.RollingStocks
 
         // Vacuum Braking parameters
         private static readonly double OneAtmospherePSI = Pressure.Atmospheric.ToPSI(1);
-        public bool SmallSteamEjectorIsOn = false;
-        public bool LargeSteamEjectorIsOn = false;
-        public bool VacuumPumpOperating = false;
-        public float SteamEjectorSmallPressurePSI = 0.0f;
-        public float SteamEjectorLargePressurePSI = 0.0f;
+        public bool SmallSteamEjectorIsOn;
+        public bool LargeSteamEjectorIsOn;
+        public bool VacuumPumpOperating;
+        public float SteamEjectorSmallPressurePSI;
+        public float SteamEjectorLargePressurePSI;
         public bool VacuumPumpFitted;
-        public bool SmallEjectorControllerFitted = false;
+        public bool SmallEjectorControllerFitted;
         public float VacuumPumpResistanceN;
         public float EjectorSmallSteamConsumptionLbpS;
         public float EjectorLargeSteamConsumptionLbpS;
-        public float SteamEjectorSmallSetting = 0.0f;
-        public float SteamEjectorLargeSetting = 0.0f;
+        public float SteamEjectorSmallSetting;
+        public float SteamEjectorLargeSetting;
         public float MaxVaccuumMaxPressurePSI = 110.0f;  // Value for the boiler pressure when maximum vacuum will be produced for the steam ejector 
         public float SmallEjectorFeedFraction = 0.35f;
         public float LargeEjectorFeedFraction = 1.0f;
-        public bool LargeEjectorControllerFitted = false;
-        public float VacuumPumpChargingRateInHgpS = 0.0f;
-        public bool VacuumBrakeEQFitted = false;  // Flag to indicate that equalising resevoir fitted to vacuum brakes
+        public bool LargeEjectorControllerFitted;
+        public float VacuumPumpChargingRateInHgpS;
+        public bool VacuumBrakeEQFitted;  // Flag to indicate that equalising resevoir fitted to vacuum brakes
         public float HUDNetBPLossGainPSI;
         public float SmallEjectorBrakePipeChargingRatePSIorInHgpS;
         public float LargeEjectorBrakePipeChargingRatePSIorInHgpS;
         public float ExhausterHighSBPChargingRatePSIorInHgpS;  // Rate for Exhauster in high speed mode
         public float ExhausterLowSBPChargingRatePSIorInHgpS;  // Rate for Exhauster in high speed mode
-        public bool VacuumBrakeCutoffActivated = false;
-        public bool BrakeFlagDecrease = false;
-        public bool BrakeFlagIncrease = false;
+        public bool VacuumBrakeCutoffActivated;
+        public bool BrakeFlagDecrease;
+        public bool BrakeFlagIncrease;
 
-        private bool _SmallEjectorSoundOn = false;
+        private bool _SmallEjectorSoundOn;
         public bool SmallEjectorSoundOn
         {
             get => _SmallEjectorSoundOn;
@@ -273,7 +273,7 @@ namespace Orts.Simulation.RollingStocks
             }
         }
 
-        private bool _LargeEjectorSoundOn = false;
+        private bool _LargeEjectorSoundOn;
         public bool LargeEjectorSoundOn
         {
             get => _LargeEjectorSoundOn;
@@ -287,11 +287,11 @@ namespace Orts.Simulation.RollingStocks
             }
        }
 
-        public bool SteamEngineBrakeFitted = false;
-        public bool TrainBrakeFitted = false;
-        public bool EngineBrakeFitted = false;
-        public bool BrakemanBrakeFitted = false;
-        public bool VacuumExhausterIsOn = false;
+        public bool SteamEngineBrakeFitted;
+        public bool TrainBrakeFitted;
+        public bool EngineBrakeFitted;
+        public bool BrakemanBrakeFitted;
+        public bool VacuumExhausterIsOn;
         public float VacuumBrakesMainResVolumeM3 = (float)Size.Volume.FromFt3(200.0f); // Main vacuum reservoir volume
         public float VacuumBrakesMainResMaxVacuumPSIAorInHg = (float)Pressure.Vacuum.ToPressure(23);
         public float VacuumBrakesExhausterRestartVacuumPSIAorInHg = (float)Pressure.Vacuum.ToPressure(21);
@@ -314,7 +314,7 @@ namespace Orts.Simulation.RollingStocks
             { BrakeSystemComponent.BrakeCylinder, Pressure.Unit.None }
         };
 
-        protected float OdometerResetPositionM = 0;
+        protected float OdometerResetPositionM;
         protected bool OdometerCountingUp = true;
         protected bool OdometerCountingForwards = true;
 
@@ -335,7 +335,7 @@ namespace Orts.Simulation.RollingStocks
         public string CVFFileName;
         public float MaxMainResPressurePSI = 130;
         public float MainResVolumeM3 = 0.3f;
-        public float TrainBrakePipeLeakPSIorInHgpS = 0.0f;    // Air leakage from train brake pipe - should normally be no more then 5psi/min - default off
+        public float TrainBrakePipeLeakPSIorInHgpS;    // Air leakage from train brake pipe - should normally be no more then 5psi/min - default off
         public float CompressorRestartPressurePSI = 110;
         public float CompressorChargingRateM3pS = 0.075f;
         public float MainResChargingRatePSIpS = 0.4f;
@@ -353,7 +353,7 @@ namespace Orts.Simulation.RollingStocks
         public float DynamicBrakeSpeed2MpS = (float)Speed.MeterPerSecond.FromKpH(30);
         public float DynamicBrakeSpeed3MpS = (float)Speed.MeterPerSecond.FromKpH(999);
         public float DynamicBrakeSpeed4MpS = (float)Speed.MeterPerSecond.FromKpH(999);
-        public float DynamicBrakeRatioAtSpeed4 = 0;
+        public float DynamicBrakeRatioAtSpeed4;
         public float MaxDynamicBrakeForceN;
         public float DynamicBrakeMaxCurrentA;
         public float DynamicBrakeDelayS;
@@ -377,7 +377,7 @@ namespace Orts.Simulation.RollingStocks
         public float MSTSSpeedOfMaxContinuousForceMpS;  // Speed where maximum tractive effort occurs - MSTS parameter if used
         public float ContinuousForceTimeFactor = 1800;
         public bool AntiSlip;
-        public bool AdvancedAdhesionModel = false; // flag set depending upon adhesion model used.
+        public bool AdvancedAdhesionModel; // flag set depending upon adhesion model used.
         public float SanderSpeedEffectUpToMpS;
         public float SanderSpeedOfMpS = 30.0f;
         public string EngineOperatingProcedures;
@@ -432,9 +432,9 @@ namespace Orts.Simulation.RollingStocks
 
         public double CommandStartTime;
 
-        public double LastBrakeSoundTime = 0;
+        public double LastBrakeSoundTime;
 
-        public float PowerReduction = 0;
+        public float PowerReduction;
 
         public MSTSLocomotive(Simulator simulator, string wagPath)
             : base(simulator, wagPath)
@@ -3425,8 +3425,8 @@ namespace Orts.Simulation.RollingStocks
         }
 
         //Debrief Eval
-        public static int DbfEvalFullTrainBrakeUnder8kmh = 0;
-        public bool ldbfevalfulltrainbrakeunder8kmh = false;
+        public static int DbfEvalFullTrainBrakeUnder8kmh;
+        public bool ldbfevalfulltrainbrakeunder8kmh;
 
         public override string GetTrainBrakeStatus()
         {

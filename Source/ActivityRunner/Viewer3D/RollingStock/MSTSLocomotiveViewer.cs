@@ -59,9 +59,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         public ThreeDimentionCabViewer CabViewer3D { get; private set; }
         public CabRenderer CabRenderer3D { get; internal set; } //allow user to have different setting of .cvf file under CABVIEW3D
 
-        public static int DbfEvalEBPBstopped = 0;//Debrief eval
-        public static int DbfEvalEBPBmoving = 0;//Debrief eval
-        public bool lemergencybuttonpressed = false;
+        public static int DbfEvalEBPBstopped;//Debrief eval
+        public static int DbfEvalEBPBmoving;//Debrief eval
+        public bool lemergencybuttonpressed;
 
         public MSTSLocomotiveViewer(Viewer viewer, MSTSLocomotive car)
             : base(viewer, car)
@@ -1244,7 +1244,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         private MSTSLocomotive _Locomotive;
         private int _Location;
         private bool _isNightTexture;
-        private bool HasCabLightDirectory = false;
+        private bool HasCabLightDirectory;
         public Dictionary<int, CabViewControlRenderer> ControlMap;
 
         public CabRenderer(Viewer viewer, MSTSLocomotive car)
@@ -1771,7 +1771,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
     {
         private readonly CabViewGaugeControl Gauge;
         private readonly Rectangle SourceRectangle;
-        private Rectangle DestinationRectangle = new Rectangle();
+        private Rectangle DestinationRectangle;
 
         //      bool LoadMeterPositive = true;
         private Color DrawColor;
@@ -1998,7 +1998,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
     {
         private readonly CabViewFramedControl ControlDiscrete;
         private readonly Rectangle SourceRectangle;
-        private Rectangle DestinationRectangle = new Rectangle();
+        private Rectangle DestinationRectangle;
         public readonly float CVCFlashTimeOn = 0.75f;
         public readonly float CVCFlashTimeTotal = 1.5f;
         private float CumulativeTime;
@@ -2793,14 +2793,14 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
     {
         private MSTSLocomotive Locomotive;
 
-        public PoseableShape TrainCarShape = null;
-        public Dictionary<int, AnimatedPartMultiState> AnimateParts = null;
-        private Dictionary<int, ThreeDimCabGaugeNative> Gauges = null;
-        private Dictionary<int, AnimatedPart> OnDemandAnimateParts = null; //like external wipers, and other parts that will be switched on by mouse in the future
+        public PoseableShape TrainCarShape;
+        public Dictionary<int, AnimatedPartMultiState> AnimateParts;
+        private Dictionary<int, ThreeDimCabGaugeNative> Gauges;
+        private Dictionary<int, AnimatedPart> OnDemandAnimateParts; //like external wipers, and other parts that will be switched on by mouse in the future
                                                                           //Dictionary<int, DigitalDisplay> DigitParts = null;
 
-        private Dictionary<int, ThreeDimCabDigit> DigitParts3D = null;
-        private AnimatedPart ExternalWipers = null; // setting to zero to prevent a warning. Probably this will be used later. TODO
+        private Dictionary<int, ThreeDimCabDigit> DigitParts3D;
+        private AnimatedPart ExternalWipers; // setting to zero to prevent a warning. Probably this will be used later. TODO
         protected MSTSLocomotive MSTSLocomotive { get { return (MSTSLocomotive)Car; } }
 
         private MSTSLocomotiveViewer LocoViewer;
@@ -3505,7 +3505,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         private Viewer Viewer;
         private SpriteBatchMaterial _Sprite2DCabView;
         private WindowTextFont _Font;
-        private PoseableShape TrainCarShape = null;
+        private PoseableShape TrainCarShape;
         private int digitPart;
         private int height;
         private Point coor = new Point(0, 0);

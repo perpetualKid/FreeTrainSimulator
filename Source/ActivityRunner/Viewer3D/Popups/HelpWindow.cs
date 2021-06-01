@@ -53,15 +53,15 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
         private ControlLayout scrollbox;
         private ControlLayoutHorizontal line;
-        private bool lDebriefEvalFile = false;//Debrief eval
-        private bool ldbfevalupdateautopilottime = false;//Debrief eval
-        private bool actualStatusVisible = false; //Debrief eval
-        private bool dbfevalActivityEnded = false; //Debrief eval
+        private bool lDebriefEvalFile;//Debrief eval
+        private bool ldbfevalupdateautopilottime;//Debrief eval
+        private bool actualStatusVisible; //Debrief eval
+        private bool dbfevalActivityEnded; //Debrief eval
         private Label indicator;//Debrief eval
         private Label statusLabel;//Debrief eval
         public string Star;//Debrief eval
         private StreamWriter wDbfEval;//Debrief eval
-        public static float DbfEvalDistanceTravelled = 0;//Debrief eval
+        public static float DbfEvalDistanceTravelled;//Debrief eval
 
         private List<TabData> Tabs = new List<TabData>();
         private int ActiveTab;
