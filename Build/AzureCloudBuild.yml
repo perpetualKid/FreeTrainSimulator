@@ -128,13 +128,3 @@ steps:
         $feed='builds'}
       dotnet tool install sleet
       dotnet sleet push .\..\a --config none -p SLEET_FEED_TYPE=azure -p SLEET_FEED_CONTAINER=$feed -p SLEET_FEED_CONNECTIONSTRING=${env:connectionstring}
-
-- task: VSTest@2
-  inputs:
-    testSelector: 'testAssemblies'
-    testAssemblyVer2: |
-      **\*test*.dll
-      !**\*TestAdapter.dll
-      !**\obj\**
-    searchFolder: '$(System.DefaultWorkingDirectory)'
-    runInParallel: true
