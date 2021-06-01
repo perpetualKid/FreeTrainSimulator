@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <!-- Configurations that affect the Test Framework -->
+  <RunConfiguration>
+    <MaxCpuCount>4</MaxCpuCount>
+    <!-- Path relative to directory that contains .runsettings file-->
+    <ResultsDirectory>.\TestResults</ResultsDirectory>
+    <TargetPlatform>x64</TargetPlatform>
+    <TargetFrameworkVersion>FrameworkCore10</TargetFrameworkVersion>
+  </RunConfiguration>
+</RunSettings>

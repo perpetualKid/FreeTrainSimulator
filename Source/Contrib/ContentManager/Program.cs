@@ -22,6 +22,15 @@ using System.Windows.Forms;
 
 using Orts.Common.Native;
 
+// TODO 20210531
+// https://github.com/perpetualKid/ORTS-MG/issues/89
+//< configuration >
+//  < runtime >
+//    < AppContextSwitchOverrides value = "Switch.System.Windows.Forms.DoNotLoadLatestRichEditControl=true" />
+
+//   </ runtime >
+// </ configuration >
+
 namespace Orts.ContentManager
 {
     static class Program
