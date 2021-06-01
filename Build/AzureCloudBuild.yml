@@ -76,7 +76,7 @@ steps:
   condition: ne(variables['Build.SourceBranch'], 'refs/heads/main')
   displayName: Testing the solution
   inputs:
-    otherConsoleOptions: '/platform:x64 /Framework:.NETCoreApp,Version=v3.1'
+    otherConsoleOptions: '/platform:x64 /Framework:.NETCoreApp,Version=v2.1'
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
 
