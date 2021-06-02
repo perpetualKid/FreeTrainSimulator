@@ -347,7 +347,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                         if (SteamBrakingCurrentFraction < SteamBrakeDesiredFraction) // Brake application, increase steam brake pressure to max value as appropriate
                         {
 
-                            SteamBrakingCurrentFraction += (float)(elapsedClockSeconds * lead.EngineBrakeController.ApplyRatePSIpS / conversionFactor);
+                            SteamBrakingCurrentFraction += (float)elapsedClockSeconds * lead.EngineBrakeController.ApplyRatePSIpS / conversionFactor;
                             if (SteamBrakingCurrentFraction > 1.0f)
                             {
                                 SteamBrakingCurrentFraction = 1.0f;
@@ -356,8 +356,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                         }
                         else if (SteamBrakingCurrentFraction > SteamBrakeDesiredFraction) // Brake release, decrease steam brake pressure to min value as appropriate
                         {
-                            SteamBrakingCurrentFraction -= (float)(elapsedClockSeconds * lead.EngineBrakeController.ReleaseRatePSIpS / conversionFactor);
-
+                            SteamBrakingCurrentFraction -= (float)elapsedClockSeconds * lead.EngineBrakeController.ReleaseRatePSIpS / conversionFactor;
                             if (SteamBrakingCurrentFraction < 0)
                             {
                                 SteamBrakingCurrentFraction = 0;
@@ -378,6 +377,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                             float equivalentBrakeLine3PressurePSI = equivalentEngineBrakePipeFraction * (MinimumVacuumPressureValue - MaximumVacuumPressureValue) + MaximumVacuumPressureValue;
 
                             lead.BrakeSystem.BrakeLine3PressurePSI = equivalentBrakeLine3PressurePSI; // If engine brake on, then don't allow engine brake pressure to drop when reducing train brake pressure
+
                             EngineBrakePipeFraction = SteamBrakingCurrentFraction;
                             Car.PreviousSteamBrakeCylinderPressurePSI = 0; // set to zero so that this loop is not executed again until train brake is activated
                         }
