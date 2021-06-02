@@ -45,7 +45,6 @@ namespace Orts.Common.Native
 #pragma warning restore CA1815 // Override equals and operator equals on value types
 #pragma warning restore CA1034 // Nested types should not be visible
         {
-#pragma warning disable CA1051 // Do not declare visible instance fields
             public int Size;
             public int Mask;
             public int Effects;
@@ -67,7 +66,6 @@ namespace Orts.Common.Native
             public byte Animation;
             public byte RevAuthor;
             public byte Reserved1;
-#pragma warning restore CA1051 // Do not declare visible instance fields
         }
 
         public static IntPtr SendMessage(IntPtr hwnd, int msg, IntPtr wParam, string lParam)

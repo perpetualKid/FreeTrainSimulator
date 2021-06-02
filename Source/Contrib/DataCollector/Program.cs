@@ -24,6 +24,9 @@ using System.Linq;
 using Orts.Common.Info;
 using Orts.Formats.Msts.Files;
 
+[assembly: CLSCompliant(false)]
+
+
 namespace Orts.DataCollector
 {
     internal class Program
