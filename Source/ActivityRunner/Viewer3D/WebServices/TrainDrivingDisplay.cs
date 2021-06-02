@@ -558,7 +558,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
 
             if (locomotiveStatus != null)
             {
-                foreach (string data in locomotiveStatus.Split('\n').Where((string d) => d.Length > 0))
+                foreach (string data in locomotiveStatus.Split('\n').Where((string d) => d.Length > 1))
                 {
                     string[] parts = data.Split(new string[] { " = " }, 2, StringSplitOptions.None);
                     string keyPart = parts[0];
