@@ -205,7 +205,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         {
             if (!Activated)
             {
-                if (!Simulator.Settings.DisableTCSScripts && !string.IsNullOrEmpty( ScriptName) && !ScriptName.Equals("MSTS", StringComparison.OrdinalIgnoreCase)
+                if (!Simulator.Settings.DisableTCSScripts && !string.IsNullOrEmpty( ScriptName) && !ScriptName.Equals("MSTS", StringComparison.OrdinalIgnoreCase))
                 {
                     Script = Simulator.ScriptManager.Load(Path.Combine(Path.GetDirectoryName(Locomotive.WagFilePath), "Script"), ScriptName) as TrainControlSystem;
                     CustomTCSScript = true;
