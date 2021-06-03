@@ -1068,11 +1068,11 @@ namespace Orts.MultiPlayer
                         SwitchState.Add(key, trackJunctionNode);
                     }
                 }
-                switchStatesArray = new byte[SwitchState.Count() + 2];
+                switchStatesArray = new byte[SwitchState.Count + 2];
             }
             if (preState == null)
             {
-                preState = new byte[SwitchState.Count() + 2];
+                preState = new byte[SwitchState.Count + 2];
                 for (i = 0; i < preState.Length; i++) preState[i] = 0;
             }
             i = 0;
@@ -3394,10 +3394,10 @@ namespace Orts.MultiPlayer
             if (MPManager.IsServer())//server check if need to tell others.
             {
                 //Trace.WriteLine(users);
-                if (users.Count() == 1 && users[0].Trim() == MPManager.GetUserName()) return;
-                if (users.Count() == 1 && users[0].Trim() == "0Server") return;
+                if (users.Length == 1 && users[0].Trim() == MPManager.GetUserName()) return;
+                if (users.Length == 1 && users[0].Trim() == "0Server") return;
                 //Trace.WriteLine(this.ToString());
-                MultiPlayer.MPManager.BroadCast(this.ToString());
+                MPManager.BroadCast(ToString());
             }
         }
 

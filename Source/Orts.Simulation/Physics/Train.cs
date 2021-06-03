@@ -10350,7 +10350,7 @@ namespace Orts.Simulation.Physics
 
                     circuitString.Append("...");
                 }
-                circuitString.Append(backstring.ToString());
+                circuitString.Append(backstring);
 
                 // train indication and direction
                 circuitString.Append("={");
@@ -10371,7 +10371,7 @@ namespace Orts.Simulation.Physics
                 {
                     BuildSectionString(forwardstring, ValidRoute[0][i].TrackCircuitSection, 0);
                 }
-                circuitString.Append(forwardstring.ToString());
+                circuitString.Append(forwardstring);
             }
 
             statusString[12] = circuitString.ToString();

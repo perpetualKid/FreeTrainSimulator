@@ -133,7 +133,7 @@ namespace ORTS.TrackViewer.Drawing.Labels
         internal void PopupContextMenu(int mouseX, int mouseY)
         {
             if (!Properties.Settings.Default.showLabels) return;
-            if (labels.Labels.Count() == 0) return;
+            if (!labels.Labels.Any()) return;
             var editingLabel = closestToMouseLabel;
 
             var contextMenu = new ContextMenu();

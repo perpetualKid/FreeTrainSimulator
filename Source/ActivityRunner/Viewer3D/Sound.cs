@@ -1420,7 +1420,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <returns></returns>
         private static float Interpolate(float x, Curve Curve)
         {
-            if (Curve.CurvePoints.Count() < 2)
+            if (Curve.CurvePoints.Length < 2)
                 return Curve.CurvePoints[0].Y;
 
             CurvePoint[] curvePoints = Curve.CurvePoints;

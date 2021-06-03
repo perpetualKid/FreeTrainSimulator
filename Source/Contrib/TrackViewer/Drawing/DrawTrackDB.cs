@@ -503,8 +503,8 @@ namespace ORTS.TrackViewer.Drawing
             trackDB.AddTrackItems(new TrackItem[0]);
 
             // find rail track items
-            railTrackItemTable = new DrawableTrackItem[trackDB.TrackItems.Count()];
-            for (int i = 0; i < trackDB.TrackItems.Count(); i++)
+            railTrackItemTable = new DrawableTrackItem[trackDB.TrackItems.Length];
+            for (int i = 0; i < trackDB.TrackItems.Length; i++)
             {
                 TrackItem trackItem = trackDB.TrackItems[i];
                 DrawableTrackItem drawableTrackItem = DrawableTrackItem.CreateDrawableTrItem(trackItem);
@@ -515,8 +515,8 @@ namespace ORTS.TrackViewer.Drawing
             // find road track items
             if (roadTrackDB != null && roadTrackDB.TrItemTable != null)
             {
-                roadTrackItemTable = new DrawableTrackItem[roadTrackDB.TrItemTable.Count()];
-                for (int i = 0; i < roadTrackDB.TrItemTable.Count(); i++)
+                roadTrackItemTable = new DrawableTrackItem[roadTrackDB.TrItemTable.Length];
+                for (int i = 0; i < roadTrackDB.TrItemTable.Length; i++)
                 {
                     TrackItem trackItem = roadTrackDB.TrItemTable[i];
                     DrawableTrackItem drawableTrackItem = DrawableTrackItem.CreateDrawableTrItem(trackItem);

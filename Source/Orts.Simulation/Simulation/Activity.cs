@@ -912,7 +912,7 @@ namespace Orts.Simulation
                         stringBuild.AppendFormat("{0}:{1}:{2}", delay.Hours.ToString("00"), delay.Minutes.ToString("00"), delay.Seconds.ToString("00"));
                         stringBuild.Append(separator);
                         stringBuild.Append(maydepart ? "Completed" : "NotCompleted");
-                        stringBuild.Append("\n");
+                        stringBuild.Append('\n');
                         File.AppendAllText(LogStationLogFile, stringBuild.ToString());
                     }
                 }
@@ -979,11 +979,11 @@ namespace Orts.Simulation
                                 stringBuild.Append(separator);
                                 stringBuild.Append(SchArrive.ToString("HH:mm:ss"));
                                 stringBuild.Append(separator);
-                                stringBuild.Append("-");
+                                stringBuild.Append('-');
                                 stringBuild.Append(separator);
                                 stringBuild.Append(ActArrive.HasValue ? ActArrive.Value.ToString("HH:mm:ss") : "-");
                                 stringBuild.Append(separator);
-                                stringBuild.Append("-");
+                                stringBuild.Append('-');
                                 stringBuild.Append(separator);
 
                                 TimeSpan delay = ActArrive.HasValue ? (ActArrive - SchArrive).Value : TimeSpan.Zero;
@@ -999,7 +999,7 @@ namespace Orts.Simulation
 
                                 stringBuild.Append(separator);
                                 stringBuild.Append("Final stop");
-                                stringBuild.Append("\n");
+                                stringBuild.Append('\n');
                                 File.AppendAllText(LogStationLogFile, stringBuild.ToString());
                             }
 
@@ -1028,14 +1028,14 @@ namespace Orts.Simulation
                                 stringBuild.Append(separator);
                                 stringBuild.Append(SchDepart.ToString("HH:mm:ss"));
                                 stringBuild.Append(separator);
-                                stringBuild.Append("-");
+                                stringBuild.Append('-');
                                 stringBuild.Append(separator);
-                                stringBuild.Append("-");
+                                stringBuild.Append('-');
                                 stringBuild.Append(separator);
-                                stringBuild.Append("-");
+                                stringBuild.Append('-');
                                 stringBuild.Append(separator);
                                 stringBuild.Append("Missed");
-                                stringBuild.Append("\n");
+                                stringBuild.Append('\n');
                                 File.AppendAllText(LogStationLogFile, stringBuild.ToString());
                             }
                         }

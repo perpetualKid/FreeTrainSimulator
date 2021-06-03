@@ -686,7 +686,7 @@ namespace ORTS.TrackViewer.Editing
                 currentMainNode = currentMainNode.NextMainNode;
             }
             mainNodes.Reverse();
-            int lastIndex = mainNodes.Count() - 1; // we now this is at least 1
+            int lastIndex = mainNodes.Count - 1; // we now this is at least 1
 
             //new start
             this.FirstNode = mainNodes[0];
@@ -736,7 +736,7 @@ namespace ORTS.TrackViewer.Editing
             }
             sidingNodes.Reverse();
 
-            int lastIndex = sidingNodes.Count() - 1; // we now this is at least 1
+            int lastIndex = sidingNodes.Count - 1; // we now this is at least 1
 
             // new start of siding
             sidingNodes[0].NextSidingNode = sidingNodes[1];

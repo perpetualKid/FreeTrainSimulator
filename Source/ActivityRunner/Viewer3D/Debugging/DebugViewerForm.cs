@@ -811,7 +811,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 				//trains selected in the avatar view list will be drawn in blue, others will be drawn in red
 				pathPen.Color = Color.Red;
 				var drawRed = 0;
-				int ValidTrain = selectedTrainList.Count();
+				int ValidTrain = selectedTrainList.Count;
 				//add trains quit into the end, will draw them in gray
 				var quitTrains = MultiPlayer.MPManager.Instance().lostPlayer.Values
 					.Select((MultiPlayer.OnlinePlayer lost) => lost?.Train)

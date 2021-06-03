@@ -1018,12 +1018,12 @@ namespace ORTS.TrackViewer.Editing.Charts
                 }
             }
 
-            if (0 == pointsWithMarkers.Count())
+            if (0 == pointsWithMarkers.Count)
             {
                 return;
             }
 
-            double pixelsPerMarker = this.canvasWidth / pointsWithMarkers.Count();
+            double pixelsPerMarker = this.canvasWidth / pointsWithMarkers.Count;
             bool onlyShowMultiplesOf5 = (pixelsPerMarker < 25);
             foreach (PathChartPoint sourcePoint in pointsWithMarkers)
             {
