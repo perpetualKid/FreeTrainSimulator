@@ -2586,10 +2586,10 @@ namespace Orts.Simulation.RollingStocks
             BogieIndex = bogie;
             BogieMatrix = parentMatrix;
         }
-        public int Compare(WheelAxle a, WheelAxle b)
+        public int Compare(WheelAxle x, WheelAxle y)
         {
-            if (a.OffsetM > b.OffsetM) return 1;
-            if (a.OffsetM < b.OffsetM) return -1;
+            if (x.OffsetM > y.OffsetM) return 1;
+            if (x.OffsetM < y.OffsetM) return -1;
             return 0;
         }
     }

@@ -1220,11 +1220,11 @@ namespace Orts.Simulation.Timetables
         /// Returned poolStorageState : <0 : state (enum TTTrain.PoolAccessState); >0 : poolIndex
         /// </summary>
 
-        public override TrackCircuitPartialPathRoute SetPoolExit(TTTrain train, out int poolStorageIndex, bool checkAccessPath)
+        public override TrackCircuitPartialPathRoute SetPoolExit(TTTrain train, out int poolStorageState, bool checkAccessPath)
         {
             // new route
             TrackCircuitPartialPathRoute newRoute = null;
-            poolStorageIndex = -1;
+            poolStorageState = -1;
 
             // set dispose states
             train.FormsStatic = true;
@@ -1271,7 +1271,7 @@ namespace Orts.Simulation.Timetables
                         Trace.TraceWarning("Train : " + train.Name + " : no valid path found to access pool storage " + PoolName + "\n");
                         train.FormsStatic = false;
                         train.Closeup = false;
-                        poolStorageIndex = -1;
+                        poolStorageState = -1;
                     }
                     // path found : extend train path with access paths
                     else
@@ -1291,7 +1291,7 @@ namespace Orts.Simulation.Timetables
                             }
                         }
 
-                        poolStorageIndex = reqPool;
+                        poolStorageState = reqPool;
                     }
                 }
                 // create new route from access track only
@@ -1300,7 +1300,7 @@ namespace Orts.Simulation.Timetables
                 else
                 {
                     newRoute = new TrackCircuitPartialPathRoute(AdditionalTurntableDetails.AccessPaths[0].AccessPath.ReversePath());
-                    poolStorageIndex = reqPool;
+                    poolStorageState = reqPool;
                 }
             }
 
@@ -1310,7 +1310,7 @@ namespace Orts.Simulation.Timetables
             {
                 newRoute.Last().MovingTableApproachPath = reqPath;
                 AddUnit(train, true);
-                StoragePool[poolStorageIndex].ClaimUnits.Add(train.Number);
+                StoragePool[poolStorageState].ClaimUnits.Add(train.Number);
             }
             return (newRoute);
         }

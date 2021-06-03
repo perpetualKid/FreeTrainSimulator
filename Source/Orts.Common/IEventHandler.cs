@@ -2,8 +2,8 @@
 {
     public interface IEventHandler
     {
-        void HandleEvent(TrainEvent evt);
-        void HandleEvent(TrainEvent evt, object viewer);
+        void HandleEvent(TrainEvent trainEvent);
+        void HandleEvent(TrainEvent trainEvent, object viewer);
     }
 
 }

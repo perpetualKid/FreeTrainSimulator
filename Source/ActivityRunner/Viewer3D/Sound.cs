@@ -1588,7 +1588,7 @@ namespace Orts.ActivityRunner.Viewer3D
     /// <summary>
     /// Play this sound when a discrete TrainCar event occurs in the simulator
     /// </summary>
-    public class ORTSDiscreteTrigger: ORTSTrigger, Orts.Common.IEventHandler
+    public class ORTSDiscreteTrigger: ORTSTrigger, IEventHandler
     {
         /// <summary>
         /// Event this trigger listens to
@@ -1626,10 +1626,10 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <summary>
         /// Check if this trigger listens to an event
         /// </summary>
-        /// <param name="eventID">Occured event</param>
-        public void HandleEvent(TrainEvent eventID)
+        /// <param name="trainEvent">Occured event</param>
+        public void HandleEvent(TrainEvent trainEvent)
         {
-            if (eventID == TriggerID)
+            if (trainEvent == TriggerID)
             {
                 Triggered = true;
             }
@@ -1638,11 +1638,11 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <summary>
         /// Check if this trigger listens to an event, and if also belongs to the object
         /// </summary>
-        /// <param name="eventID">Occured event</param>
+        /// <param name="trainEvent">Occured event</param>
         /// <param name="viewer">Object the event belongs to</param>
-        public void HandleEvent(TrainEvent eventID, object viewer)
+        public void HandleEvent(TrainEvent trainEvent, object viewer)
         {
-            if (eventID == TriggerID)
+            if (trainEvent == TriggerID)
             {
                 try
                 {

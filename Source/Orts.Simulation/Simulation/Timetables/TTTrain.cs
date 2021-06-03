@@ -3198,13 +3198,13 @@ namespace Orts.Simulation.Timetables
         /// Update when train on turntable
         /// </summary>
 
-        public override void UpdateTurntableState(double elapsedClockSeconds, int presentTime)
+        public override void UpdateTurntableState(double elapsedTimeSeconds, int presentTime)
         {
 
             // check if delayed action is due
             if (DelayedStart)
             {
-                RestdelayS -= (float)elapsedClockSeconds;
+                RestdelayS -= (float)elapsedTimeSeconds;
                 if (RestdelayS <= 0)   // wait time has elapsed - start moving
                 {
                     DelayedStart = false;
@@ -3225,7 +3225,7 @@ namespace Orts.Simulation.Timetables
 
             if (ActiveTurntable.CheckTurntableAvailable())
             {
-                ActiveTurntable.UpdateTurntableStateAI(elapsedClockSeconds, presentTime);
+                ActiveTurntable.UpdateTurntableStateAI(elapsedTimeSeconds, presentTime);
             }
         }
 
@@ -11941,23 +11941,23 @@ namespace Orts.Simulation.Timetables
         // Compare To (to allow sort)
         //
 
-        public int CompareTo(WaitInfo otherItem)
+        public int CompareTo(WaitInfo other)
         {
             // all connects are moved to the end of the queue
             if (this.WaitType == WaitInfoType.Connect)
             {
-                if (otherItem.WaitType != WaitInfoType.Connect)
+                if (other.WaitType != WaitInfoType.Connect)
                     return (1);
                 return (0);
             }
-            if (otherItem.WaitType == WaitInfoType.Connect)
+            if (other.WaitType == WaitInfoType.Connect)
                 return (-1);
 
-            if (this.activeSubrouteIndex < otherItem.activeSubrouteIndex)
+            if (this.activeSubrouteIndex < other.activeSubrouteIndex)
                 return (-1);
-            if (this.activeSubrouteIndex == otherItem.activeSubrouteIndex && this.activeRouteIndex < otherItem.activeRouteIndex)
+            if (this.activeSubrouteIndex == other.activeSubrouteIndex && this.activeRouteIndex < other.activeRouteIndex)
                 return (-1);
-            if (this.activeSubrouteIndex == otherItem.activeSubrouteIndex && this.activeRouteIndex == otherItem.activeRouteIndex)
+            if (this.activeSubrouteIndex == other.activeSubrouteIndex && this.activeRouteIndex == other.activeRouteIndex)
                 return (0);
             return (1);
         }

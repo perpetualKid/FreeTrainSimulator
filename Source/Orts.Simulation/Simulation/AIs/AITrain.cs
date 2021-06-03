@@ -3414,7 +3414,7 @@ namespace Orts.Simulation.AIs
             return (returnValue);
         }
 
-        public virtual void ProcessEndOfPathReached(ref bool[] returnValue, int PresentTime)
+        public virtual void ProcessEndOfPathReached(ref bool[] returnValue, int presentTime)
         {
             var removeIt = true;
             var distanceThreshold = PreUpdate ? 5.0f : 2.0f;

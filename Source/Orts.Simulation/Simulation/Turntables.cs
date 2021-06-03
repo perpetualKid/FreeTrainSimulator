@@ -301,12 +301,12 @@ namespace Orts.Simulation
         }
 
 
-        public virtual void StartContinuous (bool isClockwise)
+        public virtual void StartContinuous (bool clockwise)
         {
 
         }
 
-        public virtual void ComputeTarget(bool isClockwise)
+        public virtual void ComputeTarget(bool clockwise)
         {
 
         }
@@ -473,13 +473,13 @@ namespace Orts.Simulation
         /// Computes the nearest turntable exit in the actual direction
         /// Returns the Y angle to be compared.
         /// </summary>
-        public override void ComputeTarget(bool isClockwise)
+        public override void ComputeTarget(bool clockwise)
         {
             if (!Continuous) return;
             Continuous = false;
             GoToTarget = false;
-            Clockwise = isClockwise;
-            Counterclockwise = !isClockwise;
+            Clockwise = clockwise;
+            Counterclockwise = !clockwise;
             if (Clockwise)
             {
                 var forwardAngleDiff = 3.5f;
@@ -591,7 +591,7 @@ namespace Orts.Simulation
         /// 
         /// </summary>
         /// 
-        public override void StartContinuous(bool isClockwise)
+        public override void StartContinuous(bool clockwise)
         {
             if (TrainsOnMovingTable.Count > 1 || (TrainsOnMovingTable.Count == 1 && TrainsOnMovingTable[0].FrontOnBoard ^ TrainsOnMovingTable[0].BackOnBoard))
             {
@@ -620,8 +620,8 @@ namespace Orts.Simulation
                 if (SendNotifications) Simulator.Confirmer.Information(Simulator.Catalog.GetString("Turntable starting rotation with train"));
 
             }
-            Clockwise = isClockwise;
-            Counterclockwise = !isClockwise;
+            Clockwise = clockwise;
+            Counterclockwise = !clockwise;
             Continuous = true;
         }
 
