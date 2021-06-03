@@ -254,7 +254,7 @@ namespace Orts.MultiPlayer
                 }
                 // Broadcast also exhaust
                 var exhaustMessage = OnlineTrains.ExhaustingLocos(exhaust);
-                if (exhaustMessage != "") Server.BroadCast(exhaustMessage);
+                if (!string.IsNullOrEmpty(exhaustMessage)) Server.BroadCast(exhaustMessage);
 
                 lastMoveTime = lastSendTime = newtime;
 
@@ -572,10 +572,10 @@ namespace Orts.MultiPlayer
 			catch (Exception)
 			{
 			}
-			if (metric == "")
+			if (string.IsNullOrEmpty(metric))
 			{
-				metric = Simulator.TRK.Route.MilepostUnitsMetric == true ? " m" : " yd";
-				metricbase = Simulator.TRK.Route.MilepostUnitsMetric == true ? 1.0f : 1.0936133f;
+				metric = Simulator.TRK.Route.MilepostUnitsMetric ? " m" : " yd";
+				metricbase = Simulator.TRK.Route.MilepostUnitsMetric ? 1.0f : 1.0936133f;
 			}
 
 			int count = 0;

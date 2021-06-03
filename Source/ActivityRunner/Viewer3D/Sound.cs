@@ -2011,7 +2011,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public override void Run()
         {
             string p = GetNextFile();
-            if (p != "")
+            if (!string.IsNullOrEmpty(p))
             {
                 if (ORTSStream != null && ORTSStream.ALSoundSource != null)
                     ORTSStream.ALSoundSource.Queue(p, PlayMode.OneShot, ORTSStream.SoundSource.IsExternal, ORTSStream.RepeatedTrigger);
@@ -2032,7 +2032,7 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             // Support for Loop functions - by GeorgeS
             string p = GetNextFile();
-            if (p != "")
+            if (!string.IsNullOrEmpty(p))
             {
                 if (ORTSStream != null && ORTSStream.ALSoundSource != null)
                     ORTSStream.ALSoundSource.Queue(p, PlayMode.Loop, ORTSStream.SoundSource.IsExternal, false);
@@ -2071,7 +2071,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public override void Run()
         {
             string p = GetNextFile();
-            if (p != "")
+            if (!string.IsNullOrEmpty(p))
             {
                 if (ORTSStream != null && ORTSStream.ALSoundSource != null)
                     ORTSStream.ALSoundSource.Queue(p, PlayMode.LoopRelease, ORTSStream.SoundSource.IsExternal, ORTSStream.IsReleasedWithJump);

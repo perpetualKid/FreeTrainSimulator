@@ -1873,10 +1873,10 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 foreach (var cell in statusSplit)
                 {
                     cellIndex++;
-                    if (cell == "")
+                    if (cell.Length == 0)
                     {
                         var cellStringLength = cellString.Length > columnsChars ? 0 : columnsChars;
-                        cumulativeLenght = cumulativeLenght + cellStringLength;
+                        cumulativeLenght += cellStringLength;
                         CumulativeTextStatus.Add(cumulativeLenght, cumulativeTextStatus + (cellString.Length > columnsChars ? "" : space));
                         CumulativeTabStatus.Add(cumulativeLenght, cumulativeTabStatus + "\t");
                         lText = false;
@@ -1886,7 +1886,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                         cumulativeTabStatus = "";
                         continue;
                     }
-                    else if (cell.Length > 0 && lText && !CumulativeTextStatus.ContainsKey(cumulativeLenght))
+                    else if (lText && !CumulativeTextStatus.ContainsKey(cumulativeLenght))
                     {
                         CumulativeTextStatus.Add(cumulativeLenght, cumulativeTextStatus);
                         CumulativeTabStatus.Add(cumulativeLenght, cumulativeTabStatus);

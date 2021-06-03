@@ -3008,10 +3008,11 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         {
 
             Size = int.Parse(size) * 0.001f;//input size is in mm
-            if (aceFile != "")
+            if (!string.IsNullOrEmpty(aceFile))
             {
-                AceFile = aceFile.ToUpper();
-                if (!AceFile.EndsWith(".ACE")) AceFile = AceFile + ".ACE"; //need to add ace into it
+                if (".ace".Equals(Path.GetExtension(aceFile), StringComparison.OrdinalIgnoreCase))
+                    aceFile = Path.ChangeExtension(aceFile, ".ace");
+                AceFile = aceFile.ToUpperInvariant();
             }
             else { AceFile = ""; }
 
@@ -3097,7 +3098,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             CabViewControlType controltype = CVFR.GetControlType();
             Material material = null;
 
-            if (AceFile != "")
+            if (!string.IsNullOrEmpty(AceFile))
             {
                 imageName = AceFile;
             }
@@ -3263,8 +3264,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         private int Direction, Orientation;
         public ThreeDimCabGaugeNative(Viewer viewer, int iMatrix, string size, string len, PoseableShape trainCarShape, CabViewControlRenderer c)
         {
-            if (size != string.Empty) width = float.Parse(size) / 1000f; //in mm
-            if (len != string.Empty) maxLen = float.Parse(len) / 1000f; //in mm
+            if (float.TryParse(size, out width))
+                width /= 1000f; //in mm
+            if (float.TryParse(len, out maxLen))
+                maxLen/= 1000f; //in mm
 
             CVFR = (CabViewGaugeRenderer)c;
             Direction = CVFR.GetGauge().Direction;

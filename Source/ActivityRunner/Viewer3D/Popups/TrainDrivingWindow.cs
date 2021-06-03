@@ -421,13 +421,13 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                 indicatorMono.Color = colorFirstColEndsWith;
                             }
 
-                            if (data.keyPressed != null && data.keyPressed != "")
+                            if (!string.IsNullOrEmpty(data.keyPressed))
                             {
                                 hbox.Add(indicator = new Label(-TextSize, 0, TextSize, hbox.RemainingHeight, keyPressed, LabelAlignment.Right));
                                 indicator.Color = colorKeyPressed;
                             }
 
-                            if (data.SymbolCol != null && data.SymbolCol != "")
+                            if (!string.IsNullOrEmpty(data.SymbolCol))
                             {
                                 hbox.Add(indicator = new Label(-(TextSize + 3), 0, TextSize, hbox.RemainingHeight, SymbolCol, LabelAlignment.Right));
                                 indicator.Color = colorSymbolCol;

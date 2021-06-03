@@ -229,7 +229,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
             var wagonFolderSlash = Path.GetDirectoryName(car.WagFilePath) + @"\";
 
-            TrainCarShape = car.MainShapeFileName != string.Empty
+            TrainCarShape = !string.IsNullOrEmpty(car.MainShapeFileName)
                 ? new PoseableShape(wagonFolderSlash + car.MainShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster)
                 : new PoseableShape(null, car);
 

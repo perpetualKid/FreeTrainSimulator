@@ -342,7 +342,7 @@ namespace Orts.MultiPlayer
                 if (areas.Length >= 10)
                 {
                     MD5 = areas[9];
-                    if (MPManager.Instance().MD5Check == "")
+                    if (string.IsNullOrEmpty(MPManager.Instance().MD5Check))
                     {
                         MPManager.Instance().GetMD5HashFromTDBFile();
                     }
@@ -430,7 +430,7 @@ namespace Orts.MultiPlayer
 
             version = MPManager.Instance().version;
 
-            if (MPManager.Instance().MD5Check == "") MPManager.Instance().GetMD5HashFromTDBFile();
+            if (string.IsNullOrEmpty(MPManager.Instance().MD5Check)) MPManager.Instance().GetMD5HashFromTDBFile();
             MD5 = MPManager.Instance().MD5Check;
         }
         public override string ToString()
@@ -2522,7 +2522,7 @@ namespace Orts.MultiPlayer
         }
         public override string ToString()
         {
-            if (user == "") return "5: ALIVE"; //wrong, so just return an ALIVE string
+            if (string.IsNullOrEmpty(user)) return "5: ALIVE"; //wrong, so just return an ALIVE string
             string tmp = "UNCOUPLE " + user + "\t" + whichIsPlayer + "\t" + firstCarIDOld + "\t" + firstCarIDNew
                 + "\t" + location1.TileX + " " + location1.TileZ + " " + location1.Location.X.ToString(CultureInfo.InvariantCulture) + " " + location1.Location.Z.ToString(CultureInfo.InvariantCulture) + " " + Travelled1.ToString(CultureInfo.InvariantCulture) + " " + Speed1.ToString(CultureInfo.InvariantCulture) + " " + trainDirection + " " + oldTrainNumber + " " + mDirection1 + "\t"
                 + FillInString(1)

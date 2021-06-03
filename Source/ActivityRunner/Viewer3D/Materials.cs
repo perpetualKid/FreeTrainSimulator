@@ -142,7 +142,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public static Texture2D Get(GraphicsDevice graphicsDevice, string path)
         {
-            if (path == null || path == "")
+            if (string.IsNullOrEmpty(path))
                 return SharedMaterialManager.MissingTexture;
 
             path = path.ToLowerInvariant();

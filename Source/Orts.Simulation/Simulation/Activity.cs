@@ -624,8 +624,8 @@ namespace Orts.Simulation
         {
             foreach (var eventWrapper in EventList)
             {
-                if (eventWrapper is EventCategoryLocationWrapper && eventWrapper.ParsedObject.TrainService != "" &&
-                    train.Name.ToLower() == eventWrapper.ParsedObject.TrainService.ToLower())
+                if (eventWrapper is EventCategoryLocationWrapper && !string.IsNullOrEmpty(eventWrapper.ParsedObject.TrainService) &&
+                    eventWrapper.ParsedObject.TrainService.Equals(train.Name, StringComparison.OrdinalIgnoreCase))
                 {
                     if (eventWrapper.ParsedObject.TrainStartingTime == -1 || (train as AITrain).ServiceDefinition.Time == eventWrapper.ParsedObject.TrainStartingTime)
                     {
@@ -1203,9 +1203,9 @@ namespace Orts.Simulation
                 activity.IsSuccessful = true;
                 return true;
             }
-            if (this.ParsedObject.Outcomes.RestartWaitingTrain != null && this.ParsedObject.Outcomes.RestartWaitingTrain.WaitingTrainToRestart != "")
+            if (string.IsNullOrEmpty(ParsedObject.Outcomes.RestartWaitingTrain?.WaitingTrainToRestart))
             {
-                var restartWaitingTrain = this.ParsedObject.Outcomes.RestartWaitingTrain;
+                var restartWaitingTrain = ParsedObject.Outcomes.RestartWaitingTrain;
                 Simulator.RestartWaitingTrain(restartWaitingTrain);
             }
             return false;
@@ -1474,7 +1474,7 @@ namespace Orts.Simulation
             var triggered = false;
             var e = this.ParsedObject as Orts.Formats.Msts.Models.LocationActivityEvent;
             var train = Simulator.PlayerLocomotive.Train;
-            if (ParsedObject.TrainService != "" && Train != null)
+            if (!string.IsNullOrEmpty(ParsedObject.TrainService) && Train != null)
             {
                 if (Train.FrontTDBTraveller == null) return triggered;
                 train = Train;

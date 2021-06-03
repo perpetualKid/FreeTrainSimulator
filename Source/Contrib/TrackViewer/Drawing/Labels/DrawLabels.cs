@@ -184,7 +184,7 @@ namespace ORTS.TrackViewer.Drawing.Labels
         internal void SaveLabels()
         {
             string filename = GetSaveFileName();
-            if (filename == string.Empty) return;
+            if (!File.Exists(filename)) return;
             WriteJson(filename);
         }
 
@@ -230,7 +230,7 @@ namespace ORTS.TrackViewer.Drawing.Labels
         internal void LoadLabels()
         {
             string filename = GetLoadFileName();
-            if (filename == string.Empty) return;
+            if (!File.Exists(filename)) return;
             LoadJson(filename);
         }
 
@@ -288,7 +288,7 @@ namespace ORTS.TrackViewer.Drawing.Labels
                 }
             }
 
-            if (message != string.Empty)
+            if (!string.IsNullOrEmpty(message))
             {
                 MessageBox.Show(message);
             }
