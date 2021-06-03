@@ -959,14 +959,11 @@ namespace Orts.Simulation.Physics
                 if (j == 0) // typically the locomotive
                 {
                     car.CarAhead = null;
-                    if (Cars.Count > j) // if not a single loco
+                    if (Cars.Count > j && j < Cars.Count - 1) // if not a single loco
                     {
-                        if (j != Cars.Count - 1) // if so, this is the last car, and hence no cars behind it
-                        {
-                            car.CarBehind = Cars[j + 1];
-                        }
+                        car.CarBehind = Cars[j + 1];
                     }
-                    else // if a single loco
+                    else // if a single loco or no further cars behind it
                     {
                         car.CarBehind = null;
                     }
