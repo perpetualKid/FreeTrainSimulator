@@ -249,21 +249,23 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
     public class TextFlow : Control
     {
-        static readonly char[] Whitespace = new[] { ' ', '\t', '\r', '\n' };
+        private static readonly char[] Whitespace = new[] { ' ', '\t', '\r', '\n' };
 
         // Text acts like a member variable but changing it then calls the Reflow method so we can see the changed text.
         public string Text { get { return _text; } set { _text = value; Reflow(); } }
         private string _text;
         public Color Color;
         protected WindowTextFont Font;
+
         /// <summary>
         /// Lines of text to draw prepared by Updater process
         /// </summary>
-        List<string> Lines;
+        private List<string> Lines;
+
         /// <summary>
         /// Copy of Lines to iterate through by Render process
         /// </summary>
-        string[] DrawnLines;
+        private string[] DrawnLines;
 
         public TextFlow(int x, int y, int width, string text)
             : base(x, y, width, 0)
@@ -284,7 +286,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             Reflow();
         }
 
-        void Reflow()
+        private void Reflow()
         {
             Lines = new List<string>();
             var position = 0;

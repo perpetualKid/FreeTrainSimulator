@@ -146,13 +146,11 @@ namespace ORTS.TrackViewer.Editing
 
         #region private members
 
-        TrackDB trackDB;
-        TrackSectionsFile tsectionDat;
-
-
-        List<TrainPathData> trainPaths;
-        int currentIndex; // trainPaths are indexed
-        int currentIndexUnmodified; // The index of the last saved path.
+        private TrackDB trackDB;
+        private TrackSectionsFile tsectionDat;
+        private List<TrainPathData> trainPaths;
+        private int currentIndex; // trainPaths are indexed
+        private int currentIndexUnmodified; // The index of the last saved path.
 
         #endregion
 
@@ -242,7 +240,7 @@ namespace ORTS.TrackViewer.Editing
         /// </summary>
         /// <param name="patFile">Patfile object containing the various unprocessed Track Path Nodes</param>
         /// <param name="Nodes">The list of as-of-yet unlinked processed path nodes</param>
-        static private void LinkNodes(PathFile patFile, List<TrainpathNode> Nodes)
+        private static void LinkNodes(PathFile patFile, List<TrainpathNode> Nodes)
         {
             // Connect the various nodes to each other
             for (int i = 0; i < Nodes.Count; i++)
@@ -278,7 +276,7 @@ namespace ORTS.TrackViewer.Editing
         /// For all the junction nodes, set whether it is a facing point or not
         /// </summary>
         /// <param name="Nodes">The list of path nodes that now need to be linked</param>
-        static private void SetFacingPoints(List<TrainpathNode> Nodes)
+        private static void SetFacingPoints(List<TrainpathNode> Nodes)
         {
             // It is just a convenience to use the list of Nodes. 
             // In principle this can be done without the list by following the path
@@ -327,7 +325,7 @@ namespace ORTS.TrackViewer.Editing
         /// <summary>
         /// Run through the track and for each node find the direction on the node
         /// </summary>
-        void FindNodeOrientations()
+        private void FindNodeOrientations()
         {
             // Node orientations are determined based on the track leading to the node
             // This makes it easier to extend the path (in case the last node is not known)
@@ -372,7 +370,7 @@ namespace ORTS.TrackViewer.Editing
         /// <summary>
         /// Find situations where vectors nodes do not point correctly towards the next node
         /// </summary>
-        void FindWronglyOrientedLinks()
+        private void FindWronglyOrientedLinks()
         {
             // start of path
             TrainpathNode currentMainNode = FirstNode;
@@ -592,7 +590,7 @@ namespace ORTS.TrackViewer.Editing
             TrainpathNode currentNode = this.FirstNode;
             if (currentNode == null)
             {   // No route, so return no names
-                return new string[0];
+                return Array.Empty<string>();
             }
 
             while (currentNode.NextMainNode != null)
@@ -688,7 +686,7 @@ namespace ORTS.TrackViewer.Editing
                 currentMainNode = currentMainNode.NextMainNode;
             }
             mainNodes.Reverse();
-            int lastIndex = mainNodes.Count() - 1; // we now this is at least 1
+            int lastIndex = mainNodes.Count - 1; // we now this is at least 1
 
             //new start
             this.FirstNode = mainNodes[0];
@@ -722,7 +720,7 @@ namespace ORTS.TrackViewer.Editing
             mainNodes[lastIndex].NodeType = TrainpathNodeType.End;
         }
 
-        static void ReverseSidingPath(TrainpathNode oldSidingStart)
+        private static void ReverseSidingPath(TrainpathNode oldSidingStart)
         {
             List<TrainpathNode> sidingNodes = new List<TrainpathNode>
             {
@@ -738,7 +736,7 @@ namespace ORTS.TrackViewer.Editing
             }
             sidingNodes.Reverse();
 
-            int lastIndex = sidingNodes.Count() - 1; // we now this is at least 1
+            int lastIndex = sidingNodes.Count - 1; // we now this is at least 1
 
             // new start of siding
             sidingNodes[0].NextSidingNode = sidingNodes[1];
@@ -765,7 +763,7 @@ namespace ORTS.TrackViewer.Editing
         #endregion
 
         #region class TrainPathData
-        class TrainPathData
+        private class TrainPathData
         {
             #region public fields
             public TrainpathNode firstNode;
@@ -815,7 +813,7 @@ namespace ORTS.TrackViewer.Editing
             /// </summary>
             /// <param name="curFirstNode">First node of the current path</param>
             /// <returns>First node of the copied path</returns>
-            static TrainpathNode DeepCopyOfLinkedNodes(TrainpathNode curFirstNode)
+            private static TrainpathNode DeepCopyOfLinkedNodes(TrainpathNode curFirstNode)
             {
                 if (curFirstNode == null) return null;
 

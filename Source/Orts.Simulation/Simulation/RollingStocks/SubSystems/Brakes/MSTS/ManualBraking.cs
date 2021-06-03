@@ -28,9 +28,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 {
     public class ManualBraking : MSTSBrakeSystem
     {
-        TrainCar Car;
+        private TrainCar Car;
         protected string DebugType = string.Empty;
-        float HandbrakePercent;
+        private float HandbrakePercent;
 
         public ManualBraking(TrainCar car)
         {
@@ -38,18 +38,18 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 
         }
 
-        float ManualMaxBrakeValue = 100.0f;
-        float ManualReleaseRateValuepS;
-        float ManualMaxApplicationRateValuepS;
-        float ManualBrakingDesiredFraction;
-        float EngineBrakeDesiredFraction;
-        float ManualBrakingCurrentFraction;
-        float EngineBrakingCurrentFraction;
-        float SteamBrakeCompensation;
-        bool LocomotiveSteamBrakeFitted = false;
-        float SteamBrakePressurePSI = 0;
-        float SteamBrakeCylinderPressurePSI = 0;
-        float BrakeForceFraction;
+        private float ManualMaxBrakeValue = 100.0f;
+        private float ManualReleaseRateValuepS;
+        private float ManualMaxApplicationRateValuepS;
+        private float ManualBrakingDesiredFraction;
+        private float EngineBrakeDesiredFraction;
+        private float ManualBrakingCurrentFraction;
+        private float EngineBrakingCurrentFraction;
+        private float SteamBrakeCompensation;
+        private bool LocomotiveSteamBrakeFitted;
+        private float SteamBrakePressurePSI;
+        private float SteamBrakeCylinderPressurePSI;
+        private float BrakeForceFraction;
 
         public override bool GetHandbrakeStatus()
         {

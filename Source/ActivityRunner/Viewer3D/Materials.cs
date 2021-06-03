@@ -36,10 +36,10 @@ namespace Orts.ActivityRunner.Viewer3D
 {
     public class SharedTextureManager
     {
-        readonly Viewer Viewer;
-        readonly GraphicsDevice GraphicsDevice;
-        Dictionary<string, Texture2D> Textures = new Dictionary<string, Texture2D>(StringComparer.InvariantCultureIgnoreCase);
-        Dictionary<string, bool> TextureMarks;
+        private readonly Viewer Viewer;
+        private readonly GraphicsDevice GraphicsDevice;
+        private Dictionary<string, Texture2D> Textures = new Dictionary<string, Texture2D>(StringComparer.InvariantCultureIgnoreCase);
+        private Dictionary<string, bool> TextureMarks;
 
         internal SharedTextureManager(Viewer viewer, GraphicsDevice graphicsDevice)
         {
@@ -142,7 +142,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public static Texture2D Get(GraphicsDevice graphicsDevice, string path)
         {
-            if (path == null || path == "")
+            if (string.IsNullOrEmpty(path))
                 return SharedMaterialManager.MissingTexture;
 
             path = path.ToLowerInvariant();
@@ -198,9 +198,9 @@ namespace Orts.ActivityRunner.Viewer3D
 
     public class SharedMaterialManager
     {
-        readonly Viewer Viewer;
-        IDictionary<(string, string, int, float, Effect), Material> Materials = new Dictionary<(string, string, int, float, Effect), Material>();
-        IDictionary<(string, string, int, float, Effect), bool> MaterialMarks = new Dictionary<(string, string, int, float, Effect), bool>();
+        private readonly Viewer Viewer;
+        private IDictionary<(string, string, int, float, Effect), Material> Materials = new Dictionary<(string, string, int, float, Effect), Material>();
+        private IDictionary<(string, string, int, float, Effect), bool> MaterialMarks = new Dictionary<(string, string, int, float, Effect), bool>();
 
         public readonly LightConeShader LightConeShader;
         public readonly LightGlowShader LightGlowShader;
@@ -441,11 +441,11 @@ namespace Orts.ActivityRunner.Viewer3D
         public static Color FogColor = new Color(110, 110, 110, 255);
 
         internal Vector3 sunDirection;
-        bool lastLightState;
-        double fadeStartTimer;
-        float fadeDuration = -1;
-        float clampValue = 1;
-        float distance = 1000;
+        private bool lastLightState;
+        private double fadeStartTimer;
+        private float fadeDuration = -1;
+        private float clampValue = 1;
+        private float distance = 1000;
         internal void UpdateShaders()
         {
             if (Viewer.Settings.UseMSTSEnv == false)
@@ -718,8 +718,8 @@ namespace Orts.ActivityRunner.Viewer3D
     public class SceneryMaterial : Material
     {
         private readonly float timeOffset;
-        readonly bool nightTextureEnabled;
-        readonly bool undergroundTextureEnabled;
+        private readonly bool nightTextureEnabled;
+        private readonly bool undergroundTextureEnabled;
         private readonly SceneryMaterialOptions options;
         protected Texture2D dayTexture;
         protected Texture2D nightTexture;
@@ -1192,7 +1192,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
     public class YellowMaterial : Material
     {
-        static BasicEffect basicEffect;
+        private static BasicEffect basicEffect;
 
         public YellowMaterial(Viewer viewer)
             : base(viewer, null)
@@ -1240,7 +1240,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
     public class SolidColorMaterial : Material
     {
-        static BasicEffect basicEffect;
+        private static BasicEffect basicEffect;
 
         public SolidColorMaterial(Viewer viewer, float a, float r, float g, float b)
             : base(viewer, null)

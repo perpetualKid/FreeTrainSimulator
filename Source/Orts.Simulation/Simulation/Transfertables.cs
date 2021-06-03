@@ -46,11 +46,11 @@ namespace Orts.Simulation
         // Dynamic data
         public bool Forward; // forward motion on
         public bool Reverse; // reverse motion on
-        public float XPos = 0; // X Position of animated part, to be compared with X positions of endpoints
+        public float XPos; // X Position of animated part, to be compared with X positions of endpoints
         public bool Connected = true; // Transfertable is connected to a track
         public bool SaveConnected = true; // Transfertable is connected to a track
         public int ConnectedTarget = -1; // index of trackend connected
-        public float TargetX = 0; //final target for Viewer;
+        public float TargetX; //final target for Viewer;
 
         public SignalEnvironment signalRef { get; protected set; }
 

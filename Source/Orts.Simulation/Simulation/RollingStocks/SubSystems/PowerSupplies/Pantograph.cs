@@ -30,7 +30,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
     {
         public static readonly int MinPantoID = 1; // minimum value of PantoID, applies to Pantograph 1
         public static readonly int MaxPantoID = 4; // maximum value of PantoID, applies to Pantograph 4
-        readonly MSTSWagon Wagon;
+        private readonly MSTSWagon Wagon;
 
         public List<Pantograph> List = new List<Pantograph>();
 
@@ -59,7 +59,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                         }
                     );
 
-                    if (List.Count() == 0)
+                    if (List.Count == 0)
                         throw new InvalidDataException("ORTSPantographs block with no pantographs");
 
                     break;
@@ -91,7 +91,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
         public void Initialize()
         {
-            while (List.Count() < 2)
+            while (List.Count < 2)
             {
                 Add(new Pantograph(Wagon));
             }
@@ -141,7 +141,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
         public void Save(BinaryWriter outf)
         {
-            outf.Write(List.Count());
+            outf.Write(List.Count);
             foreach (Pantograph pantograph in List)
             {
                 pantograph.Save(outf);
@@ -189,7 +189,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
     public class Pantograph
     {
-        readonly MSTSWagon Wagon;
+        private readonly MSTSWagon Wagon;
 
         public PantographState State { get; private set; }
         public float DelayS { get; private set; }

@@ -198,7 +198,7 @@ namespace Orts.Simulation.Physics
 
         //To investigate coupler breaks on route
         private bool numOfCouplerBreaksNoted;
-        public static int NumOfCouplerBreaks = 0;//Debrief Eval //TODO 20201130 this sure is bound to the instance
+        public static int NumOfCouplerBreaks;//Debrief Eval //TODO 20201130 this sure is bound to the instance
         public bool DbfEvalValueChanged { get; set; }//Debrief Eval
 
         public TrainType TrainType { get; internal set; } = TrainType.Player;
@@ -10350,7 +10350,7 @@ namespace Orts.Simulation.Physics
 
                     circuitString.Append("...");
                 }
-                circuitString.Append(backstring.ToString());
+                circuitString.Append(backstring);
 
                 // train indication and direction
                 circuitString.Append("={");
@@ -10371,7 +10371,7 @@ namespace Orts.Simulation.Physics
                 {
                     BuildSectionString(forwardstring, ValidRoute[0][i].TrackCircuitSection, 0);
                 }
-                circuitString.Append(forwardstring.ToString());
+                circuitString.Append(forwardstring);
             }
 
             statusString[12] = circuitString.ToString();

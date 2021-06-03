@@ -55,7 +55,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             public float TriggerOnOverspeedMpS;                 // OverspeedMonitor only
             public bool TriggerOnTrackOverspeed;                // OverspeedMonitor only
             public float TriggerOnTrackOverspeedMarginMpS = 4;  // OverspeedMonitor only
-            public bool ResetOnDirectionNeutral = false;
+            public bool ResetOnDirectionNeutral ;
             public bool ResetOnZeroSpeed = true;
             public bool ResetOnResetButton;                     // OverspeedMonitor only
 
@@ -118,21 +118,18 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         public float NextSpeedLimitMpS { get; set; }
         public TrackMonitorSignalAspect CabSignalAspect { get; set; }
 
-        public bool Activated = false;
-        public bool CustomTCSScript = false;
-
-        readonly MSTSLocomotive Locomotive;
-        readonly Simulator Simulator;
-
-        float ItemSpeedLimit;
-        TrackMonitorSignalAspect ItemAspect;
-        float ItemDistance;
-        string MainHeadSignalTypeName;
-
-        MonitoringDevice VigilanceMonitor;
-        MonitoringDevice OverspeedMonitor;
-        MonitoringDevice EmergencyStopMonitor;
-        MonitoringDevice AWSMonitor;
+        public bool Activated;
+        public bool CustomTCSScript;
+        private readonly MSTSLocomotive Locomotive;
+        private readonly Simulator Simulator;
+        private float ItemSpeedLimit;
+        private TrackMonitorSignalAspect ItemAspect;
+        private float ItemDistance;
+        private string MainHeadSignalTypeName;
+        private MonitoringDevice VigilanceMonitor;
+        private MonitoringDevice OverspeedMonitor;
+        private MonitoringDevice EmergencyStopMonitor;
+        private MonitoringDevice AWSMonitor;
 
         public bool AlerterButtonPressed { get; private set; }
         public bool PowerAuthorization { get; private set; }
@@ -149,19 +146,17 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         // List of customized control strings;
         public string[] CustomizedCabviewControlNames = new string[TCSCabviewControlCount];
         // TODO : Delete this when SetCustomizedTCSControlString is deleted
-        protected int NextCabviewControlNameToEdit = 0;
-
-        string ScriptName;
-        string SoundFileName;
-        string ParametersFileName;
-        TrainControlSystem Script;
+        protected int NextCabviewControlNameToEdit;
+        private string ScriptName;
+        private string SoundFileName;
+        private string ParametersFileName;
+        private TrainControlSystem Script;
 
         public Scripting.Api.Etcs.ETCSStatus ETCSStatus { get { return Script?.ETCSStatus; } }
 
         public Dictionary<TrainControlSystem, string> Sounds = new Dictionary<TrainControlSystem, string>();
-
-        const float GravityMpS2 = 9.80665f;
-        const float GenericItemDistance = 400.0f;
+        private const float GravityMpS2 = 9.80665f;
+        private const float GenericItemDistance = 400.0f;
 
         public ScriptedTrainControlSystem() { }
 
@@ -203,14 +198,14 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         }
 
         //Debrief Eval
-        public static int DbfevalFullBrakeAbove16kmh = 0;
-        public bool ldbfevalfullbrakeabove16kmh = false;
+        public static int DbfevalFullBrakeAbove16kmh;
+        public bool ldbfevalfullbrakeabove16kmh;
 
         public void Initialize()
         {
             if (!Activated)
             {
-                if (!Simulator.Settings.DisableTCSScripts && ScriptName != null && ScriptName != "MSTS" && ScriptName != "")
+                if (!Simulator.Settings.DisableTCSScripts && !string.IsNullOrEmpty( ScriptName) && !ScriptName.Equals("MSTS", StringComparison.OrdinalIgnoreCase))
                 {
                     Script = Simulator.ScriptManager.Load(Path.Combine(Path.GetDirectoryName(Locomotive.WagFilePath), "Script"), ScriptName) as TrainControlSystem;
                     CustomTCSScript = true;
@@ -811,7 +806,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             if (originalString.Length < 9) return originalString;
             if (originalString.Substring(0, 8) != "ORTS_TCS") return originalString;
             var commandIndex = Convert.ToInt32(originalString.Substring(8));
-            return commandIndex > 0 && commandIndex <= TCSCabviewControlCount && CustomizedCabviewControlNames[commandIndex - 1] != ""
+            return commandIndex > 0 && commandIndex <= TCSCabviewControlCount && !string.IsNullOrEmpty(CustomizedCabviewControlNames[commandIndex - 1])
                 ? CustomizedCabviewControlNames[commandIndex - 1]
                 : originalString;
         }
@@ -819,14 +814,14 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         public void Save(BinaryWriter outf)
         {
             outf.Write(ScriptName ?? "");
-            if (ScriptName != "")
+            if (!string.IsNullOrEmpty(ScriptName))
                 Script.Save(outf);
         }
 
         public void Restore(BinaryReader inf)
         {
             ScriptName = inf.ReadString();
-            if (ScriptName != "")
+            if (!string.IsNullOrEmpty(ScriptName))
             {
                 Initialize();
                 Script.Restore(inf);
@@ -968,21 +963,18 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             }
         }
 
-        Timer VigilanceAlarmTimer;
-        Timer VigilanceEmergencyTimer;
-        Timer VigilancePenaltyTimer;
-        Timer OverspeedEmergencyTimer;
-        Timer OverspeedPenaltyTimer;
-
-        MonitorState VigilanceMonitorState;
-        MonitorState OverspeedMonitorState;
-        bool ExternalEmergency;
-
-        float VigilanceAlarmTimeoutS;
-        float CurrentSpeedLimitMpS;
-        float NextSpeedLimitMpS;
-
-        MonitoringStatus Status;
+        private Timer VigilanceAlarmTimer;
+        private Timer VigilanceEmergencyTimer;
+        private Timer VigilancePenaltyTimer;
+        private Timer OverspeedEmergencyTimer;
+        private Timer OverspeedPenaltyTimer;
+        private MonitorState VigilanceMonitorState;
+        private MonitorState OverspeedMonitorState;
+        private bool ExternalEmergency;
+        private float VigilanceAlarmTimeoutS;
+        private float CurrentSpeedLimitMpS;
+        private float NextSpeedLimitMpS;
+        private MonitoringStatus Status;
 
         public ScriptedTrainControlSystem.MonitoringDevice VigilanceMonitor;
         public ScriptedTrainControlSystem.MonitoringDevice OverspeedMonitor;
@@ -1200,7 +1192,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             ExternalEmergency = emergency;
         }
 
-        void UpdateVigilance()
+        private void UpdateVigilance()
         {
             switch (VigilanceMonitorState)
             {
@@ -1286,7 +1278,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             SetVigilanceEmergencyDisplay(VigilanceMonitorState == MonitorState.Emergency);
         }
 
-        void UpdateSpeedControl()
+        private void UpdateSpeedControl()
         {
             var interventionSpeedMpS = CurrentSpeedLimitMpS + Speed.MeterPerSecond.FromKpH(5.0f); // Default margin : 5 km/h
 

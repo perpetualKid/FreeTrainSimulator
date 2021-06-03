@@ -21,11 +21,11 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
         // This data is common to all instances of the shape
         public List<string> MatrixNames = new List<string>();
-        public Matrix[] Matrices = new Matrix[0];  // the original natural pose for this shape - shared by all instances
+        public Matrix[] Matrices = Array.Empty<Matrix>();  // the original natural pose for this shape - shared by all instances
         public Animations Animations;
         public LodControl[] LodControls;
         public bool HasNightSubObj;
-        public int RootSubObjectIndex = 0;
+        public int RootSubObjectIndex;
         public string SoundFileName = "";
         public float BellAnimationFPS = 8;
 
@@ -41,7 +41,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
         private SharedShape()
         {
             FilePath = "Empty";
-            LodControls = new LodControl[0];
+            LodControls = Array.Empty<LodControl>();
         }
 
         internal static void Initialize(Viewer viewer)
@@ -70,7 +70,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
         /// <summary>
         /// Only one copy of the model is loaded regardless of how many copies are placed in the scene.
         /// </summary>
-        void LoadContent()
+        private void LoadContent()
         {
             Trace.Write("S");
             var filePath = FilePath;
@@ -215,14 +215,13 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
         public class SubObject
         {
-            static readonly SceneryMaterialOptions[] UVTextureAddressModeMap = new[] {
+            private static readonly SceneryMaterialOptions[] UVTextureAddressModeMap = new[] {
                 SceneryMaterialOptions.TextureAddressModeWrap,
                 SceneryMaterialOptions.TextureAddressModeMirror,
                 SceneryMaterialOptions.TextureAddressModeClamp,
                 SceneryMaterialOptions.TextureAddressModeBorder,
             };
-
-            static readonly Dictionary<string, SceneryMaterialOptions> ShaderNames = new Dictionary<string, SceneryMaterialOptions> {
+            private static readonly Dictionary<string, SceneryMaterialOptions> ShaderNames = new Dictionary<string, SceneryMaterialOptions> {
                 { "Tex", SceneryMaterialOptions.ShaderFullBright },
                 { "TexDiff", SceneryMaterialOptions.Diffuse },
                 { "BlendATex", SceneryMaterialOptions.AlphaBlendingBlend | SceneryMaterialOptions.ShaderFullBright},
@@ -230,8 +229,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                 { "AddATex", SceneryMaterialOptions.AlphaBlendingAdd | SceneryMaterialOptions.ShaderFullBright},
                 { "AddATexDiff", SceneryMaterialOptions.AlphaBlendingAdd | SceneryMaterialOptions.Diffuse },
             };
-
-            static readonly SceneryMaterialOptions[] VertexLightModeMap = new[] {
+            private static readonly SceneryMaterialOptions[] VertexLightModeMap = new[] {
                 SceneryMaterialOptions.ShaderDarkShade,
                 SceneryMaterialOptions.ShaderHalfBright,
                 SceneryMaterialOptions.ShaderVegetation, // Not certain this is right.
@@ -474,14 +472,14 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             {
             }
 
-            static VertexPositionNormalTexture[] CreateVertexData(Formats.Msts.Models.SubObject sub_object, Shape shape)
+            private static VertexPositionNormalTexture[] CreateVertexData(Formats.Msts.Models.SubObject sub_object, Shape shape)
             {
                 // TODO - deal with vertex sets that have various numbers of texture coordinates - ie 0, 1, 2 etc
                 return (from Orts.Formats.Msts.Models.Vertex vertex in sub_object.Vertices
                         select XNAVertexPositionNormalTextureFromMSTS(vertex, shape)).ToArray();
             }
 
-            static VertexPositionNormalTexture XNAVertexPositionNormalTextureFromMSTS(Formats.Msts.Models.Vertex vertex, Shape shape)
+            private static VertexPositionNormalTexture XNAVertexPositionNormalTextureFromMSTS(Formats.Msts.Models.Vertex vertex, Shape shape)
             {
                 var position = shape.Points[vertex.PointIndex];
                 var normal = shape.Normals[vertex.NormalIndex];

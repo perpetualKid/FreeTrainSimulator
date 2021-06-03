@@ -62,16 +62,16 @@ namespace Orts.ActivityRunner.Viewer3D
 {
     public class SceneryDrawer
     {
-        readonly Viewer Viewer;
+        private readonly Viewer Viewer;
 
         // THREAD SAFETY:
         //   All accesses must be done in local variables. No modifications to the objects are allowed except by
         //   assignment of a new instance (possibly cloned and then modified).
         public List<WorldFile> WorldFiles = new List<WorldFile>();
-        int TileX;
-        int TileZ;
-        int VisibleTileX;
-        int VisibleTileZ;
+        private int TileX;
+        private int TileZ;
+        private int VisibleTileX;
+        private int VisibleTileZ;
 
         public SceneryDrawer(Viewer viewer)
         {
@@ -83,10 +83,10 @@ namespace Orts.ActivityRunner.Viewer3D
             var cancellation = Viewer.LoaderProcess.CancellationToken;
             Viewer.DontLoadNightTextures = (Simulator.Instance.Settings.ConditionalLoadOfDayOrNightTextures &&
             ((Viewer.MaterialManager.sunDirection.Y > 0.05f && Simulator.Instance.ClockTime % 86400 < 43200) ||
-            (Viewer.MaterialManager.sunDirection.Y > 0.15f && Simulator.Instance.ClockTime % 86400 >= 43200))) ? true : false;
+            (Viewer.MaterialManager.sunDirection.Y > 0.15f && Simulator.Instance.ClockTime % 86400 >= 43200)));
             Viewer.DontLoadDayTextures = (Simulator.Instance.Settings.ConditionalLoadOfDayOrNightTextures &&
             ((Viewer.MaterialManager.sunDirection.Y < -0.05f && Simulator.Instance.ClockTime % 86400 >= 43200) ||
-            (Viewer.MaterialManager.sunDirection.Y < -0.15f && Simulator.Instance.ClockTime % 86400 < 43200))) ? true : false;
+            (Viewer.MaterialManager.sunDirection.Y < -0.15f && Simulator.Instance.ClockTime % 86400 < 43200)));
             if (TileX != VisibleTileX || TileZ != VisibleTileZ)
             {
                 TileX = VisibleTileX;
@@ -210,7 +210,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     worldFile.PrepareFrame(frame, elapsedTime);
         }
 
-        WorldFile LoadWorldFile(int tileX, int tileZ, bool visible)
+        private WorldFile LoadWorldFile(int tileX, int tileZ, bool visible)
         {
             Trace.Write("W");
             try
@@ -227,7 +227,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
     public class WorldFile
     {
-        const int MinimumInstanceCount = 5;
+        private const int MinimumInstanceCount = 5;
 
         public struct DyntrackParams
         {
@@ -245,8 +245,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public List<TrItemLabel> platforms = new List<TrItemLabel>();
         public List<PickupObject> PickupList = new List<PickupObject>();
         public List<BoundingBox> BoundingBoxes = new List<BoundingBox>();
-
-        readonly Viewer Viewer;
+        private readonly Viewer Viewer;
 
         /// <summary>
         /// Open the specified WFile and load all the scenery objects into the viewer.
@@ -627,7 +626,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// Returns the string representation of a coordinate
         /// eg "+014482"
         /// </summary>
-        static string FormatTileCoordinate(int tileCoord)
+        private static string FormatTileCoordinate(int tileCoord)
         {
             var sign = "+";
             if (tileCoord < 0)

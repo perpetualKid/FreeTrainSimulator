@@ -33,9 +33,9 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
     public class SoundProcess
     {
         public readonly Profiler Profiler = new Profiler("Sound");
-        readonly ProcessState State = new ProcessState("Sound");
-        readonly Game Game;
-        readonly Thread Thread;
+        private readonly ProcessState State = new ProcessState("Sound");
+        private readonly Game Game;
+        private readonly Thread Thread;
 
         // THREAD SAFETY:
         //   All accesses must be done in local variables. No modifications to the objects are allowed except by
@@ -52,11 +52,11 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
 #endif
         private int UpdateCounter = -1;
         private int SleepTime = 50;
-        private double StartUpdateTime = 0;
-        private int ASyncUpdatePending = 0;
+        private double StartUpdateTime;
+        private int ASyncUpdatePending;
         private const int FULLUPDATECYCLE = 4; // Number of frequent updates needed till a full update
 
-        ORTSActSoundSources ORTSActSoundSourceList; // Dictionary of activity sound sources
+        private ORTSActSoundSources ORTSActSoundSourceList; // Dictionary of activity sound sources
 
         public SoundProcess(Game game)
         {
@@ -81,7 +81,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             }
         }
 
-        void SoundThread()
+        private void SoundThread()
         {
             Profiler.SetThread();
 
@@ -97,7 +97,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             }
         }
 
-        bool DoSound()
+        private bool DoSound()
         {
             if (Debugger.IsAttached)
             {
@@ -120,7 +120,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             return true;
         }
 
-        void Sound()
+        private void Sound()
         {
             Profiler.Start();
             try

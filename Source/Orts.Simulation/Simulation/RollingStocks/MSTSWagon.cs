@@ -75,17 +75,17 @@ namespace Orts.Simulation.RollingStocks
         public bool MirrorOpen;
         public bool UnloadingPartsOpen;
         public bool WaitForAnimationReady; // delay counter to start loading/unliading is on;
-        public bool IsRollerBearing = false; // Has roller bearings
-        public bool IsLowTorqueRollerBearing = false; // Has low torque roller bearings
-        public bool IsFrictionBearing = false; //Has oil based friction (or solid bearings)
-        public bool IsGreaseFrictionBearing = false; // Has grease based friction (or solid bearings)
+        public bool IsRollerBearing; // Has roller bearings
+        public bool IsLowTorqueRollerBearing; // Has low torque roller bearings
+        public bool IsFrictionBearing; //Has oil based friction (or solid bearings)
+        public bool IsGreaseFrictionBearing; // Has grease based friction (or solid bearings)
         public bool IsStandStill = true;  // Used for MSTS type friction
         public bool IsDavisFriction = true; // Default to new Davis type friction
         public bool IsBelowMergeSpeed = true; // set indicator for low speed operation as per given speed
 
-        Interpolator BrakeShoeFrictionFactor;  // Factor of friction for wagon brake shoes
-        const float WaterLBpUKG = 10.0f;    // lbs of water in 1 gal (uk)
-        float TempMassDiffRatio;
+        private Interpolator BrakeShoeFrictionFactor;  // Factor of friction for wagon brake shoes
+        private const float WaterLBpUKG = 10.0f;    // lbs of water in 1 gal (uk)
+        private float TempMassDiffRatio;
 
         // simulation parameters
         public float Variable1;  // used to convey status to soundsource
@@ -106,8 +106,8 @@ namespace Orts.Simulation.RollingStocks
         public float ExternalSoundPassThruPercent = -1;
         public float WheelRadiusM = (float)Size.Length.FromIn(18.0f);  // Provide some defaults in case it's missing from the wag - Wagon wheels could vary in size from approx 10" to 25".
         protected float StaticFrictionFactorN;    // factor to multiply friction by to determine static or starting friction - will vary depending upon whether roller or friction bearing
-        float FrictionLowSpeedN; // Davis low speed value 0 - 5 mph
-        float FrictionBelowMergeSpeedN; // Davis low speed value for defined speed
+        private float FrictionLowSpeedN; // Davis low speed value 0 - 5 mph
+        private float FrictionBelowMergeSpeedN; // Davis low speed value for defined speed
         public float Friction0N;        // static friction
         protected float Friction5N;               // Friction at 5mph
         public float StandstillFrictionN;
@@ -120,14 +120,14 @@ namespace Orts.Simulation.RollingStocks
         public float WagonFrontalAreaM2; // Frontal area of wagon
         public float TrailLocoResistanceFactor; // Factor to reduce base and wind resistance if locomotive is not leading - based upon original Davis drag coefficients
 
-        bool TenderWeightInitialize = true;
-        float TenderWagonMaxCoalMassKG;
-        float TenderWagonMaxWaterMassKG;
+        private bool TenderWeightInitialize = true;
+        private float TenderWagonMaxCoalMassKG;
+        private float TenderWagonMaxWaterMassKG;
 
         // Wind Impacts
-        float WagonDirectionDeg;
-        float WagonResultantWindComponentDeg;
-        float WagonWindResultantSpeedMpS;
+        private float WagonDirectionDeg;
+        private float WagonResultantWindComponentDeg;
+        private float WagonWindResultantSpeedMpS;
 
         protected float FrictionC1; // MSTS Friction parameters
         protected float FrictionE1; // MSTS Friction parameters
@@ -197,18 +197,17 @@ namespace Orts.Simulation.RollingStocks
         public float HeatingSteamBoilerDurationS;
         public float HeatingSteamBoilerVolumeM3pS;
         public Color HeatingSteamBoilerSteadyColor = Color.LightSlateGray;
-        public bool HeatingBoilerSet = false;
+        public bool HeatingBoilerSet;
 
         // Wagon Smoke
         public float WagonSmokeVolumeM3pS;
-        float InitialWagonSmokeVolumeM3pS = 3.0f;
+        private float InitialWagonSmokeVolumeM3pS = 3.0f;
         public float WagonSmokeDurationS;
-        float InitialWagonSmokeDurationS = 1.0f;
+        private float InitialWagonSmokeDurationS = 1.0f;
         public float WagonSmokeVelocityMpS = 15.0f;
         public Color WagonSmokeSteadyColor = Color.Gray;
-
-        float TrueCouplerCount = 0;
-        int CouplerCountLocation;
+        private float TrueCouplerCount;
+        private int CouplerCountLocation;
 
         // Bearing Hot Box Smoke
         public float BearingHotBoxSmokeVolumeM3pS;
@@ -328,25 +327,24 @@ namespace Orts.Simulation.RollingStocks
         }
 
         // Values for adjusting wagon physics due to load changes
-        float LoadEmptyMassKg;
-        float LoadEmptyORTSDavis_A;
-        float LoadEmptyORTSDavis_B;
-        float LoadEmptyORTSDavis_C;
-        float LoadEmptyWagonFrontalAreaM2;
-        float LoadEmptyDavisDragConstant;
-        float LoadEmptyMaxBrakeForceN;
-        float LoadEmptyMaxHandbrakeForceN;
-        float LoadEmptyCentreOfGravityM_Y;
-
-        float LoadFullMassKg;
-        float LoadFullORTSDavis_A;
-        float LoadFullORTSDavis_B;
-        float LoadFullORTSDavis_C;
-        float LoadFullWagonFrontalAreaM2;
-        float LoadFullDavisDragConstant;
-        float LoadFullMaxBrakeForceN;
-        float LoadFullMaxHandbrakeForceN;
-        float LoadFullCentreOfGravityM_Y;
+        private float LoadEmptyMassKg;
+        private float LoadEmptyORTSDavis_A;
+        private float LoadEmptyORTSDavis_B;
+        private float LoadEmptyORTSDavis_C;
+        private float LoadEmptyWagonFrontalAreaM2;
+        private float LoadEmptyDavisDragConstant;
+        private float LoadEmptyMaxBrakeForceN;
+        private float LoadEmptyMaxHandbrakeForceN;
+        private float LoadEmptyCentreOfGravityM_Y;
+        private float LoadFullMassKg;
+        private float LoadFullORTSDavis_A;
+        private float LoadFullORTSDavis_B;
+        private float LoadFullORTSDavis_C;
+        private float LoadFullWagonFrontalAreaM2;
+        private float LoadFullDavisDragConstant;
+        private float LoadFullMaxBrakeForceN;
+        private float LoadFullMaxHandbrakeForceN;
+        private float LoadFullCentreOfGravityM_Y;
 
 
         /// <summary>
@@ -3813,11 +3811,11 @@ namespace Orts.Simulation.RollingStocks
     /// </summary>
     public class IntakePoint
     {
-        public float OffsetM = 0f;   // distance forward? from the centre of the vehicle as defined by LengthM/2.
+        public float OffsetM;   // distance forward? from the centre of the vehicle as defined by LengthM/2.
         public float WidthM = 10f;   // of the filling point. Is the maximum positioning error allowed equal to this or half this value? 
         public PickupType Type;          // 'freightgrain', 'freightcoal', 'freightgravel', 'freightsand', 'fuelcoal', 'fuelwater', 'fueldiesel', 'fuelwood', freightgeneral, freightlivestock, specialmail
         public float? DistanceFromFrontOfTrainM;
-        public FreightAnimationContinuous LinkedFreightAnim = null;
+        public FreightAnimationContinuous LinkedFreightAnim;
 
         public IntakePoint()
         {

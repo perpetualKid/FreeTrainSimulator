@@ -29,30 +29,24 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
 {
     public class MessageArea : DMIButton
     {
-        const float FontHeightMessage = 12;
-        const float FontHeightTimestamp = 10;
-
-        WindowTextFont FontTimestamp;
-        WindowTextFont FontMessage;
-        WindowTextFont FontMessageBold;
-
-        readonly Texture2D[] ScrollUpTexture = new Texture2D[2];
-        readonly Texture2D[] ScrollDownTexture = new Texture2D[2];
-        int CurrentPage = 0;
-        int NumPages = 1;
+        private const float FontHeightMessage = 12;
+        private const float FontHeightTimestamp = 10;
+        private WindowTextFont FontTimestamp;
+        private WindowTextFont FontMessage;
+        private WindowTextFont FontMessageBold;
+        private readonly Texture2D[] ScrollUpTexture = new Texture2D[2];
+        private readonly Texture2D[] ScrollDownTexture = new Texture2D[2];
+        private int CurrentPage;
+        private int NumPages = 1;
 
         public readonly DMIButton ButtonScrollUp;
         public readonly DMIButton ButtonScrollDown;
-
-        readonly int MaxTextLines;
-
-        readonly int RowHeight = 20;
-
-        readonly TextPrimitive[] DisplayedTexts;
-        readonly TextPrimitive[] DisplayedTimes;
-
-        List<TextMessage> MessageList;
-        TextMessage? AcknowledgingMessage;
+        private readonly int MaxTextLines;
+        private readonly int RowHeight = 20;
+        private readonly TextPrimitive[] DisplayedTexts;
+        private readonly TextPrimitive[] DisplayedTimes;
+        private List<TextMessage> MessageList;
+        private TextMessage? AcknowledgingMessage;
         public MessageArea(DriverMachineInterface dmi) : base(Viewer.Catalog.GetString("Acknowledge"), true, dmi, false)
         {
             MaxTextLines = dmi.IsSoftLayout ? 4 : 5;
@@ -113,7 +107,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
             FlashingFrame = AcknowledgingMessage.HasValue;
         }
 
-        int CompareMessages(TextMessage m1, TextMessage m2)
+        private int CompareMessages(TextMessage m1, TextMessage m2)
         {
             int ack = m2.Acknowledgeable.CompareTo(m1.Acknowledgeable);
             if (ack != 0) return ack;
@@ -123,19 +117,22 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
             if (prior != 0) return prior;
             return date;
         }
-        void SetDatePrimitive(float timestampS, int row)
+
+        private void SetDatePrimitive(float timestampS, int row)
         {
             int totalseconds = (int)timestampS;
             int hour = (totalseconds / 3600) % 24;
             int minute = (totalseconds / 60) % 60;
             DisplayedTimes[row] = new TextPrimitive(new Point(3, (row + 1) * RowHeight - (int)FontHeightTimestamp), Color.White, (hour < 10 ? "0" : "") + hour.ToString() + ":" + (minute < 10 ? "0" : "") + minute.ToString(), FontTimestamp);
         }
-        void SetTextPrimitive(string text, int row, bool isBold)
+
+        private void SetTextPrimitive(string text, int row, bool isBold)
         {
             var font = isBold ? FontMessageBold : FontMessage;
             DisplayedTexts[row] = new TextPrimitive(new Point(48, (row + 1) * RowHeight - (int)FontHeightMessage), Color.White, text, font);
         }
-        string[] GetRowSeparated(string text, bool isBold)
+
+        private string[] GetRowSeparated(string text, bool isBold)
         {
             var font = isBold ? FontMessageBold : FontMessage;
             var size = font.MeasureString(text) / Scale;
@@ -154,7 +151,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
                 return new string[] { text };
             }
         }
-        void SetMessages()
+
+        private void SetMessages()
         {
             for (int i = 0; i < MaxTextLines; i++)
             {
@@ -234,7 +232,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
 
             SetFont();
         }
-        void SetFont()
+
+        private void SetFont()
         {
             FontTimestamp = GetFont(FontHeightTimestamp);
             FontMessage = GetFont(FontHeightMessage);

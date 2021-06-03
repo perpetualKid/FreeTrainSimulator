@@ -33,13 +33,13 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 {
     public class VacuumSinglePipe : MSTSBrakeSystem
     {
-        protected readonly static float OneAtmospherePSI = (float)Pressure.Atmospheric.ToPSI(1);
+        protected static readonly float OneAtmospherePSI = (float)Pressure.Atmospheric.ToPSI(1);
         protected float MaxForcePressurePSI = (float)Pressure.Standard.ToPSI(Pressure.Standard.FromInHg(21));    // relative pressure difference for max brake force
         protected TrainCar Car;
         protected float HandbrakePercent;
         protected float CylPressurePSIA;
-        float BrakeCutOffPSIA;
-        float BrakeRestorePSIA; 
+        private float BrakeCutOffPSIA;
+        private float BrakeRestorePSIA; 
         protected float VacResPressurePSIA;  // vacuum reservior pressure with piston in released position
         // defaults based on information in http://www.lmsca.org.uk/lms-coaches/LMSRAVB.pdf
         public int NumBrakeCylinders = 2;
@@ -47,21 +47,22 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
         protected float BrakeCylVolM3 = (float)Size.Volume.FromIn3(((18 / 2) * (18 / 2) * 4.5 * Math.PI));
         // vacuum reservior volume with piston in released position
         public float VacResVolM3 = (float)Size.Volume.FromIn3(((24 / 2) * (24 / 2) * 16 * Math.PI));
+
         // volume units need to be consistent but otherwise don't matter, defaults are cubic inches
-        bool HasDirectAdmissionValue = false;
-        float DirectAdmissionValve = 0.0f;
+        private bool HasDirectAdmissionValue;
+        private float DirectAdmissionValve;
         protected float MaxReleaseRatePSIpS = 2.5f;
         protected float MaxApplicationRatePSIpS = 2.5f;
         protected float LargeEjectorChargingRate;
-        protected bool TrainBrakePressureChanging = false;
-        protected bool BrakePipePressureChanging = false;
-        protected int SoundTriggerCounter = 0;
-        protected float prevCylPressurePSIA = 0f;
-        protected float prevBrakePipePressurePSI = 0f;
-        bool LocomotiveSteamBrakeFitted = false;
-        float SteamBrakeCylinderPressurePSI = 0;
-        float SteamBrakeCompensation;
-        float SteamBrakingCurrentFraction;
+        protected bool TrainBrakePressureChanging;
+        protected bool BrakePipePressureChanging;
+        protected int SoundTriggerCounter;
+        protected float prevCylPressurePSIA;
+        protected float prevBrakePipePressurePSI;
+        private bool LocomotiveSteamBrakeFitted;
+        private float SteamBrakeCylinderPressurePSI;
+        private float SteamBrakeCompensation;
+        private float SteamBrakingCurrentFraction;
 
         public VacuumSinglePipe(TrainCar car)
         {
@@ -693,7 +694,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
             float LapNetBPLossGainPSI = 0.0f;   // The net value of the losses and gains in the brake pipe for lap position: eg Net = Lg Ejector + Sm Ejector + Vac Pump - BP Loss
             float EQReleaseNetBPLossGainPSI = 0.0f;   // The net value of the losses and gains in the brake pipe for EQ release position: eg Net = Lg Ejector + Sm Ejector + Vac Pump - BP Loss
 
-            train.EQEquippedVacLoco = lead == null ? false : lead.VacuumBrakeEQFitted;
+            train.EQEquippedVacLoco = lead != null && lead.VacuumBrakeEQFitted;
 
             foreach (TrainCar car in train.Cars)
             {

@@ -17,7 +17,7 @@ namespace ORTS.TrackViewer.Editing.Charts
     /// <summary>
     /// Interaction logic for PathChartWindow.xaml
     /// </summary>
-    partial class PathChartWindow : Window
+    public partial class PathChartWindow : Window
     {
         /// <summary>Does the window have focus (actived) or not</summary>
         public bool IsActivated { get; set; }
@@ -143,8 +143,8 @@ namespace ORTS.TrackViewer.Editing.Charts
             }
         }
 
-        private bool mouseIsMoving = false;
-        private double realXatMouse=0;
+        private bool mouseIsMoving;
+        private double realXatMouse;
         private void Window_MouseDown(object sender, MouseButtonEventArgs e)
         {
             if (e.LeftButton != MouseButtonState.Pressed)

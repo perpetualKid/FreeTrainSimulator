@@ -27,7 +27,7 @@ using Orts.Formats.Msts.Files;
 
 namespace Orts.DataConverter
 {
-    class TerrainConverter : IDataConverter
+    internal class TerrainConverter : IDataConverter
     {
         public TerrainConverter()
         {
@@ -249,13 +249,13 @@ namespace Orts.DataConverter
         }
     }
 
-    class TerrainConverterPatch
+    internal class TerrainConverterPatch
     {
-        readonly TerrainFile TFile;
-        readonly TerrainAltitudeFile YFile;
-        readonly int PatchX;
-        readonly int PatchZ;
-        readonly int PatchSize;
+        private readonly TerrainFile TFile;
+        private readonly TerrainAltitudeFile YFile;
+        private readonly int PatchX;
+        private readonly int PatchZ;
+        private readonly int PatchSize;
 
         public TerrainConverterPatch(TerrainFile tFile, TerrainAltitudeFile yFile, int patchX, int patchZ)
         {

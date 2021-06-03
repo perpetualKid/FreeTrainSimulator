@@ -15,7 +15,7 @@ namespace Orts.Formats.Msts.Models
 {
     public abstract class WorldObject
     {
-        protected internal class PositionHolder
+        internal protected class PositionHolder
         {
             public Vector3 Location;
             public Quaternion Direction;
@@ -720,7 +720,7 @@ namespace Orts.Formats.Msts.Models
         public TrackItems TrackItemIds { get; } = new TrackItems();
         public int CrashProbability { get; private set; }
         public bool Visible { get; private set; } = true;
-        public bool Silent { get; private set; } = false;
+        public bool Silent { get; private set; }
         public string SoundFileName { get; private set; }
         public float InitialTiming { get; private set; }
         public float SeriousTiming { get; private set; }

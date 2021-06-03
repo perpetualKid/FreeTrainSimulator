@@ -157,7 +157,7 @@ namespace ORTS.TrackViewer.Editing
             }
         }
 
-        int GetIntOrZero(string inputText)
+        private int GetIntOrZero(string inputText)
         {
             int returnValue; 
             try

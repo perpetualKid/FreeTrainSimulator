@@ -48,65 +48,59 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
     public class HUDWindow : LayeredWindow
     {
         // Set this to the width of each column in font-height units.
-        readonly int ColumnWidth = 5;
+        private readonly int ColumnWidth = 5;
 
         // Set to distance from top-left corner to place text.
-        const int TextOffset = 10;
-
-        readonly int ProcessorCount = System.Environment.ProcessorCount;
-
-        readonly PerformanceCounter AllocatedBytesPerSecCounter; // \.NET CLR Memory(*)\Allocated Bytes/sec
-        float AllocatedBytesPerSecLastValue;
-
-        readonly Viewer Viewer;
-        readonly Action<TableData>[] TextPages;
-        readonly WindowTextFont TextFont;
-        readonly HUDGraphMaterial HUDGraphMaterial;
+        private const int TextOffset = 10;
+        private readonly int ProcessorCount = System.Environment.ProcessorCount;
+        private readonly PerformanceCounter AllocatedBytesPerSecCounter; // \.NET CLR Memory(*)\Allocated Bytes/sec
+        private float AllocatedBytesPerSecLastValue;
+        private readonly Viewer Viewer;
+        private readonly Action<TableData>[] TextPages;
+        private readonly WindowTextFont TextFont;
+        private readonly HUDGraphMaterial HUDGraphMaterial;
 
         //Set lines rows HUDScroll.
         public int nLinesShow;
         public int charFitPerLine;
-        public int columnsCount = 0;
-        public int headerToRestore = 0;
-        public int PathHeaderColumn = 0;
-        public static int columnsChars = 0;
+        public int columnsCount;
+        public int headerToRestore;
+        public int PathHeaderColumn;
+        public static int columnsChars;
         public int[] lineOffsetLocoInfo = { 0, 0, 0, 0, 0, 0 };
         public static int hudWindowLinesActualPage = 1;
         public static int hudWindowLinesPagesCount = 1;
-        public static int hudWindowColumnsActualPage = 0;
-        public static int hudWindowColumnsPagesCount = 0;
-        public static int hudWindowLocoActualPage = 0;
+        public static int hudWindowColumnsActualPage;
+        public static int hudWindowColumnsPagesCount;
+        public static int hudWindowLocoActualPage;
         public static int hudWindowLocoPagesCount = 1;
-        public static bool hudWindowFullScreen = false;
-        public static bool hudWindowHorizontalScroll = false;
-        public static bool hudWindowSteamLocoLead = false;
-        List<string> stringStatus = new List<string>();
-        public static bool BrakeInfoVisible = false;
+        public static bool hudWindowFullScreen;
+        public static bool hudWindowHorizontalScroll;
+        public static bool hudWindowSteamLocoLead;
+        private List<string> stringStatus = new List<string>();
+        public static bool BrakeInfoVisible;
 
-        public int WebServerPageNo = 0;
-        int TextPage;
-        int LocomotivePage = 2;
-        int LastTextPage;
-        TableData TextTable = new TableData() { Cells = new string[0, 0] };
-
-        HUDGraphSet ForceGraphs;
-        HUDGraphMesh ForceGraphMotiveForce;
-        HUDGraphMesh ForceGraphDynamicForce;
-        HUDGraphMesh ForceGraphNumOfSubsteps;
-
-        HUDGraphSet LocomotiveGraphs;
-        HUDGraphMesh LocomotiveGraphsThrottle;
-        HUDGraphMesh LocomotiveGraphsInputPower;
-        HUDGraphMesh LocomotiveGraphsOutputPower;
-
-        HUDGraphSet DebugGraphs;
-        HUDGraphMesh DebugGraphMemory;
-        HUDGraphMesh DebugGraphGCs;
-        HUDGraphMesh DebugGraphFrameTime;
-        HUDGraphMesh DebugGraphProcessRender;
-        HUDGraphMesh DebugGraphProcessUpdater;
-        HUDGraphMesh DebugGraphProcessLoader;
-        HUDGraphMesh DebugGraphProcessSound;
+        public int WebServerPageNo;
+        private int TextPage;
+        private int LocomotivePage = 2;
+        private int LastTextPage;
+        private TableData TextTable = new TableData() { Cells = new string[0, 0] };
+        private HUDGraphSet ForceGraphs;
+        private HUDGraphMesh ForceGraphMotiveForce;
+        private HUDGraphMesh ForceGraphDynamicForce;
+        private HUDGraphMesh ForceGraphNumOfSubsteps;
+        private HUDGraphSet LocomotiveGraphs;
+        private HUDGraphMesh LocomotiveGraphsThrottle;
+        private HUDGraphMesh LocomotiveGraphsInputPower;
+        private HUDGraphMesh LocomotiveGraphsOutputPower;
+        private HUDGraphSet DebugGraphs;
+        private HUDGraphMesh DebugGraphMemory;
+        private HUDGraphMesh DebugGraphGCs;
+        private HUDGraphMesh DebugGraphFrameTime;
+        private HUDGraphMesh DebugGraphProcessRender;
+        private HUDGraphMesh DebugGraphProcessUpdater;
+        private HUDGraphMesh DebugGraphProcessLoader;
+        private HUDGraphMesh DebugGraphProcessSound;
 
         public HUDWindow(WindowManager owner)
             : base(owner, TextOffset, TextOffset, "HUD")
@@ -177,14 +171,14 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 #endif
         }
 
-        protected internal override void Save(BinaryWriter outf)
+        internal protected override void Save(BinaryWriter outf)
         {
             base.Save(outf);
             outf.Write(TextPage);
             outf.Write(LastTextPage);
         }
 
-        protected internal override void Restore(BinaryReader inf)
+        internal protected override void Restore(BinaryReader inf)
         {
             base.Restore(inf);
             var page = inf.ReadInt32();
@@ -225,7 +219,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             TextPage = TextPage == 0 ? LastTextPage : 0;
         }
 
-        int[] lastGCCounts = new int[3];
+        private int[] lastGCCounts = new int[3];
 
         public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime, bool updateFull)
         {
@@ -369,12 +363,12 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             public int CurrentValueColumn;
         }
 
-        static void TableSetCell(TableData table, int cellColumn, string format, params object[] args)
+        private static void TableSetCell(TableData table, int cellColumn, string format, params object[] args)
         {
             TableSetCell(table, table.CurrentRow, cellColumn, format, args);
         }
 
-        static void TableSetCell(TableData table, int cellRow, int cellColumn, string format, params object[] args)
+        private static void TableSetCell(TableData table, int cellRow, int cellColumn, string format, params object[] args)
         {
             if (cellRow > table.Cells.GetUpperBound(0) || cellColumn > table.Cells.GetUpperBound(1))
             {
@@ -388,24 +382,24 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             table.Cells[cellRow, cellColumn] = args.Length > 0 ? string.Format(System.Globalization.CultureInfo.CurrentCulture, format, args) : format;
         }
 
-        static void TableSetCells(TableData table, int startColumn, params string[] columns)
+        private static void TableSetCells(TableData table, int startColumn, params string[] columns)
         {
             for (var i = 0; i < columns.Length; i++)
                 TableSetCell(table, startColumn + i, columns[i]);
         }
 
-        static void TableAddLine(TableData table)
+        private static void TableAddLine(TableData table)
         {
             table.CurrentRow++;
         }
 
-        static void TableAddLine(TableData table, string format, params object[] args)
+        private static void TableAddLine(TableData table, string format, params object[] args)
         {
             TableSetCell(table, table.CurrentRow, 0, format, args);
             table.CurrentRow++;
         }
 
-        static void TableAddLines(TableData table, string lines)
+        private static void TableAddLines(TableData table, string lines)
         {
             if (lines == null)
                 return;
@@ -419,21 +413,21 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             }
         }
 
-        static void TableSetLabelValueColumns(TableData table, int labelColumn, int valueColumn)
+        private static void TableSetLabelValueColumns(TableData table, int labelColumn, int valueColumn)
         {
             table.CurrentLabelColumn = labelColumn;
             table.CurrentValueColumn = valueColumn;
         }
 
-        static void TableAddLabelValue(TableData table, string label, string format, params object[] args)
+        private static void TableAddLabelValue(TableData table, string label, string format, params object[] args)
         {
             TableSetCell(table, table.CurrentRow, table.CurrentLabelColumn, label);
             TableSetCell(table, table.CurrentRow, table.CurrentValueColumn, format, args);
             table.CurrentRow++;
         }
-#endregion
+        #endregion
 
-        void TextPageCommon(TableData table)
+        private void TextPageCommon(TableData table)
         {
             var playerTrain = Viewer.PlayerLocomotive.Train;
             var showMUReverser = Math.Abs(playerTrain.MUReverserPercent) != 100;
@@ -447,7 +441,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             
             //Disable Hudscroll.
             if(Viewer.HUDScrollWindow.Visible)
-                Viewer.HUDScrollWindow.Visible = TextPage == 0 && WebServerPageNo == 0 ? false : true;
+                Viewer.HUDScrollWindow.Visible = TextPage != 0 || WebServerPageNo != 0;
 
             TableSetLabelValueColumns(table, 0, 2);
             TableAddLabelValue(table, Viewer.Catalog.GetString("Version"), VersionInfo.Version);
@@ -541,7 +535,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             }
         }
 
-        void TextPageConsistInfo(TableData table)
+        private void TextPageConsistInfo(TableData table)
         {
             TextPageHeading(table, Viewer.Catalog.GetString("CONSIST INFORMATION"));
 
@@ -627,7 +621,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             DrawScrollArrows(statusConsist, table, false);
         }
 
-        static string GetCarWhyteLikeNotation(TrainCar car)
+        private static string GetCarWhyteLikeNotation(TrainCar car)
         {
             if (car.WheelAxles.Count == 0)
                 return "";
@@ -649,14 +643,14 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             return String.Join("-", whyte.ToArray());
         }
 
-        void TextPageLocomotiveInfo(TableData table)
+        private void TextPageLocomotiveInfo(TableData table)
         {
             TextPageHeading(table, Viewer.Catalog.GetString("LOCOMOTIVE INFORMATION"));
 
             var locomotive = Viewer.PlayerLocomotive;
             var train = locomotive.Train;
             ResetHudScroll();//Reset Hudscroll.
-            Viewer.HUDScrollWindow.Visible = WebServerPageNo > 0 ? true : false;//HudScroll
+            Viewer.HUDScrollWindow.Visible = WebServerPageNo > 0;//HudScroll
 
             //HudScroll
             //Store status for each locomotive
@@ -676,12 +670,12 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 {
                     LocomotiveID.Add(car.CarID);
                     hudWindowLocoPagesCount++;
-                    IsSteamLocomotive = !IsSteamLocomotive && car.EngineType == TrainCar.EngineTypes.Steam ? true : false;
+                    IsSteamLocomotive = !IsSteamLocomotive && car.EngineType == TrainCar.EngineTypes.Steam;
                 }
             }
 
             //Disable loco nav scroll button when only one loco.
-            hudWindowSteamLocoLead = LocomotiveID.Count == 1 && IsSteamLocomotive ? true : false;
+            hudWindowSteamLocoLead = LocomotiveID.Count == 1 && IsSteamLocomotive;
 
             //PlayerLoco data to display
             statusHeader.Add(string.Format(CultureInfo.CurrentCulture, "{8}\t{0}\t{4}\t{1}\t{5:F0}%\t{2}\t{6:F0}%\t{3}\t\t{7}\n",
@@ -706,7 +700,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
             foreach (var car in train.Cars)
             {
-                if (car is MSTSLocomotive && (hudWindowLocoActualPage > 0 ? car.CarID == LocomotiveID[hudWindowLocoActualPage - 1] : true))
+                if (car is MSTSLocomotive && (hudWindowLocoActualPage <= 0 || car.CarID == LocomotiveID[hudWindowLocoActualPage - 1]))
                 {
                     foreach (var line in car.GetDebugStatus().Split('\n'))
                     {
@@ -907,7 +901,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             }
         }
 
-        void TextPageBrakeInfo(TableData table)
+        private void TextPageBrakeInfo(TableData table)
         {
             TextPageHeading(table, Viewer.Catalog.GetString("BRAKE INFORMATION"));
 
@@ -1259,14 +1253,13 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         /// <param name="table"></param>
         /// <param name="stringToDraw"></param>
         /// <param name="endtext"></param>
-        void BrakeInfoData(TableData table, string[] stringToDraw, string endtext)
+        private void BrakeInfoData(TableData table, string[] stringToDraw, string endtext)
         {
             for (int iCell = 0; iCell<stringToDraw.Length; iCell++)
                 TableSetCell(table, table.CurrentRow, iCell, stringToDraw[iCell] + endtext);
         }
 
-
-        void TextPageForceInfo(TableData table)
+        private void TextPageForceInfo(TableData table)
         {
             TextPageHeading(table, Viewer.Catalog.GetString("FORCE INFORMATION"));
 
@@ -1464,8 +1457,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 }
             }
         }
-        
-        void TextPageDispatcherInfo(TableData table)
+
+        private void TextPageDispatcherInfo(TableData table)
         {
             // count active trains
             int totalactive = 0;
@@ -1717,12 +1710,12 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         }
 #endif
 
-        void TextPageWeather(TableData table)
+        private void TextPageWeather(TableData table)
         {
             TextPageHeading(table, Viewer.Catalog.GetString("WEATHER INFORMATION"));
 
             //Disable Hudscroll.
-            Viewer.HUDScrollWindow.Visible = WebServerPageNo > 0? true: false;//HudScroll
+            Viewer.HUDScrollWindow.Visible = WebServerPageNo > 0;//HudScroll
          
             if (hudWindowFullScreen)
                 TableSetLabelValueColumns(table, 0, 2);
@@ -1735,12 +1728,12 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             TableAddLabelValue(table, Viewer.Catalog.GetString("Amb Temp"), FormatStrings.FormatTemperature(Viewer.PlayerLocomotive.Train.TrainOutsideTempC, Viewer.PlayerLocomotive.IsMetric));
         }
 
-        void TextPageDebugInfo(TableData table)
+        private void TextPageDebugInfo(TableData table)
         {
             TextPageHeading(table, Viewer.Catalog.GetString("DEBUG INFORMATION"));
 
             //Disable Hudscroll.
-            Viewer.HUDScrollWindow.Visible = WebServerPageNo > 0 ? true : false;//HudScroll
+            Viewer.HUDScrollWindow.Visible = WebServerPageNo > 0;//HudScroll
 
             if (hudWindowFullScreen)
                 TableSetLabelValueColumns(table, 0, 2);
@@ -1807,7 +1800,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         /// <param name="CarsCount"></param>
         /// <param name="CurrentRow"></param>
         /// <param name="ColumnCount"></param>
-        void TextLineNumber(int CarsCount, int CurrentRow, int ColumnCount)
+        private void TextLineNumber(int CarsCount, int CurrentRow, int ColumnCount)
         {
             //LinesPages
             nLinesShow = (Viewer.DisplaySize.Y / TextFont.Height) - CurrentRow - 1;
@@ -1833,7 +1826,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         /// </summary>
         /// <param name="StringStatus"></param>
         /// <param name="initColumn"></param>
-        void TextColNumber(string StringStatus, int initColumn, bool IsSteamLocomotive)
+        private void TextColNumber(string StringStatus, int initColumn, bool IsSteamLocomotive)
         {
             char[] stringToChar = StringStatus.TrimEnd('\t').ToCharArray();
 
@@ -1880,10 +1873,10 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 foreach (var cell in statusSplit)
                 {
                     cellIndex++;
-                    if (cell == "")
+                    if (cell.Length == 0)
                     {
                         var cellStringLength = cellString.Length > columnsChars ? 0 : columnsChars;
-                        cumulativeLenght = cumulativeLenght + cellStringLength;
+                        cumulativeLenght += cellStringLength;
                         CumulativeTextStatus.Add(cumulativeLenght, cumulativeTextStatus + (cellString.Length > columnsChars ? "" : space));
                         CumulativeTabStatus.Add(cumulativeLenght, cumulativeTabStatus + "\t");
                         lText = false;
@@ -1893,7 +1886,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                         cumulativeTabStatus = "";
                         continue;
                     }
-                    else if (cell.Length > 0 && lText && !CumulativeTextStatus.ContainsKey(cumulativeLenght))
+                    else if (lText && !CumulativeTextStatus.ContainsKey(cumulativeLenght))
                     {
                         CumulativeTextStatus.Add(cumulativeLenght, cumulativeTextStatus);
                         CumulativeTabStatus.Add(cumulativeLenght, cumulativeTabStatus);
@@ -2085,7 +2078,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             return (int)x;
         }
 
-        bool lResetHudScroll = false;
+        private bool lResetHudScroll;
         /// <summary>
         /// Reset Scroll Control window
         /// </summary>
@@ -2140,13 +2133,13 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             }
         }
 
-        static void TextPageHeading(TableData table, string name)
+        private static void TextPageHeading(TableData table, string name)
         {
             TableAddLine(table);
             TableAddLine(table, name);
         }
 
-        readonly ulong ProcessVirtualAddressLimit;
+        private readonly ulong ProcessVirtualAddressLimit;
 
         public uint GetWorkingSetSize()
         {
@@ -2165,11 +2158,11 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
     public class HUDGraphSet
     {
-        readonly Viewer Viewer;
-        readonly Material Material;
-        readonly Vector2 Margin = new Vector2(40, 10);
-        readonly int Spacing;
-        readonly List<Graph> Graphs = new List<Graph>();
+        private readonly Viewer Viewer;
+        private readonly Material Material;
+        private readonly Vector2 Margin = new Vector2(40, 10);
+        private readonly int Spacing;
+        private readonly List<Graph> Graphs = new List<Graph>();
 
         public HUDGraphSet(Viewer viewer, Material material)
         {
@@ -2188,7 +2181,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             return Add(labelName, labelMin, labelMax, color, height, false);
         }
 
-        HUDGraphMesh Add(string labelName, string labelMin, string labelMax, Color color, int height, bool overlapped)
+        private HUDGraphMesh Add(string labelName, string labelMin, string labelMax, Color color, int height, bool overlapped)
         {
             HUDGraphMesh mesh;
             Graphs.Add(new Graph()
@@ -2239,7 +2232,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             }
         }
 
-        class Graph
+        private class Graph
         {
             public HUDGraphMesh Mesh;
             public string LabelName;
@@ -2252,17 +2245,15 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
     public class HUDGraphMesh : RenderPrimitive
     {
-        const int SampleCount = 1024 - 10 - 40; // Widest graphs we can fit in 1024x768.
-        const int VerticiesPerSample = 6;
-        const int PrimitivesPerSample = 2;
-        const int VertexCount = VerticiesPerSample * SampleCount;
-
-        readonly DynamicVertexBuffer VertexBuffer;
-        readonly VertexBuffer BorderVertexBuffer;
-        readonly Color Color;
-
-        int SampleIndex;
-        VertexPositionColor[] Samples = new VertexPositionColor[VertexCount];
+        private const int SampleCount = 1024 - 10 - 40; // Widest graphs we can fit in 1024x768.
+        private const int VerticiesPerSample = 6;
+        private const int PrimitivesPerSample = 2;
+        private const int VertexCount = VerticiesPerSample * SampleCount;
+        private readonly DynamicVertexBuffer VertexBuffer;
+        private readonly VertexBuffer BorderVertexBuffer;
+        private readonly Color Color;
+        private int SampleIndex;
+        private VertexPositionColor[] Samples = new VertexPositionColor[VertexCount];
 
         public Vector4 GraphPos; // xy = xy position, zw = width/height
         public Vector2 Sample; // x = index, y = count
@@ -2297,7 +2288,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             Sample.Y = SampleCount;
         }
 
-        void VertexBuffer_ContentLost()
+        private void VertexBuffer_ContentLost()
         {
             VertexBuffer.SetData(0, Samples, 0, Samples.Length, VertexPositionColor.VertexDeclaration.VertexStride, SetDataOptions.NoOverwrite);
         }

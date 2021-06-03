@@ -32,7 +32,7 @@ namespace ORTS.TrackViewer.Drawing.Labels
     /// The list of labels can be saved or loaded to .json. This will not be done automatically.
     /// The labels can be modified either w.r.t. to their location (dragging) or w.r.t. their text.
     /// </summary>
-    class DrawLabels
+    internal class DrawLabels
     {
         #region private fields
         /// <summary>This is the list of labels that we need to draw and possibly modify </summary>
@@ -53,7 +53,7 @@ namespace ORTS.TrackViewer.Drawing.Labels
         /// <summary>The MSTS location where the mouse started during dragging</summary>
         private WorldLocation draggingStartLocation;
         /// <summary>Are we currently dragging?</summary>
-        private bool dragging = false;   // draggingLabelToReplace is not nullable, so we cannot use that
+        private bool dragging;   // draggingLabelToReplace is not nullable, so we cannot use that
         #endregion
 
         #region Constructor
@@ -133,7 +133,7 @@ namespace ORTS.TrackViewer.Drawing.Labels
         internal void PopupContextMenu(int mouseX, int mouseY)
         {
             if (!Properties.Settings.Default.showLabels) return;
-            if (labels.Labels.Count() == 0) return;
+            if (!labels.Labels.Any()) return;
             var editingLabel = closestToMouseLabel;
 
             var contextMenu = new ContextMenu();
@@ -184,7 +184,7 @@ namespace ORTS.TrackViewer.Drawing.Labels
         internal void SaveLabels()
         {
             string filename = GetSaveFileName();
-            if (filename == string.Empty) return;
+            if (!File.Exists(filename)) return;
             WriteJson(filename);
         }
 
@@ -230,7 +230,7 @@ namespace ORTS.TrackViewer.Drawing.Labels
         internal void LoadLabels()
         {
             string filename = GetLoadFileName();
-            if (filename == string.Empty) return;
+            if (!File.Exists(filename)) return;
             LoadJson(filename);
         }
 
@@ -288,7 +288,7 @@ namespace ORTS.TrackViewer.Drawing.Labels
                 }
             }
 
-            if (message != string.Empty)
+            if (!string.IsNullOrEmpty(message))
             {
                 MessageBox.Show(message);
             }

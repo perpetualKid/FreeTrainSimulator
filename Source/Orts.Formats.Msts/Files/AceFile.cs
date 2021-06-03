@@ -136,7 +136,7 @@ namespace Orts.Formats.Msts.Files
                 // Raw data is stored as a table of 32bit int offsets to each mipmap level.
                 reader.ReadBytes(imageCount * 4);
 
-                var buffer = new byte[0];
+                var buffer = Array.Empty<byte>();
                 for (var imageIndex = 0; imageIndex < imageCount; imageIndex++)
                 {
                     var imageWidth = width / (int)Math.Pow(2, imageIndex);

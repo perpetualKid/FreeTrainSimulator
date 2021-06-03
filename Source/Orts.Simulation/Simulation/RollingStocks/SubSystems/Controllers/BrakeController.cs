@@ -29,12 +29,12 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
 {
     public class ScriptedBrakeController : IController
     {
-        readonly MSTSLocomotive Locomotive;
-        readonly Simulator Simulator;
+        private readonly MSTSLocomotive Locomotive;
+        private readonly Simulator Simulator;
 
         private readonly bool activated;
         private string scriptName = "MSTS";
-        BrakeController Script;
+        private BrakeController Script;
         public List<INotchController> Notches { get; } = new List<INotchController>();
 
         private bool emergencyBrakingPushButton;

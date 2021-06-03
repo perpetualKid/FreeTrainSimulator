@@ -422,7 +422,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
         // Enumerators are positioned before the first element
         // until the first MoveNext() call.
-        int position = -1;
+        private int position = -1;
 
         public DieselEnum(DieselEngine[] list)
         {
@@ -557,7 +557,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         }
 
         #region Parameters and variables
-        float dRPM;
+        private float dRPM;
         /// <summary>
         /// Actual change rate of the engine's RPM - useful for exhaust effects
         /// </summary>
@@ -586,8 +586,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         /// Parent locomotive
         /// </summary>
         public MSTSDieselLocomotive locomotive;
-
-        SettingsFlags initLevel;          //level of initialization
+        private SettingsFlags initLevel;          //level of initialization
         /// <summary>
         /// Initialization flag - is true when sufficient number of parameters is read succesfully
         /// </summary>
@@ -620,7 +619,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         /// The RPM controller tries to reach this value
         /// </summary>
         public float DemandedRPM;
-        float demandedThrottlePercent;
+        private float demandedThrottlePercent;
         /// <summary>
         /// Demanded throttle percent, usually token from parent locomotive
         /// </summary>
@@ -748,7 +747,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         public float ExhaustDecelReduction = 0.75f; //Represents the percentage that exhaust will be reduced while engine is decreasing RPMs.
         public float ExhaustAccelIncrease = 2.0f; //Represents the percentage that exhaust will be increased while engine is increasing RPMs.
 
-        public bool DieselEngineConfigured = false; // flag to indicate that the user has configured a diesel engine prime mover code block in the ENG file
+        public bool DieselEngineConfigured; // flag to indicate that the user has configured a diesel engine prime mover code block in the ENG file
         /// <summary>
         /// Current Engine oil pressure in PSI
         /// </summary>
@@ -775,7 +774,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         /// <summary>
         /// Oil failure/leakage is substracted from the DieselOilPressurePSI
         /// </summary>
-        public float dieseloilfailurePSI = 0f;              //Intended to be implemented later
+        public float dieseloilfailurePSI;              //Intended to be implemented later
         /// <summary>
         /// Actual Engine temperature
         /// </summary>
@@ -803,7 +802,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         /// <summary>
         /// Cooling system indicator
         /// </summary>
-        public bool DieselTempCoolingRunning = false;
+        public bool DieselTempCoolingRunning;
 
         /// <summary>
         /// Load of the engine

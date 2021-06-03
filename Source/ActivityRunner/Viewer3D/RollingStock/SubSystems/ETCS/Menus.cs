@@ -34,7 +34,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
     }
     public class MenuWindow : DMISubwindow
     {
-        readonly List<DMIButton> Buttons = new List<DMIButton>();
+        private readonly List<DMIButton> Buttons = new List<DMIButton>();
         public MenuWindow(DMIMenuWindowDefinition definition, DriverMachineInterface dmi) : base(definition.WindowTitle, false, dmi)
         {
             int i = 0;

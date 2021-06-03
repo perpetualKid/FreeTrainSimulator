@@ -158,11 +158,11 @@ namespace Orts.Formats.Msts.Models
         public ApproachControlLimits ApproachControlDetails { get; private set; }
 
         /// <summary> Glow value for daytime (optional).</summary>
-        public float? DayGlow = null;
+        public float? DayGlow;
         /// <summary> Glow value for nighttime (optional).</summary>
-        public float? NightGlow = null;
+        public float? NightGlow;
         /// <summary> Lights switched off or on during daytime (default : on) (optional).</summary>
-        public bool DayLight = true;
+        public bool DayLight;
 
         /// <summary>
         /// Common initialization part for constructors
@@ -301,7 +301,7 @@ namespace Orts.Formats.Msts.Models
             }
         }
 
-        static string ReadOrtsNormalSubType(STFReader stf)
+        private static string ReadOrtsNormalSubType(STFReader stf)
         {
             string type = stf.ReadStringBlock(null);
             if (OrSignalTypes.Instance.NormalSubTypes.Contains(type, StringComparer.OrdinalIgnoreCase))
@@ -315,7 +315,7 @@ namespace Orts.Formats.Msts.Models
             }
         }
 
-        static List<SignalLight> ReadLights(STFReader stf)
+        private static List<SignalLight> ReadLights(STFReader stf)
         {
             stf.MustMatchBlockStart();
             int count = stf.ReadInt(null);
@@ -570,7 +570,7 @@ namespace Orts.Formats.Msts.Models
             });
         }
 
-        static List<SignalDrawLight> ReadDrawLights(STFReader stf)
+        private static List<SignalDrawLight> ReadDrawLights(STFReader stf)
         {
             stf.MustMatchBlockStart();
             int count = stf.ReadInt(null);
@@ -760,7 +760,7 @@ namespace Orts.Formats.Msts.Models
             });
         }
 
-        static List<SignalSubObject> ReadSignalSubObjects(STFReader stf)
+        private static List<SignalSubObject> ReadSignalSubObjects(STFReader stf)
         {
             stf.MustMatchBlockStart();
             int count = stf.ReadInt(null);

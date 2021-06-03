@@ -146,7 +146,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// If needs active management or can be left to OpenAL to deal with sound properties
         /// </summary>
         public bool NeedsFrequentUpdate;
-        public bool TrackSound = false;
+        public bool TrackSound;
 
         public abstract void Dispose();
     }
@@ -165,9 +165,9 @@ namespace Orts.ActivityRunner.Viewer3D
         private float prevDist = -1; // initial distance to sond region backward
         private float initDist = -1; // initial distance run when last ttype selected
         private int initTrackSection = -1; // track section when last ttype selected
-        private MSTSWagon initCar = null; // initial leading car (to accommodate in case of change of direction)
-        private bool CarOnSwitch = false;
-        private bool CarOnCurve = false;
+        private MSTSWagon initCar; // initial leading car (to accommodate in case of change of direction)
+        private bool CarOnSwitch;
+        private bool CarOnCurve;
 
 
         public TrackSoundSource(MSTSWagon car, Viewer viewer)
@@ -560,7 +560,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <summary>
         /// Used for InGame sounds and activity sounds of type "Overall"
         /// </summary>
-        public bool IsUnattenuated = false;
+        public bool IsUnattenuated;
         /// <summary>
         /// Used for Horns
         /// </summary>
@@ -1191,10 +1191,11 @@ namespace Orts.ActivityRunner.Viewer3D
         /// List of owned variable triggers. Used at determining if initial trigger is to be audible
         /// </summary>
         public List<ORTSTrigger> VariableTriggers = new List<ORTSTrigger>();
+
         /// <summary>
         /// Helper object for determining if initial trigger is to be audible
         /// </summary>
-        IEnumerable<ORTSTrigger> TriggersList;
+        private IEnumerable<ORTSTrigger> TriggersList;
 
         public SoundStream(SmsStream mstsStream, SoundEventSource eventSource, SoundSource soundSource, UserSettings settings)
         {
@@ -1417,9 +1418,9 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <param name="x"></param>
         /// <param name="Curve"></param>
         /// <returns></returns>
-        static float Interpolate(float x, Curve Curve)
+        private static float Interpolate(float x, Curve Curve)
         {
-            if (Curve.CurvePoints.Count() < 2)
+            if (Curve.CurvePoints.Length < 2)
                 return Curve.CurvePoints[0].Y;
 
             CurvePoint[] curvePoints = Curve.CurvePoints;
@@ -1687,10 +1688,10 @@ namespace Orts.ActivityRunner.Viewer3D
     /// </summary>
     public sealed class ORTSDistanceTravelledTrigger : ORTSTrigger
     {
-        DistanceTravelledTrigger SMS;
-        float triggerDistance;
-        TrainCar car;
-        SoundStream SoundStream;
+        private DistanceTravelledTrigger SMS;
+        private float triggerDistance;
+        private TrainCar car;
+        private SoundStream SoundStream;
 
         public ORTSDistanceTravelledTrigger(SoundStream soundStream, DistanceTravelledTrigger smsData)
         {
@@ -1791,10 +1792,10 @@ namespace Orts.ActivityRunner.Viewer3D
     /// </summary>
     public sealed class ORTSRandomTrigger : ORTSTrigger
     {
-        Simulator Simulator;
-        RandomTrigger SMS;
-        double triggerAtSeconds;
-        SoundStream SoundStream;
+        private Simulator Simulator;
+        private RandomTrigger SMS;
+        private double triggerAtSeconds;
+        private SoundStream SoundStream;
 
         public ORTSRandomTrigger(SoundStream soundStream, RandomTrigger smsData)
         {
@@ -1847,11 +1848,10 @@ namespace Orts.ActivityRunner.Viewer3D
     /// </summary>
     public sealed class ORTSVariableTrigger : ORTSTrigger
     {
-        VariableTrigger SMS;
-        MSTSWagon car;
-        SoundStream SoundStream;
-
-        float StartValue;
+        private VariableTrigger SMS;
+        private MSTSWagon car;
+        private SoundStream SoundStream;
+        private float StartValue;
         public bool IsBellow;
 
         public ORTSVariableTrigger(SoundStream soundStream, VariableTrigger smsData)
@@ -2011,7 +2011,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public override void Run()
         {
             string p = GetNextFile();
-            if (p != "")
+            if (!string.IsNullOrEmpty(p))
             {
                 if (ORTSStream != null && ORTSStream.ALSoundSource != null)
                     ORTSStream.ALSoundSource.Queue(p, PlayMode.OneShot, ORTSStream.SoundSource.IsExternal, ORTSStream.RepeatedTrigger);
@@ -2032,7 +2032,7 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             // Support for Loop functions - by GeorgeS
             string p = GetNextFile();
-            if (p != "")
+            if (!string.IsNullOrEmpty(p))
             {
                 if (ORTSStream != null && ORTSStream.ALSoundSource != null)
                     ORTSStream.ALSoundSource.Queue(p, PlayMode.Loop, ORTSStream.SoundSource.IsExternal, false);
@@ -2071,7 +2071,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public override void Run()
         {
             string p = GetNextFile();
-            if (p != "")
+            if (!string.IsNullOrEmpty(p))
             {
                 if (ORTSStream != null && ORTSStream.ALSoundSource != null)
                     ORTSStream.ALSoundSource.Queue(p, PlayMode.LoopRelease, ORTSStream.SoundSource.IsExternal, ORTSStream.IsReleasedWithJump);
@@ -2101,7 +2101,7 @@ namespace Orts.ActivityRunner.Viewer3D
     /// </summary>
     public class ORTSDisableTrigger : ORTSSoundCommand
     {
-        int TriggerIndex;  // index into the stream's trigger list 
+        private int TriggerIndex;  // index into the stream's trigger list 
 
         public ORTSDisableTrigger(SoundStream ortsStream, TriggerCommand smsData )
             : base(ortsStream)
@@ -2121,7 +2121,7 @@ namespace Orts.ActivityRunner.Viewer3D
     /// </summary>
     public class ORTSEnableTrigger : ORTSSoundCommand
     {
-        int TriggerIndex;
+        private int TriggerIndex;
 
         public ORTSEnableTrigger(SoundStream ortsStream, TriggerCommand smsData)
             : base(ortsStream)
@@ -2141,7 +2141,7 @@ namespace Orts.ActivityRunner.Viewer3D
     /// </summary>
     public class ORTSSetStreamVolume : ORTSSoundCommand
     {
-        float Volume;
+        private float Volume;
 
         public ORTSSetStreamVolume(SoundStream ortsStream, StreamVolumeCommand smsData)
             : base(ortsStream)
@@ -2319,7 +2319,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
     public class WorldSounds
     {
-        Dictionary<string, List<WorldSoundRegion>> SoundRegions = new Dictionary<string, List<WorldSoundRegion>>();
+        private Dictionary<string, List<WorldSoundRegion>> SoundRegions = new Dictionary<string, List<WorldSoundRegion>>();
         private Viewer Viewer;
         private SoundSource ss;
 
@@ -2564,8 +2564,8 @@ namespace Orts.ActivityRunner.Viewer3D
     public class TDBObjects
     {
         private MSTSWagon _car;
-        TrackNode[] trackNodes;
-        TrackItem[] trItems;
+        private TrackNode[] trackNodes;
+        private TrackItem[] trItems;
 
         public TDBObjects(MSTSWagon Car, Viewer Viewer)
         {

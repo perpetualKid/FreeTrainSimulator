@@ -731,7 +731,7 @@ namespace Orts.Formats.Msts.Models
     [DebuggerDisplay("\\{MSTS.TrVectorNode\\} TrVectorSections={TrackVectorSections?.Length ?? null}, TrItemsRefs={TrackItemIndices?.Length ?? null}")]
     public class TrackVectorNode : TrackNode
     {
-        private static readonly int[] emptyTrackItemIndices = new int[0];
+        private static readonly int[] emptyTrackItemIndices = Array.Empty<int>();
         /// <summary>Array of sections that together form the vectorNode</summary>
         public TrackVectorSection[] TrackVectorSections { get; private set; }
         /// <summary>Array of indexes of TrItems (track items) that are located on this vectorNode</summary>

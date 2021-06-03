@@ -50,13 +50,13 @@ namespace Orts.Simulation
 
     public class Activity
     {
-        Simulator Simulator;
+        private Simulator Simulator;
 
         // Passenger tasks
         public DateTime StartTime;
         public List<ActivityTask> Tasks = new List<ActivityTask>();
         public ActivityTask Current;
-        double prevTrainSpeed = -1;
+        private double prevTrainSpeed = -1;
 
         // Freight events
         public List<EventWrapper> EventList = new List<EventWrapper>();
@@ -77,13 +77,13 @@ namespace Orts.Simulation
         // station stop logging flags - these are saved to resume correct logging after save
         private string StationStopLogFile;   // logfile name
         private bool StationStopLogActive;   // logging is active
-        public EventWrapper triggeredEventWrapper = null;        // used for exchange with Sound.cs to trigger activity sounds;
-        public bool NewMsgFromNewPlayer = false; // flag to indicate to ActivityWindow that there is a new message to be shown;
+        public EventWrapper triggeredEventWrapper;        // used for exchange with Sound.cs to trigger activity sounds;
+        public bool NewMsgFromNewPlayer; // flag to indicate to ActivityWindow that there is a new message to be shown;
         public string MsgFromNewPlayer; // string to be displayed in ActivityWindow
 
         public List<TempSpeedPostItem> TempSpeedPostItems;
 
-        public int RandomizabilityPerCent = 0; // 0 -> hardly randomizable ; 100 -> well randomizable
+        public int RandomizabilityPerCent; // 0 -> hardly randomizable ; 100 -> well randomizable
         public bool WeatherChangesPresent; // tested in case of randomized activities to state wheter weather should be randomized
 
         private Activity(BinaryReader inf, Simulator simulator, List<EventWrapper> oldEventList, List<TempSpeedPostItem> tempSpeedPostItems)
@@ -456,7 +456,7 @@ namespace Orts.Simulation
             }
         }
 
-        static ActivityTask GetTask(BinaryReader inf, Simulator simulator)
+        private static ActivityTask GetTask(BinaryReader inf, Simulator simulator)
         {
             Int32 rdval;
             rdval = inf.ReadInt32();
@@ -572,7 +572,7 @@ namespace Orts.Simulation
         /// <param name="trackDB">track database to be modified</param>
         /// <param name="newTrItemRef">The Id of the new TrItem to add to the tracknode</param>
         /// <param name="traveller">The computed traveller to the speedPost position</param>
-        static float? AddItemIdToTrackNode(in WorldLocation location, TrackSectionsFile tsectionDat, TrackDB trackDB, TrackItem newTrItem, out Traveller traveller)
+        private static float? AddItemIdToTrackNode(in WorldLocation location, TrackSectionsFile tsectionDat, TrackDB trackDB, TrackItem newTrItem, out Traveller traveller)
         {
             float? offset = 0.0f;
             traveller = new Traveller(tsectionDat, trackDB.TrackNodes, location);
@@ -592,7 +592,7 @@ namespace Orts.Simulation
         /// <param name="restrSpeedPost">The Id of the new restricted speed post to position</param>
         /// <param name="traveller">The traveller to the speedPost position</param>
         /// 
-        static void SpeedPostPosition(TempSpeedPostItem restrSpeedPost, ref Traveller traveller)
+        private static void SpeedPostPosition(TempSpeedPostItem restrSpeedPost, ref Traveller traveller)
         {
             restrSpeedPost.Update(traveller.Y, -traveller.RotY + (float)Math.PI / 2, new WorldPosition(traveller.TileX, traveller.TileZ, MatrixExtension.SetTranslation(Matrix.CreateFromYawPitchRoll(-traveller.RotY, 0, 0), traveller.X, traveller.Y, -traveller.Z)));
         }
@@ -602,7 +602,7 @@ namespace Orts.Simulation
         /// </summary>
         /// 
         [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", Justification = "Keeping identifier consistent to use in MSTS")]
-        static void InsertTrItemRef(TrackSectionsFile tsectionDat, TrackDB trackDB, TrackVectorNode thisVectorNode, int newTrItemId, float offset)
+        private static void InsertTrItemRef(TrackSectionsFile tsectionDat, TrackDB trackDB, TrackVectorNode thisVectorNode, int newTrItemId, float offset)
         {
             int index = 0;
             // insert the new TrItemRef accordingly to its offset
@@ -624,8 +624,8 @@ namespace Orts.Simulation
         {
             foreach (var eventWrapper in EventList)
             {
-                if (eventWrapper is EventCategoryLocationWrapper && eventWrapper.ParsedObject.TrainService != "" &&
-                    train.Name.ToLower() == eventWrapper.ParsedObject.TrainService.ToLower())
+                if (eventWrapper is EventCategoryLocationWrapper && !string.IsNullOrEmpty(eventWrapper.ParsedObject.TrainService) &&
+                    eventWrapper.ParsedObject.TrainService.Equals(train.Name, StringComparison.OrdinalIgnoreCase))
                 {
                     if (eventWrapper.ParsedObject.TrainStartingTime == -1 || (train as AITrain).ServiceDefinition.Time == eventWrapper.ParsedObject.TrainStartingTime)
                     {
@@ -673,7 +673,7 @@ namespace Orts.Simulation
     public class TDBTravellerDistanceCalculatorHelper
     {
         /// <summary>Maximum size of a platform or station we use for searching forward and backward</summary>
-        const float maxPlatformOrStationSize = 10000f;
+        private const float maxPlatformOrStationSize = 10000f;
 
         // Result of calculation
         public enum DistanceResult
@@ -684,8 +684,8 @@ namespace Orts.Simulation
         }
 
         // We use this traveller as the basis of the calculations.
-        Traveller refTraveller;
-        float Distance;
+        private Traveller refTraveller;
+        private float Distance;
 
         public TDBTravellerDistanceCalculatorHelper(Traveller traveller)
         {
@@ -725,7 +725,7 @@ namespace Orts.Simulation
 
     public class ActivityTaskPassengerStopAt : ActivityTask
     {
-        readonly Simulator Simulator;
+        private readonly Simulator Simulator;
 
         public DateTime SchArrive;
         public DateTime SchDepart;
@@ -736,15 +736,15 @@ namespace Orts.Simulation
 
         public double BoardingS;   // MSTS calls this the Load/Unload time. Cargo gets loaded, but passengers board the train.
         public double BoardingEndS;
-        int TimerChk;
-        bool arrived;
-        bool maydepart;
+        private int TimerChk;
+        private bool arrived;
+        private bool maydepart;
         public bool LogStationStops;
         public string LogStationLogFile;
         public float distanceToNextSignal = -1;
         public Train MyPlayerTrain; // Shortcut to player train
 
-        public bool ldbfevaldepartbeforeboarding = false;//Debrief Eval
+        public bool ldbfevaldepartbeforeboarding;//Debrief Eval
         public static List<string> DbfEvalDepartBeforeBoarding = new List<string>();//Debrief Eval
 
         public ActivityTaskPassengerStopAt(Simulator simulator, ActivityTask prev, DateTime Arrive, DateTime Depart,
@@ -912,7 +912,7 @@ namespace Orts.Simulation
                         stringBuild.AppendFormat("{0}:{1}:{2}", delay.Hours.ToString("00"), delay.Minutes.ToString("00"), delay.Seconds.ToString("00"));
                         stringBuild.Append(separator);
                         stringBuild.Append(maydepart ? "Completed" : "NotCompleted");
-                        stringBuild.Append("\n");
+                        stringBuild.Append('\n');
                         File.AppendAllText(LogStationLogFile, stringBuild.ToString());
                     }
                 }
@@ -979,11 +979,11 @@ namespace Orts.Simulation
                                 stringBuild.Append(separator);
                                 stringBuild.Append(SchArrive.ToString("HH:mm:ss"));
                                 stringBuild.Append(separator);
-                                stringBuild.Append("-");
+                                stringBuild.Append('-');
                                 stringBuild.Append(separator);
                                 stringBuild.Append(ActArrive.HasValue ? ActArrive.Value.ToString("HH:mm:ss") : "-");
                                 stringBuild.Append(separator);
-                                stringBuild.Append("-");
+                                stringBuild.Append('-');
                                 stringBuild.Append(separator);
 
                                 TimeSpan delay = ActArrive.HasValue ? (ActArrive - SchArrive).Value : TimeSpan.Zero;
@@ -999,7 +999,7 @@ namespace Orts.Simulation
 
                                 stringBuild.Append(separator);
                                 stringBuild.Append("Final stop");
-                                stringBuild.Append("\n");
+                                stringBuild.Append('\n');
                                 File.AppendAllText(LogStationLogFile, stringBuild.ToString());
                             }
 
@@ -1028,14 +1028,14 @@ namespace Orts.Simulation
                                 stringBuild.Append(separator);
                                 stringBuild.Append(SchDepart.ToString("HH:mm:ss"));
                                 stringBuild.Append(separator);
-                                stringBuild.Append("-");
+                                stringBuild.Append('-');
                                 stringBuild.Append(separator);
-                                stringBuild.Append("-");
+                                stringBuild.Append('-');
                                 stringBuild.Append(separator);
-                                stringBuild.Append("-");
+                                stringBuild.Append('-');
                                 stringBuild.Append(separator);
                                 stringBuild.Append("Missed");
-                                stringBuild.Append("\n");
+                                stringBuild.Append('\n');
                                 File.AppendAllText(LogStationLogFile, stringBuild.ToString());
                             }
                         }
@@ -1203,9 +1203,9 @@ namespace Orts.Simulation
                 activity.IsSuccessful = true;
                 return true;
             }
-            if (this.ParsedObject.Outcomes.RestartWaitingTrain != null && this.ParsedObject.Outcomes.RestartWaitingTrain.WaitingTrainToRestart != "")
+            if (string.IsNullOrEmpty(ParsedObject.Outcomes.RestartWaitingTrain?.WaitingTrainToRestart))
             {
-                var restartWaitingTrain = this.ParsedObject.Outcomes.RestartWaitingTrain;
+                var restartWaitingTrain = ParsedObject.Outcomes.RestartWaitingTrain;
                 Simulator.RestartWaitingTrain(restartWaitingTrain);
             }
             return false;
@@ -1216,9 +1216,9 @@ namespace Orts.Simulation
 
     public class EventCategoryActionWrapper : EventWrapper
     {
-        SidingItem SidingEnd1;
-        SidingItem SidingEnd2;
-        List<string> ChangeWagonIdList;   // Wagons to be assembled, picked up or dropped off.
+        private SidingItem SidingEnd1;
+        private SidingItem SidingEnd2;
+        private List<string> ChangeWagonIdList;   // Wagons to be assembled, picked up or dropped off.
 
         public EventCategoryActionWrapper(Orts.Formats.Msts.Models.ActivityEvent @event, Simulator simulator)
             : base(@event, simulator)
@@ -1244,7 +1244,7 @@ namespace Orts.Simulation
             }
         }
 
-        override public Boolean Triggered(Activity activity)
+        public override Boolean Triggered(Activity activity)
         {
             Train OriginalPlayerTrain = Simulator.OriginalPlayerTrain;
             var e = this.ParsedObject as ActionActivityEvent;
@@ -1362,6 +1362,7 @@ namespace Orts.Simulation
             }
             return null;
         }
+
         /// <summary>
         /// Like MSTS, do not check for unlisted wagons as the wagon list may be shortened for convenience to contain
         /// only the first and last wagon or even just the first wagon.
@@ -1369,7 +1370,7 @@ namespace Orts.Simulation
         /// <param name="train"></param>
         /// <param name="wagonIdList"></param>
         /// <returns>True if all listed wagons are part of the given train.</returns>
-        static bool includesWagons(Train train, List<string> wagonIdList)
+        private static bool includesWagons(Train train, List<string> wagonIdList)
         {
             foreach (var item in wagonIdList)
             {
@@ -1378,6 +1379,7 @@ namespace Orts.Simulation
             // train speed < 1
             return (Math.Abs(train.SpeedMpS) <= 1 ? true : false);
         }
+
         /// <summary>
         /// Like MSTS, do not check for unlisted wagons as the wagon list may be shortened for convenience to contain
         /// only the first and last wagon or even just the first wagon.
@@ -1385,7 +1387,7 @@ namespace Orts.Simulation
         /// <param name="train"></param>
         /// <param name="wagonIdList"></param>
         /// <returns>True if all listed wagons are not part of the given train.</returns>
-        static bool excludesWagons(Train train, List<string> wagonIdList)
+        private static bool excludesWagons(Train train, List<string> wagonIdList)
         {
             // The Cars list is a global list that includes STATIC cars.  We need to make sure that the active train/car is processed only.
             if (train.TrainType == TrainType.Static)
@@ -1406,6 +1408,7 @@ namespace Orts.Simulation
             }
             return lNotFound;
         }
+
         /// <summary>
         /// Like platforms, checking that one end of the train is within the siding.
         /// </summary>
@@ -1414,7 +1417,7 @@ namespace Orts.Simulation
         /// <param name="sidingEnd1"></param>
         /// <param name="sidingEnd2"></param>
         /// <returns>true if both ends of train within siding</returns>
-        static bool atSiding(Traveller frontPosition, Traveller rearPosition, SidingItem sidingEnd1, SidingItem sidingEnd2)
+        private static bool atSiding(Traveller frontPosition, Traveller rearPosition, SidingItem sidingEnd1, SidingItem sidingEnd2)
         {
             if (sidingEnd1 == null || sidingEnd2 == null)
             {
@@ -1466,12 +1469,12 @@ namespace Orts.Simulation
         {
         }
 
-        override public Boolean Triggered(Activity activity)
+        public override Boolean Triggered(Activity activity)
         {
             var triggered = false;
             var e = this.ParsedObject as Orts.Formats.Msts.Models.LocationActivityEvent;
             var train = Simulator.PlayerLocomotive.Train;
-            if (ParsedObject.TrainService != "" && Train != null)
+            if (!string.IsNullOrEmpty(ParsedObject.TrainService) && Train != null)
             {
                 if (Train.FrontTDBTraveller == null) return triggered;
                 train = Train;
@@ -1508,7 +1511,7 @@ namespace Orts.Simulation
         {
         }
 
-        override public Boolean Triggered(Activity activity)
+        public override Boolean Triggered(Activity activity)
         {
             var e = this.ParsedObject as Orts.Formats.Msts.Models.TimeActivityEvent;
             if (e == null) return false;

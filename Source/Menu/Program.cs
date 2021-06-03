@@ -21,8 +21,9 @@ using System.Diagnostics;
 using System.Windows.Forms;
 
 using Orts.Common.Info;
-using Orts.Common.Native;
 using Orts.Models.Simplified;
+
+[assembly: CLSCompliant(false)]
 
 namespace Orts.Menu
 {
@@ -31,11 +32,7 @@ namespace Orts.Menu
         [STAThread]  // requred for use of the DirectoryBrowserDialog in the main form.
         private static void Main()
         {
-#if NETCOREAPP
             Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
-#else
-            NativeMethods.SetProcessDpiAwareness(NativeMethods.PROCESS_DPI_AWARENESS.Process_Per_Monitor_DPI_Aware);
-#endif
             Application.EnableVisualStyles();
 
             if (Debugger.IsAttached)

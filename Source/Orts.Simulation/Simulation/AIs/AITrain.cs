@@ -66,8 +66,8 @@ namespace Orts.Simulation.AIs
         public int? StartTime;                           // starting time
         public bool PowerState = true;                   // actual power state : true if power in on
         public float MaxVelocityA = 30.0f;               // max velocity as set in .con file
-        public Services ServiceDefinition = null; // train's service definition in .act file
-        public bool UncondAttach = false;                       // if false it states that train will unconditionally attach to a train on its path
+        public Services ServiceDefinition; // train's service definition in .act file
+        public bool UncondAttach;                       // if false it states that train will unconditionally attach to a train on its path
 
         public float doorOpenDelay = -1f;
         public float doorCloseAdvance = -1f;

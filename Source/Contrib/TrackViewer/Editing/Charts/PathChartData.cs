@@ -50,7 +50,7 @@ namespace ORTS.TrackViewer.Editing.Charts
         public IDictionary<TrainpathNode, double> DistanceAlongPath;
         /// <summary>Is there actually a path loaded with one or more points</summary>
         [JsonIgnore]
-        public bool HasPath { get { return PathChartPoints != null && PathChartPoints.Count() > 0;} }
+        public bool HasPath { get { return PathChartPoints != null && PathChartPoints.Any();} }
 
         [JsonProperty("PathName")]
         private string PathName { get; set; }
@@ -571,7 +571,7 @@ namespace ORTS.TrackViewer.Editing.Charts
     /// <summary>
     /// For each requested tracknode find the track items we want to keep (stations, speed, mile markers, ...) and their location and store this information
     /// </summary>
-    class TrackItemManager
+    internal class TrackItemManager
     {
         private TrackDB trackDB;
         private TrackSectionsFile tsectionDat;
@@ -649,7 +649,7 @@ namespace ORTS.TrackViewer.Editing.Charts
     /// <summary>
     /// Store the text of a trackItem (e.g. station name) as well as its type and its location inside a tracknode
     /// </summary>
-    struct ChartableTrackItem
+    internal struct ChartableTrackItem
     {
         /// <summary>The text of this item that needs to be shown in a chart</summary>
         public string ItemText;

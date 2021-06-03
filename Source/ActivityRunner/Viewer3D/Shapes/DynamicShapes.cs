@@ -30,7 +30,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
         protected static Dictionary<string, bool> SeenShapeAnimationError = new Dictionary<string, bool>();
 
-        public Matrix[] XNAMatrices = new Matrix[0];  // the positions of the subobjects
+        public Matrix[] XNAMatrices = Array.Empty<Matrix>();  // the positions of the subobjects
 
         public readonly int[] Hierarchy;
 
@@ -48,7 +48,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             if (SharedShape.LodControls.Length > 0 && SharedShape.LodControls[0].DistanceLevels.Length > 0 && SharedShape.LodControls[0].DistanceLevels[0].SubObjects.Length > 0 && SharedShape.LodControls[0].DistanceLevels[0].SubObjects[0].ShapePrimitives.Length > 0)
                 Hierarchy = SharedShape.LodControls[0].DistanceLevels[0].SubObjects[0].ShapePrimitives[0].Hierarchy;
             else
-                Hierarchy = new int[0];
+                Hierarchy = Array.Empty<int>();
         }
 
         public PoseableShape(string path, IWorldPosition positionSource)
@@ -520,7 +520,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
         }
 
-        static float GetTextureCoordX(char c)
+        private static float GetTextureCoordX(char c)
         {
             float x;
             switch(c)
@@ -539,7 +539,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             return x;
         }
 
-        static float GetTextureCoordY(char c)
+        private static float GetTextureCoordY(char c)
         {
             switch (c)
             {
@@ -702,11 +702,11 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
     public class HazardShape : PoseableShape
     {
-        readonly HazardObject hazardObject;
-        readonly Hazard hazard;
+        private readonly HazardObject hazardObject;
+        private readonly Hazard hazard;
 
         private readonly int animationFrames;
-        private double moved = 0f;
+        private double moved;
         private double animationKey;
         private double delayHazAnimation;
 
