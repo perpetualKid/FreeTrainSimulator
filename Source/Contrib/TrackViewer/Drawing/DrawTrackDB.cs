@@ -127,7 +127,7 @@ namespace ORTS.TrackViewer.Drawing
                 }
                 catch
                 {
-                    wfiles = new string[0];
+                    wfiles = Array.Empty<string>();
                 }
                 foreach (var fileName in wfiles)
                 {
@@ -500,7 +500,7 @@ namespace ORTS.TrackViewer.Drawing
             }
 
             // First force TrItemTable to exist in case it was not defined in the .tdb file
-            trackDB.AddTrackItems(new TrackItem[0]);
+            trackDB.AddTrackItems(Array.Empty<TrackItem>());
 
             // find rail track items
             railTrackItemTable = new DrawableTrackItem[trackDB.TrackItems.Length];

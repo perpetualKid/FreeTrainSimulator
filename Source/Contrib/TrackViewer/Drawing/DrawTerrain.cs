@@ -754,7 +754,7 @@ namespace ORTS.TrackViewer.Drawing
             }
             else
             {
-                return new VertexPositionTexture[0];
+                return Array.Empty<VertexPositionTexture>();
             }
         }
 

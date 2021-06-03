@@ -971,7 +971,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             if (frameGrid.X < 1 || frameGrid.Y < 1 || frameCount < 1)
             {
                 Trace.TraceWarning("Cab control has invalid frame data {1}*{2}={3} (no frames will be shown) for {0}", fileName, frameGrid.X, frameGrid.Y, frameCount);
-                return new Texture2D[0];
+                return Array.Empty<Texture2D>();
             }
 
             var frameSize = new Point(texture.Width / frameGrid.X, texture.Height / frameGrid.Y);

@@ -417,7 +417,7 @@ namespace Orts.ActivityRunner.Viewer3D
             //    string[] split = deviceList.Split('\0');
             //    Trace.TraceInformation("___devlist {0}",deviceList);
             //}
-            int[] attribs = new int[0];
+            int[] attribs = Array.Empty<int>();
             IntPtr device = alcOpenDevice(null);
             IntPtr context = alcCreateContext(device, attribs);
             alcMakeContextCurrent(context);

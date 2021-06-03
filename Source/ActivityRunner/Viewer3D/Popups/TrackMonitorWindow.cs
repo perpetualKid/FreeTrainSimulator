@@ -689,7 +689,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         {
             var displayItem = new Rectangle(0, 0, 0, 0);
             var displayRequired = false;
-            var offsetArray = new int[0];
+            var offsetArray = Array.Empty<int>();
 
             if (thisItem.AuthorityType == EndAuthorityType.EndOfAuthority ||
                 thisItem.AuthorityType == EndAuthorityType.EndOfPath ||

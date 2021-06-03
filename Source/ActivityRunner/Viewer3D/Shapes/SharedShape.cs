@@ -21,7 +21,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
         // This data is common to all instances of the shape
         public List<string> MatrixNames = new List<string>();
-        public Matrix[] Matrices = new Matrix[0];  // the original natural pose for this shape - shared by all instances
+        public Matrix[] Matrices = Array.Empty<Matrix>();  // the original natural pose for this shape - shared by all instances
         public Animations Animations;
         public LodControl[] LodControls;
         public bool HasNightSubObj;
@@ -41,7 +41,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
         private SharedShape()
         {
             FilePath = "Empty";
-            LodControls = new LodControl[0];
+            LodControls = Array.Empty<LodControl>();
         }
 
         internal static void Initialize(Viewer viewer)

@@ -590,7 +590,7 @@ namespace ORTS.TrackViewer.Editing
             TrainpathNode currentNode = this.FirstNode;
             if (currentNode == null)
             {   // No route, so return no names
-                return new string[0];
+                return Array.Empty<string>();
             }
 
             while (currentNode.NextMainNode != null)
