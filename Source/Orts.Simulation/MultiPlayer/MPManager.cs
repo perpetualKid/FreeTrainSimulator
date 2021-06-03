@@ -57,7 +57,7 @@ namespace Orts.MultiPlayer
         public int version = 15;
         private double lastMoveTime;
         public double lastSwitchTime;
-        public double lastSyncTime = 0;
+        public double lastSyncTime;
         private double lastSendTime;
         private string metric = "";
         private double metricbase = 1.0f;
@@ -71,21 +71,21 @@ namespace Orts.MultiPlayer
 
         private List<Train> uncoupledTrains;
 
-		public bool weatherChanged = false;
+		public bool weatherChanged;
 		public int weather = -1;
         public float fogDistance = -1f;
         public float pricipitationIntensity = -1f;
         public float overcastFactor = -1f;
-        public double serverTimeDifference = 0;
+        public double serverTimeDifference;
 
         public double lastPlayerAddedTime;
 		public int MPUpdateInterval = 10;
 		public static bool AllowedManualSwitch = true;
 		public bool TrySwitch = true;
 		public bool AllowNewPlayer = true;
-		public bool ComposingText = false;
+		public bool ComposingText;
 		public string lastSender = ""; //who last sends me a message
-		public bool AmAider = false; //am I aiding the dispatcher?
+		public bool AmAider; //am I aiding the dispatcher?
 		public List<string> aiderList;
 		public Dictionary<string, OnlinePlayer> lostPlayer = new Dictionary<string,OnlinePlayer>();
 		public bool NotServer = true;
@@ -477,7 +477,7 @@ namespace Orts.MultiPlayer
 			return true;
 		}
 
-		public bool PlayerAdded = false;
+		public bool PlayerAdded;
 
 		public void AddPlayer()
 		{

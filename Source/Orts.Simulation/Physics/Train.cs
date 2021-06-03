@@ -198,7 +198,7 @@ namespace Orts.Simulation.Physics
 
         //To investigate coupler breaks on route
         private bool numOfCouplerBreaksNoted;
-        public static int NumOfCouplerBreaks = 0;//Debrief Eval //TODO 20201130 this sure is bound to the instance
+        public static int NumOfCouplerBreaks;//Debrief Eval //TODO 20201130 this sure is bound to the instance
         public bool DbfEvalValueChanged { get; set; }//Debrief Eval
 
         public TrainType TrainType { get; internal set; } = TrainType.Player;

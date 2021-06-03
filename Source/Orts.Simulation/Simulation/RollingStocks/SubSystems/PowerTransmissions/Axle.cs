@@ -504,7 +504,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
         /// </summary>
         public float SlipWarningTresholdPercent { set; get; }
 
-        public double ResetTime = 0;
+        public double ResetTime;
 
         /// <summary>
         /// Nonparametric constructor of Axle class instance

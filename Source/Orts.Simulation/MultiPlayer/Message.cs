@@ -739,8 +739,8 @@ namespace Orts.MultiPlayer
     {
         public string user = "";
         public int num; //train number
-        public bool oldTrainReverseFormation = false;
-        public bool newTrainReverseFormation = false;
+        public bool oldTrainReverseFormation;
+        public bool newTrainReverseFormation;
         public string leadingID;
         public MSGPlayerTrainSw() { }
         public MSGPlayerTrainSw(string m)
@@ -748,7 +748,7 @@ namespace Orts.MultiPlayer
             string[] areas = m.Split('\r');
             if (areas.Length <= 1)
             {
-                throw new Exception("Parsing error in MSGPlayerTrainSw" + m);
+                throw new InvalidDataException($"Parsing error in MSGPlayerTrainSw {m}");
             }
             try
             {
@@ -1051,7 +1051,7 @@ namespace Orts.MultiPlayer
     {
         private static byte[] preState;
         private static SortedList<uint, TrackJunctionNode> SwitchState;
-        public bool OKtoSend = false;
+        public bool OKtoSend;
         private static byte[] switchStatesArray;
         public MSGSwitchStatus()
         {
@@ -3008,7 +3008,7 @@ namespace Orts.MultiPlayer
     {
         private static byte[] preState;
         private static SortedList<long, SignalHead> signals;
-        public bool OKtoSend = false;
+        public bool OKtoSend;
         private bool SendEverything;
         private static byte[] signalsStates;
         private static List<int> changedAspectIndex = new List<int>();

@@ -169,15 +169,15 @@ namespace Orts.Simulation
         public TrainEvent SoundNotify = TrainEvent.None;
         public ScriptManager ScriptManager;
 
-        public bool IsAutopilotMode = false;
+        public bool IsAutopilotMode;
 
-        public bool soundProcessWorking = false;
-        public bool updaterWorking = false;
-        public Physics.Train selectedAsPlayer = null;
-        public Physics.Train OriginalPlayerTrain = null; // Used in Activity mode
-        public bool playerSwitchOngoing = false;
+        public bool soundProcessWorking;
+        public bool updaterWorking;
+        public Train selectedAsPlayer;
+        public Train OriginalPlayerTrain; // Used in Activity mode
+        public bool playerSwitchOngoing;
 
-        public bool PlayerIsInCab = false;
+        public bool PlayerIsInCab;
         public readonly bool MilepostUnitsMetric;
         public bool OpenDoorsInAITrains;
 

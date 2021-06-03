@@ -1346,7 +1346,7 @@ namespace Orts.Simulation.Timetables
         private TimetableTurntablePool parentPool;                  // parent pool
         private string poolName;                                    // parent pool name
 
-        private TTTrain parentTrain = null;                         // train linked to turntable actions
+        private TTTrain parentTrain;                         // train linked to turntable actions
 
         public enum MovingTableStateEnum
         {
@@ -1376,7 +1376,7 @@ namespace Orts.Simulation.Timetables
         public int StoragePathIndex;                       // index of selected storage path
         public int AccessPathIndex;                        // index of selected access path
 
-        private TrainOnMovingTable trainOnTable = null;            // class for train on table information
+        private TrainOnMovingTable trainOnTable;            // class for train on table information
         private int reqTurntableExit;                              // index of required exit
         private bool reqReverseFormation;                          // train exits table in reverse formation
         private float clearingDistanceM;                           // distance for train to move to clear turntable

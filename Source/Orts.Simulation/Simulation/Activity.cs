@@ -77,13 +77,13 @@ namespace Orts.Simulation
         // station stop logging flags - these are saved to resume correct logging after save
         private string StationStopLogFile;   // logfile name
         private bool StationStopLogActive;   // logging is active
-        public EventWrapper triggeredEventWrapper = null;        // used for exchange with Sound.cs to trigger activity sounds;
-        public bool NewMsgFromNewPlayer = false; // flag to indicate to ActivityWindow that there is a new message to be shown;
+        public EventWrapper triggeredEventWrapper;        // used for exchange with Sound.cs to trigger activity sounds;
+        public bool NewMsgFromNewPlayer; // flag to indicate to ActivityWindow that there is a new message to be shown;
         public string MsgFromNewPlayer; // string to be displayed in ActivityWindow
 
         public List<TempSpeedPostItem> TempSpeedPostItems;
 
-        public int RandomizabilityPerCent = 0; // 0 -> hardly randomizable ; 100 -> well randomizable
+        public int RandomizabilityPerCent; // 0 -> hardly randomizable ; 100 -> well randomizable
         public bool WeatherChangesPresent; // tested in case of randomized activities to state wheter weather should be randomized
 
         private Activity(BinaryReader inf, Simulator simulator, List<EventWrapper> oldEventList, List<TempSpeedPostItem> tempSpeedPostItems)
@@ -744,7 +744,7 @@ namespace Orts.Simulation
         public float distanceToNextSignal = -1;
         public Train MyPlayerTrain; // Shortcut to player train
 
-        public bool ldbfevaldepartbeforeboarding = false;//Debrief Eval
+        public bool ldbfevaldepartbeforeboarding;//Debrief Eval
         public static List<string> DbfEvalDepartBeforeBoarding = new List<string>();//Debrief Eval
 
         public ActivityTaskPassengerStopAt(Simulator simulator, ActivityTask prev, DateTime Arrive, DateTime Depart,
