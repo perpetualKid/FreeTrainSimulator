@@ -3972,7 +3972,7 @@ namespace Orts.Simulation.RollingStocks
                 if (CabRadioOn) SignalEvent(TrainEvent.CabRadioOn); // hook for sound trigger
                 else SignalEvent(TrainEvent.CabRadioOff);
             }
-            else if (OnLineCabRadioURL != "")
+            else if (!string.IsNullOrEmpty(OnLineCabRadioURL))
             { }
             if (Simulator.PlayerLocomotive == this) Simulator.Confirmer.Confirm(CabControl.CabRadio, CabRadioOn ? CabSetting.On : CabSetting.Off);
         }

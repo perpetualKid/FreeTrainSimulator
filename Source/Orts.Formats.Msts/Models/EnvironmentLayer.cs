@@ -1,4 +1,6 @@
-﻿using Orts.Formats.Msts.Parsers;
+﻿using System;
+
+using Orts.Formats.Msts.Parsers;
 
 namespace Orts.Formats.Msts.Models
 {
@@ -41,8 +43,8 @@ namespace Orts.Formats.Msts.Models
                         new STFReader.TokenProcessor("world_anim_shader", ()=>{ stf.MustMatchBlockStart(); stf.ParseBlock(new STFReader.TokenProcessor[] {
                             new STFReader.TokenProcessor("world_anim_shader_frames", ()=>{ stf.MustMatchBlockStart(); stf.ParseBlock(new STFReader.TokenProcessor[] {
                                 new STFReader.TokenProcessor("world_anim_shader_frame", ()=>{ stf.MustMatchBlockStart(); stf.ParseBlock(new STFReader.TokenProcessor[] {
-                                    new STFReader.TokenProcessor("world_anim_shader_frame_uvtiles", ()=>{ stf.MustMatchBlockStart(); TileX = stf.ReadFloat(STFReader.Units.Any, 1.0f); TileY = stf.ReadFloat(STFReader.Units.Any, 1.0f); stf.ParseBlock(new STFReader.TokenProcessor[] {
-                                    });}),
+                                    new STFReader.TokenProcessor("world_anim_shader_frame_uvtiles", ()=>{ stf.MustMatchBlockStart(); TileX = stf.ReadFloat(STFReader.Units.Any, 1.0f); TileY = stf.ReadFloat(STFReader.Units.Any, 1.0f); stf.ParseBlock(Array.Empty<STFReader.TokenProcessor>()
+                                        );}),
                                 });}),
                             });}),
                             new STFReader.TokenProcessor("world_shader", ()=>{ stf.MustMatchBlockStart(); TextureMode = stf.ReadString(); stf.ParseBlock(new STFReader.TokenProcessor[] {

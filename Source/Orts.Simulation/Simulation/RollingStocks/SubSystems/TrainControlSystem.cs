@@ -205,7 +205,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         {
             if (!Activated)
             {
-                if (!Simulator.Settings.DisableTCSScripts && ScriptName != null && ScriptName != "MSTS" && ScriptName != "")
+                if (!Simulator.Settings.DisableTCSScripts && !string.IsNullOrEmpty( ScriptName) && !ScriptName.Equals("MSTS", StringComparison.OrdinalIgnoreCase)
                 {
                     Script = Simulator.ScriptManager.Load(Path.Combine(Path.GetDirectoryName(Locomotive.WagFilePath), "Script"), ScriptName) as TrainControlSystem;
                     CustomTCSScript = true;
@@ -806,7 +806,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
             if (originalString.Length < 9) return originalString;
             if (originalString.Substring(0, 8) != "ORTS_TCS") return originalString;
             var commandIndex = Convert.ToInt32(originalString.Substring(8));
-            return commandIndex > 0 && commandIndex <= TCSCabviewControlCount && CustomizedCabviewControlNames[commandIndex - 1] != ""
+            return commandIndex > 0 && commandIndex <= TCSCabviewControlCount && !string.IsNullOrEmpty(CustomizedCabviewControlNames[commandIndex - 1])
                 ? CustomizedCabviewControlNames[commandIndex - 1]
                 : originalString;
         }
@@ -814,14 +814,14 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         public void Save(BinaryWriter outf)
         {
             outf.Write(ScriptName ?? "");
-            if (ScriptName != "")
+            if (!string.IsNullOrEmpty(ScriptName))
                 Script.Save(outf);
         }
 
         public void Restore(BinaryReader inf)
         {
             ScriptName = inf.ReadString();
-            if (ScriptName != "")
+            if (!string.IsNullOrEmpty(ScriptName))
             {
                 Initialize();
                 Script.Restore(inf);
