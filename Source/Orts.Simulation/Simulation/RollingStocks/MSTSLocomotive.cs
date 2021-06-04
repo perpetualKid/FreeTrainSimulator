@@ -5099,7 +5099,7 @@ namespace Orts.Simulation.RollingStocks
     /// Extended CVF data, currently used for CAB light
     /// By GeorgeS
     /// </summary>
-    [ORTSPhysicsFile("lit", "ORTSExtendedCVF")]
+    [OrtsPhysicsFile("lit", "ORTSExtendedCVF")]
     public class ExtendedCVF
     {
         /// <summary>
@@ -5123,16 +5123,16 @@ namespace Orts.Simulation.RollingStocks
             return new Vector3((float)Color.R / 255, (float)Color.G / 255, (float)Color.B / 255);
         }
 
-        [ORTSPhysics("First light Position", "Light1Position", "The position and aspect of the first cab light", "320 360 155 2")]
+        [OrtsPhysics("First light Position", "Light1Position", "The position and aspect of the first cab light", "320 360 155 2")]
         public Vector4 Light1Position;
 
-        [ORTSPhysics("First light ARGB", "Light1ColorARGB", "The color of the first cab light", "255 216 178 255")]
+        [OrtsPhysics("First light ARGB", "Light1ColorARGB", "The color of the first cab light", "255 216 178 255")]
         public Color Light1Color;
 
-        [ORTSPhysics("Second light Position", "Light2Position", "The position and aspect of the first cab light", "0 0 0 0")]
+        [OrtsPhysics("Second light Position", "Light2Position", "The position and aspect of the first cab light", "0 0 0 0")]
         public Vector4 Light2Position;
 
-        [ORTSPhysics("Second light ARGB", "Light2ColorARGB", "The color of the second cab light", "0 0 0")]
+        [OrtsPhysics("Second light ARGB", "Light2ColorARGB", "The color of the second cab light", "0 0 0")]
         public Color Light2Color;
 
     } // End Class ExtendedCVF 
