@@ -162,7 +162,7 @@ namespace Orts.Formats.Msts.Models
         /// <summary> Glow value for nighttime (optional).</summary>
         public float? NightGlow;
         /// <summary> Lights switched off or on during daytime (default : on) (optional).</summary>
-        public bool DayLight;
+        public bool DayLight = true;
 
         /// <summary>
         /// Common initialization part for constructors
