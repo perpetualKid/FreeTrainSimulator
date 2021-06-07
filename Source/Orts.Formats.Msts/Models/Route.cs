@@ -123,7 +123,7 @@ namespace Orts.Formats.Msts.Models
 
     public class RouteStart
     {
-        private WorldLocation location;
+        private readonly WorldLocation location;
 
         public ref readonly WorldLocation Location => ref location;
 
@@ -140,15 +140,15 @@ namespace Orts.Formats.Msts.Models
     /// </summary>
     public class Environment
     {
-        private Dictionary<string, string> fileNames = new Dictionary<string, string>();
+        private readonly Dictionary<string, string> fileNames = new Dictionary<string, string>();
 
         public Environment(STFReader stf)
         {
             stf.MustMatchBlockStart();
             for (int i = 0; i < 12; ++i)
             {
-                var envfilekey = stf.ReadString();
-                var envfile = stf.ReadStringBlock(null);
+                string envfilekey = stf.ReadString();
+                string envfile = stf.ReadStringBlock(null);
                 fileNames.Add(envfilekey, envfile);
             }
             stf.SkipRestOfBlock();

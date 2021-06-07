@@ -699,7 +699,7 @@ namespace Orts.Formats.Msts.Models
                         int iValues = 1;
                         for (int i = 1; i < FramesCount && i <= Positions.Count - 1 && Values.Count < FramesCount; i++)
                         {
-                            var deltaPos = Positions[i] - Positions[i - 1];
+                            int deltaPos = Positions[i] - Positions[i - 1];
                             while (deltaPos > 1 && Values.Count < FramesCount)
                             {
 
@@ -818,7 +818,7 @@ namespace Orts.Formats.Msts.Models
         protected int ParseNumStyle(STFReader stf)
         {
             stf.MustMatchBlockStart();
-            var style = stf.ReadInt(0);
+            int style = stf.ReadInt(0);
             stf.SkipRestOfBlock();
             return style;
         }

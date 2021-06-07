@@ -19,7 +19,7 @@ namespace Orts.Formats.Msts.Models
     /// </summary>
     public class LightTexture
     {
-        private Matrix2x2 uv;
+        private readonly Matrix2x2 uv;
 
         /// <summary>Name of the light texture</summary>
         public string Name { get; private set; }
@@ -311,7 +311,7 @@ namespace Orts.Formats.Msts.Models
             else
             {
                 STFException.TraceInformation(stf, "Skipped unknown ORTSNormalSubtype " + type);
-                return (String.Empty);
+                return (string.Empty);
             }
         }
 

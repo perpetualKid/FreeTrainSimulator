@@ -115,7 +115,7 @@ namespace Orts.Formats.Msts.Files
         public string Start { get; private set; }
         public string End { get; private set; }
         public PathFlags Flags { get; private set; }
-        public bool IsPlayerPath { get { return (Flags & PathFlags.NotPlayerPath) == 0; } }
+        public bool IsPlayerPath => (Flags & PathFlags.NotPlayerPath) == 0;
         public List<PathDataPoint> DataPoints { get; } = new List<PathDataPoint>();
         public List<PathNode> PathNodes { get; } = new List<PathNode>();
 

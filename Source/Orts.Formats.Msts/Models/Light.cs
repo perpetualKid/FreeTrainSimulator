@@ -188,7 +188,7 @@ namespace Orts.Formats.Msts.Models
             foreach (var light in this)
                 if (light.Type == LightType.Cone)
                     reverseLights.Add(new Light(light, true));
-            this.AddRange(reverseLights);
+            AddRange(reverseLights);
         }
     }
 }

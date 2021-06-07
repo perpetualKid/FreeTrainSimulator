@@ -1,12 +1,11 @@
-﻿using Orts.Common;
-using Orts.Common.Position;
+﻿using Orts.Common.Position;
 using Orts.Formats.Msts.Parsers;
 
 namespace Orts.Formats.Msts.Models
 {
     public class PathDataPoint
     {
-        private WorldLocation location;
+        private readonly WorldLocation location;
         public ref readonly WorldLocation Location => ref location;
         public int JunctionFlag { get; private set; }
         public int InvalidFlag { get; private set; }
