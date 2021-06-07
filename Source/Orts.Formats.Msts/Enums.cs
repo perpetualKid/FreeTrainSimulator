@@ -3,6 +3,7 @@ using System.ComponentModel;
 
 namespace Orts.Formats.Msts
 {
+#pragma warning disable CA1707 // Identifiers should not contain underscores
     #region Activity
     public enum EventType
     {
@@ -127,7 +128,7 @@ namespace Orts.Formats.Msts
     [Flags]
     public enum SimisAceFormatOptions
     {
-        Default = 0,
+        None = 0,
         MipMaps = 0x01,
         RawData = 0x10,
     }
@@ -537,4 +538,5 @@ namespace Orts.Formats.Msts
     #region TrackItem
 
     #endregion
+#pragma warning restore CA1707 // Identifiers should not contain underscores
 }
