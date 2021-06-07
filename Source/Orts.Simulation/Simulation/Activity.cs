@@ -1203,7 +1203,7 @@ namespace Orts.Simulation
                 activity.IsSuccessful = true;
                 return true;
             }
-            if (string.IsNullOrEmpty(ParsedObject.Outcomes.RestartWaitingTrain?.WaitingTrainToRestart))
+            if (!string.IsNullOrEmpty(ParsedObject.Outcomes.RestartWaitingTrain?.WaitingTrainToRestart))
             {
                 var restartWaitingTrain = ParsedObject.Outcomes.RestartWaitingTrain;
                 Simulator.RestartWaitingTrain(restartWaitingTrain);

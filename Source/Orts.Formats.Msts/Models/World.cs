@@ -5,7 +5,6 @@ using System.IO;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Common.Position;
 using Orts.Common.Xna;
@@ -17,15 +16,15 @@ namespace Orts.Formats.Msts.Models
     {
         internal protected class PositionHolder
         {
-            public Vector3 Location;
-            public Quaternion Direction;
-            public Matrix3x3 Position;
-            public bool LocationSet;
-            public bool DirectionSet;
-            public bool PositionSet;
+            public Vector3 Location { get; internal protected set; }
+            public Quaternion Direction { get; internal protected set; }
+            public Matrix3x3 Position { get; internal protected set; }
+            public bool LocationSet { get; internal protected set; }
+            public bool DirectionSet { get; internal protected set; }
+            public bool PositionSet { get; internal protected set; }
 
-            public int TileX;
-            public int TileZ;
+            public int TileX { get; internal protected set; }
+            public int TileZ { get; internal protected set; }
 
             /// <summary>
             /// MSTS WFiles represent some location with a position, 3x3 matrix and tile coordinates
@@ -35,7 +34,7 @@ namespace Orts.Formats.Msts.Models
             {
                 if (holder.LocationSet && holder.PositionSet)
                 {
-                    holder.Location.Z *= -1; ;
+                    holder.Location = new Vector3(holder.Location.X, holder.Location.Y, holder.Location.Z * -1);
                     Matrix xnaMatrix = new Matrix(
                         holder.Position.M00, holder.Position.M01, -holder.Position.M02, 0,
                         holder.Position.M10, holder.Position.M11, -holder.Position.M12, 0,
@@ -46,8 +45,8 @@ namespace Orts.Formats.Msts.Models
                 }
                 else if (holder.LocationSet && holder.DirectionSet)
                 {
-                    holder.Direction.Z *= -1;
-                    holder.Location.Z *= -1; ;
+                    holder.Direction = new Quaternion(holder.Direction.X, holder.Direction.Y, holder.Direction.Z * -1, holder.Direction.W);
+                    holder.Location = new Vector3(holder.Location.X, holder.Location.Y, holder.Location.Z * -1);
                     return new WorldPosition(holder.TileX, holder.TileZ, MatrixExtension.Multiply(Matrix.CreateFromQuaternion(holder.Direction), Matrix.CreateTranslation(holder.Location)));
 
                 }
@@ -59,7 +58,7 @@ namespace Orts.Formats.Msts.Models
             }
         }
 
-        protected WorldPosition worldPosition;
+        private protected WorldPosition worldPosition;
         public string FileName { get; protected set; }
         public uint UiD { get; protected set; }
         public int DetailLevel { get; protected set; }
@@ -81,7 +80,7 @@ namespace Orts.Formats.Msts.Models
                 worldPosition = PositionHolder.WorldPositionFromMSTSLocation(holder, UiD);
         }
 
-        protected virtual void AddOrModifyObj(SBR subBlock, PositionHolder holder)
+        private protected virtual void AddOrModifyObj(SBR subBlock, PositionHolder holder)
         {
             switch (subBlock.ID)
             {
@@ -108,7 +107,7 @@ namespace Orts.Formats.Msts.Models
             }
         }
 
-        protected void ReadBlock(SBR block, int tileX, int tileZ)
+        private protected void ReadBlock(SBR block, int tileX, int tileZ)
         {
             PositionHolder holder = new PositionHolder()
             {
@@ -118,7 +117,7 @@ namespace Orts.Formats.Msts.Models
 
             while (!block.EndOfBlock())
             {
-                using (var subBlock = block.ReadSubBlock())
+                using (SBR subBlock = block.ReadSubBlock())
                 {
                     if (subBlock.ID == TokenID.UiD)
                         UiD = subBlock.ReadUInt();
@@ -135,7 +134,7 @@ namespace Orts.Formats.Msts.Models
             }
         }
 
-        private void ReadLocation(SBR block, PositionHolder holder)
+        private static void ReadLocation(SBR block, PositionHolder holder)
         {
             block.VerifyID(TokenID.Position);
             holder.Location = new Vector3(block.ReadFloat(), block.ReadFloat(), block.ReadFloat());
@@ -143,7 +142,7 @@ namespace Orts.Formats.Msts.Models
             block.VerifyEndOfBlock();
         }
 
-        private void ReadDirection(SBR block, PositionHolder holder)
+        private static void ReadDirection(SBR block, PositionHolder holder)
         {
             block.VerifyID(TokenID.QDirection);
             holder.Direction = new Quaternion(block.ReadFloat(), block.ReadFloat(), block.ReadFloat(), block.ReadFloat());
@@ -151,7 +150,7 @@ namespace Orts.Formats.Msts.Models
             block.VerifyEndOfBlock();
         }
 
-        private void ReadPosition(SBR block, PositionHolder holder)
+        private static void ReadPosition(SBR block, PositionHolder holder)
         {
             block.VerifyID(TokenID.Matrix3x3);
             holder.Position = new Matrix3x3(block.ReadFloat(), block.ReadFloat(), block.ReadFloat(),
@@ -164,7 +163,7 @@ namespace Orts.Formats.Msts.Models
 
     public class WorldObjects : List<WorldObject>
     {
-        private static HashSet<TokenID> UnknownBlockIDs = new HashSet<TokenID>()
+        private static readonly HashSet<TokenID> UnknownBlockIDs = new HashSet<TokenID>()
         {
             TokenID.VDbIdCount,
             TokenID.ViewDbSphere,
@@ -176,7 +175,7 @@ namespace Orts.Formats.Msts.Models
             int detailLevel = 0;
             while (!block.EndOfBlock())
             {
-                using (var subBlock = block.ReadSubBlock())
+                using (SBR subBlock = block.ReadSubBlock())
                 {
                     try
                     {
@@ -259,12 +258,12 @@ namespace Orts.Formats.Msts.Models
             }
         }
 
-        public void InsertORSpecificData(SBR block)
+        internal void InsertORSpecificData(SBR block)
         {
             block.VerifyID(TokenID.Tr_Worldfile);
             while (!block.EndOfBlock())
             {
-                using (var subBlock = block.ReadSubBlock())
+                using (SBR subBlock = block.ReadSubBlock())
                 {
                     try
                     {
@@ -272,7 +271,7 @@ namespace Orts.Formats.Msts.Models
                         bool wrongBlock = false;
                         if (!subBlock.EndOfBlock())
                         {
-                            var subSubBlockUID = subBlock.ReadSubBlock();
+                            SBR subSubBlockUID = subBlock.ReadSubBlock();
                             // check if a block with this UiD already present
                             if (subSubBlockUID.ID == TokenID.UiD)
                             {
@@ -319,7 +318,7 @@ namespace Orts.Formats.Msts.Models
             }
         }
 
-        private bool TestMatch(SBR subBlock, WorldObject origObject)
+        private static bool TestMatch(SBR subBlock, WorldObject origObject)
         {
             if (subBlock.ID == TokenID.Static && origObject is StaticObject) return true;
             if (subBlock.ID == TokenID.Gantry && origObject is BasicObject) return true;
@@ -359,13 +358,13 @@ namespace Orts.Formats.Msts.Models
 
     public class SignalUnits : List<SignalUnit>
     {
-        public SignalUnits(SBR block)
+        internal SignalUnits(SBR block)
         {
             block.VerifyID(TokenID.SignalUnits);
-            var count = block.ReadUInt();
-            for (var i = 0; i < count; i++)
+            uint count = block.ReadUInt();
+            for (int i = 0; i < count; i++)
             {
-                using (var subBlock = block.ReadSubBlock())
+                using (SBR subBlock = block.ReadSubBlock())
                 {
                     Add(new SignalUnit(subBlock));
                 }
@@ -379,11 +378,11 @@ namespace Orts.Formats.Msts.Models
         public int SubObject { get; private set; }
         public uint TrackItem { get; private set; }
 
-        public SignalUnit(SBR block)
+        internal SignalUnit(SBR block)
         {
             block.VerifyID(TokenID.SignalUnit);
             SubObject = block.ReadInt();
-            using (var subBlock = block.ReadSubBlock())
+            using (SBR subBlock = block.ReadSubBlock())
             {
                 subBlock.VerifyID(TokenID.TrItemId);
                 subBlock.ReadUInt(); // Unk?
@@ -419,7 +418,7 @@ namespace Orts.Formats.Msts.Models
             ReadBlock(block, tileX, tileZ);
         }
 
-        protected override void AddOrModifyObj(SBR subBlock, PositionHolder holder)
+        private protected override void AddOrModifyObj(SBR subBlock, PositionHolder holder)
         {
             switch (subBlock.ID)
             {
@@ -487,7 +486,7 @@ namespace Orts.Formats.Msts.Models
             ReadBlock(block, tileX, tileZ);
         }
 
-        protected override void AddOrModifyObj(SBR subBlock, PositionHolder holder)
+        private protected override void AddOrModifyObj(SBR subBlock, PositionHolder holder)
         {
             switch (subBlock.ID)
             {
@@ -513,7 +512,7 @@ namespace Orts.Formats.Msts.Models
             ReadBlock(block, tileX, tileZ);
         }
 
-        protected override void AddOrModifyObj(SBR subBlock, PositionHolder holder)
+        private protected override void AddOrModifyObj(SBR subBlock, PositionHolder holder)
         {
             switch (subBlock.ID)
             {
@@ -547,7 +546,7 @@ namespace Orts.Formats.Msts.Models
             ReadBlock(block, tileX, tileZ);
         }
 
-        protected override void AddOrModifyObj(SBR subBlock, PositionHolder holder)
+        private protected override void AddOrModifyObj(SBR subBlock, PositionHolder holder)
         {
             switch (subBlock.ID)
             {
@@ -605,7 +604,7 @@ namespace Orts.Formats.Msts.Models
         }
 
 
-        protected override void AddOrModifyObj(SBR subBlock, PositionHolder holder)
+        private protected override void AddOrModifyObj(SBR subBlock, PositionHolder holder)
         {
             switch (subBlock.ID)
             {
@@ -631,7 +630,7 @@ namespace Orts.Formats.Msts.Models
             ReadBlock(block, tileX, tileZ);
         }
 
-        protected override void AddOrModifyObj(SBR subBlock, PositionHolder holder)
+        private protected override void AddOrModifyObj(SBR subBlock, PositionHolder holder)
         {
             switch (subBlock.ID)
             {
@@ -657,7 +656,7 @@ namespace Orts.Formats.Msts.Models
 
         }
 
-        protected override void AddOrModifyObj(SBR subBlock, PositionHolder holder)
+        private protected override void AddOrModifyObj(SBR subBlock, PositionHolder holder)
         {
             switch (subBlock.ID)
             {
@@ -685,7 +684,7 @@ namespace Orts.Formats.Msts.Models
             public float Size { get; private set; }
             public Vector2 Offset { get; private set; }
 
-            public TextData(SBR block)
+            internal TextData(SBR block)
             {
                 block.VerifyID(TokenID.Speed_Text_Size);
                 Size = block.ReadFloat();
@@ -735,7 +734,7 @@ namespace Orts.Formats.Msts.Models
             ReadBlock(block, tileX, tileZ);
         }
 
-        protected override void AddOrModifyObj(SBR subBlock, PositionHolder holder)
+        private protected override void AddOrModifyObj(SBR subBlock, PositionHolder holder)
         {
             switch (subBlock.ID)
             {
@@ -801,7 +800,7 @@ namespace Orts.Formats.Msts.Models
             ReadBlock(block, tileX, tileZ);
         }
 
-        protected override void AddOrModifyObj(SBR subBlock, PositionHolder holder)
+        private protected override void AddOrModifyObj(SBR subBlock, PositionHolder holder)
         {
             switch (subBlock.ID)
             {
@@ -840,7 +839,7 @@ namespace Orts.Formats.Msts.Models
             ReadBlock(block, tileX, tileZ);
         }
 
-        protected override void AddOrModifyObj(SBR subBlock, PositionHolder holder)
+        private protected override void AddOrModifyObj(SBR subBlock, PositionHolder holder)
         {
             switch (subBlock.ID)
             {
@@ -861,18 +860,18 @@ namespace Orts.Formats.Msts.Models
         public TrackItems TrackItemIds { get; } = new TrackItems();
 
         // this one called by PlatformObj
-        public StationObject()
+        internal StationObject()
         { }
 
         // this one called by SidingObj
-        public StationObject(SBR block, int detailLevel, int tileX, int tileZ)
+        internal StationObject(SBR block, int detailLevel, int tileX, int tileZ)
         {
             DetailLevel = detailLevel;
 
             ReadBlock(block, tileX, tileZ);
         }
 
-        protected override void AddOrModifyObj(SBR subBlock, PositionHolder holder)
+        private protected override void AddOrModifyObj(SBR subBlock, PositionHolder holder)
         {
             switch (subBlock.ID)
             {
@@ -907,7 +906,7 @@ namespace Orts.Formats.Msts.Models
             ReadBlock(block, tileX, tileZ);
         }
 
-        protected override void AddOrModifyObj(SBR subBlock, PositionHolder holder)
+        private protected override void AddOrModifyObj(SBR subBlock, PositionHolder holder)
         {
             switch (subBlock.ID)
             {

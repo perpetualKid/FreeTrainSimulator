@@ -111,7 +111,7 @@ namespace Orts.Formats.Msts
     // Bit 3 - 'other exit' is used (8/x8)
     // Bit 4 - 'optional Route' active (16/x10)
      [Flags]
-    public enum PathFlags: uint
+    public enum PathFlags
     {
         None = 0x0,
         ReversalPoint = 1 << 0,
@@ -443,7 +443,9 @@ namespace Orts.Formats.Msts
     {
         None,
         Needle,
+#pragma warning disable CA1720 // Identifier contains type name
         Pointer,
+#pragma warning restore CA1720 // Identifier contains type name
         Solid,
         Liquid,
         Sprung,
@@ -506,7 +508,8 @@ namespace Orts.Formats.Msts
         Global = 0x00200000,
     }
 
-    public enum PlatformDataFlag
+    [Flags]
+    public enum PlatformData
     {
         PlatformLeft = 0x00000002,
         PlatformRight = 0x00000004,
