@@ -2549,35 +2549,35 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
     /// </summary>
     public class CabViewAnimationsRenderer : CabViewDiscreteRenderer
     {
-        private double CumulativeTime;
-        private readonly float CycleTimeS;
-        private bool AnimationOn = false;
+        private double cumulativeTime;
+        private readonly float cycleTimeS;
+        private bool animationOn;
 
         public CabViewAnimationsRenderer(Viewer viewer, MSTSLocomotive locomotive, CabViewAnimatedDisplayControl control, CabShader shader)
             : base(viewer, locomotive, control, shader)
         {
-            CycleTimeS = control.CycleTimeS;
+            cycleTimeS = control.CycleTimeS;
         }
 
         public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             var animate = Locomotive.GetDataOf(Control) != 0;
             if (animate)
-                AnimationOn = true;
+                animationOn = true;
 
             int index;
-            var halfCycleS = CycleTimeS / 2f;
-            if (AnimationOn)
+            var halfCycleS = cycleTimeS / 2f;
+            if (animationOn)
             {
-                CumulativeTime += elapsedTime.ClockSeconds;
-                if (CumulativeTime > CycleTimeS && !animate)
-                    AnimationOn = false;
-                CumulativeTime %= CycleTimeS;
+                cumulativeTime += elapsedTime.ClockSeconds;
+                if (cumulativeTime > cycleTimeS && !animate)
+                    animationOn = false;
+                cumulativeTime %= cycleTimeS;
 
-                if (CumulativeTime < halfCycleS)
-                    index = PercentToIndex((float)(CumulativeTime / halfCycleS));
+                if (cumulativeTime < halfCycleS)
+                    index = PercentToIndex((float)(cumulativeTime / halfCycleS));
                 else
-                    index = PercentToIndex((float)(CycleTimeS - CumulativeTime) / halfCycleS);
+                    index = PercentToIndex((float)(cycleTimeS - cumulativeTime) / halfCycleS);
             }
             else
             {
