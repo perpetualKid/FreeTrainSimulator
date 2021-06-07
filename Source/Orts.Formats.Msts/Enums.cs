@@ -378,6 +378,7 @@ namespace Orts.Formats.Msts
         Orts_Overcharge,
         Orts_Battery,
         Orts_PowerKey,
+        Orts_2DExternalWipers,
 
         // TCS Controls
         Orts_TCS1,

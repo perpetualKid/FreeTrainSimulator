@@ -532,8 +532,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 {
                     dynamicWeather = new DynamicWeather();
                 }
-                var weatherChange = Simulator.Instance.ActivityRun.triggeredEventWrapper.ParsedObject.Outcomes.WeatherChange != null ?
-                    Simulator.Instance.ActivityRun.triggeredEventWrapper.ParsedObject.Outcomes.WeatherChange : Simulator.Instance.ActivityRun.triggeredEventWrapper.ParsedObject.WeatherChange;
+                OrtsWeatherChange weatherChange = Simulator.Instance.ActivityRun.triggeredEventWrapper.ParsedObject.WeatherChange ?? Simulator.Instance.ActivityRun.triggeredEventWrapper.ParsedObject.Outcomes.WeatherChange;
                 dynamicWeather.WeatherChange_Init(weatherChange, this);
                 Simulator.Instance.ActivityRun.triggeredEventWrapper = null;
             }
@@ -655,7 +654,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     {
                         fogDistanceIncreasing = true;
                         fogChangeRate = -fogChangeRate;
-                        ORTSFog = weatherControl.weather.FogDistance;
+                        if (fogTimer > 0) ORTSFog = weatherControl.weather.FogDistance;
                     }
                     wChangeOn = true;
                 }

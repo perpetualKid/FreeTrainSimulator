@@ -267,7 +267,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                 Script.AlerterSound = () => Locomotive.AlerterSnd;
                 Script.TrainSpeedLimitMpS = () => Math.Min(Locomotive.Train.AllowedMaxSpeedMpS, Locomotive.Train.TrainMaxSpeedMpS);
                 Script.TrainMaxSpeedMpS = () => Locomotive.Train.TrainMaxSpeedMpS; // max speed for train in a specific section, independently from speedpost and signal limits
-                Script.CurrentSignalSpeedLimitMpS = () => Locomotive.Train.allowedMaxSpeedSignalMpS;
+                Script.CurrentSignalSpeedLimitMpS = () => Locomotive.Train.AllowedMaxSpeedSignalMpS;
                 Script.NextSignalSpeedLimitMpS = (value) => NextGenericSignalItem<float>(value, ref ItemSpeedLimit, float.MaxValue, TrainPathItemType.Signal, "NORMAL");
                 Script.NextSignalAspect = (value) => NextGenericSignalItem<TrackMonitorSignalAspect>(value, ref ItemAspect, float.MaxValue, TrainPathItemType.Signal, "NORMAL");
                 Script.NextSignalDistanceM = (value) => NextGenericSignalItem<float>(value, ref ItemDistance, float.MaxValue, TrainPathItemType.Signal, "NORMAL");
@@ -285,7 +285,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
                     NextGenericSignalItem<float>(0, ref ItemDistance, GenericItemDistance, TrainPathItemType.Signal, type);
                 Script.NextGenericSignalFeatures = (arg1, arg2, arg3) => NextGenericSignalFeatures(arg1, arg2, arg3, TrainPathItemType.Signal);
                 Script.DoesNextNormalSignalHaveRepeaterHead = () => DoesNextNormalSignalHaveRepeaterHead();
-                Script.CurrentPostSpeedLimitMpS = () => Locomotive.Train.allowedMaxSpeedLimitMpS;
+                Script.CurrentPostSpeedLimitMpS = () => Locomotive.Train.AllowedMaxSpeedLimitMpS;
                 Script.NextPostSpeedLimitMpS = (value) => NextGenericSignalItem<float>(value, ref ItemSpeedLimit, float.MaxValue, TrainPathItemType.Speedpost);
                 Script.NextPostDistanceM = (value) => NextGenericSignalItem<float>(value, ref ItemDistance, float.MaxValue, TrainPathItemType.Speedpost);
                 Script.NextTunnel = (value) =>

@@ -1355,6 +1355,16 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                             count[(int)cvc.ControlType]++;
                             continue;
                         }
+                        CabViewAnimatedDisplayControl anim = cvc as CabViewAnimatedDisplayControl;
+                        if (anim != null)
+                        {
+                            CabViewAnimationsRenderer animr = new CabViewAnimationsRenderer(viewer, car, anim, _Shader);
+                            animr.SortIndex = controlSortIndex;
+                            CabViewControlRenderersList[i].Add(animr);
+                            if (!ControlMap.ContainsKey(key)) ControlMap.Add(key, animr);
+                            count[(int)cvc.ControlType]++;
+                            continue;
+                        }
                         CabViewMultiStateDisplayControl multi = cvc as CabViewMultiStateDisplayControl;
                         if (multi != null)
                         {
@@ -2030,6 +2040,12 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 if ((mS.Styles.Count > index) && (mS.Styles[index] == 1) && (CumulativeTime > CVCFlashTimeOn))
                     return;
             }
+
+            PrepareFrameForIndex(frame, elapsedTime, index);
+        }
+
+        protected void PrepareFrameForIndex(RenderFrame frame, ElapsedTime elapsedTime, int index)
+        {
             var dark = Viewer.MaterialManager.sunDirection.Y <= -0.085f || Viewer.Camera.IsUnderground;
 
             Texture = CABTextureManager.GetTextureByIndexes(Control.AceFile, index, dark, Locomotive.CabLightOn, out IsNightTexture, HasCabLightDirectory);
@@ -2495,7 +2511,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         /// </summary>
         /// <param name="percent">Percent to be translated</param>
         /// <returns>The calculated display index by the Control's Values</returns>
-        private int PercentToIndex(float percent)
+        protected int PercentToIndex(float percent)
         {
             var index = 0;
 
@@ -2527,6 +2543,51 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             return index;
         }
     }
+
+    /// <summary>
+    /// Discrete renderer for animated controls, like external 2D wiper
+    /// </summary>
+    public class CabViewAnimationsRenderer : CabViewDiscreteRenderer
+    {
+        private double CumulativeTime;
+        private readonly float CycleTimeS;
+        private bool AnimationOn = false;
+
+        public CabViewAnimationsRenderer(Viewer viewer, MSTSLocomotive locomotive, CabViewAnimatedDisplayControl control, CabShader shader)
+            : base(viewer, locomotive, control, shader)
+        {
+            CycleTimeS = control.CycleTimeS;
+        }
+
+        public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
+        {
+            var animate = Locomotive.GetDataOf(Control) != 0;
+            if (animate)
+                AnimationOn = true;
+
+            int index;
+            var halfCycleS = CycleTimeS / 2f;
+            if (AnimationOn)
+            {
+                CumulativeTime += elapsedTime.ClockSeconds;
+                if (CumulativeTime > CycleTimeS && !animate)
+                    AnimationOn = false;
+                CumulativeTime %= CycleTimeS;
+
+                if (CumulativeTime < halfCycleS)
+                    index = PercentToIndex((float)(CumulativeTime / halfCycleS));
+                else
+                    index = PercentToIndex((float)(CycleTimeS - CumulativeTime) / halfCycleS);
+            }
+            else
+            {
+                index = 0;
+            }
+
+            PrepareFrameForIndex(frame, elapsedTime, index);
+        }
+    }
+
 
     /// <summary>
     /// Digital Cab Control renderer
