@@ -568,7 +568,7 @@ namespace Orts.ActivityRunner.Viewer3D
                         mstsskytexturex = mstsskytexture[i].TileX;
                         mstsskytexturey = mstsskytexture[i].TileY;
                     }
-                    else if (mstsskytexture[i].Fadein_Begin_Time != null)
+                    else if (mstsskytexture[i].FadeinStartTime != null)
                     {
                         mstsSkyStarTexture = mstsSkyTextures[i];
                         mstsskytexturex = mstsskytexture[i].TileX;

@@ -116,8 +116,8 @@ namespace Orts.Formats.Msts.Files
         public string End { get; private set; }
         public PathFlags Flags { get; private set; }
         public bool IsPlayerPath => (Flags & PathFlags.NotPlayerPath) == 0;
-        public List<PathDataPoint> DataPoints { get; } = new List<PathDataPoint>();
-        public List<PathNode> PathNodes { get; } = new List<PathNode>();
+        public PathDataPoints DataPoints { get; } = new PathDataPoints();
+        public PathNodes PathNodes { get; } = new PathNodes();
 
         #endregion
         /// <summary>
@@ -141,7 +141,7 @@ namespace Orts.Formats.Msts.Files
 						new STFReader.TokenProcessor("trpathend", ()=>{ End = stf.ReadStringBlock(null); }),
                         new STFReader.TokenProcessor("trpathnodes", ()=>{
                             stf.MustMatchBlockStart();
-                            var count = stf.ReadInt(null);
+                            int count = stf.ReadInt(null);
                             stf.ParseBlock(new STFReader.TokenProcessor[] {
                                 new STFReader.TokenProcessor("trpathnode", ()=>{
                                     if (--count < 0)

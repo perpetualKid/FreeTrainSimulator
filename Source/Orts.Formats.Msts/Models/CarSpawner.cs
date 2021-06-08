@@ -5,12 +5,12 @@ using System.IO;
 
 namespace Orts.Formats.Msts.Models
 {
-    public class CarSpawnerList: List<CarSpawner>
+    public class CarSpawners: List<CarSpawner>
     {
         public string ListName { get; private set; }
         public bool IgnoreXRotation { get; private set; }// true for humans
 
-        public CarSpawnerList(STFReader stf, string shapePath, string listName)
+        public CarSpawners(STFReader stf, string shapePath, string listName)
         {
             ListName = listName;
             var count = stf.ReadInt(null);

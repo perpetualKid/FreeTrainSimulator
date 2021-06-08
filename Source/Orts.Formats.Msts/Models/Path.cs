@@ -1,4 +1,6 @@
-﻿using Orts.Common.Position;
+﻿using System.Collections.Generic;
+
+using Orts.Common.Position;
 using Orts.Formats.Msts.Parsers;
 
 namespace Orts.Formats.Msts.Models
@@ -12,11 +14,11 @@ namespace Orts.Formats.Msts.Models
 
         #region Properties
         //Note : these flags are not understood in all detail
-        public bool IsJunction { get { return JunctionFlag == 2; } }
-        public bool IsInvalid { get { return InvalidFlag == 9; } } //TODO: probably also 12 is invalid.
+        public bool IsJunction => JunctionFlag == 2;
+        public bool IsInvalid => InvalidFlag == 9;  //TODO: probably also 12 is invalid.
         #endregion
 
-        public PathDataPoint(STFReader stf)
+        internal PathDataPoint(STFReader stf)
         {
             stf.MustMatchBlockStart();
             location = new WorldLocation(stf.ReadInt(null), stf.ReadInt(null),
@@ -27,6 +29,9 @@ namespace Orts.Formats.Msts.Models
         }
     }
 
+    public class PathDataPoints : List<PathDataPoint>
+    { }
+
     // for an explanation, see class PATfile 
     public class PathNode
     {
@@ -35,12 +40,12 @@ namespace Orts.Formats.Msts.Models
         public uint NextSidingNode { get; private set; }
         public uint PathDataPoint { get; private set; }
 
-        public bool HasNextMainNode { get { return (NextMainNode != 0xffffffff); } }
-        public bool HasNextSidingNode { get { return (NextSidingNode != 0xffffffff); } }
+        public bool HasNextMainNode => (NextMainNode != 0xffffffff);
+        public bool HasNextSidingNode => (NextSidingNode != 0xffffffff);
 
         public int WaitTime => (int)(((uint)PathFlags >> 16) & 0xFFFF);
 
-        public PathNode(STFReader stf)
+        internal PathNode(STFReader stf)
         {
             stf.MustMatchBlockStart();
             PathFlags = (PathFlags)stf.ReadHex(0);
@@ -50,7 +55,7 @@ namespace Orts.Formats.Msts.Models
             stf.SkipRestOfBlock();
         }
 
-        public PathNode(uint flags, uint nextNode, uint nextSiding, uint pathDataPoint)
+        internal PathNode(uint flags, uint nextNode, uint nextSiding, uint pathDataPoint)
         {
             PathFlags = (PathFlags)flags;
             NextMainNode = nextNode;
@@ -58,4 +63,7 @@ namespace Orts.Formats.Msts.Models
             PathDataPoint = pathDataPoint;
         }
     }
+
+    public class PathNodes : List<PathNode>
+    { }
 }
