@@ -12,15 +12,15 @@
         }
     }
 
-    public class SimisAceImage
-    {
-        public int[] Color { get; private set; }
-        public int[] Mask { get; private set; }
+    //public class SimisAceImage
+    //{
+    //    public int[] Color { get; private set; }
+    //    public int[] Mask { get; private set; }
 
-        public SimisAceImage(int[] color, int[] mask)
-        {
-            Color = color;
-            Mask = mask;
-        }
-    }
+    //    public SimisAceImage(int[] color, int[] mask)
+    //    {
+    //        Color = color;
+    //        Mask = mask;
+    //    }
+    //}
 }

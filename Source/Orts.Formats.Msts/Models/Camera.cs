@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-
+﻿
 using Microsoft.Xna.Framework;
 
 using Orts.Formats.Msts.Parsers;
@@ -40,7 +39,4 @@ namespace Orts.Formats.Msts.Models
         public ref readonly Vector3 RotationLimit => ref rotationLimit;
         public string Description { get; private set; } = "";
     }
-
-    public class Cameras : List<Camera>
-    { }
 }

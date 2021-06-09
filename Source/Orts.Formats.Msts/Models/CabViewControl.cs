@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -14,7 +15,7 @@ namespace Orts.Formats.Msts.Models
 {
     public class CabViewControls : List<CabViewControl>
     {
-        public CabViewControls(STFReader stf, string basePath)
+        internal CabViewControls(STFReader stf, string basePath)
         {
             stf.MustMatchBlockStart();
             int count = stf.ReadInt(null);
@@ -56,7 +57,7 @@ namespace Orts.Formats.Msts.Models
     #region CabViewControl
     public abstract class CabViewControl
     {
-        protected Rectangle bounds;
+        private protected Rectangle bounds;
         public ref readonly Rectangle Bounds => ref bounds;
 
         public float ScaleRangeMin { get; protected set; }
@@ -69,7 +70,7 @@ namespace Orts.Formats.Msts.Models
         public CabViewControlStyle ControlStyle { get; protected set; }
         public CabViewControlUnit ControlUnit { get; protected set; }
 
-        protected void ParseType(STFReader stf)
+        private protected void ParseType(STFReader stf)
         {
             stf.MustMatchBlockStart();
             if (!EnumExtension.GetValue(stf.ReadString(), out CabViewControlType type))
@@ -83,7 +84,7 @@ namespace Orts.Formats.Msts.Models
             stf.SkipRestOfBlock();
         }
 
-        protected void ParsePosition(STFReader stf)
+        private protected void ParsePosition(STFReader stf)
         {
             stf.MustMatchBlockStart();
             bounds = new Rectangle(stf.ReadInt(null), stf.ReadInt(null), stf.ReadInt(null), stf.ReadInt(null));
@@ -97,7 +98,7 @@ namespace Orts.Formats.Msts.Models
             }
         }
 
-        protected void ParseScaleRange(STFReader stf)
+        private protected void ParseScaleRange(STFReader stf)
         {
             stf.MustMatchBlockStart();
             ScaleRangeMin = stf.ReadFloat(null);
@@ -105,12 +106,12 @@ namespace Orts.Formats.Msts.Models
             stf.SkipRestOfBlock();
         }
 
-        protected void ParseGraphic(STFReader stf, string basePath)
+        private protected void ParseGraphic(STFReader stf, string basePath)
         {
             AceFile = Path.Combine(basePath, stf.ReadStringBlock(null));
         }
 
-        protected void ParseStyle(STFReader stf)
+        private protected void ParseStyle(STFReader stf)
         {
             stf.MustMatchBlockStart();
             string styleTemp = stf.ReadString();
@@ -128,7 +129,7 @@ namespace Orts.Formats.Msts.Models
             stf.SkipRestOfBlock();
         }
 
-        protected void ParseUnits(STFReader stf)
+        private protected void ParseUnits(STFReader stf)
         {
             stf.MustMatchBlockStart();
             string units = stf.ReadItem().Replace('/', '_');
@@ -143,7 +144,7 @@ namespace Orts.Formats.Msts.Models
         }
 
         // Used by subclasses Gauge and Digital
-        protected virtual Color ParseControlColor(STFReader stf)
+        private protected virtual Color ParseControlColor(STFReader stf)
         {
             stf.MustMatchBlockStart();
             Color colour = new Color(stf.ReadInt(0) / 255f, stf.ReadInt(0) / 255f, stf.ReadInt(0) / 255f, 1.0f);
@@ -151,7 +152,7 @@ namespace Orts.Formats.Msts.Models
             return colour;
         }
 
-        protected virtual (Color[] Colors, float TriggerValue) ParseControlColors(STFReader stf)
+        private protected virtual (Color[] Colors, float TriggerValue) ParseControlColors(STFReader stf)
         {
             float trigger = 0f;
             List<Color> colors = new List<Color>(stf.ReadInt(0));
@@ -168,10 +169,10 @@ namespace Orts.Formats.Msts.Models
             return (colors.ToArray(), trigger);
         }
 
-        protected virtual float ParseSwitchVal(STFReader stf)
+        private protected virtual float ParseSwitchVal(STFReader stf)
         {
             stf.MustMatchBlockStart();
-            var switchVal = stf.ReadFloat(0);
+            float switchVal = stf.ReadFloat(0);
             stf.SkipRestOfBlock();
             return switchVal;
         }
@@ -181,10 +182,10 @@ namespace Orts.Formats.Msts.Models
             return ($"{Bounds.X},{Bounds.Y}\t{Bounds.Width}x{Bounds.Height}\t{ControlStyle}\t{ControlType}");
         }
 
-        protected virtual float ParseRotation(STFReader stf)
+        private protected virtual float ParseRotation(STFReader stf)
         {
             stf.MustMatch("(");
-            var rotation = -MathHelper.ToRadians((float)stf.ReadDouble(0));
+            float rotation = -MathHelper.ToRadians((float)stf.ReadDouble(0));
             stf.SkipRestOfBlock();
             return rotation;
         }
@@ -200,7 +201,7 @@ namespace Orts.Formats.Msts.Models
         public Rotation Direction { get; private set; }
 
         // constructor for clock dials
-        public CabViewDialControl(CabViewControlType dialtype, int maxValue, STFReader stf, string basePath)
+        internal CabViewDialControl(CabViewControlType dialtype, int maxValue, STFReader stf, string basePath)
         {
             stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
@@ -218,7 +219,7 @@ namespace Orts.Formats.Msts.Models
         }
 
         // constructor for standard dials
-        public CabViewDialControl(STFReader stf, string basePath)
+        internal CabViewDialControl(STFReader stf, string basePath)
         {
             stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
@@ -245,7 +246,7 @@ namespace Orts.Formats.Msts.Models
     #region Gauges
     public class CabViewGaugeControl : CabViewControl
     {
-        protected Rectangle area;
+        private protected Rectangle area;
 
         public ref readonly Rectangle Area => ref area;
         public int ZeroPos { get; private set; }
@@ -260,7 +261,7 @@ namespace Orts.Formats.Msts.Models
         
         public CabViewGaugeControl() { }
 
-        public CabViewGaugeControl(STFReader stf, string basePath)
+        internal CabViewGaugeControl(STFReader stf, string basePath)
         {
             stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
@@ -305,7 +306,7 @@ namespace Orts.Formats.Msts.Models
     {
         public string FireBoxAceFile { get; private set; }
 
-        public CabViewFireboxControl(STFReader stf, string basePath)
+        internal CabViewFireboxControl(STFReader stf, string basePath)
         {
             stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
@@ -347,7 +348,7 @@ namespace Orts.Formats.Msts.Models
         {
         }
 
-        public CabViewDigitalControl(STFReader stf, string basePath)
+        internal CabViewDigitalControl(STFReader stf, string basePath)
         {
             // Set white as the default positive colour for digital displays
             PositiveColors[0] = Color.White;
@@ -389,35 +390,35 @@ namespace Orts.Formats.Msts.Models
             });
         }
 
-        protected virtual void ParseLeadingZeros(STFReader stf)
+        private protected virtual void ParseLeadingZeros(STFReader stf)
         {
             stf.MustMatchBlockStart();
             LeadingZeros = stf.ReadInt(0);
             stf.SkipRestOfBlock();
         }
 
-        protected virtual void ParseAccuracy(STFReader stf)
+        private protected virtual void ParseAccuracy(STFReader stf)
         {
             stf.MustMatchBlockStart();
             Accuracy = stf.ReadFloat(0);
             stf.SkipRestOfBlock();
         }
 
-        protected virtual void ParseAccuracySwitch(STFReader stf)
+        private protected virtual void ParseAccuracySwitch(STFReader stf)
         {
             stf.MustMatchBlockStart();
             AccuracySwitch = stf.ReadFloat(0);
             stf.SkipRestOfBlock();
         }
 
-        protected virtual void ParseJustification(STFReader stf)
+        private protected virtual void ParseJustification(STFReader stf)
         {
             stf.MustMatchBlockStart();
             Justification = stf.ReadInt(3);
             stf.SkipRestOfBlock();
         }
 
-        protected void ParseFont(STFReader stf)
+        private protected void ParseFont(STFReader stf)
         {
             stf.MustMatchBlockStart();
             FontSize = (float)stf.ReadFloat(10);
@@ -430,8 +431,9 @@ namespace Orts.Formats.Msts.Models
     public class CabViewDigitalClockControl : CabViewDigitalControl
     {
 
-        public CabViewDigitalClockControl(STFReader stf, string basePath)
+        internal CabViewDigitalClockControl(STFReader stf, string basePath)
         {
+            _ = basePath;
             FontSize = 8;
             FontStyle = 0;
             FontFamily = "Lucida Sans";
@@ -459,18 +461,18 @@ namespace Orts.Formats.Msts.Models
         public int Orientation { get; protected set; }
         public int Direction { get; protected set; }
 
-        public List<float> Values { get; } = new List<float>();
+        public IList<float> Values { get; } = new List<float>();
     }
 
     public class CabViewDiscreteControl : CabViewFramedControl
     {
-        public List<int> Positions { get; } = new List<int>();
+        public IList<int> Positions { get; } = new List<int>();
 
         private int valuesRead;
         private int numPositions;
         private bool canFill = true;
 
-        public CabViewDiscreteControl(STFReader stf, string basePath)
+        internal CabViewDiscreteControl(STFReader stf, string basePath)
         {
             stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
@@ -526,7 +528,7 @@ namespace Orts.Formats.Msts.Models
                         if (Positions.Any(p => p > 0xFFFF))
                         {
                             STFException.TraceInformation(stf, "Renumbering cab control positions from zero due to value > 0xFFFF");
-                            for (var i = 0; i < Positions.Count; i++)
+                            for (int i = 0; i < Positions.Count; i++)
                                 Positions[i] = i;
                         }
 
@@ -780,9 +782,9 @@ namespace Orts.Formats.Msts.Models
     #region Multistate Display Controls
     public class CabViewMultiStateDisplayControl : CabViewFramedControl
     {
-        public List<float> Styles { get; } = new List<float>();
+        public IList<float> Styles { get; } = new List<float>();
 
-        public CabViewMultiStateDisplayControl(STFReader stf, string basePath)
+        internal CabViewMultiStateDisplayControl(STFReader stf, string basePath)
         {
 
             stf.MustMatchBlockStart();
@@ -815,7 +817,7 @@ namespace Orts.Formats.Msts.Models
             });
         }
 
-        protected int ParseNumStyle(STFReader stf)
+        private protected int ParseNumStyle(STFReader stf)
         {
             stf.MustMatchBlockStart();
             int style = stf.ReadInt(0);
@@ -828,12 +830,13 @@ namespace Orts.Formats.Msts.Models
     #region Screen based controls
     public class CabViewScreenControl : CabViewControl
     {
-        public readonly Dictionary<string, string> CustomParameters = new Dictionary<string, string>();
+        public Dictionary<string, string> CustomParameters { get; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
         public CabViewScreenControl()
         {
         }
 
-        public CabViewScreenControl(STFReader stf, string basepath)
+        internal CabViewScreenControl(STFReader stf, string basepath)
         {
             stf.MustMatch("(");
             stf.ParseBlock(new STFReader.TokenProcessor[] {
@@ -844,22 +847,22 @@ namespace Orts.Formats.Msts.Models
                 new STFReader.TokenProcessor("parameters", ()=>{ ParseCustomParameters(stf); }),
             });
         }
-        protected void ParseCustomParameters(STFReader stf)
+        private protected void ParseCustomParameters(STFReader stf)
         {
             stf.MustMatch("(");
             while (!stf.EndOfBlock())
             {
-                CustomParameters[stf.ReadString().ToLower()] = stf.ReadString().ToLower();
+                CustomParameters[stf.ReadString()] = stf.ReadString();
             }
         }
     }
 
     public class CabViewAnimatedDisplayControl : CabViewFramedControl
     {
-        public List<double> MSStyles = new List<double>();
-        public float CycleTimeS;
+        public IList<double> MSStyles { get; } = new List<double>();
+        public float CycleTimeS { get; private set; }
 
-        public CabViewAnimatedDisplayControl(STFReader stf, string basepath)
+        internal CabViewAnimatedDisplayControl(STFReader stf, string basepath)
         {
 
             stf.MustMatch("(");
@@ -892,10 +895,10 @@ namespace Orts.Formats.Msts.Models
                 }),
             });
         }
-        protected int ParseNumStyle(STFReader stf)
+        private protected static int ParseNumStyle(STFReader stf)
         {
             stf.MustMatch("(");
-            var style = stf.ReadInt(0);
+            int style = stf.ReadInt(0);
             stf.SkipRestOfBlock();
             return style;
         }
@@ -905,7 +908,7 @@ namespace Orts.Formats.Msts.Models
     #region other controls
     public class CabViewSignalControl : CabViewDiscreteControl
     {
-        public CabViewSignalControl(STFReader inf, string basePath)
+        internal CabViewSignalControl(STFReader inf, string basePath)
             : base(inf, basePath)
         {
             FramesCount = 8;

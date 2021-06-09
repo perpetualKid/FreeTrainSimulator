@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 using Orts.Formats.Msts.Parsers;
 
@@ -25,9 +24,6 @@ namespace Orts.Formats.Msts.Models
                 });
         }
     }
-
-    public class WaterLayers : List<WaterLayer> 
-    { }
 
     public class SkyLayer
     {
@@ -61,9 +57,6 @@ namespace Orts.Formats.Msts.Models
         }
     }
 
-    public class SkyLayers : List<SkyLayer>
-    { }
-
     public class SkySatellite
     {
 
@@ -84,7 +77,4 @@ namespace Orts.Formats.Msts.Models
                 });
         }
     }
-
-    public class SkySatellites : List<SkySatellite>
-    { }
 }

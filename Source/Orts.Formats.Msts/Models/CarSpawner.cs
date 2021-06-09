@@ -10,10 +10,10 @@ namespace Orts.Formats.Msts.Models
         public string ListName { get; private set; }
         public bool IgnoreXRotation { get; private set; }// true for humans
 
-        public CarSpawners(STFReader stf, string shapePath, string listName)
+        internal CarSpawners(STFReader stf, string shapePath, string listName)
         {
             ListName = listName;
-            var count = stf.ReadInt(null);
+            int count = stf.ReadInt(null);
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("ignorexrotation", ()=>{IgnoreXRotation = stf.ReadBoolBlock(true); }),
                 new STFReader.TokenProcessor("carspawneritem", ()=>{
@@ -39,7 +39,7 @@ namespace Orts.Formats.Msts.Models
         public string Name { get; private set; }
         public float Distance { get; private set; }
 
-        public CarSpawner(STFReader stf, string shapePath)
+        internal CarSpawner(STFReader stf, string shapePath)
         {
             stf.MustMatchBlockStart();
             //pre fit in the shape path so no need to do it again and again later
