@@ -1,10 +1,5 @@
 ﻿namespace Orts.Formats.Msts.Models
 {
-    public class AceInfo
-    {
-        public byte AlphaBits;
-    }
-
     public class SimisAceChannel
     {
         public int Size { get; private set; }

@@ -127,12 +127,10 @@ namespace Orts.Formats.Msts.Files
             }
 
             // Construct some info about this texture for the game to use in optimisations.
-            AceInfo aceInfo = new AceInfo();
-            texture.Tag = aceInfo;
             if (channels.Any(c => c.Type == SimisAceChannelId.Alpha))
-                aceInfo.AlphaBits = 8;
+                texture.Tag = (byte)8;
             else if (channels.Any(c => c.Type == SimisAceChannelId.Mask))
-                aceInfo.AlphaBits = 1;
+                texture.Tag = (byte)1;
 
             if ((options & SimisAceFormatOptions.RawData) != 0)
             {
