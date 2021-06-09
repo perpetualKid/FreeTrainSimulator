@@ -214,7 +214,7 @@ namespace Orts.Formats.Msts.Models
                 new STFReader.TokenProcessor("texttodisplayoncompletioniftriggered", ()=>{ TextToDisplayOnCompletionIfTriggered = stf.ReadStringBlock(""); }),
                 new STFReader.TokenProcessor("texttodisplayoncompletionifnotriggered", ()=>{ TextToDisplayOnCompletionIfNotTriggered = stf.ReadStringBlock(""); }),
                 new STFReader.TokenProcessor("name", ()=>{ Name = stf.ReadStringBlock(""); }),
-                new STFReader.TokenProcessor("wagon_list", ()=>{ WorkOrderWagons = new WorkOrderWagons(stf, Type); }),
+                new STFReader.TokenProcessor("wagon_list", ()=>{ WorkOrderWagons = new WorkOrderWagons(stf); }),
                 new STFReader.TokenProcessor("sidingitem", ()=>{ SidingId = (uint)stf.ReadIntBlock(null); }),
                 new STFReader.TokenProcessor("speed", ()=>{ SpeedMpS = stf.ReadFloatBlock(STFReader.Units.Speed, null); }),
                 new STFReader.TokenProcessor("reversable_event", ()=>{ stf.MustMatchBlockStart(); stf.MustMatchBlockEnd(); Reversible = true; }),

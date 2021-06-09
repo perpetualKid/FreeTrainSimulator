@@ -56,7 +56,7 @@ namespace Orts.Simulation.Signalling
             TrackItemIndex = trackItem;
             TDBIndex = tbdRef;
 
-            if (signalItem?.SignalDirections?.Length > 0)
+            if (signalItem?.SignalDirections?.Count > 0)
             {
                 TrackJunctionNode = signalItem.SignalDirections[0].TrackNode;
                 JunctionPath = signalItem.SignalDirections[0].LinkLRPath;

@@ -292,7 +292,7 @@ namespace Orts.Formats.Msts.Models
                                         subSubBlockUID.Skip();
                                         while (!subBlock.EndOfBlock() && !wrongBlock)
                                         {
-                                            using (var subSubBlock = subBlock.ReadSubBlock())
+                                            using (SBR subSubBlock = subBlock.ReadSubBlock())
                                             {
                                                 origObject.AddOrModifyObj(subSubBlock);
                                             }
@@ -340,7 +340,7 @@ namespace Orts.Formats.Msts.Models
         {
         }
 
-        public BasicObject(SBR block, int detailLevel, int tileX, int tileZ)
+        internal BasicObject(SBR block, int detailLevel, int tileX, int tileZ)
         {
             DetailLevel = detailLevel;
 
@@ -412,7 +412,7 @@ namespace Orts.Formats.Msts.Models
         /// <summary>
         /// Creates the object, but currently skips the animation field.
         /// </summary>
-        public PickupObject(SBR block, int detailLevel, int tileX, int tileZ)
+        internal PickupObject(SBR block, int detailLevel, int tileX, int tileZ)
         {
             DetailLevel = detailLevel;
             ReadBlock(block, tileX, tileZ);
@@ -479,7 +479,7 @@ namespace Orts.Formats.Msts.Models
         public float Width { get; private set; }
         public float Height { get; private set; }
 
-        public TransferObject(SBR block, int detailLevel, int tileX, int tileZ)
+        internal TransferObject(SBR block, int detailLevel, int tileX, int tileZ)
         {
             DetailLevel = detailLevel;
 
@@ -505,7 +505,7 @@ namespace Orts.Formats.Msts.Models
         public uint CollideFlags { get; private set; }
         public ref readonly WorldLocation WorldLocation => ref location;
 
-        public TrackObject(SBR block, int detailLevel, int tileX, int tileZ)
+        internal TrackObject(SBR block, int detailLevel, int tileX, int tileZ)
         {
             DetailLevel = detailLevel;
 
@@ -537,9 +537,9 @@ namespace Orts.Formats.Msts.Models
         public uint SectionIndex { get; private set; }
         public float Elevation { get; private set; }
         public uint CollideFlags { get; private set; }
-        public List<TrackSection> TrackSections { get; private set; }
+        public IList<TrackSection> TrackSections { get; private set; }
 
-        public DynamicTrackObject(SBR block, int detailLevel, int tileX, int tileZ)
+        internal DynamicTrackObject(SBR block, int detailLevel, int tileX, int tileZ)
         {
             DetailLevel = detailLevel;
 
@@ -561,7 +561,7 @@ namespace Orts.Formats.Msts.Models
         // DyntrackObj copy constructor with a single TrackSection
         public DynamicTrackObject(DynamicTrackObject source, int trackSetionIndex)
         {
-            SectionIndex = source.SectionIndex;
+            SectionIndex = source?.SectionIndex ?? throw new ArgumentNullException(nameof(source));
             Elevation = source.Elevation;
             CollideFlags = source.CollideFlags;
             StaticFlags = source.StaticFlags;
@@ -573,11 +573,11 @@ namespace Orts.Formats.Msts.Models
             TrackSections = new List<TrackSection>() { source.TrackSections[trackSetionIndex] };
         }
 
-        private List<TrackSection> ReadTrackSections(SBR block)
+        private static IList<TrackSection> ReadTrackSections(SBR block)
         {
             List<TrackSection> result = new List<TrackSection>();
             block.VerifyID(TokenID.TrackSections);
-            var count = 5;
+            int count = 5;
             while (count-- > 0)
                 result.Add(new TrackSection(block.ReadSubBlock()));
             block.VerifyEndOfBlock();
@@ -594,7 +594,7 @@ namespace Orts.Formats.Msts.Models
         public Size2D ForestArea { get; private set; }
         public Size2D TreeSize { get; private set; }
 
-        public ForestObject(SBR block, int detailLevel, int tileX, int tileZ)
+        internal ForestObject(SBR block, int detailLevel, int tileX, int tileZ)
         {
             DetailLevel = detailLevel;
 
@@ -623,7 +623,7 @@ namespace Orts.Formats.Msts.Models
         public uint SignalSubObject { get; private set; }
         public SignalUnits SignalUnits { get; private set; }
 
-        public SignalObject(SBR block, int detailLevel, int tileX, int tileZ)
+        internal SignalObject(SBR block, int detailLevel, int tileX, int tileZ)
         {
             DetailLevel = detailLevel;
 
@@ -645,10 +645,10 @@ namespace Orts.Formats.Msts.Models
     {
         public string TextureFile { get; private set; } //ace
         public TextData TextSize { get; private set; }// ( 0.08 0.06 0 )
-        public List<Vector4> SignShapes { get; } = new List<Vector4>();
+        public IList<Vector4> SignShapes { get; } = new List<Vector4>();
         public TrackItems TrackItemIds { get; } = new TrackItems();
 
-        public SpeedPostObject(SBR block, int detailLevel, int tileX, int tileZ)
+        internal SpeedPostObject(SBR block, int detailLevel, int tileX, int tileZ)
         {
             DetailLevel = detailLevel;
 
@@ -672,7 +672,7 @@ namespace Orts.Formats.Msts.Models
         {
             block.VerifyID(TokenID.Speed_Sign_Shape);
             int numShapes = block.ReadInt();
-            for (var i = 0; i < numShapes; i++)
+            for (int i = 0; i < numShapes; i++)
             {
                 SignShapes.Add(new Vector4(block.ReadFloat(), block.ReadFloat(), -block.ReadFloat(), block.ReadFloat()));
             }
@@ -710,8 +710,8 @@ namespace Orts.Formats.Msts.Models
             block.VerifyEndOfBlock();
         }
 
-        public List<int> RoadDbItems { get; } = new List<int>();
-        public List<int> TrackDbItems { get; } = new List<int>();
+        public IList<int> RoadDbItems { get; } = new List<int>();
+        public IList<int> TrackDbItems { get; } = new List<int>();
     }
 
     public class LevelCrossingObject : WorldObject
@@ -727,7 +727,7 @@ namespace Orts.Formats.Msts.Models
         public float WarningTime { get; private set; }
         public float MinimumDistance { get; private set; }
 
-        public LevelCrossingObject(SBR block, int detailLevel, int tileX, int tileZ)
+        internal LevelCrossingObject(SBR block, int detailLevel, int tileX, int tileZ)
         {
             DetailLevel = detailLevel;
 
@@ -793,7 +793,7 @@ namespace Orts.Formats.Msts.Models
             }
         }
 
-        public HazardObject(SBR block, int detailLevel, int tileX, int tileZ)
+        internal HazardObject(SBR block, int detailLevel, int tileX, int tileZ)
         {
             DetailLevel = detailLevel;
 
@@ -831,7 +831,7 @@ namespace Orts.Formats.Msts.Models
         public string ListName { get; private set; } // name of car list associated to this car spawner
         public int CarSpawnerListIndex { get; set; }
 
-        public CarSpawnerObject(SBR block, int detailLevel, int tileX, int tileZ)
+        internal CarSpawnerObject(SBR block, int detailLevel, int tileX, int tileZ)
         {
             DetailLevel = detailLevel;
             CarFrequency = 5.0f;
@@ -899,7 +899,7 @@ namespace Orts.Formats.Msts.Models
     {
         public uint PlatformData { get; private set; }
 
-        public PlatformObject(SBR block, int detailLevel, int tileX, int tileZ)
+        internal PlatformObject(SBR block, int detailLevel, int tileX, int tileZ)
         {
             DetailLevel = detailLevel;
 
