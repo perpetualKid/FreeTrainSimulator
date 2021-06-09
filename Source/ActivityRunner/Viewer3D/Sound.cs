@@ -755,7 +755,7 @@ namespace Orts.ActivityRunner.Viewer3D
             }
             if (iSG < smsFile.ScalabiltyGroups.Count && smsFile.ScalabiltyGroups[iSG].Streams != null)  // else we want less sound so don't provide any
             {
-                ScalabiltyGroup mstsScalabiltyGroup = smsFile.ScalabiltyGroups[iSG];
+                ScalabilityGroup mstsScalabiltyGroup = smsFile.ScalabiltyGroups[iSG];
 
                 ActivationConditions = mstsScalabiltyGroup.Activation;
                 DeactivationConditions = mstsScalabiltyGroup.Deactivation;
@@ -2267,7 +2267,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <summary>
         /// File names to select from for playing
         /// </summary>
-        public String[] Files;
+        public IList<string> Files { get; private set; }
         /// <summary>
         /// How to select from available files
         /// </summary>
@@ -2280,7 +2280,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public ORTSSoundPlayCommand(SoundStream ortsStream, SoundPlayCommand mstsSoundPlayCommand)
             : base(ortsStream)
         {
-            Files = mstsSoundPlayCommand.Files;
+            Files = mstsSoundPlayCommand?.Files;
             SelectionMethod = mstsSoundPlayCommand.SelectionMethod;
         }
 
@@ -2288,8 +2288,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public ORTSSoundPlayCommand(SoundStream ortsStream, string wavFileName)
             : base(ortsStream)
         {
-            Files = new String[1];
-            Files[0] = wavFileName;
+            Files = new List<string>() { wavFileName };
             SelectionMethod = SoundPlayCommand.Selection.Sequential;
         }
 
@@ -2302,12 +2301,12 @@ namespace Orts.ActivityRunner.Viewer3D
             if (SelectionMethod == SoundPlayCommand.Selection.Sequential)
             {
                 ++iFile;
-                if (iFile >= Files.Length)
+                if (iFile >= Files.Count)
                     iFile = 0;
             }
             else if (SelectionMethod == SoundPlayCommand.Selection.Random)
             {
-                iFile = Viewer.Random.Next(Files.Length);
+                iFile = Viewer.Random.Next(Files.Count);
             }
 
             string[] pathArray = {  Path.Combine(Simulator.Instance.RoutePath, "SOUND"),
@@ -2319,7 +2318,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
     public class WorldSounds
     {
-        private Dictionary<string, List<WorldSoundRegion>> SoundRegions = new Dictionary<string, List<WorldSoundRegion>>();
+        private Dictionary<string, IList<WorldSoundRegion>> SoundRegions = new Dictionary<string, IList<WorldSoundRegion>>();
         private Viewer Viewer;
         private SoundSource ss;
 

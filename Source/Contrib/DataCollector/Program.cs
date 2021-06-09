@@ -96,8 +96,8 @@ namespace Orts.DataCollector
                                     throw new InvalidDataException($"Tile has {t.Terrain.Patchsets.Length} patch sets; expected 1.");
                                 if (t.Terrain.Patchsets[0].PatchSize != 16)
                                     throw new InvalidDataException($"Tile has {t.Terrain.Patchsets[0].PatchSize} patches; expected 16.");
-                                if (t.Terrain.Patchsets[0].Patches.Length != 256)
-                                    throw new InvalidDataException($"Tile has {t.Terrain.Patchsets[0].Patches.Length} patches; expected 256.");
+                                if (t.Terrain.Patchsets[0].Patches.Count != 256)
+                                    throw new InvalidDataException($"Tile has {t.Terrain.Patchsets[0].Patches.Count} patches; expected 256.");
 
                                 data.TileCount++;
                                 Formats.Msts.Models.PatchSet patchset = t.Terrain.Patchsets[0];
