@@ -243,7 +243,7 @@ namespace Orts.Formats.Msts.Models
                         case TokenID.Terrain_PatchSet_Patches:
                             Patches = new List<Patch>(PatchSize * PatchSize);
                             for (int i = 0; i < (PatchSize*PatchSize); ++i)
-                                Patches[i] = new Patch(subBlock.ReadSubBlock());
+                                Patches.Add(new Patch(subBlock.ReadSubBlock()));
                             break;
                     }
                 }
@@ -276,13 +276,13 @@ namespace Orts.Formats.Msts.Models
                             int size = (int)subBlock.ReadUInt();
                             Textureslots = new List<TextureSlot>(size);
                             for (int i = 0; i < size; ++i)
-                                Textureslots[i] = new TextureSlot(subBlock.ReadSubBlock());
+                                Textureslots.Add(new TextureSlot(subBlock.ReadSubBlock()));
                             break;
                         case TokenID.Terrain_UVCalcs:
                             size = (int)subBlock.ReadUInt();
                             UVCalcs = new List<UVCalc>(size);
                             for (int i = 0; i < size; ++i)
-                                UVCalcs[i] = new UVCalc(subBlock.ReadSubBlock());
+                                UVCalcs.Add(new UVCalc(subBlock.ReadSubBlock()));
                             break;
                         default:
                             break;
