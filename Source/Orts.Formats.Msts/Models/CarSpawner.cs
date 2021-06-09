@@ -1,5 +1,6 @@
 ﻿using Orts.Formats.Msts.Parsers;
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -10,8 +11,11 @@ namespace Orts.Formats.Msts.Models
         public string ListName { get; private set; }
         public bool IgnoreXRotation { get; private set; }// true for humans
 
-        internal CarSpawners(STFReader stf, string shapePath, string listName)
+        public CarSpawners(STFReader stf, string shapePath, string listName)
         {
+            if (null == stf)
+                throw new ArgumentNullException(nameof(stf));
+
             ListName = listName;
             int count = stf.ReadInt(null);
             stf.ParseBlock(new STFReader.TokenProcessor[] {

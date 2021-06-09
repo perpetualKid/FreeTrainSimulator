@@ -553,7 +553,7 @@ namespace Orts.ActivityRunner.Viewer3D
             // TODO: This should happen on the loader thread. 
             if (viewer.ENVFile.SkyLayers != null)
             {
-                var mstsskytexture = Viewer.ENVFile.SkyLayers.ToArray();
+                var mstsskytexture = Viewer.ENVFile.SkyLayers;
                 int count = Viewer.ENVFile.SkyLayers.Count;
 
                 string[] mstsSkyTextureNames = new string[Viewer.ENVFile.SkyLayers.Count];
