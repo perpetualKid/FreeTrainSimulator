@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-
+﻿
 using Orts.Common.Position;
 using Orts.Formats.Msts.Parsers;
 
@@ -28,9 +27,6 @@ namespace Orts.Formats.Msts.Models
             stf.SkipRestOfBlock();
         }
     }
-
-    public class PathDataPoints : List<PathDataPoint>
-    { }
 
     // for an explanation, see class PATfile 
     public class PathNode
@@ -63,7 +59,4 @@ namespace Orts.Formats.Msts.Models
             PathDataPoint = pathDataPoint;
         }
     }
-
-    public class PathNodes : List<PathNode>
-    { }
 }

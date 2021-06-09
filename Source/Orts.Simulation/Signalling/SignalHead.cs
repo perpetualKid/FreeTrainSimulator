@@ -134,8 +134,8 @@ namespace Orts.Simulation.Signalling
 
                 if (SignalFunction == SignalFunction.Normal)
                 {
-                    MainSignal.SignalNumClearAheadMsts = Math.Max(MainSignal.SignalNumClearAheadMsts, SignalType.NumClearAhead_MSTS);
-                    MainSignal.SignalNumClearAheadOrts = Math.Max(MainSignal.SignalNumClearAheadOrts, SignalType.NumClearAhead_ORTS);
+                    MainSignal.SignalNumClearAheadMsts = Math.Max(MainSignal.SignalNumClearAheadMsts, SignalType.ClearAheadNumberMsts);
+                    MainSignal.SignalNumClearAheadOrts = Math.Max(MainSignal.SignalNumClearAheadOrts, SignalType.ClearAheadNumberOrts);
                     MainSignal.SignalNumClearAheadActive = MainSignal.SignalNumClearAheadOrts;
                 }
 

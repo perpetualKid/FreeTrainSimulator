@@ -287,7 +287,7 @@ namespace Orts.Formats.Msts.Models
 
     public class Matrices : List<Matrix>
     {
-        public List<string> MatrixNames { get; } = new List<string>();
+        public IList<string> MatrixNames { get; } = new List<string>();
 
         internal Matrices(SBR block)
         {
