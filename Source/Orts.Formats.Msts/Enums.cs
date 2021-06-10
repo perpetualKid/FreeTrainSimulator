@@ -111,7 +111,9 @@ namespace Orts.Formats.Msts
     // Bit 3 - 'other exit' is used (8/x8)
     // Bit 4 - 'optional Route' active (16/x10)
      [Flags]
+#pragma warning disable CA1711 // Identifiers should not have incorrect suffix
     public enum PathFlags
+#pragma warning restore CA1711 // Identifiers should not have incorrect suffix
     {
         None = 0x0,
         ReversalPoint = 1 << 0,
@@ -135,6 +137,7 @@ namespace Orts.Formats.Msts
 
     public enum SimisAceChannelId
     {
+        None = 0,
         Mask = 2,
         Red = 3,
         Green = 4,
@@ -496,7 +499,10 @@ namespace Orts.Formats.Msts
 
     #region WorldFile
     // These relate to the general properties settable for scenery objects in RE
+    [Flags]
+#pragma warning disable CA1711 // Identifiers should not have incorrect suffix
     public enum StaticFlag
+#pragma warning restore CA1711 // Identifiers should not have incorrect suffix
     {
         RoundShadow = 0x00002000,
         RectangularShadow = 0x00004000,

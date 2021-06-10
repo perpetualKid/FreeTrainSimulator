@@ -169,7 +169,7 @@ namespace Orts.Formats.Msts.Models
             TokenID.ViewDbSphere,
         };
 
-        internal WorldObjects(SBR block, List<TokenID> allowedTokens, int tileX, int tileZ)
+        internal WorldObjects(SBR block, IList<TokenID> allowedTokens, int tileX, int tileZ)
         {
             block.VerifyID(TokenID.Tr_Worldfile);
             int detailLevel = 0;

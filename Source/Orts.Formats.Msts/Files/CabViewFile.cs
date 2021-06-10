@@ -29,8 +29,8 @@ namespace Orts.Formats.Msts.Files
 {
     public class CabViewFile
 	{
-        public List<Vector3> Locations { get; } = new List<Vector3>();   // Head locations for front, left and right views
-        public List<Vector3> Directions { get; } = new List<Vector3>();  // Head directions for each view
+        public IList<Vector3> Locations { get; } = new List<Vector3>();   // Head locations for front, left and right views
+        public IList<Vector3> Directions { get; } = new List<Vector3>();  // Head directions for each view
         public StringCollection Views2D { get; } = new StringCollection();     // 2D CAB Views - by GeorgeS
         public StringCollection ViewsNight { get; } = new StringCollection();    // Night CAB Views - by GeorgeS
         public StringCollection ViewsLight { get; } = new StringCollection();    // Light CAB Views - by GeorgeS

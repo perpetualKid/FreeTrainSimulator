@@ -28,7 +28,7 @@ namespace Orts.Formats.Msts.Files
     /// </summary>
     public class SoundManagmentFile
 	{
-        public List<ScalabilityGroup> ScalabiltyGroups { get; } = new List<ScalabilityGroup>();
+        public IList<ScalabilityGroup> ScalabiltyGroups { get; } = new List<ScalabilityGroup>();
 
         public SoundManagmentFile( string fileName )
 		{
