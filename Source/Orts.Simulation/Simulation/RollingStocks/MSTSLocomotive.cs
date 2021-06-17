@@ -2692,7 +2692,7 @@ namespace Orts.Simulation.RollingStocks
                     // ie base value between 0.8 and 1.0 (TODO) 
                     // note lowest friction will be for drizzle rain; friction will increase for precipitation both higher and lower than drizzle rail
                     {
-                        float pric = Simulator.Weather.PrecipitationIntensityPPSPM2 * 1000;
+                        float pric = Simulator.Weather.PrecipitationIntensity * 1000;
                         // precipitation will calculate a value between 0.15 (light rain) and 0.2 (heavy rain) - this will be a factor that is used to adjust the base value - assume linear value between upper and lower precipitation values
                         if (pric >= 0.5)
                             BaseFrictionCoefficientFactor = Math.Min((pric * 0.0078f + 0.45f), 0.8f); // should give a minimum value between 0.8 and 1.0
@@ -2736,7 +2736,7 @@ namespace Orts.Simulation.RollingStocks
 
                 if (Simulator.Settings.AdhesionProportionalToWeather && AdvancedAdhesionModel && !Simulator.Paused)  // Adjust clear weather for fog presence
                 {
-                    float fog = Simulator.Weather.FogDistance;
+                    float fog = Simulator.Weather.FogVisibilityDistance;
                     if (fog > 2000)
                     {
                         BaseFrictionCoefficientFactor = 1.0f; // if fog is not too thick don't change the friction

@@ -365,7 +365,7 @@ namespace Orts.ActivityRunner.Viewer3D
                         isDay = Viewer.World.Sky.solarDirection.Y > 0;
                     else
                         isDay = Viewer.World.MSTSSky.mstsskysolarDirection.Y > 0;
-                    bool isPoorVisibility = Viewer.Simulator.Weather.FogDistance < 200;
+                    bool isPoorVisibility = Viewer.Simulator.Weather.FogVisibilityDistance < 200;
                     if (!SignalTypeData.DayLight && isDay && !isPoorVisibility)
                         continue;
 

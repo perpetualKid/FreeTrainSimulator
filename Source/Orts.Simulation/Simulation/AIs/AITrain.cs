@@ -591,7 +591,7 @@ namespace Orts.Simulation.AIs
                 // set wipers on or off
                 if (Cars[0] is MSTSLocomotive leadingLoco)
                 {
-                    bool rainingOrSnowing = simulator.Weather.PrecipitationIntensityPPSPM2 > 0;
+                    bool rainingOrSnowing = simulator.Weather.PrecipitationIntensity > 0;
                     if (leadingLoco.Wiper && !rainingOrSnowing)
                         leadingLoco.SignalEvent(TrainEvent.WiperOff);
                     else if (!leadingLoco.Wiper && rainingOrSnowing)
