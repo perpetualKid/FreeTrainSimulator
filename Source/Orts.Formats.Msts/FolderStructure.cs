@@ -92,6 +92,11 @@ namespace Orts.Formats.Msts
                     return Path.Combine(SoundsFolder, soundName);
                 }
 
+                public string HazardFile(string hazardName)
+                {
+                    return Path.Combine(routeFolder, hazardName);
+                }
+
                 public string TrackSectionFile
                 {
                     get 

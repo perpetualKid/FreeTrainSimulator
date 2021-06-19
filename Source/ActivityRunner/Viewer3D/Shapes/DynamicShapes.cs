@@ -17,7 +17,7 @@ using Orts.Simulation;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.World;
 
-using Hazard = Orts.Simulation.Hazard;
+using Hazard = Orts.Simulation.World.Hazard;
 
 namespace Orts.ActivityRunner.Viewer3D.Shapes
 {
@@ -711,9 +711,9 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
         private double animationKey;
         private double delayHazAnimation;
 
-        public static HazardShape CreateHazzard(string path, IWorldPosition positionSource, ShapeFlags shapeFlags, HazardObject hazardObject)
+        public static HazardShape CreateHazard(string path, IWorldPosition positionSource, ShapeFlags shapeFlags, HazardObject hazardObject)
         {
-            var h = viewer.Simulator.HazzardManager.AddHazzardIntoGame(hazardObject.ItemId, hazardObject.FileName);
+            var h = viewer.Simulator.HazardManager.AddHazardIntoGame(hazardObject.ItemId, hazardObject.FileName);
             if (h == null)
                 return null;
             return new HazardShape(viewer.Simulator.BasePath + @"\Global\Shapes\" + h.HazFile.Hazard.FileName + "\0" + viewer.Simulator.BasePath + @"\Global\Textures", positionSource, shapeFlags, hazardObject, h);
@@ -730,7 +730,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
         public override void Unload()
         {
-            viewer.Simulator.HazzardManager.RemoveHazzardFromGame(hazardObject.ItemId);
+            viewer.Simulator.HazardManager.RemoveHazardFromGame(hazardObject.ItemId);
             base.Unload();
         }
 
@@ -741,17 +741,17 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             Vector2 currentRange;
             animationKey += elapsedTime.ClockSeconds * 24;
             delayHazAnimation += elapsedTime.ClockSeconds;
-            switch (hazard.state)
+            switch (hazard.State)
             {
-                case Hazard.State.Idle1:
+                case Hazard.HazardState.Idle1:
                     currentRange = hazard.HazFile.Hazard.IdleKey; break;
-                case Hazard.State.Idle2:
+                case Hazard.HazardState.Idle2:
                     currentRange = hazard.HazFile.Hazard.IdleKey2; break;
-                case Hazard.State.LookLeft:
+                case Hazard.HazardState.LookLeft:
                     currentRange = hazard.HazFile.Hazard.SurpriseKeyLeft; break;
-                case Hazard.State.LookRight:
+                case Hazard.HazardState.LookRight:
                     currentRange = hazard.HazFile.Hazard.SurpriseKeyRight; break;
-                case Hazard.State.Scared:
+                case Hazard.HazardState.Scared:
                 default:
                     currentRange = hazard.HazFile.Hazard.SuccessScarperKey;
                     if (moved < hazard.HazFile.Hazard.Distance)
@@ -766,15 +766,15 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                     else
                     {
                         moved = 0;
-                        hazard.state = Hazard.State.Idle1;
+                        hazard.State = Hazard.HazardState.Idle1;
                     }
                     break;
             }
 
-            switch (hazard.state)
+            switch (hazard.State)
             {
-                case Hazard.State.Idle1:
-                case Hazard.State.Idle2:
+                case Hazard.HazardState.Idle1:
+                case Hazard.HazardState.Idle2:
                     if (delayHazAnimation > 5.0)
                     {
                         if (animationKey < currentRange.X)
@@ -790,14 +790,14 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                         }
                     }
                     break;
-                case Hazard.State.LookLeft:
-                case Hazard.State.LookRight:
+                case Hazard.HazardState.LookLeft:
+                case Hazard.HazardState.LookRight:
                     if (animationKey < currentRange.X)
                         animationKey = currentRange.X;
                     if (animationKey > currentRange.Y)
                         animationKey = currentRange.Y;
                     break;
-                case Hazard.State.Scared:
+                case Hazard.HazardState.Scared:
                     if (animationKey < currentRange.X)
                         animationKey = currentRange.X;
                     if (animationKey > currentRange.Y)

@@ -149,7 +149,7 @@ namespace Orts.Simulation
         private string timeTableFile;
         public float InitialTileX;
         public float InitialTileZ;
-        public HazardManager HazzardManager;
+        public HazardManager HazardManager;
         public bool InControl = true;//For multiplayer, a player may not control his/her own train (as helper)
         public TurntableFile TurntableFile;
         public List<MovingTable> MovingTables = new List<MovingTable>();
@@ -368,7 +368,7 @@ namespace Orts.Simulation
             }
 
             Confirmer = new Confirmer(this, 1.5);
-            HazzardManager = new HazardManager(this);
+            HazardManager = new HazardManager(this);
             ScriptManager = new ScriptManager();
             Log = new CommandLog(this);
         }
@@ -759,7 +759,7 @@ namespace Orts.Simulation
                 ActivityRun.Update();
             }
 
-            if (HazzardManager != null) HazzardManager.Update(elapsedClockSeconds);
+            if (HazardManager != null) HazardManager.Update(elapsedClockSeconds);
         }
 
         internal void SetWeather(WeatherType weather, SeasonType season)

@@ -867,7 +867,7 @@ namespace Orts.Simulation.Commanding
             if (targetState)
             {
                 Receiver.AlerterReset(TCSEvent.HornActivated);
-                Receiver.Simulator.HazzardManager.Horn();
+                Receiver.Simulator.HazardManager.Horn();
             }
         }
 

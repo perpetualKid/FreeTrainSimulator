@@ -17,6 +17,7 @@
 
 // This file is the responsibility of the 3D & Environment Team. 
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -24,148 +25,141 @@ using Orts.Common.Position;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 
-namespace Orts.Simulation
+namespace Orts.Simulation.World
 {
+#pragma warning disable CA5394 // Do not use insecure randomness
     public class HazardManager
-	{
+    {
         private readonly int hornDist = 200;
         private readonly int approachDist = 160;
         private readonly int scaredDist = 147;
-        private readonly Simulator Simulator;
-		public readonly Dictionary<int, Hazard> Hazards;
-		public readonly Dictionary<int, Hazard> CurrentHazards;
-		public readonly Dictionary<string, HazardFile> HazFiles;
-        private List<int> InterestedHazards;//those hazards is closed to player, needs to listen to horn
-		public HazardManager(Simulator simulator)
-		{
-			Simulator = simulator;
-			InterestedHazards = new List<int>();
-			CurrentHazards = new Dictionary<int, Hazard>();
-			HazFiles = new Dictionary<string, HazardFile>();
-			Hazards = simulator.TDB != null && simulator.TDB.TrackDB != null ? GetHazardsFromDB(simulator.TDB.TrackDB.TrackNodes, simulator.TDB.TrackDB.TrackItems) : new Dictionary<int, Hazard>();
-		}
+        private readonly Dictionary<int, Hazard> hazards;
+        private readonly Dictionary<int, Hazard> currentHazards;
+        private readonly Dictionary<string, HazardFile> hazardFiles;
 
-        private static Dictionary<int, Hazard> GetHazardsFromDB(TrackNode[] trackNodes, TrackItem[] trItemTable)
-		{
-			return (from trackNode in trackNodes
-					where trackNode is TrackVectorNode tvn && tvn.TrackItemIndices.Length > 0
-					from itemRef in (trackNode as TrackVectorNode)?.TrackItemIndices.Distinct()
-					where trItemTable[itemRef] != null && trItemTable[itemRef] is HazardItem
-					select new KeyValuePair<int, Hazard>(itemRef, new Hazard(trackNode, trItemTable[itemRef])))
-					.ToDictionary(_ => _.Key, _ => _.Value);
-		}
-
-		public Hazard AddHazzardIntoGame(int itemID, string hazFileName)
-		{
-			try
-			{
-				if (!CurrentHazards.ContainsKey(itemID))
-				{
-					if (HazFiles.ContainsKey(hazFileName)) Hazards[itemID].HazFile = HazFiles[hazFileName];
-					else
-					{
-						var hazF = new HazardFile(Simulator.RoutePath + "\\" + hazFileName);
-						HazFiles.Add(hazFileName, hazF);
-						Hazards[itemID].HazFile = hazF;
-					}
-					//based on act setting for frequency
-                    if (Hazards[itemID].animal == true && Simulator.Activity != null)
-                    {
-                        if (Simulator.Random.Next(100) > Simulator.Activity.Activity.Header.Animals) return null;
-                    }
-					else if (Simulator.Activity != null)
-					{
-						if (Simulator.Random.Next(100) > Simulator.Activity.Activity.Header.Animals) return null;
-					}
-					else //in explore mode
-					{
-						if (Hazards[itemID].animal == false) return null;//not show worker in explore mode
-						if (Simulator.Random.Next(100) > 20) return null;//show 10% animals
-					}
-					CurrentHazards.Add(itemID, Hazards[itemID]);
-					return Hazards[itemID];//successfully added the hazard with associated haz file
-				}
-			}
-			catch { }
-			return null;
-		}
-
-		public void RemoveHazzardFromGame(int itemID)
-		{
-			try
-			{
-				if (CurrentHazards.ContainsKey(itemID))
-				{
-					CurrentHazards.Remove(itemID);
-				}
-			}
-			catch { };
-		}
-
-		public void Update(double elapsedClockSeconds)
-		{
-			var playerLocation = Simulator.PlayerLocomotive.WorldPosition.WorldLocation;
-
-			foreach (var haz in Hazards)
-			{
-				haz.Value.Update(playerLocation, approachDist, scaredDist);
-			}
-		}
-
-		public void Horn()
-		{
-			var playerLocation = Simulator.PlayerLocomotive.WorldPosition.WorldLocation;
-			foreach (var haz in Hazards)
-			{
-				if (WorldLocation.Within(haz.Value.Location, playerLocation, hornDist))
-				{
-					haz.Value.state = Hazard.State.LookLeft;
-				}
-			}
-		}
-	}
-
-	public class Hazard
-
-	{
-        private readonly TrackNode TrackNode;
-
-        internal WorldLocation Location;
-		public HazardFile HazFile { get { return hazF; } set { hazF = value; if (hazF.Hazard.Workers != null) animal = false; else animal = true; } }
-		public HazardFile hazF;
-		public enum State { Idle1, Idle2, LookLeft, LookRight, Scared };
-		public State state;
-		public bool animal = true;
-
-		public Hazard(TrackNode trackNode, TrackItem trItem)
+        public HazardManager(Simulator simulator)
         {
-            TrackNode = trackNode;
-            Location = trItem.Location;
-			state = State.Idle1;
+            if (null == simulator)
+                throw new ArgumentNullException(nameof(simulator));
+
+            currentHazards = new Dictionary<int, Hazard>();
+            hazardFiles = new Dictionary<string, HazardFile>();
+            hazards = simulator.TDB != null && simulator.TDB.TrackDB != null ? GetHazardsFromDB(simulator.TDB.TrackDB.TrackNodes, simulator.TDB.TrackDB.TrackItems) : new Dictionary<int, Hazard>();
         }
 
-		public void Update(in WorldLocation playerLocation, int approachDist, int scaredDist)
-		{
-			if (state == State.Idle1)
-			{
-				if (Simulator.Random.Next(10) == 0) state = State.Idle2;
-			}
-			else if (state == State.Idle2)
-			{
-				if (Simulator.Random.Next(5) == 0) state = State.Idle1;
-			}
+        private static Dictionary<int, Hazard> GetHazardsFromDB(TrackNode[] trackNodes, TrackItem[] trItemTable)
+        {
+            return (from trackNode in trackNodes
+                    where trackNode is TrackVectorNode tvn && tvn.TrackItemIndices.Length > 0
+                    from itemRef in (trackNode as TrackVectorNode)?.TrackItemIndices.Distinct()
+                    where trItemTable[itemRef] != null && trItemTable[itemRef] is HazardItem
+                    select new KeyValuePair<int, Hazard>(itemRef, new Hazard(trackNode, trItemTable[itemRef])))
+                    .ToDictionary(_ => _.Key, _ => _.Value);
+        }
 
-            if (!WorldLocation.Within(Location, playerLocation, scaredDist) && state < State.LookLeft)
+        public Hazard AddHazardIntoGame(int itemID, string hazFileName)
+        {
+            if (!currentHazards.ContainsKey(itemID))
             {
-                if (WorldLocation.Within(Location, playerLocation, approachDist) && state < State.LookLeft)
+                if (!hazardFiles.TryGetValue(hazFileName, out HazardFile hazardFile))
                 {
-                    state = State.LookRight;
+                    hazardFile = new HazardFile(Simulator.Instance.RouteFolder.HazardFile(hazFileName));
+                    hazardFiles.Add(hazFileName, hazardFile);
                 }
+                hazards[itemID].HazFile = hazardFile;
+                //based on act setting for frequency
+                if (Simulator.Instance.Activity != null)
+                {
+                    if (hazards[itemID].Animal && (Simulator.Random.Next(100) > Simulator.Instance.Activity.Activity.Header.Animals))
+                        return null;
+                }
+                else //in explore mode
+                {
+                    if (!hazards[itemID].Animal)
+                        return null;//not show worker in explore mode
+                    if (Simulator.Random.Next(100) > 20)
+                        return null;//show 10% animals
+                }
+                currentHazards.Add(itemID, hazards[itemID]);
+                return hazards[itemID];//successfully added the hazard with associated haz file
             }
-            if (WorldLocation.Within(Location, playerLocation, scaredDist) && state == State.LookRight || state == State.LookLeft)
+            return null;
+        }
+
+        public void RemoveHazardFromGame(int itemID)
+        {
+            if (currentHazards.ContainsKey(itemID))
+                currentHazards.Remove(itemID);
+        }
+
+        public void Update(double elapsedClockSeconds)
+        {
+            _ = elapsedClockSeconds;
+            WorldLocation playerLocation = Simulator.Instance.PlayerLocomotive.WorldPosition.WorldLocation;
+
+            foreach (KeyValuePair<int, Hazard> item in hazards)
+                item.Value.Update(playerLocation, approachDist, scaredDist);
+        }
+
+        public void Horn()
+        {
+            WorldLocation playerLocation = Simulator.Instance.PlayerLocomotive.WorldPosition.WorldLocation;
+            foreach (KeyValuePair<int, Hazard> item in hazards)
+                if (WorldLocation.Within(item.Value.Location, playerLocation, hornDist))
+                    item.Value.State = Hazard.HazardState.LookLeft;
+        }
+    }
+
+    public class Hazard
+    {
+        public enum HazardState
+        {
+            Idle1,
+            Idle2,
+            LookLeft,
+            LookRight,
+            Scared
+        };
+
+        //private readonly TrackNode TrackNode;
+        private HazardFile hazardFile;
+
+        internal WorldLocation Location;
+        public HazardFile HazFile
+        {
+            get => hazardFile;
+            set
             {
-                state = State.Scared;
+                hazardFile = value;
+                Animal = hazardFile.Hazard.Workers != null;
             }
-       }
-	}
+        }
+
+        public HazardState State { get; set; }
+        internal bool Animal { get; private set; } = true;
+
+        public Hazard(TrackNode trackNode, TrackItem trItem)
+        {
+            _ = trackNode;
+            //TrackNode = trackNode;
+            Location = trItem?.Location ?? throw new ArgumentNullException(nameof(trItem));
+            State = HazardState.Idle1;
+        }
+
+        public void Update(in WorldLocation playerLocation, int approachDist, int scaredDist)
+        {
+            if (State == HazardState.Idle1 && Simulator.Random.Next(10) == 0)
+                State = HazardState.Idle2;
+            else if (State == HazardState.Idle2 && Simulator.Random.Next(5) == 0)
+                    State = HazardState.Idle1;
+
+            bool within = WorldLocation.Within(Location, playerLocation, scaredDist);
+            if (!within && State < HazardState.LookLeft)
+                if (WorldLocation.Within(Location, playerLocation, approachDist) && State < HazardState.LookLeft)
+                    State = HazardState.LookRight;
+            if (within && State == HazardState.LookRight || State == HazardState.LookLeft)
+                State = HazardState.Scared;
+        }
+    }
+#pragma warning restore CA5394 // Do not use insecure randomness
 }
