@@ -15,6 +15,7 @@ using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation;
 using Orts.Simulation.RollingStocks;
+using Orts.Simulation.World;
 
 using Hazard = Orts.Simulation.Hazard;
 

@@ -17,16 +17,9 @@
 
 // This file is the responsibility of the 3D & Environment Team.
 
-using System.Collections.Generic;
-using System.Linq;
-
-using Orts.Common;
-using Orts.Common.Position;
-using Orts.Formats.Msts;
-using Orts.Formats.Msts.Models;
 using Orts.Simulation.RollingStocks;
 
-namespace Orts.Simulation
+namespace Orts.Simulation.World
 {
     //public class FuelManager
     //{
@@ -85,9 +78,7 @@ namespace Orts.Simulation
         public static bool ReFill()
         {
             while (MSTSWagon.RefillProcess.OkToRefill)
-            {
                 return true;
-            }
             if (!MSTSWagon.RefillProcess.OkToRefill)
                 return false;
             return false;
