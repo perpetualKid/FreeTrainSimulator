@@ -41,6 +41,7 @@ using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS;
 using Orts.Simulation.Signalling;
 using Orts.Simulation.Track;
+using Orts.Simulation.World;
 
 namespace Orts.Simulation.AIs
 {
