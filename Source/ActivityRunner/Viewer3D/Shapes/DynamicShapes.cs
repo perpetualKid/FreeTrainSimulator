@@ -816,7 +816,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
     public class FuelPickupItemShape : PoseableShape
     {
         private readonly PickupObject fuelPickupItemObject;
-        private readonly FuelPickupItem fuelPickupItem;
+        //private readonly FuelPickupItem fuelPickupItem;
         private readonly SoundSource soundSource;
         private readonly float frameRate;
 
@@ -896,7 +896,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                     }
                 }
             }
-            fuelPickupItem = viewer.Simulator.FuelManager.CreateFuelStation(WorldPosition, fuelPickupItemObject.TrackItemIds.TrackDbItems);
+            //fuelPickupItem = viewer.Simulator.FuelManager.CreateFuelStation(WorldPosition, fuelPickupItemObject.TrackItemIds.TrackDbItems);
             animationFrames = 1;
             frameRate = 1;
             if (SharedShape.Animations != null && SharedShape.Animations.Count > 0 && SharedShape.Animations[0].AnimationNodes != null && SharedShape.Animations[0].AnimationNodes.Count > 0)
@@ -925,7 +925,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
         {
 
             // 0 can be used as a setting for instant animation.
-            if (fuelPickupItem.ReFill() && fuelPickupItemObject.UiD == MSTSWagon.RefillProcess.ActivePickupObjectUID)
+            if (FuelPickupItem.ReFill() && fuelPickupItemObject.UiD == MSTSWagon.RefillProcess.ActivePickupObjectUID)
             {
                 if (animationKey == 0 && soundSource != null) soundSource.HandleEvent(TrainEvent.FuelTowerDown);
                 if (fuelPickupItemObject.Options.AnimationSpeed == 0) animationKey = 1.0f;
@@ -933,7 +933,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                     animationKey += elapsedTime.ClockSeconds * frameRate;
             }
 
-            if (!fuelPickupItem.ReFill() && animationKey > 0)
+            if (!FuelPickupItem.ReFill() && animationKey > 0)
             {
                 if (animationKey == animationFrames && soundSource != null)
                 {

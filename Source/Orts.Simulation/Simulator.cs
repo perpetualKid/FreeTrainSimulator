@@ -150,7 +150,6 @@ namespace Orts.Simulation
         public float InitialTileX;
         public float InitialTileZ;
         public HazardManager HazzardManager;
-        public FuelManager FuelManager;
         public bool InControl = true;//For multiplayer, a player may not control his/her own train (as helper)
         public TurntableFile TurntableFile;
         public List<MovingTable> MovingTables = new List<MovingTable>();
@@ -370,7 +369,6 @@ namespace Orts.Simulation
 
             Confirmer = new Confirmer(this, 1.5);
             HazzardManager = new HazardManager(this);
-            FuelManager = new FuelManager(this);
             ScriptManager = new ScriptManager();
             Log = new CommandLog(this);
         }
@@ -447,7 +445,6 @@ namespace Orts.Simulation
             SignalEnvironment = new SignalEnvironment(SIGCFG, Settings.UseLocationPassingPaths, cancellationToken);
             TurntableFile = new TurntableFile(RoutePath + @"\openrails\turntables.dat", RoutePath + @"\shapes\", MovingTables, this);
             LevelCrossings = new LevelCrossings(this);
-            FuelManager = new FuelManager(this);
             Trains = new TrainList(this);
             PoolHolder = new Poolholder();
 
@@ -481,7 +478,6 @@ namespace Orts.Simulation
             SignalEnvironment = new SignalEnvironment(SIGCFG, true, System.Threading.CancellationToken.None);
             TurntableFile = new TurntableFile(RoutePath + @"\openrails\turntables.dat", RoutePath + @"\shapes\", MovingTables, this);
             LevelCrossings = new LevelCrossings(this);
-            FuelManager = new FuelManager(this);
             Trains = new TrainList(this);
             PoolHolder = new Poolholder(this, timeTableFile, cancellationToken);
 

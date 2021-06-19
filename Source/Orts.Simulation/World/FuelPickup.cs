@@ -28,50 +28,61 @@ using Orts.Simulation.RollingStocks;
 
 namespace Orts.Simulation
 {
-    public class FuelManager
+    //public class FuelManager
+    //{
+    //    private readonly Simulator Simulator;
+    //    public readonly Dictionary<int, FuelPickupItem> FuelPickupItems;
+
+    //    public FuelManager(Simulator simulator)
+    //    {
+    //        Simulator = simulator;
+    //        FuelPickupItems = simulator.TDB != null && simulator.TDB.TrackDB != null ? GetFuelPickupItemsFromDB(simulator.TDB.TrackDB.TrackNodes, simulator.TDB.TrackDB.TrackItems) : new Dictionary<int, FuelPickupItem>();
+    //    }
+
+    //    private static Dictionary<int, FuelPickupItem> GetFuelPickupItemsFromDB(TrackNode[] trackNodes, TrackItem[] trItemTable)
+    //    {
+    //        return (from trackNode in trackNodes
+    //                where trackNode is TrackVectorNode tvn && tvn.TrackItemIndices.Length > 0
+    //                from itemRef in (trackNode as TrackVectorNode)?.TrackItemIndices.Distinct()
+    //                where trItemTable[itemRef] != null && trItemTable[itemRef] is PickupItem
+    //                select new KeyValuePair<int, FuelPickupItem>(itemRef, new FuelPickupItem(trackNode, trItemTable[itemRef])))
+    //                .ToDictionary(_ => _.Key, _ => _.Value);
+    //    }
+
+    //    public FuelPickupItem CreateFuelStation(in WorldPosition position, IEnumerable<int> trackIDs)
+    //    {
+    //        var trackItems = trackIDs.Select(id => FuelPickupItems[id]).ToArray();
+    //        return new FuelPickupItem(trackItems);
+    //    }
+    //}
+
+    //public class FuelPickupItem
+    //{
+    //    internal WorldLocation Location;
+    //    private readonly TrackNode TrackNode;
+
+    //    public FuelPickupItem(TrackNode trackNode, TrackItem trItem)
+    //    {
+    //        TrackNode = trackNode;
+    //        Location = trItem.Location;
+    //    }
+
+    //    public FuelPickupItem(IEnumerable<FuelPickupItem> items) { }
+
+    //    public bool ReFill()
+    //    {
+    //        while (MSTSWagon.RefillProcess.OkToRefill)
+    //        {
+    //            return true;
+    //        }
+    //        if (!MSTSWagon.RefillProcess.OkToRefill)
+    //            return false;
+    //        return false;
+    //    }
+    //}
+    public static class FuelPickupItem
     {
-        private readonly Simulator Simulator;
-        public readonly Dictionary<int, FuelPickupItem> FuelPickupItems;
-
-        public FuelManager(Simulator simulator)
-        {
-            Simulator = simulator;
-            FuelPickupItems = simulator.TDB != null && simulator.TDB.TrackDB != null ? GetFuelPickupItemsFromDB(simulator.TDB.TrackDB.TrackNodes, simulator.TDB.TrackDB.TrackItems) : new Dictionary<int, FuelPickupItem>();
-        }
-
-        private static Dictionary<int, FuelPickupItem> GetFuelPickupItemsFromDB(TrackNode[] trackNodes, TrackItem[] trItemTable)
-        {
-            return (from trackNode in trackNodes
-                    where trackNode is TrackVectorNode tvn && tvn.TrackItemIndices.Length > 0
-                    from itemRef in (trackNode as TrackVectorNode)?.TrackItemIndices.Distinct()
-                    where trItemTable[itemRef] != null && trItemTable[itemRef] is PickupItem
-                    select new KeyValuePair<int, FuelPickupItem>(itemRef, new FuelPickupItem(trackNode, trItemTable[itemRef])))
-                    .ToDictionary(_ => _.Key, _ => _.Value);
-        }
-
-        public FuelPickupItem CreateFuelStation(in WorldPosition position, IEnumerable<int> trackIDs)
-        {
-            var trackItems = trackIDs.Select(id => FuelPickupItems[id]).ToArray();
-            return new FuelPickupItem(trackItems);
-        }
-
-
-    } // end Class FuelManager
-
-    public class FuelPickupItem
-    {
-        internal WorldLocation Location;
-        private readonly TrackNode TrackNode;
-
-        public FuelPickupItem(TrackNode trackNode, TrackItem trItem)
-        {
-            TrackNode = trackNode;
-            Location = trItem.Location;
-        }
-
-        public FuelPickupItem(IEnumerable<FuelPickupItem> items) { }
-
-        public bool ReFill()
+        public static bool ReFill()
         {
             while (MSTSWagon.RefillProcess.OkToRefill)
             {
@@ -81,7 +92,5 @@ namespace Orts.Simulation
                 return false;
             return false;
         }
-
-    } // end Class FuelPickupItem
-
-} // end Class FuelManager
+    }
+}
