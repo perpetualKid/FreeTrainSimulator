@@ -29,16 +29,13 @@ using Orts.Formats.Msts.Parsers;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.Signalling;
+using Orts.Simulation.World;
 
 namespace Orts.Simulation
 {
     /// <summary>
     /// Reads file ORTSTurntables.dat and creates the instances of the turntables
     /// </summary>
-    /// 
-
-
-
     public class Transfertable : MovingTable
     {
         public float Width;
@@ -54,24 +51,24 @@ namespace Orts.Simulation
 
         public SignalEnvironment signalRef { get; protected set; }
 
-        public Transfertable(STFReader stf, Simulator simulator): base(stf, simulator)
+        public Transfertable(STFReader stf)
         {
-            signalRef = Simulator.SignalEnvironment;
+            signalRef = Simulator.Instance.SignalEnvironment;
             string animation;
-            Matrix position = Matrix.Identity;
-            position.M44 = 100000000; //WorlPosition not yet defined, will be loaded when loading related tile;
+            Matrix location = Matrix.Identity;
+            location.M44 = 100_000_000; //WorlPosition not yet defined, will be loaded when loading related tile;
             stf.MustMatch("(");
             stf.ParseBlock(new[] {
                 new STFReader.TokenProcessor("wfile", () => {
                     WFile = stf.ReadStringBlock(null);
-                    WorldPosition = new WorldPosition(int.Parse(WFile.Substring(1, 7)), int.Parse(WFile.Substring(8, 7)), position);
+                    position = new WorldPosition(int.Parse(WFile.Substring(1, 7)), int.Parse(WFile.Substring(8, 7)), location);
                 }),
                 new STFReader.TokenProcessor("uid", ()=>{ UID = stf.ReadIntBlock(-1); }),
                 new STFReader.TokenProcessor("animation", ()=>{ animation = stf.ReadStringBlock(null);
                                                                 Animations.Add(animation.ToLower());}),
                 new STFReader.TokenProcessor("length", ()=>{ Length = stf.ReadFloatBlock(STFReader.Units.None , null);}),
-                new STFReader.TokenProcessor("xoffset", ()=>{ CenterOffset.X = stf.ReadFloatBlock(STFReader.Units.None , null);}),
-                new STFReader.TokenProcessor("zoffset", ()=>{ CenterOffset.Z = -stf.ReadFloatBlock(STFReader.Units.None , null);}),
+                new STFReader.TokenProcessor("xoffset", ()=>{ offset.X = stf.ReadFloatBlock(STFReader.Units.None , null);}),
+                new STFReader.TokenProcessor("zoffset", ()=>{ offset.Z = -stf.ReadFloatBlock(STFReader.Units.None , null);}),
                 new STFReader.TokenProcessor("trackshapeindex", ()=>
                 {
                     TrackShapeIndex = stf.ReadIntBlock(-1);
@@ -84,7 +81,7 @@ namespace Orts.Simulation
         /// Saves the general variable parameters
         /// Called from within the Simulator class.
         /// </summary>
-        public override void Save(BinaryWriter outf)
+        internal override void Save(BinaryWriter outf)
         {
             base.Save(outf);
             outf.Write(Forward);
@@ -101,7 +98,7 @@ namespace Orts.Simulation
         /// Restores the general variable parameters
         /// Called from within the Simulator class.
         /// </summary>
-        public override void Restore(BinaryReader inf, Simulator simulator)
+        internal override void Restore(BinaryReader inf, Simulator simulator)
         {
             base.Restore(inf, simulator);
             Forward = inf.ReadBoolean();
@@ -115,20 +112,20 @@ namespace Orts.Simulation
 
         protected void InitializeOffsetsAndTrackNodes()
         {
-            var trackShape = Simulator.TSectionDat.TrackShapes[(uint)TrackShapeIndex];
+            var trackShape = Simulator.Instance.TSectionDat.TrackShapes[(uint)TrackShapeIndex];
             var nSections = trackShape.SectionIndices[0].SectionsCount;
-            MyTrackNodesIndex = new int[trackShape.SectionIndices.Length];
-            MyTrackNodesOrientation = new bool[MyTrackNodesIndex.Length];
-            MyTrVectorSectionsIndex = new int[MyTrackNodesIndex.Length];
+            trackNodesIndex = new int[trackShape.SectionIndices.Length];
+            trackNodesOrientation = new bool[trackNodesIndex.Length];
+            trackVectorSectionsIndex = new int[trackNodesIndex.Length];
             var iMyTrackNodes = 0;
             foreach (var sectionIdx in trackShape.SectionIndices)
             {
                 Offsets.Add(sectionIdx.Offset.X);
-                MyTrackNodesIndex[iMyTrackNodes] = -1;
-                MyTrVectorSectionsIndex[iMyTrackNodes] = -1;
+                trackNodesIndex[iMyTrackNodes] = -1;
+                trackVectorSectionsIndex[iMyTrackNodes] = -1;
                 iMyTrackNodes++;
             }
-            var trackNodes = Simulator.TDB.TrackDB.TrackNodes;
+            var trackNodes = Simulator.Instance.TDB.TrackDB.TrackNodes;
             int iTrackNode = 0;
             for (iTrackNode = 1; iTrackNode < trackNodes.Length; iTrackNode++)
             {
@@ -141,15 +138,15 @@ namespace Orts.Simulation
                         if (tvn.TrackVectorSections.Length > (int)nSections)
                         {
                             iMyTrackNodes = tvn.TrackVectorSections[iTrVectorSection].Flag1 / 2;
-                            MyTrackNodesIndex[iMyTrackNodes] = iTrackNode;
-                            MyTrVectorSectionsIndex[iMyTrackNodes] = iTrVectorSection;
-                            MyTrackNodesOrientation[iMyTrackNodes] = tvn.TrackVectorSections[iTrVectorSection].Flag1 % 2 == 0 ? true : false;
+                            trackNodesIndex[iMyTrackNodes] = iTrackNode;
+                            trackVectorSectionsIndex[iMyTrackNodes] = iTrVectorSection;
+                            trackNodesOrientation[iMyTrackNodes] = tvn.TrackVectorSections[iTrVectorSection].Flag1 % 2 == 0 ? true : false;
 
                         }
                     }
                 }
             }
-            XPos = CenterOffset.X;
+            XPos = offset.X;
             // Compute width of transfer table
             Width = trackShape.SectionIndices[trackShape.SectionIndices.Length - 1].Offset.X - trackShape.SectionIndices[0].Offset.X;
         }
@@ -160,8 +157,8 @@ namespace Orts.Simulation
         /// </summary>
         public override void ComputeTarget(bool clockwise)
         {
-            if (!Continuous) return;
-            Continuous = false;
+            if (!ContinuousMotion) return;
+            ContinuousMotion = false;
             GoToTarget = false;
             Forward = clockwise;
             Reverse = !clockwise;
@@ -178,7 +175,7 @@ namespace Orts.Simulation
                 {
                     for (int iOffset = Offsets.Count - 1; iOffset >= 0; iOffset--)
                     {
-                        if (MyTrackNodesIndex[iOffset] != -1 && MyTrVectorSectionsIndex[iOffset] != -1)
+                        if (trackNodesIndex[iOffset] != -1 && trackVectorSectionsIndex[iOffset] != -1)
                         {
                             var thisOffsetDiff = Offsets[iOffset] - XPos;
                             if (thisOffsetDiff < offsetDiff && thisOffsetDiff >= 0)
@@ -209,7 +206,7 @@ namespace Orts.Simulation
                 {
                     for (int iOffset = 0; iOffset <= Offsets.Count - 1; iOffset++)
                     {
-                        if (MyTrackNodesIndex[iOffset] != -1 && MyTrVectorSectionsIndex[iOffset] != -1)
+                        if (trackNodesIndex[iOffset] != -1 && trackVectorSectionsIndex[iOffset] != -1)
                         {
                             var thisOffsetDiff = Offsets[iOffset] - XPos;
                             if (thisOffsetDiff > offsetDiff && thisOffsetDiff <= 0)
@@ -242,8 +239,8 @@ namespace Orts.Simulation
             {
                 Forward = false;
                 Reverse = false;
-                Continuous = false;
-                Simulator.Confirmer.Warning(Simulator.Catalog.GetString("Train partially on transfertable, can't transfer"));
+                ContinuousMotion = false;
+                Simulator.Instance.Confirmer.Warning(Simulator.Catalog.GetString("Train partially on transfertable, can't transfer"));
                 return;
             }
             if (TrainsOnMovingTable.Count == 1 && TrainsOnMovingTable[0].FrontOnBoard && TrainsOnMovingTable[0].BackOnBoard)
@@ -254,40 +251,40 @@ namespace Orts.Simulation
                  || Math.Abs(train.MUReverserPercent) <= 1))) || (train.ControlMode != TrainControlMode.Manual && train.ControlMode != TrainControlMode.TurnTable &&
                  train.ControlMode != TrainControlMode.Explorer && train.ControlMode != TrainControlMode.Undefined))
                 {
-                    Simulator.Confirmer.Warning(Simulator.Catalog.GetString("Transfer can't start: check throttle, speed, direction and control mode"));
+                    Simulator.Instance.Confirmer.Warning(Simulator.Catalog.GetString("Transfer can't start: check throttle, speed, direction and control mode"));
                     return;
                 }
                 if (train.ControlMode == TrainControlMode.Manual || train.ControlMode == TrainControlMode.Explorer || train.ControlMode == TrainControlMode.Undefined)
                 {
-                    SaveConnected = Connected ^ !MyTrackNodesOrientation[ConnectedTrackEnd];
-                    var invAnimationXNAMatrix = Matrix.Invert(AnimationXNAMatrix);
-                    RelativeCarPositions = new List<Matrix>();
+                    SaveConnected = Connected ^ !trackNodesOrientation[ConnectedTrackEnd];
+                    var invAnimationXNAMatrix = Matrix.Invert(animationXNAMatrix);
+                    relativeCarPositions = new List<Matrix>();
                     foreach (TrainCar trainCar in train.Cars)
                     {
                         var relativeCarPosition = Matrix.Identity;
                         trainCar.WorldPosition = trainCar.WorldPosition.NormalizeTo(WorldPosition.TileX, WorldPosition.TileZ);
                         relativeCarPosition = Matrix.Multiply(trainCar.WorldPosition.XNAMatrix, invAnimationXNAMatrix);
-                        RelativeCarPositions.Add(relativeCarPosition);
+                        relativeCarPositions.Add(relativeCarPosition);
                     }
                     var XNALocation = train.FrontTDBTraveller.Location;
                     XNALocation.Z = -XNALocation.Z;
                     XNALocation.X = XNALocation.X + 2048 * (train.FrontTDBTraveller.TileX - WorldPosition.TileX);
                     XNALocation.Z = XNALocation.Z - 2048 * (train.FrontTDBTraveller.TileZ - WorldPosition.TileZ);
-                    RelativeFrontTravellerXNALocation = Vector3.Transform(XNALocation, invAnimationXNAMatrix);
+                    relativeFrontTravellerXNALocation = Vector3.Transform(XNALocation, invAnimationXNAMatrix);
                     XNALocation = train.RearTDBTraveller.Location;
                     XNALocation.Z = -XNALocation.Z;
                     XNALocation.X = XNALocation.X + 2048 * (train.RearTDBTraveller.TileX - WorldPosition.TileX);
                     XNALocation.Z = XNALocation.Z - 2048 * (train.RearTDBTraveller.TileZ - WorldPosition.TileZ);
-                    RelativeRearTravellerXNALocation = Vector3.Transform(XNALocation, invAnimationXNAMatrix);
+                    relativeRearTravellerXNALocation = Vector3.Transform(XNALocation, invAnimationXNAMatrix);
                     train.ControlMode = TrainControlMode.TurnTable;
                 }
-                Simulator.Confirmer.Information (Simulator.Catalog.GetString("Transfertable starting transferring train"));
+                Simulator.Instance.Confirmer.Information (Simulator.Catalog.GetString("Transfertable starting transferring train"));
                 // Computing position of cars relative to center of transfertable
 
              }
              Forward = clockwise;
              Reverse = !clockwise;
-             Continuous = true;
+             ContinuousMotion = true;
         }
 
         public void ComputeCenter(in WorldPosition worldPosition)
@@ -295,12 +292,12 @@ namespace Orts.Simulation
             Vector3 movingCenterOffset = CenterOffset;
             movingCenterOffset.X = XPos;
             VectorExtension.Transform(movingCenterOffset, worldPosition.XNAMatrix, out Vector3 originCoordinates);
-            WorldPosition = worldPosition.SetTranslation(originCoordinates.X, originCoordinates.Y, originCoordinates.Z);
+            position = worldPosition.SetTranslation(originCoordinates.X, originCoordinates.Y, originCoordinates.Z);
         }
 
         public void TransferTrain(Matrix animationXNAMatrix)
         {
-            AnimationXNAMatrix = animationXNAMatrix;
+            animationXNAMatrix = animationXNAMatrix;
             if ((Forward || Reverse || GoToTarget) && TrainsOnMovingTable.Count == 1 && TrainsOnMovingTable[0].FrontOnBoard &&
                 TrainsOnMovingTable[0].BackOnBoard && TrainsOnMovingTable[0].Train.ControlMode == TrainControlMode.TurnTable)
             {
@@ -309,7 +306,7 @@ namespace Orts.Simulation
                 foreach (TrainCar traincar in TrainsOnMovingTable[0].Train.Cars)
                 {
                     traincar.WorldPosition = new WorldPosition(traincar.WorldPosition.TileX, traincar.WorldPosition.TileZ, 
-                        Matrix.Multiply(RelativeCarPositions[iRelativeCarPositions], AnimationXNAMatrix));
+                        Matrix.Multiply(relativeCarPositions[iRelativeCarPositions], animationXNAMatrix));
                     iRelativeCarPositions++;
                 }
             }
@@ -322,10 +319,10 @@ namespace Orts.Simulation
                 {
                     Forward = false;
                     Reverse = false;
-                    Continuous = false;
+                    ContinuousMotion = false;
                     return;
                 }
-            if (Continuous)
+            if (ContinuousMotion)
             {
                 Connected = false;
                 ConnectedTrackEnd = -1;
@@ -343,7 +340,7 @@ namespace Orts.Simulation
                             Connected = true;
                             Forward = false;
                             ConnectedTrackEnd = ConnectedTarget;
-                            Simulator.Confirmer.Information (Simulator.Catalog.GetString("Transfertable connected"));
+                            Simulator.Instance.Confirmer.Information (Simulator.Catalog.GetString("Transfertable connected"));
                             GoToTarget = true;
                             TargetX = Offsets[ConnectedTarget];
                         }
@@ -359,7 +356,7 @@ namespace Orts.Simulation
                             Connected = true;
                             Reverse = false;
                             ConnectedTrackEnd = ConnectedTarget;
-                            Simulator.Confirmer.Information(Simulator.Catalog.GetString("Transfertable connected"));
+                            Simulator.Instance.Confirmer.Information(Simulator.Catalog.GetString("Transfertable connected"));
                             GoToTarget = true;
                             TargetX = Offsets[ConnectedTarget];
                         }
@@ -375,13 +372,13 @@ namespace Orts.Simulation
         public void TargetExactlyReached()
         {
             Traveller.TravellerDirection direction = Traveller.TravellerDirection.Forward;
-            direction = SaveConnected ^ !MyTrackNodesOrientation[ConnectedTrackEnd]? direction : (direction == Traveller.TravellerDirection.Forward ? Traveller.TravellerDirection.Backward : Traveller.TravellerDirection.Forward);
+            direction = SaveConnected ^ !trackNodesOrientation[ConnectedTrackEnd]? direction : (direction == Traveller.TravellerDirection.Forward ? Traveller.TravellerDirection.Backward : Traveller.TravellerDirection.Forward);
             GoToTarget = false;
             if (TrainsOnMovingTable.Count == 1)
             {
                 var train = TrainsOnMovingTable[0].Train;
                 if (train.ControlMode == TrainControlMode.TurnTable)
-                    train.ReenterTrackSections(MyTrackNodesIndex[ConnectedTrackEnd], FinalFrontTravellerXNALocation, FinalRearTravellerXNALocation, direction);
+                    train.ReenterTrackSections(trackNodesIndex[ConnectedTrackEnd], finalFrontTravellerXNALocation, finalRearTravellerXNALocation, direction);
             }
         }
 
@@ -392,8 +389,8 @@ namespace Orts.Simulation
 
         public override bool CheckMovingTableAligned(Train train, bool forward)
         {
-            if ((Connected) && MyTrVectorSectionsIndex[ConnectedTrackEnd] != -1 && MyTrackNodesIndex[ConnectedTrackEnd] != -1 &&
-                (MyTrackNodesIndex[ConnectedTrackEnd] == train.FrontTDBTraveller.TN.Index || MyTrackNodesIndex[ConnectedTrackEnd] == train.RearTDBTraveller.TN.Index))
+            if ((Connected) && trackVectorSectionsIndex[ConnectedTrackEnd] != -1 && trackNodesIndex[ConnectedTrackEnd] != -1 &&
+                (trackNodesIndex[ConnectedTrackEnd] == train.FrontTDBTraveller.TN.Index || trackNodesIndex[ConnectedTrackEnd] == train.RearTDBTraveller.TN.Index))
             {
             return true;
             }

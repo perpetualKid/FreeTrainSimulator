@@ -151,7 +151,6 @@ namespace Orts.Simulation
         public float InitialTileZ;
         public HazardManager HazardManager;
         public bool InControl = true;//For multiplayer, a player may not control his/her own train (as helper)
-        public TurntableFile TurntableFile;
         public List<MovingTable> MovingTables = new List<MovingTable>();
         public List<CarSpawners> CarSpawnerLists;
         public ClockList Clocks;           // List of OR-Clocks given by externe file "openrails\clocks.dat"
@@ -443,7 +442,7 @@ namespace Orts.Simulation
         public void Start(CancellationToken cancellationToken)
         {
             SignalEnvironment = new SignalEnvironment(SIGCFG, Settings.UseLocationPassingPaths, cancellationToken);
-            TurntableFile = new TurntableFile(RoutePath + @"\openrails\turntables.dat", RoutePath + @"\shapes\", MovingTables, this);
+            MovingTables.AddRange(MovingTableFile.ReadTurntableFile(RoutePath + @"\openrails\turntables.dat"));
             LevelCrossings = new LevelCrossings(this);
             Trains = new TrainList(this);
             PoolHolder = new Poolholder();
@@ -476,7 +475,7 @@ namespace Orts.Simulation
         {
             TimetableMode = true;
             SignalEnvironment = new SignalEnvironment(SIGCFG, true, System.Threading.CancellationToken.None);
-            TurntableFile = new TurntableFile(RoutePath + @"\openrails\turntables.dat", RoutePath + @"\shapes\", MovingTables, this);
+            MovingTables.AddRange(MovingTableFile.ReadTurntableFile(RoutePath + @"\openrails\turntables.dat"));
             LevelCrossings = new LevelCrossings(this);
             Trains = new TrainList(this);
             PoolHolder = new Poolholder(this, timeTableFile, cancellationToken);
@@ -527,7 +526,7 @@ namespace Orts.Simulation
 
             // initialization of turntables
             ActiveMovingTableIndex = inf.ReadInt32();
-            TurntableFile = new TurntableFile(RoutePath + @"\openrails\turntables.dat", RoutePath + @"\shapes\", MovingTables, this);
+            MovingTables.AddRange(MovingTableFile.ReadTurntableFile(RoutePath + @"\openrails\turntables.dat"));
             if (MovingTables.Count >= 0)
             {
                 foreach (var movingTable in MovingTables) movingTable.Restore(inf, this);
@@ -1317,7 +1316,7 @@ namespace Orts.Simulation
 
                         if (!File.Exists(wagonFilePath))
                         {
-                            Trace.TraceWarning($"Ignored missing {(wagon.IsEngine? "engine" : "wagon")} {wagonFilePath} in activity definition {activityObject.TrainSet.Name}");
+                            Trace.TraceWarning($"Ignored missing {(wagon.IsEngine ? "engine" : "wagon")} {wagonFilePath} in activity definition {activityObject.TrainSet.Name}");
                             continue;
                         }
 
@@ -1510,7 +1509,7 @@ namespace Orts.Simulation
             Matrix xnaLocation = Matrix.CreateTranslation((x1 + x2) / 2f, (y1 + y2) / 2f, -(z1 + z2) / 2f);
             MatrixExtension.Multiply(xnaTilt, xnaRotation, out Matrix result);
             return MatrixExtension.Multiply(result, xnaLocation);
-//            return xnaTilt * xnaRotation * xnaLocation;
+            //            return xnaTilt * xnaRotation * xnaLocation;
         }
 
         public void UncoupleBehind(int carPosition)
@@ -1720,9 +1719,9 @@ namespace Orts.Simulation
                     var playerTrain = PlayerLocomotive.Train as AITrain;
                     if (playerTrain != null)
                     {
-                        if (playerTrain.ControlMode == TrainControlMode.Manual) 
+                        if (playerTrain.ControlMode == TrainControlMode.Manual)
                             TrainSwitcher.SuspendOldPlayer = true; // force suspend state to avoid disappearing of train;
-                        if (TrainSwitcher.SuspendOldPlayer && 
+                        if (TrainSwitcher.SuspendOldPlayer &&
                             (playerTrain.SpeedMpS < -0.025 || playerTrain.SpeedMpS > 0.025 || playerTrain.IsMoving()))
                         {
                             Confirmer.Message(ConfirmLevel.Warning, Catalog.GetString("Train can't be suspended with speed not equal 0"));
@@ -1939,10 +1938,10 @@ namespace Orts.Simulation
                 }
             }
             if (trainToRestart == null)
-                Trace.TraceWarning("Train {0} to restart not found", restartWaitingTrain.WaitingTrainToRestart);            
+                Trace.TraceWarning("Train {0} to restart not found", restartWaitingTrain.WaitingTrainToRestart);
         }
 
- 
+
 
         /// <summary>
         /// Derive log-file name from route path and activity name

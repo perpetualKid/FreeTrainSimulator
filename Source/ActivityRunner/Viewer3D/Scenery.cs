@@ -51,6 +51,7 @@ using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation;
+using Orts.Simulation.World;
 
 using System;
 using System.Collections.Generic;
@@ -377,9 +378,9 @@ namespace Orts.ActivityRunner.Viewer3D
                                     if (worldObject.UiD == movingTable.UID && WFileName == movingTable.WFile)
                                     {
                                         found = true;
-                                        if (movingTable is Simulation.Turntable)
+                                        if (movingTable is Turntable)
                                         {
-                                            var turntable = movingTable as Simulation.Turntable;
+                                            var turntable = movingTable as Turntable;
                                             turntable.ComputeCenter(worldMatrix);
                                             Quaternion quaternion = Quaternion.CreateFromRotationMatrix(worldObject.WorldPosition.XNAMatrix);
                                             //quaternion.Z *= -1;

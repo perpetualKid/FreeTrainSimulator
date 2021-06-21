@@ -10,6 +10,7 @@ using Orts.Common;
 using Orts.Common.Position;
 using Orts.Common.Xna;
 using Orts.Simulation;
+using Orts.Simulation.World;
 
 using SharpDX.Direct3D9;
 

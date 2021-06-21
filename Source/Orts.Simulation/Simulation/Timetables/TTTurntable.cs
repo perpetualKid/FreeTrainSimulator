@@ -39,6 +39,7 @@ using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.Signalling;
 using Orts.Simulation.Track;
+using Orts.Simulation.World;
 
 namespace Orts.Simulation.Timetables
 {
@@ -675,15 +676,7 @@ namespace Orts.Simulation.Timetables
 #endif
 
             // get turntable exit index
-            int exitIndex = -1;
-            for (int iExit = 0; iExit < thisTurntable.MyTrackNodesIndex.Length && exitIndex < 0; iExit++)
-            {
-                if (thisTurntable.MyTrackNodesIndex[iExit] == trackNodeIndex)
-                {
-                    exitIndex = iExit;
-                }
-            }
-            thisPath.TableExitIndex = exitIndex;
+            thisPath.TableExitIndex = thisTurntable.FindExitNode(trackNodeIndex);
 
             // store updated path
             AdditionalTurntableDetails.AccessPaths[ipath] = thisPath;
@@ -753,15 +746,7 @@ namespace Orts.Simulation.Timetables
 #endif
 
             // get turntable exit index
-            int exitIndex = -1;
-            for (int iExit = 0; iExit < thisTurntable.MyTrackNodesIndex.Length && exitIndex < 0; iExit++)
-            {
-                if (thisTurntable.MyTrackNodesIndex[iExit] == trackNodeIndex)
-                {
-                    exitIndex = iExit;
-                }
-            }
-            thisPath.TableExitIndex = exitIndex;
+            thisPath.TableExitIndex = thisTurntable.FindExitNode(trackNodeIndex);
 
             // store updated path
             StoragePool[ipath] = thisPath;
@@ -1430,9 +1415,8 @@ namespace Orts.Simulation.Timetables
             trainOnTable = null;
             if (inf.ReadBoolean())
             {
-                trainOnTable = new TrainOnMovingTable(simulatorref);
-                trainOnTable.Restore(inf);
-                trainOnTable.Train = parentTrain;  // must be explicitly restored as train is not yet available in train dictionary
+                trainOnTable = new TrainOnMovingTable(parentTrain);
+                trainOnTable.Restore(inf, parentTrain); // must be explicitly restored as train is not yet available in train dictionary
             }
         }
 
@@ -1487,16 +1471,16 @@ namespace Orts.Simulation.Timetables
                 // turntable is not available
                 if (parentTurntable.InUse)
                 {
-                    if (!parentTurntable.Q.Contains(parentTrain.Number))
+                    if (!parentTurntable.WaitingTrains.Contains(parentTrain.Number))
                     {
-                        parentTurntable.Q.Enqueue(parentTrain.Number);
+                        parentTurntable.WaitingTrains.Enqueue(parentTrain.Number);
                     }
                 }
                 else
                 {
-                    if (parentTurntable.Q.Count < 1 || parentTurntable.Q.Peek() == parentTrain.Number)
+                    if (parentTurntable.WaitingTrains.Count < 1 || parentTurntable.WaitingTrains.Peek() == parentTrain.Number)
                     {
-                        if (parentTurntable.Q.Count >= 1) parentTurntable.Q.Dequeue();
+                        if (parentTurntable.WaitingTrains.Count >= 1) parentTurntable.WaitingTrains.Dequeue();
                         available = true;
                         parentTurntable.InUse = true;
                         switch (MovingTableAction)
@@ -1686,16 +1670,16 @@ namespace Orts.Simulation.Timetables
                 case MovingTableStateEnum.WaitingMovingTableAvailability:
                     if (parentTurntable.InUse)
                     {
-                        if (!parentTurntable.Q.Contains(parentTrain.Number))
+                        if (!parentTurntable.WaitingTrains.Contains(parentTrain.Number))
                         {
-                            parentTurntable.Q.Enqueue(parentTrain.Number);
+                            parentTurntable.WaitingTrains.Enqueue(parentTrain.Number);
                         }
                     }
                     else
                     {
-                        if (parentTurntable.Q.Count < 1 || parentTurntable.Q.Peek() == parentTrain.Number)
+                        if (parentTurntable.WaitingTrains.Count < 1 || parentTurntable.WaitingTrains.Peek() == parentTrain.Number)
                         {
-                            if (parentTurntable.Q.Count >= 1) parentTurntable.Q.Dequeue();
+                            if (parentTurntable.WaitingTrains.Count >= 1) parentTurntable.WaitingTrains.Dequeue();
                             parentTurntable.InUse = true;
 
                             if (MovingTableAction == MovingTableActionEnum.FromAccess)
@@ -1749,8 +1733,7 @@ namespace Orts.Simulation.Timetables
                         Simulator.Instance.Confirmer.Information(message);
 
                         // create train-on-table class
-                        trainOnTable = new TrainOnMovingTable(Simulator.Instance);
-                        trainOnTable.Train = parentTrain;
+                        trainOnTable = new TrainOnMovingTable(parentTrain);
                         trainOnTable.SetFrontState(false);
                         trainOnTable.SetBackState(false);
                     }
@@ -1790,8 +1773,7 @@ namespace Orts.Simulation.Timetables
                         Simulator.Instance.Confirmer.Information(message);
 
                         // create train-on-table class
-                        trainOnTable = new TrainOnMovingTable(Simulator.Instance);
-                        trainOnTable.Train = parentTrain;
+                        trainOnTable = new TrainOnMovingTable(parentTrain);
                         trainOnTable.SetFrontState(false);
                         trainOnTable.SetBackState(false);
                     }
@@ -2032,8 +2014,8 @@ namespace Orts.Simulation.Timetables
             float endAngle = parentTurntable.Angles[reqExit];
             float angleToMove = (endAngle - startAngle) % (float)Math.PI;
             float halfPi = (float)Math.PI / 2.0f;
-            bool exitForward = parentTurntable.MyTrackNodesOrientation[reqExit];
-            bool entryForward = parentTurntable.MyTrackNodesOrientation[parentTurntable.ConnectedTrackEnd];
+            bool exitForward = parentTurntable.TrackNodeOrientation(reqExit);
+            bool entryForward = parentTurntable.TrackNodeOrientation(parentTurntable.ConnectedTrackEnd);
 
             bool reqChangeEnd = false;
 
@@ -2344,7 +2326,7 @@ namespace Orts.Simulation.Timetables
             // set train on table
             parentTrain.ControlMode = TrainControlMode.TurnTable;
 
-            TrainOnMovingTable trainOnTable = new TrainOnMovingTable(parentTrain, parentPool.Simulatorref);
+            TrainOnMovingTable trainOnTable = new TrainOnMovingTable(parentTrain);
             trainOnTable.SetFrontState(true);
             trainOnTable.SetBackState(true);
 
