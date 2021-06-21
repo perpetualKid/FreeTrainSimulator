@@ -36,7 +36,7 @@ namespace Orts.Simulation
     /// <summary>
     /// Reads file ORTSTurntables.dat and creates the instances of the turntables
     /// </summary>
-    public class Transfertable : MovingTable
+    public class TransferTable : MovingTable
     {
         public float Width;
         public List<float> Offsets = new List<float>();
@@ -51,7 +51,7 @@ namespace Orts.Simulation
 
         public SignalEnvironment signalRef { get; protected set; }
 
-        public Transfertable(STFReader stf)
+        public TransferTable(STFReader stf)
         {
             signalRef = Simulator.Instance.SignalEnvironment;
             string animation;
@@ -65,7 +65,7 @@ namespace Orts.Simulation
                 }),
                 new STFReader.TokenProcessor("uid", ()=>{ UID = stf.ReadIntBlock(-1); }),
                 new STFReader.TokenProcessor("animation", ()=>{ animation = stf.ReadStringBlock(null);
-                                                                Animations.Add(animation.ToLower());}),
+                                                                Animations.Add(animation);}),
                 new STFReader.TokenProcessor("length", ()=>{ Length = stf.ReadFloatBlock(STFReader.Units.None , null);}),
                 new STFReader.TokenProcessor("xoffset", ()=>{ offset.X = stf.ReadFloatBlock(STFReader.Units.None , null);}),
                 new STFReader.TokenProcessor("zoffset", ()=>{ offset.Z = -stf.ReadFloatBlock(STFReader.Units.None , null);}),

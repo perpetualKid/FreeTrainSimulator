@@ -51,13 +51,13 @@ namespace Orts.Simulation.World
                         if (--count < 0)
                             STFException.TraceWarning(stf, "Skipped extra Turntable");
                         else
-                            result.Add(new Turntable(stf));
+                            result.Add(new TurnTable(stf));
                     }),
                     new STFReader.TokenProcessor("transfertable", ()=>{
                         if (--count < 0)
                             STFException.TraceWarning(stf, "Skipped extra Transfertable");
                         else
-                            result.Add(new Transfertable(stf));
+                            result.Add(new TransferTable(stf));
                     }),
                 });
                 if (count > 0)
@@ -191,7 +191,7 @@ namespace Orts.Simulation.World
         {
             if (train == null)
                 return false;
-            string tableType = this is Turntable ? Simulator.Catalog.GetString("turntable") : Simulator.Catalog.GetString("transfertable");
+            string tableType = this is TurnTable ? Simulator.Catalog.GetString("turntable") : Simulator.Catalog.GetString("transfertable");
             int trainIndex = (TrainsOnMovingTable as List<TrainOnMovingTable>)?.FindIndex(x => x.Train.Number == train.Number) ?? -1;
             if (WorldLocation.Within(train.FrontTDBTraveller.WorldLocation, WorldPosition.WorldLocation, Length / 2))
             {

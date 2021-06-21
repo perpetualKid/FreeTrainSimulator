@@ -378,9 +378,9 @@ namespace Orts.ActivityRunner.Viewer3D
                                     if (worldObject.UiD == movingTable.UID && WFileName == movingTable.WFile)
                                     {
                                         found = true;
-                                        if (movingTable is Turntable)
+                                        if (movingTable is TurnTable)
                                         {
-                                            var turntable = movingTable as Turntable;
+                                            var turntable = movingTable as TurnTable;
                                             turntable.ComputeCenter(worldMatrix);
                                             Quaternion quaternion = Quaternion.CreateFromRotationMatrix(worldObject.WorldPosition.XNAMatrix);
                                             //quaternion.Z *= -1;
@@ -390,7 +390,7 @@ namespace Orts.ActivityRunner.Viewer3D
                                         }
                                         else
                                         {
-                                            var transfertable = movingTable as Simulation.Transfertable;
+                                            var transfertable = movingTable as Simulation.TransferTable;
                                             transfertable.ComputeCenter(worldMatrix);
                                             sceneryObjects.Add(new TransfertableShape(shapeFilePath, new FixedWorldPositionSource(worldMatrix), shadowCaster ? ShapeFlags.ShadowCaster : ShapeFlags.None, transfertable));
                                         }

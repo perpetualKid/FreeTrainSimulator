@@ -96,7 +96,7 @@ namespace Orts.Simulation.Timetables
             bool validpool = true;
             bool newName = false;
             bool firstName = false;
-            Turntable thisTurntable = null;
+            TurnTable thisTurntable = null;
 
             string Worldfile = string.Empty;
             int UiD = -1;
@@ -323,7 +323,7 @@ namespace Orts.Simulation.Timetables
             // paths must start at turntable
             if (validpool)
             {
-                thisTurntable = Simulatorref.MovingTables[AdditionalTurntableDetails.TurntableIndex] as Turntable;
+                thisTurntable = Simulatorref.MovingTables[AdditionalTurntableDetails.TurntableIndex] as TurnTable;
 
                 // check validity for all access paths
                 for (int iPath = 0; iPath < AdditionalTurntableDetails.AccessPaths.Count; iPath++)
@@ -615,7 +615,7 @@ namespace Orts.Simulation.Timetables
         /// Calculate offset of timetable position in access path
         /// </summary>
 
-        private void CalculateAccessOffsets(int ipath, Turntable thisTurntable)
+        private void CalculateAccessOffsets(int ipath, TurnTable thisTurntable)
         {
             AccessPathDetails thisPath = AdditionalTurntableDetails.AccessPaths[ipath];
 
@@ -687,7 +687,7 @@ namespace Orts.Simulation.Timetables
         /// Calculate length and turntable offset for storage paths
         /// </summary>
 
-        private void CalculateStorageOffsets(int ipath, Turntable thisTurntable)
+        private void CalculateStorageOffsets(int ipath, TurnTable thisTurntable)
         {
             PoolDetails thisPath = StoragePool[ipath];
 
@@ -798,7 +798,7 @@ namespace Orts.Simulation.Timetables
             int storageIndex = -1;
 
             // check if train fits on turntable - if not, reject
-            Turntable thisTurntable = Simulatorref.MovingTables[AdditionalTurntableDetails.TurntableIndex] as Turntable;
+            TurnTable thisTurntable = Simulatorref.MovingTables[AdditionalTurntableDetails.TurntableIndex] as TurnTable;
 
             if (train.Length > thisTurntable.Length)
             {
@@ -1325,7 +1325,7 @@ namespace Orts.Simulation.Timetables
 
     public class TimetableTurntableControl
     {
-        private Turntable parentTurntable;                          // parent turntable
+        private TurnTable parentTurntable;                          // parent turntable
         private int parentIndex;                                    // index of parent turntable in moving table list
 
         private TimetableTurntablePool parentPool;                  // parent pool
@@ -1378,7 +1378,7 @@ namespace Orts.Simulation.Timetables
             poolName = thisPoolName;
             parentIndex = turntableIndex;
             parentTrain = train;
-            parentTurntable = simulatorref.MovingTables[parentIndex] as Turntable;
+            parentTurntable = simulatorref.MovingTables[parentIndex] as TurnTable;
 
             // set defined framerate if defined and not yet set for turntable
             if (parentPool.AdditionalTurntableDetails.FrameRate.HasValue && !parentTurntable.TurntableFrameRate.HasValue)
@@ -1460,7 +1460,7 @@ namespace Orts.Simulation.Timetables
 
         public bool CheckTurntableAvailable()
         {
-            if (parentTurntable == null) parentTurntable = parentPool.Simulatorref.MovingTables[parentIndex] as Turntable;
+            if (parentTurntable == null) parentTurntable = parentPool.Simulatorref.MovingTables[parentIndex] as TurnTable;
 
             bool available = true;
             // check if waiting for turntable availability
@@ -1514,7 +1514,7 @@ namespace Orts.Simulation.Timetables
 
         public void UpdateTurntableStateAI(double elapsedClockSeconds, int presentTime)
         {
-            if (parentTurntable == null) parentTurntable = parentPool.Simulatorref.MovingTables[parentIndex] as Turntable;
+            if (parentTurntable == null) parentTurntable = parentPool.Simulatorref.MovingTables[parentIndex] as TurnTable;
 
             int reqTurntableExit = -1;
             int reqTurntableEntry = -1;
@@ -1653,7 +1653,7 @@ namespace Orts.Simulation.Timetables
 
         public bool UpdateTurntableStatePlayer(double elapsedClockSeconds)
         {
-            if (parentTurntable == null) parentTurntable = parentPool.Simulatorref.MovingTables[parentIndex] as Turntable;
+            if (parentTurntable == null) parentTurntable = parentPool.Simulatorref.MovingTables[parentIndex] as TurnTable;
 
             bool terminated = false;
             int reqTurntableExit = -1;
@@ -1963,7 +1963,7 @@ namespace Orts.Simulation.Timetables
                         double elapsedClockSeconds)
         {
             // if turntable is moving, always return false
-            if (parentTurntable.AutoClockwise || parentTurntable.AutoCounterclockwise)
+            if (parentTurntable.AutoRotationDirection != Rotation.None)
             {
                 parentTurntable.AutoRotateTable(elapsedClockSeconds);
 
@@ -2010,10 +2010,9 @@ namespace Orts.Simulation.Timetables
             reqTurntableExit = reqExit;
 
             // find out direction to move
-            float startAngle = parentTurntable.Angles[parentTurntable.ConnectedTrackEnd];
-            float endAngle = parentTurntable.Angles[reqExit];
+            (float startAngle, float endAngle) = parentTurntable.FindConnectingDirections(reqExit);
             float angleToMove = (endAngle - startAngle) % (float)Math.PI;
-            float halfPi = (float)Math.PI / 2.0f;
+            float halfPi = MathHelper.PiOver2;
             bool exitForward = parentTurntable.TrackNodeOrientation(reqExit);
             bool entryForward = parentTurntable.TrackNodeOrientation(parentTurntable.ConnectedTrackEnd);
 
@@ -2034,7 +2033,7 @@ namespace Orts.Simulation.Timetables
 
                 if (angleToMove <= -halfPi)
                 {
-                    parentTurntable.AutoCounterclockwise = true;
+                    parentTurntable.AutoRotationDirection = Rotation.CounterClockwise;
                     reqChangeEnd = true;
 #if DEBUG_TURNTABLEINFO
                     Trace.TraceInformation("   angle <= - halfPi");
@@ -2042,7 +2041,7 @@ namespace Orts.Simulation.Timetables
                 }
                 else if (angleToMove < 0)
                 {
-                    parentTurntable.AutoCounterclockwise = true;
+                    parentTurntable.AutoRotationDirection = Rotation.CounterClockwise;
 #if DEBUG_TURNTABLEINFO
                     Trace.TraceInformation("   -halfPi < angle < 0");
 #endif
@@ -2050,14 +2049,14 @@ namespace Orts.Simulation.Timetables
 
                 else if (angleToMove < halfPi)
                 {
-                    parentTurntable.AutoClockwise = true;
+                    parentTurntable.AutoRotationDirection = Rotation.Clockwise;
 #if DEBUG_TURNTABLEINFO
                     Trace.TraceInformation("   0 < angle < halfPi");
 #endif
                 }
                 else
                 {
-                    parentTurntable.AutoClockwise = true;
+                    parentTurntable.AutoRotationDirection = Rotation.Clockwise;
                     reqChangeEnd = true;
 #if DEBUG_TURNTABLEINFO
                     Trace.TraceInformation("   halfPi <= angle");
@@ -2077,8 +2076,7 @@ namespace Orts.Simulation.Timetables
                 // reverse rotation if required
                 if (reqChangeEnd)
                 {
-                    parentTurntable.AutoClockwise = !parentTurntable.AutoClockwise;
-                    parentTurntable.AutoCounterclockwise = !parentTurntable.AutoCounterclockwise;
+                    parentTurntable.AutoRotationDirection = parentTurntable.AutoRotationDirection.Reverse();
                 }
 
                 // set required end
@@ -2121,14 +2119,14 @@ namespace Orts.Simulation.Timetables
             // rotate clockwise or counterclockwise depending on angle
             if ( angleToMove < 0)
             {
-                parentTurntable.AutoCounterclockwise = true;
+                parentTurntable.AutoRotationDirection = Rotation.CounterClockwise;
 #if DEBUG_TURNTABLEINFO
                 Trace.TraceInformation("   angle < 0");
 #endif
             }
             else if (angleToMove > 0)
             {
-                parentTurntable.AutoClockwise = true;
+                parentTurntable.AutoRotationDirection = Rotation.Clockwise;
 #if DEBUG_TURNTABLEINFO
                 Trace.TraceInformation("   angle > 0");
 #endif
@@ -2174,8 +2172,7 @@ namespace Orts.Simulation.Timetables
             // reverse rotation if required
             if (reqChangeEnd)
             {
-                parentTurntable.AutoClockwise = !parentTurntable.AutoClockwise;
-                parentTurntable.AutoCounterclockwise = !parentTurntable.AutoCounterclockwise;
+                parentTurntable.AutoRotationDirection = parentTurntable.AutoRotationDirection.Reverse();
             }
 
             // set required end
