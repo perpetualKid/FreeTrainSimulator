@@ -1623,7 +1623,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
     public abstract class CabViewControlRenderer : RenderPrimitive
     {
         protected readonly Viewer Viewer;
-        public readonly MSTSLocomotive Locomotive;
+        protected readonly MSTSLocomotive Locomotive;
         internal protected readonly CabViewControl Control;
         protected readonly CabShader Shader;
         protected readonly int ShaderKey = 1;
@@ -1634,6 +1634,25 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         protected bool IsNightTexture;
         protected bool HasCabLightDirectory;
         private Matrix Matrix = Matrix.Identity;
+
+        /// <summary>
+        /// Determines whether or not the control has power given the state of the cab power supply.
+        /// </summary>
+        /// <remarks>
+        /// For controls that do not depend on the power supply, this will always return true.
+        /// </remarks>
+        public bool IsPowered
+        {
+            get
+            {
+                if (Control.DisabledIfLowVoltagePowerSupplyOff)
+                    return Locomotive.LocomotivePowerSupply.LowVoltagePowerSupplyOn;
+                else if (Control.DisabledIfCabPowerSupplyOff)
+                    return Locomotive.LocomotivePowerSupply.CabPowerSupplyOn;
+                else
+                    return true;
+            }
+        }
 
         public CabViewControlRenderer(Viewer viewer, MSTSLocomotive locomotive, CabViewControl control, CabShader shader)
         {
@@ -1676,11 +1695,12 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
         public virtual void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
-            if ((!Control.DisabledIfLowVoltagePowerSupplyOff || Locomotive.LocomotivePowerSupply.LowVoltagePowerSupplyOn) &&
-                (!Control.DisabledIfCabPowerSupplyOff || Locomotive.LocomotivePowerSupply.CabPowerSupplyOn))
-            {
-                frame.AddPrimitive(ControlView, this, RenderPrimitiveGroup.Cab, ref Matrix);
-            }
+            var noPower = (Control.DisabledIfLowVoltagePowerSupplyOff && !Locomotive.LocomotivePowerSupply.LowVoltagePowerSupplyOn)
+                || (Control.DisabledIfCabPowerSupplyOff && !Locomotive.LocomotivePowerSupply.CabPowerSupplyOn);
+            if (noPower)
+                return;
+
+            frame.AddPrimitive(ControlView, this, RenderPrimitiveGroup.Cab, ref Matrix);
         }
 
         internal void Mark()
@@ -3328,19 +3348,18 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
         public void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
-            if ((!CVFR.Control.DisabledIfLowVoltagePowerSupplyOff || CVFR.Locomotive.LocomotivePowerSupply.LowVoltagePowerSupplyOn)
-                && (!CVFR.Control.DisabledIfCabPowerSupplyOff || CVFR.Locomotive.LocomotivePowerSupply.CabPowerSupplyOn))
-            {
-                UpdateDigit();
+            if (!CVFR.IsPowered)
+                return;
+
+            UpdateDigit();
 
                 Matrix mx = MatrixExtension.ChangeTranslation(TrainCarShape.WorldPosition.XNAMatrix,
                     (TrainCarShape.WorldPosition.TileX - Viewer.Camera.TileX) * 2048,
                     0,
                     (-TrainCarShape.WorldPosition.TileZ + Viewer.Camera.TileZ) * 2048);
                 MatrixExtension.Multiply(XNAMatrix, mx, out Matrix m);
-                // TODO: Make this use AddAutoPrimitive instead.
-                frame.AddPrimitive(this.shapePrimitive.Material, this.shapePrimitive, RenderPrimitiveGroup.Interior, ref m, ShapeFlags.None);
-            }
+            // TODO: Make this use AddAutoPrimitive instead.
+            frame.AddPrimitive(this.shapePrimitive.Material, this.shapePrimitive, RenderPrimitiveGroup.Interior, ref m, ShapeFlags.None);
         }
 
         internal void Mark()
@@ -3546,19 +3565,18 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
         public void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
-            if ((!CVFR.Control.DisabledIfLowVoltagePowerSupplyOff || CVFR.Locomotive.LocomotivePowerSupply.LowVoltagePowerSupplyOn)
-               && (!CVFR.Control.DisabledIfCabPowerSupplyOff || CVFR.Locomotive.LocomotivePowerSupply.CabPowerSupplyOn))
-            {
-                UpdateDigit();
+            if (!CVFR.IsPowered)
+                return;
+
+            UpdateDigit();
                 Matrix mx = MatrixExtension.ChangeTranslation(TrainCarShape.WorldPosition.XNAMatrix,
                     (TrainCarShape.WorldPosition.TileX - Viewer.Camera.TileX) * 2048,
                     0,
                     (-TrainCarShape.WorldPosition.TileZ + Viewer.Camera.TileZ) * 2048);
                 MatrixExtension.Multiply(XNAMatrix, mx, out Matrix m);
 
-                // TODO: Make this use AddAutoPrimitive instead.
-                frame.AddPrimitive(this.shapePrimitive.Material, this.shapePrimitive, RenderPrimitiveGroup.Interior, ref m, ShapeFlags.None);
-            }
+            // TODO: Make this use AddAutoPrimitive instead.
+            frame.AddPrimitive(this.shapePrimitive.Material, this.shapePrimitive, RenderPrimitiveGroup.Interior, ref m, ShapeFlags.None);
         }
 
         internal void Mark()
@@ -3594,12 +3612,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         {
             if (!locoViewer.Has3DCabRenderer) return;
 
-            float scale = 0f;
-            if ((!CVFR.Control.DisabledIfLowVoltagePowerSupplyOff || CVFR.Locomotive.LocomotivePowerSupply.LowVoltagePowerSupplyOn)
-                && (!CVFR.Control.DisabledIfCabPowerSupplyOff || CVFR.Locomotive.LocomotivePowerSupply.CabPowerSupplyOn))
-            {
-                scale = CVFR.GetRangeFraction();
-            }
+            var scale = CVFR.IsPowered ? CVFR.GetRangeFraction() : 0f;
 
             if (CVFR.GetStyle() == CabViewControlStyle.Pointer)
             {

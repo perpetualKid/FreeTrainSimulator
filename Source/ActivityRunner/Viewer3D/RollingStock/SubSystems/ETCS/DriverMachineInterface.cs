@@ -827,32 +827,31 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
 
         public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
-            if ((!Control.DisabledIfLowVoltagePowerSupplyOff || Locomotive.LocomotivePowerSupply.LowVoltagePowerSupplyOn) &&
-                (!Control.DisabledIfCabPowerSupplyOff || Locomotive.LocomotivePowerSupply.CabPowerSupplyOn))
+            if (!IsPowered)
+                return;
+
+            base.PrepareFrame(frame, elapsedTime);
+            var xScale = Viewer.CabWidthPixels / 640f;
+            var yScale = Viewer.CabHeightPixels / 480f;
+            DrawPosition.X = (int)(Position.X * xScale) - Viewer.CabXOffsetPixels + Viewer.CabXLetterboxPixels;
+            DrawPosition.Y = (int)(Position.Y * yScale) + Viewer.CabYOffsetPixels + Viewer.CabYLetterboxPixels;
+            DrawPosition.Width = (int)(Control.Bounds.Width * xScale);
+            DrawPosition.Height = (int)(Control.Bounds.Height * yScale);
+            if (Zoomed)
             {
-                base.PrepareFrame(frame, elapsedTime);
-                var xScale = Viewer.CabWidthPixels / 640f;
-                var yScale = Viewer.CabHeightPixels / 480f;
-                DrawPosition.X = (int)(Position.X * xScale) - Viewer.CabXOffsetPixels + Viewer.CabXLetterboxPixels;
-                DrawPosition.Y = (int)(Position.Y * yScale) + Viewer.CabYOffsetPixels + Viewer.CabYLetterboxPixels;
-                DrawPosition.Width = (int)(Control.Bounds.Width * xScale);
-                DrawPosition.Height = (int)(Control.Bounds.Height * yScale);
-                if (Zoomed)
-                {
-                    DrawPosition.Width = 640;
-                    DrawPosition.Height = 480;
+                DrawPosition.Width = 640;
+                DrawPosition.Height = 480;
                 driverMachineInterface.SizeTo(DrawPosition.Width, DrawPosition.Height);
-                    DrawPosition.X -= 320;
-                    DrawPosition.Y -= 240;
+                DrawPosition.X -= 320;
+                DrawPosition.Y -= 240;
                 driverMachineInterface.ETCSDefaultWindow.BackgroundColor = ColorBackground;
-                }
-                else
-                {
+            }
+            else
+            {
                 driverMachineInterface.SizeTo(DrawPosition.Width, DrawPosition.Height);
                 driverMachineInterface.ETCSDefaultWindow.BackgroundColor = Color.Transparent;
-                }
-                driverMachineInterface.PrepareFrame(elapsedTime.ClockSeconds);
             }
+                driverMachineInterface.PrepareFrame(elapsedTime.ClockSeconds);
         }
 
         public bool IsMouseWithin(Point mousePoint)
