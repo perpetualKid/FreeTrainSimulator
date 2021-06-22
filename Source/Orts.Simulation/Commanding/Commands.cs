@@ -1199,29 +1199,13 @@ namespace Orts.Simulation.Commanding
         {
             if (Receiver?.Mode == BatterySwitch.ModeType.Switch)
             {
-                if (targetState)
-                {
-                    Receiver?.HandleEvent(PowerSupplyEvent.CloseBatterySwitch);
-                }
-                else
-                {
-                    Receiver?.HandleEvent(PowerSupplyEvent.OpenBatterySwitch);
-                }
+                Receiver?.HandleEvent(targetState ? PowerSupplyEvent.CloseBatterySwitch : PowerSupplyEvent.OpenBatterySwitch);
             }
             else if (Receiver?.Mode == BatterySwitch.ModeType.PushButtons)
             {
-                if (targetState)
-                {
-                    Receiver?.HandleEvent(PowerSupplyEvent.CloseBatterySwitchButtonPressed);
-                    Receiver?.Update(0f);
-                    Receiver?.HandleEvent(PowerSupplyEvent.CloseBatterySwitchButtonReleased);
-                }
-                else
-                {
-                    Receiver?.HandleEvent(PowerSupplyEvent.OpenBatterySwitchButtonPressed);
-                    Receiver?.Update(0f);
-                    Receiver?.HandleEvent(PowerSupplyEvent.OpenBatterySwitchButtonReleased);
-                }
+                Receiver?.HandleEvent(targetState ? PowerSupplyEvent.CloseBatterySwitchButtonPressed : PowerSupplyEvent.OpenBatterySwitchButtonPressed);
+                Receiver?.Update(0f);
+                Receiver?.HandleEvent(targetState ? PowerSupplyEvent.CloseBatterySwitchButtonReleased : PowerSupplyEvent.OpenBatterySwitchButtonReleased);
             }
         }
     }
