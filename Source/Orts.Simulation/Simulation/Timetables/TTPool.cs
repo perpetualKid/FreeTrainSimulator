@@ -25,6 +25,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading;
 
 using Orts.Common;
@@ -1378,7 +1379,7 @@ namespace Orts.Simulation.Timetables
                 else
                 {
                     // set delay
-                    float randDelay = (float)Simulator.Random.Next((train.DelayedStartSettings.newStart.randomPartS * 10));
+                    float randDelay = RandomNumberGenerator.GetInt32(train.DelayedStartSettings.newStart.randomPartS * 10);
                     train.RestdelayS = train.DelayedStartSettings.newStart.fixedPartS + (randDelay / 10f);
                     train.DelayedStart = true;
                     train.DelayedStartState = AiStartMovement.NewTrain;

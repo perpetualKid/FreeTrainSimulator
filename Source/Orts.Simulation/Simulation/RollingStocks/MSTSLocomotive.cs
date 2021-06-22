@@ -49,6 +49,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 
 using Microsoft.Xna.Framework;
 
@@ -2418,8 +2419,8 @@ namespace Orts.Simulation.RollingStocks
             {
                 if (Train.SlipperySpotDistanceM < 0)
                 {
-                    Train.SlipperySpotLengthM = 10 + 40 * (float)Simulator.Random.NextDouble();
-                    Train.SlipperySpotDistanceM = Train.SlipperySpotLengthM + 2000 * (float)Simulator.Random.NextDouble();
+                    Train.SlipperySpotLengthM = 10 + 40 * (float)(RandomNumberGenerator.GetInt32(int.MaxValue) / (double)int.MaxValue);
+                    Train.SlipperySpotDistanceM = Train.SlipperySpotLengthM + 2000 * (float)(RandomNumberGenerator.GetInt32(int.MaxValue) / (double)int.MaxValue);
                 }
                 if (Train.SlipperySpotDistanceM < Train.SlipperySpotLengthM)
                     max0 *= 0.8f;
@@ -2679,8 +2680,8 @@ namespace Orts.Simulation.RollingStocks
             {
                 if (Train.SlipperySpotDistanceM < 0)
                 {
-                    Train.SlipperySpotLengthM = 10 + 40 * (float)Simulator.Random.NextDouble();
-                    Train.SlipperySpotDistanceM = Train.SlipperySpotLengthM + 2000 * (float)Simulator.Random.NextDouble();
+                    Train.SlipperySpotLengthM = 10 + 40 * (float)(RandomNumberGenerator.GetInt32(int.MaxValue) / (double)int.MaxValue);
+                    Train.SlipperySpotDistanceM = Train.SlipperySpotLengthM + 2000 * (float)(RandomNumberGenerator.GetInt32(int.MaxValue) / (double)int.MaxValue);
                 }
                 if (Train.SlipperySpotDistanceM < Train.SlipperySpotLengthM)
                 {
@@ -2798,7 +2799,7 @@ namespace Orts.Simulation.RollingStocks
             }
 
             var AdhesionMultiplier = Simulator.Settings.AdhesionFactor / 100.0f; // Convert to a factor where 100% = no change to adhesion
-            var AdhesionRandom = (float)((float)(Simulator.Settings.AdhesionFactorChange) * 0.01f * 2f * (Simulator.Random.NextDouble() - 0.5f));
+            var AdhesionRandom = (float)(Simulator.Settings.AdhesionFactorChange * 0.01f * 2f * (RandomNumberGenerator.GetInt32(int.MaxValue) / (double)int.MaxValue - 0.5f));
 
             Train.LocomotiveCoefficientFriction = BaseuMax * BaseFrictionCoefficientFactor * AdhesionMultiplier;  // Find friction coefficient factor for locomotive
             Train.LocomotiveCoefficientFriction = MathHelper.Clamp(Train.LocomotiveCoefficientFriction, 0.05f, 0.8f); // Ensure friction coefficient never exceeds a "reasonable" value

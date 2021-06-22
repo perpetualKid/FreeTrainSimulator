@@ -19,6 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 
@@ -71,8 +72,6 @@ namespace Orts.Simulation
 
         public static Simulator Instance { get; private set; }
 
-        public static Random Random { get; private set; }
-        public static double Resolution = 1000000; // resolution for calculation of random value with a pseudo-gaussian distribution
         public const float MaxStoppedMpS = 0.1f; // stopped is taken to be a speed less than this 
 
         public bool Paused = true;          // start off paused, set to true once the viewer is fully loaded and initialized
@@ -267,8 +266,6 @@ namespace Orts.Simulation
             Instance = this;
             CatalogManager.SetCatalogDomainPattern(CatalogDomainPattern.AssemblyName, null, RuntimeInfo.LocalesFolder);
             Catalog = CatalogManager.Catalog;
-
-            Random = new Random();
 
             MPManager.Simulator = this;
 
@@ -2119,7 +2116,7 @@ namespace Orts.Simulation
         }
 
         // Override User settings with activity creator settings if present in INCLUDE file
-        public void OverrideUserSettings(UserSettings setting, ORActivity activitySettings)
+        private static void OverrideUserSettings(UserSettings setting, ORActivity activitySettings)
         {
             if (activitySettings.IsActivityOverride)
             {

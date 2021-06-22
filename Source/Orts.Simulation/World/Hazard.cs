@@ -20,6 +20,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 
 using Orts.Common.Position;
 using Orts.Formats.Msts.Files;
@@ -27,7 +28,6 @@ using Orts.Formats.Msts.Models;
 
 namespace Orts.Simulation.World
 {
-#pragma warning disable CA5394 // Do not use insecure randomness
     public class HazardManager
     {
         private readonly int hornDist = 200;
@@ -70,14 +70,14 @@ namespace Orts.Simulation.World
                 //based on act setting for frequency
                 if (Simulator.Instance.Activity != null)
                 {
-                    if (hazards[itemID].Animal && (Simulator.Random.Next(100) > Simulator.Instance.Activity.Activity.Header.Animals))
+                    if (hazards[itemID].Animal && (RandomNumberGenerator.GetInt32(100) > Simulator.Instance.Activity.Activity.Header.Animals))
                         return null;
                 }
                 else //in explore mode
                 {
                     if (!hazards[itemID].Animal)
                         return null;//not show worker in explore mode
-                    if (Simulator.Random.Next(100) > 20)
+                    if (RandomNumberGenerator.GetInt32(100) > 20)
                         return null;//show 10% animals
                 }
                 currentHazards.Add(itemID, hazards[itemID]);
@@ -148,9 +148,9 @@ namespace Orts.Simulation.World
 
         public void Update(in WorldLocation playerLocation, int approachDist, int scaredDist)
         {
-            if (State == HazardState.Idle1 && Simulator.Random.Next(10) == 0)
+            if (State == HazardState.Idle1 && RandomNumberGenerator.GetInt32(10) == 0)
                 State = HazardState.Idle2;
-            else if (State == HazardState.Idle2 && Simulator.Random.Next(5) == 0)
+            else if (State == HazardState.Idle2 && RandomNumberGenerator.GetInt32(5) == 0)
                     State = HazardState.Idle1;
 
             bool within = WorldLocation.Within(Location, playerLocation, scaredDist);
@@ -161,5 +161,4 @@ namespace Orts.Simulation.World
                 State = HazardState.Scared;
         }
     }
-#pragma warning restore CA5394 // Do not use insecure randomness
 }

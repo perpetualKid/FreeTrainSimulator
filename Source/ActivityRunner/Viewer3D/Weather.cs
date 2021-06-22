@@ -25,6 +25,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -117,7 +118,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     UpdateSoundSources();
                     UpdateVolume();
                     // We have a pause in weather change, depending from randomization level
-                    dynamicWeather.stableWeatherTimer = (4.0f - this.viewer.Settings.ActWeatherRandomizationLevel) * 600 + Simulator.Random.Next(300) - 150;
+                    dynamicWeather.stableWeatherTimer = (4.0f - this.viewer.Settings.ActWeatherRandomizationLevel) * 600 + RandomNumberGenerator.GetInt32(300) - 150;
                     weatherChangeOn = true;
                 }
 
@@ -422,14 +423,14 @@ namespace Orts.ActivityRunner.Viewer3D
             CheckDesertZone();
             if (DesertZone) return false;
             // First define overcast
-            var randValue = Simulator.Random.Next(170);
+            var randValue = RandomNumberGenerator.GetInt32(170);
             var intermValue = randValue >= 50 ? (float)(randValue - 50f) : (float)randValue;
             weather.OvercastFactor = intermValue >= 20 ? (float)(intermValue - 20f) / 100f : (float)intermValue / 100f; // give more probability to less overcast
             viewer.Simulator.WeatherType = WeatherType.Clear;
             // Then check if we are in precipitation zone
             if (weather.OvercastFactor > 0.5)
             {
-                randValue = Simulator.Random.Next(75);
+                randValue = RandomNumberGenerator.GetInt32(75);
                 if (randValue > 40)
                 {
                     weather.PrecipitationIntensity = (float)(randValue - 40f) / 1000f;
@@ -450,7 +451,7 @@ namespace Orts.ActivityRunner.Viewer3D
             }
             else weather.PrecipitationIntensity = 0;
             // and now define visibility
-            randValue = Simulator.Random.Next(2000);
+            randValue = RandomNumberGenerator.GetInt32(2000);
             if (weather.PrecipitationIntensity > 0 || weather.OvercastFactor > 0.7f)
                 // use first digit to define power of ten and the other three to define the multiplying number
                 weather.FogVisibilityDistance = Math.Max(100, (float)Math.Pow(10, ((int)(randValue / 1000) + 2)) * (float)((randValue % 1000 + 1) / 100f));
@@ -788,9 +789,9 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 // define how much time transition will last
                 var weatherChangeTimer = (4 - weatherControl.viewer.Settings.ActWeatherRandomizationLevel) * 600 +
-                    Simulator.Random.Next((4 - weatherControl.viewer.Settings.ActWeatherRandomizationLevel) * 600);
+                    RandomNumberGenerator.GetInt32((4 - weatherControl.viewer.Settings.ActWeatherRandomizationLevel) * 600);
                 // begin with overcast
-                var randValue = Simulator.Random.Next(170);
+                var randValue = RandomNumberGenerator.GetInt32(170);
                 var intermValue = randValue >= 50 ? (float)(randValue - 50f) : (float)randValue;
                 ORTSOvercast = intermValue >= 20 ? (float)(intermValue - 20f) / 100f : (float)intermValue / 100f; // give more probability to less overcast
                 ORTSOvercastTransitionTimeS = weatherChangeTimer;
@@ -799,7 +800,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 // Then check if we are in precipitation zone
                 if (ORTSOvercast > 0.5)
                 {
-                    randValue = Simulator.Random.Next(75);
+                    randValue = RandomNumberGenerator.GetInt32(75);
                     if (randValue > 40)
                     {
                         ORTSPrecipitationIntensity = (float)(randValue - 40f) / 1000f;
@@ -845,7 +846,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 }
 
                 // and now define visibility
-                randValue = Simulator.Random.Next(2000);
+                randValue = RandomNumberGenerator.GetInt32(2000);
                 if (ORTSPrecipitationIntensity > 0 || ORTSOvercast > 0.7f)
                     // use first digit to define power of ten and the other three to define the multiplying number
                     ORTSFog = Math.Max(100, (float)Math.Pow(10, ((int)(randValue / 1000) + 2)) * (float)((randValue % 1000 + 1) / 100f));

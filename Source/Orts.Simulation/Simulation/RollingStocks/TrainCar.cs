@@ -38,6 +38,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 
 using GetText;
 
@@ -2308,9 +2309,9 @@ namespace Orts.Simulation.RollingStocks
                 if (VibrationOffsetM.X == 0)
                 {
                     // Initialize three different offsets (0 - 1 meters) so that the different components of the vibration motion don't align.
-                    VibrationOffsetM.X = (float)Simulator.Random.NextDouble();
-                    VibrationOffsetM.Y = (float)Simulator.Random.NextDouble();
-                    VibrationOffsetM.Z = (float)Simulator.Random.NextDouble();
+                    VibrationOffsetM.X = (float)(RandomNumberGenerator.GetInt32(100) / (double)RandomNumberGenerator.GetInt32(100, 1000));
+                    VibrationOffsetM.Y = (float)(RandomNumberGenerator.GetInt32(100) / (double)RandomNumberGenerator.GetInt32(100, 1000));
+                    VibrationOffsetM.Z = (float)(RandomNumberGenerator.GetInt32(100) / (double)RandomNumberGenerator.GetInt32(100, 1000));
                 }
 
                 if (VibrationTrackVectorSection == 0)
@@ -2389,7 +2390,7 @@ namespace Orts.Simulation.RollingStocks
         private void AddVibrations(float factor)
         {
             // NOTE: For low angles (as our vibration rotations are), sin(angle) ~= angle, and since the displacement at the end of the car is sin(angle) = displacement/half-length, sin(displacement/half-length) * half-length ~= displacement.
-            switch (Simulator.Random.Next(4))
+            switch (RandomNumberGenerator.GetInt32(4))
             {
                 case 0:
                     VibrationRotationVelocityRadpS.Y += factor * Simulator.Settings.CarVibratingLevel * VibrationIntroductionStrength * 2 / CarLengthM;
