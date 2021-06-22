@@ -70,8 +70,8 @@ namespace Orts.Formats.Msts.Models
         public CabViewControlStyle ControlStyle { get; protected set; }
         public CabViewControlUnit ControlUnit { get; protected set; }
 
-        public bool DisabledIfLowVoltagePowerSupplyOff { get; protected set; }
-        public bool DisabledIfCabPowerSupplyOff { get; protected set; }
+        public bool DisabledIfLowVoltagePowerSupplyOff { get; private set; }
+        public bool DisabledIfCabPowerSupplyOff { get; private set; }
 
 
         private protected void ParseType(STFReader stf)
