@@ -133,15 +133,15 @@ namespace Orts.Simulation.World
             for (int j = 1; j < trackNodes.Length; j++)
                 if (trackNodes[j] is TrackVectorNode tvn && tvn.TrackVectorSections != null)
                 {
-                    int iTrVectorSection = Array.FindIndex(tvn.TrackVectorSections, trVectorSection =>
+                    int trackVectorSection = Array.FindIndex(tvn.TrackVectorSections, trVectorSection =>
                         trVectorSection.Location.TileX == WorldPosition.TileX && trVectorSection.Location.TileZ == WorldPosition.TileZ && trVectorSection.WorldFileUiD == UID);
-                    if (iTrVectorSection >= 0)
+                    if (trackVectorSection >= 0)
                         if (tvn.TrackVectorSections.Length > (int)nSections)
                         {
-                            i = tvn.TrackVectorSections[iTrVectorSection].Flag1 / 2;
+                            i = tvn.TrackVectorSections[trackVectorSection].Flag1 / 2;
                             trackNodesIndex[i] = j;
-                            trackVectorSectionsIndex[i] = iTrVectorSection;
-                            trackNodesOrientation[i] = tvn.TrackVectorSections[iTrVectorSection].Flag1 % 2 == 0;
+                            trackVectorSectionsIndex[i] = trackVectorSection;
+                            trackNodesOrientation[i] = tvn.TrackVectorSections[trackVectorSection].Flag1 % 2 == 0;
 
                         }
                 }
@@ -236,7 +236,6 @@ namespace Orts.Simulation.World
                     }
                 }
             }
-            return;
         }
 
         /// <summary>

@@ -182,11 +182,11 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                 animationKey = (Transfertable.TargetX - Transfertable.CenterOffset.X) / Transfertable.Width * SharedShape.Animations[0].FrameCount;
             }
 
-            else if (Transfertable.Forward)
+            else if (Transfertable.MotionDirection == MidpointDirection.Forward)
             {
                 animationKey += SharedShape.Animations[0].FrameRate * elapsedTime.ClockSeconds;
             }
-            else if (Transfertable.Reverse)
+            else if (Transfertable.MotionDirection == MidpointDirection.Reverse)
             {
                 animationKey -= SharedShape.Animations[0].FrameRate * elapsedTime.ClockSeconds;
             }
@@ -195,13 +195,13 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
             Transfertable.XPos = (float)animationKey / SharedShape.Animations[0].FrameCount * Transfertable.Width + Transfertable.CenterOffset.X;
 
-            if ((Transfertable.Forward || Transfertable.Reverse) && !Translating)
+            if (Transfertable.MotionDirection != MidpointDirection.N && !Translating)
             {
                 Translating = true;
                 if (Sound != null) Sound.HandleEvent(Transfertable.TrainsOnMovingTable.Count == 1 &&
                     Transfertable.TrainsOnMovingTable[0].FrontOnBoard && Transfertable.TrainsOnMovingTable[0].BackOnBoard ? TrainEvent.MovingTableMovingLoaded : TrainEvent.MovingTableMovingEmpty);
             }
-            else if ((!Transfertable.Forward && !Transfertable.Reverse && Translating))
+            else if (Transfertable.MotionDirection == MidpointDirection.N && Translating)
             {
                 Translating = false;
                 if (Sound != null) Sound.HandleEvent(TrainEvent.MovingTableStopped);
