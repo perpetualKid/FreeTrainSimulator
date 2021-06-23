@@ -841,7 +841,7 @@ namespace Orts.ActivityRunner.Viewer3D
             });
 
             // Turntable commands
-            if (Simulator.MovingTables != null)
+            if (Simulator.MovingTables.Any())
             {
                 UserCommandController.AddEvent(UserCommand.ControlTurntableClockwise, KeyEventType.KeyPressed, () =>
                 {
@@ -1419,11 +1419,11 @@ namespace Orts.ActivityRunner.Viewer3D
         }
 
         // change reference to player train when switching train in Timetable mode
-        private void PlayerTrainChanged(object sender, Simulator.PlayerTrainChangedEventArgs e)
+        private void PlayerTrainChanged(object sender, PlayerTrainChangedEventArgs e)
         {
-            if (SelectedTrain == e.OldTrain)
+            if (SelectedTrain == e.PreviousTrain)
             {
-                SelectedTrain = e.NewTrain;
+                SelectedTrain = e.CurrentTrain;
             }
         }
 
@@ -1437,20 +1437,16 @@ namespace Orts.ActivityRunner.Viewer3D
         private MovingTable FindActiveMovingTable()
         {
             MovingTable activeMovingTable = null;
-            float minDistanceSquared = 1000000f;
-            if (Simulator.MovingTables != null)
+            float minDistanceSquared = 1000_000f;
+            foreach (MovingTable movingTable in Simulator.MovingTables)
             {
-                foreach (var movingTable in Simulator.MovingTables)
+                if (movingTable.WorldPosition.XNAMatrix.M44 != 100_000_000)
                 {
-
-                    if (movingTable.WorldPosition.XNAMatrix.M44 != 100_000_000)
+                    float distanceSquared = (float)WorldLocation.GetDistanceSquared(movingTable.WorldPosition.WorldLocation, Camera.CameraWorldLocation);
+                    if (distanceSquared <= minDistanceSquared && distanceSquared < 160_000) //must be the nearest one, but must also be near!
                     {
-                        var distanceSquared = (float)WorldLocation.GetDistanceSquared(movingTable.WorldPosition.WorldLocation, Camera.CameraWorldLocation);
-                        if (distanceSquared <= minDistanceSquared && distanceSquared < 160000) //must be the nearest one, but must also be near!
-                        {
-                            minDistanceSquared = distanceSquared;
-                            activeMovingTable = movingTable;
-                        }
+                        minDistanceSquared = distanceSquared;
+                        activeMovingTable = movingTable;
                     }
                 }
             }

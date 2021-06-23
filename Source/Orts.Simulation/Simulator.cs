@@ -19,7 +19,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 
@@ -50,6 +49,30 @@ using Orts.Simulation.World;
 
 namespace Orts.Simulation
 {
+    public class PlayerTrainChangedEventArgs : EventArgs
+    {
+        public Train PreviousTrain { get; }
+        public Train CurrentTrain { get; }
+
+        public PlayerTrainChangedEventArgs(Train previousTrain, Train currentTrain)
+        {
+            PreviousTrain = previousTrain;
+            CurrentTrain = currentTrain;
+        }
+    }
+
+    public class QueryCarViewerLoadedEventArgs : EventArgs
+    {
+        public TrainCar Car { get; }
+
+        public bool Loaded { get; set; }
+
+        public QueryCarViewerLoadedEventArgs(TrainCar car)
+        {
+            Car = car;
+        }
+    }
+
     /// <summary>
     /// This contains all the essential code to operate trains along paths as defined
     /// in the activity.   It is meant to operate in a separate thread it handles the
@@ -80,7 +103,7 @@ namespace Orts.Simulation
         /// Monotonically increasing time value (in seconds) for the simulation. Starts at 0 and only ever increases, at <see cref="GameSpeed"/>.
         /// Does not change if game is <see cref="Paused"/>.
         /// </summary>
-        public double GameTime;
+        public double GameTime { get; private set; }
         /// <summary>
         /// "Time of day" clock value (in seconds) for the simulation. Starts at activity start time and may increase, at <see cref="GameSpeed"/>,
         /// or jump forwards or jump backwards.
@@ -111,8 +134,8 @@ namespace Orts.Simulation
         public RouteFile TRK;
         public TrackSectionsFile TSectionDat;
         public TrainList Trains;
-        public Dictionary<int, Physics.Train> TrainDictionary = new Dictionary<int, Physics.Train>();
-        public Dictionary<string, Physics.Train> NameDictionary = new Dictionary<string, Physics.Train>();
+        public Dictionary<int, Train> TrainDictionary = new Dictionary<int, Train>();
+        public Dictionary<string, Train> NameDictionary { get; } = new Dictionary<string, Train>(StringComparer.OrdinalIgnoreCase);
         public Dictionary<int, AITrain> AutoGenDictionary = new Dictionary<int, AITrain>();
         public List<int> StartReference = new List<int>();
         public Weather Weather = new Weather();
@@ -150,7 +173,7 @@ namespace Orts.Simulation
         public float InitialTileZ;
         public HazardManager HazardManager;
         public bool InControl = true;//For multiplayer, a player may not control his/her own train (as helper)
-        public List<MovingTable> MovingTables = new List<MovingTable>();
+        public List<MovingTable> MovingTables { get; } = new List<MovingTable>();
         public List<CarSpawners> CarSpawnerLists;
         public ClockList Clocks;           // List of OR-Clocks given by externe file "openrails\clocks.dat"
 
@@ -179,21 +202,20 @@ namespace Orts.Simulation
         public readonly bool MilepostUnitsMetric;
         public bool OpenDoorsInAITrains;
 
-        public int ActiveMovingTableIndex = -1;
+        private int activeMovingTableIndex = -1;
+
         public MovingTable ActiveMovingTable
         {
-            get
-            {
-                return ActiveMovingTableIndex >= 0 && ActiveMovingTableIndex < MovingTables.Count ? MovingTables[ActiveMovingTableIndex] : null;
-            }
+            get => activeMovingTableIndex >= 0 && activeMovingTableIndex < MovingTables.Count ? MovingTables[activeMovingTableIndex] : null;
             set
             {
-                ActiveMovingTableIndex = -1;
-                if (MovingTables.Count < 1) return;
+                activeMovingTableIndex = -1;
+                if (MovingTables.Count < 1)
+                    return;
                 for (int i = 0; i < MovingTables.Count; i++)
                     if (value == MovingTables[i])
                     {
-                        ActiveMovingTableIndex = i;
+                        activeMovingTableIndex = i;
                     }
             }
         }
@@ -222,44 +244,21 @@ namespace Orts.Simulation
 
         public class TrainSwitcherData
         {
-            public Physics.Train PickedTrainFromList;
+            public Train PickedTrainFromList;
             public bool ClickedTrainFromList;
-            public Physics.Train SelectedAsPlayer;
+            public Train SelectedAsPlayer;
             public bool ClickedSelectedAsPlayer;
             public bool SuspendOldPlayer;
         }
 
         public readonly TrainSwitcherData TrainSwitcher = new TrainSwitcherData();
 
-        public class PlayerTrainChangedEventArgs : EventArgs
-        {
-            public readonly Physics.Train OldTrain;
-            public readonly Physics.Train NewTrain;
-
-            public PlayerTrainChangedEventArgs(Physics.Train oldTrain, Physics.Train newTrain)
-            {
-                OldTrain = oldTrain;
-                NewTrain = newTrain;
-            }
-        }
-
-        public class QueryCarViewerLoadedEventArgs : EventArgs
-        {
-            public readonly TrainCar Car;
-            public bool Loaded;
-
-            public QueryCarViewerLoadedEventArgs(TrainCar car)
-            {
-                Car = car;
-            }
-        }
-
-        public event System.EventHandler WeatherChanged;
-        public event System.EventHandler AllowedSpeedRaised;
-        public event System.EventHandler PlayerLocomotiveChanged;
-        public event System.EventHandler<PlayerTrainChangedEventArgs> PlayerTrainChanged;
-        public event System.EventHandler<QueryCarViewerLoadedEventArgs> QueryCarViewerLoaded;
-        public event System.EventHandler RequestTTDetachWindow;
+        public event EventHandler WeatherChanged;
+        public event EventHandler AllowedSpeedRaised;
+        public event EventHandler PlayerLocomotiveChanged;
+        public event EventHandler<PlayerTrainChangedEventArgs> PlayerTrainChanged;
+        public event EventHandler<QueryCarViewerLoadedEventArgs> QueryCarViewerLoaded;
+        public event EventHandler RequestTTDetachWindow;
 
         public Simulator(UserSettings settings, string activityPath, bool useOpenRailsDirectory)
         {
@@ -490,7 +489,8 @@ namespace Orts.Simulation
                 playerTTTrain.CalculatePositionOfCars(); // calculate position of player train cars
                 playerTTTrain.PostInit();               // place player train after pre-running of AI trains
                 if (!TrainDictionary.ContainsKey(playerTTTrain.Number)) TrainDictionary.Add(playerTTTrain.Number, playerTTTrain);
-                if (!NameDictionary.ContainsKey(playerTTTrain.Name.ToLower())) NameDictionary.Add(playerTTTrain.Name.ToLower(), playerTTTrain);
+                if (!NameDictionary.ContainsKey(playerTTTrain.Name))
+                    NameDictionary.Add(playerTTTrain.Name, playerTTTrain);
             }
         }
 
@@ -511,7 +511,7 @@ namespace Orts.Simulation
             InitialTileZ = initialTileZ;
             PoolHolder = new Poolholder(inf, this);
 
-            SignalEnvironment = new SignalEnvironment(SIGCFG, false, System.Threading.CancellationToken.None);
+            SignalEnvironment = new SignalEnvironment(SIGCFG, false, CancellationToken.None);
             SignalEnvironment.Restore(inf);
 
             RestoreTrains(inf);
@@ -522,7 +522,7 @@ namespace Orts.Simulation
             if (OriginalPlayerTrain == null) OriginalPlayerTrain = AI.AITrains.Find(item => item.Number == 0);
 
             // initialization of turntables
-            ActiveMovingTableIndex = inf.ReadInt32();
+            activeMovingTableIndex = inf.ReadInt32();
             MovingTables.AddRange(MovingTableFile.ReadTurntableFile(RoutePath + @"\openrails\turntables.dat"));
             if (MovingTables.Count >= 0)
             {
@@ -549,10 +549,12 @@ namespace Orts.Simulation
             // InterlockingSystem
             AI.Save(outf);
 
-            outf.Write(ActiveMovingTableIndex);
-            if (MovingTables != null && MovingTables.Count >= 0)
-                foreach (var movingtable in MovingTables) movingtable.Save(outf);
-
+            outf.Write(activeMovingTableIndex);
+            if (MovingTables.Count >= 0)
+            {
+                foreach (MovingTable movingtable in MovingTables)
+                    movingtable.Save(outf);
+            }
             Orts.Simulation.Activity.Save(outf, ActivityRun);
         }
 
@@ -597,12 +599,12 @@ namespace Orts.Simulation
         /// </summary>
         public TrainCar InitialPlayerLocomotive()
         {
-            Physics.Train playerTrain = Trains[0];    // we install the player train first
+            Train playerTrain = Trains[0];    // we install the player train first
             PlayerLocomotive = SetPlayerLocomotive(playerTrain);
             return PlayerLocomotive;
         }
 
-        public TrainCar SetPlayerLocomotive(Physics.Train playerTrain)
+        public TrainCar SetPlayerLocomotive(Train playerTrain)
         {
             TrainCar PlayerLocomotive = null;
             foreach (TrainCar car in playerTrain.Cars)
@@ -667,7 +669,7 @@ namespace Orts.Simulation
             if (ActiveMovingTable != null) ActiveMovingTable.Update();
 
             // Represent conditions at the specified clock time.
-            List<Physics.Train> movingTrains = new List<Physics.Train>();
+            List<Train> movingTrains = new List<Train>();
 
             if (PlayerLocomotive != null)
             {
@@ -681,7 +683,7 @@ namespace Orts.Simulation
                 }
             }
 
-            foreach (Physics.Train train in Trains)
+            foreach (Train train in Trains)
             {
                 if ((train.SpeedMpS != 0 || (train.ControlMode == TrainControlMode.Explorer && train.TrainType == TrainType.Remote && MPManager.IsServer())) &&
                     train.GetType() != typeof(AITrain) && train.GetType() != typeof(TTTrain) &&
@@ -691,7 +693,7 @@ namespace Orts.Simulation
                 }
             }
 
-            foreach (Physics.Train train in movingTrains)
+            foreach (Train train in movingTrains)
             {
                 if (MPManager.IsMultiPlayer())
                 {
@@ -717,7 +719,7 @@ namespace Orts.Simulation
             {
                 if (!MPManager.IsMultiPlayer() || !MPManager.IsClient())
                 {
-                    foreach (Physics.Train train in movingTrains)
+                    foreach (Train train in movingTrains)
                     {
                         CheckForCoupling(train, elapsedClockSeconds);
                     }
@@ -766,20 +768,20 @@ namespace Orts.Simulation
             WeatherChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        private void FinishFrontCoupling(Physics.Train drivenTrain, Physics.Train train, TrainCar lead, bool sameDirection)
+        private void FinishFrontCoupling(Train drivenTrain, Train train, TrainCar lead, bool sameDirection)
         {
             drivenTrain.LeadLocomotive = lead;
             drivenTrain.CalculatePositionOfCars();
             FinishCoupling(drivenTrain, train, true, sameDirection);
         }
 
-        private void FinishRearCoupling(Physics.Train drivenTrain, Physics.Train train, bool sameDirection)
+        private void FinishRearCoupling(Train drivenTrain, Train train, bool sameDirection)
         {
             drivenTrain.RepositionRearTraveller();
             FinishCoupling(drivenTrain, train, false, sameDirection);
         }
 
-        private void FinishCoupling(Physics.Train drivenTrain, Physics.Train train, bool couple_to_front, bool sameDirection)
+        private void FinishCoupling(Train drivenTrain, Train train, bool couple_to_front, bool sameDirection)
         {
             // if coupled train was on turntable and static, remove it from list of trains on turntable
             if (ActiveMovingTable != null && ActiveMovingTable.TrainsOnMovingTable.Count != 0)
@@ -870,7 +872,7 @@ namespace Orts.Simulation
                 {
                     Trains.Remove(train);
                     TrainDictionary.Remove(train.Number);
-                    NameDictionary.Remove(train.Name.ToLower());
+                    NameDictionary.Remove(train.Name);
                 }
                 if (MPManager.IsMultiPlayer()) MPManager.BroadCast((new MSGCouple(drivenTrain, train, train.TrainType != TrainType.AiIncorporated)).ToString());
             }
@@ -888,7 +890,7 @@ namespace Orts.Simulation
             AI.aiListChanged = true;
         }
 
-        private static void UpdateUncoupled(Physics.Train drivenTrain, Physics.Train train, float d1, float d2, bool rear)
+        private static void UpdateUncoupled(Train drivenTrain, Train train, float d1, float d2, bool rear)
         {
             if (train == drivenTrain.UncoupledFrom && d1 > .5 && d2 > .5)
             {
@@ -906,12 +908,12 @@ namespace Orts.Simulation
         /// <summary>
         /// Scan other trains
         /// </summary>
-        public void CheckForCoupling(Physics.Train drivenTrain, double elapsedClockSeconds)
+        public void CheckForCoupling(Train drivenTrain, double elapsedClockSeconds)
         {
             if (MPManager.IsMultiPlayer() && !MPManager.IsServer()) return; //in MultiPlayer mode, server will check coupling, client will get message and do things
             if (drivenTrain.SpeedMpS < 0)
             {
-                foreach (Physics.Train train in Trains)
+                foreach (Train train in Trains)
                     if (train != drivenTrain && train.TrainType != TrainType.AiIncorporated)
                     {
                         //avoid coupling of player train with other players train
@@ -980,7 +982,7 @@ namespace Orts.Simulation
             }
             else if (drivenTrain.SpeedMpS > 0)
             {
-                foreach (Physics.Train train in Trains)
+                foreach (Train train in Trains)
                     if (train != drivenTrain && train.TrainType != TrainType.AiIncorporated)
                     {
                         //avoid coupling of player train with other players train if it is too short alived (e.g, when a train is just spawned, it may overlap with another train)
@@ -1374,7 +1376,7 @@ namespace Orts.Simulation
             // do not save AI trains (done by AITrain)
             // do not save Timetable Trains (done by TTTrain through AITrain)
 
-            foreach (Physics.Train train in Trains)
+            foreach (Train train in Trains)
             {
                 if (train.TrainType != TrainType.Ai && train.TrainType != TrainType.AiPlayerDriven && train.TrainType != TrainType.AiPlayerHosting &&
                     train.TrainType != TrainType.AiIncorporated && train.GetType() != typeof(TTTrain))
@@ -1417,7 +1419,7 @@ namespace Orts.Simulation
             }
 
             // find player train
-            foreach (Physics.Train thisTrain in Trains)
+            foreach (Train thisTrain in Trains)
             {
                 if (thisTrain.TrainType == TrainType.Player
                     || thisTrain.TrainType == TrainType.AiPlayerDriven || thisTrain.TrainType == TrainType.AiPlayerHosting)
@@ -1456,8 +1458,8 @@ namespace Orts.Simulation
                 returnTrain = tempTrain as TTTrain;
                 returnTrain.AI.AutoGenTrains.Remove(tempTrain);
                 AutoGenDictionary.Remove(reqNumber);
-                returnTrain.RoutedBackward = new Physics.Train.TrainRouted(returnTrain, 1);
-                returnTrain.RoutedForward = new Physics.Train.TrainRouted(returnTrain, 0);
+                returnTrain.RoutedBackward = new Train.TrainRouted(returnTrain, 1);
+                returnTrain.RoutedForward = new Train.TrainRouted(returnTrain, 0);
             }
             return (returnTrain);
         }
@@ -1517,7 +1519,7 @@ namespace Orts.Simulation
 
         public void UncoupleBehind(TrainCar car, bool keepFront)
         {
-            Physics.Train train = car.Train;
+            Train train = car.Train;
 
             if (MPManager.IsMultiPlayer() && !MPManager.TrainOK2Decouple(Confirmer, train)) return;
             int i = 0;
@@ -1526,7 +1528,7 @@ namespace Orts.Simulation
             ++i;
 
             TrainCar lead = train.LeadLocomotive;
-            Physics.Train train2;
+            Train train2;
             if (train.IncorporatedTrainNo == -1)
             {
                 train2 = new Train(train);
@@ -1599,8 +1601,8 @@ namespace Orts.Simulation
                 train.RepositionRearTraveller();    // fix the rear traveller
             }
 
-            train.ActivityClearingDistanceM = train.Cars.Count < Physics.Train.StandardTrainMinCarNo ? Physics.Train.ShortClearingDistanceM : Physics.Train.StandardClearingDistanceM;
-            train2.ActivityClearingDistanceM = train2.Cars.Count < Physics.Train.StandardTrainMinCarNo ? Physics.Train.ShortClearingDistanceM : Physics.Train.StandardClearingDistanceM;
+            train.ActivityClearingDistanceM = train.Cars.Count < Train.StandardTrainMinCarNo ? Train.ShortClearingDistanceM : Train.StandardClearingDistanceM;
+            train2.ActivityClearingDistanceM = train2.Cars.Count < Train.StandardTrainMinCarNo ? Train.ShortClearingDistanceM : Train.StandardClearingDistanceM;
 
 
             train.UncoupledFrom = train2;
@@ -1793,7 +1795,7 @@ namespace Orts.Simulation
                     dyingTrain.ClearDeadlocks();
                     Trains.Remove(dyingTrain);
                     TrainDictionary.Remove(dyingTrain.Number);
-                    NameDictionary.Remove(dyingTrain.Name.ToLower());
+                    NameDictionary.Remove(dyingTrain.Name);
 
                     bool inPath;
 
@@ -1874,7 +1876,7 @@ namespace Orts.Simulation
                 }
                 else
                 {
-                    Physics.Train pathlessPlayerTrain = selectedAsPlayer;
+                    Train pathlessPlayerTrain = selectedAsPlayer;
                     pathlessPlayerTrain.IsPathless = true;
                     PlayerLocomotive = SetPlayerLocomotive(pathlessPlayerTrain);
                     if (oldPlayerTrain != null) oldPlayerTrain.LeadLocomotiveIndex = -1;
@@ -1976,7 +1978,7 @@ namespace Orts.Simulation
         /// Class TrainList extends class List<Train> with extra search methods
         /// </summary>
 
-        public class TrainList : List<Physics.Train>
+        public class TrainList : List<Train>
         {
             private Simulator simulator;
 
@@ -1996,7 +1998,7 @@ namespace Orts.Simulation
 
             public Train GetTrainByNumber(int reqNumber)
             {
-                Physics.Train returnTrain = null;
+                Train returnTrain = null;
                 if (simulator.TrainDictionary.ContainsKey(reqNumber))
                 {
                     returnTrain = simulator.TrainDictionary[reqNumber];
@@ -2005,7 +2007,7 @@ namespace Orts.Simulation
                 // check player train's original number
                 if (returnTrain == null && simulator.TimetableMode && simulator.PlayerLocomotive != null)
                 {
-                    Physics.Train playerTrain = simulator.PlayerLocomotive.Train;
+                    Train playerTrain = simulator.PlayerLocomotive.Train;
                     TTTrain TTPlayerTrain = playerTrain as TTTrain;
                     if (TTPlayerTrain.OrgAINumber == reqNumber)
                     {
@@ -2034,7 +2036,7 @@ namespace Orts.Simulation
 
             public Train GetTrainByName(string reqName)
             {
-                Physics.Train returnTrain = null;
+                Train returnTrain = null;
                 if (simulator.NameDictionary.ContainsKey(reqName))
                 {
                     returnTrain = simulator.NameDictionary[reqName];
@@ -2086,7 +2088,7 @@ namespace Orts.Simulation
 
         } // TrainList
 
-        internal void OnAllowedSpeedRaised(Physics.Train train)
+        internal void OnAllowedSpeedRaised(Train train)
         {
             AllowedSpeedRaised?.Invoke(train, EventArgs.Empty);
         }
@@ -2096,10 +2098,9 @@ namespace Orts.Simulation
             PlayerLocomotiveChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        internal void OnPlayerTrainChanged(Physics.Train oldTrain, Physics.Train newTrain)
+        internal void OnPlayerTrainChanged(Train oldTrain, Train newTrain)
         {
-            var eventArgs = new PlayerTrainChangedEventArgs(oldTrain, newTrain);
-            PlayerTrainChanged?.Invoke(this, eventArgs);
+            PlayerTrainChanged?.Invoke(this, new PlayerTrainChangedEventArgs(oldTrain, newTrain));
         }
 
         internal void OnRequestTTDetachWindow()
@@ -2110,7 +2111,7 @@ namespace Orts.Simulation
 
         private bool OnQueryCarViewerLoaded(TrainCar car)
         {
-            var query = new QueryCarViewerLoadedEventArgs(car);
+            QueryCarViewerLoadedEventArgs query = new QueryCarViewerLoadedEventArgs(car);
             QueryCarViewerLoaded?.Invoke(this, query);
             return query.Loaded;
         }
@@ -2121,261 +2122,113 @@ namespace Orts.Simulation
             if (activitySettings.IsActivityOverride)
             {
                 Trace.Write("\n------------------------------------------------------------------------------------------------");
-                Trace.Write("\nThe following Option settings have been temporarily set by this activity (no permanent changes have been made to your settings):");
+                Trace.Write("\nThe following Option settings have been temporarily set by this activity \r\n(no permanent changes have been made to your settings):");
 
                 // General TAB 
 
-                if (activitySettings.Options.RetainersOnAllCars == 1)
-                {
-                    setting.RetainersOnAllCars = true;
-                    Trace.Write("\nRetainers on all cars            =   True");
-                }
-                else if (activitySettings.Options.RetainersOnAllCars == 0)
-                {
-                    setting.RetainersOnAllCars = false;
-                    Trace.Write("\nRetainers on all cars            =   True");
-                }
+                setting.RetainersOnAllCars = activitySettings.Options.RetainersOnAllCars == 1;
+                Trace.Write($"\n{"Retainers on all cars",-40}={setting.RetainersOnAllCars,6}");
 
-                if (activitySettings.Options.GraduatedBrakeRelease == 1)
-                {
-                    setting.GraduatedRelease = true;
-                    Trace.Write("\nGraduated Brake Release          =   True");
-                }
-                else if (activitySettings.Options.GraduatedBrakeRelease == 0)
-                {
-                    setting.GraduatedRelease = false;
-                    Trace.Write("\nGraduated Brake Release          =   False");
-                }
+                setting.GraduatedRelease = activitySettings.Options.GraduatedBrakeRelease == 1;
+                Trace.Write($"\n{"Graduated Brake Release",-40}={setting.GraduatedRelease,6}");
 
-                if (activitySettings.Options.ViewDispatcherWindow == 1)
-                {
-                    setting.ViewDispatcher = true;
-                    Trace.Write("\nView Dispatch Window             =   True");
-                }
-                else if (activitySettings.Options.ViewDispatcherWindow == 0)
-                {
-                    setting.ViewDispatcher = false;
-                    Trace.Write("\nView Dispatch Window             =   False");
-                }
+                setting.ViewDispatcher = activitySettings.Options.ViewDispatcherWindow == 1;
+                Trace.Write($"\n{"View Dispatch Window",-40}={setting.ViewDispatcher,6}");
 
-                if (activitySettings.Options.SoundSpeedControl == 1)
-                {
-                    setting.SpeedControl = true;
-                    Trace.Write("\nSound speed control              =   True");
-                }
-                else if (activitySettings.Options.SoundSpeedControl == 0)
-                {
-                    setting.SpeedControl = false;
-                    Trace.Write("\nSound speed control              =   True");
-                }
+                setting.SpeedControl = activitySettings.Options.SoundSpeedControl == 1;
+                Trace.Write($"\n{"Sound speed control",-40}={setting.SpeedControl,6}");
 
                 // Video TAB
-                if (activitySettings.Options.FastFullScreenAltTab == 1)
-                {
-                    setting.FastFullScreenAltTab = true;
-                    Trace.Write("\nFast Full Screen Alt TAB         =   True");
-                }
-                else if (activitySettings.Options.FastFullScreenAltTab == 0)
-                {
-                    setting.FastFullScreenAltTab = false;
-                    Trace.Write("\nFast Full Screen Alt TAB         =   False");
-                }
-
+                setting.FastFullScreenAltTab = activitySettings.Options.FastFullScreenAltTab == 1;
+                Trace.Write($"\n{"Fast Full Screen Alt TAB",-40}={setting.FastFullScreenAltTab,6}");
 
                 // Simulation TAB
-                if (activitySettings.Options.ForcedRedAtStationStops == 1)
-                {
-                    setting.NoForcedRedAtStationStops = false; // Note this parameter is reversed in its logic to others.
-                    Trace.Write("\nForced Red at Station Stops      =   True");
-                }
-                else if (activitySettings.Options.ForcedRedAtStationStops == 0)
-                {
-                    setting.NoForcedRedAtStationStops = true; // Note this parameter is reversed in its logic to others.
-                    Trace.Write("\nForced Red at Station Stops      =   False");
-                }
+                setting.NoForcedRedAtStationStops = activitySettings.Options.ForcedRedAtStationStops == 0; // Note this parameter is reversed in its logic to others.
+                Trace.Write($"\n{"Forced Red at Station Stops",-40}={setting.NoForcedRedAtStationStops,6}");
 
+                setting.UseLocationPassingPaths = activitySettings.Options.UseLocationPassingPaths == 1;
+                Trace.Write($"\n{"Location Based Passing Paths",-40}={setting.UseLocationPassingPaths,6}");
 
-                if (activitySettings.Options.UseLocationPassingPaths == 1)
-                {
-                    setting.UseLocationPassingPaths = true;
-                    Trace.Write("\nLocation Based Passing Paths     =   True");
-                }
-                else if (activitySettings.Options.UseLocationPassingPaths == 0)
-                {
-                    setting.UseLocationPassingPaths = false;
-                    Trace.Write("\nLocation Based Passing Paths     =   False");
-                }
+                setting.UseAdvancedAdhesion = activitySettings.Options.UseAdvancedAdhesion == 1;
+                Trace.Write($"\n{"Use Advanced Adhesion",-40}={setting.UseAdvancedAdhesion,6}");
 
-                if (activitySettings.Options.UseAdvancedAdhesion == 1)
-                {
-                    setting.UseAdvancedAdhesion = true;
-                    Trace.Write("\nUse Advanced Adhesion            =   True");
-                }
-                else if (activitySettings.Options.UseAdvancedAdhesion == 0)
-                {
-                    setting.UseAdvancedAdhesion = false;
-                    Trace.Write("\nUse Advanced Adhesion            =   False");
-                }
+                setting.BreakCouplers = activitySettings.Options.BreakCouplers == 1;
+                Trace.Write($"\n{"Break Couplers",-40}={setting.BreakCouplers,6}");
 
-                if (activitySettings.Options.BreakCouplers == 1)
-                {
-                    setting.BreakCouplers = true;
-                    Trace.Write("\nBreak Couplers                   =   True");
-                }
-                else if (activitySettings.Options.BreakCouplers == 0)
-                {
-                    setting.BreakCouplers = false;
-                    Trace.Write("\nBreak Couplers                   =   False");
-                }
+                setting.CurveResistanceDependent = activitySettings.Options.CurveResistanceDependent == 1;
+                Trace.Write($"\n{"Curve Resistance Dependent",-40}={setting.CurveResistanceDependent,6}");
 
-                if (activitySettings.Options.CurveResistanceDependent == 1)
-                {
-                    setting.CurveResistanceDependent = true;
-                    Trace.Write("\nCurve Resistance Dependent       =   True");
-                }
-                else if (activitySettings.Options.CurveResistanceDependent == 0)
-                {
-                    setting.CurveResistanceDependent = false;
-                    Trace.Write("\nCurve Resistance Dependent       =   False");
-                }
+                setting.CurveSpeedDependent = activitySettings.Options.CurveSpeedDependent == 1;
+                Trace.Write($"\n{"Curve Speed Dependent",-40}={setting.CurveSpeedDependent,6}");
 
-                if (activitySettings.Options.CurveSpeedDependent == 1)
-                {
-                    setting.CurveSpeedDependent = true;
-                    Trace.Write("\nCurve Speed Dependent            =   True");
-                }
-                else if (activitySettings.Options.CurveSpeedDependent == 1)
-                {
-                    setting.CurveSpeedDependent = false;
-                    Trace.Write("\nCurve Speed Dependent            =   False");
-                }
+                setting.TunnelResistanceDependent = activitySettings.Options.TunnelResistanceDependent == 1;
+                Trace.Write($"\n{"Tunnel Resistance Dependent",-40}={setting.TunnelResistanceDependent,6}");
 
-                if (activitySettings.Options.TunnelResistanceDependent == 1)
-                {
-                    setting.TunnelResistanceDependent = true;
-                    Trace.Write("\nTunnel Resistance Dependent      =   True");
-                }
-                else if (activitySettings.Options.TunnelResistanceDependent == 0)
-                {
-                    setting.TunnelResistanceDependent = false;
-                    Trace.Write("\nTunnel Resistance Dependent      =   False");
-                }
+                setting.WindResistanceDependent = activitySettings.Options.WindResistanceDependent == 1;
+                Trace.Write($"\n{"Wind Resistance Dependent",-40}={setting.WindResistanceDependent,6}");
 
-                if (activitySettings.Options.WindResistanceDependent == 1)
-                {
-                    setting.WindResistanceDependent = true;
-                    Trace.Write("\nWind Resistance Dependent        =   True");
-                }
-                else if (activitySettings.Options.WindResistanceDependent == 0)
-                {
-                    setting.WindResistanceDependent = false;
-                    Trace.Write("\nWind Resistance Dependent        =   False");
-                }
+                setting.HotStart = activitySettings.Options.HotStart == 1;
+                Trace.Write($"\n{"Hot Start",-40}={setting.HotStart,6}");
 
-                if (activitySettings.Options.HotStart == 1)
-                {
-                    setting.HotStart = true;
-                    Trace.Write("\nHot Start                        =   True");
-                }
-                else if (activitySettings.Options.HotStart == 0)
-                {
-                    setting.HotStart = false;
-                    Trace.Write("\nHot Start                        =   False");
-                }
-                if (activitySettings.Options.SimpleControlPhysics == 1)
-                {
-                    Trace.Write("\nSimple Control/Physics                        =   Not Active");
-                }
-                else if (activitySettings.Options.SimpleControlPhysics == 0)
-                {
-                    Trace.Write("\nSimple Control/Physics                        =   Not Active");
-                }
+                Trace.Write($"\n{"Simple Control/Physics",-40}={activitySettings.Options.SimpleControlPhysics == 1,6}");
 
                 // Data Logger TAB
-                if (activitySettings.Options.VerboseConfigurationMessages == 1)
-                {
-                    Trace.Write("\nVerbose Configuration Messages               =   Not Active");
-                }
-                else if (activitySettings.Options.VerboseConfigurationMessages == 0)
-                {
-                    Trace.Write("\nVerbose Configuration Messages                        =   Not Active");
-                }
+                Trace.Write($"\n{"Verbose Configuration Messages",-40}={activitySettings.Options.VerboseConfigurationMessages == 1,6}");
 
                 // Experimental TAB
-                if (activitySettings.Options.UseLocationPassingPaths == 1)
-                {
-                    setting.UseLocationPassingPaths = true;
-                    Trace.Write("\nLocation Linked Passing Paths    =   True");
-                }
-                else if (activitySettings.Options.UseLocationPassingPaths == 0)
-                {
-                    setting.UseLocationPassingPaths = false;
-                    Trace.Write("\nLocation Linked Passing Paths    =   False");
-                }
-
                 if (activitySettings.Options.AdhesionFactor > 0)
                 {
                     setting.AdhesionFactor = activitySettings.Options.AdhesionFactor;
                     setting.AdhesionFactor = MathHelper.Clamp(setting.AdhesionFactor, 10, 200);
-                    Trace.Write("\nAdhesion Factor Correction       =   " + setting.AdhesionFactor.ToString());
+                    Trace.Write($"\n{"Adhesion Factor Correction",-40}={setting.AdhesionFactor,6}");
                 }
 
                 if (activitySettings.Options.AdhesionFactorChange > 0)
                 {
                     setting.AdhesionFactorChange = activitySettings.Options.AdhesionFactorChange;
                     setting.AdhesionFactorChange = MathHelper.Clamp(setting.AdhesionFactorChange, 0, 100);
-                    Trace.Write("\nAdhesion Factor Change           =   " + setting.AdhesionFactorChange.ToString());
+                    Trace.Write($"\n{"Adhesion Factor Change",-40}={setting.AdhesionFactorChange,6}");
                 }
 
-                if (activitySettings.Options.AdhesionProportionalToWeather == 1)
-                {
-                    setting.AdhesionProportionalToWeather = true;
-                    Trace.Write("\nAdhesion Proportional to Weather =   True");
-                }
-                else if (activitySettings.Options.AdhesionProportionalToWeather == 0)
-                {
-                    setting.AdhesionProportionalToWeather = true;
-                    Trace.Write("\nAdhesion Proportional to Weather =   False");
-                }
+                setting.AdhesionProportionalToWeather = activitySettings.Options.AdhesionProportionalToWeather == 1;
+                Trace.Write($"\n{"Adhesion Proportional to Weather",-40}={setting.AdhesionProportionalToWeather,6}");
 
                 if (activitySettings.Options.ActivityRandomization > 0)
                 {
                     setting.ActRandomizationLevel = activitySettings.Options.ActivityRandomization;
                     setting.ActRandomizationLevel = MathHelper.Clamp(setting.ActRandomizationLevel, 0, 3);
-                    Trace.Write("\nActivity Randomization           =   " + setting.ActRandomizationLevel.ToString());
+                    Trace.Write($"\n{"Activity Randomization", -40}={setting.ActRandomizationLevel, 6}");
                 }
 
                 if (activitySettings.Options.ActivityWeatherRandomization > 0)
                 {
                     setting.ActWeatherRandomizationLevel = activitySettings.Options.ActivityWeatherRandomization;
                     setting.ActWeatherRandomizationLevel = MathHelper.Clamp(setting.ActWeatherRandomizationLevel, 0, 3);
-                    Trace.Write("\nActivity Weather Randomization   =   " + setting.ActWeatherRandomizationLevel.ToString());
+                    Trace.Write($"\n{"Activity Weather Randomization", -40}={setting.ActWeatherRandomizationLevel, 6}");
                 }
 
                 if (activitySettings.Options.SuperElevationLevel > 0)
                 {
                     setting.UseSuperElevation = activitySettings.Options.SuperElevationLevel;
                     setting.UseSuperElevation = MathHelper.Clamp(setting.UseSuperElevation, 0, 10);
-                    Trace.Write("\nSuper elevation - level          =   " + setting.UseSuperElevation.ToString());
+                    Trace.Write($"\n{"Super elevation - level", -40}={setting.UseSuperElevation}");
                 }
 
                 if (activitySettings.Options.SuperElevationMinimumLength > 0)
                 {
                     setting.SuperElevationMinLen = activitySettings.Options.SuperElevationMinimumLength;
                     setting.SuperElevationMinLen = MathHelper.Clamp(setting.SuperElevationMinLen, 50, 1000000);
-                    Trace.Write("\nSuper elevation - minimum length =   " + setting.SuperElevationMinLen.ToString());
+                    Trace.Write($"\n{"Super elevation - minimum length", -40}={setting.SuperElevationMinLen, 6}");
                 }
 
                 if (activitySettings.Options.SuperElevationGauge > 0)
                 {
                     setting.SuperElevationGauge = activitySettings.Options.SuperElevationGauge;
                     setting.SuperElevationGauge = MathHelper.Clamp(setting.SuperElevationGauge, 300, 2500);
-                    Trace.Write("\nSuper elevation - gauge          =   " + setting.SuperElevationGauge.ToString());
+                    Trace.Write($"\n{"Super elevation - gauge", -40}={setting.SuperElevationGauge, 6}");
                 }
 
-
                 Trace.Write("\n------------------------------------------------------------------------------------------------");
-
             }
         }
 

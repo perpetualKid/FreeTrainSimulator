@@ -169,8 +169,8 @@ namespace Orts.Simulation.AIs
                     AITrains.Add(aiTrain);
                     Simulator.Trains.Add(aiTrain);
                     simulator.TrainDictionary.Add(aiTrain.Number, aiTrain);
-                    if (!Simulator.NameDictionary.ContainsKey(aiTrain.Name.ToLower()))
-                        Simulator.NameDictionary.Add(aiTrain.Name.ToLower(), aiTrain);
+                    if (!Simulator.NameDictionary.ContainsKey(aiTrain.Name))
+                        Simulator.NameDictionary.Add(aiTrain.Name, aiTrain);
                 }
 
                 // timetable mode trains
@@ -186,8 +186,8 @@ namespace Orts.Simulation.AIs
                         Simulator.Trains.Add(aiTrain);
                         simulator.TrainDictionary.Add(aiTrain.Number, aiTrain);
                     }
-                    if (!Simulator.NameDictionary.ContainsKey(aiTrain.Name.ToLower()))
-                        Simulator.NameDictionary.Add(aiTrain.Name.ToLower(), aiTrain);
+                    if (!Simulator.NameDictionary.ContainsKey(aiTrain.Name))
+                        Simulator.NameDictionary.Add(aiTrain.Name, aiTrain);
                 }
             }
 
@@ -866,8 +866,8 @@ namespace Orts.Simulation.AIs
             AITrain train = new AITrain(sd, this, aiPath, srvFile.Efficiency, srvFile.Name, trfDef, maxVelocityA);
             Simulator.TrainDictionary.Add(train.Number, train);
 
-            if (!Simulator.NameDictionary.ContainsKey(train.Name.ToLower()))
-                Simulator.NameDictionary.Add(train.Name.ToLower(), train);
+            if (!Simulator.NameDictionary.ContainsKey(train.Name))
+                Simulator.NameDictionary.Add(train.Name, train);
 
             if (consistFileName.Contains("tilted")) train.IsTilting = true;
 
@@ -1002,8 +1002,9 @@ namespace Orts.Simulation.AIs
                 Simulator.Trains.Add(thisTrain);
                 if (Simulator.TrainDictionary.ContainsKey(thisTrain.Number)) Simulator.TrainDictionary.Remove(thisTrain.Number); // clear existing entry
                 Simulator.TrainDictionary.Add(thisTrain.Number, thisTrain);
-                if (Simulator.NameDictionary.ContainsKey(thisTrain.Name.ToLower())) Simulator.NameDictionary.Remove(thisTrain.Name.ToLower());
-                Simulator.NameDictionary.Add(thisTrain.Name.ToLower(), thisTrain);
+                if (Simulator.NameDictionary.ContainsKey(thisTrain.Name)) 
+                    Simulator.NameDictionary.Remove(thisTrain.Name);
+                Simulator.NameDictionary.Add(thisTrain.Name, thisTrain);
                 if (thisTrain.InitialSpeed > 0 && thisTrain.MovementState != AiMovementState.StationStop)
                 {
                     thisTrain.InitializeMoving();
@@ -1229,10 +1230,12 @@ namespace Orts.Simulation.AIs
                     thisTrain.TrainType = TrainType.Player;
                 }
 
-                if (Simulator.TrainDictionary.ContainsKey(thisTrain.Number)) Simulator.TrainDictionary.Remove(thisTrain.Number); // clear existing entry
+                if (Simulator.TrainDictionary.ContainsKey(thisTrain.Number)) 
+                    Simulator.TrainDictionary.Remove(thisTrain.Number); // clear existing entry
                 Simulator.TrainDictionary.Add(thisTrain.Number, thisTrain);
-                if (Simulator.NameDictionary.ContainsKey(thisTrain.Name.ToLower())) Simulator.NameDictionary.Remove(thisTrain.Name.ToLower());
-                Simulator.NameDictionary.Add(thisTrain.Name.ToLower(), thisTrain);
+                if (Simulator.NameDictionary.ContainsKey(thisTrain.Name)) 
+                    Simulator.NameDictionary.Remove(thisTrain.Name);
+                Simulator.NameDictionary.Add(thisTrain.Name, thisTrain);
             }
             else
             {
@@ -1292,7 +1295,7 @@ namespace Orts.Simulation.AIs
                 else
                 {
                     Simulator.TrainDictionary.Remove(train.Number);
-                    Simulator.NameDictionary.Remove(train.Name.ToLower());
+                    Simulator.NameDictionary.Remove(train.Name);
                     AITrains.Remove(train);
                     Simulator.Trains.Remove(train);
                     removeList.Add(train);
@@ -1338,8 +1341,9 @@ namespace Orts.Simulation.AIs
             {
                 if (Simulator.TrainDictionary.ContainsKey(train.Number)) Simulator.TrainDictionary.Remove(train.Number); // clear existing entry
                 Simulator.TrainDictionary.Add(train.Number, train);
-                if (Simulator.NameDictionary.ContainsKey(train.Name.ToLower())) Simulator.NameDictionary.Remove(train.Name.ToLower());
-                Simulator.NameDictionary.Add(train.Name.ToLower(), train);
+                if (Simulator.NameDictionary.ContainsKey(train.Name)) 
+                    Simulator.NameDictionary.Remove(train.Name);
+                Simulator.NameDictionary.Add(train.Name, train);
                 AITrains.Add(train);
                 aiListChanged = true;
                 if (train.TrainType != TrainType.PlayerIntended && train.TrainType != TrainType.Player) Simulator.Trains.Add(train);
@@ -1353,8 +1357,9 @@ namespace Orts.Simulation.AIs
             {
                 if (Simulator.TrainDictionary.ContainsKey(train.Number)) Simulator.TrainDictionary.Remove(train.Number); // clear existing entry
                 Simulator.TrainDictionary.Add(train.Number, train);
-                if (Simulator.NameDictionary.ContainsKey(train.Name.ToLower())) Simulator.NameDictionary.Remove(train.Name.ToLower());
-                Simulator.NameDictionary.Add(train.Name.ToLower(), train);
+                if (Simulator.NameDictionary.ContainsKey(train.Name)) 
+                    Simulator.NameDictionary.Remove(train.Name);
+                Simulator.NameDictionary.Add(train.Name, train);
                 if (train.TrainType == TrainType.Player || train.TrainType == TrainType.PlayerIntended)
                 {
                     AITrains.Insert(0, train);

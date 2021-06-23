@@ -3754,7 +3754,7 @@ namespace Orts.Simulation.AIs
                 attachTrain.RemoveFromTrack();
                 simulator.Trains.Remove(attachTrain);
                 simulator.TrainDictionary.Remove(attachTrain.Number);
-                simulator.NameDictionary.Remove(attachTrain.Name.ToLower());
+                simulator.NameDictionary.Remove(attachTrain.Name);
             }
             if (MPManager.IsMultiPlayer()) MPManager.BroadCast((new MSGCouple(this, attachTrain, false)).ToString());
             UpdateOccupancies();

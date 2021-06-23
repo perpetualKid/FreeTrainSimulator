@@ -286,16 +286,7 @@ namespace Orts.ActivityRunner.Viewer3D
             }
 
             // to avoid loop checking for every object this pre-check is performed
-            bool containsMovingTable = false;
-            if (Simulator.Instance.MovingTables != null)
-            {
-                foreach (var movingTable in Simulator.Instance.MovingTables)
-                    if (movingTable.WFile == WFileName)
-                    {
-                        containsMovingTable = true;
-                        break;
-                    }
-            }
+            bool containsMovingTable = Simulator.Instance.MovingTables.Where(m => m.WFile.Equals(WFileName, StringComparison.OrdinalIgnoreCase)).Any();
 
             // create all the individual scenery objects specified in the WFile
             foreach (var worldObject in WFile.Objects)
@@ -373,26 +364,24 @@ namespace Orts.ActivityRunner.Viewer3D
                             else
                             {
                                 var found = false;
-                                foreach (var movingTable in Simulator.Instance.MovingTables)
+                                foreach (MovingTable movingTable in Simulator.Instance.MovingTables)
                                 {
                                     if (worldObject.UiD == movingTable.UID && WFileName == movingTable.WFile)
                                     {
                                         found = true;
-                                        if (movingTable is TurnTable)
+                                        if (movingTable is TurnTable turnTable)
                                         {
-                                            var turntable = movingTable as TurnTable;
-                                            turntable.ComputeCenter(worldMatrix);
+                                            turnTable.ComputeCenter(worldMatrix);
                                             Quaternion quaternion = Quaternion.CreateFromRotationMatrix(worldObject.WorldPosition.XNAMatrix);
                                             //quaternion.Z *= -1;
                                             var startingY = Math.Asin(-2 * (quaternion.X * quaternion.Z - quaternion.Y * quaternion.W));
                                             //var startingY = Math.Asin(-2 * (worldObject.QDirection.A * worldObject.QDirection.C - worldObject.QDirection.B * worldObject.QDirection.D));
-                                            sceneryObjects.Add(new TurntableShape(shapeFilePath, new FixedWorldPositionSource(worldMatrix), shadowCaster ? ShapeFlags.ShadowCaster : ShapeFlags.None, turntable, startingY));
+                                            sceneryObjects.Add(new TurntableShape(shapeFilePath, new FixedWorldPositionSource(worldMatrix), shadowCaster ? ShapeFlags.ShadowCaster : ShapeFlags.None, turnTable, startingY));
                                         }
-                                        else
+                                        else if (movingTable is TransferTable transferTable)
                                         {
-                                            var transfertable = movingTable as Simulation.TransferTable;
-                                            transfertable.ComputeCenter(worldMatrix);
-                                            sceneryObjects.Add(new TransfertableShape(shapeFilePath, new FixedWorldPositionSource(worldMatrix), shadowCaster ? ShapeFlags.ShadowCaster : ShapeFlags.None, transfertable));
+                                            transferTable.ComputeCenter(worldMatrix);
+                                            sceneryObjects.Add(new TransfertableShape(shapeFilePath, new FixedWorldPositionSource(worldMatrix), shadowCaster ? ShapeFlags.ShadowCaster : ShapeFlags.None, transferTable));
                                         }
                                         break;
                                     }
@@ -451,7 +440,7 @@ namespace Orts.ActivityRunner.Viewer3D
                         if (Simulator.Instance.CarSpawnerLists != null && ((CarSpawnerObject)worldObject).ListName != null)
                         {
                             ((CarSpawnerObject)worldObject).CarSpawnerListIndex = Simulator.Instance.CarSpawnerLists.FindIndex(x => x.ListName == ((CarSpawnerObject)worldObject).ListName);
-                            if (((CarSpawnerObject)worldObject).CarSpawnerListIndex < 0 || ((CarSpawnerObject)worldObject).CarSpawnerListIndex > Simulator.Instance.CarSpawnerLists.Count-1) ((CarSpawnerObject)worldObject).CarSpawnerListIndex = 0;
+                            if (((CarSpawnerObject)worldObject).CarSpawnerListIndex < 0 || ((CarSpawnerObject)worldObject).CarSpawnerListIndex > Simulator.Instance.CarSpawnerLists.Count - 1) ((CarSpawnerObject)worldObject).CarSpawnerListIndex = 0;
                         }
                         else ((CarSpawnerObject)worldObject).CarSpawnerListIndex = 0;
                         carSpawners.Add(new RoadCarSpawner(viewer, worldMatrix, (CarSpawnerObject)worldObject));
@@ -477,7 +466,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     }
                     else if (worldObject.GetType() == typeof(PickupObject))
                     {
-                            sceneryObjects.Add(new FuelPickupItemShape(shapeFilePath, new FixedWorldPositionSource(worldMatrix), shadowCaster ? ShapeFlags.ShadowCaster : ShapeFlags.None, (PickupObject)worldObject));
+                        sceneryObjects.Add(new FuelPickupItemShape(shapeFilePath, new FixedWorldPositionSource(worldMatrix), shadowCaster ? ShapeFlags.ShadowCaster : ShapeFlags.None, (PickupObject)worldObject));
                         PickupList.Add((PickupObject)worldObject);
                     }
                     else // It's some other type of object - not one of the above.
@@ -507,7 +496,7 @@ namespace Orts.ActivityRunner.Viewer3D
                         else
                         {
                             sceneryObjects.Add(new StaticShape(
-                                tempSpeedItem.IsWarning ? Viewer.SpeedpostDatFile.ShapeNames[SpeedPostShapeNames.Warning] : 
+                                tempSpeedItem.IsWarning ? Viewer.SpeedpostDatFile.ShapeNames[SpeedPostShapeNames.Warning] :
                                 (tempSpeedItem.IsResume ? Viewer.SpeedpostDatFile.ShapeNames[SpeedPostShapeNames.EndRestriction] : Viewer.SpeedpostDatFile.ShapeNames[SpeedPostShapeNames.StartRestriction]),
                                 tempSpeedItem.WorldPosition, ShapeFlags.None));
                         }

@@ -152,14 +152,14 @@ namespace Orts.Simulation.Timetables
             // set references (required to process commands)
             foreach (Physics.Train thisTrain in trainList)
             {
-                if (simulator.NameDictionary.ContainsKey(thisTrain.Name.ToLower()))
+                if (simulator.NameDictionary.ContainsKey(thisTrain.Name))
                 {
                     Trace.TraceWarning("Train : " + thisTrain.Name + " : duplicate name");
                 }
                 else
                 {
                     simulator.TrainDictionary.Add(thisTrain.Number, thisTrain);
-                    simulator.NameDictionary.Add(thisTrain.Name.ToLower(), thisTrain);
+                    simulator.NameDictionary.Add(thisTrain.Name, thisTrain);
                 }
             }
 
@@ -175,7 +175,7 @@ namespace Orts.Simulation.Timetables
 
                 reqPlayerTrain = InitializePlayerTrain(playerTrain, ref Paths, ref trainList);
                 simulator.TrainDictionary.Add(reqPlayerTrain.Number, reqPlayerTrain);
-                simulator.NameDictionary.Add(reqPlayerTrain.Name.ToLower(), reqPlayerTrain);
+                simulator.NameDictionary.Add(reqPlayerTrain.Name, reqPlayerTrain);
             }
 
             // process additional commands for all extracted trains

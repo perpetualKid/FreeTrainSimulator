@@ -324,7 +324,7 @@ namespace Orts.Simulation.Timetables
             // paths must start at turntable
             if (validpool)
             {
-                thisTurntable = Simulatorref.MovingTables[AdditionalTurntableDetails.TurntableIndex] as TurnTable;
+                thisTurntable = Simulator.Instance.MovingTables[AdditionalTurntableDetails.TurntableIndex] as TurnTable;
 
                 // check validity for all access paths
                 for (int iPath = 0; iPath < AdditionalTurntableDetails.AccessPaths.Count; iPath++)
@@ -593,22 +593,19 @@ namespace Orts.Simulation.Timetables
         /// <summary>
         /// FindTurntable : find reference to turntable as defined in turntable.dat using worldfile and uid references
         /// </summary>
-
         private int FindTurntable(string worldfile, int uid)
         {
-            int foundIndex = -1;
-
+            if (string.IsNullOrEmpty(worldfile))
+                return -1;
             // search through all moving tables
-            for (int iMT = 0; iMT < Simulatorref.MovingTables.Count && foundIndex == -1; iMT++)
+            for (int i = 0; i < Simulator.Instance.MovingTables.Count; i++)
             {
-                MovingTable thisMT = Simulatorref.MovingTables[iMT];
-
-                if (thisMT.WFile == worldfile && thisMT.UID == uid)
+                if (worldfile.Equals(Simulator.Instance.MovingTables[i].WFile, StringComparison.OrdinalIgnoreCase) && Simulator.Instance.MovingTables[i].UID == uid)
                 {
-                    foundIndex = iMT;
+                    return i;
                 }
             }
-            return (foundIndex);
+            return -1;
         }
 
         //================================================================================================//
@@ -799,12 +796,11 @@ namespace Orts.Simulation.Timetables
             int storageIndex = -1;
 
             // check if train fits on turntable - if not, reject
-            TurnTable thisTurntable = Simulatorref.MovingTables[AdditionalTurntableDetails.TurntableIndex] as TurnTable;
+            TurnTable thisTurntable = Simulator.Instance.MovingTables[AdditionalTurntableDetails.TurntableIndex] as TurnTable;
 
             if (train.Length > thisTurntable.Length)
             {
-                Trace.TraceWarning("Train : {0} too long ({1}) for turntable (length {2}) in pool {3}\n",
-                    train.Name, train.Length.ToString(), thisTurntable.Length.ToString(), PoolName);
+                Trace.TraceWarning($"Train : {train.Name} too long ({train.Length}) for turntable (length {thisTurntable.Length}) in pool {PoolName}\n");
             }
             else
             {
@@ -1461,11 +1457,12 @@ namespace Orts.Simulation.Timetables
 
         public bool CheckTurntableAvailable()
         {
-            if (parentTurntable == null) parentTurntable = parentPool.Simulatorref.MovingTables[parentIndex] as TurnTable;
+            if (parentTurntable == null) 
+                parentTurntable = Simulator.Instance.MovingTables[parentIndex] as TurnTable;
 
             bool available = true;
             // check if waiting for turntable availability
-            if (MovingTableState == TimetableTurntableControl.MovingTableStateEnum.WaitingMovingTableAvailability)
+            if (MovingTableState == MovingTableStateEnum.WaitingMovingTableAvailability)
             {
                 available = false;
 
@@ -1515,7 +1512,8 @@ namespace Orts.Simulation.Timetables
 
         public void UpdateTurntableStateAI(double elapsedClockSeconds, int presentTime)
         {
-            if (parentTurntable == null) parentTurntable = parentPool.Simulatorref.MovingTables[parentIndex] as TurnTable;
+            if (parentTurntable == null) 
+                parentTurntable = Simulator.Instance.MovingTables[parentIndex] as TurnTable;
 
             int reqTurntableExit = -1;
             int reqTurntableEntry = -1;
@@ -1654,7 +1652,8 @@ namespace Orts.Simulation.Timetables
 
         public bool UpdateTurntableStatePlayer(double elapsedClockSeconds)
         {
-            if (parentTurntable == null) parentTurntable = parentPool.Simulatorref.MovingTables[parentIndex] as TurnTable;
+            if (parentTurntable == null) 
+                parentTurntable = Simulator.Instance.MovingTables[parentIndex] as TurnTable;
 
             bool terminated = false;
             int reqTurntableExit = -1;
