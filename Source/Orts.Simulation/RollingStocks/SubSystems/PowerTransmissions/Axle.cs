@@ -61,6 +61,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
         public Integrator AxleRevolutionsInt = new Integrator(0.0f, IntegratorMethod.RungeKutta4);
 
         public MovingAverage FilterMovingAverage = new MovingAverage(10);
+        public MovingAverage CompensatedFilterMovingAverage = new MovingAverage(10);
 
         /// <summary>
         /// Brake force covered by BrakeForceN interface
@@ -347,6 +348,21 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
         }
 
         /// <summary>
+        /// Compensated Axle force value, this provided the motive force equivalent excluding brake force, in Newtons
+        /// </summary>
+        float compensatedaxleForceN;
+        /// <summary>
+        /// Read only axle force value, in Newtons
+        /// </summary>
+        public float CompensatedAxleForceN
+        {
+            get
+            {
+                return compensatedaxleForceN;
+            }
+        }
+
+        /// <summary>
         /// Read/Write axle weight parameter in Newtons
         /// </summary>
         public float AxleWeightN { set; get; }
@@ -619,6 +635,12 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
             //Update axle force ( = k * loadTorqueNm)
             axleForceN = AxleWeightN * SlipCharacteristics(AxleSpeedMpS - TrainSpeedMpS, TrainSpeedMpS, AdhesionK, AdhesionConditions, Adhesion2);
 
+            // The Axle module subtracts brake force from the motive force for calculation purposes. However brake force is already taken into account in the braking module.
+            // And thus there is a duplication of the braking effect in OR. To compensate for this, after the slip characteristics have been calculated, the output of the axle module
+            // has the brake force "added" back in to give the appropriate motive force output for the locomotive. Braking force is handled separately.
+            // Hence CompensatedAxleForce is the actual output force on the axle. 
+            var compensateAxleForceN = axleForceN;
+
             switch (driveType)
             {
                 case AxleDriveType.NotDriven:
@@ -658,29 +680,45 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
                             / totalInertiaKgm2
                         );
 
+                        compensateAxleForceN = axleForceN + brakeRetardForceN;
+
+                        if (Math.Abs(compensateAxleForceN) > Math.Abs(driveForceN))
+                        {
+                            compensateAxleForceN = driveForceN;
+                        }
+
                         if (brakeRetardForceN > driveForceN && AxleSpeedMpS < 0.1f)
                         {
                             axleSpeedMpS = 0.0f;
                             axleForceN = -brakeRetardForceN + driveForceN;
+                            compensateAxleForceN = driveForceN;
                         }
                     }
                     else if (TrainSpeedMpS < -0.01f)
                     {
                         axleSpeedMpS = (float)AxleRevolutionsInt.Integrate(timeSpan,
-                            (
-                                driveForceN * transmissionEfficiency
-                                + brakeRetardForceN
-                                - slipDerivationMpSS * dampingNs
-                                + Math.Abs(SlipSpeedMpS) * frictionN
-                                - AxleForceN
-                            )
-                            / totalInertiaKgm2
-                        );
+                                (
+                                    driveForceN * transmissionEfficiency
+                                    + brakeRetardForceN
+                                    - slipDerivationMpSS * dampingNs
+                                    + Math.Abs(SlipSpeedMpS) * frictionN
+                                    - AxleForceN
+                                )
+                                / totalInertiaKgm2
+                            );
+
+                        compensateAxleForceN = axleForceN - brakeRetardForceN;
+
+                        if (Math.Abs(compensateAxleForceN) > Math.Abs(driveForceN))
+                        {
+                            compensateAxleForceN = driveForceN;
+                        }
 
                         if (brakeRetardForceN > Math.Abs(driveForceN) && AxleSpeedMpS > -0.1f)
                         {
                             axleSpeedMpS = 0.0f;
                             axleForceN = brakeRetardForceN - driveForceN;
+                            compensateAxleForceN = driveForceN;
                         }
                     }
                     else
@@ -688,12 +726,13 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
                         if (Math.Abs(driveForceN) < 1f)
                         {
                             Reset();
-                            axleSpeedMpS = 0.0f;
+                            axleSpeedMpS = 0.0f;                          
                             //axleForceN = 0.0f;
                         }
                         else
                         {
                             axleForceN = driveForceN - brakeRetardForceN;
+                            compensateAxleForceN = driveForceN;
                             if (Math.Abs(axleSpeedMpS) < 0.01f)
                                 Reset();
                         }
@@ -723,6 +762,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
                 else
                     adhesionK = (adhesionK <= 0.7f) ? 0.7f : (adhesionK - 0.005f);
             }
+
+            // Set output MotiveForce to actual value exclusive of brake force.
+            compensatedaxleForceN = CompensatedFilterMovingAverage.Update(Math.Abs(compensatedaxleForceN) > Math.Abs(driveForceN) ? driveForceN : compensateAxleForceN);
 
             axleForceN = (float)FilterMovingAverage.Update(Math.Abs(axleForceN) > Math.Abs(driveForceN) ? driveForceN : axleForceN);
         }
