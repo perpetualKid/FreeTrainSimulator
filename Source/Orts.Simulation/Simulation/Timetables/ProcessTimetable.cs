@@ -1176,8 +1176,7 @@ namespace Orts.Simulation.Timetables
         {
             validPath = true;
 
-            string pathDirectory = Path.Combine(simulator.RoutePath, "Paths");
-            string formedpathFilefull = Path.Combine(pathDirectory, pathstring);
+            string formedpathFilefull = Path.Combine(simulator.RouteFolder.PathsFolder, pathstring);
             string pathExtension = Path.GetExtension(formedpathFilefull);
 
             if (String.IsNullOrEmpty(pathExtension))
@@ -1370,9 +1369,6 @@ namespace Orts.Simulation.Timetables
 
                 TTTrain.MovementState = AiMovementState.Static;
 
-                // derive various directory paths
-                string pathDirectory = Path.Combine(ttInfo.simulator.RoutePath, "Paths");
-
                 // no path defined : exit
                 if (String.IsNullOrEmpty(fileStrings[pathRow][columnIndex]))
                 {
@@ -1380,10 +1376,9 @@ namespace Orts.Simulation.Timetables
                     return (false);
                 }
 
-                string pathFilefull = ExtractPathString(pathDirectory, fileStrings[pathRow][columnIndex], ref TTTrain);
+                string pathFilefull = ExtractPathString(ttInfo.simulator.RouteFolder.PathsFolder, fileStrings[pathRow][columnIndex], ref TTTrain);
 
-                string trainsDirectory = Path.Combine(ttInfo.simulator.BasePath, "Trains");
-                string consistDirectory = Path.Combine(trainsDirectory, "Consists");
+                string consistDirectory = ttInfo.simulator.RouteFolder.ContentFolder.ConsistsFolder;
 
                 string consistdef = fileStrings[consistRow][columnIndex];
 
@@ -1395,7 +1390,7 @@ namespace Orts.Simulation.Timetables
                 }
 
                 List<ConsistInfo> consistdetails = ProcessConsistInfo(consistdef);
-                string trainsetDirectory = Path.Combine(trainsDirectory, "trainset");
+                string trainsetDirectory = ttInfo.simulator.RouteFolder.ContentFolder.TrainSetsFolder;
 
                 // extract path
                 string pathExtension = Path.GetExtension(pathFilefull);
@@ -3011,8 +3006,7 @@ namespace Orts.Simulation.Timetables
                 bool loadPathNoFailure = true;
                 TTTrain formedTrain = new TTTrain(TTTrain);
 
-                string pathDirectory = Path.Combine(simulator.RoutePath, "Paths");
-                string formedpathFilefull = Path.Combine(pathDirectory, DisposeDetails.RunRoundPath);
+                string formedpathFilefull = Path.Combine(simulator.RouteFolder.PathsFolder, DisposeDetails.RunRoundPath);
                 string pathExtension = Path.GetExtension(formedpathFilefull);
                 if (String.IsNullOrEmpty(pathExtension))
                     formedpathFilefull = Path.ChangeExtension(formedpathFilefull, "pat");

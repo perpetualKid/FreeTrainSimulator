@@ -381,7 +381,7 @@ namespace Orts.MultiPlayer
         public MSGPlayer(string n, string cd, string c, string p, Train t, int tn, string avatar)
         {
             url = avatar;
-            route = MPManager.Simulator.RoutePathName;
+            route = Simulator.Instance.RouteFolder.RouteName;
             int index = p.LastIndexOf("\\PATHS\\", StringComparison.OrdinalIgnoreCase);
             if (index > 0)
             {
@@ -463,7 +463,7 @@ namespace Orts.MultiPlayer
                 if (MPManager.IsServer())
                 {
                     MPManager.BroadCast((new MSGMessage(this.user, "Error", reason)).ToString());//server will broadcast this error
-                    throw new Exception("Player has wrong version of protocol");//ignore this player message
+                    throw new InvalidDataException("Player has wrong version of protocol");//ignore this player message
                 }
                 else
                 {
@@ -473,10 +473,10 @@ namespace Orts.MultiPlayer
             }
             if (MPManager.IsServer() && MPManager.Instance().MD5Check != "NA")//I am the server and have MD5 check values, client should have matching MD5, if file is accessible
             {
-                if ((MD5 != "NA" && MD5 != MPManager.Instance().MD5Check) || route.ToLower() != MPManager.Simulator.RoutePathName.ToLower())
+                if ((MD5 != "NA" && MD5 != MPManager.Instance().MD5Check) || !Simulator.Instance.RouteFolder.RouteName.Equals(route, StringComparison.OrdinalIgnoreCase))
                 {
                     MPManager.BroadCast((new MSGMessage(this.user, "Error", "Wrong route dir or TDB file, the dispatcher uses a different route")).ToString());//server will broadcast this error
-                    throw new Exception("Player has wrong version of route");//ignore this player message
+                    throw new InvalidDataException("Player has wrong version of route");//ignore this player message
                 }
             }
             //check if other players with the same name is online
@@ -512,7 +512,7 @@ namespace Orts.MultiPlayer
                     if (cars.Length != p1Train.Cars.Count) identical = false;
                     if (identical != false)
                     {
-                        string wagonFilePath = MPManager.Simulator.BasePath + @"\trains\trainset\";
+                        string wagonFilePath = MPManager.Simulator.RouteFolder.ContentFolder.TrainSetsFolder;
                         for (int i = 0; i < cars.Length; i++)
                         {
                             if (wagonFilePath + cars[i] != p1Train.Cars[i].RealWagFilePath) { identical = false; break; }
@@ -559,7 +559,7 @@ namespace Orts.MultiPlayer
                             if (cars.Length != t.Cars.Count) identical = false;
                             if (identical != false)
                             {
-                                string wagonFilePath = MPManager.Simulator.BasePath + @"\trains\trainset\";
+                                string wagonFilePath = MPManager.Simulator.RouteFolder.ContentFolder.TrainSetsFolder;
                                 for (int i = 0; i < cars.Length; i++)
                                 {
                                     if (wagonFilePath + cars[i] != t.Cars[i].RealWagFilePath) { identical = false; break; }
@@ -571,7 +571,7 @@ namespace Orts.MultiPlayer
                             t.Cars.RemoveRange(0, carsCount);
                                 for (int i = 0; i < cars.Length; i++)
                                 {
-                                    string wagonFilePath = MPManager.Simulator.BasePath + @"\trains\trainset\" + cars[i];
+                                    string wagonFilePath = Path.Combine(MPManager.Simulator.RouteFolder.ContentFolder.TrainSetsFolder, cars[i]);
                                     if (!File.Exists(wagonFilePath))
                                     {
                                         Trace.TraceWarning($"Ignored missing rolling stock {wagonFilePath}");
@@ -631,7 +631,7 @@ namespace Orts.MultiPlayer
                 MPManager.BroadCast((new MSGMessage(this.user, "Error", reason)).ToString());
                 throw new Exception("Wrong version of protocol");
             }
-            if ((MPManager.Instance().MD5Check != "NA" && MD5 != "NA" && MD5 != MPManager.Instance().MD5Check) || route.ToLower() != MPManager.Simulator.RoutePathName.ToLower())
+            if ((MPManager.Instance().MD5Check != "NA" && MD5 != "NA" && MD5 != MPManager.Instance().MD5Check) || !Simulator.Instance.RouteFolder.RouteName.Equals(route, StringComparison.OrdinalIgnoreCase))
             {
                 MPManager.BroadCast((new MSGMessage(this.user, "Error", "Wrong route dir or TDB file, the dispatcher uses a different route")).ToString());//server will broadcast this error
                 throw new Exception("Player has wrong version of route");//ignore this player message
@@ -656,7 +656,7 @@ namespace Orts.MultiPlayer
                 if (cars.Length != p1Train.Cars.Count) identical = false;
                 if (identical != false)
                 {
-                    string wagonFilePath = MPManager.Simulator.BasePath + @"\trains\trainset\";
+                    string wagonFilePath = MPManager.Simulator.RouteFolder.ContentFolder.TrainSetsFolder;
                     for (int i = 0; i < cars.Length; i++)
                     {
                         if (wagonFilePath + cars[i] != p1Train.Cars[i].RealWagFilePath) { identical = false; break; }
@@ -1315,7 +1315,7 @@ namespace Orts.MultiPlayer
             //	train.RearTDBTraveller.ReverseDirection();
             for (var i = 0; i < cars.Length; i++)// cars.Length-1; i >= 0; i--) {
             {
-                string wagonFilePath = MPManager.Simulator.BasePath + @"\trains\trainset\" + cars[i];
+                string wagonFilePath = Path.Combine(MPManager.Simulator.RouteFolder.ContentFolder.TrainSetsFolder, cars[i]);
                 TrainCar car = null;
                 try
                 {
@@ -1521,7 +1521,7 @@ namespace Orts.MultiPlayer
                 List<TrainCar> tmpCars = new List<TrainCar>();
                 for (var i = 0; i < cars.Length; i++)// cars.Length-1; i >= 0; i--) {
                 {
-                    string wagonFilePath = MPManager.Simulator.BasePath + @"\trains\trainset\" + cars[i];
+                    string wagonFilePath = Path.Combine(MPManager.Simulator.RouteFolder.ContentFolder.TrainSetsFolder, cars[i]);
                     TrainCar car = FindCar(train, ids[i]);
                     try
                     {
@@ -1559,7 +1559,7 @@ namespace Orts.MultiPlayer
             train1.RearTDBTraveller = new Traveller(MPManager.Simulator.TSectionDat, MPManager.Simulator.TDB.TrackDB.TrackNodes, location, direction == 1 ? Traveller.TravellerDirection.Forward : Traveller.TravellerDirection.Backward);
             for (var i = 0; i < cars.Length; i++)// cars.Length-1; i >= 0; i--) {
             {
-                string wagonFilePath = MPManager.Simulator.BasePath + @"\trains\trainset\" + cars[i];
+                string wagonFilePath = Path.Combine(MPManager.Simulator.RouteFolder.ContentFolder.TrainSetsFolder, cars[i]);
                 TrainCar car = null;
                 try
                 {

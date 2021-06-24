@@ -1527,9 +1527,9 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 {
                     var status = thisTrain.GetStatus(Viewer.MilepostUnitsMetric);
                     if (thisTrain.TrainType == TrainType.AiPlayerHosting) status = ((AITrain)thisTrain).AddMovementState(status, Viewer.MilepostUnitsMetric);
-                    else if (thisTrain == Simulator.Instance.OriginalPlayerTrain && Simulator.Instance.Activity != null) 
+                    else if (thisTrain == Simulator.Instance.OriginalPlayerTrain && Simulator.Instance.ActivityFile != null) 
                         thisTrain.AddRestartTime(status);
-                    else if (thisTrain.IsActualPlayerTrain && Simulator.Instance.Activity != null && thisTrain.ControlMode != TrainControlMode.Explorer && !thisTrain.IsPathless)
+                    else if (thisTrain.IsActualPlayerTrain && Simulator.Instance.ActivityFile != null && thisTrain.ControlMode != TrainControlMode.Explorer && !thisTrain.IsPathless)
                         thisTrain.AddRestartTime(status);
 
                     //HudScroll

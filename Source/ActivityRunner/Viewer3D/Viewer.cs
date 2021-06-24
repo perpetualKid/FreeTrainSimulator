@@ -114,7 +114,6 @@ namespace Orts.ActivityRunner.Viewer3D
         public TileManager Tiles { get; private set; }
         public TileManager LoTiles { get; private set; }
         public EnvironmentFile ENVFile { get; private set; }
-        public SignalConfigurationFile SIGCFG { get; private set; }
         public TrackTypesFile TrackTypes { get; private set; }
         public SpeedpostDatFile SpeedpostDatFile;
         public bool MilepostUnitsMetric { get; private set; }
@@ -290,28 +289,15 @@ namespace Orts.ActivityRunner.Viewer3D
             WellKnownCameras.Add(new FreeRoamCamera(this, FrontCamera)); // Any existing camera will suffice to satisfy .Save() and .Restore()
             WellKnownCameras.Add(ThreeDimCabCamera = new CabCamera3D(this));
 
-            string ORfilepath = System.IO.Path.Combine(Simulator.RoutePath, "OpenRails");
             ContentPath = Game.ContentPath;
             Trace.Write(" ENV");
-            ENVFile = new EnvironmentFile(Simulator.RoutePath + @"\ENVFILES\" + Simulator.TRK.Route.Environment.GetEnvironmentFileName(Simulator.Season, Simulator.WeatherType));
-
-            Trace.Write(" SIGCFG");
-            if (File.Exists(ORfilepath + @"\sigcfg.dat"))
-            {
-                Trace.Write(" SIGCFG_OR");
-                SIGCFG = new SignalConfigurationFile(ORfilepath + @"\sigcfg.dat", true);
-            }
-            else
-            {
-                Trace.Write(" SIGCFG");
-                SIGCFG = new SignalConfigurationFile(Simulator.RoutePath + @"\sigcfg.dat", false);
-            }
+            ENVFile = new EnvironmentFile(Path.Combine(Simulator.RouteFolder.EnvironmentFolder, Simulator.TRK.Route.Environment.GetEnvironmentFileName(Simulator.Season, Simulator.WeatherType)));
 
             Trace.Write(" TTYPE");
-            TrackTypes = new TrackTypesFile(Simulator.RoutePath + @"\TTYPE.DAT");
+            TrackTypes = new TrackTypesFile(Path.Combine(Simulator.RouteFolder.CurrentFolder, "TTYPE.DAT"));
 
-            Tiles = new TileManager(Simulator.RoutePath + @"\TILES\", false);
-            LoTiles = new TileManager(Simulator.RoutePath + @"\LO_TILES\", true);
+            Tiles = new TileManager(Simulator.RouteFolder.TilesFolder, false);
+            LoTiles = new TileManager(Simulator.RouteFolder.TilesFolderLow, true);
             MilepostUnitsMetric = Simulator.TRK.Route.MilepostUnitsMetric;
 
             Simulator.AllowedSpeedRaised += (object sender, EventArgs e) =>
@@ -330,13 +316,13 @@ namespace Orts.ActivityRunner.Viewer3D
 
             // The speedpost.dat file is needed only to derive the shape names for the temporary speed restriction zones,
             // so it is opened only in activity mode
-            if (Simulator.ActivityRun != null && Simulator.Activity.Activity.ActivityRestrictedSpeedZones != null)
+            if (Simulator.ActivityRun != null && Simulator.ActivityFile.Activity.ActivityRestrictedSpeedZones != null)
             {
-                var speedpostDatFile = Simulator.RoutePath + @"\speedpost.dat";
+                string speedpostDatFile = Path.Combine(Simulator.RouteFolder.CurrentFolder, "speedpost.dat");
                 if (File.Exists(speedpostDatFile))
                 {
                     Trace.Write(" SPEEDPOST");
-                    SpeedpostDatFile = new SpeedpostDatFile(Simulator.RoutePath + @"\speedpost.dat", Simulator.RoutePath + @"\shapes\");
+                    SpeedpostDatFile = new SpeedpostDatFile(speedpostDatFile, Simulator.RouteFolder.ShapesFolder);
                 }
             }
 
@@ -1280,7 +1266,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         private void LoadDefectCarSound(TrainCar car, string filename)
         {
-            var smsFilePath = Simulator.BasePath + @"\sound\" + filename;
+            var smsFilePath = Simulator.RouteFolder.ContentFolder.SoundFile(filename);
             if (!File.Exists(smsFilePath))
             {
                 Trace.TraceWarning("Cannot find defect car sound file {0}", filename);

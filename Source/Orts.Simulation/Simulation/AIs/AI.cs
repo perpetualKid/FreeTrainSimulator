@@ -78,11 +78,11 @@ namespace Orts.Simulation.AIs
 
 
 #endif
-            if (simulator.Activity != null && simulator.Activity.Activity.Traffic != null)
+            if (simulator.ActivityFile != null && simulator.ActivityFile.Activity.Traffic != null)
             {
-                foreach (var sd in simulator.Activity.Activity.Traffic.Services)
+                foreach (var sd in simulator.ActivityFile.Activity.Traffic.Services)
                 {
-                    AITrain train = CreateAITrain(sd, simulator.Activity.Activity.Traffic.TrafficFile.TrafficDefinition, simulator.TimetableMode);
+                    AITrain train = CreateAITrain(sd, simulator.ActivityFile.Activity.Traffic.TrafficFile.TrafficDefinition, simulator.TimetableMode);
                     if (cancellationToken.IsCancellationRequested) // ping loader watchdog
                         return;
                 }
@@ -824,7 +824,7 @@ namespace Orts.Simulation.AIs
                     break;
                 }
             }
-            ServiceFile srvFile = new ServiceFile(Simulator.RoutePath + @"\SERVICES\" + sd.Name + ".SRV");  // read service file
+            ServiceFile srvFile = new ServiceFile(Simulator.RouteFolder.ServiceFile(sd.Name));  // read service file
             AITrain train = CreateAITrainDetail(sd, trfDef, srvFile, isTimetableMode, false);
             if (train != null)
             {
@@ -845,9 +845,9 @@ namespace Orts.Simulation.AIs
         {
             // read consist file
 
-            string consistFileName = Simulator.BasePath + @"\TRAINS\CONSISTS\" + srvFile.TrainConfig + ".CON";
+            string consistFileName = Simulator.RouteFolder.ContentFolder.ConsistFile(srvFile.TrainConfig);
             ConsistFile conFile = new ConsistFile(consistFileName);
-            string pathFileName = Simulator.RoutePath + @"\PATHS\" + srvFile.PathId + ".PAT";
+            string pathFileName = Simulator.RouteFolder.PathFile(srvFile.PathId);
 
             // Patch Placingproblem - JeroenP
             // 
@@ -886,9 +886,7 @@ namespace Orts.Simulation.AIs
             train.Length = 0.0f;
             foreach (Wagon wagon in conFile.Train.Wagons)
             {
-
-                string wagonFolder = Simulator.BasePath + @"\trains\trainset\" + wagon.Folder;
-                string wagonFilePath = wagonFolder + @"\" + wagon.Name + ".wag";
+                string wagonFilePath = Simulator.RouteFolder.ContentFolder.WagonFile(wagon.Folder, wagon.Name);
                 ;
                 if (wagon.IsEngine)
                     wagonFilePath = Path.ChangeExtension(wagonFilePath, ".eng");
@@ -913,14 +911,14 @@ namespace Orts.Simulation.AIs
                         if (MPManager.IsMultiPlayer()) car.CarID = MPManager.GetUserName() + " - " + car.UiD; //player's train is always named train 0.
                         else car.CarID = "0 - " + car.UiD; //player's train is always named train 0.
                         var mstsDieselLocomotive = car as MSTSDieselLocomotive;
-                        if (Simulator.Activity != null && mstsDieselLocomotive != null)
-                            mstsDieselLocomotive.DieselLevelL = mstsDieselLocomotive.MaxDieselLevelL * Simulator.Activity.Activity.Header.FuelDiesel / 100.0f;
+                        if (Simulator.ActivityFile != null && mstsDieselLocomotive != null)
+                            mstsDieselLocomotive.DieselLevelL = mstsDieselLocomotive.MaxDieselLevelL * Simulator.ActivityFile.Activity.Header.FuelDiesel / 100.0f;
 
                         var mstsSteamLocomotive = car as MSTSSteamLocomotive;
-                        if (Simulator.Activity != null && mstsSteamLocomotive != null)
+                        if (Simulator.ActivityFile != null && mstsSteamLocomotive != null)
                         {
-                            mstsSteamLocomotive.CombinedTenderWaterVolumeUKG = (float)((Mass.Kilogram.ToLb(mstsSteamLocomotive.MaxLocoTenderWaterMassKG) / 10.0) * Simulator.Activity.Activity.Header.FuelWater / 100.0);
-                            mstsSteamLocomotive.TenderCoalMassKG = mstsSteamLocomotive.MaxTenderCoalMassKG * Simulator.Activity.Activity.Header.FuelCoal / 100.0f;
+                            mstsSteamLocomotive.CombinedTenderWaterVolumeUKG = (float)((Mass.Kilogram.ToLb(mstsSteamLocomotive.MaxLocoTenderWaterMassKG) / 10.0) * Simulator.ActivityFile.Activity.Header.FuelWater / 100.0);
+                            mstsSteamLocomotive.TenderCoalMassKG = mstsSteamLocomotive.MaxTenderCoalMassKG * Simulator.ActivityFile.Activity.Header.FuelCoal / 100.0f;
                         }
                         if (train.InitialSpeed != 0)
                             car.SignalEvent(PowerSupplyEvent.RaisePantograph, 1);

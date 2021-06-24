@@ -347,7 +347,7 @@ namespace Orts.Simulation.AIs
                 CheckDeadlock(ValidRoute[0], Number);
 
             // Set up horn blow at crossings if required
-            LevelCrossingHornPattern = Simulator.Instance.Activity.Activity.AIBlowsHornAtLevelCrossings ? AILevelCrossingHornPattern.CreateInstance(Simulator.Instance.Activity.Activity.AILevelCrossingHornPattern) : null;
+            LevelCrossingHornPattern = Simulator.Instance.ActivityFile.Activity.AIBlowsHornAtLevelCrossings ? AILevelCrossingHornPattern.CreateInstance(Simulator.Instance.ActivityFile.Activity.AILevelCrossingHornPattern) : null;
 
             // set initial position and state
 

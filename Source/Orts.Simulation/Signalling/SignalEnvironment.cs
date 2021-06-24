@@ -3005,7 +3005,7 @@ namespace Orts.Simulation.Signalling
 
             // Override .tdb NumPassengersWaiting info with .act NumPassengersWaiting info if any available
             int overriddenPlatformDetailsIndex;
-            foreach (Formats.Msts.Models.PlatformData platformData in Simulator.Instance.Activity?.Activity.PlatformWaitingPassengers ?? Enumerable.Empty<Formats.Msts.Models.PlatformData>())
+            foreach (Formats.Msts.Models.PlatformData platformData in Simulator.Instance.ActivityFile?.Activity.PlatformWaitingPassengers ?? Enumerable.Empty<Formats.Msts.Models.PlatformData>())
             {
                 overriddenPlatformDetailsIndex = PlatformDetailsList.FindIndex(platformDetails => (platformDetails.PlatformReference[Location.NearEnd] == platformData.ID) || (platformDetails.PlatformReference[Location.FarEnd] == platformData.ID));
                 if (overriddenPlatformDetailsIndex >= 0)

@@ -116,19 +116,15 @@ namespace Orts.Simulation
 
         public FolderStructure.ContentFolder.RouteFolder RouteFolder { get; }
 
-        public string BasePath;     // ie c:\program files\microsoft games\train simulator
-        public string RoutePath;    // ie c:\program files\microsoft games\train simulator\routes\usa1  - may be different on different pc's
-
         // Primary Simulator Data 
         // These items represent the current state of the simulator 
         // In multiplayer games, these items must be kept in sync across all players
         // These items are what are saved and loaded in a game save.
-        public string RoutePathName;    // ie LPS, USA1  represents the folder name
         public string RouteName;
         public string ActivityFileName;
         public string TimetableFileName;
         public bool TimetableMode;
-        public ActivityFile Activity;
+        public ActivityFile ActivityFile { get; private set; }
         public Activity ActivityRun;
         public TrackDatabaseFile TDB;
         public RouteFile TRK;
@@ -149,7 +145,7 @@ namespace Orts.Simulation
         public SeasonType Season;
         public WeatherType WeatherType;
         public string UserWeatherFile = string.Empty;
-        public SignalConfigurationFile SIGCFG;
+        public SignalConfigurationFile SignalConfig { get; }
         public string ExplorePathFile;
         public string ExploreConFile;
         public string patFileName;
@@ -260,7 +256,7 @@ namespace Orts.Simulation
         public event EventHandler<QueryCarViewerLoadedEventArgs> QueryCarViewerLoaded;
         public event EventHandler RequestTTDetachWindow;
 
-        public Simulator(UserSettings settings, string activityPath, bool useOpenRailsDirectory)
+        public Simulator(UserSettings settings, string activityPath)
         {
             Instance = this;
             CatalogManager.SetCatalogDomainPattern(CatalogDomainPattern.AssemblyName, null, RuntimeInfo.LocalesFolder);
@@ -276,89 +272,67 @@ namespace Orts.Simulation
             CarVibrating = Settings.CarVibratingLevel; //0 no vib, 1-2 mid vib, 3 max vib
             UseSuperElevation = Settings.UseSuperElevation;
             SuperElevationMinLen = Settings.SuperElevationMinLen;
-            SuperElevationGauge = (float)Settings.SuperElevationGauge / 1000f;//gauge transfer from mm to m
-            RoutePath = Path.GetDirectoryName(Path.GetDirectoryName(activityPath));
-            if (useOpenRailsDirectory) RoutePath = Path.GetDirectoryName(RoutePath); // starting one level deeper!
-            RoutePathName = Path.GetFileName(RoutePath);
-            BasePath = Path.GetDirectoryName(Path.GetDirectoryName(RoutePath));
+            SuperElevationGauge = Settings.SuperElevationGauge / 1000f;//gauge transfer from mm to m
+
             RouteFolder = FolderStructure.RouteFromActivity(activityPath);
-            DayAmbientLight = (int)Settings.DayAmbientLight;
 
-
-            string ORfilepath = System.IO.Path.Combine(RoutePath, "OpenRails");
+            DayAmbientLight = Settings.DayAmbientLight;
 
             Trace.Write("Loading ");
 
             Trace.Write(" TRK");
-            TRK = new RouteFile(FolderStructure.Route(RoutePath).TrackFileName);
+            TRK = new RouteFile(RouteFolder.TrackFileName);
+
             RouteName = TRK.Route.Name;
             MilepostUnitsMetric = TRK.Route.MilepostUnitsMetric;
             OpenDoorsInAITrains = TRK.Route.OpenDoorsInAITrains == null ? Settings.OpenDoorsInAITrains : (bool)TRK.Route.OpenDoorsInAITrains;
 
             Trace.Write(" TDB");
-            TDB = new TrackDatabaseFile(RoutePath + @"\" + TRK.Route.FileName + ".tdb");
+            TDB = new TrackDatabaseFile(RouteFolder.TrackDatabaseFile(TRK));
 
-            if (File.Exists(ORfilepath + @"\sigcfg.dat"))
-            {
-                Trace.Write(" SIGCFG_OR");
-                SIGCFG = new SignalConfigurationFile(ORfilepath + @"\sigcfg.dat", true);
-            }
-            else
-            {
-                Trace.Write(" SIGCFG");
-                SIGCFG = new SignalConfigurationFile(RoutePath + @"\sigcfg.dat", false);
-            }
+            Trace.Write(" SIGCFG");
+            SignalConfig = new SignalConfigurationFile(RouteFolder.SignalConfigurationFile, RouteFolder.ORSignalConfigFile);
 
             Trace.Write(" DAT");
-            if (File.Exists(RoutePath + @"\Openrails\TSECTION.DAT"))
-            {
-                TSectionDat = new TrackSectionsFile(RoutePath + @"\Openrails\TSECTION.DAT");
-            }
-            else if (File.Exists(RoutePath + @"\GLOBAL\TSECTION.DAT"))
-                TSectionDat = new TrackSectionsFile(RoutePath + @"\GLOBAL\TSECTION.DAT");
-            else
-                TSectionDat = new TrackSectionsFile(BasePath + @"\GLOBAL\TSECTION.DAT");
-            if (File.Exists(RoutePath + @"\TSECTION.DAT"))
-                TSectionDat.AddRouteTSectionDatFile(RoutePath + @"\TSECTION.DAT");
+            TSectionDat = new TrackSectionsFile(RouteFolder.TrackSectionFile);
+            if (File.Exists(RouteFolder.RouteTrackSectionFile))
+                TSectionDat.AddRouteTSectionDatFile(RouteFolder.RouteTrackSectionFile);
 
             SuperElevation = new SuperElevation(this);
 
             Trace.Write(" ACT");
 
-            var rdbFile = RoutePath + @"\" + TRK.Route.FileName + ".rdb";
-            if (File.Exists(rdbFile))
+            if (File.Exists(RouteFolder.RoadTrackDatabaseFile(TRK)))
             {
                 Trace.Write(" RDB");
-                RDB = new RoadDatabaseFile(rdbFile);
+                RDB = new RoadDatabaseFile(RouteFolder.RoadTrackDatabaseFile(TRK));
             }
 
-            var carSpawnFile = RoutePath + @"\carspawn.dat";
+            string carSpawnFile = RouteFolder.CarSpawnerFile;
             if (File.Exists(carSpawnFile))
             {
                 Trace.Write(" CARSPAWN");
                 CarSpawnerLists = new List<CarSpawners>();
-                CarSpawnerFile csf = new CarSpawnerFile(RoutePath + @"\carspawn.dat", RoutePath + @"\shapes\");
+                CarSpawnerFile csf = new CarSpawnerFile(carSpawnFile, RouteFolder.ShapesFolder);
                 CarSpawnerLists.Add(csf.CarSpawners);
 
             }
 
-            // Extended car spawner file
-            var extCarSpawnFile = RoutePath + @"\openrails\carspawn.dat";
-            if (File.Exists(extCarSpawnFile))
+            if (File.Exists(carSpawnFile = RouteFolder.OpenRailsCarSpawnerFile))
             {
                 if (CarSpawnerLists == null)
                     CarSpawnerLists = new List<CarSpawners>();
                 Trace.Write(" EXTCARSPAWN");
-                ORCarSpawnerFile acsf = new ORCarSpawnerFile(RoutePath + @"\openrails\carspawn.dat", RoutePath + @"\shapes\");
+                ORCarSpawnerFile acsf = new ORCarSpawnerFile(carSpawnFile, RouteFolder.ShapesFolder);
                 CarSpawnerLists.AddRange(acsf.CarSpawners);
             }
 
             //Load OR-Clock if external file "openrails\clock.dat" exists --------------------------------------------------------
-            var extClockFile = RoutePath + @"\openrails\clocks.dat";
-            if (File.Exists(extClockFile))
+            string clockFile = Path.Combine(RouteFolder.OpenRailsRouteFolder, "clocks.dat");
+            if (File.Exists(clockFile))
             {
                 Trace.Write(" EXTCLOCK");
-                ClockFile cf = new ClockFile(RoutePath + @"\openrails\clocks.dat", RoutePath + @"\shapes\");
+                ClockFile cf = new ClockFile(clockFile, RouteFolder.ShapesFolder);
                 Clocks = cf.Clocks;
             }
 
@@ -371,11 +345,10 @@ namespace Orts.Simulation
         public void SetActivity(string activityPath)
         {
             ActivityFileName = Path.GetFileNameWithoutExtension(activityPath);
-            Activity = new ActivityFile(activityPath);
+            ActivityFile = new ActivityFile(activityPath);
 
             // check for existence of activity file in OpenRails subfolder
-
-            activityPath = RoutePath + @"\Activities\Openrails\" + ActivityFileName + ".act";
+            activityPath = Path.Combine(RouteFolder.OpenRailsActivitiesFolder, Path.GetFileName(activityPath));
             if (File.Exists(activityPath))
             {
                 ORActivitySettingsFile orActivitySettings = new ORActivitySettingsFile(activityPath);
@@ -383,20 +356,18 @@ namespace Orts.Simulation
                 //TODO override Activity.Activity.AIHornAtCrossings from orActivitySettings
             }
 
-            ActivityRun = new Activity(Activity, this);
-            // <CSComment> There can also be an activity without events and without station stops
-            //            if (ActivityRun.Current == null && ActivityRun.EventList.Count == 0)
-            //                ActivityRun = null;
+            ActivityRun = new Activity(ActivityFile, this);
 
-            ClockTime = Activity.Activity.Header.StartTime.TotalSeconds;
-            Season = Activity.Activity.Header.Season;
-            WeatherType = Activity.Activity.Header.Weather;
-            if (Activity.Activity.ActivityRestrictedSpeedZones != null)
+            ClockTime = ActivityFile.Activity.Header.StartTime.TotalSeconds;
+            Season = ActivityFile.Activity.Header.Season;
+            WeatherType = ActivityFile.Activity.Header.Weather;
+            if (ActivityFile.Activity.ActivityRestrictedSpeedZones != null)
             {
-                ActivityRun.AddRestrictZones(TRK.Route, TSectionDat, TDB.TrackDB, Activity.Activity.ActivityRestrictedSpeedZones);
+                ActivityRun.AddRestrictZones(TRK.Route, TSectionDat, TDB.TrackDB, ActivityFile.Activity.ActivityRestrictedSpeedZones);
             }
             IsAutopilotMode = true;
         }
+
         public void SetExplore(string path, string consist, TimeSpan startTime, SeasonType season, WeatherType weather)
         {
             ExplorePathFile = path;
@@ -410,10 +381,9 @@ namespace Orts.Simulation
 
         public void SetExploreThroughActivity(string path, string consist, TimeSpan startTime, SeasonType season, WeatherType weather)
         {
-            ActivityFileName = "ea$" + RoutePathName + "$" + DateTime.Today.Year.ToString() + DateTime.Today.Month.ToString() + DateTime.Today.Day.ToString() +
-                DateTime.Today.Hour.ToString() + DateTime.Today.Minute.ToString() + DateTime.Today.Second.ToString();
-            Activity = new ActivityFile((int)startTime.TotalSeconds, Path.GetFileNameWithoutExtension(consist));
-            ActivityRun = new Activity(Activity, this);
+            ActivityFileName = $"ea${RouteFolder.RouteName}${DateTime.Now:yyyyMMddHHmmss}";
+            ActivityFile = new ActivityFile((int)startTime.TotalSeconds, Path.GetFileNameWithoutExtension(consist));
+            ActivityRun = new Activity(ActivityFile, this);
             ExplorePathFile = path;
             ExploreConFile = consist;
             patFileName = Path.ChangeExtension(path, "PAT");
@@ -437,8 +407,8 @@ namespace Orts.Simulation
 
         public void Start(CancellationToken cancellationToken)
         {
-            SignalEnvironment = new SignalEnvironment(SIGCFG, Settings.UseLocationPassingPaths, cancellationToken);
-            MovingTables.AddRange(MovingTableFile.ReadTurntableFile(RoutePath + @"\openrails\turntables.dat"));
+            SignalEnvironment = new SignalEnvironment(SignalConfig, Settings.UseLocationPassingPaths, cancellationToken);
+            MovingTables.AddRange(MovingTableFile.ReadTurntableFile(Path.Combine(RouteFolder.OpenRailsRouteFolder, "turntables.dat")));
             LevelCrossings = new LevelCrossings(this);
             Trains = new TrainList(this);
             PoolHolder = new Poolholder();
@@ -470,8 +440,8 @@ namespace Orts.Simulation
         public void StartTimetable(CancellationToken cancellationToken)
         {
             TimetableMode = true;
-            SignalEnvironment = new SignalEnvironment(SIGCFG, true, System.Threading.CancellationToken.None);
-            MovingTables.AddRange(MovingTableFile.ReadTurntableFile(RoutePath + @"\openrails\turntables.dat"));
+            SignalEnvironment = new SignalEnvironment(SignalConfig, true, cancellationToken);
+            MovingTables.AddRange(MovingTableFile.ReadTurntableFile(Path.Combine(RouteFolder.OpenRailsRouteFolder, "turntables.dat")));
             LevelCrossings = new LevelCrossings(this);
             Trains = new TrainList(this);
             PoolHolder = new Poolholder(this, timeTableFile, cancellationToken);
@@ -499,7 +469,7 @@ namespace Orts.Simulation
             if (MPManager.IsMultiPlayer()) MPManager.Stop();
         }
 
-        public void Restore(BinaryReader inf, string pathName, float initialTileX, float initialTileZ, CancellationToken cancellation)
+        public void Restore(BinaryReader inf, string pathName, float initialTileX, float initialTileZ, CancellationToken cancellationToken)
         {
             ClockTime = inf.ReadDouble();
             Season = (SeasonType)inf.ReadInt32();
@@ -511,7 +481,7 @@ namespace Orts.Simulation
             InitialTileZ = initialTileZ;
             PoolHolder = new Poolholder(inf, this);
 
-            SignalEnvironment = new SignalEnvironment(SIGCFG, false, CancellationToken.None);
+            SignalEnvironment = new SignalEnvironment(SignalConfig, false, cancellationToken);
             SignalEnvironment.Restore(inf);
 
             RestoreTrains(inf);
@@ -523,7 +493,7 @@ namespace Orts.Simulation
 
             // initialization of turntables
             activeMovingTableIndex = inf.ReadInt32();
-            MovingTables.AddRange(MovingTableFile.ReadTurntableFile(RoutePath + @"\openrails\turntables.dat"));
+            MovingTables.AddRange(MovingTableFile.ReadTurntableFile(Path.Combine(RouteFolder.OpenRailsRouteFolder, "turntables.dat")));
             if (MovingTables.Count >= 0)
             {
                 foreach (var movingTable in MovingTables) movingTable.Restore(inf, this);
@@ -624,12 +594,11 @@ namespace Orts.Simulation
         /// <summary>
         /// Gets path and consist of player train in multiplayer resume in activity
         /// </summary>
-        public void GetPathAndConsist()
+        public void SetPathAndConsist()
         {
-            var PlayerServiceFileName = Activity.Activity.PlayerServices.Name;
-            var srvFile = new ServiceFile(RoutePath + @"\SERVICES\" + PlayerServiceFileName + ".SRV");
-            conFileName = BasePath + @"\TRAINS\CONSISTS\" + srvFile.TrainConfig + ".CON";
-            patFileName = RoutePath + @"\PATHS\" + srvFile.PathId + ".PAT";
+            ServiceFile srvFile = new ServiceFile(RouteFolder.ServiceFile(ActivityFile.Activity.PlayerServices.Name));
+            conFileName = RouteFolder.ContentFolder.ConsistFile(srvFile.TrainConfig);
+            patFileName = RouteFolder.PathFile(srvFile.PathId);
         }
 
 
@@ -1087,30 +1056,31 @@ namespace Orts.Simulation
             Debug.Assert(Trains != null, "Cannot InitializePlayerTrain() without Simulator.Trains.");
             // set up the player locomotive
 
-            Train train = new Train();
-            train.TrainType = TrainType.Player;
-            train.Number = 0;
-            train.Name = "PLAYER";
+            Train train = new Train
+            {
+                TrainType = TrainType.Player,
+                Number = 0,
+                Name = "PLAYER"
+            };
 
             string playerServiceFileName;
-            ServiceFile srvFile;
+            ServiceFile serviceFile;
 
             playerServiceFileName = Path.GetFileNameWithoutExtension(ExploreConFile);
-            srvFile = new ServiceFile(playerServiceFileName, playerServiceFileName, Path.GetFileNameWithoutExtension(ExplorePathFile));
+            serviceFile = new ServiceFile(playerServiceFileName, playerServiceFileName, Path.GetFileNameWithoutExtension(ExplorePathFile));
 
-            conFileName = BasePath + @"\TRAINS\CONSISTS\" + srvFile.TrainConfig + ".CON";
-            patFileName = RoutePath + @"\PATHS\" + srvFile.PathId + ".PAT";
+            conFileName = RouteFolder.ContentFolder.ConsistFile(serviceFile.TrainConfig);
+            patFileName = RouteFolder.PathFile(serviceFile.PathId);
             OriginalPlayerTrain = train;
 
-            if (conFileName.Contains("tilted")) train.IsTilting = true;
-
+            train.IsTilting = conFileName.Contains("tilted", StringComparison.OrdinalIgnoreCase);
 
             AIPath aiPath = new AIPath(TDB, TSectionDat, patFileName, TimetableMode);
             PathName = aiPath.pathName;
 
             if (aiPath.Nodes == null)
             {
-                throw new InvalidDataException("Broken path " + patFileName + " for Player train - activity cannot be started");
+                throw new InvalidDataException($"Broken path {patFileName} for Player train - activity cannot be started");
             }
 
             // place rear of train on starting location of aiPath.
@@ -1122,9 +1092,7 @@ namespace Orts.Simulation
             // add wagons
             foreach (Wagon wagon in conFile.Train.Wagons)
             {
-
-                string wagonFolder = BasePath + @"\trains\trainset\" + wagon.Folder;
-                string wagonFilePath = wagonFolder + @"\" + wagon.Name + ".wag"; ;
+                string wagonFilePath = RouteFolder.ContentFolder.WagonFile(wagon.Folder, wagon.Name);
                 if (wagon.IsEngine)
                     wagonFilePath = Path.ChangeExtension(wagonFilePath, ".eng");
 
@@ -1149,14 +1117,14 @@ namespace Orts.Simulation
                     train.Length += car.CarLengthM;
 
                     var mstsDieselLocomotive = car as MSTSDieselLocomotive;
-                    if (Activity != null && mstsDieselLocomotive != null)
-                        mstsDieselLocomotive.DieselLevelL = mstsDieselLocomotive.MaxDieselLevelL * Activity.Activity.Header.FuelDiesel / 100.0f;
+                    if (ActivityFile != null && mstsDieselLocomotive != null)
+                        mstsDieselLocomotive.DieselLevelL = mstsDieselLocomotive.MaxDieselLevelL * ActivityFile.Activity.Header.FuelDiesel / 100.0f;
 
                     var mstsSteamLocomotive = car as MSTSSteamLocomotive;
-                    if (Activity != null && mstsSteamLocomotive != null)
+                    if (ActivityFile != null && mstsSteamLocomotive != null)
                     {
-                        mstsSteamLocomotive.CombinedTenderWaterVolumeUKG = (float)(Mass.Kilogram.ToLb(mstsSteamLocomotive.MaxLocoTenderWaterMassKG) / 10.0f) * Activity.Activity.Header.FuelWater / 100.0f;
-                        mstsSteamLocomotive.TenderCoalMassKG = mstsSteamLocomotive.MaxTenderCoalMassKG * Activity.Activity.Header.FuelCoal / 100.0f;
+                        mstsSteamLocomotive.CombinedTenderWaterVolumeUKG = (float)(Mass.Kilogram.ToLb(mstsSteamLocomotive.MaxLocoTenderWaterMassKG) / 10.0f) * ActivityFile.Activity.Header.FuelWater / 100.0f;
+                        mstsSteamLocomotive.TenderCoalMassKG = mstsSteamLocomotive.MaxTenderCoalMassKG * ActivityFile.Activity.Header.FuelCoal / 100.0f;
                     }
                 }
                 catch (Exception error)
@@ -1208,19 +1176,19 @@ namespace Orts.Simulation
         {
             string playerServiceFileName;
             ServiceFile srvFile;
-            if (Activity != null && Activity.Activity.Serial != -1)
+            if (ActivityFile != null && ActivityFile.Activity.Serial != -1)
             {
-                playerServiceFileName = Activity.Activity.PlayerServices.Name;
-                srvFile = new ServiceFile(RoutePath + @"\SERVICES\" + playerServiceFileName + ".SRV");
+                playerServiceFileName = ActivityFile.Activity.PlayerServices.Name;
+                srvFile = new ServiceFile(RouteFolder.ServiceFile(playerServiceFileName));
             }
             else
             {
                 playerServiceFileName = Path.GetFileNameWithoutExtension(ExploreConFile);
                 srvFile = new ServiceFile(playerServiceFileName, playerServiceFileName, Path.GetFileNameWithoutExtension(ExplorePathFile));
             }
-            conFileName = BasePath + @"\TRAINS\CONSISTS\" + srvFile.TrainConfig + ".CON";
-            patFileName = RoutePath + @"\PATHS\" + srvFile.PathId + ".PAT";
-            PlayerTraffics player_Traffic_Definition = Activity.Activity.PlayerServices.PlayerTraffics;
+            conFileName = RouteFolder.ContentFolder.ConsistFile(srvFile.TrainConfig);
+            patFileName = RouteFolder.PathFile(srvFile.PathId);
+            PlayerTraffics player_Traffic_Definition = ActivityFile.Activity.PlayerServices.PlayerTraffics;
             ServiceTraffics aPPlayer_Traffic_Definition = new ServiceTraffics(playerServiceFileName, player_Traffic_Definition);
             Services aPPlayer_Service_Definition = new Services(playerServiceFileName, player_Traffic_Definition);
 
@@ -1278,11 +1246,11 @@ namespace Orts.Simulation
         /// </summary>
         private void InitializeStaticConsists()
         {
-            if (Activity == null) return;
-            if (Activity.Activity == null) return;
-            if (Activity.Activity.ActivityObjects == null) return;
+            if (ActivityFile == null) return;
+            if (ActivityFile.Activity == null) return;
+            if (ActivityFile.Activity.ActivityObjects == null) return;
             // for each static consist
-            foreach (ActivityObject activityObject in Activity.Activity.ActivityObjects)
+            foreach (ActivityObject activityObject in ActivityFile.Activity.ActivityObjects)
             {
                 try
                 {
@@ -1307,9 +1275,8 @@ namespace Orts.Simulation
                     // when we add them to ORTS
                     for (int iWagon = activityObject.TrainSet.Wagons.Count - 1; iWagon >= 0; --iWagon)
                     {
-                        Wagon wagon = (Wagon)activityObject.TrainSet.Wagons[iWagon];
-                        string wagonFolder = BasePath + @"\trains\trainset\" + wagon.Folder;
-                        string wagonFilePath = wagonFolder + @"\" + wagon.Name + ".wag"; ;
+                        Wagon wagon = activityObject.TrainSet.Wagons[iWagon];
+                        string wagonFilePath = RouteFolder.ContentFolder.WagonFile(wagon.Folder, wagon.Name);
                         if (wagon.IsEngine)
                             wagonFilePath = Path.ChangeExtension(wagonFilePath, ".eng");
 
@@ -2197,35 +2164,35 @@ namespace Orts.Simulation
                 {
                     setting.ActRandomizationLevel = activitySettings.Options.ActivityRandomization;
                     setting.ActRandomizationLevel = MathHelper.Clamp(setting.ActRandomizationLevel, 0, 3);
-                    Trace.Write($"\n{"Activity Randomization", -40}={setting.ActRandomizationLevel, 6}");
+                    Trace.Write($"\n{"Activity Randomization",-40}={setting.ActRandomizationLevel,6}");
                 }
 
                 if (activitySettings.Options.ActivityWeatherRandomization > 0)
                 {
                     setting.ActWeatherRandomizationLevel = activitySettings.Options.ActivityWeatherRandomization;
                     setting.ActWeatherRandomizationLevel = MathHelper.Clamp(setting.ActWeatherRandomizationLevel, 0, 3);
-                    Trace.Write($"\n{"Activity Weather Randomization", -40}={setting.ActWeatherRandomizationLevel, 6}");
+                    Trace.Write($"\n{"Activity Weather Randomization",-40}={setting.ActWeatherRandomizationLevel,6}");
                 }
 
                 if (activitySettings.Options.SuperElevationLevel > 0)
                 {
                     setting.UseSuperElevation = activitySettings.Options.SuperElevationLevel;
                     setting.UseSuperElevation = MathHelper.Clamp(setting.UseSuperElevation, 0, 10);
-                    Trace.Write($"\n{"Super elevation - level", -40}={setting.UseSuperElevation}");
+                    Trace.Write($"\n{"Super elevation - level",-40}={setting.UseSuperElevation}");
                 }
 
                 if (activitySettings.Options.SuperElevationMinimumLength > 0)
                 {
                     setting.SuperElevationMinLen = activitySettings.Options.SuperElevationMinimumLength;
                     setting.SuperElevationMinLen = MathHelper.Clamp(setting.SuperElevationMinLen, 50, 1000000);
-                    Trace.Write($"\n{"Super elevation - minimum length", -40}={setting.SuperElevationMinLen, 6}");
+                    Trace.Write($"\n{"Super elevation - minimum length",-40}={setting.SuperElevationMinLen,6}");
                 }
 
                 if (activitySettings.Options.SuperElevationGauge > 0)
                 {
                     setting.SuperElevationGauge = activitySettings.Options.SuperElevationGauge;
                     setting.SuperElevationGauge = MathHelper.Clamp(setting.SuperElevationGauge, 300, 2500);
-                    Trace.Write($"\n{"Super elevation - gauge", -40}={setting.SuperElevationGauge, 6}");
+                    Trace.Write($"\n{"Super elevation - gauge",-40}={setting.SuperElevationGauge,6}");
                 }
 
                 Trace.Write("\n------------------------------------------------------------------------------------------------");

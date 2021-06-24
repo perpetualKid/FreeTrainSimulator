@@ -264,7 +264,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             // determine file path to the WFile at the specified tile coordinates
             var WFileName = WorldFileNameFromTileCoordinates(tileX, tileZ);
-            var WFilePath = viewer.Simulator.RoutePath + @"\World\" + WFileName;
+            var WFilePath = Path.Combine(viewer.Simulator.RouteFolder.WorldFolder, WFileName);
 
             // if there isn't a file, then return with an empty WorldFile object
             if (!File.Exists(WFilePath))
@@ -278,7 +278,7 @@ namespace Orts.ActivityRunner.Viewer3D
             var WFile = new Formats.Msts.Files.WorldFile(WFilePath);
 
             // check for existence of world file in OpenRails subfolder
-            WFilePath = viewer.Simulator.RoutePath + @"\World\Openrails\" + WFileName;
+            WFilePath = Path.Combine(viewer.Simulator.RouteFolder.WorldFolder, "Openrails", WFileName);
             if (File.Exists(WFilePath))
             {
                 // We have an OR-specific addition to world file
@@ -310,7 +310,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 var fileNameIsNotShape = (worldObject is TransferObject || worldObject is HazardObject);
 
                 // Determine the file path to the shape file for this scenery object and check it exists as expected.
-                var shapeFilePath = fileNameIsNotShape || String.IsNullOrEmpty(worldObject.FileName) ? null : global ? viewer.Simulator.BasePath + @"\Global\Shapes\" + worldObject.FileName : viewer.Simulator.RoutePath + @"\Shapes\" + worldObject.FileName;
+                string shapeFilePath = fileNameIsNotShape || string.IsNullOrEmpty(worldObject.FileName) ? null : global ? viewer.Simulator.RouteFolder.ContentFolder.ShapeFile(worldObject.FileName) : viewer.Simulator.RouteFolder.ShapeFile(worldObject.FileName);
                 if (shapeFilePath != null)
                 {
                     shapeFilePath = Path.GetFullPath(shapeFilePath);
@@ -482,7 +482,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             // Check if there are activity restricted speedposts to be loaded
 
-            if (Viewer.Simulator.ActivityRun != null && Viewer.Simulator.Activity.Activity.ActivityRestrictedSpeedZones != null)
+            if (Viewer.Simulator.ActivityRun != null && Viewer.Simulator.ActivityFile.Activity.ActivityRestrictedSpeedZones != null)
             {
                 foreach (TempSpeedPostItem tempSpeedItem in Viewer.Simulator.ActivityRun.TempSpeedPostItems)
                 {
@@ -490,7 +490,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     {
                         if (Viewer.SpeedpostDatFile == null)
                         {
-                            Trace.TraceWarning($"{Viewer.Simulator.RoutePath}\\speedpost.dat missing; speed posts for temporary speed restrictions in tile {TileX} {TileZ} will not be visible.");
+                            Trace.TraceWarning($"{Viewer.Simulator.RouteFolder.CurrentFolder}\\speedpost.dat missing; speed posts for temporary speed restrictions in tile {TileX} {TileZ} will not be visible.");
                             break;
                         }
                         else

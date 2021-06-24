@@ -196,7 +196,7 @@ namespace Orts.ActivityRunner.Viewer3D
             if (filename == null)
                 return;
 
-            string[] pathArray = { Path.Combine(Viewer.Simulator.RoutePath, "SOUND"), Path.Combine(Viewer.Simulator.BasePath, "SOUND") };
+            string[] pathArray = { Viewer.Simulator.RouteFolder.SoundFolder, Viewer.Simulator.RouteFolder.ContentFolder.SoundFolder };
             var fullPath = FolderStructure.FindFileFromFolders(pathArray, filename);
             if (fullPath == null)
             {
@@ -2309,9 +2309,9 @@ namespace Orts.ActivityRunner.Viewer3D
                 iFile = Viewer.Random.Next(Files.Count);
             }
 
-            string[] pathArray = {  Path.Combine(Simulator.Instance.RoutePath, "SOUND"),
+            string[] pathArray = {  Simulator.Instance.RouteFolder.SoundFolder,
                                     ORTSStream.SoundSource.SMSFolder,
-                                    Path.Combine(Simulator.Instance.BasePath, "SOUND") };
+                                    Simulator.Instance.RouteFolder.ContentFolder.SoundFolder };
             return FolderStructure.FindFileFromFolders(pathArray, Files[iFile]) ?? string.Empty;
         }
     }
@@ -2516,11 +2516,11 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public void AddByTile(int TileX, int TileZ)
         {
-            string name = Viewer.Simulator.RoutePath + @"\WORLD\" + WorldFile.WorldFileNameFromTileCoordinates(TileX, TileZ) + "s";
+            string name = Path.Combine(Viewer.Simulator.RouteFolder.WorldFolder, WorldFile.WorldFileNameFromTileCoordinates(TileX, TileZ) + "s");
             WorldSoundFile wf = new WorldSoundFile(name, Viewer.Simulator.TDB.TrackDB.TrackItems);
             if (wf.TrackItemSound != null)
             {
-                string[] pathArray = { Path.Combine(Viewer.Simulator.RoutePath, "SOUND"), Path.Combine(Viewer.Simulator.BasePath, "SOUND") };
+                string[] pathArray = { Viewer.Simulator.RouteFolder.SoundFolder, Viewer.Simulator.RouteFolder.ContentFolder.SoundFolder };
 
                 var ls = new List<SoundSourceBase>();
                 foreach (var fss in wf.TrackItemSound.SoundSources)
@@ -2548,7 +2548,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public void RemoveByTile(int TileX, int TileZ)
         {
-            string name = Viewer.Simulator.RoutePath + @"\WORLD\" + WorldFile.WorldFileNameFromTileCoordinates(TileX, TileZ) + "s";
+            string name = Path.Combine(Viewer.Simulator.RouteFolder.WorldFolder, WorldFile.WorldFileNameFromTileCoordinates(TileX, TileZ) + "s");
             Viewer.SoundProcess.RemoveSoundSources(name);
             lock (SoundRegions)
             {

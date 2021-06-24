@@ -44,24 +44,20 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             }
             if (viewer.Simulator.TRK.Route.DefaultTurntableSMS != null)
             {
-                var soundPath = viewer.Simulator.RoutePath + @"\\sound\\" + viewer.Simulator.TRK.Route.DefaultTurntableSMS;
-                try
+                string soundPath = viewer.Simulator.RouteFolder.SoundFile(viewer.Simulator.TRK.Route.DefaultTurntableSMS);
+                if (File.Exists(soundPath))
                 {
                     Sound = new SoundSource(viewer, WorldPosition.WorldLocation, SoundEventSource.Turntable, soundPath);
                     viewer.SoundProcess.AddSoundSources(this, new List<SoundSourceBase>() { Sound });
                 }
-                catch
+                else if (File.Exists(soundPath = viewer.Simulator.RouteFolder.ContentFolder.SoundFile(viewer.Simulator.TRK.Route.DefaultTurntableSMS)))
                 {
-                    soundPath = viewer.Simulator.BasePath + @"\\sound\\" + viewer.Simulator.TRK.Route.DefaultTurntableSMS;
-                    try
-                    {
-                        Sound = new SoundSource(viewer, WorldPosition.WorldLocation, SoundEventSource.Turntable, soundPath);
-                        viewer.SoundProcess.AddSoundSources(this, new List<SoundSourceBase>() { Sound });
-                    }
-                    catch (Exception error)
-                    {
-                        Trace.WriteLine(new FileLoadException(soundPath, error));
-                    }
+                    Sound = new SoundSource(viewer, WorldPosition.WorldLocation, SoundEventSource.Turntable, soundPath);
+                    viewer.SoundProcess.AddSoundSources(this, new List<SoundSourceBase>() { Sound });
+                }
+                else
+                {
+                    Trace.WriteLine($"Turntable soundfile {soundPath} not found");
                 }
             }
             for (var matrix = 0; matrix < SharedShape.Matrices.Length; ++matrix)
@@ -148,24 +144,20 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             }
             if (viewer.Simulator.TRK.Route.DefaultTurntableSMS != null)
             {
-                var soundPath = viewer.Simulator.RoutePath + @"\\sound\\" + viewer.Simulator.TRK.Route.DefaultTurntableSMS;
-                try
+                string soundPath = viewer.Simulator.RouteFolder.SoundFile(viewer.Simulator.TRK.Route.DefaultTurntableSMS);
+                if (File.Exists(soundPath))
                 {
                     Sound = new SoundSource(viewer, WorldPosition.WorldLocation, SoundEventSource.Turntable, soundPath);
                     viewer.SoundProcess.AddSoundSources(this, new List<SoundSourceBase>() { Sound });
                 }
-                catch
+                else if (File.Exists(soundPath = viewer.Simulator.RouteFolder.ContentFolder.SoundFile(viewer.Simulator.TRK.Route.DefaultTurntableSMS)))
                 {
-                    soundPath = viewer.Simulator.BasePath + @"\\sound\\" + viewer.Simulator.TRK.Route.DefaultTurntableSMS;
-                    try
-                    {
-                        Sound = new SoundSource(viewer, WorldPosition.WorldLocation, SoundEventSource.Turntable, soundPath);
-                        viewer.SoundProcess.AddSoundSources(this, new List<SoundSourceBase>() { Sound });
-                    }
-                    catch (Exception error)
-                    {
-                        Trace.WriteLine(new FileLoadException(soundPath, error));
-                    }
+                    Sound = new SoundSource(viewer, WorldPosition.WorldLocation, SoundEventSource.Turntable, soundPath);
+                    viewer.SoundProcess.AddSoundSources(this, new List<SoundSourceBase>() { Sound });
+                }
+                else
+                {
+                    Trace.WriteLine($"Turntable soundfile {soundPath} not found");
                 }
             }
             for (var matrix = 0; matrix < SharedShape.Matrices.Length; ++matrix)

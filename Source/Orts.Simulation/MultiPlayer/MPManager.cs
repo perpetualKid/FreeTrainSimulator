@@ -879,7 +879,7 @@ namespace Orts.MultiPlayer
 				var dist = Math.Abs(item.Key - length);
 				if (dist < bestDist) { bestDist = dist; bestName = item.Value; }
 			}
-			return Simulator.BasePath + "\\trains\\trainset\\" + bestName;
+			return Path.Combine(Simulator.RouteFolder.ContentFolder.TrainSetsFolder, bestName);
 
 		}
 
@@ -887,7 +887,7 @@ namespace Orts.MultiPlayer
 		{
 			string ending = "*.eng";
 			if (type == 'w') ending = "*.wag";
-			string[] filePaths = Directory.GetFiles(simulator.BasePath + "\\trains\\trainset", ending, SearchOption.AllDirectories);
+			string[] filePaths = Directory.GetFiles(simulator.RouteFolder.ContentFolder.TrainSetsFolder, ending, SearchOption.AllDirectories);
 			string temp;
 			List<string> allEngines = new List<string>();
 			SortedList<double, string> carList = new SortedList<double, string>();
@@ -905,7 +905,7 @@ namespace Orts.MultiPlayer
 
 				try
 				{
-					using (var stf = new STFReader(simulator.BasePath + "\\trains\\trainset\\" + name, false))
+					using (var stf = new STFReader(Path.Combine(simulator.RouteFolder.ContentFolder.TrainSetsFolder, name), false))
 						stf.ParseFile(new STFReader.TokenProcessor[] {
 							new STFReader.TokenProcessor("wagon", ()=>{
 								stf.ReadString();
@@ -928,7 +928,7 @@ namespace Orts.MultiPlayer
 		{
 			try
 			{
-				string fileName = Simulator.RoutePath + @"\" + Simulator.TRK.Route.FileName + ".tdb";
+				string fileName = Simulator.RouteFolder.TrackDatabaseFile(Simulator.TRK);
 				FileStream file = new FileStream(fileName, FileMode.Open);
 				MD5 md5 = new MD5CryptoServiceProvider();
 				byte[] retVal = md5.ComputeHash(file);

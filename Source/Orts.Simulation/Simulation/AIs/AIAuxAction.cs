@@ -65,7 +65,7 @@ namespace Orts.Simulation.AIs
             ThisTrain = thisTrain;
         }
 
-        public AuxActionsContainer(Train thisTrain, BinaryReader inf, string routePath)
+        public AuxActionsContainer(Train thisTrain, BinaryReader inf)
         {
             ThisTrain = thisTrain;
             if (thisTrain is AITrain)
@@ -176,7 +176,7 @@ namespace Orts.Simulation.AIs
 #endif
         protected void SetGenAuxActions(AITrain thisTrain)  //  Add here the new Generic Action
         {
-            Formats.Msts.Files.ActivityFile activity = Simulator.Instance.Activity;
+            Formats.Msts.Files.ActivityFile activity = Simulator.Instance.ActivityFile;
             if (activity != null && activity.Activity.AIBlowsHornAtLevelCrossings && SpecAuxActions.Count == 0)
             {
                 AuxActionHorn auxActionHorn = new AuxActionHorn(true, 2, 0, activity.Activity.AILevelCrossingHornPattern);
