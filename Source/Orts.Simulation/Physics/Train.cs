@@ -270,8 +270,25 @@ namespace Orts.Simulation.Physics
         internal TrainRouted RoutedForward { get; set; }                 // routed train class for forward moves (used in signalling)
         internal TrainRouted RoutedBackward { get; set; }                // routed train class for backward moves (used in signalling)
 
-        public TrainControlMode ControlMode { get; internal set; } = TrainControlMode.Undefined;     // train control mode
-        public TrainControlMode PreviousControlMode { get; internal set; } = TrainControlMode.Undefined;     // train control mode
+        /// <summary>
+        /// Train control mode
+        /// </summary>
+        private TrainControlMode controlMode = TrainControlMode.Undefined;
+        public TrainControlMode ControlMode 
+        { 
+            get => controlMode;
+            internal set
+            {
+                if (value == TrainControlMode.OutOfControl && controlMode != TrainControlMode.OutOfControl)
+                    previousControlMode = controlMode;
+                else
+                    previousControlMode = TrainControlMode.Undefined;
+                controlMode = value;
+            }
+
+        }
+
+        private TrainControlMode previousControlMode = TrainControlMode.Undefined;     // train control mode
 
         public OutOfControlReason OutOfControlReason { get; private set; } = OutOfControlReason.UnDefined; // train out of control
 
@@ -7377,7 +7394,6 @@ namespace Orts.Simulation.Physics
 
             // set explorer mode
             ControlMode = TrainControlMode.Explorer;
-            PreviousControlMode = TrainControlMode.Undefined;
 
             // reset routes and check sections either end of train
             PresentPosition[Direction.Forward].RouteListIndex = -1;
@@ -7411,7 +7427,6 @@ namespace Orts.Simulation.Physics
             // in auto mode, use forward direction only
 
             ControlMode = TrainControlMode.AutoSignal;
-            PreviousControlMode = TrainControlMode.Undefined;
             signal.RequestClearSignal(ValidRoute[0], RoutedForward, 0, false, null);
 
             // enable any none-NORMAL signals between front of train and first NORMAL signal
@@ -7477,7 +7492,6 @@ namespace Orts.Simulation.Physics
             // use direction forward only
             int activeSectionIndex = sectionIndex;
             ControlMode = TrainControlMode.AutoNode;
-            PreviousControlMode = TrainControlMode.Undefined;
             EndAuthorityTypes[0] = EndAuthorityType.NoPathReserved;
             nextSignalIndex = -1; // no next signal in Node Control
 
@@ -7626,7 +7640,6 @@ namespace Orts.Simulation.Physics
             // set manual mode
 
             ControlMode = TrainControlMode.Manual;
-            PreviousControlMode = TrainControlMode.Undefined;
 
             // reset routes and check sections either end of train
 
@@ -8016,7 +8029,6 @@ namespace Orts.Simulation.Physics
 
                 // set control state and issue warning
 
-                PreviousControlMode = ControlMode;
                 ControlMode = TrainControlMode.OutOfControl;
 
                 OutOfControlReason = reason;
@@ -8079,7 +8091,7 @@ namespace Orts.Simulation.Physics
                         case OutOfControlReason.PassedAtDanger:
                         case OutOfControlReason.RearPassedAtDanger:
                         case OutOfControlReason.MisalignedSwitch:
-                            switch (PreviousControlMode)
+                            switch (previousControlMode)
                             {
                                 case TrainControlMode.AutoNode:
                                     SwitchToNodeControl(PresentPosition[0].TrackCircuitSectionIndex);
