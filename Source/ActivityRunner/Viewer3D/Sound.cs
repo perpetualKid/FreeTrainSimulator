@@ -538,7 +538,8 @@ namespace Orts.ActivityRunner.Viewer3D
     public class SoundSource : SoundSourceBase
     {
         /// <summary>
-        /// Squeared cutoff distance. No sound is audible above that
+        /// Squared cutoff distance. No sound is audible above that, except for the actual player train,
+        /// where cutoff occurs at a distance wich is higher than the train length
         /// </summary>
         private const int CUTOFFDISTANCE = 4000000;
         /// <summary>
@@ -1004,13 +1005,15 @@ namespace Orts.ActivityRunner.Viewer3D
                 float.IsNaN(WorldLocation.Location.Y) ||
                 float.IsNaN(WorldLocation.Location.Z))
             {
-                DistanceSquared = CUTOFFDISTANCE + 1;
+                DistanceSquared = (Car != null && Car.Train != null && Car.Train.IsActualPlayerTrain ?
+                Math.Max(CUTOFFDISTANCE, Car.Train.Length * Car.Train.Length) : CUTOFFDISTANCE) + 1;
                 return true;
             }
 
             DistanceSquared = (float)WorldLocation.GetDistanceSquared(WorldLocation, Viewer.Camera.CameraWorldLocation);
 
-            return DistanceSquared > CUTOFFDISTANCE;
+            return DistanceSquared > (Car != null && Car.Train != null && Car.Train.IsActualPlayerTrain ? 
+                Math.Max (CUTOFFDISTANCE, Car.Train.Length * Car.Train.Length) +2500f : CUTOFFDISTANCE);
         }
 
         /// <summary>
@@ -1029,7 +1032,8 @@ namespace Orts.ActivityRunner.Viewer3D
                 {
                     // (ActivationConditions.Distance == 0) means distance checking disabled
                     if ((ActivationConditions.Distance == 0 || DistanceSquared < ActivationConditions.Distance * ActivationConditions.Distance) &&
-                        DistanceSquared < CUTOFFDISTANCE)
+                        DistanceSquared < (Car != null && Car.Train != null && Car.Train.IsActualPlayerTrain ?
+                        Math.Max(CUTOFFDISTANCE, Car.Train.Length * Car.Train.Length) +2500f : CUTOFFDISTANCE))
                         return true;
                 }
                 else
@@ -1054,7 +1058,8 @@ namespace Orts.ActivityRunner.Viewer3D
             if (WorldLocation != WorldLocation.None)
             {
                 if (DeactivationConditions.Distance != 0 && DistanceSquared > DeactivationConditions.Distance * DeactivationConditions.Distance ||
-                    DistanceSquared > CUTOFFDISTANCE)
+                    DistanceSquared > (Car != null && Car.Train != null && Car.Train.IsActualPlayerTrain ?
+                    Math.Max(CUTOFFDISTANCE, Car.Train.Length * Car.Train.Length) + 2500f : CUTOFFDISTANCE))
                     return true;
             }
 
