@@ -28,6 +28,7 @@ using Microsoft.Xna.Framework;
 using Orts.Common;
 using Orts.Common.Input;
 using Orts.Simulation;
+using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems.Brakes;
 
@@ -60,6 +61,15 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         private bool ctrlAIFiremanOff;//AIFireman Off
         private bool ctrlAIFiremanReset;//AIFireman Reset
         private double clockAIFireTime; //AIFireman reset timing
+
+        bool grateLabelHide;// Grate label visible
+        double clockGrateTime; // Grate hide timing
+
+        bool wheelLabelHide;// Wheel label visible
+        double clockWheelTime; // Wheel hide timing
+
+        bool doorsLabelHide; // Doors label visible
+        double clockDoorsTime; // Doors hide timing
 
 
         private bool standardHUDMode = true;// Standard text
@@ -384,6 +394,10 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             outf.Write(ctrlAIFiremanOn);
             outf.Write(ctrlAIFiremanOff);
             outf.Write(ctrlAIFiremanReset);
+            outf.Write(clockWheelTime);
+            outf.Write(wheelLabelHide);
+            outf.Write(clockDoorsTime);
+            outf.Write(doorsLabelHide);
         }
 
         internal protected override void Restore(BinaryReader inf)
@@ -399,6 +413,10 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             ctrlAIFiremanOn = inf.ReadBoolean();
             ctrlAIFiremanOff = inf.ReadBoolean();
             ctrlAIFiremanReset = inf.ReadBoolean();
+            clockWheelTime = inf.ReadDouble();
+            wheelLabelHide = inf.ReadBoolean();
+            clockDoorsTime = inf.ReadDouble();
+            doorsLabelHide = inf.ReadBoolean();
 
             // Display window
             SizeTo(LocationRestore.Width, LocationRestore.Height);
@@ -1011,13 +1029,12 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 else
                     aiFireInput = string.Empty;
 
-                if (!ctrlAIFiremanOn && !ctrlAIFiremanOff && !ctrlAIFiremanReset)
+                if (ctrlAIFiremanOn || ctrlAIFiremanOff || ctrlAIFiremanReset)
                 {
-                    InfoToLabel(aiFireInput, Viewer.Catalog.GetString("AI Fireman") + "?!?", Viewer.Catalog.GetString(""), "", false);
-                }
-                else
-                {
-                    InfoToLabel(aiFireInput, Viewer.Catalog.GetString("AI Fireman") + "!??", ctrlAIFiremanOn ? Viewer.Catalog.GetString("On") + "!??" : ctrlAIFiremanOff ? Viewer.Catalog.GetString("Off") + "!??" : ctrlAIFiremanReset ? Viewer.Catalog.GetString("Reset") + "%%%" : "-", "", false);
+                    InfoToLabel(aiFireInput, Viewer.Catalog.GetString("AI Fireman") + "!??", 
+                        ctrlAIFiremanOn ? Viewer.Catalog.GetString("On") + "!??" : 
+                        ctrlAIFiremanOff ? Viewer.Catalog.GetString("Off") + "!??" : 
+                        ctrlAIFiremanReset ? Viewer.Catalog.GetString("Reset") + "%%%" : "-", "", false);
                 }
 
                 // Delay to hide the Reset label
@@ -1028,15 +1045,30 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 if (steamLocomotive.GrateCombustionRateLBpFt2 > steamLocomotive.GrateLimitLBpFt2)
                 {
                     if (steamLocomotive.IsGrateLimit)
+                    {
+                        grateLabelHide = true;
+                        clockGrateTime = Owner.Viewer.Simulator.ClockTime;
                         InfoToLabel(string.Empty, Viewer.Catalog.GetString("Grate limit"), Viewer.Catalog.GetString("Exceeded") + "!!!", "", false);
+                    }
                 }
                 else
-                    InfoToLabel(string.Empty, Viewer.Catalog.GetString("Grate limit") + "?!?", Viewer.Catalog.GetString("Normal") + "?!?", "", false);
-            }
-            else
-                InfoToLabel(string.Empty, Viewer.Catalog.GetString("Grate limit") + "?!?", Viewer.Catalog.GetString("-") + "?!?", "", false);
+                {
+                    // delay to hide the grate label
+                    if (grateLabelHide && clockGrateTime + 3 < Owner.Viewer.Simulator.ClockTime)
+                        grateLabelHide = false;
+
+                    InfoToLabel(string.Empty, 
+                        grateLabelHide ? Viewer.Catalog.GetString("Grate limit") + "!??" : string.Empty,
+                        grateLabelHide ? Viewer.Catalog.GetString("Normal") + "!??" : string.Empty, "", false);
+                }
+}
 
             // Wheel
+            if (PlayerTrain.IsWheelSlip || PlayerTrain.IsWheelSlipWarninq || PlayerTrain.IsBrakeSkid)
+            {
+                wheelLabelHide = true;
+                clockWheelTime = Owner.Viewer.Simulator.ClockTime;
+            }
             if (Owner.Viewer.PlayerTrain.IsWheelSlip)
                 InfoToLabel(string.Empty, Viewer.Catalog.GetString("Wheel"), Viewer.Catalog.GetString("slip") + "!!!", "", false);
             else if (Owner.Viewer.PlayerTrain.IsWheelSlipWarninq)
@@ -1044,13 +1076,25 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             else if (Owner.Viewer.PlayerTrain.IsBrakeSkid)
                 InfoToLabel(string.Empty, Viewer.Catalog.GetString("Wheel"), Viewer.Catalog.GetString("skid") + "!!!", "", false);
             else
-                InfoToLabel(string.Empty, Viewer.Catalog.GetString("Wheel") + "?!?", Viewer.Catalog.GetString("Normal") + "?!?", "", false);
+            {
+                // delay to hide the wheel label
+                if (wheelLabelHide && clockWheelTime + 3 < Owner.Viewer.Simulator.ClockTime)
+                    wheelLabelHide = false;
+
+                if (wheelLabelHide)
+                {
+                    InfoToLabel(string.Empty, Viewer.Catalog.GetString("Wheel") + "?!?", Viewer.Catalog.GetString("Normal") + "!??", "", false);
+                }
+            }
 
             // Doors
             if ((Owner.Viewer.PlayerLocomotive as MSTSWagon).DoorLeftOpen || (Owner.Viewer.PlayerLocomotive as MSTSWagon).DoorRightOpen)
             {
                 var color = Math.Abs(Owner.Viewer.PlayerLocomotive.SpeedMpS) > 0.1f ? "!!!" : "???";
                 var status = "";
+                doorsLabelHide = true;
+                clockDoorsTime = Owner.Viewer.Simulator.ClockTime;
+
                 if ((Owner.Viewer.PlayerLocomotive as MSTSWagon).DoorLeftOpen)
                     status += (Owner.Viewer.PlayerLocomotive as MSTSLocomotive).GetCabFlipped() ? Viewer.Catalog.GetString("Right") : Viewer.Catalog.GetString("Left");
                 if ((Owner.Viewer.PlayerLocomotive as MSTSWagon).DoorRightOpen)
@@ -1063,7 +1107,16 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 InfoToLabel(" ", Viewer.Catalog.GetString("Doors open"), status, "", false);
             }
             else
-                InfoToLabel(" ", Viewer.Catalog.GetString("Doors open") + "?!?", Viewer.Catalog.GetString("Closed"), "", false);
+            {
+                // delay to hide the doors label
+                if (doorsLabelHide && clockDoorsTime + 3 < Owner.Viewer.Simulator.ClockTime)
+                    doorsLabelHide = false;
+
+                if (doorsLabelHide)
+                {
+                    InfoToLabel(" ", Viewer.Catalog.GetString("Doors open") + "!??", Viewer.Catalog.GetString("Closed"), "", false);
+                }
+            }
 
             // Ctrl + F Firing to manual
             if (firingKeyDown)
