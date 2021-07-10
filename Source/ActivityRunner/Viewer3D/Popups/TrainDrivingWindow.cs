@@ -1,4 +1,4 @@
-﻿// COPYRIGHT 2010, 2011, 2012, 2013, 2014, 2015 by the Open Rails project.
+﻿// COPYRIGHT 2019, 2020 by the Open Rails project.
 //
 // This file is part of Open Rails.
 //
@@ -14,8 +14,6 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
-
-// This file is the responsibility of the 3D & Environment Team.
 
 using System;
 using System.Collections.Generic;
@@ -62,14 +60,14 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         private bool ctrlAIFiremanReset;//AIFireman Reset
         private double clockAIFireTime; //AIFireman reset timing
 
-        bool grateLabelVisible;// Grate label visible
-        double clockGrateTime; // Grate hide timing
+        private bool grateLabelVisible;// Grate label visible
+        private double clockGrateTime; // Grate hide timing
 
-        bool wheelLabelVisible;// Wheel label visible
-        double clockWheelTime; // Wheel hide timing
+        private bool wheelLabelVisible;// Wheel label visible
+        private double clockWheelTime; // Wheel hide timing
 
-        bool doorsLabelVisible; // Doors label visible
-        double clockDoorsTime; // Doors hide timing
+        private bool doorsLabelVisible; // Doors label visible
+        private double clockDoorsTime; // Doors hide timing
 
 
         private bool standardHUDMode = true;// Standard text
@@ -668,7 +666,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     lastColWidth = lastColWidth > 180 ? lastColWidth + 10 : lastColWidth;
                 }
 
-                listToLabel.Add(new ListLabel(firstcol, firstColWidth, lastcol, lastColWidth, symbolcol, changecolwidth, keyPressed ?? string.Empty));
+                listToLabel.Add(new ListLabel(firstcol, !standardHUDMode ? firstColWidth + 10 : firstColWidth, lastcol, lastColWidth, symbolcol, changecolwidth, keyPressed ?? string.Empty));// avoids the symbol/keypressed from overlapping with the text,
             }
             else
             {
@@ -1031,9 +1029,9 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
                 if (ctrlAIFiremanOn || ctrlAIFiremanOff || ctrlAIFiremanReset)
                 {
-                    InfoToLabel(aiFireInput, Viewer.Catalog.GetString("AI Fireman") + "!??", 
-                        ctrlAIFiremanOn ? Viewer.Catalog.GetString("On") + "!??" : 
-                        ctrlAIFiremanOff ? Viewer.Catalog.GetString("Off") + "!??" : 
+                    InfoToLabel(aiFireInput, Viewer.Catalog.GetString("AI Fireman") + "!??",
+                        ctrlAIFiremanOn ? Viewer.Catalog.GetString("On") + "!??" :
+                        ctrlAIFiremanOff ? Viewer.Catalog.GetString("Off") + "!??" :
                         ctrlAIFiremanReset ? Viewer.Catalog.GetString("Reset") + "%%%" : "-", "", false);
                 }
 
@@ -1057,11 +1055,11 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     if (grateLabelVisible && clockGrateTime + 3 < Owner.Viewer.Simulator.ClockTime)
                         grateLabelVisible = false;
 
-                    InfoToLabel(string.Empty, 
+                    InfoToLabel(string.Empty,
                         grateLabelVisible ? Viewer.Catalog.GetString("Grate limit") + "!??" : string.Empty,
                         grateLabelVisible ? Viewer.Catalog.GetString("Normal") + "!??" : string.Empty, "", false);
                 }
-}
+            }
 
             // Wheel
             if (PlayerTrain.IsWheelSlip || PlayerTrain.IsWheelSlipWarninq || PlayerTrain.IsBrakeSkid)
