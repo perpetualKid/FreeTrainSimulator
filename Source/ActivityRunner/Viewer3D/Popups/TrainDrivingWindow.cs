@@ -581,8 +581,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 FirstColLenght = listToLabel.Max(x => x.FirstColWidth);
                 LastColLenght = listToLabel.Max(x => x.LastColWidth);
 
-                var desiredHeight = FontToBold ? Owner.TextFontDefaultBold.Height * listToLabel.Count(x => x.LastCol != null)
-                    : Owner.TextFontDefault.Height * listToLabel.Count(x => x.LastCol != null);
+                var desiredHeight = FontToBold ? Owner.TextFontDefaultBold.Height * listToLabel.Where(x => x.FirstCol == "Sprtr" || !string.IsNullOrEmpty(x.LastCol)).Count() : 
+                    Owner.TextFontDefault.Height * listToLabel.Where(x => x.FirstCol == "Sprtr" || !string.IsNullOrEmpty(x.LastCol)).Count();
 
                 var desiredWidth = FirstColLenght + LastColLenght + (standardHUDMode ? FontToBold ? 43 : 41 : 31);
 
@@ -1054,10 +1054,11 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     // delay to hide the grate label
                     if (grateLabelVisible && clockGrateTime + 3 < Owner.Viewer.Simulator.ClockTime)
                         grateLabelVisible = false;
+                    if (grateLabelVisible)
+                    {
 
-                    InfoToLabel(string.Empty,
-                        grateLabelVisible ? Viewer.Catalog.GetString("Grate limit") + "!??" : string.Empty,
-                        grateLabelVisible ? Viewer.Catalog.GetString("Normal") + "!??" : string.Empty, "", false);
+                        InfoToLabel(string.Empty, Viewer.Catalog.GetString("Grate limit") + "!??", Viewer.Catalog.GetString("Normal") + "!??", "", false);
+                    }
                 }
             }
 
