@@ -47,8 +47,8 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             Viewer = viewer;
             Position = position;
-            MaximumCenterlineOffset = Viewer.Simulator.TRK.Route.ForestClearDistance;
-            CheckRoadsToo = Viewer.Simulator.TRK.Route.RemoveForestTreesFromRoads;
+            MaximumCenterlineOffset = Viewer.Simulator.Route.ForestClearDistance;
+            CheckRoadsToo = Viewer.Simulator.Route.RemoveForestTreesFromRoads;
 
             Material = viewer.MaterialManager.Load("Forest", Helpers.GetForestTextureFile(viewer.Simulator, forest.TreeTexture));
             Primitive = new ForestPrimitive(Viewer, forest, position, MaximumCenterlineOffset, CheckRoadsToo);
@@ -240,7 +240,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 SectionMap = new Dictionary<string, List<TrackVectorSection>>();
                 if (MaximumCenterlineOffset > 0)
                 {
-                    foreach (var node in Viewer.Simulator.TDB.TrackDB.TrackNodes)
+                    foreach (var node in Viewer.Simulator.TrackDatabase.TrackDB.TrackNodes)
                     {
                         if (!(node is TrackVectorNode trackVectorNode))
                             continue;

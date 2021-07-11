@@ -443,7 +443,7 @@ namespace Orts.Simulation.RollingStocks
         {
             //  BrakePipeChargingRatePSIpS = Simulator.Settings.BrakePipeChargingRate;
 
-            MilepostUnitsMetric = Simulator.TRK.Route.MilepostUnitsMetric;
+            MilepostUnitsMetric = Simulator.Route.MilepostUnitsMetric;
             BrakeCutsPowerAtBrakeCylinderPressurePSI = 4.0f;
 
             LocomotiveAxle = new Axle();

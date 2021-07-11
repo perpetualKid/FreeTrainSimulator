@@ -90,7 +90,7 @@ namespace Orts.Simulation.Signalling
 
             OrtsSignalTypeCount = OrSignalTypes.Instance.FunctionTypes.Count;
 
-            trackDB = Simulator.Instance.TDB.TrackDB;
+            trackDB = Simulator.Instance.TrackDatabase.TrackDB;
             tsectiondat = Simulator.Instance.TSectionDat;
 
             // read SIGSCR files
@@ -106,7 +106,7 @@ namespace Orts.Simulation.Signalling
             BuildSignalWorld(Simulator.Instance.RouteFolder.WorldFolder, sigcfg, signalWorldList, signalWorldLookup, platformSidesList, token);
 
             // build list of signals in TDB file
-            BuildSignalList(trackDB.TrackItems, trackDB.TrackNodes, tsectiondat, Simulator.Instance.TDB, platformList, signalWorldList);
+            BuildSignalList(trackDB.TrackItems, trackDB.TrackNodes, tsectiondat, Simulator.Instance.TrackDatabase, platformList, signalWorldList);
 
             if (Signals.Count > 0)
             {
@@ -1373,7 +1373,7 @@ namespace Orts.Simulation.Signalling
                     else if (speedItem.IsMilePost)
                     {
                         Milepost milepost = milepostList[speedItem.SignalObject];
-                        TrackItem milepostTrItem = Simulator.Instance.TDB.TrackDB.TrackItems[milepost.TrackItemId];
+                        TrackItem milepostTrItem = Simulator.Instance.TrackDatabase.TrackDB.TrackItems[milepost.TrackItemId];
                         float milepostDistance = traveller.DistanceTo(milepostTrItem.Location);
 
                         TrackCircuitMilepost trackCircuitItem = new TrackCircuitMilepost(milepost, milepostDistance, circuit.Length - milepostDistance);

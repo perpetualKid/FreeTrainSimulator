@@ -9,8 +9,6 @@ using System.Linq;
 
 using Microsoft.Win32;
 
-using Orts.Formats.Msts.Files;
-
 namespace Orts.Formats.Msts
 {
     public static class FolderStructure
@@ -84,20 +82,20 @@ namespace Orts.Formats.Msts
                 #endregion
 
                 #region Files
-                public string TrackDatabaseFile(RouteFile route)
+                public string TrackDatabaseFile(string routeFileName)
                 {
-                    if (route == null)
-                        throw new ArgumentNullException(nameof(route));
+                    if (string.IsNullOrEmpty(routeFileName))
+                        throw new ArgumentNullException(nameof(routeFileName));
 
-                    return Path.Combine(routeFolder, route.Route.FileName + ".tdb");
+                    return Path.Combine(routeFolder, routeFileName + ".tdb");
                 }
 
-                public string RoadTrackDatabaseFile(RouteFile route)
+                public string RoadTrackDatabaseFile(string routeFileName)
                 {
-                    if (route == null)
-                        throw new ArgumentNullException(nameof(route));
+                    if (string.IsNullOrEmpty(routeFileName))
+                        throw new ArgumentNullException(nameof(routeFileName));
 
-                    return Path.Combine(routeFolder, route.Route.FileName + ".rdb");
+                    return Path.Combine(routeFolder, routeFileName + ".rdb");
                 }
 
                 public string ServiceFile(string serviceName)

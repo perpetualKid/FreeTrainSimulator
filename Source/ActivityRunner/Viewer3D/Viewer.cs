@@ -291,14 +291,14 @@ namespace Orts.ActivityRunner.Viewer3D
 
             ContentPath = Game.ContentPath;
             Trace.Write(" ENV");
-            ENVFile = new EnvironmentFile(Path.Combine(Simulator.RouteFolder.EnvironmentFolder, Simulator.TRK.Route.Environment.GetEnvironmentFileName(Simulator.Season, Simulator.WeatherType)));
+            ENVFile = new EnvironmentFile(Path.Combine(Simulator.RouteFolder.EnvironmentFolder, Simulator.Route.Environment.GetEnvironmentFileName(Simulator.Season, Simulator.WeatherType)));
 
             Trace.Write(" TTYPE");
             TrackTypes = new TrackTypesFile(Path.Combine(Simulator.RouteFolder.CurrentFolder, "TTYPE.DAT"));
 
             Tiles = new TileManager(Simulator.RouteFolder.TilesFolder, false);
             LoTiles = new TileManager(Simulator.RouteFolder.TilesFolderLow, true);
-            MilepostUnitsMetric = Simulator.TRK.Route.MilepostUnitsMetric;
+            MilepostUnitsMetric = Simulator.Route.MilepostUnitsMetric;
 
             Simulator.AllowedSpeedRaised += (object sender, EventArgs e) =>
             {
@@ -418,7 +418,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 Simulator.InitializeAiPlayerHosting();
             }
 
-            SharedSMSFileManager.Initialize(TrackTypes.Count, Simulator.TRK.Route.SwitchSMSNumber, Simulator.TRK.Route.CurveSMSNumber, Simulator.TRK.Route.CurveSwitchSMSNumber);
+            SharedSMSFileManager.Initialize(TrackTypes.Count, Simulator.Route.SwitchSMSNumber, Simulator.Route.CurveSMSNumber, Simulator.Route.CurveSwitchSMSNumber);
 
             TextureManager = new SharedTextureManager(this, Game.GraphicsDevice);
 
@@ -1523,9 +1523,9 @@ namespace Orts.ActivityRunner.Viewer3D
             TrackNode bestTn = null;
             float bestD = 10;
             // check each switch
-            for (int j = 0; j < Simulator.TDB.TrackDB.TrackNodes.Length; j++)
+            for (int j = 0; j < Simulator.TrackDatabase.TrackDB.TrackNodes.Length; j++)
             {
-                TrackNode tn = Simulator.TDB.TrackDB.TrackNodes[j];
+                TrackNode tn = Simulator.TrackDatabase.TrackDB.TrackNodes[j];
                 if (tn is TrackJunctionNode)
                 {
 

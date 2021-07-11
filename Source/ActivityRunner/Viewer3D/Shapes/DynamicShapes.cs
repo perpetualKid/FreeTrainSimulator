@@ -405,8 +405,8 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                 int id = speedPostObject.TrackItemIds.TrackDbItems[idlocation];
                 //                SpeedPostItem item;
                 string speed = string.Empty;
-                if (!(viewer.Simulator.TDB.TrackDB.TrackItems[id] is SpeedPostItem item))
-                    throw new InvalidCastException(viewer.Simulator.TDB.TrackDB.TrackItems[id].ItemName);  // Error to be handled in Scenery.cs
+                if (!(viewer.Simulator.TrackDatabase.TrackDB.TrackItems[id] is SpeedPostItem item))
+                    throw new InvalidCastException(viewer.Simulator.TrackDatabase.TrackDB.TrackItems[id].ItemName);  // Error to be handled in Scenery.cs
 
                 //determine what to show: speed or number used in German routes
                 if (item.ShowNumber)
@@ -619,8 +619,8 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                     soundFileName = levelCrossingObject.SoundFileName;
                 else if (!string.IsNullOrEmpty(SharedShape.SoundFileName))
                     soundFileName = SharedShape.SoundFileName;
-                else if (!string.IsNullOrEmpty(viewer.Simulator.TRK.Route.DefaultCrossingSMS))
-                    soundFileName = viewer.Simulator.TRK.Route.DefaultCrossingSMS;
+                else if (!string.IsNullOrEmpty(viewer.Simulator.Route.DefaultCrossingSMS))
+                    soundFileName = viewer.Simulator.Route.DefaultCrossingSMS;
                 if (!string.IsNullOrEmpty(soundFileName))
                 {
                     string soundPath = viewer.Simulator.RouteFolder.SoundFile(soundFileName);
@@ -835,15 +835,15 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             fuelPickupItemObject = fuelpickupitemObj;
 
 
-            if (viewer.Simulator.TRK.Route.DefaultDieselTowerSMS != null && fuelPickupItemObject.PickupType == PickupType.FuelDiesel) // Testing for Diesel PickupType
+            if (viewer.Simulator.Route.DefaultDieselTowerSMS != null && fuelPickupItemObject.PickupType == PickupType.FuelDiesel) // Testing for Diesel PickupType
             {
-                string soundPath = viewer.Simulator.RouteFolder.SoundFile(viewer.Simulator.TRK.Route.DefaultDieselTowerSMS);
+                string soundPath = viewer.Simulator.RouteFolder.SoundFile(viewer.Simulator.Route.DefaultDieselTowerSMS);
                 if (File.Exists(soundPath))
                 {
                     soundSource = new SoundSource(viewer, WorldPosition.WorldLocation, SoundEventSource.FuelTower, soundPath);
                     viewer.SoundProcess.AddSoundSources(this, new List<SoundSourceBase>() { soundSource });
                 }
-                else if (File.Exists(soundPath = viewer.Simulator.RouteFolder.ContentFolder.SoundFile(viewer.Simulator.TRK.Route.DefaultDieselTowerSMS)))
+                else if (File.Exists(soundPath = viewer.Simulator.RouteFolder.ContentFolder.SoundFile(viewer.Simulator.Route.DefaultDieselTowerSMS)))
                 {
                     soundSource = new SoundSource(viewer, WorldPosition.WorldLocation, SoundEventSource.FuelTower, soundPath);
                     viewer.SoundProcess.AddSoundSources(this, new List<SoundSourceBase>() { soundSource });
@@ -853,15 +853,15 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                     Trace.WriteLine($"Diesel pickup soundfile {soundPath} not found");
                 }
             }
-            if (viewer.Simulator.TRK.Route.DefaultWaterTowerSMS != null && fuelPickupItemObject.PickupType == PickupType.FuelWater) // Testing for Water PickupType
+            if (viewer.Simulator.Route.DefaultWaterTowerSMS != null && fuelPickupItemObject.PickupType == PickupType.FuelWater) // Testing for Water PickupType
             {
-                string soundPath = viewer.Simulator.RouteFolder.SoundFile(viewer.Simulator.TRK.Route.DefaultWaterTowerSMS);
+                string soundPath = viewer.Simulator.RouteFolder.SoundFile(viewer.Simulator.Route.DefaultWaterTowerSMS);
                 if (File.Exists(soundPath))
                 {
                     soundSource = new SoundSource(viewer, WorldPosition.WorldLocation, SoundEventSource.FuelTower, soundPath);
                     viewer.SoundProcess.AddSoundSources(this, new List<SoundSourceBase>() { soundSource });
                 }
-                else if (File.Exists(soundPath = viewer.Simulator.RouteFolder.ContentFolder.SoundFile(viewer.Simulator.TRK.Route.DefaultWaterTowerSMS)))
+                else if (File.Exists(soundPath = viewer.Simulator.RouteFolder.ContentFolder.SoundFile(viewer.Simulator.Route.DefaultWaterTowerSMS)))
                 {
                     soundSource = new SoundSource(viewer, WorldPosition.WorldLocation, SoundEventSource.FuelTower, soundPath);
                     viewer.SoundProcess.AddSoundSources(this, new List<SoundSourceBase>() { soundSource });
@@ -871,15 +871,15 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                     Trace.WriteLine($"Water pickup soundfile {soundPath} not found");
                 }
             }
-            if (viewer.Simulator.TRK.Route.DefaultCoalTowerSMS != null && (fuelPickupItemObject.PickupType == PickupType.FuelCoal || fuelPickupItemObject.PickupType == PickupType.FreightCoal))
+            if (viewer.Simulator.Route.DefaultCoalTowerSMS != null && (fuelPickupItemObject.PickupType == PickupType.FuelCoal || fuelPickupItemObject.PickupType == PickupType.FreightCoal))
             {
-                string soundPath = viewer.Simulator.RouteFolder.SoundFile(viewer.Simulator.TRK.Route.DefaultCoalTowerSMS);
+                string soundPath = viewer.Simulator.RouteFolder.SoundFile(viewer.Simulator.Route.DefaultCoalTowerSMS);
                 if (File.Exists(soundPath))
                 {
                     soundSource = new SoundSource(viewer, WorldPosition.WorldLocation, SoundEventSource.FuelTower, soundPath);
                     viewer.SoundProcess.AddSoundSources(this, new List<SoundSourceBase>() { soundSource });
                 }
-                else if (File.Exists(soundPath = viewer.Simulator.RouteFolder.ContentFolder.SoundFile(viewer.Simulator.TRK.Route.DefaultCoalTowerSMS)))
+                else if (File.Exists(soundPath = viewer.Simulator.RouteFolder.ContentFolder.SoundFile(viewer.Simulator.Route.DefaultCoalTowerSMS)))
                 {
                     soundSource = new SoundSource(viewer, WorldPosition.WorldLocation, SoundEventSource.FuelTower, soundPath);
                     viewer.SoundProcess.AddSoundSources(this, new List<SoundSourceBase>() { soundSource });

@@ -392,15 +392,15 @@ namespace Orts.ActivityRunner.Viewer3D
             lodItem.MipMapLevelOfDetailBias = 0;
             LODItem.LoadMaterial(viewer, lodItem);
 
-            bool drawTriphaseWire = (viewer.Simulator.TRK.Route.TriphaseEnabled == "Off" ? false :
-    viewer.Simulator.TRK.Route.TriphaseEnabled == "On");
-            bool drawDoubleWire = (viewer.Simulator.TRK.Route.DoubleWireEnabled == "Off" ? false :
-                viewer.Simulator.TRK.Route.DoubleWireEnabled == "On" || viewer.Settings.DoubleWire);
-            float topHeight = (float)viewer.Simulator.TRK.Route.OverheadWireHeight;
-            float topWireOffset = (viewer.Simulator.TRK.Route.DoubleWireHeight > 0 ?
-                viewer.Simulator.TRK.Route.DoubleWireHeight : 1.0f);
-            float dist = (viewer.Simulator.TRK.Route.TriphaseWidth > 0 ?
-                viewer.Simulator.TRK.Route.TriphaseWidth : 1.0f);
+            bool drawTriphaseWire = (viewer.Simulator.Route.TriphaseEnabled == "Off" ? false :
+    viewer.Simulator.Route.TriphaseEnabled == "On");
+            bool drawDoubleWire = (viewer.Simulator.Route.DoubleWireEnabled == "Off" ? false :
+                viewer.Simulator.Route.DoubleWireEnabled == "On" || viewer.Settings.DoubleWire);
+            float topHeight = (float)viewer.Simulator.Route.OverheadWireHeight;
+            float topWireOffset = (viewer.Simulator.Route.DoubleWireHeight > 0 ?
+                viewer.Simulator.Route.DoubleWireHeight : 1.0f);
+            float dist = (viewer.Simulator.Route.TriphaseWidth > 0 ?
+                viewer.Simulator.Route.TriphaseWidth : 1.0f);
 
             if (drawTriphaseWire)
             {
@@ -516,8 +516,8 @@ namespace Orts.ActivityRunner.Viewer3D
             }
             TrProfile = WireProfile;
 
-            topWireOffset = (viewer.Simulator.TRK.Route.DoubleWireHeight > 0 ?
-                viewer.Simulator.TRK.Route.DoubleWireHeight : 1.0f);
+            topWireOffset = (viewer.Simulator.Route.DoubleWireHeight > 0 ?
+                viewer.Simulator.Route.DoubleWireHeight : 1.0f);
 
             XNAEnd = endPosition.XNAMatrix.Translation;
 

@@ -402,7 +402,7 @@ namespace Orts.Simulation.AIs
                         var sectionEfficiency = ServiceDefinition[0].Efficiency;
                         if (simulator.Settings.ActRandomizationLevel > 0) RandomizeEfficiency(ref sectionEfficiency);
                         if (sectionEfficiency > 0)
-                            TrainMaxSpeedMpS = Math.Min((float)simulator.TRK.Route.SpeedLimit, MaxVelocityA * sectionEfficiency);
+                            TrainMaxSpeedMpS = Math.Min((float)simulator.Route.SpeedLimit, MaxVelocityA * sectionEfficiency);
                     }
                 }
 
@@ -1699,13 +1699,13 @@ namespace Orts.Simulation.AIs
                     if (simulator.Settings.ActRandomizationLevel > 0) RandomizeEfficiency(ref sectionEfficiency);
                     if (sectionEfficiency > 0)
                     {
-                        TrainMaxSpeedMpS = Math.Min((float)simulator.TRK.Route.SpeedLimit, MaxVelocityA * sectionEfficiency);
+                        TrainMaxSpeedMpS = Math.Min((float)simulator.Route.SpeedLimit, MaxVelocityA * sectionEfficiency);
                         RecalculateAllowedMaxSpeed();
                     }
                 }
                 else if (MaxVelocityA > 0 && Efficiency > 0)
                 {
-                    TrainMaxSpeedMpS = Math.Min((float)simulator.TRK.Route.SpeedLimit, MaxVelocityA * Efficiency);
+                    TrainMaxSpeedMpS = Math.Min((float)simulator.Route.SpeedLimit, MaxVelocityA * Efficiency);
                     RecalculateAllowedMaxSpeed();
                 }
             }

@@ -343,7 +343,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     {
                         var trackObj = (TrackObject)worldObject;
                         // Switch tracks need a link to the simulator engine so they can animate the points.
-                        TrackJunctionNode trJunctionNode = trackObj.WorldLocation != WorldLocation.None ? viewer.Simulator.TDB.TrackDB.GetJunctionNode(TileX, TileZ, (int)trackObj.UiD) : null;
+                        TrackJunctionNode trJunctionNode = trackObj.WorldLocation != WorldLocation.None ? viewer.Simulator.TrackDatabase.TrackDB.GetJunctionNode(TileX, TileZ, (int)trackObj.UiD) : null;
                         // We might not have found the junction node; if so, fall back to the static track shape.
                         if (trJunctionNode != null)
                         {
@@ -389,7 +389,7 @@ namespace Orts.ActivityRunner.Viewer3D
                                 if (!found) sceneryObjects.Add(new StaticTrackShape(shapeFilePath, worldMatrix));
                             }
                         }
-                        if (viewer.Simulator.Settings.Wire == true && viewer.Simulator.TRK.Route.Electrified == true
+                        if (viewer.Simulator.Settings.Wire == true && viewer.Simulator.Route.Electrified == true
                             && worldObject.DetailLevel != 2   // Make it compatible with routes that use 'HideWire', a workaround for MSTS that 
                             && worldObject.DetailLevel != 3   // allowed a mix of electrified and non electrified track see http://msts.steam4me.net/tutorials/hidewire.html
                             )
@@ -401,7 +401,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     }
                     else if (worldObject.GetType() == typeof(DynamicTrackObject))
                     {
-                        if (viewer.Simulator.Settings.Wire == true && viewer.Simulator.TRK.Route.Electrified == true)
+                        if (viewer.Simulator.Settings.Wire && viewer.Simulator.Route.Electrified)
                             Wire.DecomposeDynamicWire(viewer, dTrackList, (DynamicTrackObject)worldObject, worldMatrix);
                         // Add DyntrackDrawers for individual subsections
                         if (viewer.Simulator.UseSuperElevation > 0 && SuperElevationManager.UseSuperElevationDyn(viewer, dTrackList, (DynamicTrackObject)worldObject, worldMatrix))

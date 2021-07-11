@@ -134,7 +134,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     Trace.TraceWarning("Skipped {0} signal {1} unit {2} with invalid SubObj {3}", WorldPosition.ToString(), mstsSignal.UiD, i, mstsSignal.SignalUnits[i].SubObject);
                     continue;
                 }
-                var mstsSignalItem = (SignalItem)(viewer.Simulator.TDB.TrackDB.TrackItems[mstsSignal.SignalUnits[i].TrackItem]);
+                var mstsSignalItem = (SignalItem)(viewer.Simulator.TrackDatabase.TrackDB.TrackItems[mstsSignal.SignalUnits[i].TrackItem]);
                 try
                 {
                     // Go create the shape head.
@@ -281,9 +281,9 @@ namespace Orts.ActivityRunner.Viewer3D
                         SemaphoreParts.Add(SemaphorePart);
                     }
 
-                    if (Viewer.Simulator.TRK.Route.DefaultSignalSMS != null)
+                    if (Viewer.Simulator.Route.DefaultSignalSMS != null)
                     {
-                        var soundPath = Viewer.Simulator.RouteFolder.SoundFile(Viewer.Simulator.TRK.Route.DefaultSignalSMS);
+                        var soundPath = Viewer.Simulator.RouteFolder.SoundFile(Viewer.Simulator.Route.DefaultSignalSMS);
                         try
                         {
                             Sound = new SoundSource(Viewer, SignalShape.WorldPosition.WorldLocation, SoundEventSource.Signal, soundPath);

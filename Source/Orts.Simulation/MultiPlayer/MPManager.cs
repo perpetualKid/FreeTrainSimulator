@@ -574,8 +574,8 @@ namespace Orts.MultiPlayer
 			}
 			if (string.IsNullOrEmpty(metric))
 			{
-				metric = Simulator.TRK.Route.MilepostUnitsMetric ? " m" : " yd";
-				metricbase = Simulator.TRK.Route.MilepostUnitsMetric ? 1.0f : 1.0936133f;
+				metric = Simulator.Route.MilepostUnitsMetric ? " m" : " yd";
+				metricbase = Simulator.Route.MilepostUnitsMetric ? 1.0f : 1.0936133f;
 			}
 
 			int count = 0;
@@ -928,7 +928,7 @@ namespace Orts.MultiPlayer
 		{
 			try
 			{
-				string fileName = Simulator.RouteFolder.TrackDatabaseFile(Simulator.TRK);
+				string fileName = Simulator.RouteFolder.TrackDatabaseFile(Simulator.Route.FileName);
 				FileStream file = new FileStream(fileName, FileMode.Open);
 				MD5 md5 = new MD5CryptoServiceProvider();
 				byte[] retVal = md5.ComputeHash(file);

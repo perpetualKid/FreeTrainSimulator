@@ -850,7 +850,7 @@ namespace Orts.Simulation.RollingStocks
         public void GetMeasurementUnits()
         {
             IsMetric = Simulator.Settings.MeasurementUnit == MeasurementUnit.Metric || (Simulator.Settings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric) ||
-                (Simulator.Settings.MeasurementUnit == MeasurementUnit.Route && Simulator.TRK.Route.MilepostUnitsMetric);
+                (Simulator.Settings.MeasurementUnit == MeasurementUnit.Route && Simulator.Route.MilepostUnitsMetric);
             IsUK = Simulator.Settings.MeasurementUnit == MeasurementUnit.UK;
         }
 

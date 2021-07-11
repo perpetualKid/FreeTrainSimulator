@@ -67,7 +67,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 var primitives = new List<DispatcherPrimitive>(Primitives.Count);
                 var camera = Owner.Viewer.Camera;
                 var tSectionDat = Owner.Viewer.Simulator.TSectionDat;
-                var tdb = Owner.Viewer.Simulator.TDB;
+                var tdb = Owner.Viewer.Simulator.TrackDatabase;
                 var rdb = Owner.Viewer.Simulator.RDB;
                 foreach (var trackNode in tdb.TrackDB.TrackNodes.Where(
                     tn => tn is TrackVectorNode trackVectorNode

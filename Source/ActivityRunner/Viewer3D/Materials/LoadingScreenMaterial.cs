@@ -29,10 +29,10 @@ namespace Orts.ActivityRunner.Viewer3D.Materials
             GraphicsDevice gd = game.RenderProcess.GraphicsDevice;
             string defaultScreen = "load.ace";
 
-            string loadingScreen = Simulator.Instance.TRK.Route.LoadingScreen;
+            string loadingScreen = Simulator.Instance.Route.LoadingScreen;
             if (IsWideScreen(game))
             {
-                string loadingScreenWide = Simulator.Instance.TRK.Route.LoadingScreenWide;
+                string loadingScreenWide = Simulator.Instance.Route.LoadingScreenWide;
                 loadingScreen = loadingScreenWide ?? loadingScreen;
             }
             loadingScreen = loadingScreen ?? defaultScreen;

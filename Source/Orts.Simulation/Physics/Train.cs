@@ -259,7 +259,7 @@ namespace Orts.Simulation.Physics
         // Variables used for autopilot mode and played train switching
         public bool IsActualPlayerTrain => this == simulator.PlayerLocomotive?.Train;
 
-        internal float MaxDistanceCheckedAhead => Math.Max((IsActualPlayerTrain ? (float)simulator.TRK.Route.SpeedLimit : AllowedMaxSpeedMpS) * MaxTimeS, MinCheckDistanceM);
+        internal float MaxDistanceCheckedAhead => Math.Max((IsActualPlayerTrain ? (float)simulator.Route.SpeedLimit : AllowedMaxSpeedMpS) * MaxTimeS, MinCheckDistanceM);
 
         public bool IsPlayerDriven => TrainType == TrainType.Player || TrainType == TrainType.AiPlayerDriven;
 
@@ -442,7 +442,7 @@ namespace Orts.Simulation.Physics
         #region .ctor
         private void Init()
         {
-            allowedAbsoluteMaxSpeedSignalMpS = (float)simulator.TRK.Route.SpeedLimit;
+            allowedAbsoluteMaxSpeedSignalMpS = (float)simulator.Route.SpeedLimit;
             allowedAbsoluteMaxSpeedLimitMpS = allowedAbsoluteMaxSpeedSignalMpS;
             allowedAbsoluteMaxTempSpeedLimitMpS = allowedAbsoluteMaxSpeedSignalMpS;
         }
@@ -570,7 +570,7 @@ namespace Orts.Simulation.Physics
             LeadLocomotiveIndex = inf.ReadInt32();
             RetainerSetting = (RetainerSetting)inf.ReadInt32();
             RetainerPercent = inf.ReadInt32();
-            RearTDBTraveller = new Traveller(simulator.TSectionDat, simulator.TDB.TrackDB.TrackNodes, inf);
+            RearTDBTraveller = new Traveller(simulator.TSectionDat, simulator.TrackDatabase.TrackDB.TrackNodes, inf);
             SlipperySpotDistanceM = inf.ReadSingle();
             SlipperySpotLengthM = inf.ReadSingle();
             TrainMaxSpeedMpS = inf.ReadSingle();
@@ -2859,7 +2859,7 @@ namespace Orts.Simulation.Physics
                     float temp1MaxSpeedMpS = IsFreight ? firstObject.SpeedInfo.FreightSpeed : firstObject.SpeedInfo.PassengerSpeed;
                     if (firstObject.SignalDetails.IsSignal)
                     {
-                        allowedAbsoluteMaxSpeedSignalMpS = temp1MaxSpeedMpS == -1 ? (float)simulator.TRK.Route.SpeedLimit : temp1MaxSpeedMpS;
+                        allowedAbsoluteMaxSpeedSignalMpS = temp1MaxSpeedMpS == -1 ? (float)simulator.Route.SpeedLimit : temp1MaxSpeedMpS;
                     }
                     else if (!firstObject.SpeedInfo.Reset)
                     {
@@ -3331,7 +3331,7 @@ namespace Orts.Simulation.Physics
                 {
                     if (actualSpeedMpS > 998f)
                     {
-                        actualSpeedMpS = (float)simulator.TRK.Route.SpeedLimit;
+                        actualSpeedMpS = (float)simulator.Route.SpeedLimit;
                     }
 
                     if (actualSpeedMpS > 0)
@@ -9835,7 +9835,7 @@ namespace Orts.Simulation.Physics
             AllowedMaxSpeedSignalMpS = allowedAbsoluteMaxSpeedSignalMpS;
             AllowedMaxSpeedLimitMpS = allowedAbsoluteMaxSpeedLimitMpS;
             allowedMaxTempSpeedLimitMpS = allowedAbsoluteMaxTempSpeedLimitMpS;
-            TrainMaxSpeedMpS = Math.Min((float)simulator.TRK.Route.SpeedLimit, ((MSTSLocomotive)simulator.PlayerLocomotive).MaxSpeedMpS);
+            TrainMaxSpeedMpS = Math.Min((float)simulator.Route.SpeedLimit, ((MSTSLocomotive)simulator.PlayerLocomotive).MaxSpeedMpS);
         }
 
         /// <summary>
@@ -10576,7 +10576,7 @@ namespace Orts.Simulation.Physics
         public void UpdatePlayerTrainData(float maxDistanceM)
         {
             // variable used to search for NORMAL signals and speedposts when not in AUTO mode
-            float maxDistanceNormalSignal = ControlMode == TrainControlMode.Explorer ? Math.Max(maxDistanceM, (float)simulator.TRK.Route.SpeedLimit * 250.0f) : maxDistanceM;
+            float maxDistanceNormalSignal = ControlMode == TrainControlMode.Explorer ? Math.Max(maxDistanceM, (float)simulator.Route.SpeedLimit * 250.0f) : maxDistanceM;
             InitializePlayerTrainData();
             // fill in the lists
             TrainPathItem trainPathItem;
@@ -10702,7 +10702,7 @@ namespace Orts.Simulation.Physics
                     if (section.CircuitType == TrackCircuitType.Junction && sectionDistanceToTrainM < maxDistanceM)
                     {
                         bool rightSwitch = true;
-                        TrackJunctionNode junctionNode = simulator.TDB.TrackDB.TrackNodes[section.OriginalIndex] as TrackJunctionNode;
+                        TrackJunctionNode junctionNode = simulator.TrackDatabase.TrackDB.TrackNodes[section.OriginalIndex] as TrackJunctionNode;
                         if (section.Pins[sectionDirection, Location.FarEnd].Link != -1)
                         {
                             //facing
@@ -12334,11 +12334,11 @@ namespace Orts.Simulation.Physics
                             Traveller t = null;
                             if (expectedTracIndex <= 0)
                             {
-                                t = new Traveller(simulator.TSectionDat, simulator.TDB.TrackDB.TrackNodes, new WorldLocation(expectedTileX, expectedTileZ, expectedX, 0, expectedZ), (Traveller.TravellerDirection)expectedTDir);
+                                t = new Traveller(simulator.TSectionDat, simulator.TrackDatabase.TrackDB.TrackNodes, new WorldLocation(expectedTileX, expectedTileZ, expectedX, 0, expectedZ), (Traveller.TravellerDirection)expectedTDir);
                             }
                             else
                             {
-                                t = new Traveller(simulator.TSectionDat, simulator.TDB.TrackDB.TrackNodes, simulator.TDB.TrackDB.TrackNodes[expectedTracIndex] as TrackVectorNode, new WorldLocation(expectedTileX, expectedTileZ, expectedX, 0, expectedZ), (Traveller.TravellerDirection)expectedTDir);
+                                t = new Traveller(simulator.TSectionDat, simulator.TrackDatabase.TrackDB.TrackNodes, simulator.TrackDatabase.TrackDB.TrackNodes[expectedTracIndex] as TrackVectorNode, new WorldLocation(expectedTileX, expectedTileZ, expectedX, 0, expectedZ), (Traveller.TravellerDirection)expectedTDir);
                             }
                             //move = SpeedMpS > 0 ? 0.001f : -0.001f;
                             DistanceTravelled = expectedTravelled;
@@ -12474,9 +12474,9 @@ namespace Orts.Simulation.Physics
         /// 
         internal void ReenterTrackSections(int trackNodeIndex, Vector3 finalFrontTravellerXNALocation, Vector3 finalRearTravellerXNALocation, Traveller.TravellerDirection direction)
         {
-            FrontTDBTraveller = new Traveller(simulator.TSectionDat, simulator.TDB.TrackDB.TrackNodes, simulator.TDB.TrackDB.TrackNodes[trackNodeIndex],
+            FrontTDBTraveller = new Traveller(simulator.TSectionDat, simulator.TrackDatabase.TrackDB.TrackNodes, simulator.TrackDatabase.TrackDB.TrackNodes[trackNodeIndex],
                  Cars[0].WorldPosition.TileX, Cars[0].WorldPosition.TileZ, finalFrontTravellerXNALocation.X, -finalFrontTravellerXNALocation.Z, FrontTDBTraveller.Direction);
-            RearTDBTraveller = new Traveller(simulator.TSectionDat, simulator.TDB.TrackDB.TrackNodes, simulator.TDB.TrackDB.TrackNodes[trackNodeIndex],
+            RearTDBTraveller = new Traveller(simulator.TSectionDat, simulator.TrackDatabase.TrackDB.TrackNodes, simulator.TrackDatabase.TrackDB.TrackNodes[trackNodeIndex],
                 Cars[0].WorldPosition.TileX, Cars[0].WorldPosition.TileZ, finalRearTravellerXNALocation.X, -finalRearTravellerXNALocation.Z, RearTDBTraveller.Direction);
             if (direction == Traveller.TravellerDirection.Backward)
             {

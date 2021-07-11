@@ -37,8 +37,8 @@ namespace Orts.Simulation.World
 
         public LevelCrossings(Simulator simulator)
         {
-            TrackCrossingItems = simulator?.TDB?.TrackDB?.TrackNodes != null && simulator.TDB.TrackDB.TrackItems != null
-                ? GetLevelCrossingsFromDB(simulator.TDB.TrackDB.TrackNodes, simulator.TDB.TrackDB.TrackItems) : new Dictionary<int, LevelCrossingItem>();
+            TrackCrossingItems = simulator?.TrackDatabase?.TrackDB?.TrackNodes != null && simulator.TrackDatabase.TrackDB.TrackItems != null
+                ? GetLevelCrossingsFromDB(simulator.TrackDatabase.TrackDB.TrackNodes, simulator.TrackDatabase.TrackDB.TrackItems) : new Dictionary<int, LevelCrossingItem>();
             RoadCrossingItems = simulator.RDB?.RoadTrackDB?.TrackNodes != null && simulator.RDB.RoadTrackDB.TrItemTable != null
                 ? GetLevelCrossingsFromDB(simulator.RDB.RoadTrackDB.TrackNodes, simulator.RDB.RoadTrackDB.TrItemTable) : new Dictionary<int, LevelCrossingItem>();
         }

@@ -619,13 +619,13 @@ namespace Orts.Simulation.RollingStocks
             //CurveForceFilter.Initialize();
             // Initialize tunnel resistance values
 
-            DoubleTunnelCrossSectAreaM2 = (float)Simulator.TRK.Route.DoubleTunnelAreaM2;
-            SingleTunnelCrossSectAreaM2 = (float)Simulator.TRK.Route.SingleTunnelAreaM2;
-            DoubleTunnelPerimeterM = (float)Simulator.TRK.Route.DoubleTunnelPerimeterM;
-            SingleTunnelPerimeterAreaM = (float)Simulator.TRK.Route.SingleTunnelPerimeterM;
+            DoubleTunnelCrossSectAreaM2 = Simulator.Route.DoubleTunnelAreaM2;
+            SingleTunnelCrossSectAreaM2 = Simulator.Route.SingleTunnelAreaM2;
+            DoubleTunnelPerimeterM = Simulator.Route.DoubleTunnelPerimeterM;
+            SingleTunnelPerimeterAreaM = Simulator.Route.SingleTunnelPerimeterM;
 
             // get route speed limit
-            RouteSpeedMpS = (float)Simulator.TRK.Route.SpeedLimit;
+            RouteSpeedMpS = (float)Simulator.Route.SpeedLimit;
 
             // if no values are in TRK file, calculate default values.
             // Single track Tunnels
@@ -1135,9 +1135,9 @@ namespace Orts.Simulation.RollingStocks
                     float SpeedToleranceMpS = (float)Size.Length.FromMi(Frequency.Periodic.FromHours(2.5f));  // Set bandwidth tolerance for resetting notifications
                     
                     // If super elevation set in Route (TRK) file
-                    if (Simulator.TRK.Route.SuperElevationHgtpRadiusM != null)
+                    if (Simulator.Route.SuperElevationHgtpRadiusM != null)
                     {
-                        SuperelevationM = (float)Simulator.TRK.Route.SuperElevationHgtpRadiusM[CurrentCurveRadius];
+                        SuperelevationM = (float)Simulator.Route.SuperElevationHgtpRadiusM[CurrentCurveRadius];
 
                     }
                     else
@@ -2520,7 +2520,7 @@ namespace Orts.Simulation.RollingStocks
                         {
 
                             // train is on a switch; let's see if car is on a switch too
-                            ref readonly WorldLocation switchLocation = ref Simulator.TDB.TrackDB.TrackNodes[thisSection.OriginalIndex].UiD.Location;
+                            ref readonly WorldLocation switchLocation = ref Simulator.TrackDatabase.TrackDB.TrackNodes[thisSection.OriginalIndex].UiD.Location;
                             var distanceFromSwitch = WorldLocation.GetDistanceSquared(WorldPosition.WorldLocation, switchLocation);
                             if (distanceFromSwitch < CarLengthM * CarLengthM + Math.Min(SpeedMpS * 3, 150))
                             {

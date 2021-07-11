@@ -44,7 +44,7 @@ namespace Orts.Simulation.World
 
             currentHazards = new Dictionary<int, Hazard>();
             hazardFiles = new Dictionary<string, HazardFile>();
-            hazards = simulator.TDB != null && simulator.TDB.TrackDB != null ? GetHazardsFromDB(simulator.TDB.TrackDB.TrackNodes, simulator.TDB.TrackDB.TrackItems) : new Dictionary<int, Hazard>();
+            hazards = simulator.TrackDatabase != null && simulator.TrackDatabase.TrackDB != null ? GetHazardsFromDB(simulator.TrackDatabase.TrackDB.TrackNodes, simulator.TrackDatabase.TrackDB.TrackItems) : new Dictionary<int, Hazard>();
         }
 
         private static Dictionary<int, Hazard> GetHazardsFromDB(TrackNode[] trackNodes, TrackItem[] trItemTable)

@@ -120,21 +120,21 @@ namespace Orts.Simulation
         // These items represent the current state of the simulator 
         // In multiplayer games, these items must be kept in sync across all players
         // These items are what are saved and loaded in a game save.
-        public string RouteName;
+        public string RouteName { get; private set; }
         public string ActivityFileName;
         public string TimetableFileName;
         public bool TimetableMode;
         public ActivityFile ActivityFile { get; private set; }
-        public Activity ActivityRun;
-        public TrackDatabaseFile TDB;
-        public RouteFile TRK;
-        public TrackSectionsFile TSectionDat;
+        public Activity ActivityRun { get; private set; }
+        public TrackDatabaseFile TrackDatabase { get; private set; }
+        public Route Route { get; private set; }
+        public TrackSectionsFile TSectionDat { get; private set; }
         public TrainList Trains;
         public Dictionary<int, Train> TrainDictionary = new Dictionary<int, Train>();
         public Dictionary<string, Train> NameDictionary { get; } = new Dictionary<string, Train>(StringComparer.OrdinalIgnoreCase);
         public Dictionary<int, AITrain> AutoGenDictionary = new Dictionary<int, AITrain>();
-        public List<int> StartReference = new List<int>();
-        public Weather Weather = new Weather();
+        public List<int> StartReference { get; } = new List<int>();
+        public Weather Weather { get; } = new Weather();
 
         public float CurveDurability;  // Sets the durability due to curve speeds in TrainCars - read from consist file.
 
@@ -188,15 +188,13 @@ namespace Orts.Simulation
 
         public bool IsAutopilotMode;
 
-        public bool soundProcessWorking;
         public bool updaterWorking;
-        public Train selectedAsPlayer;
         public Train OriginalPlayerTrain; // Used in Activity mode
-        public bool playerSwitchOngoing;
+        private bool playerSwitchOngoing;
 
         public bool PlayerIsInCab;
-        public readonly bool MilepostUnitsMetric;
-        public bool OpenDoorsInAITrains;
+        public bool MilepostUnitsMetric { get; private set; }
+        public bool OpenDoorsInAITrains { get; private set; }
 
         private int activeMovingTableIndex = -1;
 
@@ -278,17 +276,17 @@ namespace Orts.Simulation
 
             DayAmbientLight = Settings.DayAmbientLight;
 
-            Trace.Write("Loading ");
+            Trace.Write("Loading");
 
             Trace.Write(" TRK");
-            TRK = new RouteFile(RouteFolder.TrackFileName);
+            Route = new RouteFile(RouteFolder.TrackFileName).Route;
 
-            RouteName = TRK.Route.Name;
-            MilepostUnitsMetric = TRK.Route.MilepostUnitsMetric;
-            OpenDoorsInAITrains = TRK.Route.OpenDoorsInAITrains == null ? Settings.OpenDoorsInAITrains : (bool)TRK.Route.OpenDoorsInAITrains;
+            RouteName = Route.Name;
+            MilepostUnitsMetric = Route.MilepostUnitsMetric;
+            OpenDoorsInAITrains = Route.OpenDoorsInAITrains.GetValueOrDefault(Settings.OpenDoorsInAITrains);
 
             Trace.Write(" TDB");
-            TDB = new TrackDatabaseFile(RouteFolder.TrackDatabaseFile(TRK));
+            TrackDatabase = new TrackDatabaseFile(RouteFolder.TrackDatabaseFile(Route.FileName));
 
             Trace.Write(" SIGCFG");
             SignalConfig = new SignalConfigurationFile(RouteFolder.SignalConfigurationFile, RouteFolder.ORSignalConfigFile);
@@ -302,10 +300,10 @@ namespace Orts.Simulation
 
             Trace.Write(" ACT");
 
-            if (File.Exists(RouteFolder.RoadTrackDatabaseFile(TRK)))
+            if (File.Exists(RouteFolder.RoadTrackDatabaseFile(Route.FileName)))
             {
                 Trace.Write(" RDB");
-                RDB = new RoadDatabaseFile(RouteFolder.RoadTrackDatabaseFile(TRK));
+                RDB = new RoadDatabaseFile(RouteFolder.RoadTrackDatabaseFile(Route.FileName));
             }
 
             string carSpawnFile = RouteFolder.CarSpawnerFile;
@@ -363,7 +361,7 @@ namespace Orts.Simulation
             WeatherType = ActivityFile.Activity.Header.Weather;
             if (ActivityFile.Activity.ActivityRestrictedSpeedZones != null)
             {
-                ActivityRun.AddRestrictZones(TRK.Route, TSectionDat, TDB.TrackDB, ActivityFile.Activity.ActivityRestrictedSpeedZones);
+                ActivityRun.AddRestrictZones(Route, TSectionDat, TrackDatabase.TrackDB, ActivityFile.Activity.ActivityRestrictedSpeedZones);
             }
             IsAutopilotMode = true;
         }
@@ -499,7 +497,7 @@ namespace Orts.Simulation
                 foreach (var movingTable in MovingTables) movingTable.Restore(inf, this);
             }
 
-            ActivityRun = Orts.Simulation.Activity.Restore(inf, this, ActivityRun);
+            ActivityRun = Activity.Restore(inf, this, ActivityRun);
             SignalEnvironment.RestoreTrains(Trains);  // restore links to trains
             SignalEnvironment.Update(true);           // update all signals once to set proper stat
             MPManager.Instance().RememberOriginalSwitchState(); // this prepares a string that must then be passed to clients
@@ -1075,7 +1073,7 @@ namespace Orts.Simulation
 
             train.IsTilting = conFileName.Contains("tilted", StringComparison.OrdinalIgnoreCase);
 
-            AIPath aiPath = new AIPath(TDB, TSectionDat, patFileName, TimetableMode);
+            AIPath aiPath = new AIPath(TrackDatabase, TSectionDat, patFileName, TimetableMode);
             PathName = aiPath.pathName;
 
             if (aiPath.Nodes == null)
@@ -1084,7 +1082,7 @@ namespace Orts.Simulation
             }
 
             // place rear of train on starting location of aiPath.
-            train.RearTDBTraveller = new Traveller(TSectionDat, TDB.TrackDB.TrackNodes, aiPath);
+            train.RearTDBTraveller = new Traveller(TSectionDat, TrackDatabase.TrackDB.TrackNodes, aiPath);
 
             ConsistFile conFile = new ConsistFile(conFileName);
             CurveDurability = conFile.Train.Durability;   // Finds curve durability of consist based upon the value in consist file
@@ -1160,10 +1158,10 @@ namespace Orts.Simulation
 
             PlayerLocomotive = InitialPlayerLocomotive();
             if ((conFile.Train.MaxVelocity == null) ||
-                ((conFile.Train.MaxVelocity?.A <= 0f) || (conFile.Train.MaxVelocity?.A == 40f)))
-                train.TrainMaxSpeedMpS = Math.Min((float)TRK.Route.SpeedLimit, ((MSTSLocomotive)PlayerLocomotive).MaxSpeedMpS);
+                ((conFile.Train.MaxVelocity.A <= 0f) || (conFile.Train.MaxVelocity.A == 40f)))
+                train.TrainMaxSpeedMpS = Math.Min((float)Route.SpeedLimit, ((MSTSLocomotive)PlayerLocomotive).MaxSpeedMpS);
             else
-                train.TrainMaxSpeedMpS = Math.Min((float)TRK.Route.SpeedLimit, conFile.Train.MaxVelocity.A);
+                train.TrainMaxSpeedMpS = Math.Min((float)Route.SpeedLimit, conFile.Train.MaxVelocity.A);
 
             float prevEQres = train.EqualReservoirPressurePSIorInHg;
             train.AITrainBrakePercent = 100; //<CSComment> This seems a tricky way for the brake modules to test if it is an AI train or not
@@ -1218,9 +1216,9 @@ namespace Orts.Simulation
 
             PlayerLocomotive = InitialPlayerLocomotive();
             if (train.MaxVelocityA <= 0f || train.MaxVelocityA == 40f)
-                train.TrainMaxSpeedMpS = Math.Min((float)TRK.Route.SpeedLimit, ((MSTSLocomotive)PlayerLocomotive).MaxSpeedMpS);
+                train.TrainMaxSpeedMpS = Math.Min((float)Route.SpeedLimit, ((MSTSLocomotive)PlayerLocomotive).MaxSpeedMpS);
             else
-                train.TrainMaxSpeedMpS = Math.Min((float)TRK.Route.SpeedLimit, train.MaxVelocityA);
+                train.TrainMaxSpeedMpS = Math.Min((float)Route.SpeedLimit, train.MaxVelocityA);
             if (train.InitialSpeed > 0 && train.MovementState != AiMovementState.StationStop)
             {
                 train.InitializeMoving();
@@ -1267,7 +1265,7 @@ namespace Orts.Simulation
                         default: consistDirection = 1; break;  // forward ( confirmed on L&PS route )
                     }
                     // FIXME: Where are TSectionDat and TDB from?
-                    train.RearTDBTraveller = new Traveller(TSectionDat, TDB.TrackDB.TrackNodes, activityObject.Location);
+                    train.RearTDBTraveller = new Traveller(TSectionDat, TrackDatabase.TrackDB.TrackNodes, activityObject.Location);
                     if (consistDirection != 1)
                         train.RearTDBTraveller.ReverseDirection();
                     // add wagons in reverse order - ie first wagon is at back of train

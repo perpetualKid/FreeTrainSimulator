@@ -851,7 +851,7 @@ namespace Orts.Simulation.AIs
 
             // Patch Placingproblem - JeroenP
             // 
-            AIPath aiPath = new AIPath(Simulator.TDB, Simulator.TSectionDat, pathFileName, isTimetableMode);
+            AIPath aiPath = new AIPath(Simulator.TrackDatabase, Simulator.TSectionDat, pathFileName, isTimetableMode);
             // End patch
 
             if (aiPath.Nodes == null)
@@ -872,7 +872,7 @@ namespace Orts.Simulation.AIs
             if (consistFileName.Contains("tilted")) train.IsTilting = true;
 
             // also set Route max speed for speedpost-processing in train.cs
-            train.TrainMaxSpeedMpS = (float)Simulator.TRK.Route.SpeedLimit;
+            train.TrainMaxSpeedMpS = (float)Simulator.Route.SpeedLimit;
 
             train.InitialSpeed = srvFile.TimeTable.InitialSpeed;
 
@@ -949,7 +949,7 @@ namespace Orts.Simulation.AIs
             train.Cars[0].Headlight = 2;//AI train always has light on
 
             // Patch placingproblem JeroenP (1 line)
-            train.RearTDBTraveller = new Traveller(Simulator.TSectionDat, Simulator.TDB.TrackDB.TrackNodes, aiPath); // create traveller
+            train.RearTDBTraveller = new Traveller(Simulator.TSectionDat, Simulator.TrackDatabase.TrackDB.TrackNodes, aiPath); // create traveller
 #if WITH_PATH_DEBUG
             File.AppendAllText(@"C:\temp\checkpath.txt", "-----  New AI Train  -----\n");
 #endif
