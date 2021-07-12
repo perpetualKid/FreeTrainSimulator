@@ -2689,7 +2689,7 @@ namespace Orts.Simulation.RollingStocks
                 }
                 if (Simulator.WeatherType == WeatherType.Rain) // Wet weather
                 {
-                    if (Simulator.Settings.AdhesionProportionalToWeather && AdvancedAdhesionModel && !Simulator.Paused)  // Adjust clear weather for precipitation presence - base friction value will be approximately between 0.15 and 0.2
+                    if (Simulator.Settings.AdhesionProportionalToWeather && AdvancedAdhesionModel && !Simulator.GamePaused)  // Adjust clear weather for precipitation presence - base friction value will be approximately between 0.15 and 0.2
                     // ie base value between 0.8 and 1.0 (TODO) 
                     // note lowest friction will be for drizzle rain; friction will increase for precipitation both higher and lower than drizzle rail
                     {
@@ -2735,7 +2735,7 @@ namespace Orts.Simulation.RollingStocks
             else // Default to Dry (Clear) weather
             {
 
-                if (Simulator.Settings.AdhesionProportionalToWeather && AdvancedAdhesionModel && !Simulator.Paused)  // Adjust clear weather for fog presence
+                if (Simulator.Settings.AdhesionProportionalToWeather && AdvancedAdhesionModel && !Simulator.GamePaused)  // Adjust clear weather for fog presence
                 {
                     float fog = Simulator.Weather.FogVisibilityDistance;
                     if (fog > 2000)

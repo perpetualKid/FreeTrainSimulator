@@ -505,8 +505,8 @@ namespace Orts.ActivityRunner.Viewer3D
             }
             else
             {
-                UserCommandController.AddEvent(UserCommand.GamePauseMenu, KeyEventType.KeyPressed, () => QuitWindow.Visible = Simulator.Paused = !QuitWindow.Visible);
-                UserCommandController.AddEvent(UserCommand.GamePause, KeyEventType.KeyPressed, () => Simulator.Paused = !Simulator.Paused);
+                UserCommandController.AddEvent(UserCommand.GamePauseMenu, KeyEventType.KeyPressed, () => QuitWindow.Visible = Simulator.GamePaused = !QuitWindow.Visible);
+                UserCommandController.AddEvent(UserCommand.GamePause, KeyEventType.KeyPressed, () => Simulator.GamePaused = !Simulator.GamePaused);
                 UserCommandController.AddEvent(UserCommand.DebugSpeedUp, KeyEventType.KeyPressed, () =>
                 {
                     Simulator.GameSpeed *= 1.5f;
@@ -916,7 +916,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 Vector3 nearPoint = DefaultViewport.Unproject(nearsource, Camera.XnaProjection, Camera.XnaView, world);
                 Vector3 farPoint = DefaultViewport.Unproject(farsource, Camera.XnaProjection, Camera.XnaView, world);
                 forceMouseVisible = true;
-                if (!Simulator.Paused)
+                if (!Simulator.GamePaused)
                 {
                     if (uncoupleWithMouseActive)
                     {
@@ -1183,7 +1183,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     if (Simulator.Settings.ReplayPauseBeforeEnd)
                     {
                         // Reveal Quit Menu
-                        QuitWindow.Visible = Simulator.Paused = !QuitWindow.Visible;
+                        QuitWindow.Visible = Simulator.GamePaused = !QuitWindow.Visible;
                         Log.PauseState = ReplayPauseState.During;
                     }
                     else

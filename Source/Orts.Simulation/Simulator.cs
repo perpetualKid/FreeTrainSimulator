@@ -97,11 +97,11 @@ namespace Orts.Simulation
 
         public const float MaxStoppedMpS = 0.1f; // stopped is taken to be a speed less than this 
 
-        public bool Paused = true;          // start off paused, set to true once the viewer is fully loaded and initialized
-        public float GameSpeed = 1;
+        public bool GamePaused { get; set; }
+        public float GameSpeed { get; set; } = 1;
         /// <summary>
         /// Monotonically increasing time value (in seconds) for the simulation. Starts at 0 and only ever increases, at <see cref="GameSpeed"/>.
-        /// Does not change if game is <see cref="Paused"/>.
+        /// Does not change if game is <see cref="GamePaused"/>.
         /// </summary>
         public double GameTime { get; private set; }
         /// <summary>
@@ -123,7 +123,7 @@ namespace Orts.Simulation
         public string RouteName { get; private set; }
         public string ActivityFileName;
         public string TimetableFileName;
-        public bool TimetableMode;
+        public bool TimetableMode { get; private set; }
         public ActivityFile ActivityFile { get; private set; }
         public Activity ActivityRun { get; private set; }
         public TrackDatabaseFile TrackDatabase { get; private set; }
@@ -265,6 +265,7 @@ namespace Orts.Simulation
             TimetableMode = false;
 
             Settings = settings;
+            GamePaused = settings.StartGamePaused;
             UseAdvancedAdhesion = Settings.UseAdvancedAdhesion;
             BreakCouplers = Settings.BreakCouplers;
             CarVibrating = Settings.CarVibratingLevel; //0 no vib, 1-2 mid vib, 3 max vib
@@ -606,7 +607,7 @@ namespace Orts.Simulation
         /// </summary>
         public double GetElapsedClockSeconds(double elapsedRealSeconds)
         {
-            return elapsedRealSeconds * (Paused ? 0 : GameSpeed);
+            return elapsedRealSeconds * (GamePaused ? 0 : GameSpeed);
         }
 
         /// <summary>
