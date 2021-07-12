@@ -89,7 +89,7 @@ namespace Orts.Simulation
     ///     
     /// All keyboard input comes from the viewer class as calls on simulator's methods.
     /// </summary>
-    public class Simulator
+    public partial class Simulator
     {
         public static ICatalog Catalog { get; private set; }
 
@@ -184,9 +184,9 @@ namespace Orts.Simulation
         // Perhaps an Observer design pattern would be better, so the Simulator sends messages to any observers. </CJComment>
         public Confirmer Confirmer;                 // Set by the Viewer
         public TrainEvent SoundNotify = TrainEvent.None;
-        public ScriptManager ScriptManager;
+        public ScriptManager ScriptManager { get; private set; }
 
-        public bool IsAutopilotMode;
+        public bool IsAutopilotMode { get; private set; }
 
         public bool updaterWorking;
         public Train OriginalPlayerTrain; // Used in Activity mode
@@ -1938,120 +1938,6 @@ namespace Orts.Simulation
             }
             return logfileName;
         }
-
-        /// <summary>
-        /// Class TrainList extends class List<Train> with extra search methods
-        /// </summary>
-
-        public class TrainList : List<Train>
-        {
-            private Simulator simulator;
-
-            /// <summary>
-            /// basis constructor
-            /// </summary>
-
-            public TrainList(Simulator in_simulator)
-                : base()
-            {
-                simulator = in_simulator;
-            }
-
-            /// <summary>
-            /// Search and return TRAIN by number - any type
-            /// </summary>
-
-            public Train GetTrainByNumber(int reqNumber)
-            {
-                Train returnTrain = null;
-                if (simulator.TrainDictionary.ContainsKey(reqNumber))
-                {
-                    returnTrain = simulator.TrainDictionary[reqNumber];
-                }
-
-                // check player train's original number
-                if (returnTrain == null && simulator.TimetableMode && simulator.PlayerLocomotive != null)
-                {
-                    Train playerTrain = simulator.PlayerLocomotive.Train;
-                    TTTrain TTPlayerTrain = playerTrain as TTTrain;
-                    if (TTPlayerTrain.OrgAINumber == reqNumber)
-                    {
-                        return (playerTrain);
-                    }
-                }
-
-                // dictionary is not always updated in normal activity and explorer mode, so double check
-                // if not correct, search in the 'old' way
-                if (returnTrain == null || returnTrain.Number != reqNumber)
-                {
-                    returnTrain = null;
-                    for (int iTrain = 0; iTrain <= this.Count - 1; iTrain++)
-                    {
-                        if (this[iTrain].Number == reqNumber)
-                            returnTrain = this[iTrain];
-                    }
-                }
-
-                return (returnTrain);
-            }
-
-            /// <summary>
-            /// Search and return Train by name - any type
-            /// </summary>
-
-            public Train GetTrainByName(string reqName)
-            {
-                Train returnTrain = null;
-                if (simulator.NameDictionary.ContainsKey(reqName))
-                {
-                    returnTrain = simulator.NameDictionary[reqName];
-                }
-
-                return (returnTrain);
-            }
-
-            /// <summary>
-            /// Check if numbered train is on startlist
-            /// </summary>
-            /// <param name="reqNumber"></param>
-            /// <returns></returns>
-
-            public Boolean CheckTrainNotStartedByNumber(int reqNumber)
-            {
-                return simulator.StartReference.Contains(reqNumber);
-            }
-
-            /// <summary>
-            /// Search and return AITrain by number
-            /// </summary>
-
-            public AITrain GetAITrainByNumber(int reqNumber)
-            {
-                AITrain returnTrain = null;
-                if (simulator.TrainDictionary.ContainsKey(reqNumber))
-                {
-                    returnTrain = simulator.TrainDictionary[reqNumber] as AITrain;
-                }
-
-                return (returnTrain);
-            }
-
-            /// <summary>
-            /// Search and return AITrain by name
-            /// </summary>
-
-            public AITrain GetAITrainByName(string reqName)
-            {
-                AITrain returnTrain = null;
-                if (simulator.NameDictionary.ContainsKey(reqName))
-                {
-                    returnTrain = simulator.NameDictionary[reqName] as AITrain;
-                }
-
-                return (returnTrain);
-            }
-
-        } // TrainList
 
         internal void OnAllowedSpeedRaised(Train train)
         {
