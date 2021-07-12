@@ -68,7 +68,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 var camera = Owner.Viewer.Camera;
                 var tSectionDat = Owner.Viewer.Simulator.TSectionDat;
                 var tdb = Owner.Viewer.Simulator.TrackDatabase;
-                var rdb = Owner.Viewer.Simulator.RDB;
+                var rdb = Owner.Viewer.Simulator.RoadDatabase;
                 foreach (var trackNode in tdb.TrackDB.TrackNodes.Where(
                     tn => tn is TrackVectorNode trackVectorNode
                     && Math.Abs(trackVectorNode.TrackVectorSections[0].Location.TileX - camera.TileX) <= 1

@@ -284,7 +284,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
 
             if (Client != null)
             {
-                Client.Send((new MSGPlayer(userName, code, simulator.conFileName, simulator.patFileName, simulator.Trains[0], 0, simulator.Settings.AvatarURL)).ToString());
+                Client.Send((new MSGPlayer(userName, code, simulator.ConsistFileName, simulator.PathFileName, simulator.Trains[0], 0, simulator.Settings.AvatarURL)).ToString());
                 // wait 5 seconds to see if you get a reply from server with updated position/consist data, else go on
 
                 System.Threading.Thread.Sleep(5000);
@@ -430,7 +430,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                         simulator.SetPathAndConsist();
                     if (Client != null)
                     {
-                        Client.Send((new MSGPlayer(userName, code, simulator.conFileName, simulator.patFileName, simulator.Trains[0], 0, simulator.Settings.AvatarURL)).ToString());
+                        Client.Send((new MSGPlayer(userName, code, simulator.ConsistFileName, simulator.PathFileName, simulator.Trains[0], 0, simulator.Settings.AvatarURL)).ToString());
                     }
                     Viewer.Restore(inf);
 

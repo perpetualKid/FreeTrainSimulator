@@ -117,7 +117,7 @@ namespace Orts.Settings
         public MeasurementUnit MeasurementUnit { get; set; }
         [Default(false)]
         public bool DisableTCSScripts { get; set; }        
-        [Default(false)]
+        [Default(true)]
         public bool StartGamePaused { get; set; }
 
         // Audio settings:

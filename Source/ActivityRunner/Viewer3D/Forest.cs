@@ -254,9 +254,9 @@ namespace Orts.ActivityRunner.Viewer3D
                 }
                 if (CheckRoadsToo)
                 {
-                    if (Viewer.Simulator.RDB != null && Viewer.Simulator.RDB.RoadTrackDB.TrackNodes != null)
+                    if (Viewer.Simulator.RoadDatabase != null && Viewer.Simulator.RoadDatabase.RoadTrackDB.TrackNodes != null)
                     {
-                        foreach (var node in Viewer.Simulator.RDB.RoadTrackDB.TrackNodes)
+                        foreach (var node in Viewer.Simulator.RoadDatabase.RoadTrackDB.TrackNodes)
                         {
                             if (!(node is TrackVectorNode trackVectorNode))
                                 continue;

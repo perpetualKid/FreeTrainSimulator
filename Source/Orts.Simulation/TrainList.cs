@@ -15,7 +15,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using System;
 using System.Collections.Generic;
 
 using Orts.Simulation.AIs;
@@ -28,7 +27,6 @@ namespace Orts.Simulation
     /// <summary>
     /// Class TrainList extends class List<Train> with extra search methods
     /// </summary>
-
     public class TrainList : List<Train>
     {
         private readonly Simulator simulator;

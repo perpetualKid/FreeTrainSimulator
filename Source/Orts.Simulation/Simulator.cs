@@ -91,6 +91,9 @@ namespace Orts.Simulation
     /// </summary>
     public partial class Simulator
     {
+        private string explorePath;
+        private string exploreConsist;
+
         public static ICatalog Catalog { get; private set; }
 
         public static Simulator Instance { get; private set; }
@@ -108,7 +111,7 @@ namespace Orts.Simulation
         /// "Time of day" clock value (in seconds) for the simulation. Starts at activity start time and may increase, at <see cref="GameSpeed"/>,
         /// or jump forwards or jump backwards.
         /// </summary>
-        public double ClockTime;
+        public double ClockTime { get; set; }
         // while Simulator.Update() is running, objects are adjusted to this target time 
         // after Simulator.Update() is complete, the simulator state matches this time
 
@@ -127,6 +130,7 @@ namespace Orts.Simulation
         public ActivityFile ActivityFile { get; private set; }
         public Activity ActivityRun { get; private set; }
         public TrackDatabaseFile TrackDatabase { get; private set; }
+        public RoadDatabaseFile RoadDatabase { get; private set; }
         public Route Route { get; private set; }
         public TrackSectionsFile TSectionDat { get; private set; }
         public TrainList Trains;
@@ -141,18 +145,16 @@ namespace Orts.Simulation
         public static int DbfEvalOverSpeedCoupling;//Debrief eval
 
         public SignalEnvironment SignalEnvironment { get; private set; }
-        public AI AI;
-        public SeasonType Season;
-        public WeatherType WeatherType;
-        public string UserWeatherFile = string.Empty;
+        public AI AI { get; private set; }
+        public SeasonType Season { get; private set; }
+        public WeatherType WeatherType { get; set; }
+        public string UserWeatherFile { get; private set; } = string.Empty;
         public SignalConfigurationFile SignalConfig { get; }
-        public string ExplorePathFile;
-        public string ExploreConFile;
-        public string patFileName;
-        public string conFileName;
-        public AIPath PlayerPath;
-        public LevelCrossings LevelCrossings;
-        public RoadDatabaseFile RDB;
+
+        public string PathFileName { get; private set; }
+        public string ConsistFileName { get; private set; }
+
+        public LevelCrossings LevelCrossings { get; private set; }
         public bool UseAdvancedAdhesion;
         public bool BreakCouplers;
         public int DayAmbientLight;
@@ -304,7 +306,7 @@ namespace Orts.Simulation
             if (File.Exists(RouteFolder.RoadTrackDatabaseFile(Route.FileName)))
             {
                 Trace.Write(" RDB");
-                RDB = new RoadDatabaseFile(RouteFolder.RoadTrackDatabaseFile(Route.FileName));
+                RoadDatabase = new RoadDatabaseFile(RouteFolder.RoadTrackDatabaseFile(Route.FileName));
             }
 
             string carSpawnFile = RouteFolder.CarSpawnerFile;
@@ -369,10 +371,8 @@ namespace Orts.Simulation
 
         public void SetExplore(string path, string consist, TimeSpan startTime, SeasonType season, WeatherType weather)
         {
-            ExplorePathFile = path;
-            ExploreConFile = consist;
-            patFileName = Path.ChangeExtension(path, "PAT");
-            conFileName = Path.ChangeExtension(consist, "CON");
+            explorePath = Path.GetFileNameWithoutExtension(path);
+            exploreConsist = Path.GetFileNameWithoutExtension(consist);
             ClockTime = startTime.TotalSeconds;
             Season = season;
             WeatherType = weather;
@@ -383,10 +383,8 @@ namespace Orts.Simulation
             ActivityFileName = $"ea${RouteFolder.RouteName}${DateTime.Now:yyyyMMddHHmmss}";
             ActivityFile = new ActivityFile((int)startTime.TotalSeconds, Path.GetFileNameWithoutExtension(consist));
             ActivityRun = new Activity(ActivityFile, this);
-            ExplorePathFile = path;
-            ExploreConFile = consist;
-            patFileName = Path.ChangeExtension(path, "PAT");
-            conFileName = Path.ChangeExtension(consist, "CON");
+            explorePath = Path.GetFileNameWithoutExtension(path);
+            exploreConsist = Path.GetFileNameWithoutExtension(consist);
             ClockTime = startTime.TotalSeconds;
             Season = season;
             WeatherType = weather;
@@ -412,17 +410,8 @@ namespace Orts.Simulation
             Trains = new TrainList(this);
             PoolHolder = new Poolholder();
 
-            Train playerTrain;
+            _ = IsAutopilotMode ? InitializeAPTrains(cancellationToken) : InitializeTrains(cancellationToken);
 
-            switch (IsAutopilotMode)
-            {
-                case true:
-                    playerTrain = InitializeAPTrains(cancellationToken);
-                    break;
-                default:
-                    playerTrain = InitializeTrains(cancellationToken);
-                    break;
-            }
             MPManager.Instance().RememberOriginalSwitchState();
 
             // start activity logging if required
@@ -446,12 +435,11 @@ namespace Orts.Simulation
             PoolHolder = new Poolholder(this, timeTableFile, cancellationToken);
 
             TimetableInfo TTinfo = new TimetableInfo(this);
-
-            TTTrain playerTTTrain = null;
             List<TTTrain> allTrains = TTinfo.ProcessTimetable(timeTableFile, PathName, cancellationToken);
-            playerTTTrain = allTrains[0];
+            TTTrain playerTTTrain = allTrains[0];
 
-            AI = new AI(this, allTrains, ref ClockTime, playerTTTrain.FormedOf, playerTTTrain.FormedOfType, playerTTTrain, cancellationToken);
+            AI = new AI(this, allTrains, playerTTTrain.FormedOf, playerTTTrain.FormedOfType, playerTTTrain, cancellationToken);
+            ClockTime = AI.clockTime;
 
             if (playerTTTrain != null)
             {
@@ -596,8 +584,8 @@ namespace Orts.Simulation
         public void SetPathAndConsist()
         {
             ServiceFile srvFile = new ServiceFile(RouteFolder.ServiceFile(ActivityFile.Activity.PlayerServices.Name));
-            conFileName = RouteFolder.ContentFolder.ConsistFile(srvFile.TrainConfig);
-            patFileName = RouteFolder.PathFile(srvFile.PathId);
+            ConsistFileName = RouteFolder.ContentFolder.ConsistFile(srvFile.TrainConfig);
+            PathFileName = RouteFolder.PathFile(srvFile.PathId);
         }
 
 
@@ -1065,27 +1053,27 @@ namespace Orts.Simulation
             string playerServiceFileName;
             ServiceFile serviceFile;
 
-            playerServiceFileName = Path.GetFileNameWithoutExtension(ExploreConFile);
-            serviceFile = new ServiceFile(playerServiceFileName, playerServiceFileName, Path.GetFileNameWithoutExtension(ExplorePathFile));
+            playerServiceFileName = Path.GetFileNameWithoutExtension(exploreConsist);
+            serviceFile = new ServiceFile(playerServiceFileName, playerServiceFileName, explorePath);
 
-            conFileName = RouteFolder.ContentFolder.ConsistFile(serviceFile.TrainConfig);
-            patFileName = RouteFolder.PathFile(serviceFile.PathId);
+            ConsistFileName = RouteFolder.ContentFolder.ConsistFile(serviceFile.TrainConfig);
+            PathFileName = RouteFolder.PathFile(serviceFile.PathId);
             OriginalPlayerTrain = train;
 
-            train.IsTilting = conFileName.Contains("tilted", StringComparison.OrdinalIgnoreCase);
+            train.IsTilting = ConsistFileName.Contains("tilted", StringComparison.OrdinalIgnoreCase);
 
-            AIPath aiPath = new AIPath(TrackDatabase, TSectionDat, patFileName, TimetableMode);
+            AIPath aiPath = new AIPath(TrackDatabase, TSectionDat, PathFileName, TimetableMode);
             PathName = aiPath.pathName;
 
             if (aiPath.Nodes == null)
             {
-                throw new InvalidDataException($"Broken path {patFileName} for Player train - activity cannot be started");
+                throw new InvalidDataException($"Broken path {PathFileName} for Player train - activity cannot be started");
             }
 
             // place rear of train on starting location of aiPath.
             train.RearTDBTraveller = new Traveller(TSectionDat, TrackDatabase.TrackDB.TrackNodes, aiPath);
 
-            ConsistFile conFile = new ConsistFile(conFileName);
+            ConsistFile conFile = new ConsistFile(ConsistFileName);
             CurveDurability = conFile.Train.Durability;   // Finds curve durability of consist based upon the value in consist file
 
             // add wagons
@@ -1099,8 +1087,8 @@ namespace Orts.Simulation
                 {
                     // First wagon is the player's loco and required, so issue a fatal error message
                     if (wagon == conFile.Train.Wagons[0])
-                        Trace.TraceError("Player's locomotive {0} cannot be loaded in {1}", wagonFilePath, conFileName);
-                    Trace.TraceWarning($"Ignored missing {(wagon.IsEngine ? "engine" : "wagon")} {wagonFilePath} in consist {conFileName}");
+                        Trace.TraceError("Player's locomotive {0} cannot be loaded in {1}", wagonFilePath, ConsistFileName);
+                    Trace.TraceWarning($"Ignored missing {(wagon.IsEngine ? "engine" : "wagon")} {wagonFilePath} in consist {ConsistFileName}");
                     continue;
                 }
 
@@ -1175,18 +1163,18 @@ namespace Orts.Simulation
         {
             string playerServiceFileName;
             ServiceFile srvFile;
-            if (ActivityFile != null && ActivityFile.Activity.Serial != -1)
+            if (ActivityFile?.Activity?.Serial != -1)
             {
                 playerServiceFileName = ActivityFile.Activity.PlayerServices.Name;
                 srvFile = new ServiceFile(RouteFolder.ServiceFile(playerServiceFileName));
             }
             else
             {
-                playerServiceFileName = Path.GetFileNameWithoutExtension(ExploreConFile);
-                srvFile = new ServiceFile(playerServiceFileName, playerServiceFileName, Path.GetFileNameWithoutExtension(ExplorePathFile));
+                playerServiceFileName = Path.GetFileNameWithoutExtension(exploreConsist);
+                srvFile = new ServiceFile(playerServiceFileName, playerServiceFileName, explorePath);
             }
-            conFileName = RouteFolder.ContentFolder.ConsistFile(srvFile.TrainConfig);
-            patFileName = RouteFolder.PathFile(srvFile.PathId);
+            ConsistFileName = RouteFolder.ContentFolder.ConsistFile(srvFile.TrainConfig);
+            PathFileName = RouteFolder.PathFile(srvFile.PathId);
             PlayerTraffics player_Traffic_Definition = ActivityFile.Activity.PlayerServices.PlayerTraffics;
             ServiceTraffics aPPlayer_Traffic_Definition = new ServiceTraffics(playerServiceFileName, player_Traffic_Definition);
             Services aPPlayer_Service_Definition = new Services(playerServiceFileName, player_Traffic_Definition);
@@ -1235,7 +1223,7 @@ namespace Orts.Simulation
                 _ = new TrackCircuitRoutePath(train.Path, orgDirection, 0, -1);
             }
 
-            if (conFileName.Contains("tilted")) train.IsTilting = true;
+            if (ConsistFileName.Contains("tilted")) train.IsTilting = true;
 
             return train;
         }

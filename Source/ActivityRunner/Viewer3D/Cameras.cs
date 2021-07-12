@@ -3064,7 +3064,7 @@ namespace Orts.ActivityRunner.Viewer3D
                         TrackCameraLocation = newLevelCrossingItem.Location;
                         Traveller roadTraveller;
                         // decide randomly at which side of the level crossing the camera will be located
-                        roadTraveller = new Traveller(Viewer.Simulator.TSectionDat, Viewer.Simulator.RDB.RoadTrackDB.TrackNodes, Viewer.Simulator.RDB.RoadTrackDB.TrackNodes[newLevelCrossingItem.TrackIndex] as TrackVectorNode,
+                        roadTraveller = new Traveller(Viewer.Simulator.TSectionDat, Viewer.Simulator.RoadDatabase.RoadTrackDB.TrackNodes, Viewer.Simulator.RoadDatabase.RoadTrackDB.TrackNodes[newLevelCrossingItem.TrackIndex] as TrackVectorNode,
                             TrackCameraLocation, Viewer.Random.Next(2) == 0 ? Traveller.TravellerDirection.Forward : Traveller.TravellerDirection.Backward);
                         roadTraveller.Move(12.5f);
                         tdb.Move(FrontDist);

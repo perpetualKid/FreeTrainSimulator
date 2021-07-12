@@ -97,7 +97,7 @@ namespace Orts.Simulation.AIs
 
         // constructor for Timetable trains
         // trains allready have a number - must not be changed!
-        public AI(Simulator simulator, List<TTTrain> allTrains, ref double ClockTime, int playerTrainOriginalTrain, TTTrain.FormCommand playerTrainFormedOfType, TTTrain playerTrain, CancellationToken cancellation)
+        public AI(Simulator simulator, List<TTTrain> allTrains, int playerTrainOriginalTrain, TTTrain.FormCommand playerTrainFormedOfType, TTTrain playerTrain, CancellationToken cancellation)
         {
             Simulator = simulator;
 
@@ -146,7 +146,6 @@ namespace Orts.Simulation.AIs
             // prerun trains
             PrerunAI(playerTrainOriginalTrain, playerTrainFormedOfType, playerTrain, cancellation);
 
-            ClockTime = clockTime;
             localTime = false;
         }
 
