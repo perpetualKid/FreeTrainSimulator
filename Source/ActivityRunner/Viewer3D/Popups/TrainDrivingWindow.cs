@@ -26,7 +26,6 @@ using Microsoft.Xna.Framework;
 using Orts.Common;
 using Orts.Common.Input;
 using Orts.Simulation;
-using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems.Brakes;
 
@@ -765,9 +764,11 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
             // Second block
             // Direction
-            InfoToLabel(directionKeyInput, Owner.Viewer.PlayerLocomotive.EngineType == TrainCar.EngineTypes.Steam ? Viewer.Catalog.GetString("Reverser") : Viewer.Catalog.GetString("Direction"),
-                (ShowMUReverser ? $"{Math.Abs(PlayerTrain.MUReverserPercent):0}% " : string.Empty) + Owner.Viewer.PlayerLocomotive.Direction.GetLocalizedDescription(), "", false);
-
+            if (string.Equals(directionKeyInput, arrowUp, StringComparison.OrdinalIgnoreCase) || string.Equals(directionKeyInput, arrowDown, StringComparison.OrdinalIgnoreCase))
+            {
+                InfoToLabel(directionKeyInput, Owner.Viewer.PlayerLocomotive.EngineType == TrainCar.EngineTypes.Steam ? Viewer.Catalog.GetString("Reverser") : Viewer.Catalog.GetString("Direction"),
+                    (ShowMUReverser ? $"{Math.Abs(PlayerTrain.MUReverserPercent):0}% " : string.Empty) + Owner.Viewer.PlayerLocomotive.Direction.GetLocalizedDescription(), "", false);
+            }
             // Throttle
             InfoToLabel(throttleKeyInput, Owner.Viewer.PlayerLocomotive is MSTSSteamLocomotive ? Viewer.Catalog.GetString("Regulator") : Viewer.Catalog.GetString("Throttle"),
                 $"{Owner.Viewer.PlayerLocomotive.ThrottlePercent:0}%", "", false);
