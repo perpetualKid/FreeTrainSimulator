@@ -393,7 +393,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                     outf.Write(Simulation.RollingStocks.TrainCar.DbfEvalTrainOverturned);
                     outf.Write(Simulation.RollingStocks.TrainCar.DbfEvalTravellingTooFast);
                     outf.Write(Simulation.RollingStocks.TrainCar.DbfEvalTravellingTooFastSnappedBrakeHose);
-                    outf.Write(Simulator.DbfEvalOverSpeedCoupling);
+                    outf.Write(Simulator.Instance.DebriefEvalOverSpeedCoupling);
                     outf.Write(Viewer.DbfEvalAutoPilotTimeS);
                     outf.Write(Viewer.DbfEvalIniAutoPilotTimeS);
                     outf.Write(simulator.PlayerLocomotive.DistanceM + Popups.HelpWindow.DbfEvalDistanceTravelled);
@@ -464,7 +464,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                             Simulation.RollingStocks.TrainCar.DbfEvalTrainOverturned = infDbfEval.ReadInt32();
                             Simulation.RollingStocks.TrainCar.DbfEvalTravellingTooFast = infDbfEval.ReadInt32();
                             Simulation.RollingStocks.TrainCar.DbfEvalTravellingTooFastSnappedBrakeHose = infDbfEval.ReadInt32();
-                            Simulator.DbfEvalOverSpeedCoupling = infDbfEval.ReadInt32();
+                            Simulator.Instance.DebriefEvalOverSpeedCoupling = infDbfEval.ReadInt32();
                             Viewer.DbfEvalAutoPilotTimeS = infDbfEval.ReadDouble();
                             Viewer.DbfEvalIniAutoPilotTimeS = infDbfEval.ReadDouble();
                             Popups.HelpWindow.DbfEvalDistanceTravelled = infDbfEval.ReadSingle();

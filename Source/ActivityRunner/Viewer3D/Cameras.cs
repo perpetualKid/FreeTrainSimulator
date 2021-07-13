@@ -2367,8 +2367,7 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             // Cab camera is only possible on the player locomotive.
             SetCameraCar(GetCameraCars().First());
-            tiltingLand = false;
-            if (Viewer.Simulator.UseSuperElevation > 0 || Viewer.Simulator.CarVibrating > 0) tiltingLand = true;
+            tiltingLand = (Viewer.Settings.UseSuperElevation > 0 || Viewer.Settings.CarVibratingLevel > 0);
             var car = attachedCar;
             if (car != null && car.Train != null && car.Train.IsTilting == true) tiltingLand = true;
             base.OnActivate(sameCamera);
@@ -2809,9 +2808,12 @@ namespace Orts.ActivityRunner.Viewer3D
         protected RoadCar NearRoadCar;
         protected bool RoadCarFound;
 
+        private readonly float superElevationGaugeOverTwo;
+
         public SpecialTracksideCamera(Viewer viewer)
             : base(viewer)
         {
+            superElevationGaugeOverTwo = viewer.Settings.SuperElevationGauge / 1000f / 2;
         }
 
         protected override void OnActivate(bool sameCamera)
@@ -2975,9 +2977,9 @@ namespace Orts.ActivityRunner.Viewer3D
                                     LastCheckCar = FirstUpdateLoop ^ trainForwards ? train.Cars.First() : train.Cars.Last();
                                     shortTrav.Move(distanceToViewingPoint1);
                                     // moving location to platform at side of track
-                                    float deltaX = (PlatformOffsetM + Viewer.Simulator.SuperElevationGauge / 2) * (float)Math.Cos(shortTrav.RotY) *
+                                    float deltaX = (PlatformOffsetM + superElevationGaugeOverTwo) * (float)Math.Cos(shortTrav.RotY) *
                                         (((thisPlatform.PlatformSide & PlatformDetails.PlatformSides.Right) == PlatformDetails.PlatformSides.Right) ? 1 : -1);
-                                    float deltaZ = -(PlatformOffsetM + Viewer.Simulator.SuperElevationGauge / 2) * (float)Math.Sin(shortTrav.RotY) *
+                                    float deltaZ = -(PlatformOffsetM + superElevationGaugeOverTwo) * (float)Math.Sin(shortTrav.RotY) *
                                         (((thisPlatform.PlatformSide & PlatformDetails.PlatformSides.Right) == PlatformDetails.PlatformSides.Right) ? 1 : -1);
                                     TrackCameraLocation = new WorldLocation(tdb.WorldLocation.TileX, tdb.WorldLocation.TileZ,
                                         tdb.WorldLocation.Location.X + deltaX, tdb.WorldLocation.Location.Y, tdb.WorldLocation.Location.Z + deltaZ);

@@ -76,7 +76,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     count++;
                     uint sid = id.TrackSections[i];
                     TrackSection section = viewer.Simulator.TSectionDat.TrackSections.Get(sid);
-                    if (Math.Abs(section.Width - viewer.Simulator.SuperElevationGauge) > 0.2) continue;//the main route has a gauge different than mine
+                    if (Math.Abs(section.Width - viewer.Settings.SuperElevationGauge / 1000f) > 0.2) continue;//the main route has a gauge different than mine
                     if (!section.Curved)
                     {
                         continue;

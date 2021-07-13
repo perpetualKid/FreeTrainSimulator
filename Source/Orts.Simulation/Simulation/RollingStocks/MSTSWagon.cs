@@ -3369,7 +3369,7 @@ namespace Orts.Simulation.RollingStocks
         }
         public override float GetCouplerZeroLengthM()
         {
-            if (IsPlayerTrain && Simulator.UseAdvancedAdhesion && !Simulator.Settings.SimpleControlPhysics && IsAdvancedCoupler)
+            if (IsPlayerTrain && Simulator.Settings.UseAdvancedAdhesion && !Simulator.Settings.SimpleControlPhysics && IsAdvancedCoupler)
             {
                 float zerolength;
                 if (Coupler != null)

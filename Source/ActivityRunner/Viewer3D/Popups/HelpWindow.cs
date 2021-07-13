@@ -304,7 +304,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                         int dbfeval = 0;//Debrief eval
                         int nmissedstation = 0;//Debrief eval
                         string labeltext = "";
-                        int noverspeedcoupling = Simulator.DbfEvalOverSpeedCoupling;
+                        int noverspeedcoupling = Simulator.Instance.DebriefEvalOverSpeedCoupling;
 
                         // Detect at arrival              
                         int dbfstationstopsremaining = 0;
@@ -559,7 +559,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                 DbfEvalValues.Add("Alerter applications above 10MPH/16KMH", Simulation.RollingStocks.SubSystems.ScriptedTrainControlSystem.DbfevalFullBrakeAbove16kmh);
                                 DbfEvalValues.Add("Auto pilot (Time)", Viewer.DbfEvalAutoPilotTimeS);
                                 DbfEvalValues.Add(lbreakcouplers ? "Coupler breaks" : "Coupler overloaded", Simulation.Physics.Train.NumOfCouplerBreaks);
-                                DbfEvalValues.Add("Coupling speed limits", Simulator.DbfEvalOverSpeedCoupling);
+                                DbfEvalValues.Add("Coupling speed limits", Simulator.Instance.DebriefEvalOverSpeedCoupling);
                                 DbfEvalValues.Add(lcurvespeeddependent ? "Curve speeds exceeded" : "Curve dependent speed limit (Disabled)", lcurvespeeddependent ? TrainCar.DbfEvalTravellingTooFast : 0);
                                 if (playerTrain.Delay != null) DbfEvalValues.Add("Activity, current delay", (long)playerTrain.Delay.Value.TotalMinutes);
 

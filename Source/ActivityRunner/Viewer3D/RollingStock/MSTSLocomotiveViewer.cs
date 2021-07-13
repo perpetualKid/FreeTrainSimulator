@@ -348,7 +348,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         private void DebugToggleAdvancedAdhesionCommand()
         {
             Locomotive.Train.SignalEvent(TrainEvent.ResetWheelSlip);
-            Locomotive.Simulator.UseAdvancedAdhesion = !Locomotive.Simulator.UseAdvancedAdhesion;
+            Viewer.Settings.UseAdvancedAdhesion = !Viewer.Settings.UseAdvancedAdhesion;
         }
         private void BailOffOnCommand() => _ = new BailOffCommand(Viewer.Log, true);
         private void BailOffOffCommand() => _ = new BailOffCommand(Viewer.Log, false);

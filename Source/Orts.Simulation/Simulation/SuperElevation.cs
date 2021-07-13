@@ -38,7 +38,7 @@ namespace Orts.Simulation
             Curves = new List<List<TrackVectorSection>>();
             Sections = new Dictionary<int, List<TrackVectorSection>>();
 
-            MaximumAllowedM = 0.07f + simulator.UseSuperElevation / 100f;//max allowed elevation controlled by user setting
+            MaximumAllowedM = 0.07f + simulator.Settings.UseSuperElevation / 100f;//max allowed elevation controlled by user setting
 
             var SectionList = new List<TrackVectorSection>();
             foreach (var node in simulator.TrackDatabase.TrackDB.TrackNodes)
@@ -54,7 +54,7 @@ namespace Orts.Simulation
                     i++;
                     var sec = simulator.TSectionDat.TrackSections.Get(section.SectionIndex);
                     if (sec == null) continue;
-                    if (Math.Abs(sec.Width - simulator.SuperElevationGauge) > 0.2) continue;//the main route has a gauge different than mine
+                    if (Math.Abs(sec.Width - (simulator.Settings.SuperElevationGauge / 1000f)) > 0.2) continue;//the main route has a gauge different than mine
                     float angle = sec.Angle;
                     if (sec.Curved && !angle.AlmostEqual(0f, 0.01f)) //a good curve
                     {
@@ -100,7 +100,7 @@ namespace Orts.Simulation
 
         private void MarkSections(Simulator simulator, List<TrackVectorSection> SectionList, float Len)
         {
-            if (Len < simulator.SuperElevationMinLen || SectionList.Count == 0) return;//too short a curve or the list is empty
+            if (Len < simulator.Settings.SuperElevationMinLen || SectionList.Count == 0) return;//too short a curve or the list is empty
             var tSection = simulator.TSectionDat.TrackSections;
             var sectionData = tSection.Get(SectionList[0].SectionIndex);
             if (sectionData == null) return;

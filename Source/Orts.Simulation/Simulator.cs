@@ -93,6 +93,7 @@ namespace Orts.Simulation
     {
         private string explorePath;
         private string exploreConsist;
+        private string timeTableFile;
 
         public static ICatalog Catalog { get; private set; }
 
@@ -124,8 +125,8 @@ namespace Orts.Simulation
         // In multiplayer games, these items must be kept in sync across all players
         // These items are what are saved and loaded in a game save.
         public string RouteName { get; private set; }
-        public string ActivityFileName;
-        public string TimetableFileName;
+        public string ActivityFileName { get; set; }
+        public string TimetableFileName { get; set; }
         public bool TimetableMode { get; private set; }
         public ActivityFile ActivityFile { get; private set; }
         public Activity ActivityRun { get; private set; }
@@ -133,16 +134,16 @@ namespace Orts.Simulation
         public RoadDatabaseFile RoadDatabase { get; private set; }
         public Route Route { get; private set; }
         public TrackSectionsFile TSectionDat { get; private set; }
-        public TrainList Trains;
-        public Dictionary<int, Train> TrainDictionary = new Dictionary<int, Train>();
+        public TrainList Trains { get; private set; }
+        public Dictionary<int, Train> TrainDictionary { get; } = new Dictionary<int, Train>();
         public Dictionary<string, Train> NameDictionary { get; } = new Dictionary<string, Train>(StringComparer.OrdinalIgnoreCase);
-        public Dictionary<int, AITrain> AutoGenDictionary = new Dictionary<int, AITrain>();
-        public List<int> StartReference { get; } = new List<int>();
+        public Dictionary<int, AITrain> AutoGenDictionary { get; } = new Dictionary<int, AITrain>();
+        public IList<int> StartReference { get; } = new List<int>();
         public Weather Weather { get; } = new Weather();
 
-        public float CurveDurability;  // Sets the durability due to curve speeds in TrainCars - read from consist file.
+        public float CurveDurability { get; private set; }  // Sets the durability due to curve speeds in TrainCars - read from consist file.
 
-        public static int DbfEvalOverSpeedCoupling;//Debrief eval
+        public int DebriefEvalOverSpeedCoupling { get; set; }//Debrief eval
 
         public SignalEnvironment SignalEnvironment { get; private set; }
         public AI AI { get; private set; }
@@ -155,25 +156,17 @@ namespace Orts.Simulation
         public string ConsistFileName { get; private set; }
 
         public LevelCrossings LevelCrossings { get; private set; }
-        public bool UseAdvancedAdhesion;
-        public bool BreakCouplers;
-        public int DayAmbientLight;
-        public int CarVibrating;
-        public int UseSuperElevation; //amount of superelevation
-        public SuperElevation SuperElevation;
-        public int SuperElevationMinLen = 50;
-        public float SuperElevationGauge = 1.435f;//1.435 guage
+        public SuperElevation SuperElevation { get; private set; }
 
         // Used in save and restore form
-        public string PathName = "<unknown>";
-        private string timeTableFile;
-        public float InitialTileX;
-        public float InitialTileZ;
-        public HazardManager HazardManager;
-        public bool InControl = true;//For multiplayer, a player may not control his/her own train (as helper)
-        public List<MovingTable> MovingTables { get; } = new List<MovingTable>();
-        public List<CarSpawners> CarSpawnerLists;
-        public ClockList Clocks;           // List of OR-Clocks given by externe file "openrails\clocks.dat"
+        public string PathName { get; set; } = "<unknown>";
+        public float InitialTileX { get; private set; }
+        public float InitialTileZ { get; private set; }
+        public HazardManager HazardManager { get; private set; }
+
+        public IList<MovingTable> MovingTables { get; } = new List<MovingTable>();
+        public IList<CarSpawners> CarSpawnerLists { get; } = new List<CarSpawners>();
+        public ClockList Clocks { get; private set; }           // List of OR-Clocks given by externe file "openrails\clocks.dat"
 
         // timetable pools
         public Poolholder PoolHolder;
@@ -266,18 +259,10 @@ namespace Orts.Simulation
 
             TimetableMode = false;
 
-            Settings = settings;
+            Settings = settings ?? throw new ArgumentNullException(nameof(settings));
             GamePaused = settings.StartGamePaused;
-            UseAdvancedAdhesion = Settings.UseAdvancedAdhesion;
-            BreakCouplers = Settings.BreakCouplers;
-            CarVibrating = Settings.CarVibratingLevel; //0 no vib, 1-2 mid vib, 3 max vib
-            UseSuperElevation = Settings.UseSuperElevation;
-            SuperElevationMinLen = Settings.SuperElevationMinLen;
-            SuperElevationGauge = Settings.SuperElevationGauge / 1000f;//gauge transfer from mm to m
 
             RouteFolder = FolderStructure.RouteFromActivity(activityPath);
-
-            DayAmbientLight = Settings.DayAmbientLight;
 
             Trace.Write("Loading");
 
@@ -313,19 +298,15 @@ namespace Orts.Simulation
             if (File.Exists(carSpawnFile))
             {
                 Trace.Write(" CARSPAWN");
-                CarSpawnerLists = new List<CarSpawners>();
                 CarSpawnerFile csf = new CarSpawnerFile(carSpawnFile, RouteFolder.ShapesFolder);
                 CarSpawnerLists.Add(csf.CarSpawners);
-
             }
 
             if (File.Exists(carSpawnFile = RouteFolder.OpenRailsCarSpawnerFile))
             {
-                if (CarSpawnerLists == null)
-                    CarSpawnerLists = new List<CarSpawners>();
                 Trace.Write(" EXTCARSPAWN");
                 ORCarSpawnerFile acsf = new ORCarSpawnerFile(carSpawnFile, RouteFolder.ShapesFolder);
-                CarSpawnerLists.AddRange(acsf.CarSpawners);
+                (CarSpawnerLists as List<CarSpawners>).AddRange(acsf.CarSpawners);
             }
 
             //Load OR-Clock if external file "openrails\clock.dat" exists --------------------------------------------------------
@@ -405,7 +386,7 @@ namespace Orts.Simulation
         public void Start(CancellationToken cancellationToken)
         {
             SignalEnvironment = new SignalEnvironment(SignalConfig, Settings.UseLocationPassingPaths, cancellationToken);
-            MovingTables.AddRange(MovingTableFile.ReadTurntableFile(Path.Combine(RouteFolder.OpenRailsRouteFolder, "turntables.dat")));
+            (MovingTables as List<MovingTable>).AddRange(MovingTableFile.ReadTurntableFile(Path.Combine(RouteFolder.OpenRailsRouteFolder, "turntables.dat")));
             LevelCrossings = new LevelCrossings(this);
             Trains = new TrainList(this);
             PoolHolder = new Poolholder();
@@ -429,7 +410,7 @@ namespace Orts.Simulation
         {
             TimetableMode = true;
             SignalEnvironment = new SignalEnvironment(SignalConfig, true, cancellationToken);
-            MovingTables.AddRange(MovingTableFile.ReadTurntableFile(Path.Combine(RouteFolder.OpenRailsRouteFolder, "turntables.dat")));
+            (MovingTables as List<MovingTable>).AddRange(MovingTableFile.ReadTurntableFile(Path.Combine(RouteFolder.OpenRailsRouteFolder, "turntables.dat")));
             LevelCrossings = new LevelCrossings(this);
             Trains = new TrainList(this);
             PoolHolder = new Poolholder(this, timeTableFile, cancellationToken);
@@ -480,7 +461,7 @@ namespace Orts.Simulation
 
             // initialization of turntables
             activeMovingTableIndex = inf.ReadInt32();
-            MovingTables.AddRange(MovingTableFile.ReadTurntableFile(Path.Combine(RouteFolder.OpenRailsRouteFolder, "turntables.dat")));
+            (MovingTables as List<MovingTable>).AddRange(MovingTableFile.ReadTurntableFile(Path.Combine(RouteFolder.OpenRailsRouteFolder, "turntables.dat")));
             if (MovingTables.Count >= 0)
             {
                 foreach (var movingTable in MovingTables) movingTable.Restore(inf, this);
@@ -893,7 +874,7 @@ namespace Orts.Simulation
                             //drivenTrain.SetCoupleSpeed(train, 1);
                             drivenTrain.LastCar.SignalEvent(TrainEvent.Couple);
                             if (drivenTrain.SpeedMpS > 1.5)
-                                DbfEvalOverSpeedCoupling += 1;
+                                DebriefEvalOverSpeedCoupling += 1;
 
                             foreach (TrainCar car in train.Cars)
                             {
@@ -921,7 +902,7 @@ namespace Orts.Simulation
                             //drivenTrain.SetCoupleSpeed(train, -1);
                             drivenTrain.LastCar.SignalEvent(TrainEvent.Couple);
                             if (drivenTrain.SpeedMpS > 1.5)
-                                DbfEvalOverSpeedCoupling += 1;
+                                DebriefEvalOverSpeedCoupling += 1;
 
                             for (int i = train.Cars.Count - 1; i >= 0; --i)
                             {
@@ -970,7 +951,7 @@ namespace Orts.Simulation
                                 lead = train.LeadLocomotive;
                                 train.LastCar.SignalEvent(TrainEvent.Couple);
                                 if (drivenTrain.SpeedMpS > 1.5)
-                                    DbfEvalOverSpeedCoupling += 1;
+                                    DebriefEvalOverSpeedCoupling += 1;
 
                                 for (int i = 0; i < drivenTrain.Cars.Count; ++i)
                                 {
@@ -985,7 +966,7 @@ namespace Orts.Simulation
                             {
                                 drivenTrain.FirstCar.SignalEvent(TrainEvent.Couple);
                                 if (drivenTrain.SpeedMpS > 1.5)
-                                    DbfEvalOverSpeedCoupling += 1;
+                                    DebriefEvalOverSpeedCoupling += 1;
 
                                 lead = drivenTrain.LeadLocomotive;
                                 for (int i = 0; i < train.Cars.Count; ++i)
@@ -1017,7 +998,7 @@ namespace Orts.Simulation
                             //drivenTrain.SetCoupleSpeed(train, -1);
                             drivenTrain.FirstCar.SignalEvent(TrainEvent.Couple);
                             if (drivenTrain.SpeedMpS > 1.5)
-                                DbfEvalOverSpeedCoupling += 1;
+                                DebriefEvalOverSpeedCoupling += 1;
 
                             TrainCar lead = drivenTrain.LeadLocomotive;
                             for (int i = 0; i < train.Cars.Count; ++i)

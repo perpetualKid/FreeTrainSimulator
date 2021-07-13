@@ -710,9 +710,8 @@ namespace Orts.ActivityRunner.Viewer3D
             UserCommandController.AddEvent(UserCommand.CameraJumpingTrains, KeyEventType.KeyPressed, RandomSelectTrain);
             UserCommandController.AddEvent(UserCommand.CameraVibrate, KeyEventType.KeyPressed, () =>
             {
-                Simulator.Instance.CarVibrating = (Simulator.Instance.CarVibrating + 1) % 4;
-                Simulator.Confirmer.Message(ConfirmLevel.Information, Catalog.GetString($"Vibrating at level {Simulator.Instance.CarVibrating}"));
-                Settings.CarVibratingLevel = Simulator.Instance.CarVibrating;
+                Settings.CarVibratingLevel = (Settings.CarVibratingLevel + 1) % 4;
+                Simulator.Confirmer.Message(ConfirmLevel.Information, Catalog.GetString($"Vibrating at level {Settings.CarVibratingLevel }"));
                 Settings.Save("CarVibratingLevel");
             });
             UserCommandController.AddEvent(UserCommand.DebugToggleConfirmations, KeyEventType.KeyPressed, () =>

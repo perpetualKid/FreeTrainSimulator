@@ -1580,7 +1580,7 @@ namespace Orts.Simulation.Physics
                         Trace.WriteLine($"Num of coupler breaks: {NumOfCouplerBreaks}");
                         numOfCouplerBreaksNoted = true;
 
-                        if (simulator.BreakCouplers)
+                        if (simulator.Settings.BreakCouplers)
                         {
                             simulator.UncoupleBehind(uncoupleBehindCar, true);
                             uncoupleBehindCar.CouplerExceedBreakLimit = false;

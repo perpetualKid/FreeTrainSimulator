@@ -50,6 +50,7 @@ using Orts.Common.Position;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
+using Orts.Formats.OR.Models;
 using Orts.Simulation;
 using Orts.Simulation.World;
 
@@ -347,13 +348,13 @@ namespace Orts.ActivityRunner.Viewer3D
                         // We might not have found the junction node; if so, fall back to the static track shape.
                         if (trJunctionNode != null)
                         {
-                            if (viewer.Simulator.UseSuperElevation > 0) SuperElevationManager.DecomposeStaticSuperElevation(viewer, dTrackList, trackObj, worldMatrix, TileX, TileZ, shapeFilePath);
+                            if (viewer.Settings.UseSuperElevation > 0) SuperElevationManager.DecomposeStaticSuperElevation(viewer, dTrackList, trackObj, worldMatrix, TileX, TileZ, shapeFilePath);
                             sceneryObjects.Add(new SwitchTrackShape(shapeFilePath, new FixedWorldPositionSource(worldMatrix), trJunctionNode));
                         }
                         else
                         {
                             //if want to use super elevation, we will generate tracks using dynamic tracks
-                            if (viewer.Simulator.UseSuperElevation > 0
+                            if (viewer.Settings.UseSuperElevation > 0
                                 && SuperElevationManager.DecomposeStaticSuperElevation(viewer, dTrackList, trackObj, worldMatrix, TileX, TileZ, shapeFilePath))
                             {
                                 //var success = SuperElevation.DecomposeStaticSuperElevation(viewer, dTrackList, trackObj, worldMatrix, TileX, TileZ, shapeFilePath);
@@ -404,7 +405,7 @@ namespace Orts.ActivityRunner.Viewer3D
                         if (viewer.Simulator.Settings.Wire && viewer.Simulator.Route.Electrified)
                             Wire.DecomposeDynamicWire(viewer, dTrackList, (DynamicTrackObject)worldObject, worldMatrix);
                         // Add DyntrackDrawers for individual subsections
-                        if (viewer.Simulator.UseSuperElevation > 0 && SuperElevationManager.UseSuperElevationDyn(viewer, dTrackList, (DynamicTrackObject)worldObject, worldMatrix))
+                        if (viewer.Settings.UseSuperElevation > 0 && SuperElevationManager.UseSuperElevationDyn(viewer, dTrackList, (DynamicTrackObject)worldObject, worldMatrix))
                             SuperElevationManager.DecomposeDynamicSuperElevation(viewer, dTrackList, (DynamicTrackObject)worldObject, worldMatrix);
                         else DynamicTrack.Decompose(viewer, dTrackList, (DynamicTrackObject)worldObject, worldMatrix);
 
@@ -439,7 +440,8 @@ namespace Orts.ActivityRunner.Viewer3D
                     {
                         if (Simulator.Instance.CarSpawnerLists != null && ((CarSpawnerObject)worldObject).ListName != null)
                         {
-                            ((CarSpawnerObject)worldObject).CarSpawnerListIndex = Simulator.Instance.CarSpawnerLists.FindIndex(x => x.ListName == ((CarSpawnerObject)worldObject).ListName);
+                            // TODO 20210712 need to find a more robust solution "(Simulator.Instance.CarSpawnerLists as List<CarSpawners>).FindIndex"
+                            ((CarSpawnerObject)worldObject).CarSpawnerListIndex = (Simulator.Instance.CarSpawnerLists as List<CarSpawners>).FindIndex(x => x.ListName == ((CarSpawnerObject)worldObject).ListName);
                             if (((CarSpawnerObject)worldObject).CarSpawnerListIndex < 0 || ((CarSpawnerObject)worldObject).CarSpawnerListIndex > Simulator.Instance.CarSpawnerLists.Count - 1) ((CarSpawnerObject)worldObject).CarSpawnerListIndex = 0;
                         }
                         else ((CarSpawnerObject)worldObject).CarSpawnerListIndex = 0;
@@ -538,15 +540,15 @@ namespace Orts.ActivityRunner.Viewer3D
                 }
             }
 
-            if (viewer.Simulator.UseSuperElevation > 0) SuperElevationManager.DecomposeStaticSuperElevation(Viewer, dTrackList, TileX, TileZ);
+            if (viewer.Settings.UseSuperElevation > 0) SuperElevationManager.DecomposeStaticSuperElevation(Viewer, dTrackList, TileX, TileZ);
             if (Viewer.World.Sounds != null) Viewer.World.Sounds.AddByTile(TileX, TileZ);
         }
 
         //Method to check a shape name is listed in "openrails\clocks.dat"
-        public ClockType OrClockType(string shape)
+        public static ClockType OrClockType(string shape)
         {
             if (null != Simulator.Instance.Clocks)
-                foreach (var clock in Simulator.Instance.Clocks)
+                foreach (Clock clock in Simulator.Instance.Clocks)
                 {
                     if (Path.GetFileName(clock.Name).Equals(shape, StringComparison.OrdinalIgnoreCase))
                         return clock.ClockType;
