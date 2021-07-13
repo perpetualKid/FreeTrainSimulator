@@ -777,7 +777,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 TrainCarShape.XNAMatrices[p.iMatrix] = Car.VibrationInverseMatrix * m;
             }
 
-            if (MSTSWagon.Train.IsPlayerDriven && !Car.Simulator.Settings.SimpleControlPhysics)
+            if (MSTSWagon.Train != null && MSTSWagon.Train.IsPlayerDriven && !Car.Simulator.Settings.SimpleControlPhysics)
                 // Place the coupler in the centre of the car
                 Car.WorldPosition.XNAMatrix.Decompose(out Vector3 scale, out Quaternion quaternion, out Vector3 translation);
             {
