@@ -415,6 +415,23 @@ namespace Orts.Simulation.RollingStocks
                 }
             }
 
+            // Initialise car body lengths. Assume overhang is 2.0m each end, and bogie centres are the car length minus this value
+
+            if (CarCouplerFaceLengthM == 0)
+            {
+                CarCouplerFaceLengthM = CarLengthM;
+            }
+
+            if (CarBodyLengthM == 0)
+            {
+                CarBodyLengthM = CarCouplerFaceLengthM - 0.8f;
+            }
+
+            if (CarBogieCentreLengthM == 0)
+            {
+                CarBogieCentreLengthM = (CarCouplerFaceLengthM - 4.3f);
+            }
+
             // Ensure Drive Axles is set to a default if no OR value added to WAG file
             if (WagonNumAxles == 0)
             {
@@ -945,6 +962,9 @@ namespace Orts.Simulation.RollingStocks
                     CarLengthM = stf.ReadFloat(STFReader.Units.Distance, null);
                     stf.SkipRestOfBlock();
                     break;
+                case "wagon(ortslengthbogiecentre": CarBogieCentreLengthM = stf.ReadFloatBlock(STFReader.Units.Distance, null); break;
+                case "wagon(ortslengthcarbody": CarBodyLengthM = stf.ReadFloatBlock(STFReader.Units.Distance, null); break;
+                case "wagon(ortslengthcouplerface": CarCouplerFaceLengthM = stf.ReadFloatBlock(STFReader.Units.Distance, null); break;
                 case "wagon(ortstrackgauge":
                     stf.MustMatch("(");
                     TrackGaugeM = stf.ReadFloat(STFReader.Units.Distance, null);
@@ -1228,7 +1248,7 @@ namespace Orts.Simulation.RollingStocks
                 case "wagon(orts3dcab": Parse3DCab(stf); break;
                 case "wagon(numwheels": MSTSWagonNumWheels = stf.ReadFloatBlock(STFReader.Units.None, 4.0f); break;
                 case "wagon(ortsnumberaxles": WagonNumAxles = stf.ReadIntBlock(null); break;
-
+                case "wagon(ortsnumberbogies": WagonNumBogies = stf.ReadIntBlock(null); break;
                 case "wagon(ortspantographs":
                     Pantographs.Parse(lowercasetoken, stf);
                     break;
@@ -1311,10 +1331,14 @@ namespace Orts.Simulation.RollingStocks
             InitialCentreOfGravityM = copy.InitialCentreOfGravityM;
             UnbalancedSuperElevationM = copy.UnbalancedSuperElevationM;
             RigidWheelBaseM = copy.RigidWheelBaseM;
+            CarBogieCentreLengthM = copy.CarBogieCentreLengthM;
+            CarBodyLengthM = copy.CarBodyLengthM;
+            CarCouplerFaceLengthM = copy.CarCouplerFaceLengthM;
             AuxTenderWaterMassKG = copy.AuxTenderWaterMassKG;
             TenderWagonMaxCoalMassKG = copy.TenderWagonMaxCoalMassKG;
             TenderWagonMaxWaterMassKG = copy.TenderWagonMaxWaterMassKG;
             WagonNumAxles = copy.WagonNumAxles;
+            WagonNumBogies = copy.WagonNumBogies;
             MSTSWagonNumWheels = copy.MSTSWagonNumWheels;
             MassKG = copy.MassKG;
             InitialMassKG = copy.InitialMassKG;

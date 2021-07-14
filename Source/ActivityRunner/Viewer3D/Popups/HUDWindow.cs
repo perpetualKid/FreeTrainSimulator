@@ -1496,13 +1496,9 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 Viewer.Catalog.GetString("Curve"),
                 Viewer.Catalog.GetString("Brk Frict."),
                 Viewer.Catalog.GetString("Brk Slide"),
-                Viewer.Catalog.GetString("Bear Temp")
-
-                // Possibly needed for buffing forces
-                //                Viewer.Catalog.GetString("VertD"),
-                //                Viewer.Catalog.GetString("VertL"),
-                //                Viewer.Catalog.GetString("BuffExc"),
-                //                Viewer.Catalog.GetString("CplAng")
+                Viewer.Catalog.GetString("Bear Temp"),
+                Viewer.Catalog.GetString(" "),
+                Viewer.Catalog.GetString("DerailCoeff")
 
                 );
             }
@@ -1563,11 +1559,11 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     TableSetCell(table, 17, "{0} {1}", FormatStrings.FormatTemperature(car.WheelBearingTemperatureDegC, car.IsMetric), car.DisplayWheelBearingTemperatureStatus);
 
                     TableSetCell(table, 18, car.Flipped ? Viewer.Catalog.GetString("Flipped") : "");
+                    TableSetCell(table, 19, "{0:F2}{1}", car.DerailmentCoefficient, car.DerailmentCoefficient > 1 ? "!!!" : car.DerailmentCoefficient < 1 && car.DerailmentCoefficient > 0.66 ? "???" : "");
 
+                    //TableSetCell(table, 10, "Tot.Slack:");
+                    //TableSetCell(table, 11, "{0}", FormatStrings.FormatVeryShortDistanceDisplay(train.TotalCouplerSlackM, mstsLocomotive.IsMetric));
                     TableAddLine(table);
-                    //TableSetCell(table, 11, "Tot {0}", FormatStrings.FormatShortDistanceDisplay(train.TotalCouplerSlackM, mstsLocomotive.IsMetric));
-                    TableSetCell(table, 10, "Tot.Slack:");
-                    TableSetCell(table, 11, "{0}", FormatStrings.FormatVeryShortDistanceDisplay(train.TotalCouplerSlackM, mstsLocomotive.IsMetric));
                 }
             }
         }
