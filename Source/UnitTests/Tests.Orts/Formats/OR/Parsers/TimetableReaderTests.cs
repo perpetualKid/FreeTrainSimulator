@@ -14,28 +14,28 @@ namespace Tests.Orts.Formats.OR.Parsers
         [TestMethod]
         public void DetectSeparatorTest()
         {
-            using (var file = new TestFile(";"))
+            using (TestFile file = new TestFile(";"))
             {
-                var tr = new TimetableReader(file.FileName);
+                TimetableReader tr = new TimetableReader(file.FileName);
                 Assert.AreEqual(1, tr.Strings.Count);
                 Assert.AreEqual(2, tr.Strings[0].Length);
             }
-            using (var file = new TestFile(","))
+            using (TestFile file = new TestFile(","))
             {
-                var tr = new TimetableReader(file.FileName);
+                TimetableReader tr = new TimetableReader(file.FileName);
                 Assert.AreEqual(1, tr.Strings.Count);
                 Assert.AreEqual(2, tr.Strings[0].Length);
             }
-            using (var file = new TestFile("\t"))
+            using (TestFile file = new TestFile("\t"))
             {
-                var tr = new TimetableReader(file.FileName);
+                TimetableReader tr = new TimetableReader(file.FileName);
                 Assert.AreEqual(1, tr.Strings.Count);
                 Assert.AreEqual(2, tr.Strings[0].Length);
             }
-            using (var file = new TestFile(":"))
+            using (TestFile file = new TestFile(":"))
             {
                 Assert.ThrowsException<InvalidDataException>(() => {
-                    var tr = new TimetableReader(file.FileName);
+                    TimetableReader tr = new TimetableReader(file.FileName);
                 });
             }
         }
@@ -43,9 +43,9 @@ namespace Tests.Orts.Formats.OR.Parsers
         [TestMethod]
         public void ParseStructureTest()
         {
-            using (var file = new TestFile(";b;c;d\n1;2;3\nA;B;C;D;E"))
+            using (TestFile file = new TestFile(";b;c;d\n1;2;3\nA;B;C;D;E"))
             {
-                var tr = new TimetableReader(file.FileName);
+                TimetableReader tr = new TimetableReader(file.FileName);
                 Assert.AreEqual(3, tr.Strings.Count);
                 Assert.AreEqual(4, tr.Strings[0].Length);
                 Assert.AreEqual(3, tr.Strings[1].Length);

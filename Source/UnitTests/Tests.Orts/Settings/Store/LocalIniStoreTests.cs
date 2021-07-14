@@ -294,7 +294,7 @@ namespace Tests.Orts.Settings.Store
             }
         }
 
-        public enum TestEnum
+        public enum SimpleEnumTest
         {
             Value1,
             Value2,
@@ -307,13 +307,13 @@ namespace Tests.Orts.Settings.Store
             using (TestFile file = new TestFile(content))
             {
                 SettingsStoreLocalIni store = SettingsStore.GetSettingsStore(StoreType.Ini, file.FileName, "ORTS") as SettingsStoreLocalIni;
-                store.SetSettingValue("enumValue", TestEnum.Value2);
-                Assert.AreEqual(TestEnum.Value2, store.GetSettingValue("enumValue", default(TestEnum)));
+                store.SetSettingValue("enumValue", SimpleEnumTest.Value2);
+                Assert.AreEqual(SimpleEnumTest.Value2, store.GetSettingValue("enumValue", default(SimpleEnumTest)));
             }
         }
 
         [Flags]
-        public enum TestFlags
+        public enum SimpleFlagsTest
         {
             None = 0x0,
             Value1 = 0x1,
@@ -327,8 +327,8 @@ namespace Tests.Orts.Settings.Store
             using (TestFile file = new TestFile(content))
             {
                 SettingsStoreLocalIni store = SettingsStore.GetSettingsStore(StoreType.Ini, file.FileName, "ORTS") as SettingsStoreLocalIni;
-                store.SetSettingValue("flagsValue", TestFlags.Value2 | TestFlags.Value1);
-                Assert.AreEqual(TestFlags.Value2 | TestFlags.Value1, store.GetSettingValue("flagsValue", default(TestFlags)));
+                store.SetSettingValue("flagsValue", SimpleFlagsTest.Value2 | SimpleFlagsTest.Value1);
+                Assert.AreEqual(SimpleFlagsTest.Value2 | SimpleFlagsTest.Value1, store.GetSettingValue("flagsValue", default(SimpleFlagsTest)));
             }
         }
 
