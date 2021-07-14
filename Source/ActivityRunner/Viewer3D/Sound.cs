@@ -874,7 +874,7 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 if (!WasOutOfDistance)
                 {
-                    if (!Viewer.Simulator.updaterWorking)
+                    if (!Viewer.Simulator.UpdaterWorking)
                     {
                         foreach (SoundStream stream in SoundStreams)
                             stream.HardDeactivate();
