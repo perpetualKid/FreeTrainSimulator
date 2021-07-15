@@ -21,7 +21,7 @@ using Orts.Simulation.AIs;
 using Orts.Simulation.Physics;
 using Orts.Simulation.Timetables;
 
-namespace Orts.Simulation
+namespace Orts.Simulation.RollingStocks
 {
 
     /// <summary>
@@ -47,27 +47,18 @@ namespace Orts.Simulation
         public Train GetTrainByNumber(int number)
         {
             if (simulator.TrainDictionary.TryGetValue(number, out Train result))
-            {
                 return result;
-            }
 
             // check player train's original number
             if (simulator.TimetableMode && simulator.PlayerLocomotive != null)
-            {
                 if ((simulator.PlayerLocomotive.Train as TTTrain)?.OrgAINumber == number)
-                {
                     return simulator.PlayerLocomotive.Train;
-                }
-            }
 
             // dictionary is not always updated in normal activity and explorer mode, so double check
             // if not correct, search in the 'old' way
-            foreach(Train train in this)
-            {
+            foreach (Train train in this)
                 if (train.Number == number)
                     return train;
-
-            }
             return null;
         }
 

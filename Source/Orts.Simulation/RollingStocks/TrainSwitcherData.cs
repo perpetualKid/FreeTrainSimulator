@@ -17,7 +17,7 @@
 
 using Orts.Simulation.Physics;
 
-namespace Orts.Simulation
+namespace Orts.Simulation.RollingStocks
 {
 
     public class TrainSwitcherData

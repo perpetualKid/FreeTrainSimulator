@@ -37,15 +37,15 @@
 //      related to whether the node is created from a .pat file, or created dynamically during edit operations.
 // Because the path is a double linked list, to prevent issues with garbage collection, an Unlink method is provided that removes the lilnks.
 
-using Orts.Common;
+using System;
+
 using Orts.Common.Position;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation;
+
 using ORTS.TrackViewer.Drawing;
-using System;
-using System.Linq;
 
 namespace ORTS.TrackViewer.Editing
 {

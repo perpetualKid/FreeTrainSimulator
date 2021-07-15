@@ -26,6 +26,7 @@ using Orts.Common.Position;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation.AIs;
 using Orts.Simulation.Physics;
+using Orts.Simulation.RollingStocks;
 
 namespace Orts.Simulation.World
 {

@@ -11,6 +11,7 @@ using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation.AIs;
 using Orts.Simulation.Physics;
+using Orts.Simulation.RollingStocks;
 using Orts.Simulation.Signalling;
 
 using static Orts.Simulation.Physics.Train;
