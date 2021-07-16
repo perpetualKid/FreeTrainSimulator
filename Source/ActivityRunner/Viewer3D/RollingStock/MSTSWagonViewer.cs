@@ -961,9 +961,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
                 Vector3 placement = PositionCoupler(Car, displacement);
 
+                int tileX = Car.WorldPosition.TileX;
+                int tileZ = Car.WorldPosition.TileZ;
                 couplerPosition = MatrixExtension.ChangeTranslation(Car.WorldPosition.XNAMatrix, placement);
                 couplerPosition = AlignCouplerWithCar(couplerPosition, Car.Flipped);
-
                 if (Car.CarAhead != null) // Display animated coupler if there is a car infront of this car
                 {
                     // Rotate the coupler to align with the calculated angle direction
@@ -980,6 +981,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         if ((absXc > 0.005 || absYc > 0.005 || absZc > 0.005))
                         {
                             couplerPosition.Translation = Car.CarAhead.RearCouplerLocation; // Set coupler to same location as previous car coupler
+                            tileX = Car.CarAhead.RearCouplerLocationTileX;
+                            tileZ = Car.CarAhead.RearCouplerLocationTileZ;
                         }
                     }
                     couplerShape = FrontCouplerShape;
@@ -992,7 +995,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 {
                     couplerShape = FrontCouplerShape;
                 }
-                couplerShape.PrepareFrame(frame, elapsedTime, new WorldPosition(Car.WorldPosition.TileX, Car.WorldPosition.TileZ, couplerPosition));
+                couplerShape.PrepareFrame(frame, elapsedTime, new WorldPosition(tileX, tileZ, couplerPosition));
             }
 
             // Display rear coupler in sim if open coupler shape is configured, otherwise skip to next section, and just display closed (default) coupler if configured
@@ -1018,6 +1021,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
                     couplerShape = RearCouplerShape;
                     Car.RearCouplerLocation = couplerPosition.Translation;
+                    Car.RearCouplerLocationTileX = Car.WorldPosition.TileX;
+                    Car.RearCouplerLocationTileZ = Car.WorldPosition.TileZ;
+
                 }
                 else if (RearCouplerOpenShape != null && Car.RearCouplerOpenFitted && Car.RearCouplerOpen) // Display open coupler if no car is behind car, and an open coupler shape is present
                 {
