@@ -60,42 +60,6 @@ using Orts.Simulation.Track;
 
 namespace Orts.Simulation.RollingStocks
 {
-    public class ViewPoint
-    {
-        public Vector3 Location;
-        public Vector3 StartDirection;
-        public Vector3 RotationLimit;
-
-        public ViewPoint()
-        {
-        }
-
-        public ViewPoint(Vector3 location)
-        {
-            Location = location;
-        }
-
-        public ViewPoint(ViewPoint copy, bool rotate)
-        {
-            Location = copy.Location;
-            StartDirection = copy.StartDirection;
-            RotationLimit = copy.RotationLimit;
-            if (rotate)
-            {
-                Location.X *= -1;
-                Location.Z *= -1;
-                /*StartDirection.X += 180;
-                StartDirection.Z += 180;*/
-            }
-        }
-    }
-
-    public class PassengerViewPoint : ViewPoint
-    {
-        // Remember direction of passenger camera and apply when user returns to it.
-        public float RotationXRadians;
-        public float RotationYRadians;
-    }
 
     public abstract class TrainCar: IWorldPosition
     {

@@ -675,8 +675,7 @@ namespace Orts.Simulation.RollingStocks
                     Trace.TraceWarning("Skipped cab view camera {1} missing Position and Direction in {0}", cvfFileName, i);
                     break;
                 }
-                viewPoint = new ViewPoint();
-                viewPoint.Location = cvfFile.Locations[i];
+                viewPoint = new ViewPoint(cvfFile.Locations[i]);
                 viewPoint.StartDirection = cvfFile.Directions[i];
                 viewPoint.RotationLimit = new Vector3(0, 0, 0);  // cab views have a fixed head position
                 viewPointList.Add(viewPoint);
