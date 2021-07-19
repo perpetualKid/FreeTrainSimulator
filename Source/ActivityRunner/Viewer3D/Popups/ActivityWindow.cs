@@ -19,10 +19,10 @@
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Orts.Simulation;
 using Orts.Common;
 using System;
 using System.Linq;
+using Orts.Simulation.Activities;
 
 namespace Orts.ActivityRunner.Viewer3D.Popups
 {

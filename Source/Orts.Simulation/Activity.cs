@@ -29,11 +29,10 @@ using Orts.Common.Position;
 using Orts.Common.Xna;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
-using Orts.Simulation.Activities;
 using Orts.Simulation.AIs;
 using Orts.Simulation.Physics;
 
-namespace Orts.Simulation
+namespace Orts.Simulation.Activities
 {
 
     public class Activity
@@ -88,7 +87,6 @@ namespace Orts.Simulation
             PlayerServices sd;
             sd = actFile.Activity.PlayerServices;
             if (sd != null)
-            {
                 if (sd.PlayerTraffics.Count > 0)
                 {
                     ActivityTask task = null;
@@ -105,33 +103,24 @@ namespace Orts.Simulation
                             continue;
                         }
                         if (Platform != null)
-                        {
                             if (this.simulator.TrackDatabase.TrackDB.TrackItems[Platform.LinkedPlatformItemId] is PlatformItem)
                             {
                                 PlatformItem Platform2 = this.simulator.TrackDatabase.TrackDB.TrackItems[Platform.LinkedPlatformItemId] as PlatformItem;
                                 Tasks.Add(task = new ActivityTaskPassengerStopAt(simulator, task, i.ArrivalTime, i.DepartTime, Platform, Platform2));
                             }
-                        }
                     }
                     ActivityTask = Tasks[0];
                 }
-            }
 
             // Compile list of freight events, if any, from the parsed ACT file.
             foreach (ActivityEvent activityEvent in actFile?.Activity?.Events ?? Enumerable.Empty<ActivityEvent>())
             {
                 if (activityEvent is ActionActivityEvent)
-                {
                     EventList.Add(new EventCategoryActionWrapper(activityEvent));
-                }
                 if (activityEvent is LocationActivityEvent)
-                {
                     EventList.Add(new EventCategoryLocationWrapper(activityEvent));
-                }
                 if (activityEvent is TimeActivityEvent)
-                {
                     EventList.Add(new EventCategoryTimeWrapper(activityEvent));
-                }
                 EventWrapper eventAdded = EventList.Last();
                 eventAdded.OriginalActivationLevel = activityEvent.ActivationLevel;
                 if (activityEvent.WeatherChange != null || activityEvent.Outcomes.WeatherChange != null) WeatherChangesPresent = true;
@@ -154,117 +143,74 @@ namespace Orts.Simulation
                 startTimeS = (int)simulator.ClockTime;
                 // Initialise passenger actual arrival time
                 if (ActivityTask != null)
-                {
                     if (ActivityTask is ActivityTaskPassengerStopAt)
                     {
                         ActivityTaskPassengerStopAt task = ActivityTask as ActivityTaskPassengerStopAt;
                     }
-                }
             }
             if (!Completed)
-            {
                 foreach (var i in EventList)
                 {
                     // Once an event has fired, we don't respond to any more events until that has been acknowledged.
                     // so this line needs to be inside the EventList loop.
-                    if (this.TriggeredEvent != null) { break; }
-
+                    if (TriggeredEvent != null) break;
                     if (i != null && i.ActivityEvent.ActivationLevel > 0)
-                    {
                         if (i.TimesTriggered < 1 || i.ActivityEvent.Reversible)
-                        {
                             if (i.Triggered(this))
-                            {
                                 if (i.Disabled == false)
                                 {
                                     i.TimesTriggered += 1;
                                     if (i.IsActivityEnded(this))
-                                    {
                                         Completed = true;
-                                    }
-                                    this.TriggeredEvent = i;    // Note this for Viewer and ActivityWindow to use.
+                                    TriggeredEvent = i;    // Note this for Viewer and ActivityWindow to use.
                                     // Do this after IsActivityEnded() so values are ready for ActivityWindow
                                     LastTriggeredEvent = TriggeredEvent;
                                 }
-                            }
                             else
-                            {
                                 if (i.ActivityEvent.Reversible)
-                                {
-                                    // Reversible event is no longer triggered, so can re-enable it.
-                                    i.Disabled = false;
-                                }
-                            }
-                        }
-                    }
+                                // Reversible event is no longer triggered, so can re-enable it.
+                                i.Disabled = false;
                 }
-            }
 
             // Update passenger tasks
             if (ActivityTask == null) return;
 
             ActivityTask.NotifyEvent(ActivityEventType.Timer);
             if (ActivityTask.IsCompleted != null)    // Surely this doesn't test for: 
-            //   Current.IsCompleted == false
-            // More correct would be:
-            //   if (Current.IsCompleted.HasValue && Current.IsCompleted == true)
-            // (see http://stackoverflow.com/questions/56518/c-is-there-any-difference-between-bool-and-nullablebool)
-            {
                 ActivityTask = ActivityTask.NextTask;
-            }
             if (simulator.OriginalPlayerTrain.TrainType == TrainType.Player || simulator.OriginalPlayerTrain.TrainType == TrainType.AiPlayerDriven)
-            {
                 if (Math.Abs(simulator.OriginalPlayerTrain.SpeedMpS) < 0.2f)
-                {
                     if (Math.Abs(prevTrainSpeed) >= 0.2f)
                     {
                         prevTrainSpeed = 0;
                         ActivityTask.NotifyEvent(ActivityEventType.TrainStop);
                         if (ActivityTask.IsCompleted != null)
-                        {
                             ActivityTask = ActivityTask.NextTask;
-                        }
                     }
-                }
                 else
-                {
                     if (Math.Abs(prevTrainSpeed) < 0.2f && Math.Abs(simulator.OriginalPlayerTrain.SpeedMpS) >= 0.2f)
-                    {
-                        prevTrainSpeed = simulator.OriginalPlayerTrain.SpeedMpS;
-                        ActivityTask.NotifyEvent(ActivityEventType.TrainStart);
-                        if (ActivityTask.IsCompleted != null)
-                        {
-                            ActivityTask = ActivityTask.NextTask;
-                        }
-                    }
+                {
+                    prevTrainSpeed = simulator.OriginalPlayerTrain.SpeedMpS;
+                    ActivityTask.NotifyEvent(ActivityEventType.TrainStart);
+                    if (ActivityTask.IsCompleted != null)
+                        ActivityTask = ActivityTask.NextTask;
                 }
-            }
             else
-            {
                 if (Math.Abs(simulator.OriginalPlayerTrain.SpeedMpS) <= Simulator.MaxStoppedMpS)
+                if (prevTrainSpeed != 0)
                 {
-                    if (prevTrainSpeed != 0)
-                    {
-                        prevTrainSpeed = 0;
-                        ActivityTask.NotifyEvent(ActivityEventType.TrainStop);
-                        if (ActivityTask.IsCompleted != null)
-                        {
-                            ActivityTask = ActivityTask.NextTask;
-                        }
-                    }
+                    prevTrainSpeed = 0;
+                    ActivityTask.NotifyEvent(ActivityEventType.TrainStop);
+                    if (ActivityTask.IsCompleted != null)
+                        ActivityTask = ActivityTask.NextTask;
                 }
-                else
-                {
+            else
                     if (prevTrainSpeed == 0 && Math.Abs(simulator.OriginalPlayerTrain.SpeedMpS) > 0.2f)
-                    {
-                        prevTrainSpeed = simulator.OriginalPlayerTrain.SpeedMpS;
-                        ActivityTask.NotifyEvent(ActivityEventType.TrainStart);
-                        if (ActivityTask.IsCompleted != null)
-                        {
-                            ActivityTask = ActivityTask.NextTask;
-                        }
-                    }
-                }
+            {
+                prevTrainSpeed = simulator.OriginalPlayerTrain.SpeedMpS;
+                ActivityTask.NotifyEvent(ActivityEventType.TrainStart);
+                if (ActivityTask.IsCompleted != null)
+                    ActivityTask = ActivityTask.NextTask;
             }
         }
 
@@ -274,9 +220,7 @@ namespace Orts.Simulation
                 throw new ArgumentNullException(nameof(outf));
 
             if (act == null)
-            {
                 outf.Write(-1);
-            }
             else
             {
                 outf.Write(1);
@@ -291,42 +235,32 @@ namespace Orts.Simulation
                 throw new ArgumentNullException(nameof(inf));
 
             if (inf.ReadInt32() == -1)
-            {
                 return null;
-            }
             else
-            {
                 // Retain the old EventList. It's full of static data so save and restore is a waste of effort
                 return new Activity(inf, simulator, activity?.EventList ?? throw new ArgumentNullException(nameof(activity)), activity.TempSpeedPostItems);
-            }
         }
 
         public void Save(BinaryWriter outf)
         {
-            Int32 noval = -1;
+            int noval = -1;
 
             // Save passenger activity
-            outf.Write((Int64)startTime.Ticks);
-            outf.Write((Int32)Tasks.Count);
+            outf.Write(startTime.Ticks);
+            outf.Write(Tasks.Count);
             foreach (ActivityTask task in Tasks)
-            {
                 task.Save(outf);
-            }
-            if (ActivityTask == null) outf.Write(noval); else outf.Write((Int32)(Tasks.IndexOf(ActivityTask)));
+            if (ActivityTask == null) outf.Write(noval); else outf.Write(Tasks.IndexOf(ActivityTask));
             outf.Write(prevTrainSpeed);
 
             // Save freight activity
-            outf.Write((bool)Completed);
-            outf.Write((bool)Succeeded);
-            outf.Write((Int32)startTimeS);
+            outf.Write(Completed);
+            outf.Write(Succeeded);
+            outf.Write((int)startTimeS);
             foreach (EventWrapper e in EventList)
-            {
                 e.Save(outf);
-            }
             if (TriggeredEvent == null)
-            {
                 outf.Write(false);
-            }
             else
             {
                 outf.Write(true);
@@ -334,9 +268,7 @@ namespace Orts.Simulation
             }
             outf.Write(IsActivityWindowOpen);
             if (LastTriggeredEvent == null)
-            {
                 outf.Write(false);
-            }
             else
             {
                 outf.Write(true);
@@ -353,14 +285,12 @@ namespace Orts.Simulation
 
             outf.Write(StationStopLogActive);
             if (StationStopLogActive)
-            {
                 outf.Write(StationStopLogFile);
-            }
         }
 
         private void Restore(BinaryReader inf, Simulator simulator, IList<EventWrapper> oldEventList)
         {
-            Int32 rdval;
+            int rdval;
 
             // Restore passenger activity
             ActivityTask task;
@@ -391,13 +321,9 @@ namespace Orts.Simulation
 
             EventList.Clear();
             foreach (EventWrapper item in oldEventList)
-            {
                 EventList.Add(item);
-            }
             foreach (var e in EventList)
-            {
                 e.Restore(inf);
-            }
 
             if (inf.ReadBoolean()) TriggeredEvent = EventList[inf.ReadInt32()];
 
@@ -418,14 +344,10 @@ namespace Orts.Simulation
                 StationStopLogFile = inf.ReadString();
 
                 foreach (ActivityTaskPassengerStopAt stopTask in Tasks.OfType<ActivityTaskPassengerStopAt>())
-                {
                     stopTask.SetLogStationStop(StationStopLogFile);
-                }
             }
             else
-            {
                 StationStopLogFile = null;
-            }
         }
 
         private static ActivityTask GetTask(BinaryReader inf, Simulator simulator)
@@ -462,9 +384,7 @@ namespace Orts.Simulation
             File.AppendAllText(StationStopLogFile, stringBuild.ToString());
 
             foreach (ActivityTaskPassengerStopAt stopTask in Tasks.OfType<ActivityTaskPassengerStopAt>())
-            {
                 stopTask.SetLogStationStop(StationStopLogFile);
-            }
         }
 
         /// <summary>
@@ -517,9 +437,7 @@ namespace Orts.Simulation
                     zones[idxZone].StartPosition, false, worldPosition3, true);
                 SpeedPostPosition(speedWarningPostItem, ref traveller);
                 if (startOffset != null && endOffset != null && startOffset > endOffset)
-                {
                     speedWarningPostItem.Flip();
-                }
                 ((TempSpeedPostItem)newSpeedPostItems[0]).ComputeTablePosition();
                 TempSpeedPostItems.Add((TempSpeedPostItem)newSpeedPostItems[0]);
                 ((TempSpeedPostItem)newSpeedPostItems[1]).ComputeTablePosition();
@@ -588,16 +506,10 @@ namespace Orts.Simulation
         public void AssociateEvents(Train train)
         {
             foreach (var eventWrapper in EventList)
-            {
                 if (eventWrapper is EventCategoryLocationWrapper && !string.IsNullOrEmpty(eventWrapper.ActivityEvent.TrainService) &&
                     eventWrapper.ActivityEvent.TrainService.Equals(train.Name, StringComparison.OrdinalIgnoreCase))
-                {
                     if (eventWrapper.ActivityEvent.TrainStartingTime == -1 || (train as AITrain).ServiceDefinition.Time == eventWrapper.ActivityEvent.TrainStartingTime)
-                    {
                         eventWrapper.Train = train;
-                    }
-                }
-            }
         }
 
         public void CompleteActivity()
