@@ -31,7 +31,7 @@ using Orts.Simulation.Signalling;
 using Orts.Common.Calc;
 using System.Globalization;
 
-namespace Orts.Simulation
+namespace Orts.Simulation.Activities
 {
     public class ActivityTask
     {
