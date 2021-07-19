@@ -126,7 +126,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             this.Visible = false;
             this.Activity.IsActivityWindowOpen = this.Visible;
             this.Activity.TriggeredEvent = null;
-            Activity.NewMsgFromNewPlayer = false;
+            Activity.NewMessageFromNewPlayer = false;
             Owner.Viewer.Simulator.GamePaused = false;   // Move to Viewer3D?
             this.Activity.IsActivityResumed = !Owner.Viewer.Simulator.GamePaused;
             if (Owner.Viewer.Simulator.IsReplaying) Owner.Viewer.Simulator.Confirmer.Confirm(CabControl.Activity, CabSetting.On);
@@ -158,7 +158,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 var act = Owner.Viewer.Simulator.ActivityRun;
                 if (act != null)
                 {
-                    var e = Activity.ReopenActivityWindow ? Activity.LastTriggeredEvent : Activity.TriggeredEvent;
+                    var e = Activity.ReopenActivityWindow ? Activity.LastTriggeredActivityEvent : Activity.TriggeredEvent;
                     if (e != null)
                     {
                         if (Activity.Completed)
@@ -227,10 +227,10 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             }
                         }
                     }
-                    else if (Activity.NewMsgFromNewPlayer)
+                    else if (Activity.NewMessageFromNewPlayer)
                     {
                         // Displays messages related to actual player train, when not coincident with initial player train
-                        var text = Activity.MsgFromNewPlayer;
+                        var text = Activity.MessageFromNewPlayer;
                         if (!String.IsNullOrEmpty(text))
                         {
                             if (Activity.ReopenActivityWindow)
@@ -266,13 +266,13 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                         }
                         else
                         {
-                            Activity.NewMsgFromNewPlayer = false;
+                            Activity.NewMessageFromNewPlayer = false;
                         }
                         TimeSpan diff1 = DateTime.UtcNow - PopupTime;
                         if (Visible && diff1.TotalSeconds >= 10 && !Owner.Viewer.Simulator.GamePaused)
                         {
                             CloseBox();
-                            Activity.NewMsgFromNewPlayer = false;
+                            Activity.NewMessageFromNewPlayer = false;
                         }
                     }
 

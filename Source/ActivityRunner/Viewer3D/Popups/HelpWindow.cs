@@ -1253,10 +1253,10 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             {
                 if (Owner.Viewer.Simulator.ActivityRun.EventList != null)
                 {
-                    if (Owner.Viewer.Simulator.ActivityRun.LastTriggeredEvent != null && (Owner.Viewer.HelpWindow.lastLastEventID == -1 ||
-                        (Owner.Viewer.Simulator.ActivityRun.LastTriggeredEvent.ActivityEvent.ID != Owner.Viewer.HelpWindow.lastLastEventID)))
+                    if (Owner.Viewer.Simulator.ActivityRun.LastTriggeredActivityEvent != null && (Owner.Viewer.HelpWindow.lastLastEventID == -1 ||
+                        (Owner.Viewer.Simulator.ActivityRun.LastTriggeredActivityEvent.ActivityEvent.ID != Owner.Viewer.HelpWindow.lastLastEventID)))
                     {
-                        lastLastEventID = Owner.Viewer.Simulator.ActivityRun.LastTriggeredEvent.ActivityEvent.ID;
+                        lastLastEventID = Owner.Viewer.Simulator.ActivityRun.LastTriggeredActivityEvent.ActivityEvent.ID;
                         Layout();
                     }
                 }

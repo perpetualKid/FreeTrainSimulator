@@ -108,12 +108,12 @@ namespace Orts.Simulation.Activities
             // Activity sound management
 
             if (ActivityEvent.SoundFile != null || ActivityEvent.Outcomes.ActivitySound != null)
-                if (activity.triggeredEventWrapper == null) 
-                    activity.triggeredEventWrapper = this;
+                if (activity.TriggeredActivityEvent == null) 
+                    activity.TriggeredActivityEvent = this;
 
             if (ActivityEvent.WeatherChange != null || ActivityEvent.Outcomes.WeatherChange != null)
-                if (activity.triggeredEventWrapper == null) 
-                    activity.triggeredEventWrapper = this;
+                if (activity.TriggeredActivityEvent == null) 
+                    activity.TriggeredActivityEvent = this;
 
             if (ActivityEvent.Outcomes.ActivityFail != null)
             {

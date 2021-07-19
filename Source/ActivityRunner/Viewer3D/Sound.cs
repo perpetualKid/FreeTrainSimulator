@@ -2681,28 +2681,28 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public void Update()
         {
-            if (Simulator.Instance.ActivityRun == null || Simulator.Instance.ActivityRun.triggeredEventWrapper == null || 
-                (Simulator.Instance.ActivityRun.triggeredEventWrapper.ActivityEvent.SoundFile == null && (Simulator.Instance.ActivityRun.triggeredEventWrapper.ActivityEvent.Outcomes == null
-                || Simulator.Instance.ActivityRun.triggeredEventWrapper.ActivityEvent.Outcomes.ActivitySound == null))) 
+            if (Simulator.Instance.ActivityRun == null || Simulator.Instance.ActivityRun.TriggeredActivityEvent == null || 
+                (Simulator.Instance.ActivityRun.TriggeredActivityEvent.ActivityEvent.SoundFile == null && (Simulator.Instance.ActivityRun.TriggeredActivityEvent.ActivityEvent.Outcomes == null
+                || Simulator.Instance.ActivityRun.TriggeredActivityEvent.ActivityEvent.Outcomes.ActivitySound == null))) 
                 return;
-            var localEventID = Simulator.Instance.ActivityRun.triggeredEventWrapper.ActivityEvent.ID;
+            var localEventID = Simulator.Instance.ActivityRun.TriggeredActivityEvent.ActivityEvent.ID;
             string ORTSActSoundFile;
             OrtsActivitySoundFileType ORTSActSoundFileType;
             ActivitySound activitySound = null;
-            if (Simulator.Instance.ActivityRun.triggeredEventWrapper.ActivityEvent.Outcomes == null
-                || Simulator.Instance.ActivityRun.triggeredEventWrapper.ActivityEvent.Outcomes.ActivitySound == null)
+            if (Simulator.Instance.ActivityRun.TriggeredActivityEvent.ActivityEvent.Outcomes == null
+                || Simulator.Instance.ActivityRun.TriggeredActivityEvent.ActivityEvent.Outcomes.ActivitySound == null)
             {
-                ORTSActSoundFile = Simulator.Instance.ActivityRun.triggeredEventWrapper.ActivityEvent.SoundFile;
-                ORTSActSoundFileType = Simulator.Instance.ActivityRun.triggeredEventWrapper.ActivityEvent.SoundFileType;
+                ORTSActSoundFile = Simulator.Instance.ActivityRun.TriggeredActivityEvent.ActivityEvent.SoundFile;
+                ORTSActSoundFileType = Simulator.Instance.ActivityRun.TriggeredActivityEvent.ActivityEvent.SoundFileType;
             }
             else
             {
-                activitySound = Simulator.Instance.ActivityRun.triggeredEventWrapper.ActivityEvent.Outcomes.ActivitySound;
+                activitySound = Simulator.Instance.ActivityRun.TriggeredActivityEvent.ActivityEvent.Outcomes.ActivitySound;
                 ORTSActSoundFile = activitySound.SoundFile;
                 ORTSActSoundFileType = activitySound.SoundFileType;
             }
-            var train = Simulator.Instance.ActivityRun.triggeredEventWrapper.Train;
-            Simulator.Instance.ActivityRun.triggeredEventWrapper = null;
+            var train = Simulator.Instance.ActivityRun.TriggeredActivityEvent.Train;
+            Simulator.Instance.ActivityRun.TriggeredActivityEvent = null;
             var extension = Path.GetExtension(ORTSActSoundFile);
             SoundSource ActivitySounds;
             switch (extension)
