@@ -26,6 +26,7 @@ using Orts.Common;
 using Orts.Common.Position;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation;
+using Orts.Simulation.Activities;
 
 namespace Orts.ActivityRunner.Viewer3D.Popups
 {
