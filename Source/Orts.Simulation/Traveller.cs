@@ -332,22 +332,37 @@ namespace Orts.Simulation
         /// <summary>
         /// Creates a copy of another traveller, starting in the same location and with the same direction.
         /// </summary>
-        /// <param name="copy">The other traveller to copy.</param>
-        public Traveller(Traveller copy)
+        /// <param name="source">The other traveller to copy.</param>
+        public Traveller(Traveller source)
         {
-            if (copy == null) throw new ArgumentNullException("copy");
-            TSectionDat = copy.TSectionDat;
-            TrackNodes = copy.TrackNodes;
-            Copy(copy);
+            if (source == null) 
+                throw new ArgumentNullException(nameof(source));
+
+            TSectionDat = source.TSectionDat;
+            TrackNodes = source.TrackNodes;
+
+            locationSet = source.locationSet;
+            location = source.location;
+            direction = source.direction;
+            directionVector = source.directionVector;
+            trackOffset = source.trackOffset;
+            TrackNodeIndex = source.TrackNodeIndex;
+            trackNode = source.trackNode;
+            TrackVectorSectionIndex = source.TrackVectorSectionIndex;
+            trackVectorSection = source.trackVectorSection;
+            trackSection = source.trackSection;
+            lengthSet = source.lengthSet;
+            trackNodeLength = source.trackNodeLength;
+            trackNodeOffset = source.trackNodeOffset;
         }
 
         /// <summary>
         /// Creates a copy of another traveller, starting in the same location but with the specified change of direction.
         /// </summary>
-        /// <param name="copy">The other traveller to copy.</param>
-        /// <param name="reversed">Specifies whether to go the same direction as the <paramref name="copy"/> (Forward) or flip direction (Backward).</param>
-        public Traveller(Traveller copy, TravellerDirection reversed)
-            : this(copy)
+        /// <param name="source">The other traveller to copy.</param>
+        /// <param name="reversed">Specifies whether to go the same direction as the <paramref name="source"/> (Forward) or flip direction (Backward).</param>
+        public Traveller(Traveller source, TravellerDirection reversed)
+            : this(source)
         {
             if (reversed == TravellerDirection.Backward)
                 Direction = Direction == TravellerDirection.Forward ? TravellerDirection.Backward : TravellerDirection.Forward;
@@ -593,23 +608,6 @@ namespace Orts.Simulation
 
             traveller.InitFromCandidate(candidate);
             return true;
-        }
-
-        private void Copy(Traveller copy)
-        {
-            locationSet = copy.locationSet;
-            location = copy.location;
-            direction = copy.direction;
-            directionVector = copy.directionVector;
-            trackOffset = copy.trackOffset;
-            TrackNodeIndex = copy.TrackNodeIndex;
-            trackNode = copy.trackNode;
-            TrackVectorSectionIndex = copy.TrackVectorSectionIndex;
-            trackVectorSection = copy.trackVectorSection;
-            trackSection = copy.trackSection;
-            lengthSet = copy.lengthSet;
-            trackNodeLength = copy.trackNodeLength;
-            trackNodeOffset = copy.trackNodeOffset;
         }
 
         /// <summary>

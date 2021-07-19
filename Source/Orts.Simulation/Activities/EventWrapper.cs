@@ -24,6 +24,7 @@ using System.Linq;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation.Physics;
 using Orts.Formats.Msts;
+using Orts.Common.Position;
 
 namespace Orts.Simulation.Activities
 {
@@ -130,6 +131,39 @@ namespace Orts.Simulation.Activities
                 Simulator.Instance.RestartWaitingTrain(restartWaitingTrain);
             }
             return false;
+        }
+
+        /// <summary>Maximum size of a platform or station we use for searching forward and backward</summary>
+        protected const float maxPlatformOrStationSize = 10000f;
+
+        private protected static DistanceResult CalculateToPoint(Traveller start, in WorldLocation target)
+        {
+            Traveller poiTraveller;
+            poiTraveller = new Traveller(start);
+
+            // Find distance once
+            float distance = poiTraveller.DistanceTo(target, maxPlatformOrStationSize);
+
+            // If valid
+            if (distance > 0)
+            {
+                return DistanceResult.Valid;
+            }
+            else
+            {
+                // Go to opposite direction
+                poiTraveller = new Traveller(start, Traveller.TravellerDirection.Backward);
+
+                distance = poiTraveller.DistanceTo(target, maxPlatformOrStationSize);
+                // If valid, it is behind us
+                if (distance > 0)
+                {
+                    return DistanceResult.Behind;
+                }
+            }
+
+            // Otherwise off path
+            return DistanceResult.OffPath;
         }
     }
 
@@ -349,36 +383,22 @@ namespace Orts.Simulation.Activities
                 return true;
             }
 
-            TDBTravellerDistanceCalculatorHelper helper;
-            TDBTravellerDistanceCalculatorHelper.DistanceResult distanceEnd1;
-            TDBTravellerDistanceCalculatorHelper.DistanceResult distanceEnd2;
-
-            // Front calcs
-            helper = new TDBTravellerDistanceCalculatorHelper(frontPosition);
-
-            distanceEnd1 = helper.CalculateToPoint(sidingEnd1.Location);
-            distanceEnd2 = helper.CalculateToPoint(sidingEnd2.Location);
+            DistanceResult distanceEnd1 = CalculateToPoint(frontPosition, sidingEnd1.Location);
+            DistanceResult distanceEnd2 = CalculateToPoint(frontPosition, sidingEnd2.Location);
 
             // If front between the ends of the siding
-            if (((distanceEnd1 == TDBTravellerDistanceCalculatorHelper.DistanceResult.Behind
-                && distanceEnd2 == TDBTravellerDistanceCalculatorHelper.DistanceResult.Valid)
-                || (distanceEnd1 == TDBTravellerDistanceCalculatorHelper.DistanceResult.Valid
-                && distanceEnd2 == TDBTravellerDistanceCalculatorHelper.DistanceResult.Behind)))
+            if (((distanceEnd1 == DistanceResult.Behind && distanceEnd2 == DistanceResult.Valid)
+                || (distanceEnd1 == DistanceResult.Valid && distanceEnd2 == DistanceResult.Behind)))
             {
                 return true;
             }
 
-            // Rear calcs
-            helper = new TDBTravellerDistanceCalculatorHelper(rearPosition);
-
-            distanceEnd1 = helper.CalculateToPoint(sidingEnd1.Location);
-            distanceEnd2 = helper.CalculateToPoint(sidingEnd2.Location);
+            distanceEnd1 = CalculateToPoint(rearPosition, sidingEnd1.Location);
+            distanceEnd2 = CalculateToPoint(rearPosition, sidingEnd2.Location);
 
             // If rear between the ends of the siding
-            if (((distanceEnd1 == TDBTravellerDistanceCalculatorHelper.DistanceResult.Behind
-                && distanceEnd2 == TDBTravellerDistanceCalculatorHelper.DistanceResult.Valid)
-                || (distanceEnd1 == TDBTravellerDistanceCalculatorHelper.DistanceResult.Valid
-                && distanceEnd2 == TDBTravellerDistanceCalculatorHelper.DistanceResult.Behind)))
+            if (((distanceEnd1 == DistanceResult.Behind && distanceEnd2 == DistanceResult.Valid)
+                || (distanceEnd1 == DistanceResult.Valid && distanceEnd2 == DistanceResult.Behind)))
             {
                 return true;
             }
@@ -452,6 +472,14 @@ namespace Orts.Simulation.Activities
             bool triggered = (timeActivityEvent.Time <= (int)Simulator.Instance.ClockTime - activity.startTimeS);
             return triggered;
         }
+
     }
 
+    // Result of calculation
+    internal enum DistanceResult
+    {
+        Valid,
+        Behind,
+        OffPath,
+    }
 }
