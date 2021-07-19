@@ -69,7 +69,7 @@ namespace Orts.Simulation.Activities
         private bool stationStopLogActive;   // logging is active
         public EventWrapper TriggeredActivityEvent { get; set; }        // used for exchange with Sound.cs to trigger activity sounds;
         public bool NewMessageFromNewPlayer { get; set; } // flag to indicate to ActivityWindow that there is a new message to be shown;
-        public string MessageFromNewPlayer { get; private set; } // string to be displayed in ActivityWindow
+        public string MessageFromNewPlayer { get; internal set; } // string to be displayed in ActivityWindow
 
         public ICollection<TempSpeedPostItem> TempSpeedPostItems { get; private set; }
 
