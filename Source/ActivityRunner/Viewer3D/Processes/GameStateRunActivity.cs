@@ -224,7 +224,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                         else if (error is InvalidCommandLineException)
                             MessageBox.Show($"{RuntimeInfo.ProductName} was started with an invalid command-line. {error.Message} Arguments given:\n\n{string.Join("\n", data.Select(d => "\u2022 " + d).ToArray())}",
                                 $"{RuntimeInfo.ProductName} {VersionInfo.Version}", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        else if (error is Traveller.MissingTrackNodeException)
+                        else if (error is MissingTrackNodeException)
                             MessageBox.Show($"{RuntimeInfo.ProductName} detected a track section which is not present in tsection.dat and cannot continue.\n\n" +
                                 "Most likely you don't have the XTracks or Ytracks version needed for this route.",
                                 $"{RuntimeInfo.ProductName} {VersionInfo.Version}", MessageBoxButtons.OK, MessageBoxIcon.Error);

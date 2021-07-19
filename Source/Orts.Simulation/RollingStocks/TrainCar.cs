@@ -2187,7 +2187,7 @@ namespace Orts.Simulation.RollingStocks
             if (elapsedTimeS > 0.25)
                 return;
 
-            CurrentCurveRadius = traveler.GetCurveRadius();
+            CurrentCurveRadius = traveler.CurveRadius();
             UpdateVibrationAndTilting(traveler, elapsedTimeS, distanceM, speedMpS);
             UpdateSuperElevation(traveler, elapsedTimeS);
         }
