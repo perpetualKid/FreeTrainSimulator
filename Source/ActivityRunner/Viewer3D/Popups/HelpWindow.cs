@@ -22,17 +22,18 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Orts.Simulation;
-using Orts.Simulation.Physics;
-using Orts.Simulation.RollingStocks;
+
 using Orts.Common;
+using Orts.Common.Info;
 using Orts.Common.Input;
+using Orts.Formats.Msts.Models;
 using Orts.Settings;
 using Orts.Settings.Util;
-using Orts.Formats.Msts.Models;
-using Orts.Common.Info;
+using Orts.Simulation;
+using Orts.Simulation.RollingStocks;
 
 namespace Orts.ActivityRunner.Viewer3D.Popups
 {
@@ -138,12 +139,12 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                 Label arrive, depart;
                                 var line = scrollbox.AddLayoutHorizontalLineOfText();
                                 line.Add(new Label(colWidth * 3, line.RemainingHeight, stopAt.PlatformEnd1.Station));
-                                line.Add(new Label(colWidth, line.RemainingHeight, stopAt.SchArrive.ToString("HH:mm:ss"), LabelAlignment.Center));
-                                line.Add(arrive = new Label(colWidth, line.RemainingHeight, stopAt.ActArrive.HasValue ? stopAt.ActArrive.Value.ToString("HH:mm:ss") : stopAt.IsCompleted.HasValue && task.NextTask != null ? Viewer.Catalog.GetString("(missed)") : "", LabelAlignment.Center));
-                                line.Add(new Label(colWidth, line.RemainingHeight, stopAt.SchDepart.ToString("HH:mm:ss"), LabelAlignment.Center));
-                                line.Add(depart = new Label(colWidth, line.RemainingHeight, stopAt.ActDepart.HasValue ? stopAt.ActDepart.Value.ToString("HH:mm:ss") : stopAt.IsCompleted.HasValue && task.NextTask != null ? Viewer.Catalog.GetString("(missed)") : "", LabelAlignment.Center));
-                                arrive.Color = NextStationWindow.GetArrivalColor(stopAt.SchArrive, stopAt.ActArrive);
-                                depart.Color = NextStationWindow.GetDepartColor(stopAt.SchDepart, stopAt.ActDepart);
+                                line.Add(new Label(colWidth, line.RemainingHeight, stopAt.ScheduledArrival.ToString("c"), LabelAlignment.Center));
+                                line.Add(arrive = new Label(colWidth, line.RemainingHeight, stopAt.ActualArrival.HasValue ? stopAt.ActualArrival.Value.ToString("c") : stopAt.IsCompleted.HasValue && task.NextTask != null ? Viewer.Catalog.GetString("(missed)") : "", LabelAlignment.Center));
+                                line.Add(new Label(colWidth, line.RemainingHeight, stopAt.ScheduledDeparture.ToString("c"), LabelAlignment.Center));
+                                line.Add(depart = new Label(colWidth, line.RemainingHeight, stopAt.ActualDeparture.HasValue ? stopAt.ActualDeparture.Value.ToString("c") : stopAt.IsCompleted.HasValue && task.NextTask != null ? Viewer.Catalog.GetString("(missed)") : "", LabelAlignment.Center));
+                                arrive.Color = NextStationWindow.GetArrivalColor(stopAt.ScheduledArrival, stopAt.ActualArrival);
+                                depart.Color = NextStationWindow.GetDepartColor(stopAt.ScheduledDeparture, stopAt.ActualDeparture);
                             }
                         }
                     }
@@ -332,8 +333,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
                         //Activity status
                         bool dbfevalisfinished = owner.Viewer.Simulator.ActivityRun.IsFinished;
-                        bool dbfevalissuccessful = owner.Viewer.Simulator.ActivityRun.IsSuccessful;
-                        bool dbfevaliscompleted = owner.Viewer.Simulator.ActivityRun.IsComplete;
+                        bool dbfevalissuccessful = owner.Viewer.Simulator.ActivityRun.Succeeded;
+                        bool dbfevaliscompleted = owner.Viewer.Simulator.ActivityRun.Completed;
                         line.Add(indicator = new Label(colWidth, line.RemainingHeight, dbfevalisfinished | dbfevalissuccessful | dbfevaliscompleted ? Viewer.Catalog.GetString("This Activity has ended.") : Viewer.Catalog.GetString("")));
                         indicator.Color = dbfevalisfinished | dbfevalissuccessful | dbfevaliscompleted ? Color.LightSalmon : Color.Black;
                         line = scrollbox.AddLayoutHorizontalLineOfText();
@@ -356,14 +357,14 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                     Label depart = new Label(colWidth, line.RemainingWidth, "");
 
                                     //Debrief eval. Avoid to reolad data
-                                    arrive.Text = stopAt.ActArrive.HasValue ? stopAt.ActArrive.Value.ToString("HH:mm:ss") : stopAt.IsCompleted.HasValue && task.NextTask != null ? "(missed)" : "";
-                                    depart.Text = stopAt.ActDepart.HasValue ? stopAt.ActDepart.Value.ToString("HH:mm:ss") : stopAt.IsCompleted.HasValue && task.NextTask != null ? "(missed)" : "";
+                                    arrive.Text = stopAt.ActualArrival.HasValue ? stopAt.ActualArrival.Value.ToString("c") : stopAt.IsCompleted.HasValue && task.NextTask != null ? "(missed)" : "";
+                                    depart.Text = stopAt.ActualDeparture.HasValue ? stopAt.ActualDeparture.Value.ToString("c") : stopAt.IsCompleted.HasValue && task.NextTask != null ? "(missed)" : "";
                                     if (!DbfEvalStationName.ContainsKey(dbfeval))
                                     {
                                         DbfEvalStationName.Add(dbfeval, stopAt.PlatformEnd1.Station);
-                                        DbfEvalSchArrive.Add(dbfeval, stopAt.SchArrive.ToString("HH:mm:ss"));
+                                        DbfEvalSchArrive.Add(dbfeval, stopAt.ScheduledArrival.ToString("c"));
                                         DbfEvalActArrive.Add(dbfeval, arrive.Text);
-                                        DbfEvalSchDepart.Add(dbfeval, stopAt.SchDepart.ToString("HH:mm:ss"));
+                                        DbfEvalSchDepart.Add(dbfeval, stopAt.ScheduledDeparture.ToString("c"));
                                         DbfEvalActDepart.Add(dbfeval, depart.Text);
                                     }
                                     else if (DbfEvalActArrive[dbfeval] != arrive.Text | DbfEvalActDepart[dbfeval] != depart.Text)
@@ -563,7 +564,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                 DbfEvalValues.Add(lcurvespeeddependent ? "Curve speeds exceeded" : "Curve dependent speed limit (Disabled)", lcurvespeeddependent ? TrainCar.DbfEvalTravellingTooFast : 0);
                                 if (playerTrain.Delay != null) DbfEvalValues.Add("Activity, current delay", (long)playerTrain.Delay.Value.TotalMinutes);
 
-                                DbfEvalValues.Add("Departure before passenger boarding completed", ActivityTaskPassengerStopAt.DbfEvalDepartBeforeBoarding.Count);
+                                DbfEvalValues.Add("Departure before passenger boarding completed", ActivityTaskPassengerStopAt.DebriefEvalDepartBeforeBoarding.Count);
                                 DbfEvalValues.Add("Distance travelled", DbfEvalDistanceTravelled + locomotive.DistanceM);
                                 DbfEvalValues.Add("Emergency applications while moving", RollingStock.MSTSLocomotiveViewer.DbfEvalEBPBmoving);
                                 DbfEvalValues.Add("Emergency applications while stopped", RollingStock.MSTSLocomotiveViewer.DbfEvalEBPBstopped);
@@ -783,7 +784,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             double nstationmissed = 0;
                             double nstationdelayed = 0;
                             double nstationarrival = DbfEvalStationName.Count - dbfstationstopsremaining - nmissedstation;
-                            int ndepartbeforeboarding = ActivityTaskPassengerStopAt.DbfEvalDepartBeforeBoarding.Count;
+                            int ndepartbeforeboarding = ActivityTaskPassengerStopAt.DebriefEvalDepartBeforeBoarding.Count;
                             var stationmissed = "";
 
                             if (DbfEvalStationName.Count > 0)
@@ -1240,9 +1241,9 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
             if (updateFull && (Tabs[ActiveTab].Tab == Tab.ActivityTimetable | Tabs[ActiveTab].Tab == Tab.ActivityEvaluation) && Owner.Viewer.Simulator.ActivityRun != null)
             {
-                if (LastActivityTask != Owner.Viewer.Simulator.ActivityRun.Current || StoppedAt != GetStoppedAt(LastActivityTask))
+                if (LastActivityTask != Owner.Viewer.Simulator.ActivityRun.ActivityTask || StoppedAt != GetStoppedAt(LastActivityTask))
                 {
-                    LastActivityTask = Owner.Viewer.Simulator.ActivityRun.Current;
+                    LastActivityTask = Owner.Viewer.Simulator.ActivityRun.ActivityTask;
                     StoppedAt = GetStoppedAt(LastActivityTask);
                     Layout();
                 }
@@ -1279,9 +1280,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
         private static bool GetStoppedAt(ActivityTask task)
         {
-            var stopAtTask = task as ActivityTaskPassengerStopAt;
-            if (stopAtTask != null)
-                return stopAtTask.ActArrive != null;
+            if (task is ActivityTaskPassengerStopAt stopAtTask)
+                return stopAtTask.ActualArrival != null;
             return false;
         }
     }

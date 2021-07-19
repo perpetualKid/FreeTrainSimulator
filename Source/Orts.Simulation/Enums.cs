@@ -60,6 +60,7 @@ namespace Orts.Simulation
 
     public enum EndAuthorityType
     {
+#pragma warning disable CA1700 // Do not name enum values 'Reserved'
         [Description("End Trck")]EndOfTrack,
         [Description("End Path")] EndOfPath,
         [Description("Switch")] ReservedSwitch,
@@ -69,6 +70,7 @@ namespace Orts.Simulation
         [Description("Signal")] Signal,                                       // in Manual mode only
         [Description("End Auth")] EndOfAuthority,                             // when moving backward in Auto mode
         [Description("No Path")] NoPathReserved,
+#pragma warning restore CA1700 // Do not name enum values 'Reserved'
     }
 
     public enum TrainType
@@ -143,5 +145,12 @@ namespace Orts.Simulation
         Reset             // used to clear state
     }
 
-
+    public enum ActivityEventType
+    {
+        Timer,
+        TrainStart,
+        TrainStop,
+        Couple,
+        Uncouple
+    }
 }

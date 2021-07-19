@@ -116,7 +116,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             this.Activity.TriggeredEvent = null;
             Owner.Viewer.Simulator.GamePaused = false;   // Move to Viewer3D?
             this.Activity.IsActivityResumed = !Owner.Viewer.Simulator.GamePaused;
-            Activity.IsComplete = true;
+            Activity.CompleteActivity();
             if (Owner.Viewer.Simulator.IsReplaying) Owner.Viewer.Simulator.Confirmer.Confirm(CabControl.Activity, CabSetting.Off);
             Owner.Viewer.Game.PopState();
         }
@@ -161,7 +161,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     var e = Activity.ReopenActivityWindow ? Activity.LastTriggeredEvent : Activity.TriggeredEvent;
                     if (e != null)
                     {
-                        if (Activity.IsComplete)
+                        if (Activity.Completed)
                         {
                             if (Owner.Viewer.Settings.DebriefActivityEval && !Owner.Viewer.HelpWindow.Visible)
                             {//Show evaluation info.
@@ -174,7 +174,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             }
                             Visible = Activity.IsActivityWindowOpen = Owner.Viewer.HelpWindow.ActivityUpdated = Owner.Viewer.Simulator.GamePaused = true;
                             ComposeMenu(e.ParsedObject.Name, Viewer.Catalog.GetString("This activity has ended {0}.\nFor a detailed evaluation, see the Help Window (F1).",
-                                Activity.IsSuccessful ? Viewer.Catalog.GetString("") : Viewer.Catalog.GetString("without success")));
+                                Activity.Succeeded ? Viewer.Catalog.GetString("") : Viewer.Catalog.GetString("without success")));
                             EndMenu();
                         }
                         else

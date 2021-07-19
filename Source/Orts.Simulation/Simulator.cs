@@ -188,7 +188,7 @@ namespace Orts.Simulation
         public bool IsAutopilotMode { get; private set; }
 
         public bool UpdaterWorking { get; set; }
-        public Train OriginalPlayerTrain { get; set; } // Used in Activity mode
+        public Train OriginalPlayerTrain { get; private set; } // Used in Activity mode
 
         public bool PlayerIsInCab { get; set; }
         public bool MilepostUnitsMetric { get; private set; }

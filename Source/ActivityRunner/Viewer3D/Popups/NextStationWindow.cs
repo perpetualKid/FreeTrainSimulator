@@ -555,7 +555,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 // activity information
                 if (act != null && playerTrain == Owner.Viewer.Simulator.OriginalPlayerTrain)
                 {
-                    Current = act.Current == null ? act.Last as ActivityTaskPassengerStopAt : act.Current as ActivityTaskPassengerStopAt;
+                    Current = act.ActivityTask == null ? act.Last as ActivityTaskPassengerStopAt : act.ActivityTask as ActivityTaskPassengerStopAt;
 
                     at = Current != null ? Current.PrevTask as ActivityTaskPassengerStopAt : null;
                     InfoAvail = true;
@@ -566,16 +566,16 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     if (at != null)
                     {
                         StationPreviousName.Text = at.PlatformEnd1.Station;
-                        StationPreviousArriveScheduled.Text = at.SchArrive.ToString("HH:mm:ss");
-                        StationPreviousArriveActual.Text = at.ActArrive.HasValue ? at.ActArrive.Value.ToString("HH:mm:ss") : Viewer.Catalog.GetString("(missed)");
-                        StationPreviousArriveActual.Color = GetArrivalColor(at.SchArrive, at.ActArrive);
-                        StationPreviousDepartScheduled.Text = at.SchDepart.ToString("HH:mm:ss");
-                        StationPreviousDepartActual.Text = at.ActDepart.HasValue ? at.ActDepart.Value.ToString("HH:mm:ss") : Viewer.Catalog.GetString("(missed)");
-                        StationPreviousDepartActual.Color = GetDepartColor(at.SchDepart, at.ActDepart);
+                        StationPreviousArriveScheduled.Text = at.ScheduledArrival.ToString("c");
+                        StationPreviousArriveActual.Text = at.ActualArrival.HasValue ? at.ActualArrival.Value.ToString("c") : Viewer.Catalog.GetString("(missed)");
+                        StationPreviousArriveActual.Color = GetArrivalColor(at.ScheduledArrival, at.ActualArrival);
+                        StationPreviousDepartScheduled.Text = at.ScheduledDeparture.ToString("c");
+                        StationPreviousDepartActual.Text = at.ActualDeparture.HasValue ? at.ActualDeparture.Value.ToString("c") : Viewer.Catalog.GetString("(missed)");
+                        StationPreviousDepartActual.Color = GetDepartColor(at.ScheduledDeparture, at.ActualDeparture);
 
                         StationPreviousDistance.Text = "";
                         if (playerTrain.StationStops.Count > 0 && playerTrain.StationStops[0].PlatformItem != null &&
-                            String.Compare(playerTrain.StationStops[0].PlatformItem.Name, StationPreviousName.Text) == 0 &&
+                            string.Equals(playerTrain.StationStops[0].PlatformItem.Name, StationPreviousName.Text, StringComparison.OrdinalIgnoreCase) &&
                             playerTrain.StationStops[0].DistanceToTrainM > 0 && playerTrain.StationStops[0].DistanceToTrainM != 9999999f)
                         {
                             StationPreviousDistance.Text = FormatStrings.FormatDistanceDisplay(playerTrain.StationStops[0].DistanceToTrainM, metric);
@@ -596,10 +596,10 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     {
                         StationPlatform.Text = at.PlatformEnd1.ItemName;
                         StationCurrentName.Text = at.PlatformEnd1.Station;
-                        StationCurrentArriveScheduled.Text = at.SchArrive.ToString("HH:mm:ss");
-                        StationCurrentArriveActual.Text = at.ActArrive.HasValue ? at.ActArrive.Value.ToString("HH:mm:ss") : "";
-                        StationCurrentArriveActual.Color = GetArrivalColor(at.SchArrive, at.ActArrive);
-                        StationCurrentDepartScheduled.Text = at.SchDepart.ToString("HH:mm:ss");
+                        StationCurrentArriveScheduled.Text = at.ScheduledArrival.ToString("c");
+                        StationCurrentArriveActual.Text = at.ActualArrival.HasValue ? at.ActualArrival.Value.ToString("c") : "";
+                        StationCurrentArriveActual.Color = GetArrivalColor(at.ScheduledArrival, at.ActualArrival);
+                        StationCurrentDepartScheduled.Text = at.ScheduledDeparture.ToString("c");
                         Message.Color = at.DisplayColor;
                         Message.Text = at.DisplayMessage;
 
@@ -626,8 +626,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     if (at != null)
                     {
                         StationNextName.Text = at.PlatformEnd1.Station;
-                        StationNextArriveScheduled.Text = at.SchArrive.ToString("HH:mm:ss");
-                        StationNextDepartScheduled.Text = at.SchDepart.ToString("HH:mm:ss");
+                        StationNextArriveScheduled.Text = at.ScheduledArrival.ToString("c");
+                        StationNextDepartScheduled.Text = at.ScheduledDeparture.ToString("c");
 
                         StationNextDistance.Text = "";
                         if (playerTrain.StationStops.Count > 0 && playerTrain.StationStops[0].PlatformItem != null &&
@@ -645,7 +645,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                         StationNextDistance.Text = "";
                     }
 
-                    if (act != null && act.IsComplete)
+                    if (act != null && act.Completed)
                     {
                         Message.Text = Viewer.Catalog.GetString("Activity completed.");
                     }
@@ -653,14 +653,14 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             }
         }
 
-        public static Color GetArrivalColor(DateTime expected, DateTime? actual)
+        public static Color GetArrivalColor(TimeSpan expected, TimeSpan? actual)
         {
             if (actual.HasValue && actual.Value <= expected)
                 return Color.LightGreen;
             return Color.LightSalmon;
         }
 
-        public static Color GetDepartColor(DateTime expected, DateTime? actual)
+        public static Color GetDepartColor(TimeSpan expected, TimeSpan? actual)
         {
             if (actual.HasValue && actual.Value >= expected)
                 return Color.LightGreen;

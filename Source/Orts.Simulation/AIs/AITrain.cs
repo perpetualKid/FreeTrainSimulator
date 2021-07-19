@@ -1026,8 +1026,7 @@ namespace Orts.Simulation.AIs
         public virtual void SetNextStationAction(bool fromAutopilotSwitch = false)
         {
             // if train is player driven and is at station, do nothing
-            if (TrainType == TrainType.AiPlayerDriven && this == simulator.OriginalPlayerTrain && simulator.ActivityRun.Current is ActivityTaskPassengerStopAt &&
-                ((ActivityTaskPassengerStopAt)simulator.ActivityRun.Current).IsAtStation(this)) return;
+            if (TrainType == TrainType.AiPlayerDriven && this == simulator.OriginalPlayerTrain && simulator.ActivityRun.ActivityTask is ActivityTaskPassengerStopAt && TrainAtStation()) return;
 
             // check if station in this subpath
 
@@ -1051,7 +1050,7 @@ namespace Orts.Simulation.AIs
             // get distance to station, but not if just after switch to Autopilot and not during station stop
             bool validStop = false;
             if (!fromAutopilotSwitch || (simulator.PlayerLocomotive != null && simulator.ActivityRun != null && !(
-                this == simulator.OriginalPlayerTrain && simulator.ActivityRun.Current is ActivityTaskPassengerStopAt && ((ActivityTaskPassengerStopAt)simulator.ActivityRun.Current).IsAtStation(this))))
+                this == simulator.OriginalPlayerTrain && simulator.ActivityRun.ActivityTask is ActivityTaskPassengerStopAt && TrainAtStation())))
             {
                 while (!validStop)
                 {
@@ -5145,11 +5144,11 @@ namespace Orts.Simulation.AIs
             }
             ResetActions(true, true);
             if (SpeedMpS != 0) MovementState = AiMovementState.Braking;
-            else if (this == simulator.OriginalPlayerTrain && simulator.ActivityRun != null && simulator.ActivityRun.Current is ActivityTaskPassengerStopAt && ((ActivityTaskPassengerStopAt)simulator.ActivityRun.Current).IsAtStation(this) &&
-                ((ActivityTaskPassengerStopAt)simulator.ActivityRun.Current).BoardingS > 0)
+            else if (this == simulator.OriginalPlayerTrain && simulator.ActivityRun != null && simulator.ActivityRun.ActivityTask is ActivityTaskPassengerStopAt at && TrainAtStation() &&
+                at.BoardingS > 0)
             {
-                StationStops[0].ActualDepart = (int)((ActivityTaskPassengerStopAt)simulator.ActivityRun.Current).BoardingEndS;
-                StationStops[0].ActualArrival = -(int)(new DateTime().Add(TimeSpan.FromSeconds(0.0)) - ((ActivityTaskPassengerStopAt)simulator.ActivityRun.Current).ActArrive).Value.TotalSeconds;
+                StationStops[0].ActualDepart = (int)at.BoardingEndS;
+                StationStops[0].ActualArrival = (int)at.ActualArrival.GetValueOrDefault(at.ScheduledArrival).TotalSeconds;
                 MovementState = AiMovementState.StationStop;
             }
             else if (this != simulator.OriginalPlayerTrain && AtStation)

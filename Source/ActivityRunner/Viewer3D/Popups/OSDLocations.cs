@@ -67,7 +67,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             var activity = Owner.Viewer.Simulator.ActivityRun;
 
             // Update every 10s or when the current activity task changes.
-            if (--PlatformUpdate <= 0 || stationStops.Count != StationStopsCount || (activity != null && activity.Current != ActivityCurrentTask))
+            if (--PlatformUpdate <= 0 || stationStops.Count != StationStopsCount || (activity != null && activity.ActivityTask != ActivityCurrentTask))
             {
                 PlatformUpdate = 40;
 
@@ -109,7 +109,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
                 StationStopsCount = stationStops.Count;
                 if (activity != null)
-                    ActivityCurrentTask = activity.Current;
+                    ActivityCurrentTask = activity.ActivityTask;
             }
         }
 

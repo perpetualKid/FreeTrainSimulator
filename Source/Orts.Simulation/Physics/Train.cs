@@ -9267,8 +9267,8 @@ namespace Orts.Simulation.Physics
                     platform.TCSectionIndex[0] :
                     platform.TCSectionIndex[platform.TCSectionIndex.Count - 1];
 
-                float endOffset = platform.TrackCircuitOffset[Location.FarEnd, (TrackDirection)routeElement.Direction];
-                float beginOffset = platform.TrackCircuitOffset[Location.NearEnd, (TrackDirection)routeElement.Direction];
+                float endOffset = platform.TrackCircuitOffset[Location.FarEnd, routeElement.Direction];
+                float beginOffset = platform.TrackCircuitOffset[Location.NearEnd, routeElement.Direction];
 
                 float deltaLength = platform.Length - Length; // platform length - train length
 
@@ -10486,7 +10486,7 @@ namespace Orts.Simulation.Physics
 
             if (this == simulator.OriginalPlayerTrain)
             {
-                if (simulator.ActivityRun?.Current is ActivityTaskPassengerStopAt passengerStop && passengerStop.BoardingS > 0)
+                if (simulator.ActivityRun?.ActivityTask is ActivityTaskPassengerStopAt passengerStop && passengerStop.BoardingS > 0)
                 {
                     movString = "STA";
                     abString = $"{TimeSpan.FromSeconds(passengerStop.BoardingEndS):c}";
@@ -12206,6 +12206,21 @@ namespace Orts.Simulation.Physics
                 locoUnpowered = true;
             }
             return (locoUnpowered, startIndex);
+        }
+
+        /// <summary>
+        /// Determines if the train is at station.
+        /// Tests for either the front or the rear of the train is within the platform.
+        /// </summary>
+        /// <returns></returns>
+        public bool TrainAtStation()
+        {
+            if (StationStops.Count == 0)
+                return false;
+            if (StationStops[0].SubrouteIndex != TCRoute.ActiveSubPath)
+                return false;
+            StationStop station = StationStops[0];
+            return CheckStationPosition(station.PlatformItem, station.Direction, station.TrackCircuitSectionIndex);
         }
 
         //================================================================================================//
