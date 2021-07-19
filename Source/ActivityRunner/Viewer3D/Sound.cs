@@ -2682,22 +2682,22 @@ namespace Orts.ActivityRunner.Viewer3D
         public void Update()
         {
             if (Simulator.Instance.ActivityRun == null || Simulator.Instance.ActivityRun.triggeredEventWrapper == null || 
-                (Simulator.Instance.ActivityRun.triggeredEventWrapper.ParsedObject.SoundFile == null && (Simulator.Instance.ActivityRun.triggeredEventWrapper.ParsedObject.Outcomes == null
-                || Simulator.Instance.ActivityRun.triggeredEventWrapper.ParsedObject.Outcomes.ActivitySound == null))) 
+                (Simulator.Instance.ActivityRun.triggeredEventWrapper.ActivityEvent.SoundFile == null && (Simulator.Instance.ActivityRun.triggeredEventWrapper.ActivityEvent.Outcomes == null
+                || Simulator.Instance.ActivityRun.triggeredEventWrapper.ActivityEvent.Outcomes.ActivitySound == null))) 
                 return;
-            var localEventID = Simulator.Instance.ActivityRun.triggeredEventWrapper.ParsedObject.ID;
+            var localEventID = Simulator.Instance.ActivityRun.triggeredEventWrapper.ActivityEvent.ID;
             string ORTSActSoundFile;
             OrtsActivitySoundFileType ORTSActSoundFileType;
             ActivitySound activitySound = null;
-            if (Simulator.Instance.ActivityRun.triggeredEventWrapper.ParsedObject.Outcomes == null
-                || Simulator.Instance.ActivityRun.triggeredEventWrapper.ParsedObject.Outcomes.ActivitySound == null)
+            if (Simulator.Instance.ActivityRun.triggeredEventWrapper.ActivityEvent.Outcomes == null
+                || Simulator.Instance.ActivityRun.triggeredEventWrapper.ActivityEvent.Outcomes.ActivitySound == null)
             {
-                ORTSActSoundFile = Simulator.Instance.ActivityRun.triggeredEventWrapper.ParsedObject.SoundFile;
-                ORTSActSoundFileType = Simulator.Instance.ActivityRun.triggeredEventWrapper.ParsedObject.SoundFileType;
+                ORTSActSoundFile = Simulator.Instance.ActivityRun.triggeredEventWrapper.ActivityEvent.SoundFile;
+                ORTSActSoundFileType = Simulator.Instance.ActivityRun.triggeredEventWrapper.ActivityEvent.SoundFileType;
             }
             else
             {
-                activitySound = Simulator.Instance.ActivityRun.triggeredEventWrapper.ParsedObject.Outcomes.ActivitySound;
+                activitySound = Simulator.Instance.ActivityRun.triggeredEventWrapper.ActivityEvent.Outcomes.ActivitySound;
                 ORTSActSoundFile = activitySound.SoundFile;
                 ORTSActSoundFileType = activitySound.SoundFileType;
             }

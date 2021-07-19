@@ -167,7 +167,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     {
                         foreach (var @event in owner.Viewer.Simulator.ActivityRun.EventList)
                         {
-                            var eventAction = @event.ParsedObject as ActionActivityEvent;
+                            var eventAction = @event.ActivityEvent as ActionActivityEvent;
                             if (eventAction != null)
                             {
                                 if (separatorShown)
@@ -443,7 +443,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                 dbfevaltaskname = "";
                                 dbfevaltasklocation = "";
                                 dbfevaltaskstatus = "";
-                                var eventAction = @event.ParsedObject as ActionActivityEvent;
+                                var eventAction = @event.ActivityEvent as ActionActivityEvent;
                                 if (eventAction != null)
                                 {
 
@@ -1254,9 +1254,9 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 if (Owner.Viewer.Simulator.ActivityRun.EventList != null)
                 {
                     if (Owner.Viewer.Simulator.ActivityRun.LastTriggeredEvent != null && (Owner.Viewer.HelpWindow.lastLastEventID == -1 ||
-                        (Owner.Viewer.Simulator.ActivityRun.LastTriggeredEvent.ParsedObject.ID != Owner.Viewer.HelpWindow.lastLastEventID)))
+                        (Owner.Viewer.Simulator.ActivityRun.LastTriggeredEvent.ActivityEvent.ID != Owner.Viewer.HelpWindow.lastLastEventID)))
                     {
-                        lastLastEventID = Owner.Viewer.Simulator.ActivityRun.LastTriggeredEvent.ParsedObject.ID;
+                        lastLastEventID = Owner.Viewer.Simulator.ActivityRun.LastTriggeredEvent.ActivityEvent.ID;
                         Layout();
                     }
                 }

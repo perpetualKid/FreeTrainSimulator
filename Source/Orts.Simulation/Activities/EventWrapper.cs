@@ -34,32 +34,30 @@ namespace Orts.Simulation.Activities
     /// </summary>
     public abstract class EventWrapper
     {
-        public Formats.Msts.Models.ActivityEvent ParsedObject;     // Points to object parsed from file *.act
-        public int OriginalActivationLevel; // Needed to reset .ActivationLevel
-        public int TimesTriggered;          // Needed for evaluation after activity ends
-        public bool IsDisabled;          // Used for a reversible event to prevent it firing again until after it has been reset.
-        protected Simulator Simulator;
-        public Train Train;              // Train involved in event; if null actual or original player train
+        public ActivityEvent ActivityEvent { get; }     // Points to object parsed from file *.act
+        public int OriginalActivationLevel { get; internal set; } // Needed to reset .ActivationLevel
+        public int TimesTriggered { get; internal set; }          // Needed for evaluation after activity ends
+        public bool Disabled { get; internal set; }          // Used for a reversible event to prevent it firing again until after it has been reset.
+        public Train Train { get; internal set; }              // Train involved in event; if null actual or original player train
 
-        public EventWrapper(Formats.Msts.Models.ActivityEvent @event, Simulator simulator)
+        protected EventWrapper(ActivityEvent activityEvent)
         {
-            ParsedObject = @event;
-            Simulator = simulator;
+            ActivityEvent = activityEvent;
             Train = null;
         }
 
-        public virtual void Save(BinaryWriter outf)
+        internal virtual void Save(BinaryWriter outf)
         {
             outf.Write(TimesTriggered);
-            outf.Write(IsDisabled);
-            outf.Write(ParsedObject.ActivationLevel);
+            outf.Write(Disabled);
+            outf.Write(ActivityEvent.ActivationLevel);
         }
 
-        public virtual void Restore(BinaryReader inf)
+        internal virtual void Restore(BinaryReader inf)
         {
             TimesTriggered = inf.ReadInt32();
-            IsDisabled = inf.ReadBoolean();
-            ParsedObject.ActivationLevel = inf.ReadInt32();
+            Disabled = inf.ReadBoolean();
+            ActivityEvent.ActivationLevel = inf.ReadInt32();
         }
 
         /// <summary>
@@ -77,55 +75,59 @@ namespace Orts.Simulation.Activities
         /// </summary>
         /// <param name="activity"></param>
         /// <returns>true if entire activity ends here whether it succeeded or failed</returns>
-        public bool IsActivityEnded(Activity activity)
+        internal bool IsActivityEnded(Activity activity)
         {
 
-            if (ParsedObject.Reversible)
+            if (ActivityEvent.Reversible)
                 // Stop this event being actioned
-                IsDisabled = true;
+                Disabled = true;
             else
                 // Stop this event being monitored
-                ParsedObject.ActivationLevel = 0;
+                ActivityEvent.ActivationLevel = 0;
             // No further action if this reversible event has been triggered before
-            if (TimesTriggered > 1) return false;
-            if (ParsedObject.Outcomes == null) return false;
+            if (TimesTriggered > 1) 
+                return false;
+            if (ActivityEvent.Outcomes == null) 
+                return false;
             // Set Activation Level of each event in the Activate list to 1.
             // Uses lambda expression => for brevity.
-            foreach (int eventId in ParsedObject.Outcomes.ActivateList)
-                foreach (var item in activity.EventList.Where(item => item.ParsedObject.ID == eventId))
-                    item.ParsedObject.ActivationLevel = 1;
-            foreach (int eventId in ParsedObject.Outcomes.RestoreActivityLevels)
-                foreach (var item in activity.EventList.Where(item => item.ParsedObject.ID == eventId))
-                    item.ParsedObject.ActivationLevel = item.OriginalActivationLevel;
-            foreach (int eventId in ParsedObject.Outcomes.DecrementActivityLevels)
-                foreach (var item in activity.EventList.Where(item => item.ParsedObject.ID == eventId))
-                    item.ParsedObject.ActivationLevel += -1;
-            foreach (int eventId in ParsedObject.Outcomes.IncrementActivityLevels)
-                foreach (var item in activity.EventList.Where(item => item.ParsedObject.ID == eventId))
-                    item.ParsedObject.ActivationLevel += +1;
+            foreach (int eventId in ActivityEvent.Outcomes.ActivateList)
+                foreach (EventWrapper item in activity.EventList.Where(item => item.ActivityEvent.ID == eventId))
+                    item.ActivityEvent.ActivationLevel = 1;
+            foreach (int eventId in ActivityEvent.Outcomes.RestoreActivityLevels)
+                foreach (EventWrapper item in activity.EventList.Where(item => item.ActivityEvent.ID == eventId))
+                    item.ActivityEvent.ActivationLevel = item.OriginalActivationLevel;
+            foreach (int eventId in ActivityEvent.Outcomes.DecrementActivityLevels)
+                foreach (EventWrapper item in activity.EventList.Where(item => item.ActivityEvent.ID == eventId))
+                    item.ActivityEvent.ActivationLevel += -1;
+            foreach (int eventId in ActivityEvent.Outcomes.IncrementActivityLevels)
+                foreach (EventWrapper item in activity.EventList.Where(item => item.ActivityEvent.ID == eventId))
+                    item.ActivityEvent.ActivationLevel += +1;
 
             // Activity sound management
 
-            if (ParsedObject.SoundFile != null || ParsedObject.Outcomes != null && ParsedObject.Outcomes.ActivitySound != null)
-                if (activity.triggeredEventWrapper == null) activity.triggeredEventWrapper = this;
+            if (ActivityEvent.SoundFile != null || ActivityEvent.Outcomes.ActivitySound != null)
+                if (activity.triggeredEventWrapper == null) 
+                    activity.triggeredEventWrapper = this;
 
-            if (ParsedObject.WeatherChange != null || ParsedObject.Outcomes != null && ParsedObject.Outcomes.WeatherChange != null)
-                if (activity.triggeredEventWrapper == null) activity.triggeredEventWrapper = this;
+            if (ActivityEvent.WeatherChange != null || ActivityEvent.Outcomes.WeatherChange != null)
+                if (activity.triggeredEventWrapper == null) 
+                    activity.triggeredEventWrapper = this;
 
-            if (ParsedObject.Outcomes.ActivityFail != null)
+            if (ActivityEvent.Outcomes.ActivityFail != null)
             {
                 activity.Succeeded = false;
                 return true;
             }
-            if (ParsedObject.Outcomes.ActivitySuccess == true)
+            if (ActivityEvent.Outcomes.ActivitySuccess == true)
             {
                 activity.Succeeded = true;
                 return true;
             }
-            if (!string.IsNullOrEmpty(ParsedObject.Outcomes.RestartWaitingTrain?.WaitingTrainToRestart))
+            if (!string.IsNullOrEmpty(ActivityEvent.Outcomes.RestartWaitingTrain?.WaitingTrainToRestart))
             {
-                var restartWaitingTrain = ParsedObject.Outcomes.RestartWaitingTrain;
-                Simulator.RestartWaitingTrain(restartWaitingTrain);
+                RestartWaitingTrain restartWaitingTrain = ActivityEvent.Outcomes.RestartWaitingTrain;
+                Simulator.Instance.RestartWaitingTrain(restartWaitingTrain);
             }
             return false;
         }
@@ -133,22 +135,21 @@ namespace Orts.Simulation.Activities
 
     public class EventCategoryActionWrapper : EventWrapper
     {
-        private SidingItem SidingEnd1;
-        private SidingItem SidingEnd2;
-        private List<string> ChangeWagonIdList;   // Wagons to be assembled, picked up or dropped off.
+        private readonly SidingItem sidingEnd1;
+        private readonly SidingItem sidingEnd2;
+        private List<string> changeWagonIdList;   // Wagons to be assembled, picked up or dropped off.
 
-        public EventCategoryActionWrapper(Orts.Formats.Msts.Models.ActivityEvent @event, Simulator simulator)
-            : base(@event, simulator)
+        public EventCategoryActionWrapper(ActivityEvent activityEvent)
+            : base(activityEvent)
         {
-            var e = this.ParsedObject as ActionActivityEvent;
-            if (e.SidingId != null)
+            if (ActivityEvent is ActionActivityEvent actionActivityEvent && actionActivityEvent.SidingId != null)
             {
-                var i = e.SidingId.Value;
+                uint i = actionActivityEvent.SidingId.Value;
                 try
                 {
-                    SidingEnd1 = Simulator.TrackDatabase.TrackDB.TrackItems[i] as SidingItem;
-                    i = SidingEnd1.LinkedSidingId;
-                    SidingEnd2 = Simulator.TrackDatabase.TrackDB.TrackItems[i] as SidingItem;
+                    sidingEnd1 = Simulator.Instance.TrackDatabase.TrackDB.TrackItems[i] as SidingItem;
+                    i = sidingEnd1.LinkedSidingId;
+                    sidingEnd2 = Simulator.Instance.TrackDatabase.TrackDB.TrackItems[i] as SidingItem;
                 }
                 catch (IndexOutOfRangeException)
                 {
@@ -161,39 +162,42 @@ namespace Orts.Simulation.Activities
             }
         }
 
-        public override Boolean Triggered(Activity activity)
+        public override bool Triggered(Activity activity)
         {
-            Train OriginalPlayerTrain = Simulator.OriginalPlayerTrain;
-            var e = this.ParsedObject as ActionActivityEvent;
-            if (e.WorkOrderWagons != null)
+            if (null == activity)
+                throw new ArgumentNullException(nameof(activity));
+
+            Train playerTrain = Simulator.Instance.OriginalPlayerTrain;
+            ActionActivityEvent actionActivityEvent = ActivityEvent as ActionActivityEvent ?? throw new InvalidCastException(nameof(ActivityEvent));
+            if (actionActivityEvent.WorkOrderWagons != null)
             {                     // only if event involves wagons
-                if (ChangeWagonIdList == null)
+                if (changeWagonIdList == null)
                 {           // populate the list only once - the first time that ActivationLevel > 0 and so this method is called.
-                    ChangeWagonIdList = new List<string>();
-                    foreach (var item in e.WorkOrderWagons)
+                    changeWagonIdList = new List<string>();
+                    foreach (WorkOrderWagon item in actionActivityEvent.WorkOrderWagons)
                     {
-                        ChangeWagonIdList.Add($"{((int)item.UiD & 0xFFFF0000) >> 16} - {(int)item.UiD & 0x0000FFFF}"); // form the .CarID
+                        changeWagonIdList.Add($"{((int)item.UiD & 0xFFFF0000) >> 16} - {(int)item.UiD & 0x0000FFFF}"); // form the .CarID
                     }
                 }
             }
-            var triggered = false;
+            bool triggered = false;
             Train consistTrain;
-            switch (e.Type)
+            switch (actionActivityEvent.Type)
             {
                 case EventType.AllStops:
                     triggered = activity.Tasks.Count > 0 && activity.Last.IsCompleted != null;
                     break;
                 case EventType.AssembleTrain:
-                    consistTrain = matchesConsist(ChangeWagonIdList);
+                    consistTrain = MatchesConsist(changeWagonIdList);
                     if (consistTrain != null)
                     {
                         triggered = true;
                     }
                     break;
                 case EventType.AssembleTrainAtLocation:
-                    if (atSiding(OriginalPlayerTrain.FrontTDBTraveller, OriginalPlayerTrain.RearTDBTraveller, this.SidingEnd1, this.SidingEnd2))
+                    if (AtSiding(playerTrain.FrontTDBTraveller, playerTrain.RearTDBTraveller, sidingEnd1, sidingEnd2))
                     {
-                        consistTrain = matchesConsist(ChangeWagonIdList);
+                        consistTrain = MatchesConsist(changeWagonIdList);
                         triggered = consistTrain != null;
                     }
                     break;
@@ -201,19 +205,19 @@ namespace Orts.Simulation.Activities
                     // Dropping off of wagons should only count once disconnected from player train.
                     // A better name than DropOffWagonsAtLocation would be ArriveAtSidingWithWagons.
                     // To recognize the dropping off of the cars before the event is activated, this method is used.
-                    if (atSiding(OriginalPlayerTrain.FrontTDBTraveller, OriginalPlayerTrain.RearTDBTraveller, this.SidingEnd1, this.SidingEnd2))
+                    if (AtSiding(playerTrain.FrontTDBTraveller, playerTrain.RearTDBTraveller, sidingEnd1, sidingEnd2))
                     {
-                        consistTrain = matchesConsistNoOrder(ChangeWagonIdList);
+                        consistTrain = MatchesConsistNoOrder(changeWagonIdList);
                         triggered = consistTrain != null;
                     }
                     break;
                 case EventType.PickUpPassengers:
                     break;
                 case EventType.PickUpWagons: // PickUpWagons is independent of location or siding
-                    triggered = includesWagons(OriginalPlayerTrain, ChangeWagonIdList);
+                    triggered = IncludesWagons(playerTrain, changeWagonIdList);
                     break;
                 case EventType.ReachSpeed:
-                    triggered = (Math.Abs(Simulator.PlayerLocomotive.SpeedMpS) >= e.SpeedMpS);
+                    triggered = (Math.Abs(Simulator.Instance.PlayerLocomotive.SpeedMpS) >= actionActivityEvent.SpeedMpS);
                     break;
             }
             return triggered;
@@ -223,9 +227,9 @@ namespace Orts.Simulation.Activities
         /// </summary>
         /// <param name="wagonIdList"></param>
         /// <returns>train or null</returns>
-        private Train matchesConsist(List<string> wagonIdList)
+        private static Train MatchesConsist(List<string> wagonIdList)
         {
-            foreach (var trainItem in Simulator.Trains)
+            foreach (Train trainItem in Simulator.Instance.Trains)
             {
                 if (trainItem.Cars.Count == wagonIdList.Count)
                 {
@@ -244,38 +248,40 @@ namespace Orts.Simulation.Activities
                             if (trainItem.Cars.ElementAt(i - 1).CarID != wagonIdList.ElementAt(trainItem.Cars.Count - i)) { listsMatch = false; break; }
                         }
                     }
-                    if (listsMatch) return trainItem;
+                    if (listsMatch) 
+                        return trainItem;
                 }
             }
             return null;
         }
+
         /// <summary>
         /// Finds the train that contains exactly the wagons (and maybe loco) in the list. Exact order is not required.
         /// </summary>
         /// <param name="wagonIdList"></param>
         /// <returns>train or null</returns>
-        private Train matchesConsistNoOrder(List<string> wagonIdList)
+        private static Train MatchesConsistNoOrder(List<string> wagonIdList)
         {
-            foreach (var trainItem in Simulator.Trains)
+            foreach (Train trainItem in Simulator.Instance.Trains)
             {
-                int nCars = 0;//all cars other than WagonIdList.
-                int nWagonListCars = 0;//individual wagon drop.
-                foreach (var item in trainItem.Cars)
+                int numberCars = 0;//all cars other than WagonIdList.
+                int numberWagonListCars = 0;//individual wagon drop.
+                foreach (RollingStocks.TrainCar item in trainItem.Cars)
                 {
-                    if (!wagonIdList.Contains(item.CarID)) nCars++;
-                    if (wagonIdList.Contains(item.CarID)) nWagonListCars++;
+                    if (!wagonIdList.Contains(item.CarID)) 
+                        numberCars++;
+                    if (wagonIdList.Contains(item.CarID)) 
+                        numberWagonListCars++;
                 }
                 // Compare two lists to make sure wagons are present.
                 bool listsMatch = true;
                 //support individual wagonIdList drop
-                if (trainItem.Cars.Count - nCars == (wagonIdList.Count == nWagonListCars ? wagonIdList.Count : nWagonListCars))
+                if (trainItem.Cars.Count - numberCars == (wagonIdList.Count == numberWagonListCars ? wagonIdList.Count : numberWagonListCars))
                 {
-                    if (excludesWagons(trainItem, wagonIdList)) listsMatch = false;//all wagons dropped
+                    if (ExcludesWagons(trainItem, wagonIdList)) listsMatch = false;//all wagons dropped
 
                     if (listsMatch) return trainItem;
-
                 }
-
             }
             return null;
         }
@@ -287,14 +293,15 @@ namespace Orts.Simulation.Activities
         /// <param name="train"></param>
         /// <param name="wagonIdList"></param>
         /// <returns>True if all listed wagons are part of the given train.</returns>
-        private static bool includesWagons(Train train, List<string> wagonIdList)
+        private static bool IncludesWagons(Train train, List<string> wagonIdList)
         {
-            foreach (var item in wagonIdList)
+            foreach (string item in wagonIdList)
             {
-                if (train.Cars.Find(car => car.CarID == item) == null) return false;
+                if (train.Cars.Find(car => car.CarID == item) == null) 
+                    return false;
             }
             // train speed < 1
-            return (Math.Abs(train.SpeedMpS) <= 1 ? true : false);
+            return Math.Abs(train.SpeedMpS) <= 1;
         }
 
         /// <summary>
@@ -304,26 +311,27 @@ namespace Orts.Simulation.Activities
         /// <param name="train"></param>
         /// <param name="wagonIdList"></param>
         /// <returns>True if all listed wagons are not part of the given train.</returns>
-        private static bool excludesWagons(Train train, List<string> wagonIdList)
+        private static bool ExcludesWagons(Train train, List<string> wagonIdList)
         {
             // The Cars list is a global list that includes STATIC cars.  We need to make sure that the active train/car is processed only.
             if (train.TrainType == TrainType.Static)
                 return true;
 
-            bool lNotFound = false;
-            foreach (var item in wagonIdList)
+            bool notFound = false;
+            foreach (string item in wagonIdList)
             {
                 //take in count each item in wagonIdList 
                 if (train.Cars.Find(car => car.CarID == item) == null)
                 {
-                    lNotFound = true; //wagon not part of the train
+                    notFound = true; //wagon not part of the train
                 }
                 else
                 {
-                    lNotFound = false; break;//wagon still part of the train
+                    notFound = false; 
+                    break;//wagon still part of the train
                 }
             }
-            return lNotFound;
+            return notFound;
         }
 
         /// <summary>
@@ -334,7 +342,7 @@ namespace Orts.Simulation.Activities
         /// <param name="sidingEnd1"></param>
         /// <param name="sidingEnd2"></param>
         /// <returns>true if both ends of train within siding</returns>
-        private static bool atSiding(Traveller frontPosition, Traveller rearPosition, SidingItem sidingEnd1, SidingItem sidingEnd2)
+        private static bool AtSiding(Traveller frontPosition, Traveller rearPosition, SidingItem sidingEnd1, SidingItem sidingEnd2)
         {
             if (sidingEnd1 == null || sidingEnd2 == null)
             {
@@ -381,19 +389,20 @@ namespace Orts.Simulation.Activities
 
     public class EventCategoryLocationWrapper : EventWrapper
     {
-        public EventCategoryLocationWrapper(Orts.Formats.Msts.Models.ActivityEvent @event, Simulator simulator)
-            : base(@event, simulator)
+        public EventCategoryLocationWrapper(ActivityEvent activityEvent)
+            : base(activityEvent)
         {
         }
 
-        public override Boolean Triggered(Activity activity)
+        public override bool Triggered(Activity activity)
         {
-            var triggered = false;
-            var e = this.ParsedObject as Orts.Formats.Msts.Models.LocationActivityEvent;
-            var train = Simulator.PlayerLocomotive.Train;
-            if (!string.IsNullOrEmpty(ParsedObject.TrainService) && Train != null)
+            bool triggered = false;
+            LocationActivityEvent e = ActivityEvent as LocationActivityEvent ?? throw new InvalidCastException(nameof(ActivityEvent));
+            Train train = Simulator.Instance.PlayerLocomotive.Train;
+            if (!string.IsNullOrEmpty(ActivityEvent.TrainService) && Train != null)
             {
-                if (Train.FrontTDBTraveller == null) return triggered;
+                if (Train.FrontTDBTraveller == null) 
+                    return triggered;
                 train = Train;
             }
             Train = train;
@@ -405,9 +414,9 @@ namespace Orts.Simulation.Activities
                     return triggered;
                 }
             }
-            var trainFrontPosition = new Traveller(train.NextRouteReady && train.TCRoute.ActiveSubPath > 0 && train.TCRoute.ReversalInfo[train.TCRoute.ActiveSubPath - 1].Valid ?
+            Traveller trainFrontPosition = new Traveller(train.NextRouteReady && train.TCRoute.ActiveSubPath > 0 && train.TCRoute.ReversalInfo[train.TCRoute.ActiveSubPath - 1].Valid ?
                 train.RearTDBTraveller : train.FrontTDBTraveller); // just after reversal the old train front position must be considered
-            var distance = trainFrontPosition.DistanceTo(e.Location, e.RadiusM);
+            float distance = trainFrontPosition.DistanceTo(e.Location, e.RadiusM);
             if (distance == -1)
             {
                 trainFrontPosition.ReverseDirection();
@@ -415,7 +424,10 @@ namespace Orts.Simulation.Activities
                 if (distance == -1)
                     return triggered;
             }
-            if (distance < e.RadiusM) { triggered = true; }
+            if (distance < e.RadiusM) 
+            { 
+                triggered = true; 
+            }
             return triggered;
         }
     }
@@ -423,17 +435,21 @@ namespace Orts.Simulation.Activities
     public class EventCategoryTimeWrapper : EventWrapper
     {
 
-        public EventCategoryTimeWrapper(Orts.Formats.Msts.Models.ActivityEvent @event, Simulator simulator)
-            : base(@event, simulator)
+        public EventCategoryTimeWrapper(ActivityEvent activityEvent)
+            : base(activityEvent)
         {
         }
 
-        public override Boolean Triggered(Activity activity)
+        public override bool Triggered(Activity activity)
         {
-            var e = this.ParsedObject as Orts.Formats.Msts.Models.TimeActivityEvent;
-            if (e == null) return false;
-            Train = Simulator.PlayerLocomotive.Train;
-            var triggered = (e.Time <= (int)Simulator.ClockTime - activity.startTimeS);
+            if (null == activity)
+                throw new ArgumentNullException(nameof(activity));
+
+            TimeActivityEvent timeActivityEvent = ActivityEvent as TimeActivityEvent ?? throw new InvalidCastException(nameof(ActivityEvent));
+            //if (timeActivityEvent == null) 
+            //    return false;
+            Train = Simulator.Instance.PlayerLocomotive.Train;
+            bool triggered = (timeActivityEvent.Time <= (int)Simulator.Instance.ClockTime - activity.startTimeS);
             return triggered;
         }
     }

@@ -90,7 +90,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     {
                         foreach (var @event in activity.EventList)
                         {
-                            var eventAction = @event.ParsedObject as ActionActivityEvent;
+                            var eventAction = @event.ActivityEvent as ActionActivityEvent;
                             if (eventAction != null)
                             {
                                 var sidingId1 = eventAction.SidingId;

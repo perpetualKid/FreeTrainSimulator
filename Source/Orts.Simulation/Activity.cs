@@ -122,15 +122,15 @@ namespace Orts.Simulation
             {
                 if (activityEvent is ActionActivityEvent)
                 {
-                    EventList.Add(new EventCategoryActionWrapper(activityEvent, this.simulator));
+                    EventList.Add(new EventCategoryActionWrapper(activityEvent));
                 }
                 if (activityEvent is LocationActivityEvent)
                 {
-                    EventList.Add(new EventCategoryLocationWrapper(activityEvent, this.simulator));
+                    EventList.Add(new EventCategoryLocationWrapper(activityEvent));
                 }
                 if (activityEvent is TimeActivityEvent)
                 {
-                    EventList.Add(new EventCategoryTimeWrapper(activityEvent, this.simulator));
+                    EventList.Add(new EventCategoryTimeWrapper(activityEvent));
                 }
                 EventWrapper eventAdded = EventList.Last();
                 eventAdded.OriginalActivationLevel = activityEvent.ActivationLevel;
@@ -169,13 +169,13 @@ namespace Orts.Simulation
                     // so this line needs to be inside the EventList loop.
                     if (this.TriggeredEvent != null) { break; }
 
-                    if (i != null && i.ParsedObject.ActivationLevel > 0)
+                    if (i != null && i.ActivityEvent.ActivationLevel > 0)
                     {
-                        if (i.TimesTriggered < 1 || i.ParsedObject.Reversible)
+                        if (i.TimesTriggered < 1 || i.ActivityEvent.Reversible)
                         {
                             if (i.Triggered(this))
                             {
-                                if (i.IsDisabled == false)
+                                if (i.Disabled == false)
                                 {
                                     i.TimesTriggered += 1;
                                     if (i.IsActivityEnded(this))
@@ -189,10 +189,10 @@ namespace Orts.Simulation
                             }
                             else
                             {
-                                if (i.ParsedObject.Reversible)
+                                if (i.ActivityEvent.Reversible)
                                 {
                                     // Reversible event is no longer triggered, so can re-enable it.
-                                    i.IsDisabled = false;
+                                    i.Disabled = false;
                                 }
                             }
                         }
@@ -589,10 +589,10 @@ namespace Orts.Simulation
         {
             foreach (var eventWrapper in EventList)
             {
-                if (eventWrapper is EventCategoryLocationWrapper && !string.IsNullOrEmpty(eventWrapper.ParsedObject.TrainService) &&
-                    eventWrapper.ParsedObject.TrainService.Equals(train.Name, StringComparison.OrdinalIgnoreCase))
+                if (eventWrapper is EventCategoryLocationWrapper && !string.IsNullOrEmpty(eventWrapper.ActivityEvent.TrainService) &&
+                    eventWrapper.ActivityEvent.TrainService.Equals(train.Name, StringComparison.OrdinalIgnoreCase))
                 {
-                    if (eventWrapper.ParsedObject.TrainStartingTime == -1 || (train as AITrain).ServiceDefinition.Time == eventWrapper.ParsedObject.TrainStartingTime)
+                    if (eventWrapper.ActivityEvent.TrainStartingTime == -1 || (train as AITrain).ServiceDefinition.Time == eventWrapper.ActivityEvent.TrainStartingTime)
                     {
                         eventWrapper.Train = train;
                     }
