@@ -38,6 +38,7 @@ using Orts.Formats.Msts.Files;
 using Orts.MultiPlayer;
 using Orts.Settings;
 using Orts.Simulation;
+using Orts.Simulation.Activities;
 using Orts.Simulation.Commanding;
 
 namespace Orts.ActivityRunner.Viewer3D.Processes

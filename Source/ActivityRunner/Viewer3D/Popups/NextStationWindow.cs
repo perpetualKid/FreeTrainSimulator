@@ -27,6 +27,7 @@ using System;
 using System.Collections.Generic;
 using Orts.Simulation.Track;
 using System.Globalization;
+using Orts.Simulation.Activities;
 
 namespace Orts.ActivityRunner.Viewer3D.Popups
 {
