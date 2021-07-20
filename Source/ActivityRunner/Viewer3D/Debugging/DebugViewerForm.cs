@@ -203,12 +203,12 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
 			MultiPlayer.MultiPlayerManager.Instance().AvatarUpdated += (sender, e) =>
 			{
-				AddAvatar(e.User, e.URL);
+				AddAvatar(e.User, e.Url);
 			};
 
 			MultiPlayer.MultiPlayerManager.Instance().MessageReceived += (sender, e) =>
 			{
-				AddNewMessage(e.Time, e.Message);
+				AddNewMessage(e.Timestamp, e.Message);
 			};
 
 			tWindow.SelectedIndex = (MultiPlayerManager.IsMultiPlayer()) ? 0 : 1;

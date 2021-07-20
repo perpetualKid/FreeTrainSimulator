@@ -45,7 +45,7 @@ using Orts.Simulation.RollingStocks;
 namespace Orts.MultiPlayer
 {
     //a singleton class handles communication, update and stop etc.
-    public class MultiPlayerManager
+    public partial class MultiPlayerManager
 	{
         public static ICatalog Catalog { get; private set; }
         public static Random Random { get; private set; }
@@ -92,40 +92,6 @@ namespace Orts.MultiPlayer
 		public bool CheckSpad = true;
 		public static bool PreferGreen = true;
 		public string MD5Check = "";
-
-        public class ServerChangedEventArgs : EventArgs
-        {
-            public readonly bool WeAreTheServer;
-
-            public ServerChangedEventArgs(bool weAreTheServer)
-            {
-                WeAreTheServer = weAreTheServer;
-            }
-        }
-
-        public class AvatarUpdatedEventArgs : EventArgs
-        {
-            public readonly string User;
-            public readonly string URL;
-
-            public AvatarUpdatedEventArgs(string user, string url)
-            {
-                User = user;
-                URL = url;
-            }
-        }
-
-        public class MessageReceivedEventArgs : EventArgs
-        {
-            public readonly double Time;
-            public readonly string Message;
-
-            public MessageReceivedEventArgs(double time, string message)
-            {
-                Time = time;
-                Message = message;
-            }
-        }
 
         public event EventHandler<ServerChangedEventArgs> ServerChanged;
         public event EventHandler<AvatarUpdatedEventArgs> AvatarUpdated;
