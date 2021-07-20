@@ -82,7 +82,7 @@ namespace Orts.Formats.Msts.Parsers
                 }
                 int numOfColumns = stf.ReadInt(0);
                 string header = stf.ReadString();
-                if ("throttle".Equals(header, System.StringComparison.OrdinalIgnoreCase))
+                if ("throttle".Equals(header, StringComparison.OrdinalIgnoreCase))
                 {
                     stf.MustMatchBlockStart();
                     int numOfThrottleValues = 0;
@@ -106,12 +106,12 @@ namespace Orts.Formats.Msts.Parsers
 
                     int numofData = 0;
                     string tableLabel = stf.ReadString();
-                    if ("table".Equals(tableLabel, System.StringComparison.OrdinalIgnoreCase))
+                    if ("table".Equals(tableLabel, StringComparison.OrdinalIgnoreCase))
                     {
                         stf.MustMatchBlockStart();
                         for (int i = 0; i < numOfRows; i++)
                         {
-                            float x = stf.ReadFloat(STFReader.Units.SpeedDefaultMPH, 0);
+                            float x = stf.ReadFloat(STFReader.Units.Speed, 0);
                             numofData++;
                             for (int j = 0; j < numOfColumns - 1; j++)
                             {
