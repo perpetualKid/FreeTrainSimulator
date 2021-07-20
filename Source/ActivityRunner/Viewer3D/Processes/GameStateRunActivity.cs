@@ -72,9 +72,9 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         private Simulator simulator;
 
         //for Multiplayer
-        private static Server Server { get { return MPManager.Server; } set { MPManager.Server = value; } }
+        private static Server Server { get { return MultiPlayerManager.Server; } set { MultiPlayerManager.Server = value; } }
 
-        private static ClientComm Client { get { return MPManager.Client; } set { MPManager.Client = value; } }
+        private static ClientComm Client { get { return MultiPlayerManager.Client; } set { MultiPlayerManager.Client = value; } }
 
         private string userName;
         private string code;
@@ -310,14 +310,14 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         public static void Save()
         {
             Simulator simulator = Simulator.Instance;
-            if (MPManager.IsMultiPlayer() && !MPManager.IsServer())
+            if (MultiPlayerManager.IsMultiPlayer() && !MultiPlayerManager.IsServer())
                 return; //no save for multiplayer sessions yet
 
             // Prefix with the activity filename so that, when resuming from the Menu.exe, we can quickly find those Saves 
             // that are likely to match the previously chosen route and activity.
             // Append the current date and time, so that each file is unique.
             // This is the "sortable" date format, ISO 8601, but with "." in place of the ":" which are not valid in filenames.
-            string fileStem = $"{(simulator.ActivityFile != null ? simulator.ActivityFileName : (!string.IsNullOrEmpty(simulator.TimetableFileName) ? $"{simulator.RouteFolder.RouteName} {simulator.TimetableFileName}" : simulator.RouteFolder.RouteName))} {(MPManager.IsMultiPlayer() && MPManager.IsServer() ? "$Multipl$ " : " ")}{DateTime.Now:yyyy'-'MM'-'dd HH'.'mm'.'ss}";
+            string fileStem = $"{(simulator.ActivityFile != null ? simulator.ActivityFileName : (!string.IsNullOrEmpty(simulator.TimetableFileName) ? $"{simulator.RouteFolder.RouteName} {simulator.TimetableFileName}" : simulator.RouteFolder.RouteName))} {(MultiPlayerManager.IsMultiPlayer() && MultiPlayerManager.IsServer() ? "$Multipl$ " : " ")}{DateTime.Now:yyyy'-'MM'-'dd HH'.'mm'.'ss}";
 
             using (BinaryWriter outf = new BinaryWriter(new FileStream(Path.Combine(UserSettings.UserDataFolder, fileStem + ".save"), FileMode.Create, FileAccess.Write)))
             {
@@ -325,7 +325,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 outf.Write(VersionInfo.Version);
 
                 // Save heading data used in Menu.exe
-                if (MPManager.IsMultiPlayer() && MPManager.IsServer())
+                if (MultiPlayerManager.IsMultiPlayer() && MultiPlayerManager.IsServer())
                     outf.Write("$Multipl$");
                 outf.Write(simulator.RouteName);
                 outf.Write(simulator.PathName);
@@ -362,8 +362,8 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 simulator.Save(outf);
                 Viewer.Save(outf, fileStem);
                 // Save multiplayer parameters
-                if (MPManager.IsMultiPlayer() && MPManager.IsServer())
-                    MPManager.OnlineTrains.Save(outf);
+                if (MultiPlayerManager.IsMultiPlayer() && MultiPlayerManager.IsServer())
+                    MultiPlayerManager.OnlineTrains.Save(outf);
 
                 // Write out position within file so we can check when restoring.
                 outf.Write(outf.BaseStream.Position);
@@ -435,8 +435,8 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                     }
                     Viewer.Restore(inf);
 
-                    if (MPManager.IsMultiPlayer() && MPManager.IsServer())
-                        MPManager.OnlineTrains.Restore(inf);
+                    if (MultiPlayerManager.IsMultiPlayer() && MultiPlayerManager.IsServer())
+                        MultiPlayerManager.OnlineTrains.Restore(inf);
 
                     long restorePosition = inf.BaseStream.Position;
                     long savePosition = inf.ReadInt64();
@@ -943,7 +943,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                     Debug.Assert(userName.Length >= 4 && userName.Length <= 10 && !userName.Contains('\"') && !userName.Contains('\'') && !char.IsDigit(userName[0]),
                         "Error in the user name: should not start with digits, be 4-10 characters long and no special characters");
                     code = Server.Code;
-                    MPManager.Instance().MPUpdateInterval = settings.Multiplayer_UpdateInterval;
+                    MultiPlayerManager.Instance().MPUpdateInterval = settings.Multiplayer_UpdateInterval;
                 }
                 catch (Exception error)
                 {
@@ -957,7 +957,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             {
                 try
                 {
-                    MPManager.Instance().MPUpdateInterval = settings.Multiplayer_UpdateInterval;
+                    MultiPlayerManager.Instance().MPUpdateInterval = settings.Multiplayer_UpdateInterval;
                     Client = new ClientComm(settings.Multiplayer_Host, settings.Multiplayer_Port, settings.Multiplayer_User + " 1234");
                     userName = Client.UserName;
                     Debug.Assert(userName.Length >= 4 && userName.Length <= 10 && !userName.Contains('\"') && !userName.Contains('\'') && !char.IsDigit(userName[0]),

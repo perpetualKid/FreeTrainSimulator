@@ -2268,12 +2268,12 @@ namespace Orts.Simulation.RollingStocks
             if (Horn && !PreviousHorn)
             {
                 SignalEvent(TrainEvent.HornOn);
-                if (MPManager.IsMultiPlayer()) MPManager.Notify((new MSGEvent(MPManager.GetUserName(), "HORN", 1)).ToString());
+                if (MultiPlayerManager.IsMultiPlayer()) MultiPlayerManager.Notify((new MSGEvent(MultiPlayerManager.GetUserName(), "HORN", 1)).ToString());
             }
             else if (!Horn && PreviousHorn)
             {
                 SignalEvent(TrainEvent.HornOff);
-                if (MPManager.IsMultiPlayer()) MPManager.Notify((new MSGEvent(MPManager.GetUserName(), "HORN", 0)).ToString());
+                if (MultiPlayerManager.IsMultiPlayer()) MultiPlayerManager.Notify((new MSGEvent(MultiPlayerManager.GetUserName(), "HORN", 0)).ToString());
             }
 
             if (ManualBell)
@@ -2293,12 +2293,12 @@ namespace Orts.Simulation.RollingStocks
             if (Bell && !PreviousBell)
             {
                 SignalEvent(TrainEvent.BellOn);
-                if (Train.TrainType != TrainType.Remote && MPManager.IsMultiPlayer()) MPManager.Notify((new MSGEvent(MPManager.GetUserName(), "BELL", 1)).ToString());
+                if (Train.TrainType != TrainType.Remote && MultiPlayerManager.IsMultiPlayer()) MultiPlayerManager.Notify((new MSGEvent(MultiPlayerManager.GetUserName(), "BELL", 1)).ToString());
             }
             else if (!Bell && PreviousBell)
             {
                 SignalEvent(TrainEvent.BellOff);
-                if (Train.TrainType != TrainType.Remote && MPManager.IsMultiPlayer()) MPManager.Notify((new MSGEvent(MPManager.GetUserName(), "BELL", 0)).ToString());
+                if (Train.TrainType != TrainType.Remote && MultiPlayerManager.IsMultiPlayer()) MultiPlayerManager.Notify((new MSGEvent(MultiPlayerManager.GetUserName(), "BELL", 0)).ToString());
             }
 
             PreviousHorn = Horn;

@@ -40,7 +40,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             Label buttonQuit, buttonSave, buttonContinue;
             var vbox = base.Layout(layout).AddLayoutVertical();
             var heightForLabels = 10;
-			if (!Orts.MultiPlayer.MPManager.IsMultiPlayer())
+			if (!Orts.MultiPlayer.MultiPlayerManager.IsMultiPlayer())
 				heightForLabels = (vbox.RemainingHeight - 2 * ControlLayout.SeparatorSize) / 3;
 			else heightForLabels = (vbox.RemainingHeight - 2 * ControlLayout.SeparatorSize) / 2;
             var spacing = (heightForLabels - Owner.TextFontDefault.Height) / 2;
@@ -48,7 +48,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             vbox.Add(buttonQuit = new Label(vbox.RemainingWidth, Owner.TextFontDefault.Height, Viewer.Catalog.GetString("Quit {1} ({0})", Owner.Viewer.Settings.Input.UserCommands[UserCommand.GameQuit], Application.ProductName), LabelAlignment.Center));
             vbox.AddSpace(0, spacing);
             vbox.AddHorizontalSeparator();
-			if (!Orts.MultiPlayer.MPManager.IsMultiPlayer())
+			if (!Orts.MultiPlayer.MultiPlayerManager.IsMultiPlayer())
 			{
                 buttonSave = new Label(vbox.RemainingWidth, Owner.TextFontDefault.Height, Viewer.Catalog.GetString("Save your game ({0})", Owner.Viewer.Settings.Input.UserCommands[UserCommand.GameSave]), LabelAlignment.Center);
 				vbox.AddSpace(0, spacing);

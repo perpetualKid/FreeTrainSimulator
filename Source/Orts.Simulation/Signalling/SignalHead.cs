@@ -474,7 +474,7 @@ namespace Orts.Simulation.Signalling
                 return MainSignal.CheckRouteSet(JunctionMainNode, TrackJunctionNode) ? 1 : 0;
             }
             //added by JTang
-            else if (MPManager.IsMultiPlayer())
+            else if (MultiPlayerManager.IsMultiPlayer())
             {
                 TrackNode node = Simulator.Instance.TrackDatabase.TrackDB.TrackNodes[MainSignal.TrackNode];
                 if (!(node is TrackJunctionNode) && node.TrackPins != null && (int)MainSignal.TrackCircuitDirection < node.TrackPins.Length)

@@ -29,7 +29,7 @@ namespace Orts.MultiPlayer
     public class OnlinePlayer
 	{
 		public Decoder decoder;
-		public OnlinePlayer(TcpClient t, Server s) { Client = t; Server = s; decoder = new Decoder(); CreatedTime = MPManager.Simulator.GameTime; url = "NA";}// "http://trainsimchina.com/discuz/uc_server/avatar.php?uid=72965&size=middle"; }
+		public OnlinePlayer(TcpClient t, Server s) { Client = t; Server = s; decoder = new Decoder(); CreatedTime = MultiPlayerManager.Simulator.GameTime; url = "NA";}// "http://trainsimchina.com/discuz/uc_server/avatar.php?uid=72965&size=middle"; }
 		public TcpClient Client;
 		public Server Server;
 		public string Username = "";
@@ -52,7 +52,7 @@ namespace Orts.MultiPlayer
             Username = inf.ReadString();
             LeadingLocomotiveID = inf.ReadString();
             var trainNo = inf.ReadInt32();
-            Train = MPManager.Simulator.Trains.GetTrainByNumber(trainNo);
+            Train = MultiPlayerManager.Simulator.Trains.GetTrainByNumber(trainNo);
             con = inf.ReadString();
             path = inf.ReadString();
             CreatedTime = inf.ReadDouble();
@@ -62,17 +62,17 @@ namespace Orts.MultiPlayer
             protect = inf.ReadBoolean();
             status = Status.Quit;
             Train.SpeedMpS = 0;
-            quitTime = MPManager.Simulator.GameTime; // allow a total of 10 minutes to reenter game.
+            quitTime = MultiPlayerManager.Simulator.GameTime; // allow a total of 10 minutes to reenter game.
             for (int iCar = 0; iCar < Train.Cars.Count; iCar++)
             {
                 var car = Train.Cars[iCar];
-                if (car is MSTSLocomotive && MPManager.IsServer())
-                    MPManager.Instance().AddOrRemoveLocomotive(Username, Train.Number, iCar, true);
+                if (car is MSTSLocomotive && MultiPlayerManager.IsServer())
+                    MultiPlayerManager.Instance().AddOrRemoveLocomotive(Username, Train.Number, iCar, true);
             }
-            if (!MPManager.Instance().lostPlayer.ContainsKey(this.Username))
+            if (!MultiPlayerManager.Instance().lostPlayer.ContainsKey(this.Username))
             {
-                MPManager.Instance().lostPlayer.Add(Username, this);
-                MPManager.Instance().AddRemovedPlayer(this);//add this player to be removed
+                MultiPlayerManager.Instance().lostPlayer.Add(Username, this);
+                MultiPlayerManager.Instance().AddRemovedPlayer(this);//add this player to be removed
             }
         }
 
@@ -155,7 +155,7 @@ namespace Orts.MultiPlayer
 				}
 				catch (Exception)
 				{
-					nowTicks = MPManager.Simulator.GameTime;
+					nowTicks = MultiPlayerManager.Simulator.GameTime;
 					if (firstErrorTick == 0)
 					{
 						firstErrorTick = nowTicks;
@@ -164,7 +164,7 @@ namespace Orts.MultiPlayer
 					if (errorCount >= 5 && nowTicks - firstErrorTick < 10) //5 errors last 10 seconds
 					{
 						MSGMessage emsg = new MSGMessage(this.Username, "Error", "Too many errors received from you in a short period of time.");
-						MPManager.BroadCast(emsg.ToString());
+						MultiPlayerManager.BroadCast(emsg.ToString());
 						break;
 					}
 					else if (errorCount < 5) { errorCount++; }
@@ -174,17 +174,17 @@ namespace Orts.MultiPlayer
 			}
 
 			Trace.WriteLine("{0} quit", this.Username);
-			if (MPManager.Simulator.Confirmer != null) MPManager.Simulator.Confirmer.Information(MPManager.Catalog.GetString("{0} quit.", this.Username));
+			if (MultiPlayerManager.Simulator.Confirmer != null) MultiPlayerManager.Simulator.Confirmer.Information(MultiPlayerManager.Catalog.GetString("{0} quit.", this.Username));
 			Client.Close();
 			if (this.Train != null && this.status != Status.Removed) //remember the location of the train in case the player comes back later, if he is not removed by the dispatcher
 			{
-				if (!MPManager.Instance().lostPlayer.ContainsKey(this.Username)) MPManager.Instance().lostPlayer.Add(this.Username, this);
-				this.quitTime = MPManager.Simulator.GameTime;
+				if (!MultiPlayerManager.Instance().lostPlayer.ContainsKey(this.Username)) MultiPlayerManager.Instance().lostPlayer.Add(this.Username, this);
+				this.quitTime = MultiPlayerManager.Simulator.GameTime;
 				this.Train.SpeedMpS = 0.0f;
 				this.status = Status.Quit;
 			}
-			MPManager.Instance().AddRemovedPlayer(this);//add this player to be removed
-			MPManager.BroadCast((new MSGQuit(this.Username)).ToString());
+			MultiPlayerManager.Instance().AddRemovedPlayer(this);//add this player to be removed
+			MultiPlayerManager.BroadCast((new MSGQuit(this.Username)).ToString());
 			thread.Abort();
 		}
 

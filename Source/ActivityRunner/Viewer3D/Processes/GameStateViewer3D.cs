@@ -60,7 +60,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
 
                 // We must create these forms on the main thread (Render) or they won't pump events correctly.
 
-                if (MPManager.IsMultiPlayer() || Game.Settings.ViewDispatcher)
+                if (MultiPlayerManager.IsMultiPlayer() || Game.Settings.ViewDispatcher)
                 {
                     Program.DebugViewer = new DispatchViewer(Viewer);
                     Program.DebugViewer.Hide();
@@ -135,8 +135,8 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             if (disposing)
             {
                 Viewer.Terminate();
-                MPManager.Server?.Stop();
-                MPManager.Client?.Stop();
+                MultiPlayerManager.Server?.Stop();
+                MultiPlayerManager.Client?.Stop();
                 Simulator.Instance.Stop();
                 Program.DebugViewer?.Dispose();
                 Program.SoundDebugForm?.Dispose();

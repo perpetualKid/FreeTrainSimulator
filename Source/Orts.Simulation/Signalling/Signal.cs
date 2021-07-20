@@ -415,7 +415,7 @@ namespace Orts.Simulation.Signalling
         {
             get
             {
-                if (MPManager.IsMultiPlayer() && MPManager.PreferGreen)
+                if (MultiPlayerManager.IsMultiPlayer() && MultiPlayerManager.PreferGreen)
                     return true;
                 return EnabledTrain != null;
             }
@@ -1093,7 +1093,7 @@ namespace Orts.Simulation.Signalling
             bool retry = false;
 
             // if signal is enabled for a train, check if required section is in train route path
-            if (EnabledTrain != null && !MPManager.IsMultiPlayer())
+            if (EnabledTrain != null && !MultiPlayerManager.IsMultiPlayer())
             {
                 TrackCircuitPartialPathRoute routePart = EnabledTrain.Train.ValidRoute[EnabledTrain.TrainRouteDirectionIndex];
 
@@ -1126,7 +1126,7 @@ namespace Orts.Simulation.Signalling
 
             // not enabled, follow set route but only if not normal signal (normal signal will not clear if not enabled)
             // also, for normal enabled signals - try and follow pins (required node may be beyond present route)
-            if (retry || !SignalNormal() || MPManager.IsMultiPlayer())
+            if (retry || !SignalNormal() || MultiPlayerManager.IsMultiPlayer())
             {
                 TrackCircuitSection section = TrackCircuitSection.TrackCircuitList[TrackCircuitIndex];
                 TrackDirection direction = TrackCircuitDirection;
@@ -1613,9 +1613,9 @@ namespace Orts.Simulation.Signalling
 
             // update all normal heads first
 
-            if (MPManager.IsMultiPlayer())
+            if (MultiPlayerManager.IsMultiPlayer())
             {
-                if (MPManager.IsClient())
+                if (MultiPlayerManager.IsClient())
                     return; //client won't handle signal update
 
                 //if there were hold manually, will not update

@@ -1221,12 +1221,12 @@ namespace Orts.Simulation.Physics
         /// In multiplayer, don't want to switch to a locomotive which is player locomotive of another user
         private bool SkipOtherUsersCar(int i)
         {
-            if (!MPManager.IsMultiPlayer())
+            if (!MultiPlayerManager.IsMultiPlayer())
                 return false;
             else
             {
-                string username = MPManager.GetUserName();
-                foreach (OnlinePlayer onlinePlayer in MPManager.OnlineTrains.Players.Values)
+                string username = MultiPlayerManager.GetUserName();
+                foreach (OnlinePlayer onlinePlayer in MultiPlayerManager.OnlineTrains.Players.Values)
                 {
                     // don't consider the present user
                     if (onlinePlayer.Username == username)
@@ -1245,8 +1245,8 @@ namespace Orts.Simulation.Physics
         /// NOTE : this routine handles the physical train orientation only, all related route settings etc. must be handled separately
         internal void ReverseFormation(bool setMUParameters)
         {
-            if (MPManager.IsMultiPlayer())
-                MPManager.BroadCast((new MSGFlip(this, setMUParameters, Number)).ToString()); // message contains data before flip
+            if (MultiPlayerManager.IsMultiPlayer())
+                MultiPlayerManager.BroadCast((new MSGFlip(this, setMUParameters, Number)).ToString()); // message contains data before flip
             ReverseCars();
             // Flip the train's travellers.
             Traveller t = FrontTDBTraveller;
@@ -1454,7 +1454,7 @@ namespace Orts.Simulation.Physics
                 if (stillExist)
                 {
                     UpdateRouteClearanceAhead(SignalObjIndex, movedBackward, elapsedClockSeconds);  // update route clearance  //
-                    if (!(TrainType == TrainType.Remote && MPManager.IsClient()))
+                    if (!(TrainType == TrainType.Remote && MultiPlayerManager.IsClient()))
                         UpdateSignalState(movedBackward);                                               // update signal state     //
                 }
             }
@@ -3953,7 +3953,7 @@ namespace Orts.Simulation.Physics
 
             }
 
-            if (MPManager.IsMultiPlayer())
+            if (MultiPlayerManager.IsMultiPlayer())
                 return tempRoute;
             if (!sectionAvailable || !sectionsClear)
             {
@@ -6637,7 +6637,7 @@ namespace Orts.Simulation.Physics
                 if (section.Index == misalignedSwitch[direction, 0])
                 {
                     // align switch
-                    if (!MPManager.NoAutoSwitch())
+                    if (!MultiPlayerManager.NoAutoSwitch())
                         section.AlignSwitchPins(misalignedSwitch[direction, TrackDirection.Reverse]);
                     misalignedSwitch[direction, TrackDirection.Ahead] = -1;
                     misalignedSwitch[direction, TrackDirection.Reverse] = -1;
@@ -6681,7 +6681,7 @@ namespace Orts.Simulation.Physics
         /// </summary>
         private void UpdateExplorerMode(int signalObjectIndex)
         {
-            if (MPManager.IsMultiPlayer())
+            if (MultiPlayerManager.IsMultiPlayer())
             // first unreserve all route positions where train is not present
             {
                 if (ValidRoute[0] != null)
@@ -7388,7 +7388,7 @@ namespace Orts.Simulation.Physics
 
                 // checke whether trailing or leading
                 //<CSComment> Probably also in singleplayer the logic of multiplayer should be used, but it's unwise to modify it just before a release
-                if (switchSection.Pins[TrackDirection.Ahead, Location.NearEnd].Link == selectedRoute[lastIndex].TrackCircuitSection.Index || !MPManager.IsMultiPlayer())
+                if (switchSection.Pins[TrackDirection.Ahead, Location.NearEnd].Link == selectedRoute[lastIndex].TrackCircuitSection.Index || !MultiPlayerManager.IsMultiPlayer())
                 // leading, train may still own switch
                 {
 
@@ -7965,9 +7965,9 @@ namespace Orts.Simulation.Physics
         //
         public void RequestSignalPermission(Direction direction)
         {
-            if (MPManager.IsClient())
+            if (MultiPlayerManager.IsClient())
             {
-                MPManager.Notify((new MSGResetSignal(MPManager.GetUserName())).ToString());
+                MultiPlayerManager.Notify((new MSGResetSignal(MultiPlayerManager.GetUserName())).ToString());
                 return;
             }
             if (ControlMode == TrainControlMode.Manual)
@@ -7997,7 +7997,7 @@ namespace Orts.Simulation.Physics
         //
         public void RequestResetSignal(Direction direction)
         {
-            if (!MPManager.IsMultiPlayer())
+            if (!MultiPlayerManager.IsMultiPlayer())
             {
                 if (ControlMode == TrainControlMode.Manual || ControlMode == TrainControlMode.Explorer)
                 {
@@ -8101,7 +8101,7 @@ namespace Orts.Simulation.Physics
             }
 
             // TODO : clear routes for MANUAL
-            if (!MPManager.IsMultiPlayer() || simulator.TimetableMode || reason != OutOfControlReason.OutOfPath || IsActualPlayerTrain)
+            if (!MultiPlayerManager.IsMultiPlayer() || simulator.TimetableMode || reason != OutOfControlReason.OutOfPath || IsActualPlayerTrain)
             {
 
                 // set control state and issue warning
@@ -11115,7 +11115,7 @@ namespace Orts.Simulation.Physics
                 // process Junction
                 if (section.CircuitType == TrackCircuitType.Junction)
                 {
-                    if (section.Pins[TrackDirection.Ahead, Location.NearEnd].Link == nextSectionIndex && !MPManager.NoAutoSwitch())
+                    if (section.Pins[TrackDirection.Ahead, Location.NearEnd].Link == nextSectionIndex && !MultiPlayerManager.NoAutoSwitch())
                     {
                         section.AlignSwitchPins(prevSectionIndex);   // trailing switch
                     }

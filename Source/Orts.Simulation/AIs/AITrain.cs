@@ -3756,7 +3756,7 @@ namespace Orts.Simulation.AIs
                 simulator.TrainDictionary.Remove(attachTrain.Number);
                 simulator.NameDictionary.Remove(attachTrain.Name);
             }
-            if (MPManager.IsMultiPlayer()) MPManager.BroadCast((new MSGCouple(this, attachTrain, false)).ToString());
+            if (MultiPlayerManager.IsMultiPlayer()) MultiPlayerManager.BroadCast((new MSGCouple(this, attachTrain, false)).ToString());
             UpdateOccupancies();
             AddTrackSections();
             ResetActions(true);

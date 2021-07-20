@@ -671,8 +671,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
             // First Block
             // Client and server may have a time difference.
-            if (Orts.MultiPlayer.MPManager.IsClient())
-                InfoToLabel(string.Empty, Viewer.Catalog.GetString("Time"), FormatStrings.FormatTime(Owner.Viewer.Simulator.ClockTime + Orts.MultiPlayer.MPManager.Instance().serverTimeDifference), "", false);
+            if (Orts.MultiPlayer.MultiPlayerManager.IsClient())
+                InfoToLabel(string.Empty, Viewer.Catalog.GetString("Time"), FormatStrings.FormatTime(Owner.Viewer.Simulator.ClockTime + Orts.MultiPlayer.MultiPlayerManager.Instance().serverTimeDifference), "", false);
             else
             {
                 InfoToLabel(string.Empty, Viewer.Catalog.GetString("Time"), FormatStrings.FormatTime(Owner.Viewer.Simulator.ClockTime), "", false);

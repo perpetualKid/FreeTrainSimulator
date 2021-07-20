@@ -66,7 +66,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
         private void ShowDispatchControls(bool dispatchView)
         {
-            var multiPlayer = MPManager.IsMultiPlayer() && dispatchView;
+            var multiPlayer = MultiPlayerManager.IsMultiPlayer() && dispatchView;
             F.msgAll.Visible = multiPlayer;
             F.msgSelected.Visible = multiPlayer;
             F.composeMSG.Visible = multiPlayer;

@@ -907,7 +907,7 @@ namespace Orts.Simulation.AIs
                     if (isInitialPlayerTrain)
                     {
                         Simulator.PathName = aiPath.pathName;
-                        if (MPManager.IsMultiPlayer()) car.CarID = MPManager.GetUserName() + " - " + car.UiD; //player's train is always named train 0.
+                        if (MultiPlayerManager.IsMultiPlayer()) car.CarID = MultiPlayerManager.GetUserName() + " - " + car.UiD; //player's train is always named train 0.
                         else car.CarID = "0 - " + car.UiD; //player's train is always named train 0.
                         var mstsDieselLocomotive = car as MSTSDieselLocomotive;
                         if (Simulator.ActivityFile != null && mstsDieselLocomotive != null)
@@ -1013,9 +1013,9 @@ namespace Orts.Simulation.AIs
                     thisTrain.AdjustControlsBrakeFull();
                 }
 
-                if (MPManager.IsServer())
+                if (MultiPlayerManager.IsServer())
                 {
-                    MPManager.BroadCast((new MSGTrain(thisTrain, thisTrain.Number)).ToString());
+                    MultiPlayerManager.BroadCast((new MSGTrain(thisTrain, thisTrain.Number)).ToString());
                 }
             }
             else
@@ -1308,9 +1308,9 @@ namespace Orts.Simulation.AIs
                 }
             }
 
-            if (MPManager.IsServer() && removeList.Count > 0)
+            if (MultiPlayerManager.IsServer() && removeList.Count > 0)
             {
-                MPManager.BroadCast((new MSGRemoveTrain(removeList)).ToString());
+                MultiPlayerManager.BroadCast((new MSGRemoveTrain(removeList)).ToString());
             }
 
             TrainsToRemove.Clear();

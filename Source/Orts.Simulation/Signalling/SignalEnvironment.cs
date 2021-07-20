@@ -1803,7 +1803,7 @@ namespace Orts.Simulation.Signalling
             if (null == section)
                 throw new ArgumentNullException(nameof(section));
 
-            if (MPManager.NoAutoSwitch())
+            if (MultiPlayerManager.NoAutoSwitch())
                 return;
             TrackJunctionNode node = trackDB.TrackNodes[nodeIndex] as TrackJunctionNode;
             node.SelectedRoute = switchPos;
@@ -3658,7 +3658,7 @@ namespace Orts.Simulation.Signalling
             bool switchSet = false;
 
             // It must be possible to force a switch also in its present state, not only in the opposite state
-            if (!MPManager.IsServer() && switchReserved)
+            if (!MultiPlayerManager.IsServer() && switchReserved)
                 return false;
             //this should not be enforced in MP, as a train may need to be allowed to go out of the station from the side line
 

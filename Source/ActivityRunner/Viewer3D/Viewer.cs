@@ -495,7 +495,7 @@ namespace Orts.ActivityRunner.Viewer3D
             PlayerLocomotiveViewer = World.Trains.GetViewer(PlayerLocomotive);
 
             #region UserCommmands
-            if (MPManager.IsMultiPlayer())
+            if (MultiPlayerManager.IsMultiPlayer())
             {
                 UserCommandController.AddEvent(UserCommand.GamePauseMenu, KeyEventType.KeyPressed, () => Simulator.Confirmer?.Information(Catalog.GetString("In multiplayer mode, use Alt-F4 to quit directly")));
                 UserCommandController.AddEvent(UserCommand.GameMultiPlayerTexting, KeyEventType.KeyPressed, () =>
@@ -895,7 +895,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     _ = new SaveScreenshotCommand(Log);
             });
             #endregion
-            if (MPManager.IsMultiPlayer())
+            if (MultiPlayerManager.IsMultiPlayer())
             {
                 //get key strokes and determine if some messages should be sent
                 MultiPlayerViewer.RegisterInputEvents(this);
@@ -1158,12 +1158,12 @@ namespace Orts.ActivityRunner.Viewer3D
                 LoadDefectCarSound(PlayerLocomotive.Train.Cars[-(int)PlayerLocomotive.Train.ContinuousBrakingTime], "BrakesStuck.sms");
             }
 
-            if (MPManager.IsMultiPlayer())
+            if (MultiPlayerManager.IsMultiPlayer())
             {
-                MPManager.Instance().PreUpdate();
+                MultiPlayerManager.Instance().PreUpdate();
                 ////get key strokes and determine if some messages should be sent
                 //MultiPlayerViewer.HandleUserInput();
-                MPManager.Instance().Update(Simulator.GameTime);
+                MultiPlayerManager.Instance().Update(Simulator.GameTime);
             }
 
             UserCommandController.Send(CommandControllerInput.Speed, Speed.MeterPerSecond.FromMpS(PlayerLocomotive.SpeedMpS, PlayerLocomotive.IsMetric));
@@ -1289,7 +1289,7 @@ namespace Orts.ActivityRunner.Viewer3D
             if (PlayerLocomotiveViewer != null)
                 PlayerLocomotiveViewer.HandleUserInput(elapsedTime);
 
-            if (MPManager.IsMultiPlayer())
+            if (MultiPlayerManager.IsMultiPlayer())
                 MultiPlayerWindow.Visible = TrainDrivingWindow.Visible;
 
             if (DbfEvalAutoPilot && (Simulator.ClockTime - DbfEvalIniAutoPilotTimeS) > 1.0000)
@@ -1385,8 +1385,8 @@ namespace Orts.ActivityRunner.Viewer3D
             ThreeDimCabCamera.ChangeCab(Simulator.PlayerLocomotive);
             HeadOutForwardCamera.ChangeCab(Simulator.PlayerLocomotive);
             HeadOutBackCamera.ChangeCab(Simulator.PlayerLocomotive);
-            if (MPManager.IsMultiPlayer())
-                MPManager.LocoChange(Simulator.PlayerLocomotive.Train, Simulator.PlayerLocomotive);
+            if (MultiPlayerManager.IsMultiPlayer())
+                MultiPlayerManager.LocoChange(Simulator.PlayerLocomotive.Train, Simulator.PlayerLocomotive);
             Simulator.Confirmer.Confirm(CabControl.ChangeCab, CabSetting.On);
         }
 

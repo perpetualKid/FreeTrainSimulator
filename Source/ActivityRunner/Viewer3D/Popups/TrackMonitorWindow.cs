@@ -332,7 +332,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
             drawTrack(spriteBatch, offset, validInfo.Speed, validInfo.AllowedSpeed);
 
-            if (Orts.MultiPlayer.MPManager.IsMultiPlayer())
+            if (Orts.MultiPlayer.MultiPlayerManager.IsMultiPlayer())
             {
                 drawMPInfo(spriteBatch, offset);
             }
@@ -367,7 +367,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             if (trackColor == Color.Red && !istrackColorRed)//Debrief Eval
             {
                 istrackColorRed = true;
-                DbfEvalIniOverSpeedTimeS = Orts.MultiPlayer.MPManager.Simulator.ClockTime;
+                DbfEvalIniOverSpeedTimeS = Orts.MultiPlayer.MultiPlayerManager.Simulator.ClockTime;
             }            
 
             if (istrackColorRed && trackColor != Color.Red)//Debrief Eval
@@ -376,11 +376,11 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 DbfEvalOverSpeed++;
             }
 
-            if (istrackColorRed && (Orts.MultiPlayer.MPManager.Simulator.ClockTime - DbfEvalIniOverSpeedTimeS) > 1.0000)//Debrief Eval
+            if (istrackColorRed && (Orts.MultiPlayer.MultiPlayerManager.Simulator.ClockTime - DbfEvalIniOverSpeedTimeS) > 1.0000)//Debrief Eval
             {
-                DbfEvalOverSpeedTimeS = DbfEvalOverSpeedTimeS + (Orts.MultiPlayer.MPManager.Simulator.ClockTime - DbfEvalIniOverSpeedTimeS);
+                DbfEvalOverSpeedTimeS = DbfEvalOverSpeedTimeS + (Orts.MultiPlayer.MultiPlayerManager.Simulator.ClockTime - DbfEvalIniOverSpeedTimeS);
                 train.DbfEvalValueChanged = true;
-                DbfEvalIniOverSpeedTimeS = Orts.MultiPlayer.MPManager.Simulator.ClockTime;
+                DbfEvalIniOverSpeedTimeS = Orts.MultiPlayer.MultiPlayerManager.Simulator.ClockTime;
             }
         }
 

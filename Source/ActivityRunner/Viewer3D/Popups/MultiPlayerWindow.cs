@@ -361,8 +361,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             keyPressed = "";
             if (StandardHUD)
             {
-                if (Orts.MultiPlayer.MPManager.IsClient())
-                    InfoToLabel(keyPressed, Viewer.Catalog.GetString("Time") + ": " + FormatStrings.FormatTime(Owner.Viewer.Simulator.ClockTime + Orts.MultiPlayer.MPManager.Instance().serverTimeDifference), "", "", false, keyPressed);
+                if (Orts.MultiPlayer.MultiPlayerManager.IsClient())
+                    InfoToLabel(keyPressed, Viewer.Catalog.GetString("Time") + ": " + FormatStrings.FormatTime(Owner.Viewer.Simulator.ClockTime + Orts.MultiPlayer.MultiPlayerManager.Instance().serverTimeDifference), "", "", false, keyPressed);
                 else
                 {
                     InfoToLabel(keyPressed, Viewer.Catalog.GetString("Time") + ": " + FormatStrings.FormatTime(Owner.Viewer.Simulator.ClockTime), "", "", false, keyPressed);
@@ -370,23 +370,23 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             }
 
             // MultiPlayer
-            if (Orts.MultiPlayer.MPManager.IsMultiPlayer())
+            if (Orts.MultiPlayer.MultiPlayerManager.IsMultiPlayer())
             {
-                var text = Orts.MultiPlayer.MPManager.Instance().GetOnlineUsersInfo();
+                var text = Orts.MultiPlayer.MultiPlayerManager.Instance().GetOnlineUsersInfo();
 
                 if (StandardHUD)
                 {
                     InfoToLabel("", Viewer.Catalog.GetString("Sprtr"), "", "", false, keyPressed);
-                    InfoToLabel(" ", Viewer.Catalog.GetString("MultiPlayerStatus:") + " " + (Orts.MultiPlayer.MPManager.IsServer()
-                        ? Viewer.Catalog.GetString("Dispatcher") : Orts.MultiPlayer.MPManager.Instance().AmAider
-                        ? Viewer.Catalog.GetString("Helper") : Orts.MultiPlayer.MPManager.IsClient()
+                    InfoToLabel(" ", Viewer.Catalog.GetString("MultiPlayerStatus:") + " " + (Orts.MultiPlayer.MultiPlayerManager.IsServer()
+                        ? Viewer.Catalog.GetString("Dispatcher") : Orts.MultiPlayer.MultiPlayerManager.Instance().AmAider
+                        ? Viewer.Catalog.GetString("Helper") : Orts.MultiPlayer.MultiPlayerManager.IsClient()
                         ? Viewer.Catalog.GetString("Client") : ""), "", "", true, keyPressed);
                 }
                 else
                 {
-                    InfoToLabel(" ", Viewer.Catalog.GetString("Status:") + " " + (Orts.MultiPlayer.MPManager.IsServer()
-                        ? Viewer.Catalog.GetString("Dispatcher") : Orts.MultiPlayer.MPManager.Instance().AmAider
-                        ? Viewer.Catalog.GetString("Helper") : Orts.MultiPlayer.MPManager.IsClient()
+                    InfoToLabel(" ", Viewer.Catalog.GetString("Status:") + " " + (Orts.MultiPlayer.MultiPlayerManager.IsServer()
+                        ? Viewer.Catalog.GetString("Dispatcher") : Orts.MultiPlayer.MultiPlayerManager.Instance().AmAider
+                        ? Viewer.Catalog.GetString("Helper") : Orts.MultiPlayer.MultiPlayerManager.IsClient()
                         ? Viewer.Catalog.GetString("Client") : ""), "", "", true, keyPressed);
                 }
                 // Number of player and trains

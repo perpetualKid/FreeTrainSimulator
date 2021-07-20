@@ -1311,7 +1311,7 @@ namespace Orts.Simulation.Track
                 }
                 else
                 {
-                    if (MPManager.IsMultiPlayer())
+                    if (MultiPlayerManager.IsMultiPlayer())
                     {
                         bool reservedTrainStillThere = false;
                         foreach (Signal signal in EndSignals)

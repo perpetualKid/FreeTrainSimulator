@@ -127,9 +127,9 @@ namespace Orts.MultiPlayer
 				}
 				catch (SameNameError) //I have conflict with some one in the game, will close, and abort.
 				{
-					if (MPManager.Simulator.Confirmer != null)
-                        MPManager.Simulator.Confirmer.Error(MPManager.Catalog.GetString("Connection to the server is lost, will play as single mode"));
-                    MPManager.Client = null;
+					if (MultiPlayerManager.Simulator.Confirmer != null)
+                        MultiPlayerManager.Simulator.Confirmer.Error(MultiPlayerManager.Catalog.GetString("Connection to the server is lost, will play as single mode"));
+                    MultiPlayerManager.Client = null;
 					tcpClient.Close();
 					listenThread.Abort();
 				}
@@ -138,27 +138,27 @@ namespace Orts.MultiPlayer
 					Trace.TraceWarning(e.Message + e.StackTrace);
 				}
 			}
-			if (MPManager.Simulator.Confirmer != null)
-                MPManager.Simulator.Confirmer.Error(MPManager.Catalog.GetString("Connection to the server is lost, will play as single mode"));
+			if (MultiPlayerManager.Simulator.Confirmer != null)
+                MultiPlayerManager.Simulator.Confirmer.Error(MultiPlayerManager.Catalog.GetString("Connection to the server is lost, will play as single mode"));
 			try
 			{
-				foreach (var p in MPManager.OnlineTrains.Players)
+				foreach (var p in MultiPlayerManager.OnlineTrains.Players)
 				{
-					MPManager.Instance().AddRemovedPlayer(p.Value);
+					MultiPlayerManager.Instance().AddRemovedPlayer(p.Value);
 				}
 			}
 			catch (Exception) { }
 			
 			//no matter what, let player gain back the control of the player train
-			if (MPManager.Simulator.PlayerLocomotive != null && MPManager.Simulator.PlayerLocomotive.Train != null)
+			if (MultiPlayerManager.Simulator.PlayerLocomotive != null && MultiPlayerManager.Simulator.PlayerLocomotive.Train != null)
 			{
-				MPManager.Simulator.PlayerLocomotive.Train.TrainType = TrainType.Player;
-				MPManager.Simulator.PlayerLocomotive.Train.LeadLocomotive = MPManager.Simulator.PlayerLocomotive;
+				MultiPlayerManager.Simulator.PlayerLocomotive.Train.TrainType = TrainType.Player;
+				MultiPlayerManager.Simulator.PlayerLocomotive.Train.LeadLocomotive = MultiPlayerManager.Simulator.PlayerLocomotive;
 			}
-			if (MPManager.Simulator.Confirmer != null)
-                MPManager.Simulator.Confirmer.Information(MPManager.Catalog.GetString("Alt-E to gain control of your train"));
+			if (MultiPlayerManager.Simulator.Confirmer != null)
+                MultiPlayerManager.Simulator.Confirmer.Information(MultiPlayerManager.Catalog.GetString("Alt-E to gain control of your train"));
 
-            MPManager.Client = null;
+            MultiPlayerManager.Client = null;
 			tcpClient.Close();
 			listenThread.Abort();
 		}

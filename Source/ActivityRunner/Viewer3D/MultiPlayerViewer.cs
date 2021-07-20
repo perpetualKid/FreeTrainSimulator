@@ -45,22 +45,22 @@ namespace Orts.ActivityRunner.Viewer3D
 
             //In Multiplayer, I maybe the helper, but I can request to be the controller
             // Horn and bell are managed by UpdateHornAndBell in MSTSLocomotive.cs
-            viewer.UserCommandController.AddEvent(UserCommand.GameRequestControl, KeyEventType.KeyPressed, MPManager.RequestControl);
-            viewer.UserCommandController.AddEvent(UserCommand.ControlPantograph1, KeyEventType.KeyPressed, () => MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "PANTO1", (++panto1) % 2).ToString()));
-            viewer.UserCommandController.AddEvent(UserCommand.ControlPantograph2, KeyEventType.KeyPressed, () => MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "PANTO2", (++panto2) % 2).ToString()));
-            viewer.UserCommandController.AddEvent(UserCommand.ControlPantograph3, KeyEventType.KeyPressed, () => MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "PANTO3", (++panto3) % 2).ToString()));
-            viewer.UserCommandController.AddEvent(UserCommand.ControlPantograph4, KeyEventType.KeyPressed, () => MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "PANTO4", (++panto4) % 2).ToString()));
-            viewer.UserCommandController.AddEvent(UserCommand.ControlWiper, KeyEventType.KeyPressed, () => MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "WIPER", (++wiper) % 2).ToString()));
-            viewer.UserCommandController.AddEvent(UserCommand.ControlDoorLeft, KeyEventType.KeyPressed, () => MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "DOORL", (++doorLeft) % 2).ToString()));
-            viewer.UserCommandController.AddEvent(UserCommand.ControlDoorRight, KeyEventType.KeyPressed, () => MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "DOORR", (++doorRight) % 2).ToString()));
-            viewer.UserCommandController.AddEvent(UserCommand.ControlMirror, KeyEventType.KeyPressed, () => MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "MIRRORS", (++mirrors) % 2).ToString()));
+            viewer.UserCommandController.AddEvent(UserCommand.GameRequestControl, KeyEventType.KeyPressed, MultiPlayerManager.RequestControl);
+            viewer.UserCommandController.AddEvent(UserCommand.ControlPantograph1, KeyEventType.KeyPressed, () => MultiPlayerManager.Notify(new MSGEvent(MultiPlayerManager.GetUserName(), "PANTO1", (++panto1) % 2).ToString()));
+            viewer.UserCommandController.AddEvent(UserCommand.ControlPantograph2, KeyEventType.KeyPressed, () => MultiPlayerManager.Notify(new MSGEvent(MultiPlayerManager.GetUserName(), "PANTO2", (++panto2) % 2).ToString()));
+            viewer.UserCommandController.AddEvent(UserCommand.ControlPantograph3, KeyEventType.KeyPressed, () => MultiPlayerManager.Notify(new MSGEvent(MultiPlayerManager.GetUserName(), "PANTO3", (++panto3) % 2).ToString()));
+            viewer.UserCommandController.AddEvent(UserCommand.ControlPantograph4, KeyEventType.KeyPressed, () => MultiPlayerManager.Notify(new MSGEvent(MultiPlayerManager.GetUserName(), "PANTO4", (++panto4) % 2).ToString()));
+            viewer.UserCommandController.AddEvent(UserCommand.ControlWiper, KeyEventType.KeyPressed, () => MultiPlayerManager.Notify(new MSGEvent(MultiPlayerManager.GetUserName(), "WIPER", (++wiper) % 2).ToString()));
+            viewer.UserCommandController.AddEvent(UserCommand.ControlDoorLeft, KeyEventType.KeyPressed, () => MultiPlayerManager.Notify(new MSGEvent(MultiPlayerManager.GetUserName(), "DOORL", (++doorLeft) % 2).ToString()));
+            viewer.UserCommandController.AddEvent(UserCommand.ControlDoorRight, KeyEventType.KeyPressed, () => MultiPlayerManager.Notify(new MSGEvent(MultiPlayerManager.GetUserName(), "DOORR", (++doorRight) % 2).ToString()));
+            viewer.UserCommandController.AddEvent(UserCommand.ControlMirror, KeyEventType.KeyPressed, () => MultiPlayerManager.Notify(new MSGEvent(MultiPlayerManager.GetUserName(), "MIRRORS", (++mirrors) % 2).ToString()));
 
             viewer.UserCommandController.AddEvent(UserCommand.ControlHeadlightIncrease, KeyEventType.KeyPressed, () =>
             {
                 headlight++;
                 if (headlight >= 3)
                     headlight = 2;
-                MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "HEADLIGHT", headlight).ToString());
+                MultiPlayerManager.Notify(new MSGEvent(MultiPlayerManager.GetUserName(), "HEADLIGHT", headlight).ToString());
             });
 
             viewer.UserCommandController.AddEvent(UserCommand.ControlHeadlightDecrease, KeyEventType.KeyPressed, () =>
@@ -68,7 +68,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 headlight--;
                 if (headlight < 0)
                     headlight = 0;
-                MPManager.Notify(new MSGEvent(MPManager.GetUserName(), "HEADLIGHT", headlight).ToString());
+                MultiPlayerManager.Notify(new MSGEvent(MultiPlayerManager.GetUserName(), "HEADLIGHT", headlight).ToString());
             });
         }
     }

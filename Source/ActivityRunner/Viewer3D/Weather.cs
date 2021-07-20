@@ -130,7 +130,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 UpdateWeatherParameters();
             };
 
-            if (!MPManager.IsClient())
+            if (!MultiPlayerManager.IsClient())
             {
                 viewer.UserCommandController.AddEvent(UserCommand.DebugWeatherChange, KeyEventType.KeyPressed, () =>
                 {
@@ -142,8 +142,8 @@ namespace Orts.ActivityRunner.Viewer3D
                     UpdateWeatherParameters();
 
                     // If we're a multiplayer server, send out the new weather to all clients.
-                    if (MPManager.IsServer())
-                        MPManager.Notify(new MSGWeather((int)this.viewer.Simulator.WeatherType, -1, -1, -1).ToString());
+                    if (MultiPlayerManager.IsServer())
+                        MultiPlayerManager.Notify(new MSGWeather((int)this.viewer.Simulator.WeatherType, -1, -1, -1).ToString());
 
                 });
 
@@ -254,7 +254,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 });
             }
 
-            if (!MPManager.IsMultiPlayer())
+            if (!MultiPlayerManager.IsMultiPlayer())
             {
                 // Shift the clock forwards or backwards at 1h-per-second.
                 viewer.UserCommandController.AddEvent(UserCommand.DebugClockForwards, KeyEventType.KeyDown, (GameTime gameTime) => this.viewer.Simulator.ClockTime += gameTime.ElapsedGameTime.TotalSeconds * 3600);
@@ -262,7 +262,7 @@ namespace Orts.ActivityRunner.Viewer3D
             }
 
             // If we're a multiplayer server, send out the new overcastFactor, pricipitationIntensity and fogDistance to all clients.
-            if (MPManager.IsServer())
+            if (MultiPlayerManager.IsServer())
             {
                 viewer.UserCommandController.AddEvent(UserCommand.DebugOvercastIncrease, KeyEventType.KeyReleased, SendMultiPlayerWeatherChangeNotification);
                 viewer.UserCommandController.AddEvent(UserCommand.DebugOvercastDecrease, KeyEventType.KeyReleased, SendMultiPlayerWeatherChangeNotification);
@@ -277,8 +277,8 @@ namespace Orts.ActivityRunner.Viewer3D
 
         private void SendMultiPlayerWeatherChangeNotification()
         {
-            MPManager.Instance().SetEnvInfo(weather.OvercastFactor, weather.FogVisibilityDistance);
-            MPManager.Notify((new MSGWeather(-1, weather.OvercastFactor, weather.PrecipitationIntensity, weather.FogVisibilityDistance)).ToString());
+            MultiPlayerManager.Instance().SetEnvInfo(weather.OvercastFactor, weather.FogVisibilityDistance);
+            MultiPlayerManager.Notify((new MSGWeather(-1, weather.OvercastFactor, weather.PrecipitationIntensity, weather.FogVisibilityDistance)).ToString());
         }
 
         public virtual void SaveWeatherParameters(BinaryWriter outf)
@@ -490,9 +490,9 @@ namespace Orts.ActivityRunner.Viewer3D
         public virtual void Update(in ElapsedTime elapsedTime)
         {
             Time += (float)elapsedTime.ClockSeconds;
-            var manager = MPManager.Instance();
+            var manager = MultiPlayerManager.Instance();
 
-            if (MPManager.IsClient() && manager.weatherChanged)
+            if (MultiPlayerManager.IsClient() && manager.weatherChanged)
             {
                 // Multiplayer weather has changed so we need to update our state to match weather, overcastFactor, pricipitationIntensity and fogDistance.
                 if (manager.weather >= 0 && manager.weather != (int)viewer.Simulator.WeatherType)
@@ -520,7 +520,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     manager.fogDistance = -1;
                 }
             }
-            else if (!MPManager.IsClient())
+            else if (!MultiPlayerManager.IsClient())
             {
                 UpdateWind(elapsedTime);
             }

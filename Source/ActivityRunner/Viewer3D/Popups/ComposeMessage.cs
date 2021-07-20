@@ -53,8 +53,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             keyboardInput.SuspendForOverlayInput();
             game.Window.TextInput += Window_TextInput;
 
-            if (!string.IsNullOrEmpty(MPManager.Instance().lastSender))
-                messageLabel.Text = MPManager.Instance().lastSender + ":";
+            if (!string.IsNullOrEmpty(MultiPlayerManager.Instance().lastSender))
+                messageLabel.Text = MultiPlayerManager.Instance().lastSender + ":";
         }
 
         private void AppendMessage(char character)
@@ -80,8 +80,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         {
             //we need to send message out
             string user = "";
-            if (string.IsNullOrEmpty(MPManager.Instance().lastSender)) //server will broadcast the message to everyone
-                user = MPManager.IsServer() ? string.Join("", MPManager.OnlineTrains.Players.Keys.Select((string k) => $"{k}\r")) + "0END" : "0Server\r0END";
+            if (string.IsNullOrEmpty(MultiPlayerManager.Instance().lastSender)) //server will broadcast the message to everyone
+                user = MultiPlayerManager.IsServer() ? string.Join("", MultiPlayerManager.OnlineTrains.Players.Keys.Select((string k) => $"{k}\r")) + "0END" : "0Server\r0END";
 
             string msg = messageText.ToString();
             int index = msg.IndexOf(':');
@@ -92,7 +92,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 IEnumerable<string> onlinePlayers = messageLabel.Text.Substring(0, index)
                     .Split(',')
                     .Select((string n) => n.Trim())
-                    .Where((string nt) => MPManager.OnlineTrains.Players.ContainsKey(nt))
+                    .Where((string nt) => MultiPlayerManager.OnlineTrains.Players.ContainsKey(nt))
                     .Select((string nt) => $"{nt}\r");
 
                 string newUser = string.Join("", onlinePlayers);
@@ -101,10 +101,10 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 user += "0END";
             }
 
-            string msgText = new MSGText(MPManager.GetUserName(), user, msg).ToString();
+            string msgText = new MSGText(MultiPlayerManager.GetUserName(), user, msg).ToString();
             try
             {
-                MPManager.Notify(msgText);
+                MultiPlayerManager.Notify(msgText);
             }
 #pragma warning disable CA1031 // Do not catch general exception types
             catch

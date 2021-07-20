@@ -123,7 +123,7 @@ namespace Orts.ActivityRunner.Viewer3D
             // Control- and Control+ for overcast, Shift- and Shift+ for fog and - and + for time.
 
             // Don't let multiplayer clients adjust the weather.
-            if (!MPManager.IsClient())
+            if (!MultiPlayerManager.IsClient())
             {
                 // Overcast ranges from 0 (completely clear) to 1 (completely overcast).
                 viewer.UserCommandController.AddEvent(UserCommand.DebugOvercastIncrease, KeyEventType.KeyDown, (GameTime gameTIme) =>
@@ -145,7 +145,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 });
             }
             // Don't let clock shift if multiplayer.
-            if (!MPManager.IsMultiPlayer())
+            if (!MultiPlayerManager.IsMultiPlayer())
             {
                 // Shift the clock forwards or backwards at 1h-per-second.
                 viewer.UserCommandController.AddEvent(UserCommand.DebugClockForwards, KeyEventType.KeyDown, (GameTime gameTIme) =>
@@ -158,7 +158,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 });
             }
             // Server needs to notify clients of weather changes.
-            if (MPManager.IsServer())
+            if (MultiPlayerManager.IsServer())
             {
                 viewer.UserCommandController.AddEvent(UserCommand.DebugOvercastIncrease, KeyEventType.KeyReleased, SendMultiPlayerSkyChangeNotification);
                 viewer.UserCommandController.AddEvent(UserCommand.DebugOvercastDecrease, KeyEventType.KeyReleased, SendMultiPlayerSkyChangeNotification);
@@ -170,8 +170,8 @@ namespace Orts.ActivityRunner.Viewer3D
 
         private void SendMultiPlayerSkyChangeNotification()
         {
-            MPManager.Instance().SetEnvInfo(mstsskyovercastFactor, mstsskyfogDistance);
-            MPManager.Notify(new MSGWeather(-1, mstsskyovercastFactor, -1, mstsskyfogDistance).ToString());
+            MultiPlayerManager.Instance().SetEnvInfo(mstsskyovercastFactor, mstsskyfogDistance);
+            MultiPlayerManager.Notify(new MSGWeather(-1, mstsskyovercastFactor, -1, mstsskyfogDistance).ToString());
         }
 
         /// <summary>
@@ -217,8 +217,8 @@ namespace Orts.ActivityRunner.Viewer3D
                 initialized = true;
             }
 
-            MPManager manager = MPManager.Instance();
-            if (MPManager.IsClient() && manager.weatherChanged)
+            MultiPlayerManager manager = MultiPlayerManager.Instance();
+            if (MultiPlayerManager.IsClient() && manager.weatherChanged)
             {
                 //received message about weather change
                 if (manager.overcastFactor >= 0)

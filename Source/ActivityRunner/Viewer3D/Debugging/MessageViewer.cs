@@ -36,7 +36,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         private void ComposeClick(object sender, EventArgs e)
         {
             MSG.Enabled = true;
-            MultiPlayer.MPManager.Instance().ComposingText = true;
+            MultiPlayer.MultiPlayerManager.Instance().ComposingText = true;
         }
         
         private void ReplySelectedClick(object sender, EventArgs e)
@@ -53,12 +53,12 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                     .Distinct()
                     .Select((string u) => $"{u.Substring(0, u.IndexOf(':'))}\r");
                 string user = string.Join("", users) + "0END";
-                string msgText = new MultiPlayer.MSGText(MultiPlayer.MPManager.GetUserName(), user, msg).ToString();
+                string msgText = new MultiPlayer.MSGText(MultiPlayer.MultiPlayerManager.GetUserName(), user, msg).ToString();
                 foreach (int _ in Enumerable.Range(0, 3))
                 {
                     try
                     {
-                        MultiPlayer.MPManager.Notify(msgText);
+                        MultiPlayer.MultiPlayerManager.Notify(msgText);
                     }
                     catch
                     {
@@ -68,7 +68,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                 }
                 MSG.Text = "";
                 //MSG.Enabled = false;
-                MultiPlayer.MPManager.Instance().ComposingText = false;
+                MultiPlayer.MultiPlayerManager.Instance().ComposingText = false;
             }
         }
         
