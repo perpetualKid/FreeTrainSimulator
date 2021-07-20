@@ -468,7 +468,7 @@ namespace Orts.MultiPlayer
                 else
                 {
                     Trace.WriteLine("Wrong version of protocol, will play in single mode, please update to version " + MultiPlayerManager.Instance().version);
-                    throw new MultiPlayerError();//client, close the connection
+                    throw new MultiPlayerException();//client, close the connection
                 }
             }
             if (MultiPlayerManager.IsServer() && MultiPlayerManager.Instance().MD5Check != "NA")//I am the server and have MD5 check values, client should have matching MD5, if file is accessible
@@ -642,7 +642,7 @@ namespace Orts.MultiPlayer
             if (MultiPlayerManager.FindPlayerTrain(user) != null || MultiPlayerManager.GetUserName() == user)
             {
                 MultiPlayerManager.BroadCast((new MSGMessage(user, "SameNameError", "A user with the same name exists")).ToString());
-                throw new SameNameError();
+                throw new SameNameException();
             }
 
             //if the client comes back after disconnected within 10 minutes
@@ -1838,7 +1838,7 @@ namespace Orts.MultiPlayer
                 if (level == "Error" && !MultiPlayerManager.IsServer())//if is a client, fatal error, will close the connection, and get into single mode
                 {
                     MultiPlayerManager.Notify((new MSGQuit(MultiPlayerManager.GetUserName())).ToString());//to be nice, still send a quit before close the connection
-                    throw new MultiPlayerError();//this is a fatal error, thus the client will be stopped in ClientComm
+                    throw new MultiPlayerException();//this is a fatal error, thus the client will be stopped in ClientComm
                 }
                 else if (level == "SameNameError" && !MultiPlayerManager.IsServer())//someone with my name but I have been admitted into the game, will ignore it, otherwise, will quit
                 {
@@ -1848,7 +1848,7 @@ namespace Orts.MultiPlayer
                     {
                         if (MultiPlayerManager.Simulator.Confirmer != null)
                             MultiPlayerManager.Simulator.Confirmer.Message(ConfirmLevel.Error, MultiPlayerManager.Catalog.GetString("Name conflicted with people in the game, will play in single mode"));
-                        throw new SameNameError();//this is a fatal error, thus the client will be stopped in ClientComm
+                        throw new SameNameException();//this is a fatal error, thus the client will be stopped in ClientComm
                     }
                 }
                 else if (level == "SwitchWarning")
@@ -2214,7 +2214,7 @@ namespace Orts.MultiPlayer
                 {
                     //no matter what, let player gain back the control of the player train
                     MultiPlayerManager.Simulator.PlayerLocomotive.Train.TrainType = TrainType.Player;
-                    throw new MultiPlayerError(); //server quit, end communication by throwing this error 
+                    throw new MultiPlayerException(); //server quit, end communication by throwing this error 
                 }
             }
         }

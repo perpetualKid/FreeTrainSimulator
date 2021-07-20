@@ -144,11 +144,11 @@ namespace Orts.MultiPlayer
 						info = decoder.GetMsg();
 					}
 				}
-				catch (MultiPlayerError)
+				catch (MultiPlayerException)
 				{
 					break;
 				}
-				catch (SameNameError)
+				catch (SameNameException)
 				{
 					Client.Close();
 					thread.Abort();

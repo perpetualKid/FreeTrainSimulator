@@ -93,13 +93,4 @@ namespace Orts.MultiPlayer
 			
 		}
 	}
-
-    public class MultiPlayerError : Exception
-    {
-
-    }
-    public class SameNameError : Exception
-    {
-
-    }
 }
