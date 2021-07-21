@@ -869,11 +869,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                     case "dieseltorquetab": DieselTorqueTab = stf.CreateInterpolator(); initLevel |= SettingsFlags.DieselTorqueTab; break;
                     case "minoilpressure": DieselMinOilPressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, 0f); initLevel |= SettingsFlags.MinOilPressure; break;
                     case "maxoilpressure": DieselMaxOilPressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, 0f); initLevel |= SettingsFlags.MaxOilPressure; break;
-                    case "maxtemperature": DieselMaxTemperatureDeg = stf.ReadFloatBlock(STFReader.Units.TemperatureDifference, 0f); initLevel |= SettingsFlags.MaxTemperature; break;
+                    case "maxtemperature": DieselMaxTemperatureDeg = stf.ReadFloatBlock(STFReader.Units.Temperature, 0); initLevel |= SettingsFlags.MaxTemperature; break;
                     case "cooling": EngineCooling = (Cooling)stf.ReadIntBlock((int)Cooling.Proportional); initLevel |= SettingsFlags.Cooling; break; //ReadInt changed to ReadIntBlock
                     case "temptimeconstant": DieselTempTimeConstantSec = stf.ReadFloatBlock(STFReader.Units.Time, 0f); initLevel |= SettingsFlags.TempTimeConstant; break;
-                    case "opttemperature": DieselOptimalTemperatureDegC = stf.ReadFloatBlock(STFReader.Units.TemperatureDifference, 95f); initLevel |= SettingsFlags.OptTemperature; break;
-                    case "idletemperature": DieselIdleTemperatureDegC = stf.ReadFloatBlock(STFReader.Units.TemperatureDifference, 75f); initLevel |= SettingsFlags.IdleTemperature; break;
+                    case "opttemperature": DieselOptimalTemperatureDegC = stf.ReadFloatBlock(STFReader.Units.Temperature, 95f); initLevel |= SettingsFlags.OptTemperature; break;
+                    case "idletemperature": DieselIdleTemperatureDegC = stf.ReadFloatBlock(STFReader.Units.Temperature, 75f); initLevel |= SettingsFlags.IdleTemperature; break;
                     default:
                         end = true;
                         break;
