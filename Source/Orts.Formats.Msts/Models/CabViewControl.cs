@@ -9,8 +9,6 @@ using Microsoft.Xna.Framework;
 using Orts.Common;
 using Orts.Formats.Msts.Parsers;
 
-using SharpDX.Direct3D9;
-
 namespace Orts.Formats.Msts.Models
 {
     public class CabViewControls : List<CabViewControl>
@@ -23,14 +21,14 @@ namespace Orts.Formats.Msts.Models
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("dial", ()=>{ Add(new CabViewDialControl(stf, basePath)); }),
                 new STFReader.TokenProcessor("gauge", ()=>{ Add(new CabViewGaugeControl(stf, basePath)); }),
-                new STFReader.TokenProcessor("lever", ()=>{ Add(new CabViewDiscreteControl(stf, basePath)); }),
-                new STFReader.TokenProcessor("twostate", ()=>{ Add(new CabViewDiscreteControl(stf, basePath)); }),
-                new STFReader.TokenProcessor("tristate", ()=>{ Add(new CabViewDiscreteControl(stf, basePath)); }),
-                new STFReader.TokenProcessor("multistate", ()=>{ Add(new CabViewDiscreteControl(stf, basePath)); }),
+                new STFReader.TokenProcessor("lever", ()=>{ Add(new CabViewDiscreteControl(stf, basePath, CabViewControlDiscreteState.Lever)); }),
+                new STFReader.TokenProcessor("twostate", ()=>{ Add(new CabViewDiscreteControl(stf, basePath, CabViewControlDiscreteState.TwoState)); }),
+                new STFReader.TokenProcessor("tristate", ()=>{ Add(new CabViewDiscreteControl(stf, basePath, CabViewControlDiscreteState.TriState)); }),
+                new STFReader.TokenProcessor("multistate", ()=>{ Add(new CabViewDiscreteControl(stf, basePath, CabViewControlDiscreteState.MultiState)); }),
                 new STFReader.TokenProcessor("multistatedisplay", ()=>{ Add(new CabViewMultiStateDisplayControl(stf, basePath)); }),
-                new STFReader.TokenProcessor("cabsignaldisplay", ()=>{ Add(new CabViewSignalControl(stf, basePath)); }),
+                new STFReader.TokenProcessor("cabsignaldisplay", ()=>{ Add(new CabViewSignalControl(stf, basePath, CabViewControlDiscreteState.CabSignalDisplay)); }),
                 new STFReader.TokenProcessor("digital", ()=>{ Add(new CabViewDigitalControl(stf, basePath)); }),
-                new STFReader.TokenProcessor("combinedcontrol", ()=>{ Add(new CabViewDiscreteControl(stf, basePath)); }),
+                new STFReader.TokenProcessor("combinedcontrol", ()=>{ Add(new CabViewDiscreteControl(stf, basePath, CabViewControlDiscreteState.CombinedControl)); }),
                 new STFReader.TokenProcessor("firebox", ()=>{ Add(new CabViewFireboxControl(stf, basePath)); }),
                 new STFReader.TokenProcessor("dialclock", ()=>{ ProcessDialClock(stf, basePath);  }),
                 new STFReader.TokenProcessor("digitalclock", ()=>{ Add(new CabViewDigitalClockControl(stf, basePath)); }),
@@ -494,7 +492,7 @@ namespace Orts.Formats.Msts.Models
         private int numPositions;
         private bool canFill = true;
 
-        internal CabViewDiscreteControl(STFReader stf, string basePath)
+        internal CabViewDiscreteControl(STFReader stf, string basePath, CabViewControlDiscreteState discreteState)
         {
             stf.MustMatchBlockStart();
             stf.ParseBlock(new STFReader.TokenProcessor[] {
@@ -793,6 +791,16 @@ namespace Orts.Formats.Msts.Models
                         Direction = 1 - Direction;
                     break;
             }
+
+            switch (discreteState)
+            {
+                case CabViewControlDiscreteState.TriState:
+                    ScaleRangeMax = 2.0f; // So that LocomotiveViewerExtensions.GetWebControlValueList() returns right value to web server
+                    break;
+                default:
+                    break;
+            }
+
         } // End of Constructor
 
         public void ResetScaleRange(float min, float max)
@@ -936,8 +944,8 @@ namespace Orts.Formats.Msts.Models
     #region other controls
     public class CabViewSignalControl : CabViewDiscreteControl
     {
-        internal CabViewSignalControl(STFReader inf, string basePath)
-            : base(inf, basePath)
+        internal CabViewSignalControl(STFReader inf, string basePath, CabViewControlDiscreteState discreteState)
+            : base(inf, basePath, discreteState)
         {
             FramesCount = 8;
             FramesX = 4;

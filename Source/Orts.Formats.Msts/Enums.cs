@@ -522,6 +522,17 @@ namespace Orts.Formats.Msts
         Rpm,
         Lbs,
     }
+
+    public enum CabViewControlDiscreteState
+    {
+        Lever,
+        TwoState,
+        TriState,
+        MultiState,
+        CombinedControl,
+        CabSignalDisplay,
+    }
+
     #endregion
 
     #region WorldFile
