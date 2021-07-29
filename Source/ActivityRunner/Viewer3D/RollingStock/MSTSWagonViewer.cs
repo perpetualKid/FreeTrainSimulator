@@ -1036,7 +1036,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 couplerShape.PrepareFrame(frame, elapsedTime, new WorldPosition(Car.WorldPosition.TileX, Car.WorldPosition.TileZ, couplerPosition));
             }
 
-            // Display front airhose in sim if open coupler shape is configured, otherwise skip to next section, and just display closed (default) coupler if configured
             if (FrontAirHoseShape != null && !(Viewer.Camera.AttachedCar == MSTSWagon && Viewer.Camera.Style == Camera.Styles.ThreeDimCab))
             {
                 // Get the movement that would be needed to locate the coupler on the car if they were pointing in the default direction.
@@ -1044,67 +1043,85 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 {
                     X = Car.FrontAirHoseAnimWidthM,
                     Y = Car.FrontAirHoseAnimHeightM,
-                    Z = (Car.FrontAirHoseAnimLengthM + (Car.CarLengthM / 2.0f))  // Reversed as this is the rear coupler of the wagon
+                    Z = (Car.FrontCouplerAnimLengthM + (Car.CarLengthM / 2.0f) + Car.FrontCouplerSlackM)
                 };
-
-                Vector3 placement = PositionCoupler(Car, displacement);
-
-                airhosePosition = MatrixExtension.ChangeTranslation(Car.WorldPosition.XNAMatrix, placement);
-                airhosePosition = AlignCouplerWithCar(airhosePosition, Car.Flipped);
 
                 if (Car.CarAhead != null) // Display animated coupler if there is a car behind this car
                 {
-                    float airHoseAngleRadians = (float)(Car.CouplerSlackM / Size.Length.FromIn(3.0f)) * 0.174533f;
+                    displacement.Y += Car.FrontAirHoseHeightAdjustmentM;
+
+                    Vector3 placement = PositionCoupler(Car, displacement);
+
+                    airhosePosition = MatrixExtension.ChangeTranslation(Car.WorldPosition.XNAMatrix, placement);
+                    airhosePosition = AlignCouplerWithCar(airhosePosition, Car.Flipped);
 
                     // Rotate the airhose to align with the calculated angle direction
-                    airhosePosition = Matrix.CreateRotationY(airHoseAngleRadians) * airhosePosition;
+                    airhosePosition = Matrix.CreateRotationY(Car.FrontAirHoseAngleAdjustmentRad) * airhosePosition;
 
                     airhoseShape = FrontAirHoseShape;
                 }
-                else if (FrontAirHoseDisconnectedShape != null && Car.RearCouplerOpenFitted && Car.RearCouplerOpen) // Display open coupler if no car is behind car, and an open coupler shape is present
+                else
                 {
-                    airhoseShape = FrontAirHoseDisconnectedShape;
-                }
-                else //Display closed static coupler by default if other conditions not met
-                {
-                    airhoseShape = FrontAirHoseShape;
+                    Vector3 placement = PositionCoupler(Car, displacement);
+
+                    airhosePosition = MatrixExtension.ChangeTranslation(Car.WorldPosition.XNAMatrix, placement);
+                    airhosePosition = AlignCouplerWithCar(airhosePosition, Car.Flipped);
+
+                    if (FrontAirHoseDisconnectedShape != null && Car.RearCouplerOpenFitted && Car.RearCouplerOpen) // Display open coupler if no car is behind car, and an open coupler shape is present
+                    {
+                        airhoseShape = FrontAirHoseDisconnectedShape;
+                    }
+                    else //Display closed static coupler by default if other conditions not met
+                    {
+                        airhoseShape = FrontAirHoseShape;
+                    }
                 }
                 airhoseShape.PrepareFrame(frame, elapsedTime, new WorldPosition(Car.WorldPosition.TileX, Car.WorldPosition.TileZ, airhosePosition));
             }
 
 
             // Display rear airhose in sim if open coupler shape is configured, otherwise skip to next section, and just display closed (default) coupler if configured
-            if (RearAirHoseShape != null && !(Viewer.Camera.AttachedCar == this.MSTSWagon && Viewer.Camera.Style == Camera.Styles.ThreeDimCab))
+            if (RearAirHoseShape != null && !(Viewer.Camera.AttachedCar == MSTSWagon && Viewer.Camera.Style == Camera.Styles.ThreeDimCab))
             {
                 // Get the movement that would be needed to locate the coupler on the car if they were pointing in the default direction.
                 Vector3 displacement = new Vector3
                 {
                     X = Car.RearAirHoseAnimWidthM,
                     Y = Car.RearAirHoseAnimHeightM,
-                    Z = -(Car.RearAirHoseAnimLengthM + (Car.CarLengthM / 2.0f))  // Reversed as this is the rear coupler of the wagon
+                    Z = -(Car.RearCouplerAnimLengthM + (Car.CarLengthM / 2.0f) + Car.RearCouplerSlackM)  // Reversed as this is the rear coupler of the wagon
                 };
-
-                Vector3 placement = PositionCoupler(Car, displacement);
-
-                airhosePosition = MatrixExtension.ChangeTranslation(Car.WorldPosition.XNAMatrix, placement);
-                airhosePosition = AlignCouplerWithCar(airhosePosition, Car.Flipped);
 
                 if (Car.CarBehind != null) // Display animated coupler if there is a car behind this car
                 {
-                    float airHoseAngleRadians = -(float)(Car.CouplerSlackM / Size.Length.FromIn(3.0f)) * 0.174533f;
+                    displacement.Y += Car.FrontAirHoseHeightAdjustmentM;
+
+                    Vector3 placement = PositionCoupler(Car, displacement);
+
+                    airhosePosition = MatrixExtension.ChangeTranslation(Car.WorldPosition.XNAMatrix, placement);
+                    airhosePosition = AlignCouplerWithCar(airhosePosition, Car.Flipped);
+                    // Get the movement that would be needed to locate the air hose on the car if they were pointing in the default direction.
+                    float airHoseAngleRadians = -Car.RearAirHoseAngleAdjustmentRad;
 
                     // Rotate the airhose to align with the calculated angle direction
                     airhosePosition = Matrix.CreateRotationY(airHoseAngleRadians) * airhosePosition;
 
                     airhoseShape = RearAirHoseShape;
                 }
-                else if (RearAirHoseDisconnectedShape != null && Car.RearCouplerOpenFitted && Car.RearCouplerOpen) // Display open coupler if no car is behind car, and an open coupler shape is present
+                else
                 {
-                    airhoseShape = RearAirHoseDisconnectedShape;
-                }
-                else //Display closed static coupler by default if other conditions not met
-                {
-                    airhoseShape = RearAirHoseShape;
+                    Vector3 placement = PositionCoupler(Car, displacement);
+
+                    airhosePosition = MatrixExtension.ChangeTranslation(Car.WorldPosition.XNAMatrix, placement);
+                    airhosePosition = AlignCouplerWithCar(airhosePosition, Car.Flipped);
+
+                    if (RearAirHoseDisconnectedShape != null && Car.RearCouplerOpenFitted && Car.RearCouplerOpen) // Display open coupler if no car is behind car, and an open coupler shape is present
+                    {
+                        airhoseShape = RearAirHoseDisconnectedShape;
+                    }
+                    else //Display closed static coupler by default if other conditions not met
+                    {
+                        airhoseShape = RearAirHoseShape;
+                    }
                 }
                 airhoseShape.PrepareFrame(frame, elapsedTime, new WorldPosition(Car.WorldPosition.TileX, Car.WorldPosition.TileZ, airhosePosition));
             }
