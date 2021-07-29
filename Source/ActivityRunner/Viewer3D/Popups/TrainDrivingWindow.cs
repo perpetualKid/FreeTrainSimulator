@@ -53,6 +53,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         private int LastColLenght;
         private int LastColOverFlow;
         private int LinesCount;
+        private int maxFirstColWidth;
+        private int maxLastColWidth;
 
         private bool ctrlAIFiremanOn; //AIFireman On
         private bool ctrlAIFiremanOff;//AIFireman Off
@@ -77,9 +79,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         private int WindowWidthMax;
         private char expandWindow;
         private string Gradient;
-        public int OffSetX;
         private const int TextSize = 15;
-        public int keyPresLenght;
         private Label indicator;
         private LabelMono indicatorMono;
         private Label ExpandWindow;
@@ -140,8 +140,12 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             { "??!", Color.Green },
             { "?!!", Color.PaleGreen },
             { "$$$", Color.LightSkyBlue},
-            { "$??", Color.Cyan}
+            { "$??", Color.Cyan},
+            { "%$$", Color.Brown },
+            { "%%$", Color.LightGreen },
+            { "$%$", Color.Blue },
         };
+
         private readonly Dictionary<string, string> FirstColToAbbreviated = new Dictionary<string, string>()
         {
             [Viewer.Catalog.GetString("AI Fireman")] = Viewer.Catalog.GetString("AIFR"),
@@ -437,8 +441,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             var vbox = base.Layout(layout).AddLayoutVertical();
             if (listToLabel.Count > 0)
             {
-                var colWidth = listToLabel.Max(x => x.FirstColWidth) + (standardHUDMode ? FontToBold ? 19 : 16 : 8);
-                var TimeHboxPositionY = 0;
+                int colWidth = listToLabel.Max(x => x.FirstColWidth) + (standardHUDMode ? 15 : 20);
+                int TimeHboxPositionY = 0;
                 foreach (var data in listToLabel)
                 {
                     if (data.FirstCol.Contains(Viewer.Catalog.GetString("NwLn")))
@@ -582,10 +586,11 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 FirstColLenght = listToLabel.Max(x => x.FirstColWidth);
                 LastColLenght = listToLabel.Max(x => x.LastColWidth);
 
-                var desiredHeight = FontToBold ? Owner.TextFontDefaultBold.Height * listToLabel.Where(x => x.FirstCol == "Sprtr" || !string.IsNullOrEmpty(x.LastCol)).Count() :
-                    Owner.TextFontDefault.Height * listToLabel.Where(x => x.FirstCol == "Sprtr" || !string.IsNullOrEmpty(x.LastCol)).Count();
+                var rowCount = listToLabel.Where(x => x.FirstCol == "Sprtr" || !string.IsNullOrEmpty(x.LastCol)).Count();
+                var desiredHeight = FontToBold ? Owner.TextFontDefaultBold.Height * rowCount
+                    : Owner.TextFontDefault.Height * rowCount;
 
-                var desiredWidth = FirstColLenght + LastColLenght + (standardHUDMode ? FontToBold ? 43 : 41 : 31);
+                var desiredWidth = FirstColLenght + LastColLenght + 45;// interval between firstcol and lastcol
 
                 var newHeight = (int)MathHelper.Clamp(desiredHeight, (standardHUDMode ? WindowHeightMin : 100), WindowHeightMax);
                 var newWidth = (int)MathHelper.Clamp(desiredWidth, (standardHUDMode ? WindowWidthMin : 100), WindowWidthMax);
@@ -636,21 +641,25 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 if (!firstcol.Contains("Sprtr"))
                 {
 
-                    if (firstcol.Contains("?") || firstcol.Contains("!") || firstcol.Contains("$"))
+                    if (ColorCode.Keys.Any(firstcol.EndsWith))
                     {
-                        firstColWidth = FontToBold ? Owner.TextFontDefaultBold.MeasureString(firstcol.Replace("?", "").Replace("!", "").Replace("$", "").TrimEnd())
-                            : Owner.TextFontDefault.MeasureString(firstcol.Replace("?", "").Replace("!", "").Replace("$", "").TrimEnd());
+                        var tempFirstCol = firstcol.Substring(0, firstcol.Length - 3);
+                        firstColWidth = FontToBold ? Owner.TextFontDefaultBold.MeasureString(tempFirstCol.TrimEnd())
+                            : !standardHUDMode ? Owner.TextFontMonoSpacedBold.MeasureString(tempFirstCol.TrimEnd())
+                            : Owner.TextFontDefault.MeasureString(tempFirstCol.TrimEnd());
                     }
                     else
                     {
                         firstColWidth = FontToBold ? Owner.TextFontDefaultBold.MeasureString(firstcol.TrimEnd())
+                            : !standardHUDMode ? Owner.TextFontMonoSpacedBold.MeasureString(firstcol.TrimEnd())
                             : Owner.TextFontDefault.MeasureString(firstcol.TrimEnd());
                     }
 
-                    if (lastcol.Contains("?") || lastcol.Contains("!") || lastcol.Contains("$"))
+                    if (ColorCode.Keys.Any(lastcol.EndsWith))
                     {
-                        lastColWidth = FontToBold ? Owner.TextFontDefaultBold.MeasureString(lastcol.Replace("?", "").Replace("!", "").Replace("$", "").TrimEnd())
-                            : Owner.TextFontDefault.MeasureString(lastcol.Replace("?", "").Replace("!", "").Replace("$", "").TrimEnd());
+                        var tempLastCol = lastcol.Substring(0, lastcol.Length - 3);
+                        lastColWidth = FontToBold ? Owner.TextFontDefaultBold.MeasureString(tempLastCol.TrimEnd())
+                            : Owner.TextFontDefault.MeasureString(tempLastCol.TrimEnd());
                     }
                     else
                     {
@@ -663,11 +672,19 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     {
                         lastColWidth = listToLabel.First().LastColWidth + 15;// time value + clickable symbol
                     }
-                    // Ajuste the text lenght because MeasureString was not accuracy
-                    lastColWidth = lastColWidth > 180 ? lastColWidth + 10 : lastColWidth;
                 }
 
-                listToLabel.Add(new ListLabel(firstcol, !standardHUDMode ? firstColWidth + 10 : firstColWidth, lastcol, lastColWidth, symbolcol, changecolwidth, keyPressed ?? string.Empty));// avoids the symbol/keypressed from overlapping with the text,
+                listToLabel.Add(new ListLabel(firstcol, firstColWidth, lastcol, lastColWidth, symbolcol, changecolwidth, keyPressed ?? string.Empty));// avoids the symbol/keypressed from overlapping with the text,
+
+                //ResizeWindow, when the string spans over the right boundary of the window
+                if (!ResizeWindow)
+                {
+                    if (maxFirstColWidth < firstColWidth) 
+                        FirstColOverFlow = maxFirstColWidth;
+                    if (maxLastColWidth < lastColWidth) 
+                        LastColOverFlow = maxLastColWidth;
+                    ResizeWindow = true;
+                }
             }
             else
             {
@@ -675,8 +692,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 var AutopilotOn = Owner.Viewer.PlayerLocomotive.Train.TrainType == TrainType.AiPlayerHosting ? true : false;
 
                 //ResizeWindow, when the string spans over the right boundary of the window
-                var maxFirstColWidth = listToLabel.Max(x => x.FirstColWidth);
-                var maxLastColWidth = listToLabel.Max(x => x.LastColWidth);
+                maxFirstColWidth = listToLabel.Max(x => x.FirstColWidth);
+                maxLastColWidth = listToLabel.Max(x => x.LastColWidth);
 
                 if (!ResizeWindow & (FirstColOverFlow != maxFirstColWidth || (!AutopilotOn && LastColOverFlow != maxLastColWidth)))
                 {
