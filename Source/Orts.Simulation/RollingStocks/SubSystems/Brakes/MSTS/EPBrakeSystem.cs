@@ -50,7 +50,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 
             base.Update(elapsedClockSeconds);
 
-            if (AutoCylPressurePSI < demandedAutoCylPressurePSI && !Car.WheelBrakeSlipProtectionActive)
+            if (AutoCylPressurePSI < demandedAutoCylPressurePSI && !Car.WheelBrakeSlideProtectionActive)
             {
                 float dp = (float)elapsedClockSeconds * MaxApplicationRatePSIpS;
                 if (BrakeLine2PressurePSI - dp * AuxBrakeLineVolumeRatio / AuxCylVolumeRatio < AutoCylPressurePSI + dp)
