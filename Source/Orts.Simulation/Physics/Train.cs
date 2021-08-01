@@ -1275,7 +1275,7 @@ namespace Orts.Simulation.Physics
                 MUDirection = (MidpointDirection)((int)MUDirection * -1);
                 MUReverserPercent = -MUReverserPercent;
             }
-            if (!((this is AITrain aitrain && aitrain.AI.PreUpdate) || TrainType == TrainType.Static))
+            if (!((this is AITrain && simulator.PreUpdate) || TrainType == TrainType.Static))
                 FormationReversed = true;
         }
 

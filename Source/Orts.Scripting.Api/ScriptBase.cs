@@ -20,6 +20,10 @@ namespace Orts.Scripting.Api
         /// Clock value (in seconds) for the simulation. Starts with a value = 0.
         /// </summary>
         public Func<double> GameTime;
+        /// <summary>
+        /// Simulator is in pre-update mode (update during loading screen).
+        /// </summary>
+        public Func<bool> PreUpdate;
     }
 
     /// <summary>

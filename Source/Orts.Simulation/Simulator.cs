@@ -1,4 +1,4 @@
-﻿// COPYRIGHT 2009, 2010, 2011, 2012, 2013 by the Open Rails project.
+// COPYRIGHT 2009, 2010, 2011, 2012, 2013 by the Open Rails project.
 // 
 // This file is part of Open Rails.
 // 
@@ -132,6 +132,7 @@ namespace Orts.Simulation
         public string ActivityFileName { get; set; }
         public string TimetableFileName { get; set; }
         public bool TimetableMode { get; private set; }
+        public bool PreUpdate { get; internal set; }
         public ActivityFile ActivityFile { get; private set; }
         public Activity ActivityRun { get; private set; }
         public TrackDatabaseFile TrackDatabase { get; private set; }
@@ -496,7 +497,7 @@ namespace Orts.Simulation
             {
                 bool validPosition = playerTrain.PostInit();  // place player train after pre-running of AI trains
                 if (validPosition)
-                    AI.PreUpdate = false;
+                    PreUpdate = false;
                 if (playerTrain.InitialSpeed > 0 && playerTrain.MovementState != AiMovementState.StationStop)
                 {
                     playerTrain.InitializeMoving();

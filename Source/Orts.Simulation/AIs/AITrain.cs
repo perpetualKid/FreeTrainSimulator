@@ -4759,7 +4759,7 @@ namespace Orts.Simulation.AIs
                 if (nextActionInfo.RequiredSpeedMpS == 0)
                 {
                     NextStopDistanceM = thisItem.ActivateDistanceM - PresentPosition[Direction.Forward].DistanceTravelled;
-                    if (AI.PreUpdate && !(nextActionInfo.NextAction == AIActionItem.AI_ACTION_TYPE.AUX_ACTION && NextStopDistanceM > MinCheckDistanceM))
+                    if (simulator.PreUpdate && !(nextActionInfo.NextAction == AIActionItem.AI_ACTION_TYPE.AUX_ACTION && NextStopDistanceM > MinCheckDistanceM))
                     {
                         AITrainBrakePercent = 100; // because of short reaction time
                         AITrainThrottlePercent = 0;

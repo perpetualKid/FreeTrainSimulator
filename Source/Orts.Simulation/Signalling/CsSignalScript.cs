@@ -351,6 +351,7 @@ namespace Orts.Simulation.Signalling
             // Build AbstractScriptClass API functions
             ClockTime = () => (float)Simulator.Instance.ClockTime;
             GameTime = () => (float)Simulator.Instance.GameTime;
+            PreUpdate = () => Simulator.Instance.PreUpdate;
         }
 
         protected void SetSharedVariable(int index, int value)

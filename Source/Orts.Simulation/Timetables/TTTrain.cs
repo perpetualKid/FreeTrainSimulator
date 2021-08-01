@@ -2062,7 +2062,7 @@ namespace Orts.Simulation.Timetables
             // check position
 
             float margin = 0.0f;
-            if (AI.PreUpdate)
+            if (simulator.PreUpdate)
                 margin = 2.0f * clearingDistanceM;  // allow margin in pre-update due to low update rate
 
             int stationIndex = ValidRoute[0].GetRouteIndex(stationTCSectionIndex, PresentPosition[Direction.Forward].RouteListIndex);
@@ -4807,7 +4807,7 @@ namespace Orts.Simulation.Timetables
         public void DelayedStartMoving(AiStartMovement reason)
         {
             // do not apply delayed restart while running in pre-update
-            if (AI.PreUpdate)
+            if (simulator.PreUpdate)
             {
                 RestdelayS = 0.0f;
                 DelayedStart = false;
@@ -10647,7 +10647,7 @@ namespace Orts.Simulation.Timetables
                 }
 
                 // if not in preupdate there must be an engine
-                if (AI.Simulator.PlayerLocomotive == null && !AI.PreUpdate)
+                if (AI.Simulator.PlayerLocomotive == null && !simulator.PreUpdate)
                 {
                     throw new InvalidDataException("Can't find player locomotive in " + attachTrain.Name);
                 }
