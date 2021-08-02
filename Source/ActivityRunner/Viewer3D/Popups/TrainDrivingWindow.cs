@@ -586,7 +586,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 FirstColLenght = listToLabel.Max(x => x.FirstColWidth);
                 LastColLenght = listToLabel.Max(x => x.LastColWidth);
 
-                var rowCount = listToLabel.Where(x => x.FirstCol == "Sprtr" || !string.IsNullOrEmpty(x.LastCol)).Count();
+                // Valid rows
+                var rowCount = listToLabel.Where(x => !string.IsNullOrWhiteSpace(x.FirstCol.ToString()) || !string.IsNullOrWhiteSpace(x.LastCol.ToString())).Count() - 1;
                 var desiredHeight = FontToBold ? Owner.TextFontDefaultBold.Height * rowCount
                     : Owner.TextFontDefault.Height * rowCount;
 
