@@ -1,4 +1,4 @@
-﻿// COPYRIGHT 2019, 2020 by the Open Rails project.
+// COPYRIGHT 2019, 2020 by the Open Rails project.
 // 
 // This file is part of Open Rails.
 // 
@@ -40,6 +40,9 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
         private static bool gearUp;
         private static bool gearDown;
         private static bool pantographKey;
+        private static bool controlAIFireOnDown;
+        private static bool controlAIFireOffDown;
+        private static bool controlAIFireResetDown;
 
         private static Viewer viewer;
 
@@ -59,6 +62,9 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             viewer.UserCommandController.AddEvent(UserCommand.ControlPantograph2, KeyEventType.KeyDown, () => pantographKey = true);
             viewer.UserCommandController.AddEvent(UserCommand.ControlPantograph3, KeyEventType.KeyDown, () => pantographKey = true);
             viewer.UserCommandController.AddEvent(UserCommand.ControlPantograph4, KeyEventType.KeyDown, () => pantographKey = true);
+            viewer.UserCommandController.AddEvent(UserCommand.ControlAIFireOn, KeyEventType.KeyDown, () => controlAIFireOnDown = true);
+            viewer.UserCommandController.AddEvent(UserCommand.ControlAIFireOff, KeyEventType.KeyDown, () => controlAIFireOffDown = true);
+            viewer.UserCommandController.AddEvent(UserCommand.ControlAIFireReset, KeyEventType.KeyDown, () => controlAIFireResetDown = true);
         }
 
         /// <summary>
@@ -170,7 +176,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
         /// <param name="label">A reference to the <see cref="ListLabel"/> to check.</param>
         private static void CheckLabel(ref ListLabel label, bool normalMode)
         {
-            void CheckString(ref string s) => s = s ?? "";
+            static void CheckString(ref string s) => s ??= "";
             CheckString(ref label.FirstCol);
             CheckString(ref label.LastCol);
             CheckString(ref label.SymbolCol);
@@ -185,6 +191,19 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             }
         }
 
+        private static bool ctrlAIFiremanOn = false; //AIFireman On
+        private static bool ctrlAIFiremanOff = false;//AIFireman Off
+        private static bool ctrlAIFiremanReset = false;//AIFireman Reset
+        private static double clockAIFireTime; //AIFireman reset timing
+
+        private static bool grateLabelVisible = false;// Grate label visible
+        private static double clockGrateTime; // Grate hide timing
+
+        private static bool wheelLabelVisible = false;// Wheel label visible
+        private static double clockWheelTime; // Wheel hide timing
+
+        private static bool doorsLabelVisible = false; // Doors label visible
+        private static double clockDoorsTime; // Doors hide timing
 
         /// <summary>
         /// Retrieve a formatted list <see cref="ListLabel"/>s to be displayed as an in-browser Track Monitor.
@@ -274,7 +293,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             // Second block
             // Direction
             {
-                string reverserKey;
+                string reverserKey = string.Empty;
                 bool moving = Math.Abs(trainCar.SpeedMpS) > 1;
                 bool nonSteamEnd = trainCar.EngineType != TrainCar.EngineTypes.Steam && trainCar.Direction == MidpointDirection.N && (trainCar.ThrottlePercent >= 1 || moving);
                 bool steamEnd = locomotive is MSTSSteamLocomotive steamLocomotive2 && steamLocomotive2.CutoffController.MaximumValue == Math.Abs(train.MUReverserPercent / 100);
@@ -343,7 +362,8 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             // Cylinder Cocks
             if (locomotive is MSTSSteamLocomotive steamLocomotive)
             {
-                string cocksIndicator, cocksKey;
+                string cocksIndicator = "";
+                string cocksKey = "";
                 if (steamLocomotive.CylinderCocksAreOpen)
                 {
                     cocksIndicator = Viewer.Catalog.GetString("Open") + ColorCode[Color.Orange];
@@ -602,7 +622,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
                     }
                     else if (keyPart.StartsWith(Viewer.Catalog.GetString("Gear")))
                     {
-                        string gearKey;
+                        string gearKey = "";
                         if (gearUp)
                         {
                             gearKey = Symbols.ArrowUp + ColorCode[Color.Yellow];
@@ -626,7 +646,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
                     }
                     else if (parts.Contains(Viewer.Catalog.GetString("Pantographs")))
                     {
-                        string pantoKey;
+                        string pantoKey = "";
                         if (pantographKey)
                         {
                             string arrow = parts[1].StartsWith(Viewer.Catalog.GetString("Up")) ? Symbols.ArrowUp : Symbols.ArrowDown;
@@ -683,11 +703,58 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
                 LastCol = autopilot ? Viewer.Catalog.GetString("On") + ColorCode[Color.Yellow] : Viewer.Catalog.GetString("Off"),
             });
 
+            //AI Fireman
+            if (locomotive is MSTSSteamLocomotive steamLocomotive3)
+            {
+                var aifireKey = "";
+                aifireKey = Symbols.ArrowToRight + ColorCode[Color.Yellow];
+                if (controlAIFireOnDown)
+                {
+                    ctrlAIFiremanReset = ctrlAIFiremanOff = false;
+                    ctrlAIFiremanOn = true;
+                }
+                else if (controlAIFireOffDown)
+                {
+                    ctrlAIFiremanReset = ctrlAIFiremanOn = false;
+                    ctrlAIFiremanOff = true;
+                }
+                else if (controlAIFireResetDown)
+                {
+                    ctrlAIFiremanOn = ctrlAIFiremanOff = false;
+                    ctrlAIFiremanReset = true;
+                    clockAIFireTime = viewer.Simulator.ClockTime;
+                }
+                else
+                {
+                    aifireKey = "";
+                }
+                controlAIFireOnDown = false;
+                controlAIFireOffDown = false;
+                controlAIFireResetDown = false;
+
+                // waiting time to hide the reset label
+                if (ctrlAIFiremanReset && clockAIFireTime + 5 < viewer.Simulator.ClockTime)
+                    ctrlAIFiremanReset = false;
+
+                if (ctrlAIFiremanReset || ctrlAIFiremanOn || ctrlAIFiremanOff)
+                {
+                    AddLabel(new ListLabel
+                    {
+                        FirstCol = Viewer.Catalog.GetString("AI Fireman") + ColorCode[Color.White],
+                        LastCol = ctrlAIFiremanOn ? Viewer.Catalog.GetString("On") : ctrlAIFiremanOff ? Viewer.Catalog.GetString("Off") : ctrlAIFiremanReset ? Viewer.Catalog.GetString("Reset") + ColorCode[Color.Cyan] : "",
+                        KeyPressed = aifireKey
+                    });
+                }
+            }
+
             // Grate limit
             if (locomotive is MSTSSteamLocomotive steamLocomotive1)
             {
                 if (steamLocomotive1.IsGrateLimit && steamLocomotive1.GrateCombustionRateLBpFt2 > steamLocomotive1.GrateLimitLBpFt2)
                 {
+                    grateLabelVisible = true;
+                    clockGrateTime = viewer.Simulator.ClockTime;
+
                     AddLabel(new ListLabel
                     {
                         FirstCol = Viewer.Catalog.GetString("Grate limit"),
@@ -696,23 +763,28 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
                 }
                 else
                 {
-                    AddLabel(new ListLabel
+                    // delay to hide the grate label
+                    if (grateLabelVisible && clockGrateTime + 3 < viewer.Simulator.ClockTime)
+                        grateLabelVisible = false;
+
+                    if (grateLabelVisible)
                     {
-                        FirstCol = Viewer.Catalog.GetString("Grate limit") + ColorCode[Color.Black],
-                        LastCol = Viewer.Catalog.GetString("Normal") + ColorCode[Color.Black],
-                    });
+                        AddLabel(new ListLabel
+                        {
+                            FirstCol = Viewer.Catalog.GetString("Grate limit") + ColorCode[Color.White],
+                            LastCol = Viewer.Catalog.GetString("Normal") + ColorCode[Color.White]
+                        });
+                    }
                 }
-            }
-            else
-            {
-                AddLabel(new ListLabel
-                {
-                    FirstCol = Viewer.Catalog.GetString("Grate limit") + ColorCode[Color.Black],
-                    LastCol = Viewer.Catalog.GetString("-") + ColorCode[Color.Black],
-                });
             }
 
             // Wheel
+            if (train.IsWheelSlip || train.IsWheelSlipWarninq || train.IsBrakeSkid)
+            {
+                wheelLabelVisible = true;
+                clockWheelTime = viewer.Simulator.ClockTime;
+            }
+
             if (train.IsWheelSlip)
             {
                 AddLabel(new ListLabel
@@ -739,11 +811,18 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             }
             else
             {
-                AddLabel(new ListLabel
+                // delay to hide the wheel label
+                if (wheelLabelVisible && clockWheelTime + 3 < viewer.Simulator.ClockTime)
+                    wheelLabelVisible = false;
+
+                if (wheelLabelVisible)
                 {
-                    FirstCol = Viewer.Catalog.GetString("Wheel") + ColorCode[Color.Black],
-                    LastCol = Viewer.Catalog.GetString("Normal") + ColorCode[Color.Black],
-                });
+                    AddLabel(new ListLabel
+                    {
+                        FirstCol = Viewer.Catalog.GetString("Wheel") + ColorCode[Color.White],
+                        LastCol = Viewer.Catalog.GetString("Normal") + ColorCode[Color.White]
+                    });
+                }
             }
 
             // Doors
@@ -751,7 +830,9 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             if (wagon.DoorLeftOpen || wagon.DoorRightOpen)
             {
                 var status = new List<string>();
-                bool flipped = locomotive.GetCabFlipped();
+                var flipped = locomotive.GetCabFlipped();
+                doorsLabelVisible = true;
+                clockDoorsTime = viewer.Simulator.ClockTime;
                 if (wagon.DoorLeftOpen)
                     status.Add(Viewer.Catalog.GetString(Viewer.Catalog.GetString(flipped ? "Right" : "Left")));
                 if (wagon.DoorRightOpen)
@@ -765,11 +846,18 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             }
             else
             {
-                AddLabel(new ListLabel
+                // delay to hide the doors label
+                if (doorsLabelVisible && clockDoorsTime + 3 < viewer.Simulator.ClockTime)
+                    doorsLabelVisible = false;
+
+                if (doorsLabelVisible)
                 {
-                    FirstCol = Viewer.Catalog.GetString("Doors open") + ColorCode[Color.Black],
-                    LastCol = Viewer.Catalog.GetString("Closed") + ColorCode[Color.Black],
-                });
+                    AddLabel(new ListLabel
+                    {
+                        FirstCol = Viewer.Catalog.GetString("Doors open") + ColorCode[Color.White],
+                        LastCol = Viewer.Catalog.GetString("Closed") + ColorCode[Color.White]
+                    });
+                }
             }
 
             AddLabel(new ListLabel());
