@@ -27,7 +27,7 @@ using Orts.Simulation.Physics;
 namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 {
 
-    public abstract class ScriptedLocomotivePowerSupply : ILocomotivePowerSupply, ISubSystem<ScriptedLocomotivePowerSupply>
+    public abstract class ScriptedLocomotivePowerSupply : ILocomotivePowerSupply
     {
         public readonly MSTSLocomotive Locomotive;
         protected Simulator Simulator => Locomotive.Simulator;
@@ -127,24 +127,19 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             }
         }
 
-        public void Copy(IPowerSupply other)
+        public virtual void Copy(IPowerSupply other)
         {
             if (other is ScriptedLocomotivePowerSupply scriptedOther)
             {
-                Copy(scriptedOther);
+                BatterySwitch.Copy(scriptedOther.BatterySwitch);
+                MasterKey.Copy(scriptedOther.MasterKey);
+                ElectricTrainSupplySwitch.Copy(scriptedOther.ElectricTrainSupplySwitch);
+
+                ScriptName = scriptedOther.ScriptName;
+
+                PowerOnDelayS = scriptedOther.PowerOnDelayS;
+                AuxPowerOnDelayS = scriptedOther.AuxPowerOnDelayS;
             }
-        }
-
-        public void Copy(ScriptedLocomotivePowerSupply other)
-        {
-            BatterySwitch.Copy(other.BatterySwitch);
-            MasterKey.Copy(other.MasterKey);
-            ElectricTrainSupplySwitch.Copy(other.ElectricTrainSupplySwitch);
-
-            ScriptName = other.ScriptName;
-
-            PowerOnDelayS = other.PowerOnDelayS;
-            AuxPowerOnDelayS = other.AuxPowerOnDelayS;
         }
 
         public virtual void Initialize()

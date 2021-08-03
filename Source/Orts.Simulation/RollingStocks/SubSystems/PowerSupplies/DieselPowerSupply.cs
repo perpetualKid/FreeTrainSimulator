@@ -25,7 +25,7 @@ using Orts.Scripting.Api.PowerSupply;
 namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 {
 
-    public class ScriptedDieselPowerSupply : ScriptedLocomotivePowerSupply, ISubSystem<ScriptedDieselPowerSupply>
+    public class ScriptedDieselPowerSupply : ScriptedLocomotivePowerSupply
     {
         public MSTSDieselLocomotive DieselLocomotive => Locomotive as MSTSDieselLocomotive;
         public ScriptedTractionCutOffRelay TractionCutOffRelay { get; protected set; }
@@ -63,10 +63,14 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             }
         }
 
-        public void Copy(ScriptedDieselPowerSupply other)
+        public override void Copy(IPowerSupply other)
         {
             base.Copy(other);
-            TractionCutOffRelay.Copy(other.TractionCutOffRelay);
+
+            if (other is ScriptedDieselPowerSupply scriptedOther)
+            {
+                TractionCutOffRelay.Copy(scriptedOther.TractionCutOffRelay);
+            }
         }
 
         public override void Initialize()
