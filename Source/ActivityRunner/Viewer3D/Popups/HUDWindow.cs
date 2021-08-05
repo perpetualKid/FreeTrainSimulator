@@ -1826,6 +1826,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
         private void TextPageWeather(TableData table)
         {
+            TableSetLabelValueColumns(table, 0, 2);
             TextPageHeading(table, Viewer.Catalog.GetString("WEATHER INFORMATION"));
 
             //Disable Hudscroll.
@@ -1844,6 +1845,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
         private void TextPageDebugInfo(TableData table)
         {
+            TableSetLabelValueColumns(table, 0, 2);
             TextPageHeading(table, Viewer.Catalog.GetString("DEBUG INFORMATION"));
 
             //Disable Hudscroll.
