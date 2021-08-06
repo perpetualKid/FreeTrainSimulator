@@ -970,6 +970,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     // Rotate the coupler to align with the calculated angle direction
                     couplerPosition = Matrix.CreateRotationY(Car.AdjustedWagonFrontCouplerAngleRad) * couplerPosition;
 
+                    // If the car ahead does not have an animated coupler then location values will be zero for car ahaead, and no coupler will display. Hence do not correct coupler location 
                     if (Car.CarAhead.RearCouplerLocation != Vector3.Zero)
                     {
                         // Next section tests front coupler against rear coupler on previous car. If they are not located at the same position, then location is set the same as previous car.
@@ -978,7 +979,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         float absYc = Math.Abs(couplerPosition.Translation.Y - Car.CarAhead.RearCouplerLocation.Y);
                         float absZc = Math.Abs(couplerPosition.Translation.Z - Car.CarAhead.RearCouplerLocation.Z);
 
-                        if ((absXc > 0.005 || absYc > 0.005 || absZc > 0.005))
+                        if (absXc > 0.005 || absYc > 0.005 || absZc > 0.005)
                         {
                             couplerPosition.Translation = Car.CarAhead.RearCouplerLocation; // Set coupler to same location as previous car coupler
                             tileX = Car.CarAhead.RearCouplerLocationTileX;
