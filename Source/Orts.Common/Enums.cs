@@ -470,6 +470,9 @@ namespace Orts.Common
         HeatingOn,
         AirConditioningOff,
         AirConditioningOn,
+
+        OverchargeBrakingOn,
+        OverchargeBrakingOff,
     }
 
     public enum PowerSupplyEvent

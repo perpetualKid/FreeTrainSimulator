@@ -611,6 +611,23 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                 }
                 prevCylPressurePSI = AutoCylPressurePSI;
                 prevBrakePipePressurePSI = BrakeLine1PressurePSI;
+
+                var lead = Car as MSTSLocomotive;
+
+                if (lead != null && Car.WagonType == MSTSWagon.WagonTypes.Engine)
+                {
+                    if (lead.TrainBrakeController.TrainBrakeControllerState == ControllerState.Overcharge && !lead.BrakeOverchargeSoundOn)
+                    {
+                        Car.SignalEvent(TrainEvent.OverchargeBrakingOn);
+                        lead.BrakeOverchargeSoundOn = true;
+                    }
+                    else if (lead.TrainBrakeController.TrainBrakeControllerState != ControllerState.Overcharge && lead.BrakeOverchargeSoundOn)
+                    {
+                        Car.SignalEvent(TrainEvent.OverchargeBrakingOff);
+                        lead.BrakeOverchargeSoundOn = false;
+                    }
+                }
+
             }
             SoundTriggerCounter = SoundTriggerCounter + (float)elapsedClockSeconds;
         }

@@ -250,6 +250,9 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
                         case 234: return TrainEvent.AirConditioningOn;
                         case 235: return TrainEvent.AirConditioningOff;
 
+                        case 250: return TrainEvent.OverchargeBrakingOn;
+                        case 251: return TrainEvent.OverchargeBrakingOff;
+
                         //
                         default: return TrainEvent.None;
                     }
