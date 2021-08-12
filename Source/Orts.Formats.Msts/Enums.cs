@@ -282,6 +282,7 @@ namespace Orts.Formats.Msts
         None,
         Speedometer,
         Main_Res,
+        Main_Res_Pipe,
         Eq_Res,
         Brake_Cyl,
         Brake_Pipe,
