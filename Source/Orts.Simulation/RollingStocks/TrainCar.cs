@@ -619,6 +619,7 @@ namespace Orts.Simulation.RollingStocks
             Steam,
             Diesel,
             Electric,
+            Control,
         }
         public EngineTypes EngineType;
 
@@ -1867,7 +1868,13 @@ namespace Orts.Simulation.RollingStocks
         public virtual string GetStatus() { return null; }
         public virtual string GetDebugStatus()
         {
-            return string.Format(System.Globalization.CultureInfo.CurrentCulture, "{0}\t{2}\t{1}\t{3}\t{4:F0}%\t{5}\t\t{6}\t{7}\t",
+            string locomotivetypetext = "";
+            if (EngineType == EngineTypes.Control)
+            {
+                locomotivetypetext = "Unpowered Control Trailer Car";
+            }
+            
+            return string.Format(System.Globalization.CultureInfo.CurrentCulture, "{0}\t{2}\t{1}\t{3}\t{4:F0}%\t{5}\t\t{6}\t{7}\t{8}\t",
                 CarID,
                 Flipped ? Simulator.Catalog.GetString("Yes") : Simulator.Catalog.GetString("No"),
                 Direction.GetLocalizedDescription(),
@@ -1876,7 +1883,8 @@ namespace Orts.Simulation.RollingStocks
                 $"{FormatStrings.FormatSpeedDisplay(SpeedMpS, IsMetric)}",
                 // For Locomotive HUD display shows "forward" motive power (& force) as a positive value, braking power (& force) will be shown as negative values.
                 FormatStrings.FormatPower((MotiveForceN) * SpeedMpS, IsMetric, false, false),
-                $"{FormatStrings.FormatForce(MotiveForceN, IsMetric)}{(WheelSlip ? "!!!" : WheelSlipWarning ? "???" : "")}");
+                $"{FormatStrings.FormatForce(MotiveForceN, IsMetric)}{(WheelSlip ? "!!!" : WheelSlipWarning ? "???" : "")}",
+                Simulator.Catalog.GetString(locomotivetypetext));
         }
 
         public virtual string GetTrainBrakeStatus() { return null; }
