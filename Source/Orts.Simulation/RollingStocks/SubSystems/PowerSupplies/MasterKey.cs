@@ -42,8 +42,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         // Variables
         readonly MSTSLocomotive Locomotive;
         protected Timer Timer;
-        public bool CommandSwitch { get; protected set; } = true;
-        public bool On { get; protected set; } = true;
+        public bool CommandSwitch { get; protected set; } = false;
+        public bool On { get; protected set; } = false;
         public bool OtherCabInUse {
             get
             {
@@ -106,11 +106,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
         public virtual void Initialize()
         {
-            if (Mode == ModeType.Manual)
-            {
-                CommandSwitch = false;
-                On = false;
-            }
         }
 
         /// <summary>
@@ -118,8 +113,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         /// </summary>
         public virtual void InitializeMoving()
         {
-            CommandSwitch = true;
-            On = true;
+            if (Locomotive.IsLeadLocomotive())
+            {
+                CommandSwitch = true;
+                On = true;
+            }
         }
 
         public virtual void Save(BinaryWriter outf)

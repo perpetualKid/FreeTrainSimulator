@@ -1,4 +1,4 @@
-﻿// COPYRIGHT 2020 by the Open Rails project.
+// COPYRIGHT 2020 by the Open Rails project.
 // 
 // This file is part of Open Rails.
 // 
@@ -35,8 +35,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
         // Variables
         readonly MSTSLocomotive Locomotive;
-        public bool CommandSwitch { get; protected set; } = true;
-        public bool On { get; protected set; } = true;
+        public bool CommandSwitch { get; protected set; } = false;
+        public bool On { get; protected set; } = false;
 
         public ElectricTrainSupplySwitch(MSTSLocomotive locomotive)
         {
@@ -77,18 +77,6 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
         public virtual void Initialize()
         {
-            switch (Mode)
-            {
-                case ModeType.Unfitted:
-                    CommandSwitch = false;
-                    On = false;
-                    break;
-
-                case ModeType.Switch:
-                    CommandSwitch = false;
-                    On = false;
-                    break;
-            }
         }
 
         /// <summary>
@@ -126,6 +114,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         {
             switch (Mode)
             {
+                case ModeType.Unfitted:
+                    On = false;
+                    break;
+
                 case ModeType.Automatic:
                     if (On)
                     {
