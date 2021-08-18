@@ -456,14 +456,9 @@ namespace Orts.Simulation.RollingStocks
 
             var couplerlength = ((CarCouplerFaceLengthM - CarBodyLengthM) / 2) + 0.1f; // coupler length at rest, allow 0.1m also for slack
 
-            if (CarAirHoseLengthM < couplerlength)
+            if (CarAirHoseHorizontalLengthM == 0)
             {
-                CarCouplerFaceLengthM = CarBodyLengthM + (0.4f * 2.0f); // Assume a coupler length of 400mm at each end and add to car body length
-
-                if (Simulator.Settings.VerboseConfigurationMessages)
-                {
-                    Trace.TraceInformation("Coupler length exceeded brake air hose length, so  ORTSLengthCouplerFace decreased to {0}", CarCouplerFaceLengthM);
-                }
+                CarAirHoseHorizontalLengthM = 0.3862f; // 15.2 inches
             }
             
             // Ensure Drive Axles is set to a default if no OR value added to WAG file
@@ -999,6 +994,7 @@ namespace Orts.Simulation.RollingStocks
                 case "wagon(ortslengthbogiecentre": CarBogieCentreLengthM = stf.ReadFloatBlock(STFReader.Units.Distance, null); break;
                 case "wagon(ortslengthcarbody": CarBodyLengthM = stf.ReadFloatBlock(STFReader.Units.Distance, null); break;
                 case "wagon(ortslengthairhose": CarAirHoseLengthM = stf.ReadFloatBlock(STFReader.Units.Distance, null); break;
+                case "wagon(ortshorizontallengthairhose": CarAirHoseHorizontalLengthM = stf.ReadFloatBlock(STFReader.Units.Distance, null); break;
                 case "wagon(ortslengthcouplerface": CarCouplerFaceLengthM = stf.ReadFloatBlock(STFReader.Units.Distance, null); break;
                 case "wagon(ortstrackgauge":
                     stf.MustMatch("(");
@@ -1434,6 +1430,7 @@ namespace Orts.Simulation.RollingStocks
             CarBodyLengthM = copy.CarBodyLengthM;
             CarCouplerFaceLengthM = copy.CarCouplerFaceLengthM;
             CarAirHoseLengthM = copy.CarAirHoseLengthM;
+            CarAirHoseHorizontalLengthM = copy.CarAirHoseHorizontalLengthM;
             AuxTenderWaterMassKG = copy.AuxTenderWaterMassKG;
             TenderWagonMaxCoalMassKG = copy.TenderWagonMaxCoalMassKG;
             TenderWagonMaxWaterMassKG = copy.TenderWagonMaxWaterMassKG;

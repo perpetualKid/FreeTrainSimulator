@@ -1057,7 +1057,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     airhosePosition = AlignCouplerWithCar(airhosePosition, Car.Flipped);
 
                     // Rotate the airhose to align with the calculated angle direction
-                    airhosePosition = Matrix.CreateRotationY(Car.FrontAirHoseAngleAdjustmentRad) * airhosePosition;
+                    airhosePosition = Matrix.CreateRotationZ(Car.FrontAirHoseZAngleAdjustmentRad) * airhosePosition;
+                    airhosePosition = Matrix.CreateRotationY(Car.FrontAirHoseYAngleAdjustmentRad) * airhosePosition;
 
                     airhoseShape = FrontAirHoseShape;
                 }
@@ -1098,13 +1099,13 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
                     Vector3 placement = PositionCoupler(Car, displacement);
 
+                    // Get the movement that would be needed to locate the air hose on the car if they were pointing in the default direction.
                     airhosePosition = MatrixExtension.ChangeTranslation(Car.WorldPosition.XNAMatrix, placement);
                     airhosePosition = AlignCouplerWithCar(airhosePosition, Car.Flipped);
-                    // Get the movement that would be needed to locate the air hose on the car if they were pointing in the default direction.
-                    float airHoseAngleRadians = -Car.RearAirHoseAngleAdjustmentRad;
 
                     // Rotate the airhose to align with the calculated angle direction
-                    airhosePosition = Matrix.CreateRotationY(airHoseAngleRadians) * airhosePosition;
+                    airhosePosition = Matrix.CreateRotationZ(Car.FrontAirHoseZAngleAdjustmentRad) * airhosePosition;
+                    airhosePosition = Matrix.CreateRotationY(Car.FrontAirHoseYAngleAdjustmentRad) * airhosePosition;
 
                     airhoseShape = RearAirHoseShape;
                 }
