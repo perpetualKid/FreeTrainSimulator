@@ -587,7 +587,9 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 LastColLenght = listToLabel.Max(x => x.LastColWidth);
 
                 // Valid rows
-                var rowCount = listToLabel.Where(x => !string.IsNullOrWhiteSpace(x.FirstCol.ToString()) || !string.IsNullOrWhiteSpace(x.LastCol.ToString())).Count() - 1;
+                // Validates rows with windows DPI settings
+                var dpiOffset = (System.Drawing.Graphics.FromHwnd(IntPtr.Zero).DpiY / 96) > 1.00f ? 1 : 0;// values from testing
+                var rowCount = listToLabel.Where(x => !string.IsNullOrWhiteSpace(x.FirstCol.ToString()) || !string.IsNullOrWhiteSpace(x.LastCol.ToString())).Count() - dpiOffset;
                 var desiredHeight = FontToBold ? Owner.TextFontDefaultBold.Height * rowCount
                     : Owner.TextFontDefault.Height * rowCount;
 
