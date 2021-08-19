@@ -560,7 +560,9 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
         private void FontToBold_Click(Control arg1, Point arg2)
         {
-            FontToBold = FontToBold ? false : true;
+            FontToBold = !FontToBold;
+            Owner.Viewer.Settings.WindowGlass = !Owner.Viewer.Settings.WindowGlass;// to help user with ageing eyesight.
+            UpdateWindowSize();
         }
 
         private void ExpandWindow_Click(Control arg1, Point arg2)
