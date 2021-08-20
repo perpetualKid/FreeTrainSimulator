@@ -524,6 +524,7 @@ namespace Orts.Common
         [Description("DieselElectric")] DieselElectric,
         [Description("Electric")] Electric,
         [Description("DualMode")] DualMode,
+        [Description("ControlCar")] ControlCar,
     }
 
     [Description("PowerSupply")]

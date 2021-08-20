@@ -1,4 +1,4 @@
-﻿// COPYRIGHT 2009, 2010, 2011, 2012, 2013 by the Open Rails project.
+// COPYRIGHT 2009, 2010, 2011, 2012, 2013 by the Open Rails project.
 // 
 // This file is part of Open Rails.
 // 
@@ -30,18 +30,20 @@
 
 using System.Diagnostics;
 
+using Orts.Formats.Msts.Parsers;
 using Orts.Simulation.Physics;
+using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
 
 namespace Orts.Simulation.RollingStocks
 {
-    internal class MSTSControlTrailerCar : MSTSLocomotive
+    public class MSTSControlTrailerCar : MSTSLocomotive
     {
 
         public MSTSControlTrailerCar(Simulator simulator, string wagFile): 
             base(simulator, wagFile)
         {
 
-            //   PowerSupply = new ScriptedDieselPowerSupply(this);
+            PowerSupply = new ScriptedControlCarPowerSupply(this);
 
         }
 
@@ -59,6 +61,34 @@ namespace Orts.Simulation.RollingStocks
             base.Initialize();
         }
 
+
+        /// <summary>
+        /// Parse the wag file parameters required for the simulator and viewer classes
+        /// </summary>
+        public override void Parse(string lowercasetoken, STFReader stf)
+        {
+            switch (lowercasetoken)
+            {
+                case "engine(ortspowerondelay":
+                case "engine(ortsauxpowerondelay":
+                case "engine(ortspowersupply":
+                case "engine(ortstractioncutoffrelay":
+                case "engine(ortstractioncutoffrelayclosingdelay":
+                case "engine(ortsbattery(mode":
+                case "engine(ortsbattery(delay":
+                case "engine(ortsmasterkey(mode":
+                case "engine(ortsmasterkey(delayoff":
+                case "engine(ortsmasterkey(headlightcontrol":
+                case "engine(ortselectrictrainsupply(mode":
+                case "engine(ortselectrictrainsupply(dieselengineminrpm":
+                    LocomotivePowerSupply.Parse(lowercasetoken, stf);
+                    break;
+
+                default:
+                    base.Parse(lowercasetoken, stf); break;
+            }
+
+        }
 
         /// <summary>
         /// Set starting conditions  when initial speed > 0 
