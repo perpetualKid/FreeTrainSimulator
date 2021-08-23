@@ -199,6 +199,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             // Font to bold
                             if (hbox.Position.Y == TimeHboxPositionY && FirstCol.Contains(Viewer.Catalog.GetString("Time"))) // Time line.
                             {
+                                var expandWindow = StandardHUD ? '\u25C4' : '\u25BA';// ◀ : ▶
                                 hbox.Add(LabelFontToBold = new Label(-colWidth, 0, data.FirstColWidth, hbox.RemainingHeight, " "));
                                 LabelFontToBold.Color = Color.White;
                                 LabelFontToBold.Click += new Action<Control, Point>(FontToBold_Click);
@@ -235,7 +236,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
         private void ExpandWindow_Click(Control arg1, Point arg2)
         {
-            StandardHUD = StandardHUD ? false : true;
+            StandardHUD = !StandardHUD;
             UpdateWindowSize();
         }
 

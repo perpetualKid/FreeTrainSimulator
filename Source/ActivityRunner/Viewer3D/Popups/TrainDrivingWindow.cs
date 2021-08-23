@@ -543,6 +543,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                         // Clickable symbol
                         if (hbox.Position.Y == TimeHboxPositionY)
                         {
+                            var expandWindow = standardHUDMode ? '\u25C4' : '\u25BA';// ◀ : ▶
                             hbox.Add(ExpandWindow = new Label(hbox.RemainingWidth - TextSize, 0, TextSize, hbox.RemainingHeight, expandWindow.ToString(), LabelAlignment.Right));
                             ExpandWindow.Color = Color.Yellow;
                             ExpandWindow.Click += new Action<Control, Point>(ExpandWindow_Click);
@@ -566,6 +567,19 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         }
 
         private void ExpandWindow_Click(Control arg1, Point arg2)
+        {
+            CycleMode();
+        }
+
+        public override void TabAction()
+        {
+            CycleMode();
+        }
+
+        /// <summary>
+        /// Change between full and abbreviated text mode.
+        /// </summary>
+        public void CycleMode()
         {
             standardHUDMode = !standardHUDMode;
             UpdateWindowSize();
@@ -591,7 +605,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 // Valid rows
                 // Validates rows with windows DPI settings
                 var dpiOffset = (System.Drawing.Graphics.FromHwnd(IntPtr.Zero).DpiY / 96) > 1.00f ? 1 : 0;// values from testing
-                var rowCount = listToLabel.Where(x => !string.IsNullOrWhiteSpace(x.FirstCol.ToString()) || !string.IsNullOrWhiteSpace(x.LastCol.ToString())).Count() - dpiOffset;
+                var rowCount = listToLabel.Where(x => !string.IsNullOrWhiteSpace(x.FirstCol.ToString()) || !string.IsNullOrWhiteSpace(x.LastCol.ToString())).Count() - dpiOffset + 1;
                 var desiredHeight = FontToBold ? Owner.TextFontDefaultBold.Height * rowCount
                     : Owner.TextFontDefault.Height * rowCount;
 
