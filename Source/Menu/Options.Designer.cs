@@ -1212,7 +1212,7 @@ namespace Orts.Menu
             // 
             this.numericWorldObjectDensity.Location = new System.Drawing.Point(6, 294);
             this.numericWorldObjectDensity.Maximum = new decimal(new int[] {
-            199,
+            99,
             0,
             0,
             0});
