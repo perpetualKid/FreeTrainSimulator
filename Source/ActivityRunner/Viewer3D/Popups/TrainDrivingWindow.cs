@@ -26,6 +26,7 @@ using Microsoft.Xna.Framework;
 using Orts.Common;
 using Orts.Common.Input;
 using Orts.Simulation;
+using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems.Brakes;
 
@@ -70,6 +71,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         private bool doorsLabelVisible; // Doors label visible
         private double clockDoorsTime; // Doors hide timing
 
+        bool derailLabelVisible = false;// DerailCoeff label visible
+        double clockDerailTime; //  DerailCoeff label visible
 
         private bool standardHUDMode = true;// Standard text
 
@@ -156,6 +159,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             [Viewer.Catalog.GetString("Circuit breaker")] = Viewer.Catalog.GetString("CIRC"),
             [Viewer.Catalog.GetString("Cylinder cocks")] = Viewer.Catalog.GetString("CCOK"),
             [Viewer.Catalog.GetString("Direction")] = Viewer.Catalog.GetString("DIRC"),
+            [Viewer.Catalog.GetString("DerailCoeff")] = Viewer.Catalog.GetString("DRLC"),
             [Viewer.Catalog.GetString("Doors open")] = Viewer.Catalog.GetString("DOOR"),
             [Viewer.Catalog.GetString("Dynamic brake")] = Viewer.Catalog.GetString("BDYN"),
             [Viewer.Catalog.GetString("Engine brake")] = Viewer.Catalog.GetString("BLOC"),
@@ -399,6 +403,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             outf.Write(ctrlAIFiremanReset);
             outf.Write(clockWheelTime);
             outf.Write(wheelLabelVisible);
+            outf.Write(clockDerailTime);
+            outf.Write(derailLabelVisible);
             outf.Write(clockDoorsTime);
             outf.Write(doorsLabelVisible);
         }
@@ -418,6 +424,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             ctrlAIFiremanReset = inf.ReadBoolean();
             clockWheelTime = inf.ReadDouble();
             wheelLabelVisible = inf.ReadBoolean();
+            clockDerailTime = inf.ReadDouble();
+            derailLabelVisible = inf.ReadBoolean();
             clockDoorsTime = inf.ReadDouble();
             doorsLabelVisible = inf.ReadBoolean();
 
@@ -543,7 +551,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                         // Clickable symbol
                         if (hbox.Position.Y == TimeHboxPositionY)
                         {
-                            var expandWindow = standardHUDMode ? '\u25C4' : '\u25BA';// ◀ : ▶
+                            char expandWindow = !standardHUDMode ? '\u25C4' : '\u25BA';// ◀ : ▶
                             hbox.Add(ExpandWindow = new Label(hbox.RemainingWidth - TextSize, 0, TextSize, hbox.RemainingHeight, expandWindow.ToString(), LabelAlignment.Right));
                             ExpandWindow.Color = Color.Yellow;
                             ExpandWindow.Click += new Action<Control, Point>(ExpandWindow_Click);
@@ -698,9 +706,9 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 //ResizeWindow, when the string spans over the right boundary of the window
                 if (!ResizeWindow)
                 {
-                    if (maxFirstColWidth < firstColWidth) 
+                    if (maxFirstColWidth < firstColWidth)
                         FirstColOverFlow = maxFirstColWidth;
-                    if (maxLastColWidth < lastColWidth) 
+                    if (maxLastColWidth < lastColWidth)
                         LastColOverFlow = maxLastColWidth;
                     ResizeWindow = true;
                 }
@@ -1122,6 +1130,49 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 if (wheelLabelVisible)
                 {
                     InfoToLabel(string.Empty, Viewer.Catalog.GetString("Wheel") + "?!?", Viewer.Catalog.GetString("Normal") + "!??", "", false);
+                }
+            }
+
+            //Derailment Coefficient. Changed the float value output by a text label.
+            var maxDerailCoeff = 0.0f;
+            var carIDerailCoeff = "";
+            for (var i = 0; i < PlayerTrain.Cars.Count; i++)
+            {
+                var carDerailCoeff = PlayerTrain.Cars[i].DerailmentCoefficient;
+                carDerailCoeff = float.IsInfinity(carDerailCoeff) || float.IsNaN(carDerailCoeff) ? 0 : carDerailCoeff;
+                if (carDerailCoeff > maxDerailCoeff)
+                {
+                    maxDerailCoeff = carDerailCoeff;
+                    carIDerailCoeff = PlayerTrain.Cars[i].CarID;
+                }
+            }
+
+            if (maxDerailCoeff > 0.66)
+            {
+                derailLabelVisible = true;
+                clockDerailTime = Owner.Viewer.Simulator.ClockTime;
+            }
+
+            if (maxDerailCoeff > 0.66)
+            {
+                if (maxDerailCoeff > 1)
+                {
+                    InfoToLabel(string.Empty, Viewer.Catalog.GetString("DerailCoeff"), $"{Viewer.Catalog.GetString("Derailed")} {carIDerailCoeff}" + "!!!", "", false);
+                }
+                else if (maxDerailCoeff < 1 && maxDerailCoeff > 0.66)
+                {
+                    InfoToLabel(string.Empty, Viewer.Catalog.GetString("DerailCoeff"), $"{Viewer.Catalog.GetString("Warning")} {carIDerailCoeff}" + "???", "", false);
+                }
+            }
+            else
+            {
+                // delay to hide the derailcoeff label
+                if (derailLabelVisible && clockDerailTime + 3 < Owner.Viewer.Simulator.ClockTime)
+                    derailLabelVisible = false;
+
+                if (derailLabelVisible)
+                {
+                    InfoToLabel(string.Empty, Viewer.Catalog.GetString("DerailCoeff"), $"{Viewer.Catalog.GetString("Normal")} {carIDerailCoeff}" + "!??", "", false);
                 }
             }
 
