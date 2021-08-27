@@ -502,7 +502,6 @@ namespace Orts.ActivityRunner.Viewer3D
                 {
                     ComposeMessageWindow.InitMessage();
                 });
-                UserCommandController.AddEvent(UserCommand.DisplayMultiPlayerWindow, KeyEventType.KeyPressed, () => MultiPlayerWindow.Visible = !MultiPlayerWindow.Visible);
             }
             else
             {
@@ -523,6 +522,10 @@ namespace Orts.ActivityRunner.Viewer3D
                     Simulator.GameSpeed = 1;
                     Simulator.Confirmer.ConfirmWithPerCent(CabControl.SimulationSpeed, CabSetting.Off, Simulator.GameSpeed * 100);
                 });
+            }
+            if (MultiPlayerManager.IsMultiPlayer() || (Settings.MultiplayerClient && Simulator.Confirmer != null))
+            {
+                UserCommandController.AddEvent(UserCommand.DisplayMultiPlayerWindow, KeyEventType.KeyPressed, () => MultiPlayerWindow.Visible = !MultiPlayerWindow.Visible);
             }
             UserCommandController.AddEvent(UserCommand.DisplayHUD, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {

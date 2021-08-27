@@ -24,6 +24,7 @@ using System.Linq;
 
 using Microsoft.Xna.Framework;
 using Orts.Common;
+using Orts.MultiPlayer;
 
 namespace Orts.ActivityRunner.Viewer3D.Popups
 {
@@ -52,7 +53,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         private const int TextSize = 15;
         private string keyPressed;// display a symbol when a control key is pressed.
 
-        private Label ExpandWindow;
         private Label indicator;
         private Label LabelFontToBold;
         public static bool FontToBold = false;
@@ -353,6 +353,17 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                         LastCol = ""
                     });
                 }
+                AddLabel(new ListLabel());
+            }
+            else if(MultiPlayerManager.Simulator.Confirmer != null)
+            {
+                var status = $"{Viewer.Catalog.GetString("Status")}: {MultiPlayerManager.Catalog.GetString("Connection to the server is lost, will play as single mode")}";
+                AddLabel(new ListLabel
+                {
+                    FirstCol = status,
+                    LastCol = ""
+                });
+
                 AddLabel(new ListLabel());
             }
 
