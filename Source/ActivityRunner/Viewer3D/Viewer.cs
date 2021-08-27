@@ -96,7 +96,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public TrackMonitorWindow TrackMonitorWindow { get; private set; } // F4 window
         public HUDWindow HUDWindow { get; private set; } // F5 hud
         public TrainDrivingWindow TrainDrivingWindow { get; private set; } // F5 train driving window
-        public MultiPlayerWindow MultiPlayerWindow { get; private set; } // MultiPlayer data windowed
+        public MultiPlayerWindow MultiPlayerWindow { get; private set; } // Shift+9 MultiPlayer data windowed
         public HUDScrollWindow HUDScrollWindow { get; private set; } // Control + F5 hud scroll command window
         public OSDLocations OSDLocations { get; private set; } // F6 platforms/sidings OSD
         public OSDCars OSDCars { get; private set; } // F7 cars OSD
@@ -502,6 +502,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 {
                     ComposeMessageWindow.InitMessage();
                 });
+                UserCommandController.AddEvent(UserCommand.DisplayMultiPlayerWindow, KeyEventType.KeyPressed, () => MultiPlayerWindow.Visible = !MultiPlayerWindow.Visible);
             }
             else
             {
@@ -1300,9 +1301,6 @@ namespace Orts.ActivityRunner.Viewer3D
 
             if (PlayerLocomotiveViewer != null)
                 PlayerLocomotiveViewer.HandleUserInput(elapsedTime);
-
-            if (MultiPlayerManager.IsMultiPlayer())
-                MultiPlayerWindow.Visible = TrainDrivingWindow.Visible;
 
             if (DbfEvalAutoPilot && (Simulator.ClockTime - DbfEvalIniAutoPilotTimeS) > 1.0000)
             {

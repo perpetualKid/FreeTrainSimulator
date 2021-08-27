@@ -306,6 +306,7 @@ namespace Orts.Settings
             commands[UserCommand.DisplayHelpWindow] = new UserCommandModifiableKeyInput(0x3B, commands[UserCommand.DisplayNextWindowTab]);
             commands[UserCommand.DisplayHUD] = new UserCommandModifiableKeyInput(0x3F, commands[UserCommand.DisplayNextWindowTab]);
             commands[UserCommand.DisplayTrainDrivingWindow] = new UserCommandModifiableKeyInput(0x3F, KeyModifiers.Control, commands[UserCommand.DisplayNextWindowTab]);
+            commands[UserCommand.DisplayMultiPlayerWindow] = new UserCommandKeyInput(0x0A, KeyModifiers.Shift);
             commands[UserCommand.DisplayNextStationWindow] = new UserCommandKeyInput(0x44);
             commands[UserCommand.DisplayStationLabels] = new UserCommandModifiableKeyInput(0x40, commands[UserCommand.DisplayNextWindowTab]);
             commands[UserCommand.DisplaySwitchWindow] = new UserCommandKeyInput(0x42);

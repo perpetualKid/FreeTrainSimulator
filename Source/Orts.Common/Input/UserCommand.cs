@@ -42,6 +42,7 @@ namespace Orts.Common.Input
         [Description("Display Track Monitor Window")] DisplayTrackMonitorWindow,
         [Description("Display HUD")] DisplayHUD,
         [Description("Display Train Driving Window")] DisplayTrainDrivingWindow,
+        [Description("Display Multi Player Window")] DisplayMultiPlayerWindow,
         [Description("Display Car Labels")] DisplayCarLabels,
         [Description("Display Station Labels")] DisplayStationLabels,
         [Description("Display Switch Window")] DisplaySwitchWindow,
