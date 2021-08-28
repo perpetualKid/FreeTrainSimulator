@@ -55,6 +55,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
         private Label indicator;
         private Label LabelFontToBold;
+        public static bool FontChanged;
         public static bool FontToBold = false;
         public static bool MonoFont;
 
@@ -177,6 +178,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
         private void FontToBold_Click(Control arg1, Point arg2)
         {
+            FontChanged = true;
             FontToBold = !FontToBold; 
             UpdateWindowSize();
         }
@@ -390,8 +392,13 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     UpdateWindowSize();
                     LinesCount = labels.Count();
                 }
-
-
+                //Resize this window after the font has been changed externally
+                if (TrainDrivingWindow.FontChanged)
+                {
+                    TrainDrivingWindow.FontChanged = false;
+                    FontToBold = !FontToBold;
+                    UpdateWindowSize();
+                }
                 //Update Layout
                 Layout();
             }

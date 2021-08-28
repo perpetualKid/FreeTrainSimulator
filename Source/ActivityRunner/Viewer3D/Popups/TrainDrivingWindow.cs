@@ -89,6 +89,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         private Label LabelFontToBold;
         public static bool MonoFont;
         public static bool FontToBold;
+        public static bool FontChanged;
 
         private readonly struct ListLabel
         {
@@ -569,8 +570,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
         private void FontToBold_Click(Control arg1, Point arg2)
         {
+            FontChanged = true;
             FontToBold = !FontToBold;
-            Owner.Viewer.Settings.WindowGlass = !Owner.Viewer.Settings.WindowGlass;// to help user with ageing eyesight.
             UpdateWindowSize();
         }
 
@@ -1251,7 +1252,13 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     UpdateWindowSize();
                     LinesCount = listToLabel.Count;
                 }
-
+                //Resize this window after the font has been changed externally
+                if (MultiPlayerWindow.FontChanged)
+                {
+                    MultiPlayerWindow.FontChanged = false;
+                    FontToBold = !FontToBold;
+                    UpdateWindowSize();
+                }
                 //Update Layout
                 Layout();
             }
