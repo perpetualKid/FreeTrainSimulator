@@ -1,4 +1,4 @@
-﻿// COPYRIGHT 2010, 2011, 2012, 2013 by the Open Rails project.
+// COPYRIGHT 2010, 2011, 2012, 2013 by the Open Rails project.
 // 
 // This file is part of Open Rails.
 // 
@@ -71,6 +71,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                 case "minimalreductionstart": NotchStateType = ControllerState.MinimalReduction; break;
                 case "epapplystart": NotchStateType = ControllerState.EPApply; break;
                 case "epholdstart": NotchStateType = ControllerState.SelfLap; break;
+                case "smeholdstart": NotchStateType = ControllerState.SMESelfLap; break;
+                case "smeonlystart": NotchStateType = ControllerState.SMEOnly; break;
+                case "smefullservicestart": NotchStateType = ControllerState.SMEFullServ; break;
+                case "smereleasestart": NotchStateType = ControllerState.SMEReleaseStart; break;
                 case "vacuumcontinuousservicestart": NotchStateType = ControllerState.VacContServ; break;
                 case "vacuumapplycontinuousservicestart": NotchStateType = ControllerState.VacApplyContServ; break;
                 case "manualbrakingstart": NotchStateType = ControllerState.ManualBraking; break;

@@ -145,7 +145,30 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 
         public override string[] GetDebugStatus(Dictionary<BrakeSystemComponent, Pressure.Unit> units)
         {
-            return new string[] {
+            MSTSLocomotive lead = (MSTSLocomotive)Car.Train.LeadLocomotive;
+
+            if (lead != null && lead.BrakeSystem is SMEBrakeSystem)
+            {
+                // Set values for SME type brake
+                return new string[] {
+                DebugType,
+                string.Format("{0}{1}",FormatStrings.FormatPressure(CylPressurePSI, Pressure.Unit.PSI, units[BrakeSystemComponent.BrakeCylinder], true), (Car as MSTSWagon).WheelBrakeSlideProtectionActive ? "???" : ""),
+                FormatStrings.FormatPressure(BrakeLine1PressurePSI, Pressure.Unit.PSI, units[BrakeSystemComponent.BrakePipe], true),
+                FormatStrings.FormatPressure(AuxResPressurePSI, Pressure.Unit.PSI, units[BrakeSystemComponent.AuxiliaryReservoir], true),
+                (Car as MSTSWagon).EmergencyReservoirPresent ? FormatStrings.FormatPressure(EmergResPressurePSI, Pressure.Unit.PSI, units[BrakeSystemComponent.EmergencyReservoir], true) : string.Empty,
+                TwoPipes ? FormatStrings.FormatPressure(CylPressurePSI, Pressure.Unit.PSI, units[BrakeSystemComponent.MainPipe], true) : string.Empty,
+                (Car as MSTSWagon).RetainerPositions == 0 ? string.Empty : RetainerDebugState,
+                TripleValveState.GetLocalizedDescription(),
+                string.Empty, // Spacer because the state above needs 2 columns.
+                (Car as MSTSWagon).HandBrakePresent ? string.Format("{0:F0}%", HandbrakePercent) : string.Empty,
+                FrontBrakeHoseConnected ? "I" : "T",
+                string.Format("A{0} B{1}", AngleCockAOpen ? "+" : "-", AngleCockBOpen ? "+" : "-"),
+                BleedOffValveOpen ? Simulator.Catalog.GetString("Open") : string.Empty,
+                };
+            }
+            else
+            {
+                return new string[] {
                 DebugType,
                 $"{FormatStrings.FormatPressure(CylPressurePSI, Pressure.Unit.PSI, units[BrakeSystemComponent.BrakeCylinder], true)}{((Car as MSTSWagon).WheelBrakeSlideProtectionActive ? "???" : "")}",
                 FormatStrings.FormatPressure(BrakeLine1PressurePSI, Pressure.Unit.PSI, units[BrakeSystemComponent.BrakePipe], true),
@@ -159,7 +182,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
                 FrontBrakeHoseConnected ? "I" : "T",
                 $"A{(AngleCockAOpen ? "+" : "-")} B{(AngleCockBOpen ? "+" : "-")}",
                 BleedOffValveOpen ? Simulator.Catalog.GetString("Open") : " ",//HudScroll feature requires for the last value, at least one space instead of string.Empty,
-            };
+                };
+            }
+
         }
 
         public override float GetCylPressurePSI()

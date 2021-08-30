@@ -1,4 +1,4 @@
-﻿// COPYRIGHT 2010, 2012 by the Open Rails project.
+// COPYRIGHT 2010, 2012 by the Open Rails project.
 // 
 // This file is part of Open Rails.
 // 
@@ -128,6 +128,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                             epState = -1;
                             break;
                         case ControllerState.FullQuickRelease:
+                        case ControllerState.SMEReleaseStart:
                             pressureBar = IncreasePressure(pressureBar, MaxPressureBar(), QuickReleaseRateBarpS(), elapsedClockSeconds);
                             pressureBar = DecreasePressure(pressureBar, MaxPressureBar(), OverchargeEliminationRateBarpS(), elapsedClockSeconds);
                             epState = -1;
@@ -187,8 +188,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                             break;
                         case ControllerState.EPApply:
                         case ControllerState.EPOnly:
+                        case ControllerState.SMEOnly:
                         case ControllerState.ContServ:
                         case ControllerState.EPFullServ:
+                        case ControllerState.SMEFullServ:
                             epState = x;
                             if (notch.NotchStateType == ControllerState.EPApply || notch.NotchStateType == ControllerState.ContServ)
                             {

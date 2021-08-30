@@ -1238,6 +1238,40 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                         Viewer.Catalog.GetString("Handbrk")
                     ));
                 }
+                else if ((Viewer.PlayerLocomotive as MSTSLocomotive).BrakeSystem is SMEBrakeSystem)
+                {
+                    statusHeader.Add(string.Format(CultureInfo.CurrentCulture, "{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}\t{11}\t{12}\t{13}",
+                    //0
+                    Viewer.Catalog.GetString("Car"),
+                    //1
+                    Viewer.Catalog.GetString("Type"),
+                    //2
+                    Viewer.Catalog.GetString("BrkCyl"),
+                    //3
+                    Viewer.Catalog.GetString("SrvPipe"),
+                    //4
+                    Viewer.Catalog.GetString("AuxRes"),
+                    //5
+                    Viewer.Catalog.GetString("ErgRes"),
+                    //6
+                    Viewer.Catalog.GetString("StrPipe"),
+                    //7
+                    Viewer.Catalog.GetString("RetValve"),
+                    //8
+                    Viewer.Catalog.GetString("TripleValve"),
+                    //9
+                    Viewer.Catalog.GetString(""),
+                    //10
+                    Viewer.Catalog.GetString("Handbrk"),
+                    //11
+                    Viewer.Catalog.GetString("Conn"),
+                    //12
+                    Viewer.Catalog.GetString("AnglCock"),
+                    //13
+                    Viewer.Catalog.GetString("BleedOff")
+                    //Add new header data here, if adding additional column.
+                    ));
+                }
                 else // default air braked
                 {
                     statusHeader.Add(string.Format(CultureInfo.CurrentCulture, "{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}\t{11}\t{12}\t{13}",
@@ -1289,7 +1323,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 {
                     statusString = statusString + cell + "\t";
                 }
-                if (statusString.StartsWith("1V"))
+                if (statusString.StartsWith("1V") || statusString.StartsWith("ST"))
                 {
                     var indexMatch = statusHeader.FindIndex(x => x.Contains(Viewer.Catalog.GetString("VacRes")));
                     if (!statusBrake.Contains(statusHeader[indexMatch]))//Avoid header duplicity

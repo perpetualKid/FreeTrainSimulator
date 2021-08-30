@@ -1,4 +1,4 @@
-// COPYRIGHT 2009, 2010, 2011, 2012, 2013, 2014 by the Open Rails project.
+﻿// COPYRIGHT 2009, 2010, 2011, 2012, 2013, 2014 by the Open Rails project.
 // 
 // This file is part of Open Rails.
 // 
@@ -15,26 +15,27 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using Orts.Common;
-using Orts.Common.Calc;
 using System;
 using System.Collections.Generic;
+
+using Orts.Common;
+using Orts.Common.Calc;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 {
 
-    public class EPBrakeSystem : AirTwinPipe
+    public class SMEBrakeSystem : AirTwinPipe
     {
-        public EPBrakeSystem(TrainCar car)
+        public SMEBrakeSystem(TrainCar car)
             : base(car)
         {
-            DebugType = "EP";
+            DebugType = "SME";
         }
 
         public override void Update(double elapsedClockSeconds)
         {
             MSTSLocomotive lead = (MSTSLocomotive)Car.Train.LeadLocomotive;
-            if (lead != null && lead.BrakeSystem is EPBrakeSystem)
+            if (lead != null && lead.BrakeSystem is SMEBrakeSystem)
             {
 
                 float demandedAutoCylPressurePSI = 0;
@@ -56,22 +57,22 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 
                 if (AutoCylPressurePSI < demandedAutoCylPressurePSI && !Car.WheelBrakeSlideProtectionActive)
                 {
-                    float dp = (float)elapsedClockSeconds * MaxApplicationRatePSIpS;
+                    double dp = elapsedClockSeconds * MaxApplicationRatePSIpS;
                     if (BrakeLine2PressurePSI - dp * AuxBrakeLineVolumeRatio / AuxCylVolumeRatio < AutoCylPressurePSI + dp)
                         dp = (BrakeLine2PressurePSI - AutoCylPressurePSI) / (1 + AuxBrakeLineVolumeRatio / AuxCylVolumeRatio);
                     if (dp > demandedAutoCylPressurePSI - AutoCylPressurePSI)
                         dp = demandedAutoCylPressurePSI - AutoCylPressurePSI;
-                    BrakeLine2PressurePSI -= dp * AuxBrakeLineVolumeRatio / AuxCylVolumeRatio;
-                    AutoCylPressurePSI += dp;
+                    BrakeLine2PressurePSI -= (float)dp * AuxBrakeLineVolumeRatio / AuxCylVolumeRatio;
+                    AutoCylPressurePSI += (float)dp;
                 }
             }
         }
 
         public override string GetFullStatus(BrakeSystem lastCarBrakeSystem, Dictionary<BrakeSystemComponent, Pressure.Unit> units)
         {
-            string s = Simulator.Catalog.GetString($" BC {FormatStrings.FormatPressure(CylPressurePSI, Pressure.Unit.PSI, units[BrakeSystemComponent.BrakeCylinder], true)}");
+            var s = $" {Simulator.Catalog.GetString("BC")} {FormatStrings.FormatPressure(CylPressurePSI, Pressure.Unit.PSI, units[BrakeSystemComponent.BrakeCylinder], true)}";
             if (HandbrakePercent > 0)
-                s += Simulator.Catalog.GetString($" Handbrake {HandbrakePercent:F0}%");
+                s += $" {Simulator.Catalog.GetString("Handbrake")} {HandbrakePercent:F0}%";
             return s;
         }
     }
