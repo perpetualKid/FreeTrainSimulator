@@ -990,9 +990,9 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                         electricTrainSupplyPower = FormatStrings.FormatPower(passengerCarPowerSupply.ElectricTrainSupplyPowerW, true, false, false);
                     }
                 }
-            // If power supply is steam power supply, do nothing.
+                // If power supply is steam power supply, do nothing.
 
-            TableAddLine(table);
+                TableAddLine(table);
                 TableSetCells(table, 0,
                     car.CarID,
                     car.WagonType.ToString(),
@@ -1089,12 +1089,23 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 }
                 else  // Default to air or electronically braked, use this display
                 {
-                    TableAddLines(table, string.Format(CultureInfo.CurrentCulture, "{0}\t\t{1}\t\t{2}\t{3}\t\t{4}",
+                    if ((Viewer.PlayerLocomotive as MSTSLocomotive).EngineType == TrainCar.EngineTypes.Control)
+                    {
+                        // Control cars typically don't have reservoirs
+                        TableAddLines(table, string.Format(CultureInfo.CurrentCulture, "{0}\t\t{1}",
+                            Viewer.Catalog.GetString("PlayerLoco"),
+                            Viewer.Catalog.GetString("No compressor or reservoir fitted")
+                            ));
+                    }
+                    else
+                    {
+                        TableAddLines(table, string.Format(CultureInfo.CurrentCulture, "{0}\t\t{1}\t\t{2}\t{3}\t\t{4}",
                         Viewer.Catalog.GetString("PlayerLoco"),
                         Viewer.Catalog.GetString("Main reservoir"),
                         FormatStrings.FormatPressure((Viewer.PlayerLocomotive as MSTSLocomotive).MainResPressurePSI, Pressure.Unit.PSI, (Viewer.PlayerLocomotive as MSTSLocomotive).BrakeSystemPressureUnits[BrakeSystemComponent.MainReservoir], true),
                         Viewer.Catalog.GetString("Compressor"),
                         (Viewer.PlayerLocomotive as MSTSLocomotive).CompressorIsOn ? Viewer.Catalog.GetString("on") : Viewer.Catalog.GetString("off")));
+                    }
                 }
 
                 // Display data for other locomotives
@@ -1103,13 +1114,23 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     var car = train.Cars[i];
                     if (car is MSTSLocomotive && car != Viewer.PlayerLocomotive)
                     {
-                        TableAddLines(table, string.Format(CultureInfo.CurrentCulture, "{0}\t{1}\t{2}\t\t{3}\t{4}\t\t{5}",
-                            Viewer.Catalog.GetString("Loco"),
-                            car.CarID,
-                            Viewer.Catalog.GetString("Main reservoir"),
-                            FormatStrings.FormatPressure((car as MSTSLocomotive).MainResPressurePSI, Pressure.Unit.PSI, (car as MSTSLocomotive).BrakeSystemPressureUnits[BrakeSystemComponent.MainReservoir], true),
-                            Viewer.Catalog.GetString("Compressor"),
-                            (car as MSTSLocomotive).CompressorIsOn ? Viewer.Catalog.GetString("on") : Viewer.Catalog.GetString("off")));
+                        if ((car as MSTSLocomotive).EngineType == TrainCar.EngineTypes.Control)
+                        {
+                            // Control cars typically don't have reservoirs
+                            TableAddLines(table, string.Format(CultureInfo.CurrentCulture, "{0}\t{1}",
+                                Viewer.Catalog.GetString("Loco"),
+                                car.CarID));
+                        }
+                        else
+                        {
+                            TableAddLines(table, string.Format(CultureInfo.CurrentCulture, "{0}\t{1}\t{2}\t\t{3}\t{4}\t\t{5}",
+                                Viewer.Catalog.GetString("Loco"),
+                                car.CarID,
+                                Viewer.Catalog.GetString("Main reservoir"),
+                                FormatStrings.FormatPressure((car as MSTSLocomotive).MainResPressurePSI, Pressure.Unit.PSI, (car as MSTSLocomotive).BrakeSystemPressureUnits[BrakeSystemComponent.MainReservoir], true),
+                                Viewer.Catalog.GetString("Compressor"),
+                                (car as MSTSLocomotive).CompressorIsOn ? Viewer.Catalog.GetString("on") : Viewer.Catalog.GetString("off")));
+                        }
                     }
                 }
                 TableAddLine(table);
@@ -1383,8 +1404,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
             if (mstsLocomotive != null)
             {
-                    var HUDSteamEngineType = mstsLocomotive.SteamEngineType;
-                    var HUDEngineType = mstsLocomotive.EngineType;
+                var HUDSteamEngineType = mstsLocomotive.SteamEngineType;
+                var HUDEngineType = mstsLocomotive.EngineType;
                 if (HUDEngineType != TrainCar.EngineTypes.Control) // Don't display adhesion information if it is an unpowered control car.
                 {
                     if (mstsLocomotive.AdvancedAdhesionModel)
