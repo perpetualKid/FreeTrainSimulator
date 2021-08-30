@@ -1,3 +1,4 @@
 # https://github.com/Danimoth/gitattributes
 # Auto detect text files and perform LF normalization
 * text=auto
+*.rst conflict-marker-size=100 
