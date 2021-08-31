@@ -347,6 +347,7 @@ namespace Orts.Formats.Msts
         SteamHeat_Pressure,
         FireBox,
         Rpm,
+        Rpm2,
         FireHole,
         CutOff,
         Vacuum_Reservoir_Pressure,
