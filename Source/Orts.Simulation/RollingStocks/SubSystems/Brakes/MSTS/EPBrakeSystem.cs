@@ -19,6 +19,7 @@ using Orts.Common;
 using Orts.Common.Calc;
 using System;
 using System.Collections.Generic;
+using ORTS.Scripting.Api;
 
 namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
 {
@@ -34,7 +35,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Brakes.MSTS
         public override void Update(double elapsedClockSeconds)
         {
             MSTSLocomotive lead = (MSTSLocomotive)Car.Train.LeadLocomotive;
-            if (lead != null && lead.BrakeSystem is EPBrakeSystem)
+
+            // Only allow brakes to operate if car is connected to an SME system
+            if (lead != null && lead.BrakeSystem is EPBrakeSystem && Car.BrakeSystem is EPBrakeSystem && (lead.TrainBrakeController.TrainBrakeControllerState == ControllerState.EPFullServ || lead.TrainBrakeController.TrainBrakeControllerState == ControllerState.EPOnly || lead.TrainBrakeController.TrainBrakeControllerState == ControllerState.EPApply))
             {
 
                 float demandedAutoCylPressurePSI = 0;
