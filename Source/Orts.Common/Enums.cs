@@ -702,7 +702,7 @@ namespace Orts.Common
         [Description("SME Self Lap")]
         SMESelfLap,         // TrainBrakesControllerSMEHoldStart
         [Description("SME Release Start")]
-        SMEReleaseStart,    // TrainBrakesControllerSEMReleaseStart
+        SMEReleaseStart,    // TrainBrakesControllerSMEReleaseStart
     }
 
     public enum TrainControlMode
