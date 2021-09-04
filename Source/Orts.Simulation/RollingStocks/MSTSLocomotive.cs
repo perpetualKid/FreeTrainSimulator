@@ -136,6 +136,7 @@ namespace Orts.Simulation.RollingStocks
         public float MainResPressurePSI = 130;
         public float MaximumMainReservoirPipePressurePSI;
         public bool CompressorIsOn;
+        public bool CompressorIsMechanical = false;
         public float AverageForceN;
         public float PowerOnDelayS;
         public bool CabLightOn;
@@ -850,6 +851,7 @@ namespace Orts.Simulation.RollingStocks
                 case "engine(airbrakemaxmainrespipepressure": MaximumMainReservoirPipePressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null); break;
                 case "engine(airbrakescompressorrestartpressure": CompressorRestartPressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null); break;
                 case "engine(airbrakesaircompressorpowerrating": CompressorChargingRateM3pS = (float)Size.Volume.FromFt3(stf.ReadFloatBlock(STFReader.Units.VolumeDefaultFT3, null)); break;
+                case "engine(airbrakesiscompressorelectricormechanical": CompressorIsMechanical = stf.ReadIntBlock(null) == 1; break;
                 case "engine(trainpipeleakrate": TrainBrakePipeLeakPSIorInHgpS = stf.ReadFloatBlock(STFReader.Units.PressureRateDefaultPSIpS, null); break;
                 case "engine(vacuumbrakesvacuumpumpresistance": VacuumPumpResistanceN = stf.ReadFloatBlock(STFReader.Units.Force, null); break;
 
@@ -1031,6 +1033,7 @@ namespace Orts.Simulation.RollingStocks
 
             WheelslipCausesThrottleDown = locoCopy.WheelslipCausesThrottleDown;
 
+            CompressorIsMechanical = locoCopy.CompressorIsMechanical;
             CompressorRestartPressurePSI = locoCopy.CompressorRestartPressurePSI;
             TrainBrakePipeLeakPSIorInHgpS = locoCopy.TrainBrakePipeLeakPSIorInHgpS;
             MaxMainResPressurePSI = locoCopy.MaxMainResPressurePSI;
@@ -2308,8 +2311,32 @@ namespace Orts.Simulation.RollingStocks
             else if ((MainResPressurePSI > MaxMainResPressurePSI || LocomotivePowerSupply.AuxiliaryPowerSupplyState != PowerSupplyState.PowerOn) && CompressorIsOn)
                 SignalEvent(TrainEvent.CompressorOff);
 
+            // For a mechanical compressor (typically fitted to a diesel locomotive) the charging rate will be related to the RpM of the diesel engine, and therefore 
+            // derated by an amount equivalent to the diesel RpM.
+            // All other locomotive types it will be the full charging rate for the reservoir
+            var reservoirChargingRate = MainResChargingRatePSIpS;
+
+            if (CompressorIsMechanical && (EngineType == EngineTypes.Control || EngineType == EngineTypes.Diesel))
+            {
+                if (EngineType == EngineTypes.Control)
+                {
+                    FindControlActiveLocomotive();
+
+                    if (ControlActiveLocomotive != null)
+                    {
+                        var activeloco = ControlActiveLocomotive as MSTSDieselLocomotive;
+                        reservoirChargingRate = (activeloco.DieselEngines[0].RealRPM / activeloco.DieselEngines[0].MaxRPM) * MainResChargingRatePSIpS;
+                    }
+                }
+                else
+                {
+                    var mstsDieselLocomotive = this as MSTSDieselLocomotive;
+                    reservoirChargingRate = (mstsDieselLocomotive.DieselEngines[0].RealRPM / mstsDieselLocomotive.DieselEngines[0].MaxRPM) * MainResChargingRatePSIpS;
+                }
+            }
+
             if (CompressorIsOn)
-                MainResPressurePSI += (float)elapsedClockSeconds * MainResChargingRatePSIpS;
+                MainResPressurePSI += (float)elapsedClockSeconds * reservoirChargingRate;
         }
 
         /// <summary>
