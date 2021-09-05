@@ -2306,18 +2306,15 @@ namespace Orts.Simulation.RollingStocks
         /// </summary>
         protected virtual void UpdateCompressor(double elapsedClockSeconds)
         {
-            if (MainResPressurePSI < CompressorRestartPressurePSI && LocomotivePowerSupply.AuxiliaryPowerSupplyState == PowerSupplyState.PowerOn && !CompressorIsOn)
-                SignalEvent(TrainEvent.CompressorOn);
-            else if ((MainResPressurePSI > MaxMainResPressurePSI || LocomotivePowerSupply.AuxiliaryPowerSupplyState != PowerSupplyState.PowerOn) && CompressorIsOn)
-                SignalEvent(TrainEvent.CompressorOff);
-
-            // For a mechanical compressor (typically fitted to a diesel locomotive) the charging rate will be related to the RpM of the diesel engine, and therefore 
-            // derated by an amount equivalent to the diesel RpM.
-            // All other locomotive types it will be the full charging rate for the reservoir
-            var reservoirChargingRate = MainResChargingRatePSIpS;
 
             if (CompressorIsMechanical && (EngineType == EngineTypes.Control || EngineType == EngineTypes.Diesel))
-            {
+            {                
+                // For a mechanical compressor (typically fitted to a diesel locomotive) the charging rate will be related to the RpM of the diesel engine, and therefore 
+                // derated by an amount equivalent to the diesel RpM.
+                // All other locomotive types it will be the full charging rate for the reservoir
+                var reservoirChargingRate = MainResChargingRatePSIpS;
+
+                // Control car uses the attached active locomotive
                 if (EngineType == EngineTypes.Control)
                 {
                     FindControlActiveLocomotive();
@@ -2330,13 +2327,27 @@ namespace Orts.Simulation.RollingStocks
                 }
                 else
                 {
+                    // Powered locomotive use thereselves
                     var mstsDieselLocomotive = this as MSTSDieselLocomotive;
                     reservoirChargingRate = (mstsDieselLocomotive.DieselEngines[0].RealRPM / mstsDieselLocomotive.DieselEngines[0].MaxRPM) * MainResChargingRatePSIpS;
                 }
-            }
 
-            if (CompressorIsOn)
                 MainResPressurePSI += (float)elapsedClockSeconds * reservoirChargingRate;
+
+                // Compressor runs continuously, and excess air pressure is exhausted to atmosphere once max pressure is reached.
+                MainResPressurePSI = MathHelper.Clamp(MainResPressurePSI, 0.0f, MaxMainResPressurePSI);
+
+            }
+            else // Non-mechanical compressors
+            {
+                if (MainResPressurePSI < CompressorRestartPressurePSI && LocomotivePowerSupply.AuxiliaryPowerSupplyState == PowerSupplyState.PowerOn && !CompressorIsOn)
+                    SignalEvent(TrainEvent.CompressorOn);
+                else if ((MainResPressurePSI > MaxMainResPressurePSI || LocomotivePowerSupply.AuxiliaryPowerSupplyState != PowerSupplyState.PowerOn) && CompressorIsOn)
+                    SignalEvent(TrainEvent.CompressorOff);
+
+                if (CompressorIsOn)
+                    MainResPressurePSI += (float)elapsedClockSeconds * MainResChargingRatePSIpS;
+            }
         }
 
         /// <summary>
