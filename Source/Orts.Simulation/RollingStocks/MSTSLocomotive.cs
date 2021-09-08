@@ -2436,10 +2436,8 @@ namespace Orts.Simulation.RollingStocks
                 // Steam locomotive details updated in UpdateTractiveForce method, and inserted into adhesion module
                 // ****************  NB WheelSpeed updated within Steam Locomotive module at the moment - to be fixed to prevent discrepancies ******************
             }
-
             else
             {
-
                 //Compute axle inertia from parameters if possible
                 if (AxleInertiaKgm2 > 10000.0f) // if axleinertia value supplied in ENG file, then use in calculations
                 {
@@ -2474,7 +2472,7 @@ namespace Orts.Simulation.RollingStocks
                 LocomotiveAxle.DriveForceN = MotiveForceN;              //Total force applied to wheels
                 LocomotiveAxle.TrainSpeedMpS = SpeedMpS;                //Set the train speed of the axle model
                 LocomotiveAxle.Update(elapsedClockSeconds);             //Main updater of the axle model
-         
+
                 // Output
                 MotiveForceN = LocomotiveAxle.CompensatedAxleForceN; //Get the Axle force and use it for the motion (use compensated value as it is independent of brake force)
 

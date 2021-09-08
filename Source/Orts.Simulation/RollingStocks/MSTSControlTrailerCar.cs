@@ -107,6 +107,7 @@ namespace Orts.Simulation.RollingStocks
         public override void Update(double elapsedClockSeconds)
         {
             base.Update(elapsedClockSeconds);
+            WheelSpeedMpS = SpeedMpS; // Set wheel speed for control car, required to make wheels go around.
 
         }
 
