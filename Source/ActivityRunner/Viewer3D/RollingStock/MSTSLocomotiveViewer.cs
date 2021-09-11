@@ -3214,13 +3214,13 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             Material material = null;
 
             string imageName;
-            if (!string.IsNullOrEmpty(AceFile))
-            {
-                imageName = AceFile;
-            }
-            else if (Alert)
+            if (Alert)
             {
                 imageName = "alert.ace";
+            }
+            else if (!string.IsNullOrEmpty(AceFile))
+            {
+                imageName = AceFile;
             }
             else
             {
