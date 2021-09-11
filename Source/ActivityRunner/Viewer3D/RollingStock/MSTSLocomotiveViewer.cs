@@ -1674,7 +1674,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         /// Gets the requested Locomotive data and returns it as a fraction (from 0 to 1) of the range between Min and Max values.
         /// </summary>
         /// <returns>Data value as fraction (from 0 to 1) of the range between Min and Max values</returns>
-        public float GetRangeFraction()
+        public float GetRangeFraction(bool offsetFromZero = false)
         {
             var data = Locomotive.GetDataOf(Control);
             if (data < Control.ScaleRangeMin)
@@ -1685,7 +1685,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             if (Control.ScaleRangeMax == Control.ScaleRangeMin)
                 return 0;
 
-            return (float)((data - Control.ScaleRangeMin) / (Control.ScaleRangeMax - Control.ScaleRangeMin));
+            return (float)((data - (offsetFromZero && Control.ScaleRangeMin < 0 ? 0 : Control.ScaleRangeMin) / (Control.ScaleRangeMax - Control.ScaleRangeMin));
         }
 
         public CabViewControlStyle GetStyle()
@@ -3472,11 +3472,12 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
             Material UsedMaterial = FindMaterial();
 
-            float length = CVFR.GetRangeFraction();
+            float length = CVFR.GetRangeFraction(true);
 
             CabViewGaugeControl gauge = CVFR.GetGauge();
 
             var len = maxLen * length;
+            var absLen = Math.Abs(len);
             Vertex v1, v2, v3, v4;
 
             //the left-bottom vertex if ori=0;dir=0, right-bottom if ori=0,dir=1; left-top if ori=1,dir=0; left-bottom if ori=1,dir=1;
@@ -3484,33 +3485,33 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
             if (Orientation == 0)
             {
-                if (Direction == 0)//moving right
+                if (Direction == 0 ^ len < 0)//moving right
                 {
                     //other vertices
                     v2 = new Vertex(0f, width, 0.002f, 0, 0, 1, 0f, 0f);
-                    v3 = new Vertex(len, width, 0.002f, 0, 0, 1, 0f, 0f);
-                    v4 = new Vertex(len, 0f, 0.002f, 0, 0, 1, 0f, 0f);
+                    v3 = new Vertex(absLen, width, 0.002f, 0, 0, 1, 0f, 0f);
+                    v4 = new Vertex(absLen, 0f, 0.002f, 0, 0, 1, 0f, 0f);
                 }
                 else //moving left
                 {
                     v4 = new Vertex(0f, width, 0.002f, 0, 0, 1, 0f, 0f);
-                    v3 = new Vertex(-len, width, 0.002f, 0, 0, 1, 0f, 0f);
-                    v2 = new Vertex(-len, 0f, 0.002f, 0, 0, 1, 0f, 0f);
+                    v3 = new Vertex(-absLen, width, 0.002f, 0, 0, 1, 0f, 0f);
+                    v2 = new Vertex(-absLen, 0f, 0.002f, 0, 0, 1, 0f, 0f);
                 }
             }
             else
             {
-                if (Direction == 1)//up
+                if (Direction == 1 ^ len < 0)//up
                 {
                     //other vertices
-                    v2 = new Vertex(0f, len, 0.002f, 0, 0, 1, 0f, 0f);
-                    v3 = new Vertex(width, len, 0.002f, 0, 0, 1, 0f, 0f);
+                    v2 = new Vertex(0f, absLen, 0.002f, 0, 0, 1, 0f, 0f);
+                    v3 = new Vertex(width, absLen, 0.002f, 0, 0, 1, 0f, 0f);
                     v4 = new Vertex(width, 0f, 0.002f, 0, 0, 1, 0f, 0f);
                 }
                 else //moving down
                 {
-                    v4 = new Vertex(0f, -len, 0.002f, 0, 0, 1, 0f, 0f);
-                    v3 = new Vertex(width, -len, 0.002f, 0, 0, 1, 0f, 0f);
+                    v4 = new Vertex(0f, -absLen, 0.002f, 0, 0, 1, 0f, 0f);
+                    v3 = new Vertex(width, -absLen, 0.002f, 0, 0, 1, 0f, 0f);
                     v2 = new Vertex(width, 0, 0.002f, 0, 0, 1, 0f, 0f);
                 }
             }
