@@ -3203,7 +3203,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
             //create the shape primitive
             shapePrimitive = new MutableShapePrimitive(viewer.RenderProcess.GraphicsDevice, Material, NumVertices, NumIndices, new[] { -1 }, 0);
-            UpdateShapePrimitive();
+            UpdateShapePrimitive(Material);
 
         }
 
@@ -3304,11 +3304,11 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             }
 
             //update the shape primitive
-            UpdateShapePrimitive();
+            UpdateShapePrimitive(UsedMaterial);
 
         }
 
-        private void UpdateShapePrimitive()
+        private void UpdateShapePrimitive(Material material)
         {
             var indexData = new short[NumIndices];
             Array.Copy(TriangleListIndices, indexData, NumIndices);
@@ -3317,6 +3317,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             var vertexData = new VertexPositionNormalTexture[NumVertices];
             Array.Copy(VertexList, vertexData, NumVertices);
             shapePrimitive.SetVertexData(vertexData, 0, NumVertices, NumIndices / 3);
+
+            shapePrimitive.SetMaterial(material);
         }
 
         //ACE MAP:
@@ -3436,10 +3438,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             VertexList[NumVertices + 3].Position = v4.Position; VertexList[NumVertices + 3].Normal = v4.Normal; VertexList[NumVertices + 3].TextureCoordinate = v4.TexCoord;
             NumVertices += 4;
 
-
             //create the shape primitive
+            var material = FindMaterial();
             shapePrimitive = new MutableShapePrimitive(viewer.RenderProcess.GraphicsDevice, FindMaterial(), NumVertices, NumIndices, new[] { -1 }, 0);
-            UpdateShapePrimitive();
+            UpdateShapePrimitive(material);
 
         }
 
@@ -3451,13 +3453,14 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             {
                 if (PositiveMaterial == null)
                 {
-                    PositiveMaterial = new SolidColorMaterial(this.Viewer, 0f, c.R, c.G, c.B);
+                    PositiveMaterial = new SolidColorMaterial(this.Viewer, c.A, c.R, c.G, c.B);
                 }
                 return PositiveMaterial;
             }
             else
             {
-                if (NegativeMaterial == null) NegativeMaterial = new SolidColorMaterial(this.Viewer, c.A, c.R, c.G, c.B);
+                if (NegativeMaterial == null)
+                    NegativeMaterial = new SolidColorMaterial(this.Viewer, c.A, c.R, c.G, c.B);
                 return NegativeMaterial;
             }
         }
@@ -3520,7 +3523,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             NumVertices += 4;
 
             //update the shape primitive
-            UpdateShapePrimitive();
+            UpdateShapePrimitive(UsedMaterial);
 
         }
 
@@ -3552,7 +3555,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             return 1.0f;
         }
 
-        private void UpdateShapePrimitive()
+        private void UpdateShapePrimitive(Material material)
         {
             var indexData = new short[NumIndices];
             Array.Copy(TriangleListIndices, indexData, NumIndices);
@@ -3561,6 +3564,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             var vertexData = new VertexPositionNormalTexture[NumVertices];
             Array.Copy(VertexList, vertexData, NumVertices);
             shapePrimitive.SetVertexData(vertexData, 0, NumVertices, NumIndices / 3);
+
+            shapePrimitive.SetMaterial(material);
         }
 
         public void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
