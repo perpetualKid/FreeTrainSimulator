@@ -130,6 +130,9 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         Left,
         Center,
         Right,
+        Cab3DLeft,
+        Cab3DCenter,
+        Cab3DRight,
     }
 
     public class Label : Control

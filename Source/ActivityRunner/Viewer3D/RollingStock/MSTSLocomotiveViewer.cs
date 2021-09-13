@@ -2684,7 +2684,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             if (Control.ControlType == CabViewControlType.Clock)
                 Alignment = LabelAlignment.Center;
             Alignment = digital.Justification == 1 ? LabelAlignment.Center : digital.Justification == 2 ? LabelAlignment.Left : digital.Justification == 3 ? LabelAlignment.Right : Alignment;
-
+            // Used for 3D cabs
+            Alignment = digital.Justification == 4 ? LabelAlignment.Cab3DCenter : digital.Justification == 5 ? LabelAlignment.Cab3DLeft : digital.Justification == 6 ? LabelAlignment.Cab3DRight : Alignment;
             Format1 = "{0:0" + new String('0', digital.LeadingZeros) + (digital.Accuracy > 0 ? "." + new String('0', (int)digital.Accuracy) : "") + "}";
             Format2 = "{0:0" + new String('0', digital.LeadingZeros) + (digital.AccuracySwitch > 0 ? "." + new String('0', (int)(digital.Accuracy + 1)) : "") + "}";
         }
@@ -2915,6 +2916,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             return "";
         }
 
+        public LabelAlignment GetAlignment() //used in 3D cab, to get alignment
+        {
+            return Alignment;
+        }
     }
 
     /// <summary>
@@ -3282,13 +3287,31 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         //update the digits with current speed or time
         public void UpdateDigit()
         {
-            NumVertices = NumIndices = 0;
 
             Material UsedMaterial = Material; //use default material
 
             //update text string
             bool Alert;
             string speed = CVFR.Get3DDigits(out Alert);
+
+            NumVertices = NumIndices = 0;
+
+            // add leading blanks to consider alignment
+            // for backwards compatibiliy with preceding OR releases all Justification values defined by MSTS are considered as left justified
+            var leadingBlankCount = 0;
+            switch (CVFR.GetAlignment())
+            {
+                case LabelAlignment.Cab3DRight:
+                    leadingBlankCount = MaxDigits - speed.Length;
+                    break;
+                case LabelAlignment.Cab3DCenter:
+                    leadingBlankCount = (MaxDigits - speed.Length + 1) / 2;
+                    break;
+                default:
+                    break;
+            }
+            for (int i = leadingBlankCount; i > 0; i--)
+                speed = speed.Insert(0, " ");
 
             if (Alert)//alert use alert meterial
             {
