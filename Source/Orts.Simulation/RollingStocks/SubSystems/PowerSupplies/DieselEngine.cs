@@ -364,9 +364,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
         public void HandleEvent(PowerSupplyEvent evt, int id)
         {
-            if (id <= DEList.Count)
+            if (id >= 0 && id < DEList.Count)
             {
-                DEList[id - 1].HandleEvent(evt);
+                DEList[id].HandleEvent(evt);
             }
         }
 

@@ -479,6 +479,8 @@ namespace Orts.Common
     {
         QuickPowerOn,
         QuickPowerOff,
+        TogglePlayerEngine,
+        ToggleHelperEngine,
         CloseBatterySwitch,
         OpenBatterySwitch,
         CloseBatterySwitchButtonPressed,
