@@ -2840,7 +2840,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 var digital = Control as CabViewDigitalControl;
                 string displayedText = "";
                 Num = Locomotive.GetDataOf(Control);
-                if (digital.MinValue < digital.MaxValue) Num = MathHelper.Clamp(Num, (float)digital.MinValue, (float)digital.MaxValue);
+                if (digital.ScaleRangeMin < digital.ScaleRangeMax) 
+                    Num = MathHelper.Clamp(Num, (float)digital.ScaleRangeMin, (float)digital.ScaleRangeMax);
                 if (Math.Abs(Num) < digital.AccuracySwitch)
                     Format = Format2;
                 else
