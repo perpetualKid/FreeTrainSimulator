@@ -438,7 +438,7 @@ namespace Orts.Simulation
                 foreach (MovingTable movingTable in MovingTables)
                     movingTable.Restore(inf, this);
             }
-            activeMovingTable = MovingTables[movingTableIndex];
+            activeMovingTable = movingTableIndex >= 0 && movingTableIndex < MovingTables.Count ? MovingTables[movingTableIndex] : null;
 
             ActivityRun = Activity.Restore(inf, this, ActivityRun);
             SignalEnvironment.RestoreTrains(Trains);  // restore links to trains
