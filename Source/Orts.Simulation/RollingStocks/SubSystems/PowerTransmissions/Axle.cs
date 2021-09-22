@@ -764,7 +764,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerTransmissions
             }
 
             // Set output MotiveForce to actual value exclusive of brake force.
-            compensatedaxleForceN = CompensatedFilterMovingAverage.Update(Math.Abs(compensatedaxleForceN) > Math.Abs(driveForceN) ? driveForceN : compensateAxleForceN);
+            compensatedaxleForceN = (float)CompensatedFilterMovingAverage.Update(Math.Abs(compensatedaxleForceN) > Math.Abs(driveForceN) ? driveForceN : compensateAxleForceN);
 
             axleForceN = (float)FilterMovingAverage.Update(Math.Abs(axleForceN) > Math.Abs(driveForceN) ? driveForceN : axleForceN);
         }
