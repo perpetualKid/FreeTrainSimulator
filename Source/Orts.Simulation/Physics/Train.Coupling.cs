@@ -849,10 +849,6 @@ namespace Orts.Simulation.Physics
                 // update coupler slack distance
                 TrainCar car = Cars[i];
 
-                // Initialise individual car coupler slack values
-                car.RearCouplerSlackM = 0;
-                car.FrontCouplerSlackM = 0;
-
                 // Calculate coupler slack - this should be the full amount for both couplers
                 car.CouplerSlackM += (float)((car.SpeedMpS - Cars[i + 1].SpeedMpS) * elapsedTime);
 
@@ -878,15 +874,16 @@ namespace Orts.Simulation.Physics
                         car.CouplerSlackM = max;
                 }
 
-                // Proportion coupler slack across front and rear couplers of this car, and the following car
+                // Proportion coupler slack across the rear coupler of this car, and the front coupler of the following car
                 car.RearCouplerSlackM = car.CouplerSlackM / AdvancedCouplerDuplicationFactor;
-                car.FrontCouplerSlackM = Cars[i + 1].CouplerSlackM / AdvancedCouplerDuplicationFactor;
+                Cars[i + 1].FrontCouplerSlackM = car.CouplerSlackM / AdvancedCouplerDuplicationFactor;
 
                 // Check to see if coupler is opened or closed - only closed or opened couplers have been specified
                 // It is assumed that the front coupler on first car will always be opened, and so will coupler on last car. All others on the train will be coupled
                 car.FrontCouplerOpen = i == 0 && car.FrontCouplerOpenFitted;
 
-                if (i == Cars.Count - 2)
+                // Set up coupler information for last car
+                if (i == Cars.Count - 2) // 2nd last car in count, but set up last car, ie i+1
                 {
                     Cars[i + 1].RearCouplerOpen = Cars[i + 1].RearCouplerOpenFitted;
                 }
@@ -952,11 +949,39 @@ namespace Orts.Simulation.Physics
                     }
                 }
             }
+            int j = 0;
+
             foreach (TrainCar car in Cars)
-                car.DistanceM += (float)Math.Abs(car.SpeedMpS * elapsedTime);
+            {
+                car.DistanceM += (float)(Math.Abs(car.SpeedMpS * elapsedTime));
+
+                // Identify links to cars ahead and behind for use when animating couplers
+                if (j == 0)
+                {
+                    car.CarAhead = null;
+                    if (Cars.Count > j) // if not a single loco
+                    {
+                        car.CarBehind = Cars[j + 1];
+                    }
+                    else // if a single loco
+                    {
+                        car.CarBehind = null;
+                    }
+                }
+                else if (j == Cars.Count - 1)
+                {
+                    Cars[j].CarAhead = Cars[j - 1];
+                    Cars[j].CarBehind = null;
+                }
+                else // Set up coupler information for cars between first and last car
+                {
+                    Cars[j].CarAhead = Cars[j - 1];
+                    Cars[j].CarBehind = Cars[j + 1];
+
+                }
+
+                j++;
+            }
         }
-
-
-
     }
 }
