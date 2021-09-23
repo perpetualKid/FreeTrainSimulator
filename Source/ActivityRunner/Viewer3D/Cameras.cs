@@ -2090,8 +2090,9 @@ namespace Orts.ActivityRunner.Viewer3D
             // View is only reset on move to a different cab or "Ctl + 8".
             if (attachedCar.CabViewpoints != null)
             {
-                if (ActViewPoint != prevViewPoint)
+                if (car.CarID != prevcar || ActViewPoint != prevViewPoint)
                 {
+                    prevcar = car.CarID;
                     prevViewPoint = ActViewPoint;
                     viewPointLocation = attachedCar.CabViewpoints[ActViewPoint].Location;
                     viewPointRotationXRadians = attachedCar.CabViewpoints[ActViewPoint].RotationXRadians;
