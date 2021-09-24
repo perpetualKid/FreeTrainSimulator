@@ -532,7 +532,7 @@ namespace Orts.Common
     [Description("PowerSupply")]
     public enum PowerSupplyState
     {
-        [Description("Unavailable")] Unavailable,
+        [Description("Unavailable")] Unavailable = -1,
         [Description("Off")] PowerOff,
         [Description("On ongoing")] PowerOnOngoing,
         [Description("On")] PowerOn
@@ -541,7 +541,7 @@ namespace Orts.Common
     [Description("Pantograph")]
     public enum PantographState
     {
-        [Description("Unavailable")] Unavailable,
+        [Description("Unavailable")] Unavailable = -1,
         [Description("Down")] Down,
         [Description("Lowering")] Lowering,
         [Description("Raising")] Raising,
@@ -551,7 +551,7 @@ namespace Orts.Common
     [Description("Engine")]
     public enum DieselEngineState
     {
-        [Description("Unavailable")] Unavailable,
+        [Description("Unavailable")] Unavailable = -1,
         [Description("Stopped")] Stopped,
         [Description("Stopping")] Stopping,
         [Description("Starting")] Starting,
@@ -561,7 +561,7 @@ namespace Orts.Common
     [Description("CircuitBreaker")]
     public enum CircuitBreakerState
     {
-        [Description("Unavailable")] Unavailable,
+        [Description("Unavailable")] Unavailable = -1,
         [Description("Open")] Open,
         [Description("Closing")] Closing,
         [Description("Closed")] Closed
@@ -570,7 +570,7 @@ namespace Orts.Common
     [Description("TractionCutOffRelay")]
     public enum TractionCutOffRelayState
     {
-        [Description("Unavailable")] Unavailable,
+        [Description("Unavailable")] Unavailable = -1,
         [Description("Open")] Open,
         [Description("Closing")] Closing,
         [Description("Closed")] Closed
