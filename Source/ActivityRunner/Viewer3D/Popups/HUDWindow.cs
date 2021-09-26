@@ -1121,16 +1121,6 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                 Viewer.Catalog.GetString("Loco"),
                                 car.CarID));
                         }
-                        else if ((car as MSTSLocomotive).CompressorIsMechanical)
-                        {
-                            // Mechanical compressor run continuously so no point having on and off indication.
-                            TableAddLines(table, string.Format(CultureInfo.CurrentCulture, "{0}\t{1}\t{2}\t\t{3}",
-                            Viewer.Catalog.GetString("Loco"),
-                            car.CarID,
-                            Viewer.Catalog.GetString("Main reservoir"),
-                            FormatStrings.FormatPressure((car as MSTSLocomotive).MainResPressurePSI, Pressure.Unit.PSI, (car as MSTSLocomotive).BrakeSystemPressureUnits[BrakeSystemComponent.MainReservoir], true)));
-
-                        }
                         else
                         {
                             TableAddLines(table, string.Format(CultureInfo.CurrentCulture, "{0}\t{1}\t{2}\t\t{3}\t{4}\t\t{5}",
