@@ -1437,7 +1437,7 @@ namespace Orts.Simulation.RollingStocks
                     DerailClimbDistanceM = (float)Size.Length.FromFt( (float)((parameterA * parameterB * Size.Length.ToIn(WheelFlangeLengthM)) / ((angleofAttackmRad + (parameterB * Size.Length.ToIn(WheelFlangeLengthM))))) );
 
                     // calculate the time taken to travel the derail climb distance
-                    var derailTimeS = AbsSpeedMpS / DerailClimbDistanceM;
+                    var derailTimeS = DerailClimbDistanceM / AbsSpeedMpS;
 
                     // Set indication that a derail may occur
                     if (DerailmentCoefficient > NadalDerailmentCoefficient)
