@@ -1669,19 +1669,19 @@ namespace Orts.Simulation.Commanding
     }
 
     [Serializable()]
-    public sealed class ResetOdometerCommand : Command
+    public sealed class ResetOdometerCommand : BooleanCommand
     {
         public static MSTSLocomotive Receiver { get; set; }
 
-        public ResetOdometerCommand(CommandLog log)
-            : base(log)
+        public ResetOdometerCommand(CommandLog log, bool targetState)
+            : base(log, targetState)
         {
             Redo();
         }
 
         public override void Redo()
         {
-            Receiver.OdometerReset();
+            Receiver.OdometerReset(targetState);
         }
 
         public override string ToString()

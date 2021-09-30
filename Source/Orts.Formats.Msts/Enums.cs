@@ -463,6 +463,9 @@ namespace Orts.Formats.Msts
         Orts_TCS47,
         Orts_TCS48,
         Orts_Etcs,
+        Orts_Odometer,
+        Orts_Odometer_Reset,
+        Orts_Odometer_Direction,
 
         // Further CabViewControlTypes must be added above this line, to avoid their malfunction in 3DCabs
         ExternalWipers,
@@ -502,13 +505,9 @@ namespace Orts.Formats.Msts
 
         Km_Per_Hour,
         Miles_Per_Hour,
-        MetresµSecµSec,
         Metres_Sec_Sec,
-        KmµHourµHour,
         Km_Hour_Hour,
-        KmµHourµSec,
         Km_Hour_Sec,
-        MetresµSecµHour,
         Metres_Sec_Hour,
         Miles_Hour_Min,
         Miles_Hour_Hour,
@@ -523,6 +522,12 @@ namespace Orts.Formats.Msts
         Mili_Amps,
         Rpm,
         Lbs,
+
+        Kilometres,
+        Metres,
+        Miles,
+        Feet,
+        Yards,
     }
 
     public enum CabViewControlDiscreteState

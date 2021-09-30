@@ -224,7 +224,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             Viewer.UserCommandController.AddEvent(UserCommand.ControlImmediateRefill, KeyEventType.KeyReleased, StopImmediateRefilling, true);
             Viewer.UserCommandController.AddEvent(UserCommand.ControlWaterScoop, KeyEventType.KeyPressed, ToggleWaterScoopCommand, true);
             Viewer.UserCommandController.AddEvent(UserCommand.ControlOdoMeterShowHide, KeyEventType.KeyPressed, ToggleOdometerCommand, true);
-            Viewer.UserCommandController.AddEvent(UserCommand.ControlOdoMeterReset, KeyEventType.KeyPressed, ResetOdometerCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlOdoMeterReset, KeyEventType.KeyPressed, ResetOdometerOnCommand, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlOdoMeterReset, KeyEventType.KeyReleased, ResetOdometerOffCommand, true);
             Viewer.UserCommandController.AddEvent(UserCommand.ControlOdoMeterDirection, KeyEventType.KeyPressed, ToggleOdometerDirectionCommand, true);
             Viewer.UserCommandController.AddEvent(UserCommand.ControlCabRadio, KeyEventType.KeyPressed, CabRadioCommand, true);
             Viewer.UserCommandController.AddEvent(UserCommand.ControlDieselHelper, KeyEventType.KeyPressed, ToggleHelpersEngineCommand, true);
@@ -313,7 +314,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlImmediateRefill, KeyEventType.KeyReleased, StopImmediateRefilling);
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlWaterScoop, KeyEventType.KeyPressed, ToggleWaterScoopCommand);
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlOdoMeterShowHide, KeyEventType.KeyPressed, ToggleOdometerCommand);
-            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlOdoMeterReset, KeyEventType.KeyPressed, ResetOdometerCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlOdoMeterReset, KeyEventType.KeyPressed, ResetOdometerOnCommand);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlOdoMeterReset, KeyEventType.KeyReleased, ResetOdometerOffCommand);
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlOdoMeterDirection, KeyEventType.KeyPressed, ToggleOdometerDirectionCommand);
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlCabRadio, KeyEventType.KeyPressed, CabRadioCommand);
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlDieselHelper, KeyEventType.KeyPressed, ToggleHelpersEngineCommand);
@@ -372,7 +374,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         private void ToggleCabLightCommand() => _ = new ToggleCabLightCommand(Viewer.Log);
         private void ToggleWaterScoopCommand() => _ = new ToggleWaterScoopCommand(Viewer.Log);
         private void ToggleOdometerCommand() => _ = new ToggleOdometerCommand(Viewer.Log);
-        private void ResetOdometerCommand() => _ = new ResetOdometerCommand(Viewer.Log);
+        private void ResetOdometerOnCommand() => _ = new ResetOdometerCommand(Viewer.Log, true);
+        private void ResetOdometerOffCommand() => _ = new ResetOdometerCommand(Viewer.Log, false);
         private void ToggleOdometerDirectionCommand() => _ = new ToggleOdometerDirectionCommand(Viewer.Log);
         private void CabRadioCommand() => _ = new CabRadioCommand(Viewer.Log, !Locomotive.CabRadioOn);
         private void ToggleHelpersEngineCommand() => _ = new ToggleHelpersEngineCommand(Viewer.Log);
@@ -2235,6 +2238,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 case CabViewControlType.Orts_Service_Retention_Cancellation_Button:
                 case CabViewControlType.Orts_Electric_Train_Supply_Command_Switch:
                 case CabViewControlType.Orts_Electric_Train_Supply_On:
+                case CabViewControlType.Orts_Odometer_Direction:
+                case CabViewControlType.Orts_Odometer_Reset:
                     index = (int)data;
                     break;
 
@@ -2506,6 +2511,12 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 case CabViewControlType.Orts_Electric_Train_Supply_Command_Switch:
                     _ = new ElectricTrainSupplyCommand(Viewer.Log, UpdateCommandValue(Locomotive.LocomotivePowerSupply.ElectricTrainSupplySwitch.CommandSwitch ? 1 : 0, buttonEventType, delta) > 0);
                     break;
+                case CabViewControlType.Orts_Odometer_Direction:
+                    if (UpdateCommandValue(1, buttonEventType, delta) == 0)
+                        _ = new ToggleOdometerDirectionCommand(Viewer.Log);
+                    break;
+                case CabViewControlType.Orts_Odometer_Reset:
+                    _ = new ResetOdometerCommand(Viewer.Log, UpdateCommandValue(Locomotive.OdometerResetButtonPressed ? 1 : 0, buttonEventType, delta) > 0); break;
                 // Train Control System controls
                 case CabViewControlType.Orts_TCS1:
                 case CabViewControlType.Orts_TCS2:
@@ -2840,7 +2851,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 var digital = Control as CabViewDigitalControl;
                 string displayedText = "";
                 Num = Locomotive.GetDataOf(Control);
-                if (digital.ScaleRangeMin < digital.ScaleRangeMax) 
+                if (digital.ScaleRangeMin < digital.ScaleRangeMax)
                     Num = MathHelper.Clamp(Num, (float)digital.ScaleRangeMin, (float)digital.ScaleRangeMax);
                 if (Math.Abs(Num) < digital.AccuracySwitch)
                     Format = Format2;
@@ -3357,11 +3368,11 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
             UpdateDigit();
 
-                Matrix mx = MatrixExtension.ChangeTranslation(TrainCarShape.WorldPosition.XNAMatrix,
-                    (TrainCarShape.WorldPosition.TileX - Viewer.Camera.TileX) * 2048,
-                    0,
-                    (-TrainCarShape.WorldPosition.TileZ + Viewer.Camera.TileZ) * 2048);
-                MatrixExtension.Multiply(XNAMatrix, mx, out Matrix m);
+            Matrix mx = MatrixExtension.ChangeTranslation(TrainCarShape.WorldPosition.XNAMatrix,
+                (TrainCarShape.WorldPosition.TileX - Viewer.Camera.TileX) * 2048,
+                0,
+                (-TrainCarShape.WorldPosition.TileZ + Viewer.Camera.TileZ) * 2048);
+            MatrixExtension.Multiply(XNAMatrix, mx, out Matrix m);
             // TODO: Make this use AddAutoPrimitive instead.
             frame.AddPrimitive(this.shapePrimitive.Material, this.shapePrimitive, RenderPrimitiveGroup.Interior, ref m, ShapeFlags.None);
         }
@@ -3577,11 +3588,11 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 return;
 
             UpdateDigit();
-                Matrix mx = MatrixExtension.ChangeTranslation(TrainCarShape.WorldPosition.XNAMatrix,
-                    (TrainCarShape.WorldPosition.TileX - Viewer.Camera.TileX) * 2048,
-                    0,
-                    (-TrainCarShape.WorldPosition.TileZ + Viewer.Camera.TileZ) * 2048);
-                MatrixExtension.Multiply(XNAMatrix, mx, out Matrix m);
+            Matrix mx = MatrixExtension.ChangeTranslation(TrainCarShape.WorldPosition.XNAMatrix,
+                (TrainCarShape.WorldPosition.TileX - Viewer.Camera.TileX) * 2048,
+                0,
+                (-TrainCarShape.WorldPosition.TileZ + Viewer.Camera.TileZ) * 2048);
+            MatrixExtension.Multiply(XNAMatrix, mx, out Matrix m);
 
             // TODO: Make this use AddAutoPrimitive instead.
             frame.AddPrimitive(this.shapePrimitive.Material, this.shapePrimitive, RenderPrimitiveGroup.Interior, ref m, ShapeFlags.None);
