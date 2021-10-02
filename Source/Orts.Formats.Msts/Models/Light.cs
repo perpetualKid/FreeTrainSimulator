@@ -31,7 +31,7 @@ namespace Orts.Formats.Msts.Models
     public class LightState
     {
         public float Duration { get; private set; }
-        public uint Color { get; private set; }
+        public Color Color { get; private set; }
         public Vector3 Position { get; private set; }
         public float Radius { get; private set; }
         public Vector3 Azimuth { get; private set; }
@@ -44,7 +44,7 @@ namespace Orts.Formats.Msts.Models
             stf.MustMatchBlockStart();
             stf.ParseBlock(new[] {
                 new STFReader.TokenProcessor("duration", ()=>{ Duration = stf.ReadFloatBlock(STFReader.Units.None, null); }),
-                new STFReader.TokenProcessor("lightcolour", ()=>{ Color = stf.ReadHexBlock(null); }),
+                new STFReader.TokenProcessor("lightcolour", ()=>{ Color = stf.ReadColorBlock(null); }),
                 new STFReader.TokenProcessor("position", ()=>{ Position = stf.ReadVector3Block(STFReader.Units.None, Vector3.Zero); }),
                 new STFReader.TokenProcessor("radius", ()=>{ Radius = stf.ReadFloatBlock(STFReader.Units.Distance, null); }),
                 new STFReader.TokenProcessor("azimuth", ()=>{ Azimuth = stf.ReadVector3Block(STFReader.Units.None, Vector3.Zero); }),
@@ -52,14 +52,6 @@ namespace Orts.Formats.Msts.Models
                 new STFReader.TokenProcessor("transition", ()=>{ Transition = 1 <= stf.ReadFloatBlock(STFReader.Units.None, 0); }),
                 new STFReader.TokenProcessor("angle", ()=>{ Angle = stf.ReadFloatBlock(STFReader.Units.None, null); }),
             });
-            // Color byte order changed in XNA 4 from BGRA to RGBA
-            Color = new Color()
-            {
-                B = (byte)(Color),
-                G = (byte)(Color >> 8),
-                R = (byte)(Color >> 16),
-                A = (byte)(Color >> 24)
-            }.PackedValue;
         }
 
         internal LightState(LightState state, bool reverse)
