@@ -345,9 +345,9 @@ namespace Orts.Simulation.RollingStocks
 
                 // Check Adhesion values
                 var maxforcekN = MaxForceN / 1000.0f;
-                var designadhesionzerospeed = maxforcekN / (Kg.ToTonne(DrvWheelWeightKg) * 10);
+                var designadhesionzerospeed = maxforcekN / (Mass.Kilogram.ToTonnes(DrvWheelWeightKg) * 10);
                 var calculatedmaxcontinuousforcekN = CalculatedMaxContinuousForceN / 1000.0f;
-                var designadhesionmaxcontspeed = calculatedmaxcontinuousforcekN / (Kg.ToTonne(DrvWheelWeightKg) * 10);
+                var designadhesionmaxcontspeed = calculatedmaxcontinuousforcekN / (Mass.Kilogram.ToTonnes(DrvWheelWeightKg) * 10);
                 var zerospeed = 0;
                 var configuredadhesionzerospeed = (Curtius_KnifflerA / (zerospeed + Curtius_KnifflerB) + Curtius_KnifflerC);
                 var configuredadhesionmaxcontinuousspeed = (Curtius_KnifflerA / (SpeedOfMaxContinuousForceMpS + Curtius_KnifflerB) + Curtius_KnifflerC);
