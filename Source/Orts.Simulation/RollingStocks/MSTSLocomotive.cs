@@ -4517,7 +4517,7 @@ namespace Orts.Simulation.RollingStocks
                         data = ConvertFromPSI(cvc, MainResPressurePSI);
                         break;
                     }
-                case CABViewControlTypes.MAIN_RES_PIPE:
+                case CabViewControlType.Main_Res_Pipe:
                     {
                         data = ConvertFromPSI(cvc, this.BrakeSystem.BrakeLine2PressurePSI);
                         break;
