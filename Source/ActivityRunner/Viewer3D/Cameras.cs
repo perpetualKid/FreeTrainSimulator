@@ -1450,12 +1450,14 @@ namespace Orts.ActivityRunner.Viewer3D
 
         protected void PanRight(float speed)
         {
+            speed *= -1;//Tracking Cameras work opposite way, see also https://github.com/perpetualKid/ORTS-MG/issues/90
             PositionYRadians += speed;
             RotationYRadians += speed;
         }
 
         protected override void ZoomIn(float speed)
         {
+            speed *= -1;//Tracking Cameras work opposite way, see also https://github.com/perpetualKid/ORTS-MG/issues/90
             // Speed depends on distance, slows down when zooming in, speeds up zooming out.
             PositionDistance += speed * PositionDistance;
             PositionDistance = MathHelper.Clamp(PositionDistance, 1, 100);
