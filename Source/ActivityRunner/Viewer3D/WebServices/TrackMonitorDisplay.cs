@@ -222,7 +222,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             }
             void AddSeparator() => AddLabel(new ListLabel
             {
-                FirstCol = Viewer.Catalog.GetString("Sprtr"),
+                FirstCol = "Sprtr",
             });
 
             // Always get train details to pass on to TrackMonitor.
@@ -549,7 +549,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             // Draw train position line
             ListLabel DarkGraySeparator(ListLabel _) => new ListLabel
             {
-                FirstCol = Viewer.Catalog.GetString("SprtrDarkGray"),
+                FirstCol = "SprtrDarkGray",
             };
             ChangeLabelAt(labels, ItemLocationToRow(zeroObjectPointTop, zeroObjectPointTop) + 1, DarkGraySeparator);
             ChangeLabelAt(labels, ItemLocationToRow(zeroObjectPointBottom, zeroObjectPointBottom) - 1, DarkGraySeparator);

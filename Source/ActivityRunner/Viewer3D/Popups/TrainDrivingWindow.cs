@@ -454,7 +454,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 int TimeHboxPositionY = 0;
                 foreach (var data in listToLabel)
                 {
-                    if (data.FirstCol.Contains(Viewer.Catalog.GetString("NwLn")))
+                    if (data.FirstCol.Contains("NwLn"))
                     {
                         var hbox = vbox.AddLayoutHorizontalLineOfText();
                         hbox.Add(new Label(colWidth * 2, hbox.RemainingHeight, " "));

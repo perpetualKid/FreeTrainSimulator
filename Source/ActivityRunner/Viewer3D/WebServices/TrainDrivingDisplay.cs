@@ -221,7 +221,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             }
             void AddSeparator() => AddLabel(new ListLabel
             {
-                FirstCol = Viewer.Catalog.GetString("Sprtr"),
+                FirstCol = "Sprtr",
             });
 
             TrainCar trainCar = viewer.PlayerLocomotive;
