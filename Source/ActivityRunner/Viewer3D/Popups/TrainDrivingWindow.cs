@@ -25,8 +25,6 @@ using System.Text;
 
 using Microsoft.Xna.Framework;
 
-using Orts.ActivityRunner.Viewer3D;
-using Orts.ActivityRunner.Viewer3D.Popups;
 using Orts.Common;
 using Orts.Common.Input;
 using Orts.Simulation;
@@ -58,7 +56,13 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         private int LastColOverFlow;
         private int LinesCount;
 
-        public bool StandardHUD = true;// Standard text
+        private bool ctrlAIFiremanOn; //AIFireman On
+        private bool ctrlAIFiremanOff;//AIFireman Off
+        private bool ctrlAIFiremanReset;//AIFireman Reset
+        private double clockAIFireTime; //AIFireman reset timing
+
+
+        private bool standardHUDMode = true;// Standard text
 
         private int WindowHeightMin;
         private int WindowHeightMax;
@@ -76,15 +80,26 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         public static bool MonoFont;
         public static bool FontToBold;
 
-        public struct ListLabel
+        private readonly struct ListLabel
         {
-            public string FirstCol { get; set; }
-            public int FirstColWidth { get; set; }
-            public string LastCol { get; set; }
-            public int LastColWidth { get; set; }
-            public string SymbolCol { get; set; }
-            public bool ChangeColWidth { get; set; }
-            public string keyPressed { get; set; }
+            public readonly string FirstCol;
+            public readonly int FirstColWidth;
+            public readonly string LastCol;
+            public readonly int LastColWidth;
+            public readonly string SymbolCol;
+            public readonly bool ChangeColWidth;
+            public readonly string KeyPressed;
+
+            public ListLabel(string firstCol, int firstColWidth, string lastCol, int lastColWidth, string symbolCol, bool updateSymbolColWidth, string keyPressed)
+            {
+                FirstCol = firstCol;
+                FirstColWidth = firstColWidth;
+                LastCol = lastCol;
+                LastColWidth = lastColWidth;
+                SymbolCol = symbolCol;
+                ChangeColWidth = updateSymbolColWidth;
+                KeyPressed = keyPressed;
+            }
         }
 
         private string directionKeyInput;
@@ -101,8 +116,11 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         private bool pantographKeyDown;
         private bool autoPilotKeyDown;
         private bool firingKeyDown;
+        private bool aiFireOnKeyDown;
+        private bool aiFireOffKeyDown;
+        private bool aiFireResetKeyDown;
 
-        private readonly List<ListLabel> ListToLabel = new List<ListLabel>();
+        private readonly List<ListLabel> listToLabel = new List<ListLabel>();
 
         // Change text color
         private readonly Dictionary<string, Color> ColorCode = new Dictionary<string, Color>
@@ -119,6 +137,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         };
         private readonly Dictionary<string, string> FirstColToAbbreviated = new Dictionary<string, string>()
         {
+            {Viewer.Catalog.GetString("AI Fireman"), Viewer.Catalog.GetString("AIFR")},
             {Viewer.Catalog.GetString("Autopilot"), Viewer.Catalog.GetString("AUTO")},
             {Viewer.Catalog.GetString("Boiler pressure"), Viewer.Catalog.GetString("PRES")},
             {Viewer.Catalog.GetString("Boiler water glass"), Viewer.Catalog.GetString("WATR")},
@@ -203,6 +222,9 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 Owner.Viewer.UserCommandController.AddEvent(UserCommand.ControlPantograph4, KeyEventType.KeyDown, PantographCommand, true);
                 Owner.Viewer.UserCommandController.AddEvent(UserCommand.GameAutopilotMode, KeyEventType.KeyDown, AutoPilotCommand, true);
                 Owner.Viewer.UserCommandController.AddEvent(UserCommand.ControlFiring, KeyEventType.KeyDown, FiringCommand, true);
+                Owner.Viewer.UserCommandController.AddEvent(UserCommand.ControlAIFireOn, KeyEventType.KeyDown, AIFiringOnCommand, true);
+                Owner.Viewer.UserCommandController.AddEvent(UserCommand.ControlAIFireOff, KeyEventType.KeyDown, AIFiringOffCommand, true);
+                Owner.Viewer.UserCommandController.AddEvent(UserCommand.ControlAIFireReset, KeyEventType.KeyDown, AIFiringResetCommand, true);
             }
             else
             {
@@ -227,6 +249,9 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 Owner.Viewer.UserCommandController.RemoveEvent(UserCommand.ControlPantograph4, KeyEventType.KeyDown, PantographCommand);
                 Owner.Viewer.UserCommandController.RemoveEvent(UserCommand.GameAutopilotMode, KeyEventType.KeyDown, AutoPilotCommand);
                 Owner.Viewer.UserCommandController.RemoveEvent(UserCommand.ControlFiring, KeyEventType.KeyDown, FiringCommand);
+                Owner.Viewer.UserCommandController.RemoveEvent(UserCommand.ControlAIFireOn, KeyEventType.KeyDown, AIFiringOnCommand);
+                Owner.Viewer.UserCommandController.RemoveEvent(UserCommand.ControlAIFireOff, KeyEventType.KeyDown, AIFiringOffCommand);
+                Owner.Viewer.UserCommandController.RemoveEvent(UserCommand.ControlAIFireReset, KeyEventType.KeyDown, AIFiringResetCommand);
             }
         }
 
@@ -332,25 +357,48 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             firingKeyDown = true;
         }
 
+        private void AIFiringOnCommand()
+        {
+            aiFireOnKeyDown = true;
+        }
+
+        private void AIFiringOffCommand()
+        {
+            aiFireOffKeyDown = true;
+        }
+
+        private void AIFiringResetCommand()
+        {
+            aiFireResetKeyDown = true;
+        }
+
         internal protected override void Save(BinaryWriter outf)
         {
             base.Save(outf);
-            outf.Write(StandardHUD);
+            outf.Write(standardHUDMode);
             outf.Write(Location.X);
             outf.Write(Location.Y);
             outf.Write(Location.Width);
             outf.Write(Location.Height);
+            outf.Write(clockAIFireTime);
+            outf.Write(ctrlAIFiremanOn);
+            outf.Write(ctrlAIFiremanOff);
+            outf.Write(ctrlAIFiremanReset);
         }
 
         internal protected override void Restore(BinaryReader inf)
         {
             base.Restore(inf);
             Rectangle LocationRestore;
-            StandardHUD = inf.ReadBoolean();
+            standardHUDMode = inf.ReadBoolean();
             LocationRestore.X = inf.ReadInt32();
             LocationRestore.Y = inf.ReadInt32();
             LocationRestore.Width = inf.ReadInt32();
             LocationRestore.Height = inf.ReadInt32();
+            clockAIFireTime = inf.ReadDouble();
+            ctrlAIFiremanOn = inf.ReadBoolean();
+            ctrlAIFiremanOff = inf.ReadBoolean();
+            ctrlAIFiremanReset = inf.ReadBoolean();
 
             // Display window
             SizeTo(LocationRestore.Width, LocationRestore.Height);
@@ -370,11 +418,11 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             string keyPressed;
             // Display main HUD data
             var vbox = base.Layout(layout).AddLayoutVertical();
-            if (ListToLabel.Count > 0)
+            if (listToLabel.Count > 0)
             {
-                var colWidth = ListToLabel.Max(x => x.FirstColWidth) + (StandardHUD ? FontToBold ? 19 : 16 : 8);
+                var colWidth = listToLabel.Max(x => x.FirstColWidth) + (standardHUDMode ? FontToBold ? 19 : 16 : 8);
                 var TimeHboxPositionY = 0;
-                foreach (var data in ListToLabel)
+                foreach (var data in listToLabel)
                 {
                     if (data.FirstCol.Contains(Viewer.Catalog.GetString("NwLn")))
                     {
@@ -392,21 +440,21 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                         var LastCol = data.LastCol;
                         var SymbolCol = data.SymbolCol;
 
-                        if (ColorCode.Keys.Any(FirstCol.EndsWith) || ColorCode.Keys.Any(LastCol.EndsWith) || ColorCode.Keys.Any(data.keyPressed.EndsWith) || ColorCode.Keys.Any(data.SymbolCol.EndsWith))
+                        if (ColorCode.Keys.Any(FirstCol.EndsWith) || ColorCode.Keys.Any(LastCol.EndsWith) || ColorCode.Keys.Any(data.KeyPressed.EndsWith) || ColorCode.Keys.Any(data.SymbolCol.EndsWith))
                         {
                             var colorFirstColEndsWith = ColorCode.Keys.Any(FirstCol.EndsWith) ? ColorCode[FirstCol.Substring(FirstCol.Length - 3)] : Color.White;
                             var colorLastColEndsWith = ColorCode.Keys.Any(LastCol.EndsWith) ? ColorCode[LastCol.Substring(LastCol.Length - 3)] : Color.White;
-                            var colorKeyPressed = ColorCode.Keys.Any(data.keyPressed.EndsWith) ? ColorCode[data.keyPressed.Substring(data.keyPressed.Length - 3)] : Color.White;
+                            var colorKeyPressed = ColorCode.Keys.Any(data.KeyPressed.EndsWith) ? ColorCode[data.KeyPressed.Substring(data.KeyPressed.Length - 3)] : Color.White;
                             var colorSymbolCol = ColorCode.Keys.Any(data.SymbolCol.EndsWith) ? ColorCode[data.SymbolCol.Substring(data.SymbolCol.Length - 3)] : Color.White;
 
                             // Erase the color code at the string end
                             FirstCol = ColorCode.Keys.Any(FirstCol.EndsWith) ? FirstCol.Substring(0, FirstCol.Length - 3) : FirstCol;
                             LastCol = ColorCode.Keys.Any(LastCol.EndsWith) ? LastCol.Substring(0, LastCol.Length - 3) : LastCol;
-                            keyPressed = ColorCode.Keys.Any(data.keyPressed.EndsWith) ? data.keyPressed.Substring(0, data.keyPressed.Length - 3) : data.keyPressed;
+                            keyPressed = ColorCode.Keys.Any(data.KeyPressed.EndsWith) ? data.KeyPressed.Substring(0, data.KeyPressed.Length - 3) : data.KeyPressed;
                             SymbolCol = ColorCode.Keys.Any(data.SymbolCol.EndsWith) ? data.SymbolCol.Substring(0, data.SymbolCol.Length - 3) : data.SymbolCol;
 
                             // Apply color to FirstCol
-                            if (StandardHUD)
+                            if (standardHUDMode)
                             {   // Apply color to FirstCol
                                 hbox.Add(indicator = new Label(TextSize, hbox.RemainingHeight, keyPressed, LabelAlignment.Center));
                                 indicator.Color = colorKeyPressed;
@@ -421,7 +469,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                                 indicatorMono.Color = colorFirstColEndsWith;
                             }
 
-                            if (!string.IsNullOrEmpty(data.keyPressed))
+                            if (!string.IsNullOrEmpty(data.KeyPressed))
                             {
                                 hbox.Add(indicator = new Label(-TextSize, 0, TextSize, hbox.RemainingHeight, keyPressed, LabelAlignment.Right));
                                 indicator.Color = colorKeyPressed;
@@ -446,7 +494,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             //Avoids troubles when the Main Scale (Windows DPI settings) is not set to 100%
                             if (LastCol.Contains(':')) TimeHboxPositionY = hbox.Position.Y;
 
-                            if (StandardHUD)
+                            if (standardHUDMode)
                             {
                                 hbox.Add(indicator = new Label(colWidth, hbox.RemainingHeight, FirstCol));
                                 indicator.Color = Color.White; // Default color
@@ -460,7 +508,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                             // Font to bold, clickable label
                             if (hbox.Position.Y == TimeHboxPositionY && LastCol.Contains(':')) // Time line.
                             {
-                                hbox.Add(LabelFontToBold = new Label(Owner.TextFontDefault.MeasureString(LastCol) - (StandardHUD ? 5 : 3), hbox.RemainingHeight, LastCol));
+                                hbox.Add(LabelFontToBold = new Label(Owner.TextFontDefault.MeasureString(LastCol) - (standardHUDMode ? 5 : 3), hbox.RemainingHeight, LastCol));
                                 LabelFontToBold.Color = Color.White;
                                 LabelFontToBold.Click += new Action<Control, Point>(FontToBold_Click);
                             }
@@ -496,8 +544,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
         private void ExpandWindow_Click(Control arg1, Point arg2)
         {
-            StandardHUD = StandardHUD ? false : true;
-            //UpdateData();
+            standardHUDMode = !standardHUDMode;
             UpdateWindowSize();
         }
 
@@ -512,19 +559,19 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         /// </summary>
         private void ModifyWindowSize()
         {
-            if (ListToLabel.Count > 0)
+            if (listToLabel.Count > 0)
             {
                 var textwidth = Owner.TextFontDefault.Height;
-                FirstColLenght = ListToLabel.Max(x => x.FirstColWidth);
-                LastColLenght = ListToLabel.Max(x => x.LastColWidth);
+                FirstColLenght = listToLabel.Max(x => x.FirstColWidth);
+                LastColLenght = listToLabel.Max(x => x.LastColWidth);
 
-                var desiredHeight = FontToBold ? Owner.TextFontDefaultBold.Height * ListToLabel.Count(x => x.LastCol != null)
-                    : Owner.TextFontDefault.Height * ListToLabel.Count(x => x.LastCol != null);
+                var desiredHeight = FontToBold ? Owner.TextFontDefaultBold.Height * listToLabel.Count(x => x.LastCol != null)
+                    : Owner.TextFontDefault.Height * listToLabel.Count(x => x.LastCol != null);
 
-                var desiredWidth = FirstColLenght + LastColLenght + (StandardHUD ? FontToBold ? 43 : 41 : 31);
+                var desiredWidth = FirstColLenght + LastColLenght + (standardHUDMode ? FontToBold ? 43 : 41 : 31);
 
-                var newHeight = (int)MathHelper.Clamp(desiredHeight, (StandardHUD ? WindowHeightMin : 100), WindowHeightMax);
-                var newWidth = (int)MathHelper.Clamp(desiredWidth, (StandardHUD ? WindowWidthMin : 100), WindowWidthMax);
+                var newHeight = (int)MathHelper.Clamp(desiredHeight, (standardHUDMode ? WindowHeightMin : 100), WindowHeightMax);
+                var newWidth = (int)MathHelper.Clamp(desiredWidth, (standardHUDMode ? WindowWidthMin : 100), WindowWidthMax);
 
                 // Move the dialog up if we're expanding it, or down if not; this keeps the center in the same place.
                 var newTop = Location.Y + (Location.Height - newHeight) / 2;
@@ -548,7 +595,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         {
             if (!UpdateDataEnded)
             {
-                if (!StandardHUD)
+                if (!standardHUDMode)
                 {
                     foreach (var code in FirstColToAbbreviated)
                     {
@@ -595,24 +642,15 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     }
 
                     //Set a minimum value for LastColWidth to avoid overlap between time value and clickable symbol
-                    if (ListToLabel.Count == 1)
+                    if (listToLabel.Count == 1)
                     {
-                        lastColWidth = ListToLabel.First().LastColWidth + 15;// time value + clickable symbol
+                        lastColWidth = listToLabel.First().LastColWidth + 15;// time value + clickable symbol
                     }
                     // Ajuste the text lenght because MeasureString was not accuracy
                     lastColWidth = lastColWidth > 180 ? lastColWidth + 10 : lastColWidth;
                 }
 
-                ListToLabel.Add(new ListLabel
-                {
-                    FirstCol = firstcol,
-                    FirstColWidth = firstColWidth,
-                    LastCol = lastcol,
-                    LastColWidth = lastColWidth,
-                    SymbolCol = symbolcol,
-                    ChangeColWidth = changecolwidth,
-                    keyPressed = keyPressed ?? string.Empty
-                });
+                listToLabel.Add(new ListLabel(firstcol, firstColWidth, lastcol, lastColWidth, symbolcol, changecolwidth, keyPressed ?? string.Empty));
             }
             else
             {
@@ -620,8 +658,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 var AutopilotOn = Owner.Viewer.PlayerLocomotive.Train.TrainType == TrainType.AiPlayerHosting ? true : false;
 
                 //ResizeWindow, when the string spans over the right boundary of the window
-                var maxFirstColWidth = ListToLabel.Max(x => x.FirstColWidth);
-                var maxLastColWidth = ListToLabel.Max(x => x.LastColWidth);
+                var maxFirstColWidth = listToLabel.Max(x => x.FirstColWidth);
+                var maxLastColWidth = listToLabel.Max(x => x.LastColWidth);
 
                 if (!ResizeWindow & (FirstColOverFlow != maxFirstColWidth || (!AutopilotOn && LastColOverFlow != maxLastColWidth)))
                 {
@@ -652,10 +690,10 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             var ThisInfo = Owner.Viewer.PlayerTrain.GetTrainInfo();
             expandWindow = '\u23FA';// ⏺ toggle window
 
-            ListToLabel.Clear();
+            listToLabel.Clear();
             UpdateDataEnded = false;
 
-            if (!StandardHUD)
+            if (!standardHUDMode)
             {
                 var newBrakeStatus = new StringBuilder(BrakeStatus);
                 BrakeStatus = newBrakeStatus
@@ -689,7 +727,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 ThisInfo.Speed < ThisInfo.AllowedSpeed + 5.0f ? "!!?" : "!!!"), "", false);// Orange : Red
 
             // Gradient info
-            if (StandardHUD)
+            if (standardHUDMode)
             {
                 if (-ThisInfo.Gradient < -0.00015)
                 {
@@ -732,12 +770,12 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 bool sanderBlocked = Owner.Viewer.PlayerLocomotive is MSTSLocomotive locomotive && Math.Abs(PlayerTrain.SpeedMpS) > locomotive.SanderSpeedOfMpS;
                 if (sanderBlocked)
                 {
-                    InfoToLabel(sanderInput, Viewer.Catalog.GetString("Sander"), Viewer.Catalog.GetString("Blocked") + "!!!", "", StandardHUD);
+                    InfoToLabel(sanderInput, Viewer.Catalog.GetString("Sander"), Viewer.Catalog.GetString("Blocked") + "!!!", "", standardHUDMode);
                 }
                 else
                 {
                     sanderInput = arrowToRight;
-                    InfoToLabel(sanderInput, Viewer.Catalog.GetString("Sander"), Viewer.Catalog.GetString("On") + "!!?", "", StandardHUD);
+                    InfoToLabel(sanderInput, Viewer.Catalog.GetString("Sander"), Viewer.Catalog.GetString("On") + "!!?", "", standardHUDMode);
                 }
             }
             else
@@ -889,7 +927,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                     {
                         var parts = data.Split(new[] { " = " }, 2, StringSplitOptions.None);
                         var HeatColor = "!??"; // Color.White
-                        if (!StandardHUD && Viewer.Catalog.GetString(parts[0]).StartsWith(Viewer.Catalog.GetString("Steam usage")))
+                        if (!standardHUDMode && Viewer.Catalog.GetString(parts[0]).StartsWith(Viewer.Catalog.GetString("Steam usage")))
                         {
                         }
                         else if (Viewer.Catalog.GetString(parts[0]).StartsWith(Viewer.Catalog.GetString("Boiler pressure")))
@@ -907,7 +945,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
                             InfoToLabel(string.Empty, Viewer.Catalog.GetString("Boiler pressure"), Viewer.Catalog.GetString(parts[1]), HeatColor, false);
                         }
-                        else if (!StandardHUD && Viewer.Catalog.GetString(parts[0]).StartsWith(Viewer.Catalog.GetString("Fuel levels")))
+                        else if (!standardHUDMode && Viewer.Catalog.GetString(parts[0]).StartsWith(Viewer.Catalog.GetString("Fuel levels")))
                         {
                             InfoToLabel(string.Empty, parts[0].EndsWith("?") || parts[0].EndsWith("!") ? Viewer.Catalog.GetString(parts[0].Substring(0, parts[0].Length - 3)) : Viewer.Catalog.GetString(parts[0]), (parts.Length > 1 ? Viewer.Catalog.GetString(parts[1].Replace(" ", string.Empty)) : ""), "", false);
                         }
@@ -934,7 +972,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
             InfoToLabel(string.Empty, "Sprtr", "", "", true);
 
-            if (StandardHUD)
+            if (standardHUDMode)
                 InfoToLabel(string.Empty, Viewer.Catalog.GetString("FPS"), $"{Owner.Viewer.RenderProcess.FrameRate.SmoothedValue:F0}", string.Empty, false);
 
             // Messages
@@ -950,19 +988,53 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             else
                 InfoToLabel(string.Empty, Viewer.Catalog.GetString("Autopilot"), Viewer.Catalog.GetString("Off"), "", false);
 
-            // Grate limit
-            if (Owner.Viewer.PlayerLocomotive is MSTSSteamLocomotive steamLocomotive)
+            //AI Fireman
+            if (Locomotive is MSTSSteamLocomotive steamLocomotive)
             {
+                string aiFireInput = arrowToRight;
+                if (aiFireOnKeyDown)
+                {
+                    ctrlAIFiremanReset = ctrlAIFiremanOff = false;
+                    ctrlAIFiremanOn = true;
+                }
+                else if (aiFireOffKeyDown)
+                {
+                    ctrlAIFiremanReset = ctrlAIFiremanOn = false;
+                    ctrlAIFiremanOff = true;
+                }
+                else if (aiFireResetKeyDown)
+                {
+                    ctrlAIFiremanOn = ctrlAIFiremanOff = false;
+                    ctrlAIFiremanReset = true;
+                    clockAIFireTime = Owner.Viewer.Simulator.ClockTime;
+                }
+                else
+                    aiFireInput = string.Empty;
+
+                if (!ctrlAIFiremanOn && !ctrlAIFiremanOff && !ctrlAIFiremanReset)
+                {
+                    InfoToLabel(aiFireInput, Viewer.Catalog.GetString("AI Fireman") + "?!?", Viewer.Catalog.GetString(""), "", false);
+                }
+                else
+                {
+                    InfoToLabel(aiFireInput, Viewer.Catalog.GetString("AI Fireman") + "!??", ctrlAIFiremanOn ? Viewer.Catalog.GetString("On") + "!??" : ctrlAIFiremanOff ? Viewer.Catalog.GetString("Off") + "!??" : ctrlAIFiremanReset ? Viewer.Catalog.GetString("Reset") + "%%%" : "-", "", false);
+                }
+
+                // Delay to hide the Reset label
+                if (ctrlAIFiremanReset && clockAIFireTime + 3 < Owner.Viewer.Simulator.ClockTime)
+                    ctrlAIFiremanReset = false;
+
+                // Grate limit
                 if (steamLocomotive.GrateCombustionRateLBpFt2 > steamLocomotive.GrateLimitLBpFt2)
                 {
                     if (steamLocomotive.IsGrateLimit)
-                        InfoToLabel("", Viewer.Catalog.GetString("Grate limit"), Viewer.Catalog.GetString("Exceeded") + "!!!", "", false);
+                        InfoToLabel(string.Empty, Viewer.Catalog.GetString("Grate limit"), Viewer.Catalog.GetString("Exceeded") + "!!!", "", false);
                 }
                 else
-                    InfoToLabel("", Viewer.Catalog.GetString("Grate limit") + "?!?", Viewer.Catalog.GetString("Normal") + "?!?", "", false);
+                    InfoToLabel(string.Empty, Viewer.Catalog.GetString("Grate limit") + "?!?", Viewer.Catalog.GetString("Normal") + "?!?", "", false);
             }
             else
-                InfoToLabel("", Viewer.Catalog.GetString("Grate limit") + "?!?", Viewer.Catalog.GetString("-") + "?!?", "", false);
+                InfoToLabel(string.Empty, Viewer.Catalog.GetString("Grate limit") + "?!?", Viewer.Catalog.GetString("-") + "?!?", "", false);
 
             // Wheel
             if (Owner.Viewer.PlayerTrain.IsWheelSlip)
@@ -1016,6 +1088,9 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             engineBrakeInput = string.Empty;
             directionKeyInput = string.Empty;
             trainBrakeInput = string.Empty;
+            aiFireOnKeyDown = false;
+            aiFireOffKeyDown = false;
+            aiFireResetKeyDown = false;
         }
 
         public override void PrepareFrame(in ElapsedTime elapsedTime, bool updateFull)
@@ -1028,11 +1103,11 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 UpdateData();
 
                 // Ctrl + F (FiringIsManual)
-                if (ResizeWindow || LinesCount != ListToLabel.Count)
+                if (ResizeWindow || LinesCount != listToLabel.Count)
                 {
                     ResizeWindow = false;
                     UpdateWindowSize();
-                    LinesCount = ListToLabel.Count;
+                    LinesCount = listToLabel.Count;
                 }
 
                 //Update Layout
