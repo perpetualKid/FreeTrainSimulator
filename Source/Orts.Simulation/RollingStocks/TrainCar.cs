@@ -528,7 +528,7 @@ namespace Orts.Simulation.RollingStocks
         public float WagonFrontCouplerBuffAngleRad;
         public float WagonRearCouplerAngleRad;
         public float WagonRearCouplerBuffAngleRad;
-        public float CarTrackPlayM = Me.FromIn(2.0f);
+        public float CarTrackPlayM = (float)Size.Length.FromIn(2.0f);
         public float AdjustedWagonFrontCouplerAngleRad;
         public float AdjustedWagonRearCouplerAngleRad;
         public float WagonFrontCouplerCurveExtM;
@@ -1148,7 +1148,7 @@ namespace Orts.Simulation.RollingStocks
         /// these factors is not practical so only some of the key factors are considered. For eaxmple, wheel wear may determine whether a particular car will derial or not. So the same 
         /// type of car can either derail or not under similar circumstances.
         /// 
-        /// Hence these calculations provide a "generic" approach to determining whether a car will derial or not.
+        /// Hence these calculations provide a "generic" approach to determining whether a car will derail or not.
         /// 
         /// Buff Coupler angle calculated from this publication: In-Train Force Limit Study by National Research Council Canada
         /// 
@@ -1301,21 +1301,21 @@ namespace Orts.Simulation.RollingStocks
 
                         // Calculate Buff coupler angles. Car1 is current car, and Car2 is the car behind
                         // Car ahead rear coupler angle
-                        var ThiscarCouplerlengthft = Me.ToFt(CarCouplerFaceLengthM - CarBodyLengthM) + CouplerSlackM / 2;
-                        var CarbehindCouplerlengthft = Me.ToFt(CarBehind.CarCouplerFaceLengthM - CarBehind.CarBodyLengthM) + CouplerSlackM / 2;
-                        var A1 = Math.Sqrt(Math.Pow(Me.ToFt(CurrentCurveRadius), 2) - Math.Pow(Me.ToFt(CarBogieCentreLengthM), 2) / 4.0f);
-                        var A2 = (Me.ToFt(CarCouplerFaceLengthM) / 2.0f) - ThiscarCouplerlengthft;
+                        var ThiscarCouplerlengthft = Size.Length.ToFt(CarCouplerFaceLengthM - CarBodyLengthM) + CouplerSlackM / 2;
+                        var CarbehindCouplerlengthft = Size.Length.ToFt(CarBehind.CarCouplerFaceLengthM - CarBehind.CarBodyLengthM) + CouplerSlackM / 2;
+                        var A1 = Math.Sqrt(Math.Pow(Size.Length.ToFt(CurrentCurveRadius), 2) - Math.Pow(Size.Length.ToFt(CarBogieCentreLengthM), 2) / 4.0f);
+                        var A2 = (Size.Length.ToFt(CarCouplerFaceLengthM) / 2.0f) - ThiscarCouplerlengthft;
                         var A = (float)Math.Atan(A1 / A2);
 
-                        var B = (float)Math.Asin(2.0f * Me.ToFt(CarTrackPlayM) / Me.ToFt(CarBogieCentreLengthM));
+                        var B = (float)Math.Asin(2.0f * Size.Length.ToFt(CarTrackPlayM) / Size.Length.ToFt(CarBogieCentreLengthM));
                         var C1 = Math.Pow(ThiscarCouplerlengthft + CarbehindCouplerlengthft, 2);
 
-                        var C2_1 = Math.Sqrt(Math.Pow(Me.ToFt(CarCouplerFaceLengthM) / 2.0f - ThiscarCouplerlengthft, 2) + Math.Pow(Me.ToFt(CurrentCurveRadius), 2) - Math.Pow(Me.ToFt(CarBogieCentreLengthM), 2) / 4.0f);
-                        var C2_2 = (2.0f * Me.ToFt(CarTrackPlayM) * (Me.ToFt(CarCouplerFaceLengthM) / 2.0f - ThiscarCouplerlengthft)) / Me.ToFt(CarBogieCentreLengthM);
+                        var C2_1 = Math.Sqrt(Math.Pow(Size.Length.ToFt(CarCouplerFaceLengthM) / 2.0f - ThiscarCouplerlengthft, 2) + Math.Pow(Size.Length.ToFt(CurrentCurveRadius), 2) - Math.Pow(Size.Length.ToFt(CarBogieCentreLengthM), 2) / 4.0f);
+                        var C2_2 = (2.0f * Size.Length.ToFt(CarTrackPlayM) * (Size.Length.ToFt(CarCouplerFaceLengthM) / 2.0f - ThiscarCouplerlengthft)) / Size.Length.ToFt(CarBogieCentreLengthM);
                         var C2 = Math.Pow((C2_1 + C2_2), 2);
 
-                        var C3_1 = Math.Sqrt(Math.Pow(Me.ToFt(CarBehind.CarCouplerFaceLengthM) / 2.0f - CarbehindCouplerlengthft, 2) + Math.Pow(Me.ToFt(CurrentCurveRadius), 2) - Math.Pow(Me.ToFt(CarBehind.CarBogieCentreLengthM), 2) / 4.0f);
-                        var C3_2 = (2.0f * Me.ToFt(CarBehind.CarTrackPlayM) * (Me.ToFt(CarBehind.CarCouplerFaceLengthM) / 2.0f - CarbehindCouplerlengthft)) / Me.ToFt(CarBehind.CarBogieCentreLengthM);
+                        var C3_1 = Math.Sqrt(Math.Pow(Size.Length.ToFt(CarBehind.CarCouplerFaceLengthM) / 2.0f - CarbehindCouplerlengthft, 2) + Math.Pow(Size.Length.ToFt(CurrentCurveRadius), 2) - Math.Pow(Size.Length.ToFt(CarBehind.CarBogieCentreLengthM), 2) / 4.0f);
+                        var C3_2 = (2.0f * Size.Length.ToFt(CarBehind.CarTrackPlayM) * (Size.Length.ToFt(CarBehind.CarCouplerFaceLengthM) / 2.0f - CarbehindCouplerlengthft)) / Size.Length.ToFt(CarBehind.CarBogieCentreLengthM);
                         var C3 = Math.Pow((C3_1 + C3_2), 2);
 
                         var C4 = 2.0f * (ThiscarCouplerlengthft + CarbehindCouplerlengthft) * (C2_1 + C2_2);
@@ -1330,19 +1330,19 @@ namespace Orts.Simulation.RollingStocks
 
 
                         // This car front coupler angle
-                        var X1 = Math.Sqrt(Math.Pow(Me.ToFt(CurrentCurveRadius), 2) - Math.Pow(Me.ToFt(CarBehind.CarBogieCentreLengthM), 2) / 4.0f);
-                        var X2 = (Me.ToFt(CarBehind.CarCouplerFaceLengthM) / 2.0f) - CarbehindCouplerlengthft;
+                        var X1 = Math.Sqrt(Math.Pow(Size.Length.ToFt(CurrentCurveRadius), 2) - Math.Pow(Size.Length.ToFt(CarBehind.CarBogieCentreLengthM), 2) / 4.0f);
+                        var X2 = (Size.Length.ToFt(CarBehind.CarCouplerFaceLengthM) / 2.0f) - CarbehindCouplerlengthft;
                         var X = (float)Math.Atan(X1 / X2);
 
-                        var Y = (float)Math.Asin(2.0f * Me.ToFt(CarBehind.CarTrackPlayM) / Me.ToFt(CarBehind.CarBogieCentreLengthM));
+                        var Y = (float)Math.Asin(2.0f * Size.Length.ToFt(CarBehind.CarTrackPlayM) / Size.Length.ToFt(CarBehind.CarBogieCentreLengthM));
 
                         var Z1 = Math.Pow(ThiscarCouplerlengthft + CarbehindCouplerlengthft, 2);
-                        var Z2_1 = Math.Sqrt(Math.Pow(Me.ToFt(CarBehind.CarCouplerFaceLengthM) / 2.0f - CarbehindCouplerlengthft, 2) + Math.Pow(Me.ToFt(CurrentCurveRadius), 2) - Math.Pow(Me.ToFt(CarBehind.CarBogieCentreLengthM), 2) / 4.0f);
-                        var Z2_2 = (2.0f * Me.ToFt(CarBehind.CarTrackPlayM) * (Me.ToFt(CarBehind.CarCouplerFaceLengthM) / 2.0f - CarbehindCouplerlengthft)) / Me.ToFt(CarBehind.CarBogieCentreLengthM);
+                        var Z2_1 = Math.Sqrt(Math.Pow(Size.Length.ToFt(CarBehind.CarCouplerFaceLengthM) / 2.0f - CarbehindCouplerlengthft, 2) + Math.Pow(Size.Length.ToFt(CurrentCurveRadius), 2) - Math.Pow(Size.Length.ToFt(CarBehind.CarBogieCentreLengthM), 2) / 4.0f);
+                        var Z2_2 = (2.0f * Size.Length.ToFt(CarBehind.CarTrackPlayM) * (Size.Length.ToFt(CarBehind.CarCouplerFaceLengthM) / 2.0f - CarbehindCouplerlengthft)) / Size.Length.ToFt(CarBehind.CarBogieCentreLengthM);
                         var Z2 = Math.Pow((Z2_1 + Z2_2), 2);
 
-                        var Z3_1 = Math.Sqrt(Math.Pow(Me.ToFt(CarCouplerFaceLengthM) / 2.0f - ThiscarCouplerlengthft, 2) + Math.Pow(Me.ToFt(CurrentCurveRadius), 2) - Math.Pow(Me.ToFt(CarBogieCentreLengthM), 2) / 4.0f);
-                        var Z3_2 = (2.0f * Me.ToFt(CarTrackPlayM) * (Me.ToFt(CarCouplerFaceLengthM) / 2.0f - ThiscarCouplerlengthft)) / Me.ToFt(CarBogieCentreLengthM);
+                        var Z3_1 = Math.Sqrt(Math.Pow(Size.Length.ToFt(CarCouplerFaceLengthM) / 2.0f - ThiscarCouplerlengthft, 2) + Math.Pow(Size.Length.ToFt(CurrentCurveRadius), 2) - Math.Pow(Size.Length.ToFt(CarBogieCentreLengthM), 2) / 4.0f);
+                        var Z3_2 = (2.0f * Size.Length.ToFt(CarTrackPlayM) * (Size.Length.ToFt(CarCouplerFaceLengthM) / 2.0f - ThiscarCouplerlengthft)) / Size.Length.ToFt(CarBogieCentreLengthM);
                         var Z3 = Math.Pow((Z3_1 + Z3_2), 2);
 
                         var Z4 = 2.0f * (ThiscarCouplerlengthft + CarbehindCouplerlengthft) * (Z2_1 + Z2_2);
@@ -1529,16 +1529,18 @@ namespace Orts.Simulation.RollingStocks
                     DerailmentCoefficient = TotalWagonLateralDerailForceN / TotalWagonVerticalDerailForceN;
 
                     // use the dynamic multiplication coefficient to calculate final derailment coefficient, the above method calculated using quasi-static factors.
-                    // The quasi-static do not include allowance for wheel unloading due to static carbody pitch. Hence the following factors have been used to adjust to dynamic effects.
-                    // They have been adjusted slightly based upon derailment accident reports. Original figures quoted were 2 x for standard curves, and 3.1 x for turnouts. 
-                    if (IsOverJunction())
+                    // The differences between quasi-static and dynamic limits are due to effects of creepage, curve, conicity, wheel unloading ratio, track geometry, 
+                    // car configurations and the share of wheel load changes which are not taken into account in the static analysis etc. 
+                    // Hence the following factors have been used to adjust to dynamic effects.
+                    // Original figures quoted - Static Draft = 0.389, Static Buff = 0.389, Dynamic Draft = 0.29, Dynamic Buff = 0.22. 
+                    // Hence use the following multiplication factors, Buff = 1.77, Draft = 1.34.
+                    if (CouplerForceU > 0 && CouplerSlackM < 0)
                     {
-                        DerailmentCoefficient *= 2.17f;
+                        DerailmentCoefficient *= 1.77f; // coupler in buff condition
                     }
                     else
                     {
-                       // DerailmentCoefficient *= 1.4f;
-                        DerailmentCoefficient *= 2.0f;
+                        DerailmentCoefficient *= 1.34f;
                     }
 
                     var wagonAdhesion = Train.WagonCoefficientFriction;
