@@ -1418,8 +1418,38 @@ namespace Orts.Simulation.RollingStocks
                 }
             }
 
-            if (MaximumMainReservoirPipePressurePSI == 0)
+            // MaximumMainReservoirPipePressurePSI is only used in twin pipe system, and should have a value
+            if ((BrakeSystem is AirTwinPipe))
             {
+
+                // for airtwinpipe system, make sure that a value is set for it
+                if (MaximumMainReservoirPipePressurePSI == 0)
+                {
+                    MaximumMainReservoirPipePressurePSI = MaxMainResPressurePSI;
+                    if (Simulator.Settings.VerboseConfigurationMessages)
+                    {
+                        Trace.TraceInformation("AirBrakeMaxMainResPipePressure not set in ENG file, set to default pressure of {0} psi.", MaximumMainReservoirPipePressurePSI);
+                    }
+
+                }
+            }
+            else if ((BrakeSystem is AirSinglePipe) && MaximumMainReservoirPipePressurePSI != 0)
+            {
+
+                // if value not equal to MaxMainResPressurePSI then reset (could already be at this value due to "copying" of locomotive)
+                if (MaximumMainReservoirPipePressurePSI != MaxMainResPressurePSI)
+                {
+                    // for a airsinglepipe system, AirBrakeMaxMainResPipePressure should be left out of ENG file, and it should be set the same as MaxMainResPressurePSI
+                    MaximumMainReservoirPipePressurePSI = MaxMainResPressurePSI;
+                    if (Simulator.Settings.VerboseConfigurationMessages)
+                    {
+                        Trace.TraceInformation("AirBrakeMaxMainResPipePressure is set in ENG file, but should not be normally used for AirSinglePipe system, reset to default pressure of {0} psi. Consider removing AirBrakeMaxMainResPipePressure parameter from ENG file", MaximumMainReservoirPipePressurePSI);
+                    }
+                }
+            }
+            else
+            {
+                // normal default setting. This should be the normal case for airsinglepipe systems
                 MaximumMainReservoirPipePressurePSI = MaxMainResPressurePSI;
             }
 
