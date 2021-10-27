@@ -805,7 +805,7 @@ namespace Orts.Simulation.Signalling
             // loop through all signal and all heads
             foreach (Signal signal in Signals)
             {
-                if (signal.IsSignal)
+                if (signal.IsSignal || signal.IsSpeedSignal)
                 {
                     foreach (SignalHead head in signal.SignalHeads)
                     {
