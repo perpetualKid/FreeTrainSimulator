@@ -34,7 +34,6 @@ namespace Orts.View
                 }
                 return result;
             }
-
         }
 
         private FontManager(string fontName, FontStyle fontStyle)
@@ -48,12 +47,11 @@ namespace Orts.View
             unchecked // Overflow is fine, just wrap
             {
                 int hash = 17;
-                hash *= fontFamily?.GetHashCode() ?? 0;
+                hash *= fontFamily?.GetHashCode(System.StringComparison.OrdinalIgnoreCase) ?? 0;
                 hash <<= 8;
                 hash += (int)style;
                 return hash;
             }
         }
-
     }
 }
