@@ -507,20 +507,25 @@ namespace Orts.Scripting.Api
     public readonly struct SignalFeatures
 #pragma warning restore CA1815 // Override equals and operator equals on value types
     {
-        private static readonly SignalFeatures none = new SignalFeatures(string.Empty, TrackMonitorSignalAspect.None, float.MaxValue, -1f, float.MinValue);
+        private static readonly SignalFeatures none = new SignalFeatures(string.Empty, string.Empty, TrackMonitorSignalAspect.None, string.Empty, float.MaxValue, -1f, float.MinValue);
         public static ref readonly SignalFeatures None => ref none;
 
         public string MainHeadSignalTypeName { get; }
+
+        public string SignalTypeName { get; }
         public TrackMonitorSignalAspect Aspect { get; }
+         public string DrawStateName { get; }
         public float Distance { get; }
         public float SpeedLimit { get; }
         public float Altitude { get; }
         public string TextAspect { get; }
 
-        public SignalFeatures(string mainHeadSignalTypeName, TrackMonitorSignalAspect aspect, float distance, float speedLimit, float altitude, string textAspect = "")
+        public SignalFeatures(string mainHeadSignalTypeName, string signalTypeName, TrackMonitorSignalAspect aspect, string drawStateName, float distance, float speedLimit, float altitude, string textAspect = "")
         {
             MainHeadSignalTypeName = mainHeadSignalTypeName;
+            SignalTypeName = signalTypeName;
             Aspect = aspect;
+            DrawStateName = drawStateName;
             Distance = distance;
             SpeedLimit = speedLimit;
             Altitude = altitude;
