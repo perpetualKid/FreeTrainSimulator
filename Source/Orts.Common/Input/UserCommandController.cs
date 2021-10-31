@@ -55,6 +55,8 @@ namespace Orts.Common.Input
             }
         }
 
+        private readonly List<UserCommandController<T>> layeredControllers = new List<UserCommandController<T>>();
+
         private readonly Dictionary<Delegate, List<Action<UserCommandArgs, GameTime>>> sourceActions = new Dictionary<Delegate, List<Action<UserCommandArgs, GameTime>>>();
 
         private readonly EnumArray2D<Action<UserCommandArgs, GameTime>, T, KeyEventType> configurableUserCommands = new EnumArray2D<Action<UserCommandArgs, GameTime>, T, KeyEventType>();
@@ -64,17 +66,45 @@ namespace Orts.Common.Input
 
         internal void Trigger(T command, KeyEventType keyEventType, UserCommandArgs commandArgs, GameTime gameTime)
         {
+            foreach (UserCommandController<T> commandController in layeredControllers)
+            {
+                commandController.Trigger(command, keyEventType, commandArgs, gameTime);
+                if (commandArgs.Handled)
+                    return;
+            }
             configurableUserCommands[command, keyEventType]?.Invoke(commandArgs, gameTime);
         }
 
         internal void Trigger(CommonUserCommand command, UserCommandArgs commandArgs, GameTime gameTime, KeyModifiers modifier = KeyModifiers.None)
         {
+            foreach (UserCommandController<T> commandController in layeredControllers)
+            {
+                commandController.Trigger(command, commandArgs, gameTime, modifier);
+                if (commandArgs.Handled)
+                    return;
+            }
             commonUserCommandsArgs[command]?.Invoke(commandArgs, gameTime, modifier);
         }
 
         internal void Trigger(AnalogUserCommand command, UserCommandArgs commandArgs, GameTime gameTime)
         {
+            foreach (UserCommandController<T> commandController in layeredControllers)
+            {
+                commandController.Trigger(command, commandArgs, gameTime);
+                if (commandArgs.Handled)
+                    return;
+            }
             analogUserCommandsArgs[command]?.Invoke(commandArgs, gameTime);
+        }
+
+        public void AddLayeredCommandController(UserCommandController<T> commandController)
+        {
+            layeredControllers.Add(commandController);
+        }
+
+        public void RemoveLayeredCommandController(UserCommandController<T> commandController)
+        {
+            layeredControllers.Remove(commandController);
         }
 
         #region user-defined (key) events
