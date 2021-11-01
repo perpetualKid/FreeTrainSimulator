@@ -55,9 +55,8 @@ namespace Orts.Common.Input
             }
         }
 
-        private readonly List<UserCommandController<T>> layeredControllers = new List<UserCommandController<T>>();
-
         private readonly Dictionary<Delegate, List<Action<UserCommandArgs, GameTime>>> sourceActions = new Dictionary<Delegate, List<Action<UserCommandArgs, GameTime>>>();
+        private List<UserCommandController<T>> layeredControllers;
 
         private readonly EnumArray2D<Action<UserCommandArgs, GameTime>, T, KeyEventType> configurableUserCommands = new EnumArray2D<Action<UserCommandArgs, GameTime>, T, KeyEventType>();
         private readonly EnumArray<Action<UserCommandArgs, GameTime, KeyModifiers>, CommonUserCommand> commonUserCommandsArgs = new EnumArray<Action<UserCommandArgs, GameTime, KeyModifiers>, CommonUserCommand>();
@@ -66,9 +65,9 @@ namespace Orts.Common.Input
 
         internal void Trigger(T command, KeyEventType keyEventType, UserCommandArgs commandArgs, GameTime gameTime)
         {
-            foreach (UserCommandController<T> commandController in layeredControllers)
+            for (int i = 0; i < (layeredControllers?.Count ?? 0); i++)
             {
-                commandController.Trigger(command, keyEventType, commandArgs, gameTime);
+                layeredControllers[i].Trigger(command, keyEventType, commandArgs, gameTime);
                 if (commandArgs.Handled)
                     return;
             }
@@ -77,9 +76,9 @@ namespace Orts.Common.Input
 
         internal void Trigger(CommonUserCommand command, UserCommandArgs commandArgs, GameTime gameTime, KeyModifiers modifier = KeyModifiers.None)
         {
-            foreach (UserCommandController<T> commandController in layeredControllers)
+            for (int i = 0; i < (layeredControllers?.Count ?? 0); i++)
             {
-                commandController.Trigger(command, commandArgs, gameTime, modifier);
+                layeredControllers[i].Trigger(command, commandArgs, gameTime, modifier);
                 if (commandArgs.Handled)
                     return;
             }
@@ -88,24 +87,42 @@ namespace Orts.Common.Input
 
         internal void Trigger(AnalogUserCommand command, UserCommandArgs commandArgs, GameTime gameTime)
         {
-            foreach (UserCommandController<T> commandController in layeredControllers)
+            for (int i = 0; i < (layeredControllers?.Count ?? 0); i++)
             {
-                commandController.Trigger(command, commandArgs, gameTime);
+                layeredControllers[i].Trigger(command, commandArgs, gameTime);
                 if (commandArgs.Handled)
                     return;
             }
             analogUserCommandsArgs[command]?.Invoke(commandArgs, gameTime);
         }
 
-        public void AddLayeredCommandController(UserCommandController<T> commandController)
+        #region Layering
+        public UserCommandController<T> TopLayerControllerAdd()
         {
-            layeredControllers.Add(commandController);
+            if (null == layeredControllers)
+                layeredControllers = new List<UserCommandController<T>>();
+            UserCommandController<T> layeredController = new UserCommandController<T>();
+            layeredControllers.Add(layeredController);
+            return layeredController;
         }
 
-        public void RemoveLayeredCommandController(UserCommandController<T> commandController)
+        public bool TopLayerControllerRemove(UserCommandController<T> commandController)
         {
-            layeredControllers.Remove(commandController);
+            return layeredControllers?.Remove(commandController) ?? false;
         }
+
+        public bool TopLayerControllerBringOnTop(UserCommandController<T> commandController)
+        {
+            int index;
+            if (layeredControllers?.Count > 1 && (index = layeredControllers.IndexOf(commandController)) > -1)
+            {
+                layeredControllers.RemoveAt(index);
+                layeredControllers.Add(commandController);
+                return true;
+            }
+            return false;
+        }
+        #endregion
 
         #region user-defined (key) events
         public void AddEvent(T userCommand, KeyEventType keyEventType, Action<UserCommandArgs, GameTime> action)
