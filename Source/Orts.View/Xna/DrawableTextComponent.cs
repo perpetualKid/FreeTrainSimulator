@@ -18,7 +18,7 @@ namespace Orts.View.Xna
 
         private protected readonly Brush whiteBrush = new SolidBrush(System.Drawing.Color.White);
 
-        protected DrawableTextComponent(Microsoft.Xna.Framework.Game game, Font font, Microsoft.Xna.Framework.Color color, Vector2 position) :
+        protected DrawableTextComponent(Game game, Font font, Microsoft.Xna.Framework.Color color, Vector2 position) :
             base(game, color, position)
         {
             this.font = font;
