@@ -94,7 +94,7 @@ namespace Orts.View.Xna
         private protected Bitmap bmpSurface;
         private protected Graphics g;
 
-        protected QuickRepeatableDrawableTextComponent(Microsoft.Xna.Framework.Game game, Font font, Microsoft.Xna.Framework.Color color, Vector2 position) :
+        protected QuickRepeatableDrawableTextComponent(Game game, Font font, Microsoft.Xna.Framework.Color color, Vector2 position) :
             base(game, font, color, position)
         {
 
