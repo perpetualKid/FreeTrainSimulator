@@ -31,7 +31,7 @@ using Orts.Common.Info;
 using Orts.Common.Input;
 using Orts.Common.Logging;
 using Orts.Settings;
-using Orts.View.Xna;
+using Orts.Graphics.Xna;
 
 namespace Orts.ActivityRunner.Viewer3D.Processes
 {

@@ -21,7 +21,7 @@ using System.Linq;
 using Orts.ActivityRunner.Viewer3D.Processes;
 using Orts.Common.Input;
 using Orts.MultiPlayer;
-using Orts.View.Xna;
+using Orts.Graphics.Xna;
 
 namespace Orts.ActivityRunner.Viewer3D
 {

@@ -43,7 +43,7 @@ using Orts.Formats.OR.Models;
 using Orts.MultiPlayer;
 using Orts.Simulation;
 using Orts.Simulation.World;
-using Orts.View.Xna;
+using Orts.Graphics.Xna;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
