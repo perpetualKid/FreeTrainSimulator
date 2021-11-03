@@ -94,6 +94,6 @@
     <PackageReference Include="System.Resources.Extensions" Version="5.0.0" />
   </ItemGroup>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="cd %25temp%25&#xD;&#xA;if not exist .config (&#xD;&#xA;	dotnet new tool-manifest --force&#xD;&#xA;	dotnet tool install dotnet-mgfxc)" />
+    <Exec Command="if Defined Agent.TempDirectory (cd %25Agent.TempDirectory%25) else (cd %25temp%25)&#xD;&#xA;echo Temp Directory set to %25cd%25&#xD;&#xA;if not exist .config (&#xD;&#xA;	dotnet new tool-manifest --force&#xD;&#xA;	dotnet tool install dotnet-mgfxc)&#xD;&#xA;FOR %25%25i IN ($(ProjectDir)Resources\Shaders\*.fx) DO (&#xD;&#xA;	echo Shader $(ProjectDir)Resources\Shaders\%25%25~nxi&#xD;&#xA;	if not exist $(TargetDir)Content\%25%25~ni.mgfx (&#xD;&#xA;		echo Compiling $(TargetDir)Content\%25%25~ni.mgfx&#xD;&#xA;		dotnet tool run mgfxc $(ProjectDir)Resources\Shaders\%25%25~nxi $(TargetDir)Content\%25%25~ni.mgfx /Profile:DirectX_11))" />
   </Target>
 </Project>
