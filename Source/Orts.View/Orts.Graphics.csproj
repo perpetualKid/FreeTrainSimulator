@@ -1,11 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Description>Open Rails View Library</Description>
-    <AssemblyTitle>Open Rails View Library</AssemblyTitle>
+    <Description>Open Rails Graphics Library</Description>
+    <AssemblyTitle>Open Rails Graphics Library</AssemblyTitle>
     <GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
     <OutputPath>..\..\Program</OutputPath>
-    <AssemblyName>Orts.View</AssemblyName>
-    <RootNamespace>Orts.View</RootNamespace>
+    <AssemblyName>Orts.Graphics</AssemblyName>
+    <RootNamespace>Orts.Graphics</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Resources\ActiveBrokenNode.png" />

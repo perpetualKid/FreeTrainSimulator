@@ -52,7 +52,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orts.Models.Simplified", "Orts.Models.Simplified\Orts.Models.Simplified.csproj", "{F3A348E2-FF11-4AF9-BC76-D5A4EFDC9883}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orts.View", "Orts.View\Orts.View.csproj", "{BE492FD3-1029-4B15-9EEF-756CAFBBEBEB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orts.Graphics", "Orts.View\Orts.Graphics.csproj", "{BE492FD3-1029-4B15-9EEF-756CAFBBEBEB}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TrackViewer", "TrackViewer\TrackViewer.csproj", "{ACF9E60E-914D-47E9-8533-1C4A1815B52A}"
 EndProject
