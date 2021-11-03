@@ -1,0 +1,41 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Windows.Forms;
+
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+
+namespace Orts.Graphics.Shaders
+{
+    public class PopupWindowShader : EffectShader
+    {
+#pragma warning disable CA1044 // Properties should not be write only
+        public Color GlassColor
+        {
+            set => Parameters["GlassColor"].SetValue(new Vector3(value.R / 255f, value.G / 255f, value.B / 255f));
+        }
+
+        public float Opacity
+        {
+            set => Parameters["Opacity"].SetValue(value);
+        }
+
+        public Texture2D WindowTexture
+        {
+            set => Parameters["WindowTexture"].SetValue(value);
+        }
+#pragma warning restore CA1044 // Properties should not be write only
+
+        public void SetMatrix(in Matrix w, ref Matrix wvp)
+        {
+            World = w;
+            WorldViewProjection = wvp;
+        }
+
+        public PopupWindowShader(GraphicsDevice graphicsDevice): 
+            base(graphicsDevice, "PopupWindow")
+        {
+        }
+    }
+}

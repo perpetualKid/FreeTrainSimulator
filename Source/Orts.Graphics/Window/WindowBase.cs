@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using Orts.Common.Input;
+using Orts.Graphics.Shaders;
 using Orts.Graphics.Window.Controls;
 using Orts.Graphics.Window.Controls.Layout;
 
@@ -21,7 +22,7 @@ namespace Orts.Graphics.Window
         private VertexBuffer windowVertexBuffer;
         private IndexBuffer windowIndexBuffer;
 
-        private Effect popupEffect;
+        private PopupWindowShader popupEffect;
 
         public ref readonly Rectangle Location => ref location;
         private Matrix XNAView;
@@ -29,14 +30,14 @@ namespace Orts.Graphics.Window
 
         protected WindowBase(WindowManager owner, string caption)
         {
-            Owner = owner;
-            string path = Path.GetFullPath(".\\Content\\PopupWindow.mgfx");
-            popupEffect = new Effect(owner.Game.GraphicsDevice, File.ReadAllBytes(path));
-            popupEffect.CurrentTechnique = popupEffect.Techniques[0];
+            Owner = owner ?? throw new ArgumentNullException(nameof(owner));
 
-            popupEffect.Parameters["GlassColor"].SetValue(new Vector3(0.0f, 0.0f, 0.0f));
-            popupEffect.Parameters["Transparency"].SetValue(0.6f);
-            popupEffect.Parameters["WindowTexture"].SetValue(Owner.windowTexture);
+            popupEffect = MaterialManager.Instance.EffectShaders[ShaderEffect.PopupWindow] as PopupWindowShader;
+            popupEffect.CurrentTechnique = popupEffect.Techniques["PopupWindow"];
+
+            popupEffect.GlassColor = Color.Black;
+            popupEffect.Opacity = 0.6f;
+            popupEffect.WindowTexture = Owner.windowTexture;
 
             XNAView = Matrix.CreateTranslation(-Owner.Game.GraphicsDevice.Viewport.Width / 2, -Owner.Game.GraphicsDevice.Viewport.Height / 2, 0) *
     Matrix.CreateTranslation(-0.5f, -0.5f, 0) *
@@ -56,8 +57,8 @@ namespace Orts.Graphics.Window
         internal void RenderWindow()
         {
             Matrix wvp = xnaWorld * XNAView * XNAProjection;
-            popupEffect.Parameters["World"].SetValue(xnaWorld);
-            popupEffect.Parameters["WorldViewProjection"].SetValue(wvp);
+            popupEffect.World = xnaWorld;
+            popupEffect.WorldViewProjection = wvp;
 
             foreach (EffectPass pass in popupEffect.CurrentTechnique.Passes)
             {

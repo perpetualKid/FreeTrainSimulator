@@ -50,4 +50,9 @@
         Complement, 
         ComplementHighlight,
     }
+
+    public enum ShaderEffect
+    {
+        PopupWindow,
+    }
 }

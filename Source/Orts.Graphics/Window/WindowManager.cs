@@ -7,6 +7,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using Orts.Common.Input;
+using Orts.Graphics.Shaders;
 
 namespace Orts.Graphics.Window
 {
@@ -32,12 +33,13 @@ namespace Orts.Graphics.Window
             }
 
             TextFontDefault = FontManager.Instance("Segoe UI", System.Drawing.FontStyle.Regular)[12];
+            MaterialManager.Initialize(game.GraphicsDevice);
         }
 
         public void AddForms()
         {
             windows.Add(new TestWindow(this, new Point(100, 100), "Test"));
-//            windows.Add(new TestWindow(this, new Point(200, 150), "Another Test"));
+            windows.Add(new TestWindow(this, new Point(200, 150), "Another Test"));
         }
 
         public static WindowManager GetInstance<T>(Game game, UserCommandController<T> userCommandController) where T : Enum
