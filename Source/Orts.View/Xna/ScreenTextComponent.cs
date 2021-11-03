@@ -88,13 +88,13 @@ namespace Orts.View.Xna
     /// The texture and graphics resources are kept and reused when updating the text
     /// This class should be used where text updates very frequently
     /// </summary>
-    public abstract class QuickRepeatableDrawableTextComponent : ScreenTextComponent
+    public abstract class VolatileTextComponent : ScreenTextComponent
     {
         // Create the final bitmap
         private protected Bitmap bmpSurface;
         private protected Graphics g;
 
-        protected QuickRepeatableDrawableTextComponent(Game game, Font font, Microsoft.Xna.Framework.Color color, Vector2 position) :
+        protected VolatileTextComponent(Game game, Font font, Microsoft.Xna.Framework.Color color, Vector2 position) :
             base(game, font, color, position)
         {
 

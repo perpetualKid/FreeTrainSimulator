@@ -13,7 +13,7 @@ using Orts.View.Xna;
 
 namespace Orts.View.DrawableComponents
 {
-    public class WorldCoordinatesComponent: QuickRepeatableDrawableTextComponent
+    public class WorldCoordinatesComponent: VolatileTextComponent
     {
         private readonly MouseInputGameComponent input;
         private MouseState lastMouseState;

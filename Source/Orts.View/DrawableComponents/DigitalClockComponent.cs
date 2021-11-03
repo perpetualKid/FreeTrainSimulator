@@ -20,7 +20,7 @@ namespace Orts.View.DrawableComponents
     /// <summary>
     /// this class is primarily used for testing of various graphical aspects
     /// </summary>
-    public class DigitalClockComponent : QuickRepeatableDrawableTextComponent
+    public class DigitalClockComponent : VolatileTextComponent
     {
 
         private readonly TimeType timeType;
