@@ -222,11 +222,12 @@ namespace Orts.View.Track
 
         public override void Update(GameTime gameTime)
         {
-            if (Scale == previousScale && TopLeftArea == previousTopLeft && BottomRightArea == previousBottomRight && supressCount-- > 0)
-            {
-                Game.SuppressDraw();
-            }
-            else
+            //TODO 20211101 needs to move to a lop level
+            //if (Scale == previousScale && TopLeftArea == previousTopLeft && BottomRightArea == previousBottomRight && supressCount-- > 0)
+            //{
+            //    Game.SuppressDraw();
+            //}
+            //else
             {
                 previousScale = Scale;
                 previousTopLeft = TopLeftArea;

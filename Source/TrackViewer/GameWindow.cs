@@ -24,6 +24,7 @@ using Orts.View;
 using Orts.View.DrawableComponents;
 using Orts.View.Track;
 using Orts.View.Track.Shapes;
+using Orts.View.Window;
 using Orts.View.Xna;
 
 using UserCommand = Orts.TrackViewer.Control.UserCommand;
@@ -305,6 +306,7 @@ namespace Orts.TrackViewer
 
         private void GraphicsPreparingDeviceSettings(object sender, PreparingDeviceSettingsEventArgs e)
         {
+            e.GraphicsDeviceInformation.GraphicsProfile = GraphicsProfile.HiDef;
             e.GraphicsDeviceInformation.PresentationParameters.RenderTargetUsage = RenderTargetUsage.DiscardContents;
             e.GraphicsDeviceInformation.PresentationParameters.DepthStencilFormat = DepthFormat.Depth24Stencil8;
             e.GraphicsDeviceInformation.PresentationParameters.MultiSampleCount = Settings.UserSettings.MultisamplingCount;
@@ -392,6 +394,9 @@ namespace Orts.TrackViewer
             userCommandController.AddEvent(CommonUserCommand.PointerDragged, MouseDragging);
             userCommandController.AddEvent(CommonUserCommand.VerticalScrollChanged, MouseWheel);
 
+            UserCommandController<UserCommand> windowCommandController = userCommandController.TopLayerControllerAdd();
+            windowManager = WindowManager.GetInstance(this, windowCommandController);
+            Components.Add(windowManager);
             base.Initialize();
 
             await Task.WhenAll(initTasks).ConfigureAwait(false);
@@ -415,6 +420,7 @@ namespace Orts.TrackViewer
             Components.Add(scaleRuler);
             Components.Add(new InsetComponent(this, BackgroundColor, new Vector2(-10, 30)));
             Components.Add(new WorldCoordinatesComponent(this, new System.Drawing.Font(System.Drawing.FontFamily.GenericSansSerif, 20, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel), Color.Blue, new Vector2(40, 40)));
+            windowManager.AddForms();
         }
 
         protected override void Update(GameTime gameTime)
@@ -425,6 +431,7 @@ namespace Orts.TrackViewer
 
         private System.Drawing.Font drawfont = new System.Drawing.Font("Segoe UI", (int)Math.Round(25.0), System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
         private int drawTime;
+        private WindowManager windowManager ;
 
         public bool InputCaptured { get; internal set; }
 
