@@ -12,13 +12,13 @@ namespace Orts.View.Xna
     /// The texture is kept and reused when updating the text
     /// This class should be used where text updates infrequently
     /// </summary>
-    public abstract class DrawableTextComponent : TextureContentComponent
+    public abstract class ScreenTextComponent : TextureContentComponent
     {
         private protected Font font;
 
         private protected readonly Brush whiteBrush = new SolidBrush(System.Drawing.Color.White);
 
-        protected DrawableTextComponent(Game game, Font font, Microsoft.Xna.Framework.Color color, Vector2 position) :
+        protected ScreenTextComponent(Game game, Font font, Microsoft.Xna.Framework.Color color, Vector2 position) :
             base(game, color, position)
         {
             this.font = font;
@@ -88,7 +88,7 @@ namespace Orts.View.Xna
     /// The texture and graphics resources are kept and reused when updating the text
     /// This class should be used where text updates very frequently
     /// </summary>
-    public abstract class QuickRepeatableDrawableTextComponent : DrawableTextComponent
+    public abstract class QuickRepeatableDrawableTextComponent : ScreenTextComponent
     {
         // Create the final bitmap
         private protected Bitmap bmpSurface;
