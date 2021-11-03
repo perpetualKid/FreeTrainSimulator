@@ -2,30 +2,30 @@
 
 using Microsoft.Xna.Framework;
 
-using Orts.Common.Position;
-
-namespace Orts.Graphics
+namespace Orts.Common.Position
 {
-    internal readonly struct PointD : IEquatable<PointD>
+    public readonly struct PointD : IEquatable<PointD>
     {
         private static readonly PointD none = new PointD(0, 0);
 
         public static ref readonly PointD None => ref none;
-        internal readonly double X;
-        internal readonly double Y;
+#pragma warning disable CA1051 // Do not declare visible instance fields
+        public readonly double X;
+        public readonly double Y;
+#pragma warning restore CA1051 // Do not declare visible instance fields
 
-        internal PointD(double x, double y)
+        public PointD(double x, double y)
         {
             X = x;
             Y = y;
         }
 
-        internal static PointD FromWorldLocation(in WorldLocation location)
+        public static PointD FromWorldLocation(in WorldLocation location)
         {
             return new PointD(location.TileX * WorldLocation.TileSize + location.Location.X, location.TileZ * WorldLocation.TileSize + location.Location.Z);
         }
 
-        internal static PointD TileCenter(in ITile tile)
+        public static PointD TileCenter(in ITile tile)
         {
             return new PointD(tile.X * Tile.TileSize, tile.Z * Tile.TileSize);
         }
