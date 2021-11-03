@@ -4,11 +4,11 @@ using System.Runtime.CompilerServices;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Orts.View.Track.Shapes;
-using Orts.View.Track.Widgets;
-using Orts.View.Xna;
+using Orts.Graphics.Track.Shapes;
+using Orts.Graphics.Track.Widgets;
+using Orts.Graphics.Xna;
 
-namespace Orts.View.DrawableComponents
+namespace Orts.Graphics.DrawableComponents
 {
     public class InsetComponent : TextureContentComponent
     {

@@ -8,9 +8,9 @@ using Microsoft.Xna.Framework;
 using Orts.Common.Position;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
-using Orts.View.Track.Widgets;
+using Orts.Graphics.Track.Widgets;
 
-namespace Orts.View.Track
+namespace Orts.Graphics.Track
 {
     public class TrackContent
     {

@@ -1,4 +1,4 @@
-﻿namespace Orts.View
+﻿namespace Orts.Graphics
 {
     public enum TextHorizontalAlignment
     {

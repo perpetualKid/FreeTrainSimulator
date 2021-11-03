@@ -9,11 +9,11 @@ using Microsoft.Xna.Framework.Graphics;
 using Orts.Common;
 using Orts.Common.Input;
 using Orts.Common.Position;
-using Orts.View.DrawableComponents;
-using Orts.View.Track.Widgets;
-using Orts.View.Xna;
+using Orts.Graphics.DrawableComponents;
+using Orts.Graphics.Track.Widgets;
+using Orts.Graphics.Xna;
 
-namespace Orts.View.Track
+namespace Orts.Graphics.Track
 {
     public class ContentArea : DrawableGameComponent
     {

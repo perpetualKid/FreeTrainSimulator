@@ -20,11 +20,11 @@ using Orts.Common.Input;
 using Orts.Common.Logging;
 using Orts.TrackViewer.Control;
 using Orts.TrackViewer.Settings;
-using Orts.View;
-using Orts.View.DrawableComponents;
-using Orts.View.Track;
-using Orts.View.Track.Shapes;
-using Orts.View.Xna;
+using Orts.Graphics;
+using Orts.Graphics.DrawableComponents;
+using Orts.Graphics.Track;
+using Orts.Graphics.Track.Shapes;
+using Orts.Graphics.Xna;
 
 using UserCommand = Orts.TrackViewer.Control.UserCommand;
 

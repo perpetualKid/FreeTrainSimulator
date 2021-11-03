@@ -305,7 +305,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             if (F.pbCanvas.Image == null)
                 F.InitImage();
 
-            using (Graphics g = Graphics.FromImage(F.pbCanvas.Image))
+            using (System.Drawing.Graphics g = System.Drawing.Graphics.FromImage(F.pbCanvas.Image))
             {
                 g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
                 g.Clear(F.pbCanvas.BackColor);
@@ -369,7 +369,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         /// If user drags an item of interest into this target box and zooms in, the item will remain in view.
         /// </summary>
         /// <param name="g"></param>
-        private void DrawZoomTarget(Graphics g)
+        private void DrawZoomTarget(System.Drawing.Graphics g)
         {
             if (F.Dragging)
             {
@@ -386,7 +386,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             F.lblSimulationTime.Text = $"{ct:hh}:{ct:mm}:{ct:ss}";
         }
 
-        private void DrawPlatforms(Graphics g, int penWidth)
+        private void DrawPlatforms(System.Drawing.Graphics g, int penWidth)
         {
             if (F.cbShowPlatforms.Checked)
             {
@@ -431,7 +431,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             }
         }
 
-        private void DrawTrack(Graphics g, Pen p, out PointF scaledA, out PointF scaledB)
+        private void DrawTrack(System.Drawing.Graphics g, Pen p, out PointF scaledA, out PointF scaledB)
         {
             PointF[] points = new PointF[3];
             scaledA = new PointF(0, 0);
@@ -459,7 +459,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             }
         }
 
-        private void ShowSwitches(Graphics g, float width)
+        private void ShowSwitches(System.Drawing.Graphics g, float width)
         {
             if (F.cbShowSwitches.Checked)
                 for (var i = 0; i < F.switches.Count; i++)
@@ -483,7 +483,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                 }
         }
 
-        private void ShowSignals(Graphics g, PointF scaledB, float width)
+        private void ShowSignals(System.Drawing.Graphics g, PointF scaledB, float width)
         {
             if (F.cbShowSignals.Checked)
                 foreach (var s in F.signals)
@@ -526,7 +526,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                 }
         }
 
-        private void ShowSignalState(Graphics g, PointF scaledItem, SignalWidget sw)
+        private void ShowSignalState(System.Drawing.Graphics g, PointF scaledItem, SignalWidget sw)
         {
             if (F.cbShowSignalState.Checked)
             {
@@ -548,7 +548,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             }
         }
 
-        private void ShowSidingLabels(Graphics g)
+        private void ShowSidingLabels(System.Drawing.Graphics g)
         {
             if (F.cbShowSidings.CheckState == System.Windows.Forms.CheckState.Checked)
                 foreach (var s in F.sidings)
@@ -562,7 +562,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                 }
         }
 
-        private void ShowPlatformLabels(Graphics g)
+        private void ShowPlatformLabels(System.Drawing.Graphics g)
         {
             var platformMarginPxX = 5;
 
@@ -584,7 +584,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                 }
         }
 
-        private void DrawTrains(Graphics g, PointF scaledA, PointF scaledB)
+        private void DrawTrains(System.Drawing.Graphics g, PointF scaledA, PointF scaledB)
         {
             var margin = 30 * F.xScale;   //margins to determine if we want to draw a train
             var margin2 = 5000 * F.xScale;
@@ -673,7 +673,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             }
         }
 
-        private void DrawCar(Graphics g, Train train, TrainCar car, TrainCar locoCar, float margin, int minTrainPx, bool drawEveryCar)
+        private void DrawCar(System.Drawing.Graphics g, Train train, TrainCar car, TrainCar locoCar, float margin, int minTrainPx, bool drawEveryCar)
         {
             if (drawEveryCar == false)
                 // Skip the intermediate cars
@@ -791,7 +791,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             return false;
         }
 
-        private void DrawTrainLabels(Graphics g, Train t, string trainName, TrainCar firstCar, PointF scaledTrain)
+        private void DrawTrainLabels(System.Drawing.Graphics g, Train t, string trainName, TrainCar firstCar, PointF scaledTrain)
         {
             WorldPosition worldPos = firstCar.WorldPosition;
             scaledTrain.X = (worldPos.TileX * 2048 - F.subX + worldPos.Location.X) * F.xScale;
@@ -814,7 +814,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             return (t.MovementState != AiMovementState.Static && !(t.TrainType == TrainType.AiIncorporated && !t.IncorporatingTrain.IsPathless)) || t.TrainType == TrainType.Player;
         }
 
-        private void ShowTrainNameAndState(Graphics g, PointF scaledItem, Train t, string trainName)
+        private void ShowTrainNameAndState(System.Drawing.Graphics g, PointF scaledItem, Train t, string trainName)
         {
             if (F.simulator.TimetableMode)
             {

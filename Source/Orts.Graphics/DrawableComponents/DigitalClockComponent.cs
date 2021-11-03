@@ -4,10 +4,10 @@ using System.Globalization;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Orts.View.Track;
-using Orts.View.Xna;
+using Orts.Graphics.Track;
+using Orts.Graphics.Xna;
 
-namespace Orts.View.DrawableComponents
+namespace Orts.Graphics.DrawableComponents
 {
     public enum TimeType
     {

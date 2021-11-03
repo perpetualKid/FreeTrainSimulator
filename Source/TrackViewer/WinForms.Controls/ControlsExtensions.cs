@@ -8,8 +8,8 @@ using GetText;
 using Microsoft.Xna.Framework;
 
 using Orts.Common;
-using Orts.View;
-using Orts.View.Xna;
+using Orts.Graphics;
+using Orts.Graphics.Xna;
 
 namespace Orts.TrackViewer.WinForms.Controls
 {

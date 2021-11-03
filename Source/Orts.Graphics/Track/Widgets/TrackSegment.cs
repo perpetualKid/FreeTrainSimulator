@@ -6,10 +6,10 @@ using Microsoft.Xna.Framework;
 using Orts.Common;
 using Orts.Common.Position;
 using Orts.Formats.Msts.Models;
-using Orts.View.Track.Shapes;
-using Orts.View.Xna;
+using Orts.Graphics.Track.Shapes;
+using Orts.Graphics.Xna;
 
-namespace Orts.View.Track.Widgets
+namespace Orts.Graphics.Track.Widgets
 {
     internal class TrackSegment: VectorWidget
     {

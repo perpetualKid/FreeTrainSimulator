@@ -4,9 +4,9 @@ using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Orts.View.Track;
+using Orts.Graphics.Track;
 
-namespace Orts.View.Xna
+namespace Orts.Graphics.Xna
 {
     /// <summary>
     /// Abstract base class for components containing content which gets rendered to a texture when it updates, 

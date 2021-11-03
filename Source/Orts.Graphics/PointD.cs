@@ -4,7 +4,7 @@ using Microsoft.Xna.Framework;
 
 using Orts.Common.Position;
 
-namespace Orts.View
+namespace Orts.Graphics
 {
     internal readonly struct PointD : IEquatable<PointD>
     {

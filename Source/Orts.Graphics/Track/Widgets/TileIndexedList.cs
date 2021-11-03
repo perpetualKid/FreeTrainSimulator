@@ -5,7 +5,7 @@ using System.Linq;
 
 using Orts.Common.Position;
 
-namespace Orts.View.Track.Widgets
+namespace Orts.Graphics.Track.Widgets
 {
     internal class TileIndexedList<ITileCoordinate, T> : IEnumerable<ITileCoordinate<T>> where T : struct, ITile
     {

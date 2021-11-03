@@ -646,7 +646,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 			  CheckAvatar();
 		  }
 		  catch {  } //errors for avatar, just ignore
-         using(Graphics g = Graphics.FromImage(pbCanvas.Image))
+         using(System.Drawing.Graphics g = System.Drawing.Graphics.FromImage(pbCanvas.Image))
          {
 			 subX = minX + ViewWindow.X; subY = minY + ViewWindow.Y;
             g.Clear(Color.White);
@@ -948,7 +948,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
          pbCanvas.Invalidate();
       }
 
-        private PointF DrawSiding(Graphics g, PointF scaledItem, SidingWidget s)
+        private PointF DrawSiding(System.Drawing.Graphics g, PointF scaledItem, SidingWidget s)
         {
             scaledItem.X = (s.Location.X - subX) * xScale;
             scaledItem.Y = DetermineSidingLocation(scaledItem.X, pbCanvas.Height - (s.Location.Y - subY) * yScale, s.Name);
@@ -959,7 +959,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             }
             return scaledItem;
         }
-		private PointF DrawPlatform(Graphics g, PointF scaledItem, PlatformWidget s)
+		private PointF DrawPlatform(System.Drawing.Graphics g, PointF scaledItem, PlatformWidget s)
 		{
 			scaledItem.X = (s.Location.X - subX) * xScale;
 			scaledItem.Y = DetermineSidingLocation(scaledItem.X, pbCanvas.Height - (s.Location.Y - subY) * yScale, s.Name);
@@ -1077,7 +1077,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         }
 
 	   //draw the train path if it is within the window
-		public void DrawTrainPath(Train train, float subX, float subY, Pen pathPen, Graphics g, PointF scaledA, PointF scaledB, float stepDist, float MaximumSectionDistance)
+		public void DrawTrainPath(Train train, float subX, float subY, Pen pathPen, System.Drawing.Graphics g, PointF scaledA, PointF scaledB, float stepDist, float MaximumSectionDistance)
 		{
 			if (DrawPath != true) return;
 			bool ok = false;

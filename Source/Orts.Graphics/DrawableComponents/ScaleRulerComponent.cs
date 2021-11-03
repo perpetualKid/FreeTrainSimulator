@@ -7,9 +7,9 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using Orts.Common;
-using Orts.View.Xna;
+using Orts.Graphics.Xna;
 
-namespace Orts.View.DrawableComponents
+namespace Orts.Graphics.DrawableComponents
 {
     /// <summary>
     /// Draw a ruler on screen for current scale.

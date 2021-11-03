@@ -9,7 +9,7 @@ using System.Windows.Forms;
 using Orts.Common;
 using Orts.Common.Info;
 using Orts.Models.Simplified;
-using Orts.View;
+using Orts.Graphics;
 
 namespace Orts.TrackViewer.WinForms.Controls
 {

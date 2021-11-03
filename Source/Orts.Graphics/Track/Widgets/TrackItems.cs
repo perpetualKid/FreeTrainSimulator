@@ -13,10 +13,10 @@ using Orts.Common.Position;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
-using Orts.View.DrawableComponents;
-using Orts.View.Track.Shapes;
+using Orts.Graphics.DrawableComponents;
+using Orts.Graphics.Track.Shapes;
 
-namespace Orts.View.Track.Widgets
+namespace Orts.Graphics.Track.Widgets
 {
     #region TrackItemBase
     internal abstract class TrackItemBase : PointWidget

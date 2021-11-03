@@ -4,7 +4,7 @@ using System.Linq;
 
 using Microsoft.Xna.Framework;
 
-namespace Orts.View.Xna
+namespace Orts.Graphics.Xna
 {
     public static class ColorExtension
     {

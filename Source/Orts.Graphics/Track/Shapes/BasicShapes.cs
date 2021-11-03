@@ -8,9 +8,9 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using Orts.Common;
-using Orts.View.Xna;
+using Orts.Graphics.Xna;
 
-namespace Orts.View.Track.Shapes
+namespace Orts.Graphics.Track.Shapes
 {
     public class BasicShapes
     {

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
 
-namespace Orts.View
+namespace Orts.Graphics
 {
     public class FontManager
     {

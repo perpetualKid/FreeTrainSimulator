@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace Orts.View.Xna
+namespace Orts.Graphics.Xna
 {
     /// <summary>
     /// Renders text string to a Texture2D
@@ -28,7 +28,7 @@ namespace Orts.View.Xna
         {
             using (Bitmap measureBitmap = new Bitmap(1, 1))
             {
-                using (Graphics measureGraphics = Graphics.FromImage(measureBitmap))
+                using (System.Drawing.Graphics measureGraphics = System.Drawing.Graphics.FromImage(measureBitmap))
                 {
                     Resize(measureGraphics.MeasureString(text, font).ToSize());
                 }
@@ -47,7 +47,7 @@ namespace Orts.View.Xna
             // Create the final bitmap
             using (Bitmap bmpSurface = new Bitmap(texture.Width, texture.Height))
             {
-                using (Graphics g = Graphics.FromImage(bmpSurface))
+                using (System.Drawing.Graphics g = System.Drawing.Graphics.FromImage(bmpSurface))
                 {
                     g.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighQuality;
                     g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.High;
@@ -92,7 +92,7 @@ namespace Orts.View.Xna
     {
         // Create the final bitmap
         private protected Bitmap bmpSurface;
-        private protected Graphics g;
+        private protected System.Drawing.Graphics g;
 
         protected VolatileTextComponent(Game game, Font font, Microsoft.Xna.Framework.Color color, Vector2 position) :
             base(game, font, color, position)
@@ -104,9 +104,9 @@ namespace Orts.View.Xna
         {
             base.Resize(size);
             Bitmap currentSurface = bmpSurface;
-            Graphics currentGraphics = g;
+            System.Drawing.Graphics currentGraphics = g;
             bmpSurface = new Bitmap(texture.Width, texture.Height);
-            g = Graphics.FromImage(bmpSurface);
+            g = System.Drawing.Graphics.FromImage(bmpSurface);
             currentGraphics?.Dispose();
             currentSurface?.Dispose();
             g.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighQuality;

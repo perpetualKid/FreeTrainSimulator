@@ -2,9 +2,9 @@
 using Microsoft.Xna.Framework;
 
 using Orts.Common.Position;
-using Orts.View.Track.Shapes;
+using Orts.Graphics.Track.Shapes;
 
-namespace Orts.View.Track.Widgets
+namespace Orts.Graphics.Track.Widgets
 {
     internal class GridTile: PointWidget, ITileCoordinate<Tile>
     {

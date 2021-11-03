@@ -8,10 +8,10 @@ using Microsoft.Xna.Framework.Input;
 
 using Orts.Common.Input;
 using Orts.Common.Position;
-using Orts.View.Track;
-using Orts.View.Xna;
+using Orts.Graphics.Track;
+using Orts.Graphics.Xna;
 
-namespace Orts.View.DrawableComponents
+namespace Orts.Graphics.DrawableComponents
 {
     public class WorldCoordinatesComponent: VolatileTextComponent
     {
