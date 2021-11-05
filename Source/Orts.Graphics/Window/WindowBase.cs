@@ -1,11 +1,9 @@
 ﻿using System;
-using System.IO;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using Orts.Common.Input;
-using Orts.Graphics.Shaders;
 using Orts.Graphics.Window.Controls;
 using Orts.Graphics.Window.Controls.Layout;
 
@@ -13,37 +11,23 @@ namespace Orts.Graphics.Window
 {
     public abstract class WindowBase : IDisposable
     {
+        private const int BaseFontSize = 16; // DO NOT CHANGE without also changing the graphics for the windows.
+
         private bool disposedValue;
         private protected Rectangle location;
         private Matrix xnaWorld;
         private readonly string caption;
-        protected WindowManager Owner { get; }
         private ControlLayout windowLayout;
         private VertexBuffer windowVertexBuffer;
         private IndexBuffer windowIndexBuffer;
 
-        private PopupWindowShader popupEffect;
+        protected WindowManager Owner { get; }
 
-        public ref readonly Rectangle Location => ref location;
-        private Matrix XNAView;
-        private Matrix XNAProjection;
+        public ref readonly Rectangle Borders => ref location;
 
         protected WindowBase(WindowManager owner, string caption)
         {
             Owner = owner ?? throw new ArgumentNullException(nameof(owner));
-
-            popupEffect = MaterialManager.Instance.EffectShaders[ShaderEffect.PopupWindow] as PopupWindowShader;
-            popupEffect.CurrentTechnique = popupEffect.Techniques["PopupWindow"];
-
-            popupEffect.GlassColor = Color.Black;
-            popupEffect.Opacity = 0.6f;
-            popupEffect.WindowTexture = Owner.windowTexture;
-
-            XNAView = Matrix.CreateTranslation(-Owner.Game.GraphicsDevice.Viewport.Width / 2, -Owner.Game.GraphicsDevice.Viewport.Height / 2, 0) *
-    Matrix.CreateTranslation(-0.5f, -0.5f, 0) *
-    Matrix.CreateScale(1.0f, -1.0f, 1.0f);
-            // Project into a flat view of the same size as the viewport.
-            XNAProjection = Matrix.CreateOrthographic(Owner.Game.GraphicsDevice.Viewport.Width, Owner.Game.GraphicsDevice.Viewport.Height, 0, 1);
 
             location = new Rectangle(100, 100, 200, 100);//TODO 20211030 Load settings or apply default settings
             this.caption = caption;
@@ -56,11 +40,13 @@ namespace Orts.Graphics.Window
 
         internal void RenderWindow()
         {
-            Matrix wvp = xnaWorld * XNAView * XNAProjection;
-            popupEffect.World = xnaWorld;
-            popupEffect.WorldViewProjection = wvp;
+            ref readonly Matrix xnaView = ref Owner.XNAView;
+            ref readonly Matrix xnaProjection = ref Owner.XNAProjection;
+            Matrix wvp = xnaWorld * xnaView * xnaProjection;
+            Owner.WindowShader.World = xnaWorld;
+            Owner.WindowShader.WorldViewProjection = wvp;
 
-            foreach (EffectPass pass in popupEffect.CurrentTechnique.Passes)
+            foreach (EffectPass pass in Owner.WindowShader.CurrentTechnique.Passes)
             {
                 pass.Apply();
                 Owner.Game.GraphicsDevice.SetVertexBuffer(windowVertexBuffer);
@@ -71,7 +57,7 @@ namespace Orts.Graphics.Window
 
         internal void DrawContent(SpriteBatch spriteBatch)
         {
-            windowLayout.Draw(spriteBatch, Location.Location);
+            windowLayout.Draw(spriteBatch, Borders.Location);
         }
 
         protected virtual void SizeChanged()
@@ -120,7 +106,7 @@ namespace Orts.Graphics.Window
             if (windowVertexBuffer == null)
             {
                 // Edges/corners are 32px (1/4th texture image size).
-                int gp = 32 - 16 + (int)(Owner.TextFontDefault.Height * 1.25);
+                int gp = 32 - BaseFontSize + (int)(Owner.TextFontDefault.Height * 1.25);
                 if (gp % 32 == 0)// some odd rendering errors if exactly 32, so just slightly increase
                     gp += 2;
                 VertexPositionTexture[] vertexData = new[] {
@@ -172,6 +158,7 @@ namespace Orts.Graphics.Window
                 {
                     windowVertexBuffer?.Dispose();
                     windowIndexBuffer?.Dispose();
+                    windowLayout?.Dispose();
                 }
                 disposedValue = true;
             }

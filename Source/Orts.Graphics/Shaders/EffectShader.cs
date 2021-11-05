@@ -11,8 +11,8 @@ namespace Orts.Graphics.Shaders
 {
     public abstract class EffectShader : Effect
     {
-        private byte worldIndex = byte.MaxValue;
-        private byte wvpIndex = byte.MaxValue;
+        private readonly byte worldIndex = byte.MaxValue;
+        private readonly byte wvpIndex = byte.MaxValue;
 
 #pragma warning disable CA1044 // Properties should not be write only
         public Matrix World
@@ -37,6 +37,11 @@ namespace Orts.Graphics.Shaders
                     wvpIndex = i;
             }
         }
+
+        public virtual void SetState(EffectShader previousShader) { }
+
+        public virtual void ResetState() { }
+
 
         private static byte[] GetEffectCode(string fileName)
         {

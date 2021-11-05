@@ -364,7 +364,7 @@ namespace Orts.TrackViewer
             InputSettings.Initialize();
 
             spriteBatch = new SpriteBatch(GraphicsDevice);
-            TextDrawShape.Initialize(this, spriteBatch);
+            TextShape.Initialize(this, spriteBatch);
             BasicShapes.Initialize(spriteBatch);
 
             UserCommandController<UserCommand> userCommandController = new UserCommandController<UserCommand>();
@@ -469,7 +469,7 @@ namespace Orts.TrackViewer
             //    BasicShapes.DrawLine(10, Color.DarkGoldenrod, new Vector2(100, 100), new Vector2(250, 250));
             //}
             if (!string.IsNullOrEmpty(StatusMessage))
-                TextDrawShape.DrawString(centerPoint, Color.Red, StatusMessage, drawfont, Vector2.One, TextHorizontalAlignment.Center);
+                TextShape.DrawString(centerPoint, Color.Red, StatusMessage, drawfont, Vector2.One, TextHorizontalAlignment.Center);
 
             spriteBatch.End();
 

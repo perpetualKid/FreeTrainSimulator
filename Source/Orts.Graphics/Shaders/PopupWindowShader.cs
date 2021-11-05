@@ -36,6 +36,23 @@ namespace Orts.Graphics.Shaders
         public PopupWindowShader(GraphicsDevice graphicsDevice): 
             base(graphicsDevice, "PopupWindow")
         {
+            CurrentTechnique = Techniques["PopupWindow"];
+        }
+
+        public override void SetState(EffectShader previousShader)
+        {
+            GraphicsDevice.BlendState = BlendState.NonPremultiplied;
+            GraphicsDevice.RasterizerState = RasterizerState.CullNone;
+            GraphicsDevice.DepthStencilState = DepthStencilState.None;
+            base.SetState(previousShader);
+        }
+
+        public override void ResetState()
+        {
+            GraphicsDevice.BlendState = BlendState.Opaque;
+            GraphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
+            GraphicsDevice.DepthStencilState = DepthStencilState.Default;
+            base.ResetState();
         }
     }
 }

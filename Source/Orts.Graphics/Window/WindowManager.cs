@@ -9,6 +9,8 @@ using Microsoft.Xna.Framework.Graphics;
 using Orts.Common.Input;
 using Orts.Graphics.Shaders;
 
+using static Orts.Common.Calc.Dynamics;
+
 namespace Orts.Graphics.Window
 {
     public class WindowManager : DrawableGameComponent
@@ -19,21 +21,41 @@ namespace Orts.Graphics.Window
         private WindowBase mouseActiveWindow;
         private readonly SpriteBatch spriteBatch;
 
+        private Matrix xnaView;
+        private Matrix xnaProjection;
+        internal ref readonly Matrix XNAView => ref xnaView;
+        internal ref readonly Matrix XNAProjection => ref xnaProjection;
+        internal readonly PopupWindowShader WindowShader;
+
         public System.Drawing.Font TextFontDefault { get; }
 
         private WindowManager(Game game) :
             base(game)
         {
+            MaterialManager.Initialize(game.GraphicsDevice);
+            
             DrawOrder = 100;
 
             spriteBatch = new SpriteBatch(GraphicsDevice);
+            //TODO 20211104 needs to move to a TextureManager
             using (FileStream stream = File.OpenRead(".\\Content\\Window.png"))
             {
                 windowTexture = Texture2D.FromStream(GraphicsDevice, stream);
             }
 
+            WindowShader = MaterialManager.Instance.EffectShaders[ShaderEffect.PopupWindow] as PopupWindowShader;
+            WindowShader.GlassColor = Color.Black;
+            WindowShader.Opacity = 0.6f;
+            WindowShader.WindowTexture = windowTexture;
+
             TextFontDefault = FontManager.Instance("Segoe UI", System.Drawing.FontStyle.Regular)[12];
-            MaterialManager.Initialize(game.GraphicsDevice);
+
+            xnaView = Matrix.CreateTranslation(-game.GraphicsDevice.Viewport.Width / 2, -game.GraphicsDevice.Viewport.Height / 2, 0) *
+                Matrix.CreateTranslation(-0.5f, -0.5f, 0) *
+                Matrix.CreateScale(1.0f, -1.0f, 1.0f);
+            // Project into a flat view of the same size as the viewport.
+            xnaProjection = Matrix.CreateOrthographic(game.GraphicsDevice.Viewport.Width, game.GraphicsDevice.Viewport.Height, 0, 1);
+
         }
 
         public void AddForms()
@@ -46,6 +68,8 @@ namespace Orts.Graphics.Window
         {
             if (null == userCommandController)
                 throw new ArgumentNullException(nameof(userCommandController));
+            if (null == game)
+                throw new ArgumentNullException(nameof(game));
 
             WindowManager instance = new WindowManager(game);
             userCommandController.AddEvent(CommonUserCommand.PointerPressed, instance.MouseClickedEvent);
@@ -69,7 +93,7 @@ namespace Orts.Graphics.Window
                     userCommandArgs.Handled = true;
                     mouseActiveWindow.HandleMouseDrag(moveCommandArgs.Position, moveCommandArgs.Delta, keyModifiers);
                 }
-                else if (windows.LastOrDefault(w => w.Location.Contains(moveCommandArgs.Position)) != null)
+                else if (windows.LastOrDefault(w => w.Borders.Contains(moveCommandArgs.Position)) != null)
                         userCommandArgs.Handled = true;
             }
         }
@@ -87,7 +111,7 @@ namespace Orts.Graphics.Window
             if (userCommandArgs is PointerCommandArgs pointerCommandArgs)
             {
                 Point mouseDownPosition = pointerCommandArgs.Position;
-                mouseActiveWindow = windows.LastOrDefault(w => w.Location.Contains(pointerCommandArgs.Position));
+                mouseActiveWindow = windows.LastOrDefault(w => w.Borders.Contains(pointerCommandArgs.Position));
                 if (mouseActiveWindow != null)
                 {
                     userCommandArgs.Handled = true;
@@ -102,7 +126,7 @@ namespace Orts.Graphics.Window
 
         public override void Initialize()
         {
-            foreach (var window in windows)
+            foreach (WindowBase window in windows)
             {
                 window.Initialize();
                 window.Layout();
@@ -120,16 +144,9 @@ namespace Orts.Graphics.Window
 
             foreach (WindowBase window in windows)
             {
-                GraphicsDevice.BlendState = BlendState.NonPremultiplied;
-                GraphicsDevice.RasterizerState = RasterizerState.CullNone;
-                GraphicsDevice.DepthStencilState = DepthStencilState.None;
-
+                WindowShader.SetState(null);
                 window.RenderWindow();
-
-                GraphicsDevice.BlendState = BlendState.Opaque;
-                GraphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
-                GraphicsDevice.DepthStencilState = DepthStencilState.Default;
-
+                WindowShader.ResetState();
                 window.DrawContent(spriteBatch);
             }
             base.Draw(gameTime);

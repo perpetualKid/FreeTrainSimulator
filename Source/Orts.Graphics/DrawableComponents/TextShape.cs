@@ -9,12 +9,12 @@ using Orts.Graphics.Xna;
 
 namespace Orts.Graphics.DrawableComponents
 {
-    public class TextDrawShape : ResourceGameComponent<Texture2D>
+    public class TextShape : ResourceGameComponent<Texture2D>
     {
         [ThreadStatic]
         private static Texture2D empty;
         [ThreadStatic]
-        private static TextDrawShape instance;
+        private static TextShape instance;
         private readonly SpriteBatch spriteBatch;
 
         private readonly System.Drawing.Bitmap measureBitmap = new System.Drawing.Bitmap(1, 1);
@@ -23,7 +23,7 @@ namespace Orts.Graphics.DrawableComponents
         private readonly System.Drawing.Brush fontBrush = new System.Drawing.SolidBrush(System.Drawing.Color.White);
 
 
-        private TextDrawShape(Game game, SpriteBatch spriteBatch) : base(game)
+        private TextShape(Game game, SpriteBatch spriteBatch) : base(game)
         {
             empty = new Texture2D(game.GraphicsDevice, 1, 1);
             this.spriteBatch = spriteBatch;
@@ -35,7 +35,7 @@ namespace Orts.Graphics.DrawableComponents
             if (null == game)
                 throw new ArgumentNullException(nameof(game));
             if (null == instance)
-                instance = new TextDrawShape(game, spriteBatch);
+                instance = new TextShape(game, spriteBatch);
         }
 
         /// <summary>
@@ -153,7 +153,7 @@ namespace Orts.Graphics.DrawableComponents
             {
                 int hash = 17;
                 hash = hash * 23 + font?.GetHashCode() ?? 0;
-                hash = hash * 23 + message?.GetHashCode() ?? 0;
+                hash = hash * 23 + message?.GetHashCode(StringComparison.CurrentCulture) ?? 0;
                 return hash;
             }
         }
