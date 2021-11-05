@@ -9,8 +9,6 @@ using Microsoft.Xna.Framework.Graphics;
 using Orts.Common.Input;
 using Orts.Graphics.Shaders;
 
-using static Orts.Common.Calc.Dynamics;
-
 namespace Orts.Graphics.Window
 {
     public class WindowManager : DrawableGameComponent
@@ -50,12 +48,16 @@ namespace Orts.Graphics.Window
 
             TextFontDefault = FontManager.Instance("Segoe UI", System.Drawing.FontStyle.Regular)[12];
 
-            xnaView = Matrix.CreateTranslation(-game.GraphicsDevice.Viewport.Width / 2, -game.GraphicsDevice.Viewport.Height / 2, 0) *
+            UpdateSize();
+        }
+
+        public void UpdateSize()
+        {
+            xnaView = Matrix.CreateTranslation(-Game.GraphicsDevice.Viewport.Width / 2, -Game.GraphicsDevice.Viewport.Height / 2, 0) *
                 Matrix.CreateTranslation(-0.5f, -0.5f, 0) *
                 Matrix.CreateScale(1.0f, -1.0f, 1.0f);
             // Project into a flat view of the same size as the viewport.
-            xnaProjection = Matrix.CreateOrthographic(game.GraphicsDevice.Viewport.Width, game.GraphicsDevice.Viewport.Height, 0, 1);
-
+            xnaProjection = Matrix.CreateOrthographic(Game.GraphicsDevice.Viewport.Width, Game.GraphicsDevice.Viewport.Height, 0, 1);
         }
 
         public void AddForms()

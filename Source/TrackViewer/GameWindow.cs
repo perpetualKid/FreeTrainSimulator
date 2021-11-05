@@ -161,6 +161,7 @@ namespace Orts.TrackViewer
         private void Window_ClientSizeChanged(object sender, EventArgs e)
         {
             ContentArea?.UpdateSize(Window.ClientBounds.Size);
+            windowManager?.UpdateSize();
         }
 
         private void WindowForm_ClientSizeChanged(object sender, EventArgs e)
