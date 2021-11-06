@@ -114,8 +114,9 @@ namespace Orts.Simulation.Signalling
                 AddSignalConfiguration(sigcfg);
 
                 // Add World info
-
                 AddWorldInfo(signalWorldLookup, speedPostWorldLookup, speedPostWorldList);
+
+                InitializeSignals();
 
                 // check for any backfacing heads in signals
                 // if found, split signal
@@ -864,6 +865,20 @@ namespace Orts.Simulation.Signalling
                 }
             }
         }//AddWorldInfo
+
+        private void InitializeSignals()
+        {
+            foreach (Signal signal in Signals)
+            {
+                if (signal != null)
+                {
+                    if (signal.IsSignal || signal.IsSpeedSignal)
+                    {
+                        signal.Initialize();
+                    }
+                }
+            }
+        }
 
         //================================================================================================//
         /// <summary>

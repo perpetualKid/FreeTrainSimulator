@@ -117,7 +117,6 @@ namespace Orts.Simulation.Signalling
                 if (csSignalScript != null)
                 {
                     csSignalScript.AttachToHead(this);
-                    csSignalScript.Initialize();
                 }
 
                 // set signal speeds
@@ -160,6 +159,11 @@ namespace Orts.Simulation.Signalling
             {
                 Trace.TraceWarning($"SignalObject trItem={MainSignal.TrackItemIndex}, trackNode={MainSignal.TrackNode} has SignalHead with undefined SignalType {signalItem.SignalType}.");
             }
+        }
+
+        public void Initialize()
+        {
+            csSignalScript?.Initialize();
         }
 
         //================================================================================================//
