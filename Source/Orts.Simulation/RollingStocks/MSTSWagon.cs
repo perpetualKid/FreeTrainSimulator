@@ -1793,7 +1793,7 @@ namespace Orts.Simulation.RollingStocks
                     if (TendersSteamLocomotive.IsTenderRequired == 1)
                     {                        
                         // Combined total water found by taking the current combined water (which may have extra water added via the auxiliary tender), and subtracting the 
-                        // amount of water defined in the ENG file, and adding the water defiend in the WAG file.
+                        // amount of water defined in the ENG file, and adding the water defined in the WAG file.
                         float TempMaxCombinedWater = TendersSteamLocomotive.MaxTotalCombinedWaterVolumeUKG;
                         TendersSteamLocomotive.MaxTotalCombinedWaterVolumeUKG = (float)((TempMaxCombinedWater - (Mass.Kilogram.ToLb(TendersSteamLocomotive.MaxLocoTenderWaterMassKG) / WaterLBpUKG)) + (Mass.Kilogram.ToLb(TenderWagonMaxWaterMassKG) / WaterLBpUKG));
 
