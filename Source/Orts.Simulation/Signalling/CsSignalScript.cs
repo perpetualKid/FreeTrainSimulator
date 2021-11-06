@@ -105,7 +105,10 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         public string SignalTypeName => signalHead.SignalType.Name;
 
-
+        /// <summary>
+        /// Name of the signal shape, as defined in sigcfg
+        /// </summary>
+        public string SignalShapeName => SignalObject.WorldObject.ShapeFileName;
 
         protected CsSignalScript()
         {
