@@ -31,7 +31,7 @@ namespace Orts.Graphics.Window
             base(game)
         {
             MaterialManager.Initialize(game.GraphicsDevice);
-            
+            game.Window.ClientSizeChanged += Window_ClientSizeChanged;
             DrawOrder = 100;
 
             spriteBatch = new SpriteBatch(GraphicsDevice);
@@ -51,7 +51,12 @@ namespace Orts.Graphics.Window
             UpdateSize();
         }
 
-        public void UpdateSize()
+        private void Window_ClientSizeChanged(object sender, EventArgs e)
+        {
+            UpdateSize();
+        }
+
+        private void UpdateSize()
         {
             xnaView = Matrix.CreateTranslation(-Game.GraphicsDevice.Viewport.Width / 2, -Game.GraphicsDevice.Viewport.Height / 2, 0) *
                 Matrix.CreateTranslation(-0.5f, -0.5f, 0) *

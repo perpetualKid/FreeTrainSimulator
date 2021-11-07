@@ -94,7 +94,7 @@ namespace Orts.TrackViewer
 ;
         public GameWindow()
         {
-            IEnumerable<string> options = Environment.GetCommandLineArgs().Where(a => a.StartsWith("-", StringComparison.OrdinalIgnoreCase) || a.StartsWith("/", StringComparison.OrdinalIgnoreCase)).Select(a => a.Substring(1));
+            IEnumerable<string> options = Environment.GetCommandLineArgs().Where(a => a.StartsWith("-", StringComparison.OrdinalIgnoreCase) || a.StartsWith("/", StringComparison.OrdinalIgnoreCase)).Select(a => a[1..]);
             Settings = new TrackViewerSettings(options);
 
             CatalogManager.SetCatalogDomainPattern(CatalogDomainPattern.AssemblyName, null, RuntimeInfo.LocalesFolder);
@@ -125,7 +125,7 @@ namespace Orts.TrackViewer
             Window.Title = windowTitle;
             Window.AllowUserResizing = true;
 
-            Window.ClientSizeChanged += Window_ClientSizeChanged; // not using the GameForm event as it does not raise when Window is moved (ie to another screeen) using keyboard shortcut
+            //Window.ClientSizeChanged += Window_ClientSizeChanged; // not using the GameForm event as it does not raise when Window is moved (ie to another screeen) using keyboard shortcut
 
             //graphicsDeviceManager.SynchronizeWithVerticalRetrace = false;
             //IsFixedTimeStep = false;
@@ -158,12 +158,6 @@ namespace Orts.TrackViewer
         }
 
         #region window size/position handling
-        private void Window_ClientSizeChanged(object sender, EventArgs e)
-        {
-            ContentArea?.UpdateSize(Window.ClientBounds.Size);
-            windowManager?.UpdateSize();
-        }
-
         private void WindowForm_ClientSizeChanged(object sender, EventArgs e)
         {
             centerPoint = new Vector2(Window.ClientBounds.Size.X / 2, Window.ClientBounds.Size.Y / 2);
@@ -294,7 +288,7 @@ namespace Orts.TrackViewer
                 }
                 catch (CultureNotFoundException exception)
                 {
-                    System.Diagnostics.Trace.WriteLine(exception.Message);
+                    Trace.WriteLine(exception.Message);
                 }
             }
             else

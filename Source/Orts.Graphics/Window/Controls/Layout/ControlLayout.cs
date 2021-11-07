@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 
 using Microsoft.Xna.Framework;
@@ -12,7 +13,7 @@ namespace Orts.Graphics.Window.Controls.Layout
         public const int SeparatorSize = 5;
         public const int SeparatorPadding = 2;
 
-        public List<WindowControl> Controls { get; } = new List<WindowControl>();
+        public Collection<WindowControl> Controls { get; } = new Collection<WindowControl>();
         public int TextHeight { get; internal set; }
 
         protected ControlLayout(int x, int y, int width, int height)

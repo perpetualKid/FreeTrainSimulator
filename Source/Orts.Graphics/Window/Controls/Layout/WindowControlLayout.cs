@@ -1,8 +1,4 @@
-﻿
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-
-namespace Orts.Graphics.Window.Controls.Layout
+﻿namespace Orts.Graphics.Window.Controls.Layout
 {
     internal class WindowControlLayout : ControlLayout
     {

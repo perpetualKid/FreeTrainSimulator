@@ -85,6 +85,13 @@ namespace Orts.Graphics.Track
                 UpdateColor(setting, ColorExtension.FromName(colorPreferences[setting]));
             }
             this.viewSettings = viewSettings;
+            game.Window.ClientSizeChanged += Window_ClientSizeChanged;
+        }
+
+        private void Window_ClientSizeChanged(object sender, EventArgs e)
+        {
+            WindowSize = Game.Window.ClientBounds.Size;
+            CenterAround(new PointD((TopLeftArea.X + BottomRightArea.X) / 2, (TopLeftArea.Y + BottomRightArea.Y) / 2));
         }
 
         public void MouseMove(Point position, Vector2 delta, GameTime gameTime)
@@ -167,12 +174,6 @@ namespace Orts.Graphics.Track
                 CenterAround(new PointD(lon, lat));
             }
             supressCount = 0;
-        }
-
-        public void UpdateSize(in Point windowSize)
-        {
-            WindowSize = windowSize;
-            CenterAround(new PointD((TopLeftArea.X + BottomRightArea.X) / 2, (TopLeftArea.Y + BottomRightArea.Y) / 2));
         }
 
         public void UpdateScaleAt(in Point scaleAt, int steps)

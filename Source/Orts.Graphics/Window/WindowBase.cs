@@ -76,6 +76,8 @@ namespace Orts.Graphics.Window
 
         internal void HandleMouseDrag(Point position, Vector2 delta, KeyModifiers keyModifiers)
         {
+            _ = position;
+            _ = keyModifiers;
             location.Location += delta.ToPoint();
             xnaWorld.Translation = new Vector3(location.X, location.Y, 0);
         }
