@@ -36,7 +36,7 @@ namespace Orts.Graphics.Window
 
             spriteBatch = new SpriteBatch(GraphicsDevice);
             //TODO 20211104 needs to move to a TextureManager
-            using (FileStream stream = File.OpenRead(".\\Content\\Window.png"))
+            using (FileStream stream = File.OpenRead(".\\Content\\TitleBarWindow.png"))
             {
                 windowTexture = Texture2D.FromStream(GraphicsDevice, stream);
             }
@@ -143,12 +143,6 @@ namespace Orts.Graphics.Window
 
         public override void Draw(GameTime gameTime)
         {
-            //Matrix XNAView = Matrix.CreateTranslation(-GraphicsDevice.Viewport.Width / 2, -GraphicsDevice.Viewport.Height / 2, 0) *
-            //    Matrix.CreateTranslation(-0.5f, -0.5f, 0) *
-            //    Matrix.CreateScale(1.0f, -1.0f, 1.0f);
-            //// Project into a flat view of the same size as the viewport.
-            //Matrix XNAProjection = Matrix.CreateOrthographic(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height, 0, 1);
-
             foreach (WindowBase window in windows)
             {
                 WindowShader.SetState(null);

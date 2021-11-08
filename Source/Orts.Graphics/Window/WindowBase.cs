@@ -109,8 +109,6 @@ namespace Orts.Graphics.Window
             {
                 // Edges/corners are 32px (1/4th texture image size).
                 int gp = 32 - BaseFontSize + (int)(Owner.TextFontDefault.Height * 1.25);
-                if (gp % 32 == 0)// some odd rendering errors if exactly 32, so just slightly increase
-                    gp += 2;
                 VertexPositionTexture[] vertexData = new[] {
 					//  0  1  2  3
 					new VertexPositionTexture(new Vector3(0 * location.Width + 00, 0 * location.Height + 00, 0), new Vector2(0.00f / 2, 0.00f)),
