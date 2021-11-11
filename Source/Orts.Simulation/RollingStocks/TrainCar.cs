@@ -363,7 +363,7 @@ namespace Orts.Simulation.RollingStocks
             }
         }
 
-        public float LocalDynamicBrakePercent { get; protected set; }
+        public float LocalDynamicBrakePercent { get; protected set; } = -1;
         public float DynamicBrakePercent
         {
             get
@@ -389,6 +389,8 @@ namespace Orts.Simulation.RollingStocks
                 if (RemoteControlGroup != RemoteControlGroup.Unconnected && Train != null)
                     Train.MUDynamicBrakePercent = value;
                 else
+                    LocalDynamicBrakePercent = value;
+                if (Train != null && this == Train.LeadLocomotive)
                     LocalDynamicBrakePercent = value;
             }
         }
