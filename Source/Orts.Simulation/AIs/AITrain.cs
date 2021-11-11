@@ -4056,7 +4056,6 @@ namespace Orts.Simulation.AIs
 
         public void RequestSignalPermission(TrackCircuitPartialPathRoute selectedRoute, int routeIndex)
         {
-
             // check if signal at danger
 
             TrackCircuitRouteElement thisElement = selectedRoute[PresentPosition[Direction.Forward].RouteListIndex];

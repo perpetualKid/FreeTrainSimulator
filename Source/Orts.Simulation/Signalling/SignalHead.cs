@@ -332,12 +332,14 @@ namespace Orts.Simulation.Signalling
                 if (signalType != (int)SignalFunction.Normal || !thisSignal.SignalNormal())
                 {
                     int sigFound = thisSignal.SONextSignal(signalType);
-                    if (sigFound >= 0) thisSignal.Signalfound[(int)signalType] = thisSignal.SONextSignal(signalType);
+                    if (sigFound >= 0)
+                        thisSignal.Signalfound[(int)signalType] = thisSignal.SONextSignal(signalType);
                 }
                 if (signalTypeOther != (int)SignalFunction.Normal || !thisSignal.SignalNormal())
                 {
                     int sigFound = thisSignal.SONextSignal(signalTypeOther);
-                    if (sigFound >= 0) thisSignal.Signalfound[(int)signalTypeOther] = thisSignal.SONextSignal(signalTypeOther);
+                    if (sigFound >= 0)
+                        thisSignal.Signalfound[(int)signalTypeOther] = thisSignal.SONextSignal(signalTypeOther);
                 }
 
                 if (sig2Index == thisSignal.Index) // this signal also contains type 2 signal and is therefor valid
@@ -447,22 +449,53 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         ///  Sets the state to the most restrictive aspect for this head.
         /// </summary>
-        public void SetMostRestrictiveAspect()
+        public void RequestMostRestrictiveAspect()
         {
-            SignalIndicationState = SignalType?.GetMostRestrictiveAspect() ?? SignalAspectState.Stop;
-            DrawState = DefaultDrawState(SignalIndicationState);
-            TextSignalAspect = string.Empty;
+            if (csSignalScript != null)
+            {
+                csSignalScript.HandleEvent(SignalEvent.RequestMostRestrictiveAspect);
+                csSignalScript.Update();
+            }
+            else
+            {
+                SignalIndicationState = SignalType?.GetMostRestrictiveAspect() ?? SignalAspectState.Stop;
+                DrawState = DefaultDrawState(SignalIndicationState);
+            }
+        }
+
+        public void RequestApproachAspect()
+        {
+            if (csSignalScript != null)
+            {
+                csSignalScript.HandleEvent(SignalEvent.RequestApproachAspect);
+                csSignalScript.Update();
+            }
+            else
+            {
+                int drawState1 = DefaultDrawState(SignalAspectState.Approach_1);
+                int drawState2 = DefaultDrawState(SignalAspectState.Approach_2);
+
+                SignalIndicationState = drawState1 > 0 ? SignalAspectState.Approach_1 : drawState2 > 0 ? SignalAspectState.Approach_2 : SignalAspectState.Approach_3;
+                DrawState = DefaultDrawState(SignalIndicationState);
+            }
         }
 
         //================================================================================================//
         /// <summary>
         ///  Sets the state to the least restrictive aspect for this head.
         /// </summary>
-        public void SetLeastRestrictiveAspect()
+        public void RequestLeastRestrictiveAspect()
         {
-            SignalIndicationState = SignalType?.GetLeastRestrictiveAspect() ?? SignalAspectState.Clear_2;
-            DefaultDrawState(SignalIndicationState);
-            TextSignalAspect = string.Empty;
+            if (csSignalScript != null)
+            {
+                csSignalScript.HandleEvent(SignalEvent.RequestLeastRestrictiveAspect);
+                csSignalScript.Update();
+            }
+            else
+            {
+                SignalIndicationState = SignalType?.GetLeastRestrictiveAspect() ?? SignalAspectState.Clear_2;
+                DefaultDrawState(SignalIndicationState);
+            }
         }
 
         //================================================================================================//
@@ -483,7 +516,8 @@ namespace Orts.Simulation.Signalling
                 if (!(node is TrackJunctionNode) && node.TrackPins != null && (int)MainSignal.TrackCircuitDirection < node.TrackPins.Length)
                 {
                     node = RuntimeData.Instance.TrackDB.TrackNodes[node.TrackPins[(int)MainSignal.TrackCircuitDirection].Link];
-                    if (!(node is TrackJunctionNode junctionNode)) return 0;
+                    if (!(node is TrackJunctionNode junctionNode))
+                        return 0;
                     for (int pin = junctionNode.InPins; pin < junctionNode.InPins + junctionNode.OutPins; pin++)
                     {
                         if (junctionNode.TrackPins[pin].Link == MainSignal.TrackNode && pin - junctionNode.InPins != junctionNode.SelectedRoute)

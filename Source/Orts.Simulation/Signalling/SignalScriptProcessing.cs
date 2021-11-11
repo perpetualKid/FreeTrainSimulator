@@ -66,11 +66,11 @@ namespace Orts.Simulation.Signalling
         {
             if (head.MainSignal.BlockState() == SignalBlockState.Clear)
             {
-                head.SetLeastRestrictiveAspect();
+                head.RequestLeastRestrictiveAspect();
             }
             else
             {
-                head.SetMostRestrictiveAspect();
+                head.RequestMostRestrictiveAspect();
             }
         }
 

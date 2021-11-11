@@ -39,4 +39,10 @@
         //PLEASE DO NOT CHANGE THE ORDER OF THESE ENUMS
     }
 
+    public enum SignalEvent
+    {
+        RequestMostRestrictiveAspect,
+        RequestApproachAspect,
+        RequestLeastRestrictiveAspect,
+    }
 }

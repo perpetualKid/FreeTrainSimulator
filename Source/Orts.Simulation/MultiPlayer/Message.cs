@@ -3617,6 +3617,7 @@ namespace Orts.Simulation.MultiPlayer
         private int index;
         private int pick;
         private string sender;
+
         //constructor to create a message from signal data
         public MSGSignalChange(Signal signal, int p)
         {
@@ -3646,35 +3647,19 @@ namespace Orts.Simulation.MultiPlayer
                 case 0:
                     signal.HoldState = SignalHoldState.None;
                     break;
+
                 case 1:
                     signal.HoldState = SignalHoldState.ManualLock;
                     break;
+
                 case 2:
-                    signal.HoldState = SignalHoldState.ManualApproach;
-                    foreach (var sigHead in signal.SignalHeads)
-                    {
-                        var drawstate1 = sigHead.DefaultDrawState(SignalAspectState.Approach_1);
-                        var drawstate2 = sigHead.DefaultDrawState(SignalAspectState.Approach_2);
-                        var drawstate3 = sigHead.DefaultDrawState(SignalAspectState.Approach_3);
-                        if (drawstate1 > 0)
-                        { sigHead.SignalIndicationState = SignalAspectState.Approach_1; }
-                        else if (drawstate2 > 0)
-                        { sigHead.SignalIndicationState = SignalAspectState.Approach_2; }
-                        else
-                        { sigHead.SignalIndicationState = SignalAspectState.Approach_3; }
-                        sigHead.DrawState = sigHead.DefaultDrawState(sigHead.SignalIndicationState);
-                        // Clear the text aspect so as not to leave C# scripted signals in an inconsistent state.
-                        sigHead.TextSignalAspect = "";
-                    }
+                    signal.RequestApproachAspect();
                     break;
+
                 case 3:
-                    signal.HoldState = SignalHoldState.ManualPass;
-                    foreach (var sigHead in signal.SignalHeads)
-                    {
-                        sigHead.SetLeastRestrictiveAspect();
-                        sigHead.DrawState = sigHead.DefaultDrawState(sigHead.SignalIndicationState);
-                    }
+                    signal.RequestLeastRestrictiveAspect();
                     break;
+
                 case 4:
                     signal.SetManualCallOn(true);
                     break;

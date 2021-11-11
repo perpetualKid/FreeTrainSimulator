@@ -8,6 +8,7 @@ using Orts.Scripting.Api;
 namespace Orts.Simulation.Signalling
 {
     // TODO 20210506 this should be in Orts.Scripting really! Would need deep refactoring though
+
     // The exchange of information is done through the TextSignalAspect property.
     // The MSTS signal aspect is only used for TCS scripts that do not support TextSignalAspect..
     public abstract class CsSignalScript : ScriptBase
@@ -62,6 +63,10 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         public bool RouteSet => signalHead.VerifyRouteSet() > 0;
 
+        /// <summary>
+        /// Hold state of the signal
+        /// </summary>
+        public SignalHoldState HoldState => SignalObject.HoldState;
         /// <summary>
         /// Set this variable to true to allow clear to partial route
         /// </summary>
@@ -386,5 +391,10 @@ namespace Orts.Simulation.Signalling
         /// <param name="message">Message sent to signal</param>
         /// <returns></returns>
         public virtual void HandleSignalMessage(int signalId, string message) { }
+        /// <summary>
+        /// Called when the simulator
+        /// </summary>
+        /// <param name="evt"></param>
+        public virtual void HandleEvent(SignalEvent evt, string message = "") { }
     }
 }
