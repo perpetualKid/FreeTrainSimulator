@@ -8,6 +8,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Orts.Common;
 using Orts.Common.Info;
 using Orts.Common.Input;
+using Orts.TrackViewer.PopupWindows;
 
 namespace Orts.TrackViewer
 {
@@ -28,17 +29,30 @@ namespace Orts.TrackViewer
             ExitApplication();
         }
 
-        internal bool ExitApplication()
+        internal void ExitApplication()
         {
-            if (MessageBox.Show(Catalog.GetString($"Do you want to quit {RuntimeInfo.ApplicationName} now?"), Catalog.GetString("Quit"), MessageBoxButtons.OKCancel) == DialogResult.OK)
+            if ((windowManager[WindowType.QuitWindow] is QuitWindow quitWindow) && quitWindow.Open())
             {
-                SaveSettings();
-                if (null != ctsRouteLoading && !ctsRouteLoading.IsCancellationRequested)
-                    ctsRouteLoading.Cancel();
-                Exit();
-                return true;
+                quitWindow.OnQuitGame += QuitWindow_OnQuitGame;
+                quitWindow.OnWindowClosed += QuitWindow_OnWindowClosed;
             }
-            return false;
+        }
+
+        private void QuitWindow_OnWindowClosed(object sender, EventArgs e)
+        {
+            if (sender is QuitWindow quitWindow)
+            {
+                quitWindow.OnQuitGame -= QuitWindow_OnQuitGame;
+                quitWindow.OnWindowClosed -= QuitWindow_OnWindowClosed;
+            }
+        }
+
+        private void QuitWindow_OnQuitGame(object sender, EventArgs e)
+        {
+            if (null != ctsRouteLoading && !ctsRouteLoading.IsCancellationRequested)
+                ctsRouteLoading.Cancel();
+            SaveSettings();
+            Exit();
         }
 
         public void MouseDragging(UserCommandArgs userCommandArgs)

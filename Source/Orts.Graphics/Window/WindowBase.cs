@@ -7,6 +7,8 @@ using Orts.Common.Input;
 using Orts.Graphics.Window.Controls;
 using Orts.Graphics.Window.Controls.Layout;
 
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+
 namespace Orts.Graphics.Window
 {
     public abstract class WindowBase : IDisposable
@@ -16,7 +18,6 @@ namespace Orts.Graphics.Window
         private bool disposedValue;
         private protected Rectangle location;
         private Matrix xnaWorld;
-        private readonly string caption;
         private ControlLayout windowLayout;
         private VertexBuffer windowVertexBuffer;
         private IndexBuffer windowIndexBuffer;
@@ -25,17 +26,35 @@ namespace Orts.Graphics.Window
 
         public ref readonly Rectangle Borders => ref location;
 
-        protected WindowBase(WindowManager owner, string caption)
+        public string Caption { get; }
+
+        public event EventHandler OnWindowClosed;
+
+        public virtual bool Modal => false;
+
+        protected WindowBase(WindowManager owner, string caption, Point position, Point size)
         {
             Owner = owner ?? throw new ArgumentNullException(nameof(owner));
-
-            location = new Rectangle(100, 100, 200, 100);//TODO 20211030 Load settings or apply default settings
-            this.caption = caption;
+            position = new Point((owner.Game.Window.ClientBounds.Width - size.X) / 2, (owner.Game.Window.ClientBounds.Height - size.Y) / 2);
+            location = new Rectangle(position, size);// (100, 100, 200, 100);//TODO 20211030 Load settings or apply default settings
+            Caption = caption;
+            Resize();
         }
 
         internal protected virtual void Initialize()
         {
             Resize();
+        }
+
+        public virtual bool Open()
+        {
+            return Owner.AddWindow(this);
+        }
+
+        public virtual void Close()
+        {
+            OnWindowClosed?.Invoke(this, EventArgs.Empty);
+            Owner.CloseWindow(this);
         }
 
         internal void RenderWindow()
@@ -82,6 +101,11 @@ namespace Orts.Graphics.Window
             xnaWorld.Translation = new Vector3(location.X, location.Y, 0);
         }
 
+        internal void HandleMouseClick(Point position, KeyModifiers keyModifiers)
+        {
+            windowLayout.HandleMouseClicked(new WindowMouseEvent(this, position, true, keyModifiers));
+        }
+
         internal protected void Layout()
         {
             WindowControlLayout windowLayout = new WindowControlLayout(this, location.Width, location.Height);
@@ -96,11 +120,9 @@ namespace Orts.Graphics.Window
         protected virtual ControlLayout Layout(ControlLayout layout)
         {
             // Pad window by 4px, add caption and space between to content area.
-            ControlLayoutVertical content = layout?.AddLayoutOffset(4, 4, 4, 4).AddLayoutVertical() ?? throw new ArgumentNullException(nameof(layout));
-            content.Add(new Label(content.RemainingWidth, 18, caption, LabelAlignment.Left));
-            content.Add(new Spacer(0, 32));
-            content.Add(new Label(content.RemainingWidth, 24, caption, LabelAlignment.Right));
-            return content;
+            layout = layout?.AddLayoutOffset(4, 4, 4, 4).AddLayoutVertical() ?? throw new ArgumentNullException(nameof(layout));
+            layout.Add(new Label(layout.RemainingWidth, 18, Caption, LabelAlignment.Center));
+            return layout;
         }
 
         private void InitializeBuffers()
@@ -173,13 +195,19 @@ namespace Orts.Graphics.Window
         #endregion
     }
 
+    //TODO 20211112 remove
     public class TestWindow : WindowBase
     {
         public TestWindow(WindowManager owner, Point location, string caption) :
-            base(owner, caption)
+            base(owner, caption, location, new Point(100, 200))
         {
-            this.location.Location = location;
-            SizeChanged();
         }
+        public static void AddForms(WindowManager manager)
+        {
+            manager.AddWindow(new TestWindow(manager, new Point(100, 100), "Test"));
+            manager.AddWindow(new TestWindow(manager, new Point(200, 150), "Another Test"));
+        }
+
+
     }
 }

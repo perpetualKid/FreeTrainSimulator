@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 
@@ -49,12 +48,12 @@ namespace Orts.Graphics.Window.Controls.Layout
             InternalAdd(control);
         }
 
-        /*
         public void AddSpace(int width, int height)
         {
             Add(new Spacer(width, height));
         }
 
+        /*
         public void AddHorizontalSeparator()
         {
             Add(new Separator(RemainingWidth, SeparatorSize, SeparatorPadding));
@@ -121,12 +120,12 @@ namespace Orts.Graphics.Window.Controls.Layout
                 control.Draw(spriteBatch, offset);
         }
 
-        internal override bool HandleMousePressed(WindowMouseEvent e)
+        internal override bool HandleMouseClicked(WindowMouseEvent e)
         {
             foreach (WindowControl control in Controls.Where(c => c.Position.Contains(e.MousePosition)))
-                if (control.HandleMousePressed(e))
+                if (control.HandleMouseClicked(e))
                     return true;
-            return base.HandleMousePressed(e);
+            return base.HandleMouseClicked(e);
         }
 
         internal override bool HandleMouseDown(WindowMouseEvent e)
@@ -166,6 +165,13 @@ namespace Orts.Graphics.Window.Controls.Layout
             foreach (WindowControl control in Controls)
                 control.MoveBy(x, y);
             base.MoveBy(x, y);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            foreach (WindowControl control in Controls)
+                control.Dispose();
+            base.Dispose(disposing);
         }
     }
 }

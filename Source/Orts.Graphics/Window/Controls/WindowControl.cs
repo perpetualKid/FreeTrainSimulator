@@ -27,14 +27,14 @@ namespace Orts.Graphics.Window.Controls
 
         internal abstract void Draw(SpriteBatch spriteBatch, Point offset);
 
-        internal virtual bool HandleMousePressed(WindowMouseEvent e)
+        internal virtual bool HandleMouseClicked(WindowMouseEvent e)
         {
+            MouseClick(e);
             return false;
         }
 
         internal virtual bool HandleMouseReleased(WindowMouseEvent e)
         {
-            MouseClick(e);
             return false;
         }
 

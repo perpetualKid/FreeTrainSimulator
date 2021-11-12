@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
+using Orts.Common;
 using Orts.Common.Input;
 using Orts.Graphics.Shaders;
 
@@ -13,7 +15,10 @@ namespace Orts.Graphics.Window
 {
     public class WindowManager : DrawableGameComponent
     {
+        [ThreadStatic]
+        private static WindowManager instance;
         private readonly List<WindowBase> windows = new List<WindowBase>();
+        private WindowBase modalWindow; // if modalWindow is set, no other Window can be activated or interacted with
 
         internal Texture2D windowTexture;
         private WindowBase mouseActiveWindow;
@@ -27,7 +32,7 @@ namespace Orts.Graphics.Window
 
         public System.Drawing.Font TextFontDefault { get; }
 
-        private WindowManager(Game game) :
+        private protected WindowManager(Game game) :
             base(game)
         {
             MaterialManager.Initialize(game.GraphicsDevice);
@@ -51,6 +56,31 @@ namespace Orts.Graphics.Window
             UpdateSize();
         }
 
+        public static WindowManager GetInstance<T>(Game game, UserCommandController<T> userCommandController) where T : Enum
+        {
+            if (null == game)
+                throw new ArgumentNullException(nameof(game));
+
+            if (null == instance)
+            {
+                instance = new WindowManager(game);
+                instance.AddUserCommandEvents(userCommandController);
+            }
+            return instance;
+        }
+
+        protected void AddUserCommandEvents<T>(UserCommandController<T> userCommandController) where T : Enum
+        {
+            if (null == userCommandController)
+                throw new ArgumentNullException(nameof(userCommandController));
+
+            userCommandController.AddEvent(CommonUserCommand.PointerPressed, MousePressedEvent);
+            userCommandController.AddEvent(CommonUserCommand.PointerDown, MouseDownEvent);
+            userCommandController.AddEvent(CommonUserCommand.PointerReleased, MouseReleasedEvent);
+            userCommandController.AddEvent(CommonUserCommand.PointerDragged, MouseDraggingEvent);
+            userCommandController.AddEvent(CommonUserCommand.VerticalScrollChanged, WindowScrollEvent);
+        }
+
         private void Window_ClientSizeChanged(object sender, EventArgs e)
         {
             UpdateSize();
@@ -65,26 +95,31 @@ namespace Orts.Graphics.Window
             xnaProjection = Matrix.CreateOrthographic(Game.GraphicsDevice.Viewport.Width, Game.GraphicsDevice.Viewport.Height, 0, 1);
         }
 
-        public void AddForms()
+        internal bool AddWindow(WindowBase window)
         {
-            windows.Add(new TestWindow(this, new Point(100, 100), "Test"));
-            windows.Add(new TestWindow(this, new Point(200, 150), "Another Test"));
+            if (!WindowOpen(window))
+            {
+                windows.Add(window);
+                if (window.Modal)
+                    modalWindow = window;
+                return true;
+            }
+            return false;
         }
 
-        public static WindowManager GetInstance<T>(Game game, UserCommandController<T> userCommandController) where T : Enum
+        internal bool WindowOpen(WindowBase window)
         {
-            if (null == userCommandController)
-                throw new ArgumentNullException(nameof(userCommandController));
-            if (null == game)
-                throw new ArgumentNullException(nameof(game));
+            return windows.IndexOf(window) > -1;
+        }
 
-            WindowManager instance = new WindowManager(game);
-            userCommandController.AddEvent(CommonUserCommand.PointerPressed, instance.MouseClickedEvent);
-            userCommandController.AddEvent(CommonUserCommand.PointerDown, instance.MouseDownEvent);
-            userCommandController.AddEvent(CommonUserCommand.PointerReleased, instance.MouseReleasedEvent);
-            userCommandController.AddEvent(CommonUserCommand.PointerDragged, instance.MouseDraggingEvent);
-            userCommandController.AddEvent(CommonUserCommand.VerticalScrollChanged, instance.WindowScrollEvent);
-            return instance;
+        internal WindowBase FindWindow(string caption)
+        {
+            return windows.Where(w => w.Caption == caption).FirstOrDefault();
+        }
+
+        internal bool CloseWindow(WindowBase window)
+        {
+            return windows.Remove(window);
         }
 
         private void WindowScrollEvent(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)
@@ -95,41 +130,59 @@ namespace Orts.Graphics.Window
         {
             if (userCommandArgs is PointerMoveCommandArgs moveCommandArgs)
             {
-                if (mouseActiveWindow != null)
+                if (modalWindow != null && modalWindow != mouseActiveWindow)
+                {
+                    userCommandArgs.Handled = true;
+                }
+                else if (mouseActiveWindow != null)
                 {
                     userCommandArgs.Handled = true;
                     mouseActiveWindow.HandleMouseDrag(moveCommandArgs.Position, moveCommandArgs.Delta, keyModifiers);
                 }
                 else if (windows.LastOrDefault(w => w.Borders.Contains(moveCommandArgs.Position)) != null)
-                        userCommandArgs.Handled = true;
+                    userCommandArgs.Handled = true;
             }
         }
 
         private void MouseReleasedEvent(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)
         {
+            if (userCommandArgs is PointerCommandArgs pointerCommandArgs)
+            {
+                if (modalWindow != null && mouseActiveWindow != modalWindow)
+                {
+                    userCommandArgs.Handled = true;
+                }
+                else if (mouseActiveWindow != null)
+                {
+                    userCommandArgs.Handled = true;
+                    mouseActiveWindow.HandleMouseClick(pointerCommandArgs.Position, keyModifiers);
+                }
+            }
         }
 
         private void MouseDownEvent(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)
         {
         }
 
-        private void MouseClickedEvent(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)
+        private void MousePressedEvent(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)
         {
             if (userCommandArgs is PointerCommandArgs pointerCommandArgs)
             {
                 Point mouseDownPosition = pointerCommandArgs.Position;
                 mouseActiveWindow = windows.LastOrDefault(w => w.Borders.Contains(pointerCommandArgs.Position));
-                if (mouseActiveWindow != null)
+                if (modalWindow != null && mouseActiveWindow != modalWindow)
+                {
+                    userCommandArgs.Handled = true;
+                }
+                else if (mouseActiveWindow != null)
                 {
                     userCommandArgs.Handled = true;
                     if (mouseActiveWindow != windows.Last())
                         if (windows.Remove(mouseActiveWindow))
                             windows.Add(mouseActiveWindow);
-
-                    //                mouseActiveWindow?.MousePressed(pointerCommandArgs.Position, keyModifiers);
                 }
             }
-}
+        }
 
         public override void Initialize()
         {
@@ -156,6 +209,44 @@ namespace Orts.Graphics.Window
         public override void Update(GameTime gameTime)
         {
             base.Update(gameTime);
+        }
+    }
+
+    public sealed class WindowManager<TWindowType> : WindowManager where TWindowType : Enum
+    {
+        private readonly EnumArray<WindowBase, TWindowType> windows = new EnumArray<WindowBase, TWindowType>();
+
+        [ThreadStatic]
+        private static WindowManager<TWindowType> instance;
+
+        private WindowManager(Game game) :
+            base(game)
+        {
+
+        }
+
+        public static new WindowManager<TWindowType> GetInstance<T>(Game game, UserCommandController<T> userCommandController) where T : Enum
+        {
+            if (instance == null)
+            {
+                instance = new WindowManager<TWindowType>(game);
+                instance.AddUserCommandEvents(userCommandController);
+            }
+            return instance;
+        }
+
+        public void Initialize(EnumArray<Type, TWindowType> windows)
+        {
+            foreach(TWindowType windowType in EnumExtension.GetValues<TWindowType>())
+            {
+                object o = Activator.CreateInstance(windows[windowType], this);
+                this.windows[windowType] = o as WindowBase;
+            }
+        }
+
+        public WindowBase this[TWindowType window]
+        {
+            get { return windows[window]; }
         }
     }
 }

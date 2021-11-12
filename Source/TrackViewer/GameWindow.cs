@@ -28,6 +28,7 @@ using Orts.Graphics.Xna;
 
 using UserCommand = Orts.TrackViewer.Control.UserCommand;
 using Orts.Graphics.Window;
+using Orts.TrackViewer.PopupWindows;
 
 namespace Orts.TrackViewer
 {
@@ -49,6 +50,7 @@ namespace Orts.TrackViewer
 
         private readonly Action onClientSizeChanged;
 
+        private WindowManager<WindowType> windowManager;
         private ContentArea contentArea;
 
         internal ContentArea ContentArea
@@ -153,8 +155,8 @@ namespace Orts.TrackViewer
 
         private void WindowForm_FormClosing(object sender, System.Windows.Forms.FormClosingEventArgs e)
         {
-            if (!ExitApplication())
-                e.Cancel = true;
+            e.Cancel = true;
+            ExitApplication();
         }
 
         #region window size/position handling
@@ -389,8 +391,10 @@ namespace Orts.TrackViewer
             userCommandController.AddEvent(CommonUserCommand.PointerDragged, MouseDragging);
             userCommandController.AddEvent(CommonUserCommand.VerticalScrollChanged, MouseWheel);
 
-            UserCommandController<UserCommand> windowCommandController = userCommandController.TopLayerControllerAdd();
-            windowManager = WindowManager.GetInstance(this, windowCommandController);
+            windowManager = WindowManager<WindowType>.GetInstance(this, userCommandController.TopLayerControllerAdd());
+            EnumArray<Type, WindowType> windowTypes = new EnumArray<Type, WindowType>();
+            windowTypes[WindowType.QuitWindow] = typeof(QuitWindow);
+            windowManager.Initialize(windowTypes);
             Components.Add(windowManager);
             base.Initialize();
 
@@ -415,7 +419,7 @@ namespace Orts.TrackViewer
             Components.Add(scaleRuler);
             Components.Add(new InsetComponent(this, BackgroundColor, new Vector2(-10, 30)));
             Components.Add(new WorldCoordinatesComponent(this, new System.Drawing.Font(System.Drawing.FontFamily.GenericSansSerif, 20, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel), Color.Blue, new Vector2(40, 40)));
-            windowManager.AddForms();
+            //TestWindow.AddForms(windowManager);
         }
 
         protected override void Update(GameTime gameTime)
@@ -426,7 +430,6 @@ namespace Orts.TrackViewer
 
         private System.Drawing.Font drawfont = new System.Drawing.Font("Segoe UI", (int)Math.Round(25.0), System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
         private int drawTime;
-        private WindowManager windowManager ;
 
         public bool InputCaptured { get; internal set; }
 

@@ -10,6 +10,7 @@ namespace Orts.Graphics.Shaders
 {
     public class MaterialManager
     {
+        [ThreadStatic]
         private static MaterialManager instance;
 
         public EnumArray<EffectShader, ShaderEffect> EffectShaders { get; } = new EnumArray<EffectShader, ShaderEffect>();
