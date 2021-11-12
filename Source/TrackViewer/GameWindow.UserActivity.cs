@@ -19,6 +19,8 @@ namespace Orts.TrackViewer
         private static readonly Vector2 moveUp = new Vector2(0, 1);
         private static readonly Vector2 moveDown = new Vector2(0, -1);
 
+        private const int zoomAmplifier = 3;
+
         public void ChangeScreenMode()
         {
             SetScreenMode(currentScreenMode.Next());
@@ -91,9 +93,9 @@ namespace Orts.TrackViewer
             contentArea?.UpdatePosition(moveDown * MovementAmplifier(commandArgs));
         }
 
-        private static float MovementAmplifier(UserCommandArgs commandArgs)
+        private static int MovementAmplifier(UserCommandArgs commandArgs)
         {
-            float amplifier = 5;
+            int amplifier = 5;
             if (commandArgs is ModifiableKeyCommandArgs modifiableKeyCommand)
             {
                 if ((modifiableKeyCommand.AdditionalModifiers & KeyModifiers.Control) == KeyModifiers.Control)
@@ -106,7 +108,7 @@ namespace Orts.TrackViewer
 
         private static int ZoomAmplifier(KeyModifiers modifiers)
         {
-            int amplifier = 3;
+            int amplifier = zoomAmplifier;
             if ((modifiers & KeyModifiers.Control) == KeyModifiers.Control)
                 amplifier = 1;
             else if ((modifiers & KeyModifiers.Shift) == KeyModifiers.Shift)
@@ -116,15 +118,7 @@ namespace Orts.TrackViewer
 
         private static int ZoomAmplifier(UserCommandArgs commandArgs)
         {
-            int amplifier = 3;
-            if (commandArgs is ModifiableKeyCommandArgs modifiableKeyCommand)
-            {
-                if ((modifiableKeyCommand.AdditionalModifiers & KeyModifiers.Control) == KeyModifiers.Control)
-                    amplifier = 1;
-                else if ((modifiableKeyCommand.AdditionalModifiers & KeyModifiers.Shift) == KeyModifiers.Shift)
-                    amplifier = 5;
-            }
-            return amplifier;
+            return commandArgs is ModifiableKeyCommandArgs modifiableKeyCommand ? ZoomAmplifier(modifiableKeyCommand.AdditionalModifiers) : zoomAmplifier;
         }
 
         private void ZoomIn(UserCommandArgs commandArgs)

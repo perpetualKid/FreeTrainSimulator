@@ -548,6 +548,7 @@ namespace Orts.ActivityRunner.Viewer3D
         private readonly EffectParameter glassColor;
         private readonly EffectParameter screenSize;
         private readonly EffectParameter screenTexture;
+        private readonly EffectParameter opacity;
 
         public Texture2D Screen
         {
@@ -562,6 +563,7 @@ namespace Orts.ActivityRunner.Viewer3D
         }
 
         public Color GlassColor { set { glassColor.SetValue(new Vector3(value.R / 255f, value.G / 255f, value.B / 255f)); } }
+        public float Opacity { set { opacity.SetValue(value); } }
 
         public void SetMatrix(in Matrix w, ref Matrix wvp)
         {
@@ -577,6 +579,7 @@ namespace Orts.ActivityRunner.Viewer3D
             glassColor = Parameters["GlassColor"];
             screenSize = Parameters["ScreenSize"];
             screenTexture = Parameters["ScreenTexture"];
+            opacity = Parameters["Opacity"];
             // TODO: This should happen on the loader thread.
             Parameters["WindowTexture"].SetValue(SharedTextureManager.Get(graphicsDevice, System.IO.Path.Combine(viewer.ContentPath, "Window.png")));
         }
