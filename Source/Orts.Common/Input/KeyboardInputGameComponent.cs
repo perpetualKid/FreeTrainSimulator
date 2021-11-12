@@ -19,7 +19,6 @@ namespace Orts.Common.Input
         private KeyModifiers previousModifiers;
         private KeyModifiers currentModifiers;
         private Keys[] previousKeys = Array.Empty<Keys>();
-        private readonly Dictionary<int, KeyEvent> keyEvents = new Dictionary<int, KeyEvent>();
 
         private readonly IInputCapture inputCapture;
 
@@ -52,22 +51,6 @@ namespace Orts.Common.Input
         public void AddInputHandler(Action<int, GameTime, KeyEventType, KeyModifiers> inputAction)
         {
             inputActionHandler += inputAction;
-        }
-
-        public void AddKeyEvent(Keys key, KeyModifiers modifiers, KeyEventType keyEventType, KeyEvent eventHandler)
-        {
-            int lookupCode = KeyEventCode(key, modifiers, keyEventType);
-            if (keyEvents.ContainsKey(lookupCode))
-                keyEvents[lookupCode] += eventHandler;
-            else
-                keyEvents[lookupCode] = eventHandler;
-        }
-
-        public void RemoveKeyEvent(Keys key, KeyModifiers modifiers, KeyEventType keyEventType, KeyEvent eventHandler)
-        {
-            int lookupCode = KeyEventCode(key, modifiers, keyEventType);
-            if (keyEvents.ContainsKey(lookupCode))
-                keyEvents[lookupCode] -= eventHandler;
         }
 
         public override void Update(GameTime gameTime)
