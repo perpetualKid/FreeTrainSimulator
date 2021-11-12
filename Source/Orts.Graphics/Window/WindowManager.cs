@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -31,6 +30,9 @@ namespace Orts.Graphics.Window
         internal readonly PopupWindowShader WindowShader;
 
         public System.Drawing.Font TextFontDefault { get; }
+
+        //publish some events to allow interaction between XNA WindowManager and outside Window world
+        public event EventHandler<bool> OnModalWindow;
 
         private protected WindowManager(Game game) :
             base(game)
@@ -74,11 +76,22 @@ namespace Orts.Graphics.Window
             if (null == userCommandController)
                 throw new ArgumentNullException(nameof(userCommandController));
 
+            Game.Components.OfType<KeyboardInputGameComponent>().Single().AddInputHandler(EscapeKey);
             userCommandController.AddEvent(CommonUserCommand.PointerPressed, MousePressedEvent);
             userCommandController.AddEvent(CommonUserCommand.PointerDown, MouseDownEvent);
             userCommandController.AddEvent(CommonUserCommand.PointerReleased, MouseReleasedEvent);
             userCommandController.AddEvent(CommonUserCommand.PointerDragged, MouseDraggingEvent);
             userCommandController.AddEvent(CommonUserCommand.VerticalScrollChanged, WindowScrollEvent);
+        }
+
+        private static readonly int escapeKeyCode = KeyboardInputGameComponent.KeyEventCode(Microsoft.Xna.Framework.Input.Keys.Escape, KeyModifiers.None, KeyEventType.KeyPressed);
+
+        private void EscapeKey(int eventCode, GameTime gameTime, KeyEventType eventType, KeyModifiers modifiers)
+        {
+            if (modalWindow != null && eventCode == escapeKeyCode)
+            {
+                CloseWindow(modalWindow);
+            }
         }
 
         private void Window_ClientSizeChanged(object sender, EventArgs e)
@@ -101,7 +114,10 @@ namespace Orts.Graphics.Window
             {
                 windows.Add(window);
                 if (window.Modal)
+                {
                     modalWindow = window;
+                    OnModalWindow?.Invoke(this, true);
+                }
                 return true;
             }
             return false;
@@ -119,6 +135,11 @@ namespace Orts.Graphics.Window
 
         internal bool CloseWindow(WindowBase window)
         {
+            if (window == modalWindow)
+            {
+                modalWindow = null;
+                OnModalWindow?.Invoke(this, false);
+            }
             return windows.Remove(window);
         }
 

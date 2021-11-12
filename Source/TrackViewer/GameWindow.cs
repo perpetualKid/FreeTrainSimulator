@@ -395,6 +395,7 @@ namespace Orts.TrackViewer
             EnumArray<Type, WindowType> windowTypes = new EnumArray<Type, WindowType>();
             windowTypes[WindowType.QuitWindow] = typeof(QuitWindow);
             windowManager.Initialize(windowTypes);
+            windowManager.OnModalWindow += WindowManager_OnModalWindow;
             Components.Add(windowManager);
             base.Initialize();
 
@@ -402,6 +403,12 @@ namespace Orts.TrackViewer
             await PreSelectRoute(Settings.RouteSelection).ConfigureAwait(false);
             ContentArea?.PresetPosition(Settings.LastLocation);
         }
+
+        private void WindowManager_OnModalWindow(object sender, bool e)
+        {
+            mainmenu.Enabled = !e;
+        }
+
         private static void GameWindowThread(object data)
         {
             using (GameWindow game = new GameWindow())
