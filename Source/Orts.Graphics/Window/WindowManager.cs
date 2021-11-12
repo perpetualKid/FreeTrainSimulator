@@ -34,9 +34,14 @@ namespace Orts.Graphics.Window
         //publish some events to allow interaction between XNA WindowManager and outside Window world
         public event EventHandler<bool> OnModalWindow;
 
+        public static Texture2D WhiteTexture;
+
         private protected WindowManager(Game game) :
             base(game)
         {
+            WhiteTexture = new Texture2D(game.GraphicsDevice, 1, 1, false, SurfaceFormat.Color);
+            WhiteTexture.SetData(new[] { Color.White });
+
             MaterialManager.Initialize(game.GraphicsDevice);
             game.Window.ClientSizeChanged += Window_ClientSizeChanged;
             DrawOrder = 100;
@@ -222,7 +227,9 @@ namespace Orts.Graphics.Window
                 WindowShader.SetState(null);
                 window.RenderWindow();
                 WindowShader.ResetState();
+                spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.NonPremultiplied, null, null, null, null);
                 window.DrawContent(spriteBatch);
+                spriteBatch.End();
             }
             base.Draw(gameTime);
         }

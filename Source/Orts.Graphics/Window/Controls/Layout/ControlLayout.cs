@@ -53,7 +53,7 @@ namespace Orts.Graphics.Window.Controls.Layout
             Add(new Spacer(width, height));
         }
 
-        /*
+
         public void AddHorizontalSeparator()
         {
             Add(new Separator(RemainingWidth, SeparatorSize, SeparatorPadding));
@@ -63,7 +63,7 @@ namespace Orts.Graphics.Window.Controls.Layout
         {
             Add(new Separator(SeparatorSize, RemainingHeight, SeparatorPadding));
         }
-        */
+
         public ControlLayoutOffset AddLayoutOffset(int left, int top, int right, int bottom)
         {
             return InternalAdd(new ControlLayoutOffset(RemainingWidth, RemainingHeight, left, top, right, bottom));

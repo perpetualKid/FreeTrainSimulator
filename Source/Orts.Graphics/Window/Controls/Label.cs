@@ -62,9 +62,7 @@ namespace Orts.Graphics.Window.Controls
 
         internal override void Draw(SpriteBatch spriteBatch, Point offset)
         {
-            spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.NonPremultiplied, null, null, null, null);
             spriteBatch.Draw(texture, (Position.Location + offset + alignmentOffset).ToVector2(), null, Color.White, 0, Vector2.Zero, Vector2.One, SpriteEffects.None, 0);
-            spriteBatch.End();
         }
 
         protected override void Dispose(bool disposing)

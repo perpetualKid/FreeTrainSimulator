@@ -30,11 +30,12 @@ namespace Orts.TrackViewer.PopupWindows
             if (null == layout)
                 throw new ArgumentNullException(nameof(layout));
 
-            quitButton = new Label(layout.RemainingWidth, 24, "Quit", LabelAlignment.Center);
+            quitButton = new Label(layout.RemainingWidth, 24, Caption, LabelAlignment.Left);
             quitButton.OnClick += QuitButton_OnClick;
             layout = base.Layout(layout);
             layout.AddSpace(0, 12);
             layout.Add(quitButton);
+            layout.AddHorizontalSeparator();
             return layout;
         }
 
