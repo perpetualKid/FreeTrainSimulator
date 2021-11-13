@@ -4659,7 +4659,7 @@ namespace Orts.Simulation.RollingStocks
             // By default this model uses information based upon a "NYC 4-4-2 locomotive", for smaller locomotives this data is changed in the OR initialisation phase.
 
             if (Simulator.Settings.UseAdvancedAdhesion && !Simulator.Settings.SimpleControlPhysics && IsPlayerTrain && this.Train.TrainType != TrainType.AiPlayerHosting)
-                // only set advanced wheel slip when advanced adhesion, and simplecontrols/physics is not set and is the player locomotive, AI locomotive will not work to this model. 
+                // only set advanced wheel slip when advanced adhesion, and simplecontrols/physics is not set and is in the the player train, AI locomotive will not work to this model. 
                 // Don't use slip model when train is in auto pilot
             {
                 float SlipCutoffPressureAtmPSI;
