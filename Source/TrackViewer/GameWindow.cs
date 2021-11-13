@@ -391,10 +391,9 @@ namespace Orts.TrackViewer
             userCommandController.AddEvent(CommonUserCommand.PointerDragged, MouseDragging);
             userCommandController.AddEvent(CommonUserCommand.VerticalScrollChanged, MouseWheel);
 
-            windowManager = WindowManager<WindowType>.GetInstance(this, userCommandController.TopLayerControllerAdd());
             EnumArray<Type, WindowType> windowTypes = new EnumArray<Type, WindowType>();
             windowTypes[WindowType.QuitWindow] = typeof(QuitWindow);
-            windowManager.Initialize(windowTypes);
+            windowManager = WindowManager.Initialize(this, userCommandController.TopLayerControllerAdd(), windowTypes);
             windowManager.OnModalWindow += WindowManager_OnModalWindow;
             Components.Add(windowManager);
             base.Initialize();
@@ -404,9 +403,9 @@ namespace Orts.TrackViewer
             ContentArea?.PresetPosition(Settings.LastLocation);
         }
 
-        private void WindowManager_OnModalWindow(object sender, bool e)
+        private void WindowManager_OnModalWindow(object sender, ModalWindowEventArgs e)
         {
-            mainmenu.Enabled = !e;
+            mainmenu.Enabled = !e.ModalWindowOpen;
         }
 
         private static void GameWindowThread(object data)

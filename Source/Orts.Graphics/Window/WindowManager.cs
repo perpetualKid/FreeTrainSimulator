@@ -12,6 +12,16 @@ using Orts.Graphics.Shaders;
 
 namespace Orts.Graphics.Window
 {
+    public class ModalWindowEventArgs : EventArgs
+    { 
+        public bool ModalWindowOpen { get; private set; }
+
+        public ModalWindowEventArgs(bool modalWindowOpen)
+        {
+            ModalWindowOpen = modalWindowOpen;
+        }
+    }
+
     public class WindowManager : DrawableGameComponent
     {
         [ThreadStatic]
@@ -32,7 +42,7 @@ namespace Orts.Graphics.Window
         public System.Drawing.Font TextFontDefault { get; }
 
         //publish some events to allow interaction between XNA WindowManager and outside Window world
-        public event EventHandler<bool> OnModalWindow;
+        public event EventHandler<ModalWindowEventArgs> OnModalWindow;
 
         public static Texture2D WhiteTexture;
 
@@ -63,7 +73,7 @@ namespace Orts.Graphics.Window
             UpdateSize();
         }
 
-        public static WindowManager GetInstance<T>(Game game, UserCommandController<T> userCommandController) where T : Enum
+        public static WindowManager Initialize<T>(Game game, UserCommandController<T> userCommandController) where T : Enum
         {
             if (null == game)
                 throw new ArgumentNullException(nameof(game));
@@ -74,6 +84,30 @@ namespace Orts.Graphics.Window
                 instance.AddUserCommandEvents(userCommandController);
             }
             return instance;
+        }
+
+        public static WindowManager<TWindowType> Initialize<TWindowType, T>(Game game, UserCommandController<T> userCommandController, EnumArray<Type, TWindowType> windows) 
+            where T : Enum where TWindowType : Enum
+        {
+            if (null == game)
+                throw new ArgumentNullException(nameof(game));
+
+            if (null == WindowManager<TWindowType>.Instance)
+            {
+                WindowManager<TWindowType>.Initialize(game, windows);
+                WindowManager<TWindowType>.Instance.AddUserCommandEvents(userCommandController);
+            }
+            return WindowManager<TWindowType>.Instance;
+        }
+
+        public static WindowManager GetInstance<T>() where T : Enum
+        {
+            return instance;
+        }
+
+        public static WindowManager<TWindowType> GetInstance<TWindowType, T>() where T : Enum where TWindowType : Enum
+        {
+            return WindowManager<TWindowType>.Instance;
         }
 
         protected void AddUserCommandEvents<T>(UserCommandController<T> userCommandController) where T : Enum
@@ -121,7 +155,7 @@ namespace Orts.Graphics.Window
                 if (window.Modal)
                 {
                     modalWindow = window;
-                    OnModalWindow?.Invoke(this, true);
+                    OnModalWindow?.Invoke(this, new ModalWindowEventArgs(true));
                 }
                 return true;
             }
@@ -143,7 +177,7 @@ namespace Orts.Graphics.Window
             if (window == modalWindow)
             {
                 modalWindow = null;
-                OnModalWindow?.Invoke(this, false);
+                OnModalWindow?.Invoke(this, new ModalWindowEventArgs(false));
             }
             return windows.Remove(window);
         }
@@ -245,25 +279,23 @@ namespace Orts.Graphics.Window
         private readonly EnumArray<WindowBase, TWindowType> windows = new EnumArray<WindowBase, TWindowType>();
 
         [ThreadStatic]
-        private static WindowManager<TWindowType> instance;
+        internal static WindowManager<TWindowType> Instance;
 
-        private WindowManager(Game game) :
+        internal WindowManager(Game game) :
             base(game)
         {
-
         }
 
-        public static new WindowManager<TWindowType> GetInstance<T>(Game game, UserCommandController<T> userCommandController) where T : Enum
+        internal static void Initialize(Game game, EnumArray<Type, TWindowType> windows)
         {
-            if (instance == null)
-            {
-                instance = new WindowManager<TWindowType>(game);
-                instance.AddUserCommandEvents(userCommandController);
-            }
-            return instance;
+            if (Instance != null)
+                throw new InvalidOperationException($"WindowManager {typeof(WindowManager<TWindowType>)} already initialized.");
+
+            Instance = new WindowManager<TWindowType>(game);
+            Instance.Initialize(windows);
         }
 
-        public void Initialize(EnumArray<Type, TWindowType> windows)
+        private void Initialize(EnumArray<Type, TWindowType> windows)
         {
             foreach(TWindowType windowType in EnumExtension.GetValues<TWindowType>())
             {
