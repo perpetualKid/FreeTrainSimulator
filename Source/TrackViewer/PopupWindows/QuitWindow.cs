@@ -15,8 +15,10 @@ namespace Orts.TrackViewer.PopupWindows
     public class QuitWindow : WindowBase
     {
         private Label quitButton;
+        private Label cancelButton;
 
         public event EventHandler OnQuitGame;
+        public event EventHandler OnQuitCancel;
 
         public QuitWindow(WindowManager owner) : 
             base(owner, CatalogManager.Catalog.GetString($"Quit {RuntimeInfo.ApplicationName}"), new Point(200, 200), new Point(200, 100))
@@ -30,18 +32,29 @@ namespace Orts.TrackViewer.PopupWindows
             if (null == layout)
                 throw new ArgumentNullException(nameof(layout));
 
-            quitButton = new Label(layout.RemainingWidth, 24, Caption, LabelAlignment.Left);
+            quitButton = new Label(layout.RemainingWidth/2, 24, "Quit", LabelAlignment.Center);
             quitButton.OnClick += QuitButton_OnClick;
+            cancelButton = new Label(layout.RemainingWidth/2, 24, "Cancel", LabelAlignment.Center);
+            cancelButton.OnClick += CancelButton_OnClick;
             layout = base.Layout(layout);
             layout.AddSpace(0, 12);
-            layout.Add(quitButton);
+            ControlLayout buttonLine = layout.AddLayoutHorizontal(24);
+            buttonLine.Add(quitButton);
+            buttonLine.AddVerticalSeparator();
+            buttonLine.Add(cancelButton);
             layout.AddHorizontalSeparator();
             return layout;
         }
 
+        private void CancelButton_OnClick(object sender, MouseClickEventArgs e)
+        {
+            Close();
+            OnQuitCancel?.Invoke(this, e);
+        }
+
         private void QuitButton_OnClick(object sender, MouseClickEventArgs e)
         {
-            OnQuitGame.Invoke(this, EventArgs.Empty);
+            OnQuitGame.Invoke(this, e);
         }
 
         protected override void Dispose(bool disposing)
@@ -49,6 +62,7 @@ namespace Orts.TrackViewer.PopupWindows
             if (disposing)
             {
                 quitButton?.Dispose();
+                cancelButton?.Dispose();
             }
             base.Dispose(disposing);
         }
