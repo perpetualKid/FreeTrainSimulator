@@ -1688,7 +1688,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             if (Control.ScaleRangeMax == Control.ScaleRangeMin)
                 return 0;
 
-            return (float)(data - (offsetFromZero && Control.ScaleRangeMin < 0 ? 0 : Control.ScaleRangeMin) / (Control.ScaleRangeMax - Control.ScaleRangeMin));
+            return (float)((data - (offsetFromZero && Control.ScaleRangeMin < 0 ? 0 : Control.ScaleRangeMin)) / (Control.ScaleRangeMax - Control.ScaleRangeMin));
         }
 
         public CabViewControlStyle GetStyle()
