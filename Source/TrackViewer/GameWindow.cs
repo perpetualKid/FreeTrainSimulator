@@ -406,6 +406,7 @@ namespace Orts.TrackViewer
         private void WindowManager_OnModalWindow(object sender, ModalWindowEventArgs e)
         {
             mainmenu.Enabled = !e.ModalWindowOpen;
+            ContentArea.Enabled = !e.ModalWindowOpen;
         }
 
         private static void GameWindowThread(object data)
