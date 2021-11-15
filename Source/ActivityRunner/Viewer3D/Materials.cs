@@ -1131,7 +1131,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public void SetState(Texture2D screen)
         {
-            shader.CurrentTechnique = shader.Techniques[0];// screen == null ? 0 : 1]; //screen == null ? shader.Techniques["PopupWindow"] : shader.Techniques["PopupWindowGlass"];
+            shader.CurrentTechnique = shader.Techniques[^1];// screen == null ? 0 : 1]; //screen == null ? shader.Techniques["PopupWindow"] : shader.Techniques["PopupWindowGlass"];
             shaderPasses = shader.CurrentTechnique.Passes;
 
             // FIXME: MonoGame cannot read backbuffer contents

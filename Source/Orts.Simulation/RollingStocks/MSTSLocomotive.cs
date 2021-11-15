@@ -1418,8 +1418,38 @@ namespace Orts.Simulation.RollingStocks
                 }
             }
 
-            if (MaximumMainReservoirPipePressurePSI == 0)
+            // MaximumMainReservoirPipePressurePSI is only used in twin pipe system, and should have a value
+            if ((BrakeSystem is AirTwinPipe))
             {
+
+                // for airtwinpipe system, make sure that a value is set for it
+                if (MaximumMainReservoirPipePressurePSI == 0)
+                {
+                    MaximumMainReservoirPipePressurePSI = MaxMainResPressurePSI;
+                    if (Simulator.Settings.VerboseConfigurationMessages)
+                    {
+                        Trace.TraceInformation("AirBrakeMaxMainResPipePressure not set in ENG file, set to default pressure of {0}.", FormatStrings.FormatPressure(MaximumMainReservoirPipePressurePSI, Pressure.Unit.PSI, MainPressureUnit, true));
+                    }
+
+                }
+            }
+            else if ((BrakeSystem is AirSinglePipe) && MaximumMainReservoirPipePressurePSI != 0)
+            {
+
+                // if value not equal to MaxMainResPressurePSI then reset (could already be at this value due to "copying" of locomotive)
+                if (MaximumMainReservoirPipePressurePSI != MaxMainResPressurePSI)
+                {
+                    // for a airsinglepipe system, AirBrakeMaxMainResPipePressure should be left out of ENG file, and it should be set the same as MaxMainResPressurePSI
+                    MaximumMainReservoirPipePressurePSI = MaxMainResPressurePSI;
+                    if (Simulator.Settings.VerboseConfigurationMessages)
+                    {
+                        Trace.TraceInformation("AirBrakeMaxMainResPipePressure is set in ENG file, but should not be normally used for AirSinglePipe system, reset to default pressure of {0}. Consider removing AirBrakeMaxMainResPipePressure parameter from ENG file", FormatStrings.FormatPressure(MaximumMainReservoirPipePressurePSI, Pressure.Unit.PSI, MainPressureUnit, true));
+                    }
+                }
+            }
+            else
+            {
+                // normal default setting. This should be the normal case for airsinglepipe systems
                 MaximumMainReservoirPipePressurePSI = MaxMainResPressurePSI;
             }
 
@@ -2756,6 +2786,7 @@ namespace Orts.Simulation.RollingStocks
         /// Dry track = 0.33 
         /// 
         /// The following values are indicatitive values only (sourced from Principles and Applications of Tribology).
+        /// https://books.google.com.au/books?id=LtYgBQAAQBAJ&pg=PA312&lpg=PA312&dq=Principles+and+Applications+of+Tribology+table+14.1&source=bl&ots=2hfz1WpEsM&sig=ACfU3U3U9y9Lwov9GORLaKCO10SCFHvjhA&hl=en&sa=X&ved=2ahUKEwi82NCF_Yr0AhWNTX0KHcGfB3QQ6AF6BAgMEAM#v=onepage&q=Principles%20and%20Applications%20of%20Tribology%20table%2014.1&f=false
         /// Wet track (clean) = 0.18 <=> 0.2
         /// Wet track (sand) = 0.22 <=> 0.25
         /// Dew or fog = 0.09 <=> 0.15

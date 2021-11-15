@@ -563,7 +563,7 @@ namespace Orts.ActivityRunner.Viewer3D
         }
 
         public Color GlassColor { set { glassColor.SetValue(new Vector3(value.R / 255f, value.G / 255f, value.B / 255f)); } }
-        public float Opacity { set { opacity.SetValue(value); } }
+        public float Opacity { set { opacity?.SetValue(value); } }
 
         public void SetMatrix(in Matrix w, ref Matrix wvp)
         {

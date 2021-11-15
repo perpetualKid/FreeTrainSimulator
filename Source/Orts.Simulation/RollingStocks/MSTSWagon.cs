@@ -479,6 +479,23 @@ namespace Orts.Simulation.RollingStocks
                 }
             }
 
+            // Should always be at least one bogie on rolling stock. If is zero then NaN error occurs.
+            if (WagonNumBogies == 0)
+            {
+                WagonNumBogies = 1;
+            }
+
+            // Set wheel flange parameters to default values.
+            if (MaximumWheelFlangeAngleRad == 0)
+            {
+                MaximumWheelFlangeAngleRad = 1.22173f; // Default = 70 deg - Pre 1990 AAR 1:20 wheel
+            }
+
+            if (WheelFlangeLengthM == 0)
+            {
+                WheelFlangeLengthM = 0.0254f; // Height = 1.00in - Pre 1990 AAR 1:20 wheel
+            }
+
             // Initialise steam heat parameters
             if (TrainHeatBoilerWaterUsageGalukpH == null) // If no table entered in WAG file, then use the default table
             {
@@ -996,6 +1013,8 @@ namespace Orts.Simulation.RollingStocks
                 case "wagon(ortslengthairhose": CarAirHoseLengthM = stf.ReadFloatBlock(STFReader.Units.Distance, null); break;
                 case "wagon(ortshorizontallengthairhose": CarAirHoseHorizontalLengthM = stf.ReadFloatBlock(STFReader.Units.Distance, null); break;
                 case "wagon(ortslengthcouplerface": CarCouplerFaceLengthM = stf.ReadFloatBlock(STFReader.Units.Distance, null); break;
+                case "wagon(ortswheelflangelength": WheelFlangeLengthM = stf.ReadFloatBlock(STFReader.Units.Distance, null); break;
+                case "wagon(ortsmaximumwheelflangeangle": MaximumWheelFlangeAngleRad = stf.ReadFloatBlock(STFReader.Units.Angle, null); break;
                 case "wagon(ortstrackgauge":
                     stf.MustMatch("(");
                     TrackGaugeM = stf.ReadFloat(STFReader.Units.Distance, null);
@@ -1431,6 +1450,8 @@ namespace Orts.Simulation.RollingStocks
             CarCouplerFaceLengthM = copy.CarCouplerFaceLengthM;
             CarAirHoseLengthM = copy.CarAirHoseLengthM;
             CarAirHoseHorizontalLengthM = copy.CarAirHoseHorizontalLengthM;
+            MaximumWheelFlangeAngleRad = copy.MaximumWheelFlangeAngleRad;
+            WheelFlangeLengthM = copy.WheelFlangeLengthM;
             AuxTenderWaterMassKG = copy.AuxTenderWaterMassKG;
             TenderWagonMaxCoalMassKG = copy.TenderWagonMaxCoalMassKG;
             TenderWagonMaxWaterMassKG = copy.TenderWagonMaxWaterMassKG;
@@ -1671,6 +1692,11 @@ namespace Orts.Simulation.RollingStocks
 
             outf.Write(WheelBrakeSlideProtectionActive);
             outf.Write(WheelBrakeSlideProtectionTimerS);
+            outf.Write(AngleOfAttackRad);
+            outf.Write(DerailClimbDistanceM);
+            outf.Write(DerailPossible);
+            outf.Write(DerailExpected);
+            outf.Write(DerailElapsedTimeS);
 
             base.Save(outf);
         }
@@ -1718,6 +1744,11 @@ namespace Orts.Simulation.RollingStocks
 
             WheelBrakeSlideProtectionActive = inf.ReadBoolean();
             WheelBrakeSlideProtectionTimerS = inf.ReadInt32();
+            AngleOfAttackRad = inf.ReadSingle();
+            DerailClimbDistanceM = inf.ReadSingle();
+            DerailPossible = inf.ReadBoolean();
+            DerailExpected = inf.ReadBoolean();
+            DerailElapsedTimeS = inf.ReadSingle();
 
             base.Restore(inf);
         }
@@ -1760,13 +1791,14 @@ namespace Orts.Simulation.RollingStocks
                 if (TendersSteamLocomotive != null)
                 {
                     if (TendersSteamLocomotive.IsTenderRequired == 1)
-                    {
-                        TendersSteamLocomotive.MaxTenderCoalMassKG = TenderWagonMaxCoalMassKG;
-
+                    {                        
                         // Combined total water found by taking the current combined water (which may have extra water added via the auxiliary tender), and subtracting the 
-                        // amount of water defined in the ENG file, and adding the water defiend in the WAG file.
+                        // amount of water defined in the ENG file, and adding the water defined in the WAG file.
                         float TempMaxCombinedWater = TendersSteamLocomotive.MaxTotalCombinedWaterVolumeUKG;
                         TendersSteamLocomotive.MaxTotalCombinedWaterVolumeUKG = (float)((TempMaxCombinedWater - (Mass.Kilogram.ToLb(TendersSteamLocomotive.MaxLocoTenderWaterMassKG) / WaterLBpUKG)) + (Mass.Kilogram.ToLb(TenderWagonMaxWaterMassKG) / WaterLBpUKG));
+
+                        TendersSteamLocomotive.MaxTenderCoalMassKG = TenderWagonMaxCoalMassKG;
+                        TendersSteamLocomotive.MaxLocoTenderWaterMassKG = TenderWagonMaxWaterMassKG;
 
                         if (Simulator.Settings.VerboseConfigurationMessages)
                         {
