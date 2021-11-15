@@ -3356,6 +3356,8 @@ namespace Orts.Simulation.AIs
 
             TrackDirection directionNow = ValidRoute[0][PresentPosition[Direction.Forward].RouteListIndex].Direction;
             int positionNow = ValidRoute[0][PresentPosition[Direction.Forward].RouteListIndex].TrackCircuitSection.Index;
+            TrackDirection directionNowBack = PresentPosition[Direction.Backward].Direction;
+            int positionNowBack = PresentPosition[Direction.Backward].TrackCircuitSectionIndex;
 
             (bool endOfRoute, bool otherRouteAvailable) = UpdateRouteActions(0, checkLoop);
 
@@ -3365,7 +3367,7 @@ namespace Orts.Simulation.AIs
             returnValue[0] = true; // end of path reached
             if (otherRouteAvailable)   // next route available
             {
-                if (positionNow == PresentPosition[Direction.Forward].TrackCircuitSectionIndex && directionNow != PresentPosition[Direction.Forward].Direction)
+                if (positionNowBack == PresentPosition[Direction.Forward].TrackCircuitSectionIndex && directionNowBack != PresentPosition[Direction.Forward].Direction)
                 {
                     ReverseFormation(false);
                     // active subpath must be incremented in parallel in incorporated train if present
