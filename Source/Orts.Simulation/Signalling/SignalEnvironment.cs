@@ -60,9 +60,6 @@ namespace Orts.Simulation.Signalling
         private readonly TrackDB trackDB;
         private readonly TrackSectionsFile tsectiondat;
 
-        private List<SpeedPostWorldObject> speedPostWorldList = new List<SpeedPostWorldObject>();
-        private Dictionary<int, int> speedPostRefList = new Dictionary<int, int>();
-
         public int OrtsSignalTypeCount { get; private set; }
 
         private int updateStart;
@@ -103,9 +100,11 @@ namespace Orts.Simulation.Signalling
             ConcurrentBag<SignalWorldInfo> signalWorldList = new ConcurrentBag<SignalWorldInfo>();
             ConcurrentDictionary<uint, SignalWorldInfo> signalWorldLookup = new ConcurrentDictionary<uint, SignalWorldInfo>();
             ConcurrentDictionary<int, uint> platformSidesList = new ConcurrentDictionary<int, uint>();
+            ConcurrentDictionary<int, int> speedPostWorldLookup = new ConcurrentDictionary<int, int>();
+            ConcurrentDictionary<int, SpeedPostWorldObject> speedPostWorldList = new ConcurrentDictionary<int, SpeedPostWorldObject>();
 
             // build list of signal world file information
-            BuildSignalWorld(Simulator.Instance.RouteFolder.WorldFolder, sigcfg, signalWorldList, signalWorldLookup, platformSidesList, token);
+            BuildSignalWorld(Simulator.Instance.RouteFolder.WorldFolder, sigcfg, signalWorldList, signalWorldLookup, speedPostWorldList, speedPostWorldLookup, platformSidesList, token);
 
             // build list of signals in TDB file
             BuildSignalList(trackDB.TrackItems, trackDB.TrackNodes, tsectiondat, Simulator.Instance.TrackDatabase, platformList, signalWorldList);
@@ -118,7 +117,7 @@ namespace Orts.Simulation.Signalling
 
                 // Add World info
 
-                AddWorldInfo(signalWorldLookup);
+                AddWorldInfo(signalWorldLookup, speedPostWorldLookup, speedPostWorldList);
 
                 // check for any backfacing heads in signals
                 // if found, split signal
@@ -302,7 +301,7 @@ namespace Orts.Simulation.Signalling
         /// Read all world files to get signal flags
         /// </summary>
         private void BuildSignalWorld(string worldPath, SignalConfigurationFile sigcfg, ConcurrentBag<SignalWorldInfo> signalWorldList,
-            ConcurrentDictionary<uint, SignalWorldInfo> signalWorldLookup, ConcurrentDictionary<int, uint> platformSidesList, CancellationToken token)
+            ConcurrentDictionary<uint, SignalWorldInfo> signalWorldLookup, ConcurrentDictionary<int, SpeedPostWorldObject> speedpostWorldList, ConcurrentDictionary<int, int> speedpostLookup, ConcurrentDictionary<int, uint> platformSidesList, CancellationToken token)
         {
             List<TokenID> Tokens = new List<TokenID>
             {
@@ -310,6 +309,8 @@ namespace Orts.Simulation.Signalling
                 TokenID.Speedpost,
                 TokenID.Platform
             };
+
+            int speedPostIndex = 0;
 
             Parallel.ForEach(Directory.EnumerateFiles(worldPath, "w-??????+??????.w"), new ParallelOptions() { MaxDegreeOfParallelism = System.Environment.ProcessorCount, CancellationToken = token },
                 (fileName) =>
@@ -350,14 +351,12 @@ namespace Orts.Simulation.Signalling
                             }
                             else if (worldObject is SpeedPostObject speedPostObj)
                             {
-                                speedPostWorldList.Add(new SpeedPostWorldObject(speedPostObj));
-                                int thisSpeedPostId = speedPostWorldList.Count - 1;
+                                int index = Interlocked.Increment(ref speedPostIndex);
+                                speedpostWorldList.TryAdd(index, new SpeedPostWorldObject(speedPostObj));
+                                int thisSpeedPostId = speedpostWorldList.Count - 1;
                                 foreach (int trItemId in speedPostObj.TrackItemIds.TrackDbItems)
                                 {
-                                    if (!speedPostRefList.ContainsKey(trItemId))
-                                    {
-                                        speedPostRefList.Add(trItemId, thisSpeedPostId);
-                                    }
+                                    speedpostLookup.TryAdd(trItemId, thisSpeedPostId);
                                 }
                             }
                             else if (worldObject is PlatformObject platformObject)
@@ -384,7 +383,7 @@ namespace Orts.Simulation.Signalling
             //TODO 20201125 re-enable Parallelism 
             if (fullUpdate)
             {
-                for(int i = 0; i < Signals.Count; i++)
+                for (int i = 0; i < Signals.Count; i++)
                 {
                     Signals[i].Update();
                 }
@@ -488,7 +487,7 @@ namespace Orts.Simulation.Signalling
                         {
                             if (headRef.Value == headIndex)
                             {
-                                for (int k = signal.SignalHeads.Count -1; k >= 0; k--)
+                                for (int k = signal.SignalHeads.Count - 1; k >= 0; k--)
                                 {
                                     SignalHead head = signal.SignalHeads[k];
 
@@ -800,7 +799,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// Add info from signal world objects to signal
         /// </summary>
-        private void AddWorldInfo(ConcurrentDictionary<uint, SignalWorldInfo> signalWorldLookup)
+        private void AddWorldInfo(ConcurrentDictionary<uint, SignalWorldInfo> signalWorldLookup, ConcurrentDictionary<int, int> speedpostWorldLookup, ConcurrentDictionary<int, SpeedPostWorldObject> speedpostWorldList)
         {
             // loop through all signal and all heads
             foreach (Signal signal in Signals)
@@ -818,13 +817,12 @@ namespace Orts.Simulation.Signalling
                 {
                     SignalHead head = signal.SignalHeads[0];
 
-                    if (speedPostRefList.TryGetValue(head.TDBIndex, out int speedPostIndex))
+                    if (speedpostWorldLookup.TryRemove(head.TDBIndex, out int speedPostIndex))
                     {
                         if (signal.SpeedPostWorldObject == null)
                         {
-                            signal.SpeedPostWorldObject = speedPostWorldList[speedPostIndex];
+                            signal.SpeedPostWorldObject = speedpostWorldList[speedPostIndex];
                         }
-                        speedPostRefList.Remove(head.TDBIndex);
                     }
                 }
             }
@@ -1053,7 +1051,7 @@ namespace Orts.Simulation.Signalling
 
                 foreach (int sectionIndex in Sections)
                 {
-                    TrackCircuitRouteElement routeElement = new TrackCircuitRouteElement(TrackCircuitSection.TrackCircuitList[Math.Abs(sectionIndex)], 
+                    TrackCircuitRouteElement routeElement = new TrackCircuitRouteElement(TrackCircuitSection.TrackCircuitList[Math.Abs(sectionIndex)],
                         sectionIndex > 0 ? TrackDirection.Ahead : TrackDirection.Reverse, prevSection);
                     route.Add(routeElement);
                     prevSection = Math.Abs(sectionIndex);
@@ -3641,11 +3639,11 @@ namespace Orts.Simulation.Signalling
 
             switch (train.ControlMode)
             {
-                case TrainControlMode.Manual: 
+                case TrainControlMode.Manual:
                     return train.ProcessRequestManualSetSwitch(direction);
-                case TrainControlMode.Explorer: 
+                case TrainControlMode.Explorer:
                     return train.ProcessRequestExplorerSetSwitch(direction);
-                default: 
+                default:
                     return false;
             }
         }
