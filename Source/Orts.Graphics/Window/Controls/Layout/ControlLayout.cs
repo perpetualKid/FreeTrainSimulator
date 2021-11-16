@@ -69,6 +69,11 @@ namespace Orts.Graphics.Window.Controls.Layout
             return InternalAdd(new ControlLayoutOffset(RemainingWidth, RemainingHeight, left, top, right, bottom));
         }
 
+        public ControlLayoutOffset AddLayoutOffset(int offset)
+        {
+            return InternalAdd(new ControlLayoutOffset(RemainingWidth, RemainingHeight, offset));
+        }
+
         public ControlLayoutHorizontal AddLayoutHorizontal()
         {
             return AddLayoutHorizontal(RemainingHeight);

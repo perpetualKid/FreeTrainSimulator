@@ -120,7 +120,7 @@ namespace Orts.Graphics.Window
         protected virtual ControlLayout Layout(ControlLayout layout)
         {
             // Pad window by 4px, add caption and space between to content area.
-            layout = layout?.AddLayoutOffset(4, 4, 4, 4).AddLayoutVertical() ?? throw new ArgumentNullException(nameof(layout));
+            layout = layout?.AddLayoutOffset(4).AddLayoutVertical() ?? throw new ArgumentNullException(nameof(layout));
             layout.Add(new Label(layout.RemainingWidth, 18, Caption, LabelAlignment.Center));
             return layout;
         }

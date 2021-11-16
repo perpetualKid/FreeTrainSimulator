@@ -4,10 +4,16 @@ namespace Orts.Graphics.Window.Controls.Layout
 {
     public class ControlLayoutOffset : ControlLayout
     {
-        internal ControlLayoutOffset(int width, int height, int left, int top, int right, int bottom)
-            : base(left, top, width - left - right, height - top - bottom)
+        internal ControlLayoutOffset(int width, int height, int left, int top, int right, int bottom) :
+            base(left, top, width - left - right, height - top - bottom)
         {
         }
+
+        internal ControlLayoutOffset(int width, int height, int offset) :
+            base(offset, offset, width - offset * 2, height - offset *2)
+        {
+        }
+
     }
 
     public class ControlLayoutHorizontal : ControlLayout

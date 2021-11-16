@@ -45,7 +45,7 @@ namespace Orts.Graphics.Window
         //publish some events to allow interaction between XNA WindowManager and outside Window world
         public event EventHandler<ModalWindowEventArgs> OnModalWindow;
 
-        public static Texture2D WhiteTexture;
+        internal Texture2D WhiteTexture { get; }
 
         private protected WindowManager(Game game) :
             base(game)

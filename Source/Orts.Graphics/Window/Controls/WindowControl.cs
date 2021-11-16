@@ -55,8 +55,7 @@ namespace Orts.Graphics.Window.Controls
 
         internal virtual void MoveBy(int x, int y)
         {
-            position.X += x;
-            position.Y += y;
+            position.Offset(x, y);
         }
 
         internal virtual void MouseClick(WindowMouseEvent e)
