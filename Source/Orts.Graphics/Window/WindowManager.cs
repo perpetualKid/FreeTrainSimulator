@@ -7,6 +7,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using Orts.Common;
+using Orts.Common.Info;
 using Orts.Common.Input;
 using Orts.Graphics.Shaders;
 
@@ -58,7 +59,7 @@ namespace Orts.Graphics.Window
 
             spriteBatch = new SpriteBatch(GraphicsDevice);
             //TODO 20211104 needs to move to a TextureManager
-            using (FileStream stream = File.OpenRead(".\\Content\\TitleBarWindow.png"))
+            using (FileStream stream = File.OpenRead(Path.Combine(RuntimeInfo.ContentFolder, "TitleBarWindow.png")))
             {
                 windowTexture = Texture2D.FromStream(GraphicsDevice, stream);
             }
