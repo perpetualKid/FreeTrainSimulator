@@ -4,6 +4,8 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Reflection.Metadata;
+using System.Text;
 
 using Microsoft.Win32;
 
@@ -47,13 +49,13 @@ namespace Orts.Settings.Store
         /// <param name="name">name of the setting</param>
         /// <param name="expectedType">Type that is expected</param>
         /// <returns>the value from the store, as a general object</returns>
-        protected override object GetSettingValue(string name, Type expectedType)
+        protected override object GetSettingValue<T>(string name, Type expectedType, T defaultValue)
         {
             AssertGetUserValueType(expectedType);
 
             object userValue = key.GetValue(name);
             if (userValue == null)
-                return userValue;
+                return defaultValue;
 
             try
             {
@@ -76,14 +78,39 @@ namespace Orts.Settings.Store
                 if (expectedType.IsEnum && userValue is string enumValue)
                     return Enum.Parse(expectedType, enumValue, true);
 
+                if (expectedType.IsGenericType && expectedType.GetGenericTypeDefinition() == typeof(EnumArray<,>).GetGenericTypeDefinition() 
+                    && userValue is string[] enumValues)
+                    return InitializeEnumArray(expectedType, (dynamic)defaultValue, enumValues);
                 // Convert whatever we're left with into the expected type.
                 return Convert.ChangeType(userValue, expectedType, CultureInfo.InvariantCulture);
             }
             catch(InvalidCastException)
             {
                 Trace.TraceWarning("Setting {0} contains invalid value {1}.", name, userValue);
-                return null;
+                return defaultValue;
             }
+        }
+
+        private static EnumArray<T, TEnum> InitializeEnumArray<T, TEnum>(Type expectedType, EnumArray<T, TEnum> defaultValues, string[] values) where TEnum : Enum
+        {
+            if (null == values)
+                throw new ArgumentNullException(nameof(values));
+            if (null == defaultValues)
+                throw new ArgumentNullException(nameof(defaultValues));
+
+            Type[] genericArguments = expectedType.GenericTypeArguments;
+            Debug.Assert(genericArguments.Length == 2 && genericArguments[1].IsEnum);
+            Type enumType = genericArguments[1];
+            foreach (string value in values)
+            {
+                string[] enumValues = value.Split('=', StringSplitOptions.RemoveEmptyEntries);
+                if (enumValues.Length == 2)
+                {
+                    dynamic enumValue = Enum.Parse(enumType, enumValues[0]);
+                    defaultValues[enumValue] = enumValues[1];
+                }
+            }
+            return defaultValues;
         }
 
         /// <summary>
@@ -164,6 +191,17 @@ namespace Orts.Settings.Store
         protected override void SetSettingValue(string name, string[] value)
         {
             key.SetValue(name, value, RegistryValueKind.MultiString);
+        }
+
+        protected override void SetSettingValue<T, TEnum>(string name, EnumArray<T, TEnum> value)
+        {
+            StringBuilder builder = new StringBuilder();
+            foreach (TEnum item in EnumExtension.GetValues<TEnum>())
+            {
+                if ((dynamic)value[item] != default(T))
+                    builder.AppendLine($"{item}={value[item]?.ToString()}");
+            }
+            key.SetValue(name, builder.ToString().Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries).ToArray(), RegistryValueKind.MultiString);
         }
 
         /// <summary>

@@ -26,19 +26,19 @@ namespace Orts.TrackViewer.WinForms.Controls
             menuItemFolder.DropDown.Closing += FolderDropDown_Closing;
 
             restoreLastViewMenuItem.Checked = game.Settings.RestoreLastView;
-            SetupColorComboBoxMenuItem(backgroundColorComboBoxMenuItem, game.Settings.ColorBackground, ColorSetting.Background);
-            SetupColorComboBoxMenuItem(railTrackColorComboBoxMenuItem, game.Settings.ColorRailTrack, ColorSetting.RailTrack);
-            SetupColorComboBoxMenuItem(railEndColorComboBoxMenuItem, game.Settings.ColorRailTrackEnd, ColorSetting.RailTrackEnd);
-            SetupColorComboBoxMenuItem(railJunctionColorComboBoxMenuItem, game.Settings.ColorRailTrackJunction, ColorSetting.RailTrackJunction);
-            SetupColorComboBoxMenuItem(railCrossingColorToolStripComboBoxMenuItem, game.Settings.ColorRailTrackCrossing, ColorSetting.RailTrackCrossing);
-            SetupColorComboBoxMenuItem(railLevelCrossingColorToolStripComboBoxMenuItem, game.Settings.ColorRailLevelCrossing, ColorSetting.RailLevelCrossing);
+            SetupColorComboBoxMenuItem(backgroundColorComboBoxMenuItem, game.Settings.ColorSettings[ColorSetting.Background], ColorSetting.Background);
+            SetupColorComboBoxMenuItem(railTrackColorComboBoxMenuItem, game.Settings.ColorSettings[ColorSetting.RailTrack], ColorSetting.RailTrack);
+            SetupColorComboBoxMenuItem(railEndColorComboBoxMenuItem, game.Settings.ColorSettings[ColorSetting.RailTrackEnd], ColorSetting.RailTrackEnd);
+            SetupColorComboBoxMenuItem(railJunctionColorComboBoxMenuItem, game.Settings.ColorSettings[ColorSetting.RailTrackJunction], ColorSetting.RailTrackJunction);
+            SetupColorComboBoxMenuItem(railCrossingColorToolStripComboBoxMenuItem, game.Settings.ColorSettings[ColorSetting.RailTrackCrossing], ColorSetting.RailTrackCrossing);
+            SetupColorComboBoxMenuItem(railLevelCrossingColorToolStripComboBoxMenuItem, game.Settings.ColorSettings[ColorSetting.RoadLevelCrossing], ColorSetting.RailLevelCrossing);
 
-            SetupColorComboBoxMenuItem(roadTrackColorComboBoxMenuItem, game.Settings.ColorRoadTrack, ColorSetting.RoadTrack);
-            SetupColorComboBoxMenuItem(roadTrackEndColorToolStripComboBoxMenuItem, game.Settings.ColorRoadTrackEnd, ColorSetting.RoadTrackEnd);
+            SetupColorComboBoxMenuItem(roadTrackColorComboBoxMenuItem, game.Settings.ColorSettings[ColorSetting.RoadTrack], ColorSetting.RoadTrack);
+            SetupColorComboBoxMenuItem(roadTrackEndColorToolStripComboBoxMenuItem, game.Settings.ColorSettings[ColorSetting.RoadTrackEnd], ColorSetting.RoadTrackEnd);
 
-            SetupColorComboBoxMenuItem(platformColorToolStripComboBoxMenuItem, game.Settings.ColorPlatformItem, ColorSetting.PlatformItem);
-            SetupColorComboBoxMenuItem(sidingColorToolStripComboBoxMenuItem, game.Settings.ColorSidingItem, ColorSetting.SidingItem);
-            SetupColorComboBoxMenuItem(speedpostColorToolStripComboBoxMenuItem, game.Settings.ColorSpeedpostItem, ColorSetting.SpeedPostItem);
+            SetupColorComboBoxMenuItem(platformColorToolStripComboBoxMenuItem, game.Settings.ColorSettings[ColorSetting.PlatformItem], ColorSetting.PlatformItem);
+            SetupColorComboBoxMenuItem(sidingColorToolStripComboBoxMenuItem, game.Settings.ColorSettings[ColorSetting.SidingItem], ColorSetting.SidingItem);
+            SetupColorComboBoxMenuItem(speedpostColorToolStripComboBoxMenuItem, game.Settings.ColorSettings[ColorSetting.SpeedPostItem], ColorSetting.SpeedPostItem);
 
             SetupVisibilityMenuItem(trackSegmentsVisibleToolStripMenuItem, TrackViewerViewSettings.Tracks);
             SetupVisibilityMenuItem(trackEndNodesVisibleToolStripMenuItem, TrackViewerViewSettings.EndsNodes);

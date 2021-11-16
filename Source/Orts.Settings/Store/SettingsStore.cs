@@ -1,8 +1,9 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
+
+using Orts.Common;
 
 namespace Orts.Settings.Store
 {
@@ -55,8 +56,7 @@ namespace Orts.Settings.Store
         /// </summary>
         public T GetSettingValue<T>(string name, T defaultValue)
         {
-            dynamic result = GetSettingValue(name, typeof(T));
-            return result ?? defaultValue;
+            return (T)GetSettingValue(name, typeof(T), defaultValue) ?? defaultValue;
         }
 
         /// <summary>
@@ -96,7 +96,7 @@ namespace Orts.Settings.Store
         }
 
         #region proctected /implementation
-        protected abstract object GetSettingValue(string name, Type expectedType);
+        protected abstract object GetSettingValue<T>(string name, Type expectedType, T defaultValue);
 
         protected abstract void SetSettingValue(string name, bool value);
 
@@ -114,7 +114,9 @@ namespace Orts.Settings.Store
 
         protected abstract void SetSettingValue(string name, string[] value);
 
-        private static readonly Type[] allowedTypes = new[] {   //allowedTypes, + Enum
+        protected abstract void SetSettingValue<T, TEnum>(string name, EnumArray<T, TEnum> value) where TEnum : Enum;
+
+        private static readonly Type[] allowedTypes = new[] {   //allowedTypes, + Enum and EnumArray<T, TEnum> where T is any of the allowTypes
                 typeof(bool),
                 typeof(int),
                 typeof(DateTime),
@@ -122,7 +124,8 @@ namespace Orts.Settings.Store
                 typeof(string),
                 typeof(int[]),
                 typeof(string[]),
-                typeof(byte) };
+                typeof(byte),
+        };
 
         /// <summary>
         /// Assert that the type expected from the settings store is an allowed type.
@@ -130,7 +133,10 @@ namespace Orts.Settings.Store
         /// <param name="expectedType">Type that is expected</param>
         internal static void AssertGetUserValueType(Type expectedType)
         {
-            Debug.Assert(allowedTypes.Contains(expectedType) || expectedType.IsEnum, $"GetUserValue called with unexpected type {expectedType.FullName}.");
+            Debug.Assert(allowedTypes.Contains(expectedType) || expectedType.IsEnum || 
+                (expectedType.IsGenericType && expectedType.GetGenericTypeDefinition() == typeof(EnumArray<,>).GetGenericTypeDefinition() &&
+                allowedTypes.Contains(expectedType.GenericTypeArguments[0]))
+                , $"GetUserValue called with unexpected type {expectedType.FullName}.");
         }
         #endregion
     }

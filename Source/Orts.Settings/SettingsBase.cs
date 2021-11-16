@@ -127,7 +127,7 @@ namespace Orts.Settings
                         (value.Equals(GetDefaultValue(property.Name)) ? "" : "(user set)");
                 }
 
-                Trace.WriteLine($"{property.Name.Substring(0, Math.Min(30, property.Name.Length)),-30} = {source,-14} {value.ToString().Replace(Environment.UserName, "********")}");
+                Trace.WriteLine($"{property.Name[..Math.Min(30, property.Name.Length)],-30} = {source,-14} {value.ToString().Replace(Environment.UserName, "********")}");
             }
 
             properties = null;
@@ -222,7 +222,7 @@ namespace Orts.Settings
 
             //save the current value if
             // - current is different from default
-            // - or SaveDefaults is true
+            // - or includeDefaults is true
             // - and this is not overriden from optionalSettings
 
             if (optionalSettings.Contains(name))
@@ -243,6 +243,15 @@ namespace Orts.Settings
             }
             else
             {
+                Type valueType = value.GetType();
+                if (valueType.IsGenericType && valueType.GetGenericTypeDefinition() == typeof(EnumArray<,>).GetGenericTypeDefinition())
+                {
+                    foreach(dynamic enumName in valueType.GetGenericArguments()[1].GetEnumValues())
+                    {
+                        if (value[enumName] == defaultValue[enumName])
+                            value[enumName] = null;
+                    }
+                }
                 SettingStore.SetSettingValue(name, value);
             }
         }
@@ -285,5 +294,31 @@ namespace Orts.Settings
 
             return doNotSaveProperties.BinarySearch(propertyName) < 0;
         }
+
+        protected static object InitializeEnumArrayDefaults(Type expectedType, object values)
+        {
+            if (null == values)
+                throw new ArgumentNullException(nameof(values));
+            if (null == expectedType)
+                throw new ArgumentNullException(nameof(expectedType));
+
+            dynamic enumArray = Activator.CreateInstance(expectedType);
+            Type[] genericArguments = expectedType.GenericTypeArguments;
+            Debug.Assert(genericArguments.Length == 2 && genericArguments[1].IsEnum);
+            Type enumType = genericArguments[1];
+            Type valueType = values.GetType();
+            Debug.Assert(valueType.IsArray && valueType.GetElementType() == typeof(string));
+            foreach (string value in (Array)values)
+            {
+                string[] enumValues = value.Split('=', StringSplitOptions.RemoveEmptyEntries);
+                if (enumValues.Length == 2)
+                {
+                    dynamic enumValue = Enum.Parse(enumType, enumValues[0]);
+                    enumArray[enumValue] = enumValues[1];
+                }
+            }
+            return enumArray;
+        }
+
     }
 }

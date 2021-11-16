@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Windows.Forms;
 
 using Orts.Common;
+using Orts.Graphics;
 using Orts.Settings;
 using Orts.Settings.Store;
 
@@ -56,62 +58,8 @@ namespace Orts.TrackViewer.Settings
 
         #region TrackViewer Settings
 #pragma warning disable CA1819 // Properties should not return arrays
-        [Default(new[] { 1200, 800 })] 
+        [Default(new[] { 1200, 800 })]
         public int[] WindowSize { get; set; }
-        
-        [Default("DarkGray")] 
-        public string ColorBackground { get; set; }
-        
-        [Default("Blue")] 
-        public string ColorRailTrack { get; set; }
-        
-        [Default("BlueViolet")] 
-        public string ColorRailTrackEnd { get; set; }
-        
-        [Default("DarkMagenta")] 
-        public string ColorRailTrackJunction { get; set; }
-
-        [Default("Firebrick")]
-        public string ColorRailTrackCrossing { get; set; }
-
-        [Default("Crimson")]
-        public string ColorRailLevelCrossing { get; set; }
-
-        [Default("Olive")] 
-        public string ColorRoadTrack { get; set; }
-
-        [Default("ForestGreen")]
-        public string ColorRoadTrackEnd { get; set; }
-
-        [Default("DeepPink")]
-        public string ColorRoadLevelCrossing { get; set; }
-        
-        [Default("White")]
-        public string ColorRoadCarSpawner { get; set; }
-
-        [Default("ForestGreen")] 
-        public string ColorSidingItem { get; set; }
-        
-        [Default("Navy")] 
-        public string ColorPlatformItem { get; set; }
-        
-        [Default("RoyalBlue")] 
-        public string ColorSpeedpostItem { get; set; }
-        
-        [Default("White")] 
-        public string ColorHazardItem { get; set; }
-        
-        [Default("White")] 
-        public string ColorPickupItem { get; set; }
-        
-        [Default("White")] 
-        public string ColorLevelCrossingItem { get; set; }
-        
-        [Default("White")] 
-        public string ColorSoundRegionItem { get; set; }
-        
-        [Default("White")] 
-        public string ColorSignalItem { get; set; }
 
         [Default(new string[0])]
         public string[] RouteSelection { get; set; }
@@ -119,7 +67,7 @@ namespace Orts.TrackViewer.Settings
         [Default(new string[0])]
         public string[] LastLocation { get; set; }
 
-        [Default(false)] 
+        [Default(false)]
         public bool RestoreLastView { get; set; }
 
         [Default(TrackViewerViewSettings.All)]
@@ -128,14 +76,41 @@ namespace Orts.TrackViewer.Settings
         [Default("{Application} Log.txt")]
         public string LogFilename { get; set; }
 
+        [Default(new string[]{
+            "Background=DarkGray",
+            "RailTrack=Blue",
+            "RailTrackEnd=BlueViolet",
+            "RailTrackJunction=DarkMagenta",
+            "RailTrackCrossing=Firebrick",
+            "RailLevelCrossing=Crimson",
+            "RoadTrack=Olive",
+            "RoadTrackEnd=ForestGreen",
+            "RoadLevelCrossing=DeepPink",
+            "RoadCarSpawner=White",
+            "SignalItem=White",
+            "PlatformItem=Navy",
+            "SidingItem=ForestGreen",
+            "SpeedPostItem=RoyalBlue",
+            "HazardItem=White",
+            "PickupItem=White",
+            "SoundRegionItem=White",
+            "LevelCrossingItem=White",
+        })]
+        public EnumArray<string, ColorSetting> ColorSettings { get; set; }
+
 #pragma warning restore CA1819 // Properties should not return arrays
         #endregion
 
         public override object GetDefaultValue(string name)
         {
             PropertyInfo property = GetProperty(name);
-
-            return property.GetCustomAttributes<DefaultAttribute>(false).FirstOrDefault()?.Value ?? throw new InvalidDataException($"TrackViewer setting {property.Name} has no default value.");
+            object result = property.GetCustomAttributes<DefaultAttribute>(false).FirstOrDefault()?.Value ?? throw new InvalidDataException($"TrackViewer setting {property.Name} has no default value.");
+            Type propertyType = property.PropertyType;
+            if (propertyType.IsGenericType && propertyType.GetGenericTypeDefinition() == typeof(EnumArray<,>).GetGenericTypeDefinition())
+            {
+                return InitializeEnumArrayDefaults(propertyType, result);
+            }
+            return result;
         }
 
         protected override PropertyInfo[] GetProperties()

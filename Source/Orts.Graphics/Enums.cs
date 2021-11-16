@@ -40,7 +40,7 @@
         HazardItem,
         PickupItem,
         SoundRegionItem,
-        LevelCrossing,
+        LevelCrossingItem,
     }
 
     public enum ColorVariation

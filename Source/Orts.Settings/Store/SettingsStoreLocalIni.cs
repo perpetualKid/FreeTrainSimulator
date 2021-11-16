@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 
+using Orts.Common;
 using Orts.Common.Native;
 
 namespace Orts.Settings.Store
@@ -56,19 +57,19 @@ namespace Orts.Settings.Store
         /// <param name="name">name of the setting</param>
         /// <param name="expectedType">Type that is expected</param>
         /// <returns>the value from the store, as a general object</returns>
-        protected override object GetSettingValue(string name, Type expectedType)
+        protected override object GetSettingValue<T>(string name, Type expectedType, T defaultValue)
         {
             AssertGetUserValueType(expectedType);
 
             string settingValue = GetSectionValues(Section, name);
             if (string.IsNullOrEmpty(settingValue))
-                return null;
+                return defaultValue;
 
             string[] value = settingValue.Split(':');
             if (value.Length != 2)
             {
                 Trace.TraceWarning("Setting {0} contains invalid value {1}.", name, settingValue);
-                return null;
+                return defaultValue;
             }
 
             try
@@ -116,7 +117,7 @@ namespace Orts.Settings.Store
             catch (InvalidCastException)
             {
                 Trace.TraceWarning("Setting {0} contains invalid value {1}.", name, value[1]);
-                return null;
+                return defaultValue;
             }
         }
 
@@ -158,6 +159,11 @@ namespace Orts.Settings.Store
         protected override void SetSettingValue(string name, string[] value)
         {
             NativeMethods.WritePrivateProfileString(Section, name, "string[]:" + string.Join(",", value.Select(v => Uri.EscapeDataString(v)).ToArray()), Location);
+        }
+
+        protected override void SetSettingValue<T, TEnum>(string name, EnumArray<T, TEnum> value)
+        {
+            throw new NotImplementedException();
         }
 
         /// <summary>

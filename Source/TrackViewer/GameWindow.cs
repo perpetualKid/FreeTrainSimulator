@@ -85,7 +85,6 @@ namespace Orts.TrackViewer
         internal string backgroundColor;
 
         #region preferences
-        private readonly EnumArray<string, ColorSetting> colorPreferences = new EnumArray<string, ColorSetting>();
         private TrackViewerViewSettings viewSettings;
 
         #endregion
@@ -190,7 +189,7 @@ namespace Orts.TrackViewer
 
         internal void UpdateColorPreference(ColorSetting setting, string colorName)
         {
-            colorPreferences[setting] = colorName;
+            Settings.ColorSettings[setting] = colorName;
             contentArea?.UpdateColor(setting, ColorExtension.FromName(colorName));
             if (setting == ColorSetting.Background)
             {
@@ -215,24 +214,7 @@ namespace Orts.TrackViewer
         {
             windowSize = new System.Drawing.Size(Settings.WindowSize[0], Settings.WindowSize[1]);
 
-            colorPreferences[ColorSetting.Background] = Settings.ColorBackground;
-            colorPreferences[ColorSetting.RailTrack] = Settings.ColorRailTrack;
-            colorPreferences[ColorSetting.RailTrackEnd] = Settings.ColorRailTrackEnd;
-            colorPreferences[ColorSetting.RailTrackJunction] = Settings.ColorRailTrackJunction;
-            colorPreferences[ColorSetting.RailTrackCrossing] = Settings.ColorRailTrackCrossing;
-            colorPreferences[ColorSetting.RailLevelCrossing] = Settings.ColorRailLevelCrossing;
-            colorPreferences[ColorSetting.RoadTrack] = Settings.ColorRoadTrack;
-            colorPreferences[ColorSetting.RoadTrackEnd] = Settings.ColorRoadTrackEnd;
-            colorPreferences[ColorSetting.RoadLevelCrossing] = Settings.ColorRoadLevelCrossing;
-            colorPreferences[ColorSetting.RoadCarSpawner] = Settings.ColorRoadCarSpawner;
-            colorPreferences[ColorSetting.SignalItem] = Settings.ColorSignalItem;
-            colorPreferences[ColorSetting.PlatformItem] = Settings.ColorPlatformItem;
-            colorPreferences[ColorSetting.SidingItem] = Settings.ColorSidingItem;
-            colorPreferences[ColorSetting.SpeedPostItem] = Settings.ColorSpeedpostItem;
-            colorPreferences[ColorSetting.HazardItem] = Settings.ColorHazardItem;
-            colorPreferences[ColorSetting.PickupItem] = Settings.ColorPickupItem;
-            colorPreferences[ColorSetting.SoundRegionItem] = Settings.ColorSoundRegionItem;
-            BackgroundColor = ColorExtension.FromName(colorPreferences[ColorSetting.Background]);
+            BackgroundColor = ColorExtension.FromName(Settings.ColorSettings[ColorSetting.Background]);
             viewSettings = Settings.ViewSettings;
 
         }
@@ -242,23 +224,6 @@ namespace Orts.TrackViewer
             Settings.WindowSize[0] = windowSize.Width;
             Settings.WindowSize[1] = windowSize.Height;
 
-            Settings.ColorBackground = colorPreferences[ColorSetting.Background];
-            Settings.ColorRailTrack = colorPreferences[ColorSetting.RailTrack];
-            Settings.ColorRailTrackEnd = colorPreferences[ColorSetting.RailTrackEnd];
-            Settings.ColorRailTrackJunction = colorPreferences[ColorSetting.RailTrackJunction];
-            Settings.ColorRailTrackCrossing = colorPreferences[ColorSetting.RailTrackCrossing];
-            Settings.ColorRailLevelCrossing = colorPreferences[ColorSetting.RailLevelCrossing];
-            Settings.ColorRoadTrack = colorPreferences[ColorSetting.RoadTrack];
-            Settings.ColorRoadTrackEnd = colorPreferences[ColorSetting.RoadTrackEnd];
-            Settings.ColorRoadLevelCrossing = colorPreferences[ColorSetting.RoadLevelCrossing];
-            Settings.ColorRoadCarSpawner = colorPreferences[ColorSetting.RoadCarSpawner];
-            Settings.ColorSignalItem = colorPreferences[ColorSetting.SignalItem];
-            Settings.ColorPlatformItem = colorPreferences[ColorSetting.PlatformItem];
-            Settings.ColorSidingItem = colorPreferences[ColorSetting.SidingItem];
-            Settings.ColorSpeedpostItem = colorPreferences[ColorSetting.SpeedPostItem];
-            Settings.ColorHazardItem = colorPreferences[ColorSetting.HazardItem];
-            Settings.ColorPickupItem = colorPreferences[ColorSetting.PickupItem];
-            Settings.ColorSoundRegionItem = colorPreferences[ColorSetting.SoundRegionItem];
             Settings.ViewSettings = viewSettings;
             if (null != contentArea)
             {
