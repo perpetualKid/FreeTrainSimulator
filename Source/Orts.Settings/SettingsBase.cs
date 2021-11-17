@@ -39,6 +39,17 @@ namespace Orts.Settings
         /// <summary>The store of the settings</summary>
         internal protected SettingsStore SettingStore { get; private set; }
 
+        internal static readonly Type[] AllowedTypes = new[] {   //allowedTypes, + Enum and EnumArray<T, TEnum> where T is any of the allowTypes
+                typeof(bool),
+                typeof(int),
+                typeof(DateTime),
+                typeof(TimeSpan),
+                typeof(string),
+                typeof(int[]),
+                typeof(string[]),
+                typeof(byte),
+        };
+
         private protected readonly SortedSet<string> optionalSettings = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
 
         #region reflection cache
@@ -237,7 +248,8 @@ namespace Orts.Settings
             }
             else if (defaultValue == value ||
                 (value is int[] && (value as int[]).SequenceEqual(defaultValue as int[])) ||
-                (value is string[] && (value as string[]).SequenceEqual(defaultValue as string[])))
+                (value is string[] && (value as string[]).SequenceEqual(defaultValue as string[])) ||
+                value == null)
             {
                 SettingStore.DeleteSetting(name);
             }
@@ -246,10 +258,10 @@ namespace Orts.Settings
                 Type valueType = value.GetType();
                 if (valueType.IsGenericType && valueType.GetGenericTypeDefinition() == typeof(EnumArray<,>).GetGenericTypeDefinition())
                 {
-                    foreach(dynamic enumName in valueType.GetGenericArguments()[1].GetEnumValues())
+                    foreach (dynamic enumName in valueType.GetGenericArguments()[1].GetEnumValues())
                     {
                         if (value[enumName] == defaultValue[enumName])
-                            value[enumName] = null;
+                            value[enumName] = (dynamic)(valueType.GetGenericArguments()[0].IsValueType ? Activator.CreateInstance(valueType.GetGenericArguments()[0]) : null);
                     }
                 }
                 SettingStore.SetSettingValue(name, value);
@@ -295,6 +307,61 @@ namespace Orts.Settings
             return doNotSaveProperties.BinarySearch(propertyName) < 0;
         }
 
+        internal static bool TryParseValues(Type expectedType, string value, out dynamic result)
+        {
+            bool returnValue = false;
+            result = default;
+            if (expectedType == typeof(int))
+            {
+                if (returnValue = int.TryParse(value, out int i))
+                    result = i;
+                else
+                    result = default;
+            }
+            else if (expectedType == typeof(bool))
+            {
+                result = new[] { "true", "yes", "on", "1" }.Contains(value?.Trim() ?? string.Empty, StringComparer.OrdinalIgnoreCase);
+                returnValue = true;
+            }
+            else if (expectedType == typeof(byte))
+            {
+                if (returnValue = byte.TryParse(value, out byte b))
+                    result = b;
+                else
+                    result = default;
+            }
+            else if (expectedType == typeof(DateTime))
+            {
+                if (returnValue = DateTime.TryParse(value, out DateTime i))
+                    result = i;
+                else
+                    result = default;
+            }
+            else if (expectedType == typeof(TimeSpan))
+            {
+                if (returnValue = TimeSpan.TryParse(value, out TimeSpan ts))
+                    result = ts;
+                else
+                    result = default;
+            }
+            else if (expectedType == typeof(int[]))
+            {
+                result = value?.Split(',').Select(content => content.Trim()).ToArray();
+                returnValue = true;
+            }
+            else if (expectedType == typeof(string[]))
+            {
+                result = value?.Split(',').Select(content => content.Trim()).ToArray();
+                returnValue = true;
+            }
+            else if (expectedType == typeof(string))
+            {
+                result = value;
+                returnValue = true;
+            }
+            return returnValue;
+        }
+
         protected static object InitializeEnumArrayDefaults(Type expectedType, object values)
         {
             if (null == values)
@@ -305,6 +372,7 @@ namespace Orts.Settings
             dynamic enumArray = Activator.CreateInstance(expectedType);
             Type[] genericArguments = expectedType.GenericTypeArguments;
             Debug.Assert(genericArguments.Length == 2 && genericArguments[1].IsEnum);
+            Debug.Assert(AllowedTypes.Contains(genericArguments[0]));
             Type enumType = genericArguments[1];
             Type valueType = values.GetType();
             Debug.Assert(valueType.IsArray && valueType.GetElementType() == typeof(string));
@@ -313,8 +381,9 @@ namespace Orts.Settings
                 string[] enumValues = value.Split('=', StringSplitOptions.RemoveEmptyEntries);
                 if (enumValues.Length == 2)
                 {
-                    dynamic enumValue = Enum.Parse(enumType, enumValues[0]);
-                    enumArray[enumValue] = enumValues[1];
+                    dynamic enumIndex = Enum.Parse(enumType, enumValues[0]);
+                    if (TryParseValues(genericArguments[0], enumValues[1], out dynamic result))
+                        enumArray[enumIndex] = result;
                 }
             }
             return enumArray;

@@ -91,28 +91,6 @@ namespace Orts.Settings.Store
             }
         }
 
-        private static EnumArray<T, TEnum> InitializeEnumArray<T, TEnum>(Type expectedType, EnumArray<T, TEnum> defaultValues, string[] values) where TEnum : Enum
-        {
-            if (null == values)
-                throw new ArgumentNullException(nameof(values));
-            if (null == defaultValues)
-                throw new ArgumentNullException(nameof(defaultValues));
-
-            Type[] genericArguments = expectedType.GenericTypeArguments;
-            Debug.Assert(genericArguments.Length == 2 && genericArguments[1].IsEnum);
-            Type enumType = genericArguments[1];
-            foreach (string value in values)
-            {
-                string[] enumValues = value.Split('=', StringSplitOptions.RemoveEmptyEntries);
-                if (enumValues.Length == 2)
-                {
-                    dynamic enumValue = Enum.Parse(enumType, enumValues[0]);
-                    defaultValues[enumValue] = enumValues[1];
-                }
-            }
-            return defaultValues;
-        }
-
         /// <summary>
         /// Set a value of a user setting
         /// </summary>
@@ -201,7 +179,12 @@ namespace Orts.Settings.Store
                 if ((dynamic)value[item] != default(T))
                     builder.AppendLine($"{item}={value[item]?.ToString()}");
             }
-            key.SetValue(name, builder.ToString().Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries).ToArray(), RegistryValueKind.MultiString);
+            if (builder.Length > 0)
+                key.SetValue(name, builder.ToString().Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries).ToArray(), RegistryValueKind.MultiString);
+            else
+            {
+                DeleteSetting(name);
+            }
         }
 
         /// <summary>

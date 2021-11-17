@@ -2,6 +2,9 @@
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Text;
+
+using Microsoft.Win32;
 
 using Orts.Common;
 using Orts.Common.Native;
@@ -28,7 +31,7 @@ namespace Orts.Settings.Store
                 int length = NativeMethods.GetPrivateProfileString(section, name, null, buffer, buffer.Length, Location);
                 if (length < buffer.Length - (name == null ? 2 : 1))    // if multiple values are requested (section names, value names, each one is ended by \0 in addtion the overall string is terminated by \0, hence will be double \0
                 {
-                    return buffer.Substring(0, length);
+                    return buffer[..length];
                 }
                 buffer = new string('\0', buffer.Length * 2);
             }
@@ -74,6 +77,8 @@ namespace Orts.Settings.Store
 
             try
             {
+                if (expectedType.IsGenericType && expectedType.GetGenericTypeDefinition() == typeof(EnumArray<,>).GetGenericTypeDefinition())
+                    return InitializeEnumArray(expectedType, (dynamic)defaultValue, value[1].Split(',').Select(v => Uri.UnescapeDataString(v)).ToArray());
                 dynamic userValue = null;
                 switch (value[0])
                 {
@@ -101,6 +106,9 @@ namespace Orts.Settings.Store
                     case "string[]":
                         userValue = value[1].Split(',').Select(v => Uri.UnescapeDataString(v)).ToArray();
                         break;
+                    //case "enum[]":
+                    //    userValue = InitializeEnumArray(expectedType, defaultValue, value[1].Split(',').Select(v => Uri.UnescapeDataString(v)).ToArray());
+                    //    break;
                     default:
                         Trace.TraceWarning("Setting {0} contains invalid type {1}.", name, value[0]);
                         break;
@@ -163,7 +171,20 @@ namespace Orts.Settings.Store
 
         protected override void SetSettingValue<T, TEnum>(string name, EnumArray<T, TEnum> value)
         {
-            throw new NotImplementedException();
+            StringBuilder builder = new StringBuilder();
+            foreach (TEnum item in EnumExtension.GetValues<TEnum>())
+            {
+                if ((dynamic)value[item] != default(T))
+                    builder.AppendLine($"{item}={value[item]?.ToString()}");
+            }
+            if (builder.Length > 0)
+            {
+                NativeMethods.WritePrivateProfileString(Section, name, "enum[]:" + string.Join(",", builder.ToString().Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries).Select(v => Uri.EscapeDataString(v)).ToArray()), Location);
+            }
+            else
+            {
+                DeleteSetting(name);
+            }
         }
 
         /// <summary>

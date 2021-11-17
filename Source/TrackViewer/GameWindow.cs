@@ -229,7 +229,7 @@ namespace Orts.TrackViewer
             {
                 string[] location = new string[] { $"{contentArea.CenterX}", $"{contentArea.CenterY}", $"{contentArea.Scale}" };
                 Settings.LastLocation = location;
-                    }
+            }
             string[] routeSelection = null;
             if (selectedFolder != null)
             {
@@ -348,7 +348,7 @@ namespace Orts.TrackViewer
             userCommandController.AddEvent(UserCommand.MoveRight, KeyEventType.KeyDown, MoveByKeyRight);
             userCommandController.AddEvent(UserCommand.MoveUp, KeyEventType.KeyDown, MoveByKeyUp);
             userCommandController.AddEvent(UserCommand.MoveDown, KeyEventType.KeyDown, MoveByKeyDown);
-            userCommandController.AddEvent(UserCommand.NewInstance,KeyEventType.KeyPressed, () => new Thread(GameWindowThread).Start());
+            userCommandController.AddEvent(UserCommand.NewInstance, KeyEventType.KeyPressed, () => new Thread(GameWindowThread).Start());
             userCommandController.AddEvent(UserCommand.ZoomIn, KeyEventType.KeyDown, ZoomIn);
             userCommandController.AddEvent(UserCommand.ZoomOut, KeyEventType.KeyDown, ZoomOut);
             userCommandController.AddEvent(UserCommand.ResetZoomAndLocation, KeyEventType.KeyPressed, ResetZoomAndLocation);
@@ -371,7 +371,8 @@ namespace Orts.TrackViewer
         private void WindowManager_OnModalWindow(object sender, ModalWindowEventArgs e)
         {
             mainmenu.Enabled = !e.ModalWindowOpen;
-            ContentArea.Enabled = !e.ModalWindowOpen;
+            if (null != ContentArea)
+                ContentArea.Enabled = !e.ModalWindowOpen;
         }
 
         private static void GameWindowThread(object data)

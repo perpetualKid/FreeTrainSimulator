@@ -11,6 +11,7 @@ using Orts.Common;
 using Orts.Graphics;
 using Orts.Settings;
 using Orts.Settings.Store;
+using Orts.TrackViewer.PopupWindows;
 
 namespace Orts.TrackViewer.Settings
 {
@@ -77,24 +78,24 @@ namespace Orts.TrackViewer.Settings
         public string LogFilename { get; set; }
 
         [Default(new string[]{
-            "Background=DarkGray",
-            "RailTrack=Blue",
-            "RailTrackEnd=BlueViolet",
-            "RailTrackJunction=DarkMagenta",
-            "RailTrackCrossing=Firebrick",
-            "RailLevelCrossing=Crimson",
-            "RoadTrack=Olive",
-            "RoadTrackEnd=ForestGreen",
-            "RoadLevelCrossing=DeepPink",
-            "RoadCarSpawner=White",
-            "SignalItem=White",
-            "PlatformItem=Navy",
-            "SidingItem=ForestGreen",
-            "SpeedPostItem=RoyalBlue",
-            "HazardItem=White",
-            "PickupItem=White",
-            "SoundRegionItem=White",
-            "LevelCrossingItem=White",
+            nameof(ColorSetting.Background)+"=DarkGray",
+            nameof(ColorSetting.RailTrack)+"=Blue",
+            nameof(ColorSetting.RailTrackEnd)+"=BlueViolet",
+            nameof(ColorSetting.RailTrackJunction)+"=DarkMagenta",
+            nameof(ColorSetting.RailTrackCrossing)+"=Firebrick",
+            nameof(ColorSetting.RailLevelCrossing)+"=Crimson",
+            nameof(ColorSetting.RoadTrack)+"=Olive",
+            nameof(ColorSetting.RoadTrackEnd)+"=ForestGreen",
+            nameof(ColorSetting.RoadLevelCrossing)+"=DeepPink",
+            nameof(ColorSetting.RoadCarSpawner)+"=White",
+            nameof(ColorSetting.SignalItem)+"=White",
+            nameof(ColorSetting.PlatformItem)+"=Navy",
+            nameof(ColorSetting.SidingItem)+"=ForestGreen",
+            nameof(ColorSetting.SpeedPostItem)+"=RoyalBlue",
+            nameof(ColorSetting.HazardItem)+"=White",
+            nameof(ColorSetting.PickupItem)+"=White",
+            nameof(ColorSetting.SoundRegionItem)+"=White",
+            nameof(ColorSetting.LevelCrossingItem)+"=White",
         })]
         public EnumArray<string, ColorSetting> ColorSettings { get; set; }
 
@@ -104,13 +105,13 @@ namespace Orts.TrackViewer.Settings
         public override object GetDefaultValue(string name)
         {
             PropertyInfo property = GetProperty(name);
-            object result = property.GetCustomAttributes<DefaultAttribute>(false).FirstOrDefault()?.Value ?? throw new InvalidDataException($"TrackViewer setting {property.Name} has no default value.");
+            object defaultValue = property.GetCustomAttributes<DefaultAttribute>(false).FirstOrDefault()?.Value;
             Type propertyType = property.PropertyType;
             if (propertyType.IsGenericType && propertyType.GetGenericTypeDefinition() == typeof(EnumArray<,>).GetGenericTypeDefinition())
             {
-                return InitializeEnumArrayDefaults(propertyType, result);
+                defaultValue = InitializeEnumArrayDefaults(propertyType, defaultValue);
             }
-            return result;
+            return defaultValue ?? throw new InvalidDataException($"TrackViewer setting {property.Name} has no default value.");
         }
 
         protected override PropertyInfo[] GetProperties()

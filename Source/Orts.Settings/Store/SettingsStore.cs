@@ -116,28 +116,44 @@ namespace Orts.Settings.Store
 
         protected abstract void SetSettingValue<T, TEnum>(string name, EnumArray<T, TEnum> value) where TEnum : Enum;
 
-        private static readonly Type[] allowedTypes = new[] {   //allowedTypes, + Enum and EnumArray<T, TEnum> where T is any of the allowTypes
-                typeof(bool),
-                typeof(int),
-                typeof(DateTime),
-                typeof(TimeSpan),
-                typeof(string),
-                typeof(int[]),
-                typeof(string[]),
-                typeof(byte),
-        };
-
         /// <summary>
         /// Assert that the type expected from the settings store is an allowed type.
         /// </summary>
         /// <param name="expectedType">Type that is expected</param>
         internal static void AssertGetUserValueType(Type expectedType)
         {
-            Debug.Assert(allowedTypes.Contains(expectedType) || expectedType.IsEnum || 
+            Debug.Assert(SettingsBase.AllowedTypes.Contains(expectedType) || expectedType.IsEnum || 
                 (expectedType.IsGenericType && expectedType.GetGenericTypeDefinition() == typeof(EnumArray<,>).GetGenericTypeDefinition() &&
-                allowedTypes.Contains(expectedType.GenericTypeArguments[0]))
+                SettingsBase.AllowedTypes.Contains(expectedType.GenericTypeArguments[0]))
                 , $"GetUserValue called with unexpected type {expectedType.FullName}.");
         }
+
+        protected static EnumArray<T, TEnum> InitializeEnumArray<T, TEnum>(Type expectedType, EnumArray<T, TEnum> defaultValues, string[] values) where TEnum : Enum
+        {
+            if (null == values)
+                throw new ArgumentNullException(nameof(values));
+            if (null == defaultValues)
+                throw new ArgumentNullException(nameof(defaultValues));
+            if (null == expectedType)
+                throw new ArgumentNullException(nameof(expectedType));
+
+            Type[] genericArguments = expectedType.GenericTypeArguments;
+            Debug.Assert(genericArguments.Length == 2 && genericArguments[1].IsEnum);
+            Type enumType = genericArguments[1];
+            foreach (string value in values)
+            {
+                string[] enumValues = value.Split('=', StringSplitOptions.RemoveEmptyEntries);
+                if (enumValues.Length == 2)
+                {
+                    dynamic enumIndex = Enum.Parse(enumType, enumValues[0]);
+                    if (SettingsBase.TryParseValues(genericArguments[0], enumValues[1], out dynamic result))
+                        defaultValues[enumIndex] = result;
+                }
+            }
+            return defaultValues;
+        }
+
+
         #endregion
     }
 }
