@@ -260,7 +260,24 @@ namespace Orts.Settings
                 {
                     foreach (dynamic enumName in valueType.GetGenericArguments()[1].GetEnumValues())
                     {
-                        if (value[enumName] == defaultValue[enumName])
+                        if (valueType.GetGenericArguments()[0].IsArray)
+                        {
+                            if (((Array)value[enumName]).Length == ((Array)defaultValue[enumName]).Length)
+                            {
+                                bool areSame = true;
+                                for (int i = 0; i < ((Array)value[enumName]).Length; i++)
+                                {
+                                    if (value[enumName][i] != defaultValue[enumName][i])
+                                    {
+                                        areSame = false;
+                                        break;
+                                    }
+                                }
+                                if (areSame)
+                                    value[enumName] = null;
+                            }
+                        }
+                        else if (value[enumName] == defaultValue[enumName])
                             value[enumName] = (dynamic)(valueType.GetGenericArguments()[0].IsValueType ? Activator.CreateInstance(valueType.GetGenericArguments()[0]) : null);
                     }
                 }
