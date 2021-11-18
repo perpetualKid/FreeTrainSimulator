@@ -16,9 +16,11 @@ namespace Orts.TrackViewer.PopupWindows
     {
         private Label quitButton;
         private Label cancelButton;
+        private Label printScreenButton;
 
         public event EventHandler OnQuitGame;
         public event EventHandler OnQuitCancel;
+        public event EventHandler OnPrintScreen;
 
         public QuitWindow(WindowManager owner, Point location) : 
             base(owner, CatalogManager.Catalog.GetString($"Exit {RuntimeInfo.ApplicationName}"), location, new Point(200, 100))
@@ -43,7 +45,17 @@ namespace Orts.TrackViewer.PopupWindows
             buttonLine.AddVerticalSeparator();
             buttonLine.Add(cancelButton);
             layout.AddHorizontalSeparator();
+            printScreenButton = new Label(layout.RemainingWidth, 24, "Take Screenshot", LabelAlignment.Center);
+            printScreenButton.OnClick += PrintScreenButton_OnClick;
+            layout.Add(printScreenButton);
             return layout;
+        }
+
+        private void PrintScreenButton_OnClick(object sender, MouseClickEventArgs e)
+        {
+            Close();
+            Owner.Game.RunOneFrame();// allow the Window to be closed before taking a screenshot
+            OnPrintScreen?.Invoke(this, e);
         }
 
         private void CancelButton_OnClick(object sender, MouseClickEventArgs e)
@@ -63,6 +75,7 @@ namespace Orts.TrackViewer.PopupWindows
             {
                 quitButton?.Dispose();
                 cancelButton?.Dispose();
+                printScreenButton?.Dispose();
             }
             base.Dispose(disposing);
         }

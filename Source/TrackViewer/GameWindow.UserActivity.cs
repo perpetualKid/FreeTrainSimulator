@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.IO;
 using System.Windows.Forms;
 
@@ -31,22 +32,34 @@ namespace Orts.TrackViewer
             ExitApplication();
         }
 
+        private void BindWindowEventHandlersActions()
+        {
+            foreach(WindowType windowType in EnumExtension.GetValues<WindowType>())
+            {
+                switch (windowType)
+                {
+                    case WindowType.QuitWindow:
+                        QuitWindow quitWindow = windowManager[WindowType.QuitWindow] as QuitWindow;
+                        quitWindow.OnQuitGame += QuitWindow_OnQuitGame;
+                        quitWindow.OnWindowClosed += QuitWindow_OnWindowClosed;
+                        quitWindow.OnPrintScreen += QuitWindow_OnPrintScreen;
+                        break;
+                }
+            }
+        }
+
         internal void ExitApplication()
         {
-            if ((windowManager[WindowType.QuitWindow] is QuitWindow quitWindow) && quitWindow.Open())
-            {
-                quitWindow.OnQuitGame += QuitWindow_OnQuitGame;
-                quitWindow.OnWindowClosed += QuitWindow_OnWindowClosed;
-            }
+            ((QuitWindow)windowManager[WindowType.QuitWindow]).Open();
+        }
+
+        private void QuitWindow_OnPrintScreen(object sender, EventArgs e)
+        {
+            PrintScreen();
         }
 
         private void QuitWindow_OnWindowClosed(object sender, EventArgs e)
         {
-            if (sender is QuitWindow quitWindow)
-            {
-                quitWindow.OnQuitGame -= QuitWindow_OnQuitGame;
-                quitWindow.OnWindowClosed -= QuitWindow_OnWindowClosed;
-            }
         }
 
         private void QuitWindow_OnQuitGame(object sender, EventArgs e)
@@ -151,6 +164,7 @@ namespace Orts.TrackViewer
             using (SaveFileDialog dialog = new SaveFileDialog())
             {
                 dialog.DefaultExt = "png";
+                dialog.FileName = $"{RuntimeInfo.ApplicationName} {DateTime.Now.ToString("yyyy-MM-dd hh-mm-ss", CultureInfo.CurrentCulture)}";
                 dialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
                 dialog.Filter = $"{Catalog.GetString("Image files (*.png)")}|*.png";
                 if (dialog.ShowDialog() == DialogResult.OK)

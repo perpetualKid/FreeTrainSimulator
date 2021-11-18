@@ -360,6 +360,7 @@ namespace Orts.TrackViewer
             windowManager = WindowManager.Initialize<UserCommand, WindowType>(this, userCommandController.TopLayerControllerAdd());
             windowManager[WindowType.QuitWindow] = new QuitWindow(windowManager, Settings.WindowLocations[WindowType.QuitWindow].ToPoint());
             windowManager.OnModalWindow += WindowManager_OnModalWindow;
+            BindWindowEventHandlersActions();
             Components.Add(windowManager);
             base.Initialize();
 
