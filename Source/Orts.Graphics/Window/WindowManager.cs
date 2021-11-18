@@ -87,7 +87,7 @@ namespace Orts.Graphics.Window
             return instance;
         }
 
-        public static WindowManager<TWindowType> Initialize<TWindowType, T>(Game game, UserCommandController<T> userCommandController, EnumArray<Type, TWindowType> windows) 
+        public static WindowManager<TWindowType> Initialize<T, TWindowType>(Game game, UserCommandController<T> userCommandController)
             where T : Enum where TWindowType : Enum
         {
             if (null == game)
@@ -95,7 +95,7 @@ namespace Orts.Graphics.Window
 
             if (null == WindowManager<TWindowType>.Instance)
             {
-                WindowManager<TWindowType>.Initialize(game, windows);
+                WindowManager<TWindowType>.Initialize(game);
                 WindowManager<TWindowType>.Instance.AddUserCommandEvents(userCommandController);
             }
             return WindowManager<TWindowType>.Instance;
@@ -287,27 +287,18 @@ namespace Orts.Graphics.Window
         {
         }
 
-        internal static void Initialize(Game game, EnumArray<Type, TWindowType> windows)
+        internal static void Initialize(Game game)
         {
             if (Instance != null)
                 throw new InvalidOperationException($"WindowManager {typeof(WindowManager<TWindowType>)} already initialized.");
 
             Instance = new WindowManager<TWindowType>(game);
-            Instance.Initialize(windows);
-        }
-
-        private void Initialize(EnumArray<Type, TWindowType> windows)
-        {
-            foreach(TWindowType windowType in EnumExtension.GetValues<TWindowType>())
-            {
-                object o = Activator.CreateInstance(windows[windowType], this);
-                this.windows[windowType] = o as WindowBase;
-            }
         }
 
         public WindowBase this[TWindowType window]
         {
-            get { return windows[window]; }
+            get => windows[window];
+            set => windows[window] = value;
         }
     }
 }

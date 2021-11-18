@@ -357,8 +357,8 @@ namespace Orts.TrackViewer
             userCommandController.AddEvent(CommonUserCommand.VerticalScrollChanged, MouseWheel);
 
             EnumArray<Type, WindowType> windowTypes = new EnumArray<Type, WindowType>();
-            windowTypes[WindowType.QuitWindow] = typeof(QuitWindow);
-            windowManager = WindowManager.Initialize(this, userCommandController.TopLayerControllerAdd(), windowTypes);
+            windowManager = WindowManager.Initialize<UserCommand, WindowType>(this, userCommandController.TopLayerControllerAdd());
+            windowManager[WindowType.QuitWindow] = new QuitWindow(windowManager, Settings.WindowLocations[WindowType.QuitWindow].ToPoint());
             windowManager.OnModalWindow += WindowManager_OnModalWindow;
             Components.Add(windowManager);
             base.Initialize();

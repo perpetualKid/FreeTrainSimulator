@@ -7,24 +7,25 @@ using Orts.Common.Input;
 using Orts.Graphics.Window.Controls;
 using Orts.Graphics.Window.Controls.Layout;
 
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
-
 namespace Orts.Graphics.Window
 {
     public abstract class WindowBase : IDisposable
     {
+        private static readonly Point EmptyPoint = new Point(-1, -1);
+
         private const int BaseFontSize = 16; // DO NOT CHANGE without also changing the graphics for the windows.
 
         private bool disposedValue;
-        private protected Rectangle location;
+        private protected Rectangle borderRect;
         private Matrix xnaWorld;
         private ControlLayout windowLayout;
         private VertexBuffer windowVertexBuffer;
         private IndexBuffer windowIndexBuffer;
+        private Point location;
 
         protected WindowManager Owner { get; }
 
-        public ref readonly Rectangle Borders => ref location;
+        public ref readonly Rectangle Borders => ref borderRect;
 
         public string Caption { get; }
 
@@ -35,8 +36,18 @@ namespace Orts.Graphics.Window
         protected WindowBase(WindowManager owner, string caption, Point position, Point size)
         {
             Owner = owner ?? throw new ArgumentNullException(nameof(owner));
-            position = new Point((owner.Game.Window.ClientBounds.Width - size.X) / 2, (owner.Game.Window.ClientBounds.Height - size.Y) / 2);
-            location = new Rectangle(position, size);// (100, 100, 200, 100);//TODO 20211030 Load settings or apply default settings
+            location = position;
+            if (position != EmptyPoint)
+            {
+                position.X = (int)Math.Round((float)position.X * (owner.Game.Window.ClientBounds.Width - size.X) / 100);
+                position.Y = (int)Math.Round((float)position.Y * (owner.Game.Window.ClientBounds.Height - size.Y) / 100);
+            }
+            else
+            {
+                position.X = (int)Math.Round((owner.Game.Window.ClientBounds.Width - size.X) / 2f);
+                position.Y = (int)Math.Round((owner.Game.Window.ClientBounds.Height - size.Y) / 2f);
+            }
+            borderRect = new Rectangle(position, size);
             Caption = caption;
             Resize();
         }
@@ -97,8 +108,8 @@ namespace Orts.Graphics.Window
         {
             _ = position;
             _ = keyModifiers;
-            location.Location += delta.ToPoint();
-            xnaWorld.Translation = new Vector3(location.X, location.Y, 0);
+            borderRect.Offset(delta.ToPoint());
+            xnaWorld.Translation = new Vector3(borderRect.X, borderRect.Y, 0);
         }
 
         internal void HandleMouseClick(Point position, KeyModifiers keyModifiers)
@@ -108,7 +119,7 @@ namespace Orts.Graphics.Window
 
         internal protected void Layout()
         {
-            WindowControlLayout windowLayout = new WindowControlLayout(this, location.Width, location.Height);
+            WindowControlLayout windowLayout = new WindowControlLayout(this, borderRect.Width, borderRect.Height);
             //{
             //    TextHeight = Owner.TextFontDefault.Height
             //};
@@ -133,25 +144,25 @@ namespace Orts.Graphics.Window
                 int gp = 32 - BaseFontSize + (int)(Owner.TextFontDefault.Height * 1.25);
                 VertexPositionTexture[] vertexData = new[] {
 					//  0  1  2  3
-					new VertexPositionTexture(new Vector3(0 * location.Width + 00, 0 * location.Height + 00, 0), new Vector2(0.00f / 2, 0.00f)),
-                    new VertexPositionTexture(new Vector3(0 * location.Width + gp, 0 * location.Height + 00, 0), new Vector2(0.25f / 2, 0.00f)),
-                    new VertexPositionTexture(new Vector3(1 * location.Width - gp, 0 * location.Height + 00, 0), new Vector2(0.75f / 2, 0.00f)),
-                    new VertexPositionTexture(new Vector3(1 * location.Width - 00, 0 * location.Height + 00, 0), new Vector2(1.00f / 2, 0.00f)),
+					new VertexPositionTexture(new Vector3(0 * borderRect.Width + 00, 0 * borderRect.Height + 00, 0), new Vector2(0.00f / 2, 0.00f)),
+                    new VertexPositionTexture(new Vector3(0 * borderRect.Width + gp, 0 * borderRect.Height + 00, 0), new Vector2(0.25f / 2, 0.00f)),
+                    new VertexPositionTexture(new Vector3(1 * borderRect.Width - gp, 0 * borderRect.Height + 00, 0), new Vector2(0.75f / 2, 0.00f)),
+                    new VertexPositionTexture(new Vector3(1 * borderRect.Width - 00, 0 * borderRect.Height + 00, 0), new Vector2(1.00f / 2, 0.00f)),
 					//  4  5  6  7
-					new VertexPositionTexture(new Vector3(0 * location.Width + 00, 0 * location.Height + gp, 0), new Vector2(0.00f / 2, 0.25f)),
-                    new VertexPositionTexture(new Vector3(0 * location.Width + gp, 0 * location.Height + gp, 0), new Vector2(0.25f / 2, 0.25f)),
-                    new VertexPositionTexture(new Vector3(1 * location.Width - gp, 0 * location.Height + gp, 0), new Vector2(0.75f / 2, 0.25f)),
-                    new VertexPositionTexture(new Vector3(1 * location.Width - 00, 0 * location.Height + gp, 0), new Vector2(1.00f / 2, 0.25f)),
+					new VertexPositionTexture(new Vector3(0 * borderRect.Width + 00, 0 * borderRect.Height + gp, 0), new Vector2(0.00f / 2, 0.25f)),
+                    new VertexPositionTexture(new Vector3(0 * borderRect.Width + gp, 0 * borderRect.Height + gp, 0), new Vector2(0.25f / 2, 0.25f)),
+                    new VertexPositionTexture(new Vector3(1 * borderRect.Width - gp, 0 * borderRect.Height + gp, 0), new Vector2(0.75f / 2, 0.25f)),
+                    new VertexPositionTexture(new Vector3(1 * borderRect.Width - 00, 0 * borderRect.Height + gp, 0), new Vector2(1.00f / 2, 0.25f)),
 					//  8  9 10 11
-					new VertexPositionTexture(new Vector3(0 * location.Width + 00, 1 * location.Height - gp, 0), new Vector2(0.00f / 2, 0.75f)),
-                    new VertexPositionTexture(new Vector3(0 * location.Width + gp, 1 * location.Height - gp, 0), new Vector2(0.25f / 2, 0.75f)),
-                    new VertexPositionTexture(new Vector3(1 * location.Width - gp, 1 * location.Height - gp, 0), new Vector2(0.75f / 2, 0.75f)),
-                    new VertexPositionTexture(new Vector3(1 * location.Width - 00, 1 * location.Height - gp, 0), new Vector2(1.00f / 2, 0.75f)),
+					new VertexPositionTexture(new Vector3(0 * borderRect.Width + 00, 1 * borderRect.Height - gp, 0), new Vector2(0.00f / 2, 0.75f)),
+                    new VertexPositionTexture(new Vector3(0 * borderRect.Width + gp, 1 * borderRect.Height - gp, 0), new Vector2(0.25f / 2, 0.75f)),
+                    new VertexPositionTexture(new Vector3(1 * borderRect.Width - gp, 1 * borderRect.Height - gp, 0), new Vector2(0.75f / 2, 0.75f)),
+                    new VertexPositionTexture(new Vector3(1 * borderRect.Width - 00, 1 * borderRect.Height - gp, 0), new Vector2(1.00f / 2, 0.75f)),
 					// 12 13 14 15
-					new VertexPositionTexture(new Vector3(0 * location.Width + 00, 1 * location.Height - 00, 0), new Vector2(0.00f / 2, 1.00f)),
-                    new VertexPositionTexture(new Vector3(0 * location.Width + gp, 1 * location.Height - 00, 0), new Vector2(0.25f / 2, 1.00f)),
-                    new VertexPositionTexture(new Vector3(1 * location.Width - gp, 1 * location.Height - 00, 0), new Vector2(0.75f / 2, 1.00f)),
-                    new VertexPositionTexture(new Vector3(1 * location.Width - 00, 1 * location.Height - 00, 0), new Vector2(1.00f / 2, 1.00f)),
+					new VertexPositionTexture(new Vector3(0 * borderRect.Width + 00, 1 * borderRect.Height - 00, 0), new Vector2(0.00f / 2, 1.00f)),
+                    new VertexPositionTexture(new Vector3(0 * borderRect.Width + gp, 1 * borderRect.Height - 00, 0), new Vector2(0.25f / 2, 1.00f)),
+                    new VertexPositionTexture(new Vector3(1 * borderRect.Width - gp, 1 * borderRect.Height - 00, 0), new Vector2(0.75f / 2, 1.00f)),
+                    new VertexPositionTexture(new Vector3(1 * borderRect.Width - 00, 1 * borderRect.Height - 00, 0), new Vector2(1.00f / 2, 1.00f)),
                 };
                 windowVertexBuffer = new VertexBuffer(Owner.Game.GraphicsDevice, typeof(VertexPositionTexture), vertexData.Length, BufferUsage.WriteOnly);
                 windowVertexBuffer.SetData(vertexData);
@@ -168,7 +179,7 @@ namespace Orts.Graphics.Window
             }
             Owner.Game.GraphicsDevice.SetVertexBuffer(windowVertexBuffer);
             Owner.Game.GraphicsDevice.Indices = windowIndexBuffer;
-            xnaWorld = Matrix.CreateWorld(new Vector3(location.X, location.Y, 0), -Vector3.UnitZ, Vector3.UnitY);
+            xnaWorld = Matrix.CreateWorld(new Vector3(borderRect.X, borderRect.Y, 0), -Vector3.UnitZ, Vector3.UnitY);
         }
 
         #region IDisposable
@@ -193,21 +204,5 @@ namespace Orts.Graphics.Window
             GC.SuppressFinalize(this);
         }
         #endregion
-    }
-
-    //TODO 20211112 remove
-    public class TestWindow : WindowBase
-    {
-        public TestWindow(WindowManager owner, Point location, string caption) :
-            base(owner, caption, location, new Point(100, 200))
-        {
-        }
-        public static void AddForms(WindowManager manager)
-        {
-            manager.AddWindow(new TestWindow(manager, new Point(100, 100), "Test"));
-            manager.AddWindow(new TestWindow(manager, new Point(200, 150), "Another Test"));
-        }
-
-
     }
 }

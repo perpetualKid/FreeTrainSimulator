@@ -99,7 +99,13 @@ namespace Orts.TrackViewer.Settings
         })]
         public EnumArray<string, ColorSetting> ColorSettings { get; set; }
 
+        [Default(new string[]
+        {
+            nameof(WindowType.QuitWindow) + "=50,50",
+        })]
+        public EnumArray<int[], WindowType> WindowLocations { get; set; }
 #pragma warning restore CA1819 // Properties should not return arrays
+
         #endregion
 
         public override object GetDefaultValue(string name)

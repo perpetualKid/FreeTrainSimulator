@@ -20,8 +20,8 @@ namespace Orts.TrackViewer.PopupWindows
         public event EventHandler OnQuitGame;
         public event EventHandler OnQuitCancel;
 
-        public QuitWindow(WindowManager owner) : 
-            base(owner, CatalogManager.Catalog.GetString($"Quit {RuntimeInfo.ApplicationName}"), new Point(200, 200), new Point(200, 100))
+        public QuitWindow(WindowManager owner, Point location) : 
+            base(owner, CatalogManager.Catalog.GetString($"Exit {RuntimeInfo.ApplicationName}"), location, new Point(200, 100))
         {
         }
 
