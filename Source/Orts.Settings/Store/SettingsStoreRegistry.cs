@@ -158,7 +158,7 @@ namespace Orts.Settings.Store
         /// <param name="value">value of the setting</param>
         protected override void SetSettingValue(string name, int[] value)
         {
-            key.SetValue(name, string.Join(",", (value).Select(v => v.ToString(CultureInfo.InvariantCulture))), RegistryValueKind.String);
+            key.SetValue(name, string.Join(",", value.Select(v => v.ToString(CultureInfo.InvariantCulture))), RegistryValueKind.String);
         }
 
         /// <summary>
@@ -177,7 +177,21 @@ namespace Orts.Settings.Store
             foreach (TEnum item in EnumExtension.GetValues<TEnum>())
             {
                 if ((dynamic)value[item] != default(T))
-                    builder.AppendLine($"{item}={value[item]?.ToString()}");
+                {
+                    if (typeof(T).IsArray)
+                    {
+                        builder.Append($"{item}=");
+                        foreach (dynamic arrayItem in (Array)(dynamic)value[item])
+                        {
+                            builder.Append($"{arrayItem},");
+                        }
+                        if (builder[^1] == ',')
+                            builder.Length--;
+                        builder.AppendLine();
+                    }
+                    else
+                        builder.AppendLine($"{item}={value[item]?.ToString()}");
+                }
             }
             if (builder.Length > 0)
                 key.SetValue(name, builder.ToString().Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries).ToArray(), RegistryValueKind.MultiString);

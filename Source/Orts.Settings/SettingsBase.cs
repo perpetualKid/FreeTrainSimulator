@@ -346,7 +346,7 @@ namespace Orts.Settings
             }
             else if (expectedType == typeof(int[]))
             {
-                result = value?.Split(',').Select(content => content.Trim()).ToArray();
+                result = value?.Split(',').Select(content => int.Parse(content.Trim(), CultureInfo.InvariantCulture)).ToArray();
                 returnValue = true;
             }
             else if (expectedType == typeof(string[]))

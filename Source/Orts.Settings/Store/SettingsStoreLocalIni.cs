@@ -161,7 +161,7 @@ namespace Orts.Settings.Store
 
         protected override void SetSettingValue(string name, int[] value)
         {
-            NativeMethods.WritePrivateProfileString(Section, name, "int[]:" + string.Join(",", ((int[])value).Select(v => Uri.EscapeDataString(v.ToString(CultureInfo.InvariantCulture))).ToArray()), Location);
+            NativeMethods.WritePrivateProfileString(Section, name, "int[]:" + string.Join(",", value.Select(v => Uri.EscapeDataString(v.ToString(CultureInfo.InvariantCulture))).ToArray()), Location);
         }
 
         protected override void SetSettingValue(string name, string[] value)
@@ -175,7 +175,21 @@ namespace Orts.Settings.Store
             foreach (TEnum item in EnumExtension.GetValues<TEnum>())
             {
                 if ((dynamic)value[item] != default(T))
-                    builder.AppendLine($"{item}={value[item]?.ToString()}");
+                {
+                    if (typeof(T).IsArray)
+                    {
+                        builder.Append($"{item}=");
+                        foreach (dynamic arrayItem in (Array)(dynamic)value[item])
+                        {
+                            builder.Append($"{arrayItem},");
+                        }
+                        if (builder[^1] == ',')
+                            builder.Length--;
+                        builder.AppendLine();
+                    }
+                    else
+                        builder.AppendLine($"{item}={value[item]?.ToString()}");
+                }
             }
             if (builder.Length > 0)
             {
