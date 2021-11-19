@@ -59,8 +59,15 @@ namespace Orts.TrackViewer.Settings
 
         #region TrackViewer Settings
 #pragma warning disable CA1819 // Properties should not return arrays
-        [Default(new[] { 1200, 800 })]
-        public int[] WindowSize { get; set; }
+        [Default(new string[]
+        {
+            nameof(WindowSetting.Location) + "=50,50",  // Center of the WInd% of Screen, centered
+            nameof(WindowSetting.Size) + "=75, 75"    // % of screen size
+        })]
+        public EnumArray<int[], WindowSetting> WindowSettings { get; set; }
+
+        [Default(0)]
+        public int Screen { get; set;}
 
         [Default(new string[0])]
         public string[] RouteSelection { get; set; }

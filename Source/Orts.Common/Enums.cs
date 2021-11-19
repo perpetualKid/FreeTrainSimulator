@@ -940,4 +940,10 @@ namespace Orts.Common
         /// </summary>
         US,
     }
+
+    public enum WindowSetting
+    {
+        Location,
+        Size,
+    }
 }

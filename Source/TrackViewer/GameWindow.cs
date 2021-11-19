@@ -29,6 +29,7 @@ using Orts.Graphics.Xna;
 using UserCommand = Orts.TrackViewer.Control.UserCommand;
 using Orts.Graphics.Window;
 using Orts.TrackViewer.PopupWindows;
+using static Orts.Common.Calc.Dynamics;
 
 namespace Orts.TrackViewer
 {
@@ -107,10 +108,13 @@ namespace Orts.TrackViewer
                 Settings.Log();
                 Trace.WriteLine(LoggingUtil.SeparatorLine);
             }
-            LoadSettings();
             frameRate = new SmoothedData();
             windowForm = (System.Windows.Forms.Form)System.Windows.Forms.Control.FromHandle(Window.Handle);
-            currentScreen = System.Windows.Forms.Screen.PrimaryScreen;
+            if (Settings.Screen < System.Windows.Forms.Screen.AllScreens.Length)
+                currentScreen = System.Windows.Forms.Screen.AllScreens[Settings.Screen];
+            else
+                currentScreen = System.Windows.Forms.Screen.PrimaryScreen;
+            LoadSettings();
 
             InitializeComponent();
             graphicsDeviceManager = new GraphicsDeviceManager(this);
@@ -131,9 +135,7 @@ namespace Orts.TrackViewer
             //graphicsDeviceManager.SynchronizeWithVerticalRetrace = false;
             //IsFixedTimeStep = false;
             //TargetElapsedTime = TimeSpan.FromMilliseconds(5);
-            windowPosition = new Point(
-                currentScreen.WorkingArea.Left + (currentScreen.WorkingArea.Size.Width - windowSize.Width) / 2,
-                currentScreen.WorkingArea.Top + (currentScreen.WorkingArea.Size.Height - windowSize.Height) / 2);
+
             clientRectangleOffset = new Point(windowForm.Width - windowForm.ClientRectangle.Width, windowForm.Height - windowForm.ClientRectangle.Height);
             Window.Position = windowPosition;
 
@@ -212,17 +214,35 @@ namespace Orts.TrackViewer
 
         private void LoadSettings()
         {
-            windowSize = new System.Drawing.Size(Settings.WindowSize[0], Settings.WindowSize[1]);
+            windowSize.Width = (int)(currentScreen.WorkingArea.Size.Width * Math.Abs(Settings.WindowSettings[WindowSetting.Size][0]) / 100.0);
+            windowSize.Height = (int)(currentScreen.WorkingArea.Size.Height * Math.Abs(Settings.WindowSettings[WindowSetting.Size][1]) / 100.0);
+
+            windowPosition = PointExtension.ToPoint(Settings.WindowSettings[WindowSetting.Location]);
+            if (windowPosition != PointExtension.EmptyPoint)
+            {
+                windowPosition = new Point(
+                    currentScreen.WorkingArea.Left + windowPosition.X * (currentScreen.WorkingArea.Size.Width - windowSize.Width) / 100,
+                    currentScreen.WorkingArea.Top + windowPosition.Y * (currentScreen.WorkingArea.Size.Height - windowSize.Height) / 100);
+            }
+            else
+            {
+                windowPosition = new Point(
+                    currentScreen.WorkingArea.Left + (currentScreen.WorkingArea.Size.Width - windowSize.Width) / 2,
+                    currentScreen.WorkingArea.Top + (currentScreen.WorkingArea.Size.Height - windowSize.Height) / 2);
+            }
 
             BackgroundColor = ColorExtension.FromName(Settings.ColorSettings[ColorSetting.Background]);
             viewSettings = Settings.ViewSettings;
 
         }
-
         private void SaveSettings()
         {
-            Settings.WindowSize[0] = windowSize.Width;
-            Settings.WindowSize[1] = windowSize.Height;
+
+            Settings.WindowSettings[WindowSetting.Size][0] = (int)Math.Round(100.0 * windowSize.Width / currentScreen.WorkingArea.Width);
+            Settings.WindowSettings[WindowSetting.Size][1] = (int)Math.Round(100.0 * windowSize.Height / currentScreen.WorkingArea.Height); ;
+            Settings.WindowSettings[WindowSetting.Location][0] = (int)Math.Max(0, Math.Round(100f * (windowPosition.X - currentScreen.Bounds.Left) / (currentScreen.WorkingArea.Width - windowSize.Width)));
+            Settings.WindowSettings[WindowSetting.Location][1] = (int)Math.Max(0, Math.Round(100.0 * (windowPosition.Y - currentScreen.Bounds.Top) / (currentScreen.WorkingArea.Height - windowSize.Height)));
+            Settings.Screen = System.Windows.Forms.Screen.AllScreens.ToList().IndexOf(currentScreen);
 
             Settings.ViewSettings = viewSettings;
             if (null != contentArea)

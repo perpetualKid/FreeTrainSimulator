@@ -1,13 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
+﻿
 using Microsoft.Xna.Framework;
 
 namespace Orts.Graphics.Xna
 {
     public static class PointExtension
     {
+        public static readonly Point EmptyPoint = new Point(-1, -1);
+
         public static Point ToPoint(this int[] source)
         { 
             if (source?.Length >1)
