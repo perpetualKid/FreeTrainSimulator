@@ -218,7 +218,7 @@ namespace Orts.Graphics.Window
                 else if (mouseActiveWindow != null)
                 {
                     userCommandArgs.Handled = true;
-                    mouseActiveWindow.HandleMouseClick(pointerCommandArgs.Position, keyModifiers);
+                    mouseActiveWindow.HandleMouseReleased(pointerCommandArgs.Position, keyModifiers);
                 }
             }
         }

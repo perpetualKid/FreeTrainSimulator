@@ -7,8 +7,6 @@ using Orts.Common.Input;
 using Orts.Graphics.Window.Controls;
 using Orts.Graphics.Window.Controls.Layout;
 
-using static Orts.Common.Calc.Dynamics;
-
 namespace Orts.Graphics.Window
 {
     public abstract class WindowBase : IDisposable
@@ -23,9 +21,12 @@ namespace Orts.Graphics.Window
         private ControlLayout windowLayout;
         private VertexBuffer windowVertexBuffer;
         private IndexBuffer windowIndexBuffer;
-        private Point location;
+
+        private Point location; // holding the original location in % of screen size)
 
         protected WindowManager Owner { get; }
+
+        protected bool Dragged { get; private set; }
 
         public ref readonly Rectangle Borders => ref borderRect;
 
@@ -111,6 +112,8 @@ namespace Orts.Graphics.Window
                 position.Y = (int)Math.Round((Owner.Game.Window.ClientBounds.Height - borderRect.Height) / 2f);
             }
             borderRect.Location = position;
+            borderRect.X = MathHelper.Clamp(borderRect.X, 0, Owner.Game.Window.ClientBounds.Width - borderRect.Width);
+            borderRect.Y = MathHelper.Clamp(borderRect.Y, 0, Owner.Game.Window.ClientBounds.Height - borderRect.Height);
             xnaWorld.Translation = new Vector3(borderRect.X, borderRect.Y, 0);
         }
 
@@ -118,13 +121,19 @@ namespace Orts.Graphics.Window
         {
             _ = position;
             _ = keyModifiers;
+
             borderRect.Offset(delta.ToPoint());
+            borderRect.X = MathHelper.Clamp(borderRect.X, 0, Owner.Game.Window.ClientBounds.Width - borderRect.Width);
+            borderRect.Y = MathHelper.Clamp(borderRect.Y, 0, Owner.Game.Window.ClientBounds.Height - borderRect.Height);
             xnaWorld.Translation = new Vector3(borderRect.X, borderRect.Y, 0);
+            Dragged = true;
         }
 
-        internal void HandleMouseClick(Point position, KeyModifiers keyModifiers)
+        internal void HandleMouseReleased(Point position, KeyModifiers keyModifiers)
         {
-            windowLayout.HandleMouseClicked(new WindowMouseEvent(this, position, true, keyModifiers));
+            if (!Dragged)
+                windowLayout.HandleMouseClicked(new WindowMouseEvent(this, position, true, keyModifiers));
+            Dragged = false;
         }
 
         internal protected void Layout()
