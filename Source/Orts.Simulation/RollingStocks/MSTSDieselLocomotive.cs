@@ -141,16 +141,34 @@ namespace Orts.Simulation.RollingStocks
                 case "engine(ortselectrictrainsupply(dieselengineminrpm":
                     LocomotivePowerSupply.Parse(lowercasetoken, stf);
                     break;
-                case "engine(dieselengineidlerpm": IdleRPM = stf.ReadFloatBlock(STFReader.Units.None, null); break;
-                case "engine(dieselenginemaxrpm": MaxRPM = stf.ReadFloatBlock(STFReader.Units.None, null); break;
-                case "engine(dieselenginemaxrpmchangerate": MaxRPMChangeRate = stf.ReadFloatBlock(STFReader.Units.None, null); break;
-                case "engine(ortsdieselenginemaxpower": MaximumDieselEnginePowerW = stf.ReadFloatBlock(STFReader.Units.Power, null); break;
+                case "engine(dieselengineidlerpm":
+                    IdleRPM = stf.ReadFloatBlock(STFReader.Units.None, null);
+                    break;
+                case "engine(dieselenginemaxrpm":
+                    MaxRPM = stf.ReadFloatBlock(STFReader.Units.None, null);
+                    break;
+                case "engine(dieselenginemaxrpmchangerate":
+                    MaxRPMChangeRate = stf.ReadFloatBlock(STFReader.Units.None, null);
+                    break;
+                case "engine(ortsdieselenginemaxpower":
+                    MaximumDieselEnginePowerW = stf.ReadFloatBlock(STFReader.Units.Power, null);
+                    break;
 
-                case "engine(effects(dieselspecialeffects": ParseEffects(lowercasetoken, stf); break;
-                case "engine(dieselsmokeeffectinitialsmokerate": InitialExhaust = stf.ReadFloatBlock(STFReader.Units.None, null); break;
-                case "engine(dieselsmokeeffectinitialmagnitude": InitialMagnitude = stf.ReadFloatBlock(STFReader.Units.None, null); break;
-                case "engine(dieselsmokeeffectmaxsmokerate": MaxExhaust = stf.ReadFloatBlock(STFReader.Units.None, null); break;
-                case "engine(dieselsmokeeffectmaxmagnitude": MaxMagnitude = stf.ReadFloatBlock(STFReader.Units.None, null); break;
+                case "engine(effects(dieselspecialeffects":
+                    ParseEffects(lowercasetoken, stf);
+                    break;
+                case "engine(dieselsmokeeffectinitialsmokerate":
+                    InitialExhaust = stf.ReadFloatBlock(STFReader.Units.None, null);
+                    break;
+                case "engine(dieselsmokeeffectinitialmagnitude":
+                    InitialMagnitude = stf.ReadFloatBlock(STFReader.Units.None, null);
+                    break;
+                case "engine(dieselsmokeeffectmaxsmokerate":
+                    MaxExhaust = stf.ReadFloatBlock(STFReader.Units.None, null);
+                    break;
+                case "engine(dieselsmokeeffectmaxmagnitude":
+                    MaxMagnitude = stf.ReadFloatBlock(STFReader.Units.None, null);
+                    break;
 
                 case "engine(ortsdieselengines":
                 case "engine(gearboxnumberofgears":
@@ -166,15 +184,30 @@ namespace Orts.Simulation.RollingStocks
                 case "engine(gearboxdowngearproportion":
                     DieselEngines.Parse(lowercasetoken, stf);
                     break;
-                case "engine(maxdiesellevel": MaxDieselLevelL = stf.ReadFloatBlock(STFReader.Units.Volume, null); break;
-                case "engine(dieselusedperhouratmaxpower": DieselUsedPerHourAtMaxPowerL = stf.ReadFloatBlock(STFReader.Units.Volume, null); break;
-                case "engine(dieselusedperhouratidle": DieselUsedPerHourAtIdleL = stf.ReadFloatBlock(STFReader.Units.Volume, null); break;
-                case "engine(maxoilpressure": DieselMaxOilPressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, 120f); break;
-                case "engine(ortsminoilpressure": DieselMinOilPressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, 40f); break;
-                case "engine(maxtemperature": DieselMaxTemperatureDeg = stf.ReadFloatBlock(STFReader.Units.Temperature, 0); break;
-                case "engine(ortsdieselcooling": DieselEngineCooling = (DieselEngine.Cooling)stf.ReadInt((int)DieselEngine.Cooling.Proportional); break;
+                case "engine(maxdiesellevel":
+                    MaxDieselLevelL = stf.ReadFloatBlock(STFReader.Units.Volume, null);
+                    break;
+                case "engine(dieselusedperhouratmaxpower":
+                    DieselUsedPerHourAtMaxPowerL = stf.ReadFloatBlock(STFReader.Units.Volume, null);
+                    break;
+                case "engine(dieselusedperhouratidle":
+                    DieselUsedPerHourAtIdleL = stf.ReadFloatBlock(STFReader.Units.Volume, null);
+                    break;
+                case "engine(maxoilpressure":
+                    DieselMaxOilPressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, 120f);
+                    break;
+                case "engine(ortsminoilpressure":
+                    DieselMinOilPressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, 40f);
+                    break;
+                case "engine(maxtemperature":
+                    DieselMaxTemperatureDeg = stf.ReadFloatBlock(STFReader.Units.Temperature, 0);
+                    break;
+                case "engine(ortsdieselcooling":
+                    DieselEngineCooling = (DieselEngine.Cooling)stf.ReadInt((int)DieselEngine.Cooling.Proportional);
+                    break;
                 default:
-                    base.Parse(lowercasetoken, stf); break;
+                    base.Parse(lowercasetoken, stf);
+                    break;
             }
 
             if (IdleRPM != 0 && MaxRPM != 0 && MaxRPMChangeRate != 0)
@@ -546,7 +579,7 @@ namespace Orts.Simulation.RollingStocks
 
             //Currently the ThrottlePercent is global to the entire train
             //So only the lead locomotive updates it, the others only updates the controller (actually useless)
-            if (this.IsLeadLocomotive() || (!AcceptMUSignals))
+            if (this.IsLeadLocomotive() || (RemoteControlGroup == RemoteControlGroup.Unconnected))
             {
                 if (GearBoxController != null)
                 {
@@ -877,6 +910,102 @@ namespace Orts.Simulation.RollingStocks
             return status.ToString();
         }
 
+        public string GetDistributedPowerDebugStatus()
+        {
+            string throttle = "";
+            if (ThrottlePercent > 0)
+            {
+                if (ThrottleController.NotchCount() > 3)
+                    throttle = Simulator.Catalog.GetParticularString("Notch", "N") + ThrottleController.GetNearestNotch(ThrottlePercent / 100f);
+                else
+                    throttle = $"{ThrottlePercent:F0}%";
+            }
+            else if (DynamicBrakePercent > 0 && DynamicBrake)
+            {
+                if (DynamicBrakeController.NotchCount() > 3)
+                    throttle = Simulator.Catalog.GetParticularString("Notch", "B") + DynamicBrakeController.GetNearestNotch(DynamicBrakePercent / 100f);
+                else
+                    throttle = $"{DynamicBrakePercent:F0}%";
+            }
+            else if (DynamicBrakePercent == 0 && !DynamicBrake)
+                throttle = Simulator.Catalog.GetString("Setup");
+            else
+                throttle = Simulator.Catalog.GetParticularString("Notch", "Idle");
+            if (DynamicBrakePercent >= 0)
+                throttle += "???";
+
+            StringBuilder status = new StringBuilder();
+
+            status.Append($"{CarID}({DistributedPowerUnitId})\t");
+            status.Append($"{Direction.GetDescription()} {(Flipped ? Simulator.Catalog.GetString("(flipped)") : "")}\t");
+            status.Append($"{(IsLeadLocomotive() || RemoteControlGroup < 0 ? "———" : RemoteControlGroup == 0 ? Simulator.Catalog.GetString("Sync") : Simulator.Catalog.GetString("Async"))}\t");
+            status.Append($"{throttle}\t");
+            status.Append($"{FormatStrings.FormatFuelVolume(DieselLevelL, simulator.MetricUnits, Simulator.Instance.Settings.MeasurementUnit == MeasurementUnit.UK)}\t");
+            status.Append($"{FormatStrings.FormatForce(MotiveForceN, simulator.MetricUnits)}{(CouplerOverloaded ? "???" : "")}");
+            status.Append(DieselEngines.GetStatus());
+
+            return status.ToString();
+        }
+
+        public override string GetMultipleUnitsConfiguration()
+        {
+            if (Train == null)
+                return base.GetMultipleUnitsConfiguration();
+            int numberOfLocomotives = 0;
+            int group = 0;
+            string configuration = "";
+            int dpUnitId = 0;
+            RemoteControlGroup remoteControlGroup = RemoteControlGroup.FrontGroupSync;
+            for (var i = 0; i < Train.Cars.Count; i++)
+            {
+                if (Train.Cars[i] is MSTSDieselLocomotive)
+                {
+                    if (dpUnitId != (dpUnitId = (Train.Cars[i] as MSTSLocomotive).DistributedPowerUnitId))
+                    {
+                        configuration += $"{group}{(remoteControlGroup != (remoteControlGroup = Train.Cars[i].RemoteControlGroup) ? " | " : "\u2013")}"; //en-dash
+                        group = 0;
+                    }
+                    group++;
+                    numberOfLocomotives++;
+                }
+            }
+            if (group > 0)
+                configuration += $"{group}";
+            return numberOfLocomotives > 0 ? configuration : null;
+        }
+
+        private static string[] DebugLabels;
+        private static int MaxNumberOfEngines;
+
+        private static void SetDebugLabels(int numberOfEngines)
+        {
+            MaxNumberOfEngines = numberOfEngines;
+            StringBuilder labels = new StringBuilder();
+            labels.Append($"{Simulator.Catalog.GetString("ID")}\t");
+            labels.Append($"{Simulator.Catalog.GetParticularString("NonSteam", "Reverser")}\t");
+            labels.Append($"{Simulator.Catalog.GetString("Remote")}\t");
+            labels.Append($"{Simulator.Catalog.GetString("Throttle")}\t");
+            labels.Append($"{Simulator.Catalog.GetString("Fuel")}\t");
+            labels.Append($"{Simulator.Catalog.GetString("Tractive Effort")}\t");
+            labels.Append(DieselEngines.SetDebugLabels(numberOfEngines));
+            DebugLabels = labels.ToString().Split('\t');
+        }
+
+        public static string GetDebugTableBase(int locomotivesInTrain, int maxNumberOfEngines)
+        {
+            if (MaxNumberOfEngines != maxNumberOfEngines)
+                SetDebugLabels(maxNumberOfEngines);
+            string table = "";
+            for (var i = 0; i < DebugLabels.Length; i++)
+            {
+                table += DebugLabels[i];
+                for (var j = 0; j < locomotivesInTrain; j++)
+                    table += "\t\t";
+                table += "\n";
+            }
+            return table;
+        }
+
         /// <summary>
         /// Returns the controller which refills from the matching pickup point.
         /// </summary>
@@ -885,8 +1014,10 @@ namespace Orts.Simulation.RollingStocks
         public override MSTSNotchController GetRefillController(PickupType type)
         {
             MSTSNotchController controller = null;
-            if (type == PickupType.FuelDiesel) return FuelController;
-            if (type == PickupType.FuelWater) return WaterController;
+            if (type == PickupType.FuelDiesel)
+                return FuelController;
+            if (type == PickupType.FuelWater)
+                return WaterController;
             return controller;
         }
 
@@ -1056,7 +1187,8 @@ namespace Orts.Simulation.RollingStocks
                 ThrottleController.MaximumValue = 1;
             }
             // Check also for very low DieselEngineIdleRPM
-            if (IdleRPM < 10) IdleRPM = Math.Max(150, MaxRPM / 10);
+            if (IdleRPM < 10)
+                IdleRPM = Math.Max(150, MaxRPM / 10);
         }
 
         protected internal override void UpdateRemotePosition(double elapsedClockSeconds, float speed, float targetSpeed)

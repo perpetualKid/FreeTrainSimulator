@@ -273,6 +273,15 @@ namespace Orts.Settings
             commands[UserCommand.ControlWaterScoop] = new UserCommandKeyInput(0x15);
             commands[UserCommand.ControlWiper] = new UserCommandKeyInput(0x2F);
 
+            // Distributed power
+            commands[UserCommand.ControlDistributedPowerMoveToFront] = new UserCommandKeyInput(0x18, KeyModifiers.Control); //O
+            commands[UserCommand.ControlDistributedPowerMoveToBack] = new UserCommandKeyInput(0x18, KeyModifiers.Control | KeyModifiers.Shift); //O
+            commands[UserCommand.ControlDistributedPOwerTraction] = new UserCommandKeyInput(0x26, KeyModifiers.Control); //L
+            commands[UserCommand.ControlDistributedPowerIdle] = new UserCommandKeyInput(0x26, KeyModifiers.Control | KeyModifiers.Shift); //L
+            commands[UserCommand.ControlDistributedPowerBrake] = new UserCommandKeyInput(0x28, KeyModifiers.Control); //
+            commands[UserCommand.ControlDistributedIncrease] = new UserCommandKeyInput(0x16, KeyModifiers.Control); //U
+            commands[UserCommand.ControlDistributedPowerDecrease] = new UserCommandKeyInput(0x16, KeyModifiers.Control | KeyModifiers.Shift); //U
+
             commands[UserCommand.DebugClockBackwards] = new UserCommandKeyInput(0x0C);
             commands[UserCommand.DebugClockForwards] = new UserCommandKeyInput(0x0D);
             commands[UserCommand.DebugDumpKeymap] = new UserCommandKeyInput(0x3B, KeyModifiers.Alt);

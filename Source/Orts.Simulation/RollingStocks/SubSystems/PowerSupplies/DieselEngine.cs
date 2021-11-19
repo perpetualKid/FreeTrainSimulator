@@ -372,12 +372,26 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return (IEnumerator)GetEnumerator();
+            return GetEnumerator();
         }
 
         public DieselEnum GetEnumerator()
         {
             return new DieselEnum(DEList.ToArray());
+        }
+
+        public static string SetDebugLabels(int numberOfEngines)
+        {
+            StringBuilder labels = new StringBuilder();
+            string tabs = new string('\t', numberOfEngines - 1);
+            labels.Append($"{Simulator.Catalog.GetString("Status")}{tabs}");
+            labels.Append($"{Simulator.Catalog.GetParticularString("HUD", "Power")}{tabs}");
+            labels.Append($"{Simulator.Catalog.GetString("Load")}{tabs}");
+            labels.Append($"{Simulator.Catalog.GetString("RPM")}{tabs}");
+            labels.Append($"{Simulator.Catalog.GetString("Flow")}{tabs}");
+            labels.Append($"{Simulator.Catalog.GetString("Temperature")}{tabs}");
+            labels.Append($"{Simulator.Catalog.GetString("Oil Pressure")}{tabs}");
+            return labels.ToString();
         }
 
         public string GetStatus()

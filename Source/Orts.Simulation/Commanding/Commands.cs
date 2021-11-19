@@ -1363,6 +1363,134 @@ namespace Orts.Simulation.Commanding
         }
     }
 
+    // Distributed Power controls
+    [Serializable()]
+    public sealed class DistributedPowerMoveToFrontCommand : Command
+    {
+        public static MSTSWagon Receiver { get; set; }
+
+        public DistributedPowerMoveToFrontCommand(CommandLog log)
+            : base(log)
+        {
+            Redo();
+        }
+
+        public override void Redo()
+        {
+            Receiver.Train.DistributedPowerMoveToFront();
+            // Report();
+        }
+    }
+
+    [Serializable()]
+    public sealed class DistributedPowerMoveToBackCommand : Command
+    {
+        public static MSTSWagon Receiver { get; set; }
+
+        public DistributedPowerMoveToBackCommand(CommandLog log)
+            : base(log)
+        {
+            Redo();
+        }
+
+        public override void Redo()
+        {
+            Receiver.Train.DistributedPowerMoveToBack();
+            // Report();
+        }
+    }
+
+    [Serializable()]
+    public sealed class DistributedPowerIdleCommand : Command
+    {
+        public static MSTSWagon Receiver { get; set; }
+
+        public DistributedPowerIdleCommand(CommandLog log)
+            : base(log)
+        {
+            Redo();
+        }
+
+        public override void Redo()
+        {
+            Receiver.Train.DistributedPowerIdle();
+            // Report();
+        }
+    }
+
+    [Serializable()]
+    public sealed class DistributedPowerTractionCommand : Command
+    {
+        public static MSTSWagon Receiver { get; set; }
+
+        public DistributedPowerTractionCommand(CommandLog log)
+            : base(log)
+        {
+            Redo();
+        }
+
+        public override void Redo()
+        {
+            Receiver.Train.DistributedPowerTraction();
+            // Report();
+        }
+    }
+
+    [Serializable()]
+    public sealed class DistributedPowerDynamicBrakeCommand : Command
+    {
+        public static MSTSWagon Receiver { get; set; }
+
+        public DistributedPowerDynamicBrakeCommand(CommandLog log)
+            : base(log)
+        {
+            Redo();
+        }
+
+        public override void Redo()
+        {
+            Receiver.Train.DistributedPowerDynamicBrake();
+            // Report();
+        }
+    }
+
+    [Serializable()]
+    public sealed class DistributedPowerIncreaseCommand : Command
+    {
+        public static MSTSWagon Receiver { get; set; }
+
+        public DistributedPowerIncreaseCommand(CommandLog log)
+            : base(log)
+        {
+            Redo();
+        }
+
+        public override void Redo()
+        {
+            Receiver.Train.DistributedPowerIncrease();
+            // Report();
+        }
+    }
+
+    [Serializable()]
+    public sealed class DistributedPOwerDecreaseCommand : Command
+    {
+        public static MSTSWagon Receiver { get; set; }
+
+        public DistributedPOwerDecreaseCommand(CommandLog log)
+            : base(log)
+        {
+            Redo();
+        }
+
+        public override void Redo()
+        {
+            Receiver.Train.DistributedPowerDecrease();
+            // Report();
+        }
+    }
+
+
     // Steam controls
     [Serializable()]
     public sealed class ContinuousSteamHeatCommand : ContinuousCommand

@@ -138,11 +138,14 @@ namespace Orts.Simulation.Physics
 
         // These signals pass through to all cars and locomotives on the train
         public MidpointDirection MUDirection { get; internal set; } = MidpointDirection.N;      // set by player locomotive to control MU'd locomotives
-        public float MUThrottlePercent { get; internal set; }                  // set by player locomotive to control MU'd locomotives
-        public int MUGearboxGearIndex { get; internal set; }                   // set by player locomotive to control MU'd locomotives
+        public float MUThrottlePercent { get; internal set; }                   // set by player locomotive to control MU'd locomotives
+        public float DPThrottlePercent { get; internal set; }                   // Distributed Power async/back group throttle control
+        public int MUGearboxGearIndex { get; internal set; }                    // set by player locomotive to control MU'd locomotives
         public float MUReverserPercent { get; internal set; } = 100;            // steam engine direction/cutoff control for MU'd locomotives
         public float MUDynamicBrakePercent { get; internal set; } = -1;         // dynamic brake control for MU'd locomotives, <0 for off
-        internal float EqualReservoirPressurePSIorInHg { get; set; } = 90;   // Pressure in equalising reservoir - set by player locomotive - train brake pipe use this as a reference to set brake pressure levels
+        public float DPDynamicBrakePercent { get; internal set; } = -1;         // Distributed Power async/back group dynamic brake control
+        public DistributedPowerMode DistributedPowerMode { get; internal set; } // Distributed Power mode: -1: Brake, 0: Idle, 1: Traction
+        internal float EqualReservoirPressurePSIorInHg { get; set; } = 90;      // Pressure in equalising reservoir - set by player locomotive - train brake pipe use this as a reference to set brake pressure levels
 
         // Class AirSinglePipe etc. use this property for pressure in PSI, 
         // but Class VacuumSinglePipe uses it for vacuum in InHg.
@@ -574,8 +577,11 @@ namespace Orts.Simulation.Physics
                 ColdStart = true;
             MUDirection = (MidpointDirection)inf.ReadInt32();
             MUThrottlePercent = inf.ReadSingle();
+            DPThrottlePercent = inf.ReadSingle();
             MUGearboxGearIndex = inf.ReadInt32();
             MUDynamicBrakePercent = inf.ReadSingle();
+            DPDynamicBrakePercent = inf.ReadSingle();
+            DistributedPowerMode = (DistributedPowerMode)inf.ReadInt32();
             EqualReservoirPressurePSIorInHg = inf.ReadSingle();
             BrakeLine2PressurePSI = inf.ReadSingle();
             BrakeLine3PressurePSI = inf.ReadSingle();
@@ -803,6 +809,10 @@ namespace Orts.Simulation.Physics
                         simulator.PlayerLocomotive = LeadLocomotive;
                 }
 
+                (LeadLocomotive as MSTSLocomotive).DistributedPowerThrottleController.SetValue(DPThrottlePercent / 100f);
+                if ((LeadLocomotive as MSTSLocomotive).DistributedPowerDynamicBrakeController != null)
+                    (LeadLocomotive as MSTSLocomotive).DistributedPowerDynamicBrakeController.SetValue(DPDynamicBrakePercent / 100f);
+
                 // restore logfile
                 if (evaluateTrainSpeed)
                 {
@@ -820,6 +830,7 @@ namespace Orts.Simulation.Physics
                 for (int i = 0; i < count; ++i)
                     Cars.Add(RollingStock.Restore(inf, this));
             }
+            SetDistributedPowerUnitIds();
         }
 
         private static ServiceTraffics RestoreTrafficSDefinition(BinaryReader inf)
@@ -881,8 +892,11 @@ namespace Orts.Simulation.Physics
             outf.Write((int)TrainType);
             outf.Write((int)MUDirection);
             outf.Write(MUThrottlePercent);
+            outf.Write(DPThrottlePercent);
             outf.Write(MUGearboxGearIndex);
             outf.Write(MUDynamicBrakePercent);
+            outf.Write(DPDynamicBrakePercent);
+            outf.Write((int)DistributedPowerMode);
             outf.Write(EqualReservoirPressurePSIorInHg);
             outf.Write(BrakeLine2PressurePSI);
             outf.Write(BrakeLine3PressurePSI);
@@ -1274,7 +1288,7 @@ namespace Orts.Simulation.Physics
             if (setMUParameters)
             {
                 // Flip the controls.
-                MUDirection = (MidpointDirection)((int)MUDirection * -1);
+                MUDirection = (MidpointDirection)(-(int)MUDirection);
                 MUReverserPercent = -MUReverserPercent;
             }
             if (!((this is AITrain && simulator.PreUpdate) || TrainType == TrainType.Static))
@@ -1306,6 +1320,179 @@ namespace Orts.Simulation.Physics
             // Update flipped state of each car.
             for (int i = 0; i < Cars.Count; i++)
                 Cars[i].Flipped = !Cars[i].Flipped;
+        }
+
+        /// <summary>
+        /// Set Distributed Power locomotive groups IDs, and reset async/back group assignments
+        /// </summary>
+        public void SetDistributedPowerUnitIds()
+        {
+            var id = 0;
+            foreach (var car in Cars)
+            {
+                //Console.WriteLine("___{0} {1}", car.CarID, id);
+                if (car is MSTSLocomotive)
+                {
+                    (car as MSTSLocomotive).DistributedPowerUnitId = id;
+                    if (car.RemoteControlGroup == RemoteControlGroup.RearGroupAsync)
+                        car.RemoteControlGroup = RemoteControlGroup.FrontGroupSync;
+                }
+                else
+                    id++;
+            }
+        }
+
+        /// <summary>
+        /// Distributed Power: Move one locomotive group to syncron/front remote control group
+        /// </summary>
+        public void DistributedPowerMoveToFront()
+        {
+            int idToMove = -1;
+            for (int i = 0; i < Cars.Count; i++)
+            {
+                if (!(Cars[i] is MSTSLocomotive))
+                    continue;
+                if (idToMove == -1 && Cars[i].RemoteControlGroup == RemoteControlGroup.FrontGroupSync)
+                    continue;
+                if (idToMove == -1 && Cars[i].RemoteControlGroup == RemoteControlGroup.RearGroupAsync)
+                    idToMove = (Cars[i] as MSTSLocomotive).DistributedPowerUnitId;
+
+                if ((Cars[i] as MSTSLocomotive).DistributedPowerUnitId == idToMove && Cars[i].RemoteControlGroup != RemoteControlGroup.Unconnected)
+                    Cars[i].RemoteControlGroup = RemoteControlGroup.FrontGroupSync;
+                else if (idToMove > -1 && Cars[i].RemoteControlGroup == RemoteControlGroup.FrontGroupSync)
+                    Cars[i].RemoteControlGroup = RemoteControlGroup.RearGroupAsync;
+            }
+        }
+
+        /// <summary>
+        /// Distributed Power: Move one locomotive group to asyncron/back remote control group
+        /// </summary>
+        public void DistributedPowerMoveToBack()
+        {
+            int idToMove = -1;
+            int idLead = LeadLocomotive != null ? (Cars[LeadLocomotiveIndex] as MSTSLocomotive).DistributedPowerUnitId : -1;
+            for (int i = Cars.Count - 1; i >= 0; i--)
+            {
+                if (!(Cars[i] is MSTSLocomotive))
+                    continue;
+                if (idToMove == -1 && Cars[i].RemoteControlGroup == RemoteControlGroup.RearGroupAsync)
+                    continue;
+                if (idToMove == -1 && Cars[i].RemoteControlGroup == RemoteControlGroup.FrontGroupSync)
+                    idToMove = (Cars[i] as MSTSLocomotive).DistributedPowerUnitId;
+
+                if (idToMove == idLead)
+                    idToMove = int.MaxValue;
+
+                if ((Cars[i] as MSTSLocomotive).DistributedPowerUnitId == idToMove && Cars[i].RemoteControlGroup != RemoteControlGroup.Unconnected)
+                    Cars[i].RemoteControlGroup = RemoteControlGroup.RearGroupAsync;
+                else if (idToMove > -1 && Cars[i].RemoteControlGroup == RemoteControlGroup.RearGroupAsync)
+                    Cars[i].RemoteControlGroup = 0;
+            }
+        }
+
+        /// <summary>
+        /// Distributed Power: Switch async/back group to traction mode, at least notch 1.
+        /// </summary>
+        public void DistributedPowerTraction()
+        {
+            DistributedPowerMode = DistributedPowerMode.Traction;
+            DPDynamicBrakePercent = -1;
+            if (DPThrottlePercent == 0)
+                DistributedPowerIncrease();
+            DistributedPowerUpdate();
+        }
+
+        /// <summary>
+        /// Distributed Power: Switch async/back group to idle.
+        /// </summary>
+        public void DistributedPowerIdle()
+        {
+            DistributedPowerMode = DistributedPowerMode.Idle;
+            if (DPDynamicBrakePercent >= 0)
+                DPDynamicBrakePercent = 0;
+            DPThrottlePercent = 0;
+            (LeadLocomotive as MSTSLocomotive).DistributedPowerThrottleController.SetValue(0);
+            if ((LeadLocomotive as MSTSLocomotive).DistributedPowerDynamicBrakeController != null)
+                (LeadLocomotive as MSTSLocomotive).DistributedPowerDynamicBrakeController.SetValue(0);
+        }
+
+        /// <summary>
+        /// Distributed Power: Switch async/back group to dynamic brake mode, at least notch 1.
+        /// </summary>
+        public void DistributedPowerDynamicBrake()
+        {
+            DistributedPowerMode = DistributedPowerMode.Brake;
+            DPThrottlePercent = 0;
+            if (DPDynamicBrakePercent == -1)
+                DPDynamicBrakePercent = 0;
+            if (DPDynamicBrakePercent == 0)
+                DistributedPowerIncrease();
+            DistributedPowerUpdate();
+        }
+
+        /// <summary>
+        /// Distributed Power: Increase async/back group throttle or dynamic brake by one step, depending on which one is active
+        /// </summary>
+        public void DistributedPowerIncrease()
+        {
+            if (DistributedPowerMode == DistributedPowerMode.Traction)
+                DPThrottlePercent = DistributedPowerIncrease((LeadLocomotive as MSTSLocomotive).DistributedPowerThrottleController, DPThrottlePercent);
+            else if (DistributedPowerMode == DistributedPowerMode.Brake)
+                DPThrottlePercent = DistributedPowerIncrease((LeadLocomotive as MSTSLocomotive).DistributedPowerDynamicBrakeController, DPDynamicBrakePercent);
+        }
+
+        protected static float DistributedPowerIncrease(RollingStocks.SubSystems.Controllers.MSTSNotchController controller, float percent)
+        {
+            if (controller == null)
+                return percent;
+            if (controller.DPSmoothMax() == null)
+            {
+                controller.StartIncrease();
+                controller.StopIncrease();
+            }
+            else
+                controller.SetValue(Math.Min(1f, percent / 100f + controller.StepSize));
+            return Math.Min(controller.CurrentValue * 100, 100);
+        }
+
+        /// <summary>
+        /// Distributed Power: Decrease async/back group throttle or dynamic brake by one step, depending on which one is active.
+        /// But never go below notch 1. That must be explicitly asked by the DPIdle() function.
+        /// </summary>
+        public void DistributedPowerDecrease()
+        {
+            if (DistributedPowerMode == DistributedPowerMode.Traction)
+                DPThrottlePercent = DistributedPowerDecrease((LeadLocomotive as MSTSLocomotive).DistributedPowerThrottleController, DPThrottlePercent);
+            else if (DistributedPowerMode == DistributedPowerMode.Brake)
+                DPDynamicBrakePercent = DistributedPowerDecrease((LeadLocomotive as MSTSLocomotive).DistributedPowerDynamicBrakeController, DPDynamicBrakePercent);
+        }
+
+        protected static float DistributedPowerDecrease(RollingStocks.SubSystems.Controllers.MSTSNotchController controller, float percent)
+        {
+            if (controller == null)
+                return percent;
+            if (controller.SmoothMin() == null)
+            {
+                controller.StartDecrease();
+                controller.StopDecrease();
+            }
+            else
+                controller.SetValue(Math.Max(0f, percent / 100f - controller.StepSize));
+            percent = controller.CurrentValue * 100;
+            if (percent <= 0)
+            {
+                percent = DistributedPowerIncrease(controller, 0);
+            }
+            return percent;
+        }
+
+        /// <summary>
+        /// Distributed Power: Update constraints
+        /// </summary>
+        protected void DistributedPowerUpdate()
+        {
+            if (LeadLocomotive.Direction == MidpointDirection.N || LeadLocomotive.BrakeSystem.GetCylPressurePSI() > 20)
+                DistributedPowerIdle();
         }
 
         /// Someone is sending an event notification to all cars on this train.
@@ -1488,6 +1675,8 @@ namespace Orts.Simulation.Physics
 
             // check position of train wrt tunnels
             ProcessTunnels();
+
+            DistributedPowerUpdate();
 
             // log train details
 

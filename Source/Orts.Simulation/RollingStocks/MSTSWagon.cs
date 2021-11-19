@@ -3327,7 +3327,7 @@ namespace Orts.Simulation.RollingStocks
 
         public override void SignalEvent(PowerSupplyEvent evt)
         {
-            if (simulator.PlayerLocomotive == this || AcceptMUSignals)
+            if (simulator.PlayerLocomotive == this || RemoteControlGroup != RemoteControlGroup.Unconnected)
             {
                 switch (evt)
                 {
@@ -3347,7 +3347,7 @@ namespace Orts.Simulation.RollingStocks
 
         public override void SignalEvent(PowerSupplyEvent evt, int id)
         {
-            if (simulator.PlayerLocomotive == this || AcceptMUSignals)
+            if (simulator.PlayerLocomotive == this || RemoteControlGroup != RemoteControlGroup.Unconnected)
             {
                 switch (evt)
                 {

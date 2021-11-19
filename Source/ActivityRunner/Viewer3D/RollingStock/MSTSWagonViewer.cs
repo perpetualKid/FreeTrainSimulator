@@ -57,10 +57,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         protected AnimatedShape RearAirHoseDisconnectedShape;
 
         public static readonly Action Noop = () => { };
-        /// <summary>
-        /// Dictionary of built-in locomotive control keyboard commands, Action[] is in the order {KeyRelease, KeyPress}
-        /// </summary>
-        public Dictionary<UserCommand, Action[]> UserInputCommands = new Dictionary<UserCommand, Action[]>();
 
         // Wheels are rotated by hand instead of in the shape file.
         private float WheelRotationR;
@@ -402,8 +398,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             RightDoor.SetState(MSTSWagon.DoorRightOpen);
             Mirrors.SetState(MSTSWagon.MirrorOpen);
             UnloadingParts.SetState(MSTSWagon.UnloadingPartsOpen);
-
-            InitializeUserInputCommands();
         }
 
         private void MatchMatrixToPart(MSTSWagon car, int matrix, int bogieMatrix)
@@ -558,10 +552,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     if (TrainCarShape.Hierarchy[i] == matrix)
                         MatchMatrixToPart(car, i, 0);
             }
-        }
-
-        public override void InitializeUserInputCommands()
-        {
         }
 
         public override void HandleUserInput(in ElapsedTime elapsedTime)

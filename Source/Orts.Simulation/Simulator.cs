@@ -1078,6 +1078,7 @@ namespace Orts.Simulation
             }// for each rail car
 
             train.CheckFreight();
+            train.SetDistributedPowerUnitIds();
 
             train.PresetExplorerPath(aiPath);
             train.ControlMode = TrainControlMode.Explorer;

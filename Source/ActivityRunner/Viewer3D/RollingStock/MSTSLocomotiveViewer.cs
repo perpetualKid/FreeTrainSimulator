@@ -231,6 +231,16 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             Viewer.UserCommandController.AddEvent(UserCommand.ControlGeneric1, KeyEventType.KeyReleased, GenericCommand1Off, true);
             Viewer.UserCommandController.AddEvent(UserCommand.ControlGeneric2, KeyEventType.KeyPressed, GenericCommand2On, true);
             Viewer.UserCommandController.AddEvent(UserCommand.ControlGeneric2, KeyEventType.KeyReleased, GenericCommand2Off, true);
+
+            //Distributed power
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlDistributedPowerMoveToFront, KeyEventType.KeyPressed, DistributedPowerMoveToFront, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlDistributedPowerMoveToBack, KeyEventType.KeyPressed, DistributedPowerMoveToBack, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlDistributedPOwerTraction, KeyEventType.KeyPressed, DistributedPowerTraction, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlDistributedPowerIdle, KeyEventType.KeyPressed, DistributedPowerIdle, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlDistributedPowerBrake, KeyEventType.KeyPressed, DistributedPowerBrake, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlDistributedIncrease, KeyEventType.KeyPressed, DistributedPowerIncrease, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlDistributedPowerDecrease, KeyEventType.KeyPressed, DistributedPowerDecrease, true);
+
             Viewer.UserCommandController.AddEvent(AnalogUserCommand.Light, LightSwitchCommand);
             Viewer.UserCommandController.AddEvent(AnalogUserCommand.Wiper, WiperSwitchCommand);
             Viewer.UserCommandController.AddEvent(AnalogUserCommand.Direction, DirectionHandleCommand);
@@ -321,6 +331,13 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlGeneric1, KeyEventType.KeyReleased, GenericCommand1Off);
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlGeneric2, KeyEventType.KeyPressed, GenericCommand2On);
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlGeneric2, KeyEventType.KeyReleased, GenericCommand2Off);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlDistributedPowerMoveToFront, KeyEventType.KeyPressed, DistributedPowerMoveToFront);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlDistributedPowerMoveToBack, KeyEventType.KeyPressed, DistributedPowerMoveToBack);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlDistributedPOwerTraction, KeyEventType.KeyPressed, DistributedPowerTraction);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlDistributedPowerIdle, KeyEventType.KeyPressed, DistributedPowerIdle);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlDistributedPowerBrake, KeyEventType.KeyPressed, DistributedPowerBrake);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlDistributedIncrease, KeyEventType.KeyPressed, DistributedPowerIncrease);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlDistributedPowerDecrease, KeyEventType.KeyPressed, DistributedPowerDecrease);
             Viewer.UserCommandController.RemoveEvent(AnalogUserCommand.Light, LightSwitchCommand);
             Viewer.UserCommandController.RemoveEvent(AnalogUserCommand.Wiper, WiperSwitchCommand);
             Viewer.UserCommandController.RemoveEvent(AnalogUserCommand.Direction, DirectionHandleCommand);
@@ -394,6 +411,34 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         private void GenericCommand2Off()
         {
             _ = new TCSButtonCommand(Viewer.Log, false, 1);
+        }
+        private void DistributedPowerMoveToFront()
+        {
+            _ = new DistributedPowerMoveToFrontCommand(Viewer.Log);
+        }
+        private void DistributedPowerMoveToBack()
+        {
+            _ = new DistributedPowerMoveToBackCommand(Viewer.Log);
+        }
+        private void DistributedPowerTraction()
+        {
+            _ = new DistributedPowerTractionCommand(Viewer.Log);
+        }
+        private void DistributedPowerIdle()
+        {
+            _ = new DistributedPowerIdleCommand(Viewer.Log);
+        }
+        private void DistributedPowerBrake()
+        {
+            _ = new DistributedPowerDynamicBrakeCommand(Viewer.Log);
+        }
+        private void DistributedPowerIncrease()
+        {
+            _ = new DistributedPowerIncreaseCommand(Viewer.Log);
+        }
+        private void DistributedPowerDecrease()
+        {
+            _ = new DistributedPOwerDecreaseCommand(Viewer.Log);
         }
 
         private void LightSwitchCommand(UserCommandArgs commandArgs, GameTime gameTime)
@@ -2457,7 +2502,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                                     _ = new ToggleHelpersEngineCommand(Viewer.Log);
                                 break;
                             }
-                            else if (car != Viewer.Simulator.PlayerLocomotive)
+                            else if (car != Viewer.Simulator.PlayerLocomotive && dieselLoco.RemoteControlGroup >= 0)
                             {
                                 if ((dieselLoco.DieselEngines[0].State == DieselEngineState.Running ||
                                             dieselLoco.DieselEngines[0].State == DieselEngineState.Stopped) &&
@@ -3059,7 +3104,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 }
             }
         }
-        public override void InitializeUserInputCommands() { }
 
         /// <summary>
         /// We are about to display a video frame.  Calculate positions for 

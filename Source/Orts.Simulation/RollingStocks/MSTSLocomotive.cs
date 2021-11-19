@@ -141,6 +141,7 @@ namespace Orts.Simulation.RollingStocks
         public bool CabLightOn;
         public bool ShowCab = true;
         public bool MilepostUnitsMetric;
+        public int DistributedPowerUnitId;
         public float DrvWheelWeightKg; // current weight on locomotive drive wheels, includes drag factor (changes as mass changes)
         public float InitialDrvWheelWeightKg; // initialising weight on locomotive drive wheels, includes drag factor
         public bool CabRadioOn;
@@ -266,7 +267,7 @@ namespace Orts.Simulation.RollingStocks
             {
                 if (value != _SmallEjectorSoundOn)
                 {
-                    SignalEvent(value? TrainEvent.SmallEjectorOn : TrainEvent.SmallEjectorOff);
+                    SignalEvent(value ? TrainEvent.SmallEjectorOn : TrainEvent.SmallEjectorOff);
                     _SmallEjectorSoundOn = value;
                 }
             }
@@ -280,11 +281,11 @@ namespace Orts.Simulation.RollingStocks
             {
                 if (value != _LargeEjectorSoundOn)
                 {
-                    SignalEvent(value? TrainEvent.LargeEjectorOn : TrainEvent.LargeEjectorOff);
+                    SignalEvent(value ? TrainEvent.LargeEjectorOn : TrainEvent.LargeEjectorOff);
                     _LargeEjectorSoundOn = value;
                 }
             }
-       }
+        }
 
         public bool SteamEngineBrakeFitted;
         public bool TrainBrakeFitted;
@@ -416,6 +417,8 @@ namespace Orts.Simulation.RollingStocks
         public AirSinglePipe.ValveState EngineBrakeState = AirSinglePipe.ValveState.Lap;
         public MSTSNotchController DynamicBrakeController;
         public MSTSNotchController GearBoxController;
+        public MSTSNotchController DistributedPowerThrottleController;
+        public MSTSNotchController DistributedPowerDynamicBrakeController;
 
         private int PreviousGearBoxNotch;
 
@@ -556,6 +559,7 @@ namespace Orts.Simulation.RollingStocks
                 ThrottleController = new MSTSNotchController();
                 ThrottleController.StepSize = 0.1f;
             }
+            DistributedPowerThrottleController = (MSTSNotchController)ThrottleController.Clone();
 
             // need to test for Dynamic brake problem on 3DTS and SLI
             if (DynamicBrakeController.IsValid())
@@ -564,9 +568,13 @@ namespace Orts.Simulation.RollingStocks
                 {
                     HasSmoothStruc = true;
                 }
+                DistributedPowerDynamicBrakeController = (MSTSNotchController)DynamicBrakeController.Clone();
             }
             else
+            {
                 DynamicBrakeController = null;
+                DistributedPowerDynamicBrakeController = null;
+            }
 
             if (DynamicBrakeForceCurves == null && MaxDynamicBrakeForceN > 0)
             {
@@ -687,7 +695,8 @@ namespace Orts.Simulation.RollingStocks
 
             var cvfFile = new CabViewFile(basePath, cvfFileName);
             var viewPoint = new ViewPoint();
-            if (cvfFile.Locations.Count <= 0) return null; //check for Protrain's dummy cab
+            if (cvfFile.Locations.Count <= 0)
+                return null; //check for Protrain's dummy cab
             // Set up camera locations for the cab views
             for (int i = 0; i < cvfFile.Locations.Count; ++i)
             {
@@ -715,7 +724,8 @@ namespace Orts.Simulation.RollingStocks
                 if (shapeFilePath != null && File.Exists(shapeFilePath + "d"))
                 {
                     shapeFile = new ShapeDescriptorFile(shapeFilePath + "d");
-                    if (shapeFile.Shape.EsdBoundingBox != null) boundingLimitsFound = true;
+                    if (shapeFile.Shape.EsdBoundingBox != null)
+                        boundingLimitsFound = true;
                 }
             }
             if (!boundingLimitsFound)
@@ -724,7 +734,8 @@ namespace Orts.Simulation.RollingStocks
                 if (shapeFilePath != null && File.Exists(shapeFilePath + "d"))
                 {
                     shapeFile = new ShapeDescriptorFile(shapeFilePath + "d");
-                    if (shapeFile.Shape.EsdBoundingBox != null) boundingLimitsFound = true;
+                    if (shapeFile.Shape.EsdBoundingBox != null)
+                        boundingLimitsFound = true;
                 }
             }
             if (boundingLimitsFound)
@@ -786,16 +797,36 @@ namespace Orts.Simulation.RollingStocks
         {
             switch (lowercasetoken)
             {
-                case "engine(sound": CabSoundFileName = stf.ReadStringBlock(null); break;
-                case "engine(cabview": CVFFileName = stf.ReadStringBlock(null); break;
-                case "engine(maxpower": MaxPowerW = stf.ReadFloatBlock(STFReader.Units.Power, null); break;
-                case "engine(maxforce": MaxForceN = stf.ReadFloatBlock(STFReader.Units.Force, null); break;
-                case "engine(maxcurrent": MaxCurrentA = stf.ReadFloatBlock(STFReader.Units.Current, null); break;
-                case "engine(maxcontinuousforce": MaxContinuousForceN = stf.ReadFloatBlock(STFReader.Units.Force, null); break;
-                case "engine(ortsspeedofmaxcontinuousforce": SpeedOfMaxContinuousForceMpS = stf.ReadFloatBlock(STFReader.Units.Speed, null); break;
-                case "engine(dieselenginespeedofmaxtractiveeffort": MSTSSpeedOfMaxContinuousForceMpS = stf.ReadFloatBlock(STFReader.Units.Speed, null); break;
-                case "engine(maxvelocity": MaxSpeedMpS = stf.ReadFloatBlock(STFReader.Units.Speed, null); break;
-                case "engine(ortsunloadingspeed": UnloadingSpeedMpS = stf.ReadFloatBlock(STFReader.Units.Speed, null); break;
+                case "engine(sound":
+                    CabSoundFileName = stf.ReadStringBlock(null);
+                    break;
+                case "engine(cabview":
+                    CVFFileName = stf.ReadStringBlock(null);
+                    break;
+                case "engine(maxpower":
+                    MaxPowerW = stf.ReadFloatBlock(STFReader.Units.Power, null);
+                    break;
+                case "engine(maxforce":
+                    MaxForceN = stf.ReadFloatBlock(STFReader.Units.Force, null);
+                    break;
+                case "engine(maxcurrent":
+                    MaxCurrentA = stf.ReadFloatBlock(STFReader.Units.Current, null);
+                    break;
+                case "engine(maxcontinuousforce":
+                    MaxContinuousForceN = stf.ReadFloatBlock(STFReader.Units.Force, null);
+                    break;
+                case "engine(ortsspeedofmaxcontinuousforce":
+                    SpeedOfMaxContinuousForceMpS = stf.ReadFloatBlock(STFReader.Units.Speed, null);
+                    break;
+                case "engine(dieselenginespeedofmaxtractiveeffort":
+                    MSTSSpeedOfMaxContinuousForceMpS = stf.ReadFloatBlock(STFReader.Units.Speed, null);
+                    break;
+                case "engine(maxvelocity":
+                    MaxSpeedMpS = stf.ReadFloatBlock(STFReader.Units.Speed, null);
+                    break;
+                case "engine(ortsunloadingspeed":
+                    UnloadingSpeedMpS = stf.ReadFloatBlock(STFReader.Units.Speed, null);
+                    break;
                 case "engine(type":
                     stf.MustMatch("(");
                     string engineType = stf.ReadString();
@@ -804,9 +835,15 @@ namespace Orts.Simulation.RollingStocks
                     else
                         STFException.TraceWarning(stf, "Skipped unknown engine type " + engineType);
                     break;
-                case "engine(enginecontrollers(throttle": ThrottleController = new MSTSNotchController(stf); break;
-                case "engine(enginecontrollers(regulator": ThrottleController = new MSTSNotchController(stf); break;
-                case "engine(enginecontrollers(brake_dynamic": DynamicBrakeController.Parse(stf); break;
+                case "engine(enginecontrollers(throttle":
+                    ThrottleController = new MSTSNotchController(stf);
+                    break;
+                case "engine(enginecontrollers(regulator":
+                    ThrottleController = new MSTSNotchController(stf);
+                    break;
+                case "engine(enginecontrollers(brake_dynamic":
+                    DynamicBrakeController.Parse(stf);
+                    break;
 
                 case "engine(trainbrakescontrollermaxsystempressure":
                 case "engine(ortstrainbrakescontrollermaxoverchargepressure":
@@ -823,7 +860,9 @@ namespace Orts.Simulation.RollingStocks
                     TrainBrakeController.Parse(lowercasetoken, stf);
                     TrainBrakeFitted = true;
                     break;
-                case "engine(enginecontrollers(ortsfastvacuumexhauster": FastVacuumExhausterFitted = true; break;
+                case "engine(enginecontrollers(ortsfastvacuumexhauster":
+                    FastVacuumExhausterFitted = true;
+                    break;
                 case "engine(enginebrakescontrollermaxsystempressure":
                 case "engine(enginebrakescontrollermaxreleaserate":
                 case "engine(enginebrakescontrollermaxquickreleaserate":
@@ -847,69 +886,185 @@ namespace Orts.Simulation.RollingStocks
                 case "engine(vigilancemonitor":
                 case "engine(emergencystopmonitor":
                 case "engine(awsmonitor":
-                case "engine(overspeedmonitor": VigilanceMonitor = true; TrainControlSystem.Parse(lowercasetoken, stf); break;
-                case "engine(enginecontrollers(combined_control": ParseCombData(lowercasetoken, stf); break;
-                case "engine(airbrakesmainresvolume": MainResVolumeM3 = (float)Size.Volume.FromFt3(stf.ReadFloatBlock(STFReader.Units.VolumeDefaultFT3, null)); break;
-                case "engine(airbrakesmainmaxairpressure": MainResPressurePSI = MaxMainResPressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null); break;
-                case "engine(airbrakemaxmainrespipepressure": MaximumMainReservoirPipePressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null); break;
-                case "engine(airbrakescompressorrestartpressure": CompressorRestartPressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null); break;
-                case "engine(airbrakesaircompressorpowerrating": CompressorChargingRateM3pS = (float)Size.Volume.FromFt3(stf.ReadFloatBlock(STFReader.Units.VolumeDefaultFT3, null)); break;
-                case "engine(airbrakesiscompressorelectricormechanical": CompressorIsMechanical = stf.ReadIntBlock(null) == 1; break;
-                case "engine(trainpipeleakrate": TrainBrakePipeLeakPSIorInHgpS = stf.ReadFloatBlock(STFReader.Units.PressureRateDefaultPSIpS, null); break;
-                case "engine(vacuumbrakesvacuumpumpresistance": VacuumPumpResistanceN = stf.ReadFloatBlock(STFReader.Units.Force, null); break;
+                case "engine(overspeedmonitor":
+                    VigilanceMonitor = true;
+                    TrainControlSystem.Parse(lowercasetoken, stf);
+                    break;
+                case "engine(enginecontrollers(combined_control":
+                    ParseCombData(lowercasetoken, stf);
+                    break;
+                case "engine(airbrakesmainresvolume":
+                    MainResVolumeM3 = (float)Size.Volume.FromFt3(stf.ReadFloatBlock(STFReader.Units.VolumeDefaultFT3, null));
+                    break;
+                case "engine(airbrakesmainmaxairpressure":
+                    MainResPressurePSI = MaxMainResPressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null);
+                    break;
+                case "engine(airbrakemaxmainrespipepressure":
+                    MaximumMainReservoirPipePressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null);
+                    break;
+                case "engine(airbrakescompressorrestartpressure":
+                    CompressorRestartPressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null);
+                    break;
+                case "engine(airbrakesaircompressorpowerrating":
+                    CompressorChargingRateM3pS = (float)Size.Volume.FromFt3(stf.ReadFloatBlock(STFReader.Units.VolumeDefaultFT3, null));
+                    break;
+                case "engine(airbrakesiscompressorelectricormechanical":
+                    CompressorIsMechanical = stf.ReadIntBlock(null) == 1;
+                    break;
+                case "engine(trainpipeleakrate":
+                    TrainBrakePipeLeakPSIorInHgpS = stf.ReadFloatBlock(STFReader.Units.PressureRateDefaultPSIpS, null);
+                    break;
+                case "engine(vacuumbrakesvacuumpumpresistance":
+                    VacuumPumpResistanceN = stf.ReadFloatBlock(STFReader.Units.Force, null);
+                    break;
 
-                case "engine(ortsvacuumbrakesmainresvolume": VacuumBrakesMainResVolumeM3 = (float)Size.Volume.FromFt3(stf.ReadFloatBlock(STFReader.Units.VolumeDefaultFT3, null)); break;
-                case "engine(ortsvacuumbrakesmainresmaxvacuum": VacuumBrakesMainResMaxVacuumPSIAorInHg = (float)Const.OneAtmospherePSI - stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null); break; // convert to PSIA for vacuum brakes
-                case "engine(ortsvacuumbrakesexhausterrestartvacuum": VacuumBrakesExhausterRestartVacuumPSIAorInHg = (float)Const.OneAtmospherePSI - stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null); break; // convert to PSIA for vacuum brakes
-                case "engine(ortsvacuumbrakesmainreschargingrate": VacuumBrakesMainResChargingRatePSIAorInHgpS = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null); break;
+                case "engine(ortsvacuumbrakesmainresvolume":
+                    VacuumBrakesMainResVolumeM3 = (float)Size.Volume.FromFt3(stf.ReadFloatBlock(STFReader.Units.VolumeDefaultFT3, null));
+                    break;
+                case "engine(ortsvacuumbrakesmainresmaxvacuum":
+                    VacuumBrakesMainResMaxVacuumPSIAorInHg = (float)Const.OneAtmospherePSI - stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null);
+                    break; // convert to PSIA for vacuum brakes
+                case "engine(ortsvacuumbrakesexhausterrestartvacuum":
+                    VacuumBrakesExhausterRestartVacuumPSIAorInHg = (float)Const.OneAtmospherePSI - stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null);
+                    break; // convert to PSIA for vacuum brakes
+                case "engine(ortsvacuumbrakesmainreschargingrate":
+                    VacuumBrakesMainResChargingRatePSIAorInHgpS = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null);
+                    break;
 
-                case "engine(ortsmainreschargingrate": MainResChargingRatePSIpS = stf.ReadFloatBlock(STFReader.Units.PressureRateDefaultPSIpS, null); break;
-                case "engine(ortsenginebrakereleaserate": EngineBrakeReleaseRatePSIpS = stf.ReadFloatBlock(STFReader.Units.PressureRateDefaultPSIpS, null); break;
-                case "engine(ortsenginebrakeapplicationrate": EngineBrakeApplyRatePSIpS = stf.ReadFloatBlock(STFReader.Units.PressureRateDefaultPSIpS, null); break;
-                case "engine(ortsbrakepipetimefactor": BrakePipeTimeFactorS = stf.ReadFloatBlock(STFReader.Units.Time, null); break;
-                case "engine(ortsbrakeservicetimefactor": BrakeServiceTimeFactorS = stf.ReadFloatBlock(STFReader.Units.Time, null); break;
-                case "engine(ortsbrakeemergencytimefactor": BrakeEmergencyTimeFactorS = stf.ReadFloatBlock(STFReader.Units.Time, null); break;
-                case "engine(ortsbrakepipechargingrate": BrakePipeChargingRatePSIorInHgpS = stf.ReadFloatBlock(STFReader.Units.PressureRateDefaultPSIpS, null); break;
-                case "engine(ortsbrakepipequickchargingrate": BrakePipeQuickChargingRatePSIpS = stf.ReadFloatBlock(STFReader.Units.PressureRateDefaultPSIpS, null); break;
-                case "engine(ortsbrakepipedischargetimemult": BrakePipeDischargeTimeFactor = stf.ReadFloatBlock(STFReader.Units.None, null); break;
-                case "engine(ortsmaxtractiveforcecurves": TractiveForceCurves = stf.CreateInterpolator2D(false); TractiveForceCurves.CheckForNegativeValues(); break;
-                case "engine(ortstractioncharacteristics": TractiveForceCurves = stf.CreateInterpolator2D(true); break;
-                case "engine(ortsdynamicbrakeforcecurves": DynamicBrakeForceCurves = stf.CreateInterpolator2D(false); break;
-                case "engine(ortscontinuousforcetimefactor": ContinuousForceTimeFactor = stf.ReadFloatBlock(STFReader.Units.None, null); break;
-                case "engine(orts(ortssanderspeedeffectupto": SanderSpeedEffectUpToMpS = stf.ReadFloatBlock(STFReader.Units.Speed, null); break;
-                case "engine(orts(ortsemergencycausespowerdown": EmergencyCausesPowerDown = stf.ReadBoolBlock(false); break;
-                case "engine(orts(ortsemergencycausesthrottledown": EmergencyCausesThrottleDown = stf.ReadBoolBlock(false); break;
-                case "engine(orts(ortsemergencyengageshorn": EmergencyEngagesHorn = stf.ReadBoolBlock(false); break;
-                case "engine(orts(ortswheelslipcausesthrottledown": WheelslipCausesThrottleDown = stf.ReadBoolBlock(false); break;
-                case "engine(dynamicbrakesminusablespeed": DynamicBrakeSpeed1MpS = stf.ReadFloatBlock(STFReader.Units.SpeedDefaultMPH, null); break;
-                case "engine(dynamicbrakesfadingspeed": DynamicBrakeSpeed2MpS = stf.ReadFloatBlock(STFReader.Units.SpeedDefaultMPH, null); break;
-                case "engine(dynamicbrakesmaximumeffectivespeed": DynamicBrakeSpeed3MpS = stf.ReadFloatBlock(STFReader.Units.SpeedDefaultMPH, null); break;
-                case "engine(dynamicbrakesmaximumspeedforfadeout": DynamicBrakeSpeed4MpS = stf.ReadFloatBlock(STFReader.Units.SpeedDefaultMPH, null); break;
-                case "engine(dynamicbrakeseffectatmaximumfadeout": DynamicBrakeRatioAtSpeed4 = stf.ReadFloatBlock(STFReader.Units.None, null); break;
-                case "engine(dynamicbrakesmaximumforce": MaxDynamicBrakeForceN = stf.ReadFloatBlock(STFReader.Units.Force, null); break;
+                case "engine(ortsmainreschargingrate":
+                    MainResChargingRatePSIpS = stf.ReadFloatBlock(STFReader.Units.PressureRateDefaultPSIpS, null);
+                    break;
+                case "engine(ortsenginebrakereleaserate":
+                    EngineBrakeReleaseRatePSIpS = stf.ReadFloatBlock(STFReader.Units.PressureRateDefaultPSIpS, null);
+                    break;
+                case "engine(ortsenginebrakeapplicationrate":
+                    EngineBrakeApplyRatePSIpS = stf.ReadFloatBlock(STFReader.Units.PressureRateDefaultPSIpS, null);
+                    break;
+                case "engine(ortsbrakepipetimefactor":
+                    BrakePipeTimeFactorS = stf.ReadFloatBlock(STFReader.Units.Time, null);
+                    break;
+                case "engine(ortsbrakeservicetimefactor":
+                    BrakeServiceTimeFactorS = stf.ReadFloatBlock(STFReader.Units.Time, null);
+                    break;
+                case "engine(ortsbrakeemergencytimefactor":
+                    BrakeEmergencyTimeFactorS = stf.ReadFloatBlock(STFReader.Units.Time, null);
+                    break;
+                case "engine(ortsbrakepipechargingrate":
+                    BrakePipeChargingRatePSIorInHgpS = stf.ReadFloatBlock(STFReader.Units.PressureRateDefaultPSIpS, null);
+                    break;
+                case "engine(ortsbrakepipequickchargingrate":
+                    BrakePipeQuickChargingRatePSIpS = stf.ReadFloatBlock(STFReader.Units.PressureRateDefaultPSIpS, null);
+                    break;
+                case "engine(ortsbrakepipedischargetimemult":
+                    BrakePipeDischargeTimeFactor = stf.ReadFloatBlock(STFReader.Units.None, null);
+                    break;
+                case "engine(ortsmaxtractiveforcecurves":
+                    TractiveForceCurves = stf.CreateInterpolator2D(false);
+                    TractiveForceCurves.CheckForNegativeValues();
+                    break;
+                case "engine(ortstractioncharacteristics":
+                    TractiveForceCurves = stf.CreateInterpolator2D(true);
+                    break;
+                case "engine(ortsdynamicbrakeforcecurves":
+                    DynamicBrakeForceCurves = stf.CreateInterpolator2D(false);
+                    break;
+                case "engine(ortscontinuousforcetimefactor":
+                    ContinuousForceTimeFactor = stf.ReadFloatBlock(STFReader.Units.None, null);
+                    break;
+                case "engine(orts(ortssanderspeedeffectupto":
+                    SanderSpeedEffectUpToMpS = stf.ReadFloatBlock(STFReader.Units.Speed, null);
+                    break;
+                case "engine(orts(ortsemergencycausespowerdown":
+                    EmergencyCausesPowerDown = stf.ReadBoolBlock(false);
+                    break;
+                case "engine(orts(ortsemergencycausesthrottledown":
+                    EmergencyCausesThrottleDown = stf.ReadBoolBlock(false);
+                    break;
+                case "engine(orts(ortsemergencyengageshorn":
+                    EmergencyEngagesHorn = stf.ReadBoolBlock(false);
+                    break;
+                case "engine(orts(ortswheelslipcausesthrottledown":
+                    WheelslipCausesThrottleDown = stf.ReadBoolBlock(false);
+                    break;
+                case "engine(dynamicbrakesminusablespeed":
+                    DynamicBrakeSpeed1MpS = stf.ReadFloatBlock(STFReader.Units.SpeedDefaultMPH, null);
+                    break;
+                case "engine(dynamicbrakesfadingspeed":
+                    DynamicBrakeSpeed2MpS = stf.ReadFloatBlock(STFReader.Units.SpeedDefaultMPH, null);
+                    break;
+                case "engine(dynamicbrakesmaximumeffectivespeed":
+                    DynamicBrakeSpeed3MpS = stf.ReadFloatBlock(STFReader.Units.SpeedDefaultMPH, null);
+                    break;
+                case "engine(dynamicbrakesmaximumspeedforfadeout":
+                    DynamicBrakeSpeed4MpS = stf.ReadFloatBlock(STFReader.Units.SpeedDefaultMPH, null);
+                    break;
+                case "engine(dynamicbrakeseffectatmaximumfadeout":
+                    DynamicBrakeRatioAtSpeed4 = stf.ReadFloatBlock(STFReader.Units.None, null);
+                    break;
+                case "engine(dynamicbrakesmaximumforce":
+                    MaxDynamicBrakeForceN = stf.ReadFloatBlock(STFReader.Units.Force, null);
+                    break;
                 case "engine(dynamicbrakehasautobailoff":
-                case "engine(ortsdynamicbrakeshasautobailoff": DynamicBrakeAutoBailOff = stf.ReadBoolBlock(true); break;
-                case "engine(dynamicbrakesdelaytimebeforeengaging": DynamicBrakeDelayS = stf.ReadFloatBlock(STFReader.Units.Time, null); break;
-                case "engine(dynamicbrakesresistorcurrentlimit": DynamicBrakeMaxCurrentA = stf.ReadFloatBlock(STFReader.Units.Current, null); break;
-                case "engine(numwheels": locoNumDrvWheels = stf.ReadFloatBlock(STFReader.Units.None, 4.0f); if (locoNumDrvWheels < 1) STFException.TraceWarning(stf, "Engine:NumWheels is less than 1, parts of the simulation may not function correctly"); break;
-                case "engine(ortsnumberdriveaxles": locoNumDrvAxles = stf.ReadIntBlock(null); if (locoNumDrvAxles < 1) STFException.TraceWarning(stf, "Engine:ORTSNumberDriveAxles is less than 1, parts of the simulation may not function correctly"); break;
-                case "engine(antislip": AntiSlip = stf.ReadBoolBlock(false); break;
-                case "engine(ortsdrivewheelweight": InitialDrvWheelWeightKg = stf.ReadFloatBlock(STFReader.Units.Mass, null); break;
-                case "engine(engineoperatingprocedures": EngineOperatingProcedures = stf.ReadStringBlock(""); break;
+                case "engine(ortsdynamicbrakeshasautobailoff":
+                    DynamicBrakeAutoBailOff = stf.ReadBoolBlock(true);
+                    break;
+                case "engine(dynamicbrakesdelaytimebeforeengaging":
+                    DynamicBrakeDelayS = stf.ReadFloatBlock(STFReader.Units.Time, null);
+                    break;
+                case "engine(dynamicbrakesresistorcurrentlimit":
+                    DynamicBrakeMaxCurrentA = stf.ReadFloatBlock(STFReader.Units.Current, null);
+                    break;
+                case "engine(numwheels":
+                    locoNumDrvWheels = stf.ReadFloatBlock(STFReader.Units.None, 4.0f);
+                    if (locoNumDrvWheels < 1)
+                        STFException.TraceWarning(stf, "Engine:NumWheels is less than 1, parts of the simulation may not function correctly");
+                    break;
+                case "engine(ortsnumberdriveaxles":
+                    locoNumDrvAxles = stf.ReadIntBlock(null);
+                    if (locoNumDrvAxles < 1)
+                        STFException.TraceWarning(stf, "Engine:ORTSNumberDriveAxles is less than 1, parts of the simulation may not function correctly");
+                    break;
+                case "engine(antislip":
+                    AntiSlip = stf.ReadBoolBlock(false);
+                    break;
+                case "engine(ortsdrivewheelweight":
+                    InitialDrvWheelWeightKg = stf.ReadFloatBlock(STFReader.Units.Mass, null);
+                    break;
+                case "engine(engineoperatingprocedures":
+                    EngineOperatingProcedures = stf.ReadStringBlock("");
+                    break;
                 case "engine(headout":
                     HeadOutViewpoints ??= new List<ViewPoint>();
                     HeadOutViewpoints.Add(new ViewPoint(stf.ReadVector3Block(STFReader.Units.Distance, Vector3.Zero)));
                     HeadOutViewpoints.Add(new ViewPoint(HeadOutViewpoints[0], true));
                     break;
-                case "engine(sanding": SanderSpeedOfMpS = stf.ReadFloatBlock(STFReader.Units.Speed, 30.0f); break;
-                case "engine(ortsdoesvacuumbrakecutpower": DoesVacuumBrakeCutPower = stf.ReadBoolBlock(false); break;
-                case "engine(ortstracksandersandconsumption": TrackSanderSandConsumptionM3pS = stf.ReadFloatBlock(STFReader.Units.Volume, null); break;
-                case "engine(ortstracksanderairconsumption": TrackSanderAirComsumptionM3pS = stf.ReadFloatBlock(STFReader.Units.Volume, null); break;
-                case "engine(doesbrakecutpower": DoesBrakeCutPower = stf.ReadBoolBlock(false); break;
-                case "engine(brakecutspoweratbrakecylinderpressure": BrakeCutsPowerAtBrakeCylinderPressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null); break;
-                case "engine(ortsbrakecutspoweratbrakepipepressure": BrakeCutsPowerAtBrakePipePressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null); break;
-                case "engine(ortsbrakerestorespoweratbrakepipepressure": BrakeRestoresPowerAtBrakePipePressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null); break;
-                case "engine(doeshorntriggerbell": DoesHornTriggerBell = stf.ReadBoolBlock(false); break;
+                case "engine(sanding":
+                    SanderSpeedOfMpS = stf.ReadFloatBlock(STFReader.Units.Speed, 30.0f);
+                    break;
+                case "engine(ortsdoesvacuumbrakecutpower":
+                    DoesVacuumBrakeCutPower = stf.ReadBoolBlock(false);
+                    break;
+                case "engine(ortstracksandersandconsumption":
+                    TrackSanderSandConsumptionM3pS = stf.ReadFloatBlock(STFReader.Units.Volume, null);
+                    break;
+                case "engine(ortstracksanderairconsumption":
+                    TrackSanderAirComsumptionM3pS = stf.ReadFloatBlock(STFReader.Units.Volume, null);
+                    break;
+                case "engine(doesbrakecutpower":
+                    DoesBrakeCutPower = stf.ReadBoolBlock(false);
+                    break;
+                case "engine(brakecutspoweratbrakecylinderpressure":
+                    BrakeCutsPowerAtBrakeCylinderPressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null);
+                    break;
+                case "engine(ortsbrakecutspoweratbrakepipepressure":
+                    BrakeCutsPowerAtBrakePipePressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null);
+                    break;
+                case "engine(ortsbrakerestorespoweratbrakepipepressure":
+                    BrakeRestoresPowerAtBrakePipePressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null);
+                    break;
+                case "engine(doeshorntriggerbell":
+                    DoesHornTriggerBell = stf.ReadBoolBlock(false);
+                    break;
                 case "engine(brakesenginecontrollers":
                     foreach (var brakesenginecontrollers in stf.ReadStringBlock("").ToLower().Replace(" ", "").Split(','))
                     {
@@ -957,23 +1112,58 @@ namespace Orts.Simulation.RollingStocks
                         }
                     }
                     break;
-                case "engine(ortsdynamicblendingoverride": DynamicBrakeBlendingOverride = stf.ReadBoolBlock(false); break;
-                case "engine(ortsdynamicblendingforcematch": DynamicBrakeBlendingForceMatch = stf.ReadBoolBlock(false); break;
-                case "engine(vacuumbrakeshasvacuumpump": VacuumPumpFitted = stf.ReadBoolBlock(false); break;
-                case "engine(enginecontrollers(ortssteamheat": SteamHeatController.Parse(stf); break;
-                case "engine(name": stf.MustMatch("("); LocomotiveName = stf.ReadString(); break;
-                case "engine(maxsteamheatingpressure": MaxSteamHeatPressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null); break;
-                case "engine(ortsonlinecabradio": OnLineCabRadio = stf.ReadBoolBlock(false); break;
-                case "engine(ortsonlinecabradiourl": OnLineCabRadioURL = stf.ReadString(); break;
-                case "engine(vacuumbrakesminboilerpressuremaxvacuum": MaxVaccuumMaxPressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null); break;
-                case "engine(enginecontrollers(waterscoop": HasWaterScoop = true; break;
-                case "engine(ortswaterscoopfillelevation": WaterScoopFillElevationM = stf.ReadFloatBlock(STFReader.Units.Distance, 0.0f); break;
-                case "engine(ortswaterscoopdepth": WaterScoopDepthM = stf.ReadFloatBlock(STFReader.Units.Distance, 0.0f); break;
-                case "engine(ortswaterscoopwidth": WaterScoopWidthM = stf.ReadFloatBlock(STFReader.Units.Distance, 0.0f); break;
-                case "engine(ortsmaxtracksanderboxcapacity": MaxTrackSandBoxCapacityM3 = stf.ReadFloatBlock(STFReader.Units.Volume, null); break;
-                case "engine(ortsmaxtracksandersandconsumption": TrackSanderSandConsumptionM3pS = stf.ReadFloatBlock(STFReader.Units.Volume, null); break;
-                case "engine(ortsmaxtracksanderairconsumption": TrackSanderAirComsumptionM3pS = stf.ReadFloatBlock(STFReader.Units.Volume, null); break;
-                default: base.Parse(lowercasetoken, stf); break;
+                case "engine(ortsdynamicblendingoverride":
+                    DynamicBrakeBlendingOverride = stf.ReadBoolBlock(false);
+                    break;
+                case "engine(ortsdynamicblendingforcematch":
+                    DynamicBrakeBlendingForceMatch = stf.ReadBoolBlock(false);
+                    break;
+                case "engine(vacuumbrakeshasvacuumpump":
+                    VacuumPumpFitted = stf.ReadBoolBlock(false);
+                    break;
+                case "engine(enginecontrollers(ortssteamheat":
+                    SteamHeatController.Parse(stf);
+                    break;
+                case "engine(name":
+                    stf.MustMatch("(");
+                    LocomotiveName = stf.ReadString();
+                    break;
+                case "engine(maxsteamheatingpressure":
+                    MaxSteamHeatPressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null);
+                    break;
+                case "engine(ortsonlinecabradio":
+                    OnLineCabRadio = stf.ReadBoolBlock(false);
+                    break;
+                case "engine(ortsonlinecabradiourl":
+                    OnLineCabRadioURL = stf.ReadString();
+                    break;
+                case "engine(vacuumbrakesminboilerpressuremaxvacuum":
+                    MaxVaccuumMaxPressurePSI = stf.ReadFloatBlock(STFReader.Units.PressureDefaultPSI, null);
+                    break;
+                case "engine(enginecontrollers(waterscoop":
+                    HasWaterScoop = true;
+                    break;
+                case "engine(ortswaterscoopfillelevation":
+                    WaterScoopFillElevationM = stf.ReadFloatBlock(STFReader.Units.Distance, 0.0f);
+                    break;
+                case "engine(ortswaterscoopdepth":
+                    WaterScoopDepthM = stf.ReadFloatBlock(STFReader.Units.Distance, 0.0f);
+                    break;
+                case "engine(ortswaterscoopwidth":
+                    WaterScoopWidthM = stf.ReadFloatBlock(STFReader.Units.Distance, 0.0f);
+                    break;
+                case "engine(ortsmaxtracksanderboxcapacity":
+                    MaxTrackSandBoxCapacityM3 = stf.ReadFloatBlock(STFReader.Units.Volume, null);
+                    break;
+                case "engine(ortsmaxtracksandersandconsumption":
+                    TrackSanderSandConsumptionM3pS = stf.ReadFloatBlock(STFReader.Units.Volume, null);
+                    break;
+                case "engine(ortsmaxtracksanderairconsumption":
+                    TrackSanderAirComsumptionM3pS = stf.ReadFloatBlock(STFReader.Units.Volume, null);
+                    break;
+                default:
+                    base.Parse(lowercasetoken, stf);
+                    break;
 
             }
         }
@@ -1065,6 +1255,8 @@ namespace Orts.Simulation.RollingStocks
             EngineBrakeController = locoCopy.EngineBrakeController != null ? locoCopy.EngineBrakeController.Clone(this) : null;
             BrakemanBrakeController = locoCopy.BrakemanBrakeController != null ? locoCopy.BrakemanBrakeController.Clone(this) : null;
             DynamicBrakeController = locoCopy.DynamicBrakeController != null ? (MSTSNotchController)locoCopy.DynamicBrakeController.Clone() : null;
+            DistributedPowerThrottleController = (MSTSNotchController)ThrottleController.Clone();
+            DistributedPowerDynamicBrakeController = (MSTSNotchController)DynamicBrakeController?.Clone();
 
             LocomotivePowerSupply.Copy(locoCopy.LocomotivePowerSupply);
             TrainControlSystem.Copy(locoCopy.TrainControlSystem);
@@ -1134,6 +1326,7 @@ namespace Orts.Simulation.RollingStocks
             outf.Write(IsWaterScoopDown);
             outf.Write(CurrentTrackSandBoxCapacityM3);
             outf.Write(SaveAdhesionFilter);
+            outf.Write((int)RemoteControlGroup);
 
             base.Save(outf);
 
@@ -1149,10 +1342,14 @@ namespace Orts.Simulation.RollingStocks
         /// </summary>
         public override void Restore(BinaryReader inf)
         {
-            if (inf.ReadBoolean()) SignalEvent(TrainEvent.BellOn);
-            if (inf.ReadBoolean()) SignalEvent(TrainEvent.SanderOn);
-            if (inf.ReadBoolean()) SignalEvent(TrainEvent.VacuumExhausterOn);
-            if (inf.ReadBoolean()) SignalEvent(TrainEvent.WiperOn);
+            if (inf.ReadBoolean())
+                SignalEvent(TrainEvent.BellOn);
+            if (inf.ReadBoolean())
+                SignalEvent(TrainEvent.SanderOn);
+            if (inf.ReadBoolean())
+                SignalEvent(TrainEvent.VacuumExhausterOn);
+            if (inf.ReadBoolean())
+                SignalEvent(TrainEvent.WiperOn);
             OdometerResetPositionM = inf.ReadSingle();
             OdometerCountingUp = inf.ReadBoolean();
             OdometerCountingForwards = inf.ReadBoolean();
@@ -1180,8 +1377,9 @@ namespace Orts.Simulation.RollingStocks
             CurrentTrackSandBoxCapacityM3 = inf.ReadSingle();
 
             SaveAdhesionFilter = inf.ReadSingle();
-            
+
             AdhesionFilter.Reset(SaveAdhesionFilter);
+            RemoteControlGroup = (RemoteControlGroup)inf.ReadInt32();
 
             base.Restore(inf);
 
@@ -1359,7 +1557,8 @@ namespace Orts.Simulation.RollingStocks
                 }
             }
             // Initialise Brake Pipe Quick Charging Rate
-            if (BrakePipeQuickChargingRatePSIpS == 0) BrakePipeQuickChargingRatePSIpS = BrakePipeChargingRatePSIorInHgpS;
+            if (BrakePipeQuickChargingRatePSIpS == 0)
+                BrakePipeQuickChargingRatePSIpS = BrakePipeChargingRatePSIorInHgpS;
 
             // Initialise Exhauster Charging rate in diesel and electric locomotives. The equivalent ejector charging rates are set in the steam locomotive.
             if (this is MSTSDieselLocomotive || this is MSTSElectricLocomotive)
@@ -1534,7 +1733,8 @@ namespace Orts.Simulation.RollingStocks
             }
 
             base.Initialize();
-            if (DynamicBrakeBlendingEnabled) airPipeSystem = BrakeSystem as AirSinglePipe;
+            if (DynamicBrakeBlendingEnabled)
+                airPipeSystem = BrakeSystem as AirSinglePipe;
 
         }
 
@@ -1553,7 +1753,8 @@ namespace Orts.Simulation.RollingStocks
             AdhesionFilter.Reset(0.5f);
             AverageForceN = MaxForceN * Train.MUThrottlePercent / 100;
             float maxPowerW = MaxPowerW * Train.MUThrottlePercent * Train.MUThrottlePercent / 10000;
-            if (AverageForceN * SpeedMpS > maxPowerW) AverageForceN = maxPowerW / SpeedMpS;
+            if (AverageForceN * SpeedMpS > maxPowerW)
+                AverageForceN = maxPowerW / SpeedMpS;
             LocomotiveAxle.FilterMovingAverage.Initialize(AverageForceN);
             LocomotivePowerSupply?.InitializeMoving();
             if (Train.IsActualPlayerTrain)
@@ -1581,7 +1782,8 @@ namespace Orts.Simulation.RollingStocks
                         MainResPressurePSI = MaxMainResPressurePSI = Math.Max(MaxMainResPressurePSI, Math.Min(CompressorRestartPressurePSI + DefaultMaxMainResToCompressorRestartPressureDiff, DefaultMaxMainResPressure));
 
                     }
-                    if (MainResVolumeM3 < 0.3f && MassKG > 20000) MainResVolumeM3 = DefaultMainResVolume;
+                    if (MainResVolumeM3 < 0.3f && MassKG > 20000)
+                        MainResVolumeM3 = DefaultMainResVolume;
 
                     // correct questionable MaxCylPressurePSI
                     BrakeSystem.CorrectMaxCylPressurePSI(this);
@@ -1591,11 +1793,13 @@ namespace Orts.Simulation.RollingStocks
                     MainResChargingRatePSIpS = (float)Math.Max(0.5, (CompressorChargingRateM3pS * Pressure.Atmospheric.ToPSI(1)) / MainResVolumeM3);
                 }
             }
-            else if (MainResChargingRatePSIpS <= 0) MainResChargingRatePSIpS = 0.4f;
+            else if (MainResChargingRatePSIpS <= 0)
+                MainResChargingRatePSIpS = 0.4f;
 
             // Corrections for dynamic braking parameters
 
-            if (this is MSTSElectricLocomotive && DynamicBrakeDelayS > 4) DynamicBrakeDelayS = 2; // Electric locomotives have short engaging delays
+            if (this is MSTSElectricLocomotive && DynamicBrakeDelayS > 4)
+                DynamicBrakeDelayS = 2; // Electric locomotives have short engaging delays
             if (DynamicBrakeSpeed2MpS > 0 && DynamicBrakeSpeed3MpS > 0 && DynamicBrakeSpeed2MpS > DynamicBrakeSpeed3MpS)
             {
                 // also exchanging DynamicBrakesMaximumEffectiveSpeed with DynamicBrakesFadingSpeed is a frequent error that upsets operation of
@@ -1777,7 +1981,8 @@ namespace Orts.Simulation.RollingStocks
 
                     AntiSlip = true; // Always set AI trains to AntiSlip
                     SimpleAdhesion();   // Simple adhesion model used for AI trains
-                    if (Train.IsActualPlayerTrain) FilteredMotiveForceN = (float)CurrentFilter.Filter(MotiveForceN, elapsedClockSeconds);
+                    if (Train.IsActualPlayerTrain)
+                        FilteredMotiveForceN = (float)CurrentFilter.Filter(MotiveForceN, elapsedClockSeconds);
                     WheelSpeedMpS = Flipped ? -AbsSpeedMpS : AbsSpeedMpS;            //make the wheels go round
                     break;
                 case TrainType.Static:
@@ -1804,7 +2009,7 @@ namespace Orts.Simulation.RollingStocks
 
 
                     // SimpleControlPhysics and if locomotive is a control car advanced adhesion will be "disabled".
-                    if (simulator.Settings.UseAdvancedAdhesion && !simulator.Settings.SimpleControlPhysics && EngineType != EngineType.Control) 
+                    if (simulator.Settings.UseAdvancedAdhesion && !simulator.Settings.SimpleControlPhysics && EngineType != EngineType.Control)
                     {
                         AdvancedAdhesion(elapsedClockSeconds); // Use advanced adhesion model
                         AdvancedAdhesionModel = true;  // Set flag to advise advanced adhesion model is in use
@@ -2059,6 +2264,8 @@ namespace Orts.Simulation.RollingStocks
                 ThrottlePercent = (ThrottleIntervention < 0 ? ThrottleController.CurrentValue : ThrottleIntervention) * 100.0f;
                 ConfirmWheelslip(elapsedClockSeconds);
                 LocalThrottlePercent = (ThrottleIntervention < 0 ? ThrottleController.CurrentValue : ThrottleIntervention) * 100.0f;
+                DistributedPowerThrottleController.Update(elapsedClockSeconds);
+                DistributedPowerDynamicBrakeController?.Update(elapsedClockSeconds);
             }
             else
             {
@@ -2230,13 +2437,13 @@ namespace Orts.Simulation.RollingStocks
         /// </summary>
         protected virtual void UpdateSteamEjector(double elapsedClockSeconds)
         {
-                 // Ejectors are controlled independently for the "straight_vacuum_single_pipe" brake type 
-                 // Ejectors are controlled by brake control valves in Simple Physics Control
-                if (simulator.Settings.SimpleControlPhysics && BrakeSystemType != BrakeSystemType.StraightVacuumSinglePipe)
-                // Simple braking - control Ejector automatically based upon the brake control position
-                // Stop ejector operation if full vacuum pressure reached
-                {
-                    if ((TrainBrakeController.TrainBrakeControllerState == ControllerState.Release || TrainBrakeController.TrainBrakeControllerState == ControllerState.FullQuickRelease || (TrainBrakeController.TrainBrakeControllerState == ControllerState.VacContServ)) && (this.BrakeSystem.BrakeLine1PressurePSI > Pressure.Vacuum.ToPressure(TrainBrakeController.MaxPressurePSI)))
+            // Ejectors are controlled independently for the "straight_vacuum_single_pipe" brake type 
+            // Ejectors are controlled by brake control valves in Simple Physics Control
+            if (simulator.Settings.SimpleControlPhysics && BrakeSystemType != BrakeSystemType.StraightVacuumSinglePipe)
+            // Simple braking - control Ejector automatically based upon the brake control position
+            // Stop ejector operation if full vacuum pressure reached
+            {
+                if ((TrainBrakeController.TrainBrakeControllerState == ControllerState.Release || TrainBrakeController.TrainBrakeControllerState == ControllerState.FullQuickRelease || (TrainBrakeController.TrainBrakeControllerState == ControllerState.VacContServ)) && (this.BrakeSystem.BrakeLine1PressurePSI > Pressure.Vacuum.ToPressure(TrainBrakeController.MaxPressurePSI)))
                 {
                     LargeSteamEjectorIsOn = true;  // If brake is set to a release controller, then turn ejector on
                     LargeEjectorSoundOn = true;
@@ -2246,41 +2453,41 @@ namespace Orts.Simulation.RollingStocks
                     LargeSteamEjectorIsOn = false; // If brake is not set to a release controller, or full vacuum reached, then turn ejector off
                     LargeEjectorSoundOn = false;
                 }
-                }
-                else if (!LargeEjectorControllerFitted && BrakeSystemType != BrakeSystemType.StraightVacuumSinglePipe) // Use an "automatic" large ejector when using a dreadnought style brake controller - large ejector stays on until moved back to released position
+            }
+            else if (!LargeEjectorControllerFitted && BrakeSystemType != BrakeSystemType.StraightVacuumSinglePipe) // Use an "automatic" large ejector when using a dreadnought style brake controller - large ejector stays on until moved back to released position
+            {
+                if (TrainBrakeController.TrainBrakeControllerState == ControllerState.Release)
                 {
-                    if (TrainBrakeController.TrainBrakeControllerState == ControllerState.Release)
-                    {
-                        LargeSteamEjectorIsOn = true;  // If brake is set to a release controller, then turn ejector on
-                        LargeEjectorSoundOn = true;
-                    }
-                    else
-                    {
-                        LargeSteamEjectorIsOn = false; // If brake is not set to a release controller, then turn ejector off
-                        if (LargeEjectorSoundOn)
-                        {
-                            SignalEvent(TrainEvent.LargeEjectorOff);
-                            LargeEjectorSoundOn = false;
-                        }
-                    }
-
+                    LargeSteamEjectorIsOn = true;  // If brake is set to a release controller, then turn ejector on
+                    LargeEjectorSoundOn = true;
                 }
-                else  if (LargeEjectorControllerFitted)// Advanced braking - control ejector based upon using a "manual" large ejector control setting
+                else
                 {
-                    if (LargeEjectorFeedFraction > 0.05)
+                    LargeSteamEjectorIsOn = false; // If brake is not set to a release controller, then turn ejector off
+                    if (LargeEjectorSoundOn)
                     {
-                        LargeSteamEjectorIsOn = true;  // turn ejector on
-                        LargeEjectorSoundOn = true;
-                    }
-                    else
-                    {
-                        LargeSteamEjectorIsOn = false; // turn ejector off
+                        SignalEvent(TrainEvent.LargeEjectorOff);
                         LargeEjectorSoundOn = false;
                     }
                 }
 
+            }
+            else if (LargeEjectorControllerFitted)// Advanced braking - control ejector based upon using a "manual" large ejector control setting
+            {
+                if (LargeEjectorFeedFraction > 0.05)
+                {
+                    LargeSteamEjectorIsOn = true;  // turn ejector on
+                    LargeEjectorSoundOn = true;
+                }
+                else
+                {
+                    LargeSteamEjectorIsOn = false; // turn ejector off
+                    LargeEjectorSoundOn = false;
+                }
+            }
 
-                if (SmallEjectorControllerFitted && BrakeSystemType != BrakeSystemType.StraightVacuumSinglePipe)
+
+            if (SmallEjectorControllerFitted && BrakeSystemType != BrakeSystemType.StraightVacuumSinglePipe)
                 // Turn small ejector on if controlled from drivers controller
                 if (SmallEjectorFeedFraction > 0.05)
                 {
@@ -2293,7 +2500,7 @@ namespace Orts.Simulation.RollingStocks
                     SmallEjectorSoundOn = false;
                 }
 
-            
+
             // If diesel or electric locomotive, assume vacuum pump (exhauster) is continually running.
             if (!(this is MSTSSteamLocomotive))
             {
@@ -2360,9 +2567,9 @@ namespace Orts.Simulation.RollingStocks
 
             // Turn compressor on and off
             if (MainResPressurePSI < CompressorRestartPressurePSI && LocomotivePowerSupply.AuxiliaryPowerSupplyState == PowerSupplyState.PowerOn && !CompressorIsOn)
-                    SignalEvent(TrainEvent.CompressorOn);
+                SignalEvent(TrainEvent.CompressorOn);
             else if ((MainResPressurePSI >= MaxMainResPressurePSI || LocomotivePowerSupply.AuxiliaryPowerSupplyState != PowerSupplyState.PowerOn) && CompressorIsOn)
-                    SignalEvent(TrainEvent.CompressorOff);
+                SignalEvent(TrainEvent.CompressorOff);
 
             if (CompressorIsOn)
                 MainResPressurePSI += (float)elapsedClockSeconds * reservoirChargingRate;
@@ -2377,12 +2584,14 @@ namespace Orts.Simulation.RollingStocks
             if (Horn && !PreviousHorn)
             {
                 SignalEvent(TrainEvent.HornOn);
-                if (MultiPlayerManager.IsMultiPlayer()) MultiPlayerManager.Notify((new MSGEvent(MultiPlayerManager.GetUserName(), "HORN", 1)).ToString());
+                if (MultiPlayerManager.IsMultiPlayer())
+                    MultiPlayerManager.Notify((new MSGEvent(MultiPlayerManager.GetUserName(), "HORN", 1)).ToString());
             }
             else if (!Horn && PreviousHorn)
             {
                 SignalEvent(TrainEvent.HornOff);
-                if (MultiPlayerManager.IsMultiPlayer()) MultiPlayerManager.Notify((new MSGEvent(MultiPlayerManager.GetUserName(), "HORN", 0)).ToString());
+                if (MultiPlayerManager.IsMultiPlayer())
+                    MultiPlayerManager.Notify((new MSGEvent(MultiPlayerManager.GetUserName(), "HORN", 0)).ToString());
             }
 
             if (ManualBell)
@@ -2402,12 +2611,14 @@ namespace Orts.Simulation.RollingStocks
             if (Bell && !PreviousBell)
             {
                 SignalEvent(TrainEvent.BellOn);
-                if (Train.TrainType != TrainType.Remote && MultiPlayerManager.IsMultiPlayer()) MultiPlayerManager.Notify((new MSGEvent(MultiPlayerManager.GetUserName(), "BELL", 1)).ToString());
+                if (Train.TrainType != TrainType.Remote && MultiPlayerManager.IsMultiPlayer())
+                    MultiPlayerManager.Notify((new MSGEvent(MultiPlayerManager.GetUserName(), "BELL", 1)).ToString());
             }
             else if (!Bell && PreviousBell)
             {
                 SignalEvent(TrainEvent.BellOff);
-                if (Train.TrainType != TrainType.Remote && MultiPlayerManager.IsMultiPlayer()) MultiPlayerManager.Notify((new MSGEvent(MultiPlayerManager.GetUserName(), "BELL", 0)).ToString());
+                if (Train.TrainType != TrainType.Remote && MultiPlayerManager.IsMultiPlayer())
+                    MultiPlayerManager.Notify((new MSGEvent(MultiPlayerManager.GetUserName(), "BELL", 0)).ToString());
             }
 
             PreviousHorn = Horn;
@@ -2547,9 +2758,15 @@ namespace Orts.Simulation.RollingStocks
                     {
                         switch (simulator.WeatherType)
                         {
-                            case WeatherType.Clear: max0 *= (1.0f - 0.5f / SanderSpeedEffectUpToMpS * AbsSpeedMpS) * 1.2f; break;
-                            case WeatherType.Rain: max0 *= (1.0f - 0.5f / SanderSpeedEffectUpToMpS * AbsSpeedMpS) * 1.8f; break;
-                            case WeatherType.Snow: max0 *= (1.0f - 0.5f / SanderSpeedEffectUpToMpS * AbsSpeedMpS) * 2.5f; break;
+                            case WeatherType.Clear:
+                                max0 *= (1.0f - 0.5f / SanderSpeedEffectUpToMpS * AbsSpeedMpS) * 1.2f;
+                                break;
+                            case WeatherType.Rain:
+                                max0 *= (1.0f - 0.5f / SanderSpeedEffectUpToMpS * AbsSpeedMpS) * 1.8f;
+                                break;
+                            case WeatherType.Snow:
+                                max0 *= (1.0f - 0.5f / SanderSpeedEffectUpToMpS * AbsSpeedMpS) * 2.5f;
+                                break;
                         }
                     }
                 }
@@ -2558,9 +2775,15 @@ namespace Orts.Simulation.RollingStocks
                 {
                     switch (simulator.WeatherType)
                     {
-                        case WeatherType.Clear: max0 *= 1.2f; break;
-                        case WeatherType.Rain: max0 *= 1.8f; break;
-                        case WeatherType.Snow: max0 *= 2.5f; break;
+                        case WeatherType.Clear:
+                            max0 *= 1.2f;
+                            break;
+                        case WeatherType.Rain:
+                            max0 *= 1.8f;
+                            break;
+                        case WeatherType.Snow:
+                            max0 *= 2.5f;
+                            break;
                     }
                 }
             }
@@ -2969,7 +3192,7 @@ namespace Orts.Simulation.RollingStocks
         {
             return Sander;
         }
-                                 
+
         #region Reverser
         public void SetDirection(MidpointDirection direction)
         {
@@ -2978,20 +3201,32 @@ namespace Orts.Simulation.RollingStocks
                 Direction = direction;
                 switch (direction)
                 {
-                    case MidpointDirection.Reverse: SignalEvent(TrainEvent.ReverserToForwardBackward); break;
-                    case MidpointDirection.N: SignalEvent(TrainEvent.ReverserToNeutral); break;
-                    case MidpointDirection.Forward: SignalEvent(TrainEvent.ReverserToForwardBackward); break;
+                    case MidpointDirection.Reverse:
+                        SignalEvent(TrainEvent.ReverserToForwardBackward);
+                        break;
+                    case MidpointDirection.N:
+                        SignalEvent(TrainEvent.ReverserToNeutral);
+                        break;
+                    case MidpointDirection.Forward:
+                        SignalEvent(TrainEvent.ReverserToForwardBackward);
+                        break;
                 }
                 // passes event also to other locomotives
                 foreach (TrainCar car in Train.Cars)
                 {
-                    var loco = car as MSTSLocomotive;
-                    if (loco != null && car != this && loco.AcceptMUSignals)
+                    //                    if (loco != null && car != this && loco.AcceptMUSignals)
+                    if (car is MSTSLocomotive loco && car != this && loco.RemoteControlGroup != RemoteControlGroup.Unconnected)
                         switch (direction)
                         {
-                            case MidpointDirection.Reverse: loco.SignalEvent(TrainEvent.ReverserToForwardBackward); break;
-                            case MidpointDirection.N: loco.SignalEvent(TrainEvent.ReverserToNeutral); break;
-                            case MidpointDirection.Forward: loco.SignalEvent(TrainEvent.ReverserToForwardBackward); break;
+                            case MidpointDirection.Reverse:
+                                loco.SignalEvent(TrainEvent.ReverserToForwardBackward);
+                                break;
+                            case MidpointDirection.N:
+                                loco.SignalEvent(TrainEvent.ReverserToNeutral);
+                                break;
+                            case MidpointDirection.Forward:
+                                loco.SignalEvent(TrainEvent.ReverserToForwardBackward);
+                                break;
                         }
 
                 }
@@ -3012,9 +3247,18 @@ namespace Orts.Simulation.RollingStocks
                 {
                     switch (Direction)
                     {
-                        case MidpointDirection.Reverse: SetDirection(MidpointDirection.N); simulator.Confirmer.Confirm(CabControl.Reverser, CabSetting.Neutral); break;
-                        case MidpointDirection.N: SetDirection(MidpointDirection.Forward); simulator.Confirmer.Confirm(CabControl.Reverser, CabSetting.On); break;
-                        case MidpointDirection.Forward: SetDirection(MidpointDirection.Forward); simulator.Confirmer.Confirm(CabControl.Reverser, CabSetting.On); break;
+                        case MidpointDirection.Reverse:
+                            SetDirection(MidpointDirection.N);
+                            simulator.Confirmer.Confirm(CabControl.Reverser, CabSetting.Neutral);
+                            break;
+                        case MidpointDirection.N:
+                            SetDirection(MidpointDirection.Forward);
+                            simulator.Confirmer.Confirm(CabControl.Reverser, CabSetting.On);
+                            break;
+                        case MidpointDirection.Forward:
+                            SetDirection(MidpointDirection.Forward);
+                            simulator.Confirmer.Confirm(CabControl.Reverser, CabSetting.On);
+                            break;
                     }
                 }
             }
@@ -3028,9 +3272,18 @@ namespace Orts.Simulation.RollingStocks
                 {
                     switch (Direction)
                     {
-                        case MidpointDirection.Reverse: SetDirection(MidpointDirection.Reverse); simulator.Confirmer.Confirm(CabControl.Reverser, CabSetting.Off); break;
-                        case MidpointDirection.N: SetDirection(MidpointDirection.Reverse); simulator.Confirmer.Confirm(CabControl.Reverser, CabSetting.Off); break;
-                        case MidpointDirection.Forward: SetDirection(MidpointDirection.N); simulator.Confirmer.Confirm(CabControl.Reverser, CabSetting.Neutral); break;
+                        case MidpointDirection.Reverse:
+                            SetDirection(MidpointDirection.Reverse);
+                            simulator.Confirmer.Confirm(CabControl.Reverser, CabSetting.Off);
+                            break;
+                        case MidpointDirection.N:
+                            SetDirection(MidpointDirection.Reverse);
+                            simulator.Confirmer.Confirm(CabControl.Reverser, CabSetting.Off);
+                            break;
+                        case MidpointDirection.Forward:
+                            SetDirection(MidpointDirection.N);
+                            simulator.Confirmer.Confirm(CabControl.Reverser, CabSetting.Neutral);
+                            break;
                     }
                 }
             }
@@ -3043,8 +3296,10 @@ namespace Orts.Simulation.RollingStocks
             if (ThrottleController.CurrentValue >= ThrottleController.MaximumValue)
                 return;
 
-            if (target != null) ThrottleController.StartIncrease(target);
-            else new NotchedThrottleCommand(simulator.Log, true);
+            if (target != null)
+                ThrottleController.StartIncrease(target);
+            else
+                new NotchedThrottleCommand(simulator.Log, true);
 
             SignalEvent(TrainEvent.ThrottleChange);
             AlerterReset(TCSEvent.ThrottleChanged);
@@ -3089,8 +3344,10 @@ namespace Orts.Simulation.RollingStocks
             if (ThrottleController.CurrentValue <= ThrottleController.MinimumValue)
                 return;
 
-            if (target != null) ThrottleController.StartDecrease(target);
-            else new NotchedThrottleCommand(simulator.Log, false);
+            if (target != null)
+                ThrottleController.StartDecrease(target);
+            else
+                new NotchedThrottleCommand(simulator.Log, false);
 
             SignalEvent(TrainEvent.ThrottleChange);
             AlerterReset(TCSEvent.ThrottleChanged);
@@ -3307,7 +3564,8 @@ namespace Orts.Simulation.RollingStocks
                 return;
 
             ThrottleController.StartDecrease(target, true);
-            if (ThrottleController.NotchCount() <= 0) SignalEvent(TrainEvent.ThrottleChange);
+            if (ThrottleController.NotchCount() <= 0)
+                SignalEvent(TrainEvent.ThrottleChange);
             AlerterReset(TCSEvent.ThrottleChanged);
             CommandStartTime = simulator.ClockTime;
         }
@@ -4011,6 +4269,18 @@ namespace Orts.Simulation.RollingStocks
                 return $"{DynamicBrakePercent:F0}%";
             return $"{DynamicBrakeController.GetStatus()}";
         }
+
+        public override string GetDistributedPowerDynamicBrakeStatus()
+        {
+            if (DynamicBrakeController == null)
+                return null;
+            string dpStatus = Train.DistributedPowerMode == DistributedPowerMode.Brake ? $"({Train.DPDynamicBrakePercent:F0}%)" : string.Empty;
+            if (DynamicBrakePercent < 0)
+                return dpStatus;
+            if (TrainControlSystem.FullDynamicBrakingOrder)
+                return $"{DynamicBrakePercent:F0}% {dpStatus}";
+            return $"{DynamicBrakeController.GetStatus()} {dpStatus}";
+        }
         #endregion
 
         public override void SignalEvent(PowerSupplyEvent evt)
@@ -4041,7 +4311,7 @@ namespace Orts.Simulation.RollingStocks
 
         internal void ToggleMUCommand(bool ToState)
         {
-            AcceptMUSignals = ToState;
+            RemoteControlGroup = ToState ? RemoteControlGroup.FrontGroupSync : RemoteControlGroup.Unconnected;
         }
 
         public void SetTrainHandbrake(bool apply)
@@ -4095,12 +4365,15 @@ namespace Orts.Simulation.RollingStocks
             CabRadioOn = newState;
             if (!OnLineCabRadio)
             {
-                if (CabRadioOn) SignalEvent(TrainEvent.CabRadioOn); // hook for sound trigger
-                else SignalEvent(TrainEvent.CabRadioOff);
+                if (CabRadioOn)
+                    SignalEvent(TrainEvent.CabRadioOn); // hook for sound trigger
+                else
+                    SignalEvent(TrainEvent.CabRadioOff);
             }
             else if (!string.IsNullOrEmpty(OnLineCabRadioURL))
             { }
-            if (simulator.PlayerLocomotive == this) simulator.Confirmer.Confirm(CabControl.CabRadio, CabRadioOn ? CabSetting.On : CabSetting.Off);
+            if (simulator.PlayerLocomotive == this)
+                simulator.Confirmer.Confirm(CabControl.CabRadio, CabRadioOn ? CabSetting.On : CabSetting.Off);
         }
 
         public void ToggleWipers(bool newState)
@@ -4137,12 +4410,12 @@ namespace Orts.Simulation.RollingStocks
                 return;
             if (targetState)
             {
-            if (OdometerCountingForwards != OdometerCountingUp ^ (Direction == MidpointDirection.Reverse))
+                if (OdometerCountingForwards != OdometerCountingUp ^ (Direction == MidpointDirection.Reverse))
                 {
                     OdometerCountingForwards = !OdometerCountingForwards;
                 }
 
-            if (Direction == MidpointDirection.Reverse)
+                if (Direction == MidpointDirection.Reverse)
                 {
                     if (OdometerCountingForwards)
                         OdometerResetPositionM = Train.DistanceTravelledM - Train.Length;
@@ -4197,8 +4470,10 @@ namespace Orts.Simulation.RollingStocks
         {
             switch (evt)
             {
-                case TrainEvent.VigilanceAlarmOn: { AlerterSnd = true; if (simulator.Settings.Alerter) simulator.Confirmer.Confirm(CabControl.Alerter, CabSetting.On); break; }
-                case TrainEvent.VigilanceAlarmOff: { AlerterSnd = false; if (simulator.Settings.Alerter) simulator.Confirmer.Confirm(CabControl.Alerter, CabSetting.Off); break; }
+                case TrainEvent.VigilanceAlarmOn:
+                    { AlerterSnd = true; if (simulator.Settings.Alerter) simulator.Confirmer.Confirm(CabControl.Alerter, CabSetting.On); break; }
+                case TrainEvent.VigilanceAlarmOff:
+                    { AlerterSnd = false; if (simulator.Settings.Alerter) simulator.Confirmer.Confirm(CabControl.Alerter, CabSetting.Off); break; }
                 case TrainEvent.BellOn:
                 case TrainEvent.BellOff:
                     if (this == simulator.PlayerLocomotive && simulator.Confirmer != null)
@@ -4209,24 +4484,36 @@ namespace Orts.Simulation.RollingStocks
                     if (this == simulator.PlayerLocomotive && simulator.Confirmer != null)
                         simulator.Confirmer.Confirm(this is MSTSSteamLocomotive ? CabControl.Whistle : CabControl.Horn, Horn ? CabSetting.On : CabSetting.Off);
                     break;
-                case TrainEvent.SanderOn: { Sander = true; if (this.IsLeadLocomotive() && this == simulator.PlayerLocomotive && simulator.Confirmer != null) simulator.Confirmer.Confirm(CabControl.Sander, CabSetting.On); break; }
-                case TrainEvent.SanderOff: { Sander = false; if (this.IsLeadLocomotive() && this == simulator.PlayerLocomotive && simulator.Confirmer != null) simulator.Confirmer.Confirm(CabControl.Sander, CabSetting.Off); break; }
-                case TrainEvent.WiperOn: { Wiper = true; if (this == simulator.PlayerLocomotive && simulator.Confirmer != null) simulator.Confirmer.Confirm(CabControl.Wipers, CabSetting.On); break; }
-                case TrainEvent.WiperOff: { Wiper = false; if (this == simulator.PlayerLocomotive) simulator.Confirmer.Confirm(CabControl.Wipers, CabSetting.Off); break; }
+                case TrainEvent.SanderOn:
+                    { Sander = true; if (this.IsLeadLocomotive() && this == simulator.PlayerLocomotive && simulator.Confirmer != null) simulator.Confirmer.Confirm(CabControl.Sander, CabSetting.On); break; }
+                case TrainEvent.SanderOff:
+                    { Sander = false; if (this.IsLeadLocomotive() && this == simulator.PlayerLocomotive && simulator.Confirmer != null) simulator.Confirmer.Confirm(CabControl.Sander, CabSetting.Off); break; }
+                case TrainEvent.WiperOn:
+                    { Wiper = true; if (this == simulator.PlayerLocomotive && simulator.Confirmer != null) simulator.Confirmer.Confirm(CabControl.Wipers, CabSetting.On); break; }
+                case TrainEvent.WiperOff:
+                    { Wiper = false; if (this == simulator.PlayerLocomotive) simulator.Confirmer.Confirm(CabControl.Wipers, CabSetting.Off); break; }
 
                 // <CJComment> The "H" key doesn't call these SignalEvents yet. </CJComment>
-                case TrainEvent.HeadlightOff: { Headlight = 0; break; }
-                case TrainEvent.HeadlightDim: { Headlight = 1; break; }
-                case TrainEvent.HeadlightOn: { Headlight = 2; break; }
+                case TrainEvent.HeadlightOff:
+                    { Headlight = 0; break; }
+                case TrainEvent.HeadlightDim:
+                    { Headlight = 1; break; }
+                case TrainEvent.HeadlightOn:
+                    { Headlight = 2; break; }
 
-                case TrainEvent.CompressorOn: { CompressorIsOn = true; break; }
-                case TrainEvent.CompressorOff: { CompressorIsOn = false; break; }
+                case TrainEvent.CompressorOn:
+                    { CompressorIsOn = true; break; }
+                case TrainEvent.CompressorOff:
+                    { CompressorIsOn = false; break; }
 
                 //Vacuum exhauster event only triggered if vacuum exhauster engine control fitted.
-                case TrainEvent.VacuumExhausterOn: { if (FastVacuumExhausterFitted) VacuumExhausterPressed = true; if (this.IsLeadLocomotive() && this == simulator.PlayerLocomotive && simulator.Confirmer != null) simulator.Confirmer.Confirm(CabControl.VacuumExhauster, CabSetting.On); break; }
-                case TrainEvent.VacuumExhausterOff: { if (FastVacuumExhausterFitted) VacuumExhausterPressed = false; if (this.IsLeadLocomotive() && this == simulator.PlayerLocomotive && simulator.Confirmer != null) simulator.Confirmer.Confirm(CabControl.VacuumExhauster, CabSetting.Off); break; }
+                case TrainEvent.VacuumExhausterOn:
+                    { if (FastVacuumExhausterFitted) VacuumExhausterPressed = true; if (this.IsLeadLocomotive() && this == simulator.PlayerLocomotive && simulator.Confirmer != null) simulator.Confirmer.Confirm(CabControl.VacuumExhauster, CabSetting.On); break; }
+                case TrainEvent.VacuumExhausterOff:
+                    { if (FastVacuumExhausterFitted) VacuumExhausterPressed = false; if (this.IsLeadLocomotive() && this == simulator.PlayerLocomotive && simulator.Confirmer != null) simulator.Confirmer.Confirm(CabControl.VacuumExhauster, CabSetting.Off); break; }
 
-                case TrainEvent.ResetWheelSlip: { LocomotiveAxle.Reset(simulator.GameTime, SpeedMpS); ThrottleController.SetValue(0.0f); break; }
+                case TrainEvent.ResetWheelSlip:
+                    { LocomotiveAxle.Reset(simulator.GameTime, SpeedMpS); ThrottleController.SetValue(0.0f); break; }
                 case TrainEvent.TrainBrakePressureDecrease:
                 case TrainEvent.TrainBrakePressureIncrease:
                     {
@@ -4274,7 +4561,8 @@ namespace Orts.Simulation.RollingStocks
                     {
                         if (Train != null)
                             data = Train.ProjectedSpeedMpS;
-                        else data = 0;
+                        else
+                            data = 0;
                         if (cvc.ControlUnit == CabViewControlUnit.Km_Per_Hour)
                             data *= 3.6f;
                         else // MPH
@@ -4369,11 +4657,13 @@ namespace Orts.Simulation.RollingStocks
                             }
                             if (direction == 1)
                                 data = -data;
-                            if (cvc.ControlType == CabViewControlType.AmMeter_Abs) data = Math.Abs(data);
+                            if (cvc.ControlType == CabViewControlType.AmMeter_Abs)
+                                data = Math.Abs(data);
                             break;
                         }
                         data = this.MotiveForceN / MaxForceN * MaxCurrentA;
-                        if (cvc.ControlType == CabViewControlType.AmMeter_Abs) data = Math.Abs(data);
+                        if (cvc.ControlType == CabViewControlType.AmMeter_Abs)
+                            data = Math.Abs(data);
                         break;
                     }
                 case CabViewControlType.Load_Meter:
@@ -4637,12 +4927,12 @@ namespace Orts.Simulation.RollingStocks
 
                             if (EngineType == EngineType.Control && activeloco.DieselEngines.NumOfActiveEngines > 1)
                             {
-                             
+
                                 if (activeloco.DieselEngines[1] != null)
                                     data = activeloco.DieselEngines[1].RealRPM;
                             }
                             else if (EngineType == EngineType.Diesel && mstsDieselLocomotive.DieselEngines.NumOfActiveEngines > 1)
-                            {                      
+                            {
                                 if (mstsDieselLocomotive.DieselEngines[1] != null)
                                     data = mstsDieselLocomotive.DieselEngines[1].RealRPM;
                             }

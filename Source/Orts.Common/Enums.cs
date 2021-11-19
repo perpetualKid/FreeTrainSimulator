@@ -943,7 +943,21 @@ namespace Orts.Common
         AiIncorporated,     //AI train is incorporated in other train
     }
 
+    public enum RemoteControlGroup
+    {
+        /// -1: unconnected, 0: sync/front group, 1: async/rear group
+        Unconnected = -1,
+        FrontGroupSync = 0,
+        RearGroupAsync = 1
+    }
 
+    public enum DistributedPowerMode
+    {
+        //Distributed Power mode: -1: Brake, 0: Idle, 1: Traction
+        Brake = -1,
+        Idle = 0,
+        Traction = 1,
+    }
     /// <summary>
     /// A type of horn pattern used by AI trains at level crossings.
     /// </summary>

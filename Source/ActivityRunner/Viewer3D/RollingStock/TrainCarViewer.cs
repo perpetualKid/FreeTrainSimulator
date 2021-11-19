@@ -44,8 +44,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
         public abstract void HandleUserInput(in ElapsedTime elapsedTime);
 
-        public abstract void InitializeUserInputCommands();
-
         public abstract void RegisterUserCommandHandling();
 
         public abstract void UnregisterUserCommandHandling();

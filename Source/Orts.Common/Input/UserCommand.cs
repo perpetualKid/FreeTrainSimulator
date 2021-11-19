@@ -215,6 +215,15 @@ namespace Orts.Common.Input
         [Description("Control AI Fire On")] ControlAIFireOn,
         [Description("Control AI Fire Off")] ControlAIFireOff,
         [Description("Control AI Fire Reset")] ControlAIFireReset,
+        //Distributed power
+        [Description("Control DP Move To Front")] ControlDistributedPowerMoveToFront,
+        [Description("Control DP Move To Back")] ControlDistributedPowerMoveToBack,
+        [Description("Control DP Traction")] ControlDistributedPOwerTraction,
+        [Description("Control DP Idle")] ControlDistributedPowerIdle,
+        [Description("Control DP Brake")] ControlDistributedPowerBrake,
+        [Description("Control DP More")] ControlDistributedIncrease,
+        [Description("Control DP Less")] ControlDistributedPowerDecrease,
+
     }
 
     /// <summary>

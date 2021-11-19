@@ -1073,6 +1073,15 @@ namespace Orts.ActivityRunner.Viewer3D
             ElectricTrainSupplyCommand.Receiver = (PlayerLocomotive as MSTSLocomotive).LocomotivePowerSupply;
             TCSButtonCommand.Receiver = (PlayerLocomotive as MSTSLocomotive).TrainControlSystem;
             TCSSwitchCommand.Receiver = (PlayerLocomotive as MSTSLocomotive).TrainControlSystem;
+
+            //Distributed power
+            DistributedPowerMoveToFrontCommand.Receiver = (MSTSLocomotive)PlayerLocomotive;
+            DistributedPowerMoveToBackCommand.Receiver = (MSTSLocomotive)PlayerLocomotive;
+            DistributedPowerTractionCommand.Receiver = (MSTSLocomotive)PlayerLocomotive;
+            DistributedPowerIdleCommand.Receiver = (MSTSLocomotive)PlayerLocomotive;
+            DistributedPowerDynamicBrakeCommand.Receiver = (MSTSLocomotive)PlayerLocomotive;
+            DistributedPowerIncreaseCommand.Receiver = (MSTSLocomotive)PlayerLocomotive;
+            DistributedPOwerDecreaseCommand.Receiver = (MSTSLocomotive)PlayerLocomotive;
         }
 
         public void ChangeToPreviousFreeRoamCamera()

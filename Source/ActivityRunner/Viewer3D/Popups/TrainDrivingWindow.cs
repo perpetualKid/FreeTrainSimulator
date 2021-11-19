@@ -173,6 +173,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             [Viewer.Catalog.GetString("Gear")] = Viewer.Catalog.GetString("GEAR"),
             [Viewer.Catalog.GetString("Gradient")] = Viewer.Catalog.GetString("GRAD"),
             [Viewer.Catalog.GetString("Grate limit")] = Viewer.Catalog.GetString("GRAT"),
+            [Viewer.Catalog.GetString("Loco Groups")] = Viewer.Catalog.GetString("GRUP"),
             [Viewer.Catalog.GetString("Pantographs")] = Viewer.Catalog.GetString("PANT"),
             [Viewer.Catalog.GetString("Power")] = Viewer.Catalog.GetString("POWR"),
             [Viewer.Catalog.GetString("Regulator")] = Viewer.Catalog.GetString("REGL"),
@@ -748,6 +749,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             var LocomotiveSteam = Owner.Viewer.PlayerLocomotive as MSTSSteamLocomotive;
             var CombinedCT = Locomotive.CombinedControlType == MSTSLocomotive.CombinedControl.ThrottleDynamic;
             var ShowMUReverser = Math.Abs(PlayerTrain.MUReverserPercent) != 100;
+            var multipleUnitsConfiguration = Locomotive.GetMultipleUnitsConfiguration();
             var ShowRetainers = PlayerTrain.RetainerSetting != RetainerSetting.Exhaust;
             var Stretched = PlayerTrain.Cars.Count > 1 && PlayerTrain.CouplersPulled == PlayerTrain.Cars.Count - 1;
             var Bunched = !Stretched && PlayerTrain.Cars.Count > 1 && PlayerTrain.CouplersPushed == PlayerTrain.Cars.Count - 1;
@@ -820,7 +822,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             }
             // Throttle
             InfoToLabel(throttleKeyInput, Owner.Viewer.PlayerLocomotive is MSTSSteamLocomotive ? Viewer.Catalog.GetString("Regulator") : Viewer.Catalog.GetString("Throttle"),
-                $"{Owner.Viewer.PlayerLocomotive.ThrottlePercent:0}%", "", false);
+                $"{Math.Round(Owner.Viewer.PlayerLocomotive.ThrottlePercent):F0}%" +
+                    (Owner.Viewer.PlayerLocomotive.Train.DistributedPowerMode == DistributedPowerMode.Traction ? $"({Math.Round(Owner.Viewer.PlayerLocomotive.Train.DPThrottlePercent):F0}%)" : ""), "", false);
 
             // Cylinder Cocks
             if (Owner.Viewer.PlayerLocomotive is MSTSSteamLocomotive mstsSteamLocomotive)
@@ -950,7 +953,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 {
                     StartTime = Locomotive.DynamicBrakeCommandStartTime + Locomotive.DynamicBrakeDelayS;
                     DynBrakeSetup = true;
-                    InfoToLabel(arrowToRight, Viewer.Catalog.GetString("Dynamic brake"), Viewer.Catalog.GetString("Setup") + "$??", "", false);
+                    InfoToLabel(arrowToRight, Viewer.Catalog.GetString("Dynamic brake"), Viewer.Catalog.GetString("Setup") + "$??" +
+                        (Owner.Viewer.PlayerLocomotive.Train.DistributedPowerMode == DistributedPowerMode.Brake ? $"({Owner.Viewer.PlayerLocomotive.Train.DPDynamicBrakePercent:F0}%)" : string.Empty), "", false);
                 }
                 else if (DynBrakeSetup && StartTime < Owner.Viewer.Simulator.ClockTime)
                 {
@@ -978,7 +982,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 }
                 else if (DynamicBrakeStatus.Length == 0 && DynamicBrakePercent < 0)
                 {
-                    InfoToLabel(string.Empty, Viewer.Catalog.GetString("Dynamic brake"), Viewer.Catalog.GetString("Off"), "", false);
+                    InfoToLabel(string.Empty, Viewer.Catalog.GetString("Dynamic brake"), Viewer.Catalog.GetString("Off") +
+                        (Owner.Viewer.PlayerLocomotive.Train.DistributedPowerMode == DistributedPowerMode.Brake ? $"({Owner.Viewer.PlayerLocomotive.Train.DPDynamicBrakePercent:F0}%)" : string.Empty), "", false);
                 }
             }
 
@@ -1037,6 +1042,13 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             }
 
             InfoToLabel(string.Empty, "Sprtr", "", "", true);
+
+            // Distributed Power
+            if (multipleUnitsConfiguration != null)
+            {
+                InfoToLabel(string.Empty, Viewer.Catalog.GetString("Loco Groups"), $"{multipleUnitsConfiguration}", string.Empty, false);
+                InfoToLabel(string.Empty, "Sprtr", "", "", false);
+            }
 
             if (standardHUDMode)
                 InfoToLabel(string.Empty, Viewer.Catalog.GetString("FPS"), $"{Owner.Viewer.RenderProcess.FrameRate.SmoothedValue:F0}", string.Empty, false);
