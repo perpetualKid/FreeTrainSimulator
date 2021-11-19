@@ -568,7 +568,10 @@ namespace Orts.Simulation.RollingStocks
                 {
                     HasSmoothStruc = true;
                 }
-                DistributedPowerDynamicBrakeController = (MSTSNotchController)DynamicBrakeController.Clone();
+                if (DynamicBrakeController.NotchCount() > 3)
+                    DistributedPowerDynamicBrakeController = (MSTSNotchController)DynamicBrakeController.Clone();
+                else
+                    DistributedPowerDynamicBrakeController = BuildDPDynamicBrakeController();
             }
             else
             {
@@ -594,6 +597,60 @@ namespace Orts.Simulation.RollingStocks
                 DynamicBrakeForceCurves[1] = interp;
             }
         }
+
+        protected MSTSNotchController BuildDPDynamicBrakeController()
+        {
+            var dpDynController = new MSTSNotchController();
+            CabView cabView = null;
+            CabViewMultiStateDisplayControl msDisplay = null;
+            if (CabView3D != null)
+                cabView = CabView3D;
+            else if (CabViewList.Count > 0)
+            {
+                if (CabViewList[0].CabViewType == CabViewType.Front)
+                    cabView = CabViewList[0];
+                else
+                    cabView = CabViewList[1];
+            }
+            if (cabView != null)
+            {
+                msDisplay = cabView.CVFFile.CabViewControls.OfType<CabViewMultiStateDisplayControl>().Where(
+                    control => (control.ControlType == CabViewControlType.Dynamic_Brake_Display || control.ControlType == CabViewControlType.Cph_Display)).FirstOrDefault();
+                if (msDisplay != null)
+                {
+                    if (msDisplay.ControlType == CabViewControlType.Dynamic_Brake_Display)
+                    {
+                        foreach (var switchval in msDisplay.Values)
+                            dpDynController.AddNotch((float)switchval);
+                    }
+                    else
+                    {
+                        foreach (var switchval in msDisplay.Values)
+                        {
+                            if (switchval < CombinedControlSplitPosition)
+                                continue;
+                            dpDynController.AddNotch((float)(switchval - CombinedControlSplitPosition) / (1 - CombinedControlSplitPosition));
+                        }
+                    }
+                }
+            }
+            if (cabView == null || msDisplay == null)
+            // Use default Dash9 arrangement if no display is found
+            {
+                var switchval = 0f;
+                while (switchval <= 1)
+                {
+                    if (switchval == 0.99f)
+                        switchval = 1;
+                    dpDynController.AddNotch(switchval);
+                    switchval += 0.11f;
+                }
+            }
+
+
+            return dpDynController;
+        }
+
 
         protected void GetPressureUnit()
         {
@@ -1256,7 +1313,15 @@ namespace Orts.Simulation.RollingStocks
             BrakemanBrakeController = locoCopy.BrakemanBrakeController != null ? locoCopy.BrakemanBrakeController.Clone(this) : null;
             DynamicBrakeController = locoCopy.DynamicBrakeController != null ? (MSTSNotchController)locoCopy.DynamicBrakeController.Clone() : null;
             DistributedPowerThrottleController = (MSTSNotchController)ThrottleController.Clone();
-            DistributedPowerDynamicBrakeController = (MSTSNotchController)DynamicBrakeController?.Clone();
+            if (DynamicBrakeController != null)
+            {
+                if (DynamicBrakeController.NotchCount() > 3)
+                    DistributedPowerDynamicBrakeController = (MSTSNotchController)DynamicBrakeController.Clone();
+                else
+                    DistributedPowerDynamicBrakeController = BuildDPDynamicBrakeController();
+            }
+            else
+                DistributedPowerDynamicBrakeController = null;
 
             LocomotivePowerSupply.Copy(locoCopy.LocomotivePowerSupply);
             TrainControlSystem.Copy(locoCopy.TrainControlSystem);
@@ -1327,6 +1392,7 @@ namespace Orts.Simulation.RollingStocks
             outf.Write(CurrentTrackSandBoxCapacityM3);
             outf.Write(SaveAdhesionFilter);
             outf.Write((int)RemoteControlGroup);
+            outf.Write(DistributedPowerUnitId);
 
             base.Save(outf);
 
@@ -1380,6 +1446,7 @@ namespace Orts.Simulation.RollingStocks
 
             AdhesionFilter.Reset(SaveAdhesionFilter);
             RemoteControlGroup = (RemoteControlGroup)inf.ReadInt32();
+            DistributedPowerUnitId = inf.ReadInt32();
 
             base.Restore(inf);
 
@@ -4274,7 +4341,7 @@ namespace Orts.Simulation.RollingStocks
         {
             if (DynamicBrakeController == null)
                 return null;
-            string dpStatus = Train.DistributedPowerMode == DistributedPowerMode.Brake ? $"({Train.DPDynamicBrakePercent:F0}%)" : string.Empty;
+            string dpStatus = this is MSTSDieselLocomotive && Train.DistributedPowerMode == DistributedPowerMode.Brake ? $"({Train.DPDynamicBrakePercent:F0}%)" : string.Empty;
             if (DynamicBrakePercent < 0)
                 return dpStatus;
             if (TrainControlSystem.FullDynamicBrakingOrder)

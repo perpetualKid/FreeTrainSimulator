@@ -922,10 +922,18 @@ namespace Orts.Simulation.RollingStocks
             }
             else if (DynamicBrakePercent > 0 && DynamicBrake)
             {
-                if (DynamicBrakeController.NotchCount() > 3)
-                    throttle = Simulator.Catalog.GetParticularString("Notch", "B") + DynamicBrakeController.GetNearestNotch(DynamicBrakePercent / 100f);
+                if (RemoteControlGroup == RemoteControlGroup.RearGroupAsync)
+                {
+                    throttle = Simulator.Catalog.GetParticularString("Notch", "B") + MathHelper.Clamp((Train.LeadLocomotive as MSTSLocomotive).DistributedPowerDynamicBrakeController.CurrentNotch, 1,  8);
+                }
                 else
-                    throttle = $"{DynamicBrakePercent:F0}%";
+                {
+                    // The clause here below leads to possible differences of one notch near the notch value, and therefore is commented
+ //               if (DynamicBrakeController.NotchCount() > 3)
+ //                   throttle = Simulator.Catalog.GetParticularString("Notch", "B") + MathHelper.Clamp((DynamicBrakeController.GetNearestNotch(DynamicBrakePercent / 100f)), 1, 8);
+ //               else
+                    throttle = Simulator.Catalog.GetParticularString("Notch", "B") + MathHelper.Clamp((Train.LeadLocomotive as MSTSLocomotive).DistributedPowerDynamicBrakeController.GetNotch(DynamicBrakePercent / 100f), 1, 8);
+                }
             }
             else if (DynamicBrakePercent == 0 && !DynamicBrake)
                 throttle = Simulator.Catalog.GetString("Setup");
@@ -942,7 +950,7 @@ namespace Orts.Simulation.RollingStocks
             status.Append($"{throttle}\t");
             status.Append($"{FormatStrings.FormatFuelVolume(DieselLevelL, simulator.MetricUnits, Simulator.Instance.Settings.MeasurementUnit == MeasurementUnit.UK)}\t");
             status.Append($"{FormatStrings.FormatForce(MotiveForceN, simulator.MetricUnits)}{(CouplerOverloaded ? "???" : "")}");
-            status.Append(DieselEngines.GetStatus());
+            status.Append(DieselEngines.GetDistributedPowerStatus());
 
             return status.ToString();
         }

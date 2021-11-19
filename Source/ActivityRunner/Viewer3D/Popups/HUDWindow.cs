@@ -30,6 +30,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using Orts.ActivityRunner.Viewer3D.Processes;
+using Orts.ActivityRunner.Viewer3D.RollingStock;
 using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Common.Info;
@@ -463,8 +464,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             TableAddLabelValue(table, Viewer.Catalog.GetString("Gradient"), "{0:F1}%", -Viewer.PlayerLocomotive.CurrentElevationPercent);
             TableAddLabelValue(table, Viewer.Catalog.GetString("Direction"), showMUReverser ? "{1:F0} {0}" : "{0}", Viewer.PlayerLocomotive.Direction.GetLocalizedDescription(), Math.Abs(playerTrain.MUReverserPercent));
             TableAddLabelValue(table, Viewer.PlayerLocomotive is MSTSSteamLocomotive ? Viewer.Catalog.GetString("Regulator") : Viewer.Catalog.GetString("Throttle"), "{0:F0}%", 
-                Viewer.PlayerLocomotive.ThrottlePercent, 
-                Viewer.PlayerLocomotive.Train.DistributedPowerMode == DistributedPowerMode.Traction ? $"({Viewer.PlayerLocomotive.Train.DPThrottlePercent}%)" : "");
+                Viewer.PlayerLocomotive.ThrottlePercent,
+                Viewer.PlayerLocomotive is MSTSDieselLocomotive && Viewer.PlayerLocomotive.Train.DistributedPowerMode == DistributedPowerMode.Traction ? $"({Viewer.PlayerLocomotive.Train.DPThrottlePercent}%)" : "");
             if ((Viewer.PlayerLocomotive as MSTSLocomotive).TrainBrakeFitted)
                 TableAddLabelValue(table, Viewer.Catalog.GetString("Train brake"), "{0}", Viewer.PlayerLocomotive.GetTrainBrakeStatus());
             if (showRetainers)
@@ -915,6 +916,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             TextPageHeading(table, Viewer.Catalog.GetString("DISTRIBUTED POWER INFORMATION"));
 
             var locomotive = Viewer.PlayerLocomotive;
+            if (!(locomotive is MSTSDieselLocomotive))
+                return;
             var train = locomotive.Train;
 
             int numberOfDieselLocomotives = 0;

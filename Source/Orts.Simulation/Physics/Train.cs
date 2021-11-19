@@ -71,7 +71,7 @@ using Orts.Simulation.Track;
 
 namespace Orts.Simulation.Physics
 {
-    public partial class Train: ITrain
+    public partial class Train : ITrain
     {
         #region const
         private const int TileSize = 2048;
@@ -807,11 +807,11 @@ namespace Orts.Simulation.Physics
                     LeadLocomotive = Cars[LeadLocomotiveIndex];
                     if (TrainType != TrainType.Static)
                         simulator.PlayerLocomotive = LeadLocomotive;
-                }
 
-                (LeadLocomotive as MSTSLocomotive).DistributedPowerThrottleController.SetValue(DPThrottlePercent / 100f);
-                if ((LeadLocomotive as MSTSLocomotive).DistributedPowerDynamicBrakeController != null)
-                    (LeadLocomotive as MSTSLocomotive).DistributedPowerDynamicBrakeController.SetValue(DPDynamicBrakePercent / 100f);
+                    (LeadLocomotive as MSTSLocomotive).DistributedPowerThrottleController.SetValue(DPThrottlePercent / 100f);
+                    if ((LeadLocomotive as MSTSLocomotive).DistributedPowerDynamicBrakeController != null)
+                        (LeadLocomotive as MSTSLocomotive).DistributedPowerDynamicBrakeController.SetValue(DPDynamicBrakePercent / 100f);
+                }
 
                 // restore logfile
                 if (evaluateTrainSpeed)
@@ -830,7 +830,7 @@ namespace Orts.Simulation.Physics
                 for (int i = 0; i < count; ++i)
                     Cars.Add(RollingStock.Restore(inf, this));
             }
-            SetDistributedPowerUnitIds();
+            SetDistributedPowerUnitIds(true);
         }
 
         private static ServiceTraffics RestoreTrafficSDefinition(BinaryReader inf)
@@ -1325,7 +1325,7 @@ namespace Orts.Simulation.Physics
         /// <summary>
         /// Set Distributed Power locomotive groups IDs, and reset async/back group assignments
         /// </summary>
-        public void SetDistributedPowerUnitIds()
+        public void SetDistributedPowerUnitIds(bool keepRemoteGroups = false)
         {
             var id = 0;
             foreach (var car in Cars)
@@ -1334,7 +1334,7 @@ namespace Orts.Simulation.Physics
                 if (car is MSTSLocomotive)
                 {
                     (car as MSTSLocomotive).DistributedPowerUnitId = id;
-                    if (car.RemoteControlGroup == RemoteControlGroup.RearGroupAsync)
+                    if (car.RemoteControlGroup == RemoteControlGroup.RearGroupAsync && !keepRemoteGroups)
                         car.RemoteControlGroup = RemoteControlGroup.FrontGroupSync;
                 }
                 else
@@ -1347,18 +1347,25 @@ namespace Orts.Simulation.Physics
         /// </summary>
         public void DistributedPowerMoveToFront()
         {
+            if (LeadLocomotive == null || (LeadLocomotive as MSTSLocomotive).DistributedPowerDynamicBrakeController == null)
+                return;
             int idToMove = -1;
             for (int i = 0; i < Cars.Count; i++)
             {
                 if (!(Cars[i] is MSTSLocomotive))
                     continue;
                 if (idToMove == -1 && Cars[i].RemoteControlGroup == RemoteControlGroup.FrontGroupSync)
+                {
                     continue;
+                }
                 if (idToMove == -1 && Cars[i].RemoteControlGroup == RemoteControlGroup.RearGroupAsync)
+                {
                     idToMove = (Cars[i] as MSTSLocomotive).DistributedPowerUnitId;
-
+                }
                 if ((Cars[i] as MSTSLocomotive).DistributedPowerUnitId == idToMove && Cars[i].RemoteControlGroup != RemoteControlGroup.Unconnected)
+                {
                     Cars[i].RemoteControlGroup = RemoteControlGroup.FrontGroupSync;
+                }
                 else if (idToMove > -1 && Cars[i].RemoteControlGroup == RemoteControlGroup.FrontGroupSync)
                     Cars[i].RemoteControlGroup = RemoteControlGroup.RearGroupAsync;
             }
@@ -1369,6 +1376,12 @@ namespace Orts.Simulation.Physics
         /// </summary>
         public void DistributedPowerMoveToBack()
         {
+            if (LeadLocomotive == null || (LeadLocomotive as MSTSLocomotive).DistributedPowerDynamicBrakeController == null)
+                return;
+            float dpDynamicBrakePercent = LeadLocomotive.DynamicBrakePercent;
+            float dpThrottlePercent = LeadLocomotive.ThrottlePercent;
+            int dpDynamicBrakeCurrentNotch = MathHelper.Clamp((LeadLocomotive as MSTSLocomotive).DistributedPowerDynamicBrakeController.GetNotch(dpDynamicBrakePercent / 100), 0, 8);
+            int dpThrottleCurrentNotch = (LeadLocomotive as MSTSLocomotive).ThrottleController.CurrentNotch;
             int idToMove = -1;
             int idLead = LeadLocomotive != null ? (Cars[LeadLocomotiveIndex] as MSTSLocomotive).DistributedPowerUnitId : -1;
             for (int i = Cars.Count - 1; i >= 0; i--)
@@ -1376,7 +1389,13 @@ namespace Orts.Simulation.Physics
                 if (!(Cars[i] is MSTSLocomotive))
                     continue;
                 if (idToMove == -1 && Cars[i].RemoteControlGroup == RemoteControlGroup.RearGroupAsync)
+                {
+                    dpDynamicBrakePercent = DPDynamicBrakePercent;
+                    dpThrottlePercent = DPThrottlePercent;
+                    dpDynamicBrakeCurrentNotch = (LeadLocomotive as MSTSLocomotive).DistributedPowerDynamicBrakeController.CurrentNotch;
+                    dpThrottleCurrentNotch = (LeadLocomotive as MSTSLocomotive).DistributedPowerDynamicBrakeController.CurrentNotch;
                     continue;
+                }
                 if (idToMove == -1 && Cars[i].RemoteControlGroup == RemoteControlGroup.FrontGroupSync)
                     idToMove = (Cars[i] as MSTSLocomotive).DistributedPowerUnitId;
 
@@ -1384,9 +1403,15 @@ namespace Orts.Simulation.Physics
                     idToMove = int.MaxValue;
 
                 if ((Cars[i] as MSTSLocomotive).DistributedPowerUnitId == idToMove && Cars[i].RemoteControlGroup != RemoteControlGroup.Unconnected)
+                {
                     Cars[i].RemoteControlGroup = RemoteControlGroup.RearGroupAsync;
+                    DPDynamicBrakePercent = dpDynamicBrakePercent;
+                    DPThrottlePercent = dpThrottlePercent;
+                    (LeadLocomotive as MSTSLocomotive).DistributedPowerDynamicBrakeController.CurrentNotch = dpDynamicBrakeCurrentNotch;
+                    (LeadLocomotive as MSTSLocomotive).DistributedPowerThrottleController.CurrentNotch = dpThrottleCurrentNotch;
+                }
                 else if (idToMove > -1 && Cars[i].RemoteControlGroup == RemoteControlGroup.RearGroupAsync)
-                    Cars[i].RemoteControlGroup = 0;
+                    Cars[i].RemoteControlGroup = RemoteControlGroup.FrontGroupSync;
             }
         }
 
@@ -1395,6 +1420,8 @@ namespace Orts.Simulation.Physics
         /// </summary>
         public void DistributedPowerTraction()
         {
+            if (LeadLocomotive == null || (LeadLocomotive as MSTSLocomotive).DistributedPowerDynamicBrakeController == null)
+                return;
             DistributedPowerMode = DistributedPowerMode.Traction;
             DPDynamicBrakePercent = -1;
             if (DPThrottlePercent == 0)
@@ -1407,6 +1434,8 @@ namespace Orts.Simulation.Physics
         /// </summary>
         public void DistributedPowerIdle()
         {
+            if (LeadLocomotive == null || (LeadLocomotive as MSTSLocomotive).DistributedPowerDynamicBrakeController == null)
+                return;
             DistributedPowerMode = DistributedPowerMode.Idle;
             if (DPDynamicBrakePercent >= 0)
                 DPDynamicBrakePercent = 0;
@@ -1421,12 +1450,17 @@ namespace Orts.Simulation.Physics
         /// </summary>
         public void DistributedPowerDynamicBrake()
         {
+            if (LeadLocomotive == null || (LeadLocomotive as MSTSLocomotive).DistributedPowerDynamicBrakeController == null)
+                return;
             DistributedPowerMode = DistributedPowerMode.Brake;
             DPThrottlePercent = 0;
             if (DPDynamicBrakePercent == -1)
                 DPDynamicBrakePercent = 0;
-            if (DPDynamicBrakePercent == 0)
+            if (DPDynamicBrakePercent == 0 && DistributedPowerMode != DistributedPowerMode.Brake)
+            {
+                DistributedPowerMode = DistributedPowerMode.Brake;
                 DistributedPowerIncrease();
+            }
             DistributedPowerUpdate();
         }
 
@@ -1435,6 +1469,8 @@ namespace Orts.Simulation.Physics
         /// </summary>
         public void DistributedPowerIncrease()
         {
+            if (LeadLocomotive == null || (LeadLocomotive as MSTSLocomotive).DistributedPowerDynamicBrakeController == null)
+                return;
             if (DistributedPowerMode == DistributedPowerMode.Traction)
                 DPThrottlePercent = DistributedPowerIncrease((LeadLocomotive as MSTSLocomotive).DistributedPowerThrottleController, DPThrottlePercent);
             else if (DistributedPowerMode == DistributedPowerMode.Brake)
@@ -1461,6 +1497,8 @@ namespace Orts.Simulation.Physics
         /// </summary>
         public void DistributedPowerDecrease()
         {
+            if (LeadLocomotive == null || (LeadLocomotive as MSTSLocomotive).DistributedPowerDynamicBrakeController == null)
+                return;
             if (DistributedPowerMode == DistributedPowerMode.Traction)
                 DPThrottlePercent = DistributedPowerDecrease((LeadLocomotive as MSTSLocomotive).DistributedPowerThrottleController, DPThrottlePercent);
             else if (DistributedPowerMode == DistributedPowerMode.Brake)
@@ -1481,7 +1519,8 @@ namespace Orts.Simulation.Physics
             percent = controller.CurrentValue * 100;
             if (percent <= 0)
             {
-                percent = DistributedPowerIncrease(controller, 0);
+                percent = 0;
+//                percent = DistributedPowerIncrease(controller, 0);
             }
             return percent;
         }
@@ -1491,7 +1530,7 @@ namespace Orts.Simulation.Physics
         /// </summary>
         protected void DistributedPowerUpdate()
         {
-            if (LeadLocomotive.Direction == MidpointDirection.N || LeadLocomotive.BrakeSystem.GetCylPressurePSI() > 20)
+            if (LeadLocomotive != null && LeadLocomotive.Direction == MidpointDirection.N)
                 DistributedPowerIdle();
         }
 
