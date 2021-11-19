@@ -146,6 +146,8 @@ namespace Orts.Graphics.Window
                 Matrix.CreateScale(1.0f, -1.0f, 1.0f);
             // Project into a flat view of the same size as the viewport.
             xnaProjection = Matrix.CreateOrthographic(Game.GraphicsDevice.Viewport.Width, Game.GraphicsDevice.Viewport.Height, 0, 1);
+            foreach (WindowBase window in windows)
+                window.UpdateLocation();
         }
 
         internal bool AddWindow(WindowBase window)

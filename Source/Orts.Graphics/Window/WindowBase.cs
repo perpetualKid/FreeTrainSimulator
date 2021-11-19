@@ -7,6 +7,8 @@ using Orts.Common.Input;
 using Orts.Graphics.Window.Controls;
 using Orts.Graphics.Window.Controls.Layout;
 
+using static Orts.Common.Calc.Dynamics;
+
 namespace Orts.Graphics.Window
 {
     public abstract class WindowBase : IDisposable
@@ -37,17 +39,8 @@ namespace Orts.Graphics.Window
         {
             Owner = owner ?? throw new ArgumentNullException(nameof(owner));
             location = position;
-            if (position != EmptyPoint)
-            {
-                position.X = (int)Math.Round((float)position.X * (owner.Game.Window.ClientBounds.Width - size.X) / 100);
-                position.Y = (int)Math.Round((float)position.Y * (owner.Game.Window.ClientBounds.Height - size.Y) / 100);
-            }
-            else
-            {
-                position.X = (int)Math.Round((owner.Game.Window.ClientBounds.Width - size.X) / 2f);
-                position.Y = (int)Math.Round((owner.Game.Window.ClientBounds.Height - size.Y) / 2f);
-            }
-            borderRect = new Rectangle(position, size);
+            borderRect.Size = size;
+            UpdateLocation();
             Caption = caption;
             Resize();
         }
@@ -102,6 +95,23 @@ namespace Orts.Graphics.Window
             InitializeBuffers();
             tempVertex?.Dispose();
             Layout();
+        }
+
+        internal void UpdateLocation()
+        {
+            Point position;
+            if (location != EmptyPoint)
+            {
+                position.X = (int)Math.Round((float)location.X * (Owner.Game.Window.ClientBounds.Width - borderRect.Width) / 100);
+                position.Y = (int)Math.Round((float)location.Y * (Owner.Game.Window.ClientBounds.Height - borderRect.Height) / 100);
+            }
+            else
+            {
+                position.X = (int)Math.Round((Owner.Game.Window.ClientBounds.Width - borderRect.Width) / 2f);
+                position.Y = (int)Math.Round((Owner.Game.Window.ClientBounds.Height - borderRect.Height) / 2f);
+            }
+            borderRect.Location = position;
+            xnaWorld.Translation = new Vector3(borderRect.X, borderRect.Y, 0);
         }
 
         internal void HandleMouseDrag(Point position, Vector2 delta, KeyModifiers keyModifiers)

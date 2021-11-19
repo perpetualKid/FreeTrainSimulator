@@ -413,7 +413,6 @@ namespace Orts.TrackViewer
             Components.Add(scaleRuler);
             Components.Add(new InsetComponent(this, BackgroundColor, new Vector2(-10, 30)));
             Components.Add(new WorldCoordinatesComponent(this, new System.Drawing.Font(System.Drawing.FontFamily.GenericSansSerif, 20, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel), Color.Blue, new Vector2(40, 40)));
-            //TestWindow.AddForms(windowManager);
         }
 
         protected override void Update(GameTime gameTime)
