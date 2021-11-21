@@ -160,8 +160,8 @@ namespace Orts.Formats.OR.Files
                     {
                         foreach (TrainInformation train in Trains)
                             train.StartTime = parts[train.Column];
+                        startFound = true;
                     }
-                    startFound = true;
                 }
                 if (!briefingFound)
                 {
