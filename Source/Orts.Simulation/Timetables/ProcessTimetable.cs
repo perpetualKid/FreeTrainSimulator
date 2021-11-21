@@ -847,7 +847,7 @@ namespace Orts.Simulation.Timetables
             playerTrain.RearTDBTraveller = new Traveller(simulator.TSectionDat, simulator.TrackDatabase.TrackDB.TrackNodes, usedPath);
 
             // extract train path
-            playerTrain.SetRoutePath(usedPath, true);
+            playerTrain.SetRoutePath(usedPath, false);
             playerTrain.EndRouteAtLastSignal();
             playerTrain.ValidRoute[0] = new TrackCircuitPartialPathRoute(playerTrain.TCRoute.TCRouteSubpaths[0]);
         }
@@ -2278,7 +2278,7 @@ namespace Orts.Simulation.Timetables
                             if (sepIndex > 0)
                             {
                                 consistProc = String.Concat(consistFile.Substring(sepIndex).Trim(), consistProc.Substring(plusIndex).Trim());
-                                consistFile.Substring(0, sepIndex).Trim();
+                                consistFile = consistFile.Substring(0, sepIndex).Trim();
                             }
                             else
                             {
