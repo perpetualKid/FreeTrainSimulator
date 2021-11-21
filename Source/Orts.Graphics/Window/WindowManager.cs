@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -154,6 +155,7 @@ namespace Orts.Graphics.Window
         {
             if (!WindowOpen(window))
             {
+                window.UpdateLocation();
                 windows.Add(window);
                 if (window.Modal)
                 {

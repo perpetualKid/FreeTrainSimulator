@@ -244,6 +244,11 @@ namespace Orts.TrackViewer
             Settings.WindowSettings[WindowSetting.Location][1] = (int)Math.Max(0, Math.Round(100.0 * (windowPosition.Y - currentScreen.Bounds.Top) / (currentScreen.WorkingArea.Height - windowSize.Height)));
             Settings.Screen = System.Windows.Forms.Screen.AllScreens.ToList().IndexOf(currentScreen);
 
+            foreach (WindowType windowType in EnumExtension.GetValues<WindowType>())
+            {
+                Settings.WindowLocations[windowType] = PointExtension.ToArray(windowManager[windowType].RelativeLocation);
+            }
+
             Settings.ViewSettings = viewSettings;
             if (null != contentArea)
             {

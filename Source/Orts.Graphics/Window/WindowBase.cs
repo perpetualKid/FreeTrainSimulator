@@ -30,6 +30,8 @@ namespace Orts.Graphics.Window
 
         public ref readonly Rectangle Borders => ref borderRect;
 
+        public ref readonly Point RelativeLocation => ref location;
+
         public string Caption { get; }
 
         public event EventHandler OnWindowClosed;
@@ -123,6 +125,9 @@ namespace Orts.Graphics.Window
             _ = keyModifiers;
 
             borderRect.Offset(delta.ToPoint());
+            location = new Point(
+                (int)Math.Round(100.0 * borderRect.X / (Owner.Game.Window.ClientBounds.Width - borderRect.Width)),
+                (int)Math.Round(100.0 * borderRect.Y / (Owner.Game.Window.ClientBounds.Height - borderRect.Height)));
             borderRect.X = MathHelper.Clamp(borderRect.X, 0, Owner.Game.Window.ClientBounds.Width - borderRect.Width);
             borderRect.Y = MathHelper.Clamp(borderRect.Y, 0, Owner.Game.Window.ClientBounds.Height - borderRect.Height);
             xnaWorld.Translation = new Vector3(borderRect.X, borderRect.Y, 0);
