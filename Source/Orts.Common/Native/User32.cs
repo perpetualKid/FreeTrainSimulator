@@ -100,5 +100,12 @@ namespace Orts.Common.Native
         [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
         private static extern IntPtr CallNextHookExNative(IntPtr hhk, int nCode, IntPtr wParam, IntPtr lParam);
 #pragma warning restore CA1711 // Identifiers should not have incorrect suffix
+
+        public static uint GetDpiForWindow([In] IntPtr hwnd)
+        { return GetDpiForWindowNative(hwnd); }
+        [DllImport("User32.dll", EntryPoint = "GetDpiForWindow", CharSet = CharSet.Unicode, SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+        private static extern uint GetDpiForWindowNative([In] IntPtr hwnd);
+
     }
 }

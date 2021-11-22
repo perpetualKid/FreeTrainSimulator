@@ -17,6 +17,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Drawing;
 using System.Linq;
 using System.Management;
 using System.Runtime.InteropServices;
@@ -26,6 +27,8 @@ using System.Windows.Forms;
 using Microsoft.Xna.Framework.Graphics;
 
 using Orts.Common.Native;
+
+using static Orts.Common.Native.NativeMethods;
 
 namespace Orts.Common.Info
 {
@@ -124,7 +127,7 @@ namespace Orts.Common.Info
 
             foreach (Screen screen in Screen.AllScreens)
             {
-                output.AppendLine($"{"Display",-12}= {screen.DeviceName} (resolution {screen.Bounds.Width} x {screen.Bounds.Height}, {screen.BitsPerPixel}-bit{(screen.Primary ? ", primary" : "")}, location {screen.Bounds.X}::{screen.Bounds.Y}, using {GraphicsAdapter.Adapters.Where(adapter => adapter.DeviceName == screen.DeviceName).Single().Description})");
+                output.AppendLine($"{"Display",-12}= {screen.DeviceName} (resolution {screen.Bounds.Width} x {screen.Bounds.Height}, {screen.BitsPerPixel}-bit{(screen.Primary ? ", primary" : "")}, location {screen.Bounds.X}::{screen.Bounds.Y}, scaling factor {DisplayScalingFactor(screen):F2}, using {GraphicsAdapter.Adapters.Where(adapter => adapter.DeviceName == screen.DeviceName).Single().Description})");
             }
 
             try
@@ -206,6 +209,41 @@ namespace Orts.Common.Info
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
                 Process.Start("open", url);
+            }
+        }
+
+        public static double DisplayScalingFactor(Screen screen)
+        {
+             if (screen == null)
+                return 1;
+            try
+            {
+                using (Form testForm = new Form
+                {
+                    WindowState = FormWindowState.Normal,
+                    StartPosition = FormStartPosition.Manual,
+                    Left = screen.Bounds.Left,
+                    Top = screen.Bounds.Top
+                })
+                {
+                    return Math.Round(GetDpiForWindow(testForm.Handle) / 96.0, 2);
+                }
+            }
+            catch (EntryPointNotFoundException)//running on Windows 7 or other unsupported OS
+            {
+                using (Graphics g = Graphics.FromHwnd(IntPtr.Zero))
+                {
+                    try
+                    {
+                        IntPtr desktop = g.GetHdc();
+                        int dpi = GetDeviceCaps(desktop, (int)DeviceCap.LOGPIXELSX);
+                        return Math.Round(dpi / 96.0, 2);
+                    }
+                    finally
+                    {
+                        g.ReleaseHdc();
+                    }
+                }
             }
         }
 

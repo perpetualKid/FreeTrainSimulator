@@ -25,6 +25,24 @@ namespace Orts.Common.Native
         [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
         private static extern bool DeleteDCNative(IntPtr hdc);
 
+        public static int GetDeviceCaps(IntPtr hdc, int nIndex)
+        { return GetDeviceCapsNative(hdc, nIndex); }
+        [DllImport("gdi32.dll", EntryPoint = "GetDeviceCaps", SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+        private static extern int GetDeviceCapsNative(IntPtr hdc, int nIndex);
+
+#pragma warning disable CA1008 // Enums should have zero value
+        public enum DeviceCap
+#pragma warning restore CA1008 // Enums should have zero value
+        {
+            VERTRES = 10,
+            DESKTOPVERTRES = 117,
+            LOGPIXELSX = 88,
+            LOGPIXELSY = 90,
+
+            // http://pinvoke.net/default.aspx/gdi32/GetDeviceCaps.html
+        }
+
         [Flags]
 #pragma warning disable CA1028 // Enum Storage should be Int32
 #pragma warning disable CA1711 // Identifiers should not have incorrect suffix
