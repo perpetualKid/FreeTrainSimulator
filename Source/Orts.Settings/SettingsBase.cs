@@ -22,12 +22,16 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Metadata;
+using System.Text;
 
 using GetText;
 
 using Orts.Common;
 using Orts.Common.Info;
 using Orts.Settings.Store;
+
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace Orts.Settings
 {
@@ -132,6 +136,11 @@ namespace Orts.Settings
                         (((value as string[]).SequenceEqual(GetDefaultValue(property.Name) as string[]))) ? "" : "(user set)";
                     value = string.Join(", ", (string[])value);
                 }
+                else if (property.PropertyType.IsGenericType && property.PropertyType.GetGenericTypeDefinition() == typeof(EnumArray<,>).GetGenericTypeDefinition())
+                {
+                    source = "(user set)";
+                    value = LogEnumArray(value);
+                }
                 else
                 {
                     source = optionalSettings.Contains(property.Name) ? "(command-line)" :
@@ -144,6 +153,33 @@ namespace Orts.Settings
             properties = null;
         }
 
+        private static string LogEnumArray<T, TEnum>(EnumArray<T, TEnum> value) where TEnum : Enum
+        {
+            StringBuilder builder = new StringBuilder();
+            foreach (TEnum item in EnumExtension.GetValues<TEnum>())
+            {
+                if ((dynamic)value[item] != default(T))
+                {
+                    if (typeof(T).IsArray)
+                    {
+                        builder.Append($"{item}=");
+                        foreach (dynamic arrayItem in (Array)(dynamic)value[item])
+                        {
+                            builder.Append($"{arrayItem},");
+                        }
+                        if (builder[^1] == ',')
+                            builder.Length--;
+                    }
+                    else
+                        builder.Append($"{item}={value[item]?.ToString()}");
+                }
+                builder.Append(';');
+            }
+            if (builder[^1] == ';')
+                builder.Length--;
+            return builder.ToString();
+
+        }
         /// <summary>
         /// Load settings from the options
         /// </summary>
