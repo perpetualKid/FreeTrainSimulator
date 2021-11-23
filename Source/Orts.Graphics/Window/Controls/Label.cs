@@ -17,32 +17,33 @@ namespace Orts.Graphics.Window.Controls
         public LabelAlignment Alignment { get; }
         private Point alignmentOffset;
 
-        public Label(int x, int y, int width, int height, string text, LabelAlignment alignment)
+        public Label(int x, int y, int width, int height, string text, LabelAlignment alignment, System.Drawing.Font font)
             : base(x, y, width, height)
         {
             Text = text;
             Alignment = alignment;
             color = Color.White;
+            this.font = font;
         }
 
         public Label(int x, int y, int width, int height, string text)
-            : this(x, y, width, height, text, LabelAlignment.Left)
+            : this(x, y, width, height, text, LabelAlignment.Left, null)
         {
         }
 
         public Label(int width, int height, string text, LabelAlignment align)
-            : this(0, 0, width, height, text, align)
+            : this(0, 0, width, height, text, align, null)
         {
         }
 
         public Label(int width, int height, string text)
-            : this(0, 0, width, height, text, LabelAlignment.Left)
+            : this(0, 0, width, height, text, LabelAlignment.Left, null)
         {
         }
 
         public override void Initialize(WindowManager windowManager)
         {
-            font = windowManager?.TextFontDefault;
+            font ??= windowManager?.TextFontDefault;
             base.Initialize(windowManager);
             InitializeSize(Text, windowManager);
             DrawString(Text);

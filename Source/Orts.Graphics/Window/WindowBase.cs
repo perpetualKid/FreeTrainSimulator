@@ -146,9 +146,6 @@ namespace Orts.Graphics.Window
         internal protected void Layout()
         {
             WindowControlLayout windowLayout = new WindowControlLayout(this, borderRect.Width, borderRect.Height);
-            //{
-            //    TextHeight = Owner.TextFontDefault.Height
-            //};
             Layout(windowLayout);
             windowLayout.Initialize(Owner);
             this.windowLayout = windowLayout;
@@ -156,9 +153,9 @@ namespace Orts.Graphics.Window
 
         protected virtual ControlLayout Layout(ControlLayout layout)
         {
-            // Pad window by 4px, add caption and space between to content area.
+            // Pad window by 4px, add caption and separator between to content area.
             layout = layout?.AddLayoutOffset((int)(4 * Owner.DpiScaling)).AddLayoutVertical() ?? throw new ArgumentNullException(nameof(layout));
-            layout.Add(new Label(layout.RemainingWidth, Owner.TextFontDefault.Height, Caption, LabelAlignment.Center));
+            layout.Add(new Label(0, 0, layout.RemainingWidth, Owner.TextFontDefaultBold.Height, Caption, LabelAlignment.Center, Owner.TextFontDefaultBold));
             layout.AddHorizontalSeparator(true);
             return layout;
         }

@@ -44,6 +44,7 @@ namespace Orts.Graphics.Window
 
         public double DpiScaling { get; }
         public System.Drawing.Font TextFontDefault { get; }
+        public System.Drawing.Font TextFontDefaultBold { get; }
 
         //publish some events to allow interaction between XNA WindowManager and outside Window world
         public event EventHandler<ModalWindowEventArgs> OnModalWindow;
@@ -78,6 +79,7 @@ namespace Orts.Graphics.Window
             //            TextFontDefault = FontManager.Instance("Segoe UI", System.Drawing.FontStyle.Regular)[12];
             int fontSize = (int)Math.Round(13 * DpiScaling);
             TextFontDefault = FontManager.Instance("Segoe UI", System.Drawing.FontStyle.Regular)[fontSize];
+            TextFontDefaultBold = FontManager.Instance("Segoe UI", System.Drawing.FontStyle.Bold)[fontSize];
 
             UpdateSize();
         }
