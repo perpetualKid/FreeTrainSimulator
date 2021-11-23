@@ -44,20 +44,7 @@ namespace Orts.Graphics.Window
         {
             Owner = owner ?? throw new ArgumentNullException(nameof(owner));
             location = relativeLocation;
-            borderRect.Size = size;
-            UpdateLocation();
-            Caption = caption;
-            Resize();
-        }
-
-        protected WindowBase(WindowManager owner, string caption, Point relativeLocation, int charWidth, int charHeight, string expectedTextWidth)
-        {
-            Owner = owner ?? throw new ArgumentNullException(nameof(owner));
-            location = relativeLocation;
-            
-            Point size = System.Windows.Forms.TextRenderer.MeasureText((expectedTextWidth ?? caption) + "WWWW", owner.TextFontDefault).ToPoint();
-            size.Y *= charHeight;
-            borderRect.Size = size;
+            borderRect.Size = new Point((int)(size.X * owner.DpiScaling), (int)(size.Y * owner.DpiScaling));
             UpdateLocation();
             Caption = caption;
             Resize();
@@ -170,8 +157,9 @@ namespace Orts.Graphics.Window
         protected virtual ControlLayout Layout(ControlLayout layout)
         {
             // Pad window by 4px, add caption and space between to content area.
-            layout = layout?.AddLayoutOffset(4).AddLayoutVertical() ?? throw new ArgumentNullException(nameof(layout));
-            layout.Add(new Label(layout.RemainingWidth, 18, Caption, LabelAlignment.Center));
+            layout = layout?.AddLayoutOffset((int)(4 * Owner.DpiScaling)).AddLayoutVertical() ?? throw new ArgumentNullException(nameof(layout));
+            layout.Add(new Label(layout.RemainingWidth, Owner.TextFontDefault.Height, Caption, LabelAlignment.Center));
+            layout.AddHorizontalSeparator(true);
             return layout;
         }
 
@@ -180,7 +168,7 @@ namespace Orts.Graphics.Window
             if (windowVertexBuffer == null)
             {
                 // Edges/corners are 32px (1/4th texture image size).
-                int gp = 32 - BaseFontSize + (int)(Owner.TextFontDefault.Height * 1.25);
+                int gp = 32; 
                 VertexPositionTexture[] vertexData = new[] {
 					//  0  1  2  3
 					new VertexPositionTexture(new Vector3(0 * borderRect.Width + 00, 0 * borderRect.Height + 00, 0), new Vector2(0.00f / 2, 0.00f)),

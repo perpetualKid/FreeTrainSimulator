@@ -9,8 +9,9 @@ namespace Orts.Graphics.Window.Controls.Layout
 {
     public abstract class ControlLayout : WindowControl
     {
-        public const int SeparatorSize = 5;
         public const int SeparatorPadding = 2;
+
+        internal protected static double ScaleFactor { get; set; }
 
         public Collection<WindowControl> Controls { get; } = new Collection<WindowControl>();
         public int TextHeight { get; internal set; }
@@ -54,14 +55,14 @@ namespace Orts.Graphics.Window.Controls.Layout
         }
 
 
-        public void AddHorizontalSeparator()
+        public void AddHorizontalSeparator(bool padding = true)
         {
-            Add(new Separator(RemainingWidth, SeparatorSize, SeparatorPadding));
+            Add(new Separator(RemainingWidth, (int)((2 * (padding ? SeparatorPadding : 0) + 1) * ScaleFactor), padding ? (int)(SeparatorPadding * ScaleFactor) : 0));
         }
 
-        public void AddVerticalSeparator()
+        public void AddVerticalSeparator(bool padding = true)
         {
-            Add(new Separator(SeparatorSize, RemainingHeight, SeparatorPadding));
+            Add(new Separator((int)((2 * (padding ? SeparatorPadding : 0) + 1) * ScaleFactor), RemainingHeight, padding ? (int)(SeparatorPadding * ScaleFactor) : 0));
         }
 
         public ControlLayoutOffset AddLayoutOffset(int left, int top, int right, int bottom)

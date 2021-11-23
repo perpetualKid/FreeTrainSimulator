@@ -11,6 +11,7 @@ using Orts.Common;
 using Orts.Common.Info;
 using Orts.Common.Input;
 using Orts.Graphics.Shaders;
+using Orts.Graphics.Window.Controls.Layout;
 
 namespace Orts.Graphics.Window
 {
@@ -54,6 +55,7 @@ namespace Orts.Graphics.Window
         {
 
             DpiScaling = SystemInfo.DisplayScalingFactor(System.Windows.Forms.Screen.FromControl((System.Windows.Forms.Form)System.Windows.Forms.Control.FromHandle(game.Window.Handle)));
+            ControlLayout.ScaleFactor = DpiScaling;
             WhiteTexture = new Texture2D(game.GraphicsDevice, 1, 1, false, SurfaceFormat.Color);
             WhiteTexture.SetData(new[] { Color.White });
 
@@ -63,7 +65,7 @@ namespace Orts.Graphics.Window
 
             spriteBatch = new SpriteBatch(GraphicsDevice);
             //TODO 20211104 needs to move to a TextureManager
-            using (FileStream stream = File.OpenRead(Path.Combine(RuntimeInfo.ContentFolder, "TitleBarWindow.png")))
+            using (FileStream stream = File.OpenRead(Path.Combine(RuntimeInfo.ContentFolder, "NoTitleBarWindow.png")))
             {
                 windowTexture = Texture2D.FromStream(GraphicsDevice, stream);
             }

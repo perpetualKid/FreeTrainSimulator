@@ -22,9 +22,9 @@ namespace Orts.TrackViewer.PopupWindows
         public event EventHandler OnQuitCancel;
         public event EventHandler OnPrintScreen;
 
-        public QuitWindow(WindowManager owner, Point relativeLocation) : 
-            base(owner, CatalogManager.Catalog.GetString($"Exit {RuntimeInfo.ApplicationName}"), relativeLocation, 
-                Math.Clamp(20, CatalogManager.Catalog.GetString($"Exit {RuntimeInfo.ApplicationName}").Length, 40), 5, null)
+        public QuitWindow(WindowManager owner, Point relativeLocation) :
+            base(owner, CatalogManager.Catalog.GetString($"Exit {RuntimeInfo.ApplicationName}"), relativeLocation,
+                new Point(200, 75))
         {
         }
 
@@ -35,17 +35,17 @@ namespace Orts.TrackViewer.PopupWindows
             if (null == layout)
                 throw new ArgumentNullException(nameof(layout));
 
-            quitButton = new Label(layout.RemainingWidth/2, Owner.TextFontDefault.Height, "Quit", LabelAlignment.Center);
+            quitButton = new Label(layout.RemainingWidth / 2, Owner.TextFontDefault.Height, "Quit", LabelAlignment.Center);
             quitButton.OnClick += QuitButton_OnClick;
-            cancelButton = new Label(layout.RemainingWidth/2, Owner.TextFontDefault.Height, "Cancel", LabelAlignment.Center);
+            cancelButton = new Label(layout.RemainingWidth / 2, Owner.TextFontDefault.Height, "Cancel", LabelAlignment.Center);
             cancelButton.OnClick += CancelButton_OnClick;
             layout = base.Layout(layout);
-            layout.AddSpace(0, Owner.TextFontDefault.Height/3);
-            ControlLayout buttonLine = layout.AddLayoutHorizontal(Owner.TextFontDefault.Height);
+//            layout.AddSpace(0, Owner.TextFontDefault.Height / 2);
+            ControlLayout buttonLine = layout.AddLayoutHorizontal((int)(Owner.TextFontDefault.Height * 1.25));
             buttonLine.Add(quitButton);
             buttonLine.AddVerticalSeparator();
             buttonLine.Add(cancelButton);
-            layout.AddHorizontalSeparator();
+            layout.AddHorizontalSeparator(false);
             printScreenButton = new Label(layout.RemainingWidth, Owner.TextFontDefault.Height, "Take Screenshot", LabelAlignment.Center);
             printScreenButton.OnClick += PrintScreenButton_OnClick;
             layout.Add(printScreenButton);
