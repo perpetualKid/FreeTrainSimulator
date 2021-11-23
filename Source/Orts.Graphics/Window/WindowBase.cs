@@ -6,12 +6,14 @@ using Microsoft.Xna.Framework.Graphics;
 using Orts.Common.Input;
 using Orts.Graphics.Window.Controls;
 using Orts.Graphics.Window.Controls.Layout;
+using Orts.Graphics.Xna;
 
 namespace Orts.Graphics.Window
 {
     public abstract class WindowBase : IDisposable
     {
         private static readonly Point EmptyPoint = new Point(-1, -1);
+        private static readonly Point DecorationSize = new Point(4 + 4, 4 + 4);
 
         private const int BaseFontSize = 16; // DO NOT CHANGE without also changing the graphics for the windows.
 
@@ -38,10 +40,23 @@ namespace Orts.Graphics.Window
 
         public virtual bool Modal => false;
 
-        protected WindowBase(WindowManager owner, string caption, Point position, Point size)
+        protected WindowBase(WindowManager owner, string caption, Point relativeLocation, Point size)
         {
             Owner = owner ?? throw new ArgumentNullException(nameof(owner));
-            location = position;
+            location = relativeLocation;
+            borderRect.Size = size;
+            UpdateLocation();
+            Caption = caption;
+            Resize();
+        }
+
+        protected WindowBase(WindowManager owner, string caption, Point relativeLocation, int charWidth, int charHeight, string expectedTextWidth)
+        {
+            Owner = owner ?? throw new ArgumentNullException(nameof(owner));
+            location = relativeLocation;
+            
+            Point size = System.Windows.Forms.TextRenderer.MeasureText((expectedTextWidth ?? caption) + "WWWW", owner.TextFontDefault).ToPoint();
+            size.Y *= charHeight;
             borderRect.Size = size;
             UpdateLocation();
             Caption = caption;

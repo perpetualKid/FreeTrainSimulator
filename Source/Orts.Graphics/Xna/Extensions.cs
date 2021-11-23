@@ -14,10 +14,14 @@ namespace Orts.Graphics.Xna
             return Point.Zero;
         }
 
+        public static Point ToPoint(this in System.Drawing.Size size)
+        {
+            return new Point(size.Width, size.Height);
+        }
+
         public static int[] ToArray(this in Point source)
         {
             return new int[] { source.X, source.Y };
         }
-
     }
 }

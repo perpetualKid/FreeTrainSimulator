@@ -41,6 +41,7 @@ namespace Orts.Graphics.Window
         internal ref readonly Matrix XNAProjection => ref xnaProjection;
         internal readonly PopupWindowShader WindowShader;
 
+        public double DpiScaling { get; }
         public System.Drawing.Font TextFontDefault { get; }
 
         //publish some events to allow interaction between XNA WindowManager and outside Window world
@@ -51,6 +52,8 @@ namespace Orts.Graphics.Window
         private protected WindowManager(Game game) :
             base(game)
         {
+
+            DpiScaling = SystemInfo.DisplayScalingFactor(System.Windows.Forms.Screen.FromControl((System.Windows.Forms.Form)System.Windows.Forms.Control.FromHandle(game.Window.Handle)));
             WhiteTexture = new Texture2D(game.GraphicsDevice, 1, 1, false, SurfaceFormat.Color);
             WhiteTexture.SetData(new[] { Color.White });
 
@@ -70,7 +73,9 @@ namespace Orts.Graphics.Window
             WindowShader.Opacity = 0.6f;
             WindowShader.WindowTexture = windowTexture;
 
-            TextFontDefault = FontManager.Instance("Segoe UI", System.Drawing.FontStyle.Regular)[12];
+            //            TextFontDefault = FontManager.Instance("Segoe UI", System.Drawing.FontStyle.Regular)[12];
+            int fontSize = (int)Math.Round(13 * DpiScaling);
+            TextFontDefault = FontManager.Instance("Segoe UI", System.Drawing.FontStyle.Regular)[fontSize];
 
             UpdateSize();
         }

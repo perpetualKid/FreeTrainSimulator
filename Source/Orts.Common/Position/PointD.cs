@@ -50,12 +50,22 @@ namespace Orts.Common.Position
             return other.X == X && other.Y == Y;
         }
 
-        public static implicit operator Point(PointD point)
+        public static implicit operator Point(in PointD point)
+        {
+            return ToPoint(point);
+        }
+
+        public static Point ToPoint(in PointD point)
         {
             return new Point((int)point.X, (int)point.Y);
         }
 
-        public static implicit operator PointD(Point point)
+        public static implicit operator PointD(in Point point)
+        {
+            return FromPoint(point);
+        }
+
+        public static PointD FromPoint(in Point point)
         {
             return new PointD(point.X, point.Y);
         }
@@ -82,15 +92,30 @@ namespace Orts.Common.Position
 
         public static PointD operator +(in PointD left, in PointD right)
         {
+            return Add(left, right);
+        }
+
+        public static PointD Add(in PointD left, in PointD right)
+        {
             return new PointD(left.X + right.X, left.Y + right.Y);
         }
 
         public static PointD operator -(in PointD left, in PointD right)
         {
+            return Subtract(left, right);
+        }
+
+        public static PointD Subtract(in PointD left, in PointD right)
+        {
             return new PointD(left.X - right.X, left.Y - right.Y);
         }
 
         public static PointD operator *(in PointD source, double scalar)
+        {
+            return Multiply(source, scalar);
+        }
+
+        public static PointD Multiply(in PointD source, double scalar)
         {
             return new PointD(source.X * scalar, source.Y * scalar);
         }
