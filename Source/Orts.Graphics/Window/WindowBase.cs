@@ -13,9 +13,6 @@ namespace Orts.Graphics.Window
     public abstract class WindowBase : IDisposable
     {
         private static readonly Point EmptyPoint = new Point(-1, -1);
-        private static readonly Point DecorationSize = new Point(4 + 4, 4 + 4);
-
-        private const int BaseFontSize = 16; // DO NOT CHANGE without also changing the graphics for the windows.
 
         private bool disposedValue;
         private protected Rectangle borderRect;
@@ -40,6 +37,8 @@ namespace Orts.Graphics.Window
 
         public virtual bool Modal => false;
 
+        public virtual bool Interactive => true;
+
         protected WindowBase(WindowManager owner, string caption, Point relativeLocation, Point size)
         {
             Owner = owner ?? throw new ArgumentNullException(nameof(owner));
@@ -57,7 +56,7 @@ namespace Orts.Graphics.Window
 
         public virtual bool Open()
         {
-            return Owner.AddWindow(this);
+            return Owner.OpenWindow(this);
         }
 
         public virtual void Close()
@@ -66,7 +65,7 @@ namespace Orts.Graphics.Window
             Owner.CloseWindow(this);
         }
 
-        internal void RenderWindow()
+        internal virtual void RenderWindow()
         {
             ref readonly Matrix xnaView = ref Owner.XNAView;
             ref readonly Matrix xnaProjection = ref Owner.XNAProjection;
@@ -83,7 +82,7 @@ namespace Orts.Graphics.Window
             }
         }
 
-        internal void DrawContent(SpriteBatch spriteBatch)
+        internal virtual void DrawContent(SpriteBatch spriteBatch)
         {
             windowLayout.Draw(spriteBatch, Borders.Location);
         }

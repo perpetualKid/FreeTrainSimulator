@@ -159,7 +159,7 @@ namespace Orts.Graphics.Window
                 window.UpdateLocation();
         }
 
-        internal bool AddWindow(WindowBase window)
+        internal bool OpenWindow(WindowBase window)
         {
             if (!WindowOpen(window))
             {
@@ -212,7 +212,7 @@ namespace Orts.Graphics.Window
                     userCommandArgs.Handled = true;
                     mouseActiveWindow.HandleMouseDrag(moveCommandArgs.Position, moveCommandArgs.Delta, keyModifiers);
                 }
-                else if (windows.LastOrDefault(w => w.Borders.Contains(moveCommandArgs.Position)) != null)
+                else if (windows.LastOrDefault(w => w.Interactive && w.Borders.Contains(moveCommandArgs.Position)) != null)
                     userCommandArgs.Handled = true;
             }
         }
@@ -242,7 +242,7 @@ namespace Orts.Graphics.Window
             if (userCommandArgs is PointerCommandArgs pointerCommandArgs)
             {
                 Point mouseDownPosition = pointerCommandArgs.Position;
-                mouseActiveWindow = windows.LastOrDefault(w => w.Borders.Contains(pointerCommandArgs.Position));
+                mouseActiveWindow = windows.LastOrDefault(w => w.Interactive && w.Borders.Contains(pointerCommandArgs.Position));
                 if (modalWindow != null && mouseActiveWindow != modalWindow)
                 {
                     userCommandArgs.Handled = true;
