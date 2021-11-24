@@ -41,7 +41,8 @@ namespace Orts.Graphics.Window
         internal ref readonly Matrix XNAView => ref xnaView;
         internal ref readonly Matrix XNAProjection => ref xnaProjection;
         internal readonly PopupWindowShader WindowShader;
-
+        private Rectangle clientBounds;
+        internal ref readonly Rectangle ClientBounds => ref clientBounds;
         public double DpiScaling { get; }
         public System.Drawing.Font TextFontDefault { get; }
         public System.Drawing.Font TextFontDefaultBold { get; }
@@ -57,6 +58,7 @@ namespace Orts.Graphics.Window
 
             DpiScaling = SystemInfo.DisplayScalingFactor(System.Windows.Forms.Screen.FromControl((System.Windows.Forms.Form)System.Windows.Forms.Control.FromHandle(game.Window.Handle)));
             ControlLayout.ScaleFactor = DpiScaling;
+            clientBounds = Game.Window.ClientBounds;
             WhiteTexture = new Texture2D(game.GraphicsDevice, 1, 1, false, SurfaceFormat.Color);
             WhiteTexture.SetData(new[] { Color.White });
 
@@ -145,6 +147,7 @@ namespace Orts.Graphics.Window
 
         private void Window_ClientSizeChanged(object sender, EventArgs e)
         {
+            clientBounds = Game.Window.ClientBounds;
             UpdateSize();
         }
 

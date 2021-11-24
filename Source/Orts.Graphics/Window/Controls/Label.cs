@@ -13,14 +13,20 @@ namespace Orts.Graphics.Window.Controls
 
     public class Label : TextControl
     {
-        public string Text { get; private set; }
+        private WindowManager windowManager;
+        private string text;
+        public string Text 
+        { 
+            get => text;
+            set { text = value; Initialize(null); } 
+        }
         public LabelAlignment Alignment { get; }
         private Point alignmentOffset;
 
         public Label(int x, int y, int width, int height, string text, LabelAlignment alignment, System.Drawing.Font font)
             : base(x, y, width, height)
         {
-            Text = text;
+            this.text = text;
             Alignment = alignment;
             color = Color.White;
             this.font = font;
@@ -43,9 +49,11 @@ namespace Orts.Graphics.Window.Controls
 
         public override void Initialize(WindowManager windowManager)
         {
-            font ??= windowManager?.TextFontDefault;
-            base.Initialize(windowManager);
-            InitializeSize(Text, windowManager);
+            if (windowManager != null)
+                this.windowManager = windowManager;
+            font ??= this.windowManager.TextFontDefault;
+            base.Initialize(this.windowManager);
+            InitializeSize(Text, this.windowManager);
             DrawString(Text);
             switch (Alignment)
             {

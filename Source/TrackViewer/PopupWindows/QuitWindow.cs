@@ -26,9 +26,8 @@ namespace Orts.TrackViewer.PopupWindows
             base(owner, CatalogManager.Catalog.GetString($"Exit {RuntimeInfo.ApplicationName}"), relativeLocation,
                 new Point(200, 75))
         {
+            Modal = true;
         }
-
-        public override bool Modal => true;
 
         protected override ControlLayout Layout(ControlLayout layout)
         {
@@ -67,17 +66,6 @@ namespace Orts.TrackViewer.PopupWindows
         private void QuitButton_OnClick(object sender, MouseClickEventArgs e)
         {
             OnQuitGame.Invoke(this, e);
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                quitButton?.Dispose();
-                cancelButton?.Dispose();
-                printScreenButton?.Dispose();
-            }
-            base.Dispose(disposing);
         }
     }
 }

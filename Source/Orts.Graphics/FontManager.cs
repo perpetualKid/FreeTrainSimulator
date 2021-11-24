@@ -14,7 +14,9 @@ namespace Orts.Graphics
 
         public static FontManager Instance(string fontFamily, FontStyle style)
         {
+#pragma warning disable RS1024 // Compare symbols correctly
             int hash = GetHashCode(fontFamily, style);
+#pragma warning restore RS1024 // Compare symbols correctly
             if (!fontManagerCache.TryGetValue(hash, out FontManager result))
             {
                 result = new FontManager(fontFamily, style);

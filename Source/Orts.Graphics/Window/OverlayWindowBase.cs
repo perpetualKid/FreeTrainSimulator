@@ -7,11 +7,10 @@ namespace Orts.Graphics.Window
 {
     public abstract class OverlayWindowBase : WindowBase
     {
-        public override bool Interactive => false;
-
         protected OverlayWindowBase(WindowManager owner, string caption, Point relativeLocation, Point size) :
             base(owner, caption, relativeLocation, size)
         {
+            Interactive = false;
         }
 
         protected override ControlLayout Layout(ControlLayout layout)

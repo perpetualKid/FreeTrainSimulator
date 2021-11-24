@@ -38,6 +38,9 @@ namespace Orts.Graphics.Window.Controls
             if (null == windowManager)
                 throw new ArgumentNullException(nameof(windowManager));
 
+            if (size == Size.Empty)
+                size = new Size(1, 1);
+
             Texture2D current = texture;
             texture = new Texture2D(windowManager.Game.GraphicsDevice, size.Width, size.Height, false, SurfaceFormat.Bgra32);
             current?.Dispose();
