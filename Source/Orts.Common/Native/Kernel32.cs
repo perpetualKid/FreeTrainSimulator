@@ -112,6 +112,12 @@ namespace Orts.Common.Native
         [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
         private static extern IntPtr GetModuleHandleNative(string lpModuleName);
 #pragma warning restore CA1711 // Identifiers should not have incorrect suffix
+
+        public static uint GetCurrentWin32ThreadId()
+        { return GetCurrentThreadIdNative(); }
+        [DllImport("kernel32.dll", EntryPoint = "GetCurrentThreadId", CharSet = CharSet.Unicode, SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+        private static extern uint GetCurrentThreadIdNative();
     }
 
 #pragma warning disable CA1034 // Nested types should not be visible
@@ -157,8 +163,9 @@ namespace Orts.Common.Native
             public ulong AvailableVirtual;
             public ulong AvailableExtendedVirtual;
         }
-    }
 #pragma warning restore CA1815 // Override equals and operator equals on value types
 #pragma warning restore CA1707 // Identifiers should not contain underscores
 #pragma warning restore CA1034 // Nested types should not be visible
+    }
+
 }

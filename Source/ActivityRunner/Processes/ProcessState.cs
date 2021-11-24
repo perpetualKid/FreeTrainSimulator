@@ -27,17 +27,17 @@ namespace Orts.ActivityRunner.Processes
         public bool Finished { get; private set; }
         public bool Terminated { get; private set; }
 
+        public string ProcessName { get; }
         private readonly ManualResetEvent startEvent = new ManualResetEvent(false);
         private readonly ManualResetEvent finishEvent = new ManualResetEvent(true);
         private readonly ManualResetEvent terminateEvent = new ManualResetEvent(false);
         private readonly WaitHandle[] startEvents;
         private readonly WaitHandle[] finishEvents;
         private bool disposedValue;
-        private readonly string processName;
 
         public ProcessState(string name)
         {
-            processName = name;
+            ProcessName = name;
             Finished = true;
             startEvents = new[] { startEvent, terminateEvent };
             finishEvents = new[] { finishEvent, terminateEvent };

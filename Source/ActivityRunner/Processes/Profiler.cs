@@ -17,12 +17,12 @@
 
 // This file is the responsibility of the 3D & Environment Team. 
 
-using Orts.Common;
-using Orts.Common.Calc;
 using System;
 using System.Diagnostics;
-using System.IO;
 using System.Threading;
+
+using Orts.Common.Calc;
+using Orts.Common.Native;
 
 namespace Orts.ActivityRunner.Processes
 {
@@ -59,15 +59,15 @@ namespace Orts.ActivityRunner.Processes
             }
             catch (InvalidOperationException) { }
 
-            // This is so that you can identify threads from programs like Process Monitor. The call
-            // should always fail but will appear in Process Monitor's log against the correct thread.
-            try
-            {
-                File.ReadAllBytes($@"DEBUG\THREAD\{name} Process");
-            }
-            catch (DirectoryNotFoundException) { }
-            
-            int threadId = Thread.CurrentThread.ManagedThreadId;
+            //// This is so that you can identify threads from programs like Process Monitor. The call
+            //// should always fail but will appear in Process Monitor's log against the correct thread.
+            //try
+            //{
+            //    File.ReadAllBytes($@"DEBUG\THREAD\{name} Process");
+            //}
+            //catch (DirectoryNotFoundException) { }
+
+            uint threadId = NativeMethods.GetCurrentWin32ThreadId();
             foreach (ProcessThread thread in Process.GetCurrentProcess().Threads)
             {
                 if (thread.Id == threadId)
