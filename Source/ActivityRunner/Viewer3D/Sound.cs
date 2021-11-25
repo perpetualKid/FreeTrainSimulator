@@ -1318,7 +1318,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <param name="position"></param>
         public void Update(float[] position)
         {
-            OpenAL.alSourcefv(ALSoundSource.SoundSourceID, OpenAL.AL_POSITION, position);
+            OpenAL.Sourcefv(ALSoundSource.SoundSourceID, OpenAL.AL_POSITION, position);
             Update();
         }
 

@@ -111,10 +111,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             foreach (var soundSourceID in soundSourceIDs)
             {
                 Viewer.Simulator.UpdaterWorking = true;
-                if (OpenAL.alIsSource(soundSourceID))
+                if (OpenAL.IsSource(soundSourceID))
                 {
-                    OpenAL.alSourcefv(soundSourceID, OpenAL.AL_POSITION, soundLocation);
-                    OpenAL.alSourcefv(soundSourceID, OpenAL.AL_VELOCITY, Velocity);
+                    OpenAL.Sourcefv(soundSourceID, OpenAL.AL_POSITION, soundLocation);
+                    OpenAL.Sourcefv(soundSourceID, OpenAL.AL_VELOCITY, Velocity);
                 }
                 Viewer.Simulator.UpdaterWorking = false;
             }

@@ -155,7 +155,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                     }
 
                     int relative;
-                    OpenAL.alGetSourcei(soundSourceID, OpenAL.AL_SOURCE_RELATIVE, out relative);
+                    OpenAL.GetSourcei(soundSourceID, OpenAL.AL_SOURCE_RELATIVE, out relative);
                     sound3D.Checked = relative == OpenAL.AL_FALSE;
 
                     if (selectedSoundSource.Car != null)
@@ -190,7 +190,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
                     }
 
                     float gain;
-                    OpenAL.alGetSourcef(soundSourceID, OpenAL.AL_GAIN, out gain);
+                    OpenAL.GetSourcef(soundSourceID, OpenAL.AL_GAIN, out gain);
                     smsVolume.Text = gain.ToString("0.#%");
                 }
                 else

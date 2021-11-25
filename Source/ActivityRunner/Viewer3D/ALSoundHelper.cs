@@ -113,13 +113,13 @@ namespace Orts.ActivityRunner.Viewer3D
                         break;
                     }
 
-                OpenAL.alGetBufferi(bid, OpenAL.AL_FREQUENCY, out tmp);
+                OpenAL.GetBufferi(bid, OpenAL.AL_FREQUENCY, out tmp);
                 Frequency = tmp;
 
-                OpenAL.alGetBufferi(bid, OpenAL.AL_BITS, out tmp);
+                OpenAL.GetBufferi(bid, OpenAL.AL_BITS, out tmp);
                 BitsPerSample = tmp;
 
-                OpenAL.alGetBufferi(bid, OpenAL.AL_CHANNELS, out tmp);
+                OpenAL.GetBufferi(bid, OpenAL.AL_CHANNELS, out tmp);
                 Channels = tmp;
 
                 CheckFactor = (CheckPointS * (float)(Frequency * Channels * BitsPerSample / 8));
@@ -169,7 +169,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 return true;
 
             int bufferID;
-            OpenAL.alGetSourcei(soundSourceID, OpenAL.AL_BUFFER, out bufferID);
+            OpenAL.GetSourcei(soundSourceID, OpenAL.AL_BUFFER, out bufferID);
             return (bufferID == 0 || bufferID == BufferIDs.LastOrDefault(value => value > 0));
         }
 
@@ -191,7 +191,7 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             for (int i = 0; i < BufferIDs.Length; i++)
                 if (BufferIDs[i] != 0)
-                    OpenAL.alSourceQueueBuffers(soundSourceID, 1, ref BufferIDs[i]);
+                    OpenAL.SourceQueueBuffers(soundSourceID, 1, ref BufferIDs[i]);
         }
 
         /// <summary>
@@ -203,7 +203,7 @@ namespace Orts.ActivityRunner.Viewer3D
             if (!isValid)
                 return;
             if (BufferIDs[NextBuffer] != 0)
-                OpenAL.alSourceQueueBuffers(soundSourceID, 1, ref BufferIDs[NextBuffer]);
+                OpenAL.SourceQueueBuffers(soundSourceID, 1, ref BufferIDs[NextBuffer]);
             if (BufferIDs.Length > 1)
             {
                 NextBuffer++;
@@ -220,7 +220,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public void Queue3(int soundSourceID)
         {
             if (isValid && !isSingle && BufferIDs[BufferIDs.Length - 1] != 0)
-                OpenAL.alSourceQueueBuffers(soundSourceID, 1, ref BufferIDs[BufferIDs.Length - 1]);
+                OpenAL.SourceQueueBuffers(soundSourceID, 1, ref BufferIDs[BufferIDs.Length - 1]);
             NextBuffer = 0;
         }
 
@@ -230,7 +230,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <param name="soundSourceID"></param>
         public void SetBuffer(int soundSourceID)
         {
-            OpenAL.alSourcei(soundSourceID, OpenAL.AL_BUFFER, BufferIDs[0]);
+            OpenAL.Sourcei(soundSourceID, OpenAL.AL_BUFFER, BufferIDs[0]);
         }
 
         /// <summary>
@@ -257,7 +257,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 return true;
 
             int pos;
-            OpenAL.alGetSourcei(soundSourceID, OpenAL.AL_BYTE_OFFSET, out pos);
+            OpenAL.GetSourcei(soundSourceID, OpenAL.AL_BYTE_OFFSET, out pos);
 
             return BufferLens[bid] - len < pos && pos < BufferLens[bid];
         }
@@ -266,7 +266,7 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             for (int i = 0; i < BufferIDs.Length; i++)
             {
-                if (BufferIDs[i] != 0) OpenAL.alDeleteBuffers(1, ref BufferIDs[i]);
+                if (BufferIDs[i] != 0) OpenAL.DeleteBuffers(1, ref BufferIDs[i]);
             }
         }
     }
@@ -393,7 +393,7 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             Pitch = pitch;
             int bufferID;
-            OpenAL.alGetSourcei(soundSourceID, OpenAL.AL_BUFFER, out bufferID);
+            OpenAL.GetSourcei(soundSourceID, OpenAL.AL_BUFFER, out bufferID);
             return IsCheckpoint(soundSourceID, bufferID);
         }
 
@@ -412,17 +412,17 @@ namespace Orts.ActivityRunner.Viewer3D
 
             int bufferID;
             int buffersQueued;
-            OpenAL.alGetSourcei(soundSourceID, OpenAL.AL_BUFFER, out bufferID);
+            OpenAL.GetSourcei(soundSourceID, OpenAL.AL_BUFFER, out bufferID);
             if (bufferID == 0)
             {
-                OpenAL.alGetSourcei(soundSourceID, OpenAL.AL_BUFFERS_QUEUED, out buffersQueued);
+                OpenAL.GetSourcei(soundSourceID, OpenAL.AL_BUFFERS_QUEUED, out buffersQueued);
                 if (buffersQueued == 0)
                     SoundPiece.Queue2(soundSourceID);
-                OpenAL.alSourcePlay(soundSourceID);
+                OpenAL.SourcePlay(soundSourceID);
             }
             else if (IsCheckpoint(soundSourceID, bufferID))
             {
-                OpenAL.alGetSourcei(soundSourceID, OpenAL.AL_BUFFERS_QUEUED, out buffersQueued);
+                OpenAL.GetSourcei(soundSourceID, OpenAL.AL_BUFFERS_QUEUED, out buffersQueued);
                 if (buffersQueued < 2)
                     SoundPiece.Queue2(soundSourceID);
             }
@@ -443,14 +443,14 @@ namespace Orts.ActivityRunner.Viewer3D
 
             // Get out of AL_LOOP_POINTS_SOFT type playing
             int type;
-            OpenAL.alGetSourcei(soundSourceID, OpenAL.AL_SOURCE_TYPE, out type);
+            OpenAL.GetSourcei(soundSourceID, OpenAL.AL_SOURCE_TYPE, out type);
             if (type == OpenAL.AL_STATIC)
             {
                 int state;
-                OpenAL.alGetSourcei(soundSourceID, OpenAL.AL_SOURCE_STATE, out state);
+                OpenAL.GetSourcei(soundSourceID, OpenAL.AL_SOURCE_STATE, out state);
                 if (state != OpenAL.AL_PLAYING)
                 {
-                    OpenAL.alSourcei(soundSourceID, OpenAL.AL_BUFFER, OpenAL.AL_NONE);
+                    OpenAL.Sourcei(soundSourceID, OpenAL.AL_BUFFER, OpenAL.AL_NONE);
                     type = OpenAL.AL_UNDETERMINED;
                 }
             }
@@ -477,14 +477,14 @@ namespace Orts.ActivityRunner.Viewer3D
                         {
                             // Utilizing AL_LOOP_POINTS_SOFT. We need to set a static buffer instead of queueing that.
                             int state;
-                            OpenAL.alGetSourcei(soundSourceID, OpenAL.AL_SOURCE_STATE, out state);
+                            OpenAL.GetSourcei(soundSourceID, OpenAL.AL_SOURCE_STATE, out state);
                             if (state != OpenAL.AL_PLAYING)
                             {
-                                OpenAL.alSourceStop(soundSourceID);
-                                OpenAL.alSourcei(soundSourceID, OpenAL.AL_BUFFER, OpenAL.AL_NONE);
+                                OpenAL.SourceStop(soundSourceID);
+                                OpenAL.Sourcei(soundSourceID, OpenAL.AL_BUFFER, OpenAL.AL_NONE);
                                 SoundPiece.SetBuffer(soundSourceID);
-                                OpenAL.alSourcePlay(soundSourceID);
-                                OpenAL.alSourcei(soundSourceID, OpenAL.AL_LOOPING, OpenAL.AL_TRUE);
+                                OpenAL.SourcePlay(soundSourceID);
+                                OpenAL.Sourcei(soundSourceID, OpenAL.AL_LOOPING, OpenAL.AL_TRUE);
                                 PlayState = PlayState.Playing;
                             }
                             else
@@ -592,7 +592,7 @@ namespace Orts.ActivityRunner.Viewer3D
             if (!MustActivate || SoundSourceID != -1 || !Active)
                 return 0;
 
-            OpenAL.alGenSources(1, out SoundSourceID);
+            OpenAL.GenSources(1, out SoundSourceID);
 
             if (SoundSourceID == -1)
             {
@@ -610,12 +610,12 @@ namespace Orts.ActivityRunner.Viewer3D
             WasPlaying = false;
             StoppedAt = double.MaxValue;
 
-            OpenAL.alSourcef(SoundSourceID, OpenAL.AL_MAX_DISTANCE, SoundSource.MaxDistanceM);
-            OpenAL.alSourcef(SoundSourceID, OpenAL.AL_REFERENCE_DISTANCE, SoundSource.ReferenceDistanceM);
-            OpenAL.alSourcef(SoundSourceID, OpenAL.AL_MAX_GAIN, 1f);
-            OpenAL.alSourcef(SoundSourceID, OpenAL.AL_ROLLOFF_FACTOR, RolloffFactor);
-            OpenAL.alSourcef(SoundSourceID, OpenAL.AL_PITCH, PlaybackSpeed);
-            OpenAL.alSourcei(SoundSourceID, OpenAL.AL_LOOPING, Looping ? OpenAL.AL_TRUE : OpenAL.AL_FALSE);
+            OpenAL.Sourcef(SoundSourceID, OpenAL.AL_MAX_DISTANCE, SoundSource.MaxDistanceM);
+            OpenAL.Sourcef(SoundSourceID, OpenAL.AL_REFERENCE_DISTANCE, SoundSource.ReferenceDistanceM);
+            OpenAL.Sourcef(SoundSourceID, OpenAL.AL_MAX_GAIN, 1f);
+            OpenAL.Sourcef(SoundSourceID, OpenAL.AL_ROLLOFF_FACTOR, RolloffFactor);
+            OpenAL.Sourcef(SoundSourceID, OpenAL.AL_PITCH, PlaybackSpeed);
+            OpenAL.Sourcei(SoundSourceID, OpenAL.AL_LOOPING, Looping ? OpenAL.AL_TRUE : OpenAL.AL_FALSE);
 
             InitPosition();
             SetVolume();
@@ -633,7 +633,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// </summary>
         private void SetVolume()
         {
-            OpenAL.alSourcef(SoundSourceID, OpenAL.AL_GAIN, Active ? Volume : 0);
+            OpenAL.Sourcef(SoundSourceID, OpenAL.AL_GAIN, Active ? Volume : 0);
         }
 
         /// <summary>
@@ -643,15 +643,15 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             if (Ignore3D)
             {
-                OpenAL.alSourcei(SoundSourceID, OpenAL.AL_SOURCE_RELATIVE, OpenAL.AL_TRUE);
-                OpenAL.alSourcef(SoundSourceID, OpenAL.AL_DOPPLER_FACTOR, 0);
-                OpenAL.alSource3f(SoundSourceID, OpenAL.AL_POSITION, 0, 0, 0);
-                OpenAL.alSource3f(SoundSourceID, OpenAL.AL_VELOCITY, 0, 0, 0);
+                OpenAL.Sourcei(SoundSourceID, OpenAL.AL_SOURCE_RELATIVE, OpenAL.AL_TRUE);
+                OpenAL.Sourcef(SoundSourceID, OpenAL.AL_DOPPLER_FACTOR, 0);
+                OpenAL.Source3f(SoundSourceID, OpenAL.AL_POSITION, 0, 0, 0);
+                OpenAL.Source3f(SoundSourceID, OpenAL.AL_VELOCITY, 0, 0, 0);
             }
             else
             {
-                OpenAL.alSourcei(SoundSourceID, OpenAL.AL_SOURCE_RELATIVE, OpenAL.AL_FALSE);
-                OpenAL.alSourcef(SoundSourceID, OpenAL.AL_DOPPLER_FACTOR, 1);
+                OpenAL.Sourcei(SoundSourceID, OpenAL.AL_SOURCE_RELATIVE, OpenAL.AL_FALSE);
+                OpenAL.Sourcef(SoundSourceID, OpenAL.AL_DOPPLER_FACTOR, 1);
 
                 if (Car != null && !Car.SoundSourceIDs.Contains(SoundSourceID))
                     Car.SoundSourceIDs.Add(SoundSourceID);
@@ -682,7 +682,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     Car.SoundSourceIDs.Remove(SoundSourceID);
 
                 Stop();
-                OpenAL.alDeleteSources(1, ref SoundSourceID);
+                OpenAL.DeleteSources(1, ref SoundSourceID);
                 SoundSourceID = -1;
                 ActiveCount--;
             }
@@ -725,7 +725,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     {
                         _PlaybackSpeed = value;
                         if (SoundSourceID != -1)
-                            OpenAL.alSourcef(SoundSourceID, OpenAL.AL_PITCH, _PlaybackSpeed);
+                            OpenAL.Sourcef(SoundSourceID, OpenAL.AL_PITCH, _PlaybackSpeed);
                     }
                 }
             }
@@ -762,10 +762,10 @@ namespace Orts.ActivityRunner.Viewer3D
                 if (SoundSourceID != -1)
                 {
                     int p;
-                    OpenAL.alGetSourcei(SoundSourceID, OpenAL.AL_BUFFERS_PROCESSED, out p);
+                    OpenAL.GetSourcei(SoundSourceID, OpenAL.AL_BUFFERS_PROCESSED, out p);
                     while (p > 0)
                     {
-                        OpenAL.alSourceUnqueueBuffer(SoundSourceID);
+                        OpenAL.SourceUnqueueBuffer(SoundSourceID);
                         p--;
                     }
                 }
@@ -826,7 +826,7 @@ namespace Orts.ActivityRunner.Viewer3D
                                     // ones had been unqueued. This often happens at e.g. Variable2 frequency curves with multiple Loops and
                                     // Releases following each other when increasing throttle.
                                     int bufferID;
-                                    OpenAL.alGetSourcei(SoundSourceID, OpenAL.AL_BUFFER, out bufferID);
+                                    OpenAL.GetSourcei(SoundSourceID, OpenAL.AL_BUFFER, out bufferID);
                                     if (SoundQueue[QueueTail % QUEUELENGHT].SoundPiece.isMine(bufferID))
                                     {
                                         EnterLoop();
@@ -844,7 +844,7 @@ namespace Orts.ActivityRunner.Viewer3D
                                 {
                                     NeedsFrequentUpdate = (SoundQueue[(QueueTail + 1) % QUEUELENGHT].PlayState != PlayState.NOP);
                                     int state;
-                                    OpenAL.alGetSourcei(SoundSourceID, OpenAL.AL_SOURCE_STATE, out state);
+                                    OpenAL.GetSourcei(SoundSourceID, OpenAL.AL_SOURCE_STATE, out state);
                                     if (state != OpenAL.AL_PLAYING || SoundQueue[QueueTail % QUEUELENGHT].IsCheckpoint(SoundSourceID, _PlaybackSpeed))
                                     {
                                         SoundQueue[QueueTail % QUEUELENGHT].PlayState = PlayState.NOP;
@@ -862,7 +862,7 @@ namespace Orts.ActivityRunner.Viewer3D
                         {
                             var justActivated_ = TryActivate();
                             int bufferID;
-                            OpenAL.alGetSourcei(SoundSourceID, OpenAL.AL_BUFFER, out bufferID);
+                            OpenAL.GetSourcei(SoundSourceID, OpenAL.AL_BUFFER, out bufferID);
 
                             // If reactivated LoopRelease sound is already playing, then we are at a wrong place, 
                             // no need for reinitialization, just continue after 1st cue point
@@ -932,7 +932,7 @@ namespace Orts.ActivityRunner.Viewer3D
             if (WasPlaying && !isPlaying || !Active)
             {
                 int state;
-                OpenAL.alGetSourcei(SoundSourceID, OpenAL.AL_SOURCE_STATE, out state);
+                OpenAL.GetSourcei(SoundSourceID, OpenAL.AL_SOURCE_STATE, out state);
                 if (state != OpenAL.AL_PLAYING)
                 {
                     if (StoppedAt > Simulator.Instance.ClockTime)
@@ -1141,9 +1141,9 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             int state;
 
-            OpenAL.alGetSourcei(SoundSourceID, OpenAL.AL_SOURCE_STATE, out state);
+            OpenAL.GetSourcei(SoundSourceID, OpenAL.AL_SOURCE_STATE, out state);
             if (state != OpenAL.AL_PLAYING)
-                OpenAL.alSourcePlay(SoundSourceID);
+                OpenAL.SourcePlay(SoundSourceID);
             isPlaying = true;
         }
 
@@ -1152,8 +1152,8 @@ namespace Orts.ActivityRunner.Viewer3D
         /// </summary>
         public void Stop()
         {
-            OpenAL.alSourceStop(SoundSourceID);
-            OpenAL.alSourcei(SoundSourceID, OpenAL.AL_BUFFER, OpenAL.AL_NONE); 
+            OpenAL.SourceStop(SoundSourceID);
+            OpenAL.Sourcei(SoundSourceID, OpenAL.AL_BUFFER, OpenAL.AL_NONE); 
             SkipProcessed();
             isPlaying = false;
         }
@@ -1166,7 +1166,7 @@ namespace Orts.ActivityRunner.Viewer3D
             if (Looping)
                 return;
 
-            OpenAL.alSourcei(SoundSourceID, OpenAL.AL_LOOPING, OpenAL.AL_TRUE);
+            OpenAL.Sourcei(SoundSourceID, OpenAL.AL_LOOPING, OpenAL.AL_TRUE);
             Looping = true;
         }
 
@@ -1175,7 +1175,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// </summary>
         private void LeaveLoop()
         {
-            OpenAL.alSourcei(SoundSourceID, OpenAL.AL_LOOPING, OpenAL.AL_FALSE);
+            OpenAL.Sourcei(SoundSourceID, OpenAL.AL_LOOPING, OpenAL.AL_FALSE);
             Looping = false;
         }
 
@@ -1199,7 +1199,7 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             if (_Muted)
             {
-                OpenAL.alListenerf(OpenAL.AL_GAIN, 1);
+                OpenAL.Listenerf(OpenAL.AL_GAIN, 1);
                 _Muted = false;
             }
         }
@@ -1211,7 +1211,7 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             if (!_Muted)
             {
-                OpenAL.alListenerf(OpenAL.AL_GAIN, 0);
+                OpenAL.Listenerf(OpenAL.AL_GAIN, 0);
                 _Muted = true;
             }
         }
@@ -1254,7 +1254,7 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             if (SoundSourceID != -1)
             {
-                OpenAL.alDeleteSources(1, ref SoundSourceID);
+                OpenAL.DeleteSources(1, ref SoundSourceID);
                 ActiveCount--;
             }
         }

@@ -464,9 +464,9 @@ namespace Orts.ActivityRunner.Viewer3D
                         XnaView.Backward.X, XnaView.Backward.Y, XnaView.Backward.Z,
                         XnaView.Down.X, XnaView.Down.Y, XnaView.Down.Z };
 
-            OpenAL.alListenerfv(OpenAL.AL_POSITION, cameraPosition);
-            OpenAL.alListenerfv(OpenAL.AL_VELOCITY, cameraVelocity);
-            OpenAL.alListenerfv(OpenAL.AL_ORIENTATION, cameraOrientation);
+            OpenAL.Listenerfv(OpenAL.AL_POSITION, cameraPosition);
+            OpenAL.Listenerfv(OpenAL.AL_VELOCITY, cameraVelocity);
+            OpenAL.Listenerfv(OpenAL.AL_ORIENTATION, cameraOrientation);
         }
     }
 
