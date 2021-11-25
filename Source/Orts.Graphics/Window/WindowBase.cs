@@ -13,9 +13,6 @@ namespace Orts.Graphics.Window
     public abstract class WindowBase : IDisposable
     {
         private static readonly Point EmptyPoint = new Point(-1, -1);
-        private static readonly Point DecorationSize = new Point(4 + 4, 4 + 4);
-
-        private const int BaseFontSize = 16; // DO NOT CHANGE without also changing the graphics for the windows.
 
         private bool disposedValue;
         private protected Rectangle borderRect;
@@ -26,7 +23,7 @@ namespace Orts.Graphics.Window
 
         private Point location; // holding the original location in % of screen size)
 
-        protected WindowManager Owner { get; }
+        public WindowManager Owner { get; }
 
         protected bool Dragged { get; private set; }
 
@@ -38,7 +35,9 @@ namespace Orts.Graphics.Window
 
         public event EventHandler OnWindowClosed;
 
-        public virtual bool Modal => false;
+        public bool Modal { get; protected set; }
+
+        public bool Interactive { get; protected set; } = true;
 
         protected WindowBase(WindowManager owner, string caption, Point relativeLocation, Point size)
         {
@@ -57,7 +56,7 @@ namespace Orts.Graphics.Window
 
         public virtual bool Open()
         {
-            return Owner.AddWindow(this);
+            return Owner.OpenWindow(this);
         }
 
         public virtual void Close()
@@ -66,7 +65,7 @@ namespace Orts.Graphics.Window
             Owner.CloseWindow(this);
         }
 
-        internal void RenderWindow()
+        internal virtual void RenderWindow()
         {
             ref readonly Matrix xnaView = ref Owner.XNAView;
             ref readonly Matrix xnaProjection = ref Owner.XNAProjection;
@@ -83,7 +82,7 @@ namespace Orts.Graphics.Window
             }
         }
 
-        internal void DrawContent(SpriteBatch spriteBatch)
+        internal virtual void DrawContent(SpriteBatch spriteBatch)
         {
             windowLayout.Draw(spriteBatch, Borders.Location);
         }
@@ -107,17 +106,17 @@ namespace Orts.Graphics.Window
             Point position;
             if (location != EmptyPoint)
             {
-                position.X = (int)Math.Round((float)location.X * (Owner.Game.Window.ClientBounds.Width - borderRect.Width) / 100);
-                position.Y = (int)Math.Round((float)location.Y * (Owner.Game.Window.ClientBounds.Height - borderRect.Height) / 100);
+                position.X = (int)Math.Round((float)location.X * (Owner.ClientBounds.Width - borderRect.Width) / 100);
+                position.Y = (int)Math.Round((float)location.Y * (Owner.ClientBounds.Height - borderRect.Height) / 100);
             }
             else
             {
-                position.X = (int)Math.Round((Owner.Game.Window.ClientBounds.Width - borderRect.Width) / 2f);
-                position.Y = (int)Math.Round((Owner.Game.Window.ClientBounds.Height - borderRect.Height) / 2f);
+                position.X = (int)Math.Round((Owner.ClientBounds.Width - borderRect.Width) / 2f);
+                position.Y = (int)Math.Round((Owner.ClientBounds.Height - borderRect.Height) / 2f);
             }
             borderRect.Location = position;
-            borderRect.X = MathHelper.Clamp(borderRect.X, 0, Owner.Game.Window.ClientBounds.Width - borderRect.Width);
-            borderRect.Y = MathHelper.Clamp(borderRect.Y, 0, Owner.Game.Window.ClientBounds.Height - borderRect.Height);
+            borderRect.X = MathHelper.Clamp(borderRect.X, 0, Owner.ClientBounds.Width - borderRect.Width);
+            borderRect.Y = MathHelper.Clamp(borderRect.Y, 0, Owner.ClientBounds.Height - borderRect.Height);
             xnaWorld.Translation = new Vector3(borderRect.X, borderRect.Y, 0);
         }
 
@@ -128,10 +127,10 @@ namespace Orts.Graphics.Window
 
             borderRect.Offset(delta.ToPoint());
             location = new Point(
-                (int)Math.Round(100.0 * borderRect.X / (Owner.Game.Window.ClientBounds.Width - borderRect.Width)),
-                (int)Math.Round(100.0 * borderRect.Y / (Owner.Game.Window.ClientBounds.Height - borderRect.Height)));
-            borderRect.X = MathHelper.Clamp(borderRect.X, 0, Owner.Game.Window.ClientBounds.Width - borderRect.Width);
-            borderRect.Y = MathHelper.Clamp(borderRect.Y, 0, Owner.Game.Window.ClientBounds.Height - borderRect.Height);
+                (int)Math.Round(100.0 * borderRect.X / (Owner.ClientBounds.Width - borderRect.Width)),
+                (int)Math.Round(100.0 * borderRect.Y / (Owner.ClientBounds.Height - borderRect.Height)));
+            borderRect.X = MathHelper.Clamp(borderRect.X, 0, Owner.ClientBounds.Width - borderRect.Width);
+            borderRect.Y = MathHelper.Clamp(borderRect.Y, 0, Owner.ClientBounds.Height - borderRect.Height);
             xnaWorld.Translation = new Vector3(borderRect.X, borderRect.Y, 0);
             Dragged = true;
         }
@@ -147,7 +146,7 @@ namespace Orts.Graphics.Window
         {
             WindowControlLayout windowLayout = new WindowControlLayout(this, borderRect.Width, borderRect.Height);
             Layout(windowLayout);
-            windowLayout.Initialize(Owner);
+            windowLayout.Initialize();
             this.windowLayout = windowLayout;
         }
 
@@ -155,7 +154,7 @@ namespace Orts.Graphics.Window
         {
             // Pad window by 4px, add caption and separator between to content area.
             layout = layout?.AddLayoutOffset((int)(4 * Owner.DpiScaling)).AddLayoutVertical() ?? throw new ArgumentNullException(nameof(layout));
-            layout.Add(new Label(0, 0, layout.RemainingWidth, Owner.TextFontDefaultBold.Height, Caption, LabelAlignment.Center, Owner.TextFontDefaultBold));
+            layout.Add(new Label(this, 0, 0, layout.RemainingWidth, Owner.TextFontDefaultBold.Height, Caption, LabelAlignment.Center, Owner.TextFontDefaultBold, Color.White));
             layout.AddHorizontalSeparator(true);
             return layout;
         }

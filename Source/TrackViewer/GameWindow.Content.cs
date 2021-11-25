@@ -9,6 +9,7 @@ using Microsoft.Xna.Framework;
 using Orts.Common;
 using Orts.Models.Simplified;
 using Orts.Graphics.Track;
+using Orts.TrackViewer.PopupWindows;
 
 namespace Orts.TrackViewer
 {
@@ -47,7 +48,8 @@ namespace Orts.TrackViewer
 
         internal async Task LoadRoute(Route route)
         {
-            StatusMessage = route.Name;
+            (windowManager[WindowType.StatusWindow] as StatusTextWindow).RouteName = route.Name;
+            windowManager[WindowType.StatusWindow].Open();
             UnloadRoute();
 
             lock (routes)
@@ -71,7 +73,7 @@ namespace Orts.TrackViewer
             TrackContent content = new TrackContent(trackData.TrackDB, trackData.RoadTrackDB, trackData.TrackSections, trackData.SignalConfig, trackData.UseMetricUnits);
             await content.Initialize().ConfigureAwait(false);
             ContentArea = new ContentArea(this, route.Name, content, Settings.ColorSettings, viewSettings);
-            StatusMessage = null;
+            windowManager[WindowType.StatusWindow].Close();
             selectedRoute = route;
         }
 

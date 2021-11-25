@@ -41,7 +41,8 @@ namespace Orts.Graphics.Window
         internal ref readonly Matrix XNAView => ref xnaView;
         internal ref readonly Matrix XNAProjection => ref xnaProjection;
         internal readonly PopupWindowShader WindowShader;
-
+        private Rectangle clientBounds;
+        internal ref readonly Rectangle ClientBounds => ref clientBounds;
         public double DpiScaling { get; }
         public System.Drawing.Font TextFontDefault { get; }
         public System.Drawing.Font TextFontDefaultBold { get; }
@@ -57,6 +58,7 @@ namespace Orts.Graphics.Window
 
             DpiScaling = SystemInfo.DisplayScalingFactor(System.Windows.Forms.Screen.FromControl((System.Windows.Forms.Form)System.Windows.Forms.Control.FromHandle(game.Window.Handle)));
             ControlLayout.ScaleFactor = DpiScaling;
+            clientBounds = Game.Window.ClientBounds;
             WhiteTexture = new Texture2D(game.GraphicsDevice, 1, 1, false, SurfaceFormat.Color);
             WhiteTexture.SetData(new[] { Color.White });
 
@@ -76,7 +78,6 @@ namespace Orts.Graphics.Window
             WindowShader.Opacity = 0.6f;
             WindowShader.WindowTexture = windowTexture;
 
-            //            TextFontDefault = FontManager.Instance("Segoe UI", System.Drawing.FontStyle.Regular)[12];
             int fontSize = (int)Math.Round(13 * DpiScaling);
             TextFontDefault = FontManager.Instance("Segoe UI", System.Drawing.FontStyle.Regular)[fontSize];
             TextFontDefaultBold = FontManager.Instance("Segoe UI", System.Drawing.FontStyle.Bold)[fontSize];
@@ -127,6 +128,7 @@ namespace Orts.Graphics.Window
                 throw new ArgumentNullException(nameof(userCommandController));
 
             Game.Components.OfType<KeyboardInputGameComponent>().Single().AddInputHandler(EscapeKey);
+            userCommandController.AddEvent(CommonUserCommand.PointerMoved, MouseMovedEvent);
             userCommandController.AddEvent(CommonUserCommand.PointerPressed, MousePressedEvent);
             userCommandController.AddEvent(CommonUserCommand.PointerDown, MouseDownEvent);
             userCommandController.AddEvent(CommonUserCommand.PointerReleased, MouseReleasedEvent);
@@ -146,6 +148,7 @@ namespace Orts.Graphics.Window
 
         private void Window_ClientSizeChanged(object sender, EventArgs e)
         {
+            clientBounds = Game.Window.ClientBounds;
             UpdateSize();
         }
 
@@ -160,7 +163,7 @@ namespace Orts.Graphics.Window
                 window.UpdateLocation();
         }
 
-        internal bool AddWindow(WindowBase window)
+        internal bool OpenWindow(WindowBase window)
         {
             if (!WindowOpen(window))
             {
@@ -196,8 +199,20 @@ namespace Orts.Graphics.Window
             return windows.Remove(window);
         }
 
+        private void MouseMovedEvent(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)
+        {
+            if (modalWindow != null && modalWindow != mouseActiveWindow)
+            {
+                userCommandArgs.Handled = true;
+            }
+        }
+
         private void WindowScrollEvent(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)
         {
+            if (modalWindow != null && modalWindow != mouseActiveWindow)
+            {
+                userCommandArgs.Handled = true;
+            }
         }
 
         private void MouseDraggingEvent(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)
@@ -213,7 +228,7 @@ namespace Orts.Graphics.Window
                     userCommandArgs.Handled = true;
                     mouseActiveWindow.HandleMouseDrag(moveCommandArgs.Position, moveCommandArgs.Delta, keyModifiers);
                 }
-                else if (windows.LastOrDefault(w => w.Borders.Contains(moveCommandArgs.Position)) != null)
+                else if (windows.LastOrDefault(w => w.Interactive && w.Borders.Contains(moveCommandArgs.Position)) != null)
                     userCommandArgs.Handled = true;
             }
         }
@@ -243,7 +258,7 @@ namespace Orts.Graphics.Window
             if (userCommandArgs is PointerCommandArgs pointerCommandArgs)
             {
                 Point mouseDownPosition = pointerCommandArgs.Position;
-                mouseActiveWindow = windows.LastOrDefault(w => w.Borders.Contains(pointerCommandArgs.Position));
+                mouseActiveWindow = windows.LastOrDefault(w => w.Interactive && w.Borders.Contains(pointerCommandArgs.Position));
                 if (modalWindow != null && mouseActiveWindow != modalWindow)
                 {
                     userCommandArgs.Handled = true;

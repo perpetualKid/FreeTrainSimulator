@@ -16,8 +16,8 @@ namespace Orts.Graphics.Window.Controls.Layout
         public Collection<WindowControl> Controls { get; } = new Collection<WindowControl>();
         public int TextHeight { get; internal set; }
 
-        protected ControlLayout(int x, int y, int width, int height)
-            : base(x, y, width, height)
+        protected ControlLayout(WindowBase window, int x, int y, int width, int height)
+            : base(window, x, y, width, height)
         {
         }
 
@@ -51,28 +51,28 @@ namespace Orts.Graphics.Window.Controls.Layout
 
         public void AddSpace(int width, int height)
         {
-            Add(new Spacer(width, height));
+            Add(new Spacer(Window, width, height));
         }
 
 
         public void AddHorizontalSeparator(bool padding = true)
         {
-            Add(new Separator(RemainingWidth, (int)((2 * (padding ? SeparatorPadding : 0) + 1) * ScaleFactor), padding ? (int)(SeparatorPadding * ScaleFactor) : 0));
+            Add(new Separator(Window, RemainingWidth, (int)((2 * (padding ? SeparatorPadding : 0) + 1) * ScaleFactor), padding ? (int)(SeparatorPadding * ScaleFactor) : 0));
         }
 
         public void AddVerticalSeparator(bool padding = true)
         {
-            Add(new Separator((int)((2 * (padding ? SeparatorPadding : 0) + 1) * ScaleFactor), RemainingHeight, padding ? (int)(SeparatorPadding * ScaleFactor) : 0));
+            Add(new Separator(Window, (int)((2 * (padding ? SeparatorPadding : 0) + 1) * ScaleFactor), RemainingHeight, padding ? (int)(SeparatorPadding * ScaleFactor) : 0));
         }
 
         public ControlLayoutOffset AddLayoutOffset(int left, int top, int right, int bottom)
         {
-            return InternalAdd(new ControlLayoutOffset(RemainingWidth, RemainingHeight, left, top, right, bottom));
+            return InternalAdd(new ControlLayoutOffset(Window, RemainingWidth, RemainingHeight, left, top, right, bottom));
         }
 
         public ControlLayoutOffset AddLayoutOffset(int offset)
         {
-            return InternalAdd(new ControlLayoutOffset(RemainingWidth, RemainingHeight, offset));
+            return InternalAdd(new ControlLayoutOffset(Window, RemainingWidth, RemainingHeight, offset));
         }
 
         public ControlLayoutHorizontal AddLayoutHorizontal()
@@ -87,7 +87,7 @@ namespace Orts.Graphics.Window.Controls.Layout
 
         public ControlLayoutHorizontal AddLayoutHorizontal(int height)
         {
-            return InternalAdd(new ControlLayoutHorizontal(RemainingWidth, height));
+            return InternalAdd(new ControlLayoutHorizontal(Window, RemainingWidth, height));
         }
 
         public ControlLayoutVertical AddLayoutVertical()
@@ -97,7 +97,7 @@ namespace Orts.Graphics.Window.Controls.Layout
 
         public ControlLayoutVertical AddLayoutVertical(int width)
         {
-            return InternalAdd(new ControlLayoutVertical(width, RemainingHeight));
+            return InternalAdd(new ControlLayoutVertical(Window, width, RemainingHeight));
         }
 
         //public ControlLayout AddLayoutScrollboxHorizontal(int height)
@@ -113,11 +113,11 @@ namespace Orts.Graphics.Window.Controls.Layout
         //    sb.Initialize();
         //    return sb.Client;
         //}
-        public override void Initialize(WindowManager windowManager)
+        public override void Initialize()
         {
-            base.Initialize(windowManager);
+            base.Initialize();
             foreach (WindowControl control in Controls)
-                control.Initialize(windowManager);
+                control.Initialize();
         }
 
         internal override void Draw(SpriteBatch spriteBatch, Point offset)

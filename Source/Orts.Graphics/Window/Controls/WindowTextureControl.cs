@@ -6,10 +6,10 @@ namespace Orts.Graphics.Window.Controls
     public abstract class WindowTextureControl : WindowControl
     {
         private protected Texture2D texture;
-        private protected Color color;
+        public Color TextColor { get; set; }
 
-        protected WindowTextureControl(int x, int y, int width, int height) :
-            base(x, y, width, height)
+        protected WindowTextureControl(WindowBase window, int x, int y, int width, int height) :
+            base(window, x, y, width, height)
         {
         }
 
@@ -21,11 +21,5 @@ namespace Orts.Graphics.Window.Controls
             }
             base.Dispose(disposing);
         }
-
-        public virtual void UpdateColor(Color color)
-        {
-            this.color = color;
-        }
-
     }
 }

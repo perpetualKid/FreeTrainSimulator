@@ -1,16 +1,18 @@
 ﻿using System.Linq;
 
+using static Orts.Common.Calc.Dynamics;
+
 namespace Orts.Graphics.Window.Controls.Layout
 {
     public class ControlLayoutOffset : ControlLayout
     {
-        internal ControlLayoutOffset(int width, int height, int left, int top, int right, int bottom) :
-            base(left, top, width - left - right, height - top - bottom)
-        {
-        }
+        internal ControlLayoutOffset(WindowBase window, int width, int height, int left, int top, int right, int bottom) :
+            base(window, left, top, width - left - right, height - top - bottom)
+{
+}
 
-        internal ControlLayoutOffset(int width, int height, int offset) :
-            base(offset, offset, width - offset * 2, height - offset *2)
+        internal ControlLayoutOffset(WindowBase window, int width, int height, int offset) :
+            base(window, offset, offset, width - offset * 2, height - offset *2)
         {
         }
 
@@ -18,8 +20,8 @@ namespace Orts.Graphics.Window.Controls.Layout
 
     public class ControlLayoutHorizontal : ControlLayout
     {
-        internal ControlLayoutHorizontal(int width, int height)
-            : base(0, 0, width, height)
+        internal ControlLayoutHorizontal(WindowBase window, int width, int height)
+            : base(window, 0, 0, width, height)
         {
         }
 
@@ -29,8 +31,8 @@ namespace Orts.Graphics.Window.Controls.Layout
 
     public class ControlLayoutVertical : ControlLayout
     {
-        internal ControlLayoutVertical(int width, int height)
-            : base(0, 0, width, height)
+        internal ControlLayoutVertical(WindowBase window, int width, int height)
+            : base(window, 0, 0, width, height)
         {
         }
 

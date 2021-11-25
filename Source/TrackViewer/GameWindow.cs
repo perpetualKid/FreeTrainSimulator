@@ -18,18 +18,17 @@ using Orts.Common.Calc;
 using Orts.Common.Info;
 using Orts.Common.Input;
 using Orts.Common.Logging;
-using Orts.TrackViewer.Control;
-using Orts.TrackViewer.Settings;
 using Orts.Graphics;
 using Orts.Graphics.DrawableComponents;
 using Orts.Graphics.Track;
 using Orts.Graphics.Track.Shapes;
+using Orts.Graphics.Window;
 using Orts.Graphics.Xna;
+using Orts.TrackViewer.Control;
+using Orts.TrackViewer.PopupWindows;
+using Orts.TrackViewer.Settings;
 
 using UserCommand = Orts.TrackViewer.Control.UserCommand;
-using Orts.Graphics.Window;
-using Orts.TrackViewer.PopupWindows;
-using static Orts.Common.Calc.Dynamics;
 
 namespace Orts.TrackViewer
 {
@@ -382,8 +381,9 @@ namespace Orts.TrackViewer
             userCommandController.AddEvent(CommonUserCommand.VerticalScrollChanged, MouseWheel);
 
             EnumArray<Type, WindowType> windowTypes = new EnumArray<Type, WindowType>();
-            windowManager = WindowManager.Initialize<UserCommand, WindowType>(this, userCommandController.TopLayerControllerAdd());
+            windowManager = WindowManager.Initialize<UserCommand, WindowType>(this, userCommandController.AddTopLayerController());
             windowManager[WindowType.QuitWindow] = new QuitWindow(windowManager, Settings.WindowLocations[WindowType.QuitWindow].ToPoint());
+            windowManager[WindowType.StatusWindow] = new StatusTextWindow(windowManager, Settings.WindowLocations[WindowType.StatusWindow].ToPoint());
             windowManager.OnModalWindow += WindowManager_OnModalWindow;
             BindWindowEventHandlersActions();
             Components.Add(windowManager);
@@ -397,6 +397,7 @@ namespace Orts.TrackViewer
         private void WindowManager_OnModalWindow(object sender, ModalWindowEventArgs e)
         {
             mainmenu.Enabled = !e.ModalWindowOpen;
+            
             if (null != ContentArea)
                 ContentArea.Enabled = !e.ModalWindowOpen;
         }
@@ -426,7 +427,6 @@ namespace Orts.TrackViewer
             base.Update(gameTime);
         }
 
-        private System.Drawing.Font drawfont = new System.Drawing.Font("Segoe UI", (int)Math.Round(25.0), System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
         private int drawTime;
 
         public bool InputCaptured { get; internal set; }
@@ -444,28 +444,6 @@ namespace Orts.TrackViewer
             GraphicsDevice.Clear(BackgroundColor);
             statusbar.toolStripStatusLabel2.Text = contentArea?.Scale.ToString() ?? string.Empty;
             spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, null, null, null);
-            //if (contentArea == null)
-            //{
-            //    BasicShapes.DrawTexture(BasicTextureType.Pickup, new Vector2(180, 180), 0, -1, Color.Green, false, false, true);
-            //    BasicShapes.DrawTexture(BasicTextureType.PlayerTrain, new Vector2(240, 180), 0, -3, Color.Blue, true, false, true);
-            //    BasicShapes.DrawTexture(BasicTextureType.Ring, new Vector2(80, 220), 0, -0.5f, Color.Yellow, true, false, false);
-            //    BasicShapes.DrawTexture(BasicTextureType.Circle, new Vector2(80, 220), 0, -0.2f, Color.Red, true, false, false);
-            //    BasicShapes.DrawTexture(BasicTextureType.RingCrossed, new Vector2(240, 220), 0.0f, -2, Color.Yellow, true, false, false);
-            //    BasicShapes.DrawTexture(BasicTextureType.Disc, new Vector2(340, 220), 0, -1, Color.Red, true, false, false);
-
-            //    BasicShapes.DrawArc(3, Color.Green, new Vector2(330, 330), 120, 90 * Math.PI / 180, 90, 0);
-            //    BasicShapes.DrawDashedLine(2, Color.Aqua, new Vector2(330, 330), new Vector2(450, 330));
-            //    TextDrawShape.DrawString(new Vector2(200, 450), Color.Red, "Test Message", drawfont, Vector2.One);
-            //    TextDrawShape.DrawString(new Vector2(200, 500), Color.Lime, gameTime.TotalGameTime.TotalSeconds.ToString(), drawfont, Vector2.One);
-
-            //    BasicShapes.DrawTexture(BasicTextureType.Disc, new Vector2(480, 180), 0, -2f, Color.Green, false, false, false);
-            //    BasicShapes.DrawTexture(BasicTextureType.Disc, new Vector2(640, 180), 0, -2f, Color.Green, true, false, true);
-
-            //    BasicShapes.DrawArc(5, Color.IndianRed, new Vector2(240, 220), 120, Math.PI, -270, 0);
-            //    BasicShapes.DrawLine(10, Color.DarkGoldenrod, new Vector2(100, 100), new Vector2(250, 250));
-            //}
-            if (!string.IsNullOrEmpty(StatusMessage))
-                TextShape.DrawString(centerPoint, Color.Red, StatusMessage, drawfont, Vector2.One, TextHorizontalAlignment.Center);
 
             spriteBatch.End();
 

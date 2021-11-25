@@ -96,6 +96,9 @@ namespace Orts.Graphics.Track
 
         public void MouseMove(Point position, Vector2 delta, GameTime gameTime)
         {
+            if (!Enabled)
+                return;
+
             PointD worldPosition = ScreenToWorldCoordinates(position);
             FindNearestItems(worldPosition);
         }

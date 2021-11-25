@@ -26,18 +26,17 @@ namespace Orts.TrackViewer.PopupWindows
             base(owner, CatalogManager.Catalog.GetString($"Exit {RuntimeInfo.ApplicationName}"), relativeLocation,
                 new Point(200, 75))
         {
+            Modal = true;
         }
-
-        public override bool Modal => true;
 
         protected override ControlLayout Layout(ControlLayout layout)
         {
             if (null == layout)
                 throw new ArgumentNullException(nameof(layout));
 
-            quitButton = new Label(layout.RemainingWidth / 2, Owner.TextFontDefault.Height, CatalogManager.Catalog.GetString("Quit"), LabelAlignment.Center);
+            quitButton = new Label(this, layout.RemainingWidth / 2, Owner.TextFontDefault.Height, CatalogManager.Catalog.GetString("Quit"), LabelAlignment.Center);
             quitButton.OnClick += QuitButton_OnClick;
-            cancelButton = new Label(layout.RemainingWidth / 2, Owner.TextFontDefault.Height, CatalogManager.Catalog.GetString("Cancel"), LabelAlignment.Center);
+            cancelButton = new Label(this, layout.RemainingWidth / 2, Owner.TextFontDefault.Height, CatalogManager.Catalog.GetString("Cancel"), LabelAlignment.Center);
             cancelButton.OnClick += CancelButton_OnClick;
             layout = base.Layout(layout);
             ControlLayout buttonLine = layout.AddLayoutHorizontal((int)(Owner.TextFontDefault.Height * 1.25));
@@ -45,7 +44,7 @@ namespace Orts.TrackViewer.PopupWindows
             buttonLine.AddVerticalSeparator();
             buttonLine.Add(cancelButton);
             layout.AddHorizontalSeparator(false);
-            printScreenButton = new Label(layout.RemainingWidth, Owner.TextFontDefault.Height, CatalogManager.Catalog.GetString("Take Screenshot"), LabelAlignment.Center);
+            printScreenButton = new Label(this, layout.RemainingWidth, Owner.TextFontDefault.Height, CatalogManager.Catalog.GetString("Take Screenshot"), LabelAlignment.Center);
             printScreenButton.OnClick += PrintScreenButton_OnClick;
             layout.Add(printScreenButton);
             return layout;
@@ -67,17 +66,6 @@ namespace Orts.TrackViewer.PopupWindows
         private void QuitButton_OnClick(object sender, MouseClickEventArgs e)
         {
             OnQuitGame.Invoke(this, e);
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                quitButton?.Dispose();
-                cancelButton?.Dispose();
-                printScreenButton?.Dispose();
-            }
-            base.Dispose(disposing);
         }
     }
 }
