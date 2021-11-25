@@ -381,7 +381,7 @@ namespace Orts.TrackViewer
             userCommandController.AddEvent(CommonUserCommand.VerticalScrollChanged, MouseWheel);
 
             EnumArray<Type, WindowType> windowTypes = new EnumArray<Type, WindowType>();
-            windowManager = WindowManager.Initialize<UserCommand, WindowType>(this, userCommandController.TopLayerControllerAdd());
+            windowManager = WindowManager.Initialize<UserCommand, WindowType>(this, userCommandController.AddTopLayerController());
             windowManager[WindowType.QuitWindow] = new QuitWindow(windowManager, Settings.WindowLocations[WindowType.QuitWindow].ToPoint());
             windowManager[WindowType.StatusWindow] = new StatusTextWindow(windowManager, Settings.WindowLocations[WindowType.StatusWindow].ToPoint());
             windowManager.OnModalWindow += WindowManager_OnModalWindow;
@@ -397,6 +397,7 @@ namespace Orts.TrackViewer
         private void WindowManager_OnModalWindow(object sender, ModalWindowEventArgs e)
         {
             mainmenu.Enabled = !e.ModalWindowOpen;
+            
             if (null != ContentArea)
                 ContentArea.Enabled = !e.ModalWindowOpen;
         }

@@ -97,7 +97,7 @@ namespace Orts.Common.Input
         }
 
         #region Layering
-        public UserCommandController<T> TopLayerControllerAdd()
+        public UserCommandController<T> AddTopLayerController()
         {
             if (null == layeredControllers)
                 layeredControllers = new List<UserCommandController<T>>();
@@ -106,7 +106,7 @@ namespace Orts.Common.Input
             return layeredController;
         }
 
-        public bool TopLayerControllerRemove(UserCommandController<T> commandController)
+        public bool RemoveTopLayerController(UserCommandController<T> commandController)
         {
             return layeredControllers?.Remove(commandController) ?? false;
         }

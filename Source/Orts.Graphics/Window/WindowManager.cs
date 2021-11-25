@@ -128,6 +128,7 @@ namespace Orts.Graphics.Window
                 throw new ArgumentNullException(nameof(userCommandController));
 
             Game.Components.OfType<KeyboardInputGameComponent>().Single().AddInputHandler(EscapeKey);
+            userCommandController.AddEvent(CommonUserCommand.PointerMoved, MouseMovedEvent);
             userCommandController.AddEvent(CommonUserCommand.PointerPressed, MousePressedEvent);
             userCommandController.AddEvent(CommonUserCommand.PointerDown, MouseDownEvent);
             userCommandController.AddEvent(CommonUserCommand.PointerReleased, MouseReleasedEvent);
@@ -198,8 +199,20 @@ namespace Orts.Graphics.Window
             return windows.Remove(window);
         }
 
+        private void MouseMovedEvent(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)
+        {
+            if (modalWindow != null && modalWindow != mouseActiveWindow)
+            {
+                userCommandArgs.Handled = true;
+            }
+        }
+
         private void WindowScrollEvent(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)
         {
+            if (modalWindow != null && modalWindow != mouseActiveWindow)
+            {
+                userCommandArgs.Handled = true;
+            }
         }
 
         private void MouseDraggingEvent(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)
