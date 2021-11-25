@@ -23,7 +23,7 @@ namespace Orts.Graphics.Window
 
         private Point location; // holding the original location in % of screen size)
 
-        protected WindowManager Owner { get; }
+        public WindowManager Owner { get; }
 
         protected bool Dragged { get; private set; }
 
@@ -146,7 +146,7 @@ namespace Orts.Graphics.Window
         {
             WindowControlLayout windowLayout = new WindowControlLayout(this, borderRect.Width, borderRect.Height);
             Layout(windowLayout);
-            windowLayout.Initialize(Owner);
+            windowLayout.Initialize();
             this.windowLayout = windowLayout;
         }
 
@@ -154,7 +154,7 @@ namespace Orts.Graphics.Window
         {
             // Pad window by 4px, add caption and separator between to content area.
             layout = layout?.AddLayoutOffset((int)(4 * Owner.DpiScaling)).AddLayoutVertical() ?? throw new ArgumentNullException(nameof(layout));
-            layout.Add(new Label(0, 0, layout.RemainingWidth, Owner.TextFontDefaultBold.Height, Caption, LabelAlignment.Center, Owner.TextFontDefaultBold));
+            layout.Add(new Label(this, 0, 0, layout.RemainingWidth, Owner.TextFontDefaultBold.Height, Caption, LabelAlignment.Center, Owner.TextFontDefaultBold, Color.White));
             layout.AddHorizontalSeparator(true);
             return layout;
         }

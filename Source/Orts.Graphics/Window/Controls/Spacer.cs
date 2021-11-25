@@ -6,8 +6,8 @@ namespace Orts.Graphics.Window.Controls
 {
     public class Spacer : WindowControl
     {
-        public Spacer(int width, int height)
-            : base(0, 0, width, height)
+        public Spacer(WindowBase window, int width, int height)
+            : base(window, 0, 0, width, height)
         {
         }
 

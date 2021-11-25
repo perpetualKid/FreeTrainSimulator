@@ -2,14 +2,11 @@
 {
     internal class WindowControlLayout : ControlLayout
     {
-        public readonly WindowBase Window;
-
         private bool capturedForDragging;
 
         public WindowControlLayout(WindowBase window, int width, int height)
-            : base(0, 0, width, height)
+            : base(window, 0, 0, width, height)
         {
-            Window = window;
         }
 
         /*

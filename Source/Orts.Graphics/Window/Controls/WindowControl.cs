@@ -12,16 +12,19 @@ namespace Orts.Graphics.Window.Controls
 
         public ref readonly Rectangle Position => ref position;
 
+        public WindowBase Window { get; }
+
         public object Tag { get; set; }
 
         public event EventHandler<MouseClickEventArgs> OnClick;
 
-        protected WindowControl(int x, int y, int width, int height)
+        protected WindowControl(WindowBase window, int x, int y, int width, int height)
         {
             position = new Rectangle(x, y, width, height);
+            Window = window;
         }
 
-        public virtual void Initialize(WindowManager windowManager)
+        public virtual void Initialize()
         {
         }
 

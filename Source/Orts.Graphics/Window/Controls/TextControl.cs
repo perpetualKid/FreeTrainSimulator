@@ -12,37 +12,34 @@ namespace Orts.Graphics.Window.Controls
         private protected Font font;
         private protected static Brush whiteBrush = new SolidBrush(Color.White);
 
-        protected TextControl(int x, int y, int width, int height) : 
-            base(x, y, width, height)
+        protected TextControl(WindowBase window, int x, int y, int width, int height) : 
+            base(window, x, y, width, height)
         {
         }
 
-        public override void Initialize(WindowManager windowManager)
+        public override void Initialize()
         {
-            base.Initialize(windowManager);
+            base.Initialize();
         }
 
-        protected virtual void InitializeSize(string text, WindowManager windowManager)
+        protected virtual void InitializeSize(string text)
         {
             using (Bitmap measureBitmap = new Bitmap(1, 1))
             {
                 using (System.Drawing.Graphics measureGraphics = System.Drawing.Graphics.FromImage(measureBitmap))
                 {
-                    Resize(measureGraphics.MeasureString(text, font).ToSize(), windowManager);
+                    Resize(measureGraphics.MeasureString(text, font).ToSize());
                 }
             }
         }
 
-        protected virtual void Resize(Size size, WindowManager windowManager)
+        protected virtual void Resize(Size size)
         {
-            if (null == windowManager)
-                throw new ArgumentNullException(nameof(windowManager));
-
             if (size == Size.Empty)
                 size = new Size(1, 1);
 
             Texture2D current = texture;
-            texture = new Texture2D(windowManager.Game.GraphicsDevice, size.Width, size.Height, false, SurfaceFormat.Bgra32);
+            texture = new Texture2D(Window.Owner.Game.GraphicsDevice, size.Width, size.Height, false, SurfaceFormat.Bgra32);
             current?.Dispose();
         }
 

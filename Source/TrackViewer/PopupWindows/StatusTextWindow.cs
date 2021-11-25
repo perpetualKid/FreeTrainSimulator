@@ -28,10 +28,10 @@ namespace Orts.TrackViewer.PopupWindows
             System.Drawing.Font headerFont = FontManager.Instance("Segoe UI", System.Drawing.FontStyle.Bold)[(int)Math.Round(24 * Owner.DpiScaling)];
             // Pad window by 4px, add caption and separator between to content area.
             layout = layout?.AddLayoutOffset((int)(4 * Owner.DpiScaling)).AddLayoutVertical() ?? throw new ArgumentNullException(nameof(layout));
-            headerLabel = new Label(0, 0, layout.RemainingWidth, headerFont.Height, Caption, LabelAlignment.Center, headerFont);
+            headerLabel = new Label(this, 0, 0, layout.RemainingWidth, headerFont.Height, Caption, LabelAlignment.Center, headerFont, Color.White);
             layout.Add(headerLabel);
             layout.AddHorizontalSeparator(true);
-            routeLabel = new Label(0, 0, layout.RemainingWidth, Owner.TextFontDefault.Height, RouteName, LabelAlignment.Center, Owner.TextFontDefault);
+            routeLabel = new Label(this, 0, 0, layout.RemainingWidth, Owner.TextFontDefault.Height, RouteName, LabelAlignment.Center, Owner.TextFontDefault, Color.Orange);
             layout.Add(routeLabel);
             return layout;
         }
