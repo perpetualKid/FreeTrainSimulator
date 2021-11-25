@@ -412,13 +412,12 @@ namespace Orts.TrackViewer
         {
             // Create a new SpriteBatch, which can be used to draw textures.
             BasicShapes.LoadContent(GraphicsDevice);
-            DigitalClockComponent clock = new DigitalClockComponent(this, TimeType.RealWorldLocalTime,
-                new System.Drawing.Font("Segoe UI", 14, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel), Color.White, new Vector2(-200, -100), true);
+            DigitalClockComponent clock = new DigitalClockComponent(this, TimeType.RealWorldLocalTime, FontManager.Instance("Segoe UI", System.Drawing.FontStyle.Regular)[14], Color.White, new Vector2(-200, -100), true);
             Components.Add(clock);
-            ScaleRulerComponent scaleRuler = new ScaleRulerComponent(this, new System.Drawing.Font(System.Drawing.FontFamily.GenericSansSerif, 14, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel), Color.Black, new Vector2(-20, -55));
+            ScaleRulerComponent scaleRuler = new ScaleRulerComponent(this, FontManager.Instance(System.Drawing.FontFamily.GenericSansSerif, System.Drawing.FontStyle.Regular)[14], Color.Black, new Vector2(-20, -55));
             Components.Add(scaleRuler);
             Components.Add(new InsetComponent(this, BackgroundColor, new Vector2(-10, 30)));
-            Components.Add(new WorldCoordinatesComponent(this, new System.Drawing.Font(System.Drawing.FontFamily.GenericSansSerif, 20, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel), Color.Blue, new Vector2(40, 40)));
+            Components.Add(new WorldCoordinatesComponent(this, FontManager.Instance(System.Drawing.FontFamily.GenericSansSerif, System.Drawing.FontStyle.Regular)[20], Color.Blue, new Vector2(40, 40)));
         }
 
         protected override void Update(GameTime gameTime)
