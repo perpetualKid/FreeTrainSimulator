@@ -285,11 +285,6 @@ namespace Orts.Graphics.Window
 
         public override void Initialize()
         {
-            foreach (WindowBase window in windows)
-            {
-                window.Initialize();
-                window.Layout();
-            }
             base.Initialize();
         }
 
@@ -298,9 +293,9 @@ namespace Orts.Graphics.Window
             foreach (WindowBase window in windows)
             {
                 WindowShader.SetState(null);
-                window.RenderWindow();
+                window.DrawWindow();
                 WindowShader.ResetState();
-                spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.NonPremultiplied, null, null, null, null);
+                spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, null, null, null, null);
                 window.DrawContent(spriteBatch);
                 spriteBatch.End();
             }
@@ -310,6 +305,10 @@ namespace Orts.Graphics.Window
 
         public override void Update(GameTime gameTime)
         {
+            foreach (WindowBase window in windows)
+            {
+                window.Update(gameTime);
+            }
             base.Update(gameTime);
         }
     }
@@ -332,6 +331,16 @@ namespace Orts.Graphics.Window
                 throw new InvalidOperationException($"WindowManager {typeof(WindowManager<TWindowType>)} already initialized.");
 
             Instance = new WindowManager<TWindowType>(game);
+        }
+
+        public override void Initialize()
+        {
+            foreach (WindowBase window in windows)
+            {
+                window.Initialize();
+                window.Layout();
+            }
+            base.Initialize();
         }
 
         public WindowBase this[TWindowType window]

@@ -44,13 +44,12 @@ namespace Orts.Graphics.Window
             Owner = owner ?? throw new ArgumentNullException(nameof(owner));
             location = relativeLocation;
             borderRect.Size = new Point((int)(size.X * owner.DpiScaling), (int)(size.Y * owner.DpiScaling));
-            UpdateLocation();
             Caption = caption;
-            Resize();
         }
 
         internal protected virtual void Initialize()
         {
+            UpdateLocation();
             Resize();
         }
 
@@ -65,7 +64,11 @@ namespace Orts.Graphics.Window
             Owner.CloseWindow(this);
         }
 
-        internal virtual void RenderWindow()
+        internal protected virtual void Update(GameTime gameTime)
+        {
+        }
+
+        internal protected virtual void DrawWindow()
         {
             ref readonly Matrix xnaView = ref Owner.XNAView;
             ref readonly Matrix xnaProjection = ref Owner.XNAProjection;
@@ -82,7 +85,7 @@ namespace Orts.Graphics.Window
             }
         }
 
-        internal virtual void DrawContent(SpriteBatch spriteBatch)
+        internal protected virtual void DrawContent(SpriteBatch spriteBatch)
         {
             windowLayout.Draw(spriteBatch, Borders.Location);
         }

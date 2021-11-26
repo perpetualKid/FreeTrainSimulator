@@ -18,8 +18,9 @@ namespace Orts.Graphics.Window
             return layout;
         }
 
-        internal override void RenderWindow()
+        internal protected override void DrawWindow()
         {
         }
+
     }
 }
