@@ -11,12 +11,13 @@ using Orts.Common;
 using Orts.Common.Info;
 using Orts.Common.Input;
 using Orts.Graphics.Shaders;
+using Orts.Graphics.Track;
 using Orts.Graphics.Window.Controls.Layout;
 
 namespace Orts.Graphics.Window
 {
     public class ModalWindowEventArgs : EventArgs
-    { 
+    {
         public bool ModalWindowOpen { get; private set; }
 
         public ModalWindowEventArgs(bool modalWindowOpen)
@@ -49,6 +50,8 @@ namespace Orts.Graphics.Window
 
         //publish some events to allow interaction between XNA WindowManager and outside Window world
         public event EventHandler<ModalWindowEventArgs> OnModalWindow;
+
+        public bool SuppressDrawing { get; private set; }
 
         internal Texture2D WhiteTexture { get; }
 
@@ -167,6 +170,7 @@ namespace Orts.Graphics.Window
         {
             if (!WindowOpen(window))
             {
+                SuppressDrawing = false;
                 window.UpdateLocation();
                 windows.Add(window);
                 if (window.Modal)
@@ -193,6 +197,7 @@ namespace Orts.Graphics.Window
         {
             if (window == modalWindow)
             {
+                SuppressDrawing = false;
                 modalWindow = null;
                 OnModalWindow?.Invoke(this, new ModalWindowEventArgs(false));
             }
@@ -203,6 +208,7 @@ namespace Orts.Graphics.Window
         {
             if (modalWindow != null && modalWindow != mouseActiveWindow)
             {
+                SuppressDrawing = false;
                 userCommandArgs.Handled = true;
             }
         }
@@ -211,6 +217,7 @@ namespace Orts.Graphics.Window
         {
             if (modalWindow != null && modalWindow != mouseActiveWindow)
             {
+                SuppressDrawing = false;
                 userCommandArgs.Handled = true;
             }
         }
@@ -219,6 +226,7 @@ namespace Orts.Graphics.Window
         {
             if (userCommandArgs is PointerMoveCommandArgs moveCommandArgs)
             {
+                SuppressDrawing = false;
                 if (modalWindow != null && modalWindow != mouseActiveWindow)
                 {
                     userCommandArgs.Handled = true;
@@ -237,6 +245,7 @@ namespace Orts.Graphics.Window
         {
             if (userCommandArgs is PointerCommandArgs pointerCommandArgs)
             {
+                SuppressDrawing = false;
                 if (modalWindow != null && mouseActiveWindow != modalWindow)
                 {
                     userCommandArgs.Handled = true;
@@ -257,6 +266,7 @@ namespace Orts.Graphics.Window
         {
             if (userCommandArgs is PointerCommandArgs pointerCommandArgs)
             {
+                SuppressDrawing = false;
                 Point mouseDownPosition = pointerCommandArgs.Position;
                 mouseActiveWindow = windows.LastOrDefault(w => w.Interactive && w.Borders.Contains(pointerCommandArgs.Position));
                 if (modalWindow != null && mouseActiveWindow != modalWindow)
@@ -295,6 +305,7 @@ namespace Orts.Graphics.Window
                 spriteBatch.End();
             }
             base.Draw(gameTime);
+            SuppressDrawing = true;
         }
 
         public override void Update(GameTime gameTime)

@@ -52,6 +52,7 @@ namespace Orts.TrackViewer
 
         private WindowManager<WindowType> windowManager;
         private ContentArea contentArea;
+        private int suppressCount;
 
         internal ContentArea ContentArea
         {
@@ -397,7 +398,7 @@ namespace Orts.TrackViewer
         private void WindowManager_OnModalWindow(object sender, ModalWindowEventArgs e)
         {
             mainmenu.Enabled = !e.ModalWindowOpen;
-            
+
             if (null != ContentArea)
                 ContentArea.Enabled = !e.ModalWindowOpen;
         }
@@ -422,7 +423,14 @@ namespace Orts.TrackViewer
 
         protected override void Update(GameTime gameTime)
         {
-            // TODO: Add your update logic here
+            if ((contentArea?.SuppressDrawing ?? false) && windowManager.SuppressDrawing && suppressCount-- > 0)
+            {
+                SuppressDraw();
+            }
+            else
+            {
+                suppressCount = 10;
+            }
             base.Update(gameTime);
         }
 

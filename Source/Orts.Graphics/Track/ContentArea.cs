@@ -21,23 +21,12 @@ namespace Orts.Graphics.Track
         private double maxScale;
         private static readonly Point PointOverTwo = new Point(2, 2);
 
-        public TrackContent TrackContent { get; }
-
-        public double Scale { get; private set; }
-
-        public double CenterX => (BottomRightArea.X - TopLeftArea.X) / 2 + TopLeftArea.X;
-        public double CenterY => (TopLeftArea.Y - BottomRightArea.Y) / 2 + BottomRightArea.Y;
-
-        private double offsetX, offsetY;
+                private double offsetX, offsetY;
         internal PointD TopLeftArea { get; private set; }
         internal PointD BottomRightArea { get; private set; }
 
         private Tile bottomLeft;
         private Tile topRight;
-
-        public Point WindowSize { get; private set; }
-
-        public string RouteName { get; }
 
         private int screenHeightDelta;  // to account for Menubar/Statusbar height when calculating initial scale and center view
 
@@ -49,7 +38,6 @@ namespace Orts.Graphics.Track
 
         private double previousScale;
         private PointD previousTopLeft, previousBottomRight;
-        private int supressCount;
         private TrackViewerViewSettings viewSettings;
 
 #pragma warning disable CA2213 // Disposable fields should be disposed
@@ -62,6 +50,19 @@ namespace Orts.Graphics.Track
         private TrackSegment nearestTrackSegment;
         private RoadSegment nearesRoadSegment;
         #endregion
+
+        public TrackContent TrackContent { get; }
+
+        public double Scale { get; private set; }
+
+        public double CenterX => (BottomRightArea.X - TopLeftArea.X) / 2 + TopLeftArea.X;
+        public double CenterY => (TopLeftArea.Y - BottomRightArea.Y) / 2 + BottomRightArea.Y;
+
+        public bool SuppressDrawing { get; private set; }
+
+        public Point WindowSize { get; private set; }
+
+        public string RouteName { get; }
 
         public ContentArea(Game game, string routeName, TrackContent trackContent, EnumArray<string, ColorSetting> colorPreferences, TrackViewerViewSettings viewSettings) :
             base(game)
@@ -176,7 +177,7 @@ namespace Orts.Graphics.Track
                 Scale = scale;
                 CenterAround(new PointD(lon, lat));
             }
-            supressCount = 0;
+            SuppressDrawing = false;
         }
 
         public void UpdateScaleAt(in Point scaleAt, int steps)
@@ -193,7 +194,7 @@ namespace Orts.Graphics.Track
 
         public void UpdateScale(int steps)
         {
-            UpdateScaleAt( WindowSize / PointOverTwo, steps);
+            UpdateScaleAt(WindowSize / PointOverTwo, steps);
         }
 
         public void UpdatePosition(in Vector2 delta)
@@ -226,17 +227,16 @@ namespace Orts.Graphics.Track
 
         public override void Update(GameTime gameTime)
         {
-            //TODO 20211101 needs to move to a lop level
-            //if (Scale == previousScale && TopLeftArea == previousTopLeft && BottomRightArea == previousBottomRight && supressCount-- > 0)
-            //{
-            //    Game.SuppressDraw();
-            //}
-            //else
+            if (Scale == previousScale && TopLeftArea == previousTopLeft && BottomRightArea == previousBottomRight)
+            {
+                SuppressDrawing = true;
+            }
+            else
             {
                 previousScale = Scale;
                 previousTopLeft = TopLeftArea;
                 previousBottomRight = BottomRightArea;
-                supressCount = 10;
+                SuppressDrawing = false;
             }
             base.Update(gameTime);
         }
@@ -323,6 +323,7 @@ namespace Orts.Graphics.Track
             DrawContent();
             spriteBatch.End();
             base.Draw(gameTime);
+            SuppressDrawing = true;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
