@@ -915,7 +915,7 @@ namespace Orts.ActivityRunner.Viewer3D
                             if (trigger is ORTSDiscreteTrigger) trigger.Signaled = false;
                         }
 
-                        if (!released && !stream.ALSoundSource.isPlaying)
+                        if (!released && !stream.ALSoundSource.IsPlaying)
                         {
                             foreach (ORTSTrigger trigger in stream.Triggers)
                             {
@@ -1338,7 +1338,7 @@ namespace Orts.ActivityRunner.Viewer3D
             if (_InitialTrigger != null)
             {
                 // If no triggers active, Initialize the Initial
-                if (!ALSoundSource.isPlaying)
+                if (!ALSoundSource.IsPlaying)
                 {
                     if (VariableTriggers.Count > 0 || Triggers.Count == 1)
                     {

@@ -927,9 +927,9 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <param name="bufferIDs">Array of the buffer IDs to place</param>
         /// <param name="bufferLens">Array of the length data to place</param>
         /// <param name="toMono">Indicates if the wave must be converted to mono</param>
-        /// <param name="isReleasedWithJump">True if sound possibly be released with jump</param>
+        /// <param name="releasedWithJump">True if sound possibly be released with jump</param>
         /// <returns>True if success</returns>
-        public static bool OpenWavFile(string name, ref int[] bufferIDs, ref int[] bufferLens, bool toMono, bool isReleasedWithJump, ref int numCuePoints, ref bool mstsMonoTreatment)
+        public static bool OpenWavFile(string name, ref int[] bufferIDs, ref int[] bufferLens, bool toMono, bool releasedWithJump, ref int numCuePoints, ref bool mstsMonoTreatment)
         {
             WaveFileData wfi = new WaveFileData();
 
@@ -966,7 +966,7 @@ namespace Orts.ActivityRunner.Viewer3D
             int[] samplePos = new int[2];
 
             bool alLoopPointsSoft;
-            if (!isReleasedWithJump && wfi.cuePoints != null && wfi.cuePoints.Length > 1)
+            if (!releasedWithJump && wfi.cuePoints != null && wfi.cuePoints.Length > 1)
             {
                 samplePos[0] = (int)(wfi.cuePoints[0]);
                 samplePos[1] = (int)(wfi.cuePoints.Last());
