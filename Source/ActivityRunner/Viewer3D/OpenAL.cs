@@ -22,7 +22,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Security;
 using System.Text;
 
 namespace Orts.ActivityRunner.Viewer3D
@@ -30,8 +29,9 @@ namespace Orts.ActivityRunner.Viewer3D
     /// <summary>
     /// Wrapper class for the externals of library OpenAL
     /// </summary>
-    public class OpenAL
+    public static class OpenAL
     {
+#pragma warning disable CA1707 // Identifiers should not contain underscores
         public const int AL_NONE = 0;
         public const int AL_FALSE = 0;
         public const int AL_TRUE = 1;
@@ -149,265 +149,166 @@ namespace Orts.ActivityRunner.Viewer3D
         public const int AL_EAXREVERB_LFREFERENCE = 0x0015;
         public const int AL_EAXREVERB_ROOM_ROLLOFF_FACTOR = 0x0016;
         public const int AL_EAXREVERB_DECAY_HFLIMIT = 0x0017;
+#pragma warning restore CA1707 // Identifiers should not contain underscores
 
-        [SuppressUnmanagedCodeSecurity, DllImport("OpenAL32.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr alcOpenDevice(string deviceName);
-        [SuppressUnmanagedCodeSecurity, DllImport("OpenAL32.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr alcCreateContext(IntPtr device, int[] attribute);
-        [SuppressUnmanagedCodeSecurity, DllImport("OpenAL32.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int alcMakeContextCurrent(IntPtr context);
-        [SuppressUnmanagedCodeSecurity, DllImport("OpenAL32.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern string alcGetString(IntPtr device, int attribute);
-        [SuppressUnmanagedCodeSecurity, DllImport("OpenAL32.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int alcIsExtensionPresent(IntPtr device, string extensionName);
+        [DllImport("OpenAL32.dll", EntryPoint = "alcOpenDevice", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl, SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.UserDirectories)]
+        internal static extern IntPtr OpenDevice(string deviceName);
+        [DllImport("OpenAL32.dll", EntryPoint = "alcCreateContext", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl, SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.UserDirectories)]
+        internal static extern IntPtr CreateContext(IntPtr device, int[] attribute);
+        [DllImport("OpenAL32.dll", EntryPoint = "alcMakeContextCurrent", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl, SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.UserDirectories)]
+        internal static extern int MakeContextCurrent(IntPtr context);
+        [DllImport("OpenAL32.dll", EntryPoint = "alcGetString", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl, SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.UserDirectories)]
+        internal static extern string GetString(IntPtr device, int attribute);
+        [DllImport("OpenAL32.dll", EntryPoint = "alcIsExtensionPresent", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl, SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.UserDirectories)]
+        internal static extern int IsExtensionPresent(IntPtr device, string extensionName);
 
-        [SuppressUnmanagedCodeSecurity, DllImport("OpenAL32.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern string AlInitialize(string devName);
-        [SuppressUnmanagedCodeSecurity, DllImport("OpenAL32.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int alIsExtensionPresent(string extensionName);
-        [SuppressUnmanagedCodeSecurity, DllImport("OpenAL32.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void alGetBufferi(int buffer, int attribute, out int val);
-        [SuppressUnmanagedCodeSecurity, DllImport("OpenAL32.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr alGetString(int state);
-        [SuppressUnmanagedCodeSecurity, DllImport("OpenAL32.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int alGetError();
-        [SuppressUnmanagedCodeSecurity, DllImport("OpenAL32.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void alDeleteBuffers(int number, [In] ref int buffer);
-        [SuppressUnmanagedCodeSecurity, DllImport("OpenAL32.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void alDeleteBuffers(int number, int[] buffers);
-        [SuppressUnmanagedCodeSecurity, DllImport("OpenAL32.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void alDeleteSources(int number, [In] int[] sources);
-        [SuppressUnmanagedCodeSecurity, DllImport("OpenAL32.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void alDeleteSources(int number, [In] ref int sources);
-        [SuppressUnmanagedCodeSecurity, DllImport("OpenAL32.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void alDistanceModel(int model);
-        [SuppressUnmanagedCodeSecurity, DllImport("OpenAL32.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void alGenSources(int number, out int source);
-        [SuppressUnmanagedCodeSecurity, DllImport("OpenAL32.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void alGetSourcei(int source, int attribute, out int val);
-        [SuppressUnmanagedCodeSecurity, DllImport("OpenAL32.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void alGetSourcef(int source, int attribute, out float val);
-        [SuppressUnmanagedCodeSecurity, DllImport("OpenAL32.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void alGetSource3f(int source, int attribute, out float value1, out float value2, out float value3);
-        [SuppressUnmanagedCodeSecurity, DllImport("OpenAL32.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void alListener3f(int attribute, float value1, float value2, float value3);
-        [SuppressUnmanagedCodeSecurity, DllImport("OpenAL32.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void alListenerfv(int attribute, [In] float[] values);
-        [SuppressUnmanagedCodeSecurity, DllImport("OpenAL32.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void alListenerf(int attribute, float value);
-        [SuppressUnmanagedCodeSecurity, DllImport("OpenAL32.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void alGetListener3f(int attribute, out float value1, out float value2, out float value3);
-        [SuppressUnmanagedCodeSecurity, DllImport("OpenAL32.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void alSourcePlay(int source);
-        [SuppressUnmanagedCodeSecurity, DllImport("OpenAL32.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void alSourceRewind(int source);
-        [SuppressUnmanagedCodeSecurity, DllImport("OpenAL32.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void alSourceQueueBuffers(int source, int number, [In] ref int buffer);
-        [SuppressUnmanagedCodeSecurity, DllImport("OpenAL32.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void alSourcei(int source, int attribute, int val);
-        [SuppressUnmanagedCodeSecurity, DllImport("OpenAL32.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void alSource3i(int source, int attribute, int value1, int value2, int value3);
-        [SuppressUnmanagedCodeSecurity, DllImport("OpenAL32.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void alSourcef(int source, int attribute, float val);
-        [SuppressUnmanagedCodeSecurity, DllImport("OpenAL32.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void alSource3f(int source, int attribute, float value1, float value2, float value3);
-        [SuppressUnmanagedCodeSecurity, DllImport("OpenAL32.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void alSourcefv(int source, int attribute, [In] float[] values);
-        [SuppressUnmanagedCodeSecurity, DllImport("OpenAL32.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void alSourceStop(int source);
-        [SuppressUnmanagedCodeSecurity, DllImport("OpenAL32.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void alSourceUnqueueBuffers(int source, int number, int[] buffers);
-        [SuppressUnmanagedCodeSecurity, DllImport("OpenAL32.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void alSourceUnqueueBuffers(int source, int number, ref int buffers);
-        [SuppressUnmanagedCodeSecurity, DllImport("OpenAL32.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int alGetEnumValue(string enumName);
-        [SuppressUnmanagedCodeSecurity, DllImport("OpenAL32.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void alGenBuffers(int number, out int buffer);
-        [SuppressUnmanagedCodeSecurity, DllImport("OpenAL32.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void alBufferData(int buffer, int format, [In] byte[] data, int size, int frequency);
-        [SuppressUnmanagedCodeSecurity, DllImport("OpenAL32.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void alBufferiv(int buffer, int attribute, [In] int[] values);
-        [SuppressUnmanagedCodeSecurity, DllImport("OpenAL32.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern bool alIsSource(int source);
-        [SuppressUnmanagedCodeSecurity, DllImport("OpenAL32.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void alGenAuxiliaryEffectSlots(int number, out int effectslot);
-        [SuppressUnmanagedCodeSecurity, DllImport("OpenAL32.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void alAuxiliaryEffectSloti(int effectslot, int attribute, int val);
-        [SuppressUnmanagedCodeSecurity, DllImport("OpenAL32.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void alGenEffects(int number, out int effect);
-        [SuppressUnmanagedCodeSecurity, DllImport("OpenAL32.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void alEffecti(int effect, int attribute, int val);
-        [SuppressUnmanagedCodeSecurity, DllImport("OpenAL32.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void alEffectf(int effect, int attribute, float val);
-        [SuppressUnmanagedCodeSecurity, DllImport("OpenAL32.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void alEffectfv(int effect, int attribute, [In] float[] values);
+        [DllImport("OpenAL32.dll", EntryPoint = "AlInitialize", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl, SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.UserDirectories)]
+        internal static extern string Initialize(string devName);
+        [DllImport("OpenAL32.dll", EntryPoint = "alIsExtensionPresent", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl, SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.UserDirectories)]
+        internal static extern int IsExtensionPresent(string extensionName);
+        [DllImport("OpenAL32.dll", EntryPoint = "alGetBufferi", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl, SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.UserDirectories)]
+        internal static extern void GetBufferi(int buffer, int attribute, out int val);
+        [DllImport("OpenAL32.dll", EntryPoint = "alGetString", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl, SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.UserDirectories)]
+        internal static extern IntPtr GetString(int state);
+        [DllImport("OpenAL32.dll", EntryPoint = "alGetError", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl, SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.UserDirectories)]
+        internal static extern int GetError();
+        [DllImport("OpenAL32.dll", EntryPoint = "alDeleteBuffers", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl, SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.UserDirectories)]
+        internal static extern void DeleteBuffers(int number, [In] ref int buffer);
+        [DllImport("OpenAL32.dll", EntryPoint = "alDeleteBuffers", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl, SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.UserDirectories)]
+        internal static extern void DeleteBuffers(int number, int[] buffers);
+        [DllImport("OpenAL32.dll", EntryPoint = "alDeleteSources", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl, SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.UserDirectories)]
+        internal static extern void DeleteSources(int number, [In] int[] sources);
+        [DllImport("OpenAL32.dll", EntryPoint = "alDeleteSources", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl, SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.UserDirectories)]
+        internal static extern void DeleteSources(int number, [In] ref int sources);
+        [DllImport("OpenAL32.dll", EntryPoint = "alDistanceModel", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl, SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.UserDirectories)]
+        internal static extern void DistanceModel(int model);
+        [DllImport("OpenAL32.dll", EntryPoint = "alGenSources", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl, SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.UserDirectories)]
+        internal static extern void GenSources(int number, out int source);
+        [DllImport("OpenAL32.dll", EntryPoint = "alGetSourcei", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl, SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.UserDirectories)]
+        internal static extern void GetSourcei(int source, int attribute, out int val);
+        [DllImport("OpenAL32.dll", EntryPoint = "alGetSourcef", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl, SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.UserDirectories)]
+        internal static extern void GetSourcef(int source, int attribute, out float val);
+        [DllImport("OpenAL32.dll", EntryPoint = "alGetSource3f", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl, SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.UserDirectories)]
+        internal static extern void GetSource3f(int source, int attribute, out float value1, out float value2, out float value3);
+        [DllImport("OpenAL32.dll", EntryPoint = "alListener3f", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl, SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.UserDirectories)]
+        internal static extern void Listener3f(int attribute, float value1, float value2, float value3);
+        [DllImport("OpenAL32.dll", EntryPoint = "alListenerfv", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl, SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.UserDirectories)]
+        internal static extern void Listenerfv(int attribute, [In] float[] values);
+        [DllImport("OpenAL32.dll", EntryPoint = "alListenerf", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl, SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.UserDirectories)]
+        internal static extern void Listenerf(int attribute, float value);
+        [DllImport("OpenAL32.dll", EntryPoint = "alGetListener3f", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl, SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.UserDirectories)]
+        internal static extern void GetListener3f(int attribute, out float value1, out float value2, out float value3);
+        [DllImport("OpenAL32.dll", EntryPoint = "alSourcePlay", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl, SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.UserDirectories)]
+        internal static extern void SourcePlay(int source);
+        [DllImport("OpenAL32.dll", EntryPoint = "alSourceRewind", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl, SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.UserDirectories)]
+        internal static extern void SourceRewind(int source);
+        [DllImport("OpenAL32.dll", EntryPoint = "alSourceQueueBuffers", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl, SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.UserDirectories)]
+        internal static extern void SourceQueueBuffers(int source, int number, [In] ref int buffer);
+        [DllImport("OpenAL32.dll", EntryPoint = "alSourcei", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl, SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.UserDirectories)]
+        internal static extern void Sourcei(int source, int attribute, int val);
+        [DllImport("OpenAL32.dll", EntryPoint = "alSource3i", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl, SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.UserDirectories)]
+        internal static extern void Source3i(int source, int attribute, int value1, int value2, int value3);
+        [DllImport("OpenAL32.dll", EntryPoint = "alSourcef", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl, SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.UserDirectories)]
+        internal static extern void Sourcef(int source, int attribute, float val);
+        [DllImport("OpenAL32.dll", EntryPoint = "alSource3f", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl, SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.UserDirectories)]
+        internal static extern void Source3f(int source, int attribute, float value1, float value2, float value3);
+        [DllImport("OpenAL32.dll", EntryPoint = "alSourcefv", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl, SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.UserDirectories)]
+        internal static extern void Sourcefv(int source, int attribute, [In] float[] values);
+        [DllImport("OpenAL32.dll", EntryPoint = "alSourceStop", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl, SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.UserDirectories)]
+        internal static extern void SourceStop(int source);
+        [DllImport("OpenAL32.dll", EntryPoint = "alSourceUnqueueBuffers", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl, SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.UserDirectories)]
+        internal static extern void SourceUnqueueBuffers(int source, int number, int[] buffers);
+        [DllImport("OpenAL32.dll", EntryPoint = "alSourceUnqueueBuffers", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl, SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.UserDirectories)]
+        internal static extern void SourceUnqueueBuffers(int source, int number, ref int buffers);
+        [DllImport("OpenAL32.dll", EntryPoint = "alGetEnumValue", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl, SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.UserDirectories)]
+        internal static extern int GetEnumValue(string enumName);
+        [DllImport("OpenAL32.dll", EntryPoint = "alGenBuffers", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl, SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.UserDirectories)]
+        internal static extern void GenBuffers(int number, out int buffer);
+        [DllImport("OpenAL32.dll", EntryPoint = "alBufferData", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl, SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.UserDirectories)]
+        internal static extern void BufferData(int buffer, int format, [In] byte[] data, int size, int frequency);
+        [DllImport("OpenAL32.dll", EntryPoint = "alBufferiv", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl, SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.UserDirectories)]
+        internal static extern void Bufferiv(int buffer, int attribute, [In] int[] values);
+        [DllImport("OpenAL32.dll", EntryPoint = "alIsSource", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl, SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.UserDirectories)]
+        internal static extern bool IsSource(int source);
+        [DllImport("OpenAL32.dll", EntryPoint = "alGenAuxiliaryEffectSlots", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl, SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.UserDirectories)]
+        internal static extern void GenAuxiliaryEffectSlots(int number, out int effectslot);
+        [DllImport("OpenAL32.dll", EntryPoint = "alAuxiliaryEffectSloti", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl, SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.UserDirectories)]
+        internal static extern void AuxiliaryEffectSloti(int effectslot, int attribute, int val);
+        [DllImport("OpenAL32.dll", EntryPoint = "alGenEffects", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl, SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.UserDirectories)]
+        internal static extern void GenEffects(int number, out int effect);
+        [DllImport("OpenAL32.dll", EntryPoint = "alEffecti", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl, SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.UserDirectories)]
+        internal static extern void Effecti(int effect, int attribute, int val);
+        [DllImport("OpenAL32.dll", EntryPoint = "alEffectf", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl, SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.UserDirectories)]
+        internal static extern void Effectf(int effect, int attribute, float val);
+        [DllImport("OpenAL32.dll", EntryPoint = "alEffectfv", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl, SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.UserDirectories)]
+        internal static extern void Effectfv(int effect, int attribute, [In] float[] values);
 
-        public struct EFXEAXREVERBPROPERTIES
-        {
-            public float flDensity;
-            public float flDiffusion;
-            public float flGain;
-            public float flGainHF;
-            public float flGainLF;
-            public float flDecayTime;
-            public float flDecayHFRatio;
-            public float flDecayLFRatio;
-            public float flReflectionsGain;
-            public float flReflectionsDelay;
-            public float[] flReflectionsPan;
-            public float flLateReverbGain;
-            public float flLateReverbDelay;
-            public float[] flLateReverbPan;
-            public float flEchoTime;
-            public float flEchoDepth;
-            public float flModulationTime;
-            public float flModulationDepth;
-            public float flAirAbsorptionGainHF;
-            public float flHFReference;
-            public float flLFReference;
-            public float flRoomRolloffFactor;
-            public int iDecayHFLimit;
-
-            public EFXEAXREVERBPROPERTIES(float density, float diffusion, float gain, float gainHF, float gainLF, float decayTime, float decayHFRatio, float decayLFratio,
-                float reflectionsGain, float reflectionsDelay, float[] reflectionsPan, float lateReverbGain, float lateReverbDelay, float[] lateReverbPan, float echoTime,
-                float echoDepth, float modulationTime, float modulationDepth, float airAbsorptionGainHF, float hfReference, float lfReference, float roomRolloffFactor, int decayHFLimit)
-            {
-                flDensity = density;
-                flDiffusion = diffusion;
-                flGain = gain;
-                flGainHF = gainHF;
-                flGainLF = gainLF;
-                flDecayTime = decayTime;
-                flDecayHFRatio = decayHFRatio;
-                flDecayLFRatio = decayLFratio;
-                flReflectionsGain = reflectionsGain;
-                flReflectionsDelay = reflectionsDelay;
-                flReflectionsPan = reflectionsPan;
-                flLateReverbGain = lateReverbGain;
-                flLateReverbDelay = lateReverbDelay;
-                flLateReverbPan = lateReverbPan;
-                flEchoTime = echoTime;
-                flEchoDepth = echoDepth;
-                flModulationTime = modulationTime;
-                flModulationDepth = modulationDepth;
-                flAirAbsorptionGainHF = airAbsorptionGainHF;
-                flHFReference = hfReference;
-                flLFReference = lfReference;
-                flRoomRolloffFactor = roomRolloffFactor;
-                iDecayHFLimit = decayHFLimit;
-            }
-        }
-
-        public static EFXEAXREVERBPROPERTIES EFX_REVERB_PRESET_GENERIC = new EFXEAXREVERBPROPERTIES(1.0000f, 1.0000f, 0.3162f, 0.8913f, 1.0000f, 1.4900f, 0.8300f, 1.0000f, 0.0500f, 0.0070f, new float[] { 0.0000f, 0.0000f, 0.0000f }, 1.2589f, 0.0110f, new float[] { 0.0000f, 0.0000f, 0.0000f }, 0.2500f, 0.0000f, 0.2500f, 0.0000f, 0.9943f, 5000.0000f, 250.0000f, 0.0000f, 0x1);
-        public static EFXEAXREVERBPROPERTIES EFX_REVERB_PRESET_MOUNTAINS = new EFXEAXREVERBPROPERTIES(1.0000f, 0.2700f, 0.3162f, 0.0562f, 1.0000f, 1.4900f, 0.2100f, 1.0000f, 0.0407f, 0.3000f, new float[] { 0.0000f, 0.0000f, 0.0000f }, 0.1919f, 0.1000f, new float[] { 0.0000f, 0.0000f, 0.0000f }, 0.2500f, 1.0000f, 0.2500f, 0.0000f, 0.9943f, 5000.0000f, 250.0000f, 0.0000f, 0x0);
-        public static EFXEAXREVERBPROPERTIES EFX_REVERB_PRESET_HANGAR = new EFXEAXREVERBPROPERTIES(1.0000f, 1.0000f, 0.3162f, 0.3162f, 1.0000f, 10.0500f, 0.2300f, 1.0000f, 0.5000f, 0.0200f, new float[] { 0.0000f, 0.0000f, 0.0000f }, 1.2560f, 0.0300f, new float[] { 0.0000f, 0.0000f, 0.0000f }, 0.2500f, 0.0000f, 0.2500f, 0.0000f, 0.9943f, 5000.0000f, 250.0000f, 0.0000f, 0x1);
-        public static EFXEAXREVERBPROPERTIES EFX_REVERB_PRESET_QUARRY = new EFXEAXREVERBPROPERTIES(1.0000f, 1.0000f, 0.3162f, 0.3162f, 1.0000f, 1.4900f, 0.8300f, 1.0000f, 0.0000f, 0.0610f, new float[] { 0.0000f, 0.0000f, 0.0000f }, 1.7783f, 0.0250f, new float[] { 0.0000f, 0.0000f, 0.0000f }, 0.1250f, 0.7000f, 0.2500f, 0.0000f, 0.9943f, 5000.0000f, 250.0000f, 0.0000f, 0x1);
-        public static EFXEAXREVERBPROPERTIES EFX_REVERB_PRESET_OUTDOORS_VALLEY = new EFXEAXREVERBPROPERTIES(1.0000f, 0.2800f, 0.3162f, 0.0282f, 0.1585f, 2.8800f, 0.2600f, 0.3500f, 0.1413f, 0.2630f, new float[] { 0.0000f, 0.0000f, -0.0000f }, 0.3981f, 0.1000f, new float[] { 0.0000f, 0.0000f, 0.0000f }, 0.2500f, 0.3400f, 0.2500f, 0.0000f, 0.9943f, 2854.3999f, 107.5000f, 0.0000f, 0x0);
-        public static EFXEAXREVERBPROPERTIES EFX_REVERB_PRESET_OUTDOORS_DEEPCANYON = new EFXEAXREVERBPROPERTIES(1.0000f, 0.7400f, 0.3162f, 0.1778f, 0.6310f, 3.8900f, 0.2100f, 0.4600f, 0.3162f, 0.2230f, new float[] { 0.0000f, 0.0000f, -0.0000f }, 0.3548f, 0.0190f, new float[] { 0.0000f, 0.0000f, 0.0000f }, 0.2500f, 1.0000f, 0.2500f, 0.0000f, 0.9943f, 4399.1001f, 242.9000f, 0.0000f, 0x0);
-
-        public static void CreateHornEffect()
-        {
-            alGenEffects(1, out HornEffectID);
-            //LoadReverbEffect(ref EFX_REVERB_PRESET_OUTDOORS_DEEPCANYON, HornEffectID);
-            LoadEchoEffect(HornEffectID);
-
-            alGenAuxiliaryEffectSlots(1, out HornEffectSlotID);
-            alAuxiliaryEffectSloti(HornEffectSlotID, AL_EFFECTSLOT_EFFECT, HornEffectID);
-        }
-
-        public static bool LoadEchoEffect(int effectID)
-        {
-            alGetError();
-            alEffecti(effectID, AL_EFFECT_TYPE, AL_EFFECT_ECHO);
-
-            alEffectf(effectID, AL_ECHO_DELAY, 0.1f);
-            alEffectf(effectID, AL_ECHO_LRDELAY, 0.4f);
-            alEffectf(effectID, AL_ECHO_DAMPING, 0.5f);
-            alEffectf(effectID, AL_ECHO_FEEDBACK, 0.2f);
-            alEffectf(effectID, AL_ECHO_SPREAD, -1.0f);
-
-            return alGetError() == AL_NO_ERROR;
-        }
-
-        public static bool LoadReverbEffect(ref EFXEAXREVERBPROPERTIES reverb, int effectID)
-        {
-            alGetError();
-            if (alGetEnumValue("AL_EFFECT_EAXREVERB") != 0)
-            {
-                alEffecti(effectID, AL_EFFECT_TYPE, AL_EFFECT_EAXREVERB);
-
-                alEffectf(effectID, AL_EAXREVERB_DENSITY, reverb.flDensity);
-                alEffectf(effectID, AL_EAXREVERB_DIFFUSION, reverb.flDiffusion);
-                alEffectf(effectID, AL_EAXREVERB_GAIN, reverb.flGain);
-                alEffectf(effectID, AL_EAXREVERB_GAINHF, reverb.flGainHF);
-                alEffectf(effectID, AL_EAXREVERB_GAINLF, reverb.flGainLF);
-                alEffectf(effectID, AL_EAXREVERB_DECAY_TIME, reverb.flDecayTime);
-                alEffectf(effectID, AL_EAXREVERB_DECAY_HFRATIO, reverb.flDecayHFRatio);
-                alEffectf(effectID, AL_EAXREVERB_DECAY_LFRATIO, reverb.flDecayLFRatio);
-                alEffectf(effectID, AL_EAXREVERB_REFLECTIONS_GAIN, reverb.flReflectionsGain);
-                alEffectf(effectID, AL_EAXREVERB_REFLECTIONS_DELAY, reverb.flReflectionsDelay);
-                alEffectfv(effectID, AL_EAXREVERB_REFLECTIONS_PAN, reverb.flReflectionsPan);
-                alEffectf(effectID, AL_EAXREVERB_LATE_REVERB_GAIN, reverb.flLateReverbGain);
-                alEffectf(effectID, AL_EAXREVERB_LATE_REVERB_DELAY, reverb.flLateReverbDelay);
-                alEffectfv(effectID, AL_EAXREVERB_LATE_REVERB_PAN, reverb.flLateReverbPan);
-                alEffectf(effectID, AL_EAXREVERB_ECHO_TIME, reverb.flEchoTime);
-                alEffectf(effectID, AL_EAXREVERB_ECHO_DEPTH, reverb.flEchoDepth);
-                alEffectf(effectID, AL_EAXREVERB_MODULATION_TIME, reverb.flModulationTime);
-                alEffectf(effectID, AL_EAXREVERB_MODULATION_DEPTH, reverb.flModulationDepth);
-                alEffectf(effectID, AL_EAXREVERB_AIR_ABSORPTION_GAINHF, reverb.flAirAbsorptionGainHF);
-                alEffectf(effectID, AL_EAXREVERB_HFREFERENCE, reverb.flHFReference);
-                alEffectf(effectID, AL_EAXREVERB_LFREFERENCE, reverb.flLFReference);
-                alEffectf(effectID, AL_EAXREVERB_ROOM_ROLLOFF_FACTOR, reverb.flRoomRolloffFactor);
-                alEffecti(effectID, AL_EAXREVERB_DECAY_HFLIMIT, reverb.iDecayHFLimit);
-            }
-            else
-            {
-                alEffecti(effectID, AL_EFFECT_TYPE, AL_EFFECT_REVERB);
-
-                alEffectf(effectID, AL_REVERB_DENSITY, reverb.flDensity);
-                alEffectf(effectID, AL_REVERB_DIFFUSION, reverb.flDiffusion);
-                alEffectf(effectID, AL_REVERB_GAIN, reverb.flGain);
-                alEffectf(effectID, AL_REVERB_GAINHF, reverb.flGainHF);
-                alEffectf(effectID, AL_REVERB_DECAY_TIME, reverb.flDecayTime);
-                alEffectf(effectID, AL_REVERB_DECAY_HFRATIO, reverb.flDecayHFRatio);
-                alEffectf(effectID, AL_REVERB_REFLECTIONS_GAIN, reverb.flReflectionsGain);
-                alEffectf(effectID, AL_REVERB_REFLECTIONS_DELAY, reverb.flReflectionsDelay);
-                alEffectf(effectID, AL_REVERB_LATE_REVERB_GAIN, reverb.flLateReverbGain);
-                alEffectf(effectID, AL_REVERB_LATE_REVERB_DELAY, reverb.flLateReverbDelay);
-                alEffectf(effectID, AL_REVERB_AIR_ABSORPTION_GAINHF, reverb.flAirAbsorptionGainHF);
-                alEffectf(effectID, AL_REVERB_ROOM_ROLLOFF_FACTOR, reverb.flRoomRolloffFactor);
-                alEffecti(effectID, AL_REVERB_DECAY_HFLIMIT, reverb.iDecayHFLimit);
-            }
-            return alGetError() == AL_NO_ERROR;
-        }
-
-        public static int alSourceUnqueueBuffer(int SoundSourceID)
+        public static int SourceUnqueueBuffer(int SoundSourceID)
         {
             int bufid = 0;
-            OpenAL.alSourceUnqueueBuffers(SoundSourceID, 1, ref bufid);
+            SourceUnqueueBuffers(SoundSourceID, 1, ref bufid);
             return bufid;
         }
 
         public static string GetErrorString(int error)
         {
-            if (error == AL_INVALID_ENUM)
-                return "Invalid Enumeration";
-            else if (error == AL_INVALID_NAME)
-                return "Invalid Name";
-            else if (error == AL_INVALID_OPERATION)
-                return "Invalid Operation";
-            else if (error == AL_INVALID_VALUE)
-                return "Invalid Value";
-            else if (error == AL_OUT_OF_MEMORY)
-                return "Out Of Memory";
-            else if (error == AL_NO_ERROR)
-                return "No Error";
-            
-            return "";
+            return error switch
+            {
+                AL_INVALID_ENUM => "Invalid Enumeration",
+                AL_INVALID_NAME => "Invalid Name",
+                AL_INVALID_OPERATION => "Invalid Operation",
+                AL_INVALID_VALUE => "Invalid Value",
+                AL_OUT_OF_MEMORY => "Out Of Memory",
+                AL_NO_ERROR => "No Error",
+                _ => string.Empty,
+            };
         }
 
-        public static int HornEffectSlotID;
-        public static int HornEffectID;
         public static void Initialize()
         {
             CheckMaxSourcesConfig();
@@ -418,12 +319,12 @@ namespace Orts.ActivityRunner.Viewer3D
             //    Trace.TraceInformation("___devlist {0}",deviceList);
             //}
             int[] attribs = Array.Empty<int>();
-            IntPtr device = alcOpenDevice(null);
-            IntPtr context = alcCreateContext(device, attribs);
-            alcMakeContextCurrent(context);
+            IntPtr device = OpenDevice(null);
+            IntPtr context = CreateContext(device, attribs);
+            _ = MakeContextCurrent(context);
 
             // Note: Must use custom marshalling here because the returned strings must NOT be automatically deallocated by runtime.
-            Trace.TraceInformation("Initialized OpenAL {0}; device '{1}' by '{2}'", Marshal.PtrToStringAnsi(alGetString(AL_VERSION)), Marshal.PtrToStringAnsi(alGetString(AL_RENDERER)), Marshal.PtrToStringAnsi(alGetString(AL_VENDOR)));
+            Trace.TraceInformation("Initialized OpenAL {0}; device '{1}' by '{2}'", Marshal.PtrToStringAnsi(GetString(AL_VERSION)), Marshal.PtrToStringAnsi(GetString(AL_RENDERER)), Marshal.PtrToStringAnsi(GetString(AL_VENDOR)));
         }
 
         /// <summary>
@@ -455,7 +356,9 @@ namespace Orts.ActivityRunner.Viewer3D
                     Orts.Common.Native.NativeMethods.WritePrivateProfileString("General", "sources", "1024", configFile);
                 }
             }
-            catch(Exception ex)
+#pragma warning disable CA1031 // Do not catch general exception types
+            catch (Exception ex)
+#pragma warning restore CA1031 // Do not catch general exception types
             {
                 Trace.TraceError("Couldn't check or set OpenAL max sound sources in %AppData%\\Roaming\\alsoft.ini: ", ex.Message);
             }
@@ -480,7 +383,9 @@ namespace Orts.ActivityRunner.Viewer3D
     /// WAVEFILEHEADER binary structure
     /// </summary>
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
+#pragma warning disable CA1815 // Override equals and operator equals on value types
     public struct WAVEFILEHEADER
+#pragma warning restore CA1815 // Override equals and operator equals on value types
     {
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
         public char[] szRIFF;
@@ -490,23 +395,13 @@ namespace Orts.ActivityRunner.Viewer3D
         public uint padding;
     }
 
-    ///// <summary>
-    ///// RIFFCHUNK binary structure
-    ///// </summary>
-    //[StructLayout(LayoutKind.Explicit, CharSet = CharSet.Ansi, Pack = 1)]
-    //public struct RIFFCHUNK
-    //{
-    //    [FieldOffset(0), MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
-    //    public char[] szChunkName;
-    //    [FieldOffset(4), MarshalAs(UnmanagedType.U4, SizeConst = 4)]
-    //    public uint ulChunkSize;
-    //}
-
     /// <summary>
     /// RIFFCHUNK binary structure
     /// </summary>
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
+#pragma warning disable CA1815 // Override equals and operator equals on value types
     public struct RIFFCHUNK
+#pragma warning restore CA1815 // Override equals and operator equals on value types
     {
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
         public char[] szChunkName;
@@ -518,7 +413,9 @@ namespace Orts.ActivityRunner.Viewer3D
     /// WAVEFORMATEX binary structure
     /// </summary>
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
+#pragma warning disable CA1815 // Override equals and operator equals on value types
     public struct WAVEFORMATEX
+#pragma warning restore CA1815 // Override equals and operator equals on value types
     {
         public ushort wFormatTag;
         public ushort nChannels;
@@ -533,7 +430,9 @@ namespace Orts.ActivityRunner.Viewer3D
     /// WAVEFORMATEXTENSIBLE binary structure
     /// </summary>
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
+#pragma warning disable CA1815 // Override equals and operator equals on value types
     public struct WAVEFORMATEXTENSIBLE
+#pragma warning restore CA1815 // Override equals and operator equals on value types
     {
         public WAVEFORMATEX Format;
         public ushort wValidBitsPerSample;
@@ -541,27 +440,14 @@ namespace Orts.ActivityRunner.Viewer3D
         public Guid SubFormat;
     }
 
-    ///// <summary>
-    ///// CUECHUNK binary structure
-    ///// Describes the CUE chunk list of a wave file
-    ///// </summary>
-    //[StructLayout(LayoutKind.Explicit, Pack = 1)]
-    //public struct CUECHUNK
-    //{
-    //    [FieldOffset(0), MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
-    //    public char[] szChunkName;
-    //    [FieldOffset(4), MarshalAs(UnmanagedType.U4, SizeConst = 4)]
-    //    public uint ulChunkSize;
-    //    [FieldOffset(8), MarshalAs(UnmanagedType.U4, SizeConst = 4)]
-    //    public uint ulNumCuePts;
-    //}
-
     /// <summary>
     /// CUECHUNK binary structure
     /// Describes the CUE chunk list of a wave file
     /// </summary>
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
+#pragma warning disable CA1815 // Override equals and operator equals on value types
     public struct CUECHUNK
+#pragma warning restore CA1815 // Override equals and operator equals on value types
     {
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
         public char[] szChunkName;
@@ -576,7 +462,9 @@ namespace Orts.ActivityRunner.Viewer3D
     /// Describes one CUE point in CUE list
     /// </summary>
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
+#pragma warning disable CA1815 // Override equals and operator equals on value types
     public struct CUEPT
+#pragma warning restore CA1815 // Override equals and operator equals on value types
     {
         public uint ulID;
         public uint ulPlayPos;
@@ -586,44 +474,14 @@ namespace Orts.ActivityRunner.Viewer3D
         public uint ulByteStart;
     }
 
-
-    ///// <summary>
-    ///// SMPLCHUNK binary structure
-    ///// Describes the SMPL chunk list of a wave file
-    ///// </summary>
-    //[StructLayout(LayoutKind.Explicit, Pack = 1)]
-    //public struct SMPLCHUNK
-    //{
-    //    [FieldOffset(0), MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
-    //    public char[] ChunkName;
-    //    [FieldOffset(4), MarshalAs(UnmanagedType.U4, SizeConst = 4)]
-    //    public uint ChunkSize;
-    //    [FieldOffset(8), MarshalAs(UnmanagedType.U4, SizeConst = 4)]
-    //    public uint Manufacturer;
-    //    [FieldOffset(12), MarshalAs(UnmanagedType.U4, SizeConst = 4)]
-    //    public uint Product;
-    //    [FieldOffset(16), MarshalAs(UnmanagedType.U4, SizeConst = 4)]
-    //    public uint SmplPeriod;
-    //    [FieldOffset(20), MarshalAs(UnmanagedType.U4, SizeConst = 4)]
-    //    public uint MIDIUnityNote;
-    //    [FieldOffset(24), MarshalAs(UnmanagedType.U4, SizeConst = 4)]
-    //    public uint MIDIPitchFraction;
-    //    [FieldOffset(28), MarshalAs(UnmanagedType.U4, SizeConst = 4)]
-    //    public uint SMPTEFormat;
-    //    [FieldOffset(32), MarshalAs(UnmanagedType.U4, SizeConst = 4)]
-    //    public uint SMPTEOffset;
-    //    [FieldOffset(36), MarshalAs(UnmanagedType.U4, SizeConst = 4)]
-    //    public uint NumSmplLoops;
-    //    [FieldOffset(40), MarshalAs(UnmanagedType.U4, SizeConst = 4)]
-    //    public uint SamplerData;
-    //}
-
     /// <summary>
     /// SMPLCHUNK binary structure
     /// Describes the SMPL chunk list of a wave file
     /// </summary>
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
+#pragma warning disable CA1815 // Override equals and operator equals on value types
     public struct SMPLCHUNK
+#pragma warning restore CA1815 // Override equals and operator equals on value types
     {
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
         public char[] ChunkName;
@@ -655,7 +513,9 @@ namespace Orts.ActivityRunner.Viewer3D
     /// Describes one SMPL loop in loop list
     /// </summary>
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
+#pragma warning disable CA1815 // Override equals and operator equals on value types
     public struct SMPLLOOP
+#pragma warning restore CA1815 // Override equals and operator equals on value types
     {
         public uint ID;
         public uint Type;
@@ -664,11 +524,12 @@ namespace Orts.ActivityRunner.Viewer3D
         public uint Fraction;
         public uint PlayCount;
     }
+
     public enum WAVEFORMATTYPE
     {
-        WT_UNKNOWN,
-        WT_PCM,
-        WT_EXT
+        UNKNOWN,
+        PCM,
+        EXT,
     }
 
     /// <summary>
@@ -676,50 +537,52 @@ namespace Orts.ActivityRunner.Viewer3D
     /// </summary>
     public class WaveFileData
     {
+#pragma warning disable CA1823 // Avoid unused private fields
+#pragma warning disable IDE0051 // Remove unused private members
         // Constants from C header files
-        private const ushort WAVE_FORMAT_PCM                = 1;
-        private const ushort WAVE_FORMAT_EXTENSIBLE         = 0xFFFE;
+        private const ushort WAVE_FORMAT_PCM = 1;
+        private const ushort WAVE_FORMAT_EXTENSIBLE = 0xFFFE;
 
-        private const ushort SPEAKER_FRONT_LEFT             = 0x1;
-        private const ushort SPEAKER_FRONT_RIGHT            = 0x2;
-        private const ushort SPEAKER_FRONT_CENTER           = 0x4;
-        private const ushort SPEAKER_LOW_FREQUENCY          = 0x8;
-        private const ushort SPEAKER_BACK_LEFT              = 0x10;
-        private const ushort SPEAKER_BACK_RIGHT             = 0x20;
-        private const ushort SPEAKER_FRONT_LEFT_OF_CENTER   = 0x40;
-        private const ushort SPEAKER_FRONT_RIGHT_OF_CENTER  = 0x80;
-        private const ushort SPEAKER_BACK_CENTER            = 0x100;
-        private const ushort SPEAKER_SIDE_LEFT              = 0x200;
-        private const ushort SPEAKER_SIDE_RIGHT             = 0x400;
-        private const ushort SPEAKER_TOP_CENTER             = 0x800;
-        private const ushort SPEAKER_TOP_FRONT_LEFT         = 0x1000;
-        private const ushort SPEAKER_TOP_FRONT_CENTER       = 0x2000;
-        private const ushort SPEAKER_TOP_FRONT_RIGHT        = 0x4000;
-        private const ushort SPEAKER_TOP_BACK_LEFT          = 0x8000;
-        
+        private const ushort SPEAKER_FRONT_LEFT = 0x1;
+        private const ushort SPEAKER_FRONT_RIGHT = 0x2;
+        private const ushort SPEAKER_FRONT_CENTER = 0x4;
+        private const ushort SPEAKER_LOW_FREQUENCY = 0x8;
+        private const ushort SPEAKER_BACK_LEFT = 0x10;
+        private const ushort SPEAKER_BACK_RIGHT = 0x20;
+        private const ushort SPEAKER_FRONT_LEFT_OF_CENTER = 0x40;
+        private const ushort SPEAKER_FRONT_RIGHT_OF_CENTER = 0x80;
+        private const ushort SPEAKER_BACK_CENTER = 0x100;
+        private const ushort SPEAKER_SIDE_LEFT = 0x200;
+        private const ushort SPEAKER_SIDE_RIGHT = 0x400;
+        private const ushort SPEAKER_TOP_CENTER = 0x800;
+        private const ushort SPEAKER_TOP_FRONT_LEFT = 0x1000;
+        private const ushort SPEAKER_TOP_FRONT_CENTER = 0x2000;
+        private const ushort SPEAKER_TOP_FRONT_RIGHT = 0x4000;
+        private const ushort SPEAKER_TOP_BACK_LEFT = 0x8000;
+#pragma warning restore IDE0051 // Remove unused private members
+#pragma warning restore CA1823 // Avoid unused private fields
+
         // General info about current wave file
-        public bool isKnownType;
-        public WAVEFORMATEXTENSIBLE wfEXT;
-        public WAVEFORMATTYPE wtType;
+        private bool isKnownType;
+        private WAVEFORMATEXTENSIBLE wfEXT;
+        private WAVEFORMATTYPE wtType;
 
-        public uint ulDataSize;
-        public uint ulDataOffset;
+        private uint ulDataSize;
+        private uint ulDataOffset;
 
-        public ushort nChannels;
-        public uint nSamplesPerSec;
-        public ushort nBitsPerSample;
+        private ushort nChannels;
+        private uint nSamplesPerSec;
+        private ushort nBitsPerSample;
 
-        public uint ulFormat;
-        public FileStream pFile;
-        public uint[] CuePoints;
+        private FileStream fileStream;
+        private uint[] cuePoints;
 
         public WaveFileData()
         {
-            pFile = null;
+            fileStream = null;
             isKnownType = false;
-            wtType = WAVEFORMATTYPE.WT_UNKNOWN;
+            wtType = WAVEFORMATTYPE.UNKNOWN;
 
-            ulFormat = 0;
             ulDataSize = 0;
             ulDataOffset = 0;
 
@@ -730,10 +593,10 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public void Dispose()
         {
-            if (pFile != null)
-                pFile.Close();
+            if (fileStream != null)
+                fileStream.Close();
 
-            pFile = null;
+            fileStream = null;
         }
 
         /// <summary>
@@ -743,158 +606,149 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <returns>True if success</returns>
         private bool ParseWAV(string n)
         {
-            pFile = File.Open(n, FileMode.Open, FileAccess.Read, FileShare.Read);
-            if (pFile == null)
+            fileStream = File.Open(n, FileMode.Open, FileAccess.Read, FileShare.Read);
+            if (fileStream == null)
                 return false;
 
             // Read Wave file header
-            WAVEFILEHEADER waveFileHeader = new WAVEFILEHEADER();
+            GetNextStructureValue(fileStream, out WAVEFILEHEADER waveFileHeader, -1);
+            // Check if wave file
+            string hdr = new string(waveFileHeader.szRIFF);
+            if (hdr != "RIFF" && hdr != "WAVE")
+                return false;
+
+            // Read chunks : fmt, data, cue
+            while (GetNextStructureValue(fileStream, out RIFFCHUNK riffChunk, -1))
             {
-                GetNextStructureValue<WAVEFILEHEADER>(pFile, out waveFileHeader, - 1);
-                // Check if wave file
-                string hdr = new string(waveFileHeader.szRIFF);
-                if (hdr != "RIFF" && hdr != "WAVE")
-                    return false;
-
-                // Read chunks : fmt, data, cue
-                RIFFCHUNK riffChunk = new RIFFCHUNK();
+                // Format chunk
+                hdr = new string(riffChunk.szChunkName);
+                if (hdr == "fmt ")
                 {
-                    while (GetNextStructureValue<RIFFCHUNK>(pFile, out riffChunk, -1))
+                    WAVEFORMATEXTENSIBLE waveFmt = new WAVEFORMATEXTENSIBLE();
+                    if (riffChunk.ulChunkSize <= Marshal.SizeOf(waveFmt))
                     {
-                        // Format chunk
-                        hdr = new string (riffChunk.szChunkName);
-                        if (hdr == "fmt ")
-                        {
-                            WAVEFORMATEXTENSIBLE waveFmt = new WAVEFORMATEXTENSIBLE();
-                            if (riffChunk.ulChunkSize <= Marshal.SizeOf(waveFmt))
-                            {
-                                GetNextStructureValue<WAVEFORMATEXTENSIBLE>(pFile, out waveFmt, (int)riffChunk.ulChunkSize);
+                        GetNextStructureValue(fileStream, out waveFmt, (int)riffChunk.ulChunkSize);
 
-                                // Determine if this is a WAVEFORMATEX or WAVEFORMATEXTENSIBLE wave file
-                                if (waveFmt.Format.wFormatTag == WAVE_FORMAT_PCM)
-                                {
-                                    isKnownType = true;
-                                    wtType =  WAVEFORMATTYPE.WT_PCM;
-                                    waveFmt.wValidBitsPerSample = waveFmt.Format.wBitsPerSample;
-                                }
-                                else if (waveFmt.Format.wFormatTag == WAVE_FORMAT_EXTENSIBLE)
-                                {
-                                    isKnownType = true;
-                                    wtType = WAVEFORMATTYPE.WT_EXT;
-                                }
-
-                                wfEXT = waveFmt;
-                                nBitsPerSample = waveFmt.Format.wBitsPerSample;
-                                nChannels = waveFmt.Format.nChannels;
-                                nSamplesPerSec = waveFmt.Format.nSamplesPerSec;
-                            }
-                            // Unexpected length
-                            else
-                            {
-                                pFile.Seek(riffChunk.ulChunkSize, SeekOrigin.Current);
-                            }
-                        }
-                        // Data chunk
-                        else if (hdr == "data")
+                        // Determine if this is a WAVEFORMATEX or WAVEFORMATEXTENSIBLE wave file
+                        if (waveFmt.Format.wFormatTag == WAVE_FORMAT_PCM)
                         {
-                            ulDataSize = riffChunk.ulChunkSize;
-                            ulDataOffset = (uint)pFile.Position;
-                            pFile.Seek(riffChunk.ulChunkSize, SeekOrigin.Current);
+                            isKnownType = true;
+                            wtType = WAVEFORMATTYPE.PCM;
+                            waveFmt.wValidBitsPerSample = waveFmt.Format.wBitsPerSample;
                         }
-                        // CUE points
-                        else if (hdr == "cue ")
+                        else if (waveFmt.Format.wFormatTag == WAVE_FORMAT_EXTENSIBLE)
                         {
-                            // Seek back and read CUE header
-                            pFile.Seek(Marshal.SizeOf(riffChunk) * -1, SeekOrigin.Current);
-                            CUECHUNK cueChunk;
-                            GetNextStructureValue<CUECHUNK>(pFile, out cueChunk, -1);
-                            CuePoints = new uint[cueChunk.ulNumCuePts];
-                            {
-                                CUEPT cuePt;
-                                uint pos;
-                                // Read all CUE points
-                                for (uint i = 0; i < cueChunk.ulNumCuePts; i++)
-                                {
-                                    if (GetNextStructureValue<CUEPT>(pFile, out cuePt, -1))
-                                    {
-                                        pos = 0;
-                                        pos += cuePt.ulChunkStart;
-                                        pos += cuePt.ulBlockStart;
-                                        pos += cuePt.ulByteStart;
-
-                                        CuePoints[i] = pos;
-                                    }
-                                }
-                            }
-                        }
-                        else if (hdr == "smpl")
-                        {
-                            // Seek back and read SMPL header
-                            pFile.Seek(Marshal.SizeOf(riffChunk) * -1, SeekOrigin.Current);
-                            SMPLCHUNK smplChunk;
-                            GetNextStructureValue<SMPLCHUNK>(pFile, out smplChunk, -1);
-                            if (smplChunk.NumSmplLoops > 0)
-                            {
-                                CuePoints = new uint[smplChunk.NumSmplLoops * 2];
-                                {
-                                    SMPLLOOP smplLoop;
-                                    for (uint i = 0; i < smplChunk.NumSmplLoops; i++)
-                                    {
-                                        if (GetNextStructureValue<SMPLLOOP>(pFile, out smplLoop, -1))
-                                        {
-                                            CuePoints[i * 2] = smplLoop.ChunkStart;
-                                            CuePoints[i * 2 + 1] = smplLoop.ChunkEnd;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        else // skip the unknown chunks
-                        {
-                            pFile.Seek(riffChunk.ulChunkSize, SeekOrigin.Current);
+                            isKnownType = true;
+                            wtType = WAVEFORMATTYPE.EXT;
                         }
 
-                        // Ensure that we are correctly aligned for next chunk
-                        if ((riffChunk.ulChunkSize & 1) == 1)
-                            pFile.Seek(1, SeekOrigin.Current);
-                    } //get next chunk
-
-                    // If no data found
-                    if (ulDataSize == 0 || ulDataOffset == 0)
-                        return false;
-
-                    if (CuePoints != null)
-                        Array.Sort(CuePoints);
-
-                    return isKnownType;
+                        wfEXT = waveFmt;
+                        nBitsPerSample = waveFmt.Format.wBitsPerSample;
+                        nChannels = waveFmt.Format.nChannels;
+                        nSamplesPerSec = waveFmt.Format.nSamplesPerSec;
+                    }
+                    // Unexpected length
+                    else
+                    {
+                        fileStream.Seek(riffChunk.ulChunkSize, SeekOrigin.Current);
+                    }
                 }
-            }
+                // Data chunk
+                else if (hdr == "data")
+                {
+                    ulDataSize = riffChunk.ulChunkSize;
+                    ulDataOffset = (uint)fileStream.Position;
+                    fileStream.Seek(riffChunk.ulChunkSize, SeekOrigin.Current);
+                }
+                // CUE points
+                else if (hdr == "cue ")
+                {
+                    // Seek back and read CUE header
+                    fileStream.Seek(Marshal.SizeOf(riffChunk) * -1, SeekOrigin.Current);
+                    GetNextStructureValue(fileStream, out CUECHUNK cueChunk, -1);
+                    cuePoints = new uint[cueChunk.ulNumCuePts];
+                    {
+                        uint pos;
+                        // Read all CUE points
+                        for (uint i = 0; i < cueChunk.ulNumCuePts; i++)
+                        {
+                            if (GetNextStructureValue(fileStream, out CUEPT cuePt, -1))
+                            {
+                                pos = 0;
+                                pos += cuePt.ulChunkStart;
+                                pos += cuePt.ulBlockStart;
+                                pos += cuePt.ulByteStart;
+
+                                cuePoints[i] = pos;
+                            }
+                        }
+                    }
+                }
+                else if (hdr == "smpl")
+                {
+                    // Seek back and read SMPL header
+                    fileStream.Seek(Marshal.SizeOf(riffChunk) * -1, SeekOrigin.Current);
+                    GetNextStructureValue(fileStream, out SMPLCHUNK smplChunk, -1);
+                    if (smplChunk.NumSmplLoops > 0)
+                    {
+                        cuePoints = new uint[smplChunk.NumSmplLoops * 2];
+                        {
+                            for (uint i = 0; i < smplChunk.NumSmplLoops; i++)
+                            {
+                                if (GetNextStructureValue(fileStream, out SMPLLOOP smplLoop, -1))
+                                {
+                                    cuePoints[i * 2] = smplLoop.ChunkStart;
+                                    cuePoints[i * 2 + 1] = smplLoop.ChunkEnd;
+                                }
+                            }
+                        }
+                    }
+                }
+                else // skip the unknown chunks
+                {
+                    fileStream.Seek(riffChunk.ulChunkSize, SeekOrigin.Current);
+                }
+
+                // Ensure that we are correctly aligned for next chunk
+                if ((riffChunk.ulChunkSize & 1) == 1)
+                    fileStream.Seek(1, SeekOrigin.Current);
+            } //get next chunk
+
+            // If no data found
+            if (ulDataSize == 0 || ulDataOffset == 0)
+                return false;
+
+            if (cuePoints != null)
+                Array.Sort(cuePoints);
+
+            return isKnownType;
         }
 
         /// <summary>
         /// Gets the wave file's correspondig AL format number
         /// </summary>
-        /// <param name="pulFormat">Place to put the format number</param>
+        /// <param name="format">Place to put the format number</param>
         /// <returns>True if success</returns>
-        private bool GetALFormat(ref int pulFormat, ref bool mstsMonoTreatment, ushort origNChannels )
+        private bool GetALFormat(out int format, ref bool mstsMonoTreatment, ushort origNChannels)
         {
-            pulFormat = 0;
+            format = 0;
 
-            if (wtType == WAVEFORMATTYPE.WT_PCM)
+            if (wtType == WAVEFORMATTYPE.PCM)
             {
                 if (wfEXT.Format.nChannels == 1)
                 {
                     switch (wfEXT.Format.wBitsPerSample)
                     {
                         case 4:
-                            pulFormat = OpenAL.alGetEnumValue("AL_FORMAT_MONO_IMA4");
+                            format = OpenAL.GetEnumValue("AL_FORMAT_MONO_IMA4");
                             break;
                         case 8:
-                            pulFormat = OpenAL.AL_FORMAT_MONO8;
+                            format = OpenAL.AL_FORMAT_MONO8;
                             break;
                         case 16:
-                            pulFormat = OpenAL.AL_FORMAT_MONO16;
-                            if (origNChannels == 1) mstsMonoTreatment = true;
+                            format = OpenAL.AL_FORMAT_MONO16;
+                            if (origNChannels == 1) 
+                                mstsMonoTreatment = true;
                             break;
                     }
                 }
@@ -903,34 +757,35 @@ namespace Orts.ActivityRunner.Viewer3D
                     switch (wfEXT.Format.wBitsPerSample)
                     {
                         case 4:
-                            pulFormat = OpenAL.alGetEnumValue("AL_FORMAT_STEREO_IMA4");
+                            format = OpenAL.GetEnumValue("AL_FORMAT_STEREO_IMA4");
                             break;
                         case 8:
-                            pulFormat = OpenAL.AL_FORMAT_STEREO8;
+                            format = OpenAL.AL_FORMAT_STEREO8;
                             break;
                         case 16:
-                            pulFormat = OpenAL.AL_FORMAT_STEREO16;
+                            format = OpenAL.AL_FORMAT_STEREO16;
                             break;
                     }
                 }
                 else if ((wfEXT.Format.nChannels == 4) && (wfEXT.Format.wBitsPerSample == 16))
-                    pulFormat = OpenAL.alGetEnumValue("AL_FORMAT_QUAD16");
+                    format = OpenAL.GetEnumValue("AL_FORMAT_QUAD16");
             }
-            else if (wtType == WAVEFORMATTYPE.WT_EXT)
+            else if (wtType == WAVEFORMATTYPE.EXT)
             {
                 if ((wfEXT.Format.nChannels == 1) && ((wfEXT.dwChannelMask == SPEAKER_FRONT_CENTER) || (wfEXT.dwChannelMask == (SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT)) || (wfEXT.dwChannelMask == 0)))
                 {
                     switch (wfEXT.Format.wBitsPerSample)
                     {
                         case 4:
-                            pulFormat = OpenAL.alGetEnumValue("AL_FORMAT_MONO_IMA4");
+                            format = OpenAL.GetEnumValue("AL_FORMAT_MONO_IMA4");
                             break;
                         case 8:
-                            pulFormat = OpenAL.AL_FORMAT_MONO8;
+                            format = OpenAL.AL_FORMAT_MONO8;
                             break;
                         case 16:
-                            pulFormat = OpenAL.AL_FORMAT_MONO16;
-                            if (origNChannels == 1) mstsMonoTreatment = true;
+                            format = OpenAL.AL_FORMAT_MONO16;
+                            if (origNChannels == 1) 
+                                mstsMonoTreatment = true;
                             break;
                     }
                 }
@@ -939,58 +794,54 @@ namespace Orts.ActivityRunner.Viewer3D
                     switch (wfEXT.Format.wBitsPerSample)
                     {
                         case 4:
-                            pulFormat = OpenAL.alGetEnumValue("AL_FORMAT_STEREO_IMA4");
+                            format = OpenAL.GetEnumValue("AL_FORMAT_STEREO_IMA4");
                             break;
                         case 8:
-                            pulFormat = OpenAL.AL_FORMAT_STEREO8;
+                            format = OpenAL.AL_FORMAT_STEREO8;
                             break;
                         case 16:
-                            pulFormat = OpenAL.AL_FORMAT_STEREO16;
+                            format = OpenAL.AL_FORMAT_STEREO16;
                             break;
                     }
                 }
                 else if ((wfEXT.Format.nChannels == 2) && (wfEXT.Format.wBitsPerSample == 16) && (wfEXT.dwChannelMask == (SPEAKER_BACK_LEFT | SPEAKER_BACK_RIGHT)))
-                    pulFormat = OpenAL.alGetEnumValue("AL_FORMAT_REAR16");
+                    format = OpenAL.GetEnumValue("AL_FORMAT_REAR16");
                 else if ((wfEXT.Format.nChannels == 4) && (wfEXT.Format.wBitsPerSample == 16) && (wfEXT.dwChannelMask == (SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT | SPEAKER_BACK_LEFT | SPEAKER_BACK_RIGHT)))
-                    pulFormat = OpenAL.alGetEnumValue("AL_FORMAT_QUAD16");
+                    format = OpenAL.GetEnumValue("AL_FORMAT_QUAD16");
                 else if ((wfEXT.Format.nChannels == 6) && (wfEXT.Format.wBitsPerSample == 16) && (wfEXT.dwChannelMask == (SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT | SPEAKER_FRONT_CENTER | SPEAKER_LOW_FREQUENCY | SPEAKER_BACK_LEFT | SPEAKER_BACK_RIGHT)))
-                    pulFormat = OpenAL.alGetEnumValue("AL_FORMAT_51CHN16");
+                    format = OpenAL.GetEnumValue("AL_FORMAT_51CHN16");
                 else if ((wfEXT.Format.nChannels == 7) && (wfEXT.Format.wBitsPerSample == 16) && (wfEXT.dwChannelMask == (SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT | SPEAKER_FRONT_CENTER | SPEAKER_LOW_FREQUENCY | SPEAKER_BACK_LEFT | SPEAKER_BACK_RIGHT | SPEAKER_BACK_CENTER)))
-                    pulFormat = OpenAL.alGetEnumValue("AL_FORMAT_61CHN16");
+                    format = OpenAL.GetEnumValue("AL_FORMAT_61CHN16");
                 else if ((wfEXT.Format.nChannels == 8) && (wfEXT.Format.wBitsPerSample == 16) && (wfEXT.dwChannelMask == (SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT | SPEAKER_FRONT_CENTER | SPEAKER_LOW_FREQUENCY | SPEAKER_BACK_LEFT | SPEAKER_BACK_RIGHT | SPEAKER_SIDE_LEFT | SPEAKER_SIDE_RIGHT)))
-                    pulFormat = OpenAL.alGetEnumValue("AL_FORMAT_71CHN16");
+                    format = OpenAL.GetEnumValue("AL_FORMAT_71CHN16");
             }
 
-            return pulFormat != 0;
+            return format != 0;
         }
 
         /// <summary>
         /// Reads the wave contents of a wave file
         /// </summary>
-        /// <param name="ToMono">True if must convert to mono before return</param>
+        /// <param name="toMono">True if must convert to mono before return</param>
         /// <returns>Read wave data</returns>
-        private byte[] ReadData(bool ToMono)
+        private byte[] ReadData(bool toMono)
         {
             byte[] buffer = null;
-            if (pFile == null || ulDataOffset == 0 || ulDataSize == 0)
+            if (fileStream == null || ulDataOffset == 0 || ulDataSize == 0)
             {
                 return buffer;
             }
 
             buffer = new byte[ulDataSize];
-            if (buffer == null)
-            {
-                return buffer;
-            }
 
-            pFile.Seek(ulDataOffset, SeekOrigin.Begin);
+            fileStream.Seek(ulDataOffset, SeekOrigin.Begin);
             int size = (int)ulDataSize;
-            if (pFile.Read(buffer, 0, size) != size)
+            if (fileStream.Read(buffer, 0, size) != size)
             {
                 buffer = null;
             }
 
-            if (ToMono)
+            if (toMono)
             {
                 byte[] newbuffer = ConvertToMono(buffer);
                 buffer = newbuffer;
@@ -1027,35 +878,43 @@ namespace Orts.ActivityRunner.Viewer3D
             }
             else
             {
-                MemoryStream sms = new MemoryStream(buffer);
-                BinaryReader srd = new BinaryReader(sms);
-                MemoryStream dms = new MemoryStream(retval);
-                BinaryWriter drw = new BinaryWriter(dms);
-                ushort newval;
-
-                len /= 2;
-                while (pos < len)
+                using (MemoryStream sms = new MemoryStream(buffer))
                 {
-                    newval = srd.ReadUInt16();
-                    newval = srd.ReadUInt16();
-                    drw.Write(newval);
-                    pos++;
-                }
+                    using (BinaryReader srd = new BinaryReader(sms))
+                    {
+                        using (MemoryStream dms = new MemoryStream(retval))
+                        {
+                            using (BinaryWriter drw = new BinaryWriter(dms))
+                            {
 
-                drw.Flush();
-                drw.Close();
-                dms.Flush();
-                dms.Close();
-                srd.Close();
-                sms.Close();
+                                ushort newval;
+
+                                len /= 2;
+                                while (pos < len)
+                                {
+                                    _ = srd.ReadUInt16();
+                                    newval = srd.ReadUInt16();
+                                    drw.Write(newval);
+                                    pos++;
+                                }
+                                //drw.Flush();
+                                //drw.Close();
+                                //dms.Flush();
+                                //dms.Close();
+                                //srd.Close();
+                                //sms.Close();
+                            }
+                        }
+                    }
+                }
             }
 
             wfEXT.Format.nChannels = 1;
             ulDataSize = (uint)retval.Length;
-            if (CuePoints != null)
-                for (var i = 0; i < CuePoints.Length; i++)
-                    if (CuePoints[i] != 0xFFFFFFFF)
-                        CuePoints[i] /= 2;
+            if (cuePoints != null)
+                for (int i = 0; i < cuePoints.Length; i++)
+                    if (cuePoints[i] != 0xFFFFFFFF)
+                        cuePoints[i] /= 2;
 
             return retval;
         }
@@ -1064,56 +923,56 @@ namespace Orts.ActivityRunner.Viewer3D
         /// Opens, reads the given wave file. 
         /// Also creates the AL buffers and fills them with data
         /// </summary>
-        /// <param name="Name">Name of the wave file to read</param>
-        /// <param name="BufferIDs">Array of the buffer IDs to place</param>
-        /// <param name="BufferLens">Array of the length data to place</param>
-        /// <param name="ToMono">Indicates if the wave must be converted to mono</param>
-        /// <param name="isReleasedWithJump">True if sound possibly be released with jump</param>
+        /// <param name="name">Name of the wave file to read</param>
+        /// <param name="bufferIDs">Array of the buffer IDs to place</param>
+        /// <param name="bufferLens">Array of the length data to place</param>
+        /// <param name="toMono">Indicates if the wave must be converted to mono</param>
+        /// <param name="releasedWithJump">True if sound possibly be released with jump</param>
         /// <returns>True if success</returns>
-        public static bool OpenWavFile(string Name, ref int[] BufferIDs, ref int[] BufferLens, bool ToMono, bool isReleasedWithJump, ref int numCuePoints, ref bool mstsMonoTreatment)
+        public static bool OpenWavFile(string name, ref int[] bufferIDs, ref int[] bufferLens, bool toMono, bool releasedWithJump, ref int numCuePoints, ref bool mstsMonoTreatment)
         {
             WaveFileData wfi = new WaveFileData();
-            int fmt = -1;
 
-            if (!wfi.ParseWAV(Name))
+            if (!wfi.ParseWAV(name))
             {
                 return false;
             }
 
             if (wfi.ulDataSize == 0 || ((int)wfi.ulDataSize) == -1)
             {
-                Trace.TraceWarning("Skipped wave file with invalid length {0}", Name);
+                Trace.TraceWarning("Skipped wave file with invalid length {0}", name);
                 return false;
             }
 
             ushort origNChannels = wfi.wfEXT.Format.nChannels;
 
-            byte[] buffer = wfi.ReadData(ToMono);
+            byte[] buffer = wfi.ReadData(toMono);
             if (buffer == null)
             {
                 return false;
             }
 
-            if (!wfi.GetALFormat(ref fmt, ref mstsMonoTreatment, origNChannels))
+            if (!wfi.GetALFormat(out int fmt, ref mstsMonoTreatment, origNChannels))
             {
                 return false;
             }
 
             if (buffer.Length != wfi.ulDataSize)
             {
-                Trace.TraceWarning("Invalid wave file length in header; expected {1}, got {2} in {0}", Name, buffer.Length, wfi.ulDataSize);
+                Trace.TraceWarning("Invalid wave file length in header; expected {1}, got {2} in {0}", name, buffer.Length, wfi.ulDataSize);
                 wfi.ulDataSize = (uint)buffer.Length;
             }
 
-            bool alLoopPointsSoft = false;
             int[] samplePos = new int[2];
-            if (!isReleasedWithJump && wfi.CuePoints != null && wfi.CuePoints.Length > 1)
+
+            bool alLoopPointsSoft;
+            if (!releasedWithJump && wfi.cuePoints != null && wfi.cuePoints.Length > 1)
             {
-                samplePos[0] = (int)(wfi.CuePoints[0]);
-                samplePos[1] = (int)(wfi.CuePoints.Last());
+                samplePos[0] = (int)(wfi.cuePoints[0]);
+                samplePos[1] = (int)(wfi.cuePoints.Last());
                 if (samplePos[0] < samplePos[1] && samplePos[1] <= wfi.ulDataSize / (wfi.nBitsPerSample / 8 * wfi.nChannels))
-                    alLoopPointsSoft = OpenAL.alIsExtensionPresent("AL_SOFT_LOOP_POINTS") == OpenAL.AL_TRUE;
-                numCuePoints = wfi.CuePoints.Length;
+                    alLoopPointsSoft = OpenAL.IsExtensionPresent("AL_SOFT_LOOP_POINTS") == OpenAL.AL_TRUE;
+                numCuePoints = wfi.cuePoints.Length;
             }
             // Disable AL_SOFT_LOOP_POINTS OpenAL extension until a more sofisticated detection
             // is implemented for sounds that never need smoothly transiting into another.
@@ -1121,65 +980,65 @@ namespace Orts.ActivityRunner.Viewer3D
             // continuously buffering, and it is impossible to use it for smooth transition.
             alLoopPointsSoft = false;
 
-            if (wfi.CuePoints == null || wfi.CuePoints.Length == 1 || alLoopPointsSoft)
+            if (wfi.cuePoints == null || wfi.cuePoints.Length == 1 || alLoopPointsSoft)
             {
-                BufferIDs = new int[1];
-                BufferLens = new int[1];
+                bufferIDs = new int[1];
+                bufferLens = new int[1];
 
-                BufferLens[0] = (int)wfi.ulDataSize;
+                bufferLens[0] = (int)wfi.ulDataSize;
 
-                if (BufferLens[0] > 0)
+                if (bufferLens[0] > 0)
                 {
-                    OpenAL.alGenBuffers(1, out BufferIDs[0]);
-                    OpenAL.alBufferData(BufferIDs[0], fmt, buffer, (int)wfi.ulDataSize, (int)wfi.nSamplesPerSec);
+                    OpenAL.GenBuffers(1, out bufferIDs[0]);
+                    OpenAL.BufferData(bufferIDs[0], fmt, buffer, (int)wfi.ulDataSize, (int)wfi.nSamplesPerSec);
 
                     if (alLoopPointsSoft)
-                        OpenAL.alBufferiv(BufferIDs[0], OpenAL.AL_LOOP_POINTS_SOFT, samplePos);
+                        OpenAL.Bufferiv(bufferIDs[0], OpenAL.AL_LOOP_POINTS_SOFT, samplePos);
                 }
                 else
-                    BufferIDs[0] = 0;
+                    bufferIDs[0] = 0;
 
                 return true;
             }
             else
             {
-                BufferIDs = new int[wfi.CuePoints.Length + 1];
-                BufferLens = new int[wfi.CuePoints.Length + 1];
-                numCuePoints = wfi.CuePoints.Length;
+                bufferIDs = new int[wfi.cuePoints.Length + 1];
+                bufferLens = new int[wfi.cuePoints.Length + 1];
+                numCuePoints = wfi.cuePoints.Length;
 
                 uint prevAdjPos = 0;
-                for (var i = 0; i < wfi.CuePoints.Length; i++)
+                for (int i = 0; i < wfi.cuePoints.Length; i++)
                 {
-                    uint adjPos = wfi.CuePoints[i] * wfi.nBitsPerSample / 8 * wfi.nChannels;
+                    uint adjPos = wfi.cuePoints[i] * wfi.nBitsPerSample / 8 * wfi.nChannels;
                     if (adjPos > wfi.ulDataSize)
                     {
-                        Trace.TraceWarning("Invalid cue point in wave file; Length {1}, CUE {2}, BitsPerSample {3}, Channels {4} in {0}", Name, wfi.ulDataSize, adjPos, wfi.nBitsPerSample, wfi.nChannels);
-                        wfi.CuePoints[i] = 0xFFFFFFFF;
+                        Trace.TraceWarning("Invalid cue point in wave file; Length {1}, CUE {2}, BitsPerSample {3}, Channels {4} in {0}", name, wfi.ulDataSize, adjPos, wfi.nBitsPerSample, wfi.nChannels);
+                        wfi.cuePoints[i] = 0xFFFFFFFF;
                         adjPos = prevAdjPos;
                     }
-                    
-                    BufferLens[i] = (int)adjPos - (int)prevAdjPos;
-                    if (BufferLens[i] > 0)
+
+                    bufferLens[i] = (int)adjPos - (int)prevAdjPos;
+                    if (bufferLens[i] > 0)
                     {
-                        OpenAL.alGenBuffers(1, out BufferIDs[i]);
-                        OpenAL.alBufferData(BufferIDs[i], fmt, GetFromArray(buffer, (int)prevAdjPos, BufferLens[i]), BufferLens[i], (int)wfi.nSamplesPerSec);
+                        OpenAL.GenBuffers(1, out bufferIDs[i]);
+                        OpenAL.BufferData(bufferIDs[i], fmt, GetFromArray(buffer, (int)prevAdjPos, bufferLens[i]), bufferLens[i], (int)wfi.nSamplesPerSec);
                     }
                     else
                     {
-                        BufferIDs[i] = 0;
+                        bufferIDs[i] = 0;
                     }
-                    
-                    if (i == wfi.CuePoints.Length - 1)
+
+                    if (i == wfi.cuePoints.Length - 1)
                     {
-                        BufferLens[i + 1] = (int)wfi.ulDataSize - (int)adjPos;
-                        if (BufferLens[i + 1] > 0)
+                        bufferLens[i + 1] = (int)wfi.ulDataSize - (int)adjPos;
+                        if (bufferLens[i + 1] > 0)
                         {
-                            OpenAL.alGenBuffers(1, out BufferIDs[i + 1]);
-                            OpenAL.alBufferData(BufferIDs[i + 1], fmt, GetFromArray(buffer, (int)adjPos, BufferLens[i + 1]), BufferLens[i + 1], (int)wfi.nSamplesPerSec);
+                            OpenAL.GenBuffers(1, out bufferIDs[i + 1]);
+                            OpenAL.BufferData(bufferIDs[i + 1], fmt, GetFromArray(buffer, (int)adjPos, bufferLens[i + 1]), bufferLens[i + 1], (int)wfi.nSamplesPerSec);
                         }
                         else
                         {
-                            BufferIDs[i + 1] = 0;
+                            bufferIDs[i + 1] = 0;
                         }
                     }
                     prevAdjPos = adjPos;
@@ -1207,14 +1066,14 @@ namespace Orts.ActivityRunner.Viewer3D
         /// Reads a given structure from a FileStream
         /// </summary>
         /// <typeparam name="T">Type to read, must be able to Marshal to native</typeparam>
-        /// <param name="fs">FileStream from read</param>
+        /// <param name="stream">FileStream from read</param>
         /// <param name="retval">The filled structure</param>
         /// <param name="len">The bytes to read, -1 if the structure size must be filled</param>
         /// <returns>True if success</returns>
-        public static bool GetNextStructureValue<T>(FileStream fs, out T retval, int len)
+        private static bool GetNextStructureValue<T>(FileStream stream, out T retval, int len)
         {
             byte[] buffer;
-            retval = default(T);
+            retval = default;
             bool result = false;
             if (len == -1)
             {
@@ -1226,11 +1085,11 @@ namespace Orts.ActivityRunner.Viewer3D
             }
 
             GCHandle handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
-            if (fs.Read(buffer, 0, buffer.Length) == buffer.Length)
+            if (stream.Read(buffer, 0, buffer.Length) == buffer.Length)
             {
                 try
                 {
-                    retval = (T)Marshal.PtrToStructure<T>(handle.AddrOfPinnedObject());
+                    retval = Marshal.PtrToStructure<T>(handle.AddrOfPinnedObject());
                     result = true;
                 }
                 finally
@@ -1240,7 +1099,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 }
             }
             return result;
-        } 
+        }
     }
 }
 

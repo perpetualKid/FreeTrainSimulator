@@ -152,6 +152,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 {
                     cancellationTokenSource?.Cancel();
                     cancellationTokenSource?.Dispose();
+                    processState?.Dispose();
                 }
                 disposedValue = true;
             }
