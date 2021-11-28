@@ -338,7 +338,6 @@ namespace Orts.Graphics.Window
             foreach (WindowBase window in windows)
             {
                 window.Initialize();
-                window.Layout();
             }
             base.Initialize();
         }

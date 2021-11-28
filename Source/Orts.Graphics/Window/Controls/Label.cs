@@ -49,8 +49,8 @@ namespace Orts.Graphics.Window.Controls
         public override void Initialize()
         {
             base.Initialize();
-            InitializeSize(Text);
-            DrawString(Text);
+            InitializeText(Text);
+            RenderText(Text);
             switch (Alignment)
             {
                 case LabelAlignment.Left:
