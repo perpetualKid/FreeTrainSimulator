@@ -62,7 +62,7 @@ namespace Orts.Graphics.DrawableComponents
 
                 string locationText = string.Format(System.Globalization.CultureInfo.CurrentCulture, $"{latitudeDegree}°{latitudeMinute,2:00}'{latitudeSecond,2:00}\"{hemisphere} {longitudeDegree}°{longitudeMinute,2:00}'{longitudeSecond,2:00}\"{direction}");
 
-                DrawString(locationText);
+                RenderText(locationText);
             }
             base.Update(gameTime);
         }
@@ -80,7 +80,7 @@ namespace Orts.Graphics.DrawableComponents
 
         internal protected override void Enable(ContentArea content)
         {
-            InitializeSize("01234567890123456789012345");//about 25 chars needed for full lat/lon coordinates
+            Resize("01234567890123456789012345");//about 25 chars needed for full lat/lon coordinates
             base.Enable(content);
         }
     }

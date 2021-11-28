@@ -12,20 +12,14 @@ namespace Orts.Graphics.DrawableComponents
     public class TextShape : ResourceGameComponent<Texture2D>
     {
         [ThreadStatic]
-        private static Texture2D empty;
-        [ThreadStatic]
         private static TextShape instance;
         private readonly SpriteBatch spriteBatch;
 
         private readonly System.Drawing.Bitmap measureBitmap = new System.Drawing.Bitmap(1, 1);
         private readonly System.Drawing.Graphics measureGraphics;
 
-        private readonly System.Drawing.Brush fontBrush = new System.Drawing.SolidBrush(System.Drawing.Color.White);
-
-
         private TextShape(Game game, SpriteBatch spriteBatch) : base(game)
         {
-            empty = new Texture2D(game.GraphicsDevice, 1, 1);
             this.spriteBatch = spriteBatch;
             measureGraphics = System.Drawing.Graphics.FromImage(measureBitmap);
         }
@@ -46,12 +40,15 @@ namespace Orts.Graphics.DrawableComponents
             TextHorizontalAlignment horizontalAlignment = TextHorizontalAlignment.Left, TextVerticalAlignment verticalAlignment = TextVerticalAlignment.Bottom,
             SpriteEffects effects = SpriteEffects.None, SpriteBatch spriteBatch = null)
         {
+#pragma warning disable RS1024 // Compare symbols correctly
             int identifier = GetHashCode(font, message);
+#pragma warning restore RS1024 // Compare symbols correctly
             if (!instance.currentResources.TryGetValue(identifier, out Texture2D texture))
             {
                 if (!instance.previousResources.TryGetValue(identifier, out texture))
                 {
-                    texture = DrawString(message, font);
+                    texture = TextTextureRenderer.Resize(message, font, instance.Game.GraphicsDevice, instance.measureGraphics);
+                    TextTextureRenderer.RenderText(message, font, texture);
                     instance.currentResources.Add(identifier, texture);
                 }
                 else
@@ -63,88 +60,6 @@ namespace Orts.Graphics.DrawableComponents
             point -= new Vector2(texture.Width * ((int)horizontalAlignment / 2f), texture.Height * ((int)verticalAlignment / 2f));
 
             (spriteBatch ?? instance.spriteBatch).Draw(texture, point, null, color, 0, Vector2.Zero, scale, effects, 0);
-        }
-
-        /// <summary>
-        /// Draws a text message with transparent background and returns a texture
-        /// </summary>
-        /// <returns></returns>
-        public static Texture2D DrawString(string message, System.Drawing.Font font)
-        {
-            // Measure the text with the already instantated measureGraphics object.
-            System.Drawing.Size measuredsize = instance.measureGraphics.MeasureString(message, font).ToSize();
-            if (measuredsize.Width == 0 || measuredsize.Height == 0)
-                return empty;
-
-            // Create the final bitmap
-            using (System.Drawing.Bitmap bmpSurface = new System.Drawing.Bitmap(measuredsize.Width, measuredsize.Height))
-            {
-                using (System.Drawing.Graphics g = System.Drawing.Graphics.FromImage(bmpSurface))
-                {
-                    g.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighQuality;
-                    g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.High;
-                    g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
-                    g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.SingleBitPerPixelGridFit;
-
-                    // Draw the text to the clean bitmap
-                    g.Clear(System.Drawing.Color.Transparent);
-                    g.DrawString(message, font, instance.fontBrush, System.Drawing.PointF.Empty);
-
-                    System.Drawing.Imaging.BitmapData bmd = bmpSurface.LockBits(new System.Drawing.Rectangle(0, 0, bmpSurface.Width, bmpSurface.Height),
-                        System.Drawing.Imaging.ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-                    int bufferSize = bmd.Height * bmd.Stride;
-                    //create data buffer 
-                    byte[] bytes = new byte[bufferSize];
-                    // copy bitmap data into buffer
-                    Marshal.Copy(bmd.Scan0, bytes, 0, bytes.Length);
-
-                    // copy our buffer to the texture
-                    Texture2D texture = new Texture2D(instance.Game.GraphicsDevice, bmpSurface.Width, bmpSurface.Height, false, SurfaceFormat.Bgra32);
-                    texture.SetData(bytes);
-                    // unlock the bitmap data
-                    bmpSurface.UnlockBits(bmd);
-
-                    return texture;
-                }
-            }
-        }
-
-        /// <summary>
-        /// draws a text message to an existing texture, which is preferable to update text
-        /// </summary>
-        public static void ReDrawString(string message, System.Drawing.Font font, Texture2D texture)
-        {
-            if (null == texture)
-                throw new ArgumentNullException(nameof(texture));
-
-            // Create the final bitmap
-            using (System.Drawing.Bitmap bmpSurface = new System.Drawing.Bitmap(texture.Width, texture.Height))
-            {
-                using (System.Drawing.Graphics g = System.Drawing.Graphics.FromImage(bmpSurface))
-                {
-                    g.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighQuality;
-                    g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.High;
-                    g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
-                    g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.SingleBitPerPixelGridFit;
-
-                    // Draw the text to the clean bitmap
-                    g.Clear(System.Drawing.Color.Transparent);
-                    g.DrawString(message, font, instance.fontBrush, System.Drawing.PointF.Empty);
-
-                    System.Drawing.Imaging.BitmapData bmd = bmpSurface.LockBits(new System.Drawing.Rectangle(0, 0, bmpSurface.Width, bmpSurface.Height),
-                        System.Drawing.Imaging.ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-                    int bufferSize = bmd.Height * bmd.Stride;
-                    //create data buffer 
-                    byte[] bytes = new byte[bufferSize];
-                    // copy bitmap data into buffer
-                    Marshal.Copy(bmd.Scan0, bytes, 0, bytes.Length);
-
-                    // copy our buffer to the texture
-                    texture.SetData(bytes);
-                    // unlock the bitmap data
-                    bmpSurface.UnlockBits(bmd);
-                }
-            }
         }
 
         private static int GetHashCode(System.Drawing.Font font, string message)

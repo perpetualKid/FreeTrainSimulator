@@ -36,7 +36,7 @@ namespace Orts.Graphics.DrawableComponents
                 Enabled = false;
                 Visible = false;
             }
-            InitializeSize(TimeSpan.Zero.ToString(formatMask, CultureInfo.DefaultThreadCurrentUICulture));
+            Resize(TimeSpan.Zero.ToString(formatMask, CultureInfo.DefaultThreadCurrentUICulture));
             Window_ClientSizeChanged(this, EventArgs.Empty);
         }
 
@@ -45,7 +45,7 @@ namespace Orts.Graphics.DrawableComponents
             get => formatMask;
             set 
             {
-                InitializeSize(TimeSpan.Zero.ToString(value, CultureInfo.DefaultThreadCurrentUICulture));
+                Resize(TimeSpan.Zero.ToString(value, CultureInfo.DefaultThreadCurrentUICulture));
                 formatMask = value;
             }
         }
@@ -66,7 +66,7 @@ namespace Orts.Graphics.DrawableComponents
             }
             if (timestamp != previousTimestamp)
             {
-                DrawString(timestamp);
+                RenderText(timestamp);
                 previousTimestamp = timestamp;
             }
             base.Update(gameTime);
@@ -74,7 +74,7 @@ namespace Orts.Graphics.DrawableComponents
 
         internal protected override void Enable(ContentArea content)
         {
-            InitializeSize(TimeSpan.Zero.ToString(formatMask, CultureInfo.DefaultThreadCurrentUICulture));
+            Resize(TimeSpan.Zero.ToString(formatMask, CultureInfo.DefaultThreadCurrentUICulture));
             base.Enable(content);
         }
 
