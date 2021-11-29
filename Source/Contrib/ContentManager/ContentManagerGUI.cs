@@ -114,7 +114,7 @@ namespace Orts.ContentManager
                 {
 
                     Content content = e.Node.Tag as Content;
-                    var nodes = await Task.Run(() => ExpandTreeView(content, ctsExpanding.Token)).ConfigureAwait(false);
+                    var nodes = await Task.Run(() => ExpandTreeView(content, ctsExpanding.Token)).ConfigureAwait(true);
 
                     //// Collapse node if we're going to end up with no child nodes.
                     if (!nodes.Any())

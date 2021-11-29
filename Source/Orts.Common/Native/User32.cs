@@ -35,7 +35,9 @@ namespace Orts.Common.Native
         { return GetKeyNameTextNative(scanCode, name, length); }
         [DllImport("user32.dll", EntryPoint = "GetKeyNameText", CharSet = CharSet.Unicode, SetLastError = true)]
         [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+#pragma warning disable CA1838 // Avoid 'StringBuilder' parameters for P/Invokes
         private static extern int GetKeyNameTextNative(int scanCode, [Out] StringBuilder name, int length);
+#pragma warning restore CA1838 // Avoid 'StringBuilder' parameters for P/Invokes
 
         public static IntPtr SendMessage(IntPtr hwnd, int msg, IntPtr wParam, ref CharFormat2 lParam)
         { return SendMessageNative(hwnd, msg, wParam, ref lParam); }

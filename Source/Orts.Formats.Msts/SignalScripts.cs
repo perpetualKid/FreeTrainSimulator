@@ -215,6 +215,9 @@ namespace Orts.Formats.Msts
         //================================================================================================//
         public SignalScripts(string routePath, IList<string> scriptFiles, IDictionary<string, SignalType> signalTypes)
         {
+            if (null == signalTypes)
+                throw new ArgumentNullException(nameof(signalTypes));
+
             Scripts = new Dictionary<SignalType, SCRScripts>();
 
 #if DEBUG_PRINT_PROCESS
@@ -233,7 +236,7 @@ namespace Orts.Formats.Msts
             File.Delete(dpr_fileLoc + @"printproc.txt");
 #endif
             // Process all files listed in SIGCFG
-            foreach (string fileName in scriptFiles)
+            foreach (string fileName in scriptFiles ?? Enumerable.Empty<string>())
             {
                 string fullName = Path.Combine(routePath, fileName);
                 try
@@ -275,7 +278,7 @@ namespace Orts.Formats.Msts
                 }
                 catch (Exception ex)
                 {
-                    Trace.TraceWarning($"Error reading signal script - {fullName} : {ex.ToString()}");
+                    Trace.TraceWarning($"Error reading signal script - {fullName} : {ex}");
                 }
             }
         }// Constructor
@@ -494,7 +497,7 @@ namespace Orts.Formats.Msts
 #pragma warning restore 210
             string scriptName = script.ScriptName;
             // try and find signal type with same name as script
-            if (signalTypes.TryGetValue(script.ScriptName.ToLower(), out SignalType signalType))
+            if (signalTypes.TryGetValue(script.ScriptName, out SignalType signalType))
             {
                 if (Scripts.ContainsKey(signalType))
                 {
@@ -515,7 +518,7 @@ namespace Orts.Formats.Msts
             // try and find any other signal types which reference this script
             foreach (KeyValuePair<string, SignalType> currentSignal in signalTypes)
             {
-                if (scriptName.Equals(currentSignal.Value.Script, StringComparison.InvariantCultureIgnoreCase))
+                if (scriptName.Equals(currentSignal.Value.Script, StringComparison.OrdinalIgnoreCase))
                 {
                     if (Scripts.ContainsKey(currentSignal.Value))
                     {
@@ -642,7 +645,7 @@ namespace Orts.Formats.Msts
                             }
                             else
                             {
-                                Trace.TraceWarning($"sigscr-file line {lineNumber.ToString()} : Unknown Blockstate : {definitions[1]} \n");
+                                Trace.TraceWarning($"sigscr-file line {lineNumber} : Unknown Blockstate : {definitions[1]} \n");
 #if DEBUG_PRINT_IN
                                 File.AppendAllText(din_fileLoc + @"sigscr.txt", $"Unknown Blockstate : {token.Token} \n");
 #endif
@@ -656,7 +659,7 @@ namespace Orts.Formats.Msts
                             }
                             else
                             {
-                                Trace.TraceWarning($"sigscr-file line {lineNumber.ToString()} : Unknown Aspect : {definitions[1]} \n");
+                                Trace.TraceWarning($"sigscr-file line {lineNumber} : Unknown Aspect : {definitions[1]} \n");
 #if DEBUG_PRINT_IN
                                 File.AppendAllText(din_fileLoc + @"sigscr.txt", $"Unknown Aspect : {token.Token} \n");
 #endif
@@ -671,7 +674,7 @@ namespace Orts.Formats.Msts
                             }
                             else
                             {
-                                Trace.TraceWarning($"sigscr-file line {lineNumber.ToString()} : Unknown SIGFN Type : {definitions[1]} \n");
+                                Trace.TraceWarning($"sigscr-file line {lineNumber} : Unknown SIGFN Type : {definitions[1]} \n");
 #if DEBUG_PRINT_IN
                                 File.AppendAllText(din_fileLoc + @"sigscr.txt", $"Unknown Type : {token.Token} \n");
 #endif
@@ -823,19 +826,17 @@ namespace Orts.Formats.Msts
 
                 private void ProcessScriptStatement(BlockBase statementBlock, int level, IDictionary<string, int> localFloats)
                 {
-                    string operatorString = string.Empty;
-                    bool negated = false;
-
                     while (statementBlock.Tokens.Count > 0)
                     {
-                        negated = false;
+                        bool negated = false;
+                        string operatorString;
                         if ((statementBlock.Tokens[0] as OperatorToken)?.OperatorType == OperatorType.Operation)
                         {
                             operatorString = statementBlock.Tokens[0].Token;
                             statementBlock.Tokens.RemoveAt(0);
                             if (statementBlock.Tokens.Count == 0)
                             {
-                                Trace.TraceWarning($"sigscr-file line {statementBlock.LineNumber} : Invalid statement syntax : {statementBlock.ToString()}");
+                                Trace.TraceWarning($"sigscr-file line {statementBlock.LineNumber} : Invalid statement syntax : {statementBlock}");
                                 StatementTerms.Clear();
                                 return;
                             }
@@ -901,8 +902,8 @@ namespace Orts.Formats.Msts
                 internal SCRStatTerm(int termNumber, int level, string operatorTerm)
                 {
                     // sublevel definition
-                    this.TermNumber = termNumber;
-                    this.TermLevel = level;
+                    TermNumber = termNumber;
+                    TermLevel = level;
 
                     TermOperator = TranslateOperator.TryGetValue(operatorTerm, out SCRTermOperator termOperator) ? termOperator : SCRTermOperator.NONE;
                 } // constructor

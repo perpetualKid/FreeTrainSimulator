@@ -215,7 +215,7 @@ namespace Orts.Formats.Msts
 
             public string TextureFile(string textureFile)
             {
-                return Path.Combine(ShapesFolder, textureFile);
+                return Path.Combine(TexturesFolder, textureFile);
             }
 
             public string WagonFile(string trainSetName, string wagonName)
