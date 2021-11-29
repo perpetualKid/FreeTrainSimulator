@@ -10,7 +10,8 @@ namespace Orts.Graphics.Xna
     {
         [ThreadStatic]
         private static Texture2D emptyTexture;
-        private static readonly Brush whiteBrush = new SolidBrush(Color.White);
+        [ThreadStatic]
+        private static Brush whiteBrush;
 
         public static void Resize(string text, Font font, ref Texture2D texture, GraphicsDevice graphicsDevice)
         {
@@ -66,7 +67,7 @@ namespace Orts.Graphics.Xna
 
                     // Draw the text to the clean bitmap
                     g.Clear(Color.Transparent);
-                    g.DrawString(text, font, whiteBrush, PointF.Empty);
+                    g.DrawString(text, font, whiteBrush ??= new SolidBrush(Color.White), PointF.Empty);
 
                     BitmapData bmd = bmpSurface.LockBits(new Rectangle(0, 0, bmpSurface.Width, bmpSurface.Height), ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
                     int bufferSize = bmd.Height * bmd.Stride;
