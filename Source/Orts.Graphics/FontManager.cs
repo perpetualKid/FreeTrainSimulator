@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 
 namespace Orts.Graphics
@@ -16,9 +17,7 @@ namespace Orts.Graphics
 
         public static FontManager Instance(string fontName, FontStyle style)
         {
-#pragma warning disable RS1024 // Compare symbols correctly
-            int hash = GetHashCode(fontName, style);
-#pragma warning restore RS1024 // Compare symbols correctly
+            int hash = HashCode.Combine(fontName, style);
             if (!fontManagerCache.TryGetValue(hash, out FontManager result))
             {
                 result = new FontManager(fontName, style);
@@ -29,12 +28,10 @@ namespace Orts.Graphics
 
         public static FontManager Instance(FontFamily fontFamily, FontStyle style)
         {
-#pragma warning disable RS1024 // Compare symbols correctly
-            int hash = GetHashCode(fontFamily, style);
-#pragma warning restore RS1024 // Compare symbols correctly
+            int hash = HashCode.Combine(fontFamily, style);
             if (!fontManagerCache.TryGetValue(hash, out FontManager result))
             {
-                result = new FontManager(fontFamily, style);
+                result = new FontManager(fontFamily ?? throw new ArgumentNullException(nameof(fontFamily)), style);
                 fontManagerCache.Add(hash, result);
             }
             return result;
@@ -65,31 +62,5 @@ namespace Orts.Graphics
             FontFamily = fontFamily;
             FontStyle = fontStyle;
         }
-
-
-        private static int GetHashCode(string fontName, FontStyle style)
-        {
-            unchecked // Overflow is fine, just wrap
-            {
-                int hash = 17;
-                hash *= fontName?.GetHashCode(System.StringComparison.OrdinalIgnoreCase) ?? 0;
-                hash <<= 8;
-                hash += (int)style;
-                return hash;
-            }
-        }
-
-        private static int GetHashCode(FontFamily fontFamily, FontStyle style)
-        {
-            unchecked // Overflow is fine, just wrap
-            {
-                int hash = 19;
-                hash *= fontFamily?.GetHashCode() ?? 0;
-                hash <<= 8;
-                hash += (int)style;
-                return hash;
-            }
-        }
-
     }
 }

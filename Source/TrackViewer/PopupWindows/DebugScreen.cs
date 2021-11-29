@@ -16,10 +16,9 @@ namespace Orts.TrackViewer.PopupWindows
         {
         }
 
-
-        protected override void DrawContent(SpriteBatch spriteBatch)
+        protected override void Draw(SpriteBatch spriteBatch)
         {
-            base.DrawContent(spriteBatch);
+            base.Draw(spriteBatch);
         }
     }
 }

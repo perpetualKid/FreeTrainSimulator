@@ -68,7 +68,7 @@ namespace Orts.Graphics.Window
         {
         }
 
-        internal protected virtual void DrawWindow()
+        internal protected virtual void WindowDraw()
         {
             ref readonly Matrix xnaView = ref Owner.XNAView;
             ref readonly Matrix xnaProjection = ref Owner.XNAProjection;
@@ -85,7 +85,7 @@ namespace Orts.Graphics.Window
             }
         }
 
-        internal protected virtual void DrawContent(SpriteBatch spriteBatch)
+        internal protected virtual void Draw(SpriteBatch spriteBatch)
         {
             windowLayout.Draw(spriteBatch, Borders.Location);
         }

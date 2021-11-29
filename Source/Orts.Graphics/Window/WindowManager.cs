@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -11,7 +10,6 @@ using Orts.Common;
 using Orts.Common.Info;
 using Orts.Common.Input;
 using Orts.Graphics.Shaders;
-using Orts.Graphics.Track;
 using Orts.Graphics.Window.Controls.Layout;
 
 namespace Orts.Graphics.Window
@@ -293,10 +291,10 @@ namespace Orts.Graphics.Window
             foreach (WindowBase window in windows)
             {
                 WindowShader.SetState(null);
-                window.DrawWindow();
+                window.WindowDraw();
                 WindowShader.ResetState();
                 spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, null, null, null, null);
-                window.DrawContent(spriteBatch);
+                window.Draw(spriteBatch);
                 spriteBatch.End();
             }
             base.Draw(gameTime);

@@ -40,9 +40,7 @@ namespace Orts.Graphics.DrawableComponents
             TextHorizontalAlignment horizontalAlignment = TextHorizontalAlignment.Left, TextVerticalAlignment verticalAlignment = TextVerticalAlignment.Bottom,
             SpriteEffects effects = SpriteEffects.None, SpriteBatch spriteBatch = null)
         {
-#pragma warning disable RS1024 // Compare symbols correctly
-            int identifier = GetHashCode(font, message);
-#pragma warning restore RS1024 // Compare symbols correctly
+            int identifier = HashCode.Combine(font, message);
             if (!instance.currentResources.TryGetValue(identifier, out Texture2D texture))
             {
                 if (!instance.previousResources.TryGetValue(identifier, out texture))
@@ -60,17 +58,6 @@ namespace Orts.Graphics.DrawableComponents
             point -= new Vector2(texture.Width * ((int)horizontalAlignment / 2f), texture.Height * ((int)verticalAlignment / 2f));
 
             (spriteBatch ?? instance.spriteBatch).Draw(texture, point, null, color, 0, Vector2.Zero, scale, effects, 0);
-        }
-
-        private static int GetHashCode(System.Drawing.Font font, string message)
-        {
-            unchecked // Overflow is fine, just wrap
-            {
-                int hash = 17;
-                hash = hash * 23 + font?.GetHashCode() ?? 0;
-                hash = hash * 23 + message?.GetHashCode(StringComparison.CurrentCulture) ?? 0;
-                return hash;
-            }
         }
     }
 }
