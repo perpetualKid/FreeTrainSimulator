@@ -50,7 +50,7 @@ namespace Orts.TrackViewer
 
         internal void ExitApplication()
         {
-            ((QuitWindow)windowManager[WindowType.QuitWindow]).Open();
+            windowManager[WindowType.QuitWindow].Open();
         }
 
         private void QuitWindow_OnPrintScreen(object sender, EventArgs e)
@@ -68,6 +68,11 @@ namespace Orts.TrackViewer
                 ctsRouteLoading.Cancel();
             SaveSettings();
             Exit();
+        }
+
+        private void ShowDebugScreen()
+        {
+            windowManager[WindowType.DebugScreen].ToggleVisibility();
         }
 
         public void MouseDragging(UserCommandArgs userCommandArgs)

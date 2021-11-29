@@ -15,5 +15,6 @@
         SetZoom,
         SetLocation,
         PrintScreen,
+        DebugScreen,
     }
 }

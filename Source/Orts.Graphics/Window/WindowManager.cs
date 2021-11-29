@@ -181,16 +181,6 @@ namespace Orts.Graphics.Window
             return false;
         }
 
-        internal bool WindowOpen(WindowBase window)
-        {
-            return windows.IndexOf(window) > -1;
-        }
-
-        internal WindowBase FindWindow(string caption)
-        {
-            return windows.Where(w => w.Caption == caption).FirstOrDefault();
-        }
-
         internal bool CloseWindow(WindowBase window)
         {
             if (window == modalWindow)
@@ -200,6 +190,21 @@ namespace Orts.Graphics.Window
                 OnModalWindow?.Invoke(this, new ModalWindowEventArgs(false));
             }
             return windows.Remove(window);
+        }
+
+        internal bool ToggleWindow(WindowBase window)
+        {
+            return WindowOpen(window) ? CloseWindow(window) : OpenWindow(window);
+        }
+
+        internal bool WindowOpen(WindowBase window)
+        {
+            return windows.IndexOf(window) > -1;
+        }
+
+        internal WindowBase FindWindow(string caption)
+        {
+            return windows.Where(w => w.Caption == caption).FirstOrDefault();
         }
 
         private void MouseMovedEvent(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)
