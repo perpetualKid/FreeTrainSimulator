@@ -27,6 +27,9 @@ namespace Orts.Common.Position
 
         public static PointD TileCenter(in ITile tile)
         {
+            if (tile == null)
+                throw new ArgumentNullException(nameof(tile));
+
             return new PointD(tile.X * Tile.TileSize, tile.Z * Tile.TileSize);
         }
 

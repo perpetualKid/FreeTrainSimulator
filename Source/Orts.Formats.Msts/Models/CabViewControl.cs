@@ -119,7 +119,7 @@ namespace Orts.Formats.Msts.Models
             string styleTemp = stf.ReadString();
             if (char.IsDigit(styleTemp[0]))
             {
-                styleTemp = (styleTemp + styleTemp.Substring(0, 2)).Remove(0, 2);
+                styleTemp = string.Concat(styleTemp.AsSpan(2), styleTemp.AsSpan(0, 2));
             }
             if (!EnumExtension.GetValue(styleTemp, out CabViewControlStyle style))
             {
