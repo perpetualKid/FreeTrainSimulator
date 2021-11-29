@@ -45,7 +45,7 @@ namespace Orts.TrackViewer
         private System.Windows.Forms.Screen currentScreen;
         private Point windowPosition;
         private System.Drawing.Size windowSize;
-        private Point clientRectangleOffset;
+        private readonly Point clientRectangleOffset;
         private Vector2 centerPoint;
 
         private readonly Action onClientSizeChanged;
@@ -385,6 +385,7 @@ namespace Orts.TrackViewer
             windowManager = WindowManager.Initialize<UserCommand, WindowType>(this, userCommandController.AddTopLayerController());
             windowManager[WindowType.QuitWindow] = new QuitWindow(windowManager, Settings.WindowLocations[WindowType.QuitWindow].ToPoint());
             windowManager[WindowType.StatusWindow] = new StatusTextWindow(windowManager, Settings.WindowLocations[WindowType.StatusWindow].ToPoint());
+            windowManager[WindowType.DebugScreen] = new DebugScreen(windowManager, "Debug");
             windowManager.OnModalWindow += WindowManager_OnModalWindow;
             BindWindowEventHandlersActions();
             Components.Add(windowManager);

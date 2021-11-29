@@ -296,7 +296,12 @@ namespace Orts.Settings
                 {
                     foreach (dynamic enumName in valueType.GetGenericArguments()[1].GetEnumValues())
                     {
-                        if (valueType.GetGenericArguments()[0].IsArray)
+                        if (defaultValue[enumName] == null)
+                        {
+                            value[enumName] = null;
+                            Trace.TraceWarning($"No Default value found for {name}[{enumName}], current values will not be stored. Consider providing a default value to enable storing of custom values.");
+                        }
+                        else if (valueType.GetGenericArguments()[0].IsArray)
                         {
                             if (((Array)value[enumName]).Length == ((Array)defaultValue[enumName]).Length)
                             {
