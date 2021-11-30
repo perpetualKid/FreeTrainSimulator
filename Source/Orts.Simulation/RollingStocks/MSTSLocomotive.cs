@@ -1385,7 +1385,6 @@ namespace Orts.Simulation.RollingStocks
             ControllerFactory.Save(BrakemanBrakeController, outf);
             ControllerFactory.Save(DynamicBrakeController, outf);
             ControllerFactory.Save(SteamHeatController, outf);
-            outf.Write(AcceptMUSignals);
             outf.Write(PowerReduction);
             outf.Write(ScoopIsBroken);
             outf.Write(IsWaterScoopDown);
@@ -1436,7 +1435,6 @@ namespace Orts.Simulation.RollingStocks
             ControllerFactory.Restore(BrakemanBrakeController, inf);
             ControllerFactory.Restore(DynamicBrakeController, inf);
             ControllerFactory.Restore(SteamHeatController, inf);
-            AcceptMUSignals = inf.ReadBoolean();
             PowerReduction = inf.ReadSingle();
             ScoopIsBroken = inf.ReadBoolean();
             IsWaterScoopDown = inf.ReadBoolean();
@@ -2021,7 +2019,7 @@ namespace Orts.Simulation.RollingStocks
             {
                 case TrainType.Ai:
                 case TrainType.AiPlayerHosting:
-                    if (AcceptMUSignals)
+                    if (RemoteControlGroup != RemoteControlGroup.Unconnected)
                     {
                         if (!LocomotivePowerSupply.MainPowerSupplyOn)
                         {
@@ -5327,7 +5325,7 @@ namespace Orts.Simulation.RollingStocks
                         foreach (var car in Train.Cars)
                         {
                             var dieselLoco = car as MSTSDieselLocomotive;
-                            if (dieselLoco != null && dieselLoco.AcceptMUSignals)
+                            if (dieselLoco != null && dieselLoco.RemoteControlGroup != RemoteControlGroup.Unconnected)
                             {
                                 if (car == simulator.PlayerLocomotive && dieselLoco.DieselEngines.Count > 1)
                                 {

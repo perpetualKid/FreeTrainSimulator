@@ -302,8 +302,6 @@ namespace Orts.Simulation.RollingStocks
         private bool ambientTemperatureInitialised;
         private float prevElev = -100f;
 
-        public bool AcceptMUSignals { get; protected set; } = true; //indicates if the car accepts multiple unit signals
-
         /// <summary>
         /// Indicates which remote control group the car is in.
         /// -1: unconnected, 0: sync/front group, 1: async/rear group
@@ -388,7 +386,7 @@ namespace Orts.Simulation.RollingStocks
             }
             set
             {
-                if (AcceptMUSignals && Train != null)
+                if (RemoteControlGroup != RemoteControlGroup.Unconnected && Train != null)
                     Train.MUDynamicBrakePercent = value;
                 else
                     LocalDynamicBrakePercent = value;

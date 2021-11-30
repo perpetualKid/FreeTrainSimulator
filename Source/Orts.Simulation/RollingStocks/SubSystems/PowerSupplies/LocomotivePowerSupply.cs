@@ -281,7 +281,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             {
                 DieselEngineState state = DieselEngineState.Unavailable;
 
-                foreach (MSTSDieselLocomotive locomotive in Train.Cars.OfType<MSTSDieselLocomotive>().Where((MSTSLocomotive locomotive) => { return locomotive.AcceptMUSignals; }))
+                foreach (MSTSDieselLocomotive locomotive in Train.Cars.OfType<MSTSDieselLocomotive>().Where(locomotive => locomotive.RemoteControlGroup != RemoteControlGroup.Unconnected))
                 {
                     if (locomotive == Simulator.PlayerLocomotive)
                     {
@@ -333,7 +333,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                 {
                     foreach (MSTSLocomotive locomotive in Locomotive.Train.Cars.OfType<MSTSLocomotive>())
                     {
-                        if (locomotive != Locomotive && locomotive != Locomotive.Train.LeadLocomotive && locomotive.AcceptMUSignals)
+                        if (locomotive != Locomotive && locomotive != Locomotive.Train.LeadLocomotive && locomotive.RemoteControlGroup != RemoteControlGroup.Unconnected)
                         {
                             locomotive.LocomotivePowerSupply.HandleEventFromLeadLocomotive(evt);
                         }
@@ -346,7 +346,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                 {
                     foreach (MSTSLocomotive locomotive in Locomotive.Train.Cars.OfType<MSTSLocomotive>())
                     {
-                        if (locomotive != Locomotive && locomotive != Locomotive.Train.LeadLocomotive && locomotive.AcceptMUSignals)
+                        if (locomotive != Locomotive && locomotive != Locomotive.Train.LeadLocomotive && locomotive.RemoteControlGroup != RemoteControlGroup.Unconnected)
                         {
                             locomotive.LocomotivePowerSupply.HandleEventFromLeadLocomotive(evt, id);
                         }
@@ -359,7 +359,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                 {
                     foreach (TrainCar car in Locomotive.Train.Cars)
                     {
-                        if (car != Locomotive && car != Locomotive.Train.LeadLocomotive && car.AcceptMUSignals)
+                        if (car != Locomotive && car != Locomotive.Train.LeadLocomotive && car.RemoteControlGroup != RemoteControlGroup.Unconnected)
                         {
                             car.PowerSupply?.HandleEventFromLeadLocomotive(evt);
                         }
@@ -372,7 +372,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
                 {
                     foreach (TrainCar car in Locomotive.Train.Cars)
                     {
-                        if (car != Locomotive && car != Locomotive.Train.LeadLocomotive && car.AcceptMUSignals)
+                        if (car != Locomotive && car != Locomotive.Train.LeadLocomotive && car.RemoteControlGroup != RemoteControlGroup.Unconnected)
                         {
                             car.PowerSupply?.HandleEventFromLeadLocomotive(evt, id);
                         }
@@ -383,7 +383,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             {
                 bool helperFound = false; //this avoids that locomotive engines toggle in opposite directions
 
-                foreach (MSTSDieselLocomotive locomotive in Train.Cars.OfType<MSTSDieselLocomotive>().Where((MSTSLocomotive locomotive) => { return locomotive.AcceptMUSignals; }))
+                foreach (MSTSDieselLocomotive locomotive in Train.Cars.OfType<MSTSDieselLocomotive>().Where(locomotive => locomotive.RemoteControlGroup != RemoteControlGroup.Unconnected))
                 {
                     if (locomotive == Simulator.PlayerLocomotive)
                     {
