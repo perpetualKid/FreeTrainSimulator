@@ -46,21 +46,13 @@ namespace Orts.TrackViewer
             this.mainmenu.Dock = DockStyle.Top;
             //windowForm.Controls.Add(mainmenu.Controls[0]);
             windowForm.Controls.Add(mainmenu);
-            this.statusbar = new WinForms.Controls.StatusbarControl(this);
-            this.statusbar.SuspendLayout();
-
-            this.statusbar.Dock = DockStyle.Bottom;
-            windowForm.Controls.Add(this.statusbar);
 
             this.mainmenu.ResumeLayout();
             this.mainmenu.PerformLayout();
-            this.statusbar.ResumeLayout(false);
-            this.statusbar.PerformLayout();
             windowForm.ResumeLayout(false);
             windowForm.PerformLayout();
         }
 
-        private TrackViewer.WinForms.Controls.StatusbarControl statusbar;
         private TrackViewer.WinForms.Controls.MainMenuControl mainmenu;
     }
 }

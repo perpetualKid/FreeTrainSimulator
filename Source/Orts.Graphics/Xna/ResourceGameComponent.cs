@@ -40,7 +40,7 @@ namespace Orts.Graphics.Xna
             if (gameTime?.TotalGameTime > nextSweep)
             {
 
-                (currentResources, previousResources, sweepResources) = (sweepResources, currentResources, currentResources);
+                (currentResources, previousResources, sweepResources) = (sweepResources, currentResources, previousResources);
                 if (disposableT)
                 {
                     foreach (T value in sweepResources.Values)

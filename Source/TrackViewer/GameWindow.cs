@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
@@ -15,6 +16,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 using Orts.Common;
 using Orts.Common.Calc;
+using Orts.Common.DebugInfo;
 using Orts.Common.Info;
 using Orts.Common.Input;
 using Orts.Common.Logging;
@@ -32,11 +34,13 @@ using UserCommand = Orts.TrackViewer.Control.UserCommand;
 
 namespace Orts.TrackViewer
 {
-    public partial class GameWindow : Game, IInputCapture
+    public partial class GameWindow : Game, IInputCapture, IDebugInformationProvider
     {
         private readonly GraphicsDeviceManager graphicsDeviceManager;
         private readonly System.Windows.Forms.Form windowForm;
         private readonly SmoothedData frameRate;
+        private readonly NameValueCollection debugInfo = new NameValueCollection();
+        private readonly Dictionary<string, FormatOption> formatOptions = new Dictionary<string,FormatOption>();
 
         private SpriteBatch spriteBatch;
 
@@ -109,6 +113,7 @@ namespace Orts.TrackViewer
                 Trace.WriteLine(LoggingUtil.SeparatorLine);
             }
             frameRate = new SmoothedData();
+            frameRate.Preset(60);
             windowForm = (System.Windows.Forms.Form)System.Windows.Forms.Control.FromHandle(Window.Handle);
             if (Settings.Screen < System.Windows.Forms.Screen.AllScreens.Length)
                 currentScreen = System.Windows.Forms.Screen.AllScreens[Settings.Screen];
@@ -151,7 +156,7 @@ namespace Orts.TrackViewer
 
             windowForm.FormClosing += WindowForm_FormClosing;
             LoadLanguage();
-
+            SystemInfo.SetGraphicAdapterInformation(graphicsDeviceManager.GraphicsDevice.Adapter.Description);
         }
 
         private void WindowForm_FormClosing(object sender, System.Windows.Forms.FormClosingEventArgs e)
@@ -315,7 +320,6 @@ namespace Orts.TrackViewer
                         graphicsDeviceManager.PreferredBackBufferWidth = windowSize.Width;
                         graphicsDeviceManager.PreferredBackBufferHeight = windowSize.Height;
                         graphicsDeviceManager.ApplyChanges();
-                        statusbar.UpdateStatusbarVisibility(true);
                         break;
                     case ScreenMode.WindowedFullscreen:
                         graphicsDeviceManager.PreferredBackBufferWidth = currentScreen.WorkingArea.Width - clientRectangleOffset.X;
@@ -323,7 +327,6 @@ namespace Orts.TrackViewer
                         windowForm.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
                         Window.Position = new Point(currentScreen.WorkingArea.Location.X, currentScreen.WorkingArea.Location.Y);
                         graphicsDeviceManager.ApplyChanges();
-                        statusbar.UpdateStatusbarVisibility(false);
                         break;
                     case ScreenMode.BorderlessFullscreen:
                         graphicsDeviceManager.PreferredBackBufferWidth = currentScreen.Bounds.Width;
@@ -332,7 +335,6 @@ namespace Orts.TrackViewer
                         windowForm.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
                         Window.Position = new Point(currentScreen.Bounds.X, currentScreen.Bounds.Y);
                         graphicsDeviceManager.ApplyChanges();
-                        statusbar.UpdateStatusbarVisibility(false);
                         break;
                 }
             });
@@ -386,6 +388,7 @@ namespace Orts.TrackViewer
             windowManager[WindowType.QuitWindow] = new QuitWindow(windowManager, Settings.WindowLocations[WindowType.QuitWindow].ToPoint());
             windowManager[WindowType.StatusWindow] = new StatusTextWindow(windowManager, Settings.WindowLocations[WindowType.StatusWindow].ToPoint());
             windowManager[WindowType.DebugScreen] = new DebugScreen(windowManager, "Debug");
+            (windowManager[WindowType.DebugScreen] as DebugScreen).DebugScreens[DebugScreenInformation.Common] = this;
             windowManager.OnModalWindow += WindowManager_OnModalWindow;
             BindWindowEventHandlersActions();
             Components.Add(windowManager);
@@ -424,6 +427,9 @@ namespace Orts.TrackViewer
 
         protected override void Update(GameTime gameTime)
         {
+            debugInfo["Version"] = VersionInfo.FullVersion;
+            debugInfo["Time"] = DateTime.Now.ToString(CultureInfo.CurrentCulture);
+            debugInfo["Scale"] = contentArea?.Scale.ToString(CultureInfo.CurrentCulture);
             if ((contentArea?.SuppressDrawing ?? false) && windowManager.SuppressDrawing && suppressCount-- > 0)
             {
                 SuppressDraw();
@@ -435,26 +441,19 @@ namespace Orts.TrackViewer
             base.Update(gameTime);
         }
 
-        private int drawTime;
-
         public bool InputCaptured { get; internal set; }
+
+        public NameValueCollection DebugInfo => debugInfo;
+
+        public Dictionary<string, FormatOption> FormattingOptions => formatOptions;
 
         protected override void Draw(GameTime gameTime)
         {
-            double elapsedRealTime = gameTime.ElapsedGameTime.TotalSeconds;
+            double elapsedRealTime = gameTime?.ElapsedGameTime.TotalSeconds ?? 1;
             frameRate.Update(elapsedRealTime, 1.0 / elapsedRealTime);
-            if ((int)gameTime.TotalGameTime.TotalSeconds > drawTime)
-            {
-                drawTime = (int)gameTime.TotalGameTime.TotalSeconds;
-                statusbar.toolStripStatusLabel1.Text = $"{1 / gameTime.ElapsedGameTime.TotalSeconds:0.0} - {frameRate.SmoothedValue:0.0}";
+            debugInfo["FPS"] = $"{1 / gameTime.ElapsedGameTime.TotalSeconds:0.0} - {frameRate.SmoothedValue:0.0}";
 
-            }
             GraphicsDevice.Clear(BackgroundColor);
-            statusbar.toolStripStatusLabel2.Text = contentArea?.Scale.ToString() ?? string.Empty;
-            spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, null, null, null);
-
-            spriteBatch.End();
-
             base.Draw(gameTime);
         }
     }
