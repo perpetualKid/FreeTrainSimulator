@@ -210,9 +210,9 @@ namespace Orts.Menu
             if (!clearedLogs)
             {
                 using (StreamWriter writer = File.CreateText(summaryFilePath))
-                    writer.WriteLine("Route, Activity, Passed, Errors, Warnings, Infos, Load Time, FPS");
+                    await writer.WriteLineAsync("Route, Activity, Passed, Errors, Warnings, Infos, Load Time, FPS").ConfigureAwait(false);
                 using (StreamWriter writer = File.CreateText(logFilePath))
-                    writer.Flush();
+                    await writer.FlushAsync().ConfigureAwait(false);
                 clearedLogs = true;
             }
 
@@ -227,7 +227,7 @@ namespace Orts.Menu
             using (StreamReader reader = File.OpenText(summaryFilePath))
             {
                 reader.BaseStream.Seek(summaryFilePosition, SeekOrigin.Begin);
-                string line = reader.ReadLine();
+                string line = await reader.ReadLineAsync().ConfigureAwait(false);
                 if (!string.IsNullOrEmpty(line) && reader.EndOfStream)
                 {
                     string[] csv = line.Split(',');
@@ -237,7 +237,7 @@ namespace Orts.Menu
                 }
                 else
                 {
-                    reader.ReadToEnd();
+                    await reader.ReadToEndAsync().ConfigureAwait(false);
                     activity.Passed = false;
                 }
                 summaryFilePosition = reader.BaseStream.Position;

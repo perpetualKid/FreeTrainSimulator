@@ -111,7 +111,7 @@ namespace Orts.Menu
             {
                 string name = command.GetLocalizedDescription();
                 string category, description;
-                int index = name.IndexOf(' ');
+                int index = name.IndexOf(' ', StringComparison.OrdinalIgnoreCase);
                 if (index == -1)
                 {
                     category = string.Empty;
@@ -119,8 +119,8 @@ namespace Orts.Menu
                 }
                 else
                 {
-                    category = name.Substring(0, index);
-                    description = name.Substring(index + 1);
+                    category = name[..index];
+                    description = name[(index + 1)..];
                 }
 
                 if (category != previousCategory)
