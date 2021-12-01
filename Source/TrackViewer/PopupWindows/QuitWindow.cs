@@ -10,7 +10,6 @@ using Orts.Graphics.Window;
 using Orts.Graphics.Window.Controls;
 using Orts.Graphics.Window.Controls.Layout;
 using Orts.TrackViewer.Control;
-using Orts.TrackViewer.Settings;
 
 namespace Orts.TrackViewer.PopupWindows
 {
@@ -25,8 +24,8 @@ namespace Orts.TrackViewer.PopupWindows
         public event EventHandler OnPrintScreen;
 
         public QuitWindow(WindowManager owner, Point relativeLocation) :
-            base(owner, CatalogManager.Catalog.GetString($"Exit {RuntimeInfo.ApplicationName}"), relativeLocation,
-                new Point(200, 75))
+            base(owner ?? throw new ArgumentNullException(nameof(owner)), CatalogManager.Catalog.GetString($"Exit {RuntimeInfo.ApplicationName}"), relativeLocation,
+                new Point(owner.DefaultFontSize * 16, (int)(owner.DefaultFontSize * 4.5 + 20)))
         {
             Modal = true;
             ZOrder = 100;
@@ -51,6 +50,11 @@ namespace Orts.TrackViewer.PopupWindows
             printScreenButton.OnClick += PrintScreenButton_OnClick;
             layout.Add(printScreenButton);
             return layout;
+        }
+
+        public override bool Open()
+        {
+            return base.Open();
         }
 
         private void PrintScreenButton_OnClick(object sender, MouseClickEventArgs e)
