@@ -916,7 +916,7 @@ namespace Orts.Simulation.RollingStocks
             if (ThrottlePercent > 0)
             {
                 if (ThrottleController.NotchCount() > 3)
-                    throttle = Simulator.Catalog.GetParticularString("Notch", "N") + ThrottleController.GetNearestNotch(ThrottlePercent / 100f);
+                    throttle = Simulator.Catalog.GetParticularString("Notch", "N") + MathHelper.Clamp(ThrottleController.GetNearestNotch(ThrottlePercent / 100f), 1, 8);
                 else
                     throttle = $"{ThrottlePercent:F0}%";
             }
