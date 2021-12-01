@@ -268,7 +268,7 @@ namespace Orts.TrackViewer.WinForms.Controls
 
         private void MenuItemQuit_Click(object sender, EventArgs e)
         {
-            parent.ExitApplication();
+            parent.PrepareExitApplication();
         }
 
         private void LoadAtStartupMenuItem_Click(object sender, EventArgs e)

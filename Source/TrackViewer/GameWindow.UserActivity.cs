@@ -29,7 +29,7 @@ namespace Orts.TrackViewer
 
         public void CloseWindow()
         {
-            ExitApplication();
+            PrepareExitApplication();
         }
 
         private void BindWindowEventHandlersActions()
@@ -48,7 +48,7 @@ namespace Orts.TrackViewer
             }
         }
 
-        internal void ExitApplication()
+        internal void PrepareExitApplication()
         {
             windowManager[WindowType.QuitWindow].Open();
         }

@@ -9,6 +9,8 @@ using Orts.Common.Info;
 using Orts.Graphics.Window;
 using Orts.Graphics.Window.Controls;
 using Orts.Graphics.Window.Controls.Layout;
+using Orts.TrackViewer.Control;
+using Orts.TrackViewer.Settings;
 
 namespace Orts.TrackViewer.PopupWindows
 {
@@ -27,6 +29,7 @@ namespace Orts.TrackViewer.PopupWindows
                 new Point(200, 75))
         {
             Modal = true;
+            ZOrder = 100;
         }
 
         protected override ControlLayout Layout(ControlLayout layout)
@@ -34,7 +37,7 @@ namespace Orts.TrackViewer.PopupWindows
             if (null == layout)
                 throw new ArgumentNullException(nameof(layout));
 
-            quitButton = new Label(this, layout.RemainingWidth / 2, Owner.TextFontDefault.Height, CatalogManager.Catalog.GetString("Quit"), LabelAlignment.Center);
+            quitButton = new Label(this, layout.RemainingWidth / 2, Owner.TextFontDefault.Height, CatalogManager.Catalog.GetString($"Quit ({InputSettings.UserCommands[UserCommand.QuitGame]})"), LabelAlignment.Center);
             quitButton.OnClick += QuitButton_OnClick;
             cancelButton = new Label(this, layout.RemainingWidth / 2, Owner.TextFontDefault.Height, CatalogManager.Catalog.GetString("Cancel"), LabelAlignment.Center);
             cancelButton.OnClick += CancelButton_OnClick;
@@ -44,7 +47,7 @@ namespace Orts.TrackViewer.PopupWindows
             buttonLine.AddVerticalSeparator();
             buttonLine.Add(cancelButton);
             layout.AddHorizontalSeparator(false);
-            printScreenButton = new Label(this, layout.RemainingWidth, Owner.TextFontDefault.Height, CatalogManager.Catalog.GetString("Take Screenshot"), LabelAlignment.Center);
+            printScreenButton = new Label(this, layout.RemainingWidth, Owner.TextFontDefault.Height, CatalogManager.Catalog.GetString($"Take Screenshot ({InputSettings.UserCommands[UserCommand.PrintScreen]})"), LabelAlignment.Center);
             printScreenButton.OnClick += PrintScreenButton_OnClick;
             layout.Add(printScreenButton);
             return layout;

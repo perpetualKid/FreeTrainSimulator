@@ -28,7 +28,7 @@ namespace Orts.Graphics.Window
     {
         [ThreadStatic]
         private static WindowManager instance;
-        private readonly List<WindowBase> windows = new List<WindowBase>();
+        private List<WindowBase> windows = new List<WindowBase>();
         private WindowBase modalWindow; // if modalWindow is set, no other Window can be activated or interacted with
 
         internal Texture2D windowTexture;
@@ -46,6 +46,9 @@ namespace Orts.Graphics.Window
         public System.Drawing.Font TextFontDefault { get; }
         public System.Drawing.Font TextFontDefaultBold { get; }
 
+        public string DefaultFont { get; } = "Segoe UI";
+        public int DefaultFontSize { get; } = 13;
+
         //publish some events to allow interaction between XNA WindowManager and outside Window world
         public event EventHandler<ModalWindowEventArgs> OnModalWindow;
 
@@ -56,7 +59,6 @@ namespace Orts.Graphics.Window
         private protected WindowManager(Game game) :
             base(game)
         {
-
             DpiScaling = SystemInfo.DisplayScalingFactor(System.Windows.Forms.Screen.FromControl((System.Windows.Forms.Form)System.Windows.Forms.Control.FromHandle(game.Window.Handle)));
             ControlLayout.ScaleFactor = DpiScaling;
             clientBounds = Game.Window.ClientBounds;
@@ -79,8 +81,8 @@ namespace Orts.Graphics.Window
             WindowShader.Opacity = 0.6f;
             WindowShader.WindowTexture = windowTexture;
 
-            TextFontDefault = FontManager.Scaled("Segoe UI", System.Drawing.FontStyle.Regular)[13];
-            TextFontDefaultBold = FontManager.Scaled("Segoe UI", System.Drawing.FontStyle.Bold)[13];
+            TextFontDefault = FontManager.Scaled(DefaultFont, System.Drawing.FontStyle.Regular)[DefaultFontSize];
+            TextFontDefaultBold = FontManager.Scaled(DefaultFont, System.Drawing.FontStyle.Bold)[DefaultFontSize];
 
             UpdateSize();
         }
@@ -169,7 +171,7 @@ namespace Orts.Graphics.Window
             {
                 SuppressDrawing = false;
                 window.UpdateLocation();
-                windows.Add(window);
+                windows = windows.Append(window).OrderBy(w => w.ZOrder).ToList();
                 if (window.Modal)
                 {
                     modalWindow = window;
@@ -188,7 +190,13 @@ namespace Orts.Graphics.Window
                 modalWindow = null;
                 OnModalWindow?.Invoke(this, new ModalWindowEventArgs(false));
             }
-            return windows.Remove(window);
+            List<WindowBase> updatedWindowList = windows.ToList();
+            if (updatedWindowList.Remove(window))
+            {
+                windows = updatedWindowList;
+                return true;
+            }
+            return false;
         }
 
         internal bool ToggleWindow(WindowBase window)
@@ -279,8 +287,14 @@ namespace Orts.Graphics.Window
                 {
                     userCommandArgs.Handled = true;
                     if (mouseActiveWindow != windows.Last())
-                        if (windows.Remove(mouseActiveWindow))
-                            windows.Add(mouseActiveWindow);
+                    {
+                        List<WindowBase> updatedWindowList = windows.ToList();
+                        if (updatedWindowList.Remove(mouseActiveWindow))
+                        {
+                            updatedWindowList.Add(mouseActiveWindow);
+                            windows = updatedWindowList;
+                        }
+                    }
                 }
             }
         }

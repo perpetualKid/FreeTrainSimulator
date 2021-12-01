@@ -38,6 +38,8 @@ namespace Orts.Graphics.Window
 
         public bool Interactive { get; protected set; } = true;
 
+        public int ZOrder { get; protected set; }
+
         protected WindowBase(WindowManager owner, string caption, Point relativeLocation, Point size)
         {
             Owner = owner ?? throw new ArgumentNullException(nameof(owner));

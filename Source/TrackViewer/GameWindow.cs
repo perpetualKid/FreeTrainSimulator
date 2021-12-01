@@ -165,7 +165,7 @@ namespace Orts.TrackViewer
         private void WindowForm_FormClosing(object sender, System.Windows.Forms.FormClosingEventArgs e)
         {
             e.Cancel = true;
-            ExitApplication();
+            PrepareExitApplication();
         }
 
         #region window size/position handling
@@ -455,6 +455,10 @@ namespace Orts.TrackViewer
             double elapsedRealTime = gameTime?.ElapsedGameTime.TotalSeconds ?? 1;
             frameRate.Update(elapsedRealTime, 1.0 / elapsedRealTime);
             debugInfo["FPS"] = $"{1 / gameTime.ElapsedGameTime.TotalSeconds:0.0} - {frameRate.SmoothedValue:0.0}";
+            if (frameRate.SmoothedValue < 50f)
+                formatOptions["FPS"] = FormatOption.BoldOrangeRed;
+            else
+                formatOptions["FPS"] = null;
 
             GraphicsDevice.Clear(BackgroundColor);
             base.Draw(gameTime);

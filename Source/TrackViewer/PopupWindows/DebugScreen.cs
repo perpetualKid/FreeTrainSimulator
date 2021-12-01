@@ -20,7 +20,7 @@ namespace Orts.TrackViewer.PopupWindows
 
     public class DebugScreen : OverlayWindowBase
     {
-        private readonly List<ValueTuple<Vector2, Texture2D, Color>> drawItems = new List<(Vector2, Texture2D, Color)> ();
+        private readonly List<ValueTuple<Vector2, Texture2D, Color>> drawItems = new List<(Vector2, Texture2D, Color)>();
         private readonly Color color = Color.White;
         private readonly System.Drawing.Font font;
 
@@ -31,8 +31,9 @@ namespace Orts.TrackViewer.PopupWindows
         public DebugScreen(WindowManager owner, string caption) :
             base(owner, caption, Point.Zero, Point.Zero)
         {
-            font = FontManager.Scaled("Segoe UI", System.Drawing.FontStyle.Regular)[14];
+            font = FontManager.Scaled("Segoe UI", System.Drawing.FontStyle.Regular)[13];
             textureHolder = new TextTextureResourceHolder(Owner.Game);
+            ZOrder = 0;
         }
 
         protected override void Update(GameTime gameTime)
@@ -45,19 +46,17 @@ namespace Orts.TrackViewer.PopupWindows
                 int hashCode;
                 foreach (string identifier in provider.DebugInfo)
                 {
-                    if (provider.FormattingOptions.TryGetValue(identifier, out FormatOption formatOption))
+                    System.Drawing.Font currentFont = font;
+                    if (provider.FormattingOptions.TryGetValue(identifier, out FormatOption formatOption) && formatOption != null)
                     {
-                        hashCode = HashCode.Combine(identifier, formatOption);
+                        currentFont = FontManager.Scaled("Segoe UI", formatOption.FontStyle)[13];
                     }
-                    else
-                    {
-                        hashCode = HashCode.Combine(identifier, formatOption);
-                        Texture2D texture = textureHolder.PrepareResource(identifier, font);
-                        drawItems.Add((new Vector2(10, lineOffset), texture, color));
-                        texture = textureHolder.PrepareResource(provider.DebugInfo[identifier], font); 
-                        drawItems.Add((new Vector2(100, lineOffset), texture, color));
-                        lineOffset += 20;
-                    }
+                    hashCode = HashCode.Combine(identifier, formatOption);
+                    Texture2D texture = textureHolder.PrepareResource(identifier, currentFont);
+                    drawItems.Add((new Vector2(10, lineOffset), texture, formatOption?.TextColor ?? color));
+                    texture = textureHolder.PrepareResource(provider.DebugInfo[identifier], currentFont);
+                    drawItems.Add((new Vector2(100, lineOffset), texture, formatOption?.TextColor ?? color));
+                    lineOffset += 20;
                 }
                 //
             }

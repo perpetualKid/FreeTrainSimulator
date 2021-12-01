@@ -84,7 +84,7 @@ namespace Orts.Graphics.DrawableComponents
 
         public override void Update(GameTime gameTime)
         {
-            if (scale == content.Scale && texture != null)
+            if (!Enabled || (scale == content.Scale && texture != null))
             {
                 base.Update(gameTime);
                 return;

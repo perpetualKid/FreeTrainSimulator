@@ -52,7 +52,7 @@ namespace Orts.Graphics.DrawableComponents
 
         public override void Update(GameTime gameTime)
         {
-            if (texture == null)
+            if (Enabled && texture == null)
                 texture = DrawTrackInset();
             base.Update(gameTime);
         }
