@@ -33,7 +33,7 @@ namespace Orts.Graphics.Track
         private readonly SpriteBatch spriteBatch;
         internal SpriteBatch SpriteBatch => spriteBatch;
 
-        private readonly FontManager fontManager;
+        private readonly FontManagerInstance fontManager;
         private System.Drawing.Font currentFont;
 
         private double previousScale;
@@ -77,7 +77,7 @@ namespace Orts.Graphics.Track
             TrackContent = trackContent ?? throw new ArgumentNullException(nameof(trackContent));
             bounds = trackContent.Bounds;
             spriteBatch = new SpriteBatch(GraphicsDevice);
-            fontManager = FontManager.Instance("Segoe UI", System.Drawing.FontStyle.Regular);
+            fontManager = FontManager.Exact("Segoe UI", System.Drawing.FontStyle.Regular);
             inputComponent = game.Components.OfType<MouseInputGameComponent>().Single();
             inputComponent.AddMouseEvent(MouseMovedEventType.MouseMoved, MouseMove);
 

@@ -6,7 +6,6 @@ using Microsoft.Xna.Framework.Graphics;
 using Orts.Common.Input;
 using Orts.Graphics.Window.Controls;
 using Orts.Graphics.Window.Controls.Layout;
-using Orts.Graphics.Xna;
 
 namespace Orts.Graphics.Window
 {

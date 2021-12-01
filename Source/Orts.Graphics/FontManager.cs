@@ -6,7 +6,63 @@ namespace Orts.Graphics
 {
     public class FontManager
     {
-        private static readonly Dictionary<int, FontManager> fontManagerCache = new Dictionary<int, FontManager>();
+        private static readonly Dictionary<int, FontManagerInstance> fontManagerCache = new Dictionary<int, FontManagerInstance>();
+
+        public string FontName { get; }
+
+        public FontFamily FontFamily { get; }
+
+        public FontStyle FontStyle { get; }
+
+        public static float ScalingFactor { get; set; } = 1.0f;
+
+        public static FontManagerInstance Exact(string fontName, FontStyle style)
+        {
+            int hash = HashCode.Combine(fontName, style);
+            if (!fontManagerCache.TryGetValue(hash, out FontManagerInstance result))
+            {
+                result = new FontManagerInstance(fontName, style);
+                fontManagerCache.Add(hash, result);
+            }
+            return result;
+        }
+
+        public static FontManagerInstance Exact(FontFamily fontFamily, FontStyle style)
+        {
+            int hash = HashCode.Combine(fontFamily, style);
+            if (!fontManagerCache.TryGetValue(hash, out FontManagerInstance result))
+            {
+                result = new FontManagerInstance(fontFamily ?? throw new ArgumentNullException(nameof(fontFamily)), style);
+                fontManagerCache.Add(hash, result);
+            }
+            return result;
+        }
+
+        public static FontManagerInstance Scaled(string fontName, FontStyle style)
+        {
+            int hash = HashCode.Combine(fontName, style);
+            if (!fontManagerCache.TryGetValue(hash, out FontManagerInstance result))
+            {
+                result = new FontManagerInstance(fontName, style, ScalingFactor);
+                fontManagerCache.Add(hash, result);
+            }
+            return result;
+        }
+
+        public static FontManagerInstance Scaled(FontFamily fontFamily, FontStyle style)
+        {
+            int hash = HashCode.Combine(fontFamily, style);
+            if (!fontManagerCache.TryGetValue(hash, out FontManagerInstance result))
+            {
+                result = new FontManagerInstance(fontFamily ?? throw new ArgumentNullException(nameof(fontFamily)), style, ScalingFactor);
+                fontManagerCache.Add(hash, result);
+            }
+            return result;
+        }
+    }
+
+    public sealed class FontManagerInstance
+    {
         private readonly Dictionary<int, Font> fontCache = new Dictionary<int, Font>();
 
         public string FontName { get; }
@@ -15,52 +71,35 @@ namespace Orts.Graphics
 
         public FontStyle FontStyle { get; }
 
-        public static FontManager Instance(string fontName, FontStyle style)
+        public float DpiScale { get; }
+
+        internal FontManagerInstance(string fontName, FontStyle fontStyle, float scale = 1.0f)
         {
-            int hash = HashCode.Combine(fontName, style);
-            if (!fontManagerCache.TryGetValue(hash, out FontManager result))
-            {
-                result = new FontManager(fontName, style);
-                fontManagerCache.Add(hash, result);
-            }
-            return result;
+            FontName = fontName;
+            FontStyle = fontStyle;
+            DpiScale = scale;
         }
 
-        public static FontManager Instance(FontFamily fontFamily, FontStyle style)
+        internal FontManagerInstance(FontFamily fontFamily, FontStyle fontStyle, float scale = 1.0f)
         {
-            int hash = HashCode.Combine(fontFamily, style);
-            if (!fontManagerCache.TryGetValue(hash, out FontManager result))
-            {
-                result = new FontManager(fontFamily ?? throw new ArgumentNullException(nameof(fontFamily)), style);
-                fontManagerCache.Add(hash, result);
-            }
-            return result;
+            FontName = fontFamily.Name;
+            FontFamily = fontFamily;
+            FontStyle = fontStyle;
+            DpiScale = scale;
         }
 
         public Font this[int size]
         {
-            get 
+            get
             {
                 if (!fontCache.TryGetValue(size, out Font result))
                 {
-                    result = FontFamily != null ? new Font(FontFamily, size, FontStyle, GraphicsUnit.Pixel): new Font(FontName, size, FontStyle, GraphicsUnit.Pixel);
+                    result = FontFamily != null ? new Font(FontFamily, size * DpiScale, FontStyle, GraphicsUnit.Pixel) : new Font(FontName, size * DpiScale, FontStyle, GraphicsUnit.Pixel);
                     fontCache.Add(size, result);
                 }
                 return result;
             }
         }
 
-        private FontManager(string fontName, FontStyle fontStyle)
-        {
-            FontName = fontName;
-            FontStyle = fontStyle;
-        }
-
-        private FontManager(FontFamily fontFamily, FontStyle fontStyle)
-        {
-            FontName = fontFamily.Name;
-            FontFamily = fontFamily;
-            FontStyle = fontStyle;
-        }
     }
 }

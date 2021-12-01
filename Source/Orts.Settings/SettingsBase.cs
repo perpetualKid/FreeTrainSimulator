@@ -299,7 +299,7 @@ namespace Orts.Settings
                         if (defaultValue[enumName] == null)
                         {
                             value[enumName] = null;
-                            Trace.TraceWarning($"No Default value found for {name}[{enumName}], current values will not be stored. Consider providing a default value to enable storing of custom values.");
+                            Debug.WriteLine($"No Default value found for {name}[{enumName}], current values will not be stored. Consider providing a default value to enable storing of custom values.");
                         }
                         else if (valueType.GetGenericArguments()[0].IsArray)
                         {

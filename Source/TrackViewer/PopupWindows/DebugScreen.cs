@@ -31,7 +31,7 @@ namespace Orts.TrackViewer.PopupWindows
         public DebugScreen(WindowManager owner, string caption) :
             base(owner, caption, Point.Zero, Point.Zero)
         {
-            font = FontManager.Instance("Segoe UI", System.Drawing.FontStyle.Regular)[14];
+            font = FontManager.Scaled("Segoe UI", System.Drawing.FontStyle.Regular)[14];
             textureHolder = new TextTextureResourceHolder(Owner.Game);
         }
 

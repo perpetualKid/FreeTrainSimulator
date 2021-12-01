@@ -49,7 +49,9 @@ namespace Orts.TrackViewer
                                     ">>> Click OK to report this error on the GitHub bug tracker <<<",
                                     $"{RuntimeInfo.ApplicationName} {VersionInfo.Version}", MessageBoxButtons.OKCancel, MessageBoxIcon.Error);
                             if (openTracker == DialogResult.OK)
+#pragma warning disable CA2234 // Pass system uri objects instead of strings
                                 SystemInfo.OpenBrowser(LoggingUtil.BugTrackerUrl);
+#pragma warning restore CA2234 // Pass system uri objects instead of strings
                         }
 
                     }

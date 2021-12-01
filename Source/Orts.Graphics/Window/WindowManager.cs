@@ -79,9 +79,8 @@ namespace Orts.Graphics.Window
             WindowShader.Opacity = 0.6f;
             WindowShader.WindowTexture = windowTexture;
 
-            int fontSize = (int)Math.Round(13 * DpiScaling);
-            TextFontDefault = FontManager.Instance("Segoe UI", System.Drawing.FontStyle.Regular)[fontSize];
-            TextFontDefaultBold = FontManager.Instance("Segoe UI", System.Drawing.FontStyle.Bold)[fontSize];
+            TextFontDefault = FontManager.Scaled("Segoe UI", System.Drawing.FontStyle.Regular)[13];
+            TextFontDefaultBold = FontManager.Scaled("Segoe UI", System.Drawing.FontStyle.Bold)[13];
 
             UpdateSize();
         }
