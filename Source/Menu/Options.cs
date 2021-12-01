@@ -620,7 +620,7 @@ namespace Orts.Menu
 
         private async void PresetUpdateSelections()
         {
-            if (string.Compare(settings.UpdateSource, settings.GetDefaultValue(nameof(settings.UpdateSource)) as string, StringComparison.OrdinalIgnoreCase) != 0)
+            if (!string.Equals(settings.UpdateSource, settings.GetDefaultValue(nameof(settings.UpdateSource)) as string, StringComparison.OrdinalIgnoreCase))
             {
                 rbDeveloperPrereleases.Checked = true;
             }
