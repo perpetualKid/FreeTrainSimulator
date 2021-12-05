@@ -22,9 +22,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
+using GetText;
+
 using Microsoft.Xna.Framework;
 using Orts.Common;
 using Orts.MultiPlayer;
+using Orts.Simulation;
 
 namespace Orts.ActivityRunner.Viewer3D.Popups
 {
@@ -318,10 +321,10 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             UpdateDataEnded = false;
             // First Block
             // Client and server may have a time difference.
-            var time = FormatStrings.FormatTime(viewer.Simulator.ClockTime + (MultiPlayer.MultiPlayerManager.IsClient() ? MultiPlayer.MultiPlayerManager.Instance().serverTimeDifference : 0));
+            var time = FormatStrings.FormatTime(viewer.Simulator.ClockTime + (MultiPlayerManager.IsClient() ? MultiPlayerManager.Instance().serverTimeDifference : 0));
             AddLabel(new ListLabel
             {
-                FirstCol = $"{Viewer.Catalog.GetString("Time")}: {time}",
+                FirstCol = $"{CatalogManager.Catalog.GetString("Time")}: {time}",
                 LastCol = ""
             });
 
@@ -333,11 +336,11 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             {
                 string text = MultiPlayerManager.Instance().GetOnlineUsersInfo();
                 string multiPlayerStatus = MultiPlayerManager.IsServer()
-                    ? $"{Viewer.Catalog.GetString("Dispatcher")} ({MultiPlayerManager.Client.UserName})" : MultiPlayerManager.Instance().AmAider
-                    ? Viewer.Catalog.GetString("Helper") : MultiPlayerManager.IsClient()
-                    ? $"{Viewer.Catalog.GetString("Client")} ({MultiPlayerManager.Client.UserName})" : "";
+                    ? $"{CatalogManager.Catalog.GetString("Dispatcher")} ({MultiPlayerManager.Client.UserName})" : MultiPlayerManager.Instance().AmAider
+                    ? CatalogManager.Catalog.GetString("Helper") : MultiPlayerManager.IsClient()
+                    ? $"{CatalogManager.Catalog.GetString("Client")} ({MultiPlayerManager.Client.UserName})" : "";
 
-                var status = $"{Viewer.Catalog.GetString("Status")}: {multiPlayerStatus}";
+                var status = $"{CatalogManager.Catalog.GetString("Status")}: {multiPlayerStatus}";
 
                 AddLabel(new ListLabel
                 {
@@ -358,9 +361,9 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 }
                 AddLabel(new ListLabel());
             }
-            else if (MultiPlayerManager.Simulator.Confirmer != null)
+            else if (Simulator.Instance.Confirmer != null)
             {
-                var status = $"{Viewer.Catalog.GetString("Status")}: {MultiPlayerManager.Catalog.GetString("Connection to the server is lost, will play as single mode")}";
+                var status = $"{CatalogManager.Catalog.GetString("Status")}: {CatalogManager.Catalog.GetString("Connection to the server is lost, will play as single mode")}";
                 AddLabel(new ListLabel
                 {
                     FirstCol = status,
@@ -387,11 +390,11 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 MultiplayerUpdating = false;
 
                 // Ctrl + F (FiringIsManual)
-                if (ResizeWindow || LinesCount != labels.Count())
+                if (ResizeWindow || LinesCount != labels.Count)
                 {
                     ResizeWindow = false;
                     UpdateWindowSize();
-                    LinesCount = labels.Count();
+                    LinesCount = labels.Count;
                 }
                 //Resize this window after the font has been changed externally
                 if (TrainDrivingWindow.FontChanged)

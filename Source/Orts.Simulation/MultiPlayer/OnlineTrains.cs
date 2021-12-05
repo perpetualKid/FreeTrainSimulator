@@ -68,7 +68,7 @@ namespace Orts.MultiPlayer
             if (move == null) move = new MSGMove();
             foreach (OnlinePlayer p in Players.Values)
             {
-                if (p.Train != null && MultiPlayerManager.Simulator.PlayerLocomotive != null && !(p.Train == MultiPlayerManager.Simulator.PlayerLocomotive.Train && p.Train.TrainType != TrainType.Remote))
+                if (p.Train != null && Simulator.Instance.PlayerLocomotive != null && !(p.Train == Simulator.Instance.PlayerLocomotive.Train && p.Train.TrainType != TrainType.Remote))
                 {
                     if (Math.Abs(p.Train.SpeedMpS) > 0.001 || Math.Abs(p.Train.LastReportedSpeed) > 0)
                     {
@@ -76,9 +76,9 @@ namespace Orts.MultiPlayer
                     }
                 }
             }
-            foreach (Train t in MultiPlayerManager.Simulator.Trains)
+            foreach (Train t in Simulator.Instance.Trains)
             {
-                if (MultiPlayerManager.Simulator.PlayerLocomotive != null && t == MultiPlayerManager.Simulator.PlayerLocomotive.Train) continue;//player drived train
+                if (Simulator.Instance.PlayerLocomotive != null && t == Simulator.Instance.PlayerLocomotive.Train) continue;//player drived train
                 if (t == null || findTrain(t)) continue;//is an online player controlled train
                 if (Math.Abs(t.SpeedMpS) > 0.001 || Math.Abs(t.LastReportedSpeed) > 0)
                 {
@@ -109,7 +109,7 @@ namespace Orts.MultiPlayer
         {
             string tmp = "";
             if (move == null) move = new MSGMove();
-            foreach (Train t in MultiPlayerManager.Simulator.Trains)
+            foreach (Train t in Simulator.Instance.Trains)
             {
                 if (t != null && (Math.Abs(t.SpeedMpS) > 0.001 || Math.Abs(t.LastReportedSpeed) > 0))
                 {
@@ -143,8 +143,8 @@ namespace Orts.MultiPlayer
             }
             p.url = player.url;
             p.LeadingLocomotiveID = player.leadingID;
-            p.con = Path.Combine(MultiPlayerManager.Simulator.RouteFolder.ContentFolder.ConsistsFolder, player.con);
-            p.path = Path.Combine(MultiPlayerManager.Simulator.RouteFolder.PathsFolder, player.path);
+            p.con = Path.Combine(Simulator.Instance.RouteFolder.ContentFolder.ConsistsFolder, player.con);
+            p.path = Path.Combine(Simulator.Instance.RouteFolder.PathsFolder, player.path);
             Train train = new Train();
             train.TrainType = TrainType.Remote;
             if (MultiPlayerManager.IsServer()) //server needs to worry about correct train number
@@ -163,14 +163,14 @@ namespace Orts.MultiPlayer
             {
                 try
                 {
-                    AIPath aiPath = new AIPath(MultiPlayerManager.Simulator.TrackDatabase, MultiPlayerManager.Simulator.TSectionDat, p.path, MultiPlayerManager.Simulator.TimetableMode);
+                    AIPath aiPath = new AIPath(Simulator.Instance.TrackDatabase, Simulator.Instance.TSectionDat, p.path, Simulator.Instance.TimetableMode);
                 }
                 catch (Exception) { MultiPlayerManager.BroadCast((new MSGMessage(player.user, "Warning", "Server does not have path file provided, signals may always be red for you.")).ToString()); }
             }
 
             try
             {
-                train.RearTDBTraveller = new Traveller(MultiPlayerManager.Simulator.TSectionDat, MultiPlayerManager.Simulator.TrackDatabase.TrackDB.TrackNodes, player.Location, direction == 1 ? Traveller.TravellerDirection.Forward : Traveller.TravellerDirection.Backward);
+                train.RearTDBTraveller = new Traveller(Simulator.Instance.TSectionDat, Simulator.Instance.TrackDatabase.TrackDB.TrackNodes, player.Location, direction == 1 ? Traveller.TravellerDirection.Forward : Traveller.TravellerDirection.Backward);
             }
             catch (Exception e)
             {
@@ -183,11 +183,11 @@ namespace Orts.MultiPlayer
             for (var i = 0; i < player.cars.Length; i++)// cars.Length-1; i >= 0; i--) {
             {
 
-                string wagonFilePath = Path.Combine(MultiPlayerManager.Simulator.RouteFolder.ContentFolder.TrainSetsFolder, player.cars[i]);
+                string wagonFilePath = Path.Combine(Simulator.Instance.RouteFolder.ContentFolder.TrainSetsFolder, player.cars[i]);
                 TrainCar car = null;
                 try
                 {
-                    car = RollingStock.Load(MultiPlayerManager.Simulator, wagonFilePath);
+                    car = RollingStock.Load(Simulator.Instance, wagonFilePath);
                     car.CarLengthM = player.lengths[i] / 100.0f;
                 }
                 catch (Exception error)
@@ -292,12 +292,12 @@ namespace Orts.MultiPlayer
 
             if (MultiPlayerManager.IsServer()) //server needs to worry about correct train number
             {
-                train = MultiPlayerManager.Simulator.Trains.Find(t => t.Number == player.num);
+                train = Simulator.Instance.Trains.Find(t => t.Number == player.num);
                 train.TrainType = TrainType.Remote;
             }
             else
             {
-                train = MultiPlayerManager.Simulator.Trains.Find(t => t.Number == player.num);
+                train = Simulator.Instance.Trains.Find(t => t.Number == player.num);
                 train.TrainType = TrainType.Remote;
             }
             p.Train = train;

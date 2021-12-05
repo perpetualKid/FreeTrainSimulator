@@ -367,7 +367,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             if (trackColor == Color.Red && !istrackColorRed)//Debrief Eval
             {
                 istrackColorRed = true;
-                DbfEvalIniOverSpeedTimeS = Orts.MultiPlayer.MultiPlayerManager.Simulator.ClockTime;
+                DbfEvalIniOverSpeedTimeS = Simulator.Instance.ClockTime;
             }            
 
             if (istrackColorRed && trackColor != Color.Red)//Debrief Eval
@@ -376,11 +376,11 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 DbfEvalOverSpeed++;
             }
 
-            if (istrackColorRed && (Orts.MultiPlayer.MultiPlayerManager.Simulator.ClockTime - DbfEvalIniOverSpeedTimeS) > 1.0000)//Debrief Eval
+            if (istrackColorRed && (Simulator.Instance.ClockTime - DbfEvalIniOverSpeedTimeS) > 1.0000)//Debrief Eval
             {
-                DbfEvalOverSpeedTimeS = DbfEvalOverSpeedTimeS + (Orts.MultiPlayer.MultiPlayerManager.Simulator.ClockTime - DbfEvalIniOverSpeedTimeS);
+                DbfEvalOverSpeedTimeS += (Simulator.Instance.ClockTime - DbfEvalIniOverSpeedTimeS);
                 train.DbfEvalValueChanged = true;
-                DbfEvalIniOverSpeedTimeS = Orts.MultiPlayer.MultiPlayerManager.Simulator.ClockTime;
+                DbfEvalIniOverSpeedTimeS = Simulator.Instance.ClockTime;
             }
         }
 

@@ -224,8 +224,6 @@ namespace Orts.Simulation
             CatalogManager.SetCatalogDomainPattern(CatalogDomainPattern.AssemblyName, null, RuntimeInfo.LocalesFolder);
             Catalog = CatalogManager.Catalog;
 
-            MultiPlayerManager.Simulator = this;
-
             TimetableMode = false;
 
             Settings = settings ?? throw new ArgumentNullException(nameof(settings));

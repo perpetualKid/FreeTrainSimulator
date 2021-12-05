@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
+using Orts.Simulation;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using System;
@@ -29,7 +30,7 @@ namespace Orts.MultiPlayer
     public class OnlinePlayer
 	{
 		public Decoder decoder;
-		public OnlinePlayer(TcpClient t, Server s) { Client = t; Server = s; decoder = new Decoder(); CreatedTime = MultiPlayerManager.Simulator.GameTime; url = "NA";}// "http://trainsimchina.com/discuz/uc_server/avatar.php?uid=72965&size=middle"; }
+		public OnlinePlayer(TcpClient t, Server s) { Client = t; Server = s; decoder = new Decoder(); CreatedTime = Simulator.Instance.GameTime; url = "NA";}// "http://trainsimchina.com/discuz/uc_server/avatar.php?uid=72965&size=middle"; }
 		public TcpClient Client;
 		public Server Server;
 		public string Username = "";
@@ -52,7 +53,7 @@ namespace Orts.MultiPlayer
             Username = inf.ReadString();
             LeadingLocomotiveID = inf.ReadString();
             var trainNo = inf.ReadInt32();
-            Train = MultiPlayerManager.Simulator.Trains.GetTrainByNumber(trainNo);
+            Train = Simulator.Instance.Trains.GetTrainByNumber(trainNo);
             con = inf.ReadString();
             path = inf.ReadString();
             CreatedTime = inf.ReadDouble();
@@ -62,7 +63,7 @@ namespace Orts.MultiPlayer
             protect = inf.ReadBoolean();
             status = Status.Quit;
             Train.SpeedMpS = 0;
-            quitTime = MultiPlayerManager.Simulator.GameTime; // allow a total of 10 minutes to reenter game.
+            quitTime = Simulator.Instance.GameTime; // allow a total of 10 minutes to reenter game.
             for (int iCar = 0; iCar < Train.Cars.Count; iCar++)
             {
                 var car = Train.Cars[iCar];
@@ -155,7 +156,7 @@ namespace Orts.MultiPlayer
 				}
 				catch (Exception)
 				{
-					nowTicks = MultiPlayerManager.Simulator.GameTime;
+					nowTicks = Simulator.Instance.GameTime;
 					if (firstErrorTick == 0)
 					{
 						firstErrorTick = nowTicks;
@@ -174,12 +175,12 @@ namespace Orts.MultiPlayer
 			}
 
 			Trace.WriteLine("{0} quit", this.Username);
-			if (MultiPlayerManager.Simulator.Confirmer != null) MultiPlayerManager.Simulator.Confirmer.Information(MultiPlayerManager.Catalog.GetString("{0} quit.", this.Username));
+			if (Simulator.Instance.Confirmer != null) Simulator.Instance.Confirmer.Information(MultiPlayerManager.Catalog.GetString("{0} quit.", this.Username));
 			Client.Close();
 			if (this.Train != null && this.status != Status.Removed) //remember the location of the train in case the player comes back later, if he is not removed by the dispatcher
 			{
 				if (!MultiPlayerManager.Instance().lostPlayer.ContainsKey(this.Username)) MultiPlayerManager.Instance().lostPlayer.Add(this.Username, this);
-				this.quitTime = MultiPlayerManager.Simulator.GameTime;
+				this.quitTime = Simulator.Instance.GameTime;
 				this.Train.SpeedMpS = 0.0f;
 				this.status = Status.Quit;
 			}
