@@ -364,12 +364,11 @@ namespace Orts.MultiPlayer
             //if (MPManager.IsClient()) return true;
             return !MultiPlayerManager.AllowedManualSwitch; //aloow manual switch or not
         }
+
         //user name
 		public static string GetUserName()
 		{
-			if (Server != null) return Server.UserName;
-			else if (Client != null) return Client.UserName;
-			else return "";
+            return Client?.UserName ?? string.Empty;
 		}
 
 		//check if it is in the multiplayer session
@@ -388,9 +387,9 @@ namespace Orts.MultiPlayer
 		//notify others (server will broadcast, client will send msg to server)
 		public static void Notify(string m)
 		{
-			if (m == null) return;
-			if (Client != null && Server == null) Client.Send(m); //client notify server
-			if (Server != null) Server.BroadCast(m); //server notify everybody else
+			if (m == null) 
+                return;
+			Client?.Send(m); //client notify server
 		}
 
 		public static void SendToServer(string m)
@@ -599,7 +598,6 @@ namespace Orts.MultiPlayer
 				{
 					foreach (OnlinePlayer p in playersRemoved)
 					{
-						if (Server != null) Server.Players.Remove(p);
 						//player is not in this train
 						if (p.Train != null && p.Train != Simulator.PlayerLocomotive.Train)
 						{

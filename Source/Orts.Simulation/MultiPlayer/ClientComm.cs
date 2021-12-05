@@ -164,7 +164,7 @@ namespace Orts.MultiPlayer
 			tcpClient.Close();
 		}
 
-		private object lockObj = new object();
+		private readonly object lockObj = new object();
 		public void Send(string msg)
 		{
 
@@ -173,16 +173,13 @@ namespace Orts.MultiPlayer
 				NetworkStream clientStream = client.GetStream();
 				lock (lockObj)//in case two threads want to write at the same buffer
 				{
-#if DEBUG_MULTIPLAYER
-                    Trace.TraceInformation("MPClientSend: {0}", msg);
-#endif
                     byte[] buffer = Encoding.Unicode.GetBytes(msg);//encoder.GetBytes(msg);
 					clientStream.Write(buffer, 0, buffer.Length);
 					clientStream.Flush();
 				}
 			}
-			catch
-			{
+            catch(SocketException)
+            {
 			}
 		}
 

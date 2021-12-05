@@ -26,24 +26,17 @@ namespace Orts.MultiPlayer
 {
     public class Server
     {
-        public List<OnlinePlayer> Players;
-        public string UserName;
-        public string Code;
         private ClientComm Connection;
-        public int ConnectionMode;
 
         public void Stop()
         {
             if (Connection != null) Connection.Stop();
         }
+
         public Server(string s, ClientComm c)
         {
-            Players = new List<OnlinePlayer>();
             string[] tmp = s.Split(' ');
-            UserName = tmp[0];
-            Code = tmp[1];
             Connection = c;
-            ConnectionMode = 0;
         }
 
         public void BroadCast(string msg)

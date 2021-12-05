@@ -329,13 +329,13 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             AddSeparator();
 
             // MultiPlayer
-            if (Orts.MultiPlayer.MultiPlayerManager.IsMultiPlayer())
+            if (MultiPlayerManager.IsMultiPlayer())
             {
-                var text = Orts.MultiPlayer.MultiPlayerManager.Instance().GetOnlineUsersInfo();
-                var multiPlayerStatus = Orts.MultiPlayer.MultiPlayerManager.IsServer()
-                    ? $"{Viewer.Catalog.GetString("Dispatcher")} ({Orts.MultiPlayer.MultiPlayerManager.Server.UserName})" : Orts.MultiPlayer.MultiPlayerManager.Instance().AmAider
-                    ? Viewer.Catalog.GetString("Helper") : Orts.MultiPlayer.MultiPlayerManager.IsClient()
-                    ? $"{Viewer.Catalog.GetString("Client")} ({Orts.MultiPlayer.MultiPlayerManager.Client.UserName})" : "";
+                string text = MultiPlayerManager.Instance().GetOnlineUsersInfo();
+                string multiPlayerStatus = MultiPlayerManager.IsServer()
+                    ? $"{Viewer.Catalog.GetString("Dispatcher")} ({MultiPlayerManager.Client.UserName})" : MultiPlayerManager.Instance().AmAider
+                    ? Viewer.Catalog.GetString("Helper") : MultiPlayerManager.IsClient()
+                    ? $"{Viewer.Catalog.GetString("Client")} ({MultiPlayerManager.Client.UserName})" : "";
 
                 var status = $"{Viewer.Catalog.GetString("Status")}: {multiPlayerStatus}";
 

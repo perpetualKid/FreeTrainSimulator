@@ -16,7 +16,7 @@ namespace Orts.MultiPlayerServer
     {
         private readonly int port;
 
-        private readonly Dictionary<string, TcpClient> tcpClients = new Dictionary<string, TcpClient>();
+        private readonly Dictionary<string, TcpClient> onlinePlayers = new Dictionary<string, TcpClient>();
         private readonly byte[] initData = Encoding.Unicode.GetBytes("10: SERVER YOU");
         private readonly byte[] serverChallenge = Encoding.Unicode.GetBytes(" 21: SERVER WhoCanBeServer");
         private bool serverAppointed;
@@ -49,31 +49,47 @@ namespace Orts.MultiPlayerServer
                 catch (Exception ex)
                 {
                     Console.WriteLine(ex.Message);
-                    throw;
+                    throw new InvalidOperationException("Invalid Program state, aborting.", ex);
                 }
             }
         }
 
-        private void Broadcast(TcpClient sender, ReadOnlyMemory<byte> buffer)
+        private void Broadcast(string playerName, ReadOnlyMemory<byte> buffer)
         {
             Console.WriteLine(Encoding.Unicode.GetString(buffer.Span).Replace("\r", Environment.NewLine, StringComparison.OrdinalIgnoreCase));
-            Parallel.ForEach(tcpClients.Values, async client =>
+            Parallel.ForEach(onlinePlayers.Keys, async player =>
             {
-                if (client != sender)
+                if (player != playerName)
                 {
-                    NetworkStream clientStream = client.GetStream();
-                    await clientStream.WriteAsync(buffer).ConfigureAwait(false);
-                    await clientStream.FlushAsync().ConfigureAwait(false);
+                    try
+                    {
+                        TcpClient client = onlinePlayers[player];
+                        NetworkStream clientStream = client.GetStream();
+                        await clientStream.WriteAsync(buffer).ConfigureAwait(false);
+                        await clientStream.FlushAsync().ConfigureAwait(false);
+                    }
+                    catch (Exception ex) when (ex is System.IO.IOException || ex is SocketException)
+                    {
+                        await RemovePlayer(playerName).ConfigureAwait(false);
+                    }
                 }
             });
         }
 
-        private static async Task SendMessage(TcpClient client, ReadOnlyMemory<byte> buffer)
+        private async Task SendMessage(string playerName, ReadOnlyMemory<byte> buffer)
         {
             Console.WriteLine(Encoding.Unicode.GetString(buffer.Span).Replace("\r", Environment.NewLine, StringComparison.OrdinalIgnoreCase));
-            NetworkStream clientStream = client.GetStream();
-            await clientStream.WriteAsync(buffer).ConfigureAwait(false);
-            await clientStream.FlushAsync().ConfigureAwait(false);
+            try
+            {
+                TcpClient client = onlinePlayers[playerName];
+                NetworkStream clientStream = client.GetStream();
+                await clientStream.WriteAsync(buffer).ConfigureAwait(false);
+                await clientStream.FlushAsync().ConfigureAwait(false);
+            }
+            catch (Exception ex) when (ex is System.IO.IOException || ex is SocketException)
+            {
+                await RemovePlayer(playerName).ConfigureAwait(false);
+            }
         }
 
         private async Task Process(TcpClient tcpClient)
@@ -89,14 +105,14 @@ namespace Orts.MultiPlayerServer
             if (playerDetails == null || playerDetails.Length < 3 || !playerDetails[2].Equals("PLAYER", StringComparison.OrdinalIgnoreCase))
                 return;
             string playerName = playerMessage.Split(' ')[3];
-            Broadcast(tcpClient, sendBuffer);
+            Broadcast(playerName, sendBuffer);
 
-            if (tcpClients.Count == 0)
+            onlinePlayers.Add(playerName, tcpClient);
+            if (onlinePlayers.Count == 1)
             {
                 currentServer = playerName;
-                await SendMessage(tcpClient, initData).ConfigureAwait(false);
+                await SendMessage(playerName, initData).ConfigureAwait(false);
             }
-            tcpClients.Add(playerName, tcpClient);
 
             while (tcpClient.Connected)
             {
@@ -105,26 +121,32 @@ namespace Orts.MultiPlayerServer
                     break;
                 sendBuffer = new byte[size];
                 Array.Copy(buffer, sendBuffer, size);
-                Broadcast(tcpClient, sendBuffer.AsMemory(9, sendBuffer.Length));
+                Broadcast(playerName, sendBuffer.AsMemory(0, sendBuffer.Length));
             }
-            tcpClients.Remove(playerName);
+            await RemovePlayer(playerName).ConfigureAwait(false);
+        }
+
+        private async Task RemovePlayer(string playerName)
+        {
+            onlinePlayers.Remove(playerName);
             string lostMessage = $"LOST { playerName}";
             lostPlayer = Encoding.Unicode.GetBytes($" {lostMessage.Length}: {lostMessage}");
-            Broadcast(tcpClient, lostPlayer);
+            Broadcast(playerName, lostPlayer);
             if (currentServer == playerName)
             {
                 serverAppointed = false;
-                Broadcast(tcpClient, serverChallenge);
+                Broadcast(playerName, serverChallenge);
                 await Task.Delay(5000).ConfigureAwait(false);
-                if (!serverAppointed)
+                if (!serverAppointed && onlinePlayers.Count > 0)
                 {
                     Broadcast(null, lostPlayer);
-                    currentServer = tcpClients.Keys.First();
+                    currentServer = onlinePlayers.Keys.First();
                     string appointmentMessage = $"SERVER {currentServer}";
                     lostPlayer = Encoding.Unicode.GetBytes($" {appointmentMessage.Length}: {appointmentMessage}");
                     Broadcast(null, lostPlayer);
                 }
             }
+
         }
     }
 }

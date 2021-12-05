@@ -16,11 +16,10 @@ namespace Orts.MultiPlayerServer
                 server.Run();
                 Console.ReadLine();
             }
-            catch (Exception ex)
+            catch (InvalidOperationException ex)
             {
                 Console.WriteLine(ex.Message);
                 Console.ReadLine();
-                throw;
             }
         }
     }
