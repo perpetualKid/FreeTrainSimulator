@@ -77,9 +77,6 @@ namespace Orts.Menu
                         case MainForm.UserAction.MultiplayerClient:
                             parameters.Add("-multiplayerclient");
                             break;
-                        case MainForm.UserAction.MultiplayerServer:
-                            parameters.Add("-multiplayerserver");
-                            break;
                         case MainForm.UserAction.SinglePlayerTimetableGame:
                             parameters.Add("-start");
                             break;
@@ -89,15 +86,11 @@ namespace Orts.Menu
                         case MainForm.UserAction.MultiplayerClientResumeSave:
                             parameters.Add("-multiplayerclient");
                             break;
-                        case MainForm.UserAction.MultiplayerServerResumeSave:
-                            parameters.Add("-multiplayerserver");
-                            break;
                     }
                     switch (MainForm.SelectedAction)
                     {
                         case MainForm.UserAction.SingleplayerNewGame:
                         case MainForm.UserAction.MultiplayerClient:
-                        case MainForm.UserAction.MultiplayerServer:
                             if (MainForm.SelectedActivity is DefaultExploreActivity)
                             {
                                 DefaultExploreActivity exploreActivity = MainForm.SelectedActivity as DefaultExploreActivity;
@@ -128,7 +121,6 @@ namespace Orts.Menu
                         case MainForm.UserAction.SingleplayerReplaySave:
                         case MainForm.UserAction.SingleplayerReplaySaveFromSave:
                         case MainForm.UserAction.MultiplayerClientResumeSave:
-                        case MainForm.UserAction.MultiplayerServerResumeSave:
                             parameters.Add($"\"{MainForm.SelectedSaveFile}\"");
                             break;
                         case MainForm.UserAction.SinglePlayerTimetableGame:

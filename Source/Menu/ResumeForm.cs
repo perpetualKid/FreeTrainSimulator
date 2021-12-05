@@ -90,10 +90,10 @@ namespace Orts.Menu
 
         internal ResumeForm(UserSettings settings, Route route, MainForm.UserAction mainFormAction, Activity activity, TimetableInfo timeTable, IEnumerable<Route> mainRoutes)
         {
-            this.catalog = CatalogManager.Catalog;
+            catalog = CatalogManager.Catalog;
             globalRoutes = mainRoutes;
             SelectedAction = mainFormAction;
-            multiplayer = SelectedAction == MainForm.UserAction.MultiplayerClient || SelectedAction == MainForm.UserAction.MultiplayerServer;
+            multiplayer = SelectedAction == MainForm.UserAction.MultiplayerClient;
             InitializeComponent();  // Needed so that setting StartPosition = CenterParent is respected.
 
             Localizer.Localize(this, catalog);
@@ -246,9 +246,6 @@ namespace Orts.Menu
                             break;
                         case MainForm.UserAction.MultiplayerClient:
                             selectedAction = MainForm.UserAction.MultiplayerClientResumeSave;
-                            break;
-                        case MainForm.UserAction.MultiplayerServer:
-                            selectedAction = MainForm.UserAction.MultiplayerServerResumeSave;
                             break;
                     }
                     SelectedAction = selectedAction;

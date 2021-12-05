@@ -34,8 +34,6 @@ namespace Orts.Menu
             this.label13 = new System.Windows.Forms.Label();
             this.textBoxMPUser = new System.Windows.Forms.TextBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.radioButtonMPServer = new System.Windows.Forms.RadioButton();
-            this.radioButtonMPClient = new System.Windows.Forms.RadioButton();
             this.buttonStartMP = new System.Windows.Forms.Button();
             this.buttonResumeMP = new System.Windows.Forms.Button();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
@@ -251,8 +249,6 @@ namespace Orts.Menu
             // groupBox1
             // 
             this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.groupBox1.Controls.Add(this.radioButtonMPServer);
-            this.groupBox1.Controls.Add(this.radioButtonMPClient);
             this.groupBox1.Controls.Add(this.buttonStartMP);
             this.groupBox1.Controls.Add(this.buttonResumeMP);
             this.groupBox1.Controls.Add(this.label13);
@@ -267,30 +263,6 @@ namespace Orts.Menu
             this.groupBox1.TabIndex = 15;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Multiplayer";
-            // 
-            // radioButtonMPServer
-            // 
-            this.radioButtonMPServer.Location = new System.Drawing.Point(12, 112);
-            this.radioButtonMPServer.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
-            this.radioButtonMPServer.Name = "radioButtonMPServer";
-            this.radioButtonMPServer.Size = new System.Drawing.Size(78, 25);
-            this.radioButtonMPServer.TabIndex = 9;
-            this.radioButtonMPServer.Text = "Server";
-            this.radioButtonMPServer.UseVisualStyleBackColor = true;
-            this.radioButtonMPServer.CheckedChanged += new System.EventHandler(this.RadioButtonMode_CheckedChanged);
-            // 
-            // radioButtonMPClient
-            // 
-            this.radioButtonMPClient.Checked = true;
-            this.radioButtonMPClient.Location = new System.Drawing.Point(12, 82);
-            this.radioButtonMPClient.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
-            this.radioButtonMPClient.Name = "radioButtonMPClient";
-            this.radioButtonMPClient.Size = new System.Drawing.Size(100, 25);
-            this.radioButtonMPClient.TabIndex = 8;
-            this.radioButtonMPClient.TabStop = true;
-            this.radioButtonMPClient.Text = "Client";
-            this.radioButtonMPClient.UseVisualStyleBackColor = true;
-            this.radioButtonMPClient.CheckedChanged += new System.EventHandler(this.RadioButtonMode_CheckedChanged);
             // 
             // buttonStartMP
             // 
@@ -1049,8 +1021,6 @@ namespace Orts.Menu
         private System.Windows.Forms.Button buttonDocuments;
         private System.Windows.Forms.ContextMenuStrip contextMenuStripDocuments;
         private System.Windows.Forms.Button buttonResumeMP;
-        private System.Windows.Forms.RadioButton radioButtonMPServer;
-        private System.Windows.Forms.RadioButton radioButtonMPClient;
         private System.Windows.Forms.Button buttonStartMP;
         private System.Windows.Forms.CheckBox checkDebriefActivityEval;
         private System.Windows.Forms.Label labelTimetableWeatherFile;

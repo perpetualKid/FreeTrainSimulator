@@ -53,7 +53,6 @@ namespace Orts.Menu
             SingleplayerResumeSave,
             SingleplayerReplaySave,
             SingleplayerReplaySaveFromSave,
-            MultiplayerServer,
             MultiplayerClient,
             SinglePlayerTimetableGame,
             SinglePlayerResumeTimetableGame,
@@ -166,7 +165,7 @@ namespace Orts.Menu
         private async void MainForm_Shown(object sender, EventArgs e)
         {
             IEnumerable<string> options = Environment.GetCommandLineArgs().
-                Where(a => a.StartsWith("-", StringComparison.OrdinalIgnoreCase) || a.StartsWith("/", StringComparison.OrdinalIgnoreCase)).Select(a => a.Substring(1));
+                Where(a => a.StartsWith("-", StringComparison.OrdinalIgnoreCase) || a.StartsWith("/", StringComparison.OrdinalIgnoreCase)).Select(a => a[1..]);
             settings = new UserSettings(options);
 
             updateManager = new UpdateManager(settings);
@@ -646,12 +645,10 @@ namespace Orts.Menu
             {
                 SelectedAction = UserAction.SingleplayerNewGame;
             }
-            else if (radioButtonMPClient.Checked)
+            else
             {
                 SelectedAction = UserAction.MultiplayerClient;
             }
-            else
-                SelectedAction = UserAction.MultiplayerServer;
 
             // if timetable mode but no timetable selected - no action
             if (SelectedAction == UserAction.SinglePlayerTimetableGame && (SelectedTimetableSet == null || multiplayer))
@@ -676,7 +673,7 @@ namespace Orts.Menu
             if (!CheckUserName(textBoxMPUser.Text))
                 return;
             SaveOptions();
-            SelectedAction = radioButtonMPClient.Checked ? UserAction.MultiplayerClient : UserAction.MultiplayerServer;
+            SelectedAction = UserAction.MultiplayerClient;
             DialogResult = DialogResult.OK;
         }
 
