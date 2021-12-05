@@ -411,7 +411,6 @@ namespace Orts.MultiPlayer
 			{
 				Server.BroadCast((new MSGQuit("ServerHasToQuit\t"+GetUserName())).ToString()); //server notify everybody else
 				Thread.Sleep(1000);
-				if (Server.ServerComm != null) Server.Stop();
 				if (Client != null) Client.Stop();
 			}
 		}

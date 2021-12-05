@@ -380,9 +380,6 @@ namespace Orts.Settings
         [Default(false)]
         [DoNotSave]
         public bool MultiplayerClient { get; set; }
-        [Default(false)]
-        [DoNotSave]
-        public bool MultiplayerServer { get; set; }
 
         #endregion
 

@@ -882,16 +882,12 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             }
 
             Trace.WriteLine(separatorLine);
-            if (settings.MultiplayerServer || settings.MultiplayerClient)
+            if (settings.MultiplayerClient)
             {
-                if (settings.MultiplayerServer)
-                    Trace.WriteLine("Multiplayer Server");
-                else
-                    Trace.WriteLine("Multiplayer Client");
+                Trace.WriteLine("Multiplayer Client");
 
                 Trace.WriteLine($"{"User",-12}= {settings.Multiplayer_User}");
-                if (settings.MultiplayerClient)
-                    Trace.WriteLine($"{"Host",-12}= {settings.Multiplayer_Host}");
+                Trace.WriteLine($"{"Host",-12}= {settings.Multiplayer_Host}");
                 Trace.WriteLine($"{"Port",-12}= {settings.Multiplayer_Port}");
                 Trace.WriteLine(separatorLine);
             }
@@ -932,25 +928,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                     simulator.SetTimetableOptions(data[0], data[1], season, weather, data.Length > 5 ? data[5] : string.Empty);
 
                     break;
-            }
-
-            if (settings.MultiplayerServer)
-            {
-                try
-                {
-                    Server = new Server(settings.Multiplayer_User + " 1234", settings.Multiplayer_Port);
-                    userName = Server.UserName;
-                    Debug.Assert(userName.Length >= 4 && userName.Length <= 10 && !userName.Contains('\"') && !userName.Contains('\'') && !char.IsDigit(userName[0]),
-                        "Error in the user name: should not start with digits, be 4-10 characters long and no special characters");
-                    code = Server.Code;
-                    MultiPlayerManager.Instance().MPUpdateInterval = settings.Multiplayer_UpdateInterval;
-                }
-                catch (Exception error)
-                {
-                    Trace.WriteLine(error);
-                    Trace.WriteLine("Connection error - will play in single mode.");
-                    Server = null;
-                }
             }
 
             if (settings.MultiplayerClient)
