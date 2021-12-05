@@ -437,6 +437,12 @@ namespace Orts.Menu
                     {
                         string version = inf.ReadString();
                         string routeName = inf.ReadString();
+                        bool isMultiPlayer = false;
+                        if (routeName == "$Multipl$")
+                        {
+                            isMultiPlayer = true;
+                            routeName = inf.ReadString(); // Route name
+                        }
                         string pathName = inf.ReadString();
                         int gameTime = inf.ReadInt32();
                         long realTime = inf.ReadInt64();
@@ -486,6 +492,8 @@ namespace Orts.Menu
                             {
                                 // copy the start of the file
                                 outf.Write(version);
+                                if (isMultiPlayer)
+                                    outf.Write("$Multipl$");
                                 outf.Write(routeName);
                                 outf.Write(pathName);
                                 outf.Write(gameTime);
