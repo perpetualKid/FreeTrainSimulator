@@ -135,8 +135,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             if (disposing)
             {
                 Viewer.Terminate();
-                MultiPlayerManager.Server?.Stop();
-                MultiPlayerManager.Client?.Stop();
                 Simulator.Instance.Stop();
                 Program.DebugViewer?.Dispose();
                 Program.SoundDebugForm?.Dispose();

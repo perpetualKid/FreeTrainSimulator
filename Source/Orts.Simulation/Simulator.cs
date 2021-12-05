@@ -403,7 +403,8 @@ namespace Orts.Simulation
 
         public void Stop()
         {
-            if (MultiPlayerManager.IsMultiPlayer()) MultiPlayerManager.Stop();
+            if (MultiPlayerManager.IsMultiPlayer()) 
+                MultiPlayerManager.Stop();
         }
 
         public void Restore(BinaryReader inf, string pathName, float initialTileX, float initialTileZ, CancellationToken cancellationToken)

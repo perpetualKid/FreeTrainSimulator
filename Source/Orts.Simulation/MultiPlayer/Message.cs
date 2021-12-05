@@ -211,7 +211,7 @@ namespace Orts.MultiPlayer
                             {
                                 if (!MultiPlayerManager.IsServer())
                                 {
-                                    if (CheckMissingTimes(t.Number)) MultiPlayerManager.SendToServer((new MSGGetTrain(MultiPlayerManager.GetUserName(), t.Number)).ToString());
+                                    if (CheckMissingTimes(t.Number)) MultiPlayerManager.Notify((new MSGGetTrain(MultiPlayerManager.GetUserName(), t.Number)).ToString());
                                     continue;
                                 }
                             }
@@ -247,7 +247,7 @@ namespace Orts.MultiPlayer
                 }
                 if (found == false) //I do not have the train, tell server to send it to me
                 {
-                    if (!MultiPlayerManager.IsServer() && CheckMissingTimes(m.num)) MultiPlayerManager.SendToServer((new MSGGetTrain(MultiPlayerManager.GetUserName(), m.num)).ToString());
+                    if (!MultiPlayerManager.IsServer() && CheckMissingTimes(m.num)) MultiPlayerManager.Notify((new MSGGetTrain(MultiPlayerManager.GetUserName(), m.num)).ToString());
                 }
             }
         }
@@ -1708,10 +1708,10 @@ namespace Orts.MultiPlayer
 
             if (MultiPlayerManager.GetUserName() == user || user == "YOU")
             {
-                if (MultiPlayerManager.Server != null) return; //already a server, not need to worry
+                if (MultiPlayerManager.Instance().IsDispatcher) 
+                    return; //already a dispatcher, not need to worry
                 MultiPlayerManager.Client.Connected = true;
-                MultiPlayerManager.Instance().NotServer = false;
-                MultiPlayerManager.Server = new Server(MultiPlayerManager.Client.UserName + ' ' + MultiPlayerManager.Client.Code, MultiPlayerManager.Client);
+                MultiPlayerManager.Instance().IsDispatcher = true;
                 MultiPlayerManager.Instance().OnServerChanged(true);
                 MultiPlayerManager.Instance().RememberOriginalSwitchState();
                 Trace.TraceInformation("You are the new dispatcher. Enjoy!");
@@ -1721,7 +1721,7 @@ namespace Orts.MultiPlayer
             }
             else
             {
-                MultiPlayerManager.Instance().NotServer = true;
+                MultiPlayerManager.Instance().IsDispatcher = false;
                 MultiPlayerManager.Instance().OnServerChanged(false);
                 if (MultiPlayerManager.Simulator.Confirmer != null)
                     MultiPlayerManager.Simulator.Confirmer.Information(MultiPlayerManager.Catalog.GetString("New dispatcher is {0}", user));
@@ -3136,7 +3136,8 @@ namespace Orts.MultiPlayer
         //how to handle the message?
         public override void HandleMsg() //only client will get message, thus will set states
         {
-            if (MultiPlayerManager.Server != null) return; //server will ignore it
+            if (MultiPlayerManager.Instance().IsDispatcher) 
+                return; //server will ignore it
 
             //if (signals.Count != readed/2-2) { Trace.WriteLine("Error in synchronizing signals " + signals.Count + " " + readed); return; }
             int i = 0;
@@ -3540,7 +3541,8 @@ namespace Orts.MultiPlayer
         //how to handle the message?
         public override void HandleMsg() //only client will get message, thus will set states
         {
-            if (MultiPlayerManager.Server != null && !MultiPlayerManager.Instance().aiderList.Contains(sender)) return; //client will ignore it, also if not an aider, will ignore it
+            if (MultiPlayerManager.Instance().IsDispatcher && !MultiPlayerManager.Instance().aiderList.Contains(sender)) 
+                return; //client will ignore it, also if not an aider, will ignore it
 
             var signal = MultiPlayerManager.Simulator.SignalEnvironment.Signals[index];
             switch (pick)

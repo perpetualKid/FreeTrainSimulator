@@ -30,11 +30,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading;
 
 using GetText;
 
-using Orts.Common.Info;
 using Orts.Common.Position;
 using Orts.Formats.Msts.Parsers;
 using Orts.Simulation;
@@ -45,14 +43,15 @@ using Orts.Simulation.RollingStocks;
 namespace Orts.MultiPlayer
 {
     //a singleton class handles communication, update and stop etc.
-    public partial class MultiPlayerManager
+    public class MultiPlayerManager
 	{
         public static ICatalog Catalog { get; private set; }
         public static Random Random { get; private set; }
         public static Simulator Simulator { get; internal set; }
 
-        public static Server Server;
         public static ClientComm Client;
+
+        public bool IsDispatcher { get; set; }
 
         public int version = 15;
         private double lastMoveTime;
@@ -122,6 +121,7 @@ namespace Orts.MultiPlayer
 			var index = str.IndexOf("SWITCHSTATES ");
 			OriginalSwitchState = str.Remove(0, index + 13);
 		}
+
 		//handles singleton
 		private MultiPlayerManager()
 		{
@@ -132,7 +132,6 @@ namespace Orts.MultiPlayer
             addedLocomotives = new List<OnlineLocomotive>();
             removedLocomotives = new List<OnlineLocomotive>();
             aiderList = new List<string>();
-			if (Server != null) NotServer = false;
 			users = new SortedList<double,string>();
 			GetMD5HashFromTDBFile();
 		}
@@ -158,33 +157,22 @@ namespace Orts.MultiPlayer
 				if (IsServer())
 				{
 					train.TrainType = TrainType.Player; train.LeadLocomotive = Simulator.PlayerLocomotive;
-                    InitializeBrakesCommand.Receiver = MultiPlayerManager.Simulator.PlayerLocomotive.Train;
+                    InitializeBrakesCommand.Receiver = Simulator.PlayerLocomotive.Train;
                     train.InitializeSignals(false);
                     if (Simulator.Confirmer != null)
-                        Simulator.Confirmer.Information(MultiPlayerManager.Catalog.GetString("You gained back the control of your train"));
+                        Simulator.Confirmer.Information(Catalog.GetString("You gained back the control of your train"));
 					msgctl = new MSGControl(GetUserName(), "Confirm", train);
-					BroadCast(msgctl.ToString());
+					Notify(msgctl.ToString());
 				}
 				else //client, send request
 				{
 					msgctl = new MSGControl(GetUserName(), "Request", train);
-					SendToServer(msgctl.ToString());
+					Notify(msgctl.ToString());
 				}
 			}
 			catch (Exception)
 			{ }
 		}
-
-        public void PreUpdate()
-        {
-            if (NotServer == true && Server != null) //I was a server, but no longer
-            {
-                Server = null;
-            }
-            else if (NotServer == false && Server == null) //I am declared the server
-            {
-            }
-        }
 
         private double previousSpeed;
         private double begineZeroTime;
@@ -192,7 +180,7 @@ namespace Orts.MultiPlayer
         /// <summary>
         /// Update. Determines what messages to send every some seconds
         /// 1. every one second will send train location
-        /// 2. by defaulr, every 10 seconds will send switch/signal status, this can be changed by in the menu of setting MPUpdateInterval
+        /// 2. by default, every 10 seconds will send switch/signal status, this can be changed by in the menu of setting MPUpdateInterval
         /// 3. housekeeping (remove/add trains, remove players)
         /// 4. it will also capture key stroke of horn, panto, wiper, bell, headlight etc.
         /// </summary>
@@ -203,12 +191,12 @@ namespace Orts.MultiPlayer
 			CheckPlayerTrainSpad();//over speed or pass a red light
 
 			//server update train location of all
-			if (Server != null && newtime - lastMoveTime >= 1f)
+			if (IsDispatcher && newtime - lastMoveTime >= 1f)
 			{
 				MSGMove move = new MSGMove();
                 if (Simulator.PlayerLocomotive.Train.TrainType != TrainType.Remote)
                     move.AddNewItem(GetUserName(), Simulator.PlayerLocomotive.Train);
-				Server.BroadCast(OnlineTrains.MoveTrains(move));
+				Notify(OnlineTrains.MoveTrains(move));
                 MSGExhaust exhaust = new MSGExhaust(); // Also updating loco exhaust
                 Train t = Simulator.PlayerLocomotive.Train;
                 for (int iCar = 0; iCar < t.Cars.Count; iCar++)
@@ -220,7 +208,8 @@ namespace Orts.MultiPlayer
                 }
                 // Broadcast also exhaust
                 var exhaustMessage = OnlineTrains.ExhaustingLocos(exhaust);
-                if (!string.IsNullOrEmpty(exhaustMessage)) Server.BroadCast(exhaustMessage);
+                if (!string.IsNullOrEmpty(exhaustMessage)) 
+                    Notify(exhaustMessage);
 
                 lastMoveTime = lastSendTime = newtime;
 
@@ -233,7 +222,7 @@ namespace Orts.MultiPlayer
 			}
 			
 			//server updates switch
-			if (Server != null && newtime - lastSwitchTime >= MPUpdateInterval)
+			if (IsDispatcher && newtime - lastSwitchTime >= MPUpdateInterval)
 			{
 				lastSwitchTime = lastSendTime = newtime;
 				var switchStatus = new MSGSwitchStatus();
@@ -245,7 +234,7 @@ namespace Orts.MultiPlayer
 			}
 			
 			//client updates itself
-			if (Client != null && Server == null && newtime - lastMoveTime >= 1f)
+			if (Client != null && !IsDispatcher && newtime - lastMoveTime >= 1f)
 			{
 				Train t = Simulator.PlayerLocomotive.Train;
 				MSGMove move = new MSGMove();
@@ -294,7 +283,7 @@ namespace Orts.MultiPlayer
 
 
 			//need to send a keep-alive message if have not sent one to the server for the last 30 seconds
-			if (Client != null && Server == null && newtime - lastSendTime >= 30f)
+			if (Client != null && !IsDispatcher && newtime - lastSendTime >= 30f)
 			{
 				Notify((new MSGAlive(GetUserName())).ToString());
 				lastSendTime = newtime;
@@ -302,7 +291,7 @@ namespace Orts.MultiPlayer
 
 			//some players are removed
             //need to send a keep-alive message if have not sent one to the server for the last 30 seconds
-            if (IsServer() && newtime - lastSyncTime >= 60f)
+            if (IsDispatcher && newtime - lastSyncTime >= 60f)
             {
                 Notify((new MSGMessage("All", "TimeCheck", Simulator.ClockTime.ToString(System.Globalization.CultureInfo.InvariantCulture))).ToString());
                 lastSyncTime = newtime;
@@ -316,7 +305,7 @@ namespace Orts.MultiPlayer
 			HandleTrainList();
 
             //some locos are added/removed
-            if (IsServer()) HandleLocoList();
+            if (IsDispatcher) HandleLocoList();
 
             AddPlayer(); //a new player joined? handle it
 
@@ -347,16 +336,16 @@ namespace Orts.MultiPlayer
 		//check if it is in the server mode
 		public static bool IsServer()
 		{
-			if (Server != null) return true;
-			else return false;
+            return localUser?.IsDispatcher ?? false;
 		}
 
 		//check if it is in the client mode
 		public static bool IsClient()
 		{
-			if (!MultiPlayerManager.IsMultiPlayer() || MultiPlayerManager.IsServer()) return false;
+			if (!IsMultiPlayer() || IsServer()) return false;
 			return true; 
 		}
+
         //check if it is in the server mode && they are players && not allow autoswitch
         public static bool NoAutoSwitch()
         {
@@ -374,14 +363,13 @@ namespace Orts.MultiPlayer
 		//check if it is in the multiplayer session
 		public static bool IsMultiPlayer()
 		{
-			if (Server != null || Client != null) return true;
-			else return false;
+            return (Client != null);
 		}
 
 		public static void BroadCast(string m)
 		{
 			if (m == null) return;
-			if (Server != null) Server.BroadCast(m);
+			Client?.Send(m);
 		}
 
 		//notify others (server will broadcast, client will send msg to server)
@@ -392,30 +380,33 @@ namespace Orts.MultiPlayer
 			Client?.Send(m); //client notify server
 		}
 
-		public static void SendToServer(string m)
-		{
-			if (m!= null && Client != null) Client.Send(m);
-		}
-
 		//nicely shutdown listening threads, and notify the server/other player
 		public static void Stop()
 		{
-			if (Client != null && Server == null)
-			{
-				Client.Send((new MSGQuit(GetUserName())).ToString()); //client notify server
-//				Thread.Sleep(1000);
-				Client.Stop();
-			}
-			if (Server != null)
-			{
-				Server.BroadCast((new MSGQuit("ServerHasToQuit\t"+GetUserName())).ToString()); //server notify everybody else
-				Thread.Sleep(1000);
-				if (Client != null) Client.Stop();
-			}
+            if (localUser != null)
+            {
+                localUser.Quit();
+            }
 		}
 
-		//when two player trains connected, require decouple at speed 0.
-		public static bool TrainOK2Decouple(Confirmer confirmer, Train t)
+        private void Quit()
+        {
+            if (Client != null)
+            {
+                if (IsDispatcher)
+                {
+                    //    Client.Send((new MSGQuit("ServerHasToQuit\t" + GetUserName())).ToString()); //server notify everybody else
+                }
+                //else
+                {
+                    Client.Send((new MSGQuit(GetUserName())).ToString()); //client notify server
+                }
+                Client.Stop();
+            }
+        }
+
+        //when two player trains connected, require decouple at speed 0.
+        public static bool TrainOK2Decouple(Confirmer confirmer, Train t)
 		{
 			if (t == null) return false;
 			if (Math.Abs(t.SpeedMpS) < 0.001) return true;

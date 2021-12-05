@@ -1176,7 +1176,6 @@ namespace Orts.ActivityRunner.Viewer3D
 
             if (MultiPlayerManager.IsMultiPlayer())
             {
-                MultiPlayerManager.Instance().PreUpdate();
                 ////get key strokes and determine if some messages should be sent
                 //MultiPlayerViewer.HandleUserInput();
                 MultiPlayerManager.Instance().Update(Simulator.GameTime);

@@ -72,8 +72,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         private Simulator simulator;
 
         //for Multiplayer
-        private static Server Server { get { return MultiPlayerManager.Server; } set { MultiPlayerManager.Server = value; } }
-
         private static ClientComm Client { get { return MultiPlayerManager.Client; } set { MultiPlayerManager.Client = value; } }
 
         private string userName;
@@ -427,7 +425,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                     InitSimulator(settings);
                     simulator.Restore(inf, PathName, InitialTileX, InitialTileZ, Game.LoaderProcess.CancellationToken);
                     Viewer = new Viewer(simulator, Game);
-                    if (Client != null || Server != null && ActivityType == ActivityType.Activity)
+                    if (Client != null && ActivityType == ActivityType.Activity)
                         simulator.SetPathAndConsist();
                     if (Client != null)
                     {
