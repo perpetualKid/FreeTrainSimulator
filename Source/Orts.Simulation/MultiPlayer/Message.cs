@@ -3092,7 +3092,7 @@ namespace Orts.MultiPlayer
                 signals = new SortedList<long, SignalHead>();
                 try
                 {
-                    if (MultiPlayerManager.Simulator.SignalEnvironment.Signals != null)
+                    if (MultiPlayerManager.Simulator.SignalEnvironment?.Signals != null)
                     {
                         foreach (var s in MultiPlayerManager.Simulator.SignalEnvironment.Signals)
                         {

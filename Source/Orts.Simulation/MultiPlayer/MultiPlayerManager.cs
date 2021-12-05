@@ -404,7 +404,7 @@ namespace Orts.MultiPlayer
 			if (Client != null && Server == null)
 			{
 				Client.Send((new MSGQuit(GetUserName())).ToString()); //client notify server
-				Thread.Sleep(1000);
+//				Thread.Sleep(1000);
 				Client.Stop();
 			}
 			if (Server != null)

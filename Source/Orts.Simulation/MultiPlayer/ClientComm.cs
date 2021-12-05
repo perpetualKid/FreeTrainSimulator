@@ -39,12 +39,14 @@ namespace Orts.MultiPlayer
 		public Decoder decoder;
 		public bool Connected;
 
+        private bool abort = false;
+
 		public void Stop()
 		{
 			try
 			{
 				client.Close();
-				listenThread.Abort();
+                abort = true;
 			}
 			catch (Exception) { }
 		}
@@ -86,7 +88,7 @@ namespace Orts.MultiPlayer
 			byte[] message = new byte[8192];
 			int bytesRead;
 
-			while (true)
+			while (!abort)
 			{
 				bytesRead = 0;
 				//System.Threading.Thread.Sleep(Program.Random.Next(50, 200));
@@ -131,7 +133,7 @@ namespace Orts.MultiPlayer
                         MultiPlayerManager.Simulator.Confirmer.Error(MultiPlayerManager.Catalog.GetString("Connection to the server is lost, will play as single mode"));
                     MultiPlayerManager.Client = null;
 					tcpClient.Close();
-					listenThread.Abort();
+                    abort = true;
 				}
 				catch (Exception e)
 				{
@@ -160,7 +162,6 @@ namespace Orts.MultiPlayer
 
             MultiPlayerManager.Client = null;
 			tcpClient.Close();
-			listenThread.Abort();
 		}
 
 		private object lockObj = new object();

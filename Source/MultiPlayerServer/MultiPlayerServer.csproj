@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+	  <Description>Open Rails Multiplayer Server</Description>
+	  <AssemblyTitle>Open Rails MultiPlayer Server</AssemblyTitle>
+	  <OutputPath>..\..\Program</OutputPath>
+	  <ApplicationIcon>..\Orts.ico</ApplicationIcon>
+	  <RootNamespace>Orts.MultiPlayerServer</RootNamespace>
+  </PropertyGroup>
+
+</Project>

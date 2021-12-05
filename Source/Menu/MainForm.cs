@@ -201,7 +201,7 @@ namespace Orts.Menu
 
         }
 
-        private static IEnumerable<ToolStripItem> LoadTools()
+        private IEnumerable<ToolStripItem> LoadTools()
         {
             return Directory.EnumerateFiles(System.IO.Path.GetDirectoryName(RuntimeInfo.ApplicationFolder), "*.exe").
                 Where(fileName => (!coreExecutables.Contains(System.IO.Path.GetFileName(fileName), StringComparer.InvariantCultureIgnoreCase))).
@@ -222,7 +222,12 @@ namespace Orts.Menu
                             toolIsConsole = GetImageSubsystem(reader) == ImageSubsystem.WindowsConsole;
                         }
                         if (toolIsConsole)
-                            Process.Start("cmd", $"/k \"{toolPath}\"");
+                        {
+                            if (toolName.Equals("MultiPlayer Server", StringComparison.OrdinalIgnoreCase))
+                                Process.Start("cmd", $"/k \"{toolPath}\" {settings.Multiplayer_Port}");
+                            else
+                                Process.Start("cmd", $"/k \"{toolPath}\"");
+                        }
                         else
                             Process.Start(toolPath);
                     }
@@ -330,7 +335,7 @@ namespace Orts.Menu
                     Trace.WriteLine(exception.Message);
                 }
             }
-            else 
+            else
             {
                 CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InstalledUICulture;
             }
@@ -1321,7 +1326,7 @@ namespace Orts.Menu
                 if (SelectedTimetableTrain != null)
                 {
                     if (string.IsNullOrEmpty(SelectedTimetableTrain.Briefing))
-                    AddDetailToShow(catalog.GetString("Train: {0}", SelectedTimetableTrain), catalog.GetString("Start time: {0}", SelectedTimetableTrain.StartTimeCleaned));
+                        AddDetailToShow(catalog.GetString("Train: {0}", SelectedTimetableTrain), catalog.GetString("Start time: {0}", SelectedTimetableTrain.StartTimeCleaned));
                     else
                         AddDetailToShow(catalog.GetString("Train: {0}", SelectedTimetableTrain), catalog.GetString("Start time: {0}", SelectedTimetableTrain.StartTimeCleaned) + $"\n{SelectedTimetableTrain.Briefing}");
 
