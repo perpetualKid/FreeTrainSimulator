@@ -32,32 +32,33 @@ namespace Orts.MultiPlayer
 {
     public class OnlineTrains
     {
-        public Dictionary<string, OnlinePlayer> Players;
+        public Dictionary<string, OnlinePlayer> Players { get;} = new Dictionary<string, OnlinePlayer>();
+
+        public IList<OnlineLocomotive> OnlineLocomotives { get; } = new List<OnlineLocomotive>();
+
         public OnlineTrains()
         {
-            Players = new Dictionary<string, OnlinePlayer>();
         }
-
-        public List<OnlineLocomotive> OnlineLocomotives = new List<OnlineLocomotive>();
 
         public static void Update()
         {
 
         }
 
-        public Train findTrain(string name)
+        public Train FindTrain(string name)
         {
-            if (Players.ContainsKey(name))
-                return Players[name].Train;
-            else return null;
+
+            Players.TryGetValue(name, out OnlinePlayer player);
+            return player?.Train;
         }
 
-        public bool findTrain(Train t)
+        public bool FindTrain(Train t)
         {
 
             foreach (OnlinePlayer o in Players.Values.ToList())
             {
-                if (o.Train == t) return true;
+                if (o.Train == t) 
+                    return true;
             }
             return false;
         }
@@ -79,7 +80,7 @@ namespace Orts.MultiPlayer
             foreach (Train t in Simulator.Instance.Trains)
             {
                 if (Simulator.Instance.PlayerLocomotive != null && t == Simulator.Instance.PlayerLocomotive.Train) continue;//player drived train
-                if (t == null || findTrain(t)) continue;//is an online player controlled train
+                if (t == null || FindTrain(t)) continue;//is an online player controlled train
                 if (Math.Abs(t.SpeedMpS) > 0.001 || Math.Abs(t.LastReportedSpeed) > 0)
                 {
                     move.AddNewItem("0xAI" + t.Number, t);
@@ -139,7 +140,7 @@ namespace Orts.MultiPlayer
             if (MultiPlayerManager.Client != null && player.user == MultiPlayerManager.Client.UserName) return; //do not add self//WARNING: may need to worry about train number here
             if (p == null)
             {
-                p = new OnlinePlayer(null, null);
+                p = new OnlinePlayer();
             }
             p.url = player.url;
             p.LeadingLocomotiveID = player.leadingID;

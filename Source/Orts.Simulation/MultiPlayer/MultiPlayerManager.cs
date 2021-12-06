@@ -783,12 +783,12 @@ namespace Orts.MultiPlayer
 
         public static Train FindPlayerTrain(string user)
         {
-            return OnlineTrains.findTrain(user);
+            return OnlineTrains.FindTrain(user);
         }
 
         public static bool FindPlayerTrain(Train t)
         {
-            return OnlineTrains.findTrain(t);
+            return OnlineTrains.FindTrain(t);
         }
 
         public static void LocoChange(Train t, TrainCar lead)

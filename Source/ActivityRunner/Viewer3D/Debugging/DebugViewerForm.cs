@@ -796,7 +796,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 					for (var i = 0; i < chosen.Count; i++)
 					{
 						var name = chosen[i].Text.Split(' ')[0].Trim(); //filter out (H) in the text
-						var train = MultiPlayer.MultiPlayerManager.OnlineTrains.findTrain(name);
+						var train = MultiPlayer.MultiPlayerManager.OnlineTrains.FindTrain(name);
 						if (train != null) { selectedTrainList.Remove(train); selectedTrainList.Add(train); redTrain--; }
 						//if selected include myself, will show it as blue
 						if (MultiPlayer.MultiPlayerManager.GetUserName() == name && simulator.PlayerLocomotive != null)
@@ -1084,7 +1084,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 			if (train == simulator.PlayerLocomotive.Train) ok = true;
 			if (MultiPlayer.MultiPlayerManager.IsMultiPlayer())
 			{
-				if (MultiPlayer.MultiPlayerManager.OnlineTrains.findTrain(train)) ok = true;
+				if (MultiPlayer.MultiPlayerManager.OnlineTrains.FindTrain(train)) ok = true;
 			}
 			if (train.FirstCar != null & train.FirstCar.CarID.Contains("AI")) ok = true; //AI train
 			if (Math.Abs(train.SpeedMpS) > 0.001) ok = true;
@@ -1965,7 +1965,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 			  if (simulator.PlayerLocomotive != null) PickedTrain = simulator.PlayerLocomotive.Train;
 			  else if (simulator.Trains.Count > 0) PickedTrain = simulator.Trains[0];
 		  }
-		  else PickedTrain = MultiPlayer.MultiPlayerManager.OnlineTrains.findTrain(name);
+		  else PickedTrain = MultiPlayer.MultiPlayerManager.OnlineTrains.FindTrain(name);
 
 	  }
 

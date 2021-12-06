@@ -15,24 +15,29 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using Orts.Simulation;
-using Orts.Simulation.Physics;
-using Orts.Simulation.RollingStocks;
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+
+using Orts.Simulation;
+using Orts.Simulation.Physics;
+using Orts.Simulation.RollingStocks;
 
 namespace Orts.MultiPlayer
 {
     public class OnlinePlayer
 	{
 		public Decoder decoder;
-		public OnlinePlayer(TcpClient t, Server s) { Client = t; Server = s; decoder = new Decoder(); CreatedTime = Simulator.Instance.GameTime; url = "NA";}// "http://trainsimchina.com/discuz/uc_server/avatar.php?uid=72965&size=middle"; }
+		public OnlinePlayer() 
+        { 
+            decoder = new Decoder(); 
+            CreatedTime = Simulator.Instance.GameTime; 
+            url = "NA";
+        }
+
 		public TcpClient Client;
-		public Server Server;
 		public string Username = "";
 		public string LeadingLocomotiveID = "";
 		public Train Train;
@@ -50,9 +55,12 @@ namespace Orts.MultiPlayer
         // Used to restore
         public OnlinePlayer(BinaryReader inf)
         {
+            if (null == inf)
+                throw new ArgumentNullException(nameof(inf));
+
             Username = inf.ReadString();
             LeadingLocomotiveID = inf.ReadString();
-            var trainNo = inf.ReadInt32();
+            int trainNo = inf.ReadInt32();
             Train = Simulator.Instance.Trains.GetTrainByNumber(trainNo);
             con = inf.ReadString();
             path = inf.ReadString();
@@ -64,13 +72,14 @@ namespace Orts.MultiPlayer
             status = Status.Quit;
             Train.SpeedMpS = 0;
             quitTime = Simulator.Instance.GameTime; // allow a total of 10 minutes to reenter game.
-            for (int iCar = 0; iCar < Train.Cars.Count; iCar++)
+            for (int i = 0; i < Train.Cars.Count; i++)
             {
-                var car = Train.Cars[iCar];
+                TrainCar car = Train.Cars[i];
                 if (car is MSTSLocomotive && MultiPlayerManager.IsServer())
-                    MultiPlayerManager.Instance().AddOrRemoveLocomotive(Username, Train.Number, iCar, true);
+                    MultiPlayerManager.Instance().AddOrRemoveLocomotive(Username, Train.Number, i, true);
             }
-            if (!MultiPlayerManager.Instance().lostPlayer.ContainsKey(this.Username))
+
+            if (!MultiPlayerManager.Instance().lostPlayer.ContainsKey(Username))
             {
                 MultiPlayerManager.Instance().lostPlayer.Add(Username, this);
                 MultiPlayerManager.Instance().AddRemovedPlayer(this);//add this player to be removed
@@ -96,101 +105,11 @@ namespace Orts.MultiPlayer
 			}
 		}
 
-		public void Receive(object client)
-		{
-			NetworkStream clientStream = Client.GetStream();
-
-			byte[] message = new byte[8192];
-			int bytesRead;
-			int errorCount = 0;
-			double firstErrorTick = 0;
-			double nowTicks = 0;
-
-			while (true)
-			{
-				//System.Threading.Thread.Sleep(Program.Random.Next(50, 200));
-
-				bytesRead = 0;
-
-				try
-				{
-					//blocks until a client sends a message
-					bytesRead = clientStream.Read(message, 0, 8192);
-				}
-				catch
-				{
-					//a socket error has occured
-					break;
-				}
-
-				if (bytesRead == 0)
-				{
-					//the client has disconnected from the server
-					break;
-				}
-
-				//message has successfully been received
-				string info = "";
-				try
-				{
-					decoder.PushMsg(Encoding.Unicode.GetString(message, 0, bytesRead));//encoder.GetString(message, 0, bytesRead));
-					info = decoder.GetMsg();
-					while (info != null)
-					{
-						//Trace.WriteLine(info);
-						Message msg = Message.Decode(info);
-						if (msg is MSGPlayer) ((MSGPlayer)msg).HandleMsg(this);
-						else msg.HandleMsg();
-
-						info = decoder.GetMsg();
-					}
-				}
-				catch (MultiPlayerException)
-				{
-					break;
-				}
-				catch (SameNameException)
-				{
-					Client.Close();
-					thread.Abort();
-				}
-				catch (Exception)
-				{
-					nowTicks = Simulator.Instance.GameTime;
-					if (firstErrorTick == 0)
-					{
-						firstErrorTick = nowTicks;
-						errorCount = 1;
-					}
-					if (errorCount >= 5 && nowTicks - firstErrorTick < 10) //5 errors last 10 seconds
-					{
-						MSGMessage emsg = new MSGMessage(this.Username, "Error", "Too many errors received from you in a short period of time.");
-						MultiPlayerManager.BroadCast(emsg.ToString());
-						break;
-					}
-					else if (errorCount < 5) { errorCount++; }
-					else { firstErrorTick = nowTicks; errorCount = 0; }
-					//Trace.WriteLine(e.Message + info);
-				}
-			}
-
-			Trace.WriteLine("{0} quit", this.Username);
-			if (Simulator.Instance.Confirmer != null) Simulator.Instance.Confirmer.Information(MultiPlayerManager.Catalog.GetString("{0} quit.", this.Username));
-			Client.Close();
-			if (this.Train != null && this.status != Status.Removed) //remember the location of the train in case the player comes back later, if he is not removed by the dispatcher
-			{
-				if (!MultiPlayerManager.Instance().lostPlayer.ContainsKey(this.Username)) MultiPlayerManager.Instance().lostPlayer.Add(this.Username, this);
-				this.quitTime = Simulator.Instance.GameTime;
-				this.Train.SpeedMpS = 0.0f;
-				this.status = Status.Quit;
-			}
-			MultiPlayerManager.Instance().AddRemovedPlayer(this);//add this player to be removed
-			MultiPlayerManager.BroadCast((new MSGQuit(this.Username)).ToString());
-			thread.Abort();
-		}
-
         public void Save(BinaryWriter outf)
         {
+            if (null == outf)
+                throw new ArgumentNullException(nameof(outf));
+
             outf.Write(Username);
             outf.Write(LeadingLocomotiveID);
             outf.Write(Train.Number);
@@ -201,16 +120,6 @@ namespace Orts.MultiPlayer
             outf.Write(quitTime);
             outf.Write((int)status);
             outf.Write(protect);
-
-
-
-/*
-        public TcpClient Client;
-        public Server Server;
-
-        public Thread thread;
-        private object lockObj = new object();
-        public bool protect = false; //when in true, will not force this player out, to protect the one that others uses the same name*/
         }
 	}
 }
