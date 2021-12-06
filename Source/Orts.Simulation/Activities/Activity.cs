@@ -89,6 +89,7 @@ namespace Orts.Simulation.Activities
             PlayerServices sd;
             sd = activityFile.Activity.PlayerServices;
             if (sd != null)
+            {
                 if (sd.PlayerTraffics.Count > 0)
                 {
                     ActivityTask task = null;
@@ -105,14 +106,17 @@ namespace Orts.Simulation.Activities
                             continue;
                         }
                         if (Platform != null)
+                        {
                             if (this.simulator.TrackDatabase.TrackDB.TrackItems[Platform.LinkedPlatformItemId] is PlatformItem)
                             {
                                 PlatformItem Platform2 = this.simulator.TrackDatabase.TrackDB.TrackItems[Platform.LinkedPlatformItemId] as PlatformItem;
                                 Tasks.Add(task = new ActivityTaskPassengerStopAt(simulator, task, i.ArrivalTime, i.DepartTime, Platform, Platform2));
                             }
+                        }
                     }
                     ActivityTask = Tasks[0];
                 }
+            }
 
             // Compile list of freight events, if any, from the parsed ACT file.
             foreach (ActivityEvent activityEvent in activityFile.Activity?.Events ?? Enumerable.Empty<ActivityEvent>())
@@ -152,6 +156,7 @@ namespace Orts.Simulation.Activities
                 //    }
             }
             if (!Completed)
+            {
                 foreach (EventWrapper i in EventList)
                 {
                     // Once an event has fired, we don't respond to any more events until that has been acknowledged.
@@ -159,8 +164,11 @@ namespace Orts.Simulation.Activities
                     if (TriggeredEvent != null)
                         break;
                     if (i != null && i.ActivityEvent.ActivationLevel > 0)
+                    {
                         if (i.TimesTriggered < 1 || i.ActivityEvent.Reversible)
+                        {
                             if (i.Triggered(this))
+                            {
                                 if (!i.Disabled)
                                 {
                                     i.TimesTriggered += 1;
@@ -170,11 +178,17 @@ namespace Orts.Simulation.Activities
                                     // Do this after IsActivityEnded() so values are ready for ActivityWindow
                                     LastTriggeredActivityEvent = TriggeredEvent;
                                 }
-                                else
+                            }
+                            else
+                            {
                                 if (i.ActivityEvent.Reversible)
                                     // Reversible event is no longer triggered, so can re-enable it.
                                     i.Disabled = false;
+                            }
+                        }
+                    }
                 }
+            }
 
             // Update passenger tasks
             if (ActivityTask == null) return;
@@ -182,8 +196,11 @@ namespace Orts.Simulation.Activities
             ActivityTask.NotifyEvent(ActivityEventType.Timer);
             if (ActivityTask.IsCompleted != null)    // Surely this doesn't test for: 
                 ActivityTask = ActivityTask.NextTask;
+
             if (simulator.OriginalPlayerTrain.TrainType == TrainType.Player || simulator.OriginalPlayerTrain.TrainType == TrainType.AiPlayerDriven)
+            {
                 if (Math.Abs(simulator.OriginalPlayerTrain.SpeedMpS) < 0.2f)
+                {
                     if (Math.Abs(prevTrainSpeed) >= 0.2f)
                     {
                         prevTrainSpeed = 0;
@@ -191,7 +208,9 @@ namespace Orts.Simulation.Activities
                         if (ActivityTask.IsCompleted != null)
                             ActivityTask = ActivityTask.NextTask;
                     }
-                    else
+                }
+                else
+                {
                     if (Math.Abs(prevTrainSpeed) < 0.2f && Math.Abs(simulator.OriginalPlayerTrain.SpeedMpS) >= 0.2f)
                     {
                         prevTrainSpeed = simulator.OriginalPlayerTrain.SpeedMpS;
@@ -199,24 +218,32 @@ namespace Orts.Simulation.Activities
                         if (ActivityTask.IsCompleted != null)
                             ActivityTask = ActivityTask.NextTask;
                     }
-                    else
+                }
+            }
+            else
+            {
                 if (Math.Abs(simulator.OriginalPlayerTrain.SpeedMpS) <= Simulator.MaxStoppedMpS)
-                        if (prevTrainSpeed != 0)
-                        {
-                            prevTrainSpeed = 0;
-                            ActivityTask.NotifyEvent(ActivityEventType.TrainStop);
-                            if (ActivityTask.IsCompleted != null)
-                                ActivityTask = ActivityTask.NextTask;
-                        }
-                        else
-                            //if (prevTrainSpeed == 0 && Math.Abs(simulator.OriginalPlayerTrain.SpeedMpS) > 0.2f)
-                            if (Math.Abs(simulator.OriginalPlayerTrain.SpeedMpS) > 0.2f)
-                        {
-                            prevTrainSpeed = simulator.OriginalPlayerTrain.SpeedMpS;
-                            ActivityTask.NotifyEvent(ActivityEventType.TrainStart);
-                            if (ActivityTask.IsCompleted != null)
-                                ActivityTask = ActivityTask.NextTask;
-                        }
+                {
+                    if (prevTrainSpeed != 0)
+                    {
+                        prevTrainSpeed = 0;
+                        ActivityTask.NotifyEvent(ActivityEventType.TrainStop);
+                        if (ActivityTask.IsCompleted != null)
+                            ActivityTask = ActivityTask.NextTask;
+                    }
+                }
+                else
+                {
+                    //if (prevTrainSpeed == 0 && Math.Abs(simulator.OriginalPlayerTrain.SpeedMpS) > 0.2f)
+                    if (Math.Abs(simulator.OriginalPlayerTrain.SpeedMpS) > 0.2f)
+                    {
+                        prevTrainSpeed = simulator.OriginalPlayerTrain.SpeedMpS;
+                        ActivityTask.NotifyEvent(ActivityEventType.TrainStart);
+                        if (ActivityTask.IsCompleted != null)
+                            ActivityTask = ActivityTask.NextTask;
+                    }
+                }
+            }
         }
 
         public static void Save(BinaryWriter outf, Activity act)
