@@ -283,7 +283,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
 
             if (Client != null)
             {
-                Client.Send((new MSGPlayer(userName, code, simulator.ConsistFileName, simulator.PathFileName, simulator.Trains[0], 0, simulator.Settings.AvatarURL)).ToString());
+                Client.SendMessage((new MSGPlayer(userName, code, simulator.ConsistFileName, simulator.PathFileName, simulator.Trains[0], 0, simulator.Settings.AvatarURL)).ToString()).Wait();
                 // wait 5 seconds to see if you get a reply from server with updated position/consist data, else go on
 
                 System.Threading.Thread.Sleep(5000);
@@ -429,7 +429,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                         simulator.SetPathAndConsist();
                     if (Client != null)
                     {
-                        Client.Send((new MSGPlayer(userName, code, simulator.ConsistFileName, simulator.PathFileName, simulator.Trains[0], 0, simulator.Settings.AvatarURL)).ToString());
+                        Client.SendMessage((new MSGPlayer(userName, code, simulator.ConsistFileName, simulator.PathFileName, simulator.Trains[0], 0, simulator.Settings.AvatarURL)).ToString()).Wait();
                     }
                     Viewer.Restore(inf);
 
@@ -933,10 +933,8 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                 try
                 {
                     MultiPlayerManager.Instance().MPUpdateInterval = settings.Multiplayer_UpdateInterval;
-                    Client = new ClientComm(settings.Multiplayer_Host, settings.Multiplayer_Port, settings.Multiplayer_User + " 1234");
+                    Client = new ClientComm(settings.Multiplayer_Host, settings.Multiplayer_Port, settings.Multiplayer_User, "1234");
                     userName = Client.UserName;
-                    Debug.Assert(userName.Length >= 4 && userName.Length <= 10 && !userName.Contains('\"') && !userName.Contains('\'') && !char.IsDigit(userName[0]),
-                        "Error in the user name: should not start with digits, be 4-10 characters long and no special characters");
                     code = Client.Code;
                 }
                 catch (Exception error)

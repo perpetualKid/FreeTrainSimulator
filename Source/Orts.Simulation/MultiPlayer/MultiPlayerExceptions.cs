@@ -48,5 +48,18 @@ namespace Orts.MultiPlayer
         {
         }
     }
+    public class ProtocolException : MultiPlayerException
+    {
+        public ProtocolException(string message) : base(message)
+        {
+        }
 
+        public ProtocolException(string message, Exception innerException) : base(message, innerException)
+        {
+        }
+
+        public ProtocolException()
+        {
+        }
+    }
 }

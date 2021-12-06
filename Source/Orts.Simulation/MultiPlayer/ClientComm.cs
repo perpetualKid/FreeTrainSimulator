@@ -25,135 +25,96 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 using GetText;
 
 using Orts.Simulation;
 
+using SharpDX.Direct3D11;
+
 namespace Orts.MultiPlayer
 {
-    public class ClientComm
+    public class ClientComm : IDisposable
     {
-        private Thread listenThread;
-        private TcpClient client;
-        public string UserName;
-        public string Code;
-        public Decoder decoder;
-        public bool Connected;
+        private readonly TcpClient client;
+        private readonly Decoder decoder = new Decoder();
+        private bool disposedValue;
 
-        private bool abort = false;
+        private CancellationTokenSource cts = new CancellationTokenSource();
+        public string UserName { get; }
+        public string Code { get; }
+        public bool Connected { get; set; }
 
         public void Stop()
         {
             try
             {
+                cts.Cancel();
                 client.Close();
-                abort = true;
             }
-            catch (Exception) { }
+            catch (Exception ex) when (ex is SocketException || ex is System.IO.IOException)
+            { }
         }
 
-        public ClientComm(string serverIP, int serverPort, string s)
+        public ClientComm(string serverAddress, int serverPort, string userName, string code)
         {
             client = new TcpClient();
 
-            IPAddress address;
-
-            if (!IPAddress.TryParse(serverIP, out address))
+            if (!IPAddress.TryParse(serverAddress, out IPAddress address))
             {
-                address = Dns.GetHostEntry(serverIP)
+                address = Dns.GetHostEntry(serverAddress)
                      .AddressList
                      .First(ip => ip.AddressFamily == AddressFamily.InterNetwork);
             }
+            Task connectionTask = Connection(address, serverPort);
+
             IPEndPoint serverEndPoint = new IPEndPoint(address, serverPort);
-#if DEBUG_MULTIPLAYER
-            Trace.TraceInformation("ClientComm data: {0} , ServerIP: {1}", s, serverIP);
-#endif
 
-            client.Connect(serverEndPoint);
-            string[] tmp = s.Split(' ');
-            UserName = tmp[0];
-            Code = tmp[1];
-            decoder = new Decoder();
-
-            listenThread = new Thread(new ParameterizedThreadStart(this.Receive));
-            listenThread.Name = "Multiplayer Client-Server";
-            listenThread.Start(client);
-
+            UserName = userName;
+            Code = code;
         }
 
-        public void Receive(object client)
+        private async Task Connection(IPAddress address, int port)
         {
-
-            TcpClient tcpClient = (TcpClient)client;
-            NetworkStream clientStream = tcpClient.GetStream();
-
-            byte[] message = new byte[8192];
+            byte[] buffer = new byte[8192];
             int bytesRead;
+            string content;
 
-            while (!abort)
-            {
-                bytesRead = 0;
-                //System.Threading.Thread.Sleep(Program.Random.Next(50, 200));
-                try
-                {
-                    //blocks until a client sends a message
-                    bytesRead = clientStream.Read(message, 0, 8192);
-                }
-                catch
-                {
-                    //a socket error has occured
-                    break;
-                }
-
-                if (bytesRead == 0)
-                {
-                    //the client has disconnected from the server
-                    break;
-                }
-
-                //message has successfully been received
-                string info = "";
-                try
-                {
-                    decoder.PushMsg(Encoding.Unicode.GetString(message, 0, bytesRead));//encoder.GetString(message, 0, bytesRead));
-                    info = decoder.GetMsg();
-                    while (info != null)
-                    {
-                        //Trace.WriteLine(info);
-                        Message msg = Message.Decode(info);
-                        if (Connected || msg is MSGRequired) msg.HandleMsg();
-                        info = decoder.GetMsg();
-                    }
-                }
-                catch (SameNameException) //I have conflict with some one in the game, will close, and abort.
-                {
-                    Simulator.Instance.Confirmer?.Error(CatalogManager.Catalog.GetString("Connection to the server is lost, will play as single mode"));
-                    MultiPlayerManager.Client = null;
-                    tcpClient.Close();
-                    abort = true;
-                }
-                catch (MultiPlayerException)
-                {
-                    break;
-                }
-                catch (Exception e)
-                {
-                    Trace.TraceWarning(e.Message + e.StackTrace);
-                }
-            }
-            Simulator.Instance.Confirmer?.Error(CatalogManager.Catalog.GetString("Connection to the server is lost, will play as single mode"));
             try
             {
-                foreach (var p in MultiPlayerManager.OnlineTrains.Players)
+                await client.ConnectAsync(address, port).ConfigureAwait(false);
+                NetworkStream networkStream = client.GetStream();
+
+                while (client.Connected && !cts.Token.IsCancellationRequested)
                 {
-                    MultiPlayerManager.Instance().AddRemovedPlayer(p.Value);
+                    bytesRead = await networkStream.ReadAsync(buffer.AsMemory(0, buffer.Length), cts.Token).ConfigureAwait(false);
+                    if (bytesRead == 0)
+                        break;
+
+                    decoder.PushMsg(Encoding.Unicode.GetString(buffer, 0, bytesRead));
+
+                    while ((content = decoder.GetMsg()) != null)
+                    {
+                        Message message = Message.Decode(content);
+                        if (Connected || message is MSGRequired)
+                            message.HandleMsg();
+                    }
                 }
             }
-            catch (Exception) { }
+            catch (Exception ex) when (ex is SocketException || ex is System.IO.IOException ||
+                ex is OperationCanceledException || ex is System.Threading.Tasks.TaskCanceledException)
+            {
+            }
+
+            Simulator.Instance.Confirmer?.Error(CatalogManager.Catalog.GetString("Connection to the server is lost, will play as single mode"));
+            foreach (System.Collections.Generic.KeyValuePair<string, OnlinePlayer> p in MultiPlayerManager.OnlineTrains.Players)
+            {
+                MultiPlayerManager.Instance().AddRemovedPlayer(p.Value);
+            }
 
             //no matter what, let player gain back the control of the player train
-            if (Simulator.Instance.PlayerLocomotive != null && Simulator.Instance.PlayerLocomotive.Train != null)
+            if (Simulator.Instance.PlayerLocomotive?.Train != null)
             {
                 Simulator.Instance.PlayerLocomotive.Train.TrainType = TrainType.Player;
                 Simulator.Instance.PlayerLocomotive.Train.LeadLocomotive = Simulator.Instance.PlayerLocomotive;
@@ -161,27 +122,50 @@ namespace Orts.MultiPlayer
             Simulator.Instance.Confirmer?.Information(CatalogManager.Catalog.GetString("Alt-E to gain control of your train"));
 
             MultiPlayerManager.Client = null;
-            tcpClient.Close();
+            client.Close();
         }
 
-        private readonly object lockObj = new object();
-        public void Send(string msg)
+        public async Task SendMessage(string message)
         {
-
             try
             {
-                NetworkStream clientStream = client.GetStream();
-                lock (lockObj)//in case two threads want to write at the same buffer
+                if (client.Connected && !cts.IsCancellationRequested)
                 {
-                    byte[] buffer = Encoding.Unicode.GetBytes(msg);//encoder.GetBytes(msg);
-                    clientStream.Write(buffer, 0, buffer.Length);
-                    clientStream.Flush();
+                    NetworkStream clientStream = client.GetStream();
+                    byte[] buffer = Encoding.Unicode.GetBytes(message);
+                    await clientStream.WriteAsync(buffer.AsMemory(0, buffer.Length), cts.Token).ConfigureAwait(false);
+                    await clientStream.FlushAsync(cts.Token).ConfigureAwait(false);
                 }
             }
-            catch (SocketException)
+            catch (Exception ex) when (ex is System.IO.IOException || ex is SocketException)
             {
+            }
+
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    client.Dispose();
+                    cts?.Cancel();
+                    cts?.Dispose();
+                    // TODO: dispose managed state (managed objects)
+                }
+
+                // TODO: free unmanaged resources (unmanaged objects) and override finalizer
+                // TODO: set large fields to null
+                disposedValue = true;
             }
         }
 
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
     }
 }

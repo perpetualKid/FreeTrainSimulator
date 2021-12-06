@@ -16,6 +16,7 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
+using System.Diagnostics;
 
 namespace Orts.MultiPlayer
 {
@@ -41,28 +42,34 @@ namespace Orts.MultiPlayer
 		}
 		public string GetMsg()
 		{
-//			Trace.WriteLine(msg);
-			if (msg.Length < 1) return null;
-			int index = msg.IndexOf(':');
+			if (msg.Length < 1) 
+                return null;
+			int index = msg.IndexOf(':', StringComparison.OrdinalIgnoreCase);
 			if (index < 0)
 			{
-				if (msg.Length > 10) msg = msg.Remove(0); //no ':', clear the messages, no way to recover anyway, except the first few digits
-				throw new Exception("Parsing error, no : found");
+				if (msg.Length > 10) 
+                    msg = msg.Remove(0); //no ':', clear the messages, no way to recover anyway, except the first few digits
+				throw new ProtocolException("Parsing error, no : found");
 			}
 			try
 			{
 				int last = index - 1;
 				while (last >= 0)
 				{
-					if (!char.IsDigit(msg[last])) break;
+					if (!char.IsDigit(msg[last])) 
+                        break;
 					last--;
 				} //shift back to get all digits
 				last += 1;
 				if (last < 0) last = 0;
-				string tmp = msg.Substring(last, index - last);
-				int len;
-				if (!int.TryParse(tmp, out len)) { msg = msg.Remove(0); return null; }
-				if (len < 0) return null;
+				string tmp = msg[last..index];
+                if (!int.TryParse(tmp, out int len)) 
+                { 
+                    msg = msg.Remove(0); 
+                    return null; 
+                }
+                if (len < 0) 
+                    return null;
                 if (index + 2 + len > msg.Length)
                 {
                     //if (msg.LastIndexOf(":") > 64) { msg = msg.Remove(0, index + 1); }//if there is a : further down, means the length is wrong, needs to remove until next :
@@ -70,23 +77,13 @@ namespace Orts.MultiPlayer
                 }
 				tmp = msg.Substring(index + 2, len); //not taking ": "
 				msg = msg.Remove(0, index + 2 + len); //remove :
-				if (len > 1000000) return null;//a long message, will ignore it
-#if false
-				int last = index-1;
-				while (last >= 0 && char.IsDigit(msg[last--])) ; //shift back to get all digits
-				if (last < 0) last = 0;
-				string tmp = msg.Substring(last, index);
-				int len;
-				if (!int.TryParse(tmp, out len)) len = 0;
-				if (index + 2 + len > msg.Length) return null;//not enough characters
-				tmp = msg.Substring(index+2, len); //not taking ": "
-				msg = msg.Remove(last, index+2+len); //remove :
-#endif
+				if (len > 1000000) 
+                    return null;//a long message, will ignore it
 				return tmp;
 			}
-			catch (Exception)
+			catch (Exception ex) when (ex is ProtocolException || ex is ArgumentOutOfRangeException)
 			{
-				//Trace.WriteLine(msg);
+				Trace.WriteLine("Invalid MultiplayerMessage received: " + msg);
 				//msg = ""; //clear the messages
 				return null;
 			}

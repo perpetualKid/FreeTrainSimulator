@@ -268,8 +268,8 @@ namespace Orts.MultiPlayer
                 //if there are messages to send
                 if (move.OKtoSend())
                 {
-                    Client.Send(move.ToString());
-                    if (exhaust.OKtoSend()) Client.Send(exhaust.ToString());
+                    Client.SendMessage(move.ToString()).Wait();
+                    if (exhaust.OKtoSend()) Client.SendMessage(exhaust.ToString()).Wait();
                     lastMoveTime = lastSendTime = newtime;
                 }
                 previousSpeed = t.SpeedMpS;
@@ -370,8 +370,9 @@ namespace Orts.MultiPlayer
 
         public static void BroadCast(string m)
         {
-            if (m == null) return;
-            Client?.Send(m);
+            if (m == null) 
+                return;
+            Client?.SendMessage(m).Wait();
         }
 
         //notify others (server will broadcast, client will send msg to server)
@@ -379,7 +380,7 @@ namespace Orts.MultiPlayer
         {
             if (m == null)
                 return;
-            Client?.Send(m); //client notify server
+            Client?.SendMessage(m).Wait(); //client notify server
         }
 
         //nicely shutdown listening threads, and notify the server/other player
@@ -401,7 +402,7 @@ namespace Orts.MultiPlayer
                 }
                 //else
                 {
-                    Client.Send((new MSGQuit(GetUserName())).ToString()); //client notify server
+                    Client.SendMessage((new MSGQuit(GetUserName())).ToString()).Wait(); //client notify server
                 }
                 Client.Stop();
             }

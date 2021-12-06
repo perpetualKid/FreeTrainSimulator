@@ -105,23 +105,40 @@ namespace Orts.MultiPlayerServer
             NetworkStream networkStream = tcpClient.GetStream();
             byte[] buffer = new byte[8192];
 
+            int size;
             while (tcpClient.Connected)
             {
-                int size = await networkStream.ReadAsync(buffer.AsMemory(0, buffer.Length)).ConfigureAwait(false);
+                try
+                {
+                    size = await networkStream.ReadAsync(buffer.AsMemory(0, buffer.Length)).ConfigureAwait(false);
+                }
+                catch (Exception ex) when (ex is System.IO.IOException || ex is SocketException)
+                {
+                    break;
+                }
                 if (size == 0)
                     break;
                 byte[] sendBuffer = new byte[size];
                 Array.Copy(buffer, sendBuffer, size);
-                string playerMessage = Encoding.Unicode.GetString(sendBuffer);
-                string[] playerDetails = playerMessage.Split(' ');
-                if (playerDetails != null && playerDetails.Length > 2 && playerDetails[2].Equals("PLAYER", StringComparison.OrdinalIgnoreCase))
+                string message = Encoding.Unicode.GetString(sendBuffer);
+                string[] messageDetails = message.Split(' ');
+                if (messageDetails != null && messageDetails.Length > 3)
                 {
-                    onlinePlayers.Remove(playerName);
-                    if (currentServer == playerName)
-                        currentServer = playerName = playerMessage.Split(' ')[3];
-                    else 
-                        playerName = playerMessage.Split(' ')[3];
-                    onlinePlayers.Add(playerName, tcpClient);
+                    if (messageDetails[2].Equals("PLAYER", StringComparison.OrdinalIgnoreCase))
+                    {
+                        onlinePlayers.Remove(playerName);
+                        if (currentServer == playerName)
+                            currentServer = playerName = message.Split(' ')[3];
+                        else
+                            playerName = message.Split(' ')[3];
+                        onlinePlayers.Add(playerName, tcpClient);
+                    }
+                    if (messageDetails[2].Equals("QUIT", StringComparison.OrdinalIgnoreCase))
+                    {
+                        string quitPlayer = message.Split(' ')[3];
+                        if (playerName == quitPlayer)
+                            break;
+                    }
                 }
                 Broadcast(playerName, sendBuffer.AsMemory(0, sendBuffer.Length));
             }
@@ -130,25 +147,26 @@ namespace Orts.MultiPlayerServer
 
         private async Task RemovePlayer(string playerName)
         {
-            onlinePlayers.Remove(playerName);
-            string lostMessage = $"LOST { playerName}";
-            lostPlayer = Encoding.Unicode.GetBytes($" {lostMessage.Length}: {lostMessage}");
-            Broadcast(playerName, lostPlayer);
-            if (currentServer == playerName)
+            if (onlinePlayers.Remove(playerName))
             {
-                serverAppointed = false;
-                Broadcast(playerName, serverChallenge);
-                await Task.Delay(5000).ConfigureAwait(false);
-                if (!serverAppointed && onlinePlayers.Count > 0)
+                string lostMessage = $"LOST { playerName}";
+                lostPlayer = Encoding.Unicode.GetBytes($" {lostMessage.Length}: {lostMessage}");
+                Broadcast(playerName, lostPlayer);
+                if (currentServer == playerName)
                 {
-                    Broadcast(null, lostPlayer);
-                    currentServer = onlinePlayers.Keys.First();
-                    string appointmentMessage = $"SERVER {currentServer}";
-                    lostPlayer = Encoding.Unicode.GetBytes($" {appointmentMessage.Length}: {appointmentMessage}");
-                    Broadcast(null, lostPlayer);
+                    serverAppointed = false;
+                    Broadcast(playerName, serverChallenge);
+                    await Task.Delay(5000).ConfigureAwait(false);
+                    if (!serverAppointed && onlinePlayers.Count > 0)
+                    {
+                        Broadcast(null, lostPlayer);
+                        currentServer = onlinePlayers.Keys.First();
+                        string appointmentMessage = $"SERVER {currentServer}";
+                        lostPlayer = Encoding.Unicode.GetBytes($" {appointmentMessage.Length}: {appointmentMessage}");
+                        Broadcast(null, lostPlayer);
+                    }
                 }
             }
-
         }
     }
 }
