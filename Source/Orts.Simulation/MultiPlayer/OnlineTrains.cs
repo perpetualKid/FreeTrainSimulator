@@ -32,7 +32,7 @@ namespace Orts.MultiPlayer
 {
     public class OnlineTrains
     {
-        public Dictionary<string, OnlinePlayer> Players { get;} = new Dictionary<string, OnlinePlayer>();
+        public Dictionary<string, OnlinePlayer> Players { get; } = new Dictionary<string, OnlinePlayer>();
 
         public IList<OnlineLocomotive> OnlineLocomotives { get; } = new List<OnlineLocomotive>();
 
@@ -57,7 +57,7 @@ namespace Orts.MultiPlayer
 
             foreach (OnlinePlayer o in Players.Values.ToList())
             {
-                if (o.Train == t) 
+                if (o.Train == t)
                     return true;
             }
             return false;
@@ -128,24 +128,24 @@ namespace Orts.MultiPlayer
             {
                 if (p.Train != null)
                 {
-                    MSGPlayer player = new MSGPlayer(p.Username, "1234", p.con, p.path, p.Train, p.Train.Number, p.url);
+                    MSGPlayer player = new MSGPlayer(p.Username, "1234", p.Consist, p.Path, p.Train, p.Train.Number, p.AvatarUrl);
                     tmp += player.ToString();
                 }
             }
             return tmp;
         }
-        public void AddPlayers(MSGPlayer player, OnlinePlayer p)
+
+        public void AddPlayers(MSGPlayer player)
         {
-            if (Players.ContainsKey(player.user)) return;
-            if (MultiPlayerManager.Client != null && player.user == MultiPlayerManager.Client.UserName) return; //do not add self//WARNING: may need to worry about train number here
-            if (p == null)
-            {
-                p = new OnlinePlayer();
-            }
-            p.url = player.url;
+            if (Players.ContainsKey(player.user)) 
+                return;
+            if (MultiPlayerManager.Client != null && player.user == MultiPlayerManager.Client.UserName) 
+                return; //do not add self//WARNING: may need to worry about train number here
+            OnlinePlayer p = new OnlinePlayer(player.user, 
+                Path.Combine(Simulator.Instance.RouteFolder.ContentFolder.ConsistsFolder, player.con), 
+                Path.Combine(Simulator.Instance.RouteFolder.PathsFolder, player.path));
+            p.AvatarUrl = player.url;
             p.LeadingLocomotiveID = player.leadingID;
-            p.con = Path.Combine(Simulator.Instance.RouteFolder.ContentFolder.ConsistsFolder, player.con);
-            p.path = Path.Combine(Simulator.Instance.RouteFolder.PathsFolder, player.path);
             Train train = new Train();
             train.TrainType = TrainType.Remote;
             if (MultiPlayerManager.IsServer()) //server needs to worry about correct train number
@@ -164,7 +164,7 @@ namespace Orts.MultiPlayer
             {
                 try
                 {
-                    AIPath aiPath = new AIPath(Simulator.Instance.TrackDatabase, Simulator.Instance.TSectionDat, p.path, Simulator.Instance.TimetableMode);
+                    AIPath aiPath = new AIPath(Simulator.Instance.TrackDatabase, Simulator.Instance.TSectionDat, p.Path, Simulator.Instance.TimetableMode);
                 }
                 catch (Exception) { MultiPlayerManager.BroadCast((new MSGMessage(player.user, "Warning", "Server does not have path file provided, signals may always be red for you.")).ToString()); }
             }
@@ -219,7 +219,6 @@ namespace Orts.MultiPlayer
                 throw (new Exception("The train of player " + player.user + " is empty from "));
             }
 
-            p.Username = player.user;
             train.ControlMode = TrainControlMode.Explorer;
             train.CheckFreight();
             train.InitializeBrakes();
@@ -265,7 +264,7 @@ namespace Orts.MultiPlayer
             {
                 train.Name = Train.GetTrainName(train.Cars[0].CarID);
             }
-            else if (player !=null && player.user != null) train.Name = player.user;
+            else if (player != null && player.user != null) train.Name = player.user;
 
             if (MultiPlayerManager.IsServer())
             {
@@ -316,10 +315,10 @@ namespace Orts.MultiPlayer
                     Train t = MultiPlayerManager.FindPlayerTrain(l.userName);
                     if (t != null && l.trainCarPosition < t.Cars.Count && (Math.Abs(t.SpeedMpS) > 0.001 || Math.Abs(t.LastReportedSpeed) > 0))
                     {
-                            if (t.Cars[l.trainCarPosition] is MSTSDieselLocomotive)
-                            {
-                                exhaust.AddNewItem(l.userName, t, l.trainCarPosition);
-                            }
+                        if (t.Cars[l.trainCarPosition] is MSTSDieselLocomotive)
+                        {
+                            exhaust.AddNewItem(l.userName, t, l.trainCarPosition);
+                        }
                     }
                 }
             }
@@ -328,7 +327,7 @@ namespace Orts.MultiPlayer
         }
 
         // Save
-        public void Save (BinaryWriter outf)
+        public void Save(BinaryWriter outf)
         {
             outf.Write(Players.Count);
             foreach (var onlinePlayer in Players.Values)
@@ -338,7 +337,7 @@ namespace Orts.MultiPlayer
         }
 
         // Restore
-        public void Restore (BinaryReader inf)
+        public void Restore(BinaryReader inf)
         {
             var onlinePlayersCount = inf.ReadInt32();
             if (onlinePlayersCount > 0)

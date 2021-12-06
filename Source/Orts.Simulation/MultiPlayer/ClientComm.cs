@@ -126,16 +126,16 @@ namespace Orts.MultiPlayer
                         info = decoder.GetMsg();
                     }
                 }
-                catch (MultiPlayerException)
-                {
-                    break;
-                }
                 catch (SameNameException) //I have conflict with some one in the game, will close, and abort.
                 {
                     Simulator.Instance.Confirmer?.Error(CatalogManager.Catalog.GetString("Connection to the server is lost, will play as single mode"));
                     MultiPlayerManager.Client = null;
                     tcpClient.Close();
                     abort = true;
+                }
+                catch (MultiPlayerException)
+                {
+                    break;
                 }
                 catch (Exception e)
                 {

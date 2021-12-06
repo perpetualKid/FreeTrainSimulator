@@ -491,7 +491,7 @@ namespace Orts.MultiPlayer
                     {
                         try
                         {
-                            MultiPlayerManager.OnlineTrains.Players[user].protect = true;
+                            MultiPlayerManager.OnlineTrains.Players[user].Protected = true;
                         }
                         catch { }
                         MultiPlayerManager.BroadCast((new MSGMessage(user, "SameNameError", "A user with the same name exists")).ToString());
@@ -536,7 +536,7 @@ namespace Orts.MultiPlayer
                         MultiPlayerManager.Instance().lostPlayer.Remove(user);
                     }
                 }
-                MultiPlayerManager.OnlineTrains.AddPlayers(this, null);
+                MultiPlayerManager.OnlineTrains.AddPlayers(this);
 
                 //Trace.WriteLine(this.ToString());
                 if (MultiPlayerManager.IsServer())// && MPManager.Server.IsRemoteServer())
@@ -622,116 +622,6 @@ namespace Orts.MultiPlayer
                 }
             }
         }
-
-        //this version only intends for the one started on server computer
-        public void HandleMsg(OnlinePlayer p)
-        {
-            if (!MultiPlayerManager.IsServer()) return; //only intended for the server, when it gets the player message in OnlinePlayer Receive
-            if (this.version != MultiPlayerManager.ProtocolVersion)
-            {
-                var reason = "Wrong version of protocol, please update to version " + MultiPlayerManager.ProtocolVersion;
-                MultiPlayerManager.BroadCast((new MSGMessage(this.user, "Error", reason)).ToString());
-                throw new Exception("Wrong version of protocol");
-            }
-            if ((MultiPlayerManager.Instance().MD5Check != "NA" && MD5 != "NA" && MD5 != MultiPlayerManager.Instance().MD5Check) || !Simulator.Instance.RouteFolder.RouteName.Equals(route, StringComparison.OrdinalIgnoreCase))
-            {
-                MultiPlayerManager.BroadCast((new MSGMessage(this.user, "Error", "Wrong route dir or TDB file, the dispatcher uses a different route")).ToString());//server will broadcast this error
-                throw new Exception("Player has wrong version of route");//ignore this player message
-            }
-
-            //check if other players with the same name is online
-            //if someone with the same name is there, will throw a fatal error
-            if (MultiPlayerManager.FindPlayerTrain(user) != null || MultiPlayerManager.GetUserName() == user)
-            {
-                MultiPlayerManager.BroadCast((new MSGMessage(user, "SameNameError", "A user with the same name exists")).ToString());
-                throw new SameNameException();
-            }
-
-            //if the client comes back after disconnected within 10 minutes
-            if (MultiPlayerManager.Instance().lostPlayer != null && MultiPlayerManager.Instance().lostPlayer.ContainsKey(user))
-            {
-                var p1 = MultiPlayerManager.Instance().lostPlayer[user];
-                var p1Train = p1.Train;
-
-                //check to see if the player gets back with the same set of cars
-                bool identical = true;
-                if (cars.Length != p1Train.Cars.Count) identical = false;
-                if (identical != false)
-                {
-                    string wagonFilePath = Simulator.Instance.RouteFolder.ContentFolder.TrainSetsFolder;
-                    for (int i = 0; i < cars.Length; i++)
-                    {
-                        if (wagonFilePath + cars[i] != p1Train.Cars[i].RealWagFilePath) { identical = false; break; }
-                    }
-                }
-
-                //if the client player run already for more than 1 Km, we acknowledge him that run
-                if (WorldLocation.GetDistanceSquared2D(location, p1Train.RearTDBTraveller.WorldLocation) > 1000000)
-                {
-                    p.Train = p1Train; p.url = p1.url;
-                    p.LeadingLocomotiveID = p1.LeadingLocomotiveID;
-                    p.con = p1.con;
-                    p.Train.IsTilting = p1.Train.IsTilting;
-                    p.CreatedTime = Simulator.Instance.GameTime;
-                    p.path = p1.path;
-                    p.Username = p1.Username;
-                    MultiPlayerManager.OnlineTrains.Players.Add(user, p);
-                    MultiPlayerManager.Instance().AddOrRemoveTrain(p.Train, true);
-                    if (MultiPlayerManager.IsServer()) MultiPlayerManager.Instance().AddOrRemoveLocomotives(user, p.Train, true);
-                    MultiPlayerManager.Instance().lostPlayer.Remove(user);
-                }
-                else//if the player uses different train cars
-                {
-                    MultiPlayerManager.Instance().lostPlayer.Remove(user);
-                }
-            }
-
-            //client connected directly to the server, thus will send the game status to the player directly (avoiding using broadcast)
-            MultiPlayerManager.OnlineTrains.AddPlayers(this, p);
-            //Trace.WriteLine(this.ToString());
-            SendToPlayer(p, (new MSGOrgSwitch(user, MultiPlayerManager.Instance().OriginalSwitchState)).ToString());
-
-            MultiPlayerManager.Instance().lastPlayerAddedTime = Simulator.Instance.GameTime;
-
-            MSGPlayer host = new MSGPlayer(MultiPlayerManager.GetUserName(), "1234", Simulator.Instance.ConsistFileName, Simulator.Instance.PathFileName, Simulator.Instance.PlayerLocomotive.Train,
-                Simulator.Instance.PlayerLocomotive.Train.Number, Simulator.Instance.Settings.AvatarURL);
-            SendToPlayer(p, host.ToString() + MultiPlayerManager.OnlineTrains.AddAllPlayerTrain());
-
-            //send the train information to the new player
-            Train[] trains = Simulator.Instance.Trains.ToArray();
-
-            foreach (Train t in trains)
-            {
-                if (Simulator.Instance.PlayerLocomotive != null && t == Simulator.Instance.PlayerLocomotive.Train) continue; //avoid broadcast player train
-                if (MultiPlayerManager.FindPlayerTrain(t)) continue;
-                if (MultiPlayerManager.Instance().removedTrains.Contains(t)) continue;//this train is going to be removed, should avoid it.
-                SendToPlayer(p, (new MSGTrain(t, t.Number)).ToString());
-            }
-            if (MultiPlayerManager.Instance().CheckSpad == false) { p.Send((new MultiPlayer.MSGMessage("All", "OverSpeedOK", "OK to go overspeed and pass stop light")).ToString()); }
-            else { SendToPlayer(p, (new MultiPlayer.MSGMessage("All", "NoOverSpeed", "Penalty for overspeed and passing stop light")).ToString()); }
-            SendToPlayer(p, MultiPlayerManager.Instance().GetEnvInfo());//update weather
-
-            //send the new player information to everyone else
-            host = new MSGPlayer(p.Username, "1234", p.con, p.path, p.Train, p.Train.Number, p.url);
-            var players = MultiPlayerManager.OnlineTrains.Players.ToArray();
-            string newPlayer = host.ToString();
-            foreach (var op in players)
-            {
-                SendToPlayer(op.Value, newPlayer);
-            }
-
-            //Trace.WriteLine(host.ToString() + MPManager.Simulator.OnlineTrains.AddAllPlayerTrain());
-
-        }
-
-        public void SendToPlayer(OnlinePlayer p, string msg)
-        {
-#if DEBUG_MULTIPLAYER
-            Trace.TraceInformation("Message {1} sent to player {0}", p.Username, msg); 
-#endif
-            p.Send(msg);
-        }
-
     }
 
     #endregion MSGPlayer
@@ -2188,19 +2078,19 @@ namespace Orts.MultiPlayer
                 Simulator.Instance.Confirmer.Information(MultiPlayerManager.Catalog.GetString("{0} quit.", this.user));
             if (MultiPlayerManager.IsServer())
             {
-                if (p.protect == true) { p.protect = false; return; }
+                if (p.Protected == true) { p.Protected = false; return; }
                 MultiPlayerManager.BroadCast(this.ToString()); //if the server, will broadcast
                 //if the one quit controls my train, I will gain back the control
                 if (p.Train == Simulator.Instance.PlayerLocomotive.Train)
                     Simulator.Instance.PlayerLocomotive.Train.TrainType = TrainType.Player;
                 MultiPlayerManager.Instance().AddRemovedPlayer(p);
                 //the client may quit because of lost connection, will remember it so it may recover in the future when the player log in again
-                if (p.Train != null && p.status != OnlinePlayer.Status.Removed) //if this player has train and is not removed by the dispatcher
+                if (p.Train != null && p.Status != OnlinePlayerStatus.Removed) //if this player has train and is not removed by the dispatcher
                 {
                     if (!MultiPlayerManager.Instance().lostPlayer.ContainsKey(p.Username)) MultiPlayerManager.Instance().lostPlayer.Add(p.Username, p);
-                    p.quitTime = Simulator.Instance.GameTime;
+                    p.QuitTime = Simulator.Instance.GameTime;
                     p.Train.SpeedMpS = 0.0f;
-                    p.status = OnlinePlayer.Status.Quit;
+                    p.Status = OnlinePlayerStatus.Quit;
                 }
                 MultiPlayerManager.BroadCast(this.ToString()); //broadcast twice
 
@@ -2258,19 +2148,19 @@ namespace Orts.MultiPlayer
             if (p == null) return;
             if (Simulator.Instance.Confirmer != null)
                 Simulator.Instance.Confirmer.Information(MultiPlayerManager.Catalog.GetString("{0} lost.", this.user));
-            if (p.protect == true) { p.protect = false; return; }
+            if (p.Protected == true) { p.Protected = false; return; }
             MultiPlayerManager.BroadCast((new MSGQuit(user)).ToString()); //if the server, will broadcast a quit to every one
             //if the one quit controls my train, I will gain back the control
             if (p.Train == Simulator.Instance.PlayerLocomotive.Train)
                 Simulator.Instance.PlayerLocomotive.Train.TrainType = TrainType.Player;
             MultiPlayerManager.Instance().AddRemovedPlayer(p);
             //the client may quit because of lost connection, will remember it so it may recover in the future when the player log in again
-            if (p.Train != null && p.status != OnlinePlayer.Status.Removed) //if this player has train and is not removed by the dispatcher
+            if (p.Train != null && p.Status != OnlinePlayerStatus.Removed) //if this player has train and is not removed by the dispatcher
             {
                 if (!MultiPlayerManager.Instance().lostPlayer.ContainsKey(p.Username)) MultiPlayerManager.Instance().lostPlayer.Add(p.Username, p);
-                p.quitTime = Simulator.Instance.GameTime;
+                p.QuitTime = Simulator.Instance.GameTime;
                 p.Train.SpeedMpS = 0.0f;
-                p.status = OnlinePlayer.Status.Quit;
+                p.Status = OnlinePlayerStatus.Quit;
             }
             MultiPlayerManager.BroadCast((new MSGQuit(user)).ToString()); //broadcast twice
 
@@ -3339,7 +3229,7 @@ namespace Orts.MultiPlayer
 
             foreach (var p in MultiPlayerManager.OnlineTrains.Players)
             {
-                if (p.Key == user) p.Value.url = url;
+                if (p.Key == user) p.Value.AvatarUrl = url;
                 MultiPlayerManager.Instance().OnAvatarUpdated(user, url);
             }
 

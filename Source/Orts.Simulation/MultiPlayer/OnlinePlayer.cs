@@ -27,30 +27,34 @@ using Orts.Simulation.RollingStocks;
 
 namespace Orts.MultiPlayer
 {
+    public enum OnlinePlayerStatus 
+    { 
+        Valid, 
+        Quit, 
+        Removed 
+    };
+
     public class OnlinePlayer
 	{
-		public Decoder decoder;
-		public OnlinePlayer() 
+		public OnlinePlayer(string userName, string consistFile, string pathFile) 
         { 
-            decoder = new Decoder(); 
+            Username = userName;
             CreatedTime = Simulator.Instance.GameTime; 
-            url = "NA";
+            AvatarUrl = "NA";
+            Consist = consistFile;
+            Path = pathFile;
         }
 
-		public TcpClient Client;
-		public string Username = "";
-		public string LeadingLocomotiveID = "";
-		public Train Train;
-		public string con;
-		public string path; //pat and consist files
-		public Thread thread;
-		public double CreatedTime;
-		private object lockObj = new object();
-		public string url = ""; //avatar location
-		public double quitTime = -100f;
-		public enum Status {Valid, Quit, Removed};
-		public Status status = Status.Valid;//is this player removed by the dispatcher
-        public bool protect; //when in true, will not force this player out, to protect the one that others uses the same name
+		public string Username { get; }
+		public string LeadingLocomotiveID { get; set; } = string.Empty;
+		public Train Train { get; set; }
+		public string Consist { get; }
+		public string Path { get; } //pat and consist files
+		public double CreatedTime { get; set; }
+		public string AvatarUrl { get; set; } = ""; //avatar location
+		public double QuitTime { get; set; } = -100f;
+		public OnlinePlayerStatus Status { get; set; } = OnlinePlayerStatus.Valid;//is this player removed by the dispatcher
+        public bool Protected { get; set; } //when in true, will not force this player out, to protect the one that others uses the same name
 
         // Used to restore
         public OnlinePlayer(BinaryReader inf)
@@ -62,16 +66,16 @@ namespace Orts.MultiPlayer
             LeadingLocomotiveID = inf.ReadString();
             int trainNo = inf.ReadInt32();
             Train = Simulator.Instance.Trains.GetTrainByNumber(trainNo);
-            con = inf.ReadString();
-            path = inf.ReadString();
+            Consist = inf.ReadString();
+            Path = inf.ReadString();
             CreatedTime = inf.ReadDouble();
-            url = inf.ReadString();
-            quitTime = inf.ReadDouble();
-            status = (Status)inf.ReadInt32();
-            protect = inf.ReadBoolean();
-            status = Status.Quit;
+            AvatarUrl = inf.ReadString();
+            QuitTime = inf.ReadDouble();
+            Status = (OnlinePlayerStatus)inf.ReadInt32();
+            Protected = inf.ReadBoolean();
+            Status = OnlinePlayerStatus.Quit;
             Train.SpeedMpS = 0;
-            quitTime = Simulator.Instance.GameTime; // allow a total of 10 minutes to reenter game.
+            QuitTime = Simulator.Instance.GameTime; // allow a total of 10 minutes to reenter game.
             for (int i = 0; i < Train.Cars.Count; i++)
             {
                 TrainCar car = Train.Cars[i];
@@ -86,25 +90,6 @@ namespace Orts.MultiPlayer
             }
         }
 
-		public void Send(string msg)
-		{
-			if (msg == null) return;
-			try
-			{
-				NetworkStream clientStream = Client.GetStream();
-
-				lock (lockObj)//lock the buffer in case two threads want to write at once
-				{
-					byte[] buffer = Encoding.Unicode.GetBytes(msg);//encoder.GetBytes(msg);
-					clientStream.Write(buffer, 0, buffer.Length);
-					clientStream.Flush();
-				}
-			}
-			catch
-			{
-			}
-		}
-
         public void Save(BinaryWriter outf)
         {
             if (null == outf)
@@ -113,13 +98,13 @@ namespace Orts.MultiPlayer
             outf.Write(Username);
             outf.Write(LeadingLocomotiveID);
             outf.Write(Train.Number);
-            outf.Write(con);
-            outf.Write(path);
+            outf.Write(Consist);
+            outf.Write(Path);
             outf.Write(CreatedTime);
-            outf.Write(url);
-            outf.Write(quitTime);
-            outf.Write((int)status);
-            outf.Write(protect);
+            outf.Write(AvatarUrl);
+            outf.Write(QuitTime);
+            outf.Write((int)Status);
+            outf.Write(Protected);
         }
 	}
 }

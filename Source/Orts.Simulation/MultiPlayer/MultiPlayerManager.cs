@@ -576,7 +576,7 @@ namespace Orts.MultiPlayer
                 List<string> removeLost = null;
                 foreach (var x in lostPlayer)
                 {
-                    if (Simulator.Instance.GameTime - x.Value.quitTime > 600) //within 10 minutes it will be held
+                    if (Simulator.Instance.GameTime - x.Value.QuitTime > 600) //within 10 minutes it will be held
                     {
                         if (removeLost == null) removeLost = new List<string>();
                         removeLost.Add(x.Key);

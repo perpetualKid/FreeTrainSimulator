@@ -34,7 +34,7 @@ namespace Orts.MultiPlayer
         }
     }
 
-    public class SameNameException : Exception
+    public class SameNameException : MultiPlayerException
     {
         public SameNameException(string message) : base(message)
         {

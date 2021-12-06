@@ -452,7 +452,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
 		  foreach (var p in player) {
 			  if (avatarList.ContainsKey(p.Key)) continue;
-			  AddAvatar(p.Key, p.Value.url);
+			  AddAvatar(p.Key, p.Value.AvatarUrl);
 		  }
 
 		  Dictionary<string, Image> tmplist = null;
@@ -1387,7 +1387,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
 	  private void rmvButton_Click(object sender, EventArgs e)
 	  {
-		  if (!MultiPlayer.MultiPlayerManager.IsServer()) return;
+		  if (!MultiPlayerManager.IsServer()) return;
 		  AvatarView.SelectedIndices.Remove(0);//remove myself is not possible.
 		  var chosen = AvatarView.SelectedItems;
 		  if (chosen.Count > 0)
@@ -1396,10 +1396,10 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 			  {
 				  var tmp = chosen[i];
 				  var name = (tmp.Text.Split(' '))[0];//the name may have (H) in it, need to filter that out
-				  if (MultiPlayer.MultiPlayerManager.OnlineTrains.Players.ContainsKey(name))
+				  if (MultiPlayerManager.OnlineTrains.Players.ContainsKey(name))
 				  {
-					  MultiPlayer.MultiPlayerManager.OnlineTrains.Players[name].status = MultiPlayer.OnlinePlayer.Status.Removed;
-					  MultiPlayer.MultiPlayerManager.BroadCast((new MultiPlayer.MSGMessage(name, "Error", "Sorry the server has removed you")).ToString());
+					  MultiPlayerManager.OnlineTrains.Players[name].Status = OnlinePlayerStatus.Removed;
+					  MultiPlayerManager.BroadCast((new MultiPlayer.MSGMessage(name, "Error", "Sorry the server has removed you")).ToString());
 
 				  }
 			  }
