@@ -39,7 +39,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         public ref readonly Matrix XNAWorld => ref xnaWorld;
 
         protected WindowManager Owner { get; }
-        protected bool dragged;
+        private protected bool dragged;
         private bool visible;
         private Rectangle location;
         private readonly string caption;

@@ -106,6 +106,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public SwitchWindow SwitchWindow { get; private set; } // F8 window
         public TrainOperationsWindow TrainOperationsWindow { get; private set; } // F9 window
         public CarOperationsWindow CarOperationsWindow { get; private set; } // F9 sub-window for car operations
+        public TrainDpuWindow TrainDpuWindow { get; private set; } // Shift + F9 train distributed power window
         public NextStationWindow NextStationWindow { get; private set; } // F10 window
         public CompassWindow CompassWindow { get; private set; } // 0 window
         public TracksDebugWindow TracksDebugWindow { get; private set; } // Control-Alt-F6
@@ -440,6 +441,7 @@ namespace Orts.ActivityRunner.Viewer3D
             TrainOperationsWindow = new TrainOperationsWindow(WindowManager);
             MultiPlayerWindow = new MultiPlayerWindow(WindowManager);
             CarOperationsWindow = new CarOperationsWindow(WindowManager);
+            TrainDpuWindow = new TrainDpuWindow(WindowManager);
             NextStationWindow = new NextStationWindow(WindowManager);
             CompassWindow = new CompassWindow(WindowManager);
             TracksDebugWindow = new TracksDebugWindow(WindowManager);
@@ -574,6 +576,13 @@ namespace Orts.ActivityRunner.Viewer3D
                     TrainOperationsWindow.TabAction();
                 else
                     TrainOperationsWindow.Visible = !TrainOperationsWindow.Visible;
+            });
+            UserCommandController.AddEvent(UserCommand.DisplayTrainDpuWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
+            {
+                if (userCommandArgs is ModifiableKeyCommandArgs modifiableKeyCommandArgs && modifiableKeyCommandArgs.AdditionalModifiers.HasFlag(Settings.Input.WindowTabCommandModifier))
+                    TrainDpuWindow.TabAction();
+                else
+                    TrainDpuWindow.Visible = !TrainDpuWindow.Visible;
             });
             UserCommandController.AddEvent(UserCommand.DisplayNextStationWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {

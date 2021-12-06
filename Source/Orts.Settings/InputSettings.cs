@@ -321,6 +321,7 @@ namespace Orts.Settings
             commands[UserCommand.DisplaySwitchWindow] = new UserCommandKeyInput(0x42);
             commands[UserCommand.DisplayTrackMonitorWindow] = new UserCommandModifiableKeyInput(0x3E, commands[UserCommand.DisplayNextWindowTab]);
             commands[UserCommand.DisplayTrainOperationsWindow] = new UserCommandKeyInput(0x43);
+            commands[UserCommand.DisplayTrainDpuWindow] = new UserCommandKeyInput(0x43, KeyModifiers.Shift);
 
             commands[UserCommand.GameAutopilotMode] = new UserCommandKeyInput(0x1E, KeyModifiers.Alt);
             commands[UserCommand.GameChangeCab] = new UserCommandKeyInput(0x12, KeyModifiers.Control);
