@@ -94,19 +94,7 @@ namespace Orts.MultiPlayerServer
 
         private async Task Process(TcpClient tcpClient)
         {
-            NetworkStream networkStream = tcpClient.GetStream();
-            byte[] buffer = new byte[8192];
-
-            int size = await networkStream.ReadAsync(buffer.AsMemory(0, buffer.Length)).ConfigureAwait(false);
-            byte[] sendBuffer = new byte[size];
-            Array.Copy(buffer, sendBuffer, size);
-            string playerMessage = Encoding.Unicode.GetString(sendBuffer);
-            string[] playerDetails = playerMessage.Split(' ');
-            if (playerDetails == null || playerDetails.Length < 3 || !playerDetails[2].Equals("PLAYER", StringComparison.OrdinalIgnoreCase))
-                return;
-            string playerName = playerMessage.Split(' ')[3];
-            Broadcast(playerName, sendBuffer);
-
+            string playerName = Guid.NewGuid().ToString();
             onlinePlayers.Add(playerName, tcpClient);
             if (onlinePlayers.Count == 1)
             {
@@ -114,13 +102,27 @@ namespace Orts.MultiPlayerServer
                 await SendMessage(playerName, initData).ConfigureAwait(false);
             }
 
+            NetworkStream networkStream = tcpClient.GetStream();
+            byte[] buffer = new byte[8192];
+
             while (tcpClient.Connected)
             {
-                size = await networkStream.ReadAsync(buffer.AsMemory(0, buffer.Length)).ConfigureAwait(false);
+                int size = await networkStream.ReadAsync(buffer.AsMemory(0, buffer.Length)).ConfigureAwait(false);
                 if (size == 0)
                     break;
-                sendBuffer = new byte[size];
+                byte[] sendBuffer = new byte[size];
                 Array.Copy(buffer, sendBuffer, size);
+                string playerMessage = Encoding.Unicode.GetString(sendBuffer);
+                string[] playerDetails = playerMessage.Split(' ');
+                if (playerDetails != null && playerDetails.Length > 2 && playerDetails[2].Equals("PLAYER", StringComparison.OrdinalIgnoreCase))
+                {
+                    onlinePlayers.Remove(playerName);
+                    if (currentServer == playerName)
+                        currentServer = playerName = playerMessage.Split(' ')[3];
+                    else 
+                        playerName = playerMessage.Split(' ')[3];
+                    onlinePlayers.Add(playerName, tcpClient);
+                }
                 Broadcast(playerName, sendBuffer.AsMemory(0, sendBuffer.Length));
             }
             await RemovePlayer(playerName).ConfigureAwait(false);
