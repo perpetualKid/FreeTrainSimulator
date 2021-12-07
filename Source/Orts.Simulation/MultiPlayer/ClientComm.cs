@@ -15,11 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-// #define DEBUG_MULTIPLAYER
-// DEBUG flag for debug prints
-
 using System;
-using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -31,8 +27,6 @@ using GetText;
 
 using Orts.Simulation;
 
-using SharpDX.Direct3D11;
-
 namespace Orts.MultiPlayer
 {
     public class ClientComm : IDisposable
@@ -41,7 +35,7 @@ namespace Orts.MultiPlayer
         private readonly Decoder decoder = new Decoder();
         private bool disposedValue;
 
-        private CancellationTokenSource cts = new CancellationTokenSource();
+        private readonly CancellationTokenSource cts = new CancellationTokenSource();
         public string UserName { get; }
         public string Code { get; }
         public bool Connected { get; set; }

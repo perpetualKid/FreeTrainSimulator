@@ -15,9 +15,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-// #define DEBUG_MULTIPLAYER
-// DEBUG flag for debug prints
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -41,13 +38,10 @@ using Orts.Simulation.Track;
 
 namespace Orts.MultiPlayer
 {
-    public class Message
+    public abstract class Message
     {
         public static Message Decode(string m)
         {
-#if DEBUG_MULTIPLAYER
-            Trace.TraceInformation("MP message received: {0}", m);
-#endif
             int index = m.IndexOf(' ');
             string key = m.Substring(0, index);
             if (key == "MOVE") return new MSGMove(m.Substring(index + 1));
@@ -80,10 +74,11 @@ namespace Orts.MultiPlayer
             else if (key == "SIGNALCHANGE") return new MSGSignalChange(m.Substring(index + 1));
             else if (key == "EXHAUST") return new MSGExhaust(m.Substring(index + 1));
             else if (key == "FLIP") return new MSGFlip(m.Substring(index + 1));
-            else throw new Exception("Unknown Keyword" + key);
+            else throw new ProtocolException("Unknown Keyword" + key);
         }
 
-        public virtual void HandleMsg() { Trace.WriteLine("test"); return; }
+//        public virtual void HandleMsg() { Trace.WriteLine("test"); return; }
+        public abstract void HandleMsg();
     }
 
     #region MSGMove
@@ -111,13 +106,14 @@ namespace Orts.MultiPlayer
         }
 
         private List<MSGMoveItem> items;
+
         public MSGMove(string m)
         {
             m = m.Trim();
             string[] areas = m.Split(' ');
             if (areas.Length % 13 != 0 && !(areas.Length == 1 && areas[0].Length == 0)) //check for correct formatting
             {
-                throw new Exception("Parsing error " + m);
+                throw new ProtocolException("Parsing error " + m);
             }
             try
             {
@@ -256,7 +252,7 @@ namespace Orts.MultiPlayer
     #endregion MSGMove
 
     #region MSGRequired
-    public class MSGRequired : Message
+    public abstract class MSGRequired : Message
     {
 
     }
@@ -295,7 +291,7 @@ namespace Orts.MultiPlayer
             string[] areas = m.Split('\r');
             if (areas.Length <= 6)
             {
-                throw new Exception("Parsing error in MSGPlayer" + m);
+                throw new ProtocolException("Parsing error in MSGPlayer" + m);
             }
             try
             {
@@ -305,7 +301,7 @@ namespace Orts.MultiPlayer
                 if (MultiPlayerManager.IsServer() && !MultiPlayerManager.Instance().AllowNewPlayer)//server does not want to have more people
                 {
                     MultiPlayerManager.BroadCast((new MSGMessage(user, "Error", "The dispatcher does not want to add more player")).ToString());
-                    throw (new Exception("Not want to add new player"));
+                    throw (new MultiPlayerException("Not want to add new player"));
                 }
                 code = data[1];
                 num = int.Parse(data[2]);
@@ -349,12 +345,11 @@ namespace Orts.MultiPlayer
                     }
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                throw e;
+                throw;
             }
         }
-
 
         private void ParseTrainCars(string m)
         {
@@ -494,7 +489,7 @@ namespace Orts.MultiPlayer
                         }
                         catch { }
                         MultiPlayerManager.BroadCast((new MSGMessage(user, "SameNameError", "A user with the same name exists")).ToString());
-                        throw new Exception("Same Name");
+                        throw new SameNameException("Same Name");
                     }
                 }
             }
@@ -622,7 +617,6 @@ namespace Orts.MultiPlayer
             }
         }
     }
-
     #endregion MSGPlayer
 
     #region MSGPlayerTrainSw
@@ -719,11 +713,9 @@ namespace Orts.MultiPlayer
                     }
                 }*/
     }
-
     #endregion MSGPlayerTrainSw
 
     #region MGSwitch
-
     public class MSGSwitch : Message
     {
         public string user;
@@ -813,7 +805,6 @@ namespace Orts.MultiPlayer
             }
         }
     }
-
     #endregion MGSwitch
 
     #region MSGResetSignal
@@ -880,7 +871,6 @@ namespace Orts.MultiPlayer
                     gZipStream.Read(switchStatesArray, 0, switchStatesArray.Length);
                 }
             }
-
         }
 
         public override void HandleMsg() //only client will get message, thus will set states
@@ -912,7 +902,6 @@ namespace Orts.MultiPlayer
                 }
                 i++;
             }
-
         }
 
         public static void SetSwitch(TrackNode switchNode, int desiredState)
@@ -1098,6 +1087,7 @@ namespace Orts.MultiPlayer
         }
     }
     #endregion MSGSwitchStatus
+
     #region MSGTrain
     //message to add new train from either a string (received message), or a Train (building a message)
     public class MSGTrain : Message
@@ -1279,11 +1269,9 @@ namespace Orts.MultiPlayer
             return " " + tmp.Length + ": " + tmp;
         }
     }
-
     #endregion MSGTrain
 
     #region MSGUpdateTrain
-
     //message to add new train from either a string (received message), or a Train (building a message)
     public class MSGUpdateTrain : Message
     {
@@ -1509,7 +1497,6 @@ namespace Orts.MultiPlayer
             return " " + tmp.Length + ": " + tmp;
         }
     }
-
     #endregion MSGUpdateTrain
 
     #region MSGRemoveTrain
@@ -1564,7 +1551,6 @@ namespace Orts.MultiPlayer
         }
 
     }
-
     #endregion MSGRemoveTrain
 
     #region MSGServer
@@ -1677,7 +1663,6 @@ namespace Orts.MultiPlayer
             X = t1.RearTDBTraveller.X;
             Z = t1.RearTDBTraveller.Z;
             Travelled = t1.DistanceTravelled;
-
         }
 
         public override void HandleMsg()
@@ -1706,7 +1691,6 @@ namespace Orts.MultiPlayer
             user = t[0].Trim();
             level = t[1].Trim();
             msgx = t[2];
-
         }
 
         public MSGMessage(string u, string l, string m)
@@ -1779,7 +1763,6 @@ namespace Orts.MultiPlayer
             return " " + tmp.Length + ": " + tmp;
         }
     }
-
     #endregion MSGMessage
 
     #region MSGControl
@@ -1924,7 +1907,6 @@ namespace Orts.MultiPlayer
             return " " + tmp.Length + ": " + tmp;
         }
     }
-
     #endregion MSGLocoChange
 
     #region MSGEvent
@@ -1952,7 +1934,6 @@ namespace Orts.MultiPlayer
 
         public override string ToString()
         {
-
             string tmp = "EVENT " + user + " " + EventName + " " + EventState;
             return " " + tmp.Length + ": " + tmp;
         }
@@ -2035,7 +2016,6 @@ namespace Orts.MultiPlayer
         }
 
     }
-
     #endregion MSGEvent
 
     #region MSGQuit
@@ -2110,7 +2090,6 @@ namespace Orts.MultiPlayer
         }
 
     }
-
     #endregion MSGQuit
 
 
@@ -2166,7 +2145,6 @@ namespace Orts.MultiPlayer
         }
 
     }
-
     #endregion MSGLost
 
     #region MSGGetTrain
@@ -2212,7 +2190,6 @@ namespace Orts.MultiPlayer
     #endregion MSGGetTrain
 
     #region MSGUncouple
-
     public class MSGUncouple : Message
     {
         public string user, newTrainName, carID, firstCarIDOld, firstCarIDNew;
@@ -2773,9 +2750,6 @@ namespace Orts.MultiPlayer
                     MultiPlayerManager.Instance().AddOrRemoveLocomotives(player, t, true);
                 }
                 MultiPlayerManager.Instance().AddOrRemoveTrain(oldT, false); //remove the old train
-
-
-
             }
         }
 
@@ -3039,7 +3013,6 @@ namespace Orts.MultiPlayer
                 i++;
             }
             //Trace.Write("\n");
-
         }
 
         public override string ToString()
@@ -3239,9 +3212,7 @@ namespace Orts.MultiPlayer
         }
 
     }
-
     #endregion MSGAvatar
-
 
     #region MSGText
     //message to add new train from either a string (received message), or a Train (building a message)
@@ -3298,7 +3269,6 @@ namespace Orts.MultiPlayer
             return " " + tmp.Length + ": " + tmp;
         }
     }
-
     #endregion MSGText
 
     #region MSGWeather
@@ -3356,7 +3326,6 @@ namespace Orts.MultiPlayer
             MultiPlayerManager.Instance().weatherChanged = true;
         }
     }
-
     #endregion MSGWeather
 
     #region MSGAider
@@ -3402,7 +3371,6 @@ namespace Orts.MultiPlayer
         }
 
     }
-
     #endregion MSGAider
 
     #region MSGSignalChange
@@ -3654,9 +3622,6 @@ namespace Orts.MultiPlayer
                 ids[i] = carinfo[0];
                 flipped[i] = int.Parse(carinfo[1]);
             }
-
-            //Trace.WriteLine(this.ToString());
-
         }
 
         public MSGFlip(Train t, bool setMUParameters, int n)
@@ -3726,9 +3691,6 @@ namespace Orts.MultiPlayer
                         }
                         realFlip = true;
                     }
-#if DEBUG_MULTIPLAYER
-                    Trace.TraceInformation("Changing Direction");
-#endif
                     if (realFlip)
                         t.ToDoUpdate(tni, TileX, TileZ, X, Z, Travelled, speed, direction, tdir, len, true, reverseMU);
                     return;
@@ -3754,7 +3716,6 @@ namespace Orts.MultiPlayer
             return " " + tmp.Length + ": " + tmp;
         }
     }
-
     #endregion MSGFlip
 
 }
