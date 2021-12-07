@@ -8545,6 +8545,7 @@ namespace Orts.Simulation.Physics
 
             // check if new train is freight or not
             CheckFreight();
+            SetDistributedPowerUnitIds();
 
             // clear all track occupation actions
             List<DistanceTravelledItem> activeActions = RequiredActions.GetActions(99999999f, typeof(ClearSectionItem));
@@ -9839,6 +9840,7 @@ namespace Orts.Simulation.Physics
             TrainType = TrainType.Player;
             IsPathless = true;
             CheckFreight();
+            SetDistributedPowerUnitIds();
             ToggleToManualMode();
             InitializeBrakes();
             InitializeSpeeds();

@@ -2394,6 +2394,7 @@ namespace Orts.Simulation.Timetables
 
                 // set train details
                 TTTrain.CheckFreight();
+                TTTrain.SetDistributedPowerUnitIds();
                 TTTrain.SpeedSettings.routeSpeedMpS = (float)simulator.Route.SpeedLimit;
 
                 if (!confMaxSpeed.HasValue || confMaxSpeed.Value <= 0f)
