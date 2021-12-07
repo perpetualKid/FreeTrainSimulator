@@ -459,7 +459,8 @@ namespace Orts.MultiPlayer
                 if (MultiPlayerManager.IsServer())
                 {
                     MultiPlayerManager.BroadCast((new MSGMessage(this.user, "Error", reason)).ToString());//server will broadcast this error
-                    throw new InvalidDataException("Player has wrong version of protocol");//ignore this player message
+                    return;
+                    //throw new InvalidDataException("Player has wrong version of protocol");//ignore this player message
                 }
                 else
                 {
@@ -472,7 +473,8 @@ namespace Orts.MultiPlayer
                 if ((MD5 != "NA" && MD5 != MultiPlayerManager.Instance().MD5Check) || !Simulator.Instance.RouteFolder.RouteName.Equals(route, StringComparison.OrdinalIgnoreCase))
                 {
                     MultiPlayerManager.BroadCast((new MSGMessage(this.user, "Error", "Wrong route dir or TDB file, the dispatcher uses a different route")).ToString());//server will broadcast this error
-                    throw new InvalidDataException("Player has wrong version of route");//ignore this player message
+                    return;
+                    //throw new InvalidDataException("Player has wrong version of route");//ignore this player message
                 }
             }
             //check if other players with the same name is online
@@ -489,7 +491,8 @@ namespace Orts.MultiPlayer
                         }
                         catch { }
                         MultiPlayerManager.BroadCast((new MSGMessage(user, "SameNameError", "A user with the same name exists")).ToString());
-                        throw new SameNameException("Same Name");
+                        return;
+                        //throw new SameNameException("Same Name");
                     }
                 }
             }

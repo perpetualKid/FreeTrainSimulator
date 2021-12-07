@@ -16,6 +16,7 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -90,14 +91,23 @@ namespace Orts.MultiPlayer
 
                     while ((content = decoder.GetMsg()) != null)
                     {
-                        Message message = Message.Decode(content);
-                        if (Connected || message is MSGRequired)
-                            message.HandleMsg();
+                        try
+                        {
+                            Message message = Message.Decode(content);
+                            if (Connected || message is MSGRequired)
+                                message.HandleMsg();
+                        }
+                        catch (Exception ex) when (ex is InvalidDataException)
+                        { }
                     }
                 }
             }
-            catch (Exception ex) when (ex is SocketException || ex is System.IO.IOException ||
-                ex is OperationCanceledException || ex is System.Threading.Tasks.TaskCanceledException)
+            catch (Exception ex) when (ex is MultiPlayerException)
+            {
+
+            }
+            catch (Exception ex) when (ex is SocketException || ex is IOException ||
+                ex is OperationCanceledException || ex is TaskCanceledException)
             {
             }
 
