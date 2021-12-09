@@ -22,7 +22,7 @@ using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-
+using System.Security.Cryptography;
 using GetText;
 
 using Orts.Common;
@@ -769,7 +769,7 @@ namespace Orts.MultiPlayer
             if (MultiPlayerManager.IsServer()) //server got this message from Client
             {
                 //if a normal user, and the dispatcher does not want hand throw, just ignore it
-                if (HandThrown == true && !MultiPlayerManager.AllowedManualSwitch && !MultiPlayerManager.Instance().aiderList.Contains(user))
+                if (HandThrown == true && !MultiPlayerManager.Instance().AllowedManualSwitch && !MultiPlayerManager.Instance().aiderList.Contains(user))
                 {
                     MultiPlayerManager.BroadCast((new MSGMessage(user, "SwitchWarning", "Server does not allow hand thrown of switch")).ToString());
                     return;
@@ -2284,7 +2284,7 @@ namespace Orts.MultiPlayer
             if (MultiPlayerManager.IsServer()) newTrainNumber = newT.Number;//serer will use the correct number
             else
             {
-                newTrainNumber = 1000000 + MultiPlayerManager.Random.Next(1000000);//client: temporary assign a train number 1000000-2000000, will change to the correct one after receiving response from the server
+                newTrainNumber = 1000000 + RandomNumberGenerator.GetInt32(1000000);//client: temporary assign a train number 1000000-2000000, will change to the correct one after receiving response from the server
                 newT.TrainType = TrainType.Remote; //by default, uncoupled train will be controlled by the server
             }
             if (!newT.Cars.Contains(Simulator.Instance.PlayerLocomotive)) //if newT does not have player locomotive, it may be controlled remotely

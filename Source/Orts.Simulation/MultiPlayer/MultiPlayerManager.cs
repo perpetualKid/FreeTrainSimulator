@@ -49,32 +49,29 @@ namespace Orts.MultiPlayer
     {
         private double lastMoveTime;
 
+        private double lastSendTime;
+        private string metric = "";
+        private static MultiPlayerManager localUser;
+
+        private readonly List<Train> addedTrains;
+        private readonly List<OnlineLocomotive> addedLocomotives;
+
+        private readonly List<Train> uncoupledTrains;
+
         public const int ProtocolVersion = 15;
 
         public static ICatalog Catalog { get; private set; }
-        public static Random Random { get; private set; }
 
         public static ClientComm Client;
 
         public bool IsDispatcher { get; set; }
 
-
+        public static OnlineTrains OnlineTrains = new OnlineTrains();
         public double lastSwitchTime;
         public double lastSyncTime;
-        private double lastSendTime;
-        private string metric = "";
-        public static OnlineTrains OnlineTrains = new OnlineTrains();
-        private static MultiPlayerManager localUser;
-
         public List<Train> removedTrains;
-        private List<Train> addedTrains;
         public List<OnlineLocomotive> removedLocomotives;
-        private List<OnlineLocomotive> addedLocomotives;
 
-        private List<Train> uncoupledTrains;
-
-        public bool weatherChanged;
-        public int weather = -1;
         public float fogDistance = -1f;
         public float pricipitationIntensity = -1f;
         public float overcastFactor = -1f;
@@ -82,7 +79,7 @@ namespace Orts.MultiPlayer
 
         public double lastPlayerAddedTime;
         public int MPUpdateInterval = 10;
-        public static bool AllowedManualSwitch = true;
+        public bool AllowedManualSwitch = true;
         public bool TrySwitch = true;
         public bool AllowNewPlayer = true;
         public bool ComposingText;
@@ -91,12 +88,15 @@ namespace Orts.MultiPlayer
         public List<string> aiderList;
         public Dictionary<string, OnlinePlayer> lostPlayer = new Dictionary<string, OnlinePlayer>();
         public bool CheckSpad = true;
-        public static bool PreferGreen = true;
+        public bool PreferGreen = true;
         public string MD5Check = "";
 
         public event EventHandler<ServerChangedEventArgs> ServerChanged;
         public event EventHandler<AvatarUpdatedEventArgs> AvatarUpdated;
         public event EventHandler<MessageReceivedEventArgs> MessageReceived;
+
+        public bool weatherChanged;
+        public int weather = -1;
 
         public void AddUncoupledTrains(Train t)
         {
@@ -143,7 +143,6 @@ namespace Orts.MultiPlayer
             if (localUser == null)
             {
                 Catalog = CatalogManager.Catalog;
-                Random = new Random();
                 localUser = new MultiPlayerManager();
             }
             return localUser;
@@ -352,8 +351,8 @@ namespace Orts.MultiPlayer
         public static bool NoAutoSwitch()
         {
             if (!MultiPlayerManager.IsMultiPlayer() || MultiPlayerManager.IsServer()) return false;
-            //if (MPManager.IsClient()) return true;
-            return !MultiPlayerManager.AllowedManualSwitch; //aloow manual switch or not
+
+            return !MultiPlayerManager.Instance().AllowedManualSwitch; //aloow manual switch or not
         }
 
         //user name
@@ -537,7 +536,7 @@ namespace Orts.MultiPlayer
                     if (p.Train.Cars.Count <= 0) 
                         continue;
                     double d = WorldLocation.GetDistanceSquared(p.Train.RearTDBTraveller.WorldLocation, mine.Train.RearTDBTraveller.WorldLocation);
-                    users.Add(Math.Sqrt(d) + Random.NextDouble(), p.Username);
+                    users.Add(Math.Sqrt(d) + (RandomNumberGenerator.GetInt32(int.MaxValue) / (double)int.MaxValue), p.Username);
                 }
             }
             catch (Exception)
@@ -885,7 +884,7 @@ namespace Orts.MultiPlayer
                         });
 
                     len = def.Z;
-                    carList.Add(len + MultiPlayerManager.Random.NextDouble() / 10.0f, name);
+                    carList.Add(len + (RandomNumberGenerator.GetInt32(int.MaxValue) / (double)int.MaxValue) / 10.0f, name);
                 }
                 catch { }
             }

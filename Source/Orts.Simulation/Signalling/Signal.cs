@@ -416,7 +416,7 @@ namespace Orts.Simulation.Signalling
         {
             get
             {
-                if (MultiPlayerManager.IsMultiPlayer() && MultiPlayerManager.PreferGreen)
+                if (MultiPlayerManager.IsMultiPlayer() && MultiPlayerManager.Instance().PreferGreen)
                     return true;
                 return EnabledTrain != null;
             }

@@ -184,7 +184,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             boxSetSignal.Items.Add("Proceed");
             chkAllowUserSwitch.Checked = false;
             selectedTrainList = new List<Train>();
-            if (MultiPlayer.MultiPlayerManager.IsMultiPlayer()) { MultiPlayer.MultiPlayerManager.AllowedManualSwitch = false; }
+            if (MultiPlayerManager.IsMultiPlayer()) { MultiPlayerManager.Instance().AllowedManualSwitch = false; }
 
             InitData();
             InitImage();
@@ -1739,7 +1739,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
 	  private void chkAllowUserSwitch_CheckedChanged(object sender, EventArgs e)
 	  {
-		  MultiPlayer.MultiPlayerManager.AllowedManualSwitch = chkAllowUserSwitch.Checked;
+		  MultiPlayerManager.Instance().AllowedManualSwitch = chkAllowUserSwitch.Checked;
           if (chkAllowUserSwitch.Checked == true) { MultiPlayer.MultiPlayerManager.BroadCast((new MultiPlayer.MSGMessage("All", "SwitchOK", "OK to switch")).ToString()); }
           else { MultiPlayer.MultiPlayerManager.BroadCast((new MultiPlayer.MSGMessage("All", "SwitchWarning", "Cannot switch")).ToString()); }
 	  }
@@ -2129,7 +2129,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
         private void chkPreferGreenHandle(object sender, EventArgs e)
         {
-            MultiPlayer.MultiPlayerManager.PreferGreen = chkBoxPenalty.Checked;
+            MultiPlayerManager.Instance().PreferGreen = chkBoxPenalty.Checked;
 
         }
 
