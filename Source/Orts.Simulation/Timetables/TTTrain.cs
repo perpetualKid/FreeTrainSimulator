@@ -211,7 +211,7 @@ namespace Orts.Simulation.Timetables
         }
 
         public List<TriggerActivation> activatedTrainTriggers = new List<TriggerActivation>();
-        public string Briefing { get; set; }
+        public string Briefing { get; set; } = string.Empty;
 
         //================================================================================================//
         /// <summary>
