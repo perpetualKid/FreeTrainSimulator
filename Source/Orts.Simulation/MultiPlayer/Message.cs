@@ -543,9 +543,9 @@ namespace Orts.MultiPlayer
                 }
                 else //client needs to handle environment
                 {
-                    if (MultiPlayerManager.GetUserName() == this.user && !MultiPlayerManager.Client.Connected) //a reply from the server, update my train number
+                    if (MultiPlayerManager.GetUserName() == this.user && !MultiPlayerManager.Instance().Connected) //a reply from the server, update my train number
                     {
-                        MultiPlayerManager.Client.Connected = true;
+                        MultiPlayerManager.Instance().Connected = true;
                         Train t = null;
                         if (Simulator.Instance.PlayerLocomotive == null) t = Simulator.Instance.Trains[0];
                         else t = Simulator.Instance.PlayerLocomotive.Train;
@@ -684,9 +684,9 @@ namespace Orts.MultiPlayer
                 }
                 else //client needs to handle environment
                 {
-                    if (MultiPlayerManager.GetUserName() == this.user && !MultiPlayerManager.Client.Connected) //a reply from the server, update my train number
+                    if (MultiPlayerManager.GetUserName() == this.user && !MultiPlayerManager.Instance().Connected) //a reply from the server, update my train number
                     {
-                        MultiPlayerManager.Client.Connected = true;
+                        MultiPlayerManager.Instance().Connected = true;
                         Train t = null;
                         if (Simulator.Instance.PlayerLocomotive == null) t = Simulator.Instance.Trains[0];
                         else t = Simulator.Instance.PlayerLocomotive.Train;
@@ -1590,7 +1590,7 @@ namespace Orts.MultiPlayer
             {
                 if (MultiPlayerManager.Instance().IsDispatcher)
                     return; //already a dispatcher, not need to worry
-                MultiPlayerManager.Client.Connected = true;
+                MultiPlayerManager.Instance().Connected = true;
                 MultiPlayerManager.Instance().IsDispatcher = true;
                 MultiPlayerManager.Instance().OnServerChanged(true);
                 MultiPlayerManager.Instance().RememberOriginalSwitchState();
@@ -2043,7 +2043,7 @@ namespace Orts.MultiPlayer
             if (user == MultiPlayerManager.GetUserName()) return; //avoid myself
 
             bool ServerQuit = false;
-            if (MultiPlayerManager.Client != null && user.Contains("ServerHasToQuit")) //the server quits, will send a message with ServerHasToQuit\tServerName
+            if (MultiPlayerManager.IsMultiPlayer() && user.Contains("ServerHasToQuit")) //the server quits, will send a message with ServerHasToQuit\tServerName
             {
                 if (Simulator.Instance.Confirmer != null)
                     Simulator.Instance.Confirmer.Error(MultiPlayerManager.Catalog.GetString("Server quits, will play as single mode"));

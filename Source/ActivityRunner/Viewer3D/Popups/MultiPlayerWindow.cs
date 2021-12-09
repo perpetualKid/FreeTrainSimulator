@@ -336,9 +336,9 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             {
                 string text = MultiPlayerManager.Instance().GetOnlineUsersInfo();
                 string multiPlayerStatus = MultiPlayerManager.IsServer()
-                    ? $"{CatalogManager.Catalog.GetString("Dispatcher")} ({MultiPlayerManager.Client.UserName})" : MultiPlayerManager.Instance().AmAider
+                    ? $"{CatalogManager.Catalog.GetString("Dispatcher")} ({MultiPlayerManager.Instance().UserName})" : MultiPlayerManager.Instance().AmAider
                     ? CatalogManager.Catalog.GetString("Helper") : MultiPlayerManager.IsClient()
-                    ? $"{CatalogManager.Catalog.GetString("Client")} ({MultiPlayerManager.Client.UserName})" : "";
+                    ? $"{CatalogManager.Catalog.GetString("Client")} ({MultiPlayerManager.Instance().UserName})" : "";
 
                 var status = $"{CatalogManager.Catalog.GetString("Status")}: {multiPlayerStatus}";
 

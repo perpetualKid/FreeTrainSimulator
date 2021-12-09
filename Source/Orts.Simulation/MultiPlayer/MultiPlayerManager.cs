@@ -44,8 +44,15 @@ using Orts.Simulation.RollingStocks;
 
 namespace Orts.MultiPlayer
 {
+    public enum MultiplayerState
+    { 
+        None,
+        Client, 
+        Dispatcher,
+    }
+
     //a singleton class handles communication, update and stop etc.
-    public class MultiPlayerManager
+    public class MultiPlayerManager: IDisposable
     {
         private double lastMoveTime;
 
@@ -57,13 +64,13 @@ namespace Orts.MultiPlayer
         private readonly List<OnlineLocomotive> addedLocomotives;
 
         private readonly List<Train> uncoupledTrains;
+        private ClientComm client;
 
         public const int ProtocolVersion = 15;
 
         public static ICatalog Catalog { get; private set; }
 
-        public static ClientComm Client;
-
+        public bool Connected { get => client?.Connected ?? false; set => client.Connected = value; }
         public bool IsDispatcher { get; set; }
 
         public static OnlineTrains OnlineTrains = new OnlineTrains();
@@ -97,6 +104,9 @@ namespace Orts.MultiPlayer
 
         public bool weatherChanged;
         public int weather = -1;
+
+        public string UserName { get; private set; } = string.Empty;
+        public string Code { get; private set; }
 
         public void AddUncoupledTrains(Train t)
         {
@@ -235,7 +245,7 @@ namespace Orts.MultiPlayer
             }
 
             //client updates itself
-            if (Client != null && !IsDispatcher && newtime - lastMoveTime >= 1f)
+            if (client != null && !IsDispatcher && newtime - lastMoveTime >= 1f)
             {
                 Train t = Simulator.Instance.PlayerLocomotive.Train;
                 MSGMove move = new MSGMove();
@@ -267,8 +277,8 @@ namespace Orts.MultiPlayer
                 //if there are messages to send
                 if (move.OKtoSend())
                 {
-                    Client.SendMessage(move.ToString()).Wait();
-                    if (exhaust.OKtoSend()) Client.SendMessage(exhaust.ToString()).Wait();
+                    client.SendMessage(move.ToString()).Wait();
+                    if (exhaust.OKtoSend()) client.SendMessage(exhaust.ToString()).Wait();
                     lastMoveTime = lastSendTime = newtime;
                 }
                 previousSpeed = t.SpeedMpS;
@@ -284,7 +294,7 @@ namespace Orts.MultiPlayer
 
 
             //need to send a keep-alive message if have not sent one to the server for the last 30 seconds
-            if (Client != null && !IsDispatcher && newtime - lastSendTime >= 30f)
+            if (client != null && !IsDispatcher && newtime - lastSendTime >= 30f)
             {
                 Notify((new MSGAlive(GetUserName())).ToString());
                 lastSendTime = newtime;
@@ -352,26 +362,28 @@ namespace Orts.MultiPlayer
         {
             if (!MultiPlayerManager.IsMultiPlayer() || MultiPlayerManager.IsServer()) return false;
 
-            return !MultiPlayerManager.Instance().AllowedManualSwitch; //aloow manual switch or not
+            return !MultiPlayerManager.Instance().AllowedManualSwitch; //allow manual switch or not
         }
 
         //user name
         public static string GetUserName()
         {
-            return Client?.UserName ?? string.Empty;
+            return localUser?.UserName ?? string.Empty;
         }
 
         //check if it is in the multiplayer session
         public static bool IsMultiPlayer()
         {
-            return (Client != null);
+            return (localUser?.client != null);
         }
+
+        public static MultiplayerState MultiplayerState => (localUser?.IsDispatcher ?? false) ? MultiplayerState.Dispatcher : (localUser?.client != null) ? MultiplayerState.Client : MultiplayerState.None;
 
         public static void BroadCast(string m)
         {
-            if (m == null) 
+            if (m == null)
                 return;
-            Client?.SendMessage(m).Wait();
+            localUser?.client?.SendMessage(m).Wait();
         }
 
         //notify others (server will broadcast, client will send msg to server)
@@ -379,21 +391,32 @@ namespace Orts.MultiPlayer
         {
             if (m == null)
                 return;
-            Client?.SendMessage(m).Wait(); //client notify server
+            localUser?.client?.SendMessage(m).Wait(); //client notify server
         }
 
         //nicely shutdown listening threads, and notify the server/other player
         public static void Stop()
         {
-            if (localUser != null)
+            localUser?.Quit();
+        }
+
+        public static void Start(int updateIntervall, string hostname, int port, string userName, string code)
+        {
+            if (localUser == null)
             {
-                localUser.Quit();
+                localUser = new MultiPlayerManager
+                {
+                    MPUpdateInterval = updateIntervall,
+                    client = new ClientComm(hostname, port),
+                    UserName = userName,
+                    Code = code,
+                };
             }
         }
 
         private void Quit()
         {
-            if (Client != null)
+            if (client != null)
             {
                 if (IsDispatcher)
                 {
@@ -401,9 +424,11 @@ namespace Orts.MultiPlayer
                 }
                 //else
                 {
-                    Client.SendMessage((new MSGQuit(GetUserName())).ToString()).Wait(); //client notify server
+                    client.SendMessage((new MSGQuit(GetUserName())).ToString()).Wait(); //client notify server
                 }
-                Client.Stop();
+                client.Stop();
+                client.Dispose();
+                client = null;
             }
         }
 
@@ -531,9 +556,9 @@ namespace Orts.MultiPlayer
                 //foreach (var p in MPManager.OnlineTrains.Players) info += "\t" + p.Value.Train.Number + " " + p.Key;
                 foreach (OnlinePlayer p in OnlineTrains.Players.Values)
                 {
-                    if (p.Train == null) 
+                    if (p.Train == null)
                         continue;
-                    if (p.Train.Cars.Count <= 0) 
+                    if (p.Train.Cars.Count <= 0)
                         continue;
                     double d = WorldLocation.GetDistanceSquared(p.Train.RearTDBTraveller.WorldLocation, mine.Train.RearTDBTraveller.WorldLocation);
                     users.Add(Math.Sqrt(d) + (RandomNumberGenerator.GetInt32(int.MaxValue) / (double)int.MaxValue), p.Username);
@@ -551,9 +576,9 @@ namespace Orts.MultiPlayer
             {
                 info.Append($"\t{pair.Value}: distance of {(int)(Simulator.Instance.Route.MilepostUnitsMetric ? pair.Key : Size.Length.ToYd(pair.Key)) + metric}");
             }
-            if (OnlineTrains.Players.Count > 10) 
-            { 
-                info.Append("\t ..."); 
+            if (OnlineTrains.Players.Count > 10)
+            {
+                info.Append("\t ...");
             }
             return info.ToString();
         }
@@ -822,6 +847,7 @@ namespace Orts.MultiPlayer
 
         private SortedList<double, string> coachList;
         private SortedList<double, string> engList;
+        private bool disposedValue;
 
         public string SubMissingCar(int length, char type)
         {
@@ -924,6 +950,26 @@ namespace Orts.MultiPlayer
         internal void OnAvatarUpdated(string user, string url)
         {
             AvatarUpdated?.Invoke(this, new AvatarUpdatedEventArgs(user, url));
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    client?.Dispose();
+                    // TODO: dispose managed state (managed objects)
+                }
+                disposedValue = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 }
