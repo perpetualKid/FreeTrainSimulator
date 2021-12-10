@@ -228,10 +228,12 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             Viewer.UserCommandController.AddEvent(UserCommand.ControlOdoMeterDirection, KeyEventType.KeyPressed, ToggleOdometerDirectionCommand, true);
             Viewer.UserCommandController.AddEvent(UserCommand.ControlCabRadio, KeyEventType.KeyPressed, CabRadioCommand, true);
             Viewer.UserCommandController.AddEvent(UserCommand.ControlDieselHelper, KeyEventType.KeyPressed, ToggleHelpersEngineCommand, true);
-            Viewer.UserCommandController.AddEvent(UserCommand.ControlGeneric1, KeyEventType.KeyPressed, GenericCommand1On, true);
-            Viewer.UserCommandController.AddEvent(UserCommand.ControlGeneric1, KeyEventType.KeyReleased, GenericCommand1Off, true);
-            Viewer.UserCommandController.AddEvent(UserCommand.ControlGeneric2, KeyEventType.KeyPressed, GenericCommand2On, true);
-            Viewer.UserCommandController.AddEvent(UserCommand.ControlGeneric2, KeyEventType.KeyReleased, GenericCommand2Off, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlGenericItem1, KeyEventType.KeyPressed, ToggleGenericCommand1, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlGenericItem2, KeyEventType.KeyPressed, ToggleGenericCommand2, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlTCSGeneric1, KeyEventType.KeyPressed, TCSGenericCommand1On, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlTCSGeneric1, KeyEventType.KeyReleased, TCSGenericCommand1Off, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlTCSGeneric2, KeyEventType.KeyPressed, TCSGenericCommand2On, true);
+            Viewer.UserCommandController.AddEvent(UserCommand.ControlTCSGeneric2, KeyEventType.KeyReleased, TCSGenericCommand2Off, true);
 
             //Distributed power
             Viewer.UserCommandController.AddEvent(UserCommand.ControlDistributedPowerMoveToFront, KeyEventType.KeyPressed, DistributedPowerMoveToFront, true);
@@ -328,10 +330,12 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlOdoMeterDirection, KeyEventType.KeyPressed, ToggleOdometerDirectionCommand);
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlCabRadio, KeyEventType.KeyPressed, CabRadioCommand);
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlDieselHelper, KeyEventType.KeyPressed, ToggleHelpersEngineCommand);
-            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlGeneric1, KeyEventType.KeyPressed, GenericCommand1On);
-            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlGeneric1, KeyEventType.KeyReleased, GenericCommand1Off);
-            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlGeneric2, KeyEventType.KeyPressed, GenericCommand2On);
-            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlGeneric2, KeyEventType.KeyReleased, GenericCommand2Off);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlGenericItem1, KeyEventType.KeyPressed, ToggleGenericCommand1);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlGenericItem2, KeyEventType.KeyPressed, ToggleGenericCommand2);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlTCSGeneric1, KeyEventType.KeyPressed, TCSGenericCommand1On);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlTCSGeneric1, KeyEventType.KeyReleased, TCSGenericCommand1Off);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlTCSGeneric2, KeyEventType.KeyPressed, TCSGenericCommand2On);
+            Viewer.UserCommandController.RemoveEvent(UserCommand.ControlTCSGeneric2, KeyEventType.KeyReleased, TCSGenericCommand2Off);
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlDistributedPowerMoveToFront, KeyEventType.KeyPressed, DistributedPowerMoveToFront);
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlDistributedPowerMoveToBack, KeyEventType.KeyPressed, DistributedPowerMoveToBack);
             Viewer.UserCommandController.RemoveEvent(UserCommand.ControlDistributedPOwerTraction, KeyEventType.KeyPressed, DistributedPowerTraction);
@@ -395,21 +399,23 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         private void ToggleOdometerDirectionCommand() => _ = new ToggleOdometerDirectionCommand(Viewer.Log);
         private void CabRadioCommand() => _ = new CabRadioCommand(Viewer.Log, !Locomotive.CabRadioOn);
         private void ToggleHelpersEngineCommand() => _ = new ToggleHelpersEngineCommand(Viewer.Log);
-        private void GenericCommand1On()
+        private void ToggleGenericCommand1() => _ = new ToggleGenericItem1Command(Viewer.Log);
+        private void ToggleGenericCommand2() => _ = new ToggleGenericItem2Command(Viewer.Log);
+        private void TCSGenericCommand1On()
         {
             _ = new TCSButtonCommand(Viewer.Log, true, 0);
             _ = new TCSSwitchCommand(Viewer.Log, !Locomotive.TrainControlSystem.TCSCommandSwitchOn[0], 0);
         }
-        private void GenericCommand1Off()
+        private void TCSGenericCommand1Off()
         {
             _ = new TCSButtonCommand(Viewer.Log, false, 0);
         }
-        private void GenericCommand2On()
+        private void TCSGenericCommand2On()
         {
             _ = new TCSButtonCommand(Viewer.Log, true, 1);
             _ = new TCSSwitchCommand(Viewer.Log, !Locomotive.TrainControlSystem.TCSCommandSwitchOn[1], 1);
         }
-        private void GenericCommand2Off()
+        private void TCSGenericCommand2Off()
         {
             _ = new TCSButtonCommand(Viewer.Log, false, 1);
         }
@@ -555,7 +561,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
             // Wipers and bell animation
             Wipers.UpdateLoop(Locomotive.Wiper, elapsedTime);
-            Bell.UpdateLoop(Locomotive.Bell, elapsedTime, TrainCarShape.SharedShape.BellAnimationFPS);
+            Bell.UpdateLoop(Locomotive.Bell, elapsedTime, TrainCarShape.SharedShape.CustomAnimationFPS);
+            Item1Continuous.UpdateLoop(Locomotive.GenericItem1, elapsedTime, TrainCarShape.SharedShape.CustomAnimationFPS);
+            Item2Continuous.UpdateLoop(Locomotive.GenericItem2, elapsedTime, TrainCarShape.SharedShape.CustomAnimationFPS);
 
             // Draw 2D CAB View - by GeorgeS
             if (Viewer.Camera.AttachedCar == this.MSTSWagon &&
@@ -2338,6 +2346,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 case CabViewControlType.Orts_Electric_Train_Supply_On:
                 case CabViewControlType.Orts_Odometer_Direction:
                 case CabViewControlType.Orts_Odometer_Reset:
+                case CabViewControlType.Orts_Generic_Item1:
+                case CabViewControlType.Orts_Generic_Item2:
                     index = (int)data;
                     break;
                 case CabViewControlType.Orts_Screen_Select:
@@ -2723,6 +2733,14 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     break;
                 case CabViewControlType.Orts_Odometer_Reset:
                     _ = new ResetOdometerCommand(Viewer.Log, UpdateCommandValue(Locomotive.OdometerResetButtonPressed ? 1 : 0, buttonEventType, delta) > 0);
+                    break;
+                case CabViewControlType.Orts_Generic_Item1:
+                    if ((Locomotive.GenericItem1 ? 1 : 0) != UpdateCommandValue(Locomotive.GenericItem1 ? 1 : 0, buttonEventType, delta))
+                        _ = new ToggleGenericItem1Command(Viewer.Log);
+                    break;
+                case CabViewControlType.Orts_Generic_Item2:
+                    if ((Locomotive.GenericItem2 ? 1 : 0) != UpdateCommandValue(Locomotive.GenericItem2 ? 1 : 0, buttonEventType, delta))
+                        _ = new ToggleGenericItem2Command(Viewer.Log);
                     break;
                 case CabViewControlType.Orts_Screen_Select:
                     bool buttonState = UpdateCommandValue(ButtonState ? 1 : 0, buttonEventType, delta) > 0;

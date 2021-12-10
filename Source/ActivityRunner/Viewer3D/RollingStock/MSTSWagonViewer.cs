@@ -73,6 +73,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         private AnimatedPart Mirrors;
         protected AnimatedPart Wipers;
         protected AnimatedPart Bell;
+        protected AnimatedPart Item1Continuous;
+        protected AnimatedPart Item2Continuous;
+        private AnimatedPart Item1TwoState;
+        private AnimatedPart Item2TwoState;
         private AnimatedPart UnloadingParts;
 
         public Dictionary<string, List<ParticleEmitterViewer>> ParticleDrawers = new Dictionary<string, List<ParticleEmitterViewer>>();
@@ -313,6 +317,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             Wipers = new AnimatedPart(TrainCarShape);
             UnloadingParts = new AnimatedPart(TrainCarShape);
             Bell = new AnimatedPart(TrainCarShape);
+            Item1Continuous = new AnimatedPart(TrainCarShape);
+            Item2Continuous = new AnimatedPart(TrainCarShape);
+            Item1TwoState = new AnimatedPart(TrainCarShape);
+            Item2TwoState = new AnimatedPart(TrainCarShape);
 
             if (car.FreightAnimations != null)
                 FreightAnimations = new FreightAnimationsViewer(viewer, car, wagonFolderSlash);
@@ -397,6 +405,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             LeftDoor.SetState(MSTSWagon.DoorLeftOpen);
             RightDoor.SetState(MSTSWagon.DoorRightOpen);
             Mirrors.SetState(MSTSWagon.MirrorOpen);
+            Item1TwoState.SetState(MSTSWagon.GenericItem1);
+            Item2TwoState.SetState(MSTSWagon.GenericItem2);
             UnloadingParts.SetState(MSTSWagon.UnloadingPartsOpen);
         }
 
@@ -539,9 +549,25 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     else Pantograph2.AddMatrix(matrix);
                 }
             }
-            else if (matrixName.StartsWith("ORTSBELL", StringComparison.OrdinalIgnoreCase)) // wipers
+            else if (matrixName.StartsWith("ORTSBELL", StringComparison.OrdinalIgnoreCase)) // bell
             {
                 Bell.AddMatrix(matrix);
+            }
+            else if (matrixName.StartsWith("ORTSITEM1CONTINUOUS", StringComparison.OrdinalIgnoreCase)) // generic item 1, continuous animation
+            {
+                Item1Continuous.AddMatrix(matrix);
+            }
+            else if (matrixName.StartsWith("ORTSITEM2CONTINUOUS", StringComparison.OrdinalIgnoreCase)) // generic item 2, continuous animation
+            {
+                Item2Continuous.AddMatrix(matrix);
+            }
+            else if (matrixName.StartsWith("ORTSITEM1TWOSTATE", StringComparison.OrdinalIgnoreCase)) // generic item 1, continuous animation
+            {
+                Item1TwoState.AddMatrix(matrix);
+            }
+            else if (matrixName.StartsWith("ORTSITEM2TWOSTATE", StringComparison.OrdinalIgnoreCase)) // generic item 2, continuous animation
+            {
+                Item2TwoState.AddMatrix(matrix);
             }
             else
             {
@@ -609,6 +635,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             RightDoor.UpdateState(MSTSWagon.DoorRightOpen, elapsedTime);
             Mirrors.UpdateState(MSTSWagon.MirrorOpen, elapsedTime);
             UnloadingParts.UpdateState(MSTSWagon.UnloadingPartsOpen, elapsedTime);
+            Item1TwoState.UpdateState(MSTSWagon.GenericItem1, elapsedTime);
+            Item2TwoState.UpdateState(MSTSWagon.GenericItem2, elapsedTime);
             UpdateAnimation(frame, elapsedTime);
 
             var car = Car as MSTSWagon;

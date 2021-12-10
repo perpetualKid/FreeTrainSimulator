@@ -29,7 +29,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
         public bool HasNightSubObj;
         public int RootSubObjectIndex;
         public string SoundFileName = "";
-        public float BellAnimationFPS = 8;
+        public float CustomAnimationFPS = 8;
 
 
         protected static Viewer viewer;
@@ -97,7 +97,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                 if ((textureFlags & Helpers.TextureFlags.Night) != 0 && FilePath.Contains("\\trainset\\", StringComparison.OrdinalIgnoreCase))
                     textureFlags |= Helpers.TextureFlags.Underground;
                 SoundFileName = sdFile.Shape.EsdSoundFileName;
-                BellAnimationFPS = sdFile.Shape.EsdBellAnimationFps;
+                CustomAnimationFPS = sdFile.Shape.EsdCustomAnimationFps;
             }
 
             Matrices = sFile.Shape.Matrices.ToArray();

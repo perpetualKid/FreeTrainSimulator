@@ -1390,6 +1390,8 @@ namespace Orts.Simulation.RollingStocks
             outf.Write(IsWaterScoopDown);
             outf.Write(CurrentTrackSandBoxCapacityM3);
             outf.Write(SaveAdhesionFilter);
+            outf.Write(GenericItem1);
+            outf.Write(GenericItem2);
             outf.Write((int)RemoteControlGroup);
             outf.Write(DistributedPowerUnitId);
 
@@ -1443,8 +1445,12 @@ namespace Orts.Simulation.RollingStocks
             SaveAdhesionFilter = inf.ReadSingle();
 
             AdhesionFilter.Reset(SaveAdhesionFilter);
+
+            GenericItem1 = inf.ReadBoolean();
+            GenericItem2 = inf.ReadBoolean();
             RemoteControlGroup = (RemoteControlGroup)inf.ReadInt32();
             DistributedPowerUnitId = inf.ReadInt32();
+
 
             base.Restore(inf);
 
@@ -4510,6 +4516,18 @@ namespace Orts.Simulation.RollingStocks
             simulator.Confirmer.Confirm(CabControl.Odometer, OdometerCountingUp ? CabSetting.Increase : CabSetting.Decrease);
         }
 
+        public void GenericItem1Toggle()
+        {
+            GenericItem1 = !GenericItem1;
+            SignalEvent(GenericItem1? TrainEvent.GenericItem1On : TrainEvent.GenericItem1Off); // hook for sound trigger
+        }
+
+        public void GenericItem2Toggle()
+        {
+            GenericItem2 = !GenericItem2;
+            SignalEvent(GenericItem2 ? TrainEvent.GenericItem2On : TrainEvent.GenericItem2Off); // hook for sound trigger
+        }
+
         public override bool GetCabFlipped()
         {
             return UsingRearCab;
@@ -5406,6 +5424,16 @@ namespace Orts.Simulation.RollingStocks
                         seconds += 60;
                     data = seconds;
                     break;
+                case CabViewControlType.Orts_Generic_Item1:
+                    {
+                        data = GenericItem1 ? 1 : 0;
+                        break;
+                    }
+                case CabViewControlType.Orts_Generic_Item2:
+                    {
+                        data = GenericItem2 ? 1 : 0;
+                        break;
+                    }
 
                 // Train Control System controls
                 case CabViewControlType.Orts_TCS1:

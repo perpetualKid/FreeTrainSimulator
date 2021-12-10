@@ -224,8 +224,10 @@ namespace Orts.Settings
             commands[UserCommand.ControlFiringRateIncrease] = new UserCommandKeyInput(0x13);
             commands[UserCommand.ControlGearDown] = new UserCommandKeyInput(0x12, KeyModifiers.Shift);
             commands[UserCommand.ControlGearUp] = new UserCommandKeyInput(0x12);
-            commands[UserCommand.ControlGeneric1] = new UserCommandKeyInput(0x33, KeyModifiers.Control);
-            commands[UserCommand.ControlGeneric2] = new UserCommandKeyInput(0x34, KeyModifiers.Control);
+            commands[UserCommand.ControlGenericItem1] = new UserCommandKeyInput(0x33, KeyModifiers.Shift);
+            commands[UserCommand.ControlGenericItem2] = new UserCommandKeyInput(0x34, KeyModifiers.Shift);
+            commands[UserCommand.ControlTCSGeneric1] = new UserCommandKeyInput(0x33, KeyModifiers.Control);
+            commands[UserCommand.ControlTCSGeneric2] = new UserCommandKeyInput(0x34, KeyModifiers.Control);
             commands[UserCommand.ControlHandbrakeFull] = new UserCommandKeyInput(0x28, KeyModifiers.Shift);
             commands[UserCommand.ControlHandbrakeNone] = new UserCommandKeyInput(0x27, KeyModifiers.Shift);
             commands[UserCommand.ControlHeadlightDecrease] = new UserCommandKeyInput(0x23, KeyModifiers.Shift);

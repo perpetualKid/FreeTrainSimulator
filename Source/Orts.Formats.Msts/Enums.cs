@@ -419,6 +419,8 @@ namespace Orts.Formats.Msts
         Orts_Electric_Train_Supply_Command_Switch,
         Orts_Electric_Train_Supply_On,
         Orts_2DExternalWipers,
+        Orts_Generic_Item1,
+        Orts_Generic_Item2,
         Orts_Screen_Select,
         Orts_Static_Display,
 

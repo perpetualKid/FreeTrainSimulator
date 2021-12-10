@@ -17,7 +17,7 @@ namespace Orts.Formats.Msts.Models
         public bool EsdSnapable { get; private set; }
         public bool EsdSubObject { get; private set; }
         public string EsdSoundFileName { get; private set; } = string.Empty;
-        public float EsdBellAnimationFps { get; private set; } = 8;
+        public float EsdCustomAnimationFps { get; private set; } = 8;
 
         public ShapeDescriptor()
         {
@@ -39,7 +39,8 @@ namespace Orts.Formats.Msts.Models
                             EsdBoundingBox = null;
                     }),
                     new STFReader.TokenProcessor("esd_ortssoundfilename", ()=>{ EsdSoundFileName = stf.ReadStringBlock(null); }),
-                    new STFReader.TokenProcessor("esd_ortsbellanimationfps", ()=>{ EsdBellAnimationFps = stf.ReadFloatBlock(STFReader.Units.Frequency, null); }),
+                    new STFReader.TokenProcessor("esd_ortsbellanimationfps", ()=>{ EsdCustomAnimationFps = stf.ReadFloatBlock(STFReader.Units.Frequency, null); }),
+                    new STFReader.TokenProcessor("esd_ortscustomanimationfps", ()=>{ EsdCustomAnimationFps = stf.ReadFloatBlock(STFReader.Units.Frequency, null); }),
                 });
             // TODO - some objects have no bounding box - ie JP2BillboardTree1.sd
             //if (ESD_Bounding_Box == null) throw new STFException(stf, "Missing ESD_Bound_Box statement");

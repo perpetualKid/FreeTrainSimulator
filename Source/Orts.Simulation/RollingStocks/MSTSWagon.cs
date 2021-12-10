@@ -81,9 +81,13 @@ namespace Orts.Simulation.RollingStocks
         public bool IsDavisFriction = true; // Default to new Davis type friction
         public bool IsBelowMergeSpeed = true; // set indicator for low speed operation as per given speed
 
+
+        public bool GenericItem1;
+        public bool GenericItem2;
         private Interpolator BrakeShoeFrictionFactor;  // Factor of friction for wagon brake shoes
         private const float WaterLBpUKG = 10.0f;    // lbs of water in 1 gal (uk)
         private float TempMassDiffRatio;
+
 
         // simulation parameters
         public float Variable1 { get; protected set; }  // used to convey status to soundsource

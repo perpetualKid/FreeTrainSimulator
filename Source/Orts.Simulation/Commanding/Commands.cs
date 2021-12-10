@@ -2137,4 +2137,47 @@ namespace Orts.Simulation.Commanding
     }
     #endregion
 
+    [Serializable()]
+    public sealed class ToggleGenericItem1Command : Command
+    {
+        public static MSTSLocomotive Receiver { get; set; }
+
+        public ToggleGenericItem1Command(CommandLog log)
+            : base(log)
+        {
+            Redo();
+        }
+
+        public override void Redo()
+        {
+            Receiver.GenericItem1Toggle();
+        }
+
+        public override string ToString()
+        {
+            return base.ToString();
+        }
+    }
+
+    [Serializable()]
+    public sealed class ToggleGenericItem2Command : Command
+    {
+        public static MSTSLocomotive Receiver { get; set; }
+
+        public ToggleGenericItem2Command(CommandLog log)
+            : base(log)
+        {
+            Redo();
+        }
+
+        public override void Redo()
+        {
+            Receiver.GenericItem2Toggle();
+        }
+
+        public override string ToString()
+        {
+            return base.ToString();
+        }
+    }
 }
