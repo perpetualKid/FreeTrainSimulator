@@ -21,13 +21,17 @@ namespace Orts.Graphics.Window.Controls.Layout
         {
         }
 
-        public virtual int RemainingWidth => Position.Width;
+        public virtual int RemainingWidth => Bounds.Width;
 
-        public virtual int RemainingHeight => Position.Height;
+        public virtual int RemainingHeight => Bounds.Height;
 
         public virtual int CurrentLeft => 0;
 
         public virtual int CurrentTop => 0;
+
+        public HorizontalAlignment HorizontalChildAlignment { get; protected set; } = HorizontalAlignment.Left;
+
+        public VerticalAlignment VerticalChildAlignment { get; protected set; } = VerticalAlignment.Top;
 
         protected T InternalAdd<T>(T control) where T : WindowControl
         {
@@ -38,8 +42,8 @@ namespace Orts.Graphics.Window.Controls.Layout
             {
                 controlLayout.TextHeight = TextHeight;
             }
-            // Offset control by our position and current values. Don't touch its size!
-            control.MoveBy(Position.Left + CurrentLeft, Position.Top + CurrentTop);
+            // Offset control by our position and current values. Don't touch its size, also consider alignment
+            control.MoveBy(Bounds.Left + CurrentLeft + HorizontalChildAlignmentOffset(control.Bounds), Bounds.Top + CurrentTop + VerticalChildAlignmentOffset(control.Bounds));
             Controls.Add(control);
             return control;
         }
@@ -128,7 +132,7 @@ namespace Orts.Graphics.Window.Controls.Layout
 
         internal override bool HandleMouseClicked(WindowMouseEvent e)
         {
-            foreach (WindowControl control in Controls.Where(c => c.Position.Contains(e.MousePosition)))
+            foreach (WindowControl control in Controls.Where(c => c.Bounds.Contains(e.MousePosition)))
                 if (control.HandleMouseClicked(e))
                     return true;
             return base.HandleMouseClicked(e);
@@ -136,7 +140,7 @@ namespace Orts.Graphics.Window.Controls.Layout
 
         internal override bool HandleMouseDown(WindowMouseEvent e)
         {
-            foreach (WindowControl control in Controls.Where(c => c.Position.Contains(e.MousePosition)))
+            foreach (WindowControl control in Controls.Where(c => c.Bounds.Contains(e.MousePosition)))
                 if (control.HandleMouseDown(e))
                     return true;
             return base.HandleMouseDown(e);
@@ -144,7 +148,7 @@ namespace Orts.Graphics.Window.Controls.Layout
 
         internal override bool HandleMouseReleased(WindowMouseEvent e)
         {
-            foreach (WindowControl control in Controls.Where(c => c.Position.Contains(e.MousePosition)))
+            foreach (WindowControl control in Controls.Where(c => c.Bounds.Contains(e.MousePosition)))
                 if (control.HandleMouseReleased(e))
                     return true;
             return base.HandleMouseReleased(e);
@@ -152,7 +156,7 @@ namespace Orts.Graphics.Window.Controls.Layout
 
         internal override bool HandleMouseMove(WindowMouseEvent e)
         {
-            foreach (WindowControl control in Controls.Where(c => c.Position.Contains(e.MousePosition)))
+            foreach (WindowControl control in Controls.Where(c => c.Bounds.Contains(e.MousePosition)))
                 if (control.HandleMouseMove(e))
                     return true;
             return base.HandleMouseMove(e);
@@ -160,7 +164,7 @@ namespace Orts.Graphics.Window.Controls.Layout
 
         internal override bool HandleMouseScroll(WindowMouseEvent e)
         {
-            foreach (WindowControl control in Controls.Where(c => c.Position.Contains(e.MousePosition)))
+            foreach (WindowControl control in Controls.Where(c => c.Bounds.Contains(e.MousePosition)))
                 if (control.HandleMouseScroll(e))
                     return true;
             return base.HandleMouseScroll(e);
@@ -179,5 +183,28 @@ namespace Orts.Graphics.Window.Controls.Layout
                 control.Dispose();
             base.Dispose(disposing);
         }
+
+        private int VerticalChildAlignmentOffset(in Rectangle childBounds)
+        {
+            return VerticalChildAlignment switch
+            {
+                VerticalAlignment.Top => 0,
+                VerticalAlignment.Bottom => Bounds.Height - childBounds.Height,
+                VerticalAlignment.Center => (Bounds.Height - childBounds.Height) / 2,
+                _ => 0,
+            };
+        }
+
+        private int HorizontalChildAlignmentOffset(in Rectangle childBounds)
+        {
+            return HorizontalChildAlignment switch
+            {
+                HorizontalAlignment.Left => 0,
+                HorizontalAlignment.Right => Bounds.Width- childBounds.Width,
+                HorizontalAlignment.Center => (Bounds.Width- childBounds.Width) / 2,
+                _ => 0,
+            };
+        }
+
     }
 }

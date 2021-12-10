@@ -2,6 +2,7 @@
 {
     public enum UserCommand
     {
+        Cancel, //Escape Key
         NewInstance,
         ChangeScreenMode,
         QuitGame,

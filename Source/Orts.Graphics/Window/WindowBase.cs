@@ -163,7 +163,9 @@ namespace Orts.Graphics.Window
         {
             // Pad window by 4px, add caption and separator between to content area.
             layout = layout?.AddLayoutOffset((int)(4 * Owner.DpiScaling)).AddLayoutVertical() ?? throw new ArgumentNullException(nameof(layout));
-            layout.Add(new Label(this, 0, 0, layout.RemainingWidth, Owner.TextFontDefaultBold.Height, Caption, LabelAlignment.Center, Owner.TextFontDefaultBold, Color.White));
+            ControlLayout headerLine = layout.AddLayoutHorizontal((int)(Owner.TextFontDefault.Height * 1.25));
+
+            headerLine.Add(new Label(this, 0, 0, layout.RemainingWidth, Owner.TextFontDefaultBold.Height, Caption, HorizontalAlignment.Center, Owner.TextFontDefaultBold, Color.White));
             layout.AddHorizontalSeparator(true);
             return layout;
         }

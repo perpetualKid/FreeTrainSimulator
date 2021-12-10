@@ -7,10 +7,10 @@ namespace Orts.Graphics.Window.Controls
 {
     public abstract class WindowControl: IDisposable
     {
-        private Rectangle position;
+        private Rectangle bounds;
         private bool disposedValue;
 
-        public ref readonly Rectangle Position => ref position;
+        public ref readonly Rectangle Bounds => ref bounds;
 
         public WindowBase Window { get; }
 
@@ -20,7 +20,7 @@ namespace Orts.Graphics.Window.Controls
 
         protected WindowControl(WindowBase window, int x, int y, int width, int height)
         {
-            position = new Rectangle(x, y, width, height);
+            bounds = new Rectangle(x, y, width, height);
             Window = window;
         }
 
@@ -58,12 +58,12 @@ namespace Orts.Graphics.Window.Controls
 
         internal virtual void MoveBy(int x, int y)
         {
-            position.Offset(x, y);
+            bounds.Offset(x, y);
         }
 
         internal virtual void MouseClick(WindowMouseEvent e)
         {
-            OnClick?.Invoke(this, new MouseClickEventArgs(e.MousePosition - position.Location, e.KeyModifiers));
+            OnClick?.Invoke(this, new MouseClickEventArgs(e.MousePosition - bounds.Location, e.KeyModifiers));
         }
 
         #region IDisposable

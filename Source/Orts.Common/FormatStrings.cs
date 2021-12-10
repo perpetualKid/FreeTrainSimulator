@@ -367,5 +367,10 @@ namespace Orts.Common
 
             return $"{duration.Hours:D2}:{duration.Minutes:D2}";
         }
+
+        public static string Max(this string value, int length)
+        {
+            return value?[..Math.Min(value.Length, length)];
+        }
     }
 }

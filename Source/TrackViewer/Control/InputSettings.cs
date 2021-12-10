@@ -15,6 +15,7 @@ namespace Orts.TrackViewer.Control
             UserCommandModifierInput moveSlow = new UserCommandModifierInput(KeyModifiers.Control);
             UserCommandModifierInput moveFast = new UserCommandModifierInput(KeyModifiers.Shift);
 
+            UserCommands[UserCommand.Cancel] = new UserCommandKeyInput(Keys.Escape, KeyModifiers.None);
             UserCommands[UserCommand.PrintScreen] = new UserCommandKeyInput(Keys.PrintScreen, KeyModifiers.None);
             UserCommands[UserCommand.NewInstance] = new UserCommandKeyInput(Keys.F, KeyModifiers.None);
             UserCommands[UserCommand.ChangeScreenMode] = new UserCommandKeyInput(Keys.Enter, KeyModifiers.Alt);

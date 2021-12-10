@@ -36,7 +36,7 @@ namespace Orts.Graphics.DrawableComponents
         /// to support redraw, compiled textures are cached for a short while <seealso cref="SweepInterval"/>
         /// </summary>
         public static void DrawString(Vector2 point, Color color, string message, System.Drawing.Font font, Vector2 scale, 
-            TextHorizontalAlignment horizontalAlignment = TextHorizontalAlignment.Left, TextVerticalAlignment verticalAlignment = TextVerticalAlignment.Bottom,
+            HorizontalAlignment horizontalAlignment = HorizontalAlignment.Left, VerticalAlignment verticalAlignment = VerticalAlignment.Bottom,
             SpriteEffects effects = SpriteEffects.None, SpriteBatch spriteBatch = null)
         {
             int identifier = HashCode.Combine(font, message);

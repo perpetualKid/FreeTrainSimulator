@@ -47,7 +47,7 @@ namespace Orts.Graphics.Window
         public System.Drawing.Font TextFontDefaultBold { get; }
 
         public string DefaultFont { get; } = "Segoe UI";
-        public int DefaultFontSize { get; } = 13;
+        public int DefaultFontSize { get; } = 12;
 
         //publish some events to allow interaction between XNA WindowManager and outside Window world
         public event EventHandler<ModalWindowEventArgs> OnModalWindow;
@@ -55,6 +55,8 @@ namespace Orts.Graphics.Window
         public bool SuppressDrawing { get; private set; }
 
         internal Texture2D WhiteTexture { get; }
+
+        public UserCommandController UserCommandController { get; private set; }
 
         private protected WindowManager(Game game) :
             base(game)
@@ -94,7 +96,10 @@ namespace Orts.Graphics.Window
 
             if (null == instance)
             {
-                instance = new WindowManager(game);
+                instance = new WindowManager(game)
+                {
+                    UserCommandController = userCommandController
+                };
                 instance.AddUserCommandEvents(userCommandController);
             }
             return instance;
@@ -109,6 +114,7 @@ namespace Orts.Graphics.Window
             if (null == WindowManager<TWindowType>.Instance)
             {
                 WindowManager<TWindowType>.Initialize(game);
+                WindowManager<TWindowType>.Instance.UserCommandController = userCommandController;
                 WindowManager<TWindowType>.Instance.AddUserCommandEvents(userCommandController);
             }
             return WindowManager<TWindowType>.Instance;
@@ -129,23 +135,12 @@ namespace Orts.Graphics.Window
             if (null == userCommandController)
                 throw new ArgumentNullException(nameof(userCommandController));
 
-            Game.Components.OfType<KeyboardInputGameComponent>().Single().AddInputHandler(EscapeKey);
             userCommandController.AddEvent(CommonUserCommand.PointerMoved, MouseMovedEvent);
             userCommandController.AddEvent(CommonUserCommand.PointerPressed, MousePressedEvent);
             userCommandController.AddEvent(CommonUserCommand.PointerDown, MouseDownEvent);
             userCommandController.AddEvent(CommonUserCommand.PointerReleased, MouseReleasedEvent);
             userCommandController.AddEvent(CommonUserCommand.PointerDragged, MouseDraggingEvent);
             userCommandController.AddEvent(CommonUserCommand.VerticalScrollChanged, WindowScrollEvent);
-        }
-
-        private static readonly int escapeKeyCode = KeyboardInputGameComponent.KeyEventCode(Microsoft.Xna.Framework.Input.Keys.Escape, KeyModifiers.None, KeyEventType.KeyPressed);
-
-        private void EscapeKey(int eventCode, GameTime gameTime, KeyEventType eventType, KeyModifiers modifiers)
-        {
-            if (modalWindow != null && eventCode == escapeKeyCode)
-            {
-                CloseWindow(modalWindow);
-            }
         }
 
         private void Window_ClientSizeChanged(object sender, EventArgs e)
@@ -174,6 +169,7 @@ namespace Orts.Graphics.Window
                 windows = windows.Append(window).OrderBy(w => w.ZOrder).ToList();
                 if (window.Modal)
                 {
+                    UserCommandController.SuppressDownLevelEventHandling = true;
                     modalWindow = window;
                     OnModalWindow?.Invoke(this, new ModalWindowEventArgs(true));
                 }
@@ -186,6 +182,7 @@ namespace Orts.Graphics.Window
         {
             if (window == modalWindow)
             {
+                UserCommandController.SuppressDownLevelEventHandling = false;
                 SuppressDrawing = false;
                 modalWindow = null;
                 OnModalWindow?.Invoke(this, new ModalWindowEventArgs(false));
