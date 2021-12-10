@@ -243,7 +243,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             AddLabel(new ListLabel
             {
                 FirstCol = Viewer.Catalog.GetString("Time"),
-                LastCol = FormatStrings.FormatTime(viewer.Simulator.ClockTime + (MultiPlayer.MultiPlayerManager.IsClient() ? MultiPlayer.MultiPlayerManager.Instance().serverTimeDifference : 0)),
+                LastCol = FormatStrings.FormatTime(viewer.Simulator.ClockTime + (MultiPlayer.MultiPlayerManager.MultiplayerState == MultiPlayer.MultiplayerState.Client ? MultiPlayer.MultiPlayerManager.Instance().serverTimeDifference : 0)),
             });
             if (viewer.Simulator.IsReplaying)
             {

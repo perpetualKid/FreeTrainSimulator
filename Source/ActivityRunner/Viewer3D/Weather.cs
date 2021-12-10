@@ -130,7 +130,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 UpdateWeatherParameters();
             };
 
-            if (!MultiPlayerManager.IsClient())
+            if (MultiPlayerManager.MultiplayerState != MultiplayerState.Client)
             {
                 viewer.UserCommandController.AddEvent(UserCommand.DebugWeatherChange, KeyEventType.KeyPressed, () =>
                 {
@@ -490,9 +490,8 @@ namespace Orts.ActivityRunner.Viewer3D
         public virtual void Update(in ElapsedTime elapsedTime)
         {
             Time += (float)elapsedTime.ClockSeconds;
-            var manager = MultiPlayerManager.Instance();
-
-            if (MultiPlayerManager.IsClient() && manager.weatherChanged)
+            MultiPlayerManager manager;
+            if (MultiPlayerManager.MultiplayerState == MultiplayerState.Client && (manager = MultiPlayerManager.Instance()).weatherChanged)
             {
                 // Multiplayer weather has changed so we need to update our state to match weather, overcastFactor, pricipitationIntensity and fogDistance.
                 if (manager.weather >= 0 && manager.weather != (int)viewer.Simulator.WeatherType)
@@ -520,7 +519,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     manager.fogDistance = -1;
                 }
             }
-            else if (!MultiPlayerManager.IsClient())
+            else if (MultiPlayerManager.MultiplayerState != MultiplayerState.Client)
             {
                 UpdateWind(elapsedTime);
             }

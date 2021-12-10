@@ -123,7 +123,7 @@ namespace Orts.ActivityRunner.Viewer3D
             // Control- and Control+ for overcast, Shift- and Shift+ for fog and - and + for time.
 
             // Don't let multiplayer clients adjust the weather.
-            if (!MultiPlayerManager.IsClient())
+            if (MultiPlayerManager.MultiplayerState != MultiplayerState.Client)
             {
                 // Overcast ranges from 0 (completely clear) to 1 (completely overcast).
                 viewer.UserCommandController.AddEvent(UserCommand.DebugOvercastIncrease, KeyEventType.KeyDown, (GameTime gameTIme) =>
@@ -217,8 +217,8 @@ namespace Orts.ActivityRunner.Viewer3D
                 initialized = true;
             }
 
-            MultiPlayerManager manager = MultiPlayerManager.Instance();
-            if (MultiPlayerManager.IsClient() && manager.weatherChanged)
+            MultiPlayerManager manager;
+            if (MultiPlayerManager.MultiplayerState == MultiplayerState.Client && (manager = MultiPlayerManager.Instance()).weatherChanged)
             {
                 //received message about weather change
                 if (manager.overcastFactor >= 0)

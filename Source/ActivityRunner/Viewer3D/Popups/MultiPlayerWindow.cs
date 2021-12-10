@@ -321,7 +321,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             UpdateDataEnded = false;
             // First Block
             // Client and server may have a time difference.
-            var time = FormatStrings.FormatTime(viewer.Simulator.ClockTime + (MultiPlayerManager.IsClient() ? MultiPlayerManager.Instance().serverTimeDifference : 0));
+            var time = FormatStrings.FormatTime(viewer.Simulator.ClockTime + (MultiPlayerManager.MultiplayerState == MultiplayerState.Client ? MultiPlayerManager.Instance().serverTimeDifference : 0));
             AddLabel(new ListLabel
             {
                 FirstCol = $"{CatalogManager.Catalog.GetString("Time")}: {time}",
@@ -332,13 +332,11 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             AddSeparator();
 
             // MultiPlayer
-            if (MultiPlayerManager.IsMultiPlayer())
+            if (MultiPlayerManager.MultiplayerState != MultiplayerState.None)
             {
                 string text = MultiPlayerManager.Instance().GetOnlineUsersInfo();
-                string multiPlayerStatus = MultiPlayerManager.IsServer()
-                    ? $"{CatalogManager.Catalog.GetString("Dispatcher")} ({MultiPlayerManager.Instance().UserName})" : MultiPlayerManager.Instance().AmAider
-                    ? CatalogManager.Catalog.GetString("Helper") : MultiPlayerManager.IsClient()
-                    ? $"{CatalogManager.Catalog.GetString("Client")} ({MultiPlayerManager.Instance().UserName})" : "";
+                string multiPlayerStatus = MultiPlayerManager.MultiplayerState == MultiplayerState.Dispatcher ? $"{CatalogManager.Catalog.GetString("Dispatcher")} ({MultiPlayerManager.Instance().UserName})" : 
+                    MultiPlayerManager.Instance().AmAider ? CatalogManager.Catalog.GetString("Helper") : $"{CatalogManager.Catalog.GetString("Client")} ({MultiPlayerManager.Instance().UserName})";
 
                 var status = $"{CatalogManager.Catalog.GetString("Status")}: {multiPlayerStatus}";
 

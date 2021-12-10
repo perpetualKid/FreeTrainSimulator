@@ -771,7 +771,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
             // First Block
             // Client and server may have a time difference.
-            if (Orts.MultiPlayer.MultiPlayerManager.IsClient())
+            if (MultiPlayer.MultiPlayerManager.MultiplayerState == MultiPlayer.MultiplayerState.Client)
                 InfoToLabel(string.Empty, Viewer.Catalog.GetString("Time"), FormatStrings.FormatTime(Owner.Viewer.Simulator.ClockTime + Orts.MultiPlayer.MultiPlayerManager.Instance().serverTimeDifference), "", false);
             else
             {

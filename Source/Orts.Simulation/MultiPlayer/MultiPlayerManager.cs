@@ -350,13 +350,6 @@ namespace Orts.MultiPlayer
             return localUser?.IsDispatcher ?? false;
         }
 
-        //check if it is in the client mode
-        public static bool IsClient()
-        {
-            if (!IsMultiPlayer() || IsServer()) return false;
-            return true;
-        }
-
         //check if it is in the server mode && they are players && not allow autoswitch
         public static bool NoAutoSwitch()
         {

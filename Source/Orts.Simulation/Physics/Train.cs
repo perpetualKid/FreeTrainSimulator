@@ -1476,7 +1476,7 @@ namespace Orts.Simulation.Physics
                 if (stillExist)
                 {
                     UpdateRouteClearanceAhead(SignalObjIndex, movedBackward, elapsedClockSeconds);  // update route clearance  //
-                    if (!(TrainType == TrainType.Remote && MultiPlayerManager.IsClient()))
+                    if (!(TrainType == TrainType.Remote && MultiPlayerManager.MultiplayerState == MultiplayerState.Client))
                         UpdateSignalState(movedBackward);                                               // update signal state     //
                 }
             }
@@ -7888,7 +7888,7 @@ namespace Orts.Simulation.Physics
         //
         public void RequestSignalPermission(Direction direction)
         {
-            if (MultiPlayerManager.IsClient())
+            if (MultiPlayerManager.MultiplayerState == MultiplayerState.Client)
             {
                 MultiPlayerManager.Notify((new MSGResetSignal(MultiPlayerManager.GetUserName())).ToString());
                 return;

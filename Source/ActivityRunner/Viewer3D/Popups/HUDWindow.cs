@@ -447,8 +447,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             TableAddLabelValue(table, Viewer.Catalog.GetString("Version"), VersionInfo.Version);
 
             // Client and server may have a time difference.
-            if (Orts.MultiPlayer.MultiPlayerManager.IsClient())
-                TableAddLabelValue(table, Viewer.Catalog.GetString("Time"), FormatStrings.FormatTime(Viewer.Simulator.ClockTime + Orts.MultiPlayer.MultiPlayerManager.Instance().serverTimeDifference));
+            if (MultiPlayer.MultiPlayerManager.MultiplayerState == MultiPlayer.MultiplayerState.Client)
+                TableAddLabelValue(table, Viewer.Catalog.GetString("Time"), FormatStrings.FormatTime(Viewer.Simulator.ClockTime + MultiPlayer.MultiPlayerManager.Instance().serverTimeDifference));
             else
                 TableAddLabelValue(table, Viewer.Catalog.GetString("Time"), FormatStrings.FormatTime(Viewer.Simulator.ClockTime));
 
@@ -521,14 +521,13 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
                 TableAddLabelValue(table, Viewer.Catalog.GetString("Doors open") + color, status);
             }
-            if (Orts.MultiPlayer.MultiPlayerManager.IsMultiPlayer())
+            if (MultiPlayer.MultiPlayerManager.MultiplayerState != MultiPlayer.MultiplayerState.None)
             {
-                var text = Orts.MultiPlayer.MultiPlayerManager.Instance().GetOnlineUsersInfo();
+                var text = MultiPlayer.MultiPlayerManager.Instance().GetOnlineUsersInfo();
 
-                TableAddLabelValue(table, Viewer.Catalog.GetString("MultiPlayerStatus: "), "{0}", Orts.MultiPlayer.MultiPlayerManager.IsServer()
-                    ? Viewer.Catalog.GetString("Dispatcher") : Orts.MultiPlayer.MultiPlayerManager.Instance().AmAider
-                    ? Viewer.Catalog.GetString("Helper") : Orts.MultiPlayer.MultiPlayerManager.IsClient()
-                    ? Viewer.Catalog.GetString("Client") : "");
+                TableAddLabelValue(table, Viewer.Catalog.GetString("MultiPlayerStatus: "), "{0}", 
+                    MultiPlayer.MultiPlayerManager.MultiplayerState == MultiPlayer.MultiplayerState.Dispatcher ? Viewer.Catalog.GetString("Dispatcher") : 
+                    MultiPlayer.MultiPlayerManager.Instance().AmAider ? Viewer.Catalog.GetString("Helper") : Viewer.Catalog.GetString("Client"));
                 TableAddLine(table);
                 foreach (var t in text.Split('\t'))
                     TableAddLine(table, "{0}", t);

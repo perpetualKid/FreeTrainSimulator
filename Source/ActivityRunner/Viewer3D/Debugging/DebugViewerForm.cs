@@ -1565,7 +1565,8 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 	  }
 	  private void HandlePickedSignal()
 	  {
-		  if (MultiPlayer.MultiPlayerManager.IsClient() && !MultiPlayer.MultiPlayerManager.Instance().AmAider) return;//normal client not server or aider
+		  if (MultiPlayerManager.MultiplayerState == MultiplayerState.Client && !MultiPlayerManager.Instance().AmAider) 
+                return;//normal client not server or aider
 		  //boxSetSwitch.Enabled = false;
 		  boxSetSwitch.Visible = false;
 		  if (signalPickedItem == null) return;
@@ -1596,7 +1597,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
 	  private void HandlePickedSwitch()
 	  {
-		  if (MultiPlayer.MultiPlayerManager.IsClient() && !MultiPlayer.MultiPlayerManager.Instance().AmAider) return;//normal client not server
+		  if (MultiPlayerManager.MultiplayerState == MultiplayerState.Client && !MultiPlayerManager.Instance().AmAider) return;//normal client not server
 		  //boxSetSignal.Enabled = false;
 		  boxSetSignal.Visible = false;
 		  if (switchPickedItem == null) return;
