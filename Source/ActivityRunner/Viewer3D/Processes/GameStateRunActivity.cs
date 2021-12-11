@@ -98,6 +98,14 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             options = optionsList.ToArray();
         }
 
+        protected override void Dispose(bool disposing)
+        {
+            loading.Dispose();
+            loadingScreen.Dispose();
+            loadingBar.Dispose();
+            base.Dispose(disposing);
+        }
+
         internal override void Update(RenderFrame frame, GameTime gameTime)
         {
             UpdateLoading();

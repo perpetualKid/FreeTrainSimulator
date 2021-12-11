@@ -1,4 +1,6 @@
 ﻿
+using System;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -8,10 +10,11 @@ using Game = Orts.ActivityRunner.Viewer3D.Processes.Game;
 
 namespace Orts.ActivityRunner.Viewer3D.Primitives
 {
-    internal class LoadingPrimitive : RenderPrimitive
+    internal class LoadingPrimitive : RenderPrimitive, IDisposable
     {
         public readonly LoadingMaterial Material;
         private readonly VertexBuffer VertexBuffer;
+        private bool disposedValue;
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public LoadingPrimitive(Game game)
@@ -42,6 +45,26 @@ namespace Orts.ActivityRunner.Viewer3D.Primitives
         {
             graphicsDevice.SetVertexBuffer(VertexBuffer);
             graphicsDevice.DrawPrimitives(PrimitiveType.TriangleStrip, 0, 2);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    Material?.Dispose();
+                }
+
+                disposedValue = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 

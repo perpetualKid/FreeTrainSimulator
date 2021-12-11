@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 
 using Microsoft.Xna.Framework;
@@ -11,10 +12,11 @@ using Game = Orts.ActivityRunner.Viewer3D.Processes.Game;
 
 namespace Orts.ActivityRunner.Viewer3D.Materials
 {
-    internal class LoadingMaterial : Material
+    internal class LoadingMaterial : Material, IDisposable
     {
         internal readonly LoadingShader shader;
         public readonly Texture2D texture;
+        private bool disposedValue;
 
         public LoadingMaterial(Game game)
             : base(game.GraphicsDevice)
@@ -55,6 +57,25 @@ namespace Orts.ActivityRunner.Viewer3D.Materials
         public override void ResetState()
         {
             graphicsDevice.BlendState = BlendState.Opaque;
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    texture.Dispose();
+                }
+                disposedValue = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 }
