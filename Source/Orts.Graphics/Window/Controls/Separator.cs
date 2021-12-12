@@ -14,7 +14,7 @@ namespace Orts.Graphics.Window.Controls
             Padding = padding;
         }
 
-        public override void Initialize()
+        internal override void Initialize()
         {
             base.Initialize();
         }

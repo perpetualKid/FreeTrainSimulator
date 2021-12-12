@@ -22,5 +22,14 @@ namespace Orts.Graphics.Window
         {
         }
 
+        public override bool Open()
+        {
+            return base.Open();
+        }
+
+        public override bool Close()
+        {
+            return base.Close();
+        }
     }
 }

@@ -72,6 +72,7 @@ namespace Orts.Graphics.Window
 
         internal protected virtual void Update(GameTime gameTime)
         {
+            windowLayout.Update(gameTime);
         }
 
         internal protected virtual void WindowDraw()

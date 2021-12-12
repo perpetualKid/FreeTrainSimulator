@@ -28,6 +28,7 @@ namespace Orts.TrackViewer.Control
             UserCommands[UserCommand.ZoomIn] = new UserCommandModifiableKeyInput(Keys.PageUp, KeyModifiers.None, moveFast, moveSlow);
             UserCommands[UserCommand.ZoomOut] = new UserCommandModifiableKeyInput(Keys.PageDown, KeyModifiers.None, moveFast, moveSlow);
             UserCommands[UserCommand.DebugScreen] = new UserCommandKeyInput(Keys.F5, KeyModifiers.None);
+            UserCommands[UserCommand.TabAction] = new UserCommandKeyInput(Keys.F5, KeyModifiers.Shift);
         }
     }
 }

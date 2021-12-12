@@ -6,7 +6,7 @@ using Microsoft.Xna.Framework;
 
 namespace Orts.Common.DebugInfo
 {
-    public interface IDebugInformationProvider
+    public interface INameValueInformationProvider
     {
         NameValueCollection DebugInfo { get; }
 

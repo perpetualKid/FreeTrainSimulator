@@ -117,17 +117,30 @@ namespace Orts.Graphics.Window.Controls.Layout
         //    sb.Initialize();
         //    return sb.Client;
         //}
-        public override void Initialize()
+        internal override void Initialize()
         {
             base.Initialize();
             foreach (WindowControl control in Controls)
                 control.Initialize();
         }
 
+        internal override void Update(GameTime gameTime)
+        {
+            foreach (WindowControl control in Controls)
+            {
+                if (control.Visible)
+                    control.Update(gameTime);
+            }
+            base.Update(gameTime);
+        }
+
         internal override void Draw(SpriteBatch spriteBatch, Point offset)
         {
             foreach (WindowControl control in Controls)
-                control.Draw(spriteBatch, offset);
+            {
+                if (control.Visible)
+                    control.Draw(spriteBatch, offset);
+            }
         }
 
         internal override bool HandleMouseClicked(WindowMouseEvent e)
@@ -200,8 +213,8 @@ namespace Orts.Graphics.Window.Controls.Layout
             return HorizontalChildAlignment switch
             {
                 HorizontalAlignment.Left => 0,
-                HorizontalAlignment.Right => Bounds.Width- childBounds.Width,
-                HorizontalAlignment.Center => (Bounds.Width- childBounds.Width) / 2,
+                HorizontalAlignment.Right => Bounds.Width - childBounds.Width,
+                HorizontalAlignment.Center => (Bounds.Width - childBounds.Width) / 2,
                 _ => 0,
             };
         }

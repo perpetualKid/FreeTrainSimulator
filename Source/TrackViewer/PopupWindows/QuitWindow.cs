@@ -32,7 +32,7 @@ namespace Orts.TrackViewer.PopupWindows
 
         public QuitWindow(WindowManager owner, Point relativeLocation) :
             base(owner ?? throw new ArgumentNullException(nameof(owner)), CatalogManager.Catalog.GetString($"Exit {RuntimeInfo.ApplicationName}"), relativeLocation,
-                new Point(owner.DefaultFontSize * 16, (int)(owner.DefaultFontSize * 5 + 20)))
+                new Point(owner.DefaultFontSize * 16, (int)(owner.DefaultFontSize * 5.0 + 20)))
         {
             Modal = true;
             ZOrder = 100;

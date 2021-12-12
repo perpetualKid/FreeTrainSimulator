@@ -18,15 +18,19 @@ namespace Orts.Graphics.Window.Controls
 
         public event EventHandler<MouseClickEventArgs> OnClick;
 
+        public bool Visible { get; set; } = true;
+
         protected WindowControl(WindowBase window, int x, int y, int width, int height)
         {
             bounds = new Rectangle(x, y, width, height);
-            Window = window;
+            Window = window ?? throw new ArgumentNullException(nameof(window));
         }
 
-        public virtual void Initialize()
-        {
-        }
+        internal virtual void Initialize()
+        { }
+
+        internal virtual void Update(GameTime gameTime)
+        { }
 
         internal abstract void Draw(SpriteBatch spriteBatch, Point offset);
 

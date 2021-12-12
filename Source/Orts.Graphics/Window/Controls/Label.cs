@@ -39,7 +39,7 @@ namespace Orts.Graphics.Window.Controls
         {
         }
 
-        public override void Initialize()
+        internal override void Initialize()
         {
             base.Initialize();
             InitializeText(Text);

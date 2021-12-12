@@ -34,7 +34,7 @@ using UserCommand = Orts.TrackViewer.Control.UserCommand;
 
 namespace Orts.TrackViewer
 {
-    public partial class GameWindow : Game, IInputCapture, IDebugInformationProvider
+    public partial class GameWindow : Game, IInputCapture, INameValueInformationProvider
     {
         private readonly GraphicsDeviceManager graphicsDeviceManager;
         private readonly System.Windows.Forms.Form windowForm;
@@ -413,7 +413,9 @@ namespace Orts.TrackViewer
         private static void GameWindowThread(object data)
         {
             using (GameWindow game = new GameWindow())
+            {
                 game.Run();
+            }
         }
 
         protected override void LoadContent()
@@ -432,7 +434,9 @@ namespace Orts.TrackViewer
         {
             debugInfo["Version"] = VersionInfo.FullVersion;
             debugInfo["Time"] = DateTime.Now.ToString(CultureInfo.CurrentCulture);
-            debugInfo["Scale"] = contentArea?.Scale.ToString(CultureInfo.CurrentCulture);
+            FormattableString message = $"{contentArea?.Scale,12:F3}";
+            debugInfo["Scale"] = message.ToString(CultureInfo.CreateSpecificCulture("no-NO"));
+            debugInfo["Other"] = $"{ DateTime.Now.ToString(CultureInfo.CurrentCulture)} {contentArea?.CenterX.ToString(CultureInfo.CurrentCulture)} {contentArea?.CenterY.ToString(CultureInfo.CurrentCulture)}";
             if ((contentArea?.SuppressDrawing ?? false) && windowManager.SuppressDrawing && suppressCount-- > 0)
             {
                 SuppressDraw();
@@ -456,7 +460,7 @@ namespace Orts.TrackViewer
             frameRate.Update(elapsedRealTime, 1.0 / elapsedRealTime);
             debugInfo["FPS"] = $"{1 / gameTime.ElapsedGameTime.TotalSeconds:0.0} - {frameRate.SmoothedValue:0.0}";
             if (frameRate.SmoothedValue < 50f)
-                formatOptions["FPS"] = FormatOption.BoldOrangeRed;
+                formatOptions["FPS"] = FormatOption.BoldRed;
             else
                 formatOptions["FPS"] = null;
 

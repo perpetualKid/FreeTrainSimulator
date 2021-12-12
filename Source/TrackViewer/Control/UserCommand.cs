@@ -17,5 +17,6 @@
         SetLocation,
         PrintScreen,
         DebugScreen,
+        TabAction,
     }
 }
