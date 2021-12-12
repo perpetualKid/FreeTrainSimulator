@@ -1161,7 +1161,7 @@ namespace Orts.Simulation.Timetables
             {
                 // read route
                 bool pathValid = true;
-                LoadPathNoClone(thisRoute, out pathValid);
+                LoadPath(thisRoute, out pathValid);
                 if (!pathValid) allPathsLoaded = false;
                 if (cancellation.IsCancellationRequested)
                     return (false);
@@ -1177,8 +1177,7 @@ namespace Orts.Simulation.Timetables
         /// <param name="pathstring"></param>
         /// <param name="validPath"></param>
         /// <returns></returns>
-        public AIPath LoadPath(string pathstring, out bool validPath) => new AIPath(LoadPathNoClone(pathstring, out validPath));
-        public AIPath LoadPathNoClone(string pathstring, out bool validPath)
+        public AIPath LoadPath(string pathstring, out bool validPath)
         {
             validPath = true;
 
