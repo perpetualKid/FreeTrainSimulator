@@ -521,12 +521,12 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             PrepareFrame(frame, location, Matrices, null, flags);
         }
 
-        public void PrepareFrame(RenderFrame frame, in WorldPosition location, Matrix[] animatedXNAMatrices, ShapeFlags flags)
+        public void PrepareFrame(RenderFrame frame, WorldPosition location, Matrix[] animatedXNAMatrices, ShapeFlags flags, bool[] matrixVisible = null)
         {
-            PrepareFrame(frame, location, animatedXNAMatrices, null, flags);
+            PrepareFrame(frame, location, animatedXNAMatrices, null, flags, matrixVisible);
         }
 
-        public void PrepareFrame(RenderFrame frame, in WorldPosition location, Matrix[] animatedXNAMatrices, bool[] subObjVisible, ShapeFlags flags)
+        public void PrepareFrame(RenderFrame frame, in WorldPosition location, Matrix[] animatedXNAMatrices, bool[] subObjVisible, ShapeFlags flags, bool[] matrixVisible = null)
         {
             var lodBias = ((float)viewer.Settings.LODBias / 100 + 1);
 
@@ -593,6 +593,8 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                     {
                         Matrix startingPoint = Matrix.Identity;
                         var hi = shapePrimitive.HierarchyIndex;
+                        if (matrixVisible != null && !matrixVisible[hi])
+                            continue;
                         while (hi >= 0 && hi < shapePrimitive.Hierarchy.Length)
                         {
                             startingPoint = MatrixExtension.Multiply(in startingPoint, in animatedXNAMatrices[hi]);

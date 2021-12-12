@@ -346,6 +346,20 @@ namespace Orts.ActivityRunner.Viewer3D
             outf.Write(NightTexturesNotLoaded);
             outf.Write(DayTexturesNotLoaded);
             World.WeatherControl.SaveWeatherParameters(outf);
+            if ((PlayerLocomotiveViewer as MSTSLocomotiveViewer).CabRenderer != null)
+            {
+                outf.Write(0);
+                (PlayerLocomotiveViewer as MSTSLocomotiveViewer).CabRenderer.Save(outf);
+            }
+            else
+                outf.Write(-1);
+            if ((PlayerLocomotiveViewer as MSTSLocomotiveViewer).CabRenderer3D != null)
+            {
+                outf.Write(0);
+                (PlayerLocomotiveViewer as MSTSLocomotiveViewer).CabRenderer3D.Save(outf);
+            }
+            else
+                outf.Write(-1);
         }
 
         public void Restore(BinaryReader inf)
@@ -381,6 +395,12 @@ namespace Orts.ActivityRunner.Viewer3D
             tryLoadingDayTextures = true;
 
             World.WeatherControl.RestoreWeatherParameters(inf);
+            var cabRendererPresent = inf.ReadInt32();
+            if (cabRendererPresent != -1)
+                (PlayerLocomotiveViewer as MSTSLocomotiveViewer).CabRenderer.Restore(inf);
+            cabRendererPresent = inf.ReadInt32();
+            if (cabRendererPresent != -1)
+                (PlayerLocomotiveViewer as MSTSLocomotiveViewer).CabRenderer3D.Restore(inf);
         }
 
         /// <summary>
@@ -1049,6 +1069,8 @@ namespace Orts.ActivityRunner.Viewer3D
 
             ImmediateRefillCommand.Receiver = (MSTSLocomotiveViewer)PlayerLocomotiveViewer;
             RefillCommand.Receiver = (MSTSLocomotiveViewer)PlayerLocomotiveViewer;
+            SelectScreenCommand.Receiver = (!Simulator.PlayerLocomotive.HasFront3DCab && !Simulator.PlayerLocomotive.HasRear3DCab) ?
+                ((MSTSLocomotiveViewer)PlayerLocomotiveViewer).CabRenderer : ((MSTSLocomotiveViewer)PlayerLocomotiveViewer).CabRenderer3D;
             ToggleOdometerCommand.Receiver = (MSTSLocomotive)PlayerLocomotive;
             ResetOdometerCommand.Receiver = (MSTSLocomotive)PlayerLocomotive;
             ToggleOdometerDirectionCommand.Receiver = (MSTSLocomotive)PlayerLocomotive;

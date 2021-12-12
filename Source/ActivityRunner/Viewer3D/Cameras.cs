@@ -26,6 +26,7 @@ using System.Windows.Forms;
 
 using Microsoft.Xna.Framework;
 
+using Orts.ActivityRunner.Viewer3D.Popups;
 using Orts.ActivityRunner.Viewer3D.RollingStock;
 using Orts.Common;
 using Orts.Common.Calc;
@@ -964,7 +965,8 @@ namespace Orts.ActivityRunner.Viewer3D
 
         protected virtual List<TrainCar> GetCameraCars()
         {
-            if (Viewer.SelectedTrain.TrainType == TrainType.AiIncorporated) Viewer.ChangeSelectedTrain(Viewer.SelectedTrain.IncorporatingTrain);
+            if (Viewer.SelectedTrain.TrainType == TrainType.AiIncorporated)
+                Viewer.ChangeSelectedTrain(Viewer.SelectedTrain.IncorporatingTrain);
             return Viewer.SelectedTrain.Cars;
         }
 
@@ -1427,7 +1429,8 @@ namespace Orts.ActivityRunner.Viewer3D
                 }
                 browsedTraveller.Move(elapsedTime.ClockSeconds * attachedCar.Train.SpeedMpS + ZIncrM);
             }
-            else browsedTraveller.Move(elapsedTime.ClockSeconds * attachedCar.Train.SpeedMpS);
+            else
+                browsedTraveller.Move(elapsedTime.ClockSeconds * attachedCar.Train.SpeedMpS);
         }
 
         protected void ComputeCarOffsets(TrackingCamera camera)
@@ -1437,8 +1440,10 @@ namespace Orts.ActivityRunner.Viewer3D
             foreach (TrainCar trainCar in trainCars)
             {
                 camera.LowWagonOffsetLimit = camera.HighWagonOffsetLimit - trainCar.CarLengthM;
-                if (ZDistanceM > LowWagonOffsetLimit) break;
-                else camera.HighWagonOffsetLimit = camera.LowWagonOffsetLimit;
+                if (ZDistanceM > LowWagonOffsetLimit)
+                    break;
+                else
+                    camera.HighWagonOffsetLimit = camera.LowWagonOffsetLimit;
             }
         }
 
@@ -1791,19 +1796,23 @@ namespace Orts.ActivityRunner.Viewer3D
         protected override void OnActivate(bool sameCamera)
         {
             var trainCars = GetCameraCars();
-            if (trainCars.Count == 0) return;//may not have passenger or 3d cab viewpoints
+            if (trainCars.Count == 0)
+                return;//may not have passenger or 3d cab viewpoints
             if (sameCamera)
             {
-                if (!trainCars.Contains(attachedCar)) { attachedCar = trainCars.First(); }
+                if (!trainCars.Contains(attachedCar))
+                { attachedCar = trainCars.First(); }
                 else if (trainCars.IndexOf(attachedCar) < trainCars.Count - 1)
                 {
                     attachedCar = trainCars[trainCars.IndexOf(attachedCar) + 1];
                 }
-                else attachedCar = trainCars.First();
+                else
+                    attachedCar = trainCars.First();
             }
             else
             {
-                if (!trainCars.Contains(attachedCar)) attachedCar = trainCars.First();
+                if (!trainCars.Contains(attachedCar))
+                    attachedCar = trainCars.First();
             }
             SetCameraCar(attachedCar);
         }
@@ -1914,8 +1923,11 @@ namespace Orts.ActivityRunner.Viewer3D
             attachedLocation.X += x;
             attachedLocation.Y += y;
             attachedLocation.Z += z;
-            viewPointLocation.X = attachedLocation.X; viewPointLocation.Y = attachedLocation.Y; viewPointLocation.Z = attachedLocation.Z;
-            if (attachedCar != null) UpdateLocation(attachedCar.WorldPosition);
+            viewPointLocation.X = attachedLocation.X;
+            viewPointLocation.Y = attachedLocation.Y;
+            viewPointLocation.Z = attachedLocation.Z;
+            if (attachedCar != null)
+                UpdateLocation(attachedCar.WorldPosition);
         }
 
         /// <summary>
@@ -2049,7 +2061,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public void ChangePassengerViewPoint(TrainCar car)
         {
             ActViewPoint++;
-            if (ActViewPoint >= (car.PassengerViewpoints?.Count ?? 0)) 
+            if (ActViewPoint >= (car.PassengerViewpoints?.Count ?? 0))
                 ActViewPoint = 0;
             SetCameraCar(car);
         }
@@ -2083,7 +2095,8 @@ namespace Orts.ActivityRunner.Viewer3D
                 };
                 return l;
             }
-            else return base.GetCameraCars();
+            else
+                return base.GetCameraCars();
         }
 
         protected override void SetCameraCar(TrainCar car)
@@ -2168,27 +2181,43 @@ namespace Orts.ActivityRunner.Viewer3D
             float bestDistance = maxDelta;  // squared click range
             foreach (KeyValuePair<int, AnimatedPartMultiState> animatedPart in animatedParts)
             {
-                if (controlMap.TryGetValue(animatedPart.Value.Key, out CabViewControlRenderer cabRenderer) && cabRenderer is CabViewDiscreteRenderer)
+                if (controlMap.TryGetValue(animatedPart.Value.Key, out CabViewControlRenderer cabRenderer) && cabRenderer is CabViewDiscreteRenderer screenRenderer)
                 {
-                    foreach (int i in animatedPart.Value.MatrixIndexes)
+                    bool eligibleToCheck = true;
+                    if (screenRenderer.Control.Screens?.Count > 0 && !"all".Equals(screenRenderer.Control.Screens[0], StringComparison.OrdinalIgnoreCase))
                     {
-                        Matrix startingPoint = Matrix.Identity;
-                        int j = i;
-                        while (j >= 0 && j < trainCarShape.Hierarchy.Length && trainCarShape.Hierarchy[j] != -1)
+                        eligibleToCheck = false;
+                        foreach (var screen in screenRenderer.Control.Screens)
                         {
-                            startingPoint = MatrixExtension.Multiply(in startingPoint, in trainCarShape.XNAMatrices[j]);
-                            j = trainCarShape.Hierarchy[j];
+                            if (mstsLocomotiveViewer.CabRenderer3D.ActiveScreen[screenRenderer.Control.Display] == screen)
+                            {
+                                eligibleToCheck = true;
+                                break;
+                            }
                         }
-                        MatrixExtension.Multiply(in startingPoint, in trainCarShape.WorldPosition.XNAMatrix, out Matrix matrix);
-                        WorldLocation matrixWorldLocation = new WorldLocation(trainCarShape.WorldPosition.WorldLocation.TileX, trainCarShape.WorldPosition.WorldLocation.TileZ,
-                            matrix.Translation.X, matrix.Translation.Y, -matrix.Translation.Z);
-                        Vector3 xnaCenter = XnaLocation(matrixWorldLocation);
-                        float distance = xnaCenter.LineSegmentDistanceSquare(nearPoint, farPoint);
-
-                        if (bestDistance > distance)
+                    }
+                    if (eligibleToCheck)
+                    {
+                        foreach (int i in animatedPart.Value.MatrixIndexes)
                         {
-                            result = cabRenderer as CabViewDiscreteRenderer;
-                            bestDistance = distance;
+                            Matrix startingPoint = Matrix.Identity;
+                            int j = i;
+                            while (j >= 0 && j < trainCarShape.Hierarchy.Length && trainCarShape.Hierarchy[j] != -1)
+                            {
+                                startingPoint = MatrixExtension.Multiply(in startingPoint, in trainCarShape.XNAMatrices[j]);
+                                j = trainCarShape.Hierarchy[j];
+                            }
+                            MatrixExtension.Multiply(in startingPoint, in trainCarShape.WorldPosition.XNAMatrix, out Matrix matrix);
+                            WorldLocation matrixWorldLocation = new WorldLocation(trainCarShape.WorldPosition.WorldLocation.TileX, trainCarShape.WorldPosition.WorldLocation.TileZ,
+                                matrix.Translation.X, matrix.Translation.Y, -matrix.Translation.Z);
+                            Vector3 xnaCenter = XnaLocation(matrixWorldLocation);
+                            float distance = xnaCenter.LineSegmentDistanceSquare(nearPoint, farPoint);
+
+                            if (bestDistance > distance)
+                            {
+                                result = cabRenderer as CabViewDiscreteRenderer;
+                                bestDistance = distance;
+                            }
                         }
                     }
                 }
@@ -2202,7 +2231,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             if (Viewer.PlayerLocomotiveViewer is MSTSLocomotiveViewer mstsLocomotiveViewer && mstsLocomotiveViewer.Has3DCabRenderer)
             {
-                selectedControl = pointedControl ?? FindNearestControl(pointerCommandArgs.Position, mstsLocomotiveViewer, 0.015f); ;
+                selectedControl = pointedControl ?? FindNearestControl(pointerCommandArgs.Position, mstsLocomotiveViewer, 0.015f);
                 selectedControl?.HandleUserInput(GenericButtonEventType.Pressed, pointerCommandArgs.Position, Vector2.Zero);
             }
         }
@@ -2250,7 +2279,7 @@ namespace Orts.ActivityRunner.Viewer3D
         protected bool PrevCabWasRear;
 
         // Head-out camera is only possible on the player train.
-        public override bool IsAvailable { get { return Viewer.PlayerTrain?.Cars.Any(c => c.HeadOutViewpoints != null ) ?? false; } }
+        public override bool IsAvailable { get { return Viewer.PlayerTrain?.Cars.Any(c => c.HeadOutViewpoints != null) ?? false; } }
         public override float NearPlane { get { return 0.25f; } }
         public override string Name { get { return Viewer.Catalog.GetString("Head out"); } }
 
@@ -2375,7 +2404,8 @@ namespace Orts.ActivityRunner.Viewer3D
             SetCameraCar(GetCameraCars().First());
             tiltingLand = (Viewer.Settings.UseSuperElevation > 0 || Viewer.Settings.CarVibratingLevel > 0);
             var car = attachedCar;
-            if (car != null && car.Train != null && car.Train.IsTilting == true) tiltingLand = true;
+            if (car != null && car.Train != null && car.Train.IsTilting == true)
+                tiltingLand = true;
             base.OnActivate(sameCamera);
         }
 
@@ -2499,7 +2529,8 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <param name="attachedCar"></param>
         public void InitialiseRotation(TrainCar attachedCar)
         {
-            if (attachedCar == null) return;
+            if (attachedCar == null)
+                return;
 
             var loco = attachedCar as MSTSLocomotive;
             var viewpoints = (loco.UsingRearCab)
@@ -2507,7 +2538,8 @@ namespace Orts.ActivityRunner.Viewer3D
             : loco.CabViewList[(int)CabViewType.Front].ViewPointList;
 
             RotationXRadians = MathHelper.ToRadians(viewpoints[SideLocation].StartDirection.X) - RotationRatio * (Viewer.CabYOffsetPixels + Viewer.CabExceedsDisplay / 2);
-            RotationYRadians = MathHelper.ToRadians(viewpoints[SideLocation].StartDirection.Y) - RotationRatioHorizontal * (-Viewer.CabXOffsetPixels + Viewer.CabExceedsDisplayHorizontally / 2); ;
+            RotationYRadians = MathHelper.ToRadians(viewpoints[SideLocation].StartDirection.Y) - RotationRatioHorizontal * (-Viewer.CabXOffsetPixels + Viewer.CabExceedsDisplayHorizontally / 2);
+            ;
         }
 
         private protected override void ToggleLetterboxCab()
@@ -2556,7 +2588,12 @@ namespace Orts.ActivityRunner.Viewer3D
 
             if (Viewer.PlayerLocomotiveViewer is MSTSLocomotiveViewer mstsLocomotiveViewer && mstsLocomotiveViewer.HasCabRenderer)
             {
-                selectedControl = pointedControl ?? mstsLocomotiveViewer.CabRenderer.ControlMap.Values.OfType<CabViewDiscreteRenderer>().Where(c => c.IsMouseWithin(pointerCommandArgs.Position)).FirstOrDefault();
+                selectedControl = pointedControl ?? mstsLocomotiveViewer.CabRenderer.ControlMap.Values.OfType<CabViewDiscreteRenderer>().Where(c =>  c.Control.CabViewpoint == SideLocation && c.IsMouseWithin(pointerCommandArgs.Position)).FirstOrDefault();
+                if (selectedControl?.Control.Screens?.Count > 0 && !"all".Equals(selectedControl.Control.Screens[0], StringComparison.OrdinalIgnoreCase))
+                {
+                    if (!(selectedControl.Control.Screens.Where(s => s == mstsLocomotiveViewer.CabRenderer.ActiveScreen[selectedControl.Control.Display])).Any())
+                        selectedControl = null;
+                }
                 selectedControl?.HandleUserInput(GenericButtonEventType.Pressed, pointerCommandArgs.Position, Vector2.Zero);
             }
         }
@@ -2621,7 +2658,8 @@ namespace Orts.ActivityRunner.Viewer3D
                 // to cab view instead of putting the camera above the tunnel.
                 if (base.IsUnderground)
                     return true;
-                if (TrackCameraLocation == WorldLocation.None) return false;
+                if (TrackCameraLocation == WorldLocation.None)
+                    return false;
                 var elevationAtCameraTarget = Viewer.Tiles.GetElevation(TrackCameraLocation);
                 return TrackCameraLocation.Location.Y + TerrainAltitudeMargin < elevationAtCameraTarget;
             }
@@ -2850,7 +2888,8 @@ namespace Orts.ActivityRunner.Viewer3D
                     TrackCameraLocation = traveller.WorldLocation;
                     cameraLocation = traveller.WorldLocation.ChangeElevation(+1.8f);
                 }
-                else NearRoadCar = null;
+                else
+                    NearRoadCar = null;
             }
 
             bool trainClose = false;
@@ -2859,7 +2898,8 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 float distance = WorldLocation.GetDistance2D(LastCheckCar.WorldPosition.WorldLocation, cameraLocation).Length();
                 trainClose = distance < (SpecialPointFound ? MaximumSpecialPointDistance * 0.8f : MaximumDistance);
-                if (!trainClose && SpecialPointFound && NearRoadCar != null) trainClose = distance < MaximumSpecialPointDistance * 1.5f;
+                if (!trainClose && SpecialPointFound && NearRoadCar != null)
+                    trainClose = distance < MaximumSpecialPointDistance * 1.5f;
             }
 
             // Otherwise, let's check out every car and remember which is the first one close enough for next time.
@@ -2897,7 +2937,8 @@ namespace Orts.ActivityRunner.Viewer3D
             if (Math.Abs(DistanceRunM) >= CheckIntervalM)
             {
                 DistanceRunM = 0;
-                if (!SpecialPointFound && trainClose) trySpecial = true;
+                if (!SpecialPointFound && trainClose)
+                    trySpecial = true;
             }
             // Switch to new position.
             if (!trainClose || (TrackCameraLocation == WorldLocation.None) || trySpecial)
@@ -2961,8 +3002,9 @@ namespace Orts.ActivityRunner.Viewer3D
                                     // platform found, compute distance to viewing point
                                     distanceToViewingPoint = Math.Min(MaximumSpecialPointDistance * 0.7f,
                                         incrDistance + thisPlatform.TrackCircuitOffset[Simulation.Signalling.Location.NearEnd, thisRoute[routeIndex].Direction] + thisPlatform.Length * 0.7f);
-                                    if (FirstUpdateLoop && Math.Abs(train.SpeedMpS) <= 0.2f) distanceToViewingPoint =
-                                            Math.Min(distanceToViewingPoint, train.Length * 0.95f);
+                                    if (FirstUpdateLoop && Math.Abs(train.SpeedMpS) <= 0.2f)
+                                        distanceToViewingPoint =
+Math.Min(distanceToViewingPoint, train.Length * 0.95f);
                                     tdb.Move(distanceToViewingPoint);
                                     // shortTrav is used to state directions, to correctly identify in which direction (left or right) to move
                                     //the camera from center of track to the platform at its side
@@ -2975,7 +3017,8 @@ namespace Orts.ActivityRunner.Viewer3D
                                     {
                                         shortTrav.ReverseDirection();
                                         distanceToViewingPoint1 = shortTrav.DistanceTo(tdb.WorldLocation, thisPlatform.Length);
-                                        if (distanceToViewingPoint1 == -1) continue;
+                                        if (distanceToViewingPoint1 == -1)
+                                            continue;
                                     }
                                     platformFound = true;
                                     SpecialPointFound = true;
@@ -2992,7 +3035,8 @@ namespace Orts.ActivityRunner.Viewer3D
                                     break;
                                 }
                             }
-                            if (platformFound) break;
+                            if (platformFound)
+                                break;
                             if (routeIndex < thisRoute.Count - 1)
                             {
                                 incrDistance += distanceToAdd;
@@ -3000,7 +3044,8 @@ namespace Orts.ActivityRunner.Viewer3D
                                 TCSection = thisRoute[routeIndex].TrackCircuitSection;
                                 distanceToAdd = TCSection.Length;
                             }
-                            else break;
+                            else
+                                break;
                         }
                     }
                 }

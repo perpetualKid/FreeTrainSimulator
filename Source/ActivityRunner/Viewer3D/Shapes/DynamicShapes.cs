@@ -62,6 +62,11 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             SharedShape.PrepareFrame(frame, WorldPosition, XNAMatrices, Flags);
         }
 
+        public void PrepareFrame(RenderFrame frame, ElapsedTime elapsedTime, bool[] matrixVisible = null)
+        {
+            SharedShape.PrepareFrame(frame, WorldPosition, XNAMatrices, Flags, matrixVisible);
+        }
+
         /// <summary>
         /// Adjust the pose of the specified node to the frame position specifed by key.
         /// </summary>

@@ -419,6 +419,8 @@ namespace Orts.Formats.Msts
         Orts_Electric_Train_Supply_Command_Switch,
         Orts_Electric_Train_Supply_On,
         Orts_2DExternalWipers,
+        Orts_Screen_Select,
+        Orts_Static_Display,
 
         // TCS Controls
         Orts_TCS1,
