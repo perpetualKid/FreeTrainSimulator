@@ -15,9 +15,10 @@ namespace Orts.Graphics.Window.Controls
 
         private readonly List<ValueTuple<Vector2, Texture2D, Color>> drawItems = new List<(Vector2, Texture2D, Color)>();
         public INameValueInformationProvider DebugInformationProvider { get; set; }
-        private readonly Color color = Color.White;
         private readonly System.Drawing.Font font;
         private readonly TextTextureResourceHolder textureHolder;
+
+        public Color TextColor { get; set; } = Color.White;
 
         public float LineSpacing { get; set; } = 1.25f;
 
@@ -47,9 +48,9 @@ namespace Orts.Graphics.Window.Controls
 
                 hashCode = HashCode.Combine(identifier, formatOption);
                 Texture2D texture = textureHolder.PrepareResource(identifier, currentFont);
-                drawItems.Add((new Vector2(10, lineOffset), texture, formatOption?.TextColor ?? color));
+                drawItems.Add((new Vector2(0, lineOffset), texture, formatOption?.TextColor ?? TextColor));
                 texture = textureHolder.PrepareResource(DebugInformationProvider.DebugInfo[identifier], currentFont);
-                drawItems.Add((new Vector2(ColumnWidth, lineOffset), texture, formatOption?.TextColor ?? color));
+                drawItems.Add((new Vector2(ColumnWidth, lineOffset), texture, formatOption?.TextColor ?? TextColor));
                 lineOffset += font.Size * LineSpacing;
             }
             //

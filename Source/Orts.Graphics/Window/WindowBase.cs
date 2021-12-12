@@ -65,9 +65,12 @@ namespace Orts.Graphics.Window
             return Owner.CloseWindow(this);
         }
         
-        public virtual bool ToggleVisibility()
+        public virtual void ToggleVisibility()
         {
-            return Owner.ToggleWindow(this);
+            if (Owner.WindowOpen(this))
+                Close();
+            else
+                Open();
         }
 
         internal protected virtual void Update(GameTime gameTime)

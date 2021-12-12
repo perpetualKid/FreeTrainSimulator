@@ -87,7 +87,6 @@ namespace Orts.TrackViewer
         internal string LogFileName { get; }
 
         private Color BackgroundColor;
-        internal string backgroundColor;
 
         #region preferences
         private TrackViewerViewSettings viewSettings;
@@ -203,8 +202,8 @@ namespace Orts.TrackViewer
             contentArea?.UpdateColor(setting, ColorExtension.FromName(colorName));
             if (setting == ColorSetting.Background)
             {
-                backgroundColor = colorName;
                 BackgroundColor = ColorExtension.FromName(colorName);
+                (windowManager[WindowType.DebugScreen] as DebugScreen)?.UpdateBackgroundColor(BackgroundColor);
             }
         }
 
@@ -390,7 +389,7 @@ namespace Orts.TrackViewer
             windowManager = WindowManager.Initialize<UserCommand, WindowType>(this, userCommandController.AddTopLayerController());
             windowManager[WindowType.QuitWindow] = new QuitWindow(windowManager, Settings.WindowLocations[WindowType.QuitWindow].ToPoint());
             windowManager[WindowType.StatusWindow] = new StatusTextWindow(windowManager, Settings.WindowLocations[WindowType.StatusWindow].ToPoint());
-            windowManager[WindowType.DebugScreen] = new DebugScreen(windowManager, "Debug");
+            windowManager[WindowType.DebugScreen] = new DebugScreen(windowManager, "Debug", BackgroundColor);
             (windowManager[WindowType.DebugScreen] as DebugScreen).DebugScreens[DebugScreenInformation.Common] = this;
             windowManager.OnModalWindow += WindowManager_OnModalWindow;
             BindWindowEventHandlersActions();
@@ -422,8 +421,8 @@ namespace Orts.TrackViewer
         {
             // Create a new SpriteBatch, which can be used to draw textures.
             BasicShapes.LoadContent(GraphicsDevice);
-            DigitalClockComponent clock = new DigitalClockComponent(this, TimeType.RealWorldLocalTime, FontManager.Exact("Segoe UI", System.Drawing.FontStyle.Regular)[14], Color.White, new Vector2(-200, -100), true);
-            Components.Add(clock);
+            //DigitalClockComponent clock = new DigitalClockComponent(this, TimeType.RealWorldLocalTime, FontManager.Exact("Segoe UI", System.Drawing.FontStyle.Regular)[14], Color.White, new Vector2(-200, -100), true);
+            //Components.Add(clock);
             ScaleRulerComponent scaleRuler = new ScaleRulerComponent(this, FontManager.Exact(System.Drawing.FontFamily.GenericSansSerif, System.Drawing.FontStyle.Regular)[14], Color.Black, new Vector2(-20, -55));
             Components.Add(scaleRuler);
             Components.Add(new InsetComponent(this, BackgroundColor, new Vector2(-10, 30)));
@@ -459,8 +458,8 @@ namespace Orts.TrackViewer
             double elapsedRealTime = gameTime?.ElapsedGameTime.TotalSeconds ?? 1;
             frameRate.Update(elapsedRealTime, 1.0 / elapsedRealTime);
             debugInfo["FPS"] = $"{1 / gameTime.ElapsedGameTime.TotalSeconds:0.0} - {frameRate.SmoothedValue:0.0}";
-            if (frameRate.SmoothedValue < 50f)
-                formatOptions["FPS"] = FormatOption.BoldRed;
+            if (frameRate.SmoothedValue < 55f)
+                formatOptions["FPS"] = FormatOption.RegularRed;
             else
                 formatOptions["FPS"] = null;
 

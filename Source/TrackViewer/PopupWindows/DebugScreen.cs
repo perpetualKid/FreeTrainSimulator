@@ -9,6 +9,7 @@ using Orts.Common.Input;
 using Orts.Graphics.Window;
 using Orts.Graphics.Window.Controls;
 using Orts.Graphics.Window.Controls.Layout;
+using Orts.Graphics.Xna;
 
 using UserCommand = Orts.TrackViewer.Control.UserCommand;
 
@@ -27,12 +28,15 @@ namespace Orts.TrackViewer.PopupWindows
 
         public EnumArray<INameValueInformationProvider, DebugScreenInformation> DebugScreens { get; } = new EnumArray<INameValueInformationProvider, DebugScreenInformation>();
 
-        public DebugScreen(WindowManager owner, string caption) :
+        public DebugScreen(WindowManager owner, string caption, Color backgroundColor) :
             base(owner ?? throw new ArgumentNullException(nameof(owner)), caption, Point.Zero, Point.Zero)
         {
             userCommandController = owner.UserCommandController as UserCommandController<UserCommand>;
             ZOrder = 0;
-            commonInfo = new NameValueTextGrid(this, 10, 30);
+            commonInfo = new NameValueTextGrid(this, 10, 30)
+            {
+                TextColor = backgroundColor.ComplementColor(),
+            };
         }
 
         protected override ControlLayout Layout(ControlLayout layout)
@@ -45,6 +49,11 @@ namespace Orts.TrackViewer.PopupWindows
         {
             commonInfo.DebugInformationProvider = DebugScreens[DebugScreenInformation.Common];
             base.Initialize();
+        }
+
+        public void UpdateBackgroundColor(Color backgroundColor)
+        {
+            commonInfo.TextColor = backgroundColor.ComplementColor();
         }
 
         public override bool Open()

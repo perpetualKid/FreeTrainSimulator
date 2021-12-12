@@ -196,11 +196,6 @@ namespace Orts.Graphics.Window
             return false;
         }
 
-        internal bool ToggleWindow(WindowBase window)
-        {
-            return WindowOpen(window) ? CloseWindow(window) : OpenWindow(window);
-        }
-
         internal bool WindowOpen(WindowBase window)
         {
             return windows.IndexOf(window) > -1;
