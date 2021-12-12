@@ -41,6 +41,7 @@ namespace Orts.TrackViewer
         private readonly SmoothedData frameRate;
         private readonly NameValueCollection debugInfo = new NameValueCollection();
         private readonly Dictionary<string, FormatOption> formatOptions = new Dictionary<string,FormatOption>();
+        private readonly GraphicsDebugInfo graphicsDebugInfo = new GraphicsDebugInfo();
 
         private SpriteBatch spriteBatch;
 
@@ -391,6 +392,8 @@ namespace Orts.TrackViewer
             windowManager[WindowType.StatusWindow] = new StatusTextWindow(windowManager, Settings.WindowLocations[WindowType.StatusWindow].ToPoint());
             windowManager[WindowType.DebugScreen] = new DebugScreen(windowManager, "Debug", BackgroundColor);
             (windowManager[WindowType.DebugScreen] as DebugScreen).DebugScreens[DebugScreenInformation.Common] = this;
+            (windowManager[WindowType.DebugScreen] as DebugScreen).DebugScreens[DebugScreenInformation.Graphics] = graphicsDebugInfo;
+
             windowManager.OnModalWindow += WindowManager_OnModalWindow;
             BindWindowEventHandlersActions();
             Components.Add(windowManager);
@@ -465,6 +468,45 @@ namespace Orts.TrackViewer
 
             GraphicsDevice.Clear(BackgroundColor);
             base.Draw(gameTime);
+
+            graphicsDebugInfo.CurrentMetrics = GraphicsDevice.Metrics;
+        }
+
+        private class GraphicsDebugInfo: NameValueCollection, INameValueInformationProvider
+        {
+            public override string Get(string name)
+            {
+                return name switch
+                {
+                    "Clear Calls" => $"{CurrentMetrics.ClearCount}",
+                    "Draw Calls" => $"{CurrentMetrics.DrawCount}",
+                    "Primitives" => $"{CurrentMetrics.PrimitiveCount}",
+                    "Textures" => $"{CurrentMetrics.TextureCount}",
+                    "Sprites" => $"{CurrentMetrics.SpriteCount}",
+                    "Targets" => $"{CurrentMetrics.TargetCount}",
+                    "PixelShaders" => $"{CurrentMetrics.PixelShaderCount}",
+                    "VertexShaders" => $"{CurrentMetrics.VertexShaderCount}",
+                    _ => base.Get(name),
+                };
+            }
+
+            public GraphicsMetrics CurrentMetrics;
+
+            public GraphicsDebugInfo()
+            {
+                DebugInfo.Add("Clear Calls", null);
+                DebugInfo.Add("Draw Calls", null);
+                DebugInfo.Add("Primitives", null);
+                DebugInfo.Add("Textures", null);
+                DebugInfo.Add("Sprites", null);
+                DebugInfo.Add("Targets", null);
+                DebugInfo.Add("PixelShaders", null);
+                DebugInfo.Add("VertexShaders", null);
+            }
+
+            public NameValueCollection DebugInfo => this;
+
+            public Dictionary<string, FormatOption> FormattingOptions => new Dictionary<string, FormatOption>();
         }
     }
 }

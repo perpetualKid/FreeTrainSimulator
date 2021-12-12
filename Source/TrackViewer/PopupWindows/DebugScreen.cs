@@ -18,11 +18,14 @@ namespace Orts.TrackViewer.PopupWindows
     public enum DebugScreenInformation
     {
         Common,
+        Graphics,
     }
 
     public class DebugScreen : OverlayWindowBase
     {
         private readonly NameValueTextGrid commonInfo;
+        private readonly NameValueTextGrid graphicsDebug;
+
         private readonly UserCommandController<UserCommand> userCommandController;
         private DebugScreenInformation currentDebugScreen;
 
@@ -37,17 +40,20 @@ namespace Orts.TrackViewer.PopupWindows
             {
                 TextColor = backgroundColor.ComplementColor(),
             };
+            graphicsDebug = new NameValueTextGrid(this, 10, 150);
         }
 
         protected override ControlLayout Layout(ControlLayout layout)
         {
             layout?.Add(commonInfo);
+            layout?.Add(graphicsDebug);
             return base.Layout(layout);
         }
 
         protected override void Initialize()
         {
             commonInfo.DebugInformationProvider = DebugScreens[DebugScreenInformation.Common];
+            graphicsDebug.DebugInformationProvider = DebugScreens[DebugScreenInformation.Graphics];
             base.Initialize();
         }
 
