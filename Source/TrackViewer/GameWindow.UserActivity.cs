@@ -9,6 +9,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Orts.Common;
 using Orts.Common.Info;
 using Orts.Common.Input;
+using Orts.TrackViewer.Control;
 using Orts.TrackViewer.PopupWindows;
 
 namespace Orts.TrackViewer
@@ -34,7 +35,7 @@ namespace Orts.TrackViewer
 
         private void BindWindowEventHandlersActions()
         {
-            foreach(WindowType windowType in EnumExtension.GetValues<WindowType>())
+            foreach (WindowType windowType in EnumExtension.GetValues<WindowType>())
             {
                 switch (windowType)
                 {
@@ -70,7 +71,7 @@ namespace Orts.TrackViewer
             Exit();
         }
 
-        private void ShowDebugScreen()
+        private void ShowDebugScreen(UserCommandArgs args)
         {
             windowManager[WindowType.DebugScreen].ToggleVisibility();
         }

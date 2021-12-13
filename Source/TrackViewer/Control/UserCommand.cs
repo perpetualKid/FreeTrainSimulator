@@ -5,7 +5,7 @@
         Cancel, //Escape Key
         NewInstance,
         ChangeScreenMode,
-        QuitGame,
+        QuitWindow,
         MoveLeft,
         MoveRight,
         MoveUp,
@@ -17,6 +17,7 @@
         SetLocation,
         PrintScreen,
         DebugScreen,
-        TabAction,
+        DebugScreenTab,
+        LocationWindow,
     }
 }

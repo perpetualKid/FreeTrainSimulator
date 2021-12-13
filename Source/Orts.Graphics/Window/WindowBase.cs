@@ -73,6 +73,9 @@ namespace Orts.Graphics.Window
                 Open();
         }
 
+        public virtual void TabAction(UserCommandArgs args)
+        { }
+
         internal protected virtual void Update(GameTime gameTime)
         {
             windowLayout.Update(gameTime);

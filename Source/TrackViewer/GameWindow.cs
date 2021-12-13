@@ -78,7 +78,6 @@ namespace Orts.TrackViewer
                 if (contentArea != null)
                     contentArea.Enabled = false;
                 contentArea = value;
-                (windowManager[WindowType.DebugScreen] as DebugScreen).DebugScreens[DebugScreenInformation.Route] = value;
             });
         }
 
@@ -374,7 +373,7 @@ namespace Orts.TrackViewer
 
             userCommandController.AddEvent(UserCommand.PrintScreen, KeyEventType.KeyPressed, PrintScreen);
             userCommandController.AddEvent(UserCommand.ChangeScreenMode, KeyEventType.KeyPressed, ChangeScreenMode);
-            userCommandController.AddEvent(UserCommand.QuitGame, KeyEventType.KeyPressed, CloseWindow);
+            userCommandController.AddEvent(UserCommand.QuitWindow, KeyEventType.KeyPressed, CloseWindow);
             userCommandController.AddEvent(UserCommand.MoveLeft, KeyEventType.KeyDown, MoveByKeyLeft);
             userCommandController.AddEvent(UserCommand.MoveRight, KeyEventType.KeyDown, MoveByKeyRight);
             userCommandController.AddEvent(UserCommand.MoveUp, KeyEventType.KeyDown, MoveByKeyUp);
@@ -389,14 +388,27 @@ namespace Orts.TrackViewer
 
             EnumArray<Type, WindowType> windowTypes = new EnumArray<Type, WindowType>();
             windowManager = WindowManager.Initialize<UserCommand, WindowType>(this, userCommandController.AddTopLayerController());
-            windowManager[WindowType.QuitWindow] = new QuitWindow(windowManager, Settings.WindowLocations[WindowType.QuitWindow].ToPoint());
             windowManager[WindowType.StatusWindow] = new StatusTextWindow(windowManager, Settings.WindowLocations[WindowType.StatusWindow].ToPoint());
-            windowManager[WindowType.DebugScreen] = new DebugScreen(windowManager, "Debug", BackgroundColor);
-            (windowManager[WindowType.DebugScreen] as DebugScreen).DebugScreens[DebugScreenInformation.Common] = this;
-            (windowManager[WindowType.DebugScreen] as DebugScreen).DebugScreens[DebugScreenInformation.Graphics] = graphicsDebugInfo;
+            windowManager.SetLazyWindows(WindowType.QuitWindow, new Lazy<WindowBase>(() =>
+            {
+                QuitWindow quitWindow = new QuitWindow(windowManager, Settings.WindowLocations[WindowType.QuitWindow].ToPoint());
+                quitWindow.OnQuitGame += QuitWindow_OnQuitGame;
+                quitWindow.OnWindowClosed += QuitWindow_OnWindowClosed;
+                quitWindow.OnPrintScreen += QuitWindow_OnPrintScreen;
+                return quitWindow;
+            }));
+
+            windowManager.SetLazyWindows(WindowType.DebugScreen, new Lazy<WindowBase>(() =>
+            {
+                DebugScreen debugWindow = new DebugScreen(windowManager, "Debug", BackgroundColor);
+                debugWindow.DebugScreens[DebugScreenInformation.Common] = this;
+                debugWindow.DebugScreens[DebugScreenInformation.Graphics] = graphicsDebugInfo;
+                debugWindow.DebugScreens[DebugScreenInformation.Route] = ContentArea;
+                return debugWindow;
+            }));
 
             windowManager.OnModalWindow += WindowManager_OnModalWindow;
-            BindWindowEventHandlersActions();
+            //BindWindowEventHandlersActions();
             Components.Add(windowManager);
             base.Initialize();
 

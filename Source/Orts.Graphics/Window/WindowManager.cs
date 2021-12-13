@@ -324,6 +324,7 @@ namespace Orts.Graphics.Window
     public sealed class WindowManager<TWindowType> : WindowManager where TWindowType : Enum
     {
         private readonly EnumArray<WindowBase, TWindowType> windows = new EnumArray<WindowBase, TWindowType>();
+        private readonly EnumArray<Lazy<WindowBase>, TWindowType> lazyWindows = new EnumArray<Lazy<WindowBase>, TWindowType>();
 
         [ThreadStatic]
         internal static WindowManager<TWindowType> Instance;
@@ -345,15 +346,29 @@ namespace Orts.Graphics.Window
         {
             foreach (WindowBase window in windows)
             {
-                window.Initialize();
+                window?.Initialize();
             }
             base.Initialize();
         }
 
         public WindowBase this[TWindowType window]
         {
-            get => windows[window];
+            get
+            {
+                if (windows[window] == null)
+                {
+                    lazyWindows[window].Value.Initialize();
+                    windows[window] = lazyWindows[window].Value;
+                }
+                return windows[window];
+            }
             set => windows[window] = value;
         }
+
+        public void SetLazyWindows(TWindowType window, Lazy<WindowBase> lazyWindow)
+        {
+            lazyWindows[window] = lazyWindow;
+        }
+
     }
 }

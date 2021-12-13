@@ -45,7 +45,7 @@ namespace Orts.TrackViewer.PopupWindows
                 throw new ArgumentNullException(nameof(layout));
 
             layout = base.Layout(layout);
-            quitButton = new Label(this, layout.RemainingWidth / 2, (int)(Owner.TextFontDefault.Height), CatalogManager.Catalog.GetString($"Quit ({InputSettings.UserCommands[UserCommand.QuitGame].ToString().Max(3)})"), HorizontalAlignment.Center);
+            quitButton = new Label(this, layout.RemainingWidth / 2, (int)(Owner.TextFontDefault.Height), CatalogManager.Catalog.GetString($"Quit ({InputSettings.UserCommands[UserCommand.QuitWindow].ToString().Max(3)})"), HorizontalAlignment.Center);
             quitButton.OnClick += QuitButton_OnClick;
             cancelButton = new Label(this, layout.RemainingWidth / 2, Owner.TextFontDefault.Height, CatalogManager.Catalog.GetString($"Cancel ({InputSettings.UserCommands[UserCommand.Cancel].ToString().Max(3)})"), HorizontalAlignment.Center);
             cancelButton.OnClick += CancelButton_OnClick;
@@ -63,7 +63,7 @@ namespace Orts.TrackViewer.PopupWindows
 
         public override bool Open()
         {
-            userCommandController.AddEvent(UserCommand.QuitGame, KeyEventType.KeyPressed, QuitGame, true);
+            userCommandController.AddEvent(UserCommand.QuitWindow, KeyEventType.KeyPressed, QuitGame, true);
             userCommandController.AddEvent(UserCommand.Cancel, KeyEventType.KeyPressed, CancelQuit, true);
             userCommandController.AddEvent(UserCommand.PrintScreen, KeyEventType.KeyPressed, PrintScreen, true);
             return base.Open();
@@ -72,7 +72,7 @@ namespace Orts.TrackViewer.PopupWindows
         public override bool Close()
         {
             userCommandController.RemoveEvent(UserCommand.Cancel, KeyEventType.KeyPressed, CancelQuit);
-            userCommandController.RemoveEvent(UserCommand.QuitGame, KeyEventType.KeyPressed, QuitGame);
+            userCommandController.RemoveEvent(UserCommand.QuitWindow, KeyEventType.KeyPressed, QuitGame);
             userCommandController.RemoveEvent(UserCommand.PrintScreen, KeyEventType.KeyPressed, PrintScreen);
             return base.Close();
         }

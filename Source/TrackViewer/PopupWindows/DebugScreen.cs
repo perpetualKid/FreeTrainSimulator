@@ -10,6 +10,7 @@ using Orts.Graphics.Window;
 using Orts.Graphics.Window.Controls;
 using Orts.Graphics.Window.Controls.Layout;
 using Orts.Graphics.Xna;
+using Orts.TrackViewer.Control;
 
 using UserCommand = Orts.TrackViewer.Control.UserCommand;
 
@@ -25,8 +26,8 @@ namespace Orts.TrackViewer.PopupWindows
     public class DebugScreen : OverlayWindowBase
     {
         private readonly EnumArray<NameValueTextGrid, DebugScreenInformation> currentProvider = new EnumArray<NameValueTextGrid, DebugScreenInformation>();
-
         private readonly UserCommandController<UserCommand> userCommandController;
+
         private DebugScreenInformation currentDebugScreen;
 
         public EnumArray<INameValueInformationProvider, DebugScreenInformation> DebugScreens { get; } = new EnumArray<INameValueInformationProvider, DebugScreenInformation>();
@@ -35,8 +36,8 @@ namespace Orts.TrackViewer.PopupWindows
         public DebugScreen(WindowManager owner, string caption, Color backgroundColor) :
             base(owner ?? throw new ArgumentNullException(nameof(owner)), caption, Point.Zero, Point.Zero)
         {
-            userCommandController = owner.UserCommandController as UserCommandController<UserCommand>;
             ZOrder = 0;
+            userCommandController = owner.UserCommandController as UserCommandController<UserCommand>;
             currentProvider[DebugScreenInformation.Common] = new NameValueTextGrid(this, (int)(10 * Owner.DpiScaling), (int)(30 * Owner.DpiScaling))
             {
                 TextColor = backgroundColor.ComplementColor(),
@@ -71,17 +72,17 @@ namespace Orts.TrackViewer.PopupWindows
 
         public override bool Open()
         {
-            userCommandController.AddEvent(UserCommand.TabAction, KeyEventType.KeyPressed, TabAction, true);
+            userCommandController.AddEvent(UserCommand.DebugScreenTab, KeyEventType.KeyPressed, TabAction, true);
             return base.Open();
         }
 
         public override bool Close()
         {
-            userCommandController.RemoveEvent(UserCommand.TabAction, KeyEventType.KeyPressed, TabAction);
+            userCommandController.RemoveEvent(UserCommand.DebugScreenTab, KeyEventType.KeyPressed, TabAction);
             return base.Close();
         }
 
-        private void TabAction(UserCommandArgs args)
+        public override void TabAction(UserCommandArgs args)
         {
             if (currentDebugScreen != DebugScreenInformation.Common)
                 currentProvider[currentDebugScreen].Visible = false;
