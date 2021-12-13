@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Numerics;
 
 using Microsoft.Xna.Framework;
 
@@ -57,7 +58,17 @@ namespace Orts.Common.DebugInfo
 
         public bool Equals(FormatOption other)
         {
-            return TextColor == other?.TextColor && FontStyle == other.FontStyle;
+            return other != null && TextColor == other.TextColor && FontStyle == other.FontStyle;
+        }
+
+        public static bool operator ==(FormatOption x, FormatOption y)
+        {
+            return Equals(x, y);
+        }
+
+        public static bool operator !=(FormatOption x, FormatOption y)
+        {
+            return !(x == y);
         }
 
         public override int GetHashCode()
