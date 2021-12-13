@@ -41,12 +41,11 @@ namespace Orts.Graphics.Window.Controls
             foreach (string identifier in DebugInformationProvider.DebugInfo)
             {
                 System.Drawing.Font currentFont = font;
-                if ((DebugInformationProvider.FormattingOptions?.TryGetValue(identifier, out FormatOption formatOption) ?? false) && formatOption != null)
+                FormatOption formatOption = null;
+                if ((DebugInformationProvider.FormattingOptions?.TryGetValue(identifier, out formatOption) ?? false) && formatOption != null)
                 {
                     currentFont = FontManager.Scaled(Window.Owner.DefaultFont, formatOption.FontStyle)[Window.Owner.DefaultFontSize];
                 }
-                else
-                    formatOption = null;
 
                 hashCode = HashCode.Combine(identifier, formatOption);
                 Texture2D texture = textureHolder.PrepareResource(identifier, currentFont);
