@@ -42,7 +42,7 @@ namespace Orts.Graphics.Window
         internal readonly PopupWindowShader WindowShader;
         private Rectangle clientBounds;
         internal ref readonly Rectangle ClientBounds => ref clientBounds;
-        public double DpiScaling { get; }
+        public float DpiScaling { get; }
         public System.Drawing.Font TextFontDefault { get; }
         public System.Drawing.Font TextFontDefaultBold { get; }
 
@@ -303,7 +303,7 @@ namespace Orts.Graphics.Window
                 WindowShader.SetState(null);
                 window.WindowDraw();
                 WindowShader.ResetState();
-                spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, null, null, null, null);
+                spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, SamplerState.PointClamp, null, null, null);
                 window.Draw(spriteBatch);
                 spriteBatch.End();
             }

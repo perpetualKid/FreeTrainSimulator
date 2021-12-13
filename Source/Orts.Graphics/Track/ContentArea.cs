@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
@@ -7,6 +8,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using Orts.Common;
+using Orts.Common.DebugInfo;
 using Orts.Common.Input;
 using Orts.Common.Position;
 using Orts.Graphics.DrawableComponents;
@@ -15,7 +17,7 @@ using Orts.Graphics.Xna;
 
 namespace Orts.Graphics.Track
 {
-    public class ContentArea : DrawableGameComponent
+    public class ContentArea : DrawableGameComponent, INameValueInformationProvider
     {
         private Rectangle bounds;
         private double maxScale;
@@ -64,6 +66,10 @@ namespace Orts.Graphics.Track
 
         public string RouteName { get; }
 
+        public NameValueCollection DebugInfo { get; } = new NameValueCollection();
+
+        public Dictionary<string, FormatOption> FormattingOptions { get; }
+
         public ContentArea(Game game, string routeName, TrackContent trackContent, EnumArray<string, ColorSetting> colorPreferences, TrackViewerViewSettings viewSettings) :
             base(game)
         {
@@ -87,6 +93,16 @@ namespace Orts.Graphics.Track
             }
             this.viewSettings = viewSettings;
             game.Window.ClientSizeChanged += Window_ClientSizeChanged;
+            DebugInfo["Route Name"] = routeName;
+            DebugInfo["Metric Scale"] = trackContent.UseMetricUnits.ToString();
+            DebugInfo["Track Segments"] = $"{trackContent.TrackSegments.Count}";
+            DebugInfo["Track Nodes"] = $"{trackContent.TrackNodeSegments.Count}";
+            DebugInfo["Track Items"] = $"{trackContent.TrackItems.Count}";
+            DebugInfo["Track End Segments"] = $"{trackContent.TrackEndSegments.Count}";
+            DebugInfo["Road Segments"] = $"{trackContent.RoadSegments.Count}";
+            DebugInfo["Road End Segments"] = $"{trackContent.RoadEndSegments.Count}";
+            DebugInfo["Junction Segments"] = $"{trackContent.JunctionSegments.Count}";
+            DebugInfo["Tiles"] = $"{trackContent.Tiles.Count}";
         }
 
         private void Window_ClientSizeChanged(object sender, EventArgs e)

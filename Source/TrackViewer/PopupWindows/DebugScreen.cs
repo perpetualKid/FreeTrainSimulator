@@ -19,47 +19,54 @@ namespace Orts.TrackViewer.PopupWindows
     {
         Common,
         Graphics,
+        Route,
     }
 
     public class DebugScreen : OverlayWindowBase
     {
-        private readonly NameValueTextGrid commonInfo;
-        private readonly NameValueTextGrid graphicsDebug;
+        private readonly EnumArray<NameValueTextGrid, DebugScreenInformation> currentProvider = new EnumArray<NameValueTextGrid, DebugScreenInformation>();
 
         private readonly UserCommandController<UserCommand> userCommandController;
         private DebugScreenInformation currentDebugScreen;
 
         public EnumArray<INameValueInformationProvider, DebugScreenInformation> DebugScreens { get; } = new EnumArray<INameValueInformationProvider, DebugScreenInformation>();
 
+
         public DebugScreen(WindowManager owner, string caption, Color backgroundColor) :
             base(owner ?? throw new ArgumentNullException(nameof(owner)), caption, Point.Zero, Point.Zero)
         {
             userCommandController = owner.UserCommandController as UserCommandController<UserCommand>;
             ZOrder = 0;
-            commonInfo = new NameValueTextGrid(this, 10, 30)
+            currentProvider[DebugScreenInformation.Common] = new NameValueTextGrid(this, (int)(10 * Owner.DpiScaling), (int)(30 * Owner.DpiScaling))
             {
                 TextColor = backgroundColor.ComplementColor(),
             };
-            graphicsDebug = new NameValueTextGrid(this, 10, 150);
+            currentProvider[DebugScreenInformation.Graphics] = new NameValueTextGrid(this, (int)(10 * Owner.DpiScaling), (int)(150 * Owner.DpiScaling)) { Visible = false };
+            currentProvider[DebugScreenInformation.Route] = new NameValueTextGrid(this, (int)(10 * Owner.DpiScaling), (int)(150 * Owner.DpiScaling)) { Visible = false, ColumnWidth = 120 };
         }
 
         protected override ControlLayout Layout(ControlLayout layout)
         {
-            layout?.Add(commonInfo);
-            layout?.Add(graphicsDebug);
+            foreach (NameValueTextGrid item in currentProvider)
+            {
+                layout?.Add(item);
+            }
             return base.Layout(layout);
         }
 
         protected override void Initialize()
         {
-            commonInfo.DebugInformationProvider = DebugScreens[DebugScreenInformation.Common];
-            graphicsDebug.DebugInformationProvider = DebugScreens[DebugScreenInformation.Graphics];
+            foreach (DebugScreenInformation item in EnumExtension.GetValues<DebugScreenInformation>())
+            {
+                currentProvider[item].DebugInformationProvider = DebugScreens[item];
+            }
             base.Initialize();
         }
 
         public void UpdateBackgroundColor(Color backgroundColor)
         {
-            commonInfo.TextColor = backgroundColor.ComplementColor();
+            //TODO 2021-12-12 consider TextColor for all text pages
+            currentProvider[DebugScreenInformation.Common].TextColor = backgroundColor.ComplementColor();
         }
 
         public override bool Open()
@@ -76,7 +83,11 @@ namespace Orts.TrackViewer.PopupWindows
 
         private void TabAction(UserCommandArgs args)
         {
+            if (currentDebugScreen != DebugScreenInformation.Common)
+                currentProvider[currentDebugScreen].Visible = false;
             currentDebugScreen = currentDebugScreen.Next();
+            currentProvider[currentDebugScreen].DebugInformationProvider = DebugScreens[currentDebugScreen];
+            currentProvider[currentDebugScreen].Visible = true;
         }
     }
 }

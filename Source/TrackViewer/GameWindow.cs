@@ -78,6 +78,7 @@ namespace Orts.TrackViewer
                 if (contentArea != null)
                     contentArea.Enabled = false;
                 contentArea = value;
+                (windowManager[WindowType.DebugScreen] as DebugScreen).DebugScreens[DebugScreenInformation.Route] = value;
             });
         }
 
@@ -461,7 +462,7 @@ namespace Orts.TrackViewer
             double elapsedRealTime = gameTime?.ElapsedGameTime.TotalSeconds ?? 1;
             frameRate.Update(elapsedRealTime, 1.0 / elapsedRealTime);
             debugInfo["FPS"] = $"{1 / gameTime.ElapsedGameTime.TotalSeconds:0.0} - {frameRate.SmoothedValue:0.0}";
-            if (frameRate.SmoothedValue < 55f)
+            if (frameRate.SmoothedValue < 50)
                 formatOptions["FPS"] = FormatOption.RegularRed;
             else
                 formatOptions["FPS"] = null;

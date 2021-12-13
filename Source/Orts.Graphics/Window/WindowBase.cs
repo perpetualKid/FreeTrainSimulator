@@ -64,7 +64,7 @@ namespace Orts.Graphics.Window
             OnWindowClosed?.Invoke(this, EventArgs.Empty);
             return Owner.CloseWindow(this);
         }
-        
+
         public virtual void ToggleVisibility()
         {
             if (Owner.WindowOpen(this))
@@ -179,7 +179,7 @@ namespace Orts.Graphics.Window
             if (windowVertexBuffer == null)
             {
                 // Edges/corners are 32px (1/4th texture image size).
-                int gp = 32; 
+                int gp = 32;
                 VertexPositionTexture[] vertexData = new[] {
 					//  0  1  2  3
 					new VertexPositionTexture(new Vector3(0 * borderRect.Width + 00, 0 * borderRect.Height + 00, 0), new Vector2(0.00f / 2, 0.00f)),

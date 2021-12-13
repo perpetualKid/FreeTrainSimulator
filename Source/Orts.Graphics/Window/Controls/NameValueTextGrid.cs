@@ -41,16 +41,18 @@ namespace Orts.Graphics.Window.Controls
             foreach (string identifier in DebugInformationProvider.DebugInfo)
             {
                 System.Drawing.Font currentFont = font;
-                if (DebugInformationProvider.FormattingOptions.TryGetValue(identifier, out FormatOption formatOption) && formatOption != null)
+                if ((DebugInformationProvider.FormattingOptions?.TryGetValue(identifier, out FormatOption formatOption) ?? false) && formatOption != null)
                 {
                     currentFont = FontManager.Scaled(Window.Owner.DefaultFont, formatOption.FontStyle)[Window.Owner.DefaultFontSize];
                 }
+                else
+                    formatOption = null;
 
                 hashCode = HashCode.Combine(identifier, formatOption);
                 Texture2D texture = textureHolder.PrepareResource(identifier, currentFont);
                 drawItems.Add((new Vector2(0, lineOffset), texture, formatOption?.TextColor ?? TextColor));
                 texture = textureHolder.PrepareResource(DebugInformationProvider.DebugInfo[identifier], currentFont);
-                drawItems.Add((new Vector2(ColumnWidth, lineOffset), texture, formatOption?.TextColor ?? TextColor));
+                drawItems.Add((new Vector2(ColumnWidth * Window.Owner.DpiScaling, lineOffset), texture, formatOption?.TextColor ?? TextColor));
                 lineOffset += font.Size * LineSpacing;
             }
             //
