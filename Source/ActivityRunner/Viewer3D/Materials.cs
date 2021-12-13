@@ -38,8 +38,8 @@ namespace Orts.ActivityRunner.Viewer3D
     {
         private readonly Viewer Viewer;
         private readonly GraphicsDevice GraphicsDevice;
-        private Dictionary<string, Texture2D> Textures = new Dictionary<string, Texture2D>(StringComparer.InvariantCultureIgnoreCase);
-        private Dictionary<string, bool> TextureMarks;
+        private Dictionary<string, Texture2D> Textures = new Dictionary<string, Texture2D>(StringComparer.OrdinalIgnoreCase);
+        Dictionary<string, bool> TextureMarks = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
 
         internal SharedTextureManager(Viewer viewer, GraphicsDevice graphicsDevice)
         {
@@ -173,7 +173,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public void Mark()
         {
-            TextureMarks = new Dictionary<string, bool>(Textures.Count);
+            TextureMarks.Clear();
             foreach (var path in Textures.Keys)
                 TextureMarks.Add(path, false);
         }

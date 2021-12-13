@@ -9,14 +9,11 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 {
     public class SharedShapeManager
     {
-        private readonly Viewer viewer;
-
         private readonly Dictionary<string, SharedShape> sharedShapes = new Dictionary<string, SharedShape>(StringComparer.OrdinalIgnoreCase);
-        private Dictionary<string, bool> shapeMarks;
+        private readonly Dictionary<string, bool> shapeMarks = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
 
         internal SharedShapeManager(Viewer viewer)
         {
-            this.viewer = viewer;
             SharedShape.Initialize(viewer);
             BaseShape.Initialize(viewer);
         }
@@ -46,7 +43,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
         public void Mark()
         {
-            shapeMarks = new Dictionary<string, bool>(sharedShapes.Count, StringComparer.OrdinalIgnoreCase);
+            shapeMarks.Clear();
             foreach (var path in sharedShapes.Keys)
                 shapeMarks.Add(path, false);
         }
