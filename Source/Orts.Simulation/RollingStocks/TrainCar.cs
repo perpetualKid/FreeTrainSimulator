@@ -2134,11 +2134,11 @@ namespace Orts.Simulation.RollingStocks
         public virtual bool GetSanderOn() { return false; }
         protected bool WheelHasBeenSet; //indicating that the car shape has been loaded, thus no need to reset the wheels
 
-        public TrainCar()
+        protected TrainCar()
         {
         }
 
-        public TrainCar(Simulator simulator, string wagFile)
+        protected TrainCar(Simulator simulator, string wagFile)
         {
             Simulator = simulator;
             WagFilePath = wagFile;

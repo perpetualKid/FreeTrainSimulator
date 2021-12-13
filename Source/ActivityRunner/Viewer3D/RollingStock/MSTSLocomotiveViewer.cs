@@ -1657,7 +1657,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             }
         }
 
-        public CabViewControlRenderer(Viewer viewer, MSTSLocomotive locomotive, CabViewControl control, CabShader shader)
+        protected CabViewControlRenderer(Viewer viewer, MSTSLocomotive locomotive, CabViewControl control, CabShader shader)
         {
             Viewer = viewer;
             Locomotive = locomotive;

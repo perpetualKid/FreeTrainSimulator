@@ -337,57 +337,70 @@ namespace Orts.Scripting.Api.Etcs
     }
     public abstract class DMIButtonDefinition
     {
-        public readonly string ConfirmerCaption;
-        public bool Enabled;
-        public DMIButtonDefinition(string confirmerCaption, bool enabled)
+        public string ConfirmerCaption { get; }
+        public bool Enabled { get; }
+
+        protected DMIButtonDefinition(string confirmerCaption, bool enabled)
         {
             ConfirmerCaption = confirmerCaption;
             Enabled = enabled;
         }
     }
+
     public class DMITextButtonDefinition : DMIButtonDefinition
     {
-        public readonly string Label;
-        public DMITextButtonDefinition(string label, string confirmerCaption, bool enabled) : base(confirmerCaption, enabled)
+        public string Label { get; }
+
+        public DMITextButtonDefinition(string label, string confirmerCaption, bool enabled) : 
+            base(confirmerCaption, enabled)
         {
             Label = label;
         }
     }
     public class DMIIconButtonDefinition : DMIButtonDefinition
     {
-        public readonly string EnabledIconName;
-        public readonly string DisabledIconName;
-        public DMIIconButtonDefinition(string iconName, string confirmerCaption, bool enabled) : base(confirmerCaption, enabled)
+        public string EnabledIconName { get; }
+        public string DisabledIconName { get; }
+
+        public DMIIconButtonDefinition(string iconName, string confirmerCaption, bool enabled) : 
+            base(confirmerCaption, enabled)
         {
             EnabledIconName = iconName;
             DisabledIconName = iconName;
         }
-        public DMIIconButtonDefinition(string enabledIconName, string disabledIconName, string confirmerCaption, bool enabled) : base(confirmerCaption, enabled)
+        public DMIIconButtonDefinition(string enabledIconName, string disabledIconName, string confirmerCaption, bool enabled) : 
+            base(confirmerCaption, enabled)
         {
             EnabledIconName = enabledIconName;
             DisabledIconName = disabledIconName;
         }
     }
+
     public abstract class DMISubwindowDefinition
     {
-        public readonly string WindowTitle;
-        public DMISubwindowDefinition(string title)
+        public string WindowTitle { get; }
+
+        protected DMISubwindowDefinition(string title)
         {
             WindowTitle = title;
         }
     }
+
     public class DMIMenuWindowDefinition : DMISubwindowDefinition
     {
         /// <summary>
         /// List of buttons to show in the window. Made public to enable or disable buttons
         /// while the window is shown.
         /// </summary>
-        public readonly List<DMIButtonDefinition> Buttons;
-        public DMIMenuWindowDefinition(string windowTitle, List<DMIButtonDefinition> buttons) : base(windowTitle)
+        public List<DMIButtonDefinition> Buttons { get; }
+
+        public DMIMenuWindowDefinition(string windowTitle, List<DMIButtonDefinition> buttons) : 
+            base(windowTitle)
         {
             Buttons = buttons;
         }
     }
+
     public struct DMIDataEntryValue
     {
         public string Name;
@@ -397,6 +410,7 @@ namespace Orts.Scripting.Api.Etcs
         public DMIVariableCheck TechnicalRangeCheck;
         public DMIVariableCheck OperationalRangeCheck;
     }
+
     public class DMIKeyboard
     {
         public enum KeyboardType

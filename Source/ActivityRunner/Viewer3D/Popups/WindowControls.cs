@@ -366,7 +366,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         public IEnumerable<Control> Controls { get { return controls; } }
         public int TextHeight { get; internal set; }
 
-        public ControlLayout(int x, int y, int width, int height)
+        protected ControlLayout(int x, int y, int width, int height)
             : base(x, y, width, height)
         {
         }

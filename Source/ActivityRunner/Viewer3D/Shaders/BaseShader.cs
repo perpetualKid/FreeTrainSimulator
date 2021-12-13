@@ -27,7 +27,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shaders
 {
     public abstract class BaseShader : Effect
     {
-        public BaseShader(GraphicsDevice graphicsDevice, string fileName)
+        protected BaseShader(GraphicsDevice graphicsDevice, string fileName)
             : base(graphicsDevice, GetEffectCode(fileName))
         {
         }

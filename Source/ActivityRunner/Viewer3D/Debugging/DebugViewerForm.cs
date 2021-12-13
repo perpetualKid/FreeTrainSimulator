@@ -2437,7 +2437,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         /// 
         /// </summary>
         /// <param name="item"></param>
-        public ItemWidget()
+        protected ItemWidget()
         {
             Location = new Vector2(float.NegativeInfinity, float.NegativeInfinity);
             Location2D = new PointF(float.NegativeInfinity, float.NegativeInfinity);

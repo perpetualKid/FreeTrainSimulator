@@ -81,7 +81,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
         private bool firstUpdate = true;
 
-        public ScriptedLocomotivePowerSupply(MSTSLocomotive locomotive)
+        protected ScriptedLocomotivePowerSupply(MSTSLocomotive locomotive)
         {
             Locomotive = locomotive;
 

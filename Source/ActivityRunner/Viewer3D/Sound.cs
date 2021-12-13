@@ -2191,7 +2191,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// </summary>
         protected SoundStream ORTSStream;
 
-        public ORTSSoundCommand(SoundStream ortsStream)
+        protected ORTSSoundCommand(SoundStream ortsStream)
         {
             ORTSStream = ortsStream;
         }
@@ -2288,7 +2288,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// </summary>
         public int iFile;
 
-        public ORTSSoundPlayCommand(SoundStream ortsStream, SoundPlayCommand mstsSoundPlayCommand)
+        protected ORTSSoundPlayCommand(SoundStream ortsStream, SoundPlayCommand mstsSoundPlayCommand)
             : base(ortsStream)
         {
             Files = mstsSoundPlayCommand?.Files;
@@ -2296,7 +2296,7 @@ namespace Orts.ActivityRunner.Viewer3D
         }
 
         // precompiled version for activity sounds
-        public ORTSSoundPlayCommand(SoundStream ortsStream, string wavFileName)
+        protected ORTSSoundPlayCommand(SoundStream ortsStream, string wavFileName)
             : base(ortsStream)
         {
             Files = new List<string>() { wavFileName };

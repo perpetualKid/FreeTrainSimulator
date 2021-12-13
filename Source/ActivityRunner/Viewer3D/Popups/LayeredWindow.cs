@@ -23,7 +23,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 {
     public abstract class LayeredWindow : Window
 	{
-		public LayeredWindow(WindowManager owner, int width, int height, string caption)
+		protected LayeredWindow(WindowManager owner, int width, int height, string caption)
 			: base(owner, width, height, caption)
 		{
 		}
