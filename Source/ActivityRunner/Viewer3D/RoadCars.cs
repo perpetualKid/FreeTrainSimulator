@@ -26,6 +26,7 @@ using Microsoft.Xna.Framework;
 
 using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Common;
+using Orts.Common.Calc;
 using Orts.Common.Position;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation;
@@ -105,7 +106,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 Cars = cars = newCars;
 
                 LastSpawnedTime = 0;
-                NextSpawnTime = CarSpawnerObj.CarFrequency * (0.75f + (float)Viewer.Random.NextDouble() / 2);
+                NextSpawnTime = CarSpawnerObj.CarFrequency * (0.75f + (float)StaticRandom.NextDouble() / 2f);
             }
 
             if (cars.Any(car => car.Travelled > Length))
@@ -256,7 +257,7 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             Spawner = spawner;
             CarSpawnerListIdx = carSpawnerListIdx;
-            Type = Viewer.Random.Next() % viewer.Simulator.CarSpawnerLists[CarSpawnerListIdx].Count;
+            Type = StaticRandom.Next() % viewer.Simulator.CarSpawnerLists[CarSpawnerListIdx].Count;
             Length = viewer.Simulator.CarSpawnerLists[CarSpawnerListIdx][Type].Distance;
             // Front and rear travellers approximate wheel positions at 25% and 75% along vehicle.
             FrontTraveller = new Traveller(spawner.Traveller);
@@ -265,7 +266,7 @@ namespace Orts.ActivityRunner.Viewer3D
             RearTraveller.Move(Length * 0.85f);
             // Travelled is the center of the vehicle.
             Travelled = Length * 0.50f;
-            Speed = SpeedMax = averageSpeed * (0.75f + (float)Viewer.Random.NextDouble() / 2);
+            Speed = SpeedMax = averageSpeed * (0.75f + (float)StaticRandom.NextDouble() / 2);
             IgnoreXRotation = viewer.Simulator.CarSpawnerLists[CarSpawnerListIdx].IgnoreXRotation;
         }
 

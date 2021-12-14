@@ -31,7 +31,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Text;
 
 using Microsoft.Xna.Framework;
@@ -3580,7 +3579,7 @@ namespace Orts.Simulation.Timetables
                     thisStation.Passed = true;
 
                     MovementState = AiMovementState.Stopped;   // if state is still station_stop and ready and allowed to depart - change to stop to check action
-                    RestdelayS = (float)DelayedStartSettings.stationRestart.fixedPartS + ((float)RandomNumberGenerator.GetInt32(DelayedStartSettings.stationRestart.randomPartS * 10) / 10f);
+                    RestdelayS = DelayedStartSettings.stationRestart.fixedPartS + (StaticRandom.Next(DelayedStartSettings.stationRestart.randomPartS * 10) / 10f);
                     if (!endOfPath[0])
                     {
                         removeStation = true;  // set next station if not at end of path
@@ -4850,7 +4849,7 @@ namespace Orts.Simulation.Timetables
                     break;
             }
 
-            float randDelay = RandomNumberGenerator.GetInt32(randDelayPart);
+            float randDelay = StaticRandom.Next(randDelayPart);
             RestdelayS += (baseDelayPart + (randDelay / 10f));
             DelayedStart = true;
             DelayedStartState = reason;
@@ -10740,7 +10739,7 @@ namespace Orts.Simulation.Timetables
             // if normal stop, set restart delay
             if (!AtStation && !attachTrain.AtStation)
             {
-                float randDelay = RandomNumberGenerator.GetInt32(DelayedStartSettings.attachRestart.randomPartS * 10);
+                float randDelay = StaticRandom.Next(DelayedStartSettings.attachRestart.randomPartS * 10);
                 RestdelayS = DelayedStartSettings.attachRestart.fixedPartS + (randDelay / 10f);
                 DelayedStart = true;
                 DelayedStartState = AiStartMovement.PathAction;
@@ -10884,7 +10883,7 @@ namespace Orts.Simulation.Timetables
             newTrain.StartTime = null; // time will be set later
 
             // set delay
-            float randDelay = RandomNumberGenerator.GetInt32(DelayedStartSettings.detachRestart.randomPartS * 10);
+            float randDelay = StaticRandom.Next(DelayedStartSettings.detachRestart.randomPartS * 10);
             RestdelayS = DelayedStartSettings.detachRestart.fixedPartS + (randDelay / 10f);
             DelayedStart = true;
             DelayedStartState = AiStartMovement.NewTrain;
@@ -11019,7 +11018,7 @@ namespace Orts.Simulation.Timetables
             // if normal stop, set restart delay
             if (MovementState == AiMovementState.Stopped)
             {
-                randDelay = RandomNumberGenerator.GetInt32(DelayedStartSettings.detachRestart.randomPartS * 10);
+                randDelay = StaticRandom.Next(DelayedStartSettings.detachRestart.randomPartS * 10);
                 RestdelayS = DelayedStartSettings.detachRestart.fixedPartS + (randDelay / 10f);
                 DelayedStart = true;
                 DelayedStartState = AiStartMovement.PathAction;

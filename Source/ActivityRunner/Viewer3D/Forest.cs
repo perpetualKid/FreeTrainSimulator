@@ -28,7 +28,6 @@ using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Common;
 using Orts.Common.Position;
 using Orts.Common.Xna;
-using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 
 namespace Orts.ActivityRunner.Viewer3D
@@ -102,7 +101,7 @@ namespace Orts.ActivityRunner.Viewer3D
         private List<VertexPositionNormalTexture> CalculateTrees(TileManager tiles, ForestObject forest, in WorldPosition position, out float objectRadius)
         {
             // To get consistent tree placement between sessions, derive the seed from the location.
-            var random = new Random((int)(1000.0 * (position.Location.X + position.Location.Z + position.Location.Y)));
+            Random random = new Random((int)(1000.0 * (position.Location.X + position.Location.Z + position.Location.Y)));
             List<TrackVectorSection> sections = new List<TrackVectorSection>();
             objectRadius = (float)Math.Sqrt(forest.ForestArea.Width * forest.ForestArea.Width + forest.ForestArea.Height * forest.ForestArea.Height) / 2;
 
@@ -179,11 +178,13 @@ namespace Orts.ActivityRunner.Viewer3D
             for (var i = 0; i < forest.Population; i++)
             {
                 VectorExtension.Transform(
-                    new Vector3((0.5f - (float)random.NextDouble()) * forest.ForestArea.Width, 0, (0.5f - (float)random.NextDouble()) * forest.ForestArea.Height), 
+#pragma warning disable CA5394 // Do not use insecure randomness
+                    new Vector3((0.5f - (float)random.NextDouble()) * forest.ForestArea.Width, 0, (0.5f - (float)random.NextDouble()) * forest.ForestArea.Height),
                     position.XNAMatrix, out Vector3 xnaTreePosition);
 
                 bool onTrack = false;
                 var scale = MathHelper.Lerp(forest.ScaleRange.LowerLimit, forest.ScaleRange.UpperLimit, (float)random.NextDouble());
+#pragma warning restore CA5394 // Do not use insecure randomness
                 var treeSize = new Vector3(forest.TreeSize.Width * scale, forest.TreeSize.Height * scale, 1);
                 var heightComputed = false;
                 if (MaximumCenterlineOffset > 0 && sections != null && sections.Count > 0)

@@ -554,7 +554,7 @@ namespace Orts.MultiPlayer
                     if (p.Train.Cars.Count <= 0)
                         continue;
                     double d = WorldLocation.GetDistanceSquared(p.Train.RearTDBTraveller.WorldLocation, mine.Train.RearTDBTraveller.WorldLocation);
-                    users.Add(Math.Sqrt(d) + (RandomNumberGenerator.GetInt32(int.MaxValue) / (double)int.MaxValue), p.Username);
+                    users.Add(Math.Sqrt(d) + StaticRandom.NextDouble(), p.Username);
                 }
             }
             catch (Exception)
@@ -903,7 +903,7 @@ namespace Orts.MultiPlayer
                         });
 
                     len = def.Z;
-                    carList.Add(len + (RandomNumberGenerator.GetInt32(int.MaxValue) / (double)int.MaxValue) / 10.0f, name);
+                    carList.Add(len + StaticRandom.NextDouble() / 10.0, name);
                 }
                 catch { }
             }

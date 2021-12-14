@@ -22,10 +22,11 @@ using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Security.Cryptography;
+
 using GetText;
 
 using Orts.Common;
+using Orts.Common.Calc;
 using Orts.Common.Position;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
@@ -2284,7 +2285,7 @@ namespace Orts.MultiPlayer
             if (MultiPlayerManager.IsServer()) newTrainNumber = newT.Number;//serer will use the correct number
             else
             {
-                newTrainNumber = 1000000 + RandomNumberGenerator.GetInt32(1000000);//client: temporary assign a train number 1000000-2000000, will change to the correct one after receiving response from the server
+                newTrainNumber = 1000000 + StaticRandom.Next(1000000);//client: temporary assign a train number 1000000-2000000, will change to the correct one after receiving response from the server
                 newT.TrainType = TrainType.Remote; //by default, uncoupled train will be controlled by the server
             }
             if (!newT.Cars.Contains(Simulator.Instance.PlayerLocomotive)) //if newT does not have player locomotive, it may be controlled remotely

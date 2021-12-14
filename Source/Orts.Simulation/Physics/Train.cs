@@ -9679,7 +9679,7 @@ namespace Orts.Simulation.Physics
         {
             if (DateTime.UtcNow.Millisecond % 10 < 6 - simulator.Settings.ActRandomizationLevel)
                 return 0;
-            return (int)(RandomNumberGenerator.GetInt32(0, (int)(RandomizationResolution * (RandomNumberGenerator.GetInt32(int.MaxValue) / (double)int.MaxValue)) + 1) / (double)RandomizationResolution * maxAddedDelay);
+            return (int)(StaticRandom.Next(0, (int)(RandomizationResolution * StaticRandom.NextDouble()) + 1) / (double)RandomizationResolution * maxAddedDelay);
         }
 
         /// <summary>
@@ -9690,7 +9690,7 @@ namespace Orts.Simulation.Physics
         /// </summary>
         internal static int RandomizedDelay(int maxAddedDelay)
         {
-            return (int)(RandomNumberGenerator.GetInt32(0, (int)(RandomizationResolution * (RandomNumberGenerator.GetInt32(int.MaxValue) / (double)int.MaxValue)) + 1) / (double)RandomizationResolution * maxAddedDelay);
+            return (int)(StaticRandom.Next(0, (int)(RandomizationResolution * StaticRandom.NextDouble()) + 1) / (double)RandomizationResolution * maxAddedDelay);
         }
 
         /// <summary>
@@ -12033,12 +12033,12 @@ namespace Orts.Simulation.Physics
                             ContinuousBrakingTime += elapsedClockSeconds;
                             if (BrakingTime >= 1200.0 / simulator.Settings.ActRandomizationLevel || ContinuousBrakingTime >= 600.0 / simulator.Settings.ActRandomizationLevel)
                             {
-                                int randInt = RandomNumberGenerator.GetInt32(200000);
+                                int randInt = StaticRandom.Next(200000);
                                 bool brakesStuck = false;
                                 if (randInt > 200000 - (simulator.Settings.ActRandomizationLevel == 1 ? 4 : simulator.Settings.ActRandomizationLevel == 2 ? 8 : 31))
                                 // a car will have brakes stuck. Select which one
                                 {
-                                    int iBrakesStuckCar = RandomNumberGenerator.GetInt32(Cars.Count);
+                                    int iBrakesStuckCar = StaticRandom.Next(Cars.Count);
                                     int jBrakesStuckCar = iBrakesStuckCar;
                                     while (Cars[iBrakesStuckCar] is MSTSLocomotive && iBrakesStuckCar < Cars.Count)
                                         iBrakesStuckCar++;
@@ -12101,12 +12101,12 @@ namespace Orts.Simulation.Physics
                     }
                     if (nLocos > 0)
                     {
-                        int randInt = RandomNumberGenerator.GetInt32(2000000 / nLocos);
+                        int randInt = StaticRandom.Next(2000000 / nLocos);
                         bool locoUnpowered;
                         if (randInt > 2000000 / nLocos - (simulator.Settings.ActRandomizationLevel == 1 ? 2 : simulator.Settings.ActRandomizationLevel == 2 ? 8 : 50))
                         // a loco will be partly or totally unpowered. Select which one
                         {
-                            int iLocoUnpoweredCar = RandomNumberGenerator.GetInt32(Cars.Count);
+                            int iLocoUnpoweredCar = StaticRandom.Next(Cars.Count);
                             int jLocoUnpoweredCar = iLocoUnpoweredCar;
                             if (iLocoUnpoweredCar % 2 == 1)
                             {
