@@ -71,7 +71,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         private bool doorsLabelVisible; // Doors label visible
         private double clockDoorsTime; // Doors hide timing
 
-        bool derailLabelVisible = false;// DerailCoeff label visible
+        bool derailLabelVisible;// DerailCoeff label visible
         double clockDerailTime; //  DerailCoeff label visible
 
         private bool standardHUDMode = true;// Standard text

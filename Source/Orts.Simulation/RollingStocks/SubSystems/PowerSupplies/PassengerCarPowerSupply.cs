@@ -33,11 +33,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         protected Simulator Simulator => Wagon.Simulator;
         protected Train Train => Wagon.Train;
         protected Pantographs Pantographs => Wagon.Pantographs;
-        protected int CarId = 0;
+        protected int CarId;
 
         public BatterySwitch BatterySwitch { get; protected set; }
 
-        protected bool Activated = false;
+        protected bool Activated;
         protected string ScriptName = "Default";
         protected PassengerCarPowerSupply Script;
 
@@ -46,7 +46,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         public PowerSupplyState ElectricTrainSupplyState { get; protected set; } = PowerSupplyState.PowerOff;
         public bool ElectricTrainSupplyOn => ElectricTrainSupplyState == PowerSupplyState.PowerOn;
         public bool FrontElectricTrainSupplyCableConnected { get; set; }
-        public float ElectricTrainSupplyPowerW { get; protected set; } = 0f;
+        public float ElectricTrainSupplyPowerW { get; protected set; }
 
         public PowerSupplyState LowVoltagePowerSupplyState { get; protected set; } = PowerSupplyState.PowerOff;
         public bool LowVoltagePowerSupplyOn => LowVoltagePowerSupplyState == PowerSupplyState.PowerOn;
@@ -60,10 +60,10 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         public float HeatFlowRateW { get; protected set; }
 
         // Parameters
-        public float PowerOnDelayS { get; protected set; } = 0f;
-        public float ContinuousPowerW { get; protected set; } = 0f;
-        public float HeatingPowerW { get; protected set; } = 0f;
-        public float AirConditioningPowerW { get; protected set; } = 0f;
+        public float PowerOnDelayS { get; protected set; }
+        public float ContinuousPowerW { get; protected set; }
+        public float HeatingPowerW { get; protected set; }
+        public float AirConditioningPowerW { get; protected set; }
         public float AirConditioningYield { get; protected set; } = 0.9f;
 
         private bool firstUpdate = true;

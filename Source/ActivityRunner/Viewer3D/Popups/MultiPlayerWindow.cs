@@ -42,24 +42,23 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
         private const int heightInLinesOfText = 1;
         private bool UpdateDataEnded;
 
-        public static bool MultiplayerUpdating = false;
+        public static bool MultiplayerUpdating;
 
         public int keyPresLenght;
-        public int OffSetX = 0;
-        private int maxFirstColWidth = 0;
-        private int maxLastColWidth = 0;
+        public int OffSetX;
+        private int maxFirstColWidth;
+        private int maxLastColWidth;
         private int WindowHeightMax;
         private int WindowHeightMin;
         private int WindowWidthMin;
         private int WindowWidthMax;
-        private char expandWindow;
         private const int TextSize = 15;
         private string keyPressed;// display a symbol when a control key is pressed.
 
         private Label indicator;
         private Label LabelFontToBold;
         public static bool FontChanged;
-        public static bool FontToBold = false;
+        public static bool FontToBold;
         public static bool MonoFont;
 
         /// <summary>

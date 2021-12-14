@@ -35,8 +35,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
         // Variables
         readonly MSTSLocomotive Locomotive;
-        public bool CommandSwitch { get; protected set; } = false;
-        public bool On { get; protected set; } = false;
+        public bool CommandSwitch { get; protected set; }
+        public bool On { get; protected set; }
 
         public ElectricTrainSupplySwitch(MSTSLocomotive locomotive)
         {

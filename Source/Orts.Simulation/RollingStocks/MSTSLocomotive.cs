@@ -136,7 +136,7 @@ namespace Orts.Simulation.RollingStocks
         public float MainResPressurePSI = 130;
         public float MaximumMainReservoirPipePressurePSI;
         public bool CompressorIsOn;
-        public bool CompressorIsMechanical = false;
+        public bool CompressorIsMechanical;
         public float AverageForceN;
         public float PowerOnDelayS;
         public bool CabLightOn;
@@ -360,7 +360,7 @@ namespace Orts.Simulation.RollingStocks
         public float DynamicBrakeDelayS;
         public bool DynamicBrakeAutoBailOff;
         public bool UsingRearCab;
-        public bool BrakeOverchargeSoundOn = false;
+        public bool BrakeOverchargeSoundOn;
 
         protected bool DynamicBrakeBlended; // dynamic brake blending is currently active
         protected bool DynamicBrakeBlendingEnabled; // dynamic brake blending is configured
@@ -374,7 +374,7 @@ namespace Orts.Simulation.RollingStocks
         public float CombinedControlSplitPosition;
         public bool HasSmoothStruc;
 
-        bool controlTrailerBrakeSystemSet = false;
+        bool controlTrailerBrakeSystemSet;
 
         public float MaxContinuousForceN;
         public float SpeedOfMaxContinuousForceMpS;  // Speed where maximum tractive effort occurs

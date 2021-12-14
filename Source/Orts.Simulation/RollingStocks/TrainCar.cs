@@ -116,7 +116,7 @@ namespace Orts.Simulation.RollingStocks
         public bool SteamHeatingCompartmentSteamTrapOn;
         public float TotalCarCompartmentHeatLossW;      // Transmission loss for the wagon
         public float CarHeatCompartmentPipeAreaM2;  // Area of surface of car pipe
-        public bool IsCarHeatingInitialized = false; // Allow steam heat to be initialised.
+        public bool IsCarHeatingInitialized; // Allow steam heat to be initialised.
         public float CarHeatSteamMainPipeHeatLossBTU;  // BTU /hr
         public float CarHeatConnectSteamHoseHeatLossBTU;
         public float CarSteamHeatMainPipeCurrentHeatBTU;
@@ -153,8 +153,8 @@ namespace Orts.Simulation.RollingStocks
         public float WheelFlangeLengthM;
         public float AngleOfAttackRad;
         public float DerailClimbDistanceM;
-        public bool DerailPossible = false;
-        public bool DerailExpected = false;
+        public bool DerailPossible;
+        public bool DerailExpected;
         public float DerailElapsedTimeS;
 
         public float MaxHandbrakeForceN;
@@ -252,15 +252,15 @@ namespace Orts.Simulation.RollingStocks
         }
 
         // Used to calculate wheel sliding for locked brake
-        public bool WheelBrakeSlideProtectionFitted = false;
-        public bool WheelBrakeSlideProtectionActive = false;
-        public bool WheelBrakeSlideProtectionLimitDisabled = false;
+        public bool WheelBrakeSlideProtectionFitted;
+        public bool WheelBrakeSlideProtectionActive;
+        public bool WheelBrakeSlideProtectionLimitDisabled;
         public float wheelBrakeSlideTimerResetValueS = 7.0f; // Set wsp time to 7 secs
         public float WheelBrakeSlideProtectionTimerS = 7.0f;
-        public bool WheelBrakeSlideProtectionDumpValveLockout = false;
+        public bool WheelBrakeSlideProtectionDumpValveLockout;
 
-        public bool BrakeSkid = false;
-        public bool BrakeSkidWarning = false;
+        public bool BrakeSkid;
+        public bool BrakeSkidWarning;
         public bool HUDBrakeSkid;
 
         public float BrakeShoeCoefficientFriction = 1.0f; // Brake Shoe coefficient - for simple adhesion model set to 1
