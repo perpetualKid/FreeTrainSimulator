@@ -21,13 +21,12 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+
 using Orts.Settings;
-using static Orts.Common.Native.NativeMethods;
 
 namespace Orts.ContentManager
 {
@@ -37,10 +36,11 @@ namespace Orts.ContentManager
         private readonly ContentManager contentManager;
 
         private static readonly Regex contentBold = new Regex("(?:^|\t)([\\w ]+:)\t", RegexOptions.Multiline);
-        private static readonly Regex contentLink = new Regex("\u0001(.*?)\u0002(.*?)\u0001");
+        private static readonly Regex contentLink1 = new Regex("\u0001(.*?)\u0002(.*?)\u0001");
+        private static readonly Regex contentLink = new Regex(@"\\'01(.*?)\\'02(.*?)\\'01");
 
         private Content pendingSelection;
-        private List<string> pendingSelections = new List<string>();
+        private readonly List<string> pendingSelections = new List<string>();
 
         private CancellationTokenSource ctsSearching;
         private CancellationTokenSource ctsExpanding;
@@ -48,17 +48,8 @@ namespace Orts.ContentManager
 
         private ConcurrentBag<SearchResult> searchResultsList = new ConcurrentBag<SearchResult>();
         private ConcurrentDictionary<string, string> searchResultDuplicates;
-        private static CharFormat2 rtfLink = new CharFormat2
-        {
-            Size = Marshal.SizeOf(typeof(CharFormat2)),
-            Mask = CfmLink,
-            Effects = CfmLink,
-        };
 
-        private const int WmUser = 0x0400;
-        private const int EmSetCharFormat = WmUser + 68;
-        private const int ScfSelection = 0x0001;
-        private const int CfmLink = 0x00000020;
+        private readonly Font boldFont;
 
         public ContentManagerGUI()
         {
@@ -73,7 +64,7 @@ namespace Orts.ContentManager
 
             var width = richTextBoxContent.Font.Height;
             richTextBoxContent.SelectionTabs = new[] { width * 5, width * 15, width * 25, width * 35 };
-
+            boldFont = new Font(richTextBoxContent.Font, FontStyle.Bold);
         }
 
         private Task<IEnumerable<TreeNode>> ExpandTreeView(Content content, CancellationToken token)
@@ -86,7 +77,7 @@ namespace Orts.ContentManager
             {
                 return Task.FromCanceled<IEnumerable<TreeNode>>(token);
             }
-            var linkChildren = contentLink.Matches(ContentInfo.GetText(content)).Cast<Match>().Select(linkMatch => CreateContentNode(content, linkMatch.Groups[1].Value, (ContentType)Enum.Parse(typeof(ContentType), linkMatch.Groups[2].Value)));
+            var linkChildren = contentLink1.Matches(ContentInfo.GetText(content)).Cast<Match>().Select(linkMatch => CreateContentNode(content, linkMatch.Groups[1].Value, (ContentType)Enum.Parse(typeof(ContentType), linkMatch.Groups[2].Value)));
             Debug.Assert(!childNodes.Any() || !linkChildren.Any(), "Content item should not return items from Get(ContentType) and Get(string, ContentType)");
             childNodes = childNodes.Concat(linkChildren);
 
@@ -184,8 +175,8 @@ namespace Orts.ContentManager
                 return;
 
             Trace.TraceInformation("Updating richTextBoxContent with content {0}", e.Node.Tag as Content);
+
             richTextBoxContent.Text = ContentInfo.GetText(e.Node.Tag as Content);
-            var boldFont = new Font(richTextBoxContent.Font, FontStyle.Bold);
             var boldMatch = contentBold.Match(richTextBoxContent.Text);
             while (boldMatch.Success)
             {
@@ -193,15 +184,15 @@ namespace Orts.ContentManager
                 richTextBoxContent.SelectionFont = boldFont;
                 boldMatch = contentBold.Match(richTextBoxContent.Text, boldMatch.Groups[1].Index + boldMatch.Groups[1].Length);
             }
-            var linkMatch = contentLink.Match(richTextBoxContent.Text);
+            string rawText = richTextBoxContent.Rtf;
+            var linkMatch = contentLink.Match(rawText);
             while (linkMatch.Success)
             {
-                richTextBoxContent.Select(linkMatch.Index, linkMatch.Length);
-                richTextBoxContent.SelectedRtf = $@"{{\rtf{{{linkMatch.Groups[1].Value}{{\v{{\u1.{linkMatch.Groups[1].Value}\u1.{linkMatch.Groups[2].Value}}}\v0}}}}}}";
-                richTextBoxContent.Select(linkMatch.Index, linkMatch.Groups[1].Value.Length * 2 + linkMatch.Groups[2].Value.Length + 2);
-                SendMessage(richTextBoxContent.Handle, EmSetCharFormat, (IntPtr)ScfSelection, ref rtfLink);
-                linkMatch = contentLink.Match(richTextBoxContent.Text);
+                rawText = rawText.Remove(linkMatch.Index, linkMatch.Length);
+                rawText = rawText.Insert(linkMatch.Index, $@"{{\field{{\*\fldinst{{HYPERLINK ""{linkMatch.Groups[1].Value}\u0001.{linkMatch.Groups[2].Value}\u0001.""}}}}{{\fldrslt {linkMatch.Groups[1].Value}}}}}");
+                linkMatch = contentLink.Match(rawText);
             }
+            richTextBoxContent.Rtf = rawText;
             richTextBoxContent.Select(0, 0);
             richTextBoxContent.SelectionFont = richTextBoxContent.Font;
         }
@@ -209,10 +200,10 @@ namespace Orts.ContentManager
         private void RichTextBoxContent_LinkClicked(object sender, LinkClickedEventArgs e)
         {
             var content = treeViewContent.SelectedNode.Tag as Content;
-            var link = e.LinkText.Split('\u0001');
-            if (content != null && link.Length == 3)
+            var link = e.LinkText.Split('\u0001', StringSplitOptions.RemoveEmptyEntries);
+            if (content != null && link.Length == 2)
             {
-                pendingSelection = content.Get(link[1], (ContentType)Enum.Parse(typeof(ContentType), link[2]));
+                pendingSelection = content.Get(link[0], (ContentType)Enum.Parse(typeof(ContentType), link[1]));
                 if (treeViewContent.SelectedNode.IsExpanded)
                 {
                     var pendingSelectionNode = treeViewContent.SelectedNode.Nodes.Cast<TreeNode>().FirstOrDefault(node => (Content)node.Tag == pendingSelection);
@@ -249,7 +240,7 @@ namespace Orts.ContentManager
                     new ParallelOptions() { CancellationToken = token },
                     async (child) =>
                 {
-                     await SearchContent(child, path + " / " + child.Name, searchString, token);
+                    await SearchContent(child, path + " / " + child.Name, searchString, token);
                 });
 
                 Parallel.ForEach(contentLink.Matches(ContentInfo.GetText(content)).Cast<Match>().Select(linkMatch => content.Get(linkMatch.Groups[1].Value,
@@ -293,7 +284,7 @@ namespace Orts.ContentManager
 
             try
             {
-                await Task.Run(() => SearchContent(contentManager, string.Empty, searchBox.Text, ctsSearching.Token));
+                await Task.Run(() => SearchContent(contentManager, string.Empty, searchBox.Text, ctsSearching.Token)).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
