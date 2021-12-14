@@ -381,8 +381,8 @@ namespace Orts.Simulation.Timetables
                     if (firstCommentColumn < 0) firstCommentColumn = iColumn;
                 }
 
-                // oheck for invalid command definition
-                else if (columnDef.Substring(0, 1).Equals("#"))
+                // check for invalid command definition
+                else if (columnDef[0] == '#')
                 {
                     Trace.TraceWarning("Invalid column definition in {0} : column {1} : {2}", filePath, iColumn, columnDef);
                     ColInfo[iColumn] = columnType.invalid;
@@ -442,7 +442,8 @@ namespace Orts.Simulation.Timetables
                         case "#path":
                             RowInfo[iRow] = rowType.pathInfo;
                             pathRow = iRow;
-                            if (rowCommands != null && rowCommands.Length >= 2 && String.Equals(rowCommands[1], "binary")) BinaryPaths = true;
+                            if (rowCommands != null && rowCommands.Length >= 2 && string.Equals(rowCommands[1], "binary", StringComparison.OrdinalIgnoreCase)) 
+                                BinaryPaths = true;
                             break;
 
                         case "#start":
@@ -530,7 +531,7 @@ namespace Orts.Simulation.Timetables
                             break;
 
                         default:  // default is station definition
-                            if (rowDef.Substring(0, 1).Equals("#"))
+                            if (rowDef[0] == '#')
                             {
                                 Trace.TraceWarning("Invalid row definition in {0} : {1}", filePath, rowDef);
                                 RowInfo[iRow] = rowType.invalid;
@@ -1347,11 +1348,11 @@ namespace Orts.Simulation.Timetables
                 // set name
 
                 // if $static, set starttime row to $static and create unique name
-                if (Name.ToLower().Contains("$static"))
+                if (Name.Contains("$static", StringComparison.OrdinalIgnoreCase))
                 {
                     fileStrings[startRow][columnIndex] = "$static";
 
-                    if (String.Equals(Name.Trim().Substring(0, 1), "$"))
+                    if (Name.Trim()[0] == '$')
                     {
                         string trainName = "S" + columnIndex.ToString().Trim();
                         TTTrain.Name = trainName + ":" + TTDescription;
@@ -1643,7 +1644,7 @@ namespace Orts.Simulation.Timetables
 
                                     if (thisCommand.CommandQualifiers != null && thisCommand.CommandQualifiers.Count > 0)
                                     {
-                                        if (String.Equals(thisCommand.CommandQualifiers[0].QualifierName, "reverse"))
+                                        if (string.Equals(thisCommand.CommandQualifiers[0].QualifierName, "reverse", StringComparison.OrdinalIgnoreCase))
                                         {
                                             reverse = true;
                                         }
@@ -1701,7 +1702,7 @@ namespace Orts.Simulation.Timetables
                     }
 
                     // first command is start time except for static
-                    if (!String.Equals(StartCommands[0].CommandToken, "static"))
+                    if (!string.Equals(StartCommands[0].CommandToken, "static", StringComparison.OrdinalIgnoreCase))
                     {
                         startTimeString = StartCommands[0].CommandToken;
                         activateTimeString = StartCommands[0].CommandToken;
@@ -2221,11 +2222,11 @@ namespace Orts.Simulation.Timetables
                 List<ConsistInfo> consistDetails = new List<ConsistInfo>();
                 string consistProc = consistDef.Trim();
 
-                while (!String.IsNullOrEmpty(consistProc))
+                while (!string.IsNullOrEmpty(consistProc))
                 {
-                    if (consistProc.Substring(0, 1).Equals("<"))
+                    if (consistProc[0] == '<')
                     {
-                        int endIndex = consistProc.IndexOf('>');
+                        int endIndex = consistProc.IndexOf('>', StringComparison.OrdinalIgnoreCase);
                         if (endIndex < 0)
                         {
                             Trace.TraceWarning("Incomplete consist definition : \">\" character missing : {0}", consistProc);
@@ -2240,9 +2241,9 @@ namespace Orts.Simulation.Timetables
                             consistProc = consistProc.Substring(endIndex + 1).Trim();
                         }
                     }
-                    else if (consistProc.Substring(0, 1).Equals("$"))
+                    else if (consistProc[0] == '$')
                     {
-                        if (consistProc.Length >= 8 && consistProc.Substring(1, 7).Equals("reverse"))
+                        if (consistProc.Length >= 8 && consistProc.Substring(1, 7).Equals("reverse", StringComparison.OrdinalIgnoreCase))
                         {
                             if (consistDetails.Count > 0)
                             {
@@ -2265,7 +2266,7 @@ namespace Orts.Simulation.Timetables
                     }
                     else
                     {
-                        int plusIndex = consistProc.IndexOf('+');
+                        int plusIndex = consistProc.IndexOf('+', StringComparison.OrdinalIgnoreCase);
                         if (plusIndex == 0)
                         {
                             consistProc = consistProc.Substring(1).Trim();
@@ -2274,10 +2275,10 @@ namespace Orts.Simulation.Timetables
                         {
                             string consistFile = consistProc.Substring(0, plusIndex).Trim();
 
-                            int sepIndex = consistFile.IndexOf('$');
+                            int sepIndex = consistFile.IndexOf('$', StringComparison.OrdinalIgnoreCase);
                             if (sepIndex > 0)
                             {
-                                consistProc = String.Concat(consistFile.Substring(sepIndex).Trim(), consistProc.Substring(plusIndex).Trim());
+                                consistProc = string.Concat(consistFile.Substring(sepIndex).Trim(), consistProc.Substring(plusIndex).Trim());
                                 consistFile = consistFile.Substring(0, sepIndex).Trim();
                             }
                             else

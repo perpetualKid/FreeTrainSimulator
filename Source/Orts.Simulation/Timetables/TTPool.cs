@@ -1197,7 +1197,7 @@ namespace Orts.Simulation.Timetables
                 if (thisSection.CircuitState.TrainReserved != null)
                 {
                     TTTrain otherTTTrain = thisSection.CircuitState.TrainReserved.Train as TTTrain;
-                    if (String.Equals(otherTTTrain.ExitPool, PoolName))
+                    if (string.Equals(otherTTTrain.ExitPool, PoolName, StringComparison.OrdinalIgnoreCase))
                     {
                         incomingEngine = true;
                         break;
@@ -1210,7 +1210,7 @@ namespace Orts.Simulation.Timetables
                     foreach (Train.TrainRouted otherTrain in thisSection.CircuitState.TrainClaimed)
                     {
                         TTTrain otherTTTrain = otherTrain.Train as TTTrain;
-                        if (String.Equals(otherTTTrain.ExitPool, PoolName))
+                        if (string.Equals(otherTTTrain.ExitPool, PoolName, StringComparison.OrdinalIgnoreCase))
                         {
                             incomingEngine = true;
                             break;
@@ -1224,7 +1224,7 @@ namespace Orts.Simulation.Timetables
                 foreach (Train.TrainRouted otherTrain in otherTrains)
                 {
                     TTTrain otherTTTrain = otherTrain.Train as TTTrain;
-                    if (String.Equals(otherTTTrain.ExitPool, PoolName) && otherTTTrain.MovementState != AiMovementState.Static)
+                    if (string.Equals(otherTTTrain.ExitPool, PoolName, StringComparison.OrdinalIgnoreCase) && otherTTTrain.MovementState != AiMovementState.Static)
                     {
                         incomingEngine = true;
 #if DEBUG_POOLINFO

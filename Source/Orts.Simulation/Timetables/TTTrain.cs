@@ -4949,7 +4949,8 @@ namespace Orts.Simulation.Timetables
                 // if not found - check if it is the player train
                 if (otherTTTrain == null)
                 {
-                    if (simulator.PlayerLocomotive != null && simulator.PlayerLocomotive.Train != null && String.Equals(simulator.PlayerLocomotive.Train.Name.ToLower(), CreateAhead))
+                    if (simulator.PlayerLocomotive != null && simulator.PlayerLocomotive.Train != null && 
+                        string.Equals(simulator.PlayerLocomotive.Train.Name, CreateAhead, StringComparison.OrdinalIgnoreCase))
                     {
                         TTTrain playerTrain = simulator.PlayerLocomotive.Train as TTTrain;
                         if (playerTrain.TrainType == TrainType.Player || playerTrain.TrainType == TrainType.PlayerIntended) // train is started
@@ -4969,7 +4970,7 @@ namespace Orts.Simulation.Timetables
                     {
                         foreach (TTTrain otherTT in nextTrains)
                         {
-                            if (String.Equals(otherTT.Name.ToLower(), CreateAhead))
+                            if (string.Equals(otherTT.Name, CreateAhead, StringComparison.OrdinalIgnoreCase))
                             {
                                 otherTTTrain = otherTT;
                                 break;
@@ -9745,7 +9746,7 @@ namespace Orts.Simulation.Timetables
 
                         foreach (StationStop nextStop in otherTrain.StationStops)
                         {
-                            if (nextStop.PlatformItem.Name.Equals(StationStops[0].PlatformItem.Name))
+                            if (nextStop.PlatformItem.Name.Equals(StationStops[0].PlatformItem.Name, StringComparison.OrdinalIgnoreCase))
                             {
                                 reqStop = nextStop;
                                 break;

@@ -317,8 +317,10 @@ namespace ORTS.TrackViewer.UserInterface
         /// <param name="index">The index of the item to show</param>
         private void AddSignalStatus(TrackViewer trackViewer, string description, uint index)
         {
-            if (!Properties.Settings.Default.statusShowSignal) return;
-            if (!String.Equals(description, "signal")) return;
+            if (!Properties.Settings.Default.statusShowSignal) 
+                return;
+            if (!string.Equals(description, "signal", StringComparison.OrdinalIgnoreCase)) 
+                return;
             statusAdditional.Text += "signal shape = ";
             statusAdditional.Text += trackViewer.RouteData.GetSignalFilename(index);
         }
@@ -331,12 +333,13 @@ namespace ORTS.TrackViewer.UserInterface
         /// <param name="index">The index of the item to show</param>
         private void AddNamesStatus(TrackViewer trackViewer, string description, uint index)
         {
-            if (!Properties.Settings.Default.statusShowNames) return;
-            if (!String.Equals(description, "platform")) return;
+            if (!Properties.Settings.Default.statusShowNames) 
+                return;
+            if (!string.Equals(description, "platform", StringComparison.OrdinalIgnoreCase)) 
+                return;
 
-            TrackItem item = trackViewer.RouteData.TrackDB.TrackItems[index];
-            PlatformItem platform = item as PlatformItem;
-            if (platform == null) return;
+            if (!(trackViewer.RouteData.TrackDB.TrackItems[index] is PlatformItem platform))
+                return;
             statusAdditional.Text += string.Format(System.Globalization.CultureInfo.CurrentCulture,
                 "{0} ({1})", platform.Station, platform.ItemName);
         }

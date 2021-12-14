@@ -343,49 +343,49 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             // Check bogies and wheels to find out what we have.
             for (var i = 0; i < TrainCarShape.Hierarchy.Length; i++)
             {
-                if (TrainCarShape.SharedShape.MatrixNames[i].Equals("BOGIE1"))
+                if (TrainCarShape.SharedShape.MatrixNames[i].Equals("BOGIE1", StringComparison.OrdinalIgnoreCase))
                 {
                     bogieMatrix1 = i;
                     numBogie1 += 1;
                 }
-                if (TrainCarShape.SharedShape.MatrixNames[i].Equals("BOGIE2"))
+                if (TrainCarShape.SharedShape.MatrixNames[i].Equals("BOGIE2", StringComparison.OrdinalIgnoreCase))
                 {
                     bogieMatrix2 = i;
                     numBogie2 += 1;
                 }
-                if (TrainCarShape.SharedShape.MatrixNames[i].Equals("BOGIE"))
+                if (TrainCarShape.SharedShape.MatrixNames[i].Equals("BOGIE", StringComparison.OrdinalIgnoreCase))
                 {
                     bogieMatrix1 = i;
                 }
                 // For now, the total axle count consisting of axles that are part of the bogie are being counted.
-                if (TrainCarShape.SharedShape.MatrixNames[i].Contains("WHEELS"))
+                if (TrainCarShape.SharedShape.MatrixNames[i].Contains("WHEELS", StringComparison.OrdinalIgnoreCase))
                     if (TrainCarShape.SharedShape.MatrixNames[i].Length == 8)
                     {
                         var tpmatrix = TrainCarShape.SharedShape.GetParentMatrix(i);
-                        if (TrainCarShape.SharedShape.MatrixNames[i].Equals("WHEELS11") && tpmatrix == bogieMatrix1)
+                        if (TrainCarShape.SharedShape.MatrixNames[i].Equals("WHEELS11", StringComparison.OrdinalIgnoreCase) && tpmatrix == bogieMatrix1)
                             bogie1Axles += 1;
-                        if (TrainCarShape.SharedShape.MatrixNames[i].Equals("WHEELS12") && tpmatrix == bogieMatrix1)
+                        if (TrainCarShape.SharedShape.MatrixNames[i].Equals("WHEELS12", StringComparison.OrdinalIgnoreCase) && tpmatrix == bogieMatrix1)
                             bogie1Axles += 1;
-                        if (TrainCarShape.SharedShape.MatrixNames[i].Equals("WHEELS13") && tpmatrix == bogieMatrix1)
+                        if (TrainCarShape.SharedShape.MatrixNames[i].Equals("WHEELS13", StringComparison.OrdinalIgnoreCase) && tpmatrix == bogieMatrix1)
                             bogie1Axles += 1;
-                        if (TrainCarShape.SharedShape.MatrixNames[i].Equals("WHEELS21") && tpmatrix == bogieMatrix1)
+                        if (TrainCarShape.SharedShape.MatrixNames[i].Equals("WHEELS21", StringComparison.OrdinalIgnoreCase) && tpmatrix == bogieMatrix1)
                             bogie1Axles += 1;
-                        if (TrainCarShape.SharedShape.MatrixNames[i].Equals("WHEELS22") && tpmatrix == bogieMatrix1)
+                        if (TrainCarShape.SharedShape.MatrixNames[i].Equals("WHEELS22", StringComparison.OrdinalIgnoreCase) && tpmatrix == bogieMatrix1)
                             bogie1Axles += 1;
-                        if (TrainCarShape.SharedShape.MatrixNames[i].Equals("WHEELS23") && tpmatrix == bogieMatrix1)
+                        if (TrainCarShape.SharedShape.MatrixNames[i].Equals("WHEELS23", StringComparison.OrdinalIgnoreCase) && tpmatrix == bogieMatrix1)
                             bogie1Axles += 1;
 
-                        if (TrainCarShape.SharedShape.MatrixNames[i].Equals("WHEELS11") && tpmatrix == bogieMatrix2)
+                        if (TrainCarShape.SharedShape.MatrixNames[i].Equals("WHEELS11", StringComparison.OrdinalIgnoreCase) && tpmatrix == bogieMatrix2)
                             bogie2Axles += 1;
-                        if (TrainCarShape.SharedShape.MatrixNames[i].Equals("WHEELS12") && tpmatrix == bogieMatrix2)
+                        if (TrainCarShape.SharedShape.MatrixNames[i].Equals("WHEELS12", StringComparison.OrdinalIgnoreCase) && tpmatrix == bogieMatrix2)
                             bogie2Axles += 1;
-                        if (TrainCarShape.SharedShape.MatrixNames[i].Equals("WHEELS13") && tpmatrix == bogieMatrix2)
+                        if (TrainCarShape.SharedShape.MatrixNames[i].Equals("WHEELS13", StringComparison.OrdinalIgnoreCase) && tpmatrix == bogieMatrix2)
                             bogie2Axles += 1;
-                        if (TrainCarShape.SharedShape.MatrixNames[i].Equals("WHEELS21") && tpmatrix == bogieMatrix2)
+                        if (TrainCarShape.SharedShape.MatrixNames[i].Equals("WHEELS21", StringComparison.OrdinalIgnoreCase) && tpmatrix == bogieMatrix2)
                             bogie2Axles += 1;
-                        if (TrainCarShape.SharedShape.MatrixNames[i].Equals("WHEELS21") && tpmatrix == bogieMatrix2)
+                        if (TrainCarShape.SharedShape.MatrixNames[i].Equals("WHEELS21", StringComparison.OrdinalIgnoreCase) && tpmatrix == bogieMatrix2)
                             bogie2Axles += 1;
-                        if (TrainCarShape.SharedShape.MatrixNames[i].Equals("WHEELS23") && tpmatrix == bogieMatrix2)
+                        if (TrainCarShape.SharedShape.MatrixNames[i].Equals("WHEELS23", StringComparison.OrdinalIgnoreCase) && tpmatrix == bogieMatrix2)
                             bogie2Axles += 1;
                     }
             }
