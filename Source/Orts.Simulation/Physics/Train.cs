@@ -9273,7 +9273,7 @@ namespace Orts.Simulation.Physics
                             if (nextIndex != platformIndex)
                             {
                                 PlatformDetails otherPlatform = Simulator.Instance.SignalEnvironment.PlatformDetailsList[nextIndex];
-                                if (string.Compare(otherPlatform.Name, platform.Name, StringComparison.OrdinalIgnoreCase) == 0)
+                                if (string.Equals(otherPlatform.Name, platform.Name, StringComparison.OrdinalIgnoreCase))
                                 {
                                     int otherSectionIndex = routeElement.Direction == 0 ?
                                         otherPlatform.TCSectionIndex[0] :
@@ -9320,7 +9320,7 @@ namespace Orts.Simulation.Physics
                         foreach (int otherPlatformIndex in nextSection.PlatformIndices)
                         {
                             PlatformDetails otherPlatform = Simulator.Instance.SignalEnvironment.PlatformDetailsList[otherPlatformIndex];
-                            if (string.Compare(otherPlatform.Name, platform.Name, StringComparison.OrdinalIgnoreCase) == 0)
+                            if (string.Equals(otherPlatform.Name, platform.Name, StringComparison.OrdinalIgnoreCase))
                             {
                                 fullLength = otherPlatform.Length + distance;
                                 // we miss a little bit (offset) - that's because we don't know direction of other platform
@@ -11635,7 +11635,7 @@ namespace Orts.Simulation.Physics
                             if (i != platformIndex)
                             {
                                 PlatformDetails otherPlatform = Simulator.Instance.SignalEnvironment.PlatformDetailsList[i];
-                                if (string.Compare(otherPlatform.Name, platform.Name, StringComparison.OrdinalIgnoreCase) == 0)
+                                if (string.Equals(otherPlatform.Name, platform.Name, StringComparison.OrdinalIgnoreCase))
                                 {
                                     int otherSectionIndex = routeElement.Direction == 0 ? otherPlatform.TCSectionIndex[0] : otherPlatform.TCSectionIndex[platform.TCSectionIndex.Count - 1];
                                     if (otherSectionIndex == beginSectionIndex)
@@ -11680,7 +11680,7 @@ namespace Orts.Simulation.Physics
                         foreach (int otherPlatformIndex in nextSection.PlatformIndices)
                         {
                             PlatformDetails otherPlatform = Simulator.Instance.SignalEnvironment.PlatformDetailsList[otherPlatformIndex];
-                            if (string.Compare(otherPlatform.Name, platform.Name, StringComparison.OrdinalIgnoreCase) == 0)
+                            if (string.Equals(otherPlatform.Name, platform.Name, StringComparison.OrdinalIgnoreCase))
                             {
                                 fullLength = otherPlatform.Length + distance;
                                 // we miss a little bit (offset) - that's because we don't know direction of other platform

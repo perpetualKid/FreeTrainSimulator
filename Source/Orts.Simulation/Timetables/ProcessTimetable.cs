@@ -375,7 +375,7 @@ namespace Orts.Simulation.Timetables
                 }
 
                 // comment
-                else if (String.Compare(columnDef, "#comment", true) == 0)
+                else if (string.Equals(columnDef, "#comment", StringComparison.OrdinalIgnoreCase))
                 {
                     ColInfo[iColumn] = columnType.comment;
                     if (firstCommentColumn < 0) firstCommentColumn = iColumn;
@@ -722,8 +722,8 @@ namespace Orts.Simulation.Timetables
 
             for (int iTrain = 0; iTrain <= allTrains.Count - 1 && playerIndex < 0; iTrain++)
             {
-                if (String.Compare(allTrains[iTrain].Name, playerTrainDetails[1]) == 0 &&
-                    String.Compare(allTrains[iTrain].TTDescription, playerTrainDetails[0]) == 0)
+                if (string.Equals(allTrains[iTrain].Name, playerTrainDetails[1], StringComparison.OrdinalIgnoreCase) &&
+                    string.Equals(allTrains[iTrain].TTDescription, playerTrainDetails[0], StringComparison.OrdinalIgnoreCase))
                 {
                     playerIndex = iTrain;
                 }
@@ -2754,7 +2754,7 @@ namespace Orts.Simulation.Timetables
                     // search train
                     foreach (TTTrain otherTrain in trainList)
                     {
-                        if (String.Compare(otherTrain.Name, otherTrainName[1], true) == 0)
+                        if (string.Equals(otherTrain.Name, otherTrainName[1], StringComparison.OrdinalIgnoreCase))
                         {
                             if (otherTrain.FormedOf >= 0)
                             {
@@ -2777,7 +2777,7 @@ namespace Orts.Simulation.Timetables
                     // if not found, try player train
                     if (!trainFound)
                     {
-                        if (playerTrain != null && String.Compare(playerTrain.TTTrain.Name, otherTrainName[1], true) == 0)
+                        if (playerTrain != null && string.Equals(playerTrain.TTTrain.Name, otherTrainName[1], StringComparison.OrdinalIgnoreCase))
                         {
                             if (playerTrain.TTTrain.FormedOf >= 0)
                             {
@@ -3724,36 +3724,36 @@ namespace Orts.Simulation.Timetables
                         {
                             foreach (TTTrainCommands.TTTrainComQualifiers formedTrainQualifiers in trainCommands.CommandQualifiers)
                             {
-                                if (String.Compare(formedTrainQualifiers.QualifierName, "runround") == 0)
+                                if (string.Equals(formedTrainQualifiers.QualifierName, "runround", StringComparison.OrdinalIgnoreCase))
                                 {
                                     RunRound = true;
                                     RunRoundPath = formedTrainQualifiers.QualifierValues[0];
                                     RunRoundTime = -1;
                                 }
 
-                                if (String.Compare(formedTrainQualifiers.QualifierName, "rrtime") == 0)
+                                if (string.Equals(formedTrainQualifiers.QualifierName, "rrtime", StringComparison.OrdinalIgnoreCase))
                                 {
                                     TimeSpan RRSpan;
                                     TimeSpan.TryParse(formedTrainQualifiers.QualifierValues[0], out RRSpan);
                                     RunRoundTime = Convert.ToInt32(RRSpan.TotalSeconds);
                                 }
 
-                                if (String.Compare(formedTrainQualifiers.QualifierName, "setstop") == 0)
+                                if (string.Equals(formedTrainQualifiers.QualifierName, "setstop", StringComparison.OrdinalIgnoreCase))
                                 {
                                     SetStop = true;
                                 }
 
-                                if (String.Compare(formedTrainQualifiers.QualifierName, "atstation") == 0)
+                                if (string.Equals(formedTrainQualifiers.QualifierName, "atstation", StringComparison.OrdinalIgnoreCase))
                                 {
                                     FormsAtStation = true;
                                 }
 
-                                if (String.Compare(formedTrainQualifiers.QualifierName, "closeup") == 0)
+                                if (string.Equals(formedTrainQualifiers.QualifierName, "closeup", StringComparison.OrdinalIgnoreCase))
                                 {
                                     Closeup = true;
                                 }
 
-                                if (String.Compare(formedTrainQualifiers.QualifierName, "speed") == 0)
+                                if (string.Equals(formedTrainQualifiers.QualifierName, "speed", StringComparison.OrdinalIgnoreCase))
                                 {
                                     try
                                     {

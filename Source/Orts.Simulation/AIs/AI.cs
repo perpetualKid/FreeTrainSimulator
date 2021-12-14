@@ -814,7 +814,7 @@ namespace Orts.Simulation.AIs
             ServiceTraffics trfDef = null;
             foreach (ServiceTraffics thisDef in trd.ServiceTraffics)
             {
-                if (String.Compare(thisDef.Name, sd.Name) == 0 &&
+                if (string.Equals(thisDef.Name, sd.Name, StringComparison.OrdinalIgnoreCase) &&
                 thisDef.Time == sd.Time)
                 {
                     trfDef = thisDef;

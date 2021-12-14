@@ -1083,10 +1083,10 @@ namespace Orts.Simulation.RollingStocks
                 case "wagon(ortsbearingtype":
                     stf.MustMatch("(");
                     string typeString2 = stf.ReadString();
-                    IsRollerBearing = String.Compare(typeString2, "Roller") == 0;
-                    IsLowTorqueRollerBearing = String.Compare(typeString2, "Low") == 0;
-                    IsFrictionBearing = String.Compare(typeString2, "Friction") == 0;
-                    IsGreaseFrictionBearing = String.Compare(typeString2, "Grease") == 0;
+                    IsRollerBearing = string.Equals(typeString2, "Roller", StringComparison.OrdinalIgnoreCase);
+                    IsLowTorqueRollerBearing = string.Equals(typeString2, "Low", StringComparison.OrdinalIgnoreCase);
+                    IsFrictionBearing = string.Equals(typeString2, "Friction", StringComparison.OrdinalIgnoreCase);
+                    IsGreaseFrictionBearing = string.Equals(typeString2, "Grease", StringComparison.OrdinalIgnoreCase);
                     break;
                 case "wagon(friction":
                     stf.MustMatch("(");

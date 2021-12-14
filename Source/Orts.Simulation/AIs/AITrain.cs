@@ -5537,7 +5537,7 @@ namespace Orts.Simulation.AIs
                 case LevelCrossingHornPattern.US:
                     return new AILevelCrossingAmericanHorn();
                 default:
-                    throw new ArgumentException();
+                    throw new ArgumentException("Invalid LevelCrossingHornPattern:", nameof(type));
             }
         }
 
@@ -5553,7 +5553,7 @@ namespace Orts.Simulation.AIs
             else if (this is AILevelCrossingAmericanHorn)
                 type = LevelCrossingHornPattern.US;
             else
-                throw new ArgumentException();
+                throw new InvalidCastException("Invalid LevelCrossingHornPattern");
             outf.Write((int)type);
         }
 
