@@ -15,37 +15,27 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using System;
 using System.Diagnostics;
 using System.IO;
+
 using Orts.Formats.Msts.Files;
 
 namespace Orts.ContentManager.Models
 {
     public class Route
     {
-        public readonly string Name;
-        public readonly string Description;
+        public string Name { get; }
+        public string Description { get; }
 
-        public Route(Content content)
+        public Route(ContentBase content)
         {
-            Debug.Assert(content.Type == ContentType.Route);
+            Debug.Assert(content?.Type == ContentType.Route);
             if (string.IsNullOrEmpty(System.IO.Path.GetExtension(content.PathName)))
             {
-                var file = new RouteFile(GetTRKFileName(content.PathName));
+                RouteFile file = new RouteFile(Formats.Msts.FolderStructure.Route(content.PathName).TrackFileName);
                 Name = file.Route.Name;
                 Description = file.Route.Description;
             }
-        }
-
-        private static string GetTRKFileName(string folderPath)
-        {
-            if (!Directory.Exists(folderPath))
-                throw new DirectoryNotFoundException(folderPath);
-            var fileNames = Directory.GetFiles(folderPath, "*.trk");
-            if (fileNames.Length == 0)
-                throw new FileNotFoundException("TRK file not found in '" + folderPath + "'.", System.IO.Path.Combine(folderPath, "*.trk"));
-            return fileNames[0];
         }
     }
 }

@@ -21,45 +21,41 @@ using System.Diagnostics;
 using System.Linq;
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Files;
+using Orts.Common;
 
 namespace Orts.ContentManager.Models
 {
     public class Consist
     {
-        public readonly string Name;
+        public string Name { get; }
 
-        public readonly IEnumerable<Car> Cars;
+        public IEnumerable<ConsistCar> Cars { get; }
 
-        public Consist(Content content)
+        public Consist(ContentBase content)
         {
-            Debug.Assert(content.Type == ContentType.Consist);
+            Debug.Assert(content?.Type == ContentType.Consist);
             if (System.IO.Path.GetExtension(content.PathName).Equals(".con", StringComparison.OrdinalIgnoreCase))
             {
-                var file = new ConsistFile(content.PathName);
+                ConsistFile file = new ConsistFile(content.PathName);
                 Name = file.Name;
-
                 Cars = from car in file.Train.Wagons
-                           select new Car(car);
-            }
-        }
-
-        public enum Direction{
-            Forwards,
-            Backwards,
-        }
-
-        public class Car
-        {
-            public readonly string ID;
-            public readonly string Name;
-            public readonly Direction Direction;
-
-            internal Car(Wagon car)
-            {
-                ID = car.UiD.ToString();
-                Name = car.Folder + "/" + car.Name;
-                Direction = car.Flip ? Consist.Direction.Backwards : Consist.Direction.Forwards;
+                           select new ConsistCar(car);
             }
         }
     }
+
+    public class ConsistCar
+    {
+        public string ID { get; }
+        public string Name { get; }
+        public Direction Direction { get; }
+
+        internal ConsistCar(Wagon car)
+        {
+            ID = $"{car.UiD}";
+            Name = car.Folder + "/" + car.Name;
+            Direction = car.Flip ? Direction.Backward : Direction.Forward;
+        }
+    }
+
 }

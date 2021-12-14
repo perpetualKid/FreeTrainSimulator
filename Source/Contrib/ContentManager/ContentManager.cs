@@ -21,8 +21,7 @@ using System.Collections.Generic;
 
 namespace Orts.ContentManager
 {
-    [Serializable]
-    public class ContentManager : Content
+    public class ContentManager : ContentBase
     {
         [NonSerialized]
         private readonly FolderSettings Settings;
@@ -37,7 +36,7 @@ namespace Orts.ContentManager
             PathName = "";
         }
 
-        public override IEnumerable<Content> Get(ContentType type)
+        public override IEnumerable<ContentBase> GetContent(ContentType type)
         {
             if (type == ContentType.Package)
             {
@@ -47,7 +46,7 @@ namespace Orts.ContentManager
                     if (ContentMSTSPackage.IsValid(folder.Value))
                         yield return new ContentMSTSPackage(this, folder.Key, folder.Value);
                     else
-                        yield return new ContentMSTSCollection(this, folder.Key, folder.Value);
+                        yield return new ContentMSTS(this, folder.Key, folder.Value);
                 }
             }
         }

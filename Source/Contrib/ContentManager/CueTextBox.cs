@@ -29,7 +29,7 @@ namespace Orts.ContentManager
 
         public string Cue
         {
-            get { return cueText; }
+            get => cueText;
             set
             {
                 cueText = value;
