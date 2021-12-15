@@ -30,7 +30,7 @@ namespace ORTS.TrackViewer.Editing
     /// 
     /// This has only one public method : WritePatFile
     /// </summary>
-    public static class SavePatFile
+    internal static class SavePatFile
     {
         private static List<string> trackPDPs;
         private static List<string> trpathnodes;
@@ -95,7 +95,7 @@ namespace ORTS.TrackViewer.Editing
             if (cancelReasons.Count == 0) return false;
 
             string message = TrackViewer.catalog.GetString("The current path is not finished:") + "\n";
-            message += String.Join("\n", cancelReasons.ToArray());
+            message += string.Join("\n", cancelReasons.ToArray());
             message += "\n" + TrackViewer.catalog.GetString("Do you want to continue?");
 
             DialogResult dialogResult = MessageBox.Show(message, 
@@ -198,7 +198,9 @@ namespace ORTS.TrackViewer.Editing
                         // Write the intermediate siding nodes, so neither the first nor the last
                         // For simple passing paths, there are no intermeidate siding nodes
                         currentSidingNode = currentMainNode.NextSidingNode;
+#pragma warning disable CA1508 // Avoid dead conditional code
                         while (currentSidingNode.NextSidingNode.NextSidingNode != null)
+#pragma warning restore CA1508 // Avoid dead conditional code
                         {
                             nextSidingIndex++; 
                             AddNode(currentSidingNode, nonext, nextSidingIndex);
@@ -227,7 +229,7 @@ namespace ORTS.TrackViewer.Editing
         private static void AddNode(TrainpathNode node, uint nextMainIndex, uint nextSidingIndex)
         {
             int pdpIndex;
-            string trackPDPstart = String.Format(System.Globalization.CultureInfo.InvariantCulture,
+            string trackPDPstart = string.Format(System.Globalization.CultureInfo.InvariantCulture,
                 "\tTrackPDP ( {0,6:D} {1,6:D} {2,9} {3,9:F3} {4,9:F3}",
                 node.Location.TileX, node.Location.TileZ, 
                 node.Location.Location.X.ToString("F3", System.Globalization.CultureInfo.CreateSpecificCulture("en-US")),
@@ -246,7 +248,7 @@ namespace ORTS.TrackViewer.Editing
                 }
                 else
                 {
-                    trackPDPs.Add(String.Format(System.Globalization.CultureInfo.InvariantCulture,
+                    trackPDPs.Add(string.Format(System.Globalization.CultureInfo.InvariantCulture,
                     "{0} {1} {2} )", trackPDPstart, 2, 0));
                     pdpOfJunction[junctionIndex] = pdpIndex;
                 }
@@ -255,17 +257,17 @@ namespace ORTS.TrackViewer.Editing
             {   // TrainpathVectorNode
                 if (node.NodeType == TrainpathNodeType.Start || node.NodeType == TrainpathNodeType.End)
                 {
-                    trackPDPs.Add(String.Format(System.Globalization.CultureInfo.InvariantCulture,
+                    trackPDPs.Add(string.Format(System.Globalization.CultureInfo.InvariantCulture,
                         "{0} {1} {2} )", trackPDPstart, 1, 0));
                 }
                 else
                 {
-                    trackPDPs.Add(String.Format(System.Globalization.CultureInfo.InvariantCulture,
+                    trackPDPs.Add(string.Format(System.Globalization.CultureInfo.InvariantCulture,
                         "{0} {1} {2} )", trackPDPstart, 1, 1));
                 }
             }
             
-            trpathnodes.Add(String.Format(System.Globalization.CultureInfo.InvariantCulture,
+            trpathnodes.Add(string.Format(System.Globalization.CultureInfo.InvariantCulture,
                 "\t\tTrPathNode ( {0} {1} {2} {3} )",
                     node.FlagsToString(), nextMainIndex, nextSidingIndex, pdpIndex));
         }
@@ -314,16 +316,16 @@ namespace ORTS.TrackViewer.Editing
     /// <summary>
     /// Class to simply save a list of stationNames to a unicode text file.
     /// </summary>
-    internal class SaveStationNames
+    internal static class SaveStationNames
     {
         /// <summary>
         /// Saves the station names to a file
         /// </summary>
         /// <param name="stationNames">String array containing the names of the stations.</param>
-        public void SaveToFile(string[] stationNames)
+        public static void SaveToFile(string[] stationNames)
         {
             string fullFilePath = GetFileName();
-            if (String.IsNullOrEmpty(fullFilePath)) return;
+            if (string.IsNullOrEmpty(fullFilePath)) return;
 
             System.IO.StreamWriter file = new System.IO.StreamWriter(fullFilePath, false, System.Text.Encoding.Unicode);
             foreach (string stationName in stationNames)
@@ -347,7 +349,7 @@ namespace ORTS.TrackViewer.Editing
             {
                 return dlg.FileName;
             }
-            return String.Empty;
+            return string.Empty;
         }
     }
 }

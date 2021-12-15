@@ -23,7 +23,7 @@ namespace ORTS.TrackViewer.Editing
     /// <summary>
     /// Small class only to draw the current possible editor action on the screen
     /// </summary>
-    public class DrawEditorAction
+    internal class DrawEditorAction
     {
         private Vector2 lowerLeft;
         /// <summary>

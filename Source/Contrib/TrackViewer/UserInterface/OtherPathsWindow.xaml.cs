@@ -1,16 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+
 using ORTS.TrackViewer.Drawing;
 
 namespace ORTS.TrackViewer.UserInterface
@@ -22,7 +13,7 @@ namespace ORTS.TrackViewer.UserInterface
     public sealed partial class OtherPathsWindow : Window
     {
         /// <summary>The DrawMultiplePaths that contains the multiple paths from which a user can make a selection</summary>
-        private DrawMultiplePaths multiPaths;
+        private readonly DrawMultiplePaths multiPaths;
         /// <summary>While setting IsChecked programmatically, prevent callbacks on changed to do something</summary>
         private bool NoClickAction;
 
@@ -30,11 +21,11 @@ namespace ORTS.TrackViewer.UserInterface
         /// Constructor
         /// </summary>
         /// <param name="drawMultiPaths">The object containing the information on the available and selected paths</param>
-        public OtherPathsWindow(DrawMultiplePaths drawMultiPaths)
+        internal OtherPathsWindow(DrawMultiplePaths drawMultiPaths)
         {
             InitializeComponent();
-            this.multiPaths = drawMultiPaths;
-            this.listOfPaths.Items.Clear();
+            multiPaths = drawMultiPaths;
+            listOfPaths.Items.Clear();
 
             string[] pathNames = multiPaths.PathNames();
             foreach (string pathName in pathNames)
@@ -75,7 +66,7 @@ namespace ORTS.TrackViewer.UserInterface
         private void RecolorAll()
         {
             NoClickAction = true;
-            foreach (var item in listOfPaths.Items)
+            foreach (object item in listOfPaths.Items)
             {
                 CheckBox checkBox = item as CheckBox;
                 if (checkBox != null)
@@ -109,7 +100,7 @@ namespace ORTS.TrackViewer.UserInterface
         private void AlwaysOnTop_Click(object sender, RoutedEventArgs e)
         {
             CheckBox alwaysOnTop = (CheckBox)sender;
-            this.Topmost = alwaysOnTop.IsChecked.Value;
+            Topmost = alwaysOnTop.IsChecked.Value;
         }
     }
 }

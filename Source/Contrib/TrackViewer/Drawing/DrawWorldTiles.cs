@@ -16,11 +16,8 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.IO;
 
-using Orts.Common;
 using Orts.Common.Position;
 
 namespace ORTS.TrackViewer.Drawing
@@ -30,13 +27,15 @@ namespace ORTS.TrackViewer.Drawing
     /// </summary>
     /// <param name="TileX">X-value of the tile number</param>
     /// <param name="TileZ">Z-value of the tile number</param>
+#pragma warning disable CA1711 // Identifiers should not have incorrect suffix
     public delegate void TileDelegate(int TileX, int TileZ);
+#pragma warning restore CA1711 // Identifiers should not have incorrect suffix
 
     /// <summary>
     /// Class to draw the world tiles that are present in the route's definition. Tiles themselves are only squares.
     /// The tiles that are present will be determined from the file names in the 'world' subdirectory of the route
     /// </summary>
-    public class DrawWorldTiles
+    internal class DrawWorldTiles
     {
         // for each index=TileX, a list containing start and stop tileZ's
         // in many cases each list will contain only two elements. But in the case of holes, it might be more.
@@ -75,7 +74,9 @@ namespace ORTS.TrackViewer.Drawing
 
                     worldTiles[TileX].Add(TileZ);
                 }
+#pragma warning disable CA1031 // Do not catch general exception types
                 catch { }
+#pragma warning restore CA1031 // Do not catch general exception types
             }
 
             //now make ranges out of it. For each available TileX a range is given by a minimum and maximum value of 

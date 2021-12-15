@@ -54,7 +54,7 @@ namespace ORTS.TrackViewer.Drawing
     /// prevents the long calculation done in especially drawing arcs, it prevents lots of spritebatch calls
     /// and it also works for the situation where only a limited part of the actual screen is used for drawing (e.g. for the inset).
     /// </remarks>
-    public class DrawArea
+    internal class DrawArea
     {
         #region public properties
         // we need doubles instead of floats for accuracy when zoomed in
@@ -92,17 +92,17 @@ namespace ORTS.TrackViewer.Drawing
         #region private properties
         private double FullScale { get; set; }
         /// <summary>Ratio used for shifting (percentage shift per update)</summary>
-        private static float shiftRatioDefault = 0.10f;
+        private const float shiftRatioDefault = 0.10f;
 
         /// <summary> Zooming might affect also other things. In this case we only support drawScaleRuler
         /// a better implementation would use delegates to deal with this</summary>
-        private DrawScaleRuler drawScaleRuler;
+        private readonly DrawScaleRuler drawScaleRuler;
 
         /// <summary>The discrete scale giving the meters per pixel in nice numbers</summary>
-        private DiscreteScale metersPerPixel;
+        private readonly DiscreteScale metersPerPixel;
 
         /// <summary>The fontmanager that is used to draw strings</summary>
-        private FontManager fontManager;
+        private readonly FontManager fontManager;
         #endregion
 
         #region General public methods
@@ -131,13 +131,13 @@ namespace ORTS.TrackViewer.Drawing
         public virtual void SetScreenSize(int areaOffsetX, int areaOffsetY, int areaWidth, int areaHeight)
         {
             // we also need to reset the fullscale;
-            double fullScaleX = FullScale * areaWidth / this.AreaW;
-            double fullScaleY = FullScale * areaHeight / this.AreaH;
+            double fullScaleX = FullScale * areaWidth / AreaW;
+            double fullScaleY = FullScale * areaHeight / AreaH;
             FullScale = Math.Min(fullScaleX, fullScaleY);
-            this.AreaOffsetX = areaOffsetX;
-            this.AreaOffsetY = areaOffsetY;
-            this.AreaW = areaWidth;
-            this.AreaH = areaHeight;
+            AreaOffsetX = areaOffsetX;
+            AreaOffsetY = areaOffsetY;
+            AreaW = areaWidth;
+            AreaH = areaHeight;
         }
 
         /// <summary>
@@ -356,14 +356,14 @@ namespace ORTS.TrackViewer.Drawing
         public void Follow(DrawArea otherArea, float maxScaleRatio)
         {
             double otherScale = otherArea.Scale;
-            double otherScaleCorrected = otherScale * this.AreaW / otherArea.AreaW; // Correct for different screen size
+            double otherScaleCorrected = otherScale * AreaW / otherArea.AreaW; // Correct for different screen size
             Scale = Math.Max(FullScale, otherScaleCorrected / maxScaleRatio);
             // center on the same center as otherArea
             // other.screenW/2 = otherScale * (WorldX - other.offsetX)
             // this.screenW/2  = this.Scale * (WorldX - this.offsetX);
             // so WorldX = other.offsetX + other.screenW/2 / otherScale
-            this.OffsetX = otherArea.OffsetX + otherArea.AreaW / 2 / otherArea.Scale - this.AreaW / 2 / this.Scale;
-            this.OffsetZ = otherArea.OffsetZ + otherArea.AreaH / 2 / otherArea.Scale - this.AreaH / 2 / this.Scale;
+            OffsetX = otherArea.OffsetX + otherArea.AreaW / 2 / otherArea.Scale - AreaW / 2 / Scale;
+            OffsetZ = otherArea.OffsetZ + otherArea.AreaH / 2 / otherArea.Scale - AreaH / 2 / Scale;
             MouseLocation = otherArea.MouseLocation;
             PostZoomTasks(false);
         }
@@ -821,7 +821,7 @@ namespace ORTS.TrackViewer.Drawing
     public class DiscreteScale
     {
         /// <summary>The nice and round numbers between 10 and 100 to be used for the stpes</summary>
-        private static int[] discreteSteps = { 10, 11, 12, 13, 14, 15, 16, 18, 20, 22, 24, 27, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 90 };
+        private static readonly int[] discreteSteps = { 10, 11, 12, 13, 14, 15, 16, 18, 20, 22, 24, 27, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 90 };
         /// <summary>The index giving which round number is to be used</summary>
         private int stepIndex;
         /// <summary>The power of ten to be used</summary>
@@ -830,9 +830,9 @@ namespace ORTS.TrackViewer.Drawing
         private const int minPowerOfTen = -5;
 
         /// <summary>Return the value of the scale (should be (some round number) * 10^(some integer power)</summary>
-        public double ScaleValue { get { return discreteSteps[stepIndex] * Math.Pow(10.0, (double)powerOfTen); } }
+        public double ScaleValue => discreteSteps[stepIndex] * Math.Pow(10.0, (double)powerOfTen);
         /// <summary>Return 1 divided by the value of the scale</summary>
-        public double InverseScaleValue { get { return 1.0 / ScaleValue; } }
+        public double InverseScaleValue => 1.0 / ScaleValue;
 
         /// <summary>
         /// Increase the scale with given number of discrete steps.
@@ -887,8 +887,8 @@ namespace ORTS.TrackViewer.Drawing
         {
             DiscreteScale newScale = new DiscreteScale();
             newScale.ApproximateTo(ratio * ScaleValue);
-            int neededSteps = newScale.stepIndex - this.stepIndex;
-            neededSteps += discreteSteps.Length * (newScale.powerOfTen - this.powerOfTen);
+            int neededSteps = newScale.stepIndex - stepIndex;
+            neededSteps += discreteSteps.Length * (newScale.powerOfTen - powerOfTen);
             return neededSteps;
         }
     }

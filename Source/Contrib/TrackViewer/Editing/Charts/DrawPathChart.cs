@@ -18,14 +18,15 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
+
 using Newtonsoft.Json;
-using Orts.Common;
+
 using ORTS.TrackViewer.Drawing;
+
 using static Orts.Common.Calc.Size;
 
 namespace ORTS.TrackViewer.Editing.Charts
@@ -34,20 +35,20 @@ namespace ORTS.TrackViewer.Editing.Charts
     /// <summary>
     /// Wrapper class for drawing charts of paths. This class make sure the data is updated, and also the actual window is shown or closed as needed
     /// </summary>
-    public class DrawPathChart
+    internal class DrawPathChart
     {
         /// <summary>Does the chart window have focus (actived) or not</summary>
-        public bool IsActived { get { return this.chartWindow.IsActivated; } }
-        
+        public bool IsActived => chartWindow.IsActivated;
+
         // Injection dependencies
         private PathEditor pathEditor;
-        private ORTS.TrackViewer.Drawing.RouteData routeData;
+        private RouteData routeData;
 
         //
         private PathChartData pathData;
-        private PathChartWindow chartWindow;
+        private readonly PathChartWindow chartWindow;
 
-        private bool ChartWindowIsOpen { get { return chartWindow.Visibility == Visibility.Visible; } }
+        private bool ChartWindowIsOpen => chartWindow.Visibility == Visibility.Visible;
 
         /// <summary>
         /// Constructor
@@ -66,7 +67,7 @@ namespace ORTS.TrackViewer.Editing.Charts
         /// </summary>
         /// <param name="routeData">The route information from which we need the track database and the tsectiondat</param>
         /// <param name="pathEditor"></param>
-        public void SetPathEditor(ORTS.TrackViewer.Drawing.RouteData routeData, PathEditor pathEditor)
+        public void SetPathEditor(RouteData routeData, PathEditor pathEditor)
         {
             this.routeData = routeData;
             this.pathEditor = pathEditor;
@@ -121,23 +122,15 @@ namespace ORTS.TrackViewer.Editing.Charts
             pathData = null; // release memory, and do not do further update processing
         }
 
-        /// <summary>
-        /// Draw the dynamic parts of the chart (those parts that vary often).
-        /// </summary>
-        public void DrawDynamics()
-        {
-
-        }
-
         private void InitChartData()
         {
-            this.pathData = new PathChartData(this.routeData);
-            chartWindow.SetCanvasData("height", new HeightChart(this.pathData));
-            chartWindow.SetCanvasData("grade", new GradeChart(this.pathData));
-            chartWindow.SetCanvasData("curvature", new CurvatureChart(this.pathData));
-            chartWindow.SetCanvasData("distance", new DistanceChart(this.pathData));
-            chartWindow.SetCanvasData("milemarkers", new MileMarkersChart(this.pathData));
-            chartWindow.SetCanvasData("speedmarkers", new SpeedlimitsChart(this.pathData));
+            pathData = new PathChartData(routeData);
+            chartWindow.SetCanvasData("height", new HeightChart(pathData));
+            chartWindow.SetCanvasData("grade", new GradeChart(pathData));
+            chartWindow.SetCanvasData("curvature", new CurvatureChart(pathData));
+            chartWindow.SetCanvasData("distance", new DistanceChart(pathData));
+            chartWindow.SetCanvasData("milemarkers", new MileMarkersChart(pathData));
+            chartWindow.SetCanvasData("speedmarkers", new SpeedlimitsChart(pathData));
         }
 
         private void OnPathChanged()
@@ -158,14 +151,14 @@ namespace ORTS.TrackViewer.Editing.Charts
             chartWindow.Draw();
             chartWindow.SetTitle(pathEditor.CurrentTrainPath.PathName);
         }
-        
+
         /// <summary>
         /// Zoom the chart window
         /// </summary>
         /// <param name="zoomSteps">The number of zoom steps (negative for zooming in)</param>
         public void Zoom(int zoomSteps)
         {
-            this.chartWindow.ZoomChange(Math.Exp(-0.1*zoomSteps));
+            chartWindow.ZoomChange(Math.Exp(-0.1 * zoomSteps));
         }
 
         /// <summary>
@@ -174,7 +167,7 @@ namespace ORTS.TrackViewer.Editing.Charts
         /// <param name="shiftSteps">The number of zoom steps (negative for shifting left)</param>
         public void Shift(int shiftSteps)
         {
-            this.chartWindow.Shift(shiftSteps);
+            chartWindow.Shift(shiftSteps);
         }
 
         #region Save to JSON
@@ -199,7 +192,7 @@ namespace ORTS.TrackViewer.Editing.Charts
         /// <param name="completeFileName">The filename to write to</param>
         public void WriteJson(string completeFileName)
         {
-            if (!this.pathData.HasPath)
+            if (!pathData.HasPath)
             {
                 return;
             }
@@ -207,7 +200,9 @@ namespace ORTS.TrackViewer.Editing.Charts
             JsonSerializer serializer = new JsonSerializer
             {
                 PreserveReferencesHandling = PreserveReferencesHandling.Objects,
+#pragma warning disable CA2326 // Do not use TypeNameHandling values other than None
                 TypeNameHandling = TypeNameHandling.All,
+#pragma warning restore CA2326 // Do not use TypeNameHandling values other than None
                 Formatting = Formatting.Indented
             };
             using (StreamWriter wr = new StreamWriter(completeFileName))
@@ -218,7 +213,7 @@ namespace ORTS.TrackViewer.Editing.Charts
                 wr.Write("var pathchartdata = ");
                 using (JsonWriter writer = new JsonTextWriter(wr))
                 {
-                    serializer.Serialize(writer, this.pathData);
+                    serializer.Serialize(writer, pathData);
                 }
             }
         }
@@ -236,39 +231,39 @@ namespace ORTS.TrackViewer.Editing.Charts
     /// Abstract base class for creating WPF charts for paths. 
     /// Contains a reference to the data as well as general scaling routines
     /// </summary>
-    public abstract class SubChart : ISubChart
+    internal abstract class SubChart : ISubChart
     {
         #region Properties
         /// <summary>The data for the path that is needed to create charts</summary>
-        protected PathChartData pathData;
+        private protected PathChartData pathData;
 
         /// <summary>Minimum of all x-values in this chart</summary>
-        protected double minX;
+        private protected double minX;
         /// <summary>Maximum of all x-values in this chart</summary>
-        protected double maxX;
+        private protected double maxX;
         /// <summary>Minimum of all y-values in this chart</summary>
-        protected double minY;
+        private protected double minY;
         /// <summary>Maximum of all y-values in this chart</summary>
-        protected double maxY;
+        private protected double maxY;
 
         /// <summary>Minimum of all x-values in the zoomed part of this chart</summary>
-        protected double zoomedMinX;
+        private protected double zoomedMinX;
         /// <summary>Maximum of all x-values in the zoomed part of this chart</summary>
-        protected double zoomedMaxX;
+        private protected double zoomedMaxX;
         /// <summary>Minimum of all y-values in the zoomed part of this chart</summary>
-        protected double zoomedMinY;
+        private protected double zoomedMinY;
         /// <summary>Maximum of all y-values in the zoomed part of this chart</summary>
-        protected double zoomedMaxY;
+        private protected double zoomedMaxY;
 
         /// <summary>Ratio (number between 0 and 1) of where the left-x-value is of the zoom area, compared to the total x-range</summary>
-        protected double zoomRatioLeft;
+        private protected double zoomRatioLeft;
         /// <summary>Ratio (number between 0 and 1) of where the right-x-value is of the zoom area, compared to the total x-range</summary>
-        protected double zoomRatioRight;
+        private protected double zoomRatioRight;
 
         /// <summary>The width in pixels of the canvas we are drawing on</summary>
-        protected double canvasWidth;
+        private protected double canvasWidth;
         /// <summary>The height in pixels of the canvas we are drawing on</summary>
-        protected double canvasHeight;
+        private protected double canvasHeight;
         #endregion
 
         /// <summary>
@@ -277,7 +272,7 @@ namespace ORTS.TrackViewer.Editing.Charts
         /// <param name="chartData">The data for which we will be creating charts</param>
         protected SubChart(PathChartData chartData)
         {
-            this.pathData = chartData;
+            pathData = chartData;
         }
 
         /// <summary>
@@ -290,10 +285,15 @@ namespace ORTS.TrackViewer.Editing.Charts
         /// <param name="legendCanvas">The WPF canvas on which to draw the legend</param>
         public void Draw(double zoomPercentageStart, double zoomPercentageStop, Canvas drawingCanvas, Canvas legendCanvas)
         {
+            if (null == drawingCanvas)
+                throw new ArgumentNullException(nameof(drawingCanvas));
+            if (null == legendCanvas)
+                throw new ArgumentNullException(nameof(legendCanvas));
+
             drawingCanvas.Children.Clear();
             legendCanvas.Children.Clear();
 
-            if (this.pathData == null || !this.pathData.HasPath)
+            if (pathData == null || !pathData.HasPath)
             {
                 return;
             }
@@ -301,8 +301,8 @@ namespace ORTS.TrackViewer.Editing.Charts
             canvasWidth = drawingCanvas.ActualWidth;
             canvasHeight = drawingCanvas.ActualHeight;
 
-            this.zoomRatioLeft = zoomPercentageStart;
-            this.zoomRatioRight = zoomPercentageStop;
+            zoomRatioLeft = zoomPercentageStart;
+            zoomRatioRight = zoomPercentageStop;
 
             DrawSubChart(drawingCanvas, legendCanvas);
         }
@@ -312,7 +312,7 @@ namespace ORTS.TrackViewer.Editing.Charts
         /// </summary>
         /// <param name="drawingCanvas">The WPF canvas to draw upon</param>
         /// <param name="legendCanvas">The WPF canvas to draw the legend upon</param>
-        protected abstract void DrawSubChart(Canvas drawingCanvas, Canvas legendCanvas);
+        private protected abstract void DrawSubChart(Canvas drawingCanvas, Canvas legendCanvas);
 
         #region General drawing routines
         /// <summary>
@@ -324,7 +324,7 @@ namespace ORTS.TrackViewer.Editing.Charts
         /// <param name="x2">x-value of second point</param>
         /// <param name="y2">y-value of second point</param>
         /// <param name="color">Color of the line</param>
-        protected static void DrawLine(Canvas drawingCanvas, double x1, double y1, double x2, double y2, Color color)
+        private protected static void DrawLine(Canvas drawingCanvas, double x1, double y1, double x2, double y2, Color color)
         {
             SolidColorBrush lineBrush = new SolidColorBrush(color);
             Line line = new Line
@@ -346,7 +346,7 @@ namespace ORTS.TrackViewer.Editing.Charts
         /// <param name="drawingCanvas">The canvas to draw upon</param>
         /// <param name="getField">The method to get a value (normally a field) of a PathChartPoint, that is then used for drawing</param>
         /// <param name="repeatPreviousPoint">True if only vertical and horizontal lines are drawn (from one point to anohter).</param>
-        protected void DrawDataPolyLine(Canvas drawingCanvas, Func<PathChartPoint, float> getField, bool repeatPreviousPoint)
+        private protected void DrawDataPolyLine(Canvas drawingCanvas, Func<PathChartPoint, float> getField, bool repeatPreviousPoint)
         {
             SolidColorBrush blackBrush = new SolidColorBrush
             {
@@ -359,9 +359,9 @@ namespace ORTS.TrackViewer.Editing.Charts
                 StrokeThickness = 1
             };
 
-            var points = new PointCollection();
+            PointCollection points = new PointCollection();
             double lastY = ScaledY(0d);
-            foreach (PathChartPoint sourcePoint in this.pathData.PathChartPoints)
+            foreach (PathChartPoint sourcePoint in pathData.PathChartPoints)
             {
                 if (!InZoomRange(sourcePoint))
                 {
@@ -391,7 +391,7 @@ namespace ORTS.TrackViewer.Editing.Charts
         /// <returns></returns>
         protected bool InZoomRange(PathChartPoint sourcePoint)
         {
-            return (sourcePoint.DistanceAlongPath >= this.zoomedMinX && sourcePoint.DistanceAlongPath <= this.zoomedMaxX);
+            return (sourcePoint.DistanceAlongPath >= zoomedMinX && sourcePoint.DistanceAlongPath <= zoomedMaxX);
         }
 
         /// <summary>
@@ -402,7 +402,7 @@ namespace ORTS.TrackViewer.Editing.Charts
         /// <param name="centerY">The y-position at the center of the text</param>
         /// <param name="text">The text to draw/print</param>
         /// <param name="color">The color to use for printing the text</param>
-        protected static void DrawText(Canvas drawingCanvas, double leftX, double centerY, string text, Color color)
+        private protected static void DrawText(Canvas drawingCanvas, double leftX, double centerY, string text, Color color)
         {
             TextBlock textBlock = new TextBlock
             {
@@ -412,7 +412,7 @@ namespace ORTS.TrackViewer.Editing.Charts
             textBlock.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity)); // find out how tall it wants to be
             Canvas.SetLeft(textBlock, leftX);
             Canvas.SetTop(textBlock, centerY - textBlock.DesiredSize.Height / 2); // So no it should be centered vertically
-            
+
             drawingCanvas.Children.Add(textBlock);
         }
 
@@ -424,7 +424,7 @@ namespace ORTS.TrackViewer.Editing.Charts
         /// <param name="centerY">The y-position at the center of the text</param>
         /// <param name="text">The text to draw/print</param>
         /// <param name="color">The color to use for printing the text</param>
-        protected static void DrawTextCentered(Canvas drawingCanvas, double centerX, double centerY, string text, Color color)
+        private protected static void DrawTextCentered(Canvas drawingCanvas, double centerX, double centerY, string text, Color color)
         {
             TextBlock textBlock = new TextBlock
             {
@@ -446,7 +446,7 @@ namespace ORTS.TrackViewer.Editing.Charts
         /// <param name="bottomY">The y-position at the bottom of the text (text will be drawn upwards)</param>
         /// <param name="text">The text to draw/print</param>
         /// <param name="color">The color to use for printing the text</param>
-        protected static void DrawTextVertical(Canvas drawingCanvas, double centerX, double bottomY, string text, Color color)
+        private protected static void DrawTextVertical(Canvas drawingCanvas, double centerX, double bottomY, string text, Color color)
         {
             TextBlock textBlock = new TextBlock
             {
@@ -454,8 +454,8 @@ namespace ORTS.TrackViewer.Editing.Charts
                 Foreground = new SolidColorBrush(color)
             };
             textBlock.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity)); // find out how tall it wants to be
-            Canvas.SetLeft(textBlock, centerX - textBlock.DesiredSize.Height/2);
-            Canvas.SetTop(textBlock, bottomY); 
+            Canvas.SetLeft(textBlock, centerX - textBlock.DesiredSize.Height / 2);
+            Canvas.SetTop(textBlock, bottomY);
             textBlock.RenderTransform = new RotateTransform(-90);
 
             drawingCanvas.Children.Add(textBlock);
@@ -468,17 +468,17 @@ namespace ORTS.TrackViewer.Editing.Charts
         /// <param name="centerX">The x-position at the center of the image</param>
         /// <param name="centerY">The y-position at the center of the image</param>
         /// <param name="imageName">The name of the image</param>
-        protected static void DrawImage(Canvas drawingCanvas, double centerX, double centerY, string imageName)
+        private protected static void DrawImage(Canvas drawingCanvas, double centerX, double centerY, string imageName)
         {
             int imageSize = 10;
-            var rect = new Rectangle()
+            Rectangle rect = new Rectangle()
             {
                 Width = imageSize,
                 Height = imageSize,
                 Fill = new ImageBrush(BitmapImageManager.Instance.GetImage(imageName))
             };
-            Canvas.SetLeft(rect, centerX-imageSize/2);
-            Canvas.SetTop(rect, centerY-imageSize/2);
+            Canvas.SetLeft(rect, centerX - imageSize / 2);
+            Canvas.SetTop(rect, centerY - imageSize / 2);
             drawingCanvas.Children.Add(rect);
         }
         #endregion
@@ -496,20 +496,20 @@ namespace ORTS.TrackViewer.Editing.Charts
         /// Determine the scaling needed: store the minimum and maximum of the x and y values, both for the whole set of data as for the set of data visible after zooming
         /// </summary>
         /// <param name="getField">The method to get a value (normally a field) of a PathChartPoint, that is then used for drawing</param>
-        protected void DetermineScaling(Func<PathChartPoint,float> getField)
+        private protected void DetermineScaling(Func<PathChartPoint, float> getField)
         {
-            this.minX = this.pathData.PointWithMinima.DistanceAlongPath;
-            this.maxX = this.pathData.PointWithMaxima.DistanceAlongPath;
-            this.minY = getField(this.pathData.PointWithMinima);
-            this.maxY = getField(this.pathData.PointWithMaxima);
-            if (this.maxY == this.minY)
+            minX = pathData.PointWithMinima.DistanceAlongPath;
+            maxX = pathData.PointWithMaxima.DistanceAlongPath;
+            minY = getField(pathData.PointWithMinima);
+            maxY = getField(pathData.PointWithMaxima);
+            if (maxY == minY)
             {
-                this.maxY += 10;
-                this.minY -= 10;
+                maxY += 10;
+                minY -= 10;
             }
 
-            this.zoomedMaxX = minX + (maxX - minX) * this.zoomRatioRight;
-            this.zoomedMinX = minX + (maxX - minX) * this.zoomRatioLeft;
+            zoomedMaxX = minX + (maxX - minX) * zoomRatioRight;
+            zoomedMinX = minX + (maxX - minX) * zoomRatioLeft;
 
         }
 
@@ -517,12 +517,12 @@ namespace ORTS.TrackViewer.Editing.Charts
         /// Determin the Y range visible in the zoomed region
         /// </summary>
         /// <param name="getField">The method to get a value (normally a field) of a PathChartPoint, that is then used for drawing</param>
-        public void DetermineZoomedRangeY(Func<PathChartPoint, float> getField)
+        internal void DetermineZoomedRangeY(Func<PathChartPoint, float> getField)
         {
-            zoomedMinY = Double.MaxValue;
-            zoomedMaxY = Double.MinValue;
+            zoomedMinY = double.MaxValue;
+            zoomedMaxY = double.MinValue;
             bool AddingPoints = true;
-            foreach (PathChartPoint sourcePoint in this.pathData.PathChartPoints)
+            foreach (PathChartPoint sourcePoint in pathData.PathChartPoints)
             {
                 float currentY = getField(sourcePoint);
 
@@ -553,12 +553,12 @@ namespace ORTS.TrackViewer.Editing.Charts
             }
 
             // To prevent the zoom range on the Y-value to become too small
-            double minZoomedRange = (this.maxY - this.minY) / 10;
-            if (this.zoomedMaxY - this.zoomedMinY < minZoomedRange)
+            double minZoomedRange = (maxY - minY) / 10;
+            if (zoomedMaxY - zoomedMinY < minZoomedRange)
             {
-                double zoomedAverage = (this.zoomedMaxY + this.zoomedMinY) / 2;
-                this.zoomedMinY = zoomedAverage - minZoomedRange / 2;
-                this.zoomedMaxY = zoomedAverage + minZoomedRange / 2;
+                double zoomedAverage = (zoomedMaxY + zoomedMinY) / 2;
+                zoomedMinY = zoomedAverage - minZoomedRange / 2;
+                zoomedMaxY = zoomedAverage + minZoomedRange / 2;
             }
         }
 
@@ -594,7 +594,7 @@ namespace ORTS.TrackViewer.Editing.Charts
     /// The chart that shows the height of the train path as function of the distance along the path.
     /// Also prints the grade in numbers and prints the station names
     /// </summary>
-    public class HeightChart : SubChart
+    internal class HeightChart : SubChart
     {
         private NiceScaling niceScale;
 
@@ -609,7 +609,7 @@ namespace ORTS.TrackViewer.Editing.Charts
         /// </summary>
         /// <param name="drawingCanvas">The WPF canvas to draw upon</param>
         /// <param name="legendCanvas">The WPF canvas to draw the legend upon</param>
-        protected override void DrawSubChart(Canvas drawingCanvas, Canvas legendCanvas)
+        private protected override void DrawSubChart(Canvas drawingCanvas, Canvas legendCanvas)
         {
             DetermineScaling(p => p.HeightM);
             DetermineZoomedRangeY(p => p.HeightM);
@@ -642,7 +642,7 @@ namespace ORTS.TrackViewer.Editing.Charts
         {
             foreach (decimal niceValue in niceScale.NiceValues)
             {
-                DrawLine(drawingCanvas, ScaledX(this.zoomedMinX), ScaledY((double)niceValue), ScaledX(this.zoomedMaxX), ScaledY((double)niceValue), Colors.Gray);
+                DrawLine(drawingCanvas, ScaledX(zoomedMinX), ScaledY((double)niceValue), ScaledX(zoomedMaxX), ScaledY((double)niceValue), Colors.Gray);
                 DrawHeightLabel(legendCanvas, niceValue);
             }
         }
@@ -667,7 +667,7 @@ namespace ORTS.TrackViewer.Editing.Charts
             double lastX = ScaledX(0);
             string lastTextToDraw = $"{0,5:0.0}";
 
-            foreach (PathChartPoint sourcePoint in this.pathData.PathChartPoints)
+            foreach (PathChartPoint sourcePoint in pathData.PathChartPoints)
             {
                 if (!InZoomRange(sourcePoint))
                 {
@@ -679,7 +679,7 @@ namespace ORTS.TrackViewer.Editing.Charts
 
                 if (lastTextToDraw != newTextToDraw)
                 {
-                    DrawTextVertical(drawingCanvas, (lastX+newX)/2, ScaledY(this.minY), lastTextToDraw, Colors.Black);
+                    DrawTextVertical(drawingCanvas, (lastX + newX) / 2, ScaledY(minY), lastTextToDraw, Colors.Black);
                     lastX = newX;
                     lastTextToDraw = newTextToDraw;
                 }
@@ -694,11 +694,11 @@ namespace ORTS.TrackViewer.Editing.Charts
 
         private void ShowSpecialNodes(Canvas drawingCanvas)
         {
-            foreach (KeyValuePair<TrainpathNode,double> item in this.pathData.DistanceAlongPath)
+            foreach (KeyValuePair<TrainpathNode, double> item in pathData.DistanceAlongPath)
             {
                 if (item.Key.NodeType == TrainpathNodeType.Reverse)
                 {
-                    
+
                     DrawImage(drawingCanvas, ScaledX(item.Value), ScaledY(item.Key.Location.Location.Y), "pathReverse");
                 }
                 if (item.Key.NodeType == TrainpathNodeType.Stop)
@@ -722,7 +722,7 @@ namespace ORTS.TrackViewer.Editing.Charts
     /// The chart that shows the grade of the path (in percentages)
     /// Also prints the text of the x-location
     /// </summary>
-    public class GradeChart: SubChart
+    internal class GradeChart : SubChart
     {
         /// <summary>
         /// Constructor
@@ -735,11 +735,11 @@ namespace ORTS.TrackViewer.Editing.Charts
         /// </summary>
         /// <param name="drawingCanvas">The WPF canvas to draw upon</param>
         /// <param name="legendCanvas">The WPF canvas to draw the legend upon</param>
-        protected override void DrawSubChart(Canvas drawingCanvas, Canvas legendCanvas)
+        private protected override void DrawSubChart(Canvas drawingCanvas, Canvas legendCanvas)
         {
             DetermineScaling(p => p.GradePercent);
             CleanScaling();
-            
+
             DrawHorizontalGridLines(drawingCanvas, legendCanvas);
 
             DrawDataPolyLine(drawingCanvas, p => p.GradePercent, true);
@@ -748,18 +748,18 @@ namespace ORTS.TrackViewer.Editing.Charts
 
         private void DrawHorizontalGridLines(Canvas drawingCanvas, Canvas legendCanvas)
         {
-            DrawLine(drawingCanvas, ScaledX(this.zoomedMinX), ScaledY(0d), ScaledX(this.zoomedMaxX), ScaledY(0d), Colors.Black);
+            DrawLine(drawingCanvas, ScaledX(zoomedMinX), ScaledY(0d), ScaledX(zoomedMaxX), ScaledY(0d), Colors.Black);
             DrawGradePercentageLabel(legendCanvas, 0);
 
             for (int grade = 1; grade <= maxY; grade++)
             {
-                DrawLine(drawingCanvas, ScaledX(this.zoomedMinX), ScaledY(grade), ScaledX(this.zoomedMaxX), ScaledY(grade), Colors.Gray);
+                DrawLine(drawingCanvas, ScaledX(zoomedMinX), ScaledY(grade), ScaledX(zoomedMaxX), ScaledY(grade), Colors.Gray);
                 DrawGradePercentageLabel(legendCanvas, grade);
             }
 
             for (int grade = 1; grade <= Math.Abs(minY); grade++)
             {
-                DrawLine(drawingCanvas, ScaledX(this.zoomedMinX), ScaledY(-grade), ScaledX(this.zoomedMaxX), ScaledY(-grade), Colors.Gray);
+                DrawLine(drawingCanvas, ScaledX(zoomedMinX), ScaledY(-grade), ScaledX(zoomedMaxX), ScaledY(-grade), Colors.Gray);
                 DrawGradePercentageLabel(legendCanvas, -grade);
             }
         }
@@ -798,14 +798,14 @@ namespace ORTS.TrackViewer.Editing.Charts
                 maxY = Math.Ceiling(maxY);
             }
         }
-  }
+    }
     #endregion
 
     #region CurvatureChart
     /// <summary>
     /// Chart that shows the curvature of the track along the train path.
     /// </summary>
-    public class CurvatureChart : SubChart
+    internal class CurvatureChart : SubChart
     {
         /// <summary>
         /// Constructor
@@ -818,28 +818,28 @@ namespace ORTS.TrackViewer.Editing.Charts
         /// </summary>
         /// <param name="drawingCanvas">The WPF canvas to draw upon</param>
         /// <param name="legendCanvas">The WPF canvas to draw the legend upon</param>
-        protected override void DrawSubChart(Canvas drawingCanvas, Canvas legendCanvas)
+        private protected override void DrawSubChart(Canvas drawingCanvas, Canvas legendCanvas)
         {
             DetermineScaling(CurvatureDeviation);
             DrawText(legendCanvas, 5, ScaledY(0), "Curvature", Colors.Black);
-            DrawLine(drawingCanvas, ScaledX(this.zoomedMinX), ScaledY(0d), ScaledX(this.zoomedMaxX), ScaledY(0d), Colors.LightGray);
+            DrawLine(drawingCanvas, ScaledX(zoomedMinX), ScaledY(0d), ScaledX(zoomedMaxX), ScaledY(0d), Colors.LightGray);
             DrawDataPolyLine(drawingCanvas, CurvatureDeviation, true);
             DrawDegreesTurned(drawingCanvas);
         }
 
         private void DrawDegreesTurned(Canvas drawingCanvas)
         {
-            double pixelsPerKm = 1000*this.canvasWidth / (this.zoomedMaxX - this.zoomedMinX);
+            double pixelsPerKm = 1000 * canvasWidth / (zoomedMaxX - zoomedMinX);
             if (pixelsPerKm < 100)
             {   // do not draw if we do not have enoug pixels
                 return;
             }
 
             bool InCurve = false;
-            double accumulatedCurveRad=0;
+            double accumulatedCurveRad = 0;
             double distanceAlongPathAtStart = 0;
             char degree = (char)176;
-            foreach (PathChartPoint sourcePoint in this.pathData.PathChartPoints)
+            foreach (PathChartPoint sourcePoint in pathData.PathChartPoints)
             {
                 if (!InZoomRange(sourcePoint))
                 {
@@ -877,7 +877,7 @@ namespace ORTS.TrackViewer.Editing.Charts
         /// <param name="pathPoint">The single point for which to determine the deviation from 0</param>
         private float CurvatureDeviation(PathChartPoint pathPoint)
         {
-            float deviation =  10 * Math.Sign(pathPoint.Curvature);
+            float deviation = 10 * Math.Sign(pathPoint.Curvature);
             //deviation = pathPoint.Curvature;
             return deviation;
         }
@@ -888,7 +888,7 @@ namespace ORTS.TrackViewer.Editing.Charts
     /// <summary>
     /// Draw the distances along the path
     /// </summary>
-    public class DistanceChart : SubChart
+    internal class DistanceChart : SubChart
     {
         /// <summary>
         /// Constructor
@@ -901,7 +901,7 @@ namespace ORTS.TrackViewer.Editing.Charts
         /// </summary>
         /// <param name="drawingCanvas">The WPF canvas to draw upon</param>
         /// <param name="legendCanvas">The WPF canvas to draw the legend upon</param>
-        protected override void DrawSubChart(Canvas drawingCanvas, Canvas legendCanvas)
+        private protected override void DrawSubChart(Canvas drawingCanvas, Canvas legendCanvas)
         {
             DetermineScaling();
             PrintHorizontalScaleLabels(drawingCanvas);
@@ -915,15 +915,15 @@ namespace ORTS.TrackViewer.Editing.Charts
         private void PrintHorizontalScaleLabels(Canvas drawingCanvas)
         {
             NiceScaling niceScale;
-            int minNumberOfTicks = Math.Max(4, (int)(this.canvasWidth / 100));
+            int minNumberOfTicks = Math.Max(4, (int)(canvasWidth / 100));
 
             if (Properties.Settings.Default.useMilesNotMeters)
             {
-                niceScale = new NiceScaling(this.zoomedMinX, this.zoomedMaxX, Length.FromMi(1.0f), "M", minNumberOfTicks, true);
+                niceScale = new NiceScaling(zoomedMinX, zoomedMaxX, Length.FromMi(1.0f), "M", minNumberOfTicks, true);
             }
             else
             {
-                niceScale = new NiceScaling(this.zoomedMinX, this.zoomedMaxX, Length.FromKM(1.0f), "km", minNumberOfTicks, true);
+                niceScale = new NiceScaling(zoomedMinX, zoomedMaxX, Length.FromKM(1.0f), "km", minNumberOfTicks, true);
             }
 
             foreach (decimal niceValue in niceScale.NiceValues)
@@ -932,7 +932,7 @@ namespace ORTS.TrackViewer.Editing.Charts
                 DrawText(drawingCanvas, ScaledX((double)niceValue), 5, textToDraw, Colors.Black);
             }
         }
-  
+
     }
     #endregion
 
@@ -940,7 +940,7 @@ namespace ORTS.TrackViewer.Editing.Charts
     /// <summary>
     /// Draw the distances along the path
     /// </summary>
-    public class SpeedlimitsChart : SubChart
+    internal class SpeedlimitsChart : SubChart
     {
         /// <summary>
         /// Constructor
@@ -953,7 +953,7 @@ namespace ORTS.TrackViewer.Editing.Charts
         /// </summary>
         /// <param name="drawingCanvas">The WPF canvas to draw upon</param>
         /// <param name="legendCanvas">The WPF canvas to draw the legend upon</param>
-        protected override void DrawSubChart(Canvas drawingCanvas, Canvas legendCanvas)
+        private protected override void DrawSubChart(Canvas drawingCanvas, Canvas legendCanvas)
         {
             char arrowRight = '\u2192';
             char arrowLeft = '\u2190';
@@ -961,7 +961,7 @@ namespace ORTS.TrackViewer.Editing.Charts
             DetermineScaling();
             DrawText(legendCanvas, 5, 10, "Speed limit", Colors.Black);
 
-            foreach (PathChartPoint sourcePoint in this.pathData.PathChartPoints)
+            foreach (PathChartPoint sourcePoint in pathData.PathChartPoints)
             {
                 if (!InZoomRange(sourcePoint))
                 {
@@ -987,7 +987,7 @@ namespace ORTS.TrackViewer.Editing.Charts
     /// <summary>
     /// Draw the distances along the path
     /// </summary>
-    public class MileMarkersChart : SubChart
+    internal class MileMarkersChart : SubChart
     {
         /// <summary>
         /// Constructor
@@ -1000,13 +1000,13 @@ namespace ORTS.TrackViewer.Editing.Charts
         /// </summary>
         /// <param name="drawingCanvas">The WPF canvas to draw upon</param>
         /// <param name="legendCanvas">The WPF canvas to draw the legend upon</param>
-        protected override void DrawSubChart(Canvas drawingCanvas, Canvas legendCanvas)
+        private protected override void DrawSubChart(Canvas drawingCanvas, Canvas legendCanvas)
         {
             DetermineScaling();
             DrawText(legendCanvas, 5, 10, "Markers", Colors.Black);
 
             List<PathChartPoint> pointsWithMarkers = new List<PathChartPoint>();
-            foreach (PathChartPoint sourcePoint in this.pathData.PathChartPoints)
+            foreach (PathChartPoint sourcePoint in pathData.PathChartPoints)
             {
                 if (!InZoomRange(sourcePoint))
                 {
@@ -1023,7 +1023,7 @@ namespace ORTS.TrackViewer.Editing.Charts
                 return;
             }
 
-            double pixelsPerMarker = this.canvasWidth / pointsWithMarkers.Count;
+            double pixelsPerMarker = canvasWidth / pointsWithMarkers.Count;
             bool onlyShowMultiplesOf5 = (pixelsPerMarker < 25);
             foreach (PathChartPoint sourcePoint in pointsWithMarkers)
             {
@@ -1031,13 +1031,12 @@ namespace ORTS.TrackViewer.Editing.Charts
                 string textToDraw = sourcePoint.TrackItemText;
                 if (onlyShowMultiplesOf5)
                 {
-                    double textAsDouble;
-                    if (Double.TryParse(textToDraw, out textAsDouble))
+                    if (double.TryParse(textToDraw, out double textAsDouble))
                     {
                         int textAsInt = (int)Math.Round(textAsDouble);
                         if (textAsInt % 5 != 0)
                         {
-                            textToDraw = String.Empty;
+                            textToDraw = string.Empty;
                         }
                     }
                 }
@@ -1087,7 +1086,7 @@ namespace ORTS.TrackViewer.Editing.Charts
         /// <param name="unit">The string to use as unit</param>
         /// <param name="minNumberOfTicks">optional: The minimum number of nice ticks</param>
         /// <param name="strict">When set, the nice values will never exceed the given ranges</param>
-        public NiceScaling(double valueMin, double valueMax, double scale, string unit, int minNumberOfTicks=4, bool strict=false)
+        public NiceScaling(double valueMin, double valueMax, double scale, string unit, int minNumberOfTicks = 4, bool strict = false)
         {
             if (valueMin == valueMax)
             {
@@ -1111,17 +1110,17 @@ namespace ORTS.TrackViewer.Editing.Charts
             }
 
 
-            this.Unit = unit;
-            double valueScaledMin = valueMin/scale;
-            double valueScaledMax = valueMax/scale;
-            double subDivisionMax = (valueScaledMax - valueScaledMin)/minNumberOfTicks;
+            Unit = unit;
+            double valueScaledMin = valueMin / scale;
+            double valueScaledMax = valueMax / scale;
+            double subDivisionMax = (valueScaledMax - valueScaledMin) / minNumberOfTicks;
             double sub10log = Math.Floor(Math.Log10(subDivisionMax));
 
             double power10 = Math.Pow(10.0, sub10log);
             double subDivisionMaxNice = subDivisionMax / power10;
 
             //Now we move to decimal to make sure we do not have rounding errors
-            this.Scale = (decimal)scale;
+            Scale = (decimal)scale;
             decimal valueScaledStep = ((decimal)power10) * (
                 (subDivisionMaxNice >= 5) ? 5 :
                 (subDivisionMaxNice >= 4) ? 4 :
@@ -1132,18 +1131,19 @@ namespace ORTS.TrackViewer.Editing.Charts
             {
                 valueScaledStart += valueScaledStep;
             }
-            
+
             List<decimal> values = new List<decimal>();
             decimal valueScaled = valueScaledStart;
-            while (valueScaled < (decimal)valueScaledMax) {
-                values.Add(valueScaled * this.Scale);
+            while (valueScaled < (decimal)valueScaledMax)
+            {
+                values.Add(valueScaled * Scale);
                 valueScaled += valueScaledStep;
             }
-            values.Add(valueScaled * this.Scale);
+            values.Add(valueScaled * Scale);
 
             NiceValues = values.ToArray();
-            ValueMin = valueScaledStart * this.Scale;
-            ValueMax = valueScaled      * this.Scale;
+            ValueMin = valueScaledStart * Scale;
+            ValueMax = valueScaled * Scale;
         }
     }
     #endregion

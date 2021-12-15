@@ -45,14 +45,14 @@ namespace ORTS.TrackViewer.Drawing
         public static ColorScheme colorsRoadsHotlight = new ColorScheme(HighlightType.Hotlight);
         public static ColorScheme colorsPathMain = new ColorScheme();
         public static ColorScheme colorsPathSiding = new ColorScheme();
-        private static ColorsGroupTrack trackGroupFlat = new ColorsGroupTrack();
-        private static ColorsGroupTrack roadTrackGroupFlat = new ColorsGroupTrack();
-        private static ColorsGroupTrack trackGroupColoured = new ColorsGroupTrack();
-        private static ColorsGroupTrack roadTrackGroupColoured = new ColorsGroupTrack();
-        private static ColorsGroupTrack trackGroupTerrain = new ColorsGroupTrack();
-        private static ColorsGroupTrack roadTrackGroupTerrain = new ColorsGroupTrack();
-        private static ColorsGroupBackground backgroundWithTilesGroup = new ColorsGroupBackground();
-        private static ColorsGroupBackground backgroundWithoutTilesGroup = new ColorsGroupBackground();
+        private static readonly ColorsGroupTrack trackGroupFlat = new ColorsGroupTrack();
+        private static readonly ColorsGroupTrack roadTrackGroupFlat = new ColorsGroupTrack();
+        private static readonly ColorsGroupTrack trackGroupColoured = new ColorsGroupTrack();
+        private static readonly ColorsGroupTrack roadTrackGroupColoured = new ColorsGroupTrack();
+        private static readonly ColorsGroupTrack trackGroupTerrain = new ColorsGroupTrack();
+        private static readonly ColorsGroupTrack roadTrackGroupTerrain = new ColorsGroupTrack();
+        private static readonly ColorsGroupBackground backgroundWithTilesGroup = new ColorsGroupBackground();
+        private static readonly ColorsGroupBackground backgroundWithoutTilesGroup = new ColorsGroupBackground();
 
         public static ColorWithHighlights otherPathsReferenceColor;
 
@@ -352,31 +352,31 @@ namespace ORTS.TrackViewer.Drawing
         public ColorsGroupBasic TrackItemColors {get; set;}
         public ColorsGroupBackground BackgroundColors { get; set; }
         public ColorsGroupTrack TrackColors { get; set; }
-        
-        public Color Junction { get { return TrackItemColors.Junction.Colors[highlightType]; } }
-        public Color EndNode { get { return TrackItemColors.EndNode.Colors[highlightType]; } }
-        public Color Crossing { get { return TrackItemColors.Crossing.Colors[highlightType]; } }
-        public Color RoadCrossing { get { return TrackItemColors.RoadCrossing.Colors[highlightType]; } }
-        public Color Speedpost { get { return TrackItemColors.Speedpost.Colors[highlightType]; } }
-        public Color Siding { get { return TrackItemColors.Siding.Colors[highlightType]; } }
 
-        public Color ActiveNode { get { return TrackItemColors.ActiveNode.Colors[highlightType]; } }
-        public Color CandidateNode { get { return TrackItemColors.CandidateNode.Colors[highlightType]; } }
+        public Color Junction => TrackItemColors.Junction.Colors[highlightType];
+        public Color EndNode => TrackItemColors.EndNode.Colors[highlightType];
+        public Color Crossing => TrackItemColors.Crossing.Colors[highlightType];
+        public Color RoadCrossing => TrackItemColors.RoadCrossing.Colors[highlightType];
+        public Color Speedpost => TrackItemColors.Speedpost.Colors[highlightType];
+        public Color Siding => TrackItemColors.Siding.Colors[highlightType];
 
-        public Color Text { get { return TrackItemColors.Text.Colors[highlightType]; } }
-        public Color ClearWindowInset { get { return TrackItemColors.ClearWindowInset.Colors[highlightType]; } }
+        public Color ActiveNode => TrackItemColors.ActiveNode.Colors[highlightType];
+        public Color CandidateNode => TrackItemColors.CandidateNode.Colors[highlightType];
 
-        public Color TrackStraight { get { return TrackColors.TrackStraight.Colors[highlightType]; } }
-        public Color TrackCurved { get { return TrackColors.TrackCurved.Colors[highlightType]; } }
-        public Color BrokenPath { get { return TrackColors.BrokenPath.Colors[highlightType]; } }
-        public Color BrokenNode { get { return TrackColors.BrokenNode.Colors[highlightType]; } }
-        
-        public Color ClearWindow { get { return BackgroundColors.ClearWindow.Colors[highlightType]; } }
-        public Color Tile { get { return BackgroundColors.Tile.Colors[highlightType]; } }
+        public Color Text => TrackItemColors.Text.Colors[highlightType];
+        public Color ClearWindowInset => TrackItemColors.ClearWindowInset.Colors[highlightType];
 
-        public Color None { get { return Color.White; } }       
-        
-        private static Dictionary<HighlightType, string> nameExtensions = new Dictionary<HighlightType, string>
+        public Color TrackStraight => TrackColors.TrackStraight.Colors[highlightType];
+        public Color TrackCurved => TrackColors.TrackCurved.Colors[highlightType];
+        public Color BrokenPath => TrackColors.BrokenPath.Colors[highlightType];
+        public Color BrokenNode => TrackColors.BrokenNode.Colors[highlightType];
+
+        public Color ClearWindow => BackgroundColors.ClearWindow.Colors[highlightType];
+        public Color Tile => BackgroundColors.Tile.Colors[highlightType];
+
+        public static Color None => Color.White;
+
+        private static readonly Dictionary<HighlightType, string> nameExtensions = new Dictionary<HighlightType, string>
         {
             {HighlightType.Normal, ""},
             {HighlightType.Highlight, "Highlight"},
@@ -386,12 +386,12 @@ namespace ORTS.TrackViewer.Drawing
         /// <summary>
         /// An extension in string format that can be used to distinguish texture names
         /// </summary>
-        public string NameExtension { get { return nameExtensions[highlightType]; } }
+        public string NameExtension => nameExtensions[highlightType];
 
         /// <summary>
         /// Store whether this is a normal or highlight variant
         /// </summary>
-        private HighlightType highlightType;
+        private readonly HighlightType highlightType;
 
         /// <summary>
         /// Constructor
@@ -434,7 +434,7 @@ namespace ORTS.TrackViewer.Drawing
         //Some things we store to be used when color is changed using preference.
         private byte highlightDelta;
         private Color defaultColor;
-        private String defaultColorName;
+        private string defaultColorName;
         private const string defaultOptionExtension = " (default)";
 
         // map names of colors to actual color objects.
@@ -527,7 +527,7 @@ namespace ORTS.TrackViewer.Drawing
             string defaultColorOption = defaultColorName + defaultOptionExtension;
             colorOptions.Insert(0, defaultColorOption);
 
-            var callBack = normalOnly ? new StringPreferenceDelegate(PreferenceChangedCallbackNormalOnly): new StringPreferenceDelegate(PreferenceChangedCallback);
+            StringPreferenceDelegate callBack = normalOnly ? new StringPreferenceDelegate(PreferenceChangedCallbackNormalOnly): new StringPreferenceDelegate(PreferenceChangedCallback);
             preferenceChanger.AddStringPreference(name, description, colorOptions.ToArray(), defaultColorOption, callBack);
         }
 
@@ -559,7 +559,7 @@ namespace ORTS.TrackViewer.Drawing
             }
             if (namedColors.ContainsKey(selectedColorName))
             {
-                ChangeColors(namedColors[selectedColorName], this.Colors[HighlightType.Highlight], this.Colors[HighlightType.Hotlight]);
+                ChangeColors(namedColors[selectedColorName], Colors[HighlightType.Highlight], Colors[HighlightType.Hotlight]);
             }
         }
 

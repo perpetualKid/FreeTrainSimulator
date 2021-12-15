@@ -31,7 +31,7 @@ namespace ORTS.TrackViewer.Drawing
     /// us to draw them in trackviewer. This is the base class, all real track items are supposed to be subclasses (because
     /// each has its own texture or symbol to draw, and also its own name.
     /// </summary>
-    public abstract class DrawableTrackItem
+    internal abstract class DrawableTrackItem
     {
         /// <summary>WorldLocation of the track item</summary>
         public WorldLocation WorldLocation { get; set; }
@@ -46,9 +46,9 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="originalTrItem">The original track item that we are representing for drawing</param>
         protected DrawableTrackItem(TrackItem originalTrItem)
         {
-            this.Index = originalTrItem.TrackItemId;
-            this.WorldLocation = originalTrItem.Location;
-            this.Description = "unknown";
+            Index = originalTrItem.TrackItemId;
+            WorldLocation = originalTrItem.Location;
+            Description = "unknown";
         }
 
         /// <summary>
@@ -90,7 +90,7 @@ namespace ORTS.TrackViewer.Drawing
     internal class DrawableSignalItem : DrawableTrackItem
     {
         /// <summary>direction (forward or backward the signal relative to the direction of the track</summary>
-        private TrackDirection direction;
+        private readonly TrackDirection direction;
 
         /// <summary>angle to draw the signal at</summary>
         private float angle;
@@ -99,7 +99,7 @@ namespace ORTS.TrackViewer.Drawing
         private bool isNormal;
 
         /// <summary>Signal Type, which is a name to cross-reference to sigcfg file</summary>
-        private string signalType;
+        private readonly string signalType;
 
         /// <summary>
         /// Default constructor
@@ -108,11 +108,11 @@ namespace ORTS.TrackViewer.Drawing
         public DrawableSignalItem(TrackItem originalTrItem)
             : base(originalTrItem)
         {
-            this.Description = "signal";
-            this.isNormal = true; // default value
+            Description = "signal";
+            isNormal = true; // default value
             SignalItem originalSignalItem = originalTrItem as SignalItem;
-            this.direction = originalSignalItem.Direction;
-            this.signalType = originalSignalItem.SignalType;
+            direction = originalSignalItem.Direction;
+            signalType = originalSignalItem.SignalType;
         }
 
         /// <summary>
@@ -123,18 +123,20 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="tn">TrackNode on which the signal actually is</param>
         public void FindAngle(TrackSectionsFile tsectionDat, TrackDB trackDB, TrackVectorNode tn)
         {
-            this.angle = 0;
+            angle = 0;
             try
             {
-                Traveller signalTraveller = new Traveller(tsectionDat, trackDB.TrackNodes, tn, WorldLocation, (Traveller.TravellerDirection)this.direction);
-                this.angle = signalTraveller.RotY;
+                Traveller signalTraveller = new Traveller(tsectionDat, trackDB.TrackNodes, tn, WorldLocation, (Traveller.TravellerDirection)direction);
+                angle = signalTraveller.RotY;
 
                 // Shift signal a little bit to be able to distinguish backfacing from normal facing
-                Microsoft.Xna.Framework.Vector3 shiftedLocation = this.WorldLocation.Location + 
-                    0.0001f * new Microsoft.Xna.Framework.Vector3((float) Math.Cos(this.angle), 0f, -(float) Math.Sin(this.angle));
-                this.WorldLocation = new WorldLocation(this.WorldLocation.TileX, this.WorldLocation.TileZ, shiftedLocation );
+                Microsoft.Xna.Framework.Vector3 shiftedLocation = WorldLocation.Location + 
+                    0.0001f * new Microsoft.Xna.Framework.Vector3((float) Math.Cos(angle), 0f, -(float) Math.Sin(angle));
+                WorldLocation = new WorldLocation(WorldLocation.TileX, WorldLocation.TileZ, shiftedLocation );
             }
+#pragma warning disable CA1031 // Do not catch general exception types
             catch { }
+#pragma warning restore CA1031 // Do not catch general exception types
         }
 
         /// <summary>
@@ -143,14 +145,14 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="sigcfgFile">The signal configuration file</param>
         public void DetermineIfNormal(SignalConfigurationFile sigcfgFile)
         {
-            this.isNormal = true; //default
+            isNormal = true; //default
             if (sigcfgFile == null)
             {   // if no sigcfgFile is available, just keep default
                 return;
             }
-            if (sigcfgFile.SignalTypes.ContainsKey(this.signalType))
+            if (sigcfgFile.SignalTypes.ContainsKey(signalType))
             {
-                this.isNormal = (sigcfgFile.SignalTypes[this.signalType].FunctionType == SignalFunction.Normal);
+                isNormal = sigcfgFile.SignalTypes[signalType].FunctionType == SignalFunction.Normal;
             }
         }
 
@@ -169,7 +171,7 @@ namespace ORTS.TrackViewer.Drawing
             {
                 float size = 7f; // in meters
                 int minPixelSize = 5;
-                drawArea.DrawTexture(this.WorldLocation, "signal" + colors.NameExtension, size, minPixelSize, colors.None, this.angle);
+                drawArea.DrawTexture(WorldLocation, "signal" + colors.NameExtension, size, minPixelSize, ColorScheme.None, angle);
                 return true;
             }
             return false;
@@ -203,7 +205,7 @@ namespace ORTS.TrackViewer.Drawing
         {
             if (Properties.Settings.Default.showCrossings || drawAlways)
             {
-                drawArea.DrawTexture(this.WorldLocation, "disc", 6f, 0, colors.Crossing);
+                drawArea.DrawTexture(WorldLocation, "disc", 6f, 0, colors.Crossing);
                 return true;
             }
             return false;
@@ -237,7 +239,7 @@ namespace ORTS.TrackViewer.Drawing
         {
             if (Properties.Settings.Default.showRoadCrossings || drawAlways)
             {
-                drawArea.DrawTexture(this.WorldLocation, "disc", 4f, 0, colors.RoadCrossing);
+                drawArea.DrawTexture(WorldLocation, "disc", 4f, 0, colors.RoadCrossing);
                 return true;
             }
             return false;
@@ -251,7 +253,7 @@ namespace ORTS.TrackViewer.Drawing
     /// </summary>
     internal class DrawableSidingItem : DrawableTrackItem
     {
-        private string itemName;
+        private readonly string itemName;
 
         /// <summary>
         /// Default constructor
@@ -261,7 +263,7 @@ namespace ORTS.TrackViewer.Drawing
             : base(originalTrItem)
         {
             Description = "siding";
-            this.itemName = (originalTrItem as SidingItem).ItemName;
+            itemName = (originalTrItem as SidingItem).ItemName;
         }
 
         /// <summary>
@@ -276,12 +278,12 @@ namespace ORTS.TrackViewer.Drawing
             returnValue = false;
             if (Properties.Settings.Default.showSidingMarkers || drawAlways)
             {
-                drawArea.DrawTexture(this.WorldLocation, "disc", 6f, 0, colors.Siding);
+                drawArea.DrawTexture(WorldLocation, "disc", 6f, 0, colors.Siding);
                 returnValue = true;
             }
             if (Properties.Settings.Default.showSidingNames || drawAlways)
             {
-                drawArea.DrawExpandingString(this.WorldLocation, this.itemName);
+                drawArea.DrawExpandingString(WorldLocation, itemName);
                 returnValue = true;
             }
             return returnValue;
@@ -295,8 +297,8 @@ namespace ORTS.TrackViewer.Drawing
     /// </summary>
     internal class DrawablePlatformItem : DrawableTrackItem
     {
-        private string itemName;
-        private string stationName;
+        private readonly string itemName;
+        private readonly string stationName;
 
         /// <summary>
         /// Default constructor
@@ -307,8 +309,8 @@ namespace ORTS.TrackViewer.Drawing
         {
             Description = "platform";
             PlatformItem platform = originalTrItem as PlatformItem;
-            this.itemName = platform.ItemName;
-            this.stationName = platform.Station;
+            itemName = platform.ItemName;
+            stationName = platform.Station;
         }
 
         /// <summary>
@@ -325,18 +327,18 @@ namespace ORTS.TrackViewer.Drawing
             {
                 float size = 9f; // in meters
                 int minPixelSize = 7;
-                drawArea.DrawTexture(this.WorldLocation, "platform" + colors.NameExtension, size, minPixelSize);
+                drawArea.DrawTexture(WorldLocation, "platform" + colors.NameExtension, size, minPixelSize);
                 returnValue = true;
             }
             if (Properties.Settings.Default.showPlatformNames)
             {
-                drawArea.DrawExpandingString(this.WorldLocation, this.itemName);
+                drawArea.DrawExpandingString(WorldLocation, itemName);
                 returnValue = true;
             }
             if (Properties.Settings.Default.showStationNames || 
                 (drawAlways && !Properties.Settings.Default.showPlatformNames) )
             {   // if drawAlways and no station nor platform name requested, then also show station
-                drawArea.DrawExpandingString(this.WorldLocation, this.stationName);
+                drawArea.DrawExpandingString(WorldLocation, stationName);
                 returnValue = true;
             }
             
@@ -373,7 +375,7 @@ namespace ORTS.TrackViewer.Drawing
             {
                 float size = 9f; // in meters
                 int minPixelSize = 5;
-                drawArea.DrawTexture(this.WorldLocation, "pickup" + colors.NameExtension, size, minPixelSize);
+                drawArea.DrawTexture(WorldLocation, "pickup" + colors.NameExtension, size, minPixelSize);
                 return true;
             }
             return false;
@@ -409,7 +411,7 @@ namespace ORTS.TrackViewer.Drawing
             {
                 float size = 9f; // in meters
                 int minPixelSize = 7;
-                drawArea.DrawTexture(this.WorldLocation, "hazard" + colors.NameExtension, size, minPixelSize);
+                drawArea.DrawTexture(WorldLocation, "hazard" + colors.NameExtension, size, minPixelSize);
                 return true;
             }
             return false;
@@ -445,7 +447,7 @@ namespace ORTS.TrackViewer.Drawing
             {
                 float size = 9f; // in meters
                 int minPixelSize = 5;
-                drawArea.DrawTexture(this.WorldLocation, "carspawner" + colors.NameExtension, size, minPixelSize);
+                drawArea.DrawTexture(WorldLocation, "carspawner" + colors.NameExtension, size, minPixelSize);
                 return true;
             }
             return false;
@@ -509,7 +511,7 @@ namespace ORTS.TrackViewer.Drawing
         {
             if (Properties.Settings.Default.showCrossovers || drawAlways)
             {
-                drawArea.DrawTexture(this.WorldLocation, "disc", 3f, 0, colors.EndNode);
+                drawArea.DrawTexture(WorldLocation, "disc", 3f, 0, colors.EndNode);
                 return true;
             }
             return false;
@@ -523,7 +525,7 @@ namespace ORTS.TrackViewer.Drawing
     /// </summary>
     internal class DrawableSpeedPostItem : DrawableTrackItem
     {
-        private SpeedPostItem originalItem;
+        private readonly SpeedPostItem originalItem;
 
         /// <summary>
         /// Default constructor
@@ -548,16 +550,16 @@ namespace ORTS.TrackViewer.Drawing
             returnValue = false;
             if (originalItem.IsLimit && (Properties.Settings.Default.showSpeedLimits || drawAlways))
             {
-                drawArea.DrawTexture(this.WorldLocation, "disc", 6f, 0, colors.Speedpost);
+                drawArea.DrawTexture(WorldLocation, "disc", 6f, 0, colors.Speedpost);
                 string speed = originalItem.Distance.ToString(System.Globalization.CultureInfo.CurrentCulture);
-                drawArea.DrawExpandingString(this.WorldLocation, speed);
+                drawArea.DrawExpandingString(WorldLocation, speed);
                 returnValue = true;
             }
             if (originalItem.IsMilePost && (Properties.Settings.Default.showMileposts || drawAlways))
             {
-                drawArea.DrawTexture(this.WorldLocation, "disc", 6f, 0, colors.Speedpost);
+                drawArea.DrawTexture(WorldLocation, "disc", 6f, 0, colors.Speedpost);
                 string distance = originalItem.Distance.ToString(System.Globalization.CultureInfo.CurrentCulture);
-                drawArea.DrawExpandingString(this.WorldLocation, distance);
+                drawArea.DrawExpandingString(WorldLocation, distance);
                 returnValue = true;
             }
 
@@ -594,7 +596,7 @@ namespace ORTS.TrackViewer.Drawing
             {
                 float size = 4f; // in meters
                 int minPixelSize = 5;
-                drawArea.DrawTexture(this.WorldLocation, "sound" + colors.NameExtension, size, minPixelSize);
+                drawArea.DrawTexture(WorldLocation, "sound" + colors.NameExtension, size, minPixelSize);
                 return true;
             }
             return false;

@@ -17,11 +17,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+
 using Microsoft.Xna.Framework;
-using Orts.Common;
+
 using Orts.Common.Position;
-using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 
@@ -37,14 +36,14 @@ namespace ORTS.TrackViewer.Drawing
     /// is then calculated, and when it is closer than any previously checked item, it is stored together with its distance.
     /// Call Reset to reset the closest distance for a new run.
     /// </summary>
-    public abstract class CloseToMouse
+    internal abstract class CloseToMouse
     {
         /// <summary>Distance squared from the mouse to the closest item</summary>
         protected float ClosestDistanceSquared { get; set; }
         /// <summary>description to be used in statusbar</summary>
         public string Description { get; protected set; }
         /// <summary>Distance (squared) from mouse to the closest item.</summary>
-        public virtual float ClosestMouseDistanceSquared { get { return ClosestDistanceSquared; } }
+        public virtual float ClosestMouseDistanceSquared => ClosestDistanceSquared;
 
         /// <summary>
         /// Reset the distance to far far away, so everything else we see will be closer. reset default description
@@ -62,7 +61,7 @@ namespace ORTS.TrackViewer.Drawing
         /// <returns></returns>
         public bool IsCloserThan(CloseToMouse otherItem)
         {
-            return this.ClosestMouseDistanceSquared < otherItem.ClosestMouseDistanceSquared;
+            return ClosestMouseDistanceSquared < otherItem.ClosestMouseDistanceSquared;
         }
 
     }
@@ -70,7 +69,7 @@ namespace ORTS.TrackViewer.Drawing
     /// <summary>
     /// CloseToMouse item specifically for point-like track-database items like junctions, endnodes and track items.
     /// </summary>
-    public abstract class CloseToMousePoint : CloseToMouse
+    internal abstract class CloseToMousePoint : CloseToMouse
     {
         /// <summary>The index of the original item in whatever table it was defined</summary>
         public abstract uint Index { get; }
@@ -83,16 +82,16 @@ namespace ORTS.TrackViewer.Drawing
     /// <summary>
     /// CloseToMouse item specifically for junctions and endnode. But will take any track point
     /// </summary>
-    public class CloseToMouseJunctionOrEnd:CloseToMousePoint
+    internal class CloseToMouseJunctionOrEnd:CloseToMousePoint
     {
         /// <summary>Tracknode of the closest junction or end node</summary>
         public TrackNode JunctionOrEndNode { get; private set; }
         /// <summary>The index of the original item in whatever table it was defined</summary>
-        public override uint Index { get { return JunctionOrEndNode.Index; } }
+        public override uint Index => JunctionOrEndNode.Index;
         /// <summary>The X-coordinate within a tile of the original item in the track database</summary>
-        public override float X { get { return JunctionOrEndNode.UiD.Location.Location.X; } }
+        public override float X => JunctionOrEndNode.UiD.Location.Location.X;
         /// <summary>The Z-coordinate within a tile of the original item in the track database</summary>
-        public override float Z { get { return JunctionOrEndNode.UiD.Location.Location.Z; } }
+        public override float Z => JunctionOrEndNode.UiD.Location.Location.Z;
 
         /// <summary>
         /// Reset the calculation of which item (junction) is closest to the mouse
@@ -118,8 +117,8 @@ namespace ORTS.TrackViewer.Drawing
         public CloseToMouseJunctionOrEnd(TrackNode junctionOrEndNode, string description)
         {
             ClosestDistanceSquared = 0;
-            this.JunctionOrEndNode = junctionOrEndNode;
-            this.Description = description;
+            JunctionOrEndNode = junctionOrEndNode;
+            Description = description;
         }
 
         /// <summary>
@@ -135,8 +134,8 @@ namespace ORTS.TrackViewer.Drawing
             if (distanceSquared < ClosestDistanceSquared)
             {
                 ClosestDistanceSquared = distanceSquared;
-                this.JunctionOrEndNode = junctionOrEndNode;
-                this.Description = description;
+                JunctionOrEndNode = junctionOrEndNode;
+                Description = description;
             }
         }
 
@@ -145,17 +144,17 @@ namespace ORTS.TrackViewer.Drawing
     /// <summary>
     /// CloseToMouse track item. Stores item as well as its type (name)
     /// </summary>
-    public class CloseToMouseItem:CloseToMousePoint
+    internal class CloseToMouseItem:CloseToMousePoint
     {
         /// <summary>Link to the item that is closest to the mouse</summary>
         public DrawableTrackItem DrawableTrackItem { get; protected set; }
-        
+
         /// <summary>The index of the original item in whatever table it was defined</summary>
-        public override uint Index { get { return DrawableTrackItem.Index;} }
+        public override uint Index => DrawableTrackItem.Index;
         /// <summary>The X-coordinate within a tile of the original item in the track database</summary>
-        public override float X { get { return worldLocation.Location.X; } }
+        public override float X => worldLocation.Location.X;
         /// <summary>The Z-coordinate within a tile of the original item in the track database</summary>
-        public override float Z { get { return worldLocation.Location.Z; } }
+        public override float Z => worldLocation.Location.Z;
 
         /// <summary>The world location of the item that is closest to the mouse</summary>
         private WorldLocation worldLocation;
@@ -202,9 +201,9 @@ namespace ORTS.TrackViewer.Drawing
             if (distanceSquared < ClosestDistanceSquared)
             {
                 ClosestDistanceSquared = distanceSquared;
-                this.DrawableTrackItem = trItem;
-                this.worldLocation = location;
-                this.Description = trItem.Description;
+                DrawableTrackItem = trItem;
+                worldLocation = location;
+                Description = trItem.Description;
             }
         }
     }
@@ -214,7 +213,7 @@ namespace ORTS.TrackViewer.Drawing
     /// We initially store the distance from mouse to the startpoint of the track section. Because that is fast.
     /// Later we then calculate the real distance for a number of sections
     /// </summary>
-    public class CloseToMouseTrack : CloseToMouse
+    internal class CloseToMouseTrack : CloseToMouse
     {
         //Note: 'Last' is the one with shortest distance
         /// <summary>Tracknode that is closest</summary>
@@ -228,7 +227,7 @@ namespace ORTS.TrackViewer.Drawing
         /// <summary>Distance (squared) between mouse and closest track location</summary>
         public override float ClosestMouseDistanceSquared { get { CalcRealDistances(); return (float)sortedTrackCandidates.Last().Key; } }
 
-        private TrackSectionsFile tsectionDat;
+        private readonly TrackSectionsFile tsectionDat;
         private WorldLocation storedMouseLocation;
         private bool realDistancesAreCalculated;
 

@@ -16,10 +16,7 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
-using System.Diagnostics;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -29,7 +26,7 @@ namespace ORTS.TrackViewer.Drawing
     /// Delegate so the calling class can give a routine that is used for actual drawing
     /// </summary>
     /// <param name="drawArea">The draw area to draw upon</param>
-    public delegate void DrawingDelegate(DrawArea drawArea);
+    internal delegate void DrawingDelegate(DrawArea drawArea);
 
     ///<summary>
     /// This class extends DrawArea. DrawArea itself is a class that handles all translation of real world coordinates 
@@ -68,7 +65,7 @@ namespace ORTS.TrackViewer.Drawing
     ///         Also in the Game.Draw, but before spriteBatch.begin:    yourShadowDrawArea.DrawShadowTextures(DrawSomething, background color);
     ///
     ///</summary>
-    public class ShadowDrawArea: DrawArea, IDisposable
+    internal class ShadowDrawArea: DrawArea, IDisposable
     {
         #region private Fields
         private int blockW; // Width  of single block in pixels
@@ -91,7 +88,7 @@ namespace ORTS.TrackViewer.Drawing
         // textures and rendertarget for blocks
         private RenderTarget2D[] shadowRenderTargetSingle;
         private Texture2D[] shadowMapsSingle;
-        private ShadowDrawArea shadowDrawArea; // draw area used to draw individual blocks. 
+        private readonly ShadowDrawArea shadowDrawArea; // draw area used to draw individual blocks. 
                                               // A normal drawArea would suffice, but this would not give access to protected members!
 
         // texture and rendertarget for combined texture
@@ -104,7 +101,7 @@ namespace ORTS.TrackViewer.Drawing
         private int Ninner;    // Number of (1D) blocks in visible region
         private int Nouter;    // Number of (1D) blocks total.
 
-        private int Nborder { get { return (Nouter - Ninner) / 2; } } // number of blocks in border
+        private int Nborder => (Nouter - Ninner) / 2;  // number of blocks in border
 
         private int Nsampling; // Oversampling rate.
         private int[] xOrder; // array containing the x-indexes of the subblocks in the order they need to be drawn
@@ -189,7 +186,7 @@ namespace ORTS.TrackViewer.Drawing
             {
                 shadowMapCombined.Dispose();
             }
-            var pp = graphicsDevice.PresentationParameters;
+            PresentationParameters pp = graphicsDevice.PresentationParameters;
             shadowRenderTargetCombined = new RenderTarget2D(graphicsDevice, Nouter * blockW, Nouter * blockH, false, SurfaceFormat.Color,
                 pp.DepthStencilFormat, pp.MultiSampleCount, RenderTargetUsage.DiscardContents);
             shadowDrawArea.SetScreenSize(0, 0, blockW, blockH);
@@ -424,7 +421,9 @@ namespace ORTS.TrackViewer.Drawing
                     // even if I just before this set graphicsDevice.SetRenderTarget(0, null); I have no idea why
                     shadowMapsSingle[orderIndex] = shadowRenderTargetSingle[orderIndex];
                 }
+#pragma warning disable CA1031 // Do not catch general exception types
                 catch { }
+#pragma warning restore CA1031 // Do not catch general exception types
             }
 
             SetNextRectangleToDraw(true);
@@ -551,7 +550,10 @@ namespace ORTS.TrackViewer.Drawing
 
                 needToDrawRectangle[nextRectangleToDraw] = false;
             }
-            catch {
+#pragma warning disable CA1031 // Do not catch general exception types
+            catch
+#pragma warning restore CA1031 // Do not catch general exception types
+            {
                 graphicsDevice.SetRenderTarget(null); // return control to main render target
             }
             graphicsDevice.SetRenderTarget(null); 
@@ -580,7 +582,9 @@ namespace ORTS.TrackViewer.Drawing
                 graphicsDevice.SetRenderTarget(null);
                 shadowMapCombined = shadowRenderTargetCombined;
             }
+#pragma warning disable CA1031 // Do not catch general exception types
             catch {
+#pragma warning restore CA1031 // Do not catch general exception types
                 graphicsDevice.SetRenderTarget(null); // return control to main render target
             }
         }

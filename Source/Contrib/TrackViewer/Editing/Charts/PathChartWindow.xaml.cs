@@ -1,16 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace ORTS.TrackViewer.Editing.Charts
 {
@@ -22,9 +14,9 @@ namespace ORTS.TrackViewer.Editing.Charts
         /// <summary>Does the window have focus (actived) or not</summary>
         public bool IsActivated { get; set; }
 
-        private Dictionary<string, Canvas> chartCanvasses;
-        private Dictionary<string, Canvas> legendCanvasses;
-        private Dictionary<string, ISubChart> subCharts;
+        private readonly Dictionary<string, Canvas> chartCanvasses;
+        private readonly Dictionary<string, Canvas> legendCanvasses;
+        private readonly Dictionary<string, ISubChart> subCharts;
 
         #region Construction and data setting
         /// <summary>
@@ -74,8 +66,7 @@ namespace ORTS.TrackViewer.Editing.Charts
             double zoomRatioStop = ChartScrollbar.Value + ChartScrollbar.ViewportSize;
             foreach (string chartName in chartCanvasses.Keys)
             {
-                ISubChart subChart;
-                subCharts.TryGetValue(chartName, out subChart);
+                subCharts.TryGetValue(chartName, out ISubChart subChart);
                 if (subChart != null) {
                     subChart.Draw(zoomRatioStart, zoomRatioStop, chartCanvasses[chartName], legendCanvasses[chartName]);
                 }
@@ -98,7 +89,7 @@ namespace ORTS.TrackViewer.Editing.Charts
         /// <param name="newTitle"></param>
         public void SetTitle(string newTitle)
         {
-            this.Title = newTitle;
+            Title = newTitle;
         }
         #endregion
 
@@ -118,26 +109,28 @@ namespace ORTS.TrackViewer.Editing.Charts
         /// </summary>
         protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
         {
+            if (e == null)
+                throw new ArgumentNullException(nameof(e));
             e.Cancel = true;  // cancels the window close    
-            this.Hide();      // Programmatically hides the window
+            Hide();      // Programmatically hides the window
         }
 
         private void Window_Activated(object sender, EventArgs e)
         {
-            this.IsActivated = true;
+            IsActivated = true;
         }
 
         private void Window_Deactivated(object sender, EventArgs e)
         {
-            this.IsActivated = false;
+            IsActivated = false;
         }
 
         private void OnMouseWheel(object sender, MouseWheelEventArgs e)
         {
-            if (this.IsActivated)
+            if (IsActivated)
             {   // We want to make sure that mouse scrolling is not captured here if already captured in trackViewer.
-                double xPositionOfMouse = Mouse.GetPosition(this.HeightCanvas).X;
-                double xPositionOfMouseAsRatio = xPositionOfMouse / this.HeightCanvas.ActualWidth;
+                double xPositionOfMouse = Mouse.GetPosition(HeightCanvas).X;
+                double xPositionOfMouseAsRatio = xPositionOfMouse / HeightCanvas.ActualWidth;
 
                 ZoomChange(Math.Exp(0.1 * e.Delta / 40), xPositionOfMouseAsRatio);
             }
@@ -149,34 +142,34 @@ namespace ORTS.TrackViewer.Editing.Charts
         {
             if (e.LeftButton != MouseButtonState.Pressed)
                 return;
-            var sourceElement = e.Source as Window;
+            Window sourceElement = e.Source as Window;
             if (sourceElement != null)
             {
                 sourceElement.CaptureMouse();
-                this.mouseIsMoving = true;
+                mouseIsMoving = true;
                 double mouseXstart = e.GetPosition(sourceElement).X;
-                double mouseXAsRatio = mouseXstart / this.HeightCanvas.ActualWidth;
-                this.realXatMouse = ChartScrollbar.Value + mouseXAsRatio * ChartScrollbar.ViewportSize;
+                double mouseXAsRatio = mouseXstart / HeightCanvas.ActualWidth;
+                realXatMouse = ChartScrollbar.Value + mouseXAsRatio * ChartScrollbar.ViewportSize;
             }
         }
 
         private void Window_MouseMove(object sender, MouseEventArgs e)
         {
-            if (this.mouseIsMoving)
+            if (mouseIsMoving)
             {
                 double mouseXstart = e.GetPosition(null).X;
-                double mouseXAsRatio = mouseXstart / this.HeightCanvas.ActualWidth;
-                ChartScrollbar.Value = this.realXatMouse - mouseXAsRatio * ChartScrollbar.ViewportSize;
+                double mouseXAsRatio = mouseXstart / HeightCanvas.ActualWidth;
+                ChartScrollbar.Value = realXatMouse - mouseXAsRatio * ChartScrollbar.ViewportSize;
             }
         }
 
         private void Window_MouseUp(object sender, MouseButtonEventArgs e)
         {
-            var sourceElement = e.Source as Window;
+            Window sourceElement = e.Source as Window;
             if (sourceElement != null)
             {
                 sourceElement.ReleaseMouseCapture();
-                this.mouseIsMoving = false;
+                mouseIsMoving = false;
             }
         }
         #endregion
@@ -196,7 +189,7 @@ namespace ORTS.TrackViewer.Editing.Charts
             double oldValue = ChartScrollbar.Value;
 
             double zoomCenter = ChartScrollbar.Value + zoomCenterRatio * ChartScrollbar.ViewportSize;
-            ChartScrollbar.ViewportSize = ChartScrollbar.ViewportSize / zoomFactor;
+            ChartScrollbar.ViewportSize /= zoomFactor;
             if (ChartScrollbar.ViewportSize > 0.9999)
             {
                 ChartScrollbar.ViewportSize = 0.9999;

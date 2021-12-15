@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Windows;
@@ -51,9 +52,9 @@ namespace ORTS.TrackViewer.UserInterface
         /// <summary>Height of the menu in pixels</summary>
         public int MenuHeight { get; set; }
 
-        private TrackViewer trackViewer;
-        private ElementHost elementHost;
-        private SaveableSettingsDictionary settingsDictionary = new SaveableSettingsDictionary();
+        private readonly TrackViewer trackViewer;
+        private readonly ElementHost elementHost;
+        private readonly SaveableSettingsDictionary settingsDictionary = new SaveableSettingsDictionary();
         private OtherPathsWindow otherPathsWindow;
         private bool hasMouseItself;
 
@@ -61,7 +62,7 @@ namespace ORTS.TrackViewer.UserInterface
         /// constructor
         /// </summary>
         /// <param name="trackViewer">The trackviewer object we need for callbacks</param>
-        public MenuControl(TrackViewer trackViewer)
+        internal MenuControl(TrackViewer trackViewer)
         {
             this.trackViewer = trackViewer;
             InitializeComponent();
@@ -153,12 +154,12 @@ namespace ORTS.TrackViewer.UserInterface
             menuShowDMTerrain.IsChecked = false;
             menuShowPatchLines.IsChecked = false;
 
-            reductionNone.IsChecked = (Convert.ToInt32(reductionNone.Tag.ToString()) == Properties.Settings.Default.terrainReductionFactor);
-            reductionAuto.IsChecked = (Convert.ToInt32(reductionAuto.Tag.ToString()) == Properties.Settings.Default.terrainReductionFactor);
-            reduction2.IsChecked = (Convert.ToInt32(reduction2.Tag.ToString()) == Properties.Settings.Default.terrainReductionFactor);
-            reduction4.IsChecked = (Convert.ToInt32(reduction4.Tag.ToString()) == Properties.Settings.Default.terrainReductionFactor);
-            reduction8.IsChecked = (Convert.ToInt32(reduction8.Tag.ToString()) == Properties.Settings.Default.terrainReductionFactor);
-            reduction16.IsChecked = (Convert.ToInt32(reduction16.Tag.ToString()) == Properties.Settings.Default.terrainReductionFactor);
+            reductionNone.IsChecked = (Convert.ToInt32(reductionNone.Tag.ToString(), CultureInfo.InvariantCulture) == Properties.Settings.Default.terrainReductionFactor);
+            reductionAuto.IsChecked = (Convert.ToInt32(reductionAuto.Tag.ToString(), CultureInfo.InvariantCulture) == Properties.Settings.Default.terrainReductionFactor);
+            reduction2.IsChecked = (Convert.ToInt32(reduction2.Tag.ToString(), CultureInfo.InvariantCulture) == Properties.Settings.Default.terrainReductionFactor);
+            reduction4.IsChecked = (Convert.ToInt32(reduction4.Tag.ToString(), CultureInfo.InvariantCulture) == Properties.Settings.Default.terrainReductionFactor);
+            reduction8.IsChecked = (Convert.ToInt32(reduction8.Tag.ToString(), CultureInfo.InvariantCulture) == Properties.Settings.Default.terrainReductionFactor);
+            reduction16.IsChecked = (Convert.ToInt32(reduction16.Tag.ToString(), CultureInfo.InvariantCulture) == Properties.Settings.Default.terrainReductionFactor);
 
             UpdateMenuSettings();  // to be sure some other settings are done correctly
 
@@ -547,7 +548,7 @@ namespace ORTS.TrackViewer.UserInterface
         /// </summary>
         /// <param name="path">The path containing name and filepath</param>
         /// <returns>string that can be used to defined menu header</returns>
-        public static string MakePathMenyEntryName(Path path)
+        internal static string MakePathMenyEntryName(Path path)
         {
             string[] pathArr = path.FilePath.Split('\\');
             string fileName = pathArr.Last();
@@ -857,7 +858,7 @@ namespace ORTS.TrackViewer.UserInterface
         {
             RadioButton reductionOptionButton = sender as RadioButton;
             object tag = reductionOptionButton.Tag;
-            var value = Convert.ToInt32(tag.ToString());
+            int value = Convert.ToInt32(tag.ToString(), CultureInfo.InvariantCulture);
             Properties.Settings.Default.terrainReductionFactor = value;
             UpdateMenuSettings();
             trackViewer.SetTerrainReduction();
@@ -905,11 +906,14 @@ namespace ORTS.TrackViewer.UserInterface
         /// <param name="callback">The callback that will be called upon a change in the preference</param>
         public void AddStringPreference(string name, string description, string[] options, string defaultOption, StringPreferenceDelegate callback)
         {
+            if (callback == null)
+                throw new ArgumentNullException(nameof(callback));
+
             MenuItem preferenceItem = new MenuItem
             {
                 Header = description
             };
-            foreach (string option in options)
+            foreach (string option in options ?? Enumerable.Empty<string>())
             {
                 MenuItem menuItem = new MenuItem
                 {
@@ -1052,12 +1056,12 @@ namespace ORTS.TrackViewer.UserInterface
 
         private void MenuNeedingMouseOpened(object sender, RoutedEventArgs e)
         {
-            this.hasMouseItself = true;
+            hasMouseItself = true;
         }
 
         private void MenuNeedingMouseClosed(object sender, RoutedEventArgs e)
         {
-            this.hasMouseItself = false;
+            hasMouseItself = false;
         }
 
         /// <summary>
@@ -1065,8 +1069,8 @@ namespace ORTS.TrackViewer.UserInterface
         /// </summary>
         public bool HasMouse()
         {
-            bool otherPathsWindowHasMouse = (this.otherPathsWindow) != null && this.otherPathsWindow.IsActive;
-            return this.hasMouseItself || otherPathsWindowHasMouse;
+            bool otherPathsWindowHasMouse = (otherPathsWindow) != null && otherPathsWindow.IsActive;
+            return hasMouseItself || otherPathsWindowHasMouse;
         }
 
         /// <summary>
@@ -1112,22 +1116,22 @@ namespace ORTS.TrackViewer.UserInterface
 
         private void MenuShowChart_Click(object sender, RoutedEventArgs e)
         {
-            this.trackViewer.ShowPathChart();
+            trackViewer.ShowPathChart();
         }
 
         private void MenuAutoFixAllNodes_Click(object sender, RoutedEventArgs e)
         {
-            this.trackViewer.PathEditor.AutoFixAllBrokenNodes();
+            trackViewer.PathEditor.AutoFixAllBrokenNodes();
         }
 
         private void MenuLoadLabels_Click(object sender, RoutedEventArgs e)
         {
-            this.trackViewer.LoadLabels();
+            trackViewer.LoadLabels();
         }
 
         private void MenuSaveLabels_Click(object sender, RoutedEventArgs e)
         {
-            this.trackViewer.SaveLabels();
+            trackViewer.SaveLabels();
         }
 
         private void MenuHighlightLastPathSection_Click(object sender, RoutedEventArgs e)
@@ -1172,7 +1176,9 @@ namespace ORTS.TrackViewer.UserInterface
     /// Delegate to enable callbacks for preference choices
     /// </summary>
     /// <param name="chosenOption">The option of the preferences that was chosen</param>
+#pragma warning disable CA1711 // Identifiers should not have incorrect suffix
     public delegate void StringPreferenceDelegate(string chosenOption);
+#pragma warning restore CA1711 // Identifiers should not have incorrect suffix
 
     /// <summary>
     /// This interface is intended to support various ways in preferences can be changed.
@@ -1211,7 +1217,7 @@ namespace ORTS.TrackViewer.UserInterface
             Dictionary<string, string> hiddenDictionary = ToDictionary(Properties.Settings.Default.preferences);
             foreach (KeyValuePair<string, string> kvp in hiddenDictionary)
             {
-                this.Add(kvp.Key, kvp.Value);
+                Add(kvp.Key, kvp.Value);
             }
         }
 
