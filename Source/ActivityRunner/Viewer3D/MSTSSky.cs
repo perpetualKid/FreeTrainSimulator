@@ -36,7 +36,7 @@ using Orts.MultiPlayer;
 namespace Orts.ActivityRunner.Viewer3D
 {
     #region MSTSSkyVariables
-    public class MSTSSkyConstants
+    public static class MSTSSkyConstants
     {
         // Sky dome constants
         public static int skyRadius = 6000;

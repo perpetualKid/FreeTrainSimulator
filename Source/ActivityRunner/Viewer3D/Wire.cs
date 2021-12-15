@@ -40,7 +40,7 @@ using System.IO;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
-    public class Wire
+    public static class Wire
     {
         /// <summary>
         /// Decompose and add a wire on top of MSTS track section

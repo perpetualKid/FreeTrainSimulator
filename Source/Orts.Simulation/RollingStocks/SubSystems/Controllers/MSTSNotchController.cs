@@ -37,14 +37,16 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             Value = v;
             Smooth = s == 0 ? false : true;
             NotchStateType = ControllerState.Dummy;  // Default to a dummy controller state if no valid alternative state used
-            string lower = type.ToLower();
-            if (lower.StartsWith("trainbrakescontroller"))
-                lower = lower.Substring(21);
-            if (lower.StartsWith("enginebrakescontroller"))
-                lower = lower.Substring(22);
-            if (lower.StartsWith("brakemanbrakescontroller"))
-                lower = lower.Substring(24);
-            switch (lower)
+            string lower;
+            if (type.StartsWith("trainbrakescontroller", StringComparison.OrdinalIgnoreCase))
+                lower = type[21..];
+            if (type.StartsWith("enginebrakescontroller", StringComparison.OrdinalIgnoreCase))
+                lower = type[22..];
+            if (type.StartsWith("brakemanbrakescontroller", StringComparison.OrdinalIgnoreCase))
+                lower = type.Substring(24);
+            else
+                lower = type;
+            switch (lower.ToLowerInvariant())
             {
                 case "dummy": break;
                 case ")": break;

@@ -63,9 +63,9 @@ namespace Orts.ActivityRunner.Viewer3D
     /// <summary>
     /// Utility class to avoid loading multiple copies of the same file.
     /// </summary>
-    public class SharedSMSFileManager
+    public static class SharedSMSFileManager
     {
-        private static Dictionary<string, SoundManagmentFile> sharedSMSFiles = new Dictionary<string, SoundManagmentFile>();
+        private static readonly Dictionary<string, SoundManagmentFile> sharedSMSFiles = new Dictionary<string, SoundManagmentFile>();
 
         public static int SwitchSmsNumber { get; private set; }
         public static int CurveSmsNumber { get; private set; }

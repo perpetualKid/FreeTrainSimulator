@@ -822,7 +822,7 @@ namespace Orts.MultiPlayer
             try
             {
                 char type = 'w';
-                if (wagonFilePath.ToLower().Contains(".eng")) type = 'e';
+                if (wagonFilePath.Contains(".eng", StringComparison.OrdinalIgnoreCase)) type = 'e';
                 string newWagonFilePath = SubMissingCar(length, type);
                 car = RollingStock.Load(Simulator.Instance, newWagonFilePath);
                 car.CarLengthM = length;
@@ -845,7 +845,7 @@ namespace Orts.MultiPlayer
         public string SubMissingCar(int length, char type)
         {
 
-            type = char.ToLower(type);
+            type = char.ToLowerInvariant(type);
             SortedList<double, string> copyList;
             if (type == 'w')
             {

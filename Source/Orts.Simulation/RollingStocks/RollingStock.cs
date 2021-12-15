@@ -121,21 +121,21 @@ namespace Orts.Simulation.RollingStocks
         /// <summary>
         /// Utility class to avoid loading multiple copies of the same file.
         /// </summary>
-        public class SharedGenericWAGFileManager
+        public static class SharedGenericWAGFileManager
         {
-            private static Dictionary<string, GenericWAGFile> SharedWAGFiles = new Dictionary<string, GenericWAGFile>();
+            private static readonly Dictionary<string, GenericWAGFile> sharedWAGFiles = new Dictionary<string, GenericWAGFile>();
 
             public static GenericWAGFile Get(string path)
             {
-                if (!SharedWAGFiles.ContainsKey(path))
+                if (!sharedWAGFiles.ContainsKey(path))
                 {
                     GenericWAGFile wagFile = new GenericWAGFile(path);
-                    SharedWAGFiles.Add(path, wagFile);
+                    sharedWAGFiles.Add(path, wagFile);
                     return wagFile;
                 }
                 else
                 {
-                    return SharedWAGFiles[path];
+                    return sharedWAGFiles[path];
                 }
             }
         }
