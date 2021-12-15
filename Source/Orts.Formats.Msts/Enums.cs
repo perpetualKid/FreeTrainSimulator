@@ -483,6 +483,10 @@ namespace Orts.Formats.Msts
         LeftDoor,
         RightDoor,
         Mirrors,
+        Orts_Item1Continuous,
+        Orts_Item2Continuous,
+        Orts_Item1TwoState,
+        Orts_Item2TwoState,
     }
 
     public enum CabViewControlStyle
