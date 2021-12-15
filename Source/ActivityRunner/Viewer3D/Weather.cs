@@ -24,15 +24,13 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Security.Cryptography;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
 
 using Orts.ActivityRunner.Viewer3D.Sound;
 using Orts.Common;
+using Orts.Common.Calc;
 using Orts.Common.Input;
 using Orts.Common.Position;
 using Orts.Common.Xna;
@@ -43,7 +41,6 @@ using Orts.Formats.OR.Models;
 using Orts.MultiPlayer;
 using Orts.Simulation;
 using Orts.Simulation.World;
-using Orts.Graphics.Xna;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
@@ -118,7 +115,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     UpdateSoundSources();
                     UpdateVolume();
                     // We have a pause in weather change, depending from randomization level
-                    dynamicWeather.stableWeatherTimer = (4.0f - this.viewer.Settings.ActWeatherRandomizationLevel) * 600 + RandomNumberGenerator.GetInt32(300) - 150;
+                    dynamicWeather.stableWeatherTimer = (4.0f - this.viewer.Settings.ActWeatherRandomizationLevel) * 600 + StaticRandom.Next(300) - 150;
                     weatherChangeOn = true;
                 }
 
@@ -130,7 +127,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 UpdateWeatherParameters();
             };
 
-            if (!MultiPlayerManager.IsClient())
+            if (MultiPlayerManager.MultiplayerState != MultiplayerState.Client)
             {
                 viewer.UserCommandController.AddEvent(UserCommand.DebugWeatherChange, KeyEventType.KeyPressed, () =>
                 {
@@ -379,8 +376,8 @@ namespace Orts.ActivityRunner.Viewer3D
                 for (var i = 0; i < windSpeedMpS.Length; i++)
                 {
 
-                    windSpeedMpS[i] += new Vector2D((Viewer.Random.NextDouble() * 2 - 1) * windChangeMpSS[i] * windUpdateTimer,
-                        (Viewer.Random.NextDouble() * 2 - 1) * windChangeMpSS[i] * windUpdateTimer);
+                    windSpeedMpS[i] += new Vector2D((StaticRandom.NextDouble() * 2 - 1) * windChangeMpSS[i] * windUpdateTimer,
+                        (StaticRandom.NextDouble() * 2 - 1) * windChangeMpSS[i] * windUpdateTimer);
                     var windMagnitude = windSpeedMpS[i].Length() / (i == 0 ? weather.WindSpeed.Length() * 0.4f : windSpeedMaxMpS);
 
                     if (windMagnitude > 1)
@@ -407,11 +404,11 @@ namespace Orts.ActivityRunner.Viewer3D
 
                 // Test to ensure wind direction stays within the direction bandwidth set, if out of bounds set new random direction
                 if (calculatedWindDirection > (BaseWindDirectionRad + WindDirectionVariationRad))
-                    calculatedWindDirection = BaseWindDirectionRad + (WindDirectionVariationRad * (float)Viewer.Random.NextDouble());
+                    calculatedWindDirection = BaseWindDirectionRad + (WindDirectionVariationRad * (float)StaticRandom.NextDouble());
 
 
                 if (calculatedWindDirection < (BaseWindDirectionRad - WindDirectionVariationRad))
-                    calculatedWindDirection = BaseWindDirectionRad - (WindDirectionVariationRad * (float)Viewer.Random.NextDouble());
+                    calculatedWindDirection = BaseWindDirectionRad - (WindDirectionVariationRad * (float)StaticRandom.NextDouble());
 
                 weather.CalculatedWindDirection = calculatedWindDirection;
 
@@ -423,14 +420,14 @@ namespace Orts.ActivityRunner.Viewer3D
             CheckDesertZone();
             if (DesertZone) return false;
             // First define overcast
-            var randValue = RandomNumberGenerator.GetInt32(170);
+            var randValue = StaticRandom.Next(170);
             var intermValue = randValue >= 50 ? (float)(randValue - 50f) : (float)randValue;
             weather.OvercastFactor = intermValue >= 20 ? (float)(intermValue - 20f) / 100f : (float)intermValue / 100f; // give more probability to less overcast
             viewer.Simulator.WeatherType = WeatherType.Clear;
             // Then check if we are in precipitation zone
             if (weather.OvercastFactor > 0.5)
             {
-                randValue = RandomNumberGenerator.GetInt32(75);
+                randValue = StaticRandom.Next(75);
                 if (randValue > 40)
                 {
                     weather.PrecipitationIntensity = (float)(randValue - 40f) / 1000f;
@@ -451,7 +448,7 @@ namespace Orts.ActivityRunner.Viewer3D
             }
             else weather.PrecipitationIntensity = 0;
             // and now define visibility
-            randValue = RandomNumberGenerator.GetInt32(2000);
+            randValue = StaticRandom.Next(2000);
             if (weather.PrecipitationIntensity > 0 || weather.OvercastFactor > 0.7f)
                 // use first digit to define power of ten and the other three to define the multiplying number
                 weather.FogVisibilityDistance = Math.Max(100, (float)Math.Pow(10, ((int)(randValue / 1000) + 2)) * (float)((randValue % 1000 + 1) / 100f));
@@ -490,9 +487,8 @@ namespace Orts.ActivityRunner.Viewer3D
         public virtual void Update(in ElapsedTime elapsedTime)
         {
             Time += (float)elapsedTime.ClockSeconds;
-            var manager = MultiPlayerManager.Instance();
-
-            if (MultiPlayerManager.IsClient() && manager.weatherChanged)
+            MultiPlayerManager manager;
+            if (MultiPlayerManager.MultiplayerState == MultiplayerState.Client && (manager = MultiPlayerManager.Instance()).weatherChanged)
             {
                 // Multiplayer weather has changed so we need to update our state to match weather, overcastFactor, pricipitationIntensity and fogDistance.
                 if (manager.weather >= 0 && manager.weather != (int)viewer.Simulator.WeatherType)
@@ -520,7 +516,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     manager.fogDistance = -1;
                 }
             }
-            else if (!MultiPlayerManager.IsClient())
+            else if (MultiPlayerManager.MultiplayerState != MultiplayerState.Client)
             {
                 UpdateWind(elapsedTime);
             }
@@ -789,9 +785,9 @@ namespace Orts.ActivityRunner.Viewer3D
             {
                 // define how much time transition will last
                 var weatherChangeTimer = (4 - weatherControl.viewer.Settings.ActWeatherRandomizationLevel) * 600 +
-                    RandomNumberGenerator.GetInt32((4 - weatherControl.viewer.Settings.ActWeatherRandomizationLevel) * 600);
+                    StaticRandom.Next((4 - weatherControl.viewer.Settings.ActWeatherRandomizationLevel) * 600);
                 // begin with overcast
-                var randValue = RandomNumberGenerator.GetInt32(170);
+                var randValue = StaticRandom.Next(170);
                 var intermValue = randValue >= 50 ? (float)(randValue - 50f) : (float)randValue;
                 ORTSOvercast = intermValue >= 20 ? (float)(intermValue - 20f) / 100f : (float)intermValue / 100f; // give more probability to less overcast
                 ORTSOvercastTransitionTimeS = weatherChangeTimer;
@@ -800,7 +796,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 // Then check if we are in precipitation zone
                 if (ORTSOvercast > 0.5)
                 {
-                    randValue = RandomNumberGenerator.GetInt32(75);
+                    randValue = StaticRandom.Next(75);
                     if (randValue > 40)
                     {
                         ORTSPrecipitationIntensity = (float)(randValue - 40f) / 1000f;
@@ -846,7 +842,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 }
 
                 // and now define visibility
-                randValue = RandomNumberGenerator.GetInt32(2000);
+                randValue = StaticRandom.Next(2000);
                 if (ORTSPrecipitationIntensity > 0 || ORTSOvercast > 0.7f)
                     // use first digit to define power of ten and the other three to define the multiplying number
                     ORTSFog = Math.Max(100, (float)Math.Pow(10, ((int)(randValue / 1000) + 2)) * (float)((randValue % 1000 + 1) / 100f));
@@ -964,26 +960,6 @@ namespace Orts.ActivityRunner.Viewer3D
             }
         }
 
-        // check value, set random value if allowed and value not set
-        private void CheckValue(ref float setValue, bool randomize, float minValue, float maxValue, TimeSpan acttime, string description)
-        {
-            // overcast
-            if (setValue < 0 && randomize)
-            {
-                setValue = (float)(Viewer.Random.Next((int)maxValue * 100) / 100);  // ensure there is a value if range is 0 - 1
-            }
-            else
-            {
-                float correctedValue = MathHelper.Clamp(setValue, minValue, maxValue);
-                if (correctedValue != setValue)
-                {
-                    Trace.TraceInformation("Invalid value for {0} for weather at {1} : {2}; value must be between {3} and {4}, clamped to {5}",
-                        description, acttime.ToString(), setValue, minValue, maxValue, correctedValue);
-                    setValue = correctedValue;
-                }
-            }
-        }
-
         // set initial weather parameters
         private void SetInitialWeatherParameters(double realTime)
         {
@@ -1017,7 +993,7 @@ namespace Orts.ActivityRunner.Viewer3D
             // fog
             if (lastWeather is FogCondition fogCondition)
             {
-                float actualLiftingTime = (0.9f * fogCondition.LiftTime) + (((float)Viewer.Random.Next(10) / 100) * fogCondition.LiftTime); // defined time +- 10%
+                float actualLiftingTime = (0.9f * fogCondition.LiftTime) + (((float)StaticRandom.Next(10) / 100) * fogCondition.LiftTime); // defined time +- 10%
                 AWFogLiftTime = AWNextChangeTime - actualLiftingTime;
 
                 // check if fog is allready lifting
@@ -1044,7 +1020,7 @@ namespace Orts.ActivityRunner.Viewer3D
             else if (lastWeather is OvercastCondition overcastCondition)
             {
                 AWOvercastCloudcover = Math.Max(0, Math.Min(1, (overcastCondition.Overcast / 100) +
-                    ((float)Viewer.Random.Next((int)(-0.5f * overcastCondition.Variation), (int)(0.5f * overcastCondition.Variation)) / 100)));
+                    ((float)StaticRandom.Next((int)(-0.5f * overcastCondition.Variation), (int)(0.5f * overcastCondition.Variation)) / 100)));
                 AWActualVisibility = weather.FogVisibilityDistance = overcastCondition.Visibility;
 
 #if DEBUG_AUTOWEATHER
@@ -1313,7 +1289,7 @@ namespace Orts.ActivityRunner.Viewer3D
             // determine actual duration of precipitation
             float maxDuration = AWNextChangeTime - weatherDetails[AWActiveIndex].Time;
             AWPrecipitationTotalDuration = (float)maxDuration * (precipitationCondition.Probability / 100f);  // nominal value
-            AWPrecipitationTotalDuration = (0.9f + ((float)Viewer.Random.Next(20) / 20)) * AWPrecipitationTotalDuration; // randomized value, +- 10% 
+            AWPrecipitationTotalDuration = (0.9f + ((float)StaticRandom.Next(20) / 20)) * AWPrecipitationTotalDuration; // randomized value, +- 10% 
             AWPrecipitationTotalDuration = Math.Min(AWPrecipitationTotalDuration, maxDuration); // but never exceeding maximum duration
             AWPrecipitationNextSpell = precipitationCondition.Time; // set start of spell to start of weather change
 
@@ -1324,7 +1300,7 @@ namespace Orts.ActivityRunner.Viewer3D
             }
             else
             {
-                AWPrecipitationTotalSpread = Math.Max(1, (int)((0.9f + ((float)Viewer.Random.Next(20) / 20)) * precipitationCondition.Spread));
+                AWPrecipitationTotalSpread = Math.Max(1, (int)((0.9f + ((float)StaticRandom.Next(20) / 20)) * precipitationCondition.Spread));
                 if ((AWPrecipitationTotalDuration / AWPrecipitationTotalSpread) < 900) // length of spell at least 15 mins
                 {
                     AWPrecipitationTotalSpread = (int)(AWPrecipitationTotalDuration / 900);
@@ -1333,7 +1309,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
 
             // determine actual precipitation state - only if immediate start allowed
-            bool precipitationActive = allowImmediateStart && Viewer.Random.Next(100) >= precipitationCondition.Probability;
+            bool precipitationActive = allowImmediateStart && StaticRandom.Next(100) >= precipitationCondition.Probability;
 
 #if DEBUG_AUTOWEATHER
             Trace.TraceInformation("Precipitation active on start : {0}", precipitationActive.ToString());
@@ -1354,25 +1330,25 @@ namespace Orts.ActivityRunner.Viewer3D
                 // precipitation active : set actual details, calculate end of present spell
                 int precvariation = (int)(precipitationCondition.Variation * 100);
                 float baseDensitiy = PrecipitationViewer.MaxIntensityPPSPM2 * precipitationCondition.Density;
-                AWPrecipitationActualPPSPM2 = MathHelper.Clamp(((1.0f + ((float)Viewer.Random.Next(-precvariation, precvariation) / 100)) * baseDensitiy),
+                AWPrecipitationActualPPSPM2 = MathHelper.Clamp(((1.0f + (StaticRandom.Next(-precvariation, precvariation) / 100f)) * baseDensitiy),
                                                PrecipitationViewer.MinIntensityPPSPM2, PrecipitationViewer.MaxIntensityPPSPM2);
-                AWPrecipitationRequiredPPSPM2 = MathHelper.Clamp(((1.0f + ((float)Viewer.Random.Next(-precvariation, precvariation) / 100)) * baseDensitiy),
+                AWPrecipitationRequiredPPSPM2 = MathHelper.Clamp(((1.0f + (StaticRandom.Next(-precvariation, precvariation) / 100f)) * baseDensitiy),
                                                PrecipitationViewer.MinIntensityPPSPM2, PrecipitationViewer.MaxIntensityPPSPM2);
 
                 // rate of change is max. difference over random timespan between 1 and 10 mins.
                 // startphase
                 float startrate = 1.75f * precipitationCondition.RateOfChange +
-                                           (0.5F * (float)(Viewer.Random.Next((int)(precipitationCondition.RateOfChange * 100))) / 100f);
+                                           (0.5F * StaticRandom.Next((int)(precipitationCondition.RateOfChange * 100)) / 100f);
                 float spellStartPhase = Math.Min(60f + (300f * startrate), 600);
                 AWPrecipitationStartRate = (AWPrecipitationRequiredPPSPM2 - AWPrecipitationActualPPSPM2) / spellStartPhase;
 
                 // endphase
                 float endrate = 1.75f * precipitationCondition.RateOfChange +
-                               (0.5F * (float)(Viewer.Random.Next((int)(precipitationCondition.RateOfChange * 100))) / 100f);
+                               (0.5f * StaticRandom.Next((int)(precipitationCondition.RateOfChange * 100)) / 100f);
                 float spellEndPhase = Math.Min(60f + (300f * endrate), 600);
 
                 float avduration = AWPrecipitationTotalDuration / AWPrecipitationTotalSpread;
-                float actduration = (0.5f + ((float)Viewer.Random.Next(100) / 100)) * avduration;
+                float actduration = (0.5f + (StaticRandom.Next(100) / 100f)) * avduration;
                 float spellEndTime = Math.Min(startTime + actduration, AWNextChangeTime);
                 AWPrecipitationEndSpell = Math.Max(startTime, spellEndTime - spellEndPhase);
                 // for end rate, use minimum precipitation
@@ -1384,7 +1360,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 if (AWPrecipitationTotalDuration > 0 && AWPrecipitationTotalSpread > 0)
                 {
                     float avclearspell = (AWNextChangeTime - startTime - AWPrecipitationTotalDuration) / AWPrecipitationTotalSpread;
-                    AWPrecipitationNextSpell = spellEndTime + (0.9f + ((float)Viewer.Random.Next(200) / 1000f)) * avclearspell;
+                    AWPrecipitationNextSpell = spellEndTime + (0.9f + (StaticRandom.Next(200) / 1000f)) * avclearspell;
                 }
                 else
                 {
@@ -1408,7 +1384,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 else
                 {
                     int clearSpell = (int)((AWNextChangeTime - startTime - AWPrecipitationTotalDuration) / AWPrecipitationTotalSpread);
-                    AWPrecipitationNextSpell = clearSpell > 0 ? startTime + Viewer.Random.Next(clearSpell) : startTime;
+                    AWPrecipitationNextSpell = clearSpell > 0 ? startTime + StaticRandom.Next(clearSpell) : startTime;
 
                     if (allowImmediateStart)
                     {
@@ -1432,24 +1408,24 @@ namespace Orts.ActivityRunner.Viewer3D
             float baseDensitiy = PrecipitationViewer.MaxIntensityPPSPM2 * precipitationCondition.Density;
             AWPrecipitationActiveType = AWPrecipitationRequiredType;
             AWPrecipitationActualPPSPM2 = PrecipitationViewer.MinIntensityPPSPM2;
-            AWPrecipitationRequiredPPSPM2 = MathHelper.Clamp(((1.0f + ((float)Viewer.Random.Next(-precvariation, precvariation) / 100)) * baseDensitiy),
+            AWPrecipitationRequiredPPSPM2 = MathHelper.Clamp(((1.0f + (StaticRandom.Next(-precvariation, precvariation) / 100f)) * baseDensitiy),
                                            PrecipitationViewer.MinIntensityPPSPM2, PrecipitationViewer.MaxIntensityPPSPM2);
             AWLastVisibility = weather.FogVisibilityDistance;
 
             // rate of change at start is max. difference over defined time span +- 10%, scaled between 1/2 and 4 mins
-            float startphase = MathHelper.Clamp(precipitationCondition.PrecipitationStartPhase * (0.9f + (Viewer.Random.Next(100) / 1000)), 30, 240);
+            float startphase = MathHelper.Clamp(precipitationCondition.PrecipitationStartPhase * (0.9f + (StaticRandom.Next(100) / 1000f)), 30, 240);
             AWPrecipitationStartRate = (AWPrecipitationRequiredPPSPM2 - AWPrecipitationActualPPSPM2) / startphase;
             AWPrecipitationRateOfChangePPSPM2PS = AWPrecipitationStartRate;
 
             // rate of change at end is max. difference over defined time span +- 10%, scaled between 1/2 and 6 mins
-            float endphase = MathHelper.Clamp(precipitationCondition.PrecipitationEndPhase * (0.9f + (Viewer.Random.Next(100) / 1000)), 30, 360);
+            float endphase = MathHelper.Clamp(precipitationCondition.PrecipitationEndPhase * (0.9f + (StaticRandom.Next(100) / 1000f)), 30, 360);
             AWPrecipitationEndRate = (AWPrecipitationRequiredPPSPM2 - AWPrecipitationActualPPSPM2) / endphase;
 
             // calculate end of spell and start of next spell
             if (AWPrecipitationTotalSpread > 1)
             {
                 float avduration = AWPrecipitationTotalDuration / AWPrecipitationTotalSpread;
-                float actduration = (0.5f + ((float)Viewer.Random.Next(100) / 100)) * avduration;
+                float actduration = (0.5f + (StaticRandom.Next(100) / 100f)) * avduration;
                 float spellEndTime = Math.Min(Time + actduration, AWNextChangeTime);
                 AWPrecipitationEndSpell = Math.Max(Time, spellEndTime - endphase);
 
@@ -1458,7 +1434,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
                 int clearSpell = (int)((nextWeatherTime - spellEndTime - AWPrecipitationTotalDuration) / AWPrecipitationTotalSpread);
                 AWPrecipitationNextSpell = spellEndTime + 60f; // always a minute between spells
-                AWPrecipitationNextSpell = clearSpell > 0 ? AWPrecipitationNextSpell + Viewer.Random.Next(clearSpell) : AWPrecipitationNextSpell;
+                AWPrecipitationNextSpell = clearSpell > 0 ? AWPrecipitationNextSpell + StaticRandom.Next(clearSpell) : AWPrecipitationNextSpell;
             }
             else
             {
@@ -1488,7 +1464,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 AWPrecipitationRateOfChangePPSPM2PS = (precipitationCondition.RateOfChange / 120) * (PrecipitationViewer.MaxIntensityPPSPM2 - PrecipitationViewer.MinIntensityPPSPM2);
                 int precvariation = (int)(precipitationCondition.Variation * 100);
                 float baseDensitiy = PrecipitationViewer.MaxIntensityPPSPM2 * precipitationCondition.Density;
-                AWPrecipitationRequiredPPSPM2 = MathHelper.Clamp(((1.0f + ((float)Viewer.Random.Next(-precvariation, precvariation) / 100)) * baseDensitiy),
+                AWPrecipitationRequiredPPSPM2 = MathHelper.Clamp(((1.0f + (StaticRandom.Next(-precvariation, precvariation) / 100f)) * baseDensitiy),
                                                PrecipitationViewer.MinIntensityPPSPM2, PrecipitationViewer.MaxIntensityPPSPM2);
 #if DEBUG_AUTOWEATHER
                 Trace.TraceInformation("New density : {0}", AWPrecipitationRequiredPPSPM2);
@@ -1517,11 +1493,11 @@ namespace Orts.ActivityRunner.Viewer3D
             float requiredOvercastFactor = requiredOvercast / 100f;
             if (overcastRateOfChange == 0)
             {
-                AWOvercastCloudRateOfChangepS = ((float)Viewer.Random.Next(50) / (100 * 300)) * (0.8f + ((float)Viewer.Random.Next(100) / 250));
+                AWOvercastCloudRateOfChangepS = (StaticRandom.Next(50) / (100f * 300)) * (0.8f + (StaticRandom.Next(100) / 250f));
             }
             else
             {
-                AWOvercastCloudRateOfChangepS = (overcastRateOfChange / 300) * (0.8f + ((float)Viewer.Random.Next(100) / 250));
+                AWOvercastCloudRateOfChangepS = (overcastRateOfChange / 300) * (0.8f + (StaticRandom.Next(100) / 250f));
             }
 
             if (AWOvercastCloudcover < requiredOvercastFactor)
@@ -1536,7 +1512,7 @@ namespace Orts.ActivityRunner.Viewer3D
             }
             else
             {
-                float newOvercast = Math.Max(0, Math.Min(1, requiredOvercastFactor + ((float)Viewer.Random.Next((int)(-0.5f * overcastVariation), (int)(0.5f * overcastVariation)) / 100)));
+                float newOvercast = Math.Max(0, Math.Min(1, requiredOvercastFactor + (StaticRandom.Next((int)(-0.5f * overcastVariation), (int)(0.5f * overcastVariation)) / 100f)));
                 return (newOvercast);
             }
         }

@@ -17,6 +17,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -29,6 +30,7 @@ namespace Orts.DataConverter
 {
     internal class TerrainConverter : IDataConverter
     {
+#pragma warning disable CA1303 // Do not pass literals as localized parameters
         public TerrainConverter()
         {
         }
@@ -61,43 +63,42 @@ namespace Orts.DataConverter
             if (Path.GetExtension(conversion.Input) == ".w")
             {
                 // Convert from world file to tile file, by parsing the X, Z coordinates from filename.
-                var filename = Path.GetFileNameWithoutExtension(conversion.Input);
-                int tileX, tileZ;
+                string filename = Path.GetFileNameWithoutExtension(conversion.Input);
                 if (filename.Length != 15 ||
                     filename[0] != 'w' ||
                     (filename[1] != '+' && filename[1] != '-') ||
                     (filename[8] != '+' && filename[8] != '-') ||
-                    !int.TryParse(filename.Substring(1, 7), out tileX) ||
-                    !int.TryParse(filename.Substring(8, 7), out tileZ))
+                    !int.TryParse(filename.AsSpan(1, 7), out int tileX) ||
+                    !int.TryParse(filename.AsSpan(8, 7), out int tileZ))
                 {
                     throw new InvalidCommandLineException("Unable to parse tile coordinates from world filename: " + filename);
                 }
-                var tilesDirectory = Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(conversion.Input)), "Tiles");
-                var tileName = TileHelper.FromTileXZ(tileX, tileZ, TileHelper.Zoom.Small);
+                string tilesDirectory = Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(conversion.Input)), "Tiles");
+                string tileName = TileHelper.FromTileXZ(tileX, tileZ, TileHelper.Zoom.Small);
                 conversion.SetInput(Path.Combine(tilesDirectory, tileName + ".t"));
             }
 
-            var baseFileName = Path.Combine(Path.GetDirectoryName(conversion.Input), Path.GetFileNameWithoutExtension(conversion.Input));
+            string baseFileName = Path.Combine(Path.GetDirectoryName(conversion.Input), Path.GetFileNameWithoutExtension(conversion.Input));
 
-            var tFile = new TerrainFile(baseFileName + ".t");
+            TerrainFile tFile = new TerrainFile(baseFileName + ".t");
 
-            var sampleCount = tFile.Terrain.Samples.SampleCount;
-            var yFile = new TerrainAltitudeFile(baseFileName + "_y.raw", sampleCount);
+            int sampleCount = tFile.Terrain.Samples.SampleCount;
+            TerrainAltitudeFile yFile = new TerrainAltitudeFile(baseFileName + "_y.raw", sampleCount);
             TerrainFlagsFile fFile;
             if (File.Exists(baseFileName + "_f.raw"))
             {
                 fFile = new TerrainFlagsFile(baseFileName + "_f.raw", sampleCount);
             }
 
-            var patchCount = tFile.Terrain.Patchsets[0].PatchSize;
-            for (var x = 0; x < patchCount; x++)
+            int patchCount = tFile.Terrain.Patchsets[0].PatchSize;
+            for (int x = 0; x < patchCount; x++)
             {
-                for (var z = 0; z < patchCount; z++)
+                for (int z = 0; z < patchCount; z++)
                 {
-                    var patch = new TerrainConverterPatch(tFile, yFile, x, z);
+                    TerrainConverterPatch patch = new TerrainConverterPatch(tFile, yFile, x, z);
 
                     XNamespace cNS = "http://www.collada.org/2005/11/COLLADASchema";
-                    var colladaDocument = new XDocument(
+                    XDocument colladaDocument = new XDocument(
                         new XDeclaration("1.0", "UTF-8", "false"),
                         new XElement(cNS + "COLLADA",
                             new XAttribute("version", "1.4.1"),
@@ -237,9 +238,9 @@ namespace Orts.DataConverter
                         )
                     );
 
-                    foreach (var output in conversion.Output)
+                    foreach (string output in conversion.Output)
                     {
-                        var fileName = Path.ChangeExtension(output, $"{x:00}-{z:00}.dae");
+                        string fileName = Path.ChangeExtension(output, $"{x:00}-{z:00}.dae");
                         colladaDocument.Save(fileName);
                     }
                 }
@@ -286,17 +287,13 @@ namespace Orts.DataConverter
 
         public string GetVertexArray()
         {
-            var output = new StringBuilder();
+            StringBuilder output = new StringBuilder();
 
-            for (var x = 0; x <= PatchSize; x++)
+            for (int x = 0; x <= PatchSize; x++)
             {
-                for (var z = 0; z <= PatchSize; z++)
+                for (int z = 0; z <= PatchSize; z++)
                 {
-                    output.AppendFormat("{0} {1} {2} ",
-                        x * TFile.Terrain.Samples.SampleSize,
-                        GetElevation(x, z) * TFile.Terrain.Samples.SampleScale,
-                        z * TFile.Terrain.Samples.SampleSize
-                    );
+                    output.AppendFormat(CultureInfo.InvariantCulture, $"{x * TFile.Terrain.Samples.SampleSize} {GetElevation(x, z) * TFile.Terrain.Samples.SampleScale} {z * TFile.Terrain.Samples.SampleSize} ");
                 }
             }
 
@@ -310,17 +307,17 @@ namespace Orts.DataConverter
 
         public List<string> GetPolygonArray()
         {
-            var output = new List<string>();
-            var stride = PatchSize + 1;
+            List<string> output = new List<string>();
+            int stride = PatchSize + 1;
 
-            for (var x = 0; x < PatchSize; x++)
+            for (int x = 0; x < PatchSize; x++)
             {
-                for (var z = 0; z < PatchSize; z++)
+                for (int z = 0; z < PatchSize; z++)
                 {
-                    var nw = (x + 0) + stride * (z + 0);
-                    var ne = (x + 1) + stride * (z + 0);
-                    var sw = (x + 0) + stride * (z + 1);
-                    var se = (x + 1) + stride * (z + 1);
+                    int nw = (x + 0) + stride * (z + 0);
+                    int ne = (x + 1) + stride * (z + 0);
+                    int sw = (x + 0) + stride * (z + 1);
+                    int se = (x + 1) + stride * (z + 1);
                     if ((z & 1) == (x & 1))
                     {
                         output.Add($"{nw} {se} {sw}");
@@ -336,5 +333,6 @@ namespace Orts.DataConverter
 
             return output;
         }
+#pragma warning restore CA1303 // Do not pass literals as localized parameters
     }
 }

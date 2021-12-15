@@ -43,7 +43,6 @@ using Orts.Simulation.Commanding;
 
 namespace Orts.ActivityRunner.Viewer3D.Processes
 {
-#pragma warning disable CA1303 // Do not pass literals as localized parameters
     public class GameStateRunActivity : GameState
     {
 
@@ -70,12 +69,6 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
         private static ActivityType activityType;
 
         private Simulator simulator;
-
-        //for Multiplayer
-        private static ClientComm Client { get { return MultiPlayerManager.Client; } set { MultiPlayerManager.Client = value; } }
-
-        private string userName;
-        private string code;
 
         private static Viewer Viewer { get { return Program.Viewer; } set { Program.Viewer = value; } }
         private static string logFileName;
@@ -281,9 +274,9 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                     break;
             }
 
-            if (Client != null)
+            if (MultiPlayerManager.IsMultiPlayer())
             {
-                Client.SendMessage((new MSGPlayer(userName, code, simulator.ConsistFileName, simulator.PathFileName, simulator.Trains[0], 0, simulator.Settings.AvatarURL)).ToString()).Wait();
+                MultiPlayerManager.BroadCast((new MSGPlayer(MultiPlayerManager.Instance().UserName, MultiPlayerManager.Instance().Code, simulator.ConsistFileName, simulator.PathFileName, simulator.Trains[0], 0, simulator.Settings.AvatarURL)).ToString());
                 // wait 5 seconds to see if you get a reply from server with updated position/consist data, else go on
 
                 System.Threading.Thread.Sleep(5000);
@@ -425,11 +418,11 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                     InitSimulator(settings);
                     simulator.Restore(inf, PathName, InitialTileX, InitialTileZ, Game.LoaderProcess.CancellationToken);
                     Viewer = new Viewer(simulator, Game);
-                    if (Client != null && ActivityType == ActivityType.Activity)
-                        simulator.SetPathAndConsist();
-                    if (Client != null)
+                    if (MultiPlayerManager.IsMultiPlayer())
                     {
-                        Client.SendMessage((new MSGPlayer(userName, code, simulator.ConsistFileName, simulator.PathFileName, simulator.Trains[0], 0, simulator.Settings.AvatarURL)).ToString()).Wait();
+                        if (ActivityType == ActivityType.Activity)
+                            simulator.SetPathAndConsist();
+                        MultiPlayerManager.BroadCast(new MSGPlayer(MultiPlayerManager.Instance().UserName, MultiPlayerManager.Instance().Code, simulator.ConsistFileName, simulator.PathFileName, simulator.Trains[0], 0, simulator.Settings.AvatarURL).ToString());
                     }
                     Viewer.Restore(inf);
 
@@ -930,19 +923,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
 
             if (settings.MultiplayerClient)
             {
-                try
-                {
-                    MultiPlayerManager.Instance().MPUpdateInterval = settings.Multiplayer_UpdateInterval;
-                    Client = new ClientComm(settings.Multiplayer_Host, settings.Multiplayer_Port, settings.Multiplayer_User, "1234");
-                    userName = Client.UserName;
-                    code = Client.Code;
-                }
-                catch (Exception error)
-                {
-                    Trace.WriteLine(error);
-                    Trace.WriteLine("Connection error - will play in single mode.");
-                    Client = null;
-                }
+                MultiPlayerManager.Start(settings.Multiplayer_UpdateInterval, settings.Multiplayer_Host, settings.Multiplayer_Port, settings.Multiplayer_User, "1234");
             }
         }
 
@@ -1052,5 +1033,4 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             return 0;
         }
     }
-#pragma warning restore CA1303 // Do not pass literals as localized parameters
 }

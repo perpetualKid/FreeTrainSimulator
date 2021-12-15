@@ -34,15 +34,15 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
             PushButtons,
         }
         public ModeType Mode { get; protected set; } = ModeType.AlwaysOn;
-        public float DelayS { get; protected set; } = 0f;
+        public float DelayS { get; protected set; }
 
         // Variables
         readonly MSTSWagon Wagon;
         protected Timer Timer;
-        public bool CommandSwitch { get; protected set; } = false;
-        public bool CommandButtonOn { get; protected set; } = false;
-        public bool CommandButtonOff { get; protected set; } = false;
-        public bool On { get; protected set; } = false;
+        public bool CommandSwitch { get; protected set; }
+        public bool CommandButtonOn { get; protected set; }
+        public bool CommandButtonOff { get; protected set; }
+        public bool On { get; protected set; }
 
         public BatterySwitch(MSTSWagon wagon)
         {

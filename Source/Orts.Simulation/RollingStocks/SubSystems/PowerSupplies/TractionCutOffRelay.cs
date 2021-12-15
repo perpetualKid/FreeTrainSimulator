@@ -33,11 +33,11 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         public MSTSLocomotive Locomotive => PowerSupply.Locomotive;
         public Simulator Simulator => PowerSupply.Locomotive.Simulator;
 
-        public bool Activated = false;
+        public bool Activated;
         string ScriptName = "Automatic";
         TractionCutOffRelay Script;
 
-        private float DelayS = 0f;
+        private float DelayS;
 
         public TractionCutOffRelayState State { get; private set; } = TractionCutOffRelayState.Open;
         public bool DriverClosingOrder { get; private set; }

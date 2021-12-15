@@ -18,9 +18,10 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
-using Orts.Formats.Msts;
+
 using Orts.Formats.Msts.Files;
 using Orts.Formats.OR.Parsers;
 
@@ -28,59 +29,59 @@ namespace Orts.ContentManager.Models
 {
     public class Service
     {
-        public readonly string Name;
-        public readonly string ID;
-        public readonly DateTime StartTime;
-        public readonly string Consist;
-        public readonly bool Reversed;
-        public readonly string Path;
+        public string Name { get; }
+        public string ID { get; }
+        public DateTime StartTime { get; }
+        public string Consist { get; }
+        public bool Reversed { get; }
+        public string Path { get; }
 
-        public readonly IEnumerable<Stop> Stops;
+        public IEnumerable<StationStop> Stops { get; }
 
-        public Service(Content content)
+        public Service(ContentBase content)
         {
-            Debug.Assert(content.Type == ContentType.Service);
+            Debug.Assert(content?.Type == ContentType.Service);
             if (System.IO.Path.GetExtension(content.PathName).Equals(".srv", StringComparison.OrdinalIgnoreCase))
             {
-                var file = new ServiceFile(content.PathName);
+                ServiceFile file = new ServiceFile(content.PathName);
                 Name = file.Name;
                 Consist = file.TrainConfig;
                 Path = file.PathId;
 
                 Debug.Assert(content is ContentMSTSService);
-                var msts = content as ContentMSTSService;
-                var actFile = new ActivityFile(content.Parent.PathName);
+                ContentMSTSService msts = content as ContentMSTSService;
+                ActivityFile actFile = new ActivityFile(content.Parent.PathName);
                 if (msts.IsPlayer)
                 {
-                    var activityTraffic = actFile.Activity.PlayerServices.PlayerTraffics;
+                    Formats.Msts.Models.PlayerTraffics activityTraffic = actFile.Activity.PlayerServices.PlayerTraffics;
 
                     ID = "0";
                     StartTime = MSTSTimeToDateTime(activityTraffic.Time);
                     Stops = from stop in activityTraffic
-                            select new Stop(stop.PlatformStartID, stop.DistanceDownPath, MSTSTimeToDateTime(stop.ArrivalTime), MSTSTimeToDateTime(stop.DepartTime));
+                            select new StationStop(stop.PlatformStartID, stop.DistanceDownPath, MSTSTimeToDateTime(stop.ArrivalTime), MSTSTimeToDateTime(stop.DepartTime));
                 }
                 else
                 {
-                    var trfFile = new TrafficFile(msts.TrafficPathName);
-                    var activityService = actFile.Activity.Traffic.Services[msts.TrafficIndex];
-                    var trafficService = trfFile.TrafficDefinition.ServiceTraffics[msts.TrafficIndex];
+                    TrafficFile trfFile = new TrafficFile(msts.TrafficPathName);
+                    Formats.Msts.Models.Services activityService = actFile.Activity.Traffic.Services[msts.TrafficIndex];
+                    Formats.Msts.Models.ServiceTraffics trafficService = trfFile.TrafficDefinition.ServiceTraffics[msts.TrafficIndex];
 
-                    ID = activityService.UiD.ToString();
+                    ID = $"{activityService.UiD}";
                     StartTime = MSTSTimeToDateTime(activityService.Time);
-                    Stops = trafficService.Zip(activityService, (tt, stop) => new Stop(stop.PlatformStartID, stop.DistanceDownPath, MSTSTimeToDateTime(tt.ArrivalTime), MSTSTimeToDateTime(tt.DepartTime)));
+                    Stops = trafficService.Zip(activityService, (tt, stop) => new StationStop(stop.PlatformStartID, stop.DistanceDownPath, MSTSTimeToDateTime(tt.ArrivalTime), MSTSTimeToDateTime(tt.DepartTime)));
                 }
             }
             else if (System.IO.Path.GetExtension(content.PathName).Equals(".timetable_or", StringComparison.OrdinalIgnoreCase))
             {
                 // TODO: Make common timetable parser.
-                var file = new TimetableReader(content.PathName);
+                TimetableReader file = new TimetableReader(content.PathName);
                 Name = content.Name;
 
-                var serviceColumn = -1;
-                var consistRow = -1;
-                var pathRow = -1;
-                var startRow = -1;
-                for (var row = 0; row < file.Strings.Count; row++)
+                int serviceColumn = -1;
+                int consistRow = -1;
+                int pathRow = -1;
+                int startRow = -1;
+                for (int row = 0; row < file.Strings.Count; row++)
                 {
                     if (file.Strings[row][0] == "#consist" && consistRow == -1)
                     {
@@ -95,107 +96,77 @@ namespace Orts.ContentManager.Models
                         startRow = row;
                     }
                 }
-                for (var column = 0; column < file.Strings[0].Length; column++)
+                for (int column = 0; column < file.Strings[0].Length; column++)
                 {
                     if (file.Strings[0][column] == content.Name && serviceColumn == -1)
                     {
                         serviceColumn = column;
                     }
                 }
-                ID = serviceColumn.ToString();
-                    var timeRE = new Regex(@"^(\d\d):(\d\d)(?:-(\d\d):(\d\d))?");
-                var startTimeMatch = timeRE.Match(file.Strings[startRow][serviceColumn]);
+                ID = $"{serviceColumn}";
+                Regex timeRE = new Regex(@"^(\d\d):(\d\d)(?:-(\d\d):(\d\d))?");
+                Match startTimeMatch = timeRE.Match(file.Strings[startRow][serviceColumn]);
                 if (startTimeMatch.Success)
                 {
-                    StartTime = new DateTime(2000, 1, 1, int.Parse(startTimeMatch.Groups[1].Value), int.Parse(startTimeMatch.Groups[2].Value), 0);
+                    StartTime = new DateTime(2000, 1, 1, int.Parse(startTimeMatch.Groups[1].Value, CultureInfo.InvariantCulture), int.Parse(startTimeMatch.Groups[2].Value, CultureInfo.InvariantCulture), 0);
                 }
-                var stops = new List<Stop>();
-                for (var row = 0; row < file.Strings.Count; row++)
+                List<StationStop> stops = new List<StationStop>();
+                for (int row = 0; row < file.Strings.Count; row++)
                 {
                     if (row != startRow)
                     {
-                        var timeMatch = timeRE.Match(file.Strings[row][serviceColumn]);
+                        Match timeMatch = timeRE.Match(file.Strings[row][serviceColumn]);
                         if (timeMatch.Success)
                         {
-                            var arrivalTime = new DateTime(2000, 1, 1, int.Parse(timeMatch.Groups[1].Value), int.Parse(timeMatch.Groups[2].Value), 0);
-                            var departureTime = timeMatch.Groups[3].Success ? new DateTime(2000, 1, 1, int.Parse(timeMatch.Groups[3].Value), int.Parse(timeMatch.Groups[4].Value), 0) : arrivalTime;
+                            DateTime arrivalTime = new DateTime(2000, 1, 1, int.Parse(timeMatch.Groups[1].Value, CultureInfo.InvariantCulture), int.Parse(timeMatch.Groups[2].Value, CultureInfo.InvariantCulture), 0);
+                            DateTime departureTime = timeMatch.Groups[3].Success ? new DateTime(2000, 1, 1, int.Parse(timeMatch.Groups[3].Value, CultureInfo.InvariantCulture), int.Parse(timeMatch.Groups[4].Value, CultureInfo.InvariantCulture), 0) : arrivalTime;
                             // If the time is prior to this train's start time, assume it is rolling over in to "tomorrow".
                             if (arrivalTime < StartTime)
                             {
                                 arrivalTime = arrivalTime.AddDays(1);
                                 departureTime = departureTime.AddDays(1);
                             }
-                            stops.Add(new Stop(file.Strings[row][0].Replace(" $hold", "").Replace(" $forcehold", ""), arrivalTime, departureTime));
+                            stops.Add(new StationStop(file.Strings[row][0].Replace(" $hold", "", StringComparison.OrdinalIgnoreCase).Replace(" $forcehold", "", StringComparison.OrdinalIgnoreCase), arrivalTime, departureTime));
                         }
                     }
                 }
                 Stops = stops.OrderBy(s => s.ArrivalTime);
-                Consist = file.Strings[consistRow][serviceColumn].Replace(" $reverse", "");
-                Reversed = file.Strings[consistRow][serviceColumn].Contains(" $reverse");
+                Consist = file.Strings[consistRow][serviceColumn].Replace(" $reverse", "", StringComparison.OrdinalIgnoreCase);
+                Reversed = file.Strings[consistRow][serviceColumn].Contains(" $reverse", StringComparison.OrdinalIgnoreCase);
                 Path = file.Strings[pathRow][serviceColumn];
             }
         }
 
         /// <summary>
-        /// Convert <see cref="ActivityFile"/> arrival and departure times in to normalized times.
-        /// </summary>
-        private DateTime MSTSTimeToDateTime(DateTime mstsPlayerTime)
-        {
-            return mstsPlayerTime.AddYears(1999);
-        }
-
-        /// <summary>
         /// Convert <see cref="TrafficFile"/> arrival and departure times in to normalized times.
         /// </summary>
-        private DateTime MSTSTimeToDateTime(int mstsAITime)
+        private static DateTime MSTSTimeToDateTime(int mstsAITime)
         {
             return new DateTime(2000, 1, 1).AddSeconds(mstsAITime);
         }
-
-        public class Stop
-        {
-            public readonly string Station;
-            public readonly int PlatformID;
-            public readonly float Distance;
-            public readonly DateTime ArrivalTime;
-            public readonly DateTime DepartureTime;
-
-            internal Stop(int platformID, float distance, DateTime arrivalTime, DateTime departureTime)
-            {
-                PlatformID = platformID;
-                Distance = distance;
-                ArrivalTime = arrivalTime;
-                DepartureTime = departureTime;
-            }
-
-            internal Stop(string station, DateTime arrivalTime, DateTime departureTime)
-            {
-                Station = station;
-                ArrivalTime = arrivalTime;
-                DepartureTime = departureTime;
-            }
-        }
     }
 
-    public static class ServiceExtensions
+    public class StationStop
     {
-        // TODO: This prototype is taken from .NET 4.0 and should be removed when we upgrade.
-        /// <summary>
-        /// Applies a specified function to the corresponding elements of two sequences, producing a sequence of the results.
-        /// </summary>
-        /// <typeparam name="TFirst">The type of the elements of the first input sequence.</typeparam>
-        /// <typeparam name="TSecond">The type of the elements of the second input sequence.</typeparam>
-        /// <typeparam name="TResult">The type of the elements of the result sequence.</typeparam>
-        /// <param name="first">The first input sequence.</param>
-        /// <param name="second">The second input sequence.</param>
-        /// <param name="resultSelector">A function that specifies how to combine the corresponding elements of the two sequences.</param>
-        /// <returns>An <see cref="IEnumerable<T>"/> that contains elements of the two input sequences, combined by <paramref name="resultSelector"/>.</returns>
-        public static IEnumerable<TResult> Zip<TFirst, TSecond, TResult>(this IEnumerable<TFirst> first, IEnumerable<TSecond> second, Func<TFirst, TSecond, TResult> resultSelector)
+        public string Station { get; }
+        public int PlatformID { get; }
+        public float Distance { get; }
+        public DateTime ArrivalTime { get; }
+        public DateTime DepartureTime { get; }
+
+        internal StationStop(int platformID, float distance, DateTime arrivalTime, DateTime departureTime)
         {
-            var f = first.GetEnumerator();
-            var s = second.GetEnumerator();
-            while (f.MoveNext() && s.MoveNext())
-                yield return resultSelector(f.Current, s.Current);
+            PlatformID = platformID;
+            Distance = distance;
+            ArrivalTime = arrivalTime;
+            DepartureTime = departureTime;
+        }
+
+        internal StationStop(string station, DateTime arrivalTime, DateTime departureTime)
+        {
+            Station = station;
+            ArrivalTime = arrivalTime;
+            DepartureTime = departureTime;
         }
     }
 }

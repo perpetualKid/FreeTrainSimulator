@@ -631,7 +631,7 @@ namespace Orts.Simulation
 
             if (!TimetableMode)
             {
-                if (!MultiPlayerManager.IsMultiPlayer() || !MultiPlayerManager.IsClient())
+                if (MultiPlayerManager.MultiplayerState != MultiplayerState.Client)
                 {
                     foreach (Train train in movingTrains)
                     {
@@ -644,7 +644,7 @@ namespace Orts.Simulation
                 }
             }
 
-            if (!MultiPlayerManager.IsMultiPlayer() || MultiPlayerManager.IsServer())
+            if (MultiPlayerManager.MultiplayerState != MultiplayerState.Client)
                 SignalEnvironment?.Update(false);
 
             if (AI != null)

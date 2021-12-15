@@ -32,7 +32,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         private readonly string EventNameLabel;
 
-        public ActivityCommand( CommandLog log, string eventNameLabel, double pauseDurationS )
+        protected ActivityCommand( CommandLog log, string eventNameLabel, double pauseDurationS )
             : base(log, pauseDurationS)
         {
             EventNameLabel = eventNameLabel;
@@ -276,7 +276,7 @@ namespace Orts.ActivityRunner.Viewer3D
     {
         public static Viewer Receiver { get; set; }
 
-        public UseCameraCommand( CommandLog log )
+        protected UseCameraCommand( CommandLog log )
             : base(log)
         {
         }
@@ -513,7 +513,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public static Viewer Receiver { get; set; }
         protected double EndTime;
 
-        public MoveCameraCommand( CommandLog log, double startTime, double endTime )
+        protected MoveCameraCommand( CommandLog log, double startTime, double endTime )
             : base(log)
         {
             Time = startTime;

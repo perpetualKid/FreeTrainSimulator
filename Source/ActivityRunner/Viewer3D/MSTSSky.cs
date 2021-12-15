@@ -26,6 +26,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Orts.ActivityRunner.Viewer3D.Common;
 using Orts.ActivityRunner.Viewer3D.Processes;
 using Orts.Common;
+using Orts.Common.Calc;
 using Orts.Common.Input;
 using Orts.Common.Position;
 using Orts.Common.Xna;
@@ -123,7 +124,7 @@ namespace Orts.ActivityRunner.Viewer3D
             // Control- and Control+ for overcast, Shift- and Shift+ for fog and - and + for time.
 
             // Don't let multiplayer clients adjust the weather.
-            if (!MultiPlayerManager.IsClient())
+            if (MultiPlayerManager.MultiplayerState != MultiplayerState.Client)
             {
                 // Overcast ranges from 0 (completely clear) to 1 (completely overcast).
                 viewer.UserCommandController.AddEvent(UserCommand.DebugOvercastIncrease, KeyEventType.KeyDown, (GameTime gameTIme) =>
@@ -208,7 +209,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     mstsskylunarPosArray[i] = SunMoonPos.LunarAngle(mstsskylatitude, mstsskylongitude, ((float)i / maxSteps), date);
                 }
                 // Phase of the moon is generated at random
-                mstsskymoonPhase = Viewer.Random.Next(8);
+                mstsskymoonPhase = StaticRandom.Next(8);
                 if (mstsskymoonPhase == 6 && date.ordinalDate > 45 && date.ordinalDate < 330)
                     mstsskymoonPhase = 3; // Moon dog only occurs in winter
                 // Overcast factor: 0.0=almost no clouds; 0.1=wispy clouds; 1.0=total overcast
@@ -217,8 +218,8 @@ namespace Orts.ActivityRunner.Viewer3D
                 initialized = true;
             }
 
-            MultiPlayerManager manager = MultiPlayerManager.Instance();
-            if (MultiPlayerManager.IsClient() && manager.weatherChanged)
+            MultiPlayerManager manager;
+            if (MultiPlayerManager.MultiplayerState == MultiplayerState.Client && (manager = MultiPlayerManager.Instance()).weatherChanged)
             {
                 //received message about weather change
                 if (manager.overcastFactor >= 0)

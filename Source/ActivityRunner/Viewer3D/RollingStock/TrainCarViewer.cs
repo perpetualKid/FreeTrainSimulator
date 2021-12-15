@@ -30,7 +30,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
         protected Viewer Viewer;
 
-        public TrainCarViewer(Viewer viewer, TrainCar car)
+        protected TrainCarViewer(Viewer viewer, TrainCar car)
         {
             Car = car;
             Viewer = viewer;

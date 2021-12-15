@@ -20,35 +20,33 @@ using System.IO;
 
 namespace Orts.ContentManager
 {
-    [Serializable]
-    public class ContentORTimetableActivity : Content
+    public class ContentORTimetableActivity : ContentBase
     {
-        public override ContentType Type { get { return ContentType.Activity; } }
+        public override ContentType Type => ContentType.Activity;
 
-        public ContentORTimetableActivity(Content parent, string path)
+        public ContentORTimetableActivity(ContentBase parent, string path)
             : base(parent)
         {
             Name = Path.GetFileNameWithoutExtension(path);
             PathName = path;
         }
 
-        public override Content Get(string name, ContentType type)
+        public override ContentBase GetContent(string name, ContentType type)
         {
             if (type == ContentType.Service)
             {
                 return new ContentORTimetableService(this, name);
             }
-            return base.Get(name, type);
+            return base.GetContent(name, type);
         }
     }
 
-    [Serializable]
-    public class ContentORTimetableService : Content
+    public class ContentORTimetableService : ContentBase
     {
-        public override ContentType Type { get { return ContentType.Service; } }
+        public override ContentType Type => ContentType.Service;
 
-        public ContentORTimetableService(Content parent, string serviceName)
-            : base(parent)
+        public ContentORTimetableService(ContentBase parent, string serviceName)
+            : base(parent ?? throw new ArgumentNullException(nameof(parent)))
         {
             Name = serviceName;
             PathName = parent.PathName;

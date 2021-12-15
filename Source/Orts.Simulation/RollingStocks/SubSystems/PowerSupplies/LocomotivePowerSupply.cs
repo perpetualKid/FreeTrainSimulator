@@ -32,7 +32,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         public readonly MSTSLocomotive Locomotive;
         protected Simulator Simulator => Locomotive.Simulator;
         protected Train Train => Locomotive.Train;
-        protected int CarId = 0;
+        protected int CarId;
 
         public BatterySwitch BatterySwitch { get; protected set; }
         public MasterKey MasterKey { get; protected set; }
@@ -44,7 +44,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
 
         public PowerSupplyState MainPowerSupplyState { get; protected set; } = PowerSupplyState.PowerOff;
         public bool MainPowerSupplyOn => MainPowerSupplyState == PowerSupplyState.PowerOn;
-        public bool DynamicBrakeAvailable { get; protected set; } = false;
+        public bool DynamicBrakeAvailable { get; protected set; }
 
         public PowerSupplyState AuxiliaryPowerSupplyState { get; protected set; } = PowerSupplyState.PowerOff;
         public bool AuxiliaryPowerSupplyOn => AuxiliaryPowerSupplyState == PowerSupplyState.PowerOn;
@@ -73,15 +73,15 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         public PowerSupplyState CabPowerSupplyState { get; protected set; } = PowerSupplyState.PowerOff;
         public bool CabPowerSupplyOn => CabPowerSupplyState == PowerSupplyState.PowerOn;
 
-        public float PowerOnDelayS { get; protected set; } = 0f;
-        public float AuxPowerOnDelayS { get; protected set; } = 0f;
+        public float PowerOnDelayS { get; protected set; }
+        public float AuxPowerOnDelayS { get; protected set; }
 
-        public bool ServiceRetentionButton { get; protected set; } = false;
-        public bool ServiceRetentionCancellationButton { get; protected set; } = false;
+        public bool ServiceRetentionButton { get; protected set; }
+        public bool ServiceRetentionCancellationButton { get; protected set; }
 
         private bool firstUpdate = true;
 
-        public ScriptedLocomotivePowerSupply(MSTSLocomotive locomotive)
+        protected ScriptedLocomotivePowerSupply(MSTSLocomotive locomotive)
         {
             Locomotive = locomotive;
 

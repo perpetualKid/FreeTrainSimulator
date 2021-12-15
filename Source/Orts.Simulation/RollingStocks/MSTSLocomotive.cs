@@ -136,7 +136,7 @@ namespace Orts.Simulation.RollingStocks
         public float MainResPressurePSI = 130;
         public float MaximumMainReservoirPipePressurePSI;
         public bool CompressorIsOn;
-        public bool CompressorIsMechanical = false;
+        public bool CompressorIsMechanical;
         public float AverageForceN;
         public float PowerOnDelayS;
         public bool CabLightOn;
@@ -360,7 +360,7 @@ namespace Orts.Simulation.RollingStocks
         public float DynamicBrakeDelayS;
         public bool DynamicBrakeAutoBailOff;
         public bool UsingRearCab;
-        public bool BrakeOverchargeSoundOn = false;
+        public bool BrakeOverchargeSoundOn;
 
         protected bool DynamicBrakeBlended; // dynamic brake blending is currently active
         protected bool DynamicBrakeBlendingEnabled; // dynamic brake blending is configured
@@ -374,7 +374,7 @@ namespace Orts.Simulation.RollingStocks
         public float CombinedControlSplitPosition;
         public bool HasSmoothStruc;
 
-        bool controlTrailerBrakeSystemSet = false;
+        bool controlTrailerBrakeSystemSet;
 
         public float MaxContinuousForceN;
         public float SpeedOfMaxContinuousForceMpS;  // Speed where maximum tractive effort occurs
@@ -2544,8 +2544,8 @@ namespace Orts.Simulation.RollingStocks
             {
                 if (Train.SlipperySpotDistanceM < 0)
                 {
-                    Train.SlipperySpotLengthM = 10 + 40 * (float)(RandomNumberGenerator.GetInt32(int.MaxValue) / (double)int.MaxValue);
-                    Train.SlipperySpotDistanceM = Train.SlipperySpotLengthM + 2000 * (float)(RandomNumberGenerator.GetInt32(int.MaxValue) / (double)int.MaxValue);
+                    Train.SlipperySpotLengthM = 10 + 40 * (float)StaticRandom.NextDouble();
+                    Train.SlipperySpotDistanceM = Train.SlipperySpotLengthM + 2000 * (float)StaticRandom.NextDouble();
                 }
                 if (Train.SlipperySpotDistanceM < Train.SlipperySpotLengthM)
                     max0 *= 0.8f;
@@ -2806,8 +2806,8 @@ namespace Orts.Simulation.RollingStocks
             {
                 if (Train.SlipperySpotDistanceM < 0)
                 {
-                    Train.SlipperySpotLengthM = 10 + 40 * (float)(RandomNumberGenerator.GetInt32(int.MaxValue) / (double)int.MaxValue);
-                    Train.SlipperySpotDistanceM = Train.SlipperySpotLengthM + 2000 * (float)(RandomNumberGenerator.GetInt32(int.MaxValue) / (double)int.MaxValue);
+                    Train.SlipperySpotLengthM = 10 + 40 * (float)StaticRandom.NextDouble();
+                    Train.SlipperySpotDistanceM = Train.SlipperySpotLengthM + 2000 * (float)StaticRandom.NextDouble();
                 }
                 if (Train.SlipperySpotDistanceM < Train.SlipperySpotLengthM)
                 {
@@ -2925,7 +2925,7 @@ namespace Orts.Simulation.RollingStocks
             }
 
             var AdhesionMultiplier = Simulator.Settings.AdhesionFactor / 100.0f; // Convert to a factor where 100% = no change to adhesion
-            var AdhesionRandom = (float)(Simulator.Settings.AdhesionFactorChange * 0.01f * 2f * (RandomNumberGenerator.GetInt32(int.MaxValue) / (double)int.MaxValue - 0.5f));
+            var AdhesionRandom = (float)(Simulator.Settings.AdhesionFactorChange * 0.01f * 2f * (StaticRandom.NextDouble() - 0.5f));
 
             Train.LocomotiveCoefficientFriction = BaseuMax * BaseFrictionCoefficientFactor * AdhesionMultiplier;  // Find friction coefficient factor for locomotive
             Train.LocomotiveCoefficientFriction = MathHelper.Clamp(Train.LocomotiveCoefficientFriction, 0.05f, 0.8f); // Ensure friction coefficient never exceeds a "reasonable" value

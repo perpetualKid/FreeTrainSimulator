@@ -31,7 +31,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Text;
 
 using Microsoft.Xna.Framework;
@@ -211,7 +210,7 @@ namespace Orts.Simulation.Timetables
         }
 
         public List<TriggerActivation> activatedTrainTriggers = new List<TriggerActivation>();
-        public string Briefing { get; set; }
+        public string Briefing { get; set; } = string.Empty;
 
         //================================================================================================//
         /// <summary>
@@ -1627,7 +1626,7 @@ namespace Orts.Simulation.Timetables
                             if (nextIndex != platformIndex)
                             {
                                 PlatformDetails otherPlatform = Simulator.Instance.SignalEnvironment.PlatformDetailsList[nextIndex];
-                                if (String.Compare(otherPlatform.Name, thisPlatform.Name) == 0)
+                                if (string.Equals(otherPlatform.Name, thisPlatform.Name, StringComparison.OrdinalIgnoreCase))
                                 {
                                     int otherSectionIndex = thisElement.Direction == 0 ?
                                         otherPlatform.TCSectionIndex[0] :
@@ -1678,7 +1677,7 @@ namespace Orts.Simulation.Timetables
                         foreach (int otherPlatformIndex in nextSection.PlatformIndices)
                         {
                             PlatformDetails otherPlatform = Simulator.Instance.SignalEnvironment.PlatformDetailsList[otherPlatformIndex];
-                            if (String.Compare(otherPlatform.Name, thisPlatform.Name) == 0)
+                            if (string.Equals(otherPlatform.Name, thisPlatform.Name, StringComparison.OrdinalIgnoreCase))
                             {
                                 fullLength = otherPlatform.Length + distance;
                                 // we miss a little bit (offset) - that's because we don't know direction of other platform
@@ -3268,7 +3267,7 @@ namespace Orts.Simulation.Timetables
                     {
                         foreach (StationStop otherStop in otherTrain.StationStops)
                         {
-                            if (String.Compare(thisStation.PlatformItem.Name, otherStop.PlatformItem.Name) == 0)
+                            if (string.Equals(thisStation.PlatformItem.Name, otherStop.PlatformItem.Name, StringComparison.OrdinalIgnoreCase))
                             {
                                 if (otherStop.ConnectionsAwaited?.ContainsKey(Number) ?? false)
                                 {
@@ -3580,7 +3579,7 @@ namespace Orts.Simulation.Timetables
                     thisStation.Passed = true;
 
                     MovementState = AiMovementState.Stopped;   // if state is still station_stop and ready and allowed to depart - change to stop to check action
-                    RestdelayS = (float)DelayedStartSettings.stationRestart.fixedPartS + ((float)RandomNumberGenerator.GetInt32(DelayedStartSettings.stationRestart.randomPartS * 10) / 10f);
+                    RestdelayS = DelayedStartSettings.stationRestart.fixedPartS + (StaticRandom.Next(DelayedStartSettings.stationRestart.randomPartS * 10) / 10f);
                     if (!endOfPath[0])
                     {
                         removeStation = true;  // set next station if not at end of path
@@ -4850,7 +4849,7 @@ namespace Orts.Simulation.Timetables
                     break;
             }
 
-            float randDelay = RandomNumberGenerator.GetInt32(randDelayPart);
+            float randDelay = StaticRandom.Next(randDelayPart);
             RestdelayS += (baseDelayPart + (randDelay / 10f));
             DelayedStart = true;
             DelayedStartState = reason;
@@ -4950,7 +4949,8 @@ namespace Orts.Simulation.Timetables
                 // if not found - check if it is the player train
                 if (otherTTTrain == null)
                 {
-                    if (simulator.PlayerLocomotive != null && simulator.PlayerLocomotive.Train != null && String.Equals(simulator.PlayerLocomotive.Train.Name.ToLower(), CreateAhead))
+                    if (simulator.PlayerLocomotive != null && simulator.PlayerLocomotive.Train != null && 
+                        string.Equals(simulator.PlayerLocomotive.Train.Name, CreateAhead, StringComparison.OrdinalIgnoreCase))
                     {
                         TTTrain playerTrain = simulator.PlayerLocomotive.Train as TTTrain;
                         if (playerTrain.TrainType == TrainType.Player || playerTrain.TrainType == TrainType.PlayerIntended) // train is started
@@ -4970,7 +4970,7 @@ namespace Orts.Simulation.Timetables
                     {
                         foreach (TTTrain otherTT in nextTrains)
                         {
-                            if (String.Equals(otherTT.Name.ToLower(), CreateAhead))
+                            if (string.Equals(otherTT.Name, CreateAhead, StringComparison.OrdinalIgnoreCase))
                             {
                                 otherTTTrain = otherTT;
                                 break;
@@ -5907,7 +5907,7 @@ namespace Orts.Simulation.Timetables
                         PlatformDetails thisPlatform = Simulator.Instance.SignalEnvironment.PlatformDetailsList[routeSection.PlatformIndices[0]];
                         if (StationStops.Count > 0) // train has stops
                         {
-                            if (String.Compare(StationStops[0].PlatformItem.Name, thisPlatform.Name) == 0)
+                            if (string.Equals(StationStops[0].PlatformItem.Name, thisPlatform.Name, StringComparison.OrdinalIgnoreCase))
                             {
                                 intoPlatform = true;
                             }
@@ -5959,7 +5959,7 @@ namespace Orts.Simulation.Timetables
                                 PlatformDetails thisPlatform = Simulator.Instance.SignalEnvironment.PlatformDetailsList[routeSection.PlatformIndices[0]];
                                 if (StationStops.Count > 0) // train has stops
                                 {
-                                    if (String.Compare(StationStops[0].PlatformItem.Name, thisPlatform.Name) == 0)
+                                    if (string.Equals(StationStops[0].PlatformItem.Name, thisPlatform.Name, StringComparison.OrdinalIgnoreCase))
                                     {
                                         intoPlatform = true;
                                     }
@@ -7577,7 +7577,7 @@ namespace Orts.Simulation.Timetables
 
             for (int iStation = 0; iStation <= otherTrain.StationStops.Count - 1; iStation++)
             {
-                if (String.Compare(stopStation.PlatformItem.Name, otherTrain.StationStops[iStation].PlatformItem.Name) == 0)
+                if (string.Equals(stopStation.PlatformItem.Name, otherTrain.StationStops[iStation].PlatformItem.Name, StringComparison.OrdinalIgnoreCase))
                 {
                     otherStationStopIndex = iStation;
                     break;
@@ -9186,7 +9186,7 @@ namespace Orts.Simulation.Timetables
                         {
                             foreach (StationStop otherStop in otherTrain.StationStops)
                             {
-                                if (String.Compare(StationStops[0].PlatformItem.Name, otherStop.PlatformItem.Name) == 0)
+                                if (string.Equals(StationStops[0].PlatformItem.Name, otherStop.PlatformItem.Name, StringComparison.OrdinalIgnoreCase))
                                 {
                                     int RefNumber = OrgAINumber > 0 ? OrgAINumber : Number;
                                     if (otherStop.ConnectionsAwaited?.ContainsKey(RefNumber) ?? false)
@@ -9524,7 +9524,7 @@ namespace Orts.Simulation.Timetables
                                 {
                                     foreach (StationStop otherStop in otherTrain.StationStops)
                                     {
-                                        if (String.Compare(StationStops[0].PlatformItem.Name, otherStop.PlatformItem.Name) == 0)
+                                        if (string.Equals(StationStops[0].PlatformItem.Name, otherStop.PlatformItem.Name, StringComparison.OrdinalIgnoreCase))
                                         {
                                             int RefNumber = OrgAINumber > 0 ? OrgAINumber : Number;
                                             if (otherStop.ConnectionsAwaited?.ContainsKey(RefNumber) ?? false)
@@ -9746,7 +9746,7 @@ namespace Orts.Simulation.Timetables
 
                         foreach (StationStop nextStop in otherTrain.StationStops)
                         {
-                            if (nextStop.PlatformItem.Name.Equals(StationStops[0].PlatformItem.Name))
+                            if (nextStop.PlatformItem.Name.Equals(StationStops[0].PlatformItem.Name, StringComparison.OrdinalIgnoreCase))
                             {
                                 reqStop = nextStop;
                                 break;
@@ -10740,7 +10740,7 @@ namespace Orts.Simulation.Timetables
             // if normal stop, set restart delay
             if (!AtStation && !attachTrain.AtStation)
             {
-                float randDelay = RandomNumberGenerator.GetInt32(DelayedStartSettings.attachRestart.randomPartS * 10);
+                float randDelay = StaticRandom.Next(DelayedStartSettings.attachRestart.randomPartS * 10);
                 RestdelayS = DelayedStartSettings.attachRestart.fixedPartS + (randDelay / 10f);
                 DelayedStart = true;
                 DelayedStartState = AiStartMovement.PathAction;
@@ -10884,7 +10884,7 @@ namespace Orts.Simulation.Timetables
             newTrain.StartTime = null; // time will be set later
 
             // set delay
-            float randDelay = RandomNumberGenerator.GetInt32(DelayedStartSettings.detachRestart.randomPartS * 10);
+            float randDelay = StaticRandom.Next(DelayedStartSettings.detachRestart.randomPartS * 10);
             RestdelayS = DelayedStartSettings.detachRestart.fixedPartS + (randDelay / 10f);
             DelayedStart = true;
             DelayedStartState = AiStartMovement.NewTrain;
@@ -11019,7 +11019,7 @@ namespace Orts.Simulation.Timetables
             // if normal stop, set restart delay
             if (MovementState == AiMovementState.Stopped)
             {
-                randDelay = RandomNumberGenerator.GetInt32(DelayedStartSettings.detachRestart.randomPartS * 10);
+                randDelay = StaticRandom.Next(DelayedStartSettings.detachRestart.randomPartS * 10);
                 RestdelayS = DelayedStartSettings.detachRestart.fixedPartS + (randDelay / 10f);
                 DelayedStart = true;
                 DelayedStartState = AiStartMovement.PathAction;
@@ -12710,7 +12710,7 @@ namespace Orts.Simulation.Timetables
 
             foreach (TTTrain otherTrain in trainList)
             {
-                if (String.Compare(otherTrain.Name, DetachFormedTrainName, true) == 0)
+                if (string.Equals(otherTrain.Name, DetachFormedTrainName, StringComparison.OrdinalIgnoreCase))
                 {
                     if (otherTrain.FormedOf >= 0)
                     {
@@ -12732,7 +12732,7 @@ namespace Orts.Simulation.Timetables
             // if not found, try player train
             if (!trainFound)
             {
-                if (playerTrain != null && String.Compare(playerTrain.Name, DetachFormedTrainName, true) == 0)
+                if (playerTrain != null && string.Equals(playerTrain.Name, DetachFormedTrainName, StringComparison.OrdinalIgnoreCase))
                 {
                     if (playerTrain.FormedOf >= 0)
                     {
@@ -13075,7 +13075,7 @@ namespace Orts.Simulation.Timetables
 
             foreach (TTTrain otherTrain in trainList)
             {
-                if (String.Compare(otherTrain.Name, AttachTrainName, true) == 0)
+                if (string.Equals(otherTrain.Name, AttachTrainName, StringComparison.OrdinalIgnoreCase))
                 {
                     AttachTrain = otherTrain.Number;
                     attachedTrain = otherTrain;
@@ -13087,7 +13087,7 @@ namespace Orts.Simulation.Timetables
             // if not found, try player train
             if (!trainFound)
             {
-                if (playerTrain != null && String.Compare(playerTrain.Name, AttachTrainName, true) == 0)
+                if (playerTrain != null && string.Equals(playerTrain.Name, AttachTrainName, StringComparison.OrdinalIgnoreCase))
                 {
                     AttachTrain = playerTrain.OrgAINumber;
                     attachedTrain = playerTrain;
@@ -13303,7 +13303,7 @@ namespace Orts.Simulation.Timetables
             {
                 foreach (TTTrain otherTrain in trainList)
                 {
-                    if (String.Compare(otherTrain.Name, PickUpTrainName, true) == 0)
+                    if (string.Equals(otherTrain.Name, PickUpTrainName, StringComparison.OrdinalIgnoreCase))
                     {
                         PickUpTrain = otherTrain.Number;
                         pickUpTrain = otherTrain;
@@ -13315,7 +13315,7 @@ namespace Orts.Simulation.Timetables
                 // if not found, try player train
                 if (!trainFound)
                 {
-                    if (playerTrain != null && String.Compare(playerTrain.Name, PickUpTrainName, true) == 0)
+                    if (playerTrain != null && string.Equals(playerTrain.Name, PickUpTrainName, StringComparison.OrdinalIgnoreCase))
                     {
                         PickUpTrain = playerTrain.Number;
                         pickUpTrain = playerTrain;
@@ -13894,7 +13894,7 @@ namespace Orts.Simulation.Timetables
 
             foreach (TTTrain otherTrain in trainList)
             {
-                if (String.Compare(otherTrain.Name, TransferTrainName, true) == 0)
+                if (string.Equals(otherTrain.Name, TransferTrainName, StringComparison.OrdinalIgnoreCase))
                 {
                     TransferTrain = otherTrain.Number;
                     transferTrain = otherTrain;
@@ -13906,7 +13906,7 @@ namespace Orts.Simulation.Timetables
             // if not found, try player train
             if (!trainFound)
             {
-                if (playerTrain != null && String.Compare(playerTrain.Name, TransferTrainName, true) == 0)
+                if (playerTrain != null && string.Equals(playerTrain.Name, TransferTrainName, StringComparison.OrdinalIgnoreCase))
                 {
                     TransferTrain = playerTrain.Number;
                     transferTrain = playerTrain;

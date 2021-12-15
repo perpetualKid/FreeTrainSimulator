@@ -21,72 +21,63 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+
+using Orts.Common;
 using Orts.Settings;
-using static Orts.Common.Native.NativeMethods;
 
 namespace Orts.ContentManager
 {
     public partial class ContentManagerGUI : Form
     {
         private readonly UserSettings settings;
-        private readonly ContentManager contentManager;
+        private readonly ContentRoot contentManager;
 
         private static readonly Regex contentBold = new Regex("(?:^|\t)([\\w ]+:)\t", RegexOptions.Multiline);
         private static readonly Regex contentLink = new Regex("\u0001(.*?)\u0002(.*?)\u0001");
+        private static readonly Regex contentLinkRTF = new Regex(@"\\'01(.*?)\\'02(.*?)\\'01");
 
-        private Content pendingSelection;
-        private List<string> pendingSelections = new List<string>();
+        private ContentBase pendingSelection;
+        private readonly List<string> pendingSelections = new List<string>();
 
         private CancellationTokenSource ctsSearching;
         private CancellationTokenSource ctsExpanding;
-        private readonly ContentType[] contentTypes = (ContentType[])Enum.GetValues(typeof(ContentType));
 
         private ConcurrentBag<SearchResult> searchResultsList = new ConcurrentBag<SearchResult>();
         private ConcurrentDictionary<string, string> searchResultDuplicates;
-        private static CharFormat2 rtfLink = new CharFormat2
-        {
-            Size = Marshal.SizeOf(typeof(CharFormat2)),
-            Mask = CfmLink,
-            Effects = CfmLink,
-        };
 
-        private const int WmUser = 0x0400;
-        private const int EmSetCharFormat = WmUser + 68;
-        private const int ScfSelection = 0x0001;
-        private const int CfmLink = 0x00000020;
+        private readonly Font boldFont;
 
         public ContentManagerGUI()
         {
             InitializeComponent();
 
             settings = new UserSettings(Array.Empty<string>());
-            contentManager = new ContentManager(settings.FolderSettings);
+            contentManager = new ContentRoot(settings.FolderSettings);
 
             // Start off the tree with the Content Manager itself at the root and expand to show packages.
             treeViewContent.Nodes.Add(CreateContentNode(contentManager));
             treeViewContent.Nodes[0].Expand();
 
-            var width = richTextBoxContent.Font.Height;
+            int width = richTextBoxContent.Font.Height;
             richTextBoxContent.SelectionTabs = new[] { width * 5, width * 15, width * 25, width * 35 };
-
+            boldFont = new Font(richTextBoxContent.Font, FontStyle.Bold);
         }
 
-        private Task<IEnumerable<TreeNode>> ExpandTreeView(Content content, CancellationToken token)
+        private static Task<IEnumerable<TreeNode>> ExpandTreeView(ContentBase content, CancellationToken token)
         {
 
             // Get all the different possible types of content from this content item.
-            var childNodes = contentTypes.SelectMany(ct => content.Get(ct).Select(c => CreateContentNode(c)));
+            IEnumerable<TreeNode> childNodes = EnumExtension.GetValues<ContentType>().SelectMany(ct => content.GetContent(ct).Select(c => CreateContentNode(c)));
 
             if (token.IsCancellationRequested)
             {
                 return Task.FromCanceled<IEnumerable<TreeNode>>(token);
             }
-            var linkChildren = contentLink.Matches(ContentInfo.GetText(content)).Cast<Match>().Select(linkMatch => CreateContentNode(content, linkMatch.Groups[1].Value, (ContentType)Enum.Parse(typeof(ContentType), linkMatch.Groups[2].Value)));
+            IEnumerable<TreeNode> linkChildren = contentLink.Matches(ContentInfo.GetText(content)).Cast<Match>().Select(linkMatch => CreateContentNode(content, linkMatch.Groups[1].Value, (ContentType)Enum.Parse(typeof(ContentType), linkMatch.Groups[2].Value)));
             Debug.Assert(!childNodes.Any() || !linkChildren.Any(), "Content item should not return items from Get(ContentType) and Get(string, ContentType)");
             childNodes = childNodes.Concat(linkChildren);
 
@@ -99,12 +90,15 @@ namespace Orts.ContentManager
 
         private async void TreeViewContent_BeforeExpand(object sender, TreeViewCancelEventArgs e)
         {
+            object lockObj = new object();
             // Are we about to expand a not-yet-loaded node? This is identified by a single child with no text or tag.
-            if (e.Node.Tag != null && e.Node.Tag is Content && e.Node.Nodes.Count == 1 && string.IsNullOrEmpty(e.Node.Nodes[0].Text) && e.Node.Nodes[0].Tag == null)
+            if (e.Node.Tag != null && e.Node.Tag is ContentBase && e.Node.Nodes.Count == 1 && string.IsNullOrEmpty(e.Node.Nodes[0].Text) && e.Node.Nodes[0].Tag == null)
             {
                 // Make use of the single child to show a loading message.
+#pragma warning disable CA1303 // Do not pass literals as localized parameters
                 e.Node.Nodes[0].Text = "Loading...";
-                lock (e.Node)
+#pragma warning restore CA1303 // Do not pass literals as localized parameters
+                lock (lockObj)
                 {
                     if (ctsExpanding != null && !ctsExpanding.IsCancellationRequested)
                         ctsExpanding.Cancel();
@@ -113,8 +107,8 @@ namespace Orts.ContentManager
                 try
                 {
 
-                    Content content = e.Node.Tag as Content;
-                    var nodes = await Task.Run(() => ExpandTreeView(content, ctsExpanding.Token)).ConfigureAwait(true);
+                    ContentBase content = e.Node.Tag as ContentBase;
+                    IEnumerable<TreeNode> nodes = await Task.Run(() => ExpandTreeView(content, ctsExpanding.Token)).ConfigureAwait(true);
 
                     //// Collapse node if we're going to end up with no child nodes.
                     if (!nodes.Any())
@@ -131,7 +125,9 @@ namespace Orts.ContentManager
                     e.Node.Nodes[0].Text = string.Empty;
                     e.Node.Collapse();
                 }
+#pragma warning disable CA1031 // Do not catch general exception types
                 catch (Exception ex)
+#pragma warning restore CA1031 // Do not catch general exception types
                 {
                     e.Node.Nodes.Add(new TreeNode(ex.Message));
                 }
@@ -143,7 +139,7 @@ namespace Orts.ContentManager
         {
             if (pendingSelection != null)
             {
-                var pendingSelectionNode = startNode.Nodes.OfType<TreeNode>().FirstOrDefault(node => (Content)node.Tag == pendingSelection);
+                TreeNode pendingSelectionNode = startNode.Nodes.OfType<TreeNode>().FirstOrDefault(node => (ContentBase)node.Tag == pendingSelection);
                 if (pendingSelectionNode != null)
                 {
                     treeViewContent.SelectedNode = pendingSelectionNode;
@@ -153,7 +149,7 @@ namespace Orts.ContentManager
             }
             if (pendingSelections.Count > 0)
             {
-                var pendingSelectionNode = startNode.Nodes.OfType<TreeNode>().FirstOrDefault(node => ((Content)node.Tag).Name == pendingSelections[0]);
+                TreeNode pendingSelectionNode = startNode.Nodes.OfType<TreeNode>().FirstOrDefault(node => ((ContentBase)node.Tag).Name == pendingSelections[0]);
                 if (pendingSelectionNode != null)
                 {
                     pendingSelections.RemoveAt(0);
@@ -163,15 +159,15 @@ namespace Orts.ContentManager
             }
         }
 
-        private static TreeNode CreateContentNode(Content content, string name, ContentType type)
+        private static TreeNode CreateContentNode(ContentBase content, string name, ContentType type)
         {
-            var c = content.Get(name, type);
+            ContentBase c = content.GetContent(name, type);
             if (c != null)
                 return CreateContentNode(c);
             return new TreeNode($"Missing: {name} ({type})");
         }
 
-        private static TreeNode CreateContentNode(Content c)
+        private static TreeNode CreateContentNode(ContentBase c)
         {
             return new TreeNode($"{c.Name} ({c.Type})", new[] { new TreeNode() }) { Tag = c };
         }
@@ -180,42 +176,42 @@ namespace Orts.ContentManager
         {
             richTextBoxContent.Clear();
 
-            if (!(e.Node.Tag is Content))
+            if (!(e.Node.Tag is ContentBase))
                 return;
 
-            Trace.TraceInformation("Updating richTextBoxContent with content {0}", e.Node.Tag as Content);
-            richTextBoxContent.Text = ContentInfo.GetText(e.Node.Tag as Content);
-            var boldFont = new Font(richTextBoxContent.Font, FontStyle.Bold);
-            var boldMatch = contentBold.Match(richTextBoxContent.Text);
+            Trace.TraceInformation("Updating richTextBoxContent with content {0}", e.Node.Tag as ContentBase);
+
+            richTextBoxContent.Text = ContentInfo.GetText(e.Node.Tag as ContentBase);
+            Match boldMatch = contentBold.Match(richTextBoxContent.Text);
             while (boldMatch.Success)
             {
                 richTextBoxContent.Select(boldMatch.Groups[1].Index, boldMatch.Groups[1].Length);
                 richTextBoxContent.SelectionFont = boldFont;
                 boldMatch = contentBold.Match(richTextBoxContent.Text, boldMatch.Groups[1].Index + boldMatch.Groups[1].Length);
             }
-            var linkMatch = contentLink.Match(richTextBoxContent.Text);
+            string rawText = richTextBoxContent.Rtf;
+            Match linkMatch = contentLinkRTF.Match(rawText);
             while (linkMatch.Success)
             {
-                richTextBoxContent.Select(linkMatch.Index, linkMatch.Length);
-                richTextBoxContent.SelectedRtf = $@"{{\rtf{{{linkMatch.Groups[1].Value}{{\v{{\u1.{linkMatch.Groups[1].Value}\u1.{linkMatch.Groups[2].Value}}}\v0}}}}}}";
-                richTextBoxContent.Select(linkMatch.Index, linkMatch.Groups[1].Value.Length * 2 + linkMatch.Groups[2].Value.Length + 2);
-                SendMessage(richTextBoxContent.Handle, EmSetCharFormat, (IntPtr)ScfSelection, ref rtfLink);
-                linkMatch = contentLink.Match(richTextBoxContent.Text);
+                rawText = rawText.Remove(linkMatch.Index, linkMatch.Length);
+                rawText = rawText.Insert(linkMatch.Index, $@"{{\field{{\*\fldinst{{HYPERLINK ""{linkMatch.Groups[1].Value}\u0001.{linkMatch.Groups[2].Value}\u0001.""}}}}{{\fldrslt {linkMatch.Groups[1].Value}}}}}");
+                linkMatch = contentLinkRTF.Match(rawText);
             }
+            richTextBoxContent.Rtf = rawText;
             richTextBoxContent.Select(0, 0);
             richTextBoxContent.SelectionFont = richTextBoxContent.Font;
         }
 
         private void RichTextBoxContent_LinkClicked(object sender, LinkClickedEventArgs e)
         {
-            var content = treeViewContent.SelectedNode.Tag as Content;
-            var link = e.LinkText.Split('\u0001');
-            if (content != null && link.Length == 3)
+            ContentBase content = treeViewContent.SelectedNode.Tag as ContentBase;
+            string[] link = e.LinkText.Split('\u0001', StringSplitOptions.RemoveEmptyEntries);
+            if (content != null && link.Length == 2)
             {
-                pendingSelection = content.Get(link[1], (ContentType)Enum.Parse(typeof(ContentType), link[2]));
+                pendingSelection = content.GetContent(link[0], (ContentType)Enum.Parse(typeof(ContentType), link[1]));
                 if (treeViewContent.SelectedNode.IsExpanded)
                 {
-                    var pendingSelectionNode = treeViewContent.SelectedNode.Nodes.Cast<TreeNode>().FirstOrDefault(node => (Content)node.Tag == pendingSelection);
+                    TreeNode pendingSelectionNode = treeViewContent.SelectedNode.Nodes.Cast<TreeNode>().FirstOrDefault(node => (ContentBase)node.Tag == pendingSelection);
                     if (pendingSelectionNode != null)
                     {
                         treeViewContent.SelectedNode = pendingSelectionNode;
@@ -230,7 +226,7 @@ namespace Orts.ContentManager
             }
         }
 
-        private Task SearchContent(Content content, string path, string searchString, CancellationToken token)
+        private Task SearchContent(ContentBase content, string path, string searchString, CancellationToken token)
         {
             if (token.IsCancellationRequested)
                 return Task.CompletedTask;
@@ -240,19 +236,19 @@ namespace Orts.ContentManager
                 if (string.IsNullOrEmpty(path))
                     path = contentManager.Name;
 
-                if (content.Name.ToLowerInvariant().Contains(searchString))
+                if (content.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase))
                 {
                     if (content.Parent != null)
                         searchResultsList.Add(new SearchResult(content, path));
                 }
-                Parallel.ForEach(contentTypes.SelectMany(ct => content.Get(ct)),
+                Parallel.ForEach(EnumExtension.GetValues<ContentType>().SelectMany(ct => content.GetContent(ct)),
                     new ParallelOptions() { CancellationToken = token },
                     async (child) =>
                 {
-                     await SearchContent(child, path + " / " + child.Name, searchString, token);
+                    await SearchContent(child, path + " / " + child.Name, searchString, token).ConfigureAwait(false);
                 });
 
-                Parallel.ForEach(contentLink.Matches(ContentInfo.GetText(content)).Cast<Match>().Select(linkMatch => content.Get(linkMatch.Groups[1].Value,
+                Parallel.ForEach(contentLinkRTF.Matches(ContentInfo.GetText(content)).Cast<Match>().Select(linkMatch => content.GetContent(linkMatch.Groups[1].Value,
                     (ContentType)Enum.Parse(typeof(ContentType), linkMatch.Groups[2].Value))).Where(linkContent => linkContent != null),
                     new ParallelOptions() { CancellationToken = token },
                     async (child) =>
@@ -260,7 +256,7 @@ namespace Orts.ContentManager
                         if (!searchResultDuplicates.ContainsKey(path + " -> " + child.Name))
                         {
                             searchResultDuplicates.TryAdd(path, content.Name);
-                            await SearchContent(child, path + " -> " + child.Name, searchString, token);
+                            await SearchContent(child, path + " -> " + child.Name, searchString, token).ConfigureAwait(false);
                         }
                     });
 
@@ -293,22 +289,24 @@ namespace Orts.ContentManager
 
             try
             {
-                await Task.Run(() => SearchContent(contentManager, string.Empty, searchBox.Text, ctsSearching.Token));
+                await Task.Run(() => SearchContent(contentManager, string.Empty, searchBox.Text, ctsSearching.Token)).ConfigureAwait(true);
             }
+#pragma warning disable CA1031 // Do not catch general exception types
             catch (Exception ex)
+#pragma warning restore CA1031 // Do not catch general exception types
             {
                 MessageBox.Show(ex.Message, Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
-                UpdateSearchResults(true);
+                UpdateSearchResults(true, CancellationToken.None);
             }
             return;
         }
 
-        private void UpdateSearchResults(bool done)
+        private void UpdateSearchResults(bool done, CancellationToken token)
         {
-            while (searchResultsList.TryTake(out SearchResult result))
+            while (searchResultsList.TryTake(out SearchResult result) && !token.IsCancellationRequested)
             {
                 searchResults.Items.Add(result);
             }
@@ -320,7 +318,7 @@ namespace Orts.ContentManager
         {
             try
             {
-                Invoke((MethodInvoker)delegate { UpdateSearchResults(false); });
+                Invoke((MethodInvoker)delegate { UpdateSearchResults(false, token); });
             }
             catch (ObjectDisposedException) //when Form Closing, object may already be disposing while SearchTask cancelling
             { }
@@ -359,15 +357,15 @@ namespace Orts.ContentManager
         }
     }
 
-    public class SearchResult
+    internal class SearchResult
     {
-        public string Name;
-        public string[] Path;
-        private static string[] separators = { " / ", " -> " };
-        public SearchResult(Content content, string path)
+        public string Name { get; }
+        public string[] Path { get; }
+        private static readonly string[] separators = { " / ", " -> " };
+        public SearchResult(ContentBase content, string path)
         {
-            var placeEnd = Math.Max(path.LastIndexOf(" / "), path.LastIndexOf(" -> "));
-            var place = path.Substring(0, placeEnd);
+            int placeEnd = Math.Max(path.LastIndexOf(" / ", StringComparison.OrdinalIgnoreCase), path.LastIndexOf(" -> ", StringComparison.OrdinalIgnoreCase));
+            string place = path[..placeEnd];
             Name = $"{content.Name} ({content.Type}) in {place}";
             Path = path.Split(separators, StringSplitOptions.None).Skip(1).ToArray();
         }

@@ -26,6 +26,7 @@ using System.Linq;
 using GetText;
 
 using Orts.Common;
+using Orts.Common.Calc;
 using Orts.Common.Position;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
@@ -543,9 +544,9 @@ namespace Orts.MultiPlayer
                 }
                 else //client needs to handle environment
                 {
-                    if (MultiPlayerManager.GetUserName() == this.user && !MultiPlayerManager.Client.Connected) //a reply from the server, update my train number
+                    if (MultiPlayerManager.GetUserName() == this.user && !MultiPlayerManager.Instance().Connected) //a reply from the server, update my train number
                     {
-                        MultiPlayerManager.Client.Connected = true;
+                        MultiPlayerManager.Instance().Connected = true;
                         Train t = null;
                         if (Simulator.Instance.PlayerLocomotive == null) t = Simulator.Instance.Trains[0];
                         else t = Simulator.Instance.PlayerLocomotive.Train;
@@ -684,9 +685,9 @@ namespace Orts.MultiPlayer
                 }
                 else //client needs to handle environment
                 {
-                    if (MultiPlayerManager.GetUserName() == this.user && !MultiPlayerManager.Client.Connected) //a reply from the server, update my train number
+                    if (MultiPlayerManager.GetUserName() == this.user && !MultiPlayerManager.Instance().Connected) //a reply from the server, update my train number
                     {
-                        MultiPlayerManager.Client.Connected = true;
+                        MultiPlayerManager.Instance().Connected = true;
                         Train t = null;
                         if (Simulator.Instance.PlayerLocomotive == null) t = Simulator.Instance.Trains[0];
                         else t = Simulator.Instance.PlayerLocomotive.Train;
@@ -769,7 +770,7 @@ namespace Orts.MultiPlayer
             if (MultiPlayerManager.IsServer()) //server got this message from Client
             {
                 //if a normal user, and the dispatcher does not want hand throw, just ignore it
-                if (HandThrown == true && !MultiPlayerManager.AllowedManualSwitch && !MultiPlayerManager.Instance().aiderList.Contains(user))
+                if (HandThrown == true && !MultiPlayerManager.Instance().AllowedManualSwitch && !MultiPlayerManager.Instance().aiderList.Contains(user))
                 {
                     MultiPlayerManager.BroadCast((new MSGMessage(user, "SwitchWarning", "Server does not allow hand thrown of switch")).ToString());
                     return;
@@ -1590,7 +1591,7 @@ namespace Orts.MultiPlayer
             {
                 if (MultiPlayerManager.Instance().IsDispatcher)
                     return; //already a dispatcher, not need to worry
-                MultiPlayerManager.Client.Connected = true;
+                MultiPlayerManager.Instance().Connected = true;
                 MultiPlayerManager.Instance().IsDispatcher = true;
                 MultiPlayerManager.Instance().OnServerChanged(true);
                 MultiPlayerManager.Instance().RememberOriginalSwitchState();
@@ -2043,7 +2044,7 @@ namespace Orts.MultiPlayer
             if (user == MultiPlayerManager.GetUserName()) return; //avoid myself
 
             bool ServerQuit = false;
-            if (MultiPlayerManager.Client != null && user.Contains("ServerHasToQuit")) //the server quits, will send a message with ServerHasToQuit\tServerName
+            if (MultiPlayerManager.IsMultiPlayer() && user.Contains("ServerHasToQuit")) //the server quits, will send a message with ServerHasToQuit\tServerName
             {
                 if (Simulator.Instance.Confirmer != null)
                     Simulator.Instance.Confirmer.Error(MultiPlayerManager.Catalog.GetString("Server quits, will play as single mode"));
@@ -2284,7 +2285,7 @@ namespace Orts.MultiPlayer
             if (MultiPlayerManager.IsServer()) newTrainNumber = newT.Number;//serer will use the correct number
             else
             {
-                newTrainNumber = 1000000 + MultiPlayerManager.Random.Next(1000000);//client: temporary assign a train number 1000000-2000000, will change to the correct one after receiving response from the server
+                newTrainNumber = 1000000 + StaticRandom.Next(1000000);//client: temporary assign a train number 1000000-2000000, will change to the correct one after receiving response from the server
                 newT.TrainType = TrainType.Remote; //by default, uncoupled train will be controlled by the server
             }
             if (!newT.Cars.Contains(Simulator.Instance.PlayerLocomotive)) //if newT does not have player locomotive, it may be controlled remotely

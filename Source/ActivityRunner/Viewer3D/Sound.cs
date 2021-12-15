@@ -46,6 +46,7 @@ using System.IO;
 using System.Linq;
 using Orts.ActivityRunner.Viewer3D.Sound;
 using Orts.Common;
+using Orts.Common.Calc;
 using Orts.Common.Position;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
@@ -1727,7 +1728,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 {
                     SoundStream.RepeatedTrigger = this == SoundStream.LastTriggered;
                     SoundCommand.Run();
-                    float volume = (float)Viewer.Random.NextDouble() * (SMS.MaximumVolume - SMS.MinimumVolume) + SMS.MinimumVolume;
+                    float volume = (float)StaticRandom.NextDouble() * (SMS.MaximumVolume - SMS.MinimumVolume) + SMS.MinimumVolume;
                     SoundStream.Volume = volume;
                     SoundStream.LastTriggered = this;
                 }
@@ -1750,11 +1751,11 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             if (SMS.MaximumDistance != SMS.MinimumDistance)
             {
-                triggerDistance = car.DistanceM + ((float)Viewer.Random.NextDouble() * (SMS.MaximumDistance - SMS.MinimumDistance) + SMS.MinimumDistance);
+                triggerDistance = car.DistanceM + ((float)StaticRandom.NextDouble() * (SMS.MaximumDistance - SMS.MinimumDistance) + SMS.MinimumDistance);
             }
             else
             {
-                triggerDistance = car.DistanceM + ((float)Viewer.Random.NextDouble() * (SMS.MinimumDistance) + SMS.MinimumDistance);
+                triggerDistance = car.DistanceM + ((float)StaticRandom.NextDouble() * (SMS.MinimumDistance) + SMS.MinimumDistance);
             }
         }
 
@@ -1831,7 +1832,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 {
                     SoundStream.RepeatedTrigger = this == SoundStream.LastTriggered;
                     SoundCommand.Run();
-                    float volume = (float)Viewer.Random.NextDouble() * (SMS.MaximumVolume - SMS.MinimumVolume) + SMS.MinimumVolume;
+                    float volume = (float)StaticRandom.NextDouble() * (SMS.MaximumVolume - SMS.MinimumVolume) + SMS.MinimumVolume;
                     SoundStream.Volume = volume;
                     SoundStream.LastTriggered = this;
                 }
@@ -1848,7 +1849,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// </summary>
         private void UpdateTriggerAtSeconds()
         {
-            double interval = Viewer.Random.NextDouble() * (SMS.MaximumDelay - SMS.MinimumDelay) + SMS.MinimumDelay;
+            double interval = StaticRandom.NextDouble() * (SMS.MaximumDelay - SMS.MinimumDelay) + SMS.MinimumDelay;
             triggerAtSeconds = Simulator.ClockTime + interval;
         }
 
@@ -2191,7 +2192,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// </summary>
         protected SoundStream ORTSStream;
 
-        public ORTSSoundCommand(SoundStream ortsStream)
+        protected ORTSSoundCommand(SoundStream ortsStream)
         {
             ORTSStream = ortsStream;
         }
@@ -2288,7 +2289,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// </summary>
         public int iFile;
 
-        public ORTSSoundPlayCommand(SoundStream ortsStream, SoundPlayCommand mstsSoundPlayCommand)
+        protected ORTSSoundPlayCommand(SoundStream ortsStream, SoundPlayCommand mstsSoundPlayCommand)
             : base(ortsStream)
         {
             Files = mstsSoundPlayCommand?.Files;
@@ -2296,7 +2297,7 @@ namespace Orts.ActivityRunner.Viewer3D
         }
 
         // precompiled version for activity sounds
-        public ORTSSoundPlayCommand(SoundStream ortsStream, string wavFileName)
+        protected ORTSSoundPlayCommand(SoundStream ortsStream, string wavFileName)
             : base(ortsStream)
         {
             Files = new List<string>() { wavFileName };
@@ -2317,7 +2318,7 @@ namespace Orts.ActivityRunner.Viewer3D
             }
             else if (SelectionMethod == SoundPlayCommand.Selection.Random)
             {
-                iFile = Viewer.Random.Next(Files.Count);
+                iFile = StaticRandom.Next(Files.Count);
             }
 
             string[] pathArray = {  Simulator.Instance.RouteFolder.SoundFolder,

@@ -30,7 +30,7 @@ using Orts.Simulation;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
-
+#pragma warning disable CA1044 // Properties should not be write only
     public class SceneryShader : BaseShader
     {
         private readonly EffectParameter world;
@@ -694,4 +694,5 @@ namespace Orts.ActivityRunner.Viewer3D
             worldViewProjection.SetValue(wvp);
         }
     }
+#pragma warning restore CA1044 // Properties should not be write only
 }

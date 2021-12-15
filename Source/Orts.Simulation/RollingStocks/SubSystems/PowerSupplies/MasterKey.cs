@@ -36,14 +36,14 @@ namespace Orts.Simulation.RollingStocks.SubSystems.PowerSupplies
         
         // Parameters
         public ModeType Mode { get; protected set; } = ModeType.AlwaysOn;
-        public float DelayS { get; protected set; } = 0f;
-        public bool HeadlightControl = false;
+        public float DelayS { get; protected set; }
+        public bool HeadlightControl;
 
         // Variables
         readonly MSTSLocomotive Locomotive;
         protected Timer Timer;
-        public bool CommandSwitch { get; protected set; } = false;
-        public bool On { get; protected set; } = false;
+        public bool CommandSwitch { get; protected set; }
+        public bool On { get; protected set; }
         public bool OtherCabInUse {
             get
             {

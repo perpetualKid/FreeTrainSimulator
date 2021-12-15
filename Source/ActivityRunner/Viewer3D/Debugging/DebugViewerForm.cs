@@ -184,7 +184,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
             boxSetSignal.Items.Add("Proceed");
             chkAllowUserSwitch.Checked = false;
             selectedTrainList = new List<Train>();
-            if (MultiPlayer.MultiPlayerManager.IsMultiPlayer()) { MultiPlayer.MultiPlayerManager.AllowedManualSwitch = false; }
+            if (MultiPlayerManager.IsMultiPlayer()) { MultiPlayerManager.Instance().AllowedManualSwitch = false; }
 
             InitData();
             InitImage();
@@ -1565,7 +1565,8 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 	  }
 	  private void HandlePickedSignal()
 	  {
-		  if (MultiPlayer.MultiPlayerManager.IsClient() && !MultiPlayer.MultiPlayerManager.Instance().AmAider) return;//normal client not server or aider
+		  if (MultiPlayerManager.MultiplayerState == MultiplayerState.Client && !MultiPlayerManager.Instance().AmAider) 
+                return;//normal client not server or aider
 		  //boxSetSwitch.Enabled = false;
 		  boxSetSwitch.Visible = false;
 		  if (signalPickedItem == null) return;
@@ -1596,7 +1597,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
 	  private void HandlePickedSwitch()
 	  {
-		  if (MultiPlayer.MultiPlayerManager.IsClient() && !MultiPlayer.MultiPlayerManager.Instance().AmAider) return;//normal client not server
+		  if (MultiPlayerManager.MultiplayerState == MultiplayerState.Client && !MultiPlayerManager.Instance().AmAider) return;//normal client not server
 		  //boxSetSignal.Enabled = false;
 		  boxSetSignal.Visible = false;
 		  if (switchPickedItem == null) return;
@@ -1739,7 +1740,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
 	  private void chkAllowUserSwitch_CheckedChanged(object sender, EventArgs e)
 	  {
-		  MultiPlayer.MultiPlayerManager.AllowedManualSwitch = chkAllowUserSwitch.Checked;
+		  MultiPlayerManager.Instance().AllowedManualSwitch = chkAllowUserSwitch.Checked;
           if (chkAllowUserSwitch.Checked == true) { MultiPlayer.MultiPlayerManager.BroadCast((new MultiPlayer.MSGMessage("All", "SwitchOK", "OK to switch")).ToString()); }
           else { MultiPlayer.MultiPlayerManager.BroadCast((new MultiPlayer.MSGMessage("All", "SwitchWarning", "Cannot switch")).ToString()); }
 	  }
@@ -2129,7 +2130,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
         private void chkPreferGreenHandle(object sender, EventArgs e)
         {
-            MultiPlayer.MultiPlayerManager.PreferGreen = chkBoxPenalty.Checked;
+            MultiPlayerManager.Instance().PreferGreen = chkBoxPenalty.Checked;
 
         }
 
@@ -2436,7 +2437,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         /// 
         /// </summary>
         /// <param name="item"></param>
-        public ItemWidget()
+        protected ItemWidget()
         {
             Location = new Vector2(float.NegativeInfinity, float.NegativeInfinity);
             Location2D = new PointF(float.NegativeInfinity, float.NegativeInfinity);

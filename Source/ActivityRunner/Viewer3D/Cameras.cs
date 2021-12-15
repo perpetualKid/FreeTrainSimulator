@@ -28,6 +28,7 @@ using Microsoft.Xna.Framework;
 
 using Orts.ActivityRunner.Viewer3D.RollingStock;
 using Orts.Common;
+using Orts.Common.Calc;
 using Orts.Common.Input;
 using Orts.Common.Position;
 using Orts.Common.Xna;
@@ -2768,7 +2769,7 @@ namespace Orts.ActivityRunner.Viewer3D
             tdb.Move(MaximumDistance * 0.75f);
             TrackCameraLocation = tdb.WorldLocation;
             var directionForward = WorldLocation.GetDistance((trainForwards ? train.FirstCar : train.LastCar).WorldPosition.WorldLocation, TrackCameraLocation);
-            if (Viewer.Random.Next(2) == 0)
+            if (StaticRandom.Next(2) == 0)
             {
                 // Use swapped -X and Z to move to the left of the track.
                 return new WorldLocation(TrackCameraLocation.TileX, TrackCameraLocation.TileZ,
@@ -3070,7 +3071,7 @@ namespace Orts.ActivityRunner.Viewer3D
                         Traveller roadTraveller;
                         // decide randomly at which side of the level crossing the camera will be located
                         roadTraveller = new Traveller(Viewer.Simulator.TSectionDat, Viewer.Simulator.RoadDatabase.RoadTrackDB.TrackNodes, Viewer.Simulator.RoadDatabase.RoadTrackDB.TrackNodes[newLevelCrossingItem.TrackIndex] as TrackVectorNode,
-                            TrackCameraLocation, Viewer.Random.Next(2) == 0 ? Traveller.TravellerDirection.Forward : Traveller.TravellerDirection.Backward);
+                            TrackCameraLocation, StaticRandom.Next(2) == 0 ? Traveller.TravellerDirection.Forward : Traveller.TravellerDirection.Backward);
                         roadTraveller.Move(12.5f);
                         tdb.Move(FrontDist);
                         TrackCameraLocation = roadTraveller.WorldLocation;

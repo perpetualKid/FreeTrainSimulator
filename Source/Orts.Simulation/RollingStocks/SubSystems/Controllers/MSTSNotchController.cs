@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -214,7 +215,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
             StepSize = stf.ReadFloat(STFReader.Units.None, null);
             IntermediateValue = CurrentValue = stf.ReadFloat(STFReader.Units.None, null);
             string token = stf.ReadItem(); // s/b numnotches
-            if (string.Compare(token, "NumNotches", true) != 0) // handle error in gp38.eng where extra parameter provided before NumNotches statement 
+            if (!string.Equals(token, "NumNotches", StringComparison.OrdinalIgnoreCase)) // handle error in gp38.eng where extra parameter provided before NumNotches statement 
                 stf.ReadItem();
             stf.MustMatch("(");
             stf.ReadInt(null);

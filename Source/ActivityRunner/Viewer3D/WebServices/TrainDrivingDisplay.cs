@@ -191,18 +191,18 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             }
         }
 
-        private static bool ctrlAIFiremanOn = false; //AIFireman On
-        private static bool ctrlAIFiremanOff = false;//AIFireman Off
-        private static bool ctrlAIFiremanReset = false;//AIFireman Reset
+        private static bool ctrlAIFiremanOn; //AIFireman On
+        private static bool ctrlAIFiremanOff;//AIFireman Off
+        private static bool ctrlAIFiremanReset;//AIFireman Reset
         private static double clockAIFireTime; //AIFireman reset timing
 
-        private static bool grateLabelVisible = false;// Grate label visible
+        private static bool grateLabelVisible;// Grate label visible
         private static double clockGrateTime; // Grate hide timing
 
-        private static bool wheelLabelVisible = false;// Wheel label visible
+        private static bool wheelLabelVisible;// Wheel label visible
         private static double clockWheelTime; // Wheel hide timing
 
-        private static bool doorsLabelVisible = false; // Doors label visible
+        private static bool doorsLabelVisible; // Doors label visible
         private static double clockDoorsTime; // Doors hide timing
 
         /// <summary>
@@ -243,7 +243,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             AddLabel(new ListLabel
             {
                 FirstCol = Viewer.Catalog.GetString("Time"),
-                LastCol = FormatStrings.FormatTime(viewer.Simulator.ClockTime + (MultiPlayer.MultiPlayerManager.IsClient() ? MultiPlayer.MultiPlayerManager.Instance().serverTimeDifference : 0)),
+                LastCol = FormatStrings.FormatTime(viewer.Simulator.ClockTime + (MultiPlayer.MultiPlayerManager.MultiplayerState == MultiPlayer.MultiplayerState.Client ? MultiPlayer.MultiPlayerManager.Instance().serverTimeDifference : 0)),
             });
             if (viewer.Simulator.IsReplaying)
             {

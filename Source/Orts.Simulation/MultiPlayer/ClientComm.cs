@@ -37,8 +37,6 @@ namespace Orts.MultiPlayer
         private bool disposedValue;
 
         private readonly CancellationTokenSource cts = new CancellationTokenSource();
-        public string UserName { get; }
-        public string Code { get; }
         public bool Connected { get; set; }
 
         public void Stop()
@@ -52,7 +50,7 @@ namespace Orts.MultiPlayer
             { }
         }
 
-        public ClientComm(string serverAddress, int serverPort, string userName, string code)
+        public ClientComm(string serverAddress, int serverPort)
         {
             client = new TcpClient();
 
@@ -65,9 +63,6 @@ namespace Orts.MultiPlayer
             Task connectionTask = Connection(address, serverPort);
 
             IPEndPoint serverEndPoint = new IPEndPoint(address, serverPort);
-
-            UserName = userName;
-            Code = code;
         }
 
         private async Task Connection(IPAddress address, int port)
@@ -125,7 +120,7 @@ namespace Orts.MultiPlayer
             }
             Simulator.Instance.Confirmer?.Information(CatalogManager.Catalog.GetString("Alt-E to gain control of your train"));
 
-            MultiPlayerManager.Client = null;
+            MultiPlayerManager.Stop();
             client.Close();
         }
 

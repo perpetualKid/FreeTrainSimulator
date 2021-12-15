@@ -26,6 +26,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Orts.ActivityRunner.Viewer3D.Common;
 using Orts.ActivityRunner.Viewer3D.Processes;
 using Orts.Common;
+using Orts.Common.Calc;
 using Orts.Common.Position;
 using Orts.Common.Xna;
 
@@ -129,7 +130,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     lunarPosArray[i] = SunMoonPos.LunarAngle(latitude, longitude, ((float)i / maxSteps), date);
                 }
                 // Phase of the moon is generated at random
-                moonPhase = Viewer.Random.Next(8);
+                moonPhase = StaticRandom.Next(8);
                 if (moonPhase == 6 && date.ordinalDate > 45 && date.ordinalDate < 330)
                     moonPhase = 3; // Moon dog only occurs in winter
                 initialized = true;

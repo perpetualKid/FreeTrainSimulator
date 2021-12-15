@@ -15,6 +15,9 @@
         {
             if (disposing && (components != null))
             {
+                ctsExpanding?.Dispose();
+                ctsSearching?.Dispose();
+                boldFont?.Dispose();
                 components.Dispose();
             }
             base.Dispose(disposing);

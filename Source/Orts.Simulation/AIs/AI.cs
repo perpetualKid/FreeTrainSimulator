@@ -161,7 +161,7 @@ namespace Orts.Simulation.AIs
                 string trainType = inf.ReadString();
 
                 // activity mode trains
-                if (String.Equals(trainType, "AI"))
+                if (string.Equals(trainType, "AI", StringComparison.OrdinalIgnoreCase))
                 {
                     AITrain aiTrain = new AITrain(inf, this);
                     AITrains.Add(aiTrain);
@@ -194,7 +194,7 @@ namespace Orts.Simulation.AIs
             for (int iStarting = 0; iStarting < totalStarting; iStarting++)
             {
                 string trainType = inf.ReadString();
-                if (String.Equals(trainType, "AI"))
+                if (string.Equals(trainType, "AI", StringComparison.OrdinalIgnoreCase))
                 {
                     AITrain aiTrain = new AITrain(inf, this);
                     StartList.InsertTrain(aiTrain);
@@ -213,7 +213,7 @@ namespace Orts.Simulation.AIs
             for (int iAutoGen = 0; iAutoGen < totalAutoGen; iAutoGen++)
             {
                 string trainType = inf.ReadString();
-                if (String.Equals(trainType, "AI"))
+                if (string.Equals(trainType, "AI", StringComparison.OrdinalIgnoreCase))
                 {
                     AITrain aiTrain = new AITrain(inf, this);
                     AutoGenTrains.Add(aiTrain);
@@ -814,7 +814,7 @@ namespace Orts.Simulation.AIs
             ServiceTraffics trfDef = null;
             foreach (ServiceTraffics thisDef in trd.ServiceTraffics)
             {
-                if (String.Compare(thisDef.Name, sd.Name) == 0 &&
+                if (string.Equals(thisDef.Name, sd.Name, StringComparison.OrdinalIgnoreCase) &&
                 thisDef.Time == sd.Time)
                 {
                     trfDef = thisDef;
@@ -1550,7 +1550,7 @@ namespace Orts.Simulation.AIs
             LinkedListNode<AITrain> AITrainNode = First;
             while (AITrainNode != null)
             {
-                if (String.Equals(AITrainNode.Value.Name.ToLower(), reqName))
+                if (string.Equals(AITrainNode.Value.Name, reqName, StringComparison.OrdinalIgnoreCase))
                 {
                     TTTrain reqTrain = AITrainNode.Value as TTTrain;
                     if (remove) Remove(AITrainNode);

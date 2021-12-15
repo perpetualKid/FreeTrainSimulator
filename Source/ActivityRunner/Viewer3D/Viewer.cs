@@ -59,7 +59,6 @@ namespace Orts.ActivityRunner.Viewer3D
     public class Viewer
     {
         public static ICatalog Catalog { get; private set; }
-        public static Random Random { get; private set; }
         // User setups.
         public UserSettings Settings { get; private set; }
 
@@ -264,7 +263,6 @@ namespace Orts.ActivityRunner.Viewer3D
             CatalogManager.SetCatalogDomainPattern(CatalogDomainPattern.AssemblyName, null, RuntimeInfo.LocalesFolder);
             Catalog = CatalogManager.Catalog;
 
-            Random = new Random();
             Simulator = simulator ?? throw new ArgumentNullException(nameof(simulator));
             Game = game;
             Settings = simulator.Settings;
@@ -1471,7 +1469,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 {
                     if (t == null || t.Cars == null || t.Cars.Count == 0) continue;
                     var d = WorldLocation.GetDistanceSquared(t.RearTDBTraveller.WorldLocation, PlayerTrain.RearTDBTraveller.WorldLocation);
-                    users.Add(d + Viewer.Random.NextDouble(), t);
+                    users.Add(d + StaticRandom.NextDouble(), t);
                 }
                 trainCount++;
                 if (trainCount >= users.Count) trainCount = 0;

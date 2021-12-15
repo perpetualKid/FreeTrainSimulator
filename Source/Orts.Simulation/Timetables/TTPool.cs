@@ -25,10 +25,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Threading;
 
 using Orts.Common;
+using Orts.Common.Calc;
 using Orts.Formats.OR.Parsers;
 using Orts.Simulation.AIs;
 using Orts.Simulation.Physics;
@@ -1197,7 +1197,7 @@ namespace Orts.Simulation.Timetables
                 if (thisSection.CircuitState.TrainReserved != null)
                 {
                     TTTrain otherTTTrain = thisSection.CircuitState.TrainReserved.Train as TTTrain;
-                    if (String.Equals(otherTTTrain.ExitPool, PoolName))
+                    if (string.Equals(otherTTTrain.ExitPool, PoolName, StringComparison.OrdinalIgnoreCase))
                     {
                         incomingEngine = true;
                         break;
@@ -1210,7 +1210,7 @@ namespace Orts.Simulation.Timetables
                     foreach (Train.TrainRouted otherTrain in thisSection.CircuitState.TrainClaimed)
                     {
                         TTTrain otherTTTrain = otherTrain.Train as TTTrain;
-                        if (String.Equals(otherTTTrain.ExitPool, PoolName))
+                        if (string.Equals(otherTTTrain.ExitPool, PoolName, StringComparison.OrdinalIgnoreCase))
                         {
                             incomingEngine = true;
                             break;
@@ -1224,7 +1224,7 @@ namespace Orts.Simulation.Timetables
                 foreach (Train.TrainRouted otherTrain in otherTrains)
                 {
                     TTTrain otherTTTrain = otherTrain.Train as TTTrain;
-                    if (String.Equals(otherTTTrain.ExitPool, PoolName) && otherTTTrain.MovementState != AiMovementState.Static)
+                    if (string.Equals(otherTTTrain.ExitPool, PoolName, StringComparison.OrdinalIgnoreCase) && otherTTTrain.MovementState != AiMovementState.Static)
                     {
                         incomingEngine = true;
 #if DEBUG_POOLINFO
@@ -1379,7 +1379,7 @@ namespace Orts.Simulation.Timetables
                 else
                 {
                     // set delay
-                    float randDelay = RandomNumberGenerator.GetInt32(train.DelayedStartSettings.newStart.randomPartS * 10);
+                    float randDelay = StaticRandom.Next(train.DelayedStartSettings.newStart.randomPartS * 10);
                     train.RestdelayS = train.DelayedStartSettings.newStart.fixedPartS + (randDelay / 10f);
                     train.DelayedStart = true;
                     train.DelayedStartState = AiStartMovement.NewTrain;

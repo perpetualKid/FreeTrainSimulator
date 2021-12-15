@@ -27,6 +27,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using Orts.Common;
+using Orts.Common.Calc;
 using Orts.Common.Position;
 using Orts.Simulation.RollingStocks;
 
@@ -234,10 +235,10 @@ namespace Orts.ActivityRunner.Viewer3D
             TimeParticlesLastEmitted = (float)viewer.Simulator.GameTime;
 
             PerlinStart = new float[] {
-                (float)Viewer.Random.NextDouble() * 30000f,
-                (float)Viewer.Random.NextDouble() * 30000f,
-                (float)Viewer.Random.NextDouble() * 30000f,
-                (float)Viewer.Random.NextDouble() * 30000f,
+                (float)StaticRandom.NextDouble() * 30000f,
+                (float)StaticRandom.NextDouble() * 30000f,
+                (float)StaticRandom.NextDouble() * 30000f,
+                (float)StaticRandom.NextDouble() * 30000f,
             };
         }
 
@@ -362,13 +363,13 @@ namespace Orts.ActivityRunner.Viewer3D
 
                     var particle = (FirstFreeParticle + 1) % MaxParticles;
                     var vertex = particle * VerticiesPerParticle;
-                    var texture = Viewer.Random.Next(16); // Randomizes emissions.
-                    var color_Random = new Color((float)ParticleColor.R / 255f, (float)ParticleColor.G / 255f, (float)ParticleColor.B / 255f, (float)Viewer.Random.NextDouble());
+                    var texture = StaticRandom.Next(16); // Randomizes emissions.
+                    Color color_Random = new Color(ParticleColor.R / 255f, ParticleColor.G / 255f, ParticleColor.B / 255f, (float)StaticRandom.NextDouble());
 
                     // Initial velocity varies in X and Z only.
                     var initialVelocity = globalInitialVelocity;
-                    initialVelocity.X += (float)(Viewer.Random.NextDouble() - 0.5f) * ParticleEmitterViewer.InitialSpreadRate;
-                    initialVelocity.Z += (float)(Viewer.Random.NextDouble() - 0.5f) * ParticleEmitterViewer.InitialSpreadRate;
+                    initialVelocity.X += (float)(StaticRandom.NextDouble() - 0.5f) * ParticleEmitterViewer.InitialSpreadRate;
+                    initialVelocity.Z += (float)(StaticRandom.NextDouble() - 0.5f) * ParticleEmitterViewer.InitialSpreadRate;
 
                     // Target/final velocity vaies in X, Y and Z.
                     var targetVelocity = globalTargetVelocity;

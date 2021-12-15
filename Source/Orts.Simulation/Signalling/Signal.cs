@@ -416,7 +416,7 @@ namespace Orts.Simulation.Signalling
         {
             get
             {
-                if (MultiPlayerManager.IsMultiPlayer() && MultiPlayerManager.PreferGreen)
+                if (MultiPlayerManager.IsMultiPlayer() && MultiPlayerManager.Instance().PreferGreen)
                     return true;
                 return EnabledTrain != null;
             }
@@ -658,7 +658,7 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         public SignalAspectState SignalMR(SignalFunction signalType)
         {
-           return SignalMRLimited((int)signalType);
+            return SignalMRLimited((int)signalType);
         }
 
         /// <summary>
@@ -916,7 +916,7 @@ namespace Orts.Simulation.Signalling
                             setSpeed.PassengerSpeed = speed.PassengerSpeed;
                             setSpeed.Flag = false;
                             setSpeed.Reset = false;
-                            if (!IsSignal) 
+                            if (!IsSignal)
                                 setSpeed.LimitedSpeedReduction = speed.LimitedSpeedReduction;
                         }
 
@@ -925,7 +925,7 @@ namespace Orts.Simulation.Signalling
                             setSpeed.FreightSpeed = speed.FreightSpeed;
                             setSpeed.Flag = false;
                             setSpeed.Reset = false;
-                            if (!IsSignal) 
+                            if (!IsSignal)
                                 setSpeed.LimitedSpeedReduction = speed.LimitedSpeedReduction;
                         }
                     }
@@ -956,7 +956,7 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         public int SignalLocalVariable(int index)
         {
-            return localStorage.TryGetValue(index, out int result) ? result: 0;
+            return localStorage.TryGetValue(index, out int result) ? result : 0;
         }
 
         //================================================================================================//
@@ -1614,14 +1614,9 @@ namespace Orts.Simulation.Signalling
 
             // update all normal heads first
 
-            if (MultiPlayerManager.IsMultiPlayer())
-            {
-                if (MultiPlayerManager.IsClient())
-                    return; //client won't handle signal update
-
-                //if there were hold manually, will not update
-                if (HoldState == SignalHoldState.ManualApproach || HoldState == SignalHoldState.ManualLock || HoldState == SignalHoldState.ManualPass) return;
-            }
+            if ((MultiPlayerManager.MultiplayerState == MultiplayerState.Client) || //client won't handle signal update
+                ((MultiPlayerManager.MultiplayerState == MultiplayerState.Dispatcher) && (HoldState == SignalHoldState.ManualApproach || HoldState == SignalHoldState.ManualLock || HoldState == SignalHoldState.ManualPass))) //if there were hold manually, will not update
+                return;
 
             foreach (SignalHead sigHead in SignalHeads)
             {
@@ -1863,7 +1858,7 @@ namespace Orts.Simulation.Signalling
             int requestNumberClearAhead;
             if (SignalNumClearAheadMsts > -2)
             {
-                requestNumberClearAhead = propagated ?  signalNumClearAhead - signalNumberNormalHeads : SignalNumClearAheadMsts - signalNumberNormalHeads;
+                requestNumberClearAhead = propagated ? signalNumClearAhead - signalNumberNormalHeads : SignalNumClearAheadMsts - signalNumberNormalHeads;
             }
             else
             {

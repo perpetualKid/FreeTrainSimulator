@@ -38,9 +38,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
-
-using GetText;
 
 using Microsoft.Xna.Framework;
 
@@ -119,7 +116,7 @@ namespace Orts.Simulation.RollingStocks
         public bool SteamHeatingCompartmentSteamTrapOn;
         public float TotalCarCompartmentHeatLossW;      // Transmission loss for the wagon
         public float CarHeatCompartmentPipeAreaM2;  // Area of surface of car pipe
-        public bool IsCarHeatingInitialized = false; // Allow steam heat to be initialised.
+        public bool IsCarHeatingInitialized; // Allow steam heat to be initialised.
         public float CarHeatSteamMainPipeHeatLossBTU;  // BTU /hr
         public float CarHeatConnectSteamHoseHeatLossBTU;
         public float CarSteamHeatMainPipeCurrentHeatBTU;
@@ -156,8 +153,8 @@ namespace Orts.Simulation.RollingStocks
         public float WheelFlangeLengthM;
         public float AngleOfAttackRad;
         public float DerailClimbDistanceM;
-        public bool DerailPossible = false;
-        public bool DerailExpected = false;
+        public bool DerailPossible;
+        public bool DerailExpected;
         public float DerailElapsedTimeS;
 
         public float MaxHandbrakeForceN;
@@ -255,15 +252,15 @@ namespace Orts.Simulation.RollingStocks
         }
 
         // Used to calculate wheel sliding for locked brake
-        public bool WheelBrakeSlideProtectionFitted = false;
-        public bool WheelBrakeSlideProtectionActive = false;
-        public bool WheelBrakeSlideProtectionLimitDisabled = false;
+        public bool WheelBrakeSlideProtectionFitted;
+        public bool WheelBrakeSlideProtectionActive;
+        public bool WheelBrakeSlideProtectionLimitDisabled;
         public float wheelBrakeSlideTimerResetValueS = 7.0f; // Set wsp time to 7 secs
         public float WheelBrakeSlideProtectionTimerS = 7.0f;
-        public bool WheelBrakeSlideProtectionDumpValveLockout = false;
+        public bool WheelBrakeSlideProtectionDumpValveLockout;
 
-        public bool BrakeSkid = false;
-        public bool BrakeSkidWarning = false;
+        public bool BrakeSkid;
+        public bool BrakeSkidWarning;
         public bool HUDBrakeSkid;
 
         public float BrakeShoeCoefficientFriction = 1.0f; // Brake Shoe coefficient - for simple adhesion model set to 1
@@ -2134,11 +2131,11 @@ namespace Orts.Simulation.RollingStocks
         public virtual bool GetSanderOn() { return false; }
         protected bool WheelHasBeenSet; //indicating that the car shape has been loaded, thus no need to reset the wheels
 
-        public TrainCar()
+        protected TrainCar()
         {
         }
 
-        public TrainCar(Simulator simulator, string wagFile)
+        protected TrainCar(Simulator simulator, string wagFile)
         {
             Simulator = simulator;
             WagFilePath = wagFile;
@@ -2924,9 +2921,9 @@ namespace Orts.Simulation.RollingStocks
                 if (VibrationOffsetM.X == 0)
                 {
                     // Initialize three different offsets (0 - 1 meters) so that the different components of the vibration motion don't align.
-                    VibrationOffsetM.X = (float)(RandomNumberGenerator.GetInt32(100) / (double)RandomNumberGenerator.GetInt32(100, 1000));
-                    VibrationOffsetM.Y = (float)(RandomNumberGenerator.GetInt32(100) / (double)RandomNumberGenerator.GetInt32(100, 1000));
-                    VibrationOffsetM.Z = (float)(RandomNumberGenerator.GetInt32(100) / (double)RandomNumberGenerator.GetInt32(100, 1000));
+                    VibrationOffsetM.X = (float)(StaticRandom.NextDouble());
+                    VibrationOffsetM.Y = (float)(StaticRandom.NextDouble());
+                    VibrationOffsetM.Z = (float)(StaticRandom.NextDouble());
                 }
 
                 if (VibrationTrackVectorSection == 0)
@@ -3005,7 +3002,7 @@ namespace Orts.Simulation.RollingStocks
         private void AddVibrations(float factor)
         {
             // NOTE: For low angles (as our vibration rotations are), sin(angle) ~= angle, and since the displacement at the end of the car is sin(angle) = displacement/half-length, sin(displacement/half-length) * half-length ~= displacement.
-            switch (RandomNumberGenerator.GetInt32(4))
+            switch (StaticRandom.Next(4))
             {
                 case 0:
                     VibrationRotationVelocityRadpS.Y += factor * Simulator.Settings.CarVibratingLevel * VibrationIntroductionStrength * 2 / CarLengthM;
@@ -3212,7 +3209,7 @@ namespace Orts.Simulation.RollingStocks
                 }
 
                 // Calculate a random factor for steam heat leaks in connecting pipes
-                SteamHoseLeakRateRandom = RandomNumberGenerator.GetInt32(100) / 100.0f; // Achieves a two digit random number betwee 0 and 1
+                SteamHoseLeakRateRandom = StaticRandom.Next(100) / 100.0f; // Achieves a two digit random number between 0 and 1
                 SteamHoseLeakRateRandom = MathHelper.Clamp(SteamHoseLeakRateRandom, 0.5f, 1.0f); // Keep Random Factor ratio within bounds
 
                 // Initialise current Train Steam Heat based upon selected Current carriage Temp

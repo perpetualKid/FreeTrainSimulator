@@ -647,7 +647,7 @@ namespace ORTS.TrackViewer.Editing
 
             foreach (string item in strings)
             {
-                if (item.Equals(lastItem))
+                if (item.Equals(lastItem, StringComparison.OrdinalIgnoreCase))
                 {
                     lastItem = String.Empty;
                 }

@@ -132,7 +132,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems
         private MonitoringDevice EmergencyStopMonitor;
         private MonitoringDevice AWSMonitor;
 
-        private bool simulatorEmergencyBraking = false;
+        private bool simulatorEmergencyBraking;
         public bool SimulatorEmergencyBraking {
             get
             {

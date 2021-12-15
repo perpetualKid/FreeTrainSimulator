@@ -233,7 +233,7 @@ namespace Orts.Formats.OR.Files
 
             if (!string.IsNullOrEmpty(consistProc) && consistProc[0] == '$')
             {
-                reverse = (consistProc.Substring(1, 7).Equals("reverse"));
+                reverse = consistProc.Substring(1, 7).Equals("reverse", StringComparison.OrdinalIgnoreCase);
             }
             return (reqString.Trim());
         }

@@ -139,7 +139,7 @@ namespace Orts.MultiPlayer
         {
             if (Players.ContainsKey(player.user)) 
                 return;
-            if (MultiPlayerManager.Client != null && player.user == MultiPlayerManager.Client.UserName) 
+            if (player.user == MultiPlayerManager.Instance().UserName) 
                 return; //do not add self//WARNING: may need to worry about train number here
             OnlinePlayer p = new OnlinePlayer(player.user, 
                 Path.Combine(Simulator.Instance.RouteFolder.ContentFolder.ConsistsFolder, player.con), 
@@ -282,7 +282,7 @@ namespace Orts.MultiPlayer
             // find info about the new player train
             // look in all trains
 
-            if (MultiPlayerManager.Client != null && player.user == MultiPlayerManager.Client.UserName) return; //do not add self//WARNING: may need to worry about train number here
+            if (player.user == MultiPlayerManager.Instance().UserName) return; //do not add self//WARNING: may need to worry about train number here
             OnlinePlayer p;
             var doesPlayerExist = Players.TryGetValue(player.user, out p);
             if (!doesPlayerExist) return;

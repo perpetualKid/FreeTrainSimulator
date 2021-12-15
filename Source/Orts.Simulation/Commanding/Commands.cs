@@ -41,7 +41,7 @@ namespace Orts.Simulation.Commanding
         /// <summary>
         /// Each command adds itself to the log when it is constructed.
         /// </summary>
-        public Command(CommandLog log)
+        protected Command(CommandLog log)
         {
             log.CommandAdd(this);
         }
@@ -78,7 +78,7 @@ namespace Orts.Simulation.Commanding
     {
         protected bool targetState;
 
-        public BooleanCommand(CommandLog log, bool targetState)
+        protected BooleanCommand(CommandLog log, bool targetState)
             : base(log)
         {
             this.targetState = targetState;
@@ -90,7 +90,7 @@ namespace Orts.Simulation.Commanding
     {
         protected int index;
 
-        public IndexCommand(CommandLog log, int index)
+        protected IndexCommand(CommandLog log, int index)
             : base(log)
         {
             this.index = index;
@@ -105,7 +105,7 @@ namespace Orts.Simulation.Commanding
     {
         protected float? target;
 
-        public ContinuousCommand(CommandLog log, bool targetState, float? target, double startTime)
+        protected ContinuousCommand(CommandLog log, bool targetState, float? target, double startTime)
             : base(log, targetState)
         {
             this.target = target;
@@ -123,7 +123,7 @@ namespace Orts.Simulation.Commanding
     {
         public double PauseDurationS { get; private set; }
 
-        public PausedCommand(CommandLog log, double pauseDurationS)
+        protected PausedCommand(CommandLog log, double pauseDurationS)
             : base(log)
         {
             PauseDurationS = pauseDurationS;
@@ -138,7 +138,7 @@ namespace Orts.Simulation.Commanding
     [Serializable()]
     public abstract class CameraCommand : Command
     {
-        public CameraCommand(CommandLog log)
+        protected CameraCommand(CommandLog log)
             : base(log)
         {
         }

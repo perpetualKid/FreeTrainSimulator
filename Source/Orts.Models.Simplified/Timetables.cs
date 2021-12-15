@@ -51,7 +51,7 @@ namespace Orts.Models.Simplified
             try
             {
                 string extension = System.IO.Path.GetExtension(filePath);
-                if (extension.IndexOf("list", StringComparison.OrdinalIgnoreCase) >= 0)
+                if (extension.Contains("list", StringComparison.OrdinalIgnoreCase))
                 {
                     TimetableGroupFile groupFile = new TimetableGroupFile(filePath);
                     TimeTables = groupFile.TimeTables;

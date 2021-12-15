@@ -1083,10 +1083,10 @@ namespace Orts.Simulation.RollingStocks
                 case "wagon(ortsbearingtype":
                     stf.MustMatch("(");
                     string typeString2 = stf.ReadString();
-                    IsRollerBearing = String.Compare(typeString2, "Roller") == 0;
-                    IsLowTorqueRollerBearing = String.Compare(typeString2, "Low") == 0;
-                    IsFrictionBearing = String.Compare(typeString2, "Friction") == 0;
-                    IsGreaseFrictionBearing = String.Compare(typeString2, "Grease") == 0;
+                    IsRollerBearing = string.Equals(typeString2, "Roller", StringComparison.OrdinalIgnoreCase);
+                    IsLowTorqueRollerBearing = string.Equals(typeString2, "Low", StringComparison.OrdinalIgnoreCase);
+                    IsFrictionBearing = string.Equals(typeString2, "Friction", StringComparison.OrdinalIgnoreCase);
+                    IsGreaseFrictionBearing = string.Equals(typeString2, "Grease", StringComparison.OrdinalIgnoreCase);
                     break;
                 case "wagon(friction":
                     stf.MustMatch("(");
@@ -2646,9 +2646,9 @@ namespace Orts.Simulation.RollingStocks
                     // Activity randomizatrion needs to be active in Options menu, and HotBox will not be applied to a locomotive or tender.
                     if (Simulator.Settings.ActRandomizationLevel > 0 && WagonType != WagonTypes.Engine && WagonType != WagonTypes.Tender)
                      {
-                         var HotboxRandom = RandomNumberGenerator.GetInt32(100) / Simulator.Settings.ActRandomizationLevel;
+                         var HotboxRandom = StaticRandom.Next(100) / Simulator.Settings.ActRandomizationLevel;
                          float PerCentRandom = 0.66f; // Set so that random time is always in first 66% of activity duration
-                         var RawHotBoxTimeRandomS = RandomNumberGenerator.GetInt32((int)Simulator.ActivityFile.Activity.Header.Duration.TotalSeconds);
+                         var RawHotBoxTimeRandomS = StaticRandom.Next((int)Simulator.ActivityFile.Activity.Header.Duration.TotalSeconds);
                          if (!Train.HotBoxSetOnTrain) // only allow one hot box to be set per train 
                          {
                               if (HotboxRandom < 10)

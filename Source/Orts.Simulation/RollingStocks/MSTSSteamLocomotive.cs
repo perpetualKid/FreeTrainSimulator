@@ -861,14 +861,14 @@ namespace Orts.Simulation.RollingStocks
                 case "engine(ortssteamboilertype":
                     stf.MustMatch("(");
                     string typeString1 = stf.ReadString();
-                    IsSaturated = String.Compare(typeString1, "Saturated") == 0;
-                    HasSuperheater = String.Compare(typeString1, "Superheated") == 0;
+                    IsSaturated = string.Equals(typeString1, "Saturated", StringComparison.OrdinalIgnoreCase);
+                    HasSuperheater = string.Equals(typeString1, "Superheated", StringComparison.OrdinalIgnoreCase);
                     break;
                 case "engine(ortssteamgeartype":
                     stf.MustMatch("(");
                     string typeString2 = stf.ReadString();
-                    IsFixGeared = String.Compare(typeString2, "Fixed") == 0;
-                    IsSelectGeared = String.Compare(typeString2, "Select") == 0;
+                    IsFixGeared = string.Equals(typeString2, "Fixed", StringComparison.OrdinalIgnoreCase);
+                    IsSelectGeared = string.Equals(typeString2, "Select", StringComparison.OrdinalIgnoreCase);
                     break;
 
                 case "engine(ortsbattery(mode":
