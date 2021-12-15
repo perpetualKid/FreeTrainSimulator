@@ -34,7 +34,7 @@ namespace Orts.ContentManager
     public partial class ContentManagerGUI : Form
     {
         private readonly UserSettings settings;
-        private readonly ContentManager contentManager;
+        private readonly ContentRoot contentManager;
 
         private static readonly Regex contentBold = new Regex("(?:^|\t)([\\w ]+:)\t", RegexOptions.Multiline);
         private static readonly Regex contentLink = new Regex("\u0001(.*?)\u0002(.*?)\u0001");
@@ -56,7 +56,7 @@ namespace Orts.ContentManager
             InitializeComponent();
 
             settings = new UserSettings(Array.Empty<string>());
-            contentManager = new ContentManager(settings.FolderSettings);
+            contentManager = new ContentRoot(settings.FolderSettings);
 
             // Start off the tree with the Content Manager itself at the root and expand to show packages.
             treeViewContent.Nodes.Add(CreateContentNode(contentManager));
@@ -125,7 +125,9 @@ namespace Orts.ContentManager
                     e.Node.Nodes[0].Text = string.Empty;
                     e.Node.Collapse();
                 }
+#pragma warning disable CA1031 // Do not catch general exception types
                 catch (Exception ex)
+#pragma warning restore CA1031 // Do not catch general exception types
                 {
                     e.Node.Nodes.Add(new TreeNode(ex.Message));
                 }
@@ -289,20 +291,22 @@ namespace Orts.ContentManager
             {
                 await Task.Run(() => SearchContent(contentManager, string.Empty, searchBox.Text, ctsSearching.Token)).ConfigureAwait(true);
             }
+#pragma warning disable CA1031 // Do not catch general exception types
             catch (Exception ex)
+#pragma warning restore CA1031 // Do not catch general exception types
             {
                 MessageBox.Show(ex.Message, Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
-                UpdateSearchResults(true);
+                UpdateSearchResults(true, CancellationToken.None);
             }
             return;
         }
 
-        private void UpdateSearchResults(bool done)
+        private void UpdateSearchResults(bool done, CancellationToken token)
         {
-            while (searchResultsList.TryTake(out SearchResult result))
+            while (searchResultsList.TryTake(out SearchResult result) && !token.IsCancellationRequested)
             {
                 searchResults.Items.Add(result);
             }
@@ -314,7 +318,7 @@ namespace Orts.ContentManager
         {
             try
             {
-                Invoke((MethodInvoker)delegate { UpdateSearchResults(false); });
+                Invoke((MethodInvoker)delegate { UpdateSearchResults(false, token); });
             }
             catch (ObjectDisposedException) //when Form Closing, object may already be disposing while SearchTask cancelling
             { }

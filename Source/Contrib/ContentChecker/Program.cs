@@ -141,7 +141,7 @@ namespace Orts.ContentChecker
         {
             foreach (string file in files)
             {
-                if (file.Contains("*"))
+                if (file.Contains('*', StringComparison.Ordinal))
                 {
                     string path = Path.GetDirectoryName(file);
                     if (string.IsNullOrEmpty(path))
@@ -314,9 +314,9 @@ namespace Orts.ContentChecker
         {
             //The amount of lines we might expect to be written during the loading of one file
             //This is surprisingly large
-            int BUFFERMARGIN = 500;
+            const int BUFFERMARGIN = 500;
             //Additional buffer lines to be added just to make sure we do not extend too often
-            int BUFFEREXTENSION = 250;
+            const int BUFFEREXTENSION = 250;
             int minimumBuffer = BUFFERMARGIN + Console.CursorTop;
             if (Console.BufferHeight < minimumBuffer)
             {

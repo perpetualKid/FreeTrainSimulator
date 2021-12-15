@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+
 using Orts.Common.Logging;
 
 [assembly: CLSCompliant(false)]
@@ -30,8 +31,8 @@ namespace Orts.DataValidator
     {
         private static void Main(string[] args)
         {
-            var verbose = args.Contains("/verbose", StringComparer.OrdinalIgnoreCase);
-            var files = args.Where(arg => !arg.StartsWith("/"));
+            bool verbose = args.Contains("/verbose", StringComparer.OrdinalIgnoreCase);
+            IEnumerable<string> files = args.Where(arg => !arg.StartsWith('/'));
             if (files.Any())
                 Validate(verbose, files);
             else
@@ -40,6 +41,7 @@ namespace Orts.DataValidator
 
         private static void ShowHelp()
         {
+#pragma warning disable CA1303 // Do not pass literals as localized parameters
             Console.WriteLine("Open Rails Data Validator utility");
             Console.WriteLine();
             Console.WriteLine("{0} [/verbose] PATH [...]", Path.GetFileNameWithoutExtension(AppDomain.CurrentDomain.FriendlyName));
@@ -50,9 +52,9 @@ namespace Orts.DataValidator
 
         private static void Validate(bool verbose, IEnumerable<string> files)
         {
-            var traceListener = SetUpTracing(verbose);
+            ORTraceListener traceListener = SetUpTracing(verbose);
 
-            foreach (var file in files)
+            foreach (string file in files)
                 Validate(file);
 
             ShowTracingReport(traceListener);
@@ -61,8 +63,10 @@ namespace Orts.DataValidator
         private static ORTraceListener SetUpTracing(bool verbose)
         {
             // Captures Trace.Trace* calls and others and formats.
-            var traceListener = new ORTraceListener(Console.Out);
-            traceListener.TraceOutputOptions = TraceOptions.Callstack;
+            ORTraceListener traceListener = new ORTraceListener(Console.Out)
+            {
+                TraceOutputOptions = TraceOptions.Callstack
+            };
             if (verbose)
                 traceListener.Filter = new EventTypeFilter(SourceLevels.Critical | SourceLevels.Error | SourceLevels.Warning | SourceLevels.Information);
             else
@@ -88,11 +92,11 @@ namespace Orts.DataValidator
         {
             Console.WriteLine("{0}: Begin", file);
 
-            if (file.Contains("*"))
+            if (file.Contains('*', StringComparison.Ordinal))
             {
-                var path = Path.GetDirectoryName(file);
-                var searchPattern = Path.GetFileName(file);
-                foreach (var foundFile in Directory.GetFiles(path, searchPattern, SearchOption.AllDirectories))
+                string path = Path.GetDirectoryName(file);
+                string searchPattern = Path.GetFileName(file);
+                foreach (string foundFile in Directory.EnumerateFiles(path, searchPattern, SearchOption.AllDirectories))
                     Validate(foundFile);
             }
             else
@@ -104,15 +108,12 @@ namespace Orts.DataValidator
                     return;
                 }
 
-                switch (Path.GetExtension(file).ToLowerInvariant())
-                {
-                    case ".t":
-                        new TerrainValidator(file);
-                        break;
-                }
+                if (Path.GetExtension(file).Equals(".t", StringComparison.OrdinalIgnoreCase))
+                        _ = new TerrainValidator(file);
             }
 
             Console.WriteLine("{0}: End", file);
         }
+#pragma warning restore CA1303 // Do not pass literals as localized parameters
     }
 }

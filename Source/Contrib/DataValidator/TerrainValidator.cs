@@ -28,8 +28,8 @@ namespace Orts.DataValidator
         {
             try
             {
-                var parsed = new TerrainFile(File);
-                if (File.Contains("\\lo_tiles\\"))
+                TerrainFile parsed = new TerrainFile(File);
+                if (File.Contains("\\lo_tiles\\", StringComparison.OrdinalIgnoreCase))
                 {
                     Equal(TraceEventType.Warning, 64, parsed.Terrain.Samples.SampleCount, "terrain_nsamples");
                     Equal(TraceEventType.Warning, 256, parsed.Terrain.Samples.SampleSize, "terrain_sample_size");
@@ -44,7 +44,9 @@ namespace Orts.DataValidator
                 ValidFileRef(TraceEventType.Error, parsed.Terrain.Samples.SampleBufferN, "terrain_sample_nbuffer");
                 ValidFileRef(TraceEventType.Error, parsed.Terrain.Samples.SampleBufferY, "terrain_sample_ybuffer");
             }
+#pragma warning disable CA1031 // Do not catch general exception types
             catch (Exception error)
+#pragma warning restore CA1031 // Do not catch general exception types
             {
                 Trace.WriteLine(error);
             }

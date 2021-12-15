@@ -30,7 +30,7 @@ namespace Orts.ContentChecker
     internal class SignalScriptLoader : Loader
     {
         /// <summary> The signal configuration file needed for loading a script file </summary>
-        private SignalConfigurationFile _sigcfg;
+        private readonly SignalConfigurationFile _sigcfg;
 
         /// <summary>
         /// default constructor when not enough information is available

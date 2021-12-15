@@ -55,7 +55,7 @@ namespace Orts.ContentManager
 
                         if (content is ContentMSTSRoute)
                         {
-                            RouteFile routeFile = new RouteFile(System.IO.Path.Combine(content.PathName, content.Name + ".trk"));
+                            RouteFile routeFile = new RouteFile(FolderStructure.Route(content.PathName).TrackFileName);
                             details.AppendLine($"Route ID:\t{routeFile.Route.RouteID}");
                             details.AppendLine($"Route Key:\t{routeFile.Route.FileName}");
                         }
