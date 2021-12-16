@@ -267,7 +267,9 @@ namespace Orts.Formats.Msts.Models
 
         public float Granularity { get; private set; } = 1.0f;
 
+#pragma warning disable CA1819 // Properties should not return arrays
         public CurvePoint[] CurvePoints { get; private set; }
+#pragma warning restore CA1819 // Properties should not return arrays
 
         internal Curve(STFReader stf)
         {

@@ -32,8 +32,10 @@ namespace Orts.Formats.Msts.Models
         public WaterLevelOffset WaterLevelOffset { get; private set; }
         public float AlwaysSelectMaxDistance { get; private set; }
         public Samples Samples { get; private set; }
+#pragma warning disable CA1819 // Properties should not return arrays
         public Shader[] Shaders { get; private set; }
         public PatchSet[] Patchsets { get; private set; }
+#pragma warning restore CA1819 // Properties should not return arrays
 
         internal Terrain(SBR block)
         {

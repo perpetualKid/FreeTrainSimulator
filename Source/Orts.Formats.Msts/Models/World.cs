@@ -250,7 +250,9 @@ namespace Orts.Formats.Msts.Models
                         else
                             subBlock.Skip();
                     }
+#pragma warning disable CA1031 // Do not catch general exception types
                     catch (Exception error)
+#pragma warning restore CA1031 // Do not catch general exception types
                     {
                         Trace.WriteLine(new FileLoadException(subBlock.FileName, error));
                     }
@@ -310,7 +312,9 @@ namespace Orts.Formats.Msts.Models
                         }
                         subBlock.EndOfBlock();
                     }
+#pragma warning disable CA1031 // Do not catch general exception types
                     catch (Exception error)
+#pragma warning restore CA1031 // Do not catch general exception types
                     {
                         Trace.WriteLine(new FileLoadException(block.FileName, error));
                     }

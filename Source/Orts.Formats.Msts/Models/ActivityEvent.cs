@@ -70,7 +70,9 @@ namespace Orts.Formats.Msts.Models
                     }
                 }
             }
+#pragma warning disable CA1031 // Do not catch general exception types
             catch (Exception error)
+#pragma warning restore CA1031 // Do not catch general exception types
             {
                 Trace.WriteLine(new FileLoadException("Error in additional activity file", error));
             }

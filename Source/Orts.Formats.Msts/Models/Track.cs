@@ -165,7 +165,9 @@ namespace Orts.Formats.Msts.Models
         public uint SectionsCount { get; private set; }
         public ref readonly Vector3 Offset => ref offset;
         public float AngularOffset { get; private set; }  // Angular offset 
+#pragma warning disable CA1819 // Properties should not return arrays
         public uint[] TrackSections { get; private set; }
+#pragma warning restore CA1819 // Properties should not return arrays
 
         internal SectionIndex(STFReader stf)
         {
@@ -197,7 +199,9 @@ namespace Orts.Formats.Msts.Models
         public uint PathsNumber { get; private set; }
         public uint MainRoute { get; private set; }
         public double ClearanceDistance { get; private set; }
+#pragma warning disable CA1819 // Properties should not return arrays
         public SectionIndex[] SectionIndices { get; private set; }
+#pragma warning restore CA1819 // Properties should not return arrays
         public bool TunnelShape { get; private set; }
         public bool RoadShape { get; private set; }
 
@@ -280,7 +284,9 @@ namespace Orts.Formats.Msts.Models
     {
 
         public uint DynamicSectionIndex { get; private set; }
+#pragma warning disable CA1819 // Properties should not return arrays
         public uint[] TrackSections { get; private set; }
+#pragma warning restore CA1819 // Properties should not return arrays
 
         internal TrackPath(STFReader stf)
         {
@@ -331,12 +337,14 @@ namespace Orts.Formats.Msts.Models
         /// Array of all TrackNodes in the track database
         /// Warning, the first TrackNode is always null.
         /// </summary>
+#pragma warning disable CA1819 // Properties should not return arrays
         public TrackNode[] TrackNodes { get; private set; }
 
         /// <summary>
         /// Array of all Track Items (TrItem) in the track database
         /// </summary>
         public TrackItem[] TrackItems { get; private set; }
+#pragma warning restore CA1819 // Properties should not return arrays
 
         /// <summary>
         /// Default constructor used during file parsing.
@@ -447,7 +455,9 @@ namespace Orts.Formats.Msts.Models
         public float Length { get; private set; }
         /// <summary>Offset length in orig track section, for either forward or backward direction</summary>
         /// Offset indicates length from end of original tracknode, Index 0 is forward, index 1 is backward wrt original tracknode direction.
+#pragma warning disable CA1819 // Properties should not return arrays
         public float[] OffsetLength { get; } = new float[2];
+#pragma warning restore CA1819 // Properties should not return arrays
         /// <summary>index of TrackCircuitSection</summary>
         public int Index { get; private set; }
 
@@ -555,7 +565,9 @@ namespace Orts.Formats.Msts.Models
         /// <summary>'Universal Id', containing location information. Only provided for TrJunctionNode and TrEndNode type of TrackNodes</summary>
         public UiD UiD { get; private set; }
         /// <summary>The array containing the TrPins (Track pins), which are connections to other tracknodes</summary>
-        public TrackPin[] TrackPins;
+#pragma warning disable CA1819 // Properties should not return arrays
+        public TrackPin[] TrackPins { get; private set; }
+#pragma warning restore CA1819 // Properties should not return arrays
         /// <summary>Number of outgoing pins (connections to other tracknodes)</summary>
         public int InPins { get; private set; }
         /// <summary>Number of outgoing pins (connections to other tracknodes)</summary>
@@ -717,7 +729,9 @@ namespace Orts.Formats.Msts.Models
                     }
                 }
             }
+#pragma warning disable CA1031 // Do not catch general exception types
             catch (Exception) { }
+#pragma warning restore CA1031 // Do not catch general exception types
             return angle;
         }
     }
@@ -733,10 +747,12 @@ namespace Orts.Formats.Msts.Models
     {
         private static readonly int[] emptyTrackItemIndices = Array.Empty<int>();
         /// <summary>Array of sections that together form the vectorNode</summary>
+#pragma warning disable CA1819 // Properties should not return arrays
         public TrackVectorSection[] TrackVectorSections { get; private set; }
         /// <summary>Array of indexes of TrItems (track items) that are located on this vectorNode</summary>
         public int[] TrackItemIndices { get; private set; } = emptyTrackItemIndices;
         /// <summary>The amount of TrItems in TrItemRefs</summary>
+#pragma warning restore CA1819 // Properties should not return arrays
 
         internal TrackVectorNode(STFReader stf, uint index, int maxTrackNode) :
             base(stf, index, maxTrackNode, 2)

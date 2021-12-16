@@ -11,12 +11,14 @@ namespace Orts.Formats.Msts.Models
         /// Array of all TrackNodes in the road database
         /// Warning, the first TrackNode is always null.
         /// </summary>
+#pragma warning disable CA1819 // Properties should not return arrays
         public TrackNode[] TrackNodes { get; private set; }
 
         /// <summary>
         /// Array of all Track Items (TrItem) in the road database
         /// </summary>
         public TrackItem[] TrItemTable { get; private set; }
+#pragma warning restore CA1819 // Properties should not return arrays
 
         /// <summary>
         /// Default constructor used during file parsing.

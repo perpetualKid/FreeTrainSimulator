@@ -266,9 +266,11 @@ namespace Orts.Formats.Msts.Models
         public int ZeroPos { get; private set; }
         public int Orientation { get; protected set; }
         public int Direction { get; protected set; }
+#pragma warning disable CA1819 // Properties should not return arrays
         public Color[] PositiveColors { get; private set; } = new Color[1];
         public float PositiveTrigger { get; private set; }
         public Color[] NegativeColors { get; private set; } = new Color[1];
+#pragma warning restore CA1819 // Properties should not return arrays
         public float NegativeTrigger { get; private set; }
         public Color DecreaseColor { get; private set; }
         public float Rotation { get; private set; }
@@ -350,9 +352,11 @@ namespace Orts.Formats.Msts.Models
         public float Accuracy { get; private set; }
         public float AccuracySwitch { get; private set; }
         public int Justification { get; private set; }
+#pragma warning disable CA1819 // Properties should not return arrays
         public Color[] PositiveColors { get; private set; } = new Color[1];
         public float PositiveTrigger { get; private set; }
         public Color[] NegativeColors { get; private set; } = new Color[1];
+#pragma warning restore CA1819 // Properties should not return arrays
         public float NegativeTrigger { get; private set; }
         public Color DecreaseColor { get; private set; }
         public float FontSize { get; protected set; }
@@ -851,7 +855,7 @@ namespace Orts.Formats.Msts.Models
             });
         }
 
-        private protected int ParseNumStyle(STFReader stf)
+        private protected static int ParseNumStyle(STFReader stf)
         {
             stf.MustMatchBlockStart();
             int style = stf.ReadInt(0);

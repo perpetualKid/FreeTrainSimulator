@@ -38,6 +38,7 @@ namespace Orts.Formats.Msts
     public class SignalScripts
     {
         #region SCRExternalFunctions
+#pragma warning disable CA1707 // Identifiers should not contain underscores
         public enum SCRExternalFunctions
         {
             NONE,
@@ -106,6 +107,7 @@ namespace Orts.Formats.Msts
             APPROACH_CONTROL_REQ_SPEED,      // read only
         }
         #endregion
+#pragma warning restore CA1707 // Identifiers should not contain underscores
 
         #region SCRTermCondition
         public enum SCRTermCondition
@@ -276,7 +278,9 @@ namespace Orts.Formats.Msts
                         #endregion
                     }
                 }
+#pragma warning disable CA1031 // Do not catch general exception types
                 catch (Exception ex)
+#pragma warning restore CA1031 // Do not catch general exception types
                 {
                     Trace.TraceWarning($"Error reading signal script - {fullName} : {ex}");
                 }
@@ -494,7 +498,7 @@ namespace Orts.Formats.Msts
         {
 #pragma warning disable 219     //variable only used for DEBUG output using DEBUG_PRINT_OUT or DEBUG_PRINT_IN
             bool isValid = false;
-#pragma warning restore 210
+#pragma warning restore 219
             string scriptName = script.ScriptName;
             // try and find signal type with same name as script
             if (signalTypes.TryGetValue(script.ScriptName, out SignalType signalType))
@@ -795,12 +799,8 @@ namespace Orts.Formats.Msts
                     //there are some scripts misusing equality operators (==, ==#) for assignment (=, #=), so we are warning them and trying to correct adhoc
                     if (statement?.Tokens.Count > 1 && (statement?.Tokens[1] as OperatorToken)?.OperatorType == OperatorType.Equality && statement?.Tokens[1].Token[0] == '=')
                     {
-#if DEBUG
-                        Trace.TraceWarning($"Invalid equality operation {statement?.Tokens[1].Token} in line {statementBlock.LineNumber} - processing as {new OperatorToken(statement?.Tokens[1].Token.Substring(1).Replace("==", "=").Replace("=#", "#="), statement.LineNumber)} assignment operation.");
-                        statement.Tokens[1] = new OperatorToken(statement?.Tokens[1].Token.Substring(1).Replace("==", "=").Replace("=#", "#="), statement.LineNumber);
-#else
-                        Trace.TraceWarning($"Invalid equality operation {statement?.Tokens[1].Token} in line {statementBlock.LineNumber}");
-#endif
+                        Trace.TraceWarning($"Invalid equality operation {statement?.Tokens[1].Token} in line {statementBlock.LineNumber} - processing as {statement.Tokens[1] = new OperatorToken(statement?.Tokens[1].Token[1..].Replace("==", "=", StringComparison.OrdinalIgnoreCase).Replace("=#", "#=", StringComparison.OrdinalIgnoreCase), statement.LineNumber)} assignment operation.");
+                        //statement.Tokens[1] = new OperatorToken(statement?.Tokens[1].Token[1..].Replace("==", "=", StringComparison.Ordinal).Replace("=#", "#=", StringComparison.Ordinal), statement.LineNumber);
                     }
                     if (statement?.Tokens.Count > 1 && (statement?.Tokens[1] as OperatorToken)?.OperatorType == OperatorType.Assignment)
                     {
@@ -888,7 +888,9 @@ namespace Orts.Formats.Msts
             {
                 public SCRExternalFunctions Function { get; private set; }
 
+#pragma warning disable CA1819 // Properties should not return arrays
                 public SCRParameterType[] PartParameter { get; private set; }
+#pragma warning restore CA1819 // Properties should not return arrays
 
                 public SCRTermOperator TermOperator { get; private set; }
 
