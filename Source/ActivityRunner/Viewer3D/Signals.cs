@@ -55,13 +55,13 @@ namespace Orts.ActivityRunner.Viewer3D
             Trace.WriteLine("{0} signal {1}:", Location.ToString(), mstsSignal.UID);
             UID = mstsSignal.UID;
 #endif
-            var signalShape = Path.GetFileName(path).ToUpper();
+            string signalShape = Path.GetFileName(path);
             if (!viewer.Simulator.SignalConfig.SignalShapes.ContainsKey(signalShape))
             {
                 Trace.TraceWarning("{0} signal {1} has invalid shape {2}.", WorldPosition.ToString(), mstsSignal.UiD, signalShape);
                 return;
             }
-            var mstsSignalShape = viewer.Simulator.SignalConfig.SignalShapes[signalShape];
+            Formats.Msts.Models.SignalShape mstsSignalShape = viewer.Simulator.SignalConfig.SignalShapes[signalShape];
 #if DEBUG_SIGNAL_SHAPES
             Trace.WriteLine("  Shape={0} SubObjs={1,-2} {2}", Path.GetFileNameWithoutExtension(path).ToUpper(), mstsSignalShape.SignalSubObjs.Count, mstsSignalShape.Description);
 #endif

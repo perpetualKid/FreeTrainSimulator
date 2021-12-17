@@ -69,7 +69,7 @@ namespace Orts.Models.Simplified
 
         public override int GetHashCode()
         {
-            return Name.GetHashCode();
+            return Name.GetHashCode(System.StringComparison.OrdinalIgnoreCase);
         }
     }
 }

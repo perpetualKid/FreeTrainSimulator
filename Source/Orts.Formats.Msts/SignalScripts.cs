@@ -558,9 +558,9 @@ namespace Orts.Formats.Msts
 
         public class SCRScripts
         {
-            private IDictionary<string, int> localFloats;
+            private readonly IDictionary<string, int> localFloats;
 
-            public int TotalLocalFloats { get { return localFloats.Count; } }
+            public int TotalLocalFloats => localFloats.Count;
 
             public ArrayList Statements { get; private set; }
             //public List<Statements> { get; private set; }

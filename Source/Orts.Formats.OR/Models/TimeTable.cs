@@ -32,8 +32,8 @@ namespace Orts.Formats.OR.Models
         {
             get
             {
-                int split = StartTime.IndexOf('$');
-                return split > -1 ? StartTime.Substring(0, StartTime.IndexOf('$')) : StartTime;
+                int split = StartTime.IndexOf('$', StringComparison.OrdinalIgnoreCase);
+                return split > -1 ? StartTime[..StartTime.IndexOf('$', StringComparison.OrdinalIgnoreCase)] : StartTime;
             }
         }
 

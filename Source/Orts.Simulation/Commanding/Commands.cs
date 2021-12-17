@@ -595,7 +595,7 @@ namespace Orts.Simulation.Commanding
         }
     }
 
-     [Serializable()]
+    [Serializable()]
     public sealed class BrakemanBrakeCommand : ContinuousCommand
     {
         public static MSTSLocomotive Receiver { get; set; }
@@ -749,7 +749,7 @@ namespace Orts.Simulation.Commanding
     }
 
     [Serializable()]
-    public sealed class HandbrakeCommand : BooleanCommand 
+    public sealed class HandbrakeCommand : BooleanCommand
     {
         public static MSTSLocomotive Receiver { get; set; }
 
@@ -1010,7 +1010,8 @@ namespace Orts.Simulation.Commanding
     }
 
     [Serializable()]
-    public sealed class HornCommand : BooleanCommand {
+    public sealed class HornCommand : BooleanCommand
+    {
         public static MSTSLocomotive Receiver { get; set; }
 
         public HornCommand(CommandLog log, bool targetState)
@@ -1106,12 +1107,15 @@ namespace Orts.Simulation.Commanding
                         break;
                     case 1:
                         Receiver.Headlight = 2;
-                        Receiver.Simulator.Confirmer.Confirm( CabControl.Headlight, CabSetting.On );
+                        Receiver.Simulator.Confirmer.Confirm(CabControl.Headlight, CabSetting.On);
                         break;
                 }
                 Receiver.SignalEvent(TrainEvent.LightSwitchToggle);
-            } else {
-                switch( Receiver.Headlight ) {
+            }
+            else
+            {
+                switch (Receiver.Headlight)
+                {
                     case 1:
                         if (!MasterKeyHeadlightControl)
                         {
@@ -1121,7 +1125,7 @@ namespace Orts.Simulation.Commanding
                         break;
                     case 2:
                         Receiver.Headlight = 1;
-                        Receiver.Simulator.Confirmer.Confirm( CabControl.Headlight, CabSetting.Neutral );
+                        Receiver.Simulator.Confirmer.Confirm(CabControl.Headlight, CabSetting.Neutral);
                         break;
                 }
                 Receiver.SignalEvent(TrainEvent.LightSwitchToggle);
@@ -1426,7 +1430,7 @@ namespace Orts.Simulation.Commanding
     public sealed class ContinuousInjectorCommand : ContinuousCommand
     {
         public static MSTSSteamLocomotive Receiver { get; set; }
-        private int injector;
+        private readonly int injector;
 
         public ContinuousInjectorCommand(CommandLog log, int injector, bool targetState, float? target, double startTime)
             : base(log, targetState, target, startTime)
@@ -1447,7 +1451,7 @@ namespace Orts.Simulation.Commanding
 
         public override string ToString()
         {
-            return $"Command: {FormatStrings.FormatPreciseTime(Time)} {GetType().Name} {injector.ToString()}"
+            return $"Command: {FormatStrings.FormatPreciseTime(Time)} {GetType().Name} {injector}"
                 + (targetState ? "open" : "close") + ", target = " + target.ToString();
         }
     }
@@ -1456,7 +1460,7 @@ namespace Orts.Simulation.Commanding
     public sealed class ToggleInjectorCommand : Command
     {
         public static MSTSSteamLocomotive Receiver { get; set; }
-        private int injector;
+        private readonly int injector;
 
         public ToggleInjectorCommand(CommandLog log, int injector)
             : base(log)
@@ -1477,7 +1481,7 @@ namespace Orts.Simulation.Commanding
 
         public override string ToString()
         {
-            return base.ToString() + injector.ToString();
+            return $"{base.ToString()}{injector}";
         }
     }
 
@@ -1949,7 +1953,7 @@ namespace Orts.Simulation.Commanding
     [Serializable()]
     public sealed class TCSButtonCommand : BooleanCommand
     {
-        public int CommandIndex;
+        public int CommandIndex { get; private set; }
         public static ScriptedTrainControlSystem Receiver { get; set; }
 
         public TCSButtonCommand(CommandLog log, bool toState, int commandIndex)
@@ -1964,7 +1968,7 @@ namespace Orts.Simulation.Commanding
             if (Receiver != null)
             {
                 Receiver.TCSCommandButtonDown[CommandIndex] = targetState;
-                Receiver.HandleEvent(targetState? TCSEvent.GenericTCSButtonPressed : TCSEvent.GenericTCSButtonReleased, CommandIndex);
+                Receiver.HandleEvent(targetState ? TCSEvent.GenericTCSButtonPressed : TCSEvent.GenericTCSButtonReleased, CommandIndex);
             }
 
         }
@@ -1979,7 +1983,7 @@ namespace Orts.Simulation.Commanding
     [Serializable()]
     public sealed class TCSSwitchCommand : BooleanCommand
     {
-        public int CommandIndex;
+        public int CommandIndex { get; private set; }
         public static ScriptedTrainControlSystem Receiver { get; set; }
 
         public TCSSwitchCommand(CommandLog log, bool toState, int commandIndex)

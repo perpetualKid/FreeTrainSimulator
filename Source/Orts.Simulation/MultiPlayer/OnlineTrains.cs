@@ -155,7 +155,7 @@ namespace Orts.MultiPlayer
             {
                 train.Number = player.num;
             }
-            if (player.con.Contains("tilted")) train.IsTilting = true;
+            if (player.con.Contains("tilted", StringComparison.OrdinalIgnoreCase)) train.IsTilting = true;
             int direction = player.dir;
             train.DistanceTravelled = player.Travelled;
             train.TrainMaxSpeedMpS = player.trainmaxspeed;

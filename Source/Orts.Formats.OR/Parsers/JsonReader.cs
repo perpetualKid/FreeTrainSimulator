@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Text;
 using Newtonsoft.Json;
@@ -31,7 +32,7 @@ namespace Orts.Formats.OR.Parsers
     {
         public static void ReadFile(string fileName, Func<JsonReader, bool> tryParse)
         {
-            using (var reader = new JsonTextReader(File.OpenText(fileName))
+            using (JsonTextReader reader = new JsonTextReader(File.OpenText(fileName))
             {
                 CloseInput = true,
             })
@@ -41,9 +42,9 @@ namespace Orts.Formats.OR.Parsers
         }
 
         private readonly string fileName;
-        private JsonTextReader reader;
-        private StringBuilder path;
-        private Stack<int> pathPositions;
+        private readonly JsonTextReader reader;
+        private readonly StringBuilder path;
+        private readonly Stack<int> pathPositions;
 
         public string Path { get; private set; }
 
@@ -57,7 +58,7 @@ namespace Orts.Formats.OR.Parsers
 
         public void ReadBlock(Func<JsonReader, bool> tryParse)
         {
-            var basePosition = pathPositions.Count > 0 ? pathPositions.Peek() : 0;
+            int basePosition = pathPositions.Count > 0 ? pathPositions.Peek() : 0;
 
 #if DEBUG_JSON_READER
             Trace.WriteLine();
@@ -89,7 +90,7 @@ namespace Orts.Formats.OR.Parsers
                         path.Append((string)reader.Value);
                         break;
                     case JsonToken.EndObject:
-                        var end = pathPositions.Pop();
+                        int end = pathPositions.Pop();
                         path.Length = pathPositions.Pop();
                         if (end == basePosition) return;
                         break;
@@ -118,7 +119,7 @@ namespace Orts.Formats.OR.Parsers
             switch (reader.TokenType)
             {
                 case JsonToken.String:
-                    var value = (string)reader.Value;
+                    string value = (string)reader.Value;
                     return (T)Enum.Parse(typeof(T), value, true);
                 default:
                     TraceWarning($"Expected string (enum) value in {Path}; got {reader.TokenType}");
@@ -169,8 +170,8 @@ namespace Orts.Formats.OR.Parsers
             switch (reader.TokenType)
             {
                 case JsonToken.String:
-                    var time = ((string)reader.Value).Split(':');
-                    var StartTime = new TimeSpan(int.Parse(time[0]), time.Length > 1 ? int.Parse(time[1]) : 0, time.Length > 2 ? int.Parse(time[2]) : 0);
+                    string[] time = ((string)reader.Value).Split(':');
+                    TimeSpan StartTime = new TimeSpan(int.Parse(time[0], CultureInfo.InvariantCulture), time.Length > 1 ? int.Parse(time[1], CultureInfo.InvariantCulture) : 0, time.Length > 2 ? int.Parse(time[2], CultureInfo.InvariantCulture) : 0);
                     return (float)StartTime.TotalSeconds;
                 default:
                     TraceWarning($"Expected string (time) value in {Path}; got {reader.TokenType}");

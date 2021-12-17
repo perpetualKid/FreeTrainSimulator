@@ -62,10 +62,10 @@ namespace Orts.Settings.Util
                 string keyboardLine = KeyboardLayout[y];
                 drawRow?.Invoke(new Rectangle(0, y, keyboardLine.Length, 1));
 
-                int x = keyboardLine.IndexOf('[');
+                int x = keyboardLine.IndexOf('[', StringComparison.Ordinal);
                 while (x != -1)
                 {
-                    int x2 = keyboardLine.IndexOf(']', x);
+                    int x2 = keyboardLine.IndexOf("]", x, StringComparison.Ordinal);
 
                     string scanCodeString = keyboardLine.Substring(x + 1, 3).Trim();
                     if (!int.TryParse(scanCodeString, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out int keyScanCode))
@@ -168,10 +168,10 @@ namespace Orts.Settings.Util
                 return string.Empty;
 
             string[] parts = uniqueInput.Split('+');
-            if (parts[parts.Length - 1].StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+            if (parts[^1].StartsWith("0x", StringComparison.OrdinalIgnoreCase))
             {
-                if (int.TryParse(parts[parts.Length - 1].Substring(2), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture, out int key))
-                    parts[parts.Length - 1] = ScanCodeKeyUtils.GetScanCodeKeyName(key);
+                if (int.TryParse(parts[^1].AsSpan(2), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture, out int key))
+                    parts[^1] = ScanCodeKeyUtils.GetScanCodeKeyName(key);
             }
             return string.Join(" + ", parts);
         }
