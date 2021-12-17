@@ -688,18 +688,6 @@ namespace Orts.Simulation.RollingStocks
                         TractiveForceN = 0;
                 }
 
-                DieselFlowLps = DieselEngines.DieselFlowLps;
-                partialFuelConsumption += DieselEngines.DieselFlowLps * (float)elapsedClockSeconds;
-                if (partialFuelConsumption >= 0.1)
-                {
-                    DieselLevelL -= partialFuelConsumption;
-                    partialFuelConsumption = 0;
-                }
-                if (DieselLevelL <= 0.0f)
-                {
-                    SignalEvent(TrainEvent.EnginePowerOff);
-                    DieselEngines.HandleEvent(PowerSupplyEvent.StopEngine);
-                }
             }
             else
             {
@@ -713,6 +701,24 @@ namespace Orts.Simulation.RollingStocks
                 if (w < 0)
                     w = 0;
                 AverageForceN = w * AverageForceN + (1 - w) * TractiveForceN;
+            }
+
+            // Calculate fuel consumption will occur unless diesel engine is stopped
+            if (LocomotivePowerSupply.MainPowerSupplyOn)
+            {
+                DieselFlowLps = DieselEngines.DieselFlowLps;
+                partialFuelConsumption += DieselEngines.DieselFlowLps * (float)elapsedClockSeconds;
+                if (partialFuelConsumption >= 0.1)
+                {
+                    DieselLevelL -= partialFuelConsumption;
+                    partialFuelConsumption = 0;
+                }
+                // stall engine if fuel runs out
+                if (DieselLevelL <= 0.0f)
+                {
+                    SignalEvent(TrainEvent.EnginePowerOff);
+                    DieselEngines.HandleEvent(PowerSupplyEvent.StopEngine);
+                }
             }
         }
 
