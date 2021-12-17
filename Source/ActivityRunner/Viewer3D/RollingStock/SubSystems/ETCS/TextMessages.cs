@@ -123,7 +123,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
             int totalseconds = (int)timestampS;
             int hour = (totalseconds / 3600) % 24;
             int minute = (totalseconds / 60) % 60;
-            DisplayedTimes[row] = new TextPrimitive(new Point(3, (row + 1) * RowHeight - (int)FontHeightTimestamp), Color.White, (hour < 10 ? "0" : "") + hour.ToString() + ":" + (minute < 10 ? "0" : "") + minute.ToString(), FontTimestamp);
+            DisplayedTimes[row] = new TextPrimitive(new Point(3, (row + 1) * RowHeight - (int)FontHeightTimestamp), Color.White, $"{hour:00}:{minute:00}", FontTimestamp);
         }
 
         private void SetTextPrimitive(string text, int row, bool isBold)

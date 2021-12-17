@@ -602,7 +602,9 @@ namespace Orts.Formats.Msts.Models
         public string Name { get; private set; }
         public uint Flags { get; private set; }
         public int ShaderIndex { get; private set; }
+#pragma warning disable CA1819 // Properties should not return arrays
         public int[] TextureIndices { get; private set; }
+#pragma warning restore CA1819 // Properties should not return arrays
         public float ZBias { get; private set; }
         public int VertexStateIndex { get; private set; }
         public int AlphaTestMode { get; private set; }
@@ -715,7 +717,9 @@ namespace Orts.Formats.Msts.Models
     public class DistanceLevelHeader
     {
         public float DistanceLevelSelection { get; private set; }
+#pragma warning disable CA1819 // Properties should not return arrays
         public int[] Hierarchy { get; private set; }
+#pragma warning restore CA1819 // Properties should not return arrays
 
         internal DistanceLevelHeader(SBR block)
         {
@@ -778,8 +782,10 @@ namespace Orts.Formats.Msts.Models
         public uint SourceVertexFormatFlags { get; private set; }
         public uint DestinationVertexFormatFlags { get; private set; }
         public GeometryInfo GeometryInfo { get; private set; }
+#pragma warning disable CA1819 // Properties should not return arrays
         public int[] SubObjectShaders { get; private set; }
         public int[] SubObjectLightConfigs { get; private set; }
+#pragma warning restore CA1819 // Properties should not return arrays
         public int SubObjectID { get; private set; }
 
         internal SubObjectHeader(SBR block)
@@ -833,7 +839,9 @@ namespace Orts.Formats.Msts.Models
         public int PointLists { get; private set; }
         public int NodeXTriLists { get; private set; }
         public GeometryNodes GeometryNodes { get; private set; }
+#pragma warning disable CA1819 // Properties should not return arrays
         public int[] GeometryNodeMap { get; private set; }
+#pragma warning restore CA1819 // Properties should not return arrays
 
         internal GeometryInfo(SBR block)
         {
@@ -930,7 +938,9 @@ namespace Orts.Formats.Msts.Models
         public int NormalIndex { get; private set; }
         public uint Color1 { get; private set; }
         public uint Color2 { get; private set; }
+#pragma warning disable CA1819 // Properties should not return arrays
         public int[] VertexUVs { get; private set; }
+#pragma warning restore CA1819 // Properties should not return arrays
 
         internal Vertex(SBR block)
         {
@@ -1026,8 +1036,10 @@ namespace Orts.Formats.Msts.Models
     public class IndexedTriList
     {
         public VertexIndices VertexIndices { get; private set; }
+#pragma warning disable CA1819 // Properties should not return arrays
         public int[] NormalIndices { get; private set; }
         public uint[] Flags { get; private set; }
+#pragma warning restore CA1819 // Properties should not return arrays
 
         internal IndexedTriList(SBR block)
         {

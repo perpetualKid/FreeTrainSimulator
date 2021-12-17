@@ -39,13 +39,13 @@ namespace ORTS.TrackViewer.UserInterface
     {
         /// <summary>Height of the statusbar in pixels</summary>
         public int StatusbarHeight { get; private set; }
-        private ElementHost elementHost;
+        private readonly ElementHost elementHost;
 
         /// <summary>
         /// Constructor for the statusbar
         /// </summary>
         /// <param name="trackViewer">Track viewer object that contains all the information we want to show the status for</param>
-        public StatusBarControl(TrackViewer trackViewer)
+        internal StatusBarControl(TrackViewer trackViewer)
         {
             InitializeComponent();
 
@@ -79,7 +79,7 @@ namespace ORTS.TrackViewer.UserInterface
         /// </summary>
         /// <param name="trackViewer">trackViewer object that contains all relevant data</param>
         /// <param name="mouseLocation">The Worldlocation of the mouse pointer</param>
-        public void Update(TrackViewer trackViewer, in WorldLocation mouseLocation)
+        internal void Update(TrackViewer trackViewer, in WorldLocation mouseLocation)
         {
             ResetAdditionalText();
 
@@ -116,7 +116,7 @@ namespace ORTS.TrackViewer.UserInterface
         /// </summary>
         private void ResetAdditionalText()
         {
-            statusAdditional.Text = String.Empty;
+            statusAdditional.Text = string.Empty;
         }
 
         /// <summary>
@@ -191,7 +191,9 @@ namespace ORTS.TrackViewer.UserInterface
                     TrackShape shape = trackViewer.RouteData.TsectionDat.TrackShapes[shapeIndex];
                     shapeName = shape.FileName;
                 }
+#pragma warning disable CA1031 // Do not catch general exception types
                 catch
+#pragma warning restore CA1031 // Do not catch general exception types
                 {
                     // try to find a dynamic track
                     try
@@ -208,7 +210,9 @@ namespace ORTS.TrackViewer.UserInterface
                             // so this foreach loop will not always find a combination
                         }
                     }
+#pragma warning disable CA1031 // Do not catch general exception types
                     catch
+#pragma warning restore CA1031 // Do not catch general exception types
                     {
                     }
                 }
@@ -238,7 +242,7 @@ namespace ORTS.TrackViewer.UserInterface
                     if (trackViewer.PathEditor.HasModifiedPath) statusItems.Add("modified");
                     if (trackViewer.PathEditor.HasStoredTail) statusItems.Add("stored tail");
                     
-                    string pathStatus = String.Join(", ", statusItems.ToArray());
+                    string pathStatus = string.Join(", ", statusItems.ToArray());
                     
                     ORTS.TrackViewer.Editing.TrainpathNode curNode = trackViewer.PathEditor.CurrentNode;
                     

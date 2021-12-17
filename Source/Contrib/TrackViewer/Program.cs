@@ -49,10 +49,12 @@ namespace ORTS.TrackViewer
                     {
                         trackViewer.Run();
                     }
+#pragma warning disable CA1031 // Do not catch general exception types
                     catch (Exception error)
+#pragma warning restore CA1031 // Do not catch general exception types
                     {
                         string errorSummary = error.GetType().FullName + ": " + error.Message;
-                        MessageBox.Show(String.Format(
+                        MessageBox.Show(string.Format(
                                     System.Globalization.CultureInfo.CurrentCulture,
                                     "A fatal error has occured and {0} cannot continue.\n\n" +
                                     "    {1}\n\n" +

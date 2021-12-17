@@ -38,9 +38,9 @@ namespace ORTS.TrackViewer.Drawing
         private static SpriteBatch spriteBatch;
         
         //size of a identifying feature in the texture (in pixels), so we can scale as needed
-        private static Dictionary<string, float> textureScales = new Dictionary<string, float>();
-        private static Dictionary<string, Vector2> textureOffsets = new Dictionary<string, Vector2>();
-        private static Dictionary<string,Texture2D> textures = new Dictionary<string,Texture2D>();
+        private static readonly Dictionary<string, float> textureScales = new Dictionary<string, float>();
+        private static readonly Dictionary<string, Vector2> textureOffsets = new Dictionary<string, Vector2>();
+        private static readonly Dictionary<string,Texture2D> textures = new Dictionary<string,Texture2D>();
 
         private static FontManager fontManager;
 
@@ -116,7 +116,9 @@ namespace ORTS.TrackViewer.Drawing
             {
                 tempTexture = SharedTextureManager.Get(graphicsDevice, fullFileName);
             }
+#pragma warning disable CA1031 // Do not catch general exception types
             catch
+#pragma warning restore CA1031 // Do not catch general exception types
             {
                 tempTexture = textures["disc"];
             }
@@ -520,9 +522,9 @@ namespace ORTS.TrackViewer.Drawing
             }
         }
 
-        
-        private static float minAngleDegree = 0.1f; // we do not care for angles smaller than 0.1 degrees
-        private static float maxAngleDegree = 90; // allows for drawing up to 90 degree arcs
+
+        private const float minAngleDegree = 0.1f; // we do not care for angles smaller than 0.1 degrees
+        private const float maxAngleDegree = 90; // allows for drawing up to 90 degree arcs
         private static float maxStraightPixels; // Maximum amount of pixels in a straight line part of an arc
         private static float minAngleRad; // minAngleDegree but in radians.
         private static int arcTableSize; // size of the table with precalculated values
@@ -542,17 +544,17 @@ namespace ORTS.TrackViewer.Drawing
         private static readonly FontManager instance = new FontManager();
 
         /// <summary>List of supported font sizes</summary>
-        private int[] fontSizes;
+        private readonly int[] fontSizes;
         /// <summary>Default fontsize</summary>
-        private int defaultFontSize;
+        private readonly int defaultFontSize;
         /// <summary>Fontsize to be used for exanding text</summary>
-        private int expandingFontSize;
+        private readonly int expandingFontSize;
         
         /// <summary>The text manager that supports the font(s)</summary>
-        private WindowTextManager textManager;
+        private readonly WindowTextManager textManager;
 
         /// <summary>List of fonts</summary>
-        private Dictionary<int, WindowTextFont> fonts;
+        private readonly Dictionary<int, WindowTextFont> fonts;
         
         /// <summary>
         /// Constructor, private so only called during class initialization
@@ -585,7 +587,7 @@ namespace ORTS.TrackViewer.Drawing
         /// <summary>
         /// Return the singleton instance of the font manager
         /// </summary>
-        public static FontManager Instance { get { return instance; } }
+        public static FontManager Instance => instance;
         /// <summary>his is the default font that can be used for drawing</summary>
         public WindowTextFont DefaultFont { get; private set; }
         /// <summary>This is the expanding font that can be used for drawing</summary>
@@ -640,19 +642,19 @@ namespace ORTS.TrackViewer.Drawing
         /// <summary>Singleton instance of the class</summary>
         private static readonly BitmapImageManager instance = new BitmapImageManager();
 
-        private Dictionary<string, BitmapImage> images;
+        private readonly Dictionary<string, BitmapImage> images;
 
         /// <summary>
         /// Return the singleton instance of the bitmap manager
         /// </summary>
-        public static BitmapImageManager Instance { get { return instance; } }
+        public static BitmapImageManager Instance => instance;
 
         /// <summary>
         /// Constructor, private so only called during class initialization
         /// </summary>
         private BitmapImageManager()
         {
-            this.images = new Dictionary<string, BitmapImage>();
+            images = new Dictionary<string, BitmapImage>();
         }
 
         /// <summary>

@@ -206,7 +206,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
                 var signWidth = FontGradient.MeasureString(sign) / Scale;
                 if (size > 44)
                 {
-                    string text = Math.Abs(e.GradientPerMille).ToString();
+                    string text = $"{Math.Abs(e.GradientPerMille)}";
                     var fontWidth = FontGradient.MeasureString(text) / Scale;
                     gradientText.Add(new TextPrimitive(new Point((int)(9 - fontWidth / 2), (int)((minp + maxp - 1) / 2 - FontHeightGradient / 2)), textColor, text, FontGradient));
                     gradientText.Add(new TextPrimitive(new Point((int)(9 - signWidth / 2), minp + 3), textColor, sign, FontGradient));
@@ -294,7 +294,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
                 bool im = cur.Equals(IndicationMarkerTarget);
                 if (cur.DistanceToTrainM > MaxViewingDistanceM) break;
                 int a = GetPlanningHeight(cur.DistanceToTrainM) - 15;
-                string text = ((int)Speed.MeterPerSecond.ToKpH(cur.TargetSpeedMpS)).ToString();
+                string text = $"{(int)Speed.MeterPerSecond.ToKpH(cur.TargetSpeedMpS)}";
                 if (im || prev.TargetSpeedMpS > cur.TargetSpeedMpS || cur.TargetSpeedMpS == 0)
                 {
                     speedTargetText.Add(new TextPrimitive(new Point(25, a - 2), im ? ColorYellow : ColorGrey, text, FontTargetSpeed));
@@ -474,7 +474,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
             {
                 if (i == 0 || i > 4)
                 {
-                    string distance = (LineDistances[i] * MaxViewingDistanceM / 1000).ToString();
+                    string distance = $"{(LineDistances[i] * MaxViewingDistanceM / 1000)}";
                     Point unitPosition = new Point((int)(40 - 3 - FontDistance.MeasureString(distance) / Scale), (int)(LinePositions[i] - FontHeightDistance));
                     distanceScaleText.Add(new TextPrimitive(unitPosition, ColorMediumGrey, distance, FontDistance));
                 }

@@ -156,7 +156,9 @@ namespace Orts.Formats.Msts.Files
                     });}),
                 });
             }
+#pragma warning disable CA1031 // Do not catch general exception types
             catch (Exception error)
+#pragma warning restore CA1031 // Do not catch general exception types
             {
                 Trace.TraceWarning(error.Message);
             }

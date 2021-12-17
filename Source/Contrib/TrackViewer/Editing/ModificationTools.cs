@@ -15,10 +15,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Orts.Simulation;
 
 namespace ORTS.TrackViewer.Editing
@@ -29,7 +25,7 @@ namespace ORTS.TrackViewer.Editing
     /// These tools work on the path itself and therefore have no state.
     /// Most routines take a reference to an int that is updated with the net amount of nodes added.
     /// </summary>
-    public class ModificationTools
+    internal class ModificationTools
     {
         #region node counting
         /// <summary>Keeps cound of the net amount of nodes that have been added</summary>
@@ -199,7 +195,7 @@ namespace ORTS.TrackViewer.Editing
         /// <param name="junctionNode">The junction node where we start</param>
         /// <param name="tvnIndex">The TrackVectorNode index for the path</param>
         /// <returns>An unlinked vectorNode at the midpoint.</returns>
-        private TrainpathVectorNode CreateHalfWayNode(TrainpathJunctionNode junctionNode, int tvnIndex)
+        private static TrainpathVectorNode CreateHalfWayNode(TrainpathJunctionNode junctionNode, int tvnIndex)
         {   // The idea here is to use all the code in traveller to make life easier.
 
             // move the traveller halfway through the next vector section

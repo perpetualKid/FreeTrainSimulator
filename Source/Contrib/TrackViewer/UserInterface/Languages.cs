@@ -44,7 +44,7 @@ namespace ORTS.TrackViewer.UserInterface
         public IEnumerable<Language> Languages { get; private set; }
 
         /// <summary>Returns the code for the current language</summary>
-        public static string CurrentLanguageCode { get { return ORTS.TrackViewer.Properties.Settings.Default.language; } }
+        public static string CurrentLanguageCode => ORTS.TrackViewer.Properties.Settings.Default.language;
 
         /// <summary>
         /// Constructor. This will also search for available languages and store these
@@ -54,7 +54,7 @@ namespace ORTS.TrackViewer.UserInterface
             // Collect all the available language codes by searching for
             // localisation files, but always include English (base language).
             List<string> languageCodes = new List<string> { "en" };
-            foreach (var path in Directory.GetDirectories(Path.GetDirectoryName(Application.ExecutablePath)))
+            foreach (string path in Directory.GetDirectories(Path.GetDirectoryName(Application.ExecutablePath)))
                 if (Directory.GetFiles(path, "*.Messages.resources.dll").Length > 0)
                     languageCodes.Add(Path.GetFileName(path));
 
@@ -84,13 +84,13 @@ namespace ORTS.TrackViewer.UserInterface
         /// Give message to use that TrackViewer needs to be restarted
         /// </summary>
         /// <param name="languageCode">Two-letter code for the new language</param>
-        public void SelectLanguage(string languageCode)
+        public static void SelectLanguage(string languageCode)
         {
             if (languageCode != CurrentLanguageCode)
             {
                 MessageBox.Show(TrackViewer.catalog.GetString("Please restart TrackViewer in order to load the new language."));
-                ORTS.TrackViewer.Properties.Settings.Default.language = languageCode;
-                ORTS.TrackViewer.Properties.Settings.Default.Save();
+                Properties.Settings.Default.language = languageCode;
+                Properties.Settings.Default.Save();
             }
         }
 
@@ -99,14 +99,16 @@ namespace ORTS.TrackViewer.UserInterface
         /// </summary>
         public static void LoadLanguage()
         {
-            string preferenceLanguageCode = ORTS.TrackViewer.Properties.Settings.Default.language;
+            string preferenceLanguageCode = Properties.Settings.Default.language;
             if (preferenceLanguageCode.Length > 0)
             {
                 try
                 {
                     System.Threading.Thread.CurrentThread.CurrentUICulture = new CultureInfo(preferenceLanguageCode);
                 }
+#pragma warning disable CA1031 // Do not catch general exception types
                 catch { }
+#pragma warning restore CA1031 // Do not catch general exception types
             }
         }
     }

@@ -31,10 +31,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 {
     public class MSTSSteamLocomotiveViewer : MSTSLocomotiveViewer
     {
-        private float Throttlepercent;
-        private float Color_Value;
+        private float throttlepercent;
+        private float color_Value;
 
-        private MSTSSteamLocomotive SteamLocomotive { get { return (MSTSSteamLocomotive)Car; } }
+        private MSTSSteamLocomotive SteamLocomotive => (MSTSSteamLocomotive)Car;
 
         private List<ParticleEmitterViewer> Cylinders = new List<ParticleEmitterViewer>();
         private List<ParticleEmitterViewer> Cylinders2 = new List<ParticleEmitterViewer>();
@@ -57,39 +57,39 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             // on what emitters we know about.
             string steamTexture = viewer.Simulator.RouteFolder.ContentFolder.TextureFile("smokemain.ace");
 
-            foreach (var emitter in ParticleDrawers)
+            foreach (KeyValuePair<string, List<ParticleEmitterViewer>> emitter in ParticleDrawers)
             {
-                if (emitter.Key.ToLowerInvariant() == "cylindersfx")
+                if (emitter.Key.Equals("cylindersfx", StringComparison.OrdinalIgnoreCase))
                     Cylinders.AddRange(emitter.Value);
-                else if (emitter.Key.ToLowerInvariant() == "cylinders2fx")
+                else if (emitter.Key.Equals("cylinders2fx", StringComparison.OrdinalIgnoreCase))
                 {
                     Cylinders2.AddRange(emitter.Value);
                     car.Cylinder2SteamEffects = true;
                 }
-                else if (emitter.Key.ToLowerInvariant() == "blowdownfx")
+                else if (emitter.Key.Equals("blowdownfx", StringComparison.OrdinalIgnoreCase))
                     Blowdown.AddRange(emitter.Value);
-                else if (emitter.Key.ToLowerInvariant() == "drainpipefx")        // Drainpipe was not used in MSTS, and has no control set up for it
+                else if (emitter.Key.Equals("drainpipefx", StringComparison.OrdinalIgnoreCase))        // Drainpipe was not used in MSTS, and has no control set up for it
                     Drainpipe.AddRange(emitter.Value);
-                else if (emitter.Key.ToLowerInvariant() == "injectors1fx")
+                else if (emitter.Key.Equals("injectors1fx", StringComparison.OrdinalIgnoreCase))
                     Injectors1.AddRange(emitter.Value);
-                else if (emitter.Key.ToLowerInvariant() == "injectors2fx")
+                else if (emitter.Key.Equals("injectors2fx", StringComparison.OrdinalIgnoreCase))
                     Injectors2.AddRange(emitter.Value);
-                else if (emitter.Key.ToLowerInvariant() == "smallejectorfx")
+                else if (emitter.Key.Equals("smallejectorfx", StringComparison.OrdinalIgnoreCase))
                     SmallEjector.AddRange(emitter.Value);
-                else if (emitter.Key.ToLowerInvariant() == "largeejectorfx")
+                else if (emitter.Key.Equals("largeejectorfx", StringComparison.OrdinalIgnoreCase))
                     LargeEjector.AddRange(emitter.Value);
-                else if (emitter.Key.ToLowerInvariant() == "compressorfx")
+                else if (emitter.Key.Equals("compressorfx", StringComparison.OrdinalIgnoreCase))
                     Compressor.AddRange(emitter.Value);
-                else if (emitter.Key.ToLowerInvariant() == "generatorfx")
+                else if (emitter.Key.Equals("generatorfx", StringComparison.OrdinalIgnoreCase))
                 {
                     Generator.AddRange(emitter.Value);
                     car.GeneratorSteamEffects = true;
                 }
-                else if (emitter.Key.ToLowerInvariant() == "safetyvalvesfx")
+                else if (emitter.Key.Equals("safetyvalvesfx", StringComparison.OrdinalIgnoreCase))
                     SafetyValves.AddRange(emitter.Value);
-                else if (emitter.Key.ToLowerInvariant() == "stackfx")
+                else if (emitter.Key.Equals("stackfx", StringComparison.OrdinalIgnoreCase))
                     Stack.AddRange(emitter.Value);
-                else if (emitter.Key.ToLowerInvariant() == "whistlefx")
+                else if (emitter.Key.Equals("whistlefx", StringComparison.OrdinalIgnoreCase))
                     Whistle.AddRange(emitter.Value);
                 foreach (var drawer in emitter.Value)
                     drawer.Initialize(steamTexture);
@@ -343,12 +343,12 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             foreach (var drawer in SafetyValves)
                 drawer.SetOutput(car.SafetyValvesSteamVelocityMpS, car.SafetyValvesSteamVolumeM3pS, car.SafetyValvesParticleDurationS);
 
-            Throttlepercent = car.ThrottlePercent > 0 ? car.ThrottlePercent / 10f : 0f;
+            throttlepercent = car.ThrottlePercent > 0 ? car.ThrottlePercent / 10f : 0f;
 
             foreach (var drawer in Stack)
             {
-                Color_Value = (float)car.SmokeColor.SmoothedValue;
-                drawer.SetOutput((float)car.StackSteamVelocityMpS.SmoothedValue, car.StackSteamVolumeM3pS / Stack.Count + car.FireRatio, Throttlepercent + car.FireRatio, new Color(Color_Value, Color_Value, Color_Value));
+                color_Value = (float)car.SmokeColor.SmoothedValue;
+                drawer.SetOutput((float)car.StackSteamVelocityMpS.SmoothedValue, car.StackSteamVolumeM3pS / Stack.Count + car.FireRatio, throttlepercent + car.FireRatio, new Color(color_Value, color_Value, color_Value));
             }
 
             foreach (var drawer in Whistle)

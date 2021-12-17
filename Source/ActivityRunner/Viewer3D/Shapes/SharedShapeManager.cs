@@ -11,7 +11,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
     {
         private readonly Viewer viewer;
 
-        private readonly Dictionary<string, SharedShape> sharedShapes = new Dictionary<string, SharedShape>();
+        private readonly Dictionary<string, SharedShape> sharedShapes = new Dictionary<string, SharedShape>(StringComparer.OrdinalIgnoreCase);
         private Dictionary<string, bool> shapeMarks;
 
         internal SharedShapeManager(Viewer viewer)
@@ -29,7 +29,6 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             if (path == null || path == SharedShape.Empty.FilePath)
                 return SharedShape.Empty;
 
-            path = path.ToLowerInvariant();
             if (!sharedShapes.ContainsKey(path))
             {
                 try
@@ -47,7 +46,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
         public void Mark()
         {
-            shapeMarks = new Dictionary<string, bool>(sharedShapes.Count);
+            shapeMarks = new Dictionary<string, bool>(sharedShapes.Count, StringComparer.OrdinalIgnoreCase);
             foreach (var path in sharedShapes.Keys)
                 shapeMarks.Add(path, false);
         }

@@ -298,7 +298,7 @@ namespace Orts.Simulation.RollingStocks
 
         public List<IntakePoint> IntakePointList = new List<IntakePoint>();
 
-        public class RefillProcess
+        public static class RefillProcess
         {
             public static bool OkToRefill { get; set; }
             public static int ActivePickupObjectUID { get; set; }
@@ -4294,9 +4294,9 @@ public void SetTensionStiffness(float a, float b)
     /// <summary>
     /// Utility class to avoid loading the wag file multiple times
     /// </summary>
-    public class CarManager
+    public static class CarManager
     {
-        public static Dictionary<string, MSTSWagon> LoadedCars = new Dictionary<string, MSTSWagon>();
+        public static Dictionary<string, MSTSWagon> LoadedCars { get; } = new Dictionary<string, MSTSWagon>();
     }
 
     public readonly struct ParticleEmitterData

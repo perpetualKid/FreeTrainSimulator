@@ -44,7 +44,9 @@ namespace Orts.Formats.OR.Files
                         Description = fileName;
                 }
             }
+#pragma warning disable CA1031 // Do not catch general exception types
             catch (Exception)
+#pragma warning restore CA1031 // Do not catch general exception types
             {
                 Description = $"<load error: {Path.GetFileNameWithoutExtension(fileName)}>";
             }

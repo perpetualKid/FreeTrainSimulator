@@ -185,7 +185,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public override string ToString()
         {
-            return base.ToString() + " - " + CarPosition.ToString();
+            return $"{base.ToString()} - {CarPosition}";
         }
     }
 

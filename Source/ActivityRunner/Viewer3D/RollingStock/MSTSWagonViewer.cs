@@ -119,11 +119,11 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     select new ParticleEmitterViewer(viewer, data, car)))).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 
             // Initaialise particle viewers for special steam effects
-            foreach (var emitter in ParticleDrawers)
+            foreach (KeyValuePair<string, List<ParticleEmitterViewer>> emitter in ParticleDrawers)
             {
 
                 // Exhaust for steam heating boiler
-                if (emitter.Key.ToLowerInvariant() == "heatingsteamboilerfx")
+                if (emitter.Key.Equals("heatingsteamboilerfx", StringComparison.OrdinalIgnoreCase))
                 {
                     HeatingSteamBoiler.AddRange(emitter.Value);
                     // set flag to indicate that heating boiler is active on this car only - only sets first boiler steam effect found in the train
@@ -140,7 +140,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 }
 
                 // Exhaust for HEP/Power Generator
-                if (emitter.Key.ToLowerInvariant() == "wagongeneratorfx")
+                if (emitter.Key.Equals("wagongeneratorfx", StringComparison.OrdinalIgnoreCase))
                     WagonGenerator.AddRange(emitter.Value);
 
                 foreach (var drawer in WagonGenerator)
@@ -149,7 +149,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 }
 
                 // Smoke for wood/coal fire
-                if (emitter.Key.ToLowerInvariant() == "wagonsmokefx")
+                if (emitter.Key.Equals("wagonsmokefx", StringComparison.OrdinalIgnoreCase))
                     WagonSmoke.AddRange(emitter.Value);
 
                 foreach (var drawer in WagonSmoke)
@@ -158,7 +158,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 }
 
                 // Smoke for bearing hot box
-                if (emitter.Key.ToLowerInvariant() == "bearinghotboxfx")
+                if (emitter.Key.Equals("bearinghotboxfx", StringComparison.OrdinalIgnoreCase))
                     BearingHotBox.AddRange(emitter.Value);
 
                 foreach (var drawer in BearingHotBox)
@@ -168,7 +168,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
                 // Steam leak in heating hose 
 
-                if (emitter.Key.ToLowerInvariant() == "heatinghosefx")
+                if (emitter.Key.Equals("heatinghosefx", StringComparison.OrdinalIgnoreCase))
                     HeatingHose.AddRange(emitter.Value);
 
                 foreach (var drawer in HeatingHose)
@@ -178,7 +178,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
                 // Steam leak in heating compartment steam trap
 
-                if (emitter.Key.ToLowerInvariant() == "heatingcompartmentsteamtrapfx")
+                if (emitter.Key.Equals("heatingcompartmentsteamtrapfx", StringComparison.OrdinalIgnoreCase))
                     HeatingCompartmentSteamTrap.AddRange(emitter.Value);
 
                 foreach (var drawer in HeatingCompartmentSteamTrap)
@@ -188,7 +188,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
                 // Steam leak in heating steam trap
 
-                if (emitter.Key.ToLowerInvariant() == "heatingmainpipesteamtrapfx")
+                if (emitter.Key.Equals("heatingmainpipesteamtrapfx", StringComparison.OrdinalIgnoreCase))
                     HeatingMainPipeSteamTrap.AddRange(emitter.Value);
 
                 foreach (var drawer in HeatingMainPipeSteamTrap)
@@ -198,7 +198,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
                 // Water spray for when water scoop is in use (use steam effects for the time being)
                 // Forward motion
-                if (emitter.Key.ToLowerInvariant() == "waterscoopfx")
+                if (emitter.Key.Equals("waterscoopfx", StringComparison.OrdinalIgnoreCase))
                     WaterScoop.AddRange(emitter.Value);
 
                 foreach (var drawer in WaterScoop)
@@ -208,7 +208,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
                 // Reverse motion
 
-                if (emitter.Key.ToLowerInvariant() == "waterscoopreversefx")
+                if (emitter.Key.Equals("waterscoopreversefx", StringComparison.OrdinalIgnoreCase))
                     WaterScoopReverse.AddRange(emitter.Value);
 
                 foreach (var drawer in WaterScoopReverse)
@@ -218,7 +218,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
                 // Water overflow when tender is over full during water trough filling (use steam effects for the time being) 
 
-                if (emitter.Key.ToLowerInvariant() == "tenderwateroverflowfx")
+                if (emitter.Key.Equals("tenderwateroverflowfx", StringComparison.OrdinalIgnoreCase))
                     TenderWaterOverflow.AddRange(emitter.Value);
 
                 foreach (var drawer in TenderWaterOverflow)
@@ -226,7 +226,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     drawer.Initialize(steamTexture);
                 }
 
-                if (emitter.Key.ToLowerInvariant() == "steambrakefx")
+                if (emitter.Key.Equals("steambrakefx", StringComparison.OrdinalIgnoreCase))
                     SteamBrake.AddRange(emitter.Value);
 
                 foreach (var drawer in SteamBrake)
@@ -335,9 +335,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
             // Determine if it has first pantograph. So we can match unnamed panto parts correctly
             for (var i = 0; i < TrainCarShape.Hierarchy.Length; i++)
-                if (TrainCarShape.SharedShape.MatrixNames[i].Contains('1'))
+                if (TrainCarShape.SharedShape.MatrixNames[i].Contains('1', StringComparison.OrdinalIgnoreCase))
                 {
-                    if (TrainCarShape.SharedShape.MatrixNames[i].ToUpper().StartsWith("PANTO")) { HasFirstPanto = true; break; }
+                    if (TrainCarShape.SharedShape.MatrixNames[i].StartsWith("PANTO", StringComparison.OrdinalIgnoreCase)) { HasFirstPanto = true; break; }
                 }
 
             // Check bogies and wheels to find out what we have.
@@ -415,43 +415,43 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
         private void MatchMatrixToPart(MSTSWagon car, int matrix, int bogieMatrix)
         {
-            var matrixName = TrainCarShape.SharedShape.MatrixNames[matrix].ToUpper();
+            string matrixName = TrainCarShape.SharedShape.MatrixNames[matrix];
             // Gate all RunningGearPartIndexes on this!
             var matrixAnimated = TrainCarShape.SharedShape.Animations != null && TrainCarShape.SharedShape.Animations.Count > 0 && TrainCarShape.SharedShape.Animations[0].AnimationNodes.Count > matrix && TrainCarShape.SharedShape.Animations[0].AnimationNodes[matrix].Controllers.Count > 0;
-            if (matrixName.StartsWith("WHEELS") && (matrixName.Length == 7 || matrixName.Length == 8 || matrixName.Length == 9))
+            if (matrixName.StartsWith("Wheels", StringComparison.OrdinalIgnoreCase) && (matrixName.Length == 7 || matrixName.Length == 8 || matrixName.Length == 9))
             {
                 // Standard WHEELS length would be 8 to test for WHEELS11. Came across WHEELS tag that used a period(.) between the last 2 numbers, changing max length to 9.
                 // Changing max length to 9 is not a problem since the initial WHEELS test will still be good.
-                var m = TrainCarShape.SharedShape.GetMatrixProduct(matrix);
+                Matrix m = TrainCarShape.SharedShape.GetMatrixProduct(matrix);
                 //someone uses wheel to animate fans, thus check if the wheel is not too high (lower than 3m), will animate it as real wheel
                 if (m.M42 < 3)
                 {
-                    var id = 0;
+                    int id = 0;
                     // Model makers are not following the standard rules, For example, one tender uses naming convention of wheels11/12 instead of using Wheels1,2,3 when not part of a bogie.
                     // The next 2 lines will sort out these axles.
-                    var tmatrix = TrainCarShape.SharedShape.GetParentMatrix(matrix);
+                    int tmatrix = TrainCarShape.SharedShape.GetParentMatrix(matrix);
                     if (matrixName.Length == 8 && bogieMatrix == 0 && tmatrix == 0) // In this test, both tmatrix and bogieMatrix are 0 since these wheels are not part of a bogie.
                         matrixName = TrainCarShape.SharedShape.MatrixNames[matrix].Substring(0, 7); // Changing wheel name so that it reflects its actual use since it is not p
                     if (matrixName.Length == 8 || matrixName.Length == 9)
-                        Int32.TryParse(matrixName.Substring(6, 1), out id);
+                        _ = int.TryParse(matrixName.AsSpan(6, 1), out id);
                     if (matrixName.Length == 8 || matrixName.Length == 9 || !matrixAnimated)
                         WheelPartIndexes.Add(matrix);
                     else
                         RunningGear.AddMatrix(matrix);
-                    var pmatrix = TrainCarShape.SharedShape.GetParentMatrix(matrix);
+                    int pmatrix = TrainCarShape.SharedShape.GetParentMatrix(matrix);
                     car.AddWheelSet(m.M43, id, pmatrix, matrixName.ToString(), bogie1Axles, bogie2Axles);
                 }
                 // Standard wheels are processed above, but wheels used as animated fans that are greater than 3m are processed here.
                 else
                     RunningGear.AddMatrix(matrix);
             }
-            else if (matrixName.StartsWith("BOGIE") && matrixName.Length <= 6) //BOGIE1 is valid, BOGIE11 is not, it is used by some modelers to indicate this is part of bogie1
+            else if (matrixName.StartsWith("Bogie", StringComparison.OrdinalIgnoreCase) && matrixName.Length <= 6) //BOGIE1 is valid, BOGIE11 is not, it is used by some modelers to indicate this is part of bogie1
             {
                 if (matrixName.Length == 6)
                 {
-                    var id = 1;
-                    Int32.TryParse(matrixName.Substring(5), out id);
-                    var m = TrainCarShape.SharedShape.GetMatrixProduct(matrix);
+                    int id = 1;
+                    _ = int.TryParse(matrixName.AsSpan(5), out id);
+                    Matrix m = TrainCarShape.SharedShape.GetMatrixProduct(matrix);
                     car.AddBogie(m.M43, matrix, id, matrixName.ToString(), numBogie1, numBogie2);
                     bogieMatrix = matrix; // Bogie matrix needs to be saved for test with axles.
                 }
@@ -459,8 +459,8 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                 {
                     // Since the string content is BOGIE, Int32.TryParse(matrixName.Substring(5), out id) is not needed since its sole purpose is to
                     //  parse the string number from the string.
-                    var id = 1;
-                    var m = TrainCarShape.SharedShape.GetMatrixProduct(matrix);
+                    int id = 1;
+                    Matrix m = TrainCarShape.SharedShape.GetMatrixProduct(matrix);
                     car.AddBogie(m.M43, matrix, id, matrixName.ToString(), numBogie1, numBogie2);
                     bogieMatrix = matrix; // Bogie matrix needs to be saved for test with axles.
                 }
@@ -469,20 +469,24 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     if (TrainCarShape.Hierarchy[i] == matrix)
                         MatchMatrixToPart(car, i, bogieMatrix);
             }
-            else if (matrixName.StartsWith("WIPER")) // wipers
+            else if (matrixName.StartsWith("Wiper", StringComparison.OrdinalIgnoreCase)) // wipers
             {
                 Wipers.AddMatrix(matrix);
             }
-            else if (matrixName.StartsWith("DOOR")) // doors (left / right)
+            else if (matrixName.StartsWith("Door", StringComparison.OrdinalIgnoreCase)) // doors (left / right)
             {
-                if (matrixName.StartsWith("DOOR_D") || matrixName.StartsWith("DOOR_E") || matrixName.StartsWith("DOOR_F"))
+                if (matrixName.StartsWith("Door_D", StringComparison.OrdinalIgnoreCase) || 
+                    matrixName.StartsWith("Door_E", StringComparison.OrdinalIgnoreCase) || 
+                    matrixName.StartsWith("Door_F", StringComparison.OrdinalIgnoreCase))
                     LeftDoor.AddMatrix(matrix);
-                else if (matrixName.StartsWith("DOOR_A") || matrixName.StartsWith("DOOR_B") || matrixName.StartsWith("DOOR_C"))
+                else if (matrixName.StartsWith("Door_A", StringComparison.OrdinalIgnoreCase) || 
+                    matrixName.StartsWith("Door_B", StringComparison.OrdinalIgnoreCase) || 
+                    matrixName.StartsWith("Door_C", StringComparison.OrdinalIgnoreCase))
                     RightDoor.AddMatrix(matrix);
             }
-            else if (matrixName.StartsWith("PANTOGRAPH")) //pantographs (1/2)
+            else if (matrixName.StartsWith("Pantograph", StringComparison.OrdinalIgnoreCase)) //pantographs (1/2)
             {
-
+                matrixName = matrixName.ToUpperInvariant();
                 switch (matrixName)
                 {
                     case "PANTOGRAPHBOTTOM1":
@@ -508,13 +512,13 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         Pantograph2.AddMatrix(matrix);
                         break;
                     default://someone used other language
-                        if (matrixName.Contains("1"))
+                        if (matrixName.Contains('1', StringComparison.OrdinalIgnoreCase))
                             Pantograph1.AddMatrix(matrix);
-                        else if (matrixName.Contains("2"))
+                        else if (matrixName.Contains('2', StringComparison.OrdinalIgnoreCase))
                             Pantograph2.AddMatrix(matrix);
-                        else if (matrixName.Contains("3"))
+                        else if (matrixName.Contains('3', StringComparison.OrdinalIgnoreCase))
                             Pantograph3.AddMatrix(matrix);
-                        else if (matrixName.Contains("4"))
+                        else if (matrixName.Contains('4', StringComparison.OrdinalIgnoreCase))
                             Pantograph4.AddMatrix(matrix);
                         else
                         {
@@ -524,24 +528,24 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                         break;
                 }
             }
-            else if (matrixName.StartsWith("MIRROR")) // mirrors
+            else if (matrixName.StartsWith("MIRROR", StringComparison.OrdinalIgnoreCase)) // mirrors
             {
                 Mirrors.AddMatrix(matrix);
             }
-            else if (matrixName.StartsWith("UNLOADINGPARTS")) // unloading parts
+            else if (matrixName.StartsWith("UNLOADINGPARTS", StringComparison.OrdinalIgnoreCase)) // unloading parts
             {
                 UnloadingParts.AddMatrix(matrix);
             }
-            else if (matrixName.StartsWith("PANTO"))  // TODO, not sure why this is needed, see above!
+            else if (matrixName.StartsWith("PANTO", StringComparison.OrdinalIgnoreCase))  // TODO, not sure why this is needed, see above!
             {
                 Trace.TraceInformation("Pantograph matrix with unusual name {1} in shape {0}", TrainCarShape.SharedShape.FilePath, matrixName);
-                if (matrixName.Contains("1"))
+                if (matrixName.Contains('1', StringComparison.OrdinalIgnoreCase))
                     Pantograph1.AddMatrix(matrix);
-                else if (matrixName.Contains("2"))
+                else if (matrixName.Contains('2', StringComparison.OrdinalIgnoreCase))
                     Pantograph2.AddMatrix(matrix);
-                else if (matrixName.Contains("3"))
+                else if (matrixName.Contains('3', StringComparison.OrdinalIgnoreCase))
                     Pantograph3.AddMatrix(matrix);
-                else if (matrixName.Contains("4"))
+                else if (matrixName.Contains('4', StringComparison.OrdinalIgnoreCase))
                     Pantograph4.AddMatrix(matrix);
                 else
                 {
@@ -549,7 +553,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     else Pantograph2.AddMatrix(matrix);
                 }
             }
-            else if (matrixName.StartsWith("ORTSBELL")) // wipers
+            else if (matrixName.StartsWith("ORTSBELL", StringComparison.OrdinalIgnoreCase)) // wipers
             {
                 Bell.AddMatrix(matrix);
             }

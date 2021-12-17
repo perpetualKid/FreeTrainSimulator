@@ -24,7 +24,7 @@ namespace ORTS.TrackViewer.Editing
     /// <summary>
     /// Extension methods that need information from the route database.
     /// </summary>
-    public static class TrackExtensions
+    internal static class TrackExtensions
     {
         //By making the database information static, but updateable, we can concentrate a number of track-related 
         //methods in one class, without having to drag along the databases.

@@ -504,7 +504,7 @@ namespace Orts.ActivityRunner.Viewer3D
             dynamicPrecipitationTexture[11] = rainTexture;
             for (int i = 1; i<=10; i++)
             {
-                var path = "Raindrop" + i.ToString() + ".png";
+                var path = $"Raindrop{i}.png";
                 dynamicPrecipitationTexture[11 - i] = SharedTextureManager.Get(Viewer.RenderProcess.GraphicsDevice, System.IO.Path.Combine(Viewer.ContentPath, path));
             }
             shader = Viewer.MaterialManager.PrecipitationShader;

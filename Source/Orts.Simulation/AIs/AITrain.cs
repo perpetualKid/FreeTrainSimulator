@@ -3114,7 +3114,7 @@ namespace Orts.Simulation.AIs
                 //check if waiting point is in existing subpath
                 if (waitingPoint[0] >= TCRoute.TCRouteSubpaths.Count)
                 {
-                    Trace.TraceInformation("Waiting point for train " + Name + "(" + Number.ToString() + ") is not on route - point removed");
+                    Trace.TraceInformation($"Waiting point for train {Name }({Number}) is not on route - point removed");
                     continue;
                 }
 
@@ -3125,7 +3125,7 @@ namespace Orts.Simulation.AIs
                 // check if waiting point is in route - else give warning and skip
                 if (routeIndex < 0)
                 {
-                    Trace.TraceInformation("Waiting point for train " + Name + "(" + Number.ToString() + ") is not on route - point removed");
+                    Trace.TraceInformation($"Waiting point for train {Name }({Number}) is not on route - point removed");
                     continue;
                 }
 
@@ -3196,7 +3196,7 @@ namespace Orts.Simulation.AIs
                 //check if waiting point is in existing subpath
                 if (waitingPoint[0] >= TCRoute.TCRouteSubpaths.Count)
                 {
-                    Trace.TraceInformation("Waiting point for train " + Name + "(" + Number.ToString() + ") is not on route - point removed");
+                    Trace.TraceInformation($"Waiting point for train {Name}({Number}) is not on route - point removed");
                     continue;
                 }
 
@@ -3227,7 +3227,7 @@ namespace Orts.Simulation.AIs
                 // check if waiting point is in route - else give warning and skip
                 if (routeIndex < 0)
                 {
-                    Trace.TraceInformation("Waiting point for train " + Name + "(" + Number.ToString() + ") is not on route - point removed");
+                    Trace.TraceInformation($"Waiting point for train {Name}({Number}) is not on route - point removed");
                     continue;
                 }
                 TrackDirection direction = thisRoute[routeIndex].Direction;
@@ -4888,9 +4888,9 @@ namespace Orts.Simulation.AIs
         /// 11  Train Name
         /// </summary>
 
-        public virtual String[] AddMovementState(String[] stateString, bool metric)
+        public virtual string[] AddMovementState(string[] stateString, bool metric)
         {
-            String[] retString = new String[stateString.Length];
+            string[] retString = new string[stateString.Length];
             stateString.CopyTo(retString, 0);
 
             string movString = "";
@@ -4933,8 +4933,8 @@ namespace Orts.Simulation.AIs
                     break;
             }
 
-            string abString = AITrainThrottlePercent.ToString("000");
-            abString = String.Concat(abString, "&", AITrainBrakePercent.ToString("000"));
+            string abString = $"{AITrainThrottlePercent:000}";
+            abString = string.Concat(abString, "&", $"{AITrainBrakePercent}");
 
             if (MovementState == AiMovementState.StationStop)
             {
@@ -4942,12 +4942,12 @@ namespace Orts.Simulation.AIs
                 if (StationStops[0].ActualDepart > 0)
                 {
                     DateTime depTime = baseDT.AddSeconds(StationStops[0].ActualDepart);
-                    abString = depTime.ToString("HH:mm:ss");
+                    abString = $"{depTime:HH:mm:ss}";
                 }
                 else if (StationStops[0].DepartTime > 0)
                 {
                     DateTime depTime = baseDT.AddSeconds(StationStops[0].DepartTime);
-                    abString = depTime.ToString("HH:mm:ss");
+                    abString = $"{depTime:HH:mm:ss}";
                 }
                 else
                 {
@@ -4979,7 +4979,7 @@ namespace Orts.Simulation.AIs
                         if (((AuxActionWPItem)nextActionInfo).ActualDepart > 0)
                         {
                             DateTime depTime = baseDT.AddSeconds(((AuxActionWPItem)nextActionInfo).ActualDepart);
-                            abString = depTime.ToString("HH:mm:ss");
+                            abString = $"{depTime:HH:mm:ss}";
                         }
                         else
                         {
@@ -4993,7 +4993,7 @@ namespace Orts.Simulation.AIs
                     movString = "WTS";
                     DateTime baseDT = new DateTime();
                     DateTime depTime = baseDT.AddSeconds((AuxActionsContainer.specRequiredActions.First.Value as AuxActSigDelegate).ActualDepart);
-                    abString = depTime.ToString("HH:mm:ss");
+                    abString = $"{depTime:HH:mm:ss}";
                 }
 
             }
@@ -5003,7 +5003,7 @@ namespace Orts.Simulation.AIs
                 {
                     long startNSec = (long)(StartTime.Value * Math.Pow(10, 7));
                     DateTime startDT = new DateTime(startNSec);
-                    abString = startDT.ToString("HH:mm:ss");
+                    abString = $"{startDT:HH:mm:ss}";
                 }
                 else
                 {
@@ -5011,7 +5011,7 @@ namespace Orts.Simulation.AIs
                 }
             }
 
-            string nameString = Name.Substring(0, Math.Min(Name.Length, 7));
+            string nameString = Name[..Math.Min(Name.Length, 7)];
 
             string actString = "";
 

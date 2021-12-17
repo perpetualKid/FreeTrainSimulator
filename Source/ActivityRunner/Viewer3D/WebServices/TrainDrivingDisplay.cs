@@ -185,9 +185,9 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             if (!normalMode)
             {
                 foreach (KeyValuePair<string, string> mapping in FirstColToAbbreviated)
-                    label.FirstCol = label.FirstCol.Replace(mapping.Key, mapping.Value);
+                    label.FirstCol = label.FirstCol.Replace(mapping.Key, mapping.Value, StringComparison.OrdinalIgnoreCase);
                 foreach (KeyValuePair<string, string> mapping in LastColToAbbreviated)
-                    label.LastCol = label.LastCol.Replace(mapping.Key, mapping.Value);
+                    label.LastCol = label.LastCol.Replace(mapping.Key, mapping.Value, StringComparison.OrdinalIgnoreCase);
             }
         }
 
@@ -416,7 +416,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             string brakeInfoValue = "";
             int index = 0;
 
-            if (trainBrakeStatus.Contains(Viewer.Catalog.GetString("EQ")))
+            if (trainBrakeStatus.Contains(Viewer.Catalog.GetString("EQ"), StringComparison.OrdinalIgnoreCase))
             {
                 string brakeKey;
                 if (trainBrakeIncrease)
@@ -432,7 +432,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
                 else
                     brakeKey = "";
 
-                brakeInfoValue = trainBrakeStatus.Substring(0, trainBrakeStatus.IndexOf(Viewer.Catalog.GetString("EQ"))).TrimEnd();
+                brakeInfoValue = trainBrakeStatus.Substring(0, trainBrakeStatus.IndexOf(Viewer.Catalog.GetString("EQ"), StringComparison.OrdinalIgnoreCase)).TrimEnd();
                 AddLabel(new ListLabel
                 {
                     FirstCol = Viewer.Catalog.GetString("Train brake"),
@@ -441,23 +441,23 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
                     SymbolCol = brakeKey,
                 });
 
-                index = trainBrakeStatus.IndexOf(Viewer.Catalog.GetString("EQ"));
-                brakeInfoValue = trainBrakeStatus.Substring(index, trainBrakeStatus.IndexOf(Viewer.Catalog.GetString("BC")) - index).TrimEnd();
+                index = trainBrakeStatus.IndexOf(Viewer.Catalog.GetString("EQ"), StringComparison.OrdinalIgnoreCase);
+                brakeInfoValue = trainBrakeStatus.Substring(index, trainBrakeStatus.IndexOf(Viewer.Catalog.GetString("BC"), StringComparison.OrdinalIgnoreCase) - index).TrimEnd();
 
                 AddLabel(new ListLabel
                 {
                     LastCol = brakeInfoValue,
                 });
-                if (trainBrakeStatus.Contains(Viewer.Catalog.GetString("EOT")))
+                if (trainBrakeStatus.Contains(Viewer.Catalog.GetString("EOT"), StringComparison.OrdinalIgnoreCase))
                 {
                     int indexOffset = Viewer.Catalog.GetString("EOT").Length + 1;
-                    index = trainBrakeStatus.IndexOf(Viewer.Catalog.GetString("BC"));
-                    brakeInfoValue = trainBrakeStatus.Substring(index, trainBrakeStatus.IndexOf(Viewer.Catalog.GetString("EOT")) - index).TrimEnd();
+                    index = trainBrakeStatus.IndexOf(Viewer.Catalog.GetString("BC"), StringComparison.OrdinalIgnoreCase);
+                    brakeInfoValue = trainBrakeStatus.Substring(index, trainBrakeStatus.IndexOf(Viewer.Catalog.GetString("EOT"), StringComparison.OrdinalIgnoreCase) - index).TrimEnd();
                     AddLabel(new ListLabel
                     {
                         LastCol = brakeInfoValue,
                     });
-                    index = trainBrakeStatus.IndexOf(Viewer.Catalog.GetString("EOT")) + indexOffset;
+                    index = trainBrakeStatus.IndexOf(Viewer.Catalog.GetString("EOT"), StringComparison.OrdinalIgnoreCase) + indexOffset;
                     brakeInfoValue = trainBrakeStatus.Substring(index, trainBrakeStatus.Length - index).TrimStart();
                     AddLabel(new ListLabel
                     {
@@ -466,7 +466,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
                 }
                 else
                 {
-                    index = trainBrakeStatus.IndexOf(Viewer.Catalog.GetString("BC"));
+                    index = trainBrakeStatus.IndexOf(Viewer.Catalog.GetString("BC"), StringComparison.OrdinalIgnoreCase);
                     brakeInfoValue = trainBrakeStatus.Substring(index, trainBrakeStatus.Length - index).TrimEnd();
                     AddLabel(new ListLabel
                     {
@@ -474,26 +474,26 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
                     });
                 }
             }
-            else if (trainBrakeStatus.Contains(Viewer.Catalog.GetString("Lead")))
+            else if (trainBrakeStatus.Contains(Viewer.Catalog.GetString("Lead"), StringComparison.OrdinalIgnoreCase))
             {
                 int indexOffset = Viewer.Catalog.GetString("Lead").Length + 1;
-                brakeInfoValue = trainBrakeStatus.Substring(0, trainBrakeStatus.IndexOf(Viewer.Catalog.GetString("Lead"))).TrimEnd();
+                brakeInfoValue = trainBrakeStatus.Substring(0, trainBrakeStatus.IndexOf(Viewer.Catalog.GetString("Lead"), StringComparison.OrdinalIgnoreCase)).TrimEnd();
                 AddLabel(new ListLabel
                 {
                     FirstCol = Viewer.Catalog.GetString("Train brake"),
                     LastCol = $"{brakeInfoValue}{ColorCode[Color.Cyan]}",
                 });
 
-                index = trainBrakeStatus.IndexOf(Viewer.Catalog.GetString("Lead")) + indexOffset;
-                if (trainBrakeStatus.Contains(Viewer.Catalog.GetString("EOT")))
+                index = trainBrakeStatus.IndexOf(Viewer.Catalog.GetString("Lead"), StringComparison.OrdinalIgnoreCase) + indexOffset;
+                if (trainBrakeStatus.Contains(Viewer.Catalog.GetString("EOT"), StringComparison.OrdinalIgnoreCase))
                 {
-                    brakeInfoValue = trainBrakeStatus.Substring(index, trainBrakeStatus.IndexOf(Viewer.Catalog.GetString("EOT")) - index).TrimEnd();
+                    brakeInfoValue = trainBrakeStatus.Substring(index, trainBrakeStatus.IndexOf(Viewer.Catalog.GetString("EOT"), StringComparison.OrdinalIgnoreCase) - index).TrimEnd();
                     AddLabel(new ListLabel
                     {
                         LastCol = brakeInfoValue,
                     });
 
-                    index = trainBrakeStatus.IndexOf(Viewer.Catalog.GetString("EOT")) + indexOffset;
+                    index = trainBrakeStatus.IndexOf(Viewer.Catalog.GetString("EOT"), StringComparison.OrdinalIgnoreCase) + indexOffset;
                     brakeInfoValue = trainBrakeStatus.Substring(index, trainBrakeStatus.Length - index).TrimEnd();
                     AddLabel(new ListLabel
                     {
@@ -509,16 +509,16 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
                     });
                 }
             }
-            else if (trainBrakeStatus.Contains(Viewer.Catalog.GetString("BC")))
+            else if (trainBrakeStatus.Contains(Viewer.Catalog.GetString("BC"), StringComparison.OrdinalIgnoreCase))
             {
-                brakeInfoValue = trainBrakeStatus.Substring(0, trainBrakeStatus.IndexOf(Viewer.Catalog.GetString("BC"))).TrimEnd();
+                brakeInfoValue = trainBrakeStatus.Substring(0, trainBrakeStatus.IndexOf(Viewer.Catalog.GetString("BC"), StringComparison.OrdinalIgnoreCase)).TrimEnd();
                 AddLabel(new ListLabel
                 {
                     FirstCol = Viewer.Catalog.GetString("Train brake"),
                     LastCol = $"{brakeInfoValue}{ColorCode[Color.Cyan]}",
                 });
 
-                index = trainBrakeStatus.IndexOf(Viewer.Catalog.GetString("BC"));
+                index = trainBrakeStatus.IndexOf(Viewer.Catalog.GetString("BC"), StringComparison.OrdinalIgnoreCase);
                 brakeInfoValue = trainBrakeStatus.Substring(index, trainBrakeStatus.Length - index).TrimEnd();
 
                 AddLabel(new ListLabel
@@ -536,14 +536,14 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
                 });
             }
 
-            if (engineBrakeStatus.Contains(Viewer.Catalog.GetString("BC")))
+            if (engineBrakeStatus.Contains(Viewer.Catalog.GetString("BC"), StringComparison.OrdinalIgnoreCase))
             {
                 AddLabel(new ListLabel
                 {
                     FirstCol = Viewer.Catalog.GetString("Engine brake"),
-                    LastCol = engineBrakeStatus.Substring(0, engineBrakeStatus.IndexOf("BC")) + ColorCode[Color.Cyan],
+                    LastCol = string.Concat(engineBrakeStatus.AsSpan(0, engineBrakeStatus.IndexOf("BC", StringComparison.OrdinalIgnoreCase)), ColorCode[Color.Cyan]),
                 });
-                index = engineBrakeStatus.IndexOf(Viewer.Catalog.GetString("BC"));
+                index = engineBrakeStatus.IndexOf(Viewer.Catalog.GetString("BC"), StringComparison.OrdinalIgnoreCase);
                 brakeInfoValue = engineBrakeStatus.Substring(index, engineBrakeStatus.Length - index).TrimEnd();
                 AddLabel(new ListLabel
                 {
@@ -589,7 +589,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
                     string[] parts = data.Split(new string[] { " = " }, 2, StringSplitOptions.None);
                     string keyPart = parts[0];
                     string valuePart = parts?[1];
-                    if (Viewer.Catalog.GetString(keyPart).StartsWith(Viewer.Catalog.GetString("Boiler pressure")))
+                    if (Viewer.Catalog.GetString(keyPart).StartsWith(Viewer.Catalog.GetString("Boiler pressure"), StringComparison.OrdinalIgnoreCase))
                     {
                         MSTSSteamLocomotive steamLocomotive2 = (MSTSSteamLocomotive)locomotive;
                         float bandUpper = steamLocomotive2.PreviousBoilerHeatOutBTUpS * 1.025f; // find upper bandwidth point
@@ -612,15 +612,15 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
                             SymbolCol = heatIndicator,
                         });
                     }
-                    else if (!normalTextMode && Viewer.Catalog.GetString(parts[0]).StartsWith(Viewer.Catalog.GetString("Fuel levels")))
+                    else if (!normalTextMode && Viewer.Catalog.GetString(parts[0]).StartsWith(Viewer.Catalog.GetString("Fuel levels"), StringComparison.OrdinalIgnoreCase))
                     {
                         AddLabel(new ListLabel
                         {
-                            FirstCol = keyPart.EndsWith("?") || keyPart.EndsWith("!") ? Viewer.Catalog.GetString(keyPart.Substring(0, keyPart.Length - 3)) : Viewer.Catalog.GetString(keyPart),
-                            LastCol = valuePart.Length > 1 ? Viewer.Catalog.GetString(valuePart.Replace(" ", string.Empty)) : "",
+                            FirstCol = keyPart.EndsWith("?", StringComparison.OrdinalIgnoreCase) || keyPart.EndsWith("!", StringComparison.OrdinalIgnoreCase) ? Viewer.Catalog.GetString(keyPart.Substring(0, keyPart.Length - 3)) : Viewer.Catalog.GetString(keyPart),
+                            LastCol = valuePart.Length > 1 ? Viewer.Catalog.GetString(valuePart.Replace(" ", string.Empty, StringComparison.OrdinalIgnoreCase)) : "",
                         });
                     }
-                    else if (keyPart.StartsWith(Viewer.Catalog.GetString("Gear")))
+                    else if (keyPart.StartsWith(Viewer.Catalog.GetString("Gear"), StringComparison.OrdinalIgnoreCase))
                     {
                         string gearKey = "";
                         if (gearUp)
@@ -649,7 +649,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
                         string pantoKey = "";
                         if (pantographKey)
                         {
-                            string arrow = parts[1].StartsWith(Viewer.Catalog.GetString("Up")) ? Symbols.ArrowUp : Symbols.ArrowDown;
+                            string arrow = parts[1].StartsWith(Viewer.Catalog.GetString("Up"), StringComparison.OrdinalIgnoreCase) ? Symbols.ArrowUp : Symbols.ArrowDown;
                             pantoKey = arrow + ColorCode[Color.Yellow];
                             pantographKey = false;
                         }
@@ -676,7 +676,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
                     {
                         AddLabel(new ListLabel
                         {
-                            FirstCol = keyPart.EndsWith("?") || keyPart.EndsWith("!") ? Viewer.Catalog.GetString(keyPart.Substring(0, keyPart.Length - 3)) : Viewer.Catalog.GetString(keyPart),
+                            FirstCol = keyPart.EndsWith("?", StringComparison.OrdinalIgnoreCase) || keyPart.EndsWith("!", StringComparison.OrdinalIgnoreCase) ? Viewer.Catalog.GetString(keyPart.Substring(0, keyPart.Length - 3)) : Viewer.Catalog.GetString(keyPart),
                             LastCol = valuePart != null ? Viewer.Catalog.GetString(valuePart) : "",
                         });
                     }

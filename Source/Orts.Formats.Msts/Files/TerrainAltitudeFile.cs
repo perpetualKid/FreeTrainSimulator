@@ -37,7 +37,9 @@ namespace Orts.Formats.Msts.Files
                         for (int x = 0; x < sampleCount; x++)
                             elevation[x, z] = reader.ReadUInt16();
             }
+#pragma warning disable CA1031 // Do not catch general exception types
             catch (Exception error)
+#pragma warning restore CA1031 // Do not catch general exception types
             {
                 Trace.WriteLine(new FileLoadException(fileName, error));
             }

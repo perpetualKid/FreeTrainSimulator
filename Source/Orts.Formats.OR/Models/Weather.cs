@@ -29,7 +29,7 @@ namespace Orts.Formats.OR.Models
         }
 
         // check value, set random value if allowed and value not set
-        protected float CheckValue(float value, bool randomize, float minValue, float maxValue, TimeSpan duration, string description)
+        protected static float CheckValue(float value, bool randomize, float minValue, float maxValue, TimeSpan duration, string description)
         {
             // overcast
             if (value < 0 && randomize)

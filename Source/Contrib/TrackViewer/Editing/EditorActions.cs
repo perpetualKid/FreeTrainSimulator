@@ -16,6 +16,7 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -28,14 +29,16 @@ using ORTS.TrackViewer.Drawing;
 namespace ORTS.TrackViewer.Editing
 {
     /// <summary>Delegate to enable giving information on the edited path back to the editor</summary>
+#pragma warning disable CA1711 // Identifiers should not have incorrect suffix
     public delegate void AfterEditDelegate(int nodesAdded);
+#pragma warning restore CA1711 // Identifiers should not have incorrect suffix
 
     #region EditorAction (base)
     /// <summary>
     /// Base class for all kinds of editor actions. This contains all the common glue to support the action (like menuItem).
     /// It also contains all the common methods that edit/modify the path.
     /// </summary>
-    public abstract class EditorAction
+    internal abstract class EditorAction
     {
         #region public fields
         /// <summary>The MenuItem that can be added to a context menu</summary>
@@ -56,7 +59,7 @@ namespace ORTS.TrackViewer.Editing
         protected int MouseY { get; set; }
 
         /// <summary>The tools (strategy) to do modifications to the path</summary>
-        protected ModificationTools ModificationTools { get; set; }
+        private protected ModificationTools ModificationTools { get; set; }
 
         private AfterEditDelegate afterEditCallback;
         #endregion
@@ -101,15 +104,15 @@ namespace ORTS.TrackViewer.Editing
         public bool MenuState(Trainpath trainpath, TrainpathNode activeNode, TrainpathVectorNode activeTrackLocation,
             AfterEditDelegate callback, int mouseX, int mouseY)
         {
-            this.Trainpath = trainpath;
-            this.ActiveNode = activeNode;
-            this.ActiveTrackLocation = activeTrackLocation;
-            this.afterEditCallback = callback;
-            this.MouseX = mouseX;
-            this.MouseY = mouseY;
+            Trainpath = trainpath;
+            ActiveNode = activeNode;
+            ActiveTrackLocation = activeTrackLocation;
+            afterEditCallback = callback;
+            MouseX = mouseX;
+            MouseY = mouseY;
 
             bool canExecute =
-                ORTS.TrackViewer.Properties.Settings.Default.showTrainpath
+                Properties.Settings.Default.showTrainpath
                 && CanExecuteAction();
             ActionMenuItem.Visibility = canExecute ? Visibility.Visible : Visibility.Collapsed;
 
@@ -164,7 +167,7 @@ namespace ORTS.TrackViewer.Editing
         /// </summary>
         public override string ToString()
         {
-            return this.ActionMenuItem.Header.ToString();
+            return ActionMenuItem.Header.ToString();
         }
     }
     #endregion
@@ -173,7 +176,7 @@ namespace ORTS.TrackViewer.Editing
     /// <summary>
     /// Subclass to implement the action: Add Start Node 
     /// </summary>
-    public class EditorActionAddStart : EditorAction
+    internal class EditorActionAddStart : EditorAction
     {
         /// <summary>Constructor</summary>
         public EditorActionAddStart() : base(TrackViewer.catalog.GetString("Place start point"), "activeTrack") { }
@@ -208,7 +211,7 @@ namespace ORTS.TrackViewer.Editing
     /// Subclass to implement the action: Remove Start point.
     /// This action removes start node and subsequently the complete path. (only path metadata will be unchanged!)
     /// </summary>
-    public class EditorActionRemoveStart : EditorAction
+    internal class EditorActionRemoveStart : EditorAction
     {
         /// <summary>Constructor</summary>
         public EditorActionRemoveStart() : base(TrackViewer.catalog.GetString("Remove start point"), "activeNode") { }
@@ -235,7 +238,7 @@ namespace ORTS.TrackViewer.Editing
     /// Subclass to implement the action: Remove Start point while keeping the tail
     /// This action removes start node and subsequently the complete path (apart from the tail). (only path metadata will be unchanged!)
     /// </summary>
-    public class EditorActionRemoveStartKeepTail : EditorAction
+    internal class EditorActionRemoveStartKeepTail : EditorAction
     {
         /// <summary>Constructor</summary>
         public EditorActionRemoveStartKeepTail() : base(TrackViewer.catalog.GetString("Clear path (keep tail)"), null) { }
@@ -259,7 +262,7 @@ namespace ORTS.TrackViewer.Editing
     /// <summary>
     /// Subclass to implement the action: Take the other direction  from the start point
     /// </summary>
-    public class EditorActionOtherStartDirection : EditorAction
+    internal class EditorActionOtherStartDirection : EditorAction
     {
         /// <summary>Constructor</summary>
         public EditorActionOtherStartDirection() : base(TrackViewer.catalog.GetString("Change start direction"), "activeNode") { }
@@ -278,7 +281,7 @@ namespace ORTS.TrackViewer.Editing
             Trainpath.FirstNode.NextMainNode = null;
             Trainpath.FirstNode.NextSidingNode = null;
             Trainpath.FirstNode.ReverseOrientation();
-            int maxNodesToAdd = 1 + EditorAction.NodesToAddForLongExtend();
+            int maxNodesToAdd = 1 + NodesToAddForLongExtend();
             ModificationTools.AddAdditionalMainNodes(Trainpath.FirstNode, maxNodesToAdd); // make sure also the second and possible additional nodes are available and drawn.
         }
     }
@@ -288,7 +291,7 @@ namespace ORTS.TrackViewer.Editing
     /// <summary>
     /// Subclass to implement the action: Add End Node 
     /// </summary>
-    public class EditorActionAddEnd : EditorAction
+    internal class EditorActionAddEnd : EditorAction
     {
         /// <summary>Constructor</summary>
         public EditorActionAddEnd() : base(TrackViewer.catalog.GetString("Place end point"), "activeTrack") { }
@@ -327,7 +330,7 @@ namespace ORTS.TrackViewer.Editing
     /// <summary>
     /// Subclass to implement the action: Remove end node
     /// </summary>
-    public class EditorActionRemoveEnd : EditorAction
+    internal class EditorActionRemoveEnd : EditorAction
     {
         /// <summary>Constructor</summary>
         public EditorActionRemoveEnd() : base(TrackViewer.catalog.GetString("Remove end point"), "activeNode") { }
@@ -353,7 +356,7 @@ namespace ORTS.TrackViewer.Editing
     /// <summary>
     /// Subclass to implement the action: Add Reversal node
     /// </summary>
-    public class EditorActionAddReverse : EditorAction
+    internal class EditorActionAddReverse : EditorAction
     {
         /// <summary>Constructor</summary>
         public EditorActionAddReverse() : base(TrackViewer.catalog.GetString("Place reversal point"), "activeTrack") { }
@@ -390,7 +393,7 @@ namespace ORTS.TrackViewer.Editing
     /// <summary>
     /// Subclass to implement the action: Remove reversal node
     /// </summary>
-    public class EditorActionRemoveReverse : EditorAction
+    internal class EditorActionRemoveReverse : EditorAction
     {
         /// <summary>Constructor</summary>
         public EditorActionRemoveReverse() : base(TrackViewer.catalog.GetString("Remove reversal point"), "activeNode") { }
@@ -415,7 +418,7 @@ namespace ORTS.TrackViewer.Editing
     /// <summary>
     /// Subclass to implement common methods for wait points 
     /// </summary>
-    public abstract class EditorActionWait : EditorAction
+    internal abstract class EditorActionWait : EditorAction
     {
         /// <summary>Constructor</summary>
         protected EditorActionWait(string header, string pngFileName) : base(header, pngFileName) { }
@@ -424,7 +427,7 @@ namespace ORTS.TrackViewer.Editing
         /// Popup the dialog that allows you to edit the metadata of a wait point
         /// </summary>
         /// <param name="nodeToEdit">(Wait) node for which you want to edit the metadata.</param>
-        protected void EditWaitMetaData(TrainpathVectorNode nodeToEdit)
+        private protected void EditWaitMetaData(TrainpathVectorNode nodeToEdit)
         {
             if (nodeToEdit.WaitTimeS == 0 )
             {
@@ -444,7 +447,7 @@ namespace ORTS.TrackViewer.Editing
     /// <summary>
     /// Subclass to implement the action: Add Wait point
     /// </summary>
-    public class EditorActionAddWait : EditorActionWait
+    internal class EditorActionAddWait : EditorActionWait
     {
         /// <summary>Constructor</summary>
         public EditorActionAddWait() : base(TrackViewer.catalog.GetString("Place wait point"), "activeTrack") { }
@@ -472,7 +475,7 @@ namespace ORTS.TrackViewer.Editing
     /// <summary>
     /// Subclass to implement the action: Edit wait point
     /// </summary>
-    public class EditorActionEditWait : EditorActionWait
+    internal class EditorActionEditWait : EditorActionWait
     {
         /// <summary>Constructor</summary>
         public EditorActionEditWait() : base(TrackViewer.catalog.GetString("Edit wait point"), "activeNode") { }
@@ -496,7 +499,7 @@ namespace ORTS.TrackViewer.Editing
     /// <summary>
     /// Subclass to implement the action: Add Remove wait
     /// </summary>
-    public class EditorActionRemoveWait : EditorAction
+    internal class EditorActionRemoveWait : EditorAction
     {
         /// <summary>Constructor</summary>
         public EditorActionRemoveWait() : base(TrackViewer.catalog.GetString("Remove wait point"), "activeNode") { }
@@ -528,7 +531,7 @@ namespace ORTS.TrackViewer.Editing
     /// <summary>
     /// Subclass to define common methods related to other exit
     /// </summary>
-    public abstract class EditorActionOtherExit : EditorAction
+    internal abstract class EditorActionOtherExit : EditorAction
     {
         private const int maxNumberNodesToCheckForReconnect = 10; // maximum number of nodes we will try before we conclude not reconnection is possible.
         /// <summary>Store the node where we might be able to reconnect during a take-other-exit</summary>
@@ -538,7 +541,7 @@ namespace ORTS.TrackViewer.Editing
         /// <summary>List of junction indices on the new path we want to create</summary>
         private List<int> newMainJunctionIndexes;
         /// <summary>Tooling to do auto connect</summary>
-        private AutoConnectTools autoConnectTools;
+        private readonly AutoConnectTools autoConnectTools;
 
         /// <summary>Constructor</summary>
         protected EditorActionOtherExit(string header, string pngFileName)
@@ -586,7 +589,7 @@ namespace ORTS.TrackViewer.Editing
         /// <param name="activeNodeAsJunction">Active Node as a junction node</param>
         /// <param name="addPassingPath">For a passing path it is always needed to reconnect</param>
         /// <returns>Whether the other exit can be taken</returns>
-        protected bool CanReconnectOtherExit(TrainpathJunctionNode activeNodeAsJunction, bool addPassingPath)
+        private protected bool CanReconnectOtherExit(TrainpathJunctionNode activeNodeAsJunction, bool addPassingPath)
         {
             ReconnectNode = FindReconnectNode(activeNodeAsJunction, NewTvnIndex);
 
@@ -617,7 +620,7 @@ namespace ORTS.TrackViewer.Editing
         /// </summary>
         /// <param name="mainNode">Node on main track for which we want to find the siding junction node indices</param>
         /// <returns>The list with the junction indexes</returns>
-        private List<int> IntermediateSidingJunctionIndexes(TrainpathNode mainNode)
+        private static List<int> IntermediateSidingJunctionIndexes(TrainpathNode mainNode)
         {
             List<int> sidingJunctionIndexes = new List<int>();
             if (!mainNode.HasSidingPath) return sidingJunctionIndexes;
@@ -653,7 +656,7 @@ namespace ORTS.TrackViewer.Editing
         private TrainpathJunctionNode FindReconnectNode(TrainpathJunctionNode startJunctionNode, int newTvnIndex)
         {
             //First find the list of nodes we might be able to reconnect to. They should all be junction nodes
-            List<TrainpathNode> reconnectNodes = autoConnectTools.FindReconnectNodeCandidates(startJunctionNode, true, false);
+            Collection<TrainpathNode> reconnectNodes = AutoConnectTools.FindReconnectNodeCandidates(startJunctionNode, true, false);
             newMainJunctionIndexes = new List<int>();
 
             //next we need to follow the new path from the newTvnIndex, and see whether we can reconnect
@@ -697,7 +700,7 @@ namespace ORTS.TrackViewer.Editing
     /// <summary>
     /// Subclass to implement the action: Take the other exit at a junction
     /// </summary>
-    public class EditorActionTakeOtherExit : EditorActionOtherExit
+    internal class EditorActionTakeOtherExit : EditorActionOtherExit
     {
         private int nodesRemoved;
 
@@ -746,7 +749,7 @@ namespace ORTS.TrackViewer.Editing
     /// <summary>
     /// Subclass to implement the action: Add a passing/siding path
     /// </summary>
-    public class EditorActionAddPassingPath : EditorActionOtherExit
+    internal class EditorActionAddPassingPath : EditorActionOtherExit
     {
         /// <summary>Constructor</summary>
         public EditorActionAddPassingPath() : base(TrackViewer.catalog.GetString("Add passing path"), "activeNode") { }
@@ -786,7 +789,7 @@ namespace ORTS.TrackViewer.Editing
     /// <summary>
     /// Subclass to implement the action: Start a passing path here (but only the first part, end in broken node, reconnect later)
     /// </summary>
-    public class EditorActionStartPassingPath : EditorActionOtherExit
+    internal class EditorActionStartPassingPath : EditorActionOtherExit
     {
         /// <summary>Constructor</summary>
         public EditorActionStartPassingPath() : base(TrackViewer.catalog.GetString("Start passing path"), "activeNode") { }
@@ -846,12 +849,12 @@ namespace ORTS.TrackViewer.Editing
         }
     }
     #endregion
-    
+
     #region RemovePassingPath
     /// <summary>
     /// Subclass to implement the action: Remove as passing path
     /// </summary>
-    public class EditorActionRemovePassingPath : EditorAction
+    internal class EditorActionRemovePassingPath : EditorAction
     {
         /// <summary>Constructor</summary>
         public EditorActionRemovePassingPath() : base(TrackViewer.catalog.GetString("Remove passing path"), "activeNode") { }
@@ -891,7 +894,7 @@ namespace ORTS.TrackViewer.Editing
     /// <summary>
     /// Subclass to implement the action: Remove the notion of being broken if it is not really broken
     /// </summary>
-    public class EditorActionFixInvalidNode : EditorAction
+    internal class EditorActionFixInvalidNode : EditorAction
     {
         /// <summary>Constructor</summary>
         public EditorActionFixInvalidNode() : base(TrackViewer.catalog.GetString("Fix invalid point"), "activeBroken") { }
@@ -915,7 +918,7 @@ namespace ORTS.TrackViewer.Editing
     /// <summary>
     /// Subclass to implement the action: Remove the rest of the path
     /// </summary>
-    public class EditorActionRemoveRestOfPath : EditorAction
+    internal class EditorActionRemoveRestOfPath : EditorAction
     {
         /// <summary>Constructor</summary>
         public EditorActionRemoveRestOfPath() : base(TrackViewer.catalog.GetString("Delete rest of path"), "activeNode") { }
@@ -944,7 +947,7 @@ namespace ORTS.TrackViewer.Editing
     /// <summary>
     /// Subclass to implement the action: Cut the path here and store the tail for later use
     /// </summary>
-    public class EditorActionCutAndStoreTail : EditorAction
+    internal class EditorActionCutAndStoreTail : EditorAction
     {
         /// <summary>Constructor</summary>
         public EditorActionCutAndStoreTail() : base(TrackViewer.catalog.GetString("Cut path here and store its tail"), "activeNode") { }
@@ -983,12 +986,12 @@ namespace ORTS.TrackViewer.Editing
         }
     }
     #endregion
-  
+
     #region AutoFixBrokenNodes
     /// <summary>
     /// Subclass to implement the action: Auto-fix broken nodes
     /// </summary>
-    public class EditorActionAutoFixBrokenNodes : EditorAction
+    internal class EditorActionAutoFixBrokenNodes : EditorAction
     {
         /// <summary>The node from which we will start the autofix procedure</summary>
         private TrainpathNode autoFixStartNode;
@@ -1000,7 +1003,7 @@ namespace ORTS.TrackViewer.Editing
         private int numberOfNodesThatWillBeRemoved;
 
         /// <summary>Tooling to do auto connect</summary>
-        private AutoConnectTools autoConnectTools;
+        private readonly AutoConnectTools autoConnectTools;
 
         /// <summary>Constructor</summary>
         public EditorActionAutoFixBrokenNodes()
@@ -1105,10 +1108,10 @@ namespace ORTS.TrackViewer.Editing
     /// <summary>
     /// Subclass to implement the action: Auto-connect to the stored tail
     /// </summary>
-    public class EditorActionAutoConnectTail : EditorAction
+    internal class EditorActionAutoConnectTail : EditorAction
     {
         /// <summary>Tooling to do auto connect</summary>
-        private AutoConnectTools autoConnectTools;
+        private readonly AutoConnectTools autoConnectTools;
 
         /// <summary>Constructor</summary>
         public EditorActionAutoConnectTail()
@@ -1165,12 +1168,12 @@ namespace ORTS.TrackViewer.Editing
     /// <summary>
     /// Subclass to implement the action: Auto-connect the started passing path (currently only a stub) to here.
     /// </summary>
-    public class EditorActionReconnectPassingPath : EditorAction
+    internal class EditorActionReconnectPassingPath : EditorAction
     {
         private TrainpathNode sidingStartNode;
 
         // <summary>Tooling to do auto connect</summary>
-        private AutoConnectTools autoConnectTools;
+        private readonly AutoConnectTools autoConnectTools;
 
         /// <summary>Constructor</summary>
         public EditorActionReconnectPassingPath()
@@ -1267,12 +1270,12 @@ namespace ORTS.TrackViewer.Editing
     /// <summary>
     /// Subclass to implement the action: In a passing path, take the other exit reconnecting to the same siding-end
     /// </summary>
-    public class EditorActionTakeOtherExitPassingPath : EditorAction
+    internal class EditorActionTakeOtherExitPassingPath : EditorAction
     {
         private TrainpathNode sidingEndNode;
 
         // <summary>Tooling to do auto connect</summary>
-        private AutoConnectTools autoConnectTools;
+        private readonly AutoConnectTools autoConnectTools;
 
 
         /// <summary>Constructor</summary>
@@ -1387,7 +1390,7 @@ namespace ORTS.TrackViewer.Editing
     /// The two methods that need to be overriden are InitDragging and SucceededDragging.
     /// The hook Cleanup can be overridden if needed.
     /// </summary>
-    public abstract class EditorActionMouseDrag : EditorAction
+    internal abstract class EditorActionMouseDrag : EditorAction
     {
         /// <summary>Constructor</summary>
         protected EditorActionMouseDrag(string header, string pngFileName) : base(header, pngFileName) {}
@@ -1459,166 +1462,166 @@ namespace ORTS.TrackViewer.Editing
 
     }
     #endregion
-  
+
     #region MouseDragVectorNode
-    /// <summary>
-    /// Subclass to implement the actions related to mouse dragging.
-    /// This class is about dragging only start, end, wait and reverse points: those points can only be
-    /// dragged along the track they are on, so not beyond a junction or so.
-    /// </summary>
-    public class EditorActionMouseDragVectorNode : EditorActionMouseDrag
-    {
-        private TrainpathNode dragLimitNode1, dragLimitNode2; // the dragging node must be between these two limits
-        private TrainpathVectorNode nodeBeingDragged;               // link to the node (new) that is being dragged.
+    ///// <summary>
+    ///// Subclass to implement the actions related to mouse dragging.
+    ///// This class is about dragging only start, end, wait and reverse points: those points can only be
+    ///// dragged along the track they are on, so not beyond a junction or so.
+    ///// </summary>
+    //internal class EditorActionMouseDragVectorNode : EditorActionMouseDrag
+    //{
+    //    private TrainpathNode dragLimitNode1, dragLimitNode2; // the dragging node must be between these two limits
+    //    private TrainpathVectorNode nodeBeingDragged;               // link to the node (new) that is being dragged.
 
-        /// <summary>Constructor</summary>
-        public EditorActionMouseDragVectorNode() : base("Drag a special node", "") { }
+    //    /// <summary>Constructor</summary>
+    //    public EditorActionMouseDragVectorNode() : base("Drag a special node", "") { }
 
-        /// <summary>Can the action be executed given the current path and active nodes?</summary>
-        protected override bool CanExecuteAction()
-        {
-            if (Trainpath.FirstNode == null) return false;
-            if (ActiveNode.IsBroken) return false;
-            nodeBeingDragged = ActiveNode as TrainpathVectorNode;
-            if (nodeBeingDragged == null) return false;
+    //    /// <summary>Can the action be executed given the current path and active nodes?</summary>
+    //    protected override bool CanExecuteAction()
+    //    {
+    //        if (Trainpath.FirstNode == null) return false;
+    //        if (ActiveNode.IsBroken) return false;
+    //        nodeBeingDragged = ActiveNode as TrainpathVectorNode;
+    //        if (nodeBeingDragged == null) return false;
             
-            switch (ActiveNode.NodeType)
-            {
-                case TrainpathNodeType.Start:
-                case TrainpathNodeType.End:
-                case TrainpathNodeType.Stop:
-                case TrainpathNodeType.Reverse:
-                    return true;
-                default: 
-                    return false;
-            }
+    //        switch (ActiveNode.NodeType)
+    //        {
+    //            case TrainpathNodeType.Start:
+    //            case TrainpathNodeType.End:
+    //            case TrainpathNodeType.Stop:
+    //            case TrainpathNodeType.Reverse:
+    //                return true;
+    //            default: 
+    //                return false;
+    //        }
             
-        }
+    //    }
 
-        /// <summary>Execute the action. This assumes that the action can be executed</summary>
-        protected override void ExecuteAction()
-        {   //not implemented because mouse dragging has its own methods
-        }
+    //    /// <summary>Execute the action. This assumes that the action can be executed</summary>
+    //    protected override void ExecuteAction()
+    //    {   //not implemented because mouse dragging has its own methods
+    //    }
 
-        /// <summary>
-        /// Everything you want to initialize before real dragging starts.
-        /// Put here as much as possible of pre-processing, as this is only called once.
-        /// Note that undo/redo is already taken care of.
-        /// </summary>
-        protected override void InitDragging()
-        {          
-            switch (ActiveNode.NodeType)
-            {
-                case TrainpathNodeType.Start:   FindDraggingLimitsStart(); break;
-                case TrainpathNodeType.End:     FindDraggingLimitsEnd(); break;
-                case TrainpathNodeType.Stop:    FindDraggingLimitsStop(); break;
-                case TrainpathNodeType.Reverse: FindDraggingLimitsReverse(); break;
-                default: break;
-            }   
-        }
+    //    /// <summary>
+    //    /// Everything you want to initialize before real dragging starts.
+    //    /// Put here as much as possible of pre-processing, as this is only called once.
+    //    /// Note that undo/redo is already taken care of.
+    //    /// </summary>
+    //    protected override void InitDragging()
+    //    {          
+    //        switch (ActiveNode.NodeType)
+    //        {
+    //            case TrainpathNodeType.Start:   FindDraggingLimitsStart(); break;
+    //            case TrainpathNodeType.End:     FindDraggingLimitsEnd(); break;
+    //            case TrainpathNodeType.Stop:    FindDraggingLimitsStop(); break;
+    //            case TrainpathNodeType.Reverse: FindDraggingLimitsReverse(); break;
+    //            default: break;
+    //        }   
+    //    }
 
-        /// <summary>
-        /// Update the location of the node that is being dragged.
-        /// </summary>
-        protected override bool SucceededDragging()
-        {
+    //    /// <summary>
+    //    /// Update the location of the node that is being dragged.
+    //    /// </summary>
+    //    protected override bool SucceededDragging()
+    //    {
 
-            if ( (nodeBeingDragged.TvnIndex == ActiveTrackLocation.TvnIndex)
-              && (ActiveTrackLocation.Location != WorldLocation.None)
-              && (ActiveTrackLocation.IsBetween(dragLimitNode1, dragLimitNode2)))
-            {
-                nodeBeingDragged.Location                = ActiveTrackLocation.Location;
-                nodeBeingDragged.TrackVectorSectionIndex = ActiveTrackLocation.TrackVectorSectionIndex;
-                nodeBeingDragged.TrackSectionOffset      = ActiveTrackLocation.TrackSectionOffset;
+    //        if ( (nodeBeingDragged.TvnIndex == ActiveTrackLocation.TvnIndex)
+    //          && (ActiveTrackLocation.Location != WorldLocation.None)
+    //          && (ActiveTrackLocation.IsBetween(dragLimitNode1, dragLimitNode2)))
+    //        {
+    //            nodeBeingDragged.Location                = ActiveTrackLocation.Location;
+    //            nodeBeingDragged.TrackVectorSectionIndex = ActiveTrackLocation.TrackVectorSectionIndex;
+    //            nodeBeingDragged.TrackSectionOffset      = ActiveTrackLocation.TrackSectionOffset;
 
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
+    //            return true;
+    //        }
+    //        else
+    //        {
+    //            return false;
+    //        }
+    //    }
 
-        private void FindDraggingLimitsStart()
-        {
-            dragLimitNode1 = LimitingJunctionNode(false);
-            if (nodeBeingDragged.NextMainNode == null)
-            {
-                dragLimitNode2 = LimitingJunctionNode(true);
-            }
-            else
-            {
-                dragLimitNode2 = nodeBeingDragged.NextMainNode;
-            }
-        }
+    //    private void FindDraggingLimitsStart()
+    //    {
+    //        dragLimitNode1 = LimitingJunctionNode(false);
+    //        if (nodeBeingDragged.NextMainNode == null)
+    //        {
+    //            dragLimitNode2 = LimitingJunctionNode(true);
+    //        }
+    //        else
+    //        {
+    //            dragLimitNode2 = nodeBeingDragged.NextMainNode;
+    //        }
+    //    }
 
-        private void FindDraggingLimitsEnd()
-        {
-            dragLimitNode1 = nodeBeingDragged.PrevNode;
-            dragLimitNode2 = LimitingJunctionNode(true);
-        }
+    //    private void FindDraggingLimitsEnd()
+    //    {
+    //        dragLimitNode1 = nodeBeingDragged.PrevNode;
+    //        dragLimitNode2 = LimitingJunctionNode(true);
+    //    }
 
-        private void FindDraggingLimitsReverse()
-        {
-            if (nodeBeingDragged.NextMainNode == null)
-            {
-                dragLimitNode1 = nodeBeingDragged.PrevNode;
-            }
-            else
-            {   // we now need to find which of the next and previous nodes is closest to the reverse point
-                TrainpathVectorNode prevVectorNode = nodeBeingDragged.PrevNode as TrainpathVectorNode;
-                TrainpathVectorNode nextVectorNode = nodeBeingDragged.NextMainNode as TrainpathVectorNode;
+    //    private void FindDraggingLimitsReverse()
+    //    {
+    //        if (nodeBeingDragged.NextMainNode == null)
+    //        {
+    //            dragLimitNode1 = nodeBeingDragged.PrevNode;
+    //        }
+    //        else
+    //        {   // we now need to find which of the next and previous nodes is closest to the reverse point
+    //            TrainpathVectorNode prevVectorNode = nodeBeingDragged.PrevNode as TrainpathVectorNode;
+    //            TrainpathVectorNode nextVectorNode = nodeBeingDragged.NextMainNode as TrainpathVectorNode;
                     
-                if (prevVectorNode == null)
-                {   // prev is a junction node. Then either the next node is a vector node, or it is the same junction. Just take it
-                    dragLimitNode1 = nodeBeingDragged.NextMainNode;
-                }
-                else if (nextVectorNode == null)
-                {   // next is a junction node. prev is a vector node. Take that one
-                    dragLimitNode1 = nodeBeingDragged.PrevNode;
-                }
-                else
-                {   // both are vector nodes.
-                    if (prevVectorNode.IsBetween(nextVectorNode,nodeBeingDragged)) {
-                        dragLimitNode1 = nodeBeingDragged.PrevNode;
-                    }
-                    else
-                    {
-                        dragLimitNode1 = nodeBeingDragged.NextMainNode;
-                    }
-                }
-            }
-            dragLimitNode2 = LimitingJunctionNode(false); // direction of reverse is after the reverse. 
-        }
+    //            if (prevVectorNode == null)
+    //            {   // prev is a junction node. Then either the next node is a vector node, or it is the same junction. Just take it
+    //                dragLimitNode1 = nodeBeingDragged.NextMainNode;
+    //            }
+    //            else if (nextVectorNode == null)
+    //            {   // next is a junction node. prev is a vector node. Take that one
+    //                dragLimitNode1 = nodeBeingDragged.PrevNode;
+    //            }
+    //            else
+    //            {   // both are vector nodes.
+    //                if (prevVectorNode.IsBetween(nextVectorNode,nodeBeingDragged)) {
+    //                    dragLimitNode1 = nodeBeingDragged.PrevNode;
+    //                }
+    //                else
+    //                {
+    //                    dragLimitNode1 = nodeBeingDragged.NextMainNode;
+    //                }
+    //            }
+    //        }
+    //        dragLimitNode2 = LimitingJunctionNode(false); // direction of reverse is after the reverse. 
+    //    }
 
-        private void FindDraggingLimitsStop()
-        {
-            dragLimitNode1 = nodeBeingDragged.PrevNode;
-            if (nodeBeingDragged.NextMainNode == null)
-            {
-                dragLimitNode2 = LimitingJunctionNode(true);
-            }
-            else
-            {
-                dragLimitNode2 = nodeBeingDragged.NextMainNode;
-            }
-        }
+    //    private void FindDraggingLimitsStop()
+    //    {
+    //        dragLimitNode1 = nodeBeingDragged.PrevNode;
+    //        if (nodeBeingDragged.NextMainNode == null)
+    //        {
+    //            dragLimitNode2 = LimitingJunctionNode(true);
+    //        }
+    //        else
+    //        {
+    //            dragLimitNode2 = nodeBeingDragged.NextMainNode;
+    //        }
+    //    }
 
-        private TrainpathJunctionNode LimitingJunctionNode(bool afterNode)
-        {
-            TrainpathJunctionNode newJunctionNode = new TrainpathJunctionNode(nodeBeingDragged);
+    //    private TrainpathJunctionNode LimitingJunctionNode(bool afterNode)
+    //    {
+    //        TrainpathJunctionNode newJunctionNode = new TrainpathJunctionNode(nodeBeingDragged);
 
-            if (afterNode)
-            {
-                newJunctionNode.JunctionIndex = nodeBeingDragged.GetNextJunctionIndex(nodeBeingDragged.TvnIndex);
-            }
-            else
-            {
-                newJunctionNode.JunctionIndex = nodeBeingDragged.GetPrevJunctionIndex(nodeBeingDragged.TvnIndex);
-            }
-            return newJunctionNode;
-        }
-    }
+    //        if (afterNode)
+    //        {
+    //            newJunctionNode.JunctionIndex = nodeBeingDragged.GetNextJunctionIndex(nodeBeingDragged.TvnIndex);
+    //        }
+    //        else
+    //        {
+    //            newJunctionNode.JunctionIndex = nodeBeingDragged.GetPrevJunctionIndex(nodeBeingDragged.TvnIndex);
+    //        }
+    //        return newJunctionNode;
+    //    }
+    //}
     #endregion
 
     #region MouseDragAutoConnect
@@ -1626,7 +1629,7 @@ namespace ORTS.TrackViewer.Editing
     /// Subclass to implement the actions related to mouse dragging.
     /// This class is about dragging 
     /// </summary>
-    public class EditorActionMouseDragAutoConnect : EditorActionMouseDrag
+    internal class EditorActionMouseDragAutoConnect : EditorActionMouseDrag
     {
         /// <summary>Tooling to do auto connect</summary>
         private ContinuousAutoConnecting autoConnectForward;
@@ -1647,7 +1650,7 @@ namespace ORTS.TrackViewer.Editing
         {
             if (Trainpath.FirstNode == null) return false;
             if (ActiveNode.IsBroken) return false;
-            if (ActiveTrackLocation.Location == null) return false; // we need at least something to start dragging with
+            if (ActiveTrackLocation.Location == WorldLocation.None) return false; // we need at least something to start dragging with
             return true;
         }
 
@@ -1727,7 +1730,7 @@ namespace ORTS.TrackViewer.Editing
         protected override bool SucceededDragging()
         {
             //update location of the node
-            if (ActiveTrackLocation.Location == null) return false;
+            if (ActiveTrackLocation.Location == WorldLocation.None) return false;
 
             bool tvnIndexChanged = (nodeBeingDragged.TvnIndex != ActiveTrackLocation.TvnIndex);
 
@@ -1881,12 +1884,12 @@ namespace ORTS.TrackViewer.Editing
         // * Passing paths.
     }
     #endregion
-  
+
     #region NonInteractiveActions
     /// <summary>
     /// Subclass to implement the 'action': add Missing ambiguity nodes. This is not an interactive action, but still and edit to the path.
     /// </summary>
-    public class EditorActionNonInteractive : EditorAction
+    internal class EditorActionNonInteractive : EditorAction
     {
         /// <summary>Constructor</summary>
         public EditorActionNonInteractive() : base(TrackViewer.catalog.GetString(""), "") { }
@@ -1906,7 +1909,7 @@ namespace ORTS.TrackViewer.Editing
         /// <param name="currentNode">Node after which to add a node</param>
         /// <param name="numberOfNodes">The number of nodes to add</param>
         /// <param name="callback">Callback to call when node has been added</param>
-        public void AddMainNodes(TrainpathNode currentNode, int numberOfNodes, AfterEditDelegate callback)
+        internal void AddMainNodes(TrainpathNode currentNode, int numberOfNodes, AfterEditDelegate callback)
         {
             if (currentNode.IsBroken) return;
             ModificationTools.Reset();
@@ -1920,7 +1923,7 @@ namespace ORTS.TrackViewer.Editing
         /// </summary>
         /// <param name="trainpath">The trainpath for which the disambiguity nodes need to be added</param>
         /// <param name="callback">Callback to call when node has been added</param>
-        public void AddMissingDisambiguityNodes(Trainpath trainpath, AfterEditDelegate callback)
+        internal void AddMissingDisambiguityNodes(Trainpath trainpath, AfterEditDelegate callback)
         {
             ModificationTools.Reset();
 
@@ -1942,9 +1945,9 @@ namespace ORTS.TrackViewer.Editing
     /// <summary>
     /// Subclass to implement the action: Draw until the currently selected node
     /// </summary>
-    public class EditorActionDrawUntilHere : EditorAction
+    internal class EditorActionDrawUntilHere : EditorAction
     {
-        private AfterEditDelegate callback;
+        private readonly AfterEditDelegate callback;
 
         /// <summary>Constructor</summary>
         public EditorActionDrawUntilHere(AfterEditDelegate callback)
@@ -1963,8 +1966,8 @@ namespace ORTS.TrackViewer.Editing
         /// <summary>Execute the action. This assumes that the action can be executed</summary>
         protected override void ExecuteAction()
         {
-            int newNumberToDraw = Trainpath.GetNodeNumber(this.ActiveNode);
-            this.callback(newNumberToDraw);
+            int newNumberToDraw = Trainpath.GetNodeNumber(ActiveNode);
+            callback(newNumberToDraw);
         }
     }
     #endregion
@@ -1973,9 +1976,9 @@ namespace ORTS.TrackViewer.Editing
     /// <summary>
     /// Subclass to implement the action: Find the next broken point and draw till it.
     /// </summary>
-    public class EditorActionDrawToNextBrokenPoint : EditorAction
+    internal class EditorActionDrawToNextBrokenPoint : EditorAction
     {
-        private AfterEditDelegate callback;
+        private readonly AfterEditDelegate callback;
 
         /// <summary>Constructor</summary>
         public EditorActionDrawToNextBrokenPoint(AfterEditDelegate callback)
@@ -1987,7 +1990,8 @@ namespace ORTS.TrackViewer.Editing
         /// <summary>Can the action be executed given the current path and active nodes?</summary>
         protected override bool CanExecuteAction()
         {
-            if (Trainpath.FirstNode == null) return false;
+            if (Trainpath.FirstNode == null) 
+                return false;
             return Trainpath.IsBroken;
         }
 
@@ -1995,8 +1999,8 @@ namespace ORTS.TrackViewer.Editing
         protected override void ExecuteAction()
         {
             int NumberOfActiveNode = Trainpath.GetNodeNumber(ActiveNode);
-            var brokenNodeNumbers = (from node in Trainpath.GetBrokenNodes() select Trainpath.GetNodeNumber(node));
-            var brokenNodeNumbersAfterActive = (from i in brokenNodeNumbers where i > NumberOfActiveNode select i);
+            IEnumerable<int> brokenNodeNumbers = (from node in Trainpath.GetBrokenNodes() select Trainpath.GetNodeNumber(node));
+            IEnumerable<int> brokenNodeNumbersAfterActive = (from i in brokenNodeNumbers where i > NumberOfActiveNode select i);
 
             int newNumberToDraw;
             if (brokenNodeNumbersAfterActive.Any())

@@ -1613,7 +1613,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 Visibility = VisibilityState.ScreenshotPending;  // Next state else this path would be taken more than once.
                 if (!Directory.Exists(Settings.ScreenshotPath))
                     Directory.CreateDirectory(Settings.ScreenshotPath);
-                var fileName = Path.Combine(Settings.ScreenshotPath, System.Windows.Forms.Application.ProductName + " " + DateTime.Now.ToString("yyyy-MM-dd hh-mm-ss")) + ".png";
+                string fileName = Path.Combine(Settings.ScreenshotPath, $"{Application.ProductName} {DateTime.Now:yyyy-MM-dd hh-mm-ss}.png");
                 SaveScreenshotToFile(Game.GraphicsDevice, fileName, false, false);
                 SaveScreenshot = false; // cancel trigger
             }

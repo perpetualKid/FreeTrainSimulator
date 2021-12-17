@@ -21,11 +21,11 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Windows.Forms;
+
 using Orts.Formats.Msts;
-using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Files;
+using Orts.Formats.Msts.Models;
 using Orts.Simulation;
 
 namespace ORTS.TrackViewer.Editing
@@ -41,48 +41,48 @@ namespace ORTS.TrackViewer.Editing
     ///     
     /// The class contains history functions like Undo and redo.
     /// </summary>
-    public class Trainpath
+    internal class Trainpath
     {
         #region public members
         /// <summary>Link to the first node of the path (starting point)</summary>
         public TrainpathNode FirstNode
         {
-            get { return trainPaths[currentIndex].firstNode; }
-            set { trainPaths[currentIndex].firstNode = value; }
+            get => trainPaths[currentIndex].firstNode;
+            set => trainPaths[currentIndex].firstNode = value;
         }
 
         /// <summary>Link to the first node of a stored tail</summary>
         public TrainpathNode FirstNodeOfTail
         {
-            get { return trainPaths[currentIndex].firstNodeOfTail; }
-            set { trainPaths[currentIndex].firstNodeOfTail = value; }
+            get => trainPaths[currentIndex].firstNodeOfTail;
+            set => trainPaths[currentIndex].firstNodeOfTail = value;
         }
 
         /// <summary>Does the path have a real end node?</summary>
         public bool HasEnd
         {
-            get { return trainPaths[currentIndex].hasEnd; }
-            set { trainPaths[currentIndex].hasEnd = value; }
+            get => trainPaths[currentIndex].hasEnd;
+            set => trainPaths[currentIndex].hasEnd = value;
         }
 
         /// <summary>Does the path have a real end node?</summary>
         public bool TailHasEnd
         {
-            get { return trainPaths[currentIndex].tailHasEnd; }
-            set { trainPaths[currentIndex].tailHasEnd = value; }
+            get => trainPaths[currentIndex].tailHasEnd;
+            set => trainPaths[currentIndex].tailHasEnd = value;
         }
 
         /// <summary>A path is broken when it has at least one broken node or a broken link</summary>
         public bool IsBroken
         {
-            get { return trainPaths[currentIndex].isBroken; }
-            set { trainPaths[currentIndex].isBroken = value; }
+            get => trainPaths[currentIndex].isBroken;
+            set => trainPaths[currentIndex].isBroken = value;
         }
 
         /// <summary>Is the path modified from the one as loaded from disc.</summary>
         public bool IsModified
         {
-            get { return (currentIndex != currentIndexUnmodified); }
+            get => (currentIndex != currentIndexUnmodified);
             set
             {
                 if (value)
@@ -104,51 +104,51 @@ namespace ORTS.TrackViewer.Editing
         /// <summary>Full file path of the .pat file that contained the train path</summary>
         public string FilePath
         {
-            get { return trainPaths[currentIndex].filePath; }
-            set { trainPaths[currentIndex].filePath = value; }
+            get => trainPaths[currentIndex].filePath;
+            set => trainPaths[currentIndex].filePath = value;
         }
         /// <summary>Name of the path as stored in the .pat file</summary>
         public string PathName
         {
-            get { return trainPaths[currentIndex].pathName; }
-            set { trainPaths[currentIndex].pathName = value; }
+            get => trainPaths[currentIndex].pathName;
+            set => trainPaths[currentIndex].pathName = value;
         }
 
         /// <summary>Name of the start point as stored in the .pat file</summary>
         public string PathStart
         {
-            get { return trainPaths[currentIndex].pathStart; }
-            set { trainPaths[currentIndex].pathStart = value; }
+            get => trainPaths[currentIndex].pathStart;
+            set => trainPaths[currentIndex].pathStart = value;
         }
 
         /// <summary>Name of the end point as stored in the .pat file</summary>
         public string PathEnd
         {
-            get { return trainPaths[currentIndex].pathEnd; }
-            set { trainPaths[currentIndex].pathEnd = value; }
+            get => trainPaths[currentIndex].pathEnd;
+            set => trainPaths[currentIndex].pathEnd = value;
         }
 
         /// <summary>identification name as stored in the .pat file</summary>
         public string PathId
         {
-            get { return trainPaths[currentIndex].pathId; }
-            set { trainPaths[currentIndex].pathId = value; }
+            get => trainPaths[currentIndex].pathId;
+            set => trainPaths[currentIndex].pathId = value;
         }
 
         /// <summary>Flags associated with the path (not the nodes)</summary>
         public PathFlags PathFlags
         {
-            get { return trainPaths[currentIndex].pathFlags; }
-            set { trainPaths[currentIndex].pathFlags = value; }
+            get => trainPaths[currentIndex].pathFlags;
+            set => trainPaths[currentIndex].pathFlags = value;
         }
 
         #endregion
 
         #region private members
 
-        private TrackDB trackDB;
-        private TrackSectionsFile tsectionDat;
-        private List<TrainPathData> trainPaths;
+        private readonly TrackDB trackDB;
+        private readonly TrackSectionsFile tsectionDat;
+        private readonly List<TrainPathData> trainPaths;
         private int currentIndex; // trainPaths are indexed
         private int currentIndexUnmodified; // The index of the last saved path.
 
@@ -180,7 +180,7 @@ namespace ORTS.TrackViewer.Editing
         public Trainpath(TrackDB trackDB, TrackSectionsFile tsectionDat, string filePath)
             : this(trackDB, tsectionDat)
         {
-            this.FilePath = filePath;
+            FilePath = filePath;
 
             PathFile patFile = new PathFile(filePath);
             if (PatFileIsIncomplete(patFile))
@@ -217,7 +217,7 @@ namespace ORTS.TrackViewer.Editing
             if (patFile.End == null) { return true; }
             if (patFile.DataPoints.Count == 0) { return true; }
             if (patFile.PathNodes.Count == 0) { return true; }
-            
+
             return false;
         }
 
@@ -482,7 +482,7 @@ namespace ORTS.TrackViewer.Editing
         /// <returns>A collection of the broken nodes</returns>
         public Collection<TrainpathNode> GetBrokenNodes()
         {
-            var brokenNodes = new Collection<TrainpathNode>();
+            Collection<TrainpathNode> brokenNodes = new Collection<TrainpathNode>();
 
             if (FirstNode == null)
             {
@@ -541,7 +541,7 @@ namespace ORTS.TrackViewer.Editing
         /// </summary>
         public void DetermineIfBroken()
         {
-            this.IsBroken = (GetBrokenNodes().Count > 0);
+            IsBroken = (GetBrokenNodes().Count > 0);
         }
 
 
@@ -587,7 +587,7 @@ namespace ORTS.TrackViewer.Editing
         {
             List<string> stationNames = new List<string>();
 
-            TrainpathNode currentNode = this.FirstNode;
+            TrainpathNode currentNode = FirstNode;
             if (currentNode == null)
             {   // No route, so return no names
                 return Array.Empty<string>();
@@ -600,35 +600,35 @@ namespace ORTS.TrackViewer.Editing
             }
 
             return RemoveDoubles(stationNames);
-            
+
         }
 
         private List<string> StationNamesBetweenNodes(TrainpathNode firstNode, TrainpathNode secondNode)
         {
-            var stationNames = new List<string>();
+            List<string> stationNames = new List<string>();
             int tvnIndex = firstNode.NextMainTvnIndex;
-            if (tvnIndex < 0) return stationNames;
+            if (tvnIndex < 0)
+                return stationNames;
 
             TrackVectorNode tvn = trackDB.TrackNodes[tvnIndex] as TrackVectorNode;
-            if (tvn == null) return stationNames;
-            if (tvn.TrackItemIndices == null) return stationNames;
+            if (tvn == null)
+                return stationNames;
+            if (tvn.TrackItemIndices == null)
+                return stationNames;
 
             foreach (int trackItemIndex in tvn.TrackItemIndices)
             {
                 TrackItem trItem = trackDB.TrackItems[trackItemIndex];
                 if (trItem is PlatformItem)
                 {
-                    var traveller = new Traveller(tsectionDat, trackDB.TrackNodes, tvn, trItem.Location, Traveller.TravellerDirection.Forward);
-                    if (traveller != null)
+                    Traveller traveller = new Traveller(tsectionDat, trackDB.TrackNodes, tvn, trItem.Location, Traveller.TravellerDirection.Forward);
+                    TrainpathVectorNode platformNode = new TrainpathVectorNode(firstNode, traveller);
+                    if (platformNode.IsBetween(firstNode, secondNode))
                     {
-                        var platformNode = new TrainpathVectorNode(firstNode, traveller);
-                        if (platformNode.IsBetween(firstNode, secondNode))
-                        {
-                            PlatformItem platform = trItem as PlatformItem;
-                            stationNames.Add(platform.Station);
-                        }
+                        PlatformItem platform = trItem as PlatformItem;
+                        stationNames.Add(platform.Station);
                     }
-            
+
                 }
             }
 
@@ -643,13 +643,13 @@ namespace ORTS.TrackViewer.Editing
         {
             List<string> cleanedStrings = new List<string>();
 
-            string lastItem = String.Empty;
+            string lastItem = string.Empty;
 
             foreach (string item in strings)
             {
                 if (item.Equals(lastItem, StringComparison.OrdinalIgnoreCase))
                 {
-                    lastItem = String.Empty;
+                    lastItem = string.Empty;
                 }
                 else
                 {
@@ -669,16 +669,16 @@ namespace ORTS.TrackViewer.Editing
         /// </summary>
         public void ReversePath()
         {
-            this.PathId = "new";
-            string oldStart = this.PathStart;
-            this.PathStart = this.PathEnd;
-            this.PathEnd = oldStart;
-            this.PathName += " (reversed)";
+            PathId = "new";
+            string oldStart = PathStart;
+            PathStart = PathEnd;
+            PathEnd = oldStart;
+            PathName += " (reversed)";
 
             List<TrainpathNode> mainNodes = new List<TrainpathNode>();
 
             // Create list of nodes, in new order
-            TrainpathNode currentMainNode = this.FirstNode;
+            TrainpathNode currentMainNode = FirstNode;
             mainNodes.Add(currentMainNode);
             while (currentMainNode.NextMainNode != null)
             {
@@ -689,7 +689,7 @@ namespace ORTS.TrackViewer.Editing
             int lastIndex = mainNodes.Count - 1; // we now this is at least 1
 
             //new start
-            this.FirstNode = mainNodes[0];
+            FirstNode = mainNodes[0];
             mainNodes[0].NextMainNode = mainNodes[1];
             mainNodes[0].NextMainTvnIndex = mainNodes[1].NextMainTvnIndex;  // note main TVN index was in reverse direction
             mainNodes[0].PrevNode = null;
@@ -699,14 +699,14 @@ namespace ORTS.TrackViewer.Editing
             //all intermediate nodes
             for (int i = 1; i < lastIndex; i++)
             {
-                mainNodes[i].NextMainNode = mainNodes[i+1];
-                mainNodes[i].NextMainTvnIndex = mainNodes[i+1].NextMainTvnIndex;  // note main TVN index was in reverse direction
+                mainNodes[i].NextMainNode = mainNodes[i + 1];
+                mainNodes[i].NextMainTvnIndex = mainNodes[i + 1].NextMainTvnIndex;  // note main TVN index was in reverse direction
                 mainNodes[i].PrevNode = mainNodes[i - 1];
                 if (mainNodes[i].NodeType != TrainpathNodeType.Reverse)
                 {   // reverse nodes have input and output swapped, but they are not changed themselves!
                     mainNodes[i].ReverseOrientation();
                 }
-                
+
                 if (mainNodes[i].NodeType == TrainpathNodeType.SidingStart)
                 {
                     ReverseSidingPath(mainNodes[i]);
@@ -743,10 +743,10 @@ namespace ORTS.TrackViewer.Editing
             sidingNodes[0].NextSidingTvnIndex = sidingNodes[1].NextSidingTvnIndex;
             sidingNodes[0].NodeType = TrainpathNodeType.SidingStart;
             // no reversing because this node is reversed as part of main path.
-            
+
             // making new connections for all intermediate nodes, and reversing them as well
             // Note order is important.
-            for (int i = 1 ; i < lastIndex ; i++)
+            for (int i = 1; i < lastIndex; i++)
             {
                 sidingNodes[i].NextSidingNode = sidingNodes[i + 1];
                 sidingNodes[i].NextSidingTvnIndex = sidingNodes[i + 1].NextSidingTvnIndex; // this was oriented in the other direction!
@@ -801,7 +801,7 @@ namespace ORTS.TrackViewer.Editing
             /// <returns>The copied instance.</returns>
             public TrainPathData DeepCopy()
             {
-                TrainPathData newData = (TrainPathData)this.MemberwiseClone();
+                TrainPathData newData = (TrainPathData)MemberwiseClone();
                 newData.firstNode = DeepCopyOfLinkedNodes(firstNode);
                 newData.firstNodeOfTail = DeepCopyOfLinkedNodes(firstNodeOfTail);
 
@@ -815,7 +815,8 @@ namespace ORTS.TrackViewer.Editing
             /// <returns>First node of the copied path</returns>
             private static TrainpathNode DeepCopyOfLinkedNodes(TrainpathNode curFirstNode)
             {
-                if (curFirstNode == null) return null;
+                if (curFirstNode == null) 
+                    return null;
 
                 TrainpathNode newFirstNode = curFirstNode.ShallowCopyNoLinks();
 

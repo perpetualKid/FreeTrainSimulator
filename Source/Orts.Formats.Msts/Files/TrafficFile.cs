@@ -29,7 +29,7 @@ namespace Orts.Formats.Msts.Files
 
         public TrafficFile(string fileName)
         {
-            using (var stf = new STFReader(fileName, false))
+            using (STFReader stf = new STFReader(fileName, false))
                 stf.ParseFile(new STFReader.TokenProcessor[] {
                     new STFReader.TokenProcessor("traffic_definition", ()=>{ TrafficDefinition = new ServiceTraffic(stf); }),
                 });

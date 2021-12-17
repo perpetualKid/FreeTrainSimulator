@@ -39,7 +39,7 @@ using System.Xml.Schema;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
-    public class DynamicTrack
+    public static class DynamicTrack
     {
         /// <summary>
         /// Decompose an MSTS multi-subsection dynamic track section into multiple single-subsection sections.

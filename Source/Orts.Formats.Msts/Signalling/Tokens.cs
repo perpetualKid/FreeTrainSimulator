@@ -129,7 +129,7 @@ namespace Orts.Formats.Msts.Signalling
             foreach (ScriptToken block in Tokens)
             {
                 builder.Append(block.ToString());
-                if (builder[builder.Length - 1] != '\n')
+                if (builder[^1] != '\n')
                     builder.AppendLine();
             }
             if (builder.Length > 3)
@@ -140,7 +140,7 @@ namespace Orts.Formats.Msts.Signalling
 
         public virtual BlockBase Add(ScriptToken token, int lineNumber)
         {
-            Current = Current ?? new Statement(this, lineNumber);
+            Current ??= new Statement(this, lineNumber);
             //token should be Value or Operator only added to current statement or enclosing
             Current.Tokens.Add(token);
             return Current;
@@ -224,7 +224,7 @@ namespace Orts.Formats.Msts.Signalling
                 builder.Append(' ');
             }
             if (builder.Length > 1)
-                builder[builder.Length - 1] = ';';
+                builder[^1] = ';';
             return builder.ToString();
         }
     }
@@ -356,14 +356,14 @@ namespace Orts.Formats.Msts.Signalling
                 if (state == ConditionState.HasAlternate && index == Tokens.Count - 1)  //the last block is the alternate
                     builder.AppendLine($"{new string(' ', indent)}ELSE");
                 builder.Append(AdjustIndentAndPrint(Tokens[index] as BlockBase));
-                if (builder[builder.Length - 1] != '\n')
+                if (builder[^1] != '\n')
                     builder.AppendLine();
             }
             builder.Length -= 2;//remove last CRLF
             //builder.Append($"?{BlockId}");
             return builder.ToString();
 
-            string AdjustIndentAndPrint(BlockBase block)
+            static string AdjustIndentAndPrint(BlockBase block)
             {
                 string result;
                 if (block is Statement || (block is ConditionalBlock && !(block as ConditionalBlock).IsAlternateCondition)) //Single statements or Nested Conditions (but not ElseIf)

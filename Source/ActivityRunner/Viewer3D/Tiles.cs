@@ -366,7 +366,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
             foreach (string file in tileFiles)
             {
-                if (file.ToLowerInvariant().EndsWith(".t"))
+                if (file.EndsWith(".t", StringComparison.OrdinalIgnoreCase))
                     try
                     {
                         TFile = new TerrainFile(file);
@@ -375,7 +375,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     {
                         Trace.WriteLine(new FileLoadException(file, error));
                     }
-                else if (file.ToLowerInvariant().EndsWith("_y.raw"))
+                else if (file.EndsWith("_y.raw", StringComparison.OrdinalIgnoreCase))
                     try
                     {
                         YFile = new TerrainAltitudeFile(file, SampleCount);
@@ -384,7 +384,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     {
                         Trace.WriteLine(new FileLoadException(file, exception));
                     }
-                else if (file.ToLowerInvariant().EndsWith("_f.raw"))
+                else if (file.EndsWith("_f.raw", StringComparison.OrdinalIgnoreCase))
                     try
                     {
                         FFile = new TerrainFlagsFile(file, SampleCount);
@@ -401,42 +401,6 @@ namespace Orts.ActivityRunner.Viewer3D
                     Trace.TraceWarning("Ignoring missing tile {0}.t", fileName);
                 return;
             }
-            //var fileName = filePath + TileName.FromTileXZ(tileX, tileZ, zoom);
-            //if (!File.Exists(fileName + ".t"))
-            //{
-            //    // Many tiles adjacent to the visible tile may not be modelled, so a warning is not helpful;
-            //    // ignore a missing .t file unless it is the currently visible tile.
-            //    if (visible)
-            //        Trace.TraceWarning("Ignoring missing tile {0}.t", fileName);
-            //    return;
-            //}
-
-            //// T and Y files are expected to exist; F files are optional.
-            //try
-            //{
-            //    TFile = new TerrainFile(fileName + ".t");
-            //}
-            //catch (Exception error)
-            //{
-            //    Trace.WriteLine(new FileLoadException(fileName + ".t", error));
-            //}
-            //try
-            //{
-            //    YFile = new TerrainAltitudeFile(fileName + "_y.raw", SampleCount);
-            //}
-            //catch (Exception error)
-            //{
-            //    Trace.WriteLine(new FileLoadException(fileName + "_y.raw", error));
-            //}
-            //try
-            //{
-            //    if (File.Exists(fileName + "_f.raw"))
-            //        FFile = new TerrainFlagsFile(fileName + "_f.raw", SampleCount);
-            //}
-            //catch (Exception error)
-            //{
-            //    Trace.WriteLine(new FileLoadException(fileName + "_f.raw", error));
-            //}
         }
 
         internal float GetElevation(int ux, int uz)

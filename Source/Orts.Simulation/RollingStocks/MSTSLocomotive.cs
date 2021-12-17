@@ -2647,8 +2647,8 @@ namespace Orts.Simulation.RollingStocks
                     {
                         Simulator.Confirmer.Message(ConfirmLevel.Warning, Simulator.Catalog.GetString("Scoop is not over trough, can't refill"));
                         WaterScoopOverTroughFlag = true;
-                        MSTSWagon.RefillProcess.OkToRefill = false;
-                        MSTSWagon.RefillProcess.ActivePickupObjectUID = 0;
+                        RefillProcess.OkToRefill = false;
+                        RefillProcess.ActivePickupObjectUID = 0;
                     }
                     RefillingFromTrough = false;
                 }
@@ -2668,8 +2668,8 @@ namespace Orts.Simulation.RollingStocks
                         Simulator.Confirmer.Message(ConfirmLevel.None, Simulator.Catalog.GetString("Refill: Loco speed must exceed {0} for water to enter tender.",
                                 FormatStrings.FormatSpeedLimit(WaterScoopMinSpeedMpS, MilepostUnitsMetric)));
                         WaterScoopSlowSpeedFlag = true;
-                        MSTSWagon.RefillProcess.OkToRefill = false;
-                        MSTSWagon.RefillProcess.ActivePickupObjectUID = 0;
+                        RefillProcess.OkToRefill = false;
+                        RefillProcess.ActivePickupObjectUID = 0;
                     }
                     RefillingFromTrough = false;
                 }

@@ -3686,7 +3686,7 @@ namespace Orts.MultiPlayer
                                     i, t.Cars[i].Flipped, flipped[i]);
                                 return;
                             }
-                            if (c.ToLower() != cars[i].ToLower())
+                            if (!c.Equals(cars[i], StringComparison.OrdinalIgnoreCase))
                             {
                                 Trace.TraceWarning("Invalid data have prevented flipping: car number {0} local filepath {1} remote filepath {2}",
                                     i, t.Cars[i].Flipped, flipped[i]);

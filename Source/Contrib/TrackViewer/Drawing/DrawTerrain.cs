@@ -53,14 +53,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Orts.ActivityRunner.Viewer3D;
 using Orts.Common.Position;
-using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 
@@ -72,19 +69,19 @@ namespace ORTS.TrackViewer.Drawing
     /// Main class to draw the terrain as from far above (so in an effective 2D fashion)
     /// Drawing lines around the patches (each tile is divided in a number, typically 16x16, patches) is also supported
     /// </summary>
-    public class DrawTerrain
+    internal class DrawTerrain : IDisposable
     {
         #region Properties
         /// <summary>The information to be used in the statusbar</summary>
         public string StatusInformation { get; private set; }
 
         //injection dependency properties
-        private MessageDelegate messageDelegate;
+        private readonly MessageDelegate messageDelegate;
 
         //Directory paths of various formats and files
-        private string tilesPath;
-        private string lotilesPath;
-        private string terrtexPath;
+        private readonly string tilesPath;
+        private readonly string lotilesPath;
+        private readonly string terrtexPath;
 
         //basic graphics
         private GraphicsDevice device;
@@ -94,8 +91,8 @@ namespace ORTS.TrackViewer.Drawing
         private TerrainTextureManager textureManager;
 
         // Storing our own generated data for viewing
-        private Dictionary<uint, TerrainTile2D> terrainTiles;
-        private HashSet<uint> loadedTerrainTiles;
+        private readonly Dictionary<uint, TerrainTile2D> terrainTiles;
+        private readonly HashSet<uint> loadedTerrainTiles;
         private Dictionary<string, VertexBuffer> vertexBuffers;
         private Dictionary<string, int> vertexBufferCounts;
 
@@ -105,11 +102,12 @@ namespace ORTS.TrackViewer.Drawing
         private bool showPatchLines;
 
         //drawArea
-        private Translate3Dto2D locationTranslator;
+        private readonly Translate3Dto2D locationTranslator;
         private int visibleTileXmin;
         private int visibleTileXmax;
         private int visibleTileZmin;
         private int visibleTileZmax;
+        private bool disposedValue;
         #endregion
 
         #region Public methods
@@ -122,9 +120,9 @@ namespace ORTS.TrackViewer.Drawing
         public DrawTerrain(string routePath, MessageDelegate messageDelegate, DrawWorldTiles drawWorldTiles)
         {
             this.messageDelegate = messageDelegate;
-            this.tilesPath = routePath + @"\TILES\";
-            this.lotilesPath = routePath + @"\LO_TILES\";
-            this.terrtexPath = routePath + @"\TERRTEX\";
+            tilesPath = routePath + @"\TILES\";
+            lotilesPath = routePath + @"\LO_TILES\";
+            terrtexPath = routePath + @"\TERRTEX\";
 
             locationTranslator = new Translate3Dto2D(drawWorldTiles);
             terrainTiles = new Dictionary<uint, TerrainTile2D>();
@@ -138,8 +136,8 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="graphicsDevice">The graphsics device used for XNA drawing, and also texture importing</param>
         public void LoadContent(GraphicsDevice graphicsDevice)
         {
-            this.device = graphicsDevice;
-            basicEffect = new BasicEffect(this.device)
+            device = graphicsDevice;
+            basicEffect = new BasicEffect(device)
             {
                 TextureEnabled = true,
                 World = Matrix.Identity
@@ -170,9 +168,9 @@ namespace ORTS.TrackViewer.Drawing
         public void SetTerrainVisibility(bool isVisible, bool isVisibleDM, DrawArea drawArea)
         {
             DiscardVertexBuffers();
-            bool eitherOneTurnedOn = ((isVisible && !this.terrainIsVisible) || (isVisibleDM && !this.terrainDMIsVisible));
-            this.terrainIsVisible = isVisible;
-            this.terrainDMIsVisible = isVisibleDM;
+            bool eitherOneTurnedOn = ((isVisible && !terrainIsVisible) || (isVisibleDM && !terrainDMIsVisible));
+            terrainIsVisible = isVisible;
+            terrainDMIsVisible = isVisibleDM;
             if (isVisible || isVisibleDM)
             {
                 if (drawArea == null)
@@ -193,7 +191,7 @@ namespace ORTS.TrackViewer.Drawing
         /// </summary>
         public void SetPatchLineVisibility(bool isVisible)
         {
-            this.showPatchLines = isVisible;
+            showPatchLines = isVisible;
         }
 
         /// <summary>
@@ -217,7 +215,7 @@ namespace ORTS.TrackViewer.Drawing
             {
                 //The wanted scale factor is less than what it was. We do not have the original data anymore, though.
                 //So we need to reload everything
-                this.Clear();
+                Clear();
                 EnsureAllTilesAreLoaded();
                 CreateVertexBuffers();
             }
@@ -264,7 +262,7 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="tileZ">The cornerIndexZ-value of the tile number</param>
         private void EnsureTileIsLoaded(int tileX, int tileZ)
         {
-            uint index = this.locationTranslator.TileIndex(tileX, tileZ, 1);
+            uint index = locationTranslator.TileIndex(tileX, tileZ, 1);
             if (loadedTerrainTiles.Contains(index))
             {
                 return;
@@ -281,14 +279,14 @@ namespace ORTS.TrackViewer.Drawing
                 }
             }
 
-            uint storeIndex = this.locationTranslator.TileIndex(tileX, tileZ, newTile.Size);
+            uint storeIndex = locationTranslator.TileIndex(tileX, tileZ, newTile.Size);
             if (terrainTiles.ContainsKey(storeIndex))
             {
                 // this larger than 1x1 tile has already been loaded from a different tileX and tileZ
                 return;
             }
 
-            var newTerrainTile = new TerrainTile2D(newTile, textureManager, locationTranslator);
+            TerrainTile2D newTerrainTile = new TerrainTile2D(newTile, textureManager, locationTranslator);
             terrainTiles.Add(storeIndex, newTerrainTile);
             SetTerrainReduction();
         }
@@ -303,7 +301,7 @@ namespace ORTS.TrackViewer.Drawing
         private Tile LoadTile(int tileX, int tileZ, bool loTiles)
         {
             TileHelper.Zoom zoom = loTiles ? TileHelper.Zoom.DMSmall : TileHelper.Zoom.Small;
-            string path = loTiles ? this.lotilesPath : this.tilesPath;
+            string path = loTiles ? lotilesPath : tilesPath;
 
             // Note, code is similar to ORTS.Viewer3D.TileManager.Load
             // Check for 1x1 or 8x8 tiles.
@@ -339,7 +337,7 @@ namespace ORTS.TrackViewer.Drawing
             foreach (string textureName in textureManager.Keys)
             {
                 //It seems that this implementation has quite some copying of data of vertices, but I am not sure how to prevent this.
-                var vertices = new List<VertexPositionTexture>();
+                List<VertexPositionTexture> vertices = new List<VertexPositionTexture>();
 
                 foreach (int zoomSize in GetZoomSizesToShow(false))
                 {
@@ -347,7 +345,7 @@ namespace ORTS.TrackViewer.Drawing
                     {
                         if (terrainTile.TileSize == zoomSize)
                         {
-                            var additionalVertices = terrainTile.GetVertices(textureName);
+                            VertexPositionTexture[] additionalVertices = terrainTile.GetVertices(textureName);
                             vertices.AddRange(additionalVertices);
                         }
                     }
@@ -368,12 +366,12 @@ namespace ORTS.TrackViewer.Drawing
         private List<int> GetZoomSizesToShow(bool lowToHigh)
         {
             List<int> zoomSizesToShow = new List<int>();
-            if (this.terrainDMIsVisible)
+            if (terrainDMIsVisible)
             {
                 zoomSizesToShow.Add(16);
                 zoomSizesToShow.Add(8);
             }
-            if (this.terrainIsVisible)
+            if (terrainIsVisible)
             {
                 zoomSizesToShow.Add(2);
                 zoomSizesToShow.Add(1);
@@ -435,7 +433,7 @@ namespace ORTS.TrackViewer.Drawing
         {
             DetermineVisibleArea(drawArea);
             // We want at least 20 pixels/patch to start drawing, each patch = 2048m/16 = 256m, so at least 20pixels/256m or 0.08 pixel/meter
-            if (!this.showPatchLines || drawArea.Scale < 0.08)
+            if (!showPatchLines || drawArea.Scale < 0.08)
             {
                 return;
             }
@@ -446,7 +444,7 @@ namespace ORTS.TrackViewer.Drawing
                 {
                     for (int tileZ = visibleTileZmin; tileZ <= visibleTileZmax; tileZ++)
                     {
-                        uint index = this.locationTranslator.TileIndex(tileX, tileZ, zoomSize);
+                        uint index = locationTranslator.TileIndex(tileX, tileZ, zoomSize);
                         if (terrainTiles.ContainsKey(index))
                         {
                             terrainTiles[index].DrawPatchLines(drawArea);
@@ -459,13 +457,13 @@ namespace ORTS.TrackViewer.Drawing
 
         private void UpdateStatusInformation(in WorldLocation location)
         {
-            this.StatusInformation = "unknown";
+            StatusInformation = "unknown";
             foreach (int zoomSize in GetZoomSizesToShow(true))
             {
-                uint storeIndex = this.locationTranslator.TileIndex(location.TileX, location.TileZ, zoomSize);
+                uint storeIndex = locationTranslator.TileIndex(location.TileX, location.TileZ, zoomSize);
                 if (terrainTiles.ContainsKey(storeIndex))
                 {
-                    this.StatusInformation = terrainTiles[storeIndex].GetStatusInformation(location);
+                    StatusInformation = terrainTiles[storeIndex].GetStatusInformation(location);
                     return;
                 }
             }
@@ -500,6 +498,28 @@ namespace ORTS.TrackViewer.Drawing
             basicEffect.Projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver2, device.Viewport.AspectRatio, camHeight / 2, camHeight * 2);
 
         }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    // TODO: dispose managed state (managed objects)
+                    basicEffect?.Dispose();
+                    textureManager.Dispose();
+                }
+
+                disposedValue = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
         #endregion
     }
 
@@ -509,9 +529,9 @@ namespace ORTS.TrackViewer.Drawing
     /// </summary>
     internal class Translate3Dto2D
     {
-        private int referenceTileX;
-        private int referenceTileZ;
-        private static Dictionary<int, TileHelper.Zoom> zoomFromInt = new Dictionary<int, TileHelper.Zoom> {
+        private readonly int referenceTileX;
+        private readonly int referenceTileZ;
+        private static readonly Dictionary<int, TileHelper.Zoom> zoomFromInt = new Dictionary<int, TileHelper.Zoom> {
             {1, TileHelper.Zoom.Small}, {2, TileHelper.Zoom.Large}, {8, TileHelper.Zoom.DMSmall}, {16, TileHelper.Zoom.DMLarge}
         };
 
@@ -564,7 +584,7 @@ namespace ORTS.TrackViewer.Drawing
             // We also snap the tileX and tileZ to multiples of the size.
             TileHelper.Snap(ref tileX, ref tileZ, zoomFromInt[zoomSize]);
 
-            uint index = ((uint)zoomSize << 26) + ((uint)(tileX - referenceTileX + 4096) << 13) + (uint)(tileZ - this.referenceTileZ + 4096);
+            uint index = ((uint)zoomSize << 26) + ((uint)(tileX - referenceTileX + 4096) << 13) + (uint)(tileZ - referenceTileZ + 4096);
 
             //debug (I guess a unit test would have been better)
             //uint indexX = (uint)(tileX - referenceTileX + 4096);
@@ -590,9 +610,9 @@ namespace ORTS.TrackViewer.Drawing
 
         private int loadedAceFilesCounter;
         private HashSet<string> unloadableTerrainTextures;
-        private string terrtexPath;
-        private MessageDelegate messageDelegate;
-        private GraphicsDevice device;
+        private readonly string terrtexPath;
+        private readonly MessageDelegate messageDelegate;
+        private readonly GraphicsDevice device;
 
         /// <summary>
         /// Constructor
@@ -602,7 +622,7 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="messageDelegate">The delegate used to draw an on-screen message to the user during longer loading sessions</param>
         public TerrainTextureManager(string terrtexPath, GraphicsDevice device, MessageDelegate messageDelegate) : base()
         {
-            this.unloadableTerrainTextures = new HashSet<string>();
+            unloadableTerrainTextures = new HashSet<string>();
             this.device = device;
             this.messageDelegate = messageDelegate;
             this.terrtexPath = terrtexPath;
@@ -614,7 +634,7 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="filename">The filename (without path) of the texture</param>
         public bool TextureIsLoaded(string filename)
         {
-            if (this.ContainsKey(filename))
+            if (ContainsKey(filename))
             {
                 return true;
             }
@@ -633,8 +653,8 @@ namespace ORTS.TrackViewer.Drawing
                     messageDelegate(TrackViewer.catalog.GetString($"Loading terrain ace-files {loadedAceFilesCounter}-{loadedAceFilesCounter + 99} (scaled down with a factor {CurrentScaleFactor})"));
                 }
                 loadedAceFilesCounter++;
-                var originalTexture = AceFile.Texture2DFromFile(this.device, path);
-                var reducableTexture = new ReducableTexture2D(device, originalTexture);
+                Texture2D originalTexture = AceFile.Texture2DFromFile(device, path);
+                ReducableTexture2D reducableTexture = new ReducableTexture2D(device, originalTexture);
                 reducableTexture.ReduceToFactor(CurrentScaleFactor);
                 this[filename] = reducableTexture;
                 return true;
@@ -657,7 +677,7 @@ namespace ORTS.TrackViewer.Drawing
 
             //We need to rescale all already loaded ace files
             messageDelegate(TrackViewer.catalog.GetString("Rescaling previously loaded ace-files"));
-            foreach (string filename in this.Keys)
+            foreach (string filename in Keys)
             {
                 this[filename].ReduceToFactor(newScaleFactor);
             }
@@ -689,11 +709,11 @@ namespace ORTS.TrackViewer.Drawing
             disposed = true;
             if (!disposing) { return; }
             unloadableTerrainTextures = null;
-            foreach (string filename in this.Keys)
+            foreach (string filename in Keys)
             {
                 this[filename].Dispose();
             }
-            this.Clear();
+            Clear();
         }
         #endregion
     }
@@ -710,15 +730,17 @@ namespace ORTS.TrackViewer.Drawing
         /// <summary>The size of the tile (1x1, 2x2, 8x8, 16x16</summary>
         public int TileSize { get; private set; }
         /// <summary>Storing the list of pre-calculated vertices when the textures are drawn fully</summary>
-        private Dictionary<string, VertexPositionTexture[]> verticesFull;
+        private readonly Dictionary<string, VertexPositionTexture[]> verticesFull;
 
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
         private string[,] textureNames;
-        private int snappedTileX;
-        private int snappedTileZ;
+#pragma warning restore CA1814 // Prefer jagged arrays over multidimensional
+        private readonly int snappedTileX;
+        private readonly int snappedTileZ;
 
         //Injection dependencies
-        private TerrainTextureManager textureManager;
-        private Translate3Dto2D locationTranslator;
+        private readonly TerrainTextureManager textureManager;
+        private readonly Translate3Dto2D locationTranslator;
 
         //used during construction:
         private Dictionary<string, List<VertexPositionTexture>> newVertices;
@@ -733,11 +755,11 @@ namespace ORTS.TrackViewer.Drawing
         {
             this.textureManager = textureManager;
             this.locationTranslator = locationTranslator;
-            this.TileSize = tile.Size;
+            TileSize = tile.Size;
 
-            this.snappedTileX = tile.TileX;
-            this.snappedTileZ = tile.TileZ;
-            TileHelper.Snap(ref snappedTileX, ref snappedTileZ, zoomFromInt[this.TileSize]);
+            snappedTileX = tile.TileX;
+            snappedTileZ = tile.TileZ;
+            TileHelper.Snap(ref snappedTileX, ref snappedTileZ, zoomFromInt[TileSize]);
 
             verticesFull = CreateVerticesFromTile(tile);
         }
@@ -748,9 +770,9 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="textureName">The texture name for which the vertices need to be returned</param>
         public VertexPositionTexture[] GetVertices(string textureName)
         {
-            if (this.verticesFull.ContainsKey(textureName))
+            if (verticesFull.ContainsKey(textureName))
             {
-                return this.verticesFull[textureName];
+                return verticesFull[textureName];
             }
             else
             {
@@ -767,17 +789,19 @@ namespace ORTS.TrackViewer.Drawing
         {
             newVertices = new Dictionary<string, List<VertexPositionTexture>>();
 
-            this.textureNames = new string[tile.PatchCount, tile.PatchCount];
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+            textureNames = new string[tile.PatchCount, tile.PatchCount];
+#pragma warning restore CA1814 // Prefer jagged arrays over multidimensional
             for (int x = 0; x < tile.PatchCount; ++x)
             {
                 for (int z = 0; z < tile.PatchCount; ++z)
                 {
-                    var patch = tile.GetPatch(x, z);
-                    this.textureNames[x, z] = CreateVerticesFromPatch(tile, patch);
+                    Patch patch = tile.GetPatch(x, z);
+                    textureNames[x, z] = CreateVerticesFromPatch(tile, patch);
                 }
             }
 
-            var vertices = new Dictionary<string, VertexPositionTexture[]>();
+            Dictionary<string, VertexPositionTexture[]> vertices = new Dictionary<string, VertexPositionTexture[]>();
             foreach (string textureName in newVertices.Keys)
             {
                 vertices.Add(textureName, newVertices[textureName].ToArray());
@@ -795,7 +819,7 @@ namespace ORTS.TrackViewer.Drawing
         /// <returns>The texture name</returns>
         private string CreateVerticesFromPatch(Tile tile, Patch patch)
         {
-            var ts = tile.Shaders[patch.ShaderIndex].Textureslots;
+            IList<TextureSlot> ts = tile.Shaders[patch.ShaderIndex].Textureslots;
             string textureName = ts[0].FileName;
 
             if (!textureManager.TextureIsLoaded(textureName))
@@ -834,17 +858,17 @@ namespace ORTS.TrackViewer.Drawing
             cornerIndexX *= squaresPerPatch;
             cornerIndexZ *= squaresPerPatch;
 
-            var step = tile.SampleSize;
+            float step = tile.SampleSize;
             float cornerX = patch.CenterX - 1024;
             float cornerZ = patch.CenterZ - 1024 + 2048 * tile.Size;
             cornerX += -patch.RadiusM + cornerIndexX * step;
             cornerZ += -patch.RadiusM + (squaresPerPatch - cornerIndexZ) * step;
-            var location = new WorldLocation(tile.TileX, tile.TileZ, cornerX, 0, cornerZ);
+            WorldLocation location = new WorldLocation(tile.TileX, tile.TileZ, cornerX, 0, cornerZ);
 
             // Rotate, Flip, and stretch the texture using the matrix coordinates stored in terrain_patchset_patch 
             // transform uv by the 2x3 matrix made up of X,Y  W,B  C,H
-            var U = cornerIndexX * patch.W + cornerIndexZ * patch.B + patch.X;
-            var V = cornerIndexX * patch.C + cornerIndexZ * patch.H + patch.Y;
+            float U = cornerIndexX * patch.W + cornerIndexZ * patch.B + patch.X;
+            float V = cornerIndexX * patch.C + cornerIndexZ * patch.H + patch.Y;
 
             newVertices[textureName].Add(new VertexPositionTexture(locationTranslator.VertexPosition(location), new Vector2(U, V)));
         }
@@ -854,22 +878,22 @@ namespace ORTS.TrackViewer.Drawing
             // first make sure we normalize to the snapped tile
             WorldLocation snappedLocation = location.NormalizeTo(snappedTileX, snappedTileZ);
 
-            float totalSize = 2048 * this.TileSize;
-            int patchIndexX = (int)((snappedLocation.Location.X + 1024) / totalSize * this.textureNames.GetLength(0));
-            int patchIndexZ = (int)((snappedLocation.Location.Z + 1024) / totalSize * this.textureNames.GetLength(1));
-            patchIndexZ = this.textureNames.GetLength(1) - patchIndexZ - 1;
+            float totalSize = 2048 * TileSize;
+            int patchIndexX = (int)((snappedLocation.Location.X + 1024) / totalSize * textureNames.GetLength(0));
+            int patchIndexZ = (int)((snappedLocation.Location.Z + 1024) / totalSize * textureNames.GetLength(1));
+            patchIndexZ = textureNames.GetLength(1) - patchIndexZ - 1;
 
-            return $"({patchIndexX}, {patchIndexZ}) for {this.TileSize}x{this.TileSize} tile: {textureNames[patchIndexX, patchIndexZ]}";
+            return $"({patchIndexX}, {patchIndexZ}) for {TileSize}x{TileSize} tile: {textureNames[patchIndexX, patchIndexZ]}";
         }
 
-        private static Dictionary<int, TileHelper.Zoom> zoomFromInt = new Dictionary<int, TileHelper.Zoom> {
+        private static readonly Dictionary<int, TileHelper.Zoom> zoomFromInt = new Dictionary<int, TileHelper.Zoom> {
             {1, TileHelper.Zoom.Small}, {2, TileHelper.Zoom.Large}, {8, TileHelper.Zoom.DMSmall}, {16, TileHelper.Zoom.DMLarge}
         };
 
         public void DrawPatchLines(DrawArea drawArea)
         {
-            float totalSize = 2048 * this.TileSize;
-            int iMax = this.textureNames.GetLength(0);
+            float totalSize = 2048 * TileSize;
+            int iMax = textureNames.GetLength(0);
             float tileL = totalSize / iMax;
             for (int i = 0; i <= iMax; i++)
             {
@@ -897,10 +921,10 @@ namespace ORTS.TrackViewer.Drawing
         private static SpriteBatch spriteBatch;
 
         //we keep a cache of renderTargets. So we do not have to create them over and over again
-        private static Dictionary<int, Dictionary<int, RenderTarget2D>> renderTargets = new Dictionary<int, Dictionary<int, RenderTarget2D>>();
+        private static readonly Dictionary<int, Dictionary<int, RenderTarget2D>> renderTargets = new Dictionary<int, Dictionary<int, RenderTarget2D>>();
         //We keep a cache of available arrays for color data.
         //This saves quite a bit of creating and destroying temporary arrays.
-        private static Dictionary<int, Color[]> colorData = new Dictionary<int, Color[]>();
+        private static readonly Dictionary<int, Color[]> colorData = new Dictionary<int, Color[]>();
 
         /// <summary>
         /// Constructor
@@ -941,22 +965,24 @@ namespace ORTS.TrackViewer.Drawing
             int newHeight = Texture.Height / additionalScaleNeeded;
             try
             {
-                var renderTarget = GetRenderTarget(newWidth, newHeight);
+                RenderTarget2D renderTarget = GetRenderTarget(newWidth, newHeight);
                 device.SetRenderTarget(renderTarget);
                 device.Clear(Color.White);
                 spriteBatch.Begin();
-                var fullTarget = new Rectangle(0, 0, newWidth, newHeight);
+                Rectangle fullTarget = new Rectangle(0, 0, newWidth, newHeight);
                 spriteBatch.Draw(Texture, fullTarget, Color.White);
                 spriteBatch.End();
                 device.SetRenderTarget(null);
 
                 //The rendered texture is not very stable: it is in memory of the renderTarget which depends on the video buffer
                 //Rescaling the screen or so makes it invalid. So we really copy out the data and put it in a new texture.
-                var scaledTexture = GetStableTextureFromRenderTarget(renderTarget);
+                Texture2D scaledTexture = GetStableTextureFromRenderTarget(renderTarget);
                 Texture.Dispose();
                 Texture = scaledTexture;
             }
+#pragma warning disable CA1031 // Do not catch general exception types
             catch { }
+#pragma warning restore CA1031 // Do not catch general exception types
 
             //Note, even if the scaling did not work, we do report that the texture has been scaled
             //Otherwise users might be trying over and over again on the not-yet scaled textures
@@ -968,7 +994,7 @@ namespace ORTS.TrackViewer.Drawing
             if (requestedScaleFactor < ScaledBy) { return 1; }
 
             int additionalScaleNeeded = requestedScaleFactor / ScaledBy;
-            var pp = device.PresentationParameters;
+            PresentationParameters pp = device.PresentationParameters;
             //We must make sure the backbuffer can handle it.
             while (Texture.Width / additionalScaleNeeded > pp.BackBufferWidth || Texture.Height / additionalScaleNeeded > pp.BackBufferHeight)
             {
@@ -982,12 +1008,12 @@ namespace ORTS.TrackViewer.Drawing
             return (x != 0) && ((x & (x - 1)) == 0);
         }
 
-        private Texture2D GetStableTextureFromRenderTarget(RenderTarget2D renderTarget)
+        private static Texture2D GetStableTextureFromRenderTarget(RenderTarget2D renderTarget)
         {
-            var renderedTexture = renderTarget;
+            RenderTarget2D renderedTexture = renderTarget;
             int width = renderedTexture.Width;
             int height = renderedTexture.Height;
-            var scaledTexture = new Texture2D(device, width, height, false, SurfaceFormat.Color);
+            Texture2D scaledTexture = new Texture2D(device, width, height, false, SurfaceFormat.Color);
             Color[] data = GetColorDataArray(width * height);
             renderedTexture.GetData<Color>(data);
             scaledTexture.SetData(data);
@@ -1009,7 +1035,7 @@ namespace ORTS.TrackViewer.Drawing
             {
                 return renderTargets[width][height];
             }
-            var newTarget = GetNewRenderTarget(width, height);
+            RenderTarget2D newTarget = GetNewRenderTarget(width, height);
             if (!renderTargets.ContainsKey(width))
             {
                 renderTargets[width] = new Dictionary<int, RenderTarget2D>();
@@ -1022,8 +1048,8 @@ namespace ORTS.TrackViewer.Drawing
         {
             //todo Handle situations where backbuffer is not large enough to support width and height
             PresentationParameters pp = device.PresentationParameters;
-            var renderTarget =
-                    new RenderTarget2D(device, width, height, 
+            RenderTarget2D renderTarget =
+                    new RenderTarget2D(device, width, height,
                         false, SurfaceFormat.Color, pp.DepthStencilFormat, pp.MultiSampleCount, RenderTargetUsage.DiscardContents);
             return renderTarget;
 

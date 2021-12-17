@@ -333,7 +333,7 @@ namespace Orts.Simulation.AIs
             float firstAITime = StartList.GetNextTime();
             if (firstAITime > 0 && firstAITime < Simulator.ClockTime)
             {
-                Trace.Write("\n Run AI : " + StartList.Count.ToString() + " ");
+                Trace.Write($"\n Run AI : {StartList.Count} ");
 
                 // perform update for AI trains upto actual start time
 
@@ -344,7 +344,7 @@ namespace Orts.Simulation.AIs
                 for (double runTime = firstAITime; runTime < Simulator.ClockTime; runTime += 5.0) // update with 5 secs interval
                 {
                     int fullsec = Convert.ToInt32(runTime);
-                    if (fullsec % 3600 == 0) Trace.Write(" " + (fullsec / 3600).ToString("00") + ":00 ");
+                    if (fullsec % 3600 == 0) Trace.Write($" {fullsec / 3600:00}:00 ");
 
                     AIUpdate((float)(runTime - clockTime), Simulator.PreUpdate);
                     Simulator.SignalEnvironment.Update(true);
@@ -363,7 +363,7 @@ namespace Orts.Simulation.AIs
             float firstAITime = StartList.GetNextTime();
             if (firstAITime > 0 && firstAITime < Simulator.ClockTime)
             {
-                Trace.Write("\n Run AI : " + StartList.Count.ToString() + " ");
+                Trace.Write($"\n Run AI : {StartList.Count} ");
 
                 // perform update for AI trains upto actual start time
 
@@ -374,7 +374,8 @@ namespace Orts.Simulation.AIs
                 for (double runTime = firstAITime; runTime < Simulator.ClockTime && !endPreRun; runTime += 5.0) // update with 5 secs interval
                 {
                     int fullsec = Convert.ToInt32(runTime);
-                    if (fullsec % 3600 < 5) Trace.Write(" " + (fullsec / 3600).ToString("00") + ":00 ");
+                    if (fullsec % 3600 < 5) 
+                        Trace.Write($" {(fullsec / 3600):00}:00 ");
 
                     endPreRun = AITTUpdate((float)(runTime - clockTime), Simulator.PreUpdate, ref activeTrains);
 
@@ -544,7 +545,8 @@ namespace Orts.Simulation.AIs
                             return;
 
                         int fullsec = Convert.ToInt32(runTime);
-                        if (fullsec % 3600 == 0) Trace.Write(" " + (fullsec / 3600).ToString("00") + ":00 ");
+                        if (fullsec % 3600 == 0) 
+                            Trace.Write($" {(fullsec / 3600):00}:00 ");
 
                         if (runTime >= 24 * 3600) // end of day reached
                         {
@@ -866,7 +868,8 @@ namespace Orts.Simulation.AIs
             if (!Simulator.NameDictionary.ContainsKey(train.Name))
                 Simulator.NameDictionary.Add(train.Name, train);
 
-            if (consistFileName.Contains("tilted")) train.IsTilting = true;
+            if (consistFileName.Contains("tilted", StringComparison.OrdinalIgnoreCase)) 
+                train.IsTilting = true;
 
             // also set Route max speed for speedpost-processing in train.cs
             train.TrainMaxSpeedMpS = (float)Simulator.Route.SpeedLimit;
@@ -923,7 +926,7 @@ namespace Orts.Simulation.AIs
                     else
                     {
                         car.SignalEvent(PowerSupplyEvent.RaisePantograph, 1);
-                        car.CarID = "AI" + train.Number.ToString() + " - " + (train.Cars.Count - 1).ToString();
+                        car.CarID = $"AI{train.Number} - {train.Cars.Count - 1}";
                     }
 
                     // associate location events
@@ -1157,7 +1160,7 @@ namespace Orts.Simulation.AIs
                     }
                     if (lastTrain != null)
                     {
-                        thisTrain.CreateAhead = lastTrain.Name.ToLower();
+                        thisTrain.CreateAhead = lastTrain.Name;
                     }
                 }
 

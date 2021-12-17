@@ -435,7 +435,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
                         throw new InvalidDataException("Saved game stream position is incorrect.");
 
                     //Restore Debrief eval data
-                    string dbfevalfile = saveFile.Replace(".save", ".dbfeval");
+                    string dbfevalfile = saveFile.Replace(".save", ".dbfeval", StringComparison.OrdinalIgnoreCase);
                     if (settings.DebriefActivityEval && File.Exists(dbfevalfile))
                     {
                         using (BinaryReader infDbfEval = new BinaryReader(new FileStream(dbfevalfile, FileMode.Open, FileAccess.Read)))
@@ -540,7 +540,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
 
             // Find previous save file and then move commands to be replayed into replay list.
             CommandLog log = new CommandLog(null);
-            string logFile = saveFile.Replace(".save", ".replay");
+            string logFile = saveFile.Replace(".save", ".replay", StringComparison.OrdinalIgnoreCase);
             log.LoadLog(logFile);
             List<ICommand> replayCommandList = new List<ICommand>();
 
@@ -692,7 +692,7 @@ namespace Orts.ActivityRunner.Viewer3D.Processes
             // We hash together all the appropriate arguments to the program as the key for the loading cache file.
             // Arguments without a '.' in them and those starting '/' are ignored, since they are explore activity
             // configuration (time, season, etc.) or flags like /test which we don't want to change on.
-            loadingDataKey = string.Join(" ", data.Where(a => a.Contains('.')).ToArray()).ToUpperInvariant();
+            loadingDataKey = string.Join(" ", data.Where(a => a.Contains('.', StringComparison.OrdinalIgnoreCase)).ToArray()).ToUpperInvariant();
             using (HashAlgorithm hash = new SHA256CryptoServiceProvider())
             {
                 hash.ComputeHash(Encoding.Default.GetBytes(loadingDataKey));

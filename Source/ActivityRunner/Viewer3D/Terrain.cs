@@ -226,8 +226,8 @@ namespace Orts.ActivityRunner.Viewer3D
             var ts = Tile.Shaders[Patch.ShaderIndex].Textureslots;
             var uv = Tile.Shaders[Patch.ShaderIndex].UVCalcs;
             if (ts.Count > 1)
-                PatchMaterial = viewer.MaterialManager.Load(terrainMaterial, Helpers.GetTerrainTextureFile(viewer.Simulator, ts[0].FileName) + "\0" + Helpers.GetTerrainTextureFile(viewer.Simulator, ts[1].FileName) +
-                    (uv[1].D != 0 && uv[1].D != 32 ? "\0" + uv[1].D.ToString(): ""));
+                PatchMaterial = viewer.MaterialManager.Load(terrainMaterial, Helpers.GetTerrainTextureFile(viewer.Simulator, ts[0].FileName) + 
+                    $"\0{Helpers.GetTerrainTextureFile(viewer.Simulator, ts[1].FileName)}{(uv[1].D != 0 && uv[1].D != 32 ? $"\0{uv[1].D}" : "")}");
             else
                 PatchMaterial = viewer.MaterialManager.Load(terrainMaterial, Helpers.GetTerrainTextureFile(viewer.Simulator, ts[0].FileName) + "\0" + Helpers.GetTerrainTextureFile(viewer.Simulator, "microtex.ace"));
 
