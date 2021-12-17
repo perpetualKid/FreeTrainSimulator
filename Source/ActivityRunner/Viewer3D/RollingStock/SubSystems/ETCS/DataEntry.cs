@@ -118,7 +118,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
         {
             for (int i = 1; i < 10; i++)
             {
-                string digitname = i.ToString();
+                string digitname = $"{i}";
                 Keys.Add(new DMITextButton(digitname, digitname, false, () => field.HandleKeyPress(digitname), 102, 50, field.DMI, 16));
             }
             Keys.Add(new DMIIconButton("NA_21.bmp", "NA_21.bmp", "Delete", false, () => field.HandleKeyPress("DEL"), 102, 50, field.DMI));
@@ -426,7 +426,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
                 }
                 else
                 {
-                    if (CursorIndex >= KeyboardValue.Length || !keyname.Contains(KeyboardValue[KeyboardValue.Length - 1]))
+                    if (CursorIndex >= KeyboardValue.Length || !keyname.Contains(KeyboardValue[KeyboardValue.Length - 1], StringComparison.OrdinalIgnoreCase))
                     {
                         KeyboardValue += keyname[0];
                         CursorIndex = keyname.Length == 1 ? KeyboardValue.Length : KeyboardValue.Length-1;
@@ -435,7 +435,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
                     {
                         char c = KeyboardValue[KeyboardValue.Length - 1];
                         KeyboardValue = KeyboardValue.Substring(0, KeyboardValue.Length - 1);
-                        KeyboardValue += keyname[(keyname.IndexOf(c) + 1) % keyname.Length];
+                        KeyboardValue += keyname[(keyname.IndexOf(c, StringComparison.OrdinalIgnoreCase) + 1) % keyname.Length];
                     }
                 }
             }

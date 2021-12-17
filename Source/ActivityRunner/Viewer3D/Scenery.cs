@@ -397,7 +397,7 @@ namespace Orts.ActivityRunner.Viewer3D
                         {
                             int success = Wire.DecomposeStaticWire(viewer, dTrackList, trackObj, worldMatrix);
                             //if cannot draw wire, try to see if it is converted. modified for DynaTrax
-                            if (success == 0 && trackObj.FileName.Contains("Dyna")) Wire.DecomposeConvertedDynamicWire(viewer, dTrackList, trackObj, worldMatrix);
+                            if (success == 0 && trackObj.FileName.Contains("Dyna", StringComparison.OrdinalIgnoreCase)) Wire.DecomposeConvertedDynamicWire(viewer, dTrackList, trackObj, worldMatrix);
                         }
                     }
                     else if (worldObject.GetType() == typeof(DynamicTrackObject))
@@ -625,13 +625,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// </summary>
         private static string FormatTileCoordinate(int tileCoord)
         {
-            var sign = "+";
-            if (tileCoord < 0)
-            {
-                sign = "-";
-                tileCoord *= -1;
-            }
-            return sign + tileCoord.ToString("000000");
+            return $"{(tileCoord < 0 ? "-" : "+")}{Math.Abs(tileCoord):000000}";
         }
     }
 

@@ -58,9 +58,9 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
         public SharedShape(string filePath)
         {
             FilePath = filePath;
-            if (filePath.Contains('\0'))
+            if (filePath.Contains('\0', StringComparison.OrdinalIgnoreCase))
             {
-                var parts = filePath.Split('\0');
+                string[] parts = filePath.Split('\0');
                 FilePath = parts[0];
                 ReferencePath = parts[1];
             }
@@ -90,9 +90,9 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             {
                 var sdFile = new ShapeDescriptorFile(FilePath + "d");
                 textureFlags = (Helpers.TextureFlags)sdFile.Shape.EsdAlternativeTexture;
-                if (FilePath != null && FilePath.Contains("\\global\\")) textureFlags |= Helpers.TextureFlags.SnowTrack;//roads and tracks are in global, as MSTS will always use snow texture in snow weather
+                if (FilePath != null && FilePath.Contains("\\global\\", StringComparison.OrdinalIgnoreCase)) textureFlags |= Helpers.TextureFlags.SnowTrack;//roads and tracks are in global, as MSTS will always use snow texture in snow weather
                 HasNightSubObj = sdFile.Shape.EsdSubObject;
-                if ((textureFlags & Helpers.TextureFlags.Night) != 0 && FilePath.Contains("\\trainset\\"))
+                if ((textureFlags & Helpers.TextureFlags.Night) != 0 && FilePath.Contains("\\trainset\\", StringComparison.OrdinalIgnoreCase))
                     textureFlags |= Helpers.TextureFlags.Underground;
                 SoundFileName = sdFile.Shape.EsdSoundFileName;
                 BellAnimationFPS = sdFile.Shape.EsdBellAnimationFps;
@@ -280,7 +280,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                                 hierarchyIndex = hierarchy[hierarchyIndex];
                             }
                             hierarchyList.Add(hierarchyIndex);
-                            Trace.TraceWarning("Ignored invalid primitive hierarchy {1} in shape {0}", sharedShape.FilePath, String.Join(" ", hierarchyList.Select(hi => hi.ToString()).ToArray()));
+                            Trace.TraceWarning("Ignored invalid primitive hierarchy {1} in shape {0}", sharedShape.FilePath, string.Join(" ", hierarchyList.Select(hi => $"{hi}").ToArray()));
                             break;
                         }
                         hierarchyIndex = hierarchy[hierarchyIndex];

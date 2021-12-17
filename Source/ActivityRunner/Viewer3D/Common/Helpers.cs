@@ -57,14 +57,14 @@ namespace Orts.ActivityRunner.Viewer3D.Common
             var textureName = Path.GetFileName(textureFilePath);
             var nightTexturePath = !File.Exists(texturePath + @"\Night\" + textureName) ? Path.GetDirectoryName(texturePath) + @"\Night\" : texturePath + @"\Night\";
 
-            if (!String.IsNullOrEmpty(nightTexturePath + textureName) && Path.GetExtension(nightTexturePath + textureName) == ".dds" && File.Exists(nightTexturePath + textureName))
+            if (!string.IsNullOrEmpty(nightTexturePath + textureName) && Path.GetExtension(nightTexturePath + textureName) == ".dds" && File.Exists(nightTexturePath + textureName))
             {
                 return nightTexturePath + textureName;
             }
-            else if (!String.IsNullOrEmpty(nightTexturePath + textureName) && Path.GetExtension(nightTexturePath + textureName) == ".ace")
+            else if (!string.IsNullOrEmpty(nightTexturePath + textureName) && Path.GetExtension(nightTexturePath + textureName) == ".ace")
             {
                 var alternativeTexture = Path.ChangeExtension(nightTexturePath + textureName, ".dds");
-                if (simulator.Settings.PreferDDSTexture && !String.IsNullOrEmpty(alternativeTexture.ToLower()) && File.Exists(alternativeTexture))
+                if (simulator.Settings.PreferDDSTexture && !string.IsNullOrEmpty(alternativeTexture) && File.Exists(alternativeTexture))
                 {
                     return alternativeTexture;
                 }

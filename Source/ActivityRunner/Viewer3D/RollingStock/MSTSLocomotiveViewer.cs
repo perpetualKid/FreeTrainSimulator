@@ -2971,7 +2971,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             // Find the animated parts
             if (TrainCarShape != null && TrainCarShape.SharedShape.Animations != null)
             {
-                string matrixName = ""; string typeName = ""; AnimatedPartMultiState tmpPart = null;
+                string matrixName = ""; 
+                string typeName = ""; 
+                AnimatedPartMultiState tmpPart = null;
                 for (int iMatrix = 0; iMatrix < TrainCarShape.SharedShape.MatrixNames.Count; ++iMatrix)
                 {
                     matrixName = TrainCarShape.SharedShape.MatrixNames[iMatrix].ToUpper();
