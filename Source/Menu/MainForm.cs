@@ -860,7 +860,7 @@ namespace Orts.Menu
                 string extension = System.IO.Path.GetExtension(path);
                 if (".act".Equals(extension, StringComparison.OrdinalIgnoreCase))
                     radioButtonModeActivity.Checked = true;
-                else if (".timetable_or".Equals(extension, StringComparison.OrdinalIgnoreCase))
+                else if (".timetable_or".Equals(extension, StringComparison.OrdinalIgnoreCase) || ".timetable-or".Equals(extension, StringComparison.OrdinalIgnoreCase))
                     radioButtonModeTimetable.Checked = true;
             }
             UpdateEnabled();

@@ -19,6 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 
 namespace Orts.ContentManager
 {
@@ -121,7 +122,7 @@ namespace Orts.ContentManager
 
                 string pathOR = Path.Combine(PathName, @"Activities\OpenRails");
                 if (Directory.Exists(pathOR))
-                    foreach (string item in Directory.GetFiles(pathOR, "*.timetable_or"))
+                    foreach (var item in Enumerable.Concat(Directory.GetFiles(pathOR, "*.timetable_or"), Directory.GetFiles(pathOR, "*.timetable-or")))
                         yield return new ContentORTimetableActivity(this, Path.Combine(pathOR, item));
             }
         }
