@@ -55,7 +55,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             // We need to correct the window height for the ACTUAL font size, so that the title bar is shown correctly.
             location = new Rectangle(0, 0, width, height - BaseFontSize + owner.TextFontDefault.Height);
 
-            settingsProperty = Owner.Viewer.Settings.GetType().GetProperty("WindowPosition_" + GetType().Name.Replace("Window", ""));
+            settingsProperty = Owner.Viewer.Settings.GetType().GetProperty("WindowPosition_" + GetType().Name.Replace("Window", "", StringComparison.OrdinalIgnoreCase));
             if (settingsProperty != null)
             {
                 int[] value = settingsProperty.GetValue(Owner.Viewer.Settings, null) as int[];

@@ -882,7 +882,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 WorldLocation = Car.WorldPosition.WorldLocation;
             }
 
-            if (isOutOfDistance())
+            if (OutOfDistance())
             {
                 if (!WasOutOfDistance)
                 {
@@ -1004,7 +1004,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// Calculate current distance to camera, and compare it to <see cref="CutOffDistanceM2"/>
         /// </summary>
         /// <returns>True, if is now out-of-scope</returns>
-        public bool isOutOfDistance()
+        public bool OutOfDistance()
         {
             if (WorldLocation == WorldLocation.None)
             {
@@ -1869,7 +1869,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public ORTSVariableTrigger(SoundStream soundStream, VariableTrigger smsData)
         {
             SMS = smsData;
-            car = soundStream.SoundSource.Car != null ? soundStream.SoundSource.Car : (MSTSWagon)soundStream.SoundSource.Viewer.Camera.AttachedCar;
+            car = soundStream.SoundSource.Car ?? (MSTSWagon)soundStream.SoundSource.Viewer.Camera.AttachedCar;
             SoundStream = soundStream;
             SoundCommand = ORTSSoundCommand.FromMSTS(smsData.SoundCommand, soundStream);
             Initialize();
@@ -2251,7 +2251,7 @@ namespace Orts.ActivityRunner.Viewer3D
                         return new ORTSEnableTrigger(soundStream, triggerCommand);
                 }
             }
-            throw new ArgumentException("Unexpected soundCommand type " + mstsSoundCommand.GetType().ToString() + " in " + soundStream.SoundSource.SMSFolder, "mstsSoundCommand");
+            throw new ArgumentException("Unexpected soundCommand type " + mstsSoundCommand.GetType().ToString() + " in " + soundStream.SoundSource.SMSFolder, nameof(mstsSoundCommand));
         }
 
 

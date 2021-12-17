@@ -17,6 +17,7 @@
 
 // This file is the responsibility of the 3D & Environment Team. 
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -47,7 +48,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
 
             // Diesel Exhaust
             foreach (var drawers in from drawer in ParticleDrawers
-                                    where drawer.Key.ToLowerInvariant().StartsWith("exhaust")
+                                    where drawer.Key.StartsWith("exhaust", StringComparison.OrdinalIgnoreCase)
                                     select drawer.Value)
             {
                 Exhaust.AddRange(drawers);
