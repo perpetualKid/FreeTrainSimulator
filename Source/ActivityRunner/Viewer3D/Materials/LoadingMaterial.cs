@@ -65,7 +65,7 @@ namespace Orts.ActivityRunner.Viewer3D.Materials
             {
                 if (disposing)
                 {
-                    texture.Dispose();
+                    texture?.Dispose();
                 }
                 disposedValue = true;
             }
