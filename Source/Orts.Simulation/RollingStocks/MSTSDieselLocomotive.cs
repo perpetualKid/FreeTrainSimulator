@@ -704,19 +704,19 @@ namespace Orts.Simulation.RollingStocks
             }
 
             // Calculate fuel consumption will occur unless diesel engine is stopped
-                DieselFlowLps = DieselEngines.DieselFlowLps;
-                partialFuelConsumption += DieselEngines.DieselFlowLps * (float)elapsedClockSeconds;
-                if (partialFuelConsumption >= 0.1)
-                {
-                    DieselLevelL -= partialFuelConsumption;
-                    partialFuelConsumption = 0;
-                }
-                // stall engine if fuel runs out
-                if (DieselLevelL <= 0.0f)
-                {
-                    SignalEvent(TrainEvent.EnginePowerOff);
-                    DieselEngines.HandleEvent(PowerSupplyEvent.StopEngine);
-                }
+            DieselFlowLps = DieselEngines.DieselFlowLps;
+            partialFuelConsumption += DieselEngines.DieselFlowLps * (float)elapsedClockSeconds;
+            if (partialFuelConsumption >= 0.1)
+            {
+                DieselLevelL -= partialFuelConsumption;
+                partialFuelConsumption = 0;
+            }
+            // stall engine if fuel runs out
+            if (DieselLevelL <= 0.0f)
+            {
+                SignalEvent(TrainEvent.EnginePowerOff);
+                DieselEngines.HandleEvent(PowerSupplyEvent.StopEngine);
+            }
         }
 
         /// <summary>
@@ -926,7 +926,7 @@ namespace Orts.Simulation.RollingStocks
             {
                 if (RemoteControlGroup == RemoteControlGroup.RearGroupAsync)
                 {
-                    throttle = Simulator.Catalog.GetParticularString("Notch", "B") + MathHelper.Clamp((Train.LeadLocomotive as MSTSLocomotive).DistributedPowerDynamicBrakeController.CurrentNotch, 1,  8);
+                    throttle = Simulator.Catalog.GetParticularString("Notch", "B") + MathHelper.Clamp((Train.LeadLocomotive as MSTSLocomotive).DistributedPowerDynamicBrakeController.CurrentNotch, 1, 8);
                 }
                 else
                 {
@@ -971,14 +971,14 @@ namespace Orts.Simulation.RollingStocks
             {
                 if (RemoteControlGroup == RemoteControlGroup.RearGroupAsync)
                 {
-                    throttle = Simulator.Catalog.GetParticularString("Notch", "B") + MathHelper.Clamp((Train.LeadLocomotive as MSTSLocomotive).DistributedPowerDynamicBrakeController.CurrentNotch, 1,  8);
+                    throttle = Simulator.Catalog.GetParticularString("Notch", "B") + MathHelper.Clamp((Train.LeadLocomotive as MSTSLocomotive).DistributedPowerDynamicBrakeController.CurrentNotch, 1, 8);
                 }
                 else
                 {
                     // The clause here below leads to possible differences of one notch near the notch value, and therefore is commented
- //               if (DynamicBrakeController.NotchCount() > 3)
- //                   throttle = Simulator.Catalog.GetParticularString("Notch", "B") + MathHelper.Clamp((DynamicBrakeController.GetNearestNotch(DynamicBrakePercent / 100f)), 1, 8);
- //               else
+                    //               if (DynamicBrakeController.NotchCount() > 3)
+                    //                   throttle = Simulator.Catalog.GetParticularString("Notch", "B") + MathHelper.Clamp((DynamicBrakeController.GetNearestNotch(DynamicBrakePercent / 100f)), 1, 8);
+                    //               else
                     throttle = Simulator.Catalog.GetParticularString("Notch", "B") + MathHelper.Clamp((Train.LeadLocomotive as MSTSLocomotive).DistributedPowerDynamicBrakeController.GetNotch(DynamicBrakePercent / 100f), 1, 8);
                 }
             }
@@ -1125,13 +1125,13 @@ namespace Orts.Simulation.RollingStocks
                     table += "\t\t";
                 table += "\n";
             }
-             return table;
+            return table;
         }
 
         public static string GetDpuHeader(bool dpuVerticalFull, int locomotivesInTrain, int dpuMaxNumberOfEngines)
         {
-            if (MaxNumberOfEngines != dpuMaxNumberOfEngines || dpuVerticalFull? DPULabels == null : DpuLabels == null)
-                SetDPULabels(dpuVerticalFull , dpuMaxNumberOfEngines);
+            if (MaxNumberOfEngines != dpuMaxNumberOfEngines || dpuVerticalFull ? DPULabels == null : DpuLabels == null)
+                SetDPULabels(dpuVerticalFull, dpuMaxNumberOfEngines);
             string table = "";
             for (var i = 0; i < (dpuVerticalFull ? DPULabels.Length : DpuLabels.Length); i++)
             {
