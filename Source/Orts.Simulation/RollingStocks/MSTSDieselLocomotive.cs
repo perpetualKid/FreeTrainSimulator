@@ -704,8 +704,6 @@ namespace Orts.Simulation.RollingStocks
             }
 
             // Calculate fuel consumption will occur unless diesel engine is stopped
-            if (LocomotivePowerSupply.MainPowerSupplyOn)
-            {
                 DieselFlowLps = DieselEngines.DieselFlowLps;
                 partialFuelConsumption += DieselEngines.DieselFlowLps * (float)elapsedClockSeconds;
                 if (partialFuelConsumption >= 0.1)
@@ -719,7 +717,6 @@ namespace Orts.Simulation.RollingStocks
                     SignalEvent(TrainEvent.EnginePowerOff);
                     DieselEngines.HandleEvent(PowerSupplyEvent.StopEngine);
                 }
-            }
         }
 
         /// <summary>
