@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
+using System.IO.Pipelines;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -19,16 +21,25 @@ namespace Orts.MultiPlayerServer
         private readonly Dictionary<string, TcpClient> onlinePlayers = new Dictionary<string, TcpClient>();
         private readonly byte[] initData = Encoding.Unicode.GetBytes("10: SERVER YOU");
         private readonly byte[] serverChallenge = Encoding.Unicode.GetBytes(" 21: SERVER WhoCanBeServer");
-        private bool serverAppointed;
         private byte[] lostPlayer;
         private string currentServer;
+
+        private static ReadOnlySpan<byte> SeparatorBlank
+        {
+            get
+            {
+                Span<byte> result = new Span<byte>(new byte[2]);
+                System.Text.Unicode.Utf8.FromUtf16(" ".AsSpan(), result, out _, out _);
+                return result;
+            }
+        }
 
         public Host(int port)
         {
             this.port = port;
         }
 
-        public async void Run()
+        public async Task Run()
         {
             TcpListener listener = new TcpListener(IPAddress.Any, port);
             listener.Start();
@@ -43,8 +54,14 @@ namespace Orts.MultiPlayerServer
             {
                 try
                 {
+                    Pipe pipe = new Pipe();
+
                     TcpClient tcpClient = await listener.AcceptTcpClientAsync().ConfigureAwait(false);
-                    Task t = Process(tcpClient);
+                    Task writing = FillPipeAsync(tcpClient, pipe.Writer);
+                    Task reading = ReadPipeAsync(tcpClient, pipe.Reader);
+
+                    //                    await Task.WhenAll(reading, writing).ConfigureAwait(false);
+                    //Task t = Process(tcpClient);
                 }
                 catch (Exception ex)
                 {
@@ -52,6 +69,138 @@ namespace Orts.MultiPlayerServer
                     throw new InvalidOperationException("Invalid Program state, aborting.", ex);
                 }
             }
+        }
+
+        async Task FillPipeAsync(TcpClient tcpClient, PipeWriter writer)
+        {
+            const int minimumBufferSize = 1024;
+
+            NetworkStream networkStream = tcpClient.GetStream();
+
+            while (tcpClient.Connected)
+            {
+                Memory<byte> memory = writer.GetMemory(minimumBufferSize);
+
+                int bytesRead = await networkStream.ReadAsync(memory).ConfigureAwait(false);
+                if (bytesRead == 0)
+                {
+                    break;
+                }
+                writer.Advance(bytesRead);
+
+                // Make the data available to the PipeReader
+                FlushResult result = await writer.FlushAsync().ConfigureAwait(false);
+
+                if (result.IsCompleted)
+                {
+                    break;
+                }
+            }
+            await writer.CompleteAsync().ConfigureAwait(false);
+        }
+
+        private static string ReadPlayerName(ReadOnlySequence<byte> sequence)
+        {
+            Span<byte> playerSeparator = new Span<byte>(new byte[14]);
+            Encoding.Unicode.GetBytes("PLAYER ".AsSpan(), playerSeparator);
+
+            SequenceReader<byte> reader = new SequenceReader<byte>(sequence);
+
+            while (!reader.End) // loop until we've read the entire sequence
+            {
+                if (reader.TryReadTo(out _, playerSeparator, true)) // we have an item to handle
+                {
+                    if (reader.TryReadTo(out ReadOnlySequence<byte> playerName, SeparatorBlank))
+                    {
+                        return Encoding.Unicode.GetString(playerName.FirstSpan);
+                    }
+                }
+                else // no more items in this sequence
+                {
+                    break;
+                }
+            }
+            return null;
+        }
+
+        private static string ReadQuiteMessage(ReadOnlySequence<byte> sequence)
+        {
+            Span<byte> playerSeparator = new Span<byte>(new byte[10]);
+            Encoding.Unicode.GetBytes("QUIT ".AsSpan(), playerSeparator);
+
+            SequenceReader<byte> reader = new SequenceReader<byte>(sequence);
+
+            while (!reader.End) // loop until we've read the entire sequence
+            {
+                if (reader.TryReadTo(out _, playerSeparator, true)) // we have an item to handle
+                {
+                    if (reader.TryReadTo(out ReadOnlySequence<byte> playerName, SeparatorBlank))
+                    {
+                        return Encoding.Unicode.GetString(playerName.FirstSpan);
+                    }
+                }
+                else // no more items in this sequence
+                {
+                    break;
+                }
+            }
+            return null;
+        }
+
+        private async Task ReadPipeAsync(TcpClient tcpClient, PipeReader reader)
+        {
+            string playerName = Guid.NewGuid().ToString();
+            bool playerNameSet = false;
+            string quitPlayer;
+            onlinePlayers.Add(playerName, tcpClient);
+            if (onlinePlayers.Count == 1)
+            {
+                currentServer = playerName;
+                await SendMessage(playerName, initData).ConfigureAwait(false);
+            }
+
+            while (tcpClient.Client.Connected)
+            {
+                ReadResult result = await reader.ReadAsync().ConfigureAwait(false);
+
+                ReadOnlySequence<byte> buffer = result.Buffer;
+
+                if (!playerNameSet)
+                {
+                    string player = ReadPlayerName(buffer);
+
+                    onlinePlayers.Remove(playerName);
+                    if (currentServer == playerName)
+                        currentServer = playerName = player;
+                    else
+                        playerName = player;
+                    onlinePlayers.Add(playerName, tcpClient);
+                    playerNameSet = true;
+
+                }
+
+                if (!string.IsNullOrEmpty(quitPlayer = ReadQuiteMessage(buffer)))
+                {
+                    if (playerName == quitPlayer)
+                        break;
+                }
+
+                foreach (ReadOnlyMemory<byte> message in buffer)
+                {
+                    Broadcast(playerName, message);
+                }
+
+                reader.AdvanceTo(buffer.End, buffer.End);
+
+                if (result.IsCompleted)
+                {
+                    break;
+                }
+            }
+
+            await RemovePlayer(playerName).ConfigureAwait(false);
+            // Mark the PipeReader as complete
+            await reader.CompleteAsync().ConfigureAwait(false);
         }
 
         private void Broadcast(string playerName, ReadOnlyMemory<byte> buffer)
@@ -92,59 +241,6 @@ namespace Orts.MultiPlayerServer
             }
         }
 
-        private async Task Process(TcpClient tcpClient)
-        {
-            string playerName = Guid.NewGuid().ToString();
-            onlinePlayers.Add(playerName, tcpClient);
-            if (onlinePlayers.Count == 1)
-            {
-                currentServer = playerName;
-                await SendMessage(playerName, initData).ConfigureAwait(false);
-            }
-
-            NetworkStream networkStream = tcpClient.GetStream();
-            byte[] buffer = new byte[8192];
-
-            int size;
-            while (tcpClient.Connected)
-            {
-                try
-                {
-                    size = await networkStream.ReadAsync(buffer.AsMemory(0, buffer.Length)).ConfigureAwait(false);
-                }
-                catch (Exception ex) when (ex is System.IO.IOException || ex is SocketException)
-                {
-                    break;
-                }
-                if (size == 0)
-                    break;
-                byte[] sendBuffer = new byte[size];
-                Array.Copy(buffer, sendBuffer, size);
-                string message = Encoding.Unicode.GetString(sendBuffer);
-                string[] messageDetails = message.Split(' ');
-                if (messageDetails != null && messageDetails.Length > 3)
-                {
-                    if (messageDetails[2].Equals("PLAYER", StringComparison.OrdinalIgnoreCase))
-                    {
-                        onlinePlayers.Remove(playerName);
-                        if (currentServer == playerName)
-                            currentServer = playerName = message.Split(' ')[3];
-                        else
-                            playerName = message.Split(' ')[3];
-                        onlinePlayers.Add(playerName, tcpClient);
-                    }
-                    if (messageDetails[2].Equals("QUIT", StringComparison.OrdinalIgnoreCase))
-                    {
-                        string quitPlayer = message.Split(' ')[3];
-                        if (playerName == quitPlayer)
-                            break;
-                    }
-                }
-                Broadcast(playerName, sendBuffer.AsMemory(0, sendBuffer.Length));
-            }
-            await RemovePlayer(playerName).ConfigureAwait(false);
-        }
-
         private async Task RemovePlayer(string playerName)
         {
             if (onlinePlayers.Remove(playerName))
@@ -154,10 +250,9 @@ namespace Orts.MultiPlayerServer
                 Broadcast(playerName, lostPlayer);
                 if (currentServer == playerName)
                 {
-                    serverAppointed = false;
                     Broadcast(playerName, serverChallenge);
                     await Task.Delay(5000).ConfigureAwait(false);
-                    if (!serverAppointed && onlinePlayers.Count > 0)
+                    if (onlinePlayers.Count > 0)
                     {
                         Broadcast(null, lostPlayer);
                         currentServer = onlinePlayers.Keys.First();

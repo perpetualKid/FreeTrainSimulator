@@ -13,7 +13,7 @@ namespace Orts.MultiPlayerServer
                 if (args.Length > 0 && !int.TryParse(args[0], out port))
                     port = 30000;
                 Host server = new Host(port);
-                server.Run();
+                _ = server.Run().ConfigureAwait(false);
                 Console.ReadLine();
             }
             catch (InvalidOperationException ex)
