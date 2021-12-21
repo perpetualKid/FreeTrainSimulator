@@ -68,7 +68,7 @@ namespace Orts.MultiPlayer
 
         public const int ProtocolVersion = 15;
 
-        public static ICatalog Catalog { get; private set; }
+        public static ICatalog Catalog { get; private set; } = CatalogManager.Catalog;
 
         public bool Connected { get => client?.Connected ?? false; set => client.Connected = value; }
         public bool IsDispatcher { get; set; }
