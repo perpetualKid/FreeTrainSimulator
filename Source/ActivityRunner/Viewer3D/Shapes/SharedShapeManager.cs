@@ -57,7 +57,10 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
         public void Sweep()
         {
             foreach (var path in shapeMarks.Where(kvp => !kvp.Value).Select(kvp => kvp.Key))
+            {
+                sharedShapes[path].Dispose();
                 sharedShapes.Remove(path);
+            }
         }
 
         public string GetStatus()

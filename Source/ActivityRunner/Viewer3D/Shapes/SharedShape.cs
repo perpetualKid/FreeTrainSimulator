@@ -15,7 +15,7 @@ using System.Linq;
 
 namespace Orts.ActivityRunner.Viewer3D.Shapes
 {
-    public class SharedShape
+    public class SharedShape: IDisposable
     {
         private static readonly HashSet<string> shapeWarnings = new HashSet<string>();
 
@@ -33,6 +33,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
 
         protected static Viewer viewer;
+        private bool disposedValue;
         public readonly string FilePath;
         public readonly string ReferencePath;
 
@@ -148,9 +149,10 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             }
         }
 
-        public class LodControl
+        public class LodControl: IDisposable
         {
             public DistanceLevel[] DistanceLevels;
+            private bool disposedValue;
 
             public LodControl(Formats.Msts.Models.LodControl MSTSlod_control, Helpers.TextureFlags textureFlags, ShapeFile sFile, SharedShape sharedShape)
             {
@@ -168,13 +170,36 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                 foreach (var dl in DistanceLevels)
                     dl.Mark();
             }
+
+            protected virtual void Dispose(bool disposing)
+            {
+                if (!disposedValue)
+                {
+                    if (disposing)
+                    {
+                        foreach (DistanceLevel distanceLevel in DistanceLevels)
+                        {
+                            distanceLevel.Dispose();
+                        }
+                    }
+                    disposedValue = true;
+                }
+            }
+
+            public void Dispose()
+            {
+                // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+                Dispose(disposing: true);
+                GC.SuppressFinalize(this);
+            }
         }
 
-        public class DistanceLevel
+        public class DistanceLevel: IDisposable
         {
             public float ViewingDistance;
             public float ViewSphereRadius;
             public SubObject[] SubObjects;
+            private bool disposedValue;
 
             public DistanceLevel(Formats.Msts.Models.DistanceLevel MSTSdistance_level, Helpers.TextureFlags textureFlags, ShapeFile sFile, SharedShape sharedShape)
             {
@@ -206,9 +231,31 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                 foreach (var so in SubObjects)
                     so.Mark();
             }
+
+            protected virtual void Dispose(bool disposing)
+            {
+                if (!disposedValue)
+                {
+                    if (disposing)
+                    {
+                        foreach (SubObject subObject in SubObjects)
+                        {
+                            subObject.Dispose();
+                        }
+                    }
+                    disposedValue = true;
+                }
+            }
+
+            public void Dispose()
+            {
+                // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+                Dispose(disposing: true);
+                GC.SuppressFinalize(this);
+            }
         }
 
-        public class SubObject
+        public class SubObject: IDisposable
         {
             private static readonly SceneryMaterialOptions[] UVTextureAddressModeMap = new[] {
                 SceneryMaterialOptions.TextureAddressModeWrap,
@@ -236,6 +283,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             };
 
             public ShapePrimitive[] ShapePrimitives;
+            private bool disposedValue;
 
 #if DEBUG_SHAPE_HIERARCHY
             public SubObject(sub_object sub_object, ref int totalPrimitiveIndex, int[] hierarchy, Helpers.TextureFlags textureFlags, int subObjectIndex, SFile sFile, SharedShape sharedShape)
@@ -427,6 +475,28 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             {
                 foreach (var prim in ShapePrimitives)
                     prim.Mark();
+            }
+
+            protected virtual void Dispose(bool disposing)
+            {
+                if (!disposedValue)
+                {
+                    if (disposing)
+                    {
+                        foreach (ShapePrimitive shapePrimitive in ShapePrimitives)
+                        {
+                            shapePrimitive.Dispose();
+                        }
+                    }
+                    disposedValue = true;
+                }
+            }
+
+            public void Dispose()
+            {
+                // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+                Dispose(disposing: true);
+                GC.SuppressFinalize(this);
             }
         }
 
@@ -632,6 +702,28 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             viewer.ShapeManager.Mark(this);
             foreach (var lod in LodControls)
                 lod.Mark();
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    foreach (LodControl lodControl in LodControls)
+                    {
+                        lodControl.Dispose();
+                    }
+                }
+                disposedValue = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 

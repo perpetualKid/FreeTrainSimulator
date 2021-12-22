@@ -27,6 +27,7 @@
 // Adds bright green arrows to all normal shapes indicating the direction of their normals.
 //#define DEBUG_SHAPE_NORMALS
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -40,7 +41,7 @@ using Orts.Formats.Msts.Models;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
-    public class ShapePrimitive : RenderPrimitive
+    public class ShapePrimitive : RenderPrimitive, IDisposable
     {
         public Material Material { get; protected set; }
         public int[] Hierarchy { get; protected set; } // the hierarchy from the sub_object
@@ -51,6 +52,7 @@ namespace Orts.ActivityRunner.Viewer3D
         internal protected int MinVertexIndex;
         internal protected int NumVerticies;
         internal protected int PrimitiveCount;
+        private bool disposedValue;
         private readonly VertexBufferBinding[] VertexBufferBindings;
 
         public ShapePrimitive()
@@ -93,6 +95,27 @@ namespace Orts.ActivityRunner.Viewer3D
         public virtual void Mark()
         {
             Material.Mark();
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    VertexBuffer.Dispose();
+                    IndexBuffer.Dispose();
+                    PrimitiveCount = 0;
+                }
+                disposedValue = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 
