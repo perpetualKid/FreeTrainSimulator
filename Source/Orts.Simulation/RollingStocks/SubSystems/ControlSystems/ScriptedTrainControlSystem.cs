@@ -98,6 +98,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
         public bool CircuitBreakerClosingOrder { get; private set; }
         public bool CircuitBreakerOpeningOrder { get; private set; }
         public bool TractionAuthorization { get; private set; }
+        public float MaxThrottlePercent { get; private set; } = 100f;
         public bool FullDynamicBrakingOrder { get; private set; }
 
         public float[] CabDisplayControls { get; } = new float[TCSCabviewControlCount];
@@ -303,6 +304,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
                 };
                 script.ArePantographsDown = () => Locomotive.Pantographs.State == PantographState.Down;
                 script.ThrottlePercent = () => Locomotive.ThrottleController.CurrentValue * 100;
+                script.MaxThrottlePercent = () => MaxThrottlePercent;
                 script.DynamicBrakePercent = () => Locomotive.DynamicBrakeController == null ? 0 : Locomotive.DynamicBrakeController.CurrentValue * 100;
                 script.TractionAuthorization = () => TractionAuthorization;
                 script.BrakePipePressureBar = () => Locomotive.BrakeSystem != null ? (float)Pressure.Atmospheric.FromPSI(Locomotive.BrakeSystem.BrakeLine1PressurePSI) : float.MaxValue;
@@ -396,6 +398,13 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
                 script.SetCircuitBreakerClosingOrder = (value) => CircuitBreakerClosingOrder = value;
                 script.SetCircuitBreakerOpeningOrder = (value) => CircuitBreakerOpeningOrder = value;
                 script.SetTractionAuthorization = (value) => TractionAuthorization = value;
+                script.SetMaxThrottlePercent = (value) =>
+                {
+                    if (value is >= 0 and <= 100f)
+                    {
+                        MaxThrottlePercent = value;
+                    }
+                };
                 script.SetVigilanceAlarm = (value) => Locomotive.SignalEvent(value ? TrainEvent.VigilanceAlarmOn : TrainEvent.VigilanceAlarmOff);
                 script.SetHorn = (value) => Locomotive.TCSHorn = value;
                 script.TriggerSoundAlert1 = () => SignalEvent(TrainEvent.TrainControlSystemAlert1, script);

@@ -206,6 +206,10 @@ namespace Orts.Scripting.Api
         /// </summary>
         public Func<float> ThrottlePercent { get; set; }
         /// <summary>
+        /// Returns maximum throttle percent
+        /// </summary>
+        public Func<float> MaxThrottlePercent { get; set; }
+        /// <summary>
         /// Returns dynamic brake percent
         /// </summary>
         public Func<float> DynamicBrakePercent { get; set; }
@@ -346,6 +350,11 @@ namespace Orts.Scripting.Api
         /// Set the traction authorization.
         /// </summary>
         public Action<bool> SetTractionAuthorization { get; set; }
+        /// <summary>
+        /// Set the maximum throttle percent
+        /// Range: 0 to 100
+        /// </summary>
+        public Action<float> SetMaxThrottlePercent { get; set; }
         /// <summary>
         /// Switch vigilance alarm sound on (true) or off (false).
         /// </summary>

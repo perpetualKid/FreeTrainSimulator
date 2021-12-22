@@ -338,14 +338,14 @@ namespace Orts.Simulation.RollingStocks
             {
                 if (RemoteControlGroup == RemoteControlGroup.FrontGroupSync && Train != null)
                 {
-                    if (Train.LeadLocomotive != null && !((MSTSLocomotive)Train.LeadLocomotive).TrainControlSystem.TractionAuthorization && Train.MUThrottlePercent > 0)
+                    if (Train.LeadLocomotive is MSTSLocomotive locomotive)
                     {
-                        return 0;
+                        if (!locomotive.TrainControlSystem.TractionAuthorization || Train.MUThrottlePercent <= 0)
+                            return 0;
+                        else if (Train.MUThrottlePercent > locomotive.TrainControlSystem.MaxThrottlePercent)
+                            return Math.Max(locomotive.TrainControlSystem.MaxThrottlePercent, 0);
                     }
-                    else
-                    {
-                        return Train.MUThrottlePercent;
-                    }
+                    return Train.MUThrottlePercent;
                 }
                 else if (RemoteControlGroup == RemoteControlGroup.RearGroupAsync && Train != null)
                     return Train.DPThrottlePercent;
@@ -388,17 +388,17 @@ namespace Orts.Simulation.RollingStocks
             {
                 if (RemoteControlGroup != RemoteControlGroup.Unconnected && Train != null)
                 {
-                    if (Train.LeadLocomotive != null && (Train.LeadLocomotive).TrainControlSystem.FullDynamicBrakingOrder)
+                    if (Train.LeadLocomotive is MSTSLocomotive locomotive)
                     {
-                        return 100;
+                        if (locomotive.TrainControlSystem.FullDynamicBrakingOrder)
+                        {
+                            return 100;
+                        }
                     }
-                    else if (RemoteControlGroup == RemoteControlGroup.RearGroupAsync)
-                        return Train.DPDynamicBrakePercent;
-                    else
-                    {
-                        return Train.MUDynamicBrakePercent;
-                    }
+                    return Train.MUDynamicBrakePercent;
                 }
+                else if (RemoteControlGroup == RemoteControlGroup.RearGroupAsync && Train != null)
+                    return Train.DPDynamicBrakePercent;
                 else
                     return LocalDynamicBrakePercent;
             }
