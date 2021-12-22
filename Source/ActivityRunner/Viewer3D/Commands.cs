@@ -94,7 +94,7 @@ namespace Orts.ActivityRunner.Viewer3D
     [Serializable()]
     public sealed class SelectScreenCommand : BooleanCommand
     {
-        public static CabRenderer Receiver { get; set; }
+        public static Viewer Receiver { get; set; }
 
         private readonly string screen;
         private readonly int display;
@@ -112,7 +112,10 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             if (targetState)
             {
-                Receiver.ActiveScreen[display] = screen;
+                var finalReceiver = Receiver.Camera  is CabCamera3D ?
+                    (Receiver.PlayerLocomotiveViewer as MSTSLocomotiveViewer).CabRenderer3D:
+                    (Receiver.PlayerLocomotiveViewer as MSTSLocomotiveViewer).CabRenderer;
+                finalReceiver.ActiveScreen[display] = screen;
             }
         }
 
