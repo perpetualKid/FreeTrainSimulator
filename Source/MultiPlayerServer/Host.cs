@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO.Pipelines;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
@@ -19,20 +20,12 @@ namespace Orts.MultiPlayerServer
         private readonly int port;
 
         private readonly Dictionary<string, TcpClient> onlinePlayers = new Dictionary<string, TcpClient>();
-        private readonly byte[] initData = Encoding.Unicode.GetBytes("10: SERVER YOU");
-        private readonly byte[] serverChallenge = Encoding.Unicode.GetBytes(" 21: SERVER WhoCanBeServer");
-        private byte[] lostPlayer;
+        private static readonly byte[] initData = Encoding.Unicode.GetBytes("10: SERVER YOU");
+        private static readonly byte[] serverChallenge = Encoding.Unicode.GetBytes(" 21: SERVER WhoCanBeServer");
+        private static readonly byte[] blankToken = Encoding.Unicode.GetBytes(" ");
+        private static readonly byte[] playerToken = Encoding.Unicode.GetBytes("PLAYER ");
+        private static readonly byte[] quitToken = Encoding.Unicode.GetBytes("QUIT");
         private string currentServer;
-
-        private static ReadOnlySpan<byte> SeparatorBlank
-        {
-            get
-            {
-                Span<byte> result = new Span<byte>(new byte[2]);
-                System.Text.Unicode.Utf8.FromUtf16(" ".AsSpan(), result, out _, out _);
-                return result;
-            }
-        }
 
         public Host(int port)
         {
@@ -41,40 +34,45 @@ namespace Orts.MultiPlayerServer
 
         public async Task Run()
         {
-            TcpListener listener = new TcpListener(IPAddress.Any, port);
-            listener.Start();
-#pragma warning disable CA1303 // Do not pass literals as localized parameters
-            Console.WriteLine($"MultiPlayer Server is now running on port {port}");
-            Console.WriteLine("For further information, bug reports or discussions, please visit");
-            Console.WriteLine("\t\thttps://github.com/perpetualKid/ORTS-MG");
-            Console.WriteLine("Hit <enter> to stop service");
-            Console.WriteLine();
-#pragma warning restore CA1303 // Do not pass literals as localized parameters
-            while (true)
+            try
             {
-                try
+                TcpListener listener = new TcpListener(IPAddress.Any, port);
+                listener.Start();
+#pragma warning disable CA1303 // Do not pass literals as localized parameters
+                Console.WriteLine($"MultiPlayer Server is now running on port {port}");
+                Console.WriteLine("For further information, bug reports or discussions, please visit");
+                Console.WriteLine("\t\thttps://github.com/perpetualKid/ORTS-MG");
+                Console.WriteLine("Hit <enter> to stop service");
+                Console.WriteLine();
+#pragma warning restore CA1303 // Do not pass literals as localized parameters
+                while (true)
                 {
-                    Pipe pipe = new Pipe();
+                    try
+                    {
+                        Pipe pipe = new Pipe();
 
-                    TcpClient tcpClient = await listener.AcceptTcpClientAsync().ConfigureAwait(false);
-                    Task writing = FillPipeAsync(tcpClient, pipe.Writer);
-                    Task reading = ReadPipeAsync(tcpClient, pipe.Reader);
-
-                    //                    await Task.WhenAll(reading, writing).ConfigureAwait(false);
-                    //Task t = Process(tcpClient);
+                        TcpClient tcpClient = await listener.AcceptTcpClientAsync().ConfigureAwait(false);
+                        _ = PipeFillAsync(tcpClient, pipe.Writer);
+                        _ = PipeReadAsync(tcpClient, pipe.Reader);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                        throw new InvalidOperationException("Invalid Program state, aborting.", ex);
+                    }
                 }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
-                    throw new InvalidOperationException("Invalid Program state, aborting.", ex);
-                }
+            }
+            catch (SocketException socketException)
+            {
+                Console.WriteLine(socketException.Message);
+                throw;
             }
         }
 
-        async Task FillPipeAsync(TcpClient tcpClient, PipeWriter writer)
+        private async Task PipeFillAsync(TcpClient tcpClient, PipeWriter writer)
         {
             const int minimumBufferSize = 1024;
-
+            _ = currentServer;
             NetworkStream networkStream = tcpClient.GetStream();
 
             while (tcpClient.Connected)
@@ -101,21 +99,21 @@ namespace Orts.MultiPlayerServer
 
         private static string ReadPlayerName(ReadOnlySequence<byte> sequence)
         {
-            Span<byte> playerSeparator = new Span<byte>(new byte[14]);
-            Encoding.Unicode.GetBytes("PLAYER ".AsSpan(), playerSeparator);
+            Span<byte> playerSeparator = playerToken.AsSpan();
+            Span<byte> blankSeparator = blankToken.AsSpan();
 
             SequenceReader<byte> reader = new SequenceReader<byte>(sequence);
 
-            while (!reader.End) // loop until we've read the entire sequence
+            while (!reader.End)
             {
-                if (reader.TryReadTo(out _, playerSeparator, true)) // we have an item to handle
+                if (reader.TryReadTo(out _, playerSeparator))
                 {
-                    if (reader.TryReadTo(out ReadOnlySequence<byte> playerName, SeparatorBlank))
+                    if (reader.TryReadTo(out ReadOnlySequence<byte> playerName, blankSeparator))
                     {
                         return Encoding.Unicode.GetString(playerName.FirstSpan);
                     }
                 }
-                else // no more items in this sequence
+                else
                 {
                     break;
                 }
@@ -125,21 +123,21 @@ namespace Orts.MultiPlayerServer
 
         private static string ReadQuiteMessage(ReadOnlySequence<byte> sequence)
         {
-            Span<byte> playerSeparator = new Span<byte>(new byte[10]);
-            Encoding.Unicode.GetBytes("QUIT ".AsSpan(), playerSeparator);
+            Span<byte> quitSeparator = quitToken.AsSpan();
+            Span<byte> blankSeparator = blankToken.AsSpan();
 
             SequenceReader<byte> reader = new SequenceReader<byte>(sequence);
 
-            while (!reader.End) // loop until we've read the entire sequence
+            while (!reader.End)
             {
-                if (reader.TryReadTo(out _, playerSeparator, true)) // we have an item to handle
+                if (reader.TryReadTo(out _, quitSeparator))
                 {
-                    if (reader.TryReadTo(out ReadOnlySequence<byte> playerName, SeparatorBlank))
+                    if (reader.TryReadTo(out ReadOnlySequence<byte> playerName, blankSeparator))
                     {
                         return Encoding.Unicode.GetString(playerName.FirstSpan);
                     }
                 }
-                else // no more items in this sequence
+                else
                 {
                     break;
                 }
@@ -147,7 +145,7 @@ namespace Orts.MultiPlayerServer
             return null;
         }
 
-        private async Task ReadPipeAsync(TcpClient tcpClient, PipeReader reader)
+        private async Task PipeReadAsync(TcpClient tcpClient, PipeReader reader)
         {
             string playerName = Guid.NewGuid().ToString();
             bool playerNameSet = false;
@@ -199,7 +197,7 @@ namespace Orts.MultiPlayerServer
             }
 
             await RemovePlayer(playerName).ConfigureAwait(false);
-            // Mark the PipeReader as complete
+
             await reader.CompleteAsync().ConfigureAwait(false);
         }
 
@@ -246,7 +244,7 @@ namespace Orts.MultiPlayerServer
             if (onlinePlayers.Remove(playerName))
             {
                 string lostMessage = $"LOST { playerName}";
-                lostPlayer = Encoding.Unicode.GetBytes($" {lostMessage.Length}: {lostMessage}");
+                byte[] lostPlayer = Encoding.Unicode.GetBytes($" {lostMessage.Length}: {lostMessage}");
                 Broadcast(playerName, lostPlayer);
                 if (currentServer == playerName)
                 {

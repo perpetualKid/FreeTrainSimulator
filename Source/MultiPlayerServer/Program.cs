@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace Orts.MultiPlayerServer
 {
@@ -13,8 +14,15 @@ namespace Orts.MultiPlayerServer
                 if (args.Length > 0 && !int.TryParse(args[0], out port))
                     port = 30000;
                 Host server = new Host(port);
-                _ = server.Run().ConfigureAwait(false);
-                Console.ReadLine();
+                Task serverTask = server.Run();
+                if (serverTask.IsFaulted)
+                {
+                    return;
+                }
+                else
+                {
+                    Console.ReadLine();
+                }
             }
             catch (InvalidOperationException ex)
             {
