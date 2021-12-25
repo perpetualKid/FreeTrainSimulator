@@ -331,5 +331,10 @@ namespace Orts.Toolbox.WinForms.Controls
         {
 
         }
+
+        private void loadPathToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            parent.PauseWindowApplication();
+        }
     }
 }

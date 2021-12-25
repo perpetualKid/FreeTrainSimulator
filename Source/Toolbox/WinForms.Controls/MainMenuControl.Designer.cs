@@ -95,6 +95,8 @@ namespace Orts.Toolbox.WinForms.Controls
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.documentationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.PathedittoolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.loadPathToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.MainMenuStrip.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -105,6 +107,7 @@ namespace Orts.Toolbox.WinForms.Controls
             this.fileToolStripMenuItem,
             this.viewToolStripMenuItem,
             this.preferencesToolStripMenuItem,
+            this.PathedittoolStripMenuItem1,
             this.helpToolStripMenuItem});
             this.MainMenuStrip.Location = new System.Drawing.Point(0, 0);
             this.MainMenuStrip.Name = "MainMenuStrip";
@@ -615,16 +618,31 @@ namespace Orts.Toolbox.WinForms.Controls
             // documentationToolStripMenuItem
             // 
             this.documentationToolStripMenuItem.Name = "documentationToolStripMenuItem";
-            this.documentationToolStripMenuItem.Size = new System.Drawing.Size(157, 22);
+            this.documentationToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.documentationToolStripMenuItem.Text = "Documentation";
             this.documentationToolStripMenuItem.Click += new System.EventHandler(this.DocumentationToolStripMenuItem_Click);
             // 
             // aboutToolStripMenuItem
             // 
             this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
-            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(157, 22);
+            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.aboutToolStripMenuItem.Text = "About";
             this.aboutToolStripMenuItem.Click += new System.EventHandler(this.AboutToolStripMenuItem_Click);
+            // 
+            // PathedittoolStripMenuItem1
+            // 
+            this.PathedittoolStripMenuItem1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.loadPathToolStripMenuItem});
+            this.PathedittoolStripMenuItem1.Name = "PathedittoolStripMenuItem1";
+            this.PathedittoolStripMenuItem1.Size = new System.Drawing.Size(66, 20);
+            this.PathedittoolStripMenuItem1.Text = "Path Edit";
+            // 
+            // loadPathToolStripMenuItem
+            // 
+            this.loadPathToolStripMenuItem.Name = "loadPathToolStripMenuItem";
+            this.loadPathToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.loadPathToolStripMenuItem.Text = "Load Path";
+            this.loadPathToolStripMenuItem.Click += new System.EventHandler(this.loadPathToolStripMenuItem_Click);
             // 
             // MainMenuControl
             // 
@@ -711,5 +729,7 @@ namespace Orts.Toolbox.WinForms.Controls
         private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem takeScreenshotToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator5;
+        private System.Windows.Forms.ToolStripMenuItem PathedittoolStripMenuItem1;
+        private System.Windows.Forms.ToolStripMenuItem loadPathToolStripMenuItem;
     }
 }

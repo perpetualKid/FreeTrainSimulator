@@ -9,5 +9,6 @@ namespace Orts.Toolbox.PopupWindows
         QuitWindow,
         StatusWindow,
         DebugScreen,
+        PauseWindow,
     }
 }

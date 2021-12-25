@@ -17,7 +17,7 @@ namespace Orts.Toolbox.Settings
 {
     public class ToolboxSettings : SettingsBase
     {
-        internal const string SettingLiteral = "TrackViewer";
+        internal const string SettingLiteral = "Toolbox";
 
         private static readonly StoreType SettingsStoreType;
         private static readonly string Location;
@@ -57,7 +57,7 @@ namespace Orts.Toolbox.Settings
 
         public UserSettings UserSettings { get; private set; }
 
-        #region TrackViewer Settings
+        #region Toolbox Settings
         [Default(new string[]
         {
             nameof(WindowSetting.Location) + "=50,50",  // % of the windows Screen

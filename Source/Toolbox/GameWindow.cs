@@ -67,7 +67,7 @@ namespace Orts.Toolbox
                     value.ResetSize(Window.ClientBounds.Size, 60);
                     Components.Add(value);
                     value.Enabled = true;
-                    Window.Title = windowTitle + Catalog.GetString($" Route: {value.RouteName}");
+                    Window.Title = windowTitle + " TOOLBOX" + Catalog.GetString($" Route: {value.RouteName}");
                 }
                 else
                 {
@@ -389,6 +389,7 @@ namespace Orts.Toolbox
             EnumArray<Type, WindowType> windowTypes = new EnumArray<Type, WindowType>();
             windowManager = WindowManager.Initialize<UserCommand, WindowType>(this, userCommandController.AddTopLayerController());
             windowManager[WindowType.QuitWindow] = new QuitWindow(windowManager, Settings.WindowLocations[WindowType.QuitWindow].ToPoint());
+            windowManager[WindowType.PauseWindow] = new PauseWindow(windowManager, Settings.WindowLocations[WindowType.QuitWindow].ToPoint());
             windowManager[WindowType.StatusWindow] = new StatusTextWindow(windowManager, Settings.WindowLocations[WindowType.StatusWindow].ToPoint());
             windowManager[WindowType.DebugScreen] = new DebugScreen(windowManager, "Debug");
             (windowManager[WindowType.DebugScreen] as DebugScreen).DebugScreens[DebugScreenInformation.Common] = this;

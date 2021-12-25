@@ -1,36 +1,23 @@
 <Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
-    <PublishReadyToRun>false</PublishReadyToRun>
-    <TieredCompilation>false</TieredCompilation>
-    <UseWindowsForms>true</UseWindowsForms>
+	<Description>Open Rails Toolbox</Description>
+	<AssemblyTitle>Open Rails Toolbox</AssemblyTitle>
+	<UseWindowsForms>true</UseWindowsForms>
+	<OutputPath>..\..\Program</OutputPath>
+	<ApplicationIcon>..\Orts.ico</ApplicationIcon>
+    <RootNamespace>Orts.Toolbox</RootNamespace>
+    <Description>Open Rails Toolbox</Description>
   </PropertyGroup>
-  
-  <ItemGroup>
-    <TrimmerRootAssembly Include="Microsoft.Xna.Framework.Content.ContentTypeReader" Visible="false" />
-  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="GetText.NET" Version="0.12.11" />
     <PackageReference Include="GetText.NET.WindowsForms" Version="0.12.11" />
     <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.0.1641" />
-    <PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.0.1641" />
-  </ItemGroup>
-  <ItemGroup>
-    <MonoGameContentReference Include="Content\Content.mgcb" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Orts.Common\Orts.Common.csproj" />
-    <ProjectReference Include="..\Orts.Graphics\Orts.Graphics.csproj" />
     <ProjectReference Include="..\Orts.Models.Simplified\Orts.Models.Simplified.csproj" />
     <ProjectReference Include="..\Orts.Settings\Orts.Settings.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Update="WinForms.Controls\MainMenuControl.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Update="WinForms.Controls\StatusbarControl.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
+    <ProjectReference Include="..\Orts.Graphics\Orts.Graphics.csproj" />
   </ItemGroup>
 </Project>

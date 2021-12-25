@@ -48,6 +48,11 @@ namespace Orts.Toolbox
             }
         }
 
+        internal void PauseWindowApplication()
+        {
+            windowManager[WindowType.PauseWindow].Open();
+        }
+
         internal void PrepareExitApplication()
         {
             windowManager[WindowType.QuitWindow].Open();
