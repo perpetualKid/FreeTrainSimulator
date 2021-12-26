@@ -88,11 +88,16 @@ namespace Orts.Toolbox
                 {
                     Route route = routes?.Where(r => r.Name.Equals(selection[1], StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
                     if (null != route)
+                    {
                         await LoadRoute(route).ConfigureAwait(false);
+                        paths = (await Path.GetPaths(route, true, System.Threading.CancellationToken.None).ConfigureAwait(false));
+                        mainmenu.PopulatePaths(paths);
+                    }
                 }
             }
         }
 
+        private IEnumerable<Path> paths;
         internal void UnloadRoute()
         {
             ContentArea = null;

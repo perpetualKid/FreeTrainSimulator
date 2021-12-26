@@ -49,10 +49,20 @@ namespace Orts.Toolbox
 
             this.mainmenu.ResumeLayout();
             this.mainmenu.PerformLayout();
+
+            this.statusbar = new WinForms.Controls.StatusbarControl(this);
+            this.statusbar.SuspendLayout();
+            this.statusbar.Dock = DockStyle.Bottom;
+            windowForm.Controls.Add(statusbar);
+            this.statusbar.ResumeLayout();
+            this.statusbar.PerformLayout();
+
             windowForm.ResumeLayout(false);
             windowForm.PerformLayout();
         }
 
         private Toolbox.WinForms.Controls.MainMenuControl mainmenu;
+        private Toolbox.WinForms.Controls.StatusbarControl statusbar;
+
     }
 }
