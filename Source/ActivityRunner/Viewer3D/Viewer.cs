@@ -1113,7 +1113,7 @@ namespace Orts.ActivityRunner.Viewer3D
             DistributedPowerIdleCommand.Receiver = (MSTSLocomotive)PlayerLocomotive;
             DistributedPowerDynamicBrakeCommand.Receiver = (MSTSLocomotive)PlayerLocomotive;
             DistributedPowerIncreaseCommand.Receiver = (MSTSLocomotive)PlayerLocomotive;
-            DistributedPOwerDecreaseCommand.Receiver = (MSTSLocomotive)PlayerLocomotive;
+            DistributedPowerDecreaseCommand.Receiver = (MSTSLocomotive)PlayerLocomotive;
         }
 
         public void ChangeToPreviousFreeRoamCamera()

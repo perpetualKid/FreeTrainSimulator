@@ -477,6 +477,14 @@ namespace Orts.Formats.Msts
         Orts_Odometer,
         Orts_Odometer_Reset,
         Orts_Odometer_Direction,
+        Orts_DistributedPower,
+        Orts_DistributedPower_MoveToFront,
+        Orts_DistributedPower_MoveToBack,
+        Orts_DistributedPower_Idle,
+        Orts_DistributedPower_Traction,
+        Orts_DistributedPower_Brake,
+        Orts_DistributedPower_Increase,
+        Orts_DistributedPower_Decrease,
 
         // Further CabViewControlTypes must be added above this line, to avoid their malfunction in 3DCabs
         ExternalWipers,

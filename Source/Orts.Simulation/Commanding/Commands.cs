@@ -1473,11 +1473,11 @@ namespace Orts.Simulation.Commanding
     }
 
     [Serializable()]
-    public sealed class DistributedPOwerDecreaseCommand : Command
+    public sealed class DistributedPowerDecreaseCommand : Command
     {
         public static MSTSWagon Receiver { get; set; }
 
-        public DistributedPOwerDecreaseCommand(CommandLog log)
+        public DistributedPowerDecreaseCommand(CommandLog log)
             : base(log)
         {
             Redo();

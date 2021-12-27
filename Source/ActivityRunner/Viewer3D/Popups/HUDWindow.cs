@@ -935,12 +935,12 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 int row = table.CurrentRow;
                 TableAddLines(table, MSTSDieselLocomotive.GetDebugTableBase(numberOfDieselLocomotives, maxNumberOfEngines));
                 int k = 0;
+                RemoteControlGroup dpUnitId = RemoteControlGroup.FrontGroupSync;
                 for (var i = 0; i < train.Cars.Count; i++)
                     if (train.Cars[i] is MSTSDieselLocomotive)
                     {
                         k++;
                         var status = (train.Cars[i] as MSTSDieselLocomotive).GetDistributedPowerDebugStatus().Split('\t');
-                        RemoteControlGroup dpUnitId = RemoteControlGroup.FrontGroupSync;
                         var fence = (dpUnitId != (dpUnitId = train.Cars[i].RemoteControlGroup)) ? "| " : "";
                         for (var j = 0; j < status.Length; j++)
                             table.Cells[row + j, 2 * k] = fence + status[j];

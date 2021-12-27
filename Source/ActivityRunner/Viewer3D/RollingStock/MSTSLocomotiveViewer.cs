@@ -29,6 +29,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 using Orts.ActivityRunner.Viewer3D.Common;
 using Orts.ActivityRunner.Viewer3D.Popups;
+using Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems;
 using Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs;
 using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.Common;
@@ -445,7 +446,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         }
         private void DistributedPowerDecrease()
         {
-            _ = new DistributedPOwerDecreaseCommand(Viewer.Log);
+            _ = new DistributedPowerDecreaseCommand(Viewer.Log);
         }
 
         private void LightSwitchCommand(UserCommandArgs commandArgs, GameTime gameTime)
@@ -1469,6 +1470,16 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                                 count[(int)cvc.ControlType]++;
                                 continue;
                             }
+                            else if (screen.ControlType == CabViewControlType.Orts_DistributedPower)
+                            {
+                                var cvr = new DistributedPowerInterfaceRenderer(viewer, car, screen, _Shader);
+                                cvr.SortIndex = controlSortIndex;
+                                CabViewControlRenderersList[i].Add(cvr);
+                                if (!ControlMap.ContainsKey(key))
+                                    ControlMap.Add(key, cvr);
+                                count[(int)cvc.ControlType]++;
+                                continue;
+                            }
                         }
                     }
                 }
@@ -1580,6 +1591,16 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     if (screen.ControlType == CabViewControlType.Orts_Etcs)
                     {
                         var cvr = new DriverMachineInterfaceRenderer(viewer, car, screen, _Shader);
+                        cvr.SortIndex = controlSortIndex;
+                        CabViewControlRenderersList[i].Add(cvr);
+                        if (!ControlMap.ContainsKey(key))
+                            ControlMap.Add(key, cvr);
+                        count[(int)cvc.ControlType]++;
+                        continue;
+                    }
+                    else if (screen.ControlType == CabViewControlType.Orts_DistributedPower)
+                    {
+                        var cvr = new DistributedPowerInterfaceRenderer(viewer, car, screen, _Shader);
                         cvr.SortIndex = controlSortIndex;
                         CabViewControlRenderersList[i].Add(cvr);
                         if (!ControlMap.ContainsKey(key))
@@ -2351,6 +2372,13 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     index = (int)data;
                     break;
                 case CabViewControlType.Orts_Screen_Select:
+                case CabViewControlType.Orts_DistributedPower_MoveToBack:
+                case CabViewControlType.Orts_DistributedPower_MoveToFront:
+                case CabViewControlType.Orts_DistributedPower_Traction:
+                case CabViewControlType.Orts_DistributedPower_Idle:
+                case CabViewControlType.Orts_DistributedPower_Brake:
+                case CabViewControlType.Orts_DistributedPower_Increase:
+                case CabViewControlType.Orts_DistributedPower_Decrease:
                     index = ButtonState ? 1 : 0;
                     break;
                 case CabViewControlType.Orts_Static_Display:
@@ -2807,6 +2835,48 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
                     if (UpdateCommandValue(1, buttonEventType, delta) > 0 ^ Locomotive.TrainControlSystem.TCSCommandButtonDown[commandIndex])
                         _ = new TCSButtonCommand(Viewer.Log, !Locomotive.TrainControlSystem.TCSCommandButtonDown[commandIndex], commandIndex);
                     _ = new TCSSwitchCommand(Viewer.Log, UpdateCommandValue(Locomotive.TrainControlSystem.TCSCommandSwitchOn[commandIndex] ? 1 : 0, buttonEventType, delta) > 0, commandIndex);
+                    break;
+                case CabViewControlType.Orts_DistributedPower_MoveToFront:
+                    buttonState = UpdateCommandValue(ButtonState ? 1 : 0, buttonEventType, delta) > 0;
+                    if (!ButtonState && (ButtonState ? 1 : 0) != UpdateCommandValue(ButtonState ? 1 : 0, buttonEventType, delta))
+                        _ = new DistributedPowerMoveToFrontCommand(Viewer.Log);
+                    ButtonState = buttonState;
+                    break;
+                case CabViewControlType.Orts_DistributedPower_MoveToBack:
+                    buttonState = UpdateCommandValue(ButtonState ? 1 : 0, buttonEventType, delta) > 0;
+                    if (!ButtonState && (ButtonState ? 1 : 0) != UpdateCommandValue(ButtonState ? 1 : 0, buttonEventType, delta))
+                        _ = new DistributedPowerMoveToBackCommand(Viewer.Log);
+                    ButtonState = buttonState;
+                    break;
+                case CabViewControlType.Orts_DistributedPower_Idle:
+                    buttonState = UpdateCommandValue(ButtonState ? 1 : 0, buttonEventType, delta) > 0;
+                    if (!ButtonState && (ButtonState ? 1 : 0) != UpdateCommandValue(ButtonState ? 1 : 0, buttonEventType, delta))
+                        _ = new DistributedPowerIdleCommand(Viewer.Log);
+                    ButtonState = buttonState;
+                    break;
+                case CabViewControlType.Orts_DistributedPower_Traction:
+                    buttonState = UpdateCommandValue(ButtonState ? 1 : 0, buttonEventType, delta) > 0;
+                    if (!ButtonState && (ButtonState ? 1 : 0) != UpdateCommandValue(ButtonState ? 1 : 0, buttonEventType, delta))
+                        _ = new DistributedPowerTractionCommand(Viewer.Log);
+                    ButtonState = buttonState;
+                    break;
+                case CabViewControlType.Orts_DistributedPower_Brake:
+                    buttonState = UpdateCommandValue(ButtonState ? 1 : 0, buttonEventType, delta) > 0;
+                    if (!ButtonState && (ButtonState ? 1 : 0) != UpdateCommandValue(ButtonState ? 1 : 0, buttonEventType, delta))
+                        _ = new DistributedPowerDynamicBrakeCommand(Viewer.Log);
+                    ButtonState = buttonState;
+                    break;
+                case CabViewControlType.Orts_DistributedPower_Increase:
+                    buttonState = UpdateCommandValue(ButtonState ? 1 : 0, buttonEventType, delta) > 0;
+                    if (!ButtonState && (ButtonState ? 1 : 0) != UpdateCommandValue(ButtonState ? 1 : 0, buttonEventType, delta))
+                        _ = new DistributedPowerIncreaseCommand(Viewer.Log);
+                    ButtonState = buttonState;
+                    break;
+                case CabViewControlType.Orts_DistributedPower_Decrease:
+                    buttonState = UpdateCommandValue(ButtonState ? 1 : 0, buttonEventType, delta) > 0;
+                    if (!ButtonState && (ButtonState ? 1 : 0) != UpdateCommandValue(ButtonState ? 1 : 0, buttonEventType, delta))
+                        _ = new DistributedPowerDecreaseCommand(Viewer.Log);
+                    ButtonState = buttonState;
                     break;
             }
         }
