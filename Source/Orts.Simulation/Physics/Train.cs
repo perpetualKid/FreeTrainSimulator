@@ -206,7 +206,6 @@ namespace Orts.Simulation.Physics
         private int nextSignalIndex = -1;                 // Index in SignalObjectItems for next signal
         private int nextSpeedLimitIndex = -1;             // Index in SignalObjectItems for next speedpost
         internal Signal[] NextSignalObject { get; } = new Signal[2];  // direct reference to next signal
-        public Signal AllowedCallOnSignal { get; internal set; }         // Signal for which train has call on allowed by dispatcher
 
         // Local max speed independently from signal and speedpost speed;
         // depends from various parameters like route max speed, overall or section efficiency of service,
@@ -2422,8 +2421,6 @@ namespace Orts.Simulation.Physics
                 // system will take back control of the signal
                 if (signalObject.HoldState == SignalHoldState.ManualPass || signalObject.HoldState == SignalHoldState.ManualApproach)
                     signalObject.HoldState = SignalHoldState.None;
-
-                AllowedCallOnSignal = null;
             }
             UpdateSectionStateManual();                                                           // update track occupation          //
             UpdateManualMode(SignalObjIndex);                                                     // update route clearance           //
@@ -2448,8 +2445,6 @@ namespace Orts.Simulation.Physics
                 // system will take back control of the signal
                 if (signalObject.HoldState == SignalHoldState.ManualPass || signalObject.HoldState == SignalHoldState.ManualApproach)
                     signalObject.HoldState = SignalHoldState.None;
-
-                AllowedCallOnSignal = null;
             }
             UpdateSectionStateExplorer();                                                         // update track occupation          //
             UpdateExplorerMode(SignalObjIndex);                                                   // update route clearance           //
@@ -5275,8 +5270,6 @@ namespace Orts.Simulation.Physics
                     signalObject.HoldState = SignalHoldState.None;
                 }
 
-                AllowedCallOnSignal = null;
-
                 signalObject.ResetSignalEnabled();
             }
         }
@@ -5378,25 +5371,20 @@ namespace Orts.Simulation.Physics
         /// </summary>
         internal virtual bool TestCallOn(Signal signal, bool allowOnNonePlatform, TrackCircuitPartialPathRoute route)
         {
-            if (AllowedCallOnSignal != signal)
+            bool intoPlatform = false;
+
+            foreach (TrackCircuitRouteElement routeElement in signal.SignalRoute)
             {
-                bool intoPlatform = false;
-
-                foreach (TrackCircuitRouteElement routeElement in signal.SignalRoute)
+                // check if route leads into platform
+                if (routeElement.TrackCircuitSection.PlatformIndices.Count > 0)
                 {
-                    // check if route leads into platform
-                    if (routeElement.TrackCircuitSection.PlatformIndices.Count > 0)
-                    {
-                        intoPlatform = true;
-                    }
+                    intoPlatform = true;
                 }
-
-                //if track does not lead into platform, return state as defined in call
-                // else never allow if track leads into platform
-                return !intoPlatform && allowOnNonePlatform;
             }
 
-            return true;
+            //if track does not lead into platform, return state as defined in call
+            // else never allow if track leads into platform
+            return !intoPlatform && allowOnNonePlatform;
         }
 
         /// <summary>
@@ -5641,8 +5629,6 @@ namespace Orts.Simulation.Physics
                 //the following is added by JTang, passing a hold signal, will take back control by the system
                 if (signal.HoldState == SignalHoldState.ManualPass || signal.HoldState == SignalHoldState.ManualApproach)
                     signal.HoldState = SignalHoldState.None;
-
-                AllowedCallOnSignal = null;
 
                 signal.ResetSignalEnabled();
             }

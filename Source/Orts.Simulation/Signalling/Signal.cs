@@ -102,6 +102,7 @@ namespace Orts.Simulation.Signalling
 #pragma warning restore CA1002 // Do not expose generic lists
         public SignalPermission OverridePermission { get; set; } = SignalPermission.Denied;  // Permission to pass red signal
         public SignalHoldState HoldState { get; set; } = SignalHoldState.None;
+        public bool CallOnManuallyAllowed { get; set; }
 
         //TODO 20201030 next two properties may be better joined into an enum setting
         public bool IsSignal { get; internal set; } = true; // if signal, false if speedpost //
@@ -428,7 +429,7 @@ namespace Orts.Simulation.Signalling
 
         SignalState ISignal.State { get => State; set => State = value; }
 
-        bool ISignal.CallOnEnabled => CallOnEnabled && EnabledTrain != null && EnabledTrain.Train.AllowedCallOnSignal != this;
+        bool ISignal.CallOnEnabled => CallOnEnabled && CallOnManuallyAllowed;
 
         protected SignalState State
         {
@@ -1645,6 +1646,7 @@ namespace Orts.Simulation.Signalling
         {
             // reset train information
             EnabledTrain = null;
+            CallOnManuallyAllowed = false;
             SignalRoute.Clear();
             fullRoute = FixedRoute;
             TrainRouteIndex = -1;
@@ -3399,7 +3401,7 @@ namespace Orts.Simulation.Signalling
 
             if (EnabledTrain.Train != null && SignalRoute != null)
             {
-                return EnabledTrain.Train.TestCallOn(this, allowOnNonePlatform, SignalRoute);
+                return CallOnManuallyAllowed || EnabledTrain.Train.TestCallOn(this, allowOnNonePlatform, SignalRoute);
             }
             return false;
         }
@@ -3717,12 +3719,12 @@ namespace Orts.Simulation.Signalling
             {
                 if (state && CallOnEnabled)
                 {
-                    EnabledTrain.Train.AllowedCallOnSignal = this;
                     DispatcherClearHoldSignal();
+                    CallOnManuallyAllowed = true;
                 }
-                else if (EnabledTrain.Train.AllowedCallOnSignal == this)
+                else
                 {
-                    EnabledTrain.Train.AllowedCallOnSignal = null;
+                    CallOnManuallyAllowed = false;
                 }
             }
         }
