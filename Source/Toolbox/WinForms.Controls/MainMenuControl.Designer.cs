@@ -32,6 +32,7 @@ namespace Orts.Toolbox.WinForms.Controls
             this.MainMenuStrip = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+            this.tempfoldertoolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuItemFolder = new System.Windows.Forms.ToolStripMenuItem();
             this.menuItemRoutes = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
@@ -97,7 +98,6 @@ namespace Orts.Toolbox.WinForms.Controls
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.documentationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.selectRouteFolderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.MainMenuStrip.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -122,11 +122,11 @@ namespace Orts.Toolbox.WinForms.Controls
             // 
             this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripSeparator1,
+            this.tempfoldertoolStripMenuItem,
             this.menuItemFolder,
             this.menuItemRoutes,
             this.toolStripSeparator2,
-            this.menuItemQuit,
-            this.selectRouteFolderToolStripMenuItem});
+            this.menuItemQuit});
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
             this.fileToolStripMenuItem.Size = new System.Drawing.Size(37, 20);
             this.fileToolStripMenuItem.Text = "File";
@@ -134,31 +134,38 @@ namespace Orts.Toolbox.WinForms.Controls
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(177, 6);
+            this.toolStripSeparator1.Size = new System.Drawing.Size(202, 6);
+            // 
+            // tempfoldertoolStripMenuItem
+            // 
+            this.tempfoldertoolStripMenuItem.Name = "tempfoldertoolStripMenuItem";
+            this.tempfoldertoolStripMenuItem.Size = new System.Drawing.Size(205, 22);
+            this.tempfoldertoolStripMenuItem.Text = "Select Temp Folder";
+            this.tempfoldertoolStripMenuItem.Click += new System.EventHandler(this.tempfoldertoolStripMenuItem_Click);
             // 
             // menuItemFolder
             // 
             this.menuItemFolder.Name = "menuItemFolder";
-            this.menuItemFolder.Size = new System.Drawing.Size(180, 22);
-            this.menuItemFolder.Text = "Select Route Folder";
+            this.menuItemFolder.Size = new System.Drawing.Size(205, 22);
+            this.menuItemFolder.Text = "Select ORTS Route Folder";
             this.menuItemFolder.Click += new System.EventHandler(this.menuItemFolder_Click);
             // 
             // menuItemRoutes
             // 
             this.menuItemRoutes.Name = "menuItemRoutes";
-            this.menuItemRoutes.Size = new System.Drawing.Size(180, 22);
+            this.menuItemRoutes.Size = new System.Drawing.Size(205, 22);
             this.menuItemRoutes.Text = "Select Route";
             this.menuItemRoutes.Click += new System.EventHandler(this.menuItemRoutes_Click);
             // 
             // toolStripSeparator2
             // 
             this.toolStripSeparator2.Name = "toolStripSeparator2";
-            this.toolStripSeparator2.Size = new System.Drawing.Size(177, 6);
+            this.toolStripSeparator2.Size = new System.Drawing.Size(202, 6);
             // 
             // menuItemQuit
             // 
             this.menuItemQuit.Name = "menuItemQuit";
-            this.menuItemQuit.Size = new System.Drawing.Size(180, 22);
+            this.menuItemQuit.Size = new System.Drawing.Size(205, 22);
             this.menuItemQuit.Text = "Quit (Q)";
             this.menuItemQuit.Click += new System.EventHandler(this.MenuItemQuit_Click);
             // 
@@ -619,7 +626,7 @@ namespace Orts.Toolbox.WinForms.Controls
             // loadPathToolStripMenuItem
             // 
             this.loadPathToolStripMenuItem.Name = "loadPathToolStripMenuItem";
-            this.loadPathToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.loadPathToolStripMenuItem.Size = new System.Drawing.Size(127, 22);
             this.loadPathToolStripMenuItem.Text = "Load Path";
             this.loadPathToolStripMenuItem.Click += new System.EventHandler(this.loadPathToolStripMenuItem_Click);
             // 
@@ -645,12 +652,6 @@ namespace Orts.Toolbox.WinForms.Controls
             this.aboutToolStripMenuItem.Size = new System.Drawing.Size(157, 22);
             this.aboutToolStripMenuItem.Text = "About";
             this.aboutToolStripMenuItem.Click += new System.EventHandler(this.AboutToolStripMenuItem_Click);
-            // 
-            // selectRouteFolderToolStripMenuItem
-            // 
-            this.selectRouteFolderToolStripMenuItem.Name = "selectRouteFolderToolStripMenuItem";
-            this.selectRouteFolderToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.selectRouteFolderToolStripMenuItem.Text = "Select Route Folder";
             // 
             // MainMenuControl
             // 
@@ -739,6 +740,6 @@ namespace Orts.Toolbox.WinForms.Controls
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator5;
         private System.Windows.Forms.ToolStripMenuItem PathedittoolStripMenuItem1;
         private System.Windows.Forms.ToolStripMenuItem loadPathToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem selectRouteFolderToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem tempfoldertoolStripMenuItem;
     }
 }

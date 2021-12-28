@@ -6,6 +6,9 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 
+using GetText;
+using GetText.WindowsForms;
+
 using Orts.Common;
 using Orts.Common.Info;
 using Orts.Models.Simplified;
@@ -17,11 +20,18 @@ namespace Orts.Toolbox.WinForms.Controls
     public partial class MainMenuControl : UserControl
     {
         private readonly GameWindow parent;
+        
+        private readonly ICatalog catalog;
 
         internal MainMenuControl(GameWindow game)
         {
             parent = game;
             InitializeComponent();
+
+            catalog = CatalogManager.Catalog;
+            Localizer.Localize(this, catalog);
+           
+
             MainMenuStrip.MenuActivate += MainMenuStrip_MenuActivate;
             MainMenuStrip.MenuDeactivate += MainMenuStrip_MenuDeactivate;
             menuItemFolder.DropDown.Closing += FolderDropDown_Closing;
@@ -227,6 +237,7 @@ namespace Orts.Toolbox.WinForms.Controls
         {
             SuspendLayout();
             menuItemFolder.DropDownItems.Clear();
+                    
             foreach (Folder folder in folders)
             {
                 ToolStripMenuItem folderItem = new ToolStripMenuItem(folder.Name)
@@ -236,6 +247,7 @@ namespace Orts.Toolbox.WinForms.Controls
                 folderItem.Click += FolderItem_Click;
                 menuItemFolder.DropDownItems.Add(folderItem);
             }
+            
             ResumeLayout();
         }
 
@@ -360,6 +372,28 @@ namespace Orts.Toolbox.WinForms.Controls
             
         }
 
-       
+        private string tempfolderPath;
+        private string tempfolderName;
+        private Folder folder;
+
+        private async void tempfoldertoolStripMenuItem_Click(object sender, EventArgs e)
+        {
+           
+
+            using (FolderBrowserDialog folderBrowser = new FolderBrowserDialog())
+            {
+                folderBrowser.SelectedPath = "";
+                folderBrowser.Description = catalog.GetString("Select a temporary folder containing Routes folder"); 
+                folderBrowser.ShowNewFolderButton = false;
+                if (folderBrowser.ShowDialog(this) == DialogResult.OK)
+                {
+                   
+                    folder = new Folder(System.IO.Path.GetFileName(tempfolderPath),folderBrowser.SelectedPath);
+                   
+                    parent.UnloadRoute();
+                    PopulateRoutes(await parent.FindRoutes(folder).ConfigureAwait(true));
+                }
+            }
+        }
     }
 }
