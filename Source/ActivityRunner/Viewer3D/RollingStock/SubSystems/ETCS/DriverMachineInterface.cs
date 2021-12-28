@@ -952,6 +952,10 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
             }
             return "";
         }
+        public string GetControlLabel(Point mousePoint)
+        {
+            return GetControlName(mousePoint);
+        }
 
         public override void Draw()
         {

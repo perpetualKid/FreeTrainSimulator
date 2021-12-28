@@ -2260,7 +2260,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 {
                     if (pointedControl != control)
                         // say what control you have here
-                        Viewer.Simulator.Confirmer.Message(ConfirmLevel.None, pointedControl.GetControlName(pointerCommandArgs.Position));
+                        Viewer.Simulator.Confirmer.Message(ConfirmLevel.None, string.IsNullOrEmpty(pointedControl.GetControlLabel()) ? pointedControl.GetControlName(pointerCommandArgs.Position) : pointedControl.GetControlLabel());
                     Viewer.RenderProcess.ActualCursor = Cursors.Hand;
                 }
                 else
@@ -2621,7 +2621,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 {
                     if (pointedControl != control)
                         // say what control you have here
-                        Viewer.Simulator.Confirmer.Message(ConfirmLevel.None, pointedControl.GetControlName(pointerCommandArgs.Position));
+                        Viewer.Simulator.Confirmer.Message(ConfirmLevel.None, string.IsNullOrEmpty(pointedControl.GetControlLabel()) ? pointedControl.GetControlName(pointerCommandArgs.Position) : pointedControl.GetControlLabel());
                     Viewer.RenderProcess.ActualCursor = Cursors.Hand;
                 }
                 else

@@ -64,6 +64,7 @@ namespace Orts.Formats.Msts.Models
 
         public string AceFile { get; protected set; } = string.Empty;
 
+        public string Label { get; protected set; } = string.Empty;
         public int Display { get; protected set; }
         public List<string> Screens { get; protected set; }
         public int CabViewpoint { get; protected set; }
@@ -281,6 +282,11 @@ namespace Orts.Formats.Msts.Models
                     EndAngle = stf.ReadFloat(STFReader.Units.None, null);
                     stf.SkipRestOfBlock();
                 }),
+                new STFReader.TokenProcessor("label", ()=>{
+                    stf.MustMatch("(");
+                    Label = stf.ReadString();
+                    stf.SkipRestOfBlock();
+                }),
                 new STFReader.TokenProcessor("ortsdisplay", () => { ParseDisplay(stf); }),
                 new STFReader.TokenProcessor("ortsscreenpage", () => { ParseScreen(stf); }),
                 new STFReader.TokenProcessor("ortscabviewpoint", ()=>{ ParseCabViewpoint(stf); }),
@@ -348,7 +354,11 @@ namespace Orts.Formats.Msts.Models
                     }
                 }),
                 new STFReader.TokenProcessor("ortsangle", () => { Rotation = ParseRotation(stf); }),
-                new STFReader.TokenProcessor("ortsdisplay", ()=> { ParseDisplay(stf); }),
+                new STFReader.TokenProcessor("label", ()=>{
+                    stf.MustMatch("(");
+                    Label = stf.ReadString();
+                    stf.SkipRestOfBlock();
+                }),                new STFReader.TokenProcessor("ortsdisplay", ()=> { ParseDisplay(stf); }),
                 new STFReader.TokenProcessor("ortsscreenpage", () => { ParseScreen(stf); }),
                 new STFReader.TokenProcessor("ortscabviewpoint", ()=>{ ParseCabViewpoint(stf); }),
 
@@ -445,7 +455,11 @@ namespace Orts.Formats.Msts.Models
                 }),
                 new STFReader.TokenProcessor("ortsfont", ()=>{ParseFont(stf); }),
                 new STFReader.TokenProcessor("ortsangle", () => { Rotation = ParseRotation(stf); }),
-                new STFReader.TokenProcessor("ortsdisplay", () => { ParseDisplay(stf); }),
+                new STFReader.TokenProcessor("label", ()=>{
+                    stf.MustMatch("(");
+                    Label = stf.ReadString();
+                    stf.SkipRestOfBlock();
+                }),                new STFReader.TokenProcessor("ortsdisplay", () => { ParseDisplay(stf); }),
                 new STFReader.TokenProcessor("ortsscreenpage", () => { ParseScreen(stf); }),
                 new STFReader.TokenProcessor("ortscabviewpoint", ()=>{ ParseCabViewpoint(stf); }),
             });
@@ -675,7 +689,11 @@ namespace Orts.Formats.Msts.Models
                             valuesRead++;
                         }
                     }),
-                new STFReader.TokenProcessor("ortsdisplay", () => { ParseDisplay(stf); }),
+                new STFReader.TokenProcessor("label", ()=>{
+                    stf.MustMatch("(");
+                    Label = stf.ReadString();
+                    stf.SkipRestOfBlock();
+                }),                new STFReader.TokenProcessor("ortsdisplay", () => { ParseDisplay(stf); }),
                 new STFReader.TokenProcessor("ortsscreenpage", () => { ParseScreen(stf); }),
                 new STFReader.TokenProcessor("ortsnewscreenpage", () => { ParseNewScreen(stf); }),
                 new STFReader.TokenProcessor("ortscabviewpoint", ()=>{ParseCabViewpoint(stf); }),
