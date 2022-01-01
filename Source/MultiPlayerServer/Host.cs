@@ -175,20 +175,23 @@ namespace Orts.MultiPlayerServer
                     onlinePlayers.Add(playerName, tcpClient);
                     playerNameSet = true;
 
+                    await SendMessage(currentServer, buffer.First).ConfigureAwait(true);
+                    reader.AdvanceTo(buffer.End, buffer.End);
                 }
-
-                if (!string.IsNullOrEmpty(quitPlayer = ReadQuiteMessage(buffer)))
+                else
                 {
-                    if (playerName == quitPlayer)
-                        break;
-                }
+                    if (!string.IsNullOrEmpty(quitPlayer = ReadQuiteMessage(buffer)))
+                    {
+                        if (playerName == quitPlayer)
+                            break;
+                    }
 
-                foreach (ReadOnlyMemory<byte> message in buffer)
-                {
-                    Broadcast(playerName, message);
+                    foreach (ReadOnlyMemory<byte> message in buffer)
+                    {
+                        Broadcast(playerName, message);
+                    }
+                    reader.AdvanceTo(buffer.End, buffer.End);
                 }
-
-                reader.AdvanceTo(buffer.End, buffer.End);
 
                 if (result.IsCompleted)
                 {
@@ -215,7 +218,7 @@ namespace Orts.MultiPlayerServer
                         await clientStream.WriteAsync(buffer).ConfigureAwait(false);
                         await clientStream.FlushAsync().ConfigureAwait(false);
                     }
-                    catch (Exception ex) when (ex is System.IO.IOException || ex is SocketException)
+                    catch (Exception ex) when (ex is System.IO.IOException || ex is SocketException || ex is InvalidOperationException)
                     {
                         await RemovePlayer(playerName).ConfigureAwait(false);
                     }
@@ -233,7 +236,7 @@ namespace Orts.MultiPlayerServer
                 await clientStream.WriteAsync(buffer).ConfigureAwait(false);
                 await clientStream.FlushAsync().ConfigureAwait(false);
             }
-            catch (Exception ex) when (ex is System.IO.IOException || ex is SocketException)
+            catch (Exception ex) when (ex is System.IO.IOException || ex is SocketException || ex is InvalidOperationException)
             {
                 await RemovePlayer(playerName).ConfigureAwait(false);
             }
