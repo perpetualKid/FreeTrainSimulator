@@ -50,6 +50,7 @@ namespace Orts.Toolbox.WinForms.Controls
             SetupColorComboBoxMenuItem(platformColorToolStripComboBoxMenuItem, game.Settings.ColorSettings[ColorSetting.PlatformItem], ColorSetting.PlatformItem);
             SetupColorComboBoxMenuItem(sidingColorToolStripComboBoxMenuItem, game.Settings.ColorSettings[ColorSetting.SidingItem], ColorSetting.SidingItem);
             SetupColorComboBoxMenuItem(speedpostColorToolStripComboBoxMenuItem, game.Settings.ColorSettings[ColorSetting.SpeedPostItem], ColorSetting.SpeedPostItem);
+            SetupColorComboBoxMenuItem(TrainPathMainColortoolStripComboBoxMenuItem, game.Settings.ColorSettings[ColorSetting.TrainPathMain], ColorSetting.TrainPathMain);
 
             SetupVisibilityMenuItem(trackSegmentsVisibleToolStripMenuItem, TrackViewerViewSettings.Tracks);
             SetupVisibilityMenuItem(trackEndNodesVisibleToolStripMenuItem, TrackViewerViewSettings.EndsNodes);
@@ -74,6 +75,7 @@ namespace Orts.Toolbox.WinForms.Controls
             SetupVisibilityMenuItem(hazardsVisibleToolStripMenuItem, TrackViewerViewSettings.Hazards);
             SetupVisibilityMenuItem(pickupsVisibleToolStripMenuItem, TrackViewerViewSettings.Pickups);
             SetupVisibilityMenuItem(soundRegionsVisibleToolStripMenuItem, TrackViewerViewSettings.SoundRegions);
+           
 
             SetupVisibilityMenuItem(tileGidVisibleToolStripMenuItem, TrackViewerViewSettings.Grid);
 
@@ -208,6 +210,7 @@ namespace Orts.Toolbox.WinForms.Controls
         {
             if (sender is ToolStripDropDownItem menuItem && menuItem.Tag is Route route)
             {
+                UncheckOtherFolderMenuItems(menuItemRoutes);
                 await parent.LoadRoute(route).ConfigureAwait(false);
                 paths = (await Path.GetPaths(route, true, System.Threading.CancellationToken.None).ConfigureAwait(false));
                 PopulatePaths(paths);
@@ -367,13 +370,18 @@ namespace Orts.Toolbox.WinForms.Controls
 
         }
 
-        private void loadPathToolStripMenuItem_Click(object sender, EventArgs e)
+        private async void loadPathToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            
+
+            if (sender is ToolStripDropDownItem menuItem && menuItem.Tag is Path path)
+            {
+                await parent.LoadPath(path).ConfigureAwait(false);
+            }
+
         }
 
         private string tempfolderPath;
-        private string tempfolderName;
+ 
         private Folder folder;
 
         private async void tempfoldertoolStripMenuItem_Click(object sender, EventArgs e)
@@ -394,6 +402,16 @@ namespace Orts.Toolbox.WinForms.Controls
                     PopulateRoutes(await parent.FindRoutes(folder).ConfigureAwait(true));
                 }
             }
+        }
+
+        private void speedpostColorToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void TrainPathMainColortoolStripComboBoxMenuItem_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }

@@ -104,6 +104,7 @@ namespace Orts.Toolbox.Settings
             nameof(ColorSetting.PickupItem)+"=White",
             nameof(ColorSetting.SoundRegionItem)+"=White",
             nameof(ColorSetting.LevelCrossingItem)+"=White",
+            nameof(ColorSetting.TrainPathMain)+"=Yellow",
         })]
         public EnumArray<string, ColorSetting> ColorSettings { get; set; }
 

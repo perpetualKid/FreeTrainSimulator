@@ -41,6 +41,7 @@
         PickupItem,
         SoundRegionItem,
         LevelCrossingItem,
+        TrainPathMain,
     }
 
     public enum ColorVariation

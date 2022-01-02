@@ -17,15 +17,21 @@ namespace Orts.Toolbox.PopupWindows
     public class PauseWindow : WindowBase
     {
         private Label headerLabel;
-        private Label cancelButton;
+        private Label okButton;
         private Label printScreenButton;
+        private Label pauseLabel;
 
-        
+
         public event EventHandler OnQuitCancel;
         public event EventHandler OnPrintScreen;
 
+      
+
+
+        public string pauseText { get => pauseLabel?.Text; set => pauseLabel.Text = value; }
+
         public PauseWindow(WindowManager owner, Point relativeLocation) :
-             base(owner, "Pause", relativeLocation, new Point(300, 90))
+             base(owner, "Pause", relativeLocation, new Point(600, 110))
         {
             Modal = true;
             ZOrder = 100;
@@ -36,8 +42,8 @@ namespace Orts.Toolbox.PopupWindows
             if (null == layout)
                 throw new ArgumentNullException(nameof(layout));
 
-            cancelButton = new Label(this, layout.RemainingWidth, Owner.TextFontDefault.Height, CatalogManager.Catalog.GetString("Cancel"), LabelAlignment.Center);
-            cancelButton.OnClick += CancelButton_OnClick;
+            okButton = new Label(this, layout.RemainingWidth, Owner.TextFontDefault.Height, CatalogManager.Catalog.GetString("OK"), LabelAlignment.Center);
+            okButton.OnClick += CancelButton_OnClick;
 
             System.Drawing.Font headerFont = FontManager.Scaled(Owner.DefaultFont, System.Drawing.FontStyle.Bold)[(int)(Owner.DefaultFontSize * 2)];
             // Pad window by 4px, add caption and separator between to content area.
@@ -45,8 +51,10 @@ namespace Orts.Toolbox.PopupWindows
             headerLabel = new Label(this, 0, 0, layout.RemainingWidth, headerFont.Height, Caption, LabelAlignment.Center, headerFont, Color.White);
             layout.Add(headerLabel);
             layout.AddHorizontalSeparator(false);
+            pauseLabel = new Label(this, 0, 0, layout.RemainingWidth, Owner.TextFontDefault.Height, pauseText, LabelAlignment.Center, Owner.TextFontDefault, Color.Orange);
+            layout.Add(pauseLabel);
             ControlLayout buttonLine = layout.AddLayoutHorizontal((int)(Owner.TextFontDefault.Height * 1.25));
-            buttonLine.Add(cancelButton);
+            buttonLine.Add(okButton);
             layout.AddHorizontalSeparator(false);
             printScreenButton = new Label(this, layout.RemainingWidth, Owner.TextFontDefault.Height, CatalogManager.Catalog.GetString($"Take Screenshot ({InputSettings.UserCommands[UserCommand.PrintScreen]})"), LabelAlignment.Center);
             printScreenButton.OnClick += PrintScreenButton_OnClick;

@@ -14,8 +14,10 @@ namespace Orts.Toolbox.PopupWindows
     {
         private Label headerLabel;
         private Label routeLabel;
+        
 
         public string RouteName { get => routeLabel?.Text; set => routeLabel.Text = value; }
+
 
         public StatusTextWindow(WindowManager owner, Point relativeLocation) :
             base(owner, "Loading", relativeLocation, new Point(300, 70))
@@ -33,7 +35,9 @@ namespace Orts.Toolbox.PopupWindows
             layout.Add(headerLabel);
             layout.AddHorizontalSeparator(true);
             routeLabel = new Label(this, 0, 0, layout.RemainingWidth, Owner.TextFontDefault.Height, RouteName, LabelAlignment.Center, Owner.TextFontDefault, Color.Orange);
+          
             layout.Add(routeLabel);
+           
             return layout;
         }
     }

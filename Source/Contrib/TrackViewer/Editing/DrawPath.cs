@@ -20,11 +20,13 @@ using Orts.Common.Position;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
-using ORTS.TrackViewer.Drawing;
-using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+
+using System;
 using System.Linq;
+
+using ORTS.TrackViewer.Drawing;
 
 namespace ORTS.TrackViewer.Editing
 {

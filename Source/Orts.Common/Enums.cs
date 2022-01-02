@@ -916,10 +916,11 @@ namespace Orts.Common
         Pickups         = 0x1 << 19,
         SoundRegions    = 0x1 << 20,
         Grid            = 0x1 << 21,
+        TrainPaths      = 0x1 << 22,
 
         AllTracks = Tracks | EndsNodes | JunctionNodes | LevelCrossings | CrossOvers,
         AllRoads = Roads | RoadEndNodes | RoadCrossings | CarSpawners,
-        AllTrackItems = Sidings | SidingNames | Platforms | PlatformNames | PlatformStations | SpeedPosts | MilePosts | Signals | OtherSignals | Hazards | Pickups | SoundRegions,
+        AllTrackItems = Sidings | SidingNames | Platforms | PlatformNames | PlatformStations | SpeedPosts | MilePosts | Signals | OtherSignals | Hazards | Pickups | SoundRegions | TrainPaths,
         All = AllTracks | AllRoads | AllTrackItems | Grid
     }
 

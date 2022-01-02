@@ -6,10 +6,12 @@ using System.Threading.Tasks;
 
 using Microsoft.Xna.Framework;
 
+using System.Windows.Forms;
 using Orts.Common;
 using Orts.Models.Simplified;
 using Orts.Graphics.Track;
 using Orts.Toolbox.PopupWindows;
+using Orts.Formats.Msts.Files;
 
 namespace Orts.Toolbox
 {
@@ -20,6 +22,7 @@ namespace Orts.Toolbox
         private IEnumerable<Route> routes;
         private readonly SemaphoreSlim loadRoutesSemaphore = new SemaphoreSlim(1);
         private CancellationTokenSource ctsRouteLoading;
+        private CancellationTokenSource ctsPathLoading;
 
         internal async Task LoadFolders()
         {
@@ -90,7 +93,7 @@ namespace Orts.Toolbox
                     if (null != route)
                     {
                         await LoadRoute(route).ConfigureAwait(false);
-                        paths = (await Path.GetPaths(route, true, System.Threading.CancellationToken.None).ConfigureAwait(false));
+                        paths = await Path.GetPaths(route, true, System.Threading.CancellationToken.None).ConfigureAwait(false);
                         mainmenu.PopulatePaths(paths);
                     }
                 }
@@ -98,6 +101,7 @@ namespace Orts.Toolbox
         }
 
         private IEnumerable<Path> paths;
+
         internal void UnloadRoute()
         {
             ContentArea = null;
@@ -112,6 +116,40 @@ namespace Orts.Toolbox
             }
             // Create a new cancellation token source so that can cancel all the tokens again 
             return new CancellationTokenSource();
+        }
+
+        internal async Task LoadPath(Path path)
+        {
+
+            lock (paths)
+            {
+                if (ctsPathLoading != null && !ctsPathLoading.IsCancellationRequested)
+                    ctsPathLoading.Cancel();
+                ctsPathLoading = ResetCancellationTokenSource(ctsPathLoading);
+            }
+
+            CancellationToken token = ctsPathLoading.Token;
+
+            PathFile pathData = new PathFile(path.FilePath);
+
+            (windowManager[WindowType.PauseWindow] as PauseWindow).pauseText = $"pathData: {pathData.Name} " +
+                                 $"  Starting Point:  {pathData.Start} " +
+                                 $"  Ending Point: {pathData.End} ";
+            windowManager[WindowType.PauseWindow].Open();
+         
+            bool? useMetricUnits = (Settings.UserSettings.MeasurementUnit == MeasurementUnit.Metric || Settings.UserSettings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric);
+               if (Settings.UserSettings.MeasurementUnit == MeasurementUnit.Route)
+                   useMetricUnits = null;
+            //
+            //   await trackData.LoadTrackData(useMetricUnits, token).ConfigureAwait(false);
+            //   if (token.IsCancellationRequested)
+            //       return;
+            //
+            //   TrackContent content = new TrackContent(trackData.TrackDB, trackData.RoadTrackDB, trackData.TrackSections, trackData.SignalConfig, trackData.UseMetricUnits);
+            //    await content.Initialize().ConfigureAwait(false);
+            //   ContentArea = new ContentArea(this, route.Name, content, Settings.ColorSettings, viewSettings);
+            //windowManager[WindowType.StatusWindow].Close();
+            //   selectedRoute = route;
         }
 
     }

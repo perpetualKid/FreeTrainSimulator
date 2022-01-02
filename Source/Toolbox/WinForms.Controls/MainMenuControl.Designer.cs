@@ -92,12 +92,15 @@ namespace Orts.Toolbox.WinForms.Controls
             this.sidingColorToolStripComboBoxMenuItem = new System.Windows.Forms.ToolStripComboBox();
             this.speedpostColorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.speedpostColorToolStripComboBoxMenuItem = new System.Windows.Forms.ToolStripComboBox();
+            this.TrainPathMainColortoolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.TrainPathMainColortoolStripComboBoxMenuItem = new System.Windows.Forms.ToolStripComboBox();
             this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
             this.PathedittoolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.loadPathToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.documentationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.CrazyIdeastoolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.MainMenuStrip.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -109,6 +112,7 @@ namespace Orts.Toolbox.WinForms.Controls
             this.viewToolStripMenuItem,
             this.preferencesToolStripMenuItem,
             this.PathedittoolStripMenuItem1,
+            this.CrazyIdeastoolStripMenuItem,
             this.helpToolStripMenuItem});
             this.MainMenuStrip.Location = new System.Drawing.Point(0, 0);
             this.MainMenuStrip.Name = "MainMenuStrip";
@@ -413,6 +417,7 @@ namespace Orts.Toolbox.WinForms.Controls
             this.platformTextColorToolStripMenuItem,
             this.sidingColorToolStripMenuItem,
             this.speedpostColorToolStripMenuItem,
+            this.TrainPathMainColortoolStripMenuItem,
             this.toolStripSeparator4});
             this.preferencesToolStripMenuItem.Name = "preferencesToolStripMenuItem";
             this.preferencesToolStripMenuItem.Size = new System.Drawing.Size(80, 20);
@@ -602,6 +607,7 @@ namespace Orts.Toolbox.WinForms.Controls
             this.speedpostColorToolStripMenuItem.Name = "speedpostColorToolStripMenuItem";
             this.speedpostColorToolStripMenuItem.Size = new System.Drawing.Size(213, 22);
             this.speedpostColorToolStripMenuItem.Text = "SpeedPost Text Color";
+            this.speedpostColorToolStripMenuItem.Click += new System.EventHandler(this.speedpostColorToolStripMenuItem_Click);
             // 
             // speedpostColorToolStripComboBoxMenuItem
             // 
@@ -609,6 +615,22 @@ namespace Orts.Toolbox.WinForms.Controls
             this.speedpostColorToolStripComboBoxMenuItem.MaxDropDownItems = 24;
             this.speedpostColorToolStripComboBoxMenuItem.Name = "speedpostColorToolStripComboBoxMenuItem";
             this.speedpostColorToolStripComboBoxMenuItem.Size = new System.Drawing.Size(224, 23);
+            // 
+            // TrainPathMainColortoolStripMenuItem
+            // 
+            this.TrainPathMainColortoolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.TrainPathMainColortoolStripComboBoxMenuItem});
+            this.TrainPathMainColortoolStripMenuItem.Name = "TrainPathMainColortoolStripMenuItem";
+            this.TrainPathMainColortoolStripMenuItem.Size = new System.Drawing.Size(213, 22);
+            this.TrainPathMainColortoolStripMenuItem.Text = "Train Path (Main) Color";
+            // 
+            // TrainPathMainColortoolStripComboBoxMenuItem
+            // 
+            this.TrainPathMainColortoolStripComboBoxMenuItem.DropDownWidth = 224;
+            this.TrainPathMainColortoolStripComboBoxMenuItem.MaxDropDownItems = 24;
+            this.TrainPathMainColortoolStripComboBoxMenuItem.Name = "TrainPathMainColortoolStripComboBoxMenuItem";
+            this.TrainPathMainColortoolStripComboBoxMenuItem.Size = new System.Drawing.Size(224, 23);
+            this.TrainPathMainColortoolStripComboBoxMenuItem.Click += new System.EventHandler(this.TrainPathMainColortoolStripComboBoxMenuItem_Click);
             // 
             // toolStripSeparator4
             // 
@@ -642,16 +664,22 @@ namespace Orts.Toolbox.WinForms.Controls
             // documentationToolStripMenuItem
             // 
             this.documentationToolStripMenuItem.Name = "documentationToolStripMenuItem";
-            this.documentationToolStripMenuItem.Size = new System.Drawing.Size(157, 22);
+            this.documentationToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.documentationToolStripMenuItem.Text = "Documentation";
             this.documentationToolStripMenuItem.Click += new System.EventHandler(this.DocumentationToolStripMenuItem_Click);
             // 
             // aboutToolStripMenuItem
             // 
             this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
-            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(157, 22);
+            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.aboutToolStripMenuItem.Text = "About";
             this.aboutToolStripMenuItem.Click += new System.EventHandler(this.AboutToolStripMenuItem_Click);
+            // 
+            // CrazyIdeastoolStripMenuItem
+            // 
+            this.CrazyIdeastoolStripMenuItem.Name = "CrazyIdeastoolStripMenuItem";
+            this.CrazyIdeastoolStripMenuItem.Size = new System.Drawing.Size(78, 20);
+            this.CrazyIdeastoolStripMenuItem.Text = "Crazy Ideas";
             // 
             // MainMenuControl
             // 
@@ -741,5 +769,8 @@ namespace Orts.Toolbox.WinForms.Controls
         private System.Windows.Forms.ToolStripMenuItem PathedittoolStripMenuItem1;
         private System.Windows.Forms.ToolStripMenuItem loadPathToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem tempfoldertoolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem TrainPathMainColortoolStripMenuItem;
+        private System.Windows.Forms.ToolStripComboBox TrainPathMainColortoolStripComboBoxMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem CrazyIdeastoolStripMenuItem;
     }
 }
