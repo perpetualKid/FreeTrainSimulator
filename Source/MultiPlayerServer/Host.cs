@@ -175,7 +175,8 @@ namespace Orts.MultiPlayerServer
                     onlinePlayers.Add(playerName, tcpClient);
                     playerNameSet = true;
 
-                    await SendMessage(currentServer, buffer.First).ConfigureAwait(true);
+                    if (currentServer != player)
+                        await SendMessage(currentServer, buffer.First).ConfigureAwait(true);
                     reader.AdvanceTo(buffer.End, buffer.End);
                 }
                 else
