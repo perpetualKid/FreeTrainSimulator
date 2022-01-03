@@ -282,10 +282,6 @@ namespace Orts.Scripting.Api
         /// </summary>
         public Func<float> NextStationDistanceM { get; set; }
         /// <summary>
-        /// Get locomotive handle
-        /// </summary>
-        public Func<dynamic> Locomotive { get; set; } //TODO 20200729 MSTSLocomotive not known here
-        /// <summary>
         /// (float targetDistanceM, float targetSpeedMpS, float slope, float delayS, float decelerationMpS2)
         /// Returns a speed curve based speed limit, unit is m/s
         /// </summary>
