@@ -3111,7 +3111,7 @@ namespace Orts.Simulation.MultiPlayer
                 {
                     foreach (var s in Simulator.Instance.SignalEnvironment.Signals)
                     {
-                        if (s != null && (s.IsSignal || s.IsSpeedSignal) && s.SignalHeads != null)
+                        if (s != null && (s.SignalType == SignalCategory.Signal || s.SignalType == SignalCategory.SpeedSignal) && s.SignalHeads != null)
                             foreach (var h in s.SignalHeads)
                             {
                                 //Trace.WriteLine(h.TDBIndex);
@@ -3182,7 +3182,7 @@ namespace Orts.Simulation.MultiPlayer
                     {
                         foreach (var s in Simulator.Instance.SignalEnvironment.Signals)
                         {
-                            if (s != null && (s.IsSignal || s.IsSpeedSignal) && s.SignalHeads != null)
+                            if (s != null && (s.SignalType == SignalCategory.Signal || s.SignalType == SignalCategory.SpeedSignal) && s.SignalHeads != null)
                                 foreach (var h in s.SignalHeads)
                                 {
                                     //Trace.WriteLine(h.TDBIndex);

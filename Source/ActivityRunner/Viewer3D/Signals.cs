@@ -428,7 +428,7 @@ namespace Orts.ActivityRunner.Viewer3D
             Viewer = viewer;
         }
 
-        public SignalTypeData Get(SignalType mstsSignalType)
+        public SignalTypeData Get(Formats.Msts.Models.SignalType mstsSignalType)
         {
             if (!SignalTypes.ContainsKey(mstsSignalType.Name))
             {
@@ -484,7 +484,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         private readonly Viewer viewer;
 
-        public SignalTypeData(Viewer viewer, SignalType mstsSignalType)
+        public SignalTypeData(Viewer viewer, Formats.Msts.Models.SignalType mstsSignalType)
         {
             viewer = viewer ?? throw new ArgumentNullException(nameof(viewer));
             if (!viewer.Simulator.SignalConfig.LightTextures.ContainsKey(mstsSignalType.LightTextureName))
@@ -577,7 +577,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public readonly bool[] FlashLights;
         public float SemaphorePos;
 
-        public SignalAspectData(SignalType mstsSignalType, SignalDrawState drawStateData)
+        public SignalAspectData(Formats.Msts.Models.SignalType mstsSignalType, SignalDrawState drawStateData)
         {
             if (mstsSignalType.Lights != null)
             {

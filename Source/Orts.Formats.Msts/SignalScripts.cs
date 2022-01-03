@@ -973,15 +973,32 @@ namespace Orts.Formats.Msts
             //================================================================================================//        
             public class SCRParameterType
             {
-                public SCRTermType PartType { get; private set; }
+                public SCRTermType PartType { get; }
 
-                public int PartParameter { get; private set; }
+                public int PartParameter { get; }
 
+                public SignalFunction SignalFunction { get; }
+
+                // <summary>
+                // Constructor for generic parameter
+                // </summary>
                 public SCRParameterType(SCRTermType type, int value)
                 {
                     PartType = type;
                     PartParameter = value;
+                    SignalFunction = Enum.IsDefined(typeof(SignalFunction), value) ? (SignalFunction)value : SignalFunction.Normal;
                 }
+
+                // <summary>
+                // Constructor for signal function parameter
+                // </summary>
+                public SCRParameterType(SCRTermType type, SignalFunction signalFunction)
+                {
+                    PartType = type;
+                    PartParameter = -1;
+                    SignalFunction = signalFunction;
+                }
+
             }
 
             //================================================================================================//

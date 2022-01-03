@@ -35,6 +35,13 @@ namespace Orts.Simulation.Physics
         //      SignalState
         //      AllowedSpeedMpS if value > 0
         //      DistanceToTrainM
+        //      SignalObject
+        //
+        // if ItemType == SPEEDSIGNAL :
+        //      SignalState
+        //      AllowedSpeedMpS if value > 0
+        //      IsWarning
+        //      DistanceToTrainM
         //      Signal
         //
         // if ItemType == SPEEDPOST :
@@ -75,6 +82,18 @@ namespace Orts.Simulation.Physics
             SignalState = aspect;
             AllowedSpeedMpS = speed;
             DistanceToTrainM = distance;
+            Signal = signal;
+        }
+
+        // Constructor for Speed Signal
+        public TrainPathItem(TrackMonitorSignalAspect aspect, float speed, bool warning, float? distance, Signal signal)
+        {
+            ItemType = TrainPathItemType.SpeedSignal;
+            AuthorityType = EndAuthorityType.NoPathReserved;
+            SignalState = aspect;
+            AllowedSpeedMpS = speed;
+            IsWarning = warning;
+            DistanceToTrainM = distance ?? 0.1f;
             Signal = signal;
         }
 
@@ -172,10 +191,9 @@ namespace Orts.Simulation.Physics
             Signal = signal;
         }
 
-        //================================================================================================//
-        //
+        /// <summary>
         // Compare To (to allow sort)
-        //
+        /// </summary>
         public int CompareTo(TrainPathItem other)
         {
             return other == null ? 1 : DistanceToTrainM < other.DistanceToTrainM ? -1 : DistanceToTrainM == other.DistanceToTrainM ? 0 : 1;

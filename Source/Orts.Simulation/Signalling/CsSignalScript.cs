@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 
 using Orts.Common;
 using Orts.Formats.Msts;
@@ -16,6 +17,11 @@ namespace Orts.Simulation.Signalling
         // References and shortcuts. Must be private to not expose them through the API
         private SignalHead signalHead;
         private Signal SignalObject => signalHead.MainSignal;
+
+        //private static Signal SignalById(int id)
+        //{
+        //    return id >= 0 && id < Simulator.Instance.SignalEnvironment.Signals.Count ? Simulator.Instance.SignalEnvironment.Signals[id] : null;
+        //}
 
         private static int SigFnIndex(string sigFn)
         {
@@ -212,12 +218,14 @@ namespace Orts.Simulation.Signalling
             {
                 if (head.OrtsSignalFunctionIndex == SigFnIndex(sigfn))
                 {
-                    if (headindex <= 0) return head.TextSignalAspect;
+                    if (headindex <= 0)
+                        return head.TextSignalAspect;
                     headindex--;
                 }
             }
             return string.Empty;
         }
+
 
         /// <summary>
         /// Obtains the most restrictive aspect of the signals of type A up to the first signal of type B
@@ -389,12 +397,56 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         /// <param name="signalId">Signal ID of the calling signal</param>
         /// <param name="message">Message sent to signal</param>
-        /// <returns></returns>
         public virtual void HandleSignalMessage(int signalId, string message) { }
+
         /// <summary>
         /// Called when the simulator
         /// </summary>
         /// <param name="evt"></param>
         public virtual void HandleEvent(SignalEvent evt, string message = "") { }
+
+        /// <summary>
+        /// Indicates if the signal script has taken control over the speed limit (overrides the speed limit set in the SignalType).
+        /// </summary>
+        public bool SpeedLimitSetByScript { get => signalHead.SpeedInfoSetBySignalScript; set => signalHead.SpeedInfoSetBySignalScript = value; }
+
+        /// <summary>
+        /// Returns the parameters of the speed limit set by the script.
+        /// </summary>
+        /// <returns>A tuple containing the parameters of the speed limit, or null if the speed limit is not set</returns>
+        public (float PassengerSpeedLimitMpS, float FreightSpeedLimitMpS, bool Asap, bool Reset, bool NoSpeedReduction, bool IsWarning)? SpeedLimit()
+        {
+            return signalHead.SignalScriptSpeedInfo != null
+                ? (signalHead.SignalScriptSpeedInfo.PassengerSpeed,
+                        signalHead.SignalScriptSpeedInfo.FreightSpeed,
+                        signalHead.SignalScriptSpeedInfo.Flag,
+                        signalHead.SignalScriptSpeedInfo.Reset,
+                        signalHead.SignalScriptSpeedInfo.LimitedSpeedReduction != 0,
+                        signalHead.SignalScriptSpeedInfo.SpeedWarning)
+                : null;
+        }
+
+        /// <summary>
+        /// Sets a speed limit for the signal head.
+        /// </summary>
+        /// <param name="passengerSpeedLimit">The speed limit for passenger trains in meters per second.</param>
+        /// <param name="freightSpeedLimit">The speed limit for freight trains in meters per second.</param>
+        /// <param name="asap">True if an AI train must apply this speed limit as soon as possible.</param>
+        /// <param name="reset">True if the speed limit is set to the train's maximum speed.</param>
+        /// <param name="noSpeedReduction">True if an AI train shouldn't approach the signal slowly for STOP_AND_PROCEED and RESTRICTED aspects.</param>
+        /// <param name="warning">True if this signal head warns about a speed limit on a following signal.</param>
+        public void SetSpeedLimit(float passengerSpeedLimit, float freightSpeedLimit, bool asap, bool reset, bool noSpeedReduction, bool warning)
+        {
+            signalHead.SignalScriptSpeedInfo = new SpeedInfo(passengerSpeedLimit, freightSpeedLimit, asap, reset, noSpeedReduction ? 1 : 0, warning);
+        }
+
+        /// <summary>
+        /// Removes the speed limit set by the signal script.
+        /// The signal head will now apply the speed limit of the 
+        /// </summary>
+        public void RemoveSpeedLimit()
+        {
+            signalHead.SignalScriptSpeedInfo = null;
+        }
     }
 }

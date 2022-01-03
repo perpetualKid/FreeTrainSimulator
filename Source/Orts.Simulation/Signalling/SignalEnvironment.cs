@@ -42,18 +42,11 @@ using Orts.Simulation.Track;
 namespace Orts.Simulation.Signalling
 {
 
-    //================================================================================================//
-    //================================================================================================//
     /// <summary>
     /// Class Signals
     /// </summary>
     public class SignalEnvironment
     {
-
-        //================================================================================================//
-        // local data
-        //================================================================================================//
-
         /// Gets an array of all the SignalObjects.
         public List<Signal> Signals { get; private set; }
 
@@ -76,11 +69,9 @@ namespace Orts.Simulation.Signalling
         private List<Milepost> milepostList = new List<Milepost>();                     // list of mileposts
         private int foundMileposts;
 
-        //================================================================================================//
         /// <summary>
         /// Constructor
         /// </summary>
-
         public SignalEnvironment(SignalConfigurationFile sigcfg, bool locationPassingPaths, CancellationToken token)
         {
             UseLocationPassingPaths = locationPassingPaths;
@@ -163,7 +154,6 @@ namespace Orts.Simulation.Signalling
             DeadlockReference = new Dictionary<int, int>();
         }
 
-        //================================================================================================//
         /// <summary>
         /// Overlay constructor for restore after saved game
         /// </summary>
@@ -218,7 +208,6 @@ namespace Orts.Simulation.Signalling
             }
         }
 
-        //================================================================================================//
         /// <summary>
         /// Restore Train links
         /// Train links must be restored separately as Trains is restored later as Signals
@@ -250,7 +239,6 @@ namespace Orts.Simulation.Signalling
             }
         }
 
-        //================================================================================================//
         /// <summary>
         /// Save game
         /// </summary>
@@ -295,7 +283,6 @@ namespace Orts.Simulation.Signalling
 
         }
 
-        //================================================================================================//
         /// <summary>
         /// Read all world files to get signal flags
         /// </summary>
@@ -404,7 +391,6 @@ namespace Orts.Simulation.Signalling
             Trace.TraceInformation("Loading WorldFiles for Signal World");
         }
 
-        //================================================================================================//
         /// <summary>
         /// Update : perform signal updates
         /// </summary>
@@ -439,11 +425,9 @@ namespace Orts.Simulation.Signalling
                 updateStart = 0;
         }
 
-        //================================================================================================//
         /// <summary></summary>
         /// Build signal list from TDB
         /// </summary>
-
         private void BuildSignalList(List<TrackItem> trackItems, TrackNodes trackNodes, Dictionary<int, int> platformList, ConcurrentBag<SignalWorldInfo> signalWorldList)
         {
 
@@ -480,11 +464,8 @@ namespace Orts.Simulation.Signalling
             {
                 Signals = new List<Signal>();
             }
+        }
 
-        } //BuildSignalList
-
-
-        //================================================================================================//
         /// <summary>
         /// Split backfacing signals
         /// </summary>
@@ -494,7 +475,7 @@ namespace Orts.Simulation.Signalling
             // Loop through all signals to check on Backfacing heads
             foreach (Signal signal in Signals)
             {
-                if (signal.IsSignal && signal.WorldObject?.Backfacing.Count > 0)
+                if (signal.SignalType == SignalCategory.Signal && signal.WorldObject?.Backfacing.Count > 0)
                 {
                     // create new signal - copy of existing signal
                     // use Backfacing flags and reset head indication
@@ -612,7 +593,6 @@ namespace Orts.Simulation.Signalling
             Signals.AddRange(backfacingSignals);
         }
 
-        //================================================================================================//
         /// <summary>
         /// ScanSection : This method checks a section in the TDB for signals or speedposts
         /// </summary>
@@ -682,13 +662,11 @@ namespace Orts.Simulation.Signalling
                     }
                 }
             }
-        }   //ScanSection 
+        }
 
-        //================================================================================================//
         /// <summary>
         /// Merge Heads
         /// </summary>
-
         private void MergeHeads(ConcurrentBag<SignalWorldInfo> signalWorldList, Dictionary<int, Signal> signalHeadList)
         {
             foreach (SignalWorldInfo signalWorldInfo in signalWorldList)
@@ -732,7 +710,6 @@ namespace Orts.Simulation.Signalling
             }
         }
 
-        //================================================================================================//
         /// <summary>
         /// This method adds a new Signal to the list
         /// </summary>
@@ -749,8 +726,6 @@ namespace Orts.Simulation.Signalling
 
             Signal signal = new Signal(Signals.Count, traveller)
             {
-                IsSignal = true,
-                IsSpeedSignal = false,
                 TrackDirection = sigItem.Direction,
                 TrackNode = trackNode,
                 TrackItemRefIndex = nodeIndex
@@ -769,10 +744,8 @@ namespace Orts.Simulation.Signalling
                 signalHeadList.Add(tdbRef, signal);
             }
             return true;
-        } // AddSignal
+        }
 
-
-        //================================================================================================//
         /// <summary>
         /// This method adds a new Speedpost to the list
         /// </summary>
@@ -782,8 +755,6 @@ namespace Orts.Simulation.Signalling
 
             Signal signal = new Signal(Signals.Count, traveller)
             {
-                IsSignal = false,
-                IsSpeedSignal = false,
                 TrackDirection = TrackDirection.Ahead,
                 TrackNode = trackNode,
                 TrackItemRefIndex = nodeIndex,
@@ -802,13 +773,11 @@ namespace Orts.Simulation.Signalling
                 signal.TdbTraveller.ReverseDirection();
             }
             Signals.Add(signal);
-        } // AddSpeed
+        }
 
-        //================================================================================================//
         /// <summary>
         /// This method adds a new Milepost to the list
         /// </summary>
-
         private int AddMilepost(SpeedPostItem speedItem, int tdbRef)
         {
             Milepost milepost = new Milepost(tdbRef, speedItem.Distance);
@@ -816,9 +785,8 @@ namespace Orts.Simulation.Signalling
 
             foundMileposts = milepostList.Count;
             return foundMileposts - 1;
-        } // AddMilepost
+        }
 
-        //================================================================================================//
         /// <summary>
         /// Add the sigcfg reference to each signal object.
         /// </summary>
@@ -826,14 +794,10 @@ namespace Orts.Simulation.Signalling
         {
             foreach (Signal signal in Signals)
             {
-                if (signal.IsSignal)
-                {
-                    signal.SetSignalType(signalConfig);
-                }
+                signal?.SetSignalType(signalConfig);
             }
-        }//AddCFG
+        }
 
-        //================================================================================================//
         /// <summary>
         /// Add info from signal world objects to signal
         /// </summary>
@@ -842,7 +806,7 @@ namespace Orts.Simulation.Signalling
             // loop through all signal and all heads
             foreach (Signal signal in Signals)
             {
-                if (signal.IsSignal || signal.IsSpeedSignal)
+                if (signal.SignalType == SignalCategory.Signal || signal.SignalType == SignalCategory.SpeedSignal)
                 {
                     foreach (SignalHead head in signal.SignalHeads)
                     {
@@ -857,10 +821,7 @@ namespace Orts.Simulation.Signalling
 
                     if (speedpostWorldLookup.TryRemove(head.TDBIndex, out int speedPostIndex))
                     {
-                        if (signal.SpeedPostWorldObject == null)
-                        {
-                            signal.SpeedPostWorldObject = speedpostWorldList[speedPostIndex];
-                        }
+                        signal.SpeedPostWorldObject ??= speedpostWorldList[speedPostIndex];
                     }
                 }
             }
@@ -872,7 +833,7 @@ namespace Orts.Simulation.Signalling
             {
                 if (signal != null)
                 {
-                    if (signal.IsSignal || signal.IsSpeedSignal)
+                    if (signal.SignalType == SignalCategory.Signal || signal.SignalType == SignalCategory.SpeedSignal)
                     {
                         signal.Initialize();
                     }
@@ -880,7 +841,6 @@ namespace Orts.Simulation.Signalling
             }
         }
 
-        //================================================================================================//
         /// <summary>
         /// FindByTrackItem : find required signalObj + signalHead
         /// </summary>
@@ -893,7 +853,6 @@ namespace Orts.Simulation.Signalling
             return null;
         }//FindByTrItem
 
-        //================================================================================================//
         /// <summary>
         /// Count number of normal signal heads
         /// </summary>
@@ -905,7 +864,6 @@ namespace Orts.Simulation.Signalling
             }
         }
 
-        //================================================================================================//
         /// <summary>
         /// Find_Next_Object_InRoute : find next item along path of train - using Route List (only forward)
         /// Objects to search for : SpeedPost, Signal
@@ -923,7 +881,6 @@ namespace Orts.Simulation.Signalling
         ///   -5  : end of authority
         ///   -6  : end of (sub)route
         /// </summary>
-
         internal TrackCircuitSignalItem FindNextObjectInRoute(TrackCircuitPartialPathRoute routePath, int routeIndex, float routePosition, float maxDistance, SignalFunction signalType, Train.TrainRouted train)
         {
             if (null == routePath)
@@ -985,7 +942,7 @@ namespace Orts.Simulation.Signalling
                                 totalLength += (speedpost.SignalLocation - lengthOffset);
                             }
                             // also set signal in list if it is a speed signal as state of speed signal may change
-                            else if (speedpost.Signal.IsSpeedSignal)
+                            else if (speedpost.Signal.SignalType == SignalCategory.SpeedSignal)
                             {
                                 locstate = SignalItemFindState.Item;
                                 foundObject = speedpost.Signal;
@@ -1018,7 +975,7 @@ namespace Orts.Simulation.Signalling
                     totalLength += (section.Length - lengthOffset);
                     lengthOffset = 0;
 
-                    int setSection = section.ActivePins[(TrackDirection)routeElement.OutPin[Location.NearEnd], (Location)routeElement.OutPin[Location.FarEnd]].Link;
+                    int setSection = section.ActivePins[routeElement.OutPin[Location.NearEnd], (Location)routeElement.OutPin[Location.FarEnd]].Link;
                     actRouteIndex++;
 
                     if (setSection < 0)
@@ -1045,7 +1002,6 @@ namespace Orts.Simulation.Signalling
             return foundObject != null ? new TrackCircuitSignalItem(foundObject, totalLength) : new TrackCircuitSignalItem(locstate);
         }
 
-        //================================================================================================//
         /// <summary>
         /// GetNextObject_InRoute : find next item along path of train - using Route List (only forward)
         ///
@@ -1063,8 +1019,6 @@ namespace Orts.Simulation.Signalling
         ///   -5  : end of authority
         ///   -6  : end of (sub)route
         /// </summary>
-
-
         // call without position
         internal SignalItemInfo GetNextObjectInRoute(Train.TrainRouted train, TrackCircuitPartialPathRoute routePath,
                     int routeIndex, float routePosition, float maxDistance, SignalItemType requiredType)
@@ -1207,7 +1161,6 @@ namespace Orts.Simulation.Signalling
             return (signalInfo?.SignalDetails, signalInfo.DistanceFound);
         }
 
-        //================================================================================================//
         /// <summary>
         /// Gets the Track Monitor Aspect from the MSTS aspect (for the TCS) 
         /// </summary>
@@ -1236,7 +1189,6 @@ namespace Orts.Simulation.Signalling
             }
         } // GetMonitorAspect
 
-        //================================================================================================//
         /// <summary>
         /// Create Track Circuits
         /// <summary>
@@ -1331,7 +1283,6 @@ namespace Orts.Simulation.Signalling
             }
         }
 
-        //================================================================================================//
         /// <summary>
         /// ProcessNodes
         /// </summary>
@@ -1362,7 +1313,6 @@ namespace Orts.Simulation.Signalling
             }
         }
 
-        //================================================================================================//
         /// <summary>
         /// InsertNode
         /// </summary>
@@ -1486,7 +1436,6 @@ namespace Orts.Simulation.Signalling
             return newLastDistance;
         }
 
-        //================================================================================================//
         /// <summary>
         /// Split on Signals
         /// </summary>
@@ -1525,10 +1474,7 @@ namespace Orts.Simulation.Signalling
                 }
             }
 
-            //
             // in direction Heading.Reverse, check original item and all added items
-            //
-
             foreach (int actIndex in addIndex)
             {
                 index = actIndex;
@@ -1564,11 +1510,9 @@ namespace Orts.Simulation.Signalling
                     index = section.CircuitItems.TrackCircuitSignals[TrackDirection.Reverse][(int)SignalFunction.Normal].Count > 0 ? index : newIndex;
                 }
             }
-
             return nextNode;
         }
 
-        //================================================================================================//
         /// <summary>
         /// Split CrossOvers
         /// </summary>
@@ -1618,7 +1562,6 @@ namespace Orts.Simulation.Signalling
             return nextNode;
         }
 
-        //================================================================================================//
         /// <summary>
         /// Get cross-over section index
         /// </summary>
@@ -1667,7 +1610,6 @@ namespace Orts.Simulation.Signalling
             return sectionIndex;
         }
 
-        //================================================================================================//
         /// <summary>
         /// Check pin links
         /// </summary>
@@ -1737,7 +1679,6 @@ namespace Orts.Simulation.Signalling
             return nextNode;
         }
 
-        //================================================================================================//
         /// <summary>
         /// set active pins for non-junction links
         /// </summary>
@@ -1795,7 +1736,6 @@ namespace Orts.Simulation.Signalling
             }
         }
 
-        //================================================================================================//
         /// <summary>
         /// set cross-reference to tracknodes
         /// </summary>
@@ -1835,7 +1775,6 @@ namespace Orts.Simulation.Signalling
             }
         }
 
-        //================================================================================================//
         /// <summary>
         /// set cross-reference to tracknodes for CrossOver items
         /// </summary>
@@ -1874,7 +1813,6 @@ namespace Orts.Simulation.Signalling
             }
         }
 
-        //================================================================================================//
         /// <summary>
         /// Set physical switch
         /// </summary>
@@ -1896,7 +1834,6 @@ namespace Orts.Simulation.Signalling
             }
         }
 
-        //================================================================================================//
         /// <summary>
         /// Node control track clearance update request
         /// </summary>
@@ -2070,7 +2007,6 @@ namespace Orts.Simulation.Signalling
 
             // check if present clearance is beyond required maximum distance
             // try to clear further ahead if required
-
             if (!furthestRouteCleared)
             {
 
@@ -2324,7 +2260,6 @@ namespace Orts.Simulation.Signalling
             train.Train.DistanceToEndNodeAuthorityM[train.TrainRouteDirectionIndex] = clearedDistanceM;
         }
 
-        //================================================================================================//
         /// <summary>
         /// Break down reserved route
         /// </summary>
@@ -2415,7 +2350,6 @@ namespace Orts.Simulation.Signalling
             }
         }
 
-        //================================================================================================//
         /// <summary>
         /// Break down reserved route using route list
         /// </summary>
@@ -2440,7 +2374,6 @@ namespace Orts.Simulation.Signalling
             }
         }
 
-        //================================================================================================//
         /// Build temp route for train
         /// <summary>
         /// Used for trains without path (eg stationary constists), manual operation
@@ -2483,7 +2416,6 @@ namespace Orts.Simulation.Signalling
             return tempRoute;
         }
 
-        //================================================================================================//
         /// <summary>
         /// Follow default route for train
         /// Use for :
@@ -2531,9 +2463,7 @@ namespace Orts.Simulation.Signalling
 
             while (!endOfRoute)
             {
-
                 // check looped
-
                 int routedIndex = curDirection == 0 ? thisIndex : -thisIndex;
                 if (foundItems.Contains(thisIndex) || foundItems.Contains(-thisIndex))
                 {
@@ -2551,7 +2481,6 @@ namespace Orts.Simulation.Signalling
                 TrackDirection inPinDirection = outPinDirection.Reverse();
 
                 // check all conditions and objects as required
-
                 if (stopAtFacingSignal && section.EndSignals[curDirection] != null)           // stop at facing signal
                 {
                     endOfRoute = true;
@@ -2793,7 +2722,6 @@ namespace Orts.Simulation.Signalling
             return returnSections ? foundItems : foundObject;
         }
 
-        //================================================================================================//
         /// <summary>
         /// Process Platforms
         /// </summary>
@@ -3098,7 +3026,6 @@ namespace Orts.Simulation.Signalling
             }
         }// ProcessPlatforms
 
-        //================================================================================================//
         /// <summary>
         /// Resolve split platforms
         /// </summary>
@@ -3319,7 +3246,6 @@ namespace Orts.Simulation.Signalling
             }
         }
 
-        //================================================================================================//
         /// <summary>
         /// Remove all deadlock path references for specified train
         /// </summary>
@@ -3376,7 +3302,6 @@ namespace Orts.Simulation.Signalling
             }
         }
 
-        //================================================================================================//
         /// <summary>
         /// ProcessTunnels
         /// Process tunnel sections and add info to TrackCircuitSections
@@ -3520,7 +3445,6 @@ namespace Orts.Simulation.Signalling
             }
         }
 
-        //================================================================================================//
         /// <summary>
         /// ProcessTroughs
         /// Process trough sections and add info to TrackCircuitSections
@@ -3665,7 +3589,6 @@ namespace Orts.Simulation.Signalling
             }
         }
 
-        //================================================================================================//
         /// <summary>
         /// Find Train
         /// Find train in list using number, to restore reference after restore
@@ -3675,7 +3598,6 @@ namespace Orts.Simulation.Signalling
             return trains?.Where(train => train.Number == number).FirstOrDefault();
         }
 
-        //================================================================================================//
         /// <summary>
         /// Request set switch
         /// Manual request to set switch, either from train or direct from node

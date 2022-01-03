@@ -2658,7 +2658,7 @@ namespace Orts.Simulation.Physics
             {
                 firstObject.DistanceToTrain = firstObject.DistanceFound;
                 SignalObjectItems.Add(firstObject);
-                if (firstObject.SignalDetails.IsSignal)
+                if (firstObject.SignalDetails.SignalType == SignalCategory.Signal)
                 {
                     nextAspect = firstObject.SignalDetails.SignalLR(SignalFunction.Normal);
                     firstObject.SignalState = nextAspect;
@@ -2710,7 +2710,7 @@ namespace Orts.Simulation.Physics
 
                 if (returnState == SignalItemFindState.Item)
                 {
-                    if (nextObject.SignalDetails.IsSignal)
+                    if (nextObject.SignalDetails.SignalType == SignalCategory.Signal)
                     {
                         nextObject.SignalState = nextObject.SignalDetails.SignalLR(SignalFunction.Normal);
                         nextAspect = nextObject.SignalState;
@@ -2809,10 +2809,10 @@ namespace Orts.Simulation.Physics
                 while (firstObject.DistanceToTrain < 0.0f && SignalObjectItems.Count > 0)
                 {
                     // If the object is a signal or a speed limit execution
-                    if (firstObject.SignalDetails.IsSignal || !firstObject.SpeedInfo.SpeedWarning)
+                    if (firstObject.SignalDetails.SignalType == SignalCategory.Signal || !firstObject.SpeedInfo.SpeedWarning)
                     {
                         float temp1MaxSpeedMpS = IsFreight ? firstObject.SpeedInfo.FreightSpeed : firstObject.SpeedInfo.PassengerSpeed;
-                        if (firstObject.SignalDetails.IsSignal)
+                        if (firstObject.SignalDetails.SignalType == SignalCategory.Signal)
                         {
                             allowedAbsoluteMaxSpeedSignalMpS = temp1MaxSpeedMpS == -1 ? (float)simulator.Route.SpeedLimit : temp1MaxSpeedMpS;
                         }
@@ -2842,7 +2842,7 @@ namespace Orts.Simulation.Physics
                                 }
 
 
-                                if (firstObject.SignalDetails.IsSignal)
+                                if (firstObject.SignalDetails.SignalType == SignalCategory.Signal)
                                 {
                                     AllowedMaxSpeedSignalMpS = tempMaxSpeedMps;
                                 }
@@ -2860,7 +2860,7 @@ namespace Orts.Simulation.Physics
                             {
                                 ActivateSpeedLimit speedLimit;
                                 float reqDistance = DistanceTravelledM + Length;
-                                if (firstObject.SignalDetails.IsSignal)
+                                if (firstObject.SignalDetails.SignalType == SignalCategory.Signal)
                                 {
                                     speedLimit = new ActivateSpeedLimit(reqDistance, -1f, firstObject.ActualSpeed);
                                 }
@@ -2884,7 +2884,7 @@ namespace Orts.Simulation.Physics
                             float tempMaxSpeedMps = IsFreight ? firstObject.SpeedInfo.FreightSpeed : firstObject.SpeedInfo.PassengerSpeed;
                             if (tempMaxSpeedMps >= 0)
                             {
-                                if (firstObject.SignalDetails.IsSignal)
+                                if (firstObject.SignalDetails.SignalType == SignalCategory.Signal)
                                 {
                                     AllowedMaxSpeedSignalMpS = tempMaxSpeedMps;
                                 }
@@ -2896,7 +2896,7 @@ namespace Orts.Simulation.Physics
                                         allowedMaxTempSpeedLimitMpS = tempMaxSpeedMps;
                                 }
                             }
-                            else if (firstObject.SignalDetails.IsSignal)
+                            else if (firstObject.SignalDetails.SignalType == SignalCategory.Signal)
                             {
                                 AllowedMaxSpeedSignalMpS = allowedAbsoluteMaxSpeedSignalMpS;
                             }
@@ -2994,14 +2994,16 @@ namespace Orts.Simulation.Physics
             {
 
                 // Update state and speed of first object if signal
-                if (firstObject.SignalDetails.IsSignal)
+                switch (firstObject.SignalDetails.SignalType)
                 {
-                    firstObject.SignalState = firstObject.SignalDetails.SignalLR(SignalFunction.Normal);
-                    firstObject.SpeedInfo = new SpeedInfo(firstObject.SignalDetails.SignalSpeed(SignalFunction.Normal));
-                }
-                else if (firstObject.SignalDetails.SignalHeads[0]?.SignalFunction == SignalFunction.Speed)// check if object is SPEED info signal
-                {
-                    firstObject.SpeedInfo = new SpeedInfo(firstObject.SignalDetails.SignalSpeed(SignalFunction.Speed));
+                    case SignalCategory.Signal:
+                        firstObject.SignalState = firstObject.SignalDetails.SignalLR(SignalFunction.Normal);
+                        firstObject.SpeedInfo = new SpeedInfo(firstObject.SignalDetails.SignalSpeed(SignalFunction.Normal));
+                        break;
+                    case SignalCategory.SpeedSignal:
+                    case SignalCategory.SpeedPost:
+                        firstObject.SpeedInfo = new SpeedInfo(firstObject.SignalDetails.SignalSpeed(SignalFunction.Speed));
+                        break;
                 }
 
                 // Update all objects in list (except first)
@@ -3014,18 +3016,19 @@ namespace Orts.Simulation.Physics
                     nextObject.DistanceToTrain = prevObject.DistanceToTrain + nextObject.DistanceToObject;
                     lastDistance = nextObject.DistanceToTrain;
 
-                    if (nextObject.SignalDetails.IsSignal)
+                    switch (nextObject.SignalDetails.SignalType)
                     {
-                        nextObject.SignalState = nextObject.SignalDetails.SignalLR(SignalFunction.Normal);
-                        if (nextObject.SignalDetails.EnabledTrain != null && nextObject.SignalDetails.EnabledTrain.Train != this)
-                            nextObject.SignalState = SignalAspectState.Stop; // state not valid if not enabled for this train
-                        nextObject.SpeedInfo = new SpeedInfo(nextObject.SignalState == SignalAspectState.Stop ? null : nextObject.SignalDetails.SignalSpeed(SignalFunction.Normal));
+                        case SignalCategory.Signal:
+                            nextObject.SignalState = nextObject.SignalDetails.SignalLR(SignalFunction.Normal);
+                            if (nextObject.SignalDetails.EnabledTrain != null && nextObject.SignalDetails.EnabledTrain.Train != this)
+                                nextObject.SignalState = SignalAspectState.Stop; // state not valid if not enabled for this train
+                            nextObject.SpeedInfo = new SpeedInfo(nextObject.SignalState == SignalAspectState.Stop ? null : nextObject.SignalDetails.SignalSpeed(SignalFunction.Normal));
+                            break;
+                        case SignalCategory.SpeedSignal:
+                        case SignalCategory.SpeedPost:
+                            nextObject.SpeedInfo = new SpeedInfo(nextObject.SignalDetails.SignalSpeed(SignalFunction.Speed));
+                            break;
                     }
-                    else if (nextObject.SignalDetails.SignalHeads[0].SignalFunction == SignalFunction.Speed) // check if object is SPEED info signal
-                    {
-                        nextObject.SpeedInfo = new SpeedInfo(nextObject.SignalDetails.SignalSpeed(SignalFunction.Speed));
-                    }
-
                     prevObject = nextObject;
                 }
 
@@ -3084,18 +3087,19 @@ namespace Orts.Simulation.Physics
                         lastDistance = nextObject.DistanceToTrain;
                         SignalObjectItems.Add(nextObject);
 
-                        if (nextObject.SignalDetails.IsSignal)
+                        switch (nextObject.SignalDetails.SignalType)
                         {
-                            nextObject.SignalState = nextObject.SignalDetails.SignalLR(SignalFunction.Normal);
-                            nextAspect = nextObject.SignalState;
-                            nextObject.SpeedInfo = new SpeedInfo(nextObject.SignalDetails.SignalSpeed(SignalFunction.Normal));
-                        }
-                        else if (nextObject.SignalDetails.SignalHeads != null)  // check if object is SPEED info signal
-                        {
-                            if (nextObject.SignalDetails.SignalHeads[0].SignalFunction == SignalFunction.Speed)
-                            {
+                            case SignalCategory.Signal:
+                                nextObject.SignalState = nextObject.SignalDetails.SignalLR(SignalFunction.Normal);
+                                nextAspect = nextObject.SignalState;
+                                nextObject.SpeedInfo = new SpeedInfo(nextObject.SignalDetails.SignalSpeed(SignalFunction.Normal));
+                                break;
+                            case SignalCategory.SpeedSignal:
+                            case SignalCategory.SpeedPost:
                                 nextObject.SpeedInfo = new SpeedInfo(nextObject.SignalDetails.SignalSpeed(SignalFunction.Speed));
-                            }
+                                break;
+                        }
+                        {
                         }
 
                         prevObject = nextObject;
@@ -3228,7 +3232,7 @@ namespace Orts.Simulation.Physics
 
                 float actualSpeedMpS = IsFreight ? signalInfo.SpeedInfo.FreightSpeed : signalInfo.SpeedInfo.PassengerSpeed;
 
-                if (signalInfo.SignalDetails.IsSignal)
+                if (signalInfo.SignalDetails.SignalType == SignalCategory.Signal)
                 {
                     if (actualSpeedMpS > 0 && (signalInfo.SpeedInfo.Flag || !simulator.TimetableMode))
                     {
@@ -6535,38 +6539,38 @@ namespace Orts.Simulation.Physics
             if (foundSpeedLimit.Count > 0)
             {
                 Signal signal = Simulator.Instance.SignalEnvironment.Signals[Math.Abs(foundSpeedLimit[0])];
-                if (signal.IsSignal)
+                switch (signal.SignalType)
                 {
-                    // if signal is now just behind train - set speed as signal speed limit, do not reenter in list
-                    if (PassedSignalSpeeds.ContainsKey(signal.Index))
-                    {
-                        AllowedMaxSpeedSignalMpS = PassedSignalSpeeds[signal.Index];
-                        AllowedMaxSpeedMpS = Math.Min(AllowedMaxSpeedSignalMpS, AllowedMaxSpeedMpS);
-                        LastPassedSignal[routeDirection] = signal.Index;
-                    }
-                    // if signal is not last passed signal - reset signal speed limit
-                    else if (signal.Index != LastPassedSignal[routeDirection])
-                    {
-                        AllowedMaxSpeedSignalMpS = TrainMaxSpeedMpS;
-                        LastPassedSignal[routeDirection] = -1;
-                    }
-                    // set signal limit as speed limit
-                    else
-                    {
-                        AllowedMaxSpeedMpS = Math.Min(AllowedMaxSpeedSignalMpS, AllowedMaxSpeedMpS);
-                    }
-                }
-                else if (signal.SignalHeads[0].SignalFunction == SignalFunction.Speed)
-                {
-                    SpeedInfo speedInfo = signal.SignalSpeed(SignalFunction.Speed);
-                    if (speedInfo != null && speedInfo.Reset)
-                    {
-                        AllowedMaxSpeedSignalMpS = TrainMaxSpeedMpS;
-                        if (simulator.TimetableMode)
-                            AllowedMaxSpeedMpS = AllowedMaxSpeedLimitMpS;
+                    case SignalCategory.Signal:
+
+                        // if signal is now just behind train - set speed as signal speed limit, do not reenter in list
+                        if (PassedSignalSpeeds.ContainsKey(signal.Index))
+                        {
+                            AllowedMaxSpeedSignalMpS = PassedSignalSpeeds[signal.Index];
+                            AllowedMaxSpeedMpS = Math.Min(AllowedMaxSpeedSignalMpS, AllowedMaxSpeedMpS);
+                            LastPassedSignal[routeDirection] = signal.Index;
+                        }
+                        // if signal is not last passed signal - reset signal speed limit
+                        else if (signal.Index != LastPassedSignal[routeDirection])
+                        {
+                            AllowedMaxSpeedSignalMpS = TrainMaxSpeedMpS;
+                            LastPassedSignal[routeDirection] = -1;
+                        }
+                        // set signal limit as speed limit
                         else
-                            AllowedMaxSpeedMpS = Math.Min(allowedMaxTempSpeedLimitMpS, AllowedMaxSpeedLimitMpS);
-                    }
+                        {
+                            AllowedMaxSpeedMpS = Math.Min(AllowedMaxSpeedSignalMpS, AllowedMaxSpeedMpS);
+                        }
+                        break;
+                    case SignalCategory.SpeedSignal:
+                    case SignalCategory.SpeedPost:
+                        SpeedInfo speedInfo = signal.SignalSpeed(SignalFunction.Speed);
+                        if (speedInfo != null && speedInfo.Reset)
+                        {
+                            AllowedMaxSpeedSignalMpS = TrainMaxSpeedMpS;
+                            AllowedMaxSpeedMpS = simulator.TimetableMode ? AllowedMaxSpeedLimitMpS : Math.Min(allowedMaxTempSpeedLimitMpS, AllowedMaxSpeedLimitMpS);
+                        }
+                        break;
                 }
             }
 
@@ -6599,51 +6603,52 @@ namespace Orts.Simulation.Physics
                     TrackDirection direction = signal.TrackCircuitDirection;
                     float objectOffset = signal.TrackCircuitOffset;
 
-                    if (signal.IsSignal)
+                    switch (signal.SignalType)
                     {
-                        nextSectionIndex = signal.TrackCircuitNextIndex;
-                        direction = signal.TrackCircuitNextDirection;
-                        objectOffset = 0.0f;
+                        case SignalCategory.Signal:
+                            nextSectionIndex = signal.TrackCircuitNextIndex;
+                            direction = signal.TrackCircuitNextDirection;
+                            objectOffset = 0.0f;
 
-                        if (PassedSignalSpeeds.ContainsKey(signal.Index))
-                        {
-                            AllowedMaxSpeedSignalMpS = PassedSignalSpeeds[signal.Index];
-                            if (simulator.TimetableMode)
-                                AllowedMaxSpeedMpS = Math.Min(AllowedMaxSpeedMpS, AllowedMaxSpeedSignalMpS);
-                            else
-                                AllowedMaxSpeedMpS = Math.Min(AllowedMaxSpeedLimitMpS, Math.Min(allowedMaxTempSpeedLimitMpS, AllowedMaxSpeedSignalMpS));
-
-                            if (!remainingSignals.ContainsKey(signal.Index))
-                                remainingSignals.Add(signal.Index, AllowedMaxSpeedSignalMpS);
-                        }
-                    }
-                    else
-                    {
-                        SpeedInfo speedInfo = signal.SpeedLimit(SignalFunction.Speed);
-                        float speedMpS = IsFreight ? speedInfo.FreightSpeed : speedInfo.PassengerSpeed;
-                        if (speedMpS > 0)
-                        {
-                            if (speedInfo.LimitedSpeedReduction == 0) // standard speedpost
+                            if (PassedSignalSpeeds.ContainsKey(signal.Index))
                             {
-                                if (simulator.TimetableMode)
+                                AllowedMaxSpeedSignalMpS = PassedSignalSpeeds[signal.Index];
+                                AllowedMaxSpeedMpS = simulator.TimetableMode
+                                    ? Math.Min(AllowedMaxSpeedMpS, AllowedMaxSpeedSignalMpS)
+                                    : Math.Min(AllowedMaxSpeedLimitMpS, Math.Min(allowedMaxTempSpeedLimitMpS, AllowedMaxSpeedSignalMpS));
+
+                                if (!remainingSignals.ContainsKey(signal.Index))
+                                    remainingSignals.Add(signal.Index, AllowedMaxSpeedSignalMpS);
+                            }
+                            break;
+                        case SignalCategory.SpeedSignal:
+                        case SignalCategory.SpeedPost:
+                            SpeedInfo speedInfo = signal.SpeedLimit(SignalFunction.Speed);
+                            float speedMpS = IsFreight ? speedInfo.FreightSpeed : speedInfo.PassengerSpeed;
+                            if (speedMpS > 0)
+                            {
+                                if (speedInfo.LimitedSpeedReduction == 0) // standard speedpost
                                 {
-                                    AllowedMaxSpeedLimitMpS = Math.Min(AllowedMaxSpeedLimitMpS, speedMpS);
-                                    AllowedMaxSpeedMpS = AllowedMaxSpeedLimitMpS;
+                                    if (simulator.TimetableMode)
+                                    {
+                                        AllowedMaxSpeedLimitMpS = Math.Min(AllowedMaxSpeedLimitMpS, speedMpS);
+                                        AllowedMaxSpeedMpS = AllowedMaxSpeedLimitMpS;
+                                    }
+                                    else
+                                    {
+                                        AllowedMaxSpeedLimitMpS = Math.Min(AllowedMaxSpeedLimitMpS, speedMpS);
+                                        AllowedMaxSpeedMpS = Math.Min(AllowedMaxSpeedLimitMpS, Math.Min(allowedMaxTempSpeedLimitMpS,
+                                           AllowedMaxSpeedSignalMpS == -1 ? 999 : AllowedMaxSpeedSignalMpS));
+                                    }
                                 }
                                 else
                                 {
-                                    AllowedMaxSpeedLimitMpS = Math.Min(AllowedMaxSpeedLimitMpS, speedMpS);
+                                    allowedMaxTempSpeedLimitMpS = Math.Min(allowedMaxTempSpeedLimitMpS, speedMpS);
                                     AllowedMaxSpeedMpS = Math.Min(AllowedMaxSpeedLimitMpS, Math.Min(allowedMaxTempSpeedLimitMpS,
-                                       AllowedMaxSpeedSignalMpS == -1 ? 999 : AllowedMaxSpeedSignalMpS));
+                                        AllowedMaxSpeedSignalMpS == -1 ? 999 : AllowedMaxSpeedSignalMpS));
                                 }
                             }
-                            else
-                            {
-                                allowedMaxTempSpeedLimitMpS = Math.Min(allowedMaxTempSpeedLimitMpS, speedMpS);
-                                AllowedMaxSpeedMpS = Math.Min(AllowedMaxSpeedLimitMpS, Math.Min(allowedMaxTempSpeedLimitMpS,
-                                    AllowedMaxSpeedSignalMpS == -1 ? 999 : AllowedMaxSpeedSignalMpS));
-                            }
-                        }
+                            break;
                     }
 
                     remLength -= signal.TrackCircuitOffset - offsetStart;
@@ -10168,8 +10173,30 @@ namespace Orts.Simulation.Physics
                             {
                                 if (signal.SignalLocation > lengthOffset)
                                 {
-                                    trainPathItem = new TrainPathItem(signal.SignalLocation + sectionDistanceToTrainM, signal.Signal);
-                                    PlayerTrainSignals[dir][fn_type].Add(trainPathItem);
+                                    Signal speedpost = signal.Signal;
+                                    SpeedInfo speedInfo = speedpost.SignalSpeed(SignalFunction.Speed);
+                                    SignalHead signalHead = speedpost.SignalHeads.Where(h => h.SignalFunction == SignalFunction.Speed).FirstOrDefault();
+
+                                    if (speedInfo != null)
+                                    {
+                                        float validSpeed = IsFreight ? speedInfo.FreightSpeed : speedInfo.PassengerSpeed;
+                                        if (speedInfo.Reset)
+                                            validSpeed = progressiveMaxSpeedLimitMpS;
+                                        else if (!speedInfo.SpeedWarning && validSpeed > 0f)
+                                        {
+                                            progressiveMaxSpeedLimitMpS = validSpeed;
+                                        }
+                                        if (validSpeed > 0f && signalHead != null)
+                                        {
+                                            TrackMonitorSignalAspect signalAspect = speedpost.TranslateTMAspect(signalHead.SignalIndicationState);
+                                            trainPathItem = new TrainPathItem(signalAspect, validSpeed, speedInfo.SpeedWarning, signal.SignalLocation + sectionDistanceToTrainM, speedpost);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        trainPathItem = new TrainPathItem(signal.SignalLocation + sectionDistanceToTrainM, signal.Signal);
+                                        PlayerTrainSignals[dir][fn_type].Add(trainPathItem);
+                                    }
                                 }
                             }
                         }
@@ -10177,24 +10204,32 @@ namespace Orts.Simulation.Physics
 
                     if (ControlMode == TrainControlMode.Manual || ControlMode == TrainControlMode.Explorer)
                     {
-                        foreach (TrackCircuitSignalItem speeditem in section.CircuitItems.TrackCircuitSpeedPosts[routeElement.Direction])
+                        foreach (TrackCircuitSignalItem speedItem in section.CircuitItems.TrackCircuitSpeedPosts[routeElement.Direction])
                         {
-                            Signal speedpost = speeditem.Signal;
-                            SpeedInfo speedInfo = speedpost.SignalSpeed(SignalFunction.Speed);
-                            float validSpeed = speedInfo == null ? -1 : (IsFreight ? speedInfo.FreightSpeed : speedInfo.PassengerSpeed);
-
-
-                            if (speeditem.SignalLocation > lengthOffset && (validSpeed > 0 || (speedInfo != null && speedInfo.Reset)))
+                            if (speedItem.SignalLocation > lengthOffset)
                             {
-                                if (speedInfo != null && speedInfo.Reset)
-                                    validSpeed = progressiveMaxSpeedLimitMpS;
-                                else
-                                    progressiveMaxSpeedLimitMpS = validSpeed;
-                                trainPathItem = new TrainPathItem(validSpeed, speedInfo.SpeedWarning, speeditem.SignalLocation + sectionDistanceToTrainM, speedpost, (SpeedItemType)speedpost.SpeedPostType());
-                                PlayerTrainSpeedposts[dir].Add(trainPathItem);
+                                Signal speedpost = speedItem.Signal;
+                                SpeedInfo speedInfo = speedpost.SignalSpeed(SignalFunction.Speed);
+
+                                if (speedInfo != null)
+                                {
+                                    float validSpeed = IsFreight ? speedInfo.FreightSpeed : speedInfo.PassengerSpeed;
+                                    if (speedInfo.Reset)
+                                        validSpeed = progressiveMaxSpeedLimitMpS;
+                                    else if (!speedInfo.SpeedWarning && validSpeed > 0f)
+                                    {
+                                        progressiveMaxSpeedLimitMpS = validSpeed;
+                                    }
+                                    if (validSpeed > 0f)
+                                    {
+                                        trainPathItem = new TrainPathItem(validSpeed, speedInfo.SpeedWarning, speedItem.SignalLocation + sectionDistanceToTrainM, speedpost, (SpeedItemType)speedpost.SpeedPostType());
+                                        PlayerTrainSpeedposts[dir].Add(trainPathItem);
+                                    }
+                                }
                             }
                         }
                     }
+
                     // search for switches
                     if (section.CircuitType == TrackCircuitType.Junction && sectionDistanceToTrainM < maxDistanceM)
                     {
@@ -10367,10 +10402,24 @@ namespace Orts.Simulation.Physics
 
             const float maxDistanceM = 7000.0f;
 
+            // Add all normal signals
+            foreach (TrainPathItem trainItem in PlayerTrainSignals[Direction.Forward][(int)SignalFunction.Normal])
+            {
+                result.ObjectInfoForward.Add(trainItem);
+            }
+
+            // Add all signals which function type is SPEED or assimilated
+            foreach (TrainPathItem trainItem in PlayerTrainSignals[Direction.Forward][(int)SignalFunction.Speed])
+            {
+                result.ObjectInfoForward.Add(trainItem);
+            }
+
             foreach (TrainPathItem trainItem in PlayerTrainSignals[Direction.Forward][0])
             {
                 result.ObjectInfoForward.Add(trainItem);
             }
+
+            // Add all speed posts within maximum distance
             foreach (TrainPathItem trainItem in PlayerTrainSpeedposts[Direction.Forward])
             {
                 if (trainItem.DistanceToTrainM <= maxDistanceM)
@@ -10379,6 +10428,7 @@ namespace Orts.Simulation.Physics
                     break;
             }
 
+            // Add all mile posts within maximum distance
             foreach (TrainPathItem trainItem in PlayerTrainMileposts[Direction.Forward])
             {
                 if (trainItem.DistanceToTrainM <= maxDistanceM)
@@ -10386,6 +10436,8 @@ namespace Orts.Simulation.Physics
                 else
                     break;
             }
+
+            // Add all diverging switches within maximum distance
             foreach (TrainPathItem trainItem in PlayerTrainDivergingSwitches[Direction.Forward, SwitchDirection.Facing])
             {
                 if (trainItem.DistanceToTrainM <= maxDistanceM)
@@ -10394,29 +10446,14 @@ namespace Orts.Simulation.Physics
                     break;
             }
 
+            // Add station stops
             if (StationStops?.Count > 0 && (!maxAuthSet || StationStops[0].DistanceToTrainM < DistanceToEndNodeAuthorityM[0]) &&
                 StationStops[0].SubrouteIndex == TCRoute.ActiveSubPath)
             {
                 result.ObjectInfoForward.Add(new TrainPathItem(StationStops[0].DistanceToTrainM, (int)StationStops[0].PlatformItem.Length, TrainPathItemType.Station));
             }
 
-
-            // Draft to display more station stops
-            /*            if (StationStops != null && StationStops.Count > 0)
-            {
-                for (int iStation = 0; iStation < StationStops.Count; iStation++)
-                {
-                    if ((!maxAuthSet || StationStops[iStation].DistanceToTrainM <= DistanceToEndNodeAuthorityM[0]) && StationStops[iStation].SubrouteIndex == TCRoute.activeSubpath)
-                    {
-                        TrainObjectItem nextItem = new TrainObjectItem(StationStops[iStation].DistanceToTrainM, (int)StationStops[iStation].PlatformItem.Length);
-                        thisInfo.ObjectInfoForward.Add(nextItem);
-                    }
-                    else break;
-                }
-            }*/
-
             // set object items - backward
-
             if (clearanceAtRearM <= 0)
             {
                 result.ObjectInfoBackward.Add(new TrainPathItem(EndAuthorityType.NoPathReserved, 0.0f));
@@ -10519,10 +10556,19 @@ namespace Orts.Simulation.Physics
 
             if (ValidRoute[0] != null)
             {
-                foreach (TrainPathItem trainItem in PlayerTrainSignals[Direction.Forward][0])
+                // Add all normal signals
+                foreach (TrainPathItem trainItem in PlayerTrainSignals[Direction.Forward][(int)SignalFunction.Normal])
                 {
                     result.ObjectInfoForward.Add(trainItem);
                 }
+
+                // Add all signals which function type is SPEED or assimilated
+                foreach (TrainPathItem trainItem in PlayerTrainSignals[Direction.Forward][(int)SignalFunction.Speed])
+                {
+                    result.ObjectInfoForward.Add(trainItem);
+                }
+
+                // Add all speed posts within maximum distance
                 foreach (TrainPathItem trainItem in PlayerTrainSpeedposts[Direction.Forward])
                 {
                     if (trainItem.DistanceToTrainM <= maxDistanceM)
@@ -10530,6 +10576,8 @@ namespace Orts.Simulation.Physics
                     else
                         break;
                 }
+
+                // Add all mile posts within maximum distance
                 foreach (TrainPathItem trainItem in PlayerTrainMileposts[Direction.Forward])
                 {
                     if (trainItem.DistanceToTrainM <= maxDistanceM)
@@ -10537,6 +10585,8 @@ namespace Orts.Simulation.Physics
                     else
                         break;
                 }
+
+                // Add all diverging switches within maximum distance
                 foreach (TrainPathItem trainItem in PlayerTrainDivergingSwitches[Direction.Forward, SwitchDirection.Facing])
                 {
                     if (trainItem.DistanceToTrainM <= maxDistanceM)
@@ -10554,18 +10604,29 @@ namespace Orts.Simulation.Physics
             // run along backward path to catch all speedposts and signals
             if (ValidRoute[1] != null)
             {
-                foreach (TrainPathItem trainItem in PlayerTrainSignals[Direction.Backward][0])
+
+                // Add all normal signals
+                foreach (TrainPathItem trainItem in PlayerTrainSignals[Direction.Backward][(int)SignalFunction.Normal])
                 {
                     result.ObjectInfoBackward.Add(trainItem);
                 }
+
+                // Add all signals which function type is SPEED or assimilated
+                foreach (TrainPathItem trainItem in PlayerTrainSignals[Direction.Backward][(int)SignalFunction.Speed])
+                {
+                    result.ObjectInfoBackward.Add(trainItem);
+                }
+
+                // Add all speed posts within maximum distance
                 foreach (TrainPathItem trainItem in PlayerTrainSpeedposts[Direction.Backward])
                 {
                     if (trainItem.DistanceToTrainM <= maxDistanceM)
                         result.ObjectInfoBackward.Add(trainItem);
                     else
                         break;
-                    ;
                 }
+
+                // Add all mile posts within maximum distance
                 foreach (TrainPathItem trainItem in PlayerTrainMileposts[Direction.Backward])
                 {
                     if (trainItem.DistanceToTrainM <= maxDistanceM)
@@ -10573,6 +10634,8 @@ namespace Orts.Simulation.Physics
                     else
                         break;
                 }
+
+                // Add all diverging switches within maximum distance
                 foreach (TrainPathItem trainItem in PlayerTrainDivergingSwitches[Direction.Backward, SwitchDirection.Facing])
                 {
                     if (trainItem.DistanceToTrainM <= maxDistanceM)
@@ -10610,9 +10673,9 @@ namespace Orts.Simulation.Physics
             ValidRoute[0] = TCRoute.TCRouteSubpaths[TCRoute.ActiveSubPath];
         }
 
-        //
+        // <summary>
         // Preset switches for explorer mode
-        //
+        // </summary>
         internal void PresetExplorerPath(AIPath aiPath)
         {
             TrackDirection direction = (TrackDirection)(RearTDBTraveller != null ? (int)RearTDBTraveller.Direction.Reverse() : -2);

@@ -3338,7 +3338,7 @@ namespace Orts.Simulation.AIs
                 removeIt = false;
             else if (TCRoute.TCRouteSubpaths.Count == 1 || TCRoute.ActiveSubPath != TCRoute.TCRouteSubpaths.Count - 1)
                 removeIt = true;
-            else if (NextSignalObject[0] != null && NextSignalObject[0].IsSignal && distanceToNextSignal < 25 && distanceToNextSignal >= 0 && PresentPosition[Direction.Backward].DistanceTravelled < distanceThreshold)
+            else if (NextSignalObject[0] != null && NextSignalObject[0].SignalType == SignalCategory.Signal && distanceToNextSignal < 25 && distanceToNextSignal >= 0 && PresentPosition[Direction.Backward].DistanceTravelled < distanceThreshold)
             {
                 removeIt = false;
                 MovementState = AiMovementState.Frozen;

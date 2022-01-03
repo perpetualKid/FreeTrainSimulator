@@ -650,6 +650,8 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
                         return new TrackAuthorityItem(item, direction);
                     case TrainPathItemType.Signal:
                         return new TrackSignalForwardItem(item, useMetric);
+                    case TrainPathItemType.SpeedSignal:
+                        return new TrackSpeedpostItem(item, useMetric);
                     case TrainPathItemType.Speedpost:
                         return new TrackSpeedpostItem(item, useMetric);
                     case TrainPathItemType.Station:

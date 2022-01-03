@@ -55,7 +55,7 @@ namespace Orts.Simulation.Signalling
 
             SignalDetails = signal ?? throw new ArgumentNullException(nameof(signal));
 
-            if (signal.IsSignal)
+            if (signal.SignalType == SignalCategory.Signal)
             {
                 ItemType = SignalItemType.Signal;
                 SignalState = SignalAspectState.Unknown;  // set active by TRAIN
@@ -87,12 +87,12 @@ namespace Orts.Simulation.Signalling
                 DistanceFound = inf.ReadSingle(),
                 DistanceToTrain = inf.ReadSingle(),
                 DistanceToObject = inf.ReadSingle(),
-            };
-            result.SpeedInfo = new SpeedInfo(inf.ReadSingle(), inf.ReadSingle(), inf.ReadBoolean(), false, 0, false);
-            result.ActualSpeed = inf.ReadSingle();
+                SpeedInfo = new SpeedInfo(inf.ReadSingle(), inf.ReadSingle(), inf.ReadBoolean(), false, 0, false),
+                ActualSpeed = inf.ReadSingle(),
 
-            result.Processed = inf.ReadBoolean();
-            result.SignalState = result.SignalDetails.IsSignal ? result.SignalDetails.SignalLR(SignalFunction.Normal) : SignalAspectState.Unknown;
+                Processed = inf.ReadBoolean()
+            };
+            result.SignalState = result.SignalDetails.SignalType == SignalCategory.Signal ? result.SignalDetails.SignalLR(SignalFunction.Normal) : SignalAspectState.Unknown;
 
             return (result);
         }
