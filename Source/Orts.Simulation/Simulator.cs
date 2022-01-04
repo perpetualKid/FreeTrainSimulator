@@ -1029,6 +1029,7 @@ namespace Orts.Simulation
 
             ConsistFile conFile = new ConsistFile(ConsistFileName);
             CurveDurability = conFile.Train.Durability;   // Finds curve durability of consist based upon the value in consist file
+            train.TcsParametersFileName = conFile.Train.TcsParametersFileName;
 
             // add wagons
             foreach (Wagon wagon in conFile.Train.Wagons)
@@ -1048,15 +1049,14 @@ namespace Orts.Simulation
 
                 try
                 {
-                    TrainCar car = RollingStock.Load(wagonFilePath);
+                    TrainCar car = RollingStock.Load(train, wagonFilePath);
                     car.Flipped = wagon.Flip;
                     car.UiD = wagon.UiD;
                     if (MultiPlayerManager.IsMultiPlayer())
                         car.CarID = MultiPlayerManager.GetUserName() + " - " + car.UiD; //player's train is always named train 0.
                     else
                         car.CarID = "0 - " + car.UiD; //player's train is always named train 0.
-                    train.Cars.Add(car);
-                    car.Train = train;
+
                     train.Length += car.CarLengthM;
 
                     if (ActivityFile != null && car is MSTSDieselLocomotive mstsDieselLocomotive)
@@ -1228,12 +1228,10 @@ namespace Orts.Simulation
 
                         try // Load could fail if file has bad data.
                         {
-                            TrainCar car = RollingStock.Load(wagonFilePath);
+                            TrainCar car = RollingStock.Load(train, wagonFilePath);
                             car.Flipped = !wagon.Flip;
                             car.UiD = wagon.UiD;
                             car.CarID = activityObject.ID + " - " + car.UiD;
-                            train.Cars.Add(car);
-                            car.Train = train;
                         }
                         catch (Exception error)
                         {

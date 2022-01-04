@@ -188,31 +188,28 @@ namespace Orts.Simulation.MultiPlayer
                 TrainCar car = null;
                 try
                 {
-                    car = RollingStock.Load(wagonFilePath);
+                    car = RollingStock.Load(train, wagonFilePath);
                     car.CarLengthM = player.lengths[i] / 100.0f;
                 }
                 catch (Exception error)
                 {
                     Trace.WriteLine(error.Message);
-                    car = MultiPlayerManager.Instance().SubCar(wagonFilePath, player.lengths[i]);
+                    car = MultiPlayerManager.Instance().SubCar(train, wagonFilePath, player.lengths[i]);
                 }
-                if (car == null) continue;
-                bool flip = true;
-                if (player.flipped[i] == 0) flip = false;
-                car.Flipped = flip;
+                if (car == null) 
+                    continue;
+
+                car.Flipped = player.flipped[i] != 0;
                 car.CarID = player.ids[i];
-                train.Cars.Add(car);
-                car.Train = train;
-                MSTSWagon w = (MSTSWagon)car;
-                if (w != null)
+
+                if (car is MSTSWagon w)
                 {
                     w.SignalEvent((player.pantofirst == 1 ? PowerSupplyEvent.RaisePantograph : PowerSupplyEvent.LowerPantograph), 1);
                     w.SignalEvent((player.pantosecond == 1 ? PowerSupplyEvent.RaisePantograph : PowerSupplyEvent.LowerPantograph), 2);
                     w.SignalEvent((player.pantothird == 1 ? PowerSupplyEvent.RaisePantograph : PowerSupplyEvent.LowerPantograph), 3);
                     w.SignalEvent((player.pantofourth == 1 ? PowerSupplyEvent.RaisePantograph : PowerSupplyEvent.LowerPantograph), 4);
                 }
-
-            }// for each rail car
+            }
 
             if (train.Cars.Count == 0)
             {
@@ -252,8 +249,7 @@ namespace Orts.Simulation.MultiPlayer
             if (train.LeadLocomotive == null)
             {
                 train.LeadNextLocomotive();
-                if (train.LeadLocomotive != null) p.LeadingLocomotiveID = train.LeadLocomotive.CarID;
-                else p.LeadingLocomotiveID = "NA";
+                p.LeadingLocomotiveID = train.LeadLocomotive?.CarID ?? "NA";
             }
 
             if (train.LeadLocomotive != null)
@@ -264,7 +260,10 @@ namespace Orts.Simulation.MultiPlayer
             {
                 train.Name = Train.GetTrainName(train.Cars[0].CarID);
             }
-            else if (player != null && player.user != null) train.Name = player.user;
+            else if (player?.user != null)
+            {
+                train.Name = player.user;
+            }
 
             if (MultiPlayerManager.IsServer())
             {

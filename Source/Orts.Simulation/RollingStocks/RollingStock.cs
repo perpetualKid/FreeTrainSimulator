@@ -28,7 +28,7 @@ namespace Orts.Simulation.RollingStocks
 {
     public static class RollingStock
     {
-        public static TrainCar Load(string wagFilePath, bool initialize = true)
+        public static TrainCar Load(Train train, string wagFilePath, bool initialize = true)
         {
             GenericWAGFile wagFile = SharedGenericWAGFileManager.Get(wagFilePath);
             TrainCar car;
@@ -43,6 +43,10 @@ namespace Orts.Simulation.RollingStocks
                     Assembly customDLL = Assembly.LoadFrom(dllPath);
                     object[] args = new object[] { wagFilePath };
                     car = (TrainCar)customDLL.CreateInstance("ORTS.CustomCar", true, BindingFlags.CreateInstance, null, args, null, null);
+
+                    car.Train = train;
+                    train.Cars.Add(car);
+
                     return car;
                 }
                 catch (Exception error)
@@ -51,6 +55,7 @@ namespace Orts.Simulation.RollingStocks
                     // on error, fall through and try loading without the custom dll
                 }
             }
+
             if (!wagFile.IsEngine)
             {
                 // its an ordinary MSTS wagon
@@ -73,8 +78,9 @@ namespace Orts.Simulation.RollingStocks
                 }
             }
 
-            MSTSWagon wagon = car as MSTSWagon;
-            if (car != null)
+            car.Train = train;
+
+            MSTSWagon wagon = (MSTSWagon)car;
             {
                 wagon.Load();
 
@@ -83,6 +89,9 @@ namespace Orts.Simulation.RollingStocks
                     wagon.Initialize();
                 }
             }
+
+            // Loading is complete, the car can be added to the train
+            train.Cars.Add(car);
 
             return car;
         }
@@ -111,8 +120,7 @@ namespace Orts.Simulation.RollingStocks
 
         public static TrainCar Restore(BinaryReader inf, Train train)
         {
-            TrainCar car = Load(inf.ReadString(), false);
-            car.Train = train;
+            TrainCar car = Load(train, inf.ReadString(), false);
             car.Restore(inf);
             car.Initialize();
             return car;

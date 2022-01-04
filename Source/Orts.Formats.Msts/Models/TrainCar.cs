@@ -44,6 +44,7 @@ namespace Orts.Formats.Msts.Models
         public int Serial { get; private set; } = 1;
         public MaxVelocity MaxVelocity { get; private set; }
         public float Durability { get; private set; } = 1.0f;   // Value assumed if attribute not found.
+        public string TcsParametersFileName { get; private set; } = string.Empty;
 
 #pragma warning disable CA1002 // Do not expose generic lists
         public List<Wagon> Wagons { get; } = new List<Wagon>();
@@ -70,6 +71,7 @@ namespace Orts.Formats.Msts.Models
                 new STFReader.TokenProcessor("durability", ()=>{ Durability = stf.ReadFloatBlock(STFReader.Units.None, null); }),
                 new STFReader.TokenProcessor("wagon", ()=>{ Wagons.Add(new Wagon(stf)); }),
                 new STFReader.TokenProcessor("engine", ()=>{ Wagons.Add(new Wagon(stf)); }),
+                new STFReader.TokenProcessor("ortstraincontrolsystemparameters", () => TcsParametersFileName = stf.ReadStringBlock(null)),
             });
         }
     }

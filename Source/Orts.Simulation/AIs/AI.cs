@@ -883,6 +883,8 @@ namespace Orts.Simulation.AIs
                 train.TrainMaxSpeedMpS = Math.Min(train.TrainMaxSpeedMpS, maxVelocityA * train.Efficiency);
             }
 
+            train.TcsParametersFileName = conFile.Train.TcsParametersFileName;
+
             // add wagons
             train.Length = 0.0f;
             foreach (Wagon wagon in conFile.Train.Wagons)
@@ -900,27 +902,30 @@ namespace Orts.Simulation.AIs
 
                 try
                 {
-                    TrainCar car = RollingStock.Load(wagonFilePath);
+                    TrainCar car = RollingStock.Load(train, wagonFilePath);
                     car.Flipped = wagon.Flip;
-                    train.Cars.Add(car);
-                    car.Train = train;
                     train.Length += car.CarLengthM;
                     car.UiD = wagon.UiD;
+
                     if (isInitialPlayerTrain)
                     {
                         Simulator.PathName = aiPath.pathName;
-                        if (MultiPlayerManager.IsMultiPlayer()) car.CarID = MultiPlayerManager.GetUserName() + " - " + car.UiD; //player's train is always named train 0.
-                        else car.CarID = "0 - " + car.UiD; //player's train is always named train 0.
-                        var mstsDieselLocomotive = car as MSTSDieselLocomotive;
-                        if (Simulator.ActivityFile != null && mstsDieselLocomotive != null)
-                            mstsDieselLocomotive.DieselLevelL = mstsDieselLocomotive.MaxDieselLevelL * Simulator.ActivityFile.Activity.Header.FuelDiesel / 100.0f;
+                        if (MultiPlayerManager.IsMultiPlayer())
+                            car.CarID = MultiPlayerManager.GetUserName() + " - " + car.UiD; //player's train is always named train 0.
+                        else
+                            car.CarID = "0 - " + car.UiD; //player's train is always named train 0.
 
-                        var mstsSteamLocomotive = car as MSTSSteamLocomotive;
-                        if (Simulator.ActivityFile != null && mstsSteamLocomotive != null)
+                        if (Simulator.ActivityFile != null && car is MSTSDieselLocomotive mstsDieselLocomotive)
+                        {
+                            mstsDieselLocomotive.DieselLevelL = mstsDieselLocomotive.MaxDieselLevelL * Simulator.ActivityFile.Activity.Header.FuelDiesel / 100.0f;
+                        }
+
+                        if (Simulator.ActivityFile != null && car is MSTSSteamLocomotive mstsSteamLocomotive)
                         {
                             mstsSteamLocomotive.CombinedTenderWaterVolumeUKG = (float)((Mass.Kilogram.ToLb(mstsSteamLocomotive.MaxLocoTenderWaterMassKG) / 10.0) * Simulator.ActivityFile.Activity.Header.FuelWater / 100.0);
                             mstsSteamLocomotive.TenderCoalMassKG = mstsSteamLocomotive.MaxTenderCoalMassKG * Simulator.ActivityFile.Activity.Header.FuelCoal / 100.0f;
                         }
+
                         if (train.InitialSpeed != 0)
                             car.SignalEvent(PowerSupplyEvent.RaisePantograph, 1);
                     }

@@ -811,27 +811,25 @@ namespace Orts.Simulation.MultiPlayer
             Notify((new MSGLocoChange(GetUserName(), lead.CarID, frontOrRearCab, t)).ToString());
         }
 
-        public TrainCar SubCar(string wagonFilePath, int length)
+        public TrainCar SubCar(Train train, string wagonFilePath, int length)
         {
             Trace.WriteLine("Will substitute with your existing stocks\n.");
-            TrainCar car;
             try
             {
                 char type = 'w';
                 if (wagonFilePath.Contains(".eng", StringComparison.OrdinalIgnoreCase)) type = 'e';
                 string newWagonFilePath = SubMissingCar(length, type);
-                car = RollingStock.Load(newWagonFilePath);
+                TrainCar car = RollingStock.Load(train, newWagonFilePath);
                 car.CarLengthM = length;
                 car.RealWagFilePath = wagonFilePath;
-                Simulator.Instance.Confirmer?.Information(MultiPlayerManager.Catalog.GetString("Missing car, have substituted with other one."));
-
+                Simulator.Instance.Confirmer?.Information(Catalog.GetString("Missing car, have substituted with other one."));
+                return car;
             }
             catch (Exception error)
             {
                 Trace.WriteLine(error.Message + "Substitution failed, will ignore it\n.");
-                car = null;
+                return null;
             }
-            return car;
         }
 
         private SortedList<double, string> coachList;

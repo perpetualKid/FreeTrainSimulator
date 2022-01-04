@@ -105,6 +105,7 @@ namespace Orts.Simulation.Physics
 #pragma warning restore CA1002 // Do not expose generic lists
         public int Number { get; internal set; }
         public string Name { get; internal set; }
+        public string TcsParametersFileName { get; internal set; }
         public static int TotalNumber { get; private set; } = 1; // start at 1 (0 is reserved for player train)
 
         public TrainCar FirstCar => Cars[0];
