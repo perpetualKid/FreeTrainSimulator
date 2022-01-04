@@ -196,6 +196,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             [Viewer.Catalog.GetString("Apply Quick")] = Viewer.Catalog.GetString("ApplQ"),
             [Viewer.Catalog.GetString("Apply Slow")] = Viewer.Catalog.GetString("ApplS"),
             [Viewer.Catalog.GetString("coal")] = Viewer.Catalog.GetString("c"),
+            [Viewer.Catalog.GetString("Cont. Service")] = Viewer.Catalog.GetString("Serv"),
             [Viewer.Catalog.GetString("Emergency Braking Push Button")] = Viewer.Catalog.GetString("EmerBPB"),
             [Viewer.Catalog.GetString("Lap Self")] = Viewer.Catalog.GetString("LapS"),
             [Viewer.Catalog.GetString("Minimum Reduction")] = Viewer.Catalog.GetString("MRedc"),
@@ -203,6 +204,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
             [Viewer.Catalog.GetString("skid")] = Viewer.Catalog.GetString("Skid"),
             [Viewer.Catalog.GetString("slip warning")] = Viewer.Catalog.GetString("Warning"),
             [Viewer.Catalog.GetString("slip")] = Viewer.Catalog.GetString("Slip"),
+            [Viewer.Catalog.GetString("Vac. Cont. Service")] = Viewer.Catalog.GetString("Vac.Serv"),
             [Viewer.Catalog.GetString("water")] = Viewer.Catalog.GetString("w"),
         };
 
@@ -868,6 +870,10 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 InfoToLabel(trainBrakeInput, Viewer.Catalog.GetString("Train brake"), brakeInfoValue + "$??", "", false);
                 trainBrakeInput = "";
                 index = BrakeStatus.IndexOf(Viewer.Catalog.GetString("EQ"), StringComparison.OrdinalIgnoreCase);
+                if (BrakeStatus.IndexOf(Viewer.Catalog.GetString("V"), index, StringComparison.OrdinalIgnoreCase) > 0)
+                    brakeInfoValue = BrakeStatus.Substring(index, BrakeStatus.IndexOf(Viewer.Catalog.GetString("V"), index, StringComparison.OrdinalIgnoreCase) - index).TrimEnd();
+                else
+                    index = BrakeStatus.IndexOf(Viewer.Catalog.GetString("EQ"), StringComparison.OrdinalIgnoreCase);
                 brakeInfoValue = BrakeStatus.Substring(index, BrakeStatus.IndexOf(Viewer.Catalog.GetString("BC"), StringComparison.OrdinalIgnoreCase) - index).TrimEnd();
 
                 InfoToLabel(trainBrakeInput, "", brakeInfoValue, "", false);
@@ -887,8 +893,13 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
                 }
                 else
                 {
-                    index = BrakeStatus.IndexOf(Viewer.Catalog.GetString("BC"), StringComparison.OrdinalIgnoreCase);
+                    if (BrakeStatus.IndexOf(Viewer.Catalog.GetString("V"), index, StringComparison.OrdinalIgnoreCase) > 0)
+                        index = BrakeStatus.IndexOf(Viewer.Catalog.GetString("V"), index, StringComparison.OrdinalIgnoreCase);
+                    else
+                        index = BrakeStatus.IndexOf(Viewer.Catalog.GetString("BC"), StringComparison.OrdinalIgnoreCase);
                     brakeInfoValue = BrakeStatus.Substring(index, BrakeStatus.Length - index).TrimEnd();
+                    brakeInfoValue = brakeInfoValue.StartsWith(Viewer.Catalog.GetString("V"), StringComparison.OrdinalIgnoreCase) ? 
+                        brakeInfoValue.Replace(Viewer.Catalog.GetString("V"), Viewer.Catalog.GetString("V") + "  ", StringComparison.OrdinalIgnoreCase) : brakeInfoValue;
                     trainBrakeInput = "";
                     InfoToLabel(trainBrakeInput, "", brakeInfoValue, "", false);
                 }
