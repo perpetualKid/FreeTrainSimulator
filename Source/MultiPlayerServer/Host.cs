@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.IO.Pipelines;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
@@ -19,12 +18,13 @@ namespace Orts.MultiPlayerServer
     {
         private readonly int port;
 
+        private static readonly Encoding encoding = Encoding.Unicode;
         private readonly Dictionary<string, TcpClient> onlinePlayers = new Dictionary<string, TcpClient>();
-        private static readonly byte[] initData = Encoding.Unicode.GetBytes("10: SERVER YOU");
-        private static readonly byte[] serverChallenge = Encoding.Unicode.GetBytes(" 21: SERVER WhoCanBeServer");
-        private static readonly byte[] blankToken = Encoding.Unicode.GetBytes(" ");
-        private static readonly byte[] playerToken = Encoding.Unicode.GetBytes("PLAYER ");
-        private static readonly byte[] quitToken = Encoding.Unicode.GetBytes("QUIT");
+        private static readonly byte[] initData = encoding.GetBytes("10: SERVER YOU");
+        private static readonly byte[] serverChallenge = encoding.GetBytes(" 21: SERVER WhoCanBeServer");
+        private static readonly byte[] blankToken = encoding.GetBytes(" ");
+        private static readonly byte[] playerToken = encoding.GetBytes("PLAYER ");
+        private static readonly byte[] quitToken = encoding.GetBytes("QUIT");
         private string currentServer;
 
         public Host(int port)
@@ -86,7 +86,6 @@ namespace Orts.MultiPlayerServer
                 }
                 writer.Advance(bytesRead);
 
-                // Make the data available to the PipeReader
                 FlushResult result = await writer.FlushAsync().ConfigureAwait(false);
 
                 if (result.IsCompleted)
@@ -110,7 +109,7 @@ namespace Orts.MultiPlayerServer
                 {
                     if (reader.TryReadTo(out ReadOnlySequence<byte> playerName, blankSeparator))
                     {
-                        return Encoding.Unicode.GetString(playerName.FirstSpan);
+                        return encoding.GetString(playerName.FirstSpan);
                     }
                 }
                 else
@@ -134,7 +133,7 @@ namespace Orts.MultiPlayerServer
                 {
                     if (reader.TryReadTo(out ReadOnlySequence<byte> playerName, blankSeparator))
                     {
-                        return Encoding.Unicode.GetString(playerName.FirstSpan);
+                        return encoding.GetString(playerName.FirstSpan);
                     }
                 }
                 else
@@ -207,7 +206,7 @@ namespace Orts.MultiPlayerServer
 
         private void Broadcast(string playerName, ReadOnlyMemory<byte> buffer)
         {
-            Console.WriteLine(Encoding.Unicode.GetString(buffer.Span).Replace("\r", Environment.NewLine, StringComparison.OrdinalIgnoreCase));
+            Console.WriteLine(encoding.GetString(buffer.Span).Replace("\r", Environment.NewLine, StringComparison.OrdinalIgnoreCase));
             Parallel.ForEach(onlinePlayers.Keys, async player =>
             {
                 if (player != playerName)
@@ -229,7 +228,7 @@ namespace Orts.MultiPlayerServer
 
         private async Task SendMessage(string playerName, ReadOnlyMemory<byte> buffer)
         {
-            Console.WriteLine(Encoding.Unicode.GetString(buffer.Span).Replace("\r", Environment.NewLine, StringComparison.OrdinalIgnoreCase));
+            Console.WriteLine(encoding.GetString(buffer.Span).Replace("\r", Environment.NewLine, StringComparison.OrdinalIgnoreCase));
             try
             {
                 TcpClient client = onlinePlayers[playerName];
@@ -248,7 +247,7 @@ namespace Orts.MultiPlayerServer
             if (onlinePlayers.Remove(playerName))
             {
                 string lostMessage = $"LOST { playerName}";
-                byte[] lostPlayer = Encoding.Unicode.GetBytes($" {lostMessage.Length}: {lostMessage}");
+                byte[] lostPlayer = encoding.GetBytes($" {lostMessage.Length}: {lostMessage}");
                 Broadcast(playerName, lostPlayer);
                 if (currentServer == playerName)
                 {
@@ -259,7 +258,7 @@ namespace Orts.MultiPlayerServer
                         Broadcast(null, lostPlayer);
                         currentServer = onlinePlayers.Keys.First();
                         string appointmentMessage = $"SERVER {currentServer}";
-                        lostPlayer = Encoding.Unicode.GetBytes($" {appointmentMessage.Length}: {appointmentMessage}");
+                        lostPlayer = encoding.GetBytes($" {appointmentMessage.Length}: {appointmentMessage}");
                         Broadcast(null, lostPlayer);
                     }
                 }
