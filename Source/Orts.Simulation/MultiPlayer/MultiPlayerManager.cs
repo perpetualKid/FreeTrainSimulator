@@ -63,8 +63,8 @@ namespace Orts.Simulation.MultiPlayer
         private readonly List<OnlineLocomotive> addedLocomotives;
 
         private readonly List<Train> uncoupledTrains;
-//        private Client client;
-        private ClientComm client;
+        private Client client;
+        //private ClientComm client;
 
         public const int ProtocolVersion = 15;
 
@@ -400,7 +400,7 @@ namespace Orts.Simulation.MultiPlayer
                 localUser = new MultiPlayerManager
                 {
                     MPUpdateInterval = updateIntervall,
-                    client = new ClientComm(hostname, port),
+                    client = new Client(hostname, port),
                     UserName = userName,
                     Code = code,
                 };
@@ -421,6 +421,7 @@ namespace Orts.Simulation.MultiPlayer
                 }
                 client.Stop();
             }
+            client = null;
         }
 
         //when two player trains connected, require decouple at speed 0.
