@@ -37,12 +37,11 @@ using GetText;
 using Orts.Common.Calc;
 using Orts.Common.Position;
 using Orts.Formats.Msts.Parsers;
-using Orts.Simulation;
 using Orts.Simulation.Commanding;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 
-namespace Orts.MultiPlayer
+namespace Orts.Simulation.MultiPlayer
 {
     public enum MultiplayerState
     { 
@@ -64,6 +63,7 @@ namespace Orts.MultiPlayer
         private readonly List<OnlineLocomotive> addedLocomotives;
 
         private readonly List<Train> uncoupledTrains;
+//        private Client client;
         private ClientComm client;
 
         public const int ProtocolVersion = 15;
@@ -420,8 +420,6 @@ namespace Orts.MultiPlayer
                     client.SendMessage((new MSGQuit(GetUserName())).ToString()).Wait(); //client notify server
                 }
                 client.Stop();
-                client.Dispose();
-                client = null;
             }
         }
 

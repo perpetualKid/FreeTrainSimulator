@@ -26,9 +26,7 @@ using System.Threading.Tasks;
 
 using GetText;
 
-using Orts.Simulation;
-
-namespace Orts.MultiPlayer
+namespace Orts.Simulation.MultiPlayer
 {
     public class ClientComm : IDisposable
     {

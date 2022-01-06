@@ -26,6 +26,7 @@ using Microsoft.Xna.Framework;
 using Orts.Common;
 using Orts.Common.Input;
 using Orts.Simulation;
+using Orts.Simulation.MultiPlayer;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems.Brakes;
@@ -771,8 +772,8 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
             // First Block
             // Client and server may have a time difference.
-            if (MultiPlayer.MultiPlayerManager.MultiplayerState == MultiPlayer.MultiplayerState.Client)
-                InfoToLabel(string.Empty, Viewer.Catalog.GetString("Time"), FormatStrings.FormatTime(Owner.Viewer.Simulator.ClockTime + Orts.MultiPlayer.MultiPlayerManager.Instance().serverTimeDifference), "", false);
+            if (MultiPlayerManager.MultiplayerState == MultiplayerState.Client)
+                InfoToLabel(string.Empty, Viewer.Catalog.GetString("Time"), FormatStrings.FormatTime(Owner.Viewer.Simulator.ClockTime + MultiPlayerManager.Instance().serverTimeDifference), "", false);
             else
             {
                 InfoToLabel(string.Empty, Viewer.Catalog.GetString("Time"), FormatStrings.FormatTime(Owner.Viewer.Simulator.ClockTime), "", false);

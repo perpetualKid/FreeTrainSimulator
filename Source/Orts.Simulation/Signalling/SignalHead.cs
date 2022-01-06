@@ -6,7 +6,7 @@ using Orts.Common.Calc;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
-using Orts.MultiPlayer;
+using Orts.Simulation.MultiPlayer;
 
 namespace Orts.Simulation.Signalling
 {

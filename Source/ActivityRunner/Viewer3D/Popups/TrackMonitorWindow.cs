@@ -25,6 +25,7 @@ using System;
 using System.Collections.Generic;
 using Orts.Common.Calc;
 using Orts.Simulation;
+using Orts.Simulation.MultiPlayer;
 
 namespace Orts.ActivityRunner.Viewer3D.Popups
 {
@@ -332,7 +333,7 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
             drawTrack(spriteBatch, offset, validInfo.Speed, validInfo.AllowedSpeed);
 
-            if (Orts.MultiPlayer.MultiPlayerManager.IsMultiPlayer())
+            if (MultiPlayerManager.IsMultiPlayer())
             {
                 drawMPInfo(spriteBatch, offset);
             }

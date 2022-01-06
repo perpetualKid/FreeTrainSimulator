@@ -35,11 +35,11 @@ using Orts.Common.Logging;
 using Orts.Common.Native;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
-using Orts.MultiPlayer;
 using Orts.Settings;
 using Orts.Simulation;
 using Orts.Simulation.Activities;
 using Orts.Simulation.Commanding;
+using Orts.Simulation.MultiPlayer;
 
 namespace Orts.ActivityRunner.Viewer3D.Processes
 {

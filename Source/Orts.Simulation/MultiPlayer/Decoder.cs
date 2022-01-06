@@ -18,7 +18,7 @@
 using System;
 using System.Diagnostics;
 
-namespace Orts.MultiPlayer
+namespace Orts.Simulation.MultiPlayer
 {
     public class Decoder
 	{
