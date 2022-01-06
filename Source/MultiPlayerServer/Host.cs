@@ -24,7 +24,7 @@ namespace Orts.MultiPlayerServer
         private static readonly byte[] serverChallenge = encoding.GetBytes(" 21: SERVER WhoCanBeServer");
         private static readonly byte[] blankToken = encoding.GetBytes(" ");
         private static readonly byte[] playerToken = encoding.GetBytes("PLAYER ");
-        private static readonly byte[] quitToken = encoding.GetBytes("QUIT");
+        private static readonly byte[] quitToken = encoding.GetBytes("QUIT ");
         private string currentServer;
 
         public Host(int port)
@@ -120,7 +120,7 @@ namespace Orts.MultiPlayerServer
             return null;
         }
 
-        private static string ReadQuiteMessage(ReadOnlySequence<byte> sequence)
+        private static string ReadQuitMessage(ReadOnlySequence<byte> sequence)
         {
             Span<byte> quitSeparator = quitToken.AsSpan();
             Span<byte> blankSeparator = blankToken.AsSpan();
@@ -131,10 +131,7 @@ namespace Orts.MultiPlayerServer
             {
                 if (reader.TryReadTo(out _, quitSeparator))
                 {
-                    if (reader.TryReadTo(out ReadOnlySequence<byte> playerName, blankSeparator))
-                    {
-                        return encoding.GetString(playerName.FirstSpan);
-                    }
+                    return encoding.GetString(reader.UnreadSpan);
                 }
                 else
                 {
@@ -166,6 +163,9 @@ namespace Orts.MultiPlayerServer
                 {
                     string player = ReadPlayerName(buffer);
 
+                    if (string.IsNullOrEmpty(player))
+                        break;
+
                     onlinePlayers.Remove(playerName);
                     if (currentServer == playerName)
                         currentServer = playerName = player;
@@ -180,7 +180,7 @@ namespace Orts.MultiPlayerServer
                 }
                 else
                 {
-                    if (!string.IsNullOrEmpty(quitPlayer = ReadQuiteMessage(buffer)))
+                    if (!string.IsNullOrEmpty(quitPlayer = ReadQuitMessage(buffer)))
                     {
                         if (playerName == quitPlayer)
                             break;
