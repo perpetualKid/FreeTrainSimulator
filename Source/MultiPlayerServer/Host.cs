@@ -19,12 +19,13 @@ namespace Orts.MultiPlayerServer
         private readonly int port;
 
         private static readonly Encoding encoding = Encoding.Unicode;
+        private static readonly int charSize = encoding.GetByteCount("0");
         private readonly Dictionary<string, TcpClient> onlinePlayers = new Dictionary<string, TcpClient>();
         private static readonly byte[] initData = encoding.GetBytes("10: SERVER YOU");
         private static readonly byte[] serverChallenge = encoding.GetBytes(" 21: SERVER WhoCanBeServer");
         private static readonly byte[] blankToken = encoding.GetBytes(" ");
-        private static readonly byte[] playerToken = encoding.GetBytes("PLAYER ");
-        private static readonly byte[] quitToken = encoding.GetBytes("QUIT ");
+        private static readonly byte[] playerToken = encoding.GetBytes(": PLAYER ");
+        private static readonly byte[] quitToken = encoding.GetBytes(": QUIT ");
         private string currentServer;
 
         public Host(int port)
@@ -39,7 +40,7 @@ namespace Orts.MultiPlayerServer
                 TcpListener listener = new TcpListener(IPAddress.Any, port);
                 listener.Start();
 #pragma warning disable CA1303 // Do not pass literals as localized parameters
-                Console.WriteLine($"MultiPlayer Server is now running on port {port}");
+                Console.WriteLine($"MultiPlayer Server v {ThisAssembly.AssemblyInformationalVersion} is now running on port {port}");
                 Console.WriteLine("For further information, bug reports or discussions, please visit");
                 Console.WriteLine("\t\thttps://github.com/perpetualKid/ORTS-MG");
                 Console.WriteLine("Hit <enter> to stop service");
@@ -96,28 +97,48 @@ namespace Orts.MultiPlayerServer
             await writer.CompleteAsync().ConfigureAwait(false);
         }
 
-        private static string ReadPlayerName(ReadOnlySequence<byte> sequence)
+        private bool ReadPlayerName(in ReadOnlySequence<byte> sequence, ref string playerName, out SequencePosition bytesProcessed)
         {
             Span<byte> playerSeparator = playerToken.AsSpan();
             Span<byte> blankSeparator = blankToken.AsSpan();
 
             SequenceReader<byte> reader = new SequenceReader<byte>(sequence);
 
-            while (!reader.End)
+            if (reader.TryReadTo(out ReadOnlySequence<byte> playerPreface, playerSeparator))
             {
-                if (reader.TryReadTo(out _, playerSeparator))
+                if (reader.TryReadTo(out ReadOnlySequence<byte> playerNameSequence, blankSeparator))
                 {
-                    if (reader.TryReadTo(out ReadOnlySequence<byte> playerName, blankSeparator))
+                    int maxDigits = 4;
+                    if (playerPreface.GetIntFromEnd(ref maxDigits, out int length, encoding))
                     {
-                        return encoding.GetString(playerName.FirstSpan);
+                        ReadOnlySequence<byte> before = sequence.Slice(0, playerPreface.Length - maxDigits * charSize);
+                        foreach (ReadOnlyMemory<byte> message in before)
+                        {
+                            if (message.Length > 0)
+                                Broadcast(playerName, message);
+                        }
+                        reader.Rewind(playerSeparator.Length + playerNameSequence.Length + maxDigits * charSize);
+
+                        if (reader.Remaining >= length * charSize)
+                        {
+                            string newPlayerName = playerNameSequence.GetString(encoding);
+                            ReadOnlySequence<byte> playerMessage = reader.Sequence.Slice(before.Length, (length + maxDigits + 2) * charSize);
+                            if (currentServer != playerName)
+                            {
+                                foreach (ReadOnlyMemory<byte> message in playerMessage)
+                                {
+                                    SendMessage(currentServer, message).Wait();
+                                }
+                            }
+                            playerName = newPlayerName;
+                            bytesProcessed = sequence.GetPosition(before.Length + playerMessage.Length);
+                            return true;
+                        }
                     }
                 }
-                else
-                {
-                    break;
-                }
             }
-            return null;
+            bytesProcessed = sequence.GetPosition(sequence.Length);
+            return false;
         }
 
         private static string ReadQuitMessage(ReadOnlySequence<byte> sequence)
@@ -127,15 +148,11 @@ namespace Orts.MultiPlayerServer
 
             SequenceReader<byte> reader = new SequenceReader<byte>(sequence);
 
-            while (!reader.End)
+            if (reader.TryReadTo(out _, quitSeparator))
             {
-                if (reader.TryReadTo(out _, quitSeparator))
+                if (reader.TryReadTo(out ReadOnlySequence<byte> playerName, blankSeparator))
                 {
-                    return encoding.GetString(reader.UnreadSpan);
-                }
-                else
-                {
-                    break;
+                    return playerName.GetString(encoding);
                 }
             }
             return null;
@@ -161,36 +178,29 @@ namespace Orts.MultiPlayerServer
 
                 if (!playerNameSet)
                 {
-                    string player = ReadPlayerName(buffer);
-
-                    if (string.IsNullOrEmpty(player))
-                        break;
-
-                    onlinePlayers.Remove(playerName);
-                    if (currentServer == playerName)
-                        currentServer = playerName = player;
-                    else
-                        playerName = player;
-                    onlinePlayers.Add(playerName, tcpClient);
-                    playerNameSet = true;
-
-                    if (currentServer != player)
-                        await SendMessage(currentServer, buffer.First).ConfigureAwait(true);
-                    reader.AdvanceTo(buffer.End, buffer.End);
+                    string player = playerName;
+                    if (ReadPlayerName(buffer, ref player, out SequencePosition bytesProcessed))
+                    {
+                        onlinePlayers.Remove(playerName);
+                        if (currentServer == playerName)
+                            currentServer = playerName = player;
+                        else
+                            playerName = player;
+                        onlinePlayers.Add(playerName, tcpClient);
+                        playerNameSet = true;
+                    }
+                    reader.AdvanceTo(bytesProcessed);
                 }
                 else
                 {
-                    if (!string.IsNullOrEmpty(quitPlayer = ReadQuitMessage(buffer)))
-                    {
-                        if (playerName == quitPlayer)
-                            break;
-                    }
+                    if (!string.IsNullOrEmpty(quitPlayer = ReadQuitMessage(buffer)) && playerName == quitPlayer)
+                        break;
 
                     foreach (ReadOnlyMemory<byte> message in buffer)
                     {
                         Broadcast(playerName, message);
                     }
-                    reader.AdvanceTo(buffer.End, buffer.End);
+                    reader.AdvanceTo(buffer.End);
                 }
 
                 if (result.IsCompleted)
@@ -220,7 +230,8 @@ namespace Orts.MultiPlayerServer
                     }
                     catch (Exception ex) when (ex is System.IO.IOException || ex is SocketException || ex is InvalidOperationException)
                     {
-                        await RemovePlayer(playerName).ConfigureAwait(false);
+                        if (playerName != null)
+                            await RemovePlayer(playerName).ConfigureAwait(false);
                     }
                 }
             });
@@ -238,7 +249,8 @@ namespace Orts.MultiPlayerServer
             }
             catch (Exception ex) when (ex is System.IO.IOException || ex is SocketException || ex is InvalidOperationException)
             {
-                await RemovePlayer(playerName).ConfigureAwait(false);
+                if (playerName != null)
+                    await RemovePlayer(playerName).ConfigureAwait(false);
             }
         }
 
@@ -265,4 +277,57 @@ namespace Orts.MultiPlayerServer
             }
         }
     }
+
+    public static class ReadOnlySequenceExtensions
+    {
+        public static bool GetIntFromEnd(in this ReadOnlySequence<byte> payload, ref int maxDigits, out int result, Encoding encoding = null)
+        {
+            encoding ??= Encoding.UTF8;
+            int charSize = encoding.GetByteCount("0");
+
+            if (maxDigits > 0)
+            {
+                if (maxDigits * charSize > payload.Length)
+                    maxDigits = (int)payload.Length / charSize;
+                SequencePosition position = payload.GetPosition(payload.Length - maxDigits * charSize);
+                if (payload.TryGet(ref position, out ReadOnlyMemory<byte> lengthIndicator, false))
+                {
+                    if (int.TryParse(encoding.GetString(lengthIndicator.Span), out result))
+                        return true;
+                    else
+                    {
+                        maxDigits--;
+                        return GetIntFromEnd(payload, ref maxDigits, out result, encoding);
+                    }
+                }
+            }
+            result = 0;
+            return false;
+        }
+
+        public static string GetString(in this ReadOnlySequence<byte> payload, Encoding encoding = null)
+        {
+            encoding ??= Encoding.UTF8;
+
+            return payload.IsSingleSegment ? encoding.GetString(payload.FirstSpan)
+                : GetStringInternal(payload, encoding);
+
+            static string GetStringInternal(in ReadOnlySequence<byte> payload, Encoding encoding)
+            {
+                // linearize
+                int length = checked((int)payload.Length);
+                byte[] oversized = ArrayPool<byte>.Shared.Rent(length);
+                try
+                {
+                    payload.CopyTo(oversized);
+                    return encoding.GetString(oversized, 0, length);
+                }
+                finally
+                {
+                    ArrayPool<byte>.Shared.Return(oversized);
+                }
+            }
+        }
+    }
+
 }

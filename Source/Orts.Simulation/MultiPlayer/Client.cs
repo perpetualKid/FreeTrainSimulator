@@ -110,81 +110,72 @@ namespace Orts.Simulation.MultiPlayer
         {
             ReadOnlySpan<byte> separatorSpan = separatorToken.AsSpan();
             ReadOnlySpan<byte> blankSpan = blankToken.AsSpan();
-            System.Text.Decoder decoder = encoding.GetDecoder();
-            byte[] tempBytes = null;
+            Decoder decoder = encoding.GetDecoder();
 
             SequenceReader<byte> reader = new SequenceReader<byte>(sequence);
 
-            while (!reader.End)
+            while (!reader.End && reader.TryReadTo(out ReadOnlySequence<byte> sizeIndicator, separatorSpan, true) && !sizeIndicator.IsEmpty)
             {
-                if (reader.TryReadTo(out ReadOnlySequence<byte> sizeIndicator, separatorSpan, true) && !sizeIndicator.IsEmpty)
+                string sizeText = sizeIndicator.GetString(encoding);
+                int lengthStart;
+
+                for (lengthStart = sizeText.Length; lengthStart > 0; lengthStart--)
                 {
-                    ReadOnlySpan<byte> span;
-                    if (!sizeIndicator.IsSingleSegment) //if not single segment, need to get all the data in a temporary buffer. However, this is very unlikely to happen
-                    {
-                        tempBytes = ArrayPool<byte>.Shared.Rent(checked((int)sizeIndicator.Length));
-                        sizeIndicator.CopyTo(tempBytes);
-                        span = tempBytes;
-                    }
-                    else
-                        span = sizeIndicator.FirstSpan;
-                    int index = MemoryExtensions.LastIndexOf(span, blankSpan);
-                    if (index > -1 || span.Length < 14) // looking either for a preceeding blank separator, or the begining of the data, but not expecting more than 6 digits ( (~1MB)
-                    {
-                        if (index < 0) //no blank separator upfront, so we just try from beginning
-                            index = 0;
-
-                        ReadOnlySpan<byte> lengthSpan = span[index..];
-#pragma warning disable CA2014 // Do not use stackalloc in loops
-                        Span<char> numberSpan = stackalloc char[decoder.GetCharCount(lengthSpan, true)];
-#pragma warning restore CA2014 // Do not use stackalloc in loops
-                        decoder.GetChars(lengthSpan, numberSpan, true);
-                        int lengthStart;
-                        for (lengthStart = numberSpan.Length; lengthStart > 0; lengthStart--)
-                        {
-                            if (!char.IsDigit(numberSpan[lengthStart - 1]))
-                                break;
-                        }
-                        if (int.TryParse(numberSpan[lengthStart..], out int length) && reader.Remaining >= (length *= 2)) // found a length indicator and enough data is present
-                        {
-                            //reader.TryReadTo(out ReadOnlySequence<byte> messageType, blankSpan);
-                            //ReadOnlySequence<byte> messageSequence = reader.Sequence.Slice(0, length);
-
-                            if (!reader.Sequence.IsSingleSegment)
-                                Debugger.Break();
-                            ReadOnlySpan<byte> messageSpan = reader.UnreadSpan[..length]; // this is our message
-                            int messageTypeIndex = messageSpan.IndexOf(blankSpan);
-                            if (messageTypeIndex > 0)
-                            {
-                                ReadOnlySpan<byte> messageType = messageSpan[..messageTypeIndex];
-                                ReadOnlySpan<byte> messageData = messageSpan[++messageTypeIndex..];
-
-                                Message message = Message.Decode(encoding.GetString(messageSpan));
-                                if (Connected || message is MSGRequired)
-                                    message.HandleMsg();
-                            }
-                            reader.Advance(length);
-                        }
-                        else // message length header is indicating more data than currently available, going back to where the length indicator starts and wait for more
-                        {
-                            reader.Rewind(lengthSpan.Length + separatorSpan.Length);
-                            break;
-                        }
-                    }
-                    else
-                    {
-                        reader.Advance(sizeIndicator.Length);
-                    }
-                    if (tempBytes != null)
-                        ArrayPool<byte>.Shared.Return(tempBytes);
+                    if (!char.IsDigit(sizeText[lengthStart - 1]))
+                        break;
                 }
-                else if (completed)
+
+                byte[] oversized = null;
+                ReadOnlySpan<byte> GetSpanInternal(in ReadOnlySequence<byte> payload)
                 {
-                    reader.Advance(sequence.Length);
+                    // linearize
+                    oversized = ArrayPool<byte>.Shared.Rent(checked((int)payload.Length));
+                    payload.CopyTo(oversized);
+                    return oversized;
                 }
-                else
+
+                if (int.TryParse(sizeText[lengthStart..], out int length)) // found a length indicator
                 {
-                    break;
+                    if (reader.Remaining >= (length *= 2) || completed) // enough data is present?
+                    {
+                        // this will be our message
+                        ReadOnlySpan<byte> messageSpan;
+                        if (!completed)
+                        {
+                            ReadOnlySequence<byte> contentSequence = reader.Sequence.Slice(reader.Consumed, length);
+                            messageSpan = (contentSequence.IsSingleSegment ? contentSequence.FirstSpan : GetSpanInternal(contentSequence));
+                        }
+                        else
+                        {
+                            ReadOnlySequence<byte> contentSequence = reader.Sequence.Slice(reader.Consumed);
+                            messageSpan = (contentSequence.IsSingleSegment ? contentSequence.FirstSpan : GetSpanInternal(contentSequence));
+                        }
+
+                        int messageTypeIndex = messageSpan.IndexOf(blankSpan);
+                        if (messageTypeIndex > 0)
+                        {
+                            ReadOnlySpan<byte> messageType = messageSpan[..messageTypeIndex];
+                            ReadOnlySpan<byte> messageData = messageSpan[++messageTypeIndex..];
+
+                            Message message = Message.Decode(encoding.GetString(messageSpan));
+                            if (Connected || message is MSGRequired)
+                                message.HandleMsg();
+
+                        }
+                        if (oversized != null)
+                            ArrayPool<byte>.Shared.Return(oversized);
+
+                        reader.Advance(length);
+                    }
+                    else // message length header is indicating more data than currently available, going back to where the length indicator starts and wait for more
+                    {
+                        reader.Rewind(sizeIndicator.Length + separatorSpan.Length);
+                        break;
+                    }
+                }
+                else // no valid size indicator, skipping ahead
+                {
+                    reader.Advance(sizeIndicator.Length);
                 }
             }
 
@@ -193,7 +184,7 @@ namespace Orts.Simulation.MultiPlayer
 
         private async Task PipeFillAsync(TcpClient tcpClient, PipeWriter writer)
         {
-            const int minimumBufferSize = 128;
+            const int minimumBufferSize = 512;
             NetworkStream networkStream = tcpClient.GetStream();
 
             while (tcpClient.Connected)
@@ -225,7 +216,7 @@ namespace Orts.Simulation.MultiPlayer
 
                 ReadOnlySequence<byte> buffer = result.Buffer;
 
-                SequencePosition position = DecodeMessage(buffer, result.IsCompleted);
+                SequencePosition position = DecodeMessage(buffer, result.IsCompleted || result.IsCanceled);
                 reader.AdvanceTo(position, buffer.End);
 
                 if (result.IsCompleted || result.IsCanceled)
@@ -258,6 +249,33 @@ namespace Orts.Simulation.MultiPlayer
             // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
             Dispose(disposing: true);
             GC.SuppressFinalize(this);
+        }
+    }
+
+    public static class ReadOnlySequenceExtensions
+    {
+        public static string GetString(in this ReadOnlySequence<byte> payload, Encoding encoding = null)
+        {
+            encoding ??= Encoding.UTF8;
+
+            return payload.IsSingleSegment ? encoding.GetString(payload.FirstSpan)
+                : GetStringInternal(payload, encoding);
+
+            static string GetStringInternal(in ReadOnlySequence<byte> payload, Encoding encoding)
+            {
+                // linearize
+                int length = checked((int)payload.Length);
+                byte[] oversized = ArrayPool<byte>.Shared.Rent(length);
+                try
+                {
+                    payload.CopyTo(oversized);
+                    return encoding.GetString(oversized, 0, length);
+                }
+                finally
+                {
+                    ArrayPool<byte>.Shared.Return(oversized);
+                }
+            }
         }
     }
 }

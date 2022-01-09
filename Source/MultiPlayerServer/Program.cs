@@ -7,7 +7,7 @@ namespace Orts.MultiPlayerServer
     {
         private static void Main(string[] args)
         {
-            Console.Title = "OpenRails MultiPlayer Server";
+            Console.Title = ThisAssembly.AssemblyTitle;
             try
             {
                 int port = 30000;
