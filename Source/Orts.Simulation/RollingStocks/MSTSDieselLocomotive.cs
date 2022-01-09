@@ -610,8 +610,7 @@ namespace Orts.Simulation.RollingStocks
             {
                 // Appartent throttle setting is a reverse lookup of the throttletab vs rpm, hence motive force increase will be related to increase in rpm. The minimum of the two values
                 // is checked to enable fast reduction in tractive force when decreasing the throttle. Typically it will take longer for the prime mover to decrease rpm then drop motive force.
-                float LocomotiveApparentThrottleSetting = 0;
-
+                float LocomotiveApparentThrottleSetting;
                 if (IsPlayerTrain)
                 {
                     LocomotiveApparentThrottleSetting = Math.Min(t, DieselEngines.ApparentThrottleSetting / 100.0f);
@@ -914,7 +913,7 @@ namespace Orts.Simulation.RollingStocks
 
         public string GetDistributedPowerDebugStatus()
         {
-            string throttle = "";
+            string throttle;
             if (ThrottlePercent > 0)
             {
                 if (ThrottleController.NotchCount() > 3)
@@ -958,7 +957,7 @@ namespace Orts.Simulation.RollingStocks
 
         public string GetDpuStatus(bool dataDpu, CabViewControlUnit loadUnits = CabViewControlUnit.None)// used by the TrainDpuInfo window
         {
-            string throttle = "";
+            string throttle;
             if (ThrottlePercent > 0)
             {
                 if (ThrottleController.NotchCount() > 3)
@@ -995,7 +994,7 @@ namespace Orts.Simulation.RollingStocks
             status.Append($"{throttle}\t");
 
             // Load
-            var data = 0f;
+            float data;
             if (FilteredMotiveForceN != 0)
                 data = Math.Abs(this.FilteredMotiveForceN);
             else
@@ -1017,24 +1016,31 @@ namespace Orts.Simulation.RollingStocks
                     {
                         data = (data / MaxDynamicBrakeForceN) * DynamicBrakeMaxCurrentA;
                     }
-                    status.Append($"{data:F0} amps\t");
+                    status.Append($"{data:F0} amps");
                     break;
 
                 case CabViewControlUnit.Newtons:
-                    status.Append($"{data:F0} N\t");
+                    status.Append($"{data:F0} N");
                     break;
 
                 case CabViewControlUnit.Kilo_Newtons:
                     data /= 1000.0f;
-                    status.Append($"{data:F0} kN\t");
+                    status.Append($"{data:F0} kN");
+                    break;
+
+                case CabViewControlUnit.Lbs:
+                    data = (float)Dynamics.Force.ToLbf(data);
+                    status.Append($"{data:F0} lbf");
                     break;
 
                 case CabViewControlUnit.Kilo_Lbs:
                 default:
                     data = (float)Dynamics.Force.ToLbf(data) * 0.001f;
-                    status.Append($"{data:F0} klbf\t");
+                    status.Append($"{data:F0} klbf");
                     break;
             }
+
+            status.Append((data < 0 ? "???" : " ") + "\t");
 
             // BP
             var brakeInfoValue = BrakeValue(Simulator.Catalog.GetString("BP"), Simulator.Catalog.GetString("EOT"));
