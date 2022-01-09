@@ -167,7 +167,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
     public class DPDefaultWindow : DPIWindow
     {
         public bool FullTable;
-        public CabViewControlUnit LoadUnits { get; } = CabViewControlUnit.Kilo_Lbs;
+        public CabViewControlUnit LoadUnits { get; } = CabViewControlUnit.None;
         public DPDefaultWindow(DistributedPowerInterface dpi, CabViewControl control) : base(dpi, 640, 240)
         {
             var param = (control as CabViewScreenControl).CustomParameters;
