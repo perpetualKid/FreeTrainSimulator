@@ -1016,7 +1016,7 @@ namespace Orts.Simulation.RollingStocks
                     {
                         data = (data / MaxDynamicBrakeForceN) * DynamicBrakeMaxCurrentA;
                     }
-                    status.Append($"{data:F0} amps");
+                    status.Append($"{data:F0} A");
                     break;
 
                 case CabViewControlUnit.Newtons:
@@ -1030,13 +1030,13 @@ namespace Orts.Simulation.RollingStocks
 
                 case CabViewControlUnit.Lbs:
                     data = (float)Dynamics.Force.ToLbf(data);
-                    status.Append($"{data:F0} lbf");
+                    status.Append($"{data:F0} l");
                     break;
 
                 case CabViewControlUnit.Kilo_Lbs:
                 default:
                     data = (float)Dynamics.Force.ToLbf(data) * 0.001f;
-                    status.Append($"{data:F0} klbf");
+                    status.Append($"{data:F0} K");
                     break;
             }
 
