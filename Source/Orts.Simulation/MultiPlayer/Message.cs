@@ -22,6 +22,7 @@ using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Text;
 
 using GetText;
 
@@ -40,44 +41,46 @@ namespace Orts.Simulation.MultiPlayer
 {
     public abstract class Message
     {
-        public static Message Decode(string m)
+        private static readonly Encoding messageEncoding = Encoding.Unicode;
+
+        public static Message Decode(ReadOnlySpan<byte> messageType, ReadOnlySpan<byte> content)
         {
-            int index = m.IndexOf(' ');
-            string key = m.Substring(0, index);
-            if (key == "MOVE") return new MSGMove(m.Substring(index + 1));
-            else if (key == "SWITCHSTATES") return new MSGSwitchStatus(m.Substring(index + 1));
-            else if (key == "SIGNALSTATES") return new MSGSignalStatus(m.Substring(index + 1));
-            else if (key == "TEXT") return new MSGText(m.Substring(index + 1));
-            else if (key == "LOCOINFO") return new MSGLocoInfo(m.Substring(index + 1));
-            else if (key == "ALIVE") return new MSGAlive(m.Substring(index + 1));
-            else if (key == "TRAIN") return new MSGTrain(m.Substring(index + 1));
-            else if (key == "PLAYER") return new MSGPlayer(m.Substring(index + 1));
-            else if (key == "PLAYERTRAINSW") return new MSGPlayerTrainSw(m.Substring(index + 1));
-            else if (key == "ORGSWITCH") return new MSGOrgSwitch(m.Substring(index + 1));
-            else if (key == "SWITCH") return new MSGSwitch(m.Substring(index + 1));
-            else if (key == "RESETSIGNAL") return new MSGResetSignal(m.Substring(index + 1));
-            else if (key == "REMOVETRAIN") return new MSGRemoveTrain(m.Substring(index + 1));
-            else if (key == "SERVER") return new MSGServer(m.Substring(index + 1));
-            else if (key == "MESSAGE") return new MSGMessage(m.Substring(index + 1));
-            else if (key == "EVENT") return new MSGEvent(m.Substring(index + 1));
-            else if (key == "UNCOUPLE") return new MSGUncouple(m.Substring(index + 1));
-            else if (key == "COUPLE") return new MSGCouple(m.Substring(index + 1));
-            else if (key == "GETTRAIN") return new MSGGetTrain(m.Substring(index + 1));
-            else if (key == "UPDATETRAIN") return new MSGUpdateTrain(m.Substring(index + 1));
-            else if (key == "CONTROL") return new MSGControl(m.Substring(index + 1));
-            else if (key == "LOCCHANGE") return new MSGLocoChange(m.Substring(index + 1));
-            else if (key == "QUIT") return new MSGQuit(m.Substring(index + 1));
-            else if (key == "LOST") return new MSGLost(m.Substring(index + 1));
-            else if (key == "AVATAR") return new MSGAvatar(m.Substring(index + 1));
-            else if (key == "WEATHER") return new MSGWeather(m.Substring(index + 1));
-            else if (key == "AIDER") return new MSGAider(m.Substring(index + 1));
-            else if (key == "SIGNALCHANGE") return new MSGSignalChange(m.Substring(index + 1));
-            else if (key == "EXHAUST") return new MSGExhaust(m.Substring(index + 1));
-            else if (key == "FLIP") return new MSGFlip(m.Substring(index + 1));
-            else throw new ProtocolException("Unknown Keyword" + key);
+            return messageEncoding.GetString(messageType) switch
+            {
+                "MOVE" => new MSGMove(messageEncoding.GetString(content)),
+                "SWITCHSTATES" => new MSGSwitchStatus(messageEncoding.GetString(content)),
+                "SIGNALSTATES" => new MSGSignalStatus(messageEncoding.GetString(content)),
+                "TEXT" => new MSGText(messageEncoding.GetString(content)),
+                "LOCOINFO" => new MSGLocoInfo(messageEncoding.GetString(content)),
+                "ALIVE" => new MSGAlive(messageEncoding.GetString(content)),
+                "TRAIN" => new MSGTrain(messageEncoding.GetString(content)),
+                "PLAYER" => new MSGPlayer(messageEncoding.GetString(content)),
+                "PLAYERTRAINSW" => new MSGPlayerTrainSw(messageEncoding.GetString(content)),
+                "ORGSWITCH" => new MSGOrgSwitch(messageEncoding.GetString(content)),
+                "SWITCH" => new MSGSwitch(messageEncoding.GetString(content)),
+                "RESETSIGNAL" => new MSGResetSignal(messageEncoding.GetString(content)),
+                "REMOVETRAIN" => new MSGRemoveTrain(messageEncoding.GetString(content)),
+                "SERVER" => new MSGServer(messageEncoding.GetString(content)),
+                "MESSAGE" => new MSGMessage(messageEncoding.GetString(content)),
+                "EVENT" => new MSGEvent(messageEncoding.GetString(content)),
+                "UNCOUPLE" => new MSGUncouple(messageEncoding.GetString(content)),
+                "COUPLE" => new MSGCouple(messageEncoding.GetString(content)),
+                "GETTRAIN" => new MSGGetTrain(messageEncoding.GetString(content)),
+                "UPDATETRAIN" => new MSGUpdateTrain(messageEncoding.GetString(content)),
+                "CONTROL" => new MSGControl(messageEncoding.GetString(content)),
+                "LOCCHANGE" => new MSGLocoChange(messageEncoding.GetString(content)),
+                "QUIT" => new MSGQuit(messageEncoding.GetString(content)),
+                "LOST" => new MSGLost(messageEncoding.GetString(content)),
+                "AVATAR" => new MSGAvatar(messageEncoding.GetString(content)),
+                "WEATHER" => new MSGWeather(messageEncoding.GetString(content)),
+                "AIDER" => new MSGAider(messageEncoding.GetString(content)),
+                "SIGNALCHANGE" => new MSGSignalChange(messageEncoding.GetString(content)),
+                "EXHAUST" => new MSGExhaust(messageEncoding.GetString(content)),
+                "FLIP" => new MSGFlip(messageEncoding.GetString(content)),
+                _ => throw new ProtocolException($"Unknown Message type {messageEncoding.GetString(messageType)}"),
+            };
         }
 
-//        public virtual void HandleMsg() { Trace.WriteLine("test"); return; }
         public abstract void HandleMsg();
     }
 

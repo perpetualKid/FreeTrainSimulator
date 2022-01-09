@@ -155,9 +155,10 @@ namespace Orts.Simulation.MultiPlayer
                         if (messageTypeIndex > 0)
                         {
                             ReadOnlySpan<byte> messageType = messageSpan[..messageTypeIndex];
-                            ReadOnlySpan<byte> messageData = messageSpan[++messageTypeIndex..];
+                            messageTypeIndex += blankToken.Length;
+                            ReadOnlySpan<byte> messageData = messageSpan[messageTypeIndex..];
 
-                            Message message = Message.Decode(encoding.GetString(messageSpan));
+                            Message message = Message.Decode(messageType, messageData);
                             if (Connected || message is MSGRequired)
                                 message.HandleMsg();
 
