@@ -26,6 +26,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 using Orts.ActivityRunner.Viewer3D.Popups;
 using Orts.Common;
+using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation.RollingStocks;
 
@@ -166,12 +167,20 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
     public class DPDefaultWindow : DPIWindow
     {
         public bool FullTable;
+        public CabViewControlUnit LoadUnits { get; } = CabViewControlUnit.Kilo_Lbs;
         public DPDefaultWindow(DistributedPowerInterface dpi, CabViewControl control) : base(dpi, 640, 240)
         {
             var param = (control as CabViewScreenControl).CustomParameters;
             if (param.ContainsKey("fulltable"))
                 bool.TryParse(param["fulltable"], out FullTable);
-            DPITable DPITable = new DPITable(FullTable, fullScreen: true, dpi: dpi);
+            if (param.ContainsKey("loadunits"))
+            {
+                string sUnits = param["loadunits"].ToUpper();
+                sUnits = sUnits.Replace('/', '_');
+                if (EnumExtension.GetValue(sUnits, out CabViewControlUnit loadUnits))
+                    LoadUnits = loadUnits;
+            }
+            DPITable DPITable = new DPITable(FullTable, LoadUnits, fullScreen:true, dpi:dpi);
             AddToLayout(DPITable, new Point(0, 0));
         }
     }
@@ -377,6 +386,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
         readonly int RowHeight = 34;
         readonly int ColLength = 88;
         public bool FullTable = true;
+        public CabViewControlUnit LoadUnits;
 
         // Change text color
         readonly Dictionary<string, Color> ColorCodeCtrl = new Dictionary<string, Color>
@@ -395,11 +405,12 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
 
         protected string[] FirstColumn = { "ID", "Throttle", "Load", "BP", "Flow", "Remote", "ER", "BC", "MR" };
 
-        public DPITable(bool fullTable, bool fullScreen, DistributedPowerInterface dpi) : base(dpi, 640, fullTable ? 230 : 162)
+        public DPITable(bool fullTable, CabViewControlUnit loadUnits, bool fullScreen, DistributedPowerInterface dpi) : base(dpi, 640,  fullTable? 230 : 162)
         {
             DPI = dpi;
             FullScreen = fullScreen;
             FullTable = fullTable;
+            LoadUnits = loadUnits;
             BackgroundColor = DPI.BlackWhiteTheme ? Color.Black : DistributedPowerInterface.ColorBackground;
             SetFont();
             string text = "";
@@ -477,7 +488,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
                         {
                             if (dpUId != (train.Cars[i] as MSTSLocomotive).DistributedPowerUnitId)
                             {
-                                var status = (train.Cars[i] as MSTSDieselLocomotive).GetDpuStatus(true).Split('\t');
+                                var status = (train.Cars[i] as MSTSDieselLocomotive).GetDpuStatus(true, LoadUnits).Split('\t');
                                 var fence = ((dpUnitId != (dpUnitId = train.Cars[i].RemoteControlGroup)) ? "| " : "  ");
                                 tempStatus[k, 0] = fence + status[0].Split('(').First();
                                 for (var j = 1; j < status.Length; j++)
