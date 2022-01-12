@@ -76,6 +76,30 @@ namespace Orts.Simulation.MultiPlayer
 
         }
 
+        public async Task SendMessage(Message message)
+        {
+            char[] originalMessage = ArrayPool<char>.Shared.Rent(message.EstimatedMessageSize);
+            using (IMemoryOwner<byte> owner = MemoryPool<byte>.Shared.Rent(encoding.GetMaxByteCount(message.EstimatedMessageSize)))
+            {
+                int bytesWritten = encoding.GetBytes(message.Serialize(originalMessage), owner.Memory.Span);
+                try
+                {
+                    if (tcpClient.Connected && !cts.IsCancellationRequested)
+                    {
+                        NetworkStream clientStream = tcpClient.GetStream();
+                        await clientStream.WriteAsync(owner.Memory[..bytesWritten], cts.Token).ConfigureAwait(false);
+                        await clientStream.FlushAsync(cts.Token).ConfigureAwait(false);
+                    }
+                }
+                catch (Exception ex) when (ex is System.IO.IOException || ex is SocketException || ex is InvalidOperationException)
+                {
+                    Trace.TraceError($"Error sending Multiplayer Message: {ex.Message}");
+                    cts.Cancel();
+                }
+                ArrayPool<char>.Shared.Return(originalMessage);
+            }
+        }
+
         public async Task SendMessage(string message)
         {
             try
@@ -91,8 +115,8 @@ namespace Orts.Simulation.MultiPlayer
             catch (Exception ex) when (ex is System.IO.IOException || ex is SocketException || ex is InvalidOperationException)
             {
                 Trace.TraceError($"Error sending Multiplayer Message: {ex.Message}");
+                cts.Cancel();
             }
-
         }
 
         public void Stop()
@@ -188,7 +212,7 @@ namespace Orts.Simulation.MultiPlayer
             const int minimumBufferSize = 512;
             NetworkStream networkStream = tcpClient.GetStream();
 
-            while (tcpClient.Connected)
+            while (tcpClient.Connected && !cts.Token.IsCancellationRequested)
             {
                 Memory<byte> memory = writer.GetMemory(minimumBufferSize);
 
@@ -211,14 +235,14 @@ namespace Orts.Simulation.MultiPlayer
 
         private async Task PipeReadAsync(TcpClient tcpClient, PipeReader reader)
         {
-            while (tcpClient.Client.Connected)
+            while (tcpClient.Client.Connected && !cts.Token.IsCancellationRequested)
             {
                 ReadResult result = await reader.ReadAsync(cts.Token).ConfigureAwait(false);
 
                 ReadOnlySequence<byte> buffer = result.Buffer;
 
                 SequencePosition position = DecodeMessage(buffer, result.IsCompleted || result.IsCanceled);
-                reader.AdvanceTo(position, buffer.End);
+                reader.AdvanceTo(position);
 
                 if (result.IsCompleted || result.IsCanceled)
                 {
@@ -236,7 +260,8 @@ namespace Orts.Simulation.MultiPlayer
                 if (disposing)
                 {
                     // TODO: dispose managed state (managed objects)
-                    cts.Cancel();
+                    if (!cts.IsCancellationRequested)
+                        cts.Cancel();
                     cts.Dispose();
                     tcpClient?.Dispose();
                 }

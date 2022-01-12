@@ -41,7 +41,9 @@ namespace Orts.Simulation.MultiPlayer
 {
     public abstract class Message
     {
-        private static readonly Encoding messageEncoding = Encoding.Unicode;
+        private protected static readonly Encoding messageEncoding = Encoding.Unicode;
+        private protected const int maxSizeDigits = 6;
+        private protected const string separator = ": ";
 
         public static Message Decode(ReadOnlySpan<byte> messageType, ReadOnlySpan<byte> content)
         {
@@ -52,7 +54,7 @@ namespace Orts.Simulation.MultiPlayer
                 "SIGNALSTATES" => new MSGSignalStatus(messageEncoding.GetString(content)),
                 "TEXT" => new MSGText(messageEncoding.GetString(content)),
                 "LOCOINFO" => new MSGLocoInfo(messageEncoding.GetString(content)),
-                "ALIVE" => new MSGAlive(messageEncoding.GetString(content)),
+                "ALIVE" => new MSGAlive(content),
                 "TRAIN" => new MSGTrain(messageEncoding.GetString(content)),
                 "PLAYER" => new MSGPlayer(messageEncoding.GetString(content)),
                 "PLAYERTRAINSW" => new MSGPlayerTrainSw(messageEncoding.GetString(content)),
@@ -60,7 +62,7 @@ namespace Orts.Simulation.MultiPlayer
                 "SWITCH" => new MSGSwitch(messageEncoding.GetString(content)),
                 "RESETSIGNAL" => new MSGResetSignal(messageEncoding.GetString(content)),
                 "REMOVETRAIN" => new MSGRemoveTrain(messageEncoding.GetString(content)),
-                "SERVER" => new MSGServer(messageEncoding.GetString(content)),
+                "SERVER" => new MSGServer(content),
                 "MESSAGE" => new MSGMessage(messageEncoding.GetString(content)),
                 "EVENT" => new MSGEvent(messageEncoding.GetString(content)),
                 "UNCOUPLE" => new MSGUncouple(messageEncoding.GetString(content)),
@@ -82,6 +84,14 @@ namespace Orts.Simulation.MultiPlayer
         }
 
         public abstract void HandleMsg();
+
+        public virtual int EstimatedMessageSize => 0;
+
+        public virtual ReadOnlySpan<char> Serialize(char[] buffer)
+        {
+            return buffer.AsSpan();
+        }
+
     }
 
     #region MSGMove
@@ -1562,12 +1572,12 @@ namespace Orts.Simulation.MultiPlayer
     #region MSGServer
     public class MSGServer : MSGRequired
     {
-        private string user; //true: I am a server now, false, not
-        public MSGServer(string m)
-        {
-            user = m.Trim();
-        }
+        private readonly string user; //true: I am a server now, false, not
 
+        public MSGServer(ReadOnlySpan<byte> message)
+        {
+            user = messageEncoding.GetString(message);
+        }
 
         public override string ToString()
         {
@@ -1616,18 +1626,33 @@ namespace Orts.Simulation.MultiPlayer
     #region MSGAlive
     public class MSGAlive : Message
     {
-        private string user;
+        private readonly string user;
+        private const string messageTemplate = "ALIVE ";
+
         public MSGAlive(string m)
         {
             user = m;
         }
 
-
-        public override string ToString()
+        public MSGAlive(ReadOnlySpan<byte> message)
         {
-            string tmp = "ALIVE " + user;
-            return " " + tmp.Length + ": " + tmp;
+            user = messageEncoding.GetString(message);
         }
+
+        public override ReadOnlySpan<char> Serialize(char[] buffer)
+        {
+            Span<char> spanBuffer = buffer.AsSpan();
+            (messageTemplate.Length + user.Length).TryFormat(spanBuffer, out int bytesWritten);
+            separator.AsSpan().CopyTo(spanBuffer[bytesWritten..]);
+            bytesWritten += separator.Length;
+            messageTemplate.AsSpan().CopyTo(spanBuffer[bytesWritten..]);
+            bytesWritten += messageTemplate.Length;
+            user.AsSpan().CopyTo(spanBuffer[bytesWritten..]);
+            bytesWritten += user.Length;
+            return spanBuffer[..bytesWritten];
+        }
+
+        public override int EstimatedMessageSize => messageTemplate.Length + user.Length + separator.Length + maxSizeDigits;
 
         public override void HandleMsg()
         {

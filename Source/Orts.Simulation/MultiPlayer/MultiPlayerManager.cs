@@ -294,9 +294,10 @@ namespace Orts.Simulation.MultiPlayer
 
 
             //need to send a keep-alive message if have not sent one to the server for the last 30 seconds
-            if (client != null && !IsDispatcher && newtime - lastSendTime >= 30f)
+            if (MultiplayerState == MultiplayerState.Client && newtime - lastSendTime >= 30f)
             {
-                Notify((new MSGAlive(GetUserName())).ToString());
+//                Notify((new MSGAlive(GetUserName())).ToString());
+                BroadCast(new MSGAlive(GetUserName()));
                 lastSendTime = newtime;
             }
 
@@ -379,6 +380,11 @@ namespace Orts.Simulation.MultiPlayer
             localUser?.client?.SendMessage(m).Wait();
         }
 
+        public static void BroadCast(Message message)
+        {
+            localUser?.client?.SendMessage(message ?? throw new ArgumentNullException(nameof(message))).Wait();
+        }
+
         //notify others (server will broadcast, client will send msg to server)
         public static void Notify(string m)
         {
@@ -411,13 +417,13 @@ namespace Orts.Simulation.MultiPlayer
         {
             if (client != null)
             {
-                if (IsDispatcher)
+                if (MultiplayerState == MultiplayerState.Dispatcher)
                 {
-                    //    Client.Send((new MSGQuit("ServerHasToQuit\t" + GetUserName())).ToString()); //server notify everybody else
+                    client.SendMessage(new MSGQuit("ServerHasToQuit\t" + GetUserName())).Wait(); //server notify everybody else
                 }
-                //else
+                else
                 {
-                    client.SendMessage((new MSGQuit(GetUserName())).ToString()).Wait(); //client notify server
+                    client.SendMessage(new MSGQuit(GetUserName())).Wait(); //client notify server
                 }
                 client.Stop();
             }
