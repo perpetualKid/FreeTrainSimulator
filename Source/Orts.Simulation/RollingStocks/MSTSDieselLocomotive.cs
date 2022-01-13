@@ -1065,7 +1065,7 @@ namespace Orts.Simulation.RollingStocks
                 status.Append($"{brakeInfoValue:F0}\t");
 
                 // BC
-                brakeInfoValue = BrakeValue(Simulator.Catalog.GetString("BC"), Simulator.Catalog.GetString("BP"));
+                brakeInfoValue = Math.Round(BrakeSystem.GetCylPressurePSI()).ToString() + " psi";
                 status.Append($"{brakeInfoValue:F0}\t");
 
                 // MR
