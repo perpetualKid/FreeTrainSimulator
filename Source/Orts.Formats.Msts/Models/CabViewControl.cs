@@ -282,7 +282,7 @@ namespace Orts.Formats.Msts.Models
                     EndAngle = stf.ReadFloat(STFReader.Units.None, null);
                     stf.SkipRestOfBlock();
                 }),
-                new STFReader.TokenProcessor("label", ()=>{
+                new STFReader.TokenProcessor("ortslabel", ()=>{
                     stf.MustMatch("(");
                     Label = stf.ReadString();
                     stf.SkipRestOfBlock();
@@ -354,7 +354,7 @@ namespace Orts.Formats.Msts.Models
                     }
                 }),
                 new STFReader.TokenProcessor("ortsangle", () => { Rotation = ParseRotation(stf); }),
-                new STFReader.TokenProcessor("label", ()=>{
+                new STFReader.TokenProcessor("ortslabel", ()=>{
                     stf.MustMatch("(");
                     Label = stf.ReadString();
                     stf.SkipRestOfBlock();
@@ -455,7 +455,7 @@ namespace Orts.Formats.Msts.Models
                 }),
                 new STFReader.TokenProcessor("ortsfont", ()=>{ParseFont(stf); }),
                 new STFReader.TokenProcessor("ortsangle", () => { Rotation = ParseRotation(stf); }),
-                new STFReader.TokenProcessor("label", ()=>{
+                new STFReader.TokenProcessor("ortslabel", ()=>{
                     stf.MustMatch("(");
                     Label = stf.ReadString();
                     stf.SkipRestOfBlock();
@@ -689,7 +689,7 @@ namespace Orts.Formats.Msts.Models
                             valuesRead++;
                         }
                     }),
-                new STFReader.TokenProcessor("label", ()=>{
+                new STFReader.TokenProcessor("ortslabel", ()=>{
                     stf.MustMatch("(");
                     Label = stf.ReadString();
                     stf.SkipRestOfBlock();
