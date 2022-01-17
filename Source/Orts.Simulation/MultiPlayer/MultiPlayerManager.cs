@@ -173,12 +173,12 @@ namespace Orts.Simulation.MultiPlayer
                     train.InitializeSignals(false);
                     Simulator.Instance.Confirmer?.Information(Catalog.GetString("You gained back the control of your train"));
                     msgctl = new MSGControl(GetUserName(), "Confirm", train);
-                    Notify(msgctl.ToString());
+                    BroadCast(msgctl.ToString());
                 }
                 else //client, send request
                 {
                     msgctl = new MSGControl(GetUserName(), "Request", train);
-                    Notify(msgctl.ToString());
+                    BroadCast(msgctl.ToString());
                 }
             }
             catch (Exception)
@@ -207,7 +207,7 @@ namespace Orts.Simulation.MultiPlayer
                 MSGMove move = new MSGMove();
                 if (Simulator.Instance.PlayerLocomotive.Train.TrainType != TrainType.Remote)
                     move.AddNewItem(GetUserName(), Simulator.Instance.PlayerLocomotive.Train);
-                Notify(OnlineTrains.MoveTrains(move));
+                BroadCast(OnlineTrains.MoveTrains(move));
                 MSGExhaust exhaust = new MSGExhaust(); // Also updating loco exhaust
                 Train t = Simulator.Instance.PlayerLocomotive.Train;
                 for (int iCar = 0; iCar < t.Cars.Count; iCar++)
@@ -220,7 +220,7 @@ namespace Orts.Simulation.MultiPlayer
                 // Broadcast also exhaust
                 var exhaustMessage = OnlineTrains.ExhaustingLocos(exhaust);
                 if (!string.IsNullOrEmpty(exhaustMessage))
-                    Notify(exhaustMessage);
+                    BroadCast(exhaustMessage);
 
                 lastMoveTime = lastSendTime = newtime;
 
@@ -296,8 +296,7 @@ namespace Orts.Simulation.MultiPlayer
             //need to send a keep-alive message if have not sent one to the server for the last 30 seconds
             if (MultiplayerState == MultiplayerState.Client && newtime - lastSendTime >= 30f)
             {
-//                Notify((new MSGAlive(GetUserName())).ToString());
-                BroadCast(new MSGAlive(GetUserName()));
+                Notify(new MSGAlive(GetUserName()));
                 lastSendTime = newtime;
             }
 
@@ -393,6 +392,11 @@ namespace Orts.Simulation.MultiPlayer
             if (m == null)
                 return;
             localUser?.client?.SendMessage(m).Wait(); //client notify server
+        }
+
+        public static void Notify(Message message)
+        {
+            localUser?.client?.SendMessage(message ?? throw new ArgumentNullException(nameof(message))).Wait(); //client notify server
         }
 
         //nicely shutdown listening threads, and notify the server/other player
