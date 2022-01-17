@@ -377,12 +377,14 @@ namespace Orts.Simulation.MultiPlayer
         {
             if (m == null)
                 return;
-            localUser?.client?.SendMessage(m).Wait();
+            if (MultiplayerState == MultiplayerState.Dispatcher)
+                localUser?.client?.SendMessage(m).Wait();
         }
 
         public static void BroadCast(Message message)
         {
-            localUser?.client?.SendMessage(message ?? throw new ArgumentNullException(nameof(message))).Wait();
+            if (MultiplayerState == MultiplayerState.Dispatcher)
+                localUser?.client?.SendMessage(message ?? throw new ArgumentNullException(nameof(message))).Wait();
         }
 
         //notify others (server will broadcast, client will send msg to server)
