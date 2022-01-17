@@ -175,6 +175,7 @@ namespace Orts.Simulation.MultiPlayer
                             messageSpan = (contentSequence.IsSingleSegment ? contentSequence.FirstSpan : GetSpanInternal(contentSequence));
                         }
 
+                        string messageString = encoding.GetString(messageSpan);
                         int messageTypeIndex = messageSpan.IndexOf(blankSpan);
                         if (messageTypeIndex > 0)
                         {
