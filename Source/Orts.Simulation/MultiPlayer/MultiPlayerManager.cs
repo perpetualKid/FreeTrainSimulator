@@ -425,11 +425,11 @@ namespace Orts.Simulation.MultiPlayer
             {
                 if (MultiplayerState == MultiplayerState.Dispatcher)
                 {
-                    client.SendMessage(new MSGQuit("ServerHasToQuit\t" + GetUserName())).Wait(); //server notify everybody else
+                    client.SendMessage(new MSGQuit("ServerHasToQuit\t" + GetUserName()).ToString()).Wait(); //server notify everybody else
                 }
                 else
                 {
-                    client.SendMessage(new MSGQuit(GetUserName())).Wait(); //client notify server
+                    client.SendMessage(new MSGQuit(GetUserName()).ToString()).Wait(); //client notify server
                 }
                 client.Stop();
             }

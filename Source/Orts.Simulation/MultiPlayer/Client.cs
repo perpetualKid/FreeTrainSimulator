@@ -155,7 +155,7 @@ namespace Orts.Simulation.MultiPlayer
                     // linearize
                     oversized = ArrayPool<byte>.Shared.Rent(checked((int)payload.Length));
                     payload.CopyTo(oversized);
-                    return oversized;
+                    return oversized.AsSpan(0, (int)payload.Length);
                 }
 
                 if (int.TryParse(sizeText[lengthStart..], out int length)) // found a length indicator
@@ -175,7 +175,6 @@ namespace Orts.Simulation.MultiPlayer
                             messageSpan = (contentSequence.IsSingleSegment ? contentSequence.FirstSpan : GetSpanInternal(contentSequence));
                         }
 
-                        string messageString = encoding.GetString(messageSpan);
                         int messageTypeIndex = messageSpan.IndexOf(blankSpan);
                         if (messageTypeIndex > 0)
                         {
