@@ -333,7 +333,7 @@ namespace Orts.Simulation.AIs
             float firstAITime = StartList.GetNextTime();
             if (firstAITime > 0 && firstAITime < Simulator.ClockTime)
             {
-                Trace.Write($"\n Run AI : {StartList.Count} ");
+                Trace.WriteLine($"\n Run AI : {StartList.Count} ");
 
                 // perform update for AI trains upto actual start time
 
@@ -363,7 +363,7 @@ namespace Orts.Simulation.AIs
             float firstAITime = StartList.GetNextTime();
             if (firstAITime > 0 && firstAITime < Simulator.ClockTime)
             {
-                Trace.Write($"\n Run AI : {StartList.Count} ");
+                Trace.WriteLine($"\n Run AI : {StartList.Count} ");
 
                 // perform update for AI trains upto actual start time
 
