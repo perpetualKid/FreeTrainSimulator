@@ -1508,7 +1508,7 @@ namespace Orts.Menu
                 if (comboBox.DropDownStyle == ComboBoxStyle.DropDown)
                     comboBox.Text = settings.Menu_Selection[(int)index];
                 else
-                    SetComboBoxItem<T>(comboBox, item => map(item) == settings.Menu_Selection[(int)index]);
+                    SetComboBoxItem<T>(comboBox, item => string.Equals(map(item),settings.Menu_Selection[(int)index], StringComparison.OrdinalIgnoreCase));
             }
             else
             {
