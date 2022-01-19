@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
+using System.IO.Pipelines;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -16,11 +18,14 @@ namespace Orts.MultiPlayerServer
     {
         private readonly int port;
 
+        private static readonly Encoding encoding = Encoding.Unicode;
+        private static readonly int charSize = encoding.GetByteCount("0");
         private readonly Dictionary<string, TcpClient> onlinePlayers = new Dictionary<string, TcpClient>();
-        private readonly byte[] initData = Encoding.Unicode.GetBytes("10: SERVER YOU");
-        private readonly byte[] serverChallenge = Encoding.Unicode.GetBytes(" 21: SERVER WhoCanBeServer");
-        private bool serverAppointed;
-        private byte[] lostPlayer;
+        private static readonly byte[] initData = encoding.GetBytes("10: SERVER YOU");
+        private static readonly byte[] serverChallenge = encoding.GetBytes(" 21: SERVER WhoCanBeServer");
+        private static readonly byte[] blankToken = encoding.GetBytes(" ");
+        private static readonly byte[] playerToken = encoding.GetBytes(": PLAYER ");
+        private static readonly byte[] quitToken = encoding.GetBytes(": QUIT ");
         private string currentServer;
 
         public Host(int port)
@@ -28,35 +33,190 @@ namespace Orts.MultiPlayerServer
             this.port = port;
         }
 
-        public async void Run()
+        public async Task Run()
         {
-            TcpListener listener = new TcpListener(IPAddress.Any, port);
-            listener.Start();
-#pragma warning disable CA1303 // Do not pass literals as localized parameters
-            Console.WriteLine($"MultiPlayer Server is now running on port {port}");
-            Console.WriteLine("For further information, bug reports or discussions, please visit");
-            Console.WriteLine("\t\thttps://github.com/perpetualKid/ORTS-MG");
-            Console.WriteLine("Hit <enter> to stop service");
-            Console.WriteLine();
-#pragma warning restore CA1303 // Do not pass literals as localized parameters
-            while (true)
+            try
             {
-                try
+                TcpListener listener = new TcpListener(IPAddress.Any, port);
+                listener.Start();
+#pragma warning disable CA1303 // Do not pass literals as localized parameters
+                Console.WriteLine($"MultiPlayer Server v {ThisAssembly.AssemblyInformationalVersion} is now running on port {port}");
+                Console.WriteLine("For further information, bug reports or discussions, please visit");
+                Console.WriteLine("\t\thttps://github.com/perpetualKid/ORTS-MG");
+                Console.WriteLine("Hit <enter> to stop service");
+                Console.WriteLine();
+#pragma warning restore CA1303 // Do not pass literals as localized parameters
+                while (true)
                 {
-                    TcpClient tcpClient = await listener.AcceptTcpClientAsync().ConfigureAwait(false);
-                    Task t = Process(tcpClient);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
-                    throw new InvalidOperationException("Invalid Program state, aborting.", ex);
+                    try
+                    {
+                        Pipe pipe = new Pipe();
+
+                        TcpClient tcpClient = await listener.AcceptTcpClientAsync().ConfigureAwait(false);
+                        _ = PipeFillAsync(tcpClient, pipe.Writer);
+                        _ = PipeReadAsync(tcpClient, pipe.Reader);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                        throw new InvalidOperationException("Invalid Program state, aborting.", ex);
+                    }
                 }
             }
+            catch (SocketException socketException)
+            {
+                Console.WriteLine(socketException.Message);
+                throw;
+            }
+        }
+
+        private async Task PipeFillAsync(TcpClient tcpClient, PipeWriter writer)
+        {
+            const int minimumBufferSize = 1024;
+            _ = currentServer;
+            NetworkStream networkStream = tcpClient.GetStream();
+
+            while (tcpClient.Connected)
+            {
+                Memory<byte> memory = writer.GetMemory(minimumBufferSize);
+
+                int bytesRead = await networkStream.ReadAsync(memory).ConfigureAwait(false);
+                if (bytesRead == 0)
+                {
+                    break;
+                }
+                writer.Advance(bytesRead);
+
+                FlushResult result = await writer.FlushAsync().ConfigureAwait(false);
+
+                if (result.IsCompleted)
+                {
+                    break;
+                }
+            }
+            await writer.CompleteAsync().ConfigureAwait(false);
+        }
+
+        private bool ReadPlayerName(in ReadOnlySequence<byte> sequence, ref string playerName, out SequencePosition bytesProcessed)
+        {
+            Span<byte> playerSeparator = playerToken.AsSpan();
+            Span<byte> blankSeparator = blankToken.AsSpan();
+
+            SequenceReader<byte> reader = new SequenceReader<byte>(sequence);
+
+            if (reader.TryReadTo(out ReadOnlySequence<byte> playerPreface, playerSeparator))
+            {
+                if (reader.TryReadTo(out ReadOnlySequence<byte> playerNameSequence, blankSeparator))
+                {
+                    int maxDigits = 4;
+                    if (playerPreface.GetIntFromEnd(ref maxDigits, out int length, encoding))
+                    {
+                        ReadOnlySequence<byte> before = sequence.Slice(0, playerPreface.Length - maxDigits * charSize);
+                        foreach (ReadOnlyMemory<byte> message in before)
+                        {
+                            if (message.Length > 0)
+                                Broadcast(playerName, message);
+                        }
+                        reader.Rewind(playerSeparator.Length + playerNameSequence.Length + maxDigits * charSize);
+
+                        if (reader.Remaining >= length * charSize)
+                        {
+                            string newPlayerName = playerNameSequence.GetString(encoding);
+                            ReadOnlySequence<byte> playerMessage = reader.Sequence.Slice(before.Length, (length + maxDigits + 2) * charSize);
+                            if (currentServer != playerName)
+                            {
+                                foreach (ReadOnlyMemory<byte> message in playerMessage)
+                                {
+                                    SendMessage(currentServer, message).Wait();
+                                }
+                            }
+                            playerName = newPlayerName;
+                            bytesProcessed = sequence.GetPosition(before.Length + playerMessage.Length);
+                            return true;
+                        }
+                    }
+                }
+            }
+            bytesProcessed = sequence.GetPosition(sequence.Length);
+            return false;
+        }
+
+        private static string ReadQuitMessage(ReadOnlySequence<byte> sequence)
+        {
+            Span<byte> quitSeparator = quitToken.AsSpan();
+            Span<byte> blankSeparator = blankToken.AsSpan();
+
+            SequenceReader<byte> reader = new SequenceReader<byte>(sequence);
+
+            if (reader.TryReadTo(out _, quitSeparator))
+            {
+                if (reader.TryReadTo(out ReadOnlySequence<byte> playerName, blankSeparator))
+                {
+                    return playerName.GetString(encoding);
+                }
+            }
+            return null;
+        }
+
+        private async Task PipeReadAsync(TcpClient tcpClient, PipeReader reader)
+        {
+            string playerName = Guid.NewGuid().ToString();
+            bool playerNameSet = false;
+            string quitPlayer;
+            onlinePlayers.Add(playerName, tcpClient);
+            if (onlinePlayers.Count == 1)
+            {
+                currentServer = playerName;
+                await SendMessage(playerName, initData).ConfigureAwait(false);
+            }
+
+            while (tcpClient.Client.Connected)
+            {
+                ReadResult result = await reader.ReadAsync().ConfigureAwait(false);
+
+                ReadOnlySequence<byte> buffer = result.Buffer;
+
+                if (!playerNameSet)
+                {
+                    string player = playerName;
+                    if (ReadPlayerName(buffer, ref player, out SequencePosition bytesProcessed))
+                    {
+                        onlinePlayers.Remove(playerName);
+                        if (currentServer == playerName)
+                            currentServer = playerName = player;
+                        else
+                            playerName = player;
+                        onlinePlayers.Add(playerName, tcpClient);
+                        playerNameSet = true;
+                    }
+                    reader.AdvanceTo(bytesProcessed);
+                }
+                else
+                {
+                    if (!string.IsNullOrEmpty(quitPlayer = ReadQuitMessage(buffer)) && playerName == quitPlayer)
+                        break;
+
+                    foreach (ReadOnlyMemory<byte> message in buffer)
+                    {
+                        Broadcast(playerName, message);
+                    }
+                    reader.AdvanceTo(buffer.End);
+                }
+
+                if (result.IsCompleted)
+                {
+                    break;
+                }
+            }
+
+            await RemovePlayer(playerName).ConfigureAwait(false);
+
+            await reader.CompleteAsync().ConfigureAwait(false);
         }
 
         private void Broadcast(string playerName, ReadOnlyMemory<byte> buffer)
         {
-            Console.WriteLine(Encoding.Unicode.GetString(buffer.Span).Replace("\r", Environment.NewLine, StringComparison.OrdinalIgnoreCase));
+            Console.WriteLine(encoding.GetString(buffer.Span).Replace("\r", Environment.NewLine, StringComparison.OrdinalIgnoreCase));
             Parallel.ForEach(onlinePlayers.Keys, async player =>
             {
                 if (player != playerName)
@@ -68,9 +228,10 @@ namespace Orts.MultiPlayerServer
                         await clientStream.WriteAsync(buffer).ConfigureAwait(false);
                         await clientStream.FlushAsync().ConfigureAwait(false);
                     }
-                    catch (Exception ex) when (ex is System.IO.IOException || ex is SocketException)
+                    catch (Exception ex) when (ex is System.IO.IOException || ex is SocketException || ex is InvalidOperationException)
                     {
-                        await RemovePlayer(playerName).ConfigureAwait(false);
+                        if (playerName != null)
+                            await RemovePlayer(playerName).ConfigureAwait(false);
                     }
                 }
             });
@@ -78,7 +239,7 @@ namespace Orts.MultiPlayerServer
 
         private async Task SendMessage(string playerName, ReadOnlyMemory<byte> buffer)
         {
-            Console.WriteLine(Encoding.Unicode.GetString(buffer.Span).Replace("\r", Environment.NewLine, StringComparison.OrdinalIgnoreCase));
+            Console.WriteLine(encoding.GetString(buffer.Span).Replace("\r", Environment.NewLine, StringComparison.OrdinalIgnoreCase));
             try
             {
                 TcpClient client = onlinePlayers[playerName];
@@ -86,63 +247,11 @@ namespace Orts.MultiPlayerServer
                 await clientStream.WriteAsync(buffer).ConfigureAwait(false);
                 await clientStream.FlushAsync().ConfigureAwait(false);
             }
-            catch (Exception ex) when (ex is System.IO.IOException || ex is SocketException)
+            catch (Exception ex) when (ex is System.IO.IOException || ex is SocketException || ex is InvalidOperationException)
             {
-                await RemovePlayer(playerName).ConfigureAwait(false);
+                if (playerName != null)
+                    await RemovePlayer(playerName).ConfigureAwait(false);
             }
-        }
-
-        private async Task Process(TcpClient tcpClient)
-        {
-            string playerName = Guid.NewGuid().ToString();
-            onlinePlayers.Add(playerName, tcpClient);
-            if (onlinePlayers.Count == 1)
-            {
-                currentServer = playerName;
-                await SendMessage(playerName, initData).ConfigureAwait(false);
-            }
-
-            NetworkStream networkStream = tcpClient.GetStream();
-            byte[] buffer = new byte[8192];
-
-            int size;
-            while (tcpClient.Connected)
-            {
-                try
-                {
-                    size = await networkStream.ReadAsync(buffer.AsMemory(0, buffer.Length)).ConfigureAwait(false);
-                }
-                catch (Exception ex) when (ex is System.IO.IOException || ex is SocketException)
-                {
-                    break;
-                }
-                if (size == 0)
-                    break;
-                byte[] sendBuffer = new byte[size];
-                Array.Copy(buffer, sendBuffer, size);
-                string message = Encoding.Unicode.GetString(sendBuffer);
-                string[] messageDetails = message.Split(' ');
-                if (messageDetails != null && messageDetails.Length > 3)
-                {
-                    if (messageDetails[2].Equals("PLAYER", StringComparison.OrdinalIgnoreCase))
-                    {
-                        onlinePlayers.Remove(playerName);
-                        if (currentServer == playerName)
-                            currentServer = playerName = message.Split(' ')[3];
-                        else
-                            playerName = message.Split(' ')[3];
-                        onlinePlayers.Add(playerName, tcpClient);
-                    }
-                    if (messageDetails[2].Equals("QUIT", StringComparison.OrdinalIgnoreCase))
-                    {
-                        string quitPlayer = message.Split(' ')[3];
-                        if (playerName == quitPlayer)
-                            break;
-                    }
-                }
-                Broadcast(playerName, sendBuffer.AsMemory(0, sendBuffer.Length));
-            }
-            await RemovePlayer(playerName).ConfigureAwait(false);
         }
 
         private async Task RemovePlayer(string playerName)
@@ -150,23 +259,75 @@ namespace Orts.MultiPlayerServer
             if (onlinePlayers.Remove(playerName))
             {
                 string lostMessage = $"LOST { playerName}";
-                lostPlayer = Encoding.Unicode.GetBytes($" {lostMessage.Length}: {lostMessage}");
+                byte[] lostPlayer = encoding.GetBytes($" {lostMessage.Length}: {lostMessage}");
                 Broadcast(playerName, lostPlayer);
                 if (currentServer == playerName)
                 {
-                    serverAppointed = false;
                     Broadcast(playerName, serverChallenge);
                     await Task.Delay(5000).ConfigureAwait(false);
-                    if (!serverAppointed && onlinePlayers.Count > 0)
+                    if (onlinePlayers.Count > 0)
                     {
                         Broadcast(null, lostPlayer);
                         currentServer = onlinePlayers.Keys.First();
                         string appointmentMessage = $"SERVER {currentServer}";
-                        lostPlayer = Encoding.Unicode.GetBytes($" {appointmentMessage.Length}: {appointmentMessage}");
+                        lostPlayer = encoding.GetBytes($" {appointmentMessage.Length}: {appointmentMessage}");
                         Broadcast(null, lostPlayer);
                     }
                 }
             }
         }
     }
+
+    public static class ReadOnlySequenceExtensions
+    {
+        public static bool GetIntFromEnd(in this ReadOnlySequence<byte> payload, ref int maxDigits, out int result, Encoding encoding = null)
+        {
+            encoding ??= Encoding.UTF8;
+            int charSize = encoding.GetByteCount("0");
+
+            if (maxDigits > 0)
+            {
+                if (maxDigits * charSize > payload.Length)
+                    maxDigits = (int)payload.Length / charSize;
+                SequencePosition position = payload.GetPosition(payload.Length - maxDigits * charSize);
+                if (payload.TryGet(ref position, out ReadOnlyMemory<byte> lengthIndicator, false))
+                {
+                    if (int.TryParse(encoding.GetString(lengthIndicator.Span), out result))
+                        return true;
+                    else
+                    {
+                        maxDigits--;
+                        return GetIntFromEnd(payload, ref maxDigits, out result, encoding);
+                    }
+                }
+            }
+            result = 0;
+            return false;
+        }
+
+        public static string GetString(in this ReadOnlySequence<byte> payload, Encoding encoding = null)
+        {
+            encoding ??= Encoding.UTF8;
+
+            return payload.IsSingleSegment ? encoding.GetString(payload.FirstSpan)
+                : GetStringInternal(payload, encoding);
+
+            static string GetStringInternal(in ReadOnlySequence<byte> payload, Encoding encoding)
+            {
+                // linearize
+                int length = checked((int)payload.Length);
+                byte[] oversized = ArrayPool<byte>.Shared.Rent(length);
+                try
+                {
+                    payload.CopyTo(oversized);
+                    return encoding.GetString(oversized, 0, length);
+                }
+                finally
+                {
+                    ArrayPool<byte>.Shared.Return(oversized);
+                }
+            }
+        }
+    }
+
 }

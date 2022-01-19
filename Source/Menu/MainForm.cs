@@ -176,8 +176,8 @@ namespace Orts.Menu
             };
 
             linkLabelUpdate.Visible = false;
-            LoadOptions();
             LoadLanguage();
+            LoadOptions();
 
             if (!initialized)
             {

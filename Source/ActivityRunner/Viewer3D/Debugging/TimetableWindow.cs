@@ -24,8 +24,8 @@ using Microsoft.Xna.Framework;
 
 using Orts.Common.Position;
 using Orts.Formats.Msts.Models;
-using Orts.MultiPlayer;
 using Orts.Simulation;
+using Orts.Simulation.MultiPlayer;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.Signalling;

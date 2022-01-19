@@ -25,9 +25,10 @@ using System.Linq;
 using GetText;
 
 using Microsoft.Xna.Framework;
+
 using Orts.Common;
-using Orts.MultiPlayer;
 using Orts.Simulation;
+using Orts.Simulation.MultiPlayer;
 
 namespace Orts.ActivityRunner.Viewer3D.Popups
 {

@@ -24,6 +24,7 @@ using Microsoft.Xna.Framework;
 using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Simulation;
+using Orts.Simulation.MultiPlayer;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 
@@ -204,7 +205,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             { 10.0f, 2.0f },
         };
 
-        private static int RowOffset { get => MultiPlayer.MultiPlayerManager.IsMultiPlayer() ? 1 : 2; }
+        private static int RowOffset { get => MultiPlayerManager.IsMultiPlayer() ? 1 : 2; }
 
         /// <summary>
         /// Retrieve a formatted list ListLabels to be displayed as an in-browser Track Monitor.
@@ -313,7 +314,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             var trackLabels = new List<ListLabel>(MakeTracks(trackColor));
             if (thisInfo != null)
             {
-                if (MultiPlayer.MultiPlayerManager.IsMultiPlayer())
+                if (MultiPlayerManager.IsMultiPlayer())
                 {
                     DrawMPModeInfo(trackLabels, thisInfo, useMetric);
                 }
@@ -1031,7 +1032,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
                 case 108: // Manual mode upper zone
                     return (int)MathHelper.Clamp(itemLocation * (6f / 93f), 0, 6);
                 case 132:// lower zone
-                    return Orts.MultiPlayer.MultiPlayerManager.IsMultiPlayer() ? Round(MathHelper.Clamp(itemLocation * (16.0f / 266.0f), 9, 16))// MultiPlayer mode
+                    return MultiPlayerManager.IsMultiPlayer() ? Round(MathHelper.Clamp(itemLocation * (16.0f / 266.0f), 9, 16))// MultiPlayer mode
                         : Round(MathHelper.Clamp(itemLocation * (16f / 232f), 10, 16));// Manual mode
                 default:
                     return 0;

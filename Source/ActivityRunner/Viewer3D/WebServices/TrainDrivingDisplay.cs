@@ -23,6 +23,7 @@ using System.Linq;
 using Orts.Common;
 using Orts.Common.Input;
 using Orts.Simulation;
+using Orts.Simulation.MultiPlayer;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.RollingStocks.SubSystems.Brakes;
@@ -243,7 +244,7 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             AddLabel(new ListLabel
             {
                 FirstCol = Viewer.Catalog.GetString("Time"),
-                LastCol = FormatStrings.FormatTime(viewer.Simulator.ClockTime + (MultiPlayer.MultiPlayerManager.MultiplayerState == MultiPlayer.MultiplayerState.Client ? MultiPlayer.MultiPlayerManager.Instance().serverTimeDifference : 0)),
+                LastCol = FormatStrings.FormatTime(viewer.Simulator.ClockTime + (MultiPlayerManager.MultiplayerState == MultiplayerState.Client ? MultiPlayerManager.Instance().serverTimeDifference : 0)),
             });
             if (viewer.Simulator.IsReplaying)
             {

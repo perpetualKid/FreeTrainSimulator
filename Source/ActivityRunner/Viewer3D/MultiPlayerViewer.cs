@@ -16,12 +16,9 @@
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
-using System.Linq;
 
-using Orts.ActivityRunner.Viewer3D.Processes;
 using Orts.Common.Input;
-using Orts.MultiPlayer;
-using Orts.Graphics.Xna;
+using Orts.Simulation.MultiPlayer;
 
 namespace Orts.ActivityRunner.Viewer3D
 {

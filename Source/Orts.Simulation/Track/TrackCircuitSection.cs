@@ -28,8 +28,8 @@ using Microsoft.Xna.Framework;
 using Orts.Common;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
-using Orts.MultiPlayer;
 using Orts.Simulation.AIs;
+using Orts.Simulation.MultiPlayer;
 using Orts.Simulation.Physics;
 using Orts.Simulation.Signalling;
 

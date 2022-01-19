@@ -39,7 +39,7 @@ using Orts.Common;
 using Orts.Common.Calc;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
-using Orts.MultiPlayer;
+using Orts.Simulation.MultiPlayer;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.Timetables;
 using Orts.Simulation.Track;
@@ -333,7 +333,7 @@ namespace Orts.Simulation.AIs
             float firstAITime = StartList.GetNextTime();
             if (firstAITime > 0 && firstAITime < Simulator.ClockTime)
             {
-                Trace.Write($"\n Run AI : {StartList.Count} ");
+                Trace.WriteLine($"\n Run AI : {StartList.Count} ");
 
                 // perform update for AI trains upto actual start time
 
@@ -363,7 +363,7 @@ namespace Orts.Simulation.AIs
             float firstAITime = StartList.GetNextTime();
             if (firstAITime > 0 && firstAITime < Simulator.ClockTime)
             {
-                Trace.Write($"\n Run AI : {StartList.Count} ");
+                Trace.WriteLine($"\n Run AI : {StartList.Count} ");
 
                 // perform update for AI trains upto actual start time
 

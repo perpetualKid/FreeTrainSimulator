@@ -39,8 +39,8 @@ using Orts.Common;
 using Orts.Common.Position;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
-using Orts.MultiPlayer;
 using Orts.Simulation;
+using Orts.Simulation.MultiPlayer;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.Signalling;
@@ -196,17 +196,17 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
               MessageViewer.Show();
               MessageViewer.Visible = false;
           }*/
-			MultiPlayer.MultiPlayerManager.Instance().ServerChanged += (sender, e) =>
+			MultiPlayerManager.Instance().ServerChanged += (sender, e) =>
 			{
 				firstShow = true;
 			};
 
-			MultiPlayer.MultiPlayerManager.Instance().AvatarUpdated += (sender, e) =>
+			MultiPlayerManager.Instance().AvatarUpdated += (sender, e) =>
 			{
 				AddAvatar(e.User, e.Url);
 			};
 
-			MultiPlayer.MultiPlayerManager.Instance().MessageReceived += (sender, e) =>
+			MultiPlayerManager.Instance().MessageReceived += (sender, e) =>
 			{
 				AddNewMessage(e.Timestamp, e.Message);
 			};
@@ -436,14 +436,14 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
         private int LostCount;//how many players in the lost list (quit)
 	  public void CheckAvatar()
 	  {
-		  if (!MultiPlayer.MultiPlayerManager.IsMultiPlayer() || MultiPlayer.MultiPlayerManager.OnlineTrains == null || MultiPlayer.MultiPlayerManager.OnlineTrains.Players == null) return;
-		  var player = MultiPlayer.MultiPlayerManager.OnlineTrains.Players;
-		  var username =MultiPlayer.MultiPlayerManager.GetUserName();
-		  player = player.Concat(MultiPlayer.MultiPlayerManager.Instance().lostPlayer).ToDictionary(x => x.Key, x => x.Value);
+		  if (!MultiPlayerManager.IsMultiPlayer() || MultiPlayerManager.OnlineTrains == null || MultiPlayerManager.OnlineTrains.Players == null) return;
+		  var player = MultiPlayerManager.OnlineTrains.Players;
+		  var username =MultiPlayerManager.GetUserName();
+		  player = player.Concat(MultiPlayerManager.Instance().lostPlayer).ToDictionary(x => x.Key, x => x.Value);
 		  if (avatarList == null) avatarList = new Dictionary<string, Image>();
-		  if (avatarList.Count == player.Count + 1 && LostCount == MultiPlayer.MultiPlayerManager.Instance().lostPlayer.Count) return;
+		  if (avatarList.Count == player.Count + 1 && LostCount == MultiPlayerManager.Instance().lostPlayer.Count) return;
 
-		  LostCount = MultiPlayer.MultiPlayerManager.Instance().lostPlayer.Count;
+		  LostCount = MultiPlayerManager.Instance().lostPlayer.Count;
 		  //add myself
 		  if (!avatarList.ContainsKey(username))
 		  {
@@ -482,11 +482,11 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 			  foreach (var pair in avatarList)
 			  {
 				  if (pair.Key == username) continue;
-				  if (MultiPlayer.MultiPlayerManager.Instance().aiderList.Contains(pair.Key))
+				  if (MultiPlayerManager.Instance().aiderList.Contains(pair.Key))
 				  {
 					  AvatarView.Items.Add(pair.Key + " (H)");
 				  }
-				  else if (MultiPlayer.MultiPlayerManager.Instance().lostPlayer.ContainsKey(pair.Key))
+				  else if (MultiPlayerManager.Instance().lostPlayer.ContainsKey(pair.Key))
 				  {
 					  AvatarView.Items.Add(pair.Key + " (Q)");
 				  }
@@ -515,7 +515,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 			  {
 				  if (pair.Key == username) continue;
 				  var text = pair.Key;
-				  if (MultiPlayer.MultiPlayerManager.Instance().aiderList.Contains(pair.Key)) text = pair.Key + " (H)";
+				  if (MultiPlayerManager.Instance().aiderList.Contains(pair.Key)) text = pair.Key + " (H)";
 
 				  if (pair.Value == null) AvatarView.Items.Add(name).ImageIndex = -1;
 				  else
@@ -585,7 +585,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
 		  if (firstShow)
 		  {
-			  if (!MultiPlayer.MultiPlayerManager.IsServer())
+			  if (!MultiPlayerManager.IsServer())
 			  {
 				  this.chkAllowUserSwitch.Visible = false;
 				  this.chkAllowUserSwitch.Checked = false;
@@ -598,7 +598,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 			  {
 				  this.msgAll.Text = "MSG to All";
 			  }
-			  if (MultiPlayer.MultiPlayerManager.IsServer()) { rmvButton.Visible = true; chkAllowNew.Visible = true; chkAllowUserSwitch.Visible = true; }
+			  if (MultiPlayerManager.IsServer()) { rmvButton.Visible = true; chkAllowNew.Visible = true; chkAllowUserSwitch.Visible = true; }
 			  else { rmvButton.Visible = false; chkAllowNew.Visible = false; chkAllowUserSwitch.Visible = false; chkBoxPenalty.Visible = false; chkPreferGreen.Visible = false; }
 		  }
 		  if (firstShow || followTrain) {
@@ -620,13 +620,13 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 							  if ((int)index < i) i = (int)index;
 						  }
 						  var name = AvatarView.Items[i].Text.Split(' ')[0].Trim() ;
-						  if (MultiPlayer.MultiPlayerManager.OnlineTrains.Players.ContainsKey(name))
+						  if (MultiPlayerManager.OnlineTrains.Players.ContainsKey(name))
 						  {
-							  pos = MultiPlayer.MultiPlayerManager.OnlineTrains.Players[name].Train.Cars[0].WorldPosition;
+							  pos = MultiPlayerManager.OnlineTrains.Players[name].Train.Cars[0].WorldPosition;
 						  }
-						  else if (MultiPlayer.MultiPlayerManager.Instance().lostPlayer.ContainsKey(name))
+						  else if (MultiPlayerManager.Instance().lostPlayer.ContainsKey(name))
 						  {
-							  pos = MultiPlayer.MultiPlayerManager.Instance().lostPlayer[name].Train.Cars[0].WorldPosition;
+							  pos = MultiPlayerManager.Instance().lostPlayer[name].Train.Cars[0].WorldPosition;
 						  }
 						  hasSelectedTrain = true;
 					  }
@@ -796,10 +796,10 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 					for (var i = 0; i < chosen.Count; i++)
 					{
 						var name = chosen[i].Text.Split(' ')[0].Trim(); //filter out (H) in the text
-						var train = MultiPlayer.MultiPlayerManager.OnlineTrains.FindTrain(name);
+						var train = MultiPlayerManager.OnlineTrains.FindTrain(name);
 						if (train != null) { selectedTrainList.Remove(train); selectedTrainList.Add(train); redTrain--; }
 						//if selected include myself, will show it as blue
-						if (MultiPlayer.MultiPlayerManager.GetUserName() == name && simulator.PlayerLocomotive != null)
+						if (MultiPlayerManager.GetUserName() == name && simulator.PlayerLocomotive != null)
 						{
 							selectedTrainList.Remove(simulator.PlayerLocomotive.Train); selectedTrainList.Add(simulator.PlayerLocomotive.Train);
 							redTrain--;
@@ -813,8 +813,8 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 				var drawRed = 0;
 				int ValidTrain = selectedTrainList.Count;
 				//add trains quit into the end, will draw them in gray
-				var quitTrains = MultiPlayer.MultiPlayerManager.Instance().lostPlayer.Values
-					.Select((MultiPlayer.OnlinePlayer lost) => lost?.Train)
+				var quitTrains = MultiPlayerManager.Instance().lostPlayer.Values
+					.Select((OnlinePlayer lost) => lost?.Train)
 					.Where((Train t) => t != null)
 					.Where((Train t) => !selectedTrainList.Contains(t));
 				selectedTrainList.AddRange(quitTrains);
@@ -1082,9 +1082,9 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 			if (DrawPath != true) return;
 			bool ok = false;
 			if (train == simulator.PlayerLocomotive.Train) ok = true;
-			if (MultiPlayer.MultiPlayerManager.IsMultiPlayer())
+			if (MultiPlayerManager.IsMultiPlayer())
 			{
-				if (MultiPlayer.MultiPlayerManager.OnlineTrains.FindTrain(train)) ok = true;
+				if (MultiPlayerManager.OnlineTrains.FindTrain(train)) ok = true;
 			}
 			if (train.FirstCar != null & train.FirstCar.CarID.Contains("AI")) ok = true; //AI train
 			if (Math.Abs(train.SpeedMpS) > 0.001) ok = true;
@@ -1399,7 +1399,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 				  if (MultiPlayerManager.OnlineTrains.Players.ContainsKey(name))
 				  {
 					  MultiPlayerManager.OnlineTrains.Players[name].Status = OnlinePlayerStatus.Removed;
-					  MultiPlayerManager.BroadCast((new MultiPlayer.MSGMessage(name, "Error", "Sorry the server has removed you")).ToString());
+					  MultiPlayerManager.BroadCast((new MSGMessage(name, "Error", "Sorry the server has removed you")).ToString());
 
 				  }
 			  }
@@ -1461,7 +1461,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 		  LastCursorPosition.X = e.X;
 		  LastCursorPosition.Y = e.Y;
 		  //MSG.Enabled = false;
-		  MultiPlayer.MultiPlayerManager.Instance().ComposingText = false;
+		  MultiPlayerManager.Instance().ComposingText = false;
 			lblInstruction1.Visible = true;
 			lblInstruction2.Visible = true;
 			lblInstruction3.Visible = true;
@@ -1741,8 +1741,8 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 	  private void chkAllowUserSwitch_CheckedChanged(object sender, EventArgs e)
 	  {
 		  MultiPlayerManager.Instance().AllowedManualSwitch = chkAllowUserSwitch.Checked;
-          if (chkAllowUserSwitch.Checked == true) { MultiPlayer.MultiPlayerManager.BroadCast((new MultiPlayer.MSGMessage("All", "SwitchOK", "OK to switch")).ToString()); }
-          else { MultiPlayer.MultiPlayerManager.BroadCast((new MultiPlayer.MSGMessage("All", "SwitchWarning", "Cannot switch")).ToString()); }
+          if (chkAllowUserSwitch.Checked == true) { MultiPlayerManager.BroadCast((new MSGMessage("All", "SwitchOK", "OK to switch")).ToString()); }
+          else { MultiPlayerManager.BroadCast((new MSGMessage("All", "SwitchWarning", "Cannot switch")).ToString()); }
 	  }
 
 	  private void chkShowAvatars_CheckedChanged(object sender, EventArgs e)
@@ -1773,7 +1773,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 	  {
 		  MSG.Enabled = true;
 		  MSG.Focus();
-		  MultiPlayer.MultiPlayerManager.Instance().ComposingText = true;
+		  MultiPlayerManager.Instance().ComposingText = true;
 		  msgAll.Enabled = true;
 		  if (messages.SelectedItems.Count > 0) msgSelected.Enabled = true;
 		  if (AvatarView.SelectedItems.Count > 0) reply2Selected.Enabled = true;
@@ -1789,23 +1789,23 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 		  msgAll.Enabled = false;
 		  msgSelected.Enabled = false;
 		  reply2Selected.Enabled = false;
-		  if (!MultiPlayer.MultiPlayerManager.IsMultiPlayer()) return;
+		  if (!MultiPlayerManager.IsMultiPlayer()) return;
             string msg = MSG.Text;
 		  msg = msg.Replace("\r", "", StringComparison.Ordinal);
 		  msg = msg.Replace("\t", "", StringComparison.Ordinal);
-		  MultiPlayer.MultiPlayerManager.Instance().ComposingText = false;
+		  MultiPlayerManager.Instance().ComposingText = false;
 		  MSG.Enabled = false;
 		  if (msg.Length > 0)
 		  {
-			  if (MultiPlayer.MultiPlayerManager.IsServer())
+			  if (MultiPlayerManager.IsServer())
 			  {
-				  var users = MultiPlayer.MultiPlayerManager.OnlineTrains.Players.Keys
+				  var users = MultiPlayerManager.OnlineTrains.Players.Keys
 					  .Select((string u) => $"{u}\r");
 				  string user = string.Join("", users) + "0END";
-				  string msgText = new MultiPlayer.MSGText(MultiPlayer.MultiPlayerManager.GetUserName(), user, msg).ToString();
+				  string msgText = new MSGText(MultiPlayerManager.GetUserName(), user, msg).ToString();
 				  try
 				  {
-					  MultiPlayer.MultiPlayerManager.Notify(msgText);
+					  MultiPlayerManager.Notify(msgText);
 				  }
 				  catch { }
 				  finally
@@ -1816,7 +1816,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 			  else
 			  {
 				  var user = "0Server\r+0END";
-				  MultiPlayer.MultiPlayerManager.Notify((new MultiPlayer.MSGText(MultiPlayer.MultiPlayerManager.GetUserName(), user, msg)).ToString());
+				  MultiPlayerManager.Notify((new MSGText(MultiPlayerManager.GetUserName(), user, msg)).ToString());
 				  MSG.Text = "";
 			  }
 		  }
@@ -1827,11 +1827,11 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 		  msgSelected.Enabled = false;
 		  reply2Selected.Enabled = false;
 
-		  if (!MultiPlayer.MultiPlayerManager.IsMultiPlayer()) return;
+		  if (!MultiPlayerManager.IsMultiPlayer()) return;
 		  var msg = MSG.Text;
 		  msg = msg.Replace("\r", "", StringComparison.Ordinal);
 		  msg = msg.Replace("\t", "", StringComparison.Ordinal);
-		  MultiPlayer.MultiPlayerManager.Instance().ComposingText = false;
+		  MultiPlayerManager.Instance().ComposingText = false;
 		  MSG.Text = "";
 		  MSG.Enabled = false;
 		  if (msg.Length == 0) return;
@@ -1851,7 +1851,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 			  user += "0END";
 		  }
 		  else return;
-		  MultiPlayer.MultiPlayerManager.Notify((new MultiPlayer.MSGText(MultiPlayer.MultiPlayerManager.GetUserName(), user, msg)).ToString());
+		  MultiPlayerManager.Notify((new MSGText(MultiPlayerManager.GetUserName(), user, msg)).ToString());
 
 
 	  }
@@ -1881,21 +1881,21 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 				  msg = msg.Replace("\r", "", StringComparison.Ordinal);
 				  msg = msg.Replace("\t", "", StringComparison.Ordinal);
 				  msg = msg.Replace("\n", "", StringComparison.Ordinal);
-				  MultiPlayer.MultiPlayerManager.Instance().ComposingText = false;
+				  MultiPlayerManager.Instance().ComposingText = false;
 				  MSG.Enabled = false;
 				  MSG.Text = "";
 				  if (msg.Length == 0) return;
 				  var user = "";
 
-				  if (MultiPlayer.MultiPlayerManager.IsServer())
+				  if (MultiPlayerManager.IsServer())
 				  {
-					  var users = MultiPlayer.MultiPlayerManager.OnlineTrains.Players.Keys
+					  var users = MultiPlayerManager.OnlineTrains.Players.Keys
 						  .Select((string u) => $"{u}\r");
 					  user += string.Join("", users) + "0END";
-					  string msgText = new MultiPlayer.MSGText(MultiPlayer.MultiPlayerManager.GetUserName(), user, msg).ToString();
+					  string msgText = new MSGText(MultiPlayerManager.GetUserName(), user, msg).ToString();
 					  try
 					  {
-						  MultiPlayer.MultiPlayerManager.Notify(msgText);
+						  MultiPlayerManager.Notify(msgText);
 					  }
 					  catch { }
 					  finally
@@ -1906,7 +1906,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 				  else
 				  {
 					  user = "0Server\r+0END";
-					  MultiPlayer.MultiPlayerManager.Notify((new MultiPlayer.MSGText(MultiPlayer.MultiPlayerManager.GetUserName(), user, msg)).ToString());
+					  MultiPlayerManager.Notify((new MSGText(MultiPlayerManager.GetUserName(), user, msg)).ToString());
 					  MSG.Text = "";
 				  }
 			  }
@@ -1918,10 +1918,10 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 		  msgAll.Enabled = false;
 		  msgSelected.Enabled = false;
 		  reply2Selected.Enabled = false;
-		  MultiPlayer.MultiPlayerManager.Instance().ComposingText = false;
+		  MultiPlayerManager.Instance().ComposingText = false;
 		  MSG.Enabled = false;
 
-		  if (!MultiPlayer.MultiPlayerManager.IsMultiPlayer()) return;
+		  if (!MultiPlayerManager.IsMultiPlayer()) return;
 		  var msg = MSG.Text;
 		  MSG.Text = "";
 		  msg = msg.Replace("\r", "", StringComparison.Ordinal);
@@ -1934,7 +1934,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 			  for (var i = 0; i < chosen.Count; i++)
 			  {
 				  var name = chosen[i].Text.Split(' ')[0]; //text may have (H) in it, so need to filter out
-				  if (name == MultiPlayer.MultiPlayerManager.GetUserName()) continue;
+				  if (name == MultiPlayerManager.GetUserName()) continue;
 				  user += name + "\r";
 			  }
 			  user += "0END";
@@ -1943,7 +1943,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 		  }
 		  else return;
 
-		  MultiPlayer.MultiPlayerManager.Notify((new MultiPlayer.MSGText(MultiPlayer.MultiPlayerManager.GetUserName(), user, msg)).ToString());
+		  MultiPlayerManager.Notify((new MSGText(MultiPlayerManager.GetUserName(), user, msg)).ToString());
 
 	  }
 
@@ -1961,12 +1961,12 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 		  if (MSG.Enabled == true) msgSelected.Enabled = true;
 		  if (AvatarView.SelectedItems.Count <= 0) return;
 		  var name = AvatarView.SelectedItems[0].Text.Split(' ')[0].Trim();
-		  if (name == MultiPlayer.MultiPlayerManager.GetUserName())
+		  if (name == MultiPlayerManager.GetUserName())
 		  {
 			  if (simulator.PlayerLocomotive != null) PickedTrain = simulator.PlayerLocomotive.Train;
 			  else if (simulator.Trains.Count > 0) PickedTrain = simulator.Trains[0];
 		  }
-		  else PickedTrain = MultiPlayer.MultiPlayerManager.OnlineTrains.FindTrain(name);
+		  else PickedTrain = MultiPlayerManager.OnlineTrains.FindTrain(name);
 
 	  }
 
@@ -1983,9 +1983,9 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 		  }
 		  var signal = signalPickedItem.Signal;
 		  var type = boxSetSignal.SelectedIndex;
-		  if (MultiPlayer.MultiPlayerManager.Instance().AmAider)
+		  if (MultiPlayerManager.Instance().AmAider)
 		  {
-			  MultiPlayer.MultiPlayerManager.Notify((new MultiPlayer.MSGSignalChange(signal, type)).ToString());
+			  MultiPlayerManager.Notify((new MSGSignalChange(signal, type)).ToString());
 			  UnHandleItemPick();
 			  return;
 		  }
@@ -2037,7 +2037,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 		  var type = boxSetSwitch.SelectedIndex;
 
 		  //aider can send message to the server for a switch
-		  if (MultiPlayer.MultiPlayerManager.IsMultiPlayer() && MultiPlayer.MultiPlayerManager.Instance().AmAider)
+		  if (MultiPlayerManager.IsMultiPlayer() && MultiPlayerManager.Instance().AmAider)
 		  {
 			  var nextSwitchTrack = sw;
 			  var Selected = 0;
@@ -2051,7 +2051,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 					  break;
 			  }
 			  //aider selects and throws the switch, but need to confirm by the dispatcher
-			  MultiPlayer.MultiPlayerManager.Notify((new MultiPlayer.MSGSwitch(MultiPlayer.MultiPlayerManager.GetUserName(),
+			  MultiPlayerManager.Notify((new MSGSwitch(MultiPlayerManager.GetUserName(),
 				  nextSwitchTrack.UiD.Location.TileX, nextSwitchTrack.UiD.Location.TileZ, nextSwitchTrack.UiD.WorldId, Selected, true)).ToString());
 			  simulator.Confirmer.Information(Viewer.Catalog.GetString("Switching Request Sent to the Server"));
 
@@ -2077,7 +2077,7 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
 	  private void chkAllowNewCheck(object sender, EventArgs e)
 	  {
-		  MultiPlayer.MultiPlayerManager.Instance().AllowNewPlayer = chkAllowNew.Checked;
+		  MultiPlayerManager.Instance().AllowNewPlayer = chkAllowNew.Checked;
 	  }
 
 	  private void AssistClick(object sender, EventArgs e)
@@ -2087,11 +2087,11 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 		  {
 			  var tmp = AvatarView.SelectedItems[0].Text.Split(' ');
 			  var name = tmp[0].Trim();
-			  if (MultiPlayer.MultiPlayerManager.Instance().aiderList.Contains(name)) return;
-			  if (MultiPlayer.MultiPlayerManager.OnlineTrains.Players.ContainsKey(name))
+			  if (MultiPlayerManager.Instance().aiderList.Contains(name)) return;
+			  if (MultiPlayerManager.OnlineTrains.Players.ContainsKey(name))
 			  {
-				  MultiPlayer.MultiPlayerManager.BroadCast((new MultiPlayer.MSGAider(name, true)).ToString());
-				  MultiPlayer.MultiPlayerManager.Instance().aiderList.Add(name);
+				  MultiPlayerManager.BroadCast((new MSGAider(name, true)).ToString());
+				  MultiPlayerManager.Instance().aiderList.Add(name);
 			  }
 			  AvatarView.Items.Clear();
 			  if (avatarList != null) avatarList.Clear();
@@ -2104,10 +2104,10 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 		  {
 			  var tmp = AvatarView.SelectedItems[0].Text.Split(' ');
 			  var name = tmp[0].Trim();
-			  if (MultiPlayer.MultiPlayerManager.OnlineTrains.Players.ContainsKey(name))
+			  if (MultiPlayerManager.OnlineTrains.Players.ContainsKey(name))
 			  {
-				  MultiPlayer.MultiPlayerManager.BroadCast((new MultiPlayer.MSGAider(name, false)).ToString());
-				  MultiPlayer.MultiPlayerManager.Instance().aiderList.Remove(name);
+				  MultiPlayerManager.BroadCast((new MSGAider(name, false)).ToString());
+				  MultiPlayerManager.Instance().aiderList.Remove(name);
 			  }
 			  AvatarView.Items.Clear();
 			  if (avatarList != null) avatarList.Clear();
@@ -2122,9 +2122,9 @@ namespace Orts.ActivityRunner.Viewer3D.Debugging
 
 	  private void chkOPenaltyHandle(object sender, EventArgs e)
 	  {
-		  MultiPlayer.MultiPlayerManager.Instance().CheckSpad = chkBoxPenalty.Checked;
-		  if (this.chkBoxPenalty.Checked == false) { MultiPlayer.MultiPlayerManager.BroadCast((new MultiPlayer.MSGMessage("All", "OverSpeedOK", "OK to go overspeed and pass stop light")).ToString()); }
-		  else { MultiPlayer.MultiPlayerManager.BroadCast((new MultiPlayer.MSGMessage("All", "NoOverSpeed", "Penalty for overspeed and passing stop light")).ToString()); }
+		  MultiPlayerManager.Instance().CheckSpad = chkBoxPenalty.Checked;
+		  if (this.chkBoxPenalty.Checked == false) { MultiPlayerManager.BroadCast((new MSGMessage("All", "OverSpeedOK", "OK to go overspeed and pass stop light")).ToString()); }
+		  else { MultiPlayerManager.BroadCast((new MSGMessage("All", "NoOverSpeed", "Penalty for overspeed and passing stop light")).ToString()); }
 
 	  }
 

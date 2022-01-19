@@ -37,12 +37,11 @@ using GetText;
 using Orts.Common.Calc;
 using Orts.Common.Position;
 using Orts.Formats.Msts.Parsers;
-using Orts.Simulation;
 using Orts.Simulation.Commanding;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 
-namespace Orts.MultiPlayer
+namespace Orts.Simulation.MultiPlayer
 {
     public enum MultiplayerState
     { 
@@ -64,11 +63,12 @@ namespace Orts.MultiPlayer
         private readonly List<OnlineLocomotive> addedLocomotives;
 
         private readonly List<Train> uncoupledTrains;
-        private ClientComm client;
+        private Client client;
+        //private ClientComm client;
 
         public const int ProtocolVersion = 15;
 
-        public static ICatalog Catalog { get; private set; }
+        public static ICatalog Catalog { get; private set; } = CatalogManager.Catalog;
 
         public bool Connected { get => client?.Connected ?? false; set => client.Connected = value; }
         public bool IsDispatcher { get; set; }
@@ -173,12 +173,12 @@ namespace Orts.MultiPlayer
                     train.InitializeSignals(false);
                     Simulator.Instance.Confirmer?.Information(Catalog.GetString("You gained back the control of your train"));
                     msgctl = new MSGControl(GetUserName(), "Confirm", train);
-                    Notify(msgctl.ToString());
+                    BroadCast(msgctl.ToString());
                 }
                 else //client, send request
                 {
                     msgctl = new MSGControl(GetUserName(), "Request", train);
-                    Notify(msgctl.ToString());
+                    BroadCast(msgctl.ToString());
                 }
             }
             catch (Exception)
@@ -207,7 +207,7 @@ namespace Orts.MultiPlayer
                 MSGMove move = new MSGMove();
                 if (Simulator.Instance.PlayerLocomotive.Train.TrainType != TrainType.Remote)
                     move.AddNewItem(GetUserName(), Simulator.Instance.PlayerLocomotive.Train);
-                Notify(OnlineTrains.MoveTrains(move));
+                BroadCast(OnlineTrains.MoveTrains(move));
                 MSGExhaust exhaust = new MSGExhaust(); // Also updating loco exhaust
                 Train t = Simulator.Instance.PlayerLocomotive.Train;
                 for (int iCar = 0; iCar < t.Cars.Count; iCar++)
@@ -220,7 +220,7 @@ namespace Orts.MultiPlayer
                 // Broadcast also exhaust
                 var exhaustMessage = OnlineTrains.ExhaustingLocos(exhaust);
                 if (!string.IsNullOrEmpty(exhaustMessage))
-                    Notify(exhaustMessage);
+                    BroadCast(exhaustMessage);
 
                 lastMoveTime = lastSendTime = newtime;
 
@@ -294,9 +294,9 @@ namespace Orts.MultiPlayer
 
 
             //need to send a keep-alive message if have not sent one to the server for the last 30 seconds
-            if (client != null && !IsDispatcher && newtime - lastSendTime >= 30f)
+            if (MultiplayerState == MultiplayerState.Client && newtime - lastSendTime >= 30f)
             {
-                Notify((new MSGAlive(GetUserName())).ToString());
+                Notify(new MSGAlive(GetUserName()));
                 lastSendTime = newtime;
             }
 
@@ -376,7 +376,14 @@ namespace Orts.MultiPlayer
         {
             if (m == null)
                 return;
-            localUser?.client?.SendMessage(m).Wait();
+            if (MultiplayerState == MultiplayerState.Dispatcher)
+                localUser?.client?.SendMessage(m).Wait();
+        }
+
+        public static void BroadCast(Message message)
+        {
+            if (MultiplayerState == MultiplayerState.Dispatcher)
+                localUser?.client?.SendMessage(message ?? throw new ArgumentNullException(nameof(message))).Wait();
         }
 
         //notify others (server will broadcast, client will send msg to server)
@@ -385,6 +392,11 @@ namespace Orts.MultiPlayer
             if (m == null)
                 return;
             localUser?.client?.SendMessage(m).Wait(); //client notify server
+        }
+
+        public static void Notify(Message message)
+        {
+            localUser?.client?.SendMessage(message ?? throw new ArgumentNullException(nameof(message))).Wait(); //client notify server
         }
 
         //nicely shutdown listening threads, and notify the server/other player
@@ -400,7 +412,7 @@ namespace Orts.MultiPlayer
                 localUser = new MultiPlayerManager
                 {
                     MPUpdateInterval = updateIntervall,
-                    client = new ClientComm(hostname, port),
+                    client = new Client(hostname, port),
                     UserName = userName,
                     Code = code,
                 };
@@ -411,18 +423,17 @@ namespace Orts.MultiPlayer
         {
             if (client != null)
             {
-                if (IsDispatcher)
+                if (MultiplayerState == MultiplayerState.Dispatcher)
                 {
-                    //    Client.Send((new MSGQuit("ServerHasToQuit\t" + GetUserName())).ToString()); //server notify everybody else
+//                    BroadCast(new MSGQuit("ServerHasToQuit\t" + GetUserName()).ToString()); //server notify everybody else
                 }
-                //else
+                else
                 {
-                    client.SendMessage((new MSGQuit(GetUserName())).ToString()).Wait(); //client notify server
+                    Notify(new MSGQuit(GetUserName()).ToString()); //client notify server
                 }
                 client.Stop();
-                client.Dispose();
-                client = null;
             }
+            client = null;
         }
 
         //when two player trains connected, require decouple at speed 0.

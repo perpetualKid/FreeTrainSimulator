@@ -22,6 +22,7 @@ using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Text;
 
 using GetText;
 
@@ -30,56 +31,77 @@ using Orts.Common.Calc;
 using Orts.Common.Position;
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
-using Orts.Simulation;
 using Orts.Simulation.Commanding;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.Signalling;
 using Orts.Simulation.Track;
 
-namespace Orts.MultiPlayer
+namespace Orts.Simulation.MultiPlayer
 {
     public abstract class Message
     {
-        public static Message Decode(string m)
+        private protected static readonly Encoding messageEncoding = Encoding.Unicode;
+        private protected const int maxSizeDigits = 6;
+        private protected const string separator = ": ";
+
+        public static Message Decode(ReadOnlySpan<byte> messageType, ReadOnlySpan<byte> content)
         {
-            int index = m.IndexOf(' ');
-            string key = m.Substring(0, index);
-            if (key == "MOVE") return new MSGMove(m.Substring(index + 1));
-            else if (key == "SWITCHSTATES") return new MSGSwitchStatus(m.Substring(index + 1));
-            else if (key == "SIGNALSTATES") return new MSGSignalStatus(m.Substring(index + 1));
-            else if (key == "TEXT") return new MSGText(m.Substring(index + 1));
-            else if (key == "LOCOINFO") return new MSGLocoInfo(m.Substring(index + 1));
-            else if (key == "ALIVE") return new MSGAlive(m.Substring(index + 1));
-            else if (key == "TRAIN") return new MSGTrain(m.Substring(index + 1));
-            else if (key == "PLAYER") return new MSGPlayer(m.Substring(index + 1));
-            else if (key == "PLAYERTRAINSW") return new MSGPlayerTrainSw(m.Substring(index + 1));
-            else if (key == "ORGSWITCH") return new MSGOrgSwitch(m.Substring(index + 1));
-            else if (key == "SWITCH") return new MSGSwitch(m.Substring(index + 1));
-            else if (key == "RESETSIGNAL") return new MSGResetSignal(m.Substring(index + 1));
-            else if (key == "REMOVETRAIN") return new MSGRemoveTrain(m.Substring(index + 1));
-            else if (key == "SERVER") return new MSGServer(m.Substring(index + 1));
-            else if (key == "MESSAGE") return new MSGMessage(m.Substring(index + 1));
-            else if (key == "EVENT") return new MSGEvent(m.Substring(index + 1));
-            else if (key == "UNCOUPLE") return new MSGUncouple(m.Substring(index + 1));
-            else if (key == "COUPLE") return new MSGCouple(m.Substring(index + 1));
-            else if (key == "GETTRAIN") return new MSGGetTrain(m.Substring(index + 1));
-            else if (key == "UPDATETRAIN") return new MSGUpdateTrain(m.Substring(index + 1));
-            else if (key == "CONTROL") return new MSGControl(m.Substring(index + 1));
-            else if (key == "LOCCHANGE") return new MSGLocoChange(m.Substring(index + 1));
-            else if (key == "QUIT") return new MSGQuit(m.Substring(index + 1));
-            else if (key == "LOST") return new MSGLost(m.Substring(index + 1));
-            else if (key == "AVATAR") return new MSGAvatar(m.Substring(index + 1));
-            else if (key == "WEATHER") return new MSGWeather(m.Substring(index + 1));
-            else if (key == "AIDER") return new MSGAider(m.Substring(index + 1));
-            else if (key == "SIGNALCHANGE") return new MSGSignalChange(m.Substring(index + 1));
-            else if (key == "EXHAUST") return new MSGExhaust(m.Substring(index + 1));
-            else if (key == "FLIP") return new MSGFlip(m.Substring(index + 1));
-            else throw new ProtocolException("Unknown Keyword" + key);
+            return messageEncoding.GetString(messageType) switch
+            {
+                "MOVE" => new MSGMove(messageEncoding.GetString(content)),
+                "SWITCHSTATES" => new MSGSwitchStatus(messageEncoding.GetString(content)),
+                "SIGNALSTATES" => new MSGSignalStatus(messageEncoding.GetString(content)),
+                "TEXT" => new MSGText(messageEncoding.GetString(content)),
+                "LOCOINFO" => new MSGLocoInfo(messageEncoding.GetString(content)),
+                "ALIVE" => new MSGAlive(content),
+                "TRAIN" => new MSGTrain(messageEncoding.GetString(content)),
+                "PLAYER" => new MSGPlayer(messageEncoding.GetString(content)),
+                "PLAYERTRAINSW" => new MSGPlayerTrainSw(messageEncoding.GetString(content)),
+                "ORGSWITCH" => new MSGOrgSwitch(messageEncoding.GetString(content)),
+                "SWITCH" => new MSGSwitch(messageEncoding.GetString(content)),
+                "RESETSIGNAL" => new MSGResetSignal(messageEncoding.GetString(content)),
+                "REMOVETRAIN" => new MSGRemoveTrain(messageEncoding.GetString(content)),
+                "SERVER" => new MSGServer(content),
+                "MESSAGE" => new MSGMessage(messageEncoding.GetString(content)),
+                "EVENT" => new MSGEvent(messageEncoding.GetString(content)),
+                "UNCOUPLE" => new MSGUncouple(messageEncoding.GetString(content)),
+                "COUPLE" => new MSGCouple(messageEncoding.GetString(content)),
+                "GETTRAIN" => new MSGGetTrain(messageEncoding.GetString(content)),
+                "UPDATETRAIN" => new MSGUpdateTrain(messageEncoding.GetString(content)),
+                "CONTROL" => new MSGControl(messageEncoding.GetString(content)),
+                "LOCCHANGE" => new MSGLocoChange(messageEncoding.GetString(content)),
+                "QUIT" => new MSGQuit(messageEncoding.GetString(content)),
+                "LOST" => new MSGLost(messageEncoding.GetString(content)),
+                "AVATAR" => new MSGAvatar(messageEncoding.GetString(content)),
+                "WEATHER" => new MSGWeather(messageEncoding.GetString(content)),
+                "AIDER" => new MSGAider(messageEncoding.GetString(content)),
+                "SIGNALCHANGE" => new MSGSignalChange(messageEncoding.GetString(content)),
+                "EXHAUST" => new MSGExhaust(messageEncoding.GetString(content)),
+                "FLIP" => new MSGFlip(messageEncoding.GetString(content)),
+                _ => throw new ProtocolException($"Unknown Message type {messageEncoding.GetString(messageType)}"),
+            };
         }
 
-//        public virtual void HandleMsg() { Trace.WriteLine("test"); return; }
         public abstract void HandleMsg();
+
+        public virtual int EstimatedMessageSize => 0;
+
+        public virtual ReadOnlySpan<char> Serialize(char[] buffer)
+        {
+            return buffer.AsSpan();
+        }
+
+        protected static int TranslateMidpointDirection(MidpointDirection direction)
+        {
+            return direction == MidpointDirection.N ? 2 : direction == MidpointDirection.Forward ? 0 : 1;
+        }
+
+        protected static MidpointDirection TranslateMidpointDirection(int direction)
+        {
+            return direction == 0 ? MidpointDirection.Forward : direction == 1 ? MidpointDirection.Reverse : MidpointDirection.N;
+        }
+
     }
 
     #region MSGMove
@@ -158,7 +180,7 @@ namespace Orts.MultiPlayer
         public void AddNewItem(string u, Train t)
         {
             if (items == null) items = new List<MSGMoveItem>();
-            items.Add(new MSGMoveItem(u, t.SpeedMpS, t.DistanceTravelled, t.Number, t.RearTDBTraveller.TileX, t.RearTDBTraveller.TileZ, t.RearTDBTraveller.X, t.RearTDBTraveller.Z, t.RearTDBTraveller.TrackNodeIndex, t.Cars.Count, (int)t.MUDirection, (int)t.RearTDBTraveller.Direction, t.Length));
+            items.Add(new MSGMoveItem(u, t.SpeedMpS, t.DistanceTravelled, t.Number, t.RearTDBTraveller.TileX, t.RearTDBTraveller.TileZ, t.RearTDBTraveller.X, t.RearTDBTraveller.Z, t.RearTDBTraveller.TrackNodeIndex, t.Cars.Count, TranslateMidpointDirection(t.MUDirection) /*(int)t.MUDirection*/, (int)t.RearTDBTraveller.Direction, t.Length));
             t.LastReportedSpeed = t.SpeedMpS;
         }
 
@@ -1179,7 +1201,7 @@ namespace Orts.MultiPlayer
             direction = t.RearTDBTraveller.Direction == Traveller.TravellerDirection.Forward ? 1 : 0;
             location = t.RearTDBTraveller.WorldLocation;
             Travelled = t.DistanceTravelled;
-            mDirection = (int)t.MUDirection;
+            mDirection = TranslateMidpointDirection(t.MUDirection); //(int)t.MUDirection;
             name = t.Name;
         }
 
@@ -1194,7 +1216,7 @@ namespace Orts.MultiPlayer
 
             train.TrainType = TrainType.Remote;
             train.DistanceTravelled = Travelled;
-            train.MUDirection = (MidpointDirection)this.mDirection;
+            train.MUDirection = TranslateMidpointDirection(this.mDirection); // (MidpointDirection)this.mDirection;
             train.RearTDBTraveller = new Traveller(Simulator.Instance.TSectionDat, Simulator.Instance.TrackDatabase.TrackDB.TrackNodes, location, direction == 1 ? Traveller.TravellerDirection.Forward : Traveller.TravellerDirection.Backward);
             //if (consistDirection != 1)
             //	train.RearTDBTraveller.ReverseDirection();
@@ -1363,7 +1385,7 @@ namespace Orts.MultiPlayer
             direction = t.RearTDBTraveller.Direction == Traveller.TravellerDirection.Forward ? 1 : 0;
             location = t.RearTDBTraveller.WorldLocation;
             Travelled = t.DistanceTravelled;
-            mDirection = (int)t.MUDirection;
+            mDirection = TranslateMidpointDirection(t.MUDirection);// (int)t.MUDirection;
         }
 
         private static TrainCar FindCar(Train t, string name)
@@ -1430,7 +1452,7 @@ namespace Orts.MultiPlayer
 
                 train.Cars.Clear();
                 train.Cars.AddRange(tmpCars);
-                train.MUDirection = (MidpointDirection)mDirection;
+                train.MUDirection = TranslateMidpointDirection(mDirection); // (MidpointDirection)mDirection;
                 train.RearTDBTraveller = traveller;
                 train.CalculatePositionOfCars();
                 train.DistanceTravelled = Travelled;
@@ -1464,7 +1486,7 @@ namespace Orts.MultiPlayer
             }// for each rail car
 
             if (train1.Cars.Count == 0) return;
-            train1.MUDirection = (MidpointDirection)mDirection;
+            train1.MUDirection = TranslateMidpointDirection(mDirection);// (MidpointDirection)mDirection;
             //train1.CalculatePositionOfCars(0);
             train1.InitializeBrakes();
             //train1.InitializeSignals(false);
@@ -1560,12 +1582,12 @@ namespace Orts.MultiPlayer
     #region MSGServer
     public class MSGServer : MSGRequired
     {
-        private string user; //true: I am a server now, false, not
-        public MSGServer(string m)
-        {
-            user = m.Trim();
-        }
+        private readonly string user; //true: I am a server now, false, not
 
+        public MSGServer(ReadOnlySpan<byte> message)
+        {
+            user = messageEncoding.GetString(message);
+        }
 
         public override string ToString()
         {
@@ -1614,18 +1636,33 @@ namespace Orts.MultiPlayer
     #region MSGAlive
     public class MSGAlive : Message
     {
-        private string user;
+        private readonly string user;
+        private const string messageTemplate = "ALIVE ";
+
         public MSGAlive(string m)
         {
             user = m;
         }
 
-
-        public override string ToString()
+        public MSGAlive(ReadOnlySpan<byte> message)
         {
-            string tmp = "ALIVE " + user;
-            return " " + tmp.Length + ": " + tmp;
+            user = messageEncoding.GetString(message);
         }
+
+        public override ReadOnlySpan<char> Serialize(char[] buffer)
+        {
+            Span<char> spanBuffer = buffer.AsSpan();
+            (messageTemplate.Length + user.Length).TryFormat(spanBuffer, out int bytesWritten);
+            separator.AsSpan().CopyTo(spanBuffer[bytesWritten..]);
+            bytesWritten += separator.Length;
+            messageTemplate.AsSpan().CopyTo(spanBuffer[bytesWritten..]);
+            bytesWritten += messageTemplate.Length;
+            user.AsSpan().CopyTo(spanBuffer[bytesWritten..]);
+            bytesWritten += user.Length;
+            return spanBuffer[..bytesWritten];
+        }
+
+        public override int EstimatedMessageSize => messageTemplate.Length + user.Length + separator.Length + maxSizeDigits;
 
         public override void HandleMsg()
         {
@@ -2276,11 +2313,11 @@ namespace Orts.MultiPlayer
             //TileX1 = t.RearTDBTraveller.TileX; TileZ1 = t.RearTDBTraveller.TileZ; X1 = t.RearTDBTraveller.X; Z1 = t.RearTDBTraveller.Z;
             Travelled1 = t.DistanceTravelled; Speed1 = t.SpeedMpS;
             trainDirection = t.RearTDBTraveller.Direction == Traveller.TravellerDirection.Forward ? 0 : 1;//0 forward, 1 backward
-            mDirection1 = (int)t.MUDirection;
+            mDirection1 = TranslateMidpointDirection(t.MUDirection);// (int)t.MUDirection;
             //TileX2 = newT.RearTDBTraveller.TileX; TileZ2 = newT.RearTDBTraveller.TileZ; X2 = newT.RearTDBTraveller.X; Z2 = newT.RearTDBTraveller.Z;
             Travelled2 = newT.DistanceTravelled; Speed2 = newT.SpeedMpS;
             train2Direction = newT.RearTDBTraveller.Direction == Traveller.TravellerDirection.Forward ? 0 : 1;//0 forward, 1 backward
-            mDirection2 = (int)newT.MUDirection;
+            mDirection2 = TranslateMidpointDirection(newT.MUDirection); // (int)newT.MUDirection;
 
             if (MultiPlayerManager.IsServer()) newTrainNumber = newT.Number;//serer will use the correct number
             else
@@ -2479,7 +2516,7 @@ namespace Orts.MultiPlayer
                         t.DistanceTravelled = Travelled1;
                         t.SpeedMpS = Speed1;
                         t.LeadLocomotive = lead;
-                        t.MUDirection = (MidpointDirection)mDirection1;
+                        t.MUDirection = TranslateMidpointDirection(mDirection1);// (MidpointDirection)mDirection1;
                         train.ControlMode = TrainControlMode.Explorer;
                         train.CheckFreight();
                         train.InitializeBrakes();
@@ -2551,7 +2588,7 @@ namespace Orts.MultiPlayer
                 train2.RearTDBTraveller = new Traveller(Simulator.Instance.TSectionDat, Simulator.Instance.TrackDatabase.TrackDB.TrackNodes, location2, d2);
                 train2.DistanceTravelled = Travelled2;
                 train2.SpeedMpS = Speed2;
-                train2.MUDirection = (MidpointDirection)mDirection2;
+                train2.MUDirection = TranslateMidpointDirection(mDirection2); // (MidpointDirection)mDirection2;
                 train2.ControlMode = TrainControlMode.Explorer;
                 train2.CheckFreight();
                 train2.InitializeBrakes();
@@ -2734,7 +2771,7 @@ namespace Orts.MultiPlayer
             {
                 if (p.Value.Train == oldT) { p.Value.Train = t; break; }
             }
-            mDirection = (int)t.MUDirection;
+            mDirection = TranslateMidpointDirection(t.MUDirection); // (int)t.MUDirection;
             if (t.Cars.Contains(Simulator.Instance.PlayerLocomotive))
             {
                 if (Simulator.Instance.Confirmer != null)
@@ -2822,7 +2859,7 @@ namespace Orts.MultiPlayer
             train.Cars.AddRange(tmpCars);
 
             train.DistanceTravelled = Travelled;
-            train.MUDirection = (MidpointDirection)mDirection;
+            train.MUDirection = TranslateMidpointDirection(mDirection); // (MidpointDirection)mDirection;
             train.RearTDBTraveller = new Traveller(Simulator.Instance.TSectionDat, Simulator.Instance.TrackDatabase.TrackDB.TrackNodes, location, direction == 0 ? Traveller.TravellerDirection.Forward : Traveller.TravellerDirection.Backward);
             train.CheckFreight();
             train.CalculatePositionOfCars();
@@ -3648,7 +3685,7 @@ namespace Orts.MultiPlayer
             X = t.RearTDBTraveller.X;
             Z = t.RearTDBTraveller.Z;
             Travelled = t.DistanceTravelled;
-            mDirection = (int)t.MUDirection;
+            mDirection = TranslateMidpointDirection(t.MUDirection); // (int)t.MUDirection;
             speed = t.SpeedMpS;
             tni = t.RearTDBTraveller.TrackNodeIndex;
             count = t.Cars.Count;

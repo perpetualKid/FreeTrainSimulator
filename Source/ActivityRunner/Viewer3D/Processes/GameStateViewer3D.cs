@@ -22,8 +22,8 @@ using System;
 using Microsoft.Xna.Framework;
 
 using Orts.ActivityRunner.Viewer3D.Debugging;
-using Orts.MultiPlayer;
 using Orts.Simulation;
+using Orts.Simulation.MultiPlayer;
 
 namespace Orts.ActivityRunner.Viewer3D.Processes
 {

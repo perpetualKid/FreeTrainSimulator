@@ -31,7 +31,7 @@ using Orts.Common.Input;
 using Orts.Common.Position;
 using Orts.Common.Xna;
 using Orts.Formats.Msts.Files;
-using Orts.MultiPlayer;
+using Orts.Simulation.MultiPlayer;
 
 namespace Orts.ActivityRunner.Viewer3D
 {
