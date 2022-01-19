@@ -8,8 +8,8 @@ namespace Orts.TrackViewer.PopupWindows
 {
     public class LocationWindow : WindowBase
     {
-        public LocationWindow(WindowManager owner, string caption, Point relativeLocation, Point size) : 
-            base(owner, "Location", relativeLocation, size)
+        public LocationWindow(WindowManager owner, string caption, Point relativeLocation) : 
+            base(owner, "Location", relativeLocation, new Point(200, 200))
         {
         }
 

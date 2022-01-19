@@ -371,6 +371,7 @@ namespace Orts.TrackViewer
             MouseInputHandler<UserCommand> mouseInput = new MouseInputHandler<UserCommand>();
             mouseInput.Initialize(mouseInputGameComponent, keyboardInputGameComponent, userCommandController);
 
+            #region usercommandcontroller
             userCommandController.AddEvent(UserCommand.PrintScreen, KeyEventType.KeyPressed, PrintScreen);
             userCommandController.AddEvent(UserCommand.ChangeScreenMode, KeyEventType.KeyPressed, ChangeScreenMode);
             userCommandController.AddEvent(UserCommand.QuitWindow, KeyEventType.KeyPressed, CloseWindow);
@@ -382,10 +383,13 @@ namespace Orts.TrackViewer
             userCommandController.AddEvent(UserCommand.ZoomIn, KeyEventType.KeyDown, ZoomIn);
             userCommandController.AddEvent(UserCommand.ZoomOut, KeyEventType.KeyDown, ZoomOut);
             userCommandController.AddEvent(UserCommand.ResetZoomAndLocation, KeyEventType.KeyPressed, ResetZoomAndLocation);
-            userCommandController.AddEvent(UserCommand.DebugScreen, KeyEventType.KeyPressed, ShowDebugScreen);
+            userCommandController.AddEvent(UserCommand.DebugScreen, KeyEventType.KeyPressed, ToggleDebugScreen);
             userCommandController.AddEvent(CommonUserCommand.PointerDragged, MouseDragging);
             userCommandController.AddEvent(CommonUserCommand.VerticalScrollChanged, MouseWheel);
+            userCommandController.AddEvent(UserCommand.LocationWindow, KeyEventType.KeyPressed, ToggleLocationWindow);
+            #endregion
 
+            #region popup windows
             EnumArray<Type, WindowType> windowTypes = new EnumArray<Type, WindowType>();
             windowManager = WindowManager.Initialize<UserCommand, WindowType>(this, userCommandController.AddTopLayerController());
             windowManager[WindowType.StatusWindow] = new StatusTextWindow(windowManager, Settings.WindowLocations[WindowType.StatusWindow].ToPoint());
@@ -406,6 +410,13 @@ namespace Orts.TrackViewer
                 debugWindow.DebugScreens[DebugScreenInformation.Route] = ContentArea;
                 return debugWindow;
             }));
+
+            windowManager.SetLazyWindows(WindowType.LocationWindow, new Lazy<WindowBase>(() =>
+            {
+                LocationWindow locationWindow = new LocationWindow(windowManager, "Location", Settings.WindowLocations[WindowType.LocationWindow].ToPoint());
+                return locationWindow;
+            }));
+            #endregion
 
             windowManager.OnModalWindow += WindowManager_OnModalWindow;
             //BindWindowEventHandlersActions();

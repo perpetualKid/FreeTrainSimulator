@@ -10,7 +10,6 @@ using Orts.Graphics.Window;
 using Orts.Graphics.Window.Controls;
 using Orts.Graphics.Window.Controls.Layout;
 using Orts.Graphics.Xna;
-using Orts.TrackViewer.Control;
 
 using UserCommand = Orts.TrackViewer.Control.UserCommand;
 

@@ -9,5 +9,6 @@ namespace Orts.TrackViewer.PopupWindows
         QuitWindow,
         StatusWindow,
         DebugScreen,
+        LocationWindow,
     }
 }

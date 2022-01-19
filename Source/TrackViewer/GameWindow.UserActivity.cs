@@ -71,9 +71,14 @@ namespace Orts.TrackViewer
             Exit();
         }
 
-        private void ShowDebugScreen(UserCommandArgs args)
+        private void ToggleDebugScreen(UserCommandArgs args)
         {
             windowManager[WindowType.DebugScreen].ToggleVisibility();
+        }
+
+        private void ToggleLocationWindow(UserCommandArgs args)
+        {
+            windowManager[WindowType.LocationWindow].ToggleVisibility();
         }
 
         public void MouseDragging(UserCommandArgs userCommandArgs)

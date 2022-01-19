@@ -80,7 +80,7 @@ namespace Orts.Graphics.Window
 
             WindowShader = MaterialManager.Instance.EffectShaders[ShaderEffect.PopupWindow] as PopupWindowShader;
             WindowShader.GlassColor = Color.Black;
-            WindowShader.Opacity = 0.6f;
+            WindowShader.Opacity = 0.6f; // configurable?
             WindowShader.WindowTexture = windowTexture;
 
             TextFontDefault = FontManager.Scaled(DefaultFont, System.Drawing.FontStyle.Regular)[DefaultFontSize];
