@@ -2310,14 +2310,13 @@ namespace Orts.ActivityRunner.Viewer3D.Popups
 
         private readonly ulong ProcessVirtualAddressLimit;
 
-        public uint GetWorkingSetSize()
+        public long GetWorkingSetSize()
         {
             Viewer.CurrentProcess.Refresh();
-            return (uint)Viewer.CurrentProcess.WorkingSet64;
-            //            return (uint)Process.GetCurrentProcess().WorkingSet64;
+            return Viewer.CurrentProcess.WorkingSet64;
         }
 
-        public ulong GetVirtualAddressLimit()
+        public static ulong GetVirtualAddressLimit()
         {
             var buffer = new NativeStructs.MEMORYSTATUSEX { Size = 64 };
             NativeMethods.GlobalMemoryStatusEx(buffer);

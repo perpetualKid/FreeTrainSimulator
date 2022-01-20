@@ -147,13 +147,11 @@ namespace Orts.ActivityRunner.Viewer3D
             }
         }  // we are controlling this loco, or null if we aren't controlling any
 
-        private MouseState originalMouseState;      // Current mouse coordinates.
-
         // This is the train we are controlling
         public TrainCar PlayerLocomotive { get { return Simulator.PlayerLocomotive; } set { Simulator.PlayerLocomotive = value; } }
         public Train PlayerTrain { get { if (PlayerLocomotive == null) return null; else return PlayerLocomotive.Train; } }
 
-        public readonly Process CurrentProcess = Process.GetCurrentProcess();
+        public Process CurrentProcess { get; } = Process.GetCurrentProcess();
 
         // This is the train we are viewing
         public Train SelectedTrain { get; private set; }
@@ -170,9 +168,6 @@ namespace Orts.ActivityRunner.Viewer3D
         private double mouseVisibleTillRealTime;
         private Cursor actualCursor = Cursors.Default;
         public static Viewport DefaultViewport;
-        private ICabViewMouseControlRenderer MouseChangingControl;
-        private ICabViewMouseControlRenderer MousePickedControl;
-        private ICabViewMouseControlRenderer OldMousePickedControl;
         public bool SaveScreenshot { get; set; }
         public bool SaveActivityThumbnail { get; private set; }
         public string SaveActivityFileStem { get; private set; }
