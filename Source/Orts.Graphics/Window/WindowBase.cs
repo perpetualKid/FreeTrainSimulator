@@ -166,13 +166,13 @@ namespace Orts.Graphics.Window
             this.windowLayout = windowLayout;
         }
 
-        protected virtual ControlLayout Layout(ControlLayout layout)
+        protected virtual ControlLayout Layout(ControlLayout layout, float headerScaling = 1.0f)
         {
+            System.Drawing.Font headerFont = FontManager.Scaled(Owner.DefaultFont, System.Drawing.FontStyle.Bold)[(int)(Owner.DefaultFontSize * headerScaling)];
             // Pad window by 4px, add caption and separator between to content area.
             layout = layout?.AddLayoutOffset((int)(4 * Owner.DpiScaling)).AddLayoutVertical() ?? throw new ArgumentNullException(nameof(layout));
-            ControlLayout headerLine = layout.AddLayoutHorizontal((int)(Owner.TextFontDefault.Height * 1.25));
-
-            headerLine.Add(new Label(this, 0, 0, layout.RemainingWidth, Owner.TextFontDefaultBold.Height, Caption, HorizontalAlignment.Center, Owner.TextFontDefaultBold, Color.White));
+            Label headerLabel = new Label(this, 0, 0, layout.RemainingWidth, headerFont.Height, Caption, HorizontalAlignment.Center, headerFont, Color.White);
+            layout.Add(headerLabel);
             layout.AddHorizontalSeparator(true);
             return layout;
         }

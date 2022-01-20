@@ -13,7 +13,7 @@ namespace Orts.Graphics.Window
             Interactive = false;
         }
 
-        protected override ControlLayout Layout(ControlLayout layout)
+        protected override ControlLayout Layout(ControlLayout layout, float headerScaling)
         {
             return layout;
         }

@@ -23,7 +23,7 @@ namespace Orts.Graphics.Track
         private double maxScale;
         private static readonly Point PointOverTwo = new Point(2, 2);
 
-                private double offsetX, offsetY;
+        private double offsetX, offsetY;
         internal PointD TopLeftArea { get; private set; }
         internal PointD BottomRightArea { get; private set; }
 

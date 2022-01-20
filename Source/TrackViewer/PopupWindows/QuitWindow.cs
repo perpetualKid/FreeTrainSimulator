@@ -32,19 +32,19 @@ namespace Orts.TrackViewer.PopupWindows
 
         public QuitWindow(WindowManager owner, Point relativeLocation) :
             base(owner ?? throw new ArgumentNullException(nameof(owner)), CatalogManager.Catalog.GetString($"Exit {RuntimeInfo.ApplicationName}"), relativeLocation,
-                new Point(owner.DefaultFontSize * 16, (int)(owner.DefaultFontSize * 5.0 + 20)))
+                new Point(owner.DefaultFontSize * 36, (int)(owner.DefaultFontSize * 5.5f + 20)))
         {
             Modal = true;
             ZOrder = 100;
             userCommandController = owner.UserCommandController as UserCommandController<UserCommand>;
         }
 
-        protected override ControlLayout Layout(ControlLayout layout)
+        protected override ControlLayout Layout(ControlLayout layout, float headerScaling)
         {
             if (null == layout)
                 throw new ArgumentNullException(nameof(layout));
 
-            layout = base.Layout(layout);
+            layout = base.Layout(layout, 1.5f);
             quitButton = new Label(this, layout.RemainingWidth / 2, (int)(Owner.TextFontDefault.Height), CatalogManager.Catalog.GetString($"Quit ({InputSettings.UserCommands[UserCommand.QuitWindow].ToString().Max(3)})"), HorizontalAlignment.Center);
             quitButton.OnClick += QuitButton_OnClick;
             cancelButton = new Label(this, layout.RemainingWidth / 2, Owner.TextFontDefault.Height, CatalogManager.Catalog.GetString($"Cancel ({InputSettings.UserCommands[UserCommand.Cancel].ToString().Max(3)})"), HorizontalAlignment.Center);

@@ -45,13 +45,13 @@ namespace Orts.TrackViewer.PopupWindows
             currentProvider[DebugScreenInformation.Route] = new NameValueTextGrid(this, (int)(10 * Owner.DpiScaling), (int)(150 * Owner.DpiScaling)) { Visible = false, ColumnWidth = 120 };
         }
 
-        protected override ControlLayout Layout(ControlLayout layout)
+        protected override ControlLayout Layout(ControlLayout layout, float headerScaling)
         {
             foreach (NameValueTextGrid item in currentProvider)
             {
                 layout?.Add(item);
             }
-            return base.Layout(layout);
+            return base.Layout(layout, headerScaling);
         }
 
         protected override void Initialize()
@@ -86,7 +86,6 @@ namespace Orts.TrackViewer.PopupWindows
             if (currentDebugScreen != DebugScreenInformation.Common)
                 currentProvider[currentDebugScreen].Visible = false;
             currentDebugScreen = currentDebugScreen.Next();
-            currentProvider[currentDebugScreen].DebugInformationProvider = DebugScreens[currentDebugScreen];
             currentProvider[currentDebugScreen].Visible = true;
         }
     }

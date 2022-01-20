@@ -413,7 +413,7 @@ namespace Orts.TrackViewer
 
             windowManager.SetLazyWindows(WindowType.LocationWindow, new Lazy<WindowBase>(() =>
             {
-                LocationWindow locationWindow = new LocationWindow(windowManager, "Location", Settings.WindowLocations[WindowType.LocationWindow].ToPoint());
+                LocationWindow locationWindow = new LocationWindow(windowManager, Settings.WindowLocations[WindowType.LocationWindow].ToPoint());
                 return locationWindow;
             }));
             #endregion
