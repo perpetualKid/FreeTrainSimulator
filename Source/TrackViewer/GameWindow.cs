@@ -34,13 +34,11 @@ using UserCommand = Orts.TrackViewer.Control.UserCommand;
 
 namespace Orts.TrackViewer
 {
-    public partial class GameWindow : Game, IInputCapture, INameValueInformationProvider
+    public partial class GameWindow : Game, IInputCapture
     {
         private readonly GraphicsDeviceManager graphicsDeviceManager;
         private readonly System.Windows.Forms.Form windowForm;
-        private readonly SmoothedData frameRate;
-        private readonly NameValueCollection debugInfo = new NameValueCollection();
-        private readonly Dictionary<string, FormatOption> formatOptions = new Dictionary<string,FormatOption>();
+        private readonly CommonDebugInfo debugInfo;
         private readonly GraphicsDebugInfo graphicsDebugInfo = new GraphicsDebugInfo();
 
         private SpriteBatch spriteBatch;
@@ -62,7 +60,8 @@ namespace Orts.TrackViewer
         internal ContentArea ContentArea
         {
             get => contentArea;
-            set => windowForm.Invoke((System.Windows.Forms.MethodInvoker)delegate {
+            set => windowForm.Invoke((System.Windows.Forms.MethodInvoker)delegate
+            {
                 if (value != null)
                 {
                     value.ResetSize(Window.ClientBounds.Size, 60);
@@ -78,8 +77,11 @@ namespace Orts.TrackViewer
                 if (contentArea != null)
                     contentArea.Enabled = false;
                 contentArea = value;
+                OnContentAreaChanged?.Invoke(this, new ContentAreaChangedEventArgs(contentArea));
             });
         }
+
+        internal event EventHandler<ContentAreaChangedEventArgs> OnContentAreaChanged;
 
         internal string StatusMessage { get; set; }
 
@@ -113,8 +115,6 @@ namespace Orts.TrackViewer
                 Trace.WriteLine(LoggingUtil.SeparatorLine);
             }
 
-            frameRate = new SmoothedData();
-            frameRate.Preset(60);
             windowForm = (System.Windows.Forms.Form)System.Windows.Forms.Control.FromHandle(Window.Handle);
             if (Settings.Screen < System.Windows.Forms.Screen.AllScreens.Length)
                 currentScreen = System.Windows.Forms.Screen.AllScreens[Settings.Screen];
@@ -160,6 +160,7 @@ namespace Orts.TrackViewer
             windowForm.FormClosing += WindowForm_FormClosing;
             LoadLanguage();
             SystemInfo.SetGraphicAdapterInformation(graphicsDeviceManager.GraphicsDevice.Adapter.Description);
+            debugInfo = new CommonDebugInfo(this);
         }
 
         private void WindowForm_FormClosing(object sender, System.Windows.Forms.FormClosingEventArgs e)
@@ -247,7 +248,8 @@ namespace Orts.TrackViewer
         {
 
             Settings.WindowSettings[WindowSetting.Size][0] = (int)Math.Round(100.0 * windowSize.Width / currentScreen.WorkingArea.Width);
-            Settings.WindowSettings[WindowSetting.Size][1] = (int)Math.Round(100.0 * windowSize.Height / currentScreen.WorkingArea.Height); ;
+            Settings.WindowSettings[WindowSetting.Size][1] = (int)Math.Round(100.0 * windowSize.Height / currentScreen.WorkingArea.Height);
+            ;
             Settings.WindowSettings[WindowSetting.Location][0] = (int)Math.Max(0, Math.Round(100f * (windowPosition.X - currentScreen.Bounds.Left) / (currentScreen.WorkingArea.Width - windowSize.Width)));
             Settings.WindowSettings[WindowSetting.Location][1] = (int)Math.Max(0, Math.Round(100.0 * (windowPosition.Y - currentScreen.Bounds.Top) / (currentScreen.WorkingArea.Height - windowSize.Height)));
             Settings.Screen = System.Windows.Forms.Screen.AllScreens.ToList().IndexOf(currentScreen);
@@ -310,7 +312,8 @@ namespace Orts.TrackViewer
         private void SetScreenMode(ScreenMode targetMode)
         {
             syncing = true;
-            windowForm.Invoke((System.Windows.Forms.MethodInvoker)delegate {
+            windowForm.Invoke((System.Windows.Forms.MethodInvoker)delegate
+            {
                 if (graphicsDeviceManager.IsFullScreen)
                     graphicsDeviceManager.ToggleFullScreen();
                 switch (targetMode)
@@ -405,7 +408,7 @@ namespace Orts.TrackViewer
             windowManager.SetLazyWindows(WindowType.DebugScreen, new Lazy<WindowBase>(() =>
             {
                 DebugScreen debugWindow = new DebugScreen(windowManager, "Debug", BackgroundColor);
-                debugWindow.DebugScreens[DebugScreenInformation.Common] = this;
+                debugWindow.DebugScreens[DebugScreenInformation.Common] = debugInfo;
                 debugWindow.DebugScreens[DebugScreenInformation.Graphics] = graphicsDebugInfo;
                 debugWindow.DebugScreens[DebugScreenInformation.Route] = ContentArea;
                 return debugWindow;
@@ -413,7 +416,8 @@ namespace Orts.TrackViewer
 
             windowManager.SetLazyWindows(WindowType.LocationWindow, new Lazy<WindowBase>(() =>
             {
-                LocationWindow locationWindow = new LocationWindow(windowManager, Settings.WindowLocations[WindowType.LocationWindow].ToPoint());
+                LocationWindow locationWindow = new LocationWindow(windowManager, contentArea, Settings.WindowLocations[WindowType.LocationWindow].ToPoint());
+                OnContentAreaChanged += locationWindow.GameWindow_OnContentAreaChanged;
                 return locationWindow;
             }));
             #endregion
@@ -453,16 +457,11 @@ namespace Orts.TrackViewer
             ScaleRulerComponent scaleRuler = new ScaleRulerComponent(this, FontManager.Exact(System.Drawing.FontFamily.GenericSansSerif, System.Drawing.FontStyle.Regular)[14], Color.Black, new Vector2(-20, -55));
             Components.Add(scaleRuler);
             Components.Add(new InsetComponent(this, BackgroundColor, new Vector2(-10, 30)));
-            Components.Add(new WorldCoordinatesComponent(this, FontManager.Exact(System.Drawing.FontFamily.GenericSansSerif, System.Drawing.FontStyle.Regular)[20], Color.Blue, new Vector2(40, 40)));
+            //Components.Add(new WorldCoordinatesComponent(this, FontManager.Exact(System.Drawing.FontFamily.GenericSansSerif, System.Drawing.FontStyle.Regular)[20], Color.Blue, new Vector2(40, 40)));
         }
 
         protected override void Update(GameTime gameTime)
         {
-            debugInfo["Version"] = VersionInfo.FullVersion;
-            debugInfo["Time"] = DateTime.Now.ToString(CultureInfo.CurrentCulture);
-            FormattableString message = $"{contentArea?.Scale,12:F3}";
-            debugInfo["Scale"] = message.ToString(CultureInfo.CreateSpecificCulture("no-NO"));
-            debugInfo["Other"] = $"{ DateTime.Now.ToString(CultureInfo.CurrentCulture)} {contentArea?.CenterX.ToString(CultureInfo.CurrentCulture)} {contentArea?.CenterY.ToString(CultureInfo.CurrentCulture)}";
             if ((contentArea?.SuppressDrawing ?? false) && windowManager.SuppressDrawing && suppressCount-- > 0)
             {
                 SuppressDraw();
@@ -476,27 +475,49 @@ namespace Orts.TrackViewer
 
         public bool InputCaptured { get; internal set; }
 
-        public NameValueCollection DebugInfo => debugInfo;
-
-        public Dictionary<string, FormatOption> FormattingOptions => formatOptions;
-
         protected override void Draw(GameTime gameTime)
         {
-            double elapsedRealTime = gameTime?.ElapsedGameTime.TotalSeconds ?? 1;
-            frameRate.Update(elapsedRealTime, 1.0 / elapsedRealTime);
-            debugInfo["FPS"] = $"{1 / gameTime.ElapsedGameTime.TotalSeconds:0.0} - {frameRate.SmoothedValue:0.0}";
-            if (frameRate.SmoothedValue < 50)
-                formatOptions["FPS"] = FormatOption.RegularRed;
-            else
-                formatOptions["FPS"] = null;
-
+            debugInfo.Update(gameTime);
             GraphicsDevice.Clear(BackgroundColor);
             base.Draw(gameTime);
 
             graphicsDebugInfo.CurrentMetrics = GraphicsDevice.Metrics;
         }
 
-        private class GraphicsDebugInfo: NameValueCollection, INameValueInformationProvider
+        private class CommonDebugInfo : DebugInfoBase
+        {
+            private readonly SmoothedData frameRate = new SmoothedData();
+            private ContentArea contentArea;
+
+            public CommonDebugInfo(GameWindow gameWindow)
+            {
+                frameRate.Preset(60);
+                FormattingOptions = new Dictionary<string, FormatOption>();
+                this["Version"] = VersionInfo.FullVersion;
+                gameWindow.OnContentAreaChanged += GameWindow_OnContentAreaChanged;
+            }
+
+            private void GameWindow_OnContentAreaChanged(object sender, ContentAreaChangedEventArgs e)
+            {
+                contentArea = e.ContentArea;
+            }
+
+            public override void Update(GameTime gameTime)
+            {
+                this["Time"] = DateTime.Now.ToString(CultureInfo.CurrentCulture);
+                this["Scale"] = $"{contentArea?.Scale,12:F3}";
+                this["Other"] = $"{DateTime.Now} {contentArea?.CenterX} {contentArea?.CenterY}";
+                double elapsedRealTime = gameTime?.ElapsedGameTime.TotalSeconds ?? 1;
+                frameRate.Update(elapsedRealTime, 1.0 / elapsedRealTime);
+                this["FPS"] = $"{1 / gameTime.ElapsedGameTime.TotalSeconds:0.0} - {frameRate.SmoothedValue:0.0}";
+                if (frameRate.SmoothedValue < 50)
+                    FormattingOptions["FPS"] = FormatOption.RegularRed;
+                else
+                    FormattingOptions["FPS"] = null;
+            }
+        }
+
+        private class GraphicsDebugInfo : DebugInfoBase
         {
             public override string Get(string name)
             {
@@ -527,10 +548,6 @@ namespace Orts.TrackViewer
                 DebugInfo.Add("PixelShaders", null);
                 DebugInfo.Add("VertexShaders", null);
             }
-
-            public NameValueCollection DebugInfo => this;
-
-            public Dictionary<string, FormatOption> FormattingOptions => new Dictionary<string, FormatOption>();
         }
     }
 }

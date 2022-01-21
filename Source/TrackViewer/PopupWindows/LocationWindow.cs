@@ -23,13 +23,19 @@ namespace Orts.TrackViewer.PopupWindows
         private readonly MouseInputGameComponent input;
         private MouseState lastMouseState;
         private const double piRad = 180 / Math.PI;
-        ContentArea content;
+        private ContentArea contentArea;
         Label locationLabel;
 
-        public LocationWindow(WindowManager owner, Point relativeLocation) :
-            base(owner, CatalogManager.Catalog.GetString("World Coordinates"), relativeLocation, new Point(200, 200))
+        public LocationWindow(WindowManager owner, ContentArea contentArea, Point relativeLocation) :
+            base(owner, CatalogManager.Catalog.GetString("World Coordinates"), relativeLocation, new Point(200, 64))
         {
             input = Owner.Game.Components.OfType<MouseInputGameComponent>().Single();
+            this.contentArea = contentArea;
+        }
+
+        internal void GameWindow_OnContentAreaChanged(object sender, ContentAreaChangedEventArgs e)
+        {
+            contentArea = e.ContentArea;
         }
 
         protected override ControlLayout Layout(ControlLayout layout, float headerScaling)
@@ -46,11 +52,10 @@ namespace Orts.TrackViewer.PopupWindows
         protected override void Update(GameTime gameTime)
         {
             ref readonly MouseState mouseState = ref input.MouseState;
-            if (mouseState != lastMouseState)
+            if (contentArea != null && mouseState != lastMouseState)
             {
                 lastMouseState = mouseState;
-                Point worldPoint = Point.Zero;
-                ;// = content.ScreenToWorldCoordinates(mouseState.Position);
+                Point worldPoint = contentArea.ScreenToWorldCoordinates(mouseState.Position);
                 WorldLocation location = new WorldLocation(0, 0, worldPoint.X, 0, worldPoint.Y, true);
                 (double latitude, double longitude) = EarthCoordinates.ConvertWTC(location);
 

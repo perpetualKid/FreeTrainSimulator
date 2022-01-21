@@ -13,6 +13,16 @@ using Orts.TrackViewer.PopupWindows;
 
 namespace Orts.TrackViewer
 {
+    public class ContentAreaChangedEventArgs: EventArgs
+    {
+        public ContentArea ContentArea { get; }
+
+        public ContentAreaChangedEventArgs(ContentArea contentArea)
+        { 
+            ContentArea = contentArea;
+        }
+    }
+
     public partial class GameWindow : Game
     {
         private Folder selectedFolder;

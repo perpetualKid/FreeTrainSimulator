@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Numerics;
 
 using Microsoft.Xna.Framework;
+
+using Orts.Common.Calc;
 
 namespace Orts.Common.DebugInfo
 {
@@ -76,4 +77,23 @@ namespace Orts.Common.DebugInfo
             return HashCode.Combine(TextColor, FontStyle);
         }
     }
+
+#pragma warning disable CA1010 // Generic interface should also be implemented
+    public class DebugInfoBase : NameValueCollection, INameValueInformationProvider
+#pragma warning restore CA1010 // Generic interface should also be implemented
+    {
+        public DebugInfoBase()
+        {
+        }
+
+        public virtual void Update(GameTime gameTime)
+        {
+        }
+        public virtual NameValueCollection DebugInfo => this;
+
+#pragma warning disable CA2227 // Collection properties should be read only
+        public virtual Dictionary<string, FormatOption> FormattingOptions { get; protected set; }
+#pragma warning restore CA2227 // Collection properties should be read only
+    }
+
 }

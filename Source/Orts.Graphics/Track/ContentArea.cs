@@ -343,7 +343,7 @@ namespace Orts.Graphics.Track
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal Vector2 WorldToScreenCoordinates(in WorldLocation worldLocation)
+        public Vector2 WorldToScreenCoordinates(in WorldLocation worldLocation)
         {
             double x = worldLocation.TileX * WorldLocation.TileSize + worldLocation.Location.X;
             double y = worldLocation.TileZ * WorldLocation.TileSize + worldLocation.Location.Z;
@@ -352,20 +352,20 @@ namespace Orts.Graphics.Track
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal PointD ScreenToWorldCoordinates(in Point screenLocation)
+        public PointD ScreenToWorldCoordinates(in Point screenLocation)
         {
             return new PointD(offsetX + screenLocation.X / Scale, offsetY + (WindowSize.Y - screenLocation.Y) / Scale);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal Vector2 WorldToScreenCoordinates(in PointD location)
+        public Vector2 WorldToScreenCoordinates(in PointD location)
         {
             return new Vector2((float)(Scale * (location.X - offsetX)),
                                (float)(WindowSize.Y - Scale * (location.Y - offsetY)));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal float WorldToScreenSize(double worldSize, int minScreenSize = 1)
+        public float WorldToScreenSize(double worldSize, int minScreenSize = 1)
         {
             return Math.Max((float)Math.Ceiling(worldSize * Scale), minScreenSize);
         }
